@@ -91,13 +91,13 @@ static inline u16 _gpAdvanceAreaCd(void)
             D_80114C70 = LOADING_AREA_INIT;
             D_80114C74 = 1;
         case 1:
-            if (func_800AA120()) {
+            if (loadingPollAreaBaseResources()) {
                 Gp_AreaCdPhase = LOADING_AREA_INIT;
                 D_80114C74++;
             }
             return 0;
         case 2:
-            if (Gp_PollAreaCdLoads()) {
+            if (loadingPollAreaPlacementFiles()) {
                 return 1;
             }
         default:
@@ -176,7 +176,7 @@ void func_800AA548(s32 arg0)
         spawnOptions.initialAnimationId = 0x23;
         spawnOptions.startScripted      = 0;
         playerActorSpawn(&D_80114CB0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &spawnOptions);
-        Gp_SetupCompanionActor(&warpEntry.companion, &spawnOptions);
+        companionSpawnScheduledActor(&warpEntry.companion, &spawnOptions);
         gDisplayState.control.flags.pendingPlayerPos = 0;
     } else {
         playerId                        = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
@@ -184,7 +184,7 @@ void func_800AA548(s32 arg0)
         spawnOptions.startScripted      = warpEntry.flags & DIRECTION_WARP_FLAG_SCRIPTED_PLAYER;
         playerActorSpawn(&warpEntry.player, (s8)playerId & 0xFFFF, 0, &spawnOptions);
         spawnOptions.startScripted = 0;
-        Gp_SetupCompanionActor(&warpEntry.companion, &spawnOptions);
+        companionSpawnScheduledActor(&warpEntry.companion, &spawnOptions);
     }
     model                    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
     model->texturePageOffset = 6;
@@ -199,7 +199,7 @@ void func_800AA548(s32 arg0)
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB)) {
         taskSpawn((s32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene, 1, 0, 0);
     }
-    Gp_SpawnPlaces(sess);
+    areaSpawnRoomObjects(sess);
     areaSpawnPlacements(sess);
     sceneResetCombatState();
     taskSpawn(1, 0xF, 0, 0);

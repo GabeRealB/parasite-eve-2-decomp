@@ -336,7 +336,12 @@ static inline void _itemMenuVisitPaneChildren(const UiObject* pane, UiObjectTask
 }
 
 /// Sets both live transfer panes to browsing or swap-partner selection.
-static inline void _itemMenuSetTransferPaneState(_ItemMenuMoveWork* work, s32 state)
+///
+/// Borrows screen work with focusedPane 0 or 1 and both pane owners live.
+/// `state` is ITEM_MENU_PANE_BROWSING (1) or
+/// ITEM_MENU_PANE_CHOOSING_SWAP_PARTNER (2), stored in each task's s32 state.
+/// Updates the focused owner first; panel lifecycle and input focus are separate.
+static inline void _itemMenuSetTransferPaneState(const _ItemMenuMoveWork* work, s32 state)
 {
     work->panes[work->focusedPane]->owner->state     = state;
     work->panes[work->focusedPane ^ 1]->owner->state = state;

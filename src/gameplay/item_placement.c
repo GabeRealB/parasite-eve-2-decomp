@@ -243,60 +243,73 @@ static void Gp_SpawnPlaceById(u16 arg0)
     }
 }
 
-void Gp_SpawnPlaces(GameLocationKey* arg0)
+/// Applies a matched room object's key, kind and root placement.
+///
+/// Borrows a live model-backed enemy and place. XYZ use game units in the
+/// root's parent frame; yaw uses 4096 units per turn, narrowed to s16.
+/// Zero yaw records zero while keeping the existing matrix rotation.
+/// `task` must be this enemy's live task with a TMD body and root coordinate.
+static inline void _areaApplyRoomObjectPlacement(Task* task, Enemy* enemy, const AreaObjectPlace* place)
 {
-    AreaObjectRoom*  rooms;
+    TmdObject* model;
+    GfxCoord*  root;
+
+    model              = task->extra.tmd;
+    root               = model->coords;
+    enemy->placeKey    = place->flagIndex | (place->placeKeyHigh << ENEMY_PLACE_STAGE_SHIFT);
+    enemy->workType    = place->kind;
+    root->coord.t[0]   = place->x;
+    root->coord.t[1]   = place->y;
+    root->coord.t[2]   = place->z;
+    root->param.rot.vy = place->yaw;
+    if (root->param.rot.vy != 0) {
+        gfxRotMatrixY(&root->coord, (s16)place->yaw, GRAPHICS_ROTATION_REPLACE);
+    }
+    root->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+void areaSpawnRoomObjects(const GameLocationKey* location)
+{
+    AreaObjectRoom*  areaObjects;
     AreaObjectPlace* place;
-    AreaObjectSpawn* spawn;
+    AreaObjectSpawn* spawnEntry;
     Enemy*           enemy;
     Task*            task;
-    TmdObject*       extra;
-    GfxCoord*        coord;
-    u16              term;
-    u16              id;
+    u16              tableEnd;
+    u16              spawnKind;
 
-    rooms = Gp_Bit2Banks[arg0->stage].rooms;
-    if (rooms == NULL) {
+    areaObjects = Gp_Bit2Banks[location->stage].rooms;
+    if (areaObjects == NULL) {
         return;
     }
-    place = rooms[arg0->area].places.list;
+    place = areaObjects[location->area].places.list;
     if (place == NULL) {
         return;
     }
-    term = AREA_OBJECT_PLACE_END;
-    if (place->flagIndex == term) {
+    // Both lists use 0xFFFF; retain one halfword for the nested comparisons.
+    tableEnd = AREA_OBJECT_PLACE_END;
+    if (place->flagIndex == tableEnd) {
         return;
     }
     do {
-        spawn = rooms[arg0->area].spawns;
-        id    = spawn->kind;
-        if (id != term) {
+        spawnEntry = areaObjects[location->area].spawns;
+        spawnKind  = spawnEntry->kind;
+        if (spawnKind != tableEnd) {
             do {
-                if (id == place->kind) {
-                    enemy = enemySpawnFromTable(&spawn->taskDesc, 0, spawn->kind, NULL);
+                if (spawnKind == place->kind) {
+                    enemy = enemySpawnFromTable(&spawnEntry->taskDesc, 0, spawnEntry->kind, NULL);
                     if (enemy != NULL) {
                         task = enemy->task;
                         if (task->bodyKind != TASK_BODY_NONE) {
-                            extra               = task->extra.tmd;
-                            coord               = extra->coords;
-                            enemy->placeKey     = place->flagIndex | (place->placeKeyHigh << ENEMY_PLACE_STAGE_SHIFT);
-                            enemy->workType     = place->kind;
-                            coord->coord.t[0]   = place->x;
-                            coord->coord.t[1]   = place->y;
-                            coord->coord.t[2]   = place->z;
-                            coord->param.rot.vy = place->yaw;
-                            if (coord->param.rot.vy != 0) {
-                                gfxRotMatrixY(&coord->coord, (s16)place->yaw, 1);
-                            }
-                            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                            _areaApplyRoomObjectPlacement(task, enemy, place);
                         }
                     }
                     break;
                 }
-                spawn++;
-                id = spawn->kind;
-            } while (id != term);
+                spawnEntry++;
+                spawnKind = spawnEntry->kind;
+            } while (spawnKind != tableEnd);
         }
         place++;
-    } while (place->flagIndex != term);
+    } while (place->flagIndex != tableEnd);
 }

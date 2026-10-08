@@ -48,7 +48,7 @@ extern u16 Gp_ReplayButtons;
 
 extern u16 Gp_ReplayFramesLeft;
 
-/// Word cleared by _attachmentArmCast and incremented by Gp_UseItemTask.
+/// Word cleared by _attachmentArmCast and incremented by _attachmentUpdateAndDrawHud.
 extern s32 D_80114C34;
 
 /// Read position in the recorded demo pad stream: button/count pairs.

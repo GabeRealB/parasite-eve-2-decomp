@@ -685,7 +685,7 @@ the copied local does:
 ```
 
 100.000%, 0 differences. The `"+r"` asm makes the copied value opaque, so the
-copy has to be materialized and the branch reads its result. `func_800AA120`
+copy has to be materialized and the branch reads its result. `loadingPollAreaBaseResources`
 (`gameplay/D4.c`) is the only other site in the ROM with this shape and is
 matched the same way — `next = D_80114C68; TOUCH_REG(next);` ahead of
 `if (next == NULL)` — so reach for `TOUCH_REG` here rather than a bare copy.
@@ -27030,7 +27030,7 @@ queue->suppressMoviePresentation = 1;
 ```
 
 That forces `sw s4` / `addiu s4,%lo` in the prologue and `sh v0,0x20a(s4)`
-at the store. `Gp_RestartSessionTask` is the example. Bare `gCdCmdQueue.suppressMoviePresentation = 1`
+at the store. `playClockRestartSessionTask` is the example. Bare `gCdCmdQueue.suppressMoviePresentation = 1`
 stuck at 95.6% with only the frame / `$s4` save-restore different.
 
 ## Two `&global`s: force `addiu v0, %lo` then `move dest` (not `addiu dest`)
@@ -32625,7 +32625,7 @@ if (id != term) {
 ```
 
 Passing `id` into the call becomes `move a2, v1` instead of `lhu a2, 0(v1)`.
-`Gp_SpawnPlaces` is the example.
+`areaSpawnRoomObjects` is the example.
 
 ## Reserve typed scratch, then load the source before staging a zero offset
 
@@ -35404,7 +35404,7 @@ if (rec10->id == 0) {
 ```
 
 The empty `asm volatile("")` before `match = rec10` stops `-fdelayed-branch`
-from filling the `!= 0xFF` `beq` with `move a1, a0`. `Gp_PollAreaCdLoads` is the
+from filling the `!= 0xFF` `beq` with `move a1, a0`. `loadingPollAreaPlacementFiles` is the
 example.
 
 ## Pin `ptr + 1` to `$v0` so the increment dest is not `$a0`
@@ -35437,7 +35437,7 @@ param2[2] = cursor->field_D;
 ```
 
 Same as the fade TILE RGB “per-branch stores” idea: the store must land
-before independent setup of the next call. `Gp_PollAreaCdLoads` is the example.
+before independent setup of the next call. `loadingPollAreaPlacementFiles` is the example.
 
 ## Fresh `lui a0` for a loop-continue reload when `$t0` already holds `%hi`
 
@@ -35459,7 +35459,7 @@ Emit the pair (non-volatile, so the scheduler can place them):
 }
 ```
 
-Same split-`la` style as `Gp_SpawnPlaceById` / `itemMenuConsumableChoiceListTask`. `Gp_PollAreaCdLoads`
+Same split-`la` style as `Gp_SpawnPlaceById` / `itemMenuConsumableChoiceListTask`. `loadingPollAreaPlacementFiles`
 is the example.
 
 ## Separate vertex-base locals so each `gte_ldv3` can overwrite `$a0`
@@ -38239,7 +38239,7 @@ target label*. So two byte-identical blocks that both `j` to a third label are
 left alone, while a block that falls into a label is merged with everything that
 jumps to it.
 
-`func_800AA120` walks a list and, for three different conditions, runs the same
+`loadingPollAreaBaseResources` walks a list and, for three different conditions, runs the same
 `cdCmdEnqueue` preamble. The ROM has **three verbatim copies** of the
 `param1[3]=0; param1[0]=0; val=rec->fileNumber; if (val >= 100) {...}` head,
 but only **one** copy of the `< 100` else-branch and of the `param1[2]=…; jal
@@ -38299,7 +38299,7 @@ renders the second as `D_x + 0x2`); the linked bytes are identical either way.
 `loop.c`'s `combine_movables` merges every `(set reg (const_int K))` in a loop
 that has the same value, sums their `savings`, and then `move_movables` hoists
 the single survivor to the loop preheader. This bites when the same sentinel is
-compared at several nesting levels. In `func_800AA120` the byte `0xFF`
+compared at several nesting levels. In `loadingPollAreaBaseResources` the byte `0xFF`
 terminator is tested in three places inside the outer loop — an entry guard, the
 inner search loop, and the outer loop's own exit test. The ROM keeps three
 separate `addiu rX, $zero, 0xFF` (one of them hoisted only as far as the *inner*
@@ -38320,7 +38320,7 @@ break the merge all cost more than they save:
   is not a movable at all) puts the `li` in exactly the right place but again
   trades the constant hoist for the `lui` hoist.
 
-No formulation found that avoids both; `func_800AA120` is parked at 98.7% for
+No formulation found that avoids both; `loadingPollAreaBaseResources` is parked at 98.7% for
 this reason. Worth retrying if a future function reveals the actual rule
 `move_movables` uses to decline a hoist.
 
@@ -66342,7 +66342,7 @@ The output was previously declared as a direction vector, but the stores are
 
 ## Share only the loop-exit update before LICM; preserve adjacent symbols separately
 
-`func_800AA120` matched on retry from the archived seed, without register pins.
+`loadingPollAreaBaseResources` matched on retry from the archived seed, without register pins.
 The seed's three duplicated enqueue arms are necessary for the division blocks
 and cross-jumped tails, but their three phase increments are not. In `.loop`,
 the phase-address `high` had savings 3 and lifetime 9, so `move_movables` hoisted
@@ -69541,7 +69541,7 @@ Separately, reversing chained vector assignment destinations corrects the six st
 
 ## An exact-symbol extern can split a CSE'd global HIGH without losing relocations
 
-`Gp_PollAreaCdLoads` already keeps `%hi(Gp_CdRecCur)` live in `$t0` around its
+`loadingPollAreaPlacementFiles` already keeps `%hi(Gp_CdRecCur)` live in `$t0` around its
 main loop, so a second plain field read reuses that HIGH and deletes the ROM's
 fresh `lui $a0`. A block-local extern with a different C name and the exact
 assembler name survives CSE as `symbol_ref ("*Gp_CdRecCur")`; GNU as still
@@ -150346,7 +150346,7 @@ attempts; left as it was.
   does not match either: loop.c then puts `mark_outside` *behind* the
   hand-placed fill block.
 - **One mention of a global in a loop is not hoisted, three are**
-  (`func_800AA120`). Its three queue arms each jumped to a shared
+  (`loadingPollAreaBaseResources`). Its three queue arms each jumped to a shared
   `D_80114C70++; break;`. With the increment written in all three, loop.c
   hoists the symbol's `lui` out of the loop; with one increment
   after the arms and `continue` in the skip arm the skip arm is laid out

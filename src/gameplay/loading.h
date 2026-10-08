@@ -38,24 +38,47 @@ enum {
     LOADING_AREA_WAIT  = 2
 };
 
-/// Phase for `Gp_PollAreaCdLoads` (0 init, 1 walk/enqueue, 2 wait idle).
-/// `Gp_LoadWaitAreaCd` clears it when phase 1 (`func_800AA120`) finishes
+/// Phase for `loadingPollAreaPlacementFiles` (0 init, 1 walk/enqueue, 2 wait idle).
+/// `Gp_LoadWaitAreaCd` clears it when phase 1 (`loadingPollAreaBaseResources`) finishes
 /// so phase 2 can start.
 extern s16 Gp_AreaCdPhase;
 
-/// Phase for `func_800AA120`. `Gp_LoadWaitAreaCd` clears it when entering
+/// Phase for `loadingPollAreaBaseResources`. `Gp_LoadWaitAreaCd` clears it when entering
 /// its own phase 1.
 extern u16 D_80114C70;
 
-/// Phase for `Gp_LoadWaitAreaCd` (0 init, 1 `func_800AA120`, 2 `Gp_PollAreaCdLoads`).
+/// Phase for `Gp_LoadWaitAreaCd` (0 init, 1 `loadingPollAreaBaseResources`, 2 `loadingPollAreaPlacementFiles`).
 /// `loadingPrepareAreaStateTask` clears it when advancing to this task state.
 extern u16 D_80114C74;
 
-/// Queues additional files selected by the layout's placements; returns 1 when finished.
-u16 Gp_PollAreaCdLoads(void);
+/// Polls serialized additional-file loads selected by the saved area's placements.
+///
+/// Returns 0 while walking or waiting for CD idle, and 1 on completion.
+/// Start with `Gp_AreaCdPhase == LOADING_AREA_INIT`, after
+/// `loadingPollAreaBaseResources` finishes. Both passes share cursors and
+/// must run serially, with the same live saved destination and loaded layout.
+/// The layout lookup must succeed: its placements are read before the NULL
+/// test. Missing tables complete immediately. Live nonzero entry IDs must
+/// match a resource with file-group selector 0..8 and a catalogued file number.
+/// Both tables must retain their `AREA_PLACEMENT_END` records through loading.
+/// Requests borrow stack bytes only until enqueue returns. Texture offsets
+/// retain their signed bytes: X counts 64-word VRAM columns, CLUT Y counts rows.
+u16 loadingPollAreaPlacementFiles(void);
 
-/// Queues the layout's base resources and their texture relocation; returns 1 when finished.
-u16 func_800AA120(void);
+/// Polls serialized base-resource loads for the saved area's layout.
+///
+/// Returns 0 while walking or waiting for CD idle, and 1 on completion.
+/// Start with `D_80114C70 == LOADING_AREA_INIT`; the saved destination and
+/// loaded layout/tables must remain valid until both area-loading passes finish.
+/// The layout lookup must succeed: its resources are read before the NULL
+/// test. A NULL resource table completes immediately; a live resource table
+/// requires a placement table, both ended by `AREA_PLACEMENT_END`.
+/// File-group selectors are 0..8 and file numbers must name catalogued files.
+/// Base-60 resources load only if an entry has a placement with fileIdLow=0;
+/// other groups load even without one. The first such placement supplies signed
+/// texture offsets, or zero offsets when absent. Enqueue copies each request;
+/// the next resource is visited only after the entire CD queue becomes idle.
+u16 loadingPollAreaBaseResources(void);
 
 extern const TaskFuncTable3 Gp_SessionStates;
 

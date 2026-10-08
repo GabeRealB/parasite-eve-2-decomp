@@ -15,6 +15,18 @@ void playClockInitializeTask(Task* task);
 
 void Gp_TickPlayClock(Task* task);
 
-void Gp_RestartSessionTask(Task* arg0);
+/// Ends the play session after the death/ending wait and starts restart presentation.
+///
+/// State 4 of the play-clock task, entered with spawnArg1.value=0 and the
+/// death-sound completion latch in killCountdown. Waits 26 callback ticks,
+/// then stops sound, blocks input, discards tasks/ordering tables and reuses
+/// their heaps. The task becomes invalid during this call; neither caller nor
+/// task walker may inspect it afterwards. Previous GPU and heap users must be
+/// finished or disposable. CD cancellation is asynchronous.
+/// Preserve-display mode leaves VRAM/image source intact; other modes clear
+/// the 320-by-512-word display region. Clears the complete session location.
+/// Ending mode selects smaller primitive/auxiliary regions and skips playback
+/// buffer reservation; every mode starts the restart-presentation loader.
+void playClockRestartSessionTask(Task* task);
 
 #endif // GAMEPLAY_PRIVATE_MODEL_LIGHTING_H

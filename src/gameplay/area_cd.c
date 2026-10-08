@@ -8,8 +8,11 @@
 #include "main/mc.h"
 #include "main/task_types.h"
 
-enum { LOADING_AREA_FILE_COMMAND = 0x21,
-       LOADING_FILE_ID_RADIX     = 100 };
+enum { LOADING_FILE_ID_RADIX = 100 };
+
+/// Zero entry IDs skip additional loads; a zero file index selects the base resource.
+enum { LOADING_AREA_UNUSED_PLACEMENT_ENTRY = 0,
+       LOADING_AREA_BASE_FILE_INDEX        = 0 };
 
 /* Define BSS before API headers to preserve first-declaration order. */
 s16 Gp_AreaCdPhase;
@@ -39,16 +42,43 @@ u32 D_8010CAC8[2] = { 0, 0xE1EFCD00 };
 /// File-group base selected by each `AreaResource.fileGroupIndex` value.
 u16 D_8010CAD0[9] = { 10, 20, 30, 40, 50, 60, 0, 1, 2 };
 
-u16 Gp_PollAreaCdLoads(void)
+/// Queues the current placement's additional file with its signed image relocation.
+///
+/// Borrows the live placement/resource cursors. Their IDs must match, and the
+/// resource's file-group selector must be 0..8 with a catalogued file number.
+/// X offsets count 64-word VRAM columns; Y offsets count CLUT rows. Enqueue
+/// copies the four-byte records synchronously; key byte 1 is ignored.
+static inline void _loadingQueueCurrentPlacementFile(void)
 {
-    u8            fileKey[8];
-    u8            fileParams[8];
-    AreaVariant*  layout;
-    AreaResource* resource;
-    s32           fileNumber;
+    _LoadingFileKey  fileKey;
+    _LoadingFileArgs fileParams;
+    AreaResource*    resource;
+    s32              fileNumber;
+
+    fileKey.stage     = 0;
+    fileKey.fileIndex = Gp_CdRecCur->fileIdLow;
+    resource          = D_80114C68;
+    fileNumber        = resource->fileNumber;
+    if (fileNumber >= LOADING_FILE_ID_RADIX) {
+        fileParams.fileIdHundreds = fileNumber % LOADING_FILE_ID_RADIX;
+        fileKey.fileGroup         = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
+    } else {
+        fileParams.fileIdHundreds = resource->fileNumber;
+        fileKey.fileGroup         = D_8010CAD0[resource->fileGroupIndex];
+    }
+    fileParams.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+    fileParams.imageXPageOffset = Gp_CdRecCur->texturePageOffset;
+    fileParams.imageYOffset     = Gp_CdRecCur->clutRowOffset;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &fileParams);
+}
+
+u16 loadingPollAreaPlacementFiles(void)
+{
+    AreaVariant* layout;
 
     switch (Gp_AreaCdPhase) {
         case LOADING_AREA_INIT:
+            // The loaded destination must resolve before either table is read.
             layout      = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             D_80114C64  = layout;
             Gp_CdRecCur = layout->placements;
@@ -64,7 +94,7 @@ u16 Gp_PollAreaCdLoads(void)
             Gp_AreaCdPhase++;
         case LOADING_AREA_QUEUE:
             while (Gp_CdRecCur->entryId != AREA_PLACEMENT_END) {
-                if (Gp_CdRecCur->entryId == 0) {
+                if (Gp_CdRecCur->entryId == LOADING_AREA_UNUSED_PLACEMENT_ENTRY) {
                     Gp_CdRecCur++;
                     continue;
                 }
@@ -73,26 +103,12 @@ u16 Gp_PollAreaCdLoads(void)
                         break;
                     }
                 }
-                if (Gp_CdRecCur->fileIdLow == 0) {
+                if (Gp_CdRecCur->fileIdLow == LOADING_AREA_BASE_FILE_INDEX) {
                     Gp_CdRecCur++;
                     continue;
                 }
                 // Load this placement's additional file with its texture relocation.
-                fileKey[3] = 0;
-                fileKey[0] = Gp_CdRecCur->fileIdLow;
-                resource   = D_80114C68;
-                fileNumber = resource->fileNumber;
-                if (fileNumber >= LOADING_FILE_ID_RADIX) {
-                    fileParams[0] = fileNumber % LOADING_FILE_ID_RADIX;
-                    fileKey[2]    = D_8010CAD0[resource->fileGroupIndex] + (resource->fileNumber / LOADING_FILE_ID_RADIX);
-                } else {
-                    fileParams[0] = resource->fileNumber;
-                    fileKey[2]    = D_8010CAD0[resource->fileGroupIndex];
-                }
-                fileParams[1] = 0;
-                fileParams[2] = Gp_CdRecCur->texturePageOffset;
-                fileParams[3] = Gp_CdRecCur->clutRowOffset;
-                cdCmdEnqueue(LOADING_AREA_FILE_COMMAND, fileKey, fileParams);
+                _loadingQueueCurrentPlacementFile();
                 Gp_AreaCdPhase++;
                 break;
             }
@@ -101,7 +117,7 @@ u16 Gp_PollAreaCdLoads(void)
             }
             break;
         case LOADING_AREA_WAIT:
-            if (cdCmdIsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle()) {
                 Gp_CdRecCur++;
                 Gp_AreaCdPhase--;
             }
@@ -140,7 +156,7 @@ static inline void _loadingQueueAreaResource(const AreaResource* resource, s16 t
     cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, commandArgs);
 }
 
-u16 func_800AA120(void)
+u16 loadingPollAreaBaseResources(void)
 {
     AreaVariant*  layout;
     AreaResource* resource;
@@ -148,6 +164,7 @@ u16 func_800AA120(void)
 
     switch (D_80114C70) {
         case LOADING_AREA_INIT:
+            // The loaded destination must resolve before either table is read.
             layout     = areaGetVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             D_80114C64 = layout;
             D_80114C68 = layout->resources;
@@ -165,13 +182,14 @@ u16 func_800AA120(void)
                 if (Gp_CdRecCur->entryId != AREA_PLACEMENT_END) {
                     entryId = D_80114C68->entryId;
                     while (Gp_CdRecCur->entryId != AREA_PLACEMENT_END) {
-                        if (Gp_CdRecCur->entryId == entryId && Gp_CdRecCur->fileIdLow == 0) {
+                        if (Gp_CdRecCur->entryId == entryId && Gp_CdRecCur->fileIdLow == LOADING_AREA_BASE_FILE_INDEX) {
                             D_80114C72 = 1;
                             break;
                         }
                         Gp_CdRecCur++;
                     }
                 }
+                // Base-60 files are optional unless a base placement names them.
                 resource = D_80114C68;
                 if (resource->fileGroupIndex != AREA_RESOURCE_FILE_GROUP_BASE_60) {
                     if (D_80114C72 != 0) {
@@ -194,7 +212,7 @@ u16 func_800AA120(void)
             }
             break;
         case LOADING_AREA_WAIT:
-            if (cdCmdIsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle()) {
                 D_80114C68++;
                 D_80114C70--;
             }

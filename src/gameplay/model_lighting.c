@@ -2832,9 +2832,13 @@ void gameDebugApplyInputOverride(s32 overrideMode, u16* buttons)
 
 /// Initializes deterministic demo playback after the play clock's initial tick sample.
 ///
-/// Requires a demo display and a loaded, word-aligned save-and-input resource.
-/// The serialized prefix precedes native u16 button/duration pairs; only that
-/// stream is viewed as halfwords. Reset order preserves the startup timing.
+/// `display` must be the resident display state, with a nonzero demo selector.
+/// Requires the selected 0x18000-byte save-and-input resource to stay loaded
+/// and word-aligned throughout playback. Fixed replay uses development RAM;
+/// other demo selectors use actor-load buffer 2. The serialized prefix precedes
+/// native u16 button/duration pairs, ended by a 0xFFFF button word; only that
+/// stream is viewed as halfwords. Invalidating the cache makes the first replay
+/// update install its duration. Reset order preserves the startup timing.
 static inline void _gameDebugInitializePlayReplay(DisplayState* display)
 {
     enum {
@@ -3008,59 +3012,83 @@ void Gp_TickPlayClock(Task* task)
     }
 }
 
-void Gp_RestartSessionTask(Task* arg0)
+/// Stops traversal and discards session tasks and their frame packets before heap reuse.
+///
+/// Borrows the resident display; previous task/GPU users must be disposable
+/// or finished. The current task cannot be inspected after discarding the list.
+static inline void _playClockDiscardSessionTasksAndPackets(DisplayState* display)
 {
-    RECT          rect;
-    DisplayState* ds;
+    display->stopTaskWalk = 1;
+    taskResetDefaultList();
+    gpuClearFrameOrderingTable(0);
+    gpuClearFrameOrderingTable(1);
+}
+
+void playClockRestartSessionTask(Task* task)
+{
+    enum {
+        PLAY_CLOCK_RESTART_FADE_STEP                   = 10,
+        PLAY_CLOCK_RESTART_FADE_LIMIT                  = 256,
+        PLAY_CLOCK_RESTART_FADE_TERMINAL               = 255,
+        PLAY_CLOCK_RESTART_MIDI_FADE_AUDIO_TICKS       = 8,
+        PLAY_CLOCK_RESTART_SCRIPT_FADE_AUDIO_TICKS     = 120,
+        PLAY_CLOCK_RESTART_CLEAR_WIDTH_WORDS           = 320,
+        PLAY_CLOCK_RESTART_CLEAR_HEIGHT_ROWS           = 512,
+        PLAY_CLOCK_ENDING_PRIMITIVE_HEAP_BYTES         = 0xB000,
+        PLAY_CLOCK_ENDING_AUXILIARY_HEAP_BYTES         = 0x30000,
+        PLAY_CLOCK_ENDING_PRIMITIVE_BEFORE_IMAGE_BYTES = 0x35800,
+        PLAY_CLOCK_ENDING_AUXILIARY_BEFORE_IMAGE_BYTES = 0xA800
+    };
+    RECT          clearRegion;
+    DisplayState* display;
     GameSession*  session;
     CdCmdQueue*   queue;
-    s32           flag;
+    s32           terminalFadeValue;
 
     queue = &gCdCmdQueue;
-    playClockAdvanceDeathSound(&arg0->killCountdown);
-    arg0->spawnArg1.value += 0xA;
-    if (arg0->spawnArg1.value < 0x100) {
+    playClockAdvanceDeathSound(&task->killCountdown);
+    task->spawnArg1.value += PLAY_CLOCK_RESTART_FADE_STEP;
+    if (task->spawnArg1.value < PLAY_CLOCK_RESTART_FADE_LIMIT) {
         return;
     }
     if (gGameSession->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
         SetDispMask(0);
     }
-    sndEvtRequestMidiStop(0, 8);
-    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x78);
-    sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, 0x78);
-    flag                  = 0xFF;
-    arg0->spawnArg1.value = flag;
+    sndEvtRequestMidiStop(0, PLAY_CLOCK_RESTART_MIDI_FADE_AUDIO_TICKS);
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, PLAY_CLOCK_RESTART_SCRIPT_FADE_AUDIO_TICKS);
+    sndEvtRequestScriptStop(SOUND_STAGE_AMBIENT, PLAY_CLOCK_RESTART_SCRIPT_FADE_AUDIO_TICKS);
+    terminalFadeValue     = PLAY_CLOCK_RESTART_FADE_TERMINAL;
+    task->spawnArg1.value = terminalFadeValue;
     padStartInputBlock(0);
     gameClearTaskSlots();
-    ds               = &gDisplayState;
-    ds->stopTaskWalk = 1;
-    taskResetDefaultList();
-    gpuClearFrameOrderingTable(0);
-    gpuClearFrameOrderingTable(1);
+    // Retire task traversal and GPU packets before resetting their storage.
+    display = &gDisplayState;
+    _playClockDiscardSessionTasksAndPackets(display);
     memInitHeaps();
     cdCmdRequestCancel();
     session                          = gGameSession;
     queue->suppressMoviePresentation = 1;
     if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
-        rect.w = 0x140;
-        rect.y = 0;
-        rect.x = 0;
-        rect.h = 0x200;
-        ClearImage(&rect, 0, 0, 0);
+        clearRegion.w = PLAY_CLOCK_RESTART_CLEAR_WIDTH_WORDS;
+        clearRegion.y = 0;
+        clearRegion.x = 0;
+        clearRegion.h = PLAY_CLOCK_RESTART_CLEAR_HEIGHT_ROWS;
+        ClearImage(&clearRegion, 0, 0, 0);
         DrawSync(0);
-        ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
+        display->control.flags.imageSource = DISPLAY_IMAGE_NONE;
     }
     memset(&gGameSession->location, 0, sizeof(gGameSession->location));
     memConfigureImageMemory(GAME_STAGE_NONE, 0);
-    if (gGameSession->restartMode == flag) {
-        Gpu_PrimHeapSize   = 0xB000;
-        GActiveAuxHeapSize = 0x30000;
-        Gpu_PrimHeapBase   = (u8*)Fs_ImgBuffers - 0x35800;
-        gMemActiveAuxHeap  = (u8*)Fs_ImgBuffers - 0xA800;
+    // Subtract byte addresses to locate separate heaps before the image workspace.
+    if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
+        Gpu_PrimHeapSize   = PLAY_CLOCK_ENDING_PRIMITIVE_HEAP_BYTES;
+        GActiveAuxHeapSize = PLAY_CLOCK_ENDING_AUXILIARY_HEAP_BYTES;
+        Gpu_PrimHeapBase   = (u8*)((u32)Fs_ImgBuffers - PLAY_CLOCK_ENDING_PRIMITIVE_BEFORE_IMAGE_BYTES);
+        gMemActiveAuxHeap  = (void*)((u32)Fs_ImgBuffers - PLAY_CLOCK_ENDING_AUXILIARY_BEFORE_IMAGE_BYTES);
     }
     memInitHeaps();
     memInitAuxHeap();
-    if (gGameSession->restartMode != flag) {
+    if (gGameSession->restartMode != GAME_SESSION_RESTART_ENDING) {
         cdCmdReservePlaybackBuffers();
     }
     taskSpawnFromTable(&D_8010D1FC, 0, 0, 0);

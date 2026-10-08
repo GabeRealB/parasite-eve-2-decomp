@@ -28,7 +28,16 @@ s32 companionSelectForArea(void);
 /// policy only; it neither loads nor releases a bank immediately.
 void companionConfigureSoundBankRetention(void);
 
-void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, ActorSpawnOptions* options);
+/// Spawns the saved companion family with its area-selected resources and schedule.
+///
+/// Family 0 does nothing; families 1..3 require their resources already loaded.
+/// Family 2 passes its schedule nibble (0..10) as the actor's spawn argument;
+/// other families pass zero, separately from their saved resource variant.
+/// Borrows the transform and options during the spawn. The companion uses only
+/// initialAnimationId; the caller's stack options may expire on return.
+/// Failure to allocate the actor is ignored. Requires live save/task state and
+/// no existing companion that still needs the registered companion slot.
+void companionSpawnScheduledActor(const ActorSpawnTransform* spawnTransform, ActorSpawnOptions* options);
 
 /// Marks the saved stage and area visited, requesting a pose reset on the area's first visit.
 ///

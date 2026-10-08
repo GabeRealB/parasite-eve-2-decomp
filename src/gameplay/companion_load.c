@@ -279,18 +279,20 @@ void companionConfigureSoundBankRetention(void)
     sndLoadSetFirstCharacterBankRetention(_companionShouldRetainSoundBank());
 }
 
-void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, ActorSpawnOptions* options)
+void companionSpawnScheduledActor(const ActorSpawnTransform* spawnTransform, ActorSpawnOptions* options)
 {
-    McSaveData* save;
-    s32         field;
+    enum { COMPANION_SPAWN_DEFAULT_SCHEDULE = 0 };
+    const McSaveData* save;
+    s32               companionType;
 
-    save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    field = save->state.companionType;
-    if (field != 0) {
-        if (field == 2) {
+    save          = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    companionType = save->state.companionType;
+    if (companionType != COMPANION_TYPE_NONE) {
+        // The actor's fixed schedule is distinct from the resource variant.
+        if (companionType == COMPANION_TYPE_FAMILY_2) {
             companionSpawnActor(spawnTransform, save->state.companionType, gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE), options);
         } else {
-            companionSpawnActor(spawnTransform, field, 0, options);
+            companionSpawnActor(spawnTransform, companionType, COMPANION_SPAWN_DEFAULT_SCHEDULE, options);
         }
     }
 }

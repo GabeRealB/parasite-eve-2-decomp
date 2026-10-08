@@ -114,7 +114,7 @@ static __inline__ s32 _attachmentIsBattleSoundLoadReady(void);
 
 static __inline__ u8 _attachmentPreviewSoundLoadStub(void);
 
-static void Gp_UseItemTask(HudState* hud);
+static void _attachmentUpdateAndDrawHud(HudState* hud);
 
 u16 D_80113CFC[8] = {
     100,
@@ -1261,32 +1261,62 @@ static __inline__ u8 _attachmentPreviewSoundLoadStub(void)
     return 0;
 }
 
-static void Gp_UseItemTask(HudState* hud)
+/// Leaves wheel/cast input control and resumes ordinary actor updates.
+///
+/// Changes only the attachment mode and its two player/actor control gates;
+/// callers separately settle menu, sound and effect state.
+static inline void _attachmentResumeActors(void)
 {
-    PlayerStatus* cfg;
-    Task*         work;
+    Gp_StateC08.mode               = ATTACHMENT_MODE_IDLE;
+    D_80115768                     = 0;
+    gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
+}
+
+/// Advances Parasite Energy selection/casting and draws its wheel or cast gauge.
+///
+/// Borrows writable HUD state for one frame. Requires live player/save/session,
+/// attachment, pad and rendering state; reaching the wheel requires a player
+/// task with GameActor work. Active abilities must index the saved use counts
+/// and level tables; item abilities also require the selected inventory row.
+/// Spell indices are 0..11, item abilities 12..18, and levels select one of
+/// three sound files. Casting consumes MP, or twice that cost in HP for
+/// Berserker while retaining at least 1 HP. Use counts saturate at 9999.
+/// Buff/cast durations and the release input delay count callback frames.
+/// Wheel input holds actors; cancel/release resumes them. Preview targeting
+/// borrows HUD storage, and the inert preview-sound hook clears its request.
+static void _attachmentUpdateAndDrawHud(HudState* hud)
+{
+    enum {
+        ATTACHMENT_HUD_PANEL_X_PIXELS         = 9,
+        ATTACHMENT_HUD_PANEL_Y_PIXELS         = 60,
+        ATTACHMENT_RELEASE_INPUT_DELAY_FRAMES = 20,
+        ATTACHMENT_USE_COUNT_LIMIT            = 9999
+    };
+    PlayerStatus* player;
+    Task*         playerTask;
     GameActor*    actor;
     PadState*     pad;
-    s32           flag;
-    s32           idx;
-    s32           lvl;
-    s32           sndId;
-    s32           x;
-    s32           ok;
-    s32           y;
+    s32           selectionChanged;
+    s32           selectedLevel;
+    s32           activeLevel;
+    s32           soundFileIndex;
+    s32           panelX;
+    s32           canOpenWheel;
+    s32           panelY;
     u8            mode;
-    u8            side;
-    u16           mask;
+    u8            wheelMode;
+    u16           confirmButtons;
 
-    cfg                  = &gPlayerStatus;
-    flag                 = 0;
+    player               = &gPlayerStatus;
+    selectionChanged     = 0;
     hud->previewCastCost = 0;
+    // Complete the armed cast's sound request before processing wheel input.
     if (Gp_StateC08.soundStep == ATTACHMENT_SOUND_QUEUED) {
         if (++D_80114C34 > 0) {
-            lvl   = _attachmentGetEffectiveLevel(Gp_StateC08.activeIndex);
-            sndId = Gp_StateC08.activeIndex * 3 + lvl;
+            activeLevel    = _attachmentGetEffectiveLevel(Gp_StateC08.activeIndex);
+            soundFileIndex = Gp_StateC08.activeIndex * ATTACHMENT_AREA_LEVEL_COUNT + activeLevel;
             if (_sceneIsBattleActive()) {
-                sndLoadEnqueuePeFile(sndId);
+                sndLoadEnqueuePeFile(soundFileIndex);
             }
             Gp_StateC08.soundStep    = ATTACHMENT_SOUND_PLAYED;
             Gp_StateC08.previewSound = 0;
@@ -1294,9 +1324,9 @@ static void Gp_UseItemTask(HudState* hud)
         }
     }
 
-    x                    = 9;
-    y                    = 0x3C;
-    y                   -= gDisplayState.vramYOffset;
+    panelX               = ATTACHMENT_HUD_PANEL_X_PIXELS;
+    panelY               = ATTACHMENT_HUD_PANEL_Y_PIXELS;
+    panelY              -= gDisplayState.vramYOffset;
     hud->field_E         = 0;
     gGameSession->uiOpen = 0;
     if (Gp_StateC08.flags & ATTACHMENT_FLAG_APPLY_STATS) {
@@ -1304,6 +1334,7 @@ static void Gp_UseItemTask(HudState* hud)
         Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_APPLY_STATS;
     }
 
+    // Buff timers pause while selecting a spell on the wheel.
     if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
         if (Gp_StateC08.antibodyTicks <= 0 || --Gp_StateC08.antibodyTicks <= 0) {
             Gp_StateC08.antibodyCombo = 0;
@@ -1316,17 +1347,17 @@ static void Gp_UseItemTask(HudState* hud)
         }
     }
     if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
-        if (gGameSession->padPressed & 0x50) {
-            work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            if (work != NULL) {
-                ((GameActor*)work->work)->padHeld |= 0x40;
+        if (gGameSession->padPressed & (PAD_BUTTON_TRIANGLE | PAD_BUTTON_CROSS)) {
+            playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            if (playerTask != NULL) {
+                GameActor* cancellingActor = playerTask->work;
+
+                cancellingActor->padHeld |= PAD_BUTTON_CROSS;
             }
-            Gp_StateC08.mode               = ATTACHMENT_MODE_IDLE;
-            D_80115768                     = 0;
-            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_StateC08.menuOpen           = ATTACHMENT_MENU_CLOSED;
+            _attachmentResumeActors();
+            Gp_StateC08.menuOpen = ATTACHMENT_MENU_CLOSED;
             if (_sceneIsBattleActive()) {
-                _hudDrawWeaponSupplyPrompt(x, y);
+                _hudDrawWeaponSupplyPrompt(panelX, panelY);
             }
             return;
         }
@@ -1334,16 +1365,16 @@ static void Gp_UseItemTask(HudState* hud)
 
     // Open the wheel from idle when the pad asks, or when a script forces it.
     if (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE && Gp_StateC08.queuedIndex == 0) {
-        ok = _hudCanSwitchCategory(0);
-        if ((ok != 0 && (gGameSession->padPressed & 0x10) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
+        canOpenWheel = _hudCanSwitchCategory(0);
+        if ((canOpenWheel != 0 && (gGameSession->padPressed & PAD_BUTTON_TRIANGLE) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
              !(Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) ||
             (Gp_StateC08.flags & ATTACHMENT_FLAG_OPEN_WHEEL)) {
             Gp_StateC08.menuOpen           = ATTACHMENT_MENU_OPEN;
             Gp_StateC08.flags             &= ATTACHMENT_FLAG_CLEAR_OPEN_WHEEL;
-            side                           = Gp_StateC08.mode ^ ATTACHMENT_MODE_WHEEL;
-            Gp_StateC08.mode               = side;
-            D_80115768                     = side;
-            gSceneCombatState.actorControl = side;
+            wheelMode                      = Gp_StateC08.mode ^ ATTACHMENT_MODE_WHEEL;
+            Gp_StateC08.mode               = wheelMode;
+            D_80115768                     = wheelMode;
+            gSceneCombatState.actorControl = wheelMode;
             if (Gp_StateC08.wheelIndex >= ATTACHMENT_SPELL_COUNT) {
                 Gp_StateC08.wheelIndex = 0;
             }
@@ -1355,10 +1386,10 @@ static void Gp_UseItemTask(HudState* hud)
                     Gp_StateC08.wheelIndex = ATTACHMENT_INDEX_HEALING;
                 }
             }
-            flag = 1;
+            selectionChanged = 1;
         } else {
             if (_sceneIsBattleActive()) {
-                _hudDrawWeaponSupplyPrompt(x, y);
+                _hudDrawWeaponSupplyPrompt(panelX, panelY);
             }
             return;
         }
@@ -1372,35 +1403,33 @@ static void Gp_UseItemTask(HudState* hud)
             Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_CHARGE;
             Gp_StateC08.mode        = ATTACHMENT_MODE_CAST;
         }
-        _hudDrawAttachmentCastGauge(hud, x, y);
+        _hudDrawAttachmentCastGauge(hud, panelX, panelY);
         if (Gp_StateC08.mode == ATTACHMENT_MODE_CAST) {
             Gp_StateC08.duration--;
         }
         if (Gp_StateC08.duration <= 0) {
             if (_attachmentIsBattleSoundLoadReady()) {
-                Gp_StateC08.mode               = ATTACHMENT_MODE_IDLE;
-                D_80115768                     = 0;
-                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                Gp_StateC08.menuOpen           = ATTACHMENT_MENU_CLOSED;
-                Gp_StateC08.effectPhase        = ATTACHMENT_EFFECT_RELEASED;
-                Gp_ItemGrantCooldown           = 0x14;
+                _attachmentResumeActors();
+                Gp_StateC08.menuOpen    = ATTACHMENT_MENU_CLOSED;
+                Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_RELEASED;
+                Gp_ItemGrantCooldown    = ATTACHMENT_RELEASE_INPUT_DELAY_FRAMES;
                 cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
-                if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
-                    cfg->hp -= attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_CAST_COST) * 2;
-                    if (cfg->hp <= 0) {
-                        cfg->hp = 1;
+                if (player->statusFlags & PLAYER_STATUS_BERSERKER) {
+                    player->hp -= attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_CAST_COST) * 2;
+                    if (player->hp <= 0) {
+                        player->hp = 1;
                     }
                 } else {
-                    cfg->mp -= attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_CAST_COST);
-                    if (cfg->mp < 0) {
-                        cfg->mp = 0;
+                    player->mp -= attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_CAST_COST);
+                    if (player->mp < 0) {
+                        player->mp = 0;
                     }
                 }
                 if (Gp_StateC08.activeIndex >= ATTACHMENT_SPELL_COUNT) {
                     itemSetIdentified(Gp_SelItemRec->itemId, 1);
                     inventoryRemoveItemRow(NULL, Gp_SelItemRec, 0);
                 }
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.activeIndex] < 0x270F) {
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.activeIndex] < ATTACHMENT_USE_COUNT_LIMIT) {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachUseCounts[Gp_StateC08.activeIndex]++;
                 }
                 Gp_StateC08.soundStep = ATTACHMENT_SOUND_IDLE;
@@ -1413,24 +1442,22 @@ static void Gp_UseItemTask(HudState* hud)
         }
 
         if ((Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK) ||
-            (Gp_StateC08.activeIndex < ATTACHMENT_SPELL_COUNT && (gGameSession->padPressed & 0x40))) {
+            (Gp_StateC08.activeIndex < ATTACHMENT_SPELL_COUNT && (gGameSession->padPressed & PAD_BUTTON_CROSS))) {
             gGameSession->loadedSndId = 0;
             cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
             if (Gp_StateC08.mode >= ATTACHMENT_MODE_ARMED) {
                 Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_CANCELLED;
             }
-            Gp_StateC08.queuedIndex        = 0;
-            Gp_StateC08.mode               = ATTACHMENT_MODE_IDLE;
-            D_80115768                     = 0;
-            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            Gp_StateC08.previewSound       = 0;
-            Gp_StateC08.soundStep          = ATTACHMENT_SOUND_IDLE;
+            Gp_StateC08.queuedIndex = 0;
+            _attachmentResumeActors();
+            Gp_StateC08.previewSound = 0;
+            Gp_StateC08.soundStep    = ATTACHMENT_SOUND_IDLE;
         }
         return;
     }
 
-    if (_attachmentUpdateAndDrawWheel(hud, x, y) != 0) {
-        flag = 1;
+    if (_attachmentUpdateAndDrawWheel(hud, panelX, panelY) != 0) {
+        selectionChanged = 1;
     }
     actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
     if ((Gp_StateC08.queuedIndex != 0 && actor->mode == GAME_ACTOR_MODE_SCRIPTED) || (Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) {
@@ -1440,11 +1467,11 @@ static void Gp_UseItemTask(HudState* hud)
         Gp_StateC08.queuedIndex != 0) {
         if (_attachmentIsBattleSoundLoadReady()) {
             pad                        = &gPadStates[0];
-            mask                       = Pad_MaskConfirm;
-            pad->pressedButtons       &= ~mask;
-            gGameSession->padPressed  &= ~mask;
-            gGameSession->padHeld     &= ~mask;
-            gGameSession->padReleased &= ~mask;
+            confirmButtons             = Pad_MaskConfirm;
+            pad->pressedButtons       &= ~confirmButtons;
+            gGameSession->padPressed  &= ~confirmButtons;
+            gGameSession->padHeld     &= ~confirmButtons;
+            gGameSession->padReleased &= ~confirmButtons;
             if (Gp_StateC08.queuedIndex != 0) {
                 Gp_StateC08.activeIndex = Gp_StateC08.queuedIndex;
                 Gp_StateC08.wheelIndex  = Gp_StateC08.queuedIndex;
@@ -1460,9 +1487,9 @@ static void Gp_UseItemTask(HudState* hud)
     if (Gp_StateC08.mode != ATTACHMENT_MODE_IDLE) {
         attachmentDispatchTargetArea(ATTACHMENT_TARGET_PREVIEW, hud);
     }
-    if (flag) {
-        idx                      = _attachmentGetEffectiveLevel(Gp_StateC08.wheelIndex);
-        Gp_StateC08.previewSound = Gp_StateC08.wheelIndex * 3 + idx;
+    if (selectionChanged) {
+        selectedLevel            = _attachmentGetEffectiveLevel(Gp_StateC08.wheelIndex);
+        Gp_StateC08.previewSound = Gp_StateC08.wheelIndex * ATTACHMENT_AREA_LEVEL_COUNT + selectedLevel;
     }
     if (Gp_StateC08.previewSound > 0) {
         if (_attachmentPreviewSoundLoadStub() == 0) {
@@ -1856,7 +1883,7 @@ void Gp_HudTask(HudState* hud)
                     }
                 }
             }
-            Gp_UseItemTask(hud);
+            _attachmentUpdateAndDrawHud(hud);
             Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_EVENT_LOCK;
             if (Gp_ItemGrantCooldown > 0) {
                 Gp_ItemGrantCooldown = Gp_ItemGrantCooldown - 1;
