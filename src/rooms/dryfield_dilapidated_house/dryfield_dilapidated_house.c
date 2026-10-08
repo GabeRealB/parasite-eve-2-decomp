@@ -196,7 +196,7 @@ static void _dryfieldDilapidatedHouseCopyModelVisibility(TmdObject* model, const
 static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0);
 static void func_dryfield_dilapidated_house_8017E014(Task* task);
 static void func_dryfield_dilapidated_house_80180B84(Task* task);
-static void func_dryfield_dilapidated_house_80180F5C(Task* arg0);
+static void _dryfieldDilapidatedHouseMorphAttachmentUpdate(Task* task);
 static void _dryfieldDilapidatedHouseCurveDebugInit(Task* task);
 static void _dryfieldDilapidatedHouseCurveDebugUpdate(Task* task);
 static void _dryfieldDilapidatedHouseRingBeamInit(Task* task);
@@ -236,22 +236,22 @@ extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B50[3];
 extern PadScriptVibrationSegment  D_dryfield_dilapidated_house_80189B64[2];
 extern SVECTOR                    D_dryfield_dilapidated_house_80189CA0[40];
 static s32                        _dryfieldDilapidatedHouseRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-s32                               func_dryfield_dilapidated_house_8017E574(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32                        _dryfieldDilapidatedHouseResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32                        _dryfieldDilapidatedHouseIgnoreRoomCommand(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-s32                               func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32                        _dryfieldDilapidatedHouseStartEncounterMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 void                              func_dryfield_dilapidated_house_8017DE88(Task*);
 void                              func_dryfield_dilapidated_house_8017E144(Task*);
 void                              func_dryfield_dilapidated_house_8017E2B0(Task*);
 static void                       _dryfieldDilapidatedHouseHeadTrackTask(Task* task);
 static void                       _dryfieldDilapidatedHouseShakeYTask(Task* task);
-void                              func_dryfield_dilapidated_house_8017E858(Task*);
+static void                       _dryfieldDilapidatedHouseModeExitCountdownTask(Task* task);
 static void                       _dryfieldDilapidatedHouseSetHeadTrackState(s32 state);
-void                              func_dryfield_dilapidated_house_8017E8C8(void);
+static void                       _dryfieldDilapidatedHouseCancelEffects(void);
 void                              func_dryfield_dilapidated_house_8017E8E8(s32);
 static void                       _dryfieldDilapidatedHouseSetBlackoutDelay(s32 delayFrames);
 void                              func_dryfield_dilapidated_house_8017EA10(s32);
-void                              func_dryfield_dilapidated_house_8017EA7C(void);
-void                              func_dryfield_dilapidated_house_80180F04(Task*);
+static void                       _dryfieldDilapidatedHouseLockAttachmentsForEvent(void);
+static void                       _dryfieldDilapidatedHouseMorphAttachmentTask(Task* task);
 static void                       _dryfieldDilapidatedHouseCurveDebugTask(Task* task);
 static void                       _dryfieldDilapidatedHouseCappedBeamTask(Task* task);
 static void                       _dryfieldDilapidatedHouseMorphConeTask(Task* task);
@@ -275,9 +275,9 @@ RECT gScreenNegativeStripRect = { 0, 0, 16, 240 };
 enum { DRYFIELD_DILAPIDATED_HOUSE_MESSAGE_USE_KEY_ITEM = 5105 };
 
 TaskMessageEntry D_dryfield_dilapidated_house_80183E8C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_dilapidated_house_8017E574 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldDilapidatedHouseResolveRoomEvent },
     { DRYFIELD_DILAPIDATED_HOUSE_MESSAGE_USE_KEY_ITEM, _dryfieldDilapidatedHouseRejectKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_dilapidated_house_8017E68C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldDilapidatedHouseStartEncounterMsg },
     { ROOM_MESSAGE_COMMAND, _dryfieldDilapidatedHouseIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -290,7 +290,7 @@ TaskDesc D_dryfield_dilapidated_house_80183EB4[4] = {
 };
 
 TaskDesc D_dryfield_dilapidated_house_80183EE4[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_dilapidated_house_8017E858, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldDilapidatedHouseModeExitCountdownTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -553,7 +553,7 @@ EvsCommand D_dryfield_dilapidated_house_80184C60[24] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_dilapidated_house_801842E8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_dilapidated_house_8018427C }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_dilapidated_house_8017E8C8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldDilapidatedHouseCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -564,7 +564,7 @@ EvsCommand D_dryfield_dilapidated_house_80184C60[24] = {
 };
 
 EvsCommand D_dryfield_dilapidated_house_80184EA0[78] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_dilapidated_house_8017EA7C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldDilapidatedHouseLockAttachmentsForEvent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_dryfield_dilapidated_house_80183F40 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 10 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 25 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -848,7 +848,7 @@ SVECTOR D_dryfield_dilapidated_house_80186844[2] = {
 };
 
 TaskDesc D_dryfield_dilapidated_house_80186854[4] = {
-    { { { TASK_BODY_TMD, 192 } }, func_dryfield_dilapidated_house_80180F04, { .model = &_gDryfieldDilapidatedHouseModel08794 } },
+    { { { TASK_BODY_TMD, 192 } }, _dryfieldDilapidatedHouseMorphAttachmentTask, { .model = &_gDryfieldDilapidatedHouseModel08794 } },
     { { { TASK_BODY_TMD, 192 } }, _dryfieldDilapidatedHouseCurveDebugTask, { .model = &_gDryfieldDilapidatedHouseModel08D0C } },
     { { { TASK_BODY_COORD, 192 } }, _dryfieldDilapidatedHouseCappedBeamTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, _dryfieldDilapidatedHouseMorphConeTask, { .value = 0 } },
@@ -2728,46 +2728,52 @@ static s32 _dryfieldDilapidatedHouseRejectKeyItem(Task* task, s32 messageId, s32
     return 0;
 }
 
-/// Message gate for the room's second hotspot. It copies the incoming record to
-/// the outgoing one and then writes the answer the caller acts on to the copy's
-/// `room`, returning 0 when the message was consumed and 1 when it was not.
+/// Resolves the warehouse variant and blocks departures requiring room dialogue.
 ///
-/// The copy is the `RoomEventMsg` assignment; the rest is two independent id
-/// checks. While the session is in the room (`gGameSession->location.loc.stage` is 2), a
-/// type-7 record with no sub-id answers 1, or the session's own value when flag
-/// nibble 0x3C is set. A type-7 record in play (`gSceneCombatState.signals.bytes.battlePhase` is 1) runs
-/// CAP command 0x14 and a type-5 record runs 0x13, each only when the sub-id is
-/// clear; everything else is left to the caller and answers 1.
-s32 func_dryfield_dilapidated_house_8017E574(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Borrows a complete request and writable reply, which may alias. Executed
+/// Dryfield warehouse requests select room 1 before its event or room 2 after it.
+/// Warehouse departures during battle and all back-street departures return 0;
+/// execution starts their CAP events, while queries suppress them. Other areas
+/// return 1 to permit the transition. The receiver and message ID are unused.
+static s32 _dryfieldDilapidatedHouseResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    u8 s1;
+    enum {
+        WAREHOUSE_ROOM_BEFORE_EVENT = 1,
+        WAREHOUSE_ROOM_AFTER_EVENT  = 2,
+        CAP_EVENT_BACK_STREET       = 0x13,
+        CAP_EVENT_WAREHOUSE_BATTLE  = 0x14,
+        TRANSITION_BLOCKED          = 0,
+        TRANSITION_ALLOWED          = 1,
+    };
 
-    *out = *in;
-    s1   = gGameSession->location.loc.stage;
-    if (s1 == 2) {
-        if (in->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+    u8 stage;
+
+    *reply = *request;
+    stage  = gGameSession->location.loc.stage;
+    if (stage == GAME_STAGE_DRYFIELD) {
+        if (request->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 if (gameFlagGetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) == 0) {
-                    out->room = 1;
+                    reply->room = WAREHOUSE_ROOM_BEFORE_EVENT;
                 } else {
-                    out->room = s1;
+                    reply->room = WAREHOUSE_ROOM_AFTER_EVENT;
                 }
             }
         }
     }
-    if ((in->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) && (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            capSpawnEventIfIdle(0x14, CAP_EVENT_NO_FLAGS);
+    if ((request->areaId == GAME_AREA_DRYFIELD_WAREHOUSE) && (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED)) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            capSpawnEventIfIdle(CAP_EVENT_WAREHOUSE_BATTLE, CAP_EVENT_NO_FLAGS);
         }
-        return 0;
+        return TRANSITION_BLOCKED;
     }
-    if (in->areaId == GAME_AREA_DRYFIELD_BACK_STREET) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            capSpawnEventIfIdle(0x13, CAP_EVENT_NO_FLAGS);
+    if (request->areaId == GAME_AREA_DRYFIELD_BACK_STREET) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            capSpawnEventIfIdle(CAP_EVENT_BACK_STREET, CAP_EVENT_NO_FLAGS);
         }
-        return 0;
+        return TRANSITION_BLOCKED;
     }
-    return 1;
+    return TRANSITION_ALLOWED;
 }
 
 /// Ignores room-command messages and returns zero; both payload words are unused.
@@ -2776,14 +2782,21 @@ static s32 _dryfieldDilapidatedHouseIgnoreRoomCommand(Task* task, s32 messageId,
     return 0;
 }
 
-s32 func_dryfield_dilapidated_house_8017E68C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Starts the encounter's introductory script once for room action 1.
+///
+/// Borrows a four-byte action request during synchronous dispatch; only its
+/// action ID is read. Latches the encounter before starting its script with
+/// the skip sequence and HUD restoration. Always returns 0; other arguments
+/// are unused, and later action-1 requests leave the encounter unchanged.
+static s32 _dryfieldDilapidatedHouseStartEncounterMsg(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { ACTION_START_ENCOUNTER = 1,
+           ENCOUNTER_NOT_STARTED  = 0 };
 
     u8 actionId;
 
     actionId = request->actionId;
-    if ((actionId == 1) && (D_dryfield_dilapidated_house_80183EFC == 0)) {
+    if ((actionId == ACTION_START_ENCOUNTER) && (D_dryfield_dilapidated_house_80183EFC == ENCOUNTER_NOT_STARTED)) {
         D_dryfield_dilapidated_house_80183EFC = actionId;
         evsStartScriptWithSkip(D_dryfield_dilapidated_house_80184408, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_dilapidated_house_80184C60);
     }
@@ -2856,18 +2869,23 @@ static void _dryfieldDilapidatedHouseShakeYTask(Task* task)
     }
 }
 
-void func_dryfield_dilapidated_house_8017E858(Task* arg0)
+/// Requests stage-mode exit after the spawn-argument countdown becomes negative.
+///
+/// A nonnegative `spawnArg1.value` takes that many ticks plus two to exit.
+/// The retained countdown is reloaded and decremented even after task teardown;
+/// this callback requires deferred task collection.
+static void _dryfieldDilapidatedHouseModeExitCountdownTask(Task* task)
 {
-    s32 var_v0;
+    s32 framesLeft;
 
-    var_v0 = arg0->spawnArg1.value;
-    if (var_v0 < 0) {
+    framesLeft = task->spawnArg1.value;
+    if (framesLeft < 0) {
         stageRequestModeTaskExit();
-        taskKill(arg0);
-        var_v0 = arg0->spawnArg1.value;
+        taskKill(task);
+        framesLeft = task->spawnArg1.value;
     }
-    var_v0                = var_v0 - 1;
-    arg0->spawnArg1.value = var_v0;
+    framesLeft            = framesLeft - 1;
+    task->spawnArg1.value = framesLeft;
 }
 
 /// State handlers of the task `_dryfieldDilapidatedHouseCurveDebugTask` dispatches.
@@ -2887,10 +2905,10 @@ static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D634 = {
       _dryfieldDilapidatedHouseMorphConeExit },
 };
 
-/// State handlers of the task `func_dryfield_dilapidated_house_80180F04`
+/// State handlers of the task `_dryfieldDilapidatedHouseMorphAttachmentTask`
 /// dispatches.
 static const TaskFuncTable3 D_dryfield_dilapidated_house_8017D640 = {
-    { func_dryfield_dilapidated_house_80180B84, func_dryfield_dilapidated_house_80180F5C, taskKill },
+    { func_dryfield_dilapidated_house_80180B84, _dryfieldDilapidatedHouseMorphAttachmentUpdate, taskKill },
 };
 
 /// Sets the cutscene's head tracking state, if its task exists.
@@ -2904,8 +2922,10 @@ static void _dryfieldDilapidatedHouseSetHeadTrackState(s32 state)
     }
 }
 
-/// Script command that calls `roomEffectRequestCancelAll`.
-void func_dryfield_dilapidated_house_8017E8C8(void)
+/// Requests ordinary and parasite-energy effect cancellation at the next update.
+///
+/// Used as the encounter script's cleanup callback with a live room-effect state.
+static void _dryfieldDilapidatedHouseCancelEffects(void)
 {
     roomEffectRequestCancelAll();
 }
@@ -2987,9 +3007,11 @@ void func_dryfield_dilapidated_house_8017EA10(s32 arg0)
     }
 }
 
-/// Script command that calls `roomEffectRequestCancelAll` and sets bit 0 of
-/// `Gp_StateC08.flags`.
-void func_dryfield_dilapidated_house_8017EA7C(void)
+/// Cancels effects and locks Parasite Energy selection for the scripted event.
+///
+/// Requires live room-effect and attachment state. The cancellation takes effect
+/// on the next update; the event lock remains set for later code to release.
+static void _dryfieldDilapidatedHouseLockAttachmentsForEvent(void)
 {
     roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
@@ -3010,15 +3032,12 @@ static void func_dryfield_dilapidated_house_8017EAB4(Task* arg0)
     arg0->state            += 1;
 }
 
-/// The room task: runs its current state out of
-/// `D_dryfield_dilapidated_house_8017D5C4`, copied onto the stack - setup, the
-/// room gate, then `taskKill`.
-void func_dryfield_dilapidated_house_8017EB60(Task* task)
+void dryfieldDilapidatedHouseRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_dilapidated_house_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_dilapidated_house_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Draws red crosses at the debug path's eight local control-point entries.
@@ -3660,30 +3679,40 @@ static void func_dryfield_dilapidated_house_80180B84(Task* task)
     task->state       += 1;
 }
 
-/// Runs the task's current state out of `D_dryfield_dilapidated_house_8017D640`,
-/// copied onto the stack: `func_dryfield_dilapidated_house_80180B84`,
-/// `func_dryfield_dilapidated_house_80180F5C`, then `taskKill`.
-void func_dryfield_dilapidated_house_80180F04(Task* task)
+/// Runs the morphing model attachment and its beam and cone children.
+///
+/// `spawnArg2.pointer` borrows a live parent model task; `spawnArg1.value`
+/// selects an existing coordinate in that model. States are 0 setup, 1 update,
+/// and 2 teardown; other indices are invalid. The parent and shared morph record
+/// must outlive updates. Teardown releases the children and owned work block.
+static void _dryfieldDilapidatedHouseMorphAttachmentTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_dilapidated_house_8017D640;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_dilapidated_house_8017D640;
+    stateHandlers.funcs[task->state](task);
 }
 
-static void func_dryfield_dilapidated_house_80180F5C(Task* arg0)
+/// Updates the attachment's visibility, transform and shared Q12 morph progress.
+///
+/// Requires setup-owned work, saved rest vertices and a live spawning model.
+/// The parent coordinate chain is composed into the attachment matrix; progress
+/// advances by 68 toward `ONE` and drives both beam and cone children.
+static void _dryfieldDilapidatedHouseMorphAttachmentUpdate(Task* task)
 {
     _DryfieldDilapidatedHouseMorphWork* work;
-    s32                                 temp_v0;
+    Task*                               parentTask;
+    s32                                 morphProgress;
 
-    work = arg0->work;
-    _dryfieldDilapidatedHouseCopyModelVisibility(arg0->extra.tmd,
-                                                 ((Task*)arg0->spawnArg2.pointer)->extra.tmd);
-    _dryfieldDilapidatedHouseUpdateAttachmentTransform(arg0);
-    temp_v0          = _dryfieldDilapidatedHouseAdvanceMorph(arg0);
-    work->morphLevel = temp_v0;
-    work->coneLevel  = temp_v0;
-    work->beamLevel  = temp_v0;
+    work       = task->work;
+    parentTask = task->spawnArg2.pointer;
+    _dryfieldDilapidatedHouseCopyModelVisibility(task->extra.tmd,
+                                                 parentTask->extra.tmd);
+    _dryfieldDilapidatedHouseUpdateAttachmentTransform(task);
+    morphProgress    = _dryfieldDilapidatedHouseAdvanceMorph(task);
+    work->morphLevel = morphProgress;
+    work->coneLevel  = morphProgress;
+    work->beamLevel  = morphProgress;
 }
 
 /// Releases the morph attachment task through ordinary task teardown.
@@ -4225,99 +4254,121 @@ static void _dryfieldDilapidatedHouseDrawTwinTrail(s16 newestSlot, s16 colorMult
     SCRATCH_STACK_RELEASE_BLOCK(OverlayFlaggedQuadScratch);
 }
 
-/// Per-frame state machine of the room's fire blast effect: state 0 seeds its
-/// `EffectWork` (0xC0 / 0x500 in `scale` and `angle`, a 12-bit `gRandomLcgState`
-/// draw in `period` as the flicker sprite's roll, a `effectSpawn` and a
-/// fade quad), maps the task's own coordinate onto
-/// `gWorldCoordTransientPointLights[0]` and spawns the ring of `0x60275` flame effects, then
-/// re-parents each onto this task. State 1 steps the angle by 0x40 per frame
-/// and runs two more draws against the same coordinate. While
-/// `gRoomEffectState->effectControl` is not running the frame counter is rolled back and the work
-/// block is released at cancellation or once the angle passes
-/// 0x580.
-void func_dryfield_dilapidated_house_80182744(Task* task)
+void dryfieldDilapidatedHouseFireBlastTask(Task* task)
 {
+    enum {
+        FIRE_BLAST_INITIALIZE         = 0,
+        FIRE_BLAST_EXPAND             = 1,
+        FIRE_BLAST_INTENSITY          = 192,
+        FIRE_BLAST_FLASH_RADIUS       = 1280,
+        FIRE_BLAST_EXPANSION_RADIUS   = 896,
+        FIRE_BLAST_RADIUS_STEP        = 64,
+        FIRE_BLAST_LAST_RADIUS        = 1408,
+        FIRE_BLAST_LIGHT_FRAMES       = 4,
+        FIRE_BLAST_LIGHT_INNER_RADIUS = 512,
+        FIRE_BLAST_LIGHT_OUTER_RADIUS = 8192,
+        FIRE_BLAST_LIGHT_BASE_Q12     = ONE / 2,
+        FIRE_BLAST_LIGHT_RANDOM_MASK  = 0x700,
+        FIRE_BLAST_RING_ANGLE_STEP    = 0x2AA,
+        FIRE_BLAST_RING_ANGLE_LIMIT   = 0x556,
+    };
+
     EffectWork*                    work;
     GfxCoord*                      coord;
     WorldCoordTransientPointLight* lightSlot;
     WorldCoordPointLight*          pointLight;
-    EffectWork*                    eff;
-    s16                            tick;
-    s16                            tick1;
-    s16                            size;
-    s32                            i;
-    u8                             rgb[3];
+    EffectWork*                    ringEffect;
+    s16                            previousAge;
+    s16                            age;
+    s32                            ringAngle;
+    u8                             flashRgb[3];
 
-    work       = task->spawnArg2.pointer;
-    coord      = task->extra.coordBody->coord;
-    tick       = work->age;
-    tick1      = tick + 1;
-    work->age  = tick1;
-    lightSlot  = &gWorldCoordTransientPointLights[0];
-    pointLight = &lightSlot->light;
+    work        = task->spawnArg2.pointer;
+    coord       = task->extra.coordBody->coord;
+    previousAge = work->age;
+    age         = previousAge + 1;
+    work->age   = age;
+    lightSlot   = &gWorldCoordTransientPointLights[0];
+    pointLight  = &lightSlot->light;
+
+/// Seeds transient point-light slot 0 from the blast's world-space origin.
+///
+/// Captures `coord`, `lightSlot`, `pointLight` and this function's light constants.
+/// The aliases must designate slot 0 and its `light` member. Advances the shared
+/// random generator once for Q12 red intensity 2048..3840, with half/quarter
+/// green/blue. Expiration is four gameplay frames; the slot remains borrowed.
+/// No arguments are evaluated; use as a standalone statement. Undefined below.
+#define DRYFIELD_DILAPIDATED_HOUSE_SEED_FIRE_BLAST_LIGHT()                                                                                         \
+    {                                                                                                                                              \
+        s16 lightIntensityQ12;                                                                                                                     \
+        gWorldCoordTransientPointLights[0].framesLeft      = FIRE_BLAST_LIGHT_FRAMES;                                                              \
+        pointLight->inner                                  = FIRE_BLAST_LIGHT_INNER_RADIUS;                                                        \
+        pointLight->outer                                  = FIRE_BLAST_LIGHT_OUTER_RADIUS;                                                        \
+        gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                       \
+        lightIntensityQ12                                  = ((gRandomLcgState >> 16) & FIRE_BLAST_LIGHT_RANDOM_MASK) + FIRE_BLAST_LIGHT_BASE_Q12; \
+        pointLight->head.color.r                           = lightIntensityQ12;                                                                    \
+        pointLight->head.color.g                           = lightIntensityQ12 >> 1;                                                               \
+        pointLight->head.color.b                           = lightIntensityQ12 >> 2;                                                               \
+        pointLight->head.transform.coord.coord.t[0]        = coord->coord.t[0];                                                                    \
+        pointLight->head.transform.coord.coord.t[1]        = coord->coord.t[1];                                                                    \
+        pointLight->head.transform.coord.coord.t[2]        = coord->coord.t[2];                                                                    \
+        lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;                                                                 \
+    }
 
     switch (task->state) {
-        case 0:
+        case FIRE_BLAST_INITIALIZE:
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                work->age = tick;
+                work->age = previousAge;
                 if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                     effectKillTask(work, task);
                 }
                 return;
             }
-            work->scale     = 0xC0;
-            work->angle     = 0x500;
+            // Seed the flash before resetting the radius for the expanding phase.
+            work->scale     = FIRE_BLAST_INTENSITY;
+            work->angle     = FIRE_BLAST_FLASH_RADIUS;
             work->index     = 0;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->period    = (gRandomLcgState >> 16) & 0xFFF;
+            work->period    = (gRandomLcgState >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
             effectSpawn(EFFECT_DRYFIELD_DILAPIDATED_HOUSE_FLAME_CONE, coord, 0, NULL);
-            rgb[0] = 0xFF;
-            rgb[1] = 0x7F;
-            rgb[2] = 0x3F;
-            effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-            gWorldCoordTransientPointLights[0].framesLeft      = 4;
-            pointLight->inner                                  = 0x200;
-            pointLight->outer                                  = 0x2000;
-            gRandomLcgState                                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            size                                               = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            pointLight->head.color.r                           = size;
-            pointLight->head.color.g                           = size >> 1;
-            pointLight->head.color.b                           = size >> 2;
-            pointLight->head.transform.coord.coord.t[0]        = coord->coord.t[0];
-            pointLight->head.transform.coord.coord.t[1]        = coord->coord.t[1];
-            pointLight->head.transform.coord.coord.t[2]        = coord->coord.t[2];
-            lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            i                                                  = 0;
+            flashRgb[0] = 0xFF;
+            flashRgb[1] = 0x7F;
+            flashRgb[2] = 0x3F;
+            effectDrawScreenTint(flashRgb, GPU_BLEND_ADD);
+            // The light uses Q12 colour and the blast origin's world translation.
+            DRYFIELD_DILAPIDATED_HOUSE_SEED_FIRE_BLAST_LIGHT();
             _spriteQuadDrawFlicker(coord, work->age, work->angle, work->period);
             glowDrawFlameDisc(coord, work->angle, work->scale >> 1);
-            work->angle = 0x380;
-            do {
-                eff = effectSpawn(EFFECT_DILAPIDATED_HOUSE_FLAME_RING, coord, i, NULL);
-                if (eff != NULL) {
-                    taskReparent(task, eff->task);
+            work->angle = FIRE_BLAST_EXPANSION_RADIUS;
+            // Successful rings become children so cancellation tears them down too.
+            for (ringAngle = 0; ringAngle < FIRE_BLAST_RING_ANGLE_LIMIT; ringAngle += FIRE_BLAST_RING_ANGLE_STEP) {
+                ringEffect = effectSpawn(EFFECT_DILAPIDATED_HOUSE_FLAME_RING, coord, ringAngle, NULL);
+                if (ringEffect != NULL) {
+                    taskReparent(task, ringEffect->task);
                 }
-                i += 0x2AA;
-            } while (i < 0x556);
-            task->state = 1;
+            }
+            task->state = FIRE_BLAST_EXPAND;
             return;
-        case 1:
+        case FIRE_BLAST_EXPAND:
             if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                work->age = tick;
+                work->age = previousAge;
                 if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                     effectKillTask(work, task);
                 }
                 return;
             }
-            _spriteQuadDrawFlicker(coord, tick1, work->angle, work->period);
+            _spriteQuadDrawFlicker(coord, age, work->angle, work->period);
             glowDrawFlameDisc(coord, work->angle, work->scale >> 1);
             glowDrawFlameDisc(coord, (u16)work->angle * 2, work->scale >> 1);
-            work->angle += 0x40;
-            if (work->angle >= 0x581) {
+            work->angle += FIRE_BLAST_RADIUS_STEP;
+            if (work->angle >= FIRE_BLAST_LAST_RADIUS + 1) {
                 effectKillTask(work, task);
             }
             break;
     }
 }
+
+#undef DRYFIELD_DILAPIDATED_HOUSE_SEED_FIRE_BLAST_LIGHT
 
 #include "../../shared/glow_draw_flame_band.inc.c"
 

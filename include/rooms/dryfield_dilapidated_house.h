@@ -48,7 +48,18 @@ void dryfieldDilapidatedHouseLightPrismTask(Task* task);
 /// values 2 or above. All instances overwrite the same histories at initialization.
 void dryfieldDilapidatedHouseTwinTrailTask(Task* task);
 
-void func_dryfield_dilapidated_house_80182744(Task* task);
+/// Flashes and expands No. 9's fire blast, spawning a cone and three tilted rings.
+///
+/// Effect slot 0x273 owns counted `EffectWork` in `spawnArg2.pointer` and a
+/// coordinate body with a composed world transform. Initialization draws an
+/// additive screen flash, replaces transient point-light slot 0 for four frames,
+/// and chooses a sprite roll in 4096 units per turn. `scale` holds intensity
+/// 192 in the 0..255 range, `angle` the sprite/disc radius factor, and `period`
+/// the retained roll.
+/// State 1 expands the radius from 896 by 64 per running frame, releasing the
+/// work and task after the radius passes 1408. Paused/hidden updates restore age;
+/// cancellation releases the work and attached rings. The cone is independent.
+void dryfieldDilapidatedHouseFireBlastTask(Task* task);
 
 /// Expands and fades the fire blast's flame cone (effect slot 0x274).
 ///
@@ -67,6 +78,14 @@ void dryfieldDilapidatedHouseFlameConeTask(Task* task);
 /// hidden frames do nothing; cancellation or intensity below nine releases it.
 void dryfieldDilapidatedHouseFlameRingTask(Task* task);
 
-void func_dryfield_dilapidated_house_8017EB60(Task* task);
+/// Runs the dilapidated-house encounter's room message and event controller.
+///
+/// The Dryfield map spawns this bodyless room task. States are 0 setup, 1 run,
+/// and 2 teardown; other indices are invalid. Setup registers the room receiver
+/// and starts blackout control, plus head tracking when placed actor 1 exists.
+/// The running state
+/// advances the latched encounter when the introductory event releases control.
+/// The room overlay and its state tables must remain loaded for the task's life.
+void dryfieldDilapidatedHouseRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_DILAPIDATED_HOUSE_H

@@ -668,7 +668,7 @@ dryfieldCellarDrawGlowsTask = 0x8017DAEC; // type:func absolute:True owner=dryfi
 
 dryfieldDilapidatedHouseTwinTrailTask = 0x80181F08; // type:func absolute:True owner=dryfield_dilapidated_house
 
-func_dryfield_dilapidated_house_80182744 = 0x80182744; // type:func absolute:True owner=dryfield_dilapidated_house
+dryfieldDilapidatedHouseFireBlastTask = 0x80182744; // type:func absolute:True owner=dryfield_dilapidated_house
 
 dryfieldDilapidatedHouseLightPrismTask = 0x80183BF8; // type:func absolute:True owner=dryfield_dilapidated_house
 

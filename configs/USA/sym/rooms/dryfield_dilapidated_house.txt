@@ -196,7 +196,7 @@ dryfieldDilapidatedHouseLightPrismTask = 0x80183BF8; // type:func
 
 dryfieldDilapidatedHouseTwinTrailTask = 0x80181F08; // type:func
 
-func_dryfield_dilapidated_house_80182744 = 0x80182744; // type:func
+dryfieldDilapidatedHouseFireBlastTask = 0x80182744; // type:func
 
 dryfieldDilapidatedHouseFlameConeTask = 0x80183C8C; // type:func
 
@@ -239,3 +239,11 @@ _dryfieldDilapidatedHouseCappedBeamTask = 0x801812e8; // type:func
 _dryfieldDilapidatedHouseMorphConeInit = 0x801814b4; // type:func
 _dryfieldDilapidatedHouseMorphConeUpdate = 0x80181584; // type:func
 _dryfieldDilapidatedHouseMorphConeTask = 0x8018145c; // type:func
+_dryfieldDilapidatedHouseResolveRoomEvent = 0x8017e574; // type:func
+_dryfieldDilapidatedHouseStartEncounterMsg = 0x8017e68c; // type:func
+_dryfieldDilapidatedHouseModeExitCountdownTask = 0x8017e858; // type:func
+_dryfieldDilapidatedHouseCancelEffects = 0x8017e8c8; // type:func
+_dryfieldDilapidatedHouseLockAttachmentsForEvent = 0x8017ea7c; // type:func
+dryfieldDilapidatedHouseRoomTask = 0x8017eb60; // type:func
+_dryfieldDilapidatedHouseMorphAttachmentUpdate = 0x80180f5c; // type:func
+_dryfieldDilapidatedHouseMorphAttachmentTask = 0x80180f04; // type:func

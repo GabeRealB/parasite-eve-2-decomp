@@ -1162,7 +1162,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b3_elevator_hall_80180CE4, { NULL } },                                 // 0x270
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_upper_sewer_80182600, { NULL } },                                   // 0x271
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_8017FCA0, { NULL } },                                  // 0x272
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_dilapidated_house_80182744, { NULL } },                               // 0x273
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFireBlastTask, { NULL } },                                  // 0x273
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameConeTask, { NULL } },                                  // 0x274
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameRingTask, { NULL } },                                  // 0x275
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_control_room_8017FF80, { NULL } },                                  // 0x276

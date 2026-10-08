@@ -86651,9 +86651,9 @@ fill. Retail hoists the `1` materialization into the branch delay slot
 `bne` (opcode 5) against retail's `beq` (opcode 4) at 64.44% with
 `reorder=2 insert=1 delete=1`. Writing the condition the way the source reads -
 taken arm first, the equal case - scored 100.00%.
-## m2c's temp plus per-arm duplicate splits one value into three pseudos; reuse one local for the RMW (func_dryfield_dilapidated_house_8017E858, 2026-09-15)
+## m2c's temp plus per-arm duplicate splits one value into three pseudos; reuse one local for the RMW (_dryfieldDilapidatedHouseModeExitCountdownTask, 2026-09-15)
 
-`func_dryfield_dilapidated_house_8017E858` is 20 instructions and its body is
+`_dryfieldDilapidatedHouseModeExitCountdownTask` is 20 instructions and its body is
 byte-identical to the already-matched `_actor460200ModeExitCountdownTask`
 (`overlay_dup_index.py find` reports `=`, not `~`). The m2c seed below scored
 99.250% with `regs=3` and no other penalty: the only difference was the store
@@ -86679,14 +86679,14 @@ var_v0 = temp_v0 - 1; if (temp_v0 < 0) { ...; var_v0 = arg0->spawnArg1 - 1; }`.
 subtract in the shared tail:
 
 ```c
-    var_v0 = arg0->spawnArg1;
-    if (var_v0 < 0) {
+    framesLeft = task->spawnArg1.value;
+    if (framesLeft < 0) {
         stageRequestModeTaskExit();
-        taskKill(arg0);
-        var_v0 = arg0->spawnArg1;
+        taskKill(task);
+        framesLeft = task->spawnArg1.value;
     }
-    var_v0          = var_v0 - 1;
-    arg0->spawnArg1 = var_v0;
+    framesLeft          = framesLeft - 1;
+    task->spawnArg1.value = framesLeft;
 ```
 
 That is one quantity (81, *6 refs across 5 insns*, 82 registers total), which
@@ -120771,7 +120771,7 @@ Writing a `return <const>` at each exit instead deletes the allocno:
 (`(set (reg/i:SI 2 v0) (const_int N))` plus `(use (reg/i:SI 2 v0))` in `.rtl`)
 and jumps to the one epilogue.
 
-`func_dryfield_dilapidated_house_8017E574`: m2c's `var_v0` form is 98.261%
+`_dryfieldDilapidatedHouseResolveRoomEvent`: m2c's `var_v0` form is 98.261%
 (`regs=4 insert=1`, `85 in 3` plus the trailing `move v0,v1`); one `return` per
 exit is 100.000% and `.greg` drops to `;; 3 regs to allocate: 82 84 83`.
 Inputs: `base_1.i`
@@ -120793,7 +120793,7 @@ The dumps agree. `base_2`'s `.rtl` has three `(set (reg/i:SI 2 v0) (const_int N)
 / `(use (reg/i:SI 2 v0))` pairs and no `(return)` at all, and the whole of
 `.jump2` contains exactly one `(return)` -- the `return_internal` epilogue,
 carrying `;; Insn is in multiple basic blocks` notes. The retail
-`func_dryfield_dilapidated_house_8017E574` has one `jr $ra` (`j $31`) for three
+`_dryfieldDilapidatedHouseResolveRoomEvent` has one `jr $ra` (`j $31`) for three
 `return` statements, which is the shape this predicts.
 
 This conflicts with the mechanism given in "One `jr ra` shared by every arm is
@@ -120858,10 +120858,10 @@ the include differs - the carrier's TU has to add `#include "main/fs.h"`.
 one copy in rooms, nothing to share"); the two actor copies are a separate
 promotion and are already matched in their own overlay.
 
-## Identical early-exit blocks the target *keeps*: jump2's chain loop only runs when the first comparison fails (func_dryfield_dilapidated_house_80182744, 2026-09-17)
+## Identical early-exit blocks the target *keeps*: jump2's chain loop only runs when the first comparison fails (dryfieldDilapidatedHouseFireBlastTask, 2026-09-17)
 
 The mirror image of the entry above. Two switch cases each open with
-`if (gRoomEffectState->effectControl != 0) { work->field_22 = tick; keep = gRoomEffectState->effectControl < 4;
+`if (gRoomEffectState->effectControl != 0) { work->age = previousAge; keep = gRoomEffectState->effectControl < 4;
 break; }` and both `break` to one shared `if (!keep) effectKillTask(...)`.
 Written that way the two then-blocks are byte-identical and the target keeps
 *both*: the case-0 test is `beqz $v0, <main body>` with the early block as its
@@ -120896,7 +120896,7 @@ the cheapest RTL-only difference:
 
 ```c
         s32 fade;
-        work->field_22 = tick;
+        work->age = previousAge;
         fade           = gRoomEffectState->effectControl; /* the reload the target has anyway */
         SOFT_USE_REG(fade);                     /* between the `lh` and the `slti` */
         keep = fade < 4;
@@ -120915,7 +120915,7 @@ the scheduler wants to change:
   epilogue in the target. A switch with no `default` sends its default path to
   the break label, which here *is* the shared tail; retail's `j .L...9EC` is the
   epilogue, so the source carries an explicit `default: return;`.
-* `sched1` moved `work->field_26 = angle;` past the `sll`/`sra`/`slti` that sign
+* `sched1` moved `work->angle = angle;` past the `sll`/`sra`/`slti` that sign
   extends `angle`: the shift chain has dependents and so a higher priority (3
   against the store's 1), which left the store after the `slti` and forced the
   post-reload allocator to keep the angle in `$v1`. Retail keeps the whole chain
