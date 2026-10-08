@@ -36,10 +36,10 @@
 extern WorldCollisionGrid   D_shelter_r49_8017DAAC[1];
 extern WorldCoordRoomLights D_shelter_r49_8017DD24[1];
 static void                 _shelterR49PlayMovieTask(Task* movieTask);
-void                        func_shelter_r49_8017D8D8(Task*);
+static void                 _shelterR49EnterObservatoryTask(Task* transitionTask);
 
 TaskDesc D_shelter_r49_8017DA00[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_r49_8017D8D8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterR49EnterObservatoryTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _shelterR49PlayMovieTask, { .value = 0 } },
 };
 
@@ -292,28 +292,73 @@ static void _shelterR49PlayMovieTask(Task* movieTask)
     }
 }
 
-void func_shelter_r49_8017D8D8(Task* arg0)
+/// Hands presentation to room movie 100 and queues the current camera and packets.
+///
+/// Requires game-loop display ownership and loaded current-view resources.
+/// Spawn failures are ignored; the movie task returns presentation after playback.
+static inline void _shelterR49StartObservatoryMovie(void)
 {
-    switch (arg0->state) {
-        case 0:
-            displaySpawnTaskFromTable(D_shelter_r49_8017DA00, 1, 0, 0);
-            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-            viewQueueCurrentCameraAndPackets();
-            arg0->state = arg0->state + 1;
+    enum { SHELTER_R49_OBSERVATORY_MOVIE_TASK_INDEX = 1 };
+
+    displaySpawnTaskFromTable(D_shelter_r49_8017DA00, SHELTER_R49_OBSERVATORY_MOVIE_TASK_INDEX, 0, 0);
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
+    viewQueueCurrentCameraAndPackets();
+}
+
+/// Selects the observatory's first room and arrival warp for a live-save reload.
+///
+/// Requires live save/display state and the loaded gameplay reload task bank.
+/// Retains the saved view and placement variant; selects sprite-resource variant 1.
+/// The queued reload reads these selectors later when rebuilding the session.
+static inline void _shelterR49RequestObservatoryReload(void)
+{
+    enum {
+        SHELTER_R49_OBSERVATORY_ARRIVAL_WARP   = 1,
+        SHELTER_R49_OBSERVATORY_ROOM           = 1,
+        SHELTER_R49_OBSERVATORY_SPRITE_VARIANT = 1,
+    };
+
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_NEO_ARK_OBSERVATORY;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = SHELTER_R49_OBSERVATORY_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = SHELTER_R49_OBSERVATORY_ROOM;
+    gDisplayState.spriteVariant                                 = SHELTER_R49_OBSERVATORY_SPRITE_VARIANT;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+}
+
+/// Plays the room movie, then reloads the live save into Neo Ark's observatory.
+///
+/// Descriptor slot 0 starts this bodyless default-list task in state 0;
+/// states 0..3 start playback, wait two ticks, then request reload.
+/// Requires game-loop display ownership, live save/session state and loaded
+/// current-view/movie resources. The current room's view must be 1..3 and
+/// the movie-100 lookup must succeed. The movie's display loop suspends this list;
+/// after presentation returns, two task ticks pass before the reload request.
+/// No work or spawn payload is used. Spawn failures are unchecked; the task
+/// releases itself after requesting reload. Keep this overlay loaded until then.
+static void _shelterR49EnterObservatoryTask(Task* transitionTask)
+{
+    enum {
+        SHELTER_R49_OBSERVATORY_START_MOVIE      = 0,
+        SHELTER_R49_OBSERVATORY_WAIT_FIRST_TICK  = 1,
+        SHELTER_R49_OBSERVATORY_WAIT_SECOND_TICK = 2,
+        SHELTER_R49_OBSERVATORY_RELOAD           = 3,
+    };
+
+    switch (transitionTask->state) {
+        case SHELTER_R49_OBSERVATORY_START_MOVIE:
+            _shelterR49StartObservatoryMovie();
+            transitionTask->state++;
             break;
-        case 1:
-        case 2:
-            arg0->state = arg0->state + 1;
+        case SHELTER_R49_OBSERVATORY_WAIT_FIRST_TICK:
+        case SHELTER_R49_OBSERVATORY_WAIT_SECOND_TICK:
+            transitionTask->state++;
             break;
-        case 3:
-            SetDispMask(1);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_NEO_ARK_OBSERVATORY;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant                                 = 1;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(arg0);
+        // The reload consumes saved selectors after the movie has restored resources.
+        case SHELTER_R49_OBSERVATORY_RELOAD:
+            SetDispMask(true);
+            _shelterR49RequestObservatoryReload();
+            taskKill(transitionTask);
             break;
     }
 }
