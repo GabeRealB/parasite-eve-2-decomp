@@ -125,6 +125,64 @@ static __inline__ void _actorContactTransformPointToChainRoot(GfxCoord* startCoo
     SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
 }
 
+/// Carries a scratch point into its current node's parent frame and advances the node.
+///
+/// Requires a live, non-NULL `scratch->coord` and writable, word-aligned
+/// scratch storage. Narrows XYZ after the local transform, preserving pad;
+/// stores the GTE flags without testing them and changes GTE working state.
+static __inline__ void _actorContactCarryPointToParent(OverlayCoordChainScratch* scratch)
+{
+    gte_SetTransMatrix(&scratch->coord->coord);
+    gte_SetRotMatrix(&scratch->coord->coord);
+    gte_ldv0(&scratch->vec);
+    gte_rtv0tr();
+    gte_stlvnl(&scratch->out);
+    gte_stflg(&scratch->flag);
+    scratch->vec.vx = scratch->out.vx;
+    scratch->vec.vy = scratch->out.vy;
+    scratch->vec.vz = scratch->out.vz;
+    scratch->coord  = scratch->coord->parent;
+}
+
+/// Transforms a point through the complete coordinate chain after staging its inputs.
+///
+/// Applies `startCoord->coord` and every ancestor's local matrix through the
+/// parentless node, ending in the space above that node. Ordinary actor chains
+/// include the view transform and root offset, as body-contact points do.
+/// Matrices use 12 fractional bits; XYZ use signed integer game-coordinate
+/// units and narrow to signed halfwords after each node. A NULL `startCoord`
+/// leaves XYZ unchanged. `point->pad` is untouched; `workm` is neither read nor
+/// refreshed, and transform flags are stored without gating the result.
+///
+/// Requires a live, acyclic parent chain, separate writable point storage,
+/// and an initialized scratch-stack cursor with one free, word-aligned
+/// `OverlayCoordChainScratch` below it, disjoint from the inputs. Stages the
+/// starting node and XYZ there before publishing the reservation. Borrows
+/// both pointers only for this call and leaves the nodes unchanged. Restores
+/// the cursor on return; a nonempty chain changes GTE rotation, translation
+/// and working registers.
+static __inline__ void _actorContactTransformStagedPointToChainRoot(GfxCoord* startCoord, SVECTOR* point)
+{
+    OverlayCoordChainScratch* scratch;
+
+    scratch         = SCRATCH_STACK_CURSOR(OverlayCoordChainScratch) - 1;
+    scratch->coord  = startCoord;
+    scratch->vec.vx = point->vx;
+    scratch->vec.vy = point->vy;
+    scratch->vec.vz = point->vz;
+
+    SCRATCH_STACK_CURSOR(OverlayCoordChainScratch) = scratch;
+    // Include the topmost node and retain the per-node halfword narrowing.
+    while (scratch->coord != NULL) {
+        _actorContactCarryPointToParent(scratch);
+    }
+    point->vx = scratch->vec.vx;
+    point->vy = scratch->vec.vy;
+    point->vz = scratch->vec.vz;
+
+    SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
+}
+
 /// Returns the first attack key in a contact-table prefix and copies its point.
 ///
 /// `contactCount` counts readable elements, from 0 to 32767. A zero key ends

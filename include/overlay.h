@@ -136,38 +136,6 @@ typedef struct {
 } OverlayCoordChainScratch;
 STATIC_ASSERT_SIZEOF(OverlayCoordChainScratch, 0x20);
 
-/// Carries `v` into world space, reserving the scratch block after copying
-/// its initial coordinate and vector.
-static __inline__ void overlayToWorld2(GfxCoord* coord, SVECTOR* v)
-{
-    OverlayCoordChainScratch* blk;
-
-    blk         = SCRATCH_STACK_CURSOR(OverlayCoordChainScratch) - 1;
-    blk->coord  = coord;
-    blk->vec.vx = v->vx;
-    blk->vec.vy = v->vy;
-    blk->vec.vz = v->vz;
-
-    SCRATCH_STACK_CURSOR(OverlayCoordChainScratch) = blk;
-    while (blk->coord != NULL) {
-        gte_SetTransMatrix(&blk->coord->coord);
-        gte_SetRotMatrix(&blk->coord->coord);
-        gte_ldv0(&blk->vec);
-        gte_rtv0tr();
-        gte_stlvnl(&blk->out);
-        gte_stflg(&blk->flag);
-        blk->vec.vx = blk->out.vx;
-        blk->vec.vy = blk->out.vy;
-        blk->vec.vz = blk->out.vz;
-        blk->coord  = blk->coord->parent;
-    }
-    v->vx = blk->vec.vx;
-    v->vy = blk->vec.vy;
-    v->vz = blk->vec.vz;
-
-    SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
-}
-
 /// Scratch-stack block of a radius test on the XZ plane.
 ///
 /// A test stages a horizontal offset and the radius it is measured against,

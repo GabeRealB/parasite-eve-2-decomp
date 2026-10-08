@@ -27,7 +27,7 @@ static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 c
     st->forward.vy = 0;
     st->forward.vz = 0x1000;
 
-    overlayToWorld2(coord, &st->forward);
+    _actorContactTransformStagedPointToChainRoot(coord, &st->forward);
 
     for (st->i = 0; st->i < count; st->i++) {
         if (recs[st->i].key.value == 0) {

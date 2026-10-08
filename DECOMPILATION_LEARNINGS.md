@@ -88471,7 +88471,7 @@ The same reservation removes both pins inside the shared `_actorContactTransform
 inline: write `(SCRATCH_STACK_CURSOR(OverlayCoordChainScratch))[-1].coord = startCoord`, then push
 and read the new head before copying the vector. In `Actor01900_Fn00FA4`,
 `.greg` naturally retains the carve in `$v0` and its copy into `$a2` (scratch
-`base_3`, UIDs 87 and 91). Substituting `overlayToWorld2` instead loses that
+`base_3`, UIDs 87 and 91). Substituting `_actorContactTransformStagedPointToChainRoot` instead loses that
 copy and scores 99.193%; the compound push scores 100%, and the unscoped build
 verifies every shared-helper caller.
 
