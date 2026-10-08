@@ -118,7 +118,7 @@ that is *not* boosted, so it is emitted before the other Y load. Marking
 `otherY` `"+r"` on the existing `addiu` asm is a second set, emits nothing,
 and drops the boost; the LUID tie then keeps source order.
 
-## `+m` on the stored field stops CSE forwarding; a full memory clobber is wider (`func_actor_403200_8013B8C4`, 2026-09-21)
+## `+m` on the stored field stops CSE forwarding; a full memory clobber is wider (`_actor403200InhaleState`, 2026-09-21)
 
 A `sh` of `dir.vz` followed by `ratan2(dir.vx, dir.vz)` lets CSE substitute the
 SI subtraction for the argument load. The call then keeps that value in `$a1`
@@ -132,11 +132,11 @@ subtraction, which the target still does.
 
 An `s16` temporary for the same kind of reload is a HI load (`lhu`) plus
 `sll`/`sra` before the `addu`. Declaring it `s32` makes the load
-`extendhisi2` (`lh`) straight into the add. Storing `s32 ext = ang` and then
-`abs(ext)` ties the `sh` to the `sra` result in `$v0`, so delay-slot filling
+`extendhisi2` (`lh`) straight into the add. Storing `s32 playerTurn = playerYaw` and then
+`abs(playerTurn)` ties the `sh` to the `sra` result in `$v0`, so delay-slot filling
 cannot sink it past `abs`'s `negu` the way a surviving HI copy in `$v1` can.
 
-## A `u16` `|=` is a new SI temporary, so `ori` cannot be in-place (`func_actor_403200_8013FB54`, 2026-09-21)
+## A `u16` `|=` is a new SI temporary, so `ori` cannot be in-place (`_actor403200Tick`, 2026-09-21)
 
 `a = flags | 0x8000` and `b |= 0x8000` on a `u16` promote through `iorsi3` in
 SI mode. The load stays a `reg:HI` and the result is a different pseudo
@@ -148,7 +148,7 @@ promoted SI does not join it.
 
 Declaring the same temporary `u32` and writing `a = flags; a |= 0x8000` makes
 the load and the `ori`/`andi` the same SI pseudo, so the instruction is
-in-place. `func_actor_403200_8013FB54`'s three flag groups went from `regs=32`
+in-place. `_actor403200Tick`'s three flag groups went from `regs=32`
 to `regs=0` on that change alone. A two-statement `u16` does not: the
 promotion still allocates a new SI.
 
@@ -333,7 +333,7 @@ Preprocessed inputs: `base_1.c`
 `819e1abd37acf45f8a8b44654455195e675ed6402dde28f0549078855f55953d`
 (99.977%, unrolled; linked overlay matches). Compiler `60d886cd...`.
 
-## An independent address addiu takes the latest unique-constant li/sh gap before its use (func_actor_403200_80138AFC, 2026-09-20)
+## An independent address addiu takes the latest unique-constant li/sh gap before its use (_actor403200Spawn, 2026-09-20)
 
 A pointer computed as `work + 0xD84` and stored only after a run of field
 stores is independent of those stores (same-base constant offsets, so
@@ -343,11 +343,11 @@ assignment.
 
 The filler it picks is the **latest unique-constant `li`/`sh` gap before
 the pointer's first use**. Writing `swipeBody.pos.vy` / `swipeBody.pos.vz` before
-`swipeCapsule.contacts = recs2` makes `0x25F` that gap (99.939%, reorder=1). Writing
+`swipeCapsule.contacts = swipeContacts` makes `0x25F` that gap (99.939%, reorder=1). Writing
 the zeros and the `contacts` store first, then the pos fields — the sibling
 spawn's source order — leaves `0x258` (the shared radius immediate) as
 the latest gap, which is the target, and still emits pos.vy/vz *before*
-the zeros. `TOUCH_REG(recs2)` after the radii forced the addiu earlier
+the zeros. `TOUCH_REG(swipeContacts)` after the radii forced the addiu earlier
 but moved seven other insns (99.574%).
 
 Moving the C assignment across a few neighbouring stores without changing
@@ -112115,7 +112115,7 @@ insn match. `m2c`'s `goto block_25` / `goto block_36` in this function are real 
 load in front of a jump into a tail meant duplicated source. Here the discriminator is the
 branch sense (`beq` vs `bne`), which duplicated source cannot produce.
 
-## A `s16` local is what keeps a small switch's index 16-bit (func_actor_403200_8013D9EC, 2026-09-16)
+## A `s16` local is what keeps a small switch's index 16-bit (_actor403200GlobLaunchState, 2026-09-16)
 
 `switch (work->stateTicks - 0x39)` with `stateTicks` declared `s16` looks like it should
 compile the same as the same expression copied into an `s16` local, and does not.
@@ -112183,14 +112183,14 @@ Since such a helper is `static __inline__` and inlined at every use, its
 definition can be moved up the unit `.c` to sit above a body that needs it
 without changing the object: definition order is free, function order is not.
 
-## A temp shared by repeated blocks never joins the op's dying input, so the whole chain loses the callee-saved register (func_actor_403200_8013E5A8, 2026-09-16)
+## A temp shared by repeated blocks never joins the op's dying input, so the whole chain loses the callee-saved register (_actor403200CollapseState, 2026-09-16)
 
-A death-state handler repeats the same cue four times, once per animation
+A collapse handler repeats the same cue four times, once per animation
 frame:
 
 ```c
         sfx = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200013;
-        pan = (s8)worldCoordGetOriginAudioPan(((TmdObject*)arg0->extra)->coords);
+        pan = (s8)worldCoordGetOriginAudioPan(hostTask->extra.tmd->coords);
         sndEvtRequestScriptStart(sfx, pan, (s8)worldCoordGetOriginAudioDepth(...));
 ```
 
@@ -112206,7 +112206,7 @@ shared temp is set in four blocks: local-alloc only colours quantities confined
 to one block that die once, so all four are global allocnos, and `combine_regs`
 bails at `reg_qty[sreg] >= -1`.
 
-**Fix.** Declare `s32 id; s32 pan;` inside each block (the shape
+**Fix.** Declare `s32 soundId; s32 soundPan;` inside each block (the shape
 `src/actors/actor_444000/actor_444000_5.c` already uses for the same four
 frames). Each is then one set and one death in one block, the output joins the
 dying input, and the union span lands the whole chain in `$s0`. 98.6% → 100% in
@@ -112227,7 +112227,7 @@ Inputs: `base_3.i` (98.626%) SHA256
 SHA256 `2474f6718e7cb8d730fa6e414da2ce01721bbe96f4c7f7ef865ab2d513b54043`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_403200_8013E5A8-vacuum`.
+Scratch `nonmatchings/_actor403200CollapseState-vacuum`.
 
 ## A run of `p->f = v` stores through separate loaded pointers shares one register unless the addresses are evaluated first (_gluttonHitGroup0, 2026-09-16)
 
@@ -112505,11 +112505,11 @@ Scratch `nonmatchings/_actor403200ChooseAttackState-vacuum` (`base_4.c` matched;
 `base_3.c` the `==`-form control, `base_2.c` the fused member access), compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A stack `SVECTOR` read back through the GTE macros wants a named pointer local, and it frees the saved register the neighbouring pointers were queued behind (func_actor_403200_8013DC3C, 2026-09-16)
+## A stack `SVECTOR` read back through the GTE macros wants a named pointer local, and it frees the saved register the neighbouring pointers were queued behind (_actor403200DebrisState, 2026-09-16)
 
-The debris block of `func_actor_403200_8013DC3C` fills a stack `SVECTOR pos`,
-hands it to `VectorNormalSS(pos, pos)`, then feeds it to `gte_ldsv` / `gte_stsv`.
-Written with `&pos` at each use, 99.225% and a 27-instruction `regs` penalty: the
+The debris block of `_actor403200DebrisState` fills a stack `SVECTOR emissionVector`,
+hands it to `VectorNormalSS(emissionPointer, emissionPointer)`, then feeds it to `gte_ldsv` / `gte_stsv`.
+Written with `&emissionVector` at each use, 99.225% and a 27-instruction `regs` penalty: the
 two `VectorNormalSS` arguments came out as two pseudos (`addiu $a0, $sp, 0x10` /
 `move $a1, $a0`) and the GTE loads got a third, rematerialized as
 `addiu $v0, $sp, 0x10`, while the target holds one `$s0` across all of them
@@ -112517,21 +112517,21 @@ two `VectorNormalSS` arguments came out as two pseudos (`addiu $a0, $sp, 0x10` /
 Taking the address into a pointer local closes it:
 
 ```c
-    posp   = &pos;
-    pos.vy = 0;
-    VectorNormalSS(posp, posp);
+    emissionPointer   = &emissionVector;
+    emissionVector.vy = 0;
+    VectorNormalSS(emissionPointer, emissionPointer);
 
     gte_lddp(0x320);
-    gte_ldsv(posp);
+    gte_ldsv(emissionPointer);
     gte_gpf12();
-    gte_stsv(posp);
+    gte_stsv(emissionPointer);
 ```
 
 This is the idiom the matched 444000 sibling already uses
 (`func_actor_444000_801404C0` keeps `posp` for the same reason, after
 `_actorRenderTransformLocalPointToWorld` in `include/actors/actor.h` places
 `pos` in world coordinates), and the fix is not just the argument pair: the extra
-call-crossing `&pos` pseudo is what held `$s0`, so `&D_actor_403200_8015F920`
+call-crossing `&emissionVector` pseudo is what held `$s0`, so `&D_actor_403200_8015F920`
 and its `+4` were left as `$s0`/`$s1` against the target's `$s1`/`$s0`. Naming
 the pointer gave `$s0` back and both pairs fell into place. Distinct from the
 `&local` *call argument* entry above (`gluttonEscortState`), where the
@@ -112545,20 +112545,20 @@ cannot do — three separate `s32` pairs, as the matched `func_actor_444000_8014
 already writes them, is what the source had. Reusing one pair scored 98.6% with
 `regs=81`; splitting it scored 99.2% with `regs=27`.
 
-Scratch `nonmatchings/func_actor_403200_8013DC3C-vacuum` (`base_4.c` matched;
-`base_3.c` the split-temps control, `base_2.c` the shared-temp/`&pos` form),
+Scratch `nonmatchings/_actor403200DebrisState-vacuum` (`base_4.c` matched;
+`base_3.c` the split-temps control, `base_2.c` the shared-temp/`&emissionVector` form),
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Reading a stored struct field back through a pointer is what keeps a call argument a load — cse forwards it into a `sll`/`sra` pair when the read is spelled directly (func_actor_403200_8013C84C, 2026-09-17)
+## Reading a stored struct field back through a pointer is what keeps a call argument a load — cse forwards it into a `sll`/`sra` pair when the read is spelled directly (_actor403200HoldPlayerState, 2026-09-17)
 
-`func_actor_403200_8013C84C` fills a stack `SVECTOR view` with the player-relative
-offset (`view.vx = ... - view.vx; view.vy = 0; view.vz = ... - view.vz;`) and then
+`_actor403200HoldPlayerState` fills a stack `SVECTOR playerOffset` with the player-relative
+offset (`playerOffset.vx = ... - playerOffset.vx; playerOffset.vy = 0; playerOffset.vz = ... - playerOffset.vz;`) and then
 computes the facing yaw from it. Written the obvious way, GCC's cse finds the two
 stores in its table when it reaches the argument reads and substitutes the values,
 so both `ratan2` arguments are set up from registers:
 
 ```
-sll  a1,v0,0x10        /* view.vz forwarded from the store -- 2 insns */
+sll  a1,v0,0x10        /* playerOffset.vz forwarded from the store -- 2 insns */
 sra  a1,a1,0x10
 jal  ratan2
 sh   v0,0x14(sp)
@@ -112568,7 +112568,7 @@ The target instead loads the second argument out of the slot and folds the first
 back onto `a0`, the register that stored it:
 
 ```
-sh   v0,0x14(sp)       /* view.vz = dz */
+sh   v0,0x14(sp)       /* playerOffset.vz = dz */
 lw   v0,0x2c(s3)
 lh   a1,0x14(sp)       /* the second argument, reloaded from the struct */
 lw   s0,8(v0)
@@ -112584,28 +112584,28 @@ a different expression cse cannot match, so the load survives. Taking the addres
 into a named local for the yaw is enough:
 
 ```c
-    posp    = &view;
-    coord   = ((TmdObject*)arg0->extra)->coords;
-    yaw     = ratan2(posp->vx, posp->vz) -
-          ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    offsetPointer    = &playerOffset;
+    hostRoot = hostTask->extra.tmd->coords;
+    playerYaw = ratan2(offsetPointer->vx, offsetPointer->vz) -
+          ratan2(-hostRoot->coord.m[2][0], hostRoot->coord.m[2][2]);
 ```
 
-`coord` is the second half of the same fix: the matrix read has to be bound to a
+`hostRoot` is the second half of the same fix: the matrix read has to be bound to a
 named local so its live range crosses the `ratan2` call, which puts the
-`index->extra->coords` load in `$s0` *before* the call (the target has
+`hostTask->extra.tmd->coords` load in `$s0` *before* the call (the target has
 `lw $s0,8($v0)` there) instead of rematerializing it afterwards in `$v1`. Note the
-two halves are not the same mechanism as the `func_actor_403200_8013DC3C` entry
+two halves are not the same mechanism as the `_actor403200DebrisState` entry
 above: there a pointer local was needed so the address survived calls; here it is
 needed so cse cannot see the store. Reading the field through such a pointer is
 the general shape of the second case: it is nearly free when the address has to
 be in a register anyway, and it changes instruction *selection*, not just a home.
 
-Scratch `nonmatchings/func_actor_403200_8013C84C-vacuum` (`base_11.c` matched;
-`base_9.c` the same yaw with the direct `view.` spelling, 99.4% and `regs=58`;
+Scratch `nonmatchings/_actor403200HoldPlayerState-vacuum` (`base_11.c` matched;
+`base_9.c` the same yaw with the direct `playerOffset.` spelling, 99.4% and `regs=58`;
 `base_4.c`/`base_8.c` the two halves separately), compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A swapped `lui` pair is the source order of the two globals' first use (func_actor_403200_8013C84C, 2026-09-17)
+## A swapped `lui` pair is the source order of the two globals' first use (_actor403200HoldPlayerState, 2026-09-17)
 
 At 99.96% the only difference left was the order of two independent `lui`s at the
 head of a block that clears one global and fills a message struct:
@@ -112617,17 +112617,17 @@ head of a block that clears one global and fills a message struct:
 
 The addresses are computed at their first use, and sched1 keeps that order when
 neither has a longer dependence chain. The source had the message stores first
-(`msg.field_0 = 0; D_actor_403200_8015F8E0 = 0; msg.field_1 = 0x2C; ...`, which is
+(`msg.context.loc.stage = 0; D_actor_403200_8015F8E0 = 0; msg.context.loc.area = 0x2C; ...`, which is
 what puts the two `sb`s in the target's order), so `F8F4`'s `lui` came first.
 Moving the `D_actor_403200_8015F8E0 = 0;` store ahead of the `work->neckYawTarget =
-yaw;` store above it computes its address first and the pair lands in the target's
-order — the `yaw` store itself still schedules after both `lui`s. Worth trying
+playerYaw;` store above it computes its address first and the pair lands in the target's
+order — the `playerYaw` store itself still schedules after both `lui`s. Worth trying
 before anything else when a lone `lui`/`lui` pair is the leftover: the store order
 inside the block and the address order at its head are two separate levers.
 
-## The `if` / `else` around a conditional halfword update is what gives the signed compare its own `lh` (func_actor_403200_8013D028, 2026-09-17)
+## The `if` / `else` around a conditional halfword update is what gives the signed compare its own `lh` (_actor403200SwipeState, 2026-09-17)
 
-`func_actor_403200_8013D028` walks a shared `s16` countdown down once `stateTicks`
+`_actor403200SwipeState` walks a shared `s16` countdown down once `stateTicks`
 passes 0x39, by 0xC8 past 0xBB9 and by 0x1E below it, and the ROM loads the
 halfword **twice**:
 
@@ -112683,8 +112683,8 @@ counting stores. `func_actor_444000_8013FB74`, the sibling arena tick, matched
 this same tail from this same if/else form.
 
 The rest of the function needed nothing beyond the sibling's idioms: the reset
-half is `func_actor_403200_8013D9EC`'s, the cue blocks are
-`func_actor_403200_8013DC3C`'s `field_8[1]` shape with `/ 2` on the depth, and
+half is `_actor403200GlobLaunchState`'s, the cue blocks are
+`_actor403200DebrisState`'s `escorts[0]->task->extra.tmd->coords[1]` shape with `/ 2` on the depth, and
 the five-record scan is `func_actor_444000_8013FB74`'s `swipeContacts` loop verbatim.
 Two builds: 86.239% from m2c, 86.239% -> 99.088% on the project-style rewrite,
 99.088% -> 100% on this tail.
@@ -112694,7 +112694,7 @@ Preprocessed input (base_2) `0d031abe936fcefcb9d8486907b591088af85ee6055987a37bc
 
 ## An `s16` field truncated through an `s16` local narrows to `lhu`; switched on directly it stays `lh`
 
-`work->stateTicks` is `s16`, and the target of `func_actor_403200_8013B3C8` reads it
+`work->stateTicks` is `s16`, and the target of `_actor403200RainLaunchState` reads it
 with `lhu`:
 
 ```
@@ -112708,13 +112708,13 @@ sltiu v0, v1, 0x40
 No cast is involved. Copying the expression into an `s16` local is what does it:
 
 ```c
-s16 state;
+s16 launchTick;
 
-state = work->stateTicks - 0x13;
-switch (state) { ... }
+launchTick = work->stateTicks - 0x13;
+switch (launchTick) { ... }
 ```
 
-The assignment to `state` discards everything above bit 15, and the `addiu` can
+The assignment to `launchTick` discards everything above bit 15, and the `addiu` can
 carry out of that width, so GCC only ever needs the low halfword: it narrows the
 load to `lhu` and materialises the truncation as the `sll`/`sra` pair. Switched
 on `work->stateTicks - 0x13` *directly* the index is an `int`, the whole
@@ -112727,9 +112727,9 @@ instructions later, which needs the signed value whole. Read `lhu` on a signed
 field as "this use only wanted 16 bits", and look for the local that threw the
 rest away.
 
-`func_actor_403200_8013D9EC` is the same shape one state over (`s16 state =
-work->stateTicks - 0x39`), and its source comment carries the same conclusion.
-`func_actor_403200_8013B3C8` matched 100% on the first project-style rewrite:
+`_actor403200GlobLaunchState` is the same shape one state over (`s16 launchTick =
+work->stateTicks - 0x39`).
+`_actor403200RainLaunchState` matched 100% on the first project-style rewrite:
 m2c's `goto block_20` for the eight spawn cases scored 66.734%, and writing each
 case's `enemySpawnFromTable` call out separately — per-case index, no shared
 local — reproduced the target's per-case argument setup with the cross-jumped
@@ -112740,7 +112740,7 @@ Preprocessed input (base_1) `6c071ed29e092d32e53c323ba91e16cf2b574b738ebbdce37ef
 
 ## An interior address the target writes as `SYM + N` needs no new symbol: declare `SYM` as an array and index it
 
-`func_actor_403200_8013A4A0` tests the halfword at `D_801153F4 + 2`, and the
+`_actor403200HitGroups3To5` tests the halfword at `D_801153F4 + 2`, and the
 target disassembles it with the offset folded into the symbol expression:
 
 ```
@@ -136880,7 +136880,7 @@ base_4 `ceba5e1c543128c271c24605cce2915d2ba3fd8ea16d3a929f0fc325e2dd6b02`.
 The independent partial permuter discovery and its remaining jump-hoist
 question stay in the retained permuter findings and scratch session notes.
 
-## A halfword clamp copy changes a neighboring local-allocation tie (func_actor_403200_8013B740, 2026-09-20)
+## A halfword clamp copy changes a neighboring local-allocation tie (_actor403200SpawnSpinnerFormation, 2026-09-20)
 
 A masked formation choice (`(random >> 16) & 3`, clamped 3 to 0) declared
 `s32` compiled its `andi` directly into the saved formation register. The ROM
@@ -136924,14 +136924,14 @@ events and input/compiler hashes:
 s32 `752c79e0aede7ef1e990e7ba703bcc03e8ce81bb860357b302b4820b2e3db1ce`;
 s16 `543db2b837461ecc10b0a59906f137f6a39a41b19210da389a88037f8fda9610`.
 The complete router evidence and conclusions are retained under
-`tools/permuter_findings/func_actor_403200_8013B740/`.
+`tools/permuter_findings/_actor403200SpawnSpinnerFormation/`.
 This is evidence for inspecting a neighbor's interval after a mode change,
 not a rule that every halfword clamp retains a copy or every input-only asm
 preserves the schedule. No helper-free original spelling was established.
 
 ## A peeled first call lets late cross-jumping put argument setup outside the loop (actor_403200 E2FC, 2026-09-20)
 
-`func_actor_403200_8013E2FC` stalled at 98.450% with exact register allocation.
+`_actor403200ScriptedPoseState` stalled at 98.450% with exact register allocation.
 The target sets `a0 = s3` before the loop, has an empty `jal` delay slot, and
 sets `a0 = s3` again in the backedge delay slot. An ordinary `do/while` instead
 puts the argument move in the `jal` slot and the exit's constant 0x10 in the
@@ -136941,9 +136941,9 @@ The successful preplanned experiment peels the mandatory first call:
 
 ```c
 work->animRate = 0x60;
-func_actor_403200_80133DD8(arg0);
-while ((u32)(work->field_4A & 0x3FF) < 0x34) {
-    func_actor_403200_80133DD8(arg0);
+_gluttonTickAnim(hostTask);
+while ((u32)(work->hostRig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) < 0x34) {
+    _gluttonTickAnim(hostTask);
 }
 work->animRate = 0x10;
 ```
@@ -146324,7 +146324,7 @@ the work-pointer touch is still needed for allocation.
 was a statement-order question, not an allocation one. See "A pointer load two
 instructions above its first user" at the end of this file.
 
-### A table declared as one struct makes `(&sym)[k].field` pick `sym + k*size` as the base (func_actor_403200_8013B740, 2026-09-27)
+### A table declared as one struct makes `(&sym)[k].field` pick `sym + k*size` as the base (_actor403200SpawnSpinnerFormation, 2026-09-27)
 
 A spawn table declared `extern TaskDesc tbl;` and indexed as `(&tbl)[4].data.model`
 (or through a `desc = &tbl` local) is pointer arithmetic: the front end builds
@@ -149623,7 +149623,7 @@ attempts; left as it was.
   break; } state = 0; prevState = -1; break;`. Two identical arms left
   unmerged in the image mean they share a short tail with a third block.
 - **`if (t == A) { slot = 0; goto dispatch; } if (t == B) { slot = 1;
-  dispatch: ... }`** (`func_actor_403200_8013EF6C`) is not the body written in
+  dispatch: ... }`** (`_actor403200SummonState`) is not the body written in
   both arms: after `slot = 0` cse folds every `slot` in the copy
   (`summons[0]`), 65 insns longer. It is a `static inline` that begins
   `if (t == A) slot = 0; else if (t == B) slot = 1; else return;` and then
@@ -149631,10 +149631,10 @@ attempts; left as it was.
   as in the image. The hand-written `==1; >=2 -> default; !=0 -> default`
   ladder inside it is `case 0: ... case 1: ... case 2: default:`.
 - **`goto body` from the first two of three scans and `goto out` from the
-  third** (`func_actor_403200_8013A4A0`: each scan is `id = find(); key = id;
+  third** (`_actor403200HitGroups3To5`: each scan is `id = find(); key = id;
   if (id != 0) { effect(); if (key != 0) goto body; }`) is one `||` of three
   `&&` pairs over two single-return inlines: one that scans, stores the key
-  and returns it, one that spawns the effect and returns `sc->attackKey != 0`.
+  and returns it, one that spawns the effect and returns `scratch->attackKey != 0`.
   Both fold into the branches. One helper holding both halves cannot: its
   miss path would have to reload the key it just stored, or return a
   constant that is then tested unfolded.
