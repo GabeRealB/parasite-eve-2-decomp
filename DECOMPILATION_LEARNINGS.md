@@ -43505,7 +43505,7 @@ SCHED_BARRIER();   /* after: breaks the merge; target's `j advance` slot is nop 
 
 `&&`-ing equality tests on two consecutive byte fields lets GCC 2.8.1 fold the
 pair into one halfword load and one compare against the packed constant. The
-target for `func_shelter_b4_water_supply_8017DA30` tests `actionId` and
+target for `_shelterB4WaterSupplyHandleRoomAction` tests `actionId` and
 `argument` of a `DirectionActionRequest*` separately:
 
 ```
@@ -95609,7 +95609,7 @@ with the copy.
 look for, not a reason to doubt the pointer.
 
 The same body is staged in eight room overlays - `_neoArkObservatoryRoomActionMessage`
-and `func_shelter_b4_water_supply_8017DC28` carry it verbatim, the latter with
+and `_shelterB4WaterSupplyFirstValveDepartureTask` carry it verbatim, the latter with
 every access `$sp`-relative because its function pointer already holds `$s0`.
 Example: `_dryfieldNightWaterHoleCommandMessage`. Inputs: `base_6.i`
 `324fea05cdda758d428a948329cce0362ae15e230c3c92469af40dac72fb672a` (the winning
@@ -141335,9 +141335,9 @@ In the same function a store to a *struct* field did not force a reload of `gRan
 
 The permuter can rewrite prototypes in the flattened context, for example `extern int rsin(volatile short a);` in place of the Psy-Q `rsin(int)`. A retained output can then look like a pure control-flow permutation, while the flattened header actually changed underneath it. `volatile` on a parameter only matters inside the callee. In the caller the effect is converting the argument to `short`, which is exactly `rsin((s16)angle)` under the real prototype: source `6ef674b0…` (cast plus the permuter's `do { } while (0)` wrap) produced the candidate's assembly byte for byte. When `angle` is `& 0xFFF`, combine uses the known-zero high bits to fold the `sll 16`/`sra 16` into a plain copy (`(set (reg 153) (reg/v 82))`). No instructions are added, but the argument becomes its own block-local pseudo, and the long-lived variable crosses fewer calls (11 → 5 here). That changes allocation. In this function the cast alone (`2f9bf8fa…`) and the wrap alone were both worse; only the pair helped. So before porting a retained output, diff the declaration context as well as the function body, and port a prototype mutation as a cast. Evidence (gitignored archive): `tools/permuter_findings/shelterB1SterilizationRoomEffectsTask/sessions/7586f650…/`, `PERMUTER_EVIDENCE/73e1cd95dd0b4054/analysis/`.
 
-### `&global` rebuilt into an odd temp (`$t2`) inside a loop is a pre-loop local that lost the last saved register (func_shelter_b4_water_supply_8017EE54, 2026-09-24)
+### `&global` rebuilt into an odd temp (`$t2`) inside a loop is a pre-loop local that lost the last saved register (shelterB4WaterSupplySplashAndLightBeamsTask, 2026-09-24)
 
-Target loop body: `lui t2,%hi(gGfxViewCoord); addiu t2,…; sw t2,0x5c(sp)`, while a sibling address `&Gfx_ViewWorldMtx` sits in `$fp`, set before the loop. Writing `&gGfxViewCoord` inline gives `$v1` (local-alloc). Both addresses were in fact pre-loop locals (`view`, `mtx`), and with `s0`-`s7` taken only one could get `$fp`: the loser gets no hard register, and reload rebuilds it from its `REG_EQUIV` at each use in a reload register, which here was `$t2`. Which one wins depended on **assignment** order, not declaration order: `view = &gGfxViewCoord; mtx = &Gfx_ViewWorldMtx;` gave `mtx` the `$fp`, and the reverse order swapped them. A leftover `move s2,zero` scheduled one slot late was fixed by writing `i = 0;` between the two assignments, with an empty `for` init. When an address is built in an unexpected caller-saved register at its use inside a loop, try a pre-loop local for it before anything else.
+Target loop body: `lui t2,%hi(gGfxViewCoord); addiu t2,…; sw t2,0x5c(sp)`, while a sibling address `&Gfx_ViewWorldMtx` sits in `$fp`, set before the loop. Writing `&gGfxViewCoord` inline gives `$v1` (local-alloc). Both addresses were in fact pre-loop locals (`view`, `mtx`), and with `s0`-`s7` taken only one could get `$fp`: the loser gets no hard register, and reload rebuilds it from its `REG_EQUIV` at each use in a reload register, which here was `$t2`. Which one wins depended on **assignment** order, not declaration order: `view = &gGfxViewCoord; mtx = &Gfx_ViewWorldMtx;` gave `mtx` the `$fp`, and the reverse order swapped them. A leftover `move s2,zero` scheduled one slot late was fixed by writing `sampleIndex = 0;` between the two assignments, with an empty `for` init. When an address is built in an unexpected caller-saved register at its use inside a loop, try a pre-loop local for it before anything else.
 
 ### An `s16` field divided by 2 loads as `lhu` + `sll 16`/`sra 16`, so a `(s16)` cast on a `u16` field may just be a mistyped field (func_shelter_b4_water_supply_8017DE74, 2026-09-24)
 

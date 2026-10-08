@@ -73,7 +73,7 @@ extern TaskDesc D_shelter_b4_water_supply_801825E4;
 /// The room's message table, installed by the room task's first state.
 extern TaskMessageEntry D_shelter_b4_water_supply_801825F0[];
 
-/// Task table spawned by `func_shelter_b4_water_supply_8017DA30` once the
+/// Task table spawned by `_shelterB4WaterSupplyHandleRoomAction` once the
 /// valve script has run.
 extern TaskDesc D_shelter_b4_water_supply_80182620[];
 
@@ -91,7 +91,7 @@ extern SVECTOR D_shelter_b4_water_supply_80182680[];
 /// model, compared against this frame's to measure how far each moved.
 extern SVECTOR D_shelter_b4_water_supply_801826E0[];
 
-/// Spawn argument for the task `func_shelter_b4_water_supply_8017D7C0` starts
+/// Spawn argument for the task `_shelterB4WaterSupplyUpperSewerDepartureTask` starts
 /// with `taskSpawn(1, 0x31, ...)`.
 extern RoomFadeStorage D_shelter_b4_water_supply_80184E34;
 
@@ -117,13 +117,13 @@ static void _shelterB4WaterSupplyDrawXWaveStrips(Task* task);
 static void _shelterB4WaterSupplyInitializeWater(Task* task);
 static void _shelterB4WaterSupplyDrawWater(Task* task);
 
-void        func_shelter_b4_water_supply_8017D7C0(Task*);
+static void _shelterB4WaterSupplyUpperSewerDepartureTask(Task* task);
 static s32  _shelterB4WaterSupplyRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
-s32         func_shelter_b4_water_supply_8017D978(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _shelterB4WaterSupplyResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _shelterB4WaterSupplyIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg);
-s32         func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, const void* firstArg, s32);
+static s32  _shelterB4WaterSupplyHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32  _shelterB4WaterSupplyHandleSound(Task* task, s32 messageId, s32 soundCommand, s32 unused);
-void        func_shelter_b4_water_supply_8017DC28(Task*);
+static void _shelterB4WaterSupplyFirstValveDepartureTask(Task* task);
 static void _shelterB4WaterSupplyWaterTask(Task* task);
 
 enum { SHELTER_B4_WATER_SUPPLY_MESSAGE_USE_KEY_ITEM = 5105 };
@@ -133,17 +133,17 @@ extern TaskDesc D_actor_100400_80147E48;
 TaskDesc D_shelter_b4_water_supply_801825E4 = { { { TASK_BODY_NONE, 32 } }, roomDepartureTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b4_water_supply_801825F0[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_water_supply_8017D978 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB4WaterSupplyResolveRoomEvent },
     { SHELTER_B4_WATER_SUPPLY_MESSAGE_USE_KEY_ITEM, _shelterB4WaterSupplyRejectKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_water_supply_8017DA30 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4WaterSupplyHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB4WaterSupplyIgnoreCommand },
     { ROOM_MESSAGE_SOUND, _shelterB4WaterSupplyHandleSound },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b4_water_supply_80182620[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_water_supply_8017DC28, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_water_supply_8017D7C0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB4WaterSupplyFirstValveDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB4WaterSupplyUpperSewerDepartureTask, { .value = 0 } },
 };
 
 /// Undisplaced Y of both water rectangles in signed world units, published to the session.
@@ -769,55 +769,87 @@ static const TaskFuncTable3 D_shelter_b4_water_supply_8017D5D8 = {
     },
 };
 
-void func_shelter_b4_water_supply_8017D7C0(Task* arg0)
+/// Starts the upper-sewer departure's 30-tick fade after committing battle escape.
+///
+/// Borrows the room-owned fade storage through the spawned task's lifetime and
+/// initializes this departure task's signed-halfword countdown to the same duration.
+static inline void _shelterB4WaterSupplyStartUpperSewerFade(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum { FADE_FRAMES    = 30,
+           FADE_TASK_BANK = 1,
+           FADE_TASK_SLOT = 0x31 };
+    gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+    sceneQueueBattleEscapeResult();
+    D_shelter_b4_water_supply_80184E34.fade.blend      = SCREEN_FADE_SUBTRACT;
+    D_shelter_b4_water_supply_80184E34.fade.phase      = SCREEN_FADE_RUNNING;
+    D_shelter_b4_water_supply_80184E34.fade.rampFrames = FADE_FRAMES;
+    taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &D_shelter_b4_water_supply_80184E34.fade);
+    task->killCountdown = FADE_FRAMES;
+}
+
+/// Runs the upper-sewer CAP choice, fade, transit sound and saved-location reload.
+///
+/// Start bodyless in state zero with a CAP command ID in `spawnArg1.value`
+/// and the resolved destination staged in room-owned storage. Choice 10 accepts;
+/// other choices resume actor/player control and rearm interaction for ten updates.
+/// Acceptance fades for 30 ticks, waits for the transit sound, then publishes the
+/// staged area/warp/room to the live save and starts reload. The room's fade and
+/// destination storage must remain live and stable until the reload starts.
+static void _shelterB4WaterSupplyUpperSewerDepartureTask(Task* task)
+{
+    enum {
+        SHELTER_B4_WATER_SUPPLY_SEWER_START_CAP           = 0,
+        SHELTER_B4_WATER_SUPPLY_SEWER_WAIT_CAP            = 1,
+        SHELTER_B4_WATER_SUPPLY_SEWER_CHECK_CHOICE        = 2,
+        SHELTER_B4_WATER_SUPPLY_SEWER_WAIT_FADE           = 3,
+        SHELTER_B4_WATER_SUPPLY_SEWER_WAIT_SOUND          = 4,
+        SHELTER_B4_WATER_SUPPLY_SEWER_RELOAD              = 5,
+        SHELTER_B4_WATER_SUPPLY_SEWER_ACCEPTED_CHOICE     = 10,
+        SHELTER_B4_WATER_SUPPLY_INTERACTION_REARM_UPDATES = 10,
+        SHELTER_B4_WATER_SUPPLY_RELOAD_SPRITE_VARIANT     = 1,
+    };
+    switch (task->state) {
+        case SHELTER_B4_WATER_SUPPLY_SEWER_START_CAP:
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommand(arg0->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
-            arg0->state++;
+            capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
+            task->state++;
             break;
-        case 1:
+        case SHELTER_B4_WATER_SUPPLY_SEWER_WAIT_CAP:
             if (capIsBusy() == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 2:
-            if (capGetVariantKey() != 0xA) {
-                taskKill(arg0);
+        case SHELTER_B4_WATER_SUPPLY_SEWER_CHECK_CHOICE:
+            if (capGetVariantKey() != SHELTER_B4_WATER_SUPPLY_SEWER_ACCEPTED_CHOICE) {
+                taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                D_80114D08                     = 0xA;
+                D_80114D08                     = SHELTER_B4_WATER_SUPPLY_INTERACTION_REARM_UPDATES;
                 break;
             }
-            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-            sceneQueueBattleEscapeResult();
-            D_shelter_b4_water_supply_80184E34.fade.blend      = SCREEN_FADE_SUBTRACT;
-            D_shelter_b4_water_supply_80184E34.fade.phase      = SCREEN_FADE_RUNNING;
-            D_shelter_b4_water_supply_80184E34.fade.rampFrames = 0x1E;
-            taskSpawn(1, 0x31, 0, &D_shelter_b4_water_supply_80184E34.fade);
-            arg0->killCountdown = 0x1E;
-            arg0->state++;
+            _shelterB4WaterSupplyStartUpperSewerFade(task);
+            task->state++;
             break;
-        case 3:
-            if (--arg0->killCountdown == 0) {
+        case SHELTER_B4_WATER_SUPPLY_SEWER_WAIT_FADE:
+            if (--task->killCountdown == 0) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B4_WATER_SUPPLY_EXIT_TRANSIT, 0, 0);
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 4:
+        case SHELTER_B4_WATER_SUPPLY_SEWER_WAIT_SOUND:
             if (sndScriptHasActiveId(SOUND_SHELTER_B4_WATER_SUPPLY_EXIT_TRANSIT) == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 5:
-            gDisplayState.spriteVariant                                = 1;
+        case SHELTER_B4_WATER_SUPPLY_SEWER_RELOAD:
+            // Publish the staged selectors only after the fade and transit sound finish.
+            gDisplayState.spriteVariant                                = SHELTER_B4_WATER_SUPPLY_RELOAD_SPRITE_VARIANT;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b4_water_supply_80184E3C.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b4_water_supply_80184E3C.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1];
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
@@ -831,24 +863,30 @@ static s32 _shelterB4WaterSupplyRejectKeyItem(Task* task, s32 messageId, s32 ite
     return 0;
 }
 
-/// Copies the location at `src` into `dst` and passes both to `mapShelterRoomVariantResolve`.
-/// When the leading halfword of `src` is 0x2C it returns 0, first staging three
-/// bytes of `dst` and spawning from the task table unless `src->queryOnly` is set;
-/// any other location returns 1.
-s32 func_shelter_b4_water_supply_8017D978(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Resolves room exits and stages the CAP-gated upper-sewer departure.
+///
+/// Borrows complete eight-byte request/reply records, which may alias. Copies
+/// before variant resolution. Upper-sewer requests return zero in query and
+/// execute modes; execute mode snapshots only area/warp/room and starts CAP 4.
+/// Other exits return one. Deferred work borrows the room's staging storage;
+/// keep this package loaded and that storage stable through its departure.
+static s32 _shelterB4WaterSupplyResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    mapShelterRoomVariantResolve(src, dst);
-    if (src->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
-        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b4_water_supply_80184E3C.warp              = (u8)dst->areaId;
-            D_shelter_b4_water_supply_80184E3C.field_4           = dst->warp;
-            ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1] = dst->room;
-            taskSpawnFromTable(D_shelter_b4_water_supply_80182620, 1, 4, 0);
+    enum { SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_DESCRIPTOR = 1,
+           SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_CAP        = 4,
+           SHELTER_B4_WATER_SUPPLY_DEPARTURE_DEFERRED         = 0 };
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B4_UPPER_SEWER) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            D_shelter_b4_water_supply_80184E3C.warp              = (u8)reply->areaId;
+            D_shelter_b4_water_supply_80184E3C.field_4           = reply->warp;
+            ((u8*)&D_shelter_b4_water_supply_80184E3C.areaId)[1] = reply->room;
+            taskSpawnFromTable(D_shelter_b4_water_supply_80182620, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_DESCRIPTOR, SHELTER_B4_WATER_SUPPLY_SEWER_DEPARTURE_CAP, 0);
         }
-        return 0;
+        return SHELTER_B4_WATER_SUPPLY_DEPARTURE_DEFERRED;
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
 /// Ignores room-command messages and returns zero without changing room state.
@@ -859,27 +897,36 @@ static s32 _shelterB4WaterSupplyIgnoreCommand(Task* task, s32 messageId, s32 com
     return 0;
 }
 
-/// Handler for slot-7 msg `0x13EF` in `D_shelter_b4_water_supply_801825F0`:
-/// the directed action on the water-supply valve (`actionId` 0xA / `argument`
-/// 0x20).
-s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Handles the valve's directed travel action to the nighttime Water Hole.
+///
+/// Borrows a four-byte direction request during dispatch and ignores the
+/// second payload. Action 10/argument 32 either reports a blocked route, starts
+/// first-use CAP 3 and its deferred departure, or immediately stages repeat-use
+/// travel. The first-use flag commits even if spawning fails. Returns zero for
+/// every action; keep the room resources live through any spawned transition.
+static s32 _shelterB4WaterSupplyHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { SHELTER_B4_WATER_SUPPLY_ACTION_TRAVEL                    = 10,
+           SHELTER_B4_WATER_SUPPLY_VALVE_USED                       = 1,
+           SHELTER_B4_WATER_SUPPLY_CAP_FIRST_VALVE_USE              = 3,
+           SHELTER_B4_WATER_SUPPLY_CAP_ROUTE_BLOCKED                = 1,
+           SHELTER_B4_WATER_SUPPLY_MAP_MARK_BLOCKED                 = 2,
+           SHELTER_B4_WATER_SUPPLY_FIRST_VALVE_DEPARTURE_DESCRIPTOR = 0 };
 
-    if (request->actionId == 0xA) {
-        if (request->argument == 0x20) {
+    if (request->actionId == SHELTER_B4_WATER_SUPPLY_ACTION_TRAVEL) {
+        if (request->argument == GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE) {
             if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
                 if (gameFlagGetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE) != 0) {
                     _shelterB4WaterSupplyDepartToWaterHole();
                 } else {
-                    gameFlagSetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE, 1);
+                    gameFlagSetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE, SHELTER_B4_WATER_SUPPLY_VALVE_USED);
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    capRunCommandWithTransition(3);
-                    taskSpawnFromTable(D_shelter_b4_water_supply_80182620, 0, 0, 0);
+                    capRunCommandWithTransition(SHELTER_B4_WATER_SUPPLY_CAP_FIRST_VALVE_USE);
+                    taskSpawnFromTable(D_shelter_b4_water_supply_80182620, SHELTER_B4_WATER_SUPPLY_FIRST_VALVE_DEPARTURE_DESCRIPTOR, 0, 0);
                 }
             } else {
-                capRunCommandWithTransition(1);
-                gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, 2);
+                capRunCommandWithTransition(SHELTER_B4_WATER_SUPPLY_CAP_ROUTE_BLOCKED);
+                gameFlagSetNibble(GAME_FLAG_MAP_MARK_WATER, SHELTER_B4_WATER_SUPPLY_MAP_MARK_BLOCKED);
             }
         }
     }
@@ -902,7 +949,9 @@ static s32 _shelterB4WaterSupplyHandleSound(Task* task, s32 messageId, s32 sound
 /// Resolves a staged departure's area/warp/room through an in-place execution request.
 ///
 /// Borrows writable departure storage and a synchronous room-variant resolver.
-/// The resolver must preserve every request field it does not replace.
+/// Only area, warp, room and queryOnly are initialized; the resolver must read
+/// only those fields. Other message bytes are indeterminate. Stage, sound and
+/// facing remain intact; the resolved halfword area narrows back to a byte.
 static inline void _shelterB4WaterSupplyResolveDeparture(RoomDeparture* departurePtr, RoomVariantResolver resolveDestination)
 {
     RoomEventMsg destination;
@@ -948,36 +997,57 @@ static void _shelterB4WaterSupplyDepartToWaterHole(void)
     }
 }
 
-void func_shelter_b4_water_supply_8017DC28(Task* arg0)
+/// Waits for the valve's first-use CAP scene, then publishes Water Hole travel.
+///
+/// Start bodyless after CAP 3 and retain the room until CAP becomes idle.
+/// Resolves the destination selectors synchronously, snapshots the departure,
+/// starts its task and updates an eligible companion's schedule before killing
+/// itself. Spawn failure still commits staging and schedule. Arrival uses warp
+/// 3, base room 1 and a quarter-turn facing in 4096-unit angles.
+static void _shelterB4WaterSupplyFirstValveDepartureTask(Task* task)
 {
-    RoomDeparture       work;
-    RoomEventMsg        param;
-    RoomVariantResolver resolve;
+    enum { WATER_HOLE_ARRIVAL_WARP      = 3,
+           WATER_HOLE_ARRIVAL_ROOM      = 1,
+           COMPANION_FOLLOW_UP_SCHEDULE = 6,
+           DEPARTURE_SOUND_SCRIPT       = 3 };
+    RoomDeparture       departure;
+    RoomEventMsg        destination;
+    RoomVariantResolver resolveDestination;
+
+/// Resolves the first valve departure's selectors without copying other message bytes.
+///
+/// Captures the local destination message, resolveDestination callback and ROOM_EVENT_EXECUTE.
+/// departure must be a stable writable RoomDeparture lvalue, evaluated six times.
+/// Initializes only area/warp/room/queryOnly, dispatches an aliased request/reply,
+/// then narrows area back to a byte. Use as a statement inside a braced block.
+#define SHELTER_B4_WATER_SUPPLY_RESOLVE_FIRST_VALVE_DESTINATION(departure) \
+    destination.areaId    = (departure).area;                              \
+    destination.warp      = (departure).warp;                              \
+    destination.room      = (departure).room;                              \
+    destination.queryOnly = ROOM_EVENT_EXECUTE;                            \
+    resolveDestination(&destination, &destination);                        \
+    (departure).area = destination.areaId;                                 \
+    (departure).warp = destination.warp;                                   \
+    (departure).room = destination.room;
 
     if (capIsBusy() == 0) {
-        resolve       = _shelterB4WaterSupplyResolveWaterHoleVariant;
-        work.stage    = GAME_STAGE_DRYFIELD_NIGHT;
-        work.area     = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
-        work.warp     = 3;
-        work.room     = 1;
-        work.sndEvent = 0x542E0003;
-        work.facing   = 0x400;
+        resolveDestination = _shelterB4WaterSupplyResolveWaterHoleVariant;
+        departure.stage    = GAME_STAGE_DRYFIELD_NIGHT;
+        departure.area     = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
+        departure.warp     = WATER_HOLE_ARRIVAL_WARP;
+        departure.room     = WATER_HOLE_ARRIVAL_ROOM;
+        departure.sndEvent = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, DEPARTURE_SOUND_SCRIPT);
+        departure.facing   = ACTOR_TRANSFORM_ANGLE_TURN / 4;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        param.areaId    = work.area;
-        param.warp      = work.warp;
-        param.room      = work.room;
-        param.queryOnly = ROOM_EVENT_EXECUTE;
-        resolve(&param, &param);
-        work.area      = param.areaId;
-        work.warp      = param.warp;
-        work.room      = param.room;
-        gRoomDeparture = work;
+        SHELTER_B4_WATER_SUPPLY_RESOLVE_FIRST_VALVE_DESTINATION(departure);
+        gRoomDeparture = departure;
         taskSpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
-            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 6);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_FOLLOW_UP_SCHEDULE);
         }
-        taskKill(arg0);
+        taskKill(task);
     }
+#undef SHELTER_B4_WATER_SUPPLY_RESOLVE_FIRST_VALVE_DESTINATION
 }
 
 /// Registers the room receiver, installs its messages and starts the water task.
@@ -1267,94 +1337,117 @@ static void _shelterB4WaterSupplyDrawWater(Task* task)
     _shelterB4WaterSupplyDrawXWaveStrips(task);
 }
 
-/// Room task. State 0 installs five effect ids in the shared effect-id slots,
-/// records the world positions of parts 14 and 17 of the slot-3 task's model,
-/// and advances. Later states, while no event is running and `waterY` is below
-/// that model's root, spawn each of two effects at water level under each part
-/// with odds that grow with how far the part moved since last frame. Every
-/// frame it then draws the light beams the current view selects, through
-/// `glowDrawDimGreyCapsule`.
-void func_shelter_b4_water_supply_8017EE54(Task* arg0)
+/// Emits a tracked player's ripple/spray pair and records its signed-halfword position.
+///
+/// Borrows live effect work, a player part and history index 0..1. Composes the
+/// part, narrows movement odds to s16, then consumes two LCG draws in ripple/spray
+/// order. Each spawn snapshots placement at the session's water Y; the ripple
+/// and spray callbacks never read its retained source-coordinate pointer.
+/// Only this room controller calls it.
+static inline void _shelterB4WaterSupplyEmitPartSplashes(EffectWork* work, GfxCoord* trackedPart, s32 sampleIndex)
 {
-    Task*       ctl;
-    EffectWork* work;
-    GfxCoord*   ctlCoords;
-    GfxCoord*   part;
-    GfxCoord    surface;
-    s32         i;
-    u32         rnd;
+    enum { SPLASH_ROLL_MASK   = 0x1FF,
+           RIPPLE_ODDS_BIAS   = 32,
+           RIPPLE_HALF_SIDE   = 64,
+           SPRAY_SIZE         = 384,
+           SPRAY_CELL_UPDATES = 2,
+           SPRAY_LAUNCH_SPEED = 32,
+           SPRAY_UPWARD_BURST = 1,
+           SPRAY_SPAWN_ARG    = SPRAY_SIZE | (SPRAY_CELL_UPDATES << 12) |
+                             (SPRAY_LAUNCH_SPEED << 16) | (SPRAY_UPWARD_BURST << 24) };
+    GfxCoord surfaceCoord;
+    u32      randomRoll;
+    actorRenderComposeCoord(trackedPart);
+    // Odds narrow to s16 before each comparison; ripple gets the bias first.
+    work->angle = ABS(D_shelter_b4_water_supply_801826E0[sampleIndex].vx - trackedPart->workm.t[0]) +
+                  ABS(D_shelter_b4_water_supply_801826E0[sampleIndex].vy - trackedPart->workm.t[1]) +
+                  ABS(D_shelter_b4_water_supply_801826E0[sampleIndex].vz - trackedPart->workm.t[2]) + RIPPLE_ODDS_BIAS;
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &trackedPart->workm, &surfaceCoord.coord);
+    surfaceCoord.parent       = &gGfxViewCoord;
+    surfaceCoord.coord.t[1]   = gGameSession->waterY;
+    surfaceCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&surfaceCoord);
+    randomRoll = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
+    if ((s32)((randomRoll >> 16) & SPLASH_ROLL_MASK) < work->angle) {
+        effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, RIPPLE_HALF_SIDE, 0);
+    }
+    work->angle -= RIPPLE_ODDS_BIAS;
+    randomRoll   = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
+    if ((s32)((randomRoll >> 16) & SPLASH_ROLL_MASK) < work->angle) {
+        effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, SPRAY_SPAWN_ARG, 0);
+    }
+    D_shelter_b4_water_supply_801826E0[sampleIndex].vx = trackedPart->workm.t[0];
+    D_shelter_b4_water_supply_801826E0[sampleIndex].vy = trackedPart->workm.t[1];
+    D_shelter_b4_water_supply_801826E0[sampleIndex].vz = trackedPart->workm.t[2];
+}
 
-    work      = arg0->spawnArg2.pointer;
-    ctl       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    ctlCoords = ctl->extra.tmd->coords;
-    if (arg0->state == 0) {
+void shelterB4WaterSupplySplashAndLightBeamsTask(Task* task)
+{
+    enum { SPLASH_INITIALIZE   = 0,
+           SPLASH_ACTIVE       = 1,
+           SPLASH_SAMPLE_COUNT = ARRAY_SIZE(D_shelter_b4_water_supply_801826E0),
+           SPLASH_FIRST_PART   = 14,
+           SPLASH_PART_STRIDE  = 3,
+           BEAM_RADIUS_SCALE   = 512 };
+    Task*       playerTask;
+    EffectWork* work;
+    GfxCoord*   playerRoot;
+    GfxCoord*   trackedPart;
+    s32         sampleIndex;
+
+    work       = task->spawnArg2.pointer;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerRoot = playerTask->extra.tmd->coords;
+    // Seed cached samples without composing the player parts on the first tick.
+    if (task->state == SPLASH_INITIALIZE) {
         gRoomEffectWaterRippleId  = EFFECT_SHELTER_B4_WATER_SUPPLY_WATER_RIPPLE;
         gRoomEffectWaterSprayId   = EFFECT_SHELTER_B4_WATER_SUPPLY_WATER_SPRAY;
         gRoomEffectGlowDiscId     = EFFECT_SHELTER_B4_WATER_SUPPLY_GLOW_DISC;
         gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B4_WATER_SUPPLY_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B4_WATER_SUPPLY_ORANGE_BURST_2;
-        arg0->state               = 1;
-        for (i = 0; i < 2; i++) {
-            part                                     = &ctl->extra.tmd->coords[14 + i * 3];
-            D_shelter_b4_water_supply_801826E0[i].vx = part->workm.t[0];
-            D_shelter_b4_water_supply_801826E0[i].vy = part->workm.t[1];
-            D_shelter_b4_water_supply_801826E0[i].vz = part->workm.t[2];
+        task->state               = SPLASH_ACTIVE;
+        for (sampleIndex = 0; sampleIndex < SPLASH_SAMPLE_COUNT; sampleIndex++) {
+            trackedPart                                        = &playerTask->extra.tmd->coords[SPLASH_FIRST_PART + sampleIndex * SPLASH_PART_STRIDE];
+            D_shelter_b4_water_supply_801826E0[sampleIndex].vx = trackedPart->workm.t[0];
+            D_shelter_b4_water_supply_801826E0[sampleIndex].vy = trackedPart->workm.t[1];
+            D_shelter_b4_water_supply_801826E0[sampleIndex].vz = trackedPart->workm.t[2];
         }
-    } else if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < ctlCoords->coord.t[1]) {
-        i = 0;
-        for (; i < 2; i++) {
-            part = &ctl->extra.tmd->coords[14 + i * 3];
-            actorRenderComposeCoord(part);
-            // The work block's `angle` holds the splash strength, this task's spawn odds
-            // out of 0x200: the part's movement since last frame, raised by 0x20 for the
-            // ripple roll only.
-            work->angle = ABS(D_shelter_b4_water_supply_801826E0[i].vx - part->workm.t[0]) +
-                          ABS(D_shelter_b4_water_supply_801826E0[i].vy - part->workm.t[1]) +
-                          ABS(D_shelter_b4_water_supply_801826E0[i].vz - part->workm.t[2]) + 0x20;
-            gfxMakeRelativeTransform(&gGfxViewCoord.workm, &part->workm, &surface.coord);
-            surface.parent       = &gGfxViewCoord;
-            surface.coord.t[1]   = gGameSession->waterY;
-            surface.composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(&surface);
-            rnd = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-            if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
-                effectSpawn(gRoomEffectWaterRippleId, &surface, 0x40, 0);
-            }
-            work->angle -= 0x20;
-            rnd          = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-            if ((s32)((rnd >> 16) & 0x1FF) < work->angle) {
-                effectSpawn(gRoomEffectWaterSprayId, &surface, 0x1202180, 0);
-            }
-            D_shelter_b4_water_supply_801826E0[i].vx = part->workm.t[0];
-            D_shelter_b4_water_supply_801826E0[i].vy = part->workm.t[1];
-            D_shelter_b4_water_supply_801826E0[i].vz = part->workm.t[2];
+    } else if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gGameSession->waterY < playerRoot->coord.t[1]) {
+        sampleIndex = 0;
+        for (; sampleIndex < SPLASH_SAMPLE_COUNT; sampleIndex++) {
+            trackedPart = &playerTask->extra.tmd->coords[SPLASH_FIRST_PART + sampleIndex * SPLASH_PART_STRIDE];
+            _shelterB4WaterSupplyEmitPartSplashes(work, trackedPart, sampleIndex);
         }
     }
+    // View-specific beams keep drawing while splash sampling is paused.
     switch ((u8)viewGetMappedIndex()) {
         case 4:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[0], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[4], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
+            /* fallthrough */
         case 2:
         case 3:
-            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182670, 0x200, 0x800);
+            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182670, BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             break;
         case 6:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[2], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[2], BEAM_RADIUS_SCALE, 0);
+            /* fallthrough */
         case 5:
-            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182680, 0x200, 0x800);
+            glowDrawDimGreyCapsule(D_shelter_b4_water_supply_80182680, BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             break;
         case 7:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[2], 0x200, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[2], BEAM_RADIUS_SCALE, 0);
             break;
         case 8:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[0], 0x200, 0);
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[4], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[0], BEAM_RADIUS_SCALE, 0);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[4], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             break;
         case 9:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[8], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[8], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
+            /* fallthrough */
         case 10:
         case 11:
-            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[6], 0x200, 0x800);
+            glowDrawDimGreyCapsule(&D_shelter_b4_water_supply_80182690[6], BEAM_RADIUS_SCALE, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             break;
     }
 }
@@ -1385,9 +1478,9 @@ void shelterB4WaterSupplyWaterDriftTask(Task* task)
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_shelter_b4_water_supply_801809DC(Task* arg0)
+void shelterB4WaterSupplyRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB4WaterSupplyRoomVisualEffectsFlyingSparkTask(Task* task)

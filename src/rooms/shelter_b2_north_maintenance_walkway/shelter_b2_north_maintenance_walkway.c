@@ -845,12 +845,10 @@ static const TaskFuncTable3 D_shelter_b2_north_maintenance_walkway_8017D5F4 = {
     { _shelterB2NorthMaintenanceWalkwayInitRoomTask, _shelterB2NorthMaintenanceWalkwayIdleRoomTask, taskKill },
 };
 
-/// Runs the room task's current state from its state table, dispatching
-/// through a copy of the table taken onto the stack.
-void func_shelter_b2_north_maintenance_walkway_8017DD90(Task* task)
+void shelterB2NorthMaintenanceWalkwayRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b2_north_maintenance_walkway_8017D5F4;
-    sp.funcs[task->state](task);
+    states = D_shelter_b2_north_maintenance_walkway_8017D5F4;
+    states.funcs[task->state](task);
 }

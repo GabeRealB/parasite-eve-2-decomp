@@ -126,6 +126,11 @@ void dryfieldGasStationArrivalMovieTask(Task* task)
 #include "../../shared/screen_fade_in.inc.c"
 
 /// Hands presentation to the arrival movie and keeps current-view packets queued.
+///
+/// Starts descriptor 1 on the display task list and selects task-only flipping.
+/// Requires this room's descriptors and current camera/packets to remain live
+/// until the movie task restores the game loop. Presentation switches even if
+/// the display task cannot be allocated.
 static inline void _dryfieldGasStationStartArrivalMovieDisplay(void)
 {
     enum { ARRIVAL_MOVIE_DESCRIPTOR = 1 };

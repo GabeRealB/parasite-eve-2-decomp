@@ -3077,9 +3077,9 @@ static void _acropolisPlazaStreamSceneTask(Task* task)
 ///
 /// Requires four writable bytes; writes slot and two big-endian offset bytes.
 /// The fourth byte remains uninterpreted. Enqueue copies the buffer synchronously.
-static inline void _acropolisPlazaResetStreamInBuffer(u8* streamArgs, u8 subId)
+static inline void _acropolisPlazaResetStreamInBuffer(u8 streamArgs[4], u8 movieSubId)
 {
-    streamArgs[0] = streamFindMovieSlot(&gGameSession->location.loc, subId, 0);
+    streamArgs[0] = streamFindMovieSlot(&gGameSession->location.loc, movieSubId, 0);
     streamArgs[1] = 0;
     streamArgs[2] = 0;
     cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, streamArgs);

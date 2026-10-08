@@ -84,7 +84,7 @@ shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloTask = 0x801802D8; // type:
 
 shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask = 0x80180670; // type:func
 
-func_shelter_b2_north_maintenance_walkway_80181A80 = 0x80181A80; // type:func
+shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkEmitterTask = 0x80181A80; // type:func
 
 shelterB2NorthMaintenanceWalkwayGlowTask = 0x8017DDE8; // type:func
 _roomVisualEffectsDrawMote = 0x8017F85C; // type:func
@@ -110,3 +110,4 @@ _shelterB2NorthMaintenanceWalkwayIdleRoomTask = 0x8017dd80; // type:func
 shelterB2NorthMaintenanceWalkwayResolveRoomEvent = 0x8017da88; // type:func
 shelterB2NorthMaintenanceWalkwayHandleRoomAction = 0x8017dc54; // type:func
 _shelterB2NorthMaintenanceWalkwayInitRoomTask = 0x8017dd18; // type:func
+shelterB2NorthMaintenanceWalkwayRoomTask = 0x8017dd90; // type:func

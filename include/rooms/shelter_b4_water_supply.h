@@ -48,7 +48,19 @@ extern WorldCollisionSurfaceProperties* D_shelter_b4_water_supply_80184E14[];
 /// state 1 waits for messages; state 2 releases the task.
 void shelterB4WaterSupplyRoomTask(Task* task);
 
-void func_shelter_b4_water_supply_8017EE54(Task* arg0);
+/// Installs this room's effect IDs, emits player-water splashes and draws light beams.
+///
+/// Requires a live player model with coordinates through 17 and a writable
+/// `EffectWork` in `spawnArg2.pointer`. State zero records parts 14 and 17's
+/// composed XYZ without refreshing them; later ticks sample movement only while
+/// room effect control is running and the water Y is less than the player's root Y.
+/// Samples and odds narrow to signed halfwords. Two ordered rolls per part use
+/// odds out of 512, with a 32-point ripple bias; no clamp occurs. Pauses retain
+/// old samples. Spawns snapshot the temporary surface coordinate; the children
+/// never read its retained source pointer. Beams draw for
+/// mapped views 2..11 irrespective of effect control. The task lives until
+/// external teardown; keep the player, room resources and render state live.
+void shelterB4WaterSupplySplashAndLightBeamsTask(Task* task);
 
 /// Runs the water-supply room's expanding, fading water-surface ripple.
 ///
@@ -75,7 +87,18 @@ void shelterB4WaterSupplyWaterRippleTask(Task* task);
 /// cancellation releases the work and task without drawing.
 void shelterB4WaterSupplyWaterDriftTask(Task* task);
 
-void func_shelter_b4_water_supply_801809DC(Task* arg0);
+/// Runs this room's attached charge disc, player-joint sparks and fading release ring.
+///
+/// Requires a coordinate body and counted, owned, zeroed `EffectWork` in
+/// `spawnArg2.pointer`. Its borrowed parent and copied offset establish the
+/// attachment; `spawnArg1.value` selects tint 0 or 1. Start in state zero.
+/// The owner requests flicker, release or cancellation through the shared
+/// glow-disc states. Growing emits an adopted flying spark every fourth age
+/// from player parts 3..18, requiring that live model and installed callback.
+/// Nonzero room effect control pauses below four and cancels at four or above;
+/// release fades the ring and frees work and child tasks. Keep this package and
+/// coordinate ancestors live until teardown, then discard retained pointers.
+void shelterB4WaterSupplyRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs the water-supply glowing-disc spark toward an initial target coordinate.
 ///

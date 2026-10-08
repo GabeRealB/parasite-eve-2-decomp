@@ -258,9 +258,9 @@ void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask(Task* 
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0)
+void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"

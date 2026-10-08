@@ -37,7 +37,12 @@ extern WorldCollisionOccluder D_shelter_b2_north_maintenance_walkway_80186308[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b2_north_maintenance_walkway_80186360[];
 
-void func_shelter_b2_north_maintenance_walkway_8017DD90(Task* task);
+/// Runs the north maintenance walkway receiver's setup, idle or teardown state.
+///
+/// Requires a bodyless task in state 0..2 and this package loaded. Setup
+/// registers the room receiver and clears the variant-1 actor's script handle;
+/// idle keeps it available for messages. Dispatch copies the state table.
+void shelterB2NorthMaintenanceWalkwayRoomTask(Task* task);
 
 /// Runs this room's charging pink flash, peak screen tint and fading star.
 ///
@@ -103,7 +108,16 @@ void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloTask(Task* task);
 /// pauses it; control 4 or above or completion releases the work and task.
 void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_shelter_b2_north_maintenance_walkway_80181A80(Task* arg0);
+/// Emits twenty independent motes at rotating, successively higher local offsets.
+///
+/// Requires a coordinate body and counted, owned, zero-aged `EffectWork` in
+/// `spawnArg2.pointer`; `spawnArg1` is ignored. The installed mote callback and
+/// coordinate ancestors must stay live. Active ages 1..20 emit at radius about
+/// 768 and Y = -128 * age in parent units, advancing a halfword heading by
+/// 512..1023 in 4096-unit angles. Each mote descends eight units per active tick.
+/// Age 21 releases the emitter; its motes remain independent. Nonzero room
+/// effect control pauses below four and cancels at four or above.
+void shelterB2NorthMaintenanceWalkwayRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Installs this room's enemy-effect IDs and draws its view-specific light glows.
 ///

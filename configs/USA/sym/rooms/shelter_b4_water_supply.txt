@@ -68,13 +68,13 @@ D_shelter_b4_water_supply_80184E3C = 0x80184E3C; // size:0x8 defined:True
 gRoomDeparture = 0x80184E44; // size:0xC defined:True
 _gShelterB4WaterSupplyWaterPacketCursor = 0x80184E50; // size:0x4 defined:True
 
-func_shelter_b4_water_supply_8017EE54 = 0x8017EE54; // type:func
+shelterB4WaterSupplySplashAndLightBeamsTask = 0x8017EE54; // type:func
 
 shelterB4WaterSupplyWaterRippleTask = 0x8017F24C; // type:func
 
 shelterB4WaterSupplyWaterDriftTask = 0x8017F6D4; // type:func
 
-func_shelter_b4_water_supply_801809DC = 0x801809DC; // type:func
+shelterB4WaterSupplyRoomVisualEffectsGlowDiscTask = 0x801809DC; // type:func
 
 shelterB4WaterSupplyRoomVisualEffectsFlyingSparkTask = 0x80180F34; // type:func
 
@@ -102,3 +102,7 @@ _shelterB4WaterSupplyInitializeWater = 0x8017ed90; // type:func
 _shelterB4WaterSupplyDrawWater = 0x8017edd0; // type:func
 _shelterB4WaterSupplyWaterTask = 0x8017ed28; // type:func
 _shelterB4WaterSupplyDepartToWaterHole = 0x8017db18; // type:func
+_shelterB4WaterSupplyUpperSewerDepartureTask = 0x8017d7c0; // type:func
+_shelterB4WaterSupplyResolveRoomEvent = 0x8017d978; // type:func
+_shelterB4WaterSupplyHandleRoomAction = 0x8017da30; // type:func
+_shelterB4WaterSupplyFirstValveDepartureTask = 0x8017dc28; // type:func

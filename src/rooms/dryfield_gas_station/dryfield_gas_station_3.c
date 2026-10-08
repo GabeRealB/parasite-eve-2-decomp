@@ -767,8 +767,10 @@ static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
 
 /// Reinstalls the arrival cutscene's initial player animation when a player is present.
 ///
-/// Reloads the task's live work. The request is consumed synchronously and
-/// playback borrows the loaded animation sets; no request pointer survives.
+/// Requires live allocated cutscene work even when its player pointer is NULL.
+/// Reloads that work for each call. The stack request is consumed synchronously;
+/// playback borrows the loaded animation sets, with collision disabled and no
+/// blending. No request pointer survives dispatch.
 static inline void _dryfieldGasStationInstallInitialPlayerAnimation(Task* task)
 {
     enum { INITIAL_PLAYER_CLIP = 0 };

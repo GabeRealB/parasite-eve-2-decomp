@@ -2253,25 +2253,6 @@ static void _acropolisPatioPlayerTurnLeftTask(Task* task)
     }
 }
 
-/// Stages one randomized light-point offset, narrowing each XYZ write to s16.
-///
-/// Advances the shared LCG three times. Anchor 0..2 and writable emitter work
-/// are required; the resulting vector is consumed by the next effect spawn.
-static inline void _acropolisPatioOffsetLightMote(EffectWork* scratchWork, s32 anchorIndex)
-{
-    enum { MOTE_JITTER_CENTRE = 1024,
-           MOTE_JITTER_MASK   = 2047 };
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    scratchWork->move.vx  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK);
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    scratchWork->move.vy  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK);
-    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    scratchWork->move.vz  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK);
-    scratchWork->move.vx += D_acropolis_patio_80182DDC[anchorIndex].vx;
-    scratchWork->move.vy += D_acropolis_patio_80182DDC[anchorIndex].vy;
-    scratchWork->move.vz += D_acropolis_patio_80182DDC[anchorIndex].vz;
-}
-
 void acropolisPatioSpawnLightEffectsTask(Task* task)
 {
     enum { LIGHT_EMITTER_INIT     = 0,
@@ -2285,6 +2266,29 @@ void acropolisPatioSpawnLightEffectsTask(Task* task)
     EffectWork* scratchWork;
     s32         anchorIndex;
     s32         moteIndex;
+
+/// Chooses a parent-relative mote position around a large-light anchor.
+///
+/// Requires a writable SVECTOR pointer and an anchor index 0..2. Both arguments
+/// must be stable and side-effect-free: position is evaluated six times and
+/// anchorIndex three times. Advances gRandomLcgState three times in XYZ order,
+/// with jitter -1023..1024 coordinate units and s16 narrowing before and after
+/// anchor addition. Writes only XYZ; the following effect spawn copies them.
+/// Use as a statement inside a braced block.
+#define ACROPOLIS_PATIO_OFFSET_LIGHT_MOTE(position, anchorIndex)                             \
+    {                                                                                        \
+        enum { MOTE_JITTER_CENTRE = 1024,                                                    \
+               MOTE_JITTER_MASK   = 2047 };                                                    \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;    \
+        (position)->vx  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK); \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;    \
+        (position)->vy  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK); \
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;    \
+        (position)->vz  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK); \
+        (position)->vx += D_acropolis_patio_80182DDC[(anchorIndex)].vx;                      \
+        (position)->vy += D_acropolis_patio_80182DDC[(anchorIndex)].vy;                      \
+        (position)->vz += D_acropolis_patio_80182DDC[(anchorIndex)].vz;                      \
+    }
 
     scratchWork = task->spawnArg2.pointer;
     parentCoord = task->extra.coordBody->coord;
@@ -2304,11 +2308,12 @@ void acropolisPatioSpawnLightEffectsTask(Task* task)
         // Each child snapshots XYZ; these point tasks never read the retained offset pointer.
         for (anchorIndex = 0; anchorIndex < LARGE_LIGHT_END; anchorIndex++) {
             for (moteIndex = 0; moteIndex < MOTES_PER_LARGE_LIGHT; moteIndex++) {
-                _acropolisPatioOffsetLightMote(scratchWork, anchorIndex);
+                ACROPOLIS_PATIO_OFFSET_LIGHT_MOTE(&scratchWork->move, anchorIndex);
                 effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_MIST, parentCoord, anchorIndex, &scratchWork->move);
             }
         }
     }
+#undef ACROPOLIS_PATIO_OFFSET_LIGHT_MOTE
 }
 
 /// Positions a patio light glow as a square around its projected screen centre.
