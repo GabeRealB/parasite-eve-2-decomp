@@ -27,6 +27,8 @@
 #include "main/session.h"
 #include "main/tmd_types.h"
 
+#include "weapons/weapon.h"
+
 /// GPU packet commands, angle units and spawn fields used by these drawers.
 ///
 /// The textured-quad packet length excludes its one-word DMA tag.
@@ -213,6 +215,95 @@ static void _effectDrawImpactSparkFlash(const GfxCoord* coord, u16 frame, s16 si
 
 static void _effectDrawCriticalHitBurst(const GfxCoord* coord, s16 radius, s16 brightness, u16 color);
 
+/// Applies the explosion atlas frame's palette and inclusive texture rectangle.
+///
+/// Borrows a writable packet and an atlas entry (frame index 0..11). Writes
+/// only CLUT and UV fields; page selection, command and geometry stay with
+/// the caller. Palette coordinates count VRAM words/scanlines and UVs texels.
+static __inline__ void _effectSetExplosionTexture(POLY_FT4* quad, const EffectSpriteTextureFrame* textureFrame)
+{
+    quad->clut = getClut(textureFrame->clutX, textureFrame->clutY);
+    quad->u0   = textureFrame->u;
+    quad->v0   = textureFrame->v;
+    quad->u1   = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    quad->v1   = textureFrame->v;
+    quad->u2   = textureFrame->u;
+    quad->v2   = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    quad->u3   = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
+    quad->v3   = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
+}
+
+/// Chooses one grenade-burst offset with three consecutive shared LCG draws.
+///
+/// Writes move XYZ in -255..256 parent-local coordinate units, leaving its
+/// fourth halfword intact. The work is borrowed; effectSpawn snapshots the
+/// offset before the next draw can replace it. No transform or allocation.
+static __inline__ void _effectChooseGrenadeBurstOffset(EffectWork* work)
+{
+    enum { EFFECT_GRENADE_BURST_OFFSET_CENTRE = 256,
+           EFFECT_GRENADE_BURST_OFFSET_MASK   = 511 };
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vx   = EFFECT_GRENADE_BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & EFFECT_GRENADE_BURST_OFFSET_MASK);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vy   = EFFECT_GRENADE_BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & EFFECT_GRENADE_BURST_OFFSET_MASK);
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->move.vz   = EFFECT_GRENADE_BURST_OFFSET_CENTRE - ((gRandomLcgState >> 16) & EFFECT_GRENADE_BURST_OFFSET_MASK);
+}
+
+/// Lights the original shotgun spawn position before attachment to the weapon.
+///
+/// Borrows a live spawn coordinate and an initialized transient slot's point
+/// light in the same view-parent frame. Writes Q12 reddish intensity
+/// (7/8, 5/8, 5/8), radii 4000/4800 world units and dirty local translation.
+/// Retains parent, rotation and expiry; the caller enables the shared slot.
+static __inline__ void _effectInitializeShotgunLight(const GfxCoord* spawnCoord, WorldCoordPointLight* pointLight)
+{
+    enum { EFFECT_SHOTGUN_FLASH_RED_INTENSITY   = ONE * 7 / 8,
+           EFFECT_SHOTGUN_FLASH_OTHER_INTENSITY = ONE * 5 / 8 };
+    s32 spawnZ;
+    pointLight->head.transform.coord.coord.t[0]   = spawnCoord->coord.t[0];
+    pointLight->head.transform.coord.coord.t[1]   = spawnCoord->coord.t[1];
+    spawnZ                                        = spawnCoord->coord.t[2];
+    pointLight->head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    pointLight->head.color.r                      = EFFECT_SHOTGUN_FLASH_RED_INTENSITY;
+    pointLight->head.color.g                      = EFFECT_SHOTGUN_FLASH_OTHER_INTENSITY;
+    pointLight->head.color.b                      = EFFECT_SHOTGUN_FLASH_OTHER_INTENSITY;
+    pointLight->inner                             = EFFECT_WEAPON_FLASH_LIGHT_INNER_RADIUS;
+    pointLight->outer                             = EFFECT_WEAPON_FLASH_LIGHT_OUTER_RADIUS;
+    pointLight->head.transform.coord.coord.t[2]   = spawnZ;
+}
+
+/// Refreshes a grenade burst's shared light at its unchanged spawn position.
+///
+/// Borrows the initialized transient slot, its point-light and coordinate
+/// aliases, the live blast coordinate and work. Both coordinates have the
+/// same view parent. RGB inputs are Q12; the full-strength radius is
+/// 8800 - 400 * age world units with outer reach fixed at 9600. Refreshes
+/// expiry to sixteen light updates and dirties placement without composing.
+static __inline__ void _effectRefreshGrenadeBurstLight(WorldCoordTransientPointLight* transientLight, WorldCoordPointLight* pointLight, GfxCoord* lightCoord, const GfxCoord* blastCoord, const EffectWork* work, s16 redIntensity, s16 greenIntensity, s16 blueIntensity)
+{
+    enum {
+        EFFECT_GRENADE_BURST_LIGHT_TICKS    = 16,
+        EFFECT_GRENADE_BURST_OUTER_RADIUS   = 9600,
+        EFFECT_GRENADE_BURST_RADIUS_QUARTER = 2200,
+        EFFECT_GRENADE_BURST_RADIUS_STEP    = 100,
+    };
+    s32 age;
+    s32 spawnZ;
+    transientLight->framesLeft = EFFECT_GRENADE_BURST_LIGHT_TICKS;
+    age                        = work->age;
+    pointLight->outer          = EFFECT_GRENADE_BURST_OUTER_RADIUS;
+    pointLight->head.color.r   = redIntensity;
+    pointLight->head.color.g   = greenIntensity;
+    pointLight->head.color.b   = blueIntensity;
+    pointLight->inner          = (EFFECT_GRENADE_BURST_RADIUS_QUARTER - (age * EFFECT_GRENADE_BURST_RADIUS_STEP)) * 4;
+    lightCoord->coord.t[0]     = blastCoord->coord.t[0];
+    lightCoord->coord.t[1]     = blastCoord->coord.t[1];
+    spawnZ                     = blastCoord->coord.t[2];
+    lightCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
+    lightCoord->coord.t[2]     = spawnZ;
+}
+
 /// Places the four corners of one sixteenth-turn critical-hit ring segment.
 ///
 /// segmentAngle is 0..3840 in 4096-unit turns; returns the angle plus 256.
@@ -340,52 +431,84 @@ enum { EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS = 12 };
     (quad)->y1                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
     (quad)->y2                 = (scratch)->screenY + (scratch)->extent.corner.y;
 
+/// Places a rotated puff's two opposite-corner pairs around its screen centre.
+///
+/// Arguments must be side-effect-free POLY_FT4*, EffectShapeScratch*,
+/// const EffectWork* and inclusive texel-span expressions, respectively.
+/// work->scale is a nonnegative signed-halfword size and angle a 4096-unit
+/// rotation; uvSpan is 1..39. Scratch holds a projected centre and positive
+/// depth, with the caller's bias already applied. The half-diagonal is
+/// size * span / depth pixels before Q12 rotation. Writes quad XY, narrowing
+/// to signed halfwords, and scratch corner offsets; leaves the quarter-turn
+/// pair there. Borrows storage and queues no packet. Arguments occur
+/// repeatedly, no caller locals are captured, and the expansion is several
+/// statements: invoke only in a braced block. A constant span stays visible
+/// to multiplication folding at each use.
+#define EFFECT_SET_PUFF_CORNERS(quad, scratch, work, uvSpan)                                                                                                                     \
+    (scratch)->extent.corner.x = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rsin((work)->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;                            \
+    (scratch)->extent.corner.y = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rcos((work)->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;                            \
+    (quad)->x0                 = (scratch)->screenX + (scratch)->extent.corner.x;                                                                                                \
+    (quad)->x3                 = (scratch)->screenX - (scratch)->extent.corner.x;                                                                                                \
+    (quad)->y0                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
+    (quad)->y3                 = (scratch)->screenY + (scratch)->extent.corner.y;                                                                                                \
+    (scratch)->extent.corner.x = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rsin((work)->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS; \
+    (scratch)->extent.corner.y = ((((work)->scale * (uvSpan)) / (scratch)->depth) * rcos((work)->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS; \
+    (quad)->x1                 = (scratch)->screenX + (scratch)->extent.corner.x;                                                                                                \
+    (quad)->x2                 = (scratch)->screenX - (scratch)->extent.corner.x;                                                                                                \
+    (quad)->y1                 = (scratch)->screenY - (scratch)->extent.corner.y;                                                                                                \
+    (quad)->y2                 = (scratch)->screenY + (scratch)->extent.corner.y;
+
+/// Places the explosion billboard's rotated opposite-corner pairs.
+///
+/// Borrows the packet, a projected scratch centre with positive SZ3 / 4 + 1
+/// depth, and work. The growing signed-halfword size supplies size * 39 / depth
+/// pixels before Q12 rotation in 4096-unit turns. Writes only packet XY and
+/// scratch corner offsets, leaving the quarter-turn pair on return.
+static __inline__ void _effectSetExplosionCorners(POLY_FT4* quad, EffectShapeScratch* scratch, const EffectWork* work)
+{
+    EFFECT_SET_PUFF_CORNERS(quad, scratch, work, EFFECT_SPRITE_ATLAS_UV_SPAN);
+}
+
 /// Texture-cell side in texels, shared by the dust animation and corner sizing.
 enum { EFFECT_DUST_PUFF_CELL_SIZE = 32 };
 
 /// Places a dust puff's two pairs of opposite corners around its projected centre.
 ///
-/// Borrows a live quad, projection block and work. depth is the accepted RTPS's
-/// unmodified SZ3 / 4; scale is size in 0..4095 and angle a 4096-unit turn.
+/// Borrows a writable POLY_FT4, a live word-aligned projection block and work.
+/// scratch->depth must be the accepted RTPS's positive, unmodified SZ3 / 4;
+/// work->scale is size in 0..4095 and angle a rotation in 4096 units per turn.
 /// The half-diagonal is size * 31 / depth pixels before Q12 rotation. Corner
-/// offsets retain their low halfword when added to the raw screen coordinates.
-/// Writes only quad XY and scratch extent.corner; queues no packet.
-static __inline__ void _effectSetDustPuffCorners(POLY_FT4* quad, EffectShapeScratch* block, const EffectWork* work)
+/// offsets narrow to the packet's signed halfword after addition to the raw
+/// screen coordinates.
+/// Writes only quad XY and scratch extent.corner, leaving the quarter-turn
+/// offsets there on return. Neither reserves storage nor queues a packet;
+/// the pointers need remain live only for this call.
+static __inline__ void _effectSetDustPuffCorners(POLY_FT4* quad, EffectShapeScratch* scratch, const EffectWork* work)
 {
-    block->extent.corner.x = (((work->scale * (EFFECT_DUST_PUFF_CELL_SIZE - 1)) / block->depth) * rsin(work->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;
-    block->extent.corner.y = (((work->scale * (EFFECT_DUST_PUFF_CELL_SIZE - 1)) / block->depth) * rcos(work->angle)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;
-    quad->x0               = block->screenX + (u16)block->extent.corner.x;
-    quad->x3               = block->screenX - (u16)block->extent.corner.x;
-    quad->y0               = block->screenY - (u16)block->extent.corner.y;
-    quad->y3               = block->screenY + (u16)block->extent.corner.y;
-    block->extent.corner.x = (((work->scale * (EFFECT_DUST_PUFF_CELL_SIZE - 1)) / block->depth) * rsin(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;
-    block->extent.corner.y = (((work->scale * (EFFECT_DUST_PUFF_CELL_SIZE - 1)) / block->depth) * rcos(work->angle + EFFECT_DRAW_QUARTER_TURN)) >> EFFECT_ROTATED_SPRITE_TRIG_FRACTION_BITS;
-    quad->x1               = block->screenX + (u16)block->extent.corner.x;
-    quad->x2               = block->screenX - (u16)block->extent.corner.x;
-    quad->y1               = block->screenY - (u16)block->extent.corner.y;
-    quad->y2               = block->screenY + (u16)block->extent.corner.y;
+    EFFECT_SET_PUFF_CORNERS(quad, scratch, work, EFFECT_DUST_PUFF_CELL_SIZE - 1);
 }
 
 /// Initializes the shared handgun point light at the effect's spawn position.
 ///
-/// Borrows a live spawn coordinate and initialized transient slot; pointLight
-/// must address that slot's light. Their translations share the view-parent frame.
-/// Writes three-quarter Q12 white,
+/// Borrows a live spawnCoord and the point-light member of an initialized
+/// transient slot. Their translations share the view-parent frame; placement
+/// is sampled before the muzzle is attached. Retains the light's parent and
+/// rotation. Writes three-quarter Q12 white,
 /// full-strength radius 4000 and outer radius 4800 in world units, invalidating
 /// composition. Leaves expiry unchanged for the weapon-profile branch.
-static __inline__ void _effectInitializeHandgunLight(const GfxCoord* muzzleCoord, WorldCoordTransientPointLight* transientLight, WorldCoordPointLight* pointLight)
+static __inline__ void _effectInitializeHandgunLight(const GfxCoord* spawnCoord, WorldCoordPointLight* pointLight)
 {
     s32 spawnZ;
-    pointLight->head.transform.coord.coord.t[0]             = muzzleCoord->coord.t[0];
-    pointLight->head.transform.coord.coord.t[1]             = muzzleCoord->coord.t[1];
-    spawnZ                                                  = muzzleCoord->coord.t[2];
-    transientLight->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    pointLight->head.color.r                                = EFFECT_WEAPON_FLASH_LIGHT_INTENSITY;
-    pointLight->head.color.g                                = EFFECT_WEAPON_FLASH_LIGHT_INTENSITY;
-    pointLight->head.color.b                                = EFFECT_WEAPON_FLASH_LIGHT_INTENSITY;
-    pointLight->inner                                       = EFFECT_WEAPON_FLASH_LIGHT_INNER_RADIUS;
-    pointLight->outer                                       = EFFECT_WEAPON_FLASH_LIGHT_OUTER_RADIUS;
-    pointLight->head.transform.coord.coord.t[2]             = spawnZ;
+    pointLight->head.transform.coord.coord.t[0]   = spawnCoord->coord.t[0];
+    pointLight->head.transform.coord.coord.t[1]   = spawnCoord->coord.t[1];
+    spawnZ                                        = spawnCoord->coord.t[2];
+    pointLight->head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
+    pointLight->head.color.r                      = EFFECT_WEAPON_FLASH_LIGHT_INTENSITY;
+    pointLight->head.color.g                      = EFFECT_WEAPON_FLASH_LIGHT_INTENSITY;
+    pointLight->head.color.b                      = EFFECT_WEAPON_FLASH_LIGHT_INTENSITY;
+    pointLight->inner                             = EFFECT_WEAPON_FLASH_LIGHT_INNER_RADIUS;
+    pointLight->outer                             = EFFECT_WEAPON_FLASH_LIGHT_OUTER_RADIUS;
+    pointLight->head.transform.coord.coord.t[2]   = spawnZ;
 }
 
 /// Attaches the reload emitter at its profile offset plus copied spawn XYZ.
@@ -490,7 +613,7 @@ void effectControlTask2B(Task* task)
                 work->index           = burstSuppressed;
                 task->spawnArg1.value = (u8)task->spawnArg1.value;
                 // Light the spawn position before attaching the effect to the weapon.
-                _effectInitializeHandgunLight(muzzleCoord, transientLight, pointLight);
+                _effectInitializeHandgunLight(muzzleCoord, pointLight);
                 muzzleCoord->parent       = work->parent;
                 muzzleCoord->coord.t[0]   = D_801124DC[task->spawnArg1.value].vx;
                 muzzleCoord->coord.t[1]   = D_801124DC[task->spawnArg1.value].vy;
@@ -722,193 +845,203 @@ void effectControlTask6B(Task* task)
     }
 }
 
-void func_800ED42C(Task* arg0)
+void effectControlTaskA1(Task* task)
 {
-    EffectWork*                    mem;
-    GfxCoord*                      coord;
-    WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          slot;
-    SVECTOR*                       vec;
-    s32                            temp;
-    s32                            t2;
-    s32                            count;
-    s32                            i;
+    enum {
+        EFFECT_SHOTGUN_FLASH_PROFILE_AS12        = 15,
+        EFFECT_SHOTGUN_FLASH_PROFILE_GUNBLADE    = 23,
+        EFFECT_SHOTGUN_FLASH_AMMUNITION_BUCKSHOT = 13,
+        EFFECT_SHOTGUN_FLASH_AMMUNITION_SLUG     = 15,
+        EFFECT_SHOTGUN_FLASH_STATE_EJECTED       = 2,
+        EFFECT_SHOTGUN_FLASH_BUCKSHOT_LAST_AGE   = 24,
+        EFFECT_SHOTGUN_FLASH_PELLET_COUNT        = 12,
+        EFFECT_SHOTGUN_FLASH_THROWN_SPARK_COUNT  = 4,
+        EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE       = 512,
+        EFFECT_SHOTGUN_FLASH_SLUG_SIZE           = 640,
+        EFFECT_SHOTGUN_FLASH_SPARK_ARG           = (2 << 16) | 768,
+    };
+    EffectWork*                    work;
+    GfxCoord*                      muzzleCoord;
+    WorldCoordTransientPointLight* transientLight;
+    WorldCoordPointLight*          pointLight;
+    SVECTOR*                       flareOffset;
+    s32                            ammunitionIndex;
+    s32                            age;
+    s32                            sparkIndex;
 
-    mem       = arg0->spawnArg2.pointer;
-    coord     = arg0->extra.coordBody->coord;
-    lightSlot = gWorldCoordTransientPointLights;
-    slot      = &lightSlot->light;
+/// Emits the shotgun's twelve pixel sparks followed by twelve line sparks.
+///
+/// muzzleCoord is a side-effect-free live GfxCoord* and sparkIndex a writable
+/// integer local initialized to zero. Arguments occur repeatedly; the counter
+/// ends at twelve and is reset between loops. Children use zero payload and
+/// offset, consume no draws here, and own independent work. Uses the local
+/// EFFECT_SHOTGUN_FLASH_PELLET_COUNT constant; captures no caller variable.
+/// Expands to two loops; invoke inside a braced block.
+#define EFFECT_SPAWN_SHOTGUN_PELLET_SPARKS(muzzleCoord, sparkIndex)                            \
+    for (; (sparkIndex) < EFFECT_SHOTGUN_FLASH_PELLET_COUNT; (sparkIndex)++) {                 \
+        effectSpawn(EFFECT_PIXEL_SPARK, (muzzleCoord), 0, 0);                                  \
+    }                                                                                          \
+    for ((sparkIndex) = 0; (sparkIndex) < EFFECT_SHOTGUN_FLASH_PELLET_COUNT; (sparkIndex)++) { \
+        effectSpawn(EFFECT_SHOTGUN_SPARK_LINE, (muzzleCoord), 0, 0);                           \
+    }
+
+    work           = task->spawnArg2.pointer;
+    muzzleCoord    = task->extra.coordBody->coord;
+    transientLight = gWorldCoordTransientPointLights;
+    pointLight     = &transientLight->light;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_HIDDEN) {
-        mem->age++;
-        switch (arg0->state) {
-            case 0:
-                temp                                               = arg0->spawnArg1.halves.high;
-                mem->index                                         = temp;
-                arg0->spawnArg1.value                              = (u8)arg0->spawnArg1.value;
-                slot->head.transform.coord.coord.t[0]              = coord->coord.t[0];
-                slot->head.transform.coord.coord.t[1]              = coord->coord.t[1];
-                t2                                                 = coord->coord.t[2];
-                lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                slot->head.color.r                                 = 0xE00;
-                slot->head.color.g                                 = 0xA00;
-                slot->head.color.b                                 = 0xA00;
-                slot->inner                                        = 0xFA0;
-                slot->outer                                        = 0x12C0;
-                slot->head.transform.coord.coord.t[2]              = t2;
-                coord->parent                                      = mem->parent;
-                coord->coord.t[0]                                  = D_801124DC[arg0->spawnArg1.value].vx;
-                coord->coord.t[1]                                  = D_801124DC[arg0->spawnArg1.value].vy;
-                coord->coord.t[2]                                  = D_801124DC[arg0->spawnArg1.value].vz;
-                coord->composeStamp                                = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                switch (arg0->spawnArg1.value) {
-                    case 1:
+        work->age++;
+        switch (task->state) {
+            case EFFECT_DRAW_TASK_NEW:
+                ammunitionIndex       = task->spawnArg1.halves.high;
+                work->index           = ammunitionIndex;
+                task->spawnArg1.value = (u8)task->spawnArg1.value;
+                // Light the spawn position before moving to the weapon muzzle.
+                _effectInitializeShotgunLight(muzzleCoord, pointLight);
+                muzzleCoord->parent       = work->parent;
+                muzzleCoord->coord.t[0]   = D_801124DC[task->spawnArg1.value].vx;
+                muzzleCoord->coord.t[1]   = D_801124DC[task->spawnArg1.value].vy;
+                muzzleCoord->coord.t[2]   = D_801124DC[task->spawnArg1.value].vz;
+                muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                actorRenderComposeCoord(muzzleCoord);
+                switch (task->spawnArg1.value) {
+                    case EFFECT_WEAPON_FLASH_PROFILE_P08:
                     default:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
-                        if (mem->index == 0xD) {
-                            mem->move.vx = 0;
-                            mem->move.vy = 0;
-                            mem->move.vz = -((s32)((u16)mem->scale << 16) >> 18);
-                            effectSpawn(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x200, &mem->move);
-                            for (i = 0; i < 0xC; i++) {
-                                effectSpawn(EFFECT_PIXEL_SPARK, coord, 0, 0);
-                            }
-                            for (i = 0; i < 0xC; i++) {
-                                effectSpawn(EFFECT_SHOTGUN_SPARK_LINE, coord, 0, 0);
-                            }
-                            mem->scale = 0x18;
+                        work->scale     = (gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK;
+                        if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_BUCKSHOT) {
+                            work->move.vx = 0;
+                            work->move.vy = 0;
+                            work->move.vz = -((s32)((u16)work->scale << 16) >> 18);
+                            effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, work->scale + EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE, &work->move);
+                            sparkIndex = 0;
+                            EFFECT_SPAWN_SHOTGUN_PELLET_SPARKS(muzzleCoord, sparkIndex);
+                            work->scale = EFFECT_SHOTGUN_FLASH_BUCKSHOT_LAST_AGE;
                         } else {
-                            mem->move.vx = 0;
-                            mem->move.vy = 0;
-                            mem->move.vz = -((s32)((u16)mem->scale << 16) >> 17);
-                            effectSpawn(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x380, &mem->move);
+                            work->move.vx = 0;
+                            work->move.vy = 0;
+                            work->move.vz = -((s32)((u16)work->scale << 16) >> 17);
+                            effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, work->scale + EFFECT_RIFLE_FLASH_SIZE, &work->move);
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
-                            if (mem->index == 0xF) {
+                            effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_RIFLE_FLASH_SIZE, 0);
+                            if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_SLUG) {
                                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                _effectDrawMuzzleFlash(coord, (s16)(mem->scale + 0x280),
-                                                       (gRandomLcgState >> 16) & 0xFFF);
+                                _effectDrawMuzzleFlash(muzzleCoord, (s16)(work->scale + EFFECT_SHOTGUN_FLASH_SLUG_SIZE),
+                                                       (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK);
                             }
-                            mem->scale = 4;
+                            work->scale = EFFECT_WEAPON_FLASH_LAST_AGE;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        effectSpawn(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
-                        for (i = 0; i < 4; i++) {
+                        effectSpawn(EFFECT_MUZZLE_SPARK, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_SHOTGUN_FLASH_SPARK_ARG, 0);
+                        for (sparkIndex = 0; sparkIndex < EFFECT_SHOTGUN_FLASH_THROWN_SPARK_COUNT; sparkIndex++) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            effectSpawn(EFFECT_MUZZLE_SPARK_THROWN, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
+                            effectSpawn(EFFECT_MUZZLE_SPARK_THROWN, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) | EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE, 0);
                         }
-                        arg0->state = 1;
+                        task->state = EFFECT_DRAW_TASK_ACTIVE;
                         break;
-                    case 15:
+                    case EFFECT_SHOTGUN_FLASH_PROFILE_AS12:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
-                        if (mem->index == 0xD) {
-                            mem->move.vx = 0;
-                            mem->move.vy = 0;
-                            mem->move.vz = -((s32)((u16)mem->scale << 16) >> 18);
-                            effectSpawn(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x200, &mem->move);
-                            for (i = 0; i < 0xC; i++) {
-                                effectSpawn(EFFECT_PIXEL_SPARK, coord, 0, 0);
-                            }
-                            for (i = 0; i < 0xC; i++) {
-                                effectSpawn(EFFECT_SHOTGUN_SPARK_LINE, coord, 0, 0);
-                            }
+                        work->scale     = (gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK;
+                        if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_BUCKSHOT) {
+                            work->move.vx = 0;
+                            work->move.vy = 0;
+                            work->move.vz = -((s32)((u16)work->scale << 16) >> 18);
+                            effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, work->scale + EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE, &work->move);
+                            sparkIndex = 0;
+                            EFFECT_SPAWN_SHOTGUN_PELLET_SPARKS(muzzleCoord, sparkIndex);
                         } else {
-                            mem->move.vx = 0;
-                            mem->move.vy = 0;
-                            mem->move.vz = -((s32)((u16)mem->scale << 16) >> 17);
-                            effectSpawn(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x380, &mem->move);
+                            work->move.vx = 0;
+                            work->move.vy = 0;
+                            work->move.vz = -((s32)((u16)work->scale << 16) >> 17);
+                            effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, work->scale + EFFECT_RIFLE_FLASH_SIZE, &work->move);
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
-                            if (mem->index == 0xF) {
+                            effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_RIFLE_FLASH_SIZE, 0);
+                            if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_SLUG) {
                                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                _effectDrawMuzzleFlash(coord, (s16)(mem->scale + 0x280),
-                                                       (gRandomLcgState >> 16) & 0xFFF);
+                                _effectDrawMuzzleFlash(muzzleCoord, (s16)(work->scale + EFFECT_SHOTGUN_FLASH_SLUG_SIZE),
+                                                       (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK);
                             }
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        effectSpawn(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
-                        for (i = 0; i < 4; i++) {
+                        effectSpawn(EFFECT_MUZZLE_SPARK, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_SHOTGUN_FLASH_SPARK_ARG, 0);
+                        for (sparkIndex = 0; sparkIndex < EFFECT_SHOTGUN_FLASH_THROWN_SPARK_COUNT; sparkIndex++) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            effectSpawn(EFFECT_MUZZLE_SPARK_THROWN, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
+                            effectSpawn(EFFECT_MUZZLE_SPARK_THROWN, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) | EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE, 0);
                         }
-                        effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, coord, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
-                        arg0->state = 2;
-                        mem->scale  = 4;
+                        effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, muzzleCoord, task->spawnArg1.value, &D_801125EC[task->spawnArg1.value]);
+                        task->state = EFFECT_SHOTGUN_FLASH_STATE_EJECTED;
+                        work->scale = EFFECT_WEAPON_FLASH_LAST_AGE;
                         break;
-                    case 23:
+                    case EFFECT_SHOTGUN_FLASH_PROFILE_GUNBLADE:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->scale      = (gRandomLcgState >> 16) & 0x1FF;
-                        if (mem->index == 0xD) {
-                            mem->move.vx = 0;
-                            mem->move.vy = 0;
-                            mem->move.vz = (s32)((u16)mem->scale << 16) >> 18;
+                        work->scale     = (gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK;
+                        if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_BUCKSHOT) {
+                            work->move.vx = 0;
+                            work->move.vy = 0;
+                            work->move.vz = (s32)((u16)work->scale << 16) >> 18;
                             gte_SetTransMatrix(&GsWSMATRIX);
-                            gte_SetRotMatrix(&coord->coord);
-                            vec = &mem->move;
-                            gte_ldv0(vec);
+                            gte_SetRotMatrix(&muzzleCoord->coord);
+                            flareOffset = &work->move;
+                            gte_ldv0(flareOffset);
                             gte_rtv0();
-                            gte_stsv(vec);
-                            effectSpawn(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x200, vec);
-                            i = 0;
-                            gfxRotMatrixX(&coord->coord, 0x400, i);
-                            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                            for (; i < 0xC; i++) {
-                                effectSpawn(EFFECT_PIXEL_SPARK, coord, 0, 0);
-                            }
-                            for (i = 0; i < 0xC; i++) {
-                                effectSpawn(EFFECT_SHOTGUN_SPARK_LINE, coord, 0, 0);
-                            }
+                            gte_stsv(flareOffset);
+                            effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, work->scale + EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE, flareOffset);
+                            sparkIndex = 0;
+                            gfxRotMatrixX(&muzzleCoord->coord, EFFECT_DRAW_QUARTER_TURN, GRAPHICS_ROTATION_COMPOSE);
+                            muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                            EFFECT_SPAWN_SHOTGUN_PELLET_SPARKS(muzzleCoord, sparkIndex);
                         } else {
-                            mem->move.vx = 0;
-                            mem->move.vy = 0;
-                            mem->move.vz = (s32)((u16)mem->scale << 16) >> 17;
+                            work->move.vx = 0;
+                            work->move.vy = 0;
+                            work->move.vz = (s32)((u16)work->scale << 16) >> 17;
                             gte_SetTransMatrix(&GsWSMATRIX);
-                            gte_SetRotMatrix(&coord->coord);
-                            vec = &mem->move;
-                            gte_ldv0(vec);
+                            gte_SetRotMatrix(&muzzleCoord->coord);
+                            flareOffset = &work->move;
+                            gte_ldv0(flareOffset);
                             gte_rtv0();
-                            gte_stsv(vec);
-                            effectSpawn(EFFECT_MUZZLE_FLARE, coord, mem->scale + 0x380, vec);
+                            gte_stsv(flareOffset);
+                            effectSpawn(EFFECT_MUZZLE_FLARE, muzzleCoord, work->scale + EFFECT_RIFLE_FLASH_SIZE, flareOffset);
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x380, 0);
-                            if (mem->index == 0xF) {
+                            effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_RIFLE_FLASH_SIZE, 0);
+                            if (work->index == EFFECT_SHOTGUN_FLASH_AMMUNITION_SLUG) {
                                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                                _effectDrawMuzzleFlash(coord, (s16)(mem->scale + 0x280),
-                                                       (gRandomLcgState >> 16) & 0xFFF);
+                                _effectDrawMuzzleFlash(muzzleCoord, (s16)(work->scale + EFFECT_SHOTGUN_FLASH_SLUG_SIZE),
+                                                       (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK);
                             }
-                            gfxRotMatrixX(&coord->coord, 0x400, GRAPHICS_ROTATION_COMPOSE);
-                            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                            gfxRotMatrixX(&muzzleCoord->coord, EFFECT_DRAW_QUARTER_TURN, GRAPHICS_ROTATION_COMPOSE);
+                            muzzleCoord->composeStamp = GRAPHICS_COORD_DIRTY;
                         }
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        effectSpawn(EFFECT_MUZZLE_SPARK, coord, ((gRandomLcgState >> 16) & 0x1FF) + 0x20300, 0);
-                        for (i = 0; i < 4; i++) {
+                        effectSpawn(EFFECT_MUZZLE_SPARK, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) + EFFECT_SHOTGUN_FLASH_SPARK_ARG, 0);
+                        for (sparkIndex = 0; sparkIndex < EFFECT_SHOTGUN_FLASH_THROWN_SPARK_COUNT; sparkIndex++) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            effectSpawn(EFFECT_MUZZLE_SPARK_THROWN, coord, ((gRandomLcgState >> 16) & 0x1FF) | 0x200, 0);
+                            effectSpawn(EFFECT_MUZZLE_SPARK_THROWN, muzzleCoord, ((gRandomLcgState >> 16) & EFFECT_WEAPON_FLASH_SIZE_JITTER_MASK) | EFFECT_SHOTGUN_FLASH_BUCKSHOT_SIZE, 0);
                         }
-                        effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, mem->parent, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
-                        arg0->state = 2;
-                        mem->scale  = 4;
+                        effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, work->parent, task->spawnArg1.value, &D_801125EC[task->spawnArg1.value]);
+                        task->state = EFFECT_SHOTGUN_FLASH_STATE_EJECTED;
+                        work->scale = EFFECT_WEAPON_FLASH_LAST_AGE;
                 }
-                lightSlot->framesLeft          = 4;
+                transientLight->framesLeft     = EFFECT_WEAPON_FLASH_LIGHT_TICKS;
                 gRoomEffectState->burstRequest = true;
                 break;
-            case 1:
-                if (mem->age == mem->scale) {
-                    effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, coord, arg0->spawnArg1.value, &D_801125EC[arg0->spawnArg1.value]);
-                    arg0->state = 2;
+            case EFFECT_DRAW_TASK_ACTIVE:
+                if (work->age == work->scale) {
+                    effectSpawn(EFFECT_SHOTGUN_SHELL_CASING, muzzleCoord, task->spawnArg1.value, &D_801125EC[task->spawnArg1.value]);
+                    task->state = EFFECT_SHOTGUN_FLASH_STATE_EJECTED;
                 }
                 break;
         }
-        if (slot->inner >= 0x191) {
-            slot->inner -= 0x190;
+        // Contract full-strength lighting while keeping the outer reach fixed.
+        if (pointLight->inner > EFFECT_WEAPON_FLASH_LIGHT_RADIUS_STEP) {
+            pointLight->inner -= EFFECT_WEAPON_FLASH_LIGHT_RADIUS_STEP;
         }
-        count = mem->age;
-        if (mem->scale < count) {
-            effectKillTask(mem, arg0);
+        age = work->age;
+        if (work->scale < age) {
+            effectKillTask(work, task);
         }
     }
+
+#undef EFFECT_SPAWN_SHOTGUN_PELLET_SPARKS
 }
 
 void effectControlTask6C(Task* task)
@@ -2052,339 +2185,330 @@ static void _effectDrawImpactSparkFlash(const GfxCoord* coord, u16 frame, s16 si
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-void Gp_EffSprTask5C(Task* arg0)
+void effectSpriteTask5C(Task* task)
 {
-    EffectShapeScratch*             head;
-    EffectShapeScratch*             block;
-    EffectShapeScratch*             projectionScratch;
-    GfxCoord*                       coord;
-    EffectWork*                     mem;
-    POLY_FT4*                       prim;
+    enum {
+        EFFECT_EXPLOSION_DEFAULT_SIZE   = 512,
+        EFFECT_EXPLOSION_DEFAULT_PERIOD = 2,
+        EFFECT_EXPLOSION_PERIOD_MASK    = 0xF000,
+        EFFECT_EXPLOSION_PERIOD_SHIFT   = 12,
+        EFFECT_EXPLOSION_MAX_PERIOD     = 15,
+        EFFECT_EXPLOSION_DIRECTION_MASK = 0xF,
+        EFFECT_EXPLOSION_OPTION_MASK    = 0xF0000000,
+        EFFECT_EXPLOSION_FAST_CHILD_ARG = (2 << 24) | (1 << 12),
+        EFFECT_EXPLOSION_SLOW_CHILD_ARG = (1 << 24) | (2 << 12),
+        EFFECT_EXPLOSION_RAW_BLEND_BITS = 3,
+    };
+    EffectShapeScratch*             scratch;
+    GfxCoord*                       explosionCoord;
+    EffectWork*                     work;
+    POLY_FT4*                       quad;
     const EffectSpriteTextureFrame* textureFrame;
-    s16                             flag;
-    s16                             scale;
-    s16                             step;
-    s32                             rng;
-    s32                             i;
-    s32                             n;
-    s32                             t2;
-    s32                             tmp;
-    u16                             vz;
+    s16                             effectControl;
+    s16                             size;
+    s16                             framePeriod;
+    s32                             randomState;
+    s32                             childIndex;
+    s32                             childCount;
+    s32                             nextZ;
+    s32                             spawnOptions;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    work           = task->spawnArg2.pointer;
+    effectControl  = gRoomEffectState->effectControl;
+    explosionCoord = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     } else {
-        actorRenderComposeCoord(coord);
-        if (arg0->state == 0) {
-            scale = 0x200;
-            if (arg0->spawnArg1.value & 0xFFF) {
-                scale = arg0->spawnArg1.halves.low & 0xFFF;
+        actorRenderComposeCoord(explosionCoord);
+        if (task->state == EFFECT_DRAW_TASK_NEW) {
+            size = EFFECT_EXPLOSION_DEFAULT_SIZE;
+            if (task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK) {
+                size = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
             }
-            mem->scale      = scale;
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->angle      = ((u32)rng >> 16) & 0xFFF;
-            gRandomLcgState = rng;
-            if (arg0->spawnArg1.value & 0xF000) {
-                step = (arg0->spawnArg1.value >> 12) & 0xF;
+            work->scale     = size;
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->angle     = ((u32)randomState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+            gRandomLcgState = randomState;
+            if (task->spawnArg1.value & EFFECT_EXPLOSION_PERIOD_MASK) {
+                framePeriod = (task->spawnArg1.value >> EFFECT_EXPLOSION_PERIOD_SHIFT) & EFFECT_EXPLOSION_MAX_PERIOD;
             } else {
-                step = 2;
+                framePeriod = EFFECT_EXPLOSION_DEFAULT_PERIOD;
             }
-            mem->period = step;
-            mem->step   = (s32)((u16)mem->scale << 16) >> 23;
-            tmp         = arg0->spawnArg1.signedBytes[3];
-            mem->index  = tmp & 0xF;
-            if (mem->index != 0) {
+            work->period = framePeriod;
+            work->step   = (s32)((u16)work->scale << 16) >> 23;
+            spawnOptions = task->spawnArg1.signedBytes[3];
+            work->index  = spawnOptions & EFFECT_EXPLOSION_DIRECTION_MASK;
+            if (work->index != 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                work->move.vy   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
-                gte_lddp(mem->scale << 3);
-                gte_ldsv(&mem->move);
+                work->move.vz   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                gte_lddp(work->scale << 3);
+                gte_ldsv(&work->move);
                 gte_gpf12();
-                gte_stsv(&mem->move);
-                gte_lddp(mem->index << 12);
-                gte_ldsv(&mem->move);
+                gte_stsv(&work->move);
+                gte_lddp(work->index << 12);
+                gte_ldsv(&work->move);
                 gte_gpf12();
-                gte_stsv(&mem->move);
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
+                gte_stsv(&work->move);
+                gte_SetRotMatrix(&work->parent->coord);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&mem->move);
-            } else if (!(arg0->spawnArg1.value & 0xF0000000)) {
-                n = gDisplayState.animFrame & 3;
-                i = 0;
-                if (n != 0) {
+                gte_stsv(&work->move);
+            } else if (!(task->spawnArg1.value & EFFECT_EXPLOSION_OPTION_MASK)) {
+                childCount = gDisplayState.animFrame & 3;
+                childIndex = 0;
+                if (childCount != 0) {
                     do {
-                        effectSpawn(EFFECT_EXPLOSION, coord, ((s32)((u16)mem->scale << 16) >> 17) | 0x02001000, 0);
-                        i += 1;
-                    } while (i < n);
+                        effectSpawn(EFFECT_EXPLOSION, explosionCoord, ((s32)((u16)work->scale << 16) >> 17) | EFFECT_EXPLOSION_FAST_CHILD_ARG, 0);
+                        childIndex += 1;
+                    } while (childIndex < childCount);
                 }
-                n = gDisplayState.animFrame % 3;
-                i = 0;
-                if (n > 0) {
+                childCount = gDisplayState.animFrame % 3;
+                childIndex = 0;
+                if (childCount > 0) {
                     do {
-                        effectSpawn(EFFECT_EXPLOSION, coord, ((s32)((u16)mem->scale << 16) >> 17) | 0x01002000, 0);
-                        i += 1;
-                    } while (i < n);
+                        effectSpawn(EFFECT_EXPLOSION, explosionCoord, ((s32)((u16)work->scale << 16) >> 17) | EFFECT_EXPLOSION_SLOW_CHILD_ARG, 0);
+                        childIndex += 1;
+                    } while (childIndex < childCount);
                 }
             }
-            arg0->state = 1;
+            task->state = EFFECT_DRAW_TASK_ACTIVE;
         }
-        head                                     = SCRATCH_STACK_CURSOR(EffectShapeScratch);
-        (head - 1)->worldPoint.vx                = (u16)coord->workm.t[0];
-        block                                    = head - 1;
-        block->worldPoint.vy                     = (u16)coord->workm.t[1];
-        vz                                       = (u16)coord->workm.t[2];
-        SCRATCH_STACK_CURSOR(EffectShapeScratch) = block;
-        block->worldPoint.vz                     = vz;
-        projectionScratch                        = block;
-        gte_SetTransMatrix(&GsWSMATRIX);
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&projectionScratch->worldPoint);
-        gte_rtps();
-        gte_stsxy(&(head - 1)->screenX);
-        gte_stflg(&(head - 1)->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&(head - 1)->depth);
-            block->depth   = block->depth + 1;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2C);
-            textureFrame = &gEffectSpriteAtlasFrames[mem->age / mem->period];
-            prim->code  |= 3;
-            prim->tpage  = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
-            prim->clut   = getClut(textureFrame->clutX, textureFrame->clutY);
-            prim->u0     = textureFrame->u;
-            prim->v0     = textureFrame->v;
-            prim->u1     = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
-            prim->v1     = textureFrame->v;
-            prim->u2     = textureFrame->u;
-            prim->v2     = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
-            prim->u3     = textureFrame->u + EFFECT_SPRITE_ATLAS_UV_SPAN;
-            prim->v3     = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
-            // Reuse the inclusive texel span to size the billboard's half-diagonal.
-            block->extent.corner.x = (((mem->scale * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rsin(mem->angle)) >> 12;
-            block->extent.corner.y = (((mem->scale * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rcos(mem->angle)) >> 12;
-            prim->x0               = block->screenX + (u16)block->extent.corner.x;
-            prim->x3               = block->screenX - (u16)block->extent.corner.x;
-            prim->y0               = block->screenY - (u16)block->extent.corner.y;
-            prim->y3               = block->screenY + (u16)block->extent.corner.y;
-            block->extent.corner.x = (((mem->scale * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-            block->extent.corner.y = (((mem->scale * EFFECT_SPRITE_ATLAS_UV_SPAN) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1               = block->screenX + (u16)block->extent.corner.x;
-            prim->x2               = block->screenX - (u16)block->extent.corner.x;
-            prim->y1               = block->screenY - (u16)block->extent.corner.y;
-            prim->y2               = block->screenY + (u16)block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+        // Project the composed centre; bias depth before billboard sizing.
+        scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+        scratch->worldPoint.vx = explosionCoord->workm.t[0];
+        scratch->worldPoint.vy = explosionCoord->workm.t[1];
+        scratch->worldPoint.vz = explosionCoord->workm.t[2];
+        _effectProjectShapeCentre(scratch);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->depth);
+            scratch->depth = scratch->depth + 1;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            textureFrame = &gEffectSpriteAtlasFrames[work->age / work->period];
+            quad->code  |= EFFECT_EXPLOSION_RAW_BLEND_BITS;
+            quad->tpage  = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
+            _effectSetExplosionTexture(quad, textureFrame);
+            _effectSetExplosionCorners(quad, scratch, work);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        coord->coord.t[0]  += mem->move.vx;
-        coord->coord.t[1]  += mem->move.vy;
-        t2                  = coord->coord.t[2] + mem->move.vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        coord->coord.t[2]   = t2;
-        mem->scale         += mem->step;
-        mem->age++;
-        if (mem->age <= mem->period * ARRAY_SIZE(gEffectSpriteAtlasFrames) - 1) {
+        // Motion, growth and age advance only after a running draw.
+        explosionCoord->coord.t[0]  += work->move.vx;
+        explosionCoord->coord.t[1]  += work->move.vy;
+        nextZ                        = explosionCoord->coord.t[2] + work->move.vz;
+        explosionCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        explosionCoord->coord.t[2]   = nextZ;
+        work->scale                 += work->step;
+        work->age++;
+        if (work->age <= work->period * ARRAY_SIZE(gEffectSpriteAtlasFrames) - 1) {
             return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
-void func_800F289C(Task* arg0)
+void effectSpriteTask70(Task* task)
 {
-    EffectShapeScratch* block;
-    EffectWork*         mem;
-    GfxCoord*           coord;
-    POLY_FT4*           prim;
-    s16                 flag;
-    s16                 scale;
-    s16                 mode;
-    s32                 tmp;
-    s32                 i;
-    s32                 n;
-    s32                 mask;
-    s32                 step;
-    s32                 step2;
-    s32                 mask2;
+    enum {
+        EFFECT_SMOKE_PUFF_DEFAULT_SIZE    = 512,
+        EFFECT_SMOKE_PUFF_PERIOD_MASK     = 0xF000,
+        EFFECT_SMOKE_PUFF_PERIOD_SHIFT    = 12,
+        EFFECT_SMOKE_PUFF_MAX_PERIOD      = 15,
+        EFFECT_SMOKE_PUFF_MOTION_MASK     = 0xFF0000,
+        EFFECT_SMOKE_PUFF_MOTION_SHIFT    = 16,
+        EFFECT_SMOKE_PUFF_MAX_MOTION      = 255,
+        EFFECT_SMOKE_PUFF_DIRECTION_MASK  = 0xF,
+        EFFECT_SMOKE_PUFF_PARENT_RISE     = 1,
+        EFFECT_SMOKE_PUFF_VIEW_RISE       = 1,
+        EFFECT_SMOKE_PUFF_VIEW_DRIFT_RISE = 2,
+        EFFECT_SMOKE_PUFF_VIEW_DRIFT      = 3,
+        EFFECT_SMOKE_PUFF_CHILDREN        = 0x30000000,
+        EFFECT_SMOKE_PUFF_BLEND_MASK      = 0xC0000000,
+        EFFECT_SMOKE_PUFF_BLEND_SHIFT     = 30,
+        EFFECT_SMOKE_PUFF_FAST_CHILD_ARG  = (6 << 24) | (2 << 12),
+        EFFECT_SMOKE_PUFF_SLOW_CHILD_ARG  = (4 << 24) | (3 << 12),
+        EFFECT_SMOKE_PUFF_CELL_SIZE       = 32,
+        EFFECT_SMOKE_PUFF_UV_SPAN         = EFFECT_SMOKE_PUFF_CELL_SIZE - 1,
+        EFFECT_SMOKE_PUFF_CELL_SHIFT      = 5,
+        EFFECT_SMOKE_PUFF_TEXTURE_V       = 24,
+        EFFECT_SMOKE_PUFF_FRAME_COUNT     = 8,
+    };
+    EffectShapeScratch* scratch;
+    EffectWork*         work;
+    GfxCoord*           puffCoord;
+    POLY_FT4*           quad;
+    s16                 effectControl;
+    s16                 size;
+    s16                 directionMode;
+    s32                 spawnOptions;
+    s32                 childIndex;
+    s32                 childCount;
+    s32                 childOptions;
+    s32                 childSize;
+    s32                 secondaryChildSize;
+    s32                 secondaryChildOptions;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    puffCoord     = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
     } else {
-        actorRenderComposeCoord(coord);
-        if (arg0->state == 0) {
-            scale = 0x200;
-            if (arg0->spawnArg1.value & 0xFFF) {
-                scale = arg0->spawnArg1.halves.low & 0xFFF;
+        actorRenderComposeCoord(puffCoord);
+        if (task->state == EFFECT_DRAW_TASK_NEW) {
+            size = EFFECT_SMOKE_PUFF_DEFAULT_SIZE;
+            if (task->spawnArg1.value & EFFECT_DRAW_SIZE_MASK) {
+                size = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
             }
-            mem->scale      = scale;
+            work->scale     = size;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-            if (arg0->spawnArg1.value & 0xF000) {
-                mem->period = (arg0->spawnArg1.value >> 12) & 0xF;
+            work->angle     = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
+            if (task->spawnArg1.value & EFFECT_SMOKE_PUFF_PERIOD_MASK) {
+                work->period = (task->spawnArg1.value >> EFFECT_SMOKE_PUFF_PERIOD_SHIFT) & EFFECT_SMOKE_PUFF_MAX_PERIOD;
             } else {
-                mem->period = 1;
+                work->period = 1;
             }
-            if (arg0->spawnArg1.value & 0xFF0000) {
-                mem->step = (arg0->spawnArg1.value >> 16) & 0xFF;
+            if (task->spawnArg1.value & EFFECT_SMOKE_PUFF_MOTION_MASK) {
+                work->step = (task->spawnArg1.value >> EFFECT_SMOKE_PUFF_MOTION_SHIFT) & EFFECT_SMOKE_PUFF_MAX_MOTION;
             } else {
-                mem->step = mem->scale >> 8;
+                work->step = work->scale >> 8;
             }
-            tmp        = arg0->spawnArg1.signedBytes[3];
-            mode       = tmp & 0xF;
-            mem->index = mode;
-            if (mode != 0) {
-                if (mode == 1) {
+            spawnOptions  = task->spawnArg1.signedBytes[3];
+            directionMode = spawnOptions & EFFECT_SMOKE_PUFF_DIRECTION_MASK;
+            work->index   = directionMode;
+            // Nonzero modes choose a displacement in the borrowed parent basis.
+            if (directionMode != 0) {
+                if (directionMode == EFFECT_SMOKE_PUFF_PARENT_RISE) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = 8 - ((gRandomLcgState >> 16) & 0xF);
+                    work->move.vx   = 8 - ((gRandomLcgState >> 16) & 0xF);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = ((gRandomLcgState >> 16) & 0xF) * 3;
+                    work->move.vy   = ((gRandomLcgState >> 16) & 0xF) * 3;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = 8 - ((gRandomLcgState >> 16) & 0xF);
+                    work->move.vz   = 8 - ((gRandomLcgState >> 16) & 0xF);
                 } else {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                    work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
+                    work->move.vy   = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
-                    gte_lddp((mem->scale << 3));
-                    gte_ldsv(&mem->move);
+                    work->move.vz   = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
+                    gte_lddp((work->scale << 3));
+                    gte_ldsv(&work->move);
                     gte_gpf12();
-                    gte_stsv(&mem->move);
-                    gte_lddp((mem->index << 11));
-                    gte_ldsv(&mem->move);
+                    gte_stsv(&work->move);
+                    gte_lddp((work->index << 11));
+                    gte_ldsv(&work->move);
                     gte_gpf12();
-                    gte_stsv(&mem->move);
+                    gte_stsv(&work->move);
                 }
-                gte_SetRotMatrix(&mem->parent->coord);
-                gte_ldv0(&mem->move);
+                gte_SetRotMatrix(&work->parent->coord);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&mem->move);
+                gte_stsv(&work->move);
             } else {
-                switch (mem->step) {
-                    case 1:
-                        mem->move.vx    = 0;
-                        mem->move.vz    = 0;
+                switch (work->step) {
+                    case EFFECT_SMOKE_PUFF_VIEW_RISE:
+                        work->move.vx   = 0;
+                        work->move.vz   = 0;
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vy    = -((gRandomLcgState >> 16) & 0xF) - 0x20;
+                        work->move.vy   = -((gRandomLcgState >> 16) & 0xF) - 0x20;
                         break;
-                    case 2:
+                    case EFFECT_SMOKE_PUFF_VIEW_DRIFT_RISE:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vy    = -((gRandomLcgState >> 0x10) & 0x1F) - 0x10;
+                        work->move.vy   = -((gRandomLcgState >> 0x10) & 0x1F) - 0x10;
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vz    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
+                        work->move.vz   = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
                         break;
-                    case 3:
+                    case EFFECT_SMOKE_PUFF_VIEW_DRIFT:
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vx    = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
+                        work->move.vx   = 0x10 - ((gRandomLcgState >> 16) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vy    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
+                        work->move.vy   = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
                         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vz    = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
-                        gte_lddp((mem->scale << 2));
-                        gte_ldsv(&mem->move);
+                        work->move.vz   = 0x10 - ((gRandomLcgState >> 0x10) & 0x1F);
+                        gte_lddp((work->scale << 2));
+                        gte_ldsv(&work->move);
                         gte_gpf12();
-                        gte_stsv(&mem->move);
+                        gte_stsv(&work->move);
                         break;
                 }
             }
-            if (arg0->spawnArg1.value & 0x30000000) {
-                n = gDisplayState.animFrame & 3;
-                for (i = 0; i < n; i++) {
-                    step = mem->scale - (mem->scale >> 2);
-                    mask = (arg0->spawnArg1.value & 0xC0000000) | 0x6002000;
-                    effectSpawn(EFFECT_SMOKE_PUFF, coord, step | mask, 0);
+            if (task->spawnArg1.value & EFFECT_SMOKE_PUFF_CHILDREN) {
+                childCount = gDisplayState.animFrame & 3;
+                for (childIndex = 0; childIndex < childCount; childIndex++) {
+                    childSize    = work->scale - (work->scale >> 2);
+                    childOptions = (task->spawnArg1.value & EFFECT_SMOKE_PUFF_BLEND_MASK) | EFFECT_SMOKE_PUFF_FAST_CHILD_ARG;
+                    effectSpawn(EFFECT_SMOKE_PUFF, puffCoord, childSize | childOptions, 0);
                 }
-                n = gDisplayState.animFrame % 3;
-                for (i = 0; i < n; i++) {
-                    step2 = mem->scale - (mem->scale >> 2);
-                    mask2 = (arg0->spawnArg1.value & 0xC0000000) | 0x4003000;
-                    effectSpawn(EFFECT_SMOKE_PUFF, coord, step2 | mask2, 0);
+                childCount = gDisplayState.animFrame % 3;
+                for (childIndex = 0; childIndex < childCount; childIndex++) {
+                    secondaryChildSize    = work->scale - (work->scale >> 2);
+                    secondaryChildOptions = (task->spawnArg1.value & EFFECT_SMOKE_PUFF_BLEND_MASK) | EFFECT_SMOKE_PUFF_SLOW_CHILD_ARG;
+                    effectSpawn(EFFECT_SMOKE_PUFF, puffCoord, secondaryChildSize | secondaryChildOptions, 0);
                 }
             }
-            arg0->state = 1;
+            task->state = EFFECT_DRAW_TASK_ACTIVE;
         }
-        block                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
-        block->worldPoint.vx = coord->workm.t[0];
-        block->worldPoint.vy = coord->workm.t[1];
-        block->worldPoint.vz = coord->workm.t[2];
-        gte_SetTransMatrix(&GsWSMATRIX);
-        gte_SetRotMatrix(&GsWSMATRIX);
-        gte_ldv0(&block->worldPoint);
-        gte_rtps();
-        gte_stsxy(&block->screenX);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->depth);
-            block->depth++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            if (arg0->spawnArg1.value & 0xC0000000) {
-                prim->tpage = ((((u32)arg0->spawnArg1.value >> 30) - 1) & 3) << 5 | 8;
+        // Draw the current centre; the next running update commits drift.
+        scratch                = SCRATCH_STACK_RESERVE_BLOCK(EffectShapeScratch);
+        scratch->worldPoint.vx = puffCoord->workm.t[0];
+        scratch->worldPoint.vy = puffCoord->workm.t[1];
+        scratch->worldPoint.vz = puffCoord->workm.t[2];
+        _effectProjectShapeCentre(scratch);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->depth);
+            scratch->depth++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+            setcode(quad, EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD);
+            if (task->spawnArg1.value & EFFECT_SMOKE_PUFF_BLEND_MASK) {
+                quad->tpage = getTPage(0, ((((u32)task->spawnArg1.value >> EFFECT_SMOKE_PUFF_BLEND_SHIFT) - 1) & 3), 512, 0);
             } else {
-                prim->tpage = 0x28;
+                quad->tpage = getTPage(0, GPU_BLEND_ADD, 512, 0);
             }
-            prim->clut             = 0x4253;
-            prim->u0               = (mem->age / mem->period) << 5;
-            prim->v0               = 0x18;
-            prim->u1               = ((mem->age / mem->period) << 5) + 0x1F;
-            prim->v1               = 0x18;
-            prim->u2               = (mem->age / mem->period) << 5;
-            prim->v2               = 0x37;
-            prim->u3               = ((mem->age / mem->period) << 5) + 0x1F;
-            prim->v3               = 0x37;
-            block->extent.corner.x = (((mem->scale * 0x1F) / block->depth) * rsin(mem->angle)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x1F) / block->depth) * rcos(mem->angle)) >> 12;
-            prim->x0               = block->screenX + block->extent.corner.x;
-            prim->x3               = block->screenX - block->extent.corner.x;
-            prim->y0               = block->screenY - block->extent.corner.y;
-            prim->y3               = block->screenY + block->extent.corner.y;
-            block->extent.corner.x = (((mem->scale * 0x1F) / block->depth) * rsin(mem->angle + 0x400)) >> 12;
-            block->extent.corner.y = (((mem->scale * 0x1F) / block->depth) * rcos(mem->angle + 0x400)) >> 12;
-            prim->x1               = block->screenX + block->extent.corner.x;
-            prim->x2               = block->screenX - block->extent.corner.x;
-            prim->y1               = block->screenY - block->extent.corner.y;
-            prim->y2               = block->screenY + block->extent.corner.y;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+            quad->clut = getClut(304, 265);
+            quad->u0   = (work->age / work->period) << EFFECT_SMOKE_PUFF_CELL_SHIFT;
+            quad->v0   = EFFECT_SMOKE_PUFF_TEXTURE_V;
+            quad->u1   = ((work->age / work->period) << EFFECT_SMOKE_PUFF_CELL_SHIFT) + EFFECT_SMOKE_PUFF_UV_SPAN;
+            quad->v1   = EFFECT_SMOKE_PUFF_TEXTURE_V;
+            quad->u2   = (work->age / work->period) << EFFECT_SMOKE_PUFF_CELL_SHIFT;
+            quad->v2   = EFFECT_SMOKE_PUFF_TEXTURE_V + EFFECT_SMOKE_PUFF_UV_SPAN;
+            quad->u3   = ((work->age / work->period) << EFFECT_SMOKE_PUFF_CELL_SHIFT) + EFFECT_SMOKE_PUFF_UV_SPAN;
+            quad->v3   = EFFECT_SMOKE_PUFF_TEXTURE_V + EFFECT_SMOKE_PUFF_UV_SPAN;
+            EFFECT_SET_ROTATED_SPRITE_CORNERS(quad, scratch, work, EFFECT_SMOKE_PUFF_UV_SPAN);
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
         SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        coord->coord.t[0]  += mem->move.vx;
-        coord->coord.t[1]  += mem->move.vy;
-        coord->coord.t[2]  += mem->move.vz;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        mem->age++;
-        if (mem->age <= mem->period * 8 - 1) {
+        puffCoord->coord.t[0]  += work->move.vx;
+        puffCoord->coord.t[1]  += work->move.vy;
+        puffCoord->coord.t[2]  += work->move.vz;
+        puffCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        work->age++;
+        if (work->age <= work->period * EFFECT_SMOKE_PUFF_FRAME_COUNT - 1) {
             return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 void effectSpriteTask76(Task* task)
@@ -2600,249 +2724,207 @@ void effectSpriteTask7C(Task* task)
     }
 }
 
+#undef EFFECT_SET_PUFF_CORNERS
 #undef EFFECT_SET_ROTATED_SPRITE_CORNERS
 
-void func_800F4308(Task* arg0)
+void effectControlTask71(Task* task)
 {
-    u8                             rgb[3];
-    EffectWork*                    mem;
-    GfxCoord*                      coord;
+    enum {
+        EFFECT_GRENADE_BURST_STATE_FLASH                  = 0,
+        EFFECT_GRENADE_BURST_STATE_SMOKE                  = 1,
+        EFFECT_GRENADE_BURST_STATE_LATE_SMOKE             = 2,
+        EFFECT_GRENADE_BURST_LIGHT_SLOT                   = 1,
+        EFFECT_GRENADE_BURST_LAST_AGE                     = 21,
+        EFFECT_GRENADE_BURST_GLOW_TICKS                   = 8,
+        EFFECT_GRENADE_BURST_GLOW_SIZE_STEP               = 64,
+        EFFECT_GRENADE_BURST_BAND_COLOR_BIAS              = 128,
+        EFFECT_GRENADE_BURST_BAND_COLOR_SHIFT             = 4,
+        EFFECT_GRENADE_BURST_BLUE_GREEN_MASK              = 0xE0,
+        EFFECT_GRENADE_BURST_TINT_COLOR_STEP              = 31,
+        EFFECT_GRENADE_BURST_GLOW_SIZE_BIAS               = 64,
+        EFFECT_GRENADE_BURST_IMPACT_SIZE                  = 1280,
+        EFFECT_GRENADE_BURST_EXPLOSION_SIZE               = 1536,
+        EFFECT_GRENADE_BURST_SPARK_SIZE                   = 256,
+        EFFECT_GRENADE_BURST_SPARK_JITTER_MASK            = 63,
+        EFFECT_GRENADE_BURST_SMOKE_JITTER_MASK            = 511,
+        EFFECT_GRENADE_BURST_LATE_JITTER_MASK             = 255,
+        EFFECT_GRENADE_BURST_FAST_SMOKE_ARG               = (3U << 30) | (1 << 28) | 1024,
+        EFFECT_GRENADE_BURST_SLOW_SMOKE_ARG               = (2U << 30) | (2 << 24) | (3 << 12) | 1024,
+        EFFECT_GRENADE_BURST_PAIR_SMOKE_ARG               = (2U << 30) | (2 << 24) | (4 << 12) | 1024,
+        EFFECT_GRENADE_BURST_FRAGMENTATION_SMOKE_LAST_AGE = 7,
+        EFFECT_GRENADE_BURST_FRAGMENTATION_LATE_LAST_AGE  = 11,
+        EFFECT_GRENADE_BURST_AIRBURST_SMOKE_LAST_AGE      = 9,
+        EFFECT_GRENADE_BURST_AIRBURST_LATE_LAST_AGE       = 13,
+        EFFECT_GRENADE_BURST_FLASH_LAST_AGE               = 2,
+        EFFECT_GRENADE_BURST_SMOKE_PAIR_COUNT             = 2,
+        EFFECT_GRENADE_BURST_STREAK_COUNT                 = 3,
+        EFFECT_GRENADE_BURST_STREAK_AGE_LIMIT             = 4,
+    };
+    u8                             glowRgb[3];
+    EffectWork*                    work;
+    GfxCoord*                      blastCoord;
     GfxCoord*                      lightCoord;
-    WorldCoordTransientPointLight* lightSlot;
-    WorldCoordPointLight*          slot;
-    ModelObjectCoordBody*          body;
-    SVECTOR*                       vec;
-    s16                            flag;
-    s32                            scale11;
-    s32                            scale12;
-    s32                            count;
-    s32                            i;
-    s32                            t2_10;
-    s32                            t2_11;
-    s32                            t2_12;
-    s32                            rng;
-    s32                            tmp;
+    WorldCoordTransientPointLight* transientLight;
+    WorldCoordPointLight*          pointLight;
+    ModelObjectCoordBody*          coordBody;
+    SVECTOR*                       spawnOffset;
+    s16                            effectControl;
+    s32                            warmGlowRadius;
+    s32                            blueGlowRadius;
+    s32                            particleIndex;
+    s32                            randomState;
+    s32                            redBrightnessEncoding;
 
-    lightSlot  = &gWorldCoordTransientPointLights[1];
-    slot       = &lightSlot->light;
-    lightCoord = &slot->head.transform.coord;
-    body       = arg0->extra.coordBody;
-    mem        = arg0->spawnArg2.pointer;
-    flag       = gRoomEffectState->effectControl;
-    coord      = body->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+    transientLight = &gWorldCoordTransientPointLights[EFFECT_GRENADE_BURST_LIGHT_SLOT];
+    pointLight     = &transientLight->light;
+    lightCoord     = &pointLight->head.transform.coord;
+    coordBody      = task->extra.coordBody;
+    work           = task->spawnArg2.pointer;
+    effectControl  = gRoomEffectState->effectControl;
+    blastCoord     = coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(work, task);
         }
         return;
     }
-    actorRenderComposeCoord(coord);
-    mem->age = mem->age + 1;
-    switch (arg0->spawnArg1.value) {
-        case 10:
-            switch (arg0->state) {
-                case 0:
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    vec             = &mem->move;
-                    effectSpawn(EFFECT_EXPLOSION, coord, 0x600, vec);
-                    rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_BOUNCING_SPARK, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
-                    rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_BOUNCING_SPARK, coord, (((u32)rng >> 16) & 0x3F) | 0x100, vec);
-                    arg0->state++;
+    actorRenderComposeCoord(blastCoord);
+    work->age = work->age + 1;
+    // The ammunition recipe stages child offsets in the blast coordinate frame.
+    switch (task->spawnArg1.value) {
+        case GRENADE_ROUND_FRAGMENTATION:
+            switch (task->state) {
+                case EFFECT_GRENADE_BURST_STATE_FLASH:
+                    _effectChooseGrenadeBurstOffset(work);
+                    spawnOffset = &work->move;
+                    effectSpawn(EFFECT_EXPLOSION, blastCoord, EFFECT_GRENADE_BURST_EXPLOSION_SIZE, spawnOffset);
+                    randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    effectSpawn(EFFECT_BOUNCING_SPARK, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_SPARK_JITTER_MASK) | EFFECT_GRENADE_BURST_SPARK_SIZE, spawnOffset);
+                    randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    effectSpawn(EFFECT_BOUNCING_SPARK, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_SPARK_JITTER_MASK) | EFFECT_GRENADE_BURST_SPARK_SIZE, spawnOffset);
+                    task->state++;
                     break;
-                case 1:
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0x1FF) | 0xD0000400,
-                                &mem->move);
-                    if (mem->age >= 7) {
-                        arg0->state++;
+                case EFFECT_GRENADE_BURST_STATE_SMOKE:
+                    _effectChooseGrenadeBurstOffset(work);
+                    randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_SMOKE_JITTER_MASK) | EFFECT_GRENADE_BURST_FAST_SMOKE_ARG,
+                                &work->move);
+                    if (work->age >= EFFECT_GRENADE_BURST_FRAGMENTATION_SMOKE_LAST_AGE) {
+                        task->state++;
                     }
                     break;
-                case 2:
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0xFF) | 0x82003400,
-                                &mem->move);
-                    if (mem->age >= 0xB) {
-                        arg0->state++;
+                case EFFECT_GRENADE_BURST_STATE_LATE_SMOKE:
+                    _effectChooseGrenadeBurstOffset(work);
+                    randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_LATE_JITTER_MASK) | EFFECT_GRENADE_BURST_SLOW_SMOKE_ARG,
+                                &work->move);
+                    if (work->age >= EFFECT_GRENADE_BURST_FRAGMENTATION_LATE_LAST_AGE) {
+                        task->state++;
                     }
                     break;
             }
-            lightSlot->framesLeft    = 0x10;
-            count                    = mem->age;
-            slot->outer              = 0x2580;
-            slot->head.color.r       = 0x1000;
-            slot->head.color.g       = 0xC00;
-            slot->head.color.b       = 0x800;
-            slot->inner              = (0x898 - (count * 0x64)) * 4;
-            lightCoord->coord.t[0]   = coord->coord.t[0];
-            lightCoord->coord.t[1]   = coord->coord.t[1];
-            t2_10                    = coord->coord.t[2];
-            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            lightCoord->coord.t[2]   = t2_10;
-            if (mem->age >= 0x15) {
-                effectKillTask(mem, arg0);
+            _effectRefreshGrenadeBurstLight(transientLight, pointLight, lightCoord, blastCoord, work, ONE, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, ONE / 2);
+            if (work->age >= EFFECT_GRENADE_BURST_LAST_AGE) {
+                effectKillTask(work, task);
             }
             break;
-        case 11:
-            switch (arg0->state) {
-                case 0:
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    effectSpawn(EFFECT_IMPACT_FLASH, coord, 0x500, &mem->move);
-                    if (mem->age >= 2) {
-                        arg0->state++;
+        case GRENADE_ROUND_AIRBURST:
+            switch (task->state) {
+                case EFFECT_GRENADE_BURST_STATE_FLASH:
+                    _effectChooseGrenadeBurstOffset(work);
+                    effectSpawn(EFFECT_IMPACT_FLASH, blastCoord, EFFECT_GRENADE_BURST_IMPACT_SIZE, &work->move);
+                    if (work->age >= EFFECT_GRENADE_BURST_FLASH_LAST_AGE) {
+                        task->state++;
                     }
                     break;
-                case 1:
-                    i = 0;
+                case EFFECT_GRENADE_BURST_STATE_SMOKE:
+                    particleIndex = 0;
                     do {
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                        rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        effectSpawn(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
-                                    &mem->move);
-                        i += 1;
-                    } while (i < 2);
-                    if (mem->age >= 9) {
-                        arg0->state++;
+                        _effectChooseGrenadeBurstOffset(work);
+                        randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_SMOKE_JITTER_MASK) | EFFECT_GRENADE_BURST_PAIR_SMOKE_ARG,
+                                    &work->move);
+                        particleIndex += 1;
+                    } while (particleIndex < EFFECT_GRENADE_BURST_SMOKE_PAIR_COUNT);
+                    if (work->age >= EFFECT_GRENADE_BURST_AIRBURST_SMOKE_LAST_AGE) {
+                        task->state++;
                     }
                     break;
-                case 2:
-                    i = 0;
+                case EFFECT_GRENADE_BURST_STATE_LATE_SMOKE:
+                    particleIndex = 0;
                     do {
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                        rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        effectSpawn(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0xFF) | 0xD0000400,
-                                    &mem->move);
-                        i += 1;
-                    } while (i < 2);
-                    if (mem->age >= 0xD) {
-                        arg0->state++;
+                        _effectChooseGrenadeBurstOffset(work);
+                        randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_LATE_JITTER_MASK) | EFFECT_GRENADE_BURST_FAST_SMOKE_ARG,
+                                    &work->move);
+                        particleIndex += 1;
+                    } while (particleIndex < EFFECT_GRENADE_BURST_SMOKE_PAIR_COUNT);
+                    if (work->age >= EFFECT_GRENADE_BURST_AIRBURST_LATE_LAST_AGE) {
+                        task->state++;
                     }
                     break;
             }
-            if (mem->scale++ < 8) {
-                tmp     = -0x80 - (mem->scale << 4);
-                rgb[0]  = tmp;
-                rgb[1]  = (rgb[0] * 3) >> 2;
-                rgb[2]  = (rgb[0] * 2) / 3;
-                scale11 = (mem->scale << 6) + 0x40;
-                effectDrawOuterGlowBand(coord, (s16)scale11, (s16)scale11, rgb);
+            // Brightness wraps into RGB bytes before the band is queued.
+            if (work->scale++ < EFFECT_GRENADE_BURST_GLOW_TICKS) {
+                redBrightnessEncoding = -EFFECT_GRENADE_BURST_BAND_COLOR_BIAS - (work->scale << EFFECT_GRENADE_BURST_BAND_COLOR_SHIFT);
+                glowRgb[0]            = redBrightnessEncoding;
+                glowRgb[1]            = (glowRgb[0] * 3) >> 2;
+                glowRgb[2]            = (glowRgb[0] * 2) / 3;
+                warmGlowRadius        = (work->scale * EFFECT_GRENADE_BURST_GLOW_SIZE_STEP) + EFFECT_GRENADE_BURST_GLOW_SIZE_BIAS;
+                effectDrawOuterGlowBand(blastCoord, (s16)warmGlowRadius, (s16)warmGlowRadius, glowRgb);
             }
-            if (mem->age < 4) {
-                i = 0;
+            if (work->age < EFFECT_GRENADE_BURST_STREAK_AGE_LIMIT) {
+                particleIndex = 0;
                 do {
-                    effectSpawn(EFFECT_SPARK_STREAK, coord, 0, 0);
-                    i += 1;
-                } while (i < 3);
+                    effectSpawn(EFFECT_SPARK_STREAK, blastCoord, 0, 0);
+                    particleIndex += 1;
+                } while (particleIndex < EFFECT_GRENADE_BURST_STREAK_COUNT);
             }
-            lightSlot->framesLeft    = 0x10;
-            count                    = mem->age;
-            slot->outer              = 0x2580;
-            slot->head.color.r       = 0xC00;
-            slot->head.color.g       = 0xC00;
-            slot->head.color.b       = 0x800;
-            slot->inner              = (0x898 - (count * 0x64)) * 4;
-            lightCoord->coord.t[0]   = coord->coord.t[0];
-            lightCoord->coord.t[1]   = coord->coord.t[1];
-            t2_11                    = coord->coord.t[2];
-            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            lightCoord->coord.t[2]   = t2_11;
-            if (mem->age >= 0x15) {
-                effectKillTask(mem, arg0);
+            _effectRefreshGrenadeBurstLight(transientLight, pointLight, lightCoord, blastCoord, work, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, ONE / 2);
+            if (work->age >= EFFECT_GRENADE_BURST_LAST_AGE) {
+                effectKillTask(work, task);
             }
             break;
-        case 12:
-            switch (arg0->state) {
-                case 0:
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                    effectSpawn(EFFECT_IMPACT_FLASH, coord, 0x500, &mem->move);
-                    if (mem->age >= 2) {
-                        arg0->state++;
+        case GRENADE_ROUND_RIOT:
+            switch (task->state) {
+                case EFFECT_GRENADE_BURST_STATE_FLASH:
+                    _effectChooseGrenadeBurstOffset(work);
+                    effectSpawn(EFFECT_IMPACT_FLASH, blastCoord, EFFECT_GRENADE_BURST_IMPACT_SIZE, &work->move);
+                    if (work->age >= EFFECT_GRENADE_BURST_FLASH_LAST_AGE) {
+                        task->state++;
                     }
                     break;
-                case 1:
-                    i = 0;
+                case EFFECT_GRENADE_BURST_STATE_SMOKE:
+                    particleIndex = 0;
                     do {
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vx    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vy    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        mem->move.vz    = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
-                        rng = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        effectSpawn(EFFECT_SMOKE_PUFF, coord, (((u32)rng >> 16) & 0x1FF) | 0x82004400,
-                                    &mem->move);
-                        i += 1;
-                    } while (i < 2);
-                    if (mem->age >= 9) {
-                        arg0->state++;
+                        _effectChooseGrenadeBurstOffset(work);
+                        randomState = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        effectSpawn(EFFECT_SMOKE_PUFF, blastCoord, (((u32)randomState >> 16) & EFFECT_GRENADE_BURST_SMOKE_JITTER_MASK) | EFFECT_GRENADE_BURST_PAIR_SMOKE_ARG,
+                                    &work->move);
+                        particleIndex += 1;
+                    } while (particleIndex < EFFECT_GRENADE_BURST_SMOKE_PAIR_COUNT);
+                    if (work->age >= EFFECT_GRENADE_BURST_AIRBURST_SMOKE_LAST_AGE) {
+                        task->state++;
                     }
                     break;
             }
-            if (mem->scale++ < 8) {
-                rgb[2]  = (-0x80 - (mem->scale << 4)) * 2;
-                rgb[1]  = (rgb[2] & 0xE0) >> 2;
-                rgb[0]  = rgb[1];
-                scale12 = (mem->scale << 6) + 0x40;
-                effectDrawOuterGlowBand(coord, (s16)scale12, (s16)scale12, rgb);
+            // Brightness wraps into RGB bytes before the band is queued.
+            if (work->scale++ < EFFECT_GRENADE_BURST_GLOW_TICKS) {
+                glowRgb[2]     = (-EFFECT_GRENADE_BURST_BAND_COLOR_BIAS - (work->scale << EFFECT_GRENADE_BURST_BAND_COLOR_SHIFT)) * 2;
+                glowRgb[1]     = (glowRgb[2] & EFFECT_GRENADE_BURST_BLUE_GREEN_MASK) >> 2;
+                glowRgb[0]     = glowRgb[1];
+                blueGlowRadius = (work->scale * EFFECT_GRENADE_BURST_GLOW_SIZE_STEP) + EFFECT_GRENADE_BURST_GLOW_SIZE_BIAS;
+                effectDrawOuterGlowBand(blastCoord, (s16)blueGlowRadius, (s16)blueGlowRadius, glowRgb);
                 if (gDisplayState.animFrame & 1) {
-                    rgb[2] = ~(mem->scale * 0x1F);
-                    rgb[1] = rgb[2] >> 2;
-                    rgb[0] = rgb[1];
-                    effectDrawScreenTint(rgb, GPU_BLEND_ADD);
+                    glowRgb[2] = ~(work->scale * EFFECT_GRENADE_BURST_TINT_COLOR_STEP);
+                    glowRgb[1] = glowRgb[2] >> 2;
+                    glowRgb[0] = glowRgb[1];
+                    effectDrawScreenTint(glowRgb, GPU_BLEND_ADD);
                 }
             }
-            lightSlot->framesLeft    = 0x10;
-            count                    = mem->age;
-            slot->outer              = 0x2580;
-            slot->head.color.r       = 0x800;
-            slot->head.color.g       = 0xC00;
-            slot->head.color.b       = 0x1000;
-            slot->inner              = (0x898 - (count * 0x64)) * 4;
-            lightCoord->coord.t[0]   = coord->coord.t[0];
-            lightCoord->coord.t[1]   = coord->coord.t[1];
-            t2_12                    = coord->coord.t[2];
-            lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            lightCoord->coord.t[2]   = t2_12;
-            if (mem->age >= 0x15) {
-                effectKillTask(mem, arg0);
+            _effectRefreshGrenadeBurstLight(transientLight, pointLight, lightCoord, blastCoord, work, ONE / 2, EFFECT_WEAPON_FLASH_LIGHT_INTENSITY, ONE);
+            if (work->age >= EFFECT_GRENADE_BURST_LAST_AGE) {
+                effectKillTask(work, task);
             }
             break;
     }

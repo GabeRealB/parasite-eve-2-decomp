@@ -331,7 +331,7 @@ enum {
     EFFECT_RELOAD_EMITTER = EFFECT_ID(EFFECT_TASK_BANK, 0x06E),
     /// Short-lived 8-frame animated sprite (tpage 0x28) thrown with a random velocity;
     /// four are spawned with the flash/smoke of the gun-blast controllers 0x600A1
-    /// (func_800ED42C) and 0x6006C (grenade launcher).
+    /// (effectControlTaskA1) and 0x6006C (grenade launcher).
     EFFECT_MUZZLE_SPARK_THROWN = EFFECT_ID(EFFECT_TASK_BANK, 0x06F),
     /// Generic 8-frame smoke puff sprite (same atlas cell as the dust puff, untinted)
     /// that drifts or rises and can spawn smaller puffs; used by explosions, generator
@@ -357,7 +357,7 @@ enum {
     /// Spawned effects are independent. Room control can pause or cancel it.
     EFFECT_DRYFIELD_MOTEL_BALCONY_SPARK_BURST = EFFECT_ID(EFFECT_TASK_BANK, 0x074),
     /// Four-frame additive flash sprite from Gp_EffSprRecs at a point, released after
-    /// four ticks; first effect of RoomFx spark bursts and gunblade/func_800F4308
+    /// four ticks; first effect of RoomFx spark bursts and gunblade/effectControlTask71
     /// impacts.
     EFFECT_IMPACT_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x076),
     /// Akropolis sanctuary mosaic controller: spawns one 0x60079 falling tile per
@@ -371,7 +371,7 @@ enum {
     EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD = EFFECT_ID(EFFECT_TASK_BANK, 0x07A),
     /// Glowing spark particle that falls under gravity, bounces off the traced ground
     /// (halving its speed), draws a ground glow under itself and fades over 31 frames;
-    /// used by spark bursts (_roomVisualEffectsSparkBurstTask, func_800F4308, gunblade).
+    /// used by spark bursts (_roomVisualEffectsSparkBurstTask, effectControlTask71, gunblade).
     EFFECT_BOUNCING_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x07C),
     /// Drifting 10-frame sprite anchored at its base (extends 3/4 above), fading over
     /// its last ticks, emitted in bursts with smoke 0x60070 by the night Motel balcony
@@ -432,7 +432,7 @@ enum {
     EFFECT_091 = EFFECT_ID(EFFECT_TASK_BANK, 0x091),
     /// Fading one-pixel line streaking away from its origin in a random direction,
     /// orange or blue by spawn argument; spawned in fans by gunblade impacts and
-    /// func_800F4308.
+    /// effectControlTask71.
     EFFECT_SPARK_STREAK = EFFECT_ID(EFFECT_TASK_BANK, 0x092),
     /// Night motel balcony falling piece: dropped with random drift under gravity and
     /// puffing 0x60095 when it reaches the floor; spawned by the balcony's ambient task
@@ -503,7 +503,7 @@ enum {
     /// four frames; twelve are spawned per shot by the shotgun firing controller.
     EFFECT_SHOTGUN_SPARK_LINE = EFFECT_ID(EFFECT_TASK_BANK, 0x0A3),
     /// A one-or-two-pixel orange TILE spark that flies on a random velocity and fades;
-    /// spawned in batches by explosions and flashes (func_800ED42C, effectControlTask3B,
+    /// spawned in batches by explosions and flashes (effectControlTaskA1, effectControlTask3B,
     /// No.9 muzzle flash).
     EFFECT_PIXEL_SPARK = EFFECT_ID(EFFECT_TASK_BANK, 0x0A4),
     /// Corpse-burn controller: starts a shared looping sound (SOUND_COMMON 0x0D,

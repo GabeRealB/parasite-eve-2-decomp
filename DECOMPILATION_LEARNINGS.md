@@ -41505,26 +41505,26 @@ With the `u` store first, the constant is only ready after the `div`, so
 `quad->clut` stays in the `lbu` slot and each `li/sb` pair sits between `mflo`
 and the `sll`. This took `effectSpriteTask54` from 92.4% to 100%.
 
-## `s32 tmp = s8_byte` keeps `lb`; masking an `s8` local becomes `lbu`
+## `s32 spawnOptions = s8_byte` keeps `lb`; masking an `s8` local becomes `lbu`
 
 `lb 0x37(s5)` / `andi 0xF` is a sign-extending byte load of `spawnArg1`'s high
 byte. Assigning the byte to an `s8` local and immediately `& 0xF` lets GCC
 2.8.1 prove the sign bits are unused, so it emits `lbu`. Widen to `s32` first:
 
 ```c
-s32 tmp;
-tmp           = arg0->spawnArg1.signedBytes[3]; /* lb */
-mem->field_20 = tmp & 0xF;                                    /* andi */
+s32 spawnOptions;
+spawnOptions = task->spawnArg1.signedBytes[3]; /* lb */
+work->index  = spawnOptions & EFFECT_EXPLOSION_DIRECTION_MASK; /* andi */
 ```
 
-## Put `i += 1` after the `jal` so it fills the next `lhu` delay
+## Put `childIndex += 1` after the `jal` so it fills the next `lhu` delay
 
-A `do { effectSpawn(..., lhu_arg, 0); i += 1; } while (i < n);` loop needs
-the increment in the load-delay slot of `lhu a2, field_24` (argument setup),
-with `lui a0, 0x6` in the `bnez` delay. Writing `i += 1` *before* the call
+A `do { effectSpawn(..., lhu_arg, 0); childIndex += 1; } while (childIndex < childCount);` loop needs
+the increment in the load-delay slot of `lhu a2, scale` (argument setup),
+with `lui a0, 0x6` in the `bnez` delay. Writing `childIndex += 1` *before* the call
 rotates the loop: the first increment peels above the header and the latch
 becomes `addiu s0, 1` instead of `lui a0`. After the call, `-fschedule-insns`
-moves the independent increment into the `lhu` slot. `Gp_EffSprTask5C` is the
+moves the independent increment into the `lhu` slot. `effectSpriteTask5C` is the
 example.
 
 ## A newly matched `switch` can swallow the raw `rodata` split in front of the C unit
@@ -66563,19 +66563,19 @@ for this. The project build does not pass `-dp` and needs no tooling change.
 
 ## Halfword shifts and loop initialization can replace a give-up seed's barriers
 
-`func_800ED42C`'s archived seed scored 95.091%. Separate `sh`/`add` locals
+`effectControlTaskA1`'s archived seed scored 95.091%. Separate `sh`/`add` locals
 and empty asm forwarded the random halfword into the spawn argument, losing
 the target's separate `lh` and `lhu`. Plain field stores with
-`-((s32)((u16)mem->field_24 << 16) >> 18)` (or `>> 17`) and a direct
-`mem->field_24 + offset` call argument preserved both loads and the full
+`-((s32)((u16)work->scale << 16) >> 18)` (or `>> 17`) and a direct
+`work->scale + offset` call argument preserved both loads and the full
 `lhu; sll; sra; negu` sequence without barriers or volatile accesses.
 
 The last four scheduling penalties came from initializing the loop counter
 before `effectSpawn`. `.sched` and `.sched2` placed that zero before argument
 setup, leaving the vector address to fill the halfword load delay. Putting
-`i = 0` after the call, naturally as the following `for` initializer, let GCC
+`sparkIndex = 0` after the call, naturally as the following `for` initializer, let GCC
 schedule the zero into that delay and move the vector address earlier. This
-reached 100% without pins. The analogous rotated-vector arm initializes `i`
+reached 100% without pins. The analogous rotated-vector arm initializes `sparkIndex`
 between `effectSpawn` and `gfxRotMatrixX`, which also consumes that zero.
 
 This caller supplies three arguments to `_effectDrawMuzzleFlash`, whose prototype
@@ -67005,14 +67005,14 @@ constant-folding `+` needs a zero operand with a single use; with more uses
 the `added_sets_2` PARALLEL is not recognised and the `addiu` stays.
 
 
-## `func_800F289C`: split spawn-loop expression temporaries before constraining scratch registers
+## `effectSpriteTask70`: split spawn-loop expression temporaries before constraining scratch registers
 
 The archived unpinned seed scored 98.959%. Loading `TaskSpawnArg::signedBytes[3]`
 into an `s32` before masking its low nibble preserves the target `lb`; assigning
 the masked expression straight into an `s16` emits `lbu`.
 
-Reusing `mask` and `step` across two spawn loops sends both through global
-allocation (`mask`: 8 references / 4 insns, `step`: 8 / 8). Separate locals for
+Reusing `childOptions` and `childSize` across two spawn loops sends both through global
+allocation (`childOptions`: 8 references / 4 insns, `childSize`: 8 / 8). Separate locals for
 each loop make all four block-local and restore the target `v0` / `v1` / `a2`
 expression registers. Keep the loop counter and bound shared. Inlining the
 whole expression reassociates the ORs and changes invariant-hoist order.
@@ -67027,7 +67027,7 @@ load both constrained to `v0`, with `USE_REG(head)` before that load. The bare
 worktree build-and-verify script validates the landed body.
 
 Parenthesize shifted `gte_lddp` arguments before passing this source to the
-permuter: `gte_lddp((mem->field_24 << 3))` compiles identically and avoids its
+permuter: `gte_lddp((work->scale << 3))` compiles identically and avoids its
 inline-asm parser error at `<<`.
 
 
@@ -149142,7 +149142,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
 - **`cond = a < K; goto tail; ... tail: if (cond == 0) f();`** with several
   sources of `cond` is cross-jumping's output, not a flag: write
   `if (a >= K) f();` at each site. jump2 merges the identical `beqz; jal`
-  tails and leaves each site its own `slti` and a jump (`func_800F4308`, 9
+  tails and leaves each site its own `slti` and a jump (`effectControlTask71`, 9
   gotos and two flag locals, first try). The same limit as above applies:
   `effectSpriteTask7C` swaps `$s1/$s2` when its `goto release` is written as a
   second `effectKillTask(work, task)`.

@@ -82,7 +82,22 @@ void effectControlTask6A(Task* task);
 /// 4800. Hidden and cancelled effects wait. The light expires separately.
 void effectControlTask6B(Task* task);
 
-void func_800ED42C(Task* arg0);
+/// Emits a shotgun muzzle burst and ejects its shell at the profile's chosen age.
+///
+/// Requires `effectSpawn`'s counted work, coordinate body and live borrowed parent.
+/// `spawnArg1`'s low byte is an unchecked weapon-profile index 0..33; its signed
+/// high half is the ammunition index (13 buckshot, 14 Firefly, 15 slug).
+/// `work->index` retains ammunition, `work->move` the jittered flare offset and
+/// `work->scale` first the size jitter, then the last active age. Buckshot emits
+/// twelve pixel sparks and twelve line sparks; slug also draws a muzzle flash.
+/// AS12 and gunblade eject immediately and end after age four; other profiles
+/// eject at age 24 for buckshot or four otherwise, then end on the next age.
+/// Gunblade rotates its flare offset and pitches the spark coordinate by a
+/// quarter turn; its casing uses the original parent. Every visible call,
+/// including pause, ages and contracts the inner light radius by 400 while
+/// above 400; outer reach stays 4800 world units. Light slot zero lasts four
+/// unpaused light updates. Hidden and cancelled effects wait.
+void effectControlTaskA1(Task* task);
 
 /// Emits a grenade-launcher flash, sparks and an optional delayed model piece.
 ///
@@ -196,9 +211,47 @@ void effectTileTaskA4(Task* task);
 /// the counted work and task. The borrowed spawn parent and offset are not read.
 void effectControlTask3B(Task* task);
 
-void Gp_EffSprTask5C(Task* arg0);
+/// Expands a randomly rotated explosion sprite through the twelve-frame atlas.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body. `spawnArg1` bits
+/// 0..11 supply size (zero selects 512), bits 12..15 ticks per frame (zero
+/// selects two), and bits 24..27 random-direction multiplier. A nonzero
+/// multiplier requires the borrowed parent during initialization and rotates size-scaled random
+/// displacement through its local basis. With a zero multiplier and bits
+/// 28..31 clear, two frame-dependent batches emit half-size children with
+/// multipliers two/one and periods one/two. Bits 16..23 are unused.
+/// `work->scale` grows by its initial size / 128 per running tick; `angle`
+/// holds a 4096-unit rotation, `period` ticks/frame and `index` the multiplier.
+/// Half-diagonal is size * 39 / (SZ3 / 4 + 1) pixels. Paused effects draw
+/// without motion, growth or aging; hidden effects wait. Twelve frames or
+/// cancellation release the counted work and task. Spawned children live
+/// independently; the retained spawn-offset pointer is never read.
+/// An accepted projection appends one current-frame POLY_FT4; rendering requires
+/// initialized GTE/scratch state and room for that packet in the frame arena.
+void effectSpriteTask5C(Task* task);
 
-void func_800F289C(Task* arg0);
+/// Draws an eight-frame smoke puff with packed drift, blend and child options.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body. `spawnArg1` bits
+/// 0..11 supply size (zero selects 512), bits 12..15 ticks/frame (zero selects
+/// one), bits 16..23 motion selector (zero selects size / 256), and bits 24..27
+/// direction mode. Mode one uses a rising random displacement in the borrowed
+/// parent's local basis; modes 2..15 scale random XYZ by size and mode / 2,
+/// then rotate through that parent, which must stay live through initialization.
+/// Mode zero uses the view-parent frame:
+/// selector one rises, two rises with X/Z drift, three scales random XYZ by
+/// size / 1024, and other values retain the zero spawn displacement.
+/// Either bit 28 or 29 emits frame-dependent smaller children, preserving
+/// only blend bits, with direction modes six/four and periods two/three.
+/// Bits 30..31 choose blend (0 or 2 add, 1 average, 3 subtract). `work->scale`
+/// remains size, `angle` a 4096-unit rotation, `period` ticks/frame, `step`
+/// the motion selector and `index` direction mode. Half-diagonal is size * 31
+/// / (SZ3 / 4 + 1) pixels. Paused effects draw without motion or aging; hidden
+/// effects wait. Eight frames or cancellation release the work and task.
+/// The retained spawn-offset pointer is never read.
+/// An accepted projection appends one current-frame POLY_FT4; rendering requires
+/// initialized GTE/scratch state and room for that packet in the frame arena.
+void effectSpriteTask70(Task* task);
 
 /// Draws the four-frame raw additive impact flash at a fixed screen-space rotation.
 ///
@@ -223,7 +276,26 @@ void effectSpriteTask76(Task* task);
 /// cancellation releases the counted work and task.
 void effectSpriteTask7C(Task* task);
 
-void func_800F4308(Task* arg0);
+/// Emits the fragmentation, airburst or riot grenade's flash, smoke and light.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body; `spawnArg1` is
+/// `GRENADE_ROUND_FRAGMENTATION`, `GRENADE_ROUND_AIRBURST` or `GRENADE_ROUND_RIOT`.
+/// The recipes use independent child tasks at offsets in -255..256 local
+/// coordinate units. Fragmentation starts an explosion and two bouncing
+/// sparks, then two smoke phases through ages seven and eleven. Airburst
+/// flashes twice, emits smoke pairs through ages nine and thirteen, adds
+/// three streaks at ages one to three and draws a warm band for eight ticks.
+/// Riot flashes twice, emits smoke pairs through age nine, draws a blue band
+/// for eight ticks and tints alternating display frames. `work->scale` is the
+/// band age, incremented even after drawing ends; `move` holds each temporary
+/// spawn offset.
+/// Every running call refreshes shared light slot one for sixteen light
+/// updates, with fixed outer radius 9600 and inner radius 8800 - 400 * age
+/// in world units. Age 21 releases the work and task; the light expires
+/// separately. Paused and hidden effects wait, cancellation releases it.
+/// Other round values only age: they emit nothing and do not self-release.
+/// The retained spawn-parent and spawn-offset pointers are never read.
+void effectControlTask71(Task* task);
 
 /// Moves a fading orange or blue spark streak for eight or sixteen ticks.
 ///
