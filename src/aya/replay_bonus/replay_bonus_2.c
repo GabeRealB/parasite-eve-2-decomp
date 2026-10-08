@@ -398,15 +398,17 @@ static void _replayBonusAwardScreenTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// Clears both credits picture pages before any picture is decoded.
+/// Clears both credits picture buffers to black in off-screen VRAM.
+///
+/// Each RGB16 buffer is 240x176 pixels, at VRAM (640, 0) or (640, 256).
+/// Call before drawing or decoding pictures to provide a black initial image
+/// and keep the final 16-pixel column black where decoding leaves it unwritten.
+/// Submits both fills without waiting for GPU completion.
 static inline void _replayBonusClearCreditsPictureBuffers(void)
 {
     RECT pictureRegion;
 
-    pictureRegion.x = REPLAY_BONUS_PICTURE_VRAM_X;
-    pictureRegion.w = REPLAY_BONUS_PICTURE_WIDTH;
-    pictureRegion.y = 0;
-    pictureRegion.h = REPLAY_BONUS_PICTURE_HEIGHT;
+    setRECT(&pictureRegion, REPLAY_BONUS_PICTURE_VRAM_X, 0, REPLAY_BONUS_PICTURE_WIDTH, REPLAY_BONUS_PICTURE_HEIGHT);
     ClearImage(&pictureRegion, 0, 0, 0);
     pictureRegion.y = 1 << REPLAY_BONUS_PICTURE_VRAM_Y_SHIFT;
     ClearImage(&pictureRegion, 0, 0, 0);
