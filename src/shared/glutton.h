@@ -431,7 +431,7 @@ static __inline__ void gluttonTintEscort(TmdObject* model)
 {
     AreaPlacement* entry;
 
-    entry                    = &(actorGetCurrentAreaRec()->placements)[2];
+    entry                    = &(_areaGetCurrentVariant()->placements)[2];
     model->texturePageOffset = entry->texturePageOffset;
     model->clutRowOffset     = entry->clutRowOffset;
     if (model->buffer != NULL) {

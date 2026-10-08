@@ -1492,19 +1492,30 @@ static __inline__ s32 actorFindHit(SVECTOR* pos, WorldCollisionContact* records)
     return 0;
 }
 
-/// Looks up the current area's placement record from the session location.
-static __inline__ AreaVariant* actorGetCurrentAreaRec(void)
+/// Borrows the current area layout selected by its saved placement variant.
+///
+/// Requires a live `gGameSession` with stage and area indexes in range; its
+/// variant byte is ignored. An existing variant table needs a live saved-state
+/// record; the resolved selector, converted to an unsigned byte, must fit that
+/// table. A zero saved selector becomes `AREA_DEFAULT_VARIANT` and requests a
+/// saved-pose reset for spawn preparation. Resolves a stack key without changing
+/// the session location or clearing poses.
+///
+/// Returns NULL for a missing stage or variant table. An existing descriptor is
+/// returned even if its placement and resource pointers are NULL. The descriptor
+/// and its tables are borrowed; keep the loaded room storage live while using them.
+static __inline__ const AreaVariant* _areaGetCurrentVariant(void)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
+    GameLocationKey        lookupKey;
+    const GameLocationKey* sessionLocation;
 
-    sessionKey = &gGameSession->location.loc;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    key.view   = sessionKey->view;
-    areaSyncLocationVariant(&key);
-    return areaGetVariant(&key);
+    sessionLocation = &gGameSession->location.loc;
+    lookupKey.stage = sessionLocation->stage;
+    lookupKey.area  = sessionLocation->area;
+    lookupKey.room  = sessionLocation->room;
+    lookupKey.view  = sessionLocation->view;
+    areaSyncLocationVariant(&lookupKey);
+    return areaGetVariant(&lookupKey);
 }
 
 /// Applies an actor's current area-placement texture offsets to a model.
@@ -1531,7 +1542,7 @@ static __inline__ void _actorRenderApplyPlacementTextureOffsets(TmdObject* model
     s32                  placementIndex;
 
     placementIndex           = placementOwner->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    areaVariant              = actorGetCurrentAreaRec();
+    areaVariant              = _areaGetCurrentVariant();
     placement                = gpAreaPlaceAt(areaVariant->placements, placementIndex);
     model->texturePageOffset = placement->texturePageOffset;
     model->clutRowOffset     = placement->clutRowOffset;
@@ -1566,7 +1577,7 @@ static __inline__ void _actorRenderApplyTaskPlacementTextureOffsets(const Task* 
 
     placementIndex           = placementOwner->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     model                    = task->extra.tmd;
-    areaVariant              = actorGetCurrentAreaRec();
+    areaVariant              = _areaGetCurrentVariant();
     placement                = gpAreaPlaceAt(areaVariant->placements, placementIndex);
     model->texturePageOffset = placement->texturePageOffset;
     model->clutRowOffset     = placement->clutRowOffset;
