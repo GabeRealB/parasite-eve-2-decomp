@@ -42,7 +42,7 @@ void func_800B65B0(Task* task)
     request = task->spawnArg2.pointer;
     if (task->state == 0) {
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-        if (Gp_LookupBit2Item(request->actionId) == 0) {
+        if (itemPickupPublishPlacedObject(request->actionId) == 0) {
             request->accepted = 0;
             request->done     = 1;
             taskKill(task);

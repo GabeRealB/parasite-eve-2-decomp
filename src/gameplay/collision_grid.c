@@ -241,7 +241,7 @@ WorldCollisionTrigger* Gp_Obj4CList;
 
 #include "world_collision.h"
 
-static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos);
+static __inline__ void Gp_ObjWorldPosInline(const WorldCollisionBody* obj, VECTOR* pos);
 
 static void _worldCollisionMarkMotionSphereGridCandidates(const WorldCollisionBody* body);
 
@@ -269,7 +269,7 @@ static __inline__ void _worldCollisionPlaceBodyGridEndpoint(_WorldCollisionGridB
     scratch->gridEndpoints[endpointIndex].vz = scratch->gridEndpoints[endpointIndex].vz + scratch->bodyToRoom.t[2] + Gp_GridParams->zBias;
 }
 
-static __inline__ void Gp_ObjWorldPosInline(WorldCollisionBody* obj, VECTOR* pos)
+static __inline__ void Gp_ObjWorldPosInline(const WorldCollisionBody* obj, VECTOR* pos)
 {
     u8*     h;
     VECTOR* vec;
@@ -800,146 +800,158 @@ void worldCollisionPlaceCapsuleSegment(const WorldCollisionBody* body, VECTOR en
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleSegmentScratch);
 }
 
-void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other)
+void worldCollisionTestActionTriggerSphere(const WorldCollisionBody* body, WorldCollisionTrigger* trigger)
 {
+    enum { WORLD_COLLISION_ACTION_TRIGGER_HIT = 1 };
     _WorldCollisionTriggerSphereScratch* scratch;
-    s32                                  distSq;
-    s32                                  kind;
-    s32                                  dot;
-    s32                                  dist;
-    s32                                  tmp;
-    s32                                  i;
-    VECTOR *                             va, *vb;
-    s16                                  faceDot;
+    s32                                  centerDistanceSquared;
+    s32                                  triggerKind;
+    s32                                  facingDot;
+    s32                                  planeDistance;
+    s32                                  overlapMeasure;
+    s32                                  edgeIndex;
+    VECTOR *                             edgeEnd, *edgeStart;
+    s16                                  planeOffset;
 
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionTriggerSphereScratch);
-    Gp_ObjWorldPosInline(node, &scratch->sphereCenter);
-    gte_SetRotMatrix(&other->coord->workm);
-    gte_ldv0(&other->origin);
+    // Place the sphere and trigger origin in their common composed frame.
+    Gp_ObjWorldPosInline(body, &scratch->sphereCenter);
+    gte_SetRotMatrix(&trigger->coord->workm);
+    gte_ldv0(&trigger->origin);
     gte_rtv0();
     gte_stlvnl(&scratch->origin);
-    scratch->origin.vx += other->coord->workm.t[0];
-    scratch->origin.vy += other->coord->workm.t[1];
-    scratch->origin.vz += other->coord->workm.t[2];
+    scratch->origin.vx += trigger->coord->workm.t[0];
+    scratch->origin.vy += trigger->coord->workm.t[1];
+    scratch->origin.vz += trigger->coord->workm.t[2];
 
     scratch->work.sphereToOrigin.vx = scratch->origin.vx - scratch->sphereCenter.vx;
     scratch->work.sphereToOrigin.vy = scratch->origin.vy - scratch->sphereCenter.vy;
     scratch->work.sphereToOrigin.vz = scratch->origin.vz - scratch->sphereCenter.vz;
-    distSq                          = scratch->work.sphereToOrigin.vx * scratch->work.sphereToOrigin.vx + scratch->work.sphereToOrigin.vy * scratch->work.sphereToOrigin.vy +
-             scratch->work.sphereToOrigin.vz * scratch->work.sphereToOrigin.vz;
-    tmp = other->radius + node->radius;
-    if (tmp * tmp < distSq) {
+    centerDistanceSquared           = scratch->work.sphereToOrigin.vx * scratch->work.sphereToOrigin.vx + scratch->work.sphereToOrigin.vy * scratch->work.sphereToOrigin.vy +
+                            scratch->work.sphereToOrigin.vz * scratch->work.sphereToOrigin.vz;
+    overlapMeasure = trigger->radius + body->radius;
+    if (overlapMeasure * overlapMeasure < centerDistanceSquared) {
         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
         return;
     }
 
     // Apply the action trigger's facing or proximity gate before the quad test.
-    kind = other->flags & WORLD_COLLISION_TRIGGER_KIND_MASK;
-    if (kind == WORLD_COLLISION_TRIGGER_FACING_QUAD) {
-        GfxCoord* c;
-        s32       m0, m1, m2, a;
+    triggerKind = trigger->flags & WORLD_COLLISION_TRIGGER_KIND_MASK;
+    if (triggerKind == WORLD_COLLISION_TRIGGER_FACING_QUAD) {
+        const GfxCoord* bodyCoord;
+        s32             facingProductX, facingProductY, facingProductZ, normalComponent;
 
-        c    = node->coord;
-        a    = other->facingNormal.vx;
-        m0   = a * c->coord.m[0][2];
-        a    = other->facingNormal.vy;
-        m1   = a * c->coord.m[1][2];
-        a    = other->facingNormal.vz;
-        m2   = a * c->coord.m[2][2];
-        dot  = m0 + m1;
-        dot += m2;
-        if (dot > WORLD_COLLISION_TRIGGER_FACING_DOT_MAX) {
+        bodyCoord       = body->coord;
+        normalComponent = trigger->facingNormal.vx;
+        facingProductX  = normalComponent * bodyCoord->coord.m[0][2];
+        normalComponent = trigger->facingNormal.vy;
+        facingProductY  = normalComponent * bodyCoord->coord.m[1][2];
+        normalComponent = trigger->facingNormal.vz;
+        facingProductZ  = normalComponent * bodyCoord->coord.m[2][2];
+        facingDot       = facingProductX + facingProductY;
+        facingDot      += facingProductZ;
+        if (facingDot > WORLD_COLLISION_TRIGGER_FACING_DOT_MAX) {
             SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
             return;
         }
-    } else if (kind == WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD) {
-        if (distSq <= WORLD_COLLISION_TRIGGER_NEAR_DISTANCE_SQUARED_MAX) {
-            other->hit = 1;
+    } else if (triggerKind == WORLD_COLLISION_TRIGGER_NEAR_OR_FACING_QUAD) {
+        if (centerDistanceSquared <= WORLD_COLLISION_TRIGGER_NEAR_DISTANCE_SQUARED_MAX) {
+            trigger->hit = WORLD_COLLISION_ACTION_TRIGGER_HIT;
             SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
             return;
         }
-        scratch->leveledOrigin.vx = other->origin.vx;
-        scratch->leveledOrigin.vy = node->coord->coord.t[1] + node->pos.vy;
-        scratch->leveledOrigin.vz = other->origin.vz;
-        gte_SetRotMatrix(&other->coord->workm);
+        scratch->leveledOrigin.vx = trigger->origin.vx;
+        scratch->leveledOrigin.vy = body->coord->coord.t[1] + body->pos.vy;
+        scratch->leveledOrigin.vz = trigger->origin.vz;
+        gte_SetRotMatrix(&trigger->coord->workm);
         gte_ldv0(&scratch->leveledOrigin);
         gte_rtv0();
         gte_stlvnl(&scratch->work.leveledOriginToSphere);
-        scratch->work.leveledOriginToSphere.vx = scratch->sphereCenter.vx - (scratch->work.leveledOriginToSphere.vx + other->coord->workm.t[0]);
-        scratch->work.leveledOriginToSphere.vy = scratch->sphereCenter.vy - (scratch->work.leveledOriginToSphere.vy + other->coord->workm.t[1]);
-        scratch->work.leveledOriginToSphere.vz = scratch->sphereCenter.vz - (scratch->work.leveledOriginToSphere.vz + other->coord->workm.t[2]);
+        scratch->work.leveledOriginToSphere.vx = scratch->sphereCenter.vx - (scratch->work.leveledOriginToSphere.vx + trigger->coord->workm.t[0]);
+        scratch->work.leveledOriginToSphere.vy = scratch->sphereCenter.vy - (scratch->work.leveledOriginToSphere.vy + trigger->coord->workm.t[1]);
+        scratch->work.leveledOriginToSphere.vz = scratch->sphereCenter.vz - (scratch->work.leveledOriginToSphere.vz + trigger->coord->workm.t[2]);
         VectorNormal(&scratch->work.leveledOriginToSphere, &scratch->work.leveledOriginToSphere);
         {
-            GfxCoord* c;
-            s32       n0, n1, n2;
+            const GfxCoord* bodyCoord;
+            s32             directionProductX, directionProductY, directionProductZ;
 
-            c    = node->coord;
-            n0   = scratch->work.leveledOriginToSphere.vx * c->workm.m[0][2];
-            n1   = scratch->work.leveledOriginToSphere.vy * c->workm.m[1][2];
-            n2   = scratch->work.leveledOriginToSphere.vz * c->workm.m[2][2];
-            dot  = n0 + n1;
-            dot += n2;
+            bodyCoord         = body->coord;
+            directionProductX = scratch->work.leveledOriginToSphere.vx * bodyCoord->workm.m[0][2];
+            directionProductY = scratch->work.leveledOriginToSphere.vy * bodyCoord->workm.m[1][2];
+            directionProductZ = scratch->work.leveledOriginToSphere.vz * bodyCoord->workm.m[2][2];
+            facingDot         = directionProductX + directionProductY;
+            facingDot        += directionProductZ;
         }
-        if (dot > WORLD_COLLISION_TRIGGER_FACING_DOT_MAX) {
+        if (facingDot > WORLD_COLLISION_TRIGGER_FACING_DOT_MAX) {
             SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
             return;
         }
     }
 
-    // Test the sphere against the transformed quad's one-sided plane and edges.
-    gte_ldv0(&other->vertices[0]);
-    gte_rtv0();
-    gte_stlvnl(&scratch->corners[0]);
-    scratch->corners[0].vx += scratch->origin.vx;
-    scratch->corners[0].vy += scratch->origin.vy;
-    scratch->corners[0].vz += scratch->origin.vz;
-
-    gte_ldv0(&other->normal);
-    gte_rtv0();
-    gte_stlvnl(&scratch->faceNormal);
-
-    faceDot = (scratch->faceNormal.vx * scratch->corners[0].vx + scratch->faceNormal.vy * scratch->corners[0].vy +
-               scratch->faceNormal.vz * scratch->corners[0].vz) >>
-              12;
-    dist = ((scratch->faceNormal.vx * scratch->sphereCenter.vx + scratch->faceNormal.vy * scratch->sphereCenter.vy +
-             scratch->faceNormal.vz * scratch->sphereCenter.vz) >>
-            12) -
-           faceDot;
-    if (dist >= 0 || dist < -node->radius) {
-        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
-        return;
+    /// Rejects an action sphere outside the placed quad's negative plane or strict edges.
+    ///
+    /// Borrows the placed origin/centre and the trigger rotation loaded in the GTE.
+    /// Captures planeDistance, overlapMeasure, edgeIndex, edgeEnd, edgeStart and
+    /// signed-halfword planeOffset. Identifier arguments are evaluated repeatedly;
+    /// use only as this standalone phase. Rejection releases the enclosing
+    /// trigger-sphere scratch block and returns from its void caller.
+#define WORLD_COLLISION_REJECT_OUTSIDE_ACTION_TRIGGER_QUAD(bodyArg, triggerArg, scratchArg)                                                                                                                               \
+    gte_ldv0(&(triggerArg)->vertices[0]);                                                                                                                                                                                 \
+    gte_rtv0();                                                                                                                                                                                                           \
+    gte_stlvnl(&(scratchArg)->corners[0]);                                                                                                                                                                                \
+    (scratchArg)->corners[0].vx += (scratchArg)->origin.vx;                                                                                                                                                               \
+    (scratchArg)->corners[0].vy += (scratchArg)->origin.vy;                                                                                                                                                               \
+    (scratchArg)->corners[0].vz += (scratchArg)->origin.vz;                                                                                                                                                               \
+                                                                                                                                                                                                                          \
+    gte_ldv0(&(triggerArg)->normal);                                                                                                                                                                                      \
+    gte_rtv0();                                                                                                                                                                                                           \
+    gte_stlvnl(&(scratchArg)->faceNormal);                                                                                                                                                                                \
+                                                                                                                                                                                                                          \
+    planeOffset = ((scratchArg)->faceNormal.vx * (scratchArg)->corners[0].vx + (scratchArg)->faceNormal.vy * (scratchArg)->corners[0].vy +                                                                                \
+                   (scratchArg)->faceNormal.vz * (scratchArg)->corners[0].vz) >>                                                                                                                                          \
+                  WORLD_COLLISION_DIRECTION_FRACTION_BITS;                                                                                                                                                                \
+    planeDistance = (((scratchArg)->faceNormal.vx * (scratchArg)->sphereCenter.vx + (scratchArg)->faceNormal.vy * (scratchArg)->sphereCenter.vy +                                                                         \
+                      (scratchArg)->faceNormal.vz * (scratchArg)->sphereCenter.vz) >>                                                                                                                                     \
+                     WORLD_COLLISION_DIRECTION_FRACTION_BITS) -                                                                                                                                                           \
+                    planeOffset;                                                                                                                                                                                          \
+    if (planeDistance >= 0 || planeDistance < -(bodyArg)->radius) {                                                                                                                                                       \
+        SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);                                                                                                                                                 \
+        return;                                                                                                                                                                                                           \
+    }                                                                                                                                                                                                                     \
+                                                                                                                                                                                                                          \
+    for (edgeIndex = 1; edgeIndex < (s32)ARRAY_SIZE((triggerArg)->vertices); edgeIndex++) {                                                                                                                               \
+        gte_ldv0(&(triggerArg)->vertices[edgeIndex]);                                                                                                                                                                     \
+        gte_rtv0();                                                                                                                                                                                                       \
+        gte_stlvnl(&(scratchArg)->corners[edgeIndex]);                                                                                                                                                                    \
+        (scratchArg)->corners[edgeIndex].vx += (scratchArg)->origin.vx;                                                                                                                                                   \
+        (scratchArg)->corners[edgeIndex].vy += (scratchArg)->origin.vy;                                                                                                                                                   \
+        (scratchArg)->corners[edgeIndex].vz += (scratchArg)->origin.vz;                                                                                                                                                   \
+    }                                                                                                                                                                                                                     \
+                                                                                                                                                                                                                          \
+    for (edgeIndex = 1; edgeIndex < (s32)ARRAY_SIZE((triggerArg)->vertices) + 1; edgeIndex++) {                                                                                                                           \
+        edgeEnd                                = &(scratchArg)->corners[(u16)Gp_FaceEdgePairs[edgeIndex].endCornerIndex];                                                                                                 \
+        edgeStart                              = &(scratchArg)->corners[(u16)Gp_FaceEdgePairs[edgeIndex].startCornerIndex];                                                                                               \
+        (scratchArg)->work.edgeDisplacement.vx = edgeEnd->vx - edgeStart->vx;                                                                                                                                             \
+        (scratchArg)->work.edgeDisplacement.vy = edgeEnd->vy - edgeStart->vy;                                                                                                                                             \
+        (scratchArg)->work.edgeDisplacement.vz = edgeEnd->vz - edgeStart->vz;                                                                                                                                             \
+        gte_ldopv1(&(scratchArg)->faceNormal);                                                                                                                                                                            \
+        gte_ldopv2(&(scratchArg)->work.edgeDisplacement);                                                                                                                                                                 \
+        gte_op12();                                                                                                                                                                                                       \
+        gte_stlvnl(&(scratchArg)->edgePlaneNormal);                                                                                                                                                                       \
+        overlapMeasure   = (scratchArg)->edgePlaneNormal.vx * (scratchArg)->sphereCenter.vx + (scratchArg)->edgePlaneNormal.vy * (scratchArg)->sphereCenter.vy;                                                           \
+        overlapMeasure  += (scratchArg)->edgePlaneNormal.vz * (scratchArg)->sphereCenter.vz;                                                                                                                              \
+        overlapMeasure >>= WORLD_COLLISION_DIRECTION_FRACTION_BITS;                                                                                                                                                       \
+        overlapMeasure  -= ((scratchArg)->edgePlaneNormal.vx * edgeEnd->vx + (scratchArg)->edgePlaneNormal.vy * edgeEnd->vy + (scratchArg)->edgePlaneNormal.vz * edgeEnd->vz) >> WORLD_COLLISION_DIRECTION_FRACTION_BITS; \
+        if (overlapMeasure >= 0) {                                                                                                                                                                                        \
+            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);                                                                                                                                             \
+            return;                                                                                                                                                                                                       \
+        }                                                                                                                                                                                                                 \
     }
 
-    for (i = 1; i < (s32)ARRAY_SIZE(other->vertices); i++) {
-        gte_ldv0(&other->vertices[i]);
-        gte_rtv0();
-        gte_stlvnl(&scratch->corners[i]);
-        scratch->corners[i].vx += scratch->origin.vx;
-        scratch->corners[i].vy += scratch->origin.vy;
-        scratch->corners[i].vz += scratch->origin.vz;
-    }
+    WORLD_COLLISION_REJECT_OUTSIDE_ACTION_TRIGGER_QUAD(body, trigger, scratch);
+#undef WORLD_COLLISION_REJECT_OUTSIDE_ACTION_TRIGGER_QUAD
 
-    for (i = 1; i < (s32)ARRAY_SIZE(other->vertices) + 1; i++) {
-        va                                = &scratch->corners[(u16)Gp_FaceEdgePairs[i].endCornerIndex];
-        vb                                = &scratch->corners[(u16)Gp_FaceEdgePairs[i].startCornerIndex];
-        scratch->work.edgeDisplacement.vx = va->vx - vb->vx;
-        scratch->work.edgeDisplacement.vy = va->vy - vb->vy;
-        scratch->work.edgeDisplacement.vz = va->vz - vb->vz;
-        gte_ldopv1(&scratch->faceNormal);
-        gte_ldopv2(&scratch->work.edgeDisplacement);
-        gte_op12();
-        gte_stlvnl(&scratch->edgePlaneNormal);
-        tmp   = scratch->edgePlaneNormal.vx * scratch->sphereCenter.vx + scratch->edgePlaneNormal.vy * scratch->sphereCenter.vy;
-        tmp  += scratch->edgePlaneNormal.vz * scratch->sphereCenter.vz;
-        tmp >>= 12;
-        tmp  -= (scratch->edgePlaneNormal.vx * va->vx + scratch->edgePlaneNormal.vy * va->vy + scratch->edgePlaneNormal.vz * va->vz) >> 12;
-        if (tmp >= 0) {
-            SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
-            return;
-        }
-    }
-
-    other->hit = 1;
+    trigger->hit = WORLD_COLLISION_ACTION_TRIGGER_HIT;
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionTriggerSphereScratch);
 }
 

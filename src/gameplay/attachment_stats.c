@@ -362,7 +362,7 @@ void Gp_ApplyAttachStats(s32 arg0, HudState* hud)
                 Gp_UpdateAttachCombo(arg0);
                 break;
             case ATTACHMENT_AREA_PROJECTILE:
-                func_800A7824(arg0, radiusWorld, extentWorld);
+                attachmentPreviewProjectile(arg0, radiusWorld, extentWorld);
                 if (hud != NULL) {
                     hud->radarRangeIcon = HUD_RADAR_RANGE_PROJECTILE;
                     hud->radarRange     = extentWorld;
@@ -1710,7 +1710,7 @@ void Gp_HudTask(HudState* hud)
                     hudDrawStatusBlock(hud);
                     if (equipmentHasEffect(EQUIPMENT_EFFECT_MOTION_DETECTOR) != 0) {
                         if (gGameSession->sceneUpdatesPaused == 0) {
-                            Gp_DrawHudSprites(hud);
+                            hudDrawRadar(hud);
                         }
                     }
                 }

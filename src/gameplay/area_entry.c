@@ -94,10 +94,10 @@ void Gp_AreaEnterTask(Task* arg0)
                 }
                 scan = &D_8010CA2C;
                 inventoryClearItems(scan);
-                arg0->status = Gp_GrantLocationItems(scan);
-                if (arg0->status != 0) {
+                arg0->status = inventoryGrantBattleRewards(scan);
+                if (arg0->status != INVENTORY_BATTLE_REWARD_NONE_GRANTED) {
                     uiSpawnObject(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2.pointer);
-                    if (arg0->status == 2) {
+                    if (arg0->status == INVENTORY_BATTLE_REWARD_BONUS_GRANTED) {
                         uiSpawnObject(D_8010CA78 + 1, 2, 0, 0x21, arg0->spawnArg2.pointer);
                     }
                 }

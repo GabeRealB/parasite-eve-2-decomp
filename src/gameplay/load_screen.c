@@ -71,7 +71,7 @@ enum {
 /// Suffix selecting the area's base/view-resource folder.
 enum { LOADING_AREA_FOLDER_SUFFIX = 1 };
 
-static inline void _loadingDrawFadeOverlay(TILE* fadeTile, DR_TPAGE* blendCommand, DisplayState* displayState, s32 darkness);
+static inline void _loadingDrawFadeOverlay(TILE* fadeTile, DR_TPAGE* blendCommand, const DisplayState* displayState, s32 darkness);
 
 static inline u16 _gpAdvanceAreaCd(void);
 
@@ -313,20 +313,24 @@ void Gp_LoadWaitBoot(Task* task)
     }
 }
 
-/// Links a subtractive 320-by-240 overlay into the reserved foreground tags.
+/// Queues the loading screen's subtractive full-screen overlay in the foreground.
 ///
-/// Requires current-frame packets and a normal frame OT with tag -16 in bounds.
-/// Both packets belong to the current OT buffer and must survive GPU consumption.
-/// `darkness` is an 8-bit channel amount; the display supplies signed pixel shake.
-static inline void _loadingDrawFadeOverlay(TILE* fadeTile, DR_TPAGE* blendCommand, DisplayState* displayState, s32 darkness)
+/// Uses the low byte of darkness for all RGB channels on a 320-by-240 TILE.
+/// Screen Y compensates for the display's signed-byte vertical offset. Packets
+/// must be distinct, writable, current-frame storage kept alive until the GPU
+/// consumes the ordering table. Requires foreground tag -16 in bounds; command
+/// insertion after the tile makes the subtractive blend execute before it.
+/// The caller gates use while the boot-image loader owns presentation. Borrows
+/// the display without modifying it and neither allocates nor retains packets.
+static inline void _loadingDrawFadeOverlay(TILE* fadeTile, DR_TPAGE* blendCommand, const DisplayState* displayState, s32 darkness)
 {
     enum {
-        LOADING_FADE_TILE_WORDS           = 3,
+        LOADING_FADE_TILE_WORDS           = sizeof(TILE) / sizeof(u32) - 1,
         LOADING_FADE_TILE_SEMITRANSPARENT = 0x62,
         LOADING_FADE_WIDTH_PIXELS         = 320,
         LOADING_FADE_HEIGHT_PIXELS        = 240,
         LOADING_FADE_FOREGROUND_TAG       = -16,
-        LOADING_FADE_TPAGE_WORDS          = 1,
+        LOADING_FADE_TPAGE_WORDS          = sizeof(DR_TPAGE) / sizeof(u32) - 1,
         LOADING_FADE_TPAGE_OPCODE         = 0xE1000000,
         LOADING_FADE_DRAW_TO_DISPLAY      = 0x200,
     };

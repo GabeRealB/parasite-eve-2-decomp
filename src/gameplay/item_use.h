@@ -46,13 +46,13 @@ extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
 
 /// Per-stage `InventoryBattleReward` lists selected by
-/// `Gp_GrantLocationItems` when
+/// `inventoryGrantBattleRewards` when
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` is 0 or 2. Indexed by
 /// `GameSession.location.loc.stage`.
 extern InventoryBattleReward* D_8010F9F4[];
 
 /// Per-stage `InventoryBattleReward` lists selected by
-/// `Gp_GrantLocationItems` when
+/// `inventoryGrantBattleRewards` when
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode` is not 0 or 2. Indexed by
 /// `GameSession.location.loc.stage`.
 extern InventoryBattleReward* D_8010FA0C[];

@@ -7219,7 +7219,7 @@ if (mode == 0 || mode == 2) {
 ```
 
 `register ... asm("v1")` on the table pointer also works but is
-unnecessary. `Gp_GrantLocationItems` is the example.
+unnecessary. `inventoryGrantBattleRewards` is the example.
 
 The same rule covers a *call* whose only differing argument is the
 address: duplicate the whole call in both arms and let cross-jumping
@@ -31020,7 +31020,7 @@ rule            = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleO
 ```
 
 Inlining `arr[row][col]` stuck at 99.8%. `_worldCollisionCollideListPairs` is the example
-(same addressing in `Gp_CollideLists`).
+(same addressing in `worldCollisionCollideBodyLists`).
 
 ## Load both pair fields before the swap `if`
 
@@ -33088,7 +33088,7 @@ Duplicate `Gp_PubItemReady = 1` in each arm of the remap (not once after the
 join) so `%hi(Gp_PubItemReady)` hoists into `$s5`. GCC still CSE's the stores
 back to a single `sh` after the join.
 
-`Gp_LookupBit2Item` is the example.
+`itemPickupPublishPlacedObject` is the example.
 
 ## Seed a later `$s1` result as `memCalloc`'s heap flag
 
@@ -40667,7 +40667,7 @@ sltiu v0, v0, 0x2601
 So a stray `andi 0xFFFF` between the `addiu` and the `sltiu` is the tell that
 the source temp was `short`. Later uses that need the sign (`v * v`) then come
 out as `sll 16` / `sra 16` off the same `lhu` register rather than a second
-load. `Gp_DrawHudSprites` is the example.
+load. `hudDrawRadar` is the example.
 
 ## Use `setUV4` / `setXY4` when a POLY_* fill will not schedule right
 
@@ -40692,14 +40692,14 @@ the retail code was built from. Likewise `setPolyGT4(p)` (rather than separate
 `setlen`/`setcode`) puts the `li 0xC` / `li 0x3C` pair adjacent in the RTL.
 Chained stores (`poly->x1 = poly->x3 = x + 0x40;`) are the way to get the
 higher-offset field stored *first*, since C assigns right to left.
-`Gp_DrawHudSprites` went 96.8% → 100% on these three changes.
+`hudDrawRadar` went 96.8% → 100% on these three changes.
 
 ## The four `sw` colour words of a quad are allocated in source order
 
 `*(u32*)&poly->rN = 0x......;` writes get `$a3, $a2, $a1, $a0` in the order the
 statements appear, so the group order in the source is directly readable off the
 target: whichever colour is materialised first in the `lui/ori` run is the first
-statement. For `Gp_DrawHudSprites` the target materialises `0xC0C0C0`, `0x808080`,
+statement. For `hudDrawRadar` the target materialises `0xC0C0C0`, `0x808080`,
 `0x404040`, `0x303030`, so the source order is `r2, r3, r0, r1` even though the
 `sw`s are emitted in ascending-offset order after scheduling. Getting this wrong
 also costs an instruction: the delay slot of the preceding `bne` is filled with
@@ -66902,7 +66902,7 @@ the order of two stores. See the section at the end of this file named
 ## `worldCollisionTestOccluderSegment`: remove pins, reuse the loop counter, preserve the scratch copy
 
 The archived pinned seed scored 98.127% with `branch=3`, `delete=5`.
-The unpinned match uses the adjacent `func_800DEF80` patterns:
+The unpinned match uses the adjacent `worldCollisionTestActionTriggerSphere` patterns:
 `TOUCH_REG(out)` after the first translated vertex component prevents a second
 walking pointer, and `TOUCH_REG(block)` inside the edge loop prevents hoisting
 normal/edge addresses. One `i` reused for both loops doubles its references
@@ -134866,7 +134866,7 @@ typedef struct { s16 endCornerIndex; s16 startCornerIndex; } WorldCollisionFaceE
 
 The corner-index table is the case: `worldCollisionCollideSphereGrid`, `worldCollisionCollideMotionSphereGrid` and
 `worldCollisionIntersectGridFace` index it through the signed type and compile `lh`, while
-`func_800DEF80`, `worldCollisionTestViewBoundarySphere` and `worldCollisionTestOccluderSegment` reach the same table
+`worldCollisionTestActionTriggerSphere`, `worldCollisionTestViewBoundarySphere` and `worldCollisionTestOccluderSegment` reach the same table
 through unsigned scalar casts and compile `lhu`. `DamageAttack` only shares this
 layout; it is an attack record, not the corner-index table. The unsigned
 readers cast `WorldCollisionFaceEdge` fields to `u16`.
@@ -142977,7 +142977,7 @@ carve. local-alloc's `optimize_reg_copy_1` then rewrites that read of the carve
 to read the copy (`.sched` stores the temp, `.lreg` the block pseudo), which is
 why the ROM stores `s0`. Try this before any asm when the store is late.
 
-### Quad-edge collision tests: indexed forms and one reused scalar replace every pin (func_800DEF80, 2026-09-26)
+### Quad-edge collision tests: indexed forms and one reused scalar replace every pin (worldCollisionTestActionTriggerSphere, 2026-09-26)
 
 **Symptom.** The seed kept the scratch address in a `void**` local held by
 `TOUCH_REG2`, touched a node radius three times, and put `TOUCH_REG(vec)` and

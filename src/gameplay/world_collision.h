@@ -12,12 +12,12 @@
 
 // Collision lists, contact records, room grids and collision updates.
 
-/// Pair-handler table used by `_worldCollisionCollideListPairs` / `Gp_CollideLists`.
+/// Pair-handler table used by `_worldCollisionCollideListPairs` / `worldCollisionCollideBodyLists`.
 /// Indexed by `WorldCollisionPairRule::handlerIndex` (`worldCollisionPairNop` / `_worldCollisionCollideSpherePair` /
 /// `_worldCollisionCollideSphereCapsulePair`).
 extern WorldCollisionPairHandler Gp_PairHandlers[5];
 
-/// Pair-rule table used by `_worldCollisionCollideListPairs` / `Gp_CollideLists`, one rule
+/// Pair-rule table used by `_worldCollisionCollideListPairs` / `worldCollisionCollideBodyLists`, one rule
 /// per ordered pair of body kinds. Rows and columns are `(flags & 7) - 1`.
 extern WorldCollisionPairRule D_8010FA4C[4][4];
 
@@ -127,7 +127,21 @@ enum {
 /// reservation. Releases it before return, changes GTE state, retains no pointers.
 void worldCollisionPlaceCapsuleSegment(const WorldCollisionBody* body, VECTOR endpoints[2], SVECTOR* direction, s32 gridScan);
 
-void func_800DEF80(WorldCollisionBody* node, WorldCollisionTrigger* other);
+/// Latches an action trigger when a body's sphere meets its proximity/facing and quad gates.
+///
+/// Both cached transforms must place geometry in the same query frame, in game
+/// units; normals/directions use 4096 per unit. Radius-sum equality is accepted.
+/// FACING_QUAD requires the body's local +Z axis to oppose facingNormal;
+/// NEAR_OR_FACING_QUAD accepts centre distance below 500 after broad phase, or
+/// requires its composed +Z axis to face the leveled origin before the quad test.
+/// Other kinds run the quad test directly. It accepts only the plane's negative
+/// side within body radius and a centre strictly inside all four edges; the
+/// plane offset narrows to a signed halfword. Success writes hit = 1; every
+/// rejection preserves the existing latch. Enable/list flags are caller gates.
+/// Requires live body/trigger/transforms clear of the initialized scratch stack's
+/// 200-byte peak reservation and SDK-valid normalization inputs. Releases all
+/// scratch storage, changes GTE state and retains no pointers.
+void worldCollisionTestActionTriggerSphere(const WorldCollisionBody* body, WorldCollisionTrigger* trigger);
 
 /// Latches a view boundary when a sphere overlaps its quad while moving against its normal.
 ///
@@ -151,7 +165,7 @@ void worldCollisionTestViewBoundarySphere(const WorldCollisionBody* body, WorldC
 /// whose address is the first link. A node's `prev` points to the link that
 /// contains it, either this head or the preceding node's `next`.
 /// `Gp_TickWorldCollision` runs `Gp_CollideListGrid` over each list and
-/// `Gp_CollideLists` over the pairs that can interact.
+/// `worldCollisionCollideBodyLists` over the pairs that can interact.
 extern WorldCollisionBody* Gp_ObjList0;
 
 extern WorldCollisionBody* Gp_ObjList1;
@@ -223,7 +237,15 @@ void worldCollisionLoadSurfacePushbackFlags(void);
 /// current room. No node is unlinked or freed, and no hit is required to run.
 void worldCollisionConsumeViewBoundaryHits(void);
 
-void Gp_CollideLists(WorldCollisionBody* a, WorldCollisionBody* b);
+/// Dispatches enabled body contacts for every ordered pair from two lists.
+///
+/// NULL heads are allowed. Enabled bodies must have kinds SPHERE through
+/// MOTION_SPHERE (1..4), selecting the 4-by-4 pair-rule matrix. Each rule chooses
+/// the handler and argument order; the handler result is ignored. Lists must be
+/// acyclic and remain live and structurally unchanged during dispatch. Handler
+/// contact-buffer, transform and scratch requirements apply to each body.
+/// Lists should be disjoint when self-pairs or repeated contacts are unwanted.
+void worldCollisionCollideBodyLists(WorldCollisionBody* firstList, WorldCollisionBody* secondList);
 
 void Gp_CollideListGrid(WorldCollisionBody* node);
 

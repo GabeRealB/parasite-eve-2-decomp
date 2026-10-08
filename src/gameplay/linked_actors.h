@@ -33,6 +33,13 @@ void attachmentTargetAll(s32 release);
 /// storage is released before return; the GPU borrows packets until completion.
 void attachmentDrawAreaWireframe(s32 unused, s32 radius, s32 extent, s32 options);
 
+/// Draws a projectile ability's cylindrical aiming area during preview.
+///
+/// release == 0 draws; any nonzero release does nothing. Radius and extent are
+/// game-coordinate units, scaled from the ability row by the caller. Uses the
+/// player/geometry, scratch and GPU requirements of `attachmentDrawAreaWireframe`.
+void attachmentPreviewProjectile(s32 release, s32 radius, s32 extent);
+
 /// Previews or records PE contacts for enemies inside a player-relative ellipsoid.
 ///
 /// `release` and list/contact requirements are those of `attachmentTargetAll`.

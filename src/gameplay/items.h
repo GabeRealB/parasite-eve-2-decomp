@@ -336,7 +336,39 @@ extern s32 D_80114DE8;
 
 extern u16 Gp_PubItemId;
 
-s32 Gp_LookupBit2Item(s32 arg0);
+/// Outcome of a battle-reward grant; a granted bonus takes precedence.
+enum {
+    INVENTORY_BATTLE_REWARD_NONE_GRANTED  = 0,
+    INVENTORY_BATTLE_REWARD_ITEM_GRANTED  = 1,
+    INVENTORY_BATTLE_REWARD_BONUS_GRANTED = 2
+};
+
+/// Grants the current area's first matching battle-reward row into a range.
+///
+/// Uses the live stage, area and placement variant; view does not affect the key.
+/// Stage must be 1..5 with its map package's reward lists loaded. Normal/replay
+/// and Scavenger use the ordinary list; Bounty and Nightmare use the other list.
+/// Each nonzero slot requests one pack, subject to the item's ownership limit;
+/// the bonus slot also requires an attached Medicine Wheel. Returns 0 for no grant,
+/// 1 for ordinary items or 2 when the bonus slot is granted. The result records
+/// attempted grants after the ownership check, so the caller must provide
+/// enough writable rows/capacity for them to succeed.
+/// The range descriptor is borrowed and remains unchanged.
+s32 inventoryGrantBattleRewards(const InventoryItemRange* rewardRange);
+
+/// Publishes the first placed object with a flag index in the saved stage.
+///
+/// Returns 1 on a match and 0 when no room table exists or the search ends.
+/// Requires a valid saved stage and a matching flag index (0..0xFFFE) in its readable room
+/// lists, or a table ending with `AREA_OBJECT_ROOM_LOOKUP_END`. Stored tables use
+/// a different terminator, so an absent index is not a safe general query.
+/// Copies the index, object kind and place state into the shared pickup outputs.
+/// Item-bank kinds also publish quantity/readiness: duplicates become Ringer's
+/// Solution (weapons) or Belt Pouch (other limited items); consumables use one
+/// pack except object state 3, which requests the full stack. Non-item banks
+/// retain the previous quantity/readiness. A failed search retains all outputs.
+/// Borrows placement/stack tables without retaining a pointer or changing them.
+s32 itemPickupPublishPlacedObject(s32 flagIndex);
 
 /// Byte remap of an item id used as a sort/order key (`inventoryGetItemSortKey` /
 /// `inventorySortItems`). Split by item class: 0x01–0x5F → `Gp_ItemSortKey0[id]`,

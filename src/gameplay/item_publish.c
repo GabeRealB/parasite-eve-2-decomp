@@ -107,76 +107,86 @@ InventoryConsumableStack Gp_StackLimits[32] = {
     { 1, 0, 1 },
 };
 
-s32 Gp_LookupBit2Item(s32 arg0)
+s32 itemPickupPublishPlacedObject(s32 flagIndex)
 {
-    AreaObjectRoom*           rooms;
-    AreaObjectPlace*          rec;
-    u16*                      tail;
-    InventoryConsumableStack* stacks;
-    s32                       idx;
-    s32                       matched;
-    u16                       item;
-    u16                       extra;
-    s32                       term;
-    s32                       found;
+    enum {
+        ITEM_PICKUP_ITEM_BANK_END                = 0x100U,
+        ITEM_PICKUP_WEAPON_COUNT                 = ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.weaponItems),
+        ITEM_PICKUP_DUPLICATE_WEAPON_REPLACEMENT = 0x3D,
+        ITEM_PICKUP_DUPLICATE_OTHER_REPLACEMENT  = 0x0D,
+        ITEM_PICKUP_FULL_STACK_STATE             = 3,
+        ITEM_PICKUP_PUBLICATION_READY            = 1
+    };
+    const AreaObjectRoom*           room;
+    const AreaObjectPlace*          place;
+    const InventoryConsumableStack* consumableStacks;
+    s32                             stageIndex;
+    s32                             consumableIndex;
+    s32                             roomMatched;
+    u16                             objectKind;
+    u16                             placeState;
+    s32                             placeListEnd;
+    s32                             found;
 
-    idx   = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
-    rooms = Gp_Bit2Banks[idx].rooms;
-    found = 0;
-    if (rooms != NULL) {
-        if (rooms->places.sentinel != AREA_OBJECT_ROOM_LOOKUP_END) {
-            term = AREA_OBJECT_PLACE_END;
+    stageIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage;
+    room       = Gp_Bit2Banks[stageIndex].rooms;
+    found      = 0;
+    // Search the saved stage's room records, preserving the lookup terminator.
+    if (room != NULL) {
+        if (room->places.sentinel != AREA_OBJECT_ROOM_LOOKUP_END) {
+            placeListEnd = AREA_OBJECT_PLACE_END;
             do {
-                rec     = rooms->places.list;
-                matched = 0;
-                if (rec != NULL) {
-                    if (rec->flagIndex != term) {
-                        stacks = Gp_StackLimits;
-                        tail   = &rec->kind;
+                place       = room->places.list;
+                roomMatched = 0;
+                if (place != NULL) {
+                    if (place->flagIndex != placeListEnd) {
+                        consumableStacks = Gp_StackLimits;
+
                         do {
-                            if (rec->flagIndex == arg0) {
-                                item          = *tail;
-                                extra         = PARENT_OF(tail, AreaObjectPlace, kind)->state;
-                                Gp_PubItemId  = arg0;
-                                Gp_PubItemLoc = item;
-                                D_80114DDE    = extra;
-                                if (item < 0x100U) {
-                                    if (inventoryIsItemLimitReached(*tail) != 0) {
-                                        if ((u32)(*tail - 0x80) < 0x20U) {
-                                            Gp_PubItemLoc = 0x3D;
+                            if (place->flagIndex == flagIndex) {
+                                objectKind    = place->kind;
+                                placeState    = place->state;
+                                Gp_PubItemId  = flagIndex;
+                                Gp_PubItemLoc = objectKind;
+                                D_80114DDE    = placeState;
+                                // Publish item quantity only for the item bank.
+                                if (objectKind < ITEM_PICKUP_ITEM_BANK_END) {
+                                    if (inventoryIsItemLimitReached(place->kind) != 0) {
+                                        if ((u32)(place->kind - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_PICKUP_WEAPON_COUNT) {
+                                            Gp_PubItemLoc = ITEM_PICKUP_DUPLICATE_WEAPON_REPLACEMENT;
                                         } else {
-                                            Gp_PubItemLoc = 0xD;
+                                            Gp_PubItemLoc = ITEM_PICKUP_DUPLICATE_OTHER_REPLACEMENT;
                                         }
                                         Gp_PubItemQty   = 1;
-                                        Gp_PubItemReady = 1;
-                                    } else if ((u32)(*tail - 0xA0) < 0x20U) {
-                                        if (areaGetCurrentObjectState(arg0) != 3) {
-                                            idx           = *tail - 0xA0;
-                                            Gp_PubItemQty = stacks[idx].packQty;
+                                        Gp_PubItemReady = ITEM_PICKUP_PUBLICATION_READY;
+                                    } else if ((u32)(place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+                                        if (areaGetCurrentObjectState(flagIndex) != ITEM_PICKUP_FULL_STACK_STATE) {
+                                            consumableIndex = place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST;
+                                            Gp_PubItemQty   = consumableStacks[consumableIndex].packQty;
                                         } else {
-                                            idx           = *tail - 0xA0;
-                                            Gp_PubItemQty = stacks[idx].maxHeld;
+                                            consumableIndex = place->kind - INVENTORY_CONSUMABLE_ITEM_FIRST;
+                                            Gp_PubItemQty   = consumableStacks[consumableIndex].maxHeld;
                                         }
-                                        Gp_PubItemReady = 1;
+                                        Gp_PubItemReady = ITEM_PICKUP_PUBLICATION_READY;
                                     } else {
                                         Gp_PubItemQty   = 1;
-                                        Gp_PubItemReady = 1;
+                                        Gp_PubItemReady = ITEM_PICKUP_PUBLICATION_READY;
                                     }
                                 }
-                                found   = 1;
-                                matched = found;
+                                found       = 1;
+                                roomMatched = found;
                                 break;
                             }
-                            rec++;
-                            tail = &PARENT_OF(tail, AreaObjectPlace, kind)[1].kind;
-                        } while (rec->flagIndex != term);
+                            place++;
+
+                        } while (place->flagIndex != placeListEnd);
                     }
                 }
-                if (matched == 1) {
+                if (roomMatched == 1) {
                     break;
                 }
-                rooms++;
-            } while (rooms->places.sentinel != AREA_OBJECT_ROOM_LOOKUP_END);
+                room++;
+            } while (room->places.sentinel != AREA_OBJECT_ROOM_LOOKUP_END);
         }
     }
     return found;

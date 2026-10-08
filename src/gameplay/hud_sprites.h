@@ -102,7 +102,19 @@ void viewChangeStub(void);
 /// HUD or run an event do not consume it.
 void hudDelayInputAfterMenu(void);
 
-void Gp_DrawHudSprites(HudState* hud);
+/// Draws the player-oriented enemy radar and consumes a pending ability-range overlay.
+///
+/// Enemy offsets must already be refreshed in the player's frame. A motion
+/// detector on the armor halves the normal Q12 zoom and adds its icon. Only lockable
+/// targets strictly inside the scaled 19-pixel circle get blips; targeted enemies
+/// use the highlighted marker. The GTE saturates offsets to signed halfwords;
+/// pixel rounding retains the original signed-halfword truncation.
+/// A range request uploads all 16 RGB555 palette entries and clears radarRangeIcon.
+/// Requires a live HUD, an acyclic list of embedded enemy targets, loaded HUD
+/// textures, initialized scratch stack with 72 free bytes, GPU arena space and
+/// ordering-table tags -2 and -3. Queued packets and palette storage must survive
+/// GPU consumption. Changes GTE state and releases scratch before returning.
+void hudDrawRadar(HudState* hud);
 
 /// HP readout layouts and the maximum-HP sentinel that hides the amount.
 enum {
@@ -137,8 +149,6 @@ void hudDrawHpReadout(s32 x, s32 y, s32 hp, s32 hpMax, s32 layout);
 void worldTargetUpdatePlayerRelativePositions(void);
 
 s32 func_800A7550(void);
-
-void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
 
 /// Draws the player's locked enemy's HP, retaining its readout placement between frames.
 ///

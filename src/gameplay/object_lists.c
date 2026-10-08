@@ -288,38 +288,48 @@ s32 worldCollisionSegmentOccluded(const SVECTOR* segmentStart, const SVECTOR* se
     return occluded;
 }
 
-void Gp_CollideLists(WorldCollisionBody* a, WorldCollisionBody* b)
+/// Dispatches one body-kind rule with its prescribed argument order.
+///
+/// Bodies remain borrowed from live lists. Passes the selected handler slot
+/// through unchanged and ignores the handler's return value.
+static inline void _worldCollisionDispatchBodyPair(const WorldCollisionPairRule* rule, WorldCollisionBody* firstBody, WorldCollisionBody* secondBody)
 {
-    WorldCollisionBody*           other;
+    u16 swapBodies;
+    u16 handlerIndex;
+
+    swapBodies   = rule->swapBodies;
+    handlerIndex = rule->handlerIndex;
+    if (swapBodies == false) {
+        Gp_PairHandlers[handlerIndex](firstBody, secondBody, handlerIndex);
+    } else {
+        Gp_PairHandlers[handlerIndex](secondBody, firstBody, handlerIndex);
+    }
+}
+
+void worldCollisionCollideBodyLists(WorldCollisionBody* firstList, WorldCollisionBody* secondList)
+{
+    WorldCollisionBody*           secondBody;
     const WorldCollisionPairRule* rule;
     s32                           rowOffsetBytes;
     s32                           ruleOffsetBytes;
-    u16                           flags;
-    u16                           handlerIndex;
-    u16                           swapBodies;
-    u8                            rowIndex;
-    u8                            columnIndex;
+    u16                           firstBodyFlags;
+    u8                            firstKindIndex;
+    u8                            secondKindIndex;
 
-    for (; a != NULL; a = a->next) {
-        flags = a->flags;
-        if (flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
-            rowIndex = (a->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
-            other    = b;
-            if (other != NULL) {
-                rowOffsetBytes = rowIndex * (s32)sizeof(D_8010FA4C[0]);
-                for (; other != NULL; other = other->next) {
-                    if (other->flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
-                        columnIndex     = (other->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
-                        ruleOffsetBytes = columnIndex * (s32)sizeof(WorldCollisionPairRule) + rowOffsetBytes;
+    for (; firstList != NULL; firstList = firstList->next) {
+        firstBodyFlags = firstList->flags;
+        if (firstBodyFlags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
+            firstKindIndex = (firstList->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
+            secondBody     = secondList;
+            if (secondBody != NULL) {
+                rowOffsetBytes = firstKindIndex * (s32)sizeof(D_8010FA4C[0]);
+                for (; secondBody != NULL; secondBody = secondBody->next) {
+                    if (secondBody->flags & WORLD_COLLISION_BODY_PAIR_ENABLED) {
+                        secondKindIndex = (secondBody->flags & WORLD_COLLISION_BODY_KIND_MASK) - WORLD_COLLISION_BODY_SPHERE;
+                        ruleOffsetBytes = secondKindIndex * (s32)sizeof(WorldCollisionPairRule) + rowOffsetBytes;
                         // Complete the byte offset before adding the matrix base.
-                        rule         = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleOffsetBytes);
-                        swapBodies   = rule->swapBodies;
-                        handlerIndex = rule->handlerIndex;
-                        if (swapBodies == false) {
-                            Gp_PairHandlers[handlerIndex](a, other, handlerIndex);
-                        } else {
-                            Gp_PairHandlers[handlerIndex](other, a, handlerIndex);
-                        }
+                        rule = (const WorldCollisionPairRule*)((const u8*)&D_8010FA4C + ruleOffsetBytes);
+                        _worldCollisionDispatchBodyPair(rule, firstList, secondBody);
                     }
                 }
             }
@@ -367,7 +377,7 @@ void func_800E0608(WorldCollisionBody* node, s32 mask, s32 match)
         if ((node->flags & mask) == (u16)match) {
             for (; other != NULL; other = other->next) {
                 if (other->flags & WORLD_COLLISION_TRIGGER_ENABLED) {
-                    func_800DEF80(node, other);
+                    worldCollisionTestActionTriggerSphere(node, other);
                 }
             }
         }

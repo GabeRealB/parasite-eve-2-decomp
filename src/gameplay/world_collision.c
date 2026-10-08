@@ -371,19 +371,19 @@ void Gp_TickWorldCollision(Task* unused)
         Gp_CollideListGrid(Gp_ObjList4);
         Gp_CollideListGrid(Gp_ObjList7);
         Gp_CollideListGrid(Gp_ObjList8);
-        Gp_CollideLists(Gp_ObjList0, Gp_ObjList2);
-        Gp_CollideLists(Gp_ObjList0, Gp_ObjList3);
-        Gp_CollideLists(Gp_ObjList0, Gp_ObjList4);
-        Gp_CollideLists(Gp_ObjList0, Gp_ObjList8);
+        worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList2);
+        worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList3);
+        worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList4);
+        worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList8);
         _worldCollisionCollideListPairs(Gp_ObjList0);
-        Gp_CollideLists(Gp_ObjList1, Gp_ObjList2);
-        Gp_CollideLists(Gp_ObjList1, Gp_ObjList4);
-        Gp_CollideLists(Gp_ObjList1, Gp_ObjList6);
-        Gp_CollideLists(Gp_ObjList2, Gp_ObjList4);
-        Gp_CollideLists(Gp_ObjList2, Gp_ObjList8);
+        worldCollisionCollideBodyLists(Gp_ObjList1, Gp_ObjList2);
+        worldCollisionCollideBodyLists(Gp_ObjList1, Gp_ObjList4);
+        worldCollisionCollideBodyLists(Gp_ObjList1, Gp_ObjList6);
+        worldCollisionCollideBodyLists(Gp_ObjList2, Gp_ObjList4);
+        worldCollisionCollideBodyLists(Gp_ObjList2, Gp_ObjList8);
         _worldCollisionCollideListPairs(Gp_ObjList2);
-        Gp_CollideLists(Gp_ObjList3, Gp_ObjList4);
-        Gp_CollideLists(Gp_ObjList4, Gp_ObjList8);
+        worldCollisionCollideBodyLists(Gp_ObjList3, Gp_ObjList4);
+        worldCollisionCollideBodyLists(Gp_ObjList4, Gp_ObjList8);
         if (Gp_PendingObj4CFlag != 0) {
             worldCollisionClearActionHits();
         }

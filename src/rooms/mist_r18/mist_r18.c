@@ -1754,7 +1754,7 @@ static void _mistR18PlacePropTask(Task* task)
 
 void func_mist_r18_8017EB48(void)
 {
-    Gp_InitStarterInv();
+    inventoryInitializeStarterLoadout();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MIST_PARKING;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 3;

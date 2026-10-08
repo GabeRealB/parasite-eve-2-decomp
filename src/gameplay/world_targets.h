@@ -5,8 +5,6 @@
 
 #include "gameplay/world_targets_types.h"
 
-#include "main/mc_types.h"
-
 /// First node on the list of enemies the targeting passes track.
 ///
 /// NULL when the list is empty. Lock-on, the reticle, the radar and the area
@@ -49,7 +47,5 @@ void worldTargetResetAreaTracking(void);
 /// membership. Occupied tasks require live `GameActor` work blocks, and any
 /// referenced target must remain writable and live.
 void worldTargetClearActorTargetMarks(void);
-
-s32 Gp_GrantLocationItems(InventoryItemRange* arg0);
 
 #endif // GAMEPLAY_PRIVATE_WORLD_TARGETS_H

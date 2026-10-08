@@ -54,6 +54,33 @@
 #include "main/wipsys.h"
 #include <psyq/rand.h>
 
+/// Radar projection uses Q12 zoom and eight fractional bits per screen pixel.
+/// Palette constants describe the sixteen-entry RGB555 ability footprint.
+enum {
+    HUD_RADAR_NORMAL_ZOOM_Q12          = 0x1555,
+    HUD_RADAR_MOTION_DETECTOR_ZOOM_Q12 = 0xAAA,
+    HUD_RADAR_POSITION_FRACTION_BITS   = 8,
+    HUD_RADAR_PIXEL_ROUNDING           = 1 << (HUD_RADAR_POSITION_FRACTION_BITS - 1),
+    HUD_RADAR_RANGE_FIXED              = 0x1300,
+    HUD_RADAR_RANGE_SQUARED_MAX        = HUD_RADAR_RANGE_FIXED * HUD_RADAR_RANGE_FIXED - 1,
+    HUD_RADAR_PALETTE_RADIUS_BIAS      = 4,
+    HUD_RADAR_PALETTE_ACTIVE           = 0x9E06,
+    HUD_RADAR_PALETTE_EDGE             = 0x8D03,
+    HUD_RADAR_PALETTE_INACTIVE         = 0,
+    HUD_RADAR_RANGE_PALETTE_X_WORDS    = 0x20,
+    HUD_RADAR_RANGE_PALETTE_Y_ROWS     = 0xF2,
+    HUD_RADAR_TPAGE_COMMAND            = 0xE1000000 | 0x200 | 0x3E,
+    HUD_RADAR_DETECTOR_SPRITE_CODE     = 0x65,
+    HUD_RADAR_RANGE_SPRITE_CODE        = 0x67,
+    HUD_RADAR_TEXTURE_CLUT             = 0x3C0C,
+    HUD_RADAR_RANGE_CLUT               = 0x3C82,
+    HUD_RADAR_TEXTURE_PAGE             = 0x1E,
+    HUD_RADAR_MAIN_TAG                 = -2,
+    HUD_RADAR_RANGE_TAG                = -3,
+    HUD_RADAR_TPAGE_PAYLOAD_WORDS      = sizeof(DR_TPAGE) / sizeof(u32) - 1,
+    HUD_RADAR_SPRITE_PAYLOAD_WORDS     = sizeof(SPRT) / sizeof(u32) - 1
+};
+
 const char D_800938AC[8] = "????\0&!K";
 
 /// The nine rotation coefficients of a view `MATRIX`, assigned as one value.
@@ -356,166 +383,178 @@ static __inline__ void _viewApplyCameraCursor(const ViewCamera* cursor, MATRIX* 
     PARENT_OF(translation, GfxCoord, coord.t)->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-void Gp_DrawHudSprites(HudState* hud)
+/// Uploads the radar footprint's sixteen RGB555 entries for a scaled radius.
+///
+/// scaledRange uses eight fractional bits per pixel; the radial texture starts
+/// at a four-pixel bias. Palette entries remain borrowed until GPU consumption.
+static inline void _hudUploadRadarRangePalette(s32 scaledRange)
 {
-    _WorldTargetPlayerFrameScratch* block;
-    WorldTargetNode*                node;
-    s32                             mode;
-    s32                             x;
-    s32                             cx;
-    s32                             cy;
-    s32                             y;
-    s16                             vx;
-    s32                             vz;
-    s32                             i;
-    s32                             n;
-    s32                             range;
-    DR_TPAGE*                       tp;
-    SPRT*                           sp;
-    SPRT*                           sp2;
-    POLY_GT4*                       poly;
+    s32 rangePaletteIndex;
+    s32 paletteIndex;
 
-    x  = 0x61;
-    y  = -0x6C;
-    y -= gDisplayState.vramYOffset;
-    cx = x + 0x23;
-    cy = y + 0x23;
-    hudDrawRadarMarker(cx, cy, HUD_RADAR_MARKER_PLAYER);
-    node  = gWorldTargetListHead;
-    block = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetPlayerFrameScratch);
-    mode  = equipmentHasEffect(EQUIPMENT_EFFECT_ARMOR_MOTION_DETECTOR);
-    for (; node != NULL; node = node->next) {
-        if ((node->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
-            block->position.vx = GP_NODE_ENEMY(node)->playerRelPos.vx;
-            block->position.vz = GP_NODE_ENEMY(node)->playerRelPos.vz;
-            block->position.vy = 0;
-            if (mode == 0) {
-                gte_lddp(0x1555);
-                gte_ldsv(&block->position);
+    rangePaletteIndex = scaledRange;
+    if (rangePaletteIndex > HUD_RADAR_RANGE_FIXED) {
+        rangePaletteIndex = HUD_RADAR_RANGE_FIXED;
+    }
+    rangePaletteIndex >>= HUD_RADAR_POSITION_FRACTION_BITS;
+    rangePaletteIndex  -= HUD_RADAR_PALETTE_RADIUS_BIAS;
+    if (rangePaletteIndex <= 0) {
+        rangePaletteIndex = 1;
+    }
+    for (paletteIndex = 0; paletteIndex < ARRAY_SIZE(D_80114BB0); paletteIndex++) {
+        if (paletteIndex < rangePaletteIndex) {
+            D_80114BB0[paletteIndex] = HUD_RADAR_PALETTE_ACTIVE;
+        } else {
+            D_80114BB0[paletteIndex] = HUD_RADAR_PALETTE_INACTIVE;
+        }
+        if (paletteIndex == rangePaletteIndex && paletteIndex != ARRAY_SIZE(D_80114BB0) - 1) {
+            D_80114BB0[paletteIndex] = HUD_RADAR_PALETTE_EDGE;
+        }
+    }
+    D_80114BD0.x = HUD_RADAR_RANGE_PALETTE_X_WORDS;
+    D_80114BD0.y = HUD_RADAR_RANGE_PALETTE_Y_ROWS;
+    D_80114BD0.w = ARRAY_SIZE(D_80114BB0);
+    D_80114BD0.h = 1;
+    LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
+}
+
+void hudDrawRadar(HudState* hud)
+{
+    _WorldTargetPlayerFrameScratch* playerFrame;
+    WorldTargetNode*                target;
+    s32                             hasArmorMotionDetector;
+    s32                             radarX;
+    s32                             centerX;
+    s32                             centerY;
+    s32                             radarY;
+    s16                             scaledX;
+    s32                             scaledZ;
+    s32                             scaledRange;
+    DR_TPAGE*                       texturePage;
+    SPRT*                           detectorSprite;
+    SPRT*                           rangeSprite;
+    POLY_GT4*                       radarQuad;
+
+    radarX  = 0x61;
+    radarY  = -0x6C;
+    radarY -= gDisplayState.vramYOffset;
+    centerX = radarX + 0x23;
+    centerY = radarY + 0x23;
+    hudDrawRadarMarker(centerX, centerY, HUD_RADAR_MARKER_PLAYER);
+    target                 = gWorldTargetListHead;
+    playerFrame            = SCRATCH_STACK_RESERVE_BLOCK(_WorldTargetPlayerFrameScratch);
+    hasArmorMotionDetector = equipmentHasEffect(EQUIPMENT_EFFECT_ARMOR_MOTION_DETECTOR);
+    // Map tracked enemy offsets into the player-oriented radar circle.
+    for (; target != NULL; target = target->next) {
+        if ((target->state.word & WORLD_TARGET_SCAN_MASK) != WORLD_TARGET_NOT_LOCKABLE) {
+            playerFrame->position.vx = GP_NODE_ENEMY(target)->playerRelPos.vx;
+            playerFrame->position.vz = GP_NODE_ENEMY(target)->playerRelPos.vz;
+            playerFrame->position.vy = 0;
+            if (hasArmorMotionDetector == 0) {
+                gte_lddp(HUD_RADAR_NORMAL_ZOOM_Q12);
+                gte_ldsv(&playerFrame->position);
                 gte_gpf12();
-                gte_stsv(&block->position);
+                gte_stsv(&playerFrame->position);
             } else {
-                gte_lddp(0xAAA);
-                gte_ldsv(&block->position);
+                gte_lddp(HUD_RADAR_MOTION_DETECTOR_ZOOM_Q12);
+                gte_ldsv(&playerFrame->position);
                 gte_gpf12();
-                gte_stsv(&block->position);
+                gte_stsv(&playerFrame->position);
             }
-            if (node->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
+            if (target->state.parts.flags & WORLD_TARGET_NOT_LOCKABLE) {
                 continue;
             }
-            vx = block->position.vx;
-            if (vx < -0x1300 || vx > 0x1300) {
+            scaledX = playerFrame->position.vx;
+            if (scaledX < -HUD_RADAR_RANGE_FIXED || scaledX > HUD_RADAR_RANGE_FIXED) {
                 continue;
             }
-            vz = block->position.vz;
-            if (vz > 0x1300) {
+            scaledZ = playerFrame->position.vz;
+            if (scaledZ > HUD_RADAR_RANGE_FIXED) {
                 continue;
             }
-            if (vz < -0x1300) {
+            if (scaledZ < -HUD_RADAR_RANGE_FIXED) {
                 continue;
             }
-            if (vx * vx + vz * vz > 0x168FFFF) {
+            if (scaledX * scaledX + scaledZ * scaledZ > HUD_RADAR_RANGE_SQUARED_MAX) {
                 continue;
             }
-            block->position.vx = (s16)(vx + 0x80) >> 8;
-            vz                 = (s16)(block->position.vz + 0x80) >> 8;
-            block->position.vz = vz;
-            if (node->state.parts.targeted != 0) {
-                hudDrawRadarMarker(cx + block->position.vx, cy - vz, HUD_RADAR_MARKER_TARGETED);
+            playerFrame->position.vx = (s16)(scaledX + HUD_RADAR_PIXEL_ROUNDING) >> HUD_RADAR_POSITION_FRACTION_BITS;
+            scaledZ                  = (s16)(playerFrame->position.vz + HUD_RADAR_PIXEL_ROUNDING) >> HUD_RADAR_POSITION_FRACTION_BITS;
+            playerFrame->position.vz = scaledZ;
+            if (target->state.parts.targeted != 0) {
+                hudDrawRadarMarker(centerX + playerFrame->position.vx, centerY - scaledZ, HUD_RADAR_MARKER_TARGETED);
             } else {
-                hudDrawRadarMarker(cx + block->position.vx, cy - vz, HUD_RADAR_MARKER_ENEMY);
+                hudDrawRadarMarker(centerX + playerFrame->position.vx, centerY - scaledZ, HUD_RADAR_MARKER_ENEMY);
             }
         }
     }
-    range = hud->radarRange;
-    if (mode == 0) {
-        range *= 2;
+    scaledRange = hud->radarRange;
+    if (hasArmorMotionDetector == 0) {
+        scaledRange *= 2;
     }
-    tp             = gGpuPrimCursor;
-    gGpuPrimCursor = tp + 1;
-    setlen(tp, 1);
-    tp->code[0] = 0xE100023E;
-    addPrim(gGpuCurrentOt - 2, tp);
-    tp             = gGpuPrimCursor;
-    gGpuPrimCursor = tp + 1;
-    setlen(tp, 1);
-    tp->code[0] = 0xE100023E;
-    addPrim(gGpuCurrentOt - 3, tp);
-    if (mode == 1) {
-        sp             = gGpuPrimCursor;
-        gGpuPrimCursor = sp + 1;
-        sp->x0         = x + 0xD;
-        sp->y0         = y + 0xC;
-        sp->h          = 0x28;
-        sp->w          = 0x28;
-        sp->u0         = 0x60;
-        sp->v0         = 0xC0;
-        sp->clut       = 0x3C0C;
-        setlen(sp, 4);
-        setcode(sp, 0x65);
-        addPrim(gGpuCurrentOt - 2, sp);
+    texturePage    = gGpuPrimCursor;
+    gGpuPrimCursor = texturePage + 1;
+    setlen(texturePage, HUD_RADAR_TPAGE_PAYLOAD_WORDS);
+    texturePage->code[0] = HUD_RADAR_TPAGE_COMMAND;
+    addPrim(gGpuCurrentOt + HUD_RADAR_MAIN_TAG, texturePage);
+    texturePage    = gGpuPrimCursor;
+    gGpuPrimCursor = texturePage + 1;
+    setlen(texturePage, HUD_RADAR_TPAGE_PAYLOAD_WORDS);
+    texturePage->code[0] = HUD_RADAR_TPAGE_COMMAND;
+    addPrim(gGpuCurrentOt + HUD_RADAR_RANGE_TAG, texturePage);
+    if (hasArmorMotionDetector == 1) {
+        detectorSprite       = gGpuPrimCursor;
+        gGpuPrimCursor       = detectorSprite + 1;
+        detectorSprite->x0   = radarX + 0xD;
+        detectorSprite->y0   = radarY + 0xC;
+        detectorSprite->h    = 0x28;
+        detectorSprite->w    = 0x28;
+        detectorSprite->u0   = 0x60;
+        detectorSprite->v0   = 0xC0;
+        detectorSprite->clut = HUD_RADAR_TEXTURE_CLUT;
+        setlen(detectorSprite, HUD_RADAR_SPRITE_PAYLOAD_WORDS);
+        setcode(detectorSprite, HUD_RADAR_DETECTOR_SPRITE_CODE);
+        addPrim(gGpuCurrentOt + HUD_RADAR_MAIN_TAG, detectorSprite);
     }
-    poly                              = gGpuPrimCursor;
-    gGpuPrimCursor                    = poly + 1;
-    GPU_PRIMITIVE_COLOR_WORD(poly, 2) = GPU_PACK_COLOR_WORD(0xc0, 0xc0, 0xc0, 0);
-    GPU_PRIMITIVE_COLOR_WORD(poly, 3) = GPU_PACK_COLOR_WORD(0x80, 0x80, 0x80, 0);
-    GPU_PRIMITIVE_COLOR_WORD(poly, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0x40, 0);
-    GPU_PRIMITIVE_COLOR_WORD(poly, 1) = GPU_PACK_COLOR_WORD(0x30, 0x30, 0x30, 0);
-    poly->x1 = poly->x3 = x + 0x40;
-    poly->y2 = poly->y3 = y + 0x40;
-    poly->tpage         = 0x1E;
-    poly->clut          = 0x3C0C;
-    setUV4(poly, 0x60, 0x80, 0xA0, 0x80, 0x60, 0xC0, 0xA0, 0xC0);
-    setPolyGT4(poly);
-    poly->x0 = poly->x2 = x;
-    poly->y0 = poly->y1 = y;
-    addPrim(gGpuCurrentOt - 2, poly);
+    radarQuad                              = gGpuPrimCursor;
+    gGpuPrimCursor                         = radarQuad + 1;
+    GPU_PRIMITIVE_COLOR_WORD(radarQuad, 2) = GPU_PACK_COLOR_WORD(0xc0, 0xc0, 0xc0, 0);
+    GPU_PRIMITIVE_COLOR_WORD(radarQuad, 3) = GPU_PACK_COLOR_WORD(0x80, 0x80, 0x80, 0);
+    GPU_PRIMITIVE_COLOR_WORD(radarQuad, 0) = GPU_PACK_COLOR_WORD(0x40, 0x40, 0x40, 0);
+    GPU_PRIMITIVE_COLOR_WORD(radarQuad, 1) = GPU_PACK_COLOR_WORD(0x30, 0x30, 0x30, 0);
+    radarQuad->x1 = radarQuad->x3 = radarX + 0x40;
+    radarQuad->y2 = radarQuad->y3 = radarY + 0x40;
+    radarQuad->tpage              = HUD_RADAR_TEXTURE_PAGE;
+    radarQuad->clut               = HUD_RADAR_TEXTURE_CLUT;
+    setUV4(radarQuad, 0x60, 0x80, 0xA0, 0x80, 0x60, 0xC0, 0xA0, 0xC0);
+    setPolyGT4(radarQuad);
+    radarQuad->x0 = radarQuad->x2 = radarX;
+    radarQuad->y0 = radarQuad->y1 = radarY;
+    addPrim(gGpuCurrentOt + HUD_RADAR_MAIN_TAG, radarQuad);
+    // Draw the requested ability footprint and upload its radial palette.
     if (hud->radarRangeIcon != HUD_RADAR_RANGE_NONE) {
-        sp2            = gGpuPrimCursor;
-        gGpuPrimCursor = sp2 + 1;
-        sp2->x0        = x + 0xD;
-        sp2->y0        = y + 0xC;
-        sp2->h         = 0x28;
-        sp2->w         = 0x28;
+        rangeSprite     = gGpuPrimCursor;
+        gGpuPrimCursor  = rangeSprite + 1;
+        rangeSprite->x0 = radarX + 0xD;
+        rangeSprite->y0 = radarY + 0xC;
+        rangeSprite->h  = 0x28;
+        rangeSprite->w  = 0x28;
         if (hud->radarRangeIcon != HUD_RADAR_RANGE_PROJECTILE) {
             if (hud->radarRangeIcon == HUD_RADAR_RANGE_AROUND) {
-                sp2->u0 = 0x88;
+                rangeSprite->u0 = 0x88;
             } else {
-                sp2->u0 = 0xD8;
+                rangeSprite->u0 = 0xD8;
             }
         } else {
-            sp2->u0 = 0xB0;
+            rangeSprite->u0 = 0xB0;
         }
-        sp2->v0   = 0xC0;
-        sp2->clut = 0x3C82;
-        setlen(sp2, 4);
-        setcode(sp2, 0x67);
-        addPrim(gGpuCurrentOt - 3, sp2);
-        uiQueueTexturePage(-3, 1);
-        n = range;
-        if (n > 0x1300) {
-            n = 0x1300;
-        }
-        n >>= 8;
-        n  -= 4;
-        if (n <= 0) {
-            n = 1;
-        }
-        for (i = 0; i < 0x10; i++) {
-            if (i < n) {
-                D_80114BB0[i] = 0x9E06;
-            } else {
-                D_80114BB0[i] = 0;
-            }
-            if (i == n && i != 0xF) {
-                D_80114BB0[i] = 0x8D03;
-            }
-        }
-        D_80114BD0.x = 0x20;
-        D_80114BD0.y = 0xF2;
-        D_80114BD0.w = 0x10;
-        D_80114BD0.h = 1;
-        LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
+        rangeSprite->v0   = 0xC0;
+        rangeSprite->clut = HUD_RADAR_RANGE_CLUT;
+        setlen(rangeSprite, HUD_RADAR_SPRITE_PAYLOAD_WORDS);
+        setcode(rangeSprite, HUD_RADAR_RANGE_SPRITE_CODE);
+        addPrim(gGpuCurrentOt + HUD_RADAR_RANGE_TAG, rangeSprite);
+        uiQueueTexturePage(HUD_RADAR_RANGE_TAG, GPU_BLEND_ADD);
+        _hudUploadRadarRangePalette(scaledRange);
         hud->radarRangeIcon = HUD_RADAR_RANGE_NONE;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_WorldTargetPlayerFrameScratch);
@@ -1014,10 +1053,10 @@ void func_800A77B4(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
+void attachmentPreviewProjectile(s32 release, s32 radius, s32 extent)
 {
-    if (arg0 == 0) {
-        attachmentDrawAreaWireframe(0, arg1, arg2, ATTACHMENT_AREA_WIREFRAME_CYLINDER | ATTACHMENT_AREA_WIREFRAME_PROJECTILE);
+    if (release == 0) {
+        attachmentDrawAreaWireframe(0, radius, extent, ATTACHMENT_AREA_WIREFRAME_CYLINDER | ATTACHMENT_AREA_WIREFRAME_PROJECTILE);
     }
 }
 

@@ -1053,54 +1053,57 @@ void worldTargetClearActorTargetMarks(void)
     } while (actorSlot < PLAYER_ACTOR_TASK_COUNT);
 }
 
-s32 Gp_GrantLocationItems(InventoryItemRange* arg0)
+s32 inventoryGrantBattleRewards(const InventoryItemRange* rewardRange)
 {
-    GameLocationKey*       loc;
-    InventoryBattleReward* rec;
-    s32                    key;
-    s32                    ret;
-    s32                    i;
-    u16                    item;
-    s8                     mode;
-    u8                     stage;
-    u8                     area;
-    u8                     sub;
+    enum { INVENTORY_BATTLE_REWARD_MODE_NORMAL_REPLAY = 0,
+           INVENTORY_BATTLE_REWARD_MODE_SCAVENGER     = 2 };
+    const GameLocationKey*       location;
+    const InventoryBattleReward* reward;
+    s32                          areaLayoutKey;
+    s32                          grantResult;
+    s32                          itemSlot;
+    u16                          itemId;
+    s8                           gameMode;
+    u8                           stage;
+    u8                           area;
+    u8                           variant;
 
-    ret   = 0;
-    loc   = &gGameSession->location.loc;
-    stage = loc->stage;
-    area  = loc->area;
-    sub   = loc->variant;
-    key   = GAME_LOCATION_KEY(stage, area, sub, 0);
-    mode  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
-    if ((mode == 0) || (mode == 2)) {
-        rec = D_8010F9F4[stage];
+    grantResult   = INVENTORY_BATTLE_REWARD_NONE_GRANTED;
+    location      = &gGameSession->location.loc;
+    stage         = location->stage;
+    area          = location->area;
+    variant       = location->variant;
+    areaLayoutKey = GAME_LOCATION_KEY(stage, area, variant, 0);
+    gameMode      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode;
+    if ((gameMode == INVENTORY_BATTLE_REWARD_MODE_NORMAL_REPLAY) || (gameMode == INVENTORY_BATTLE_REWARD_MODE_SCAVENGER)) {
+        reward = D_8010F9F4[stage];
     } else {
-        rec = D_8010FA0C[stage];
+        reward = D_8010FA0C[stage];
     }
-    if (rec->areaLayoutKey != INVENTORY_BATTLE_REWARD_LIST_END) {
+    // Grant only the first row for this area layout.
+    if (reward->areaLayoutKey != INVENTORY_BATTLE_REWARD_LIST_END) {
         do {
-            if (rec->areaLayoutKey == key) {
-                for (i = 0; i < ARRAY_SIZE(rec->items); i++) {
-                    item = rec->items[i];
-                    if (item != 0) {
-                        if ((i != INVENTORY_BATTLE_REWARD_BONUS_SLOT) || (equipmentHasEffect(EQUIPMENT_EFFECT_MEDICINE_WHEEL) != 0)) {
-                            if (inventoryIsItemLimitReached(item) == 0) {
-                                ret = 1;
-                                if (i == INVENTORY_BATTLE_REWARD_BONUS_SLOT) {
-                                    ret = 2;
+            if (reward->areaLayoutKey == areaLayoutKey) {
+                for (itemSlot = 0; itemSlot < ARRAY_SIZE(reward->items); itemSlot++) {
+                    itemId = reward->items[itemSlot];
+                    if (itemId != INVENTORY_ITEM_NONE) {
+                        if ((itemSlot != INVENTORY_BATTLE_REWARD_BONUS_SLOT) || (equipmentHasEffect(EQUIPMENT_EFFECT_MEDICINE_WHEEL) != 0)) {
+                            if (inventoryIsItemLimitReached(itemId) == 0) {
+                                grantResult = INVENTORY_BATTLE_REWARD_ITEM_GRANTED;
+                                if (itemSlot == INVENTORY_BATTLE_REWARD_BONUS_SLOT) {
+                                    grantResult = INVENTORY_BATTLE_REWARD_BONUS_GRANTED;
                                 }
-                                inventoryGiveItem(arg0, item, INVENTORY_GIVE_ONE_PACK);
+                                inventoryGiveItem(rewardRange, itemId, INVENTORY_GIVE_ONE_PACK);
                             }
                         }
                     }
                 }
-                return ret;
+                return grantResult;
             }
-            rec++;
-        } while (rec->areaLayoutKey != INVENTORY_BATTLE_REWARD_LIST_END);
+            reward++;
+        } while (reward->areaLayoutKey != INVENTORY_BATTLE_REWARD_LIST_END);
     }
-    return ret;
+    return grantResult;
 }
 
 s32 actorRenderUploadTexture(Task* actorTask, GpuImageUpload* uploadList, const RECT* textureRect)

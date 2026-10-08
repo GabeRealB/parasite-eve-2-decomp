@@ -119,7 +119,7 @@ segments:
       - [0xDE34, c, attachment_stats] # Gp_ApplyAttachStats
       - [0x10DF0, c, attach_combo] # Gp_UpdateAttachCombo
       - [0x11104, c, linked_actors] # attachmentTargetAll
-      - [0x12C80, c, hud_sprites] # Gp_DrawHudSprites
+      - [0x12C80, c, hud_sprites] # hudDrawRadar
       - [0x15810, c, view_load] # Gp_ViewBeginLoad
       - [0x159CC, c, view_image] # Gp_ViewLoadImage
       - [0x15B10, c, cd_loading] # _loadingEnqueueWeaponAmmoResources
@@ -131,11 +131,11 @@ segments:
       - [0x1A9F0, c, direction_facing] # directionAwaitStairClimb
       - [0x1AFAC, c, area_transitions] # area flags and transition tasks
       - [0x1BD90, c, scene_runtime] # streamReadSceneImageSector
-      - [0x22BB8, c, item_publish] # Gp_LookupBit2Item
+      - [0x22BB8, c, item_publish] # itemPickupPublishPlacedObject
       - [0x22DB0, c, item_notice] # func_800B65B0
       - [0x23150, c, item_placement] # Gp_SpawnPlaceById
       - [0x234F0, c, equipment] # related item quantities and equipment changes
-      - [0x24518, c, starter_inventory] # Gp_InitStarterInv
+      - [0x24518, c, starter_inventory] # inventoryInitializeStarterLoadout
       - [0x24814, c, item_inventory] # item-description readers and inventory operations
       - [0x24D88, c, item_sort] # inventorySortItems
       - [0x25D4C, c, item_boost] # itemMenuApplyPouchPanel
