@@ -379,26 +379,34 @@ enum {
     ACTOR_400600_DEATH_CEILING_FALL = 9
 };
 
+/// Body/water-bank cue 4 and the leap clip shared by these entrance and movement phases.
+enum {
+    ACTOR_400600_SOUND_BODY_CUE4   = STALKER_ZEBRA_IVORY_STEP_SOUNDS | 4,
+    ACTOR_400600_SOUND_WATER_CUE4  = 0x404A0004,
+    ACTOR_400600_CLIP_LEAP         = 21,
+    ACTOR_400600_LEAP_BLEND_FRAMES = 4
+};
+
 static void func_actor_400600_8013203C(Task* arg0);
 static void _actor400600DrawWallLimbShadow(Task* task, s16 firstPartIndex, s16 secondPartIndex, s16 halfWidth, s16 wallZ, u8 shade);
 static void func_actor_400600_80132704(Task* arg0, s16 arg1, u8 arg2);
 static void func_actor_400600_801328A8(Task* arg0);
-static void func_actor_400600_801329EC(Task* arg0);
+static void _actor400600FinishJunkYardLanding(Task* task);
 static void func_actor_400600_80132B3C(Task* arg0);
-static void func_actor_400600_80132C70(Task* arg0);
-static void func_actor_400600_80132E10(Task* arg0);
+static void _actor400600WaitWaterEntranceCommand(Task* task);
+static void _actor400600TickFirstWaterWallWalk(Task* task);
 static void func_actor_400600_80132F3C(Task* arg0);
 static void func_actor_400600_80133118(Task* arg0);
 static void func_actor_400600_801332F4(Task* arg0);
 static void func_actor_400600_80133434(Task* arg0);
 static void func_actor_400600_801337A8(Task* arg0);
-static void func_actor_400600_80133B88(Task* arg0);
+static void _actor400600WaitHiddenWakeup(Task* task);
 static void _actor400600TickLeftStrike(Task* task);
 static void _actor400600TickRightStrike(Task* task);
 static void func_actor_400600_80133FC0(Task* arg0);
 static void func_actor_400600_80134218(Task* arg0);
 static void func_actor_400600_80134570(Task* arg0);
-static void func_actor_400600_8013479C(Task* arg0);
+static void _actor400600ResolveBackwardLeapProbe(Task* task);
 static void func_actor_400600_80134970(Task* arg0);
 static void _actor400600TickCeilingLeap(Task* task);
 static void _actor400600TickCeilingDrop(Task* task);
@@ -416,7 +424,7 @@ static void _actor400600StartWallProbe(Task* task, s16 probeMode);
 static void func_actor_400600_80137840(Task* arg0);
 static s32  func_actor_400600_80137AF0(Task* arg0);
 static s32  _actor400600TrySelectAttack(Task* task);
-static void func_actor_400600_80137EF0(Task* arg0);
+static void _actor400600UpdateGroupEntrance(Task* task);
 static void _actor400600DrawFloorShadows(Task* task, s16 height, u8 shade);
 static void _actor400600DrawFloorLimbShadow(const SVECTOR* firstPoint, const SVECTOR* secondPoint, s16 halfWidth, u8 shade);
 static void _actor400600SyncArmModelFlags(Task* task, s32 colorMode);
@@ -430,18 +438,18 @@ static void func_actor_400600_80138C34(Task* arg0);
 static void func_actor_400600_80138D78(Task* arg0);
 static void func_actor_400600_80138EA0(Task* arg0);
 static void func_actor_400600_80138FD4(Task* arg0);
-static void func_actor_400600_801390FC(Task* arg0);
+static void _actor400600EnterHiddenWait(Task* task);
 static void func_actor_400600_80139110(Task* arg0);
-static void func_actor_400600_80139218(Task* arg0);
-static void func_actor_400600_80139280(Task* arg0);
-static void func_actor_400600_801392E8(Task* arg0);
-static void func_actor_400600_8013935C(Task* arg0);
-static void func_actor_400600_801393D0(Task* arg0);
+static void _actor400600RunLightRecoil(Task* task);
+static void _actor400600RunHeavyRecoil(Task* task);
+static void _actor400600RunStatusHold(Task* task);
+static void _actor400600RunLeftStrike(Task* task);
+static void _actor400600RunRightStrike(Task* task);
 static void func_actor_400600_80139444(Task* arg0);
 static void func_actor_400600_801394E0(Task* arg0);
-static void func_actor_400600_80139560(Task* arg0);
-static void func_actor_400600_80139608(Task* arg0);
-static void func_actor_400600_80139670(Task* arg0);
+static void _actor400600TickOnBackBehavior(Task* task);
+static void _actor400600RunRighting(Task* task);
+static void _actor400600RunCeilingLeap(Task* task);
 static void func_actor_400600_801396E4(Task* arg0);
 static void func_actor_400600_80139764(Task* arg0);
 static void func_actor_400600_80139878(Task* arg0);
@@ -1788,18 +1796,21 @@ static void func_actor_400600_8013203C(Task* arg0)
     work->leftArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }
 
-/// Queues a projected wall shadow using the subtractive four-bit texture.
+/// Copies a projected wall limb shadow into one subtractive textured GPU quad.
 ///
-/// Requires four valid screen corners, an ordering depth and space for one
-/// POLY_FT4 in the current primitive buffer. Borrows the scratch block only
-/// while copying its projection into the packet.
+/// Borrows four packed screen X/Y words in quad-strip order and the projection's
+/// screen Z / 4. `shade` is grey modulation, 0..255. Requires word-aligned
+/// primitive-buffer space for one POLY_FT4 and a current ordering table covering
+/// tags 0..1023: scaled depth wraps through bits 2..11 of the byte offset.
+/// The caller rejects failed projections. Only the GPU packet outlives this call;
+/// the scratch block is neither retained nor released here.
 static inline void _actor400600QueueWallShadowQuad(const ActorLimbShadowScratch* scratch, u8 shade)
 {
     POLY_FT4* quad;
 
     quad           = gGpuPrimCursor;
     gGpuPrimCursor = quad + 1;
-    setlen(quad, ACTOR_400600_SHADOW_PACKET_WORDS);
+    setlen(quad, sizeof(*quad) / sizeof(u32) - 1);
     quad->code                     = ACTOR_400600_SHADOW_QUAD_CODE;
     GPU_PRIMITIVE_XY_WORD(quad, 0) = scratch->screenCorners[0];
     GPU_PRIMITIVE_XY_WORD(quad, 1) = scratch->screenCorners[1];
@@ -1928,43 +1939,62 @@ static void func_actor_400600_801328A8(Task* arg0)
     }
 }
 
-static void func_actor_400600_801329EC(Task* arg0)
+/// Plays a Junk Yard entrance cue with this enemy's placement voice and root pan/depth.
+///
+/// `cueId` leaves its instance byte clear; the placement index occupies bits
+/// 8..11. Pan/depth narrow to signed bytes. Requires a live Enemy/model, a
+/// composed root cache and initialized audio-query scratch stack. Retains no
+/// pointer; the sound bank must remain loaded for deferred playback.
+static inline void _actor400600PlayJunkYardEntranceCue(Task* task, u32 cueId)
 {
-    _Actor400600ZebraStalkerWork* work;
-    _Actor400600ZebraStalkerWork* work2;
-    _Actor400600ZebraStalkerWork* work3;
-    u32                           sound;
-    s32                           pan;
+    u32 soundId;
+    s32 soundPan;
 
-    work = (_Actor400600ZebraStalkerWork*)arg0->work;
+    soundId    = ((Enemy*)task->spawnArg2.pointer)->placeKey;
+    soundId  >>= ENEMY_PLACE_INDEX_SHIFT;
+    soundId  <<= 8;
+    soundId   |= cueId;
+    soundPan   = worldCoordGetOriginAudioPan(task->extra.tmd->coords) << 24;
+    soundPan >>= 24;
+    sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+}
+
+/// Enables body pair testing and keeps both arm spheres non-attacking.
+///
+/// Requires the live work block; leaves grid flags, contacts and links intact.
+static inline void _actor400600EnableBodyPairOnly(_Actor400600ZebraStalkerWork* work)
+{
+    work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->leftArmBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+}
+
+/// Waits out the Junk Yard landing clip, then enables body hits and starts walking.
+///
+/// Final entry (5) of scripted task state 6. Requires the initialized body rig,
+/// model root and Enemy spawn record. Sounds the landing once at counter zero,
+/// increments the signed-halfword counter, and tests slot 1's low-halfword
+/// completion result. Completion plays body-bank cue 4, enables body pair
+/// testing and disables both arm attack spheres before entering running state 2.
+static void _actor400600FinishJunkYardLanding(Task* task)
+{
+    enum { ACTOR_400600_SOUND_JUNK_YARD_LANDING = 0x531A000A,
+           ACTOR_400600_TASK_RUNNING            = 1,
+           ACTOR_400600_STATE_INITIAL           = 0 };
+    _Actor400600ZebraStalkerWork* work;
+
+    work = task->work;
     if (work->stateFrames == 0) {
-        sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        sound >>= 0xC;
-        sound <<= 8;
-        sound  |= 0x531A000A;
-        pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan   >>= 24;
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        _actor400600PlayJunkYardEntranceCue(task, ACTOR_400600_SOUND_JUNK_YARD_LANDING);
     }
     work->stateFrames++;
-    if ((_stalkerZebraIvoryClipDone(arg0) << 0x10) != 0) {
-        sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        sound >>= 0xC;
-        sound <<= 8;
-        sound  |= 0x40060004;
-        pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan   >>= 24;
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->leftArmBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work2                     = (_Actor400600ZebraStalkerWork*)arg0->work;
-        arg0->state               = 1;
-        work2->state              = 0;
-        work2->subState           = 0;
-        work3                     = (_Actor400600ZebraStalkerWork*)arg0->work;
-        work3->state              = 2;
-        work3->subState           = 0;
+    if ((s16)_stalkerZebraIvoryClipDone(task) != 0) {
+        _actor400600PlayJunkYardEntranceCue(task, ACTOR_400600_SOUND_BODY_CUE4);
+        _actor400600EnableBodyPairOnly(work);
+        // Enter the running task, then select walking from its behavior table.
+        task->state = ACTOR_400600_TASK_RUNNING;
+        _stalkerZebraIvorySelectState(task, ACTOR_400600_STATE_INITIAL);
+        _stalkerZebraIvorySelectState(task, ACTOR_400600_STATE_WALK);
     }
 }
 
@@ -1993,99 +2023,117 @@ static void func_actor_400600_80132B3C(Task* arg0)
     }
 }
 
-static void func_actor_400600_80132C70(Task* arg0)
+/// Places the water entrance on either wall-walk path or directly on the floor.
+///
+/// Entry 1 of scripted task state 4. Room commands 0/1 latch requests 1/2:
+/// restart the walk clip at normal rate, quarter-roll the model against the
+/// wall and select entries 2/5, each with its own fixed root/shadow-wall position.
+/// Commands 2/3 latch requests 3/4: place the root at either floor start, enable
+/// body pair testing, disable arm pair testing and enter running behavior 0.
+/// Other requests wait. Requires a live model and work; positions use the root's
+/// parent frame, angles use 4096 units per turn, and the request remains latched.
+static void _actor400600WaitWaterEntranceCommand(Task* task)
 {
+    enum {
+        ACTOR_400600_WATER_REQUEST_FIRST_WALL_WALK    = 1,
+        ACTOR_400600_WATER_REQUEST_SECOND_WALL_WALK   = 2,
+        ACTOR_400600_WATER_REQUEST_FIRST_FLOOR_START  = 3,
+        ACTOR_400600_WATER_REQUEST_SECOND_FLOOR_START = 4,
+        ACTOR_400600_WATER_SECOND_WALL_WALK           = 5,
+        ACTOR_400600_TASK_RUNNING                     = 1,
+        ACTOR_400600_STATE_INITIAL                    = 0,
+        ACTOR_400600_WALL_ROLL                        = ACTOR_TRANSFORM_ANGLE_TURN / 4
+    };
     _Actor400600ZebraStalkerWork* work;
-    _Actor400600ZebraStalkerWork* work2;
-    _Actor400600ZebraStalkerWork* work3;
-    _Actor400600ZebraStalkerWork* work4;
-    GfxCoord*                     coords;
-    u8                            mode;
-    s16                           yaw;
+    GfxCoord*                     rootCoord;
+    u8                            entranceRequest;
 
-    work   = (_Actor400600ZebraStalkerWork*)arg0->work;
-    mode   = work->roomCommand;
-    coords = arg0->extra.tmd->coords;
-    if (mode == 1) {
-        coords->coord.t[0] = 0x36B0;
-        coords->coord.t[1] = -0x320;
-        coords->coord.t[2] = -0x7D0;
-        work->pitch        = 0;
-        work->yaw          = 0x400;
-        work->roll         = 0x400;
-        work->stateFrames  = 0;
-        _stalkerZebraIvoryRequestClipRestart(arg0, 2, ANIMATION_RATE_ONE);
+    work            = task->work;
+    entranceRequest = work->roomCommand;
+    rootCoord       = task->extra.tmd->coords;
+    // Requests latch room commands 0..3 as values 1..4; zero keeps waiting.
+    if (entranceRequest == ACTOR_400600_WATER_REQUEST_FIRST_WALL_WALK) {
+        rootCoord->coord.t[0] = 0x36B0;
+        rootCoord->coord.t[1] = -0x320;
+        rootCoord->coord.t[2] = -0x7D0;
+        work->pitch           = 0;
+        work->yaw             = ACTOR_TRANSFORM_ANGLE_TURN / 4;
+        work->roll            = ACTOR_400600_WALL_ROLL;
+        work->stateFrames     = 0;
+        _stalkerZebraIvoryRequestClipRestart(task, ACTOR_400600_CLIP_WALK, ANIMATION_RATE_ONE);
         work->shadowWallZ = -0x7D0;
         work->state++;
-    } else if (mode == 2) {
-        coords->coord.t[0] = 0x4A38;
-        coords->coord.t[1] = -0x320;
-        coords->coord.t[2] = -0xFA0;
-        yaw                = -0x400;
-        work->yaw          = yaw;
-        work->pitch        = 0;
-        work->roll         = 0x400;
-        work->stateFrames  = 0;
-        _stalkerZebraIvoryRequestClipRestart(arg0, 2, ANIMATION_RATE_ONE);
+    } else if (entranceRequest == ACTOR_400600_WATER_REQUEST_SECOND_WALL_WALK) {
+        rootCoord->coord.t[0] = 0x4A38;
+        rootCoord->coord.t[1] = -0x320;
+        rootCoord->coord.t[2] = -0xFA0;
+        work->yaw             = -ACTOR_400600_WALL_ROLL;
+        work->pitch           = 0;
+        work->roll            = ACTOR_400600_WALL_ROLL;
+        work->stateFrames     = 0;
+        _stalkerZebraIvoryRequestClipRestart(task, ACTOR_400600_CLIP_WALK, ANIMATION_RATE_ONE);
         work->shadowWallZ = -0xFA0;
-        work2             = (_Actor400600ZebraStalkerWork*)arg0->work;
-        work2->state      = 5;
-        work2->subState   = 0;
-    } else if (mode == 3) {
-        work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->leftArmBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        coords->coord.t[0]        = 0x2AF8;
-        coords->coord.t[2]        = -0x3E8;
-        coords->coord.t[1]        = 0;
-        work->pitch               = 0;
-        work->yaw                 = 0xC00;
-        work3                     = (_Actor400600ZebraStalkerWork*)arg0->work;
-        arg0->state               = 1;
-        work3->state              = 0;
-        work3->subState           = 0;
-    } else if (mode == 4) {
-        work->body.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->leftArmBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        coords->coord.t[0]        = 0x3A98;
-        coords->coord.t[2]        = -0xBB8;
-        coords->coord.t[1]        = 0;
-        work->pitch               = 0;
-        work->yaw                 = 0x400;
-        work4                     = (_Actor400600ZebraStalkerWork*)arg0->work;
-        arg0->state               = 1;
-        work4->state              = 0;
-        work4->subState           = 0;
+        _stalkerZebraIvorySelectState(task, ACTOR_400600_WATER_SECOND_WALL_WALK);
+    } else if (entranceRequest == ACTOR_400600_WATER_REQUEST_FIRST_FLOOR_START) {
+        _actor400600EnableBodyPairOnly(work);
+        rootCoord->coord.t[0] = 0x2AF8;
+        rootCoord->coord.t[2] = -0x3E8;
+        rootCoord->coord.t[1] = 0;
+        work->pitch           = 0;
+        work->yaw             = 3 * ACTOR_TRANSFORM_ANGLE_TURN / 4;
+        task->state           = ACTOR_400600_TASK_RUNNING;
+        _stalkerZebraIvorySelectState(task, ACTOR_400600_STATE_INITIAL);
+    } else if (entranceRequest == ACTOR_400600_WATER_REQUEST_SECOND_FLOOR_START) {
+        _actor400600EnableBodyPairOnly(work);
+        rootCoord->coord.t[0] = 0x3A98;
+        rootCoord->coord.t[2] = -0xBB8;
+        rootCoord->coord.t[1] = 0;
+        work->pitch           = 0;
+        work->yaw             = ACTOR_TRANSFORM_ANGLE_TURN / 4;
+        task->state           = ACTOR_400600_TASK_RUNNING;
+        _stalkerZebraIvorySelectState(task, ACTOR_400600_STATE_INITIAL);
     }
 }
 
-static void func_actor_400600_80132E10(Task* arg0)
+/// Walks the first water-entry wall path for 90 updates, then starts its leap.
+///
+/// Entry 2 of scripted task state 4, selected by room command 0. Requires a
+/// zeroed state counter, the walk clip and wall placement set by entry 1, plus
+/// current part transforms and the initialized anchor/sound scratch stack.
+/// Reveals at update 38 and eases shadow shade toward 255 from update 39.
+/// At 90, sounds water-bank cue 4, resets vertical motion with acceleration -10
+/// root units per update squared, blends to leap clip 21 and selects entry 3.
+static void _actor400600TickFirstWaterWallWalk(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
-    u32                           sound;
-    s32                           pan;
+    enum { ACTOR_400600_WATER_WALL_REVEAL_FRAME       = 38,
+           ACTOR_400600_WATER_WALL_SHADOW_FIRST_FRAME = 39,
+           ACTOR_400600_FIRST_WATER_WALL_WALK_FRAMES  = 90,
+           ACTOR_400600_WATER_LEAP_INITIAL_ACCEL      = -10 };
+    _Actor400600ZebraStalkerWork* work = task->work;
+    u32                           soundId;
+    s32                           soundPan;
 
     work->stateFrames++;
-    _actor400600TickWallWalk(arg0);
-    if (work->stateFrames == 0x26) {
-        _actor400600StartCloakFade(arg0, ACTOR_400600_REVEAL);
+    _actor400600TickWallWalk(task);
+    if (work->stateFrames == ACTOR_400600_WATER_WALL_REVEAL_FRAME) {
+        _actor400600StartCloakFade(task, ACTOR_400600_REVEAL);
     }
-    if (work->stateFrames >= 0x27) {
-        work->shadowShade = (u16)work->shadowShade + ((0xFF - work->shadowShade) >> 4);
+    if (work->stateFrames >= ACTOR_400600_WATER_WALL_SHADOW_FIRST_FRAME) {
+        work->shadowShade = (u16)work->shadowShade + ((ACTOR_400600_SHADOW_SHADE_FULL - work->shadowShade) >> 4);
     }
-    if (work->stateFrames == 0x5A) {
-        sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        sound >>= 0xC;
-        sound <<= 8;
-        sound  |= 0x404A0004;
-        pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan   >>= 24;
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    // Leave the wall walk for the following water-entry leap.
+    if (work->stateFrames == ACTOR_400600_FIRST_WATER_WALL_WALK_FRAMES) {
+        soundId    = ((Enemy*)task->spawnArg2.pointer)->placeKey;
+        soundId  >>= ENEMY_PLACE_INDEX_SHIFT;
+        soundId  <<= 8;
+        soundId   |= ACTOR_400600_SOUND_WATER_CUE4;
+        soundPan   = worldCoordGetOriginAudioPan(task->extra.tmd->coords) << 24;
+        soundPan >>= 24;
+        sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         work->stateFrames = 0;
-        work->moveAccel   = -0xA;
+        work->moveAccel   = ACTOR_400600_WATER_LEAP_INITIAL_ACCEL;
         work->moveSpeed   = 0;
-        _actor400600RequestClipBlend(arg0, 0x15, ANIMATION_RATE_ONE, 4);
+        _actor400600RequestClipBlend(task, ACTOR_400600_CLIP_LEAP, ANIMATION_RATE_ONE, ACTOR_400600_LEAP_BLEND_FRAMES);
         work->state++;
     }
 }
@@ -2229,7 +2277,7 @@ static const TaskFuncTable6 D_actor_400600_80131E54 = { {
     func_actor_400600_801328A8,
     func_actor_400600_8013AD3C,
     func_actor_400600_8013ADA4,
-    func_actor_400600_801329EC,
+    _actor400600FinishJunkYardLanding,
 } };
 
 static const TaskFuncTable4 D_actor_400600_80131E6C = { {
@@ -2241,8 +2289,8 @@ static const TaskFuncTable4 D_actor_400600_80131E6C = { {
 
 static const TaskFuncTable8 D_actor_400600_80131E7C = { {
     func_actor_400600_8013B0FC,
-    func_actor_400600_80132C70,
-    func_actor_400600_80132E10,
+    _actor400600WaitWaterEntranceCommand,
+    _actor400600TickFirstWaterWallWalk,
     func_actor_400600_80132F3C,
     func_actor_400600_8013B150,
     func_actor_400600_8013B1DC,
@@ -2266,7 +2314,7 @@ static const TaskFuncTable9 D_actor_400600_80131EAC = { {
     func_actor_400600_80138D78,
     func_actor_400600_80138EA0,
     func_actor_400600_80138FD4,
-    func_actor_400600_80137EF0,
+    _actor400600UpdateGroupEntrance,
 } };
 
 static void func_actor_400600_80133434(Task* arg0)
@@ -2379,19 +2427,19 @@ static void func_actor_400600_80133434(Task* arg0)
 }
 
 static const TaskFuncTable18 D_actor_400600_80131EEC = { {
-    func_actor_400600_801390FC,
-    func_actor_400600_80133B88,
+    _actor400600EnterHiddenWait,
+    _actor400600WaitHiddenWakeup,
     func_actor_400600_80139110,
-    func_actor_400600_80139218,
-    func_actor_400600_80139280,
-    func_actor_400600_801392E8,
-    func_actor_400600_8013935C,
-    func_actor_400600_801393D0,
+    _actor400600RunLightRecoil,
+    _actor400600RunHeavyRecoil,
+    _actor400600RunStatusHold,
+    _actor400600RunLeftStrike,
+    _actor400600RunRightStrike,
     func_actor_400600_80139444,
     func_actor_400600_801394E0,
-    func_actor_400600_80139560,
-    func_actor_400600_80139608,
-    func_actor_400600_80139670,
+    _actor400600TickOnBackBehavior,
+    _actor400600RunRighting,
+    _actor400600RunCeilingLeap,
     func_actor_400600_801396E4,
     func_actor_400600_80139764,
     stalkerZebraIvoryRunSubStates,
@@ -2441,30 +2489,38 @@ static void func_actor_400600_801337A8(Task* arg0)
     }
 }
 
-static void func_actor_400600_80133B88(Task* arg0)
+/// Reveals and starts walking when the target comes near or another Stalker dies.
+///
+/// Running behavior 1. A horizontal target distance below 3000 root-parent
+/// units or the scene's death alert sounds body-bank cue 4, begins revealing,
+/// engages battle and seeds 30..93 updates before walking can hide again.
+/// Otherwise an armed hit reaction can engage battle and replace this behavior.
+/// Requires live work, model coordinates and the Enemy spawn record. The target
+/// may be the current route waypoint rather than the player's root.
+static void _actor400600WaitHiddenWakeup(Task* task)
 {
+    enum { ACTOR_400600_WAKEUP_TARGET_DISTANCE = 3000,
+           ACTOR_400600_HIDE_COOLDOWN_BASE     = 30,
+           ACTOR_400600_HIDE_COOLDOWN_MASK     = 63 };
     _Actor400600ZebraStalkerWork* work;
-    _Actor400600ZebraStalkerWork* work2;
-    s32                           sound;
-    s32                           pan;
-    u32                           rnd;
+    s32                           soundId;
+    s32                           soundPan;
+    u32                           randomValue;
 
-    work = (_Actor400600ZebraStalkerWork*)arg0->work;
-    if (work->playerDistance < 0xBB8 || gSceneCombatState.zebraStalkerDeathAlert != 0) {
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40060004;
-        pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        _actor400600StartCloakFade(arg0, ACTOR_400600_REVEAL);
+    work = task->work;
+    if (work->playerDistance < ACTOR_400600_WAKEUP_TARGET_DISTANCE || gSceneCombatState.zebraStalkerDeathAlert != 0) {
+        soundId  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400600_SOUND_BODY_CUE4;
+        soundPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        _actor400600StartCloakFade(task, ACTOR_400600_REVEAL);
         sceneEngageBattle(1);
-        rnd                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        gRandomLcgState    = rnd;
-        work->hideCooldown = ((rnd >> 0x10) & 0x3F) + 0x1E;
-        work2              = (_Actor400600ZebraStalkerWork*)arg0->work;
-        work2->state       = 2;
-        work2->subState    = 0;
+        randomValue        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        gRandomLcgState    = randomValue;
+        work->hideCooldown = ((randomValue >> 0x10) & ACTOR_400600_HIDE_COOLDOWN_MASK) + ACTOR_400600_HIDE_COOLDOWN_BASE;
+        _stalkerZebraIvorySelectState(task, ACTOR_400600_STATE_WALK);
         return;
     }
-    if ((s16)_actor400600TakeArmedHitReaction(arg0) != 0) {
+    if ((s16)_actor400600TakeArmedHitReaction(task) != 0) {
         sceneEngageBattle(1);
     }
 }
@@ -2772,38 +2828,53 @@ static void func_actor_400600_80134570(Task* arg0)
     }
 }
 
-static void func_actor_400600_8013479C(Task* arg0)
+/// Consumes the rear wall probe and prepares a backward leap or resumes walking.
+///
+/// Sub-state 1 of running behavior 9; sub-state 0 enabled an X/Z capsule probe.
+/// Reads and clears the previous collision contacts, narrowing the distance to
+/// s16. A hit must be 1257..3000 units away; zero means no hit and uses 3000.
+/// Reserves 256 units before a hit, computes signed-halfword X/Z steps as one
+/// twentieth of that span using 4.12 sine/cosine, then disables the probe in
+/// every path. Actual travel ends when the motion phase reaches the floor.
+/// An accepted leap blends clip 21 at normal rate, resets its counter/speed,
+/// sets vertical acceleration -42 and advances to sub-state 2. Root cache and
+/// probe contacts must describe the same current collision frame.
+static void _actor400600ResolveBackwardLeapProbe(Task* task)
 {
+    enum { ACTOR_400600_BACKWARD_LEAP_FIRST_DISTANCE = 1257,
+           ACTOR_400600_BACKWARD_LEAP_DISTANCE_COUNT = 1744,
+           ACTOR_400600_BACKWARD_LEAP_WALL_MARGIN    = 256,
+           ACTOR_400600_BACKWARD_LEAP_STEP_DIVISOR   = 20,
+           ACTOR_400600_LEAP_TRIG_FRACTION_BITS      = 12,
+           ACTOR_400600_BACKWARD_LEAP_INITIAL_ACCEL  = -42 };
     _Actor400600ZebraStalkerWork* work;
-    _Actor400600ZebraStalkerWork* work2;
-    _Actor400600ZebraStalkerWork* work3;
-    s16                           v;
+    _Actor400600ZebraStalkerWork* animationWork;
+    s16                           wallDistance;
 
-    work = (_Actor400600ZebraStalkerWork*)arg0->work;
-    v    = _stalkerZebraIvoryWallDistance(arg0);
-    if (v != 0) {
-        if ((u16)(v - 0x4E9) >= 0x6D0U) {
-            _stalkerZebraIvoryDisableCapsuleGrid(arg0);
-            work3           = (_Actor400600ZebraStalkerWork*)arg0->work;
-            work3->state    = 2;
-            work3->subState = 0;
+    work         = task->work;
+    wallDistance = _stalkerZebraIvoryWallDistance(task);
+    // Consume the previous probe; a wall hit outside the range cancels the retreat.
+    if (wallDistance != 0) {
+        if ((u16)(wallDistance - ACTOR_400600_BACKWARD_LEAP_FIRST_DISTANCE) >= (u32)ACTOR_400600_BACKWARD_LEAP_DISTANCE_COUNT) {
+            _stalkerZebraIvoryDisableCapsuleGrid(task);
+            _stalkerZebraIvorySelectState(task, ACTOR_400600_STATE_WALK);
             return;
         }
-        work->leapX = ((rsin(work->yaw + 0x800) * (v - 0x100)) >> 12) / 20;
-        work->leapZ = ((rcos(work->yaw + 0x800) * (v - 0x100)) >> 12) / 20;
+        work->leapX = ((rsin(work->yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN) * (wallDistance - ACTOR_400600_BACKWARD_LEAP_WALL_MARGIN)) >> ACTOR_400600_LEAP_TRIG_FRACTION_BITS) / ACTOR_400600_BACKWARD_LEAP_STEP_DIVISOR;
+        work->leapZ = ((rcos(work->yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN) * (wallDistance - ACTOR_400600_BACKWARD_LEAP_WALL_MARGIN)) >> ACTOR_400600_LEAP_TRIG_FRACTION_BITS) / ACTOR_400600_BACKWARD_LEAP_STEP_DIVISOR;
     } else {
-        work->leapX = ((rsin(work->yaw + 0x800) * 3000) >> 12) / 20;
-        work->leapZ = ((rcos(work->yaw + 0x800) * 3000) >> 12) / 20;
+        work->leapX = ((rsin(work->yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN) * ACTOR_400600_PROBE_LENGTH) >> ACTOR_400600_LEAP_TRIG_FRACTION_BITS) / ACTOR_400600_BACKWARD_LEAP_STEP_DIVISOR;
+        work->leapZ = ((rcos(work->yaw + ACTOR_TRANSFORM_ANGLE_HALF_TURN) * ACTOR_400600_PROBE_LENGTH) >> ACTOR_400600_LEAP_TRIG_FRACTION_BITS) / ACTOR_400600_BACKWARD_LEAP_STEP_DIVISOR;
     }
-    _stalkerZebraIvoryDisableCapsuleGrid(arg0);
-    work2              = (_Actor400600ZebraStalkerWork*)arg0->work;
-    work2->animBlend   = 4;
-    work2->animStep    = ANIMATION_RATE_ONE;
-    work2->animClip    = 0x15;
-    work2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
-    work->moveAccel    = -0x2A;
-    work->moveSpeed    = 0;
-    work->stateFrames  = 0;
+    _stalkerZebraIvoryDisableCapsuleGrid(task);
+    animationWork              = task->work;
+    animationWork->animBlend   = ACTOR_400600_LEAP_BLEND_FRAMES;
+    animationWork->animStep    = ANIMATION_RATE_ONE;
+    animationWork->animClip    = ACTOR_400600_CLIP_LEAP;
+    animationWork->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+    work->moveAccel            = ACTOR_400600_BACKWARD_LEAP_INITIAL_ACCEL;
+    work->moveSpeed            = 0;
+    work->stateFrames          = 0;
     work->subState++;
 }
 
@@ -3535,7 +3606,7 @@ static const TaskFuncTable8 D_actor_400600_80131F40 = { {
 
 static const TaskFuncTable4 D_actor_400600_80131F60 = { {
     func_actor_400600_8013BF48,
-    func_actor_400600_8013479C,
+    _actor400600ResolveBackwardLeapProbe,
     func_actor_400600_80134970,
     _stalkerZebraIvoryWaitClip,
 } };
@@ -4183,11 +4254,21 @@ static const TaskFuncTable3 D_actor_400600_80132030 = { {
     _actor400600TickGroupEntranceDelay,
 } };
 
-static void func_actor_400600_80137EF0(Task* arg0)
+/// Updates the staggered group entrance and draws its floor shadows.
+///
+/// Task state 8, with entry index 0..2 and live work, rig, model and Enemy.
+/// Hidden control suppresses drawing. Running control advances the target,
+/// animation, entrance phase, cloak and root rotation in that order; paused
+/// control shares only contact clearing, cached-coordinate lighting and nine
+/// floor shadow segments at world height zero. Lighting samples coordinate 1's
+/// existing translation without composing it; its frame and age are unproven.
+/// Requires the initialized part-query, lighting and shadow scratch stack and
+/// primitive space for the visible shadows.
+static void _actor400600UpdateGroupEntrance(Task* task)
 {
-    TmdObject*                    model = arg0->extra.tmd;
-    _Actor400600ZebraStalkerWork* work  = (_Actor400600ZebraStalkerWork*)arg0->work;
-    TaskFuncTable3                fns   = D_actor_400600_80132030;
+    TmdObject*                    model            = task->extra.tmd;
+    _Actor400600ZebraStalkerWork* work             = task->work;
+    TaskFuncTable3                entranceHandlers = D_actor_400600_80132030;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
@@ -4195,16 +4276,18 @@ static void func_actor_400600_80137EF0(Task* arg0)
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->frameCount++;
-            _actor400600UpdateTarget(arg0);
-            _stalkerZebraIvoryTickAnimInline(arg0);
-            fns.funcs[work->state](arg0);
-            _actor400600TickCloakFade(arg0);
-            _stalkerZebraIvoryApplyRotationInline(arg0);
+            _actor400600UpdateTarget(task);
+            _stalkerZebraIvoryTickAnimInline(task);
+            entranceHandlers.funcs[work->state](task);
+            _actor400600TickCloakFade(task);
+            _stalkerZebraIvoryApplyRotationInline(task);
+            // Running updates also clear contacts and refresh the presentation.
+            // Fall through.
         case SCENE_COMBAT_ACTORS_PAUSED:
             worldCollisionClearContacts(work->bodyContacts);
             worldCollisionClearContacts(work->capsuleContacts);
-            _actorRenderUpdateModelColor(arg0);
-            _actor400600DrawFloorShadows(arg0, 0, work->shadowShade);
+            _actorRenderUpdateModelColor(task);
+            _actor400600DrawFloorShadows(task, 0, work->shadowShade);
             break;
     }
 }
@@ -4568,12 +4651,15 @@ static void func_actor_400600_80138FD4(Task* arg0)
     }
 }
 
-static void func_actor_400600_801390FC(Task* arg0)
+/// Starts the running behavior table at its hidden waiting entry.
+///
+/// Entry 0 of running task state 1. Selects behavior 1 and resets its sub-state;
+/// the spawn or scripted entrance has already initialized the cloak and rig.
+static void _actor400600EnterHiddenWait(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
+    enum { ACTOR_400600_STATE_HIDDEN_WAIT = 1 };
 
-    work->state    = 1;
-    work->subState = 0;
+    _actor400600SelectBehavior(task, ACTOR_400600_STATE_HIDDEN_WAIT);
 }
 
 static void func_actor_400600_80139110(Task* arg0)
@@ -4593,50 +4679,75 @@ static void func_actor_400600_80139110(Task* arg0)
     }
 }
 
-static void func_actor_400600_80139218(Task* arg0)
+/// Folds the arms and dispatches the light-recoil entry or wait phase.
+///
+/// Running behavior 3, requiring sub-state 0..1 and a live rig/work/model.
+/// Its wait phase accepts further armed reactions before testing completion;
+/// completed recoil resumes walking upright or crawling on the back.
+static void _actor400600RunLightRecoil(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work             = (_Actor400600ZebraStalkerWork*)arg0->work;
-    void                          (*fns[2])(Task*) = { _actor400600StartLightRecoil, _actor400600TickLightRecoil };
+    _Actor400600ZebraStalkerWork* work      = task->work;
+    TaskFunc                      phases[2] = { _actor400600StartLightRecoil, _actor400600TickLightRecoil };
 
-    _stalkerZebraIvoryFoldArms(arg0);
-    fns[work->subState](arg0);
+    _stalkerZebraIvoryFoldArms(task);
+    phases[work->subState](task);
 }
 
-static void func_actor_400600_80139280(Task* arg0)
+/// Folds the arms and dispatches the heavy-recoil entry or completion phase.
+///
+/// Running behavior 4, requiring sub-state 0..1 and a live rig/work/model.
+/// The completion phase waits uninterrupted, then resumes walking upright or
+/// crawling on the back.
+static void _actor400600RunHeavyRecoil(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work             = (_Actor400600ZebraStalkerWork*)arg0->work;
-    void                          (*fns[2])(Task*) = { _actor400600StartHeavyRecoil, _actor400600FinishHeavyRecoil };
+    _Actor400600ZebraStalkerWork* work      = task->work;
+    TaskFunc                      phases[2] = { _actor400600StartHeavyRecoil, _actor400600FinishHeavyRecoil };
 
-    _stalkerZebraIvoryFoldArms(arg0);
-    fns[work->subState](arg0);
+    _stalkerZebraIvoryFoldArms(task);
+    phases[work->subState](task);
 }
 
-static void func_actor_400600_801392E8(Task* arg0)
+/// Folds the arms and dispatches status-hold setup, buildup expiry or recovery.
+///
+/// Running behavior 5, requiring sub-state 0..2, an initialized rig and a live
+/// Enemy spawn record. Recovery returns to walking upright or crawling on the
+/// back; this dispatcher takes no additional armed reaction.
+static void _actor400600RunStatusHold(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
-    TaskFuncTable3                fns  = D_actor_400600_80131F34;
+    _Actor400600ZebraStalkerWork* work   = task->work;
+    TaskFuncTable3                phases = D_actor_400600_80131F34;
 
-    _stalkerZebraIvoryFoldArms(arg0);
-    fns.funcs[work->subState](arg0);
+    _stalkerZebraIvoryFoldArms(task);
+    phases.funcs[work->subState](task);
 }
 
-static void func_actor_400600_8013935C(Task* arg0)
+/// Dispatches the left-arm strike unless an armed hit reaction takes over.
+///
+/// Running behavior 6, requiring sub-state 0..1, the initialized body rig,
+/// left attack sphere, arm task and Enemy. Tests the reaction's low halfword
+/// before selecting the phase; the strike controls its own arm-extension flag.
+static void _actor400600RunLeftStrike(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work             = (_Actor400600ZebraStalkerWork*)arg0->work;
-    void                          (*fns[2])(Task*) = { _actor400600StartLeftStrike, _actor400600TickLeftStrike };
+    _Actor400600ZebraStalkerWork* work      = task->work;
+    TaskFunc                      phases[2] = { _actor400600StartLeftStrike, _actor400600TickLeftStrike };
 
-    if ((s16)_actor400600TakeArmedHitReaction(arg0) == 0) {
-        fns[work->subState](arg0);
+    if ((s16)_actor400600TakeArmedHitReaction(task) == 0) {
+        phases[work->subState](task);
     }
 }
 
-static void func_actor_400600_801393D0(Task* arg0)
+/// Dispatches the right-arm strike unless an armed hit reaction takes over.
+///
+/// Running behavior 7, requiring sub-state 0..1, the initialized body rig,
+/// right attack sphere, arm task and Enemy. Tests the reaction's low halfword
+/// before selecting the phase; the strike controls its own arm-extension flag.
+static void _actor400600RunRightStrike(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work             = (_Actor400600ZebraStalkerWork*)arg0->work;
-    void                          (*fns[2])(Task*) = { _actor400600StartRightStrike, _actor400600TickRightStrike };
+    _Actor400600ZebraStalkerWork* work      = task->work;
+    TaskFunc                      phases[2] = { _actor400600StartRightStrike, _actor400600TickRightStrike };
 
-    if ((s16)_actor400600TakeArmedHitReaction(arg0) == 0) {
-        fns[work->subState](arg0);
+    if ((s16)_actor400600TakeArmedHitReaction(task) == 0) {
+        phases[work->subState](task);
     }
 }
 
@@ -4658,48 +4769,68 @@ static void func_actor_400600_801394E0(Task* arg0)
     handlers.funcs[work->subState](arg0);
 }
 
-static void func_actor_400600_80139560(Task* arg0)
+/// Crawls toward the target on the back until recovery time expires or a hit intervenes.
+///
+/// Running behavior 10, with a positive countdown normally seeded to 30..157
+/// updates. Folds both arms and gives armed reactions priority; uninterrupted
+/// updates decrement the u16 countdown through an s16 local. Zero selects
+/// righting behavior 11, otherwise turns by 24/4096 of a revolution outside
+/// the shared turn dead zone and advances the hand-anchored crawl. Requires the
+/// initialized rig, hands 8/11, Enemy and part-query/sound scratch stack; target
+/// and root must share their parent frame. A zero input wraps rather than rights.
+static void _actor400600TickOnBackBehavior(Task* task)
 {
+    enum { ACTOR_400600_STATE_RIGHTING    = 11,
+           ACTOR_400600_ON_BACK_TURN_STEP = 24 };
     _Actor400600ZebraStalkerWork* work;
-    _Actor400600ZebraStalkerWork* work2;
-    SVECTOR                       pos;
-    s16                           count;
+    SVECTOR                       targetPosition;
+    s16                           remainingFrames;
 
-    work = (_Actor400600ZebraStalkerWork*)arg0->work;
-    _stalkerZebraIvoryFoldArms(arg0);
-    if ((s16)_actor400600TakeArmedHitReaction(arg0) == 0) {
-        count           = work->countdown - 1;
-        work->countdown = count;
-        if (count == 0) {
-            work2           = (_Actor400600ZebraStalkerWork*)arg0->work;
-            work2->state    = 0xB;
-            work2->subState = 0;
+    work = task->work;
+    _stalkerZebraIvoryFoldArms(task);
+    if ((s16)_actor400600TakeArmedHitReaction(task) == 0) {
+        remainingFrames = work->countdown - 1;
+        work->countdown = remainingFrames;
+        if (remainingFrames == 0) {
+            _actor400600SelectBehavior(task, ACTOR_400600_STATE_RIGHTING);
             return;
         }
-        pos.vx = work->targetPos.vx;
-        pos.vy = work->targetPos.vy;
-        pos.vz = work->targetPos.vz;
-        _stalkerZebraIvoryTurnToward(arg0, &pos, 0x18);
-        _stalkerZebraIvoryTickOnBackCrawl(arg0);
+        targetPosition.vx = work->targetPos.vx;
+        targetPosition.vy = work->targetPos.vy;
+        targetPosition.vz = work->targetPos.vz;
+        _stalkerZebraIvoryTurnToward(task, &targetPosition, ACTOR_400600_ON_BACK_TURN_STEP);
+        _stalkerZebraIvoryTickOnBackCrawl(task);
     }
 }
 
-static void func_actor_400600_80139608(Task* arg0)
+/// Folds the arms and dispatches setup or the anchored righting motion.
+///
+/// Running behavior 11, requiring sub-state 0..1 and the live initialized rig.
+/// Setup captures body part 14's world X/Z; motion pins it until completion,
+/// clears the on-back flag and returns to walking. Requires composed ancestors
+/// and the initialized part-query scratch stack; playback is ticked by the caller.
+static void _actor400600RunRighting(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work             = (_Actor400600ZebraStalkerWork*)arg0->work;
-    void                          (*fns[2])(Task*) = { _actor400600StartRighting, _stalkerZebraIvoryRightItself };
+    _Actor400600ZebraStalkerWork* work      = task->work;
+    TaskFunc                      phases[2] = { _actor400600StartRighting, _stalkerZebraIvoryRightItself };
 
-    _stalkerZebraIvoryFoldArms(arg0);
-    fns[work->subState](arg0);
+    _stalkerZebraIvoryFoldArms(task);
+    phases[work->subState](task);
 }
 
-static void func_actor_400600_80139670(Task* arg0)
+/// Folds the arms and dispatches ceiling-leap setup, motion or landing completion.
+///
+/// Running behavior 12, requiring sub-state 0..2, the initialized rig/model and
+/// a ceiling height already stored in `leapY`. The phases handle the windup,
+/// vertical motion, collision flags and attachment overhead, then resume walking
+/// with a ceiling cooldown. Playback and final root rotation belong to the caller.
+static void _actor400600RunCeilingLeap(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
-    TaskFuncTable3                fns  = D_actor_400600_80131F70;
+    _Actor400600ZebraStalkerWork* work   = task->work;
+    TaskFuncTable3                phases = D_actor_400600_80131F70;
 
-    _stalkerZebraIvoryFoldArms(arg0);
-    fns.funcs[work->subState](arg0);
+    _stalkerZebraIvoryFoldArms(task);
+    phases.funcs[work->subState](task);
 }
 
 static void func_actor_400600_801396E4(Task* arg0)

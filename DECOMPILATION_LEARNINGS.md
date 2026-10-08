@@ -13186,7 +13186,7 @@ void func_actor_400600_801394E0(Task* arg0)
 
 Note the entry-count threshold while reading such a unit: two entries are built
 in place with `lui`/`addiu` and never reach `.rodata` at all
-(`func_actor_400600_80139218`), so only tables of three or more constrain
+(`_actor400600RunLightRecoil`), so only tables of three or more constrain
 placement.
 
 **Size the table from the copy count, not from the splat symbol's extent.** A
@@ -36672,7 +36672,7 @@ pan  >>= 24;
 ```
 
 `pan = (s8)pan` after a plain assignment raised `pan`'s refs past `sound`'s and
-swapped `$s0`/`$s1`; the explicit shifts did not. `func_actor_400600_801329EC`
+swapped `$s0`/`$s1`; the explicit shifts did not. `_actor400600FinishJunkYardLanding`
 went from 97.7% (one-expression `sound`, `(s8)` cast) to 100%.
 
 ## Don't pin a short-lived arg copy to a later `mflo` dest
@@ -64383,17 +64383,17 @@ chain to `sw v0,0x10(sp)` is the longest in the block.
 A brace initializer on the declaration matches:
 
 ```c
-_Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
-void (*fns[2])(Task*) = { handler0, handler1 };
+_Actor400600ZebraStalkerWork* work = task->work;
+TaskFunc phases[2] = { handler0, handler1 };
 
-func_actor_400600_80138AA4(arg0);
-fns[work->subState](arg0);
+_stalkerZebraIvoryFoldArms(task);
+phases[work->subState](task);
 ```
 
 This is the immediate-materialised counterpart of "Local jump table via struct
 assignment of function pointers": there the table is copied from a global and
 the fix is a struct assignment; here there is no global, and the fix is the
-initializer. `func_actor_400600_80139218` is the example. The `s16` field is
+initializer. `_actor400600RunLightRecoil` is the example. The `s16` field is
 what gives the target's `lh`.
 
 The initializer only works if the *work pointer* is initialized at its
