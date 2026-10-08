@@ -212,7 +212,7 @@ typedef struct {
 } _DryfieldBreezewayKeyItemEventWork;
 STATIC_ASSERT_SIZEOF(_DryfieldBreezewayKeyItemEventWork, 0x60);
 
-/// The `TaskDesc` `func_dryfield_breezeway_8017E464` spawns the room's prompt
+/// The `TaskDesc` `_dryfieldBreezewayInitializeKeyItemEvent` spawns the room's prompt
 /// task (`_dryfieldBreezewayActionPromptTask`) from, and the single-entry `TaskMessageEntry[]` it parks in `Task::msgTable`
 /// so `taskMessageDispatch` routes the family's messages (the 0x13F1 "can this key
 /// item be used here?" query) into it. Both sit in the room's trailing data
@@ -253,14 +253,14 @@ extern ActorTransform D_dryfield_breezeway_80181E40[];
 /// where the prop table below is hit-tested at the cursor itself. Its `id` is
 /// the script variant the prompt confirms, which the scan parks in the event
 /// work block (`_DryfieldBreezewayKeyItemEventWork::hotspotId`, with `promptKind`) before state
-/// 3. `func_dryfield_breezeway_8017E464` clears its `hit` along with the other
+/// 3. `_dryfieldBreezewayInitializeKeyItemEvent` clears its `hit` along with the other
 /// table's.
 extern ActionPromptHotspot D_dryfield_breezeway_80182E00[];
 
 /// This room's prop hotspot table: an `ActionPromptHotspot` run ended by
 /// `ACTION_PROMPT_HOTSPOT_END`. `_actionPromptHitTestDefault` hit-tests the action
 /// cursor against it. Its entries are the room's interactive props:
-/// `func_dryfield_breezeway_8017E464` clears every entry's `hit` through it
+/// `_dryfieldBreezewayInitializeKeyItemEvent` clears every entry's `hit` through it
 /// before the first frame -- both tables', so the key-item prompt above starts
 /// clean too -- and the scan in
 /// `func_dryfield_breezeway_8017E81C` walks it for the entry the cursor landed
@@ -268,7 +268,7 @@ extern ActionPromptHotspot D_dryfield_breezeway_80182E00[];
 extern ActionPromptHotspot D_dryfield_breezeway_80182DDC[];
 
 static void _actionPromptResetDefault(Task* task);
-static void func_dryfield_breezeway_8017E464(Task* arg0);
+static void _dryfieldBreezewayInitializeKeyItemEvent(Task* task);
 static void _dryfieldBreezewayScanKeyItemHotspot(Task* task);
 static void func_dryfield_breezeway_8017E81C(Task* task);
 static void _dryfieldBreezewayUpdateKeyItemLine(Task* task, s16 leadX, s16 leadY);
@@ -289,7 +289,7 @@ static void _dryfieldBreezewayDrawBouncingParticle(Task* task, const u8 rgb[3]);
 /// the cursor-hotspot scan.
 static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
     {
-        func_dryfield_breezeway_8017E464,
+        _dryfieldBreezewayInitializeKeyItemEvent,
         _dryfieldBreezewayArmKeyItemPrompt,
         _dryfieldBreezewayScanKeyItemHotspot,
         _dryfieldBreezewayOpenKeyItemCommands,
@@ -661,78 +661,93 @@ static void _dryfieldBreezewayStageFirstEventSkip(void)
     _dryfieldBreezewayStartFirstEventPursuit();
 }
 
-/// Brings up the room's second task family, the key-item event the prompt in
-/// `_dryfieldBreezewayScanKeyItemHotspot` rides on. The `_DryfieldBreezewayKeyItemEventWork` block
-/// is allocated and published in `Task::work`, the family's own `TaskMessageEntry[]`
-/// (`D_dryfield_breezeway_80182DCC`, the one 0x13F1 record) goes to
-/// `Task::msgTable` -- which is what routes the key-item query into this room
-/// at all -- and the room's own event task is spawned from
-/// `D_dryfield_breezeway_80182DC0` into `Task::spawnArg2`. `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is
-/// stamped with 6, the area-record index the view gate reads back.
-///
-/// The event object then draws with the room's lighting rather than the shared
-/// defaults: the work block's `lightMatrix` / `colorMatrix` pair is splatted onto
-/// `TmdObject::lightMtx` / `colorMtx` (the slots `_worldCoordInitPlayerLighting` otherwise
-/// points at `Gp_DefaultMtx` / `Gp_DefaultMtx2`), the 0x800 translation goes
-/// into the colour matrix, and the line's free end starts at its rest position
-/// (0, `DRYFIELD_BREEZEWAY_LINE_REST_Y`). Both hotspot tables are walked to clear `hit`, so the
-/// prompt and the prop cursor both start the room with nothing highlighted.
-///
-/// The three descriptor stores sit in a one-iteration `do { } while (0)`
-/// because retail's source had them there, and the loop note that leaves
-/// behind is load-bearing twice: its loop depth doubles those stores' ref
-/// weights, which is what lifts the 6 above the state reload in `local-alloc`'s
-/// quantity order, and it stops that reload being hoisted above the
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` store once it holds `$v0`. Three plain statements instead of
-/// the wrapper score 98.5%; wrapping a fourth statement reweights it too and
-/// does not match.
-///
-/// The block at the end is deliberately written against the task rather than
-/// against `work` and `ext`: it re-reads both slots, which is what makes its
-/// base pointers fresh values rather than the ones the middle of the function
-/// already holds.
-static void func_dryfield_breezeway_8017E464(Task* arg0)
+/// Clears hit latches in a writable hotspot run terminated by ACTION_PROMPT_HOTSPOT_END.
+static inline void _dryfieldBreezewayClearKeyItemHotspotHits(ActionPromptHotspot* hotspot)
 {
-    TmdObject*                          ext;
-    GfxCoord*                           coord;
-    _DryfieldBreezewayKeyItemEventWork* work;
-    ActionPromptHotspot*                hs;
+    while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
+        hotspot->hit = 0;
+        hotspot++;
+    }
+}
 
-    ext   = arg0->extra.tmd;
-    coord = ext->coords;
+/// Installs the model event's task-owned Q12 lighting and half-strength ambient colour.
+static inline void _dryfieldBreezewayInitializeKeyItemLighting(Task* task)
+{
+    _DryfieldBreezewayKeyItemEventWork* eventWork  = task->work;
+    TmdObject*                          eventModel = task->extra.tmd;
+
+    gfxSetRotIdentity(&eventWork->lightMatrix);
+    gfxSetRotIdentity(&eventWork->colorMatrix);
+
+    eventModel->lightMtx = &eventWork->lightMatrix;
+
+    eventWork->colorMatrix.m[0][0] = ONE;
+    eventWork->colorMatrix.m[0][1] = ONE;
+    eventWork->colorMatrix.m[0][2] = ONE;
+    eventWork->colorMatrix.m[1][0] = ONE;
+    eventWork->colorMatrix.m[1][1] = ONE;
+    eventWork->colorMatrix.m[1][2] = ONE;
+    eventWork->colorMatrix.m[2][0] = ONE;
+    eventWork->colorMatrix.m[2][1] = ONE;
+    eventWork->colorMatrix.m[2][2] = ONE;
+
+    eventWork->lightMatrix.m[0][0] = ONE;
+    eventWork->lightMatrix.m[0][1] = ONE;
+    eventWork->lightMatrix.m[0][2] = ONE;
+    eventWork->lightMatrix.m[1][0] = 0;
+    eventWork->lightMatrix.m[1][1] = ONE;
+    eventWork->lightMatrix.m[1][2] = ONE;
+    eventWork->lightMatrix.m[2][0] = ONE;
+    eventWork->lightMatrix.m[2][1] = ONE;
+    eventWork->lightMatrix.m[2][2] = 0;
+
+    eventModel->colorMtx = &eventWork->colorMatrix;
+    worldCoordSetModelAmbientColor(eventModel, ONE / 2, ONE / 2, ONE / 2);
+}
+
+/// Initializes the model-based bottlecap-magnet interaction and its cursor.
+///
+/// State 0 owns zeroed event work, installs the model event's key-item receiver
+/// and retains a separate port-0 cursor child in `spawnArg2.pointer`. Allocation
+/// failure kills the model event; cursor-spawn failure is left unchecked.
+/// Selects saved view 6, clears both hotspot tables, holds play/HUD presentation
+/// and starts the hanging line at rest. The model borrows the work's Q12 light
+/// and colour matrices through teardown. Requires loaded model/cursor resources.
+static void _dryfieldBreezewayInitializeKeyItemEvent(Task* task)
+{
+    enum { DRYFIELD_BREEZEWAY_KEY_ITEM_VIEW          = 6,
+           DRYFIELD_BREEZEWAY_KEY_ITEM_CURSOR_PORT_0 = 1 };
+
+    TmdObject*                          model;
+    GfxCoord*                           rootCoord;
+    _DryfieldBreezewayKeyItemEventWork* work;
+
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
 
     work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
 
-    arg0->spawnArg2.pointer = taskSpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, 1, 0);
-    do {
-        arg0->msgTable                                             = D_dryfield_breezeway_80182DCC;
-        arg0->work                                                 = work;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
-    } while (0);
-    arg0->state          += 1;
-    work->keyItemAccepted = 0;
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&D_dryfield_breezeway_80182DC0, 0, DRYFIELD_BREEZEWAY_KEY_ITEM_CURSOR_PORT_0, NULL);
+    task->msgTable                                             = D_dryfield_breezeway_80182DCC;
+    task->work                                                 = work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = DRYFIELD_BREEZEWAY_KEY_ITEM_VIEW;
+    task->state                                               += 1;
+    work->keyItemAccepted                                      = 0;
     displayAcquireMenuHold();
 
-    hs = D_dryfield_breezeway_80182E00;
-    while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
-        hs->hit = 0;
-        hs++;
-    }
+    // Clear both the model-confirmation and cursor-prop hit latches.
+    _dryfieldBreezewayClearKeyItemHotspotHits(D_dryfield_breezeway_80182E00);
 
-    hs = D_dryfield_breezeway_80182DDC;
-    while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
-        hs->hit = 0;
-        hs++;
-    }
+    _dryfieldBreezewayClearKeyItemHotspotHits(D_dryfield_breezeway_80182DDC);
 
-    ext->colorMtx = &work->colorMatrix;
-    ext->flags    = 0;
-    ext->lightMtx = &work->lightMatrix;
-    coord->parent = NULL;
+    model->colorMtx   = &work->colorMatrix;
+    model->flags      = 0;
+    model->lightMtx   = &work->lightMatrix;
+    rootCoord->parent = NULL;
 
     gGameSession->eventState   = 1;
     gGameSession->cutsceneHold = 1;
@@ -740,38 +755,7 @@ static void func_dryfield_breezeway_8017E464(Task* arg0)
     work->lineEndX             = 0;
     work->lineEndY             = DRYFIELD_BREEZEWAY_LINE_REST_Y;
 
-    {
-        _DryfieldBreezewayKeyItemEventWork* eventWork = arg0->work;
-        TmdObject*                          eventObj  = arg0->extra.tmd;
-
-        gfxSetRotIdentity(&eventWork->lightMatrix);
-        gfxSetRotIdentity(&eventWork->colorMatrix);
-
-        eventObj->lightMtx = &eventWork->lightMatrix;
-
-        eventWork->colorMatrix.m[0][0] = 0x1000;
-        eventWork->colorMatrix.m[0][1] = 0x1000;
-        eventWork->colorMatrix.m[0][2] = 0x1000;
-        eventWork->colorMatrix.m[1][0] = 0x1000;
-        eventWork->colorMatrix.m[1][1] = 0x1000;
-        eventWork->colorMatrix.m[1][2] = 0x1000;
-        eventWork->colorMatrix.m[2][0] = 0x1000;
-        eventWork->colorMatrix.m[2][1] = 0x1000;
-        eventWork->colorMatrix.m[2][2] = 0x1000;
-
-        eventWork->lightMatrix.m[0][0] = 0x1000;
-        eventWork->lightMatrix.m[0][1] = 0x1000;
-        eventWork->lightMatrix.m[0][2] = 0x1000;
-        eventWork->lightMatrix.m[1][0] = 0;
-        eventWork->lightMatrix.m[1][1] = 0x1000;
-        eventWork->lightMatrix.m[1][2] = 0x1000;
-        eventWork->lightMatrix.m[2][0] = 0x1000;
-        eventWork->lightMatrix.m[2][1] = 0x1000;
-        eventWork->lightMatrix.m[2][2] = 0;
-
-        eventObj->colorMtx = &eventWork->colorMatrix;
-        worldCoordSetModelAmbientColor(eventObj, 0x800, 0x800, 0x800);
-    }
+    _dryfieldBreezewayInitializeKeyItemLighting(task);
 }
 
 /// Waits for confirmation on the key-item model or cancellation of the event.
@@ -839,7 +823,7 @@ static void _dryfieldBreezewayScanKeyItemHotspot(Task* task)
 /// Breathes the room's hanging prop: rebuilds the display object's coordinate
 /// matrix as a pure Y rotation of `rsin(gDisplayState.animFrame * 16)` -- one full turn
 /// every 256 frames -- off an identity built the same word-at-a-time way
-/// `func_dryfield_breezeway_8017E464` builds the event work's two matrices, then
+/// `_dryfieldBreezewayInitializeKeyItemEvent` builds the event work's two matrices, then
 /// updates the hanging line with `_dryfieldBreezewayUpdateKeyItemLine` using the
 /// prompt's own screen position and hit-tests it against the room's table.
 ///

@@ -56,14 +56,14 @@ extern TaskMessageEntry D_dryfield_back_street_8017F964[];
 extern TaskDesc         D_dryfield_back_street_8017F98C[];
 
 /// Volume last asked of the back street's ambience, or 0 when none is playing.
-/// Written by `func_dryfield_back_street_8017D5D0` and cleared by state 0 of the
+/// Written by `_dryfieldBackStreetAmbienceTask` and cleared by state 0 of the
 /// same task.
 extern s32 D_dryfield_back_street_80181054;
 
-void       func_dryfield_back_street_8017D5D0(Task*);
-static s32 _dryfieldBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-static s32 _dryfieldBackStreetIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 executionMode);
-static s32 _dryfieldBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
+static void _dryfieldBackStreetAmbienceTask(Task* task);
+static s32  _dryfieldBackStreetRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+static s32  _dryfieldBackStreetIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 executionMode);
+static s32  _dryfieldBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
 enum { DRYFIELD_BACK_STREET_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -83,7 +83,7 @@ TaskMessageEntry D_dryfield_back_street_8017F964[5] = {
 };
 
 TaskDesc D_dryfield_back_street_8017F98C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_back_street_8017D5D0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldBackStreetAmbienceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -539,25 +539,32 @@ WorldCollisionSurfaceProperties* D_dryfield_back_street_80181034[8] = {
 
 s32 D_dryfield_back_street_80181054 = 0;
 
-static void func_dryfield_back_street_8017D8B4(Task* task);
+static void _dryfieldBackStreetInitializeRoomTask(Task* task);
 
-/// Back street ambience: state 0 clears the recorded volume and advances, state
-/// 1 maps the current camera view to a target volume and stereo pan - 0x1E/+4,
-/// 0x32/-8 and 0x64/-0xC for views 3/4/5, 0 and centre elsewhere - and, whenever
-/// the volume differs from the recorded one, enqueues the matching fade event:
-/// type 6 to start the track, type 7 to stop it, type A to retune it, then
-/// records the new volume.
-void func_dryfield_back_street_8017D5D0(Task* task)
+/// Requests Back Street's ambience mix as the logical camera view changes.
+///
+/// State 0 clears the requested-volume cache and advances to state 1; other
+/// states do nothing. Views 3/4/5 request 30/50/100 percent with pan offsets
+/// +4/-8/-12; other views request silence. Only a volume change queues a start,
+/// 30-audio-update fade-out, or mix change. Pan uses three SPU steps per unit.
+/// The cache records requests even if the queue rejects them. Requires a live
+/// bodyless task and the loaded room sound bank through playback.
+static void _dryfieldBackStreetAmbienceTask(Task* task)
 {
-    s32 vol;
-    s32 pan;
+    enum { DRYFIELD_BACK_STREET_AMBIENCE_INITIALIZE       = 0,
+           DRYFIELD_BACK_STREET_AMBIENCE_UPDATE           = 1,
+           DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL      = 100,
+           DRYFIELD_BACK_STREET_AMBIENCE_ATTENUATION_FULL = 127,
+           DRYFIELD_BACK_STREET_AMBIENCE_FADE_TICKS       = 30 };
+    s32 volumePercent;
+    s32 panOffset;
 
     switch (task->state) {
-        case 0:
+        case DRYFIELD_BACK_STREET_AMBIENCE_INITIALIZE:
             D_dryfield_back_street_80181054 = 0;
             task->state                     = task->state + 1;
             return;
-        case 1:
+        case DRYFIELD_BACK_STREET_AMBIENCE_UPDATE:
             break;
         default:
             return;
@@ -565,34 +572,34 @@ void func_dryfield_back_street_8017D5D0(Task* task)
 
     switch (viewGetMappedIndex()) {
         case 3:
-            vol = 0x1E;
-            pan = 4;
+            volumePercent = 30;
+            panOffset     = 4;
             break;
         case 4:
-            vol = 0x32;
-            pan = -8;
+            volumePercent = 50;
+            panOffset     = -8;
             break;
         case 5:
-            vol = 0x64;
-            pan = -0xC;
+            volumePercent = DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL;
+            panOffset     = -12;
             break;
         default:
-            pan = 0;
-            vol = 0;
+            panOffset     = 0;
+            volumePercent = 0;
             break;
     }
 
-    if (vol == D_dryfield_back_street_80181054) {
+    if (volumePercent == D_dryfield_back_street_80181054) {
         return;
     }
     if (D_dryfield_back_street_80181054 == 0) {
-        sndEvtRequestScriptStart(SOUND_BACK_STREET_AMBIENCE, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
-    } else if (vol == 0) {
-        sndEvtRequestScriptStop(SOUND_BACK_STREET_AMBIENCE, 0x1E);
+        sndEvtRequestScriptStart(SOUND_BACK_STREET_AMBIENCE, panOffset, (s8)(((DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL - volumePercent) * DRYFIELD_BACK_STREET_AMBIENCE_ATTENUATION_FULL) / DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL));
+    } else if (volumePercent == 0) {
+        sndEvtRequestScriptStop(SOUND_BACK_STREET_AMBIENCE, DRYFIELD_BACK_STREET_AMBIENCE_FADE_TICKS);
     } else {
-        sndEvtRequestScriptMix(SOUND_BACK_STREET_AMBIENCE, pan, (s8)(((0x64 - vol) * 0x7F) / 100));
+        sndEvtRequestScriptMix(SOUND_BACK_STREET_AMBIENCE, panOffset, (s8)(((DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL - volumePercent) * DRYFIELD_BACK_STREET_AMBIENCE_ATTENUATION_FULL) / DRYFIELD_BACK_STREET_AMBIENCE_VOLUME_FULL));
     }
-    D_dryfield_back_street_80181054 = vol;
+    D_dryfield_back_street_80181054 = volumePercent;
 }
 
 #include "../../shared/back_street_event_msg.inc.c"
@@ -621,16 +628,18 @@ static s32 _dryfieldBackStreetIgnoreRoomActionMessage(Task* task, s32 messageId,
     return 0;
 }
 
-/// The room entry task's first state: installs the room's message table, hands
-/// the task to pointer slot 7, spawns the tasks of
-/// `D_dryfield_back_street_8017F98C` (the ambience task) and moves on to the
-/// next state.
-static void func_dryfield_back_street_8017D8B4(Task* task)
+/// Publishes Back Street's message receiver and starts its ambience before idling.
+///
+/// Requires a live state-0 room task. The receiver occupies
+/// `GAME_TASK_SLOT_ROOM` until teardown; the spawned ambience runs independently.
+/// A failed ambience spawn is not retried. Keep the overlay loaded while either
+/// task can be dispatched.
+static void _dryfieldBackStreetInitializeRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_back_street_8017F964;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_dryfield_back_street_8017F98C, 0, 0, 0);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized room task available for messages until its state changes.
@@ -640,7 +649,7 @@ static void _dryfieldBackStreetIdleState(Task* task)
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_back_street_8017D5C4 = {
-    { func_dryfield_back_street_8017D8B4, _dryfieldBackStreetIdleState, taskKill },
+    { _dryfieldBackStreetInitializeRoomTask, _dryfieldBackStreetIdleState, taskKill },
 };
 
 void dryfieldBackStreetRoomTask(Task* task)
@@ -681,7 +690,7 @@ void dryfieldBackStreetRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_dryfield_back_street_8017ED1C(Task* task)
+void dryfieldBackStreetRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

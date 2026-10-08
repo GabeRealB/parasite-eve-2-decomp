@@ -134,3 +134,4 @@ _dryfieldMainStreetBeginFirstVisitBattle = 0x8017e2f4; // type:func
 _dryfieldMainStreetSetPlayerHeadAim = 0x8017e354; // type:func
 _dryfieldMainStreetStartFirstVisitCutscene = 0x8017e05c; // type:func
 dryfieldMainStreetTask = 0x8017e168; // type:func
+_dryfieldMainStreetSpawnPlayerHeadAimTask = 0x8017e320; // type:func

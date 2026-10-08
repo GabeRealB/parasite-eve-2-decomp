@@ -139,3 +139,4 @@ _dryfieldMotelRoom6InitRoomTask = 0x80181ac4; // type:func
 dryfieldMotelRoom6Task = 0x80181b18; // type:func
 _dryfieldMotelRoom6GateWaterTowerExit = 0x80181920; // type:func
 _dryfieldMotelRoom6RunActorEventTask = 0x80181a08; // type:func
+_dryfieldMotelRoom6HandleRoomAction = 0x801819a8; // type:func

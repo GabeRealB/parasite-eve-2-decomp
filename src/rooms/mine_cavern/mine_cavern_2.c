@@ -143,6 +143,21 @@ typedef struct {
 } _MineCavernTargetHitScratch;
 STATIC_ASSERT_SIZEOF(_MineCavernTargetHitScratch, 0x28);
 
+/// Composes a target root and samples its room lighting into task-owned matrices.
+///
+/// taskPtr must be a stable Task* and position a writable VECTOR lvalue;
+/// both are evaluated repeatedly without other argument side effects. Writes
+/// XYZ in whole world-coordinate units and borrows live model/work/room data.
+/// Expands to a braced block; invoke only within a braced statement block.
+#define MINE_CAVERN_TARGET_UPDATE_LIGHTING(taskPtr, position)                \
+    {                                                                        \
+        actorRenderComposeCoord((taskPtr)->extra.tmd->coords);               \
+        (position).vx = (taskPtr)->extra.tmd->coords->workm.t[0];            \
+        (position).vy = (taskPtr)->extra.tmd->coords->workm.t[1];            \
+        (position).vz = (taskPtr)->extra.tmd->coords->workm.t[2];            \
+        worldCoordSetModelLighting((taskPtr)->extra.tmd, &(position), 0, 3); \
+    }
+
 extern WorldCollisionGrid     D_mine_cavern_8018981C[1];
 extern WorldCollisionOccluder D_mine_cavern_8018E078[2];
 extern WorldCollisionTrigger  D_mine_cavern_8018D154[20];
@@ -2144,8 +2159,8 @@ u16 D_mine_cavern_8018E35E = 1960;
 
 static void _mineCavernRefreshTargetLight(s16 targetIndex);
 static void _mineCavernDrawTargetGlow(s16 targetIndex);
-static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1);
-static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1);
+static void _mineCavernTargetSpawn(Enemy* enemy, Task* task);
+static void _mineCavernTargetCheckHit(Enemy* enemy, Task* task);
 static void _mineCavernTargetRemainsSpawn(Enemy* enemy, Task* task);
 static void _mineCavernTargetRetireBody(Enemy* enemy, Task* task);
 
@@ -2947,86 +2962,84 @@ void mineCavernTargetEffectsTask(Task* task)
     }
 }
 
-/// Spawn state of the cavern enemy: allocates its work block, parks it in
-/// `Task::work` and installs `_mineCavernTargetExitCallback` as the exit callback,
-/// or destroys the enemy when the allocation fails. The model is hung under the
-/// view coordinate, given the block's two matrices and seated on the spawn spot
-/// `Task::spawnArg1` names. Two collision bodies are then linked through
-/// `worldCollisionLinkBody`: a small one (kind 2) with four contact records and flag 0x8000
-/// set, and a wide one (kind 1) with a single record and flag 0x8000 cleared.
-/// The enemy takes its hit points and parameters from `D_mine_cavern_8018EAE4`,
-/// `worldCoordSetModelLighting` lights the model at that position, and the enemy's node is
-/// linked with its flags set to 1.
+/// Places an intact cavern target and publishes its collision and lock-on bodies.
 ///
-/// The wide body's x and y offset are read from a structure at address 0. The
-/// read has to be a structure member: the scheduler lets a load from a plain
-/// scalar at a fixed address pass the stores into the body before it, and the
-/// original keeps it behind them.
-static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
+/// State 0 requires a live enemy/model and a low unsigned spawn-selector half
+/// in 0..3. Owns zeroed work whose matrices outlast model drawing; allocation
+/// failure destroys the enemy. Initializes a 256-unit attack-taking sphere
+/// centred at local Y = -800 and a 3000-unit blast sphere with pairing disabled,
+/// then enters the hit-check state. Normal teardown must unlink both bodies
+/// before freeing work; the exit callback alone unlinks only the target body.
+/// The original blast X/Y offset load reads an unsigned halfword at address 2;
+/// its runtime value and purpose remain unproven and that access is retained.
+static void _mineCavernTargetSpawn(Enemy* enemy, Task* task)
 {
-    _MineCavernTargetWork* mem;
+    enum { MINE_CAVERN_TARGET_CENTER_Y     = -800,
+           MINE_CAVERN_TARGET_BODY_RADIUS  = 256,
+           MINE_CAVERN_TARGET_BLAST_RADIUS = 3000,
+           MINE_CAVERN_TARGET_BODY_KEY     = 0x50000,
+           MINE_CAVERN_TARGET_BLAST_KEY    = 0x22121 };
+
+    _MineCavernTargetWork* allocation;
     _MineCavernTargetWork* work;
     WorldCollisionBody*    body;
     WorldCollisionBody*    blast;
-    u16                    temp;
-    VECTOR                 vec;
+    u16                    blastOffsetBits;
+    VECTOR                 worldPosition;
 
-    mem        = memCalloc(sizeof(_MineCavernTargetWork), false);
-    work       = mem;
-    arg1->work = mem;
-    if (mem == NULL) {
-        enemyDestroy(arg0, arg1);
+    allocation = memCalloc(sizeof(*allocation), false);
+    work       = allocation;
+    task->work = allocation;
+    if (allocation == NULL) {
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->exitCallback                    = _mineCavernTargetExitCallback;
-    arg1->extra.tmd->coords->parent       = &gGfxViewCoord;
-    arg1->extra.tmd->flags                = 0;
-    arg1->extra.tmd->lightMtx             = &work->light;
-    arg1->extra.tmd->colorMtx             = &work->color;
-    arg1->extra.tmd->coords->coord.t[0]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vx;
-    arg1->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
-    arg1->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->exitCallback                    = _mineCavernTargetExitCallback;
+    task->extra.tmd->coords->parent       = &gGfxViewCoord;
+    task->extra.tmd->flags                = 0;
+    task->extra.tmd->lightMtx             = &work->light;
+    task->extra.tmd->colorMtx             = &work->color;
+    task->extra.tmd->coords->coord.t[0]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vx;
+    task->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vy;
+    task->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vz;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     body                                  = &work->body;
-    body->coord                           = arg1->extra.tmd->coords;
+    body->coord                           = task->extra.tmd->coords;
     body->context.contacts                = work->bodyContacts;
     body->pos.vx                          = 0;
-    body->pos.vy                          = -0x320;
+    body->pos.vy                          = MINE_CAVERN_TARGET_CENTER_Y;
     body->pos.vz                          = 0;
-    body->key                             = 0x50000;
-    body->radius                          = 0x100;
+    body->key                             = MINE_CAVERN_TARGET_BODY_KEY;
+    body->radius                          = MINE_CAVERN_TARGET_BODY_RADIUS;
     body->flags                           = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
     body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     blast                   = &work->blast;
-    blast->coord            = arg1->extra.tmd->coords;
+    blast->coord            = task->extra.tmd->coords;
     blast->context.contacts = work->blastContacts;
-    temp                    = ((SVECTOR*)NULL)->vy;
-    blast->pos.vz           = 0;
-    blast->radius           = 0xBB8;
-    blast->flags            = WORLD_COLLISION_BODY_SPHERE;
-    blast->pos.vy           = temp;
-    blast->pos.vx           = temp;
+    // Retain the original address-2 load; no source object is established.
+    blastOffsetBits = ((SVECTOR*)NULL)->vy;
+    blast->pos.vz   = 0;
+    blast->radius   = MINE_CAVERN_TARGET_BLAST_RADIUS;
+    blast->flags    = WORLD_COLLISION_BODY_SPHERE;
+    blast->pos.vy   = blastOffsetBits;
+    blast->pos.vx   = blastOffsetBits;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, blast);
     worldCollisionInitContacts(blast->context.contacts, ARRAY_SIZE(work->blastContacts), 0);
-    work->blast.key    = 0x22121;
+    work->blast.key    = MINE_CAVERN_TARGET_BLAST_KEY;
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    arg0->hp           = D_mine_cavern_8018EAE4.hpMax;
-    arg0->param        = &D_mine_cavern_8018EAE4;
-    actorRenderComposeCoord(arg1->extra.tmd->coords);
-    vec.vx = arg1->extra.tmd->coords->workm.t[0];
-    vec.vy = arg1->extra.tmd->coords->workm.t[1];
-    vec.vz = arg1->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(arg1->extra.tmd, &vec, 0, 3);
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = -0x320;
-    arg0->bodyPos.vz = 0;
-    arg0->coord      = arg1->extra.tmd->coords;
-    worldTargetLinkNode(&arg0->node);
-    arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    arg1->state++;
+    enemy->hp          = D_mine_cavern_8018EAE4.hpMax;
+    enemy->param       = &D_mine_cavern_8018EAE4;
+    MINE_CAVERN_TARGET_UPDATE_LIGHTING(task, worldPosition);
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = MINE_CAVERN_TARGET_CENTER_Y;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = task->extra.tmd->coords;
+    worldTargetLinkNode(&enemy->node);
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    task->state++;
 }
 
 /// Copies the first attack contact's world point and returns its packed key.
@@ -3054,33 +3067,40 @@ static inline s32 _mineCavernTargetFindHit(SVECTOR* hitPoint, const WorldCollisi
     return 0;
 }
 
-/// Second state handler of `D_mine_cavern_8017D7F8`: the cavern enemy's
-/// per-frame hit check. Unless gameplay is suspended, it marks the enemy
-/// lockable only while the player is within 0x1770 on the XZ plane and in place
-/// 1 or 4, republishes the model's world position, and looks through the work
-/// block's contacts for one of class 2. A contact taken in place 1 or 4 without
-/// key bit 0x8000 costs the enemy the damage `D_mine_cavern_8018EAF4` gives its
-/// key; when that empties `Enemy::hp` the enemy's `Task::spawnArg1` bit is
-/// set in flag nibble 0xE2, the model is hidden, a sound is played at it and
-/// the task advances.
-static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
+/// Updates the intact target's lock-on eligibility, lighting and first weapon hit.
+///
+/// State 1 requires initialized target work, a live player/model and spawn spot
+/// 0..3. Hidden actor control hides the target; paused control leaves it intact.
+/// Lock-on also requires engaged battle, an XZ distance at most 6000 coordinate
+/// units and location variant 1 or 4. Hits require those variants and a class-2
+/// contact without the attachment-table bit, independently of lock-on eligibility.
+/// The weapon row must index the room's 36-entry damage table. Death records the
+/// spot's destruction bit, queues its positional sound and enters body retirement.
+/// Both contact tables clear after each active check; scratch storage is released.
+static void _mineCavernTargetCheckHit(Enemy* enemy, Task* task)
 {
-    _MineCavernTargetWork*       work;
-    Task*                        player;
-    _MineCavernTargetHitScratch* top;
-    _MineCavernTargetHitScratch* blk;
-    GfxCoord*                    coords;
-    SVECTOR*                     d;
-    s16                          angle;
-    u32                          key;
-    s32                          id;
-    s32                          pan;
+    enum { MINE_CAVERN_TARGET_LOCK_ON_RADIUS       = 6000,
+           MINE_CAVERN_TARGET_HIT_ATTACHMENT_BIT   = 0x8000,
+           MINE_CAVERN_TARGET_WEAPON_ROW_MASK      = 0x7F,
+           MINE_CAVERN_TARGET_DESTROY_SOUND        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_CAVERN, 0x14),
+           MINE_CAVERN_TARGET_SOUND_INSTANCE_SHIFT = 8 };
 
-    work   = arg1->work;
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    _MineCavernTargetWork*       work;
+    Task*                        playerTask;
+    _MineCavernTargetHitScratch* scratchTop;
+    _MineCavernTargetHitScratch* hitScratch;
+    GfxCoord*                    rootCoord;
+    SVECTOR*                     playerOffset;
+    s16                          relativeHitBearing;
+    u32                          hitKey;
+    s32                          soundId;
+    s32                          panOffset;
+
+    work       = task->work;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
@@ -3089,72 +3109,71 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
             return;
     }
 
-    // Reserve the scratch block, staging the offset to the player in it on the way.
-    coords                                            = arg1->extra.tmd->coords;
-    top                                               = SCRATCH_STACK_CURSOR(_MineCavernTargetHitScratch);
-    top[-1].offset.vx                                 = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
-    d                                                 = &top[-1].offset;
-    d->vy                                             = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
-    SCRATCH_STACK_CURSOR(_MineCavernTargetHitScratch) = top - 1;
-    d->vz                                             = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
-    blk                                               = top - 1;
+    // Stage the player offset before publishing the reserved scratch block.
+    rootCoord                                         = task->extra.tmd->coords;
+    scratchTop                                        = SCRATCH_STACK_CURSOR(_MineCavernTargetHitScratch);
+    scratchTop[-1].offset.vx                          = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+    playerOffset                                      = &scratchTop[-1].offset;
+    playerOffset->vy                                  = gPlayerStatus.coordMtx->t[1] - rootCoord->coord.t[1];
+    SCRATCH_STACK_CURSOR(_MineCavernTargetHitScratch) = scratchTop - 1;
+    playerOffset->vz                                  = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+    hitScratch                                        = scratchTop - 1;
 
-    if (_actorRangeOutsideRadiusXZ(d, 0x1770) || gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED ||
+    if (_actorRangeOutsideRadiusXZ(playerOffset, MINE_CAVERN_TARGET_LOCK_ON_RADIUS) || gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED ||
         (gGameSession->location.loc.variant != gSceneCombatState.signals.bytes.battlePhase && gGameSession->location.loc.variant != 4)) {
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     } else {
-        arg0->node.state.parts.flags = 0;
+        enemy->node.state.parts.flags = 0;
     }
 
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(arg1->extra.tmd->coords);
-    blk->vec.vx = arg1->extra.tmd->coords->workm.t[0];
-    blk->vec.vy = arg1->extra.tmd->coords->workm.t[1];
-    blk->vec.vz = arg1->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(arg1->extra.tmd, &blk->vec, 0, 3);
-    arg1->extra.tmd->flags = 0;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    MINE_CAVERN_TARGET_UPDATE_LIGHTING(task, hitScratch->vec);
+    task->extra.tmd->flags = 0;
 
-    key         = _mineCavernTargetFindHit(&blk->offset, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
-    blk->hitKey = key;
-    if (key & 0x8000) {
-        blk->hitKey = 0;
+    hitKey             = _mineCavernTargetFindHit(&hitScratch->offset, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
+    hitScratch->hitKey = hitKey;
+    if (hitKey & MINE_CAVERN_TARGET_HIT_ATTACHMENT_BIT) {
+        hitScratch->hitKey = 0;
     }
     if (gGameSession->location.loc.variant != 1 && gGameSession->location.loc.variant != 4) {
-        blk->hitKey = 0;
+        hitScratch->hitKey = 0;
     }
 
-    if (blk->hitKey != 0) {
-        blk->offset.vx -= arg1->extra.tmd->coords->workm.t[0];
-        blk->offset.vy -= arg1->extra.tmd->coords->workm.t[1];
-        blk->offset.vz -= arg1->extra.tmd->coords->workm.t[2];
-        angle = blk->hitBearing = ratan2(blk->offset.vx, blk->offset.vz) - ratan2(-arg1->extra.tmd->coords->workm.m[2][0],
-                                                                                  arg1->extra.tmd->coords->workm.m[2][2]);
-        blk->hitBearing         = _actorAngleNormalizeYaw(angle);
-        blk->vec.vx             = player->extra.tmd->coords->coord.t[0] - arg1->extra.tmd->coords->coord.t[0];
-        blk->vec.vy             = player->extra.tmd->coords->coord.t[1] - arg1->extra.tmd->coords->coord.t[1];
-        blk->vec.vz             = player->extra.tmd->coords->coord.t[2] - arg1->extra.tmd->coords->coord.t[2];
-        blk->playerDistance     = SquareRoot0(blk->vec.vx * blk->vec.vx + blk->vec.vy * blk->vec.vy + blk->vec.vz * blk->vec.vz);
-        blk->damage             = damageComputePlayerAttack(blk->hitKey, blk->playerDistance, 0, 0);
-        blk->damage             = D_mine_cavern_8018EAF4[blk->hitKey & 0x7F];
-        arg0->hp               -= blk->damage;
-        worldTargetAddReadoutAmount(&arg0->node, blk->damage, 0);
-        if (arg0->hp <= 0) {
-            blk->destroyedTargets = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-            if (!((blk->destroyedTargets >> (u16)arg1->spawnArg1.value) & 1)) {
-                blk->destroyedTargets |= 1 << (u16)arg1->spawnArg1.value;
-                gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED, blk->destroyedTargets);
-                arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (hitScratch->hitKey != 0) {
+        hitScratch->offset.vx -= task->extra.tmd->coords->workm.t[0];
+        hitScratch->offset.vy -= task->extra.tmd->coords->workm.t[1];
+        hitScratch->offset.vz -= task->extra.tmd->coords->workm.t[2];
+        relativeHitBearing = hitScratch->hitBearing = ratan2(hitScratch->offset.vx, hitScratch->offset.vz) - ratan2(-task->extra.tmd->coords->workm.m[2][0],
+                                                                                                                    task->extra.tmd->coords->workm.m[2][2]);
+        hitScratch->hitBearing                      = _actorAngleNormalizeYaw(relativeHitBearing);
+        hitScratch->vec.vx                          = playerTask->extra.tmd->coords->coord.t[0] - task->extra.tmd->coords->coord.t[0];
+        hitScratch->vec.vy                          = playerTask->extra.tmd->coords->coord.t[1] - task->extra.tmd->coords->coord.t[1];
+        hitScratch->vec.vz                          = playerTask->extra.tmd->coords->coord.t[2] - task->extra.tmd->coords->coord.t[2];
+        hitScratch->playerDistance                  = SquareRoot0(hitScratch->vec.vx * hitScratch->vec.vx + hitScratch->vec.vy * hitScratch->vec.vy + hitScratch->vec.vz * hitScratch->vec.vz);
+        // Keep the damage roll's side effects before replacing its result with target damage.
+        hitScratch->damage = damageComputePlayerAttack(hitScratch->hitKey, hitScratch->playerDistance, 0, 0);
+        hitScratch->damage = D_mine_cavern_8018EAF4[hitScratch->hitKey & MINE_CAVERN_TARGET_WEAPON_ROW_MASK];
+        enemy->hp         -= hitScratch->damage;
+        worldTargetAddReadoutAmount(&enemy->node, hitScratch->damage, 0);
+        if (enemy->hp <= 0) {
+            hitScratch->destroyedTargets = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+            if (!((hitScratch->destroyedTargets >> (u16)task->spawnArg1.value) & 1)) {
+                hitScratch->destroyedTargets |= 1 << (u16)task->spawnArg1.value;
+                gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED, hitScratch->destroyedTargets);
+                task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54020014;
-            pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            sndEvtRequestScriptStart(id, pan, (s8)(worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords) / 2));
-            arg1->state++;
+            soundId   = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << MINE_CAVERN_TARGET_SOUND_INSTANCE_SHIFT) | MINE_CAVERN_TARGET_DESTROY_SOUND;
+            panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundId, panOffset, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
+            task->state++;
         }
     }
     worldCollisionClearContacts(work->bodyContacts);
     worldCollisionClearContacts(work->blastContacts);
     SCRATCH_STACK_RELEASE_BLOCK(_MineCavernTargetHitScratch);
 }
+
+#undef MINE_CAVERN_TARGET_UPDATE_LIGHTING
 
 /// Allocates and places the target's remains model before its visibility tick.
 ///
@@ -3230,8 +3249,8 @@ static const char D_mine_cavern_8017D7F0[] = "BOMB2\n";
 /// The cavern enemy's state handlers, run by `mineCavernTargetTask`.
 static const EnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
     {
-        func_mine_cavern_80182E34,
-        func_mine_cavern_801830F0,
+        _mineCavernTargetSpawn,
+        _mineCavernTargetCheckHit,
         _mineCavernTargetRetireBody,
         _mineCavernTargetExplode,
         enemyDestroy,

@@ -1620,8 +1620,11 @@ void func_acropolis_fountain_8017E014(Task* task)
 
 /// Starts the water loop or changes the mix of its previously requested instance.
 ///
-/// Pan offsets use three SPU steps per unit; attenuation uses 0..127.
-/// The room's running latch selects the request and is left unchanged here.
+/// The caller supplies a pan offset in three-SPU-step units and nonnegative
+/// attenuation in 0..127 (zero keeps the script's base gain). Only their low
+/// signed bytes reach the sound queue. The requested-running latch selects
+/// start or mix and is left unchanged here; it does not prove playback began.
+/// Requires the room sound bank to remain loaded through queued playback.
 static inline void _acropolisFountainRequestWaterLoopMix(s32 panOffset, s32 attenuation)
 {
     if (D_acropolis_fountain_8017E7F8 != 0) {

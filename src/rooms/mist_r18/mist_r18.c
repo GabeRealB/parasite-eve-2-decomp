@@ -134,8 +134,8 @@ enum {
 };
 static void _mistR18SpawnAttachedModel(s32 modelIndex);
 static void _mistR18KillAttachedModel(s32 modelIndex);
-void        func_mist_r18_8017E7F0(void);
-void        func_mist_r18_8017E824(void);
+static void _mistR18SpawnBriefingCaption(void);
+static void _mistR18StartBackdropCrossfade(void);
 static void _mistR18SpawnPlacedProp(void);
 static void _mistR18KillPlacedProp(void);
 void        func_mist_r18_8017EB48(void);
@@ -627,9 +627,9 @@ EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017E7F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18SpawnBriefingCaption }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 150 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017E824 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18StartBackdropCrossfade }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1661,15 +1661,29 @@ static void _mistR18KillAttachedModel(s32 modelIndex)
     }
 }
 
-void func_mist_r18_8017E7F0(void)
+/// Starts the briefing's glyph-script caption over its translucent plate.
+///
+/// The child borrows and resets the room's mutable text stream. Keep that
+/// stream, glyph cells and this overlay live until it finishes or the event
+/// ends. The script starts one instance; spawn failure is ignored here.
+static void _mistR18SpawnBriefingCaption(void)
 {
-    taskSpawnFromTable(D_mist_r18_80184F04, 5, 0, &D_mist_r18_80184EE4);
+    enum { MIST_R18_BRIEFING_CAPTION_TASK_INDEX = 5 };
+
+    taskSpawnFromTable(D_mist_r18_80184F04, MIST_R18_BRIEFING_CAPTION_TASK_INDEX, 0, &D_mist_r18_80184EE4);
 }
 
-/// Spawn entry 3 of the room's task table.
-void func_mist_r18_8017E824(void)
+/// Starts the briefing's captured-backdrop transition to the next view.
+///
+/// Captures the current backdrop, waits for the replacement view and fades to
+/// its live frame. The script leaves view 2 after this request. Keep this
+/// overlay and frame resources live through the child's teardown; its spawn
+/// failure is ignored and no handle is retained here.
+static void _mistR18StartBackdropCrossfade(void)
 {
-    taskSpawnFromTable(D_mist_r18_80184F04, 3, 0, 0);
+    enum { MIST_R18_BACKDROP_CROSSFADE_TASK_INDEX = 3 };
+
+    taskSpawnFromTable(D_mist_r18_80184F04, MIST_R18_BACKDROP_CROSSFADE_TASK_INDEX, 0, NULL);
 }
 
 /// Dispatches the room's captured-backdrop crossfade.

@@ -1199,7 +1199,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomVisualEffectsSparkBurstTask, { NULL } },                      // 0x295
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsFlashTask, { NULL } },                           // 0x296
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsTwinTrailTask, { NULL } },                       // 0x297
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_back_street_8017ED1C, { NULL } },                                     // 0x298
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldBackStreetRoomVisualEffectsSparkBurstTask, { NULL } },                      // 0x298
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6CorridorPlayerHitGlowTask, { NULL } },                                     // 0x299
     { { { TASK_BODY_COORD, 0x70 } }, gunbladeChargeFlashTask, { NULL } },                                                // 0x29A
 };

@@ -70,7 +70,7 @@ u8 D_dryfield_night_motel_lobby_801844D8[7];
 
 #include "rooms/room_common.h"
 
-/// Task descriptor of the examine child task `func_dryfield_night_motel_lobby_80180E98`
+/// Task descriptor of the examine child task `_dryfieldNightMotelLobbyCashRegisterInitialize`
 /// spawns.
 extern TaskDesc D_dryfield_night_motel_lobby_80182814[];
 
@@ -94,7 +94,7 @@ enum {
     DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DISPLAY_CLUT     = 0x4000, // Palette at VRAM (0, 256)
 };
 
-static void func_dryfield_night_motel_lobby_80180E98(Task* task);
+static void _dryfieldNightMotelLobbyCashRegisterInitialize(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterArmCursor(Task* task);
 static void _dryfieldNightMotelLobbyCashRegisterOpenPrompt(Task* task);
 static void func_dryfield_night_motel_lobby_8018103C(Task* task);
@@ -109,7 +109,7 @@ static void _dryfieldNightMotelLobbyCashRegisterFinish(Task* task);
 /// `_dryfieldNightMotelLobbyCashRegisterTask`.
 static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
     {
-        func_dryfield_night_motel_lobby_80180E98,
+        _dryfieldNightMotelLobbyCashRegisterInitialize,
         _dryfieldNightMotelLobbyCashRegisterArmCursor,
         dryfieldNightMotelLobbyCashRegisterScanTask,
         _dryfieldNightMotelLobbyCashRegisterOpenPrompt,
@@ -888,42 +888,54 @@ static void _dryfieldNightMotelLobbyCashRegisterTask(Task* task)
 
 #include "../../shared/action_prompt_hit_test.inc.c"
 
-/// States of the examine task, in the order `D_dryfield_night_motel_lobby_8017D6B0`
-/// lists them.
-static void func_dryfield_night_motel_lobby_80180E98(Task* task)
+/// Clears keypad hit latches and fills every cash-register digit with the empty marker.
+///
+/// Requires the writable room hotspot run, including its end marker, and all
+/// seven digit slots. Retains the byte fill value and signed descending cursor.
+static inline void _dryfieldNightMotelLobbyResetCashRegisterInput(void)
 {
+    ActionPromptHotspot* hotspot;
+    u8*                  digit;
+    u8                   emptyDigit;
+    s32                  digitIndex;
+
+    for (hotspot = D_dryfield_night_motel_lobby_80182820; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+        hotspot->hit = 0;
+    }
+    // Fill backwards with a byte value and a separately initialized signed index.
+    emptyDigit = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY;
+    digitIndex = (s32)ARRAY_SIZE(D_dryfield_night_motel_lobby_801844D8) - 1;
+    digit      = &D_dryfield_night_motel_lobby_801844D8[digitIndex];
+    for (; digitIndex >= 0; digitIndex--) {
+        *digit-- = emptyDigit;
+    }
+}
+
+/// Initializes the cash-register interaction, its cursor and empty digit display.
+///
+/// State 0 owns zeroed work and retains an independent cursor child. Allocation
+/// failure kills the controller; cursor-spawn failure is left unchecked.
+/// Selects saved view 6, clears all keypad hits and seven digits, then holds
+/// normal play and HUD drawing until cancellation or completion. The overlay
+/// and cursor resources must remain loaded through that interaction.
+static void _dryfieldNightMotelLobbyCashRegisterInitialize(Task* task)
+{
+    enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_VIEW          = 6,
+           DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CURSOR_PORT_0 = 1 };
+
     DryfieldNightMotelLobbyCashRegisterWork* work;
-    ActionPromptHotspot*                     hs;
-    u8*                                      p;
-    u8                                       empty;
-    s32                                      i;
 
     work = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, 1, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_dryfield_night_motel_lobby_80182814, 0, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CURSOR_PORT_0, NULL);
     task->work                                                 = work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
-    /* The once-loop folds away, but `flow` counts its references at loop depth
-       2: without it the state load is scheduled above the mode store. */
-    do {
-        task->state++;
-    } while (0);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_VIEW;
+    task->state++;
     displayAcquireMenuHold();
-    for (hs = D_dryfield_night_motel_lobby_80182820; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
-        hs->hit = 0;
-    }
-    /* The fill value has to reach the store through a register and the pointer
-       has to be built from the index: a literal store, or a `&code[6]` folded
-       into the symbol, compiles to a different loop. */
-    empty = 0xA;
-    i     = 6;
-    p     = &D_dryfield_night_motel_lobby_801844D8[i];
-    for (; i >= 0; i--) {
-        *p-- = empty;
-    }
+    _dryfieldNightMotelLobbyResetCashRegisterInput();
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;

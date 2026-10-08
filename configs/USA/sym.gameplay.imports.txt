@@ -659,7 +659,7 @@ dryfieldBackStreetRoomVisualEffectsFlashTask = 0x8017D9D0; // type:func absolute
 
 dryfieldBackStreetRoomVisualEffectsTwinTrailTask = 0x8017E434; // type:func absolute:True owner=dryfield_back_street
 
-func_dryfield_back_street_8017ED1C = 0x8017ED1C; // type:func absolute:True owner=dryfield_back_street
+dryfieldBackStreetRoomVisualEffectsSparkBurstTask = 0x8017ED1C; // type:func absolute:True owner=dryfield_back_street
 
 
 dryfieldBreezewayBouncingParticleTask = 0x80181264; // type:func absolute:True owner=dryfield_breezeway

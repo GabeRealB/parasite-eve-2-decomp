@@ -48110,7 +48110,7 @@ about the file being compiled; it means `<psyq/libgpu.h>` is missing above
 `overlay_dup_index.py promote` refuses a body that references its own overlay's
 data, and that refusal covers *every* local symbol the body touches - the task
 descriptor it spawns from **and** the global it stores the spawned `Task*` into.
-`func_dryfield_main_street_8017E320` is three lines and still tripped it twice:
+`_dryfieldMainStreetSpawnPlayerHeadAimTask` is three lines and still tripped it twice:
 
 ```c
 RoomsShared8017e320Task = taskSpawnFromTable(&RoomsShared8017e320Desc, 1, 0, 0);
@@ -48134,7 +48134,7 @@ Two traps follow from doing that *before* running `promote`:
   It guards with `if sym not in sym_text`, a substring test, and
   `RoomsShared8017e320Desc` contains `RoomsShared8017e320`. The configs then look
   complete, the build re-splits, and the *data* section still emits
-  `func_dryfield_main_street_8017E320` for the descriptor's callback word:
+  `_dryfieldMainStreetSpawnPlayerHeadAimTask` for the descriptor's callback word:
   `undefined reference to 'func_…'` out of `<overlay>_data.data.s.o`. Add
   `RoomsShared<addr> = 0x<vram>; // shared body, see src/<family>/lib/` to each
   carrier by hand.
@@ -49413,7 +49413,7 @@ defect is the arity therefore reports as a two-instruction structural difference
 check `$a0` at the `jal` before reading the scheduler dumps. These room
 `INCLUDE_ASM` seeds are the same body copied across a family, so a matched
 sibling in another overlay usually already shows the right call — here
-`func_dryfield_back_street_8017D8B4` / `func_dryfield_water_hole_8017D7DC` /
+`_dryfieldBackStreetInitializeRoomTask` / `func_dryfield_water_hole_8017D7DC` /
 `func_mist_r21_8017D61C` all carry `gameSetTaskSlot(index, 7)` verbatim. Compare
 against one of those before reading the dumps.
 
@@ -86614,7 +86614,7 @@ neighbouring words say which kind. `_dryfieldBreezewayUseBottlecapMagnet` sits i
 `D_dryfield_breezeway_80182DD0` with `0x13F1` in the word before it and
 `TASK_MESSAGE_TABLE_END` after it: that is the `TaskMessageEntry` spelling above, a one-entry
 message table plus terminator. The room function that owns the table confirms
-it - `func_dryfield_breezeway_8017E464` stores `&D_dryfield_breezeway_80182DCC`
+it - `_dryfieldBreezewayInitializeKeyItemEvent` stores `&D_dryfield_breezeway_80182DCC`
 (the record's id half) into `Task::msgTable` and a `memCalloc(0x60, 0)` block
 into `Task::work`, and the handler reaches its work as `task->work`.
 
@@ -118811,7 +118811,7 @@ by `beqz $v0` turned up `_actor403100StepPlayerDrag`, whose C is
 RTL the fold eats, and name the mechanism. Reach for the matched corpus before
 guessing at a one-instruction shape like this.
 
-### A preheader constant emitted before the loop's own init is a source variable, not a hoisted literal; and a descending fill wants a pointer local (func_dryfield_night_motel_lobby_80180E98, 2026-09-17)
+### A preheader constant emitted before the loop's own init is a source variable, not a hoisted literal; and a descending fill wants a pointer local (_dryfieldNightMotelLobbyCashRegisterInitialize, 2026-09-17)
 
 **Symptom.** A seven-byte descending fill, `for (i = 6; i >= 0; i--) arr[i] = 0xA;`,
 came out with the preheader in the wrong order:
@@ -120554,7 +120554,7 @@ anti-dependence from every pending last-use and a dependence from every
 last-set onto the insn following the note, and flushes the pending memory
 lists. Everything after the note is pinned behind everything before it.
 
-**Symptom.** `func_dryfield_breezeway_8017E464` sat at 98.540% with `stack=0
+**Symptom.** `_dryfieldBreezewayInitializeKeyItemEvent` sat at 98.540% with `stack=0
 insert=0 delete=1 branch=4 regs=4 reorder=1` and a structure match: one
 instruction short (a load-delay `nop`) and four registers in a ten-instruction
 window. The target runs
@@ -122295,7 +122295,7 @@ Inputs: `base_1.c` (100.000%, all penalties zero), `base_3.c` (99.286%,
 
 ## A switch's zeros belong in `default:`, not in an init before the switch - and the default code is inlined per tree leaf (dryfield_back_street, 2026-09-17)
 
-`func_dryfield_back_street_8017D5D0` is the warehouse ambience sibling
+`_dryfieldBackStreetAmbienceTask` is the warehouse ambience sibling
 (`dryfieldWarehouseAmbienceTask`, "a switch's shared tail belongs after the
 switch") with one difference: the view it maps comes from `viewGetMappedIndex()`
 instead of `gGameSession->location.loc.view`, it also carries a stereo pan, and its two
@@ -122336,7 +122336,7 @@ Inputs: `base_3.i` (100%) SHA256
 `b0c24cbb89d96d7207573c1ec1ee1716ddb912448ea92e972d16c9e18845f215`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
-`nonmatchings/func_dryfield_back_street_8017D5D0-vacuum`.
+`nonmatchings/_dryfieldBackStreetAmbienceTask-vacuum`.
 
 ## A small initialised local array whose target has `li` + `sh` stores wants the element stores, not an initializer (_neoArkPyramidDrawRotationPuzzleQuad, 2026-09-17)
 
@@ -139448,7 +139448,7 @@ matched. The explicit `(ot & mask) | (tag & 0xFF000000)` spelling still
 swapped `v0`/`v1`, because the `ior` ties to its first dying operand, and
 `store_fixed_bit_field` puts the masked tag first.
 
-### A store in a `pointIndex` delay slot that repeats the insn just before the jump's target is one store at the join (func_mine_cavern_801830F0, 2026-09-23)
+### A store in a `pointIndex` delay slot that repeats the insn just before the jump's target is one store at the join (_mineCavernTargetCheckHit, 2026-09-23)
 
 A search loop's "found" arm ended `lw v0,4(v1)` / `pointIndex L+4` / `sw v0,0x1C(s1)`,
 and the fall-out path ended `move v0,zero` / `L: sw v0,0x1C(s1)`. Writing the

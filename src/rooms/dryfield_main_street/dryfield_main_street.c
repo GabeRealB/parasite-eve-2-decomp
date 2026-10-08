@@ -104,7 +104,7 @@ extern s32 D_dryfield_main_street_80180ED0;
 extern EvsCommand D_dryfield_main_street_80181624[];
 extern EvsCommand D_dryfield_main_street_80181A14[];
 
-/// Descriptor of the task `func_dryfield_main_street_8017E320` spawns.
+/// Descriptor of the task `_dryfieldMainStreetSpawnPlayerHeadAimTask` spawns.
 extern TaskDesc D_dryfield_main_street_8018156C[];
 
 /// The room effect mode of each view, indexed by view - 1.
@@ -135,7 +135,7 @@ extern RoomEventReq gRoomEventReq;
 /// Set by the event gate when its last call latched a request and spawned the
 /// event task; every call clears it first.
 
-/// The task `func_dryfield_main_street_8017E320` spawned, until it is killed
+/// The task `_dryfieldMainStreetSpawnPlayerHeadAimTask` spawned, until it is killed
 /// or forgotten.
 extern Task* D_dryfield_main_street_80185630;
 
@@ -155,7 +155,7 @@ extern AnimationPlayRequest D_dryfield_main_street_801815C0;
 extern AnimationPlayRequest D_dryfield_main_street_801815D4;
 extern ActorTransform       D_dryfield_main_street_801815E8;
 static void                 _dryfieldMainStreetBeginFirstVisitBattle(s32 unusedBattleArg);
-void                        func_dryfield_main_street_8017E320(void);
+static void                 _dryfieldMainStreetSpawnPlayerHeadAimTask(void);
 static void                 _dryfieldMainStreetSetPlayerHeadAim(s32 command);
 
 static s32  _dryfieldMainStreetRejectKeyItemUse(Task* receiver, s32 messageId, s32 itemId, s32 unusedArg);
@@ -286,7 +286,7 @@ EvsCommand D_dryfield_main_street_80181624[42] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_main_street_801815E8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_main_street_80181618 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_main_street_8017E320 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldMainStreetSpawnPlayerHeadAimTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldMainStreetSetPlayerHeadAim }, { .value = DRYFIELD_MAIN_STREET_HEAD_AIM_ENABLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_main_street_801815D4 }, { .value = 0 } },
@@ -1124,11 +1124,16 @@ static void _dryfieldMainStreetBeginFirstVisitBattle(s32 unusedBattleArg)
     itemSetIdentified(INVENTORY_COLLECTION_ID_NMC_PHOTO, 1);
 }
 
-/// Spawns the ramp task described at `D_dryfield_main_street_8018156C` and
-/// keeps it in `D_dryfield_main_street_80185630`.
-void func_dryfield_main_street_8017E320(void)
+/// Spawns and retains the first-visit scene's player head-aim task.
+///
+/// Requires the room resources and live player model while the task runs.
+/// Each call replaces the retained handle, including on allocation failure;
+/// the script must stop or forget the previous task before another spawn.
+static void _dryfieldMainStreetSpawnPlayerHeadAimTask(void)
 {
-    D_dryfield_main_street_80185630 = taskSpawnFromTable(D_dryfield_main_street_8018156C, 1, 0, 0);
+    enum { DRYFIELD_MAIN_STREET_HEAD_AIM_TASK_INDEX = 1 };
+
+    D_dryfield_main_street_80185630 = taskSpawnFromTable(D_dryfield_main_street_8018156C, DRYFIELD_MAIN_STREET_HEAD_AIM_TASK_INDEX, 0, NULL);
 }
 
 /// Enables, disables or stops the retained player head-aim task.

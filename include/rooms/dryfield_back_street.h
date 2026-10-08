@@ -53,7 +53,15 @@ void dryfieldBackStreetRoomVisualEffectsFlashTask(Task* task);
 /// without cancelling. Requires a live `gRoomEffectState` and loaded room overlay.
 void dryfieldBackStreetRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_dryfield_back_street_8017ED1C(Task* task);
+/// Runs Back Street's impact flash followed by smoke or orange rings and sparks.
+///
+/// Starts in state 0 with a coordinate body and zero-aged counted `EffectWork`
+/// in `spawnArg2.pointer` from `effectSpawn`. Nonzero `spawnArg1.value` selects
+/// smoke; zero selects rings and two independent bouncing sparks. Enters
+/// release at active age seven and frees work on the next active tick. Nonzero
+/// room control pauses below four and cancels at four or above. Requires live
+/// room-effect state and the loaded room overlay through teardown.
+void dryfieldBackStreetRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Selects Back Street's enemy effects and enables ambient effects in the current view.
 ///

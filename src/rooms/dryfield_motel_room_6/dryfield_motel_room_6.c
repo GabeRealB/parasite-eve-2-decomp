@@ -191,7 +191,7 @@ extern WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13];
 extern WorldCoordRoomLights       D_dryfield_motel_room_6_801866C0[1];
 static s32                        _dryfieldMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32                        _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-s32                               func_dryfield_motel_room_6_801819A8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32                        _dryfieldMotelRoom6HandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32                        _dryfieldMotelRoom6IgnoreSoundMessage(Task* receiver, s32 messageId, s32 soundCommand, s32 unusedSecondArg);
 static void                       _dryfieldMotelRoom6RunActorEventTask(Task* task);
 
@@ -226,7 +226,7 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskMessageEntry D_dryfield_motel_room_6_80182D48[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom6GateWaterTowerExit },
     { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom6RejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_6_801819A8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldMotelRoom6HandleRoomAction },
     { ROOM_MESSAGE_SOUND, _dryfieldMotelRoom6IgnoreSoundMessage },
     { ROOM_MESSAGE_COMMAND, motelRoom6CutsceneMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -2078,20 +2078,25 @@ static s32 _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, cons
     return DRYFIELD_MOTEL_ROOM_6_EXIT_INTERCEPTED;
 }
 
-/// Handler for a slot-7 msg `0x13EF` request (`DirectionActionRequest`) whose sub-id
-/// (`actionId`) is clear: the first time it runs it latches nibble 0x31 and
-/// arms the room's script task from `D_dryfield_motel_room_6_80182D78`.
-/// This gate answers 1. The sibling `_acropolisSecurityRoomHandleAction` leaves
-/// its reply unspecified; `func_acropolis_sanctuary_8017D848` answers 0.
-s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, const void* firstArg, s32 arg3)
+/// Starts the room's actor event on its first action-zero request, returning one.
+///
+/// Borrows the four-byte direction request for synchronous dispatch; its
+/// argument byte is ignored. Latches progress before spawning, so a failed
+/// spawn is not retried. Other actions and repeated requests still return one.
+/// The receiver, message ID and zero second payload are unused. Requires the
+/// room and actor_120500 resources to remain loaded through the spawned event.
+static s32 _dryfieldMotelRoom6HandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { DRYFIELD_MOTEL_ROOM_6_ACTION_ACTOR_EVENT = 0,
+           DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_UNSEEN = 0,
+           DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_SEEN   = 1,
+           DRYFIELD_MOTEL_ROOM_6_ACTION_HANDLED     = 1 };
 
-    if (request->actionId == 0 && gameFlagGetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031) == 0) {
-        gameFlagSetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031, 1);
+    if (request->actionId == DRYFIELD_MOTEL_ROOM_6_ACTION_ACTOR_EVENT && gameFlagGetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031) == DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_UNSEEN) {
+        gameFlagSetNibble(GAME_FLAG_DRYFIELD_MOTEL_ROOM_6_031, DRYFIELD_MOTEL_ROOM_6_ACTOR_EVENT_SEEN);
         taskSpawnFromTable(D_dryfield_motel_room_6_80182D78, 0, 0, 0);
     }
-    return 1;
+    return DRYFIELD_MOTEL_ROOM_6_ACTION_HANDLED;
 }
 
 /// Ignores room sound commands in daytime motel room 6 and returns zero.

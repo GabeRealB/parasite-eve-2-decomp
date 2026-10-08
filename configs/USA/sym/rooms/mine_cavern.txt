@@ -320,3 +320,5 @@ mineCavernTargetTask = 0x80183a68; // type:func
 mineCavernTargetRemainsTask = 0x80183c10; // type:func
 _mineCavernTargetRemainsSpawn = 0x801836d0; // type:func
 _mineCavernTargetRemainsTick = 0x80183ad4; // type:func
+_mineCavernTargetSpawn = 0x80182e34; // type:func
+_mineCavernTargetCheckHit = 0x801830f0; // type:func

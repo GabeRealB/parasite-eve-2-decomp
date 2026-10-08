@@ -139,3 +139,4 @@ dryfieldNightMotelLobbyCashRegisterScanTask = 0x8017fe90; // type:func
 _dryfieldNightMotelLobbyInitializeRoomTask = 0x8017fd9c; // type:func
 dryfieldNightMotelLobbyRoomTask = 0x8017fe38; // type:func
 _dryfieldNightMotelLobbyCashRegisterTask = 0x80180d58; // type:func
+_dryfieldNightMotelLobbyCashRegisterInitialize = 0x80180e98; // type:func

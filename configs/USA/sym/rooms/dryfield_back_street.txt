@@ -48,7 +48,7 @@ dryfieldBackStreetRoomVisualEffectsFlashTask = 0x8017D9D0; // type:func
 
 dryfieldBackStreetRoomVisualEffectsTwinTrailTask = 0x8017E434; // type:func
 
-func_dryfield_back_street_8017ED1C = 0x8017ED1C; // type:func
+dryfieldBackStreetRoomVisualEffectsSparkBurstTask = 0x8017ED1C; // type:func
 
 dryfieldBackStreetConfigureEffectsTask = 0x8017D970; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017DC74; // type:func
@@ -61,3 +61,5 @@ _dryfieldBackStreetIgnoreCommandMessage = 0x8017d8a4; // type:func
 _dryfieldBackStreetIgnoreRoomActionMessage = 0x8017d8ac; // type:func
 _dryfieldBackStreetIdleState = 0x8017d910; // type:func
 dryfieldBackStreetRoomTask = 0x8017d918; // type:func
+_dryfieldBackStreetAmbienceTask = 0x8017d5d0; // type:func
+_dryfieldBackStreetInitializeRoomTask = 0x8017d8b4; // type:func

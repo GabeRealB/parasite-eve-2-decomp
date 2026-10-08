@@ -317,14 +317,14 @@ static void                       _dryfieldNightGasStationStageSceneAudioStart(v
 static void                       _dryfieldNightGasStationEnqueueScenePlayback(void);
 static void                       _dryfieldNightGasStationFinishScenePlayback(void);
 static void                       _dryfieldNightGasStationCancelScenePlayback(void);
-void                              func_dryfield_night_gas_station_801807A0(void);
+static void                       _dryfieldNightGasStationSpawnCompanionHeadAimTask(void);
 static void                       _dryfieldNightGasStationSetCompanionHeadAim(s32 aimMode);
 static void                       _dryfieldNightGasStationEngageBattle(s32 unusedArg);
-void                              func_dryfield_night_gas_station_80180940(void);
+static void                       _dryfieldNightGasStationSpawnTrackRedStreakTask(void);
 static void                       _dryfieldNightGasStationStopRedStreakTask(void);
-void                              func_dryfield_night_gas_station_80180A00(void);
+static void                       _dryfieldNightGasStationSpawnSpriteFlickerTask(void);
 static void                       _dryfieldNightGasStationStopSpriteFlicker(void);
-void                              func_dryfield_night_gas_station_80180B04(void);
+static void                       _dryfieldNightGasStationSpawnCompanionRedStreakTask(void);
 static void                       _dryfieldNightGasStationStopCompanionRedStreakTask(void);
 static void                       _dryfieldNightGasStationCancelCutsceneEffects(void);
 static void                       _dryfieldNightGasStationSetCutsceneSpritesHidden(s32 hiddenArgumentWord);
@@ -963,8 +963,8 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_night_gas_station_80188994 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1010 }, { .message = { .pointer = &D_dryfield_night_gas_station_801889AC } }, { .message = { .pointer = &D_dryfield_night_gas_station_801889DC } } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_801807A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_80180A00 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationSpawnCompanionHeadAimTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationSpawnSpriteFlickerTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCutsceneSpritesHidden }, { .value = DRYFIELD_NIGHT_GAS_STATION_CUTSCENE_SPRITES_HIDDEN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_dryfield_night_gas_station_80188B5C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationStageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1007,7 +1007,7 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 10 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_night_gas_station_80188AE0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B54 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_80180B04 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationSpawnCompanionRedStreakTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldNightGasStationSetCompanionHeadAim }, { .value = DRYFIELD_NIGHT_GAS_STATION_HEAD_AIM_OFF }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1015,7 +1015,7 @@ EvsCommand D_dryfield_night_gas_station_801892E4[81] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B44 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_gas_station_80180940 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationSpawnTrackRedStreakTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .command = &D_dryfield_night_gas_station_80188B48 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGasStationStopRedStreakTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -3022,11 +3022,16 @@ static void _dryfieldNightGasStationCancelScenePlayback(void)
     cdCmdCancelScene();
 }
 
-/// Spawns entry 0 of the room's task table and tracks it in
-/// `D_dryfield_night_gas_station_801907A4`.
-void func_dryfield_night_gas_station_801807A0(void)
+/// Spawns and retains the player's cutscene head aim toward the companion.
+///
+/// Each call replaces the saved aim handle, including on allocation failure.
+/// The script must release an earlier aim task before calling again. Both actor
+/// models and this overlay must remain loaded while the task borrows them.
+static void _dryfieldNightGasStationSpawnCompanionHeadAimTask(void)
 {
-    D_dryfield_night_gas_station_801907A4 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, 0, 0, 0);
+    enum { DRYFIELD_NIGHT_GAS_STATION_HEAD_AIM_TASK_INDEX = 0 };
+
+    D_dryfield_night_gas_station_801907A4 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, DRYFIELD_NIGHT_GAS_STATION_HEAD_AIM_TASK_INDEX, 0, NULL);
 }
 
 /// Enables, fades out or stops the player's head aim toward the companion.
@@ -3100,11 +3105,17 @@ static void _dryfieldNightGasStationEngageBattle(s32 unusedArg)
     sceneEngageBattle(unusedArg);
 }
 
-/// Spawns entry 1 of the room's task table and tracks it in
-/// `D_dryfield_night_gas_station_801907A8`.
-void func_dryfield_night_gas_station_80180940(void)
+/// Spawns and retains the cutscene's baked-track red streak.
+///
+/// Owns a coordinate body and plays 100 samples once. Each call replaces the
+/// shared streak handle, including on allocation failure. The script must stop
+/// an earlier streak first and clear this handle before automatic expiry;
+/// expiry releases the task without clearing the saved handle.
+static void _dryfieldNightGasStationSpawnTrackRedStreakTask(void)
 {
-    D_dryfield_night_gas_station_801907A8 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, 1, 0, 0);
+    enum { DRYFIELD_NIGHT_GAS_STATION_TRACK_STREAK_TASK_INDEX = 1 };
+
+    D_dryfield_night_gas_station_801907A8 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, DRYFIELD_NIGHT_GAS_STATION_TRACK_STREAK_TASK_INDEX, 0, NULL);
 }
 
 /// Requests deferred teardown of the room's current red-streak effect task.
@@ -3140,11 +3151,17 @@ static void _dryfieldNightGasStationTrackRedStreakTask(Task* task)
     taskKill(task);
 }
 
-/// Spawns the room's second tracked task (entry 2 of the room's task table) and
-/// stores it beside `D_dryfield_night_gas_station_801907A8`.
-void func_dryfield_night_gas_station_80180A00(void)
+/// Spawns and retains the cutscene's looping sprite-visibility controller.
+///
+/// Loops the 100-sample track's visibility bit. Each call replaces the flicker
+/// handle, including on allocation failure; the script must stop any earlier
+/// controller first. Requires the overlay and flicker sprite resources until
+/// the stop request hides the sprites and releases the task.
+static void _dryfieldNightGasStationSpawnSpriteFlickerTask(void)
 {
-    D_dryfield_night_gas_station_801907AC = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, 2, 0, 0);
+    enum { DRYFIELD_NIGHT_GAS_STATION_SPRITE_FLICKER_TASK_INDEX = 2 };
+
+    D_dryfield_night_gas_station_801907AC = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, DRYFIELD_NIGHT_GAS_STATION_SPRITE_FLICKER_TASK_INDEX, 0, NULL);
 }
 
 /// Requests the cutscene sprite-flicker task's exit and releases its tracked handle.
@@ -3188,11 +3205,17 @@ static void _dryfieldNightGasStationSpriteFlickerTask(Task* task)
     }
 }
 
-/// Spawns the room's third tracked task (entry 3 of the room's task table) and stores
-/// it in `D_dryfield_night_gas_station_801907A8`, the slot the room's teardown clears.
-void func_dryfield_night_gas_station_80180B04(void)
+/// Spawns and retains the cutscene's red streak attached to the companion.
+///
+/// Uses the same handle as the baked-track streak, replacing it even on spawn
+/// failure. The script must stop an earlier streak first and clear this handle
+/// before automatic expiry at 100 active ticks. The live companion model and
+/// overlay must outlast the task's drawing and coordinate-body teardown.
+static void _dryfieldNightGasStationSpawnCompanionRedStreakTask(void)
 {
-    D_dryfield_night_gas_station_801907A8 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, 3, 0, 0);
+    enum { DRYFIELD_NIGHT_GAS_STATION_COMPANION_STREAK_TASK_INDEX = 3 };
+
+    D_dryfield_night_gas_station_801907A8 = taskSpawnFromTable(D_dryfield_night_gas_station_801888A0, DRYFIELD_NIGHT_GAS_STATION_COMPANION_STREAK_TASK_INDEX, 0, NULL);
 }
 
 /// Requests deferred teardown of the cutscene's tracked companion red streak.

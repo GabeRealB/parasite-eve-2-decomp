@@ -110,3 +110,4 @@ _dryfieldBreezewayKeyItemEventTask = 0x8017fc38; // type:func
 _dryfieldBreezewayOpenKeyItemCommands = 0x8017fd9c; // type:func
 _dryfieldBreezewayDrawRedDiamondGlow = 0x8018034c; // type:func
 _dryfieldBreezewayDrawBouncingParticle = 0x80181938; // type:func
+_dryfieldBreezewayInitializeKeyItemEvent = 0x8017e464; // type:func
