@@ -286,7 +286,7 @@ D_neo_ark_woodland_path_8018445C = 0x8018445C; // absolute:True owner=neo_ark_wo
 D_neo_ark_woodland_path_8018477C = 0x8018477C; // absolute:True owner=neo_ark_woodland_path shared=rooms
 D_neo_ark_woodland_path_801847D4 = 0x801847D4; // absolute:True owner=neo_ark_woodland_path shared=rooms
 D_neo_ark_woodland_path_80184910 = 0x80184910; // absolute:True owner=neo_ark_woodland_path shared=rooms
-func_neo_ark_submarine_gallery_8017EBCC = 0x8017EBCC; // type:func absolute:True owner=neo_ark_submarine_gallery
+neoArkSubmarineGalleryMessageTask = 0x8017EBCC; // type:func absolute:True owner=neo_ark_submarine_gallery
 D_neo_ark_submarine_gallery_80181A08 = 0x80181A08; // absolute:True owner=neo_ark_submarine_gallery
 D_neo_ark_submarine_gallery_80181A0C = 0x80181A0C; // absolute:True owner=neo_ark_submarine_gallery
 D_neo_ark_submarine_gallery_80181A10 = 0x80181A10; // absolute:True owner=neo_ark_submarine_gallery

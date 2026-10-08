@@ -108,3 +108,7 @@ _screenWaveTask = 0x8017E828; // type:func
 waterDistortBandTask = 0x8017E288; // type:func
 waterRefractionTask = 0x8017D634; // type:func
 _screenWaveRun = 0x8017F318; // type:func
+_neoArkSubmarineTunnelRejectKeyItemUse = 0x8017f27c; // type:func
+_neoArkSubmarineTunnelResolveRoomEvent = 0x8017f284; // type:func
+_neoArkSubmarineTunnelSetEventSeen = 0x8017f398; // type:func
+_neoArkSubmarineTunnelMessageTaskIdle = 0x8017f414; // type:func

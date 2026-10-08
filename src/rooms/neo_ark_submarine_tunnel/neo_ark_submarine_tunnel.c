@@ -72,12 +72,12 @@ extern TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[];
 extern EvsCommand D_neo_ark_submarine_tunnel_80181AF0[];
 
 static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0);
-static void func_neo_ark_submarine_tunnel_8017F414(Task* task);
+static void _neoArkSubmarineTunnelMessageTaskIdle(Task* task);
 
-s32 func_neo_ark_submarine_tunnel_8017F064(Task*, s32, RoomEventMsg*, s32);
-s32 func_neo_ark_submarine_tunnel_8017F27C(Task*, s32, s32, s32);
-s32 func_neo_ark_submarine_tunnel_8017F284(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_submarine_tunnel_8017F2C8(Task*, s32, s32, s32);
+s32        func_neo_ark_submarine_tunnel_8017F064(Task*, s32, RoomEventMsg*, s32);
+static s32 _neoArkSubmarineTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32 _neoArkSubmarineTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+s32        func_neo_ark_submarine_tunnel_8017F2C8(Task*, s32, s32, s32);
 
 static AnimationSet _gNeoArkSubmarineTunnelAnimation03EE0;
 static AnimationSet _gNeoArkSubmarineTunnelAnimation0444C;
@@ -85,7 +85,9 @@ static AnimationSet _gNeoArkSubmarineTunnelAnimation0444C;
 extern AnimationPlayRequest     D_neo_ark_submarine_tunnel_80181A88;
 extern AnimationPlayRequest     D_neo_ark_submarine_tunnel_80181A9C;
 extern AnimationBankCopyRequest D_neo_ark_submarine_tunnel_80181A80;
-void                            func_neo_ark_submarine_tunnel_8017F398(s32);
+static void                     _neoArkSubmarineTunnelSetEventSeen(s32 seenValue);
+
+enum { NEO_ARK_SUBMARINE_TUNNEL_EVENT_SEEN = 1 };
 
 TaskDesc D_neo_ark_submarine_tunnel_801810E4 = { { { TASK_BODY_NONE, 192 } }, waterRefractionTask, { .value = 0 } };
 
@@ -143,8 +145,8 @@ TaskDesc gScreenWaveTaskDesc[2] = {
 s32 gScreenWaveRamp = 256;
 
 TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_submarine_tunnel_8017F284 },
-    { 5105, func_neo_ark_submarine_tunnel_8017F27C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSubmarineTunnelResolveRoomEvent },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkSubmarineTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_submarine_tunnel_8017F064 },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_submarine_tunnel_8017F2C8 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -203,7 +205,7 @@ EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_neo_ark_submarine_tunnel_8017F398 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _neoArkSubmarineTunnelSetEventSeen }, { .value = NEO_ARK_SUBMARINE_TUNNEL_EVENT_SEEN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -214,10 +216,10 @@ EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
 
 /// State handlers of the room task `func_neo_ark_submarine_tunnel_8017F434`
 /// runs: `func_neo_ark_submarine_tunnel_8017F3BC` sets it up,
-/// `func_neo_ark_submarine_tunnel_8017F414` runs every later tick, and
+/// `_neoArkSubmarineTunnelMessageTaskIdle` runs every later tick, and
 /// `taskKill` ends it.
 static const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
-    { func_neo_ark_submarine_tunnel_8017F3BC, func_neo_ark_submarine_tunnel_8017F414, taskKill }
+    { func_neo_ark_submarine_tunnel_8017F3BC, _neoArkSubmarineTunnelMessageTaskIdle, taskKill }
 };
 
 #include "../../shared/screen_wave.inc.c"
@@ -264,19 +266,27 @@ s32 func_neo_ark_submarine_tunnel_8017F064(Task* arg0, s32 arg1, RoomEventMsg* a
     return 0;
 }
 
-/// Answers 0 unconditionally.
-s32 func_neo_ark_submarine_tunnel_8017F27C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use with the item menu's cannot-use reply.
+///
+/// `itemId` is the selected inventory item ID; all arguments are ignored.
+static s32 _neoArkSubmarineTunnelRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Save-location message handler: copies the incoming `RoomEventMsg` onto the
-/// outgoing one, forwards both to `mapNeoArkResolveRoomVariant` and answers 1.
-s32 func_neo_ark_submarine_tunnel_8017F284(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Allows a Neo Ark room transition after resolving its destination variant.
+///
+/// Borrows a complete request and writable reply through synchronous dispatch;
+/// they may alias. Copies all eight bytes before resolving the reply's room.
+/// Query mode preserves the requested selectors. Neither pointer is retained;
+/// the map overlay must be loaded. Always returns 1; the task and ID are unused.
+static s32 _neoArkSubmarineTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { NEO_ARK_SUBMARINE_TUNNEL_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return NEO_ARK_SUBMARINE_TUNNEL_TRANSITION_ALLOWED;
 }
 
 /// Message 0x13F0 handler: for an `arg2` of 4 or 5, and only while the
@@ -295,9 +305,13 @@ s32 func_neo_ark_submarine_tunnel_8017F2C8(Task* task, s32 msgId, s32 arg2, s32 
 
 #include "../../shared/screen_wave_run.inc.c"
 
-void func_neo_ark_submarine_tunnel_8017F398(s32 arg0)
+/// Stores the tunnel event's seen value in the live save's game-flag nibble.
+///
+/// The event script passes 1 at completion. The callback accepts a full signed
+/// word; the flag writer stores its low four bits (0 clear, 1 seen).
+static void _neoArkSubmarineTunnelSetEventSeen(s32 seenValue)
 {
-    gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN, arg0);
+    gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN, seenValue);
 }
 
 /// First state of the room task: installs the room's message table, publishes
@@ -310,8 +324,10 @@ static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// Later states of the room task: reads pointer slot 3 and discards it.
-static void func_neo_ark_submarine_tunnel_8017F414(Task* task)
+/// Keeps the initialized room-message task idle between incoming messages.
+///
+/// The player-slot lookup has no result consumer, but remains part of this tick.
+static void _neoArkSubmarineTunnelMessageTaskIdle(Task* task)
 {
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 }

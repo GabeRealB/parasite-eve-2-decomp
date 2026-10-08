@@ -3,6 +3,7 @@
 
 #include "types.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/message.h"
 
 #include "main/task_types.h"
@@ -15,13 +16,27 @@ extern TaskDesc D_neo_ark_submarine_gallery_801818AC;
 
 void func_neo_ark_submarine_gallery_8017E86C(Task*);
 
-s32 func_neo_ark_submarine_gallery_8017EA04(Task*, s32, s32, s32);
+/// Refuses every key-item use with the item menu's cannot-use reply.
+///
+/// `itemId` is the selected inventory item ID; all arguments are ignored.
+s32 neoArkSubmarineGalleryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 
 s32 func_neo_ark_submarine_gallery_8017EA0C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_neo_ark_submarine_gallery_8017EABC(Task*, s32, s32, s32);
+/// Selects a gallery CAP event for room commands 2 and 3.
+///
+/// Command 2 selects an event by encounter activity; command 3 selects an event
+/// by full-disc variant, engaged battle or idle room, in that order.
+/// Starts the selected event only while CAP is idle. Other commands do nothing;
+/// returns zero in every case. The receiver, message ID and final word are unused.
+/// Requires gallery CAP commands 2..6 and their resources to remain loaded
+/// through the queued event.
+s32 neoArkSubmarineGalleryHandleCapCommand(Task* task, s32 messageId, s32 commandIndex, s32 unused);
 
-s32 func_neo_ark_submarine_gallery_8017EB48(Task*, s32, s32, s32);
+/// Ignores room actions and returns zero without changing room state.
+///
+/// The borrowed request and the other callback arguments are unused.
+s32 neoArkSubmarineGalleryIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
 
 /// Runs the red disc's radius and drawing lifecycle.
 ///

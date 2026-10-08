@@ -51,3 +51,5 @@ _glowDrawCapsule = 0x8017DA50; // type:func
 _neoArkSubstationRejectKeyItemUse = 0x8017d71c; // type:func
 _neoArkSubstationIgnoreRoomAction = 0x8017d7a4; // type:func
 _neoArkSubstationMessageTaskIdle = 0x8017d814; // type:func
+_neoArkSubstationAmbienceTask = 0x8017d608; // type:func
+_neoArkSubstationResolveRoomEvent = 0x8017d724; // type:func

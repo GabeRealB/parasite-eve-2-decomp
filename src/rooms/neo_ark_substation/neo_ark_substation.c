@@ -66,11 +66,11 @@ static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
     taskKill,
 };
 
-void       func_neo_ark_substation_8017D608(Task*);
-static s32 _neoArkSubstationRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
-s32        func_neo_ark_substation_8017D724(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_neo_ark_substation_8017D768(Task*, s32, s32, s32);
-static s32 _neoArkSubstationIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
+static void _neoArkSubstationAmbienceTask(Task* task);
+static s32  _neoArkSubstationRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32  _neoArkSubstationResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+s32         func_neo_ark_substation_8017D768(Task*, s32, s32, s32);
+static s32  _neoArkSubstationIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
 
 /// Key-item menu request and the reply that displays the cannot-use notice.
 enum {
@@ -84,7 +84,7 @@ extern WorldCollisionTrigger D_neo_ark_substation_8017FFEC[10];
 extern WorldCoordRoomLights  D_neo_ark_substation_8017FC44[1];
 
 TaskMessageEntry D_neo_ark_substation_8017E294[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_substation_8017D724 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSubstationResolveRoomEvent },
     { NEO_ARK_SUBSTATION_MESSAGE_USE_KEY_ITEM, _neoArkSubstationRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSubstationIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_substation_8017D768 },
@@ -92,7 +92,7 @@ TaskMessageEntry D_neo_ark_substation_8017E294[5] = {
 };
 
 TaskDesc D_neo_ark_substation_8017E2BC[1] = {
-    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_substation_8017D608, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _neoArkSubstationAmbienceTask, { .value = 0 } },
 };
 
 RoomAmbienceEntry D_neo_ark_substation_8017E2C8[9] = {
@@ -517,47 +517,68 @@ WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[8] = {
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-/// Keeps the substation's looping ambience in step with the area the session is
-/// in: `gGameSession->location.loc.view` selects one of the room's nine `(panOffset, attenuation)`
-/// entries, and state 0 starts that loop with `sndEvtRequestScriptStart`. States 1
-/// through 4 then watch for the session's index to stop matching the area
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` publishes - state 1 tests the pair and 2, 3 and 4 walk the task
-/// along - and state 5 updates the playing loop's pan and attenuation from
-/// the new view's table entry with `sndEvtRequestScriptMix`, then returns
-/// to state 1 to keep watching.
-void func_neo_ark_substation_8017D608(Task* task)
+/// Starts and retunes the substation's ambience loop for the session's view slot.
+///
+/// Requires a live task in state 0..5 and keeps no work allocation. State 0
+/// starts the loop; state 1 waits for the session and live-save views to differ;
+/// states 2..4 delay three task ticks before state 5 retunes to the current view.
+/// Slots 0..8 select the table's unscaled pan offset and attenuation, otherwise
+/// both are zero. Queue arguments narrow to s8: one pan unit is three SPU pan
+/// steps, and attenuation 127 is silent. This task does not stop the loop.
+static void _neoArkSubstationAmbienceTask(Task* task)
 {
-    s32 pan;
+    enum {
+        NEO_ARK_SUBSTATION_AMBIENCE_STATE_START   = 0,
+        NEO_ARK_SUBSTATION_AMBIENCE_STATE_WAIT    = 1,
+        NEO_ARK_SUBSTATION_AMBIENCE_STATE_DELAY_1 = 2,
+        NEO_ARK_SUBSTATION_AMBIENCE_STATE_DELAY_2 = 3,
+        NEO_ARK_SUBSTATION_AMBIENCE_STATE_DELAY_3 = 4,
+        NEO_ARK_SUBSTATION_AMBIENCE_STATE_RETUNE  = 5,
+    };
+    s32 panOffset;
     s32 attenuation;
-    u8  idx;
+    u8  viewIndex;
 
-    idx = gGameSession->location.loc.view;
-    if (idx < ARRAY_SIZE(D_neo_ark_substation_8017E2C8)) {
-        pan         = D_neo_ark_substation_8017E2C8[idx].panOffset;
-        attenuation = D_neo_ark_substation_8017E2C8[idx].attenuation;
-    } else {
-        pan         = 0;
-        attenuation = 0;
+    /// Selects the current view's unscaled ambience mix, or the base mix.
+    ///
+    /// Captures `viewIndex`, `panOffset`, `attenuation` and the room's complete
+    /// ambience table. Slots 0..8 index the table; higher slots select zero for
+    /// both outputs. Writes both s32 locals with signed-halfword loads and
+    /// evaluates no arguments. Undefined immediately after its sole expansion.
+#define NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX()                                  \
+    {                                                                           \
+        if (viewIndex < ARRAY_SIZE(D_neo_ark_substation_8017E2C8)) {            \
+            panOffset   = D_neo_ark_substation_8017E2C8[viewIndex].panOffset;   \
+            attenuation = D_neo_ark_substation_8017E2C8[viewIndex].attenuation; \
+        } else {                                                                \
+            panOffset   = 0;                                                    \
+            attenuation = 0;                                                    \
+        }                                                                       \
     }
 
+    viewIndex = gGameSession->location.loc.view;
+    NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX();
+#undef NEO_ARK_SUBSTATION_READ_AMBIENCE_MIX
+
     switch (task->state) {
-        case 0:
-            sndEvtRequestScriptStart(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)attenuation);
+        case NEO_ARK_SUBSTATION_AMBIENCE_STATE_START:
+            sndEvtRequestScriptStart(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)panOffset, (s8)attenuation);
             task->state = task->state + 1;
             break;
-        case 1:
+        case NEO_ARK_SUBSTATION_AMBIENCE_STATE_WAIT:
+            // Let the view transition settle before changing the playing mix.
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
                 task->state = task->state + 1;
             }
             break;
-        case 2:
-        case 3:
-        case 4:
+        case NEO_ARK_SUBSTATION_AMBIENCE_STATE_DELAY_1:
+        case NEO_ARK_SUBSTATION_AMBIENCE_STATE_DELAY_2:
+        case NEO_ARK_SUBSTATION_AMBIENCE_STATE_DELAY_3:
             task->state = task->state + 1;
             break;
-        case 5:
-            sndEvtRequestScriptMix(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)pan, (s8)attenuation);
-            task->state = 1;
+        case NEO_ARK_SUBSTATION_AMBIENCE_STATE_RETUNE:
+            sndEvtRequestScriptMix(SOUND_NEO_ARK_SUBSTATION_AMBIENCE, (s8)panOffset, (s8)attenuation);
+            task->state = NEO_ARK_SUBSTATION_AMBIENCE_STATE_WAIT;
             break;
     }
 }
@@ -570,14 +591,19 @@ static s32 _neoArkSubstationRejectKeyItemUse(Task* task, s32 messageId, s32 item
     return NEO_ARK_SUBSTATION_KEY_ITEM_UNUSABLE;
 }
 
-/// Handler the room's message table gives message 0x13EE: copies the incoming
-/// `RoomEventMsg` onto the outgoing one and passes both on to `mapNeoArkResolveRoomVariant`.
-/// Always returns 1.
-s32 func_neo_ark_substation_8017D724(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Allows a Neo Ark room transition after resolving its destination variant.
+///
+/// Borrows a complete request and writable reply through synchronous dispatch;
+/// they may alias. Copies all eight bytes before resolving the reply's room.
+/// Query mode preserves the requested selectors. Neither pointer is retained;
+/// the map overlay must be loaded. Always returns 1; the task and ID are unused.
+static s32 _neoArkSubstationResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { NEO_ARK_SUBSTATION_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return NEO_ARK_SUBSTATION_TRANSITION_ALLOWED;
 }
 
 s32 func_neo_ark_substation_8017D768(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -599,7 +625,7 @@ static s32 _neoArkSubstationIgnoreRoomAction(Task* task, s32 messageId, const Di
 
 /// State 0 of the room's message task: park the room's message table in
 /// `Task::msgTable`, publish the task in pointer slot 7, start the ambience
-/// task (`func_neo_ark_substation_8017D608`) only while game flag 0xDF is
+/// task (`_neoArkSubstationAmbienceTask`) only while game flag 0xDF is
 /// clear, and advance to state 1.
 static void func_neo_ark_substation_8017D7AC(Task* task)
 {

@@ -69,9 +69,9 @@ TaskDesc D_neo_ark_submarine_gallery_80181878 = { { { TASK_BODY_NONE, 192 } }, w
 
 TaskMessageEntry D_neo_ark_submarine_gallery_80181884[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_submarine_gallery_8017EA0C },
-    { 5105, func_neo_ark_submarine_gallery_8017EA04 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_submarine_gallery_8017EB48 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_submarine_gallery_8017EABC },
+    { ROOM_MESSAGE_USE_KEY_ITEM, neoArkSubmarineGalleryRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, neoArkSubmarineGalleryIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, neoArkSubmarineGalleryHandleCapCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

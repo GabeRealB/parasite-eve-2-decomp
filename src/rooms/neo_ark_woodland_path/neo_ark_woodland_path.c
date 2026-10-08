@@ -50,11 +50,13 @@ extern TaskMessageEntry D_neo_ark_woodland_path_80181650[];
 
 extern Task* D_neo_ark_woodland_path_80181680;
 
-s32 func_neo_ark_woodland_path_8017E888(Task*, s32, s32, s32);
-s32 func_neo_ark_woodland_path_8017E890(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_neo_ark_woodland_path_8017E8D4(Task*, s32, s32, s32);
-s32 func_neo_ark_woodland_path_8017E8DC(Task*, s32, s32, s32);
-s32 func_neo_ark_woodland_path_8017E910(Task*, s32, s32, s32);
+static s32 _neoArkWoodlandPathRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32 _neoArkWoodlandPathResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _neoArkWoodlandPathIgnoreRoomCommand(Task* task, s32 messageId, s32 commandIndex, s32 unused);
+static s32 _neoArkWoodlandPathForwardRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
+static s32 _neoArkWoodlandPathForwardActorEvent(Task* task, s32 messageId, s32 hp, s32 unused);
+
+enum { NEO_ARK_WOODLAND_PATH_ROAMER_ABSENT = -1 };
 
 extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848E8[1];
 extern WorldCollisionSurfaceProperties D_neo_ark_woodland_path_801848F0[1];
@@ -67,11 +69,11 @@ TaskDesc D_neo_ark_woodland_path_80181638 = { { { TASK_BODY_NONE, 192 } }, water
 TaskDesc D_neo_ark_woodland_path_80181644 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_woodland_path_80181650[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_woodland_path_8017E890 },
-    { 5105, func_neo_ark_woodland_path_8017E888 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_woodland_path_8017E8DC },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_woodland_path_8017E8D4 },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_neo_ark_woodland_path_8017E910 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkWoodlandPathResolveRoomEvent },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkWoodlandPathRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkWoodlandPathForwardRoomAction },
+    { ROOM_MESSAGE_COMMAND, _neoArkWoodlandPathIgnoreRoomCommand },
+    { ROOM_MESSAGE_ACTOR_EVENT, _neoArkWoodlandPathForwardActorEvent },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -766,54 +768,73 @@ static void func_neo_ark_woodland_path_8017E9A8(Task* task);
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-s32 func_neo_ark_woodland_path_8017E888(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use with the item menu's cannot-use reply.
+///
+/// `itemId` is the selected inventory item ID; all arguments are ignored.
+static s32 _neoArkWoodlandPathRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Allows a Neo Ark room transition after resolving its destination variant.
+///
+/// Borrows a complete request and writable reply through synchronous dispatch;
+/// they may alias. Copies all eight bytes before resolving the reply's room.
+/// Query mode preserves the requested selectors. Neither pointer is retained;
+/// the map overlay must be loaded. Always returns 1; the task and ID are unused.
+static s32 _neoArkWoodlandPathResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { NEO_ARK_WOODLAND_PATH_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return NEO_ARK_WOODLAND_PATH_TRANSITION_ALLOWED;
+}
+
+/// Ignores CAP room commands and returns zero without starting an event.
+///
+/// `commandIndex` is the CAP command selector; all arguments are unused.
+static s32 _neoArkWoodlandPathIgnoreRoomCommand(Task* task, s32 messageId, s32 commandIndex, s32 unused)
 {
     return 0;
 }
 
-/// Room message handler for the path's save location: copies the incoming
-/// record onto the outgoing one and forwards both to `mapNeoArkResolveRoomVariant`. Always
-/// answers 1.
-s32 func_neo_ark_woodland_path_8017E890(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Forwards a room action to the woodland path's pool-A roamer controller.
+///
+/// `request` borrows a non-null four-byte record until dispatch returns. Action
+/// IDs 1..6 select spawn points; zero clears the pending selector. Neither
+/// pointer is retained here. Returns -1 while the controller is absent, zero
+/// without its installed messages, otherwise the latch's reply 1. The receiver
+/// is unused; the message ID and final payload are forwarded unchanged.
+static s32 _neoArkWoodlandPathForwardRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
-}
-
-s32 func_neo_ark_woodland_path_8017E8D4(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// 0x13EF handler of the room's message table: passes the message on to the
-/// arming task `func_neo_ark_woodland_path_8017E944` spawned, answering -1
-/// while there is none.
-s32 func_neo_ark_woodland_path_8017E8DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    s32 ret;
+    s32 result;
 
     if (D_neo_ark_woodland_path_80181680 == NULL) {
-        ret = -1;
+        result = NEO_ARK_WOODLAND_PATH_ROAMER_ABSENT;
     } else {
-        ret = taskMessageDispatch(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
+        result = TASK_MESSAGE_DISPATCH_POINTER(D_neo_ark_woodland_path_80181680, messageId, request, unused);
     }
-    return ret;
+    return result;
 }
 
-/// 0x13F4 handler of the room's message table: passes the message on to the
-/// arming task `func_neo_ark_woodland_path_8017E944` spawned, answering -1
-/// while there is none.
-s32 func_neo_ark_woodland_path_8017E910(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Forwards a retreating enemy's HP report to the pool-A roamer controller.
+///
+/// `hp` is a signed hit-point count; positive values may refill a reserve slot,
+/// while nonpositive reports only extend the cooldown. The receiver is unused;
+/// the message ID and both payloads are forwarded unchanged. Returns -1 while
+/// the controller is absent, otherwise forwards its dispatch word. The pool's
+/// retreat handler defines no result, so senders must discard this word.
+static s32 _neoArkWoodlandPathForwardActorEvent(Task* task, s32 messageId, s32 hp, s32 unused)
 {
-    s32 ret;
+    s32 result;
 
     if (D_neo_ark_woodland_path_80181680 == NULL) {
-        ret = -1;
+        result = NEO_ARK_WOODLAND_PATH_ROAMER_ABSENT;
     } else {
-        ret = taskMessageDispatch(D_neo_ark_woodland_path_80181680, msgId, arg2, arg3);
+        result = taskMessageDispatch(D_neo_ark_woodland_path_80181680, messageId, hp, unused);
     }
-    return ret;
+    return result;
 }
 
 static void func_neo_ark_woodland_path_8017E944(Task* arg0)

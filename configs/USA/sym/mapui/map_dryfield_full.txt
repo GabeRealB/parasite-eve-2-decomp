@@ -120,7 +120,7 @@ D_dryfield_night_parking_lot_8017EE58 = 0x8017EE58; // absolute:True owner=dryfi
 D_dryfield_night_parking_lot_8017FAF4 = 0x8017FAF4; // absolute:True owner=dryfield_night_parking_lot shared=rooms
 D_dryfield_night_parking_lot_801805AC = 0x801805AC; // absolute:True owner=dryfield_night_parking_lot shared=rooms
 D_dryfield_night_parking_lot_8018153C = 0x8018153C; // absolute:True owner=dryfield_night_parking_lot
-func_dryfield_night_toilet_8017D724 = 0x8017D724; // type:func absolute:True owner=dryfield_night_toilet shared=rooms
+func_dryfield_night_toilet_8017D724 = 0x8017D724; // type:func absolute:True owner=dryfield_night_toilet
 D_dryfield_night_toilet_8017DAB0 = 0x8017DAB0; // absolute:True owner=dryfield_night_toilet shared=rooms
 D_dryfield_night_toilet_8017DAB8 = 0x8017DAB8; // absolute:True owner=dryfield_night_toilet shared=rooms
 D_dryfield_night_toilet_8017DAC8 = 0x8017DAC8; // absolute:True owner=dryfield_night_toilet shared=rooms

@@ -1899,7 +1899,7 @@ return ret;                                 /* 100% */
 `_mineRefugeUseKeyItemMsg` (rooms/mine_refuge). A control keeping the same
 `Task*`/`NULL` typing but the early-return shape reproduced `base.c`
 byte-for-byte, so the statement shape, not the types, decides the layout.
-`func_neo_ark_woodland_path_8017E8DC` is the identical body with `ret = -1` and
+`_neoArkWoodlandPathForwardRoomAction` is the identical body with `ret = -1` and
 is the sibling to read first; `dryfieldBreezewayForwardKeyItemUse` is a third copy.
 
 The same lever works when the guard is not the whole function. In
@@ -87520,7 +87520,7 @@ an `s16` field under an `& 1` already does, and a `lh` there would mean the
 
 ## m2c's guard return picks the wrong arm as fallthrough; the target lists the *else* arm
 
-m2c seeded `func_neo_ark_woodland_path_8017E8DC` with the early-return guard
+m2c seeded `_neoArkWoodlandPathForwardRoomAction` with the early-return guard
 
 ```c
 if (D_neo_ark_woodland_path_80181680 == NULL) {
@@ -87578,7 +87578,7 @@ return ret;
 That is 100% on the first build. The tell is cheap: a guard return in the seed
 plus a target whose error path ends in `j <join>` means rewrite to the
 temp-and-converge shape before trying anything else. The body was already
-matched in this unit as `func_neo_ark_woodland_path_8017E910`, so the `shape`
+matched in this unit as `_neoArkWoodlandPathForwardActorEvent`, so the `shape`
 1.00 hit in the brief was the answer outright - read the matched sibling
 first when the dup index rates it 1.00.
 
@@ -89749,7 +89749,7 @@ is 100% on the first build (`base_1.c`; preprocessed
 target's `bnez $a0, .Lcall`, `j .Lend` / `addu v0,zero,zero` in the delay slot,
 and one epilogue. Prefer this over choosing a polarity when the body's tail is a
 dispatch guard: the already-matched room siblings
-(`func_neo_ark_woodland_path_8017E910`, `func_acropolis_security_room_8017D6DC`)
+(`_neoArkWoodlandPathForwardActorEvent`, `func_acropolis_security_room_8017D6DC`)
 are written this way, so copying a sibling's shape is the cheapest route to the
 layout. The declaration of `taskMessageDispatch`
 stays unprototyped (`s32 taskMessageDispatch();`) - the call passes only the task and
@@ -122097,9 +122097,9 @@ Inputs: scratch `nonmatchings/func_actor_450800_801330AC-vacuum`, `base_1.c`
 (the matched `ActorsShared8014c874` body at this overlay's offsets), 0
 differences; promoted to `src/actors/lib/actors_shared_801330ac.c`.
 
-## A halfword table field loads `lhu` into an `s16` local and `lh` into an `s32` one - the local's width picks the load, not the field (func_neo_ark_substation_8017D608, 2026-09-17)
+## A halfword table field loads `lhu` into an `s16` local and `lh` into an `s32` one - the local's width picks the load, not the field (_neoArkSubstationAmbienceTask, 2026-09-17)
 
-`func_neo_ark_substation_8017D608` reads a `(panOffset, attenuation)` pair out of an `s16` table
+`_neoArkSubstationAmbienceTask` reads a `(panOffset, attenuation)` pair out of an `s16` table
 and hands both to `sndEvtRequestScriptStart` as signed bytes:
 
 ```
@@ -122139,7 +122139,7 @@ before the span pin renames the function).
 `func_neo_ark_substation_8017D610`, whose fifth instruction reads the `$v0` those
 two set. `text = [0x48, 0xCD4]` is the fix ("A hoisted global load above the
 prologue starts the overlay `.text` too late"), and it renames the function to
-`func_neo_ark_substation_8017D608`.
+`_neoArkSubstationAmbienceTask`.
 
 That alone gets the C to 100.00% in the scratch and still fails the scoped build,
 4 bytes long - the second half is the table. The function's `switch (task->state)`

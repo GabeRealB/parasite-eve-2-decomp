@@ -102,6 +102,12 @@ void neoArkSubmarineGalleryWaterRippleTask(Task* task);
 /// room's effect count. Pointers to retired objects expire.
 void neoArkSubmarineGalleryWaterDriftTaskU16(Task* task);
 
-void func_neo_ark_submarine_gallery_8017EBCC(Task* task);
+/// Runs the gallery's room-message task through initialization, idle and release.
+///
+/// Requires a live task with state 0, 1 or 2, respectively. Initialization
+/// installs the room's message table, publishes `GAME_TASK_SLOT_ROOM` and starts
+/// the red-disc task in variant 4. Keep the gallery overlay loaded throughout
+/// this task's lifetime; state 2 destroys the task.
+void neoArkSubmarineGalleryMessageTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_SUBMARINE_GALLERY_H

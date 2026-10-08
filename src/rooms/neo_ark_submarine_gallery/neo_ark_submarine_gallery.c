@@ -71,7 +71,7 @@ RoomEventMsg D_neo_ark_submarine_gallery_80185924 = { 0 };
 
 static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0);
 
-static void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0);
+static void _neoArkSubmarineGalleryMessageTaskIdle(Task* unusedTask);
 
 static void _neoArkSubmarineGalleryDrawRedDisc(u16 radius);
 static void _neoArkSubmarineGalleryInitRedDiscTask(Task* task);
@@ -90,9 +90,9 @@ enum {
 #include "../../shared/water_distort_band_task.inc.c"
 
 /// State handlers of the room's entry task, indexed by its state through
-/// `func_neo_ark_submarine_gallery_8017EBCC`: set-up, idle, then kill.
+/// `neoArkSubmarineGalleryMessageTask`: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D614 = {
-    { func_neo_ark_submarine_gallery_8017EB50, func_neo_ark_submarine_gallery_8017EBC4, taskKill }
+    { func_neo_ark_submarine_gallery_8017EB50, _neoArkSubmarineGalleryMessageTaskIdle, taskKill }
 };
 
 /// Runs the gallery's save sequence once state 0 has asked for the caption.
@@ -151,9 +151,9 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
     }
 }
 
-s32 func_neo_ark_submarine_gallery_8017EA04(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkSubmarineGalleryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Gallery message handler. Message 0xE, while the incoming location still
@@ -176,30 +176,41 @@ s32 func_neo_ark_submarine_gallery_8017EA0C(Task* task, s32 msgId, RoomEventMsg*
     return 1;
 }
 
-s32 func_neo_ark_submarine_gallery_8017EABC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 neoArkSubmarineGalleryHandleCapCommand(Task* task, s32 messageId, s32 commandIndex, s32 unused)
 {
-    switch (arg2) {
-        case 2:
-            if (D_neo_ark_submarine_gallery_801818B8 == 1) {
-                capSpawnEventIfIdle(2, CAP_EVENT_NO_FLAGS);
+    enum {
+        NEO_ARK_SUBMARINE_GALLERY_COMMAND_CHECK_ENCOUNTER  = 2,
+        NEO_ARK_SUBMARINE_GALLERY_COMMAND_CHECK_ROOM_STATE = 3,
+        NEO_ARK_SUBMARINE_GALLERY_ENCOUNTER_ACTIVE         = 1,
+        NEO_ARK_SUBMARINE_GALLERY_CAP_ENCOUNTER_ACTIVE     = 2,
+        NEO_ARK_SUBMARINE_GALLERY_CAP_ENCOUNTER_INACTIVE   = 4,
+        NEO_ARK_SUBMARINE_GALLERY_CAP_FULL_DISC            = 5,
+        NEO_ARK_SUBMARINE_GALLERY_CAP_BATTLE_ENGAGED       = 3,
+        NEO_ARK_SUBMARINE_GALLERY_CAP_ROOM_IDLE            = 6,
+    };
+
+    switch (commandIndex) {
+        case NEO_ARK_SUBMARINE_GALLERY_COMMAND_CHECK_ENCOUNTER:
+            if (D_neo_ark_submarine_gallery_801818B8 == NEO_ARK_SUBMARINE_GALLERY_ENCOUNTER_ACTIVE) {
+                capSpawnEventIfIdle(NEO_ARK_SUBMARINE_GALLERY_CAP_ENCOUNTER_ACTIVE, CAP_EVENT_NO_FLAGS);
             } else {
-                capSpawnEventIfIdle(4, CAP_EVENT_NO_FLAGS);
+                capSpawnEventIfIdle(NEO_ARK_SUBMARINE_GALLERY_CAP_ENCOUNTER_INACTIVE, CAP_EVENT_NO_FLAGS);
             }
             break;
-        case 3:
-            if (gGameSession->location.loc.variant == 4) {
-                capSpawnEventIfIdle(5, CAP_EVENT_NO_FLAGS);
+        case NEO_ARK_SUBMARINE_GALLERY_COMMAND_CHECK_ROOM_STATE:
+            if (gGameSession->location.loc.variant == NEO_ARK_SUBMARINE_GALLERY_RED_DISC_VARIANT) {
+                capSpawnEventIfIdle(NEO_ARK_SUBMARINE_GALLERY_CAP_FULL_DISC, CAP_EVENT_NO_FLAGS);
             } else if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                capSpawnEventIfIdle(3, CAP_EVENT_NO_FLAGS);
+                capSpawnEventIfIdle(NEO_ARK_SUBMARINE_GALLERY_CAP_BATTLE_ENGAGED, CAP_EVENT_NO_FLAGS);
             } else {
-                capSpawnEventIfIdle(6, CAP_EVENT_NO_FLAGS);
+                capSpawnEventIfIdle(NEO_ARK_SUBMARINE_GALLERY_CAP_ROOM_IDLE, CAP_EVENT_NO_FLAGS);
             }
             break;
     }
     return 0;
 }
 
-s32 func_neo_ark_submarine_gallery_8017EB48(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkSubmarineGalleryIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
     return 0;
 }
@@ -214,18 +225,17 @@ static void func_neo_ark_submarine_gallery_8017EB50(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-static void func_neo_ark_submarine_gallery_8017EBC4(Task* arg0)
+/// Keeps the initialized room-message task alive without per-frame work.
+static void _neoArkSubmarineGalleryMessageTaskIdle(Task* unusedTask)
 {
 }
 
-/// Entry task tick: dispatches on the task's state through
-/// `D_neo_ark_submarine_gallery_8017D614`, copied to the stack first.
-void func_neo_ark_submarine_gallery_8017EBCC(Task* task)
+void neoArkSubmarineGalleryMessageTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_submarine_gallery_8017D614;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_submarine_gallery_8017D614;
+    handlers.funcs[task->state](task);
 }
 
 /// Draws an additive red disc fading to black at its rim, at room Y = 5300.
