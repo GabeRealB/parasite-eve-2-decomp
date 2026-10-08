@@ -312,13 +312,13 @@ void factoryWhiteoutScene(Task* task);
 /// Runtime stage selects the day grid for daytime Dryfield and the night grid
 /// otherwise. Cell lists are retained, so both positions must use their existing
 /// reserved memberships. No work block or collision records are owned here.
-void factoryBarrierCollision(Task* task);
-void factoryLiftUpdate(Task* task);
-void factoryLiftBindLighting(Task* task);
-void factoryLampScene(Task* task);
-void factoryHatchScene(Task* task);
-void factoryRoomInit(Task* arg0);
-s32  factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+void        factoryBarrierCollision(Task* task);
+void        factoryLiftUpdate(Task* task);
+static void _factoryLiftBindLighting(Task* task);
+void        factoryLampScene(Task* task);
+void        factoryHatchScene(Task* task);
+void        factoryRoomInit(Task* arg0);
+s32         factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 /// Spawns the selected factory panel script and waits for its exit request.
 ///
 /// The room entry must first publish a live `gFactoryPanelSlot` and a valid
@@ -327,18 +327,26 @@ s32  factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* ou
 /// result is ignored. Spawning must succeed, since the poll requires a live
 /// task; the room entry retains ownership of the slot.
 void factoryPanelSpawn(Task* task);
-s32  factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3);
+/// Dispatches the factory room's integer command payload in either day or night.
+///
+/// Commands 1/2/3/5 spawn the CAP/whiteout/lamp/power scene from the session-selected
+/// `gFactorySpawnTable`. Command 6 holds and hides the player and companion and
+/// starts the operator-panel session. Command 12 holds both and starts the hatch
+/// scene only at the exactly turned, lowered lift position. Other commands do
+/// nothing. Requires room initialization to have selected the spawn table.
+/// The receiver, message ID and second payload are ignored; always returns 0.
+s32 factoryCommand(Task* task, s32 messageId, s32 command, s32 unusedArgument);
 /// Handles factory sound cues delivered by `ROOM_MESSAGE_SOUND`.
 ///
 /// `soundCue` is the first integer payload: 7 starts factory script 7; 21
 /// starts script 21 and records the lamp's second position. Other cues do
 /// nothing. Uses the current stage's sound bank with centred pan/depth;
 /// the receiver, message ID and second payload are ignored. Always returns 0.
-s32  factorySoundCommand(Task* task, s32 messageId, s32 soundCue, s32 secondArg);
-s32  factoryRoomAction(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-void factoryPanelRunStep(Task* task, s16 step);
-void factoryPanelInit(Task* task);
-void factoryPanelPrompt(Task* task);
+s32         factorySoundCommand(Task* task, s32 messageId, s32 soundCue, s32 secondArg);
+s32         factoryRoomAction(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static void _factoryPanelApplyChoice(Task* task, s16 choice);
+void        factoryPanelInit(Task* task);
+void        factoryPanelPrompt(Task* task);
 
 /// Dispatches the factory lift task's setup, frame update or teardown state.
 ///

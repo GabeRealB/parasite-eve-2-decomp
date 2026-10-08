@@ -2,10 +2,16 @@
 
 /* Part of the Pawn and Rook GOLEM library; see golem_pawn_rook.h. */
 
-/// Advances or blends the corpse's part poses and marks its root dirty.
+/// Restarts a changed corpse clip with blending, or advances its existing pose.
 ///
-/// actor has a live nineteen-slot body rig; coord is its model root. The clip
-/// request indexes the carrier's blend table and slots 1..18 leave slot 0 alone.
+/// `actor` owns an initialized nineteen-slot body rig and `coord` is its model
+/// root. The requested clip indexes the carrier's 32-entry blend-frame table
+/// and must be loaded in the animation bank. A changed request resets the
+/// halfword frame counter and seeks slots 1..18 to frame 0 with that whole-frame
+/// blend duration; an unchanged request increments the counter and ticks them.
+/// Slot 0 is untouched. Marks the root dirty after either path, without composing
+/// it. Work, clip and model storage remain borrowed for their task lifetime;
+/// calls require initialized animation/scratch/GTE state and retain no new pointer.
 static inline void _golemPawnRookAdvanceCorpsePose(Task* actor, GfxCoord* coord)
 {
     GolemPawnRookWork* animWork;

@@ -1,12 +1,15 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Task handler of the dropping first enemy: runs the entry of
-/// `gSucklercephDropTaskStates` for the task's state with the enemy and the task, from
-/// a copy of the table on the stack.
-void sucklercephDropTask(Task* arg0)
+/// Dispatches the hidden/drop Sucklerceph task through its four enemy states.
+///
+/// Requires a live enemy in `spawnArg2.pointer` and state 0..3: hidden setup,
+/// ordinary update, death/teardown, or dropping into place. Copies the carrier's
+/// four callbacks to the stack and indexes without checking. A callback may
+/// destroy the enemy and task; no owned data is accessed after dispatch.
+static void _sucklercephDropTask(Task* task)
 {
-    EnemyTaskFuncTable4 sp;
+    EnemyTaskFuncTable4 states;
 
-    sp = gSucklercephDropTaskStates;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    states = gSucklercephDropTaskStates;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }

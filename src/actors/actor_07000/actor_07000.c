@@ -202,7 +202,7 @@ TaskMessageEntry gSucklercephDropMsgTable[2] = {
 
 TaskDesc Actor07000_D08040 = { { { TASK_BODY_TMD, 96 } }, _sucklercephTask, { .model = &_gActor07000SucklercephBody } };
 
-TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &_gActor07000SucklercephBody } };
+TaskDesc Actor07000_D0804C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _sucklercephDropTask, { .model = &_gActor07000SucklercephBody } };
 
 AnimationSet* gSucklercephAnimSets[4] = {
     NULL,
@@ -872,7 +872,7 @@ static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
     { _sucklercephSpawnState, _sucklercephUpdateState, _sucklercephDeathState },
 };
 
-/// Task states of the caged specimen as `sucklercephDropTask` dispatches them:
+/// Task states of the caged specimen as `_sucklercephDropTask` dispatches them:
 /// the same update and teardown after a spawn that parks the specimen hidden,
 /// and a fourth state for its drop into place.
 static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {

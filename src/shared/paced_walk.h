@@ -201,9 +201,9 @@ static s32 PACED_WALK_PLACE(Task* task, s32 messageId, const ActorTransform* pla
 #define PACED_WALK_SET_PAIR_MODEL_DRAW _pacedWalkSetPairModelDraw
 #endif
 
-void       pacedWalkFrame(Enemy* enemy, Task* task);
-void       pacedWalkSpawn(Enemy* enemy, Task* task);
-static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
+static void _pacedWalkFrame(Enemy* unusedEnemy, Task* task);
+static void _pacedWalkSpawn(Enemy* enemy, Task* task);
+static s32  _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
 
 /* Private exit callback of each carrier that includes the spawn fragment. */
 static void _pacedWalkExit(Task* task);

@@ -6139,7 +6139,7 @@ static const _Actor403200StateTable D_actor_403200_80132154 = {
         _actor403200CollapseState,
         _actor403200HoldPlayerState,
         _actor403200SummonState,
-        gluttonEscortState,
+        _gluttonHealState,
         _actor403200NoopState16,
         _actor403200NoopState17,
         _actor403200DeathHandoffState,

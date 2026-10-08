@@ -188,7 +188,7 @@ func_acropolis_helicopter_landing_pad_8017EF60 = 0x8017EF60; // type:func
 
 acropolisHelicopterLandingPadDamagedLightSparksTask = 0x801802E0; // type:func
 _actorContactApplyGridPushback = 0x801819C0; // type:func
-ActorContact_Push = 0x80181B64; // type:func
+_actorContactApplyBearingPushback = 0x80181B64; // type:func
 actorMsgPlaceEuler = 0x8017D8E8; // type:func
 _acropolisHelicopterLandingPadTurnPlayerToExit = 0x8017edd4; // type:func
 _acropolisHelicopterLandingPadWaitForPlayerTurn = 0x8017ee2c; // type:func

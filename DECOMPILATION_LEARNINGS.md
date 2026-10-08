@@ -56584,9 +56584,9 @@ exists.
 ## A store into an address-taken local is forwarded; the target's reload is a signal
 
 `worldCollisionSurfaceClassFromMask` is called as
-`idx = worldCollisionSurfaceClassFromMask((const u8*)&idx)`: it reads the mask's
+`surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass)`: it reads the mask's
 first byte and returns its surface class without writing through the pointer.
-The assignment stores that return value into `idx`. GCC records this store
+The assignment stores that return value into `surfaceClass`. GCC records this store
 into the frame slot and forwards it to every later read, so the value stays
 in the return register:
 
@@ -56612,7 +56612,7 @@ with `insert`/`delete` near zero, not as a missing instruction.
 Nothing between the two invalidates memory, so the reload is a sign of a *label*
 between them: CSE works per extended basic block and does not carry the store's
 equivalence across a join. Look for the call reached from two paths. In
-`func_kyle_800102_80167DE0` (and its grenade copies) the calls run on either of
+`_grenadeShellFly` (and its grenade copies) the calls run on either of
 two records, and the original wrote them once per path, joined *after* the
 assignment:
 
@@ -56620,16 +56620,16 @@ assignment:
     if (worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
         goto trySphereContacts;
     }
-    worldCollisionResolveResponsePushback(work->capsuleContacts, &blk->delta, 1, &idx);
-    idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
+    worldCollisionResolveResponsePushback(work->capsuleContacts, &scratch->delta, 1, &surfaceClass);
+    surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
 check:
-    param = Gp_RoomParamTables[...][...][idx];   /* reload: `check` is a join */
+    surface = Gp_RoomParamTables[...][...][surfaceClass];   /* reload: `check` is a join */
     ...
     goto move;
 trySphereContacts:
     if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-        worldCollisionResolveResponsePushback(work->sphereContacts, &blk->delta, 1, &idx);
-        idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
+        worldCollisionResolveResponsePushback(work->sphereContacts, &scratch->delta, 1, &surfaceClass);
+        surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
         goto check;
     }
 ```
@@ -56638,8 +56638,8 @@ Cross-jumping then merges the two call sequences, leaving only the differing
 `a0` in each path's branch delay slot, so the output shows a single copy with a
 label *before* the calls - which is what misleads a decompiler into writing one
 copy behind `check:` and a `SOFT_COMPILER_BARRIER()` to fake the reload. The
-same rewrite removed a `SOFT_USE_REG2(head, head)` that had been keeping the
-scratch head alive; with the join in the right place, `&blk->delta` allocates
+same rewrite removed a `SOFT_USE_REG2(scratchHead, scratchHead)` that had been keeping the
+scratch scratchHead alive; with the join in the right place, `&scratch->delta` allocates
 the same.
 
 ## `SOFT_USE_REG2(x, x)` is how you add one reference without a second statement
@@ -112281,7 +112281,7 @@ consecutive stores is one-register reuse.
 Scratch `nonmatchings/_gluttonHitGroup0-vacuum`,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Two `&local` call arguments: cse merges the frame address into one call-crossing pseudo (gluttonEscortState, 2026-09-16)
+## Two `&local` call arguments: cse merges the frame address into one call-crossing pseudo (_gluttonHealState, 2026-09-16)
 
 A local `GameLocationKey` is filled from `gGameSession` and its address passed to
 `areaSyncLocationVariant` and then to `areaGetVariant`. The target rematerializes
@@ -112331,7 +112331,7 @@ the pointer shifts the third component out of `$a1` into `$v0`, where the
 `lw $v0, 0x2c($s3)` of the following `ratan2` setup clobbers it and reload
 re-reads the component off the stack (98.534%).
 
-Scratch `nonmatchings/gluttonEscortState-vacuum` (best `base_11.c`),
+Scratch `nonmatchings/_gluttonHealState-vacuum` (best `base_11.c`),
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 ## The long-lived clone owns the uses: move a store ahead of a per-case copy to flip two allocnos' registers (_actor403200SetModelDraw, 2026-09-16)
@@ -112536,7 +112536,7 @@ This is the idiom the matched 444000 sibling already uses
 call-crossing `&emissionVector` pseudo is what held `$s0`, so `&D_actor_403200_8015F920`
 and its `+4` were left as `$s0`/`$s1` against the target's `$s1`/`$s0`. Naming
 the pointer gave `$s0` back and both pairs fell into place. Distinct from the
-`&local` *call argument* entry above (`gluttonEscortState`), where the
+`&local` *call argument* entry above (`_gluttonHealState`), where the
 address never needs to survive a call and a pointer local alone is folded away —
 here the same register really is reused by the GTE reads and writes after it.
 
@@ -134159,7 +134159,7 @@ The demonstrated dependency is specific to these aggregate layouts; inspect
 BLK dependencies before applying the same source transformation elsewhere.
 
 
-## A redundant coordinate alias splits two lifetimes; port it as two locals (gluttonEscortState, 2026-09-19)
+## A redundant coordinate alias splits two lifetimes; port it as two locals (_gluttonHealState, 2026-09-19)
 
 A permuter mutation changed the first `coord = model->coords` into
 `new_var = model->coords; coord = new_var;`, leaving a later coordinate reload
@@ -134186,7 +134186,7 @@ actor_401300/actor_421600 touched-key-pointer idiom, producing 100.000% with
 all-zero penalties and a successful unscoped build. A do/while(0) boundary
 failed: cse1 kept the two key addresses separate, but cse2 merged them again.
 
-Evidence: `tools/permuter_findings/gluttonEscortState/` retains the
+Evidence: `tools/permuter_findings/_gluttonHealState/` retains the
 `66df4d6d18494b42` paired inputs, analysis and controlled variation; scratch
 `base_3` is the controlled probe and `base_2` the integrated match.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -136824,7 +136824,7 @@ A tracer on the exact candidate observes block16 q1=[230,229,87,223], refs8/span
 
 Unscoped build verification succeeded. Compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd; traced input 43688afde3e933cb9fe7a0d2ecab0b7d50472028d9cec4336ae4faa6961ed795. Observer assembly was unchanged. Selected events, plans/build fingerprints and limits: tools/compiler_evidence/2026-09-20-actor401000-35aa4.json. Full trace and the independent unresolved permuter wrapper gain are retained under tools/permuter_findings/_actor401000Chase/.
 
-## A conditional assigned directly to a field expands differently from a shared next-state local (oddStrangerTakeHit, 2026-09-20)
+## A conditional assigned directly to a field expands differently from a shared next-state local (_oddStrangerTakeHit, 2026-09-20)
 
 The archived seed kept only three of seven yaw/0x400 tests after jump2, even though all seven survived sched2. Its `next = (mag < 0x400) ? 0x13 : 0x14; ... work->field_0 = next;` joined the yaw choice with a 0x1f assignment. RTL assigned both yaw constants to one `reg/v:HI 103`; the first jump pass introduced UID2703, `next = 20`, before the branch. Sched1 moved it before the comparison and greg allocated next to v1.
 
@@ -136980,7 +136980,7 @@ needed; internal scheduler comparisons were not investigated. The router
 skipped stale incompatible archived candidates and contributed no discovery.
 
 
-## Consistent local-vector pointer reads preserve CSE forwarding (gluttonEscortState, 2026-09-20)
+## Consistent local-vector pointer reads preserve CSE forwarding (_gluttonHealState, 2026-09-20)
 
 A retry reproduced 99.206% with all control-flow/call diagnostics matching.
 Its only differences were the absent vector-base address and two stores:
@@ -137009,7 +137009,7 @@ identical assembly: cse materializes coord+24 in a2, then reads +4/+8, while
 vector stores remain sp-relative. This lower score did not solve the target's
 vector-address requirement. The final match uses the sibling idiom above.
 
-Evidence: tools/permuter_findings/gluttonEscortState/sessions/
+Evidence: tools/permuter_findings/_gluttonHealState/sessions/
 6f3b62826bdc4518a2abadfee6876884/5205167bcc17aa0b04c5, including notes,
 retained router run 1ef7d478de864c11, and planned base_1/base_2/base_3 probes.
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
@@ -148946,21 +148946,21 @@ between, or the two in different blocks at combine time), and that global alloc
 cannot tie (source still live). Reusing the `mem->age` local for the copy
 meets the first and third and combine still merges; `u8`/`s8`/`s16`/`u16`
 colour, a `u8` intermediate, chained and read-back stores all give one `andi`.
-## Two call pairs that cross-jumping merged: the join is why a stack local is reloaded, and each pair is a reference (grenadeShellFly, 2026-10-05)
+## Two call pairs that cross-jumping merged: the join is why a stack local is reloaded, and each pair is a reference (_grenadeShellFly, 2026-10-05)
 
 **Symptom.** `count(capsule) ? … : count(sphere) ? … : skip`, then one
-`worldCollisionResolveResponsePushback(list, &delta, 1, &idx); idx = classify(&idx);` and a table
-lookup on `idx`. The target stores the class to `idx`'s slot and loads it back
+`worldCollisionResolveResponsePushback(list, &delta, 1, &surfaceClass); surfaceClass = classify(&surfaceClass);` and a table
+lookup on `surfaceClass`. The target stores the class to `surfaceClass`'s slot and loads it back
 ten instructions later, sets `a0` in the delay slot of each count's branch, and
-keeps the scratch head in the lower call-saved register. Written with one call
+keeps the scratch scratchHead in the lower call-saved register. Written with one call
 pair reached by `goto` from both lists, the reload needed
-`SOFT_COMPILER_BARRIER()` and the head an extra `SOFT_USE_REG2`.
+`SOFT_COMPILER_BARRIER()` and the scratchHead an extra `SOFT_USE_REG2`.
 
 **Mechanism.** Each list has its own call pair in the source and both run into
 a common label before the lookup. cse stops at that label (two predecessors),
-so the lookup reads `idx` from memory. The head is named once per pair, which is
+so the lookup reads `surfaceClass` from memory. The scratchHead is named once per pair, which is
 the reference the asm added. After reload the two pairs are the same
-instructions from `addiu a1,head,-0x18` on, and jump2's cross-jumping keeps one;
+instructions from `addiu a1,scratchHead,-0x18` on, and jump2's cross-jumping keeps one;
 the differing `move a0,list` insns stay behind, one in each branch's delay slot.
 
 **Fix.** Write the pair out for each list. The list tried second has to sit
@@ -148969,15 +148969,15 @@ order and the image has it there:
 
 ```c
 if (count(work->capsuleContacts, GRID) == 0) goto trySphere;
-worldCollisionResolveResponsePushback(work->capsuleContacts, &(head - 1)->delta, 1, &idx);
-idx = classify(&idx);
+worldCollisionResolveResponsePushback(work->capsuleContacts, &(scratchHead - 1)->delta, 1, &surfaceClass);
+surfaceClass = classify(&surfaceClass);
 classified:
-    … lookup on idx …
+    … lookup on surfaceClass …
     goto move;
 trySphere:
 if (count(work->sphereContacts, GRID) != 0) {
-    worldCollisionResolveResponsePushback(work->sphereContacts, &(head - 1)->delta, 1, &idx);
-    idx = classify(&idx);
+    worldCollisionResolveResponsePushback(work->sphereContacts, &(scratchHead - 1)->delta, 1, &surfaceClass);
+    surfaceClass = classify(&surfaceClass);
     goto classified;
 }
 move:
@@ -149775,7 +149775,7 @@ attempts; left as it was.
   and swaps `$s0/$s1`. Untried: the ladder as conditions with `continue`
   (`if (kind != one) { if (kind == 0) continue; if (kind == 2) { ...;
   continue; } if (kind != 3) continue; }` in front of the push-out code).
-- **The merged store sits in the arm written last.** `oddStrangerTakeHit` had
+- **The merged store sits in the arm written last.** `_oddStrangerTakeHit` had
   `timer = 5; } else if (t > 0) { timer = t - 1; } else { clear; goto skip; }
   store: work->t = timer; skip:`. The store written in each arm merges, but
   with the arms in that order the `else if` arm keeps its own `sh`. The image
@@ -149803,7 +149803,7 @@ attempts; left as it was.
   `arg0->work`, uses the caller's register for the reads in the same block,
   and the copy inside the loop. All four matched on the first build.
 - **A block with branches of its own, entered from three later places, stays
-  a `goto`** (`grenadeShellFly`'s `explode:`). As a `static inline` called at
+  a `goto`** (`_grenadeShellFly`'s `explode:`). As a `static inline` called at
   each site only the last straight-line run of the copies merges
   (cross-jumping stops at the conditional branch inside the block): 370
   insns against 224. The classification of the two contact lists written out
@@ -149856,12 +149856,12 @@ attempts; left as it was.
   inverted to `beqz a0,<final>` and the function is 2 insns shorter. The same
   body is `_actor342100AdvanceBlazeAnimation` and the one in `actor_136100.c`.
 - Not converted beyond one `goto move`: `_m4a1GrenadeFlyProjectile`
-  (`grenadeShellFly` has the same body). The detonation block as an inline
+  (`_grenadeShellFly` has the same body). The detonation block as an inline
   called at its four sites does not merge back: with four copies cse gives the
   scratch cursor and `gPlayerStatus` addresses saved registers (52 insns
   longer). The classify pair cannot be duplicated together with the surface
-  test either, because the image reloads `idx` from its stack slot at the
-  join, which needs a label between `idx = class(&idx)` and its use, and the
+  test either, because the image reloads `surfaceClass` from its stack slot at the
+  join, which needs a label between `surfaceClass = class(&surfaceClass)` and its use, and the
   second contact test sits *after* the surface test with a backward branch.
 ### Goto forms from the scorpion, bat and desert chaser actors (batch 15, 2026-10-06)
 
@@ -150176,7 +150176,7 @@ attempts; left as it was.
   case 2: }`, and the constant local goes with the ladder: the switch's own
   `li v1,1` compare operand is what cse reuses for the `= 1` stores, so they
   are written as plain constants (`work->animId = RAT_ANIM_IDLE`).
-- `gluttonEscortState`: a hand-expanded wrap whose input is `ratan2(x, z) -
+- `_gluttonHealState`: a hand-expanded wrap whose input is `ratan2(x, z) -
   ratan2(-m[2][0], m[2][2])` is `_actorAngleTurnToOffset(coord, x, z)` whole; the `angle`
   local goes.
 - `_actor800300FollowPlayerState`: `if (a < d) goto in_range; if (p == 2) goto

@@ -1208,8 +1208,8 @@ void func_actor_160600_80131E24(void)
 void func_actor_160600_801321B4(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        pacedWalkSpawn,
-        pacedWalkFrame,
+        _pacedWalkSpawn,
+        _pacedWalkFrame,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);

@@ -11,7 +11,7 @@ void factoryPanelPrompt(Task* task)
     D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
     D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
-        factoryPanelRunStep(task, work->choice);
+        _factoryPanelApplyChoice(task, work->choice);
     } else {
         task->state = 2;
     }

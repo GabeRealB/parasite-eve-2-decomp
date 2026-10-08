@@ -1,101 +1,124 @@
 /* Part of the actor contacts library; see actor_contacts.h. */
 
-/// Pushes `coord` `push` units away from each obstacle among the first
-/// `count` contact records (kind 0x10000 or 0x30000) whose bearing lies within
-/// 0x400 of every other obstacle's. Bearings use the contacts' composition frame,
-/// measured from the frame's position relative to the point one unit in front
-/// of it. Returns whether any push was applied; returns 0 at once when
-/// `gGameSession->viewReady` is 1.
-static s32 ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push)
+/// Applies one bearing-derived X/Z translation in the coordinate's parent frame.
+///
+/// The scratch direction is normalized at Q12, scaled by negative pushDistance
+/// and narrowed by the GTE. Requires live scratch/coordinate and GTE state.
+static inline void _actorContactApplyBearingStep(GfxCoord* coord, ActorContactBearingPushScratch* scratch, s16 pushDistance)
 {
-    ActorContactBearingPushScratch* st;
-    s32                             pushed;
+    gfxRotMatrixY(&scratch->rot,
+                  scratch->bearing[scratch->i] + (s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]),
+                  GRAPHICS_ROTATION_REPLACE);
+    gfxReadMatrixZAxis(&scratch->rot, &scratch->forward);
+    VectorNormalSS(&scratch->forward, &scratch->forward);
+    gte_lddp(-pushDistance);
+    gte_ldsv(&scratch->forward);
+    gte_gpf12();
+    gte_stsv(&scratch->delta);
+    coord->coord.t[0] += scratch->delta.vx;
+    coord->coord.t[2] += scratch->delta.vz;
+}
+
+/// Pushes a coordinate away from clustered player/companion and enemy body contacts.
+///
+/// Borrows a live coordinate chain and contact prefix; `contactCount` is 0..16
+/// and a zero key terminates it. Bearings use the full-chain composition frame,
+/// relative to a point 4096 units along local Z. Only bearings within a quarter
+/// turn of one another qualify. The pair scan applies a step only on reaching
+/// the terminator or a qualifying comparison at the final slot; self and skipped
+/// slots do not trigger it. In particular, a one-record prefix never pushes.
+/// Each applied step translates local X/Z by the negative normalized direction
+/// times `pushDistance`, in parent-coordinate units.
+/// Returns 1 if a step was applied, even for zero distance, otherwise 0.
+/// `viewReady == 1` suppresses all work. Requires initialized scratch/GTE state;
+/// scratch is released on return and inputs other than the coordinate are retained
+/// only for the call. Angles use 4096 units per turn; points narrow to 16 bits.
+static s32 _actorContactApplyBearingPushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, s16 pushDistance)
+{
+    enum {
+        ACTOR_CONTACT_BEARING_FORWARD_DISTANCE = 4096,
+        ACTOR_CONTACT_BEARING_MAX_SEPARATION   = ACTOR_TRANSFORM_ANGLE_TURN / 4
+    };
+    ActorContactBearingPushScratch* scratch;
+    s32                             pushApplied;
 
     if (gGameSession->viewReady == 1) {
         return 0;
     }
 
     SCRATCH_STACK_RESERVE_BLOCK(ActorContactBearingPushScratch);
-    st            = SCRATCH_STACK_CURSOR(ActorContactBearingPushScratch);
-    st->origin.vx = (u16)coord->coord.t[0];
-    st->origin.vy = (u16)coord->coord.t[1];
-    st->origin.vz = (u16)coord->coord.t[2];
+    scratch = SCRATCH_STACK_CURSOR(ActorContactBearingPushScratch);
+    // Compare the origin and facing point in the contact records' composition frame.
+    scratch->origin.vx = coord->coord.t[0];
+    scratch->origin.vy = coord->coord.t[1];
+    scratch->origin.vz = coord->coord.t[2];
 
-    _actorContactTransformPointToChainRoot(coord->parent, &st->origin);
+    _actorContactTransformPointToChainRoot(coord->parent, &scratch->origin);
 
-    st->forward.vx = 0;
-    st->forward.vy = 0;
-    st->forward.vz = 0x1000;
+    scratch->forward.vx = 0;
+    scratch->forward.vy = 0;
+    scratch->forward.vz = ACTOR_CONTACT_BEARING_FORWARD_DISTANCE;
 
-    _actorContactTransformStagedPointToChainRoot(coord, &st->forward);
+    _actorContactTransformStagedPointToChainRoot(coord, &scratch->forward);
 
-    for (st->i = 0; st->i < count; st->i++) {
-        if (recs[st->i].key.value == 0) {
-            st->bearing[st->i] = ACTOR_CONTACT_BEARING_PUSH_END;
+    for (scratch->i = 0; scratch->i < contactCount; scratch->i++) {
+        if (contacts[scratch->i].key.value == 0) {
+            scratch->bearing[scratch->i] = ACTOR_CONTACT_BEARING_PUSH_END;
             break;
         }
-        st->kind = recs[st->i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
-        if ((st->kind != 0x10000) && (st->kind != 0x30000)) {
-            st->bearing[st->i] = ACTOR_CONTACT_BEARING_PUSH_SKIP;
+        scratch->kind = contacts[scratch->i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
+        if ((scratch->kind != WORLD_COLLISION_CONTACT_PLAYER_BODY) && (scratch->kind != WORLD_COLLISION_CONTACT_ENEMY_BODY)) {
+            scratch->bearing[scratch->i] = ACTOR_CONTACT_BEARING_PUSH_SKIP;
         } else {
-            st->delta.vx       = (u16)recs[st->i].point.vx - (u16)st->origin.vx;
-            st->delta.vy       = (u16)recs[st->i].point.vy - (u16)st->origin.vy;
-            st->delta.vz       = (u16)recs[st->i].point.vz - (u16)st->origin.vz;
-            st->bearing[st->i] = ratan2(st->delta.vx, st->delta.vz);
+            scratch->delta.vx            = contacts[scratch->i].point.vx - scratch->origin.vx;
+            scratch->delta.vy            = contacts[scratch->i].point.vy - scratch->origin.vy;
+            scratch->delta.vz            = contacts[scratch->i].point.vz - scratch->origin.vz;
+            scratch->bearing[scratch->i] = ratan2(scratch->delta.vx, scratch->delta.vz);
 
-            st->delta.vx       = (u16)st->forward.vx - (u16)st->origin.vx;
-            st->delta.vy       = (u16)st->forward.vy - (u16)st->origin.vy;
-            st->delta.vz       = (u16)st->forward.vz - (u16)st->origin.vz;
-            st->bearing[st->i] = st->bearing[st->i] - ratan2(st->delta.vx, st->delta.vz);
+            scratch->delta.vx            = scratch->forward.vx - scratch->origin.vx;
+            scratch->delta.vy            = scratch->forward.vy - scratch->origin.vy;
+            scratch->delta.vz            = scratch->forward.vz - scratch->origin.vz;
+            scratch->bearing[scratch->i] = scratch->bearing[scratch->i] - ratan2(scratch->delta.vx, scratch->delta.vz);
 
-            st->bearing[st->i] = _actorAngleNormalizeYaw(st->bearing[st->i]);
+            scratch->bearing[scratch->i] = _actorAngleNormalizeYaw(scratch->bearing[scratch->i]);
         }
     }
 
-    st->pushed = 0;
-    for (st->i = 0; st->i < count; st->i++) {
-        if (st->bearing[st->i] == ACTOR_CONTACT_BEARING_PUSH_END) {
+    // Only a terminator or a successful final-slot comparison applies a step.
+    scratch->pushed = 0;
+    for (scratch->i = 0; scratch->i < contactCount; scratch->i++) {
+        if (scratch->bearing[scratch->i] == ACTOR_CONTACT_BEARING_PUSH_END) {
             break;
         }
-        if (st->bearing[st->i] == ACTOR_CONTACT_BEARING_PUSH_SKIP) {
+        if (scratch->bearing[scratch->i] == ACTOR_CONTACT_BEARING_PUSH_SKIP) {
             continue;
         }
-        for (st->j = 0; st->j < count; st->j++) {
-            if (st->i == st->j) {
+        for (scratch->j = 0; scratch->j < contactCount; scratch->j++) {
+            if (scratch->i == scratch->j) {
                 continue;
             }
-            if (st->bearing[st->j] == ACTOR_CONTACT_BEARING_PUSH_SKIP) {
+            if (scratch->bearing[scratch->j] == ACTOR_CONTACT_BEARING_PUSH_SKIP) {
                 continue;
             }
-            if (st->bearing[st->j] != ACTOR_CONTACT_BEARING_PUSH_END) {
-                st->diff = st->bearing[st->j] - st->bearing[st->i];
-                st->diff = _actorAngleNormalizeYaw(st->diff);
-                if (abs(st->diff) > 0x400) {
+            if (scratch->bearing[scratch->j] != ACTOR_CONTACT_BEARING_PUSH_END) {
+                scratch->diff = scratch->bearing[scratch->j] - scratch->bearing[scratch->i];
+                scratch->diff = _actorAngleNormalizeYaw(scratch->diff);
+                if (abs(scratch->diff) > ACTOR_CONTACT_BEARING_MAX_SEPARATION) {
                     break;
                 }
-                if (st->bearing[st->j] != ACTOR_CONTACT_BEARING_PUSH_END) {
-                    if (st->j + 1 < count) {
+                if (scratch->bearing[scratch->j] != ACTOR_CONTACT_BEARING_PUSH_END) {
+                    if (scratch->j + 1 < contactCount) {
                         continue;
                     }
                 }
             }
-            st->pushed = 1;
-            gfxRotMatrixY(&st->rot,
-                          st->bearing[st->i] + (s16)ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]),
-                          1);
-            gfxReadMatrixZAxis(&st->rot, &st->forward);
-            VectorNormalSS(&st->forward, &st->forward);
-            gte_lddp(-push);
-            gte_ldsv(&st->forward);
-            gte_gpf12();
-            gte_stsv(&st->delta);
-            coord->coord.t[0] += st->delta.vx;
-            coord->coord.t[2] += st->delta.vz;
+            scratch->pushed = 1;
+            _actorContactApplyBearingStep(coord, scratch, pushDistance);
             break;
         }
     }
 
-    pushed = st->pushed;
+    pushApplied = scratch->pushed;
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactBearingPushScratch);
-    return pushed;
+    return pushApplied;
 }

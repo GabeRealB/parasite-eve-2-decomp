@@ -2,9 +2,14 @@
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Refreshes a corpse's coordinates, room lighting and ground shadow.
+/// Refreshes a corpse's root composition, room lighting/tint and ground shadow.
 ///
-/// `root` is coordinate 0 of the live model owned by `task`.
+/// `root` is coordinate 0 of `task`'s live model; its work, enemy spawn argument,
+/// ancestors and lighting/scratch/GTE state must remain initialized. Marks root
+/// and part 3 dirty, composes only the root, then updates tint and draws from
+/// part 3's cached X/Z with the root's cached Y. A pending tint may be consumed
+/// and zero shadow shade becomes the no-shadow sentinel. Advances no animation,
+/// allocates no retained resource and borrows both pointers only for the call.
 static inline void _golemKnightBishopRefreshCorpsePresentation(Task* task, GfxCoord* root)
 {
     root->composeStamp                      = GRAPHICS_COORD_DIRTY;

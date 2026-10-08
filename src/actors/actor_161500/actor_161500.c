@@ -1647,7 +1647,7 @@ void actor161500RestoreCompanionRequestScene(void)
 void func_actor_161500_801326E8(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        strideWalkSpawn,
+        _strideWalkSpawn,
         _strideWalkFrame,
     };
 

@@ -370,7 +370,7 @@ void        oddStrangerTick(Enemy* enemy, Task* actor);
 
 static void _oddStrangerWalkingDeath(Task* task);
 
-void oddStrangerTakeHit(Task* arg0);
+static void _oddStrangerTakeHit(Task* task);
 
 /// Pushes the model root away from player/companion and enemy-body contacts.
 ///

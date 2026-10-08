@@ -181,6 +181,6 @@ static void _sucklercephTask(Task* task);
 static void _sucklercephAnimate(Task* task);
 static void _sucklercephColour(Enemy* enemy, Task* task);
 static void _sucklercephDrawShadow(Task* task);
-void        sucklercephDropTask(Task* arg0);
+static void _sucklercephDropTask(Task* task);
 
 #endif /* SRC_SHARED_SUCKLERCEPH_H */

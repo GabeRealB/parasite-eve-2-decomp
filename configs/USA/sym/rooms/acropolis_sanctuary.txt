@@ -168,7 +168,7 @@ acropolisSanctuaryMosaicShardTask = 0x8017EC90; // type:func
 
 acropolisSanctuaryFlameTask = 0x8017F4E8; // type:func
 _actorContactApplyGridPushback = 0x8017F974; // type:func
-ActorContact_Push = 0x8017FB18; // type:func
+_actorContactApplyBearingPushback = 0x8017FB18; // type:func
 _acropolisSanctuarySelectViewSpriteBatch = 0x8017df88; // type:func
 _acropolisSanctuaryApplyScriptSpriteSelection = 0x8017d8a0; // type:func
 _acropolisSanctuaryRejectKeyItem = 0x8017d808; // type:func

@@ -376,7 +376,7 @@ static void func_actor_110800_80131F9C(Enemy* enemy, Task* task)
 void func_actor_110800_801322A0(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        viewFigureSpawnState,
+        _viewFigureSpawnState,
         func_actor_110800_80131F9C,
     };
 

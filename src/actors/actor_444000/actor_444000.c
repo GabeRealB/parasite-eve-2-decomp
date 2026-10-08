@@ -6486,7 +6486,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         func_actor_444000_80140E28,
         func_actor_444000_8013EC84,
         func_actor_444000_80141618,
-        gluttonEscortState,
+        _gluttonHealState,
         _actor444000LiftIdleState,
         _actor444000ReturnToAdvanceState,
         func_actor_444000_80135448,

@@ -216,7 +216,7 @@ TaskMessageEntry gSucklercephDropMsgTable[2] = {
 
 TaskDesc Actor04600_D05878 = { { { TASK_BODY_TMD, 96 } }, _sucklercephTask, { .model = &_gActor04600SucklercephBody } };
 
-TaskDesc Actor04600_D05884 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, sucklercephDropTask, { .model = &_gActor04600SucklercephBody } };
+TaskDesc Actor04600_D05884 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _sucklercephDropTask, { .model = &_gActor04600SucklercephBody } };
 
 AnimationSet* gSucklercephAnimSets[4] = {
     NULL,
@@ -331,7 +331,7 @@ static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
     { _sucklercephSpawnState, _sucklercephUpdateState, _sucklercephDeathState },
 };
 
-/// Task states of the dropping first enemy as `sucklercephDropTask` dispatches
+/// Task states of the dropping first enemy as `_sucklercephDropTask` dispatches
 /// them: the same update and death after a spawn that parks the enemy hidden,
 /// and a fourth state for its drop into place.
 static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {

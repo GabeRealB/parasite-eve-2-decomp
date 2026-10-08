@@ -20,7 +20,7 @@
 
 #include "main/task_types.h"
 
-void        grenadeShellFly(Task* arg0);
+static void _grenadeShellFly(Task* task);
 static void _grenadeShellBlast(Task* task);
 
 #endif /* SRC_SHARED_GRENADE_SHELL_H */

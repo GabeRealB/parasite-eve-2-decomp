@@ -64,7 +64,7 @@ static void _pairWalkReseedAnim(Task* task);
 static s32  _pairWalkSetVisibility(Task* task, s32 messageId, s32 flags, s32 unusedArg);
 static s32  _pairWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArg);
 
-void pairWalkSpawn(Enemy* enemy, Task* task);
+static void _pairWalkSpawn(Enemy* enemy, Task* task);
 
 static void _pairWalkExit(Task* task);
 

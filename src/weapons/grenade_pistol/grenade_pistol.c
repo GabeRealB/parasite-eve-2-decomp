@@ -125,7 +125,7 @@ void grenadePistolAttackState(Task* playerTask)
 
 static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
     _grenadeShellSpawn,
-    grenadeShellFly,
+    _grenadeShellFly,
     _grenadeShellBlast,
     _grenadeShellExit,
 } };

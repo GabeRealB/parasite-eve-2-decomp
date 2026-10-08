@@ -3314,7 +3314,7 @@ static s32 _actor450800SetKyleMadiganWalkTarget(Task* task, s32 messageId, const
 
 void func_actor_450800_80133264(Task* task)
 {
-    EnemyTaskFunc fns[2] = { pairWalkSpawn, _actorRenderWalkerFrameSecond };
+    EnemyTaskFunc fns[2] = { _pairWalkSpawn, _actorRenderWalkerFrameSecond };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }

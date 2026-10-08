@@ -125,11 +125,15 @@ static __inline__ void _actorContactTransformPointToChainRoot(GfxCoord* startCoo
     SCRATCH_STACK_RELEASE_BLOCK(OverlayCoordChainScratch);
 }
 
-/// Carries a scratch point into its current node's parent frame and advances the node.
+/// Carries a scratch point through its current node's local matrix and advances to its parent.
 ///
-/// Requires a live, non-NULL `scratch->coord` and writable, word-aligned
-/// scratch storage. Narrows XYZ after the local transform, preserving pad;
-/// stores the GTE flags without testing them and changes GTE working state.
+/// Requires a live, non-NULL `scratch->coord` and separate writable, word-aligned
+/// scratch storage. Uses the local matrix directly, preserving rotation/scale;
+/// matrix coefficients have 12 fractional bits and XYZ are signed whole-coordinate
+/// units. Narrows transformed XYZ to signed halfwords, preserving vec.pad, then
+/// selects the parent (possibly NULL). Stores GTE flags without testing them.
+/// Clobbers GTE working state, retains no pointer and does not move the scratch
+/// cursor or refresh any coordinate's composed cache.
 static __inline__ void _actorContactCarryPointToParent(OverlayCoordChainScratch* scratch)
 {
     gte_SetTransMatrix(&scratch->coord->coord);
@@ -270,7 +274,7 @@ static void                       _actorRenderYawJointInWorld(GfxCoord* joint, s
 static s32                        _actorContactFindLastObstaclePush(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount);
 static ACTOR_CONTACT_STEER_RESULT _actorContactApplyAvoidancePushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, SVECTOR* pushDelta);
 static s32                        _actorContactApplyGridPushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount);
-static s32                        ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);
+static s32                        _actorContactApplyBearingPushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, s16 pushDistance);
 
 /* Borrowed view of the including overlay's last contact-push correction. */
 static inline SVECTOR* _actorContactGetLastPushStep(void);

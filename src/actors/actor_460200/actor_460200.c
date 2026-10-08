@@ -2292,7 +2292,7 @@ void actor460200TalkToSoldierA(void)
 
 void func_actor_460200_801327B4(Task* task)
 {
-    EnemyTaskFunc fns[2] = { pacedWalkSpawn, pacedWalkFrame };
+    EnemyTaskFunc fns[2] = { _pacedWalkSpawn, _pacedWalkFrame };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
@@ -2363,7 +2363,7 @@ static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand*
 
 void func_actor_460200_801330C8(Task* task)
 {
-    EnemyTaskFunc fns[2] = { strideWalkSpawn, _strideWalkFrame };
+    EnemyTaskFunc fns[2] = { _strideWalkSpawn, _strideWalkFrame };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }

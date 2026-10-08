@@ -5,7 +5,7 @@
 /// to `worldCoordUpdateActorColor`, then run the `gSceneCombatState.actorControl` arm. Arms 1 and 2 only
 /// drop the two obstacle records (2 also opening the `patrolPoints` draw to 0x80)
 /// and return; arm 0 falls through into the common tail, which counts
-/// `hitCooldown` down into `oddStrangerTakeHit`, carries a new
+/// `hitCooldown` down into `_oddStrangerTakeHit`, carries a new
 /// `state` into `prevState`/`stateEntered` (snapping the root to `grabStartPos` on a
 /// 0xB/0xD transition), dispatches through the table, re-flags `hitBody`,
 /// then appends the world-space position to the `bodyPosHistory` ring and publishes
@@ -73,7 +73,7 @@ void oddStrangerTick(Enemy* enemy, Task* actor)
     if (work->hitCooldown > 0) {
         work->hitCooldown = (s16)((u16)work->hitCooldown - 1);
     } else {
-        oddStrangerTakeHit(actor);
+        _oddStrangerTakeHit(actor);
     }
     if (work->prevState != work->state) {
         if ((work->prevState == ODD_STRANGER_STATE_GRAB) || (work->prevState == ODD_STRANGER_STATE_GRAB_STRIKE)) {

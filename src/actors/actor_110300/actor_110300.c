@@ -294,7 +294,7 @@ Task* gActorHelperTask;
 void func_actor_110300_80131F9C(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        viewFigureSpawnState,
+        _viewFigureSpawnState,
         func_actor_110300_80132020,
     };
 

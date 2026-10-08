@@ -1368,12 +1368,12 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 #include "../../shared/pair_walk_update_model.inc.c"
 
 /// The second enemy's task body: runs the handler for the task's state from a
-/// table built on the stack - the spawn handler `pairWalkSpawn`,
+/// table built on the stack - the spawn handler `_pairWalkSpawn`,
 /// then the per-frame `_actorRenderWalkerFrameSecond`.
 void func_actor_535700_80132F20(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        pairWalkSpawn,
+        _pairWalkSpawn,
         _actorRenderWalkerFrameSecond,
     };
 

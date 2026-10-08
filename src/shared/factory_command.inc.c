@@ -1,44 +1,45 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Command handler for the night factory room, reached from the room's command
-/// table (`gFactoryMsgTable`, id 0x13F0) with the command in
-/// `$a2`.
-///
-/// Cases 1/2/3/5/12 spawn an actor out of whichever spawn table the session
-/// selected (`D_..._A7E4`, written by `factoryRoomInit`)
-/// at index 2/3/1/0/6, handing the command on as `taskSpawnFromTable`'s third
-/// argument. Case 6 silences both characters' weapons and spawns the factory's
-/// own table `D_..._80186E4C` at index 0 instead -- that table's task is the
-/// `factoryPanelSpawn` poller. Case 12 only acts while
-/// progress flag 0x49 is 1, and silences the player's and the ally's weapon
-/// before spawning. Every other command does nothing.
-s32 factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3)
+s32 factoryCommand(Task* task, s32 messageId, s32 command, s32 unusedArgument)
 {
-    switch (cmd) {
-        case 1:
-            taskSpawnFromTable(gFactorySpawnTable, 2, cmd, 0);
+    enum {
+        FACTORY_COMMAND_CAP_SCENE     = 1,
+        FACTORY_COMMAND_WHITEOUT      = 2,
+        FACTORY_COMMAND_LAMP          = 3,
+        FACTORY_COMMAND_POWER_ON      = 5,
+        FACTORY_COMMAND_PANEL_SESSION = 6,
+        FACTORY_COMMAND_HATCH_SCENE   = 12,
+        FACTORY_SPAWN_POWER_SCENE     = 0,
+        FACTORY_SPAWN_LAMP_SCENE      = 1,
+        FACTORY_SPAWN_CAP_SCENE       = 2,
+        FACTORY_SPAWN_WHITEOUT_SCENE  = 3,
+        FACTORY_SPAWN_HATCH_SCENE     = 6
+    };
+    switch (command) {
+        case FACTORY_COMMAND_CAP_SCENE:
+            taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_CAP_SCENE, command, 0);
             break;
-        case 2:
-            taskSpawnFromTable(gFactorySpawnTable, 3, cmd, 0);
+        case FACTORY_COMMAND_WHITEOUT:
+            taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_WHITEOUT_SCENE, command, 0);
             break;
-        case 3:
-            taskSpawnFromTable(gFactorySpawnTable, 1, cmd, 0);
+        case FACTORY_COMMAND_LAMP:
+            taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_LAMP_SCENE, command, 0);
             break;
-        case 5:
-            taskSpawnFromTable(gFactorySpawnTable, 0, cmd, 0);
+        case FACTORY_COMMAND_POWER_ON:
+            taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_POWER_SCENE, command, 0);
             break;
-        case 6:
+        case FACTORY_COMMAND_PANEL_SESSION:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             taskSpawnFromTable(gFactoryPanelSessionDesc, 0, 0, 0);
             break;
-        case 12:
-            if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) == 1) {
+        case FACTORY_COMMAND_HATCH_SCENE:
+            if (gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION) == FACTORY_LIFT_POSITION_TURNED) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(gFactorySpawnTable, 6, cmd, 0);
+                taskSpawnFromTable(gFactorySpawnTable, FACTORY_SPAWN_HATCH_SCENE, command, 0);
             }
             break;
     }
