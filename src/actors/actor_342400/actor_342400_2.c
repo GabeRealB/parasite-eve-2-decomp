@@ -72,6 +72,17 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 static void func_actor_342400_80168394(Task* arg0);
+static void _madChaserDropDeathStart(Task* task);
+static void _madChaserDeathTurnTranslucent(Task* task);
+static void _madChaserEmergeArcBack(Task* task);
+static void _madChaserEmergeBackOff(Task* task);
+static void _madChaserEmergeBackflip(Task* task);
+static void _madChaserEmergeFlipOver(Task* task);
+static void _madChaserEmergeHighArc(Task* task);
+static void _madChaserEmergeHopBack(Task* task);
+static void _madChaserEmergeHopForward(Task* task);
+static void _madChaserKnockdownState(Task* task);
+static void _madChaserPullState(Task* task);
 static void _madChaserDespawnState(Task* task);
 static void func_actor_342400_8016997C(Task* arg0);
 static void func_actor_342400_80169990(Task* arg0);
@@ -126,11 +137,11 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserRecoilLightState,
     func_actor_342400_80169B58,
     func_actor_342400_80169BAC,
-    madChaserKnockdownState,
-    madChaserPullState,
+    _madChaserKnockdownState,
+    _madChaserPullState,
 } };
 
-/// Sub-state handlers `madChaserKnockdownState` dispatches by `subState`.
+/// Sub-state handlers `_madChaserKnockdownState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
     _madChaserKnockdownStart,
     _madChaserKnockdownRise,
@@ -790,7 +801,7 @@ static const TaskFuncTable9 gMadChaserDeathStates = { {
     _madChaserDeathSettle,
     _madChaserDeathWaitAnim,
     _madChaserDeathStartShrink,
-    madChaserDeathTurnTranslucent,
+    _madChaserDeathTurnTranslucent,
     madChaserShrinkWithDust,
     madChaserStartDespawn,
     _madChaserDeathPause,
@@ -851,18 +862,18 @@ static const TaskFuncTable4 D_actor_342400_80161FD8 = { {
 /// stack before dispatch.
 static const TaskFuncTable10 gMadChaserEmergeStates = { {
     madChaserEmergeAtSpot,
-    madChaserEmergeBackflip,
-    madChaserEmergeHopForward,
+    _madChaserEmergeBackflip,
+    _madChaserEmergeHopForward,
     madChaserCreepUntilHit,
-    madChaserEmergeArcBack,
-    madChaserEmergeHopBack,
-    madChaserEmergeBackOff,
-    madChaserEmergeHighArc,
-    madChaserEmergeFlipOver,
+    _madChaserEmergeArcBack,
+    _madChaserEmergeHopBack,
+    _madChaserEmergeBackOff,
+    _madChaserEmergeHighArc,
+    _madChaserEmergeFlipOver,
     func_actor_342400_80168394,
 } };
 
-/// Sub-state handlers `madChaserPullState` dispatches by `subState`.
+/// Sub-state handlers `_madChaserPullState` dispatches by `subState`.
 static const TaskFuncTable6 gMadChaserPullSteps = { {
     _madChaserPullStart,
     _madChaserPullReact,
@@ -875,7 +886,7 @@ static const TaskFuncTable6 gMadChaserPullSteps = { {
 /// Five state handlers, indexed by `MadChaserWork::state`; copied to
 /// the stack before dispatch.
 static const TaskFuncTable5 gMadChaserDropDeathStates = { {
-    madChaserDeathCryUnlink,
+    _madChaserDropDeathStart,
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
     _madChaserDropBodies,

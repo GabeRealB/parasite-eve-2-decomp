@@ -28,9 +28,27 @@ static __inline__ void _madChaserShrinkDeathEnterTranslucentPhase(MadChaserWork*
 /// static void(Task*) instance; an unbound inclusion defines ordinary death.
 static void MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER(Task* task)
 #else
-/// After 0x18 frames sets model flag 2, clears the frame counter, sets
-/// `shadowHidden` and advances the state.
-void madChaserDeathTurnTranslucent(Task* task)
+/// Starts the ordinary translucent shrink without limb shadows.
+///
+/// Borrows the live model/work at the 24-frame threshold of death behavior 4.
+/// Clears the shrink counter and enters behavior 5; allocations remain live.
+static __inline__ void _madChaserDeathEnterTranslucentPhase(MadChaserWork* work, TmdObject* model)
+{
+    model->flags       = model->flags | TMD_OBJECT_SEMI_TRANS;
+    work->stateFrames  = 0U;
+    work->shadowHidden = 1;
+    work->state        = work->state + 1;
+}
+
+/// Waits 24 updating ordinary-death frames before starting translucent shrink.
+///
+/// Requires live task-owned work/model storage in ordinary-death behavior 4
+/// with stateFrames reset on entry. Counts with u16 wrapping and compares as
+/// s16; the death dispatcher calls this only while actors run. At the threshold,
+/// enables semi-transparent drawing, suppresses limb shadows, clears the counter
+/// and enters behavior 5, whose shrink emits dust. Animation and all storage
+/// remain live until the later despawn steps.
+static void _madChaserDeathTurnTranslucent(Task* task)
 #endif
 {
     enum { MAD_CHASER_DEATH_TRANSLUCENT_DELAY_FRAMES = 24 };
@@ -46,10 +64,7 @@ void madChaserDeathTurnTranslucent(Task* task)
 #ifdef MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER
         _madChaserShrinkDeathEnterTranslucentPhase(work, model);
 #else
-        model->flags       = model->flags | TMD_OBJECT_SEMI_TRANS;
-        work->stateFrames  = 0U;
-        work->shadowHidden = 1;
-        work->state        = work->state + 1;
+        _madChaserDeathEnterTranslucentPhase(work, model);
 #endif
     }
 }

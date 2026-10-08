@@ -59,20 +59,31 @@ extern AnimationSet* gMadChaserAnimBank[21];  // animation bank handed to `anima
 // Typed callback views for the task message dispatcher.
 
 extern TaskMessageEntry     gMadChaserMsgTable[3];    // stored into `Task::msgTable` by madChaserSpawn
-static const TaskFuncTable3 gMadChaserKnockdownSteps; // dispatcher table madChaserKnockdownState copies onto its stack
+static const TaskFuncTable3 gMadChaserKnockdownSteps; // dispatcher table _madChaserKnockdownState copies onto its stack
 static const TaskFuncTable3 gMadChaserWalkSteps;      // dispatcher table _madChaserWalkState copies onto its stack
 static const TaskFuncTable5 gMadChaserLeapSteps;      // dispatcher table madChaserLeapState copies onto its stack
 static const TaskFuncTable5 Actor04400_D0009C;        // dispatcher table Actor04400_Fn06964 copies onto its stack
 static const TaskFuncTable3 Actor04400_D00150;        // dispatcher table _madChaserLurkIdleState copies onto its stack
 static const TaskFuncTable3 Actor04400_D0015C;        // dispatcher table _madChaserLurkLookState copies onto its stack
 static const TaskFuncTable4 Actor04400_D00174;        // dispatcher table Actor04400_Fn07F04 copies onto its stack
-static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table madChaserPullState copies onto its stack
+static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table _madChaserPullState copies onto its stack
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
 /// so a negated angle is passed without re-truncation to 16 bits.
 
 static void Actor04400_Fn03538(Task* arg0);
 static void Actor04400_Fn05260(Task* arg0);
+static void _madChaserDropDeathStart(Task* task);
+static void _madChaserDeathTurnTranslucent(Task* task);
+static void _madChaserEmergeArcBack(Task* task);
+static void _madChaserEmergeBackOff(Task* task);
+static void _madChaserEmergeBackflip(Task* task);
+static void _madChaserEmergeFlipOver(Task* task);
+static void _madChaserEmergeHighArc(Task* task);
+static void _madChaserEmergeHopBack(Task* task);
+static void _madChaserEmergeHopForward(Task* task);
+static void _madChaserKnockdownState(Task* task);
+static void _madChaserPullState(Task* task);
 static void _madChaserDespawnState(Task* task);
 static void Actor04400_Fn06848(Task* arg0);
 static void Actor04400_Fn0685C(Task* arg0);
@@ -790,11 +801,11 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserRecoilLightState,
     Actor04400_Fn06A24,
     Actor04400_Fn06A78,
-    madChaserKnockdownState,
-    madChaserPullState,
+    _madChaserKnockdownState,
+    _madChaserPullState,
 } };
 
-/// Sub-state handlers `madChaserKnockdownState` dispatches by `subState`.
+/// Sub-state handlers `_madChaserKnockdownState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
     _madChaserKnockdownStart,
     _madChaserKnockdownRise,
@@ -1055,7 +1066,7 @@ static const TaskFuncTable9 gMadChaserDeathStates = { {
     _madChaserDeathSettle,
     _madChaserDeathWaitAnim,
     _madChaserDeathStartShrink,
-    madChaserDeathTurnTranslucent,
+    _madChaserDeathTurnTranslucent,
     madChaserShrinkWithDust,
     madChaserStartDespawn,
     _madChaserDeathPause,
@@ -1191,18 +1202,18 @@ static const TaskFuncTable4 Actor04400_D00174 = { {
 /// State handlers `madChaserEmergeTick` dispatches by `state`.
 static const TaskFuncTable10 gMadChaserEmergeStates = { {
     madChaserEmergeAtSpot,
-    madChaserEmergeBackflip,
-    madChaserEmergeHopForward,
+    _madChaserEmergeBackflip,
+    _madChaserEmergeHopForward,
     madChaserCreepUntilHit,
-    madChaserEmergeArcBack,
-    madChaserEmergeHopBack,
-    madChaserEmergeBackOff,
-    madChaserEmergeHighArc,
-    madChaserEmergeFlipOver,
+    _madChaserEmergeArcBack,
+    _madChaserEmergeHopBack,
+    _madChaserEmergeBackOff,
+    _madChaserEmergeHighArc,
+    _madChaserEmergeFlipOver,
     Actor04400_Fn05260,
 } };
 
-/// Sub-state handlers `madChaserPullState` dispatches by `subState`.
+/// Sub-state handlers `_madChaserPullState` dispatches by `subState`.
 static const TaskFuncTable6 gMadChaserPullSteps = { {
     _madChaserPullStart,
     _madChaserPullReact,
@@ -1214,7 +1225,7 @@ static const TaskFuncTable6 gMadChaserPullSteps = { {
 
 /// State handlers `madChaserDropDeathTick` dispatches by `state`.
 static const TaskFuncTable5 gMadChaserDropDeathStates = { {
-    madChaserDeathCryUnlink,
+    _madChaserDropDeathStart,
     _madChaserDeathRequestSettle,
     _madChaserCommandDeathWaitAnimBoundary,
     _madChaserDropBodies,

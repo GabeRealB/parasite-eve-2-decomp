@@ -94,7 +94,7 @@ mapNeoArkUpdateMusicVolume = 0x80179BE4; // type:func absolute:True owner=map_ne
 optionsUpdateMenuTask = 0x801D4B64; // type:func absolute:True owner=options
 actor403600DrawStreamGt3BottomFade = 0x80136224; // type:func absolute:True owner=actor_403600
 actor403600DrawStreamGt3PreXformBottomFade = 0x80136500; // type:func absolute:True owner=actor_403600
-actor403600DrawStreamGt4BottomFade = 0x8013685C; // type:func absolute:True owner=actor_403600 shared=actors
+actor403600DrawStreamGt4BottomFade = 0x8013685C; // type:func absolute:True owner=actor_403600
 actor403600DrawStreamGt4PreXformBottomFade = 0x80136C00; // type:func absolute:True owner=actor_403600
 actor403600DrawStreamGt3TopDisplace = 0x8013700C; // type:func absolute:True owner=actor_403600
 actor403600DrawStreamGt3TopDisplaceSemiTrans = 0x80137300; // type:func absolute:True owner=actor_403600

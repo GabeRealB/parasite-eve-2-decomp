@@ -1,33 +1,61 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Plays sound 9 on the first frame and hops forward 0x50 units a frame
-/// under the accelerating drop; on landing advances the state.
-void madChaserEmergeHopForward(Task* arg0)
+/// Starts the entry-hop cue at the root's already-composed origin.
+///
+/// Tags the character-bank request with this live enemy's placement index.
+/// Requires the origin-audio projection scratch/GTE setup; retains no storage.
+static __inline__ void _madChaserEmergeHopForwardPlayEntrySound(Task* task)
 {
-    MadChaserWork* work;
-    GfxCoord*      coord;
-    s32            soundId;
-    s32            pan;
-    s16            angle;
-    s16            speed;
+    enum {
+        MAD_CHASER_EMERGE_HOP_SOUND            = SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 9),
+        MAD_CHASER_EMERGE_SOUND_INSTANCE_SHIFT = 8
+    };
+    Enemy* enemy = task->spawnArg2.pointer;
+    s32    soundId;
+    s32    audioPan;
 
-    work  = (MadChaserWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
+    soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << MAD_CHASER_EMERGE_SOUND_INSTANCE_SHIFT) | MAD_CHASER_EMERGE_HOP_SOUND;
+    audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+}
+
+/// Lands the forward recovery hop after the entry backflip.
+///
+/// Requires live work, enemy/model storage in emerge behavior 2 with a cleared
+/// frame counter. Starts positional character-bank entry 9 on signed frame 1,
+/// then moves forward 80 parent-coordinate units each updating frame. Vertical
+/// acceleration grows by four; speed/acceleration narrow to s16. Crossing Y > 0
+/// places Y at -60, clears the counter and enters creep behavior 3. Audio reads
+/// the root's already-composed origin before movement and requires the origin
+/// projection scratch/GTE setup. Playback, rotation and collision belong to
+/// the caller; all task-owned storage remains live.
+static void _madChaserEmergeHopForward(Task* task)
+{
+    enum {
+        MAD_CHASER_EMERGE_DIRECTION_EXTRA_BITS    = 4,
+        MAD_CHASER_EMERGE_DIRECTION_FRACTION_BITS = 16,
+        MAD_CHASER_EMERGE_LANDING_Y               = -60
+    };
+    MadChaserWork* work;
+    GfxCoord*      root;
+    s16            moveHeading;
+    s16            stepDistance;
+
+    work = task->work;
+    root = task->extra.tmd->coords;
     if ((s16)++work->stateFrames == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        _madChaserEmergeHopForwardPlayEntrySound(task);
     }
-    speed                                 = 0x50;
-    angle                                 = work->rotation.vy;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[1]                    += work->moveSpeed;
+    stepDistance                          = 0x50;
+    moveHeading                           = work->rotation.vy;
+    task->extra.tmd->coords->coord.t[0]  += ((rsin(moveHeading) << MAD_CHASER_EMERGE_DIRECTION_EXTRA_BITS) * stepDistance) >> MAD_CHASER_EMERGE_DIRECTION_FRACTION_BITS;
+    task->extra.tmd->coords->coord.t[2]  += ((rcos(moveHeading) << MAD_CHASER_EMERGE_DIRECTION_EXTRA_BITS) * stepDistance) >> MAD_CHASER_EMERGE_DIRECTION_FRACTION_BITS;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    root->coord.t[1]                     += work->moveSpeed;
     work->moveAccel                      += 4;
     work->moveSpeed                      += work->moveAccel;
-    if (coord->coord.t[1] > 0) {
-        coord->coord.t[1] = -0x3C;
+    if (root->coord.t[1] > 0) {
+        root->coord.t[1]  = MAD_CHASER_EMERGE_LANDING_Y;
         work->stateFrames = 0;
         work->state++;
     }

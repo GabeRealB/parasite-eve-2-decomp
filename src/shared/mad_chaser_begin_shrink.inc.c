@@ -1,6 +1,10 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Unlinks the three retained collision bodies used by command shrink-death.
+/// Detaches the command shrink-death's pair, grid and attack collision spheres.
+///
+/// `bodyWork` must be live with valid list links on any linked body. Unlinks in
+/// pair/grid/attack order, clearing linked bodies' pass enables and list links.
+/// The work block, body shapes and contact storage remain task-owned and live.
 static __inline__ void _madChaserBeginShrinkUnlinkBodies(MadChaserWork* bodyWork)
 {
     worldCollisionUnlinkBody(&bodyWork->pairBody);

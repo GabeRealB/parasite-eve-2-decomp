@@ -1,8 +1,10 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Removes the three task-owned collision bodies from their active lists.
+/// Detaches the ordinary death's pair, grid and attack collision spheres.
 ///
-/// The work block and body storage remain live; contact arrays are retained.
+/// `bodyWork` must be live with valid list links on any linked body. Unlinks in
+/// pair/grid/attack order, clearing linked bodies' pass enables and list links.
+/// The work block, body shapes and contact storage remain task-owned and live.
 static __inline__ void _madChaserDeathStartShrinkUnlinkBodies(MadChaserWork* bodyWork)
 {
     worldCollisionUnlinkBody(&bodyWork->pairBody);
