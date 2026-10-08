@@ -8,6 +8,7 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/companion_load.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
@@ -913,7 +914,7 @@ static void _actor450900DepartureTask(Task* task)
         ACTOR_450900_DEPARTURE_DESTINATION_ROOM = 1,
         ACTOR_450900_COMPANION_NONE             = 0,
         ACTOR_450900_DEFAULT_DISPLAY_VARIANT    = 1,
-        ACTOR_450900_SESSION_LOAD_TASK_INDEX    = 17,
+        ACTOR_450900_SESSION_LOAD_TASK_INDEX    = GAME_FLOW_RELOAD_TASK_SLOT,
     };
     switch (task->state) {
         case ACTOR_450900_DEPARTURE_START:
@@ -956,7 +957,7 @@ static void _actor450900DepartureTask(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType     = ACTOR_450900_COMPANION_NONE;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_450900_DEPARTURE_DESTINATION_ROOM;
             gDisplayState.spriteVariant                                = ACTOR_450900_DEFAULT_DISPLAY_VARIANT;
-            taskSpawn(0, ACTOR_450900_SESSION_LOAD_TASK_INDEX, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, ACTOR_450900_SESSION_LOAD_TASK_INDEX, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             streamFinishScene();
             taskKill(task);
             break;

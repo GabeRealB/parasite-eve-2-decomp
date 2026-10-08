@@ -10,6 +10,7 @@
 
 #include "actors/actor.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
@@ -1959,7 +1960,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_actor_215100_8015E678.areaId;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_actor_215100_8015E678.warp;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_actor_215100_8015E678.room;
-                taskSpawn(0, 0x11, 0, 0);
+                taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
                 taskKill(arg0);
             }
             break;

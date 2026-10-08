@@ -65,7 +65,7 @@ void storeCutsceneTask(Task* arg0)
             gMcSaveData[0].state.location.loc.warp                     = gStoreWarp;
             gMcSaveData[0].state.location.loc.room                     = gStoreRoom;
             gDisplayState.spriteVariant                                = 1;
-            taskSpawn(0, 0x11, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             break;
         default:
             return;

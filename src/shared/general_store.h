@@ -18,7 +18,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "gameplay/companion_load.h"
 
 s32  storeDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
 void storeCutsceneTask(Task* arg0);

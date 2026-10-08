@@ -4,6 +4,7 @@
 
 #include "mine_secret_passage_private.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/direction.h"
@@ -110,7 +111,7 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_mine_secret_passage_80183448.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_mine_secret_passage_80183448.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_mine_secret_passage_80183448.areaId)[1];
-            taskSpawn(0, 0x11, 0x10, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(arg0);
             break;
     }

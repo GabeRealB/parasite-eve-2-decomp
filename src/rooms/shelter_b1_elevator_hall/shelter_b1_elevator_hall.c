@@ -4,6 +4,7 @@
 
 #include "shelter_b1_elevator_hall_private.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
@@ -140,7 +141,7 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b1_elevator_hall_801849F8.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b1_elevator_hall_801849F8.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_shelter_b1_elevator_hall_801849F8.areaId)[1];
-            taskSpawn(0, 0x11, 0x10, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(arg0);
             break;
     }

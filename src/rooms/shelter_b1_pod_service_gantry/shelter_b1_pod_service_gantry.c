@@ -10,6 +10,7 @@
 
 #include "rooms/shelter_b1_pod_service_gantry_light_types.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/area.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
@@ -1572,7 +1573,7 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
             gDisplayState.spriteVariant                                 = 1;
-            taskSpawn(0, 0x11, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         case SHELTER_B1_POD_SERVICE_GANTRY_STEP_PAUSE:
             work->step++;
             break;

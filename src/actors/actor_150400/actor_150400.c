@@ -6,6 +6,7 @@
 
 #include "actors/actor.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
@@ -420,7 +421,7 @@ void func_actor_150400_80131ECC(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;
-        taskSpawn(0, 0x11, 0, 0);
+        taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         streamFinishScene();
     }
 }

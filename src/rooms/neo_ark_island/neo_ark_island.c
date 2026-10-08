@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/area.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
@@ -603,7 +604,7 @@ void func_neo_ark_island_8017E844(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_island_80184008.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_island_80184008.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_island_80184008.areaId)[1];
-            taskSpawn(0, 0x11, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(arg0);
             break;
     }

@@ -14,6 +14,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -2075,7 +2076,7 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
                 gDisplayState.spriteVariant                                 = 1;
-                taskSpawn(0, 0x11, 0, 0);
+                taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
                 taskKill(arg0);
                 break;
             }

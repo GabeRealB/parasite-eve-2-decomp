@@ -28,6 +28,27 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+/// Resource families selected by the area schedules, independent of actor IDs.
+enum {
+    COMPANION_TYPE_NONE     = 0,
+    COMPANION_TYPE_FAMILY_1 = 1,
+    COMPANION_TYPE_FAMILY_2 = 2,
+    COMPANION_TYPE_FAMILY_3 = 3,
+};
+
+/// The base-only variant and the result that requests no resource load.
+enum {
+    COMPANION_BASE_RESOURCE_VARIANT = 0,
+    COMPANION_NO_RESOURCE_LOAD      = 0,
+};
+
+/// Area-presence masks and family 1's packed resource-variant shift.
+enum {
+    COMPANION_FAMILY_1_PRESENCE_MASK = 0xF,
+    COMPANION_FAMILY_1_VARIANT_SHIFT = 4,
+    COMPANION_FULL_PRESENCE_MASK     = 0xFF,
+};
+
 /// One schedule of a companion: the stage it appears in, and in which of that
 /// stage's areas.
 ///
@@ -42,6 +63,19 @@ typedef struct {
     u8  stage;        // `GAME_STAGE_*` whose areas `areaPresence` lists
 } _CompanionSchedule;
 STATIC_ASSERT_SIZEOF(_CompanionSchedule, 8);
+
+/// Tests a schedule's stage and area presence, retaining its borrowed area table.
+///
+/// `outputAreaPresence` must be a simple u8* local; it is assigned, then read
+/// repeatedly. `schedules` and `scheduleFlagId` are evaluated twice and must
+/// have no side effects. The flag nibble must index the schedule table.
+/// `stageId`, `areaId` and `presenceMask` are each evaluated at most once,
+/// after the preceding tests pass. A matching stage requires a valid one-based
+/// area. Family 1 uses its low nibble; families 2/3 use the whole byte.
+#define COMPANION_SCHEDULE_HAS_AREA(schedules, scheduleFlagId, stageId, areaId, presenceMask, outputAreaPresence) \
+    (((outputAreaPresence) = (schedules)[gameFlagGetNibble(scheduleFlagId)].areaPresence),                        \
+     (outputAreaPresence) != NULL && (schedules)[gameFlagGetNibble(scheduleFlagId)].stage == (stageId) &&         \
+         ((outputAreaPresence)[(areaId) - 1] & (presenceMask)) != 0)
 
 extern _CompanionSchedule D_80114198[];
 
@@ -88,8 +122,6 @@ extern u8 D_80114530[49];
 /// 33 room flags, then the unexplained 3D F0 71 tail.
 /// The tail is not a room-mask entry.
 extern u8 D_80114564[36];
-
-static void Gp_ClearFlagBank(s32 arg0);
 
 void func_80724E2C(void);
 
@@ -163,61 +195,64 @@ u8 D_80114530[49] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 /// The tail is not a room-mask entry.
 u8 D_80114564[36] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 61, 240, 113 };
 
-s32 Gp_PickCompanion(void)
+s32 companionSelectForArea(void)
 {
     McSaveData* save;
     u8*         areaPresence;
     s32         stage;
     u8          variant;
 
-    save         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    stage        = save->state.location.loc.stage;
-    areaPresence = D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].areaPresence;
-    if (areaPresence != NULL && D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].stage == stage && areaPresence[save->state.location.loc.area - 1] != 0) {
-        GameSession* sess = gGameSession;
+    save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    stage = save->state.location.loc.stage;
+    // The first scheduled family present wins: 2, then 1, then 3.
+    if (COMPANION_SCHEDULE_HAS_AREA(D_80114198, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+        GameSession* session = gGameSession;
 
-        save->state.companionType    = 2;
-        save->state.companionVariant = 0;
-        return (sess->companionType != 2) * 2;
+        save->state.companionType    = COMPANION_TYPE_FAMILY_2;
+        save->state.companionVariant = COMPANION_BASE_RESOURCE_VARIANT;
+        return (session->companionType != COMPANION_TYPE_FAMILY_2) * COMPANION_TYPE_FAMILY_2;
     }
 
-    areaPresence = D_801141F0[gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].areaPresence;
-    if (areaPresence != NULL && D_801141F0[gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].stage == stage && (areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF)) {
-        GameSession* sess = gGameSession;
+    if (COMPANION_SCHEDULE_HAS_AREA(D_801141F0, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
+        GameSession* session = gGameSession;
 
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = 1;
-        if (sess->companionType == 1) {
-            variant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
-            if (sess->companionVariant == variant) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType = COMPANION_TYPE_FAMILY_1;
+        if (session->companionType == COMPANION_TYPE_FAMILY_1) {
+            variant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> COMPANION_FAMILY_1_VARIANT_SHIFT;
+            if (session->companionVariant == variant) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = variant;
-                return 0;
+                return COMPANION_NO_RESOURCE_LOAD;
             }
         }
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
-        gGameSession->companionVariant                            = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> 4;
-        return 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> COMPANION_FAMILY_1_VARIANT_SHIFT;
+        gGameSession->companionVariant                            = areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] >> COMPANION_FAMILY_1_VARIANT_SHIFT;
+        return COMPANION_TYPE_FAMILY_1;
     }
 
-    areaPresence = D_80114248[gameFlagGetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].areaPresence;
-    if (areaPresence != NULL && D_80114248[gameFlagGetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].stage == stage && areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
-        GameSession* sess = gGameSession;
+    if (COMPANION_SCHEDULE_HAS_AREA(D_80114248, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
+        GameSession* session = gGameSession;
 
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = 3;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = 0;
-        if (sess->companionType == 3) {
-            return 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = COMPANION_TYPE_FAMILY_3;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = COMPANION_BASE_RESOURCE_VARIANT;
+        if (session->companionType == COMPANION_TYPE_FAMILY_3) {
+            return COMPANION_NO_RESOURCE_LOAD;
         }
-        return 3;
+        return COMPANION_TYPE_FAMILY_3;
     }
 
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = 0;
-    gGameSession->companionType                               = 0;
-    gGameSession->companionVariant                            = 0;
-    return 0;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = COMPANION_TYPE_NONE;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = COMPANION_BASE_RESOURCE_VARIANT;
+    gGameSession->companionType                               = COMPANION_TYPE_NONE;
+    gGameSession->companionVariant                            = COMPANION_BASE_RESOURCE_VARIANT;
+    return COMPANION_NO_RESOURCE_LOAD;
 }
 
-static inline s32 _companionInRoom(void)
+/// Tests whether the destination's scheduled companion needs the first character sound bank retained.
+///
+/// Uses the live save's stage/area, except that the live session's nighttime
+/// Water Hole disables retention. Schedule indices must be 0..10 for families 1/2
+/// and 0..1 for family 3; the area ID must address the selected stage's table.
+static inline s32 _companionShouldRetainSoundBank(void)
 {
     McSaveData* save;
     u8*         areaPresence;
@@ -225,26 +260,23 @@ static inline s32 _companionInRoom(void)
 
     save  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
     stage = save->state.location.loc.stage;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(3, 32, 0, 0)) {
-        areaPresence = D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].areaPresence;
-        if (areaPresence != NULL && D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].stage == stage && areaPresence[save->state.location.loc.area - 1] != 0) {
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 0, 0)) {
+        if (COMPANION_SCHEDULE_HAS_AREA(D_80114198, GAME_FLAG_COMPANION_2_SCHEDULE, stage, save->state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
             return 1;
         }
-        areaPresence = D_801141F0[gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].areaPresence;
-        if (areaPresence != NULL && D_801141F0[gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE)].stage == stage && (areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] & 0xF)) {
+        if (COMPANION_SCHEDULE_HAS_AREA(D_801141F0, GAME_FLAG_COMPANION_1_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FAMILY_1_PRESENCE_MASK, areaPresence)) {
             return 1;
         }
-        areaPresence = D_80114248[gameFlagGetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].areaPresence;
-        if (areaPresence != NULL && D_80114248[gameFlagGetNibble(GAME_FLAG_COMPANION_3_SCHEDULE)].stage == stage && areaPresence[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area - 1] != 0) {
+        if (COMPANION_SCHEDULE_HAS_AREA(D_80114248, GAME_FLAG_COMPANION_3_SCHEDULE, stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area, COMPANION_FULL_PRESENCE_MASK, areaPresence)) {
             return 1;
         }
     }
     return 0;
 }
 
-void Gp_ApplyNpcRoomSnd(void)
+void companionConfigureSoundBankRetention(void)
 {
-    sndLoadSetFirstCharacterBankRetention(_companionInRoom());
+    sndLoadSetFirstCharacterBankRetention(_companionShouldRetainSoundBank());
 }
 
 void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, ActorSpawnOptions* options)
@@ -263,46 +295,52 @@ void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, ActorSpaw
     }
 }
 
-static void Gp_ClearFlagBank(s32 arg0)
+/// Clears a stage's two visited-area bit words, preserving its object and placement state.
+///
+/// `stageId` must be an active stage ID (1..5). This retained standalone helper
+/// has no current callers and does not clear the live save's stage-visit bit.
+static void _areaClearStageVisits(s32 stageId)
 {
     GameFlagStageHeader* bank;
 
-    bank                  = Gp_FlagBanks[arg0];
+    bank                  = Gp_FlagBanks[stageId];
     bank->visitedAreas[0] = 0;
     bank->visitedAreas[1] = 0;
 }
 
-void Gp_MarkAreaVisited(GameLocationKey* arg0)
+void areaMarkVisited(const GameLocationKey* location)
 {
+    enum { AREA_VISIT_BITS_PER_WORD = 32 };
     McSaveData*          save;
     GameFlagStageHeader* bank;
-    s32                  which;
-    s32                  bit;
+    s32                  visitWordIndex;
+    s32                  visitBitIndex;
     s32                  mask;
-    s32                  flags;
+    s32                  visitedAreas;
 
-    bank = Gp_FlagBanks[arg0->stage];
+    bank = Gp_FlagBanks[location->stage];
     save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    if ((((s8)save->state.visitFlags >> arg0->stage) & 1) == 0) {
-        save->state.visitFlags |= 1 << arg0->stage;
+    if ((((s8)save->state.visitFlags >> location->stage) & 1) == 0) {
+        save->state.visitFlags |= 1 << location->stage;
         if (gDisplayState.debugMode != 0) {
             func_80724E2C();
         }
     }
 
-    which = 0;
-    if (arg0->area >= 0x21) {
-        which = 1;
-        bit   = arg0->area - 0x21;
+    // Area IDs are one-based; each word records 32 consecutive areas.
+    visitWordIndex = 0;
+    if (location->area >= AREA_VISIT_BITS_PER_WORD + 1) {
+        visitWordIndex = 1;
+        visitBitIndex  = location->area - (AREA_VISIT_BITS_PER_WORD + 1);
     } else {
-        bit = arg0->area - 1;
+        visitBitIndex = location->area - 1;
     }
 
-    mask  = 1;
-    flags = bank->visitedAreas[which];
-    if (((mask << bit) & flags) == 0) {
-        bank->visitedAreas[which] = flags | (mask << bit);
-        areaRequestSavedPoseReset(arg0);
+    mask         = 1;
+    visitedAreas = bank->visitedAreas[visitWordIndex];
+    if (((mask << visitBitIndex) & visitedAreas) == 0) {
+        bank->visitedAreas[visitWordIndex] = visitedAreas | (mask << visitBitIndex);
+        areaRequestSavedPoseReset(location);
     }
 }
 
@@ -314,31 +352,33 @@ void func_800AC000(void)
 {
 }
 
-void Gp_SessionState1(Task* task)
+void gameFlowHoldSessionDisplayTask(Task* task)
 {
-    DisplayState* ds;
-    s32           temp;
+    DisplayState* displayState;
+    s32           displayMode;
 
-    ds             = &gDisplayState;
-    ds->skipDraw   = 1;
-    ds->holdState |= DISPLAY_HOLD_ACTIVE;
-    temp           = task->spawnArg1.value & 0xF;
-    if (temp != 0) {
-        if (temp == 1) {
-            ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
-        }
+    displayState             = &gDisplayState;
+    displayState->skipDraw   = 1;
+    displayState->holdState |= DISPLAY_HOLD_ACTIVE;
+    displayMode              = task->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK;
+    switch (displayMode) {
+        case GAME_FLOW_RELOAD_CAPTURE_FRAME:
+            break;
+        case GAME_FLOW_RELOAD_BLANK_DISPLAY:
+            displayState->control.flags.imageSource = DISPLAY_IMAGE_NONE;
+            break;
     }
     task->state++;
 }
 
-void Gp_ResumeSessionTask(Task* task)
+void gameFlowPrepareSessionReloadTask(Task* task)
 {
-    sndScriptSetTypeRequestsEnabled(0, SOUND_BANK_TYPE_CHARACTER_ALL);
+    sndScriptSetTypeRequestsEnabled(false, SOUND_BANK_TYPE_CHARACTER_ALL);
     if (gGameSession->deathVariant != 0) {
         taskKill(task);
         return;
     }
-    if ((task->spawnArg1.value & 0x10) == 0) {
+    if ((task->spawnArg1.value & GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE) == 0) {
         if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_FINISHED) {
             gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_RESUMED;
         }
@@ -347,14 +387,15 @@ void Gp_ResumeSessionTask(Task* task)
     task->state++;
 }
 
-void func_800AC0F0(Task* task)
+void gameFlowReloadSessionTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = Gp_SessionStates;
+    states = Gp_SessionStates;
     padStartInputBlock(0);
+    // Keep the pause store before the state read that selects the next phase.
     *(volatile u8*)&gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-    sp.funcs[((volatile Task*)task)->state](task);
+    states.funcs[((volatile Task*)task)->state](task);
 }
 
 void Gp_LoadFinishTask(Task* task)

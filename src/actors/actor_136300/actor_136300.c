@@ -6,6 +6,7 @@
 
 #include "common.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/animation.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
@@ -1472,7 +1473,7 @@ void func_actor_136300_8013267C(Task* arg0)
             gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_TRUCK_KEY);
             gDisplayState.spriteVariant = 1;
-            taskSpawn(0, 0x11, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(arg0);
             return;
     }

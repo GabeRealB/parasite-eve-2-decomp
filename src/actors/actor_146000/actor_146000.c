@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/animation.h"
 #include "gameplay/area_transitions.h"
 #include "gameplay/enemy.h"
@@ -611,7 +612,7 @@ void func_actor_146000_80131E24(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x19;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = state;
             gDisplayState.spriteVariant                                = 1;
-            taskSpawn(0, 0x11, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(arg0);
             break;
     }

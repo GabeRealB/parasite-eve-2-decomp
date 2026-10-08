@@ -11,6 +11,7 @@
 
 #include "neo_ark_submarine_gallery_private.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/area_entry.h"
 #include "gameplay/area_flags.h"
@@ -144,7 +145,7 @@ void func_neo_ark_submarine_gallery_8017E86C(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_submarine_gallery_80185924.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_submarine_gallery_80185924.field_4;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ((u8*)&D_neo_ark_submarine_gallery_80185924.areaId)[1];
-            taskSpawn(0, 0x11, 0x10, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
             taskKill(arg0);
             break;
     }

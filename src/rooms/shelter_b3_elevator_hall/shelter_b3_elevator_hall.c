@@ -11,6 +11,7 @@
 
 #include "shelter_b3_elevator_hall_private.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/direction.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
@@ -218,7 +219,7 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
         case 6:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gDisplayState.spriteVariant = 1;
-            taskSpawn(0, 0x11, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
     }

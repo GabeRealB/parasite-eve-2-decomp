@@ -53,7 +53,7 @@
 #ifndef SRC_SHARED_ROOM_EVENTS_H
 #define SRC_SHARED_ROOM_EVENTS_H
 
-#include "main/task_types.h"
+#include "gameplay/companion_load.h"
 
 #include "rooms/room.h"
 #include "rooms/room_common.h"

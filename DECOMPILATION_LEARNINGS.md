@@ -7839,24 +7839,24 @@ sllv  v1,v0,a2
 ```
 
 Assign `1` to an `s32` *before* the indexed load. That pins the constant
-in `$v0` across the address calc, so `which` shifts in place in `$v1`
-and `1 << bit` is `sllv v1, v0, a2`. Write the test as
-`(mask << bit) & flags` (not `flags & (mask << bit)`) so the `and` is
+in `$v0` across the address calc, so `visitWordIndex` shifts in place in `$v1`
+and `1 << visitBitIndex` is `sllv v1, v0, a2`. Write the test as
+`(mask << visitBitIndex) & visitedAreas` (not `visitedAreas & (mask << visitBitIndex)`) so the `and` is
 `and v0, v1, a1`:
 
 ```c
 s32 mask;
-s32 flags;
+s32 visitedAreas;
 
 mask  = 1;
-flags = bank->field_4[which];
-if (((mask << bit) & flags) == 0) {
-    bank->field_4[which] = flags | (mask << bit);
+visitedAreas = bank->visitedAreas[visitWordIndex];
+if (((mask << visitBitIndex) & visitedAreas) == 0) {
+    bank->visitedAreas[visitWordIndex] = visitedAreas | (mask << visitBitIndex);
 }
 ```
 
-`Gp_MarkAreaVisited` is the example. `flags = bank->field_4[which];
-mask = 1 << bit` stuck at 98% with only those registers swapped.
+`areaMarkVisited` is the example. `visitedAreas = bank->visitedAreas[visitWordIndex];
+mask = 1 << visitBitIndex` stuck at 98% with only those registers swapped.
 
 ## Hoist `&Global` into a saved register with a local pointer
 
@@ -7901,13 +7901,13 @@ before the session load, or delay-fills the wrong `lui` into the incoming
 first `la` around the second:
 
 ```c
-gMcSaveData.companionType    = 0;
-gMcSaveData.companionVariant   = 0;
+gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType    = 0;
+gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant = 0;
 gGameSession->companionType = 0;
 gGameSession->companionVariant = 0;
 ```
 
-`Gp_PickCompanion` is the example. The hoisted-pointer form stuck at 99.6%
+`companionSelectForArea` is the example. The hoisted-pointer form stuck at 99.6%
 with only that `addiu` / `lui gGameSession` pair swapped.
 
 ## Reload `&Global` into a second local so the first pointer can die
@@ -13107,7 +13107,7 @@ order; `addiu v1,sp,0x10` then fills the load delay slot:
 sp.funcs[((volatile Task*)task)->state](task);
 ```
 
-`func_800AC0F0` is the example (`D_801153F4` + `gameFlowStartSessionTask` shape).
+`gameFlowReloadSessionTask` is the example (`gSceneCombatState.actorControl` + `gameFlowStartSessionTask` shape).
 Do not flip the global to `volatile` just for this — other writers of the same
 byte already match with a plain store.
 
@@ -30089,10 +30089,10 @@ Index the global directly and only write `flag` on the success goto /
 shared zero tail:
 
 ```c
-bytes = D_80114198[gameFlagGetNibble(0x4B)].field_0;
+bytes = D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].areaPresence;
 if (bytes != NULL) {
-    if (D_80114198[gameFlagGetNibble(0x4B)].field_4 == stage) {
-        if (bytes[save->field_6 - 1] != 0) {
+    if (D_80114198[gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE)].stage == stage) {
+        if (bytes[save->state.location.loc.area - 1] != 0) {
             flag = 1;
             goto done;
         }
@@ -30106,10 +30106,10 @@ sndLoadSetFirstCharacterBankRetention(flag);
 
 The table address then lands in the `jal` delay slot (`addiu s1, %lo`)
 and each fail branch preloads the next nibble id. Widen the cached
-compare byte to `s32` (`stage = save->field_7`) so `lbu field_4` /
-`bne v0, s2` does not emit `andi s2, 0xFF`. First `field_6` through
-the `save` pointer, later ones as `gMcSaveData.field_6` so they
-rematerialize as `lui` / `lbu %lo`. `Gp_ApplyNpcRoomSnd` is the example.
+compare byte to `s32` (`stage = save->state.location.loc.stage`) so `lbu stage` /
+`bne v0, s2` does not emit `andi s2, 0xFF`. First `state.location.loc.area` through
+the `save` pointer, later ones as `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` so they
+rematerialize as `lui` / `lbu %lo`. `companionConfigureSoundBankRetention` is the example.
 
 ## Keep a live `-1` so `count + prev` is `addu`, not `addiu -1`
 
@@ -150196,7 +150196,8 @@ attempts; left as it was.
   move a2,a1` and leaves each case its `lui/ori` and a jump
   (`_gasStationCueSoundMsg`, 8 gotos, first try).
 - **A flag local set to 1 in three arms and 0 at the end, passed to one call**
-  (`Gp_ApplyNpcRoomSnd`) is a `static inline s32` with three `return 1` and a
+  (`companionConfigureSoundBankRetention`) becomes the `static inline s32`
+  predicate `_companionShouldRetainSoundBank`, with three `return 1` and a
   final `return 0` as the call's argument: the returns go straight into `$a0`.
 - **A constant local survives a switch conversion when the constant is also a
   call argument past a second dispatch.** `Actor07000_Fn03164` passes `one` to

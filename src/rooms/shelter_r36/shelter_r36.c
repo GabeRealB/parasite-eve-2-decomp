@@ -10,6 +10,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
@@ -656,7 +657,7 @@ void func_shelter_r36_8017D738(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 2;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;
-        taskSpawn(0, 0x11, 0, 0);
+        taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_ALTERNATE);
     }
 }

@@ -11,6 +11,7 @@ u16 D_shelter_b3_garbage_incinerator_801855DC;
 
 #include "shelter_b3_garbage_incinerator_private.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/sound.h"
@@ -105,7 +106,7 @@ void func_shelter_b3_garbage_incinerator_8017D6EC(Task* arg0)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_shelter_b3_garbage_incinerator_8018FC2C.areaId;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_shelter_b3_garbage_incinerator_8018FC2C.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_shelter_b3_garbage_incinerator_8018FC2C.room;
-            taskSpawn(0, 0x11, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(arg0);
             break;
     }

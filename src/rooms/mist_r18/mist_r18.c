@@ -8,6 +8,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/animation.h"
 #include "gameplay/area.h"
 #include "gameplay/attachment_state.h"
@@ -1760,7 +1761,7 @@ void func_mist_r18_8017EB48(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 3;
     gDisplayState.spriteVariant                                 = 1;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-    taskSpawn(0, 0x11, 0, 0);
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
 /// Selects the briefing's scene stream and stages its deferred audio-start request.

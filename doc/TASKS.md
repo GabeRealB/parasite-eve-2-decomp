@@ -323,7 +323,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `0E` | `2F` | `viewApplyCoordTask` | Type **2** (coordinate body). Gameplay dispatcher |
 | `0F` | `2F` | `viewApplyCameraTask` | Camera / view. `viewQueueCamera` / `viewQueueCurrentCameraAndPackets` |
 | `10` | `40` | `loadingRoomResourcesTask` | Room collision setup, view refresh and clipping; frozen dispatch suppresses the background |
-| `11` | `28` | `func_800AC0F0` | Pad-gated 3-way dispatcher. Gameflow / area code spawn this |
+| `11` | `28` | `gameFlowReloadSessionTask` | Reload from the live save: combat exit, display hold, resource rebuild; first argument selects display handling and may skip battle escape |
 | `12` | `10` | `mcSaveDialogTask` | Same as `0A` |
 | `13` | `10` | `mcLoadDialogTask` | Same as `0B` |
 | `14` | `1F` | `directionTask` | Direction trigger task (`area_transitions.c`, matched) |
@@ -507,7 +507,7 @@ releasing tasks; session reset does this before discarding the list and heap.
   save-slot switch). Overlay-local, mostly unnamed.
 - **UI** tasks built from `UiObjectDesc` rather than a bank index.
 - Several bank-0 `func_*` that are matched C but not renamed
-  (`func_800AC0F0`, `func_800A77B4`, …).
+  (`func_800A77B4`, …).
 
 Adding a bank-6/7 row to this file without a proven role is just publishing an
 address. Prefer renaming the callback (or its overlay) first.

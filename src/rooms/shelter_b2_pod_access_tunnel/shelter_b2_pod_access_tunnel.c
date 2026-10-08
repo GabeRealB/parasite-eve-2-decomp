@@ -4,6 +4,7 @@
 
 #include "shelter_b2_pod_access_tunnel_private.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/gameflag.h"
@@ -192,7 +193,7 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
             gDisplayState.spriteVariant                                = 1;
-            taskSpawn(0, 0x11, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
     }

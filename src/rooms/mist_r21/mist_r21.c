@@ -2,6 +2,7 @@
 
 #include "types.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/direction.h"
 #include "gameplay/message.h"
 
@@ -88,7 +89,7 @@ static void func_mist_r21_8017D678(Task* task)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
-        taskSpawn(0, 0x11, 1, 0);
+        taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_BLANK_DISPLAY, 0);
         taskKill(task);
     }
 }

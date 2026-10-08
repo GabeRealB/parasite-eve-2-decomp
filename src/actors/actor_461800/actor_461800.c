@@ -8,6 +8,7 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/companion_load.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -1153,8 +1154,8 @@ static void _actor461800FinishScene(void)
         ACTOR_461800_SCENE_DEMO                   = 9,
         ACTOR_461800_STERILIZATION_WITH_COMPANION = 2,
         ACTOR_461800_ENDING_FADE_FRAMES           = 15,
-        ACTOR_461800_TRANSITION_TASK_BANK         = 0,
-        ACTOR_461800_TRANSITION_TASK_INDEX        = 17,
+        ACTOR_461800_TRANSITION_TASK_BANK         = GAME_FLOW_RELOAD_TASK_BANK,
+        ACTOR_461800_TRANSITION_TASK_INDEX        = GAME_FLOW_RELOAD_TASK_SLOT,
     };
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_461800_SCENE_DEMO) {
         // Award the rescue bonuses before selecting the ending path.
@@ -1175,7 +1176,7 @@ static void _actor461800FinishScene(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
         gDisplayState.spriteVariant                                 = 1;
-        taskSpawn(ACTOR_461800_TRANSITION_TASK_BANK, ACTOR_461800_TRANSITION_TASK_INDEX, 0, 0);
+        taskSpawn(ACTOR_461800_TRANSITION_TASK_BANK, ACTOR_461800_TRANSITION_TASK_INDEX, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
         streamFinishScene();
     }

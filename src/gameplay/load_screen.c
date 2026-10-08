@@ -11,6 +11,7 @@
 #include "gameplay/area_entry.h"
 #include "area_transitions.h"
 #include "gameflag.h"
+#include "gameplay/companion_load.h"
 #include "companion_load.h"
 #include "gameplay/direction.h"
 #include "hud_sprites.h"
@@ -225,7 +226,7 @@ void Gp_BeginSessionTask(Task* arg0)
     gGameSession->location           = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location;
     gGameSession->spriteVariant      = ds->spriteVariant;
     queue->suppressMoviePresentation = one;
-    if ((arg0->spawnArg1.value & 0xF) == 0) {
+    if ((arg0->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK) == GAME_FLOW_RELOAD_CAPTURE_FRAME) {
         MoveImage(
             &gDisplayState.dispEnv[ds->drawBuffer ^ 1].disp,
             ds->dispEnv[ds->drawBuffer].disp.x,
@@ -233,7 +234,7 @@ void Gp_BeginSessionTask(Task* arg0)
         ds->control.flags.imageSource = DISPLAY_IMAGE_NONE;
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     }
-    taskSpawn(0, 0x1C, arg0->spawnArg1.value & 0xF, 0);
+    taskSpawn(0, 0x1C, arg0->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK, 0);
     ds->skipDraw                      = 0;
     queue->blockGamePause             = one;
     queue->releasePauseBlockAfterFade = one;
@@ -386,7 +387,7 @@ void Gp_LoadState2(Task* task)
             memSelectAuxHeapRegion(true);
         }
         memInitAuxHeap();
-        Gp_ApplyNpcRoomSnd();
+        companionConfigureSoundBankRetention();
         sndScriptResetForArea(gGameSession->location.loc.stage, gGameSession->location.loc.area);
         if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
             gStageSceneMusicEntry = 1;
@@ -414,7 +415,7 @@ void Gp_LoadWaitCompanion(Task* task)
     s8            yoff;
     u8            param1[8];
     u8            param2[8];
-    u8            flag;
+    u8            companionTypeToLoad;
 
     color  = 8;
     queued = gCdCmdQueue.bootLoadActive;
@@ -449,9 +450,9 @@ void Gp_LoadWaitCompanion(Task* task)
         param2[2] = 0;
         param2[3] = 0;
         cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-        flag = Gp_PickCompanion();
-        if (flag != 0) {
-            gGameSession->companionType = flag;
+        companionTypeToLoad = companionSelectForArea();
+        if (companionTypeToLoad != 0) {
+            gGameSession->companionType = companionTypeToLoad;
             companionEnqueueResources(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant);
         }
         task->state++;
@@ -517,7 +518,7 @@ void Gp_LoadWaitSave(Task* task)
             gGameSession->applySaveVariant = 0;
         }
         saveKey = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-        Gp_MarkAreaVisited(saveKey);
+        areaMarkVisited(saveKey);
         areaSyncLocationVariant(saveKey);
         gGameSession->location.loc.variant = saveKey->variant;
         cdCmdPrepareViewMovie();

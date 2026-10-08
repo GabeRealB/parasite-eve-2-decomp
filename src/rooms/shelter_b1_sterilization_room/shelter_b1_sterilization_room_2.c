@@ -13,6 +13,7 @@
 
 #include "actors/task_tables.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/display.h"
 #include "gameplay/area.h"
 #include "gameplay/area_flags.h"
@@ -957,7 +958,7 @@ void func_shelter_b1_sterilization_room_801814B0(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B3_DUMPING_HOLE;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-    taskSpawn(0, 0x11, 0, 0);
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
 void shelterB1SterilizationRoomSwitchRoomTask(Task* task)

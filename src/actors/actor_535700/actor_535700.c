@@ -8,6 +8,7 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/companion_load.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -1210,8 +1211,8 @@ static void _actor535700FinishScene(void)
         ACTOR_535700_BALCONY_ROOM            = 2,
         ACTOR_535700_SPRITE_VARIANT          = 1,
         ACTOR_535700_POST_SCENE_EVENT        = 6,
-        ACTOR_535700_SESSION_TASK_BANK       = 0,
-        ACTOR_535700_SESSION_TRANSITION_TASK = 17
+        ACTOR_535700_SESSION_TASK_BANK       = GAME_FLOW_RELOAD_TASK_BANK,
+        ACTOR_535700_SESSION_TRANSITION_TASK = GAME_FLOW_RELOAD_TASK_SLOT
     };
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_535700_DEMO_SCENE) {
@@ -1219,7 +1220,7 @@ static void _actor535700FinishScene(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_535700_BALCONY_ARRIVAL;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_535700_BALCONY_ROOM;
         gDisplayState.spriteVariant                                = ACTOR_535700_SPRITE_VARIANT;
-        taskSpawn(ACTOR_535700_SESSION_TASK_BANK, ACTOR_535700_SESSION_TRANSITION_TASK, 0, 0);
+        taskSpawn(ACTOR_535700_SESSION_TASK_BANK, ACTOR_535700_SESSION_TRANSITION_TASK, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_535700_POST_SCENE_EVENT;
         streamFinishScene();
     }

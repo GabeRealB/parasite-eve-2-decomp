@@ -9,6 +9,7 @@
 
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
+#include "gameplay/companion_load.h"
 #include "gameplay/area.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/captions.h"
@@ -2775,8 +2776,8 @@ static void _actor450800EnterGrowthRoom(void)
         ACTOR_450800_GROWTH_ROOM_ARRIVAL   = 1,
         ACTOR_450800_GROWTH_ROOM           = 1,
         ACTOR_450800_GROWTH_SPRITE_VARIANT = 1,
-        ACTOR_450800_SESSION_TASK_BANK     = 0,
-        ACTOR_450800_SESSION_RESTART_TASK  = 17,
+        ACTOR_450800_SESSION_TASK_BANK     = GAME_FLOW_RELOAD_TASK_BANK,
+        ACTOR_450800_SESSION_RESTART_TASK  = GAME_FLOW_RELOAD_TASK_SLOT,
     };
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_450800_NURSERY_DEMO_SCENE) {
@@ -2785,7 +2786,7 @@ static void _actor450800EnterGrowthRoom(void)
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACTOR_450800_GROWTH_ROOM_ARRIVAL;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACTOR_450800_GROWTH_ROOM;
         gDisplayState.spriteVariant                                 = ACTOR_450800_GROWTH_SPRITE_VARIANT;
-        taskSpawn(ACTOR_450800_SESSION_TASK_BANK, ACTOR_450800_SESSION_RESTART_TASK, 0, 0);
+        taskSpawn(ACTOR_450800_SESSION_TASK_BANK, ACTOR_450800_SESSION_RESTART_TASK, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     }
 }
 

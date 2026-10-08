@@ -13,6 +13,7 @@
 
 #include "actors/actor_310100.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/display.h"
 #include "gameplay/actor_render.h"
 #include "gameplay/animation.h"
@@ -3740,7 +3741,7 @@ void func_acropolis_plaza_80180054(Task* task)
             gDisplayState.spriteVariant                                 = 1;
             loadingEnqueueEquippedWeaponResources();
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            taskSpawn(0, 0x11, 0, 0);
+            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             q->blockGamePause = 0;
             taskKill(task);
             return;

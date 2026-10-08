@@ -12,7 +12,7 @@
 
 #include "types.h"
 
-#include "main/task_types.h"
+#include "gameplay/companion_load.h"
 
 void shelterElevatorTask(Task* task);
 

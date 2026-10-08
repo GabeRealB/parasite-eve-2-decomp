@@ -7,6 +7,7 @@
 
 #include "common.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/animation.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
@@ -570,7 +571,7 @@ void func_actor_303600_8016216C(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
                 gDisplayState.spriteVariant                                 = 1;
-                taskSpawn(0, 0x11, 0x10, 0);
+                taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
                 taskKill(arg0);
                 break;
             }

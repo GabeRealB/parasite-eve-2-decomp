@@ -18,6 +18,7 @@ Task* D_shelter_b6_training_room_80185C5C;
 
 #include "actors/task_tables.h"
 
+#include "gameplay/companion_load.h"
 #include "gameplay/area.h"
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
@@ -537,7 +538,7 @@ void func_shelter_b6_training_room_8017DB28(void)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B6_NURSERY;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-    taskSpawn(0, 0x11, 0, 0);
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
 void func_shelter_b6_training_room_8017DB70(void)
