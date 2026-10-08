@@ -125,7 +125,7 @@ extern SVECTOR D_shelter_b4_upper_sewer_801864D0[];
 /// disc's brightness.
 
 static void func_shelter_b4_upper_sewer_8017DBA8(Task* task);
-static void func_shelter_b4_upper_sewer_8017DC28(Task* task);
+static void _shelterB4UpperSewerIdleRoom(Task* task);
 static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4UpperSewerWaterSurface* surface, s16 waterY, u8 blueIntensity);
 static void _shelterB4UpperSewerInitializeWater(Task* task);
 static void _shelterB4UpperSewerSetView13SpriteHidden(s32 hidden);
@@ -133,24 +133,24 @@ static void _shelterB4UpperSewerSetView13SpriteHidden(s32 hidden);
 
 static RoomFxShade _gRoomEffectHaloShades[3];
 
-/// State handlers of the task `func_shelter_b4_upper_sewer_8017DC30` runs,
+/// State handlers of the task `shelterB4UpperSewerRoomTask` runs,
 /// which copies the table to the stack and calls the entry for the task's
 /// state: the room's setup (message table, pointer slot, water level), an idle
 /// state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
-    { func_shelter_b4_upper_sewer_8017DBA8, func_shelter_b4_upper_sewer_8017DC28, taskKill }
+    { func_shelter_b4_upper_sewer_8017DBA8, _shelterB4UpperSewerIdleRoom, taskKill }
 };
 
-void func_shelter_b4_upper_sewer_8017E4F4(Task*);
+static void _shelterB4UpperSewerWaterTask(Task* task);
 
-static s32 _shelterB4UpperSewerRejectKeyItemMessage(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
-s32        func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, s32);
-static s32 _shelterB4UpperSewerIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
-s32        func_shelter_b4_upper_sewer_8017DB58(Task*, s32, s32, s32);
-void       func_shelter_b4_upper_sewer_8017D660(Task*);
-void       func_shelter_b4_upper_sewer_8017D80C(Task*);
-void       func_shelter_b4_upper_sewer_8017DB94(void);
+static s32  _shelterB4UpperSewerRejectKeyItemMessage(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
+s32         func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32         func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, s32);
+static s32  _shelterB4UpperSewerIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32  _shelterB4UpperSewerHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
+void        func_shelter_b4_upper_sewer_8017D660(Task*);
+void        func_shelter_b4_upper_sewer_8017D80C(Task*);
+static void _shelterB4UpperSewerRestoreSavedView(void);
 
 extern TaskDesc D_actor_100400_80147E48;
 
@@ -161,7 +161,7 @@ TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[6] = {
     { SHELTER_B4_UPPER_SEWER_MESSAGE_USE_KEY_ITEM, _shelterB4UpperSewerRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4UpperSewerIgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, func_shelter_b4_upper_sewer_8017DAB0 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b4_upper_sewer_8017DB58 },
+    { ROOM_MESSAGE_SOUND, _shelterB4UpperSewerHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -176,7 +176,7 @@ EvsCommand D_shelter_b4_upper_sewer_80186318[12] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x542C0005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b4_upper_sewer_8017DB94 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4UpperSewerRestoreSavedView }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -188,7 +188,7 @@ EvsCommand D_shelter_b4_upper_sewer_80186318[12] = {
 s16 D_shelter_b4_upper_sewer_80186438 = -1600;
 
 TaskDesc D_shelter_b4_upper_sewer_8018643C[1] = {
-    { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_upper_sewer_8017E4F4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 96 } }, _shelterB4UpperSewerWaterTask, { .value = 0 } },
 };
 
 _ShelterB4UpperSewerWaterSurface D_shelter_b4_upper_sewer_80186448[1] = {
@@ -973,16 +973,30 @@ static s32 _shelterB4UpperSewerIgnoreRoomActionMessage(Task* task, s32 messageId
     return 0;
 }
 
-s32 func_shelter_b4_upper_sewer_8017DB58(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Hides view 13's switchable sprite and starts the room sound for cue 4.
+///
+/// Handles `ROOM_MESSAGE_SOUND`; other cue IDs have no effect. Requires this
+/// room's loaded sprite directory and sound bank. The receiver, message ID and
+/// second payload are unused, and every cue returns zero.
+static s32 _shelterB4UpperSewerHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg)
 {
-    if (arg2 == 4) {
+    enum {
+        SHELTER_B4_UPPER_SEWER_SOUND_CUE_HIDE_SPRITE = 4,
+        SHELTER_B4_UPPER_SEWER_HIDE_SPRITE_SOUND     = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 4)
+    };
+
+    if (cueId == SHELTER_B4_UPPER_SEWER_SOUND_CUE_HIDE_SPRITE) {
         _shelterB4UpperSewerSetView13SpriteHidden(1);
-        sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_UPPER_SEWER, 4), 0, 0);
+        sndEvtRequestScriptStart(SHELTER_B4_UPPER_SEWER_HIDE_SPRITE_SOUND, 0, 0);
     }
     return 0;
 }
 
-void func_shelter_b4_upper_sewer_8017DB94(void)
+/// Restores the live save's view after the water-hole access scene's temporary view.
+///
+/// Requires the outgoing view captured before that scene starts. This event-script
+/// callback changes only the saved view selector; it does not load a camera.
+static void _shelterB4UpperSewerRestoreSavedView(void)
 {
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_shelter_b4_upper_sewer_80188D2C[0];
 }
@@ -1000,16 +1014,18 @@ static void func_shelter_b4_upper_sewer_8017DBA8(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-static void func_shelter_b4_upper_sewer_8017DC28(Task* task)
+/// Keeps the initialized room task available for messages without per-frame work.
+///
+/// This is room state 1; the task is unused and its state is left intact.
+static void _shelterB4UpperSewerIdleRoom(Task* task)
 {
 }
 
-void func_shelter_b4_upper_sewer_8017DC30(Task* task)
+void shelterB4UpperSewerRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers = D_shelter_b4_upper_sewer_8017D5C4;
 
-    sp = D_shelter_b4_upper_sewer_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers.funcs[task->state](task);
 }
 
 /// Clamps and publishes the water height, then draws the current view's flat water.
@@ -1173,12 +1189,16 @@ static void _shelterB4UpperSewerDrawWaterSurfaces(Task* task, const _ShelterB4Up
 #undef SHELTER_B4_UPPER_SEWER_EMIT_WATER_QUAD
 }
 
-/// The room's water task: runs its state (`_shelterB4UpperSewerInitializeWater`
-/// once, then `_shelterB4UpperSewerUpdateWater` every frame) and publishes
-/// the water level as the session's water height.
-void func_shelter_b4_upper_sewer_8017E4F4(Task* task)
+/// Draws the room's water and publishes its height for water-dependent actors.
+///
+/// Start in state 0 with this room loaded: initialization clears the selected
+/// actor-buffer marker and advances to state 1. Drawing ticks borrow that buffer
+/// for packets and clamp height to -1600..0 world units. The first tick publishes
+/// the configured height before clamping. Only states 0 and 1 are valid; this
+/// bodyless task ignores spawn arguments and does not retire itself.
+static void _shelterB4UpperSewerWaterTask(Task* task)
 {
-    TaskFunc states[2] = { _shelterB4UpperSewerInitializeWater, _shelterB4UpperSewerUpdateWater };
+    TaskFunc states[] = { _shelterB4UpperSewerInitializeWater, _shelterB4UpperSewerUpdateWater };
 
     states[task->state](task);
     gGameSession->waterY = D_shelter_b4_upper_sewer_80186438;
@@ -1347,9 +1367,9 @@ void shelterB4UpperSewerRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_shelter_b4_upper_sewer_80182600(Task* arg0)
+void shelterB4UpperSewerRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -1368,7 +1388,7 @@ void shelterB4UpperSewerRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b4_upper_sewer_80183A80(Task* task)
+void shelterB4UpperSewerRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
@@ -1376,9 +1396,9 @@ void func_shelter_b4_upper_sewer_80183A80(Task* task)
 #include "../../shared/room_visual_effects_glow.inc.c"
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_shelter_b4_upper_sewer_801846C8(Task* arg0)
+void shelterB4UpperSewerRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB4UpperSewerRoomVisualEffectsFlyingSparkTask(Task* task)

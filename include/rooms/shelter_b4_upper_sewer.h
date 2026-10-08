@@ -6,6 +6,8 @@
 
 #include "types.h"
 
+#include "rooms/room_visual_effects.h"
+
 #include "gameplay/area.h"
 #include "gameplay/collision.h"
 #include "gameplay/direction.h"
@@ -47,7 +49,14 @@ extern WorldCollisionOccluder D_shelter_b4_upper_sewer_80188BFC[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b4_upper_sewer_80188CFC[];
 
-void func_shelter_b4_upper_sewer_8017DC30(Task* task);
+/// Dispatches the upper sewer's room setup, message-only idle state and teardown.
+///
+/// Start in state 0 with this room loaded. Setup installs the room's message
+/// table and task slot, then advances to state 1. A nonzero reservoir-event flag
+/// also starts water rendering at height -1800 world units; zero sets height 0.
+/// State 2 kills the task. Only states 0..2 are valid; the task has no body and
+/// ignores its packed spawn-location argument. The room must stay loaded.
+void shelterB4UpperSewerRoomTask(Task* task);
 
 /// Runs the sewer's charging pink flash, peak screen tint and fading star.
 ///
@@ -67,7 +76,14 @@ void shelterB4UpperSewerRoomVisualEffectsFlashTask(Task* task);
 /// advance the trail; other values stop it. Teardown frees work and histories.
 void shelterB4UpperSewerRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b4_upper_sewer_80183A80(Task* task);
+/// Emits the sewer's impact flash with smoke puffs or sparks and fading rings.
+///
+/// Needs a counted effect with a coordinate body, owned zero-aged `EffectWork`
+/// in `spawnArg2.pointer` and initial state 0. Nonzero `spawnArg1.value` selects
+/// smoke; zero selects two independent bouncing sparks and two orange rings.
+/// Running age 7 enters release; age 8 frees work and task. Nonzero effect
+/// control pauses; four or above cancels. Spawned effects outlive this task.
+void shelterB4UpperSewerRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Installs the sewer's effect IDs once and draws glow capsules for the mapped view.
 ///
@@ -98,7 +114,18 @@ void shelterB4UpperSewerWaterRippleTask(Task* task);
 /// Paused ticks redraw; cancellation or eight-cell completion frees work and task.
 void shelterB4UpperSewerWaterDriftTask(Task* task);
 
-void func_shelter_b4_upper_sewer_801846C8(Task* arg0);
+/// Runs the sewer's attached charge disc, player-joint sparks and fading release ring.
+///
+/// Needs a counted effect with a coordinate body, owned zeroed `EffectWork`
+/// in `spawnArg2.pointer` and initial `ROOM_VISUAL_EFFECTS_GLOW_DISC_ATTACH` state.
+/// `spawnArg1.value` selects tint 0 or 1. The work's parent coordinate and its
+/// ancestors must stay live; `pos` is the offset in its axes, in world units. Growth
+/// emits adopted flying sparks from player model parts 3..18 every fourth age,
+/// requiring the player model and installed flying-spark callback to stay live.
+/// The owner requests flicker, release or cancel through the glow-disc states.
+/// Nonzero effect control pauses; four or above cancels. Release or cancellation
+/// frees work, task and adopted sparks.
+void shelterB4UpperSewerRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Flies the sewer's animated spark along a step fixed from its initial target offset.
 ///
@@ -147,6 +174,14 @@ void shelterB4UpperSewerRoomVisualEffectsHaloTask(Task* task);
 /// Nonzero effect control pauses; four or above cancels. Completion frees work and task.
 void shelterB4UpperSewerRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_shelter_b4_upper_sewer_80182600(Task* arg0);
+/// Emits twenty motes at rotating, rising offsets around the sewer effect's coordinate.
+///
+/// Needs a counted effect with a coordinate body and owned zero-aged `EffectWork`
+/// in `spawnArg2.pointer`; state and `spawnArg1` are unused. Running ages 1..20
+/// emit independent motes at about 768 local radial units and Y = -128 * age.
+/// Each mote descends eight parent-axis units per running tick. The room's mote
+/// ID and callback must be installed and loaded. Age 21 frees work and task.
+/// Nonzero effect control pauses; four or above cancels. Motes outlive the emitter.
+void shelterB4UpperSewerRoomVisualEffectsSparkEmitterTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B4_UPPER_SEWER_H

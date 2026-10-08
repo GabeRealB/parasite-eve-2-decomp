@@ -1286,15 +1286,15 @@ shelterB4UpperSewerRoomVisualEffectsHaloTask = 0x80180E58; // type:func absolute
 
 shelterB4UpperSewerRoomVisualEffectsHaloOrangeBurstTask = 0x801811F0; // type:func absolute:True owner=shelter_b4_upper_sewer shared=rooms
 
-func_shelter_b4_upper_sewer_80182600 = 0x80182600; // type:func absolute:True owner=shelter_b4_upper_sewer
+shelterB4UpperSewerRoomVisualEffectsSparkEmitterTask = 0x80182600; // type:func absolute:True owner=shelter_b4_upper_sewer
 
 shelterB4UpperSewerRoomVisualEffectsFlashTask = 0x80182734; // type:func absolute:True owner=shelter_b4_upper_sewer
 
 shelterB4UpperSewerRoomVisualEffectsTwinTrailTask = 0x80183198; // type:func absolute:True owner=shelter_b4_upper_sewer shared=rooms
 
-func_shelter_b4_upper_sewer_80183A80 = 0x80183A80; // type:func absolute:True owner=shelter_b4_upper_sewer
+shelterB4UpperSewerRoomVisualEffectsSparkBurstTask = 0x80183A80; // type:func absolute:True owner=shelter_b4_upper_sewer
 
-func_shelter_b4_upper_sewer_801846C8 = 0x801846C8; // type:func absolute:True owner=shelter_b4_upper_sewer
+shelterB4UpperSewerRoomVisualEffectsGlowDiscTask = 0x801846C8; // type:func absolute:True owner=shelter_b4_upper_sewer
 
 shelterB4UpperSewerRoomVisualEffectsFlyingSparkTask = 0x80184C20; // type:func absolute:True owner=shelter_b4_upper_sewer
 
