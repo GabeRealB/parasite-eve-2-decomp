@@ -30,8 +30,6 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 
-void func_replay_bonus_80115ED0(Task* arg0);
-
 static const char   D_replay_bonus_801157C8[];
 extern u8           D_replay_bonus_80119014[];
 extern u8           D_replay_bonus_8011906C[];
@@ -365,243 +363,232 @@ static inline s32 _replayBonusGetDisplayedTotalBp(const UiList* list, const UiOb
     return totalBp;
 }
 
-void func_replay_bonus_80115ED0(Task* arg0)
+/// Computes the extra BP award for a clear with every shop tier unlocked.
+///
+/// Sums all three full purchase prices in every tier, including repeated ids,
+/// then rounds up to 100000 BP. Borrows the loaded shop and item catalogues;
+/// currency is applied later when preparing the cleared save.
+static inline s32 _replayBonusComputeExtraBonusBp(void)
 {
-    u8                 buf[0x20];
-    TextDrawReq        req;
-    TextDrawReq        req2;
-    TextDrawReq        req3;
-    UiObject*          obj;
-    UiList*            list;
-    PlayerStatus*      cfg;
-    ReplayBonusTotals* totals;
-    ShopTier*          p;
-    ShopTier*          row;
-    McSaveData*        save;
-    void*              mem;
-    s32                status;
-    s32                state;
-    s32                n;
-    s32                sum;
-    s32                idx;
-    s32                result;
-    u32                spend;
-    s32                mask;
-    s32                one;
-    s32                j;
-    s32                remaining;
-    s32                xOff;
-    s32                yOff;
-    s32                ot;
-    s32                ot2;
-    s32                ot3;
-    s32                color;
-    s32                exp;
-    s32                tmp;
-    s32                t;
-    s32                acc;
-    s32                shop_i;
-    s32                bonus_i;
-    u8                 nxt;
+    enum { REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT = 100000 };
+    const ShopTier* shopRow;
+    s32             totalBp;
+    s32             itemColumn;
+    s32             shopRowIndex;
 
-    list        = &D_replay_bonus_80119130;
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, D_replay_bonus_80115774);
-    if (arg0->state == 0) {
-        cfg        = &gPlayerStatus;
-        mem        = memMalloc(0x258, false);
-        arg0->work = mem;
-        if (mem == NULL) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    totalBp      = 0;
+    shopRow      = D_replay_bonus_80118F78;
+    shopRowIndex = totalBp;
+    do {
+        itemColumn = 0;
+        do {
+            totalBp += Gp_ItemDescs[shopRow->items[itemColumn]].price;
+            itemColumn++;
+        } while (itemColumn < ARRAY_SIZE(shopRow->items));
+        shopRowIndex++;
+        shopRow++;
+    } while (shopRowIndex < SHOP_TIER_COUNT);
+    totalBp += REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT - 1;
+    totalBp  = totalBp / REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT;
+    totalBp *= REPLAY_BONUS_SHOP_BP_ROUNDING_UNIT;
+    return totalBp;
+}
+
+void replayBonusCompleteBonusPanelTask(Task* task)
+{
+    enum {
+        REPLAY_BONUS_COMPLETE_INITIALIZE    = 0,
+        REPLAY_BONUS_COMPLETE_INITIAL_HOLD  = 1,
+        REPLAY_BONUS_COMPLETE_SCROLL        = 2,
+        REPLAY_BONUS_COMPLETE_ITEM_CAPACITY = 300,
+        REPLAY_BONUS_COMPLETE_INITIAL_TICKS = 60,
+        REPLAY_BONUS_COMPLETE_TOP_INSET     = 15,
+        REPLAY_BONUS_COMPLETE_TOTAL_HEIGHT  = 19,
+        REPLAY_BONUS_COMPLETE_EXTRA_HEIGHT  = REPLAY_BONUS_COMPLETE_TOP_INSET + REPLAY_BONUS_COMPLETE_TOTAL_HEIGHT,
+        REPLAY_BONUS_MAX_STARTING_BALANCE   = 9999999,
+        REPLAY_BONUS_MODE_BOUNTY            = 1,
+        REPLAY_BONUS_MODE_SCAVENGER         = 2,
+        REPLAY_BONUS_MODE_NIGHTMARE         = 3,
+    };
+    /// Builds and draws one small outlined Complete Bonus heading.
+    ///
+    /// Arguments must be side-effect-free identifiers or scalar expressions;
+    /// request and object are evaluated repeatedly. The request and index are
+    /// distinct writable lvalues. Offsets and Y bias are panel-relative pixels;
+    /// the index names the panel OT tag, and its following tag must exist.
+#define REPLAY_BONUS_DRAW_COMPLETE_HEADING(request, object, xOffset, textY, yBias, color, alignmentValue, index, caption) \
+    {                                                                                                                     \
+        (request).x          = (object)->panel.contentOriginX.unsignedValue + (xOffset);                                  \
+        (request).y          = (object)->panel.contentOriginY.unsignedValue - (yBias);                                    \
+        (request).y         += (textY);                                                                                   \
+        (index)              = (object)->panel.otIndex.signedValue;                                                       \
+        (request).colorRgb   = (color);                                                                                   \
+        (request).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                    \
+        (request).alignment  = (alignmentValue);                                                                          \
+        (request).drawMode   = TEXT_DRAW_OUTLINED;                                                                        \
+        (request).otIndex    = (index) + 1;                                                                               \
+        textDrawString(&(request), (caption));                                                                            \
+    }
+
+    u8                  bpText[0x20];
+    TextDrawReq         itemHeading;
+    TextDrawReq         bonusHeading;
+    TextDrawReq         totalHeading;
+    UiObject*           object;
+    UiList*             list;
+    const PlayerStatus* playerStatus;
+    ReplayBonusTotals*  totals;
+    s16*                itemIds;
+    s32                 panelControl;
+    s32                 panelState;
+    s32                 itemCount;
+    s32                 displayedTotalBp;
+    s32                 selectedTier;
+    s32                 holdTicksLeft;
+    s32                 leftInset;
+    s32                 textY;
+    s32                 itemOtIndex;
+    s32                 bonusOtIndex;
+    s32                 totalOtIndex;
+    s32                 textColor;
+    s32                 balanceExp;
+    s32                 earnedExp;
+    s32                 contentBottom;
+    s32                 totalBp;
+    u8                  firstVisibleItemIndex;
+
+    list           = &D_replay_bonus_80119130;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, D_replay_bonus_80115774);
+    if (task->state == REPLAY_BONUS_COMPLETE_INITIALIZE) {
+        // Build the owned row storage and compute the awards before scrolling.
+        playerStatus = &gPlayerStatus;
+        itemIds      = memMalloc(REPLAY_BONUS_COMPLETE_ITEM_CAPACITY * sizeof(*itemIds), false);
+        task->work   = itemIds;
+        if (itemIds == NULL) {
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
             return;
         }
         itemMenuClearPreviewItems();
-        D_80067634 = 0;
-        _replayBonusBuildItemList(list, obj);
-        uiFitPanelToList(list, &(obj)->panel);
+        D_80067634 = NULL;
+        _replayBonusBuildItemList(list, object);
+        uiFitPanelToList(list, &object->panel);
         list->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        list->topInset                            = 0xF;
-        obj->panel.bounds.unsignedRect.h          = obj->panel.bounds.unsignedRect.h + 0x22;
-        arg0->killCountdown                       = 0x3C;
-        arg0->state                               = arg0->state + 1;
+        list->topInset                            = REPLAY_BONUS_COMPLETE_TOP_INSET;
+        object->panel.bounds.unsignedRect.h       = object->panel.bounds.unsignedRect.h + REPLAY_BONUS_COMPLETE_EXTRA_HEIGHT;
+        task->killCountdown                       = REPLAY_BONUS_COMPLETE_INITIAL_TICKS;
+        task->state                               = task->state + 1;
         list->firstVisibleItemIndex.unsignedValue = 0;
-        acc                                       = _replayBonusGetDisplayedTotalBp(list, obj);
+        totalBp                                   = _replayBonusGetDisplayedTotalBp(list, object);
         totals                                    = &D_replay_bonus_80119274;
-        totals->totalBp                           = acc;
-        totals->nextBp                            = acc;
+        totals->totalBp                           = totalBp;
+        totals->nextBp                            = totalBp;
         list->firstVisibleItemIndex.unsignedValue = list->itemCount - list->visibleRowCount.unsignedValue;
-        tmp                                       = replayBonusGetTotalExp();
-        exp                                       = cfg->exp;
-        D_replay_bonus_80119274.totalExp          = tmp;
-        totals->nextExp                           = exp;
+        earnedExp                                 = replayBonusGetTotalExp();
+        balanceExp                                = playerStatus->exp;
+        D_replay_bonus_80119274.totalExp          = earnedExp;
+        totals->nextExp                           = balanceExp;
+        // Only the unspent EXP balance carries forward, scaled by the run mode.
         switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
-            case 3:
-                totals->nextExp = exp * 10;
+            case REPLAY_BONUS_MODE_NIGHTMARE:
+                totals->nextExp = balanceExp * 10;
                 totals->nextBp  = totals->nextBp * 10;
                 break;
-            case 2:
-                totals->nextExp = exp * 5;
+            case REPLAY_BONUS_MODE_SCAVENGER:
+                totals->nextExp = balanceExp * 5;
                 totals->nextBp  = totals->nextBp * 5;
                 break;
-            case 1:
-                totals->nextExp = exp * 3;
+            case REPLAY_BONUS_MODE_BOUNTY:
+                totals->nextExp = balanceExp * 3;
                 totals->nextBp  = totals->nextBp * 3;
                 break;
         }
-        if (D_replay_bonus_80119274.nextBp > 0x98967F) {
-            D_replay_bonus_80119274.nextBp = 0x98967F;
+        if (D_replay_bonus_80119274.nextBp > REPLAY_BONUS_MAX_STARTING_BALANCE) {
+            D_replay_bonus_80119274.nextBp = REPLAY_BONUS_MAX_STARTING_BALANCE;
         }
-        if (D_replay_bonus_80119274.nextExp > 0x98967F) {
-            D_replay_bonus_80119274.nextExp = 0x98967F;
+        if (D_replay_bonus_80119274.nextExp > REPLAY_BONUS_MAX_STARTING_BALANCE) {
+            D_replay_bonus_80119274.nextExp = REPLAY_BONUS_MAX_STARTING_BALANCE;
         }
-        tmp   = replayBonusGetTotalExp();
-        p     = D_replay_bonus_80118F78;
-        spend = tmp;
-        idx   = 0;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == 0x1FFF) {
-            result = -1;
-        } else {
-            for (shop_i = 0; shop_i < 0xD; shop_i++, p++) {
-                if (p->expCeiling >= spend) {
-                    idx = shop_i;
-                    break;
-                }
-            }
-            save   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-            idx   += save->state.gameMode;
-            shop_i = 0;
-            if (idx >= 0xD) {
-                idx = 0xC;
-            }
-            one  = 1;
-            mask = save->state.shopTiers;
-            for (; shop_i < 0xD; shop_i++) {
-                if ((mask & (one << idx)) == 0) {
-                    break;
-                }
-                idx += 1;
-                if (idx >= 0xD) {
-                    idx -= 0xD;
-                }
-            }
-            result = idx;
-        }
-        D_replay_bonus_80119274.shopTier = result;
-        if (result < 0) {
-            sum     = 0;
-            row     = D_replay_bonus_80118F78;
-            bonus_i = sum;
-            do {
-                j = 0;
-                do {
-                    sum += Gp_ItemDescs[row->items[j]].price;
-                    j++;
-                } while (j < 3);
-                bonus_i++;
-                row++;
-            } while (bonus_i < 0xD);
-            sum                                 += 0x1869F;
-            sum                                  = sum / 100000;
-            sum                                 *= 0x186A0;
-            D_replay_bonus_80119274.extraBonusBp = sum;
+        // Choose the next locked tier; a fully unlocked shop grants BP instead.
+        selectedTier                     = _replayBonusResolveShopTier();
+        D_replay_bonus_80119274.shopTier = selectedTier;
+        if (selectedTier < 0) {
+            D_replay_bonus_80119274.extraBonusBp = _replayBonusComputeExtraBonusBp();
         } else {
             D_replay_bonus_80119274.extraBonusBp = 0;
         }
     }
 
-    status                                  = obj->panel.control.word;
-    obj->panel.control.word                 = USER_INTERFACE_PANEL_INACTIVE;
-    obj->panel.contentBottom.unsignedValue -= 0x13;
-    uiUpdateList(list, &obj->panel);
-    obj->panel.control.word                 = status;
-    obj->panel.contentBottom.unsignedValue += 0x13;
+    // Suppress manual navigation and reserve the total line outside the list.
+    panelControl                               = object->panel.control.word;
+    object->panel.control.word                 = USER_INTERFACE_PANEL_INACTIVE;
+    object->panel.contentBottom.unsignedValue -= REPLAY_BONUS_COMPLETE_TOTAL_HEIGHT;
+    uiUpdateList(list, &object->panel);
+    object->panel.control.word                 = panelControl;
+    object->panel.contentBottom.unsignedValue += REPLAY_BONUS_COMPLETE_TOTAL_HEIGHT;
 
-    state = arg0->state;
-    if (state == 1) {
-        remaining           = (u16)arg0->killCountdown - 1;
-        arg0->killCountdown = remaining;
-        if ((remaining << 0x10) <= 0) {
-            arg0->killCountdown = 0;
-            arg0->state         = arg0->state + 1;
+    // Reveal item credit by scrolling backward, with a hold at each end.
+    panelState = task->state;
+    if (panelState == REPLAY_BONUS_COMPLETE_INITIAL_HOLD) {
+        holdTicksLeft       = (u16)task->killCountdown - 1;
+        task->killCountdown = holdTicksLeft;
+        if ((s16)holdTicksLeft <= 0) {
+            task->killCountdown = 0;
+            task->state         = task->state + 1;
         }
-    } else if (state == 2) {
-        n = list->itemCount;
-        if (list->visibleRowCount.signedValue < n) {
+    } else if (panelState == REPLAY_BONUS_COMPLETE_SCROLL) {
+        itemCount = list->itemCount;
+        if (list->visibleRowCount.signedValue < itemCount) {
             if (list->scrollPixelsRemaining <= 0) {
-                nxt                                       = list->firstVisibleItemIndex.unsignedValue - 1;
-                list->firstVisibleItemIndex.unsignedValue = nxt;
-                if ((s8)nxt < 0) {
+                firstVisibleItemIndex                     = list->firstVisibleItemIndex.unsignedValue - 1;
+                list->firstVisibleItemIndex.unsignedValue = firstVisibleItemIndex;
+                if ((s8)firstVisibleItemIndex < 0) {
                     list->firstVisibleItemIndex.unsignedValue = 0;
-                    arg0->killCountdown                       = 0xBC;
-                    arg0->state                               = arg0->state + 1;
+                    task->killCountdown                       = REPLAY_BONUS_PANEL_HOLD_TICKS;
+                    task->state                               = task->state + 1;
                 } else {
                     sndEvtRequestScriptStart(SOUND_MENU_CURSOR, 0, 0);
                     list->scrollDirection       = USER_INTERFACE_LIST_STEP_PREVIOUS;
-                    list->scrollPixelsRemaining = (s8)(u8)list->rowHeight;
+                    list->scrollPixelsRemaining = (s8)list->rowHeight;
                 }
                 list->selectedItemIndex = list->firstVisibleItemIndex.signedValue;
             }
             list->scrollPixelsRemaining = (u16)list->scrollPixelsRemaining - 1;
         } else {
-            arg0->killCountdown = 0xBC;
-            arg0->state         = arg0->state + 1;
+            task->killCountdown = REPLAY_BONUS_PANEL_HOLD_TICKS;
+            task->state         = task->state + 1;
         }
     } else {
-        remaining           = (u16)arg0->killCountdown - 1;
-        arg0->killCountdown = remaining;
-        if ((remaining << 0x10) <= 0) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+        holdTicksLeft       = (u16)task->killCountdown - 1;
+        task->killCountdown = holdTicksLeft;
+        if ((s16)holdTicksLeft <= 0) {
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 
-    yOff = obj->panel.contentTop.signedValue + 0xC;
-    xOff = obj->panel.contentLeft.signedValue + 2;
-    uiDrawHorizontalSeparator(&(obj)->panel, xOff, obj->panel.contentRight.signedValue - 2, yOff);
-    color = 0x606060;
+    // Draw the headings and the BP total of the rows revealed so far.
+    textY     = object->panel.contentTop.signedValue + 0xC;
+    leftInset = object->panel.contentLeft.signedValue + 2;
+    uiDrawHorizontalSeparator(&object->panel, leftInset, object->panel.contentRight.signedValue - 2, textY);
+    textColor = REPLAY_BONUS_PANEL_TEXT_COLOR;
 
-    req.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req.y          = obj->panel.contentOriginY.unsignedValue - 4;
-    req.y         += yOff;
-    ot             = obj->panel.otIndex.signedValue;
-    req.colorRgb   = color;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    req.otIndex    = ot + 1;
-    textDrawString(&req, D_replay_bonus_80115784);
+    REPLAY_BONUS_DRAW_COMPLETE_HEADING(itemHeading, object, leftInset, textY, 4, textColor, TEXT_ALIGNMENT_LEFT, itemOtIndex, D_replay_bonus_80115784);
 
-    req2.x          = obj->panel.contentOriginX.unsignedValue - xOff;
-    req2.y          = obj->panel.contentOriginY.unsignedValue - 4;
-    req2.y         += yOff;
-    ot2             = obj->panel.otIndex.signedValue;
-    req2.colorRgb   = color;
-    req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req2.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req2.drawMode   = TEXT_DRAW_OUTLINED;
-    req2.otIndex    = ot2 + 1;
-    textDrawString(&req2, D_replay_bonus_80115790);
+    REPLAY_BONUS_DRAW_COMPLETE_HEADING(bonusHeading, object, -leftInset, textY, 4, textColor, TEXT_ALIGNMENT_RIGHT, bonusOtIndex, D_replay_bonus_80115790);
 
-    t    = obj->panel.contentBottom.signedValue;
-    yOff = t - 1;
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue + 2, obj->panel.contentRight.signedValue - 2, t - 0x10);
+    contentBottom = object->panel.contentBottom.signedValue;
+    textY         = contentBottom - 1;
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue + 2, object->panel.contentRight.signedValue - 2, contentBottom - 0x10);
 
-    req3.x          = obj->panel.contentOriginX.unsignedValue + 0x70 + xOff;
-    req3.y          = obj->panel.contentOriginY.unsignedValue - 6;
-    req3.y         += yOff;
-    ot3             = obj->panel.otIndex.signedValue;
-    req3.colorRgb   = color;
-    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req3.alignment  = TEXT_ALIGNMENT_RIGHT;
-    req3.drawMode   = TEXT_DRAW_OUTLINED;
-    req3.otIndex    = ot3 + 1;
-    textDrawString(&req3, D_replay_bonus_8011579C);
+    REPLAY_BONUS_DRAW_COMPLETE_HEADING(totalHeading, object, 0x70 + leftInset, textY, 6, textColor, TEXT_ALIGNMENT_RIGHT, totalOtIndex, D_replay_bonus_8011579C);
 
-    sum = _replayBonusGetDisplayedTotalBp(list, obj);
-    textDrawUiLine(obj, -xOff, yOff, textItoaUnsigned(buf, (u32)sum), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
-    if ((obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
-        obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    displayedTotalBp = _replayBonusGetDisplayedTotalBp(list, object);
+    textDrawUiLine(object, -leftInset, textY, textItoaUnsigned(bpText, (u32)displayedTotalBp), REPLAY_BONUS_PANEL_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    if ((object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | Pad_MaskMenu) != 0)) {
+        object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
+#undef REPLAY_BONUS_DRAW_COMPLETE_HEADING
 }
 
 static const char D_replay_bonus_801157A8[] = "Balance";

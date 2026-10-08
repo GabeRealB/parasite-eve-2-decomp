@@ -8,6 +8,7 @@
 #include "gameplay/inventory.h"
 #include "gameplay/items.h"
 
+#include "main/mc.h"
 #include "main/task_types.h"
 #include "main/ui_types.h"
 
@@ -319,6 +320,62 @@ u16* replayBonusCreatePictureVlcTable(void);
 /// The signed result is an EXP amount, also compared with unsigned shop ceilings.
 s32 replayBonusGetTotalExp(void);
 
+/// Returns the shop tier this clear can unlock, or -1 when all thirteen are unlocked.
+///
+/// Requires the completed run's live save, mode 0..3, and a thirteen-bit
+/// unlock mask. Starts at the first inclusive ceiling of total earned EXP,
+/// adds the mode, caps at the last tier, then searches cyclically past
+/// unlocked rows. EXP is compared as unsigned; a value beyond every ceiling
+/// retains starting tier zero. Does not change the save or grant items.
+static inline s32 _replayBonusResolveShopTier(void)
+{
+    enum { REPLAY_BONUS_SHOP_TIER_NONE = -1 };
+    const ShopTier*   tierRow;
+    u32               totalExp;
+    s32               tierIndex;
+    s32               tiersChecked;
+    const McSaveData* saveData;
+    s32               unlockedTiers;
+    s32               tierBit;
+    s32               selectedTier;
+
+    totalExp  = replayBonusGetTotalExp();
+    tierRow   = D_replay_bonus_80118F78;
+    tierIndex = 0;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == SHOP_TIER_ALL_MASK) {
+        selectedTier = REPLAY_BONUS_SHOP_TIER_NONE;
+    } else {
+        // Apply the EXP ceiling and mode boost before searching for an unlock.
+        for (tiersChecked = 0; tiersChecked < SHOP_TIER_COUNT; tiersChecked++, tierRow++) {
+            if (tierRow->expCeiling >= totalExp) {
+                tierIndex = tiersChecked;
+                break;
+            }
+        }
+
+        saveData     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        tierIndex   += saveData->state.gameMode;
+        tiersChecked = 0;
+        if (tierIndex >= SHOP_TIER_COUNT) {
+            tierIndex = SHOP_TIER_COUNT - 1;
+        }
+        // Skip unlocked tiers cyclically.
+        tierBit       = 1;
+        unlockedTiers = saveData->state.shopTiers;
+        for (; tiersChecked < SHOP_TIER_COUNT; tiersChecked++) {
+            if ((unlockedTiers & (tierBit << tierIndex)) == 0) {
+                break;
+            }
+            tierIndex += 1;
+            if (tierIndex >= SHOP_TIER_COUNT) {
+                tierIndex -= SHOP_TIER_COUNT;
+            }
+        }
+        selectedTier = tierIndex;
+    }
+    return selectedTier;
+}
+
 /// Replaces the live save with a cleared-game save carrying the replay awards.
 ///
 /// Requires computed replay totals and the completed run's live save and player
@@ -338,6 +395,20 @@ void replayBonusPrepareClearedSave(void);
 /// and MDEC completion callback are shared. Releases its two scratch buffers
 /// on normal completion, retaining the caller's picture and VLC table.
 void replayBonusDecodePictureTask(Task* task);
+
+/// Computes replay awards and scrolls the completed run's Complete Bonus item list.
+///
+/// Starts at state zero with a live UI object in `task->spawnArg2.pointer`.
+/// Allocates 300 signed-halfword item ids on the primary heap; task teardown
+/// releases them. Keeps the live save, gameplay catalogue and replay package
+/// loaded, with only one Complete Bonus panel using the shared list/totals.
+/// Navigation requires at most 127 emitted rows; legal-save limits remain
+/// unproven. Holds the last rows for 60 callbacks, scrolls toward the first,
+/// then holds for 188 callbacks. Reports confirm after the final hold or
+/// active Cancel/Menu; allocation failure confirms immediately. Items are
+/// identified while drawn, and EXP/BP and shop unlocks are applied later
+/// when preparing the cleared save.
+void replayBonusCompleteBonusPanelTask(Task* task);
 
 /// Presents completed-run balances or the base next-replay awards.
 ///

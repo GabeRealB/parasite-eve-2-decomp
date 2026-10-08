@@ -151,55 +151,6 @@ static void _replayBonusAdvanceAwardScreen(Task* task)
     task->killCountdown = REPLAY_BONUS_RESTART_DELAY_TICKS;
 }
 
-/// Computes this clear's cyclic shop-tier choice without changing saved unlocks.
-static inline s32 _replayBonusResolveShopTier(void)
-{
-    const ShopTier*   tierRow;
-    u32               totalExp;
-    s32               tierIndex;
-    s32               tiersChecked;
-    const McSaveData* saveData;
-    s32               unlockedTiers;
-    s32               tierBit;
-    s32               selectedTier;
-
-    totalExp  = replayBonusGetTotalExp();
-    tierRow   = D_replay_bonus_80118F78;
-    tierIndex = 0;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.shopTiers == SHOP_TIER_ALL_MASK) {
-        selectedTier = -1;
-    } else {
-        // Apply the EXP ceiling and mode boost before searching for an unlock.
-        for (tiersChecked = 0; tiersChecked < SHOP_TIER_COUNT; tiersChecked++, tierRow++) {
-            if (tierRow->expCeiling >= totalExp) {
-                tierIndex = tiersChecked;
-                break;
-            }
-        }
-
-        saveData     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        tierIndex   += saveData->state.gameMode;
-        tiersChecked = 0;
-        if (tierIndex >= SHOP_TIER_COUNT) {
-            tierIndex = SHOP_TIER_COUNT - 1;
-        }
-        // Skip unlocked tiers cyclically.
-        tierBit       = 1;
-        unlockedTiers = saveData->state.shopTiers;
-        for (; tiersChecked < SHOP_TIER_COUNT; tiersChecked++) {
-            if ((unlockedTiers & (tierBit << tierIndex)) == 0) {
-                break;
-            }
-            tierIndex += 1;
-            if (tierIndex >= SHOP_TIER_COUNT) {
-                tierIndex -= SHOP_TIER_COUNT;
-            }
-        }
-        selectedTier = tierIndex;
-    }
-    return selectedTier;
-}
-
 /// Selects the shop tier unlocked by this clear, or -1 if all are unlocked.
 ///
 /// Starts at the first inclusive EXP ceiling, adds saved mode (0..3), caps at
@@ -1082,7 +1033,6 @@ static void _replayBonusSelectCreditsResource(s32 dataResourceIndex)
 }
 
 /* The package's data, in address order. */
-void func_replay_bonus_80115ED0(Task* arg0);
 
 /// Task descriptor of the picture decoder.
 TaskDesc D_replay_bonus_80118F6C = { { { TASK_BODY_NONE, 0xC0 } }, replayBonusDecodePictureTask, { NULL } };
@@ -1194,7 +1144,7 @@ UiListRowCallback D_replay_bonus_8011912C[1] = { _replayBonusDrawCurrentItemRow 
 
 UiList D_replay_bonus_80119130 = { D_replay_bonus_8011912C, 1, { 1 }, 0, 0xF };
 
-UiObjectDesc D_replay_bonus_80119154 = { 2, { -144, -104, 208, 160 }, 0x3C, 0, 0, 0xC0, func_replay_bonus_80115ED0, 0 };
+UiObjectDesc D_replay_bonus_80119154 = { 2, { -144, -104, 208, 160 }, 0x3C, 0, 0, 0xC0, replayBonusCompleteBonusPanelTask, 0 };
 
 UiObjectDesc D_replay_bonus_80119170 = { 2, { -144, -96, 160, 160 }, 0x3C, 0, 0, 0xC0, replayBonusQuitWarningTask, 0 };
 

@@ -53,7 +53,11 @@ enum {
     AYA_20900_TEXTURE_DEPTH_4BIT  = 0,
 };
 
-/// Fills every image strip with two RGB555 red pixels per word.
+/// Replaces the resident image workspace with a solid RGB555 red frame.
+///
+/// Writes all 320 by 240 pixels, with the mask bit clear. The caller must
+/// finish decoding or capturing before overwriting the shared workspace;
+/// this does not upload the strips or select them as the display source.
 static inline void _aya20900FillRedImage(void)
 {
     enum { AYA_20900_RED_FLASH_PIXEL = 0x001F };
@@ -68,7 +72,7 @@ static inline void _aya20900FillRedImage(void)
     do {
         *imageWords++ = redPixelPair;
         wordIndex++;
-    } while ((u32)wordIndex <= sizeof(Fs_ImgBuffers->strips) / sizeof(*imageWords) - 1);
+    } while ((u32)wordIndex <= ARRAY_SIZE(Fs_ImgBuffers->strips) * ARRAY_SIZE(Fs_ImgBuffers->strips[0]) - 1);
 }
 
 /// Replaces the image strips with red beneath a fading additive white flash.
@@ -161,7 +165,12 @@ static void _aya20900DrawGameOverLogo(void)
     addPrim(gGpuCurrentOt, logoQuad);
 }
 
-/// Queues the screen's subtractive covering tile after drawing its logo.
+/// Queues a full-screen subtraction of the Game Over screen's darkness level.
+///
+/// Borrows initialized work with darkness in 0..255 (0 unchanged, 255 black).
+/// Requires a centered 320 by 240 draw area, a current ordering table with
+/// sixteen preceding tags, and primitive space for one TILE and one DR_TPAGE.
+/// The packets affect the scene and any logo already queued by the caller.
 static inline void _aya20900DrawGameOverDarkness(const _Aya20900GameOverWork* work)
 {
     TILE*     darknessTile;

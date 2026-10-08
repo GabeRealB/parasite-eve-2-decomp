@@ -65391,7 +65391,7 @@ nothing was dropped.
 
 ## A volatile scalar member store can order memory while allowing an independent `lui`
 
-`func_replay_bonus_80115ED0` reached 99.881% with only `reorder=1`: the
+`replayBonusCompleteBonusPanelTask` reached 99.881% with only `reorder=1`: the
 `D_80072177` address high half came after the EXP store instead of before it.
 A `SCHED_BARRIER` or `TOUCH_REG_MEM(exp)` held the high half back too: patched
 GCC 2.8.1 `sched.c`, `sched_analyze_2`, treats volatile asm as using and
@@ -100916,7 +100916,7 @@ state = tmp + 1;            /* addiu $v0,$v0,1 — not folded */
 
 The asm's output ties to `tmp`'s register, so no instruction is emitted for it.
 `src/rooms/lib/room_util01.c` (`decimals = len; SOFT_TOUCH_REG(decimals);
-decimals += 1;`) and `func_replay_bonus_80115ED0` are the same idiom, already
+decimals += 1;`) and `replayBonusCompleteBonusPanelTask` are the same idiom, already
 matched; this makes three. Keep the m2c block order when porting, not just the
 expressions: an `if/else if` chain that reads naturally (`if (state > 0) ... else
 if (state == 0) ...`) lays the `== 0` body out *after* the other one and misses
@@ -143259,7 +143259,7 @@ because its `lbu` of the width is scheduled into it. That gave 100% with no pins
 shows one surviving duplicate of a loop tail next to constants that stay
 unhoisted, write the tail into each arm.
 
-## `lhu` then `sra`, and a `move` copy used only in the `else` arm: an inlined lookup helper called with an expression (func_replay_bonus_80115ED0, 2026-09-26)
+## `lhu` then `sra`, and a `move` copy used only in the `else` arm: an inlined lookup helper called with an expression (replayBonusCompleteBonusPanelTask, 2026-09-26)
 
 The replay-bonus BP total sums `price >> 1` over item ids, taking the price
 from `Gp_ItemDescs[id]` below 0x100 and from the high table otherwise. The
