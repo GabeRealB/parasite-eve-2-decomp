@@ -167,7 +167,7 @@ static void      _actor303600ShaftSegmentTask(Task* task);
 static void      _actor303600ShaftTask(Task* task);
 
 static void _actor303600DrawBlackCoverTask(Task* task);
-void        func_actor_303600_8016216C(Task*);
+static void _actor303600CutsceneTask(Task* task);
 static void _actor303600FadeFromWhiteTask(Task* task);
 static void _actor303600FadeToWhiteTask(Task* task);
 static void _actor303600SendCutsceneEndCommand(void);
@@ -226,7 +226,7 @@ EvsCommand D_actor_303600_80162DD8[8] = {
 };
 
 TaskDesc D_actor_303600_80162E98[4] = {
-    { { { TASK_BODY_NONE, 192 } }, func_actor_303600_8016216C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor303600CutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor303600FadeFromWhiteTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor303600FadeToWhiteTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor303600DrawBlackCoverTask, { .value = 0 } },
@@ -527,44 +527,54 @@ static void _actor303600DispatchCutsceneCue(Task* task)
 #undef ACTOR_303600_BROADCAST_ACTOR_CUE
 }
 
-/// Cutscene controller for the overlay. State 0 arms it once: it waits while the
-/// attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is live, so the state is
-/// left where it is and the task returns; otherwise it allocates the
-/// `_Actor303600CutsceneWork` block, zeroes it, parks the `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` task in
-/// `player` and publishes itself in `D_actor_303600_8016E4C0` with
-/// `D_actor_303600_8016E4C4` cleared, then falls into state 1, which hands the
-/// overlay's two cutscene script blocks to `evsStartScriptWithSkip`. State 2 waits for
-/// the session's `eventState` to clear -- the cutscene having finished -- and then
-/// sets the saved location in `gMcSaveData` to stage 5, area 0x1F, warp 1,
-/// room 1, raises the `gDisplayState.spriteVariant` latch, starts the stage-0 type-0x11 task and
-/// kills itself; while the cutscene is still up it steps the state machine
-/// instead.
-void func_actor_303600_8016216C(Task* arg0)
+/// Allocates and publishes the shaft/figure scene controller and its player handle.
+///
+/// Requires loaded scene resources. Failure kills the task; the caller retains
+/// its subsequent state increment and script start.
+static inline void _actor303600InitializeCutscene(Task* task)
 {
     _Actor303600CutsceneWork* work;
+    work       = memMalloc(sizeof(*work), false);
+    task->work = work;
+    if (work == NULL) {
+        taskKill(task);
+    } else {
+        memFillBytes(work, 0, sizeof(*work));
+        work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        D_actor_303600_8016E4C0 = task;
+        D_actor_303600_8016E4C4 = NULL;
+    }
+}
 
-    switch (arg0->state) {
-        case 0:
+/// Runs the shaft/figure cutscene and reloads Neo Ark room 31 on completion.
+///
+/// Start at state 0 with the scene overlays and scripts loaded. Setup waits for
+/// the attachment wheel and display transition, owns cleared controller work,
+/// then starts the script on the same tick. While it runs, consumes its pending
+/// cue once per update. Completion writes area 31, room/warp 1 and requests the
+/// game reload. Allocation failure kills the task but retains script start and
+/// state updates; the setup allocation must succeed for normal scene playback.
+static void _actor303600CutsceneTask(Task* task)
+{
+    enum {
+        ACTOR_303600_SCENE_INITIALIZE   = 0,
+        ACTOR_303600_SCENE_START_SCRIPT = 1,
+        ACTOR_303600_SCENE_WAIT_SCRIPT  = 2,
+    };
+
+    switch (task->state) {
+        case ACTOR_303600_SCENE_INITIALIZE:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            work       = memMalloc(sizeof(*work), false);
-            arg0->work = work;
-            if (work == NULL) {
-                taskKill(arg0);
-            } else {
-                memFillBytes(work, 0, sizeof(*work));
-                work->player            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_actor_303600_8016E4C0 = arg0;
-                D_actor_303600_8016E4C4 = NULL;
-            }
-            arg0->state += 1;
+            _actor303600InitializeCutscene(task);
+            task->state += 1;
             /* fallthrough */
-        case 1:
+        case ACTOR_303600_SCENE_START_SCRIPT:
             evsStartScriptWithSkip(D_actor_303600_80162AF0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_303600_80162DD8);
-            arg0->state += 1;
+            task->state += 1;
             break;
-        case 2:
+        case ACTOR_303600_SCENE_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_NEO_ARK_R31;
@@ -572,10 +582,10 @@ void func_actor_303600_8016216C(Task* arg0)
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
                 gDisplayState.spriteVariant                                 = 1;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_SKIP_BATTLE_ESCAPE, 0);
-                taskKill(arg0);
+                taskKill(task);
                 break;
             }
-            _actor303600DispatchCutsceneCue(arg0);
+            _actor303600DispatchCutsceneCue(task);
             break;
     }
 }

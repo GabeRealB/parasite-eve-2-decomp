@@ -209,12 +209,65 @@ AnimationSet gActor215100Animation042F4 = {
     { NULL, _gActor215100Animation042F4Bank1, NULL, NULL, _gActor215100Animation042F4Bank4, NULL, NULL, NULL },
 };
 
-void func_actor_215100_80149F2C(Task* task)
+/// Advances the caption-reply animation timer without going below -1000.
+///
+/// Requires the loaded gallery actor at placement 1. Sends borrowed static
+/// requests at timer 0 and -22; caption completion remains with the caller.
+static inline void _actor215100UpdateLevelReplyAnimations(Task* task)
 {
-    s16 slot;
+    enum { LAST_DECREMENT        = -999,
+           SECOND_ANIMATION_TICK = -22 };
+    if (task->killCountdown >= LAST_DECREMENT) {
+        task->killCountdown--;
+    }
+    if (task->killCountdown == 0) {
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_215100_8014D024, 0);
+    }
+    if (task->killCountdown == SECOND_ANIMATION_TICK) {
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_215100_8014CFAC, 0);
+    }
+}
+
+void actor215100GalleryTrainingMenuTask(Task* task)
+{
+    enum {
+        ACTOR_215100_MENU_START               = 0,
+        ACTOR_215100_MENU_WAIT_INTRO          = 1,
+        ACTOR_215100_MENU_RESOLVE_REPLY       = 2,
+        ACTOR_215100_MENU_DECLINE             = 4,
+        ACTOR_215100_MENU_ACCEPT              = 5,
+        ACTOR_215100_MENU_WAIT_ACCEPT         = 6,
+        ACTOR_215100_MENU_MUSIC_CAPTION       = 10,
+        ACTOR_215100_MENU_OPEN_MUSIC          = 11,
+        ACTOR_215100_MENU_AFTER_MUSIC         = 12,
+        ACTOR_215100_MENU_WEAPON_CAPTION      = 20,
+        ACTOR_215100_MENU_OPEN_WEAPON         = 21,
+        ACTOR_215100_MENU_AFTER_WEAPON        = 22,
+        ACTOR_215100_MENU_LEVEL_CAPTION       = 30,
+        ACTOR_215100_MENU_WAIT_LEVEL_REPLY    = 31,
+        ACTOR_215100_MENU_SAVE_LEVEL          = 32,
+        ACTOR_215100_MENU_CONFIRM_LEVEL       = 40,
+        ACTOR_215100_MENU_WAIT_CONFIRM        = 41,
+        ACTOR_215100_MENU_AFTER_CONFIRM       = 42,
+        ACTOR_215100_MENU_STAGE_TRAINING      = 50,
+        ACTOR_215100_MENU_WAIT_TRAINING       = 51,
+        ACTOR_215100_MENU_SPAWN_TRAINING      = 52,
+        ACTOR_215100_MENU_ANIMATION_DELAY     = 27,
+        ACTOR_215100_MENU_FIRST_LOADOUT_LEVEL = 3,
+        ACTOR_215100_MENU_LEVEL_CAPTION_BASE  = 11,
+        ACTOR_215100_MENU_MUSIC_SLOT          = 9,
+        ACTOR_215100_MENU_WEAPON_SLOT         = 10,
+        ACTOR_215100_MENU_REPEAT_PROMPT_SLOT  = 28,
+        ACTOR_215100_MENU_FIRST_PROMPT_SLOT   = 21,
+        ACTOR_215100_MENU_REPEAT_DECLINE_SLOT = 8,
+        ACTOR_215100_MENU_FIRST_DECLINE_SLOT  = 25,
+        ACTOR_215100_MENU_REPEAT_ACCEPT_SLOT  = 7,
+        ACTOR_215100_MENU_FIRST_ACCEPT_SLOT   = 24,
+    };
+    s16 captionSlot;
 
     switch (task->state) {
-        case 0x0:
+        case ACTOR_215100_MENU_START:
             if (D_actor_215100_8014D038 != 0) {
                 taskKill(task);
                 return;
@@ -222,115 +275,107 @@ void func_actor_215100_80149F2C(Task* task)
             if (task->spawnArg1.value == 0) {
                 evsStartScript(D_actor_215100_8014ED90, EVENT_SCRIPT_HUD_KEEP);
             } else {
-                slot = 0x1C;
+                captionSlot = ACTOR_215100_MENU_REPEAT_PROMPT_SLOT;
                 if (D_actor_215100_8014D040 == 0) {
-                    slot = 0x15;
+                    captionSlot = ACTOR_215100_MENU_FIRST_PROMPT_SLOT;
                 }
-                capStartSequenceSlot(slot, 0, 0);
+                capStartSequenceSlot(captionSlot, 0, 0);
                 evsStartScript(D_actor_215100_8014EE68, EVENT_SCRIPT_HUD_KEEP);
             }
             task->state++;
             break;
-        case 0x2:
+        case ACTOR_215100_MENU_RESOLVE_REPLY:
             gGameSession->eventState = 1;
             if (task->spawnArg1.value != 0) {
                 if (capGetVariantKey() != 0) {
-                    task->state = 5;
+                    task->state = ACTOR_215100_MENU_ACCEPT;
                 } else {
-                    task->state = 4;
+                    task->state = ACTOR_215100_MENU_DECLINE;
                 }
             } else {
-                task->state = 0xA;
+                task->state = ACTOR_215100_MENU_MUSIC_CAPTION;
             }
             break;
-        case 0x4:
-            slot = 8;
+        case ACTOR_215100_MENU_DECLINE:
+            captionSlot = ACTOR_215100_MENU_REPEAT_DECLINE_SLOT;
             if (D_actor_215100_8014D040 == 0) {
-                slot = 0x19;
+                captionSlot = ACTOR_215100_MENU_FIRST_DECLINE_SLOT;
             }
-            capStartSequenceSlot(slot, 0, 0);
+            capStartSequenceSlot(captionSlot, 0, 0);
             evsStartScript(D_actor_215100_8014EBE0, EVENT_SCRIPT_HUD_KEEP);
             taskKill(task);
             break;
-        case 0x5:
-            slot = 7;
+        case ACTOR_215100_MENU_ACCEPT:
+            captionSlot = ACTOR_215100_MENU_REPEAT_ACCEPT_SLOT;
             if (D_actor_215100_8014D040 == 0) {
-                slot = 0x18;
+                captionSlot = ACTOR_215100_MENU_FIRST_ACCEPT_SLOT;
             }
-            capStartSequenceSlot(slot, 0, 0);
+            capStartSequenceSlot(captionSlot, 0, 0);
             evsStartScript(D_actor_215100_8014EB98, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case 0x6:
+        case ACTOR_215100_MENU_WAIT_ACCEPT:
             if (gGameSession->eventState == 0) {
-                task->state = 0xA;
+                task->state = ACTOR_215100_MENU_MUSIC_CAPTION;
             }
             break;
-        case 0xA:
-            capStartSequenceSlot(9, 0, 0);
+        case ACTOR_215100_MENU_MUSIC_CAPTION:
+            capStartSequenceSlot(ACTOR_215100_MENU_MUSIC_SLOT, 0, 0);
             task->state++;
             break;
-        case 0xB:
+        case ACTOR_215100_MENU_OPEN_MUSIC:
             if (capIsBusy() == 0) {
                 mistShootingGalleryOpenJukebox(0);
                 task->state++;
             }
             break;
-        case 0xC:
-            task->state = 0x14;
+        case ACTOR_215100_MENU_AFTER_MUSIC:
+            task->state = ACTOR_215100_MENU_WEAPON_CAPTION;
             break;
-        case 0x14:
-            capStartSequenceSlot(0xA, 0, 0);
+        case ACTOR_215100_MENU_WEAPON_CAPTION:
+            capStartSequenceSlot(ACTOR_215100_MENU_WEAPON_SLOT, 0, 0);
             task->state++;
             break;
-        case 0x15:
+        case ACTOR_215100_MENU_OPEN_WEAPON:
             if (capIsBusy() == 0) {
                 mistShootingGalleryOpenWeaponMenu(0);
                 task->state++;
             }
             break;
-        case 0x16:
-            task->state = 0x1E;
+        case ACTOR_215100_MENU_AFTER_WEAPON:
+            task->state = ACTOR_215100_MENU_LEVEL_CAPTION;
             break;
-        case 0x1E:
+        case ACTOR_215100_MENU_LEVEL_CAPTION:
             playerActorWriteWeaponAnimationBankIndex(&D_actor_215100_8014CF84.source.index);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_215100_8014CF84, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), 0x7D3, &D_actor_215100_8014D010, 0);
-            task->killCountdown = 0x1B;
-            capStartSequenceSlot(0xB, 0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_215100_8014D010, 0);
+            task->killCountdown = ACTOR_215100_MENU_ANIMATION_DELAY;
+            capStartSequenceSlot(ACTOR_215100_MENU_LEVEL_CAPTION_BASE, 0, 0);
             task->state++;
             break;
-        case 0x1F:
-            if (task->killCountdown >= -0x3E7) {
-                task->killCountdown--;
-            }
-            if (task->killCountdown == 0) {
-                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), 0x7D3, &D_actor_215100_8014D024, 0);
-            }
-            if (task->killCountdown == -0x16) {
-                TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), 0x7D3, &D_actor_215100_8014CFAC, 0);
-            }
+        case ACTOR_215100_MENU_WAIT_LEVEL_REPLY:
+            _actor215100UpdateLevelReplyAnimations(task);
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 0x20:
+        case ACTOR_215100_MENU_SAVE_LEVEL:
             D_actor_215100_8015E670 = capGetVariantKey();
             mistShootingGalleryPrepareTrainingLoadout(D_actor_215100_8015E670);
-            task->state = 0x28;
+            task->state = ACTOR_215100_MENU_CONFIRM_LEVEL;
             break;
-        case 0x28:
-            capStartSequenceSlot(capGetVariantKey() + 0xB, 0, 0);
+        case ACTOR_215100_MENU_CONFIRM_LEVEL:
+            capStartSequenceSlot(capGetVariantKey() + ACTOR_215100_MENU_LEVEL_CAPTION_BASE, 0, 0);
             evsStartScript(D_actor_215100_8014F138, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case 0x2A:
-            task->state = 0x32;
+        case ACTOR_215100_MENU_AFTER_CONFIRM:
+            task->state = ACTOR_215100_MENU_STAGE_TRAINING;
             break;
-        case 0x32:
+        case ACTOR_215100_MENU_STAGE_TRAINING:
             D_actor_215100_8014D040++;
             Gp_StateC08.flags |= ATTACHMENT_FLAG_SWAP_LOCK;
-            if (D_actor_215100_8015E670 < 3) {
+            if (D_actor_215100_8015E670 < ACTOR_215100_MENU_FIRST_LOADOUT_LEVEL) {
                 evsStartScript(D_actor_215100_8014EFA0, EVENT_SCRIPT_HUD_KEEP);
             } else {
                 evsStartScript(D_actor_215100_8014F060, EVENT_SCRIPT_HUD_KEEP);
@@ -338,14 +383,14 @@ void func_actor_215100_80149F2C(Task* task)
             D_actor_215100_8014D038 = 1;
             task->state++;
             break;
-        case 0x1:
-        case 0x29:
-        case 0x33:
+        case ACTOR_215100_MENU_WAIT_INTRO:
+        case ACTOR_215100_MENU_WAIT_CONFIRM:
+        case ACTOR_215100_MENU_WAIT_TRAINING:
             if (gGameSession->eventState == 0) {
                 task->state++;
             }
             break;
-        case 0x34:
+        case ACTOR_215100_MENU_SPAWN_TRAINING:
             gGameSession->flowFlags &= (0xFF ^ GAME_SESSION_FLOW_REEQUIP_WEAPON);
             taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, D_actor_215100_8015E670 - 1, 0);
             D_actor_215100_8014D03C = 1;

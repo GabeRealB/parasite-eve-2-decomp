@@ -93,7 +93,7 @@ static AnimationSet _gActor136300Animation039F8;
 static AnimationSet _gActor136300Animation04074;
 static AnimationSet _gActor136300Animation04658;
 static void         _actor136300GarageDepartureTask(Task* task);
-void                func_actor_136300_80132854(Task*);
+static void         _actor136300StageExitCountdownTask(Task* task);
 
 extern AnimationPlayRequest D_actor_136300_8013B1CC;
 extern AnimationPlayRequest D_actor_136300_8013B1E0;
@@ -132,7 +132,7 @@ static void _actor136300StartGarageMovie(s32 alternateMovie);
 static void _actor136300ControlScreenWave(s32 request);
 static void _actor136300StartGarageDialogue(void);
 static void _actor136300PlayCompanionDialogueAnimation(void);
-void        func_actor_136300_80132A4C(s32);
+static void _actor136300QueueStageExitCountdown(s32 countdownTicks);
 static void _actor136300SelectSceneCaptions(s32 restoreDefaults);
 
 TaskDesc D_actor_136300_80132AC4[2] = {
@@ -1050,7 +1050,7 @@ TaskDesc D_actor_136300_8013B11C = { { { TASK_BODY_NONE, 192 } }, (TaskFunc)enem
 
 TaskDesc D_actor_136300_8013B128 = { { { TASK_BODY_NONE, 32 } }, _actor136300GarageDepartureTask, { .value = 0 } };
 
-TaskDesc D_actor_136300_8013B134 = { { { TASK_BODY_NONE, 32 } }, func_actor_136300_80132854, { .value = 0 } };
+TaskDesc D_actor_136300_8013B134 = { { { TASK_BODY_NONE, 32 } }, _actor136300StageExitCountdownTask, { .value = 0 } };
 
 /// Companion clips for extended ids 47-61.
 ///
@@ -1250,7 +1250,7 @@ EvsCommand D_actor_136300_8013B590[149] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_136300_8013B4DC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_136300_80132A4C }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor136300QueueStageExitCountdown }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1493,26 +1493,29 @@ static void _actor136300GarageDepartureTask(Task* task)
     }
 }
 
-/// Runs once on spawn, then counts `spawnArg1` down; when it goes negative the
-/// ending flag is set and the task kills itself. The decrement is one reused
-/// local: m2c's temp plus per-arm subtract splits the value into three
-/// quantities and the store lands in `$v1` instead of `$v0`.
-void func_actor_136300_80132854(Task* arg0)
+/// Rumbles the controller and requests stage-mode exit after a signed countdown.
+///
+/// Start at state 0 with spawnArg1.value in whole task updates; the script uses
+/// 20. The first update also decrements, and exit occurs on an update entering
+/// with a negative value. Owns no work block. After killing this workless task,
+/// the binary reloads and decrements its spawn word; preserve that access order.
+static void _actor136300StageExitCountdownTask(Task* task)
 {
-    s32 var_v0;
+    s32 countdownTicks;
 
-    if (arg0->state == 0) {
+    if (task->state == 0) {
         padScriptSpawn(D_80114A24, D_80114A34);
-        arg0->state += 1;
+        task->state += 1;
     }
-    var_v0 = arg0->spawnArg1.value;
-    if (var_v0 < 0) {
+    // Test the entry value; zero takes one more decrement before requesting exit.
+    countdownTicks = task->spawnArg1.value;
+    if (countdownTicks < 0) {
         stageRequestModeTaskExit();
-        taskKill(arg0);
-        var_v0 = arg0->spawnArg1.value;
+        taskKill(task);
+        countdownTicks = task->spawnArg1.value;
     }
-    var_v0                = var_v0 - 1;
-    arg0->spawnArg1.value = var_v0;
+    countdownTicks        = countdownTicks - 1;
+    task->spawnArg1.value = countdownTicks;
 }
 
 /// Sets the live save's scene-event selector for stage music.
@@ -1611,9 +1614,14 @@ static void _actor136300PlayCompanionDialogueAnimation(void)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, request, 0);
 }
 
-void func_actor_136300_80132A4C(s32 arg0)
+/// Queues the garage scene's countdown in the gray captured-frame display mode.
+///
+/// countdownTicks is the signed whole-update seed; the script supplies 20.
+/// The mode controller owns the spawned workless task. A pending display mode
+/// causes the request to be ignored; this callback discards that result.
+static void _actor136300QueueStageExitCountdown(s32 countdownTicks)
 {
-    displayQueueModeTask(&D_actor_136300_8013B134, arg0, 0, STAGE_ENTRY_GRAY_CAPTURE);
+    displayQueueModeTask(&D_actor_136300_8013B134, countdownTicks, 0, STAGE_ENTRY_GRAY_CAPTURE);
 }
 
 /// Selects this scene's CAP resource and texture page, or restores CAP defaults.

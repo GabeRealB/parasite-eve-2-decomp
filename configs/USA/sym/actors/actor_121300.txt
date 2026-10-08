@@ -107,3 +107,4 @@ _actor121300SkipScene = 0x8013427c; // type:func
 _actor121300FinishScene = 0x801343a4; // type:func
 _actor121300RunSceneStep = 0x80133854; // type:func
 _actor121300InitBody = 0x80133bfc; // type:func
+_actor121300AyaDoubleSceneTask = 0x80133d98; // type:func

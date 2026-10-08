@@ -172,3 +172,4 @@ _actor260400SetScriptedWalkerModelDraw = 0x8014a998; // type:func
 _actorRenderWalkerFrame = 0x8014a5ac; // type:func
 _actor260400ApplyScriptedWalkerCommand = 0x8014aaa4; // type:func
 _actor260400SpawnScriptedWalker = 0x80149fe0; // type:func
+_actor260400ScriptedWalkerTask = 0x8014a550; // type:func

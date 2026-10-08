@@ -46,7 +46,16 @@ extern EvsCommand D_actor_215100_8014F138[6];
 
 extern s32 D_actor_215100_8015E670;
 
-void func_actor_215100_80149F2C(Task* task);
+/// Runs gallery briefing, music/weapon menus and the selected training handoff.
+///
+/// Start at state 0 with gallery CAP/scripts loaded and no active course.
+/// spawnArg1 zero skips the repeat-entry confirmation; nonzero asks it, with
+/// reply zero declining and other replies proceeding. The level reply must
+/// be 1..5: it selects the loadout and becomes zero-based course spawnArg1.
+/// Caption and event completion gate the workless task's states. The actor's
+/// reply animations fire at countdown 0 and -22, with a retained -1000 floor.
+/// Locks weapon swapping while staging training, then marks it live and ends.
+void actor215100GalleryTrainingMenuTask(Task* task);
 
 // Callbacks referenced by the overlay's shared data tables.
 /// Resolves the gallery exit reply and restores training control or commits a room reload.

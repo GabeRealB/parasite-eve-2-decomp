@@ -146,7 +146,7 @@ STATIC_ASSERT_SIZEOF(_Actor121300Lamp, 0x8);
 /// of a lamp starts at its position.
 extern _Actor121300Lamp D_actor_121300_8013CC20[];
 
-/// Frame counter `func_actor_121300_80133D98` bumps once a frame and the
+/// Frame counter `_actor121300AyaDoubleSceneTask` bumps once a frame and the
 /// effect spawners gate on: `_actor121300SpawnRingSprites` only runs on every
 /// fourth frame (`& 3`), `_actor121300SpawnUpperRowSprites` too.
 extern s32 D_actor_121300_8013CC00;
@@ -239,7 +239,7 @@ static void      _actor121300FadeInTask(Task* task);
 static void      _actor121300LampDebrisTask(Task* task);
 static void      _actor121300SpawnLampDebrisTask(Task* task);
 static void      _actor121300UploadTexturesTask(Task* task);
-void             func_actor_121300_80133D98(Task*);
+static void      _actor121300AyaDoubleSceneTask(Task* task);
 static void      _actor121300FadeOutTask(Task* task);
 static void      _actor121300BlackoutTask(Task* task);
 static void      _actor121300SelectSceneStep(s16 step);
@@ -692,7 +692,7 @@ EvsCommand D_actor_121300_8013D2E8[7] = {
 };
 
 TaskDesc D_actor_121300_8013D390[11] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_121300_80133D98, { .model = &_gActor121300AyaBreaBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor121300AyaDoubleSceneTask, { .model = &_gActor121300AyaBreaBody } },
     { { { TASK_BODY_NONE, 192 } }, _actor121300FadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor121300FadeOutTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor121300SpawnLampDebrisTask, { .value = 0 } },
@@ -1568,92 +1568,116 @@ static void _actor121300InitBody(Task* task)
     task->msgTable = D_actor_121300_8013CC88;
 }
 
-/// State machine of the cutscene actor, run once per frame from its slot.
-/// State 0 waits while the attachment wheel is open (`Gp_StateC08.mode`) or
-/// `gDisplayState.pendingMode` is live, and then builds the work block through
-/// `_actor121300InitBody` and arms the player's weapon: the slot-3
-/// message 0x3E8 record is `gPlayerStatus.weapon` plus 1 in the alternate weapon block
-/// and plus 0x22 in the base one, with `field_4` 1 and the rest of the frame
-/// zero.  State 1 hands the cutscene's two script blocks to `evsStartScriptWithSkip`,
-/// state 2 spawns the `D_actor_121300_8013D390[9]` child while the session is
-/// still down, and state 3 blanks the display, marks save slot 9 / the state
-/// and re-arms the first tick before killing the task.
+/// Runs Aya's double, the lamp-shattering scene and the final night-room reload.
 ///
-/// States 0, 1 and 2 all leave through the same `Task::state` increment; the
-/// compiler cross-jumps the three copies, so it appears once, after state 2's
-/// body.  Every path but state 3 also steps the actor through
-/// `_actor121300RunSceneStep` and hands the model's part-1 translation to
-/// `worldCoordSetModelLighting`.
-void func_actor_121300_80133D98(Task* arg0)
+/// Start at state 0 with the body and scene resources loaded. Setup waits for
+/// the attachment wheel and display transition, then runs the scene step on
+/// that same tick. The script and its skip path share the controller's live work;
+/// part 1 supplies lighting and the scene counter advances once per active tick.
+/// When the script ends, starts the scene-end child, then clears both 320x240
+/// framebuffers and reloads night area 9, warp 3. Initialization failure retains
+/// the subsequent scene update; successful work allocation is required.
+/// Weapon reset requires saved character 1 and weapon 0..32 for the loaded
+/// player-bank table. The retained alternate +34 selector's reachability is
+/// unproven.
+static void _actor121300AyaDoubleSceneTask(Task* task)
 {
-    TmdObject* extra;
-    s32        state;
+    enum {
+        ACTOR_121300_SCENE_INITIALIZE          = 0,
+        ACTOR_121300_SCENE_START_SCRIPT        = 1,
+        ACTOR_121300_SCENE_WAIT_SCRIPT         = 2,
+        ACTOR_121300_SCENE_RELOAD              = 3,
+        ACTOR_121300_SCENE_PRIMARY_CHARACTER   = 1,
+        ACTOR_121300_SCENE_PRIMARY_BANK_BASE   = 1,
+        ACTOR_121300_SCENE_ALTERNATE_BANK_BASE = 34,
+        ACTOR_121300_SCENE_WEAPON_CLIP         = 1,
+        ACTOR_121300_SCENE_END_TASK            = 9,
+        ACTOR_121300_SCENE_FRAME_WIDTH         = 320,
+        ACTOR_121300_SCENE_FRAME_HEIGHT        = 240,
+        ACTOR_121300_SCENE_SECOND_FRAME_Y      = 272,
+        ACTOR_121300_SCENE_RETURN_WARP         = 3,
+        ACTOR_121300_SCENE_LIGHT_COUNT         = 3,
+    };
+    TmdObject* model;
+    s32        sceneState;
     s32        weaponId;
-    s32        anim;
+    s32        animationBank;
 
-    state = arg0->state;
-    switch (state) {
-        case 0: {
+    sceneState = task->state;
+    switch (sceneState) {
+        case ACTOR_121300_SCENE_INITIALIZE: {
             AnimationPlayRequest request;
 
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 weaponId                     = gPlayerStatus.weapon;
-                anim                         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                request.source.index         = anim;
-                request.animationId          = 1;
+                animationBank                = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_121300_SCENE_PRIMARY_CHARACTER) ? weaponId + ACTOR_121300_SCENE_PRIMARY_BANK_BASE : weaponId + ACTOR_121300_SCENE_ALTERNATE_BANK_BASE;
+                request.source.index         = animationBank;
+                request.animationId          = ACTOR_121300_SCENE_WEAPON_CLIP;
                 request.blend                = ANIMATION_BLEND_RESET;
                 request.blendFrames          = 0;
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
-                _actor121300InitBody(arg0);
-                arg0->state += 1;
+                _actor121300InitBody(task);
+                task->state += 1;
                 break;
             }
             return;
         }
-        case 1:
+        case ACTOR_121300_SCENE_START_SCRIPT:
             evsStartScriptWithSkip(D_actor_121300_8013CE08, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_121300_8013D2E8);
-            arg0->state += 1;
+            task->state += 1;
             break;
-        case 2:
+        case ACTOR_121300_SCENE_WAIT_SCRIPT:
             if (gGameSession->eventState == 0) {
-                taskSpawnFromTable(D_actor_121300_8013D390, 9, 0, 0);
-                arg0->state += 1;
+                taskSpawnFromTable(D_actor_121300_8013D390, ACTOR_121300_SCENE_END_TASK, 0, 0);
+                task->state += 1;
             }
             break;
-        case 3: {
+        case ACTOR_121300_SCENE_RELOAD: {
             RECT rect;
 
             rect.x = 0;
             rect.y = 0;
-            rect.w = 0x140;
-            rect.h = 0xF0;
+            rect.w = ACTOR_121300_SCENE_FRAME_WIDTH;
+            rect.h = ACTOR_121300_SCENE_FRAME_HEIGHT;
             ClearImage(&rect, 0, 0, 0);
-            rect.y = 0x110;
+            rect.y = ACTOR_121300_SCENE_SECOND_FRAME_Y;
             ClearImage(&rect, 0, 0, 0);
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = state;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = 9;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = state;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_DRYFIELD_NIGHT;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_DRYFIELD_NIGHT_DILAPIDATED_HOUSE;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACTOR_121300_SCENE_RETURN_WARP;
             gDisplayState.spriteVariant                                 = 1;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(arg0);
+            taskKill(task);
             return;
         }
     }
-    _actor121300RunSceneStep(arg0);
-    {
-        VECTOR pos;
+        /// Samples part 1's cached world translation without composing it.
+        ///
+        /// The arguments must be side-effect-free Task*, TmdObject* and VECTOR
+        /// lvalues; they are used repeatedly. Captures the local light-count constant.
+        /// Retains no request or sample pointer.
+#define ACTOR_121300_SAMPLE_DOUBLE_LIGHTING(task, model, samplePosition)                           \
+    {                                                                                              \
+        (model)             = (task)->extra.tmd;                                                   \
+        (samplePosition).vx = (model)->coords[1].workm.t[0];                                       \
+        (samplePosition).vy = (task)->extra.tmd->coords[1].workm.t[1];                             \
+        (samplePosition).vz = (task)->extra.tmd->coords[1].workm.t[2];                             \
+        worldCoordSetModelLighting((model), &(samplePosition), 0, ACTOR_121300_SCENE_LIGHT_COUNT); \
+    }
 
-        extra  = arg0->extra.tmd;
-        pos.vx = extra->coords[1].workm.t[0];
-        pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
-        pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-        worldCoordSetModelLighting(extra, &pos, 0, 3);
+    // Run the posted scene step before sampling part 1 and advancing the frame gate.
+    _actor121300RunSceneStep(task);
+    {
+        VECTOR samplePosition;
+
+        ACTOR_121300_SAMPLE_DOUBLE_LIGHTING(task, model, samplePosition);
     }
     D_actor_121300_8013CC00 += 1;
 }
+#undef ACTOR_121300_SAMPLE_DOUBLE_LIGHTING
 
 /// Darkens the scene, then disables display output when the ramp reaches 256.
 ///

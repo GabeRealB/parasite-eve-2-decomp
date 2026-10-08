@@ -187,7 +187,7 @@ static void _actor215100SetViewRespawnPending(s16 pending);
 
 TaskDesc D_actor_215100_8014E13C[3] = {
     { { { TASK_BODY_NONE, 32 } }, _actor215100GalleryIntroTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_actor_215100_80149F2C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, actor215100GalleryTrainingMenuTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _actor215100GalleryRedFlashLoopTask, { .value = 0 } },
 };
 

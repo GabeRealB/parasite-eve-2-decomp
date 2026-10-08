@@ -497,30 +497,35 @@ TaskMessageEntry D_actor_213000_80157E1C[5] = {
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor213000SetModelDraw },
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor213000ApplyHeldModelCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
-}; /// Spawn handler: allocates the work block, seeds its animation bytes and
+};
 
-static void func_actor_213000_80149E54(Task* task);
-
-/// countdown, hides the model, then spawns the four children of the spawn
-/// table -- entries 1 and 2 attached to part 8 and kept in `heldModelTasks`,
-/// entry 3 attached to part 9 and entry 4 to part 12. Each of the
-/// last two has its model's `tpage` / `clut` loaded from the `AreaPlacement` of
-/// the current area selected by the model id the parent's `spawnArg2` carries
-/// at `Enemy::placeKey >> ENEMY_PLACE_INDEX_SHIFT`, and has its texture stream processed twice
-/// when it has a buffer. It then publishes the work block's matrices on the
-/// model, installs the message table and `enemyTaskExit` as the exit
-/// callback, and advances to the tick. A failed allocation exits the task
-/// instead.
-static void func_actor_213000_80149E54(Task* task)
+/// Initializes Eric Baldwin's hidden body and four attached models.
+///
+/// Owns zeroed body work; allocation failure exits immediately. The two held
+/// models attach at part 8, the three-root model at part 9 and the right hand
+/// at part 12. Their texture offsets use the placement owner in spawnArg2 and
+/// the current area variant; existing packet-buffer halves are both rebuilt.
+/// Each child may fail independently. Installs lighting, messages and common
+/// enemy teardown before advancing to the update state.
+static void _actor213000InitializeEricBaldwin(Task* task)
 {
+    enum {
+        ACTOR_213000_FREE_DISABLED    = -1,
+        ACTOR_213000_FIRST_HELD_TASK  = 1,
+        ACTOR_213000_SECOND_HELD_TASK = 2,
+        ACTOR_213000_THREE_ROOT_TASK  = 3,
+        ACTOR_213000_RIGHT_HAND_TASK  = 4,
+        ACTOR_213000_HELD_PART        = 8,
+        ACTOR_213000_THREE_ROOT_PART  = 9,
+        ACTOR_213000_RIGHT_HAND_PART  = 12,
+    };
     _Actor213000EricBaldwinWork* work;
-    TmdObject*                   obj;
-    GameLocationKey              key;
-    Task*                        spawned1;
-    Task*                        spawned2;
+    TmdObject*                   bodyModel;
+    Task*                        threeRootTask;
+    Task*                        rightHandTask;
 
-    obj  = task->extra.tmd;
-    work = memCalloc(sizeof(_Actor213000EricBaldwinWork), 0);
+    bodyModel = task->extra.tmd;
+    work      = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         enemyTaskExit(task);
         return;
@@ -529,59 +534,17 @@ static void func_actor_213000_80149E54(Task* task)
     work->animId            = ACTOR_MODEL_STATE_NONE;
     work->bank              = ACTOR_MODEL_STATE_NONE;
     work->field_478         = 0;
-    work->freeCountdown     = -1;
-    obj->flags             |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->heldModelTasks[0] = taskSpawnFromTable(D_actor_213000_80157DE0, 1, 8, task);
-    work->heldModelTasks[1] = taskSpawnFromTable(D_actor_213000_80157DE0, 2, 8, task);
-    spawned1                = taskSpawnFromTable(D_actor_213000_80157DE0, 3, 9, task);
-    spawned2                = taskSpawnFromTable(D_actor_213000_80157DE0, 4, 0xC, task);
-    if (spawned1 != NULL) {
-        TmdObject*       model;
-        AreaVariant*     layout;
-        AreaPlacement*   place;
-        GameLocationKey* sessionKey;
-        s32              idx;
-
-        idx        = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        model      = spawned1->extra.tmd;
-        sessionKey = &gGameSession->location.loc;
-        key.stage  = sessionKey->stage;
-        key.area   = sessionKey->area;
-        key.room   = sessionKey->room;
-        key.view   = sessionKey->view;
-        areaSyncLocationVariant(&key);
-        layout                   = areaGetVariant(&key);
-        place                    = gpAreaPlaceAt(layout->placements, idx);
-        model->texturePageOffset = place->texturePageOffset;
-        model->clutRowOffset     = place->clutRowOffset;
-        if (model->buffer != NULL) {
-            tmdBuildBufferHalf(model);
-            tmdBuildBufferHalf(model);
-        }
+    work->freeCountdown     = ACTOR_213000_FREE_DISABLED;
+    bodyModel->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    work->heldModelTasks[0] = taskSpawnFromTable(D_actor_213000_80157DE0, ACTOR_213000_FIRST_HELD_TASK, ACTOR_213000_HELD_PART, task);
+    work->heldModelTasks[1] = taskSpawnFromTable(D_actor_213000_80157DE0, ACTOR_213000_SECOND_HELD_TASK, ACTOR_213000_HELD_PART, task);
+    threeRootTask           = taskSpawnFromTable(D_actor_213000_80157DE0, ACTOR_213000_THREE_ROOT_TASK, ACTOR_213000_THREE_ROOT_PART, task);
+    rightHandTask           = taskSpawnFromTable(D_actor_213000_80157DE0, ACTOR_213000_RIGHT_HAND_TASK, ACTOR_213000_RIGHT_HAND_PART, task);
+    if (threeRootTask != NULL) {
+        _actorRenderApplyTaskPlacementTextureOffsets(threeRootTask, task->spawnArg2.pointer);
     }
-    if (spawned2 != NULL) {
-        TmdObject*       model;
-        AreaVariant*     layout;
-        AreaPlacement*   place;
-        GameLocationKey* sessionKey;
-        s32              idx;
-
-        model      = spawned2->extra.tmd;
-        idx        = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionKey = &gGameSession->location.loc;
-        key.stage  = sessionKey->stage;
-        key.area   = sessionKey->area;
-        key.room   = sessionKey->room;
-        key.view   = sessionKey->view;
-        areaSyncLocationVariant(&key);
-        layout                   = areaGetVariant(&key);
-        place                    = gpAreaPlaceAt(layout->placements, idx);
-        model->texturePageOffset = place->texturePageOffset;
-        model->clutRowOffset     = place->clutRowOffset;
-        if (model->buffer != NULL) {
-            tmdBuildBufferHalf(model);
-            tmdBuildBufferHalf(model);
-        }
+    if (rightHandTask != NULL) {
+        _actorRenderApplyTaskPlacementTextureOffsets(rightHandTask, task->spawnArg2.pointer);
     }
     _actor213000InitBodyLighting(task);
     task->msgTable     = D_actor_213000_80157E1C;
@@ -762,7 +725,7 @@ static void _actor213000ThreeRootModelTask(Task* childTask)
 /// The actor's three states: spawn, per-frame tick and teardown.
 static const TaskFuncTable3 D_actor_213000_80149E48 = {
     {
-        func_actor_213000_80149E54,
+        _actor213000InitializeEricBaldwin,
         _actor213000UpdateBody,
         enemyTaskExit,
     },

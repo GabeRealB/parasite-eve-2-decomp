@@ -890,7 +890,7 @@ static void _actor356100FallBack(Task* actor);
 static void _actor356100FallFront(Task* actor);
 
 /// Per-frame tick of the state-0x15 clip run.
-static void func_actor_356100_80167358(Task* arg0);
+static void _actor356100DeathBurn(Task* actor);
 
 /// Idles and occasionally fidgets until the player is within 3000 units.
 ///
@@ -2260,52 +2260,65 @@ static void _actor356100Approach(Task* actor)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-/// Rotation-collapse tick: going live clears the model's `field_C`, flags the
-/// enemy's link node and re-seeds `stateTimer`. Each frame then bumps `stateTimer`
-/// and fires its milestone — 0x18 releases state F0 (arg 0xA), 0x1D switches
-/// light mode 1 and spawns effect 0x600A5 at model coordinate 2, 0x29 sets
-/// `field_C` to 2, 0x2F switches light mode 2 and 0x33 sets `field_C` to 0x80.
-/// From 0x1A on, the root rotation is rebuilt in the 0x34-byte scratch block
-/// with X/Z held at `ACTOR_356100_ROOT_SCALE` and Y reduced by 0xB per frame past 0x14, and
-/// written back into the root coordinate with `composeStamp` cleared. Same body as
-/// `_actor01900StateDeathBurn`.
-static void func_actor_356100_80167358(Task* arg0)
+/// Burns and flattens the dead enemy, then suppresses its active drawing.
+///
+/// Requires initialized enemy work and a model with coordinate 2. Entry clears
+/// model flags, prevents lock-on and restarts the frame counter. Pre-increment
+/// frames 24/29/41/47/63 release battle rewards, spawn the burn, turn black,
+/// enable translucency and hide. From advanced frame 26, rebuilds root yaw with
+/// X/Z scale 4500 and Y scale 4500 - (frame - 20) * 11 in Q12; negative scales
+/// are retained. The counter stops at 1025. This state does not free the task.
+static void _actor356100DeathBurn(Task* actor)
 {
+    enum {
+        ACTOR_356100_DEATH_BURN_BURSTS       = 3,
+        ACTOR_356100_DEATH_BURN_PART         = 2,
+        ACTOR_356100_DEATH_COUNTER_LIMIT     = 1025,
+        ACTOR_356100_DEATH_RELEASE_TICK      = 24,
+        ACTOR_356100_DEATH_BURN_TICK         = 29,
+        ACTOR_356100_DEATH_BLACK_TICK        = 41,
+        ACTOR_356100_DEATH_TRANSLUCENT_TICK  = 47,
+        ACTOR_356100_DEATH_HIDE_TICK         = 63,
+        ACTOR_356100_DEATH_COLLAPSE_TICK     = 26,
+        ACTOR_356100_DEATH_SCALE_ORIGIN_TICK = 20,
+        ACTOR_356100_DEATH_SCALE_STEP        = 11,
+    };
     _Actor356100Work* work;
     Enemy*            enemy;
-    TmdObject*        obj;
-    s16               cur;
+    TmdObject*        model;
+    s16               deathFrame;
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    model = actor->extra.tmd;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj->flags                    = 0;
+        model->flags                  = 0;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->stateTimer              = 0;
     }
-    if (work->stateTimer < 0x401) {
-        switch ((s16)(work->stateTimer++ - 0x18)) {
+    // Milestones use the pre-increment frame; scaling uses the advanced frame.
+    if (work->stateTimer < ACTOR_356100_DEATH_COUNTER_LIMIT) {
+        switch ((s16)(work->stateTimer++ - ACTOR_356100_DEATH_RELEASE_TICK)) {
             case 0:
-                sceneReleaseBattleRefWithRewards(arg0, 0xA);
+                sceneReleaseBattleRefWithRewards(actor, 0xA);
                 break;
-            case 5:
+            case ACTOR_356100_DEATH_BURN_TICK - ACTOR_356100_DEATH_RELEASE_TICK:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
-                effectSpawn(EFFECT_CORPSE_BURN, arg0->extra.tmd->coords + 2, 3, NULL);
+                effectSpawn(EFFECT_CORPSE_BURN, actor->extra.tmd->coords + ACTOR_356100_DEATH_BURN_PART, ACTOR_356100_DEATH_BURN_BURSTS, NULL);
                 break;
-            case 23:
-                arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+            case ACTOR_356100_DEATH_TRANSLUCENT_TICK - ACTOR_356100_DEATH_RELEASE_TICK:
+                actor->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                 break;
-            case 17:
+            case ACTOR_356100_DEATH_BLACK_TICK - ACTOR_356100_DEATH_RELEASE_TICK:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 break;
-            case 39:
-                arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            case ACTOR_356100_DEATH_HIDE_TICK - ACTOR_356100_DEATH_RELEASE_TICK:
+                actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 break;
         }
-        cur = work->stateTimer;
-        if (cur >= 0x1A) {
-            _actorRenderRescaleYawY(arg0->extra.tmd->coords, ACTOR_356100_ROOT_SCALE, ACTOR_356100_ROOT_SCALE - (cur - 0x14) * 0xB);
+        deathFrame = work->stateTimer;
+        if (deathFrame >= ACTOR_356100_DEATH_COLLAPSE_TICK) {
+            _actorRenderRescaleYawY(actor->extra.tmd->coords, ACTOR_356100_ROOT_SCALE, ACTOR_356100_ROOT_SCALE - (deathFrame - ACTOR_356100_DEATH_SCALE_ORIGIN_TICK) * ACTOR_356100_DEATH_SCALE_STEP);
         }
     }
 }
@@ -2892,7 +2905,7 @@ static const _Actor356100StateTable D_actor_356100_80161EC4 = {
         _actor356100Approach,
         _actor356100FallBack,
         _actor356100FallFront,
-        func_actor_356100_80167358,
+        _actor356100DeathBurn,
         _actor356100Dormant,
         func_actor_356100_80167818,
         _actor356100Patrol,

@@ -116,3 +116,4 @@ _actor350700KyleMadiganWalkerTask = 0x80163350; // type:func
 _actor350700KyleMadiganWalkerSetDrawModeMsg = 0x80163840; // type:func
 _actor350700KyleMadiganWalkerIgnoreCommandMsg = 0x8016395c; // type:func
 _actor350700ReverseWalkTask = 0x80162398; // type:func
+_actor350700KyleMadiganWalkerInitialize = 0x80162b30; // type:func

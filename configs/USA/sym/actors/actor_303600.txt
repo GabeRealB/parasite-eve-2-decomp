@@ -61,3 +61,4 @@ _actor303600FinishSkippedCutscene = 0x8016253c; // type:func
 _actor303600InitShaft = 0x801626c0; // type:func
 _actor303600ShaftTask = 0x80162a7c; // type:func
 _actor303600DispatchCutsceneCue = 0x80161f40; // type:func
+_actor303600CutsceneTask = 0x8016216c; // type:func

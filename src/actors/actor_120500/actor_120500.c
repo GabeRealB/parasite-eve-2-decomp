@@ -108,7 +108,7 @@ STATIC_ASSERT_SIZEOF(_Actor120500Work, 0x4CC);
 extern Task* D_actor_120500_80138454;
 
 /// The actor's five-entry task table: 0 the streamed sequence
-/// (`func_actor_120500_80131E58`), 1 the fade from black, 2 the fade to black,
+/// (`_actor120500MovieTask`), 1 the fade from black, 2 the fade to black,
 /// 3 `taskKill`, 4 the actor itself.
 extern TaskDesc D_actor_120500_80138418[];
 
@@ -150,7 +150,7 @@ static void _actor120500PostScreenRequest(s16 requestId);
 static void _actor120500SkipScene(void);
 
 static TmdSource _gActor120500KyleMadiganBody;
-void             func_actor_120500_80131E58(Task*);
+static void      _actor120500MovieTask(Task* task);
 static void      _actor120500SceneTask(Task* task);
 static void      _actor120500SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedArg);
 
@@ -337,7 +337,7 @@ TaskMessageEntry D_actor_120500_80138408[2] = {
 };
 
 TaskDesc D_actor_120500_80138418[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_actor_120500_80131E58, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor120500MovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
 };
@@ -351,46 +351,59 @@ Task* D_actor_120500_80138454 = NULL;
 static void _actor120500RunPlayerRequest(Task* task);
 static void _actor120500InitBody(Task* task);
 
-/// Entry 0 of the task table: plays a streamed sequence, then restores the
-/// scene. It looks up the stream slot for the current location with view 0x64
-/// and enqueues CD command 0x61 on it, turns the display on with sound cue
-/// 0x521E0007 once the queue reports ready, and waits for the stream to end or
-/// for the pad to cut it short. After the restore it spawns the fade from
-/// black, clears the image buffers, and kills itself.
-void func_actor_120500_80131E58(Task* arg0)
+/// Plays the motel-room movie, then restores game resources and presentation.
+///
+/// Start at state 0 with the current location's view-100 movie loaded in the
+/// stream table (slot 0..14). CD enqueue copies four argument bytes; only the
+/// slot byte is initialized and the movie ignores the other three. START cancels
+/// playback; both completion paths wait for the queue to drain before restoration.
+/// Owns no work block. After restoration, starts an eight-unit fade, clears the
+/// image workspace and resumes the game loop before ending this callback.
+static void _actor120500MovieTask(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
+    enum {
+        ACTOR_120500_MOVIE_PREPARE    = 0,
+        ACTOR_120500_MOVIE_QUEUE      = 1,
+        ACTOR_120500_MOVIE_WAIT_READY = 2,
+        ACTOR_120500_MOVIE_PLAY       = 3,
+        ACTOR_120500_MOVIE_WAIT_STOP  = 4,
+        ACTOR_120500_MOVIE_RESTORE    = 5,
+        ACTOR_120500_MOVIE_VIEW       = 100,
+        ACTOR_120500_MOVIE_FADE_TASK  = 1,
+        ACTOR_120500_MOVIE_FADE_STEP  = 8,
+    };
+    u8          movieArgument[4];
+    GameLoc     movieLocation;
     CdCmdQueue* queue;
-    s16         slot;
+    s16         movieSlot;
 
     queue = &gCdCmdQueue;
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case ACTOR_120500_MOVIE_PREPARE:
             SetDispMask(0);
-            streamPrepareMovieWorkspace(1);
-            arg0->state = arg0->state + 1;
+            streamPrepareMovieWorkspace(true);
+            task->state = task->state + 1;
             return;
-        case 1:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slot         = streamFindMovieSlot(&key.loc, 0, 0);
-            slotParam[0] = slot;
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            arg0->state = arg0->state + 1;
+        case ACTOR_120500_MOVIE_QUEUE:
+            movieLocation          = gGameSession->location;
+            movieLocation.loc.view = ACTOR_120500_MOVIE_VIEW;
+            movieSlot              = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            movieArgument[0]       = movieSlot;
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, movieArgument);
+            task->state = task->state + 1;
             return;
-        case 2:
+        case ACTOR_120500_MOVIE_WAIT_READY:
             if (queue->movieReady == 0) {
                 return;
             }
             sndEvtRequestScriptStart(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0, 0);
             SetDispMask(1);
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
             return;
-        case 3:
+        case ACTOR_120500_MOVIE_PLAY:
             if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
-                arg0->state = arg0->state + 1;
+                task->state = task->state + 1;
                 return;
             }
             if (padIsStartPressed() == 0) {
@@ -398,23 +411,23 @@ void func_actor_120500_80131E58(Task* arg0)
             }
             SetDispMask(0);
             cdCmdRequestCancel();
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
             return;
-        case 4:
+        case ACTOR_120500_MOVIE_WAIT_STOP:
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 return;
             }
             streamResetGameRestore();
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
             return;
-        case 5:
-            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
+        case ACTOR_120500_MOVIE_RESTORE:
+            if ((streamPollGameRestore(false, true) & 0xFFFF) == 0) {
                 return;
             }
-            taskSpawnFromTableOnDefaultList(D_actor_120500_80138418, 1, 8, 0);
+            taskSpawnFromTableOnDefaultList(D_actor_120500_80138418, ACTOR_120500_MOVIE_FADE_TASK, ACTOR_120500_MOVIE_FADE_STEP, 0);
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(1);
-            taskKill(arg0);
+            taskKill(task);
             displayResumeGameLoop();
             return;
     }

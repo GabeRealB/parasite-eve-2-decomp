@@ -97,7 +97,7 @@ static void _actor260400ExitScriptedWalker(Task* task);
 
 static TmdSource _gActor260400RupertBroderickHurtMongoose;
 static TmdSource _gActor260400RupertBroderickHurtBody;
-void             func_actor_260400_8014A550(Task*);
+static void      _actor260400ScriptedWalkerTask(Task* task);
 static void      _actor260400MongooseTask(Task* task);
 
 static s32 _actor260400PlayScriptedWalkerAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
@@ -908,7 +908,7 @@ TaskMessageEntry D_actor_260400_80154BE8[6] = {
 };
 
 TaskDesc D_actor_260400_80154C18[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_260400_8014A550, { .model = &_gActor260400RupertBroderickHurtBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor260400ScriptedWalkerTask, { .model = &_gActor260400RupertBroderickHurtBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor260400MongooseTask, { .model = &_gActor260400RupertBroderickHurtMongoose } },
 };
 
@@ -1128,19 +1128,22 @@ static void _actor260400SpawnScriptedWalker(Enemy* enemy, Task* task)
 
 #include "../../shared/scripted_walk_update.inc.c"
 
-/// Two-state task handler: publishes the task's work block in
-/// `_gScriptedWalkWork` on the way through, then calls the spawn routine
-/// or the per-frame state, whichever `Task::state` selects from a table built
-/// on the stack.
-void func_actor_260400_8014A550(Task* task)
+/// Dispatches the hurt Rupert Broderick walker setup or frame update.
+///
+/// Requires a live TMD body, Enemy placement owner in spawnArg2 and state 0 or
+/// 1. Publishes this task's work for synchronous scripted-walk handlers before
+/// dispatch; setup replaces it with the newly allocated work. The package and
+/// published work must remain live while callbacks use them. Setup failure may
+/// destroy the task; this dispatcher does not use it after the selected call.
+static void _actor260400ScriptedWalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc handlers[2] = {
         _actor260400SpawnScriptedWalker,
         _actorRenderWalkerFrame,
     };
 
     _gScriptedWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    handlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.

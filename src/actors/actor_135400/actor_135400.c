@@ -162,7 +162,7 @@ extern AnimationSet** D_actor_135400_8013F8D4[1];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _actor135400GaryDouglasUpdateCarriedPlacement(Task* task);
-static void func_actor_135400_80132064(Task* arg0);
+static void _actor135400GaryDouglasSpawn(Task* task);
 static void _actor135400GaryDouglasTick(Task* task);
 static void _actor135400GaryDouglasHeadIdle(Task* unusedTask);
 static void _modelPlacementAttachPart(Task* childTask);
@@ -198,12 +198,12 @@ static const TaskFuncTable3 D_actor_135400_80131E30 = { {
 /// State table of the main task: spawn, per-frame tick and exit callback.
 /// Dispatched by `_actor135400GaryDouglasTask`.
 static const TaskFuncTable3 D_actor_135400_80131E3C = { {
-    func_actor_135400_80132064,
+    _actor135400GaryDouglasSpawn,
     _actor135400GaryDouglasTick,
     _actor135400GaryDouglasExit,
 } };
 
-/// The two spawn placements `func_actor_135400_80132064` copies as a whole:
+/// The two spawn placements `_actor135400GaryDouglasSpawn` copies as a whole:
 /// the flag-clear branch's first, the other second.
 static const _Actor135400GaryDouglasPlaces D_actor_135400_80131E48 = {
     { { 5700, -150, 5900, 0 }, { 1024, 0, -1024, 0 } },
@@ -673,52 +673,72 @@ static void _actor135400GaryDouglasUpdateCarriedPlacement(Task* task)
     }
 }
 
-/// The spawn handler of the actor's main task: allocates the work
-/// block, seeds its two `-1` latches, starts the two part tasks and copies the
-/// area record's texture page / CLUT onto part 1's model. It then installs the
-/// handler table, the 0x7D5 model mode and the exit callback, and finally hands
-/// the 0x7D4 placement and the 0x7D3 animation the game flag 0x6C selects.
-static void func_actor_135400_80132064(Task* arg0)
+/// Spawns Gary's head and carried model, applying placement textures to the head.
+///
+/// Requires live body work and its Enemy placement owner in spawnArg2.
+/// Retains successful child handles; failure leaves each zero pointer intact.
+static inline void _actor135400SpawnGaryAttachments(Task* task, _Actor135400GaryDouglasWork* work)
 {
+    enum { HEAD_TASK    = 1,
+           HEAD_PART    = 4,
+           CARRIED_TASK = 2,
+           CARRIED_PART = 8 };
+    Task* childTask;
+    childTask = taskSpawnFromTable(D_actor_135400_8013A4AC, HEAD_TASK, HEAD_PART, task);
+    if (childTask != NULL) {
+        work->headTask = childTask;
+        _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
+    }
+    childTask = taskSpawnFromTable(D_actor_135400_8013A4AC, CARRIED_TASK, CARRIED_PART, task);
+    if (childTask != NULL) {
+        work->carriedTask = childTask;
+    }
+}
+
+/// Initializes Gary Douglas and his two attachments for the night-garage scene.
+///
+/// Owns zeroed body work until enemy-task teardown; allocation failure exits
+/// immediately. The placement owner in spawnArg2 selects the head's texture
+/// offsets. Night-garage progress chooses placement and clip 1 or 4, and the
+/// opening placement also sets the low collision box. The head and carried
+/// model attach at parts 4 and 8. The draw callback requires a live head even
+/// though setup retains individual child-spawn failures.
+static void _actor135400GaryDouglasSpawn(Task* task)
+{
+    enum {
+        ACTOR_135400_GARY_BEFORE_EVENT_CLIP = 1,
+        ACTOR_135400_GARY_AFTER_EVENT_CLIP  = 4,
+    };
     _Actor135400GaryDouglasWork*  work;
     _Actor135400GaryDouglasPlaces places;
-    AnimationPlayRequest          anim[2];
-    Task*                         spawned;
+    AnimationPlayRequest          animationRequests[2];
 
     places = D_actor_135400_80131E48;
-    memset(anim, 0, sizeof(anim));
-    anim[0].animationId = 1;
-    anim[1].animationId = 4;
-    work                = memCalloc(sizeof(_Actor135400GaryDouglasWork), 0);
+    memset(animationRequests, 0, sizeof(animationRequests));
+    animationRequests[0].animationId = ACTOR_135400_GARY_BEFORE_EVENT_CLIP;
+    animationRequests[1].animationId = ACTOR_135400_GARY_AFTER_EVENT_CLIP;
+    work                             = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
-    arg0->work         = work;
+    task->work         = work;
     work->model.animId = ACTOR_MODEL_STATE_NONE;
     work->model.bank   = ACTOR_MODEL_STATE_NONE;
-    spawned            = taskSpawnFromTable(D_actor_135400_8013A4AC, 1, 4, arg0);
-    if (spawned != NULL) {
-        work->headTask = spawned;
-        _actorRenderApplyTaskPlacementTextureOffsets(spawned, arg0->spawnArg2.pointer);
-    }
-    spawned = taskSpawnFromTable(D_actor_135400_8013A4AC, 2, 8, arg0);
-    if (spawned != NULL) {
-        work->carriedTask = spawned;
-    }
-    _actor135400GaryDouglasBindLighting(arg0);
-    arg0->msgTable = D_actor_135400_8013A4D0;
-    _actor135400GaryDouglasSetDrawMode(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
+    _actor135400SpawnGaryAttachments(task, work);
+    _actor135400GaryDouglasBindLighting(task);
+    task->msgTable = D_actor_135400_8013A4D0;
+    _actor135400GaryDouglasSetDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) <= 0) {
-        actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.beforeEvent, 0);
-        _actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[0], 0);
+        actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLACE, &places.beforeEvent, 0);
+        _actorMotionPlayAnim(task, ACTOR_MESSAGE_PLAY_ANIMATION, &animationRequests[0], 0);
         dryfieldNightGaragePlaceLowCollisionBox(0);
     } else {
-        actorMsgPlaceEuler(arg0, ACTOR_MESSAGE_PLACE, &places.afterEvent, 0);
-        _actorMotionPlayAnim(arg0, ACTOR_MESSAGE_PLAY_ANIMATION, &anim[1], 0);
+        actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLACE, &places.afterEvent, 0);
+        _actorMotionPlayAnim(task, ACTOR_MESSAGE_PLAY_ANIMATION, &animationRequests[1], 0);
     }
-    arg0->exitCallback = _actor135400GaryDouglasExit;
-    arg0->state       += 1;
+    task->exitCallback = _actor135400GaryDouglasExit;
+    task->state       += 1;
 }
 
 /// Ramps Gary Douglas's blend weight for head aiming toward the player.

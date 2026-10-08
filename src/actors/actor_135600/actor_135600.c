@@ -58,7 +58,7 @@ extern TaskDesc D_actor_135600_8013B0C4[];
 extern TaskMessageEntry D_actor_135600_8013B0F4[];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
-static void func_actor_135600_80132234(Task* task);
+static void _actor135600InitializeKyleMadiganWalker(Task* task);
 static s32  _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12);
 static void _actor135600UpdateKyleMadiganWalker(Task* task);
 static void _actor135600IdleKyleMadiganHand(Task* handTask);
@@ -104,7 +104,7 @@ static const TaskFuncTable3 D_actor_135600_80131E30 = { {
 /// States of the actor itself (entry 0), dispatched by
 /// `_actor135600KyleMadiganWalkerTask`: setup, per-frame tick, exit.
 static const TaskFuncTable3 D_actor_135600_80131E3C = { {
-    func_actor_135600_80132234,
+    _actor135600InitializeKyleMadiganWalker,
     _actor135600UpdateKyleMadiganWalker,
     _actor135600ExitKyleMadiganWalker,
 } };
@@ -752,21 +752,30 @@ static s32 _actor135600DrawHeldItemQuad(GfxCoord* itemRoot, s32 lengthScale12)
     return screenAngle;
 }
 
-/// Setup state of the actor (entry 0 of `D_actor_135600_80131E3C`). It
-/// allocates the 0x50C-byte work block, seeds the -1 sentinels and spawns
-/// entries 1 to 3 of `D_actor_135600_8013B0C4` -- the two part models get the
-/// texture page and CLUT of the area record the actor's placement key resolves
-/// to, and all three are parked in the work block. It then points the model at
-/// the work block's light/colour pair, places it at (0xA6E, 0, 0x5F0) yawed
-/// 0x400, applies animation 2, shows it (message 0x7D5 mode 1), publishes the
-/// message table `D_actor_135600_8013B0F4`, installs the exit callback and
-/// steps to the tick state.
-static void func_actor_135600_80132234(Task* task)
+/// Initializes Kyle Madigan's walker, hands and held model at the scene's mark.
+///
+/// Allocates owned `KyleMadiganWalkerWork`; failure exits the body task. Left
+/// and right hands attach at parts 8 and 12 and occupy hand slots 1 and 0 here.
+/// The placement owner in spawnArg2 supplies both hands' texture offsets.
+/// Starts bank 0, clip 2 at (2670, 0, 1520), yaw 1024 in 4096 units per turn.
+/// The reset request's blend duration and collision choice are unread. Setup
+/// checks each child spawn but its immediate show requires all three children;
+/// that allocation assumption and existing failure behavior are retained.
+static void _actor135600InitializeKyleMadiganWalker(Task* task)
 {
+    enum {
+        ACTOR_135600_KYLE_FREE_DISABLED   = -1,
+        ACTOR_135600_KYLE_LEFT_HAND_TASK  = 1,
+        ACTOR_135600_KYLE_RIGHT_HAND_TASK = 2,
+        ACTOR_135600_KYLE_HELD_TASK       = 3,
+        ACTOR_135600_KYLE_LEFT_HAND_PART  = 8,
+        ACTOR_135600_KYLE_RIGHT_HAND_PART = 12,
+        ACTOR_135600_KYLE_INITIAL_CLIP    = 2,
+    };
     KyleMadiganWalkerWork* work;
-    Task*                  spawned;
-    ActorTransform         args;
-    AnimationPlayRequest   preset;
+    Task*                  childTask;
+    ActorTransform         placement;
+    AnimationPlayRequest   initialAnimation;
 
     work = memCalloc(sizeof(KyleMadiganWalkerWork), false);
     if (work == NULL) {
@@ -776,42 +785,53 @@ static void func_actor_135600_80132234(Task* task)
     task->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown      = -1;
+    work->freeCountdown      = ACTOR_135600_KYLE_FREE_DISABLED;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
 
-    spawned = taskSpawnFromTable(D_actor_135600_8013B0C4, 1, 8, task);
-    if (spawned != NULL) {
-        work->handTasks[1] = spawned;
-        _actorRenderApplyPlacementTextureOffsets(spawned->extra.tmd, task->spawnArg2.pointer);
+    childTask = taskSpawnFromTable(D_actor_135600_8013B0C4, ACTOR_135600_KYLE_LEFT_HAND_TASK, ACTOR_135600_KYLE_LEFT_HAND_PART, task);
+    if (childTask != NULL) {
+        work->handTasks[1] = childTask;
+        _actorRenderApplyPlacementTextureOffsets(childTask->extra.tmd, task->spawnArg2.pointer);
     }
 
-    spawned = taskSpawnFromTable(D_actor_135600_8013B0C4, 2, 0xC, task);
-    if (spawned != NULL) {
-        work->handTasks[0] = spawned;
-        _actorRenderApplyPlacementTextureOffsets(spawned->extra.tmd, task->spawnArg2.pointer);
+    childTask = taskSpawnFromTable(D_actor_135600_8013B0C4, ACTOR_135600_KYLE_RIGHT_HAND_TASK, ACTOR_135600_KYLE_RIGHT_HAND_PART, task);
+    if (childTask != NULL) {
+        work->handTasks[0] = childTask;
+        _actorRenderApplyPlacementTextureOffsets(childTask->extra.tmd, task->spawnArg2.pointer);
     }
 
-    spawned = taskSpawnFromTable(D_actor_135600_8013B0C4, 3, 8, task);
-    if (spawned != NULL) {
-        work->heldItemTask = spawned;
+    childTask = taskSpawnFromTable(D_actor_135600_8013B0C4, ACTOR_135600_KYLE_HELD_TASK, ACTOR_135600_KYLE_LEFT_HAND_PART, task);
+    if (childTask != NULL) {
+        work->heldItemTask = childTask;
     }
 
     _actor135600BindKyleMadiganWalkerLighting(task);
 
-    args.pos.vx = 0xA6E;
-    args.pos.vz = 0x5F0;
-    args.pos.vy = 0;
-    args.rot.vx = 0;
-    args.rot.vy = 0x400;
-    args.rot.vz = 0;
-    actorMsgPlaceEuler(task, ACTOR_MESSAGE_PLACE, &args, 0);
+    /// Places Kyle and resets bank 0, clip 2 before any draw-mode propagation.
+    ///
+    /// Arguments are side-effect-free Task*, ActorTransform and play-request
+    /// lvalues, evaluated repeatedly. Captures the local initial-clip constant.
+    /// Writes only consumed fields; reset playback ignores duration/collision.
+#define ACTOR_135600_PLACE_INITIAL_KYLE_POSE(task, placement, initialAnimation)             \
+    {                                                                                       \
+        (placement).pos.vx = 0xA6E;                                                         \
+        (placement).pos.vz = 0x5F0;                                                         \
+        (placement).pos.vy = 0;                                                             \
+        (placement).rot.vx = 0;                                                             \
+        (placement).rot.vy = ACTOR_TRANSFORM_ANGLE_TURN / 4;                                \
+        (placement).rot.vz = 0;                                                             \
+        actorMsgPlaceEuler((task), ACTOR_MESSAGE_PLACE, &(placement), 0);                   \
+                                                                                            \
+        (initialAnimation).source.index = 0;                                                \
+        (initialAnimation).animationId  = ACTOR_135600_KYLE_INITIAL_CLIP;                   \
+        (initialAnimation).blend        = ANIMATION_BLEND_RESET;                            \
+        _actorMotionPlayAnim((task), ACTOR_MESSAGE_PLAY_ANIMATION, &(initialAnimation), 0); \
+    }
 
-    preset.source.index = 0;
-    preset.animationId  = 2;
-    preset.blend        = ANIMATION_BLEND_RESET;
-    _actorMotionPlayAnim(task, ACTOR_MESSAGE_PLAY_ANIMATION, &preset, 0);
+    // Place the body and seed its first pose before showing all attachments.
+    ACTOR_135600_PLACE_INITIAL_KYLE_POSE(task, placement, initialAnimation);
 
     _actor135600SetKyleMadiganDrawMode(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
 
@@ -819,6 +839,7 @@ static void func_actor_135600_80132234(Task* task)
     task->exitCallback = _actor135600ExitKyleMadiganWalker;
     task->state       += 1;
 }
+#undef ACTOR_135600_PLACE_INITIAL_KYLE_POSE
 
 /// Applies one frame's signed 16.16 walk velocity, retaining the fractional carry.
 ///

@@ -436,3 +436,4 @@ _actor215100ShowTimedCaption = 0x8014c538; // type:func
 actor215100SelectCaptionResource = 0x8014c5e0; // type:func
 _actor215100SpawnPierce = 0x8014c660; // type:func
 _actor215100PierceTask = 0x8014ca2c; // type:func
+actor215100GalleryTrainingMenuTask = 0x80149f2c; // type:func

@@ -125,3 +125,4 @@ _actor135600UpdateKyleMadiganWalker = 0x801324d0; // type:func
 _actor135600KyleMadiganWalkerTask = 0x80132d64; // type:func
 _actor135600SetKyleMadiganDrawMode = 0x80133240; // type:func
 _actor135600IgnoreKyleMadiganCommand = 0x8013336c; // type:func
+_actor135600InitializeKyleMadiganWalker = 0x80132234; // type:func

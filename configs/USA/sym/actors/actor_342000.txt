@@ -83,3 +83,4 @@ _actor342000IncineratorDoorTask = 0x8016201c; // type:func
 _actor342000GluttonPartTask = 0x801625d8; // type:func
 _actor342000GluttonBodyTask = 0x801628c8; // type:func
 _actor342000UpdateSceneStaging = 0x80162f28; // type:func
+_actor342000IncineratorEventTask = 0x8016382c; // type:func

@@ -73,3 +73,4 @@ _actor356100FallBack = 0x8016a710; // type:func
 _actor356100FallFront = 0x8016a834; // type:func
 _actor356100Task = 0x8016a910; // type:func
 _actor356100GrabReach = 0x80166018; // type:func
+_actor356100DeathBurn = 0x80167358; // type:func

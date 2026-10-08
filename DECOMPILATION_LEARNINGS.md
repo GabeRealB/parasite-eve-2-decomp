@@ -23523,7 +23523,7 @@ arms - and the join label starts a new, shorter block, `sched2` leaves the `sb`
 in source order, and reorg fills the `jal` delay with `addiu a2, sp, N`
 instead. Score 98.8% with `reorder=2` and everything else zero. The pin block
 above is the fix; the permuter has nothing to permute.
-`_actor560800MovieTask` is that case, `func_actor_120500_80131E58` the
+`_actor560800MovieTask` is that case, `_actor120500MovieTask` the
 unconditional twin that needs nothing.
 
 ## `s32` temps for preserved `s8` loads (`lb`, not `lbu`)
@@ -101176,7 +101176,7 @@ the other one.** This body's `index->work` is the *actor* block (0x4C8,
 `ReverseWalkWork`), so `field_4BA` there is a plain `u16`. It looks impossible
 beside `func_actor_350700_801630C0`, which stores three *words* at
 0x4B8/0x4BC/0x4C0 - but that body runs on the *controller* block, the 0x50C
-allocation `func_actor_350700_80162B30` parks in a different task's `work`
+allocation `_actor350700KyleMadiganWalkerInitialize` parks in a different task's `work`
 (the twin of `_Actor335800GaryDouglasWork`, still without a header here). The same
 split explains `ActorsShared80132860Work::target` sitting at 0x4B8: it is the
 controller's, while the actor's own `target` is at 0x480
@@ -118328,9 +118328,9 @@ ignores it, so the later store can still share the pseudo.
 block (`1..80`, `82..208`) and matched at 100%, found by the permuter and
 confirmed from `.cse`. Prediction was made before the build.
 
-### A second compiled jump table in the first unit can force `rodata_head` *and* a `units` cut (func_actor_215100_80149F2C, 2026-09-17)
+### A second compiled jump table in the first unit can force `rodata_head` *and* a `units` cut (actor215100GalleryTrainingMenuTask, 2026-09-17)
 
-`func_actor_215100_80149F2C` matched at 100% with all penalties zero. Its table
+`actor215100GalleryTrainingMenuTask` matched at 100% with all penalties zero. Its table
 sits at `0x4`, so it needed `rodata_head = "0x4"`. The overlay still built 4 bytes
 long, though. The same unit already held a matched C switch
 (`_actor215100GalleryIntroTask`), whose table is at `0xD8`. Before this change that
@@ -118369,7 +118369,7 @@ A buffer at frame offset 0 avoids it (plain `fp`, no pseudo), but moves the slot
 (`static inline void _actor136100UpdateBodyLighting(Task*, VECTOR* samplePosition)` called with
 `&message.shadowPosition`). The slot stays shared and the later address is recomputed.
 Giving the helper a *local* `VECTOR` also avoids the merge, but the inline local
-gets a fresh frame slot. (`func_actor_136100_80133BC8`)
+gets a fresh frame slot. (`_actor136100SceneTask`)
 
 Related in the same function: an inline classifier returning `s32` had its return
 pseudo merged into the caller's variable and turned into `sllv` branchless code.
@@ -123566,7 +123566,7 @@ Inputs: `base_3.i` `08c073323b9b602668a3192065b5dc3e177174cc5965001502c32d220a35
 (99.792%, merged `andi`), `base_10.i`
 `b1af1e29bf8ed02078e4234a92e2e8f1371743d2df4aaf23a655027dd185ae60` (100%).
 
-## A variable assigned in two sibling blocks is *one* global allocno; re-deriving the second block's value keeps each block's temp local (func_actor_350700_80162B30, 2026-09-17)
+## A variable assigned in two sibling blocks is *one* global allocno; re-deriving the second block's value keeps each block's temp local (_actor350700KyleMadiganWalkerInitialize, 2026-09-17)
 
 Symptom: `insert`/`delete`/`branch` all zero — the control flow and even the
 delay slots are already right — but `regs=27` and `reorder=4`, and every
@@ -124249,7 +124249,7 @@ Inputs: scratch `nonmatchings/_actor303600InitShaft-vacuum`, `base_2.c`
 
 The fourth variant of the "m2c invents callee arguments" family, and the one
 whose diff does not look like a call-site problem at all. In
-`func_actor_303600_8016216C` the callee `_actor303600DispatchCutsceneCue` is
+`_actor303600CutsceneTask` the callee `_actor303600DispatchCutsceneCue` is
 `INCLUDE_ASM` in the same overlay and its own `.s` never reads `$a1` — all six
 mentions are `addiu $a1, $zero, <call argument>`, none a source operand. m2c
 typed it `(Task *, ?)` and passed a second argument anyway:
@@ -124285,7 +124285,7 @@ to flip both decisions, so when `insert`/`delete`/`branch` are non-zero and the
 diff is nothing but delay slots, open the `.s` of every `INCLUDE_ASM` callee and
 count the argument registers it actually reads before touching the scheduler.
 
-Inputs: scratch `nonmatchings/func_actor_303600_8016216C-vacuum`. `base.c`
+Inputs: scratch `nonmatchings/_actor303600CutsceneTask-vacuum`. `base.c`
 95.705% (`branch=3 regs=1 insert=2 delete=2`) SHA256
 `0c30575984e02555dd92ba3a45c3d99a0fa9c5bc0de47b03c68a033cd40fdb40`;
 `base_1.c` one-arg call, 100.000% SHA256
@@ -125038,9 +125038,9 @@ between the two `sw`s (`_actor105100Spawn` shows this compiler keeps
 adjacent TmdObject stores in source order), and the search loop's early exit
 adds `0x84` to the `0xFF` terminator scan of `_actor136100InitBody`.
 
-## A `case N:` materialized by the switch tree seeds a register that `cse` then reuses for every other use of N in the function (func_actor_121300_80133D98, 2026-09-17)
+## A `case N:` materialized by the switch tree seeds a register that `cse` then reuses for every other use of N in the function (_actor121300AyaDoubleSceneTask, 2026-09-17)
 
-`func_actor_121300_80133D98` holds the constant 1 in `$s2` from its second
+`_actor121300AyaDoubleSceneTask` holds the constant 1 in `$s2` from its second
 instruction to its last, and uses it in three unrelated places: the `case 1`
 comparison of `switch (state)`, the `D_8007218A == 1` test in state 0 and the
 `D_80071076 = 1` store in state 3. Nothing in the source does that; the switch
@@ -127564,7 +127564,7 @@ decrement.
 
 Inputs: as above; `base_3.c` and `base_4.c` both 100.000%.
 
-## A stack local whose address goes to two calls gets one pseudo live across the first, unless the address is `TOUCH_REG`'d (func_actor_135400_80132064, 2026-09-17)
+## A stack local whose address goes to two calls gets one pseudo live across the first, unless the address is `TOUCH_REG`'d (_actor135400GaryDouglasSpawn, 2026-09-17)
 
 Passing `&local` to two calls that are separated by the first call's clobber puts
 the address in a single pseudo that is live across the first call, which costs a
@@ -127605,7 +127605,7 @@ have, so drop it when the `addiu` wants to fill a load-delay slot.
 
 Scored: 92.267% with the merged pseudo, 98.331% with the touch.
 
-## One C variable for two call results inherits both conflict sets, so global-alloc refuses the call's return register (func_actor_135400_80132064, 2026-09-17)
+## One C variable for two call results inherits both conflict sets, so global-alloc refuses the call's return register (_actor135400GaryDouglasSpawn, 2026-09-17)
 
 Two `taskSpawnFromTable` calls whose results were separate variables came out
 as `move $a2,$v0` for the first and a bare `beqz $v0` for the second, where the
@@ -128167,7 +128167,7 @@ Inputs: scratch `nonmatchings/_actor113000PlayAnimation-vacuum`, `base.c`
 `947d821b88829e962e156a932d9ccad2bc8dab7372cf2ffa17196a9c9fba3a22`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## One statement moved inside an `if` body takes a *block-local* quantity's hard register into a global allocno's conflict set, and the allocno moves one register up (func_actor_213000_80149E54, 2026-09-17)
+## One statement moved inside an `if` body takes a *block-local* quantity's hard register into a global allocno's conflict set, and the allocno moves one register up (_actor213000InitializeEricBaldwin, 2026-09-17)
 
 **Problem.** The seed reached 99.893%: `Structure: match`, every penalty zero
 except `regs=3`, and the whole 140-instruction object identical but for one
@@ -128236,7 +128236,7 @@ Inputs: `base_2.i` (99.893%) SHA256
 `e514117694e382bba16bd424beb18322c2aad7d986423d40f249b58388cc31d1`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm. Scratch
-`nonmatchings/func_actor_213000_80149E54-vacuum`; permuter evidence
+`nonmatchings/_actor213000InitializeEricBaldwin-vacuum`; permuter evidence
 `PERMUTER_EVIDENCE/c7b2001a645c47ab/`.
 
 ## `p[i + 9]` makes a second biv where `p + i + 9` folds the constant into the body (_actor213000AttachThreeRootModel, 2026-09-17)
@@ -128591,7 +128591,7 @@ Inputs: scratch `nonmatchings/func_actor_342100_80162C88-vacuum`, `base.c` (m2c,
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`,
 `loop.c` (`find_mem_givs` / `combine_givs`).
 
-## A stack object passed twice in one block: global CSE costs a saved register unless the address is re-derived (func_actor_135600_80132234, 2026-09-17)
+## A stack object passed twice in one block: global CSE costs a saved register unless the address is re-derived (_actor135600InitializeKyleMadiganWalker, 2026-09-17)
 
 The setup handler builds an area key on the stack and hands it to two calls in
 one block, `areaSyncLocationVariant(&key)` then `areaGetVariant(&key)`. Take the
@@ -128645,7 +128645,7 @@ call result stays in `$v0` (`beqz $v0` / `sw $v0`) where the target copies it to
 `$a2` first; assigning the same variable in all three blocks is what keeps it in
 a register.
 
-Inputs: scratch `nonmatchings/func_actor_135600_80132234-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor135600InitializeKyleMadiganWalker-vacuum`, `base.c`
 64.425% (`stack=0 branch=6 regs=79 reorder=4 insert=15 delete=38`), `base_9.c`
 99.335%
 (`fee90af89cbfc4c4a4cf84e5ff7ac18c5868d92c7b935c6ebcc6465758871f5e`),

@@ -98,3 +98,4 @@ _actor213000BodyTask = 0x8014a578; // type:func
 _actor213000PlayAnimation = 0x8014a70c; // type:func
 _actor213000SetModelDraw = 0x8014a8a4; // type:func
 _actor213000ApplyHeldModelCommand = 0x8014a980; // type:func
+_actor213000InitializeEricBaldwin = 0x80149e54; // type:func

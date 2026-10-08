@@ -101,3 +101,4 @@ _actor135400FlintTick = 0x801329b0; // type:func
 _actor135400FlintSpawn = 0x80132b60; // type:func
 _actor135400FlintTask = 0x80132af4; // type:func
 _actor135400GaryDouglasTask = 0x801325a8; // type:func
+_actor135400GaryDouglasSpawn = 0x80132064; // type:func
