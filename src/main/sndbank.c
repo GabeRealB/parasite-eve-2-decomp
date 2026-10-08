@@ -397,28 +397,11 @@ s8                  Snd_BankSlotsByType[] = { 0, 1, 2, 3, 4, 7, 0xC, 0xD, -1, -1
 static u32          D_800680BC            = 0;
 static volatile u32 D_800680C0            = 0;
 
-static inline void Spu_InitSystemLocked(s32 arg0)
+/// Discards previous sound ownership and rebuilds the playback subsystems.
+///
+/// Audio updates must be held off and old sound users must have stopped.
+static inline void _spuResetPlaybackSystems(void)
 {
-    s32* temp_v0;
-
-    switch (arg0) {
-        case 0:
-            SpuInit();
-            D58028_SpuTimerEnabled = false;
-            D_800680BC             = 0;
-            spuResetCommonOutput();
-            break;
-        case 1:
-            SpuIsTransferCompleted(1);
-            D_800680BC = 0;
-            spuResetCommonOutput();
-            break;
-        case 2:
-            break;
-        default:
-            return;
-    }
-
     _sndHeapReset();
     sndEvtReset();
     asyncCbReset();
@@ -429,11 +412,53 @@ static inline void Spu_InitSystemLocked(s32 arg0)
     audioTickInitPlayback();
     sndScriptInitSystem(0);
     midiInitSystem(0);
+}
 
-    temp_v0  = sndHeapAlloc(4);
-    *temp_v0 = 0;
+/// Reinitializes sound-driver state while the caller holds off audio updates.
+///
+/// Mode 0 initializes SPU hardware; mode 1 waits for its DMA and resets common
+/// output; mode 2 rebuilds playback state only. Other modes do nothing. Accepted
+/// modes reset the sound heap, events, callbacks, voices, banks, scripts and MIDI,
+/// invalidating their previous ownership. Installs a zeroed, heap-owned reverb
+/// warmup counter; allocation must succeed. Replaces the optional PAL root-counter
+/// interrupt and clears its extra-update arm/count. This routine does not acquire
+/// a lock: its wrapper holds the audio-work gate closed for the entire call.
+static inline void _spuInitSystemState(s32 initMode)
+{
+    enum {
+        SPU_INIT_HARDWARE      = 0,
+        SPU_INIT_WAIT_TRANSFER = 1,
+        SPU_INIT_PLAYBACK_ONLY = 2,
+        SPU_PAL_TIMER_PERIOD   = 0xFFFF
+    };
+    s32* reverbWarmupUpdates;
 
-    audioTickInsert(&spuTickReverbWarmup, NULL, AUDIO_TICK_ID_REVERB_WARMUP, temp_v0);
+    switch (initMode) {
+        case SPU_INIT_HARDWARE:
+            SpuInit();
+            D58028_SpuTimerEnabled = false;
+            D_800680BC             = 0;
+            spuResetCommonOutput();
+            break;
+        case SPU_INIT_WAIT_TRANSFER:
+            SpuIsTransferCompleted(SPU_TRANSFER_WAIT);
+            D_800680BC = 0;
+            spuResetCommonOutput();
+            break;
+        case SPU_INIT_PLAYBACK_ONLY:
+            break;
+        default:
+            return;
+    }
+
+    _spuResetPlaybackSystems();
+
+    // The poll owns this counter until it finishes; storage lasts until heap reset.
+    reverbWarmupUpdates  = sndHeapAlloc(sizeof(*reverbWarmupUpdates));
+    *reverbWarmupUpdates = 0;
+
+    audioTickInsert(&spuTickReverbWarmup, NULL, AUDIO_TICK_ID_REVERB_WARMUP, reverbWarmupUpdates);
+    // Replace any previous PAL extra-update timer before enabling a new one.
     if (D58028_SpuTimerEnabled) {
         DisableEvent(D648E0_SpuTimerED);
         CloseEvent(D648E0_SpuTimerED);
@@ -444,7 +469,7 @@ static inline void Spu_InitSystemLocked(s32 arg0)
     if (gDisplayState.region == MODE_PAL) {
         D_800680A4 = 0;
         D_8007E0CC = 0;
-        SetRCnt(RCntCNT0, 0xffff, RCntMdINTR | RCntMdSC);
+        SetRCnt(RCntCNT0, SPU_PAL_TIMER_PERIOD, RCntMdINTR | RCntMdSC);
         ResetRCnt(RCntCNT0);
         StartRCnt(RCntCNT0);
         EnterCriticalSection();
@@ -462,7 +487,7 @@ static inline void Spu_InitSystemLocked(s32 arg0)
 static void Spu_InitSystem(s32 arg0)
 {
     D_800680C0 = 0;
-    Spu_InitSystemLocked(arg0);
+    _spuInitSystemState(arg0);
     D_800680C0 = 1;
 }
 

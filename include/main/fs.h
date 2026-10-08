@@ -342,7 +342,12 @@ enum {
 /// and run the caption/fade sequence.
 void gameFlowBeginLoadScreen(const GameLocationKey* destination, s16 alternateCaption);
 
-void Fs_EnsureBootLoadStarted(void);
+/// Starts the selected location loading-screen image once while its phase is idle.
+///
+/// Requires an armed loading screen and room in the CD request ring. Selects
+/// its captions and queues the image, then publishes the waiting-for-read phase;
+/// later calls leave an already started presentation alone.
+void gameFlowEnsureLoadScreenImageStarted(void);
 
 /// Borrows the remainder of the current chunk's opening sector.
 ///

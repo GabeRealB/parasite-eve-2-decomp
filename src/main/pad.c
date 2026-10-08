@@ -65,7 +65,7 @@ void Pad_Init(void)
     }
 }
 
-void Tmd_InitLists(void)
+void actorRenderResetLists(void)
 {
     D_80071210                     = 0;
     gTmdList.next                  = NULL;

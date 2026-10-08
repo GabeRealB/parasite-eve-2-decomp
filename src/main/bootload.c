@@ -1879,7 +1879,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
             if (D_8006ACA6 < 0) {
                 D_8006ACA2 = 1;
             }
-            temp = TextStream_Draw(arg0, &D_8006AC9E, &D_8006ACA2, 0);
+            temp = textDrawStream(arg0, &D_8006AC9E, &D_8006ACA2, 0);
             if (D_8006ACA6 >= 0) {
                 D_8006ACA6 = temp;
             }
@@ -1888,7 +1888,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
                     D_8006ACA4 = 1;
                 }
                 if (secondary != NULL) {
-                    ret = TextStream_Draw(secondary, &D_8006AC9F, &D_8006ACA4, 0);
+                    ret = textDrawStream(secondary, &D_8006AC9F, &D_8006ACA4, 0);
                 } else {
                     D_8006ACA8 = -1;
                 }
@@ -1924,8 +1924,8 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
     }
     D_8006ACA4 = 1;
     D_8006ACA2 = 1;
-    TextStream_Draw(arg0, &D_8006AC9E, &D_8006ACA2, 0);
+    textDrawStream(arg0, &D_8006AC9E, &D_8006ACA2, 0);
     if (secondary != NULL) {
-        TextStream_Draw(secondary, &D_8006AC9F, &D_8006ACA4, 0);
+        textDrawStream(secondary, &D_8006AC9F, &D_8006ACA4, 0);
     }
 }

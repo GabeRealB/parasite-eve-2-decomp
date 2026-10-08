@@ -536,9 +536,9 @@ Fs_BootImageMachine               = 0x8002226C; // type:func
 //--------------------------------------------------------------------
 _gameFlowResetLoadScreenState             = 0x80022518; // type:func
 gameFlowBeginLoadScreen             = 0x8002252C; // type:func
-Fs_EnsureBootLoadStarted             = 0x80022598; // type:func
+gameFlowEnsureLoadScreenImageStarted             = 0x80022598; // type:func
 Fs_StepBootImage             = 0x800225D4; // type:func
-Fs_LoadFile                 = 0x8002265C; // type:func
+fsLoadFile                 = 0x8002265C; // type:func
 _fsChunkReadyCallback                = 0x80022BD0; // type:func
 _fsReadChunkHeaderSector       = 0x80022CF0; // type:func
 _fsReadChunkPayloadSector         = 0x800231A8; // type:func
@@ -669,7 +669,7 @@ FlushCache                  = 0x80028654;
 //--- PA: 0x18E64   VA: 0x80028644   subsegment: c, pad
 //--------------------------------------------------------------------
 Pad_Init                    = 0x80028664; // type:func
-Tmd_InitLists               = 0x80028718; // type:func
+actorRenderResetLists               = 0x80028718; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x18F44   VA: 0x80028744   subsegment: o, libpad/padentry
@@ -1499,7 +1499,7 @@ stageMusicRequestAreaStop               = 0x800430E4; // type:func
 _stageMusicTask               = 0x80043198; // type:func
 _stageMusicFinishWhenCdIdle               = 0x800431FC; // type:func
 Stage_RequestSpecialFlag               = 0x8004323C; // type:func
-TextStream_Draw               = 0x80043310; // type:func
+textDrawStream               = 0x80043310; // type:func
 _primDrawCaptionSprite               = 0x800435F8; // type:func
 _primDrawTexturePage               = 0x80043718; // type:func
 Prim_DrawFadeTile               = 0x8004379C; // type:func
@@ -2067,7 +2067,7 @@ _sndEvtHandleScriptStop               = 0x80050BBC; // type:func
 _sndEvtHandleScriptMute               = 0x80050BE8; // type:func
 _sndEvtHandleScriptUnmute               = 0x80050C0C; // type:func
 _sndEvtHandleScriptMix               = 0x80050C30; // type:func
-SndEvt_HandleVolumeRamp               = 0x80050C80; // type:func
+_sndEvtHandleScriptVolume               = 0x80050C80; // type:func
 _sndEvtHandleScriptDuckAcquire               = 0x80050CC0; // type:func
 _sndEvtHandleScriptDuckRelease               = 0x80050CE0; // type:func
 _sndEvtHandleScriptKeyOff               = 0x80050D00; // type:func

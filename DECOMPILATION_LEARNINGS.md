@@ -11083,13 +11083,13 @@ vs `s0 = a0 + 4`, `lw 8(s0)` vs `lw 4(s0)`).
 Fix: take a local pointer to the sub-object at offset `N` — the owner's own
 nested member, where it has one — and access fields through that pointer.
 `SndEvt`'s payload is that case, its `args` member being the sub-object at `+4`,
-and `SndEvt_HandleVolumeRamp` shows both spellings:
+and `_sndEvtHandleScriptVolume` shows both spellings:
 
 ```c
-SndEvtScriptArgs* args = &arg0->args.script; /* +4 base; the loads rebase to it */
-temp = sndScriptFindInstanceById(args->soundId);   /* the field at arg0+0x8 */
-if (temp >= 0) {
-    sndScriptRampVolume(temp, args->level.volumeScale); /* the field at arg0+0x5 */
+const SndEvtScriptArgs* scriptArgs = &event->args.script; /* +4 base; the loads rebase to it */
+scriptSlotIndex = sndScriptFindInstanceById(scriptArgs->soundId);   /* the field at event+0x8 */
+if (scriptSlotIndex >= 0) {
+    sndScriptRampVolume(scriptSlotIndex, scriptArgs->level.volumeScale); /* the field at event+0x5 */
 }
 ```
 
@@ -22122,7 +22122,7 @@ sp.field_4 = ((TextGlyphCell*)(off + (s32)arg0->field_14))->u + ...;
 sp.field_4 = arg0->field_14[glyphIdx].u + ...;
 ```
 
-`TextStream_Draw` needs this for its 4-byte glyph table indexing.
+`textDrawStream` needs this for its 4-byte glyph table indexing.
 
 ## `addu` load order and operand order are coupled — hoist the second term
 
@@ -22647,48 +22647,48 @@ delay slot.
 
 
 
-## Case-4 early exit: known-zero `sector` must not merge with `return 0`
+## Case-4 early exit: known-zero `absoluteSector` must not merge with `return 0`
 
-When a branch leaves `sector` still at its prologue value of 0, writing
+When a branch leaves `absoluteSector` still at its prologue value of 0, writing
 
 ```c
-if (req[1] == 1) {
+if (fileKey->fileIdHundreds == 1) {
     /* search… */
-    if (sector == 0) {
+    if (absoluteSector == 0) {
         return 0;                 /* j epilogue; move v0, zero */
     }
     /* ACC8 / ChunkMode / ReadSector (may join shared ReadSector) */
-    return sector & 0xFFFF;
+    return absoluteSector & 0xFFFF;
 }
-return sector & 0xFFFF;           /* ALSO sector==0 here */
+return absoluteSector & 0xFFFF;           /* ALSO absoluteSector==0 here */
 ```
 
 lets GCC CSE both exits into the early `return 0` block. The target instead
-branches the `req[1] != 1` path to the shared `andi v0,s0,0xffff` at the
+branches the `fileKey->fileIdHundreds != 1` path to the shared `andi v0,s0,0xffff` at the
 function epilogue (same block used after the common `_fsStartFileRead`).
 
 Fix: route every non-failure exit through one shared label, and keep only the
 real failure as `return 0`:
 
 ```c
-if (req[1] == 1) {
+if (fileKey->fileIdHundreds == 1) {
     /* search… */
-    if (sector == 0) {
+    if (absoluteSector == 0) {
         return 0;
     }
     D5B498_8006ACC8 = 1;
     Fs_ChunkMode    = 0;
-    _fsStartFileRead(sector);   /* often joins the setup_and_load ReadSector */
+    _fsStartFileRead(absoluteSector);   /* often joins the setup_and_load ReadSector */
 }
 goto end_return;
 /* … */
 end_return:
-    return sector & 0xFFFF;
+    return absoluteSector & 0xFFFF;
 ```
 
 Using `break` instead of `goto after4` for the table-search hit, or folding
-both exits as bare `return sector & 0xFFFF`, reintroduces the merge (or
-changes regalloc of `req` out of `$t0`).
+both exits as bare `return absoluteSector & 0xFFFF`, reintroduces the merge (or
+changes regalloc of `fileKey` out of `$t0`).
 
 ## Compiler-generated jump tables need yaml `.rodata` ownership + pad
 
@@ -22697,7 +22697,7 @@ When a matched function grows a switch jump table, give C the jtbl range with
 `rodata`:
 
 ```yaml
-- [0x3a74, .rodata, fs]   # 7-entry jtbl from Fs_LoadFile
+- [0x3a74, .rodata, fs]   # 7-entry jtbl from fsLoadFile
 - [0x3a90, rodata, fs_1]  # leading .word 0 pad + rest
 ```
 
@@ -150476,7 +150476,7 @@ attempts; left as it was.
   as "inline for the block, `break` for the jump". A block-scoped local in the
   loop body has the same effect (`_replayBonusBuildItemList`, below).
 - **`i = 0; if ((u32)sector < (u32)len) { do { ...; goto after; } while (i < len); }`
-  was `for (i = 0; i < len; i++) { ...; break; }`** (`Fs_LoadFile`, five
+  was `for (i = 0; i < len; i++) { ...; break; }`** (`fsLoadFile`, five
   scans). The odd entry test comparing `sector` is cse's doing: `sltu` takes a
   register first operand, so the duplicated entry test `0 < len` cannot hold
   the constant and cse canonicalises `i` to the oldest register known to be
@@ -150505,7 +150505,7 @@ attempts; left as it was.
   `CdCmd_ProcessPhase1`).
 - Not converted, and why:
   - `state->step = 4; goto do_load;` from state 0 of `CdCmd_HandleFileLoad`
-    into state 4. Written out (`step = 4; Fs_LoadFile(...); step++; break;`)
+    into state 4. Written out (`step = 4; fsLoadFile(...); step++; break;`)
     the copy has no label between the store and the call; in the build the
     call's first argument load sits above the store (`lhu; li v1,4; j; sh`)
     and the merge starts one insn into the load block, so the store no

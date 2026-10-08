@@ -388,7 +388,7 @@ static void _sndEvtHandleScriptUnmute(SndEvt* event);
 
 static void _sndEvtHandleScriptMix(SndEvt* event);
 
-static void SndEvt_HandleVolumeRamp(SndEvt* event);
+static void _sndEvtHandleScriptVolume(SndEvt* event);
 
 static void _sndEvtHandleScriptDuckAcquire(SndEvt* event);
 
@@ -470,7 +470,7 @@ void (*SndEvt_Handlers[])(SndEvt*) = {
     _sndEvtHandleScriptMute,        // SOUND_EVENT_SCRIPT_MUTE
     _sndEvtHandleScriptUnmute,      // SOUND_EVENT_SCRIPT_UNMUTE
     _sndEvtHandleScriptMix,         // SOUND_EVENT_SCRIPT_SET_PAN_ATTENUATION
-    SndEvt_HandleVolumeRamp,        // SOUND_EVENT_SCRIPT_SET_VOLUME
+    _sndEvtHandleScriptVolume,      // SOUND_EVENT_SCRIPT_SET_VOLUME
     _sndEvtHandleNoOp,              // SOUND_EVENT_RESERVED_NO_OP
     _sndEvtHandleScriptDuckAcquire, // SOUND_EVENT_SCRIPT_DUCK_ACQUIRE
     _sndEvtHandleScriptDuckRelease, // SOUND_EVENT_SCRIPT_DUCK_RELEASE
@@ -845,15 +845,22 @@ static void _sndEvtHandleScriptMix(SndEvt* event)
     }
 }
 
-static void SndEvt_HandleVolumeRamp(SndEvt* event)
+/// Applies an unsigned volume-scale request to the first live script with its exact id.
+///
+/// The producer resolves the id and normalizes negative low bytes to full scale.
+/// Dispatch promotes the stored unsigned byte to the ramp's s32 input; ordinary
+/// producer values are 0..127. Starting, running, releasing and fading-out slots
+/// qualify; a missing id is ignored. Larger gain changes ramp on later voice
+/// updates. The handler borrows the event; dispatch releases it on return.
+static void _sndEvtHandleScriptVolume(SndEvt* event)
 {
-    s32               scriptSlotIndex;
-    SndEvtScriptArgs* args;
+    s32                     scriptSlotIndex;
+    const SndEvtScriptArgs* scriptArgs;
 
-    args            = &event->args.script;
-    scriptSlotIndex = sndScriptFindInstanceById(args->soundId);
+    scriptArgs      = &event->args.script;
+    scriptSlotIndex = sndScriptFindInstanceById(scriptArgs->soundId);
     if (scriptSlotIndex >= 0) {
-        sndScriptRampVolume(scriptSlotIndex, args->level.volumeScale);
+        sndScriptRampVolume(scriptSlotIndex, scriptArgs->level.volumeScale);
     }
 }
 

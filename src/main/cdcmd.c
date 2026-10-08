@@ -284,18 +284,18 @@ static void _cdCmdHandleMoviePlayback(void)
 
 static void CdCmd_HandleFileLoad(void)
 {
-    CdCmdQueue* state;
-    CdCmdQueue* p;
-    s32         status;
-    u8          req[4];
-    u8          mode;
+    CdCmdQueue*   state;
+    CdCmdQueue*   p;
+    s32           status;
+    FsFileLoadKey fileKey;
+    u8            mode;
 
     // The file key's hundreds/folder-suffix byte is stored with the load options.
-    state  = &gCdCmdQueue;
-    req[3] = state->entries[state->readIdx].stage;
-    req[2] = state->entries[state->readIdx].fileGroup;
-    req[0] = state->entries[state->readIdx].fileIndex;
-    req[1] = state->entries[state->readIdx].args.file.fileIdHundreds;
+    state                  = &gCdCmdQueue;
+    fileKey.stage          = state->entries[state->readIdx].stage;
+    fileKey.fileGroup      = state->entries[state->readIdx].fileGroup;
+    fileKey.fileIndex      = state->entries[state->readIdx].fileIndex;
+    fileKey.fileIdHundreds = state->entries[state->readIdx].args.file.fileIdHundreds;
 
     switch (state->step) {
         case 0:
@@ -322,14 +322,14 @@ static void CdCmd_HandleFileLoad(void)
             }
             mode = 0xA0;
             CdControlB(CdlSetmode, &mode, NULL);
-            if (state->entries[state->readIdx].args.file.loadMode != CD_COMMAND_LOAD_DEFAULT || req[3] == 0 || req[0] != 0) {
+            if (state->entries[state->readIdx].args.file.loadMode != CD_COMMAND_LOAD_DEFAULT || fileKey.stage == 0 || fileKey.fileIndex != 0) {
                 state->step = 4;
                 goto do_load;
             }
             state->step = state->step + 1;
             /* fallthrough */
         case 1:
-            fsStartFolderDirectoryRead(req[3], req[2], req[1]);
+            fsStartFolderDirectoryRead(fileKey.stage, fileKey.fileGroup, fileKey.fileIdHundreds);
             state->step = state->step + 1;
             break;
         case 2:
@@ -387,15 +387,15 @@ static void CdCmd_HandleFileLoad(void)
                     CdFlush();
                     /* fallthrough */
                 case CD_SYNC_COMPLETE:
-                    fsBuildFolderTables(req[3], req[2], req[1]);
+                    fsBuildFolderTables(fileKey.stage, fileKey.fileGroup, fileKey.fileIdHundreds);
                     state->step = state->step + 1;
                     break;
             }
             /* fallthrough */
         case 4:
         do_load:
-            Fs_LoadFile(
-                req,
+            fsLoadFile(
+                &fileKey,
                 (u8)state->entries[state->readIdx].args.file.loadMode,
                 state->entries[state->readIdx].args.file.imageXPageOffset,
                 state->entries[state->readIdx].args.file.imageYOffset);

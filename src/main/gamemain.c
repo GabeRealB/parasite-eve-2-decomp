@@ -145,7 +145,7 @@ static void GameMain_Init(void)
     memConfigureImageMemory(GAME_STAGE_NONE, 0);
     memInitHeaps();
     taskResetDefaultList();
-    Tmd_InitLists();
+    actorRenderResetLists();
     Gfx_InitGraph();
 
     memFillBytes(&gDisplayState, 0, sizeof(gDisplayState));

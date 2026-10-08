@@ -194,7 +194,7 @@ void GameFlow_StateByField34(Task* task)
             gDisplayState.stopTaskWalk                   = 1;
             taskKill(task);
             taskResetDefaultList();
-            Tmd_InitLists();
+            actorRenderResetLists();
             memInitHeaps();
             taskSpawn(0, 9, 0, 0);
         }
@@ -224,7 +224,7 @@ void GameFlow_StateByField34(Task* task)
         gDisplayState.stopTaskWalk = 1;
         taskKill(task);
         taskResetDefaultList();
-        Tmd_InitLists();
+        actorRenderResetLists();
         memInitHeaps();
         taskSpawn(0, 9, 0, 0);
     }
@@ -292,7 +292,7 @@ void gameClearSession(void)
 static void GameFlow_InitSystems(void)
 {
     taskResetDefaultList();
-    Tmd_InitLists();
+    actorRenderResetLists();
     memInitHeaps();
     taskSpawn(0, 9, 0, 0);
 }
@@ -391,7 +391,7 @@ static void GameFlow_SpawnMainWhenReady(Task* task)
     gDisplayState.stopTaskWalk = 1;
     taskKill(task);
     taskResetDefaultList();
-    Tmd_InitLists();
+    actorRenderResetLists();
     memInitHeaps();
     taskSpawn(0, 9, 0, 0);
 }

@@ -28,93 +28,108 @@ TextGlyphCell Caption_Glyphs[] = {
 #include "assets/caption_glyphs.inc"
 };
 
-s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3)
+s32 textDrawStream(TextStream* stream, u8* phase, s16* framesLeft, s32 skipMarkedGlyphs)
 {
-    PrimDrawParams sp;
-    s32            ret;
-    s32            i;
-    s32            glyphIdx;
-    u8             ch;
-    s16            tmp6;
-    s16            h;
+    enum {
+        TEXT_STREAM_PHASE_ARM           = 0,
+        TEXT_STREAM_PHASE_REVEAL        = 1,
+        TEXT_STREAM_STATUS_PROGRESS     = 0,
+        TEXT_STREAM_STATUS_END_REACHED  = -1,
+        TEXT_STREAM_STATUS_COMPLETE     = 1,
+        TEXT_STREAM_TEXTURE_SHADE_UNITY = 0x80,
+        TEXT_STREAM_PAGE_U_MASK         = 0x3F
+    };
+    PrimDrawParams draw;
+    s32            revealStatus;
+    s32            byteIndex;
+    s32            glyphIndex;
+    u8             scriptByte;
 
-    ret = 0;
-    switch (*arg1) {
-        case 0:
+    /// Queues the revealed prefix, retaining pen advance for filtered glyphs.
+    ///
+    /// Captures stream, draw, skipMarkedGlyphs, byteIndex, glyphIndex and scriptByte.
+    /// Requires initialized draw attributes and enough primitive/OT storage.
+#define TEXT_DRAW_STREAM_PREFIX()                                                                        \
+    {                                                                                                    \
+        for (byteIndex = 0; byteIndex < stream->cursor; byteIndex++) {                                   \
+            scriptByte = stream->chars[byteIndex];                                                       \
+            if (scriptByte == TEXT_STREAM_LINE_BREAK) {                                                  \
+                draw.x  = stream->x;                                                                     \
+                draw.y += stream->lineHeight;                                                            \
+            } else if (scriptByte != TEXT_STREAM_END) {                                                  \
+                glyphIndex = scriptByte & TEXT_STREAM_GLYPH_INDEX_MASK;                                  \
+                if (((s8)scriptByte >= 0) || (skipMarkedGlyphs == 0)) {                                  \
+                    draw.u = stream->glyphs[glyphIndex].u +                                              \
+                             (stream->tpageX & TEXT_STREAM_PAGE_U_MASK);                                 \
+                    draw.v = stream->glyphs[glyphIndex].v +                                              \
+                             (u8)stream->tpageY;                                                         \
+                    draw.w = stream->glyphs[glyphIndex].width;                                           \
+                    draw.h = stream->glyphs[glyphIndex].height;                                          \
+                    if (draw.h != 0) {                                                                   \
+                        _primDrawCaptionSprite(&draw, stream->clutX,                                     \
+                                               stream->clutY);                                           \
+                    }                                                                                    \
+                }                                                                                        \
+                draw.x +=                                                                                \
+                    stream->glyphs[glyphIndex].width;                                                    \
+            }                                                                                            \
+        }                                                                                                \
+        _primDrawTexturePage(GPU_BLEND_ADD, stream->tpageX, stream->tpageY, PRIMITIVE_CAPTION_OT_INDEX); \
+    }
+
+    revealStatus = TEXT_STREAM_STATUS_PROGRESS;
+    switch (*phase) {
+        case TEXT_STREAM_PHASE_ARM:
             // Start the reveal. A negative per-glyph delay shows every byte
             // before the terminator and holds the finished caption.
             stream->cursor = 0;
             if (stream->charDelay < 0) {
-                i = 0;
+                byteIndex = 0;
                 if (*stream->chars != TEXT_STREAM_END) {
                     do {
-                        i++;
+                        byteIndex++;
                         stream->cursor++;
-                    } while (stream->chars[i] != TEXT_STREAM_END);
+                    } while (stream->chars[byteIndex] != TEXT_STREAM_END);
                 }
-                *arg2 = stream->delayReload;
+                *framesLeft = stream->delayReload;
             } else {
-                *arg2 = stream->charDelay;
+                *framesLeft = stream->charDelay;
             }
-            (*arg1)++;
+            (*phase)++;
             break;
-        case 1:
+        case TEXT_STREAM_PHASE_REVEAL:
             // Draw the revealed prefix. Step the cursor once the countdown expires.
-            sp.x         = stream->x;
-            sp.y         = stream->y;
-            sp.u         = stream->tpageX;
-            tmp6         = stream->tpageY;
-            sp.r         = 0x80;
-            sp.g         = 0x80;
-            sp.b         = 0x80;
-            sp.semiTrans = 0;
-            sp.unused_12 = ONE;
-            sp.v         = tmp6;
+            draw.x         = stream->x;
+            draw.y         = stream->y;
+            draw.u         = stream->tpageX;
+            draw.v         = stream->tpageY;
+            draw.r         = TEXT_STREAM_TEXTURE_SHADE_UNITY;
+            draw.g         = TEXT_STREAM_TEXTURE_SHADE_UNITY;
+            draw.b         = TEXT_STREAM_TEXTURE_SHADE_UNITY;
+            draw.semiTrans = 0;
+            draw.unused_12 = ONE;
             if (stream->chars[stream->cursor - 1] != TEXT_STREAM_END) {
-                for (i = 0; i < stream->cursor; i++) {
-                    ch = stream->chars[i];
-                    if (ch == TEXT_STREAM_LINE_BREAK) {
-                        sp.x  = stream->x;
-                        sp.y += stream->lineHeight;
-                    } else if (ch != TEXT_STREAM_END) {
-                        glyphIdx = ch & TEXT_STREAM_GLYPH_INDEX_MASK;
-                        if (((s8)ch >= 0) || (arg3 == 0)) {
-                            sp.u = stream->glyphs[glyphIdx].u +
-                                   (stream->tpageX & 0x3F);
-                            sp.v = stream->glyphs[glyphIdx].v +
-                                   (u8)stream->tpageY;
-                            sp.w = stream->glyphs[glyphIdx].width;
-                            h    = stream->glyphs[glyphIdx].height;
-                            sp.h = h;
-                            if (h != 0) {
-                                _primDrawCaptionSprite(&sp, stream->clutX,
-                                                       stream->clutY);
-                            }
-                        }
-                        sp.x +=
-                            stream->glyphs[glyphIdx].width;
-                    }
-                }
-                _primDrawTexturePage(GPU_BLEND_ADD, stream->tpageX, stream->tpageY, PRIMITIVE_CAPTION_OT_INDEX);
-                *arg2 = *arg2 - 1;
-                if (*arg2 < 0) {
+                TEXT_DRAW_STREAM_PREFIX();
+                *framesLeft = *framesLeft - 1;
+                if (*framesLeft < 0) {
                     stream->cursor = stream->cursor + 1;
                     if (stream->chars[stream->cursor] == TEXT_STREAM_END) {
-                        ret   = -1;
-                        *arg2 = stream->delayReload;
+                        revealStatus = TEXT_STREAM_STATUS_END_REACHED;
+                        *framesLeft  = stream->delayReload;
                     } else {
-                        *arg2 = stream->charDelay;
+                        *framesLeft = stream->charDelay;
                     }
                 }
             } else {
-                (*arg1)++;
+                (*phase)++;
             }
             break;
         default:
-            ret = 1;
+            revealStatus = TEXT_STREAM_STATUS_COMPLETE;
             break;
     }
-    return ret;
+    return revealStatus;
+#undef TEXT_DRAW_STREAM_PREFIX
 }
 
 /// Queues a caption sprite using a borrowed rectangle, texture origin and CLUT.

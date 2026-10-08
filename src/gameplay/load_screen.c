@@ -261,7 +261,7 @@ void Gp_LoadWaitBoot(Task* task)
         }
         queue->holdBootImage = 1;
         if (queue->bootLoadActive != 0) {
-            Fs_EnsureBootLoadStarted();
+            gameFlowEnsureLoadScreenImageStarted();
         }
         memFillBytes(Stream_Slots, 0, sizeof(Stream_Slots));
         session = gGameSession;
@@ -562,7 +562,7 @@ void Gp_LoadWaitAreaCd(Task* task)
 
     if (_gpAdvanceAreaCd()) {
         worldCollisionResetListsAndGrid();
-        Tmd_InitLists();
+        actorRenderResetLists();
         ds2 = &gDisplayState;
         actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[ds2->drawBuffer]);
         task->state++;

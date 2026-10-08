@@ -17,7 +17,23 @@
 /// require primitive space and writable OT entries at `otIndex` and `otIndex + 1`.
 enum { TEXT_DRAW_IMMEDIATE = 16 };
 
-s32 TextStream_Draw(TextStream* stream, u8* arg1, s16* arg2, s32 arg3);
+/// Steps a caption reveal and queues its visible glyph prefix for this draw frame.
+///
+/// Phase 0 resets the cursor and arms the frame countdown; phase 1 redraws and
+/// advances it, and phases >=2 report completion. Returns 0 while progressing,
+/// -1 when advancing onto the script terminator, and 1 in a completed phase.
+/// A negative charDelay initially reveals all content bytes. Countdown expiry
+/// means decrementing below zero; the signed-halfword cursor/countdown narrowing
+/// is retained. The caller keeps the record, script, phase and countdown alive
+/// between calls. The script must end before cursor overflow; glyphs must cover
+/// all low-seven-bit indices. Phase 1 also reads the byte before the cursor,
+/// including chars[-1] when cursor is zero, and one byte beyond the terminator
+/// when advancing past it. Both addresses must be readable; the resident
+/// scripts' surrounding storage contract remains unproven.
+/// Nonzero skipMarkedGlyphs omits high-bit glyphs but retains their pen advance;
+/// current resident callers pass zero. Font textures, CLUT, OT entry 4 and room
+/// for the emitted sprites and texture-page command must be ready for drawing.
+s32 textDrawStream(TextStream* stream, u8* phase, s16* framesLeft, s32 skipMarkedGlyphs);
 
 /// Returns packed pixel dimensions used to size a UI panel from encoded text.
 ///

@@ -958,7 +958,7 @@ TaskMessageEntry D_actor_361100_80171BB8[5] = {
 Task* D_actor_361100_80171BE0;
 
 /// Runs while `Fs_ChunkOutputSizes[2]` reports a streaming write in flight -- it is `-1`
-/// until `Fs_LoadFile` has a chunk, and the mode byte in `gGameSession->location.loc.view`
+/// until `fsLoadFile` has a chunk, and the mode byte in `gGameSession->location.loc.view`
 /// then picks this actor's part in the load: 11 hands the task to
 /// `_actor361100DrawStreamRefraction`, 12 publishes the stream position `D_actor_403600_8016069C`
 /// (half the remaining 0x18000-byte window past the write pointer, times the

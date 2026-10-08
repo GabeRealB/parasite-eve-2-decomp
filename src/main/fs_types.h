@@ -6,6 +6,19 @@
 
 #include "common.h"
 
+/// Four-byte file selector assembled from a queued CD file-load request.
+///
+/// Stage zero uses `fileGroup * 10000 + fileIdHundreds * 100 + fileIndex`.
+/// Other stages use the currently published folder's file table; the group
+/// and folder suffix select that table before this key reaches `fsLoadFile`.
+typedef struct {
+    u8 fileIndex;      // Index within the current folder, or low component of a stage-zero file id
+    u8 fileIdHundreds; // Stage-zero hundreds component; otherwise the folder suffix
+    u8 fileGroup;      // Stage-zero category; otherwise the folder's hundreds component
+    u8 stage;          // Mounted CDF index (0 global library, 1..5 folder-based stages)
+} FsFileLoadKey;
+STATIC_ASSERT_SIZEOF(FsFileLoadKey, 0x4);
+
 /// One record in the folder table that fills the first sector of a stage CDF.
 ///
 /// `folderId` is the disc folder number. Dividing it by 100 gives the area

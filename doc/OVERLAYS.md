@@ -15,7 +15,7 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 |------|-------------|
 | Load addresses | `assets/USA/stages.json` (`type: room_pkg`, `load_addr`) |
 | File tree / ids | `tools/peassets/asset_data.py` (`TREE`) |
-| CD file lookup | `src/main/fs.c` (`Fs_LoadFile`, `_fsStage0HeaderReadyCallback`) |
+| CD file lookup | `src/main/fs.c` (`fsLoadFile`, `_fsStage0HeaderReadyCallback`) |
 | Room enter | `src/main/stage.c` (`_stageBeginModeExitLoad`), `src/main/loadui.c` (`cdCmdEnqueueDisplayResource`) |
 | Inflated bodies | `assets/USA/pe2pkg/` (LZSS-decoded); on-disc in `raw/pe2pkg/` |
 | Model stream | `_tmdResolveSourceDrawHandlers` / `tmdBuildBufferHalf` |
@@ -43,13 +43,13 @@ same `.pe2pkg` as code (or *instead* of code). Textures are sibling `.pe2img`
 For stage zero, a `CdCmdEntry` in `include/main/fs_types.h` identifies a file as
 `fileGroup * 10000 + args.file.fileIdHundreds * 100 + fileIndex`.
 The other three `args.file` bytes hold the load mode and signed image offsets.
-`Fs_LoadFile` switches on `req[2]` (the 10000s
+`fsLoadFile` switches on `fileKey->fileGroup` (the 10000s
 place / category). Categories `0`–`5` and `90` have dedicated tables;
 everything else (`10`, `20`, `30`, `40`, `80`, `90` as a *file id prefix*,
 …) goes through `Fs_FileTable` with
-`fileId = req[2]*10000 + req[1]*100 + req[0]`.
+`fileId = fileKey->fileGroup*10000 + fileKey->fileIdHundreds*100 + fileKey->fileIndex`.
 
-`D5B498_8006ADF4 = req[2] / 10` is the high “bank” digit used when looking
+`D5B498_8006ADF4 = fileKey->fileGroup / 10` is the high “bank” digit used when looking
 those larger ids up.
 
 ---

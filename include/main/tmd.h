@@ -8,7 +8,7 @@
 /// Resident sentinel for the current attached-model list.
 ///
 /// `next` points to the first `TmdObject.link`, and `prev` to the last. After
-/// `Tmd_InitLists`, an empty list has `next == NULL` and `prev == &gTmdList`.
+/// `actorRenderResetLists`, an empty list has `next == NULL` and `prev == &gTmdList`.
 /// The first element points back to this sentinel; the last points forward to
 /// `NULL`. Recover model bodies from element links with `PARENT_OF`; the
 /// sentinel itself is not a `TmdObject`.
@@ -24,10 +24,16 @@
 /// sentinel and must stay linked and alive until the endpoints are restored.
 extern TmdListNode gTmdList;
 
-/// Cleared by Tmd_InitLists during system init.
+/// Cleared by actorRenderResetLists during system init.
 extern s32 D_80071210;
 
-void Tmd_InitLists(void);
+/// Forgets both rendering-list chains and resets their coordinate-composition pass.
+///
+/// Resets the attached-model and standalone coordinate-body sentinels to empty
+/// lists. No body is unlinked or freed and no coordinate cache is invalidated;
+/// end ownership of the old chains separately before discarding them. Used at
+/// system startup and scene transitions, before publishing the replacement lists.
+void actorRenderResetLists(void);
 
 enum {
     TMD_CREATE_SKIP_AUTO_BUFFER = 1 // Creation bit: defer allocation and skip missing-buffer recovery

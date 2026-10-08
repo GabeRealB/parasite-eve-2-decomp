@@ -298,9 +298,20 @@ u8 fsUploadImageStrips(s32 inputMode);
 /// default 256-row column height. No storage is allocated or GPU upload started.
 void fsBeginImageColumns(const FsImageColumn* table);
 
-/// Look up a packed file id and start a CD load.
-/// Returns the resolved absolute sector (low 16 bits), or 0 on failure.
-s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3);
+/// Resolves a file key and starts its asynchronous CDF read or seek.
+///
+/// Borrows the key only for this call. Stage zero uses the mounted library's
+/// category tables; stages 1..5 require the correct folder table already loaded.
+/// Direct file indices and counted table lengths must fit their tables; the
+/// stage-folder file table's full extent is currently unproven.
+/// Uses the low byte of `loadMode` (`CD_COMMAND_LOAD_*`, unknown values mean
+/// normal). Image offsets narrow to signed bytes: X counts 64-halfword VRAM
+/// pages for high-VRAM/relocated strips; Y counts rows for headers at y=245..255.
+/// Stage-zero category 4 accepts only hundreds=1, starts a sound-bank read and
+/// ignores these options. Serialize with other filesystem reads. Returns the
+/// absolute CD sector's low 16 bits, or zero when resolution fails; completion
+/// and read errors are reported asynchronously through filesystem state.
+s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset, s32 imageYOffset);
 
 /// Invalidates published folder slots and reads the requested folder directory.
 ///

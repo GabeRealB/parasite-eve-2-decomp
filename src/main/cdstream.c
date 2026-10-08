@@ -1085,6 +1085,10 @@ static s32 _cdReadyEnqueue(const _CdReadyEntry* jobTemplate)
 }
 
 /// Retires the current CD-ready slot, wrapping at the queue's full ring extent.
+///
+/// Requires a nonempty ring, readIdx in 0..3 and serialized queue updates.
+/// Advances only the head index; the caller clears the retired job's status
+/// and completes its callbacks first. No slot storage or callback is freed.
 static inline void _cdReadyAdvanceHead(_CdReadyQueue* queue)
 {
     queue->readIdx = queue->readIdx + 1;

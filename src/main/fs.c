@@ -387,11 +387,16 @@ void gameFlowBeginLoadScreen(const GameLocationKey* destination, s16 alternateCa
     Fs_BootLoadPhase = 0;
 }
 
-void Fs_EnsureBootLoadStarted(void)
+void gameFlowEnsureLoadScreenImageStarted(void)
 {
-    if (Fs_BootLoadPhase == 0) {
+    enum {
+        GAME_FLOW_LOAD_IMAGE_IDLE         = 0,
+        GAME_FLOW_LOAD_IMAGE_READ_PENDING = 1
+    };
+
+    if (Fs_BootLoadPhase == GAME_FLOW_LOAD_IMAGE_IDLE) {
         gameFlowStartLoadScreenImage();
-        Fs_BootLoadPhase = 1;
+        Fs_BootLoadPhase = GAME_FLOW_LOAD_IMAGE_READ_PENDING;
     }
 }
 
@@ -412,105 +417,106 @@ void Fs_StepBootImage(void)
     }
 }
 
-s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
+s32 fsLoadFile(const FsFileLoadKey* fileKey, s32 loadMode, s32 imageXPageOffset, s32 imageYOffset)
 {
-    u8  modeU8;
-    s32 sector;
-    u32 i;
-    u16 len;
-    u32 fileId;
+    enum {
+        FILE_SYSTEM_FILE_ID_GROUP_SCALE     = 10000,
+        FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE  = 100,
+        FILE_SYSTEM_LOAD_RESULT_SECTOR_MASK = 0xFFFF
+    };
+    u8  loadPolicy;
+    s32 absoluteSector;
+    u32 entryIndex;
+    u16 entryCount;
+    u32 directoryFileId;
 
-    sector                      = 0;
+    /// Resolves the first matching compact category entry against the mounted STAGE0 base.
+    ///
+    /// Captures entryCount, directoryFileId, entryIndex and absoluteSector.
+    /// absoluteSector must start at zero; a miss leaves it intact. entries must
+    /// be a stable array/pointer expression, evaluated on each loop visit.
+#define FILE_SYSTEM_FIND_CATEGORY_SECTOR(entries)                                            \
+    {                                                                                        \
+        for (entryIndex = 0; entryIndex < (u32)entryCount; entryIndex++) {                   \
+            if ((entries)[entryIndex].idInCategory == directoryFileId) {                     \
+                absoluteSector = (entries)[entryIndex].sectorOffset + Fs_StageCdfSectors[0]; \
+                break;                                                                       \
+            }                                                                                \
+        }                                                                                    \
+    }
+
+    absoluteSector              = 0;
     D5B498_8006ADF4             = 0;
     gCdCmdQueue.imageLoadStatus = CD_COMMAND_IMAGE_COMPLETE;
-    modeU8                      = (u8)mode;
+    loadPolicy                  = (u8)loadMode;
 
-    if (req[3] == 0) {
-        switch (req[2]) {
+    // Resolve against the global library or the currently published stage folder.
+    if (fileKey->stage == 0) {
+        switch (fileKey->fileGroup) {
             case 0:
-                if (req[1] != 0) {
+                if (fileKey->fileIdHundreds != 0) {
                     break;
                 }
-                if (req[0] == 0) {
+                if (fileKey->fileIndex == 0) {
                     gDisplayState.videoMode = DISPLAY_VIDEO_STREAMING;
                 }
-                if (req[0] == 1) {
+                if (fileKey->fileIndex == 1) {
                     gDisplayState.videoMode = DISPLAY_VIDEO_NORMAL;
                 }
-                sector = Fs_FileOffsetsCat0[req[0]] + Fs_StageCdfSectors[0];
+                absoluteSector = Fs_FileOffsetsCat0[fileKey->fileIndex] + Fs_StageCdfSectors[0];
                 break;
 
             case 1:
-                fileId = (req[1] * 100) + req[0];
-                len    = Fs_FileTableCat1Len;
-                for (i = 0; i < (u32)len; i++) {
-                    if (Fs_FileTableCat1[i].idInCategory == fileId) {
-                        sector = Fs_FileTableCat1[i].sectorOffset + Fs_StageCdfSectors[0];
-                        break;
-                    }
-                }
+                directoryFileId = (fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE) + fileKey->fileIndex;
+                entryCount      = Fs_FileTableCat1Len;
+                FILE_SYSTEM_FIND_CATEGORY_SECTOR(Fs_FileTableCat1);
                 break;
 
             case 2:
-                fileId = (req[1] * 100) + req[0];
-                len    = Fs_FileTableCat2Len;
-                for (i = 0; i < (u32)len; i++) {
-                    if (Fs_FileTableCat2[i].idInCategory == fileId) {
-                        sector = Fs_FileTableCat2[i].sectorOffset + Fs_StageCdfSectors[0];
-                        break;
-                    }
-                }
+                directoryFileId = (fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE) + fileKey->fileIndex;
+                entryCount      = Fs_FileTableCat2Len;
+                FILE_SYSTEM_FIND_CATEGORY_SECTOR(Fs_FileTableCat2);
                 break;
 
             case 3:
-                fileId = (req[1] * 100) + req[0];
-                len    = Fs_FileTableCat3Len;
-                for (i = 0; i < (u32)len; i++) {
-                    if (Fs_FileTableCat3[i].idInCategory == fileId) {
-                        sector = Fs_FileTableCat3[i].sectorOffset + Fs_StageCdfSectors[0];
-                        break;
-                    }
-                }
+                directoryFileId = (fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE) + fileKey->fileIndex;
+                entryCount      = Fs_FileTableCat3Len;
+                FILE_SYSTEM_FIND_CATEGORY_SECTOR(Fs_FileTableCat3);
                 break;
 
             case 4:
-                Fs_CdOpStatus = 0xFF;
-                if (req[1] == 1) {
-                    fileId = req[1] * 100 + req[0];
-                    len    = Fs_FileTableCat4Len;
-                    for (i = 0; i < (u32)len; i++) {
-                        if (Fs_FileTableCat4[i].idInCategory == fileId) {
-                            sector = Fs_FileTableCat4[i].sectorOffset + Fs_StageCdfSectors[0];
-                            break;
-                        }
-                    }
-                    if (sector == 0) {
+                Fs_CdOpStatus = FS_CD_STATUS_IDLE;
+                if (fileKey->fileIdHundreds == 1) {
+                    directoryFileId = fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE + fileKey->fileIndex;
+                    entryCount      = Fs_FileTableCat4Len;
+                    FILE_SYSTEM_FIND_CATEGORY_SECTOR(Fs_FileTableCat4);
+                    if (absoluteSector == 0) {
                         return 0;
                     }
                     D5B498_8006ACC8 = 1;
-                    Fs_ChunkMode    = 0;
-                    _fsStartFileRead(sector);
+                    Fs_ChunkMode    = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
+                    _fsStartFileRead(absoluteSector);
                 }
-                return sector & 0xFFFF;
+                return absoluteSector & FILE_SYSTEM_LOAD_RESULT_SECTOR_MASK;
 
             case 5:
-                sector = Fs_FileOffsetsCat5[req[0]] + Fs_StageCdfSectors[0];
+                absoluteSector = Fs_FileOffsetsCat5[fileKey->fileIndex] + Fs_StageCdfSectors[0];
                 break;
 
             case 0x5A:
-                sector = Fs_FileOffsetsCat90[req[0]] + Fs_StageCdfSectors[0];
+                absoluteSector = Fs_FileOffsetsCat90[fileKey->fileIndex] + Fs_StageCdfSectors[0];
                 break;
 
             default:
-                D5B498_8006ADF4 = req[2] / 10;
-                fileId          = (req[2] * 10000) + (req[1] * 100) + req[0];
+                D5B498_8006ADF4 = fileKey->fileGroup / 10;
+                directoryFileId = (fileKey->fileGroup * FILE_SYSTEM_FILE_ID_GROUP_SCALE) + (fileKey->fileIdHundreds * FILE_SYSTEM_FILE_ID_HUNDREDS_SCALE) + fileKey->fileIndex;
                 if (D5B498_8006ADF4 != 0) {
-                    len = Fs_FileTableLen;
-                    for (i = 0; i < (u32)len; i++) {
-                        if (Fs_FileTable[i].fileId == fileId) {
-                            sector = Fs_FileTable[i].sectorOffset + Fs_StageCdfSectors[0];
-                            if (req[2] == 8) {
-                                if ((u32)(req[1] - 1) < 3U) {
+                    entryCount = Fs_FileTableLen;
+                    for (entryIndex = 0; entryIndex < (u32)entryCount; entryIndex++) {
+                        if (Fs_FileTable[entryIndex].fileId == directoryFileId) {
+                            absoluteSector = Fs_FileTable[entryIndex].sectorOffset + Fs_StageCdfSectors[0];
+                            if (fileKey->fileGroup == 8) {
+                                if ((u32)(fileKey->fileIdHundreds - 1) < 3U) {
                                     gGameSession->field_4E = 1;
                                 }
                             }
@@ -521,43 +527,45 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                 break;
         }
     } else {
-        sector = D_8006C158[req[0]] + Fs_StageCdfSectors[req[3]];
+        absoluteSector = D_8006C158[fileKey->fileIndex] + Fs_StageCdfSectors[fileKey->stage];
     }
 
-    D5B498_8006C234 = a3;
-    D5B498_8006C233 = a2;
+    // Retain byte-sized image relocation options before dispatching the load policy.
+    D5B498_8006C234 = imageYOffset;
+    D5B498_8006C233 = imageXPageOffset;
     D5B498_8006ACC8 = 0;
-    if (sector != 0) {
-        switch (modeU8) {
-            case 0:
-                Fs_ChunkMode = 0;
+    if (absoluteSector != 0) {
+        switch (loadPolicy) {
+            case CD_COMMAND_LOAD_DEFAULT:
+                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
                 break;
-            case 1:
-                _fsSeekToSector(sector);
-                return sector & 0xFFFF;
-            case 2:
+            case CD_COMMAND_LOAD_SEEK_ONLY:
+                _fsSeekToSector(absoluteSector);
+                return absoluteSector & FILE_SYSTEM_LOAD_RESULT_SECTOR_MASK;
+            case CD_COMMAND_LOAD_INIT_SOUND:
                 sndScriptResetForArea(gGameSession->location.loc.stage, gGameSession->location.loc.area);
-                Fs_ChunkMode = 1;
+                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_INIT_SOUND;
                 break;
-            case 3:
-                Fs_ChunkMode = 2;
+            case CD_COMMAND_LOAD_RELOCATE_IMAGES:
+                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_RELOCATE_IMAGES;
                 break;
-            case 4:
-                Fs_ChunkMode = 3;
+            case CD_COMMAND_LOAD_SKIP_BACKGROUND:
+                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_SKIP_BACKGROUND;
                 break;
-            case 5:
-                Fs_ChunkMode = 4;
+            case CD_COMMAND_LOAD_IMAGES_ONLY:
+                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_IMAGES_ONLY;
                 break;
-            case 6:
-                Fs_ChunkMode = 5;
+            case CD_COMMAND_LOAD_SKIP_SOUND:
+                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_SKIP_SOUND;
                 break;
             default:
-                Fs_ChunkMode = 0;
+                Fs_ChunkMode = FILE_SYSTEM_CHUNK_LOAD_NORMAL;
                 break;
         }
-        _fsStartFileRead(sector);
+        _fsStartFileRead(absoluteSector);
     }
-    return sector & 0xFFFF;
+    return absoluteSector & FILE_SYSTEM_LOAD_RESULT_SECTOR_MASK;
+#undef FILE_SYSTEM_FIND_CATEGORY_SECTOR
 }
 
 /// Validates a sector and feeds the active CDF header or payload reader.
@@ -1840,26 +1848,29 @@ void cdSyncWaitForCommandCompletion(void)
 /// Waits for a readable CD-ROM and restores header-bearing double-speed reads.
 ///
 /// Runs only after a detected read error; no tray opening or timeout is required.
+/// Blocks until shell closure and CD-ROM readiness. Command buffers are local;
+/// the retained request sector, destination and callbacks are left to the caller.
+/// The two mode changes each settle for three VBlanks before another operation.
 static inline void _fsRecoverRequestedRead(void)
 {
     enum { FILE_SYSTEM_READ_MODE_SETTLE_VBLANKS = 3 };
     u8 modeParameters[8];
     u8 commandResult[8];
 
-    // Wait for the command to finish and reset the operation mode.
+    // Drain the failed command before checking media in the ordinary sector mode.
     CdSync(0, NULL);
     modeParameters[0] = 0;
     CdControlB(CdlSetmode, modeParameters, NULL);
     VSync(FILE_SYSTEM_READ_MODE_SETTLE_VBLANKS);
 
-    // Wait until the CD shell is closed with a valid disk.
+    // Accept a closed, readable CD-ROM without requiring a tray-open transition.
     do {
         do {
             CdControlB(CdlNop, NULL, commandResult);
         } while ((commandResult[0] & CdlStatShellOpen) != 0);
     } while (CdDiskReady(0) != CdlComplete || CdGetDiskType() != CdlCdromFormat);
 
-    // Enable double speed and sector header.
+    // Restore the mode required by the retained filesystem read.
     modeParameters[0] = CdlModeSpeed | CdlModeSize1;
     CdControlB(CdlSetmode, modeParameters, NULL);
     VSync(FILE_SYSTEM_READ_MODE_SETTLE_VBLANKS);
