@@ -1486,7 +1486,7 @@ static void _itemMenuInventoryListTask(Task* task)
     enum { ITEM_MENU_PANEL_INITIAL              = 0,
            ITEM_MENU_MODE_SELECT                = 0,
            ITEM_MENU_COMMAND_MAIN               = 1,
-           ITEM_MENU_RESULT_BEGIN_SWAP          = 0x23,
+           ITEM_MENU_RESULT_BEGIN_SWAP          = USER_INTERFACE_LIST_ACTION_MOVE,
            ITEM_MENU_INVENTORY_COUNT_DESCRIPTOR = 5,
            ITEM_MENU_INVENTORY_WORK_BYTES       = 4 };
     UiObject* object;
@@ -1957,7 +1957,7 @@ void itemMenuWeaponPanelTask(Task* task)
     enum {
         ITEM_MENU_WEAPON_PANEL_INITIAL = 0,
         ITEM_MENU_WEAPON_MODE_SELECT   = 0,
-        ITEM_MENU_RESULT_BEGIN_SWAP    = 0x23,
+        ITEM_MENU_RESULT_BEGIN_SWAP    = USER_INTERFACE_LIST_ACTION_MOVE,
         ITEM_MENU_FOCUS_FIRST_ROW_Y    = -160,
         ITEM_MENU_REOPEN_DELAY_TICKS   = 16
     };
