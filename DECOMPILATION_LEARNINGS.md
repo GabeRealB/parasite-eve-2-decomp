@@ -39274,7 +39274,7 @@ local-alloc even though it crosses the calls. That lets local-alloc tie the
 dying intermediates into the same qty, which then gets `$s0`. Share the variable
 between the two blocks and it becomes a global allocno instead: the
 intermediates stay in `$v0` and the callee-saved set rotates. In
-`func_actor_400600_80134218`, giving the second block its own `sound2`/`pan2`
+`_actor400600TickGrabHold`, giving the second block its own `biteSoundId`/`biteSoundPan`
 took it from 98.86% (regs only) to 100%.
 
 ## Split `&base[i]` into a base-pointer local to control the final `addu` dest
@@ -70791,11 +70791,12 @@ Include that common declaration instead of supplying a file-local extern with
 different signedness.
 
 ### `srl` on an `rsin`/`rcos` result stored to a halfword: cast to `u32` before the shift
-`func_actor_400600_8013896C` stores `rsin(a) >> 3` into an `SVECTOR` field, and
+`_actor400600SpawnWaterSplash` inlines `_actor400600SpawnSplashRing`, which stores
+`rsin(a) >> 3` into an `SVECTOR` field, and
 target shifts with `srl`. The low 16 bits are the same either way, but GCC 2.8.1
-keeps the `sra` for `vec.vx = rsin(a) >> 3;` - combine does not relax it to a
+keeps the `sra` for `splashOffset.vx = rsin(a) >> 3;` - combine does not relax it to a
 logical shift just because the store truncates (91.3%, the only diff was the two
-`sra`s). Write `vec.vx = (u32)rsin(a) >> 3;`, the form `pe/pepper_spray` already
+`sra`s). Write `splashOffset.vx = (u32)rsin(a) >> 3;`, the form `pe/pepper_spray` already
 uses. The same function also shows that separate `s16` locals (m2c's
 `sp10/sp12/sp14`) lose the stores that a single `SVECTOR` local keeps.
 
