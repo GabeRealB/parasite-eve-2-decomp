@@ -1,11 +1,14 @@
 /* Part of the Moth library; see moth.h. */
 
-/// The moth's task callback: dispatches Task::state through gMothStateHandlers
-/// (spawn, update, death).
-void mothTask(Task* arg0)
+/// Dispatches the moth's spawn, living-update or death handler.
+///
+/// Task state must be 0..2 and spawnArg2 must point to its live Enemy. Copies
+/// the three-handler table by value before invoking the selected callback;
+/// spawn acquires work and the death handler eventually destroys the task.
+static void _mothTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = gMothStateHandlers;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    handlers = gMothStateHandlers;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

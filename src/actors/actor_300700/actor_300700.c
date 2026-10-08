@@ -22,6 +22,7 @@
 #include "gameplay/geometry.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
+#include "gameplay/room_effects.h"
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 #include "gameplay/world_collision.h"
@@ -46,6 +47,18 @@
 #include "overlay.h"
 #include "../../shared/rat.h"
 #include "../../shared/moth.h"
+
+static void _mothSpawn(Enemy* enemy, Task* task);
+static void _mothUpdate(Enemy* enemy, Task* task);
+static void _mothContacts(Task* task);
+static void _mothOscillateParts(Task* task);
+static void _mothSteer(Task* task);
+static void _mothDrift(Task* task);
+static void _mothDeath(Enemy* enemy, Task* task);
+static void _mothDrawBurst(Task* task);
+static void _mothTask(Task* task);
+static void _mothSquash(Task* task);
+static void _mothUpdateColor(Task* task);
 
 extern DamageAttack gMothAttack;
 
@@ -126,7 +139,7 @@ u16 gMothSpeeds[8] = {
     36,
 };
 
-TaskDesc D_actor_300700_80165B88 = { { { TASK_BODY_TMD, 96 } }, mothTask, { .model = &_gActor300700MothBody } };
+TaskDesc D_actor_300700_80165B88 = { { { TASK_BODY_TMD, 96 } }, _mothTask, { .model = &_gActor300700MothBody } };
 
 AnimationSet* gMothAnimSets[2] = {
     NULL,
@@ -191,13 +204,13 @@ TmdSource gActor300700RatBody = {
 #include "../../shared/moth_death.inc.c"
 
 #include "../../shared/moth_draw_burst.inc.c"
-/// The first variant's state handlers, dispatched by `mothTask`
+/// The first variant's state handlers, dispatched by `_mothTask`
 /// on the task's state: spawn, per-frame update, and the handler for state 2.
 static const EnemyTaskFuncTable3 gMothStateHandlers = {
     {
-        mothSpawn,
-        mothUpdate,
-        mothDeath,
+        _mothSpawn,
+        _mothUpdate,
+        _mothDeath,
     },
 };
 

@@ -1,93 +1,118 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Projects the model root and skips anything nearer than OT depth 20. Builds a
-/// screen quad sized 0x7800/depth, rotated by a random roll chosen on the first
-/// frame, and queues it as a semi-transparent textured POLY_FT4 using the
-/// model's texture page and CLUT offsets and the gMothBurstUvs cell for
-/// frame/3.
-void mothDrawBurst(Task* arg0)
+/// Writes the four corners of a square centered at zero in the screen plane.
+///
+/// Borrows a reserved quad scratch block. halfSize is measured in screen pixels;
+/// each component narrows to s16 and all four Z values are zero.
+static __inline__ void _mothSetBurstCorners(ActorScreenQuadScratch* scratch, s32 halfSize)
 {
-    ActorScreenQuadScratch* sc;
+    scratch->corners[0].vx = -halfSize;
+    scratch->corners[0].vy = -halfSize;
+    scratch->corners[0].vz = 0;
+    scratch->corners[1].vx = halfSize;
+    scratch->corners[1].vy = -halfSize;
+    scratch->corners[1].vz = 0;
+    scratch->corners[2].vx = -halfSize;
+    scratch->corners[2].vy = halfSize;
+    scratch->corners[2].vz = 0;
+    scratch->corners[3].vx = halfSize;
+    scratch->corners[3].vy = halfSize;
+    scratch->corners[3].vz = 0;
+}
+
+/// Queues the moth's death burst with a fixed random screen roll and subtractive blend.
+///
+/// Requires a composed root, timer in 1..23, eight UV cells and live primitive/
+/// ordering-table storage. Projects the cached root through GsWSMATRIX and
+/// skips OT depth below 20; half-size is 30720/depth screen pixels. Timer 1
+/// picks the retained screen roll only if projection passes the depth test.
+/// Cells are 32 pixels square, selected by timer/3. Uses the model's signed
+/// texture-page/CLUT-row offsets and releases its scratch quad before return.
+static void _mothDrawBurst(Task* task)
+{
+    enum {
+        MOTH_BURST_MIN_OT_DEPTH       = 20,
+        MOTH_BURST_SIZE_NUMERATOR     = 0x7800,
+        MOTH_BURST_CELL_PIXELS        = 32,
+        MOTH_BURST_TEXTURE_X          = 384,
+        MOTH_BURST_TEXTURE_Y          = 256,
+        MOTH_BURST_CLUT_ROW           = 245,
+        MOTH_BURST_TEXTURE_PAGE_WORDS = 64,
+        MOTH_BURST_SCREEN_X_MASK      = 0xFFFF,
+        MOTH_BURST_NEUTRAL_MODULATION = 128
+    };
+
+    ActorScreenQuadScratch* scratch;
     MothWork*               work;
-    TmdObject*              obj;
-    GfxCoord*               coord;
-    s32                     size, x, y;
-    s16                     i;
-    SVECTOR*                v;
-    POLY_FT4*               prim;
-    ActorSpriteUv*          uv;
-    obj               = arg0->extra.tmd;
-    sc                = SCRATCH_STACK_RESERVE_BLOCK(ActorScreenQuadScratch);
-    coord             = obj->coords;
-    work              = arg0->work;
-    sc->corners[0].vx = coord->workm.t[0];
-    sc->corners[0].vy = coord->workm.t[1];
-    sc->corners[0].vz = coord->workm.t[2];
+    TmdObject*              model;
+    GfxCoord*               rootCoord;
+    s32                     halfSize, screenX, screenY;
+    s16                     cornerIndex;
+    SVECTOR*                corner;
+    POLY_FT4*               quad;
+    ActorSpriteUv*          cell;
+    model                  = task->extra.tmd;
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(ActorScreenQuadScratch);
+    rootCoord              = model->coords;
+    work                   = task->work;
+    scratch->corners[0].vx = rootCoord->workm.t[0];
+    scratch->corners[0].vy = rootCoord->workm.t[1];
+    scratch->corners[0].vz = rootCoord->workm.t[2];
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_SetTransMatrix(&GsWSMATRIX);
-    gte_ldv0(&sc->corners[0]);
+    gte_ldv0(&scratch->corners[0]);
     gte_rtps();
-    gte_stsxy(&sc->screenCentre);
-    gte_stszotz(&sc->otz);
-    if (sc->otz < 20) {
+    gte_stsxy(&scratch->screenCentre);
+    gte_stszotz(&scratch->otz);
+    if (scratch->otz < MOTH_BURST_MIN_OT_DEPTH) {
         SCRATCH_STACK_RELEASE_BLOCK(ActorScreenQuadScratch);
         return;
     }
     if (work->timer == 1) {
-        sc->corners[0].vx = 0;
-        sc->corners[0].vy = 0;
-        sc->corners[0].vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFFF;
-        RotMatrix(&sc->corners[0], &work->burstRollMtx);
+        scratch->corners[0].vx = 0;
+        scratch->corners[0].vy = 0;
+        scratch->corners[0].vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & ACTOR_TRANSFORM_ANGLE_MASK;
+        RotMatrix(&scratch->corners[0], &work->burstRollMtx);
     }
-    size              = 0x7800 / sc->otz;
-    x                 = sc->screenCentre & 0xFFFF;
-    y                 = sc->screenCentre >> 16;
-    sc->corners[0].vx = -size;
-    sc->corners[0].vy = -size;
-    sc->corners[0].vz = 0;
-    sc->corners[1].vx = size;
-    sc->corners[1].vy = -size;
-    sc->corners[1].vz = 0;
-    sc->corners[2].vx = -size;
-    sc->corners[2].vy = size;
-    sc->corners[2].vz = 0;
-    sc->corners[3].vx = size;
-    sc->corners[3].vy = size;
-    sc->corners[3].vz = 0;
-    for (i = 0; i < 4; i++) {
+    // Rotate a camera-facing quad in screen space, then bind its animation cell.
+    halfSize = MOTH_BURST_SIZE_NUMERATOR / scratch->otz;
+    screenX  = scratch->screenCentre & MOTH_BURST_SCREEN_X_MASK;
+    screenY  = scratch->screenCentre >> 16;
+    _mothSetBurstCorners(scratch, halfSize);
+    for (cornerIndex = 0; cornerIndex < (s32)ARRAY_SIZE(scratch->corners); cornerIndex++) {
         gte_SetRotMatrix(&work->burstRollMtx);
-        v = &sc->corners[i];
-        gte_ldv0(v);
+        corner = &scratch->corners[cornerIndex];
+        gte_ldv0(corner);
         gte_rtv0();
-        gte_stsv(v);
-        v->vx += x;
-        v->vy += y;
+        gte_stsv(corner);
+        corner->vx += screenX;
+        corner->vy += screenY;
     }
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2E);
-    setRGB0(prim, 0x80, 0x80, 0x80);
-    setShadeTex(prim, 1);
-    prim->tpage = (((obj->texturePageOffset * 64 + 0x180) & 0x3FF) >> 6) | 0xD0;
-    prim->clut  = (obj->clutRowOffset << 6) + 0x3D40;
-    uv          = &gMothBurstUvs[(s16)(work->timer / 3)];
-    prim->u0    = uv->u;
-    prim->v0    = uv->v;
-    prim->u1    = uv->u + 31;
-    prim->v1    = uv->v;
-    prim->u2    = uv->u;
-    prim->v2    = uv->v + 31;
-    prim->u3    = uv->u + 31;
-    prim->v3    = uv->v + 31;
-    prim->x0    = sc->corners[0].vx;
-    prim->y0    = sc->corners[0].vy;
-    prim->x1    = sc->corners[1].vx;
-    prim->y1    = sc->corners[1].vy;
-    prim->x2    = sc->corners[2].vx;
-    prim->y2    = sc->corners[2].vy;
-    prim->x3    = sc->corners[3].vx;
-    prim->y3    = sc->corners[3].vy;
-    addPrim((&gGpuCurrentOt[(((((u32)sc->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), prim);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    setSemiTrans(quad, true);
+    setRGB0(quad, MOTH_BURST_NEUTRAL_MODULATION, MOTH_BURST_NEUTRAL_MODULATION, MOTH_BURST_NEUTRAL_MODULATION);
+    setShadeTex(quad, true);
+    quad->tpage = getTPage(1, GPU_BLEND_SUBTRACT, model->texturePageOffset * MOTH_BURST_TEXTURE_PAGE_WORDS + MOTH_BURST_TEXTURE_X, MOTH_BURST_TEXTURE_Y);
+    quad->clut  = (model->clutRowOffset << 6) + getClut(0, MOTH_BURST_CLUT_ROW);
+    cell        = &gMothBurstUvs[(s16)(work->timer / MOTH_BURST_TICKS_PER_CELL)];
+    quad->u0    = cell->u;
+    quad->v0    = cell->v;
+    quad->u1    = cell->u + MOTH_BURST_CELL_PIXELS - 1;
+    quad->v1    = cell->v;
+    quad->u2    = cell->u;
+    quad->v2    = cell->v + MOTH_BURST_CELL_PIXELS - 1;
+    quad->u3    = cell->u + MOTH_BURST_CELL_PIXELS - 1;
+    quad->v3    = cell->v + MOTH_BURST_CELL_PIXELS - 1;
+    quad->x0    = scratch->corners[0].vx;
+    quad->y0    = scratch->corners[0].vy;
+    quad->x1    = scratch->corners[1].vx;
+    quad->y1    = scratch->corners[1].vy;
+    quad->x2    = scratch->corners[2].vx;
+    quad->y2    = scratch->corners[2].vy;
+    quad->x3    = scratch->corners[3].vx;
+    quad->y3    = scratch->corners[3].vy;
+    addPrim((&gGpuCurrentOt[(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), quad);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScreenQuadScratch);
 }

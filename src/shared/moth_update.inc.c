@@ -1,50 +1,59 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Task state 1. Shows or hides the model and target lock with the combat
-/// actor-control state (paused: colour only). Otherwise runs the contact pass
-/// and the part oscillation, becomes alerted (engaging battle) once another
-/// moth has died, steers and drifts, recomposes the root coordinate, updates
-/// the colour and plays sound 8 on a 1-in-128 roll.
-void mothUpdate(Enemy* arg0, Task* arg1)
+/// Advances the living moth's contacts, wing motion, flight and lighting.
+///
+/// Requires work initialized by spawn. Running actors restore drawing/targeting;
+/// paused actors update colour alone, and hidden actors disable both and return.
+/// A flock death alert starts pursuit and engages battle. A contact can select
+/// the death state, but the current living tick still finishes before the next
+/// dispatch. Composes the moved root, samples colour and rolls a 1/128 ambient
+/// sound with placement-index identity and signed-byte spatial pan/depth.
+static void _mothUpdate(Enemy* enemy, Task* task)
 {
-    TmdObject* obj;
-    MothWork*  work;
-    GfxCoord*  coord;
+    enum {
+        MOTH_AMBIENT_SOUND           = 0x40070008,
+        MOTH_AMBIENT_SOUND_ROLL_MASK = 127
+    };
 
-    work  = arg1->work;
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
+    TmdObject* model;
+    MothWork*  work;
+    GfxCoord*  rootCoord;
+
+    work      = task->work;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
     switch (gSceneCombatState.actorControl) {
-        case 0:
-            obj->flags                   = 0;
-            arg0->node.state.parts.flags = 0;
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            model->flags                  = 0;
+            enemy->node.state.parts.flags = 0;
             break;
-        case 1:
-            mothUpdateColor(arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _mothUpdateColor(task);
             return;
-        case 2:
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    mothContacts(arg1);
-    mothOscillateParts(arg1);
-    if (work->alerted == 0 && gSceneCombatState.actor00700DeathAlert != 0) {
-        work->alerted = 1;
+    // A killing contact changes the next task state; this living tick still finishes.
+    _mothContacts(task);
+    _mothOscillateParts(task);
+    if (work->alerted == false && gSceneCombatState.actor00700DeathAlert != 0) {
+        work->alerted = true;
         sceneEngageBattle(1);
     }
-    mothSteer(arg1);
-    mothDrift(arg1);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    mothUpdateColor(arg1);
+    _mothSteer(task);
+    _mothDrift(task);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _mothUpdateColor(task);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((gRandomLcgState >> 16 & 0x7F) == 0) {
-        s32 temp;
-        s32 id;
+    if ((gRandomLcgState >> 16 & MOTH_AMBIENT_SOUND_ROLL_MASK) == 0) {
+        s32 soundPan;
+        s32 soundId;
 
-        id   = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070008;
-        temp = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, temp, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+        soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << MOTH_SOUND_PLACE_INDEX_SHIFT) | MOTH_AMBIENT_SOUND;
+        soundPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
 }

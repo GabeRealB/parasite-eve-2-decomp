@@ -1,89 +1,106 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Task state 2. Phase 0 raises the combat-state death alert that the other
-/// moths react to, turns the model semi-transparent, saves the root transform,
-/// picks a random spin rate, disables the hit and terrain spheres, enables the
-/// attack sphere, plays sound 6 and unlinks the enemy node. Phase 1 squashes
-/// the model, spins it, lowers the saved transform 0x18 a frame and draws the
-/// burst sprite for 24 frames before hiding the model; at frame 30 it unlinks
-/// the spheres, and phase 2 counts back down and destroys the enemy.
-void mothDeath(Enemy* arg0, Task* arg1)
+/// Runs the moth's contact-triggered squash, burst and delayed teardown.
+///
+/// Paused actors keep their phase; hidden actors hide without advancing. Begin
+/// raises the flock alert, saves the root, switches hit/grid tests to attack
+/// tests, retires targeting and releases the battle reference. Burst ticks
+/// 1..29 squash the saved pose; timer/3 selects cells only while timer < 24.
+/// Tick 30 unlinks all spheres, then a 30-tick countdown destroys the enemy.
+/// The post-compose local spin is retained without dirtying the cache: the
+/// ordinary same-pass draw uses the squash pose, which is restored next tick.
+/// The saved translation sinks 24 game units for the following squash tick.
+static void _mothDeath(Enemy* enemy, Task* task)
 {
-    MothWork* work;
-    GfxCoord* coord;
-    SVECTOR*  head;
-    SVECTOR*  rot;
-    s32       angle;
-    u32       rnd;
-    u32       seed;
-    s32       id;
-    s32       pan;
+    enum {
+        MOTH_DEATH_BEGIN                = 0,
+        MOTH_DEATH_BURST                = 1,
+        MOTH_DEATH_WAIT                 = 2,
+        MOTH_DEATH_BURST_END_TICK       = 30,
+        MOTH_DEATH_SINK_STEP            = 24,
+        MOTH_DEATH_SOUND                = 0x40070006,
+        MOTH_DEATH_BATTLE_RELEASE_DELAY = 8,
+        MOTH_DEATH_SPIN_MAGNITUDE_MASK  = 255,
+        MOTH_DEATH_SPIN_POSITIVE_BIT    = 256
+    };
 
-    coord = arg1->extra.tmd->coords;
-    work  = arg1->work;
+    MothWork* work;
+    GfxCoord* rootCoord;
+    SVECTOR*  scratchHead;
+    SVECTOR*  spinAngles;
+    s32       spinRate;
+    u32       spinDraw;
+    u32       nextSeed;
+    s32       soundId;
+    s32       soundPan;
+
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
-            head                          = SCRATCH_STACK_CURSOR(SVECTOR);
-            rot                           = head - 1;
-            SCRATCH_STACK_CURSOR(SVECTOR) = rot;
+            scratchHead                   = SCRATCH_STACK_CURSOR(SVECTOR);
+            spinAngles                    = scratchHead - 1;
+            SCRATCH_STACK_CURSOR(SVECTOR) = spinAngles;
             switch (work->deathStep) {
-                case 0:
+                case MOTH_DEATH_BEGIN:
                     gSceneCombatState.actor00700DeathAlert = 1;
-                    seed                                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    rnd                                    = seed >> 16;
-                    angle                                  = rnd & 0xFF;
-                    arg1->extra.tmd->flags                 = TMD_OBJECT_SEMI_TRANS;
-                    gRandomLcgState                        = seed;
-                    work->squashScale                      = 0x1000;
-                    work->savedRootMtx                     = coord->coord;
-                    if (!(rnd & 0x100)) {
-                        angle = -angle;
+                    nextSeed                               = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    spinDraw                               = nextSeed >> 16;
+                    spinRate                               = spinDraw & MOTH_DEATH_SPIN_MAGNITUDE_MASK;
+                    task->extra.tmd->flags                 = TMD_OBJECT_SEMI_TRANS;
+                    gRandomLcgState                        = nextSeed;
+                    work->squashScale                      = ONE;
+                    work->savedRootMtx                     = rootCoord->coord;
+                    if (!(spinDraw & MOTH_DEATH_SPIN_POSITIVE_BIT)) {
+                        spinRate = -spinRate;
                     }
-                    work->deathSpinRate    = angle;
-                    arg0->recs             = 0;
+                    work->deathSpinRate    = spinRate;
+                    enemy->recs            = 0;
                     work->hitBody.flags    = work->hitBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->gridBody.flags   = work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
                     work->attackBody.flags = work->attackBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    id                     = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070006;
-                    pan                    = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(coord));
-                    worldTargetUnlinkNode(&arg0->node);
-                    sceneReleaseBattleRefWithRewards(arg1, 8);
+                    soundId                = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << MOTH_SOUND_PLACE_INDEX_SHIFT) | MOTH_DEATH_SOUND;
+                    soundPan               = (s8)worldCoordGetOriginAudioPan(rootCoord);
+                    sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
+                    worldTargetUnlinkNode(&enemy->node);
+                    sceneReleaseBattleRefWithRewards(task, MOTH_DEATH_BATTLE_RELEASE_DELAY);
                     work->timer     = 1;
-                    work->deathStep = 1;
+                    work->deathStep = MOTH_DEATH_BURST;
                     break;
-                case 1:
-                    mothSquash(arg1);
-                    work->pitch = (work->pitch + work->deathSpinRate) & 0xFFF;
-                    work->yaw   = (work->yaw + work->deathSpinRate) & 0xFFF;
-                    rot->vx     = work->pitch;
-                    rot->vy     = work->yaw;
-                    rot->vz     = 0;
-                    RotMatrix(rot, &coord->coord);
-                    work->savedRootMtx.t[1] += 0x18;
-                    if ((s16)(work->timer / 3) < 8) {
-                        mothDrawBurst(arg1);
+                case MOTH_DEATH_BURST:
+                    _mothSquash(task);
+                    // Squash already composed this tick's pose. The retained local
+                    // spin does not invalidate that cache; the next squash restores it.
+                    work->pitch    = (work->pitch + work->deathSpinRate) & ACTOR_TRANSFORM_ANGLE_MASK;
+                    work->yaw      = (work->yaw + work->deathSpinRate) & ACTOR_TRANSFORM_ANGLE_MASK;
+                    spinAngles->vx = work->pitch;
+                    spinAngles->vy = work->yaw;
+                    spinAngles->vz = 0;
+                    RotMatrix(spinAngles, &rootCoord->coord);
+                    work->savedRootMtx.t[1] += MOTH_DEATH_SINK_STEP;
+                    if ((s16)(work->timer / MOTH_BURST_TICKS_PER_CELL) < MOTH_BURST_CELL_COUNT) {
+                        _mothDrawBurst(task);
                     } else {
-                        arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     work->timer++;
-                    if (work->timer >= 0x1E) {
+                    if (work->timer >= MOTH_DEATH_BURST_END_TICK) {
                         worldCollisionUnlinkBody(&work->hitBody);
                         worldCollisionUnlinkBody(&work->gridBody);
                         worldCollisionUnlinkBody(&work->attackBody);
-                        work->deathStep = 2;
+                        work->deathStep = MOTH_DEATH_WAIT;
                     }
                     break;
-                case 2:
+                case MOTH_DEATH_WAIT:
                     work->timer--;
                     if (work->timer <= 0) {
-                        enemyDestroy(arg0, arg1);
+                        enemyDestroy(enemy, task);
                     }
                     break;
             }

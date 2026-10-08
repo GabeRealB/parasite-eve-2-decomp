@@ -1,55 +1,64 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Sweeps the actor's spare rotation on the scratchpad: every 16th frame rolls
-/// `gRandomLcgState` to pick a direction, then `flapAngle` ramps between `-0x100`
-/// and `0x100` and flips the `flapSign` sign each time it wraps. The ramped
-/// value scaled by that sign is the pitch written into the scratch vector,
-/// which is handed to `RotMatrix` twice - once against `coord[2]`, once with
-/// the product negated against `coord[3]`.
-void mothOscillateParts(Task* arg0)
+/// Flaps the model's two wing parts in opposite directions about local Z.
+///
+/// Requires the moth work and four-part model. Every 16 living ticks rerolls
+/// slow/fast mode. Slow mode sweeps -256, 0, +256 angular units and reverses
+/// the swing sign on wrapping; fast mode alternates the full swing each tick.
+/// Parts 2 and 3 retain their translations and have composition marked dirty.
+/// The scratch angle vector is released before return; 4096 units is one turn.
+static void _mothOscillateParts(Task* task)
 {
-    MothWork* work;
-    GfxCoord* coord;
-    GfxCoord* coord2;
-    SVECTOR*  sc;
-    s32       direction;
-    s32       direction2;
-    s32       product;
+    enum {
+        MOTH_FLAP_MODE_TICKS = 16,
+        MOTH_FLAP_ANGLE      = 0x100,
+        MOTH_FLAP_SWEEP_END  = 2 * MOTH_FLAP_ANGLE,
+        MOTH_LEFT_WING_PART  = 2,
+        MOTH_RIGHT_WING_PART = 3
+    };
 
-    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    work = arg0->work;
-    if (++work->timer >= 16) {
+    MothWork* work;
+    GfxCoord* leftWingCoords;
+    GfxCoord* rightWingCoords;
+    SVECTOR*  wingAngles;
+    s32       slowFlapSign;
+    s32       fastFlapSign;
+    s32       wingAngle;
+
+    wingAngles = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    work       = task->work;
+    if (++work->timer >= MOTH_FLAP_MODE_TICKS) {
         work->timer     = 0;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->flapFast  = !((gRandomLcgState >> 16) & 1);
     }
     switch (work->flapFast) {
-        case 0:
-            work->flapAngle += 0x100;
-            if (work->flapAngle >= 0x200) {
-                work->flapAngle = -0x100;
-                direction       = work->flapSign;
-                work->flapSign  = -direction;
+        case false:
+            work->flapAngle += MOTH_FLAP_ANGLE;
+            if (work->flapAngle >= MOTH_FLAP_SWEEP_END) {
+                work->flapAngle = -MOTH_FLAP_ANGLE;
+                slowFlapSign    = work->flapSign;
+                work->flapSign  = -slowFlapSign;
             }
             break;
-        case 1:
-            work->flapAngle = 0x100;
-            direction2      = work->flapSign;
-            work->flapSign  = -direction2;
+        case true:
+            work->flapAngle = MOTH_FLAP_ANGLE;
+            fastFlapSign    = work->flapSign;
+            work->flapSign  = -fastFlapSign;
             break;
     }
-    sc->vx = 0;
-    sc->vy = 0;
-    sc->vz = work->flapAngle * work->flapSign;
-    coord  = arg0->extra.tmd->coords;
-    RotMatrix(sc, &coord[2].coord);
-    coord[2].composeStamp = GRAPHICS_COORD_DIRTY;
-    sc->vx                = 0;
-    sc->vy                = 0;
-    product               = work->flapAngle * work->flapSign;
-    sc->vz                = -product;
-    coord2                = arg0->extra.tmd->coords;
-    RotMatrix(sc, &coord2[3].coord);
-    coord2[3].composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    wingAngles->vx = 0;
+    wingAngles->vy = 0;
+    wingAngles->vz = work->flapAngle * work->flapSign;
+    leftWingCoords = task->extra.tmd->coords;
+    RotMatrix(wingAngles, &leftWingCoords[MOTH_LEFT_WING_PART].coord);
+    leftWingCoords[MOTH_LEFT_WING_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    wingAngles->vx                                   = 0;
+    wingAngles->vy                                   = 0;
+    wingAngle                                        = work->flapAngle * work->flapSign;
+    wingAngles->vz                                   = -wingAngle;
+    rightWingCoords                                  = task->extra.tmd->coords;
+    RotMatrix(wingAngles, &rightWingCoords[MOTH_RIGHT_WING_PART].coord);
+    rightWingCoords[MOTH_RIGHT_WING_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }

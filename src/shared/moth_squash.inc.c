@@ -1,31 +1,50 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Reduces the death Y scale by 0x50 a frame down to 0x200, rebuilds the root
-/// rotation as the saved transform times that Y scale and recomposes the
-/// coordinate.
-void mothSquash(Task* arg0)
+/// Restores the saved root matrix and multiplies its rotation by the death Y scale.
+///
+/// Borrows live work/root and a disjoint reserved scale scratch block; the
+/// caller owns invalidation, composition and release. Q12 scale is read after
+/// the X scale store, before restoring the matrix.
+static __inline__ void _mothApplyRootScale(GfxCoord* rootCoord, MothWork* work, ActorScaleScratch* scratch)
 {
-    GfxCoord*          coord;
-    ActorScaleScratch* head;
-    ActorScaleScratch* scratch;
-    MothWork*          work;
-
-    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    work                                    = arg0->work;
-    scratch                                 = head - 1;
-    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
-    coord                                   = arg0->extra.tmd->coords;
-    if (work->squashScale >= 0x201) {
-        work->squashScale -= 0x50;
-    }
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->squashScale;
     scratch->scale.vz = ONE;
-    coord->coord      = work->savedRootMtx;
+    rootCoord->coord  = work->savedRootMtx;
     gfxSetRotIdentity(&scratch->matrix);
     ScaleMatrix(&scratch->matrix, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
+    MulMatrix(&rootCoord->coord, &scratch->matrix);
+}
+
+/// Applies the death's decaying Q12 vertical scale to its saved root pose.
+///
+/// Requires live work, model root and the pose saved when death began. Each
+/// call subtracts 80 while scale exceeds 512 (the decrement can cross below
+/// the cutoff), restores the saved matrix to avoid compounding scale, then
+/// invalidates and composes the root. X/Z scale remain ONE; translation comes
+/// from the saved pose. Releases its ActorScaleScratch block before return.
+static void _mothSquash(Task* task)
+{
+    enum {
+        MOTH_SQUASH_SCALE_CUTOFF = 0x200,
+        MOTH_SQUASH_SCALE_STEP   = 0x50
+    };
+
+    GfxCoord*          rootCoord;
+    ActorScaleScratch* scratchHead;
+    ActorScaleScratch* scratch;
+    MothWork*          work;
+
+    scratchHead                             = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    work                                    = task->work;
+    scratch                                 = scratchHead - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    rootCoord                               = task->extra.tmd->coords;
+    if (work->squashScale > MOTH_SQUASH_SCALE_CUTOFF) {
+        work->squashScale -= MOTH_SQUASH_SCALE_STEP;
+    }
+    _mothApplyRootScale(rootCoord, work, scratch);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }

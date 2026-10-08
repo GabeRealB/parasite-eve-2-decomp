@@ -1,7 +1,7 @@
 /* Part of the Rat library; see rat.h. */
 
 /// Updates the enemy's lighting colour from the world position of the model
-/// root. (Byte-identical to mothUpdateColor and to the same helper in about a
+/// root. (Byte-identical to _mothUpdateColor and to the same helper in about a
 /// dozen other actor packages.)
 void ratUpdateColor(Task* arg0)
 {

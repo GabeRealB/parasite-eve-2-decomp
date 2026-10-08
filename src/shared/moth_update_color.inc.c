@@ -1,15 +1,19 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Updates the Moth's lighting colour from the world position of the model
-/// root. (The same body as ratUpdateColor.)
-void mothUpdateColor(Task* arg0)
+/// Updates moth lighting and colour from the model root's cached translation.
+///
+/// Requires the live enemy in spawnArg2, model lighting matrices and a valid
+/// root composition cache. Copies XYZ into a temporary VECTOR for the world
+/// lighting query; does not compose or convert the coordinate. The query reads
+/// only XYZ and retains neither the vector nor any scratch storage.
+static void _mothUpdateColor(Task* task)
 {
-    GfxCoord* coord;
-    VECTOR    vec;
+    GfxCoord* rootCoord;
+    VECTOR    samplePosition;
 
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    rootCoord         = task->extra.tmd->coords;
+    samplePosition.vx = rootCoord->workm.t[0];
+    samplePosition.vy = rootCoord->workm.t[1];
+    samplePosition.vz = rootCoord->workm.t[2];
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &samplePosition, 0, 0);
 }

@@ -1,89 +1,105 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Records the root position for the contact pass, then moves. Before the alert
-/// it jitters each axis by up to +-31 a frame, reversing the step when it would
-/// leave a box of +-200 (X/Z) and +-500 (Y) around the home position; once
-/// alerted it flies along its facing at gMothSpeeds[place row] plus a random
-/// 0-31, holding its height within 400 of a level 0x4B0 above the player.
-void mothDrift(Task* arg0)
+/// Saves the previous root position, then wanders or advances toward the player.
+///
+/// Positions and speeds are game-coordinate units in the roots' common parent
+/// frame. Wandering reverses signed-halfword candidate X/Y steps outside open
+/// home bands of +/-200 and +/-500; Z instead tests the signed random draw
+/// against home Z +/-200, retaining that distinct behavior. Alerted flight
+/// uses rowIndex 0..7 to select speed, adds 0..31 and follows the Q12 forward
+/// axis. Height tends toward 1200 above the player within a +/-400 band;
+/// the target height narrows to s16. Fast flapping biases Y upward.
+static void _mothDrift(Task* task)
 {
-    MothWork* work;
-    GfxCoord* coord;
-    u32       random;
-    u32       random2;
-    u32       random3;
-    s32       amount;
-    s32       amountB;
-    s16       delta;
-    s16       speed;
-    s32       y;
-    s32       newY;
-    s16       base;
+    enum {
+        MOTH_WANDER_HORIZONTAL_HALF_EXTENT = 200,
+        MOTH_WANDER_VERTICAL_HALF_EXTENT   = 500,
+        MOTH_PURSUIT_HEIGHT_ABOVE_PLAYER   = 1200,
+        MOTH_PURSUIT_HEIGHT_HALF_BAND      = 400,
+        MOTH_FORWARD_BASIS_FRACTION_BITS   = 12,
+        MOTH_FLIGHT_JITTER_MASK            = 31,
+        MOTH_WANDER_POSITIVE_STEP_BIT      = 32,
+        MOTH_PURSUIT_HEIGHT_STEP_MASK      = 15
+    };
 
-    work             = arg0->work;
-    coord            = arg0->extra.tmd->coords;
-    work->prevPos.vx = coord->coord.t[0];
-    work->prevPos.vy = coord->coord.t[1];
-    work->prevPos.vz = coord->coord.t[2];
+    MothWork* work;
+    GfxCoord* rootCoord;
+    u32       horizontalDraw;
+    u32       heightDraw;
+    u32       zDraw;
+    s32       horizontalStep;
+    s32       verticalStep;
+    s16       wanderStep;
+    s16       forwardSpeed;
+    s32       currentY;
+    s32       nextY;
+    s16       targetY;
+
+    work             = task->work;
+    rootCoord        = task->extra.tmd->coords;
+    work->prevPos.vx = rootCoord->coord.t[0];
+    work->prevPos.vy = rootCoord->coord.t[1];
+    work->prevPos.vz = rootCoord->coord.t[2];
     switch (work->alerted) {
-        case 0:
-            random = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
-            amount = random & 0x1F;
-            if (!(random & 0x20)) {
-                amount = -amount;
+        case false:
+            horizontalDraw = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+            horizontalStep = horizontalDraw & MOTH_FLIGHT_JITTER_MASK;
+            if (!(horizontalDraw & MOTH_WANDER_POSITIVE_STEP_BIT)) {
+                horizontalStep = -horizontalStep;
             }
-            delta = amount;
-            if ((s16)(coord->coord.t[0] + (s16)delta) < work->homePos.vx + 200 &&
-                work->homePos.vx - 200 < (s16)(coord->coord.t[0] + (s16)delta)) {
-                coord->coord.t[0] += (s16)delta;
+            wanderStep = horizontalStep;
+            if ((s16)(rootCoord->coord.t[0] + wanderStep) < work->homePos.vx + MOTH_WANDER_HORIZONTAL_HALF_EXTENT &&
+                work->homePos.vx - MOTH_WANDER_HORIZONTAL_HALF_EXTENT < (s16)(rootCoord->coord.t[0] + wanderStep)) {
+                rootCoord->coord.t[0] += wanderStep;
             } else {
-                coord->coord.t[0] -= (s16)delta;
+                rootCoord->coord.t[0] -= wanderStep;
             }
-            amountB = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F;
+            verticalStep = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & MOTH_FLIGHT_JITTER_MASK;
             if (work->flapFast != 0) {
-                amountB = -amountB;
+                verticalStep = -verticalStep;
             }
-            delta = amountB;
-            if ((s16)(coord->coord.t[1] + (s16)delta) < work->homePos.vy + 500 &&
-                work->homePos.vy - 500 < (s16)(coord->coord.t[1] + (s16)delta)) {
-                coord->coord.t[1] += (s16)delta;
+            wanderStep = verticalStep;
+            if ((s16)(rootCoord->coord.t[1] + wanderStep) < work->homePos.vy + MOTH_WANDER_VERTICAL_HALF_EXTENT &&
+                work->homePos.vy - MOTH_WANDER_VERTICAL_HALF_EXTENT < (s16)(rootCoord->coord.t[1] + wanderStep)) {
+                rootCoord->coord.t[1] += wanderStep;
             } else {
-                coord->coord.t[1] -= (s16)delta;
+                rootCoord->coord.t[1] -= wanderStep;
             }
-            random3 = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
-            amount  = random3 & 0x1F;
-            if (!(random3 & 0x20)) {
-                amount = -amount;
+            zDraw          = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+            horizontalStep = zDraw & MOTH_FLIGHT_JITTER_MASK;
+            if (!(zDraw & MOTH_WANDER_POSITIVE_STEP_BIT)) {
+                horizontalStep = -horizontalStep;
             }
-            delta = amount;
-            if ((s16)random3 < work->homePos.vz + 200 && work->homePos.vz - 200 < (s16)random3) {
-                coord->coord.t[2] += (s16)delta;
+            wanderStep = horizontalStep;
+            // The retained Z reversal tests the draw, not the proposed position.
+            if ((s16)zDraw < work->homePos.vz + MOTH_WANDER_HORIZONTAL_HALF_EXTENT && work->homePos.vz - MOTH_WANDER_HORIZONTAL_HALF_EXTENT < (s16)zDraw) {
+                rootCoord->coord.t[2] += wanderStep;
             } else {
-                coord->coord.t[2] -= (s16)delta;
+                rootCoord->coord.t[2] -= wanderStep;
             }
             break;
-        case 1:
-            speed = gMothSpeeds[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] +
-                    (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x1F);
-            coord->coord.t[0] += (coord->coord.m[0][2] * speed) >> 12;
-            coord->coord.t[2] += (coord->coord.m[2][2] * speed) >> 12;
-            base               = gPlayerStatus.coordMtx->t[1] - 0x4B0;
-            random2            = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
-            y                  = coord->coord.t[1];
-            if (y >= base + 400) {
-                coord->coord.t[1] = y - (random2 & 0xF);
+        case true:
+            forwardSpeed = gMothSpeeds[((Enemy*)task->spawnArg2.pointer)->place->rowIndex] +
+                           (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & MOTH_FLIGHT_JITTER_MASK);
+            rootCoord->coord.t[0] += (rootCoord->coord.m[0][2] * forwardSpeed) >> MOTH_FORWARD_BASIS_FRACTION_BITS;
+            rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * forwardSpeed) >> MOTH_FORWARD_BASIS_FRACTION_BITS;
+            targetY                = gPlayerStatus.coordMtx->t[1] - MOTH_PURSUIT_HEIGHT_ABOVE_PLAYER;
+            heightDraw             = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16;
+            currentY               = rootCoord->coord.t[1];
+            if (currentY >= targetY + MOTH_PURSUIT_HEIGHT_HALF_BAND) {
+                rootCoord->coord.t[1] = currentY - (heightDraw & MOTH_PURSUIT_HEIGHT_STEP_MASK);
             } else {
-                if (base - 400 >= y) {
-                    newY = y + (random2 & 0xF);
+                if (targetY - MOTH_PURSUIT_HEIGHT_HALF_BAND >= currentY) {
+                    nextY = currentY + (heightDraw & MOTH_PURSUIT_HEIGHT_STEP_MASK);
                 } else {
-                    amountB = random2 & 0x1F;
+                    verticalStep = heightDraw & MOTH_FLIGHT_JITTER_MASK;
                     if (work->flapFast != 0) {
-                        newY = y - amountB;
+                        nextY = currentY - verticalStep;
                     } else {
-                        newY = y + amountB;
+                        nextY = currentY + verticalStep;
                     }
                 }
-                coord->coord.t[1] = newY;
+                rootCoord->coord.t[1] = nextY;
             }
             break;
     }

@@ -1,15 +1,9 @@
-/* The Moth, the second enemy of actor_00700 (actor_100700/actor_200700) and
- * the first of actor_300700. It wanders within a box around its spawn point
- * with random jitter, random yaw and pitch steps and two model parts
- * oscillated about Z, until any moth's death raises a combat-state alert; then
- * it steers toward the player and flies along its facing at a per-place-row
- * speed, holding its height relative to the player, with an occasional random
- * sound. Any hit kills it: the death spins and squashes the model, briefly
- * enables its attack sphere, draws an animated burst sprite and destroys the
- * enemy after the sequence.
- *
- * Include this header in the prologue and each fragment at its function's
- * position.
+/* Moth enemy behavior shared by actor_00700 and actor_300700.
+ * The carriers declare their private handlers in their source prologues and
+ * include each fragment at its function's position. Living moths wander or
+ * pursue the player after another moth begins dying. Contact starts a death
+ * that squashes the saved root pose, briefly enables the attack sphere and
+ * draws a burst before releasing the enemy.
  */
 
 #ifndef SRC_SHARED_MOTH_H
@@ -64,19 +58,18 @@ typedef struct {
 } MothWork;
 STATIC_ASSERT_SIZEOF(MothWork, 0x2F4);
 
-void mothSpawn(Enemy* arg0, Task* arg1);
-void mothUpdate(Enemy* arg0, Task* arg1);
-void mothContacts(Task* arg0);
-void mothOscillateParts(Task* arg0);
-void mothSteer(Task* arg0);
-void mothDrift(Task* arg0);
-void mothDeath(Enemy* arg0, Task* arg1);
-void mothDrawBurst(Task* arg0);
-void mothTask(Task* arg0);
-void mothSquash(Task* arg0);
+/// Indices of the moth task's three state handlers.
+enum {
+    MOTH_TASK_SPAWN  = 0,
+    MOTH_TASK_UPDATE = 1,
+    MOTH_TASK_DEATH  = 2
+};
 
-/* Defined by each package. */
+/// Placement index occupies the sound script instance byte.
+enum { MOTH_SOUND_PLACE_INDEX_SHIFT = 8 };
 
-void mothUpdateColor(Task* arg0);
+/// The death burst advances through eight texture cells, three timer ticks per cell.
+enum { MOTH_BURST_CELL_COUNT     = 8,
+       MOTH_BURST_TICKS_PER_CELL = 3 };
 
 #endif /* SRC_SHARED_MOTH_H */

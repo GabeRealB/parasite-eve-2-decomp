@@ -1,79 +1,93 @@
-#include "gameplay/room_effects.h"
-
 /* Part of the Moth library; see moth.h. */
 
-/// Loads the frame's movement record off the scratchpad, folds it into the
-/// render coordinate, then applies whatever the collision record still holds:
-/// state 1 nudges the actor by the fractional delta, state 2 snaps it to the
-/// recorded position. The second half turns the hit record's id halfword into
-/// an arm/damage reaction - state 2 measures the distance to the recorded
-/// opponent, rolls damage, and spawns the hit effect.
-void mothContacts(Task* arg0)
+/// Applies resolved grid correction or restores the position before an opposed move.
+///
+/// Borrows the root, work and the caller's reserved delta; scratch must equal
+/// scratchHead - 1. Clears all grid contacts after consuming them. Correction
+/// uses integer halves of Q16.16.
+static __inline__ void _mothApplyGridCorrection(GfxCoord* rootCoord, MothWork* work,
+                                                WorldCollisionDelta* scratchHead,
+                                                WorldCollisionDelta* scratch, s32 pushbackResult)
 {
-    MothWork*            work;
-    GfxCoord*            coord;
-    s32                  movement;
-    s32                  dx;
-    s32                  dy;
-    s32                  dz;
-    s32                  amount;
-    s32                  damage;
-    s32                  z;
-    u16                  state;
-    GfxCoord*            target;
-    WorldCollisionDelta* head;
-    WorldCollisionDelta* delta;
+    s32 correctedZ;
 
-    work     = arg0->work;
-    head     = SCRATCH_STACK_CURSOR(void);
-    delta    = (SCRATCH_STACK_CURSOR(void) = head - 1);
-    coord    = arg0->extra.tmd->coords;
-    movement = worldCollisionResolvePushback(work->gridContacts, delta, ARRAY_SIZE(work->gridContacts), 0);
-    switch (movement) {
-        case 0:
+    switch (pushbackResult) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
-            coord->coord.t[0] += head[-1].fixed.vx.halves.integer;
-            coord->coord.t[1] += delta->fixed.vy.halves.integer;
-            z                  = coord->coord.t[2] + delta->fixed.vz.halves.integer;
-            coord->coord.t[2]  = z;
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
+            rootCoord->coord.t[0] += scratchHead[-1].fixed.vx.halves.integer;
+            rootCoord->coord.t[1] += scratch->fixed.vy.halves.integer;
+            correctedZ             = rootCoord->coord.t[2] + scratch->fixed.vz.halves.integer;
+            rootCoord->coord.t[2]  = correctedZ;
             break;
-        case 2:
-            coord->coord.t[0] = work->prevPos.vx;
-            coord->coord.t[1] = work->prevPos.vy;
-            coord->coord.t[2] = work->prevPos.vz;
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
+            rootCoord->coord.t[0] = work->prevPos.vx;
+            rootCoord->coord.t[1] = work->prevPos.vy;
+            rootCoord->coord.t[2] = work->prevPos.vz;
             break;
     }
     worldCollisionClearContacts(work->gridContacts);
-    state = (u16)work->hitContacts[0].key.parts.kind;
-    switch ((u32)state) {
+}
+
+/// Applies room-grid pushback and starts the moth's death on player contact or attack.
+///
+/// Requires initialized work, a live root and enemy spawn argument. Reads all
+/// four grid contacts: integer halves of Q16.16 correction move the root, while
+/// opposed normals restore the position saved before the preceding move. A
+/// player-body contact kills outright; an attack also rolls range-based damage,
+/// awards its readout/life drain (zero damage becomes one) and spawns the hit effect.
+/// Attack key low-byte bit 7 selects a live player/companion task (0/1); both
+/// roots must share a parent frame. Clears both tables and releases one delta.
+static void _mothContacts(Task* task)
+{
+    enum { MOTH_HIT_ACTOR_SLOT_SHIFT = 7 };
+
+    MothWork*            work;
+    GfxCoord*            rootCoord;
+    s32                  pushbackResult;
+    s32                  playerOffsetX;
+    s32                  playerOffsetY;
+    s32                  playerOffsetZ;
+    s32                  attackDamage;
+    u16                  contactKind;
+    GfxCoord*            attackerRoot;
+    WorldCollisionDelta* scratchHead;
+    WorldCollisionDelta* scratch;
+
+    work        = task->work;
+    scratchHead = SCRATCH_STACK_CURSOR(WorldCollisionDelta);
+    scratch     = (SCRATCH_STACK_CURSOR(WorldCollisionDelta) = scratchHead - 1);
+    rootCoord   = task->extra.tmd->coords;
+    // Consume the previous collision pass before the next flight step.
+    pushbackResult = worldCollisionResolvePushback(work->gridContacts, scratch, ARRAY_SIZE(work->gridContacts), 0);
+    _mothApplyGridCorrection(rootCoord, work, scratchHead, scratch, pushbackResult);
+    contactKind = work->hitContacts[0].key.parts.kind;
+    switch ((u32)contactKind) {
         case 0:
             break;
-        case 1:
-            arg0->state                           = 2;
-            ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
+        case WORLD_COLLISION_CONTACT_PLAYER_BODY >> 16:
+            task->state                           = MOTH_TASK_DEATH;
+            ((Enemy*)task->spawnArg2.pointer)->hp = 0;
             sceneEngageBattle(1);
             break;
-        case 2:
-            arg0->state      = (s32)state;
-            target           = gPlayerActorTasks[(u8)work->hitContacts[0].key.parts.id >> 7]->extra.tmd->coords;
-            dx               = target->coord.t[0] - coord->coord.t[0];
-            delta->vector.vx = dx;
-            dy               = target->coord.t[1] - coord->coord.t[1];
-            delta->vector.vy = dy;
-            dz               = target->coord.t[2] - coord->coord.t[2];
-            delta->vector.vz = dz;
-            damage           = damageComputePlayerAttack(work->hitContacts[0].key.value,
-                                                         SquareRoot0((dx * dx) + (dy * dy) + (dz * dz)), 0, 0);
-            amount           = damage;
-            if (damage == 0) {
-                damage = 1;
-                amount = 1;
+        case WORLD_COLLISION_CONTACT_ATTACK >> 16:
+            task->state        = contactKind;
+            attackerRoot       = gPlayerActorTasks[(u8)work->hitContacts[0].key.parts.id >> MOTH_HIT_ACTOR_SLOT_SHIFT]->extra.tmd->coords;
+            playerOffsetX      = attackerRoot->coord.t[0] - rootCoord->coord.t[0];
+            scratch->vector.vx = playerOffsetX;
+            playerOffsetY      = attackerRoot->coord.t[1] - rootCoord->coord.t[1];
+            scratch->vector.vy = playerOffsetY;
+            playerOffsetZ      = attackerRoot->coord.t[2] - rootCoord->coord.t[2];
+            scratch->vector.vz = playerOffsetZ;
+            attackDamage       = damageComputePlayerAttack(work->hitContacts[0].key.value,
+                                                           SquareRoot0((playerOffsetX * playerOffsetX) + (playerOffsetY * playerOffsetY) + (playerOffsetZ * playerOffsetZ)), 0, 0);
+            if (attackDamage == 0) {
+                attackDamage = 1;
             }
-            worldTargetAddReadoutAmount(&((Enemy*)arg0->spawnArg2.pointer)->node, amount, 0);
-            damageAccumulateLifeDrainHp(arg0->spawnArg2.pointer, work->hitContacts[0].key.value, damage, 0);
-            ((Enemy*)arg0->spawnArg2.pointer)->hp = 0;
-            effectSpawnHit(damageGetPlayerAttackEffectId((s32)work->hitContacts[0].key.value), arg0->extra.tmd->coords, 0,
+            worldTargetAddReadoutAmount(&((Enemy*)task->spawnArg2.pointer)->node, attackDamage, 0);
+            damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->hitContacts[0].key.value, attackDamage, 0);
+            ((Enemy*)task->spawnArg2.pointer)->hp = 0;
+            effectSpawnHit(damageGetPlayerAttackEffectId(work->hitContacts[0].key.value), task->extra.tmd->coords, 0,
                            &work->hitEffectArg);
             break;
     }

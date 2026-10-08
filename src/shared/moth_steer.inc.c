@@ -1,77 +1,90 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Before the alert the yaw takes a random step of up to +-31 a frame; once
-/// alerted it turns toward the player by 0x10 a frame, snapping when within
-/// 0x10. The pitch takes a random step of up to +-63 clamped to +-0x100, and
-/// the root rotation is rebuilt from pitch and yaw.
-void mothSteer(Task* arg0)
+/// Rebuilds the living moth's root from its wandering or pursuing heading and pitch.
+///
+/// Angles use 4096 units per turn. Unalerted yaw steps randomly by 0..31;
+/// alerted yaw turns toward the player's parent-frame X/Z offset by 16,
+/// snapping within 16. Pitch steps randomly by 0..63 and clamps to +/-256.
+/// Player offsets narrow to signed halfwords. The wrapped difference is used
+/// only for its turn sign; composition is invalidated by the living update.
+/// One face scratch block is released before return.
+static void _mothSteer(Task* task)
 {
-    MothWork*         work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s32               random;
-    s32               amount;
-    s32               cur;
-    s32               cur2;
-    s32               cur3;
-    s32               random2;
-    s32               amount2;
-    u16               want;
-    s16               diff;
-    s32               adiff;
-    s16               turn;
-    s16               wrap;
+    enum {
+        MOTH_PURSUIT_TURN_STEP       = 16,
+        MOTH_PITCH_LIMIT             = 256,
+        MOTH_YAW_STEP_MASK           = 31,
+        MOTH_YAW_POSITIVE_STEP_BIT   = 32,
+        MOTH_PITCH_STEP_MASK         = 63,
+        MOTH_PITCH_POSITIVE_STEP_BIT = 64
+    };
 
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    MothWork*         work;
+    GfxCoord*         rootCoord;
+    ActorFaceScratch* scratch;
+    s32               yawDraw;
+    s32               yawStep;
+    s32               previousYaw;
+    s32               pursuitYaw;
+    s32               previousPitch;
+    s32               pitchDraw;
+    s32               pitchStep;
+    u16               playerYaw;
+    s16               yawDifference;
+    s32               yawDistance;
+    s16               turnDirection;
+    s16               wrappedDifference;
+
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     switch (work->alerted) {
-        case 0:
+        case false:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            random          = gRandomLcgState >> 16;
-            amount          = random & 0x1F;
-            cur             = work->yaw;
-            work->yaw       = !(random & 0x20) ? cur - amount : cur + amount;
+            yawDraw         = gRandomLcgState >> 16;
+            yawStep         = yawDraw & MOTH_YAW_STEP_MASK;
+            previousYaw     = work->yaw;
+            work->yaw       = !(yawDraw & MOTH_YAW_POSITIVE_STEP_BIT) ? previousYaw - yawStep : previousYaw + yawStep;
             break;
-        case 1:
-            sc->delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            sc->delta.vy = 0;
-            sc->delta.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            want         = ratan2((s16)sc->delta.vx, (s16)sc->delta.vz) & 0xFFF;
-            diff         = want - (work->yaw & 0xFFF);
-            adiff        = diff >= 0 ? diff : -diff;
-            turn         = diff;
-            if (adiff < 0x11) {
-                work->yaw = want;
+        case true:
+            scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            scratch->delta.vy = 0;
+            scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            playerYaw         = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            yawDifference     = playerYaw - (work->yaw & ACTOR_TRANSFORM_ANGLE_MASK);
+            yawDistance       = yawDifference >= 0 ? yawDifference : -yawDifference;
+            turnDirection     = yawDifference;
+            if (yawDistance < MOTH_PURSUIT_TURN_STEP + 1) {
+                work->yaw = playerYaw;
             } else {
-                if (adiff >= 0x801) {
-                    wrap = diff - 0x1000;
-                    if (diff <= 0)
-                        wrap = 0x1000 - diff;
-                    turn = wrap;
+                if (yawDistance >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
+                    wrappedDifference = yawDifference - ACTOR_TRANSFORM_ANGLE_TURN;
+                    if (yawDifference <= 0)
+                        wrappedDifference = ACTOR_TRANSFORM_ANGLE_TURN - yawDifference;
+                    turnDirection = wrappedDifference;
                 }
-                cur2 = work->yaw;
-                if (turn > 0) {
-                    work->yaw = cur2 + 0x10;
+                pursuitYaw = work->yaw;
+                if (turnDirection > 0) {
+                    work->yaw = pursuitYaw + MOTH_PURSUIT_TURN_STEP;
                 } else {
-                    work->yaw = cur2 - 0x10;
+                    work->yaw = pursuitYaw - MOTH_PURSUIT_TURN_STEP;
                 }
             }
             break;
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    random2         = gRandomLcgState >> 16;
-    amount2         = random2 & 0x3F;
-    cur3            = work->pitch;
-    work->pitch     = !(random2 & 0x40) ? cur3 - amount2 : cur3 + amount2;
-    if (work->pitch > 0x100) {
-        work->pitch = 0x100;
-    } else if (work->pitch < -0x100) {
-        work->pitch = -0x100;
+    pitchDraw       = gRandomLcgState >> 16;
+    pitchStep       = pitchDraw & MOTH_PITCH_STEP_MASK;
+    previousPitch   = work->pitch;
+    work->pitch     = !(pitchDraw & MOTH_PITCH_POSITIVE_STEP_BIT) ? previousPitch - pitchStep : previousPitch + pitchStep;
+    if (work->pitch > MOTH_PITCH_LIMIT) {
+        work->pitch = MOTH_PITCH_LIMIT;
+    } else if (work->pitch < -MOTH_PITCH_LIMIT) {
+        work->pitch = -MOTH_PITCH_LIMIT;
     }
-    sc->rot.vx = work->pitch;
-    sc->rot.vy = work->yaw;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
+    scratch->rot.vx = work->pitch;
+    scratch->rot.vy = work->yaw;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &rootCoord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }

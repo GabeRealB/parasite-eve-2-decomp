@@ -49,6 +49,18 @@
 #include "../../shared/rat.h"
 #include "../../shared/moth.h"
 
+static void _mothSpawn(Enemy* enemy, Task* task);
+static void _mothUpdate(Enemy* enemy, Task* task);
+static void _mothContacts(Task* task);
+static void _mothOscillateParts(Task* task);
+static void _mothSteer(Task* task);
+static void _mothDrift(Task* task);
+static void _mothDeath(Enemy* enemy, Task* task);
+static void _mothDrawBurst(Task* task);
+static void _mothTask(Task* task);
+static void _mothSquash(Task* task);
+static void _mothUpdateColor(Task* task);
+
 extern ActorSpriteUv gMothBurstUvs[];
 
 extern s16 gRatSlowMoveChance[];
@@ -58,7 +70,7 @@ extern u16 gRatFastMoveTimes[];
 extern s16 gRatAttackRepeatChance[];
 extern s16 gRatAnimBlend[];
 
-/// Per-`field_F` drift speed for the state-1 wander in `mothDrift`,
+/// Per-`field_F` drift speed for the state-1 wander in `_mothDrift`,
 /// summed with a 5-bit `gRandomLcgState` draw.
 extern s16 gMothSpeeds[];
 
@@ -69,7 +81,7 @@ extern struct DamageAttack gRatAttack;
 extern EnemyParams         gRatParams;
 extern AnimationSet*       gRatAnimSets[11];
 
-/// The same three for the second body, used by `mothSpawn`.
+/// The same three for the second body, used by `_mothSpawn`.
 extern EnemyParams         gMothParams;
 extern struct DamageAttack gMothAttack;
 extern AnimationSet*       gMothAnimSets[2];
@@ -507,7 +519,7 @@ s16 gMothSpeeds[8] = {
     36,
 };
 
-TaskDesc Actor00700_D075A8 = { { { TASK_BODY_TMD, 96 } }, mothTask, { .model = &_gActor00700MothBody } };
+TaskDesc Actor00700_D075A8 = { { { TASK_BODY_TMD, 96 } }, _mothTask, { .model = &_gActor00700MothBody } };
 
 AnimationSet* gMothAnimSets[2] = {
     NULL,
@@ -563,11 +575,11 @@ ActorSpriteUv gMothBurstUvs[8] = {
 
 #include "../../shared/rat_squash.inc.c"
 
-/// The state handlers `mothTask` dispatches on `Task::state`,
+/// The state handlers `_mothTask` dispatches on `Task::state`,
 /// for the second body this package carries: set-up, per-frame update, and the
 /// one a resolved hit switches it to.
 static const EnemyTaskFuncTable3 gMothStateHandlers = {
-    { mothSpawn, mothUpdate, mothDeath },
+    { _mothSpawn, _mothUpdate, _mothDeath },
 };
 
 #include "../../shared/moth_spawn.inc.c"
