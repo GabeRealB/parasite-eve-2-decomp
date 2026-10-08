@@ -1,42 +1,48 @@
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Spawns the husk model effect at node 4 and gives it the texture page and
-/// CLUT of the enemy's area placement.
-void maggotCaterpillarSpawnHusk(Task* actor)
+/// Flings a detached husk model from body coordinate 4 with its placement textures.
+///
+/// Requires a live model with coordinate 4 and an owning enemy whose placement
+/// index exists in the current area variant. Publishes the borrowed model
+/// source for the bank-4 effect descriptor; the carrier must stay loaded while
+/// the effect uses it. Allocation failure leaves no husk. On success, both
+/// primitive-buffer halves are rebuilt after applying texture-page and CLUT
+/// offsets. The parent actor retains ownership of its own model and work.
+static void _maggotCaterpillarSpawnHusk(Task* actor)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               areaByte0;
-    AreaVariant*     layout;
-    AreaPlacement*   entry;
-    EffectWork*      eff;
-    TmdObject*       model;
-    s32              idx;
-    u32              raw;
+    enum { MAGGOT_CATERPILLAR_HUSK_SIZE_ARGUMENT = 0x100 };
+    GameLocationKey  location;
+    GameLocationKey* currentLocation;
+    u8               currentView;
+    AreaVariant*     areaVariant;
+    AreaPlacement*   placement;
+    EffectWork*      huskEffect;
+    TmdObject*       huskModel;
+    s32              placementIndex;
+    u32              placeKey;
 
     D_80067704[0] = &gMaggotCaterpillarHuskModel;
-    eff           = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, actor->extra.tmd->coords + 4, 0x100, NULL);
-    if (eff == NULL) {
+    huskEffect    = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, actor->extra.tmd->coords + 4, MAGGOT_CATERPILLAR_HUSK_SIZE_ARGUMENT, NULL);
+    if (huskEffect == NULL) {
         return;
     }
-    sessionKey = &gGameSession->location.loc;
-    raw        = ((Enemy*)actor->spawnArg2.pointer)->placeKey;
-    model      = eff->task->extra.tmd;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    areaByte0  = sessionKey->view;
-    idx        = raw >> 12;
-    key.view   = areaByte0;
-    areaSyncLocationVariant(&key);
-    layout = areaGetVariant(&key);
-    /* offset + base, not `&layout->placements[idx]`: the ROM adds the scaled index
-       onto the table (`addu s0, s0, v0`). */
-    entry                    = gpAreaPlaceAt(layout->placements, idx);
-    model->texturePageOffset = entry->texturePageOffset;
-    model->clutRowOffset     = entry->clutRowOffset;
-    if (model->buffer != NULL) {
-        tmdBuildBufferHalf(model);
-        tmdBuildBufferHalf(model);
+    currentLocation = &gGameSession->location.loc;
+    placeKey        = ((Enemy*)actor->spawnArg2.pointer)->placeKey;
+    huskModel       = huskEffect->task->extra.tmd;
+    location.stage  = currentLocation->stage;
+    location.area   = currentLocation->area;
+    location.room   = currentLocation->room;
+    currentView     = currentLocation->view;
+    placementIndex  = placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    location.view   = currentView;
+    areaSyncLocationVariant(&location);
+    areaVariant = areaGetVariant(&location);
+    // Preserve the table helper's scaled-offset-first address calculation.
+    placement                    = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+    huskModel->texturePageOffset = placement->texturePageOffset;
+    huskModel->clutRowOffset     = placement->clutRowOffset;
+    if (huskModel->buffer != NULL) {
+        tmdBuildBufferHalf(huskModel);
+        tmdBuildBufferHalf(huskModel);
     }
 }

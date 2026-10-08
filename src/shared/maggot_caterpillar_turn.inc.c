@@ -1,62 +1,65 @@
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Turn step, run every frame while `turnRate` is non-zero: reads the
-/// heading back from the coordinate, turns it toward `targetYaw` by at most
-/// `turnRate` the shorter way round the circle, keeps the result in
-/// `yaw` and rebuilds the coordinate's rotation as that pure yaw.
-void maggotCaterpillarTurnStep(Task* arg0)
+/// Turns the root toward its requested heading and replaces its rotation with level yaw.
+///
+/// Headings use 4096 units per turn; `turnRate` is a nonnegative angular step.
+/// The target must be in the same one-turn domain as the matrix-derived yaw.
+/// The difference narrows to s16 before choosing the shorter arc; an exact
+/// half-turn takes the wrapped arc. Translation is retained, and the caller
+/// must mark the coordinate dirty and recompose it after this step.
+static void _maggotCaterpillarTurnStep(Task* actor)
 {
     MaggotCaterpillarWork* work;
     GfxCoord*              coord;
-    ActorFaceScratch*      sc;
-    s32                    ang;
-    u16                    want;
-    s16                    diff;
-    s32                    adiff;
-    s32                    step;
-    s32                    cur;
-    s32                    next;
-    s32                    wrapStep;
+    ActorFaceScratch*      turnScratch;
+    s32                    currentYaw;
+    u16                    targetYaw;
+    s16                    yawDelta;
+    s32                    absoluteYawDelta;
+    s32                    turnRate;
+    s32                    previousYaw;
+    s32                    nextYaw;
+    s32                    wrappedTurnRate;
 
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->targetYaw;
-    diff  = want - ang;
-    adiff = diff >= 0 ? diff : -diff;
+    turnScratch      = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    coord            = actor->extra.tmd->coords;
+    work             = actor->work;
+    currentYaw       = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
+    targetYaw        = work->targetYaw;
+    yawDelta         = targetYaw - currentYaw;
+    absoluteYawDelta = yawDelta >= 0 ? yawDelta : -yawDelta;
 
-    work->yaw = ang;
-    if (adiff < 0x800) {
-        step = work->turnRate;
-        if (step >= adiff) {
-            work->yaw = want;
+    work->yaw = currentYaw;
+    if (absoluteYawDelta < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        turnRate = work->turnRate;
+        if (turnRate >= absoluteYawDelta) {
+            work->yaw = targetYaw;
         } else {
-            next = work->yaw;
-            if (diff <= 0) {
-                next -= step;
+            nextYaw = work->yaw;
+            if (yawDelta <= 0) {
+                nextYaw -= turnRate;
             } else {
-                next += step;
+                nextYaw += turnRate;
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     } else {
-        step = work->turnRate;
-        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+        turnRate = work->turnRate;
+        if (yawDelta > 0 ? turnRate >= ACTOR_TRANSFORM_ANGLE_TURN - yawDelta : turnRate >= ACTOR_TRANSFORM_ANGLE_TURN + yawDelta) {
             work->yaw = work->targetYaw;
         } else {
-            wrapStep = work->turnRate;
-            cur      = work->yaw;
-            if (diff > 0) {
-                work->yaw = cur - wrapStep;
+            wrappedTurnRate = work->turnRate;
+            previousYaw     = work->yaw;
+            if (yawDelta > 0) {
+                work->yaw = previousYaw - wrappedTurnRate;
             } else {
-                work->yaw = cur + wrapStep;
+                work->yaw = previousYaw + wrappedTurnRate;
             }
         }
     }
-    sc->rot.vx = 0;
-    sc->rot.vy = work->yaw;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
+    turnScratch->rot.vx = 0;
+    turnScratch->rot.vy = work->yaw;
+    turnScratch->rot.vz = 0;
+    RotMatrix(&turnScratch->rot, &coord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }

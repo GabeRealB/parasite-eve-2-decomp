@@ -1,39 +1,47 @@
-#include "main/random.h"
-
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// `MAGGOT_CATERPILLAR_BEHAVIOUR_SPRAY`: plays the spray sound at frame 0x28
-/// and spawns a puff projectile on each of frames 0x2B-0x31, counting them in
-/// `puffCount`. It returns to `MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM` once the
-/// animation has run past the spray's tail length, with a random delay taken
-/// from the placement-row table.
-void maggotCaterpillarSprayState(Task* arg0)
+/// Holds the enemy still while its spray clip emits seven puff children.
+///
+/// Requires initialized work, a body/puff descriptor run covering index 1,
+/// and a placement row in 0..7 for the idle-delay table. Sound plays at tick
+/// 40; ticks 43..49 each request a puff, counting attempts even on allocation
+/// failure. At clip tick 60 plus its blend length, the enemy returns to roam
+/// with the row's idle delay plus a random 0..15 ticks.
+static void _maggotCaterpillarSprayState(Task* actor)
 {
+    enum {
+        MAGGOT_CATERPILLAR_SPRAY_SOUND_FRAME      = 40,
+        MAGGOT_CATERPILLAR_SPRAY_FIRST_PUFF_FRAME = 43,
+        MAGGOT_CATERPILLAR_SPRAY_PUFF_END_FRAME   = 50,
+        MAGGOT_CATERPILLAR_SPRAY_CLIP_FRAMES      = 60,
+        MAGGOT_CATERPILLAR_SPRAY_SOUND            = 0x401A0003,
+        MAGGOT_CATERPILLAR_PUFF_DESCRIPTOR_INDEX  = 1
+    };
     MaggotCaterpillarWork* work;
     GfxCoord*              coord;
-    s32                    sound;
-    s32                    pan;
-    u32                    random;
+    s32                    soundKey;
+    s32                    audioPan;
+    u32                    randomDelay;
 
-    work               = arg0->work;
-    coord              = arg0->extra.tmd->coords;
+    work               = actor->work;
+    coord              = actor->extra.tmd->coords;
     work->forwardSpeed = 0;
     work->turnRate     = 0;
-    if (work->animFrame == 0x28) {
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401A0003;
-        pan   = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(sound, (s32)pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    if (work->animFrame == MAGGOT_CATERPILLAR_SPRAY_SOUND_FRAME) {
+        soundKey = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | MAGGOT_CATERPILLAR_SPRAY_SOUND;
+        audioPan = (s8)worldCoordGetOriginAudioPan(coord);
+        sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
     }
-    if ((work->animFrame >= 0x2B) && (work->animFrame < 0x32)) {
-        enemySpawnFromTable(work->taskTable, 1, 0, arg0->spawnArg2.pointer);
+    if ((work->animFrame >= MAGGOT_CATERPILLAR_SPRAY_FIRST_PUFF_FRAME) && (work->animFrame < MAGGOT_CATERPILLAR_SPRAY_PUFF_END_FRAME)) {
+        enemySpawnFromTable(work->taskTable, MAGGOT_CATERPILLAR_PUFF_DESCRIPTOR_INDEX, 0, actor->spawnArg2.pointer);
         work->puffCount++;
     }
-    if (work->animFrame >= (gMaggotCaterpillarSprayTail + 0x3C)) {
+    if (work->animFrame >= (gMaggotCaterpillarSprayTail + MAGGOT_CATERPILLAR_SPRAY_CLIP_FRAMES)) {
         work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ROAM;
         work->step         = 0;
         work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
-        random             = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex] + ((random >> 0x10) & 0xF);
-        gRandomLcgState    = random;
+        randomDelay        = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        work->stateCounter = gMaggotCaterpillarIdleDelay[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex] + ((randomDelay >> 0x10) & 0xF);
+        gRandomLcgState    = randomDelay;
     }
 }

@@ -217,6 +217,19 @@ typedef struct {
 } MaggotCaterpillarContactsScratch;
 STATIC_ASSERT_SIZEOF(MaggotCaterpillarContactsScratch, 0x38);
 
+/// Body task phase reached after successful setup.
+enum { MAGGOT_CATERPILLAR_TASK_ACTIVE = 1 };
+
+/// Scripted entrance kind and downward ground-following step in coordinate units.
+enum {
+    MAGGOT_CATERPILLAR_ENTRANCE_LEAP    = 0,
+    MAGGOT_CATERPILLAR_ENTRANCE_DROP    = 1,
+    MAGGOT_CATERPILLAR_GROUND_FALL_STEP = 128
+};
+
+/// Weapon-table row encoded twice in the actor's own category-2 flame contact.
+enum { MAGGOT_CATERPILLAR_FLAME_ATTACK_ROW = 36 };
+
 /// Body task phase entered when an interruptible reaction exhausts HP.
 enum { MAGGOT_CATERPILLAR_TASK_DYING = 2 };
 
@@ -246,37 +259,37 @@ enum {
     MAGGOT_CATERPILLAR_ATTACK_DROP               = 5
 };
 
-void        maggotCaterpillarSprayState(Task* arg0);
+static void _maggotCaterpillarSprayState(Task* actor);
 static void _maggotCaterpillarPounceState(Task* actor);
 static void _maggotCaterpillarHurtState(Task* actor);
-void        maggotCaterpillarEntranceState(Task* arg0);
-void        maggotCaterpillarBurnStep(Task* arg0);
-void        maggotCaterpillarTurnStep(Task* arg0);
-void        maggotCaterpillarDyingState(Enemy* arg0, Task* arg1);
+static void _maggotCaterpillarEntranceState(Task* actor);
+static void _maggotCaterpillarBurnStep(Task* actor);
+static void _maggotCaterpillarTurnStep(Task* actor);
+static void _maggotCaterpillarDyingState(Enemy* enemy, Task* actor);
 static void _maggotCaterpillarPuffTick(Enemy* enemy, Task* task);
 static void _maggotCaterpillarDrawPuff(Task* actor, s32 frame);
 static void _maggotCaterpillarDrawThread(Task* actor);
-void        maggotCaterpillarTick(Enemy* arg0, Task* arg1);
+static void _maggotCaterpillarTick(Enemy* enemy, Task* actor);
 static void _maggotCaterpillarApplyStatus(Task* actor);
 static void _maggotCaterpillarStunState(Task* actor);
 static void _maggotCaterpillarMoveStep(Task* actor);
-void        maggotCaterpillarDrawShadow(Task* arg0);
+static void _maggotCaterpillarDrawShadow(Task* actor);
 static void _maggotCaterpillarSquash(Task* actor);
-void        maggotCaterpillarSpawnHusk(Task* actor);
+static void _maggotCaterpillarSpawnHusk(Task* actor);
 static void _maggotCaterpillarShrinkNode2(Task* actor);
 static void _maggotCaterpillarPuffSetup(Enemy* enemy, Task* task);
 
-void        maggotCaterpillarWaitState(Task* arg0);
+static void _maggotCaterpillarWaitState(Task* actor);
 static void _maggotCaterpillarAimState(Task* actor);
 static void _maggotCaterpillarAmbushState(Task* actor);
 static void _maggotCaterpillarRoamState(Task* actor);
-void        maggotCaterpillarSpawn(Enemy* ctx, Task* actor);
-void        maggotCaterpillarResolveContacts(Task* arg0);
+static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor);
+static void _maggotCaterpillarResolveContacts(Task* actor);
 static void _maggotCaterpillarPuffTask(Task* task);
-void        maggotCaterpillarTask(Task* arg0);
-void        maggotCaterpillarRunBehaviour(Task* arg0);
-void        maggotCaterpillarTickAnim(Task* arg0);
-void        maggotCaterpillarUpdateColor(Task* arg0);
+static void _maggotCaterpillarTask(Task* actor);
+static void _maggotCaterpillarRunBehaviour(Task* actor);
+static void _maggotCaterpillarTickAnim(Task* actor);
+static void _maggotCaterpillarUpdateColor(Task* actor);
 
 static inline void _maggotCaterpillarTickAnimInline(Task* task);
 

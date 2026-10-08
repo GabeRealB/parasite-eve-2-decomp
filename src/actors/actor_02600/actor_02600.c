@@ -620,7 +620,7 @@ s16 gMaggotCaterpillarPuffRadius[14] = {
     0,
 };
 
-TaskDesc gMaggotCaterpillarBodyTask = { { { TASK_BODY_TMD, 96 } }, maggotCaterpillarTask, { .model = &_gActor02600CaterpillarMaggotBody } };
+TaskDesc gMaggotCaterpillarBodyTask = { { { TASK_BODY_TMD, 96 } }, _maggotCaterpillarTask, { .model = &_gActor02600CaterpillarMaggotBody } };
 
 TaskDesc Actor02600_D08AC0 = { { { TASK_BODY_COORD, 96 } }, _maggotCaterpillarPuffTask, { .value = 0 } };
 
@@ -654,13 +654,13 @@ static const EnemyTaskFuncTable3 gMaggotCaterpillarPuffStates = {
     },
 };
 
-/// State handlers of the actor task `maggotCaterpillarTask` dispatches, indexed
+/// State handlers of the actor task `_maggotCaterpillarTask` dispatches, indexed
 /// by `Task::state`: spawn, per-frame tick and the dying sequence.
 static const EnemyTaskFuncTable3 gMaggotCaterpillarStates = {
     {
-        maggotCaterpillarSpawn,
-        maggotCaterpillarTick,
-        maggotCaterpillarDyingState,
+        _maggotCaterpillarSpawn,
+        _maggotCaterpillarTick,
+        _maggotCaterpillarDyingState,
     },
 };
 

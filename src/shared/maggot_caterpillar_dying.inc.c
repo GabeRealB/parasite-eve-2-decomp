@@ -1,108 +1,121 @@
 /* Part of the Maggot and Caterpillar library; see maggot_caterpillar.h. */
 
-/// Dying sequence, the actor task's third state. While the global mode is 1
-/// only the colour is updated, and mode 2 sets the model's `field_C` to 0x80.
-/// Otherwise the work's `step` steps: step 0 saves the coordinate in
-/// `baseMatrix` for the squash, unlinks the context node and the work's four
-/// collision objects, passes 0x37 (0x1A when `isCaterpillar` is clear) to
-/// `sceneReleaseBattleRefWithRewards` and starts `MAGGOT_CATERPILLAR_ANIM_HURT`; step 1
-/// squashes the model (and, once `burst` has passed 1, frees its buffers and
-/// spawns the model effect of `maggotCaterpillarSpawnHusk` in its place),
-/// spawns effect 0x600A5 at frame 0xF and moves to step 2 at frame 0x3C; step 2
-/// destroys the enemy 0x3C frames later.
-void maggotCaterpillarDyingState(Enemy* arg0, Task* arg1)
+/// Detaches the dying enemy from combat, collapses its model and eventually destroys it.
+///
+/// Requires the live enemy/task pair and initialized work. PAUSED updates only
+/// colour; HIDDEN suppresses drawing without advancing death. Other controls
+/// unlink target/collision state and release the battle hold once, then squash
+/// and fade for 60 ticks. A burst substitutes a detached husk after two ticks.
+/// The final phase waits another 60 ticks before teardown; callers must not
+/// access the enemy or task after that teardown.
+static void _maggotCaterpillarDyingState(Enemy* enemy, Task* actor)
 {
-    VECTOR                 vec;
+    enum {
+        MAGGOT_CATERPILLAR_DEATH_DETACH           = 0,
+        MAGGOT_CATERPILLAR_DEATH_COLLAPSE         = 1,
+        MAGGOT_CATERPILLAR_DEATH_WAIT             = 2,
+        MAGGOT_CATERPILLAR_DEATH_FADE_FRAME       = 10,
+        MAGGOT_CATERPILLAR_DEATH_FIRE_FRAME       = 15,
+        MAGGOT_CATERPILLAR_DEATH_PHASE_TICKS      = 60,
+        MAGGOT_CATERPILLAR_DEATH_ALERT_CLASS      = 2,
+        MAGGOT_CATERPILLAR_MAGGOT_REWARD_ARG      = 26,
+        MAGGOT_CATERPILLAR_CATERPILLAR_REWARD_ARG = 55
+    };
+    VECTOR                 colorPosition;
     MaggotCaterpillarWork* work;
     GfxCoord*              coord;
     GfxCoord*              colorCoord;
-    TmdObject*             obj;
-    s32                    releaseId;
+    TmdObject*             model;
+    s32                    rewardKindArg;
 
-    obj   = arg1->extra.tmd;
-    work  = arg1->work;
-    coord = obj->coords;
+    // Stable local arguments are evaluated repeatedly; the VECTOR pad is untouched.
+#define MAGGOT_CATERPILLAR_UPDATE_CORPSE_POSE(actor, colorCoord, colorPosition)         \
+    do {                                                                                \
+        _maggotCaterpillarTickAnimInline(actor);                                        \
+        (colorCoord)       = (actor)->extra.tmd->coords;                                \
+        (colorPosition).vx = (colorCoord)->workm.t[0];                                  \
+        (colorPosition).vy = (colorCoord)->workm.t[1];                                  \
+        (colorPosition).vz = (colorCoord)->workm.t[2];                                  \
+        worldCoordUpdateActorColor((actor)->spawnArg2.pointer, &(colorPosition), 0, 0); \
+    } while (0)
+
+    model = actor->extra.tmd;
+    work  = actor->work;
+    coord = model->coords;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            vec.vx = coord->workm.t[0];
-            vec.vy = coord->workm.t[1];
-            vec.vz = coord->workm.t[2];
-            worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+            colorPosition.vx = coord->workm.t[0];
+            colorPosition.vy = coord->workm.t[1];
+            colorPosition.vz = coord->workm.t[2];
+            worldCoordUpdateActorColor(actor->spawnArg2.pointer, &colorPosition, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             switch (work->step) {
-                case 0:
-                    work->vertical.squashScale = 0x1000;
+                case MAGGOT_CATERPILLAR_DEATH_DETACH:
+                    // Remove every borrowed list link before releasing combat ownership.
+                    work->vertical.squashScale = ONE;
                     work->baseMatrix           = coord->coord;
-                    arg0->recs                 = 0;
-                    worldTargetUnlinkNode(&arg0->node);
+                    enemy->recs                = NULL;
+                    worldTargetUnlinkNode(&enemy->node);
                     worldCollisionUnlinkBody(&work->gridBody);
                     worldCollisionUnlinkBody(&work->body);
                     worldCollisionUnlinkBody(&work->attackBody);
                     worldCollisionUnlinkBody(&work->flameBody);
-                    releaseId = 0x37;
+                    rewardKindArg = MAGGOT_CATERPILLAR_CATERPILLAR_REWARD_ARG;
                     if (work->isCaterpillar == 0) {
-                        releaseId = 0x1A;
+                        rewardKindArg = MAGGOT_CATERPILLAR_MAGGOT_REWARD_ARG;
                     }
-                    sceneReleaseBattleRefWithRewards(arg1, releaseId);
-                    sceneSetEnemyAlert(2);
+                    sceneReleaseBattleRefWithRewards(actor, rewardKindArg);
+                    sceneSetEnemyAlert(MAGGOT_CATERPILLAR_DEATH_ALERT_CLASS);
                     work->stateCounter = 0;
-                    work->step         = 1;
-                    worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
+                    work->step         = MAGGOT_CATERPILLAR_DEATH_COLLAPSE;
+                    worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     if (work->burst != 0) {
-                        obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     work->animId = MAGGOT_CATERPILLAR_ANIM_HURT;
-                    _maggotCaterpillarTickAnimInline(arg1);
-                    colorCoord = arg1->extra.tmd->coords;
-                    vec.vx     = colorCoord->workm.t[0];
-                    vec.vy     = colorCoord->workm.t[1];
-                    vec.vz     = colorCoord->workm.t[2];
-                    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+                    MAGGOT_CATERPILLAR_UPDATE_CORPSE_POSE(actor, colorCoord, colorPosition);
                     return;
-                case 1:
+                case MAGGOT_CATERPILLAR_DEATH_COLLAPSE:
+                    // Burst replacement owns a separate effect; the corpse task still times teardown.
                     if (work->burst != 0) {
                         if (work->burst >= 2) {
                             work->burst = 0;
-                            tmdFreePrimitiveBuffer(obj);
-                            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                            maggotCaterpillarSpawnHusk(arg1);
-                            _maggotCaterpillarShrinkNode2(arg1);
+                            tmdFreePrimitiveBuffer(model);
+                            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                            _maggotCaterpillarSpawnHusk(actor);
+                            _maggotCaterpillarShrinkNode2(actor);
                         } else {
                             work->burst++;
                         }
                     }
-                    _maggotCaterpillarSquash(arg1);
+                    _maggotCaterpillarSquash(actor);
                     work->stateCounter++;
-                    if (work->stateCounter == 0xA) {
-                        obj->flags = TMD_OBJECT_SEMI_TRANS;
+                    if (work->stateCounter == MAGGOT_CATERPILLAR_DEATH_FADE_FRAME) {
+                        model->flags = TMD_OBJECT_SEMI_TRANS;
                     }
-                    if (work->stateCounter == 0xF) {
+                    if (work->stateCounter == MAGGOT_CATERPILLAR_DEATH_FIRE_FRAME) {
                         effectSpawn(EFFECT_CORPSE_BURN, coord, 2, NULL);
                     }
-                    if (work->stateCounter >= 0x3C) {
-                        work->step         = 2;
+                    if (work->stateCounter >= MAGGOT_CATERPILLAR_DEATH_PHASE_TICKS) {
+                        work->step         = MAGGOT_CATERPILLAR_DEATH_WAIT;
                         work->stateCounter = 0;
-                        obj->flags         = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                        model->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
-                    _maggotCaterpillarTickAnimInline(arg1);
-                    colorCoord = arg1->extra.tmd->coords;
-                    vec.vx     = colorCoord->workm.t[0];
-                    vec.vy     = colorCoord->workm.t[1];
-                    vec.vz     = colorCoord->workm.t[2];
-                    worldCoordUpdateActorColor(arg1->spawnArg2.pointer, &vec, 0, 0);
+                    MAGGOT_CATERPILLAR_UPDATE_CORPSE_POSE(actor, colorCoord, colorPosition);
                     return;
-                case 2:
+                case MAGGOT_CATERPILLAR_DEATH_WAIT:
                     work->stateCounter++;
-                    if (work->stateCounter >= 0x3C) {
-                        enemyDestroy(arg0, arg1);
+                    if (work->stateCounter >= MAGGOT_CATERPILLAR_DEATH_PHASE_TICKS) {
+                        enemyDestroy(enemy, actor);
                     }
                     return;
             }
             break;
     }
+#undef MAGGOT_CATERPILLAR_UPDATE_CORPSE_POSE
 }

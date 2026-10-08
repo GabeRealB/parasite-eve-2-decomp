@@ -1,10 +1,14 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
-/// Actor task: runs the enemy's state handler from `gMaggotCaterpillarStates`.
-void maggotCaterpillarTask(Task* arg0)
+/// Dispatches one body setup, active-frame or dying handler.
+///
+/// `actor->state` must be 0..2 and `spawnArg2.pointer` its live owning enemy.
+/// Copies all three callbacks before dispatch. Setup failure or completed
+/// death may destroy the task; neither argument is used after dispatch.
+static void _maggotCaterpillarTask(Task* actor)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 states;
 
-    sp = gMaggotCaterpillarStates;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    states = gMaggotCaterpillarStates;
+    states.funcs[actor->state](actor->spawnArg2.pointer, actor);
 }

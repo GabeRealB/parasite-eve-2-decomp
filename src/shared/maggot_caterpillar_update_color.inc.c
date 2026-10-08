@@ -1,15 +1,19 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
-/// Passes the world position of the model's root coordinate to
-/// `worldCoordUpdateActorColor` for the context, with both trailing arguments 0.
-void maggotCaterpillarUpdateColor(Task* arg0)
+/// Updates enemy lighting and colour from the root's cached translation.
+///
+/// Requires a live model, writable lighting matrices and the owning enemy in
+/// `spawnArg2.pointer`. Copies signed-word XYZ without composing or converting
+/// the root; the lighting query interprets the sample as world coordinates.
+/// The sample is temporary and no pointer to it is retained.
+static void _maggotCaterpillarUpdateColor(Task* actor)
 {
     GfxCoord* coord;
-    VECTOR    vec;
+    VECTOR    colorPosition;
 
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    coord            = actor->extra.tmd->coords;
+    colorPosition.vx = coord->workm.t[0];
+    colorPosition.vy = coord->workm.t[1];
+    colorPosition.vz = coord->workm.t[2];
+    worldCoordUpdateActorColor(actor->spawnArg2.pointer, &colorPosition, 0, 0);
 }

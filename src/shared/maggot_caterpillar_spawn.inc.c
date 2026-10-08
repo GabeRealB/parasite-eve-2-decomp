@@ -1,192 +1,198 @@
 /* Part of the Maggot/Caterpillar library; see maggot_caterpillar.h. */
 
-/// Spawn handler: allocates the actor's work block, links the four `WorldCollisionBody`
-/// nodes (two collision-record tables, the coordinates and the effect arg) and
-/// seeds the initial state from the spawn parameters. The spawn mode splits
-/// into a tens digit (unused) and a units digit: 0 and 1 either place the actor
-/// on a table row and rotate it to face that row's angle, or fall through to
-/// the "walk to the player" state, 2 and 3 lift the coordinate and arm a
-/// timer. Modes >= 10 re-read the variant index from the parameters.
-void maggotCaterpillarSpawn(Enemy* ctx, Task* actor)
+/// Allocates the enemy's body work, initializes its rig and links four collision spheres.
+///
+/// Takes the live enemy/task pair with a TMD body and placement record. Modes
+/// 0..3 select dormant, aimed, hanging leader or hanging follower behavior;
+/// modes >=10 use decimal suffix 0/1 for the scripted leap/drop entrances.
+/// After the corresponding room event, those scripted modes instead place
+/// a dormant enemy at a saved entrance spot. The variant must be 0..3 for
+/// entrance tables, and the placement row 0..7 for later timing tables.
+/// Success transfers zeroed primary-heap work to the task and enters ACTIVE;
+/// allocation failure destroys the enemy/task pair before returning.
+static void _maggotCaterpillarSpawn(Enemy* enemy, Task* actor)
 {
-    SVECTOR                rot;
-    WorldCollisionContact* rec0;
-    WorldCollisionContact* rec1;
-    WorldCollisionContact* rec2;
-    WorldCollisionContact* rec3;
-    SVECTOR*               positions;
-    MATRIX*                matrix;
+    enum {
+        MAGGOT_CATERPILLAR_PLACE_DORMANT            = 0,
+        MAGGOT_CATERPILLAR_PLACE_AIMED              = 1,
+        MAGGOT_CATERPILLAR_PLACE_AMBUSH_LEADER      = 2,
+        MAGGOT_CATERPILLAR_PLACE_AMBUSH_FOLLOWER    = 3,
+        MAGGOT_CATERPILLAR_PLACE_SCRIPTED_BASE      = 10,
+        MAGGOT_CATERPILLAR_AMBUSH_START_RISE        = 1000,
+        MAGGOT_CATERPILLAR_HIT_EFFECT_SIZE_ARGUMENT = 0x100,
+        MAGGOT_CATERPILLAR_GRID_SPHERE_RADIUS       = 300,
+        MAGGOT_CATERPILLAR_HIT_SPHERE_RADIUS        = 300,
+        MAGGOT_CATERPILLAR_HIT_SPHERE_OFFSET_Y      = -100,
+        MAGGOT_CATERPILLAR_ATTACK_SPHERE_RADIUS     = 200,
+        MAGGOT_CATERPILLAR_FLAME_SPHERE_RADIUS      = 500
+    };
+    SVECTOR                placementRotation;
+    WorldCollisionContact* gridContacts;
+    WorldCollisionContact* bodyContacts;
+    WorldCollisionContact* attackContacts;
+    WorldCollisionContact* flameContacts;
+    SVECTOR*               entrancePositions;
+    MATRIX*                rootMatrix;
     MaggotCaterpillarWork* work;
-    s32                    variant;
-    s32                    quotient;
-    s32                    i;
-    s32                    mode;
-    AreaPlacement*         params;
+    s32                    entranceDigit;
+    s32                    modeTens;
+    s32                    slotIndex;
+    s32                    placementMode;
+    AreaPlacement*         placement;
     GfxCoord*              coord;
-    TmdObject*             obj;
+    TmdObject*             model;
 
-    obj   = actor->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(MaggotCaterpillarWork), 0);
+    // A standalone statement sequence: do not use under an unbraced conditional.
+    // Arguments must be stable; sphere is an lvalue evaluated repeatedly.
+    // Its coordinate and contact pointer must already be set to live storage;
+    // contactCount covers that table. Y narrows to s16 and radius to u16.
+    // Preserve shape stores, list insertion, then contact-table initialization.
+#define MAGGOT_CATERPILLAR_LINK_SPHERE(sphere, offsetY, collisionKey, sphereRadius, listIndex, contacts, contactCount) \
+    (sphere).pos.vx = 0;                                                                                               \
+    (sphere).pos.vy = (offsetY);                                                                                       \
+    (sphere).pos.vz = 0;                                                                                               \
+    (sphere).key    = (collisionKey);                                                                                  \
+    (sphere).radius = (sphereRadius);                                                                                  \
+    (sphere).flags  = WORLD_COLLISION_BODY_SPHERE;                                                                     \
+    worldCollisionLinkBody((listIndex), &(sphere));                                                                    \
+    worldCollisionInitContacts((contacts), (contactCount), 0)
+
+    model = actor->extra.tmd;
+    coord = model->coords;
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        enemyDestroy(ctx, actor);
+        enemyDestroy(enemy, actor);
         return;
     }
     actor->work         = work;
-    obj->flags          = 0;
+    model->flags        = 0;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
-    matrix              = &coord->coord;
+    model->lightMtx     = &work->lightMtx;
+    model->colorMtx     = &work->colorMtx;
+    rootMatrix          = &coord->coord;
     work->isCaterpillar = MAGGOT_CATERPILLAR_IS_CATERPILLAR;
     work->taskTable     = &gMaggotCaterpillarBodyTask;
-    ctx->field_4        = matrix;
-    ctx->field_48       = 0;
-    worldTargetLinkNode(&ctx->node);
-    ctx->coord                 = actor->extra.tmd->coords + 1;
-    ctx->bodyPos.vy            = -0x64;
-    ctx->recs                  = work->bodyContacts;
-    ctx->bodyPos.vx            = 0;
-    ctx->bodyPos.vz            = 0;
-    ctx->param                 = &gMaggotCaterpillarParams;
-    ctx->hp                    = (s16)gMaggotCaterpillarParams.hpMax;
+    enemy->field_4      = rootMatrix;
+    enemy->field_48     = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->coord               = actor->extra.tmd->coords + 1;
+    enemy->bodyPos.vy          = MAGGOT_CATERPILLAR_HIT_SPHERE_OFFSET_Y;
+    enemy->recs                = work->bodyContacts;
+    enemy->bodyPos.vx          = 0;
+    enemy->bodyPos.vz          = 0;
+    enemy->param               = &gMaggotCaterpillarParams;
+    enemy->hp                  = (s16)gMaggotCaterpillarParams.hpMax;
     work->effectArg.coord      = coord;
-    work->effectArg.spawnArgLo = 0x100;
+    work->effectArg.spawnArgLo = MAGGOT_CATERPILLAR_HIT_EFFECT_SIZE_ARGUMENT;
     work->effectArg.spawnArgHi = 1;
-    work->entranceSlot         = ctx->place->variant;
-    params                     = ctx->place;
-    mode                       = params->mode;
-    if (mode < 10) {
-        switch (mode) {
-            case 0:
+    work->entranceSlot         = enemy->place->variant;
+    placement                  = enemy->place;
+    placementMode              = placement->mode;
+    if (placementMode < MAGGOT_CATERPILLAR_PLACE_SCRIPTED_BASE) {
+        switch (placementMode) {
+            case MAGGOT_CATERPILLAR_PLACE_DORMANT:
                 work->animId         = MAGGOT_CATERPILLAR_ANIM_DORMANT;
                 work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
-                work->fallSpeed      = 0x80;
+                work->fallSpeed      = MAGGOT_CATERPILLAR_GROUND_FALL_STEP;
                 work->ambushFollower = 0;
                 break;
-            case 1:
+            case MAGGOT_CATERPILLAR_PLACE_AIMED:
                 work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_AIM;
                 work->animId         = MAGGOT_CATERPILLAR_ANIM_IDLE;
-                work->fallSpeed      = 0x80;
+                work->fallSpeed      = MAGGOT_CATERPILLAR_GROUND_FALL_STEP;
                 work->ambushFollower = 0;
                 break;
-            case 2:
+            case MAGGOT_CATERPILLAR_PLACE_AMBUSH_LEADER:
                 work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH;
                 work->animId         = MAGGOT_CATERPILLAR_ANIM_HANG;
                 work->fallSpeed      = 0;
                 work->ambushFollower = 0;
                 work->reactionMode   = MAGGOT_CATERPILLAR_REACTION_COMMITTED;
-                coord->coord.t[1]   += 0x3E8;
+                coord->coord.t[1]   += MAGGOT_CATERPILLAR_AMBUSH_START_RISE;
                 break;
-            case 3:
+            case MAGGOT_CATERPILLAR_PLACE_AMBUSH_FOLLOWER:
                 work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_AMBUSH;
                 work->animId         = MAGGOT_CATERPILLAR_ANIM_HANG;
                 work->fallSpeed      = 0;
                 work->ambushFollower = 1;
                 work->reactionMode   = MAGGOT_CATERPILLAR_REACTION_COMMITTED;
-                coord->coord.t[1]   += 0x3E8;
+                coord->coord.t[1]   += MAGGOT_CATERPILLAR_AMBUSH_START_RISE;
                 break;
         }
     } else {
-        work->entranceSlot = params->variant;
-        quotient           = mode / 10;
-        variant            = mode - quotient * 10;
-        switch (variant) {
-            case 0:
+        work->entranceSlot = placement->variant;
+        modeTens           = placementMode / MAGGOT_CATERPILLAR_PLACE_SCRIPTED_BASE;
+        entranceDigit      = placementMode - modeTens * MAGGOT_CATERPILLAR_PLACE_SCRIPTED_BASE;
+        switch (entranceDigit) {
+            case MAGGOT_CATERPILLAR_ENTRANCE_LEAP:
                 if (gameFlagGetNibble(GAME_FLAG_FORKED_ROAD_EVENT_SEEN) == 1) {
-                    work->animId    = MAGGOT_CATERPILLAR_ANIM_DORMANT;
-                    work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
-                    work->fallSpeed = 0x80;
-                    rot.vx          = 0;
-                    rot.vy          = gMaggotCaterpillarLeapInYaws[work->entranceSlot];
-                    rot.vz          = 0;
-                    RotMatrix(&rot, matrix);
-                    positions         = gMaggotCaterpillarLeapInSpots;
-                    coord->coord.t[0] = positions[work->entranceSlot].vx;
-                    coord->coord.t[1] = positions[work->entranceSlot].vy;
-                    coord->coord.t[2] = positions[work->entranceSlot].vz;
+                    work->animId         = MAGGOT_CATERPILLAR_ANIM_DORMANT;
+                    work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
+                    work->fallSpeed      = MAGGOT_CATERPILLAR_GROUND_FALL_STEP;
+                    placementRotation.vx = 0;
+                    placementRotation.vy = gMaggotCaterpillarLeapInYaws[work->entranceSlot];
+                    placementRotation.vz = 0;
+                    RotMatrix(&placementRotation, rootMatrix);
+                    entrancePositions = gMaggotCaterpillarLeapInSpots;
+                    coord->coord.t[0] = entrancePositions[work->entranceSlot].vx;
+                    coord->coord.t[1] = entrancePositions[work->entranceSlot].vy;
+                    coord->coord.t[2] = entrancePositions[work->entranceSlot].vz;
                 } else {
-                    work->entranceKind = 0;
+                    work->entranceKind = MAGGOT_CATERPILLAR_ENTRANCE_LEAP;
                     work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ENTRANCE;
                     work->animId       = MAGGOT_CATERPILLAR_ANIM_IDLE;
                     work->fallSpeed    = 0;
                 }
                 break;
-            case 1:
+            case MAGGOT_CATERPILLAR_ENTRANCE_DROP:
                 if (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == 2) {
-                    work->animId    = MAGGOT_CATERPILLAR_ANIM_DORMANT;
-                    work->behaviour = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
-                    work->fallSpeed = 0x80;
-                    rot.vx          = 0;
-                    rot.vy          = gMaggotCaterpillarDropInYaws[work->entranceSlot];
-                    rot.vz          = 0;
-                    RotMatrix(&rot, matrix);
-                    positions         = gMaggotCaterpillarDropInSpots;
-                    coord->coord.t[0] = positions[work->entranceSlot].vx;
-                    coord->coord.t[1] = positions[work->entranceSlot].vy;
-                    coord->coord.t[2] = positions[work->entranceSlot].vz;
+                    work->animId         = MAGGOT_CATERPILLAR_ANIM_DORMANT;
+                    work->behaviour      = MAGGOT_CATERPILLAR_BEHAVIOUR_WAIT;
+                    work->fallSpeed      = MAGGOT_CATERPILLAR_GROUND_FALL_STEP;
+                    placementRotation.vx = 0;
+                    placementRotation.vy = gMaggotCaterpillarDropInYaws[work->entranceSlot];
+                    placementRotation.vz = 0;
+                    RotMatrix(&placementRotation, rootMatrix);
+                    entrancePositions = gMaggotCaterpillarDropInSpots;
+                    coord->coord.t[0] = entrancePositions[work->entranceSlot].vx;
+                    coord->coord.t[1] = entrancePositions[work->entranceSlot].vy;
+                    coord->coord.t[2] = entrancePositions[work->entranceSlot].vz;
                     break;
                 }
                 work->behaviour    = MAGGOT_CATERPILLAR_BEHAVIOUR_ENTRANCE;
-                work->entranceKind = 1;
+                work->entranceKind = MAGGOT_CATERPILLAR_ENTRANCE_DROP;
                 work->animId       = MAGGOT_CATERPILLAR_ANIM_HANG;
                 work->fallSpeed    = 0;
                 work->reactionMode = MAGGOT_CATERPILLAR_REACTION_COMMITTED;
-                coord->coord.t[1] += 0x3E8;
+                coord->coord.t[1] += MAGGOT_CATERPILLAR_AMBUSH_START_RISE;
         }
     }
-    animationInitContext(&work->rig.anim, gMaggotCaterpillarAnimSets, obj, work->rig.poses, work->rig.slots);
-    for (i = 1; i < 8; i++) {
-        animationResetSlot(&work->rig.anim, i, 1);
+    // Seed all driven parts before exposing the initialized collision bodies.
+    animationInitContext(&work->rig.anim, gMaggotCaterpillarAnimSets, model, work->rig.poses, work->rig.slots);
+    for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationResetSlot(&work->rig.anim, slotIndex, MAGGOT_CATERPILLAR_ANIM_IDLE);
     }
-    (sceneAcquireBattleRef)(0);
-    rec0                            = work->gridContacts;
+    sceneAcquireBattleRef(0);
+    gridContacts                    = work->gridContacts;
     work->gridBody.coord            = coord;
-    work->gridBody.context.contacts = rec0;
-    work->gridBody.pos.vx           = 0;
-    work->gridBody.pos.vy           = -0x12C;
-    work->gridBody.pos.vz           = 0;
-    work->gridBody.key              = 0x30000 | MAGGOT_CATERPILLAR_ID;
-    work->gridBody.radius           = 0x12C;
-    work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
-    worldCollisionInitContacts(rec0, 4, 0);
+    work->gridBody.context.contacts = gridContacts;
+    MAGGOT_CATERPILLAR_LINK_SPHERE(work->gridBody, -MAGGOT_CATERPILLAR_GRID_SPHERE_RADIUS, WORLD_COLLISION_CONTACT_ENEMY_BODY | MAGGOT_CATERPILLAR_ID, MAGGOT_CATERPILLAR_GRID_SPHERE_RADIUS, WORLD_COLLISION_LIST_ENEMY_BODIES, gridContacts, ARRAY_SIZE(work->gridContacts));
     work->gridBody.flags       |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
     work->body.coord            = actor->extra.tmd->coords + 1;
-    rec1                        = work->bodyContacts;
-    work->body.context.contacts = rec1;
-    work->body.pos.vx           = 0;
-    work->body.pos.vy           = -0x64;
-    work->body.pos.vz           = 0;
-    work->body.key              = 0x30000 | MAGGOT_CATERPILLAR_ID;
-    work->body.radius           = 0x12C;
-    work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
-    worldCollisionInitContacts(rec1, 2, 0);
+    bodyContacts                = work->bodyContacts;
+    work->body.context.contacts = bodyContacts;
+    MAGGOT_CATERPILLAR_LINK_SPHERE(work->body, MAGGOT_CATERPILLAR_HIT_SPHERE_OFFSET_Y, WORLD_COLLISION_CONTACT_ENEMY_BODY | MAGGOT_CATERPILLAR_ID, MAGGOT_CATERPILLAR_HIT_SPHERE_RADIUS, WORLD_COLLISION_LIST_ENEMY_BODIES, bodyContacts, ARRAY_SIZE(work->bodyContacts));
     work->body.flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
     work->attackBody.coord            = actor->extra.tmd->coords + 4;
-    rec2                              = work->attackContacts;
-    work->attackBody.context.contacts = rec2;
-    work->attackBody.pos.vx           = 0;
-    work->attackBody.pos.vy           = 0;
-    work->attackBody.pos.vz           = 0;
-    work->attackBody.key              = 0;
-    work->attackBody.radius           = 0xC8;
-    work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
-    worldCollisionInitContacts(rec2, 1, 0);
+    attackContacts                    = work->attackContacts;
+    work->attackBody.context.contacts = attackContacts;
+    MAGGOT_CATERPILLAR_LINK_SPHERE(work->attackBody, 0, 0, MAGGOT_CATERPILLAR_ATTACK_SPHERE_RADIUS, WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackContacts, ARRAY_SIZE(work->attackContacts));
     work->attackBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->flameBody.coord            = actor->extra.tmd->coords + 4;
-    rec3                             = work->flameContacts;
-    work->flameBody.context.contacts = rec3;
-    work->flameBody.pos.vx           = 0;
-    work->flameBody.pos.vy           = 0;
-    work->flameBody.pos.vz           = 0;
-    work->flameBody.key              = 0x22424;
-    work->flameBody.radius           = 0x1F4;
-    work->flameBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->flameBody);
-    worldCollisionInitContacts(rec3, 1, 0);
+    flameContacts                    = work->flameContacts;
+    work->flameBody.context.contacts = flameContacts;
+    MAGGOT_CATERPILLAR_LINK_SPHERE(work->flameBody, 0, WORLD_COLLISION_CONTACT_ATTACK | (MAGGOT_CATERPILLAR_FLAME_ATTACK_ROW << 8) | MAGGOT_CATERPILLAR_FLAME_ATTACK_ROW, MAGGOT_CATERPILLAR_FLAME_SPHERE_RADIUS, WORLD_COLLISION_LIST_PLAYER_ATTACKS, flameContacts, ARRAY_SIZE(work->flameContacts));
     work->flameBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    actor->state           = 1;
+    actor->state           = MAGGOT_CATERPILLAR_TASK_ACTIVE;
+#undef MAGGOT_CATERPILLAR_LINK_SPHERE
 }

@@ -149743,7 +149743,7 @@ attempts; left as it was.
   nodes, `case 2:`, `case 3:` and one case below 2 listed with the default
   (`case 1: default:`). Two cases alone give `==2; ==3` with no `slti`.
 - **A switch on an *unsigned* index tests its bounded neighbours by equality,
-  with no range test.** `maggotCaterpillarResolveContacts` dispatches on
+  with no range test.** `_maggotCaterpillarResolveContacts` dispatches on
   `(u32)key >> 16` as `==1; ==0; ==2; ==3; j default`: cases 0..3 pivot on 1,
   and because 0 is the type's lower bound the left node is "bounded" and is
   emitted as a bare `beqz` (the signed mode ladders have `slti 2` there). A
@@ -149798,7 +149798,7 @@ attempts; left as it was.
   `0xFFFF` of the end test next to the hand-hoisted `kind`; the image reloads
   it every iteration.
 - A mode ladder whose image loads `actorControl` between two other loads
-  keeps the `state` local at that position (`maggotCaterpillarTick`);
+  keeps the `actorControl` local at that position (`_maggotCaterpillarTick`);
   `switch (gSceneCombatState.actorControl)` moves the load down.
 ### Goto removal, batch 12: a range test split by a goto, three mentions for a register, the generator (2026-10-06)
 
