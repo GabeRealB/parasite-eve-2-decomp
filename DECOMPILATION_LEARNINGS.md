@@ -44310,7 +44310,7 @@ Do not filter these structurally instead ("no stack frame and no `jr $ra`").
 That rule reads well and is wrong: it also drops 34 `Fn` symbols, 32 of which
 are real entry points - frameless switch dispatchers like `_actor01900TakeAnimSoundCue`
 (`lw $v0, 0x0($v1)` / `jr $v0` off `Actor01900_Jt00004`) and three-way branch
-heads like `Actor03800_Fn01150`, whose bodies continue into the L-chunks. Those
+heads like `_actor03800ActionIdle`, whose bodies continue into the L-chunks. Those
 parents are exactly what the vacuum should be picking.
 
 ## Do not bulk-tag the actor `L<hex>` symbols `// type:label`
@@ -46810,7 +46810,7 @@ plus a swapped destination register in its delay slot.
 
 ## A shared actor text unit's own prototypes outrank the gameplay header
 
-Merging `Actor03800_Fn02068`'s L-label span needed the byte at `0x801153F2`,
+Merging `_actor03800ActionCeilingWait`'s L-label span needed the byte at `0x801153F2`,
 which is `gSceneCombatState.signals.bytes.actionFlags` in `include/gameplay/scene_combat.h`. Adding that include
 to `src/actors/lib/actor_103800_text.c` does not build: the file opens with its
 own hand-written prototypes for `worldTargetUnlinkNode`, `worldCollisionUnlinkBody`,
@@ -46856,7 +46856,7 @@ turn            = 0;                                   /* dead store */
 
 `SOFT_USE_REG(turn)` in the same place also fixes the canonicalisation, but it
 is a real use, so `turn`'s hard register stays busy and the next load cannot
-reuse it - in `Actor03800_Fn012B4` that cost the `lw $a0, %lo(gRandomLcgState)($t0)`
+reuse it - in `_actor03800ActionWander` that cost the `lw $a0, %lo(gRandomLcgState)($t0)`
 its register and added a `nop` (99.7% vs 100%). Prefer the dead store.
 
 Related: writing the `if` as `if (c) y = x + K; else y = x;` does not help. The
@@ -46893,7 +46893,7 @@ variable was the only change to reach 100.000%, all penalties zero.
 
 ## Prove a twin byte-for-byte against the raw `.pe2pkg`
 
-`Actor03800_Fn01EEC` (0x1EEC) and the already-matched `Actor03800_Fn02068`
+`_actor03800ActionWallWait` (0x1EEC) and the already-matched `_actor03800ActionCeilingWait`
 (0x2068) are the *same* routine emitted twice, back to back, in one overlay.
 `overlay_dup_index.py find` answered `same body: 1 copies` twice over: the twin
 is matched (so it left the index) *and* the vacuum's brief describes only the
@@ -47296,7 +47296,7 @@ the shape without reusing an unrelated owner type.
 
 ## One halfword field read as both `lhu` and `lh` in the same function
 
-`Actor03800_Fn02584` touches `animFrame` four times and splat shows two
+`_actor03800ActionLeapAway` touches `animFrame` four times and splat shows two
 different loads:
 
 ```
@@ -47423,7 +47423,7 @@ with the one function, not just the `Fn…` one.
 
 ## Widen an `s16` switch subject to `s32` when the same value is also stored
 
-`Actor03800_Fn03420` loads its state once and reuses that register three ways:
+`_actor03800ActionGetUp` loads its state once and reuses that register three ways:
 
 ```
 lh    a1, 0x354(a0)     /* state */
@@ -72189,13 +72189,13 @@ base_1.i SHA256: `7aa9c4b0ff6cf7ae1366c7bb3359f633c0f9685640601c51b098d496d9cb5d
 
 ## Cache an actor sub-pointer before dispatch to reproduce an entry load
 
-Actor03800_Fn034B0: the m2c seed loaded actor->field_20 only inside case 0, after a store through actor->field_2C. The target loads it before dispatch. Permuter output-30-1 introduced a typed context local before the switch; normalized baseline distance stayed 257, while paired candidate distance was 30. Controlled base_1 predicted and reproduced the same transformation in normal source.
+_actor03800ActionShrineWait: the m2c seed loaded task->spawnArg2.pointer only inside case 0, after a store through task->extra.tmd. The target loads it before dispatch. Permuter output-30-1 introduced a typed context local before the switch; normalized baseline distance stayed 257, while paired candidate distance was 30. Controlled base_1 predicted and reproduced the same transformation in normal source.
 
 Earliest meaningful divergence is .rtl UID 17, offset-32 load in entry. Incoming actor r80 becomes block-local (4 references/12 insns instead of global 4/24); context r82 spans dispatch and is assigned a0 in .greg, sharing the incoming argument register after that value dies. Flag allocation is unchanged. This is a source load-placement and lifetime change, not evidence that declaration order itself selects a register. Caching also preserves the target's read-before-write ordering.
 
 A separate controlled base_2 reversed the independent `gridBody.flags`/`attackBody.flags` halfword updates. The second update's r89/r90 retained v0, and third update's r91/r92 retained v1, exchanging field values. Sched2 then placed the `gridBody.flags` store last, for the call delay slot, reaching exact match. Observed homes and scheduler output support this particular intervention; local quantity priority calculations were not traced and are not generalized.
 
-Evidence: tools/permuter_findings/Actor03800_Fn034B0/ (session 1f7d1f1cdcec496eb650b4ceb4787b28), retained PERMUTER_ANALYSIS.md and base_1/base_2 dumps. Baseline preprocessed SHA256 1a4327b257fa23d6dbca01be9f60681124f37a8df64c0e9d782da7b75b8e5518; paired improved input 746ae5b2bc93e1db3bead8ca0533d8e0bca43579d68a33135a4fd5c97d06098e; compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Full fingerprints and controlled predictions are retained in the session notes.
+Evidence: tools/permuter_findings/_actor03800ActionShrineWait/ (session 1f7d1f1cdcec496eb650b4ceb4787b28), retained PERMUTER_ANALYSIS.md and base_1/base_2 dumps. Baseline preprocessed SHA256 1a4327b257fa23d6dbca01be9f60681124f37a8df64c0e9d782da7b75b8e5518; paired improved input 746ae5b2bc93e1db3bead8ca0533d8e0bca43579d68a33135a4fd5c97d06098e; compiler 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd. Full fingerprints and controlled predictions are retained in the session notes.
 
 ## Actor03800 contact: preserve definition count while changing global pointer rank
 
@@ -72268,7 +72268,7 @@ change. A *pseudo* keeps the same lever, see "A dead copy `w = work;` ..." and
 "An implicit-`int` callee makes a later call lose sched1's birthing boost"
 (`REG_N_SETS($v0)` there).
 
-## Separate pan locals let coordinates reuse s0 across sound calls (Actor03800_Fn0166C)
+## Separate pan locals let coordinates reuse s0 across sound calls (_actor03800ActionKnockedOver)
 
 A pan variable reused in two switch arms was global (four refs/ten insns, two deaths), allocated in s0 before the coordinate pointer, which then landed in s3. Splitting only the second pan into pan2 made both pan values block-local (two refs/four insns, one call each). Their narrowing chains occupy s0 only after the coordinate argument copy dies. The global coordinate conflict with the old shared pan disappears, allowing coord in s0, scratch in s2 and actor in s3. Sound ID stays shared. Controlled base_3 predicted these homes and preserved matching topology, improving 96.339% to 100%; base_4 preserved it with normal overlay headers. This is an eligibility/conflict change, not a per-pseudo local priority ranking claim. The permuter originally inlined the second pan call; separate locals preserve explicit call order.
 
@@ -72276,7 +72276,7 @@ Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 - base_2.i SHA256: `61e196c6a2ea549f780e722e7dd43027fb2bd84e02f74b762fac46cd56f1bcce`
 - base_3.i SHA256: `2faf9066b8219f72b2bfe34fbfdcad1b6c3107db7634c9976e34be168cc1cc6a`
 - base_4.i SHA256: `ad751a367d68e3ae8f1344e417370f0f42890f720b1b2a6200b601e0c2a250e4`
-Evidence: tools/permuter_findings/Actor03800_Fn0166C/ retained session; base_2/base_3 .rtl UID 242 and 255, .lreg headers, .greg dispositions/conflicts. Scheduler selection not traced.
+Evidence: tools/permuter_findings/_actor03800ActionKnockedOver/ retained session; base_2/base_3 .rtl UID 242 and 255, .lreg headers, .greg dispositions/conflicts. Scheduler selection not traced.
 
 
 ### Actor03800_Fn037E0: scale-store order reverses a scheduler memory dependency
@@ -81817,7 +81817,7 @@ sits in the slot wants its cast written at the use site in the argument list,
 not as a named local. And the ordering is legal because MIPS does not define
 `PUSH_ARGS_REVERSED`: `calls.c` line 991 then evaluates actuals left to right, so
 the pan call in argument 2 still expands before the depth call in argument 3.
-The same shape matches in `Actor03800_Fn0166C` and `actor_503500_6.c` with a
+The same shape matches in `_actor03800ActionKnockedOver` and `actor_503500_6.c` with a
 named local — there the surrounding blocks differ enough that the two insns
 never tie, which is why the local form is not wrong in general, only here.
 
@@ -131140,13 +131140,13 @@ deciding property is that both adds are emitted *inside the arms*, not the
 statement syntax. Evidence:
 `tools/permuter_findings/func_actor_120500_80132028/`.
 
-## Duplicated `switch` arms want their *own* locals: a shared pointer temp loses the callee-saved register (Actor03800_Fn003B8, 2026-09-18)
+## Duplicated `switch` arms want their *own* locals: a shared pointer temp loses the callee-saved register (_actor03800ApplyPlacementMode, 2026-09-18)
 
-`Actor03800_Fn003B8` dispatches on a spawn variant, and two of its four arms are
+`_actor03800ApplyPlacementMode` dispatches on a spawn variant, and two of its four arms are
 the same 90-instruction body apart from two constants. Each arm needs two
-matrix-pointer temps: `&work->coord.coord`, which the identity splat writes
+matrix-pointer temps: `&work->perchCoord.coord`, which the identity splat writes
 through and `gte_SetRotMatrix` / `gte_stclmv` read back *after* a `RotMatrix`
-call, and `&src->coord`, which dies immediately.
+call, and `&modelRoot->coord`, which dies immediately.
 
 Writing the body twice with **one** pair of C locals shared by both arms matched
 every instruction — `blocks=18/18 instructions=367/367`, `branch = insert =
@@ -145991,7 +145991,7 @@ instructions with one fewer reference, which moved the flush and needed an
 empty-asm barrier to fake it. Count the block's references in `.i.combine` to
 check where the flush falls before adding or removing a read.
 
-## A barrier after a scratch push that keeps task loads below the head store can be the order of those loads (Actor03800_Fn021E4, 2026-09-27)
+## A barrier after a scratch push that keeps task loads below the head store can be the order of those loads (_actor03800ActionDrop, 2026-09-27)
 
 A scratch-head push followed by `work`, `ctx` and `coord` loads from the task
 had a `SCHED_BARRIER()` between them; without it the `work` load filled the

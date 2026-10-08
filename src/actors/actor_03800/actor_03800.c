@@ -93,6 +93,46 @@ enum {
     ACTOR_03800_ANIM_FLINCH            = 11
 };
 
+/// Stage values shared by actions that hand control to one another.
+enum {
+    ACTOR_03800_ACTION_BEGIN      = 0,
+    ACTOR_03800_KNOCKED_OVER_WAIT = 2,
+};
+
+/// Per-tick distances in the root's parent frame and ground-shadow vertex shades.
+enum {
+    ACTOR_03800_FLOOR_FALL_SPEED = 128,
+    ACTOR_03800_SHADOW_SHADE     = 128,
+};
+
+/// Bank 0x4026 script entries; the placement index supplies the instance byte.
+enum {
+    ACTOR_03800_SOUND_IMPACT         = 0x40260002,
+    ACTOR_03800_SOUND_REACTION       = 0x40260003,
+    ACTOR_03800_SOUND_INSTANCE_SHIFT = 8,
+};
+
+/// Bit selecting a positive random turn; a clear bit selects its negative.
+enum { ACTOR_03800_RANDOM_TURN_POSITIVE_BIT = 0x400 };
+
+/// Minimum idle/perch wait and its inclusive random extension, in task ticks.
+enum {
+    ACTOR_03800_IDLE_WAIT_BASE        = 90,
+    ACTOR_03800_IDLE_WAIT_JITTER_MASK = 255,
+};
+
+/// Overturned wait in task ticks, extended for each integer percent of HP lost.
+enum {
+    ACTOR_03800_OVERTURNED_WAIT_BASE           = 240,
+    ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT = 10,
+};
+
+/// Random delay before a perched actor drops, in task ticks.
+enum {
+    ACTOR_03800_DROP_DELAY_BASE        = 15,
+    ACTOR_03800_DROP_DELAY_JITTER_MASK = 15,
+};
+
 /// Work block of the package's enemy task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
@@ -177,8 +217,21 @@ extern AnimationSet* Actor03800_D05F60[12];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1);
-static void Actor03800_Fn003B8(Task* arg0);
+static void        _actor03800ActionIdle(Task* task);
+static void        _actor03800ActionWander(Task* task);
+static void        _actor03800ActionCharge(Task* task);
+static void        _actor03800ActionKnockedOver(Task* task);
+static void        _actor03800ActionFlinch(Task* task);
+static void        _actor03800ActionBuildup(Task* task);
+static void        _actor03800ActionDie(Task* task);
+static void        _actor03800ActionWallWait(Task* task);
+static void        _actor03800ActionCeilingWait(Task* task);
+static void        _actor03800ActionDrop(Task* task);
+static void        _actor03800ActionLeapAway(Task* task);
+static inline void _actor03800TickAnim(Task* task);
+
+static void _actor03800Spawn(Enemy* enemy, Task* task);
+static void _actor03800ApplyPlacementMode(Task* task);
 static void Actor03800_Fn00974(Task* arg0);
 static void Actor03800_Fn00A98(Task* arg0);
 static void Actor03800_Fn026F8(Task* arg0);
@@ -188,8 +241,8 @@ static void Actor03800_Fn02E50(Task* arg0);
 static void Actor03800_Fn03008(Task* actor, u32 variant);
 static void Actor03800_Fn031B8(Enemy* arg0, Task* arg1);
 static void Actor03800_Fn032D8(Task* arg0);
-static void Actor03800_Fn03420(Task* arg0);
-static void Actor03800_Fn034B0(Task* arg0);
+static void _actor03800ActionGetUp(Task* task);
+static void _actor03800ActionShrineWait(Task* task);
 static void Actor03800_Fn03594(Task* arg0);
 static void Actor03800_Fn03628(Task* arg0);
 static void Actor03800_Fn036EC(Task* arg0);
@@ -202,7 +255,7 @@ static void Actor03800_Fn037E0(Task* arg0);
 /// over to, which carries the death sequence.
 static const EnemyTaskFuncTable3 Actor03800_D00004 = {
     {
-        Actor03800_Fn000B8,
+        _actor03800Spawn,
         Actor03800_Fn031B8,
         Actor03800_Fn02998,
     },
@@ -699,81 +752,80 @@ s16 Actor03800_D05FA8[2] = {
     1,
 };
 
-static void        Actor03800_Fn01150(Task* arg0);
-static void        Actor03800_Fn012B4(Task* arg0);
-static void        Actor03800_Fn01520(Task* arg0);
-static void        Actor03800_Fn0166C(Task* arg0);
-static void        Actor03800_Fn01948(Task* arg0);
-static void        Actor03800_Fn01AD0(Task* arg0);
-static void        Actor03800_Fn01C50(Task* arg0);
-static void        Actor03800_Fn01EEC(Task* arg0);
-static void        Actor03800_Fn02068(Task* arg0);
-static void        Actor03800_Fn021E4(Task* arg0);
-static void        Actor03800_Fn02584(Task* arg0);
-static inline void _actor03800TickAnim(Task* task);
-
-static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
+/// Allocates and binds the actor task's rig, target and collision bodies.
+///
+/// Requires a live enemy in `task->spawnArg2.pointer`, a six-part TMD and a
+/// placement mode supported by `_actor03800ApplyPlacementMode`. The task owns
+/// the zeroed work block; allocation failure destroys the enemy and task.
+/// Successful setup links three bodies and advances to the active task state.
+static void _actor03800Spawn(Enemy* enemy, Task* task)
 {
-    WorldCollisionBody*    obj;
-    WorldCollisionContact* records1;
-    WorldCollisionContact* records2;
-    WorldCollisionContact* records3;
+    enum {
+        ACTOR_03800_BODY_KEY    = WORLD_COLLISION_CONTACT_ENEMY_BODY | 0x26,
+        ACTOR_03800_TASK_ACTIVE = 1,
+    };
+    WorldCollisionBody*    attackBody;
+    WorldCollisionContact* hitContacts;
+    WorldCollisionContact* gridContacts;
+    WorldCollisionContact* attackContacts;
     _Actor03800Work*       work;
-    s32                    i;
-    TmdObject*             extra;
+    s32                    slotIndex;
+    TmdObject*             model;
 
-    extra = arg1->extra.tmd;
+    // Bind task-owned storage before publishing the enemy and collision bodies.
+    model = task->extra.tmd;
     work  = memCalloc(sizeof(_Actor03800Work), 0);
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->work      = work;
-    extra->lightMtx = &work->lightMtx;
-    extra->flags    = 0;
-    extra->colorMtx = &work->colorMtx;
+    task->work      = work;
+    model->lightMtx = &work->lightMtx;
+    model->flags    = 0;
+    model->colorMtx = &work->colorMtx;
     sceneAcquireBattleRef(0);
-    Actor03800_Fn003B8(arg1);
-    arg0->field_4  = &work->rootCoord->coord;
-    arg0->field_48 = 0;
-    worldTargetLinkNode(&arg0->node);
-    arg0->coord                   = &arg1->extra.tmd->coords[3];
-    arg0->node.state.parts.flags  = 0;
-    arg0->bodyPos.vx              = 0;
-    arg0->recs                    = work->hitContacts;
-    arg0->bodyPos.vy              = 0;
-    arg0->bodyPos.vz              = 0;
-    arg0->param                   = &Actor03800_D05F44;
-    arg0->hp                      = (s16)Actor03800_D05F44.hpMax;
-    work->hitEffectArg.coord      = &arg1->extra.tmd->coords[3];
+    _actor03800ApplyPlacementMode(task);
+    enemy->field_4  = &work->rootCoord->coord;
+    enemy->field_48 = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->coord                  = &task->extra.tmd->coords[3];
+    enemy->node.state.parts.flags = 0;
+    enemy->bodyPos.vx             = 0;
+    enemy->recs                   = work->hitContacts;
+    enemy->bodyPos.vy             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->param                  = &Actor03800_D05F44;
+    enemy->hp                     = (s16)Actor03800_D05F44.hpMax;
+    work->hitEffectArg.coord      = &task->extra.tmd->coords[3];
     work->hitEffectArg.spawnArgLo = 0x200;
     work->hitEffectArg.spawnArgHi = 1;
-    animationInitContext(&work->rig.anim, Actor03800_D05F60, extra, work->rig.poses, work->rig.slots);
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationResetSlot(&work->rig.anim, i, 1);
+    animationInitContext(&work->rig.anim, Actor03800_D05F60, model, work->rig.poses, work->rig.slots);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationResetSlot(&work->rig.anim, slotIndex, ACTOR_03800_ANIM_STAND);
     }
-    work->hitBody.coord            = arg1->extra.tmd->coords;
-    records1                       = work->hitContacts;
+    // Contact arrays stay live with the work block until the bodies are unlinked.
+    work->hitBody.coord            = task->extra.tmd->coords;
+    hitContacts                    = work->hitContacts;
     work->hitBody.pos.vy           = -0xFA;
-    work->hitBody.context.contacts = records1;
+    work->hitBody.context.contacts = hitContacts;
     work->hitBody.pos.vx           = 0;
     work->hitBody.pos.vz           = 0;
-    work->hitBody.key              = 0x30026;
+    work->hitBody.key              = ACTOR_03800_BODY_KEY;
     work->hitBody.radius           = 0xFA;
     work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
-    worldCollisionInitContacts(records1, ARRAY_SIZE(work->hitContacts), 0);
-    work->gridBody.coord            = arg1->extra.tmd->coords;
-    records2                        = work->gridContacts;
+    worldCollisionInitContacts(hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    work->gridBody.coord            = task->extra.tmd->coords;
+    gridContacts                    = work->gridContacts;
     work->gridBody.pos.vy           = -0x12C;
-    work->gridBody.context.contacts = records2;
+    work->gridBody.context.contacts = gridContacts;
     work->gridBody.pos.vx           = 0;
     work->gridBody.pos.vz           = 0;
-    work->gridBody.key              = 0x30026;
+    work->gridBody.key              = ACTOR_03800_BODY_KEY;
     work->gridBody.radius           = 0x12C;
     work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
-    worldCollisionInitContacts(records2, ARRAY_SIZE(work->gridContacts), 0);
+    worldCollisionInitContacts(gridContacts, ARRAY_SIZE(work->gridContacts), 0);
     switch (work->mode) {
         case ACTOR_03800_MODE_FLOOR:
             work->hitBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -792,55 +844,97 @@ static void Actor03800_Fn000B8(Enemy* arg0, Task* arg1)
             work->gridBody.flags &= ~(WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
     }
-    obj                               = &work->attackBody;
-    work->attackBody.coord            = arg1->extra.tmd->coords;
-    records3                          = work->attackContacts;
+    attackBody                        = &work->attackBody;
+    work->attackBody.coord            = task->extra.tmd->coords;
+    attackContacts                    = work->attackContacts;
     work->attackBody.pos.vy           = -0xFA;
     work->attackBody.pos.vz           = 0xFA;
     work->attackBody.radius           = 0xC8;
-    work->attackBody.context.contacts = records3;
+    work->attackBody.context.contacts = attackContacts;
     work->attackBody.pos.vx           = 0;
     work->attackBody.key              = 0;
     work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);
-    worldCollisionInitContacts(records3, ARRAY_SIZE(work->attackContacts), 0);
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackBody);
+    worldCollisionInitContacts(attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    arg1->state             = 1;
+    task->state             = ACTOR_03800_TASK_ACTIVE;
 }
 
-/// Applies the placement's mode (`AreaPlacement::mode`) to the freshly
-/// allocated work block: the tens digit is `mode` and, on the floor, the units
-/// digit the first action - idling after a random wait, or wandering.
-/// The two perched modes hang the model instead: `perchCoord` takes the
-/// root's transform, is parented to `gGfxViewCoord`, turned a quarter or half
-/// turn about X and made `rootCoord`, while the model's root is reset to an
-/// identity rotation at the origin and re-parented under it.
-static void Actor03800_Fn003B8(Task* arg0)
+/// Sets the initial action and coordinate hierarchy from the placement mode.
+///
+/// Requires a fresh zeroed work block and a live six-part TMD. Decimal tens
+/// select floor, wall, ceiling or shrine (0..3); floor units select idle or
+/// wander (0..1). Perched roots attach beneath a work-owned coordinate turned
+/// about X by a quarter or half turn; its translation becomes the landing point.
+static void _actor03800ApplyPlacementMode(Task* task)
 {
+    enum { ACTOR_03800_SHADOW_NONE = -1 };
     _Actor03800Work* work;
-    Enemy*           ctx;
-    GfxCoord*        src;
-    SVECTOR          rot;
-    MATRIX           mat;
+    Enemy*           enemy;
+    GfxCoord*        modelRoot;
+    SVECTOR          perchAngles;
+    MATRIX           perchRotation;
     s16              mode;
-    s16              kind;
+    s16              initialAction;
 
-    ctx  = (Enemy*)arg0->spawnArg2.pointer;
-    work = arg0->work;
-    src  = arg0->extra.tmd->coords;
-    mode = ctx->place->mode / 10;
+    /// Attaches a fresh model root beneath its pitched perch, retaining the landing position.
+    ///
+    /// Use as a standalone compound statement in the placement cases. Operands
+    /// must be stable pointer locals; each occurs more than once. Captures
+    /// `perchAngles`/`perchRotation` and clobbers the GTE; pitch is evaluated once
+    /// and narrowed to a signed halfword in 4096-per-turn units.
+#define ACTOR_03800_ATTACH_PERCH(workBlock, root, pitch)         \
+    {                                                            \
+        (workBlock)->savedRootMtx = (root)->coord;               \
+                                                                 \
+        gfxSetRotIdentity(&(workBlock)->perchCoord.coord);       \
+                                                                 \
+        (workBlock)->perchCoord.parent     = &gGfxViewCoord;     \
+        (workBlock)->perchCoord.coord      = (root)->coord;      \
+        (workBlock)->perchCoord.coord.t[0] = (root)->coord.t[0]; \
+        (workBlock)->perchCoord.coord.t[1] = (root)->coord.t[1]; \
+        (workBlock)->perchCoord.coord.t[2] = (root)->coord.t[2]; \
+                                                                 \
+        gfxSetRotIdentity(&(root)->coord);                       \
+                                                                 \
+        (root)->parent     = &(workBlock)->perchCoord;           \
+        (root)->coord.t[0] = 0;                                  \
+        (root)->coord.t[1] = 0;                                  \
+        (root)->coord.t[2] = 0;                                  \
+                                                                 \
+        perchAngles.vx = (pitch);                                \
+        perchAngles.vy = 0;                                      \
+        perchAngles.vz = 0;                                      \
+        RotMatrix(&perchAngles, &perchRotation);                 \
+                                                                 \
+        gte_SetRotMatrix(&(workBlock)->perchCoord.coord);        \
+        gte_ldclmv(&perchRotation.m[0][0]);                      \
+        gte_rtir();                                              \
+        gte_stclmv(&(workBlock)->perchCoord.coord.m[0][0]);      \
+        gte_ldclmv(&perchRotation.m[0][1]);                      \
+        gte_rtir();                                              \
+        gte_stclmv(&(workBlock)->perchCoord.coord.m[0][1]);      \
+        gte_ldclmv(&perchRotation.m[0][2]);                      \
+        gte_rtir();                                              \
+        gte_stclmv(&(workBlock)->perchCoord.coord.m[0][2]);      \
+    }
+
+    enemy     = task->spawnArg2.pointer;
+    work      = task->work;
+    modelRoot = task->extra.tmd->coords;
+    mode      = enemy->place->mode / 10;
 
     work->mode = mode;
     switch (mode) {
         case ACTOR_03800_MODE_FLOOR:
-            kind         = ctx->place->mode % 10;
-            work->action = kind;
-            switch (kind) {
+            initialAction = enemy->place->mode % 10;
+            work->action  = initialAction;
+            switch (initialAction) {
                 case ACTOR_03800_ACTION_IDLE:
                     work->anim      = ACTOR_03800_ANIM_STAND;
                     work->alerted   = 0;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->timer     = ((gRandomLcgState >> 0x10) & 0xFF) + 0x5A;
+                    work->timer     = ((gRandomLcgState >> 0x10) & ACTOR_03800_IDLE_WAIT_JITTER_MASK) + ACTOR_03800_IDLE_WAIT_BASE;
                     break;
                 case ACTOR_03800_ACTION_WANDER:
                     work->anim    = ACTOR_03800_ANIM_WALK;
@@ -848,97 +942,36 @@ static void Actor03800_Fn003B8(Task* arg0)
                     work->alerted = 1;
                     break;
             }
-            work->fallSpeed   = 0x80;
-            work->shadowShade = 0x80;
-            work->rootCoord   = arg0->extra.tmd->coords;
+            work->fallSpeed   = ACTOR_03800_FLOOR_FALL_SPEED;
+            work->shadowShade = ACTOR_03800_SHADOW_SHADE;
+            work->rootCoord   = task->extra.tmd->coords;
             break;
         case ACTOR_03800_MODE_WALL:
-            work->action       = ACTOR_03800_ACTION_WALL_WAIT;
-            work->shadowShade  = -1;
-            work->fallSpeed    = 0;
-            work->rootCoord    = &work->perchCoord;
-            work->overturned   = 1;
-            work->alerted      = 0;
-            work->savedRootMtx = src->coord;
-
-            gfxSetRotIdentity(&work->perchCoord.coord);
-
-            work->perchCoord.parent     = &gGfxViewCoord;
-            work->perchCoord.coord      = src->coord;
-            work->perchCoord.coord.t[0] = src->coord.t[0];
-            work->perchCoord.coord.t[1] = src->coord.t[1];
-            work->perchCoord.coord.t[2] = src->coord.t[2];
-
-            gfxSetRotIdentity(&src->coord);
-
-            src->parent     = &work->perchCoord;
-            src->coord.t[0] = 0;
-            src->coord.t[1] = 0;
-            src->coord.t[2] = 0;
-
-            rot.vx = 0x400;
-            rot.vy = 0;
-            rot.vz = 0;
-            RotMatrix(&rot, &mat);
-
-            gte_SetRotMatrix(&work->perchCoord.coord);
-            gte_ldclmv(&mat.m[0][0]);
-            gte_rtir();
-            gte_stclmv(&work->perchCoord.coord.m[0][0]);
-            gte_ldclmv(&mat.m[0][1]);
-            gte_rtir();
-            gte_stclmv(&work->perchCoord.coord.m[0][1]);
-            gte_ldclmv(&mat.m[0][2]);
-            gte_rtir();
-            gte_stclmv(&work->perchCoord.coord.m[0][2]);
+            work->action      = ACTOR_03800_ACTION_WALL_WAIT;
+            work->shadowShade = ACTOR_03800_SHADOW_NONE;
+            work->fallSpeed   = 0;
+            work->rootCoord   = &work->perchCoord;
+            work->overturned  = 1;
+            work->alerted     = 0;
+            ACTOR_03800_ATTACH_PERCH(work, modelRoot, ACTOR_TRANSFORM_ANGLE_TURN / 4);
             break;
         case ACTOR_03800_MODE_CEILING:
-            work->action       = ACTOR_03800_ACTION_CEILING_WAIT;
-            work->shadowShade  = -1;
-            work->fallSpeed    = 0;
-            work->rootCoord    = &work->perchCoord;
-            work->overturned   = 1;
-            work->alerted      = 0;
-            work->savedRootMtx = src->coord;
-
-            gfxSetRotIdentity(&work->perchCoord.coord);
-
-            work->perchCoord.parent     = &gGfxViewCoord;
-            work->perchCoord.coord      = src->coord;
-            work->perchCoord.coord.t[0] = src->coord.t[0];
-            work->perchCoord.coord.t[1] = src->coord.t[1];
-            work->perchCoord.coord.t[2] = src->coord.t[2];
-
-            gfxSetRotIdentity(&src->coord);
-
-            src->parent     = &work->perchCoord;
-            src->coord.t[0] = 0;
-            src->coord.t[1] = 0;
-            src->coord.t[2] = 0;
-
-            rot.vx = 0x800;
-            rot.vy = 0;
-            rot.vz = 0;
-            RotMatrix(&rot, &mat);
-
-            gte_SetRotMatrix(&work->perchCoord.coord);
-            gte_ldclmv(&mat.m[0][0]);
-            gte_rtir();
-            gte_stclmv(&work->perchCoord.coord.m[0][0]);
-            gte_ldclmv(&mat.m[0][1]);
-            gte_rtir();
-            gte_stclmv(&work->perchCoord.coord.m[0][1]);
-            gte_ldclmv(&mat.m[0][2]);
-            gte_rtir();
-            gte_stclmv(&work->perchCoord.coord.m[0][2]);
+            work->action      = ACTOR_03800_ACTION_CEILING_WAIT;
+            work->shadowShade = ACTOR_03800_SHADOW_NONE;
+            work->fallSpeed   = 0;
+            work->rootCoord   = &work->perchCoord;
+            work->overturned  = 1;
+            work->alerted     = 0;
+            ACTOR_03800_ATTACH_PERCH(work, modelRoot, ACTOR_TRANSFORM_ANGLE_HALF_TURN);
             break;
         case ACTOR_03800_MODE_SHRINE:
             work->action      = ACTOR_03800_ACTION_SHRINE_WAIT;
             work->fallSpeed   = 0;
-            work->shadowShade = -1;
-            work->rootCoord   = arg0->extra.tmd->coords;
+            work->shadowShade = ACTOR_03800_SHADOW_NONE;
+            work->rootCoord   = task->extra.tmd->coords;
             break;
     }
+#undef ACTOR_03800_ATTACH_PERCH
 }
 
 static void Actor03800_Fn00974(Task* arg0)
@@ -1203,45 +1236,49 @@ static void Actor03800_Fn00A98(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(ActorOverlapPushScratch);
 }
 
-static void Actor03800_Fn01150(Task* arg0)
+/// Waits and turns on the spot, wandering once alerted or charging at a combat signal.
+static void _actor03800ActionIdle(Task* task)
 {
+    enum {
+        ACTOR_03800_IDLE_TURN = 1,
+    };
     _Actor03800Work* work;
-    s32              turn;
+    s32              yawOffset;
 
-    work = arg0->work;
+    work = task->work;
 
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_03800_ACTION_BEGIN:
             work->turnRate = 0;
             work->speed    = 0;
             work->accel    = 0;
             work->timer--;
             if (work->timer <= 0) {
-                work->actionStep = 1;
+                work->actionStep = ACTOR_03800_IDLE_TURN;
                 gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                turn             = (gRandomLcgState >> 16) & 0x3FF;
-                if (((gRandomLcgState >> 16) & 0x400) == 0) {
-                    turn = -turn;
+                yawOffset        = (gRandomLcgState >> 16) & (ACTOR_TRANSFORM_ANGLE_TURN / 4 - 1);
+                if (((gRandomLcgState >> 16) & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT) == 0) {
+                    yawOffset = -yawOffset;
                 }
                 work->anim           = ACTOR_03800_ANIM_WALK;
                 work->stepSoundTimer = 1;
-                work->targetYaw      = (work->yaw + turn) & 0xFFF;
+                work->targetYaw      = (work->yaw + yawOffset) & ACTOR_TRANSFORM_ANGLE_MASK;
             }
             break;
-        case 1:
+        case ACTOR_03800_IDLE_TURN:
             work->turnRate = 0x1E;
             work->speed    = 0;
             work->accel    = 0;
             if (work->yaw == work->targetYaw) {
                 if (work->alerted == 0) {
-                    work->actionStep     = 0;
+                    work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                     work->anim           = ACTOR_03800_ANIM_STAND;
                     work->stepSoundTimer = 0;
                     gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->timer          = ((gRandomLcgState >> 16) & 0xFF) + 0x5A;
+                    work->timer          = ((gRandomLcgState >> 16) & ACTOR_03800_IDLE_WAIT_JITTER_MASK) + ACTOR_03800_IDLE_WAIT_BASE;
                 } else {
                     work->action     = ACTOR_03800_ACTION_WANDER;
-                    work->actionStep = 0;
+                    work->actionStep = ACTOR_03800_ACTION_BEGIN;
                     if (work->stepSoundTimer == 0) {
                         work->stepSoundTimer = 1;
                     }
@@ -1252,7 +1289,7 @@ static void Actor03800_Fn01150(Task* arg0)
 
     if (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
         work->action     = ACTOR_03800_ACTION_CHARGE;
-        work->actionStep = 0;
+        work->actionStep = ACTOR_03800_ACTION_BEGIN;
         if (work->stepSoundTimer == 0) {
             work->stepSoundTimer = 1;
         }
@@ -1260,226 +1297,273 @@ static void Actor03800_Fn01150(Task* arg0)
     }
 }
 
-static void Actor03800_Fn012B4(Task* arg0)
+/// Walks with changing headings, answering walls and combat signals until its wander ends.
+static void _actor03800ActionWander(Task* task)
 {
+    enum {
+        ACTOR_03800_WANDER_HEADING_DELAY_BASE        = 25,
+        ACTOR_03800_WANDER_HEADING_DELAY_JITTER_MASK = 15,
+        ACTOR_03800_WANDER_DURATION_BASE             = 30,
+        ACTOR_03800_WANDER_DURATION_JITTER_MASK      = 31,
+        ACTOR_03800_WANDER_WALK                      = 1,
+    };
     _Actor03800Work* work;
-    s32              turn;
-    s32              delta;
-    s32              turn2;
+    s32              initialYawOffset;
+    s32              entryYawOffset;
+    s32              nextYawOffset;
 
-    work = arg0->work;
+    work = task->work;
 
     switch (work->actionStep) {
-        case 0:
-            work->turnRate  = 0;
-            work->accel     = 2;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            turn            = (gRandomLcgState >> 16) & 0x1FF;
-            if (((gRandomLcgState >> 16) & 0x400) == 0) {
-                turn = -turn;
+        case ACTOR_03800_ACTION_BEGIN:
+            work->turnRate   = 0;
+            work->accel      = 2;
+            gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            initialYawOffset = (gRandomLcgState >> 16) & (ACTOR_TRANSFORM_ANGLE_TURN / 8 - 1);
+            if (((gRandomLcgState >> 16) & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT) == 0) {
+                initialYawOffset = -initialYawOffset;
             }
-            delta = turn;
+            entryYawOffset = initialYawOffset;
             if (work->hitWall != 0) {
-                delta         = turn + 0x800;
-                work->hitWall = 0;
+                entryYawOffset = initialYawOffset + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+                work->hitWall  = 0;
             }
             work->anim        = ACTOR_03800_ANIM_WALK;
-            work->actionStep  = 1;
-            work->targetYaw   = (work->yaw + delta) & 0xFFF;
-            turn              = 0; /* dead store: keeps `turn` cse-canonical over `delta` */
+            work->actionStep  = ACTOR_03800_WANDER_WALK;
+            work->targetYaw   = (work->yaw + entryYawOffset) & ACTOR_TRANSFORM_ANGLE_MASK;
+            initialYawOffset  = 0; /* dead store: keeps `initialYawOffset` cse-canonical over `entryYawOffset` */
             gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->timer       = ((gRandomLcgState >> 16) & 0xF) + 0x19;
+            work->timer       = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_HEADING_DELAY_JITTER_MASK) + ACTOR_03800_WANDER_HEADING_DELAY_BASE;
             gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->wanderTimer = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
+            work->wanderTimer = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_DURATION_JITTER_MASK) + ACTOR_03800_WANDER_DURATION_BASE;
             break;
-        case 1:
+        case ACTOR_03800_WANDER_WALK:
             work->turnRate = 0x1E;
             work->accel    = 2;
             work->timer--;
             if (work->timer <= 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer     = ((gRandomLcgState >> 16) & 0xF) + 0x19;
+                work->timer     = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_HEADING_DELAY_JITTER_MASK) + ACTOR_03800_WANDER_HEADING_DELAY_BASE;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                turn2           = (gRandomLcgState >> 16) & 0x1FF;
-                if (((gRandomLcgState >> 16) & 0x400) == 0) {
-                    turn2 = -turn2;
+                nextYawOffset   = (gRandomLcgState >> 16) & (ACTOR_TRANSFORM_ANGLE_TURN / 8 - 1);
+                if (((gRandomLcgState >> 16) & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT) == 0) {
+                    nextYawOffset = -nextYawOffset;
                 }
-                work->targetYaw = (work->yaw + turn2) & 0xFFF;
+                work->targetYaw = (work->yaw + nextYawOffset) & ACTOR_TRANSFORM_ANGLE_MASK;
             }
             if (work->hitWall != 0) {
                 if (work->speed < 0x1E) {
                     work->action         = ACTOR_03800_ACTION_IDLE;
-                    work->actionStep     = 0;
+                    work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                     work->anim           = ACTOR_03800_ANIM_STAND;
                     work->stepSoundTimer = 0;
                     gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->timer          = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
+                    work->timer          = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_DURATION_JITTER_MASK) + ACTOR_03800_WANDER_DURATION_BASE;
                 } else {
                     work->action     = ACTOR_03800_ACTION_LEAP_AWAY;
-                    work->actionStep = 0;
+                    work->actionStep = ACTOR_03800_ACTION_BEGIN;
                 }
             }
             work->wanderTimer--;
             if (work->wanderTimer <= 0) {
                 work->action         = ACTOR_03800_ACTION_IDLE;
-                work->actionStep     = 0;
+                work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                 work->anim           = ACTOR_03800_ANIM_STAND;
                 work->stepSoundTimer = 0;
                 gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer          = ((gRandomLcgState >> 16) & 0x1F) + 0x1E;
+                work->timer          = ((gRandomLcgState >> 16) & ACTOR_03800_WANDER_DURATION_JITTER_MASK) + ACTOR_03800_WANDER_DURATION_BASE;
             }
             break;
     }
 
     if (gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) {
         work->action     = ACTOR_03800_ACTION_CHARGE;
-        work->actionStep = 0;
+        work->actionStep = ACTOR_03800_ACTION_BEGIN;
     }
 }
 
-static void Actor03800_Fn01520(Task* arg0)
+/// Faces the player once, then accelerates straight ahead for 120..151 ticks.
+///
+/// Both roots must share their parent frame. The X/Z bearing narrows each
+/// coordinate difference to a signed halfword before `ratan2`; yaw wraps
+/// at 4096 units per turn. Turning happens before forward acceleration.
+static void _actor03800ActionCharge(Task* task)
 {
+    enum {
+        ACTOR_03800_CHARGE_DURATION_BASE        = 120,
+        ACTOR_03800_CHARGE_DURATION_JITTER_MASK = 31,
+        ACTOR_03800_CHARGE_TURN                 = 1,
+        ACTOR_03800_CHARGE_RUN                  = 2,
+    };
     _Actor03800Work* work;
-    GfxCoord*        coord;
-    VECTOR           vec;
+    GfxCoord*        rootCoord;
+    VECTOR           toPlayer;
 
-    work  = arg0->work;
-    coord = work->rootCoord;
+    work      = task->work;
+    rootCoord = work->rootCoord;
 
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_03800_ACTION_BEGIN:
             work->turnRate  = 0;
             work->speed     = 0;
             work->accel     = 0;
-            vec.vx          = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            vec.vy          = 0;
-            vec.vz          = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            work->targetYaw = ratan2((s16)vec.vx, (s16)vec.vz) & 0xFFF;
+            toPlayer.vx     = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            toPlayer.vy     = 0;
+            toPlayer.vz     = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            work->targetYaw = ratan2((s16)toPlayer.vx, (s16)toPlayer.vz) & ACTOR_TRANSFORM_ANGLE_MASK;
             work->anim      = ACTOR_03800_ANIM_CHARGE;
             if (work->stepSoundTimer == 0) {
                 work->stepSoundTimer = 1;
             }
-            work->actionStep = 1;
+            work->actionStep = ACTOR_03800_CHARGE_TURN;
             break;
-        case 1:
+        case ACTOR_03800_CHARGE_TURN:
             work->turnRate = 0x28;
             work->speed    = 0;
             work->accel    = 0;
             if (work->yaw == work->targetYaw) {
-                work->actionStep = 2;
+                work->actionStep = ACTOR_03800_CHARGE_RUN;
                 gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->timer      = ((gRandomLcgState >> 16) & 0x1F) + 0x78;
+                work->timer      = ((gRandomLcgState >> 16) & ACTOR_03800_CHARGE_DURATION_JITTER_MASK) + ACTOR_03800_CHARGE_DURATION_BASE;
             }
             break;
-        case 2:
+        case ACTOR_03800_CHARGE_RUN:
             work->turnRate = 0;
             work->accel    = 2;
             work->timer--;
             if (work->timer <= 0) {
                 work->action     = ACTOR_03800_ACTION_WANDER;
-                work->actionStep = 0;
+                work->actionStep = ACTOR_03800_ACTION_BEGIN;
             }
             break;
     }
 }
 
-static void Actor03800_Fn0166C(Task* arg0)
+/// Slides away from the player while overturning, then waits before getting up.
+///
+/// Reserves and releases one scratch block per call. Slide direction uses
+/// all three axes, but only X/Z move, by 17/512 of the Q12 unit direction.
+/// The wait is 240 ticks plus 10 for each integer percent of hit points lost.
+static void _actor03800ActionKnockedOver(Task* task)
 {
+    enum {
+        ACTOR_03800_KNOCKED_OVER_SLIDE            = 1,
+        ACTOR_03800_KNOCKED_OVER_SLIDE_FIRST_TICK = 2,
+        ACTOR_03800_KNOCKED_OVER_SLIDE_END_TICK   = 14,
+        ACTOR_03800_KNOCKED_OVER_IMPACT_TICK      = 12,
+        ACTOR_03800_KNOCKED_OVER_WAIT_TICK        = 29,
+        ACTOR_03800_KNOCKED_OVER_DIRECTION_SHIFT  = 9,
+    };
     _Actor03800KnockedOverScratch* scratch;
     _Actor03800Work*               work;
-    Enemy*                         ctx;
-    GfxCoord*                      coord;
-    s16                            state;
-    s32                            snd;
-    s32                            pan;
-    s32                            pan2;
+    Enemy*                         enemy;
+    GfxCoord*                      rootCoord;
+    s16                            actionStep;
+    Enemy*                         reactionEnemy;
+    Enemy*                         impactEnemy;
+    s32                            soundId;
+    s32                            reactionPan;
+    s32                            impactPan;
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor03800KnockedOverScratch);
-    work    = arg0->work;
-    ctx     = arg0->spawnArg2.pointer;
-    state   = work->actionStep;
-    coord   = work->rootCoord;
-    switch (state) {
-        case 0:
+    scratch    = SCRATCH_STACK_RESERVE_BLOCK(_Actor03800KnockedOverScratch);
+    work       = task->work;
+    enemy      = task->spawnArg2.pointer;
+    actionStep = work->actionStep;
+    rootCoord  = work->rootCoord;
+    switch (actionStep) {
+        case ACTOR_03800_ACTION_BEGIN:
             work->anim              = ACTOR_03800_ANIM_KNOCKED_OVER;
-            work->actionStep        = 1;
+            work->actionStep        = ACTOR_03800_KNOCKED_OVER_SLIDE;
             work->stepSoundTimer    = 0;
             work->overturned        = 1;
             work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            snd                     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260003;
-            pan                     = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            reactionEnemy           = task->spawnArg2.pointer;
+            soundId                 = ((reactionEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_03800_SOUND_INSTANCE_SHIFT) | ACTOR_03800_SOUND_REACTION;
+            reactionPan             = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundId, reactionPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             break;
-        case 1:
-            if (work->animFrame >= 2 && work->animFrame < 14) {
+        case ACTOR_03800_KNOCKED_OVER_SLIDE:
+            if (work->animFrame >= ACTOR_03800_KNOCKED_OVER_SLIDE_FIRST_TICK && work->animFrame < ACTOR_03800_KNOCKED_OVER_SLIDE_END_TICK) {
                 // Slide along the ground, straight away from the player.
-                scratch->fromPlayer.vx = coord->coord.t[0] - gPlayerStatus.coordMtx->t[0];
-                scratch->fromPlayer.vy = coord->coord.t[1] - gPlayerStatus.coordMtx->t[1];
-                scratch->fromPlayer.vz = coord->coord.t[2] - gPlayerStatus.coordMtx->t[2];
+                scratch->fromPlayer.vx = rootCoord->coord.t[0] - gPlayerStatus.coordMtx->t[0];
+                scratch->fromPlayer.vy = rootCoord->coord.t[1] - gPlayerStatus.coordMtx->t[1];
+                scratch->fromPlayer.vz = rootCoord->coord.t[2] - gPlayerStatus.coordMtx->t[2];
                 VectorNormalS(&scratch->fromPlayer, &scratch->direction);
-                coord->coord.t[0] += (scratch->direction.vx * 17) >> 9;
-                coord->coord.t[2] += (scratch->direction.vz * 17) >> 9;
+                rootCoord->coord.t[0] += (scratch->direction.vx * 17) >> ACTOR_03800_KNOCKED_OVER_DIRECTION_SHIFT;
+                rootCoord->coord.t[2] += (scratch->direction.vz * 17) >> ACTOR_03800_KNOCKED_OVER_DIRECTION_SHIFT;
             } else {
                 work->speed = 0;
                 work->accel = 0;
             }
-            if (work->animFrame == 12) {
-                snd  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260002;
-                pan2 = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(snd, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+            if (work->animFrame == ACTOR_03800_KNOCKED_OVER_IMPACT_TICK) {
+                impactEnemy = task->spawnArg2.pointer;
+                soundId     = ((impactEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_03800_SOUND_INSTANCE_SHIFT) | ACTOR_03800_SOUND_IMPACT;
+                impactPan   = (s8)worldCoordGetOriginAudioPan(rootCoord);
+                sndEvtRequestScriptStart(soundId, impactPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             }
-            if (work->animFrame >= 29) {
-                work->actionStep      = 2;
-                work->overturnedTimer = ((Actor03800_D05F44.hpMax - ctx->hp) * 100 / Actor03800_D05F44.hpMax) * 10 + 240;
+            if (work->animFrame >= ACTOR_03800_KNOCKED_OVER_WAIT_TICK) {
+                work->actionStep      = ACTOR_03800_KNOCKED_OVER_WAIT;
+                work->overturnedTimer = ((Actor03800_D05F44.hpMax - enemy->hp) * 100 / Actor03800_D05F44.hpMax) * ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT + ACTOR_03800_OVERTURNED_WAIT_BASE;
             }
             break;
-        case 2:
+        case ACTOR_03800_KNOCKED_OVER_WAIT:
             work->overturnedTimer--;
             if (work->overturnedTimer <= 0) {
                 work->action     = ACTOR_03800_ACTION_GET_UP;
-                work->actionStep = 0;
+                work->actionStep = ACTOR_03800_ACTION_BEGIN;
             }
             break;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor03800KnockedOverScratch);
 }
 
-static void Actor03800_Fn01948(Task* arg0)
+/// Recoils from a hit, then resumes charge, buildup or the overturned wait.
+///
+/// A perched hit starts the drop directly at its falling stage. Animation
+/// requests deliberately differ from `playingAnim` to restart the reaction.
+static void _actor03800ActionFlinch(Task* task)
 {
-    _Actor03800Work* work = arg0->work;
-    GfxCoord*        coord;
-    s16              state;
-    s32              snd;
-    s32              pan;
+    enum {
+        ACTOR_03800_FLINCH_WAIT             = 1,
+        ACTOR_03800_FLINCH_UPRIGHT_TICKS    = 12,
+        ACTOR_03800_FLINCH_OVERTURNED_TICKS = 19,
+    };
+    _Actor03800Work* work = task->work;
+    GfxCoord*        rootCoord;
+    Enemy*           reactionEnemy;
+    s16              actionStep;
+    s32              soundId;
+    s32              reactionPan;
 
-    state = work->actionStep;
-    coord = work->rootCoord;
-    switch (state) {
-        case 0:
+    actionStep = work->actionStep;
+    rootCoord  = work->rootCoord;
+    switch (actionStep) {
+        case ACTOR_03800_ACTION_BEGIN:
             if (work->mode == ACTOR_03800_MODE_FLOOR) {
                 if (work->overturned == 0) {
                     work->anim  = ACTOR_03800_ANIM_FLINCH;
-                    work->timer = 0xC;
+                    work->timer = ACTOR_03800_FLINCH_UPRIGHT_TICKS;
                 } else {
                     work->anim  = ACTOR_03800_ANIM_FLINCH_OVERTURNED;
-                    work->timer = 0x13;
+                    work->timer = ACTOR_03800_FLINCH_OVERTURNED_TICKS;
                 }
             } else {
                 work->anim   = ACTOR_03800_ANIM_FLINCH_PERCHED;
                 work->timer  = 0;
                 work->action = ACTOR_03800_ACTION_DROP;
             }
-            work->actionStep     = 1;
+            work->actionStep     = ACTOR_03800_FLINCH_WAIT;
             work->playingAnim    = ACTOR_03800_ANIM_STAND; // not the animation asked for, so it starts afresh
             work->stepSoundTimer = 0;
             work->speed          = 0;
             work->accel          = 0;
             work->turnRate       = 0;
-            snd                  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260003;
-            pan                  = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            reactionEnemy        = task->spawnArg2.pointer;
+            soundId              = ((reactionEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_03800_SOUND_INSTANCE_SHIFT) | ACTOR_03800_SOUND_REACTION;
+            reactionPan          = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundId, reactionPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             break;
-        case 1:
+        case ACTOR_03800_FLINCH_WAIT:
             work->timer -= 1;
             if (work->timer > 0) {
                 break;
@@ -1487,10 +1571,10 @@ static void Actor03800_Fn01948(Task* arg0)
             if (work->overturned == 0) {
                 if (work->inBuildup == 0) {
                     work->action     = ACTOR_03800_ACTION_CHARGE;
-                    work->actionStep = 0;
+                    work->actionStep = ACTOR_03800_ACTION_BEGIN;
                 } else {
                     work->action     = ACTOR_03800_ACTION_BUILDUP;
-                    work->actionStep = 0;
+                    work->actionStep = ACTOR_03800_ACTION_BEGIN;
                     work->timer      = 0;
                 }
                 if (work->stepSoundTimer == 0) {
@@ -1498,24 +1582,34 @@ static void Actor03800_Fn01948(Task* arg0)
                 }
             } else {
                 work->action     = ACTOR_03800_ACTION_KNOCKED_OVER;
-                work->actionStep = 2;
+                work->actionStep = ACTOR_03800_KNOCKED_OVER_WAIT;
             }
             break;
     }
 }
 
-static void Actor03800_Fn01AD0(Task* arg0)
+/// Holds movement during buildup, restarting a flinch every 3..10 ticks.
+///
+/// On expiry, resumes charge or the overturned wait on the floor, or drops
+/// from a perch. The overturned wait is recalculated from the remaining HP.
+static void _actor03800ActionBuildup(Task* task)
 {
-    Enemy*           ctx;
+    enum {
+        ACTOR_03800_BUILDUP_FLINCH_DELAY_BASE        = 3,
+        ACTOR_03800_BUILDUP_FLINCH_DELAY_JITTER_MASK = 7,
+    };
+    Enemy*           enemy;
+    Enemy*           buildupEnemy;
     _Actor03800Work* work;
 
-    work           = arg0->work;
-    ctx            = arg0->spawnArg2.pointer;
+    work           = task->work;
+    enemy          = task->spawnArg2.pointer;
     work->turnRate = 0;
     work->speed    = 0;
     work->accel    = 0;
     work->timer--;
     if (work->timer <= 0) {
+        // Restart the flinch periodically while the shared buildup reaction remains active.
         if (work->overturned == 0) {
             work->anim = ACTOR_03800_ANIM_FLINCH;
         } else {
@@ -1523,113 +1617,129 @@ static void Actor03800_Fn01AD0(Task* arg0)
         }
         work->playingAnim = ACTOR_03800_ANIM_STAND; // not the animation asked for, so it starts afresh
         gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->timer       = ((gRandomLcgState >> 16) & 7) + 3;
+        work->timer       = ((gRandomLcgState >> 16) & ACTOR_03800_BUILDUP_FLINCH_DELAY_JITTER_MASK) + ACTOR_03800_BUILDUP_FLINCH_DELAY_BASE;
     }
-    if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
+    buildupEnemy = task->spawnArg2.pointer;
+    if (damageTickEnemyBuildup(buildupEnemy) != 0) {
         work->inBuildup = 0;
         if (work->mode == ACTOR_03800_MODE_FLOOR) {
             if (work->overturned == 0) {
                 work->action     = ACTOR_03800_ACTION_CHARGE;
-                work->actionStep = 0;
+                work->actionStep = ACTOR_03800_ACTION_BEGIN;
                 if (work->stepSoundTimer == 0) {
                     work->stepSoundTimer = 1;
                 }
             } else {
                 work->action          = ACTOR_03800_ACTION_KNOCKED_OVER;
-                work->actionStep      = 2;
-                work->overturnedTimer = ((Actor03800_D05F44.hpMax - ctx->hp) * 100 / Actor03800_D05F44.hpMax) * 10 + 240;
+                work->actionStep      = ACTOR_03800_KNOCKED_OVER_WAIT;
+                work->overturnedTimer = ((Actor03800_D05F44.hpMax - enemy->hp) * 100 / Actor03800_D05F44.hpMax) * ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT + ACTOR_03800_OVERTURNED_WAIT_BASE;
             }
         } else {
             work->action     = ACTOR_03800_ACTION_DROP;
-            work->actionStep = 0;
+            work->actionStep = ACTOR_03800_ACTION_BEGIN;
         }
     }
 }
 
-static void Actor03800_Fn01C50(Task* arg0)
+/// Hands a floor death to the death task state, or lands a perched corpse first.
+///
+/// After landing, restores the saved model root beneath the view coordinate
+/// and starts the overturned death animation before handing over.
+static void _actor03800ActionDie(Task* task)
 {
-    SVECTOR          rotation;
-    MATRIX           matrix;
+    enum {
+        ACTOR_03800_DIE_FALL                 = 1,
+        ACTOR_03800_DIE_START_ANIM           = 2,
+        ACTOR_03800_DIE_RESTORE_ROOT         = 3,
+        ACTOR_03800_DIE_WAIT                 = 4,
+        ACTOR_03800_PERCHED_DEATH_WAIT_TICKS = 15,
+        ACTOR_03800_TASK_DEATH               = 2,
+    };
+    SVECTOR          landingAngles;
+    MATRIX           landingRotation;
     _Actor03800Work* work;
-    GfxCoord*        coord;
-    s16              state;
+    GfxCoord*        modelRoot;
+    s16              actionStep;
 
-    work  = arg0->work;
-    state = work->actionStep;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
+    work       = task->work;
+    actionStep = work->actionStep;
+    modelRoot  = task->extra.tmd->coords;
+    switch (actionStep) {
+        case ACTOR_03800_ACTION_BEGIN:
             if (work->mode == ACTOR_03800_MODE_FLOOR) {
-                arg0->state      = 2;
-                work->actionStep = 0;
+                task->state      = ACTOR_03800_TASK_DEATH;
+                work->actionStep = ACTOR_03800_ACTION_BEGIN;
                 return;
             }
-            work->fallSpeed       = 0x80;
-            work->shadowShade     = 0x80;
-            work->actionStep      = 1;
+            work->fallSpeed       = ACTOR_03800_FLOOR_FALL_SPEED;
+            work->shadowShade     = ACTOR_03800_SHADOW_SHADE;
+            work->actionStep      = ACTOR_03800_DIE_FALL;
             work->gridBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             return;
-        case 1:
+        case ACTOR_03800_DIE_FALL:
             if (work->landed != 0) {
-                work->actionStep = 2;
+                work->actionStep = ACTOR_03800_DIE_START_ANIM;
                 return;
             }
         default:
             return;
-        case 2:
+        case ACTOR_03800_DIE_START_ANIM:
             work->anim       = ACTOR_03800_ANIM_DIE_OVERTURNED;
-            work->actionStep = 3;
+            work->actionStep = ACTOR_03800_DIE_RESTORE_ROOT;
             return;
-        case 3:
-            rotation.vx = 0;
-            rotation.vy = work->yaw;
-            rotation.vz = 0;
-            RotMatrix(&rotation, &matrix);
+        // Reattach at the fallen perch position without applying the perch pitch.
+        case ACTOR_03800_DIE_RESTORE_ROOT:
+            landingAngles.vx = 0;
+            landingAngles.vy = work->yaw;
+            landingAngles.vz = 0;
+            RotMatrix(&landingAngles, &landingRotation);
             gte_SetRotMatrix(&work->savedRootMtx);
-            gte_ldclmv(&matrix.m[0][0]);
+            gte_ldclmv(&landingRotation.m[0][0]);
             gte_rtir();
             gte_stclmv(&work->savedRootMtx.m[0][0]);
-            gte_ldclmv(&matrix.m[0][1]);
+            gte_ldclmv(&landingRotation.m[0][1]);
             gte_rtir();
             gte_stclmv(&work->savedRootMtx.m[0][1]);
-            gte_ldclmv(&matrix.m[0][2]);
+            gte_ldclmv(&landingRotation.m[0][2]);
             gte_rtir();
             gte_stclmv(&work->savedRootMtx.m[0][2]);
-            coord->parent       = &gGfxViewCoord;
-            coord->coord        = work->savedRootMtx;
-            coord->coord.t[0]   = work->perchCoord.coord.t[0];
-            coord->coord.t[1]   = work->perchCoord.coord.t[1];
-            coord->coord.t[2]   = work->perchCoord.coord.t[2];
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            work->timer      = 0xF;
-            work->rootCoord  = coord;
-            work->actionStep = 4;
+            modelRoot->parent       = &gGfxViewCoord;
+            modelRoot->coord        = work->savedRootMtx;
+            modelRoot->coord.t[0]   = work->perchCoord.coord.t[0];
+            modelRoot->coord.t[1]   = work->perchCoord.coord.t[1];
+            modelRoot->coord.t[2]   = work->perchCoord.coord.t[2];
+            modelRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(modelRoot);
+            work->timer      = ACTOR_03800_PERCHED_DEATH_WAIT_TICKS;
+            work->rootCoord  = modelRoot;
+            work->actionStep = ACTOR_03800_DIE_WAIT;
             return;
-        case 4:
+        case ACTOR_03800_DIE_WAIT:
             work->mode = ACTOR_03800_MODE_FLOOR;
             work->timer--;
             if (work->timer <= 0) {
                 work->deathAnimChosen = 1;
-                work->actionStep      = 0;
-                arg0->state           = 2;
+                work->actionStep      = ACTOR_03800_ACTION_BEGIN;
+                task->state           = ACTOR_03800_TASK_DEATH;
             }
             break;
     }
 }
 
-/// `ACTOR_03800_ACTION_WALL_WAIT`: the same body as `Actor03800_Fn02068`,
-/// which the overlay carries twice.
-static void Actor03800_Fn01EEC(Task* arg0)
+/// Looks around on a wall perch and drops 15..30 ticks after a combat signal or touch.
+static void _actor03800ActionWallWait(Task* task)
 {
+    enum {
+        ACTOR_03800_WALL_WAIT_TURN = 1,
+    };
     _Actor03800Work* work;
-    s32              rand;
-    s32              delta;
+    s32              randomBits;
+    s32              yawOffset;
 
-    work = arg0->work;
+    work = task->work;
 
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_03800_ACTION_BEGIN:
             work->turnRate = 0;
             work->speed    = 0;
             work->accel    = 0;
@@ -1639,28 +1749,28 @@ static void Actor03800_Fn01EEC(Task* arg0)
             }
 
             gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->actionStep = 1;
-            rand             = gRandomLcgState >> 16;
-            delta            = rand & 0x3FF;
-            if (!(rand & 0x400)) {
-                delta = -delta;
+            work->actionStep = ACTOR_03800_WALL_WAIT_TURN;
+            randomBits       = gRandomLcgState >> 16;
+            yawOffset        = randomBits & (ACTOR_TRANSFORM_ANGLE_TURN / 4 - 1);
+            if (!(randomBits & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT)) {
+                yawOffset = -yawOffset;
             }
 
             work->anim           = ACTOR_03800_ANIM_WALK;
             work->stepSoundTimer = 1;
-            work->targetYaw      = (work->yaw + delta) & 0xFFF;
+            work->targetYaw      = (work->yaw + yawOffset) & ACTOR_TRANSFORM_ANGLE_MASK;
             break;
 
-        case 1:
+        case ACTOR_03800_WALL_WAIT_TURN:
             work->turnRate = 0x1E;
             work->speed    = 0;
             work->accel    = 0;
             if (work->yaw == work->targetYaw) {
                 gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->actionStep     = 0;
+                work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                 work->anim           = ACTOR_03800_ANIM_STAND;
                 work->stepSoundTimer = 0;
-                work->timer          = (gRandomLcgState >> 16 & 0xFF) + 0x5A;
+                work->timer          = (gRandomLcgState >> 16 & ACTOR_03800_IDLE_WAIT_JITTER_MASK) + ACTOR_03800_IDLE_WAIT_BASE;
             }
             break;
     }
@@ -1668,30 +1778,29 @@ static void Actor03800_Fn01EEC(Task* arg0)
     if ((gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->attackTouched != 0) {
         gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->action     = ACTOR_03800_ACTION_DROP;
-        work->actionStep = 0;
+        work->actionStep = ACTOR_03800_ACTION_BEGIN;
         work->alerted    = 1;
         work->turnRate   = 0;
         work->speed      = 0;
         work->accel      = 0;
-        work->timer      = (gRandomLcgState >> 16 & 0xF) + 0xF;
+        work->timer      = (gRandomLcgState >> 16 & ACTOR_03800_DROP_DELAY_JITTER_MASK) + ACTOR_03800_DROP_DELAY_BASE;
     }
 }
 
-/// `ACTOR_03800_ACTION_CEILING_WAIT`: the perched look-around. Step 0 counts
-/// `timer` down and then picks a `targetYaw` within 0x3FF of `yaw`; step 1
-/// waits for the turn to finish and re-arms the countdown. A noise, a cast of
-/// the other kind or `attackTouched` ends the wait: the actor is alerted and
-/// drops after 15 to 30 ticks.
-static void Actor03800_Fn02068(Task* arg0)
+/// Looks around on a ceiling perch and drops 15..30 ticks after a combat signal or touch.
+static void _actor03800ActionCeilingWait(Task* task)
 {
+    enum {
+        ACTOR_03800_CEILING_WAIT_TURN = 1,
+    };
     _Actor03800Work* work;
-    s32              rand;
-    s32              delta;
+    s32              randomBits;
+    s32              yawOffset;
 
-    work = arg0->work;
+    work = task->work;
 
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_03800_ACTION_BEGIN:
             work->turnRate = 0;
             work->speed    = 0;
             work->accel    = 0;
@@ -1701,28 +1810,28 @@ static void Actor03800_Fn02068(Task* arg0)
             }
 
             gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->actionStep = 1;
-            rand             = gRandomLcgState >> 16;
-            delta            = rand & 0x3FF;
-            if (!(rand & 0x400)) {
-                delta = -delta;
+            work->actionStep = ACTOR_03800_CEILING_WAIT_TURN;
+            randomBits       = gRandomLcgState >> 16;
+            yawOffset        = randomBits & (ACTOR_TRANSFORM_ANGLE_TURN / 4 - 1);
+            if (!(randomBits & ACTOR_03800_RANDOM_TURN_POSITIVE_BIT)) {
+                yawOffset = -yawOffset;
             }
 
             work->anim           = ACTOR_03800_ANIM_WALK;
             work->stepSoundTimer = 1;
-            work->targetYaw      = (work->yaw + delta) & 0xFFF;
+            work->targetYaw      = (work->yaw + yawOffset) & ACTOR_TRANSFORM_ANGLE_MASK;
             break;
 
-        case 1:
+        case ACTOR_03800_CEILING_WAIT_TURN:
             work->turnRate = 0x1E;
             work->speed    = 0;
             work->accel    = 0;
             if (work->yaw == work->targetYaw) {
                 gRandomLcgState      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->actionStep     = 0;
+                work->actionStep     = ACTOR_03800_ACTION_BEGIN;
                 work->anim           = ACTOR_03800_ANIM_STAND;
                 work->stepSoundTimer = 0;
-                work->timer          = (gRandomLcgState >> 16 & 0xFF) + 0x5A;
+                work->timer          = (gRandomLcgState >> 16 & ACTOR_03800_IDLE_WAIT_JITTER_MASK) + ACTOR_03800_IDLE_WAIT_BASE;
             }
             break;
     }
@@ -1730,54 +1839,69 @@ static void Actor03800_Fn02068(Task* arg0)
     if ((gSceneCombatState.signals.bytes.actionFlags & (SCENE_COMBAT_ACTION_NOISE | SCENE_COMBAT_ACTION_PE_CAST_OTHER)) || work->attackTouched != 0) {
         gRandomLcgState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         work->action     = ACTOR_03800_ACTION_DROP;
-        work->actionStep = 0;
+        work->actionStep = ACTOR_03800_ACTION_BEGIN;
         work->alerted    = 1;
         work->turnRate   = 0;
         work->speed      = 0;
         work->accel      = 0;
-        work->timer      = (gRandomLcgState >> 16 & 0xF) + 0xF;
+        work->timer      = (gRandomLcgState >> 16 & ACTOR_03800_DROP_DELAY_JITTER_MASK) + ACTOR_03800_DROP_DELAY_BASE;
     }
 }
 
-static void Actor03800_Fn021E4(Task* arg0)
+/// Waits, falls from a perch and restores the floor root before starting to get up.
+///
+/// Requires the saved model transform and perch coordinate from placement.
+/// Each call reserves and releases one Euler-turn scratch block; landing
+/// disables attack pairing until the get-up action restores it.
+static void _actor03800ActionDrop(Task* task)
 {
-    Enemy*                 ctx;
+    enum {
+        ACTOR_03800_DROP_FALL         = 1,
+        ACTOR_03800_DROP_START_ANIM   = 2,
+        ACTOR_03800_DROP_RESTORE_ROOT = 3,
+        ACTOR_03800_DROP_FINISH       = 4,
+        ACTOR_03800_DROP_FALL_SPEED   = 256,
+    };
+    Enemy*                 enemy;
     _Actor03800Work*       work;
-    GfxCoord*              coord;
+    GfxCoord*              modelRoot;
     ActorEulerTurnScratch* scratch;
-    s32                    sound;
-    s32                    pan;
+    Enemy*                 soundEnemy;
+    s32                    soundId;
+    s32                    impactPan;
 
-    scratch = (ActorEulerTurnScratch*)SCRATCH_STACK_RESERVE_BYTES(sizeof(*scratch));
-    work    = arg0->work;
-    coord   = arg0->extra.tmd->coords;
-    ctx     = arg0->spawnArg2.pointer;
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(ActorEulerTurnScratch);
+    work      = task->work;
+    modelRoot = task->extra.tmd->coords;
+    enemy     = task->spawnArg2.pointer;
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_03800_ACTION_BEGIN:
             work->timer--;
             if (work->timer <= 0) {
-                work->actionStep = 1;
+                work->actionStep = ACTOR_03800_DROP_FALL;
             }
             break;
-        case 1:
-            work->fallSpeed       = 0x100;
-            work->shadowShade     = 0x80;
+        case ACTOR_03800_DROP_FALL:
+            work->fallSpeed       = ACTOR_03800_DROP_FALL_SPEED;
+            work->shadowShade     = ACTOR_03800_SHADOW_SHADE;
             work->gridBody.flags |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             if (work->landed != 0) {
                 work->landed            = 0;
-                work->actionStep        = 2;
-                work->fallSpeed         = 0x80;
+                work->actionStep        = ACTOR_03800_DROP_START_ANIM;
+                work->fallSpeed         = ACTOR_03800_FLOOR_FALL_SPEED;
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                sound                   = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260002;
-                pan                     = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(sound, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(coord));
+                soundEnemy              = task->spawnArg2.pointer;
+                soundId                 = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_03800_SOUND_INSTANCE_SHIFT) | ACTOR_03800_SOUND_IMPACT;
+                impactPan               = (s8)worldCoordGetOriginAudioPan(modelRoot);
+                sndEvtRequestScriptStart(soundId, impactPan, (s8)worldCoordGetOriginAudioDepth(modelRoot));
             }
             break;
-        case 2:
+        case ACTOR_03800_DROP_START_ANIM:
             work->anim       = ACTOR_03800_ANIM_LAND;
-            work->actionStep = 3;
+            work->actionStep = ACTOR_03800_DROP_RESTORE_ROOT;
             break;
-        case 3:
+        // Move the animated root back beneath the view at the landing position.
+        case ACTOR_03800_DROP_RESTORE_ROOT:
             scratch->angles.vx = 0;
             scratch->angles.vy = work->yaw;
             scratch->angles.vz = 0;
@@ -1792,88 +1916,96 @@ static void Actor03800_Fn021E4(Task* arg0)
             gte_ldclmv(&scratch->rotation.m[0][2]);
             gte_rtir();
             gte_stclmv(&work->savedRootMtx.m[0][2]);
-            coord->coord        = work->savedRootMtx;
-            coord->coord.t[0]   = work->perchCoord.coord.t[0];
-            coord->coord.t[1]   = work->perchCoord.coord.t[1];
-            coord->coord.t[2]   = work->perchCoord.coord.t[2];
-            coord->parent       = &gGfxViewCoord;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            work->actionStep      = 4;
-            work->rootCoord       = coord;
-            work->overturnedTimer = ((Actor03800_D05F44.hpMax - ctx->hp) * 100 / Actor03800_D05F44.hpMax) * 10 + 240;
+            modelRoot->coord        = work->savedRootMtx;
+            modelRoot->coord.t[0]   = work->perchCoord.coord.t[0];
+            modelRoot->coord.t[1]   = work->perchCoord.coord.t[1];
+            modelRoot->coord.t[2]   = work->perchCoord.coord.t[2];
+            modelRoot->parent       = &gGfxViewCoord;
+            modelRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(modelRoot);
+            work->actionStep      = ACTOR_03800_DROP_FINISH;
+            work->rootCoord       = modelRoot;
+            work->overturnedTimer = ((Actor03800_D05F44.hpMax - enemy->hp) * 100 / Actor03800_D05F44.hpMax) * ACTOR_03800_OVERTURNED_WAIT_PER_HP_PERCENT + ACTOR_03800_OVERTURNED_WAIT_BASE;
             break;
-        case 4:
+        case ACTOR_03800_DROP_FINISH:
             work->mode = ACTOR_03800_MODE_FLOOR;
             work->timer--;
             if (work->timer <= 0) {
                 work->action     = ACTOR_03800_ACTION_GET_UP;
-                work->actionStep = 0;
+                work->actionStep = ACTOR_03800_ACTION_BEGIN;
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x28);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorEulerTurnScratch);
 }
 
-/// `ACTOR_03800_ACTION_LEAP_AWAY`: a jump along the facing, away from the
-/// player. Step 0 starts the leap animation and picks the direction: backward
-/// (step 1) when the player is ahead of the actor or `hitWall` is set, forward
-/// (step 2) otherwise. Those steps hold `speed` at -/+125 while `animFrame`
-/// is 8 to 16 and stop the actor outside that, moving to step 3 from frame
-/// 17; step 3 returns to wandering at frame 20. `attackBody` is off for the
-/// whole leap.
-static void Actor03800_Fn02584(Task* arg0)
+/// Leaps along the facing away from the player or wall, then resumes wandering.
+///
+/// The player offset and root must share their parent frame. A dot product
+/// against the root's +Z axis selects backward or forward motion. Attack
+/// pairing stays disabled until the leap animation reaches its finish tick.
+static void _actor03800ActionLeapAway(Task* task)
 {
+    enum {
+        ACTOR_03800_LEAP_BACKWARD      = 1,
+        ACTOR_03800_LEAP_FORWARD       = 2,
+        ACTOR_03800_LEAP_RECOVER       = 3,
+        ACTOR_03800_LEAP_FIRST_TICK    = 8,
+        ACTOR_03800_LEAP_LAST_TICK     = 16,
+        ACTOR_03800_LEAP_RECOVERY_TICK = 17,
+        ACTOR_03800_LEAP_FINISH_TICK   = 20,
+        ACTOR_03800_LEAP_SPEED         = 125,
+    };
     _Actor03800Work* work;
-    GfxCoord*        coord;
-    VECTOR           vec;
+    GfxCoord*        rootCoord;
+    VECTOR           toPlayer;
 
-    work  = arg0->work;
-    coord = work->rootCoord;
+    work      = task->work;
+    rootCoord = work->rootCoord;
 
     switch (work->actionStep) {
-        case 0:
-            vec.vx     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            vec.vy     = 0;
-            vec.vz     = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            work->anim = ACTOR_03800_ANIM_LEAP;
+        case ACTOR_03800_ACTION_BEGIN:
+            toPlayer.vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            toPlayer.vy = 0;
+            toPlayer.vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            work->anim  = ACTOR_03800_ANIM_LEAP;
             if (work->hitWall != 0) {
                 work->hitWall    = 0;
-                work->actionStep = 1;
+                work->actionStep = ACTOR_03800_LEAP_BACKWARD;
             } else {
                 work->actionStep =
-                    ((vec.vx * coord->coord.m[0][2]) + (vec.vz * coord->coord.m[2][2]) > 0) ? 1 : 2;
+                    ((toPlayer.vx * rootCoord->coord.m[0][2]) + (toPlayer.vz * rootCoord->coord.m[2][2]) > 0) ? ACTOR_03800_LEAP_BACKWARD : ACTOR_03800_LEAP_FORWARD;
             }
             work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
 
-        case 1:
-            if (work->animFrame >= 8 && work->animFrame <= 0x10) {
-                work->speed = -0x7D;
+        case ACTOR_03800_LEAP_BACKWARD:
+            if (work->animFrame >= ACTOR_03800_LEAP_FIRST_TICK && work->animFrame <= ACTOR_03800_LEAP_LAST_TICK) {
+                work->speed = -ACTOR_03800_LEAP_SPEED;
                 break;
             }
             work->speed = 0;
-            if (work->animFrame >= 0x11) {
-                work->actionStep = 3;
+            if (work->animFrame >= ACTOR_03800_LEAP_RECOVERY_TICK) {
+                work->actionStep = ACTOR_03800_LEAP_RECOVER;
             }
             break;
 
-        case 2:
-            if (work->animFrame >= 8 && work->animFrame <= 0x10) {
-                work->speed = 0x7D;
+        case ACTOR_03800_LEAP_FORWARD:
+            if (work->animFrame >= ACTOR_03800_LEAP_FIRST_TICK && work->animFrame <= ACTOR_03800_LEAP_LAST_TICK) {
+                work->speed = ACTOR_03800_LEAP_SPEED;
                 break;
             }
             work->speed = 0;
-            if (work->animFrame >= 0x11) {
-                work->actionStep = 3;
+            if (work->animFrame >= ACTOR_03800_LEAP_RECOVERY_TICK) {
+                work->actionStep = ACTOR_03800_LEAP_RECOVER;
             }
             break;
 
-        case 3:
-            if (work->animFrame >= 0x14) {
+        case ACTOR_03800_LEAP_RECOVER:
+            if (work->animFrame >= ACTOR_03800_LEAP_FINISH_TICK) {
                 work->action            = ACTOR_03800_ACTION_WANDER;
-                work->actionStep        = 0;
-                work->shadowShade       = 0x80;
+                work->actionStep        = ACTOR_03800_ACTION_BEGIN;
+                work->shadowShade       = ACTOR_03800_SHADOW_SHADE;
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
             break;
@@ -1974,26 +2106,31 @@ static void Actor03800_Fn02848(Task* arg0)
     coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->speed) >> 0xC;
 }
 
-/// Switches the work's animation id, resetting the slots to the blend value the
-/// table gives for the new id; otherwise ticks every slot one frame.
+/// Starts a requested clip with its table-defined blend, or advances the five driven parts.
+///
+/// Requires a live rig initialized by `_actor03800Spawn`. Changed requests
+/// must name a clip in 1..11; the initial unchanged zero keeps the spawn's
+/// stand playback. Slots 1..5 map to model parts and tracks; slot 0 is untouched.
+/// A changed request resets `animFrame` to zero and captures each old pose for
+/// the blend. Unchanged requests advance playback and count one task tick.
 static inline void _actor03800TickAnim(Task* task)
 {
     _Actor03800Work* work;
-    s32              i;
-    s32              value;
+    s32              slotIndex;
+    s32              blendFrames;
 
     work = task->work;
     if (work->anim != work->playingAnim) {
         work->playingAnim = work->anim;
         work->animFrame   = 0;
-        value             = Actor03800_D05F90[work->anim];
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, value);
+        blendFrames       = Actor03800_D05F90[work->anim];
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }
     } else {
         work->animFrame++;
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }
@@ -2254,43 +2391,43 @@ static void Actor03800_Fn032D8(Task* arg0)
     state = work->action;
     switch (state) {
         case ACTOR_03800_ACTION_IDLE:
-            Actor03800_Fn01150(arg0);
+            _actor03800ActionIdle(arg0);
             break;
         case ACTOR_03800_ACTION_WANDER:
-            Actor03800_Fn012B4(arg0);
+            _actor03800ActionWander(arg0);
             break;
         case ACTOR_03800_ACTION_CHARGE:
-            Actor03800_Fn01520(arg0);
+            _actor03800ActionCharge(arg0);
             break;
         case ACTOR_03800_ACTION_KNOCKED_OVER:
-            Actor03800_Fn0166C(arg0);
+            _actor03800ActionKnockedOver(arg0);
             break;
         case ACTOR_03800_ACTION_GET_UP:
-            Actor03800_Fn03420(arg0);
+            _actor03800ActionGetUp(arg0);
             break;
         case ACTOR_03800_ACTION_FLINCH:
-            Actor03800_Fn01948(arg0);
+            _actor03800ActionFlinch(arg0);
             break;
         case ACTOR_03800_ACTION_BUILDUP:
-            Actor03800_Fn01AD0(arg0);
+            _actor03800ActionBuildup(arg0);
             break;
         case ACTOR_03800_ACTION_DIE:
-            Actor03800_Fn01C50(arg0);
+            _actor03800ActionDie(arg0);
             break;
         case ACTOR_03800_ACTION_WALL_WAIT:
-            Actor03800_Fn01EEC(arg0);
+            _actor03800ActionWallWait(arg0);
             break;
         case ACTOR_03800_ACTION_CEILING_WAIT:
-            Actor03800_Fn02068(arg0);
+            _actor03800ActionCeilingWait(arg0);
             break;
         case ACTOR_03800_ACTION_DROP:
-            Actor03800_Fn021E4(arg0);
+            _actor03800ActionDrop(arg0);
             break;
         case ACTOR_03800_ACTION_SHRINE_WAIT:
-            Actor03800_Fn034B0(arg0);
+            _actor03800ActionShrineWait(arg0);
             break;
         case ACTOR_03800_ACTION_LEAP_AWAY:
-            Actor03800_Fn02584(arg0);
+            _actor03800ActionLeapAway(arg0);
             break;
     }
     if (work->overturned == 0) {
@@ -2303,26 +2440,32 @@ static void Actor03800_Fn032D8(Task* arg0)
     work->gridBody.radius = mag;
 }
 
-static void Actor03800_Fn03420(Task* arg0)
+/// Rights the actor at animation tick 30 and resumes charging from tick 58.
+static void _actor03800ActionGetUp(Task* task)
 {
-    _Actor03800Work* work = arg0->work;
-    s32              state;
+    enum {
+        ACTOR_03800_GET_UP_PLAY         = 1,
+        ACTOR_03800_GET_UP_UPRIGHT_TICK = 30,
+        ACTOR_03800_GET_UP_CHARGE_TICK  = 58,
+    };
+    _Actor03800Work* work = task->work;
+    s32              actionStep;
 
-    state = work->actionStep;
-    switch (state) {
-        case 0:
+    actionStep = work->actionStep;
+    switch (actionStep) {
+        case ACTOR_03800_ACTION_BEGIN:
             work->anim       = ACTOR_03800_ANIM_GET_UP;
-            work->actionStep = 1;
+            work->actionStep = ACTOR_03800_GET_UP_PLAY;
             break;
-        case 1:
-            if (work->animFrame == 0x1E) {
+        case ACTOR_03800_GET_UP_PLAY:
+            if (work->animFrame == ACTOR_03800_GET_UP_UPRIGHT_TICK) {
                 work->overturned = 0;
             }
-            if (work->animFrame >= 0x3A) {
+            if (work->animFrame >= ACTOR_03800_GET_UP_CHARGE_TICK) {
                 work->action     = ACTOR_03800_ACTION_CHARGE;
-                work->actionStep = 0;
+                work->actionStep = ACTOR_03800_ACTION_BEGIN;
                 if (work->stepSoundTimer == 0) {
-                    work->stepSoundTimer = state;
+                    work->stepSoundTimer = 1;
                 }
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
@@ -2330,35 +2473,39 @@ static void Actor03800_Fn03420(Task* arg0)
     }
 }
 
-static void Actor03800_Fn034B0(Task* arg0)
+/// Follows shrine visibility and release phases, wandering after a 90-tick release delay.
+static void _actor03800ActionShrineWait(Task* task)
 {
-    TmdObject*       obj;
-    Enemy*           ctx;
+    enum {
+        ACTOR_03800_SHRINE_RELEASE_TICKS = 90,
+    };
+    TmdObject*       model;
+    Enemy*           enemy;
     _Actor03800Work* work;
 
-    work = arg0->work;
-    obj  = arg0->extra.tmd;
-    ctx  = arg0->spawnArg2.pointer;
+    work  = task->work;
+    model = task->extra.tmd;
+    enemy = task->spawnArg2.pointer;
     switch (gSceneCombatState.shrineEnemyPhase) {
         case SCENE_COMBAT_SHRINE_HIDDEN:
-            obj->flags                  = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
-            ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            model->flags                  = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
         case SCENE_COMBAT_SHRINE_REVEALED:
-            obj->flags              = 0;
+            model->flags            = 0;
             work->hitBody.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->gridBody.flags   |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
             work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             sceneEngageBattle(1);
-            work->fallSpeed   = 0x80;
-            work->timer       = 0x5A;
+            work->fallSpeed   = ACTOR_03800_FLOOR_FALL_SPEED;
+            work->timer       = ACTOR_03800_SHRINE_RELEASE_TICKS;
             work->mode        = ACTOR_03800_MODE_FLOOR;
-            work->shadowShade = 0x80;
+            work->shadowShade = ACTOR_03800_SHADOW_SHADE;
             return;
         case SCENE_COMBAT_SHRINE_RELEASED:
             if (--work->timer <= 0) {
                 work->action     = ACTOR_03800_ACTION_WANDER;
-                work->actionStep = 0;
+                work->actionStep = ACTOR_03800_ACTION_BEGIN;
             }
             return;
     }
