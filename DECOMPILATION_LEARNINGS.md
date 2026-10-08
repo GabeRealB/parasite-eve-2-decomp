@@ -21230,7 +21230,7 @@ the same 25 instructions at `0x8013265C`.
 The same arity trap takes out the room `TaskMessageHandler`s, where m2c cannot even
 see the convention: the body is reached through a lone `.word` in the room's
 `_data`, so with the message id unused m2c emits a *one*-parameter signature
-and the payload lands in `$a0` instead of `$a2`. `func_mine_secret_passage_8017D898`
+and the payload lands in `$a0` instead of `$a2`. `mineSecretPassageHandleSoundMessage`
 scored 99.583% with `regs=1` that way - every opcode, immediate and operand the
 same bar the compared register in one column (`bne $a0,$v0` against retail's
 `bne $a2,$v0`). The fix is the typedef's own parameter list,

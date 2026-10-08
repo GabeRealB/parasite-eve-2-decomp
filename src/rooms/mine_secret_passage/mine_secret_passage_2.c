@@ -72,10 +72,10 @@ extern WorldCoordRoomLights       D_mine_secret_passage_80182DB4[1];
 
 TaskMessageEntry D_mine_secret_passage_80180E8C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_secret_passage_8017D7CC },
-    { 5105, func_mine_secret_passage_8017D7C4 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_secret_passage_8017D890 },
-    { ROOM_MESSAGE_COMMAND, func_mine_secret_passage_8017D888 },
-    { ROOM_MESSAGE_SOUND, func_mine_secret_passage_8017D898 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, mineSecretPassageRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, mineSecretPassageIgnoreAction },
+    { ROOM_MESSAGE_COMMAND, mineSecretPassageIgnoreCommand },
+    { ROOM_MESSAGE_SOUND, mineSecretPassageHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

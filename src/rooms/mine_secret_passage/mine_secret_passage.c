@@ -33,16 +33,16 @@
 /// `field_4` / `field_1` take the three bytes the outgoing location carries.
 extern RoomEventMsg D_mine_secret_passage_80183448;
 
-static void func_mine_secret_passage_8017D8C8(Task* arg0);
-static void func_mine_secret_passage_8017D914(Task* arg0);
-static void func_mine_secret_passage_8017D968(Task* task);
+static void _mineSecretPassageInitRoomTask(Task* task);
+static void _mineSecretPassageTryIntroEvent(Task* task);
+static void _mineSecretPassageIdleRoomTask(Task* unusedTask);
 
-/// State handlers of the room task `func_mine_secret_passage_8017D970` drives:
+/// State handlers of the room task `mineSecretPassageRoomTask` drives:
 /// set-up, the one-shot state, the idle state and `taskKill`.
 static const TaskFuncTable4 D_mine_secret_passage_8017D5C4 = {
-    func_mine_secret_passage_8017D8C8,
-    func_mine_secret_passage_8017D914,
-    func_mine_secret_passage_8017D968,
+    _mineSecretPassageInitRoomTask,
+    _mineSecretPassageTryIntroEvent,
+    _mineSecretPassageIdleRoomTask,
     taskKill,
 };
 
@@ -117,9 +117,9 @@ void func_mine_secret_passage_8017D60C(Task* arg0)
     }
 }
 
-s32 func_mine_secret_passage_8017D7C4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 mineSecretPassageRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Handler id 0x13EE of the room's `TaskMessageEntry` table
@@ -146,63 +146,70 @@ s32 func_mine_secret_passage_8017D7CC(Task* task, s32 msgId, RoomEventMsg* src, 
     return 1;
 }
 
-s32 func_mine_secret_passage_8017D888(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 mineSecretPassageIgnoreCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-s32 func_mine_secret_passage_8017D890(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 mineSecretPassageIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
 
-/// Handler id 0x13F2 of the room's `TaskMessageEntry` table
-/// `D_mine_secret_passage_80180E8C`: cues sound event 0x16 when the message's
-/// `arg2` is 3. No `Task` is spawned, so the room owns this cue rather than a
-/// child task.
-s32 func_mine_secret_passage_8017D898(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 mineSecretPassageHandleSoundMessage(Task* task, s32 messageId, s32 cueId, s32 unusedArg)
 {
-    if (arg2 == 3) {
+    enum { MINE_SECRET_PASSAGE_SOUND_CUE_CONFIRM = 3 };
+
+    if (cueId == MINE_SECRET_PASSAGE_SOUND_CUE_CONFIRM) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
     }
     return 0;
 }
 
-/// Set-up state of the room task: points the task at the passage's message
-/// table, publishes it in pointer slot 7, selects scene music entry 1 and
-/// advances to the next state.
-static void func_mine_secret_passage_8017D8C8(Task* arg0)
+/// Registers the passage's room task and selects its countdown-music entry.
+///
+/// State 0 borrows the loaded room message table and publishes the live task
+/// in `GAME_TASK_SLOT_ROOM`, then advances to the one-shot event state.
+/// The stage music task later uses entry 1 of the Shelter countdown table.
+static void _mineSecretPassageInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_mine_secret_passage_80180E8C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    arg0->state           = (s32)(arg0->state + 1);
-    gStageSceneMusicEntry = 1;
+    enum { MINE_SECRET_PASSAGE_COUNTDOWN_MUSIC_ENTRY = 1 };
+
+    task->msgTable = D_mine_secret_passage_80180E8C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    task->state++;
+    gStageSceneMusicEntry = MINE_SECRET_PASSAGE_COUNTDOWN_MUSIC_ENTRY;
 }
 
-/// One-shot state of the room task: the first time through (game flag nibble
-/// 0x172 still clear) it sets the flag and calls `capSpawnEventIfIdle(3, 1)`;
-/// either way it advances to the idle state.
-static void func_mine_secret_passage_8017D914(Task* arg0)
+/// Attempts the passage's one-time CAP event and advances to idle.
+///
+/// State 1 marks an unseen event before requesting command 3 with actors paused.
+/// Busy CAP playback or allocation failure still consumes the attempt; this
+/// state does not wait or retry. The loaded command's resources must stay live
+/// through any playback it starts.
+static void _mineSecretPassageTryIntroEvent(Task* task)
 {
-    if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN) == 0) {
-        gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN, 1);
-        capSpawnEventIfIdle(3, CAP_EVENT_PAUSE_ACTORS);
+    enum {
+        MINE_SECRET_PASSAGE_INTRO_UNSEEN  = 0,
+        MINE_SECRET_PASSAGE_INTRO_SEEN    = 1,
+        MINE_SECRET_PASSAGE_INTRO_COMMAND = 3,
+    };
+
+    // Consume the one-shot gate before the idle-only spawn attempt.
+    if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN) == MINE_SECRET_PASSAGE_INTRO_UNSEEN) {
+        gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_INTRO_SEEN, MINE_SECRET_PASSAGE_INTRO_SEEN);
+        capSpawnEventIfIdle(MINE_SECRET_PASSAGE_INTRO_COMMAND, CAP_EVENT_PAUSE_ACTORS);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
-/// Idle state of the room task.
-static void func_mine_secret_passage_8017D968(Task* task)
+/// Keeps the registered room task alive in state 2 without changing it.
+static void _mineSecretPassageIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// Per-frame entry point of the room task: runs the handler of
-/// `D_mine_secret_passage_8017D5C4` its state selects. The table is a local
-/// copy, so it is copied from `.rodata` onto the stack every frame.
-void func_mine_secret_passage_8017D970(Task* task)
+void mineSecretPassageRoomTask(Task* task)
 {
-    TaskFuncTable4 states;
-
-    states = D_mine_secret_passage_8017D5C4;
-    states.funcs[task->state](task);
+    TaskFuncTable4 stateHandlers = D_mine_secret_passage_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

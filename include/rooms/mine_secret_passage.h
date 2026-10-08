@@ -73,6 +73,14 @@ void func_mine_secret_passage_80180D58(Task* arg0);
 /// The coordinate body and spawn arguments are unused; the task remains live.
 void mineSecretPassageDrawLightGlowsTask(Task* task);
 
-void func_mine_secret_passage_8017D970(Task* task);
+/// Runs the passage's room-message controller and one-time CAP event.
+///
+/// Requires a live task with state 0..3 and the passage overlay loaded. State 0
+/// registers the room task and selects countdown-music entry 1; state 1 marks
+/// an unseen intro and attempts CAP command 3; state 2 idles; state 3 kills the
+/// task. The body and spawn arguments are unused. The message table remains
+/// borrowed while registered; senders must stop using the room task before it
+/// is killed, since teardown does not clear its resident slot.
+void mineSecretPassageRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MINE_SECRET_PASSAGE_H
