@@ -27897,18 +27897,19 @@ condition — a `count = scan->rowCount` local takes `$a1` and puts `i`
 in `$a1` instead of `$a2`.
 
 ```c
-volatile GpItemRec* table;
+const volatile InventoryItemRow* row;
 ...
-for (; i < scan->rowCount; i++) {
-    if (((u32)(table->itemId - 0x60) < 0x20U) &&
-        (p->field_23 != table->itemId - 0x5F)) {
-        count++;
+for (; rowIndex < carriedRange->rowCount; rowIndex++) {
+    if (((u32)(row->itemId - ITEM_MENU_ARMOR_ITEM_FIRST) <
+         ARRAY_SIZE(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.itemLevelBonus)) &&
+        (player->armor != row->itemId - (ITEM_MENU_ARMOR_ITEM_FIRST - 1))) {
+        armorRowCount++;
     }
-    table++;
+    row++;
 }
 ```
 
-`func_800CF090` is the example. A plain `GpItemRec*` stuck at 92% with
+`itemMenuSizeUnequippedArmorList` is the example. A plain `InventoryItemRow*` stuck at 92% with
 only the load reused and those two registers swapped.
 
 ## Assign a negative constant to `s32` before storing it to a `u16` field

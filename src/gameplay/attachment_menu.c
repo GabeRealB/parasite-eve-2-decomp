@@ -264,7 +264,7 @@ UiListRowCallback Gp_ItemCmdRows[2]   = { itemMenuDrawHotspotActionRow, Gp_DrawI
 UiList            D_8010F81C          = { Gp_ItemCmdRows, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 UiObjectDesc      D_8010F840          = { 3, { 0, 0, 70, 64 }, 60, 0, TASK_BODY_NONE, 192, Gp_MapMenuListTask, 0 };
 TaskDesc          D_8010F85C          = { { { TASK_BODY_NONE, 192 } }, Gp_MapScreenTask, { NULL } };
-UiObjectDesc      D_8010F868          = { 0, { 0, -104, 144, 16 }, 36, 0, TASK_BODY_NONE, 192, func_800D5A48, 0 };
+UiObjectDesc      D_8010F868          = { 0, { 0, -104, 144, 16 }, 36, 0, TASK_BODY_NONE, 192, itemMenuPreviewPanelTask, 0 };
 s32               D_8010F884          = 0;
 s32               Gp_HealPending      = 0;
 s32               Gp_PendingRelatedId = 0;
@@ -327,7 +327,7 @@ void Gp_AttachListTask(Task* task)
             }
             uiSizePanelForTextDefault(&(obj)->panel, Gp_StrWrongAmmo2);
             if (task->state != 2) {
-                Gp_SizeEquippedPanel(&(obj)->panel, val);
+                itemMenuSizeEquippedNotice(&(obj)->panel, val);
             }
             obj->panel.animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
             return;
@@ -386,7 +386,7 @@ void Gp_AttachListTask(Task* task)
         textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrWrongAmmo2, 0x606060, drawMode, TEXT_ALIGNMENT_LEFT);
     } else {
         uiDrawPanelLabel(&(obj)->panel, Gp_StrEquip);
-        func_800CF6E8(obj, val);
+        itemMenuDrawEquippedNotice(obj, val);
     }
     task->killCountdown--;
     if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {

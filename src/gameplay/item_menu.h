@@ -432,13 +432,38 @@ void itemMenuDrawAbilityDescription(UiObject* object, s32 abilityId);
 /// are list-row pixels relative to the panel content.
 void itemMenuDrawSortRow(UiList* list, UiObject* object);
 
-void func_800CF148(UiObject* arg0, Task* arg1);
+/// Propagates child dismissal/cancellation and closes accepted child dialogs.
+///
+/// Borrows a live object and ownerTask with a circular ring of task-owned
+/// `UiObject`s in `spawnArg2`. CONFIRM detaches and starts closing the child tree,
+/// then reactivates the parent; DISMISS and CANCEL copy to the parent's result.
+/// The saved sibling and current ring head determine where traversal stops,
+/// including after closing the previous head. Release happens in later updates.
+void itemMenuApplyChildDialogResults(UiObject* object, Task* ownerTask);
 
-void func_800CF090(UiList* arg0, UiObject* arg1);
+/// Counts carried armor rows other than the equipped armor and shows four rows.
+///
+/// Borrows the live carried range, which must fit its readable backing table.
+/// Duplicate ids count separately; quantities and attachment markers are ignored.
+/// Writes only the list's item count and visible-row count. `unusedObject` is ignored.
+void itemMenuSizeUnequippedArmorList(UiList* list, const UiObject* unusedObject);
 
-void Gp_SizeEquippedPanel(UiPanel* arg0, s32 arg1);
+/// Fits and horizontally centers a two-line Equipped notice for a catalogue item.
+///
+/// `itemId` must satisfy `itemGetText`'s name lookup contract. Requires initialized
+/// panel bounds and content coordinates under `uiSetPanelContentSize`'s contract.
+/// Width covers the item name plus its period allowance or "Equipped", with
+/// five margin pixels; height is two fifteen-pixel rows plus one margin pixel.
+/// Signed halving rounds the negative outer width down before the halfword store.
+void itemMenuSizeEquippedNotice(UiPanel* panel, s32 itemId);
 
-void func_800CF6E8(UiObject* arg0, s32 arg1);
+/// Draws Equipped and the named item followed by a period in a fitted notice.
+///
+/// `itemId` must satisfy `itemGetText`'s name lookup contract. Borrows the panel and
+/// loaded text/GPU resources under `textDrawUiLine`'s contract. Baselines are
+/// 15 and 30 pixels below `contentTop`, two pixels right of `contentLeft`. The item
+/// name uses RGB 0x037A78; the verb and period use the normal menu text color.
+void itemMenuDrawEquippedNotice(const UiObject* object, s32 itemId);
 
 /// Draws the main menu's P. Energy command and opens its ability list on Confirm.
 ///
@@ -532,11 +557,27 @@ void Gp_MapTask(Task* arg0);
 
 void Gp_MapPanelInit(Task* arg0);
 
-void Gp_MapFirstDrawTask(Task* arg0);
+/// Waits for the map page load, draws the ready page and resumes map input state.
+///
+/// `mapTask` is in state 1 of `Gp_MapTaskStates` with its live `UiObject` in `spawnArg2`.
+/// Its current stage/page indices must fit the loaded tables, and those tables
+/// and page resources must remain available.
+/// A busy CD queue adds one animation tick to offset opening's subsequent tick;
+/// idle sets one tick, draws the player, flags, picture, areas and page arrows,
+/// and advances to state 2. Page changes reuse this state after the initial load.
+void menuMapWaitForPageTask(Task* mapTask);
 
 void Gp_MapDrawTask(Task* arg0);
 
-void Gp_PeMenuListTask(Task* arg0);
+/// Updates the Item command list containing Use/Attach and Key Item.
+///
+/// `spawnArg2` is the live task-owned `UiObject`; its owner starts in state zero.
+/// Fits the shared list once and draws it each update. Active Cancel plays the
+/// cancel sound and reports CONFIRM; Menu reports CANCEL. Child CONFIRM restores
+/// parent input before closing that subtree, DISMISS becomes parent CONFIRM,
+/// and CANCEL propagates. Child objects and their circular task ring must be live.
+/// A child CONFIRM must leave a nonempty ring for the subsequent traversal.
+void itemMenuItemCommandTask(Task* task);
 
 /// Draws Revive for an unlearned PE ability or Strengthen for a learned one.
 ///
@@ -647,7 +688,14 @@ void itemMenuDrawHotspotActionRow(UiList* list, UiObject* object);
 
 void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1);
 
-void func_800D5A48(Task* arg0);
+/// Displays the selected menu preview in a separate panel without polling input.
+///
+/// `spawnArg2` is the live task-owned `UiObject`; state starts at zero. `spawnArg1`
+/// zero selects a 132x100-pixel content area; nonzero selects 132x131 and the
+/// tall picture. Uses the current menu preview resources without requesting a
+/// load. A busy CD queue suppresses the picture, retaining its recessed frame.
+/// Resets the object's result to NONE each update; picture inset is two pixels.
+void itemMenuPreviewPanelTask(Task* task);
 
 extern char Gp_StrReleasePe[];
 

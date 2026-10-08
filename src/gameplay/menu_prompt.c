@@ -2325,7 +2325,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                             locals.y      = obj->panel.contentTop.unsignedValue + 0xF;
                             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
                                 sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-                                func_800CF090(&D_8010E9F4, obj);
+                                itemMenuSizeUnequippedArmorList(&D_8010E9F4, obj);
                                 if (D_8010E9F4.itemCount != 0) {
                                     UiObject* spawned;
                                     sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);

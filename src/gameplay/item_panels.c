@@ -512,7 +512,7 @@ u8* D_8010F644[4] = {
     Gp_StrEarth,
 };
 
-UiObjectDesc D_8010F654[1] = { { 3, { -136, -50, 60, 80 }, 24, 0, TASK_BODY_NONE, 192, Gp_PeMenuListTask, 0 } };
+UiObjectDesc D_8010F654[1] = { { 3, { -136, -50, 60, 80 }, 24, 0, TASK_BODY_NONE, 192, itemMenuItemCommandTask, 0 } };
 
 UiObjectDesc D_8010F670 = { 3, { -136, -50, 70, 80 }, 20, 0, TASK_BODY_NONE, 192, itemMenuPeCommandTask, 0 };
 
@@ -2001,7 +2001,7 @@ const char                      Gp_StrWarning[] = "Warning";
 
 const TaskFuncTable4 Gp_MapTaskStates = { {
     Gp_MapPanelInit,
-    Gp_MapFirstDrawTask,
+    menuMapWaitForPageTask,
     Gp_MapTaskState2,
     Gp_MapDrawTask,
 } };

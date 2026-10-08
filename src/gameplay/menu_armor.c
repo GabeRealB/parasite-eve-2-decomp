@@ -369,7 +369,7 @@ void Gp_EquipSelectMenuTask(Task* arg0)
             obj->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }
-    func_800CF148(obj, arg0);
+    itemMenuApplyChildDialogResults(obj, arg0);
     if (arg0->spawnArg1.value == 0) {
         if (obj->result == USER_INTERFACE_RESULT_DISMISS) {
             obj->result = USER_INTERFACE_RESULT_CONFIRM;
