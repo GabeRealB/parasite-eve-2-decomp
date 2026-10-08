@@ -69496,7 +69496,7 @@ Controlled input SHA256 `c7f5fa55b19995d55a5fdefc133aa143b42bf3a205b44ba7438a3a7
 
 ## An earlier call argument can change sched1 birth promotion without adding an instruction
 
-`func_actor_403100_8013CBE0`: base_7 was 99.500%, with only `move a1,s1`
+`_actor403100StepJawPitchKick`: base_7 was 99.500%, with only `move a1,s1`
 after the depth conversion instead of before it. The seed had a second argument
 to `worldCoordGetOriginAudioPan`, which was initially removed to satisfy its shared one-argument
 prototype. Restoring that caller argument produced 100% without adding any
@@ -69517,7 +69517,7 @@ prediction produced the exact object; cleaned base_17 retained it.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Base_7 input: `62e9da57fff324c38db460701d817fd830ef0e744536328213bbe8b141aa7496`.
 Base_16 input: `41a3a0425fa8847261ffda7bd2d533ab235b383e99b4bc126586868f4dfce72f`.
-Session evidence is in `nonmatchings/func_actor_403100_8013CBE0-vacuum/LEARNINGS.md`,
+Session evidence is in `nonmatchings/_actor403100StepJawPitchKick-vacuum/LEARNINGS.md`,
 `base_16.i.sched`, and `TRACE_EVIDENCE/actor403100-schedule-observation/`
 (manifest, report, full events and input dumps). Observation left assembly
 unchanged. Narrowing locals, changing formal conversions and memory barriers
@@ -77397,7 +77397,7 @@ worldCollisionLinkBody(2, &work->trunkBody);
 So when the target hoists a load but leaves its store in the delay slot, the
 seed's statement order is wrong by exactly that distance, and `insert`/`delete`
 with matching opcode counts is the signature to look for. The same shape is in
-the committed `func_actor_403100_80132320` (`src/actors/actor_403100/`), whose
+the committed `_actor403100InitCombatBodies` (`src/actors/actor_403100/`), whose
 C reads `field_8` first and whose asm hoists its `lw $a2, 0x8($v1)` the same way.
 
 Reordering alone is not enough: going with the reordering, a local
@@ -77409,7 +77409,7 @@ register (`$s5`), a `move a1, s5`, a 0x30 frame and four extra instructions
 is also a call argument is a pointer local": that entry adds a pointer local the
 target had, this one removes a pointer local the target did not — the base has
 to be the object the target's displacements are measured from.
-`func_actor_403100_80132320` spells its global out in full for the same reason.
+`_actor403100InitCombatBodies` spells its global out in full for the same reason.
 
 The frame size is a cheap tell for which of the two you have: 0x28 with `s0`
 as the work base is the folded form, 0x30 with an `s5` is a base the source
@@ -148582,7 +148582,7 @@ source.
   remains. See "One pin was carrying three" at the end of this file, which
   also corrects the dependence argument above: sched1 does not need it, only
   sched2 does, and sched2 gets it from the shared hard register.*
-### A pin on a value merged in the call's delay slot was one inline called in every arm (func_actor_403100_8013CBE0, 2026-10-05)
+### A pin on a value merged in the call's delay slot was one inline called in every arm (_actor403100StepJawPitchKick, 2026-10-05)
 
 **Supersedes** "An earlier call argument can change sched1 birth promotion
 without adding an instruction" for this function: neither the second argument
