@@ -1,18 +1,24 @@
 /* Part of the Odd Stranger library; see odd_stranger.h. */
 
-/// Shows the ordinary actor shadow, including the walking burst-death pose.
-static inline void _oddStrangerDrawFrameShadow(Task* actor, OddStrangerWork* work)
+/// Draws the state-selected ground shadow and restores ordinary model draw flags.
+///
+/// Borrows the live model and its read-only work for this call. The root's
+/// composed translation must be current. Ordinary states clear all model draw
+/// flags; hidden and death states preserve them. Walking burst death draws only
+/// during the walk clip. The square's half-side is 384 game-coordinate units;
+/// the room's effect state controls shade and may suppress drawing.
+static inline void _oddStrangerDrawFrameShadow(Task* actor, const OddStrangerWork* work)
 {
-    enum { ODD_STRANGER_GROUND_SHADOW_RADIUS = 384 };
+    enum { ODD_STRANGER_GROUND_SHADOW_HALF_SIZE = 384 };
     s32 state = work->state;
 
     if ((state != ODD_STRANGER_STATE_HIDDEN) && (state != ODD_STRANGER_STATE_DEATH_BURN) && (state != ODD_STRANGER_STATE_DEATH_BURST) && (state != ODD_STRANGER_STATE_DEATH_BURST_WALK)) {
         actor->extra.tmd->flags = 0;
-        effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_RADIUS, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         state = work->state;
     }
     if ((state == ODD_STRANGER_STATE_DEATH_BURST_WALK) && (work->animId == ODD_STRANGER_ANIM_WALK)) {
-        effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_RADIUS, gRoomEffectState->groundShadowShade);
+        effectDrawGroundShadow(MATRIX_TRANS(&actor->extra.tmd->coords->workm), ODD_STRANGER_GROUND_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
     }
 }
 

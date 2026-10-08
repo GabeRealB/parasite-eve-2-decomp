@@ -1,7 +1,12 @@
 /* Part of the Dryfield main street library; see main_street.h. */
 
-/// Retires the individual motel keys and identifies the masterkey after a door start.
-static inline void _mainStreetExchangeMotelKeys(void)
+/// Records masterkey use by retiring the room-6 and lobby keys.
+///
+/// Requires live saved inventory after an executing masterkey door start request.
+/// Clears those two possession bits, then identifies the Bronco Masterkey in
+/// the catalogue. The caller has already checked masterkey possession; its
+/// collection bit stays intact. Applies even if the event task failed to spawn.
+static inline void _mainStreetRecordMasterkeyUse(void)
 {
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY);
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_LOBBY_KEY);
@@ -125,7 +130,7 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
             transitionResult = MAIN_STREET_TRANSITION_HANDLED;
         }
         if (ROOM_EVENT_ACTIVE != 0) {
-            _mainStreetExchangeMotelKeys();
+            _mainStreetRecordMasterkeyUse();
         }
         if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_093) == 0) {
             gameFlagSetNibbleIfPresent(request->flagId, 0);
@@ -143,7 +148,7 @@ static s32 _mainStreetResolveMessage(Task* task, s32 messageId, const RoomEventM
             transitionResult = MAIN_STREET_TRANSITION_HANDLED;
         }
         if (ROOM_EVENT_ACTIVE != 0) {
-            _mainStreetExchangeMotelKeys();
+            _mainStreetRecordMasterkeyUse();
         }
         if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_094) == 0) {
             gameFlagSetNibbleIfPresent(request->flagId, 0);

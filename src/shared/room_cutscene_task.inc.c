@@ -3,7 +3,13 @@
 /// Only companion family 1 participates in this runner's scripted-control hold.
 enum { ROOM_CUTSCENE_COMPANION_FAMILY = 1 };
 
-/// Releases the cutscene's actor/HUD hold and resets a CAP file it selected.
+/// Resumes actors and HUD after a room cutscene and restores any replaced CAP selection.
+///
+/// Borrows the live cutscene record for this call. The player must be live;
+/// companion family 1 also resumes if present. Clears the session event hold
+/// and resumes combat actors after the caller has restored model drawing and
+/// the view. Nonzero `capFile` restores the loaded bundle's default CAP file,
+/// texture page and playback state, requiring that bundle to remain loaded.
 static inline void _roomCutsceneReleasePresentation(const RoomCutsceneRec* cutscene)
 {
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);

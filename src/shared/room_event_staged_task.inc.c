@@ -1,17 +1,24 @@
 /* Part of the room events library; see room_events.h. */
 
-/// Starts a borrowed room blackout that the subsequent session reload retires.
+/// Requests the staged event's 30-frame blackout through session reload.
+///
+/// Initializes a writable room-owned fade and lends it to `fadeScreenTask`.
+/// Keep the record loaded and unchanged until reload discards the session task
+/// list. Uses the default foreground ordering tag; starts no return ramp and
+/// does not wait for full coverage. Spawn failure leaves the record initialized
+/// and the event continues toward reload without a blackout.
 static inline void _roomEventStartStagedBlackout(ScreenFade* fade)
 {
     enum {
-        ROOM_EVENT_STAGED_FADE_FRAMES = 30,
-        ROOM_EVENT_STAGED_FADE_BANK   = 1,
-        ROOM_EVENT_STAGED_FADE_SLOT   = 49,
+        ROOM_EVENT_STAGED_FADE_FRAMES         = 30,
+        ROOM_EVENT_STAGED_FADE_BANK           = 1,
+        ROOM_EVENT_STAGED_FADE_SLOT           = 0x31,
+        ROOM_EVENT_STAGED_FADE_DEFAULT_OT_TAG = 0,
     };
     fade->blend      = SCREEN_FADE_SUBTRACT;
     fade->phase      = SCREEN_FADE_RUNNING;
     fade->rampFrames = ROOM_EVENT_STAGED_FADE_FRAMES;
-    taskSpawn(ROOM_EVENT_STAGED_FADE_BANK, ROOM_EVENT_STAGED_FADE_SLOT, 0, fade);
+    taskSpawn(ROOM_EVENT_STAGED_FADE_BANK, ROOM_EVENT_STAGED_FADE_SLOT, ROOM_EVENT_STAGED_FADE_DEFAULT_OT_TAG, fade);
 }
 
 void roomEventStagedTask(Task* task)
