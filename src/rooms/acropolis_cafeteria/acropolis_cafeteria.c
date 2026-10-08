@@ -82,12 +82,18 @@ extern s32            D_acropolis_cafeteria_80184164;
 extern RECT           D_acropolis_cafeteria_80184168;
 extern RECT           D_acropolis_cafeteria_80184170;
 
-static void func_acropolis_cafeteria_8017D6AC(Task* task);
-static void func_acropolis_cafeteria_8017E348(Task* task);
+static void       _acropolisCafeteriaTickPlayerDebug(Task* task);
+static void       _acropolisCafeteriaInitRoom(Task* task);
+static inline s32 _acropolisCafeteriaResolvePatioRoom(const RoomEventMsg* request, RoomEventMsg* reply);
+
+enum {
+    ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE = 2,
+    ACROPOLIS_CAFETERIA_PLACED_STRANGER      = 0,
+};
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_cafeteria_8017D5C4 = {
-    { func_acropolis_cafeteria_8017E348, func_acropolis_cafeteria_8017D6AC, taskKill },
+    { _acropolisCafeteriaInitRoom, _acropolisCafeteriaTickPlayerDebug, taskKill },
 };
 
 static const char CafeteriaPlayerLabel[12] = "Player";
@@ -101,24 +107,24 @@ extern WorldCollisionTrigger  D_acropolis_cafeteria_801896A4[20];
 
 static AnimationSet _gAcropolisCafeteriaAnimation07704;
 s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                 func_acropolis_cafeteria_8017E0D4(Task*, s32, s32, s32);
+static s32          _acropolisCafeteriaRefuseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 s32                 func_acropolis_cafeteria_8017E0DC(Task*, s32, s32, s32);
 s32                 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, const void* firstArg, s32);
-s32                 func_acropolis_cafeteria_8017E22C(Task*, s32, s32, s32);
+static s32          _acropolisCafeteriaPlaySoundMsg(Task* task, s32 messageId, s32 soundCue, s32 unusedArg);
 void                func_acropolis_cafeteria_8017D8F8(Task*);
 void                func_acropolis_cafeteria_8017DD1C(Task*);
-void                func_acropolis_cafeteria_8017DF68(Task*);
-void                func_acropolis_cafeteria_8017E27C(s32);
-void                func_acropolis_cafeteria_8017E2B0(void);
-void                func_acropolis_cafeteria_8017E2D0(void);
-void                func_acropolis_cafeteria_8017E310(void);
+static void         _acropolisCafeteriaSettleStrangerTask(Task* task);
+static void         _acropolisCafeteriaSetPlayerSurface(s32 surfaceClass);
+static void         _acropolisCafeteriaCancelPeEffects(void);
+static void         _acropolisCafeteriaCopyPostBattleVram(void);
+static void         _acropolisCafeteriaPreparePostBattleScene(void);
 
 TaskMessageEntry D_acropolis_cafeteria_80182AA8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_cafeteria_8017D700 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_cafeteria_8017E154 },
     { ROOM_MESSAGE_COMMAND, func_acropolis_cafeteria_8017E0DC },
-    { 5105, func_acropolis_cafeteria_8017E0D4 },
-    { ROOM_MESSAGE_SOUND, func_acropolis_cafeteria_8017E22C },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisCafeteriaRefuseKeyItemMsg },
+    { ROOM_MESSAGE_SOUND, _acropolisCafeteriaPlaySoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -126,7 +132,7 @@ TaskDesc D_acropolis_cafeteria_80182AD8[4] = {
     { { { TASK_BODY_NONE, 32 } }, func_acropolis_cafeteria_8017D8F8, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, func_acropolis_cafeteria_8017DD1C, { .value = 0 } },
 
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_cafeteria_8017DF68, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisCafeteriaSettleStrangerTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -240,7 +246,7 @@ EvsSceneKey D_acropolis_cafeteria_80182E64 = { 1, 6, 11 };
 GameActorMoveAnim D_acropolis_cafeteria_80182E6C = { 19, 1 };
 
 EvsCommand D_acropolis_cafeteria_80182E74[35] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_cafeteria_8017E2B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisCafeteriaCancelPeEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_cafeteria_80182C44 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_FADE_VOLUME, { .value = 76 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -254,7 +260,7 @@ EvsCommand D_acropolis_cafeteria_80182E74[35] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_cafeteria_80182B6C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_cafeteria_8017E27C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisCafeteriaSetPlayerSurface }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 69 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 54 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 54 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -295,12 +301,12 @@ EvsCommand D_acropolis_cafeteria_801831BC[14] = {
 };
 
 EvsCommand D_acropolis_cafeteria_8018330C[19] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_cafeteria_8017E310 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisCafeteriaPreparePostBattleScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_cafeteria_80182B44 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_cafeteria_8017E2D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisCafeteriaCopyPostBattleVram }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182CE0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DA8 } }, { .value = 0 } },
@@ -322,7 +328,7 @@ EvsCommand D_acropolis_cafeteria_801834D4[15] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_acropolis_cafeteria_80182DB0 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_cafeteria_8017E2D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisCafeteriaCopyPostBattleVram }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_cafeteria_80182CE0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -977,9 +983,11 @@ AcropolisCafeteriaSpotLightStorage gAcropolisCafeteriaSpotLightStorage = {
     },
 };
 
-static inline s32 _acropolisCafeteriaAnswer(RoomEventMsg* in, RoomEventMsg* out);
-
-static void func_acropolis_cafeteria_8017D6AC(Task* task)
+/// Runs the player debug hooks while the display's debug mode is nonzero.
+///
+/// Requires a live player task; the room task argument is unused. The debug
+/// label borrows static storage for the lifetime of the cafeteria overlay.
+static void _acropolisCafeteriaTickPlayerDebug(Task* task)
 {
     if (gDisplayState.debugMode != 0) {
         func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), -0x8C, -0x32, (void*)CafeteriaPlayerLabel);
@@ -987,22 +995,30 @@ static void func_acropolis_cafeteria_8017D6AC(Task* task)
     }
 }
 
-/// Answers message 3 in the outgoing copy unless queryOnly suppresses it: before
-/// nibble 0 reaches 2 the answer is 1 or 2 by nibble 0x21, afterwards the
-/// message id itself. Returns 1, the handler's "message accepted" result.
-static inline s32 _acropolisCafeteriaAnswer(RoomEventMsg* in, RoomEventMsg* out)
+/// Selects the patio room for an executed departure from the cafeteria.
+///
+/// Borrows a readable request and an initialized writable reply, which may
+/// alias. Queries and other destination areas leave the reply unchanged.
+/// Before the cafeteria scene, opening progress selects patio room 1 or 2;
+/// afterwards it selects room 3. Returns 1 to allow the transition.
+static inline s32 _acropolisCafeteriaResolvePatioRoom(const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    s32 msgId = in->areaId;
+    enum {
+        ACROPOLIS_CAFETERIA_OPENING_VARIANT_THRESHOLD = 2,
+        ACROPOLIS_CAFETERIA_PATIO_ROOM_EARLY          = 1,
+        ACROPOLIS_CAFETERIA_PATIO_ROOM_OPENING_PASSED = 2,
+    };
+    s32 destinationArea = request->areaId;
 
-    if (msgId == 3 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(0) < 2) {
-            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) {
-                out->room = 1;
+    if (destinationArea == GAME_AREA_ACROPOLIS_PATIO && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
+            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_CAFETERIA_OPENING_VARIANT_THRESHOLD) {
+                reply->room = ACROPOLIS_CAFETERIA_PATIO_ROOM_EARLY;
             } else {
-                out->room = 2;
+                reply->room = ACROPOLIS_CAFETERIA_PATIO_ROOM_OPENING_PASSED;
             }
         } else {
-            out->room = msgId;
+            reply->room = destinationArea;
         }
     }
     return 1;
@@ -1029,7 +1045,7 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
     if (msgId == 3) {
         if (gameFlagGetNibble(0) < 2) {
             if (D_acropolis_cafeteria_80184164 == 0) {
-                return _acropolisCafeteriaAnswer(in, out);
+                return _acropolisCafeteriaResolvePatioRoom(in, out);
             }
             if (D_acropolis_cafeteria_80184164 == 2) {
                 if (in->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -1041,7 +1057,7 @@ s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, Ro
         if (gameFlagGetNibble(GAME_FLAG_00E) == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
             gameFlagSetNibble(GAME_FLAG_00E, 2);
         }
-        return _acropolisCafeteriaAnswer(in, out);
+        return _acropolisCafeteriaResolvePatioRoom(in, out);
     }
     return 1;
 }
@@ -1257,47 +1273,79 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
     }
 }
 
-void func_acropolis_cafeteria_8017DF68(Task* task)
+/// Integrates one recoil tick and releases its controller when the root settles.
+///
+/// Velocities use room units per callback tick; gravity uses units per tick
+/// squared. Signed division damps X/Z toward zero, including negative values.
+static inline void _acropolisCafeteriaStepStrangerRecoil(Task* task, GfxCoord* root)
 {
-    GfxCoord* coord;
+    enum {
+        ACROPOLIS_CAFETERIA_STRANGER_FLOOR_Y        = -300,
+        ACROPOLIS_CAFETERIA_STRANGER_GRAVITY        = 5,
+        ACROPOLIS_CAFETERIA_STRANGER_MAX_FALL_SPEED = 20,
+    };
 
-    coord = sceneFindPlacedActor(0)->extra.tmd->coords;
+    root->coord.t[0] += D_acropolis_cafeteria_8018D6A0;
+    root->coord.t[1] += D_acropolis_cafeteria_8018D6A4;
+    if (root->coord.t[1] > ACROPOLIS_CAFETERIA_STRANGER_FLOOR_Y) {
+        root->coord.t[1] = ACROPOLIS_CAFETERIA_STRANGER_FLOOR_Y;
+    }
+    root->coord.t[2]               += D_acropolis_cafeteria_8018D6A8;
+    root->composeStamp              = GRAPHICS_COORD_DIRTY;
+    D_acropolis_cafeteria_8018D6A0  = D_acropolis_cafeteria_8018D6A0 / 2;
+    D_acropolis_cafeteria_8018D6A4 += ACROPOLIS_CAFETERIA_STRANGER_GRAVITY;
+    if (D_acropolis_cafeteria_8018D6A4 > ACROPOLIS_CAFETERIA_STRANGER_MAX_FALL_SPEED) {
+        D_acropolis_cafeteria_8018D6A4 = ACROPOLIS_CAFETERIA_STRANGER_MAX_FALL_SPEED;
+    }
+    D_acropolis_cafeteria_8018D6A8 = D_acropolis_cafeteria_8018D6A8 / 2;
+    if (D_acropolis_cafeteria_8018D6A0 == 0 && D_acropolis_cafeteria_8018D6A8 == 0 &&
+        root->coord.t[1] == ACROPOLIS_CAFETERIA_STRANGER_FLOOR_Y) {
+        taskKill(task);
+    }
+}
+
+/// Settles the cafeteria Stranger after the final scripted shot.
+///
+/// Requires placed actor 0's live TMD root and the cafeteria overlay to remain
+/// loaded. State 0 places the actor, selects its recoil animation and initializes
+/// singleton X/Y/Z velocities; state 1 steps them until X/Z stop and Y reaches
+/// the floor at -300 room units, then kills only this bodyless controller.
+/// Only one such controller may use the shared velocities at a time.
+static void _acropolisCafeteriaSettleStrangerTask(Task* task)
+{
+    enum {
+        ACROPOLIS_CAFETERIA_SETTLE_INITIALIZE       = 0,
+        ACROPOLIS_CAFETERIA_SETTLE_MOVE             = 1,
+        ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Y_STEP = -20,
+        ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Z_STEP = -20,
+    };
+    GfxCoord* root;
+
+    root = sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER)->extra.tmd->coords;
     switch (task->state) {
-        case 0:
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D4, &D_acropolis_cafeteria_80182D28, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_cafeteria_80182DB8, 0);
+        case ACROPOLIS_CAFETERIA_SETTLE_INITIALIZE:
+            // Start the recoil clip before taking over the root's translation.
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_MESSAGE_PLACE, &D_acropolis_cafeteria_80182D28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_cafeteria_80182DB8, 0);
             D_acropolis_cafeteria_8018D6A0 = 0;
-            D_acropolis_cafeteria_8018D6A4 = -0x14;
-            D_acropolis_cafeteria_8018D6A8 = -0x14;
+            D_acropolis_cafeteria_8018D6A4 = ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Y_STEP;
+            D_acropolis_cafeteria_8018D6A8 = ACROPOLIS_CAFETERIA_STRANGER_INITIAL_Z_STEP;
             task->state                    = task->state + 1;
             break;
 
-        case 1:
-            coord->coord.t[0] += D_acropolis_cafeteria_8018D6A0;
-            coord->coord.t[1] += D_acropolis_cafeteria_8018D6A4;
-            if (coord->coord.t[1] > -0x12C) {
-                coord->coord.t[1] = -0x12C;
-            }
-            coord->coord.t[2]              += D_acropolis_cafeteria_8018D6A8;
-            coord->composeStamp             = GRAPHICS_COORD_DIRTY;
-            D_acropolis_cafeteria_8018D6A0  = D_acropolis_cafeteria_8018D6A0 / 2;
-            D_acropolis_cafeteria_8018D6A4 += 5;
-            if (D_acropolis_cafeteria_8018D6A4 > 0x14) {
-                D_acropolis_cafeteria_8018D6A4 = 0x14;
-            }
-            D_acropolis_cafeteria_8018D6A8 = D_acropolis_cafeteria_8018D6A8 / 2;
-            if (D_acropolis_cafeteria_8018D6A0 == 0 && D_acropolis_cafeteria_8018D6A8 == 0 &&
-                coord->coord.t[1] == -0x12C) {
-                taskKill(task);
-            }
+        case ACROPOLIS_CAFETERIA_SETTLE_MOVE:
+            _acropolisCafeteriaStepStrangerRecoil(task, root);
             break;
     }
 }
 
-/// Message handler that accepts its message and does nothing else.
-s32 func_acropolis_cafeteria_8017E0D4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use requested at the cafeteria room task.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; all arguments are unused. Returns
+/// `ROOM_KEY_ITEM_USE_REFUSED`, so the menu presents its refusal notice.
+static s32 _acropolisCafeteriaRefuseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_acropolis_cafeteria_8017E0DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
@@ -1332,63 +1380,121 @@ s32 func_acropolis_cafeteria_8017E154(Task* task, s32 msgId, const void* firstAr
     }
     return 0;
 }
-s32 func_acropolis_cafeteria_8017E22C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Maps cafeteria room sound cues 10 and 11 to the same entries in its area bank.
+///
+/// Handles `ROOM_MESSAGE_SOUND`; other cues do nothing. Task, messageId and
+/// unusedArg are ignored. Requests use zero pan offset and attenuation, and
+/// return 0 regardless of sound-queue admission.
+static s32 _acropolisCafeteriaPlaySoundMsg(Task* task, s32 messageId, s32 soundCue, s32 unusedArg)
 {
-    switch (arg2) {
-        case 0xA:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0x0A), 0, 0);
+    enum {
+        ACROPOLIS_CAFETERIA_SOUND_CUE_10 = 10,
+        ACROPOLIS_CAFETERIA_SOUND_CUE_11 = 11,
+    };
+
+    switch (soundCue) {
+        case ACROPOLIS_CAFETERIA_SOUND_CUE_10:
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, ACROPOLIS_CAFETERIA_SOUND_CUE_10), 0, 0);
             break;
-        case 0xB:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, 0x0B), 0, 0);
+        case ACROPOLIS_CAFETERIA_SOUND_CUE_11:
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_CAFETERIA, ACROPOLIS_CAFETERIA_SOUND_CUE_11), 0, 0);
             break;
     }
     return 0;
 }
-void func_acropolis_cafeteria_8017E27C(s32 arg0)
+/// Overrides the live player's room surface index for the scripted footsteps.
+///
+/// The event callback passes a complete signed word, stored without narrowing.
+/// Requires live `GameActor` work and a surface index in 0..7 for the cafeteria's
+/// surface table; the opening script supplies 2. Does not retain a pointer.
+static void _acropolisCafeteriaSetPlayerSurface(s32 surfaceClass)
 {
-    ((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->surfaceClass = arg0;
+    GameActor* player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+
+    player->surfaceClass = surfaceClass;
 }
 
-void func_acropolis_cafeteria_8017E2B0(void)
+/// Requests parasite-energy effect cancellation before the opening room scene.
+///
+/// Requires live room-effect state. Cancellation is deferred until its next
+/// update; the event callback ignores its argument register.
+static void _acropolisCafeteriaCancelPeEffects(void)
 {
     roomEffectRequestCancelPe();
 }
 
-void func_acropolis_cafeteria_8017E2D0(void)
+/// Copies the two authored VRAM regions used by the post-battle scene.
+///
+/// Requires initialized GPU transfer state and intact source VRAM. Copies a
+/// 64-word by 256-row image and then a 256-word row to their scene destinations;
+/// X coordinates and widths count 16-bit VRAM words, Y coordinates count rows.
+/// Queues both transfers without waiting for completion. The event callback
+/// ignores its argument register.
+static void _acropolisCafeteriaCopyPostBattleVram(void)
 {
-    MoveImage(&D_acropolis_cafeteria_80184168, 0x180, 0x100);
-    MoveImage(&D_acropolis_cafeteria_80184170, 0, 0xF7);
+    enum {
+        ACROPOLIS_CAFETERIA_POST_BATTLE_IMAGE_X = 384,
+        ACROPOLIS_CAFETERIA_POST_BATTLE_IMAGE_Y = 256,
+        ACROPOLIS_CAFETERIA_POST_BATTLE_ROW_X   = 0,
+        ACROPOLIS_CAFETERIA_POST_BATTLE_ROW_Y   = 247,
+    };
+
+    MoveImage(&D_acropolis_cafeteria_80184168, ACROPOLIS_CAFETERIA_POST_BATTLE_IMAGE_X, ACROPOLIS_CAFETERIA_POST_BATTLE_IMAGE_Y);
+    MoveImage(&D_acropolis_cafeteria_80184170, ACROPOLIS_CAFETERIA_POST_BATTLE_ROW_X, ACROPOLIS_CAFETERIA_POST_BATTLE_ROW_Y);
 }
 
-void func_acropolis_cafeteria_8017E310(void)
+/// Requests effect cancellation and locks attachment activation for the post-battle scene.
+///
+/// Requires live room-effect state. Cancellation is deferred to its next
+/// update; the attachment event lock is set immediately and left for scene
+/// cleanup to clear. The event callback ignores its argument register.
+static void _acropolisCafeteriaPreparePostBattleScene(void)
 {
     roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
-static void func_acropolis_cafeteria_8017E348(Task* task)
+/// Registers the cafeteria room task and restores its progress-dependent actors.
+///
+/// Requires the live scene task and current room resources. At story progress 1,
+/// hides the boss and shows the scripted form; at 2, shows the boss and Rupert,
+/// suspends the scripted form, disables the CAP 20 trigger and places Rupert.
+/// Other progress values leave actors and triggers unchanged. Installs the
+/// borrowed message table, publishes the task in the room slot and advances
+/// to state 1.
+static void _acropolisCafeteriaInitRoom(Task* task)
 {
+    enum {
+        ACROPOLIS_CAFETERIA_PROGRESS_BEFORE_SCENE = 1,
+        ACROPOLIS_CAFETERIA_PLACED_SCRIPTED_FORM  = 1,
+        ACROPOLIS_CAFETERIA_PLACED_RUPERT         = 2,
+        ACROPOLIS_CAFETERIA_DRAW_HIDE             = 0,
+        ACROPOLIS_CAFETERIA_DRAW_SHOW             = 1,
+        ACROPOLIS_CAFETERIA_DRAW_SUSPEND          = 2,
+        ACROPOLIS_CAFETERIA_CAP_20_TRIGGER_INDEX  = 9,
+    };
+    WorldCollisionTrigger* disabledTrigger;
+
     task->msgTable = D_acropolis_cafeteria_80182AA8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(0) == 1) {
-        sceneSetPlacedActorDrawMode(0, 0);
-        sceneSetPlacedActorDrawMode(1, 1);
-    } else if (gameFlagGetNibble(0) == 2) {
-        sceneSetPlacedActorDrawMode(0, 1);
-        sceneSetPlacedActorDrawMode(1, 2);
-        sceneSetPlacedActorDrawMode(2, 1);
-        (D_acropolis_cafeteria_801891E4 + 9)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(2), 0x7D4, &D_acropolis_cafeteria_80182DDC, 0);
+    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_CAFETERIA_PROGRESS_BEFORE_SCENE) {
+        sceneSetPlacedActorDrawMode(ACROPOLIS_CAFETERIA_PLACED_STRANGER, ACROPOLIS_CAFETERIA_DRAW_HIDE);
+        sceneSetPlacedActorDrawMode(ACROPOLIS_CAFETERIA_PLACED_SCRIPTED_FORM, ACROPOLIS_CAFETERIA_DRAW_SHOW);
+    } else if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
+        sceneSetPlacedActorDrawMode(ACROPOLIS_CAFETERIA_PLACED_STRANGER, ACROPOLIS_CAFETERIA_DRAW_SHOW);
+        sceneSetPlacedActorDrawMode(ACROPOLIS_CAFETERIA_PLACED_SCRIPTED_FORM, ACROPOLIS_CAFETERIA_DRAW_SUSPEND);
+        sceneSetPlacedActorDrawMode(ACROPOLIS_CAFETERIA_PLACED_RUPERT, ACROPOLIS_CAFETERIA_DRAW_SHOW);
+        disabledTrigger         = &D_acropolis_cafeteria_801891E4[ACROPOLIS_CAFETERIA_CAP_20_TRIGGER_INDEX];
+        disabledTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_RUPERT), ACTOR_MESSAGE_PLACE, &D_acropolis_cafeteria_80182DDC, 0);
     }
     task->state = task->state + 1;
 }
 
-/// Runs the task's current state through a stack copy of the room's
-/// three-entry state table.
-void func_acropolis_cafeteria_8017E424(Task* task)
+void acropolisCafeteriaRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_acropolis_cafeteria_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_acropolis_cafeteria_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

@@ -110,7 +110,15 @@ void acropolisCafeteriaPuffTask(Task* task);
 /// callback; the task releases that work during teardown.
 void acropolisCafeteriaLoosePropTask(Task* task);
 
-void func_acropolis_cafeteria_8017E424(Task* task);
+/// Dispatches one state of the cafeteria room task while its overlay is loaded.
+///
+/// Requires a live bodyless task with state 0 (register messages and restore
+/// actors), 1 (player debug tick) or 2 (teardown); the state index is unchecked.
+/// Initialization borrows loaded room/scene resources and registers the task
+/// in `GAME_TASK_SLOT_ROOM`. The owner must keep it live while that slot is used.
+/// State 1 requires a live player when debug mode is nonzero. State 2 invokes
+/// `taskKill`, which may release the task before this callback returns.
+void acropolisCafeteriaRoomTask(Task* task);
 
 void func_acropolis_cafeteria_801827C4(Task* task);
 
