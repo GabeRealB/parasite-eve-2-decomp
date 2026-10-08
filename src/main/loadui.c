@@ -151,8 +151,11 @@ void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProf
 
 /// Restarts the stopped-drive prompt with a timed rejection message.
 ///
-/// The existing prompt texture remains loaded. After 128 countdown calls,
-/// the packed high bit restores the required-disc message before another probe.
+/// Requires an active disk-swap prompt and the recorded required-disc number.
+/// Retains its loaded texture and restarts the CD-idle/drive-stop phase; the
+/// following delay phase shows rejection for 128 polls. The countdown's high
+/// bit then restores the required-disc message for five polls before probing
+/// again. Pause blocking and modal presentation remain the caller's responsibility.
 static inline void _loadUiRestartRejectedDiskSwapPrompt(void)
 {
     D_8007A392 = LOAD_UI_DISK_SWAP_MESSAGE_REJECTED;

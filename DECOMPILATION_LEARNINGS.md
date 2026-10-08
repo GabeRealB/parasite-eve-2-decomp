@@ -8424,7 +8424,7 @@ volatile `_gCdAudioState` matches.
 `jal` delay slots (target has `nop` after `D_800680C0 = 0`).
 
 `D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
-`Display_FrameFlipDraw` writes them (copies of `gDisplayState.control.flags.imageSource` /
+`displayRunTaskFrame` writes them (copies of `gDisplayState.control.flags.imageSource` /
 `gDisplayState.control.flags.flipMode`) and the VSync callback `_displayVSyncCallback` → `displayPresentTaskFrame` reads
 them. Without `volatile`:
 
@@ -8434,17 +8434,17 @@ them. Without `volatile`:
   `lbu` + `sll 24` + `sra 24`.
 
 **Writer/reader conflict on the same global.** The reader (`displayPresentTaskFrame`)
-needs `D_8006EC30` volatile, but the writer (`Display_FrameFlipDraw`) must put the
+needs `D_8006EC30` volatile, but the writer (`displayRunTaskFrame`) must put the
 store in the `jal ExitCriticalSection` / `jal displayPresentTaskFrame` delay slot.
 Keep the global `volatile` and store through a non-volatile lvalue:
 
 ```c
-*(u8*)&D_8006EC30 = temp->control.flags.imageSource; /* fills jal delay slot */
+*(u8*)&D_8006EC30 = display->control.flags.imageSource; /* fills jal delay slot */
 ExitCriticalSection();
 ```
 
 `D_8005EC74` / `D_8005EC78` are the same VSync-shared pair on the lag path
-(`_displayVSyncCallback` writes `D_8005EC74` and reads `D_8005EC78`; `Display_FrameFlipDraw`
+(`_displayVSyncCallback` writes `D_8005EC74` and reads `D_8005EC78`; `displayRunTaskFrame`
 does the inverse). Mark both `volatile` so the draw path reloads `D_8005EC74`
 twice and keeps `D_8005EC78 = 0` *outside* the following `jal VSync` delay
 slot.
@@ -8468,7 +8468,7 @@ gGpuPrimCursor = base + i * size;
 Putting `saved = gGpuCurrentOt` immediately after `*org = …` steals the delay
 slot for `%hi(gGpuCurrentOt)` and parks the constant in `$a0` instead. Computing
 `D_8007A0E4 / 2` in one expression before the store also mis-orders the
-divide relative to the store. `Display_FrameFlipDraw` is the pure example.
+divide relative to the store. `displayRunTaskFrame` is the pure example.
 
 ## Hold a global's address in a local pointer
 
@@ -15341,8 +15341,8 @@ two coupled problems appear:
 2. **`state = states` immediately after the load** schedules `move a2, zero` correctly
    but steals the load into `$a1` (state is the heavier user).
 
-Fix both with a live integer copy of the base as a scheduling barrier, then
-assign `state` and `stateByteOffset`, and pin the offset register:
+An earlier reconstruction used a live integer copy of the base as a scheduling
+barrier, then assigned `state` and `stateByteOffset` and pinned the offset register:
 
 ```c
 register s32 stateByteOffset asm("a2");
@@ -15364,26 +15364,29 @@ do {
 
 `statesAddress` must stay live for the whole loop (used in `stateByteOffset + statesAddress`) so it is not
 DCE'd as a dead store. Pinning `stateByteOffset` to `$a2` keeps the zero and the
-`addiu …, 0x5C` on that register. `Pad_Init` is the pure example.
+`addiu …, 0x5C` on that register. The current `padInit` instead passes
+`&gPadStates[portIndex]` to the typed inline `_padClearState`; inline argument
+expansion reproduces the offset-first address and 0x5C stride without either
+the integer carrier or pinned register. See the inline element-address finding below.
 
 ### Companion: non-volatile load, volatile stores for pad buffers
 
-`PadInitDirect((u8*)pad, (u8*)(pad + 1))` wants `lui s0` / `addiu s0, s0, %lo`
-on a plain `PadRawPort*`. Field stores `pad->buttonsHigh = 0xFF` without `volatile`
+`PadInitDirect((u8*)rawPorts, (u8*)(rawPorts + 1))` wants `lui s0` / `addiu s0, s0, %lo`
+on a plain `PadRawPort*`. Field stores `rawPort->buttonsHigh = 0xFF` without `volatile`
 rebase the pointer (`addiu s0, 3` / `sb -1(s0)`). Load into a non-volatile
 pointer for the call, then assign a `volatile PadRawPort*` for the init loop:
 
 ```c
-PadRawPort* pad;
-volatile PadRawPort* vpad;
+PadRawPort* rawPorts;
+volatile PadRawPort* rawPort;
 
-pad = Pad_RawPorts;
-PadInitDirect((u8*)pad, (u8*)(pad + 1));
-vpad = pad;
-for (j = 0; j < 2; j++) {
-    vpad->buttonsHigh = 0xFF;
-    vpad->buttonsLow = 0xFF;
-    vpad++;
+rawPorts = Pad_RawPorts;
+PadInitDirect((u8*)rawPorts, (u8*)(rawPorts + 1));
+rawPort = rawPorts;
+for (rawPortIndex = 0; rawPortIndex < ARRAY_SIZE(Pad_RawPorts); rawPortIndex++) {
+    rawPort->buttonsHigh = PAD_RAW_BUTTONS_RELEASED;
+    rawPort->buttonsLow = PAD_RAW_BUTTONS_RELEASED;
+    rawPort++;
 }
 ```
 
@@ -22343,7 +22346,7 @@ RTIR via `gte_ldclmv` + `gte_rtir()` (`0x4A49E012` with `gte.h` included) +
 ## Local OT pointer for `gGpuCurrentOt` so `%hi` stays temporary
 
 `GameMain_Loop` (and similar dual-buffer main loops) must both:
-1. pin `Gpu_OtBuffers` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `Display_FrameFlipDraw` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
+1. pin `Gpu_OtBuffers` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `displayRunTaskFrame` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
 2. use `%hi(gGpuCurrentOt)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
 
 Writing only through the global:
@@ -148061,8 +148064,8 @@ for (i = 0; (s32)i < ARRAY_SIZE(song->voiceSlots); i++) {
 }
 ```
 
-Matched this way: `_midiResetSongSlot`, `Pad_Init` (`_padClearState(&gPadStates[i])`
-followed by `gPadStates[i].field = ...`; the byte-offset counter and the
+Matched this way: `_midiResetSongSlot`, `padInit` (`_padClearState(&gPadStates[portIndex])`
+followed by `gPadStates[portIndex].inputFormat = ...`; the byte-offset counter and the
 separate `state` pointer of the old source were both givs the loop pass made
 from one `i`), `fsBuildFolderTables` (byte copy of
 `&destinationStreams[j & 0xFFFF]`) and `_stageMusicStartWhenCdIdle`, where

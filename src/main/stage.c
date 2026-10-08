@@ -467,7 +467,11 @@ static Task* _stageSpawnModeTask(void)
 ///
 /// Requires the live view gate, session/save and loaded view tables. Previous
 /// GPU work and users of auxiliary allocations must have ended; task/CD queues
-/// must have capacity. Commits the live view to the gate and save before loading.
+/// must have capacity. Resets queued GPU work and both game OTs, discards the
+/// auxiliary heap, and commits the logical view to the gate and live save.
+/// Blocks port 0, queues the camera and marks the view unready before spawning
+/// the asynchronous view-load task. Completion policy 2 leaves flips with the
+/// stage controller. Neither waits for completion nor reports spawn failure.
 static __inline__ void _stageBeginViewResourceLoad(void)
 {
     enum {

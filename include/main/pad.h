@@ -11,7 +11,7 @@
 
 /// Persistent processed input, controller setup and vibration state for ports 0 and 1.
 ///
-/// `Pad_Init` resets both entries; VSync polling and main-loop button updates
+/// `padInit` resets both entries; VSync polling and main-loop button updates
 /// currently service only port 0. Port-taking pad APIs require an index in 0..1.
 /// These records are separate from libpad's raw receive buffers. Their embedded
 /// actuator command buffers stay at fixed addresses while communication runs,

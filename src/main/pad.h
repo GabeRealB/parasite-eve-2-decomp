@@ -7,7 +7,15 @@
 
 extern PadRawPort Pad_RawPorts[2];
 
-void Pad_Init(void);
+/// Initializes processed controller state and starts communication on both ports.
+///
+/// Called before installing VSync polling. Clears each complete state record,
+/// marks input unavailable and analog-mode setup pending, then registers the
+/// two persistent libpad receive buffers and starts communication. Seeds only
+/// their active-low button bytes to 0xFF through volatile stores, since failed
+/// exchanges leave response bytes unchanged. The registered buffers and embedded
+/// actuator commands must remain at fixed addresses while communication runs.
+void padInit(void);
 
 /// Polls controller port 0's setup, analog axes and timed vibration once per VSync.
 ///

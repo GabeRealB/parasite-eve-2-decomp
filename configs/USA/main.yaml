@@ -222,7 +222,7 @@ segments:
       - [0x18ce4, o, libgte/msc00] # InitGeom
       - [0x18d74, o, libgte/patchgte] # _patch_gte
       - [0x18e54, o, libapi/c68] # FlushCache
-      - [0x18e64, c, pad] # Pad_Init + list-head init
+      - [0x18e64, c, pad] # padInit + list-head init
       - [0x18f44, o, libpad/padentry] # PadChkVsync,PadStartCom, PadStopCom, PadChkMtap, PadGetState, PadInfoMode, PadInfoAct, PadInfoComb, PadSetActAlign, PadSetMainMode, PadSetAct
       - [0x19404, o, libpad/padmain] # PadEnableCom, _padSetVsyncParam, _padChkVsync, _padStartCom, _padStopCom, _padInitSioMode, _padSioRW, _padSioRW2, _padClrIntSio0, _padWaitRXready
       - [0x1a1d4, o, libapi/l02] # SysEnqIntRP

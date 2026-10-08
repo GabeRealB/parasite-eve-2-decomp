@@ -11,7 +11,7 @@ extern s32 D_8005EC6C;
 
 extern volatile s32 Display_PendingFlip;
 
-/// Written by _displayVSyncCallback; read by Display_FrameFlipDraw.
+/// Written by _displayVSyncCallback; read by displayRunTaskFrame.
 extern volatile s32 D_8005EC74;
 
 /// Cleared/set by the draw path; read by the VSync callback for lag accounting.

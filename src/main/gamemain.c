@@ -494,10 +494,10 @@ static void GameMain_Loop(void)
         gDisplayState.loopTicks++;
         if (gDisplayState.displayOwner == DISPLAY_OWNER_GAME_LOOP && gDisplayState.pendingMode != DISPLAY_MODE_NONE &&
             ((s8)gDisplayState.pendingMode < DISPLAY_MODE_NONE || gDisplayState.holdState >= 0)) {
-            Display_DispatchModeId(gDisplayState.pendingMode);
+            displayDispatchModeRequest(gDisplayState.pendingMode);
         }
         if (gDisplayState.displayOwner != DISPLAY_OWNER_GAME_LOOP) {
-            frameStart = Display_FrameFlipDraw(Gpu_OtBuffers, frameStart, gDisplayState.otBuffer);
+            frameStart = displayRunTaskFrame(Gpu_OtBuffers, frameStart, gDisplayState.otBuffer);
             continue;
         }
 
@@ -792,7 +792,7 @@ void GameMain(void)
     SetVideoMode(MODE_NTSC);
     spuInitSystem();
     mcInit();
-    Pad_Init();
+    padInit();
     bootInitCd();
     memFillBytes(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
     D_8005EC64 = 0;

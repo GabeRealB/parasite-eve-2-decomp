@@ -292,10 +292,13 @@ void gameClearSession(void)
     gDisplayState.control.flags.pendingPlayerPos = 0;
 }
 
-/// Discards task/model list links and resets both allocation heaps for a new session.
+/// Discards the default task and model lists and resets the configured session heaps.
 ///
-/// All old resources must be disposable. This does not run their teardown handlers;
-/// callers inside a task callback must stop the walk before invalidating its cursor.
+/// Selects the emptied default task list for subsequent spawns and resets the
+/// model-coordinate pass counter before heap reuse. The primary heap and any
+/// configured auxiliary heap must have no live users, including GPU/decoder
+/// work. No task exits or resource teardown handlers run here. A caller inside
+/// task dispatch must stop the walk before invalidating its current allocation.
 static inline void _gameFlowResetSessionResources(void)
 {
     taskResetDefaultList();

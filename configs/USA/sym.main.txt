@@ -668,7 +668,7 @@ FlushCache                  = 0x80028654;
 //--------------------------------------------------------------------
 //--- PA: 0x18E64   VA: 0x80028644   subsegment: c, pad
 //--------------------------------------------------------------------
-Pad_Init                    = 0x80028664; // type:func
+padInit                    = 0x80028664; // type:func
 actorRenderResetLists               = 0x80028718; // type:func
 
 //--------------------------------------------------------------------
@@ -1359,7 +1359,7 @@ SetDefDispEnv               = 0x8003DF70;
 //--------------------------------------------------------------------
 //--- PA: 0x2E7B0   VA: 0x8003DFB0   subsegment: c, 2E7B0
 //--------------------------------------------------------------------
-Display_FrameFlipDraw               = 0x8003DFB0; // type:func
+displayRunTaskFrame               = 0x8003DFB0; // type:func
 displaySpawnTask               = 0x8003E210; // type:func
 displaySpawnTaskFromTable               = 0x8003E324; // type:func
 taskSpawnOnDefaultList               = 0x8003E438; // type:func
@@ -1370,9 +1370,9 @@ displayAcquireMenuHold               = 0x8003E610; // type:func
 displayReleaseMenuHold               = 0x8003E64C; // type:func
 _displayResolveHoldState               = 0x8003E698; // type:func
 displayInitTaskBuffers               = 0x8003E6E4; // type:func
-Display_DispatchModeId               = 0x8003E72C; // type:func
+displayDispatchModeRequest               = 0x8003E72C; // type:func
 _displayResumeGameLoop               = 0x8003E814; // type:func
-Display_FlipOtAlt               = 0x8003E854; // type:func
+_displayFlipOtAndDrawFlaggedModels               = 0x8003E854; // type:func
 gpuInitTaskOrderingTables               = 0x8003E904; // type:func
 displayUseHeapTaskPrimitiveBuffer               = 0x8003E9A4; // type:func
 displayUseStaticTaskPrimitiveBuffer               = 0x8003E9C4; // type:func

@@ -52,7 +52,7 @@ static void _displayFlipOtAndDrawViewActors(void);
 
 static void _displayResumeGameLoop(void);
 
-static void Display_FlipOtAlt(void);
+static void _displayFlipOtAndDrawFlaggedModels(void);
 
 static TaskDesc Display_MenuTaskDesc = { { { TASK_BODY_NONE, 0xC0 } }, menuRootTask };
 
@@ -74,37 +74,54 @@ static __inline__ void _displayConfigureSmallTaskBuffers(void)
     _gGpuDisplayPrimBufferBytes  = sizeof(Gpu_PrimBufStatic);
 }
 
-s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
+s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unusedOtBuffer)
 {
+/// Selects the task frame's buffers and clears its OT before task drawing.
+///
+/// Captures the writable display pointer and the orderingTables, firstTag,
+/// halfBytes and savedOt locals. Requires configured reusable task buffers and
+/// a frame index of 0 or 1. Saves the caller's OT for restoration after drawing.
+/// Expands to one compound statement; undefined before this function ends.
+#define DISPLAY_BEGIN_TASK_FRAME()                                                      \
+    {                                                                                   \
+        if (display->mdecActive == 0) {                                                 \
+            display->frameBuffer ^= 1;                                                  \
+        }                                                                               \
+        if (display->control.flags.flipMode != DISPLAY_FLIP_HOLD) {                     \
+            display->drawBuffer = display->frameBuffer;                                 \
+        }                                                                               \
+        orderingTables = Gpu_OrderingTables;                                            \
+        GsClearOt(0, 0, &orderingTables[display->frameBuffer]);                         \
+        firstTag       = (u_long*)orderingTables[display->frameBuffer].org;             \
+        halfBytes      = _gGpuDisplayPrimBufferBytes;                                   \
+        *firstTag      = GPU_OT_END_PRIM;                                               \
+        halfBytes     /= 2;                                                             \
+        savedOt        = gGpuCurrentOt;                                                 \
+        gGpuCurrentOt  = (u_long*)orderingTables[display->frameBuffer].org;             \
+        gGpuPrimCursor = _gGpuDisplayPrimBufferBase + display->frameBuffer * halfBytes; \
+    }
+
+    enum {
+        DISPLAY_TASK_FRAME_SCANLINE_MASK = 0x7FFF,
+        DISPLAY_TASK_FLIP_NONE           = -1,
+        DISPLAY_TASK_FLIP_IMMEDIATE      = -2,
+    };
     DisplayState* display;
     GsOT*         orderingTables;
     u_long*       savedOt;
     u_long*       firstTag;
     s32           halfBytes;
-    s32           noPendingFlip;
 
+    // Borrow the task OT and its primitive half until this frame is submitted.
     display = &gDisplayState;
-    if (display->mdecActive == 0) {
-        display->frameBuffer ^= 1;
-    }
-    if (display->control.flags.flipMode != DISPLAY_FLIP_HOLD) {
-        display->drawBuffer = display->frameBuffer;
-    }
-    orderingTables = Gpu_OrderingTables;
-    GsClearOt(0, 0, &orderingTables[display->frameBuffer]);
-    firstTag       = orderingTables[display->frameBuffer].org;
-    halfBytes      = _gGpuDisplayPrimBufferBytes;
-    *firstTag      = GPU_OT_END_PRIM;
-    halfBytes     /= 2;
-    savedOt        = gGpuCurrentOt;
-    gGpuCurrentOt  = orderingTables[display->frameBuffer].org;
-    gGpuPrimCursor = _gGpuDisplayPrimBufferBase + display->frameBuffer * halfBytes;
+    DISPLAY_BEGIN_TASK_FRAME();
     taskExecList(&gTaskDisplayList);
     cdCmdService();
     if (display->mdecActive == 0) {
         DrawSync(0);
     }
-    if (((VSync(1) - frameStart) & 0x7FFF) < D_8005EC6C) {
+    // Queue an interrupt-side flip within budget; late frames present immediately.
+    if (((VSync(1) - frameStartLines) & DISPLAY_TASK_FRAME_SCANLINE_MASK) < D_8005EC6C) {
         EnterCriticalSection();
         display->vsyncFlag  = DISPLAY_VSYNC_TASK;
         Display_PendingFlip = display->frameBuffer;
@@ -114,28 +131,28 @@ s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3)
         *(u8*)&D_8006EC30 = display->control.flags.imageSource;
         ExitCriticalSection();
         VSync(D_8005EC68);
-        noPendingFlip = -1;
-        if (Display_PendingFlip != noPendingFlip) {
-            D_8005EC78 = 0;
-            frameStart = VSync(1) & 0x7FFF;
+        if (Display_PendingFlip != DISPLAY_TASK_FLIP_NONE) {
+            D_8005EC78      = 0;
+            frameStartLines = VSync(1) & DISPLAY_TASK_FRAME_SCANLINE_MASK;
             displayPresentTaskFrame(display->frameBuffer);
-            Display_PendingFlip = noPendingFlip;
+            Display_PendingFlip = DISPLAY_TASK_FLIP_NONE;
         } else {
-            D_8005EC78 = D_8005EC74;
-            frameStart = -D_8005EC74;
+            D_8005EC78      = D_8005EC74;
+            frameStartLines = -D_8005EC74;
         }
     } else {
         D_8005EC78          = 0;
-        frameStart          = VSync(1) & 0x7FFF;
+        frameStartLines     = VSync(1) & DISPLAY_TASK_FRAME_SCANLINE_MASK;
         display->vsyncFlag  = DISPLAY_VSYNC_TASK;
-        Display_PendingFlip = -2;
+        Display_PendingFlip = DISPLAY_TASK_FLIP_IMMEDIATE;
         D_80070E38          = display->control.flags.flipMode;
         *(u8*)&D_8006EC30   = display->control.flags.imageSource;
         displayPresentTaskFrame(display->frameBuffer);
-        Display_PendingFlip = -1;
+        Display_PendingFlip = DISPLAY_TASK_FLIP_NONE;
     }
     gGpuCurrentOt = savedOt;
-    return frameStart;
+    return frameStartLines;
+#undef DISPLAY_BEGIN_TASK_FRAME
 }
 
 Task* displaySpawnTask(s32 bank, TaskSpawnArg selector, TaskSpawnArg spawnArg1, TaskSpawnArg spawnArg2)
@@ -291,27 +308,38 @@ void displayInitTaskBuffers(void)
     _displayConfigureSmallTaskBuffers();
 }
 
-s32 Display_DispatchModeId(s32 arg0)
+s32 displayDispatchModeRequest(s32 modeRequest)
 {
-    if (arg0 >= DISPLAY_MODE_MENU_FIRST) {
-        if (arg0 < DISPLAY_MODE_MENU_LIMIT) {
+    enum {
+        DISPLAY_MENU_REQUEST_ATTACHMENTS = 0x42,
+        DISPLAY_MENU_FADE_MAX            = 0x20,
+        DISPLAY_MENU_FADE_STEP_PER_TICK  = 8,
+        DISPLAY_MAP_FADE_STEP_PER_TICK   = 0x20,
+        DISPLAY_DEMO_FADE_STEP_PER_TICK  = 0x10,
+        DISPLAY_MODE_FADE_MAX            = 0xFF,
+    };
+
+    if (modeRequest >= DISPLAY_MODE_MENU_FIRST) {
+        if (modeRequest < DISPLAY_MODE_MENU_LIMIT) {
+            // Clear the old request while queueing the menu, then publish its selector.
             gDisplayState.pendingMode = DISPLAY_MODE_NONE;
-            if (arg0 != 0x43) {
-                displayQueueModeTask(&Display_MenuTaskDesc, arg0, 0, STAGE_ENTRY_RELOAD);
+            // Retain the map's constant argument: merging these calls changes the binary.
+            if (modeRequest != DISPLAY_MODE_MAP) {
+                displayQueueModeTask(&Display_MenuTaskDesc, modeRequest, 0, STAGE_ENTRY_RELOAD);
             } else {
-                displayQueueModeTask(&Display_MenuTaskDesc, 0x43, 0, STAGE_ENTRY_RELOAD);
+                displayQueueModeTask(&Display_MenuTaskDesc, DISPLAY_MODE_MAP, 0, STAGE_ENTRY_RELOAD);
             }
-            gDisplayState.pendingMode = arg0;
+            gDisplayState.pendingMode = modeRequest;
             if (gDisplayState.demoScene != DISPLAY_DEMO_NONE) {
-                stageSetFadeMax(0xFF);
-                stageConfigureFade(0, 0, 0x10, 1);
-            } else if (arg0 != 0x42) {
-                if (arg0 == 0x43) {
-                    stageSetFadeMax(0xFF);
-                    stageConfigureFade(0, 0, 0x20, 1);
+                stageSetFadeMax(DISPLAY_MODE_FADE_MAX);
+                stageConfigureFade(0, 0, DISPLAY_DEMO_FADE_STEP_PER_TICK, true);
+            } else if (modeRequest != DISPLAY_MENU_REQUEST_ATTACHMENTS) {
+                if (modeRequest == DISPLAY_MODE_MAP) {
+                    stageSetFadeMax(DISPLAY_MODE_FADE_MAX);
+                    stageConfigureFade(0, 0, DISPLAY_MAP_FADE_STEP_PER_TICK, true);
                 } else {
-                    stageSetFadeMax(0x20);
-                    stageConfigureFade(0, 0, 8, 1);
+                    stageSetFadeMax(DISPLAY_MENU_FADE_MAX);
+                    stageConfigureFade(0, 0, DISPLAY_MENU_FADE_STEP_PER_TICK, true);
                 }
             }
         }
@@ -331,23 +359,31 @@ static void _displayResumeGameLoop(void)
     gDisplayState.pendingMode  = DISPLAY_MODE_NONE;
 }
 
-static void Display_FlipOtAlt(void)
+/// Rebuilds the alternate game OT with priority-0x62 tasks and flagged models.
+///
+/// Retained standalone entry with no callers. Requires OT index 0 or 1,
+/// finished GPU use of the alternate tags and live task/model resources with
+/// sufficient primitive storage. Restores the borrowed OT pointer and enables
+/// full presentation; drawing determines the final primitive cursor.
+static void _displayFlipOtAndDrawFlaggedModels(void)
 {
-    DisplayState* temp;
-    u_long*       saved;
-    s32           buf;
+    enum { DISPLAY_REDRAW_TASK_PRIORITY = 0x62 };
+    DisplayState* display;
+    u_long*       savedOt;
+    s32           otBuffer;
 
-    temp           = &gDisplayState;
-    saved          = gGpuCurrentOt;
-    buf            = temp->otBuffer ^ 1;
-    temp->otBuffer = buf;
-    gGpuCurrentOt  = Gpu_OtTags + buf * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
-    gpuClearFrameOrderingTable(temp->otBuffer);
+    display           = &gDisplayState;
+    savedOt           = gGpuCurrentOt;
+    otBuffer          = display->otBuffer ^ 1;
+    display->otBuffer = otBuffer;
+    // Tasks and models share the game's depth base after its reserved foreground tags.
+    gGpuCurrentOt = Gpu_OtTags + otBuffer * GPU_ORDERING_TABLE_BUFFER_ENTRIES;
+    gpuClearFrameOrderingTable(display->otBuffer);
     gGpuCurrentOt = gGpuCurrentOt + GPU_ORDERING_TABLE_RESERVED_ENTRIES;
-    taskExecListForPriority(&gTaskDefaultList, 0x62);
-    actorRenderComposeAndDrawFlaggedModels(&Gpu_OtBuffers[temp->otBuffer]);
-    gGpuCurrentOt                = saved;
-    temp->control.flags.flipMode = DISPLAY_FLIP_FULL;
+    taskExecListForPriority(&gTaskDefaultList, DISPLAY_REDRAW_TASK_PRIORITY);
+    actorRenderComposeAndDrawFlaggedModels(&Gpu_OtBuffers[display->otBuffer]);
+    gGpuCurrentOt                   = savedOt;
+    display->control.flags.flipMode = DISPLAY_FLIP_FULL;
 }
 
 void gpuInitTaskOrderingTables(void)

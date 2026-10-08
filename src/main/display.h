@@ -53,14 +53,33 @@ void displayInitTaskBuffers(void);
 /// The primitive arena, task list and display ownership are unchanged.
 void gpuInitTaskOrderingTables(void);
 
-/// Build and present the task-owned frame, restoring the caller's current OT.
+/// Executes display-list tasks and builds, paces and presents their frame.
 ///
-/// `frameStart` is the VSync(1) horizontal-line counter origin; the return is
-/// the next origin, possibly negative to compensate for callback time.
-/// The OT-buffer and buffer-index arguments are retained and unused.
-s32 Display_FrameFlipDraw(GsOT* otBufs, s32 frameStart, s32 unused3);
+/// Requires initialized task OTs, a primitive arena split into two halves,
+/// live display tasks and frame-buffer index 0 or 1. Packets and borrowed image
+/// storage must remain valid through GPU completion. Outside movie decoding,
+/// toggles the frame buffer and waits for prior GPU work after dispatch; hold
+/// mode retains the drawing buffer. Services queued CD work before pacing.
+///
+/// `frameStartLines` is the VSync(1) scanline-counter origin. Returns the next
+/// origin, possibly negative to account for time spent in the VSync callback.
+/// Within the frame budget, requests a VSync flip and presents synchronously
+/// if the callback has not consumed it. Late frames present immediately.
+/// Restores the caller's current OT; leaves the primitive cursor at task output.
+/// `unusedOrderingTables` and `unusedOtBuffer` are retained ABI arguments and ignored.
+s32 displayRunTaskFrame(GsOT* unusedOrderingTables, s32 frameStartLines, s32 unusedOtBuffer);
 
-s32 Display_DispatchModeId(s32 arg0);
+/// Starts the stage controller for a pending modal display request, returning 0.
+///
+/// Requests 0x20..0x7F queue the gameplay menu task, retaining the request byte
+/// as its selector. Map requests fade to black; other menus use a dimming fade,
+/// except the attachment menu (0x42), which starts no fade.
+/// A demo overrides those policies with its own fade to black. Requests at or
+/// above 0x80 start the controller without replacing its queued transition context;
+/// smaller requests do nothing. Requires live stage/session state, loaded menu
+/// code for menu requests and disposable display-task storage. Task allocation
+/// failures are not reported by the constant return value.
+s32 displayDispatchModeRequest(s32 modeRequest);
 
 /// Presents a task-owned framebuffer using the queued flip and image policy.
 ///

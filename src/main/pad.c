@@ -39,33 +39,33 @@ static inline void _padClearState(PadState* state)
     }
 }
 
-void Pad_Init(void)
+void padInit(void)
 {
-    u32                  i;
-    PadRawPort*          pad;
-    volatile PadRawPort* vpad;
-    u32                  j;
-    u8                   ff;
+    enum { PAD_RAW_BUTTONS_RELEASED = 0xFF };
+    u32                  portIndex;
+    PadRawPort*          rawPorts;
+    volatile PadRawPort* rawPort;
+    u32                  rawPortIndex;
 
-    for (i = 0; i < ARRAY_SIZE(gPadStates); i++) {
+    for (portIndex = 0; portIndex < ARRAY_SIZE(gPadStates); portIndex++) {
         // Clear each complete state, then publish setup fields.
-        _padClearState(&gPadStates[i]);
-        gPadStates[i].actuatorCommand[0] = 0;
-        gPadStates[i].actuatorCommand[1] = 0;
-        gPadStates[i].inputFormat        = PAD_INPUT_FORMAT_UNAVAILABLE;
-        gPadStates[i].modeSetupPending   = 1;
+        _padClearState(&gPadStates[portIndex]);
+        gPadStates[portIndex].actuatorCommand[PAD_VIBRATION_MOTOR_BINARY]   = 0;
+        gPadStates[portIndex].actuatorCommand[PAD_VIBRATION_MOTOR_VARIABLE] = 0;
+        gPadStates[portIndex].inputFormat                                   = PAD_INPUT_FORMAT_UNAVAILABLE;
+        gPadStates[portIndex].modeSetupPending                              = true;
     }
 
-    pad = Pad_RawPorts;
-    PadInitDirect((u8*)pad, (u8*)(pad + 1));
-    j = 0;
+    rawPorts = Pad_RawPorts;
+    PadInitDirect((u8*)rawPorts, (u8*)(rawPorts + 1));
+    rawPortIndex = 0;
     PadStartCom();
-    vpad = pad;
-    for (; j < 2; j++) {
-        ff                = 0xFF;
-        vpad->buttonsHigh = ff;
-        vpad->buttonsLow  = ff;
-        vpad++;
+    // Failed exchanges leave response bytes stale, so seed all buttons as released.
+    rawPort = rawPorts;
+    for (; rawPortIndex < ARRAY_SIZE(Pad_RawPorts); rawPortIndex++) {
+        rawPort->buttonsHigh = PAD_RAW_BUTTONS_RELEASED;
+        rawPort->buttonsLow  = PAD_RAW_BUTTONS_RELEASED;
+        rawPort++;
     }
 }
 

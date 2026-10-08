@@ -128,6 +128,11 @@ enum {
 };
 
 /// Resets the decoder and detaches the movie ring after CD delivery has paused.
+///
+/// The active stream's ring must still be registered and writable. Mode zero
+/// also resets the SDK callback system; the caller is rebuilding CD state.
+/// Discards pending ring contents and removes its CD data/ready callbacks,
+/// then clears the movie-active latch. Does not free the borrowed ring storage.
 static __inline__ void _bootReleaseMovieRing(void)
 {
     enum { BOOT_MOVIE_RESET_CALLBACKS_AND_DECODER = 0 };
