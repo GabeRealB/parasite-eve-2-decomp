@@ -47252,8 +47252,8 @@ That single `memCalloc` says the object is 0x34 bytes followed by
 `modelObjectAttachTmd` stores that pointer into `Task::extra` and sets
 `Task::bodyKind = TASK_BODY_TMD`, and `taskKill`'s type-1 branch pokes `field_C` on the
 same pointer — so "`Task::extra`" and "TMD model node" were never two things.
-The 0x24 model was simply truncated: `func_actor_400600_80137240` reading
-`field_24` / `field_25` was reading one and two bytes past its end.
+The 0x24 model was simply truncated: `_actor400600SpawnBodyChunks` reading
+`texturePageOffset` / `clutRowOffset` was reading one and two bytes past its end.
 
 Corollaries worth reusing:
 
@@ -51044,13 +51044,13 @@ own single-set pseudo and matched; dropping the `banks = Gp_Bit2Banks` local
 half. Look for `+=` on a pointer or index whenever `.sched` shows a plain
 priority next to a column of `7f000001`.
 
-Split only the local whose setter has to win the tie. `func_actor_400600_801356E0`
-runs the same spawn-and-rotate body twice, with one `pm = &m` per block
+Split only the local whose setter has to win the tie. `_actor400600SpawnArmModels`
+runs the same spawn-and-rotate body twice, with one `leftRotation = &rotation` per block
 (`addiu s0,sp,0x10`) scheduled after `li a0,-0x180` in the target. Sharing
-`pm`, `obj` and `coord` between the blocks got allocation right and that one
+`leftRotation`, `armModel` and `armCoord` between the blocks got allocation right and that one
 pair backwards (99.3%). Giving *every* block-local its own variable (m2c's
-shape) fixed the order but swapped `pm`/`coord` between `$s0`/`$s1` (98.9%).
-Splitting only `pm` into `pm`/`pm2`, and keeping `obj`/`coord` shared,
+shape) fixed the order but swapped `leftRotation`/`armCoord` between `$s0`/`$s1` (98.9%).
+Splitting only `leftRotation` into `leftRotation`/`rightRotation`, and keeping `armModel`/`armCoord` shared,
 matched.
 
 ### One pointer local shared by two `switch` cases is set twice: scope it per case
@@ -70915,14 +70915,14 @@ scored 78% (different block shape).
 
 ### A pre-set default before an inner `if`/`else` gets hoisted by sched1 and lands in the wrong register
 
-`func_actor_400600_8013B740` sets `min = 0x10` at the top. Then, inside an outer
-`if`, it steps the LCG and picks `min`/`step` on a bit of the result. The target
+`_actor400600TickWalk` sets `minimumWalkRate = 0x10` at the top. Then, inside an outer
+`if`, it steps the LCG and picks `minimumWalkRate`/`hurriedTurnStep` on a bit of the result. The target
 puts `li v1,0x18` in the `beqz` delay slot, after the LCG math, which also uses
-`$v1`. m2c's reading, `min = 0x18; if (bit) {...} else { min = 0x14; }`, scored
-96.9% with `min` in `$a2`. sched1 has no dependency holding the constant, so it
-hoisted `min = 0x18` to the top of the LCG block (`.greg`: `(set (reg/v:HI 6 a2)
-(const_int 24))` ahead of the `lw`). There `min` overlaps the LCG temp in `$v1`
-and gets pushed to `$a2`. Writing `min = 0x18` inside the then-arm matches:
+`$v1`. m2c's reading, `minimumWalkRate = 0x18; if (bit) {...} else { minimumWalkRate = 0x14; }`, scored
+96.9% with `minimumWalkRate` in `$a2`. sched1 has no dependency holding the constant, so it
+hoisted `minimumWalkRate = 0x18` to the top of the LCG block (`.greg`: `(set (reg/v:HI 6 a2)
+(const_int 24))` ahead of the `lw`). There `minimumWalkRate` overlaps the LCG temp in `$v1`
+and gets pushed to `$a2`. Writing `minimumWalkRate = 0x18` inside the then-arm matches:
 reorg fills the delay slot from the fall-through arm, since `$v1` is dead on the
 taken path. This is the same fix as the pre-set `ret` entry above; what changes
 is how you spot it: the constant appears early in `.sched`, not as a return.
@@ -71103,16 +71103,16 @@ own local (`work3`), which makes it a local-alloc quantity.
 
 ## A reloaded field that post-reload CSE folds away: move the aliasing load earlier in the source
 
-`func_actor_400600_80133434` (actors/actor_400600) copies a spawn position and
+`_actor400600SpawnEnemy` (actors/actor_400600) copies a spawn position and
 then seeds a field from one of the copies:
 
 ```c
-work->spawnX = coord->coord.t[0];
-work->floorY = coord->coord.t[1];
-work->spawnZ = coord->coord.t[2];   /* must precede the LCG lines */
-rnd = ((u32)gRandomLcgState * 5) + 0x71357911;
-gRandomLcgState = rnd;
-work->frameCount = rnd >> 0x10;
+work->spawnX = rootCoord->coord.t[0];
+work->floorY = rootCoord->coord.t[1];
+work->spawnZ = rootCoord->coord.t[2];   /* must precede the LCG lines */
+randomValue = ((u32)gRandomLcgState * 5) + 0x71357911;
+gRandomLcgState = randomValue;
+work->frameCount = randomValue >> 0x10;
 work->shadowHeight = work->floorY;     /* target reloads: lhu a0,0x92(s3) */
 ```
 
@@ -71126,7 +71126,7 @@ survives, and `srl`/`sh 0x716` drop to the end of the block as in retail.
 
 Same function, first instruction mismatch: `sw s3,0x1c(s4)` where the target has
 `addu s3,v0,zero; bnez s3; sw v0,0x1c(s4)`. Write
-`index->work = memCalloc(...); work = index->work;` rather than assigning
+`task->work = memCalloc(...); work = task->work;` rather than assigning
 `work` first, chained or not. The store's source is then the call-value pseudo
 (`$v0`) and `work` is a separate copy that the test reads.
 
@@ -71286,7 +71286,7 @@ operand order.
 
 ## Spill slots are laid out in declaration order, so a misplaced local resizes the frame
 
-`func_actor_400600_80136968` scored 99.375% with every block, predicate and
+`_actor400600ApplyBodyContacts` scored 99.375% with every block, predicate and
 instruction already in place: the only differences were stack offsets, and the
 frame was 8 bytes short (`0x80` against the target's `0x88`). Six values are
 spilled - four `s16` axis accumulators, a `u8` flag and one pointer held across
@@ -153518,6 +153518,8 @@ that step was inferred from the result, not read out of a dump.
   the `packed` view goes.
 - Pointer locals that had to stay, passed as `&p->mat`:
   `_actor400500SelectCrawlRoute` (`rotation`), `func_actor_400600_801356E0` and
+  `func_actor_400500_801361EC` (`src`), `_actor400600SpawnArmModels`
+  (`leftRotation`, `rightRotation`) and
   `func_actor_405800_80135780` (`pm`, `pm2`). In the last two the copy that
   follows also reads through the pointer, so they are not the helper above.
 - A TU without `main/gfx.h` compiles the call as an implicit declaration:
