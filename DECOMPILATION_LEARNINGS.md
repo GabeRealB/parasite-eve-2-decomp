@@ -85769,7 +85769,7 @@ Inputs: `base.i` (m2c seed, 54.857%)
 
 m2c renders a field access it cannot type as pointer arithmetic on whatever
 pointer it happens to hold, and that arithmetic is in units of the pointee.
-`func_actor_401300_80141758`'s seed wrote `worldCollisionUnlinkBody(temp_s0 + 0xBF0)` where
+`_actor401300ReleaseResources`'s seed wrote `worldCollisionUnlinkBody(temp_s0 + 0xBF0)` where
 `temp_s0` came from `index->work` and was typed `_StageMusicSelection*` (8 bytes), so the
 object came out `addiu a0,s0,0x5f80`. All three unlink displacements were wrong
 by exactly 8x - `0x5f80/0xbf0 == 0x4b80/0x970 == 0x5580/0xab0 == 8` - and the
@@ -109420,7 +109420,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 ## Flattening the twin's helpers into one body inflates the allocno set, not just the addressing (_oddStrangerAlert, 2026-09-16)
 
-The 401300 twin of this turn-toward-the-player body (`func_actor_401300_80136238`,
+The 401300 twin of this turn-toward-the-player body (`_actor401300StateAlert`,
 0.93 shape) is built out of four `static __inline__` helpers — `PositionYaw`,
 `ConfigPositionDelta`, `NormalizeYaw`, `RescaleYaw`. Writing the same code flat,
 with the scratch blocks retyped and the addressing already correct, still scored
@@ -115162,8 +115162,8 @@ addition then absorbs the constant as `addiu`, which is the target. Together
 these two rewrites (90.39% → 92.15%) are what made the whole `stateFrame >= 0xE6`
 block match, including the GTE `gpf 1` sequence after `ScaleMatrix`.
 
-The same trick explains `blk->scale.vz|vy|vx = 0x1964` in the matched
-`Actor401300_InitPose` (`src/actors/actor_401300/actor_401300.c`), which is
+The same trick explains `yawScratch->scale.vz|vy|vx = ACTOR_401300_ROOT_SCALE` in the matched
+`_actor401300InitializePoseAndCombat` (`src/actors/actor_401300/actor_401300.c`), which is
 written in descending order for the same reason.
 
 Inputs: `base_3.i` SHA256
@@ -134460,7 +134460,7 @@ base_9 is the exact readable port. This supports the quantity threshold and
 its scheduling consequence for this function; it does not identify retail's
 original source or imply duplicate inputs are generally needed for a push.
 
-## Separate scheduling regions can preserve flag-register reuse without pins (func_actor_401300_801365F8, 2026-09-19)
+## Separate scheduling regions can preserve flag-register reuse without pins (_actor401300StateChase, 2026-09-19)
 
 The archived seed reproduced distance 560 (98.739%): only initialization differed.
 Two halfword flag read/modify/write chains and a copied speed all overlapped
@@ -134500,11 +134500,11 @@ baseline input 8c811d20875af1b392b792fcc67590e2c8858ef9a82dc4bf58e98c9bd3b51d90;
 matched input d9a53296885d11620e80946436c8f504e0168f89e2e18050f1a61e6314108195.
 Evidence: scratch `base_4.compare.txt`, `INIT_BASELINE_TRACE`, `INIT_MATCH_TRACE`,
 `PERMUTER_ANALYSIS.md` and retained snapshots under
-`tools/permuter_findings/func_actor_401300_801365F8/`. The router itself had no
+`tools/permuter_findings/_actor401300StateChase/`. The router itself had no
 verified gain (595->600 and 560->599); this match came from the controlled
 follow-up. A retained char-mask output drops 0x4000 and was rejected by hash.
 
-The same combined intervention transferred to `func_actor_401300_80136CE8`
+The same combined intervention transferred to `_actor401300StateWithdraw`
 on 2026-09-19: archived baseline distance 560 -> zero in controlled `base_1`,
 then zero in ported `base_2`, followed by successful unscoped integration.
 In `base_1.i.sched`, BF0 store 62 precedes boundary 64, and AB0 load 73 depends
@@ -134515,7 +134515,7 @@ individual barrier minimality remains untested. Input hashes are
 `9f54ffa63715e7ba3082120d67f520930b812e1181cec9ca3129676c7f906c11` (controlled)
 and `414830bd27e1f8c8cd284d6bd85090d5b34e4161b19f79a620791b573aca7eb8` (port),
 with the same compiler hash above. Evidence and unsuccessful router outputs are
-retained under `tools/permuter_findings/func_actor_401300_80136CE8/`.
+retained under `tools/permuter_findings/_actor401300StateWithdraw/`.
 
 
 ## A signed byte load followed by redundant switch sign extension (func_actor_403000_8013B74C, 2026-09-19)
@@ -136811,7 +136811,7 @@ Both traces confirmed byte-identical assembly with and without observation.
 
 ## A dedicated ABS condition joins the first load, subtraction, abs and compare into one local quantity (_actor401000Chase, 2026-09-20)
 
-The archived 99.187% seed was stuck on init scheduling and `pad_A - pad_8` registers. Retrieval found two newer solutions. Transferring the two SOFT_BARRIER boundaries plus u16 speed preload from func_actor_401300_801365F8 fixed all init differences (99.972%, regs=4 only). Both flag chains now reuse v0; constant3 and speed reuse v1. As in that sibling, sched1 places the speed load after the first flag store, and sched2 moves it before the mask. Individual boundary minimality was not tested.
+The archived 99.187% seed was stuck on init scheduling and `pad_A - pad_8` registers. Retrieval found two newer solutions. Transferring the two SOFT_BARRIER boundaries plus u16 speed preload from _actor401300StateChase fixed all init differences (99.972%, regs=4 only). Both flag chains now reuse v0; constant3 and speed reuse v1. As in that sibling, sched1 places the speed load after the first flag store, and sched2 moves it before the mask. Individual boundary minimality was not tested.
 
 The remaining shared `angle` used explicit if/negation twice and was global. Keeping the later angle unchanged and writing `playerFacingError = chase->yawFromPlayer - chase->playerYaw; if (ABS(playerFacingError) < 0x44)` for the first condition reached 100%. This was a preplanned transfer from _actor356100Chase, not another load-order permutation.
 

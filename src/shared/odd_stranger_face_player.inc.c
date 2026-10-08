@@ -29,6 +29,9 @@
 /// 16 angle units per tick (4096 per turn), while the full bearing feeds the
 /// look target. The primary clip boundary selects `CHASE` before playback
 /// advances. Borrows one chase scratch block plus the yaw-rescale workspace.
+///
+/// The Horned Stranger's related `_actor401300StateAlert` also oscillates its
+/// fixed-joint pair and gates withdrawal by room and line of sight.
 static void _oddStrangerAlert(Task* task)
 {
     enum {
