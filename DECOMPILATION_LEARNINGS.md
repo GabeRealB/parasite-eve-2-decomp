@@ -69213,7 +69213,7 @@ cleaning the pointer arithmetic up into struct fields.
 
 ## A global read twice — once as the switch value, once as a call argument — is reloaded
 
-`func_actor_503500_80143EB4` dispatches on the frozen-mode byte and then passes
+`_actor503500ArmUpdate` dispatches on the frozen-mode byte and then passes
 the same byte to a callee in the default arm. Writing both reads against the
 global directly,
 
@@ -69222,7 +69222,7 @@ switch (D_801153F4) {
     ...
     default:
         if (enemy->reactionFlags != 0) {
-            _actor503500ArmClearReactions(arg0, D_801153F4, enemy);
+            _actor503500ArmClearReactions(task, D_801153F4, enemy);
         }
 ```
 
@@ -69245,12 +69245,12 @@ GCC 2.8.1 will not reuse the dispatch load for the argument.
 **Fix.** Read it once into a local and use that local for both.
 
 ```c
-mode = D_801153F4;
-switch (mode) {
+actorControl = D_801153F4;
+switch (actorControl) {
     ...
     default:
         if (enemy->reactionFlags != 0) {
-            _actor503500ArmClearReactions(arg0, mode, enemy);
+            _actor503500ArmClearReactions(task, actorControl, enemy);
         }
 ```
 
@@ -69258,7 +69258,7 @@ switch (mode) {
 move as the `sltiu`/`slti` entries above, but the tell is different: there the
 symptom is the comparison opcode, here it is a duplicated `lui`/`lbu` pair at a
 call site. Note the local's declaration order also fixes the load order —
-`enemy = index->field_20; mode = D_801153F4; tmd = index->extra;` reproduces
+`enemy = task->spawnArg2.pointer; actorControl = D_801153F4; model = task->extra.tmd;` reproduces
 `lw a2,0x20(s0)` / `lbu a1` / `lw a0,0x2c(s0)`.
 
 ## A store to a neighbouring field kills CSE's memory equivalence, and the reload comes back as a stray reg-reg copy
@@ -69654,7 +69654,7 @@ and the match is exact.
 
 ### `bodies_of()` files a body under a multi-line prototype's name
 
-Resegmenting `actor_503500` (a `0xFF5C` text cut so `func_actor_503500_80141D7C`'s
+Resegmenting `actor_503500` (a `0xFF5C` text cut so `_actor503500LungingChainStepState`'s
 jump table starts the new `_7` object's `.rodata`) meant moving a whole file's
 tail and diffing the snapshot. `bodies_of()` in `tools/land_overlay.py` reported
 the moved function as missing. The cause is a prototype split across two lines
@@ -149594,7 +149594,7 @@ attempts; left as it was.
   block, sched1 moves `li a3,2` into the load delay, and the cross-jump walk
   stops at it. After the switch the increment ends its block in both arms.
 - **`if (a) { if (f(slot) == 0) X; else goto T; } else { T: Y; }`** is
-  `if (a && f(c ? 0xA : 0xB) == 0) X; else Y;` (`func_actor_503500_8013FF0C`,
+  `if (a && f(c ? 0xA : 0xB) == 0) X; else Y;` (`_actor503500LungingChainUpdate`,
   `_80138898`). Written `if (!a || f() != 0) Y; else X;` the arms come out in
   the other order.
 - Not converted: `as12AttackState`'s `goto fire` from state 5 back into

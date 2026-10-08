@@ -613,20 +613,20 @@ static void _actor503500RearPartStepState(Task* task);
 static void _actor503500RearPartEnterState(Task* task, s8 state);
 static void _actor503500ChainBaseClearReactions(Task* task);
 static void _actor503500ChainBaseUpdateHits(Task* task);
-static void func_actor_503500_8013D990(Task* arg0);
+static void _actor503500ChainBaseStepState(Task* task);
 static void _actor503500ChainBaseStepExposed(Task* task, s32 exposureLimitFrames);
 static void _actor503500ChainBaseStepCovered(Task* task);
-static void func_actor_503500_8013F8AC(Task* arg0);
-static void func_actor_503500_801440F0(Task* arg0);
-static void func_actor_503500_8013BD88(Task* arg0);
+static void _actor503500YellowFlashEmitterStepState(Task* task);
+static void _actor503500ArmStepState(Task* task);
+static void _actor503500LargeOrbEmitterStepState(Task* task);
 static void _actor503500SmallOrbEmitterStepAttack(Task* emitterTask);
 static void _actor503500SmallOrbEmitterStepIdle(Task* task);
 static void _actor503500SmallOrbEmitterClearReactions(Task* task);
 static void _actor503500SmallOrbEmitterUpdateHits(Task* task);
-static void func_actor_503500_8013EB60(Task* arg0);
+static void _actor503500SmallOrbEmitterStepState(Task* task);
 static void _actor503500YellowFlashEmitterExit(Task* task);
 static void _actor503500YellowFlashEmitterClearReactions(Task* task);
-static void func_actor_503500_8013F830(Task* arg0);
+static void _actor503500YellowFlashEmitterUpdateHits(Task* task);
 static void _actor503500ChainBaseEnterState(Task* task, s32 state);
 static void _actor503500YellowFlashEmitterStepAttack(Task* emitterTask);
 static void _actor503500YellowFlashEmitterStepIdle(Task* task);
@@ -638,17 +638,17 @@ static void _actor503500LungingChainReactToDamage(Task* task);
 static void _actor503500LungingChainStepTip(Task* task);
 static void _actor503500LungingChainUpdatePose(Task* task);
 static void _actor503500LungingChainBlendPose(Task* task);
-static void func_actor_503500_80141D7C(Task* arg0);
+static void _actor503500LungingChainStepState(Task* task);
 static void _actor503500LungingChainStepIdle(Task* task);
 static void _actor503500LungingChainStepUnfolding(Task* task);
 static void _actor503500LungingChainStepRegrowing(Task* task);
-static void func_actor_503500_801420C4(Task* arg0);
+static void _actor503500LungingChainUpdateHits(Task* task);
 static void _actor503500LungingChainUpdateColor(Task* task);
 static void _actor503500LungingChainEnterState(Task* task, s32 state);
 static void _actor503500ArmStepStrike(Task* task);
 static void _actor503500ArmStepDying(Task* task);
 static void _actor503500ArmFrameHook(Task* unusedTask);
-static void func_actor_503500_80144004(Task* arg0);
+static void _actor503500ArmUpdateHits(Task* task);
 static void _actor503500ArmClearReactions(Task* task, s32 unusedActorControl, Enemy* unusedEnemy);
 static void _actor503500ArmStepIdle(Task* task);
 static void _actor503500ArmStepBecomeTarget(Task* task);
@@ -690,19 +690,19 @@ extern _Actor503500ArmStorage D_actor_503500_80178AC0;
 extern _Actor503500KnockbackWork D_actor_503500_80178F10;
 
 static void _actor503500LargeOrbEmitterInit(Task* task);
-static void func_actor_503500_8013BBCC(Task* arg0);
+static void _actor503500LargeOrbEmitterUpdate(Task* task);
 static void _actor503500RearPartInit(Task* task);
 static void _actor503500RearPartUpdate(Task* task);
 static void _actor503500ChainBaseInit(Task* task);
-static void func_actor_503500_8013D7D4(Task* arg0);
+static void _actor503500ChainBaseUpdate(Task* task);
 static void _actor503500SmallOrbEmitterInit(Task* task);
-static void func_actor_503500_8013E9A4(Task* arg0);
+static void _actor503500SmallOrbEmitterUpdate(Task* task);
 static void _actor503500YellowFlashEmitterInit(Task* task);
-static void func_actor_503500_8013F6F0(Task* arg0);
+static void _actor503500YellowFlashEmitterUpdate(Task* task);
 static void _actor503500LungingChainInit(Task* task);
-static void func_actor_503500_8013FF0C(Task* arg0);
+static void _actor503500LungingChainUpdate(Task* task);
 static void _actor503500ArmInit(Task* task);
-static void func_actor_503500_80143EB4(Task* arg0);
+static void _actor503500ArmUpdate(Task* task);
 static void _actor503500BallisticShotInit(Task* task);
 static void _actor503500BallisticShotUpdate(Task* task);
 static void _actor503500LingeringShotInit(Task* task);
@@ -783,7 +783,7 @@ static inline void _actor503500ArmBeginStrike(Task* task, _Actor503500ArmWork* w
 static const TaskFuncTable3 D_actor_503500_80131FF0 = {
     {
         _actor503500LargeOrbEmitterInit,
-        func_actor_503500_8013BBCC,
+        _actor503500LargeOrbEmitterUpdate,
         _actor503500LargeOrbEmitterExit,
     },
 };
@@ -1063,10 +1063,13 @@ static void _actor503500LargeOrbEmitterStepAttack(Task* task)
     }
 }
 
-/// Composes a Q12 local launch rotation onto the shot's world rotation.
+/// Aims a large orb by postmultiplying its world rotation by the local launch rotation.
 ///
-/// Both matrices are live, disjoint and halfword-aligned. Writes only the nine
-/// coefficients, preserving alignment/translation; changes GTE rotation state.
+/// Both rotations use signed Q12 coefficients and must be live and disjoint.
+/// `shotRotation` must be word-aligned; `launchRotation` must be halfword-aligned.
+/// Writes only the nine rotation coefficients, preserving alignment bytes
+/// and translation. Changes GTE rotation state; coordinate invalidation belongs
+/// to the caller.
 static inline void _actor503500LargeOrbEmitterComposeLaunchRotation(MATRIX* shotRotation, const MATRIX* launchRotation)
 {
     gte_SetRotMatrix(shotRotation);
@@ -1256,13 +1259,18 @@ static void _actor503500LargeOrbEmitterStepDying(Task* task)
     }
 }
 
-static void func_actor_503500_8013BBCC(Task* arg0)
+/// Updates a large-orb emitter's reactions, hit contacts and behavior state.
+///
+/// Requires initialized work, its live enemy and its single-coordinate body.
+/// Paused updates do nothing; hidden updates only prohibit lock-on. Otherwise
+/// invalidates the attached coordinate before processing damage and behavior.
+static void _actor503500LargeOrbEmitterUpdate(Task* task)
 {
     Enemy*    enemy;
-    GfxCoord* coord;
+    GfxCoord* rootCoord;
 
-    enemy = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    enemy     = task->spawnArg2.pointer;
+    rootCoord = task->extra.coordBody->coord;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
@@ -1270,12 +1278,12 @@ static void func_actor_503500_8013BBCC(Task* arg0)
         enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        _actor503500LargeOrbEmitterClearReactions(arg0);
+        _actor503500LargeOrbEmitterClearReactions(task);
     }
-    _actor503500LargeOrbEmitterUpdateHits(arg0);
-    func_actor_503500_8013BD88(arg0);
+    _actor503500LargeOrbEmitterUpdateHits(task);
+    _actor503500LargeOrbEmitterStepState(task);
 }
 
 /// Detaches a large-orb emitter and releases its collision body and enemy.
@@ -1338,19 +1346,23 @@ static void _actor503500LargeOrbEmitterUpdateHits(Task* task)
     worldCollisionClearContacts(work->contacts);
 }
 
-static void func_actor_503500_8013BD88(Task* arg0)
+/// Steps the large-orb emitter's idle, attack or dying behavior.
+///
+/// Requires initialized emitter work and a live boss parent. Dispatches the
+/// work's behavior state, independently of `Task::state`; other values do nothing.
+static void _actor503500LargeOrbEmitterStepState(Task* task)
 {
-    _Actor503500LargeOrbEmitterWork* work = arg0->work;
+    _Actor503500LargeOrbEmitterWork* work = task->work;
 
     switch (work->state) {
         case ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE:
-            _actor503500LargeOrbEmitterStepIdle(arg0);
+            _actor503500LargeOrbEmitterStepIdle(task);
             break;
         case ACTOR_503500_LARGE_ORB_EMITTER_STATE_ATTACK:
-            _actor503500LargeOrbEmitterStepAttack(arg0);
+            _actor503500LargeOrbEmitterStepAttack(task);
             break;
         case ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING:
-            _actor503500LargeOrbEmitterStepDying(arg0);
+            _actor503500LargeOrbEmitterStepDying(task);
             break;
     }
 }
@@ -1817,7 +1829,7 @@ void actor503500RearPartTask(Task* task)
 static const TaskFuncTable3 D_actor_503500_80132060 = {
     {
         _actor503500ChainBaseInit,
-        func_actor_503500_8013D7D4,
+        _actor503500ChainBaseUpdate,
         _actor503500ChainBaseExit,
     },
 };
@@ -2238,17 +2250,18 @@ static void _actor503500ChainBaseStepDying(Task* task)
     }
 }
 
-/// Per-frame tick of a chain base, the same shape as
-/// `func_actor_503500_8013BBCC`: frozen mode 1 skips the frame entirely,
-/// mode 2 only marks the enemy's link node, and anything else clears the
-/// coordinate flag and runs the normal chain.
-static void func_actor_503500_8013D7D4(Task* arg0)
+/// Updates a chain base's reactions, hit contacts and behavior state.
+///
+/// Requires initialized work, its live enemy and its single-coordinate body.
+/// Paused updates do nothing; hidden updates only prohibit lock-on. Otherwise
+/// invalidates the attached coordinate before processing damage and behavior.
+static void _actor503500ChainBaseUpdate(Task* task)
 {
     Enemy*    enemy;
-    GfxCoord* coord;
+    GfxCoord* rootCoord;
 
-    enemy = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    enemy     = task->spawnArg2.pointer;
+    rootCoord = task->extra.coordBody->coord;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
@@ -2256,12 +2269,12 @@ static void func_actor_503500_8013D7D4(Task* arg0)
         enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        _actor503500ChainBaseClearReactions(arg0);
+        _actor503500ChainBaseClearReactions(task);
     }
-    _actor503500ChainBaseUpdateHits(arg0);
-    func_actor_503500_8013D990(arg0);
+    _actor503500ChainBaseUpdateHits(task);
+    _actor503500ChainBaseStepState(task);
 }
 
 /// Detaches a chain base and releases its collision body and enemy.
@@ -2323,23 +2336,26 @@ static void _actor503500ChainBaseUpdateHits(Task* task)
     worldCollisionClearContacts(work->contacts);
 }
 
-static void func_actor_503500_8013D990(Task* arg0)
+/// Steps a chain base's covered, exposed, attack or dying behavior.
+///
+/// Requires initialized base work and a live boss parent. Exposed behavior
+/// regrows once its signed-frame age exceeds 600; other state values do nothing.
+static void _actor503500ChainBaseStepState(Task* task)
 {
-    s8 temp_v1;
+    _Actor503500ChainBaseWork* work = task->work;
 
-    temp_v1 = ((_Actor503500ChainBaseWork*)arg0->work)->state;
-    switch (temp_v1) {
+    switch (work->state) {
         case ACTOR_503500_CHAIN_BASE_STATE_COVERED:
-            _actor503500ChainBaseStepCovered(arg0);
+            _actor503500ChainBaseStepCovered(task);
             break;
         case ACTOR_503500_CHAIN_BASE_STATE_EXPOSED:
-            _actor503500ChainBaseStepExposed(arg0, ACTOR_503500_CHAIN_BASE_EXPOSED_FRAMES);
+            _actor503500ChainBaseStepExposed(task, ACTOR_503500_CHAIN_BASE_EXPOSED_FRAMES);
             break;
         case ACTOR_503500_CHAIN_BASE_STATE_ATTACK:
-            _actor503500ChainBaseStepAttack(arg0);
+            _actor503500ChainBaseStepAttack(task);
             break;
         case ACTOR_503500_CHAIN_BASE_STATE_DYING:
-            _actor503500ChainBaseStepDying(arg0);
+            _actor503500ChainBaseStepDying(task);
             break;
     }
 }
@@ -2468,7 +2484,7 @@ static void _actor503500ChainBaseStepCovered(Task* task)
 static const TaskFuncTable3 D_actor_503500_80132098 = {
     {
         _actor503500SmallOrbEmitterInit,
-        func_actor_503500_8013E9A4,
+        _actor503500SmallOrbEmitterUpdate,
         _actor503500SmallOrbEmitterExit,
     },
 };
@@ -2862,17 +2878,18 @@ static void _actor503500SmallOrbEmitterStepDying(Task* task)
     }
 }
 
-/// The small-orb emitter's per-frame tick, the same shape as
-/// `func_actor_503500_8013D7D4`: frozen mode 1 skips the frame entirely,
-/// mode 2 only marks the enemy's link node, and anything else clears the
-/// coordinate flag and runs the normal chain.
-static void func_actor_503500_8013E9A4(Task* arg0)
+/// Updates the small-orb emitter's reactions, hit contacts and behavior state.
+///
+/// Requires initialized work, its live enemy and its single-coordinate body.
+/// Paused updates do nothing; hidden updates only prohibit lock-on. Otherwise
+/// invalidates the attached coordinate before processing damage and behavior.
+static void _actor503500SmallOrbEmitterUpdate(Task* task)
 {
     Enemy*    enemy;
-    GfxCoord* coord;
+    GfxCoord* rootCoord;
 
-    enemy = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    enemy     = task->spawnArg2.pointer;
+    rootCoord = task->extra.coordBody->coord;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
@@ -2880,12 +2897,12 @@ static void func_actor_503500_8013E9A4(Task* arg0)
         enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        _actor503500SmallOrbEmitterClearReactions(arg0);
+        _actor503500SmallOrbEmitterClearReactions(task);
     }
-    _actor503500SmallOrbEmitterUpdateHits(arg0);
-    func_actor_503500_8013EB60(arg0);
+    _actor503500SmallOrbEmitterUpdateHits(task);
+    _actor503500SmallOrbEmitterStepState(task);
 }
 
 /// Detaches the small-orb emitter and releases its collision body and enemy.
@@ -2948,19 +2965,23 @@ static void _actor503500SmallOrbEmitterUpdateHits(Task* task)
     worldCollisionClearContacts(work->contacts);
 }
 
-static void func_actor_503500_8013EB60(Task* arg0)
+/// Steps the small-orb emitter's idle, volley attack or dying behavior.
+///
+/// Requires initialized emitter work and a live boss parent. Dispatches the
+/// work's behavior state, independently of `Task::state`; other values do nothing.
+static void _actor503500SmallOrbEmitterStepState(Task* task)
 {
-    _Actor503500SmallOrbEmitterWork* work = arg0->work;
+    _Actor503500SmallOrbEmitterWork* work = task->work;
 
     switch (work->state) {
         case ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE:
-            _actor503500SmallOrbEmitterStepIdle(arg0);
+            _actor503500SmallOrbEmitterStepIdle(task);
             break;
         case ACTOR_503500_SMALL_ORB_EMITTER_STATE_ATTACK:
-            _actor503500SmallOrbEmitterStepAttack(arg0);
+            _actor503500SmallOrbEmitterStepAttack(task);
             break;
         case ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING:
-            _actor503500SmallOrbEmitterStepDying(arg0);
+            _actor503500SmallOrbEmitterStepDying(task);
             break;
     }
 }
@@ -3005,7 +3026,7 @@ void actor503500SmallOrbEmitterTask(Task* task)
 static const TaskFuncTable3 D_actor_503500_801320D0 = {
     {
         _actor503500YellowFlashEmitterInit,
-        func_actor_503500_8013F6F0,
+        _actor503500YellowFlashEmitterUpdate,
         _actor503500YellowFlashEmitterExit,
     },
 };
@@ -3354,17 +3375,18 @@ static void _actor503500YellowFlashEmitterStepDying(Task* task)
     }
 }
 
-/// The yellow-flash emitter's per-frame tick, the same shape as
-/// `func_actor_503500_8013E9A4`: frozen mode 1 skips the frame entirely,
-/// mode 2 only marks the enemy's link node, and anything else clears the
-/// coordinate flag and runs the normal chain.
-static void func_actor_503500_8013F6F0(Task* arg0)
+/// Updates the yellow-flash emitter's reactions, hit contacts and behavior state.
+///
+/// Requires initialized work, its live enemy and its single-coordinate body.
+/// Paused updates do nothing; hidden updates only prohibit lock-on. Otherwise
+/// invalidates the attached coordinate before processing damage and behavior.
+static void _actor503500YellowFlashEmitterUpdate(Task* task)
 {
     Enemy*    enemy;
-    GfxCoord* coord;
+    GfxCoord* rootCoord;
 
-    enemy = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    enemy     = task->spawnArg2.pointer;
+    rootCoord = task->extra.coordBody->coord;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
@@ -3372,12 +3394,12 @@ static void func_actor_503500_8013F6F0(Task* arg0)
         enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
         return;
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        _actor503500YellowFlashEmitterClearReactions(arg0);
+        _actor503500YellowFlashEmitterClearReactions(task);
     }
-    func_actor_503500_8013F830(arg0);
-    func_actor_503500_8013F8AC(arg0);
+    _actor503500YellowFlashEmitterUpdateHits(task);
+    _actor503500YellowFlashEmitterStepState(task);
 }
 
 /// Detaches the yellow-flash emitter and releases its collision body and enemy.
@@ -3419,41 +3441,47 @@ static void _actor503500YellowFlashEmitterClearReactions(Task* task)
     }
 }
 
-static void func_actor_503500_8013F830(Task* arg0)
+/// Ages the yellow-flash emitter's hit cooldown, applies contacts and clears them.
+///
+/// Requires initialized work with its eight-entry contact table marked at the
+/// end. Cooldown decrements in signed halfword frames and floors at zero.
+/// Defeat suppresses new hits; contacts are cleared in either case.
+static void _actor503500YellowFlashEmitterUpdateHits(Task* task)
 {
     _Actor503500YellowFlashEmitterWork* work;
-    s16                                 timer;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitCooldown != 0) {
-        timer             = (u16)work->hitCooldown - 1;
-        work->hitCooldown = timer;
-        if (timer < 0) {
+        if (--work->hitCooldown < 0) {
             work->hitCooldown = 0;
         }
     }
     if (actor503500IsDefeated() == 0) {
-        _actor503500YellowFlashEmitterApplyHits(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        _actor503500YellowFlashEmitterApplyHits(task, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
 }
 
-static void func_actor_503500_8013F8AC(Task* arg0)
+/// Steps the yellow-flash emitter's idle, attack, dying or dormant behavior.
+///
+/// Requires initialized emitter work and a live boss parent. Dormant waits
+/// for target exposure; other unrecognized state values do nothing.
+static void _actor503500YellowFlashEmitterStepState(Task* task)
 {
-    _Actor503500YellowFlashEmitterWork* work = arg0->work;
+    _Actor503500YellowFlashEmitterWork* work = task->work;
 
     switch (work->state) {
         case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE:
-            _actor503500YellowFlashEmitterStepIdle(arg0);
+            _actor503500YellowFlashEmitterStepIdle(task);
             break;
         case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_ATTACK:
-            _actor503500YellowFlashEmitterStepAttack(arg0);
+            _actor503500YellowFlashEmitterStepAttack(task);
             break;
         case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING:
-            _actor503500YellowFlashEmitterStepDying(arg0);
+            _actor503500YellowFlashEmitterStepDying(task);
             break;
         case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT:
-            _actor503500YellowFlashEmitterStepDormant(arg0);
+            _actor503500YellowFlashEmitterStepDormant(task);
             break;
     }
 }
@@ -3515,7 +3543,7 @@ void actor503500YellowFlashEmitterTask(Task* task)
 static const TaskFuncTable3 D_actor_503500_80132108 = {
     {
         _actor503500LungingChainInit,
-        func_actor_503500_8013FF0C,
+        _actor503500LungingChainUpdate,
         _actor503500LungingChainExit,
     },
 };
@@ -3647,52 +3675,71 @@ static void _actor503500LungingChainInit(Task* task)
     task->state       += 1;
 }
 
-static void func_actor_503500_8013FF0C(Task* arg0)
+/// Ages a lunging chain's deferred primitive-buffer release and frees it on expiry.
+///
+/// Borrows initialized work and its live model. Negative signed-frame values
+/// are inactive; zero releases the buffer, then becomes -1. Runs before the
+/// model's draw policy can schedule another release.
+static inline void _actor503500LungingChainReleaseExpiredBuffer(_Actor503500LungingChainWork* work, TmdObject* model)
 {
-    _Actor503500LungingChainWork* work;
-    Enemy*                        enemy;
-    TmdObject*                    tmd;
-    s8                            countdown;
+    s8 bufferFreeCountdown = work->bufferFreeCountdown;
 
-    work      = arg0->work;
-    enemy     = arg0->spawnArg2.pointer;
-    countdown = work->bufferFreeCountdown;
-    tmd       = arg0->extra.tmd;
-    if (countdown >= 0) {
-        if (countdown == 0) {
-            tmdFreePrimitiveBuffer(tmd);
+    if (bufferFreeCountdown >= 0) {
+        if (bufferFreeCountdown == 0) {
+            tmdFreePrimitiveBuffer(model);
         }
         work->bufferFreeCountdown--;
     }
+}
+
+/// Updates a lunging chain's model lifetime, contacts, movement and laid-out pose.
+///
+/// Requires initialized work in slot 13..16, its live nine-part model, enemy
+/// and boss parent. Buffer-release updates continue while paused or hidden.
+/// Paused visible models refresh only color; hidden models stop drawing and
+/// prohibit lock-on. Active updates process damage and behavior before movement,
+/// then color and pose blending; detached dying chains skip tip movement/layout.
+static void _actor503500LungingChainUpdate(Task* task)
+{
+    _Actor503500LungingChainWork* work;
+    Enemy*                        enemy;
+    TmdObject*                    model;
+
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    model = task->extra.tmd;
+    // Release expired primitive buffers before synchronizing the attached model.
+    _actor503500LungingChainReleaseExpiredBuffer(work, model);
     if (gGameSession->eventState != 0 &&
-        actor503500IsSlotEmpty(arg0->parent, arg0->spawnArg1.value < 0xF ? 0xA : 0xB) == 0) {
-        tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        actor503500IsSlotEmpty(task->parent, task->spawnArg1.value < ACTOR_503500_SLOT_LUNGING_CHAIN_2 ? ACTOR_503500_SLOT_ARM_0 : ACTOR_503500_SLOT_ARM_1) == 0) {
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
-        actor503500SyncAttachedModelDrawState(arg0, &work->bufferFreeCountdown);
+        actor503500SyncAttachedModelDrawState(task, &work->bufferFreeCountdown);
     }
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-                _actor503500LungingChainUpdateColor(arg0);
+            if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+                _actor503500LungingChainUpdateColor(task);
             }
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            tmd->flags                    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
             break;
         default:
+            // Damage may change the state before the chain is moved and laid out.
             if (enemy->reactionFlags != 0) {
-                _actor503500LungingChainReactToDamage(arg0);
+                _actor503500LungingChainReactToDamage(task);
             }
-            func_actor_503500_801420C4(arg0);
-            func_actor_503500_80141D7C(arg0);
+            _actor503500LungingChainUpdateHits(task);
+            _actor503500LungingChainStepState(task);
             if (work->detached == 0) {
-                _actor503500LungingChainStepTip(arg0);
-                _actor503500LungingChainUpdatePose(arg0);
+                _actor503500LungingChainStepTip(task);
+                _actor503500LungingChainUpdatePose(task);
             }
-            _actor503500LungingChainUpdateColor(arg0);
-            _actor503500LungingChainBlendPose(arg0);
+            _actor503500LungingChainUpdateColor(task);
+            _actor503500LungingChainBlendPose(task);
             break;
     }
 }
@@ -4535,32 +4582,37 @@ static void _actor503500LungingChainExit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_503500_80141D7C(Task* arg0)
+/// Steps a lunging chain's behavior and ages its temporary movement slowdown.
+///
+/// Requires initialized work. Hold returns to idle only after its signed-frame
+/// countdown becomes negative. Damage-over-time and unknown states have no
+/// behavior step; all states still decrement `slowFrames` and floor it at zero.
+static void _actor503500LungingChainStepState(Task* task)
 {
     _Actor503500LungingChainWork* work;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->state) {
         case ACTOR_503500_LUNGING_CHAIN_STATE_IDLE:
-            _actor503500LungingChainStepIdle(arg0);
+            _actor503500LungingChainStepIdle(task);
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE:
-            _actor503500LungingChainStepLunge(arg0);
+            _actor503500LungingChainStepLunge(task);
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_HOLD:
             work->holdFrames--;
             if (work->holdFrames < 0) {
-                _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+                _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             }
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_DYING:
-            _actor503500LungingChainStepDying(arg0);
+            _actor503500LungingChainStepDying(task);
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING:
-            _actor503500LungingChainStepUnfolding(arg0);
+            _actor503500LungingChainStepUnfolding(task);
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_REGROWING:
-            _actor503500LungingChainStepRegrowing(arg0);
+            _actor503500LungingChainStepRegrowing(task);
             break;
     }
     work->slowFrames--;
@@ -4674,14 +4726,17 @@ static void _actor503500LungingChainStepRegrowing(Task* task)
     }
 }
 
-/// Steps the lunging chain's `hitCooldown` down to zero, then, unless the
-/// global freeze is on, runs both display nodes through their record tables
-/// before releasing the tables. Same shape as `func_actor_503500_80144004`.
-static void func_actor_503500_801420C4(Task* arg0)
+/// Ages a lunging chain's hit cooldown and handles its target and attack contacts.
+///
+/// Requires initialized work with marked eight-entry target and four-entry
+/// attack tables. Cooldown decrements in signed halfword frames and floors at
+/// zero. Unless the boss is defeated, applies hits before disabling an attack
+/// that touched a player body. Both tables are cleared even after defeat.
+static void _actor503500LungingChainUpdateHits(Task* task)
 {
     _Actor503500LungingChainWork* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitCooldown != 0) {
         work->hitCooldown--;
         if (work->hitCooldown < 0) {
@@ -4689,8 +4744,8 @@ static void func_actor_503500_801420C4(Task* arg0)
         }
     }
     if (actor503500IsDefeated() == 0) {
-        _actor503500LungingChainApplyHits(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
-        _actor503500LungingChainDisableAttackOnPlayerContact(arg0, &work->attackBody, work->attackContacts, ARRAY_SIZE(work->attackContacts));
+        _actor503500LungingChainApplyHits(task, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        _actor503500LungingChainDisableAttackOnPlayerContact(task, &work->attackBody, work->attackContacts, ARRAY_SIZE(work->attackContacts));
     }
     worldCollisionClearContacts(work->contacts);
     worldCollisionClearContacts(work->attackContacts);
@@ -4788,7 +4843,7 @@ void actor503500LungingChainTask(Task* task)
 static const TaskFuncTable3 D_actor_503500_80132178 = {
     {
         _actor503500ArmInit,
-        func_actor_503500_80143EB4,
+        _actor503500ArmUpdate,
         _actor503500ArmExit,
     },
 };
@@ -5659,32 +5714,38 @@ void actor503500KnockbackTask(Task* task)
     }
 }
 
-static void func_actor_503500_80143EB4(Task* arg0)
+/// Updates an arm's frame hook, reactions, target/strike contacts and behavior.
+///
+/// Requires initialized arm work, its live model, enemy and boss parent.
+/// Paused updates run only the hook when visible; hidden updates suppress
+/// drawing and lock-on. Active updates clear reactions, run the hook, process
+/// contacts and then step behavior. The hook currently has no effect.
+static void _actor503500ArmUpdate(Task* task)
 {
     Enemy*     enemy;
-    TmdObject* tmd;
-    s32        mode;
+    TmdObject* model;
+    s32        actorControl;
 
-    enemy = arg0->spawnArg2.pointer;
-    mode  = gSceneCombatState.actorControl;
-    tmd   = arg0->extra.tmd;
-    switch (mode) {
-        case 1:
-            if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-                _actor503500ArmFrameHook(arg0);
+    enemy        = task->spawnArg2.pointer;
+    actorControl = gSceneCombatState.actorControl;
+    model        = task->extra.tmd;
+    switch (actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+                _actor503500ArmFrameHook(task);
             }
             break;
-        case 2:
-            tmd->flags                    |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             enemy->node.state.parts.flags |= WORLD_TARGET_NOT_LOCKABLE;
             break;
         default:
             if (enemy->reactionFlags != 0) {
-                _actor503500ArmClearReactions(arg0, mode, enemy);
+                _actor503500ArmClearReactions(task, actorControl, enemy);
             }
-            _actor503500ArmFrameHook(arg0);
-            func_actor_503500_80144004(arg0);
-            func_actor_503500_801440F0(arg0);
+            _actor503500ArmFrameHook(task);
+            _actor503500ArmUpdateHits(task);
+            _actor503500ArmStepState(task);
             break;
     }
 }
@@ -5718,22 +5779,25 @@ static void _actor503500ArmFrameHook(Task* unusedTask)
 {
 }
 
-static void func_actor_503500_80144004(Task* arg0)
+/// Ages an arm's hit cooldown and handles its target and shared strike contacts.
+///
+/// Requires initialized work with marked eight-entry target and four-entry
+/// strike tables. Cooldown decrements in signed halfword frames and floors at
+/// zero. Defeat suppresses hits and player knock-back; both tables are always
+/// cleared after processing. The two strike spheres share the strike table.
+static void _actor503500ArmUpdateHits(Task* task)
 {
     _Actor503500ArmWork* work;
-    s16                  timer;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitCooldown != 0) {
-        timer             = (u16)work->hitCooldown - 1;
-        work->hitCooldown = timer;
-        if (timer < 0) {
+        if (--work->hitCooldown < 0) {
             work->hitCooldown = 0;
         }
     }
     if (actor503500IsDefeated() == 0) {
-        _actor503500ArmApplyHits(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
-        _actor503500ArmApplyAttackContacts(arg0, work->attackContacts, ARRAY_SIZE(work->attackContacts));
+        _actor503500ArmApplyHits(task, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        _actor503500ArmApplyAttackContacts(task, work->attackContacts, ARRAY_SIZE(work->attackContacts));
     }
     worldCollisionClearContacts(work->contacts);
     worldCollisionClearContacts(work->attackContacts);
@@ -5759,22 +5823,26 @@ static void _actor503500ArmClearReactions(Task* task, s32 unusedActorControl, En
     }
 }
 
-static void func_actor_503500_801440F0(Task* arg0)
+/// Steps an arm's idle, strike, dying or target-exposure behavior.
+///
+/// Requires initialized arm work and a live boss parent. Dispatches the work's
+/// behavior state, independently of `Task::state`; other values do nothing.
+static void _actor503500ArmStepState(Task* task)
 {
-    _Actor503500ArmWork* work = arg0->work;
+    _Actor503500ArmWork* work = task->work;
 
     switch (work->state) {
         case ACTOR_503500_ARM_STATE_IDLE:
-            _actor503500ArmStepIdle(arg0);
+            _actor503500ArmStepIdle(task);
             break;
         case ACTOR_503500_ARM_STATE_STRIKE:
-            _actor503500ArmStepStrike(arg0);
+            _actor503500ArmStepStrike(task);
             break;
         case ACTOR_503500_ARM_STATE_DYING:
-            _actor503500ArmStepDying(arg0);
+            _actor503500ArmStepDying(task);
             break;
         case ACTOR_503500_ARM_STATE_BECOME_TARGET:
-            _actor503500ArmStepBecomeTarget(arg0);
+            _actor503500ArmStepBecomeTarget(task);
             break;
     }
 }
