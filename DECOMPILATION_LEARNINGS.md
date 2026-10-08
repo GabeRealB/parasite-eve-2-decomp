@@ -46638,7 +46638,8 @@ if (temp_v0 < 0) { ... }
 
 The `(u16)` makes the read a zero-extending one, so only the comparison is
 signed. `func_dryfield_general_store_8017E064` matches this form; the same
-shape is `func_actor_503500_8013D914` (`timer = (u16)work->field_E8 - 1;`).
+shape was the cooldown decrement in `_actor503500ChainBaseUpdateHits`
+(`if (--work->hitCooldown < 0) { work->hitCooldown = 0; }` in the current source).
 
 ## Don't hoist m2c's `temp_` for a repeated array element - let GCC CSE it
 
@@ -70341,7 +70342,7 @@ the `>> 16` reads. A `MATRIX *m = &mat;` local does the same for an identity ini
 stores after the first go through `addiu $a1, $sp, 0x10`.
 
 ### A jump-table cut needs no renumbering when the rest of the unit is already C
-**Problem.** `func_actor_503500_8013DEB4` matched 100% in scratch, but the scoped
+**Problem.** `_actor503500SmallOrbEmitterApplyHits` matched 100% in scratch, but the scoped
 build failed on `actor_503500`: its switch table sits at object offset `0x17C`
 (4 mod 8) in `actor_503500_6`'s `.rodata`, so GCC's `.align 3` added a pad word
 and the object grew from `0x1A4` to `0x1A8`.

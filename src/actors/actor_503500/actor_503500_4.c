@@ -592,9 +592,7 @@ extern _Actor503500ChainBaseWork D_actor_503500_80177794[2];
 static void                      _actor503500ChainBaseExit(Task* task);
 
 static void _actor503500LargeOrbEmitterApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* contacts, s32 contactCount);
-static void func_actor_503500_8013CCBC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
 static void _actor503500RearPartApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* rec, s32 count);
-static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
 static void _actor503500SmallOrbEmitterExit(Task* task);
 static void _actor503500SmallOrbEmitterEnterState(Task* task, s32 state);
 static void func_actor_503500_801431EC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
@@ -607,30 +605,27 @@ static void _actor503500LargeOrbEmitterStepIdle(Task* task);
 static void _actor503500LargeOrbEmitterClearReactions(Task* task);
 static void _actor503500RearPartExit(Task* task);
 static void _actor503500RearPartClearReactions(Task* task);
-static void func_actor_503500_8013C960(Task* arg0);
-static void func_actor_503500_8013CA34(Task* arg0);
+static void _actor503500RearPartUpdateHits(Task* task);
+static void _actor503500RearPartStepState(Task* task);
 static void _actor503500RearPartEnterState(Task* task, s8 state);
 static void _actor503500ChainBaseClearReactions(Task* task);
-static void func_actor_503500_8013D914(Task* arg0);
+static void _actor503500ChainBaseUpdateHits(Task* task);
 static void func_actor_503500_8013D990(Task* arg0);
-static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1);
+static void _actor503500ChainBaseStepExposed(Task* task, s32 exposureLimitFrames);
 static void _actor503500ChainBaseStepCovered(Task* task);
 static void func_actor_503500_8013F8AC(Task* arg0);
 static void func_actor_503500_801440F0(Task* arg0);
 static void func_actor_503500_8013BD88(Task* arg0);
-static void func_actor_503500_8013C558(Task* arg0);
 static void func_actor_503500_8013E384(Task* arg0);
-static void func_actor_503500_8013E740(Task* arg0);
 static void _actor503500SmallOrbEmitterStepIdle(Task* task);
 static void _actor503500SmallOrbEmitterClearReactions(Task* task);
-static void func_actor_503500_8013EAE4(Task* arg0);
+static void _actor503500SmallOrbEmitterUpdateHits(Task* task);
 static void func_actor_503500_8013EB60(Task* arg0);
 static void _actor503500YellowFlashEmitterExit(Task* task);
 static void _actor503500YellowFlashEmitterClearReactions(Task* task);
 static void func_actor_503500_8013F830(Task* arg0);
 static void _actor503500ChainBaseEnterState(Task* task, s32 state);
 static void func_actor_503500_8013F328(Task* arg0);
-static void func_actor_503500_8013F4A4(Task* arg0);
 static void _actor503500YellowFlashEmitterStepIdle(Task* task);
 static void _actor503500YellowFlashEmitterStepDormant(Task* task);
 static void _actor503500YellowFlashEmitterEnterState(Task* task, s32 state);
@@ -694,7 +689,7 @@ extern _Actor503500KnockbackWork D_actor_503500_80178F10;
 static void _actor503500LargeOrbEmitterInit(Task* task);
 static void func_actor_503500_8013BBCC(Task* arg0);
 static void _actor503500RearPartInit(Task* task);
-static void func_actor_503500_8013C878(Task* arg0);
+static void _actor503500RearPartUpdate(Task* task);
 static void _actor503500ChainBaseInit(Task* task);
 static void func_actor_503500_8013D7D4(Task* arg0);
 static void _actor503500SmallOrbEmitterInit(Task* task);
@@ -807,8 +802,6 @@ _Actor503500ArmStorage D_actor_503500_80178AC0;
 _Actor503500KnockbackWork D_actor_503500_80178F10;
 
 static void func_actor_503500_8013D1CC(Task* arg0);
-static void func_actor_503500_8013D558(Task* arg0);
-static void func_actor_503500_8013EE5C(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
 
 /// Initializes an idle large-orb emitter on the boss's upper limb.
 ///
@@ -1126,9 +1119,11 @@ static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2)
 
 /// Removes the dying emitter's target and reports its lost slot to the boss.
 ///
-/// Requires live initialized task, work, enemy and root. Stops pair tests,
-/// detaches the enemy's borrowed contacts, credits rewards and starts its death
-/// sound before advancing the death step. The collision body remains linked.
+/// Requires live initialized task, work, enemy and root coordinate. Stops pair
+/// tests and detaches the enemy's borrowed contacts before reporting part loss.
+/// A balanced scene battle hold credits the enemy's rewards. Starts the death
+/// sound with signed-byte pan/depth and advances the state step. The collision
+/// body remains linked until task exit.
 static inline void _actor503500LargeOrbEmitterBeginDeath(Task* task, _Actor503500LargeOrbEmitterWork* work, Enemy* enemy, GfxCoord* partCoord)
 {
     s32 audioPan;
@@ -1137,7 +1132,7 @@ static inline void _actor503500LargeOrbEmitterBeginDeath(Task* task, _Actor50350
     worldTargetUnlinkNode(&enemy->node);
     actor503500ClearSlotEnemy(task->parent, task->spawnArg1.value);
     work->hitCooldown = 0;
-    (sceneAcquireBattleRef)(0);
+    sceneAcquireBattleRef(0);
     sceneReleaseBattleRefWithRewards(task, 0);
     actor503500EnterPartLostState(task->parent);
     enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
@@ -1365,7 +1360,7 @@ void actor503500LargeOrbEmitterTask(Task* task)
 static const TaskFuncTable3 D_actor_503500_80132028 = {
     {
         _actor503500RearPartInit,
-        func_actor_503500_8013C878,
+        _actor503500RearPartUpdate,
         _actor503500RearPartExit,
     },
 };
@@ -1558,82 +1553,115 @@ static void _actor503500RearPartApplyHits(Task* task, WorldCollisionBody* unused
     }
 }
 
-/// `ACTOR_503500_REAR_PART_STATE_DYING` step of the rear part, stepped by
-/// `stateStep`: step 0 is the death setup shared with
-/// `func_actor_503500_8013D558` and seeds `shrinkScale` and `shrinkStep`;
-/// step 1 spawns three effects a frame at random offsets from
-/// `D_actor_503500_8016F1B8` while the boss's part is scaled along its Z by
-/// `shrinkScale`, which falls by an ever smaller `shrinkStep`, and leaves
-/// once that step runs out.
-static void func_actor_503500_8013C558(Task* arg0)
+/// Removes the dying part's target, credits rewards and reports its lost boss slot.
+///
+/// Requires live initialized task, work, enemy and coordinate. Stops pair tests
+/// and detaches borrowed contacts before notifying the boss. Starts the death
+/// sound and advances the state step; collision storage stays linked until exit.
+static inline void _actor503500RearPartBeginDeath(Task* task, _Actor503500RearPartWork* work, GfxCoord* coord)
 {
+    s32 audioPan;
+
+    work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    {
+        Enemy* enemy = task->spawnArg2.pointer;
+        enemy->recs  = NULL;
+    }
+    {
+        Enemy* enemy = task->spawnArg2.pointer;
+        worldTargetUnlinkNode(&enemy->node);
+    }
+    actor503500ClearSlotEnemy(task->parent, task->spawnArg1.value);
+    work->hitCooldown = 0;
+    sceneAcquireBattleRef(0);
+    sceneReleaseBattleRefWithRewards(task, 0);
+    actor503500EnterPartLostState(task->parent);
+    {
+        Enemy* enemy          = task->spawnArg2.pointer;
+        enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
+    }
+    audioPan = (s8)worldCoordGetOriginAudioPan(coord);
+    sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, audioPan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    work->shrinkScale = ONE;
+    work->shrinkStep  = ACTOR_503500_REAR_PART_SHRINK_STEP_START;
+    work->stateStep++;
+}
+
+/// Removes the defeated rear target and shrinks the boss's rear model part.
+///
+/// Requires initialized work, its live enemy and boss parent. Death entry
+/// clears the slot, credits rewards and reports part loss. Subsequent active
+/// updates shed effects at random local offsets and reduce the part's Z scale
+/// (4096 is full size) by a decreasing step. When the step reaches zero,
+/// releases the effect reservation; the next update advances the task to exit.
+static void _actor503500RearPartStepDying(Task* task)
+{
+    enum {
+        ACTOR_503500_REAR_PART_DEATH_BEGIN           = 0,
+        ACTOR_503500_REAR_PART_DEATH_SHRINK          = 1,
+        ACTOR_503500_REAR_PART_DEATH_EFFECT_COST     = 5,
+        ACTOR_503500_REAR_PART_DEATH_FIRST_PUFF_ARG  = 0x01001900,
+        ACTOR_503500_REAR_PART_DEATH_SECOND_PUFF_ARG = 0x01001700,
+        ACTOR_503500_REAR_PART_DEATH_DRIFT_ARG       = 0x01404600,
+        ACTOR_503500_REAR_PART_DEATH_SOUND_FADE      = 45, // Audio updates; integer fade rounding may extend this
+    };
     _Actor503500RearPartWork* work;
     GfxCoord*                 coord;
-    SVECTOR                   vec;
-    s32                       pan;
+    SVECTOR                   partScale;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
     switch (work->stateStep) {
-        case 0:
-            work->body.flags                       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            ((Enemy*)arg0->spawnArg2.pointer)->recs = 0;
-            worldTargetUnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
-            work->hitCooldown = 0;
-            (sceneAcquireBattleRef)(0);
-            sceneReleaseBattleRefWithRewards(arg0, 0);
-            actor503500EnterPartLostState(arg0->parent);
-            ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            pan                                               = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-            work->shrinkScale = ONE;
-            work->shrinkStep  = ACTOR_503500_REAR_PART_SHRINK_STEP_START;
-            work->stateStep++;
+        case ACTOR_503500_REAR_PART_DEATH_BEGIN:
+            // Remove the target before reporting the lost boss part.
+            _actor503500RearPartBeginDeath(task, work, coord);
             break;
-        case 1:
+        case ACTOR_503500_REAR_PART_DEATH_SHRINK:
+            // Shed local effects while the rear model part contracts along Z.
             if (++work->stateFrames <= ACTOR_503500_REAR_PART_DYING_EFFECT_FRAMES) {
-                if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 5) != 0) {
+                if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_REAR_PART_DEATH_EFFECT_COST) != 0) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_HIT_PUFF, coord, 0x01001900,
-                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
+                    effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_REAR_PART_DEATH_FIRST_PUFF_ARG,
+                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016F1B8))]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_HIT_PUFF, coord, 0x01001700,
-                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
+                    effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_REAR_PART_DEATH_SECOND_PUFF_ARG,
+                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016F1B8))]);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x01404600,
-                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % 18)]);
+                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_REAR_PART_DEATH_DRIFT_ARG,
+                                &D_actor_503500_8016F1B8[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016F1B8))]);
                 }
             }
-            vec.vx = ONE;
-            vec.vy = ONE;
-            vec.vz = work->shrinkScale;
-            actor503500SetBossPartScale(arg0->parent, ACTOR_503500_REAR_PART_BOSS_PART, &vec);
+            partScale.vx = ONE;
+            partScale.vy = ONE;
+            partScale.vz = work->shrinkScale;
+            actor503500SetBossPartScale(task->parent, ACTOR_503500_REAR_PART_BOSS_PART, &partScale);
             work->shrinkScale -= work->shrinkStep;
             work->shrinkStep  -= ACTOR_503500_REAR_PART_SHRINK_STEP_DECREASE;
             if (work->shrinkStep <= 0) {
-                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
-                actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, ACTOR_503500_REAR_PART_DEATH_SOUND_FADE);
+                actor503500ReleaseSlotEffects(task->spawnArg1.value);
                 work->stateStep++;
             }
             break;
         default:
-            arg0->state++;
+            task->state++;
             break;
     }
 }
 
-/// Per-frame tick of the rear part, the same shape as
-/// `func_actor_503500_8013D7D4`: frozen mode 1 skips the frame entirely,
-/// mode 2 only marks the enemy's link node, and anything else clears the
-/// coordinate flag and runs the normal chain.
-static void func_actor_503500_8013C878(Task* arg0)
+/// Updates the rear part's contacts and behavior when scene control permits.
+///
+/// Requires initialized work, enemy and coordinate. Paused control skips all
+/// work; hidden control marks the target not lockable and skips the update.
+/// Otherwise dirties the transform, discards supported reactions, processes
+/// contacts and steps the part's behavior in that order.
+static void _actor503500RearPartUpdate(Task* task)
 {
     Enemy*    enemy;
     GfxCoord* coord;
 
-    enemy = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    enemy = task->spawnArg2.pointer;
+    coord = task->extra.tmd->coords;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
         return;
     }
@@ -1643,10 +1671,10 @@ static void func_actor_503500_8013C878(Task* arg0)
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        _actor503500RearPartClearReactions(arg0);
+        _actor503500RearPartClearReactions(task);
     }
-    func_actor_503500_8013C960(arg0);
-    func_actor_503500_8013CA34(arg0);
+    _actor503500RearPartUpdateHits(task);
+    _actor503500RearPartStepState(task);
 }
 
 /// Detaches the rear-part target and releases its collision body and enemy.
@@ -1668,21 +1696,23 @@ static void _actor503500RearPartExit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_503500_8013C960(Task* arg0)
+/// Ages the rear part's hit cooldown, applies contacts and empties their table.
+///
+/// Requires initialized work and the marked eight-entry contact table. Cooldown
+/// uses signed halfword frames and is decremented before hits are considered.
+/// A defeated boss suppresses hits; contacts are cleared in either case.
+static void _actor503500RearPartUpdateHits(Task* task)
 {
     _Actor503500RearPartWork* work;
-    s16                       timer;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitCooldown != 0) {
-        timer             = (u16)work->hitCooldown - 1;
-        work->hitCooldown = timer;
-        if (timer < 0) {
+        if (--work->hitCooldown < 0) {
             work->hitCooldown = 0;
         }
     }
     if (actor503500IsDefeated() == 0) {
-        _actor503500RearPartApplyHits(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        _actor503500RearPartApplyHits(task, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
 }
@@ -1706,13 +1736,19 @@ static void _actor503500RearPartClearReactions(Task* task)
     }
 }
 
-static void func_actor_503500_8013CA34(Task* arg0)
+/// Steps the rear part's behavior, leaving its idle target unchanged.
+///
+/// Requires initialized rear-part work. The dying state owns target removal,
+/// shrink and the transition to task exit; other values have no step.
+static void _actor503500RearPartStepState(Task* task)
 {
-    switch (((_Actor503500RearPartWork*)arg0->work)->state) {
+    _Actor503500RearPartWork* work = task->work;
+
+    switch (work->state) {
         case ACTOR_503500_REAR_PART_STATE_IDLE:
             break;
         case ACTOR_503500_REAR_PART_STATE_DYING:
-            func_actor_503500_8013C558(arg0);
+            _actor503500RearPartStepDying(task);
             break;
     }
 }
@@ -1932,25 +1968,25 @@ static inline void _actor503500ChainBaseHandleHit(Task* task, _Actor503500ChainB
     }
 }
 
-/// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// a chain base - the same pass as `_actor503500RearPartApplyHits`: each attack
-/// id is taken once, only type-2 ids land while `hitCooldown` is clear, and a
-/// hit that exhausts the enemy's health starts
-/// `ACTOR_503500_CHAIN_BASE_STATE_DYING`. The hit effect is pulled to 200
-/// units along the contact offset and shifted by the side's
-/// `D_actor_503500_8016F248` entry. `arg1` is passed but unused.
-static void func_actor_503500_8013CCBC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
+/// Applies eligible attack contacts to a chain base.
+///
+/// Requires initialized work, its live enemy/coordinate and `contactCount`
+/// readable elements. Earlier equal keys suppress duplicates; only attack
+/// contacts land with a clear cooldown. Fatal hits start the dying state
+/// before status reactions are applied. Contacts are borrowed and unchanged.
+/// `unusedBody` retains the collision-pass interface and is ignored.
+static void _actor503500ChainBaseApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* contacts, s32 contactCount)
 {
     _Actor503500ChainBaseWork* work;
     Enemy*                     enemy;
     GfxCoord*                  coord;
-    s32                        i;
+    s32                        contactIndex;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    for (i = 0; i < arg3; i++) {
-        _actor503500ChainBaseHandleHit(arg0, work, enemy, coord, arg2, i);
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        _actor503500ChainBaseHandleHit(task, work, enemy, coord, contacts, contactIndex);
     }
 }
 
@@ -2046,61 +2082,95 @@ static void func_actor_503500_8013D1CC(Task* arg0)
     }
 }
 
-/// `ACTOR_503500_CHAIN_BASE_STATE_DYING` step of a chain base, stepped by
-/// `stateStep`: step 0 is the death setup shared with
-/// `func_actor_503500_8013F4A4`; step 1 spawns an effect a frame from the
-/// side's offset table and, once `stateFrames` has reached
-/// `ACTOR_503500_CHAIN_BASE_DYING_BURST_FRAME`, a final burst of three; the
-/// last step keeps counting to `ACTOR_503500_CHAIN_BASE_DYING_FRAMES` and
-/// leaves.
-static void func_actor_503500_8013D558(Task* arg0)
+/// Removes the dying part's target, credits rewards and reports its lost boss slot.
+///
+/// Requires live initialized task, work, enemy and coordinate. Stops pair tests
+/// and detaches borrowed contacts before notifying the boss. Starts the death
+/// sound and advances the state step; collision storage stays linked until exit.
+static inline void _actor503500ChainBaseBeginDeath(Task* task, _Actor503500ChainBaseWork* work, GfxCoord* coord)
 {
+    s32 audioPan;
+
+    work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    {
+        Enemy* enemy = task->spawnArg2.pointer;
+        enemy->recs  = NULL;
+    }
+    {
+        Enemy* enemy = task->spawnArg2.pointer;
+        worldTargetUnlinkNode(&enemy->node);
+    }
+    actor503500ClearSlotEnemy(task->parent, task->spawnArg1.value);
+    work->hitCooldown = 0;
+    sceneAcquireBattleRef(0);
+    sceneReleaseBattleRefWithRewards(task, 0);
+    actor503500EnterPartLostState(task->parent);
+    {
+        Enemy* enemy          = task->spawnArg2.pointer;
+        enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
+    }
+    audioPan = (s8)worldCoordGetOriginAudioPan(coord);
+    sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, audioPan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    work->stateStep++;
+}
+
+/// Removes a defeated chain base and runs its death burst before task exit.
+///
+/// Requires initialized work, its live enemy and boss parent. Death entry
+/// clears the target and slot, credits rewards and reports part loss. Six
+/// subsequent active updates cycle over three local effect offsets on the
+/// base's side, ending with a three-sprite burst. The remaining updates count
+/// to 31 before releasing the effect reservation and advancing to task exit.
+static void _actor503500ChainBaseStepDying(Task* task)
+{
+    enum {
+        ACTOR_503500_CHAIN_BASE_DEATH_BEGIN             = 0,
+        ACTOR_503500_CHAIN_BASE_DEATH_EFFECTS           = 1,
+        ACTOR_503500_CHAIN_BASE_DEATH_EFFECT_COST       = 2,
+        ACTOR_503500_CHAIN_BASE_DEATH_BURST_EFFECT_COST = 6,
+        ACTOR_503500_CHAIN_BASE_DEATH_OFFSET_COUNT      = 3,
+        ACTOR_503500_CHAIN_BASE_DEATH_HIT_PUFF_ARG      = 0x01001C00,
+        ACTOR_503500_CHAIN_BASE_DEATH_FIRST_DRIFT_ARG   = 0x04404600,
+        ACTOR_503500_CHAIN_BASE_DEATH_SECOND_DRIFT_ARG  = 0x05404600,
+        ACTOR_503500_CHAIN_BASE_DEATH_THIRD_DRIFT_ARG   = 0x06404600,
+        ACTOR_503500_CHAIN_BASE_DEATH_SOUND_FADE        = 45, // Audio updates; integer fade rounding may extend this
+    };
     _Actor503500ChainBaseWork* work;
     GfxCoord*                  coord;
-    SVECTOR*                   vec;
-    s32                        pan;
+    SVECTOR*                   effectOffsets;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
     switch (work->stateStep) {
-        case 0:
-            work->body.flags                       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            ((Enemy*)arg0->spawnArg2.pointer)->recs = 0;
-            worldTargetUnlinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
-            work->hitCooldown = 0;
-            (sceneAcquireBattleRef)(0);
-            sceneReleaseBattleRefWithRewards(arg0, 0);
-            actor503500EnterPartLostState(arg0->parent);
-            ((Enemy*)arg0->spawnArg2.pointer)->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            pan                                               = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-            work->stateStep++;
+        case ACTOR_503500_CHAIN_BASE_DEATH_BEGIN:
+            // Remove the target before reporting the lost boss part.
+            _actor503500ChainBaseBeginDeath(task, work, coord);
             break;
-        case 1:
-            if (arg0->spawnArg1.value == ACTOR_503500_CHAIN_BASE_FIRST_SLOT) {
-                vec = D_actor_503500_8016F278;
+        case ACTOR_503500_CHAIN_BASE_DEATH_EFFECTS:
+            // Each side uses its first three offsets; the second table has other rows.
+            if (task->spawnArg1.value == ACTOR_503500_CHAIN_BASE_FIRST_SLOT) {
+                effectOffsets = D_actor_503500_8016F278;
             } else {
-                vec = D_actor_503500_8016F290;
+                effectOffsets = D_actor_503500_8016F290;
             }
-            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 2) != 0) {
-                effectSpawn(EFFECT_HIT_PUFF, coord, 0x01001C00, &vec[work->stateFrames % 3]);
+            if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_CHAIN_BASE_DEATH_EFFECT_COST) != 0) {
+                effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_CHAIN_BASE_DEATH_HIT_PUFF_ARG, &effectOffsets[work->stateFrames % ACTOR_503500_CHAIN_BASE_DEATH_OFFSET_COUNT]);
             }
             if (work->stateFrames++ >= ACTOR_503500_CHAIN_BASE_DYING_BURST_FRAME) {
-                if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 6) != 0) {
-                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x04404600, &vec[0]);
-                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x05404600, &vec[1]);
-                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x06404600, &vec[2]);
+                if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_CHAIN_BASE_DEATH_BURST_EFFECT_COST) != 0) {
+                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_CHAIN_BASE_DEATH_FIRST_DRIFT_ARG, &effectOffsets[0]);
+                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_CHAIN_BASE_DEATH_SECOND_DRIFT_ARG, &effectOffsets[1]);
+                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_CHAIN_BASE_DEATH_THIRD_DRIFT_ARG, &effectOffsets[2]);
                 }
-                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, ACTOR_503500_CHAIN_BASE_DEATH_SOUND_FADE);
                 work->stateStep++;
             }
             break;
         default:
             work->stateFrames++;
             if (work->stateFrames >= ACTOR_503500_CHAIN_BASE_DYING_FRAMES) {
-                actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
-                arg0->state++;
+                actor503500ReleaseSlotEffects(task->spawnArg1.value);
+                task->state++;
             }
             break;
     }
@@ -2128,7 +2198,7 @@ static void func_actor_503500_8013D7D4(Task* arg0)
     if (enemy->reactionFlags != 0) {
         _actor503500ChainBaseClearReactions(arg0);
     }
-    func_actor_503500_8013D914(arg0);
+    _actor503500ChainBaseUpdateHits(arg0);
     func_actor_503500_8013D990(arg0);
 }
 
@@ -2170,21 +2240,23 @@ static void _actor503500ChainBaseClearReactions(Task* task)
     }
 }
 
-static void func_actor_503500_8013D914(Task* arg0)
+/// Ages a chain base's hit cooldown, applies contacts and empties their table.
+///
+/// Requires initialized work and the marked eight-entry contact table. Cooldown
+/// uses signed halfword frames and is decremented before hits are considered.
+/// A defeated boss suppresses hits; contacts are cleared in either case.
+static void _actor503500ChainBaseUpdateHits(Task* task)
 {
     _Actor503500ChainBaseWork* work;
-    s16                        timer;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitCooldown != 0) {
-        timer             = (u16)work->hitCooldown - 1;
-        work->hitCooldown = timer;
-        if (timer < 0) {
+        if (--work->hitCooldown < 0) {
             work->hitCooldown = 0;
         }
     }
     if (actor503500IsDefeated() == 0) {
-        func_actor_503500_8013CCBC(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        _actor503500ChainBaseApplyHits(task, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
 }
@@ -2199,74 +2271,76 @@ static void func_actor_503500_8013D990(Task* arg0)
             _actor503500ChainBaseStepCovered(arg0);
             break;
         case ACTOR_503500_CHAIN_BASE_STATE_EXPOSED:
-            func_actor_503500_8013DA2C(arg0, ACTOR_503500_CHAIN_BASE_EXPOSED_FRAMES);
+            _actor503500ChainBaseStepExposed(arg0, ACTOR_503500_CHAIN_BASE_EXPOSED_FRAMES);
             break;
         case ACTOR_503500_CHAIN_BASE_STATE_ATTACK:
             func_actor_503500_8013D1CC(arg0);
             break;
         case ACTOR_503500_CHAIN_BASE_STATE_DYING:
-            func_actor_503500_8013D558(arg0);
+            _actor503500ChainBaseStepDying(arg0);
             break;
     }
 }
 
-/// `ACTOR_503500_CHAIN_BASE_STATE_EXPOSED` step of a chain base: counts
-/// `exposedFrames` past `arg1` frames, then - if the side's large-chain slot
-/// `kind` is still empty - respawns the side's two lunging chains, each
-/// handed command 9 (regrown) in its task's `killCountdown` and a fifth of
-/// this enemy's health (at least 1), and restarts the count. Either way the
-/// base stops being a target and returns to
-/// `ACTOR_503500_CHAIN_BASE_STATE_COVERED`. Until then, command 2 left by the
-/// boss in the task's `killCountdown` is taken and starts
-/// `ACTOR_503500_CHAIN_BASE_STATE_ATTACK`.
-static void func_actor_503500_8013DA2C(Task* arg0, s32 arg1)
+/// Regrows an exposed base's side chains after its exposure limit, or takes an attack command.
+///
+/// Requires initialized work, its live enemy and boss parent, in slot 7 or 8.
+/// `exposureLimitFrames` counts active exposed updates; the caller supplies 600.
+/// The incremented signed-halfword age must strictly exceed the limit. If the
+/// side's large-chain slot is empty, attempts both lunging-chain spawns with
+/// one fifth of the base's current HP (at least 1) and the regrow command.
+/// Restarts the exposure age even when a spawn fails. Either way covers and
+/// removes the target. Before expiry, consumes only the boss's attack command.
+static void _actor503500ChainBaseStepExposed(Task* task, s32 exposureLimitFrames)
 {
     _Actor503500ChainBaseWork* work;
     Enemy*                     enemy;
-    Enemy*                     child;
-    s32                        kind;
-    s32                        slotA;
-    s32                        slotB;
-    s32                        hp;
+    Enemy*                     regrownChain;
+    s32                        largeChainSlot;
+    s32                        firstLungingChainSlot;
+    s32                        secondLungingChainSlot;
+    s32                        regrownHp;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (arg1 < ++work->exposedFrames) {
-        kind = 3;
-        if (arg0->spawnArg1.value == ACTOR_503500_CHAIN_BASE_FIRST_SLOT) {
-            kind  = 2;
-            slotA = 0xD;
-            slotB = 0xE;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    if (exposureLimitFrames < ++work->exposedFrames) {
+        // Select the large-chain slot and its two lunging replacements by side.
+        largeChainSlot = ACTOR_503500_SLOT_LARGE_CHAIN_1;
+        if (task->spawnArg1.value == ACTOR_503500_CHAIN_BASE_FIRST_SLOT) {
+            largeChainSlot         = ACTOR_503500_SLOT_LARGE_CHAIN_0;
+            firstLungingChainSlot  = ACTOR_503500_SLOT_LUNGING_CHAIN_0;
+            secondLungingChainSlot = ACTOR_503500_SLOT_LUNGING_CHAIN_1;
         } else {
-            slotA = 0xF;
-            slotB = 0x10;
+            firstLungingChainSlot  = ACTOR_503500_SLOT_LUNGING_CHAIN_2;
+            secondLungingChainSlot = ACTOR_503500_SLOT_LUNGING_CHAIN_3;
         }
-        if (actor503500IsSlotEmpty(arg0->parent, kind) != 0) {
-            child = actor503500SpawnSlotEnemy(arg0->parent, slotA);
-            hp    = (s16)(enemy->hp / 5);
-            if (hp <= 0) {
-                hp = 1;
+        if (actor503500IsSlotEmpty(task->parent, largeChainSlot) != 0) {
+            regrownChain = actor503500SpawnSlotEnemy(task->parent, firstLungingChainSlot);
+            regrownHp    = (s16)(enemy->hp / 5);
+            if (regrownHp <= 0) {
+                regrownHp = 1;
             }
-            if (child != NULL) {
-                child->task->killCountdown = ACTOR_503500_SLOT_COMMAND_REGROW;
-                child->hp                  = hp;
+            if (regrownChain != NULL) {
+                regrownChain->task->killCountdown = ACTOR_503500_SLOT_COMMAND_REGROW;
+                regrownChain->hp                  = regrownHp;
             }
-            child = actor503500SpawnSlotEnemy(arg0->parent, slotB);
-            if (child != NULL) {
-                child->task->killCountdown = ACTOR_503500_SLOT_COMMAND_REGROW;
-                child->hp                  = hp;
+            regrownChain = actor503500SpawnSlotEnemy(task->parent, secondLungingChainSlot);
+            if (regrownChain != NULL) {
+                regrownChain->task->killCountdown = ACTOR_503500_SLOT_COMMAND_REGROW;
+                regrownChain->hp                  = regrownHp;
             }
+            // Both spawn attempts consume this exposure cycle, including failures.
             work->exposedFrames = 0;
         }
-        _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_COVERED);
+        _actor503500ChainBaseEnterState(task, ACTOR_503500_CHAIN_BASE_STATE_COVERED);
         work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         worldTargetUnlinkNode(&enemy->node);
         work->hitCooldown = 0;
         return;
     }
-    if (arg0->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
-        _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_ATTACK);
-        arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+    if (task->killCountdown == ACTOR_503500_SLOT_COMMAND_ATTACK) {
+        _actor503500ChainBaseEnterState(task, ACTOR_503500_CHAIN_BASE_STATE_ATTACK);
+        task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
     }
 }
 
@@ -2506,26 +2580,25 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* task, _Actor503500
     }
 }
 
-/// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// the small-orb emitter, like `_actor503500PinkFlashEmitterApplyHits`: each attack id
-/// is taken once, only type-2 ids land while `hitCooldown` is clear, and a
-/// hit that empties the enemy's health starts
-/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING` but still applies the id's
-/// status effect. The hit effect is pulled to 600 units along the contact
-/// offset and placed from the offset of the target sphere. `arg1` is passed
-/// by the caller but unused.
-static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
+/// Applies eligible attack contacts to the small-orb emitter.
+///
+/// Requires initialized work, its live enemy/coordinate and `contactCount`
+/// readable elements. Earlier equal keys suppress duplicates; only attack
+/// contacts land with a clear cooldown. Fatal hits start the dying state
+/// before status reactions are applied. Contacts are borrowed and unchanged.
+/// `unusedBody` retains the collision-pass interface and is ignored.
+static void _actor503500SmallOrbEmitterApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* contacts, s32 contactCount)
 {
     _Actor503500SmallOrbEmitterWork* work;
     Enemy*                           enemy;
     GfxCoord*                        coord;
-    s32                              i;
+    s32                              contactIndex;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    for (i = 0; i < arg3; i++) {
-        _actor503500SmallOrbEmitterHandleHit(arg0, work, enemy, coord, arg2, i);
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        _actor503500SmallOrbEmitterHandleHit(task, work, enemy, coord, contacts, contactIndex);
     }
 }
 
@@ -2619,59 +2692,83 @@ static void func_actor_503500_8013E384(Task* arg0)
     }
 }
 
-/// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING` step of the small-orb
-/// emitter, stepped by `stateStep`: step 0 is the death setup shared with
-/// `func_actor_503500_8013F4A4`; step 1 spawns a hit effect per frame at the
-/// row of `D_actor_503500_8016F31C` that `stateFrames` cycles through and, on
-/// odd frames, a drifting sprite at a random row, moves the VRAM rect when
-/// the count is `ACTOR_503500_SMALL_ORB_EMITTER_DYING_REPAINT_FRAME` and
-/// leaves once it has passed `ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES`.
-static void func_actor_503500_8013E740(Task* arg0)
+/// Removes the dying part's target, credits rewards and reports its lost boss slot.
+///
+/// Requires live initialized task, work, enemy and coordinate. Stops pair tests
+/// and detaches borrowed contacts before notifying the boss. Starts the death
+/// sound and advances the state step; collision storage stays linked until exit.
+static inline void _actor503500SmallOrbEmitterBeginDeath(Task* task, _Actor503500SmallOrbEmitterWork* work, Enemy* enemy, GfxCoord* coord)
 {
+    s32 audioPan;
+
+    work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    enemy->recs       = NULL;
+    worldTargetUnlinkNode(&enemy->node);
+    actor503500ClearSlotEnemy(task->parent, task->spawnArg1.value);
+    work->hitCooldown = 0;
+    sceneAcquireBattleRef(0);
+    sceneReleaseBattleRefWithRewards(task, 0);
+    actor503500EnterPartLostState(task->parent);
+    enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
+    audioPan              = (s8)worldCoordGetOriginAudioPan(coord);
+    sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, audioPan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    work->stateStep++;
+}
+
+/// Removes the defeated small-orb emitter and runs its effects and texture transition.
+///
+/// Requires initialized work, its live enemy and boss parent. Death entry
+/// clears the target and slot, credits rewards and reports part loss. The next
+/// 32 active updates cycle over nine local hit-effect offsets, with a random
+/// drifting sprite on odd counts. Count 8 replaces its texture region; count
+/// 31 releases the effect reservation and stops the death sound. The following
+/// update advances the task to exit.
+static void _actor503500SmallOrbEmitterStepDying(Task* task)
+{
+    enum {
+        ACTOR_503500_SMALL_ORB_EMITTER_DEATH_BEGIN        = 0,
+        ACTOR_503500_SMALL_ORB_EMITTER_DEATH_EFFECTS      = 1,
+        ACTOR_503500_SMALL_ORB_EMITTER_DEATH_EFFECT_COST  = 3,
+        ACTOR_503500_SMALL_ORB_EMITTER_DEATH_HIT_PUFF_ARG = 0x01001C00,
+        ACTOR_503500_SMALL_ORB_EMITTER_DEATH_DRIFT_ARG    = 0x04404600,
+        ACTOR_503500_SMALL_ORB_EMITTER_DEATH_SOUND_FADE   = 45, // Audio updates; integer fade rounding may extend this
+        ACTOR_503500_SMALL_ORB_EMITTER_DEATH_REPAINT_X    = 321,
+        ACTOR_503500_SMALL_ORB_EMITTER_DEATH_REPAINT_Y    = 298,
+    };
     Enemy*                           enemy;
     _Actor503500SmallOrbEmitterWork* work;
     GfxCoord*                        coord;
-    s32                              pan;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
     switch (work->stateStep) {
-        case 0:
-            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            enemy->recs       = 0;
-            worldTargetUnlinkNode(&enemy->node);
-            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
-            work->hitCooldown = 0;
-            (sceneAcquireBattleRef)(0);
-            sceneReleaseBattleRefWithRewards(arg0, 0);
-            actor503500EnterPartLostState(arg0->parent);
-            enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            pan                   = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-            work->stateStep++;
+        case ACTOR_503500_SMALL_ORB_EMITTER_DEATH_BEGIN:
+            // Remove the target before reporting the lost boss part.
+            _actor503500SmallOrbEmitterBeginDeath(task, work, enemy, coord);
             break;
-        case 1:
-            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 3) != 0) {
-                effectSpawn(EFFECT_HIT_PUFF, coord, 0x01001C00,
-                            &D_actor_503500_8016F31C[work->stateFrames % 9]);
+        case ACTOR_503500_SMALL_ORB_EMITTER_DEATH_EFFECTS:
+            // Shed local effects while replacing the defeated emitter's texture.
+            if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_EFFECT_COST) != 0) {
+                effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_HIT_PUFF_ARG,
+                            &D_actor_503500_8016F31C[work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016F31C)]);
                 if (work->stateFrames & 1) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x04404600,
-                                &D_actor_503500_8016F31C[(u16)((gRandomLcgState >> 16) % 9)]);
+                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_DRIFT_ARG,
+                                &D_actor_503500_8016F31C[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016F31C))]);
                 }
             }
             if (work->stateFrames == ACTOR_503500_SMALL_ORB_EMITTER_DYING_REPAINT_FRAME) {
-                MoveImage(&D_actor_503500_8016F364, 0x141, 0x12A);
+                MoveImage(&D_actor_503500_8016F364, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_REPAINT_X, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_REPAINT_Y);
             }
             if (work->stateFrames++ >= ACTOR_503500_SMALL_ORB_EMITTER_DYING_FRAMES) {
-                actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
-                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
+                actor503500ReleaseSlotEffects(task->spawnArg1.value);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, ACTOR_503500_SMALL_ORB_EMITTER_DEATH_SOUND_FADE);
                 work->stateStep++;
             }
             break;
         default:
-            arg0->state++;
+            task->state++;
             break;
     }
 }
@@ -2698,7 +2795,7 @@ static void func_actor_503500_8013E9A4(Task* arg0)
     if (enemy->reactionFlags != 0) {
         _actor503500SmallOrbEmitterClearReactions(arg0);
     }
-    func_actor_503500_8013EAE4(arg0);
+    _actor503500SmallOrbEmitterUpdateHits(arg0);
     func_actor_503500_8013EB60(arg0);
 }
 
@@ -2741,18 +2838,23 @@ static void _actor503500SmallOrbEmitterClearReactions(Task* task)
     }
 }
 
-static void func_actor_503500_8013EAE4(Task* arg0)
+/// Ages the small-orb emitter's hit cooldown, applies contacts and empties their table.
+///
+/// Requires initialized work and the marked eight-entry contact table. Cooldown
+/// uses signed halfword frames and is decremented before hits are considered.
+/// A defeated boss suppresses hits; contacts are cleared in either case.
+static void _actor503500SmallOrbEmitterUpdateHits(Task* task)
 {
     _Actor503500SmallOrbEmitterWork* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitCooldown != 0) {
         if (--work->hitCooldown < 0) {
             work->hitCooldown = 0;
         }
     }
     if (actor503500IsDefeated() == 0) {
-        func_actor_503500_8013DEB4(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        _actor503500SmallOrbEmitterApplyHits(task, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
 }
@@ -2769,7 +2871,7 @@ static void func_actor_503500_8013EB60(Task* arg0)
             func_actor_503500_8013E384(arg0);
             break;
         case ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING:
-            func_actor_503500_8013E740(arg0);
+            _actor503500SmallOrbEmitterStepDying(arg0);
             break;
     }
 }
@@ -2989,25 +3091,25 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* task, _Actor503
     }
 }
 
-/// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// the yellow-flash emitter, like `_actor503500LargeChainApplyHits`: each attack id is
-/// taken once, only type-2 ids land while `hitCooldown` is clear,
-/// and a hit that empties the enemy's health starts
-/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING` but still applies the
-/// id's status effect. The hit effect is pulled to 400 units along the contact
-/// offset. `arg1` is passed by the caller but unused.
-static void func_actor_503500_8013EE5C(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
+/// Applies eligible attack contacts to the yellow-flash emitter.
+///
+/// Requires initialized work, its live enemy/coordinate and `contactCount`
+/// readable elements. Earlier equal keys suppress duplicates; only attack
+/// contacts land with a clear cooldown. Fatal hits start the dying state
+/// before status reactions are applied. Contacts are borrowed and unchanged.
+/// `unusedBody` retains the collision-pass interface and is ignored.
+static void _actor503500YellowFlashEmitterApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* contacts, s32 contactCount)
 {
     _Actor503500YellowFlashEmitterWork* work;
     Enemy*                              enemy;
     GfxCoord*                           coord;
-    s32                                 i;
+    s32                                 contactIndex;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    for (i = 0; i < arg3; i++) {
-        _actor503500YellowFlashEmitterHandleHit(arg0, work, enemy, coord, arg2, i);
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        _actor503500YellowFlashEmitterHandleHit(task, work, enemy, coord, contacts, contactIndex);
     }
 }
 
@@ -3064,57 +3166,85 @@ static void func_actor_503500_8013F328(Task* arg0)
     }
 }
 
-/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING` step of the yellow-flash
-/// emitter, stepped by `stateStep`: step 0 stops pair-testing `body`, unlinks
-/// the enemy node, releases its state-F0 reference and plays the death sound;
-/// step 1 spawns effects from `D_actor_503500_8016F374` for
-/// `ACTOR_503500_YELLOW_FLASH_EMITTER_DYING_FRAMES`, then copies the VRAM rect
-/// and moves on.
-static void func_actor_503500_8013F4A4(Task* arg0)
+/// Removes the dying part's target, credits rewards and reports its lost boss slot.
+///
+/// Requires live initialized task, work, enemy and coordinate. Stops pair tests
+/// and detaches borrowed contacts before notifying the boss. Starts the death
+/// sound and advances the state step; collision storage stays linked until exit.
+static inline void _actor503500YellowFlashEmitterBeginDeath(Task* task, _Actor503500YellowFlashEmitterWork* work, Enemy* enemy, GfxCoord* coord)
 {
+    s32 audioPan;
+
+    work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    enemy->recs       = NULL;
+    worldTargetUnlinkNode(&enemy->node);
+    actor503500ClearSlotEnemy(task->parent, task->spawnArg1.value);
+    work->hitCooldown = 0;
+    sceneAcquireBattleRef(0);
+    sceneReleaseBattleRefWithRewards(task, 0);
+    actor503500EnterPartLostState(task->parent);
+    enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
+    audioPan              = (s8)worldCoordGetOriginAudioPan(coord);
+    sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, audioPan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    // This death-only halfword has no established reader or meaning.
+    work->field_EC = 2;
+    work->stateStep++;
+}
+
+/// Removes the defeated yellow-flash emitter and runs its effects and texture transition.
+///
+/// Requires initialized work, its live enemy and boss parent. Death entry
+/// clears the target and slot, credits rewards and reports part loss. The next
+/// 31 active updates cycle over six local hit-effect offsets; odd counts add
+/// a drifting sprite from the final three offsets. Replaces the texture,
+/// stops the death sound and releases the effect reservation before the next
+/// update advances the task to exit. The death-only halfword's role is unproven.
+static void _actor503500YellowFlashEmitterStepDying(Task* task)
+{
+    enum {
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_BEGIN              = 0,
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_EFFECTS            = 1,
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_EFFECT_COST        = 3,
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_HIT_PUFF_ARG       = 0x01001A00,
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_ARG          = 0x04404600,
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_OFFSET_FIRST = 3,
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_OFFSET_COUNT = 3,
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_SOUND_FADE         = 45, // Audio updates; integer fade rounding may extend this
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_REPAINT_X          = 320,
+        ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_REPAINT_Y          = 256,
+    };
     Enemy*                              enemy;
     _Actor503500YellowFlashEmitterWork* work;
     GfxCoord*                           coord;
-    s32                                 pan;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
     switch (work->stateStep) {
-        case 0:
-            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            enemy->recs       = 0;
-            worldTargetUnlinkNode(&enemy->node);
-            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
-            work->hitCooldown = 0;
-            (sceneAcquireBattleRef)(0);
-            sceneReleaseBattleRefWithRewards(arg0, 0);
-            actor503500EnterPartLostState(arg0->parent);
-            enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            pan                   = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-            work->field_EC = 2;
-            work->stateStep++;
+        case ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_BEGIN:
+            // Remove the target before reporting the lost boss part.
+            _actor503500YellowFlashEmitterBeginDeath(task, work, enemy, coord);
             break;
-        case 1:
-            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 3) != 0) {
-                effectSpawn(EFFECT_HIT_PUFF, coord, 0x01001A00,
-                            &D_actor_503500_8016F374[work->stateFrames % 6]);
+        case ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_EFFECTS:
+            // Shed local effects while replacing the defeated emitter's texture.
+            if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_EFFECT_COST) != 0) {
+                effectSpawn(EFFECT_HIT_PUFF, coord, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_HIT_PUFF_ARG,
+                            &D_actor_503500_8016F374[work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016F374)]);
                 if (work->stateFrames & 1) {
-                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, 0x04404600,
-                                &D_actor_503500_8016F374[work->stateFrames % 3 + 3]);
+                    effectSpawn(EFFECT_SHELTER_R48_DRIFT_SPRITE, coord, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_ARG,
+                                &D_actor_503500_8016F374[work->stateFrames % ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_OFFSET_COUNT + ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_DRIFT_OFFSET_FIRST]);
                 }
             }
             work->stateFrames++;
             if (work->stateFrames >= ACTOR_503500_YELLOW_FLASH_EMITTER_DYING_FRAMES) {
-                MoveImage(&D_actor_503500_8016F3A4, 0x140, 0x100);
-                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
-                actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
+                MoveImage(&D_actor_503500_8016F3A4, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_REPAINT_X, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_REPAINT_Y);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, ACTOR_503500_YELLOW_FLASH_EMITTER_DEATH_SOUND_FADE);
+                actor503500ReleaseSlotEffects(task->spawnArg1.value);
                 work->stateStep++;
             }
             break;
         default:
-            arg0->state++;
+            task->state++;
             break;
     }
 }
@@ -3198,7 +3328,7 @@ static void func_actor_503500_8013F830(Task* arg0)
         }
     }
     if (actor503500IsDefeated() == 0) {
-        func_actor_503500_8013EE5C(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        _actor503500YellowFlashEmitterApplyHits(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
 }
@@ -3215,7 +3345,7 @@ static void func_actor_503500_8013F8AC(Task* arg0)
             func_actor_503500_8013F328(arg0);
             break;
         case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING:
-            func_actor_503500_8013F4A4(arg0);
+            _actor503500YellowFlashEmitterStepDying(arg0);
             break;
         case ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT:
             _actor503500YellowFlashEmitterStepDormant(arg0);
@@ -3934,7 +4064,7 @@ static inline void _actor503500LungingChainHandleHit(Task* task, _Actor503500Lun
 }
 
 /// Applies this frame's hits from `body`'s collision records `arg2[0..arg3)`
-/// to the lunging chain's enemy, like `func_actor_503500_8013EE5C`, but at model
+/// to the lunging chain's enemy, like `_actor503500YellowFlashEmitterApplyHits`, but at model
 /// part 8: each attack id is taken once, only type-2 ids land while the
 /// `hitCooldown` countdown is clear, and a hit that empties `hp` enters
 /// state 5 (unless already past it) instead of applying the id's status effect.
@@ -5475,10 +5605,13 @@ static const TaskFuncTable3 D_actor_503500_801321DC = {
     },
 };
 
-/// Links this shot's attack sphere with its key before enabling collision passes.
+/// Registers the ballistic shot's attack sphere for room-grid and body tests.
 ///
-/// Requires live coordinate, work and its four writable contacts. Borrows their
-/// storage until exit unlinks the body; radius uses game-coordinate units.
+/// Requires an unlinked body in live work, a live shot coordinate and four
+/// writable contact elements. `spawnArg1.value` selects attack 0 or 1. Uses
+/// the local sphere offset and a 300-unit game-coordinate radius. Initializes
+/// the contact table's final-entry marker before enabling either pass. The
+/// body borrows the coordinate and contact storage until exit unlinks it.
 static inline void _actor503500BallisticShotLinkSphere(Task* task, _Actor503500BallisticShotWork* work, GfxCoord* coord, WorldCollisionContact* contacts)
 {
     enum { ACTOR_503500_BALLISTIC_SHOT_FLIGHT_RADIUS = 300 };
@@ -5725,10 +5858,14 @@ static const TaskFuncTable3 D_actor_503500_801321E8 = {
     },
 };
 
-/// Links this shot's attack sphere with its key before enabling collision passes.
+/// Registers the lingering shot's attack sphere for body tests.
 ///
-/// Requires live coordinate, work and its four writable contacts. Borrows their
-/// storage until exit unlinks the body; radius uses game-coordinate units.
+/// Requires an unlinked body in live work, a live shot coordinate and four
+/// writable contact elements. `spawnArg1.value` selects attack 0 or 1. Uses
+/// the local sphere offset and a 2200-unit game-coordinate radius. Initializes
+/// the contact table's final-entry marker before enabling pair tests; this
+/// sphere has no grid pass. The body borrows the coordinate and contact storage
+/// until exit unlinks it.
 static inline void _actor503500LingeringShotLinkSphere(Task* task, _Actor503500LingeringShotWork* work, GfxCoord* coord, WorldCollisionContact* contacts)
 {
     enum { ACTOR_503500_LINGERING_SHOT_RADIUS = 2200 };
