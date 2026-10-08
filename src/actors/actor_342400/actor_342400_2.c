@@ -75,6 +75,7 @@ static void func_actor_342400_80168394(Task* arg0);
 static void _madChaserDespawnState(Task* task);
 static void func_actor_342400_8016997C(Task* arg0);
 static void func_actor_342400_80169990(Task* arg0);
+static void _madChaserWalkState(Task* task);
 static void func_actor_342400_80169A98(Task* arg0);
 static void func_actor_342400_80169B58(Task* arg0);
 static void func_actor_342400_80169BAC(Task* arg0);
@@ -119,7 +120,7 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserToAlertState,
     func_actor_342400_8016997C,
     func_actor_342400_80169990,
-    madChaserWalkState,
+    _madChaserWalkState,
     madChaserLeapState,
     func_actor_342400_80169A98,
     madChaserRecoilLightState,
@@ -136,7 +137,7 @@ static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
     _madChaserKnockdownEnd,
 } };
 
-/// Sub-state handlers `madChaserWalkState` dispatches by `subState`.
+/// Sub-state handlers `_madChaserWalkState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserWalkSteps = { {
     _madChaserWalkStart,
     _madChaserWalkApproach,
@@ -993,7 +994,7 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 /// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
 /// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.
-#define MAD_CHASER_STEP_STATE             madChaserWalkState
+#define MAD_CHASER_STEP_STATE             _madChaserWalkState
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserTakeHitRequest
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef MAD_CHASER_STEP_STATE

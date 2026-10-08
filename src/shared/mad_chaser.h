@@ -327,7 +327,6 @@ void        madChaserShrinkDeathTick(Task* arg0);
 void        madChaserDropDeathTick(Task* arg0);
 void        madChaserDeathTick(Task* arg0);
 static void _madChaserLurkAlertState(Task* task);
-void        madChaserWalkState(Task* task);
 static void _madChaserHiddenTask(Task* task);
 void        madChaserKnockdownState(Task* arg0);
 void        madChaserPullState(Task* arg0);

@@ -60,7 +60,7 @@ extern AnimationSet* gMadChaserAnimBank[21];  // animation bank handed to `anima
 
 extern TaskMessageEntry     gMadChaserMsgTable[3];    // stored into `Task::msgTable` by madChaserSpawn
 static const TaskFuncTable3 gMadChaserKnockdownSteps; // dispatcher table madChaserKnockdownState copies onto its stack
-static const TaskFuncTable3 gMadChaserWalkSteps;      // dispatcher table madChaserWalkState copies onto its stack
+static const TaskFuncTable3 gMadChaserWalkSteps;      // dispatcher table _madChaserWalkState copies onto its stack
 static const TaskFuncTable5 gMadChaserLeapSteps;      // dispatcher table madChaserLeapState copies onto its stack
 static const TaskFuncTable5 Actor04400_D0009C;        // dispatcher table Actor04400_Fn06964 copies onto its stack
 static const TaskFuncTable3 Actor04400_D00150;        // dispatcher table _madChaserLurkIdleState copies onto its stack
@@ -76,6 +76,7 @@ static void Actor04400_Fn05260(Task* arg0);
 static void _madChaserDespawnState(Task* task);
 static void Actor04400_Fn06848(Task* arg0);
 static void Actor04400_Fn0685C(Task* arg0);
+static void _madChaserWalkState(Task* task);
 static void Actor04400_Fn06964(Task* arg0);
 static void Actor04400_Fn06A24(Task* arg0);
 static void Actor04400_Fn06A78(Task* arg0);
@@ -783,7 +784,7 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserToAlertState,
     Actor04400_Fn06848,
     Actor04400_Fn0685C,
-    madChaserWalkState,
+    _madChaserWalkState,
     madChaserLeapState,
     Actor04400_Fn06964,
     madChaserRecoilLightState,
@@ -800,7 +801,7 @@ static const TaskFuncTable3 gMadChaserKnockdownSteps = { {
     _madChaserKnockdownEnd,
 } };
 
-/// Sub-state handlers `madChaserWalkState` dispatches by `subState`.
+/// Sub-state handlers `_madChaserWalkState` dispatches by `subState`.
 static const TaskFuncTable3 gMadChaserWalkSteps = { {
     _madChaserWalkStart,
     _madChaserWalkApproach,
@@ -1319,7 +1320,7 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 /// Walk-family interrupt binding: a declared s16(Task*) predicate, called once
 /// before sub-state dispatch; nonzero skips that dispatch. Undefine after inclusion.
-#define MAD_CHASER_STEP_STATE             madChaserWalkState
+#define MAD_CHASER_STEP_STATE             _madChaserWalkState
 #define MAD_CHASER_WALK_INTERRUPT_HANDLER _madChaserTakeHitRequest
 #include "../../shared/mad_chaser_walk_state.inc.c"
 #undef MAD_CHASER_STEP_STATE
