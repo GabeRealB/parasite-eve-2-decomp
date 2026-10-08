@@ -563,7 +563,14 @@ extern _Actor503500YellowFlashEmitterWork D_actor_503500_80177A6C;
 
 extern _Actor503500RearPartWork D_actor_503500_801776A0;
 
-static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes);
+/// Shared collision identity and packed hit-effect arguments of these boss parts.
+enum {
+    ACTOR_503500_PART_BODY_KEY            = 0x30023,
+    ACTOR_503500_PART_HIT_EFFECT_LOW_ARG  = 0x600,
+    ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG = 3,
+};
+
+static void _actor503500LungingChainApplyPitch(const SVECTOR* linkAngles, GfxCoord* coordinates);
 
 extern _Actor503500SmallOrbEmitterWork D_actor_503500_8017797C;
 
@@ -587,7 +594,7 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* arg1, 
 static void func_actor_503500_8013B460(Task* arg0);
 static void func_actor_503500_8013B8D0(Task* arg0);
 static void func_actor_503500_8013BE0C(Task* arg0);
-static void func_actor_503500_8013BCB4(Task* arg0);
+static void _actor503500LargeOrbEmitterClearReactions(Task* task);
 static void _actor503500RearPartExit(Task* task);
 static void func_actor_503500_8013C9DC(Task* arg0);
 static void func_actor_503500_8013C960(Task* arg0);
@@ -639,9 +646,9 @@ static void func_actor_503500_8014418C(Task* arg0);
 static void func_actor_503500_801441E8(Task* arg0);
 static void _actor503500ArmEnterState(Task* task, s32 state);
 static void _actor503500BallisticShotStep(Task* task);
-static void func_actor_503500_80144778(Task* arg0);
-static void func_actor_503500_80144B40(Task* arg0);
-static void func_actor_503500_80144E10(Task* arg0);
+static void _actor503500BallisticShotReactToContacts(Task* task);
+static void _actor503500LingeringShotStep(Task* task);
+static void _actor503500LingeringShotClearContacts(Task* task);
 static void _actor503500LargeOrbEmitterEnterState(Task* task, s32 state);
 static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2);
 
@@ -663,7 +670,7 @@ STATIC_ASSERT_SIZEOF(_Actor503500ArmStorage, 0x450);
 
 static void _actor503500ArmExit(Task* task);
 static void _actor503500BallisticShotExit(Task* task);
-static void func_actor_503500_80144DA8(Task* arg0);
+static void _actor503500LingeringShotExit(Task* task);
 
 static void _actor503500LungingChainExit(Task* task);
 
@@ -674,29 +681,34 @@ extern _Actor503500ArmStorage D_actor_503500_80178AC0;
 /// Work block of the arms' knock-back task.
 extern _Actor503500KnockbackWork D_actor_503500_80178F10;
 
-static void func_actor_503500_8013AD64(Task* arg0);
+static void _actor503500LargeOrbEmitterInit(Task* task);
 static void func_actor_503500_8013BBCC(Task* arg0);
-static void func_actor_503500_8013BEE4(Task* arg0);
+static void _actor503500RearPartInit(Task* task);
 static void func_actor_503500_8013C878(Task* arg0);
-static void func_actor_503500_8013CAE4(Task* arg0);
+static void _actor503500ChainBaseInit(Task* task);
 static void func_actor_503500_8013D7D4(Task* arg0);
-static void func_actor_503500_8013DD10(Task* arg0);
+static void _actor503500SmallOrbEmitterInit(Task* task);
 static void func_actor_503500_8013E9A4(Task* arg0);
-static void func_actor_503500_8013ECBC(Task* arg0);
+static void _actor503500YellowFlashEmitterInit(Task* task);
 static void func_actor_503500_8013F6F0(Task* arg0);
 static void func_actor_503500_8013FA74(Task* arg0);
 static void func_actor_503500_8013FF0C(Task* arg0);
-static void func_actor_503500_801423C8(Task* arg0);
+static void _actor503500ArmInit(Task* task);
 static void func_actor_503500_80143EB4(Task* arg0);
 static void func_actor_503500_80144300(Task* arg0);
-static void func_actor_503500_801446E4(Task* arg0);
+static void _actor503500BallisticShotUpdate(Task* task);
 static void func_actor_503500_801448E8(Task* arg0);
-static void func_actor_503500_80144D50(Task* arg0);
+static void _actor503500LingeringShotUpdate(Task* task);
 
 static void func_actor_503500_8013BD0C(Task* arg0);
-static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords);
+static void _actor503500LungingChainPlaceLinks(const SVECTOR* points, GfxCoord* coordinates);
 
 /// Integrates a shot's signed 16.16 velocity and publishes its integer position.
+///
+/// Updates XYZ only. The coordinate receives the signed upper halfwords, so
+/// negative fractional positions round down and integer overflow narrows to
+/// 16 bits. Both objects must be live and in the same world frame; coordinate
+/// invalidation belongs to the caller.
 static inline void _actor503500BallisticShotIntegratePosition(_Actor503500BallisticShotWork* work, GfxCoord* coord)
 {
     work->position.fixed.vx.word += work->velocity.fixed.vx.word;
@@ -707,10 +719,35 @@ static inline void _actor503500BallisticShotIntegratePosition(_Actor503500Ballis
     coord->coord.t[2]             = work->position.fixed.vz.halves.integer;
 }
 
+/// Places a link at the endpoint of a segment expressed in world axes.
+///
+/// Requires the accumulated current-link world rotation in `scratch`, with
+/// the world segment and +Y hint prepared. The segment must normalize to a
+/// nonzero direction independent of the hint. Changes GTE state and writes
+/// the next link's local matrix without changing its composition stamp.
+static inline void _actor503500LungingChainAimNextLink(Actor503500ChainScratch* scratch, GfxCoord* nextLink)
+{
+    MATRIX*  inverseRotation;
+    SVECTOR* direction;
+
+    inverseRotation = &scratch->inverseRotation;
+    direction       = &scratch->direction;
+    gte_TransposeMatrix(&scratch->worldRotation, inverseRotation);
+    gte_SetRotMatrix(inverseRotation);
+    gte_ldv0(&scratch->segment);
+    gte_rtv0();
+    gte_stlvnl(&scratch->localSegment);
+    VectorNormalS(&scratch->localSegment, direction);
+    gfxBuildOrthonormalBasis(&nextLink->coord, direction, &scratch->up);
+    nextLink->coord.t[0] = scratch->localSegment.vx;
+    nextLink->coord.t[1] = scratch->localSegment.vy;
+    nextLink->coord.t[2] = scratch->localSegment.vz;
+}
+
 /// `Task::state` handlers `func_actor_503500_8013BE8C` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80131FF0 = {
     {
-        func_actor_503500_8013AD64,
+        _actor503500LargeOrbEmitterInit,
         func_actor_503500_8013BBCC,
         _actor503500LargeOrbEmitterExit,
     },
@@ -736,61 +773,64 @@ static void func_actor_503500_8013D1CC(Task* arg0);
 static void func_actor_503500_8013D558(Task* arg0);
 static void func_actor_503500_8013EE5C(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
 
-/// State-0 init of a large-orb emitter: clears its side's block in
-/// `D_actor_503500_801774C0`, hangs the task's coordinate off the boss part
-/// the side names, links the enemy node and the target sphere with its pair
-/// tests on, and hands the task to its exit callback. The block is left
-/// zeroed, which is `ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE`.
-static void func_actor_503500_8013AD64(Task* arg0)
+/// Initializes an idle large-orb emitter on the boss's upper limb.
+///
+/// Requires slot 4 or 5 in `spawnArg1.value`, its enemy in `spawnArg2.pointer`,
+/// and the boss as parent. Borrows the side's static work block and boss part
+/// 11 or 5, links its target sphere, and copies a stored VRAM row to (0, 261).
+static void _actor503500LargeOrbEmitterInit(Task* task)
 {
+    enum { ACTOR_503500_LARGE_ORB_EMITTER_VRAM_ROW_Y = 261 };
+
     Enemy*                           enemy;
     Task*                            parent;
     GfxCoord*                        coord;
-    WorldCollisionContact*           rec;
+    WorldCollisionContact*           contacts;
     _Actor503500LargeOrbEmitterWork* work;
-    s32                              idx;
+    s32                              side;
 
-    idx    = arg0->spawnArg1.value - ACTOR_503500_LARGE_ORB_EMITTER_FIRST_SLOT;
-    enemy  = arg0->spawnArg2.pointer;
-    parent = arg0->parent;
-    work   = &D_actor_503500_801774C0[idx];
-    coord  = arg0->extra.tmd->coords;
+    side   = task->spawnArg1.value - ACTOR_503500_LARGE_ORB_EMITTER_FIRST_SLOT;
+    enemy  = task->spawnArg2.pointer;
+    parent = task->parent;
+    work   = &D_actor_503500_801774C0[side];
+    coord  = task->extra.tmd->coords;
     memFillBytes(work, 0, sizeof(*work));
-    arg0->work = work;
-    work->side = idx;
+    task->work = work;
+    work->side = side;
 
-    coord->parent = &parent->extra.tmd->coords[D_actor_503500_8016F0E8[idx]];
+    // Bind the target to the same boss limb as this side's arm.
+    coord->parent = &parent->extra.tmd->coords[D_actor_503500_8016F0E8[side]];
     gfxSetRotIdentity(&coord->coord);
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->coord                   = coord;
     enemy->node.state.parts.flags |= (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
-    enemy->bodyPos.vx              = D_actor_503500_8016F0F0[idx].vx;
-    enemy->bodyPos.vy              = D_actor_503500_8016F0F0[idx].vy;
-    enemy->bodyPos.vz              = D_actor_503500_8016F0F0[idx].vz;
-    rec                            = work->contacts;
-    enemy->param                   = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs                    = rec;
+    enemy->bodyPos.vx              = D_actor_503500_8016F0F0[side].vx;
+    enemy->bodyPos.vy              = D_actor_503500_8016F0F0[side].vy;
+    enemy->bodyPos.vz              = D_actor_503500_8016F0F0[side].vz;
+    contacts                       = work->contacts;
+    enemy->param                   = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->recs                    = contacts;
     enemy->hp                      = enemy->param->hpMax;
 
     work->body.coord            = coord;
-    work->body.context.contacts = rec;
-    work->body.pos.vx           = D_actor_503500_8016F0F0[idx].vx;
-    work->body.pos.vy           = D_actor_503500_8016F0F0[idx].vy;
-    work->body.pos.vz           = D_actor_503500_8016F0F0[idx].vz;
-    work->body.key              = 0x30023;
-    work->body.radius           = 0x5DC;
+    work->body.context.contacts = contacts;
+    work->body.pos.vx           = D_actor_503500_8016F0F0[side].vx;
+    work->body.pos.vy           = D_actor_503500_8016F0F0[side].vy;
+    work->body.pos.vz           = D_actor_503500_8016F0F0[side].vz;
+    work->body.key              = ACTOR_503500_PART_BODY_KEY;
+    work->body.radius           = 1500;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
-    worldCollisionInitContacts(rec, ARRAY_SIZE(work->contacts), 0);
-    work->hitEffect.spawnArgLo = 0x600;
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
+    work->hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
     work->hitEffect.coord      = coord;
-    work->hitEffect.spawnArgHi = 3;
+    work->hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
     work->body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    MoveImage(&D_actor_503500_8016F100, 0, 0x105);
-    arg0->exitCallback = _actor503500LargeOrbEmitterExit;
-    arg0->state       += 1;
+    MoveImage(&D_actor_503500_8016F100, 0, ACTOR_503500_LARGE_ORB_EMITTER_VRAM_ROW_Y);
+    task->exitCallback = _actor503500LargeOrbEmitterExit;
+    task->state       += 1;
 }
 
 /// One contact record of `func_actor_503500_8013AF60`'s pass; a `return`
@@ -1120,7 +1160,7 @@ static void func_actor_503500_8013BBCC(Task* arg0)
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (enemy->reactionFlags != 0) {
-        func_actor_503500_8013BCB4(arg0);
+        _actor503500LargeOrbEmitterClearReactions(arg0);
     }
     func_actor_503500_8013BD0C(arg0);
     func_actor_503500_8013BD88(arg0);
@@ -1145,11 +1185,15 @@ static void _actor503500LargeOrbEmitterExit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_503500_8013BCB4(Task* arg0)
+/// Discards stagger, buildup and damage-over-time reactions on a large-orb emitter.
+///
+/// Requires the emitter's live enemy in `spawnArg2.pointer`; other reaction
+/// bits and all health values are retained.
+static void _actor503500LargeOrbEmitterClearReactions(Task* task)
 {
     Enemy* enemy;
 
-    enemy = arg0->spawnArg2.pointer;
+    enemy = task->spawnArg2.pointer;
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= ~ENEMY_REACTION_STAGGER;
     }
@@ -1236,31 +1280,29 @@ void func_actor_503500_8013BE8C(Task* task)
 /// `Task::state` handlers `func_actor_503500_8013CA8C` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132028 = {
     {
-        func_actor_503500_8013BEE4,
+        _actor503500RearPartInit,
         func_actor_503500_8013C878,
         _actor503500RearPartExit,
     },
 };
 
-/// State-0 init of the rear part at `D_actor_503500_801776A0`, the same
-/// shape as `func_actor_503500_8013DD10`: clears the block, gives the task's
-/// coordinate an identity rotation and hangs it off part
-/// `ACTOR_503500_REAR_PART_BOSS_PART` of the boss's model, links the enemy
-/// node and the target sphere with its pair tests on, enters
-/// `ACTOR_503500_REAR_PART_STATE_IDLE` and hands the task to its exit
-/// callback.
-static void func_actor_503500_8013BEE4(Task* arg0)
+/// Initializes the boss's rear part as an idle, hittable target.
+///
+/// Requires slot 6 in `spawnArg1.value`, its enemy in `spawnArg2.pointer`,
+/// and the boss as parent. Borrows singleton work and boss part 16; the enemy
+/// and collision sphere share the fixed local target offset.
+static void _actor503500RearPartInit(Task* task)
 {
     Enemy*                 enemy;
     Task*                  parent;
     GfxCoord*              coord;
-    WorldCollisionContact* rec;
+    WorldCollisionContact* contacts;
 
-    coord  = arg0->extra.tmd->coords;
-    enemy  = arg0->spawnArg2.pointer;
-    parent = arg0->parent;
+    coord  = task->extra.tmd->coords;
+    enemy  = task->spawnArg2.pointer;
+    parent = task->parent;
     memFillBytes(&D_actor_503500_801776A0, 0, sizeof(D_actor_503500_801776A0));
-    arg0->work = &D_actor_503500_801776A0;
+    task->work = &D_actor_503500_801776A0;
 
     coord->parent = &parent->extra.tmd->coords[ACTOR_503500_REAR_PART_BOSS_PART];
     gfxSetRotIdentity(&coord->coord);
@@ -1272,28 +1314,28 @@ static void func_actor_503500_8013BEE4(Task* arg0)
     enemy->bodyPos.vx             = D_actor_503500_8016F1B0.vx;
     enemy->bodyPos.vy             = D_actor_503500_8016F1B0.vy;
     enemy->bodyPos.vz             = D_actor_503500_8016F1B0.vz;
-    rec                           = D_actor_503500_801776A0.contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs                   = rec;
+    contacts                      = D_actor_503500_801776A0.contacts;
+    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
     D_actor_503500_801776A0.body.coord            = coord;
-    D_actor_503500_801776A0.body.context.contacts = rec;
-    D_actor_503500_801776A0.body.key              = 0x30023;
-    D_actor_503500_801776A0.body.radius           = 0x3E8;
+    D_actor_503500_801776A0.body.context.contacts = contacts;
+    D_actor_503500_801776A0.body.key              = ACTOR_503500_PART_BODY_KEY;
+    D_actor_503500_801776A0.body.radius           = 1000;
     D_actor_503500_801776A0.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     D_actor_503500_801776A0.body.pos.vx           = D_actor_503500_8016F1B0.vx;
     D_actor_503500_801776A0.body.pos.vy           = D_actor_503500_8016F1B0.vy;
     D_actor_503500_801776A0.body.pos.vz           = D_actor_503500_8016F1B0.vz;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_801776A0.body);
-    worldCollisionInitContacts(rec, ARRAY_SIZE(D_actor_503500_801776A0.contacts), 0);
-    D_actor_503500_801776A0.hitEffect.spawnArgLo = 0x600;
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_801776A0.contacts), 0);
+    D_actor_503500_801776A0.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
     D_actor_503500_801776A0.hitEffect.coord      = coord;
-    D_actor_503500_801776A0.hitEffect.spawnArgHi = 3;
+    D_actor_503500_801776A0.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
     D_actor_503500_801776A0.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    _actor503500RearPartEnterState(arg0, ACTOR_503500_REAR_PART_STATE_IDLE);
-    arg0->exitCallback = _actor503500RearPartExit;
-    arg0->state       += 1;
+    _actor503500RearPartEnterState(task, ACTOR_503500_REAR_PART_STATE_IDLE);
+    task->exitCallback = _actor503500RearPartExit;
+    task->state       += 1;
 }
 
 /// One contact record of `func_actor_503500_8013C088`'s pass; a `return`
@@ -1590,69 +1632,70 @@ void func_actor_503500_8013CA8C(Task* task)
 /// `Task::state` handlers `func_actor_503500_8013DBF4` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132060 = {
     {
-        func_actor_503500_8013CAE4,
+        _actor503500ChainBaseInit,
         func_actor_503500_8013D7D4,
         _actor503500ChainBaseExit,
     },
 };
 
-/// State-0 init of a chain base, the same shape as
-/// `func_actor_503500_8013BEE4`: clears its side's block in
-/// `D_actor_503500_80177794`, gives the task's coordinate an identity
-/// rotation and hangs it off part 1 of the boss's model, and links the
-/// target sphere at the side's `D_actor_503500_8016F248` offset. The enemy
-/// node is not linked and the pair tests stay off, since the base starts in
-/// `ACTOR_503500_CHAIN_BASE_STATE_COVERED`.
-static void func_actor_503500_8013CAE4(Task* arg0)
+/// Initializes a covered chain base beside its side's chain roots.
+///
+/// Requires slot 7 or 8 in `spawnArg1.value`, its enemy in `spawnArg2.pointer`,
+/// and the boss as parent. Borrows the side's static work and boss part 1.
+/// Registers the sphere with pair tests disabled and leaves the target node
+/// unlinked until the side's chains are gone.
+static void _actor503500ChainBaseInit(Task* task)
 {
+    enum { ACTOR_503500_CHAIN_BASE_BOSS_PART = 1 };
+
     Enemy*                     enemy;
     Task*                      parent;
     GfxCoord*                  coord;
-    WorldCollisionContact*     rec;
+    WorldCollisionContact*     contacts;
     _Actor503500ChainBaseWork* work;
-    SVECTOR*                   pos;
-    s32                        idx;
+    SVECTOR*                   bodyOffset;
+    s32                        slot;
 
-    idx    = arg0->spawnArg1.value;
-    enemy  = arg0->spawnArg2.pointer;
-    work   = &D_actor_503500_80177794[idx - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
-    pos    = &D_actor_503500_8016F248[idx - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
-    coord  = arg0->extra.tmd->coords;
-    parent = arg0->parent;
+    slot       = task->spawnArg1.value;
+    enemy      = task->spawnArg2.pointer;
+    work       = &D_actor_503500_80177794[slot - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
+    bodyOffset = &D_actor_503500_8016F248[slot - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
+    coord      = task->extra.tmd->coords;
+    parent     = task->parent;
     memFillBytes(work, 0, sizeof(*work));
-    arg0->work = work;
+    task->work = work;
 
-    coord->parent = &parent->extra.tmd->coords[1];
+    coord->parent = &parent->extra.tmd->coords[ACTOR_503500_CHAIN_BASE_BOSS_PART];
     gfxSetRotIdentity(&coord->coord);
     enemy->field_4                = &coord->coord;
     enemy->field_48               = 0;
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
-    enemy->bodyPos.vx             = pos->vx;
-    enemy->bodyPos.vy             = pos->vy;
-    enemy->bodyPos.vz             = pos->vz;
-    rec                           = work->contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs                   = rec;
+    enemy->bodyPos.vx             = bodyOffset->vx;
+    enemy->bodyPos.vy             = bodyOffset->vy;
+    enemy->bodyPos.vz             = bodyOffset->vz;
+    contacts                      = work->contacts;
+    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
     work->body.coord            = coord;
-    work->body.context.contacts = rec;
-    work->body.pos.vx           = pos->vx;
-    work->body.pos.vy           = pos->vy;
-    work->body.pos.vz           = pos->vz;
-    work->body.key              = 0x30023;
-    work->body.radius           = 0x190;
+    work->body.context.contacts = contacts;
+    work->body.pos.vx           = bodyOffset->vx;
+    work->body.pos.vy           = bodyOffset->vy;
+    work->body.pos.vz           = bodyOffset->vz;
+    work->body.key              = ACTOR_503500_PART_BODY_KEY;
+    work->body.radius           = 400;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
-    worldCollisionInitContacts(rec, ARRAY_SIZE(work->contacts), 0);
-    work->hitEffect.spawnArgLo = 0x600;
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
+    work->hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
     work->hitEffect.coord      = coord;
-    work->hitEffect.spawnArgHi = 3;
+    work->hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
     work->body.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_COVERED);
-    arg0->exitCallback = _actor503500ChainBaseExit;
-    arg0->state       += 1;
+    _actor503500ChainBaseEnterState(task, ACTOR_503500_CHAIN_BASE_STATE_COVERED);
+    task->exitCallback = _actor503500ChainBaseExit;
+    task->state       += 1;
 }
 
 /// One contact record of `func_actor_503500_8013CCBC`'s pass; a `return`
@@ -2149,32 +2192,33 @@ static void func_actor_503500_8013DC4C(Task* arg0)
 /// `Task::state` handlers `func_actor_503500_8013EC64` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132098 = {
     {
-        func_actor_503500_8013DD10,
+        _actor503500SmallOrbEmitterInit,
         func_actor_503500_8013E9A4,
         _actor503500SmallOrbEmitterExit,
     },
 };
 
-/// State-0 init of the small-orb emitter at `D_actor_503500_8017797C`, the
-/// same shape as `func_actor_503500_8013BEE4`: clears the block, gives the
-/// task's coordinate an identity rotation and hangs it off part 1 of the
-/// boss's model, links the enemy node and the target sphere with its pair
-/// tests on, enters `ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE` and hands the
-/// task to its exit callback.
-static void func_actor_503500_8013DD10(Task* arg0)
+/// Initializes the small-orb emitter as an idle target on the boss's main part.
+///
+/// Requires slot 9 in `spawnArg1.value`, its enemy in `spawnArg2.pointer`,
+/// and the boss as parent. Borrows singleton work and boss part 1, with the
+/// target sphere and enemy using the same local offset.
+static void _actor503500SmallOrbEmitterInit(Task* task)
 {
+    enum { ACTOR_503500_SMALL_ORB_EMITTER_BOSS_PART = 1 };
+
     Enemy*                 enemy;
     Task*                  parent;
     GfxCoord*              coord;
-    WorldCollisionContact* rec;
+    WorldCollisionContact* contacts;
 
-    coord  = arg0->extra.tmd->coords;
-    enemy  = arg0->spawnArg2.pointer;
-    parent = arg0->parent;
+    coord  = task->extra.tmd->coords;
+    enemy  = task->spawnArg2.pointer;
+    parent = task->parent;
     memFillBytes(&D_actor_503500_8017797C, 0, sizeof(D_actor_503500_8017797C));
-    arg0->work = &D_actor_503500_8017797C;
+    task->work = &D_actor_503500_8017797C;
 
-    coord->parent = &parent->extra.tmd->coords[1];
+    coord->parent = &parent->extra.tmd->coords[ACTOR_503500_SMALL_ORB_EMITTER_BOSS_PART];
     gfxSetRotIdentity(&coord->coord);
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
@@ -2184,28 +2228,28 @@ static void func_actor_503500_8013DD10(Task* arg0)
     enemy->bodyPos.vx             = D_actor_503500_8016F2D8.vx;
     enemy->bodyPos.vy             = D_actor_503500_8016F2D8.vy;
     enemy->bodyPos.vz             = D_actor_503500_8016F2D8.vz;
-    rec                           = D_actor_503500_8017797C.contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs                   = rec;
+    contacts                      = D_actor_503500_8017797C.contacts;
+    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
     D_actor_503500_8017797C.body.coord            = coord;
-    D_actor_503500_8017797C.body.context.contacts = rec;
-    D_actor_503500_8017797C.body.key              = 0x30023;
-    D_actor_503500_8017797C.body.radius           = 0x3E8;
+    D_actor_503500_8017797C.body.context.contacts = contacts;
+    D_actor_503500_8017797C.body.key              = ACTOR_503500_PART_BODY_KEY;
+    D_actor_503500_8017797C.body.radius           = 1000;
     D_actor_503500_8017797C.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     D_actor_503500_8017797C.body.pos.vx           = D_actor_503500_8016F2D8.vx;
     D_actor_503500_8017797C.body.pos.vy           = D_actor_503500_8016F2D8.vy;
     D_actor_503500_8017797C.body.pos.vz           = D_actor_503500_8016F2D8.vz;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_8017797C.body);
-    worldCollisionInitContacts(rec, ARRAY_SIZE(D_actor_503500_8017797C.contacts), 0);
-    D_actor_503500_8017797C.hitEffect.spawnArgLo = 0x600;
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_8017797C.contacts), 0);
+    D_actor_503500_8017797C.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
     D_actor_503500_8017797C.hitEffect.coord      = coord;
-    D_actor_503500_8017797C.hitEffect.spawnArgHi = 3;
+    D_actor_503500_8017797C.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
     D_actor_503500_8017797C.body.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    _actor503500SmallOrbEmitterEnterState(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
-    arg0->exitCallback = _actor503500SmallOrbEmitterExit;
-    arg0->state       += 1;
+    _actor503500SmallOrbEmitterEnterState(task, ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
+    task->exitCallback = _actor503500SmallOrbEmitterExit;
+    task->state       += 1;
 }
 
 /// One contact record of `func_actor_503500_8013DEB4`'s pass; a `return`
@@ -2604,31 +2648,34 @@ void func_actor_503500_8013EC64(Task* task)
 /// `Task::state` handlers `func_actor_503500_8013FA1C` dispatches through.
 static const TaskFuncTable3 D_actor_503500_801320D0 = {
     {
-        func_actor_503500_8013ECBC,
+        _actor503500YellowFlashEmitterInit,
         func_actor_503500_8013F6F0,
         _actor503500YellowFlashEmitterExit,
     },
 };
 
-/// State-0 init of the yellow-flash emitter at `D_actor_503500_80177A6C`:
-/// clears the block, resets the task's own coordinate to a plain 4096
-/// identity, parents it to part 8 of the parent task's model, links the enemy
-/// node and the target sphere with its pair tests off, and starts
-/// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT`.
-static void func_actor_503500_8013ECBC(Task* arg0)
+/// Initializes the dormant yellow-flash emitter on the boss's flash mount.
+///
+/// Requires slot 12 in `spawnArg1.value`, its enemy in `spawnArg2.pointer`,
+/// and the boss as parent. Borrows singleton work and boss part 8. The target
+/// node is linked but not lockable, and its sphere's pair tests remain off
+/// until the boss commands exposure.
+static void _actor503500YellowFlashEmitterInit(Task* task)
 {
+    enum { ACTOR_503500_YELLOW_FLASH_EMITTER_BOSS_PART = 8 };
+
     Enemy*                 enemy;
     Task*                  parent;
     GfxCoord*              coord;
-    WorldCollisionContact* rec;
+    WorldCollisionContact* contacts;
 
-    coord  = arg0->extra.tmd->coords;
-    enemy  = arg0->spawnArg2.pointer;
-    parent = arg0->parent;
+    coord  = task->extra.tmd->coords;
+    enemy  = task->spawnArg2.pointer;
+    parent = task->parent;
     memFillBytes(&D_actor_503500_80177A6C, 0, sizeof(D_actor_503500_80177A6C));
-    arg0->work = &D_actor_503500_80177A6C;
+    task->work = &D_actor_503500_80177A6C;
 
-    coord->parent = &parent->extra.tmd->coords[8];
+    coord->parent = &parent->extra.tmd->coords[ACTOR_503500_YELLOW_FLASH_EMITTER_BOSS_PART];
     gfxSetRotIdentity(&coord->coord);
     enemy->field_4  = &coord->coord;
     enemy->field_48 = 0;
@@ -2638,28 +2685,28 @@ static void func_actor_503500_8013ECBC(Task* arg0)
     enemy->bodyPos.vx              = D_actor_503500_8016F36C.vx;
     enemy->bodyPos.vy              = D_actor_503500_8016F36C.vy;
     enemy->bodyPos.vz              = D_actor_503500_8016F36C.vz;
-    rec                            = D_actor_503500_80177A6C.contacts;
-    enemy->param                   = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs                    = rec;
+    contacts                       = D_actor_503500_80177A6C.contacts;
+    enemy->param                   = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->recs                    = contacts;
     enemy->hp                      = enemy->param->hpMax;
 
     D_actor_503500_80177A6C.body.coord            = coord;
-    D_actor_503500_80177A6C.body.context.contacts = rec;
+    D_actor_503500_80177A6C.body.context.contacts = contacts;
     D_actor_503500_80177A6C.body.pos.vx           = D_actor_503500_8016F36C.vx;
     D_actor_503500_80177A6C.body.pos.vy           = D_actor_503500_8016F36C.vy;
     D_actor_503500_80177A6C.body.pos.vz           = D_actor_503500_8016F36C.vz;
-    D_actor_503500_80177A6C.body.key              = 0x30023;
-    D_actor_503500_80177A6C.body.radius           = 0x320;
+    D_actor_503500_80177A6C.body.key              = ACTOR_503500_PART_BODY_KEY;
+    D_actor_503500_80177A6C.body.radius           = 800;
     D_actor_503500_80177A6C.body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &D_actor_503500_80177A6C.body);
-    worldCollisionInitContacts(rec, ARRAY_SIZE(D_actor_503500_80177A6C.contacts), 0);
-    D_actor_503500_80177A6C.hitEffect.spawnArgLo = 0x600;
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(D_actor_503500_80177A6C.contacts), 0);
+    D_actor_503500_80177A6C.hitEffect.spawnArgLo = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
     D_actor_503500_80177A6C.hitEffect.coord      = coord;
-    D_actor_503500_80177A6C.hitEffect.spawnArgHi = 3;
+    D_actor_503500_80177A6C.hitEffect.spawnArgHi = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
     D_actor_503500_80177A6C.body.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT);
-    arg0->exitCallback = _actor503500YellowFlashEmitterExit;
-    arg0->state       += 1;
+    _actor503500YellowFlashEmitterEnterState(task, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DORMANT);
+    task->exitCallback = _actor503500YellowFlashEmitterExit;
+    task->state       += 1;
 }
 
 /// One contact record of `func_actor_503500_8013EE5C`'s pass; a `return`
@@ -3710,9 +3757,9 @@ static void func_actor_503500_80141248(Task* arg0)
 /// coordinate's world position to its parent's, with the near control point
 /// offset 1000 units in the root's frame (X mirrored for spawn slots 15 / 16)
 /// and both far control points at the parent plus its rotated `tipPosition`. The
-/// samples land in `linkPoints`, `func_actor_503500_8014176C` re-aims the links along
+/// samples land in `linkPoints`, `_actor503500LungingChainPlaceLinks` re-aims the links along
 /// them, and links 2..8 get a pitch of a fading sine sway plus the scaled rest
-/// pitch before `func_actor_503500_80142220` applies it.
+/// pitch before `_actor503500LungingChainApplyPitch` applies it.
 static void func_actor_503500_80141448(Task* arg0)
 {
     SVECTOR                       ctrl[4];
@@ -3765,7 +3812,7 @@ static void func_actor_503500_80141448(Task* arg0)
         _bezierCurveEvaluate(ctrl, &ctrl[3], ACTOR_503500_LUNGING_CHAIN_PART_COUNT, i, &out[i].vx);
         copyVector(&work->linkPoints[ACTOR_503500_LUNGING_CHAIN_TIP_PART - i], &out[i]);
     }
-    func_actor_503500_8014176C(work->linkPoints, arg0->extra.tmd->coords);
+    _actor503500LungingChainPlaceLinks(work->linkPoints, arg0->extra.tmd->coords);
     for (i = ACTOR_503500_LUNGING_CHAIN_TIP_PART; i >= 2; i--) {
         v                       = ((work->swayAmplitude * work->swayWeight >> 12) * rsin(work->swayPhase[i])) >> 12;
         work->linkAngles[i].vx  = v;
@@ -3774,56 +3821,56 @@ static void func_actor_503500_80141448(Task* arg0)
         work->linkAngles[i].vz  = 0;
         work->swayPhase[i]      = (work->swayPhase[i] + 0x80) & 0xFFF;
     }
-    func_actor_503500_80142220(work->linkAngles, arg0->extra.tmd->coords);
+    _actor503500LungingChainApplyPitch(work->linkAngles, arg0->extra.tmd->coords);
 }
 
-/// Re-aims a chain of eight child coordinates along the polyline `pts[0..8]`.
-/// `worldRotation` starts as the world rotation of the chain root's parent and
-/// accumulates each link's local rotation; the segment `pts[i + 1] - pts[i]` is taken into that
-/// frame, and the resulting direction becomes the next link's basis
-/// (`gfxBuildOrthonormalBasis`, up hint +Y) with the local segment as its
-/// translation. Works in an `Actor503500ChainScratch` on the scratchpad stack.
-static void func_actor_503500_8014176C(SVECTOR* pts, GfxCoord* coords)
+/// Places the lunging chain's eight links along nine world-space points.
+///
+/// `points` and writable `coordinates` each contain the model's nine parts,
+/// root first. Each segment must fit signed halfwords, be nonzero, and not be
+/// parallel to its current frame's +Y hint. The root and its parent chain must
+/// be live; accumulated rotations are assumed orthonormal for transposition.
+/// Borrows scratch-stack storage and changes GTE state; writes local link
+/// matrices without invalidating their composition stamps.
+static void _actor503500LungingChainPlaceLinks(const SVECTOR* points, GfxCoord* coordinates)
 {
-    Actor503500ChainScratch* s;
-    MATRIX*                  inv;
-    SVECTOR*                 dir;
+    Actor503500ChainScratch* scratch;
     s32                      i;
     s32                      j;
 
-    s        = SCRATCH_STACK_RESERVE_BLOCK(Actor503500ChainScratch);
-    s->up.vx = 0;
-    s->up.vy = 0x1000;
-    s->up.vz = 0;
-    gfxComposeNodeWorldTransform(coords->parent, &s->worldRotation, &s->parentTranslation);
-    for (i = 0, j = 1; i < 8; i++, j++) {
-        s->segment.vx = pts[j].vx - pts[i].vx;
-        s->segment.vy = pts[j].vy - pts[i].vy;
-        s->segment.vz = pts[j].vz - pts[i].vz;
-        gte_SetRotMatrix(&s->worldRotation);
-        inv = &s->inverseRotation;
-        dir = &s->direction;
-        gte_ldclmv(&coords[i].coord);
-        gte_rtir();
-        gte_stclmv(&s->worldRotation);
-        gte_ldclmv(&coords[i].coord.m[0][1]);
-        gte_rtir();
-        gte_stclmv(&s->worldRotation.m[0][1]);
-        gte_ldclmv(&coords[i].coord.m[0][2]);
-        gte_rtir();
-        gte_stclmv(&s->worldRotation.m[0][2]);
-        gte_TransposeMatrix(&s->worldRotation, inv);
-        gte_SetRotMatrix(inv);
-        gte_ldv0(&s->segment);
-        gte_rtv0();
-        gte_stlvnl(&s->localSegment);
-        VectorNormalS(&s->localSegment, dir);
-        gfxBuildOrthonormalBasis(&coords[j].coord, dir, &s->up);
-        coords[j].coord.t[0] = s->localSegment.vx;
-        coords[j].coord.t[1] = s->localSegment.vy;
-        coords[j].coord.t[2] = s->localSegment.vz;
+    // Accumulate the link's rotation with the current world rotation already
+    // loaded into the GTE. Arguments are live, halfword-aligned MATRIX pointers
+    // with no side effects: each is evaluated three times. Writes rotation only
+    // and changes GTE arithmetic state. This binding exists only in this walk.
+#define ACTOR_503500_LUNGING_CHAIN_COMPOSE_LINK_ROTATION(linkRotation, worldRotation) \
+    do {                                                                              \
+        gte_ldclmv((linkRotation));                                                   \
+        gte_rtir();                                                                   \
+        gte_stclmv((worldRotation));                                                  \
+        gte_ldclmv(&(linkRotation)->m[0][1]);                                         \
+        gte_rtir();                                                                   \
+        gte_stclmv(&(worldRotation)->m[0][1]);                                        \
+        gte_ldclmv(&(linkRotation)->m[0][2]);                                         \
+        gte_rtir();                                                                   \
+        gte_stclmv(&(worldRotation)->m[0][2]);                                        \
+    } while (0)
+
+    scratch        = SCRATCH_STACK_RESERVE_BLOCK(Actor503500ChainScratch);
+    scratch->up.vx = 0;
+    scratch->up.vy = ONE;
+    scratch->up.vz = 0;
+    gfxComposeNodeWorldTransform(coordinates->parent, &scratch->worldRotation, &scratch->parentTranslation);
+    // Carry the current link's world rotation forward, then undo it for the next segment.
+    for (i = 0, j = 1; i < ACTOR_503500_LUNGING_CHAIN_PART_COUNT - 1; i++, j++) {
+        scratch->segment.vx = points[j].vx - points[i].vx;
+        scratch->segment.vy = points[j].vy - points[i].vy;
+        scratch->segment.vz = points[j].vz - points[i].vz;
+        gte_SetRotMatrix(&scratch->worldRotation);
+        ACTOR_503500_LUNGING_CHAIN_COMPOSE_LINK_ROTATION(&coordinates[i].coord, &scratch->worldRotation);
+        _actor503500LungingChainAimNextLink(scratch, &coordinates[j]);
     }
     SCRATCH_STACK_RELEASE_BLOCK(Actor503500ChainScratch);
+#undef ACTOR_503500_LUNGING_CHAIN_COMPOSE_LINK_ROTATION
 }
 
 #include "../../shared/bezier_curve_evaluate.inc.c"
@@ -4048,23 +4095,25 @@ static void func_actor_503500_801421A8(Task* arg0)
     worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
 }
 
-/// Re-aims coordinate nodes 2..7 of the model: each node's rotation is read
-/// back as Euler angles, its pitch replaced with the caller's per-node angle,
-/// and the matrix rebuilt from the result. The identity splat before
-/// `RotMatrixZYX` clears the node's rotation with five aligned stores, the same
-/// idiom `animationAimHeadAtTask` uses.
-static void func_actor_503500_80142220(SVECTOR* angles, GfxCoord* nodes)
+/// Applies sway and curl pitch to the lunging chain's interior links 2 through 7.
+///
+/// Arrays use model-part indices and provide at least eight elements. Only
+/// `linkAngles[].vx` is read, in 4096ths of a turn. Extracts XYZ Euler angles
+/// from each laid-out basis, replaces X, then rebuilds with the retained ZYX
+/// product; this is not an XYZ round trip. Translation and composition stamps
+/// are retained. The root, first link and tip are unchanged.
+static void _actor503500LungingChainApplyPitch(const SVECTOR* linkAngles, GfxCoord* coordinates)
 {
-    SVECTOR ang;
-    MATRIX* m;
-    s32     i;
+    SVECTOR eulerAngles;
+    MATRIX* rotation;
+    s32     partIndex;
 
-    for (i = 2; i < 8; i++) {
-        m = &nodes[i].coord;
-        gfxExtractSmallestEuler(&ang, m);
-        ang.vx = angles[i].vx;
-        gfxSetRotIdentity(&nodes[i].coord);
-        RotMatrixZYX(&ang, m);
+    for (partIndex = 2; partIndex < ACTOR_503500_LUNGING_CHAIN_TIP_PART; partIndex++) {
+        rotation = &coordinates[partIndex].coord;
+        gfxExtractSmallestEuler(&eulerAngles, rotation);
+        eulerAngles.vx = linkAngles[partIndex].vx;
+        gfxSetRotIdentity(&coordinates[partIndex].coord);
+        RotMatrixZYX(&eulerAngles, rotation);
     }
 }
 
@@ -4105,118 +4154,126 @@ void func_actor_503500_80142370(Task* task)
 /// `Task::state` handlers `func_actor_503500_801442A8` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132178 = {
     {
-        func_actor_503500_801423C8,
+        _actor503500ArmInit,
         func_actor_503500_80143EB4,
         _actor503500ArmExit,
     },
 };
 
-/// State-0 init of the arm at `D_actor_503500_80178AC0.arms[spawnArg1 - 0xA]`:
-/// clears the block, hangs the task's coordinate off the parent part picked by
-/// `D_actor_503500_80171464`, republishes the parent's light and colour
-/// matrices, and links three collision bodies - `body` on the task's own
-/// coordinate, `forearmAttackBody` / `handAttackBody` on parent parts 6 / 7
-/// (side 1) or 12 / 13 (side 0) sharing `attackContacts` - before starting
-/// `ACTOR_503500_ARM_STATE_IDLE`.
-static void func_actor_503500_801423C8(Task* arg0)
+/// Initializes an idle arm with a hidden detached model and three disabled spheres.
+///
+/// Requires slot 10 or 11 in `spawnArg1.value`, its enemy in `spawnArg2.pointer`,
+/// and the boss as parent. Borrows the side's static work and boss lighting.
+/// The target rides boss part 11 or 5; the forearm and hand attack spheres
+/// follow parts 12/13 or 6/7 and share a four-element contact table.
+static void _actor503500ArmInit(Task* task)
 {
+    enum {
+        ACTOR_503500_ARM_SIDE_0_FOREARM_PART = 12,
+        ACTOR_503500_ARM_SIDE_0_HAND_PART    = 13,
+        ACTOR_503500_ARM_SIDE_1_FOREARM_PART = 6,
+        ACTOR_503500_ARM_SIDE_1_HAND_PART    = 7,
+    };
+
     Enemy*                 enemy;
-    TmdObject*             tmd;
+    TmdObject*             model;
     Task*                  parent;
-    s32                    slot;
+    s32                    side;
     _Actor503500ArmWork*   work;
     GfxCoord*              coord;
-    TmdObject*             parentTmd;
-    SVECTOR*               ofs;
-    WorldCollisionContact* rec;
-    GfxCoord*              parts;
-    GfxCoord*              parts2;
+    TmdObject*             bossModel;
+    SVECTOR*               bodyOffset;
+    WorldCollisionContact* contacts;
+    GfxCoord*              forearmCoords;
+    GfxCoord*              handCoords;
 
-    enemy     = arg0->spawnArg2.pointer;
-    tmd       = arg0->extra.tmd;
-    parent    = arg0->parent;
-    slot      = arg0->spawnArg1.value - 0xA;
-    work      = &D_actor_503500_80178AC0.arms[slot];
-    coord     = tmd->coords;
-    parentTmd = parent->extra.tmd;
+    enemy     = task->spawnArg2.pointer;
+    model     = task->extra.tmd;
+    parent    = task->parent;
+    side      = task->spawnArg1.value - ACTOR_503500_SLOT_ARM_0;
+    work      = &D_actor_503500_80178AC0.arms[side];
+    coord     = model->coords;
+    bossModel = parent->extra.tmd;
     memFillBytes(work, 0, sizeof(*work));
-    arg0->work = work;
+    task->work = work;
 
-    coord->parent       = &parent->extra.tmd->coords[D_actor_503500_80171464[slot]];
+    // Keep the detached model hidden while the boss's own limb supplies the pose.
+    coord->parent       = &parent->extra.tmd->coords[D_actor_503500_80171464[side]];
     coord->coord.t[0]   = D_actor_503500_80171478.vx;
     coord->coord.t[1]   = D_actor_503500_80171478.vy;
     coord->coord.t[2]   = D_actor_503500_80171478.vz;
-    work->side          = arg0->spawnArg1.value - 0xA;
-    tmd->lightMtx       = parentTmd->lightMtx;
-    tmd->colorMtx       = parentTmd->colorMtx;
-    tmd->otOffset       = 0x13;
-    tmd->flags         |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    work->side          = task->spawnArg1.value - ACTOR_503500_SLOT_ARM_0;
+    model->lightMtx     = bossModel->lightMtx;
+    model->colorMtx     = bossModel->colorMtx;
+    model->otOffset     = 19;
+    model->flags       |= (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
     enemy->field_4                = &coord->coord;
-    ofs                           = &D_actor_503500_80171480[slot];
+    bodyOffset                    = &D_actor_503500_80171480[side];
     enemy->field_48               = 0;
     enemy->coord                  = coord;
     enemy->node.state.parts.flags = (enemy->node.state.parts.flags | WORLD_TARGET_HIDE_HP) & WORLD_TARGET_NOT_LOCKABLE_CLEAR;
-    enemy->bodyPos.vx             = ofs->vx;
-    enemy->bodyPos.vy             = ofs->vy;
-    enemy->bodyPos.vz             = ofs->vz;
-    rec                           = work->contacts;
-    enemy->param                  = &D_actor_503500_8016E7EC[arg0->spawnArg1.value];
-    enemy->recs                   = rec;
+    enemy->bodyPos.vx             = bodyOffset->vx;
+    enemy->bodyPos.vy             = bodyOffset->vy;
+    enemy->bodyPos.vz             = bodyOffset->vz;
+    contacts                      = work->contacts;
+    enemy->param                  = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+    enemy->recs                   = contacts;
     enemy->hp                     = enemy->param->hpMax;
 
     work->body.coord            = coord;
-    work->body.context.contacts = rec;
-    work->body.pos.vx           = ofs->vx;
-    work->body.pos.vy           = ofs->vy;
-    work->body.pos.vz           = ofs->vz;
-    work->body.key              = 0x30023;
-    work->body.radius           = 0x5DC;
+    work->body.context.contacts = contacts;
+    work->body.pos.vx           = bodyOffset->vx;
+    work->body.pos.vy           = bodyOffset->vy;
+    work->body.pos.vz           = bodyOffset->vz;
+    work->body.key              = ACTOR_503500_PART_BODY_KEY;
+    work->body.radius           = 1500;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
-    worldCollisionInitContacts(rec, ARRAY_SIZE(work->contacts), 0);
+    worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    parts = parent->extra.tmd->coords;
-    if (slot != 0) {
-        work->forearmAttackBody.coord = &parts[6];
+    // Both strike spheres start inactive and feed the same contact table.
+    forearmCoords = parent->extra.tmd->coords;
+    if (side != 0) {
+        work->forearmAttackBody.coord = &forearmCoords[ACTOR_503500_ARM_SIDE_1_FOREARM_PART];
     } else {
-        work->forearmAttackBody.coord = &parts[12];
+        work->forearmAttackBody.coord = &forearmCoords[ACTOR_503500_ARM_SIDE_0_FOREARM_PART];
     }
     work->forearmAttackBody.context.contacts = work->attackContacts;
     work->forearmAttackBody.pos.vx           = 0;
     work->forearmAttackBody.pos.vy           = 0;
     work->forearmAttackBody.pos.vz           = 0;
-    work->forearmAttackBody.key              = 0x30023;
-    work->forearmAttackBody.radius           = 0x320;
+    work->forearmAttackBody.key              = ACTOR_503500_PART_BODY_KEY;
+    work->forearmAttackBody.radius           = 800;
     work->forearmAttackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->forearmAttackBody);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
     work->forearmAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 
-    parts2 = parent->extra.tmd->coords;
-    if (slot != 0) {
-        work->handAttackBody.coord = &parts2[7];
+    handCoords = parent->extra.tmd->coords;
+    if (side != 0) {
+        work->handAttackBody.coord = &handCoords[ACTOR_503500_ARM_SIDE_1_HAND_PART];
     } else {
-        work->handAttackBody.coord = &parts2[13];
+        work->handAttackBody.coord = &handCoords[ACTOR_503500_ARM_SIDE_0_HAND_PART];
     }
     work->handAttackBody.context.contacts = work->attackContacts;
     work->handAttackBody.pos.vx           = 0;
-    work->handAttackBody.pos.vy           = 0x190;
+    work->handAttackBody.pos.vy           = 400;
     work->handAttackBody.pos.vz           = 0;
-    work->handAttackBody.key              = 0x30023;
-    work->handAttackBody.radius           = 0x4B0;
+    work->handAttackBody.key              = ACTOR_503500_PART_BODY_KEY;
+    work->handAttackBody.radius           = 1200;
     work->handAttackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->handAttackBody);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
-    work->hitEffect.spawnArgLo  = 0x600;
+    work->hitEffect.spawnArgLo  = ACTOR_503500_PART_HIT_EFFECT_LOW_ARG;
     work->hitEffect.coord       = coord;
-    work->hitEffect.spawnArgHi  = 3;
+    work->hitEffect.spawnArgHi  = ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG;
     work->handAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_IDLE);
-    arg0->exitCallback = _actor503500ArmExit;
-    arg0->state       += 1;
+    _actor503500ArmEnterState(task, ACTOR_503500_ARM_STATE_IDLE);
+    task->exitCallback = _actor503500ArmExit;
+    task->state       += 1;
 }
 
 /// `ACTOR_503500_ARM_STATE_STRIKE` step of the arm. Step 0 hands the parent
@@ -5021,7 +5078,7 @@ void func_actor_503500_801442A8(Task* task)
 static const TaskFuncTable3 D_actor_503500_801321DC = {
     {
         func_actor_503500_80144300,
-        func_actor_503500_801446E4,
+        _actor503500BallisticShotUpdate,
         _actor503500BallisticShotExit,
     },
 };
@@ -5153,21 +5210,26 @@ static void _actor503500BallisticShotStep(Task* task)
     _actor503500BallisticShotIntegratePosition(work, coord);
 }
 
-static void func_actor_503500_801446E4(Task* arg0)
+/// Reacts to a ballistic shot's contacts and advances its flight or landing burst.
+///
+/// Requires initialized work, coordinate and child effect. Actor controls 1
+/// and 2 pause the whole update, retaining contacts; 0 and values above 2 run.
+/// Marks the coordinate dirty before resolving contacts and moving the shot.
+static void _actor503500BallisticShotUpdate(Task* task)
 {
     GfxCoord* coord;
-    s32       state;
+    s32       actorControl;
 
-    coord = arg0->extra.tmd->coords;
-    state = gSceneCombatState.actorControl;
-    if (state < 3) {
-        if (state != 0) {
+    coord        = task->extra.tmd->coords;
+    actorControl = gSceneCombatState.actorControl;
+    if (actorControl <= SCENE_COMBAT_ACTORS_HIDDEN) {
+        if (actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
             return;
         }
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_actor_503500_80144778(arg0);
-    _actor503500BallisticShotStep(arg0);
+    _actor503500BallisticShotReactToContacts(task);
+    _actor503500BallisticShotStep(task);
 }
 
 /// Unlinks a ballistic shot and releases its task and projectile effect budget.
@@ -5185,36 +5247,44 @@ static void _actor503500BallisticShotExit(Task* task)
     taskKill(task);
 }
 
-static void func_actor_503500_80144778(Task* arg0)
+/// Resolves a ballistic shot's room contacts and latches player-body contact.
+///
+/// Requires initialized work and its four-element contact table. Before
+/// landing, applies signed 16.16 grid pushback or restores the launch position
+/// for opposed faces. After landing, only the player-body scan remains.
+/// Records the grid result for the flight step and empties contacts afterward.
+static void _actor503500BallisticShotReactToContacts(Task* task)
 {
-    WorldCollisionDelta            delta;
+    WorldCollisionDelta            pushback;
     _Actor503500BallisticShotWork* work;
     WorldCollisionContact*         contacts;
-    s32                            result;
-    s32                            i;
+    s32                            pushbackResult;
+    s32                            contactIndex;
 
-    work     = arg0->work;
+    work     = task->work;
     contacts = work->contacts;
     if (work->landed == 0) {
-        result                  = worldCollisionResolvePushback(contacts, &delta, ARRAY_SIZE(work->contacts), NULL);
-        work->gridContactResult = result;
-        switch (result) {
-            case 0:
+        // Apply a correction once; opposed geometry sends the shot back to launch.
+        pushbackResult          = worldCollisionResolvePushback(contacts, &pushback, ARRAY_SIZE(work->contacts), NULL);
+        work->gridContactResult = pushbackResult;
+        switch (pushbackResult) {
+            case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
                 break;
-            case 1:
-                work->position.fixed.vx.word += delta.fixed.vx.word;
-                work->position.fixed.vy.word += delta.fixed.vy.word;
-                work->position.fixed.vz.word += delta.fixed.vz.word;
+            case WORLD_COLLISION_PUSHBACK_GRID_HIT:
+                work->position.fixed.vx.word += pushback.fixed.vx.word;
+                work->position.fixed.vy.word += pushback.fixed.vy.word;
+                work->position.fixed.vz.word += pushback.fixed.vz.word;
                 break;
-            case 2:
+            case WORLD_COLLISION_PUSHBACK_OPPOSED:
                 work->position.fixed.vx.word = work->launchPosition.fixed.vx.word;
                 work->position.fixed.vy.word = work->launchPosition.fixed.vy.word;
                 work->position.fixed.vz.word = work->launchPosition.fixed.vz.word;
                 break;
         }
     }
-    for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
-        if ((contacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000) {
+    // Any player or companion body cuts the shot short on its next phase step.
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->contacts); contactIndex++) {
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
             work->touchedPlayer = 1;
         }
     }
@@ -5233,8 +5303,8 @@ void func_actor_503500_80144890(Task* task)
 static const TaskFuncTable3 D_actor_503500_801321E8 = {
     {
         func_actor_503500_801448E8,
-        func_actor_503500_80144D50,
-        func_actor_503500_80144DA8,
+        _actor503500LingeringShotUpdate,
+        _actor503500LingeringShotExit,
     },
 };
 
@@ -5294,102 +5364,148 @@ static void func_actor_503500_801448E8(Task* arg0)
         sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7), pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     }
     if (eff == NULL) {
-        func_actor_503500_80144DA8(arg0);
+        _actor503500LingeringShotExit(arg0);
         return;
     }
     child            = eff->task;
     work->effectTask = child;
     taskReparent(arg0, child);
     actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_LINGERING);
-    arg0->exitCallback = func_actor_503500_80144DA8;
+    arg0->exitCallback = _actor503500LingeringShotExit;
     arg0->state       += 1;
 }
 
-static void func_actor_503500_80144B40(Task* arg0)
+/// Advances a lingering shot's deceleration, lingering interval and world position.
+///
+/// Requires initialized work, coordinate and live child effect. Kind 0 is a
+/// large orb, kind 1 a projectile; `spawnArg1.value` indexes a two-entry frame
+/// limit table. Position and speed are signed 16.16. Each update moves twice
+/// along local Z, rises one world unit, and clamps X to 2000..14000 and Z to
+/// 1000..13000. Residual speed remains after the slowing phase. The linger
+/// ends only after its count exceeds the kind's limit; a later update exits.
+static void _actor503500LingeringShotStep(Task* task)
 {
+    enum {
+        ACTOR_503500_LINGERING_SHOT_SPEED_DECAY      = 8 * 0x10000,
+        ACTOR_503500_LINGERING_SHOT_RISE             = 0x10000,
+        ACTOR_503500_LINGERING_SHOT_EFFECT_PARTICLES = 2,
+        ACTOR_503500_LINGERING_SHOT_MIN_X            = 2000 * 0x10000,
+        ACTOR_503500_LINGERING_SHOT_MAX_X            = 14000 * 0x10000,
+        ACTOR_503500_LINGERING_SHOT_MIN_Z            = 1000 * 0x10000,
+        ACTOR_503500_LINGERING_SHOT_MAX_Z            = 13000 * 0x10000,
+    };
+
     _Actor503500LingeringShotWork* work;
     GfxCoord*                      coord;
-    VECTOR                         v;
+    VECTOR                         step;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
     switch (work->phase) {
         case ACTOR_503500_LINGERING_SHOT_SLOWING:
-            work->speed -= 0x80000;
-            if (work->speed < 0x80000) {
-                work->effectTask->spawnArg1.value = 2;
+            // Shed speed, then leave the visual in its particle-only mode.
+            work->speed -= ACTOR_503500_LINGERING_SHOT_SPEED_DECAY;
+            if (work->speed < ACTOR_503500_LINGERING_SHOT_SPEED_DECAY) {
+                work->effectTask->spawnArg1.value = ACTOR_503500_LINGERING_SHOT_EFFECT_PARTICLES;
                 work->phase++;
             }
             break;
         case ACTOR_503500_LINGERING_SHOT_LINGERING:
+            // Keep the sphere live through the kind's interval, then stop pair tests.
             work->lingerFrames++;
-            if (D_actor_503500_801715BC[arg0->spawnArg1.value] < work->lingerFrames) {
+            if (D_actor_503500_801715BC[task->spawnArg1.value] < work->lingerFrames) {
                 work->lingerFrames = 0;
                 work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->phase++;
             }
             break;
         default:
-            arg0->state++;
+            task->state++;
             break;
     }
-    v.vx = 0;
-    v.vy = 0;
-    v.vz = work->speed;
-    ApplyMatrixLV(&coord->coord, &v, &v);
-    work->position.vx += v.vx;
-    work->position.vy += v.vy - 0x10000;
-    work->position.vz += v.vz;
-    work->position.vx += v.vx;
-    work->position.vy += v.vy;
-    work->position.vz += v.vz;
-    if (work->position.vx > 0x36B00000) {
-        work->position.vx = 0x36B00000;
-    } else if (work->position.vx < 0x7D00000) {
-        work->position.vx = 0x7D00000;
+    // Retain both forward steps and the single rise, including on the exit update.
+    step.vx = 0;
+    step.vy = 0;
+    step.vz = work->speed;
+    ApplyMatrixLV(&coord->coord, &step, &step);
+    work->position.vx += step.vx;
+    work->position.vy += step.vy - ACTOR_503500_LINGERING_SHOT_RISE;
+    work->position.vz += step.vz;
+    work->position.vx += step.vx;
+    work->position.vy += step.vy;
+    work->position.vz += step.vz;
+    // Hold the lingering hazard inside the encounter's ground-plane rectangle.
+    if (work->position.vx > ACTOR_503500_LINGERING_SHOT_MAX_X) {
+        work->position.vx = ACTOR_503500_LINGERING_SHOT_MAX_X;
+    } else if (work->position.vx < ACTOR_503500_LINGERING_SHOT_MIN_X) {
+        work->position.vx = ACTOR_503500_LINGERING_SHOT_MIN_X;
     }
-    if (work->position.vz > 0x32C80000) {
-        work->position.vz = 0x32C80000;
-    } else if (work->position.vz < 0x3E80000) {
-        work->position.vz = 0x3E80000;
+    if (work->position.vz > ACTOR_503500_LINGERING_SHOT_MAX_Z) {
+        work->position.vz = ACTOR_503500_LINGERING_SHOT_MAX_Z;
+    } else if (work->position.vz < ACTOR_503500_LINGERING_SHOT_MIN_Z) {
+        work->position.vz = ACTOR_503500_LINGERING_SHOT_MIN_Z;
     }
     coord->coord.t[0] = work->position.vx >> 16;
     coord->coord.t[1] = work->position.vy >> 16;
     coord->coord.t[2] = work->position.vz >> 16;
 }
 
-static void func_actor_503500_80144D50(Task* arg0)
+/// Clears a lingering shot's contacts and advances its phase and movement.
+///
+/// Requires initialized work, coordinate and child effect. Actor controls 1
+/// and 2 pause the whole update, retaining contacts; 0 and values above 2 run.
+/// The shot delivers attacks but does not react to its own contact records.
+static void _actor503500LingeringShotUpdate(Task* task)
 {
     GfxCoord* coord;
-    s32       state;
+    s32       actorControl;
 
-    coord = arg0->extra.tmd->coords;
-    state = gSceneCombatState.actorControl;
-    if (state < 3) {
-        if (state != 0) {
+    coord        = task->extra.tmd->coords;
+    actorControl = gSceneCombatState.actorControl;
+    if (actorControl <= SCENE_COMBAT_ACTORS_HIDDEN) {
+        if (actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
             return;
         }
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    func_actor_503500_80144E10(arg0);
-    func_actor_503500_80144B40(arg0);
+    _actor503500LingeringShotClearContacts(task);
+    _actor503500LingeringShotStep(task);
 }
 
-static void func_actor_503500_80144DA8(Task* arg0)
+/// Releases a lingering shot's effect budget, sound, collision body and task.
+///
+/// Requires allocated work and a linked sphere. Kind 0 stops the large-orb
+/// sound; other values stop the projectile sound, preserving their release
+/// phases. Generic teardown frees work and exits the child effect. The effect
+/// creation failure path calls this before acquiring its budget cost; that
+/// subtraction is retained.
+static void _actor503500LingeringShotExit(Task* task)
 {
+    enum {
+        ACTOR_503500_LINGERING_SHOT_LARGE_ORB_KIND   = 0,
+        ACTOR_503500_LINGERING_SHOT_LARGE_ORB_SOUND  = SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 8),
+        ACTOR_503500_LINGERING_SHOT_PROJECTILE_SOUND = SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7),
+    };
+    _Actor503500LingeringShotWork* work;
+
     actor503500ReleaseProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_LINGERING);
-    if (arg0->spawnArg1.value == 0) {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 8), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    if (task->spawnArg1.value == ACTOR_503500_LINGERING_SHOT_LARGE_ORB_KIND) {
+        sndEvtRequestScriptStop(ACTOR_503500_LINGERING_SHOT_LARGE_ORB_SOUND, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     } else {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStop(ACTOR_503500_LINGERING_SHOT_PROJECTILE_SOUND, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
-    worldCollisionUnlinkBody(&((_Actor503500LingeringShotWork*)arg0->work)->body);
-    taskKill(arg0);
+    work = task->work;
+    worldCollisionUnlinkBody(&work->body);
+    taskKill(task);
 }
 
-static void func_actor_503500_80144E10(Task* arg0)
+/// Empties the initialized lingering shot's contact table without reacting to it.
+static void _actor503500LingeringShotClearContacts(Task* task)
 {
-    worldCollisionClearContacts(((_Actor503500LingeringShotWork*)arg0->work)->contacts);
+    _Actor503500LingeringShotWork* work;
+
+    work = task->work;
+    worldCollisionClearContacts(work->contacts);
 }
 
 void func_actor_503500_80144E34(Task* task)

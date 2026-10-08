@@ -2746,7 +2746,7 @@ static const TaskFuncTable3 D_actor_503500_80131F4C = {
 };
 
 /// State-0 init of the pink-flash emitter, built like
-/// `func_actor_503500_8013BEE4`: clears the work block, hangs the task's
+/// `_actor503500RearPartInit`: clears the work block, hangs the task's
 /// coordinate off part 8 of the parent's model, republishes the parent's light
 /// and colour matrices, links the enemy node and the block's target sphere,
 /// and starts the emitter in `ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE`.
@@ -4102,7 +4102,7 @@ static void func_actor_503500_8013A0D0(Task* arg0)
     work->pulsePhase = (work->pulsePhase + 0x80) & 0xFFF;
 }
 
-/// Scaled variant of `func_actor_503500_8014176C`: re-aims the eight child
+/// Scaled variant of `_actor503500LungingChainPlaceLinks`: re-aims the eight child
 /// coordinates along `pts[0..8]`, normalising each basis with `MatrixNormal`,
 /// and from the second link on sets the translation to the local segment
 /// scaled by `0x1000 + rsin(phase) / 64` (a 1/64 pulse).

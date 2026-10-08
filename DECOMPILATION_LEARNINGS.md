@@ -64928,7 +64928,7 @@ shorten and nothing to split, only two statements to reorder.
 
 ## A `u8` global compared in place gives `sltiu`; copy it into an `s32` local for `slti`
 
-`func_actor_503500_801446E4` gates its body on the frozen-mode byte
+`_actor503500BallisticShotUpdate` gates its body on the frozen-mode byte
 `D_801153F4` (`extern u8`). The target loads it with `lbu` and then compares it
 *signed*:
 
@@ -64948,11 +64948,11 @@ insn, combine no longer has the extension and the comparison together, and the
 signed form survives:
 
 ```c
-s32 state;
+s32 actorControl;
 
-state = D_801153F4;
-if (state < 3) {
-    if (state != 0) {
+actorControl = gSceneCombatState.actorControl;
+if (actorControl <= SCENE_COMBAT_ACTORS_HIDDEN) {
+    if (actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
 }
@@ -68673,7 +68673,7 @@ jal  sndEvtRequestScriptStop
  li  a1, 1
 ```
 
-`func_actor_503500_80144DA8`, 89.6% -> 100% in one attempt. Same lever as
+`_actor503500LingeringShotExit`, 89.6% -> 100% in one attempt. Same lever as
 "Duplicate the shared store in both arms", but note the diagnosis differs: the
 `nop` in the branch delay slot is the tell that the arms were never collapsed,
 because a hoisted single-set arm always leaves something to fill that slot.
@@ -68925,7 +68925,7 @@ if (state < 3) {
 The assignment is a real `int` variable, so there is no conversion for `fold`
 to narrow and the compare stays `slti`; the `lbu` still feeds it directly. This
 is the house idiom across the actor overlays (`actors_shared_801342a4`,
-`func_actor_503500_801446E4`), and it is why so many of them open with
+`_actor503500BallisticShotUpdate`), and it is why so many of them open with
 `state = D_801153F4;` rather than testing the global in place.
 
 The nested `if`s are the separate-statement trick from "Two bounds on one
@@ -69033,7 +69033,7 @@ invisible to it.
 
 ## A bare `move rD,rS` in front of a load is a field read back after an intervening store
 
-`func_actor_503500_8013ECBC` seeds a `Enemy` from a parameter table. The
+`_actor503500YellowFlashEmitterInit` seeds a `Enemy` from a parameter table. The
 target reads the row pointer back out of the field it had just written:
 
 ```
@@ -69055,8 +69055,8 @@ cannot disambiguate, and it does not disambiguate two MEMs whose base is a
 register loaded from memory, even at different constant offsets. So
 
 ```c
-enemy->param = &D_actor_503500_8016E7EC[arg0->spawnArg1];
-enemy->recs = (s32)rec;
+enemy->param = &D_actor_503500_8016E7EC[task->spawnArg1.value];
+enemy->recs = contacts;
 enemy->hp = enemy->param->hpMax;
 ```
 
@@ -69113,8 +69113,8 @@ offsets are free to swap.
 
 ## A store between a struct write and its read-back is what leaves the redundant `move`
 
-`func_actor_503500_8013BEE4` writes a pointer into `Enemy::param` and then
-reads it straight back to seed `field_40`. The target spends an extra
+`_actor503500RearPartInit` writes a pointer into `Enemy::param` and then
+reads it straight back to seed `hp`. The target spends an extra
 instruction on it:
 
 ```
@@ -69167,7 +69167,7 @@ scheduler may reorder them, but which one the *source* writes first still
 changes whether a following read-back is folded away. Do not add the `move` by
 hand and do not accept the folded form as equivalent: pick the order that
 reproduces it, which is usually whatever an already-matched sibling in the same
-overlay used (`func_actor_503500_8013ECBC` here).
+overlay used (`_actor503500YellowFlashEmitterInit` here).
 
 ## A struct member array that is also a call argument is a pointer local
 
@@ -69591,16 +69591,16 @@ base_9 `b370a101d7f595a64bf9ae7708817be640bfea7821d674fa68bbf5330702fdf3`.
 
 ### A pointer held across one call loses its register to an index-derived pointer; assign it just before the call
 
-`func_actor_503500_8013CAE4` sat at 99.15% with only `s2`/`s3` swapped between
+`_actor503500ChainBaseInit` sat at 99.15% with only `s2`/`s3` swapped between
 `parent` (loaded in the prologue, read once after `memFillBytes`) and the
-`idx`→`idx<<3`→`pos = &Table[idx]` chain. That chain is one local quantity:
+`slot`→`slot<<3`→`bodyOffset = &Table[slot]` chain. That chain is one local quantity:
 each step's input dies in the insn that sets the next, so `combine_regs` ties
 all three (`trace_gcc.py`: `q1 [88, 99, 89] refs=14 span=130 priority=3230`).
 `parent` is a 2-reference quantity, `priority = 20000 / span`, and at
 `span=8` (4 insns between its load and the post-call use) it scored 2500 and
 ranked below the chain.
 
-Moving `parent = index->parent;` from the top of the prologue to the line
+Moving `parent = task->parent;` from the top of the prologue to the line
 before `memFillBytes` put its sched1 load one insn later (`span=6`, 3333) and
 matched. sched2 still hoists the `lw` to third place in the final asm, so the
 target listing shows it *early* even though the source assigns it late.
@@ -70010,29 +70010,30 @@ narrows `(short)-(int)x` into an HImode negate, while the target sign-extends
 first (`sll/sra/negu`, and `lh` rather than `lhu` for a stack field). Going
 through an `s32 t = vec.vx; vec.vx = -t;` keeps the negate in SImode.
 
-## `pts[i + 1]` is not a giv when `pts` is a register: use a second index `j`
+## `points[i + 1]` is not a giv when `points` is a register: use a second index `j`
 
-`func_actor_503500_8014176C` walks `pts[i]`/`pts[i + 1]` and `coords[i]`/`coords[i + 1]`.
+`_actor503500LungingChainPlaceLinks` walks `points[i]`/`points[i + 1]` and `coordinates[i]`/`coordinates[i + 1]`.
 The target keeps four walking pointers (`s1`, `s4 = s1 + 8`, `s0`, `s3 = s0 + 0x50`)
 with plain `0/2/4` offsets, plus the counter `i`.
 
-- `pts[1] - pts[0]` with `pts++`: the `+2`/`+4` address givs combine and get
-  reduced into an odd `pts + 4` register.
-- `pts[i + 1]`: `simplify_giv_expr` folds `pts + 8i + 8` to `(a + reg) + const`,
+- `points[1] - points[0]` with `points++`: the `+2`/`+4` address givs combine and get
+  reduced into an odd `points + 4` register.
+- `points[i + 1]`: `simplify_giv_expr` folds `points + 8i + 8` to `(a + reg) + const`,
   and summing two invariants is allowed only when both are constants (`loop.c`,
-  PLUS/PLUS case). So it is **not a giv** and gets recomputed from `pts + 8i`.
-- A `next = pts + 1` base before the loop with `next[i]` does reduce, but the
+  PLUS/PLUS case). So it is **not a giv** and gets recomputed from `points + 8i`.
+- A `next = points + 1` base before the loop with `next[i]` does reduce, but the
   reduced increments all sit *before* `i++`.
-- **`for (i = 0, j = 1; i < 8; i++, j++)` with `pts[j]` / `coords[j]` matched.**
+- **`for (i = 0, j = 1; i < 8; i++, j++)` with `points[j]` / `coordinates[j]` matched.**
   The `j` givs increment after `i++` (target tail: `parent+, cur+, i+, next+`),
   and `j` itself is eliminated.
 
-In the same function, an explicit pointer set *inside* the loop body right after
-the first use of a hoisted struct-field address (`inv = &s->inv; dir = &s->dir;`
-after `gte_SetRotMatrix(&s->world)`) is hoisted as a movable in that order. That
+In the same walk, the explicit pointers in the inlined
+`_actor503500LungingChainAimNextLink` (`inverseRotation = &scratch->inverseRotation; direction = &scratch->direction;`)
+are hoisted as movables in that order after the first use of
+`scratch->worldRotation`. That
 reproduced the target's preheader sched order, where pre-loop assignments did not.
-It also kept `inv` at 5 refs, so global allocation ordered it below `i` and `dir`.
-A row-split transpose (three asm statements) also got `inv` hoisted, but at 9 refs it
+It also kept `inverseRotation` at 5 refs, so global allocation ordered it below `i` and `direction`.
+A row-split transpose (three asm statements) also got `inverseRotation` hoisted, but at 9 refs it
 outranked `i` and took the wrong `$s` register.
 
 ### Entry `lw $v0` + `move $sN, $v0` for a pointer local: load it through the chain first
@@ -115662,7 +115663,7 @@ switch (movement) {
 }
 ```
 
-`func_actor_503500_80144778` and `Actor00700_Fn02414` in this same family write their switches this
+`_actor503500BallisticShotReactToContacts` and `Actor00700_Fn02414` in this same family write their switches this
 way (`case 0: break;` first), which is the sibling evidence to check first.
 
 ## One temp for a value both arms store makes it callee-saved; writing the store in each arm cross-jumps it back to `$v0` (func_actor_107000_8013777C, 2026-09-16)
