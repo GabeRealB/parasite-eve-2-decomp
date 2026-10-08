@@ -937,6 +937,10 @@ Task* D_dryfield_water_tank_80188D50;
 enum { DRYFIELD_WATER_TANK_MECHANISM_CAP_COMMAND = 14 };
 
 /// Returns player control and the saved view after a declined mechanism prompt.
+///
+/// Requires the live player and the view latched by the singleton prompt.
+/// Clears the event/HUD holds, resumes scene actors and selects automatic
+/// player drawing; restoring the byte view does not request a resource reload.
 static inline void _dryfieldWaterTankRestorePlayerAfterPrompt(void)
 {
     gGameSession->eventState                                   = 0;
@@ -1234,8 +1238,11 @@ static s32 _dryfieldWaterTankStepPropSlide(Task* task)
 
 /// Allocates the scene prop's work and binds its model to the driver's lifetime.
 ///
-/// The driver's published task and the prop's TMD body must be live. The model
-/// borrows the work's lighting matrices; teardown releases work and body together.
+/// The driver's published task and the prop's TMD body must be live. Owns a
+/// zeroed primary-heap work block and primitive buffers; the model borrows the
+/// work's lighting matrices. Parents the prop beneath the driver for teardown
+/// and the model root beneath the view for drawing. Work-allocation failure
+/// kills the prop and returns; the caller retains its subsequent state update.
 static inline void _dryfieldWaterTankInitPropModel(Task* task)
 {
     TmdObject*                       initialModel;
@@ -1290,12 +1297,14 @@ void dryfieldWaterTankPropTask(Task* task)
 
 /// Hides the player, reveals the prop and sends its restart-and-slide command.
 ///
-/// Both tasks and prop work must be live; only ActorCommand.command is consumed.
-static inline void _dryfieldWaterTankStartPropSlide(_DryfieldWaterTankPropSceneWork* work)
+/// Borrows the driver's work and both live tasks. Draw mode 0 hides the player
+/// and allocates its buffers; mode 1 shows the prop. The synchronous restart handler
+/// reads only `ActorCommand.command`, so the remaining stack bytes are unused.
+static inline void _dryfieldWaterTankStartPropSlide(const _DryfieldWaterTankPropSceneWork* work)
 {
     ActorCommand slideCommand;
 
-    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, false, 0);
+    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE, 0);
     taskMessageDispatch(work->propTask, ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
     slideCommand.command = DRYFIELD_WATER_TANK_PROP_STATE_SLIDING;
     TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_COMMAND_MESSAGE_APPLY, &slideCommand, 0);

@@ -650,11 +650,14 @@ static s32 _mineRefugeResolveRoomEventMsg(Task* task, s32 messageId, RoomEventMs
 /// Saves the live view for the prompt task before starting CAP command 13.
 /// The room permits only one outstanding prompt; its task restores play or
 /// hands the saved view to the cutscene runner after CAP completes.
+/// Requires loaded CAP, sound and task records and a live player. Failed prompt
+/// allocation leaves the view changed and the player held and hidden.
 static inline void _mineRefugeStartCutscenePrompt(void)
 {
     enum {
-        MINE_REFUGE_CAP_PROMPT  = 0xD,
-        MINE_REFUGE_TASK_PROMPT = 1,
+        MINE_REFUGE_CAP_PROMPT         = 0xD,
+        MINE_REFUGE_TASK_PROMPT        = 1,
+        MINE_REFUGE_PROMPT_START_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3),
     };
     u8 savedView;
 
@@ -663,7 +666,7 @@ static inline void _mineRefugeStartCutscenePrompt(void)
     savedView                                                  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = MINE_REFUGE_CUTSCENE_VIEW;
     D_mine_refuge_80182ADC[0]                                  = savedView;
-    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_REFUGE, 3), 0, 0);
+    sndEvtRequestScriptStart(MINE_REFUGE_PROMPT_START_SOUND, 0, 0);
     capRunCommand(MINE_REFUGE_CAP_PROMPT, CAP_PLAYBACK_IN_PLACE);
     taskSpawnFromTable(D_mine_refuge_801818B4, MINE_REFUGE_TASK_PROMPT, 0, 0);
 }

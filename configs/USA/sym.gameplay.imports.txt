@@ -1737,7 +1737,7 @@ dryfieldMotelRoom6PlayerReflectionTask = 0x80181184; // type:func absolute:True 
 
 dryfieldNightMotelRoom6PlayerReflectionTask = 0x801811A0; // type:func absolute:True owner=dryfield_night_motel_room_6
 
-func_acropolis_fountain_8017DA78 = 0x8017DA78; // type:func absolute:True owner=acropolis_fountain
+acropolisFountainStartClimb = 0x8017DA78; // type:func absolute:True owner=acropolis_fountain
 
 func_acropolis_helicopter_landing_pad_8017EF60 = 0x8017EF60; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
@@ -1751,7 +1751,7 @@ D_shelter_b1_underground_parking_801871F0 = 0x801871F0; // absolute:True owner=s
 
 func_acropolis_west_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 
-func_acropolis_fountain_8017E014 = 0x8017E014; // type:func absolute:True owner=acropolis_fountain
+acropolisFountainViewEffectsTask = 0x8017E014; // type:func absolute:True owner=acropolis_fountain
 
 neoArkSubstationDrawLightGlowsTask = 0x8017D874; // type:func absolute:True owner=neo_ark_substation
 

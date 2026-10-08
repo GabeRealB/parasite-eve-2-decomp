@@ -461,10 +461,12 @@ static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task)
 
 /// Advances one prize's announcement in the variant-1 shop conversation.
 ///
-/// Requires a live talk and its cleared singleton work, with course index 0..4.
+/// Borrows the live talk and its singleton work. Requires course index 0..4
+/// and timer 1..10, initialized to index 0/timer 10 before the first turn.
 /// CAP playback pauses the cursor. Each course gets ten idle callback ticks;
 /// a waiting prize is captioned halfway, and an unavailable placed prize closes
-/// its flag at the end. The fifth completed turn advances the talk's state.
+/// its flag at the end. The fifth completed turn leaves index 5/timer 10 and
+/// advances the talk's state; the caller must then stop using this helper.
 static inline void _mistParkingAdvanceShopPrizeAnnouncement(Task* task, MistParkingShopTalkState* talk)
 {
     s16 courseIndex;

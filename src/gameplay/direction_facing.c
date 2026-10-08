@@ -195,7 +195,7 @@ void directionDispatchCapInteraction(void)
 
 void Gp_RunDirAction(void)
 {
-    void (*fns[2])(s32, s32) = { func_acropolis_fountain_8017DA78, func_acropolis_helicopter_landing_pad_8017EF60 };
+    void (*fns[2])(s32, s32) = { acropolisFountainStartClimb, func_acropolis_helicopter_landing_pad_8017EF60 };
 
     if (gGameSession->eventState != 0) {
         D_80114CF8      = 0;

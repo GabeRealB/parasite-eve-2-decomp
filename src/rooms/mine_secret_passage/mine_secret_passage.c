@@ -52,7 +52,10 @@ RoomEventMsg D_mine_secret_passage_80183448;
 
 /// Starts the persistent subtractive departure fade and exit-transit sound.
 ///
-/// The room's fade storage must stay live while the resident fade task uses it.
+/// Borrows the room's writable fade record through departure. Its thirty-frame
+/// ramp darkens to black and holds until the reload tears down the fade task;
+/// this path never requests a return ramp. Only one departure may use the
+/// record at a time. Fade-task and sound-queue failures are ignored.
 static inline void _mineSecretPassageStartDepartureFade(void)
 {
     enum {

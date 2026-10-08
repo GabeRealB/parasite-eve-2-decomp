@@ -786,10 +786,12 @@ extern u8* D_mist_parking_8018DF24[4];
 
 /// Advances one course prize's announcement while CAP is idle.
 ///
-/// Borrows the cleared, shared cursor and a live talk in its announcement state.
-/// Courses 0..4 each get ten idle ticks; waiting prizes start their caption at five ticks left.
-/// At the end of a turn, an unavailable placed prize closes its saved prize flag.
-/// Completing the fifth turn advances the talk; CAP playback pauses the cursor.
+/// Borrows the singleton cursor and a live talk in its announcement state.
+/// Requires course index 0..4 and timer 1..10, initialized to index 0/timer 10
+/// before the first turn. Waiting prizes start their caption at five ticks left.
+/// At zero, an unavailable placed prize closes its saved prize flag and the
+/// cursor resets to ten ticks. Finishing course 4 leaves index 5 and advances
+/// the talk, which must stop calling this helper. CAP playback pauses the timer.
 static inline void _mistParkingAdvancePrizeAnnouncement(Task* task, MistParkingPrizeAnnouncementState* announcement)
 {
     s16 announcementCourse;

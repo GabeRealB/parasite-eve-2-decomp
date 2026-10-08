@@ -573,7 +573,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallPointTileTask, { NULL } },                                 // 0x023
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityChargeEffectTask, { NULL } },                                          // 0x024
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallLightGlowTask, { NULL } },                                 // 0x025
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_fountain_8017E014, { NULL } },                                       // 0x026
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisFountainViewEffectsTask, { NULL } },                                       // 0x026
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_observatory_8017E6F8, { NULL } },                                    // 0x027
     { { { TASK_BODY_COORD, 0x70 } }, acropolisObservatoryAmbientGlowTask, { NULL } },                                    // 0x028
     { { { TASK_BODY_COORD, 0x70 } }, m4a1HammerGlowTask, { NULL } },                                                     // 0x029

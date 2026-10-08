@@ -38,9 +38,24 @@ extern WorldCollisionSurfaceProperties* D_acropolis_fountain_80183B90[];
 /// consumes a packet even when projected depth (SZ3 / 4) is below 17.
 void acropolisFountainSprayTask(Task* task);
 
-void func_acropolis_fountain_8017DA78(s32 unused0, s32 unused1);
+/// Queues the player's fountain climb from the direction-action dispatch.
+///
+/// Both callback arguments are ignored. Requires the loaded fountain overlay
+/// and live player through climb completion. Task-allocation failure is ignored.
+void acropolisFountainStartClimb(s32 unusedActionId, s32 unusedControl);
 
-void func_acropolis_fountain_8017E014(Task* task);
+/// Spawns the fountain spray and replaces its movie task when the mapped view changes.
+///
+/// Effect-bank entry 0x026 starts in state 0 with a live coordinate body and
+/// effect-owned `EffectWork` in `spawnArg2.pointer`. Its `scale` halfword latches
+/// the 1-based mapped camera index, 1..22 for this room. Indices 2..8 and 17
+/// start the movie; changing away from any of them queues its stop callback,
+/// then starts the new view on the next update. Logical views sharing an index
+/// do not restart it. The task draws nothing and has no task-work allocation.
+/// Requires loaded room/view/movie resources. Only one controller may run,
+/// and each queued stop requires the published movie-task handle still live.
+/// Spawn failures are unchecked and the stop callback leaves that handle set.
+void acropolisFountainViewEffectsTask(Task* task);
 
 /// Runs the player's turn, one-step ascent and walk to the room's fixed destination.
 ///

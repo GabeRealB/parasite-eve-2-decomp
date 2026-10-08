@@ -977,6 +977,7 @@ void mistParkingTelephoneMenuTask(Task* task)
 /// Borrows the room's singleton cutscene record until playback completes.
 /// The loaded view/CAP/sound resources and parking overlay must stay live;
 /// both warp selectors change even if the task cannot be allocated.
+/// Requires exclusive use of the record until the queued task finishes.
 static inline void _mistParkingStartCommandCutscene(void)
 {
     enum {
@@ -987,14 +988,14 @@ static inline void _mistParkingStartCommandCutscene(void)
         MIST_PARKING_CUTSCENE_CAP_FILE    = 3,
         MIST_PARKING_CUTSCENE_PLAY        = 0,
         MIST_PARKING_CUTSCENE_WARP        = 2,
-        MIST_PARKING_CUTSCENE_START_SOUND = 0x51130003,
-        MIST_PARKING_CUTSCENE_END_SOUND   = 0x51130004,
-        MIST_PARKING_CUTSCENE_SCENE_SOUND = 0x5113000B,
-        MIST_PARKING_CUTSCENE_AFTER_SOUND = 0x51130012
+        MIST_PARKING_CUTSCENE_START_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 3),
+        MIST_PARKING_CUTSCENE_END_SOUND   = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 4),
+        MIST_PARKING_CUTSCENE_SCENE_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0xB),
+        MIST_PARKING_CUTSCENE_AFTER_SOUND = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0x12)
     };
     GameSession* session;
 
-    // Publish the complete cutscene record before queuing its task.
+    // Configure playback before queuing the task that borrows the record.
     D_mist_parking_8019533C.view            = MIST_PARKING_CUTSCENE_VIEW;
     D_mist_parking_8019533C.capSlot         = MIST_PARKING_CUTSCENE_CAP_SLOT;
     D_mist_parking_8019533C.capFile         = MIST_PARKING_CUTSCENE_CAP_FILE;

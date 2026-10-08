@@ -1162,8 +1162,11 @@ void neoArkShrineSecondFallingPropTask(Task* task)
 
 /// Binds the puzzle's work and cursor, selects its view and acquires presentation.
 ///
-/// The controller adopts the zeroed primary-heap allocation. The independent
-/// port-0 cursor is retained for explicit teardown; its spawn failure is unchecked.
+/// Requires controller state 0 and a fresh, zeroed primary-heap work block.
+/// The controller adopts the allocation and enters cursor setup. The independent
+/// port-0 cursor is retained in spawnArg2 for explicit teardown, without task
+/// reparenting; its spawn failure is unchecked. The room records and work stay
+/// live through puzzle closing, which releases the acquired display hold.
 static inline void _neoArkShrineBeginPuzzleSession(Task* task, NeoArkShrinePuzzleWork* work)
 {
     enum { NEO_ARK_SHRINE_PUZZLE_VIEW          = 11,

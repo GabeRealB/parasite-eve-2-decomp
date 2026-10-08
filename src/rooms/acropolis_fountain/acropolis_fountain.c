@@ -31,11 +31,11 @@ static const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
     { _acropolisFountainInitializeRoomTask, _acropolisFountainIdleRoomTask, taskKill },
 };
 
-static s32 _acropolisFountainResolveTransitionMessage(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-static s32 _acropolisFountainRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
-static s32 _acropolisFountainHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
-static s32 _acropolisFountainHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
-void       func_acropolis_fountain_8017D868(Task*);
+static s32  _acropolisFountainResolveTransitionMessage(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _acropolisFountainRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _acropolisFountainHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
+static s32  _acropolisFountainHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
+static void _acropolisFountainPatioDepartureTask(Task* task);
 
 TaskMessageEntry D_acropolis_fountain_8017E764[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisFountainResolveTransitionMessage },
@@ -46,7 +46,7 @@ TaskMessageEntry D_acropolis_fountain_8017E764[5] = {
 };
 
 TaskDesc D_acropolis_fountain_8017E78C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_fountain_8017D868, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisFountainPatioDepartureTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -166,29 +166,56 @@ static s32 _acropolisFountainHandleSoundCue(Task* unusedTask, s32 messageId, s32
     return 0;
 }
 
-void func_acropolis_fountain_8017D868(Task* task)
+/// Commits the deferred patio destination and queues a reload before releasing the task.
+static inline void _acropolisFountainReloadPatio(Task* task)
 {
+    enum {
+        ACROPOLIS_FOUNTAIN_PATIO_ARRIVAL_ROOM       = 3,
+        ACROPOLIS_FOUNTAIN_PATIO_SPRITE_VARIANT     = 1,
+        ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_PROGRESS = 5
+    };
+
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_PATIO;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACROPOLIS_FOUNTAIN_PATIO_ARRIVAL_ROOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_fountain_80183BB0;
+    gDisplayState.spriteVariant                                = ACROPOLIS_FOUNTAIN_PATIO_SPRITE_VARIANT;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ACROPOLIS_FOUNTAIN_PATIO_DEPARTURE_PROGRESS);
+    taskKill(task);
+}
+
+/// Plays the fountain's departure CAP and reloads the patio at the latched warp.
+///
+/// Starts in state 0 with loaded CAP resources and an already latched warp.
+/// The next update reloads patio room 3 even if CAP remains busy: state 1
+/// falls through to departure. The requested room latch is not consumed.
+/// Spawn arguments and work are unused; reload allocation failure still
+/// advances story progress and releases this bodyless task.
+static void _acropolisFountainPatioDepartureTask(Task* task)
+{
+    enum {
+        ACROPOLIS_FOUNTAIN_PATIO_START_CAP   = 0,
+        ACROPOLIS_FOUNTAIN_PATIO_CHECK_CAP   = 1,
+        ACROPOLIS_FOUNTAIN_PATIO_RELOAD      = 2,
+        ACROPOLIS_FOUNTAIN_PATIO_CAP_COMMAND = 1
+    };
+
     switch (task->state) {
-        case 0:
-            capRunCommandWithTransition(1);
+        case ACROPOLIS_FOUNTAIN_PATIO_START_CAP:
+            capRunCommandWithTransition(ACROPOLIS_FOUNTAIN_PATIO_CAP_COMMAND);
             task->state = task->state + 1;
             break;
 
-        case 1:
+        case ACROPOLIS_FOUNTAIN_PATIO_CHECK_CAP:
             if (capIsBusy() == 0) {
                 task->state = task->state + 1;
             }
+            // Departure proceeds on this update regardless of CAP's busy result.
             /* fallthrough */
 
-        case 2:
-            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_PATIO;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 3;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_fountain_80183BB0;
-            gDisplayState.spriteVariant                                = 1;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            gameFlagSetNibble(0, 5);
-            taskKill(task);
+        case ACROPOLIS_FOUNTAIN_PATIO_RELOAD:
+            _acropolisFountainReloadPatio(task);
             break;
     }
 }

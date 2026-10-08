@@ -2208,8 +2208,9 @@ static s32 _dryfieldWaterTowerStepPropSlideBack(Task* task)
 /// Updates the sliding prop's light and colour matrices at its composed origin.
 ///
 /// Requires a live model with writable borrowed matrices and a current workm.
-/// The three composed world-translation words supply the lighting position;
-/// all three available room-light slots are queried.
+/// The three signed 32-bit composed translation words supply the lighting
+/// position in game units, without recomposing the root. Requests the three
+/// strongest room/transient lights, reduced to the available count by the query.
 static inline void _dryfieldWaterTowerLightSlidingProp(const Task* task)
 {
     enum { DRYFIELD_WATER_TOWER_SLIDING_PROP_LIGHT_COUNT = 3 };
@@ -3000,8 +3001,10 @@ static void _dryfieldWaterTowerDispatchActorSceneRequest(Task* task)
 /// Starts the actor scene's weapon pose with a ten-frame interpolation.
 ///
 /// The player and selected bank must be live. Primary weapon indices 0..32
-/// select banks 1..33; the alternate branch retains its unproven bank extent.
-/// The dispatch consumes the stack request synchronously and disables collision.
+/// select banks 1..33 and set 1. The retained alternate branch selects weapon
+/// + 34 beyond the known bank table; its valid domain is unproven. The dispatch
+/// borrows the stack request synchronously, requests disabled grid collision
+/// and uses ten whole normal-rate animation frames for interpolation.
 static inline void _dryfieldWaterTowerStartActorSceneWeaponPose(void)
 {
     enum {

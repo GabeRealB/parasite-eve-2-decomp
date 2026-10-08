@@ -1091,9 +1091,11 @@ static void _dryfieldWaterTankExecuteEventCommand(Task* task)
 
 /// Blends the player into the equipped weapon's standing clip for the movie event.
 ///
-/// Borrows the request synchronously, while the selected bank remains loaded
-/// during playback. Uses a ten-frame blend and disables world grid collision.
-/// Requires the live registered player and the character's loaded weapon bank.
+/// Borrows the request synchronously and the selected bank through playback.
+/// Primary character weapon indices 0..32 select banks 1..33 and set 1,
+/// interpolating over ten whole normal-rate frames and disabling grid collision.
+/// Requires the live player and loaded bank. The retained non-primary branch
+/// selects weapon + 34 beyond the known bank table; its valid domain is unproven.
 static inline void _dryfieldWaterTankBlendPlayerWeaponStance(void)
 {
     enum {

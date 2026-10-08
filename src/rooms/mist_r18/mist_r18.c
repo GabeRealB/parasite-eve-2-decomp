@@ -1199,6 +1199,8 @@ static void _mistR18CaptionTask(Task* task)
 ///
 /// Both script arrays remain live through event playback. The interpreter marks
 /// the event active before the cursor advances, preventing another launch.
+/// Call only while EVS is idle. `nextStep` is the briefing cursor to run when
+/// playback ends; it is independent of the room task's state.
 static inline void _mistR18StartSkippableBriefingStep(EvsCommand* script, EvsCommand* skipScript, s32 nextStep)
 {
     evsStartScriptWithSkip(script, EVENT_SCRIPT_HUD_HIDE_RESTORE, skipScript);

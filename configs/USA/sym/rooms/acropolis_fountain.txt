@@ -79,9 +79,9 @@ D_acropolis_fountain_80183BB4 = 0x80183BB4; // size:0x4 defined:True
 
 acropolisFountainSprayTask = 0x8017DD44; // type:func
 
-func_acropolis_fountain_8017DA78 = 0x8017DA78; // type:func
+acropolisFountainStartClimb = 0x8017DA78; // type:func
 
-func_acropolis_fountain_8017E014 = 0x8017E014; // type:func
+acropolisFountainViewEffectsTask = 0x8017E014; // type:func
 _acropolisFountainClimbTurnPlayer = 0x8017daa4; // type:func
 _acropolisFountainClimbWaitForTurn = 0x8017db00; // type:func
 _acropolisFountainClimbStep = 0x8017db54; // type:func
@@ -100,3 +100,4 @@ _acropolisFountainResolveTransitionMessage = 0x8017d604; // type:func
 _acropolisFountainHandleCommandMessage = 0x8017d77c; // type:func
 _acropolisFountainUpdateWaterLoop = 0x8017e15c; // type:func
 _acropolisFountainWaterMovieTask = 0x8017e3d4; // type:func
+_acropolisFountainPatioDepartureTask = 0x8017d868; // type:func

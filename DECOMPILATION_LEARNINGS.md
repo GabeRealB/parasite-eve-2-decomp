@@ -53158,22 +53158,26 @@ side in a register defeats it. Which side you pick also decides the register
 assignment, and the two are not interchangeable:
 
 ```c
-mask = 0x100FE;                  /* mask in $v0, the 1 in $a0 */
-bit  = 1 << (splash->viewIndex - 1);
+mask = ACROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS; /* mask in $v0, the 1 in $a0 */
+bit  = 1 << (effectWork->scale - 1);
 if (bit & mask) { … }
 
 one = 1;                         /* the 1 in $v0, mask in $a0 */
-bit = one << (id - 1);
-if (bit & 0x100FE) { … }
+bit = one << (latchedViewIndex - 1);
+if (bit & ACROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS) { … }
 ```
 
 Local-alloc gives `$v0` to whichever quantity is allocated first, and that is
 the *shift base* when the `1` is the local and the *mask* when the mask is the
-local — not simply the earlier-declared one. `func_acropolis_fountain_8017E014`
-needs both forms in the same function: its `case 1` wants the mask in a local
-and its `case 2` wants the `1` in a local, which is what the two `and` operand
-registers in the ROM say. Swapping the source operand order (`mask & (1 << k)`)
-does not flip them; it just brings the bit extract back.
+local — not simply the earlier-declared one. The earlier matching form of
+`acropolisFountainViewEffectsTask` used both forms in the same function: its
+`case 1` put the mask in a local and its `case 2` put the `1` in a local,
+matching the two `and` operand registers in the ROM. Swapping the source
+operand order (`mask & (1 << k)`) did not flip them; it brought the bit extract
+back. The current function uses the named view-mask enum and a separate
+`latchedViewBit` assignment in each phase. Both constant temporaries can now
+be removed while retaining the same `sllv`/`and` instructions and image checksum;
+the earlier result is not a requirement to keep those locals.
 
 The mirror-image note "Hoist `one = 1` so a loop bit-test stays `sllv` + `and`"
 is the same mechanism seen from the shift side.

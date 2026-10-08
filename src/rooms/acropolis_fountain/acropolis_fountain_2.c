@@ -1421,9 +1421,12 @@ void acropolisFountainEnableClimbTrigger(void)
     D_acropolis_fountain_8017E7A4.flags |= WORLD_COLLISION_TRIGGER_ENABLED;
 }
 
-void func_acropolis_fountain_8017DA78(s32 unused0, s32 unused1)
+void acropolisFountainStartClimb(s32 unusedActionId, s32 unusedControl)
 {
-    taskSpawn(2, 0xE, 0, 0);
+    enum { ACROPOLIS_FOUNTAIN_CLIMB_TASK_BANK = 2,
+           ACROPOLIS_FOUNTAIN_CLIMB_TASK_SLOT = 14 };
+
+    taskSpawn(ACROPOLIS_FOUNTAIN_CLIMB_TASK_BANK, ACROPOLIS_FOUNTAIN_CLIMB_TASK_SLOT, 0, 0);
 }
 
 /// Takes scripted control and turns the player to face the ascent at yaw 2048.
@@ -1573,46 +1576,50 @@ void acropolisFountainSprayTask(Task* task)
     }
 }
 
-void func_acropolis_fountain_8017E014(Task* task)
+void acropolisFountainViewEffectsTask(Task* task)
 {
-    EffectWork* work;
-    GfxCoord*   coord;
-    s32         view;
-    s32         one;
-    s32         mask;
-    s32         bit;
-    s16         id;
+    enum {
+        ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_INIT        = 0,
+        ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE = 1,
+        ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_WATCH_VIEW  = 2,
+        ACROPOLIS_FOUNTAIN_WATER_MOVIE_START_ENTRY  = 0,
+        ACROPOLIS_FOUNTAIN_WATER_MOVIE_STOP_ENTRY   = 1,
+        ACROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS = (1 << 1) | (1 << 2) | (1 << 3) | (1 << 4) |
+                                                      (1 << 5) | (1 << 6) | (1 << 7) | (1 << 16)
+    };
+    EffectWork* effectWork;
+    GfxCoord*   effectCoord;
+    s32         mappedViewIndex;
+    s32         latchedViewBit;
+    s16         latchedViewIndex;
 
-    // This task draws nothing itself, so its effect work is free storage:
-    // `scale` latches the view index the movie task was last spawned under,
-    // and a camera cut replaces that task.
-    coord = task->extra.coordBody->coord;
-    work  = task->spawnArg2.pointer;
-    view  = viewGetMappedIndex();
+    effectCoord     = task->extra.coordBody->coord;
+    effectWork      = task->spawnArg2.pointer;
+    mappedViewIndex = viewGetMappedIndex();
     switch (task->state) {
-        case 0:
-            effectSpawn(EFFECT_ACROPOLIS_FOUNTAIN_SPRAY, coord, 0, &D_acropolis_fountain_8017E7F0);
-            work->scale = view & 0xFF;
-            task->state = 1;
+        case ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_INIT:
+            // The shared effect work's scale halfword retains the mapped view.
+            effectSpawn(EFFECT_ACROPOLIS_FOUNTAIN_SPRAY, effectCoord, 0, &D_acropolis_fountain_8017E7F0);
+            effectWork->scale = mappedViewIndex & 0xFF;
+            task->state       = ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE;
             /* fallthrough */
-        case 1:
-            mask = 0x100FE;
-            bit  = 1 << (work->scale - 1);
-            if (bit & mask) {
-                taskSpawnFromTable(D_acropolis_fountain_8017E7FC, 0, 0, 0);
+        case ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE:
+            latchedViewBit = 1 << (effectWork->scale - 1);
+            if (latchedViewBit & ACROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS) {
+                taskSpawnFromTable(D_acropolis_fountain_8017E7FC, ACROPOLIS_FOUNTAIN_WATER_MOVIE_START_ENTRY, 0, 0);
             }
-            task->state = 2;
+            task->state = ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_WATCH_VIEW;
             break;
-        case 2:
-            one = 1;
-            id  = work->scale;
-            bit = one << (id - 1);
-            if (id != (view & 0xFF)) {
-                if (bit & 0x100FE) {
-                    taskSpawnFromTable(D_acropolis_fountain_8017E7FC, 1, 0, 0);
+        case ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_WATCH_VIEW:
+            latchedViewIndex = effectWork->scale;
+            latchedViewBit   = 1 << (latchedViewIndex - 1);
+            if (latchedViewIndex != (mappedViewIndex & 0xFF)) {
+                // Retire the old view's movie before starting the new one next update.
+                if (latchedViewBit & ACROPOLIS_FOUNTAIN_WATER_MOVIE_MAPPED_VIEWS) {
+                    taskSpawnFromTable(D_acropolis_fountain_8017E7FC, ACROPOLIS_FOUNTAIN_WATER_MOVIE_STOP_ENTRY, 0, 0);
                 }
-                work->scale = (u8)view;
-                task->state = 1;
+                effectWork->scale = (u8)mappedViewIndex;
+                task->state       = ACROPOLIS_FOUNTAIN_VIEW_EFFECTS_START_MOVIE;
             }
             break;
     }
