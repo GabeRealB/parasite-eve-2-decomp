@@ -1127,7 +1127,7 @@ needed, and the build does not tell you the second one:
    byte for byte.
 
 When the table at 0x4 belongs to a *later* unit - `actor_311500`'s is
-`actor_311500_2`'s, `func_actor_311500_80163334`'s inner switch - the header
+`actor_311500_2`'s, `_actor311500Task`'s inner switch - the header
 word and the table still must not share a subsegment, but the block now belongs
 to that unit instead of the overlay's first one:
 
@@ -129041,18 +129041,18 @@ pseudo at sched1 and the hard register `$s2` only after reload, where it *does*
 vary. The decision belongs to the first scheduling pass, and `.sched` carries the
 load's `LOG_LINKS` -- the missing `insn_list 107` on insn 112 is the whole bug.
 
-The actor_311500 retry (2026-09-20, `func_actor_311500_801629D8`) confirms this
+The actor_311500 retry (2026-09-20, `_actor311500Init`) confirms this
 with a preplanned two-line experiment, 99.470% -> 100.000%. UID119 changes
 `mem:SI` to `mem/s:SI` in initial RTL and gains `insn_list 114` (the preceding
 return store) in sched1. Its LAUNCH_PRIORITY boost remains: the missing memory
 edge, not removal of the boost, was decisive. Pseudos 101/102 move from v1 to
-v0 while loop homes i=s0, work=s1, rate=s6 survive. The overlay-header port
+v0 while loop homes slotIndex=s0, animationWork=s1, rate=s6 survive. The overlay-header port
 also matches exactly. Inputs: scalar baseline
 `7245aa77b66b4b9f01bbad4641bb7f4811a8c8ab9578b1cef7ed865403fa8648`,
 array variant `b84cbccc00d434a22c126e6605b560fb1ee268fcfc3805a28e0d6fe15800bba8`;
 compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Selected dumps and the preprocessed inputs are archived under
-`tools/permuter_findings/func_actor_311500_801629D8/`; the current bounded
+`tools/permuter_findings/_actor311500Init/`; the current bounded
 permuter search found no output, so this is a manual controlled result.
 
 
@@ -129866,7 +129866,7 @@ The call itself takes no argument here (`jalr` with `$a0` never set), so the
 array's type has to be `void (*[2])(void)` even though entry 1 is really a
 `Task*` handler reached through the incoming `$a0`.
 
-## Where a loop-exit value is initialized decides its live range -- and with it every register in the function (func_actor_311500_80162DDC, 2026-09-17)
+## Where a loop-exit value is initialized decides its live range -- and with it every register in the function (_actor311500ApplyHit, 2026-09-17)
 
 The merged value a loop produces was worth 3 registers and 5% here, and the
 whole difference was *which statement initializes it*. The loop searches a
@@ -129875,7 +129875,7 @@ whole difference was *which statement initializes it*. The loop searches a
 block, which stores the result:
 
 ```
-	blez	$v0,.Lloop        # (s16)(i+1) <= 0 -> next iteration
+	blez	$v0,.Lloop        # (s16)(contactIndex+1) <= 0 -> next iteration
 	...
 .Lexit:
 	addu	$v0,$zero,$zero   # fresh zero, materialized here
@@ -129896,13 +129896,13 @@ loop is reached by both the `break` and the fall-out, so it serves both paths;
 the found path skips it, which in C needs an early exit:
 
 ```c
-    for (i = 0; i < 1; i++) {
-        if (recs[i].key.value == 0) {
+    for (contactIndex = 0; contactIndex < 1; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             break;
         }
-        if ((recs[i].key.value & 0xFFFF0000) == 0x20000) {
+        if ((contacts[contactIndex].key.value & 0xFFFF0000) == 0x20000) {
             ...
-            v = recs[i].key.value;
+            v = contacts[contactIndex].key.value;
             goto done;              /* skips the v = 0 below */
         }
     }
@@ -129924,11 +129924,11 @@ yours loads or keeps a live register. m2c renders the merged value as a single
 `var_v0` and cannot say which path defined it.
 
 Inputs: `base_2.c` 94.903%, `base_3.c` (goto shape, pointer-indexed) 99.880%,
-`base_4.c` (same, `recs[i]` in place of a `rec` local) 100.000%; `.greg` of
+`base_4.c` (same, `contacts[contactIndex]` in place of a `rec` local) 100.000%; `.greg` of
 `base_2` (`86 preferences: 4`) shows the preference that pulls the pre-loop form
 onto an argument register.
 
-## A pointer to a local keeps the address in a register, so the stores use `offs(base)` (func_actor_311500_80162DDC, 2026-09-17)
+## A pointer to a local keeps the address in a register, so the stores use `offs(base)` (_actor311500ApplyHit, 2026-09-17)
 
 Three halfword copies into a stack `SVECTOR` came out of the target with a
 register base and small offsets:
@@ -129940,18 +129940,18 @@ register base and small offsets:
 	sh	$v0,0x2($a1)
 ```
 
-Writing the obvious field assignments (`pos.vx = rec->field_8;` with a local
-`SVECTOR pos`) gets `sh $2,16($sp)` / `18($sp)` / `20($sp)` instead: combine
+Writing the obvious field assignments (`contactPoint.vx = rec->point.vx;` with a local
+`SVECTOR contactPoint`) gets `sh $2,16($sp)` / `18($sp)` / `20($sp)` instead: combine
 folds the frame address into the store's own addressing mode, so no register is
 ever live and nothing else changes. The target's base register means the source
 held the address in a variable that is live across the loop body -- a pointer to
 the local:
 
 ```c
-    SVECTOR  pos;
-    SVECTOR* pp = &pos;
+    SVECTOR  contactPoint;
+    SVECTOR* pp = &contactPoint;
     ...
-    pp->vx = rec->field_8;
+    pp->vx = rec->point.vx;
 ```
 
 Combine cannot fold `(reg pp)` inside the loop (its definition is in the
@@ -129963,38 +129963,38 @@ a pointer and combine stops seeing the definition.
 Inputs: `base_1.c` 92.808% (field form, `sh $2,16($sp)`), `base_2.c` 94.903%
 (pointer form).
 
-## `for (i = 0; i < 1; i++)` over a 1-entry table, and how m2c renders its test (func_actor_311500_80162DDC, 2026-09-17)
+## `for (contactIndex = 0; contactIndex < 1; contactIndex++)` over a 1-entry table, and how m2c renders its test (_actor311500ApplyHit, 2026-09-17)
 
-A table set up as `worldCollisionInitContacts(recs, 1, 0)` (`addiu $a1,$zero,0x1` at the
+A table set up as `worldCollisionInitContacts(contacts, 1, 0)` (`addiu $a1,$zero,0x1` at the
 init site is the only place the count appears) searches with a one-iteration
 loop. GCC's codegen for an `s16` counter bound by a constant looks like a
 runaway guard rather than a loop:
 
 ```
-	sll	$v1,$a0,16        # preheader: i << 16
+	sll	$v1,$a0,16        # preheader: contactIndex << 16
 .Lloop:
 	sra	$v1,$v1,16        # per-iteration sign extension of the index
 	...
-	sll	$v0,$v0,16        # (s16)(i+1) <= 0 ?
+	sll	$v0,$v0,16        # (s16)(contactIndex+1) <= 0 ?
 	blez	$v0,.Lloop
 ```
 
-m2c prints the bottom as `if ((i+1) << 16 > 0) goto exit`, which reads as a loop
+m2c prints the bottom as `if ((contactIndex+1) << 16 > 0) goto exit`, which reads as a loop
 that can never iterate; it is an ordinary rotated `for` whose body always runs
-once, with the bound constant folded into `(s16)(i+1) <= 0`. Reading the array
+once, with the bound constant folded into `(s16)(contactIndex+1) <= 0`. Reading the array
 size off the init site (`1`, matching `hitContacts[1]` in the header) is what makes
-the `1` in `i < 1` provable -- a bound of `0x8000` or more would fold away
+the `1` in `contactIndex < 1` provable -- a bound of `0x8000` or more would fold away
 entirely rather than emit that `blez`.
 
-The address `addu` for `recs[i]` in the same loop is the operand-order rule
+The address `addu` for `contacts[contactIndex]` in the same loop is the operand-order rule
 already recorded above ("`addu` operand order: a MEM address puts the multiply
 first"): the target's `addu $v1,$v0,$a2` needs the indexing written in place,
-not through a `rec = &recs[i]` local, which gives `addu $v1,$a2,$v0` and
+not through a `rec = &contacts[contactIndex]` local, which gives `addu $v1,$a2,$v0` and
 99.880%.
 
-## A `0`/`1` flag's zero-extension register is decided by the source's *line structure* (func_actor_311500_80162F28, 2026-09-17)
+## A `0`/`1` flag's zero-extension register is decided by the source's *line structure* (_actor311500TickHitReaction, 2026-09-17)
 
-`func_actor_311500_80162F28` ends case 1 with a 0/1 flag built branchily and then
+`_actor311500TickHitReaction` ends case 1 with a 0/1 flag built branchily and then
 tested. Two sources that preprocess to the *same token stream* (verified by
 diffing the `.i` files with all whitespace stripped: the only differences were
 `long vx, vy;` vs `long vx; long vy;`) compile to objects that differ in exactly
@@ -130042,7 +130042,7 @@ it matching, because only the uid *differences* inside the block matter.
 Inputs: `w1.c` 99.895% (`andi $v0,$v1,0xffff`), `w8.c` 100.000% (in place), both
 from the same tokens.
 
-## A pre-branch store refuses jump.c's store-flag rewrite only when the asm sits *inside* the branch (func_actor_311500_80162F28, 2026-09-17)
+## A pre-branch store refuses jump.c's store-flag rewrite only when the asm sits *inside* the branch (_actor311500TickHitReaction, 2026-09-17)
 
 The documented `asm("")` before the `x = 1` (see "`BRANCH_COST` is 1 here…") means
 the assignment that *follows* the branch — which for `x = 1; if (!(f & 1)) x = 0;`
@@ -130053,7 +130053,7 @@ that works is
 
 ```c
 var_v1 = 1;
-if (!(work->field_4C & 1)) {
+if (!(work->rig.slots[1].status.fields.flags & 1)) {
     SOFT_BARRIER();
     var_v1 = 0;
 }
@@ -130065,32 +130065,32 @@ delete=0`.
 Inputs: `h2.c` (barrier before `x = 1`) 95.674%, `h3.c` (between `x = 1` and the
 `if`) 95.674%, `w1.c` (inside the `if`) 99.895%.
 
-## Assignment order inside a straight-line block is the scheduler's load hoisting (func_actor_311500_80162F28, 2026-09-17)
+## Assignment order inside a straight-line block is the scheduler's load hoisting (_actor311500TickHitReaction, 2026-09-17)
 
 Case 0 fills an `SVECTOR` and an `EffectSpawnArg` and passes both, plus
-`&index->field_2C->field_8[2]`, to `effectSpawnHit`. The target's block opens with
+`&actorTask->extra.tmd->coords[2]`, to `effectSpawnHit`. The target's block opens with
 the three loads that feed those expressions and only then runs the five constant
 stores; writing the stores first (the natural reading order) left them first and
 the loads at the bottom behind `nop`s. The flag is the *reload*: giving
-`index->field_1C` its own statement before the coordinate is what makes the
-compiler emit it where the scheduler can hoist it between the `field_2C` and
-`field_8` loads.
+`actorTask->work` its own statement before the coordinate is what makes the
+compiler emit it where the scheduler can hoist it between the `Task::extra.tmd` and
+`TmdObject::coords` loads.
 
 ```c
-anim2       = arg0->field_1C;                    /* reload, after the loop's calls */
-eff.coord      = &arg0->field_2C->field_8[2];    /* the two loads it sits between */
+anim2       = actorTask->work;                    /* reload, after the loop's calls */
+eff.coord      = &actorTask->extra.tmd->coords[2];    /* the two loads it sits between */
 eff.spawnArgLo = 0x100;
 ...
 ```
 
-Writing `index->field_1C->lastHitKey` inline instead leaves the reload next to the
+Writing `((_Actor311500Work*)actorTask->work)->lastHitKey` inline instead leaves the reload next to the
 `lw $a0,0x4D0($a0)` that consumes it and the block schedules differently
 (87.853% -> 91.379% -> 95.674% across the two shapes).
 
 Inputs: `base_1.c` 87.853% (stores first), `e1.c` 91.379% (`field_0` first),
 `f1.c` 95.674% (the reload as its own statement).
 
-## A `flag = 1` / `flag = 0` pair is folded by `jump`'s store-flag path, and where you put the two stores decides the register (func_actor_311500_80162C34, 2026-09-17)
+## A `flag = 1` / `flag = 0` pair is folded by `jump`'s store-flag path, and where you put the two stores decides the register (_actor311500TickIdle, 2026-09-17)
 
 `case 2` ends
 
@@ -130108,7 +130108,7 @@ i.e. the explicit 1/0 flag survives. Writing it the natural way loses it:
 
 ```c
 v = 1;
-if (!(anim2->field_4C & 1)) { asm(""); v = 0; }
+if (!(anim2->rig.slots[1].status.fields.flags & 1)) { asm(""); v = 0; }
 if (v) { ... }
 ```
 
@@ -130121,11 +130121,11 @@ fold, and the `v0` the bit test used is gone with it).
 
 Two ways to keep it: an empty `asm("")` in the `if` body (the insn after the
 branch is then no longer a `SET`, so `temp = next_nonnote_insn (insn)` fails),
-as the sibling `func_actor_311500_80162F28` does; or the same thing as an
+as the sibling `_actor311500TickHitReaction` does; or the same thing as an
 if/else. The if/else is strictly better for allocation:
 
 ```c
-if (!(anim2->field_4C & 1)) { asm(""); v = 0; } else { v = 1; }
+if (!(anim2->rig.slots[1].status.fields.flags & 1)) { asm(""); v = 0; } else { v = 1; }
 if (v) { ... }
 ```
 
@@ -130135,7 +130135,7 @@ with `$v0` (`.greg`: `;; 85 conflicts: 81 85 2 29`) and lands in `$v1`; with the
 if/else it takes `$v0` and the tail matches byte for byte. That was the
 difference between 99.575% and 99.717% on the same function.
 
-## Frame arithmetic reads as evidence: `var_size` vs `args_size` tells you whether a hidden local exists (func_actor_311500_80162C34, 2026-09-17)
+## Frame arithmetic reads as evidence: `var_size` vs `args_size` tells you whether a hidden local exists (_actor311500TickIdle, 2026-09-17)
 
 `compute_frame_size` (mips.c) sums `MIPS_STACK_ALIGN (var_size) +
 MIPS_STACK_ALIGN (current_function_outgoing_args_size) + MIPS_STACK_ALIGN
@@ -130144,11 +130144,11 @@ same five saved registers, and the calls take 2 and 3 arguments — so
 `args_size` is 16 in both and the 8 bytes are `var_size`: a local the code never
 touches. Adding one unused 8-byte aggregate reproduced the target frame exactly
 and took the function from 79.0% to 93.2%. The same arithmetic in the siblings
-(`func_actor_311500_801629D8` 0x38, `func_actor_311500_80163334` 0x38) is
+(`_actor311500Init` 0x38, `_actor311500Task` 0x38) is
 *outgoing args* instead: their `sw $v0,0x10($sp)` is the 5th argument slot.
 Check which term moves before inventing a local.
 
-## Two pointers where the source has one: `global.c` priority decides `$s1` vs `$s2` (func_actor_311500_80162C34, 2026-09-17)
+## Two pointers where the source has one: `global.c` priority decides `$s1` vs `$s2` (_actor311500TickIdle, 2026-09-17)
 
 Three quantities want a call-saved register here: `work` (the actor's work
 block), and the slot pointer each of case 0's re-arm loop and case 2's tick
@@ -130160,7 +130160,7 @@ assigned in both arms is a single pseudo with 9 refs / 27 insns = 1.0 against
 mirror of the target. The sibling's idiom fixes it:
 
 ```c
-case 0:  ... anim  = arg0->field_1C;  /* reload, 6 refs / 35 insns */  ...
+case 0:  ... anim  = actorTask->work;  /* reload, 6 refs / 35 insns */  ...
 case 2:  ... anim2 = work;            /* copy,   3 refs /  9 insns */  ...
 ```
 
@@ -130168,24 +130168,24 @@ case 2:  ... anim2 = work;            /* copy,   3 refs /  9 insns */  ...
 pseudos share `$s2` (their live ranges are disjoint), which is exactly the
 target's `lw $s2,0x1C(a2)` in case 0 and `addu $s2,$s1,$zero` in case 2.
 
-## `arr[i]` and `base + i` are different operand orders in the final `addu` (func_actor_311500_80162C34, 2026-09-17)
+## `arr[i]` and `base + i` are different operand orders in the final `addu` (_actor311500TickIdle, 2026-09-17)
 
 The target's loop recomputes `i * 0x28` and adds it with the base first —
-`addu $v0,$s2,$v0` — while `((Actor311500AnimStride*)anim)[i & 0xFFFF].field_1D
+`addu $v0,$s2,$v0` — while `((_Actor311500Work*)anim)->rig.slots[slotIndex & 0xFFFF].rate
 = 0x20;` expands to `(plus (accum) (base))` and gives `addu $v0,$v0,$s2`: one
 instruction off, everything else identical. Naming the element restores the
 tree's `(plus base scaled_index)`:
 
 ```c
-stride = (Actor311500AnimStride*)anim + (i & 0xFFFF);
-stride->field_1D = 0x20;
+slot = ((_Actor311500Work*)anim)->rig.slots + (slotIndex & 0xFFFF);
+slot->rate = 0x20;
 ```
 
 99.717% -> 99.811%, no other change to the object. When one `addu` in an
 otherwise matching loop is transposed, look at the address expression's shape
 before the scheduler.
 
-## A subexpression hoisted into its own local moves `sched2`/`dbr`'s choices for the whole block (func_actor_311500_80162C34, 2026-09-17)
+## A subexpression hoisted into its own local moves `sched2`/`dbr`'s choices for the whole block (_actor311500TickIdle, 2026-09-17)
 
 Case 0 advances `gRandomLcgState` and then tests its high half. Writing
 `} else if (((u32)gRandomLcgState >> 16) & 1) {` leaves the shift inside the arm
@@ -130195,72 +130195,72 @@ target that keeps the store before the `slti` and puts the `srl` in the delay
 slot (`branch=3 reorder=2`). Giving the high half its own statement —
 
 ```c
-rng = (u32)gRandomLcgState >> 16;
-if (work->idlePlayCount >= 2) { ... } else if (rng & 1) { ... } ...
+randomChoice = (u32)gRandomLcgState >> 16;
+if (work->idlePlayCount >= 2) { ... } else if (randomChoice & 1) { ... } ...
 ```
 
 — drops both penalties to 0 and takes 98.434% to 99.575%. The permuter found
 it; the mechanism is that the shift is no longer confined to the arm's block,
 so the store keeps its place and `dbr` has a thread candidate for the slot.
 
-## A value computed before a call but stored after it needs its own local (func_actor_311500_801630A4, 2026-09-17)
+## A value computed before a call but stored after it needs its own local (_actor311500TickDeath, 2026-09-17)
 
-The tail rebuilds the root coordinate: `ScaleMatrix(&mtx, &scale)` needs
-`scale.vy = (s16)(0x1000 - (cur - 0x14) * 0xA)`, and the target computes the
+The tail rebuilds the root coordinate: `ScaleMatrix(&scaledYaw, &scale)` needs
+`scale.vy = (s16)(0x1000 - (frame - 0x14) * 0xA)`, and the target computes the
 `* 0xA` chain *before* `ratan2` and `gfxRotMatrixY` while storing all three
 `scale` words after them. Written as one expression the value stays live across
 the two calls, so the allocno crosses calls: `global.c` can only give it a
 call-saved register and the arithmetic cannot be hoisted --
 
 ```c
-            ang   = ratan2(...);
-            gfxRotMatrixY(&mtx, ang, 1);
-            scale.vy = (s16)(0x1000 - (cur - 0x14) * 0xA);   /* 74.3% */
+            yaw   = ratan2(...);
+            gfxRotMatrixY(&scaledYaw, yaw, 1);
+            scale.vy = (s16)(0x1000 - (frame - 0x14) * 0xA);   /* 74.3% */
 ```
 
 -- while the sibling's idiom (`sy = k - (cur - 0x14) * 0xB;` in
 `oddStrangerDie`, then `blk->scale.vy = (s32)(s16)sy;`) splits it:
 
 ```c
-            sy    = 0x1000 - (cur - 0x14) * 0xA;   /* before the calls */
-            ang   = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            gfxRotMatrixY(&mtx, ang, 1);
-            scale.vy = (s16)sy;                    /* after them */
+            verticalScale    = 0x1000 - (frame - 0x14) * 0xA;   /* before the calls */
+            yaw   = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
+            gfxRotMatrixY(&scaledYaw, yaw, 1);
+            scale.vy = (s16)verticalScale;                    /* after them */
 ```
 
-`cur` now dies before `ratan2`, takes a call-clobbered temp (`$v1`, not `$s1`),
+`frame` now dies before `ratan2`, takes a call-clobbered temp (`$v1`, not `$s1`),
 and `sched1` is free to hoist the arithmetic: 88.139% -> 98.116% in one edit.
 When a value is computed early and stored late, the two halves are two
 statements in the source, not one delayed expression.
 
-## One temp for every element is what keeps a halfword copy interleaved (func_actor_311500_801630A4, 2026-09-17)
+## One temp for every element is what keeps a halfword copy interleaved (_actor311500TickDeath, 2026-09-17)
 
 The target copies the 3x3 matrix as nine `lhu $v0,(sp); nop; sh $v0,off($s1)`
 pairs -- one register, the pair kept together, the load-delay slot visible. Nine
-independent `coord->coord.m[i][j] = *(u16*)&mtx.m[i][j];` lines let `sched1`
+independent `rootCoord->coord.m[i][j] = *(u16*)&scaledYaw.m[i][j];` lines let `sched1`
 batch all nine loads first, which forces nine live registers and emits no
 delay-slot `nop` at all (`reorder=4 insert=15 delete=22`, 74.256%). Naming the
 halfword once and storing it each time creates a WAR chain on the temp, so each
 load must follow the previous store:
 
 ```c
-            m22                  = *(u16*)&mtx.m[0][0];
-            coord->coord.m[0][0] = m22;
-            m22                  = *(u16*)&mtx.m[0][1];
-            coord->coord.m[0][1] = m22;
+            matrixElement                  = *(u16*)&scaledYaw.m[0][0];
+            rootCoord->coord.m[0][0] = matrixElement;
+            matrixElement                  = *(u16*)&scaledYaw.m[0][1];
+            rootCoord->coord.m[0][1] = matrixElement;
             ...
-            m22                  = *(u16*)&mtx.m[2][2];
-            coord->composeStamp           = 0;
-            coord->coord.m[2][2] = m22;
+            matrixElement                  = *(u16*)&scaledYaw.m[2][2];
+            rootCoord->composeStamp           = 0;
+            rootCoord->coord.m[2][2] = matrixElement;
 ```
 
-The last pair keeps the `m22` temp the target itself has (the `composeStamp = 0` store
+The last pair keeps the `matrixElement` temp the target itself has (the `composeStamp = 0` store
 sits between the load and the store). 74.256% -> 88.139%, and the eight
 delay-slot `nop`s come back with it. A batched-looking copy in *your* object
 against an interleaved target is a register-count symptom, not a scheduling
 one.
 
-## A switch whose cases `break` into one trailing return keeps `$v0 = 0` shared (func_actor_311500_801630A4, 2026-09-17)
+## A switch whose cases `break` into one trailing return keeps `$v0 = 0` shared (_actor311500TickDeath, 2026-09-17)
 
 With `case 0: ...; return 0;` and `default: return 0;` the compiler materialises
 the state-0 return value in the case body (`move $v0,$zero` in the `lhu`'s
@@ -130269,11 +130269,11 @@ load-delay slot) and jumps straight to the epilogue. The target instead has one
 increment block's fall-through reach. Putting the `break` where the returns were
 and leaving a single `return 0` after the switch gives that shared block --
 98.116% -> 100.000%, and every branch target in the function shifts back by the
-one instruction the extra `move` had cost. The sibling `func_actor_311500_80162F28`
+one instruction the extra `move` had cost. The sibling `_actor311500TickHitReaction`
 is written the same way (`break` then a shared tail), so read the whole switch's
 return structure before matching a case's own.
 
-## Global-alloc's allocno race is decided by `floor_log2(n_refs)`, so copy the parameter to flip it (func_actor_311500_80163334, 2026-09-17)
+## Global-alloc's allocno race is decided by `floor_log2(n_refs)`, so copy the parameter to flip it (_actor311500Task, 2026-09-17)
 
 A body can match instruction for instruction and still sit at 99.16% with
 `regs=37` and every other penalty zero: the long-lived actor pointer and an
@@ -130293,9 +130293,9 @@ which steps at 32 - one more reference and the parameter is `5*32/338 = 4733`.
 No edit inside the body can add one without adding an instruction, but a copy
 of the parameter at the top adds only its own def:
 
-    void func_actor_311500_80163334(Actor311500 *arg0)
+    void _actor311500Task(Actor311500 *actorTask)
     {
-        Actor311500 *actor = arg0;      /* the 32nd reference */
+        Actor311500 *actor = actorTask;      /* the 32nd reference */
 
 `actor` now outranks the loop pointer and takes `$s1`, and the `addu
 $s1,$a0,$zero` the target shows is *that* copy rather than the one reload
@@ -138174,7 +138174,7 @@ and actor105400 and passed the unscoped build.
 
 ## An explicit constant before the loop preheader can fix a taken-branch delay slot (actor_311500, 2026-09-20)
 
-`func_actor_311500_80162C34` retried at 99.811%, with only `li s0,1` and
+`_actor311500TickIdle` retried at 99.811%, with only `li s0,1` and
 `li s3,32` exchanged. The register homes were already right. Baseline `.loop`
 created constant UID 282 immediately before `NOTE_INSN_LOOP_BEG`, after the
 animation-context reload and counter initialization UID 81. `.sched2` retained
@@ -138196,7 +138196,7 @@ separately rejected for matching: `.combine` folded the member-base offset but
 reversed the `addu` operands, scoring 99.906%. That was operand canonicalization,
 not a changed allocation. No new general allocator rule is implied.
 
-Evidence remains in `nonmatchings/func_actor_311500_80162C34-vacuum/`:
+Evidence remains in `nonmatchings/_actor311500TickIdle-vacuum/`:
 `experiments.jsonl`, `LEARNINGS.md`, `base.i.loop`, `base_1.i.loop`,
 `base_1.i.greg`, `base_1.i.sched2`, `base_1.i.dbr`, and `base_2.i.combine`.
 Preprocessed SHA256 baseline:
@@ -149911,7 +149911,7 @@ attempts; left as it was.
   (`func_actor_110600_80137F2C`): the first test's false edge is threaded past
   the second.
 - **A draw tail reached by `goto tail` from an inner switch case, skipping one
-  store in front of it** (`func_actor_311500_80163334`, 13 gotos with the mode
+  store in front of it** (`_actor311500Task`, 13 gotos with the mode
   ladder) is a `static inline` owning the `VECTOR`, called in that case before
   its `return` and again at the end. The ladder there has an empty mode 1:
   `case 0: ...; break; case 2: ...; break; case 1: break;`.

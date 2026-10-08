@@ -33,3 +33,10 @@ gAcropolisFireEscapeCollision04CE8Faces = 0x8018207C; // absolute:True owner=acr
 _actorRenderYawJointInWorld = 0x801626CC; // type:func
 ActorContact_FindPush = 0x80161E38; // type:func
 _actorContactApplyAvoidancePushback = 0x80162180; // type:func
+_actor311500Init = 0x801629d8; // type:func
+_actor311500TickIdle = 0x80162c34; // type:func
+_actor311500ApplyHit = 0x80162ddc; // type:func
+_actor311500TickHitReaction = 0x80162f28; // type:func
+_actor311500TickDeath = 0x801630a4; // type:func
+_actor311500Task = 0x80163334; // type:func
+_actor311500IsPresentMessage = 0x801636a0; // type:func

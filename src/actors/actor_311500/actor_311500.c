@@ -49,6 +49,30 @@
 #include "rooms/acropolis_fire_escape.h"
 #include "../../shared/actor_contacts.h"
 
+/// Task phases of this package's stationary enemy.
+enum {
+    ACTOR_311500_PHASE_INIT  = 0,
+    ACTOR_311500_PHASE_IDLE  = 1,
+    ACTOR_311500_PHASE_HIT   = 2,
+    ACTOR_311500_PHASE_DEATH = 3,
+    ACTOR_311500_PHASE_DONE  = 4
+};
+
+/// Results of one hit-reaction update, consumed through a signed low halfword.
+enum {
+    ACTOR_311500_HIT_REACTION_LETHAL   = -1,
+    ACTOR_311500_HIT_REACTION_PLAYING  = 0,
+    ACTOR_311500_HIT_REACTION_FINISHED = 1
+};
+
+/// Animation-set indices, the hit-body part and the area-placement identity.
+enum {
+    ACTOR_311500_ANIMATION_IDLE = 0,
+    ACTOR_311500_ANIMATION_HIT  = 1,
+    ACTOR_311500_BODY_PART      = 2,
+    ACTOR_311500_PLACEMENT_ID   = 10
+};
+
 /// Values of `_Actor311500Work::step`, the stage of the phase `Task::state`
 /// selects.
 ///
@@ -109,8 +133,8 @@ extern WorldCollisionGridFace D_actor_311500_80169324[1];
 static AnimationSet _gActor311500Animation07188;
 static AnimationSet _gActor311500Animation07470;
 static TmdSource    _gActor311500StrangerBody;
-void                func_actor_311500_80163334(Task*);
-s32                 func_actor_311500_801636A0(Task*, s32, s32, u32*);
+static void         _actor311500Task(Task* actorTask);
+static s32          _actor311500IsPresentMessage(Task* actorTask, s32 messageId, s32 unusedArg, u32* presenceResult);
 
 static TmdBone _gActor311500StrangerBodySkeleton[19] = {
 #include "assets/stranger_body_skeleton.inc"
@@ -234,20 +258,49 @@ WorldCollisionGridFace D_actor_311500_80169324[1] = {
 };
 
 TaskMessageEntry D_actor_311500_80169330[1] = {
-    { ACTOR_MESSAGE_IS_PRESENT, func_actor_311500_801636A0 },
+    { ACTOR_MESSAGE_IS_PRESENT, _actor311500IsPresentMessage },
 };
 
-TaskDesc D_actor_311500_80169338 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_311500_80163334, { .model = &_gActor311500StrangerBody } }; /// Walks the first `count` contact records (stopping at a zero key) and keeps,
+TaskDesc D_actor_311500_80169338 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor311500Task, { .model = &_gActor311500StrangerBody } };
 
-static void        func_actor_311500_801629D8(Task* arg0);
-static inline void _actor311500ResetAnim(Task* task, u8 rate);
+static void        _actor311500Init(Task* actorTask);
+static inline void _actor311500ResetAnim(ActorAnimRig19* rig, u8 requestedRate, s32 slotIndex);
 static inline u16  _actor311500TickAnim(Task* task);
-static void        func_actor_311500_80162C34(Task* arg0, TmdObject* arg1);
-static s16         func_actor_311500_80162DDC(Task* arg0);
-static inline void _actor311500BlendAnim(Task* task);
-static inline void _actor311500SpawnEffect(Task* task);
-static s32         func_actor_311500_80162F28(Task* arg0);
-static s32         func_actor_311500_801630A4(Task* arg0);
+static void        _actor311500TickIdle(Task* actorTask);
+static s16         _actor311500ApplyHit(Task* actorTask);
+static inline void _actor311500BlendHitAnimation(Task* task);
+static inline void _actor311500SpawnHitEffect(Task* task);
+static s32         _actor311500TickHitReaction(Task* actorTask);
+static s32         _actor311500TickDeath(Task* actorTask);
+
+/// Installs all nine Q12 root coefficients and invalidates composition.
+///
+/// `rootCoord` and the MATRIX value `rotation` must be side-effect-free locals;
+/// `matrixElement` is a caller-owned u16 temporary. Arguments are repeated.
+/// Translation is retained; the dirty stamp precedes the final halfword store.
+/// Use as a standalone block, not as an unbraced if/else arm.
+#define ACTOR_311500_INSTALL_ROOT_ROTATION(rootCoord, rotation, matrixElement) \
+    {                                                                          \
+        (matrixElement)            = (u16)(rotation).m[0][0];                  \
+        (rootCoord)->coord.m[0][0] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[0][1];                  \
+        (rootCoord)->coord.m[0][1] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[0][2];                  \
+        (rootCoord)->coord.m[0][2] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[1][0];                  \
+        (rootCoord)->coord.m[1][0] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[1][1];                  \
+        (rootCoord)->coord.m[1][1] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[1][2];                  \
+        (rootCoord)->coord.m[1][2] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[2][0];                  \
+        (rootCoord)->coord.m[2][0] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[2][1];                  \
+        (rootCoord)->coord.m[2][1] = (matrixElement);                          \
+        (matrixElement)            = (u16)(rotation).m[2][2];                  \
+        (rootCoord)->composeStamp  = GRAPHICS_COORD_DIRTY;                     \
+        (rootCoord)->coord.m[2][2] = (matrixElement);                          \
+    }
 
 #include "../../shared/actor_contacts_find_push.inc.c"
 
@@ -255,142 +308,157 @@ static s32         func_actor_311500_801630A4(Task* arg0);
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
 
-static void func_actor_311500_801629D8(Task* arg0)
+/// Restarts the remaining idle tracks of the package rig at normal playback rate.
+///
+/// `slotIndex` is in 1..18; its low 16 bits select that slot through slot 18.
+/// The initialized rig, model and clip data must remain live. `requestedRate`
+/// is in sixteenths of a frame and is written before each reset, which
+/// overwrites it with `ANIMATION_RATE_ONE`.
+static inline void _actor311500ResetAnim(ActorAnimRig19* rig, u8 requestedRate, s32 slotIndex)
 {
+    do {
+        rig->slots[slotIndex & 0xFFFF].rate = requestedRate;
+        animationResetSlot(&rig->anim, slotIndex & 0xFFFF, ACTOR_311500_ANIMATION_IDLE);
+        slotIndex += 1;
+    } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(rig->slots));
+}
+
+/// Initializes the stationary enemy's playback, targeting and single-contact hit body.
+///
+/// Requires the package model, enemy spawn argument and fire-escape placement data.
+/// The task owns the allocated work and primitive buffer; model and clip data must
+/// stay loaded while it is live. Allocation failure kills the task.
+static void _actor311500Init(Task* actorTask)
+{
+    enum { ACTOR_311500_INITIAL_HP = 50,
+           ACTOR_311500_HIT_RADIUS = 400 };
+    _Actor311500Work* allocatedWork;
     _Actor311500Work* work;
-    _Actor311500Work* work2;
-    _Actor311500Work* work3;
+    _Actor311500Work* animationWork;
     Enemy*            enemy;
-    GfxCoord*         coords;
-    TmdObject*        tmd;
-    AreaPlacement*    place;
-    s32               i;
+    GfxCoord*         rootCoord;
+    TmdObject*        model;
+    AreaPlacement*    placement;
+    s32               slotIndex;
     u8                rate;
 
-    coords     = arg0->extra.tmd->coords;
-    enemy      = arg0->spawnArg2.pointer;
-    tmd        = arg0->extra.tmd;
-    work       = memCalloc(sizeof(_Actor311500Work), 0);
-    arg0->work = work;
-    if (work == NULL) {
-        taskKill(arg0);
+    rootCoord       = actorTask->extra.tmd->coords;
+    enemy           = actorTask->spawnArg2.pointer;
+    model           = actorTask->extra.tmd;
+    allocatedWork   = memCalloc(sizeof(_Actor311500Work), 0);
+    actorTask->work = allocatedWork;
+    if (allocatedWork == NULL) {
+        taskKill(actorTask);
         return;
     }
-    (sceneAcquireBattleRef)(0);
-    work2 = arg0->work;
-    memFillBytes(work2, 0, sizeof(*work2));
-    coords->parent = &gGfxViewCoord;
-    tmdAllocPrimitiveBuffer(tmd);
-    tmd->lightMtx = &work2->lightMtx;
-    tmd->colorMtx = &work2->colorMtx;
-    tmd->flags    = 0;
-    animationInitContext(&work2->rig.anim, D_actor_311500_801692F4, tmd, work2->rig.poses,
-                         &work2->rig.slots[0]);
-    work2->playerTask     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work2->playerCoordMtx = gPlayerStatus.coordMtx;
-    rate                  = ANIMATION_RATE_ONE;
-    i                     = 1;
-    work3                 = arg0->work;
-    do {
-        work3->rig.slots[i & 0xFFFF].rate = rate;
-        animationResetSlot(&work3->rig.anim, i & 0xFFFF, 0);
-        i += 1;
-    } while ((u32)(i & 0xFFFF) < 0x13U);
+    // Bind task-owned playback and matrix storage before linking the live enemy.
+    sceneAcquireBattleRef(0);
+    work = actorTask->work;
+    memFillBytes(work, 0, sizeof(*work));
+    rootCoord->parent = &gGfxViewCoord;
+    tmdAllocPrimitiveBuffer(model);
+    model->lightMtx = &work->lightMtx;
+    model->colorMtx = &work->colorMtx;
+    model->flags    = 0;
+    animationInitContext(&work->rig.anim, D_actor_311500_801692F4, model, work->rig.poses,
+                         &work->rig.slots[0]);
+    work->playerTask     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work->playerCoordMtx = gPlayerStatus.coordMtx;
+    rate                 = ANIMATION_RATE_ONE;
+    slotIndex            = 1;
+    animationWork        = actorTask->work;
+    _actor311500ResetAnim(&animationWork->rig, rate, slotIndex);
+    // The target and collision body share model part 2; this body retains one hit.
     enemy->field_48   = 0;
     enemy->bodyPos.vx = 0;
     enemy->bodyPos.vy = 0;
     enemy->bodyPos.vz = 0;
-    enemy->coord      = &arg0->extra.tmd->coords[2];
+    enemy->coord      = &actorTask->extra.tmd->coords[ACTOR_311500_BODY_PART];
     worldTargetLinkNode(&enemy->node);
-    enemy->hp                       = 0x32;
-    enemy->node.state.parts.flags   = 0;
-    enemy->reactionFlags            = 0;
-    enemy->param                    = &D_actor_311500_801692C0;
-    work2->hitBody.coord            = &arg0->extra.tmd->coords[2];
-    work2->hitBody.context.contacts = &work2->hitContacts[0];
-    work2->hitBody.pos.vx           = 0;
-    work2->hitBody.pos.vy           = 0;
-    work2->hitBody.pos.vz           = 0;
-    work2->hitBody.key              = 0x3000A;
-    work2->hitBody.radius           = 0x190;
-    work2->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work2->hitBody);
-    work2->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(&work2->hitContacts[0], 1, 0);
-    enemy->recs    = &work2->hitContacts[0];
-    arg0->msgTable = D_actor_311500_80169330;
-    work2->present = 1;
-    place          = areaGetVariant(&gGameSession->location.loc)->placements;
-    while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0xA) {
-        place++;
+    enemy->hp                      = ACTOR_311500_INITIAL_HP;
+    enemy->node.state.parts.flags  = 0;
+    enemy->reactionFlags           = 0;
+    enemy->param                   = &D_actor_311500_801692C0;
+    work->hitBody.coord            = &actorTask->extra.tmd->coords[ACTOR_311500_BODY_PART];
+    work->hitBody.context.contacts = &work->hitContacts[0];
+    work->hitBody.pos.vx           = 0;
+    work->hitBody.pos.vy           = 0;
+    work->hitBody.pos.vz           = 0;
+    work->hitBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_311500_PLACEMENT_ID;
+    work->hitBody.radius           = ACTOR_311500_HIT_RADIUS;
+    work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
+    work->hitBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    worldCollisionInitContacts(&work->hitContacts[0], ARRAY_SIZE(work->hitContacts), 0);
+    enemy->recs         = &work->hitContacts[0];
+    actorTask->msgTable = D_actor_311500_80169330;
+    work->present       = 1;
+    placement           = areaGetVariant(&gGameSession->location.loc)->placements;
+    while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_311500_PLACEMENT_ID) {
+        placement++;
     }
-    tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
 }
 
-/// Sets animation slots 1 to 18 to play at `rate` and restarts each of them.
-static inline void _actor311500ResetAnim(Task* task, u8 rate)
-{
-    _Actor311500Work* work = task->work;
-    s32               i;
-
-    i = 1;
-    do {
-        work->rig.slots[i & 0xFFFF].rate = rate;
-        animationResetSlot(&work->rig.anim, i & 0xFFFF, 0);
-        i += 1;
-    } while ((u32)(i & 0xFFFF) < 0x13U);
-}
-
-/// Advances animation slots 1 to 18 by one frame and returns 1 when slot 1
-/// has bit 0 of its flags set, 0 otherwise.
+/// Advances model slots 1..18 and reports whether slot 1 reached a playback boundary.
+///
+/// Requires initialized package playback with live model and clip data. Returns
+/// 1 for `ANIMATION_SLOT_REACHED_BOUNDARY`, otherwise 0; this need not mean a stop.
 static inline u16 _actor311500TickAnim(Task* task)
 {
     _Actor311500Work* work = task->work;
-    s32               i;
+    s32               slotIndex;
 
-    i = 1;
+    slotIndex = 1;
     do {
-        animationTickSlot(&work->rig.anim, i & 0xFFFF);
-        i += 1;
-    } while ((u32)(i & 0xFFFF) < 0x13U);
+        animationTickSlot(&work->rig.anim, slotIndex & 0xFFFF);
+        slotIndex += 1;
+    } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(work->rig.slots));
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         return 1;
     }
     return 0;
 }
 
-static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
+/// Chooses a 32-tick pause or an idle replay, forcing a pause after two replays.
+///
+/// The replay's requested double rate is overwritten by the slot reset.
+static void _actor311500TickIdle(Task* actorTask)
 {
+    enum { ACTOR_311500_IDLE_PAUSE_FRAMES = 32,
+           ACTOR_311500_IDLE_MAX_REPLAYS  = 2 };
     _Actor311500Work* work;
-    SVECTOR           probe;
-    u32               rng;
+    SVECTOR           unusedProbe; // The target reserves this unused stack slot.
+    u32               randomChoice;
 
-    work = arg0->work;
+    work = actorTask->work;
 
     switch (work->step) {
         case ACTOR_311500_IDLE_STEP_CHOOSE:
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rng             = gRandomLcgState >> 16;
-            if (work->idlePlayCount >= 2) {
+            randomChoice    = gRandomLcgState >> 16;
+            if (work->idlePlayCount >= ACTOR_311500_IDLE_MAX_REPLAYS) {
                 work->step++;
-            } else if (rng & 1) {
+            } else if (randomChoice & 1) {
                 work->step++;
             } else {
-                _actor311500ResetAnim(arg0, 0x20);
+                _Actor311500Work* animationWork = actorTask->work;
+
+                _actor311500ResetAnim(&animationWork->rig, 2 * ANIMATION_RATE_ONE, 1);
                 work->step += 2;
             }
             work->stepFrame = 0;
             break;
 
         case ACTOR_311500_IDLE_STEP_PAUSE:
-            if (work->stepFrame++ >= 0x1F) {
+            if (work->stepFrame++ >= ACTOR_311500_IDLE_PAUSE_FRAMES - 1) {
                 work->idlePlayCount = 0;
                 work->step          = ACTOR_311500_IDLE_STEP_CHOOSE;
             }
             break;
 
         case ACTOR_311500_IDLE_STEP_REPLAY:
-            if (_actor311500TickAnim(arg0)) {
+            if (_actor311500TickAnim(actorTask)) {
                 work->step = ACTOR_311500_IDLE_STEP_CHOOSE;
                 work->idlePlayCount++;
             }
@@ -401,42 +469,51 @@ static void func_actor_311500_80162C34(Task* arg0, TmdObject* arg1)
     }
 }
 
-/// The first of the leading `count` contact records whose kind is 0x20000:
-/// copies its point to `pos` and returns its key, or returns 0 when none is
-/// found before an empty record or the end.
-static inline s32 _actor311500FindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
+/// Finds the first attack contact before an empty record or the contact limit.
+///
+/// `contactCount` is a nonnegative element count within the readable `contacts`
+/// array. A hit writes only signed game-coordinate XYZ of `contactPoint` in the
+/// contact's frame
+/// and returns its packed key; no hit returns 0 and leaves the point untouched.
+static inline s32 _actor311500FindHit(SVECTOR* contactPoint, const WorldCollisionContact* contacts, s16 contactCount)
 {
-    s16 i;
+    s16 contactIndex;
 
-    for (i = 0; i < count; i++) {
-        if (records[i].key.value == 0) {
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             break;
         }
-        if ((records[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key.value;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            contactPoint->vx = contacts[contactIndex].point.vx;
+            contactPoint->vy = contacts[contactIndex].point.vy;
+            contactPoint->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
         }
     }
     return 0;
 }
 
-static s16 func_actor_311500_80162DDC(Task* arg0)
+/// Applies the queued attack's HP damage, critical effect and target readout.
+///
+/// Consumes the single hit contact and remembers its full key for the reaction
+/// effect. Returns the key's signed low halfword, or 0 when there is no attack.
+static s16 _actor311500ApplyHit(Task* actorTask)
 {
-    _Actor311500Work* work = arg0->work;
+    enum { ACTOR_311500_CRITICAL_DAMAGE_MULTIPLIER = 5 };
+    _Actor311500Work* work = actorTask->work;
     Enemy*            enemy;
-    SVECTOR           pos;
+    SVECTOR           contactPoint;
     s32               damage;
 
-    enemy        = arg0->spawnArg2.pointer;
-    work->hitKey = _actor311500FindHit(&pos, work->hitContacts, 1);
+    enemy        = actorTask->spawnArg2.pointer;
+    work->hitKey = _actor311500FindHit(&contactPoint, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     if (work->hitKey != 0) {
         work->lastHitKey = work->hitKey;
-        damage           = damageComputePlayerAttack(work->hitKey, 0, 0, 0x1000);
+        // Use zero distance and disable reaction scaling before applying the critical multiplier.
+        damage = damageComputePlayerAttack(work->hitKey, 0, 0, 0x1000);
         if (damageRollCriticalHit(enemy, work->hitKey, 0) != 0) {
-            damage *= 5;
-            effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, 0);
+            damage *= ACTOR_311500_CRITICAL_DAMAGE_MULTIPLIER;
+            effectSpawn(EFFECT_CRITICAL_HIT, actorTask->extra.tmd->coords, 0, 0);
         }
         enemy->hp -= damage;
         worldCollisionClearContacts(work->hitContacts);
@@ -445,85 +522,112 @@ static s16 func_actor_311500_80162DDC(Task* arg0)
     return work->hitKey;
 }
 
-/// Calls `animationSeekSlotWithBlend` on animation slots 1 to 18 with a 10-frame count.
-static inline void _actor311500BlendAnim(Task* task)
+/// Blends model slots 1..18 into the hit clip over ten normal-rate frames.
+///
+/// Captures their advanced poses first. Requires initialized package playback;
+/// its transition buffers, clip data and model must remain live through the blend.
+static inline void _actor311500BlendHitAnimation(Task* task)
 {
+    enum { ACTOR_311500_HIT_BLEND_FRAMES = 10 };
     _Actor311500Work* work = task->work;
-    s32               i;
+    s32               slotIndex;
 
-    i = 1;
+    slotIndex = 1;
     do {
-        animationSeekSlotWithBlend(&work->rig.anim, i & 0xFFFF, 1, 0, 0xA);
-        i += 1;
-    } while ((u32)(i & 0xFFFF) < 0x13U);
+        animationSeekSlotWithBlend(&work->rig.anim, slotIndex & 0xFFFF, ACTOR_311500_ANIMATION_HIT, 0, ACTOR_311500_HIT_BLEND_FRAMES);
+        slotIndex += 1;
+    } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(work->rig.slots));
 }
 
-/// Spawns the actor's `effectSpawnHit` effect on model coord 2, offset by
-/// (0x3C, -0xC, 0x1E), for id parameter 1 of `lastHitKey`.
-static inline void _actor311500SpawnEffect(Task* task)
+/// Spawns the last attack's hit effect at the body's fixed local offset.
+///
+/// The offset (60, -12, 30) is in model part 2's coordinate frame. Effect selection
+/// comes from the full saved attack key; the borrowed spawn record is synchronous.
+static inline void _actor311500SpawnHitEffect(Task* task)
 {
+    enum { ACTOR_311500_HIT_EFFECT_MAGNITUDE = 256,
+           ACTOR_311500_HIT_EFFECT_COUNT     = 2 };
     _Actor311500Work* work = task->work;
-    SVECTOR           pos;
-    EffectSpawnArg    eff;
+    SVECTOR           localOffset;
+    EffectSpawnArg    spawnArgs;
 
-    eff.coord      = &task->extra.tmd->coords[2];
-    eff.spawnArgLo = 0x100;
-    eff.spawnArgHi = 2;
-    pos.vx         = 0x3C;
-    pos.vy         = -0xC;
-    pos.vz         = 0x1E;
-    effectSpawnHit(damageGetPlayerAttackEffectId(work->lastHitKey), &task->extra.tmd->coords[2], &pos, &eff);
+    spawnArgs.coord      = &task->extra.tmd->coords[ACTOR_311500_BODY_PART];
+    spawnArgs.spawnArgLo = ACTOR_311500_HIT_EFFECT_MAGNITUDE;
+    spawnArgs.spawnArgHi = ACTOR_311500_HIT_EFFECT_COUNT;
+    localOffset.vx       = 0x3C;
+    localOffset.vy       = -0xC;
+    localOffset.vz       = 0x1E;
+    effectSpawnHit(damageGetPlayerAttackEffectId(work->lastHitKey), &task->extra.tmd->coords[ACTOR_311500_BODY_PART], &localOffset, &spawnArgs);
 }
 
-static s32 func_actor_311500_80162F28(Task* arg0)
+/// Starts or advances the hit reaction, returning -1 for death, 1 for a boundary, or 0.
+///
+/// A lethal start blends and spawns the hit effect without advancing the step;
+/// another call repeats those effects. A boundary returns the actor to idle.
+static s32 _actor311500TickHitReaction(Task* actorTask)
 {
     _Actor311500Work* work;
     Enemy*            enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actorTask->work;
+    enemy = actorTask->spawnArg2.pointer;
 
     switch (work->step) {
         case ACTOR_311500_HIT_STEP_START:
-            _actor311500BlendAnim(arg0);
-            _actor311500SpawnEffect(arg0);
+            _actor311500BlendHitAnimation(actorTask);
+            _actor311500SpawnHitEffect(actorTask);
             if (enemy->hp <= 0) {
-                return -1;
+                return ACTOR_311500_HIT_REACTION_LETHAL;
             }
             work->step++;
             break;
 
         case ACTOR_311500_HIT_STEP_PLAY:
-            if (_actor311500TickAnim(arg0)) {
-                return 1;
+            if (_actor311500TickAnim(actorTask)) {
+                return ACTOR_311500_HIT_REACTION_FINISHED;
             }
             break;
     }
-    return 0;
+    return ACTOR_311500_HIT_REACTION_PLAYING;
 }
 
-static s32 func_actor_311500_801630A4(Task* arg0)
+/// Runs the death sound, reward release and timed burn-away of the model.
+///
+/// Stops targeting and hit collection at the burn step's first tick. The root
+/// retains its translation while its yaw basis is rebuilt with vertical Q12
+/// scale. Returns 1 at burn tick 260, otherwise 0; the task stays allocated.
+static s32 _actor311500TickDeath(Task* actorTask)
 {
+    enum {
+        ACTOR_311500_DEATH_BURN_FRAME        = 10,
+        ACTOR_311500_DEATH_BLACK_FRAME       = 22,
+        ACTOR_311500_DEATH_TRANSLUCENT_FRAME = 28,
+        ACTOR_311500_DEATH_HIDE_FRAME        = 80,
+        ACTOR_311500_DEATH_END_FRAME         = 260,
+        ACTOR_311500_DEATH_SCALE_START_FRAME = 6,
+        ACTOR_311500_DEATH_SCALE_UNITY_FRAME = 20,
+        ACTOR_311500_DEATH_FLAME_BURSTS      = 3
+    };
     _Actor311500Work* work;
     Enemy*            enemy;
-    GfxCoord*         coord;
-    MATRIX            mtx;
+    GfxCoord*         rootCoord;
+    MATRIX            scaledYaw;
     VECTOR            scale;
-    u16               m22;
-    s32               state;
-    s16               cur;
-    s32               sy;
-    s16               ang;
+    u16               matrixElement;
+    s32               deathStep;
+    s16               frame;
+    s32               verticalScale;
+    s16               yaw;
     s32               pan;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    state = work->step;
+    work      = actorTask->work;
+    enemy     = actorTask->spawnArg2.pointer;
+    deathStep = work->step;
 
-    switch (state) {
+    switch (deathStep) {
         case ACTOR_311500_DEATH_STEP_CRY:
-            pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            sndEvtRequestScriptStart(SOUND_ACTOR_311500_DEATH, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+            pan = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
+            sndEvtRequestScriptStart(SOUND_ACTOR_311500_DEATH, pan, (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
             work->stepFrame = 0;
             work->step++;
             break;
@@ -531,63 +635,46 @@ static s32 func_actor_311500_801630A4(Task* arg0)
         case ACTOR_311500_DEATH_STEP_BURN:
             switch (work->stepFrame) {
                 case 0:
-                    sceneReleaseBattleRefWithRewards(arg0, 0xA);
-                    enemy->recs = 0;
+                    sceneReleaseBattleRefWithRewards(actorTask, 0xA);
+                    enemy->recs = NULL;
                     worldCollisionUnlinkBody(&work->hitBody);
-                    enemy->node.state.parts.flags = state;
+                    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                     break;
 
-                case 0xA:
-                    effectSpawn(EFFECT_CORPSE_BURN, &arg0->extra.tmd->coords[2], 3, NULL);
+                case ACTOR_311500_DEATH_BURN_FRAME:
+                    effectSpawn(EFFECT_CORPSE_BURN, &actorTask->extra.tmd->coords[ACTOR_311500_BODY_PART], ACTOR_311500_DEATH_FLAME_BURSTS, NULL);
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
 
-                case 0x16:
+                case ACTOR_311500_DEATH_BLACK_FRAME:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
 
-                case 0x1C:
-                    arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+                case ACTOR_311500_DEATH_TRANSLUCENT_FRAME:
+                    actorTask->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     break;
 
-                case 0x50:
-                    arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                case ACTOR_311500_DEATH_HIDE_FRAME:
+                    actorTask->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     break;
 
-                case 0x104:
+                case ACTOR_311500_DEATH_END_FRAME:
                     return 1;
             }
 
-            cur = work->stepFrame;
-            if (cur >= 6) {
-                coord = arg0->extra.tmd->coords;
-                sy    = 0x1000 - (cur - 0x14) * 0xA;
-                ang   = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-                gfxRotMatrixY(&mtx, ang, 1);
-                scale.vx = 0x1000;
-                scale.vy = (s16)sy;
-                scale.vz = 0x1000;
-                ScaleMatrix(&mtx, &scale);
+            // Rebuild root yaw with a Q12 vertical scale, retaining its translation.
+            frame = work->stepFrame;
+            if (frame >= ACTOR_311500_DEATH_SCALE_START_FRAME) {
+                rootCoord     = actorTask->extra.tmd->coords;
+                verticalScale = ONE - (frame - ACTOR_311500_DEATH_SCALE_UNITY_FRAME) * 10;
+                yaw           = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
+                gfxRotMatrixY(&scaledYaw, yaw, 1);
+                scale.vx = ONE;
+                scale.vy = (s16)verticalScale;
+                scale.vz = ONE;
+                ScaleMatrix(&scaledYaw, &scale);
 
-                m22                  = (u16)mtx.m[0][0];
-                coord->coord.m[0][0] = m22;
-                m22                  = (u16)mtx.m[0][1];
-                coord->coord.m[0][1] = m22;
-                m22                  = (u16)mtx.m[0][2];
-                coord->coord.m[0][2] = m22;
-                m22                  = (u16)mtx.m[1][0];
-                coord->coord.m[1][0] = m22;
-                m22                  = (u16)mtx.m[1][1];
-                coord->coord.m[1][1] = m22;
-                m22                  = (u16)mtx.m[1][2];
-                coord->coord.m[1][2] = m22;
-                m22                  = (u16)mtx.m[2][0];
-                coord->coord.m[2][0] = m22;
-                m22                  = (u16)mtx.m[2][1];
-                coord->coord.m[2][1] = m22;
-                m22                  = (u16)mtx.m[2][2];
-                coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-                coord->coord.m[2][2] = m22;
+                ACTOR_311500_INSTALL_ROOT_ROTATION(rootCoord, scaledYaw, matrixElement);
             }
 
             work->stepFrame++;
@@ -599,109 +686,123 @@ static s32 func_actor_311500_801630A4(Task* arg0)
     return 0;
 }
 
-/// Composes the body coordinate and updates the actor's colour from the
-/// model's position.
-static inline void _actor311500Draw(Task* actor)
+/// Composes the body coordinate and refreshes lighting from the root's cached view position.
+///
+/// Requires the live model and enemy spawn argument. Marks the root dirty for
+/// the next composition; the task's model renderer emits the primitives.
+static inline void _actor311500UpdatePresentation(Task* actor)
 {
     Enemy* enemy;
-    VECTOR pos;
+    VECTOR viewPosition;
 
     enemy = actor->spawnArg2.pointer;
     actorRenderComposeCoord(&actor->extra.tmd->coords[1]);
-    pos.vx = actor->extra.tmd->coords->workm.t[0];
-    pos.vy = actor->extra.tmd->coords->workm.t[1];
-    pos.vz = actor->extra.tmd->coords->workm.t[2];
-    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
+    viewPosition.vx = actor->extra.tmd->coords->workm.t[0];
+    viewPosition.vy = actor->extra.tmd->coords->workm.t[1];
+    viewPosition.vz = actor->extra.tmd->coords->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &viewPosition, 0, 0);
     actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Per-frame update. `Task::state` is the actor's phase: 0 sets the actor up,
-/// 1 idles until it is hit, 2 plays the hit reaction and returns to 1 or, once
-/// the hit points are gone, goes on to 3, which runs the death sequence; 4
-/// does nothing.
-void func_actor_311500_80163334(Task* arg0)
+/// Updates the fire-escape enemy's idle, hit and death phases and presentation.
+///
+/// Scene actor controls pause updates or hide the model. The fire-escape grid
+/// must be loaded: initialization installs its barrier patch and death clears
+/// that patch before marking the enemy absent. The done phase keeps the task live.
+static void _actor311500Task(Task* actorTask)
 {
     _Actor311500Work* work;
-    TmdObject*        obj;
+    TmdObject*        model;
     s32               pan;
 
-    work = arg0->work;
-    obj  = arg0->extra.tmd;
+    work  = actorTask->work;
+    model = actorTask->extra.tmd;
     switch (gSceneCombatState.actorControl) {
-        case 0:
-            if (work->prevActorControl != 0) {
-                obj->flags = work->savedModelFlags;
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            if (work->prevActorControl != SCENE_COMBAT_ACTORS_RUNNING) {
+                model->flags = work->savedModelFlags;
             }
-            switch (arg0->state) {
-                case 0:
+            switch (actorTask->state) {
+                case ACTOR_311500_PHASE_INIT:
+                    // Install the opening barrier patch into the loaded fire-escape grid.
                     memCopyBytes(&D_actor_311500_80169304, gAcropolisFireEscapeCollision04CE8Verts, sizeof(D_actor_311500_80169304));
                     memCopyBytes(&D_actor_311500_801692FC, gAcropolisFireEscapeCollision04CE8Normals, sizeof(D_actor_311500_801692FC));
-                    memCopyBytes(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
-                    func_actor_311500_801629D8(arg0);
-                    work = arg0->work;
-                    _actor311500TickAnim(arg0);
-                    arg0->state += 1;
+                    memCopyBytes(&D_actor_311500_80169324, gAcropolisFireEscapeCollision04CE8Faces, sizeof(D_actor_311500_80169324));
+                    _actor311500Init(actorTask);
+                    work = actorTask->work;
+                    _actor311500TickAnim(actorTask);
+                    actorTask->state += 1;
                     break;
 
-                case 1:
-                    func_actor_311500_80162C34(arg0, obj);
-                    if ((func_actor_311500_80162DDC(arg0) << 0x10) != 0) {
-                        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
+                case ACTOR_311500_PHASE_IDLE:
+                    _actor311500TickIdle(actorTask);
+                    if (_actor311500ApplyHit(actorTask) != 0) {
+                        pan = (s8)worldCoordGetOriginAudioPan(actorTask->extra.tmd->coords);
                         sndEvtRequestScriptStart(SOUND_ACTOR_311500_HURT, pan,
-                                                 (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-                        work->step   = 0;
-                        arg0->state += 1;
+                                                 (s8)worldCoordGetOriginAudioDepth(actorTask->extra.tmd->coords));
+                        work->step        = ACTOR_311500_HIT_STEP_START;
+                        actorTask->state += 1;
                     }
                     worldCollisionClearContacts(work->hitContacts);
                     break;
 
-                case 2:
-                    if ((func_actor_311500_80162DDC(arg0) << 0x10) != 0) {
-                        work->step = 0;
+                case ACTOR_311500_PHASE_HIT:
+                    if (_actor311500ApplyHit(actorTask) != 0) {
+                        work->step = ACTOR_311500_HIT_STEP_START;
                     }
-                    if ((func_actor_311500_80162F28(arg0) << 0x10) > 0) {
-                        work->step   = 0;
-                        arg0->state -= 1;
+                    // Both calls advance the reaction; a killing hit repeats its start effects.
+                    if ((s16)_actor311500TickHitReaction(actorTask) > ACTOR_311500_HIT_REACTION_PLAYING) {
+                        work->step        = ACTOR_311500_IDLE_STEP_CHOOSE;
+                        actorTask->state -= 1;
                         break;
                     }
-                    if ((func_actor_311500_80162F28(arg0) << 0x10) < 0) {
-                        memFillBytes(gAcropolisFireEscapeCollision04CE8Verts, 0, 0x20);
-                        memFillBytes(gAcropolisFireEscapeCollision04CE8Normals, 0, 8);
-                        memFillBytes(gAcropolisFireEscapeCollision04CE8Faces, 0, sizeof(*gAcropolisFireEscapeCollision04CE8Faces));
-                        work->present = 0;
-                        work->step    = 0;
-                        arg0->state  += 1;
+                    if ((s16)_actor311500TickHitReaction(actorTask) < ACTOR_311500_HIT_REACTION_PLAYING) {
+                        memFillBytes(gAcropolisFireEscapeCollision04CE8Verts, 0, sizeof(D_actor_311500_80169304));
+                        memFillBytes(gAcropolisFireEscapeCollision04CE8Normals, 0, sizeof(D_actor_311500_801692FC));
+                        memFillBytes(gAcropolisFireEscapeCollision04CE8Faces, 0, sizeof(D_actor_311500_80169324));
+                        work->present     = 0;
+                        work->step        = ACTOR_311500_DEATH_STEP_CRY;
+                        actorTask->state += 1;
                     }
                     break;
 
-                case 3:
-                    if ((func_actor_311500_801630A4(arg0) << 0x10) != 0) {
-                        arg0->state += 1;
+                case ACTOR_311500_PHASE_DEATH:
+                    if ((s16)_actor311500TickDeath(actorTask) != 0) {
+                        actorTask->state += 1;
                         return;
                     }
-                    _actor311500Draw(arg0);
+                    _actor311500UpdatePresentation(actorTask);
                     return;
 
-                case 4:
+                case ACTOR_311500_PHASE_DONE:
                     return;
             }
             break;
 
-        case 2:
-            if (work->prevActorControl != 2) {
-                work->savedModelFlags = obj->flags;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            if (work->prevActorControl != SCENE_COMBAT_ACTORS_HIDDEN) {
+                work->savedModelFlags = model->flags;
             }
-            arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            actorTask->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
 
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             break;
     }
     work->prevActorControl = gSceneCombatState.actorControl;
-    _actor311500Draw(arg0);
+    _actor311500UpdatePresentation(actorTask);
 }
 
-s32 func_actor_311500_801636A0(Task* arg0, s32 arg1, s32 arg2, u32* arg3)
+/// Reports whether the enemy is present, both as the result and through the output word.
+///
+/// Handles `ACTOR_MESSAGE_IS_PRESENT`; the first payload is unused and the second
+/// must point to one writable `u32`. Requires initialized package work. Presence
+/// is 1 until the killing hit starts the death phase, then 0.
+static s32 _actor311500IsPresentMessage(Task* actorTask, s32 messageId, s32 unusedArg, u32* presenceResult)
 {
-    *arg3 = ((_Actor311500Work*)arg0->work)->present;
+    _Actor311500Work* work    = actorTask->work;
+    u32               present = work->present;
+
+    *presenceResult = present;
+    return present;
 }
