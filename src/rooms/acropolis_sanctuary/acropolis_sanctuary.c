@@ -73,6 +73,35 @@ extern AnimationSet* D_acropolis_sanctuary_80180918[9];
 
 extern WorldCollisionTrigger D_acropolis_sanctuary_80183AE4[17];
 
+/// Views selected by player placement and the mosaic's retained cleanup latch.
+enum {
+    ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET = 16,
+};
+
+/// Packed shard arguments, projection resources and mosaic motion limits.
+enum {
+    ACROPOLIS_SANCTUARY_MOSAIC_MESSAGE_START     = 3101,
+    ACROPOLIS_SANCTUARY_MOSAIC_MIN_DEPTH         = 17,
+    ACROPOLIS_SANCTUARY_MOSAIC_TEXTURE_PAGE      = getTPage(1, GPU_BLEND_AVERAGE, 768, 0),
+    ACROPOLIS_SANCTUARY_MOSAIC_PALETTE           = getClut(0, 264),
+    ACROPOLIS_SANCTUARY_MOSAIC_GRAVITY           = 3,
+    ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES      = 60,
+    ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD      = 60U,
+    ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT      = -3071,
+    ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X          = -10048,
+    ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y          = -3799,
+    ACROPOLIS_SANCTUARY_MOSAIC_CLEAR_X           = -10432,
+    ACROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_SHIFT = 12,
+    ACROPOLIS_SANCTUARY_MOSAIC_SHARD_AIRBORNE    = 1 << ACROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_SHIFT,
+};
+
+/// Script requests are distinct from the cutscene work's stored phases.
+enum {
+    ACROPOLIS_SANCTUARY_CUTSCENE_CUE_HOLD         = 0,
+    ACROPOLIS_SANCTUARY_CUTSCENE_CUE_PLACE_PLAYER = 1,
+    ACROPOLIS_SANCTUARY_CUTSCENE_CUE_CHANGE_SOUND = 2,
+};
+
 /// Script-selected phases and placement status of the sanctuary cutscene.
 enum {
     ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_INITIAL      = 0,
@@ -224,8 +253,8 @@ extern EvsCommand    D_acropolis_sanctuary_801820F0[];
 extern EvsCommand    D_acropolis_sanctuary_801821C8[];
 
 static void func_acropolis_sanctuary_8017D5E0(Task* task);
-static void func_acropolis_sanctuary_8017D930(Task* arg0);
-static void func_acropolis_sanctuary_8017DD78(void);
+static void _acropolisSanctuaryInitRoomTask(Task* task);
+static void _acropolisSanctuaryPlaceBlockerCollision(void);
 static void _acropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 viewId);
 
 /// Key-item use message handled by this room's task.
@@ -267,7 +296,7 @@ static inline void _acropolisSanctuarySetFlameQuadBounds(POLY_FT4* flameQuad, co
 /// State handlers of the room task: set-up, the per-frame entry fixup and
 /// `taskKill`.
 static const TaskFuncTable3 D_acropolis_sanctuary_8017D5C4 = {
-    { func_acropolis_sanctuary_8017D930, func_acropolis_sanctuary_8017D5E0, taskKill },
+    { _acropolisSanctuaryInitRoomTask, func_acropolis_sanctuary_8017D5E0, taskKill },
 };
 
 /// Offset the room task's model-coordinate effect is spawned with.
@@ -281,11 +310,11 @@ static const _AcropolisSanctuaryFlameGrey D_acropolis_sanctuary_8017D5DC = { { 0
 /// A non-zero padding byte the original toolchain left. Nothing refers to it.
 static const u8 D_acropolis_sanctuary_8017D5DF = 0xF1;
 
-s32 func_acropolis_sanctuary_8017F918(Task*, s32, s32, s32);
+static s32 _acropolisSanctuaryStartMosaic(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 void func_acropolis_sanctuary_8017DA40(Task*);
 
-void func_acropolis_sanctuary_8017DCE0(s32);
+static void _acropolisSanctuaryRequestCutsceneCue(s32 cue);
 
 extern WorldCollisionGrid    D_acropolis_sanctuary_80183568;
 extern WorldCollisionTrigger D_acropolis_sanctuary_8018358C[18];
@@ -320,11 +349,11 @@ extern ActorTransform           D_acropolis_sanctuary_801808A4;
 extern ActorTransform           D_acropolis_sanctuary_801808D4;
 extern ActorTransform           D_acropolis_sanctuary_801808EC;
 static void                     _acropolisSanctuaryApplyScriptSpriteSelection(u32 packedSelection);
-void                            func_acropolis_sanctuary_8017D8CC(void);
+static void                     _acropolisSanctuaryRestorePlayerWeaponAnimation(void);
 
-s32        func_acropolis_sanctuary_8017D73C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisSanctuaryResolvePromenadeExit(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisSanctuaryRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
-s32        func_acropolis_sanctuary_8017D810(Task*, s32, s32, s32);
+static s32 _acropolisSanctuaryHandleRoomCommand(Task* task, s32 messageId, s32 command, s32 unused);
 s32        func_acropolis_sanctuary_8017D848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 static AnimationPackedPose _gAcropolisSanctuaryAnimation03234Bank1[8] = {
@@ -350,8 +379,8 @@ static AnimationSet _gAcropolisSanctuaryAnimation03234 = {
 };
 
 TaskMessageEntry D_acropolis_sanctuary_8018081C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_sanctuary_8017D73C },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_sanctuary_8017D810 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisSanctuaryResolvePromenadeExit },
+    { ROOM_MESSAGE_COMMAND, _acropolisSanctuaryHandleRoomCommand },
     { ACROPOLIS_SANCTUARY_MESSAGE_USE_KEY_ITEM, _acropolisSanctuaryRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_sanctuary_8017D848 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -460,7 +489,7 @@ EvsCommand D_acropolis_sanctuary_80180B0C[121] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_sanctuary_8017D8CC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisSanctuaryRestorePlayerWeaponAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -651,9 +680,9 @@ EvsCommand D_acropolis_sanctuary_801820F0[9] = {
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_sanctuary_8017DCE0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisSanctuaryRequestCutsceneCue }, { .value = ACROPOLIS_SANCTUARY_CUTSCENE_CUE_PLACE_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_sanctuary_8017DCE0 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisSanctuaryRequestCutsceneCue }, { .value = ACROPOLIS_SANCTUARY_CUTSCENE_CUE_CHANGE_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -693,7 +722,7 @@ static s16* _gAcropolisSanctuaryCollision04D2CTable[1] = {
 WorldCollisionGrid D_acropolis_sanctuary_801822EC = { NULL, _gAcropolisSanctuaryCollision04D2CNormals, _gAcropolisSanctuaryCollision04D2CVerts, _gAcropolisSanctuaryCollision04D2CFaces, _gAcropolisSanctuaryCollision04D2CTable, 4941, 8914, 1, 1, 4000, 4 };
 
 TaskMessageEntry D_acropolis_sanctuary_80182310[2] = {
-    { 3101, func_acropolis_sanctuary_8017F918 },
+    { ACROPOLIS_SANCTUARY_MOSAIC_MESSAGE_START, _acropolisSanctuaryStartMosaic },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1830,34 +1859,45 @@ static void func_acropolis_sanctuary_8017D5E0(Task* task)
     }
 }
 
-/// Message gate for the sanctuary's second hotspot: copies the incoming record
-/// to the outgoing one, then answers message 0xB. The first time the message is
-/// seen for real (`queryOnly` == 0) it latches nibble 7 to 2 and stores saved
-/// object state 2 at slot 0x13; the answer written back into `room` is 1 while nibble 2
-/// is still clear and 2 once it is set.
-s32 func_acropolis_sanctuary_8017D73C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves an executed exit to the promenade and latches its first use.
+///
+/// Receives `ROOM_EVENT_MESSAGE_RESOLVE` with live request/reply records, which
+/// may alias. Copies all eight bytes, including in query mode; only execution
+/// latches the sanctuary event at 2 and stores object state 2 for index 0x13.
+/// Execution selects promenade room 1 before bridge progress, room 2 after it.
+/// Returns 1 to continue the transition; other destinations pass through.
+static s32 _acropolisSanctuaryResolvePromenadeExit(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    s32 nib;
+    enum {
+        ACROPOLIS_SANCTUARY_EVENT_LATCH_NONE             = 0,
+        ACROPOLIS_SANCTUARY_EVENT_LATCH_PROMENADE_EXIT   = 2,
+        ACROPOLIS_SANCTUARY_PROMENADE_EXIT_OBJECT_INDEX  = 0x13,
+        ACROPOLIS_SANCTUARY_PROMENADE_EXIT_OBJECT_STATE  = 2,
+        ACROPOLIS_SANCTUARY_PROMENADE_ROOM_BEFORE_BRIDGE = 1,
+        ACROPOLIS_SANCTUARY_PROMENADE_ROOM_AFTER_BRIDGE  = 2,
+        ACROPOLIS_SANCTUARY_EXIT_RESOLVED                = 1,
+    };
+    s32 destinationRoom;
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
-                gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 2);
-                areaSetCurrentObjectState(0x13, 2);
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == ACROPOLIS_SANCTUARY_EVENT_LATCH_NONE) {
+                gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, ACROPOLIS_SANCTUARY_EVENT_LATCH_PROMENADE_EXIT);
+                areaSetCurrentObjectState(ACROPOLIS_SANCTUARY_PROMENADE_EXIT_OBJECT_INDEX, ACROPOLIS_SANCTUARY_PROMENADE_EXIT_OBJECT_STATE);
             }
         }
-        if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            nib = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
-            if (nib == 0) {
-                nib = 1;
+        if (request->areaId == GAME_AREA_ACROPOLIS_PROMENADE && request->queryOnly == ROOM_EVENT_EXECUTE) {
+            destinationRoom = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
+            if (destinationRoom == 0) {
+                destinationRoom = ACROPOLIS_SANCTUARY_PROMENADE_ROOM_BEFORE_BRIDGE;
             } else {
-                nib = 2;
+                destinationRoom = ACROPOLIS_SANCTUARY_PROMENADE_ROOM_AFTER_BRIDGE;
             }
-            out->room = nib;
+            reply->room = destinationRoom;
         }
     }
-    return 1;
+    return ACROPOLIS_SANCTUARY_EXIT_RESOLVED;
 }
 
 /// Refuses every key-item use in the sanctuary, returning 0 without side effects.
@@ -1872,9 +1912,15 @@ static s32 _acropolisSanctuaryRejectKeyItem(Task* task, s32 messageId, s32 itemI
     return ACROPOLIS_SANCTUARY_KEY_ITEM_REFUSED;
 }
 
-s32 func_acropolis_sanctuary_8017D810(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts the blocker interaction script for room command 0 while it is uncleared.
+///
+/// Receives `ROOM_MESSAGE_COMMAND` with an integer selector; the second payload
+/// and receiver are unused. Other commands do nothing. Always returns 0.
+static s32 _acropolisSanctuaryHandleRoomCommand(Task* task, s32 messageId, s32 command, s32 unused)
 {
-    if (arg2 == 0 && gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
+    enum { ACROPOLIS_SANCTUARY_ROOM_COMMAND_BLOCKER = 0 };
+
+    if (command == ACROPOLIS_SANCTUARY_ROOM_COMMAND_BLOCKER && gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
         evsStartScript(D_acropolis_sanctuary_80181814, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
@@ -1905,12 +1951,16 @@ static void _acropolisSanctuaryApplyScriptSpriteSelection(u32 packedSelection)
         packedSelection & ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK);
 }
 
-/// Republishes the player's weapon to slot 3: picks the room's 0x3E8 record by
-/// the equipped-weapon index in `gPlayerStatus.weapon`, has `playerActorWriteWeaponAnimationBankIndex` stamp the
-/// current animation-bank table index into `source.index`, then sends it.
-void func_acropolis_sanctuary_8017D8CC(void)
+/// Restores the player weapon animation after the scripted sanctuary poses.
+///
+/// Requires a live player task and initialized weapon animation bank. Equipped
+/// weapon index 2 uses clip 55; the other weapons use clip 7. The persistent
+/// request records are stamped with the active bank index before dispatch.
+static void _acropolisSanctuaryRestorePlayerWeaponAnimation(void)
 {
-    if (gPlayerStatus.weapon == 2) {
+    enum { ACROPOLIS_SANCTUARY_WEAPON_SPECIAL_RESTORE = 2 };
+
+    if (gPlayerStatus.weapon == ACROPOLIS_SANCTUARY_WEAPON_SPECIAL_RESTORE) {
         playerActorWriteWeaponAnimationBankIndex(&D_acropolis_sanctuary_801809F8.source.index);
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_sanctuary_801809F8, 0);
     } else {
@@ -1919,47 +1969,51 @@ void func_acropolis_sanctuary_8017D8CC(void)
     }
 }
 
-/// State 0 of the sanctuary room task: publishes the room's message-handler
-/// table under pointer slot 7 and advances to the next state. Unless nibble 6
-/// has already reached 1 it also chains slot-4 message list 1 onto itself and,
-/// when nibble 2 is set and that slot holds a task, places the actor by sending
-/// it the 0x7D3 animation record followed by the 0x7D4 placement.
-static void func_acropolis_sanctuary_8017D930(Task* arg0)
+/// Registers the sanctuary room task and restores its actor and blocker placement.
+///
+/// Called in state 0. Advances to state 1, enables placed actor 1 while the
+/// blocker has not reached cleared state 1, and restores its pose and position
+/// when bridge progress is nonzero. Rebuilds the live blocker collision last.
+static void _acropolisSanctuaryInitRoomTask(Task* task)
 {
-    Task* slot;
+    enum {
+        ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_INDEX = 1,
+        ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_DRAW  = 1,
+        ACROPOLIS_SANCTUARY_BLOCKER_CLEARED     = 1,
+    };
+    Task* placedActor;
 
-    arg0->msgTable = D_acropolis_sanctuary_8018081C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    arg0->state = arg0->state + 1;
-    if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != 1) {
-        slot = sceneFindPlacedActor(1);
-        sceneSetPlacedActorDrawMode(1, 1);
-        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) != 0 && slot != NULL) {
-            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D3, &D_acropolis_sanctuary_80180AE8, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(slot, 0x7D4, &D_acropolis_sanctuary_801808BC, 0);
+    task->msgTable = D_acropolis_sanctuary_8018081C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    task->state = task->state + 1;
+    if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) != ACROPOLIS_SANCTUARY_BLOCKER_CLEARED) {
+        placedActor = sceneFindPlacedActor(ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_INDEX);
+        sceneSetPlacedActorDrawMode(ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_INDEX, ACROPOLIS_SANCTUARY_BLOCKER_ACTOR_DRAW);
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) != 0 && placedActor != NULL) {
+            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLAY_ANIMATION, &D_acropolis_sanctuary_80180AE8, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLACE, &D_acropolis_sanctuary_801808BC, 0);
         }
     }
-    func_acropolis_sanctuary_8017DD78();
+    _acropolisSanctuaryPlaceBlockerCollision();
 }
 
-/// Runs the room task's current state through a stack copy of the room's
-/// three-entry state table: set-up, the per-frame entry fixup and `taskKill`.
-void func_acropolis_sanctuary_8017D9E8(Task* task)
+void acropolisSanctuaryRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_acropolis_sanctuary_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers = D_acropolis_sanctuary_8017D5C4;
+    handlers.funcs[task->state](task);
 }
 
-/// Installs the cutscene's animation set on the player and starts its first
-/// animation from a reset pose, back on the collision grid.
+/// Installs the cutscene animation set and resets the player's first clip.
 ///
-/// `task` is the cutscene task; nothing is sent when its work block holds no
-/// player. The request is consumed by the dispatch, while the set table has to
-/// outlive the playback it starts.
+/// Requires initialized cutscene work. A NULL captured player skips dispatch;
+/// otherwise the player task must be live. The stack request is consumed
+/// synchronously, while the installed animation-set table survives playback.
+/// Enables world collision; the retained 15-frame argument is ignored on reset.
 static inline void _acropolisSanctuaryCutsceneInstallPlayerAnimation(Task* task)
 {
+    enum { ACROPOLIS_SANCTUARY_CUTSCENE_ANIMATION_BLEND_FRAMES = 15 };
     AnimationPlayRequest             request;
     _AcropolisSanctuaryCutsceneWork* work;
 
@@ -1968,36 +2022,41 @@ static inline void _acropolisSanctuaryCutsceneInstallPlayerAnimation(Task* task)
         request.source.sets          = D_acropolis_sanctuary_801820E4;
         request.animationId          = 0;
         request.blend                = ANIMATION_BLEND_RESET;
-        request.blendFrames          = 0xF;
+        request.blendFrames          = ACROPOLIS_SANCTUARY_CUTSCENE_ANIMATION_BLEND_FRAMES;
         request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
         TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0);
     }
 }
 
-/// Puts the player on the cutscene's mark, upright and with every angle zero.
+/// Places the player at the sanctuary cutscene mark with zero Euler angles.
 ///
-/// `work->playerTask` must be live. The transform is consumed by the dispatch.
+/// The captured player must be live through synchronous placement dispatch.
+/// The mark (-7600, 0, -4400) uses whole world-coordinate units; the unused
+/// vector components have no placement meaning.
 static inline void _acropolisSanctuaryCutscenePlacePlayer(_AcropolisSanctuaryCutsceneWork* work)
 {
-    ActorTransform place;
+    ActorTransform placement;
 
-    place.pos.vx = -0x1DB0;
-    place.pos.vy = 0;
-    place.pos.vz = -0x1130;
-    place.rot.vx = 0;
-    place.rot.vy = 0;
-    place.rot.vz = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &place, 0);
+    placement.pos.vx = -0x1DB0;
+    placement.pos.vy = 0;
+    placement.pos.vz = -0x1130;
+    placement.rot.vx = 0;
+    placement.rot.vy = 0;
+    placement.rot.vz = 0;
+    TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &placement, 0);
 }
 
-/// Carries out the script's player placement the first frame it is pending.
+/// Applies each pending script request for the cutscene's player placement once.
 ///
-/// Does nothing until the script has selected the place-player phase, and
-/// nothing again once the placement is marked applied: the player's effects
-/// are dropped, the cutscene animation is installed, the player is moved to
-/// the mark and the save's camera view follows it.
+/// Requires initialized work and a live captured player in place-player phase.
+/// Removes player equipment before installing animation and placing the player,
+/// selects saved view 14, then marks the request applied. Initial/hold phases
+/// and already-applied requests have no effects.
 static inline void _acropolisSanctuaryCutsceneApplyPlacement(Task* task)
 {
+    enum {
+        ACROPOLIS_SANCTUARY_VIEW_CUTSCENE_PLAYER = 14,
+    };
     _AcropolisSanctuaryCutsceneWork* work;
 
     work = task->work;
@@ -2010,7 +2069,7 @@ static inline void _acropolisSanctuaryCutsceneApplyPlacement(Task* task)
                 playerActorRemoveEquipment();
                 _acropolisSanctuaryCutsceneInstallPlayerAnimation(task);
                 _acropolisSanctuaryCutscenePlacePlayer(work);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SANCTUARY_VIEW_CUTSCENE_PLAYER;
                 work->placementApplied                                     = work->placementApplied + 1;
             }
             break;
@@ -2026,7 +2085,7 @@ static inline void _acropolisSanctuaryCutsceneApplyPlacement(Task* task)
 /// State 1 drives the scene. `GameSession::eventState` reaching 0 instead stops
 /// the sound, writes the room's exit into the save and hands off to task 0x11
 /// before the task kills itself. Otherwise the scene fires exactly
-/// once, when `func_acropolis_sanctuary_8017DCE0` has armed `phase` at 2 and
+/// once, when `_acropolisSanctuaryRequestCutsceneCue` has armed `phase` at 2 and
 /// `placementApplied` is still 0: the player's effects are dropped, slot 3 is given the
 /// 0x3F4 record and then warped to the scene's mark with a 0x3E9 placement, and
 /// `placementApplied` is bumped so the next frame does nothing.
@@ -2085,71 +2144,77 @@ void func_acropolis_sanctuary_8017DA40(Task* arg0)
     }
 }
 
-/// Request entry point for the sanctuary cutscene task's work block: 0 and 1
-/// arm the script at phase 1 or 2 respectively, rewinding `placementApplied` so the driver
-/// runs the scene once, while 2 just plays the pair of sound events the scene
-/// is cued with.
-void func_acropolis_sanctuary_8017DCE0(s32 arg0)
+/// Accepts a script cue for player placement or the cutscene sound transition.
+///
+/// The published cutscene task and its work must be live, even for an unknown
+/// cue. Cue 0 holds and resets placement, cue 1 arms and resets placement, and
+/// cue 2 replaces sanctuary sound script 7 with script 8. Other cues do nothing.
+static void _acropolisSanctuaryRequestCutsceneCue(s32 cue)
 {
     _AcropolisSanctuaryCutsceneWork* work = D_acropolis_sanctuary_80186C90->work;
 
-    switch (arg0) {
-        case 0:
+    switch (cue) {
+        case ACROPOLIS_SANCTUARY_CUTSCENE_CUE_HOLD:
             work->phase            = ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_HOLD;
             work->placementApplied = ACROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING;
             return;
-        case 1:
+        case ACROPOLIS_SANCTUARY_CUTSCENE_CUE_PLACE_PLAYER:
             work->phase            = ACROPOLIS_SANCTUARY_CUTSCENE_PHASE_PLACE_PLAYER;
             work->placementApplied = ACROPOLIS_SANCTUARY_CUTSCENE_PLACEMENT_PENDING;
             return;
-        case 2:
+        case ACROPOLIS_SANCTUARY_CUTSCENE_CUE_CHANGE_SOUND:
             sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 7), SOUND_SCRIPT_STOP_NO_FADE);
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 8), 0, 0);
             return;
     }
 }
 
-/// Arms the sanctuary's blocker cage: copies the first four normals, eight
-/// corners and four quads of the template at `D_acropolis_sanctuary_801822EC`
-/// into the live set at `D_acropolis_sanctuary_80183568`, selecting surface class
-/// 1 for each copied quad, then slides all eight corners to where the cage belongs. Nibble 6
-/// is the sanctuary cutscene flag: before the scene the cage sits across the
-/// doorway, afterwards it is pushed 3000 units aside and out of the way.
-static void func_acropolis_sanctuary_8017DD78(void)
+/// Restores the movable blocker in the room's live collision grid.
+///
+/// Copies the template's four normal XYZ triples, eight vertex XYZ triples and
+/// four complete faces into the live grid's leading records, retaining vector
+/// fourth components. Assigns surface class 1, then offsets the vertices by
+/// (200, 0, 380) before clearance or (3000, 0, 0) afterwards, in whole room units.
+/// Requires a readable template and writable live room arrays through the call.
+static void _acropolisSanctuaryPlaceBlockerCollision(void)
 {
-    WorldCollisionGrid* dst = &D_acropolis_sanctuary_80183568;
-    WorldCollisionGrid* src = &D_acropolis_sanctuary_801822EC;
-    SVECTOR             shift;
-    s32                 i;
+    enum {
+        ACROPOLIS_SANCTUARY_BLOCKER_SURFACE_CLASS = 1,
+    };
+    WorldCollisionGrid* roomGrid        = &D_acropolis_sanctuary_80183568;
+    WorldCollisionGrid* blockerTemplate = &D_acropolis_sanctuary_801822EC;
+    SVECTOR             placementOffset;
+    s32                 elementIndex;
 
-    for (i = 0; i < 4; i++) {
-        dst->normals[i].vx            = src->normals[i].vx;
-        dst->normals[i].vy            = src->normals[i].vy;
-        dst->normals[i].vz            = src->normals[i].vz;
-        dst->vertices[i * 2].vx       = src->vertices[i * 2].vx;
-        dst->vertices[i * 2].vy       = src->vertices[i * 2].vy;
-        dst->vertices[i * 2].vz       = src->vertices[i * 2].vz;
-        dst->vertices[(i * 2) + 1].vx = src->vertices[(i * 2) + 1].vx;
-        dst->vertices[(i * 2) + 1].vy = src->vertices[(i * 2) + 1].vy;
-        dst->vertices[(i * 2) + 1].vz = src->vertices[(i * 2) + 1].vz;
-        dst->faces[i]                 = src->faces[i];
-        dst->faces[i].surfaceClass    = 1;
+    // Restore the template without copying the unused fourth vector components.
+    for (elementIndex = 0; elementIndex < ARRAY_SIZE(_gAcropolisSanctuaryCollision04D2CNormals); elementIndex++) {
+        roomGrid->normals[elementIndex].vx            = blockerTemplate->normals[elementIndex].vx;
+        roomGrid->normals[elementIndex].vy            = blockerTemplate->normals[elementIndex].vy;
+        roomGrid->normals[elementIndex].vz            = blockerTemplate->normals[elementIndex].vz;
+        roomGrid->vertices[elementIndex * 2].vx       = blockerTemplate->vertices[elementIndex * 2].vx;
+        roomGrid->vertices[elementIndex * 2].vy       = blockerTemplate->vertices[elementIndex * 2].vy;
+        roomGrid->vertices[elementIndex * 2].vz       = blockerTemplate->vertices[elementIndex * 2].vz;
+        roomGrid->vertices[(elementIndex * 2) + 1].vx = blockerTemplate->vertices[(elementIndex * 2) + 1].vx;
+        roomGrid->vertices[(elementIndex * 2) + 1].vy = blockerTemplate->vertices[(elementIndex * 2) + 1].vy;
+        roomGrid->vertices[(elementIndex * 2) + 1].vz = blockerTemplate->vertices[(elementIndex * 2) + 1].vz;
+        roomGrid->faces[elementIndex]                 = blockerTemplate->faces[elementIndex];
+        roomGrid->faces[elementIndex].surfaceClass    = ACROPOLIS_SANCTUARY_BLOCKER_SURFACE_CLASS;
     }
 
     if (gameFlagGetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED) == 0) {
-        shift.vx = 200;
-        shift.vy = 0;
-        shift.vz = 380;
+        placementOffset.vx = 200;
+        placementOffset.vy = 0;
+        placementOffset.vz = 380;
     } else {
-        shift.vx = 3000;
-        shift.vy = 0;
-        shift.vz = 0;
+        placementOffset.vx = 3000;
+        placementOffset.vy = 0;
+        placementOffset.vz = 0;
     }
 
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i].vx += shift.vx;
-        dst->vertices[i].vy += shift.vy;
-        dst->vertices[i].vz += shift.vz;
+    for (elementIndex = 0; elementIndex < ARRAY_SIZE(_gAcropolisSanctuaryCollision04D2CVerts); elementIndex++) {
+        roomGrid->vertices[elementIndex].vx += placementOffset.vx;
+        roomGrid->vertices[elementIndex].vy += placementOffset.vy;
+        roomGrid->vertices[elementIndex].vz += placementOffset.vz;
     }
 }
 
@@ -2176,427 +2241,386 @@ static void _acropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 vie
     }
 }
 
-/// State 0 of the sanctuary's effect task: spawns the twelve 0x6008B effects
-/// the room is decorated with, six with spawn arg `0x200 + i` and six with
-/// `0xA00000 + i`, each anchored to the task's own coordinate and offset by its
-/// entry in `D_acropolis_sanctuary_80182774`. It then publishes the task's
-/// handler table under pointer slot 5 and advances the state so the spawn runs
-/// once. Every frame after that it mirrors the session's stage byte into
-/// `D_acropolis_sanctuary_80182770`: 1 while the byte is 0x10, held while it is
-/// 0xC, 0 otherwise.
-void func_acropolis_sanctuary_8017E00C(Task* task)
+void acropolisSanctuaryRoomEffectTask(Task* task)
 {
-    GfxCoord*        coord;
-    GameLocationKey* sess;
-    s32              i;
+    enum {
+        ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_HOLD = 12,
+    };
+    enum {
+        ACROPOLIS_SANCTUARY_ROOM_EFFECT_INITIAL  = 0,
+        ACROPOLIS_SANCTUARY_FLAME_DIM_ARGUMENT   = 2 << 8,
+        ACROPOLIS_SANCTUARY_FLAME_SMALL_ARGUMENT = 160 << 16,
+        ACROPOLIS_SANCTUARY_FLAME_DIM_COUNT      = 6,
+    };
+    GfxCoord*        roomCoord;
+    GameLocationKey* location;
+    s32              placementIndex;
 
-    coord = task->extra.coordBody->coord;
-    if (task->state == 0) {
-        for (i = 0; i < 6; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_FLAME, coord, i + 0x200, &D_acropolis_sanctuary_80182774[i]);
+    roomCoord = task->extra.coordBody->coord;
+    if (task->state == ACROPOLIS_SANCTUARY_ROOM_EFFECT_INITIAL) {
+        for (placementIndex = 0; placementIndex < ACROPOLIS_SANCTUARY_FLAME_DIM_COUNT; placementIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + ACROPOLIS_SANCTUARY_FLAME_DIM_ARGUMENT, &D_acropolis_sanctuary_80182774[placementIndex]);
         }
-        for (i = 6; i < 12; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_FLAME, coord, i + 0xA00000, &D_acropolis_sanctuary_80182774[i]);
+        for (placementIndex = ACROPOLIS_SANCTUARY_FLAME_DIM_COUNT; placementIndex < ARRAY_SIZE(D_acropolis_sanctuary_80182774); placementIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_FLAME, roomCoord, placementIndex + ACROPOLIS_SANCTUARY_FLAME_SMALL_ARGUMENT, &D_acropolis_sanctuary_80182774[placementIndex]);
         }
         task->msgTable = D_acropolis_sanctuary_80182310;
         gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
         D_acropolis_sanctuary_80182770 = 0;
         task->state                    = task->state + 1;
     }
-    sess = &gGameSession->location.loc;
-    if (sess->view == 0x10) {
+    location = &gGameSession->location.loc;
+    if (location->view == ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET) {
         D_acropolis_sanctuary_80182770 = 1;
-    } else if (sess->view != 0xC) {
+    } else if (location->view != ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_HOLD) {
         D_acropolis_sanctuary_80182770 = 0;
     }
 }
 
-/// State 0 of the sanctuary's mosaic task: spawns one 0x60079 effect per tile,
-/// first for all 72 entries of `D_acropolis_sanctuary_80182320` keyed by their
-/// own index, then a second pass over the 16 tiles listed in
-/// `D_acropolis_sanctuary_80182750` keyed by the tile index itself, so those
-/// sixteen get a second effect on top. Each spawn reuses the task's own
-/// `EffectWork` offset triple: x is always 0, y and z come from the tile's
-/// `originV` and `originU` scaled by 1145/128 and 2147/256 and shifted by the
-/// origin corner of its `sizeClass`. Any state but 0 just releases the work
-/// block.
-void func_acropolis_sanctuary_8017E134(Task* arg0)
+void acropolisSanctuaryMosaicTask(Task* task)
 {
-    EffectWork*                    mem;
-    GfxCoord*                      coord;
+    enum { ACROPOLIS_SANCTUARY_MOSAIC_INITIAL = 0 };
+    EffectWork*                    mosaicWork;
+    GfxCoord*                      mosaicCoord;
     _AcropolisSanctuaryMosaicTile* tile;
     s32                            sizeClass;
-    s32                            i;
-    s32                            idx;
+    s32                            spawnIndex;
+    s32                            tileIndex;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    if (arg0->state != 0) {
-        effectKillTask(mem, arg0);
+/// Places and spawns the selected mosaic tile in whole coordinate units.
+///
+/// Captures `tile`, `sizeClass`, `mosaicWork` and `mosaicCoord` in this function.
+/// Writes `sizeClass` and the work's temporary offset; evaluates tileIndex once.
+/// The captured pointers and argument must have no side effects. Expands to
+/// statements and requires a braced call site; placement is copied at spawn.
+#define ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(tileIndex)                                                    \
+    sizeClass           = tile->sizeClass;                                                                  \
+    mosaicWork->move.vx = 0;                                                                                \
+    mosaicWork->move.vy = ((tile->originV * 1145) >> 7) - D_acropolis_sanctuary_80182710[sizeClass][0].vy;  \
+    mosaicWork->move.vz = -((tile->originU * 2147) >> 8) - D_acropolis_sanctuary_80182710[sizeClass][0].vz; \
+    effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, mosaicCoord, (tileIndex), &mosaicWork->move)
+
+    mosaicWork  = task->spawnArg2.pointer;
+    mosaicCoord = task->extra.coordBody->coord;
+    if (task->state != ACROPOLIS_SANCTUARY_MOSAIC_INITIAL) {
+        effectKillTask(mosaicWork, task);
         return;
     }
-    for (i = 0; i < 0x48; i++) {
-        tile         = &D_acropolis_sanctuary_80182320[i];
-        sizeClass    = tile->sizeClass;
-        mem->move.vx = 0;
-        mem->move.vy = ((tile->originV * 1145) >> 7) - D_acropolis_sanctuary_80182710[sizeClass][0].vy;
-        mem->move.vz = -((tile->originU * 2147) >> 8) - D_acropolis_sanctuary_80182710[sizeClass][0].vz;
-        effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, coord, i, &mem->move);
+    for (spawnIndex = 0; spawnIndex < ARRAY_SIZE(D_acropolis_sanctuary_80182320); spawnIndex++) {
+        tile = &D_acropolis_sanctuary_80182320[spawnIndex];
+        ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(spawnIndex);
     }
-    for (i = 0; i < 0x10; i++) {
-        idx          = D_acropolis_sanctuary_80182750[i];
-        tile         = &D_acropolis_sanctuary_80182320[idx];
-        sizeClass    = tile->sizeClass;
-        mem->move.vx = 0;
-        mem->move.vy = ((tile->originV * 1145) >> 7) - D_acropolis_sanctuary_80182710[sizeClass][0].vy;
-        mem->move.vz = -((tile->originU * 2147) >> 8) - D_acropolis_sanctuary_80182710[sizeClass][0].vz;
-        effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_TILE, coord, idx, &mem->move);
+    for (spawnIndex = 0; spawnIndex < ARRAY_SIZE(D_acropolis_sanctuary_80182750); spawnIndex++) {
+        tileIndex = D_acropolis_sanctuary_80182750[spawnIndex];
+        tile      = &D_acropolis_sanctuary_80182320[tileIndex];
+        ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE(tileIndex);
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
+
+#undef ACROPOLIS_SANCTUARY_SPAWN_MOSAIC_TILE
 }
 
-/// Draws one frame of a whole mosaic tile: a semi-transparent textured quad
-/// whose four corners are the size class's own corner offsets, rotated by the
-/// task's own `workm` and then projected through `GsWSMATRIX`, staged in an
-/// `_AcropolisSanctuaryMosaicTileScratch` block taken from the scratch stack.
-/// The first corner goes through `rtps` and the other three through `rtpt`;
-/// tiles inside `otz` 0x11 are dropped. The texture window runs from the
-/// tile's `originU` / `originV` to that plus its `extentU` / `extentV`, so the
-/// quad shows its own piece of the mosaic sheet at full size -- this is the
-/// intact tile, `func_acropolis_sanctuary_8017EC90` draws the shards it breaks
-/// into.
-///
-/// The drift (`move`) and spin (`pos`) are seeded from the LCG on the first
-/// drawn frame, in one of two strengths chosen by the tile's `thrown`, which
-/// `scale` keeps: a fast, wide-tumbling one for a thrown tile and a slow one
-/// otherwise. The hold (`angle`) is the tile's `holdFrames`, plus a random
-/// 0..7 for the slow kind, and `age` is the frame counter measured against it
-/// -- the tile starts to drift once its age passes the hold, and the work
-/// block is released 0x3C frames past that.
-///
-/// While drifting, a tile of the slow kind (`scale` zero) has a 1-in-60
-/// chance per frame -- or a certainty once past y = -0xBFF -- of shedding one
-/// to four 0x6007A shards, tagged 0x1000 so they spawn as the airborne
-/// variant. Crossing x = -0x2740 above y = -0xED7 either shatters a
-/// size-class-1 tile into two to four untagged shards or, one time in four
-/// and always for size class 0, bounces it by halving and inverting the
-/// vertical step. Either split costs 0x64 of life. Once the room flag is set
-/// and the session is not in mode 0x10, tiles past x = -0x28C0 also age by
-/// 0x3C, so they clear away.
-void func_acropolis_sanctuary_8017E338(Task* arg0)
+void acropolisSanctuaryMosaicTileTask(Task* task)
 {
-    EffectWork*                           mem;
-    GfxCoord*                             coord;
+    enum {
+        ACROPOLIS_SANCTUARY_MOSAIC_TILE_SPLIT_AGE = 100,
+    };
+    EffectWork*                           tileWork;
+    GfxCoord*                             tileCoord;
     _AcropolisSanctuaryMosaicTileScratch* tileScratch;
-    POLY_FT4*                             prim;
+    POLY_FT4*                             tileQuad;
     SVECTOR*                              scratchCorner;
     s32                                   sizeClass;
-    s32                                   i;
-    s32                                   n;
+    s32                                   cornerIndex;
+    s32                                   shardCount;
 
-    mem       = arg0->spawnArg2.pointer;
-    sizeClass = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].sizeClass;
-    coord     = arg0->extra.coordBody->coord;
-    actorRenderComposeCoord(coord);
+    tileWork  = task->spawnArg2.pointer;
+    sizeClass = D_acropolis_sanctuary_80182320[task->spawnArg1.value].sizeClass;
+    tileCoord = task->extra.coordBody->coord;
+    actorRenderComposeCoord(tileCoord);
     tileScratch = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSanctuaryMosaicTileScratch);
     gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < ARRAY_SIZE(tileScratch->corners); i++) {
-        tileScratch->corners[i].vx = D_acropolis_sanctuary_80182710[sizeClass][i].vx;
-        // The same corner as `&tileScratch->corners[i]`, spelled as a byte
-        // offset from the block so that it stays a separate pointer from the
-        // one the GTE macros below take. Every typed spelling of this address
-        // folds into that operand's register and the loop stops matching.
-        scratchCorner     = (SVECTOR*)((u8*)tileScratch + i * sizeof(SVECTOR) + OFFSET_OF(_AcropolisSanctuaryMosaicTileScratch, corners));
-        scratchCorner->vy = D_acropolis_sanctuary_80182710[sizeClass][i].vy;
-        scratchCorner->vz = D_acropolis_sanctuary_80182710[sizeClass][i].vz;
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&tileScratch->corners[i]);
+    // Transform the size-class corners into narrowed world positions.
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(tileScratch->corners); cornerIndex++) {
+        tileScratch->corners[cornerIndex].vx = D_acropolis_sanctuary_80182710[sizeClass][cornerIndex].vx;
+        // Byte addressing preserves separate store and GTE operand registers.
+        scratchCorner     = (SVECTOR*)((u8*)tileScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(_AcropolisSanctuaryMosaicTileScratch, corners));
+        scratchCorner->vy = D_acropolis_sanctuary_80182710[sizeClass][cornerIndex].vy;
+        scratchCorner->vz = D_acropolis_sanctuary_80182710[sizeClass][cornerIndex].vz;
+        gte_SetRotMatrix(&tileCoord->workm);
+        gte_ldv0(&tileScratch->corners[cornerIndex]);
         gte_rtv0();
-        gte_stsv(&tileScratch->corners[i]);
-        tileScratch->corners[i].vx += coord->workm.t[0];
-        scratchCorner->vy          += coord->workm.t[1];
-        scratchCorner->vz          += coord->workm.t[2];
+        gte_stsv(&tileScratch->corners[cornerIndex]);
+        tileScratch->corners[cornerIndex].vx += tileCoord->workm.t[0];
+        scratchCorner->vy                    += tileCoord->workm.t[1];
+        scratchCorner->vz                    += tileCoord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&tileScratch->corners[0]);
     gte_rtps();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 9);
-    setcode(prim, 0x2C);
-    gte_stsxy(&prim->x0);
+    tileQuad       = gGpuPrimCursor;
+    gGpuPrimCursor = tileQuad + 1;
+    setPolyFT4(tileQuad);
+    gte_stsxy(&tileQuad->x0);
     gte_ldv3(&tileScratch->corners[1], &tileScratch->corners[2], &tileScratch->corners[3]);
     gte_rtpt();
-    gte_stsxy3(&prim->x1, &prim->x2, &prim->x3);
+    gte_stsxy3(&tileQuad->x1, &tileQuad->x2, &tileQuad->x3);
     gte_stszotz(&tileScratch->otz);
-    if (tileScratch->otz >= 0x11) {
-        if (mem->age == 0) {
-            mem->scale = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].thrown;
-            if (mem->scale != 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) & 0xFF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vx     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vy     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vz     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-                mem->angle      = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].holdFrames;
+    if (tileScratch->otz >= ACROPOLIS_SANCTUARY_MOSAIC_MIN_DEPTH) {
+        // Seed motion only on an accepted projection at age zero.
+        if (tileWork->age == 0) {
+            tileWork->scale = D_acropolis_sanctuary_80182320[task->spawnArg1.value].thrown;
+            if (tileWork->scale != 0) {
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->move.vx = -((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->move.vy = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->move.vz = 0x40 - ((gRandomLcgState >> 16) & 0x7F);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->pos.vx  = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->pos.vy  = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->pos.vz  = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                tileWork->angle   = D_acropolis_sanctuary_80182320[task->spawnArg1.value].holdFrames;
             } else {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = -((gRandomLcgState >> 16) & 0x1F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = (gRandomLcgState >> 16) & 7;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = 4 - ((gRandomLcgState >> 16) & 7);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vx     = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vy     = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vz     = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->angle      = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].holdFrames +
-                             ((gRandomLcgState >> 16) & 7);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->move.vx = -((gRandomLcgState >> 16) & 0x1F);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->move.vy = (gRandomLcgState >> 16) & 7;
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->move.vz = 4 - ((gRandomLcgState >> 16) & 7);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->pos.vx  = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->pos.vy  = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->pos.vz  = 0x20 - ((gRandomLcgState >> 16) & 0x3F);
+                gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                tileWork->angle   = D_acropolis_sanctuary_80182320[task->spawnArg1.value].holdFrames +
+                                  ((gRandomLcgState >> 16) & 7);
             }
         }
-        prim->tpage = 0x8C;
-        prim->clut  = 0x4200;
-        prim->code |= 3;
-        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU;
-        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV;
-        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentU;
-        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV;
-        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU;
-        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentV;
-        prim->u3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentU;
-        prim->v3 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV +
-                   D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentV;
+        tileQuad->tpage = ACROPOLIS_SANCTUARY_MOSAIC_TEXTURE_PAGE;
+        tileQuad->clut  = ACROPOLIS_SANCTUARY_MOSAIC_PALETTE;
+        setShadeTex(tileQuad, 1);
+        setSemiTrans(tileQuad, 1);
+        tileQuad->u0 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originU;
+        tileQuad->v0 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originV;
+        tileQuad->u1 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originU +
+                       D_acropolis_sanctuary_80182320[task->spawnArg1.value].extentU;
+        tileQuad->v1 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originV;
+        tileQuad->u2 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originU;
+        tileQuad->v2 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originV +
+                       D_acropolis_sanctuary_80182320[task->spawnArg1.value].extentV;
+        tileQuad->u3 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originU +
+                       D_acropolis_sanctuary_80182320[task->spawnArg1.value].extentU;
+        tileQuad->v3 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originV +
+                       D_acropolis_sanctuary_80182320[task->spawnArg1.value].extentV;
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)tileScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+                tileQuad);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_AcropolisSanctuaryMosaicTileScratch);
-    if (mem->angle + 0x3C < mem->age) {
-        effectKillTask(mem, arg0);
+    if (tileWork->angle + ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES < tileWork->age) {
+        effectKillTask(tileWork, task);
         return;
     }
-    if (mem->angle < mem->age) {
-        coord->coord.t[0] += mem->move.vx;
-        coord->coord.t[1] += mem->move.vy;
-        coord->coord.t[2] += mem->move.vz;
-        gfxRotMatrixYXZ(&coord->coord, &mem->pos, GRAPHICS_ROTATION_COMPOSE);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        mem->move.vy        = mem->move.vy + 3;
-        if (mem->scale == 0) {
+    // Release held tiles into drift; splitting advances age past their lifetime.
+    if (tileWork->angle < tileWork->age) {
+        tileCoord->coord.t[0] += tileWork->move.vx;
+        tileCoord->coord.t[1] += tileWork->move.vy;
+        tileCoord->coord.t[2] += tileWork->move.vz;
+        gfxRotMatrixYXZ(&tileCoord->coord, &tileWork->pos, GRAPHICS_ROTATION_COMPOSE);
+        tileCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        tileWork->move.vy       = tileWork->move.vy + ACROPOLIS_SANCTUARY_MOSAIC_GRAVITY;
+        if (tileWork->scale == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((u16)((gRandomLcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
+            if ((u16)((gRandomLcgState >> 16) % (u32)ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD) == 0 || tileCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                n               = ((gRandomLcgState >> 16) & 3) + 1;
-                for (i = 0; i < n; i++) {
-                    effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, coord, arg0->spawnArg1.value | 0x1000, NULL);
+                shardCount      = ((gRandomLcgState >> 16) & 3) + 1;
+                for (cornerIndex = 0; cornerIndex < shardCount; cornerIndex++) {
+                    effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, tileCoord, task->spawnArg1.value | ACROPOLIS_SANCTUARY_MOSAIC_SHARD_AIRBORNE, NULL);
                 }
-                mem->age = mem->age + 0x64;
+                tileWork->age = tileWork->age + ACROPOLIS_SANCTUARY_MOSAIC_TILE_SPLIT_AGE;
             }
         }
     }
-    if (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7) {
+    if (tileCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && tileCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y) {
         if (sizeClass != 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            // The size class is dead once it has been tested, so the shard
-            // count reuses its local -- keeping the two apart costs `$s5`.
+            // Retain this temporary for the later shard count to preserve allocation.
             sizeClass = (gRandomLcgState >> 16) & 3;
             if (sizeClass != 0) {
                 sizeClass = sizeClass + 1;
-                for (i = 0; i < sizeClass; i++) {
-                    effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, coord, arg0->spawnArg1.value, NULL);
+                for (cornerIndex = 0; cornerIndex < sizeClass; cornerIndex++) {
+                    effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, tileCoord, task->spawnArg1.value, NULL);
                 }
-                mem->age = mem->age + 0x64;
+                tileWork->age = tileWork->age + ACROPOLIS_SANCTUARY_MOSAIC_TILE_SPLIT_AGE;
             } else {
-                coord->coord.t[1] -= mem->move.vy * 2;
-                mem->move.vy       = -(mem->move.vy >> 1);
+                tileCoord->coord.t[1] -= tileWork->move.vy * 2;
+                tileWork->move.vy      = -(tileWork->move.vy >> 1);
             }
         } else {
-            coord->coord.t[1] -= mem->move.vy * 2;
-            mem->move.vy       = -(mem->move.vy >> 1);
+            tileCoord->coord.t[1] -= tileWork->move.vy * 2;
+            tileWork->move.vy      = -(tileWork->move.vy >> 1);
         }
     }
-    if (gGameSession->location.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
-        (coord->coord.t[0] < -0x28C0 ||
-         (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7))) {
-        mem->age = mem->age + 0x3C;
+    if (gGameSession->location.loc.view != ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET && D_acropolis_sanctuary_80182770 != 0 &&
+        (tileCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_CLEAR_X ||
+         (tileCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && tileCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y))) {
+        tileWork->age = tileWork->age + ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
     }
-    mem->age = mem->age + 1;
+    tileWork->age = tileWork->age + 1;
 }
 
-/// Draws one frame of a mosaic shard: a semi-transparent textured triangle
-/// whose three corners come from the first three corners of
-/// `D_acropolis_sanctuary_80182710`, scaled about the origin by the shard's
-/// size (`angle`) with the GTE's `gpf` interpolator and rotated by the
-/// task's own `workm`, then projected through `GsWSMATRIX` with `rtpt` into an
-/// `_AcropolisSanctuaryMosaicShardScratch` block taken from the scratch stack; shards inside `otz`
-/// 0x11 are dropped. The texture window is the tile's `originU` / `originV`
-/// corner and its `extentU` / `extentV` scaled by the same size factor, so the
-/// shard shows its own piece of the mosaic sheet.
-///
-/// `Task::spawnArg1` is unpacked on the first frame: bits 12..15 select the
-/// drift pattern, the high halfword is the size (defaulting to 0x1000) and only
-/// the low 12 bits are kept, as the index into the tile table. The same frame
-/// seeds the per-frame drift (`move`) and spin
-/// (`pos`) from the LCG -- pattern 0 falls faster, since its
-/// vertical step is seeded negative.
-///
-/// Each frame the shard drifts by that step, gains 3 of downward speed, and is
-/// respun. Crossing x = -0x2740 above y = -0xED7 either bounces it (halving and
-/// inverting the vertical step, twice at most) or, for shards at least 0x401
-/// big, shatters it into one or two 0x6007A children; a big shard also has a
-/// 1-in-60 chance per frame -- or a certainty once past y = -0xBFF -- of
-/// splitting into two. Either way the split costs 0x3C of life. Once the room
-/// flag is set and the session is not in mode 0x10, shards past x = -0x28C0
-/// also age by 0x3C, so they clear away.
-void func_acropolis_sanctuary_8017EC90(Task* arg0)
+void acropolisSanctuaryMosaicShardTask(Task* task)
 {
-    EffectWork*                            mem;
-    GfxCoord*                              coord;
+    enum {
+        ACROPOLIS_SANCTUARY_MOSAIC_TILE_INDEX_MASK          = 0xFFF,
+        ACROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_MASK         = 0xF,
+        ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_SHIFT         = 16,
+        ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_ONE           = 1 << 12,
+        ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_FRACTION_BITS = 12,
+        ACROPOLIS_SANCTUARY_MOSAIC_SHARD_MIN_SPLIT_SIZE     = (ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_ONE / 4) + 1,
+        ACROPOLIS_SANCTUARY_MOSAIC_SHARD_CHILD_SIZE_SHIFT   = ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_SHIFT - 1,
+        ACROPOLIS_SANCTUARY_MOSAIC_SHARD_MAX_BOUNCES        = 2,
+    };
+    EffectWork*                            shardWork;
+    GfxCoord*                              shardCoord;
     _AcropolisSanctuaryMosaicShardScratch* shardScratch;
-    POLY_FT3*                              prim;
-    SVECTOR*                               corner;
-    s32                                    size;
-    s32                                    hi;
-    s32                                    i;
-    s32                                    n;
-    s32                                    flags;
+    POLY_FT3*                              shardTriangle;
+    SVECTOR*                               baseCorners;
+    s32                                    sizeFactor;
+    s32                                    packedSize;
+    s32                                    cornerIndex;
+    s32                                    shardCount;
+    s32                                    childParams;
     SVECTOR*                               scratchCorner;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    if (mem->age >= 0x3D || mem->index >= 2) {
-        effectKillTask(mem, arg0);
+    shardWork  = task->spawnArg2.pointer;
+    shardCoord = task->extra.coordBody->coord;
+    if (shardWork->age >= ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES + 1 || shardWork->index >= ACROPOLIS_SANCTUARY_MOSAIC_SHARD_MAX_BOUNCES) {
+        effectKillTask(shardWork, task);
         return;
     }
-    actorRenderComposeCoord(coord);
+    actorRenderComposeCoord(shardCoord);
     shardScratch = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisSanctuaryMosaicShardScratch);
-    if (mem->age == 0) {
-        mem->scale = (arg0->spawnArg1.value >> 12) & 0xF;
-        hi         = (s16)(arg0->spawnArg1.value >> 16);
-        size       = 0x1000;
-        if ((u16)hi != 0) {
-            size = hi;
+    // Unpack once, preserving signed size and the unsigned zero test.
+    if (shardWork->age == 0) {
+        shardWork->scale = (task->spawnArg1.value >> ACROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_SHIFT) & ACROPOLIS_SANCTUARY_MOSAIC_SHARD_DRIFT_MASK;
+        packedSize       = (s16)(task->spawnArg1.value >> ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_SHIFT);
+        sizeFactor       = ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_ONE;
+        if ((u16)packedSize != 0) {
+            sizeFactor = packedSize;
         }
-        mem->angle            = size;
-        arg0->spawnArg1.value = arg0->spawnArg1.value & 0xFFF;
-        if (mem->scale != 0) {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vx    = 8 - ((gRandomLcgState >> 16) & 0xF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vy    = (gRandomLcgState >> 16) & 0xF;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vz    = 8 - ((gRandomLcgState >> 16) & 0xF);
+        shardWork->angle      = sizeFactor;
+        task->spawnArg1.value = task->spawnArg1.value & ACROPOLIS_SANCTUARY_MOSAIC_TILE_INDEX_MASK;
+        if (shardWork->scale != 0) {
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            shardWork->move.vx = 8 - ((gRandomLcgState >> 16) & 0xF);
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            shardWork->move.vy = (gRandomLcgState >> 16) & 0xF;
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            shardWork->move.vz = 8 - ((gRandomLcgState >> 16) & 0xF);
         } else {
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vx    = 8 - ((gRandomLcgState >> 16) & 0xF);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vy    = -((gRandomLcgState >> 16) & 0x1F);
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vz    = 8 - ((gRandomLcgState >> 16) & 0xF);
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            shardWork->move.vx = 8 - ((gRandomLcgState >> 16) & 0xF);
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            shardWork->move.vy = -((gRandomLcgState >> 16) & 0x1F);
+            gRandomLcgState    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            shardWork->move.vz = 8 - ((gRandomLcgState >> 16) & 0xF);
         }
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->pos.vx     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->pos.vy     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->pos.vz     = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        shardWork->pos.vx = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        shardWork->pos.vy = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        shardWork->pos.vz = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
     }
     gte_SetTransMatrix(&GsWSMATRIX);
-    corner = D_acropolis_sanctuary_80182710[0];
-    for (i = 0; i < 3; i++) {
-        shardScratch->corners[i].vx = corner[i].vx;
-        // The same corner as `&shardScratch->corners[i]`, spelled as a byte
-        // offset from the block so that it stays a separate pointer from the
-        // one the GTE macros below take. Every typed spelling of this address
-        // folds into that operand's register and the loop stops matching.
-        scratchCorner     = (SVECTOR*)((u8*)shardScratch + i * sizeof(SVECTOR) + OFFSET_OF(_AcropolisSanctuaryMosaicShardScratch, corners));
-        scratchCorner->vy = corner[i].vy;
-        scratchCorner->vz = corner[i].vz;
-        gte_lddp(mem->angle);
-        gte_ldsv(&shardScratch->corners[i]);
+    baseCorners = D_acropolis_sanctuary_80182710[0];
+    // Scale and transform the three shard corners before projecting them together.
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(shardScratch->corners); cornerIndex++) {
+        shardScratch->corners[cornerIndex].vx = baseCorners[cornerIndex].vx;
+        // Byte addressing preserves separate store and GTE operand registers.
+        scratchCorner     = (SVECTOR*)((u8*)shardScratch + cornerIndex * sizeof(SVECTOR) + OFFSET_OF(_AcropolisSanctuaryMosaicShardScratch, corners));
+        scratchCorner->vy = baseCorners[cornerIndex].vy;
+        scratchCorner->vz = baseCorners[cornerIndex].vz;
+        gte_lddp(shardWork->angle);
+        gte_ldsv(&shardScratch->corners[cornerIndex]);
         gte_gpf12();
-        gte_stsv(&shardScratch->corners[i]);
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&shardScratch->corners[i]);
+        gte_stsv(&shardScratch->corners[cornerIndex]);
+        gte_SetRotMatrix(&shardCoord->workm);
+        gte_ldv0(&shardScratch->corners[cornerIndex]);
         gte_rtv0();
-        gte_stsv(&shardScratch->corners[i]);
-        shardScratch->corners[i].vx += coord->workm.t[0];
-        scratchCorner->vy           += coord->workm.t[1];
-        scratchCorner->vz           += coord->workm.t[2];
+        gte_stsv(&shardScratch->corners[cornerIndex]);
+        shardScratch->corners[cornerIndex].vx += shardCoord->workm.t[0];
+        scratchCorner->vy                     += shardCoord->workm.t[1];
+        scratchCorner->vz                     += shardCoord->workm.t[2];
     }
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv3(&shardScratch->corners[0], &shardScratch->corners[1], &shardScratch->corners[2]);
     gte_rtpt();
-    prim           = gGpuPrimCursor;
-    gGpuPrimCursor = prim + 1;
-    setlen(prim, 7);
-    setcode(prim, 0x24);
-    gte_stsxy3(&prim->x0, &prim->x1, &prim->x2);
+    shardTriangle  = gGpuPrimCursor;
+    gGpuPrimCursor = shardTriangle + 1;
+    setPolyFT3(shardTriangle);
+    gte_stsxy3(&shardTriangle->x0, &shardTriangle->x1, &shardTriangle->x2);
     gte_stszotz(&shardScratch->otz);
-    if (shardScratch->otz >= 0x11) {
-        prim->tpage = 0x8C;
-        prim->clut  = 0x4200;
-        prim->code |= 3;
-        prim->u0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU;
-        prim->v0    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV;
-        prim->u1    = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU +
-                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentU * mem->angle) >> 12);
-        prim->v1 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV;
-        prim->u2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originU;
-        prim->v2 = D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].originV +
-                   ((D_acropolis_sanctuary_80182320[arg0->spawnArg1.value].extentV * mem->angle) >> 12);
+    if (shardScratch->otz >= ACROPOLIS_SANCTUARY_MOSAIC_MIN_DEPTH) {
+        shardTriangle->tpage = ACROPOLIS_SANCTUARY_MOSAIC_TEXTURE_PAGE;
+        shardTriangle->clut  = ACROPOLIS_SANCTUARY_MOSAIC_PALETTE;
+        setShadeTex(shardTriangle, 1);
+        setSemiTrans(shardTriangle, 1);
+        shardTriangle->u0 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originU;
+        shardTriangle->v0 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originV;
+        shardTriangle->u1 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originU +
+                            ((D_acropolis_sanctuary_80182320[task->spawnArg1.value].extentU * shardWork->angle) >> ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_FRACTION_BITS);
+        shardTriangle->v1 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originV;
+        shardTriangle->u2 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originU;
+        shardTriangle->v2 = D_acropolis_sanctuary_80182320[task->spawnArg1.value].originV +
+                            ((D_acropolis_sanctuary_80182320[task->spawnArg1.value].extentV * shardWork->angle) >> ACROPOLIS_SANCTUARY_MOSAIC_SHARD_SIZE_FRACTION_BITS);
         addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)shardScratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                prim);
+                shardTriangle);
     }
-    coord->coord.t[0] += mem->move.vx;
-    coord->coord.t[1] += mem->move.vy;
+    shardCoord->coord.t[0] += shardWork->move.vx;
+    shardCoord->coord.t[1] += shardWork->move.vy;
     SCRATCH_STACK_RELEASE_BLOCK(_AcropolisSanctuaryMosaicShardScratch);
-    coord->coord.t[2] += mem->move.vz;
-    gfxRotMatrixYXZ(&coord->coord, &mem->pos, GRAPHICS_ROTATION_COMPOSE);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    mem->move.vy        = mem->move.vy + 3;
-    if (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7) {
+    shardCoord->coord.t[2] += shardWork->move.vz;
+    gfxRotMatrixYXZ(&shardCoord->coord, &shardWork->pos, GRAPHICS_ROTATION_COMPOSE);
+    shardCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    shardWork->move.vy       = shardWork->move.vy + ACROPOLIS_SANCTUARY_MOSAIC_GRAVITY;
+    // Bounce at the floor region or split into children with half the encoded size.
+    if (shardCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && shardCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        n               = (gRandomLcgState >> 16) & 1;
-        if (mem->angle >= 0x401 && n != 0) {
-            n = n + 1;
-            for (i = 0; i < n; i++) {
-                effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, coord, arg0->spawnArg1.value | (mem->angle << 15), NULL);
+        shardCount      = (gRandomLcgState >> 16) & 1;
+        if (shardWork->angle >= ACROPOLIS_SANCTUARY_MOSAIC_SHARD_MIN_SPLIT_SIZE && shardCount != 0) {
+            shardCount = shardCount + 1;
+            for (cornerIndex = 0; cornerIndex < shardCount; cornerIndex++) {
+                effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, shardCoord, task->spawnArg1.value | (shardWork->angle << ACROPOLIS_SANCTUARY_MOSAIC_SHARD_CHILD_SIZE_SHIFT), NULL);
             }
-            mem->age = mem->age + 0x3C;
+            shardWork->age = shardWork->age + ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
         } else {
-            coord->coord.t[1] -= mem->move.vy * 2;
-            mem->move.vy       = -(mem->move.vy >> 1);
-            mem->index         = mem->index + 1;
+            shardCoord->coord.t[1] -= shardWork->move.vy * 2;
+            shardWork->move.vy      = -(shardWork->move.vy >> 1);
+            shardWork->index        = shardWork->index + 1;
         }
-    } else if (mem->angle >= 0x401) {
+    } else if (shardWork->angle >= ACROPOLIS_SANCTUARY_MOSAIC_SHARD_MIN_SPLIT_SIZE) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if ((u16)((gRandomLcgState >> 16) % 60U) == 0 || coord->coord.t[1] >= -0xBFF) {
-            for (i = 0; i < 2; i++) {
-                flags = (mem->angle << 15) | 0x1000;
-                effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, coord, arg0->spawnArg1.value | flags, NULL);
+        if ((u16)((gRandomLcgState >> 16) % (u32)ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_PERIOD) == 0 || shardCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_SPLIT_HEIGHT) {
+            for (cornerIndex = 0; cornerIndex < 2; cornerIndex++) {
+                childParams = (shardWork->angle << ACROPOLIS_SANCTUARY_MOSAIC_SHARD_CHILD_SIZE_SHIFT) | ACROPOLIS_SANCTUARY_MOSAIC_SHARD_AIRBORNE;
+                effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC_SHARD, shardCoord, task->spawnArg1.value | childParams, NULL);
             }
-            mem->age = mem->age + 0x3C;
+            shardWork->age = shardWork->age + ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
         }
     }
-    if (gGameSession->location.loc.view != 0x10 && D_acropolis_sanctuary_80182770 != 0 &&
-        (coord->coord.t[0] < -0x28C0 ||
-         (coord->coord.t[0] < -0x2740 && coord->coord.t[1] >= -0xED7))) {
-        mem->age = mem->age + 0x3C;
+    if (gGameSession->location.loc.view != ACROPOLIS_SANCTUARY_VIEW_MOSAIC_LATCH_SET && D_acropolis_sanctuary_80182770 != 0 &&
+        (shardCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_CLEAR_X ||
+         (shardCoord->coord.t[0] < ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_X && shardCoord->coord.t[1] >= ACROPOLIS_SANCTUARY_MOSAIC_BOUNCE_Y))) {
+        shardWork->age = shardWork->age + ACROPOLIS_SANCTUARY_MOSAIC_DRIFT_FRAMES;
     }
-    mem->age = mem->age + 1;
+    shardWork->age = shardWork->age + 1;
 }
 
 void acropolisSanctuaryFlameTask(Task* task)
@@ -2682,15 +2706,18 @@ void acropolisSanctuaryFlameTask(Task* task)
     }
 }
 
-/// Spawns effect 0x60078 on the room task's model coordinate, seeded with the
-/// fixed offset vector `D_acropolis_sanctuary_8017D5D0`. Always consumes the event
-/// (returns 0).
-s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Starts the mosaic breakup from the room-effect task's placement coordinate.
+///
+/// Receives `ACROPOLIS_SANCTUARY_MOSAIC_MESSAGE_START`; both payload words are
+/// unused. Requires a live coordinate body and the loaded sanctuary overlay.
+/// The spawner snapshots the local offset during dispatch; the spawned task does
+/// not follow its retained offset pointer. Always returns 0.
+static s32 _acropolisSanctuaryStartMosaic(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    GfxCoord* coord = task->extra.tmd->coords;
-    SVECTOR   vec   = D_acropolis_sanctuary_8017D5D0;
+    GfxCoord* mosaicCoord  = task->extra.coordBody->coord;
+    SVECTOR   mosaicOffset = D_acropolis_sanctuary_8017D5D0;
 
-    effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC, coord, 0, &vec);
+    effectSpawn(EFFECT_ACROPOLIS_SANCTUARY_MOSAIC, mosaicCoord, 0, &mosaicOffset);
     return 0;
 }
 
@@ -2698,24 +2725,25 @@ s32 func_acropolis_sanctuary_8017F918(Task* task, s32 msgId, s32 arg2, s32 arg3)
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-/// Per-frame visibility gate for the sanctuary's item object: hides the model
-/// (`field_C` bit 0x80) while the camera sits on view 0xB or 0xD, or once the
-/// item's 2-bit pickup flag has reached 2; otherwise shows it again with the
-/// default flags.
-void func_acropolis_sanctuary_80180264(Task* task)
+void acropolisSanctuaryItemVisibilityTask(Task* task)
 {
-    Enemy*     enemy = task->spawnArg2.pointer;
-    TmdObject* tmd   = task->extra.tmd;
-    s32        flag;
-    s32        view;
+    enum {
+        ACROPOLIS_SANCTUARY_ITEM_HIDDEN_VIEW_FIRST  = 11,
+        ACROPOLIS_SANCTUARY_ITEM_HIDDEN_VIEW_SECOND = 13,
+        ACROPOLIS_SANCTUARY_ITEM_STATE_HIDDEN       = 2,
+    };
+    Enemy*     placedItem = task->spawnArg2.pointer;
+    TmdObject* itemModel  = task->extra.tmd;
+    s32        objectState;
+    s32        viewIndex;
 
-    flag = areaGetCurrentObjectState((u8)enemy->placeKey);
-    view = viewGetMappedIndex();
-    if (view == 0xB || view == 0xD || flag == 2) {
-        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    objectState = areaGetCurrentObjectState((u8)placedItem->placeKey);
+    viewIndex   = viewGetMappedIndex();
+    if (viewIndex == ACROPOLIS_SANCTUARY_ITEM_HIDDEN_VIEW_FIRST || viewIndex == ACROPOLIS_SANCTUARY_ITEM_HIDDEN_VIEW_SECOND || objectState == ACROPOLIS_SANCTUARY_ITEM_STATE_HIDDEN) {
+        itemModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
-        tmd->otOffset = 0;
+        itemModel->flags    = TMD_OBJECT_FLAGGED_PASS;
+        itemModel->otOffset = 0;
     }
 }
 

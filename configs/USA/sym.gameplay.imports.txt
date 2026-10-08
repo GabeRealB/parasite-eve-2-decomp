@@ -625,13 +625,13 @@ acropolisRoofGardenFlareTask = 0x8017E29C; // type:func absolute:True owner=acro
 
 acropolisRoofGardenLeafFallTask = 0x8017F10C; // type:func absolute:True owner=acropolis_roof_garden
 
-func_acropolis_sanctuary_8017E00C = 0x8017E00C; // type:func absolute:True owner=acropolis_sanctuary
+acropolisSanctuaryRoomEffectTask = 0x8017E00C; // type:func absolute:True owner=acropolis_sanctuary
 
-func_acropolis_sanctuary_8017E134 = 0x8017E134; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
+acropolisSanctuaryMosaicTask = 0x8017E134; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
 
-func_acropolis_sanctuary_8017E338 = 0x8017E338; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
+acropolisSanctuaryMosaicTileTask = 0x8017E338; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
 
-func_acropolis_sanctuary_8017EC90 = 0x8017EC90; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
+acropolisSanctuaryMosaicShardTask = 0x8017EC90; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
 
 acropolisSanctuaryFlameTask = 0x8017F4E8; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
 

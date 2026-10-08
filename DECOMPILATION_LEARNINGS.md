@@ -7588,7 +7588,7 @@ attempt. Its `Actor300700Work` gained `field_340` (`MATRIX`) and
 
 ## Hoist the pointer chase out of a call when a block copy sits before it
 
-`func_acropolis_sanctuary_8017F918` is the minimal case: one 8-byte `SVECTOR`
+`_acropolisSanctuaryStartMosaic` is the minimal case: one 8-byte `SVECTOR`
 copy from rodata, one call. Written as the obvious two statements the copy
 comes out first and the argument setup after, which cost 5 `reorder` and a
 77.8% score:
@@ -39644,7 +39644,7 @@ fails to reduce it and recomputes `addu`/`sll` every iteration; and a plain
 
 ## A hoisted invariant sits *before* a giv init, but *after* an explicit pointer
 
-`func_acropolis_sanctuary_8017E00C` spawns twelve effects in two `do`/`while`
+`acropolisSanctuaryRoomEffectTask` spawns twelve effects in two `do`/`while`
 loops, the second passing `i + 0xA00000` — too wide for `addiu`, so GCC hoists
 `lui $s4, 0xA0` into the loop preheader. Writing the array walk as its own local
 (`vec = &tbl[6]; ... vec++;`) reproduced every instruction but put the `lui`
@@ -44144,7 +44144,7 @@ The mechanism is the same: with a join-point temporary the address pseudo is
 independently hands the `high` pseudo `$v0`. Repeating the whole tail in each
 arm keeps the address pseudo block-local, local alloc ties it to its `high`, and
 `jump2` cross-jumps the duplicated `jal`s back together so the instruction count
-is unchanged. `func_acropolis_sanctuary_8017D8CC` went 99.20% → 100% by moving
+is unchanged. `_acropolisSanctuaryRestorePlayerWeaponAnimation` went 99.20% → 100% by moving
 both `playerActorWriteWeaponAnimationBankIndex(...)` and `taskMessageDispatch(...)` inside the `if`/`else`.
 
 ## A shared body may reference overlay-local data — give the datum one name in every sym map
@@ -53570,15 +53570,15 @@ register and the `li` hoists into the delay slot of the *earlier* branch:
 
 ```c
 var = 2;                                /* li s0,2 in the wrong delay slot */
-if (gameFlagGetNibble(2) == 0) var = 1;
-out->field_3 = var;
+if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) var = 1;
+reply->room = var;
 ```
 
 A ternary on the call keeps the range short but still needs a second pseudo,
 because `$v0` is live at the compare, so the constants land in `$v1`:
 
 ```c
-out->field_3 = (gameFlagGetNibble(2) == 0) ? 1 : 2;   /* li v1,2 / li v1,1 */
+reply->room = (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 0) ? 1 : 2;   /* li v1,2 / li v1,1 */
 ```
 
 Fix: store the return value in a local and reassign *that same local* in both
@@ -53586,12 +53586,12 @@ arms. One pseudo covers the return and the constants, so it gets `$v0`, and the
 `li v0,2` fills the `bnez v0` delay slot as in the target:
 
 ```c
-nib = gameFlagGetNibble(2);
-if (nib == 0) { nib = 1; } else { nib = 2; }
-out->field_3 = nib;
+destinationRoom = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
+if (destinationRoom == 0) { destinationRoom = 1; } else { destinationRoom = 2; }
+reply->room = destinationRoom;
 ```
 
-`func_acropolis_sanctuary_8017D73C` is the worked example (94.7% -> 99.7% from
+`_acropolisSanctuaryResolvePromenadeExit` is the worked example (94.7% -> 99.7% from
 the ternary, 99.7% -> 100% from the reassignment).
 
 ## `bltz` + `slti N` before the `bne N` is a switch with empty low cases
@@ -53673,7 +53673,7 @@ CSE materialises the shared address at the *first* use, which is inside the
 first expression and therefore after its operand chain. So: a pointer local
 pulls the address computation up to the index load, an index local pushes it
 down to first use. Pick whichever side of the operand chain the target puts it
-on. `func_acropolis_sanctuary_8017E134` is the worked example (89% -> 100%,
+on. `acropolisSanctuaryMosaicTask` is the worked example (89% -> 100%,
 `regs=22 reorder=1 insert=6 delete=6` -> all zero, from this single change).
 
 ## A global's base address is only kept in `$sN` across a `jal` if a local pointer names it
@@ -53684,20 +53684,20 @@ direct global references, make GCC 2.8.1 materialise the `lui`/`addiu` pair
 crosses the call:
 
 ```c
-for (i = 0; i < 4; i++) { D_80183568.corners[i].vx = D_801822EC.corners[i].vx; ... }
+for (i = 0; i < 4; i++) { D_acropolis_sanctuary_80183568.vertices[i].vx = D_acropolis_sanctuary_801822EC.vertices[i].vx; ... }
 if (gameFlagGetNibble(6) == 0) { ... }
-for (i = 0; i < 8; i++) { D_80183568.corners[i].vx += shift.vx; }   /* second lui/addiu */
+for (i = 0; i < 8; i++) { D_acropolis_sanctuary_80183568.vertices[i].vx += placementOffset.vx; }   /* second lui/addiu */
 ```
 
-The target had one `addiu s0, v0, %lo(D_80183568)` in the prologue, `sw s0` /
+The target had one `addiu s0, v0, %lo(D_acropolis_sanctuary_80183568)` in the prologue, `sw s0` /
 `lw s0` around it, and no re-materialisation after the call. Binding the global
 to a named local pointer at the top of the function is what produces that: the
 address becomes a single pseudo live across the `jal`, so the allocator is
 forced to give it a callee-saved register.
 
 ```c
-AcsBlockerSet* dst = &D_acropolis_sanctuary_80183568;
-AcsBlockerSet* src = &D_acropolis_sanctuary_801822EC;
+WorldCollisionGrid* roomGrid = &D_acropolis_sanctuary_80183568;
+WorldCollisionGrid* blockerTemplate = &D_acropolis_sanctuary_801822EC;
 ```
 
 Declare them in the order the target materialises the addresses. The symptom is
@@ -53705,7 +53705,7 @@ distinctive and easy to misread as register colouring: every instruction lines
 up except that the target uses `$s0` where you use a scratch register, plus one
 extra `lui`/`addiu` pair after the call and a shifted `ra`/`s0` save slot
 (`stack=18 regs=38` on an otherwise byte-identical body).
-`func_acropolis_sanctuary_8017DD78` is the worked example (92.7% -> 100% from
+`_acropolisSanctuaryPlaceBlockerCollision` is the worked example (92.7% -> 100% from
 this single change).
 
 This is the intra-function twin of "Materialize long-lived pointers before
@@ -53788,7 +53788,7 @@ the asm operand keeps its own giv. Use `sizeof` / `OFFSET_OF` rather than raw
 
 Symptom to recognise: the diff is a single `addiu $aN, $aM, k` you cannot
 produce, every other instruction matches, and the two registers involved hold
-the same value. `func_acropolis_sanctuary_8017EC90` is the worked example
+the same value. `acropolisSanctuaryMosaicShardTask` is the worked example
 (99.3% -> 100%); an unpinned `TOUCH_REG(scratchCorner)` reaches 99.5% the same way but
 stops `combine_givs` from folding, so it is not the answer.
 
@@ -53796,7 +53796,7 @@ stops `combine_givs` from folding, so it is not the answer.
 
 Two locals whose live ranges never overlap are free to share a register, and
 GCC 2.8.1 will not always pick the one the target picked. In
-`func_acropolis_sanctuary_8017E338` the tile's size class lives in `$s5` across
+`acropolisSanctuaryMosaicTileTask` the tile's size class lives in `$s5` across
 the whole first half of the function; after the `beqz $s5` that tests it, the
 target reuses `$s5` for the shard-spawn count:
 

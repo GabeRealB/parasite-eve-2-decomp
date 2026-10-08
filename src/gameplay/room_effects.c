@@ -654,10 +654,10 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_motel_balcony_80181628, { NULL } },                                   // 0x074
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x075
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask76, { NULL } },                                                     // 0x076
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_sanctuary_8017E00C, { NULL } },                                      // 0x077
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_sanctuary_8017E134, { NULL } },                                      // 0x078
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_sanctuary_8017E338, { NULL } },                                      // 0x079
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_sanctuary_8017EC90, { NULL } },                                      // 0x07A
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryRoomEffectTask, { NULL } },                                       // 0x077
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryMosaicTask, { NULL } },                                           // 0x078
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryMosaicTileTask, { NULL } },                                       // 0x079
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisSanctuaryMosaicShardTask, { NULL } },                                      // 0x07A
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomFallingQuadTask, { NULL } },                                   // 0x07B
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask7C, { NULL } },                                                     // 0x07C
     { { { TASK_BODY_NONE, 0x70 } }, taskKill, { NULL } },                                                                // 0x07D

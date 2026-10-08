@@ -543,7 +543,7 @@ static AreaObjectSpawn D_map_akropolis_8017A71C[1] = {
 };
 
 static AreaObjectSpawn D_map_akropolis_8017A72C[3] = {
-    { 0x103, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_sanctuary_80180264, { &gAcropolisSanctuaryModel09584 } } },
+    { 0x103, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, acropolisSanctuaryItemVisibilityTask, { &gAcropolisSanctuaryModel09584 } } },
     { 0x702, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, Gp_ItemPickupTilt, { &gAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
@@ -612,7 +612,7 @@ TaskDesc D_map_akropolis_8017A8AC[] = {
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_forked_road_8017D9CC, { .value = GP_TASK_LOC_KEY(1, 9, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_observatory_8017D950, { .value = GP_TASK_LOC_KEY(1, 10, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_promenade_8017DA4C, { .value = GP_TASK_LOC_KEY(1, 11, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_sanctuary_8017D9E8, { .value = GP_TASK_LOC_KEY(1, 12, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, acropolisSanctuaryRoomTask, { .value = GP_TASK_LOC_KEY(1, 12, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, acropolisRoofGardenRoomTask, { .value = GP_TASK_LOC_KEY(1, 13, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, acropolisBridgeRoomTask, { .value = GP_TASK_LOC_KEY(1, 14, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_fire_escape_8017FF24, { .value = GP_TASK_LOC_KEY(1, 15, 0) } },
