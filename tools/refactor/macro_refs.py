@@ -141,6 +141,20 @@ class Inventory:
             elif first[1] == "if":
                 match = re.fullmatch(r"\s*!\s*defined\s*\(?\s*(" + IDENT + r")\s*\)?\s*", first[2])
                 guard = match[1] if match else None
+        # A conditional whose whole extent holds nothing but directives selects
+        # no declaration: `#ifndef NAME / #define NAME default / #endif`, the way
+        # a shared source takes a parameter its carrier may have set already.
+        defaults, stack = set(), []
+        for i, directive in enumerate(directives):
+            if directive[1] in ("if", "ifdef", "ifndef"):
+                stack.append([i])
+            elif directive[1] in ("elif", "else") and stack:
+                stack[-1].append(i)
+            elif directive[1] == "endif" and stack:
+                members = stack.pop()
+                inside = code[directives[members[0]].end():directive.start()]
+                if not DIRECTIVE.sub("", inside).strip():
+                    defaults.update(directives[m].start() for m in members)
         for directive in directives:
             kind, tail = directive[1], directive[2]
             if kind == "include":
@@ -190,7 +204,8 @@ class Inventory:
                 elif kind in ("if", "elif", "ifdef", "ifndef", "undef"):
                     if name in (kind, "defined"):
                         continue
-                    use = "undefinition" if kind == "undef" else "conditional test"
+                    use = ("undefinition" if kind == "undef" else
+                           "default test" if start in defaults else "conditional test")
                 else:
                     continue
             self.sites[name].append(Site(file, offset, token.end(), line(offset), name, use, owner))

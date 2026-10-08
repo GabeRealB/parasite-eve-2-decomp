@@ -952,7 +952,15 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
         return (kind, "dir", folder), (kind, "family", "/".join(folder.split("/")[:2]))
 
     near_of = {g: near(g) for g in pending if unit_of[g]}
-    heap = [(rank[g], g) for g in pending if left[g] == 0]
+    # Among what is ready, the item most others wait for goes first, and the
+    # plain order decides between equals. A round works the lowest-numbered
+    # ready steps, so the number is also a priority: a group that 1,174 of the
+    # 2,131 remaining function groups waited for was numbered last, and was
+    # not picked until the rounds ran short of other work.
+    def first(g):
+        return (-len(users.get(g, ())), rank[g])
+
+    heap = [(first(g), g) for g in pending if left[g] == 0]
     heapq.heapify(heap)
     ready = collections.defaultdict(list)          # unit -> heap of (rank, group)
     around = collections.defaultdict(list)         # directory or family -> the same
@@ -964,9 +972,9 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
         for place in near_of[g]:
             heapq.heappush(around[place], (r, g))
 
-    for r, g in heap:
+    for _, g in heap:
         if unit_of[g]:
-            offer(r, g)
+            offer(rank[g], g)
     placed, steps = set(), []
 
     def release(g):
@@ -976,7 +984,7 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
         for u in users.get(g, ()):
             left[u] -= 1
             if left[u] == 0 and u not in placed:     # placed already: it opened a loop
-                heapq.heappush(heap, (rank[u], u))
+                heapq.heappush(heap, (first(u), u))
                 if unit_of[u]:
                     offer(rank[u], u)
 
@@ -992,7 +1000,7 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
             g = next((h for h in stuck if h not in placed), None)
             if g is None:
                 break
-            heapq.heappush(heap, (rank[g], g))
+            heapq.heappush(heap, (first(g), g))
             if unit_of[g]:
                 offer(rank[g], g)
         _, g = heapq.heappop(heap)
