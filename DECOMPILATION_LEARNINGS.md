@@ -23397,25 +23397,25 @@ When the target sets `addiu a2, sp, 0x10` early (third arg of `cdCmdEnqueue`)
 but still writes the 4-byte param block with `sb …, 0x1N(sp)` (not `sb …, N(a2)`):
 
 ```c
-s8  param2[4];
+s8  loadOptions[4];
 u8* p2;
 
-arg0 = arg0 + 0xA;   /* addiu a0, a0, 0xa early */
-p2   = (u8*)param2;  /* addiu a2, sp, 0x10 early */
+demoIndex = demoIndex + 0xA; /* addiu a0, a0, 0xa early */
+p2        = (u8*)loadOptions; /* addiu a2, sp, 0x10 early */
 
 /* … scratch alloc, gGameSession side effects … */
 
-param2[0] = arg0;    /* sb a0, 0x10(sp) — write through the array */
-param2[3] = 0;
-param2[2] = 0;
-param2[1] = 0;
-cdCmdEnqueue(0x21, param1, p2);  /* use p2 only at the call */
+loadOptions[0] = demoIndex; /* sb a0, 0x10(sp) — write through the array */
+loadOptions[3] = 0;
+loadOptions[2] = 0;
+loadOptions[1] = 0;
+cdCmdEnqueue(0x21, fileKey, p2); /* use p2 only at the call */
 ```
 
 Writing through `p2[i]` forces `sb …, N(a2)` and breaks the match. Keep `p2`
-live only as the call argument; store via `param2[]`. Combined with
+live only as the call argument; store via `loadOptions[]`. Combined with
 `register void** scratch asm("s0")` + free via `*scratch = (u8*)*scratch + 8`
-(s0 kept across the jal). `Title_EnqueueDemoScene` (title overlay) is the pure example.
+(s0 kept across the jal). `titleEnqueueAttractDemoFile` (title overlay) is the pure example.
 
 ## Title overlay: header rodata TU + code TU (no jtable align sed)
 
@@ -23484,7 +23484,7 @@ advance:
 L7: /* kill path; no advance */;
 ```
 
-`Title_DemoStreamTask` is the title-overlay example.
+`_titleIntroMovieTask` is the title-overlay example.
 
 ## Force arg regs with `asm("aN")` + empty asm so stores fill jal/branch delays
 
@@ -23507,16 +23507,16 @@ SetDispMask(mask);    /* beqz delay already has move a0, zero */
 register s32 cmd asm("a0");
 register s32 zero asm("a1");
 register u8* p asm("a2");
-cmd = 0x61; zero = 0; p = slotParam;
+cmd = 0x61; zero = 0; p = movieArgs;
 asm("" : "+r"(cmd), "+r"(zero), "+r"(p), "+r"(slot));
-slotParam[0] = slot;  /* sb v0 fills Enqueue delay */
+movieArgs[0] = slot; /* sb v0 fills Enqueue delay */
 cdCmdEnqueue(cmd, zero, p);
 ```
 
 Keep the slot temp as `s16` (FindSlot's return type) so the barrier does not
 insert `sll`/`sra` sign-extend. Same pattern for case-4 `cdCmdEnqueue(0x21, …)`
 arg setup before `D_800691DE = 1` (absolute alias of `gCdCmdQueue.preserveDisplayAfterDecode`).
-`Title_DemoStreamTask` is the pure example.
+`_titleIntroMovieTask` is the pure example.
 
 The trigger is a basic-block split, not the call itself. The identical
 `slot = streamFindMovieSlot(&key.loc, 0, 0); slotParam[0] = slot;

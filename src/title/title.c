@@ -107,19 +107,19 @@ extern char Title_StrSurvival[];
 /// Task spawn ids for menu selection indices.
 extern s32 Title_MenuSpawnIds[];
 
-/// Last rand() from Title_Dispatch.
+/// Last rand() from titleScreenTask.
 extern s32 Title_LastRand;
 
 /// When set, Title_BootTask spawns phase task with arg 0x80000000 (skip fade TILE).
 extern u16 Title_SkipFadeFlag;
 
-void Title_DemoStreamTask(Task* task);
+static void _titleIntroMovieTask(Task* task);
 
 void Title_BootTask(Task* task);
 
 void func_807246B4(void);
 
-static void Title_FlagAdvanceTask(Task* arg0);
+static void _titleShowBackgroundTask(Task* task);
 static void Title_InitTask(Task* arg0);
 static void Title_MenuTask(Task* task);
 
@@ -145,19 +145,19 @@ s32 Title_MenuSpawnIds[] = { 6, 6, 3, 4, 5, 6 };
 
 TaskDesc Title_TaskDescs[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, Title_BootTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, Title_DemoStreamTask },
+    { { { TASK_BODY_NONE, 0xC0 } }, _titleIntroMovieTask },
 };
 
 /// Overlay state is stored in the loaded image; the loader does not clear BSS.
 s32 Title_LastRand     = 0;
 u16 Title_SkipFadeFlag = 0;
 
-/// The title task's states, which `Title_Dispatch` copies and indexes by
+/// The title task's states, which `titleScreenTask` copies and indexes by
 /// `Task::state`: set-up, the flag advance, the menu in two states and the kill.
 static const TaskFuncTable5 Title_PhaseTable = {
     .funcs = {
         Title_InitTask,
-        Title_FlagAdvanceTask,
+        _titleShowBackgroundTask,
         Title_MenuTask,
         Title_MenuTask,
         taskKill,
@@ -216,11 +216,13 @@ static void Title_InitTask(Task* arg0)
     }
 }
 
-/// Prepends the additive 8-bit chrome texture mode to the current ordering tag.
+/// Prepends the GPU draw mode used by the title chrome's sprites.
 ///
-/// Selects VRAM (768, 256), enables dithering and disables drawing into the
-/// display area. The texture must already be loaded.
-/// Requires space for one DR_TPAGE at the word-aligned primitive cursor.
+/// Selects an 8-bit texture page at VRAM word X=768, row Y=256, additive
+/// blending and dithering, with drawing into the displayed area disabled.
+/// Requires a current ordering tag and word-aligned space for one DR_TPAGE;
+/// its storage must remain live until the GPU consumes the ordering table.
+/// The prepend makes this mode execute before primitives already at the tag.
 static inline void _titlePrependChromeDrawMode(void)
 {
     enum { TITLE_CHROME_TEXTURE_8_BIT = 1 };
@@ -462,21 +464,20 @@ void Title_RestoreDemoCard(void)
     printf(Title_DemoCardRestoreMsg, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area);
 }
 
-static void Title_FlagAdvanceTask(Task* arg0)
+/// Enables the title background strips and advances to the prompt state.
+static void _titleShowBackgroundTask(Task* task)
 {
-    s32* p = &arg0->state;
-
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-    (*p)++;
+    task->state++;
 }
 
-void Title_Dispatch(Task* arg0)
+void titleScreenTask(Task* task)
 {
-    TaskFuncTable5 sp;
+    TaskFuncTable5 phases;
 
-    sp             = Title_PhaseTable;
+    phases         = Title_PhaseTable;
     Title_LastRand = rand();
-    sp.funcs[arg0->state](arg0);
+    phases.funcs[task->state](task);
 }
 
 void titleExitTask(Task* task)
@@ -484,39 +485,76 @@ void titleExitTask(Task* task)
     taskCallExit(task);
 }
 
-void Title_DemoStreamTask(Task* task)
+/// Queues stage-zero file 2, containing the title background and textures.
+///
+/// Both borrowed byte buffers provide four bytes; the enqueue copies them
+/// immediately. The file selector's byte 1 is unused by the CD request API.
+static inline void _titleEnqueueBackgroundLoad(u8* fileKey, u8* loadOptions)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    u8          param1[4];
-    u8          param2[4];
+    enum { TITLE_BACKGROUND_FILE_INDEX = 2 };
+
+    fileKey[3]     = 0;
+    fileKey[2]     = 0;
+    fileKey[0]     = TITLE_BACKGROUND_FILE_INDEX;
+    loadOptions[0] = 0;
+    loadOptions[1] = CD_COMMAND_LOAD_DEFAULT;
+    loadOptions[2] = 0;
+    loadOptions[3] = 0;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadOptions);
+}
+
+/// Plays the current disc's title intro, then restores the title display.
+///
+/// Starts at state 0 and requires loaded global stream descriptors, a matching
+/// disc movie and exclusive display/CD ownership. START cancels playback and
+/// enables the subsequent title fade. The task releases itself after restoring
+/// image memory and both background buffers, then resumes normal presentation.
+static void _titleIntroMovieTask(Task* task)
+{
+    enum {
+        TITLE_INTRO_PREPARE,
+        TITLE_INTRO_QUEUE_MOVIE,
+        TITLE_INTRO_WAIT_READY,
+        TITLE_INTRO_PLAYING,
+        TITLE_INTRO_QUEUE_BACKGROUND,
+        TITLE_INTRO_WAIT_BACKGROUND,
+        TITLE_INTRO_UPLOAD_BACKGROUND,
+        TITLE_INTRO_RESTORE_MEMORY,
+        TITLE_INTRO_DISC_1_MOVIE_ID = 0x64,
+        TITLE_INTRO_DISC_2_MOVIE_ID = 0x65,
+    };
+    u8          movieArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLoc     movieLocation;
+    u8          fileKey[4];
+    u8          loadOptions[sizeof(gCdCmdQueue.entries[0].args)];
     CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (task->state) {
-        case 0:
+        case TITLE_INTRO_PREPARE:
             memCopyBytes(Fs_Streams, Stream_Slots, sizeof(Fs_Streams));
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
             task->state++;
             break;
-        case 1:
-            key = gGameSession->location;
+        case TITLE_INTRO_QUEUE_MOVIE:
+            movieLocation = gGameSession->location;
             if (Wip_SysFlags.discNumber == GAME_MAIN_DISC_2) {
-                key.loc.view = 0x65;
+                movieLocation.loc.view = TITLE_INTRO_DISC_2_MOVIE_ID;
             } else {
-                key.loc.view = 0x64;
+                movieLocation.loc.view = TITLE_INTRO_DISC_1_MOVIE_ID;
             }
-            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+            // Playback uses only the slot byte; the queue copies all four bytes.
+            movieArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, movieArgs);
             task->state++;
             break;
-        case 2:
+        case TITLE_INTRO_WAIT_READY:
             if (queue->movieReady != 0) {
                 SetDispMask(1);
                 task->state++;
             }
             break;
-        case 3:
+        case TITLE_INTRO_PLAYING:
             if (cdCmdIsIdle()) {
                 task->state++;
             } else if (padIsStartPressed()) {
@@ -526,34 +564,28 @@ void Title_DemoStreamTask(Task* task)
                 task->state++;
             }
             break;
-        case 4:
+        // Wait for playback or cancellation to drain before reusing its storage.
+        case TITLE_INTRO_QUEUE_BACKGROUND:
             if (cdCmdIsIdle()) {
                 gCdCmdQueue.preserveDisplayAfterDecode = 1;
-                param1[3]                              = 0;
-                param1[2]                              = 0;
-                param1[0]                              = 2;
-                param2[0]                              = 0;
-                param2[1]                              = 0;
-                param2[2]                              = 0;
-                param2[3]                              = 0;
-                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+                _titleEnqueueBackgroundLoad(fileKey, loadOptions);
                 task->state++;
             }
             break;
-        case 5:
+        case TITLE_INTRO_WAIT_BACKGROUND:
             if (cdCmdIsIdle()) {
                 displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
                 task->state++;
             }
             break;
-        case 6:
+        case TITLE_INTRO_UPLOAD_BACKGROUND:
             streamResetGameRestore();
             displayUploadBackgroundImage(gDisplayState.drawBuffer);
             displayUploadBackgroundImage(gDisplayState.drawBuffer ^ 1);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
             task->state++;
             break;
-        case 7:
+        case TITLE_INTRO_RESTORE_MEMORY:
             if (streamPollGameRestore(0, 0)) {
                 taskKill(task);
                 displayResumeGameLoop();
@@ -622,20 +654,26 @@ void Title_BootTask(Task* arg0)
     }
 }
 
-void Title_EnqueueDemoScene(s32 arg0)
+void titleEnqueueAttractDemoFile(s32 demoIndex)
 {
-    u8  param2[4];
-    u8* param1;
+    enum {
+        TITLE_DEMO_FILE_GROUP             = 0x50,
+        TITLE_DEMO_FIRST_FILE_ID_HUNDREDS = 0xA,
+        TITLE_DEMO_FILE_KEY_SCRATCH_BYTES = 8,
+    };
+    u8  loadOptions[sizeof(gCdCmdQueue.entries[0].args)];
+    u8* fileKey;
 
-    param1                 = SCRATCH_STACK_RESERVE_BYTES(8);
+    fileKey                = SCRATCH_STACK_RESERVE_BYTES(TITLE_DEMO_FILE_KEY_SCRATCH_BYTES);
     gGameSession->field_80 = 0;
-    param1[3]              = 0;
-    param1[2]              = 0x50;
-    param1[0]              = 0;
-    param2[0]              = arg0 + 0xA;
-    param2[3]              = 0;
-    param2[2]              = 0;
-    param2[1]              = 0;
-    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    fileKey[3]             = 0;
+    fileKey[2]             = TITLE_DEMO_FILE_GROUP;
+    fileKey[0]             = 0;
+    loadOptions[0]         = demoIndex + TITLE_DEMO_FIRST_FILE_ID_HUNDREDS;
+    loadOptions[3]         = 0;
+    loadOptions[2]         = 0;
+    loadOptions[1]         = CD_COMMAND_LOAD_DEFAULT;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadOptions);
+    // The queue owns a copy before this scratch reservation is released.
+    SCRATCH_STACK_RELEASE_BYTES(TITLE_DEMO_FILE_KEY_SCRATCH_BYTES);
 }

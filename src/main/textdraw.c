@@ -180,7 +180,7 @@ static const char Text_MaxNineDigits[];
 static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskNoopCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, taskCountdownCallback },
-    { { { TASK_BODY_NONE, 0xC0 } }, Title_Dispatch },
+    { { { TASK_BODY_NONE, 0xC0 } }, titleScreenTask },
     { { { TASK_BODY_NONE, 0xC0 } }, GameFlow_StateByField34 },
     { { { TASK_BODY_NONE, 0xC0 } }, GameFlow_DispatchTable5 },
     { { { TASK_BODY_NONE, 0xC0 } }, Text_UiTaskCallback },

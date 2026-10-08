@@ -3,7 +3,7 @@
 // Keep in sync with configs/USA/sym.gameplay.txt / sym.title.txt.
 
 Title_RestoreDemoCard = 0x8009407C; // type:func absolute:True owner=title
-Title_EnqueueDemoScene = 0x80094B90; // type:func absolute:True owner=title
+titleEnqueueAttractDemoFile = 0x80094B90; // type:func absolute:True owner=title
 Title_TaskDescs = 0x80094C8C; // absolute:True owner=title
 
 Gp_DrawActorTmdFlagged = 0x80097AC0; // type:func absolute:True
@@ -119,7 +119,7 @@ Gp_LoadWaitDispatch = 0x800A97DC; // type:func absolute:True
 fadeResumeSessionTask = 0x800AC344; // type:func absolute:True
 viewCommitIndexTask = 0x800A9980; // type:func absolute:True
 loadingRestoreViewGraphicsTask = 0x800A99E0; // type:func absolute:True
-Title_Dispatch = 0x8009472C; // type:func absolute:True owner=title
+titleScreenTask = 0x8009472C; // type:func absolute:True owner=title
 titleExitTask = 0x800947A8; // type:func absolute:True owner=title
 D_8010FC2C = 0x8010FC2C; // absolute:True
 Gp_MenuRootTask = 0x800BF9FC; // type:func absolute:True

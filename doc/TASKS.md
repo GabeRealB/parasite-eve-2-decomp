@@ -308,7 +308,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 |------|-----|----------|-------|
 | `00` | `C0` | `taskNoopCallback` | Inert handler; also suppresses updates and repeated teardown |
 | `01` | `C0` | `taskCountdownCallback` | Decrement signed `killCountdown`; at zero, release the body and mark for collection |
-| `02` | `C0` | `Title_Dispatch` | Title phase machine. `Text_BootTask` / gameflow / title spawn this; `spawnArg1` `0x80000000` skips the fade TILE |
+| `02` | `C0` | `titleScreenTask` | Title phase machine. `Text_BootTask` / gameflow / title spawn this; `spawnArg1` `0x80000000` skips the fade TILE |
 | `03` | `C0` | `GameFlow_StateByField34` | Title new-game / demo path. Also a `Title_MenuSpawnIds` entry |
 | `04` | `C0` | `GameFlow_DispatchTable5` | Title load-style gameflow. Also a `Title_MenuSpawnIds` entry |
 | `05` | `C0` | `Text_UiTaskCallback` | Text / UI. Also a `Title_MenuSpawnIds` entry |
@@ -444,7 +444,7 @@ These are real actors too; they just skip `gTaskDescBanks`.
 | Table | Callback / role |
 |-------|-----------------|
 | `Title_TaskDescs[0]` | `Title_BootTask` |
-| `Title_TaskDescs[1]` | `Title_DemoStreamTask` (`displaySpawnTaskFromTable`) |
+| `Title_TaskDescs[1]` | `_titleIntroMovieTask` (`displaySpawnTaskFromTable`) |
 | `D_8006269C[0]` | `Display_DispatchTaskTable` — 6-way stage load (`_stageSuspendCdAndSpawnModeTask` … `_stageResumeMovieAndFinishModeTask`) |
 | `D_80062774[0]` | `_stageMusicTask` — bank-load spawn from gameplay |
 | `D_8006268C[0]` | `0x800BF9FC` (gameplay) |

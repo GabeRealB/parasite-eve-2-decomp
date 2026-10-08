@@ -175,7 +175,7 @@ void GameFlow_StateByField34(Task* task)
                 gDisplayState.demoScene = 1;
             }
             if (gDisplayState.demoScene < DISPLAY_DEMO_FIXED_REPLAY) {
-                Title_EnqueueDemoScene(gDisplayState.demoScene - 1);
+                titleEnqueueAttractDemoFile(gDisplayState.demoScene - 1);
             }
             task->state = task->state + 1;
         }
