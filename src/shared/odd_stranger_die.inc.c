@@ -8,7 +8,7 @@
 /// facing, with X/Z held at `ODD_STRANGER_ROOT_SCALE` and Y reduced by 0xB
 /// per tick past 0x14, written back through `coord.m` with `composeStamp`
 /// cleared so the composed matrix is recomputed.
-/// Same body as `Actor01900_Fn06904`, minus that one's 0x13 release argument;
+/// Same body as `_actor01900StateDeathBurn`, minus that one's 0x13 release argument;
 /// the second body's grid collision follows `ODD_STRANGER_BODY2_GRID`.
 void oddStrangerDie(Task* arg0)
 {

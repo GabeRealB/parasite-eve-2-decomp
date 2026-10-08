@@ -2246,7 +2246,7 @@ static void _actor356100Approach(Task* actor)
 /// From 0x1A on, the root rotation is rebuilt in the 0x34-byte scratch block
 /// with X/Z held at `ACTOR_356100_ROOT_SCALE` and Y reduced by 0xB per frame past 0x14, and
 /// written back into the root coordinate with `composeStamp` cleared. Same body as
-/// `Actor01900_Fn06904`.
+/// `_actor01900StateDeathBurn`.
 static void func_actor_356100_80167358(Task* arg0)
 {
     _Actor356100Work* work;

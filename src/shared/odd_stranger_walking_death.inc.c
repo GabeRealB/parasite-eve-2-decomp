@@ -9,7 +9,7 @@
 #endif
 
 /// State-2 clip body and its 0x1A successor, as in the Horned Stranger's
-/// `func_actor_401300_8013BB30` and `Actor01900_Fn0892C`. On the live-actor flag
+/// `func_actor_401300_8013BB30` and `_actor01900StateDeathBurstWalk`. On the live-actor flag
 /// it arms the effect node, seeds the 0x8C0 spawn offset and the animation
 /// slots, and spawns clip 0x60030. `stateTimer` then counts up under `animId`:
 /// the state-2 arm waits 0x10 frames on `rig.slots[1].status` bit 2 before switching to

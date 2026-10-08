@@ -954,12 +954,12 @@ went from 79.426% (`stack=0 branch=10 regs=20 insert=8 delete=16`) to 94.426%
 callee-saved value also displaced the flags mask out of `$s2` and into `$s4`.
 Check the prototype before believing an m2c `void`: the overlay's own header is
 ours, and changing it costs nothing when the callers ignore the value.
-## A unit-scale scratch helper is not the scaled one with `1`: its pop re-loads, and that decides who gets a call-saved register
+## A 1/4096-scale scratch helper is not the scaled one with `1`: its pop re-loads, and that decides who gets a call-saved register
 
 `_actorRenderRescaleYaw(coord, 1)` and `actorResetYaw(coord)` compute the
 same thing, but only the second compiles to the target's tail in
 `oddStrangerWalkingDeath`. Inlining the *scaled* body nine times gave
-98.166% (`regs=56 reorder=10 delete=8`); the unit-scale body gave 100.000%.
+98.166% (`regs=56 reorder=10 delete=8`); the 1/4096-scale body gave 100.000%.
 
 Both bodies push `0x34` bytes of `ActorScaleRotScratch`, rebuild the yaw with
 `gfxRotMatrixY` / `ScaleMatrix`, copy nine halfwords back over `coord->coord.m`
@@ -977,7 +977,7 @@ m22                  = *(u16*)&blk->rotation.m[2][2];
 coord->composeStamp           = 0;
 coord->coord.m[2][2] = m22;
 
-/* ResetYaw(coord) -- unit-scale form, the target's */
+/* ResetYaw(coord) -- 1/4096-scale form, the target's */
 head                    = *SCRATCH_STACK_CURSOR_SLOT;
 blk                     = (ActorScaleRotScratch*)((u8*)head - 0x34);
 *SCRATCH_STACK_CURSOR_SLOT = blk;
@@ -991,13 +991,13 @@ the push's `head` and the *head* pseudo is live from the block's load to its
 last matrix copy - across the block's three calls. `.lreg` reports it as
 `used 4 times across 30 insns in block 35; crosses 3 calls; pointer`, so
 local-alloc gives it a call-saved register (`$s2`) and the coordinate, with
-only three refs, is pushed to the next free one (`$s4`). The unit-scale form's
+only three refs, is pushed to the next free one (`$s4`). The 1/4096-scale form's
 pop re-loads `*SCRATCH_STACK_CURSOR_SLOT` fresh; the loaded value becomes the
 matrix pointer itself, the pop temp is short-lived, and it takes a call-used
 register (`$v0`) - exactly what the target does. Check `.lreg` for a
 `crosses N calls` on a pointer that is only used twice before swapping in the
-family's unit-scale helper; the sibling tail in `func_actor_401300_8013BB30`
-compiles from the unit-scale shape and has the target's allocation.
+family's 1/4096-scale helper; the sibling tail in `func_actor_401300_8013BB30`
+compiles from the 1/4096-scale shape and has the target's allocation.
 ## A shared tail reached by a *fall-through* merges through jump2's phase 1, not phase 2 - and where it stops is the whole story
 
 GCC 2.8.1 cross-jumps only in the last `jump_optimize` (`.jump2`, after reload,
@@ -2154,7 +2154,7 @@ head = scratch_base;
 head = *(u8**)(head + 0x3FC);
 ```
 
-`Actor01900_Fn06904` is the worked example. `Actor00100_Fn04270` solved the
+`_actor01900StateDeathBurn` is the worked example. `Actor00100_Fn04270` solved the
 same pair with `register … asm("s3")` / `asm("s4")` pins.
 
 Two C stores through `SCRATCH_STACK_CURSOR_SLOT` CSE `0x1F8003FC` into an extra `$s5`.
@@ -2301,7 +2301,7 @@ A `coord` local assigned in each arm and one shared `effectSpawn(0xA0005,
 coord, ...)` moves the `lui`/`ori`/`li a2`/`addiu a3` to the merge point,
 so the case-4 delay holds `%hi(D_80114B78)` instead of `lui a0, 0xA`.
 
-Example: `Actor01900_Fn08724`.
+Example: `_actor01900StateDeathBurst`.
 
 ## Else-if stores, not a phi local, so delay-slot `li` can reuse the compare's `$v0`
 
@@ -88089,7 +88089,7 @@ in a `beqz` delay slot), the words are literal addresses from whichever slot
 split last. The other slot then fails its checksum at the table bytes, off by
 the load-address difference. Fix it in the shared reloc file with one
 `rom:0xOFF reloc:MIPS_32 symbol:<label>` per entry
-(`rel.actor_101900.txt` did this for `Actor01900_Fn02A50`). Ninja does not
+(`rel.actor_101900.txt` did this for `_actor01900TakeHit`). Ninja does not
 rebuild the `.c.o` when an included `.s` changes, so `touch` the unit before
 re-checking. The override only matters while the function is `INCLUDE_ASM`:
 once it is matched, the compiler emits the table, so remove the entries.
@@ -88115,7 +88115,7 @@ helper whose body the function already contains.
 ## Reassigning the test variable *inside* the `if` does let `thread_jumps` skip the retest
 
 The complement of "`thread_jumps` cannot skip a reloaded test": there the
-reload sat in the merge block, here it is in the arm. `Actor01900_Fn09D3C`
+reload sat in the merge block, here it is in the arm. `_actor01900Tick`
 tests `work->state` against four states, draws, and then tests `== 0x1E`
 again. The ROM's `beq v1,0x1E` jumps *past* the second `bne v1,0x1E`, straight
 to the `lh 0x89E` that follows, and that second branch keeps a `nop` in its
@@ -88218,7 +88218,7 @@ one shared `diff` had 6 refs over 10 insns and outranked the stored pseudo's
 
 ## A scratch push the pop overwrites is deleted by `flow`; put a block read between them
 
-`Actor01900_Fn06B4C` (actors/actor_101900) carves a 0xC block, squares three
+`_actor01900StateDormantScripted` (actors/actor_101900) carves a 0xC block, squares three
 ints in it and compares, and the ROM keeps *both* head stores back to back:
 
 ```
@@ -88271,7 +88271,7 @@ read is the only regs diff.
 
 ### Duplicated call arms need their own locals, or the shared ones steal callee-saved registers
 
-`Actor01900_Fn02A50` picks a sound id with `hp <= 0 ? 0x400A0008 : 0x400A0007`
+`_actor01900TakeHit` picks a sound id with `hp <= 0 ? 0x400A0008 : 0x400A0007`
 and feeds it through `worldCoordGetOriginAudioPan` / `worldCoordGetOriginAudioDepth` to `sndEvtRequestScriptStart`.
 Every single-local form was 99.988% at best: a plain `if`/`else` (or ternary)
 is hoisted by jump.c's `x = b; if (...) x = a`; loading `hp` into the result
@@ -88550,7 +88550,7 @@ wrong again; plain `s->i < count` gave the target's `sra v0; blez v0; move s7,v0
 
 ### Chained scratch rescales: read `m[0][0]` through `blk`, not `head - 0x34`
 
-`Actor01900_Fn0892C` ends with nine back-to-back `RescaleYaw`-style inlines
+`_actor01900StateDeathBurstWalk` ends with nine back-to-back `RescaleYaw`-style inlines
 (`head = *G; blk = head - 0x34; ...; *G = *G + 0x34`). The target reads the
 first matrix word as `-0x34(head)` in the first copy and as `0(blk)` in every
 later one. The head-relative spelling of the read in the scaled-helper trial,
@@ -97320,7 +97320,7 @@ there because `$v0` carries the condition and the constants). 100% first try,
 all penalties zero, preprocessed input `base_1.i` sha256 `6406c2d25b9cebe8…`.
 
 `_actor356100GrabStrike`, the neighbouring state handler in the same file,
-and the matched sibling `Actor01900_Fn0AA78`
+and the matched sibling `_actor01900StateRise`
 (`src/actors/lib/actor_101900_text_tail.c`) both carry the hoisted-local form
 and the same `lh` → `lw 0x20(a0)` → `beqz` order. When a pointer field is read
 only inside one arm of an `if`, check `overlay_dup_index.py find <func>` for a
@@ -97450,7 +97450,7 @@ instead of the `$v0` local-alloc had picked for the block-local version. A load
 that is merely misallocated but still in the right block is a different
 problem -- that one really is allocation.
 
-Read the twin first when the brief lists one. `Actor01900_Fn0AA78` in
+Read the twin first when the brief lists one. `_actor01900StateRise` in
 `src/actors/lib/actor_101900_text_tail.c` is this body with different constants,
 and it has the shape above; its `.s` under
 `asm/USA/actors/matchings/lib/actor_101900_text_tail/` shows the hoisted
@@ -97974,7 +97974,7 @@ tell that the load was hoisted at the C level, not by the scheduler.
 
 This is the mirror of the `func_actor_310100_801631B0` entry above (a chase that
 must move *out* of an arm for the same reason). Before reconstructing it by hand,
-check the family's shared bodies: `Actor01900_Fn0AA78` in
+check the family's shared bodies: `_actor01900StateRise` in
 `src/actors/lib/actor_101900_text_tail.c` is this body one actor over, and its
 source already spells the hoisted `enemy` — the two functions differ only in
 addresses and constants.
@@ -102736,7 +102736,7 @@ used in *both* arms lives in two blocks, so global-alloc takes it and the chain
 cannot be tied to it.
 
 **Fix.** Declare one variable per arm (`deathSound`/`deathPan`,
-`hitSound`/`hitPan`), as `Actor01900_Fn02A50` does. Folding the arms into
+`hitSound`/`hitPan`), as `_actor01900TakeHit` does. Folding the arms into
 `if/else` on a constant makes jump turn it into "set the default, then override
 it", and putting the `?:` inside the expression lets commutative reordering load
 the field first. Neither matches.
@@ -103370,7 +103370,7 @@ target SHA256 `126ce3ad3a12bf3bac8b159f359ce023e25287584a1599e8d6d6a14958ddca20`
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_136300_80132910-vacuum`.
 
-## An actor dispatcher's frame-copied jump table reaches m2c as an eight-argument indirect call based on an undeclared `sp` (Actor01900_Fn0ABE4, 2026-09-16)
+## An actor dispatcher's frame-copied jump table reaches m2c as an eight-argument indirect call based on an undeclared `sp` (_actor01900Task, 2026-09-16)
 
 m2c renders the whole function as one indirect call whose target is
 `M2C_FIELD((sp + index[0x30] * 4), ...)` and which passes eight arguments; it
@@ -103380,12 +103380,12 @@ function-pointer table onto its frame and dispatches through the copy**, and
 m2c cannot tell the copy's four stores from outgoing stack arguments:
 
 ```c
-void Actor01900_Fn0ABE4(Task* arg0)
+static void _actor01900Task(Task* task)
 {
-    EnemyTaskFuncTable4 sp;
+    EnemyTaskFuncTable4 states;
 
-    sp = Actor01900_D0023C;
-    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+    states = Actor01900_D0023C;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 ```
 
@@ -103398,8 +103398,8 @@ the discriminator: 55 unmatched functions under `asm/USA/actors` open with the
 same `addu $a1` + `lui`, and 5 of them carry this table-copy shape.
 
 Name the type from the whole table, not from the call: `Actor01900_D0023C`'s
-four words point at `_actor01900Initialize`, `Actor01900_Fn0ABA0`,
-`Actor01900_Fn09D3C` and `enemyDestroy`, which is `EnemyTaskFuncTable4`
+four words point at `_actor01900Initialize`, `_actor01900WaitAfterSetup`,
+`_actor01900Tick` and `enemyDestroy`, which is `EnemyTaskFuncTable4`
 (gameplay/enemy.h). The three-entry `EnemyTaskFuncTable3` and five-entry
 `EnemyTaskFuncTable5` forms are the same idiom with a different count, so a
 table whose length does not fit the type guessed from the call is a length
@@ -103414,7 +103414,7 @@ for the unnamed frame slot it then emits as a global.
 Inputs: `base_1.i` (100.000%) SHA256 `1ff253e5700579d0423f52dde0436b7d45e54bd43b4eb956491a0804e9313240`;
 target SHA256 `45a5ee82e41e192745ac6d86083202f44ac5e7ab7839de2827e065ab34d86b3f`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor01900_Fn0ABE4-vacuum`.
+Scratch `nonmatchings/_actor01900Task-vacuum`.
 ## A `regs`+`reorder` mix from one statement placed after its neighbours: move it earlier
 
 `Actor00700_Fn00060` (actors) sat at 96.4% (`regs=14 reorder=3`) with one block
