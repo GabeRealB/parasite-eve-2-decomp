@@ -51893,7 +51893,7 @@ jalr $v0
 `addu $v0, $sp, $v0` where the sibling dispatchers have `lui`/`addiu` of a
 global array is what says *copied*. The source is the overlay's own `.rodata`
 table, declared as a `TaskFuncTableN` extern beside the other table externs
-(`Actor00400_Fn07B98` in `actor_100400_text.c` is the matched precedent) and
+(`_actor00400TunnelPatrol` in `actor_100400_text.c` is the matched precedent) and
 assigned to a local of that type. Beware the one-entry sibling: a `states[1]`
 local initializer never reaches `.rodata` — GCC stores the single address
 straight into the frame slot (`lui`/`addiu`/`sw`, `Actor00400_Fn09C84`) — so it
@@ -104799,7 +104799,7 @@ matching alternative, and the operand is substituted. The counter is not the
 only `1` in the function either - `slotIndex++)` itself is still an immediate.
 
 Writing `slotIndex = 1` *after* the chain, which is how the family's already-matched
-siblings are written (`Actor00400_Fn07CC4` in `src/actors/lib/actor_100400_text.c`,
+siblings are written (`_actor00400SwimDeathRest` in `src/actors/lib/actor_100400_text.c`,
 whose tail is instruction-for-instruction identical to this target), leaves a
 `CODE_LABEL` at the merge point - and `reload_cse_regs_1` clears all of
 `reg_values` at every label, so the constant is unknown at the increment and
@@ -105228,7 +105228,7 @@ Distinguish the two readings structurally: a stack-argument call writes the args
 in a register; a local table writes them *before* the index load (`lh 0x422`
 comes last, after both `sw`s) and the `lw` from `$sp + index*4` *is* the target.
 The 2-element local array is the family idiom, already matched in
-`src/actors/actor_00400/actor_00400.c` (`_actor00400SwimLightRecoil`, `Actor00400_Fn089C8`)
+`src/actors/actor_00400/actor_00400.c` (`_actor00400SwimLightRecoil`, `_actor00400Despawn`)
 — check a matched sibling in the same family before writing the body by hand.
 
 Inputs: `base.i` SHA256
@@ -131223,7 +131223,7 @@ register it will substitute for the literal somewhere in between.
 
 ## Repeated `if` arms: one store after the chain merges them, a store per arm does not
 
-`Actor00400_Fn08354` sets or clears the same flag bit in five `if`/`else if`
+`_actor00400SetModelDraw` sets or clears the same flag bit in five `if`/`else if`
 arms. The target emits the read-modify-write **four times**, each arm ending in
 its own `lhu`/`ori` and a `j` to a shared `sh`:
 
