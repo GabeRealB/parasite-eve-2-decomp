@@ -13222,12 +13222,12 @@ structure assignment:
 ```c
 extern TaskFuncTable11 D_actor_548100_80131E6C;
 
-void func_actor_548100_801347F8(Task* arg0)
+void _actor548100PanelTask(Task* task)
 {
-    TaskFuncTable11 fns;
+    TaskFuncTable11 states;
 
-    fns = D_actor_548100_80131E6C;
-    fns.funcs[arg0->state](arg0);
+    states = D_actor_548100_80131E6C;
+    states.funcs[task->state](task);
 }
 ```
 
@@ -45828,7 +45828,7 @@ The clause above also fires on a *load* whose address came from struct traffic,
 which then climbs over a scalar global store and lands in a later call's delay
 slot -- the delay slot fills and a `nop` goes missing, which reads as a
 `delete=1`/`reorder` pair rather than as an aliasing problem.
-`func_actor_548100_80134E0C` is the worked example, at 93.53% from m2c:
+`_actor548100ExitPanel` is the worked example, at 93.53% from m2c:
 
 ```c
 gGameSession->cutsceneHold = 0;      /* mem/s:QI (plus <reg> 102)  -- in struct, varying */
@@ -78317,7 +78317,7 @@ the seed — the extra `addiu` is the whole miss:
 ```
 
 83.077% (`regs=4 insert=1 delete=1`) → 100.000%, all penalties zero, in one
-edit. `func_actor_548100_80134D88`.
+edit. `_actor548100ArmCursor`.
 
 This is the seed-side instance of "Hold a global's address in a local pointer":
 that entry is about keeping the `%hi` live *across calls*, this one is about the
@@ -78372,7 +78372,7 @@ promotion's span ends and the following unit starts on the same byte.
 the `ninja_config.py` re-split, or just reading the generated yaml, is what tells
 you which of the two cases you are in.
 
-`func_actor_548100_80134DBC` / `func_actor_143000_80133698` → 100% with the
+`_actor548100OpenHotspotCommands` / `func_actor_143000_80133698` → 100% with the
 carrier diffs at two and twenty-one lines.
 
 ## A data symbol's `dlabel` extent is not the array's length
@@ -78400,7 +78400,7 @@ as the sibling overlay headers do; a size copied from the symbol is a latent
 mismatch, and the sentinel record is not part of the array's data anyway.
 
 The same table also shows why the record's *field* names want evidence from every
-reader: `_actor548100SetLegComplete`, `func_actor_548100_80134BF0`, `_actor548100MeasureLeg` and
+reader: `_actor548100SetLegComplete`, `_actor548100ResetWireStates`, `_actor548100MeasureLeg` and
 `_actor548100DrawEdge` between them touch offsets 0, 1, 2, 3, 8, 0xA and
 0xC, and only 0, 1 and 2 are seeded in the ROM — the rest is runtime state, which
 is what tells you a "field that is always zero" is written by code you have not
@@ -78591,7 +78591,7 @@ if (ABS(diff) >= 0x41) {
 }
 ```
 
-That single change to a natural typed loop took `func_actor_548100_80134BF0`
+That single change to a natural typed loop took `_actor548100ResetWireStates`
 from 97.4% to 100% with all-zero penalties, including the preheader ordering
 (`li a2,2` / `li a1,1` before `addiu v1,a0,8`) that the m2c `do`/`while` seed had
 reversed. This is the `addiu` form of the `sra`-off-by-`log2(sizeof *ptr)` trap
