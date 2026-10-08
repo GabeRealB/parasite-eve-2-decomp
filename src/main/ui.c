@@ -578,7 +578,7 @@ TaskDesc D_800670D0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, func_8070A6E8 },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80708778 },
     { { { TASK_BODY_NONE, 0x2F } }, fadeScreenTask },
-    { { { TASK_BODY_TMD, 0x70 } }, Gp_EffAttachTask37 },
+    { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask },
 };
 
 static u8 McLocation_WhereAmI[]               = "Where am I?";

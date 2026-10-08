@@ -277,7 +277,7 @@ UiListRowCallback D_8010E934[1] = { itemMenuDrawKeyItemUseRow };
 
 UiList D_8010E938 = { D_8010E934, 1, { 1 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListRowCallback D_8010E95C[1] = { Gp_DrawCollectedRow };
+UiListRowCallback D_8010E95C[1] = { itemMenuDrawCollectedItemRow };
 
 UiList D_8010E960 = { D_8010E95C, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -354,7 +354,7 @@ UiObjectDesc D_8010EAB4[50] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 8 }, 32, 0, TASK_BODY_NONE, 192, itemMenuArmorSelectionTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 8 }, 32, 0, TASK_BODY_NONE, 192, itemMenuAmmoSelectionTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 8 }, 32, 0, TASK_BODY_NONE, 192, itemMenuWeaponSelectionTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 8 }, 32, 0, TASK_BODY_NONE, 192, Gp_EquipSelectMenuTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 8 }, 32, 0, TASK_BODY_NONE, 192, itemMenuAttachmentItemPickerTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },

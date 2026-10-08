@@ -93,9 +93,9 @@ gameDebugApplyInputOverride = 0x8009FD74; // type:func
 playClockInitializeTask = 0x8009FEDC; // type:func
 Gp_TickPlayClock = 0x800A0094; // type:func
 Gp_RestartSessionTask = 0x800A0504; // type:func
-Gp_EndingTask = 0x800A0718; // type:func
+sceneBattleStartTransitionTask = 0x800A0718; // type:func
 itemMenuBattleResultTask = 0x800A087C; // type:func
-Gp_AreaEnterTask = 0x800A110C; // type:func
+_sceneBattleResultTask = 0x800A110C; // type:func
 attachmentGetActiveLevelValue = 0x800A1558; // type:func
 attachmentDispatchTargetArea = 0x800A1634; // type:func
 _hudDrawWeaponSupplyPrompt = 0x800A18BC; // type:func
@@ -252,7 +252,7 @@ _directionUpdateTask = 0x800AEE00; // type:func
 actorAngleTaskYawTowardPoint = 0x800AEE28; // type:func
 directionTask = 0x800AEE8C; // type:func
 Gp_GetViewCountLo = 0x800AEEFC; // type:func
-Gp_DirAction0 = 0x800AEF4C; // type:func
+_directionUpdateWarpAction = 0x800AEF4C; // type:func
 _directionUpdateStairAction = 0x800AEFBC; // type:func
 _directionClearAction = 0x800AF070; // type:func
 _directionDispatchRoomAction = 0x800AF0AC; // type:func
@@ -514,12 +514,12 @@ itemMenuArmorPanelTask = 0x800C46B4; // type:func
 inventoryFindNthAttachmentCandidate = 0x800C5188; // type:func
 itemMenuDrawAttachmentCandidateRow = 0x800C5328; // type:func
 _itemMenuSizeAttachmentPicker = 0x800C58B8; // type:func
-Gp_EquipSelectMenuTask = 0x800C5A5C; // type:func
+itemMenuAttachmentItemPickerTask = 0x800C5A5C; // type:func
 itemMenuEnqueuePreviewLoad = 0x800C5C2C; // type:func
 itemMenuInfoTask = 0x800C5F70; // type:func
 itemMenuUseKeyItemTask = 0x800C70F0; // type:func
 itemMenuKeyItemCommandTask = 0x800C7444; // type:func
-Gp_DrawCollectedRow = 0x800C7590; // type:func
+itemMenuDrawCollectedItemRow = 0x800C7590; // type:func
 Gp_KeyItemMenuTask = 0x800C7844; // type:func
 itemMenuDrawPreview = 0x800C7AE8; // type:func
 itemMenuDrawEquipmentStats = 0x800C7DA8; // type:func
@@ -806,7 +806,7 @@ damageStartEnemyBuildup = 0x800E301C; // type:func
 damageTickEnemyBuildup = 0x800E3084; // type:func
 damageGetPlayerAttackHitCooldown = 0x800E3194; // type:func
 func_800E31E8 = 0x800E31E8; // type:func
-Gp_EvtCapTask = 0x800E337C; // type:func
+capEventTask = 0x800E337C; // type:func
 
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/cap_commands.c) — file-split 0x4FCD8
@@ -862,7 +862,7 @@ capClearUnstartedSequenceTask = 0x800E6EF4; // type:func
 capDelayedTextureMessageTask = 0x800E6F60; // type:func
 _capAdvanceRecord = 0x800E704C; // type:func
 func_800E70AC = 0x800E70AC; // type:func
-Gp_EndWaitTask = 0x800E712C; // type:func
+capActionPromptExitTask = 0x800E712C; // type:func
 Gp_InitCapTask = 0x800E71B0; // type:func
 capUpdateControlTask = 0x800E7240; // type:func
 Gp_StartCapAndClear = 0x800E72E8; // type:func
@@ -972,7 +972,7 @@ effectSpriteTask54 = 0x800F5E1C; // type:func
 effectDrawGroundGlow = 0x800F6560; // type:func
 effectDrawGroundShadow = 0x800F68AC; // type:func
 effectSpriteTask53 = 0x800F6C2C; // type:func
-Gp_EffAttachTask37 = 0x800F6D18; // type:func
+effectBurstModelPartTask = 0x800F6D18; // type:func
 
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/player_actor.c) — file-split 0x63DBC / 0x63FF8

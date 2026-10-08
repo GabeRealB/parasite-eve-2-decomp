@@ -29,6 +29,12 @@ extern const char Gp_StrItem[];
 /// Result scratch is shared, so only one result panel may be active at a time.
 void itemMenuBattleResultTask(Task* task);
 
-void Gp_EndingTask(Task* arg0);
+/// Starts combat presentation and waits for its delay and countdown-table music.
+///
+/// spawnArg2 borrows the live HUD on state 0, changing its battle step to FIGHT.
+/// The delay is 30 task updates, or 90 in stage 4 area 48, including setup.
+/// Requires loaded vibration/map/music resources and an active stage mode task;
+/// after the delay and music load, kills this task and requests that mode's exit.
+void sceneBattleStartTransitionTask(Task* task);
 
 #endif // GAMEPLAY_PRIVATE_ENDING_H

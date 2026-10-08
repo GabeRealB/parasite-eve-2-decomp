@@ -26,17 +26,19 @@ void func_800E70AC(Task* task)
     }
 }
 
-void Gp_EndWaitTask(Task* task)
+void capActionPromptExitTask(Task* task)
 {
+    enum { CAP_ACTION_PROMPT_START = 0,
+           CAP_ACTION_PROMPT_WAIT  = 1 };
     CapActionRequest* request;
 
     request = task->spawnArg2.pointer;
     switch (task->state) {
-        case 0:
+        case CAP_ACTION_PROMPT_START:
             taskSpawn(ITEM_PICKUP_ACTION_TASK_BANK, ITEM_PICKUP_ACTION_TASK_TYPE, 0, request);
             task->state++;
             break;
-        case 1:
+        case CAP_ACTION_PROMPT_WAIT:
             if (request->done != 0) {
                 stageRequestModeTaskExit();
                 taskKill(task);

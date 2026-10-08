@@ -421,7 +421,17 @@ void itemMenuUseKeyItemTask(Task* task);
 /// restores command input; its DISMISS returns CONFIRM to the parent item list.
 void itemMenuKeyItemCommandTask(Task* task);
 
-void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1);
+/// Draws a collected-item row and opens its Use or information child panel.
+///
+/// Borrows live list/object storage and loaded item/menu resources. The current
+/// row must be a valid collected-bit ordinal. Row positions are panel-relative
+/// pixels; colorRgb is packed RGB. Hidden panels skip drawing. An active panel
+/// or active child selection updates the selected row's description and primary
+/// preview, invalidating only profiles 1 and 2 of the five-slot preview cache.
+/// Enabled row input opens Use on Confirm (a notice during cutscene hold), or
+/// information on Triangle, transferring input to the child. Only the ordinary
+/// Use-command path checks allocation failure before deactivating its parent.
+void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object);
 
 void Gp_KeyItemMenuTask(Task* arg0);
 
@@ -1309,7 +1319,15 @@ void itemMenuEnqueuePreviewLoad(s32 itemId, s32 loadProfile);
 /// Both arguments borrow live UI storage; only rows with active input mutate it.
 void itemMenuDrawAttachmentCandidateRow(UiList* list, UiObject* object);
 
-void Gp_EquipSelectMenuTask(Task* arg0);
+/// Runs the armor attachment candidate picker and its selected-item preview.
+///
+/// spawnArg2 borrows the live task-owned UiObject; its parent must own another
+/// live UiObject. Uses the singleton candidate list and carried inventory, with
+/// a trailing detach row whose preview item is zero. Initialization hides the
+/// parent and adds a 76-pixel preview header. Menu returns CANCEL; Cancel returns
+/// DISMISS. spawnArg1 == 0 converts DISMISS to CONFIRM after child-result handling;
+/// any nonzero argument retains DISMISS. Requires loaded menu/preview resources.
+void itemMenuAttachmentItemPickerTask(Task* task);
 
 /// Source item-table scan (`itemMenuCanMoveAllItems` / item-move UI). field_0 is the
 /// start index, field_1 the entry count, field_2 the table id.

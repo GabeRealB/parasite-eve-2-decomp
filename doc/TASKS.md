@@ -39,7 +39,7 @@ Allocated with `memCalloc(sizeof(Task), 0)` (0x48 bytes). Inserted into the **ac
 | `0x10` | Boot, memcard |
 | `0x18` | Main gameflow |
 | `0x20`–`0x2F` | View / HUD / some gameplay |
-| `0x50`–`0x70` | Type-1 TMD attaches (bank 7, shared `Gp_EffAttachTask37`) |
+| `0x50`–`0x70` | Type-1 TMD attachments (bank 7) and detached-part effects (`effectBurstModelPartTask`) |
 | `0xC0` | Default actor |
 | `0xE0`–`0xF8` | Draw / load-wait (late in the list) |
 
@@ -280,9 +280,9 @@ NULL.
 | 5 | `D_800626AC` | 5 | Stubs + `taskDebugLaunchCallback` + one overlay |
 | 6 | `D_8010FC2C` | **667** | Room-overlay actor catalog (gameplay data → `0x8017xxxx`) |
 | 7 | `D_800678F4` | 164 | Equipped TMD attaches (`modelObjectChildTask` + per-item `data.model`) |
-| 8 | `D_800626EC` | 6 | Stubs + shared `Gp_EffAttachTask37` |
+| 8 | `D_800626EC` | 6 | Stubs + shared `effectBurstModelPartTask` |
 | 9 | `D_80067734` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
-| 10 | `0x80114B34` | 6 | Stubs + `Gp_EffAttachTask37` (splat-merged into `Gp_CollectedIds`) |
+| 10 | `D_80114B34` | 6 | Stubs + `effectBurstModelPartTask`; actors set the last descriptor's model |
 | 14 | `D_80068B7C` | 5 | Stubs + one `0x807xxxxx` |
 
 Callback addresses fall in four windows:
@@ -294,8 +294,11 @@ Callback addresses fall in four windows:
 | `0x80115770`+ | Aya / weapon / actor / **room** overlays ([`OVERLAYS.md`](OVERLAYS.md) §2) |
 | `0x807xxxxx` | Imported overlay, not splat’d in this tree |
 
-`Gp_EffAttachTask37` is a generic type-1 TMD actor reused in banks 1, 2, 4, 6, 8, 10
-(and the bank-2 aliases). It is still a `func_*`.
+`effectBurstModelPartTask` is the detached-model-part effect reused in banks
+1, 2, 4, 6, 8 and 10 (and the bank-2 aliases). It tumbles, bounces and dims or
+collapses a model supplied by the descriptor, using an owned `EffectWork` in
+`spawnArg2`. Bank 2 entry 6 requests no body and supplies no model, so that
+descriptor does not supply the callback's required TMD body.
 
 ---
 
@@ -361,7 +364,7 @@ Several `func_*` rows are already matched C and only lack a role name.
 | `06` | `80` | `capControlTask` | Persistent CAP controller: initialize, relocate/update and exit |
 | `07` | `20` | `evsInterpreterTask` | Event-script interpreter; borrows the command stream in spawnArg2 and takes a display hold |
 | `08` | `80` | `capHudSlideTask` | CAP demo-scene HP/MP slide; `spawnArg1.value` is -1 to hide, +1 to return; live handle `D_801156B8` |
-| `0B` | `80` | `Gp_EndWaitTask` | `spawnArg2` is `CapActionRequest*`; non-zero `done` sets the ending flag and kills |
+| `0B` | `80` | `capActionPromptExitTask` | Borrows `CapActionRequest*` in `spawnArg2`, starts the item/save prompt, then requests stage-mode exit and kills when `done` becomes nonzero |
 | `0C` | `20` | `evsScreenShakeTask` | Vertical display shake; packed `spawnArg2.value` holds signed amplitude above bit 7 and half-duration (1..255) in the low byte |
 | `0D` | `20` | `evsMusicVolumeFadeTask` | `spawnArg2` is `_EvsMusicVolumeFade*` (music volume: target level + duration) |
 | `0E` | `20` | `evsSoundAttenuationFadeTask` | `spawnArg2` is `_EvsSoundAttenuationFade*` (one sound's attenuation: target + duration) |
@@ -384,7 +387,7 @@ The other payload structs live with their sole consumers: `_EvsMusicVolumeFade` 
 | `0B` | `padScriptBinaryMotorHoldTask` | `_padScriptSpawnBinaryMotorHold` — port 0 binary-motor vibration, remaining script frames in `spawnArg1.value` |
 | `0C` | `padScriptVariableMotorRampTask` | `padScriptSpawnVariableMotorRamp` — port 0 variable-motor Q8 intensity ramp, owned work block in `work` |
 | `0D` | `padScriptTask` | Two-lane controller-vibration interpreter; borrowed command and segment arrays in owned work |
-| `06`, `10` | `Gp_EffAttachTask37` | Shared type-1 TMD |
+| `06`, `10` | `effectBurstModelPartTask` | Detached model part; `06` has no descriptor-provided body/model, while `10` requests a TMD |
 | `04` | `0x807257A0` | Stage overlay |
 | `08`–`0A`, `0E`–`0F` | `0x8017xxxx` / `0x8018xxxx` | Room overlay |
 

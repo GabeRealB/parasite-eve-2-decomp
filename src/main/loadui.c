@@ -73,7 +73,7 @@ TaskDesc D_800626EC[6] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_TMD, 0x70 } }, Gp_EffAttachTask37 },
+    { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask },
 };
 
 void cdCmdEnqueueDisplayResource(s32 fileIdHundreds, s32 fileIndex, s32 loadProfile)

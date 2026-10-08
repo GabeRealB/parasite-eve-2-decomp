@@ -30,7 +30,7 @@ TaskDesc D_80067734[] = {
     { { { TASK_BODY_NONE, 0x80 } }, capHudSlideTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0x20 } }, taskKill },
-    { { { TASK_BODY_NONE, 0x80 } }, Gp_EndWaitTask },
+    { { { TASK_BODY_NONE, 0x80 } }, capActionPromptExitTask },
     { { { TASK_BODY_NONE, 0x20 } }, evsScreenShakeTask },
     { { { TASK_BODY_NONE, 0x20 } }, evsMusicVolumeFadeTask },
     { { { TASK_BODY_NONE, 0x20 } }, evsSoundAttenuationFadeTask },

@@ -16,7 +16,7 @@
 #define EFFECT_SPAWN_UNLIMITED ((s32)0x80000000)
 
 enum {
-    /// Bank-1 model task (Gp_EffAttachTask37) that shows a caller-supplied TmdSource,
+    /// Bank-1 model task (effectBurstModelPartTask) that shows a caller-supplied TmdSource,
     /// flings it in a random direction while tumbling, then spawns the 0x600A5 corpse-
     /// burn effect on it; actor_01100 uses it for the burst arm/head pieces of its
     /// model.
@@ -2196,7 +2196,7 @@ enum {
     /// coloured effects and sparks, then a spinning ring with crossing arcs and a full-
     /// screen fade; spawned by the gunblade's fire state.
     EFFECT_GUNBLADE_CHARGE_FLASH = EFFECT_ID(EFFECT_TASK_BANK, 0x29A),
-    /// Bank 8 slot 5 (Gp_EffAttachTask37 with a caller-set TMD): a severed body-part
+    /// Bank 8 slot 5 (effectBurstModelPartTask with a caller-set TMD): a severed body-part
     /// model (head/arm/leg/ear) flung when an enemy bursts; the caller sets
     /// D_800626EC[5].data.model first.
     EFFECT_BURST_BODY_PART_BANK8 = EFFECT_ID(8, 0x005),

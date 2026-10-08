@@ -11,6 +11,7 @@
 #include "gameplay/pad_script.h"
 #include "gameplay/scene_combat.h"
 
+#include "main/areas.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
@@ -73,41 +74,52 @@ const char Gp_StrEXP[] = "EXP";
 
 const char Gp_StrItem[] = "Item";
 
-void Gp_EndingTask(Task* arg0)
+void sceneBattleStartTransitionTask(Task* task)
 {
+    enum {
+        SCENE_BATTLE_START_INITIALIZE        = 0,
+        SCENE_BATTLE_START_LOAD_MUSIC        = 1,
+        SCENE_BATTLE_START_DELAY_FRAMES      = 30,
+        SCENE_BATTLE_START_LONG_DELAY_FRAMES = 90,
+        STAGE_MUSIC_REQUEST_COUNTDOWN        = 2,
+        STAGE_MUSIC_REQUEST_LOAD_ONLY        = 3,
+        STAGE_MUSIC_LOAD_IDLE                = 0xFF
+    };
     GameSession* session;
     HudState*    hud;
 
-    if (arg0->state == 0) {
-        hud                 = arg0->spawnArg2.pointer;
+    // Combat enters its fighting state before the transition delay and music load.
+    if (task->state == SCENE_BATTLE_START_INITIALIZE) {
+        hud                 = task->spawnArg2.pointer;
         hud->battleStep     = HUD_BATTLE_STEP_FIGHT;
-        arg0->killCountdown = 0x1E;
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 48, 0, 0)) {
-            arg0->killCountdown = 0x5A;
+        task->killCountdown = SCENE_BATTLE_START_DELAY_FRAMES;
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R48, 0, 0)) {
+            task->killCountdown = SCENE_BATTLE_START_LONG_DELAY_FRAMES;
         }
         sndEvtRequestScriptStart(SOUND_AREA_EXIT, 0, 0);
         padScriptSpawn(D_80114A24, D_80114A34);
         areaSetCurrentMapMark();
-        arg0->state++;
-    } else if (arg0->state == 1) {
+        task->state++;
+    } else if (task->state == SCENE_BATTLE_START_LOAD_MUSIC) {
         session = gGameSession;
         if (!(session->flowFlags & GAME_SESSION_FLOW_SKIP_ENDING_MUSIC)) {
             gStageMusicParams.fadeOutTicks = 0;
             gStageMusicParams.field_2      = 0;
             if ((session->flowFlags & GAME_SESSION_FLOW_LOAD_ENDING_MUSIC_ONLY) == 0) {
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 2, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_COUNTDOWN, 0);
             } else {
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_LOAD_ONLY, 0);
             }
         } else {
-            gStageMusicLoadState = 0xFF;
+            gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE;
         }
-        arg0->state++;
+        task->state++;
     }
-    arg0->killCountdown--;
-    if (arg0->killCountdown <= 0) {
-        if (gStageMusicLoadState == 0xFF) {
-            taskKill(arg0);
+    // The delay includes both setup updates; exit also waits for the music loader.
+    task->killCountdown--;
+    if (task->killCountdown <= 0) {
+        if (gStageMusicLoadState == STAGE_MUSIC_LOAD_IDLE) {
+            taskKill(task);
             stageRequestModeTaskExit();
         }
     }

@@ -590,7 +590,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask34, { NULL } },                                                     // 0x034
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask35, { NULL } },                                                     // 0x035
     { { { TASK_BODY_TMD, 0x70 } }, effectThrownModelTask, { &D_80111FC8 } },                                             // 0x036
-    { { { TASK_BODY_TMD, 0x70 } }, Gp_EffAttachTask37, { &D_8011231C } },                                                // 0x037
+    { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask, { &D_8011231C } },                                          // 0x037
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubstationDrawLightGlowsTask, { NULL } },                                     // 0x038
     { { { TASK_BODY_COORD, 0x70 } }, mistParkingDrawGlowsTask, { NULL } },                                               // 0x039
     { { { TASK_BODY_COORD, 0x70 } }, tonfaBatonSwingTrailTask, { NULL } },                                               // 0x03A

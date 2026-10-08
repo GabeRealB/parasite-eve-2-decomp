@@ -8,11 +8,13 @@
 #include "hud.h"
 #include "hud_sprites.h"
 #include "item_menu.h"
+#include "gameplay/attachment_state.h"
 #include "gameplay/items.h"
 #include "items.h"
 #include "scene_runtime.h"
 #include "world_targets.h"
 
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
@@ -32,7 +34,7 @@ extern UiObjectDesc D_8010CA40[];
 
 extern UiObjectDesc D_8010CA78[];
 
-void Gp_AreaEnterTask(Task* arg0);
+static void _sceneBattleResultTask(Task* task);
 
 u8                 Gp_StrItemObtained[] = "Item obtained!";
 u8                 Gp_StrBonusItem[]    = "Bonus item!!";
@@ -51,121 +53,157 @@ UiObjectDesc D_8010CA78[] = {
     { 3, { -80, 16, 160, 20 }, 28, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
     { 3, { 16, 24, 160, 20 }, 24, 0, TASK_BODY_NONE, 0xC0, itemPickupNoticeTask, 0 },
 };
-TaskDesc D_8010CAB0 = { { { TASK_BODY_NONE, 0xC0 } }, Gp_EndingTask };
-TaskDesc D_8010CABC = { { { TASK_BODY_NONE, 0xC0 } }, Gp_AreaEnterTask };
+TaskDesc D_8010CAB0 = { { { TASK_BODY_NONE, 0xC0 } }, sceneBattleStartTransitionTask };
+TaskDesc D_8010CABC = { { { TASK_BODY_NONE, 0xC0 } }, _sceneBattleResultTask };
 
-void Gp_AreaEnterTask(Task* arg0)
+/// Presents battle gains or an escape result, restores area music and exits the transition.
+///
+/// spawnArg1 == 0 selects victory; other values select escape. On initialization
+/// spawnArg2 borrows the HUD for victory outside the shooting gallery; escape
+/// needs no HUD. The argument is then replaced with the live result panel.
+/// Owns the stage primitive reservation until every result/item panel has closed.
+/// Requires loaded result UI, location/reward data and player actor slots; panel
+/// allocation is assumed to succeed. Waits for music and CD work before exit.
+static void _sceneBattleResultTask(Task* task)
 {
+    enum {
+        SCENE_BATTLE_RESULT_INITIALIZE              = 0,
+        SCENE_BATTLE_RESULT_LOAD_MUSIC              = 1,
+        SCENE_BATTLE_RESULT_WAIT_PANEL              = 2,
+        SCENE_BATTLE_RESULT_WAIT_ITEMS              = 3,
+        SCENE_BATTLE_RESULT_CLOSE_DELAY             = 16,
+        SCENE_BATTLE_RESULT_FINISH                  = 17,
+        SCENE_BATTLE_RESULT_WON                     = 0,
+        SCENE_BATTLE_RESULT_COUNTER_MAX             = 9999,
+        SCENE_BATTLE_RESULT_CLOSE_FRAMES            = 10,
+        SCENE_BATTLE_RESULT_ITEM_TRANSFER_MODE      = 1,
+        SCENE_BATTLE_RESULT_ITEM_PLACE_KIND         = 0x700,
+        SCENE_BATTLE_RESULT_HEALING_SOUND_FILE_BASE = 21,
+        SCENE_BATTLE_RESULT_MUTED_SOUND             = SOUND_COMMON(0x0D),
+        SCENE_BATTLE_RESULT_ITEM_NOTICE             = 1,
+        SCENE_BATTLE_RESULT_BONUS_NOTICE            = 2,
+        SCENE_BATTLE_RESULT_ITEM_NOTICE_DELAY       = 17,
+        SCENE_BATTLE_RESULT_BONUS_NOTICE_DELAY      = 33,
+        SCENE_BATTLE_RESULT_GALLERY_OPEN_DELAY      = 4,
+        STAGE_MUSIC_REQUEST_AREA_ENTRY              = 1,
+        STAGE_MUSIC_REQUEST_LOAD_ONLY               = 3,
+        STAGE_MUSIC_LOAD_IDLE                       = 0xFF
+    };
     u32                 stageAreaKey;
     HudState*           hud;
-    s32                 i;
-    Task*               slot;
+    s32                 actorSlotIndex;
+    Task*               actorTask;
     GameSession*        session;
-    InventoryItemRange* scan;
+    InventoryItemRange* rewardRange;
+    GameActor*          actor;
 
-    if (arg0->state == 0) {
-        hud           = arg0->spawnArg2.pointer;
+    // Detach obsolete targeting nodes before creating the result panels.
+    if (task->state == SCENE_BATTLE_RESULT_INITIALIZE) {
+        hud           = task->spawnArg2.pointer;
         stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
         stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
         stageEnsureHeapTaskPrimitiveBuffer();
-        for (i = 0; i < PLAYER_ACTOR_TASK_COUNT; i++) {
-            slot = gPlayerActorTasks[i];
-            if (slot != NULL) {
-                ((GameActor*)slot->work)->targetNode = NULL;
+        for (actorSlotIndex = 0; actorSlotIndex < PLAYER_ACTOR_TASK_COUNT; actorSlotIndex++) {
+            actorTask = gPlayerActorTasks[actorSlotIndex];
+            if (actorTask != NULL) {
+                actor             = actorTask->work;
+                actor->targetNode = NULL;
             }
         }
-        sndEvtRequestScriptMute(SOUND_COMMON(0x0D));
-        sndLoadEnqueuePeFile((attachmentGetEffectiveLevel(7) + 0x15) & 0xFF);
-        if (stageAreaKey == GAME_LOCATION_KEY(1, 20, 0, 0)) {
-            arg0->spawnArg2.pointer = uiSpawnObject(&D_mist_shooting_gallery_80185000, arg0->spawnArg1, 1, 4, NULL);
+        sndEvtRequestScriptMute(SCENE_BATTLE_RESULT_MUTED_SOUND);
+        sndLoadEnqueuePeFile((attachmentGetEffectiveLevel(ATTACHMENT_INDEX_HEALING) + SCENE_BATTLE_RESULT_HEALING_SOUND_FILE_BASE) & 0xFF);
+        if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+            task->spawnArg2.pointer = uiSpawnObject(&D_mist_shooting_gallery_80185000, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, SCENE_BATTLE_RESULT_GALLERY_OPEN_DELAY, NULL);
         } else {
-            arg0->spawnArg2.pointer = uiSpawnObject(D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
-            if (arg0->spawnArg1.value == 0) {
+            task->spawnArg2.pointer = uiSpawnObject(D_8010CA40, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+            if (task->spawnArg1.value == SCENE_BATTLE_RESULT_WON) {
                 // The battle is over: return the HUD to its out-of-battle state.
                 hud->battleStep = HUD_BATTLE_STEP_START;
                 hud->inBattle   = 0;
                 areaSetSavedPoseRestoreEnabled(1, &gGameSession->location.loc);
                 gGameSession->battleResetPending = 1;
-                if (!((stageAreaKey == GAME_LOCATION_KEY(5, 11, 0, 0) || stageAreaKey == GAME_LOCATION_KEY(5, 29, 0, 0)) &&
+                if (!((stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_FOREST_ZONE, 0, 0) ||
+                       stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_WOODLAND_PATH, 0, 0)) &&
                       gGameSession->location.loc.variant - 1 < 3U)) {
-                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon < 0x270FU) {
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon < (u32)SCENE_BATTLE_RESULT_COUNTER_MAX) {
                         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesWon++;
                     }
                 }
-                scan = &D_8010CA2C;
-                inventoryClearItems(scan);
-                arg0->status = inventoryGrantBattleRewards(scan);
-                if (arg0->status != INVENTORY_BATTLE_REWARD_NONE_GRANTED) {
-                    uiSpawnObject(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2.pointer);
-                    if (arg0->status == INVENTORY_BATTLE_REWARD_BONUS_GRANTED) {
-                        uiSpawnObject(D_8010CA78 + 1, 2, 0, 0x21, arg0->spawnArg2.pointer);
+                rewardRange = &D_8010CA2C;
+                inventoryClearItems(rewardRange);
+                task->status = inventoryGrantBattleRewards(rewardRange);
+                if (task->status != INVENTORY_BATTLE_REWARD_NONE_GRANTED) {
+                    uiSpawnObject(D_8010CA78, SCENE_BATTLE_RESULT_ITEM_NOTICE, USER_INTERFACE_PANEL_INACTIVE, SCENE_BATTLE_RESULT_ITEM_NOTICE_DELAY, task->spawnArg2.pointer);
+                    if (task->status == INVENTORY_BATTLE_REWARD_BONUS_GRANTED) {
+                        uiSpawnObject(D_8010CA78 + 1, SCENE_BATTLE_RESULT_BONUS_NOTICE, USER_INTERFACE_PANEL_INACTIVE, SCENE_BATTLE_RESULT_BONUS_NOTICE_DELAY, task->spawnArg2.pointer);
                     }
                 }
             } else {
-                arg0->status = 0;
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped < 0x270FU) {
+                task->status = INVENTORY_BATTLE_REWARD_NONE_GRANTED;
+                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped < (u32)SCENE_BATTLE_RESULT_COUNTER_MAX) {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.battlesEscaped++;
                 }
             }
         }
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
-        arg0->state++;
-    } else if (arg0->state == 1) {
+        task->state++;
+    } else if (task->state == SCENE_BATTLE_RESULT_LOAD_MUSIC) {
         session = gGameSession;
         if (!(session->flowFlags & GAME_SESSION_FLOW_SKIP_AREA_MUSIC)) {
             session->viewReady             = 1;
             gStageMusicParams.fadeOutTicks = 0;
             gStageMusicParams.field_2      = 0;
             if (!(gGameSession->flowFlags & GAME_SESSION_FLOW_LOAD_AREA_MUSIC_ONLY)) {
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 1, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_AREA_ENTRY, 0);
             } else {
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 3, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_LOAD_ONLY, 0);
             }
         } else {
-            gStageMusicLoadState = 0xFF;
+            gStageMusicLoadState = STAGE_MUSIC_LOAD_IDLE;
         }
-        arg0->state++;
-    } else if (arg0->state == 2) {
-        UiObject* obj;
+        task->state++;
+    } else if (task->state == SCENE_BATTLE_RESULT_WAIT_PANEL) {
+        UiObject* resultPanel;
 
-        obj = arg0->spawnArg2.pointer;
-        if (gStageMusicLoadState == 0xFF) {
+        resultPanel = task->spawnArg2.pointer;
+        if (gStageMusicLoadState == STAGE_MUSIC_LOAD_IDLE) {
             if (cdCmdIsIdle() & 0xFFFF) {
-                if (obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-                    uiStartTreeClosing(obj, obj->owner);
-                    if (arg0->status != 0) {
-                        Gp_PubItemLoc           = 0x700;
-                        arg0->spawnArg2.pointer = uiSpawnObject(&D_8010D6D8, 1, 1, 1, NULL);
-                        arg0->state++;
+                if (resultPanel->result == USER_INTERFACE_RESULT_CONFIRM) {
+                    uiStartTreeClosing(resultPanel, resultPanel->owner);
+                    if (task->status != INVENTORY_BATTLE_REWARD_NONE_GRANTED) {
+                        Gp_PubItemLoc           = SCENE_BATTLE_RESULT_ITEM_PLACE_KIND;
+                        task->spawnArg2.pointer = uiSpawnObject(&D_8010D6D8, SCENE_BATTLE_RESULT_ITEM_TRANSFER_MODE, USER_INTERFACE_PANEL_ACTIVE, 1, NULL);
+                        task->state++;
                     } else {
-                        arg0->killCountdown = 0xA;
-                        arg0->state         = 0x10;
+                        task->killCountdown = SCENE_BATTLE_RESULT_CLOSE_FRAMES;
+                        task->state         = SCENE_BATTLE_RESULT_CLOSE_DELAY;
                     }
                 }
             }
         }
-    } else if (arg0->state == 3) {
-        UiObject* obj;
+    } else if (task->state == SCENE_BATTLE_RESULT_WAIT_ITEMS) {
+        UiObject* resultPanel;
 
-        obj = arg0->spawnArg2.pointer;
-        if ((obj->result == USER_INTERFACE_RESULT_CONFIRM) || (obj->result == USER_INTERFACE_RESULT_CANCEL)) {
-            uiStartTreeClosing(obj, obj->owner);
-            arg0->killCountdown = 0xA;
-            arg0->state         = 0x10;
+        resultPanel = task->spawnArg2.pointer;
+        if ((resultPanel->result == USER_INTERFACE_RESULT_CONFIRM) || (resultPanel->result == USER_INTERFACE_RESULT_CANCEL)) {
+            uiStartTreeClosing(resultPanel, resultPanel->owner);
+            task->killCountdown = SCENE_BATTLE_RESULT_CLOSE_FRAMES;
+            task->state         = SCENE_BATTLE_RESULT_CLOSE_DELAY;
         }
-    } else if (arg0->state == 0x10) {
-        arg0->killCountdown--;
-        if (arg0->killCountdown <= 0) {
-            arg0->state = 0x11;
+    } else if (task->state == SCENE_BATTLE_RESULT_CLOSE_DELAY) {
+        task->killCountdown--;
+        if (task->killCountdown <= 0) {
+            task->state = SCENE_BATTLE_RESULT_FINISH;
         }
     }
 
-    if (arg0->state >= 0x11) {
-        if (gStageMusicLoadState == 0xFF) {
+    // Keep the primitive buffer alive through panel closing and pending CD work.
+    if (task->state >= SCENE_BATTLE_RESULT_FINISH) {
+        if (gStageMusicLoadState == STAGE_MUSIC_LOAD_IDLE) {
             if (cdCmdIsIdle() & 0xFFFF) {
                 displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
-                sndEvtRequestScriptUnmute(SOUND_COMMON(0x0D));
-                taskKill(arg0);
+                sndEvtRequestScriptUnmute(SCENE_BATTLE_RESULT_MUTED_SOUND);
+                taskKill(task);
                 stageReleaseTaskPrimitiveBuffer();
                 stageRequestModeTaskExit();
             }

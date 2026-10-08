@@ -113,8 +113,8 @@ segments:
       - [0x42C0, c, actor_render] # actorRenderComposeAndDrawFlaggedModels
       - [0x582C, c, model_objects] # modelObjectAttachTmd
       - [0x7790, c, model_lighting] # tmdXformStreamVertsEnvLayer
-      - [0xCF18, c, ending] # Gp_EndingTask
-      - [0xD90C, c, area_entry] # Gp_AreaEnterTask
+      - [0xCF18, c, ending] # sceneBattleStartTransitionTask
+      - [0xD90C, c, area_entry] # _sceneBattleResultTask
       - [0xDD58, c, attachments] # attachmentGetActiveLevelValue
       - [0xDE34, c, attachment_stats] # attachmentDispatchTargetArea
       - [0x10DF0, c, attach_combo] # attachmentApplySelfEffect
@@ -171,7 +171,7 @@ segments:
       - [0x55D6C, c, pad_input] # pad input and menu suppression
       - [0x564C8, c, room_effects] # room effect state, presets and spawning
       - [0x592A8, c, effect_tasks] # effectControlTask2B
-      - [0x63518, c, effect_attach] # Gp_EffAttachTask37
+      - [0x63518, c, effect_attach] # effectBurstModelPartTask
       - [0x63DBC, c, player_actor] # effectSpriteTask46 .. the effect sprite and player units, one source
       - [0x763B4, c, player_state] # playerActorResolveBodyContacts
       # "Item obtained!" / UI strings / tables after last jr ra

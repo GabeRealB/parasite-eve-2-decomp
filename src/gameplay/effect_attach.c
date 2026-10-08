@@ -29,190 +29,225 @@ TaskDesc D_80114B34[6] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 0xC0 } }, NULL, { .value = 0 } },
-    { { { TASK_BODY_TMD, 0x70 } }, Gp_EffAttachTask37, { .model = NULL } },
+    { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask, { .model = NULL } },
 };
 
 /// Unreferenced nonzero tail; its original purpose is unknown.
 u32 D_80114B7C = 0x323010CE;
 
-void Gp_EffAttachTask37(Task* arg0)
+void effectBurstModelPartTask(Task* task)
 {
-    SVECTOR     delta;
-    SVECTOR     dir;
-    SVECTOR     pos;
-    VECTOR      scale2;
-    VECTOR      scale;
-    TmdObject*  extra;
-    EffectWork* mem;
+    enum {
+        EFFECT_BURST_PART_INITIALIZE                = 0,
+        EFFECT_BURST_PART_FLY                       = 1,
+        EFFECT_BURST_PART_COLLAPSE                  = 2,
+        EFFECT_BURST_PART_PUFF_SIZE_MASK            = 0xFFF,
+        EFFECT_BURST_PART_DEFAULT_PUFF_SIZE         = 512,
+        EFFECT_BURST_PART_LAUNCH_SPEED              = 256,
+        EFFECT_BURST_PART_INITIAL_AMBIENT_Q12       = 2048,
+        EFFECT_BURST_PART_LIGHT_COUNT               = 3,
+        EFFECT_BURST_PART_LIGHT_UPDATE_MASK         = 3,
+        EFFECT_BURST_PART_REPEAT_HIT_FRAMES         = 8,
+        EFFECT_BURST_PART_COLLAPSE_SPEED_LIMIT      = 32,
+        EFFECT_BURST_PART_FLIGHT_FRAMES             = 76,
+        EFFECT_BURST_PART_DIM_START_FRAME           = 51,
+        EFFECT_BURST_PART_LOW_ALTITUDE_MARGIN       = 256,
+        EFFECT_BURST_PART_LOW_ALTITUDE_AGE_STEP     = 10,
+        EFFECT_BURST_PART_GRAVITY_Q12               = 65536,
+        EFFECT_BURST_PART_FLIGHT_AMBIENT_STEP_Q12   = 64,
+        EFFECT_BURST_PART_COLLAPSE_AMBIENT_STEP_Q12 = 128,
+        EFFECT_BURST_PART_COLLAPSE_FRAMES           = 16,
+        EFFECT_BURST_PART_BURN_FRAME                = 8,
+        EFFECT_BURST_PART_LARGE_BURN_PUFF_SIZE      = 256,
+        EFFECT_BURST_PART_AIR_PUFF_ARG              = 0x11000,
+        EFFECT_BURST_PART_IMPACT_PUFF_ARG           = 0x12200
+    };
+    SVECTOR     displacement;
+    SVECTOR     probeEnd;
+    SVECTOR     probeStartOrNormal;
+    VECTOR      collapseScaleCopy;
+    VECTOR      collapseScale;
+    TmdObject*  model;
+    EffectWork* work;
     GfxCoord*   coord;
-    GfxCoord*   player;
-    SVECTOR*    rot;
-    MATRIX*     mtx;
+    GfxCoord*   playerCoord;
+    SVECTOR*    spin;
+    MATRIX*     localMatrix;
     s32         state;
-    s16         flag;
-    s16         trans;
-    s32         temp;
+    s16         effectControl;
+    s16         ambientLevel;
+    s32         puffSize;
 
-    extra  = arg0->extra.tmd;
-    mem    = arg0->spawnArg2.pointer;
-    coord  = extra->coords;
-    player = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-    flag   = gRoomEffectState->effectControl;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    /// Advances the burst part by a speed-scaled Q12 direction in parent axes.
+    ///
+    /// coord/work are side-effect-free live pointers evaluated repeatedly;
+    /// displacement is a writable SVECTOR lvalue evaluated repeatedly. Retains
+    /// GTE saturation, dirties the coordinate cache and captures no locals.
+    /// Use as a standalone compound statement; undefined after this task.
+#define EFFECT_STEP_BURST_MODEL_PART(coord, work, displacement) \
+    {                                                           \
+        gte_lddp((work)->scale);                                \
+        gte_ldsv(&(work)->move);                                \
+        gte_gpf12();                                            \
+        gte_stsv(&(displacement));                              \
+        (coord)->coord.t[0]  += (displacement).vx;              \
+        (coord)->coord.t[1]  += (displacement).vy;              \
+        (coord)->coord.t[2]  += (displacement).vz;              \
+        (coord)->composeStamp = GRAPHICS_COORD_DIRTY;           \
+    }
+
+    model         = task->extra.tmd;
+    work          = task->spawnArg2.pointer;
+    coord         = model->coords;
+    playerCoord   = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    effectControl = gRoomEffectState->effectControl;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
     actorRenderComposeCoord(coord);
-    mem->age++;
-    state = arg0->state;
+    work->age++;
+    state = task->state;
     switch (state) {
-        case 0:
-            extra->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            mem->scale    = 0x100;
-            if (arg0->spawnArg1.value & 0xFFF) {
-                temp = arg0->spawnArg1.halves.low & 0xFFF;
+        case EFFECT_BURST_PART_INITIALIZE:
+            // move holds a normalized Q12 launch direction; pos becomes per-update spin.
+            model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->scale   = EFFECT_BURST_PART_LAUNCH_SPEED;
+            if (task->spawnArg1.value & EFFECT_BURST_PART_PUFF_SIZE_MASK) {
+                puffSize = task->spawnArg1.halves.low & EFFECT_BURST_PART_PUFF_SIZE_MASK;
             } else {
-                temp = 0x200;
+                puffSize = EFFECT_BURST_PART_DEFAULT_PUFF_SIZE;
             }
-            mem->angle      = temp;
-            mem->period     = 0x800;
+            work->angle     = puffSize;
+            work->period    = EFFECT_BURST_PART_INITIAL_AMBIENT_Q12;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vx    = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+            work->move.vx   = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vy    = 0x400 - ((gRandomLcgState >> 16) % 0xC00);
+            work->move.vy   = 0x400 - ((gRandomLcgState >> 16) % 0xC00);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vz    = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
-            VectorNormalSS(&mem->move, &mem->move);
+            work->move.vz   = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
+            VectorNormalSS(&work->move, &work->move);
             gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->pos.vx         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            work->pos.vx        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
             gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->pos.vy         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            work->pos.vy        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
             gRandomLcgState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->pos.vz         = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
+            work->pos.vz        = 0x100 - ((gRandomLcgState >> 16) & 0x1FF);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            arg0->state = 1;
-            worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
+            task->state = EFFECT_BURST_PART_FLY;
+            worldCoordSetModelLighting(model, coord->workm.t, 0, EFFECT_BURST_PART_LIGHT_COUNT);
             return;
-        case 1:
-            mtx = &coord->coord;
-            rot = &mem->pos;
-            gfxRotMatrixXYZ(mtx, rot, GRAPHICS_ROTATION_COMPOSE);
-            MatrixNormal(mtx, mtx);
-            gte_lddp(mem->scale);
-            gte_ldsv(&mem->move);
-            gte_gpf12();
-            gte_stsv(&delta);
-            coord->coord.t[0]  += delta.vx;
-            coord->coord.t[1]  += delta.vy;
-            coord->coord.t[2]  += delta.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+        case EFFECT_BURST_PART_FLY:
+            // Advance in parent axes, then probe the attempted segment in view space.
+            localMatrix = &coord->coord;
+            spin        = &work->pos;
+            gfxRotMatrixXYZ(localMatrix, spin, GRAPHICS_ROTATION_COMPOSE);
+            MatrixNormal(localMatrix, localMatrix);
+            EFFECT_STEP_BURST_MODEL_PART(coord, work, displacement);
             gte_SetRotMatrix(&gGfxViewCoord.workm);
-            gte_ldv0(&delta);
+            gte_ldv0(&displacement);
             gte_rtv0();
-            gte_stsv(&dir);
-            pos.vx  = coord->workm.t[0];
-            pos.vy  = coord->workm.t[1];
-            pos.vz  = coord->workm.t[2];
-            dir.vx += pos.vx;
-            dir.vy += pos.vy;
-            dir.vz += pos.vz;
-            if (worldCollisionProbeGridSegment(&dir, &pos, &dir, &pos) == state) {
-                coord->coord.t[0] -= delta.vx;
-                coord->coord.t[1] -= delta.vy;
-                coord->coord.t[2] -= delta.vz;
-                mem->move.vx       = (pos.vx >> 1) + (mem->move.vx >> 1);
-                mem->move.vy       = pos.vy + (mem->move.vy >> 1);
-                mem->move.vz       = (pos.vz >> 1) + (mem->move.vz >> 1);
-                VectorNormalSS(&mem->move, &mem->move);
-                mem->scale >>= 1;
-                gte_lddp(mem->scale);
-                gte_ldsv(&mem->move);
-                gte_gpf12();
-                gte_stsv(&delta);
-                coord->coord.t[0]  += delta.vx;
-                coord->coord.t[1]  += delta.vy;
-                coord->coord.t[2]  += delta.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            gte_stsv(&probeEnd);
+            probeStartOrNormal.vx = coord->workm.t[0];
+            probeStartOrNormal.vy = coord->workm.t[1];
+            probeStartOrNormal.vz = coord->workm.t[2];
+            probeEnd.vx          += probeStartOrNormal.vx;
+            probeEnd.vy          += probeStartOrNormal.vy;
+            probeEnd.vz          += probeStartOrNormal.vz;
+            if (worldCollisionProbeGridSegment(&probeEnd, &probeStartOrNormal, &probeEnd, &probeStartOrNormal) == state) {
+                coord->coord.t[0] -= displacement.vx;
+                coord->coord.t[1] -= displacement.vy;
+                coord->coord.t[2] -= displacement.vz;
+                // The probe overwrites its start with the room-space Q12 surface normal.
+                work->move.vx = (probeStartOrNormal.vx >> 1) + (work->move.vx >> 1);
+                work->move.vy = probeStartOrNormal.vy + (work->move.vy >> 1);
+                work->move.vz = (probeStartOrNormal.vz >> 1) + (work->move.vz >> 1);
+                VectorNormalSS(&work->move, &work->move);
+                work->scale >>= 1;
+                EFFECT_STEP_BURST_MODEL_PART(coord, work, displacement);
                 actorRenderComposeCoord(coord);
-                if (!(mem->age & 3)) {
-                    worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
+                if (!(work->age & EFFECT_BURST_PART_LIGHT_UPDATE_MASK)) {
+                    worldCoordSetModelLighting(model, coord->workm.t, 0, EFFECT_BURST_PART_LIGHT_COUNT);
                 }
-                effectSpawn(EFFECT_HIT_PUFF, coord, mem->angle + 0x12200, 0);
-                gte_lddp(0x800);
-                gte_ldsv(rot);
+                effectSpawn(EFFECT_HIT_PUFF, coord, work->angle + EFFECT_BURST_PART_IMPACT_PUFF_ARG, 0);
+                gte_lddp(ONE / 2);
+                gte_ldsv(spin);
                 gte_gpf12();
-                gte_stsv(rot);
-                if ((mem->age - mem->step) < 8 && mem->scale < 0x20) {
-                    extra->flags |= TMD_OBJECT_SEMI_TRANS;
-                    mem->age      = 0;
-                    arg0->state   = 2;
+                gte_stsv(spin);
+                if ((work->age - work->step) < EFFECT_BURST_PART_REPEAT_HIT_FRAMES && work->scale < EFFECT_BURST_PART_COLLAPSE_SPEED_LIMIT) {
+                    model->flags |= TMD_OBJECT_SEMI_TRANS;
+                    work->age     = 0;
+                    task->state   = EFFECT_BURST_PART_COLLAPSE;
                     return;
                 }
-                mem->step = mem->age;
+                work->step = work->age;
                 return;
             }
-            if (mem->scale == 0) {
+            if (work->scale == 0) {
                 return;
             }
-            if (mem->age >= 0x4C) {
+            if (work->age >= EFFECT_BURST_PART_FLIGHT_FRAMES) {
                 break;
             }
-            if (player->coord.t[1] + 0x100 < coord->coord.t[1]) {
-                mem->age += 0xA;
+            if (playerCoord->coord.t[1] + EFFECT_BURST_PART_LOW_ALTITUDE_MARGIN < coord->coord.t[1]) {
+                work->age += EFFECT_BURST_PART_LOW_ALTITUDE_AGE_STEP;
             }
             actorRenderComposeCoord(coord);
-            if (!(mem->age & 3)) {
-                worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
+            if (!(work->age & EFFECT_BURST_PART_LIGHT_UPDATE_MASK)) {
+                worldCoordSetModelLighting(model, coord->workm.t, 0, EFFECT_BURST_PART_LIGHT_COUNT);
             }
-            mem->move.vy   += 0x10000 / mem->scale;
+            work->move.vy  += EFFECT_BURST_PART_GRAVITY_Q12 / work->scale;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (!((gRandomLcgState >> 16) & 3)) {
-                effectSpawn(EFFECT_TRAIL_PUFF, coord, mem->angle + 0x11000, 0);
+                effectSpawn(EFFECT_TRAIL_PUFF, coord, work->angle + EFFECT_BURST_PART_AIR_PUFF_ARG, 0);
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if (!((gRandomLcgState >> 16) & 7)) {
-                effectSpawn(EFFECT_HIT_PUFF, coord, mem->angle + 0x11000, 0);
+                effectSpawn(EFFECT_HIT_PUFF, coord, work->angle + EFFECT_BURST_PART_AIR_PUFF_ARG, 0);
             }
-            if (mem->age >= 0x33) {
-                extra->flags |= TMD_OBJECT_SEMI_TRANS;
-                if (mem->period >= 0x41) {
-                    trans       = mem->period - 0x40;
-                    mem->period = trans;
-                    worldCoordSetModelAmbientColor(extra, trans, trans, trans);
+            if (work->age >= EFFECT_BURST_PART_DIM_START_FRAME) {
+                model->flags |= TMD_OBJECT_SEMI_TRANS;
+                if (work->period >= EFFECT_BURST_PART_FLIGHT_AMBIENT_STEP_Q12 + 1) {
+                    ambientLevel = work->period - EFFECT_BURST_PART_FLIGHT_AMBIENT_STEP_Q12;
+                    work->period = ambientLevel;
+                    worldCoordSetModelAmbientColor(model, ambientLevel, ambientLevel, ambientLevel);
                     return;
                 }
             }
             return;
-        case 2:
+        case EFFECT_BURST_PART_COLLAPSE:
+            // Flatten vertically while dimming the ambient term; draw blending is separate.
             actorRenderComposeCoord(coord);
-            if (!(mem->age & 3)) {
-                worldCoordSetModelLighting(extra, coord->workm.t, 0, 3);
+            if (!(work->age & EFFECT_BURST_PART_LIGHT_UPDATE_MASK)) {
+                worldCoordSetModelLighting(model, coord->workm.t, 0, EFFECT_BURST_PART_LIGHT_COUNT);
             }
-            if (mem->age >= 0x10) {
+            if (work->age >= EFFECT_BURST_PART_COLLAPSE_FRAMES) {
                 break;
             }
-            memset(&scale, 0, 0x10);
-            scale.vx = 0x1000;
-            scale.vy = (0x10 - mem->age) << 8;
-            scale.vz = 0x1000;
-            scale2   = scale;
-            ScaleMatrix(&coord->coord, &scale2);
+            memset(&collapseScale, 0, sizeof(collapseScale));
+            collapseScale.vx  = ONE;
+            collapseScale.vy  = (EFFECT_BURST_PART_COLLAPSE_FRAMES - work->age) << 8;
+            collapseScale.vz  = ONE;
+            collapseScaleCopy = collapseScale;
+            ScaleMatrix(&coord->coord, &collapseScaleCopy);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            if (mem->period >= 0x81) {
-                trans       = mem->period - 0x80;
-                mem->period = trans;
-                worldCoordSetModelAmbientColor(extra, trans, trans, trans);
+            if (work->period >= EFFECT_BURST_PART_COLLAPSE_AMBIENT_STEP_Q12 + 1) {
+                ambientLevel = work->period - EFFECT_BURST_PART_COLLAPSE_AMBIENT_STEP_Q12;
+                work->period = ambientLevel;
+                worldCoordSetModelAmbientColor(model, ambientLevel, ambientLevel, ambientLevel);
             }
-            if (mem->age == 8) {
-                effectSpawn(EFFECT_CORPSE_BURN, coord, mem->angle >= 0x100, 0);
+            if (work->age == EFFECT_BURST_PART_BURN_FRAME) {
+                effectSpawn(EFFECT_CORPSE_BURN, coord, work->angle >= EFFECT_BURST_PART_LARGE_BURN_PUFF_SIZE, 0);
             }
             return;
         default:
             return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
+
+#undef EFFECT_STEP_BURST_MODEL_PART

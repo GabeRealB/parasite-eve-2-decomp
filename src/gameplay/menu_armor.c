@@ -344,51 +344,62 @@ static void _itemMenuSizeAttachmentPicker(UiList* list, UiObject* unused)
     list->visibleRowCount.unsignedValue = ITEM_MENU_ATTACHMENT_PICKER_VISIBLE_ROWS;
 }
 
-void Gp_EquipSelectMenuTask(Task* arg0)
+void itemMenuAttachmentItemPickerTask(Task* task)
 {
-    UiObject*         obj;
-    UiList*           menu;
-    InventoryItemRow* rec;
-    s32               val;
-    Task*             parent;
+    enum {
+        ITEM_MENU_ATTACHMENT_PICKER_INITIALIZE         = 0,
+        ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_HEIGHT     = 76,
+        ITEM_MENU_ATTACHMENT_PICKER_SEPARATOR_Y        = 74,
+        ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_PANEL      = 14,
+        ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_KIND       = 3,
+        ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_DELAY      = 16,
+        ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_PROFILE    = 2,
+        ITEM_MENU_ATTACHMENT_PICKER_CONFIRM_ON_DISMISS = 0
+    };
+    UiObject*         object;
+    UiList*           candidateList;
+    InventoryItemRow* candidate;
+    s32               previewItemId;
+    Task*             parentTask;
 
-    obj         = arg0->spawnArg2.pointer;
-    menu        = &D_8010E8D4;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrSelectTitle);
-    val = 0;
-    if (arg0->state == 0) {
-        _itemMenuSizeAttachmentPicker(menu, obj);
-        uiFitPanelToList(menu, &(obj)->panel);
-        menu->topInset                           += 0x4C;
-        obj->panel.bounds.unsignedRect.h         += 0x4C;
-        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        menu->selectedItemIndex                   = 0;
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        parent                                    = arg0->parent;
-        uiStartPanelHiding(parent->spawnArg2.pointer, parent);
-        uiSpawnObject(&D_8010EAB4[14], 3, val, 0x10, obj);
-        arg0->state = arg0->state + 1;
+    object         = task->spawnArg2.pointer;
+    candidateList  = &D_8010E8D4;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, Gp_StrSelectTitle);
+    previewItemId = INVENTORY_ITEM_NONE;
+    // Reserve the preview header and hide the armor-slot parent while choosing an item.
+    if (task->state == ITEM_MENU_ATTACHMENT_PICKER_INITIALIZE) {
+        _itemMenuSizeAttachmentPicker(candidateList, object);
+        uiFitPanelToList(candidateList, &object->panel);
+        candidateList->topInset                           += ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_HEIGHT;
+        object->panel.bounds.unsignedRect.h               += ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_HEIGHT;
+        candidateList->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        candidateList->selectedItemIndex                   = 0;
+        candidateList->firstVisibleItemIndex.unsignedValue = 0;
+        parentTask                                         = task->parent;
+        uiStartPanelHiding(parentTask->spawnArg2.pointer, parentTask);
+        uiSpawnObject(&D_8010EAB4[ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_PANEL], ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_KIND, previewItemId, ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_DELAY, object);
+        task->state = task->state + 1;
     }
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
-    uiUpdateList(menu, &obj->panel);
-    rec = inventoryFindNthAttachmentCandidate(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, menu->selectedItemIndex, 0);
-    if (rec != NULL) {
-        val = rec->itemId;
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + ITEM_MENU_ATTACHMENT_PICKER_SEPARATOR_Y);
+    uiUpdateList(candidateList, &object->panel);
+    candidate = inventoryFindNthAttachmentCandidate(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, candidateList->selectedItemIndex, 0);
+    if (candidate != NULL) {
+        previewItemId = candidate->itemId;
     }
-    itemMenuUpdateSelectionPreview(menu, obj, val, 2);
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    itemMenuUpdateSelectionPreview(candidateList, object, previewItemId, ITEM_MENU_ATTACHMENT_PICKER_PREVIEW_PROFILE);
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->result = USER_INTERFACE_RESULT_DISMISS;
+            object->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }
-    itemMenuApplyChildDialogResults(obj, arg0);
-    if (arg0->spawnArg1.value == 0) {
-        if (obj->result == USER_INTERFACE_RESULT_DISMISS) {
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    itemMenuApplyChildDialogResults(object, task);
+    if (task->spawnArg1.value == ITEM_MENU_ATTACHMENT_PICKER_CONFIRM_ON_DISMISS) {
+        if (object->result == USER_INTERFACE_RESULT_DISMISS) {
+            object->result = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }

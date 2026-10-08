@@ -123,7 +123,7 @@ titleScreenTask = 0x8009472C; // type:func absolute:True owner=title
 titleExitTask = 0x800947A8; // type:func absolute:True owner=title
 D_8010FC2C = 0x8010FC2C; // absolute:True
 menuRootTask = 0x800BF9FC; // type:func absolute:True
-Gp_EffAttachTask37 = 0x800F6D18; // type:func absolute:True
+effectBurstModelPartTask = 0x800F6D18; // type:func absolute:True
 enemyTeardownDelayTask = 0x800B058C; // type:func absolute:True
 fadeScreenTask = 0x800B2200; // type:func absolute:True
 fadePulseTask = 0x800B2910; // type:func absolute:True
@@ -138,7 +138,7 @@ worldCoordPlayerLightingTask = 0x800D96C8; // type:func absolute:True
 taskRunExitCallbackTask = 0x800D9CC8; // type:func absolute:True
 Gp_TickWorldCollision = 0x800DB72C; // type:func absolute:True
 objectTaskRoomTask = 0x800E4028; // type:func absolute:True
-Gp_EndWaitTask = 0x800E712C; // type:func absolute:True
+capActionPromptExitTask = 0x800E712C; // type:func absolute:True
 capControlTask = 0x800E7570; // type:func absolute:True
 evsMusicVolumeFadeTask = 0x800E8378; // type:func absolute:True
 evsSoundAttenuationFadeTask = 0x800E84B8; // type:func absolute:True

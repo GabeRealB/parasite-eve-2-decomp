@@ -65,7 +65,7 @@ void Gp_EvtCapWeaponTask(Task* arg0);
 static void _objectTaskRoomIdleState(Task* unusedTask);
 
 TaskDesc Gp_EvtSpawnTable[3] = {
-    { { { TASK_BODY_NONE, 32 } }, Gp_EvtCapTask, { NULL } },
+    { { { TASK_BODY_NONE, 32 } }, capEventTask, { NULL } },
     { { { TASK_BODY_NONE, 32 } }, Gp_EvtCapWeaponTask, { NULL } },
     { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };

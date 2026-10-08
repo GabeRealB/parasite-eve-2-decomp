@@ -149,7 +149,7 @@ static void _directionUpdateTask(Task* task);
 
 static u8 Gp_GetViewCountLo(void);
 
-static void Gp_DirAction0(void);
+static void _directionUpdateWarpAction(void);
 
 static void _directionUpdateStairAction(void);
 
@@ -425,7 +425,7 @@ const TaskFuncTable3 Gp_DirTaskStates = { {
 } };
 
 const DirectionActionTable Gp_DirActionFns = { {
-    [WORLD_COLLISION_TRIGGER_ACTION_WARP]       = Gp_DirAction0,
+    [WORLD_COLLISION_TRIGGER_ACTION_WARP]       = _directionUpdateWarpAction,
     [WORLD_COLLISION_TRIGGER_ACTION_FACING]     = _directionUpdateStairAction,
     [WORLD_COLLISION_TRIGGER_ACTION_CAP]        = directionDispatchCapInteraction,
     [WORLD_COLLISION_TRIGGER_ACTION_CALLBACK]   = Gp_RunDirAction,
@@ -599,7 +599,12 @@ static u8 Gp_GetViewCountLo(void)
     return (u8)tbl->viewCounts[session->location.loc.area - 1][session->location.loc.room - 1];
 }
 
-static void Gp_DirAction0(void)
+/// Runs one phase of the latched warp action through its copied handler table.
+///
+/// Requires Gp_DirPhase in 0..5. Query, turn-wait, hold, resolve and sound-wait
+/// advance at most once; the leave phase ends the action without advancing.
+/// Dispatch preserves the signed-halfword interpretation and performs no check.
+static void _directionUpdateWarpAction(void)
 {
     _DirectionWarpPhaseTable phaseTable;
 

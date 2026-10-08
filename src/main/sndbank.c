@@ -216,7 +216,7 @@ TaskDesc D_80067828[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, func_807257A0 },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
-    { { { TASK_BODY_NONE, 0x70 } }, Gp_EffAttachTask37 },
+    { { { TASK_BODY_NONE, 0x70 } }, effectBurstModelPartTask },
     { { { TASK_BODY_NONE, 0x80 } }, func_800E70AC },
     { { { TASK_BODY_NONE, 0xC0 } }, acropolisBridgeKeypadTask },
     { { { TASK_BODY_NONE, 0xC0 } }, acropolisSecurityRoomMonitorTask },
@@ -226,7 +226,7 @@ TaskDesc D_80067828[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, padScriptTask },
     { { { TASK_BODY_NONE, 0xC0 } }, acropolisFountainClimbTask },
     { { { TASK_BODY_NONE, 0xC0 } }, func_acropolis_helicopter_landing_pad_8017EF8C },
-    { { { TASK_BODY_TMD, 0x60 } }, Gp_EffAttachTask37 },
+    { { { TASK_BODY_TMD, 0x60 } }, effectBurstModelPartTask },
 };
 
 TaskDesc D_800678F4[] = {

@@ -101,6 +101,18 @@ void effectDrawGroundGlow(const GfxCoord* coord, s32 halfSize, u32 brightness);
 
 extern TaskDesc D_80114B34[6];
 
-void Gp_EffAttachTask37(Task* arg0);
+/// Flings a detached model part with spin and gravity, then dims or collapses it.
+///
+/// Requires a live TMD body/root, player model, room-effect control and an owned
+/// EffectWork in spawnArg2, initially zeroed by effectSpawn. Uses move as a Q12
+/// direction, scale as speed in parent-coordinate units, pos as spin in 4096
+/// units per turn, angle as puff size, period as Q12 ambient level and step as
+/// the previous impact age. Low 12 spawnArg1 bits select puff size (zero: 512);
+/// higher bits are ignored. Probes view-space segments and blends the returned
+/// room-space normal into its launch direction, halving speed and spin on hits.
+/// Room control pauses or cancels it. Ordinary flight expires at age 76; quick,
+/// slow rebounds start a 16-update vertical collapse and a corpse-burn effect.
+/// Frees the work and kills the task on exit; generated child puffs are independent.
+void effectBurstModelPartTask(Task* task);
 
 #endif // GAMEPLAY_EFFECT_TASKS_H

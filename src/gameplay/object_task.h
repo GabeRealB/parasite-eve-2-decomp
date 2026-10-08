@@ -7,7 +7,15 @@
 
 void func_800E31E8(Task* arg0);
 
-void Gp_EvtCapTask(Task* arg0);
+/// Plays a CAP command with optional actor pause, player hiding and action capture.
+///
+/// spawnArg1 contains CAP_EVENT_* bits; spawnArg2 is the loaded CAP command index.
+/// Requires the command/resources to satisfy capRunCommand and remain loaded
+/// through completion. This task starts immediately without reserving playback;
+/// callers must serialize events. Waits for capIsBusy to clear, then restores
+/// the requested actor/draw states and optionally sends commandIndex + 100 as
+/// the room's sound cue. No work allocation or borrowed request is retained.
+void capEventTask(Task* task);
 
 /// Permits a room transition unchanged when no room-specific task is available.
 ///

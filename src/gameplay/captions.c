@@ -351,7 +351,7 @@ void func_800E44A0(Task* task)
                     } else if (D_80115666 == 2) {
                         D_801155BA = 4;
                     } else {
-                        displayQueueModeTask(taskGetDesc(9U, 0xBU), 0, &D_801155A0, STAGE_ENTRY_RELOAD);
+                        displayQueueModeTask(taskGetDesc(CAP_ACTION_PROMPT_EXIT_TASK_BANK, CAP_ACTION_PROMPT_EXIT_TASK_TYPE), 0, &D_801155A0, STAGE_ENTRY_RELOAD);
                     }
                 }
                 D_801155AC = 1;

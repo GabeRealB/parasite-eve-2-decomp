@@ -117,7 +117,19 @@ void capControlTask(Task* task);
 
 extern u8 D_80115680;
 
-void Gp_EndWaitTask(Task* task);
+/// Bank/type selecting the CAP action prompt's stage-transition wrapper.
+enum {
+    CAP_ACTION_PROMPT_EXIT_TASK_BANK = 9,
+    CAP_ACTION_PROMPT_EXIT_TASK_TYPE = 0xB
+};
+
+/// Runs a CAP action prompt and exits the stage mode task when the request completes.
+///
+/// spawnArg2 borrows a writable CapActionRequest, initially done == 0, which
+/// must outlive both this task and the spawned item/save prompt. spawnArg1 is
+/// unused. Starts the prompt once, then waits for done irrespective of accepted;
+/// allocation failure leaves the wait pending. Does not release the request.
+void capActionPromptExitTask(Task* task);
 
 void func_800E70AC(Task* task);
 

@@ -25526,16 +25526,16 @@ fall-through. Write the zero-test first so the inversion lands on the
 target polarity:
 
 ```c
-if (flags & 4) {
-    mode = 2;
-} else if (bit0 == 0) {
-    mode = 3;
+if (eventFlags & CAP_EVENT_ACTION_CAPTURE) {
+    playbackMode = CAP_PLAYBACK_ACTION_CAPTURE;
+} else if (pauseActors == 0) {
+    playbackMode = CAP_PLAYBACK_CLEAR_IF_UNSTARTED;
 } else {
-    mode = 0;
+    playbackMode = CAP_PLAYBACK_IN_PLACE;
 }
 ```
 
-`Gp_EvtCapTask` is the example.
+`capEventTask` is the example.
 
 ## Pin `ONE` in `$v0` before a global `lui`, then mix SP / pointer matrix stores
 
@@ -28930,7 +28930,7 @@ countdown:
 ```
 
 That is `j increment` from state 0, `bne state, 1, countdown` into state 1,
-then one `lw / addiu / sw` of `state`. `Gp_EndingTask` is the example. Write
+then one `lw / addiu / sw` of `state`. `sceneBattleStartTransitionTask` is the example. Write
 the inner `if (!(flags & bit)) { spawn; } else { flag = 0xFF; }` so the
 spawn path is the fall-through (`bnez` to the store).
 
@@ -29400,7 +29400,7 @@ obj->result = 0;
 uiDrawPanelLabel(&obj->panel, text);
 ```
 
-`Gp_EquipSelectMenuTask` is the example. The store-after-call form stuck at
+`itemMenuAttachmentItemPickerTask` is the example. The store-after-call form stuck at
 99.5% with only those two instructions swapped.
 
 ## Dead `0xFF` in `$s4` plus `v0` scratch temp, store dest not temp
@@ -31908,20 +31908,20 @@ The comparison then owns `$a0` for the `lui`, and the copy/`addiu`
 appear after the branch:
 
 ```c
-if (item != Gp_PreviewItems[0]) {
-    i        = 0;
-    minusOne = -1;
-    for (; i < 3; i++) {
-        if (i == 0) {
-            Gp_PreviewItems[0] = item;
+if (itemId != Gp_PreviewItems[0]) {
+    profileIndex   = 0;
+    emptyPreviewId = ITEM_MENU_COLLECTED_PREVIEW_EMPTY;
+    for (; profileIndex < ITEM_MENU_COLLECTED_PREVIEW_PROFILE_COUNT; profileIndex++) {
+        if (profileIndex == 0) {
+            Gp_PreviewItems[0] = itemId;
         } else {
-            Gp_PreviewItems[i] = minusOne;
+            Gp_PreviewItems[profileIndex] = emptyPreviewId;
         }
     }
 }
 ```
 
-`Gp_DrawCollectedRow` is the example.
+`itemMenuDrawCollectedItemRow` is the example.
 
 ## Copy `&projection->point` after the scratch store so `ldv0` uses `$v0`
 
@@ -33767,7 +33767,7 @@ A later straight-line `&gMcSaveData` (no incoming `bne` to fill) still
 needs the split `lui $v0` / `addiu $a0` pair from the Gp_Bit2Banks note,
 so `flags = 0` can sit between `addiu` and `lhu`. Pinning one `UiObject*`
 across two states also merges them into `$s0`; the state-3 path wants
-the pointer already in `$a0` for `uiStartTreeClosing`. `Gp_AreaEnterTask` is
+the pointer already in `$a0` for `uiStartTreeClosing`. `_sceneBattleResultTask` is
 the example.
 
 ## Finish `idx * sizeof` before loading the array base so the last `sll` sits above `lw` / `nop`

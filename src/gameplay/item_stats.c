@@ -811,88 +811,117 @@ void itemMenuKeyItemCommandTask(Task* task)
     }
 }
 
-void Gp_DrawCollectedRow(UiList* arg0, UiObject* arg1)
+void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    s32         item;
-    s32         x;
-    s32         y;
-    s32         color;
-    s32         temp;
-    s32         status;
-    s32         one;
-    s32         flag;
-    s32         i;
-    s32         minusOne;
-    UiObject*   obj;
-    s32         baseY;
+    enum {
+        ITEM_MENU_COLLECTED_PREVIEW_PROFILE_COUNT = 3,
+        ITEM_MENU_COLLECTED_PREVIEW_EMPTY         = -1,
+        ITEM_MENU_COLLECTED_USE_COMMAND_PANEL     = 43,
+        ITEM_MENU_COLLECTED_USE_NOTICE_PANEL      = 44,
+        ITEM_MENU_COLLECTED_INFO_PANEL            = 45
+    };
+    TextDrawReq nameRequest;
+    s32         itemId;
+    s32         rowX;
+    s32         rowY;
+    s32         colorRgb;
+    s32         energyLevelIndex;
+    s32         panelControl;
+    s32         activeControl;
+    s32         rowInputEnabled;
+    s32         profileIndex;
+    s32         emptyPreviewId;
+    UiObject*   commandPanel;
+    s32         textBaseY;
 
-    item  = inventoryGetCollectedItemId(arg0->currentItemIndex, 0);
-    x     = arg0->rowTextX.signedValue;
-    y     = arg0->rowTextY.signedValue;
-    color = arg0->colorRgb;
-    if (arg1->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
-        req.x          = arg1->panel.contentOriginX.unsignedValue + 0x11 + x;
-        baseY          = arg1->panel.contentOriginY.unsignedValue - 6;
-        req.y          = baseY + y;
-        req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-        req.colorRgb   = color;
-        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, itemGetText(item, ITEM_TEXT_NAME, 0));
-        temp = item - 0xF;
-        if ((u32)temp < 0x24U) {
-            itemMenuDrawParasiteEnergyLevel(arg1, x, y, temp % 3 + 1, color);
-        }
-        itemMenuDrawItemIcon(arg1, x, y, item, ITEM_MENU_ICON_DEFAULT);
+    /// Draws the collected row's unmarked name, ordinary P.E. level and icon.
+    ///
+    /// Captures object, rowX/rowY, itemId, colorRgb, nameRequest, textBaseY and
+    /// energyLevelIndex from this callback. They must be live, side-effect-free
+    /// lvalues with their declared widths. Hidden panels draw nothing; origin Y
+    /// uses signed word arithmetic before request narrowing. Standalone block
+    /// statement only; undefined after the callback.
+#define ITEM_MENU_DRAW_COLLECTED_ROW_CONTENTS()                                                                                \
+    if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {                                                                  \
+        nameRequest.x          = object->panel.contentOriginX.unsignedValue + 0x11 + rowX;                                     \
+        textBaseY              = object->panel.contentOriginY.unsignedValue - 6;                                               \
+        nameRequest.y          = textBaseY + rowY;                                                                             \
+        nameRequest.otIndex    = object->panel.otIndex.signedValue + 1;                                                        \
+        nameRequest.colorRgb   = colorRgb;                                                                                     \
+        nameRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                      \
+        nameRequest.alignment  = TEXT_ALIGNMENT_LEFT;                                                                          \
+        nameRequest.drawMode   = TEXT_DRAW_OUTLINED;                                                                           \
+        textDrawString(&nameRequest, itemGetText(itemId, ITEM_TEXT_NAME, 0));                                                  \
+        energyLevelIndex = itemId - ITEM_MENU_PARASITE_ENERGY_ITEM_FIRST;                                                      \
+        if ((u32)energyLevelIndex < (u32)ITEM_MENU_PARASITE_ENERGY_ITEM_COUNT) {                                               \
+            itemMenuDrawParasiteEnergyLevel(object, rowX, rowY, energyLevelIndex % ATTACHMENT_AREA_LEVEL_COUNT + 1, colorRgb); \
+        }                                                                                                                      \
+        itemMenuDrawItemIcon(object, rowX, rowY, itemId, ITEM_MENU_ICON_DEFAULT);                                              \
     }
 
-    status = arg1->panel.control.word;
-    one    = 1;
-    if (((status >> 16) == one) || (status == one)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            if (item != Gp_PreviewItems[0]) {
-                i        = 0;
-                minusOne = -1;
-                for (; i < 3; i++) {
-                    if (i == 0) {
-                        Gp_PreviewItems[0] = item;
-                    } else {
-                        Gp_PreviewItems[i] = minusOne;
-                    }
-                }
-                itemMenuEnqueuePreviewLoad(item, 0);
-            }
-            if (item == 0) {
-                uiSetPromptText(Gp_StrEmpty, 0, 0);
+    /// Publishes the primary preview and invalidates profiles one and two.
+    ///
+    /// Captures itemId, profileIndex and emptyPreviewId from this callback,
+    /// plus the live preview cache/loader; leaves cache slots three/four intact.
+    /// Use as a standalone compound statement; undefined after this callback.
+#define ITEM_MENU_SET_COLLECTED_ROW_PREVIEW()                                              \
+    if (itemId != Gp_PreviewItems[0]) {                                                    \
+        profileIndex   = 0;                                                                \
+        emptyPreviewId = ITEM_MENU_COLLECTED_PREVIEW_EMPTY;                                \
+        for (; profileIndex < ITEM_MENU_COLLECTED_PREVIEW_PROFILE_COUNT; profileIndex++) { \
+            if (profileIndex == 0) {                                                       \
+                Gp_PreviewItems[0] = itemId;                                               \
+            } else {                                                                       \
+                Gp_PreviewItems[profileIndex] = emptyPreviewId;                            \
+            }                                                                              \
+        }                                                                                  \
+        itemMenuEnqueuePreviewLoad(itemId, 0);                                             \
+    }
+
+    itemId   = inventoryGetCollectedItemId(list->currentItemIndex, 0);
+    rowX     = list->rowTextX.signedValue;
+    rowY     = list->rowTextY.signedValue;
+    colorRgb = list->colorRgb;
+    ITEM_MENU_DRAW_COLLECTED_ROW_CONTENTS();
+
+    panelControl  = object->panel.control.word;
+    activeControl = USER_INTERFACE_PANEL_ACTIVE;
+    // Update only the selected row's primary preview; invalidate two other profiles.
+    if (((panelControl >> 16) == activeControl) || (panelControl == activeControl)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            ITEM_MENU_SET_COLLECTED_ROW_PREVIEW();
+            if (itemId == INVENTORY_ITEM_NONE) {
+                uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
             } else {
-                uiSetPromptText(itemGetText(item, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
+                uiSetPromptText(itemGetText(itemId, ITEM_TEXT_DESCRIPTION_FIRST, 0), 0, 0);
             }
         }
     }
 
-    flag = arg0->rowInputEnabled;
-    if (flag == 1) {
+    rowInputEnabled = list->rowInputEnabled;
+    if (rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            if (gGameSession->cutsceneHold == flag) {
-                uiSpawnObject(&D_8010EAB4[44], 0, 1, 1, arg1);
-                arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            if (gGameSession->cutsceneHold == rowInputEnabled) {
+                uiSpawnObject(&D_8010EAB4[ITEM_MENU_COLLECTED_USE_NOTICE_PANEL], 0, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                obj = uiSpawnObject(&D_8010EAB4[43], item, 1, 1, arg1);
-                if (obj != NULL) {
-                    uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
-                    arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                commandPanel = uiSpawnObject(&D_8010EAB4[ITEM_MENU_COLLECTED_USE_COMMAND_PANEL], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+                if (commandPanel != NULL) {
+                    uiPositionRowDialog(&commandPanel->panel, list, &object->panel);
+                    object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[45], item, 1, 1, arg1);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&D_8010EAB4[ITEM_MENU_COLLECTED_INFO_PANEL], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }
+
+#undef ITEM_MENU_DRAW_COLLECTED_ROW_CONTENTS
+#undef ITEM_MENU_SET_COLLECTED_ROW_PREVIEW
 
 void Gp_KeyItemMenuTask(Task* arg0)
 {

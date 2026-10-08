@@ -103,52 +103,60 @@ loop:
     arg0->state++;
 }
 
-void Gp_EvtCapTask(Task* arg0)
+void capEventTask(Task* task)
 {
-    s32 flags;
-    s32 bit0;
-    s32 mode;
-    s32 flag;
+    enum {
+        CAP_EVENT_START                   = 0,
+        CAP_EVENT_WAIT                    = 1,
+        CAP_EVENT_FINISH                  = 2,
+        CAP_EVENT_COMPLETION_SOUND_OFFSET = 100
+    };
+    s32 eventFlags;
+    s32 pauseActors;
+    s32 playbackMode;
+    s32 pausedActorControl;
 
-    flag  = 1;
-    flags = arg0->spawnArg1.value;
-    switch (arg0->state) {
-        case 0:
-            bit0 = flags & 1;
-            if (bit0 != 0) {
+    pausedActorControl = SCENE_COMBAT_ACTORS_PAUSED;
+    eventFlags         = task->spawnArg1.value;
+    switch (task->state) {
+        case CAP_EVENT_START:
+            // Hold/hide the player before selecting and starting the CAP command.
+            pauseActors = eventFlags & CAP_EVENT_PAUSE_ACTORS;
+            if (pauseActors != 0) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                gSceneCombatState.actorControl = flag;
+                gSceneCombatState.actorControl = pausedActorControl;
             }
-            if (flags & 2) {
+            if (eventFlags & CAP_EVENT_HIDE_PLAYER) {
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             }
-            if (flags & 4) {
-                mode = 2;
-            } else if (bit0 == 0) {
-                mode = 3;
+            if (eventFlags & CAP_EVENT_ACTION_CAPTURE) {
+                playbackMode = CAP_PLAYBACK_ACTION_CAPTURE;
+            } else if (pauseActors == 0) {
+                playbackMode = CAP_PLAYBACK_CLEAR_IF_UNSTARTED;
             } else {
-                mode = 0;
+                playbackMode = CAP_PLAYBACK_IN_PLACE;
             }
-            capRunCommand(arg0->spawnArg2.value, mode);
-            arg0->state++;
+            capRunCommand(task->spawnArg2.value, playbackMode);
+            task->state++;
             break;
-        case 1:
+        case CAP_EVENT_WAIT:
             if (capIsBusy() == 0) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 2:
-            if (flags & 1) {
+        case CAP_EVENT_FINISH:
+            // Release the requested presentation holds, then send the optional room cue.
+            if (eventFlags & CAP_EVENT_PAUSE_ACTORS) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             }
-            if (flags & 2) {
+            if (eventFlags & CAP_EVENT_HIDE_PLAYER) {
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
             }
             if (D_80115598 != 0) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, arg0->spawnArg2.value + 0x64, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, task->spawnArg2.value + CAP_EVENT_COMPLETION_SOUND_OFFSET, 0);
             }
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
