@@ -175,7 +175,7 @@ extern EnemyParams D_actor_205200_8014C9BC;
 extern SVECTOR*    D_actor_205200_8014CA24[];
 extern u16*        D_actor_205200_8014CA34[];
 
-static void func_actor_205200_8014AB98(Task* arg0);
+static void _actor205200TickPulse(Task* task);
 static void _actor205200MeasureNearestPart(Task* task);
 static s32  _actor205200GetDistanceAttenuation(s32 distance);
 static void _actor205200TickLivePart(Enemy* enemy, Task* task);
@@ -433,7 +433,7 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
                             work->sustainedSoundId, 0, (s8)_actor205200GetDistanceAttenuation(work->nearestDistance));
                     }
                 }
-                func_actor_205200_8014AB98(task);
+                _actor205200TickPulse(task);
                 if (work->partCount <= 0) {
                     work->state = ACTOR_205200_CTRL_STOPPING;
                 }
@@ -456,21 +456,37 @@ static void func_actor_205200_8014A958(Enemy* enemy, Task* task)
     }
 }
 
-static void func_actor_205200_8014AB98(Task* arg0)
+/// Advances a controller's repeating screen-wave pulse and one-MP drain.
+///
+/// Requires initialized controller work, its Enemy in spawnArg2 and partCount
+/// in 0..3; the caller runs one last pulse tick before noticing no parts remain.
+/// A waiting timer raises a finished wave over 15 frames
+/// to scale 160 and voices the placement instance. Twenty ticks later the wave
+/// falls, one MP is spent and the part-count table schedules the next pulse.
+/// A busy wave skips spawning/sound but retains the timer and MP-drain cycle.
+static void _actor205200TickPulse(Task* task)
 {
-    _Actor205200CtrlWork* work       = arg0->work;
+    enum {
+        ACTOR_205200_PULSE_WAVE_FRAMES = 15,
+        ACTOR_205200_PULSE_WAVE_SCALE  = 160,
+        ACTOR_205200_PULSE_SOUND       = 0x40340002,
+    };
+
+    _Actor205200CtrlWork* work = task->work;
+    Enemy*                enemy;
     s32                   pulseState = work->pulseState;
 
     switch (pulseState) {
         case ACTOR_205200_PULSE_WAITING:
             if (--work->pulseTimer <= 0) {
                 if (D_actor_205200_8015B458.state == SCREEN_WAVE_RAMP_FINISHED) {
-                    D_actor_205200_8015B458.span  = 0xF;
-                    D_actor_205200_8015B458.scale = 0xA0;
+                    D_actor_205200_8015B458.span  = ACTOR_205200_PULSE_WAVE_FRAMES;
+                    D_actor_205200_8015B458.scale = ACTOR_205200_PULSE_WAVE_SCALE;
                     taskSpawnFromTable(D_actor_205200_8014CA44, 0, 0, &D_actor_205200_8015B458);
                     sceneEngageBattle(1);
                     work->pendingWavePhase = SCREEN_WAVE_RAMP_FALLING;
-                    sndEvtRequestScriptStart(((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40340002, 0, 0);
+                    enemy                  = task->spawnArg2.pointer;
+                    sndEvtRequestScriptStart(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_205200_SOUND_INSTANCE_SHIFT) | ACTOR_205200_PULSE_SOUND, 0, 0);
                 }
                 work->pulseTimer = ACTOR_205200_PULSE_RAISED_FRAMES;
                 work->pulseState = ACTOR_205200_PULSE_RAISED;

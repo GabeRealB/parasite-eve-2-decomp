@@ -50,19 +50,19 @@ extern EvsCommand D_actor_143000_80135AE0[];
 
 extern u8 D_actor_143000_80135C38[];
 
-void        func_actor_143000_801344A8(s32);
+static void _actor143000StartCaptureBand(void* captureArgs);
 static void _actor143000SelectSceneCaptions(void);
 static void _actor143000ResetSceneCaptions(void);
 static void _actor143000SetActorControl(u8 actorControl);
-void        func_actor_143000_80134538(void);
+static void _actor143000RestorePlayerEquipment(void);
 
-void func_actor_143000_80133EE4(Task*);
+static void _actor143000TerminalSessionTask(Task* task);
 
 static void _actor143000UpdateCaptionCursor(s32 cursorX, s32 cursorY, const u16* text, s32 revealIndex, s32 codeAdvanced);
 
 TaskDesc D_actor_143000_801350B0[2] = {
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_actor_143000_80133EE4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _actor143000TerminalSessionTask, { .value = 0 } },
 };
 
 TaskDesc D_actor_143000_801350C8 = { { { TASK_BODY_NONE, 32 } }, actor143000CaptureStripTask, { .value = 0 } };
@@ -149,9 +149,9 @@ EvsCommand D_actor_143000_801351B0[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor143000SetActorControl }, { .value = SCENE_COMBAT_ACTORS_HIDDEN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x541F000F }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_143000_801344A8 }, { .storage = &D_actor_143000_80135090 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackPointer = _actor143000StartCaptureBand }, { .storage = &D_actor_143000_80135090 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_143000_801344A8 }, { .storage = &D_actor_143000_801350A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackPointer = _actor143000StartCaptureBand }, { .storage = &D_actor_143000_801350A0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _actor143000SetActorControl }, { .value = SCENE_COMBAT_ACTORS_RUNNING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -195,7 +195,7 @@ EvsCommand D_actor_143000_80135870[18] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_801350E8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b2_laboratory_801804FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143000_80134538 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143000RestorePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -222,7 +222,7 @@ EvsCommand D_actor_143000_80135AE0[12] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_143000_80135194 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_143000_801350E8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143000_80134538 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143000RestorePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -249,157 +249,210 @@ char D_actor_143000_80135C20[24];
 
 u8 D_actor_143000_80135C38[8];
 
-void func_actor_143000_80133EE4(Task* arg0)
+/// Runs the laboratory terminal menu and three-question challenge after keypad login.
+///
+/// spawnArg2 borrows the persistent keypad ScreenFade; initialization returns
+/// that fade, selects CAP resource 1 at VRAM (832,0), identifies Bowman's and
+/// Yoshida's cards and starts the login script. The menu starts a challenge,
+/// logs out or displays a message. The challenge asks three distinct questions
+/// from eleven. Three correct answers apply the laboratory's saved
+/// updates and start the completion scene with its skip script. Logout waits for
+/// its script, resets CAP and ends the task. CAP and overlay data stay loaded
+/// throughout; visited-question storage must provide eleven writable bytes.
+static void _actor143000TerminalSessionTask(Task* task)
 {
-    ScreenFade* fade;
-    s32         i;
-    u8*         p;
-    u8*         slot;
+    enum {
+        ACTOR_143000_TERMINAL_STATE_INITIALIZE         = 0,
+        ACTOR_143000_TERMINAL_STATE_WAIT_LOGIN_SCENE   = 1,
+        ACTOR_143000_TERMINAL_STATE_SHOW_MENU          = 2,
+        ACTOR_143000_TERMINAL_STATE_WAIT_MENU          = 3,
+        ACTOR_143000_TERMINAL_STATE_HANDLE_MENU        = 4,
+        ACTOR_143000_TERMINAL_STATE_WAIT_LOGOUT_PROMPT = 5,
+        ACTOR_143000_TERMINAL_STATE_WAIT_MENU_MESSAGE  = 6,
+        ACTOR_143000_TERMINAL_STATE_START_LOGOUT       = 10,
+        ACTOR_143000_TERMINAL_STATE_WAIT_LOGOUT        = 11,
+        ACTOR_143000_TERMINAL_STATE_FINISH             = 12,
+        ACTOR_143000_TERMINAL_STATE_RESET_QUIZ         = 20,
+        ACTOR_143000_TERMINAL_STATE_WAIT_QUIZ_INTRO    = 21,
+        ACTOR_143000_TERMINAL_STATE_SELECT_QUESTION    = 22,
+        ACTOR_143000_TERMINAL_STATE_WAIT_QUESTION      = 23,
+        ACTOR_143000_TERMINAL_STATE_SCORE_ANSWER       = 24,
+        ACTOR_143000_TERMINAL_STATE_SHOW_SCORE         = 30,
+        ACTOR_143000_TERMINAL_STATE_WAIT_SCORE         = 31,
+        ACTOR_143000_TERMINAL_STATE_SHOW_SUCCESS       = 40,
+        ACTOR_143000_TERMINAL_STATE_WAIT_SUCCESS       = 41,
+        ACTOR_143000_TERMINAL_CAP_MENU_WITH_CARD       = 1,
+        ACTOR_143000_TERMINAL_CAP_MENU_WITHOUT_CARD    = 2,
+        ACTOR_143000_TERMINAL_CAP_MENU_MESSAGE         = 3,
+        ACTOR_143000_TERMINAL_CAP_QUIZ_INTRO           = 4,
+        ACTOR_143000_TERMINAL_CAP_LOGOUT_PROMPT        = 32,
+        ACTOR_143000_TERMINAL_CAP_QUIZ_SCORE           = 33,
+        ACTOR_143000_TERMINAL_CAP_QUIZ_SUCCESS         = 34,
+        ACTOR_143000_TERMINAL_CHOICE_QUIZ              = 10,
+        ACTOR_143000_TERMINAL_CHOICE_LOGOUT            = 99,
+        ACTOR_143000_TERMINAL_ANSWER_CORRECT           = 11,
+        ACTOR_143000_TERMINAL_QUESTION_COUNT           = 11,
+        ACTOR_143000_TERMINAL_RAND_BITS                = 15,
+        ACTOR_143000_TERMINAL_CAP_FIRST_QUESTION       = 5,
+        ACTOR_143000_TERMINAL_ANSWERS_REQUIRED         = 3,
+        ACTOR_143000_TERMINAL_CAP_DATA_ORDINAL         = 1,
+        ACTOR_143000_TERMINAL_CAP_VRAM_X               = 832,
+        ACTOR_143000_TERMINAL_YOSHIDAS_CARD            = 0x122,
+        ACTOR_143000_TERMINAL_COMPLETE_OBJECTIVE       = 39,
+        ACTOR_143000_TERMINAL_PROGRESS_COMPLETE        = 2,
+        ACTOR_143000_TERMINAL_COMPLETE_DIALOGUE        = 3,
+    };
 
-    fade = arg0->spawnArg2.pointer;
-    switch (arg0->state) {
-        case 0:
+    ScreenFade* fade;
+    s32         questionIndex;
+    u8*         visitedQuestion;
+    u8*         selectedQuestion;
+
+    fade = task->spawnArg2.pointer;
+    switch (task->state) {
+        case ACTOR_143000_TERMINAL_STATE_INITIALIZE:
             // The keypad left the screen faded out; fade back in on the scene set up below.
             fade->phase = SCREEN_FADE_RETURN;
             srand(gDisplayState.gameTick);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x340, 0);
-            itemSetIdentified(0x121, 1);
-            itemSetIdentified(0x122, 1);
+            capSelectLoadedFile(ACTOR_143000_TERMINAL_CAP_DATA_ORDINAL);
+            capSetTexturePage(ACTOR_143000_TERMINAL_CAP_VRAM_X, 0);
+            itemSetIdentified(INVENTORY_COLLECTION_ID_BOWMANS_CARD, 1);
+            itemSetIdentified(ACTOR_143000_TERMINAL_YOSHIDAS_CARD, 1);
             evsStartScript(D_actor_143000_80135A20, EVENT_SCRIPT_HUD_KEEP);
-            arg0->state++;
+            task->state++;
             return;
-        case 1:
+        case ACTOR_143000_TERMINAL_STATE_WAIT_LOGIN_SCENE:
             if (gGameSession->eventState == 0) {
                 gGameSession->eventState = 1;
-                arg0->state              = 2;
+                task->state              = ACTOR_143000_TERMINAL_STATE_SHOW_MENU;
             }
             return;
-        case 2:
+        case ACTOR_143000_TERMINAL_STATE_SHOW_MENU:
             if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BOWMANS_CARD) != 0) {
-                capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
+                capRunCommand(ACTOR_143000_TERMINAL_CAP_MENU_WITH_CARD, CAP_PLAYBACK_IN_PLACE);
             } else {
-                capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
+                capRunCommand(ACTOR_143000_TERMINAL_CAP_MENU_WITHOUT_CARD, CAP_PLAYBACK_IN_PLACE);
             }
-            arg0->state++;
+            task->state++;
             return;
-        case 3:
+        case ACTOR_143000_TERMINAL_STATE_WAIT_MENU:
             if (capIsBusy() == 0) {
-                arg0->state++;
+                task->state++;
             }
             return;
-        case 4:
+        case ACTOR_143000_TERMINAL_STATE_HANDLE_MENU:
             switch (capGetVariantKey()) {
-                case 0xA:
-                    arg0->state = 0x14;
+                case ACTOR_143000_TERMINAL_CHOICE_QUIZ:
+                    task->state = ACTOR_143000_TERMINAL_STATE_RESET_QUIZ;
                     return;
-                case 0x63:
-                    capRunCommand(0x20, CAP_PLAYBACK_IN_PLACE);
-                    arg0->state++;
+                case ACTOR_143000_TERMINAL_CHOICE_LOGOUT:
+                    capRunCommand(ACTOR_143000_TERMINAL_CAP_LOGOUT_PROMPT, CAP_PLAYBACK_IN_PLACE);
+                    task->state++;
                     return;
                 default:
-                    capRunCommand(3, CAP_PLAYBACK_IN_PLACE);
-                    arg0->state = 6;
+                    capRunCommand(ACTOR_143000_TERMINAL_CAP_MENU_MESSAGE, CAP_PLAYBACK_IN_PLACE);
+                    task->state = ACTOR_143000_TERMINAL_STATE_WAIT_MENU_MESSAGE;
                     return;
             }
-        case 5:
+        case ACTOR_143000_TERMINAL_STATE_WAIT_LOGOUT_PROMPT:
             if (capIsBusy() == 0) {
-                arg0->state = 0xA;
+                task->state = ACTOR_143000_TERMINAL_STATE_START_LOGOUT;
             }
             return;
-        case 10:
+        case ACTOR_143000_TERMINAL_STATE_START_LOGOUT:
             evsStartScript(D_actor_143000_80135AE0, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            arg0->state++;
+            task->state++;
             return;
-        case 11:
+        case ACTOR_143000_TERMINAL_STATE_WAIT_LOGOUT:
             if (gGameSession->eventState == 0) {
-                arg0->state++;
+                task->state++;
             }
             return;
-        case 12:
+        case ACTOR_143000_TERMINAL_STATE_FINISH:
             capReset();
-            taskKill(arg0);
+            taskKill(task);
             return;
-        case 20:
-            i = 10;
-            p = &D_actor_143000_80135C38[i];
+        // Select three distinct questions; visited storage needs eleven entries.
+        case ACTOR_143000_TERMINAL_STATE_RESET_QUIZ:
+            questionIndex   = ACTOR_143000_TERMINAL_QUESTION_COUNT - 1;
+            visitedQuestion = &D_actor_143000_80135C38[questionIndex];
             do {
-                *p = 0;
-                i--;
-                p--;
-            } while (i >= 0);
+                *visitedQuestion = 0;
+                questionIndex--;
+                visitedQuestion--;
+            } while (questionIndex >= 0);
             D_actor_143000_80135C18 = 0;
             D_actor_143000_80135C1C = 0;
-            capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
-            arg0->state++;
+            capRunCommand(ACTOR_143000_TERMINAL_CAP_QUIZ_INTRO, CAP_PLAYBACK_IN_PLACE);
+            task->state++;
             return;
-        case 21:
+        case ACTOR_143000_TERMINAL_STATE_WAIT_QUIZ_INTRO:
             if (capIsBusy() == 0) {
-                arg0->state++;
+                task->state++;
             }
             return;
-        case 22:
+        case ACTOR_143000_TERMINAL_STATE_SELECT_QUESTION:
             while (1) {
-                D_actor_143000_80135C14 = (rand() * 11) >> 15;
-                slot                    = &D_actor_143000_80135C38[D_actor_143000_80135C14];
-                if (*slot == 0) {
-                    *slot = 1;
+                D_actor_143000_80135C14 = (rand() * ACTOR_143000_TERMINAL_QUESTION_COUNT) >> ACTOR_143000_TERMINAL_RAND_BITS;
+                selectedQuestion        = &D_actor_143000_80135C38[D_actor_143000_80135C14];
+                if (*selectedQuestion == 0) {
+                    *selectedQuestion = 1;
                     break;
                 }
             }
-            capRunCommand(D_actor_143000_80135C14 + 5, CAP_PLAYBACK_IN_PLACE);
-            arg0->state++;
+            capRunCommand(D_actor_143000_80135C14 + ACTOR_143000_TERMINAL_CAP_FIRST_QUESTION, CAP_PLAYBACK_IN_PLACE);
+            task->state++;
             return;
-        case 23:
+        case ACTOR_143000_TERMINAL_STATE_WAIT_QUESTION:
             if (capIsBusy() == 0) {
-                arg0->state++;
+                task->state++;
             }
             return;
-        case 24:
-            if (capGetVariantKey() == 0xB) {
+        case ACTOR_143000_TERMINAL_STATE_SCORE_ANSWER:
+            if (capGetVariantKey() == ACTOR_143000_TERMINAL_ANSWER_CORRECT) {
                 D_actor_143000_80135C1C++;
             }
             D_actor_143000_80135C18++;
-            if (D_actor_143000_80135C18 >= 3) {
-                if (D_actor_143000_80135C1C >= 3) {
-                    arg0->state = 0x28;
+            if (D_actor_143000_80135C18 >= ACTOR_143000_TERMINAL_ANSWERS_REQUIRED) {
+                if (D_actor_143000_80135C1C >= ACTOR_143000_TERMINAL_ANSWERS_REQUIRED) {
+                    task->state = ACTOR_143000_TERMINAL_STATE_SHOW_SUCCESS;
                 } else {
-                    arg0->state = 0x1E;
+                    task->state = ACTOR_143000_TERMINAL_STATE_SHOW_SCORE;
                 }
             } else {
-                arg0->state = 0x16;
+                task->state = ACTOR_143000_TERMINAL_STATE_SELECT_QUESTION;
             }
             return;
-        case 30:
-            capStartSequenceSlot(0x21, 0, (s16)D_actor_143000_80135C1C);
-            arg0->state++;
+        case ACTOR_143000_TERMINAL_STATE_SHOW_SCORE:
+            capStartSequenceSlot(ACTOR_143000_TERMINAL_CAP_QUIZ_SCORE, 0, (s16)D_actor_143000_80135C1C);
+            task->state++;
             return;
-        case 6:
-        case 31:
+        case ACTOR_143000_TERMINAL_STATE_WAIT_MENU_MESSAGE:
+        case ACTOR_143000_TERMINAL_STATE_WAIT_SCORE:
             if (capIsBusy() == 0) {
-                arg0->state = 2;
+                task->state = ACTOR_143000_TERMINAL_STATE_SHOW_MENU;
             }
             return;
-        case 40:
-            capRunCommand(0x22, CAP_PLAYBACK_IN_PLACE);
-            arg0->state++;
+        case ACTOR_143000_TERMINAL_STATE_SHOW_SUCCESS:
+            capRunCommand(ACTOR_143000_TERMINAL_CAP_QUIZ_SUCCESS, CAP_PLAYBACK_IN_PLACE);
+            task->state++;
             return;
-        case 41:
+        case ACTOR_143000_TERMINAL_STATE_WAIT_SUCCESS:
             if (capIsBusy() == 0) {
                 capReset();
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x27);
-                gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 2);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_143000_TERMINAL_COMPLETE_OBJECTIVE);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, ACTOR_143000_TERMINAL_PROGRESS_COMPLETE);
                 gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 0);
                 areaApplySavedUpdates(D_shelter_b2_laboratory_80186488);
                 if (gameFlagGetNibble(GAME_FLAG_083) == 0) {
                     areaApplySavedUpdates(D_shelter_b2_laboratory_8018649C);
                 }
                 gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
+                gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_143000_TERMINAL_COMPLETE_DIALOGUE);
                 evsStartScriptWithSkip(D_actor_143000_801351B0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_143000_80135870);
-                taskKill(arg0);
+                taskKill(task);
             }
             return;
     }
@@ -459,9 +512,15 @@ static void _actor143000UpdateCaptionCursor(s32 cursorX, s32 cursorY, const u16*
     }
 }
 
-void func_actor_143000_801344A8(s32 arg0)
+/// Starts asynchronous strip capture for the event script's borrowed band record.
+///
+/// captureArgs must point to a writable Actor143000CaptureArgs meeting
+/// actor143000CaptureStripTask's row/count contract. The task retains it and
+/// writes progress until capture ends; one record serves one live capture.
+/// The event callback's pointer is transported in one PS1 argument word.
+static void _actor143000StartCaptureBand(void* captureArgs)
 {
-    taskSpawnFromTable(&D_actor_143000_801350C8, 0, 0, arg0);
+    taskSpawnFromTable(&D_actor_143000_801350C8, 0, 0, captureArgs);
 }
 
 /// Selects the laboratory scene's CAP file and title/text texture origin.
@@ -499,7 +558,11 @@ static void _actor143000SetActorControl(u8 actorControl)
     gSceneCombatState.actorControl = actorControl;
 }
 
-void func_actor_143000_80134538(void)
+/// Restores the player's equipped weapon models after the laboratory scene.
+///
+/// Both the completion script and its skip path call this after scripted
+/// presentation; the live player and equipped weapon resources are required.
+static void _actor143000RestorePlayerEquipment(void)
 {
     playerActorRestoreEquipment();
 }

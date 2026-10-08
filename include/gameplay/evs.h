@@ -146,6 +146,7 @@ typedef union {
     struct PadScriptVibrationSegment* vibrationSegments;                                      // Borrowed vibration segments indexed by that script
     TaskMessageArg                    message;                                                // Receiver-selected integer/address message payload
     void                              (*callback)(s32 argumentWord);                          // Dispatch view: one complete argument word
+    void                              (*callbackPointer)(void* argument);                     // Source signature consumes a borrowed object pointer
     void                              (*callbackNoArg)(void);                                 // Source signature ignores the argument register
     void                              (*callbackS8)(s8 value);                                // Source signature consumes a signed byte
     void                              (*callbackU8)(u8 value);                                // Source signature consumes an unsigned byte

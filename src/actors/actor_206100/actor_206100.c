@@ -299,11 +299,11 @@ typedef struct {
 } _Actor206100ShotWork;
 STATIC_ASSERT_SIZEOF(_Actor206100ShotWork, 0x68);
 
-/// The wave `func_actor_206100_8014CB68` arms: pale cyan modulation with a
+/// The wave `_actor206100EntranceRelocateTick` arms: pale cyan modulation with a
 /// one-frame ramp.
 extern ScreenWaveCtx D_actor_206100_80158CCC;
 
-/// Child task `func_actor_206100_8014CB68` starts with the tint above as its
+/// Child task `_actor206100EntranceRelocateTick` starts with the tint above as its
 /// spawn arg.  Its callback is `_screenWaveTask`.
 extern TaskDesc D_actor_206100_80158AF0[];
 
@@ -370,7 +370,7 @@ static void _actor206100WaitSurface(Task* task);
 static void _actor206100DeathPlaybackTick(Task* task);
 static void _actor206100UnlinkForDeath(Task* task);
 static void _actor206100EnterDeathPlayback(Task* task);
-static void func_actor_206100_8014FDE8(Task* task);
+static void _actor206100DeathSinkTick(Task* task);
 static void _actor206100AimHead(Task* task);
 
 /// Distortion amplitude of the screen wave: `frame * scale / span` of the
@@ -385,8 +385,6 @@ extern ScreenWaveCtx* gScreenWaveCtx;
 /// and speed at spawn and advanced by its speed every frame.
 extern ScreenWaveOscillator gScreenWaveColumns[13];
 extern ScreenWaveOscillator gScreenWaveRows[32];
-
-/// Task table `func_actor_206100_8014FDE8` spawns the shockwave from.
 
 static void _actor206100WaitRecoilBoundary(Task* task);
 static void _actor206100EnterStatusHold(Task* task);
@@ -956,7 +954,7 @@ static void           _actor206100TrackTarget(Task* task);
 static void           _actor206100TakeHits(Task* task);
 static inline void    _actor206100AnimUpdate(Task* task);
 static void           _actor206100Spawn(Task* task);
-static void           func_actor_206100_8014CB68(Task* task);
+static void           _actor206100EntranceRelocateTick(Task* task);
 static __inline__ s16 _actor206100ConsumeHitReaction(Task* task);
 
 #include "../../shared/screen_wave.inc.c"
@@ -1846,70 +1844,85 @@ static void func_actor_206100_8014C458(Task* task)
     _actor206100UpdateLockable(task, work->targetPart);
 }
 
-/// Teleport: ramps the white-out while `_actor206100SwimWaypointRing` circles, and
-/// once it is fully up, hands slot 3 the actor's new position and re-arms the
-/// actor on the far side, spawning the screen tint `D_actor_206100_80158CCC`
-/// describes as it goes.
+/// Fades the Sea Diver entrance to black, then relocates and re-enables its bodies.
 ///
-/// `modulateTexture` is written between `r` and `g`, not in declaration
-/// order, and that is load-bearing: it shares the constant 1 with `span`, and
-/// that constant and the `%hi` of the global's own address tie in
-/// `local-alloc`'s `QTY_CMP_PRI`
-/// (`floor_log2 (n_refs) * n_refs * size / span`). The address only wins
-/// that tie while the constant's live range runs the whole store run. Cutting
-/// it short is what puts the constant in `$v1` and the `%hi` in `$t0`; with
-/// `modulateTexture` written last the two swap and the tail no longer
-/// schedules the same way.
-static void func_actor_206100_8014CB68(Task* task)
+/// Requires live work/model, the player and loaded entrance wave resources.
+/// Each tick swims the waypoint ring and raises subtractive darkness by six to
+/// 255. At full darkness it places the player, resets normal-rate clip 3, moves
+/// the diver to (5500,3500,5500), saves the view and selects view 7. It advances
+/// the entrance substate and retains the cyan screen-wave task, whose ramp
+/// reaches full strength in one tick.
+static void _actor206100EntranceRelocateTick(Task* task)
 {
-    _Actor206100Work* work;
-    _Actor206100Work* work2;
-    TmdObject*        tmd;
-    GfxCoord*         coord;
-    ActorTransform    msg;
+    enum {
+        ACTOR_206100_ENTRANCE_DARKEN_STEP     = 6,
+        ACTOR_206100_ENTRANCE_DARKNESS_LIMIT  = 256,
+        ACTOR_206100_ENTRANCE_FULL_DARKNESS   = 255,
+        ACTOR_206100_ENTRANCE_PLAYER_X        = 1680,
+        ACTOR_206100_ENTRANCE_PLAYER_Y        = 5000,
+        ACTOR_206100_ENTRANCE_PLAYER_Z        = 2200,
+        ACTOR_206100_ENTRANCE_PLAYER_YAW      = 512,
+        ACTOR_206100_ENTRANCE_RELOCATE_CLIP   = 3,
+        ACTOR_206100_ENTRANCE_RELOCATE_Y      = 3500,
+        ACTOR_206100_ENTRANCE_RELOCATE_XZ     = 5500,
+        ACTOR_206100_ENTRANCE_RELOCATE_YAW    = 2560,
+        ACTOR_206100_ENTRANCE_RELOCATE_VIEW   = 7,
+        ACTOR_206100_ENTRANCE_WAVE_FRAMES     = 1,
+        ACTOR_206100_ENTRANCE_WAVE_SCALE      = 96,
+        ACTOR_206100_ENTRANCE_WAVE_RED        = 64,
+        ACTOR_206100_ENTRANCE_WAVE_GREEN_BLUE = 128,
+    };
 
-    work  = task->work;
-    tmd   = task->extra.tmd;
-    coord = tmd->coords;
+    _Actor206100Work* work;
+    _Actor206100Work* requestWork;
+    TmdObject*        model;
+    GfxCoord*         rootCoord;
+    ActorTransform    playerTransform;
+
+    work      = task->work;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
     _actor206100SwimWaypointRing(task);
-    work->stateFrames = work->stateFrames + 6;
-    if (work->stateFrames >= 0x100) {
-        work->stateFrames = 0xFF;
+    work->stateFrames = work->stateFrames + ACTOR_206100_ENTRANCE_DARKEN_STEP;
+    if (work->stateFrames >= ACTOR_206100_ENTRANCE_DARKNESS_LIMIT) {
+        work->stateFrames = ACTOR_206100_ENTRANCE_FULL_DARKNESS;
     }
     fadeDrawOverlay(work->stateFrames, work->stateFrames, work->stateFrames, GPU_BLEND_SUBTRACT);
-    if (work->stateFrames == 0xFF) {
+    // Change placement and view only after subtractive fading covers the scene.
+    if (work->stateFrames == ACTOR_206100_ENTRANCE_FULL_DARKNESS) {
         work->trunkBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         work->headBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        msg.pos.vx             = 0x690;
-        msg.pos.vy             = 0x1388;
-        msg.pos.vz             = 0x898;
-        msg.rot.vx             = 0;
-        msg.rot.vy             = 0x200;
-        msg.rot.vz             = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &msg, 0);
-        work2                                                      = task->work;
-        work2->animStep                                            = 0x10;
-        work2->animClip                                            = 3;
-        work2->animRequest                                         = DIVER_ANIM_REQUEST_RESET;
-        coord->coord.t[1]                                          = 0xDAC;
-        work->goalY                                                = 0xDAC;
-        coord->coord.t[0]                                          = 0x157C;
-        coord->coord.t[2]                                          = 0x157C;
+        playerTransform.pos.vx = ACTOR_206100_ENTRANCE_PLAYER_X;
+        playerTransform.pos.vy = ACTOR_206100_ENTRANCE_PLAYER_Y;
+        playerTransform.pos.vz = ACTOR_206100_ENTRANCE_PLAYER_Z;
+        playerTransform.rot.vx = 0;
+        playerTransform.rot.vy = ACTOR_206100_ENTRANCE_PLAYER_YAW;
+        playerTransform.rot.vz = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &playerTransform, 0);
+        requestWork                                                = task->work;
+        requestWork->animStep                                      = ANIMATION_RATE_ONE;
+        requestWork->animClip                                      = ACTOR_206100_ENTRANCE_RELOCATE_CLIP;
+        requestWork->animRequest                                   = DIVER_ANIM_REQUEST_RESET;
+        rootCoord->coord.t[1]                                      = ACTOR_206100_ENTRANCE_RELOCATE_Y;
+        work->goalY                                                = ACTOR_206100_ENTRANCE_RELOCATE_Y;
+        rootCoord->coord.t[0]                                      = ACTOR_206100_ENTRANCE_RELOCATE_XZ;
+        rootCoord->coord.t[2]                                      = ACTOR_206100_ENTRANCE_RELOCATE_XZ;
         work->rotation.vx                                          = 0;
-        work->rotation.vy                                          = 0xA00;
+        work->rotation.vy                                          = ACTOR_206100_ENTRANCE_RELOCATE_YAW;
         work->rotation.vz                                          = 0;
         work->savedView                                            = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_206100_ENTRANCE_RELOCATE_VIEW;
         work->stateFrames                                          = 0;
         work->neckRetracted                                        = 0;
         work->subState                                             = work->subState + 1;
-        D_actor_206100_80158CCC.span                               = 1;
-        D_actor_206100_80158CCC.scale                              = 0x60;
-        D_actor_206100_80158CCC.r                                  = 0x40;
-        D_actor_206100_80158CCC.modulateTexture                    = SCREEN_WAVE_MODULATE_TEXTURE;
-        D_actor_206100_80158CCC.g                                  = 0x80;
-        D_actor_206100_80158CCC.b                                  = 0x80;
-        work->waveTask                                             = taskSpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
+        // The cyan distortion masks the following entrance movement.
+        D_actor_206100_80158CCC.span            = ACTOR_206100_ENTRANCE_WAVE_FRAMES;
+        D_actor_206100_80158CCC.scale           = ACTOR_206100_ENTRANCE_WAVE_SCALE;
+        D_actor_206100_80158CCC.r               = ACTOR_206100_ENTRANCE_WAVE_RED;
+        D_actor_206100_80158CCC.modulateTexture = SCREEN_WAVE_MODULATE_TEXTURE;
+        D_actor_206100_80158CCC.g               = ACTOR_206100_ENTRANCE_WAVE_GREEN_BLUE;
+        D_actor_206100_80158CCC.b               = ACTOR_206100_ENTRANCE_WAVE_GREEN_BLUE;
+        work->waveTask                          = taskSpawnFromTable(D_actor_206100_80158AF0, 0, 0, &D_actor_206100_80158CCC);
     }
 }
 /// Moves the Sea Diver out of the entrance view and stages its reappearance.
@@ -2210,7 +2223,7 @@ static const TaskFuncTable5 D_actor_206100_80149E94 = {
     {
         _actor206100EntranceHoldPlayer,
         _actor206100EntranceLeadInTick,
-        func_actor_206100_8014CB68,
+        _actor206100EntranceRelocateTick,
         _actor206100EntranceDepartureTick,
         _actor206100EntranceArrivalTick,
     },
@@ -2251,7 +2264,7 @@ static const TaskFuncTable4 D_actor_206100_80149EC0 = {
         _actor206100UnlinkForDeath,
         _actor206100EnterDeathPlayback,
         _actor206100DeathPlaybackTick,
-        func_actor_206100_8014FDE8,
+        _actor206100DeathSinkTick,
     },
 };
 
@@ -3531,36 +3544,37 @@ static void _actor206100EnterDeathPlayback(Task* task)
     _actor206100AnimUpdate(task);
     work->state = work->state + 1;
 }
-/// Idle-state tick: advances the actor's two frame counters, keeps the root
-/// coordinate dirty so the composition pass rebuilds it, spawns the shockwave task once the
-/// counter reaches 0x5A and retires the actor four frames later.
+/// Sinks the dying Sea Diver and selects despawn after 270 ticks.
 ///
-/// `coord` is a local rather than the inline
-/// `task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;` because the fused form loads
-/// `task->extra` *after* the two counter stores, and sched1 will not lift a load
-/// above an earlier store; its address load stays with the stores and both pick
-/// up load-delay nops.  Binding the pointer above the counters frees the two
-/// loads to be scheduled first, which is the target's order; see
-/// `DECOMPILATION_LEARNINGS.md`, "A dereference-store's address load is ranked
-/// with its store".
-static void func_actor_206100_8014FDE8(Task* task)
+/// Requires initialized work/model in the final death stage. Raises goal Y by
+/// sixteen parent-coordinate units per tick (positive Y is downward); the death
+/// driver eases the root toward it. Tick 90 starts the room red disc. At tick 270
+/// selects task state 4 and clears its state/substate, retaining the goal and timer.
+static void _actor206100DeathSinkTick(Task* task)
 {
-    _Actor206100Work* work;
-    _Actor206100Work* next;
-    GfxCoord*         coord;
+    enum {
+        ACTOR_206100_DEATH_SINK_UNITS_PER_TICK = 16,
+        ACTOR_206100_DEATH_ROOM_EFFECT_TICK    = 90,
+        ACTOR_206100_DEATH_DESPAWN_TICK        = 270,
+        ACTOR_206100_TASK_STATE_DESPAWN        = 4,
+    };
 
-    coord               = task->extra.tmd->coords;
-    work                = task->work;
-    work->stateFrames   = work->stateFrames + 1;
-    work->goalY         = work->goalY + 0x10;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->stateFrames == 0x5A) {
+    _Actor206100Work* work;
+    _Actor206100Work* despawnWork;
+    GfxCoord*         rootCoord;
+
+    rootCoord               = task->extra.tmd->coords;
+    work                    = task->work;
+    work->stateFrames       = work->stateFrames + 1;
+    work->goalY             = work->goalY + ACTOR_206100_DEATH_SINK_UNITS_PER_TICK;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->stateFrames == ACTOR_206100_DEATH_ROOM_EFFECT_TICK) {
         taskSpawnFromTable(D_neo_ark_submarine_gallery_801818BC, 0, 0, 0);
     }
-    if (work->stateFrames >= 0x10E) {
-        task->state    = 4;
-        next           = task->work;
-        next->state    = 0;
-        next->subState = 0;
+    if (work->stateFrames >= ACTOR_206100_DEATH_DESPAWN_TICK) {
+        task->state           = ACTOR_206100_TASK_STATE_DESPAWN;
+        despawnWork           = task->work;
+        despawnWork->state    = 0;
+        despawnWork->subState = 0;
     }
 }

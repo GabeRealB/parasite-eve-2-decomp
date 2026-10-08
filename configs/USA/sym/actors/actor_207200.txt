@@ -141,3 +141,6 @@ _actor207200CreepingStrangerAnimate = 0x8014d65c; // type:func
 _actor207200CreepingStrangerSpawnState = 0x8014b278; // type:func
 _actor207200CreepingStrangerUpdateTarget = 0x8014d8dc; // type:func
 _actor207200CreepingStrangerTask = 0x8014d280; // type:func
+_actor207200CreepingStrangerApplyHeadDamage = 0x8014c870; // type:func
+_actor207200CreepingStrangerBurstHead = 0x8014cfec; // type:func
+_actor207200CreepingStrangerBurstRandomPart = 0x8014d128; // type:func

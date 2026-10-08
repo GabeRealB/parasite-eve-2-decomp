@@ -103,7 +103,7 @@ typedef struct {
 } _Actor120500Work;
 STATIC_ASSERT_SIZEOF(_Actor120500Work, 0x4CC);
 
-/// The actor task, published by `func_actor_120500_801322A0` so the setters,
+/// The actor task, published by `_actor120500InitBody` so the setters,
 /// which take no task, can reach its work block.
 extern Task* D_actor_120500_80138454;
 
@@ -349,7 +349,7 @@ TaskDesc D_actor_120500_80138448 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 Task* D_actor_120500_80138454 = NULL;
 
 static void func_actor_120500_80132028(Task* arg0);
-static void func_actor_120500_801322A0(Task* task);
+static void _actor120500InitBody(Task* task);
 
 /// Entry 0 of the task table: plays a streamed sequence, then restores the
 /// scene. It looks up the stream slot for the current location with view 0x64
@@ -523,13 +523,26 @@ static void func_actor_120500_80132028(Task* arg0)
     work->playerRequest = ACTOR_120500_PLAYER_REQUEST_NONE;
 }
 
-/// Initialize the cutscene actor's model and animations.
-///
-/// Uses the area placement for resource-entry 0x65, or the end record when
-/// that entry is absent. Allocation failure kills `task`.
-static void func_actor_120500_801322A0(Task* task)
+/// Resets the nineteen animated body tracks to clip 1 at normal playback rate.
+static __inline__ void _actor120500ResetBodyTracks(_Actor120500Work* work)
 {
-    enum { TEXTURE_RESOURCE_ENTRY_ID = 0x65 };
+    s32 slotIndex = 1;
+    do {
+        work->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&work->rig.anim, (u16)slotIndex, 1);
+        slotIndex++;
+    } while ((u16)slotIndex < ARRAY_SIZE(work->rig.slots));
+}
+
+/// Initializes the motel scene's Kyle Madigan body and nineteen animation tracks.
+///
+/// Requires the task's twenty-part TMD and the current area's placement table.
+/// Owns a cleared primary-heap work block, publishes the task for scene requests,
+/// and binds its lighting and animation storage. Allocation failure kills the
+/// task. Texture entry 0x65 is preferred; the table's end record is used if absent.
+static void _actor120500InitBody(Task* task)
+{
+    enum { ACTOR_120500_BODY_TEXTURE_ENTRY_ID = 0x65 };
 
     _Actor120500Work* work;
     _Actor120500Work* allocatedWork;
@@ -537,7 +550,6 @@ static void func_actor_120500_801322A0(Task* task)
     TmdObject*        tmd;
     GfxCoord*         coord;
     AreaPlacement*    place;
-    s32               slotIndex;
     u8                entryId;
 
     tmd           = task->extra.tmd;
@@ -559,7 +571,7 @@ static void func_actor_120500_801322A0(Task* task)
     place                   = areaGetVariant(&gGameSession->location.loc)->placements;
     entryId                 = place->entryId;
     while (entryId != AREA_PLACEMENT_END) {
-        if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {
+        if (entryId == ACTOR_120500_BODY_TEXTURE_ENTRY_ID) {
             break;
         }
         place++;
@@ -569,17 +581,12 @@ static void func_actor_120500_801322A0(Task* task)
     animationInitContext(&work->rig.anim, D_actor_120500_80138088, tmd, work->rig.poses, work->rig.slots);
     slotsWork      = task->work;
     task->msgTable = D_actor_120500_80138408;
-    slotIndex      = 1;
-    do {
-        slotsWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&slotsWork->rig.anim, (u16)slotIndex, 1);
-        slotIndex++;
-    } while ((u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots));
+    _actor120500ResetBodyTracks(slotsWork);
 }
 
 /// Per-frame body of the actor task, entry 4 of the task table. State 0 waits
 /// until `Gp_StateC08.mode` is not 1 and `gDisplayState.pendingMode` is clear, then brings the actor
-/// up through `func_actor_120500_801322A0`, sends the task in pointer slot 3
+/// up through `_actor120500InitBody`, sends the task in pointer slot 3
 /// the equipped-weapon animation as message 0x3E8 and installs the two
 /// `evsStartScriptWithSkip` blocks; state 1 kills the actor once the session's
 /// `eventState` clears.
@@ -611,7 +618,7 @@ void func_actor_120500_8013241C(Task* arg0)
             if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 AnimationPlayRequest request;
 
-                func_actor_120500_801322A0(arg0);
+                _actor120500InitBody(arg0);
                 anim = gPlayerStatus.weapon;
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
                     anim = anim + 1;

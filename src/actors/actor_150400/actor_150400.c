@@ -55,7 +55,7 @@ extern TaskMessageEntry D_actor_150400_8013C8C4[];
 /// Scratchpad stack pointer the per-frame helpers carve temporary frames off.
 
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
-static void func_actor_150400_801324B8(Task* task);
+static void _actor150400DestroyPairWalker(Task* task);
 static void _actorRenderDrawWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor150400No9GolemDryfieldBody;
@@ -71,10 +71,16 @@ void func_actor_150400_80131F6C(void);
 void func_actor_150400_80131ECC(void);
 void func_actor_150400_80131F6C(void);
 
+/// Sliding-model states posted by the scene event script.
+enum {
+    ACTOR_150400_SLIDING_MODEL_INITIALIZE = 0,
+    ACTOR_150400_SLIDING_MODEL_MOVE       = 2,
+};
+
 static void _actor150400SlidingModelTask(Task* task);
 void        func_actor_150400_80131ECC(void);
 void        func_actor_150400_80131F6C(void);
-void        func_actor_150400_80131F9C(s32);
+static void _actor150400SetSlidingModelState(s32 state);
 
 static TmdBone _gActor150400Model00C44Skeleton[1] = {
 #include "assets/actor_150400_model_00C44_skeleton.inc"
@@ -126,7 +132,7 @@ EvsCommand D_actor_150400_80132D70[33] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_150400_80132D24 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_150400_80131F9C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor150400SetSlidingModelState }, { .value = ACTOR_150400_SLIDING_MODEL_INITIALIZE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_SCENE_AUDIO, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -140,7 +146,7 @@ EvsCommand D_actor_150400_80132D70[33] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_150400_80131F9C }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor150400SetSlidingModelState }, { .value = ACTOR_150400_SLIDING_MODEL_MOVE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -445,10 +451,15 @@ void func_actor_150400_80131F6C(void)
     taskSpawnFromTable(D_shelter_b1_control_room_80181BBC, 0, 0, 0);
 }
 
-void func_actor_150400_80131F9C(s32 arg0)
+/// Applies one state word to both scene sliding-model tasks.
+///
+/// Both retained tasks must be live. States 0, 1 and 2 initialize placement,
+/// hold and slide respectively. The event script posts 0 before the scene and
+/// 2 at its movement cue; this allocates no task or work.
+static void _actor150400SetSlidingModelState(s32 state)
 {
-    D_actor_150400_8013C924->state = arg0;
-    D_actor_150400_8013C928->state = arg0;
+    D_actor_150400_8013C924->state = state;
+    D_actor_150400_8013C928->state = state;
 }
 
 void func_actor_150400_80131FB8(void)
@@ -476,7 +487,7 @@ static void func_actor_150400_80132014(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = func_actor_150400_801324B8;
+    task->exitCallback               = _actor150400DestroyPairWalker;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;
@@ -538,9 +549,11 @@ void func_actor_150400_801323E0(Task* task)
 #undef ACTOR_RENDER_UPDATE_WALKER
 #undef ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW
 
-/// Exit callback of the actor's task: hands its `Enemy` back to
-/// `enemyDestroy`.
-static void func_actor_150400_801324B8(Task* task)
+/// Releases the pair walker's enemy through its task exit callback.
+///
+/// spawnArg2 must retain the Enemy that owns this task. enemyDestroy coordinates
+/// enemy/task teardown; the callback makes no access after that call.
+static void _actor150400DestroyPairWalker(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }

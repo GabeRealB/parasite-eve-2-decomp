@@ -70,6 +70,17 @@ enum {
     ACTOR_143000_KEYPAD_HOTSPOT_KEYS     = 5,
 };
 
+/// One-based status rows in the keypad atlas.
+enum {
+    ACTOR_143000_KEYPAD_STATUS_ENTER_PASSWORD = 1,
+    ACTOR_143000_KEYPAD_STATUS_WAIT           = 2,
+    ACTOR_143000_KEYPAD_STATUS_CHECK_PASSWORD = 3,
+    ACTOR_143000_KEYPAD_STATUS_ACCESS_GRANTED = 4,
+    ACTOR_143000_KEYPAD_STATUS_CONNECT_HOST   = 5,
+    ACTOR_143000_KEYPAD_STATUS_CHECK_DATABASE = 6,
+    ACTOR_143000_KEYPAD_STATUS_TRY_AGAIN      = 7,
+};
+
 /// Keypad atlas, screen grid and dog motion units, private to this drawer and input.
 enum {
     ACTOR_143000_KEYPAD_TEXTURE_PAGE                 = 0x16,
@@ -162,11 +173,11 @@ extern ActionPromptHotspot D_actor_143000_80134580[];
 extern const char*         D_actor_143000_801345F8[3];
 
 static void _actionPromptResetDefault(Task* task);
-static void func_actor_143000_80132A04(Task* arg0);
+static void _actor143000CheckKeypadCode(Task* task);
 static void _actor143000ArmKeypadCursor(Task* task);
 static void _actor143000OpenKeypadCommands(Task* task);
-static void func_actor_143000_801336E8(Task* arg0);
-static void func_actor_143000_80133800(Task* arg0);
+static void _actor143000HandleKeypadCommand(Task* task);
+static void _actor143000CloseKeypad(Task* task);
 static void _actor143000ResumeKeypadInput(Task* task);
 static void _actor143000TypeKeypadKey(Task* task);
 static void _actor143000AutoTypeKeypadCode(Task* task);
@@ -339,7 +350,7 @@ Actor143000CaptureArgs D_actor_143000_80135090 = { { 129, 39, 164, 90 }, 10, 0 }
 
 Actor143000CaptureArgs D_actor_143000_801350A0 = { { 38, 138, 250, 75 }, 8, 0 };
 
-static void func_actor_143000_801324C8(Task* arg0);
+static void _actor143000InitializeKeypad(Task* task);
 static void _actor143000HandleKeypadInput(Task* task);
 static void _actor143000DrawKeypad(Task* task);
 
@@ -347,45 +358,63 @@ static void _actor143000DrawKeypad(Task* task);
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
-static void func_actor_143000_801324C8(Task* arg0)
+/// Allocates the keypad work, starts its cursor and takes menu presentation.
+///
+/// Saves the current view, selects keypad view 11, clears old hotspot hits and
+/// holds/hides the player and HUD. The cursor task is retained in spawnArg2;
+/// keypad teardown releases the hold and ends it. Work allocation failure kills
+/// the keypad task and returns before acquiring the hold.
+static void _actor143000InitializeKeypad(Task* task)
 {
-    _Actor143000KeypadWork* work;
-    ActionPromptHotspot*    p;
-    u8                      temp_a0;
+    /// Clears hit latches through the first hotspot sentinel.
+    ///
+    /// Captures and advances hotspot, which must reach a writable table ending
+    /// with ACTION_PROMPT_HOTSPOT_END; expands to one conditional statement.
+#define ACTOR_143000_CLEAR_KEYPAD_HITS()                    \
+    if (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {         \
+        do {                                                \
+            hotspot->hit = 0;                               \
+            hotspot++;                                      \
+        } while (hotspot->id != ACTION_PROMPT_HOTSPOT_END); \
+    }
 
-    p    = D_actor_143000_80134580;
-    work = memCalloc(sizeof(_Actor143000KeypadWork), false);
+    enum {
+        ACTOR_143000_KEYPAD_VIEW = 11,
+    };
+
+    _Actor143000KeypadWork* work;
+    ActionPromptHotspot*    hotspot;
+    u8                      previousView;
+
+    hotspot = D_actor_143000_80134580;
+    work    = memCalloc(sizeof(_Actor143000KeypadWork), false);
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
-    arg0->spawnArg2.pointer                                    = taskSpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
-    arg0->work                                                 = work;
-    temp_a0                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xB;
-    D_actor_143000_80135C0C                                    = temp_a0;
-    arg0->state                                               += 1;
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(&D_actor_143000_80134558, 0, 1, 0);
+    task->work                                                 = work;
+    previousView                                               = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_143000_KEYPAD_VIEW;
+    D_actor_143000_80135C0C                                    = previousView;
+    task->state                                               += ACTOR_143000_KEYPAD_STATE_ARM_CURSOR - ACTOR_143000_KEYPAD_STATE_INITIALIZE;
     work->field_4                                              = 0;
     displayAcquireMenuHold();
-    // Clear hits left on the table before the prompt scan starts.
-    if (p->id != ACTION_PROMPT_HOTSPOT_END) {
-        do {
-            p->hit = 0;
-            p++;
-        } while (p->id != ACTION_PROMPT_HOTSPOT_END);
-    }
+    ACTOR_143000_CLEAR_KEYPAD_HITS();
     work->keypadExamined       = 0;
-    work->statusLine           = 1;
+    work->statusLine           = ACTOR_143000_KEYPAD_STATUS_ENTER_PASSWORD;
     work->resultBanner         = ACTOR_143000_KEYPAD_BANNER_NONE;
-    work->marqueeX             = 0xA00;
+    work->marqueeX             = ACTOR_143000_KEYPAD_DOG_START_X;
     work->codeAccepted         = 0;
     work->codeLength           = 0;
-    work->marqueeSpeed         = 0x10;
+    work->marqueeSpeed         = ACTOR_143000_KEYPAD_DOG_IDLE_SPEED;
     work->field_1A             = 0;
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+
+#undef ACTOR_143000_CLEAR_KEYPAD_HITS
 }
 
 /// Handles keypad cursor input and queues hovered-key highlights.
@@ -511,127 +540,158 @@ const char D_actor_143000_80131E74[] = "0123456789-# ";
 /// State table of the actor's callback, `_actor143000KeypadTask`, which
 /// copies it onto its stack and indexes it with `Task::state`.
 static const TaskFuncTable11 D_actor_143000_80131E84 = { {
-    func_actor_143000_801324C8,
+    _actor143000InitializeKeypad,
     _actor143000ArmKeypadCursor,
     _actor143000HandleKeypadInput,
     _actor143000OpenKeypadCommands,
-    func_actor_143000_801336E8,
-    func_actor_143000_80133800,
+    _actor143000HandleKeypadCommand,
+    _actor143000CloseKeypad,
     _actor143000ResumeKeypadInput,
-    func_actor_143000_80132A04,
+    _actor143000CheckKeypadCode,
     _actor143000TypeKeypadKey,
     _actor143000AutoTypeKeypadCode,
     _actor143000WaitForKeypadFade,
 } };
 
-/// The codes `func_actor_143000_80132A04` accepts; the second only while
+/// The codes `_actor143000CheckKeypadCode` accepts; the second only while
 /// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is non-zero.
 static const char D_actor_143000_80131EB0[] = "A3EILM2S2Y";
 static const char D_actor_143000_80131EBC[] = "YSD";
 
-static void func_actor_143000_80132A04(Task* arg0)
+/// Checks the entered password and presents its answer through tick 330.
+///
+/// Requires initialized work and a NUL-terminated entry; start killCountdown at
+/// zero to latch acceptance. The secondary password is accepted only in a demo.
+/// Rejection clears the entry and resumes input. Acceptance starts a 15-tick
+/// fade to black and selects the closing wait. The signed-halfword counter is
+/// incremented after either transition, including after loading the fade length.
+static void _actor143000CheckKeypadCode(Task* task)
 {
+    enum {
+        ACTOR_143000_KEYPAD_CHECK_TICK_BEGIN                = 0,
+        ACTOR_143000_KEYPAD_CHECK_TICK_CHECK                = 60,
+        ACTOR_143000_KEYPAD_CHECK_TICK_CHECK_FIRST_DOT      = 70,
+        ACTOR_143000_KEYPAD_CHECK_TICK_CHECK_SECOND_DOT     = 80,
+        ACTOR_143000_KEYPAD_CHECK_TICK_CHECK_FULL           = 90,
+        ACTOR_143000_KEYPAD_CHECK_TICK_RESULT_BANNER        = 120,
+        ACTOR_143000_KEYPAD_CHECK_TICK_RESULT_TEXT          = 150,
+        ACTOR_143000_KEYPAD_CHECK_TICK_DATABASE_FIRST_DOT   = 160,
+        ACTOR_143000_KEYPAD_CHECK_TICK_DATABASE_SECOND_DOT  = 170,
+        ACTOR_143000_KEYPAD_CHECK_TICK_DATABASE_FULL        = 180,
+        ACTOR_143000_KEYPAD_CHECK_TICK_SECOND_REJECT_BANNER = 210,
+        ACTOR_143000_KEYPAD_CHECK_TICK_FINAL_TEXT           = 240,
+        ACTOR_143000_KEYPAD_CHECK_TICK_FINISH               = 330,
+        ACTOR_143000_KEYPAD_STATUS_WIDTH_PREFIX             = 124,
+        ACTOR_143000_KEYPAD_STATUS_WIDTH_FIRST_DOT          = 131,
+        ACTOR_143000_KEYPAD_STATUS_WIDTH_SECOND_DOT         = 138,
+        ACTOR_143000_KEYPAD_STATUS_WIDTH_FULL               = 0,
+        ACTOR_143000_KEYPAD_FADE_FRAMES                     = 15,
+        ACTOR_143000_KEYPAD_FADE_BANK                       = 1,
+        ACTOR_143000_KEYPAD_FADE_SLOT                       = 49,
+    };
+
     _Actor143000KeypadWork* work;
 
-    work = arg0->work;
-    if (arg0->killCountdown == 0) {
-        s32 var_s2 = 0;
+    work = task->work;
+    if (task->killCountdown == 0) {
+        s32 accepted = 0;
 
         if ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EB0) == 0) || ((strcmp(D_actor_143000_80135C20, D_actor_143000_80131EBC) == 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0))) {
-            var_s2 = 1;
+            accepted = 1;
         }
-        work->codeAccepted = var_s2;
+        work->codeAccepted = accepted;
     }
+    // Advance the timed password/database status sequence for the latched result.
     if (work->codeAccepted != 0) {
-        switch (arg0->killCountdown) {
-            case 0:
-                work->statusLine = 2;
+        switch (task->killCountdown) {
+            case ACTOR_143000_KEYPAD_CHECK_TICK_BEGIN:
+                work->statusLine = ACTOR_143000_KEYPAD_STATUS_WAIT;
                 break;
-            case 0x3C:
-                work->statusLine  = 3;
-                work->statusWidth = 0x7C;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_CHECK:
+                work->statusLine  = ACTOR_143000_KEYPAD_STATUS_CHECK_PASSWORD;
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_PREFIX;
                 break;
-            case 0x46:
-                work->statusWidth = 0x83;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_CHECK_FIRST_DOT:
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_FIRST_DOT;
                 break;
-            case 0x50:
-                work->statusWidth = 0x8A;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_CHECK_SECOND_DOT:
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_SECOND_DOT;
                 break;
-            case 0x5A:
-                work->statusWidth = 0;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_CHECK_FULL:
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_FULL;
                 break;
-            case 0x78:
+            case ACTOR_143000_KEYPAD_CHECK_TICK_RESULT_BANNER:
                 sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_ACCEPTED, 0, 0);
                 work->resultBanner = ACTOR_143000_KEYPAD_BANNER_ACCEPTED;
                 break;
-            case 0x96:
-                work->statusLine   = 4;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_RESULT_TEXT:
+                work->statusLine   = ACTOR_143000_KEYPAD_STATUS_ACCESS_GRANTED;
                 work->resultBanner = ACTOR_143000_KEYPAD_BANNER_NONE;
                 break;
-            case 0xF0:
-                work->statusLine = 5;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_FINAL_TEXT:
+                work->statusLine = ACTOR_143000_KEYPAD_STATUS_CONNECT_HOST;
                 break;
-            case 0x14A:
-                arg0->state = 0xA;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_FINISH:
+                task->state = ACTOR_143000_KEYPAD_STATE_WAIT_FADE;
                 // Fade to black, and stay in the closing state for as long as the ramp takes.
                 D_actor_143000_80135C08.blend      = SCREEN_FADE_SUBTRACT;
                 D_actor_143000_80135C08.phase      = SCREEN_FADE_RUNNING;
-                D_actor_143000_80135C08.rampFrames = 0xF;
-                arg0->killCountdown                = 0xF;
-                taskSpawn(1, 0x31, 0, &D_actor_143000_80135C08);
+                D_actor_143000_80135C08.rampFrames = ACTOR_143000_KEYPAD_FADE_FRAMES;
+                task->killCountdown                = ACTOR_143000_KEYPAD_FADE_FRAMES;
+                taskSpawn(ACTOR_143000_KEYPAD_FADE_BANK, ACTOR_143000_KEYPAD_FADE_SLOT, 0, &D_actor_143000_80135C08);
                 break;
         }
     } else {
-        switch (arg0->killCountdown) {
-            case 0:
-                work->statusLine = 2;
+        switch (task->killCountdown) {
+            case ACTOR_143000_KEYPAD_CHECK_TICK_BEGIN:
+                work->statusLine = ACTOR_143000_KEYPAD_STATUS_WAIT;
                 break;
-            case 0x3C:
-                work->statusLine  = 3;
-                work->statusWidth = 0x7C;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_CHECK:
+                work->statusLine  = ACTOR_143000_KEYPAD_STATUS_CHECK_PASSWORD;
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_PREFIX;
                 break;
-            case 0x46:
-                work->statusWidth = 0x83;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_CHECK_FIRST_DOT:
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_FIRST_DOT;
                 break;
-            case 0x50:
-                work->statusWidth = 0x8A;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_CHECK_SECOND_DOT:
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_SECOND_DOT;
                 break;
-            case 0x5A:
-                work->statusWidth = 0;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_CHECK_FULL:
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_FULL;
                 break;
-            case 0x78:
+            case ACTOR_143000_KEYPAD_CHECK_TICK_RESULT_BANNER:
                 sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_CODE_REJECTED, 0, 0);
                 work->resultBanner = ACTOR_143000_KEYPAD_BANNER_REJECTED;
                 break;
-            case 0x96:
-                work->statusLine   = 6;
-                work->statusWidth  = 0x7C;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_RESULT_TEXT:
+                work->statusLine   = ACTOR_143000_KEYPAD_STATUS_CHECK_DATABASE;
+                work->statusWidth  = ACTOR_143000_KEYPAD_STATUS_WIDTH_PREFIX;
                 work->resultBanner = ACTOR_143000_KEYPAD_BANNER_NONE;
                 break;
-            case 0xA0:
-                work->statusWidth = 0x83;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_DATABASE_FIRST_DOT:
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_FIRST_DOT;
                 break;
-            case 0xAA:
-                work->statusWidth = 0x8A;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_DATABASE_SECOND_DOT:
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_SECOND_DOT;
                 break;
-            case 0xB4:
-                work->statusWidth = 0;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_DATABASE_FULL:
+                work->statusWidth = ACTOR_143000_KEYPAD_STATUS_WIDTH_FULL;
                 break;
-            case 0xD2:
+            case ACTOR_143000_KEYPAD_CHECK_TICK_SECOND_REJECT_BANNER:
                 work->resultBanner = ACTOR_143000_KEYPAD_BANNER_REJECTED;
                 break;
-            case 0xF0:
-                work->statusLine   = 7;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_FINAL_TEXT:
+                work->statusLine   = ACTOR_143000_KEYPAD_STATUS_TRY_AGAIN;
                 work->resultBanner = ACTOR_143000_KEYPAD_BANNER_NONE;
                 break;
-            case 0x14A:
-                work->statusLine = 1;
+            case ACTOR_143000_KEYPAD_CHECK_TICK_FINISH:
+                work->statusLine = ACTOR_143000_KEYPAD_STATUS_ENTER_PASSWORD;
                 work->codeLength = 0;
-                arg0->state      = 2;
+                task->state      = ACTOR_143000_KEYPAD_STATE_INPUT;
                 break;
         }
     }
-    arg0->killCountdown = (s16)((u16)arg0->killCountdown + 1);
+    task->killCountdown = (s16)((u16)task->killCountdown + 1);
 }
 
 /// Draws the keypad entry, status, result banner and animated dog each frame.
@@ -821,67 +881,94 @@ static void _actor143000OpenKeypadCommands(Task* task)
     task->state = ACTOR_143000_KEYPAD_STATE_HANDLE_COMMAND;
 }
 
-static void func_actor_143000_801336E8(Task* arg0)
+/// Applies the latched hotspot's command result and chooses the next keypad state.
+///
+/// Requires initialized work and selectedHotspot from the input handler.
+/// Accepted description commands return to input; Enter starts validation and
+/// examining the keys enables typing, or auto-typing at laboratory progress 1.
+/// The subtract-one signed-halfword switch preserves the hotspot id conversion.
+/// An unaccepted command may visit the unused resume state via field_4.
+static void _actor143000HandleKeypadCommand(Task* task)
 {
-    _Actor143000KeypadWork* work   = arg0->work;
+    enum {
+        ACTOR_143000_KEYPAD_CAP_STATUS         = 8,
+        ACTOR_143000_KEYPAD_CAP_SURROUND       = 7,
+        ACTOR_143000_KEYPAD_CAP_ENTRY          = 9,
+        ACTOR_143000_KEYPAD_CAP_KEYS           = 10,
+        ACTOR_143000_KEYPAD_AUTO_TYPE_INTERVAL = 10,
+    };
+
+    _Actor143000KeypadWork* work   = task->work;
     ActionPrompt*           prompt = D_80114D28;
 
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
         switch ((s16)(work->selectedHotspot - 1)) {
-            case 0:
-                capRunCommand(8, CAP_PLAYBACK_IN_PLACE);
+            case ACTOR_143000_KEYPAD_HOTSPOT_STATUS - 1:
+                capRunCommand(ACTOR_143000_KEYPAD_CAP_STATUS, CAP_PLAYBACK_IN_PLACE);
                 break;
-            case 1:
-                capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
+            case ACTOR_143000_KEYPAD_HOTSPOT_SURROUND - 1:
+                capRunCommand(ACTOR_143000_KEYPAD_CAP_SURROUND, CAP_PLAYBACK_IN_PLACE);
                 break;
-            case 3:
-                capRunCommand(9, CAP_PLAYBACK_IN_PLACE);
+            case ACTOR_143000_KEYPAD_HOTSPOT_ENTRY - 1:
+                capRunCommand(ACTOR_143000_KEYPAD_CAP_ENTRY, CAP_PLAYBACK_IN_PLACE);
                 break;
-            case 2:
+            case ACTOR_143000_KEYPAD_HOTSPOT_ENTER - 1:
                 sndEvtRequestScriptStart(SOUND_SHELTER_B2_LAB_KEYPAD_ENTER, 0, 0);
-                arg0->state         = 7;
-                arg0->killCountdown = 0;
+                task->state         = ACTOR_143000_KEYPAD_STATE_CHECK_CODE;
+                task->killCountdown = 0;
                 return;
-            case 4:
+            case ACTOR_143000_KEYPAD_HOTSPOT_KEYS - 1:
                 work->keypadExamined = 1;
-                capRunCommand(0xA, CAP_PLAYBACK_IN_PLACE);
+                capRunCommand(ACTOR_143000_KEYPAD_CAP_KEYS, CAP_PLAYBACK_IN_PLACE);
                 if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 1) {
-                    arg0->killCountdown = 0xA;
-                    arg0->state         = 9;
+                    task->killCountdown = ACTOR_143000_KEYPAD_AUTO_TYPE_INTERVAL;
+                    task->state         = ACTOR_143000_KEYPAD_STATE_AUTO_TYPE_CODE;
                     return;
                 }
                 break;
             default:
                 break;
         }
-        arg0->state = 2;
+        task->state = ACTOR_143000_KEYPAD_STATE_INPUT;
     } else if (work->field_4 != 0) {
-        arg0->state = 6;
+        task->state = ACTOR_143000_KEYPAD_STATE_RESUME_INPUT;
     } else {
-        arg0->state = 2;
+        task->state = ACTOR_143000_KEYPAD_STATE_INPUT;
     }
 }
 
-static void func_actor_143000_80133800(Task* arg0)
+/// Releases keypad presentation and requests deferred keypad teardown.
+///
+/// Requires live keypad work and its cursor task. Rejection restores the saved
+/// view, player drawing, HUD and actor control, with ten eligible interaction
+/// updates before rearming. Acceptance passes the persistent fade record to
+/// the terminal session. The cursor is killed first; keypad work remains live
+/// for the enclosing task's final draw until kill polling releases it.
+static void _actor143000CloseKeypad(Task* task)
 {
-    _Actor143000KeypadWork* work = arg0->work;
+    enum {
+        ACTOR_143000_KEYPAD_INTERACTION_REARM_UPDATES = 10,
+        ACTOR_143000_TERMINAL_TASK_SLOT               = 1,
+    };
+
+    _Actor143000KeypadWork* work = task->work;
 
     displayReleaseMenuHold();
     gGameSession->cutsceneHold = 0;
     if (work->codeAccepted == 0) {
-        D_80114D08                                                 = 0xA;
+        D_80114D08                                                 = ACTOR_143000_KEYPAD_INTERACTION_REARM_UPDATES;
         gGameSession->eventState                                   = 0;
         gGameSession->hideHud                                      = 0;
         gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = D_actor_143000_80135C0C;
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
     } else {
-        taskSpawnFromTable(D_actor_143000_801350B0, 1, 0, &D_actor_143000_80135C08);
+        taskSpawnFromTable(D_actor_143000_801350B0, ACTOR_143000_TERMINAL_TASK_SLOT, 0, &D_actor_143000_80135C08);
     }
-    taskKill(arg0->spawnArg2.pointer);
-    taskRequestKill(arg0, work->codeAccepted);
+    taskKill(task->spawnArg2.pointer);
+    taskRequestKill(task, work->codeAccepted);
 }
 
 /// Returns the keypad to cursor input after clearing its unused work value.

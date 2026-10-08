@@ -67,3 +67,5 @@ _actorRenderWalkerFrame = 0x80132434; // type:func
 _actor150400SlidingModelTask = 0x80131e24; // type:func
 _actor150400IgnorePairWalkCommand = 0x801327ec; // type:func
 _actor150400PairWalkSetWalkTarget = 0x801327f4; // type:func
+_actor150400SetSlidingModelState = 0x80131f9c; // type:func
+_actor150400DestroyPairWalker = 0x801324b8; // type:func

@@ -45,3 +45,4 @@ _actor120500PostBodyRequest = 0x801328e0; // type:func
 _actor120500PostScreenRequest = 0x80132900; // type:func
 _actor120500SkipScene = 0x80132920; // type:func
 _actor120500SetModelDraw = 0x80132a04; // type:func
+_actor120500InitBody = 0x801322a0; // type:func

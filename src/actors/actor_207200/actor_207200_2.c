@@ -221,6 +221,14 @@ static __inline__ void _actor207200CreepingStrangerApplyRootScale(GfxCoord* root
     rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
+/// Rig parts used by head loss and shattering, and the body's post-loss hit delay.
+enum {
+    ACTOR_207200_CREEPING_STRANGER_HEAD_PART           = 3,
+    ACTOR_207200_CREEPING_STRANGER_ARM_PART            = 5,
+    ACTOR_207200_CREEPING_STRANGER_LEG_PART            = 2,
+    ACTOR_207200_CREEPING_STRANGER_HEAD_LOSS_HIT_DELAY = 20,
+};
+
 /// Shift of this enemy placement's instance tag within a sound-script request.
 enum { ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT = 8 };
 
@@ -228,12 +236,12 @@ static void            _actor207200CreepingStrangerSpawnState(Enemy* enemy, Task
 static void            _actor207200CreepingStrangerDormantTick(Task* task);
 static void            _actor207200CreepingStrangerActiveTick(Task* task);
 static __inline__ void _actor207200CreepingStrangerTickAnimation(Task* task);
-static void            func_actor_207200_8014C870(Task* arg0, s32 arg1);
+static void            _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage);
 static s32             _actor207200CreepingStrangerMeasurePlayer(GfxCoord* reference, u32* rangeOut);
 static void            func_actor_207200_8014CA84(Enemy* arg0, Task* arg1);
 static void            func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1);
-static void            func_actor_207200_8014CFEC(Task* arg0);
-static void            func_actor_207200_8014D128(Task* arg0);
+static void            _actor207200CreepingStrangerBurstHead(Task* task);
+static void            _actor207200CreepingStrangerBurstRandomPart(Task* task);
 static void            _actor207200CreepingStrangerConsumeReactions(Task* task);
 static void            _actor207200CreepingStrangerUpdateBehavior(Task* task);
 static void            _actor207200CreepingStrangerStepForward(Task* task);
@@ -1151,7 +1159,7 @@ static void _actor207200CreepingStrangerActiveTick(Task* task)
 /// `headLost` is set and then starts the death state, 3 pushes the model out of
 /// the record's radius. Unless `headLost` is set, each 0x20000 record of
 /// `headContacts` applies damage too, and some ids end the tick through
-/// `func_actor_207200_8014D128` / `8014CFEC`. The tables and, past the delay
+/// `_actor207200CreepingStrangerBurstRandomPart` / `_actor207200CreepingStrangerBurstHead`. The tables and, past the delay
 /// stage of `activeStage`, the two attack contacts are cleared last.
 static void func_actor_207200_8014BEF4(Task* arg0)
 {
@@ -1315,7 +1323,7 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                     effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 2, NULL);
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     worldTargetAddReadoutAmount(&enemy->node, D_actor_207200_8014E7D4.hpMax * 2 + (u16)((gRandomLcgState >> 16) % 100), 0);
-                    func_actor_207200_8014D128(arg0);
+                    _actor207200CreepingStrangerBurstRandomPart(arg0);
                     work->hasBurst = 1;
                     arg0->state++;
                     return;
@@ -1327,11 +1335,11 @@ static void func_actor_207200_8014BEF4(Task* arg0)
                          work->state == ACTOR_207200_STATE_STATUS_HOLD) &&
                         damage != 0) {
                         damageAccumulateLifeDrainHp(enemy, work->headContacts[i].key.value, damage, 0);
-                        func_actor_207200_8014CFEC(arg0);
+                        _actor207200CreepingStrangerBurstHead(arg0);
                         return;
                     }
                     damageAccumulateLifeDrainHp(enemy, work->headContacts[i].key.value, damage, 0);
-                    func_actor_207200_8014C870(arg0, damage);
+                    _actor207200CreepingStrangerApplyHeadDamage(arg0, damage);
                     effectSpawnHit(damageGetPlayerAttackEffectId(work->headContacts[i].key.value),
                                    arg0->extra.tmd->coords + 3, &D_actor_207200_80153F08, &work->headHitEffectArg);
                     n = damageGetPlayerAttackHitCooldown(work->headContacts[i].key.value);
@@ -1361,43 +1369,65 @@ static void func_actor_207200_8014BEF4(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor207200ContactScratch);
 }
 
-/// Ticks the shatter timers the enemy runs while it dies. Every time a timer
-/// runs out the work is armed with a fresh sound effect - one per stage of the
-/// death animation - and the frame it is handed plays.
-static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
+/// Applies a head hit, recoiling from idle or removing the head at zero HP.
+///
+/// Requires the live enemy in spawnArg2 and initialized Creeping Stranger work.
+/// Damage narrows through the HP halfword and is reported to the target readout.
+/// First lethal damage leaves one HP, disables both attacks, unlinks the head,
+/// switches hit records to the body and starts a twenty-tick hit delay. A
+/// survived idle hit requests recoil and stops forward motion; other survived
+/// hits only voice the hit. Calls can change task payloads, so sound instance
+/// tags are read again after the HP/readout operations.
+static void _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage)
 {
+    /// Voices one head-hit outcome for the current enemy placement.
+    ///
+    /// scriptId is evaluated once. Captures task, rootCoord and writable
+    /// soundEnemy/soundId; the root must have a composed audio frame. Reloads
+    /// the Enemy after damage callbacks and expands to standalone statements.
+#define ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND(scriptId)                                                                          \
+    soundEnemy = task->spawnArg2.pointer;                                                                                                 \
+    soundId    = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_207200_CREEPING_STRANGER_SOUND_INSTANCE_SHIFT) | (scriptId); \
+    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
+
+    enum {
+        ACTOR_207200_CREEPING_STRANGER_SOUND_HEAD_LOSS   = 0x40480003,
+        ACTOR_207200_CREEPING_STRANGER_SOUND_IDLE_RECOIL = 0x40480006,
+        ACTOR_207200_CREEPING_STRANGER_SOUND_HIT         = 0x40480001,
+    };
+
     _Actor207200CreepingStrangerWork* work;
-    Enemy*                            ctx;
-    GfxCoord*                         coord;
-    EffectSpawnArg*                   effArg;
-    s32                               snd;
+    Enemy*                            enemy;
+    GfxCoord*                         rootCoord;
+    EffectSpawnArg*                   headLossArg;
+    Enemy*                            soundEnemy;
+    s32                               soundId;
 
-    work  = arg0->work;
-    ctx   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    enemy     = task->spawnArg2.pointer;
+    rootCoord = task->extra.tmd->coords;
 
-    ctx->hp = (s16)((u16)ctx->hp - arg1);
-    worldTargetAddReadoutAmount(&ctx->node, arg1, 0);
-    if ((s16)ctx->hp <= 0) {
+    enemy->hp = (s16)((u16)enemy->hp - damage);
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    // A lethal head hit leaves one HP for a later hit on the headless body.
+    if ((s16)enemy->hp <= 0) {
         if (work->headLost == 0) {
-            ctx->hp = 1;
-            snd     = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480003;
-            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            effArg = &work->headLossEffectArg;
-            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
-            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
+            enemy->hp = 1;
+            ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_HEAD_LOSS);
+            headLossArg = &work->headLossEffectArg;
+            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &D_actor_207200_80153F18, headLossArg);
+            effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &D_actor_207200_80153F18, headLossArg);
             work->frontAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->sideAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             worldCollisionUnlinkBody(&work->headBody);
             work->headLost      = 1;
-            ctx->recs           = work->bodyContacts;
+            enemy->recs         = work->bodyContacts;
             work->deathPhase    = ACTOR_207200_DEATH_PHASE_BEGIN;
-            arg0->killCountdown = 0x14;
+            task->killCountdown = ACTOR_207200_CREEPING_STRANGER_HEAD_LOSS_HIT_DELAY;
         }
     } else {
         if (work->animId == ACTOR_207200_ANIM_IDLE) {
-            snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480006;
-            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_IDLE_RECOIL);
             work->animId        = ACTOR_207200_ANIM_RECOIL;
             work->animFrames    = 0;
             work->state         = ACTOR_207200_STATE_RECOIL;
@@ -1405,9 +1435,10 @@ static void func_actor_207200_8014C870(Task* arg0, s32 arg1)
             work->wakeRequested = 0;
             return;
         }
-        snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40480001;
-        sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND(ACTOR_207200_CREEPING_STRANGER_SOUND_HIT);
     }
+
+#undef ACTOR_207200_CREEPING_STRANGER_PLAY_HEAD_SOUND
 }
 
 /// Applies a changed animation request or advances the six animated parts.
@@ -1568,72 +1599,90 @@ static s32 _actor207200CreepingStrangerMeasurePlayer(GfxCoord* reference, u32* r
     return playerBearing;
 }
 
-/// Spawns the pair of effects that carry this actor's death animation, hands
-/// the spawned task `_gActor207200CreepingStrangerBurstHead` as its setup argument, arms the
-/// two timers on the work area and unlinks its third display object.
-static void func_actor_207200_8014CFEC(Task* arg0)
+/// Bursts the Creeping Stranger's head on a critical head hit, leaving one HP.
+///
+/// Requires live enemy/work/model and loaded burst-head resources. Reports HP
+/// minus one, spawns the head model with copied textures and two splatter effects,
+/// then requests recoil, redirects hit records to the body and unlinks the head.
+/// A twenty-tick delay protects the body; behavior state and forwardSpeed are
+/// retained. The bank-8 burst descriptor is selected before the synchronous spawn.
+static void _actor207200CreepingStrangerBurstHead(Task* task)
 {
-    EffectSpawnArg*                   effArg;
-    EffectWork*                       effect;
+    EffectSpawnArg*                   headLossArg;
+    EffectWork*                       burstEffect;
     _Actor207200CreepingStrangerWork* work;
-    Enemy*                            ctx;
+    Enemy*                            enemy;
 
-    work = arg0->work;
-    ctx  = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
 
-    effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords, 0, NULL);
-    worldTargetAddReadoutAmount(&ctx->node, ctx->hp - 1, 0);
-    D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstHead;
-    effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
-    if (effect != NULL) {
-        _actor207200CreepingStrangerCopyBurstTextures(effect->task, arg0);
+    effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords, 0, NULL);
+    worldTargetAddReadoutAmount(&enemy->node, enemy->hp - 1, 0);
+    D_800626EC[EFFECT_BURST_BODY_PART_BANK8 & 0xFFFF].data.model = &_gActor207200CreepingStrangerBurstHead;
+    burstEffect                                                  = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, 0, NULL);
+    if (burstEffect != NULL) {
+        _actor207200CreepingStrangerCopyBurstTextures(burstEffect->task, task);
     }
-    effArg = &work->headLossEffectArg;
-    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
-    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, arg0->extra.tmd->coords + 3, &D_actor_207200_80153F18, effArg);
+    headLossArg = &work->headLossEffectArg;
+    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &D_actor_207200_80153F18, headLossArg);
+    effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, &D_actor_207200_80153F18, headLossArg);
+    // Critical head loss redirects later hits without selecting a new behavior state.
     work->headBurst       = 1;
     work->animId          = ACTOR_207200_ANIM_RECOIL;
     work->headLost        = 1;
-    ctx->recs             = work->bodyContacts;
-    ctx->hp               = 1;
+    enemy->recs           = work->bodyContacts;
+    enemy->hp             = 1;
     work->headBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionUnlinkBody(&work->headBody);
-    arg0->killCountdown = 0x14;
+    task->killCountdown = ACTOR_207200_CREEPING_STRANGER_HEAD_LOSS_HIT_DELAY;
 }
 
-static void func_actor_207200_8014D128(Task* arg0)
+/// Spawns a random Creeping Stranger burst part and head/leg gravity particles.
+///
+/// Requires the live seven-part model and loaded burst resources. One LCG step
+/// selects head with probability one half, arm or leg with one quarter each.
+/// The bank-8 descriptor is set before synchronous spawn, and a successful model
+/// effect receives the actor's texture offsets. Two gravity particles use speed
+/// 768 in their normalized-direction step. The caller selects death and hasBurst.
+static void _actor207200CreepingStrangerBurstRandomPart(Task* task)
 {
-    EffectWork* effect;
-    s32         r;
+    /// Selects and spawns a part model, then copies its texture placement.
+    ///
+    /// Each argument is evaluated once. Captures task and writable burstEffect;
+    /// modelSource and the rig part must remain loaded for the spawned effect.
+    /// Spawn reads the descriptor synchronously. Expands to standalone statements.
+#define ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(modelSource, partIndex)                                                                               \
+    D_800626EC[EFFECT_BURST_BODY_PART_BANK8 & 0xFFFF].data.model = (modelSource);                                                                             \
+    burstEffect                                                  = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, task->extra.tmd->coords + (partIndex), 0, NULL); \
+    if (burstEffect != NULL) {                                                                                                                                \
+        _actor207200CreepingStrangerCopyBurstTextures(burstEffect->task, task);                                                                               \
+    }
+
+    enum {
+        ACTOR_207200_CREEPING_STRANGER_BURST_PARTICLE_SPEED = 768,
+    };
+
+    EffectWork* burstEffect;
+    s32         partRoll;
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    r               = (gRandomLcgState >> 16) & 3;
-    switch (r) {
+    partRoll        = (gRandomLcgState >> 16) & 3;
+    switch (partRoll) {
         case 0:
         case 1:
-            D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstHead;
-            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 3, 0, NULL);
-            if (effect != NULL) {
-                _actor207200CreepingStrangerCopyBurstTextures(effect->task, arg0);
-            }
+            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstHead, ACTOR_207200_CREEPING_STRANGER_HEAD_PART);
             break;
         case 2:
-            D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstArm;
-            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 5, 0, NULL);
-            if (effect != NULL) {
-                _actor207200CreepingStrangerCopyBurstTextures(effect->task, arg0);
-            }
+            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstArm, ACTOR_207200_CREEPING_STRANGER_ARM_PART);
             break;
         case 3:
-            D_800626EC[5].data.model = &_gActor207200CreepingStrangerBurstLeg;
-            effect                   = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, arg0->extra.tmd->coords + 2, 0, NULL);
-            if (effect != NULL) {
-                _actor207200CreepingStrangerCopyBurstTextures(effect->task, arg0);
-            }
+            ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART(&_gActor207200CreepingStrangerBurstLeg, ACTOR_207200_CREEPING_STRANGER_LEG_PART);
             break;
     }
-    effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 3, 0x300, NULL);
-    effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 2, 0x300, NULL);
+    effectSpawn(EFFECT_030, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_HEAD_PART, ACTOR_207200_CREEPING_STRANGER_BURST_PARTICLE_SPEED, NULL);
+    effectSpawn(EFFECT_030, task->extra.tmd->coords + ACTOR_207200_CREEPING_STRANGER_LEG_PART, ACTOR_207200_CREEPING_STRANGER_BURST_PARTICLE_SPEED, NULL);
+
+#undef ACTOR_207200_CREEPING_STRANGER_SPAWN_BURST_PART
 }
 
 /// Dispatches task states 0 spawn, 1 live and 2 death for the Creeping Stranger.

@@ -176,3 +176,5 @@ _actor206100LaunchShot = 0x8014eec0; // type:func
 _actor206100ShotTask = 0x8014f134; // type:func
 _actor206100Task = 0x8014f428; // type:func
 _actor206100DispatchEntrance = 0x8014f524; // type:func
+_actor206100EntranceRelocateTick = 0x8014cb68; // type:func
+_actor206100DeathSinkTick = 0x8014fde8; // type:func

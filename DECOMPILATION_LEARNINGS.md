@@ -43571,18 +43571,18 @@ block that uses it:
 
 ```c
 if (task->killCountdown == 0) {
-    s32 found = 0;
+    s32 accepted = 0;
 
     if (strcmp(...) == 0 || ...) {
-        found = 1;
+        accepted = 1;
     }
-    work->codeAccepted = found;
+    work->codeAccepted = accepted;
 }
 ```
 
 The saves keep the usual `s3` / `ra` / `s2` / `s1` / `s0` order, and delay-slot
 filling still hoists the zeroing into the `bnez` slot.
-`func_actor_143000_80132A04` is the example.
+`_actor143000CheckKeypadCode` is the example.
 
 ## A call argument chosen by an `if` must be a ternary, not a pre-set local
 
@@ -44054,7 +44054,7 @@ L:  sb    zero,0(v0)
   formed as `base + i` at run time.
 
 Note this is the mirror of the ascending case above, where plain `&arr[i]`
-indexing is the natural form. `func_actor_143000_80133EE4` is the example.
+indexing is the natural form. `_actor143000TerminalSessionTask` is the example.
 
 ## Split a pointer local reused by two switch cases
 
@@ -44063,8 +44063,8 @@ must use **two** locals, even though their live ranges never overlap. Sharing
 one local made GCC 2.8.1 colour it `$a0` in both arms; the target uses `$v0` in
 one and `$v1` in the other, and in the second arm the shared pseudo also pulled
 its `addu` ahead of a neighbouring `sw` (`regs=7 reorder=1`, 99.6%). Declaring
-`u8 *p;` and `u8 *slot;` and using one per arm took the same function to 100%
-with no other edit. `func_actor_143000_80133EE4` is the example.
+`u8 *visitedQuestion;` and `u8 *selectedQuestion;` and using one per arm took the same function to 100%
+with no other edit. `_actor143000TerminalSessionTask` is the example.
 
 ## One temp for both arms of an `if`/`else` can cost a *neighbour* its register
 
@@ -45901,7 +45901,7 @@ differently-typed cast deref. It needs no barrier and changes no global's
 declaration, so try it first when the scalar cannot move and its relocation is
 a direct `%lo(sym)`.
 
-`func_actor_207200_8014CFEC` is the measurement. The target keeps
+`_actor207200CreepingStrangerBurstHead` is the measurement. The target keeps
 
 ```
 lw   v0,0x2c(s3)
@@ -45963,7 +45963,7 @@ clause lives inline in the dependence functions, `sched.c:830/862/890`
 `local-alloc.c` calls `true_dependence` too, so the flag reaches allocation and
 not only scheduling.
 
-`func_actor_107000_801367E0` is the same body as `func_actor_207200_8014CFEC`
+`func_actor_107000_801367E0` is the same body as `_actor207200CreepingStrangerBurstHead`
 under a `switch`, and measures the same remedy on a second schedule. Written
 with the plain cast, `((TmdObject*)index->extra)->coords + 1`, it scores 81.512%
 with the block's structure already perfect (13/13 blocks, 86/86 insns,
@@ -67976,7 +67976,7 @@ order — and all three carry `LAUNCH_PRIORITY` (`7f000001`). Which comparator
 entry sends the fused form's load to the wrong end of that list was not traced.
 The source-level rule above is what reproduces the target.
 
-The sibling `func_actor_206100_8014FDE8` stores through the same chain and shows
+The sibling `_actor206100DeathSinkTick` stores through the same chain and shows
 what that comparator is competing with, because there the block *ends* with the
 store and two halfword counter stores precede it:
 
@@ -81773,10 +81773,10 @@ Input SHA256 (`base_1.i`, the matching candidate):
 
 ## A `(s8)` cast inlined as a call argument is a birthing insn, and sched1 launches it into the call's delay slot
 
-`func_actor_207200_8014C870` enqueues a sound effect in three arms, each as
-`sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord))` with `pan`
+`_actor207200CreepingStrangerApplyHeadDamage` enqueues a sound effect in three arms, each as
+`sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(rootCoord))` with `pan`
 computed by a preceding `worldCoordGetOriginAudioPan` call. Written the obvious way — a `s8 pan`
-local assigned `(s8)worldCoordGetOriginAudioPan(coord)` on its own line — the result is 90.5%:
+local assigned `(s8)worldCoordGetOriginAudioPan(rootCoord)` on its own line — the result is 90.5%:
 the coord-to-`$a0` copy lands in `worldCoordGetOriginAudioDepth`'s delay slot and the pan
 sign-extension is emitted after the call,
 
@@ -81793,7 +81793,7 @@ where the target has the extension *before* the call and its `sra` in the slot:
 Only the source form changes. Inlining the casts as arguments,
 
 ```c
-    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
 ```
 
 scores 100% (0 differences, `blocks=7/7 instructions=133/133`). The `sll`/`sra`
@@ -84784,24 +84784,24 @@ constant (0x9C4 vs 0x180), and `overlay_dup_index.py find` does *not* report it
 `87bfaa16da4b052d859d5adb52c8603d5f192199f2dbca60563a86d7a3ee9797`).
 ## A signed field loaded as `lhu`: cast at the read, do not retype the shared field
 
-`Actor143000` declares `s16 field_2A`, yet the target opens
+`Task` declares `s16 killCountdown`, yet the target opens
 `_actor143000WaitForKeypadFade` with `lhu $v0, 0x2A($a0)`. A plain read emits `lh`,
 so the m2c seed's unsigned read (`M2C_FIELD(index, u16 *, 0x2A)`) had to survive
 translation into struct syntax without changing the header.
 
-The same overlay's already-matched `func_actor_143000_80132A04` settles it: it
+The same overlay's already-matched `_actor143000CheckKeypadCode` settles it: it
 reads that identical field both ways — `lh` at the four sites that test or
-switch on it, and `lhu` at one, `index->field_2A = (s16)((u16)index->field_2A + 1);`.
+switch on it, and `lhu` at one, `task->killCountdown = (s16)((u16)task->killCountdown + 1);`.
 So the cast belongs at the use site and the declared type stays signed; retyping
 the field to `u16` would have flipped four `lh` sites in matched code that shares
 the header.
 
 ```c
-u16 count = (u16)arg0->field_2A - 1;
+u16 count = (u16)task->killCountdown - 1;
 
-arg0->field_2A = count;
+task->killCountdown = count;
 if ((s16)count <= 0) {
-    arg0->field_30 = 5;
+    task->state = 5;
 }
 ```
 
@@ -90930,7 +90930,7 @@ own header rather than casting at the use site. Inputs: `base_1.i`
 
 ### The escape's `QImode` clause puts the hoisted plain load *between* the stores - so only the halfword/word stores need typing
 
-`func_actor_143000_801324C8` is the same rule with the `mem/s` split inside one
+`_actor143000InitializeKeypad` is the same rule with the `mem/s` split inside one
 run of work stores, and it pins down where the freed load comes to rest. m2c's
 cast form is not uniformly plain `mem`: `M2C_FIELD(p, s8*, 7) = 0;` reaches the
 front end's `store_field` path, which sets `MEM_IN_STRUCT_P` (`expr.c:5891`), so
@@ -100204,7 +100204,7 @@ does not look like an argument problem at all. Reading a pointer-valued global
 leaves its `%hi` base register live across the whole block — `lui $a1,
 %hi(gGameSession)` stays in `$a1` because the *same* symbol is read again after
 the call — and if a `jal` lands while it is live, m2c types that register as an
-argument. In `func_actor_143000_80133800` the real call is one-argument
+argument. In `_actor143000CloseKeypad` the real call is one-argument
 `playerActorSetDrawMode(1)` (every matched caller in `src/gameplay/` passes one), but the
 seed emitted
 
@@ -100235,7 +100235,7 @@ branch=1`, exact after dropping the phantom argument. Preprocessed SHA256
 `base.i` `7c9e300c07cc3a79d0262b6de58b81340111f6960474c4f7304519dee69eff0b`,
 `base_1.i` `0feea753586adef0272c43651ee27a00e01bd0352faeace261342751e7bdef62`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Session: `nonmatchings/func_actor_143000_80133800-vacuum` (`base_1_diff`).
+Session: `nonmatchings/_actor143000CloseKeypad-vacuum` (`base_1_diff`).
 
 ## An inline `(u32)` cast zero-extends a 16-bit load; a 32-bit variable keeps it signed
 
@@ -117420,7 +117420,7 @@ asm, so any spelling that emits the `li` in the right block will do.
 
 ## A constant and the `%hi` of a global's own address die by `qty_size`, not by birth order
 
-`func_actor_206100_8014CB68` writes six fields of one global and ends with a
+`_actor206100EntranceRelocateTick` writes six fields of one global and ends with a
 `taskSpawnFromTable` taking that global's address. The target had the constant
 `1` in `$v1` and the `%hi` in `$t0`; every attempt with the two `1` stores in
 declaration order put them the other way round, and swapping two of the six
@@ -149665,7 +149665,7 @@ attempts; left as it was.
 
 - **`cmd = K; goto run;` from two cases into a third's `run: call(cmd); state =
   2; break;`, where the `default` also ends in `state = 2`**
-  (`func_actor_143000_801336E8`). Writing `call(K, 0); arg0->state = 2; break;`
+  (`_actor143000HandleKeypadCommand`). Writing `call(K, 0); task->state = 2; break;`
   in all three keeps the *first* copy of the call and the other two jump
   backward; the image keeps the last. Cause: cross-jumping first merges each
   arm's `state = 2` into the default's, one arm at a time, so when the second
