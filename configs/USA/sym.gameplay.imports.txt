@@ -712,7 +712,7 @@ dryfieldNightBackStreetRoomVisualEffectsSparkBurstTask = 0x8017F6DC; // type:fun
 
 dryfieldNightDilapidatedHouseDrawLightPrismsTask = 0x8017E670; // type:func absolute:True owner=dryfield_night_dilapidated_house
 
-func_dryfield_night_driveway_8017DD8C = 0x8017DD8C; // type:func absolute:True owner=dryfield_night_driveway shared=rooms
+dryfieldNightDrivewayRoomTask = 0x8017DD8C; // type:func absolute:True owner=dryfield_night_driveway shared=rooms
 
 
 dryfieldNightGasStationAmbientEffectsTask = 0x80180E9C; // type:func absolute:True owner=dryfield_night_gas_station
@@ -868,7 +868,7 @@ neoArkIslandRoomVisualEffectsFlashTask = 0x8017FB9C; // type:func absolute:True 
 
 neoArkIslandRoomVisualEffectsTwinTrailTask = 0x80180600; // type:func absolute:True owner=neo_ark_island
 
-func_neo_ark_island_80180EE8 = 0x80180EE8; // type:func absolute:True owner=neo_ark_island
+neoArkIslandRoomVisualEffectsSparkBurstTask = 0x80180EE8; // type:func absolute:True owner=neo_ark_island
 
 neoArkNorthPromenadeRoomVisualEffectsMoteTask = 0x8017D7B0; // type:func absolute:True owner=neo_ark_north_promenade
 
@@ -876,13 +876,13 @@ neoArkNorthPromenadeRoomVisualEffectsHaloTask = 0x8017E4F8; // type:func absolut
 
 neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask = 0x8017E890; // type:func absolute:True owner=neo_ark_north_promenade
 
-func_neo_ark_north_promenade_8017FCA0 = 0x8017FCA0; // type:func absolute:True owner=neo_ark_north_promenade
+neoArkNorthPromenadeRoomVisualEffectsSparkEmitterTask = 0x8017FCA0; // type:func absolute:True owner=neo_ark_north_promenade
 
 neoArkNorthPromenadeRoomVisualEffectsFlashTask = 0x8017FDD4; // type:func absolute:True owner=neo_ark_north_promenade
 
 neoArkNorthPromenadeRoomVisualEffectsTwinTrailTask = 0x80180838; // type:func absolute:True owner=neo_ark_north_promenade
 
-func_neo_ark_north_promenade_80181120 = 0x80181120; // type:func absolute:True owner=neo_ark_north_promenade
+neoArkNorthPromenadeRoomVisualEffectsSparkBurstTask = 0x80181120; // type:func absolute:True owner=neo_ark_north_promenade
 
 neoArkObservatoryGlowTask = 0x80180124; // type:func absolute:True owner=neo_ark_observatory
 

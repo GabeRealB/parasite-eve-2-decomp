@@ -95,7 +95,7 @@ extern RoomFadeStorage gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-static void func_dryfield_night_driveway_8017DCFC(Task* arg0);
+static void _dryfieldNightDrivewayInitializeRoom(Task* task);
 static void _dryfieldNightDrivewayRoomIdle(Task* task);
 
 enum {
@@ -955,7 +955,7 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 
 /// The room task's three states: set up, idle, kill.
 static const TaskFuncTable3 D_dryfield_night_driveway_8017D5D8 = {
-    { func_dryfield_night_driveway_8017DCFC, _dryfieldNightDrivewayRoomIdle, taskKill },
+    { _dryfieldNightDrivewayInitializeRoom, _dryfieldNightDrivewayRoomIdle, taskKill },
 };
 
 #include "../../shared/dryfield_driveway_resolve.inc.c"
@@ -1020,19 +1020,20 @@ static s32 _dryfieldNightDrivewayIgnoreDirectionAction(Task* task, s32 messageId
     return 0;
 }
 
-/// First state of the room task: installs the room's message table and takes
-/// pointer slot 7; when slot 0xA is set and the room was entered by warp 4, it
-/// also hands `D_dryfield_night_driveway_8017FB00` and
-/// `D_dryfield_night_driveway_8017F998` to `evsStartScriptWithSkip`. Then advances the
-/// state.
-static void func_dryfield_night_driveway_8017DCFC(Task* arg0)
+/// Installs the room receiver and starts the companion arrival scene for warp 4.
+///
+/// Advances to idle. The session's room slot borrows the live task; the room
+/// and its normal/skip scripts must remain loaded through event completion.
+static void _dryfieldNightDrivewayInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_dryfield_night_driveway_8017F7A4;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) && (gGameSession->location.loc.warp == 4)) {
+    enum { COMPANION_SCENE_ARRIVAL_WARP = 4 };
+
+    task->msgTable = D_dryfield_night_driveway_8017F7A4;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == COMPANION_SCENE_ARRIVAL_WARP)) {
         evsStartScriptWithSkip(D_dryfield_night_driveway_8017FB00, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_night_driveway_8017F998);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the room task idle after initialization while its message table remains live.
@@ -1044,14 +1045,12 @@ static void _dryfieldNightDrivewayRoomIdle(Task* task)
     byte unusedStackFrame[16];
 }
 
-/// Room task: copies the state table onto the stack and runs the entry for the
-/// task's current state.
-void func_dryfield_night_driveway_8017DD8C(Task* task)
+void dryfieldNightDrivewayRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_driveway_8017D5D8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_driveway_8017D5D8;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_shaft.inc.c"

@@ -100,7 +100,7 @@ extern RoomLatchedEvent gRoomEventLatched;
 enum { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static s32 _neoArkPavilionRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedMessageArg);
-s32        func_neo_ark_pavilion_8017E9F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _neoArkPavilionResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _neoArkPavilionHandleCapCommand(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg);
 static s32 _neoArkPavilionIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedMessageArg);
 
@@ -120,7 +120,7 @@ TaskDesc D_neo_ark_pavilion_80183858 = { { { TASK_BODY_NONE, 192 } }, waterDisto
 TaskDesc D_neo_ark_pavilion_80183864 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_pavilion_80183870[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pavilion_8017E9F4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPavilionResolveRoomTransition },
     { NEO_ARK_PAVILION_MESSAGE_USE_KEY_ITEM, _neoArkPavilionRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPavilionIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkPavilionHandleCapCommand },
@@ -1131,24 +1131,31 @@ static __inline__ s32 _neoArkPavilionStartEvent(const RoomEventMsg* transition, 
     return ROOM_EVENT_ALREADY_SEEN;
 }
 
-/// Room message handler for the pavilion's save location: copies the incoming
-/// record onto the outgoing one and forwards both to `mapNeoArkResolveRoomVariant`. Message
-/// `0xC` builds the room's event record - cap command 4, flag `0x17E` - and
-/// hands it to `_neoArkPavilionStartEvent`; every other message answers 1.
-s32 func_neo_ark_pavilion_8017E9F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves Neo Ark room variants and gates the submarine-tunnel departure scene.
+///
+/// Borrows a complete request and writable reply, which may alias. Returns 1
+/// when no scene is needed and 2 while the one-shot departure scene is eligible.
+/// Eligible execution latches the resolved reply, commits the scene flag and
+/// queues CAP command 4 without a stage sound or fade; queries do not start it.
+/// Requires the map overlay and the room resources through deferred playback.
+static s32 _neoArkPavilionResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
+    enum { TRANSITION_ALLOWED             = 1,
+           CAP_SUBMARINE_TUNNEL_DEPARTURE = 4,
+           DEPARTURE_NO_SOUND             = 0,
+           DEPARTURE_NO_FADE              = 0 };
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    if (in->areaId != GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL) {
-        return 1;
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId != GAME_AREA_NEO_ARK_SUBMARINE_TUNNEL) {
+        return TRANSITION_ALLOWED;
     }
-    event.capCmd   = 4;
-    event.stageSnd = 0;
+    event.capCmd   = CAP_SUBMARINE_TUNNEL_DEPARTURE;
+    event.stageSnd = DEPARTURE_NO_SOUND;
     event.flagId   = GAME_FLAG_PAVILION_TO_SUB_TUNNEL_SCENE;
-    event.fade     = 0;
-    return _neoArkPavilionStartEvent(out, &event);
+    event.fade     = DEPARTURE_NO_FADE;
+    return _neoArkPavilionStartEvent(reply, &event);
 }
 
 /// Selects the pavilion's progress-dependent CAP event for room command 1.

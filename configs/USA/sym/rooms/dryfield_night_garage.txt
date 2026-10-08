@@ -237,7 +237,7 @@ D_dryfield_night_garage_801831B8 = 0x801831B8; // size:0x1C8 defined:True
 
 dryfieldNightGaragePlaceLowCollisionBox = 0x80180414; // type:func
 
-func_dryfield_night_garage_801807E4 = 0x801807E4; // type:func
+dryfieldNightGarageShopDialogueTask = 0x801807E4; // type:func
 
 dryfieldNightGarageDrawGlowsTask = 0x80181518; // type:func
 _shopSelectStockList = 0x8017D754; // type:func
@@ -279,3 +279,5 @@ dryfieldNightGarageCancelScene = 0x80180984; // type:func
 dryfieldNightGarageFindPlacedActor = 0x80180a64; // type:func
 _dryfieldNightGarageCommitRefuelingProgress = 0x80180ab0; // type:func
 _dryfieldNightGarageStartMovieTask = 0x80180d4c; // type:func
+_dryfieldNightGarageHandleRoomAction = 0x801800c8; // type:func
+_dryfieldNightGarageDialogueTask = 0x801809a4; // type:func

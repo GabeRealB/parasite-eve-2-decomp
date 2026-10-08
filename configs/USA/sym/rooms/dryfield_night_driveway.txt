@@ -122,7 +122,7 @@ D_dryfield_night_driveway_8017F378 = 0x8017F378; // size:0x8 defined:True
 D_dryfield_night_driveway_8017F380 = 0x8017F380; // size:0x14 defined:True
 D_dryfield_night_driveway_8017F394 = 0x8017F394; // size:0x14 defined:True
 
-func_dryfield_night_driveway_8017DD8C = 0x8017DD8C; // type:func
+dryfieldNightDrivewayRoomTask = 0x8017DD8C; // type:func
 
 dryfieldNightDrivewayDrawLightShaftsTask = 0x8017E5CC; // type:func
 _glowDrawShaft = 0x8017DDE4; // type:func
@@ -138,3 +138,4 @@ _dryfieldNightDrivewayIgnoreRoomCommand = 0x8017dcec; // type:func
 _dryfieldNightDrivewayIgnoreDirectionAction = 0x8017dcf4; // type:func
 _dryfieldNightDrivewayRoomIdle = 0x8017dd7c; // type:func
 _dryfieldNightDrivewaySetPlayerStateHold = 0x8017dc88; // type:func
+_dryfieldNightDrivewayInitializeRoom = 0x8017dcfc; // type:func

@@ -37,6 +37,10 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_g_r_kitchen_8017EC04[];
 /// space in the current frame's primitive arena and depth ordering table.
 void dryfieldNightGRKitchenDrawLightShaftsTask(Task* unusedTask);
 
-void func_dryfield_night_g_r_kitchen_8017D9A4(Task* task);
+/// Runs the nighttime kitchen's room-message task.
+///
+/// Requires state 0..2: install the receiver, idle while messages handle
+/// requests, then teardown. Keep the room overlay loaded throughout dispatch.
+void dryfieldNightGRKitchenRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_G_R_KITCHEN_H

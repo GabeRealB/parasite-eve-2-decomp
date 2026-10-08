@@ -185,7 +185,7 @@ static void _dryfieldNightGarageResetTallCollisionBox(s32 useYOffset);
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xF0"
 #include "../../shared/shop.h"
 
-s32        func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* firstArg, s32);
+static s32 _dryfieldNightGarageHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32 _dryfieldNightGarageRefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
 static s32 _roomVariantResolveDryfieldMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _dryfieldNightGarageIgnoreCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg);
@@ -199,7 +199,7 @@ TaskDesc D_dryfield_night_garage_80181C2C = { { { TASK_BODY_NONE, 192 } }, _shop
 TaskMessageEntry D_dryfield_night_garage_80181C38[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantResolveDryfieldMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldNightGarageRefuseKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_night_garage_801800C8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGarageHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightGarageIgnoreCommand },
     { ROOM_MESSAGE_SOUND, _garageSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -415,56 +415,92 @@ static void _dryfieldNightGarageInitRoomTask(Task* task)
     task->state++;
 }
 
-s32 func_dryfield_night_garage_801800C8(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Enables the refueled hotspot and disables the preceding refueling hotspot.
+static inline void _dryfieldNightGarageEnableRefueledTriggers(void)
 {
-    const DirectionActionRequest* msg = firstArg;
+    enum { AFTER_REFUELING_TRIGGER  = 3,
+           BEFORE_REFUELING_TRIGGER = 5 };
+    WorldCollisionTrigger* afterRefuelingTrigger;
+    WorldCollisionTrigger* beforeRefuelingTrigger;
 
-    WorldCollisionTrigger* base;
-    WorldCollisionTrigger* obj;
+    afterRefuelingTrigger          = D_dryfield_night_garage_80186D7C + AFTER_REFUELING_TRIGGER;
+    beforeRefuelingTrigger         = afterRefuelingTrigger + (BEFORE_REFUELING_TRIGGER - AFTER_REFUELING_TRIGGER);
+    afterRefuelingTrigger->flags  |= WORLD_COLLISION_TRIGGER_ENABLED;
+    beforeRefuelingTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+}
 
-    if (msg->actionId == 6) {
-        if (gGameSession->location.loc.variant == 2) {
-            if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 0) {
+/// Handles the garage's refueling gate, repeat dialogue and companion interaction.
+///
+/// Borrows `request` synchronously and returns zero. Action 6 in variant 2
+/// checks the master key, container and gasoline before committing refueling,
+/// consuming gasoline and starting the scene; later visits queue shop dialogue.
+/// Action 1 selects CAP playback from its progress flag. Action 2 in variant 3
+/// queues the live companion's interaction. Failed spawns leave player control
+/// held and committed progress intact. Keep the room and actor overlays loaded
+/// through the selected task or script.
+static s32 _dryfieldNightGarageHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
+{
+    enum { ACTION_CAP_DIALOGUE              = 1,
+           ACTION_COMPANION_INTERACTION     = 2,
+           ACTION_REFUELING                 = 6,
+           VARIANT_REFUELING                = 2,
+           VARIANT_COMPANION                = 3,
+           REFUELING_NOT_STARTED            = 0,
+           REFUELING_STARTED                = 1,
+           DIALOGUE_TASK_INDEX              = 0,
+           SHOP_DIALOGUE_TASK_INDEX         = 1,
+           CAP_MISSING_MASTER_KEY           = 6,
+           CAP_MISSING_CONTAINER            = 7,
+           CAP_MISSING_GASOLINE             = 8,
+           CAP_FIRST_SHOP_DIALOGUE          = 10,
+           CAP_LATER_SHOP_DIALOGUE          = 21,
+           CAP_PROGRESS_SEQUENCE_SLOT       = 20,
+           CAP_DEFAULT_DIALOGUE             = 54,
+           COMPANION_INTERACTION_TASK_INDEX = 1,
+           REFUELED_OBJECTIVE               = 23,
+           REFUELED_SCENE_EVENT             = 5 };
+
+    if (request->actionId == ACTION_REFUELING) {
+        if (gGameSession->location.loc.variant == VARIANT_REFUELING) {
+            if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == REFUELING_NOT_STARTED) {
                 if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY) == 0) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 6, 0);
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, DIALOGUE_TASK_INDEX, CAP_MISSING_MASTER_KEY, 0);
                 } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_JERRY_CAN) == 0 && inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 7, 0);
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, DIALOGUE_TASK_INDEX, CAP_MISSING_CONTAINER, 0);
                 } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE) == 0) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 0, 8, 0);
-                } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 0) {
-                    base         = (D_dryfield_night_garage_80186D7C + 3);
-                    obj          = base + 2;
-                    base->flags |= WORLD_COLLISION_TRIGGER_ENABLED;
-                    obj->flags  &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, DIALOGUE_TASK_INDEX, CAP_MISSING_GASOLINE, 0);
+                } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == REFUELING_NOT_STARTED) {
+                    // Commit the hotspots and saved progress before playback can fail.
+                    _dryfieldNightGarageEnableRefueledTriggers();
                     evsStartScriptWithSkip(D_dryfield_night_garage_80182DF8, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                            D_dryfield_night_garage_801831B8);
-                    gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS, 1);
-                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x17);
+                    gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS, REFUELING_STARTED);
+                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, REFUELED_OBJECTIVE);
                     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_GASOLINE);
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = REFUELED_SCENE_EVENT;
                 }
             } else {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == 1) {
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 1, 0xA, 0);
+                if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) == REFUELING_STARTED) {
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, SHOP_DIALOGUE_TASK_INDEX, CAP_FIRST_SHOP_DIALOGUE, 0);
                 } else {
-                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, 1, 0x15, 0);
+                    taskSpawnFromTable(D_dryfield_night_garage_80182C98, SHOP_DIALOGUE_TASK_INDEX, CAP_LATER_SHOP_DIALOGUE, 0);
                 }
             }
         }
     }
-    if (msg->actionId == 1) {
+    if (request->actionId == ACTION_CAP_DIALOGUE) {
         if (gameFlagGetNibble(GAME_FLAG_097) != 0) {
-            capStartSequenceSlot(0x14, 1, 0);
+            capStartSequenceSlot(CAP_PROGRESS_SEQUENCE_SLOT, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
         } else {
-            capSpawnEventIfIdle(0x36, CAP_EVENT_NO_FLAGS);
+            capSpawnEventIfIdle(CAP_DEFAULT_DIALOGUE, CAP_EVENT_NO_FLAGS);
         }
     }
-    if (msg->actionId == 2 && gGameSession->location.loc.variant == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        taskSpawnFromTable(&D_actor_136300_8013B11C, 1, 0, 0);
+    if (request->actionId == ACTION_COMPANION_INTERACTION && gGameSession->location.loc.variant == VARIANT_COMPANION && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
+        taskSpawnFromTable(&D_actor_136300_8013B11C, COMPANION_INTERACTION_TASK_INDEX, 0, 0);
     }
     return 0;
 }
@@ -609,35 +645,43 @@ static void _dryfieldNightGarageResetTallCollisionBox(s32 useYOffset)
     }
 }
 
-void func_dryfield_night_garage_801807E4(Task* arg0)
+void dryfieldNightGarageShopDialogueTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
-            capStartSequenceSlot((s16)arg0->spawnArg1.value, 0, 0);
+    enum { SHOP_DIALOGUE_START         = 0,
+           SHOP_DIALOGUE_WAIT_AND_OPEN = 1,
+           SHOP_DIALOGUE_REPLY         = 2,
+           SHOP_DIALOGUE_WAIT_REPLY    = 3,
+           CAP_FIRST_RESPONSE          = 1,
+           SHOP_DIALOGUE_REPEAT_SEEN   = 1 };
+
+    switch (task->state) {
+        case SHOP_DIALOGUE_START:
+            capStartSequenceSlot((s16)task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE, 0);
             TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
-            arg0->state++;
+            task->state++;
             return;
-        case 1:
+        case SHOP_DIALOGUE_WAIT_AND_OPEN:
             if (capIsBusy() == 0) {
-                shopOpenSession(0x20);
-                arg0->state++;
+                shopOpenSession(SHOP_STOCK_DRYFIELD);
+                task->state++;
             }
             return;
-        case 2:
-            capStartSequenceSlot((s16)arg0->spawnArg1.value, 0, (s16)(gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT) + 1));
+        case SHOP_DIALOGUE_REPLY:
+            // The queued shop session resumes this task at its follow-up dialogue.
+            capStartSequenceSlot((s16)task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE, (s16)(gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT) + CAP_FIRST_RESPONSE));
             if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT) == 0) {
-                gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT, 1);
+                gameFlagSetNibble(GAME_FLAG_NIGHT_GARAGE_SCENE_REPEAT, SHOP_DIALOGUE_REPEAT_SEEN);
             }
-            arg0->state++;
+            task->state++;
             return;
-        case 3:
+        case SHOP_DIALOGUE_WAIT_REPLY:
             if (capIsBusy() != 0) {
                 break;
             }
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
         default:
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }

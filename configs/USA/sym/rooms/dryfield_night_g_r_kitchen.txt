@@ -53,3 +53,5 @@ _dryfieldNightGRKitchenRejectKeyItemUse = 0x8017d8bc; // type:func
 _dryfieldNightGRKitchenIgnoreCommand = 0x8017d948; // type:func
 _dryfieldNightGRKitchenIgnoreRoomAction = 0x8017d950; // type:func
 _dryfieldNightGRKitchenIdleState = 0x8017d99c; // type:func
+_dryfieldNightGRKitchenInitializeRoom = 0x8017d958; // type:func
+dryfieldNightGRKitchenRoomTask = 0x8017d9a4; // type:func

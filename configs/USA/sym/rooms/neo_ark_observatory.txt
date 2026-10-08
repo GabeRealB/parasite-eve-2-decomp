@@ -125,3 +125,4 @@ _neoArkObservatoryRoomActionMessage = 0x8017f6f8; // type:func
 _neoArkObservatoryCapEventTask = 0x8017fb1c; // type:func
 _neoArkObservatoryResolveRoomEventMessage = 0x8017fbe8; // type:func
 _neoArkObservatoryCommandMessage = 0x8017fca0; // type:func
+_neoArkObservatoryInitializeRoom = 0x8017fce0; // type:func

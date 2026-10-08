@@ -74,14 +74,14 @@ extern WorldCollisionTrigger  D_neo_ark_north_promenade_801830C4[6];
 extern WorldCoordRoomLights   D_neo_ark_north_promenade_80182D9C[1];
 
 static s32 _neoArkNorthPromenadeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_neo_ark_north_promenade_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _neoArkNorthPromenadeResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _neoArkNorthPromenadeIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _neoArkNorthPromenadeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 enum { NEO_ARK_NORTH_PROMENADE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_neo_ark_north_promenade_80181D68[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_north_promenade_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkNorthPromenadeResolveRoomTransition },
     { NEO_ARK_NORTH_PROMENADE_MESSAGE_USE_KEY_ITEM, _neoArkNorthPromenadeRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkNorthPromenadeIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkNorthPromenadeIgnoreRoomCommand },
@@ -408,22 +408,33 @@ static s32 _neoArkNorthPromenadeRejectKeyItemUse(Task* task, s32 messageId, s32 
     return KEY_ITEM_NOT_USED;
 }
 
-s32 func_neo_ark_north_promenade_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves Neo Ark room variants and refuses the locked forest-zone departure.
+///
+/// Borrows a complete request and writable reply, which may alias. Returns 1
+/// for other areas or the unlocked forest, otherwise 0. A refused execution
+/// writes 2 to the request's optional flag and runs CAP command 1; a query
+/// suppresses both effects. Requires the Neo Ark map and loaded CAP resources.
+static s32 _neoArkNorthPromenadeResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    if (in->areaId != GAME_AREA_NEO_ARK_FOREST_ZONE) {
-        return 1;
+    enum { TRANSITION_REFUSED = 0,
+           TRANSITION_ALLOWED = 1,
+           REFUSAL_FLAG_VALUE = 2,
+           CAP_FOREST_LOCKED  = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId != GAME_AREA_NEO_ARK_FOREST_ZONE) {
+        return TRANSITION_ALLOWED;
     }
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_UNLOCKED) != 0) {
-        return 1;
+        return TRANSITION_ALLOWED;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 0;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return TRANSITION_REFUSED;
     }
-    gameFlagSetNibbleIfPresent(in->flagId, 2);
-    capRunCommandWithTransition(1);
-    return 0;
+    gameFlagSetNibbleIfPresent(request->flagId, REFUSAL_FLAG_VALUE);
+    capRunCommandWithTransition(CAP_FOREST_LOCKED);
+    return TRANSITION_REFUSED;
 }
 
 /// Ignores every CAP room command and returns zero without retaining its arguments.
@@ -500,9 +511,9 @@ void neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_neo_ark_north_promenade_8017FCA0(Task* arg0)
+void neoArkNorthPromenadeRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -521,7 +532,7 @@ void neoArkNorthPromenadeRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_neo_ark_north_promenade_80181120(Task* task)
+void neoArkNorthPromenadeRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

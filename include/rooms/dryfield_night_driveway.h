@@ -30,7 +30,12 @@ extern SpriteView D_dryfield_night_driveway_80181870[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_driveway_801820F0[];
 
-void func_dryfield_night_driveway_8017DD8C(Task* task);
+/// Runs the night driveway's room-message task.
+///
+/// Requires state 0..2: install the receiver and optional companion arrival
+/// scene, idle while messages handle requests, then teardown. Keep the room
+/// overlay loaded throughout dispatch and any event playback.
+void dryfieldNightDrivewayRoomTask(Task* task);
 
 /// Draws the night driveway's view-selected light shafts each frame.
 ///

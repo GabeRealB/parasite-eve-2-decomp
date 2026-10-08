@@ -53,7 +53,15 @@ void neoArkNorthPromenadeRoomVisualEffectsFlashTask(Task* task);
 /// without cancelling. Requires a live `gRoomEffectState` and loaded room overlay.
 void neoArkNorthPromenadeRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_neo_ark_north_promenade_80181120(Task* task);
+/// Runs the promenade's impact flash followed by smoke or orange rings and sparks.
+///
+/// Starts in state 0 with a coordinate body and counted, zero-aged `EffectWork`
+/// in `spawnArg2.pointer` from `effectSpawn`. Nonzero `spawnArg1.value` selects
+/// smoke; zero selects rings and bouncing sparks. Active age 7 requests release,
+/// and the next active tick frees work and task. Child effects run independently.
+/// Nonzero room effect control pauses it; values at least 4 cancel it. Keep the
+/// room overlay and scratch/frame packet storage live while drawing.
+void neoArkNorthPromenadeRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs the room's animated mote, rising and brightening or drifting steadily before fading.
 ///
@@ -91,7 +99,17 @@ void neoArkNorthPromenadeRoomVisualEffectsHaloTask(Task* task);
 /// the work and task. Keep the room overlay loaded while live.
 void neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_neo_ark_north_promenade_8017FCA0(Task* arg0);
+/// Emits twenty motes around successively higher, rotating local spawn offsets.
+///
+/// Requires a coordinate body and counted, zero-aged `EffectWork` in
+/// `spawnArg2.pointer` from `effectSpawn`; ignores `spawnArg1`. Active ages 1..20
+/// emit independent motes that descend eight parent-axis units per active tick;
+/// age 21 frees the emitter work and task. The mote effect ID must be installed.
+/// Spawn copies each offset; the child motes outlive the emitter without following
+/// its work or coordinate. Nonzero room effect control pauses it; values at least
+/// 4 cancel it. Keep the room overlay loaded through all child lifetimes, with
+/// scratch/frame packet storage available while drawing.
+void neoArkNorthPromenadeRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Binds the room's seven combat-effect IDs once, then leaves the task idle.
 ///

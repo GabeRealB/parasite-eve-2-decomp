@@ -112,3 +112,4 @@ _neoArkPavilionRoomIdleState = 0x8017ebec; // type:func
 _neoArkPavilionInitializeRoom = 0x8017eb80; // type:func
 neoArkPavilionRoomTask = 0x8017ebf4; // type:func
 _neoArkPavilionHandleCapCommand = 0x8017eb3c; // type:func
+_neoArkPavilionResolveRoomTransition = 0x8017e9f4; // type:func

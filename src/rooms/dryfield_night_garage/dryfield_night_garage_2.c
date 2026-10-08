@@ -86,12 +86,12 @@ static void _dryfieldNightGaragePlayMovieTask(Task* task);
 static void _dryfieldNightGarageBlackoutTask(Task* task);
 static void _dryfieldNightGarageStartMovieTask(Task* task);
 
-void        func_dryfield_night_garage_801809A4(Task*);
+static void _dryfieldNightGarageDialogueTask(Task* task);
 static void _dryfieldNightGarageCommitRefuelingProgress(void);
 
 TaskDesc D_dryfield_night_garage_80182C98[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_801809A4, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_801807E4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGarageDialogueTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, dryfieldNightGarageShopDialogueTask, { .value = 0 } },
 };
 
 AnimationSet* D_dryfield_night_garage_80182CB0[5] = {
@@ -1107,18 +1107,26 @@ s32 Shop_Data_80187628;
 
 const EquipmentWeaponSupply* Shop_Data_8018762C;
 
-void func_dryfield_night_garage_801809A4(Task* arg0)
+/// Plays garage dialogue while Gary Douglas turns his head toward the player.
+///
+/// Starts in state 0 with player control held. `spawnArg1.value` is a CAP
+/// command index (6..8 from the refueling gate). Waits in state 1 for CAP to
+/// finish, resumes control and releases the head turn, then kills the task.
+/// Other states kill it immediately. Requires the placement-0 actor and room
+/// CAP resources to remain live through playback; pointer messages borrow
+/// their payload only during synchronous dispatch.
+static void _dryfieldNightGarageDialogueTask(Task* task)
 {
-    s32 temp_v1;
+    enum { GARAGE_DIALOGUE_START = 0,
+           GARAGE_DIALOGUE_WAIT  = 1 };
 
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
-        case 0:
-            capRunCommand(arg0->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
+    switch (task->state) {
+        case GARAGE_DIALOGUE_START:
+            capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
             return;
-        case 1:
+        case GARAGE_DIALOGUE_WAIT:
             if (capIsBusy() == 0) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
@@ -1126,7 +1134,7 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
             }
             return;
     }
-    taskKill(arg0);
+    taskKill(task);
 }
 
 Task* dryfieldNightGarageFindPlacedActor(s32 placementIndex)

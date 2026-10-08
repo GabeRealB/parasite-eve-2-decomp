@@ -83,10 +83,10 @@ static const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
 /// Name the room task's second state hands to `func_80724608`.
 static const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
 
-void       func_dryfield_junk_yard_8017D848(Task*);
-static s32 _dryfieldJunkYardRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
-s32        func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32 _dryfieldJunkYardHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArgument);
+static void _dryfieldJunkYardCompanionSequenceTask(Task* task);
+static s32  _dryfieldJunkYardRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32  _dryfieldJunkYardResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _dryfieldJunkYardHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArgument);
 
 enum {
     DRYFIELD_JUNK_YARD_MESSAGE_USE_KEY_ITEM = 0x13F1,
@@ -111,7 +111,7 @@ extern TaskDesc                   Actor00100_D1BA84;
 static void                       _dryfieldJunkYardSetSceneEvent(s8 sceneEvent);
 
 TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldJunkYardResolveRoomTransition },
     { DRYFIELD_JUNK_YARD_MESSAGE_USE_KEY_ITEM, _dryfieldJunkYardRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, junkYardCapMsg },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldJunkYardHandleRoomAction },
@@ -119,7 +119,7 @@ TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
 };
 
 TaskDesc D_dryfield_junk_yard_8017DD48[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_junk_yard_8017D848, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldJunkYardCompanionSequenceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1713,53 +1713,59 @@ static void func_dryfield_junk_yard_8017D708(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// The sequence task `D_dryfield_junk_yard_8017DD48` describes, spawned by
-/// the 0x13EF handler. State 0 starts a `evsStartScriptWithSkip` sequence and state 1
-/// waits for `gGameSession->eventState` to clear. States 3, 5 and 7 send the
-/// slot-0xA task a message (`0x3EE`, `0x3E8`, `0x3E8`) with a payload; states
-/// 4 and 6 send the bare `0x3F0` / `0x3ED` and hold while it answers nonzero.
-/// State 7, and state 2 directly, end in `taskKill`.
+/// Runs the junk-yard companion scene or its turn-and-animation sequence.
 ///
-/// Every case writes its own `task->state + 1; return;`: cross jumping folds
-/// those identical tails into the one increment block, and folds cases 4 and
-/// 6's `taskMessageDispatch(..., 0, 0)` into one call.
-void func_dryfield_junk_yard_8017D848(Task* task)
+/// Initial state 0 starts the skippable scene, waits for event completion and
+/// releases at state 2. Entry at state 3 instead requests a companion yaw turn,
+/// waits for motion, plays clip 7 to completion and starts clip 9 before release.
+/// Other states do nothing. The room scripts and companion must remain live
+/// through the selected sequence; message payloads are borrowed synchronously.
+static void _dryfieldJunkYardCompanionSequenceTask(Task* task)
 {
+    enum { COMPANION_SCENE_START      = 0,
+           COMPANION_SCENE_WAIT       = 1,
+           COMPANION_SEQUENCE_RELEASE = 2,
+           COMPANION_TURN_START       = 3,
+           COMPANION_TURN_WAIT        = 4,
+           COMPANION_ANIMATION_START  = 5,
+           COMPANION_ANIMATION_WAIT   = 6,
+           COMPANION_FINAL_ANIMATION  = 7 };
+
     switch (task->state) {
-        case 0:
+        case COMPANION_SCENE_START:
             evsStartScriptWithSkip(D_dryfield_junk_yard_8017DE48, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E028);
             task->state = task->state + 1;
             return;
-        case 1:
+        case COMPANION_SCENE_WAIT:
             if (gGameSession->eventState != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case 3:
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3EE, &D_dryfield_junk_yard_8017DE18, 0);
+        case COMPANION_TURN_START:
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_TURN_TO_YAW, &D_dryfield_junk_yard_8017DE18, 0);
             task->state = task->state + 1;
             return;
-        case 4:
+        case COMPANION_TURN_WAIT:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case 5:
+        case COMPANION_ANIMATION_START:
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDD8, 0);
             task->state = task->state + 1;
             return;
-        case 6:
+        case COMPANION_ANIMATION_WAIT:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case 7:
+        case COMPANION_FINAL_ANIMATION:
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), ANIMATION_MESSAGE_PLAY, &D_dryfield_junk_yard_8017DDEC, 0);
             /* fallthrough */
-        case 2:
+        case COMPANION_SEQUENCE_RELEASE:
             taskKill(task);
             return;
     }
@@ -1779,39 +1785,49 @@ static s32 _dryfieldJunkYardRejectKeyItemUse(Task* task, s32 messageId, s32 item
     return DRYFIELD_JUNK_YARD_KEY_ITEM_USE_REFUSED;
 }
 
-/// Handler for message 0x13EE in the room's message table. Copies the
-/// incoming record to the outgoing one, then edits the copy: message 0x18
-/// answers `room` 2 once nibble 0x7A has reached 4, else 1. Message 0x1B,
-/// while nibble 0x38 is 1, returns 2, advancing the nibble to 2 and starting a
-/// `evsStartScriptWithSkip` sequence; otherwise, with nibble 0x28 still clear, it
-/// answers `warp` 2 and sets nibbles 0x28 and 0x4B. Returns 1.
+/// Resolves garage arrivals and gates departure to the trailer coach on companion progress.
 ///
-/// `queryOnly` non-zero means "report only", which suppresses every side effect.
-s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Borrows a complete request and writable reply, which may alias. Returns 2
+/// while the companion's final scene is eligible, otherwise 1. Execution starts
+/// that scene or commits the first trailer arrival and companion schedule;
+/// queries only copy the request and report eligibility. Requires live flags
+/// and the room scripts through deferred playback.
+static s32 _dryfieldJunkYardResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    if (in->areaId == GAME_AREA_DRYFIELD_GARAGE && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 4) {
-            out->room = 2;
+    enum { TRANSITION_ALLOWED          = 1,
+           COMPANION_SCENE_ELIGIBLE    = 2,
+           GARAGE_LATE_CHAPTER         = 4,
+           GARAGE_DEFAULT_ROOM         = 1,
+           GARAGE_LATE_ROOM            = 2,
+           JUNK_YARD_SEQUENCE_ACTIVE   = 1,
+           JUNK_YARD_SEQUENCE_FINISHED = 2,
+           TRAILER_FIRST_ARRIVAL_WARP  = 2,
+           TRAILER_PROGRESS_STARTED    = 1,
+           COMPANION_TRAILER_SCHEDULE  = 4 };
+
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_GARAGE && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= GARAGE_LATE_CHAPTER) {
+            reply->room = GARAGE_LATE_ROOM;
         } else {
-            out->room = 1;
+            reply->room = GARAGE_DEFAULT_ROOM;
         }
     }
-    if (in->areaId == GAME_AREA_DRYFIELD_TRAILER_COACH) {
-        if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 1) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, 2);
+    if (request->areaId == GAME_AREA_DRYFIELD_TRAILER_COACH) {
+        if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == JUNK_YARD_SEQUENCE_ACTIVE) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, JUNK_YARD_SEQUENCE_FINISHED);
                 evsStartScriptWithSkip(D_dryfield_junk_yard_8017E3D0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E2B0);
             }
-            return 2;
+            return COMPANION_SCENE_ELIGIBLE;
         }
-        if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) == 0 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->warp = 2;
-            gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, 1);
-            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 4);
+        if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) == 0 && request->queryOnly == ROOM_EVENT_EXECUTE) {
+            reply->warp = TRAILER_FIRST_ARRIVAL_WARP;
+            gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, TRAILER_PROGRESS_STARTED);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, COMPANION_TRAILER_SCHEDULE);
         }
     }
-    return 1;
+    return TRANSITION_ALLOWED;
 }
 
 /// Starts and finishes the junk-yard companion sequence from room trigger actions.

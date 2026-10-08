@@ -42490,7 +42490,7 @@ inc:
     return;
 ```
 
-`func_dryfield_night_garage_801807E4` went 94.5% (`branch`/`insert`/`delete`
+`dryfieldNightGarageShopDialogueTask` went 94.5% (`branch`/`insert`/`delete`
 from the extra case-2 `j`) to 100% with this move. Same idea as the loop
 "shared increment block lands early" note: the first source path that reaches
 the label decides where the block is emitted.
@@ -42764,7 +42764,7 @@ obj->flags &= 0xBF;
 
 Order matters: writing `obj = arr + 1;` first anchors CSE on `arr + 0x98` and
 emits `addiu t0, obj, -0x98` for the base instead.
-`func_dryfield_night_garage_801800C8` and its sibling
+`_dryfieldNightGarageHandleRoomAction` and its sibling
 `_dryfieldNightGarageInitRoomTask` are the examples. Note this is the
 mirror of "Volatile global: index via global name, not a local pointer" — a
 local base pointer is the fix here and the bug there, so score both shapes.
@@ -49601,7 +49601,7 @@ almost always the enclosing function's own first parameter, so read the callee's
 Restoring it (`playerActorPlayChildSlotsWithBlend(index, 1, 0, 6)`) took 99.00% to 100.00%
 in one edit. Do not chase the shift with pins or the permuter.
 
-The shift need not stay inside the one call. `func_dryfield_night_driveway_8017DCFC`
+The shift need not stay inside the one call. `_dryfieldNightDrivewayInitializeRoom`
 came back at 97.97% with `regs=1 reorder=1`: the `regs` was m2c's
 `gameSetTaskSlot(7)` against the target's `gameSetTaskSlot(index, 7)`, and the
 `reorder` was an unrelated second call (`evsStartScriptWithSkip(&D_a, 0, &D_b)`) whose
@@ -95646,9 +95646,9 @@ pair assigned per arm and one `taskMessageDispatch` after the `if` - leaves
 `li a1, 0x7DB` hoisted into the join block, where the target has it in both
 arms. One call site per arm, literal at each site, reached 100% in one build.
 
-## Two single-constant `if`/`else` arms: assign through a local and `jump` hoists the arm into the compare's block (func_dryfield_junk_yard_8017DA4C, 2026-09-16)
+## Two single-constant `if`/`else` arms: assign through a local and `jump` hoists the arm into the compare's block (_dryfieldJunkYardResolveRoomTransition, 2026-09-16)
 
-A room message gate answers msg 0x18 with 2 once nibble 0x7A has reached 4 and 1
+A room message gate answers destination area 0x18 with room 2 once nibble 0x7A has reached 4 and room 1
 before that, and the ROM keeps the answer in `$v0`:
 
 ```
@@ -121448,7 +121448,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/_dryfieldNightWaterHoleApplySurfaceOverrides-vacuum`.
 
-## A jump table for the overlay's *first* code unit needs `rodata_head`, not a `rodata` cut (func_dryfield_junk_yard_8017D848, 2026-09-17)
+## A jump table for the overlay's *first* code unit needs `rodata_head`, not a `rodata` cut (_dryfieldJunkYardCompanionSequenceTask, 2026-09-17)
 
 **Symptom.** The function reaches 100.00% in the scratch with every penalty zero and
 `blocks=14/14 predicates_match=True calls_match=True`, and the unscoped build reports
@@ -121490,13 +121490,13 @@ exactly `head` on purpose ("A cut at exactly `head` renames this block instead o
 a second subsegment at the same offset"), which is what makes the first unit keep its
 name. No `units` cut is needed because the function stays in the unit it was in.
 
-Scratch `nonmatchings/func_dryfield_junk_yard_8017D848-vacuum`. Inputs: `base_3.i`
+Scratch `nonmatchings/_dryfieldJunkYardCompanionSequenceTask-vacuum`. Inputs: `base_3.i`
 SHA256 `3000f3c1e5ac8884446e0eafd26ec8557577a78b53e17a1f56d9b606bd530649` (0
 differences), source `base_3.c` SHA256
 `86c38e21ddb576b24d524dcd86740eaa6796cf490711e665c6402c1f16a45190`; `target.s`
 SHA256 `c285d8d8afd766b1edb7973b59f31808b8c3bd207eabe1c35ce559de1dee7964`.
 
-## Which tails jump2 merges is decided by *which jumps share the label*, not by how similar the bodies are (func_dryfield_junk_yard_8017D848, 2026-09-17)
+## Which tails jump2 merges is decided by *which jumps share the label*, not by how similar the bodies are (_dryfieldJunkYardCompanionSequenceTask, 2026-09-17)
 
 A switch whose five ordinary cases all end `task->state = task->state + 1; return;` has
 one increment block in the ROM, reached by `j` from cases 0, 3 and 5 and by fall-through

@@ -1063,10 +1063,10 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80182F78, { NULL } },                             // 0x20D
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageRoomVisualEffectsSparkBurstTask, { NULL } },                  // 0x20E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_vehicular_airlock_80180008, { NULL } },                             // 0x20F
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_80181120, { NULL } },                                  // 0x210
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsSparkBurstTask, { NULL } },                    // 0x210
     { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsSparkBurstTask, { NULL } },                        // 0x211
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPavilionRoomVisualEffectsSparkBurstTask, { NULL } },                          // 0x212
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_island_80180EE8, { NULL } },                                           // 0x213
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandRoomVisualEffectsSparkBurstTask, { NULL } },                            // 0x213
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPowerPlant2RoomVisualEffectsSparkBurstTask, { NULL } },                       // 0x214
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSavannaZoneRoomVisualEffectsSparkBurstTask, { NULL } },                       // 0x215
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSouthPromenadeRoomVisualEffectsSparkBurstTask, { NULL } },                    // 0x216
@@ -1161,7 +1161,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_pod_access_tunnel_80181AF8, { NULL } },                             // 0x26F
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3ElevatorHallRoomVisualEffectsSparkEmitterTask, { NULL } },                 // 0x270
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4UpperSewerRoomVisualEffectsSparkEmitterTask, { NULL } },                   // 0x271
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_8017FCA0, { NULL } },                                  // 0x272
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsSparkEmitterTask, { NULL } },                  // 0x272
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFireBlastTask, { NULL } },                                  // 0x273
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameConeTask, { NULL } },                                  // 0x274
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseFlameRingTask, { NULL } },                                  // 0x275

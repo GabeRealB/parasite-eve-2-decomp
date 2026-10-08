@@ -1605,7 +1605,7 @@ RoomDeparture gRoomDeparture;
 s16 D_neo_ark_observatory_80187A3C;
 
 static __inline__ void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve);
-static void            func_neo_ark_observatory_8017FCE0(Task* arg0);
+static void            _neoArkObservatoryInitializeRoom(Task* task);
 static void            _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask);
 
 #include "../../shared/planar_reflection.inc.c"
@@ -1875,21 +1875,28 @@ static s32 _neoArkObservatoryCommandMessage(Task* unusedTask, s32 unusedMessageI
     return 0;
 }
 
-/// Room entry task tick: installs the room's message table, hands the task to
-/// slot 7, then advances state.
-static void func_neo_ark_observatory_8017FCE0(Task* arg0)
+/// Installs the room receiver, companion setup and saved light-beam intensity.
+///
+/// A live companion in variant 1 receives the observatory entry setup;
+/// otherwise its obstacle is rebuilt from current presence and story flags.
+/// The second companion scene's saved flag restores grey beams at level 160.
+/// Advances to the visibility state. The room slot borrows the live task.
+static void _neoArkObservatoryInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_neo_ark_observatory_801811B8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.variant == 1)) {
+    enum { COMPANION_ENTRY_VARIANT    = 1,
+           SAVED_SCENE_BEAM_INTENSITY = 160 };
+
+    task->msgTable = D_neo_ark_observatory_801811B8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.variant == COMPANION_ENTRY_VARIANT)) {
         actor450200InitializeObservatoryCompanion();
     } else {
         neoArkObservatoryUpdateCompanionObstacle(0);
     }
     if (gameFlagGetNibble(GAME_FLAG_0E1) != 0) {
-        neoArkObservatorySetLightBeamIntensity(0xA0);
+        neoArkObservatorySetLightBeamIntensity(SAVED_SCENE_BEAM_INTENSITY);
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// Updates the companion's visibility for the observatory's saved view and event state.
@@ -1922,7 +1929,7 @@ static void _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask)
 /// `taskKill`.
 static const TaskFuncTable3 D_neo_ark_observatory_8017D698 = {
     {
-        func_neo_ark_observatory_8017FCE0,
+        _neoArkObservatoryInitializeRoom,
         _neoArkObservatoryUpdateCompanionVisibility,
         taskKill,
     },

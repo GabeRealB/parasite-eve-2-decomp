@@ -126,7 +126,7 @@ void neoArkIslandRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_neo_ark_island_80180EE8(Task* task)
+void neoArkIslandRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

@@ -53,15 +53,15 @@ extern SVECTOR D_neo_ark_substation_8017E350[];
 extern SVECTOR D_neo_ark_substation_8017E360[];
 extern SVECTOR D_neo_ark_substation_8017E380[];
 
-static void func_neo_ark_substation_8017D7AC(Task* task);
+static void _neoArkSubstationInitializeRoom(Task* task);
 static void _neoArkSubstationMessageTaskIdle(Task* unusedTask);
 
 /// State table of the room's message task: set-up
-/// (`func_neo_ark_substation_8017D7AC`), an empty per-frame state and
+/// (`_neoArkSubstationInitializeRoom`), an empty per-frame state and
 /// `taskKill`. Its bytes open the room's rodata, ahead of the ambience task's
 /// jump table.
 static const TaskFuncTable3 D_neo_ark_substation_8017D5C4 = {
-    func_neo_ark_substation_8017D7AC,
+    _neoArkSubstationInitializeRoom,
     _neoArkSubstationMessageTaskIdle,
     taskKill,
 };
@@ -632,18 +632,20 @@ static s32 _neoArkSubstationIgnoreRoomAction(Task* task, s32 messageId, const Di
     return 0;
 }
 
-/// State 0 of the room's message task: park the room's message table in
-/// `Task::msgTable`, publish the task in pointer slot 7, start the ambience
-/// task (`_neoArkSubstationAmbienceTask`) only while game flag 0xDF is
-/// clear, and advance to state 1.
-static void func_neo_ark_substation_8017D7AC(Task* task)
+/// Installs the room receiver and starts ambience while Power Plant 2 is uncleared.
+///
+/// Advances to idle. The room slot borrows the live task. The spawned ambience
+/// task runs independently, so its callback and view-mix records must stay loaded.
+static void _neoArkSubstationInitializeRoom(Task* task)
 {
+    enum { AMBIENCE_TASK_INDEX = 0 };
+
     task->msgTable = D_neo_ark_substation_8017E294;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
-        taskSpawnFromTable(D_neo_ark_substation_8017E2BC, 0, 0, 0);
+        taskSpawnFromTable(D_neo_ark_substation_8017E2BC, AMBIENCE_TASK_INDEX, 0, 0);
     }
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized room message task idle while its message table remains available.

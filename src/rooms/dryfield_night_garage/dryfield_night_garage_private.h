@@ -43,7 +43,15 @@ extern const EquipmentWeaponSupply* Shop_Data_8018762C;
 /// work. Returns a borrowed task, valid only while that actor remains live.
 Task* dryfieldNightGarageFindPlacedActor(s32 placementIndex);
 
-void func_dryfield_night_garage_801807E4(Task* arg0);
+/// Runs Gary Douglas's dialogue, shop session and progress-dependent reply.
+///
+/// Starts in state 0 with player control held; `spawnArg1.value` supplies the
+/// signed low-halfword CAP sequence slot (10 or 21 from the room action).
+/// Turns the placement-0 actor's head toward the player during playback,
+/// opens the default Dryfield stock, then plays response repeat-flag + 1.
+/// Completion resumes player control and releases the head turn. Requires the
+/// actor, room CAP resources and shop descriptors to remain live throughout.
+void dryfieldNightGarageShopDialogueTask(Task* task);
 
 /// Stages audio start for the refueling scene selected by the event script.
 ///

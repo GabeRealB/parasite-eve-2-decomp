@@ -290,7 +290,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 0, 222, 254 } };
 
 RoomEventReq gRoomEventReq;
 
-static void func_dryfield_night_g_r_kitchen_8017D958(Task* task);
+static void _dryfieldNightGRKitchenInitializeRoom(Task* task);
 static void _dryfieldNightGRKitchenIdleState(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
@@ -331,13 +331,14 @@ static s32 _dryfieldNightGRKitchenIgnoreRoomAction(Task* task, s32 messageId, co
     return 0;
 }
 
-/// State 0 of the room entry task: installs the room's message table,
-/// registers the task in game pointer slot 7 and advances to the idle state.
-static void func_dryfield_night_g_r_kitchen_8017D958(Task* task)
+/// Installs the nighttime kitchen's room-message receiver and advances to idle.
+///
+/// The session's room slot borrows the live task; teardown does not clear it.
+static void _dryfieldNightGRKitchenInitializeRoom(Task* task)
 {
     task->msgTable = D_dryfield_night_g_r_kitchen_8017E254;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized room task idle while its installed message table remains live.
@@ -348,17 +349,15 @@ static void _dryfieldNightGRKitchenIdleState(Task* task)
 /// The room entry task's three states: install the room's message table,
 /// idle, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_g_r_kitchen_8017D5DC = {
-    { func_dryfield_night_g_r_kitchen_8017D958, _dryfieldNightGRKitchenIdleState, taskKill },
+    { _dryfieldNightGRKitchenInitializeRoom, _dryfieldNightGRKitchenIdleState, taskKill },
 };
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_dryfield_night_g_r_kitchen_8017D9A4(Task* task)
+void dryfieldNightGRKitchenRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_g_r_kitchen_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_g_r_kitchen_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_shaft.inc.c"

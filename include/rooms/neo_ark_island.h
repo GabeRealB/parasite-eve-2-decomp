@@ -127,7 +127,15 @@ void neoArkIslandRoomVisualEffectsFlashTask(Task* task);
 /// work and the body. Drawing requires scratch and frame packet storage.
 void neoArkIslandRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_neo_ark_island_80180EE8(Task* task);
+/// Runs the island's impact flash followed by smoke or orange rings and sparks.
+///
+/// Starts in state 0 with a coordinate body and counted, zero-aged `EffectWork`
+/// in `spawnArg2.pointer` from `effectSpawn`. Nonzero `spawnArg1.value` selects
+/// smoke; zero selects rings and bouncing sparks. Active age 7 requests release,
+/// and the next active tick frees work and task. Child effects run independently.
+/// Nonzero room effect control pauses it; values at least 4 cancel it. Keep the
+/// room overlay and scratch/frame packet storage live while drawing.
+void neoArkIslandRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs the island's room-message task.
 ///
