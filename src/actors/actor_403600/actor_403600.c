@@ -158,14 +158,14 @@ static const SVECTOR D_actor_403600_80131E24;
 extern DamageAttack  D_actor_403600_801420F0;
 extern s32           D_actor_403600_80142120[];
 
-void func_actor_403600_80134398(Task* arg0);
+static void _actor403600ProjectileTask(Task* task);
 
 static const SVECTOR D_actor_403600_80131E2C;
 static const CVECTOR _gActor403600NeutralLightColor;
 
-static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx);
+static void _actor403600DrawScreenDistortion(Task* unusedFxTask, const Actor403600Work* work, Actor403600FxWork* fx);
 
-void func_actor_403600_80134288(Task*);
+static void _actor403600FxTask(Task* task);
 
 extern DamageAttack D_actor_403600_801420D4[5];
 
@@ -230,13 +230,11 @@ s32 D_actor_403600_80142120[32] = {
     0x100000,
 };
 
-void        func_actor_403600_80134288(Task*);
-void        func_actor_403600_80134398(Task*);
 static void _actor403600RippleTask(Task* task);
 
 TaskDesc D_actor_403600_801421A0[4] = {
-    { { { TASK_BODY_NONE, 95 } }, func_actor_403600_80134288, { .value = 0 } },
-    { { { TASK_BODY_COORD, 96 } }, func_actor_403600_80134398, { .value = 0 } },
+    { { { TASK_BODY_NONE, 95 } }, _actor403600FxTask, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, _actor403600ProjectileTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 97 } }, actor403600LoosePartsTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 112 } }, _actor403600RippleTask, { .value = 0 } },
 };
@@ -1258,114 +1256,138 @@ static void _actor403600PlaceDistortionVertex(_Actor403600GridQuad* quad, s32 co
 #undef ACTOR_403600_CLAMP_DISTORTION_VERTEX
 }
 
-static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx)
+/// Draws the captured frame as a jittered 20-by-15 grid, tinted at full distortion.
+///
+/// Requires boss distortion in 1..4096 and live effect work. Running frames
+/// save a new seed; held frames replay that seed so the grid stays still.
+/// Consumes 300 quads in the package's current frame arena, plus a full-screen
+/// tile at 4096. The caller resets that arena and must provide its capacity.
+/// Links the capture and grid at slot 0, with the full-strength tile at -1;
+/// uses and releases one scratch block. The first argument is unused.
+static void _actor403600DrawScreenDistortion(Task* unusedFxTask, const Actor403600Work* work, Actor403600FxWork* fx)
 {
-    s32                                  fade;
-    s32                                  x;
-    s32                                  y;
-    s32                                  seed;
-    s32                                  step;
-    u8*                                  head;
-    TILE*                                tile;
-    DR_TPAGE*                            draw_mode;
-    _Actor403600GridQuad*                poly;
-    _Actor403600GridQuad*                previous;
-    _Actor403600GridQuad*                above;
+    /// Copies a grid corner with its captured texel and page shift.
+    ///
+    /// Vertices and page bytes are side-effect-free lvalues, evaluated repeatedly.
+    /// XY must be word aligned; source and destination are distinct live corners.
+#define ACTOR_403600_COPY_DISTORTION_CORNER(destination, destinationPage, source, sourcePage)     \
+    {                                                                                             \
+        ACTOR_403600_GRID_VERTEX_XY_WORD(destination) = ACTOR_403600_GRID_VERTEX_XY_WORD(source); \
+        (destination).u                               = (source).u;                               \
+        (destination).v                               = (source).v;                               \
+        (destinationPage)                             = (sourcePage);                             \
+    }
+
+    enum {
+        ACTOR_403600_DISTORTION_HALF_WIDTH       = 160,
+        ACTOR_403600_DISTORTION_HALF_HEIGHT      = 120,
+        ACTOR_403600_DISTORTION_CELL_PIXELS      = 16,
+        ACTOR_403600_DISTORTION_COLUMNS          = 20,
+        ACTOR_403600_DISTORTION_TINT_START       = 3072,
+        ACTOR_403600_DISTORTION_QUAD_WORDS       = 9,
+        ACTOR_403600_DISTORTION_RAW_QUAD_CODE    = 0x2D,
+        ACTOR_403600_DISTORTION_TINTED_QUAD_CODE = 0x2C,
+        ACTOR_403600_DISTORTION_BACKDROP_WORDS   = 3,
+        ACTOR_403600_DISTORTION_BACKDROP_CODE    = 0x62
+    };
+    s32                                  distortion;
+    s32                                  cellX;
+    s32                                  cellY;
+    s32                                  frameSeed;
+    s32                                  tintStep;
+    u8*                                  scratchHead;
+    TILE*                                backdrop;
+    DR_TPAGE*                            drawMode;
+    _Actor403600GridQuad*                quad;
+    _Actor403600GridQuad*                leftQuad;
+    _Actor403600GridQuad*                aboveQuad;
     _Actor403600ScreenDistortionScratch* scratch;
 
-    head                     = SCRATCH_STACK_CURSOR(u8) - sizeof(_Actor403600ScreenDistortionScratch);
-    SCRATCH_STACK_CURSOR(u8) = head;
-    scratch                  = (_Actor403600ScreenDistortionScratch*)head;
+    scratchHead              = SCRATCH_STACK_CURSOR(u8) - sizeof(_Actor403600ScreenDistortionScratch);
+    SCRATCH_STACK_CURSOR(u8) = scratchHead;
+    scratch                  = (_Actor403600ScreenDistortionScratch*)scratchHead;
+    // Redraw the same jitter while gameplay is held.
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        seed                    = rand();
-        D_actor_403600_80160698 = seed;
-        fx->gridSeed            = seed;
+        frameSeed               = rand();
+        D_actor_403600_80160698 = frameSeed;
+        fx->gridSeed            = frameSeed;
     } else {
         D_actor_403600_80160698 = fx->gridSeed;
     }
     scratch->field_14.vx = 0;
     scratch->field_14.vy = 0;
     scratch->field_14.vz = 0;
-    fade                 = work->screenDistortion;
-    for (y = -0x78; y < 0x78; y += 0x10) {
-        for (x = -0xA0; x < 0xA0; x += 0x10) {
-            poly                    = (_Actor403600GridQuad*)D_actor_403600_8016069C;
-            D_actor_403600_8016069C = (u8*)(poly + 1);
+    distortion           = work->screenDistortion;
+    for (cellY = -ACTOR_403600_DISTORTION_HALF_HEIGHT; cellY < ACTOR_403600_DISTORTION_HALF_HEIGHT; cellY += ACTOR_403600_DISTORTION_CELL_PIXELS) {
+        for (cellX = -ACTOR_403600_DISTORTION_HALF_WIDTH; cellX < ACTOR_403600_DISTORTION_HALF_WIDTH; cellX += ACTOR_403600_DISTORTION_CELL_PIXELS) {
+            quad                    = (_Actor403600GridQuad*)D_actor_403600_8016069C;
+            D_actor_403600_8016069C = (u8*)(quad + 1);
 
-            // Vertices shared with the quad to the left or above are copied
+            // Vertices shared with the quad to the left or aboveQuad are copied
             // from it; only the grid's outer edge is placed afresh.
-            if (x == -0xA0) {
-                poly->vertex2.x = x;
-                poly->vertex2.y = y + 0x10;
-                _actor403600PlaceDistortionVertex(poly, 2, &scratch->field_14, fade);
+            if (cellX == -ACTOR_403600_DISTORTION_HALF_WIDTH) {
+                quad->vertex2.x = cellX;
+                quad->vertex2.y = cellY + ACTOR_403600_DISTORTION_CELL_PIXELS;
+                _actor403600PlaceDistortionVertex(quad, 2, &scratch->field_14, distortion);
             } else {
-                previous                                        = poly - 1;
-                ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex2) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex3);
-                poly->vertex2.u                                 = previous->vertex3.u;
-                poly->vertex2.v                                 = previous->vertex3.v;
-                poly->page2                                     = previous->page3;
+                leftQuad = quad - 1;
+                ACTOR_403600_COPY_DISTORTION_CORNER(quad->vertex2, quad->page2, leftQuad->vertex3, leftQuad->page3);
             }
-            if (y == -0x78) {
-                if (x == -0xA0) {
-                    poly->vertex0.x = x;
-                    poly->vertex0.y = y;
-                    _actor403600PlaceDistortionVertex(poly, 0, &scratch->field_14, fade);
+            if (cellY == -ACTOR_403600_DISTORTION_HALF_HEIGHT) {
+                if (cellX == -ACTOR_403600_DISTORTION_HALF_WIDTH) {
+                    quad->vertex0.x = cellX;
+                    quad->vertex0.y = cellY;
+                    _actor403600PlaceDistortionVertex(quad, 0, &scratch->field_14, distortion);
                 } else {
-                    previous                                        = poly - 1;
-                    ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = ACTOR_403600_GRID_VERTEX_XY_WORD(previous->vertex1);
-                    poly->vertex0.u                                 = previous->vertex1.u;
-                    poly->vertex0.v                                 = previous->vertex1.v;
-                    poly->page0                                     = previous->page1;
+                    leftQuad = quad - 1;
+                    ACTOR_403600_COPY_DISTORTION_CORNER(quad->vertex0, quad->page0, leftQuad->vertex1, leftQuad->page1);
                 }
-                poly->vertex1.x = x + 0x10;
-                poly->vertex1.y = y;
-                _actor403600PlaceDistortionVertex(poly, 1, &scratch->field_14, fade);
+                quad->vertex1.x = cellX + ACTOR_403600_DISTORTION_CELL_PIXELS;
+                quad->vertex1.y = cellY;
+                _actor403600PlaceDistortionVertex(quad, 1, &scratch->field_14, distortion);
             } else {
-                above                                           = poly - 20;
-                ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex0) = ACTOR_403600_GRID_VERTEX_XY_WORD(above->vertex2);
-                poly->vertex0.u                                 = above->vertex2.u;
-                poly->vertex0.v                                 = above->vertex2.v;
-                poly->page0                                     = above->page2;
-                ACTOR_403600_GRID_VERTEX_XY_WORD(poly->vertex1) = ACTOR_403600_GRID_VERTEX_XY_WORD(above->vertex3);
-                poly->vertex1.u                                 = above->vertex3.u;
-                poly->vertex1.v                                 = above->vertex3.v;
-                poly->page1                                     = above->page3;
+                aboveQuad = quad - ACTOR_403600_DISTORTION_COLUMNS;
+                ACTOR_403600_COPY_DISTORTION_CORNER(quad->vertex0, quad->page0, aboveQuad->vertex2, aboveQuad->page2);
+                ACTOR_403600_COPY_DISTORTION_CORNER(quad->vertex1, quad->page1, aboveQuad->vertex3, aboveQuad->page3);
             }
-            poly->vertex3.x = x + 0x10;
-            poly->vertex3.y = y + 0x10;
-            _actor403600PlaceDistortionVertex(poly, 3, &scratch->field_14, fade);
-            _actor403600UnifyGridQuadTexturePage(poly);
-            if (fade < 0xC00) {
-                setlen(poly, 9);
-                poly->code = 0x2D;
+            quad->vertex3.x = cellX + ACTOR_403600_DISTORTION_CELL_PIXELS;
+            quad->vertex3.y = cellY + ACTOR_403600_DISTORTION_CELL_PIXELS;
+            _actor403600PlaceDistortionVertex(quad, 3, &scratch->field_14, distortion);
+            _actor403600UnifyGridQuadTexturePage(quad);
+            // Raw screen texels give way to a warm modulation near full strength.
+            if (distortion < ACTOR_403600_DISTORTION_TINT_START) {
+                setlen(quad, ACTOR_403600_DISTORTION_QUAD_WORDS);
+                quad->code = ACTOR_403600_DISTORTION_RAW_QUAD_CODE;
             } else {
-                step                              = (fade - 0xC00) >> 3;
-                GPU_PRIMITIVE_COLOR_WORD(poly, 0) = (((step / 2 + 0x80) & 0xFF) << 8) | GPU_PACK_COLOR_WORD(0, 0, 0x80, 0) | ((step + 0x7F) & 0xFF);
-                setlen(poly, 9);
-                poly->code = 0x2C;
+                tintStep                          = (distortion - ACTOR_403600_DISTORTION_TINT_START) >> 3;
+                GPU_PRIMITIVE_COLOR_WORD(quad, 0) = (((tintStep / 2 + 0x80) & 0xFF) << 8) | GPU_PACK_COLOR_WORD(0, 0, 0x80, 0) | ((tintStep + 0x7F) & 0xFF);
+                setlen(quad, ACTOR_403600_DISTORTION_QUAD_WORDS);
+                quad->code = ACTOR_403600_DISTORTION_TINTED_QUAD_CODE;
             }
             scratch->otz = 0;
-            addPrim(&gGpuCurrentOt[scratch->otz], poly);
+            addPrim(&gGpuCurrentOt[scratch->otz], quad);
         }
     }
-    if (fade == 0x1000) {
-        tile                    = (TILE*)D_actor_403600_8016069C;
-        D_actor_403600_8016069C = (u8*)(tile + 1);
-        tile->x0                = -0xA0;
-        tile->y0                = -0x78;
-        tile->w                 = 0x140;
-        tile->h                 = 0xF0;
-        setlen(tile, 3);
-        GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0xC0, 0x60, 0x20, 0);
-        tile->code                        = 0x62;
-        draw_mode                         = gGpuPrimCursor;
-        gGpuPrimCursor                    = draw_mode + 1;
-        addPrim(gGpuCurrentOt - 1, tile);
-        setDrawTPage(draw_mode, 0, 1, 0x20);
-        addPrim(gGpuCurrentOt - 1, draw_mode);
+    if (distortion == ONE) {
+        backdrop                = (TILE*)D_actor_403600_8016069C;
+        D_actor_403600_8016069C = (u8*)(backdrop + 1);
+        backdrop->x0            = -ACTOR_403600_DISTORTION_HALF_WIDTH;
+        backdrop->y0            = -ACTOR_403600_DISTORTION_HALF_HEIGHT;
+        backdrop->w             = 2 * ACTOR_403600_DISTORTION_HALF_WIDTH;
+        backdrop->h             = 2 * ACTOR_403600_DISTORTION_HALF_HEIGHT;
+        setlen(backdrop, ACTOR_403600_DISTORTION_BACKDROP_WORDS);
+        GPU_PRIMITIVE_COLOR_WORD(backdrop, 0) = GPU_PACK_COLOR_WORD(0xC0, 0x60, 0x20, 0);
+        backdrop->code                        = ACTOR_403600_DISTORTION_BACKDROP_CODE;
+        drawMode                              = gGpuPrimCursor;
+        gGpuPrimCursor                        = drawMode + 1;
+        addPrim(gGpuCurrentOt - 1, backdrop);
+        setDrawTPage(drawMode, 0, 1, getTPage(0, GPU_BLEND_ADD, 0, 0));
+        addPrim(gGpuCurrentOt - 1, drawMode);
     }
     frameCaptureQueue(0);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor403600ScreenDistortionScratch));
+
+#undef ACTOR_403600_COPY_DISTORTION_CORNER
 }
 
 /// Applies a Q12 matrix's 3x3 part to a short vector without adding translation.
@@ -1584,319 +1606,381 @@ void actor403600SwingLooseParts(Task* fxTask, const Actor403600Work* work, Actor
     }
 }
 
-void func_actor_403600_80134288(Task* arg0)
+/// Owns the boss's distortion seed, loose-part child and per-frame packet arena.
+///
+/// Requires a live boss parent. State 0 allocates zeroed effect work and spawns
+/// the loose-part updater as a child; allocation failure exits the task.
+/// Each update selects one 49152-byte arena half by the current OT buffer,
+/// before later projectile and ripple tasks append their packets. Task teardown
+/// owns the work and child lifetime. Draws distortion only for a live boss.
+static void _actor403600FxTask(Task* task)
 {
-    Actor403600Work*   work;
+    enum { ACTOR_403600_LOOSE_PARTS_TASK_SLOT   = 2,
+           ACTOR_403600_EFFECT_ARENA_HALF_BYTES = 0xC000 };
+    Actor403600Work*   bossWork;
     Actor403600FxWork* fx;
-    Task*              child;
+    Task*              loosePartsTask;
 
-    work = arg0->parent->work;
-    if (arg0->state == 0) {
-        fx = memCalloc(sizeof(Actor403600FxWork), false);
+    bossWork = task->parent->work;
+    if (task->state == 0) {
+        fx = memCalloc(sizeof(*fx), false);
         if (fx == NULL) {
-            taskCallExit(arg0);
+            taskCallExit(task);
             return;
         }
         gGameSession->field_80 = 0;
-        arg0->work             = fx;
-        child                  = taskSpawnFromTable(D_actor_403600_801421A0, 2, 0, 0);
-        if (child != NULL) {
-            taskReparent(arg0, child);
+        task->work             = fx;
+        loosePartsTask         = taskSpawnFromTable(D_actor_403600_801421A0, ACTOR_403600_LOOSE_PARTS_TASK_SLOT, 0, 0);
+        if (loosePartsTask != NULL) {
+            taskReparent(task, loosePartsTask);
         }
-        work                         = arg0->parent->work;
-        work->fxTask                 = arg0;
+        bossWork                     = task->parent->work;
+        bossWork->fxTask             = task;
         gActor403600RipplePlaneCoord = NULL;
-        arg0->state++;
+        task->state++;
     }
-    fx                      = arg0->work;
-    D_actor_403600_8016069C = (u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * 0xC000);
-    if (work->defeated != 1 && work->screenDistortion > 0) {
-        func_actor_403600_80132A18(arg0, work, fx);
+    fx                      = task->work;
+    D_actor_403600_8016069C = (u8*)Fs_ActorLoadBase2 + (gDisplayState.otBuffer * ACTOR_403600_EFFECT_ARENA_HALF_BYTES);
+    if (bossWork->defeated != 1 && bossWork->screenDistortion > 0) {
+        _actor403600DrawScreenDistortion(task, bossWork, fx);
     }
 }
 static const SVECTOR D_actor_403600_80131E24 = { -100, 700, -280, 0 };
 
-void func_actor_403600_80134398(Task* arg0)
+/// Advances and draws one boss projectile, including its gathering and trail fade.
+///
+/// spawnArg2 borrows the live owner's task; spawnArg1's low four bits select
+/// tint and attack. Kinds below 4096 fly and collide; kinds 4096 and 4352 stay
+/// on owner parts 18 and 14. State 0 allocates work and initializes a 32-point
+/// trail. status selects steering, straight flight, fading, gathering or held.
+/// Running frames take two 100-unit steps and advance history; paused frames
+/// still draw. A negative lifetime or contact ends flight, then it fades for
+/// 32 frames. Requires a live coordinate body and the arena selected by the
+/// boss effect task; packet storage remains borrowed until GPU completion.
+static void _actor403600ProjectileTask(Task* task)
 {
-    MATRIX*                gteValue1;
-    SVECTOR*               gteValue2;
-    DVECTOR*               gteValue3;
-    s32*                   gteValue4;
-    s32*                   gteValue5;
-    s32*                   gteValue6;
-    SVECTOR                sp10;
-    SVECTOR                sp18;
-    SVECTOR*               firstVector;
-    SVECTOR*               cameraVector;
+    enum {
+        ACTOR_403600_PROJECTILE_STEERING              = 0,
+        ACTOR_403600_PROJECTILE_STRAIGHT              = 1,
+        ACTOR_403600_PROJECTILE_FADING                = 2,
+        ACTOR_403600_PROJECTILE_GATHERING             = 3,
+        ACTOR_403600_PROJECTILE_HELD                  = 4,
+        ACTOR_403600_PROJECTILE_HELD_KIND             = 0x1000,
+        ACTOR_403600_PROJECTILE_HELD_PART14_KIND      = 0x1100,
+        ACTOR_403600_PROJECTILE_TINT_MASK             = 0xF,
+        ACTOR_403600_PROJECTILE_LIFE_FRAMES           = 300,
+        ACTOR_403600_PROJECTILE_PARKED_LIFE           = 0x7FFFFFFF,
+        ACTOR_403600_PROJECTILE_STRAIGHT_HOLD_FRAMES  = 0x7FFF,
+        ACTOR_403600_PROJECTILE_STEERING_BASE_FRAMES  = 16,
+        ACTOR_403600_PROJECTILE_STEERING_RANDOM_MASK  = 15,
+        ACTOR_403600_PROJECTILE_STEPS_PER_FRAME       = 2,
+        ACTOR_403600_PROJECTILE_STEP_UNITS            = 100,
+        ACTOR_403600_PROJECTILE_CAPSULE_RADIUS        = 200,
+        ACTOR_403600_PROJECTILE_GATHER_PART           = 18,
+        ACTOR_403600_PROJECTILE_HELD_PART14           = 14,
+        ACTOR_403600_PROJECTILE_GATHER_RELEASE_FRAMES = 7,
+        ACTOR_403600_PROJECTILE_QUAD_WORDS            = 9,
+        ACTOR_403600_PROJECTILE_QUAD_CODE             = 0x2E,
+        ACTOR_403600_PROJECTILE_OT_SHIFT              = 4,
+        ACTOR_403600_PROJECTILE_OT_MASK               = GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt),
+        ACTOR_403600_PROJECTILE_SPREAD_MASK           = 0x1FF,
+        ACTOR_403600_PROJECTILE_SPREAD_CENTER         = 0x100,
+        ACTOR_403600_PROJECTILE_GLOW_RADIUS           = 150,
+        ACTOR_403600_PROJECTILE_TRAIL_RADIUS          = 120,
+        ACTOR_403600_PROJECTILE_TRAIL_TEXTURE_BIT     = 0x20,
+        ACTOR_403600_PROJECTILE_GATHER_DRAW_STRIDE    = 4,
+        ACTOR_403600_PROJECTILE_ENERGY_RING_FRAMES    = 32,
+        ACTOR_403600_PROJECTILE_GLOW_TPAGE            = 0x29,
+        ACTOR_403600_PROJECTILE_GLOW_CLUT_A           = 0x428B,
+        ACTOR_403600_PROJECTILE_GLOW_CLUT_B           = 0x428C,
+        ACTOR_403600_PROJECTILE_GLOW_U_A              = 0x70,
+        ACTOR_403600_PROJECTILE_GLOW_U_B              = 0xA8,
+        ACTOR_403600_PROJECTILE_GLOW_V_TOP            = 0xC9,
+        ACTOR_403600_PROJECTILE_GLOW_V_BOTTOM         = 0xFF,
+        ACTOR_403600_PROJECTILE_GLOW_TEXEL_SPAN       = 0x37,
+        ACTOR_403600_PROJECTILE_TRAIL_TPAGE           = 0x2A,
+        ACTOR_403600_PROJECTILE_TRAIL_CLUT            = 0x42CC,
+        ACTOR_403600_PROJECTILE_TRAIL_V_TOP           = 0x18,
+        ACTOR_403600_PROJECTILE_TRAIL_V_BOTTOM        = 0x37,
+        ACTOR_403600_PROJECTILE_TRAIL_U_LEFT          = 0x60,
+        ACTOR_403600_PROJECTILE_TRAIL_U_RIGHT         = 0x7F,
+        ACTOR_403600_PROJECTILE_TINT_CYAN             = 0,
+        ACTOR_403600_PROJECTILE_TINT_WHITE            = 1,
+        ACTOR_403600_PROJECTILE_TINT_RED              = 2
+    };
+    MATRIX*                inverseRotation;
+    SVECTOR*               flightDirection;
+    DVECTOR*               projectedScreen;
+    s32*                   projectedDepthCue;
+    s32*                   projectionFlags;
+    s32*                   projectedDepth;
+    SVECTOR                ownerPartOffset;
+    SVECTOR                rotationInput;
+    SVECTOR*               launchInput;
+    SVECTOR*               targetInput;
     Task*                  player;
-    s32                    sp24;
-    s32                    sp28;
-    DisplayState*          ds;
-    s16                    temp_s0_6;
-    s16                    temp_v1_10;
-    s16                    temp_v1_11;
-    s16                    temp_v1_8;
-    s16                    temp_v1_9;
-    s32                    temp_a0_4;
-    s32                    temp_v1_13;
-    s32                    temp_v1_6;
-    s32                    var_a0;
-    GfxCoord*              var_a1_2;
-    s32                    var_fp;
-    s32                    var_s4;
-    s32                    temp_s0_3;
-    s32                    temp_s0_5;
-    s8                     temp_v1_12;
-    u16                    temp_v1_3;
-    s32                    historyDst, historySrc;
-    SVECTOR*               historyOut;
-    s32                    direction;
-    u8                     temp_v0_5;
-    u8                     temp_v1_4;
-    u8                     temp_v1_5;
-    u8                     temp_v1_7;
+    s32                    glowColor;
+    s32                    trailStride;
+    DisplayState*          display;
+    s16                    quadAngle;
+    s16                    glowTop;
+    s16                    glowBottom;
+    s16                    glowLeft;
+    s16                    glowRight;
+    s32                    glowDepth;
+    s32                    trailRightU;
+    s32                    trailColor;
+    s32                    tintKind;
+    s32                    quadRadius;
+    s32                    colorIndex;
+    GfxCoord*              gatherPart;
+    s32                    fadeHead;
+    s32                    componentOrTrailIndex;
+    s32                    launchPan;
+    s32                    hitPan;
+    s8                     glowRightU;
+    u16                    nextCountdown;
+    s32                    blendedDirection;
+    u8                     trailLeftU;
+    u8                     transitionStatus;
+    u8                     motionStatus;
+    u8                     drawStatus;
     GfxCoord*              ownerCoord;
     Task*                  motionParent;
-    Task*                  temp_a0_3;
-    WorldCollisionBody*    obj;
-    WorldCollisionContact* recs;
-    SVECTOR*               temp_s0_4;
-    SVECTOR*               temp_s1;
-    WorldCollisionCapsule* newShape;
+    Task*                  heldOwner;
+    WorldCollisionBody*    attackBody;
+    WorldCollisionContact* contacts;
+    SVECTOR*               steeringVector;
+    SVECTOR*               launchDirection;
+    WorldCollisionCapsule* capsule;
     GfxCoord*              target;
     GfxCoord*              view;
-    /* The setup and draw phases reuse this pointer; steering has its own counter. */
-    void*                          shared;
+    // Launch setup and packet drawing reuse this temporary in separate phases.
+    void*                          phaseStorage;
     s32                            steeringPass;
     Task*                          owner;
     Actor403600ProjectileWork*     work;
     GfxCoord*                      coord;
     _Actor403600ProjectileScratch* scratch;
     Actor403600ProjectileWork*     newWork;
-    SVECTOR*                       temp_v0_4;
-    SVECTOR*                       temp_v1;
+    SVECTOR*                       cornerVector;
+    SVECTOR*                       roomDirection;
     SVECTOR*                       point;
 
-    coord  = arg0->extra.coordBody->coord;
-    sp10   = D_actor_403600_80131E24;
-    player = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    coord           = task->extra.coordBody->coord;
+    ownerPartOffset = D_actor_403600_80131E24;
+    player          = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
     if (player == NULL) {
-        taskCallExit(arg0);
+        taskCallExit(task);
         return;
     }
-    if (((Actor403600Work*)((Task*)arg0->spawnArg2.pointer)->work)->defeated == 1) {
-        taskCallExit(arg0);
+    if (((Actor403600Work*)((Task*)task->spawnArg2.pointer)->work)->defeated == 1) {
+        taskCallExit(task);
         return;
     }
     SCRATCH_STACK_RESERVE_BLOCK(_Actor403600ProjectileScratch);
     scratch = SCRATCH_STACK_CURSOR(_Actor403600ProjectileScratch);
-    if (arg0->state == 0) {
-        newWork = memCalloc(sizeof(Actor403600ProjectileWork), 0);
+    // Build the held launch pose, trail and attack capsule before any motion.
+    if (task->state == 0) {
+        newWork = memCalloc(sizeof(*newWork), false);
         if (newWork == NULL) {
-            taskCallExit(arg0);
+            taskCallExit(task);
             SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
             return;
         }
-        arg0->work             = newWork;
+        task->work             = newWork;
         coord->parent          = &gGfxViewCoord;
         coord->coord.t[2]      = 0;
         coord->coord.t[1]      = 0;
         coord->coord.t[0]      = 0;
         coord->composeStamp    = GRAPHICS_COORD_DIRTY;
-        owner                  = arg0->spawnArg2.pointer;
-        arg0->killCountdown    = 1;
-        arg0->status           = 1;
-        arg0->extraState.value = 0;
+        owner                  = task->spawnArg2.pointer;
+        task->killCountdown    = 1;
+        task->status           = ACTOR_403600_PROJECTILE_STRAIGHT;
+        task->extraState.value = 0;
         if (owner == NULL) {
             newWork->direction.vx = 0;
-            newWork->direction.vy = -0x1000;
+            newWork->direction.vy = -ONE;
             newWork->direction.vz = 0;
         } else {
-            shared                = owner->work;
+            phaseStorage          = owner->work;
             newWork->direction.vy = -0x1B8;
-            firstVector           = &sp18;
-            temp_s1               = &newWork->direction;
+            launchInput           = &rotationInput;
+            launchDirection       = &newWork->direction;
 
             newWork->direction.vx = 0;
             newWork->direction.vz = 0x4B0;
-            sp18                  = newWork->direction;
-            ownerCoord            = &((Actor403600Work*)shared)->worldCoord;
-            shared                = &((Actor403600Work*)shared)->worldCoord.coord;
-            gte_SetRotMatrix(shared);
-            gte_ldv0(firstVector);
-            gte_rtv0();
-            gte_stsv(temp_s1);
+            rotationInput         = newWork->direction;
+            ownerCoord            = &((Actor403600Work*)phaseStorage)->worldCoord;
+            phaseStorage          = &((Actor403600Work*)phaseStorage)->worldCoord.coord;
+            _actor403600RotateSv(phaseStorage, launchInput, launchDirection);
             coord->coord.t[0]     = ownerCoord->coord.t[0] + newWork->direction.vx;
             coord->coord.t[1]     = ownerCoord->coord.t[1] + newWork->direction.vy;
             coord->coord.t[2]     = ownerCoord->coord.t[2] + newWork->direction.vz;
-            newWork->direction.vx = (s16)((rand() & 0x1FF) - 0x100);
-            newWork->direction.vy = (s16)((rand() & 0x1FF) - 0x100);
-            newWork->direction.vz = 0x1000;
-            sp18                  = newWork->direction;
-            gte_SetRotMatrix(shared);
-            gte_ldv0(firstVector);
-            gte_rtv0();
-            gte_stsv(temp_s1);
+            newWork->direction.vx = (s16)((rand() & ACTOR_403600_PROJECTILE_SPREAD_MASK) - ACTOR_403600_PROJECTILE_SPREAD_CENTER);
+            newWork->direction.vy = (s16)((rand() & ACTOR_403600_PROJECTILE_SPREAD_MASK) - ACTOR_403600_PROJECTILE_SPREAD_CENTER);
+            newWork->direction.vz = ONE;
+            rotationInput         = newWork->direction;
+            _actor403600RotateSv(phaseStorage, launchInput, launchDirection);
 
-            if (arg0->spawnArg1.value == 0x1100) {
-                actorRenderCopyCoordBodyTransform(arg0, &owner->extra.tmd->coords[14], &sp10);
+            if (task->spawnArg1.value == ACTOR_403600_PROJECTILE_HELD_PART14_KIND) {
+                actorRenderCopyCoordBodyTransform(task, &owner->extra.tmd->coords[ACTOR_403600_PROJECTILE_HELD_PART14], &ownerPartOffset);
             } else {
-                actorRenderCopyCoordBodyTransform(arg0, &owner->extra.tmd->coords[18], &sp10);
+                actorRenderCopyCoordBodyTransform(task, &owner->extra.tmd->coords[ACTOR_403600_PROJECTILE_GATHER_PART], &ownerPartOffset);
             }
-            if (arg0->spawnArg1.value < 0x1000) {
-                effectSpawn(EFFECT_EVE_ENERGY_RING, coord, 0x20, 0);
+            if (task->spawnArg1.value < ACTOR_403600_PROJECTILE_HELD_KIND) {
+                effectSpawn(EFFECT_EVE_ENERGY_RING, coord, ACTOR_403600_PROJECTILE_ENERGY_RING_FRAMES, NULL);
             }
-            arg0->status        = 3;
-            arg0->killCountdown = 0x20;
+            task->status        = ACTOR_403600_PROJECTILE_GATHERING;
+            task->killCountdown = ARRAY_SIZE(newWork->trail);
         }
-        var_s4 = 0;
-        if (arg0->spawnArg1.value >= 0x1000) {
-            arg0->status = 4;
+        componentOrTrailIndex = 0;
+        if (task->spawnArg1.value >= ACTOR_403600_PROJECTILE_HELD_KIND) {
+            task->status = ACTOR_403600_PROJECTILE_HELD;
         }
         do {
-            newWork->trail[var_s4].vx = (u16)coord->coord.t[0];
-            newWork->trail[var_s4].vy = (u16)coord->coord.t[1];
-            newWork->trail[var_s4].vz = (u16)coord->coord.t[2];
-            var_s4                   += 1;
-        } while (var_s4 < ARRAY_SIZE(newWork->trail));
-        newShape = &newWork->attackCapsule;
-        if (arg0->spawnArg1.value < 0x1000) {
-            obj                               = &newWork->attackBody;
-            obj->coord                        = coord;
-            obj->context.capsule              = newShape;
-            obj->pos.vx                       = 0;
-            obj->pos.vy                       = 0;
-            obj->pos.vz                       = 0;
-            obj->radius                       = 0;
-            recs                              = newWork->attackContacts;
-            obj->key                          = damagePackAttackKey(&D_actor_403600_801420F0, arg0->spawnArg1.value & 0xF);
-            obj->flags                        = WORLD_COLLISION_BODY_CAPSULE;
-            newShape->contacts                = recs;
-            newShape->ends[1].vx              = 0;
-            newShape->ends[1].vy              = 0;
-            newShape->ends[1].vz              = 0;
+            newWork->trail[componentOrTrailIndex].vx = (u16)coord->coord.t[0];
+            newWork->trail[componentOrTrailIndex].vy = (u16)coord->coord.t[1];
+            newWork->trail[componentOrTrailIndex].vz = (u16)coord->coord.t[2];
+            componentOrTrailIndex                   += 1;
+        } while (componentOrTrailIndex < ARRAY_SIZE(newWork->trail));
+        capsule = &newWork->attackCapsule;
+        if (task->spawnArg1.value < ACTOR_403600_PROJECTILE_HELD_KIND) {
+            attackBody                        = &newWork->attackBody;
+            attackBody->coord                 = coord;
+            attackBody->context.capsule       = capsule;
+            attackBody->pos.vx                = 0;
+            attackBody->pos.vy                = 0;
+            attackBody->pos.vz                = 0;
+            attackBody->radius                = 0;
+            contacts                          = newWork->attackContacts;
+            attackBody->key                   = damagePackAttackKey(&D_actor_403600_801420F0, task->spawnArg1.value & ACTOR_403600_PROJECTILE_TINT_MASK);
+            attackBody->flags                 = WORLD_COLLISION_BODY_CAPSULE;
+            capsule->contacts                 = contacts;
+            capsule->ends[1].vx               = 0;
+            capsule->ends[1].vy               = 0;
+            capsule->ends[1].vz               = 0;
             newWork->attackCapsule.ends[0].vx = 0;
-            newShape->ends[0].vy              = 0;
-            newShape->ends[0].vz              = 0;
-            newShape->end0Radius              = 0xC8;
-            newShape->end1Radius              = 0xC8;
-            worldCollisionInitContacts(recs, ARRAY_SIZE(newWork->attackContacts), 0);
-            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);
-            obj->flags         = obj->flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            arg0->exitCallback = actor403600ProjectileExit;
+            capsule->ends[0].vy               = 0;
+            capsule->ends[0].vz               = 0;
+            capsule->end0Radius               = ACTOR_403600_PROJECTILE_CAPSULE_RADIUS;
+            capsule->end1Radius               = ACTOR_403600_PROJECTILE_CAPSULE_RADIUS;
+            worldCollisionInitContacts(contacts, ARRAY_SIZE(newWork->attackContacts), 0);
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, attackBody);
+            attackBody->flags  = attackBody->flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+            task->exitCallback = actor403600ProjectileExit;
         }
-        newWork->life = 0x12C;
-        arg0->state   = arg0->state + 1;
+        newWork->life = ACTOR_403600_PROJECTILE_LIFE_FRAMES;
+        task->state   = task->state + 1;
     }
-    work   = arg0->work;
+    work = task->work;
+    // Convert the player target from view space to the projectile's room frame.
     target = &player->extra.tmd->coords[1];
     actorRenderComposeCoord(target);
     TransposeMatrix(&gGfxViewCoord.workm, &scratch->inverseViewRot);
-    view            = &gGfxViewCoord;
-    var_s4          = target->workm.t[0] - view->workm.t[0];
-    scratch->dir.vx = (s16)var_s4;
-    var_s4          = target->workm.t[1] - view->workm.t[1];
-    scratch->dir.vy = (s16)var_s4;
-    newShape        = &work->attackCapsule;
-    cameraVector    = &sp18;
-    temp_v1         = &scratch->dir;
-    var_s4          = target->workm.t[2] - view->workm.t[2];
-    scratch->dir.vz = (s16)var_s4;
-    *cameraVector   = scratch->dir;
-    gteValue1       = &scratch->inverseViewRot;
-    gte_SetRotMatrix(gteValue1);
-    gte_ldv0(cameraVector);
-    gte_rtv0();
-    gte_stsv(temp_v1);
+    view                  = &gGfxViewCoord;
+    componentOrTrailIndex = target->workm.t[0] - view->workm.t[0];
+    scratch->dir.vx       = (s16)componentOrTrailIndex;
+    componentOrTrailIndex = target->workm.t[1] - view->workm.t[1];
+    scratch->dir.vy       = (s16)componentOrTrailIndex;
+    capsule               = &work->attackCapsule;
+    targetInput           = &rotationInput;
+    roomDirection         = &scratch->dir;
+    componentOrTrailIndex = target->workm.t[2] - view->workm.t[2];
+    scratch->dir.vz       = (s16)componentOrTrailIndex;
+    *targetInput          = scratch->dir;
+    inverseRotation       = &scratch->inverseViewRot;
+    _actor403600RotateSv(inverseRotation, targetInput, roomDirection);
     scratch->target.vx = scratch->dir.vx;
     scratch->target.vy = scratch->dir.vy;
     scratch->target.vz = scratch->dir.vz;
+    // History and flight advance only on running frames.
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        if (arg0->spawnArg1.value < 0x1000) {
+        if (task->spawnArg1.value < ACTOR_403600_PROJECTILE_HELD_KIND) {
             work->life = work->life - 1;
         } else {
-            arg0->killCountdown = (u16)arg0->killCountdown + 1;
+            task->killCountdown = (u16)task->killCountdown + 1;
         }
-        var_s4 = 0;
+        componentOrTrailIndex = 0;
         do {
-            work->trail[ARRAY_SIZE(work->trail) - 1 - var_s4] = work->trail[ARRAY_SIZE(work->trail) - 2 - var_s4];
-            var_s4                                           += 1;
-        } while (var_s4 < ARRAY_SIZE(work->trail) - 1);
-        arg0->extraState.value ^= 1;
-        temp_v1_3               = (u16)arg0->killCountdown - 1;
-        arg0->killCountdown     = temp_v1_3;
-        if ((temp_v1_3 << 0x10) <= 0) {
-            temp_v1_4 = arg0->status;
-            if (temp_v1_4 == 2) {
-                taskCallExit(arg0);
+            work->trail[ARRAY_SIZE(work->trail) - 1 - componentOrTrailIndex] = work->trail[ARRAY_SIZE(work->trail) - 2 - componentOrTrailIndex];
+            componentOrTrailIndex                                           += 1;
+        } while (componentOrTrailIndex < ARRAY_SIZE(work->trail) - 1);
+        task->extraState.value ^= 1;
+        nextCountdown           = (u16)task->killCountdown - 1;
+        task->killCountdown     = nextCountdown;
+        if ((nextCountdown << 0x10) <= 0) {
+            transitionStatus = task->status;
+            if (transitionStatus == ACTOR_403600_PROJECTILE_FADING) {
+                taskCallExit(task);
                 SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
                 return;
             }
-            if (temp_v1_4 == 3) {
-                temp_s0_3 = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_LAUNCH, temp_s0_3, (s8)worldCoordGetOriginAudioDepth(coord));
-                arg0->killCountdown = (rand() & 0xF) + 0x10;
-                arg0->status        = 1;
-            } else if (temp_v1_4 == 0) {
-                arg0->killCountdown = 0x7FFF;
-                arg0->status        = 1;
+            if (transitionStatus == ACTOR_403600_PROJECTILE_GATHERING) {
+                launchPan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_LAUNCH, launchPan, (s8)worldCoordGetOriginAudioDepth(coord));
+                task->killCountdown = (rand() & ACTOR_403600_PROJECTILE_STEERING_RANDOM_MASK) + ACTOR_403600_PROJECTILE_STEERING_BASE_FRAMES;
+                task->status        = ACTOR_403600_PROJECTILE_STRAIGHT;
+            } else if (transitionStatus == ACTOR_403600_PROJECTILE_STEERING) {
+                task->killCountdown = ACTOR_403600_PROJECTILE_STRAIGHT_HOLD_FRAMES;
+                task->status        = ACTOR_403600_PROJECTILE_STRAIGHT;
             } else {
-                arg0->killCountdown = (u16)((rand() & 0xF) + 0x10);
-                arg0->status        = (u8)(arg0->status ^ 1);
+                task->killCountdown = (u16)((rand() & ACTOR_403600_PROJECTILE_STEERING_RANDOM_MASK) + ACTOR_403600_PROJECTILE_STEERING_BASE_FRAMES);
+                task->status        = (u8)(task->status ^ 1);
             }
         }
-        if (arg0->status != 2) {
-            steeringPass = 0;
-            temp_s0_4    = &scratch->dir;
-            for (; steeringPass < 2; steeringPass++) {
-                if (arg0->status == 0) {
+        if (task->status != ACTOR_403600_PROJECTILE_FADING) {
+            steeringPass   = 0;
+            steeringVector = &scratch->dir;
+            for (; steeringPass < ACTOR_403600_PROJECTILE_STEPS_PER_FRAME; steeringPass++) {
+                if (task->status == ACTOR_403600_PROJECTILE_STEERING) {
                     scratch->dir.vx = (s16)((scratch->target.vx - coord->coord.t[0]) >> 2);
                     scratch->dir.vy = (s16)((s32)(scratch->target.vy - coord->coord.t[1]) >> 2);
                     scratch->dir.vz = (s16)((s32)(scratch->target.vz - coord->coord.t[2]) >> 2);
-                    VectorNormalSS(temp_s0_4, temp_s0_4);
-                    direction       = (scratch->dir.vx + work->direction.vx * 7) >> 4;
-                    scratch->dir.vx = direction;
-                    direction       = (scratch->dir.vy + work->direction.vy * 7) >> 4;
-                    scratch->dir.vy = direction;
-                    direction       = (scratch->dir.vz + work->direction.vz * 7) >> 4;
-                    scratch->dir.vz = direction;
-                    VectorNormalSS(temp_s0_4, temp_s0_4);
+                    VectorNormalSS(steeringVector, steeringVector);
+                    blendedDirection = (scratch->dir.vx + work->direction.vx * 7) >> 4;
+                    scratch->dir.vx  = blendedDirection;
+                    blendedDirection = (scratch->dir.vy + work->direction.vy * 7) >> 4;
+                    scratch->dir.vy  = blendedDirection;
+                    blendedDirection = (scratch->dir.vz + work->direction.vz * 7) >> 4;
+                    scratch->dir.vz  = blendedDirection;
+                    VectorNormalSS(steeringVector, steeringVector);
                     work->direction.vx = (s16)(u16)scratch->dir.vx;
                     work->direction.vy = (s16)(u16)scratch->dir.vy;
                     work->direction.vz = (s16)(u16)scratch->dir.vz;
                 }
-                temp_v1_5 = arg0->status;
-                if (temp_v1_5 < 3U) {
-                    gte_lddp(100);
-                    gteValue2 = &work->direction;
-                    gte_ldsv(gteValue2);
+                motionStatus = task->status;
+                if (motionStatus < (u32)ACTOR_403600_PROJECTILE_GATHERING) {
+                    gte_lddp(ACTOR_403600_PROJECTILE_STEP_UNITS);
+                    flightDirection = &work->direction;
+                    gte_ldsv(flightDirection);
                     gte_gpf12();
-                    gte_stsv(temp_s0_4);
-                    newShape->ends[1].vx = (s16) - (s16)(u16)scratch->dir.vx;
-                    newShape->ends[1].vy = (s16) - (s16)(u16)scratch->dir.vy;
-                    newShape->ends[1].vz = (s16) - (s16)(u16)scratch->dir.vz;
-                    coord->coord.t[0]    = coord->coord.t[0] + scratch->dir.vx;
-                    coord->coord.t[1]    = coord->coord.t[1] + scratch->dir.vy;
-                    coord->coord.t[2]    = coord->coord.t[2] + scratch->dir.vz;
-                } else if (temp_v1_5 == 3) {
-                    motionParent = arg0->spawnArg2.pointer;
-                    if ((s16)arg0->killCountdown >= 7) {
-                        var_a1_2 = &motionParent->extra.tmd->coords[18];
-                        actorRenderCopyCoordBodyTransform(arg0, var_a1_2, &sp10);
-                        var_s4 = 0;
+                    gte_stsv(steeringVector);
+                    capsule->ends[1].vx = (s16) - (s16)(u16)scratch->dir.vx;
+                    capsule->ends[1].vy = (s16) - (s16)(u16)scratch->dir.vy;
+                    capsule->ends[1].vz = (s16) - (s16)(u16)scratch->dir.vz;
+                    coord->coord.t[0]   = coord->coord.t[0] + scratch->dir.vx;
+                    coord->coord.t[1]   = coord->coord.t[1] + scratch->dir.vy;
+                    coord->coord.t[2]   = coord->coord.t[2] + scratch->dir.vz;
+                } else if (motionStatus == ACTOR_403600_PROJECTILE_GATHERING) {
+                    motionParent = task->spawnArg2.pointer;
+                    if ((s16)task->killCountdown >= ACTOR_403600_PROJECTILE_GATHER_RELEASE_FRAMES) {
+                        gatherPart = &motionParent->extra.tmd->coords[ACTOR_403600_PROJECTILE_GATHER_PART];
+                        actorRenderCopyCoordBodyTransform(task, gatherPart, &ownerPartOffset);
+                        componentOrTrailIndex = 0;
                         do {
-                            work->trail[var_s4].vx = (u16)coord->coord.t[0];
-                            work->trail[var_s4].vy = (u16)coord->coord.t[1];
-                            work->trail[var_s4].vz = (u16)coord->coord.t[2];
-                            var_s4                += 1;
-                        } while (var_s4 < ARRAY_SIZE(work->trail));
+                            work->trail[componentOrTrailIndex].vx = (u16)coord->coord.t[0];
+                            work->trail[componentOrTrailIndex].vy = (u16)coord->coord.t[1];
+                            work->trail[componentOrTrailIndex].vz = (u16)coord->coord.t[2];
+                            componentOrTrailIndex                += 1;
+                        } while (componentOrTrailIndex < ARRAY_SIZE(work->trail));
                     }
                 } else {
-                    temp_a0_3 = arg0->spawnArg2.pointer;
-                    if (arg0->spawnArg1.value == 0x1000) {
-                        actorRenderCopyCoordBodyTransform(arg0, &temp_a0_3->extra.tmd->coords[18], &sp10);
+                    heldOwner = task->spawnArg2.pointer;
+                    if (task->spawnArg1.value == ACTOR_403600_PROJECTILE_HELD_KIND) {
+                        actorRenderCopyCoordBodyTransform(task, &heldOwner->extra.tmd->coords[ACTOR_403600_PROJECTILE_GATHER_PART], &ownerPartOffset);
                     } else {
-                        actorRenderCopyCoordBodyTransform(arg0, &temp_a0_3->extra.tmd->coords[14], &sp10);
+                        actorRenderCopyCoordBodyTransform(task, &heldOwner->extra.tmd->coords[ACTOR_403600_PROJECTILE_HELD_PART14], &ownerPartOffset);
                     }
                 }
             }
@@ -1908,165 +1992,167 @@ void func_actor_403600_80134398(Task* arg0)
         work->trail[0].vz  = (u16)coord->coord.t[2];
         work->trail[0].pad = rand();
     }
-    if ((arg0->spawnArg1.value < 0x1000) && (worldCollisionFindContactIndex(work->attackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
-        temp_s0_5 = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_HIT, temp_s0_5, (s8)worldCoordGetOriginAudioDepth(coord));
+    if ((task->spawnArg1.value < ACTOR_403600_PROJECTILE_HELD_KIND) && (worldCollisionFindContactIndex(work->attackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
+        hitPan = (s8)worldCoordGetOriginAudioPan(coord);
+        sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_PROJECTILE_HIT, hitPan, (s8)worldCoordGetOriginAudioDepth(coord));
         work->life = -1;
     }
+    // Disable attacks before consuming the trail from its head during fade.
     if (work->life < 0) {
-        if (arg0->spawnArg1.value < 0x1000) {
+        if (task->spawnArg1.value < ACTOR_403600_PROJECTILE_HELD_KIND) {
             worldCollisionClearContacts(work->attackContacts);
             work->attackBody.flags = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
         }
-        work->life          = 0x7FFFFFFF;
-        arg0->status        = 2;
-        arg0->killCountdown = 0x20;
+        work->life          = ACTOR_403600_PROJECTILE_PARKED_LIFE;
+        task->status        = ACTOR_403600_PROJECTILE_FADING;
+        task->killCountdown = ARRAY_SIZE(work->trail);
     }
+    // Draw the head glow and rotating trail quads into wrapped depth slots.
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    temp_v1_6 = arg0->spawnArg1.value & 0xF;
-    switch (temp_v1_6) {
-        case 0:
-            sp24 = 0x808000;
+    tintKind = task->spawnArg1.value & ACTOR_403600_PROJECTILE_TINT_MASK;
+    switch (tintKind) {
+        case ACTOR_403600_PROJECTILE_TINT_CYAN:
+            glowColor = GPU_PACK_COLOR_WORD(0, 128, 128, 0);
             break;
-        case 1:
-            sp24 = 0x808080;
+        case ACTOR_403600_PROJECTILE_TINT_WHITE:
+            glowColor = GPU_PACK_COLOR_WORD(128, 128, 128, 0);
             break;
-        case 2:
-            sp24 = 0x80;
+        case ACTOR_403600_PROJECTILE_TINT_RED:
+            glowColor = GPU_PACK_COLOR_WORD(128, 0, 0, 0);
             break;
         default:
-            sp24 = 0x8080;
+            glowColor = GPU_PACK_COLOR_WORD(128, 128, 0, 0);
             break;
     }
-    sp28      = 1;
-    temp_v1_7 = arg0->status;
-    var_fp    = 0;
-    if (temp_v1_7 == 2) {
-        var_fp = 0x20 - (s16)arg0->killCountdown;
-    } else if (temp_v1_7 == 3) {
-        sp28 = 4;
+    trailStride = 1;
+    drawStatus  = task->status;
+    fadeHead    = 0;
+    if (drawStatus == ACTOR_403600_PROJECTILE_FADING) {
+        fadeHead = (s32)ARRAY_SIZE(work->trail) - (s16)task->killCountdown;
+    } else if (drawStatus == ACTOR_403600_PROJECTILE_GATHERING) {
+        trailStride = ACTOR_403600_PROJECTILE_GATHER_DRAW_STRIDE;
     }
-    var_s4 = var_fp;
-    if (var_s4 < ARRAY_SIZE(work->trail)) {
-        ds = &gDisplayState;
+    componentOrTrailIndex = fadeHead;
+    if (componentOrTrailIndex < ARRAY_SIZE(work->trail)) {
+        display = &gDisplayState;
         /* This loop is at the size limit (261 insns at the loop pass) below
          * which the `2` the three status tests compare with is still moved
          * out of it; one more temporary in the body changes the allocation. */
         do {
-            shared                  = D_actor_403600_8016069C;
-            D_actor_403600_8016069C = (u8*)shared + sizeof(POLY_FT4);
-            point                   = &work->trail[var_s4];
+            phaseStorage            = D_actor_403600_8016069C;
+            D_actor_403600_8016069C = (u8*)phaseStorage + sizeof(POLY_FT4);
+            point                   = &work->trail[componentOrTrailIndex];
             gte_ldv0(point);
             gte_rtps();
-            gteValue3 = &scratch->sxy;
-            gte_stsxy(gteValue3);
-            gteValue4 = &scratch->dp;
-            gte_stdp(gteValue4);
-            gteValue5 = &scratch->flag;
-            gte_stflg(gteValue5);
-            gteValue6 = &scratch->otz;
-            gte_stszotz(gteValue6);
+            projectedScreen = &scratch->sxy;
+            gte_stsxy(projectedScreen);
+            projectedDepthCue = &scratch->dp;
+            gte_stdp(projectedDepthCue);
+            projectionFlags = &scratch->flag;
+            gte_stflg(projectionFlags);
+            projectedDepth = &scratch->otz;
+            gte_stszotz(projectedDepth);
             if (scratch->flag >= 0) {
-                if (var_s4 == 0) {
-                    if (arg0->status != 2) {
-                        temp_a0_4 = scratch->otz;
-                        if (temp_a0_4 >= 0) {
-                            scratch->cornerOffset.vx = (u16)((s32)(ds->screenDistance * 0x96) / temp_a0_4);
+                if (componentOrTrailIndex == 0) {
+                    if (task->status != ACTOR_403600_PROJECTILE_FADING) {
+                        glowDepth = scratch->otz;
+                        if (glowDepth >= 0) {
+                            scratch->cornerOffset.vx = (u16)((s32)(display->screenDistance * ACTOR_403600_PROJECTILE_GLOW_RADIUS) / glowDepth);
                         } else {
-                            scratch->cornerOffset.vx = 0x1000U;
+                            scratch->cornerOffset.vx = (u32)ONE;
                         }
-                        temp_v1_8                  = (u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx;
-                        ((POLY_FT4*)shared)->x2    = temp_v1_8;
-                        ((POLY_FT4*)shared)->x0    = temp_v1_8;
-                        temp_v1_9                  = (u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx;
-                        ((POLY_FT4*)shared)->x3    = temp_v1_9;
-                        ((POLY_FT4*)shared)->x1    = temp_v1_9;
-                        temp_v1_10                 = (u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx;
-                        ((POLY_FT4*)shared)->y1    = temp_v1_10;
-                        ((POLY_FT4*)shared)->y0    = temp_v1_10;
-                        temp_v1_11                 = (u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx;
-                        ((POLY_FT4*)shared)->tpage = 0x29;
-                        ((POLY_FT4*)shared)->y3    = temp_v1_11;
-                        ((POLY_FT4*)shared)->y2    = temp_v1_11;
-                        if (arg0->extraState.value != 0) {
-                            ((POLY_FT4*)shared)->u2   = 0x70U;
-                            ((POLY_FT4*)shared)->u0   = 0x70U;
-                            ((POLY_FT4*)shared)->clut = 0x428B;
+                        glowLeft                         = (u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx;
+                        ((POLY_FT4*)phaseStorage)->x2    = glowLeft;
+                        ((POLY_FT4*)phaseStorage)->x0    = glowLeft;
+                        glowRight                        = (u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx;
+                        ((POLY_FT4*)phaseStorage)->x3    = glowRight;
+                        ((POLY_FT4*)phaseStorage)->x1    = glowRight;
+                        glowTop                          = (u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx;
+                        ((POLY_FT4*)phaseStorage)->y1    = glowTop;
+                        ((POLY_FT4*)phaseStorage)->y0    = glowTop;
+                        glowBottom                       = (u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx;
+                        ((POLY_FT4*)phaseStorage)->tpage = ACTOR_403600_PROJECTILE_GLOW_TPAGE;
+                        ((POLY_FT4*)phaseStorage)->y3    = glowBottom;
+                        ((POLY_FT4*)phaseStorage)->y2    = glowBottom;
+                        if (task->extraState.value != 0) {
+                            ((POLY_FT4*)phaseStorage)->u2   = (u32)ACTOR_403600_PROJECTILE_GLOW_U_A;
+                            ((POLY_FT4*)phaseStorage)->u0   = (u32)ACTOR_403600_PROJECTILE_GLOW_U_A;
+                            ((POLY_FT4*)phaseStorage)->clut = ACTOR_403600_PROJECTILE_GLOW_CLUT_A;
                         } else {
-                            ((POLY_FT4*)shared)->u2   = 0xA8U;
-                            ((POLY_FT4*)shared)->u0   = 0xA8U;
-                            ((POLY_FT4*)shared)->clut = 0x428C;
+                            ((POLY_FT4*)phaseStorage)->u2   = (u32)ACTOR_403600_PROJECTILE_GLOW_U_B;
+                            ((POLY_FT4*)phaseStorage)->u0   = (u32)ACTOR_403600_PROJECTILE_GLOW_U_B;
+                            ((POLY_FT4*)phaseStorage)->clut = ACTOR_403600_PROJECTILE_GLOW_CLUT_B;
                         }
-                        ((POLY_FT4*)shared)->v1                          = 0xC9;
-                        ((POLY_FT4*)shared)->v0                          = 0xC9;
-                        ((POLY_FT4*)shared)->v3                          = 0xFF;
-                        ((POLY_FT4*)shared)->v2                          = 0xFF;
-                        GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)shared), 0) = sp24;
-                        temp_v1_12                                       = ((POLY_FT4*)shared)->u0 + 0x37;
-                        setlen((POLY_FT4*)shared, 9);
-                        ((POLY_FT4*)shared)->code = 0x2E;
-                        ((POLY_FT4*)shared)->u3   = temp_v1_12;
-                        ((POLY_FT4*)shared)->u1   = temp_v1_12;
-                        addPrim(&gGpuCurrentOt[((u32)scratch->otz << ds->otDepthShift) >> 4 & 0x3FF],
-                                (POLY_FT4*)shared);
+                        ((POLY_FT4*)phaseStorage)->v1                          = ACTOR_403600_PROJECTILE_GLOW_V_TOP;
+                        ((POLY_FT4*)phaseStorage)->v0                          = ACTOR_403600_PROJECTILE_GLOW_V_TOP;
+                        ((POLY_FT4*)phaseStorage)->v3                          = ACTOR_403600_PROJECTILE_GLOW_V_BOTTOM;
+                        ((POLY_FT4*)phaseStorage)->v2                          = ACTOR_403600_PROJECTILE_GLOW_V_BOTTOM;
+                        GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)phaseStorage), 0) = glowColor;
+                        glowRightU                                             = ((POLY_FT4*)phaseStorage)->u0 + ACTOR_403600_PROJECTILE_GLOW_TEXEL_SPAN;
+                        setlen((POLY_FT4*)phaseStorage, ACTOR_403600_PROJECTILE_QUAD_WORDS);
+                        ((POLY_FT4*)phaseStorage)->code = ACTOR_403600_PROJECTILE_QUAD_CODE;
+                        ((POLY_FT4*)phaseStorage)->u3   = glowRightU;
+                        ((POLY_FT4*)phaseStorage)->u1   = glowRightU;
+                        addPrim(&gGpuCurrentOt[((u32)scratch->otz << display->otDepthShift) >> ACTOR_403600_PROJECTILE_OT_SHIFT & ACTOR_403600_PROJECTILE_OT_MASK],
+                                (POLY_FT4*)phaseStorage);
                     }
-                } else if (var_s4 >= (var_fp - 4)) {
-                    temp_s0_6                = (u16)point->pad;
-                    scratch->cornerOffset.vx = rsin(temp_s0_6);
-                    scratch->cornerOffset.vy = rcos(temp_s0_6);
+                } else if (componentOrTrailIndex >= (fadeHead - 4)) {
+                    quadAngle                = (u16)point->pad;
+                    scratch->cornerOffset.vx = rsin(quadAngle);
+                    scratch->cornerOffset.vy = rcos(quadAngle);
                     scratch->cornerOffset.vz = 0;
                     if (scratch->otz >= 0) {
-                        var_a0 = (var_s4 * 2) + 0x78;
-                        if ((var_fp >= var_s4) && (arg0->status == 2)) {
-                            var_a0 = (var_s4 * 20) + 0x78;
-                        } else if (arg0->status == 4) {
-                            var_a0 *= 2;
+                        quadRadius = (componentOrTrailIndex * 2) + ACTOR_403600_PROJECTILE_TRAIL_RADIUS;
+                        if ((fadeHead >= componentOrTrailIndex) && (task->status == ACTOR_403600_PROJECTILE_FADING)) {
+                            quadRadius = (componentOrTrailIndex * 20) + ACTOR_403600_PROJECTILE_TRAIL_RADIUS;
+                        } else if (task->status == ACTOR_403600_PROJECTILE_HELD) {
+                            quadRadius *= 2;
                         }
-                        gte_lddp((var_a0 * ds->screenDistance) / scratch->otz);
-                        temp_v0_4 = &scratch->cornerOffset;
-                        gte_ldsv(temp_v0_4);
+                        gte_lddp((quadRadius * display->screenDistance) / scratch->otz);
+                        cornerVector = &scratch->cornerOffset;
+                        gte_ldsv(cornerVector);
                         gte_gpf12();
-                        gte_stsv(temp_v0_4);
+                        gte_stsv(cornerVector);
                     }
-                    ((POLY_FT4*)shared)->x0    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx);
-                    ((POLY_FT4*)shared)->y0    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vy);
-                    ((POLY_FT4*)shared)->x1    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vy);
-                    ((POLY_FT4*)shared)->y1    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx);
-                    ((POLY_FT4*)shared)->x2    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vy);
-                    ((POLY_FT4*)shared)->y2    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx);
-                    ((POLY_FT4*)shared)->x3    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx);
-                    ((POLY_FT4*)shared)->y3    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vy);
-                    temp_v1_13                 = (u8)point->pad;
-                    temp_v1_13                &= 0x20;
-                    ((POLY_FT4*)shared)->v1    = 0x18;
-                    ((POLY_FT4*)shared)->v0    = 0x18;
-                    ((POLY_FT4*)shared)->v3    = 0x37;
-                    ((POLY_FT4*)shared)->v2    = 0x37;
-                    temp_v0_5                  = temp_v1_13 + 0x60;
-                    temp_v1_13                += 0x7F;
-                    ((POLY_FT4*)shared)->u2    = temp_v0_5;
-                    ((POLY_FT4*)shared)->u0    = temp_v0_5;
-                    ((POLY_FT4*)shared)->u3    = temp_v1_13;
-                    ((POLY_FT4*)shared)->u1    = temp_v1_13;
-                    ((POLY_FT4*)shared)->tpage = 0x2A;
-                    ((POLY_FT4*)shared)->clut  = 0x42CC;
-                    var_a0                     = var_s4;
-                    if (arg0->status == 2) {
-                        if (var_fp >= var_s4) {
-                            var_a0 = var_fp;
+                    ((POLY_FT4*)phaseStorage)->x0    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vx);
+                    ((POLY_FT4*)phaseStorage)->y0    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vy);
+                    ((POLY_FT4*)phaseStorage)->x1    = (s16)((u16)scratch->sxy.vx + (u16)scratch->cornerOffset.vy);
+                    ((POLY_FT4*)phaseStorage)->y1    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vx);
+                    ((POLY_FT4*)phaseStorage)->x2    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vy);
+                    ((POLY_FT4*)phaseStorage)->y2    = (s16)((u16)scratch->sxy.vy + (u16)scratch->cornerOffset.vx);
+                    ((POLY_FT4*)phaseStorage)->x3    = (s16)((u16)scratch->sxy.vx - (u16)scratch->cornerOffset.vx);
+                    ((POLY_FT4*)phaseStorage)->y3    = (s16)((u16)scratch->sxy.vy - (u16)scratch->cornerOffset.vy);
+                    trailRightU                      = (u8)point->pad;
+                    trailRightU                     &= ACTOR_403600_PROJECTILE_TRAIL_TEXTURE_BIT;
+                    ((POLY_FT4*)phaseStorage)->v1    = ACTOR_403600_PROJECTILE_TRAIL_V_TOP;
+                    ((POLY_FT4*)phaseStorage)->v0    = ACTOR_403600_PROJECTILE_TRAIL_V_TOP;
+                    ((POLY_FT4*)phaseStorage)->v3    = ACTOR_403600_PROJECTILE_TRAIL_V_BOTTOM;
+                    ((POLY_FT4*)phaseStorage)->v2    = ACTOR_403600_PROJECTILE_TRAIL_V_BOTTOM;
+                    trailLeftU                       = trailRightU + ACTOR_403600_PROJECTILE_TRAIL_U_LEFT;
+                    trailRightU                     += ACTOR_403600_PROJECTILE_TRAIL_U_RIGHT;
+                    ((POLY_FT4*)phaseStorage)->u2    = trailLeftU;
+                    ((POLY_FT4*)phaseStorage)->u0    = trailLeftU;
+                    ((POLY_FT4*)phaseStorage)->u3    = trailRightU;
+                    ((POLY_FT4*)phaseStorage)->u1    = trailRightU;
+                    ((POLY_FT4*)phaseStorage)->tpage = ACTOR_403600_PROJECTILE_TRAIL_TPAGE;
+                    ((POLY_FT4*)phaseStorage)->clut  = ACTOR_403600_PROJECTILE_TRAIL_CLUT;
+                    colorIndex                       = componentOrTrailIndex;
+                    if (task->status == ACTOR_403600_PROJECTILE_FADING) {
+                        if (fadeHead >= componentOrTrailIndex) {
+                            colorIndex = fadeHead;
                         }
                     }
-                    temp_v1_13 = D_actor_403600_80142120[var_a0];
-                    setlen((POLY_FT4*)shared, 9);
-                    GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)shared), 0) = temp_v1_13;
-                    ((POLY_FT4*)shared)->code                        = 0x2E;
-                    ACTOR_403600_LINK_PRIMITIVE(&gGpuCurrentOt[((u32)scratch->otz << ds->otDepthShift) >> 4 & 0x3FF],
-                                                (POLY_FT4*)shared);
+                    trailColor = D_actor_403600_80142120[colorIndex];
+                    setlen((POLY_FT4*)phaseStorage, ACTOR_403600_PROJECTILE_QUAD_WORDS);
+                    GPU_PRIMITIVE_COLOR_WORD(((POLY_FT4*)phaseStorage), 0) = trailColor;
+                    ((POLY_FT4*)phaseStorage)->code                        = ACTOR_403600_PROJECTILE_QUAD_CODE;
+                    ACTOR_403600_LINK_PRIMITIVE(&gGpuCurrentOt[((u32)scratch->otz << display->otDepthShift) >> ACTOR_403600_PROJECTILE_OT_SHIFT & ACTOR_403600_PROJECTILE_OT_MASK],
+                                                (POLY_FT4*)phaseStorage);
                 }
             }
-            var_s4 += sp28;
-        } while (var_s4 < ARRAY_SIZE(work->trail));
+            componentOrTrailIndex += trailStride;
+        } while (componentOrTrailIndex < ARRAY_SIZE(work->trail));
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403600ProjectileScratch);
 }

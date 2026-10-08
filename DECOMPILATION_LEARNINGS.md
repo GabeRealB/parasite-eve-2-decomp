@@ -60,7 +60,7 @@ macro remains: scalar, column-temporary, inline and full-snapshot C variants
 did not reproduce its fixed `t4`/`t5`/`t6` sequence. This finding removes the
 three explicit hacks, not that hidden macro.
 
-## Reusing the final component result separates it from local arithmetic quantities (func_actor_403600_80134398, 2026-09-27)
+## Reusing the final component result separates it from local arithmetic quantities (_actor403600ProjectileTask, 2026-09-27)
 
 Three weighted direction updates needed no barriers when their final results
 used one `s32` temporary, assigned and stored separately for each axis:
@@ -466,7 +466,7 @@ input hashes and selected dumps are retained in
 Input SHA256s: base_2 `b5698a43f1d454ac361262867c1310ef5e322a1149e755b5ce1559e093596bd1`;
 base_7 `10e27d2490ce2a449f9ef8d8811833b66a862ecd7b4dbbdd749225ea4792b408`.
 
-## Carry loop-produced masks into the tail as ordinary pseudos, then rank the local tag quantities (func_actor_403600_80132A18, 2026-09-19)
+## Carry loop-produced masks into the tail as ordinary pseudos, then rank the local tag quantities (_actor403600DrawScreenDistortion, 2026-09-19)
 
 The archived 96.7% screen-grid candidate rematerialized tag masks after its
 loops. Earlier hard-register attempts widened conflicts and disturbed saved
@@ -507,7 +507,7 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 Input hashes: base_7 `7b10ca784c1af281ba1c87b1b49c51cea37ccd073907edf593d56e9faf91fc03`;
 base_8 `2df5be2908472a26bc32c8c2bae9331fd452eeabd91fdb60a9954867610ef76d`;
 final base_18 `2ce1b489e60734418e46f7fb2128977c5fc7b36069abbb696d41bd0059b94b96`.
-Evidence: `tools/permuter_findings/func_actor_403600_80132A18/`, session
+Evidence: `tools/permuter_findings/_actor403600DrawScreenDistortion/`, session
 `a79f76b84fd245378bd1950b051289e6`, `PERMUTER_EVIDENCE/manual-retry-20260919/`.
 These were manual controlled predictions. The required router selected stale
 archived callee names and skipped all three seeds; it produced no new discovery.
@@ -89915,7 +89915,7 @@ Writing the access the way the room's other units write it (`Task* task` and
 `case LO_SUM: return rtx_varies_p (XEXP (x, 1))`, operand 1 being the
 `SYMBOL_REF`). sched1 then hoists the `%hi` insn into the middle of the bump -
 `lw state; lui; sw sym; addiu; sw state`, the same interleaving
-`func_actor_403600_80134288` shows - which lengthens the address pseudo's
+`_actor403600FxTask` shows - which lengthens the address pseudo's
 local-alloc live range until it spans the state value's. `$v0` is marked over
 that range, so the address takes `$v1`; sched2 reorders the finished block back
 to the target's order. 100.000%.
@@ -134271,7 +134271,7 @@ base_5.i SHA256: `550b4c76e730d9633b594557f552a137ec8731f441596fe75d59a6ffc7468b
 
 base_9.i SHA256: `37d28e8d8dcfe50410e668a433078c8dc0e5ed23be7d7f5a9cff5e628d0891a8`.
 
-## A reload-created zero needs both its call suggestion and a scheduling dependency (func_actor_403600_80140B4C, 2026-09-19)
+## A reload-created zero needs both its call suggestion and a scheduling dependency (_actor403600UpdateSceneFigure, 2026-09-19)
 
 The 96.929% seed's tail zero was not a local quantity misallocated to t2:
 CSE removed the pseudo, and reload materialized CONST_INT 0 in t2 for an asm
@@ -134294,7 +134294,7 @@ the load; it fills the load delay, while a1/a2 homes survive. The candidate and
 readable port both score 100%. This supports the observed dependency mechanism,
 not a general claim that any extra empty asm improves allocation.
 
-Evidence is retained in tools/permuter_findings/func_actor_403600_80140B4C/:
+Evidence is retained in tools/permuter_findings/_actor403600UpdateSceneFigure/:
 baseline_trace/manifest.json, REPORT.txt and events.jsonl; base_3.i.lreg/.greg;
 base_4.i.sched2 and the pre-build base_4 plan. The router's best mutation was
 rejected for using an uninitialized pointer; this correction was independent.
@@ -142454,7 +142454,7 @@ static inline void rotateSv(MATRIX* m, SVECTOR* v)
     gte_ApplyMatrixSV(m, &in, v);
 }
 ```
-## Reading a global field back after storing it keeps the global's full address in a register (func_actor_403600_80140B4C)
+## Reading a global field back after storing it keeps the global's full address in a register (_actor403600UpdateSceneFigure)
 
 **Symptom.** The target stores the projection distance as `lui v0,%hi(gDisplayState); addiu v0,v0,%lo(gDisplayState); sh s1,0x110(v0)` and then `ctc2 s1,$26`; a plain `gDisplayState.screenDistance = h; gte_SetGeomScreen(h);` folds the offset into `%lo(gDisplayState+0x110)`. The seed held `&gDisplayState` in a pinned pointer local.
 
@@ -142598,7 +142598,7 @@ steering locals. The same function's `set_rot_matrix_dep`/`ldv0_dep` asm
 variants stood for the copy-then-GTE sequence living inside an inline helper:
 the helper's own stack local keeps the `addiu vN,sp,0x10` out of CSE's reach,
 so it lands after the volatile `ctc2`s.
-## `SOFT_USE_REG` repeated on a hoisted tag mask stands for a second `addPrim` the tails were cross-jumped from (func_actor_403600_80134398)
+## `SOFT_USE_REG` repeated on a hoisted tag mask stands for a second `addPrim` the tails were cross-jumped from (_actor403600ProjectileTask)
 
 A trail-drawing loop held `0xFF000000` in `$a2`, saved around the `rsin`/`rcos`
 calls, and the old C set it in a local before the loop with four
@@ -142610,7 +142610,7 @@ two tails back into one. Three further knobs sat in the same loop:
 
 - The loop pass hoists the masks only while `threshold * savings * lifetime >=
   insn_count`, and `threshold` drops by 3 per earlier move. Reading the display
-  state through a local `ds = &gDisplayState` (not the global) keeps its
+  state through a local `display = &gDisplayState` (not the global) keeps its
   `lui/addiu` out of the move list and out of the loop count, leaving the
   budget for both masks.
 - psyq `addPrim` masks `getaddr`'s value twice (extract, then insert), so it
@@ -142635,7 +142635,7 @@ CSE's extended block, so a re-spelled `&actor->weaponShape` after the loop is a
 fresh computation while `rec->...` keeps using `s0`. The old body pinned
 `obj`/`rec` with an `asm("" : "+r"...)` and barriers to get both shapes.
 
-## A `sll 16; sra 16` kept on a value after a call can come from a neighbour's `s16` type (func_actor_403600_80140B4C, 2026-09-26)
+## A `sll 16; sra 16` kept on a value after a call can come from a neighbour's `s16` type (_actor403600UpdateSceneFigure, 2026-09-26)
 
 The target re-narrows `radius` (`sll 16; sra 16` on `$s0`) after `jal rcos` in
 `x = radius * rcos(angle)`. Casts on `radius` itself never keep it; the old
@@ -142732,7 +142732,7 @@ identical dispatch tails survives cross-jumping was set by case 9: written as
 `_actor120300BlendPlayerAnimation(task, 7); work->playerRequest = 0; return;`, not `break`, its copy is the one
 the other cases jump into, as in the target.
 
-## Values computed at the head of each outer iteration may be the inner loop's invariants, written at their use (func_actor_403600_80132A18, 2026-09-26)
+## Values computed at the head of each outer iteration may be the inner loop's invariants, written at their use (_actor403600DrawScreenDistortion, 2026-09-26)
 
 A nested grid loop computed a colour's channels once per row, between the
 outer loop's label and the inner loop's, in callee-saved registers. The seed
@@ -144440,7 +144440,7 @@ already duplicating the `addiu` into the delay slot. A `continue`-per-case body
 matches equally. An m2c `goto` into a shared `next = i + 1` plus `TOUCH_REG` was
 the hack standing for this.
 
-### A pointer stored just before a call cannot share that call's constant argument register without a pin (func_actor_403600_80134288, 2026-09-26)
+### A pointer stored just before a call cannot share that call's constant argument register without a pin (_actor403600FxTask, 2026-09-26)
 
 **Symptom.** The target keeps a freshly allocated pointer in `$a3` from
 `move a3,v0` through `sw a3,0x1c(s0)` just before `jal taskSpawnFromTable`,
@@ -147192,14 +147192,14 @@ unchanged. Preprocessed input SHA256: `1ea8571e1b2701b14adb43a849a666411bf65a766
 
 ### Check private callee arity before preserving an argument-register pin (actor403600 80134288, 2026-09-27)
 
-`func_actor_403600_80134288` pinned its effect-work pointer to `a3` and passed
-that pointer twice to `func_actor_403600_80132A18`. The callee never reads its
+`_actor403600FxTask` pinned its effect-work pointer to `a3` and passed
+that pointer twice to `_actor403600DrawScreenDistortion`. The callee never reads its
 fourth parameter; its incoming `a3` value is overwritten before use in the
 original assembly. Removing that parameter from the declaration, definition
 and sole call lets the caller drop the pin without changing any instructions.
 The leftover pointer in `a3` at the call was not evidence of a fourth argument.
 
-In `nonmatchings/func_actor_403600_80134288-dehack-manual/base_1.i.greg`, the
+In `nonmatchings/_actor403600FxTask-dehack-manual/base_1.i.greg`, the
 ordinary `fx` pseudo 82 is allocated to `a3`; its hard conflicts are
 `v0`, `v1`, `a0`, `a1`, `a2` and `sp`. The candidate has the same assembly hash
 and 68 instructions as the pinned seed. Both scratch scores are 99.853% solely
@@ -147859,7 +147859,7 @@ offset blocks `combine` from seeing its low bits, so `off / 4` behind it costs
 `srl 2; sll 2`; move the asm up to the shifted depth and mask after it
 (`shiftedDepth = (u32)projection->otz << shift; asm; ...[(shiftedDepth >> 2 & 0xFFC) / 4]`).
 
-## An OT index form that changes code far from the `addPrim`: the scale insn pushed the loop over a hoist threshold (func_actor_403600_80134398, 2026-10-05)
+## An OT index form that changes code far from the `addPrim`: the scale insn pushed the loop over a hoist threshold (_actor403600ProjectileTask, 2026-10-05)
 
 **Symptom.** Replacing `(u_long*)((x >> 2 & 0xFFC) + (uintptr)gGpuCurrentOt)` with
 `&gGpuCurrentOt[x >> 4 & 0x3FF]` left the `addPrim` itself identical, but three

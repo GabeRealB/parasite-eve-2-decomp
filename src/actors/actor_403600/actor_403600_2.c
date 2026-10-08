@@ -183,7 +183,7 @@ static void _actor403600AdvanceRoll(Task* task, s32 rollStep);
 static s32  _actor403600ApproachTarget(Task* task);
 static void _actor403600RaisePlayerMpForDrain(Task* task);
 static s32  _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const ActorCommand* request, s32 unusedSecondArg);
-static void func_actor_403600_80140B4C(struct Enemy* arg0, Task* arg1);
+static void _actor403600UpdateSceneFigure(struct Enemy* enemy, Task* task);
 static void _actor403600ScaleSceneFigure(GfxCoord* coord, s32 uniformScale);
 
 extern TaskDesc D_actor_303600_80162E98[];
@@ -246,12 +246,12 @@ static void _actor403600UpdateDoubleMode(Task* task);
 static void _actor403600UpdateDoubleAction(Task* task);
 static void _actor403600SceneFigureExit(Task* task);
 static void _actor403600FadeDouble(Enemy* enemy, Task* task);
-static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1);
+static void _actor403600SpawnSceneFigure(Enemy* enemy, Task* task);
 static void _actor403600WaitSceneFigure(Enemy* unusedEnemy, Task* task);
 
-void func_actor_403600_80141180(Task*);
-void func_actor_403600_80141BE0(Task*);
-void func_actor_403600_80141CD4(Task*);
+static void _actor403600BossTask(Task* task);
+static void _actor403600DoubleTask(Task* task);
+static void _actor403600SceneFigureTask(Task* task);
 
 TaskMessageEntry D_actor_403600_80160504[2] = {
     { ACTOR_COMMAND_MESSAGE_APPLY, _actor403600ApplySceneCommand },
@@ -259,9 +259,9 @@ TaskMessageEntry D_actor_403600_80160504[2] = {
 };
 
 TaskDesc D_actor_403600_80160514[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403600_80141180, { .model = &gActor403600EveBody } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_403600_80141BE0, { .model = &gActor403600Model199B8 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403600_80141CD4, { .model = &gActor303600Model02DD0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor403600BossTask, { .model = &gActor403600EveBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor403600DoubleTask, { .model = &gActor403600Model199B8 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor403600SceneFigureTask, { .model = &gActor303600Model02DD0 } },
 };
 
 AnimationSet* D_actor_403600_80160538[12] = {
@@ -4205,7 +4205,7 @@ static void _actor403600UpdateDouble(Enemy* enemy, Task* task)
     }
 }
 
-/// Handlers for states 0-2 of the task `func_actor_403600_80141BE0` dispatches,
+/// Handlers for states 0-2 of the task `_actor403600DoubleTask` dispatches,
 /// indexed by `Task::state`. The state-0 handler sets the task up and
 /// advances it.
 static const EnemyTaskFuncTable3 D_actor_403600_801320A0 = { {
@@ -4575,150 +4575,191 @@ static s32 _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const 
     return 0;
 }
 
-static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
+/// Plays the scene figure's rotation and camera tracks, beams and final fade.
+///
+/// Requires live shared Actor403600Work/model and the shaft-controller task.
+/// sceneFrame advances through 700 rotation samples and clamps the 570-key
+/// camera track at its final key. phaseFrame times presentation events. The
+/// shared hitCooldown halfword holds the figure's Q12 scale, 4096..4608.
+/// The fade mode also places and restores the player's model; commands borrow
+/// their payloads only for synchronous dispatch. No actor-pause gate is applied.
+static void _actor403600UpdateSceneFigure(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_403600_SCENE_SCREEN_DISTANCE       = 329,
+        ACTOR_403600_SCENE_MODEL_OT_OFFSET       = -31,
+        ACTOR_403600_SCENE_SCALE_START_FRAME     = 256,
+        ACTOR_403600_SCENE_SCALE_STEP            = 32,
+        ACTOR_403600_SCENE_MAX_SCALE             = 4608,
+        ACTOR_403600_SCENE_AMBIENT_DECAY         = 45,
+        ACTOR_403600_SCENE_FIRST_BEAM_FRAME      = 50,
+        ACTOR_403600_SCENE_FIRST_BEAM_END_FRAME  = 401,
+        ACTOR_403600_SCENE_REVERSE_SCROLL_FRAME  = 350,
+        ACTOR_403600_SCENE_FADE_START_FRAME      = 600,
+        ACTOR_403600_SCENE_MAX_FADE_DISTANCE     = 600,
+        ACTOR_403600_SCENE_SIDE_PUFF_END_FRAME   = 751,
+        ACTOR_403600_SCENE_SHOW_PLAYER_FRAME     = 680,
+        ACTOR_403600_SCENE_LAST_BEAM_FRAME       = 700,
+        ACTOR_403600_SCENE_EFFECT_END_FRAME      = 901,
+        ACTOR_403600_SCENE_PLAYER_TURN_STEP      = 56,
+        ACTOR_403600_SCENE_BEAM_HEIGHT           = 6144,
+        ACTOR_403600_SCENE_BEAM_SPEED            = 768,
+        ACTOR_403600_SCENE_BEAM_ANGLE_MASK       = 0xF80,
+        ACTOR_403600_SCENE_BEAM_RADIUS_MASK      = 0xF00,
+        ACTOR_403600_SCENE_BEAM_MIN_RADIUS       = 512,
+        ACTOR_403600_SCENE_VECTOR_FRACTION_BITS  = 12,
+        ACTOR_403600_SCENE_RISING_SPRITE_SIZE    = 2048,
+        ACTOR_403600_SCENE_REVERSE_SPRITE_Y      = 0x10000,
+        ACTOR_403600_SCENE_SIDE_PUFF_RADIUS_MASK = 0x7FF
+    };
+    /// Spawns a beam from a random ring point in view space.
+    ///
+    /// Captures offset and viewSpace locals; the beam uses their copied placement.
+    /// height is a signed-halfword Y position; beamSpeed is signed Y units per
+    /// running update. Both are evaluated once and must have no side effects.
+    /// Local angles use 4096 units per turn; radius is 512..4352 world units.
+#define ACTOR_403600_SPAWN_SCENE_BEAM(height, beamSpeed)                                                             \
+    {                                                                                                                \
+        s16 angle;                                                                                                   \
+        s16 radius;                                                                                                  \
+        s32 radialX;                                                                                                 \
+        angle     = _actor403600Rand() & ACTOR_403600_SCENE_BEAM_ANGLE_MASK;                                         \
+        radius    = (_actor403600Rand() & ACTOR_403600_SCENE_BEAM_RADIUS_MASK) + ACTOR_403600_SCENE_BEAM_MIN_RADIUS; \
+        radialX   = radius * rcos(angle);                                                                            \
+        offset.vy = (height);                                                                                        \
+        offset.vx = radialX >> ACTOR_403600_SCENE_VECTOR_FRACTION_BITS;                                              \
+        offset.vz = (radius * rsin(angle)) >> ACTOR_403600_SCENE_VECTOR_FRACTION_BITS;                               \
+        effectSpawn(EFFECT_EVE_LIGHT_BEAM, &viewSpace, (beamSpeed), &offset);                                        \
+    }
+
     SVECTOR             offset;
-    GfxCoord            view;
+    GfxCoord            viewSpace;
     ActorCommand        forwardCommand;
     ActorCommand        reverseCommand;
     Actor303600ViewKey* key;
-    s32                 i;
-    s32                 transparency;
-    TmdObject*          object;
+    s32                 coefficientIndex;
+    s32                 ambientLevel;
+    TmdObject*          model;
     Actor403600Work*    work;
 
-    work        = actor->work;
-    object      = actor->extra.tmd;
-    view.parent = &gGfxViewCoord;
-    gfxSetRotIdentity(&view.coord);
-    view.coord.t[0]            = 0;
-    view.coord.t[1]            = 0;
-    view.coord.t[2]            = 0;
+    work             = task->work;
+    model            = task->extra.tmd;
+    viewSpace.parent = &gGfxViewCoord;
+    gfxSetRotIdentity(&viewSpace.coord);
+    viewSpace.coord.t[0] = 0;
+    viewSpace.coord.t[1] = 0;
+    viewSpace.coord.t[2] = 0;
+    // The rotation track holds its last sample; the shorter camera track clamps separately.
     D_actor_403600_8016065C.vz = D_actor_303600_8016A408[work->sceneFrame].z;
     D_actor_403600_8016065C.vy = D_actor_303600_8016A408[work->sceneFrame].y;
     RotMatrix(&D_actor_403600_8016065C, &work->worldCoord.coord);
-    object->otOffset = -0x1F;
+    model->otOffset = ACTOR_403600_SCENE_MODEL_OT_OFFSET;
     if (work->sceneFrame >= ACTOR_303600_VIEW_KEY_COUNT - 1) {
         key = &D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT - 1];
     } else {
         key = &D_actor_303600_8016AEF8[work->sceneFrame];
     }
     // The compact key stores all nine rotation coefficients in row-major order.
-    for (i = 0; i < (s32)ARRAY_SIZE(key->rotation); i++) {
-        ((s16(*)[9])D_actor_403600_80160700.transform.m)[0][i] = key->rotation[i];
+    for (coefficientIndex = 0; coefficientIndex < (s32)ARRAY_SIZE(key->rotation); coefficientIndex++) {
+        ((s16(*)[9])D_actor_403600_80160700.transform.m)[0][coefficientIndex] = key->rotation[coefficientIndex];
     }
-    for (i = 0; i < (s32)ARRAY_SIZE(key->translation); i++) {
-        D_actor_403600_80160700.transform.t[i] = key->translation[i];
+    for (coefficientIndex = 0; coefficientIndex < (s32)ARRAY_SIZE(key->translation); coefficientIndex++) {
+        D_actor_403600_80160700.transform.t[coefficientIndex] = key->translation[coefficientIndex];
     }
-    D_actor_403600_80160700.screenDistance = 0x149;
+    D_actor_403600_80160700.screenDistance = ACTOR_403600_SCENE_SCREEN_DISTANCE;
     viewQueueCamera(&D_actor_403600_80160700);
     _actor403600ScaleSceneFigure(&work->worldCoord, work->hitCooldown);
     work->sceneFrame++;
     if (work->sceneFrame >= ACTOR_303600_ROT_SAMPLE_COUNT) {
         work->sceneFrame = ACTOR_303600_ROT_SAMPLE_COUNT - 1;
     }
+    // The shaft presentation switches from brightening to the player's return.
     if (work->mode != ACTOR_403600_MODE_SCENE_FADE) {
         if (work->sceneFrame == 1) {
-            forwardCommand.context.loc.stage = 4;
-            forwardCommand.context.loc.area  = 0x16;
+            forwardCommand.context.loc.stage = GAME_STAGE_MINE_SHELTER;
+            forwardCommand.context.loc.area  = GAME_AREA_SHELTER_B2_POD_BOTTOM;
             forwardCommand.command           = ACTOR_303600_SHAFT_COMMAND_SCROLL_FORWARD;
             TASK_MESSAGE_DISPATCH_POINTER(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &forwardCommand, 0);
-            gDisplayState.screenDistance = 0x149;
+            gDisplayState.screenDistance = ACTOR_403600_SCENE_SCREEN_DISTANCE;
             gte_SetGeomScreen(gDisplayState.screenDistance);
             gte_SetGeomOffset(0, 0);
         }
-        if (work->sceneFrame >= 0x100) {
-            work->hitCooldown += 0x20;
-            if (work->hitCooldown >= 0x1200) {
-                work->hitCooldown = 0x1200;
+        if (work->sceneFrame >= ACTOR_403600_SCENE_SCALE_START_FRAME) {
+            work->hitCooldown += ACTOR_403600_SCENE_SCALE_STEP;
+            if (work->hitCooldown >= ACTOR_403600_SCENE_MAX_SCALE) {
+                work->hitCooldown = ACTOR_403600_SCENE_MAX_SCALE;
             }
-            work->ambientBoost -= 0x2D;
+            work->ambientBoost -= ACTOR_403600_SCENE_AMBIENT_DECAY;
         }
-        if (work->phaseFrame >= 0x32 && work->phaseFrame < 0x191) {
-            s16 angle;
-            s16 radius;
-            s32 x;
-
-            angle     = _actor403600Rand() & 0xF80;
-            radius    = (_actor403600Rand() & 0xF00) + 0x200;
-            x         = radius * rcos(angle);
-            offset.vy = -0x1800;
-            offset.vx = x >> 12;
-            offset.vz = (radius * rsin(angle)) >> 12;
-            effectSpawn(EFFECT_EVE_LIGHT_BEAM, &view, 0x300, &offset);
+        if (work->phaseFrame >= ACTOR_403600_SCENE_FIRST_BEAM_FRAME && work->phaseFrame < ACTOR_403600_SCENE_FIRST_BEAM_END_FRAME) {
+            ACTOR_403600_SPAWN_SCENE_BEAM(-ACTOR_403600_SCENE_BEAM_HEIGHT, ACTOR_403600_SCENE_BEAM_SPEED);
         }
-        if (work->phaseFrame == 0x15E) {
-            reverseCommand.context.loc.stage = 4;
-            reverseCommand.context.loc.area  = 0x16;
+        if (work->phaseFrame == ACTOR_403600_SCENE_REVERSE_SCROLL_FRAME) {
+            reverseCommand.context.loc.stage = GAME_STAGE_MINE_SHELTER;
+            reverseCommand.context.loc.area  = GAME_AREA_SHELTER_B2_POD_BOTTOM;
             reverseCommand.command           = ACTOR_303600_SHAFT_COMMAND_REVERSE_SCROLL;
             TASK_MESSAGE_DISPATCH_POINTER(D_actor_403600_801606B0, ACTOR_COMMAND_MESSAGE_APPLY, &reverseCommand, 0);
         }
     } else {
-        if (work->phaseFrame >= 0x258) {
-            object->shading.screenFadeDistance += 3;
-            if (object->shading.screenFadeDistance >= 0x259) {
-                object->shading.screenFadeDistance = 0x258;
+        if (work->phaseFrame >= ACTOR_403600_SCENE_FADE_START_FRAME) {
+            model->shading.screenFadeDistance += 3;
+            if (model->shading.screenFadeDistance >= ACTOR_403600_SCENE_MAX_FADE_DISTANCE + 1) {
+                model->shading.screenFadeDistance = ACTOR_403600_SCENE_MAX_FADE_DISTANCE;
             }
-            if (work->phaseFrame < 0x2EF && (work->phaseFrame & 2)) {
+            if (work->phaseFrame < ACTOR_403600_SCENE_SIDE_PUFF_END_FRAME && (work->phaseFrame & 2)) {
                 if (_actor403600Rand() & 1) {
-                    offset.vx = _actor403600Rand() & 0x7FF;
-                    offset.vy = _actor403600Rand() & 0x7FF;
+                    offset.vx = _actor403600Rand() & ACTOR_403600_SCENE_SIDE_PUFF_RADIUS_MASK;
+                    offset.vy = _actor403600Rand() & ACTOR_403600_SCENE_SIDE_PUFF_RADIUS_MASK;
                 } else {
-                    offset.vx = -(_actor403600Rand() & 0x7FF);
-                    offset.vy = -(_actor403600Rand() & 0x7FF);
+                    offset.vx = -(_actor403600Rand() & ACTOR_403600_SCENE_SIDE_PUFF_RADIUS_MASK);
+                    offset.vy = -(_actor403600Rand() & ACTOR_403600_SCENE_SIDE_PUFF_RADIUS_MASK);
                 }
-                effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, 0x10800, &offset);
+                // Only X/Y are assigned here; the original also passes the untouched Z.
+                effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, (ACTOR_403600_SCENE_REVERSE_SPRITE_Y | ACTOR_403600_SCENE_RISING_SPRITE_SIZE), &offset);
             }
         }
-        if (work->phaseFrame == 0x2A8) {
+        if (work->phaseFrame == ACTOR_403600_SCENE_SHOW_PLAYER_FRAME) {
             taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
         }
-        if (work->phaseFrame >= 0x2A8 && work->phaseFrame < 0x385 && (work->phaseFrame & 3) == 3) {
-            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, 0x10800, NULL);
+        if (work->phaseFrame >= ACTOR_403600_SCENE_SHOW_PLAYER_FRAME && work->phaseFrame < ACTOR_403600_SCENE_EFFECT_END_FRAME && (work->phaseFrame & 3) == 3) {
+            effectSpawn(EFFECT_SHELTER_B2_POD_BOTTOM_RISING_SPRITE, &work->worldCoord, (ACTOR_403600_SCENE_REVERSE_SPRITE_Y | ACTOR_403600_SCENE_RISING_SPRITE_SIZE), NULL);
         }
         D_actor_403600_801606E0.placement.rot.vx  = 0;
         D_actor_403600_801606E0.placement.rot.vz  = 0;
         D_actor_403600_801606E0.placement.pos.vx  = -0x1F4;
         D_actor_403600_801606E0.placement.pos.vy  = 0x3E8;
         D_actor_403600_801606E0.placement.pos.vz  = -0x1F4;
-        D_actor_403600_801606E0.placement.rot.vy += 0x38;
+        D_actor_403600_801606E0.placement.rot.vy += ACTOR_403600_SCENE_PLAYER_TURN_STEP;
         TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &D_actor_403600_801606E0.placement, 0);
-        if (work->phaseFrame >= 0x2BC && work->phaseFrame < 0x385) {
-            s16 angle;
-            s16 radius;
-            s32 x;
-
-            angle     = _actor403600Rand() & 0xF80;
-            radius    = (_actor403600Rand() & 0xF00) + 0x200;
-            x         = radius * rcos(angle);
-            offset.vy = 0x1800;
-            offset.vx = x >> 12;
-            offset.vz = (radius * rsin(angle)) >> 12;
-            effectSpawn(EFFECT_EVE_LIGHT_BEAM, &view, -0x300, &offset);
+        if (work->phaseFrame >= ACTOR_403600_SCENE_LAST_BEAM_FRAME && work->phaseFrame < ACTOR_403600_SCENE_EFFECT_END_FRAME) {
+            ACTOR_403600_SPAWN_SCENE_BEAM(ACTOR_403600_SCENE_BEAM_HEIGHT, -ACTOR_403600_SCENE_BEAM_SPEED);
         }
     }
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&work->worldCoord);
-    _actor403600UpdateColor(enemy, actor);
-    transparency = work->ambientBoost;
-    if (transparency != 0) {
-        worldCoordSetModelAmbientColor(actor->extra.tmd, transparency, transparency, transparency);
+    _actor403600UpdateColor(enemy, task);
+    // Reapply the ambient ramp after sampling the figure's ordinary lighting.
+    ambientLevel = work->ambientBoost;
+    if (ambientLevel != 0) {
+        worldCoordSetModelAmbientColor(task->extra.tmd, ambientLevel, ambientLevel, ambientLevel);
     }
     work->phaseFrame++;
+
+#undef ACTOR_403600_SPAWN_SCENE_BEAM
 }
 
-/// The actor's task entry: runs the handler for `task->state` from a two-entry
-/// table built on the stack, passing the enemy the task was spawned for and
-/// the task. State 0 is the spawn (`_actor403600SpawnBoss`, which
-/// advances the state), state 1 the per-frame update.
-void func_actor_403600_80141180(Task* task)
+/// Dispatches the boss's initialization or per-frame combat and scene update.
+///
+/// task->state must be 0 (spawn) or 1 (update); spawnArg2 borrows the enemy.
+/// Initialization owns allocation and advances to state 1, or exits on failure.
+static void _actor403600BossTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc handlers[] = {
         _actor403600SpawnBoss,
         _actor403600UpdateBoss,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    handlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Advances the boss model's animation through the package's playback helper.
@@ -5142,12 +5183,16 @@ static void _actor403600RaisePlayerMpForDrain(Task* task)
     }
 }
 
-void func_actor_403600_80141BE0(Task* arg0)
+/// Dispatches the summoned double's spawn, combat update or fade and release.
+///
+/// task->state must be 0..2 respectively; spawnArg2 borrows its enemy.
+/// Each handler owns its state transitions and resource lifetime.
+static void _actor403600DoubleTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = D_actor_403600_801320A0;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    handlers = D_actor_403600_801320A0;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Runs double combat actions only in the parked or fight mode.
@@ -5188,61 +5233,73 @@ static void _actor403600ApplyDoubleDamage(Task* task, s32 damage)
     }
 }
 
-/// Handlers for states 0-2 of the task `func_actor_403600_80141CD4` dispatches,
+/// Handlers for states 0-2 of the task `_actor403600SceneFigureTask` dispatches,
 /// indexed by `Task::state`. The state-0 handler sets the task up and
 /// advances it.
 static const EnemyTaskFuncTable3 D_actor_403600_801320EC = { {
-    func_actor_403600_80141D30,
+    _actor403600SpawnSceneFigure,
     _actor403600WaitSceneFigure,
-    func_actor_403600_80140B4C,
+    _actor403600UpdateSceneFigure,
 } };
 
-void func_actor_403600_80141CD4(Task* arg0)
+/// Dispatches the scene figure's spawn, two-frame delay or running presentation.
+///
+/// task->state must be 0..2 respectively; spawnArg2 borrows its enemy.
+/// Its shared work and model must remain live through the running state.
+static void _actor403600SceneFigureTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = D_actor_403600_801320EC;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    handlers = D_actor_403600_801320EC;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1)
+/// Creates the scene figure's view-relative parent and defers its model buffers.
+///
+/// Requires a live model root. Allocates the same complete work block as the
+/// boss and double for the shared command and lighting interfaces. Failure
+/// destroys the enemy/task; success installs command and exit callbacks and
+/// advances to the two-frame wait. The model root borrows the work coordinate
+/// until the exit callback detaches it before default teardown frees the work.
+static void _actor403600SpawnSceneFigure(Enemy* enemy, Task* task)
 {
-    GfxCoord*        workCoord;
-    GfxCoord*        coord;
+    enum { ACTOR_403600_SCENE_INITIAL_AMBIENT = 9000 };
+    GfxCoord*        figureCoord;
+    GfxCoord*        modelRoot;
     Actor403600Work* work;
 
-    coord = arg1->extra.tmd->coords;
-    work  = memCalloc(sizeof(*work), false);
+    modelRoot = task->extra.tmd->coords;
+    work      = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
 
-    arg1->work              = work;
+    task->work              = work;
     work->worldCoord.parent = &gGfxViewCoord;
     gfxSetRotIdentity(&work->worldCoord.coord);
-    work->worldCoord.coord.t[0] = coord->coord.t[0];
-    work->worldCoord.coord.t[1] = coord->coord.t[1];
-    workCoord                   = &work->worldCoord;
-    work->worldCoord.coord.t[2] = coord->coord.t[2];
-    coord->parent               = workCoord;
-    gfxSetRotIdentity(&coord->coord);
-    coord->coord.t[1]             = 0x690;
-    coord->coord.t[0]             = 0;
-    coord->coord.t[2]             = 0x5DC;
+    work->worldCoord.coord.t[0] = modelRoot->coord.t[0];
+    work->worldCoord.coord.t[1] = modelRoot->coord.t[1];
+    figureCoord                 = &work->worldCoord;
+    work->worldCoord.coord.t[2] = modelRoot->coord.t[2];
+    modelRoot->parent           = figureCoord;
+    gfxSetRotIdentity(&modelRoot->coord);
+    modelRoot->coord.t[1]         = 0x690;
+    modelRoot->coord.t[0]         = 0;
+    modelRoot->coord.t[2]         = 0x5DC;
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(workCoord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
+    actorRenderComposeCoord(figureCoord);
+    modelRoot->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(modelRoot);
     work->worldCoord.coord.t[0] = 0;
     work->worldCoord.coord.t[1] = 0;
     work->worldCoord.coord.t[2] = 0;
     work->mode                  = ACTOR_403600_MODE_PARKED;
-    arg1->msgTable              = D_actor_403600_80160504;
-    arg1->exitCallback          = _actor403600SceneFigureExit;
-    work->ambientBoost          = 0x2328;
+    task->msgTable              = D_actor_403600_80160504;
+    task->exitCallback          = _actor403600SceneFigureExit;
+    work->ambientBoost          = ACTOR_403600_SCENE_INITIAL_AMBIENT;
     work->hitCooldown           = 0;
-    arg1->state                += 1;
+    task->state                += 1;
 }
 
 /// Enables the scene figure's model buffers after two task updates.
