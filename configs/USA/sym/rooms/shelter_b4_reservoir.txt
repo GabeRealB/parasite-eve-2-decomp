@@ -109,7 +109,7 @@ D_shelter_b4_reservoir_80185024 = 0x80185024; // size:0x70 defined:True
 
 shelterB4ReservoirBurstSpriteTask = 0x801813F0; // type:func
 
-func_shelter_b4_reservoir_8017FB84 = 0x8017FB84; // type:func
+shelterB4ReservoirAmbientEffectsTask = 0x8017FB84; // type:func
 
 shelterB4ReservoirWaterRippleTask = 0x801803DC; // type:func
 
@@ -143,3 +143,18 @@ _shelterB4ReservoirView8ModelTask = 0x8017e558; // type:func
 _shelterB4ReservoirNoopRoomTick = 0x8017e8e4; // type:func
 _shelterB4ReservoirInitializeWaterTask = 0x8017fb44; // type:func
 _shelterB4ReservoirDrawBurstSprite = 0x80181668; // type:func
+_shelterB4ReservoirSetBurstConfig = 0x80182b04; // type:func
+_shelterB4ReservoirUpdateWaterDriftSpawnArgs = 0x8017e068; // type:func
+_shelterB4ReservoirRampMainWaterHeightTask = 0x8017e400; // type:func
+_shelterB4ReservoirRampView10WaterHeightTask = 0x8017e4b0; // type:func
+_shelterB4ReservoirSetEventModelState = 0x8017e770; // type:func
+_shelterB4ReservoirSetBurstChance = 0x8017e780; // type:func
+_shelterB4ReservoirCancelEffects = 0x8017e7a8; // type:func
+_shelterB4ReservoirUpdateRoomTask = 0x8017e864; // type:func
+shelterB4ReservoirRoomTask = 0x8017e88c; // type:func
+_shelterB4ReservoirDrawMainWaterStrip = 0x8017ea00; // type:func
+_shelterB4ReservoirDrawZWaterStrips = 0x8017ee04; // type:func
+_shelterB4ReservoirDrawXWaterStrips = 0x8017f23c; // type:func
+_shelterB4ReservoirDrawView10WaterStrips = 0x8017f674; // type:func
+_shelterB4ReservoirDrawWaterTask = 0x8017e8ec; // type:func
+_shelterB4ReservoirWaterTask = 0x8017fadc; // type:func

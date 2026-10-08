@@ -141282,13 +141282,13 @@ the `lw` entry above: there the multiply form was the one the ROM had.
 
 The mirror of "A callee prototyped only in the host `.c` is unprototyped in the scratch env". The scratch declared the two drawers `(GfxCoord*, u16, s16, s16)` and scored 100%. The host file defines them *after* the caller, with no forward declaration, so the call was implicit. The unconverted `u16` fields were loaded with `lhu` where the target has `lh`. The overlay failed its checksum by 8 bytes (4 call sites × 2 args), with nothing but a `0x96`→`0x86` opcode byte to go on. Fix: add the forward prototypes near the top of the host file. When the scratch declares a callee, check the host declares it before the call site too.
 
-## `lui $t1` / `addiu $t1,$t1` for a symbol address inside a loop is a hoisted invariant that lost the last callee-saved register (func_shelter_b4_reservoir_8017FB84, 2026-09-24)
+## `lui $t1` / `addiu $t1,$t1` for a symbol address inside a loop is a hoisted invariant that lost the last callee-saved register (shelterB4ReservoirAmbientEffectsTask, 2026-09-24)
 
 **Symptom.** A loop that calls functions stores `&gGfxViewCoord` into a stack
 struct as `lui $t1,%hi(sym)` / `addiu $t1,$t1,%lo(sym)`, back to back in one
 register. Nothing else in the function uses `$t1` except `mflo`. Every `$s`
 register and `$fp` are already live across the loop. Written as a plain
-`coord.parent = &gGfxViewCoord;`, the compile gives `lui $v1` / `addiu $v1,$v1`
+`splashCoord.parent = &gGfxViewCoord;`, the compile gives `lui $v1` / `addiu $v1,$v1`
 split around other instructions. The same loop's `&Gfx_ViewWorldMtx` call
 argument is loaded into `$a0` each iteration instead of coming from `$fp`.
 
@@ -141313,7 +141313,7 @@ read `D_shelter_b4_reservoir_80187684.baseHalfExtent` before the draw. Reading `
 the `lo_sum` of the struct's address short-lived enough that loop.c did not
 hoist it into an extra `$s` register.
 
-### Scratchpad-stack push: store `scratchEnd - 1` first, then assign the block pointer (func_shelter_b4_reservoir_8017EA00, 2026-09-24)
+### Scratchpad-stack push: store `scratchEnd - 1` first, then assign the block pointer (_shelterB4ReservoirDrawMainWaterStrip, 2026-09-24)
 **Symptom.** Target: `addiu v0,s0,-0xc; move s1,v0; sw v0,0(v1)` — the new
 scratchpad top is computed into a temp, copied into the block pointer, and the
 temp is what gets stored to `0x1F8003FC`. Writing `scratch = scratchEnd - 1; SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratch;`
@@ -141321,8 +141321,8 @@ computes straight into `s1` and stores `s1` (one instruction short).
 **Fix.** `SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1; scratch = scratchEnd - 1;` — CSE reuses the
 stored value and the block pointer becomes a copy of it.
 
-Same function: an OT index of `otz + 1` used by two `addPrim`s matched when
-written inline as `(u32)(otz + 1) << shift` in both, not as a preceding `otz++`
+Same function: an OT index of `orderingDepth + 1` used by two `addPrim`s matched when
+written inline as `(u32)(orderingDepth + 1) << shift` in both, not as a preceding `orderingDepth++`
 (which kept the incremented value in a new register and grew the frame).
 ### An early exit that leaves `$v0` unset is a bare `return;` in a non-void function (func_shelter_b1_sterilization_room_8017FF80, 2026-09-24)
 

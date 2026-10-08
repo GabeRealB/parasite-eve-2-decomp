@@ -98,6 +98,17 @@ enum {
     SHELTER_B4_RESERVOIR_MESSAGE_USE_KEY_ITEM     = 5105,
 };
 
+enum {
+    SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y = -2000,
+    SHELTER_B4_RESERVOIR_MAIN_WATER_Y_TRAVEL  = 1500,
+    SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y   = -1800,
+    SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y   = 0,
+    SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW     = 10,
+    // Event callbacks select reset/stationary placement or restarted motion.
+    SHELTER_B4_RESERVOIR_EVENT_MODEL_RESET          = 0,
+    SHELTER_B4_RESERVOIR_EVENT_MODEL_RESTART_MOTION = 2,
+};
+
 /// Configuration of the reservoir's per-frame burst-sprite emitter.
 ///
 /// Cleared when the room effect task starts and retained until reconfigured.
@@ -174,24 +185,33 @@ extern SVECTOR                        D_shelter_b4_reservoir_80187634[];
 extern _ShelterB4ReservoirBurstConfig D_shelter_b4_reservoir_80187684;
 
 static void func_shelter_b4_reservoir_8017E7C8(Task* arg0);
-static void func_shelter_b4_reservoir_8017E864(Task* task);
+static void _shelterB4ReservoirUpdateRoomTask(Task* task);
 static void _shelterB4ReservoirNoopRoomTick(void);
-static void func_shelter_b4_reservoir_8017EA00(Task* task);
-static void func_shelter_b4_reservoir_8017EE04(Task* task);
-static void func_shelter_b4_reservoir_8017F23C(Task* task);
-static void func_shelter_b4_reservoir_8017F674(Task* task);
+enum {
+    SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS      = 1,
+    SHELTER_B4_RESERVOIR_WATER_QUAD_CODE       = 0x2A,
+    SHELTER_B4_RESERVOIR_WATER_RED_INTENSITY   = 128,
+    SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS = 1,
+    // GPU mode opcode, subtractive blend and retained texture page 10.
+    SHELTER_B4_RESERVOIR_WATER_DRAW_MODE = 0xE1000000 | (GPU_BLEND_SUBTRACT << 5) | 10,
+};
+
+static void _shelterB4ReservoirDrawMainWaterStrip(Task* task);
+static void _shelterB4ReservoirDrawZWaterStrips(Task* task);
+static void _shelterB4ReservoirDrawXWaterStrips(Task* task);
+static void _shelterB4ReservoirDrawView10WaterStrips(Task* task);
 static void _shelterB4ReservoirInitializeWaterTask(Task* task);
 static void _shelterB4ReservoirDrawBurstSprite(const GfxCoord* spriteCoord, u16 animationFrame, s16 halfExtent);
-static void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2);
+static void _shelterB4ReservoirSetBurstConfig(s16 pointCount, u16 spawnChancePercent, s16 baseHalfExtent);
 
-/// State handlers of the room task `func_shelter_b4_reservoir_8017E88C` runs,
+/// State handlers of the room task `shelterB4ReservoirRoomTask` runs,
 /// which copies the table to the stack and calls the entry for the task's
 /// state: the room's setup, the per-frame state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b4_reservoir_8017D5C4 = {
-    { func_shelter_b4_reservoir_8017E7C8, func_shelter_b4_reservoir_8017E864, taskKill }
+    { func_shelter_b4_reservoir_8017E7C8, _shelterB4ReservoirUpdateRoomTask, taskKill }
 };
 
-void func_shelter_b4_reservoir_8017FADC(Task*);
+static void _shelterB4ReservoirWaterTask(Task* task);
 
 extern WorldCollisionGrid     D_shelter_b4_reservoir_80185AB8[1];
 extern WorldCollisionOccluder D_shelter_b4_reservoir_801873B0[2];
@@ -210,13 +230,13 @@ static s32  _shelterB4ReservoirIgnoreRoomActionMessage(Task* task, s32 messageId
 static s32  _shelterB4ReservoirSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg);
 void        func_shelter_b4_reservoir_8017DE8C(Task*);
 void        func_shelter_b4_reservoir_8017E0AC(Task*);
-void        func_shelter_b4_reservoir_8017E400(Task*);
-void        func_shelter_b4_reservoir_8017E4B0(Task*);
+static void _shelterB4ReservoirRampMainWaterHeightTask(Task* task);
+static void _shelterB4ReservoirRampView10WaterHeightTask(Task* task);
 static void _shelterB4ReservoirView8ModelTask(Task* task);
 void        func_shelter_b4_reservoir_8017E690(s32);
-void        func_shelter_b4_reservoir_8017E770(s32);
-void        func_shelter_b4_reservoir_8017E780(s32);
-void        func_shelter_b4_reservoir_8017E7A8(void);
+static void _shelterB4ReservoirSetEventModelState(s32 modelState);
+static void _shelterB4ReservoirSetBurstChance(s32 spawnChancePercent);
+static void _shelterB4ReservoirCancelEffects(void);
 
 TaskDesc gScreenWaveTaskDesc[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveTask, { .value = 0 } },
@@ -264,8 +284,8 @@ TaskMessageEntry D_shelter_b4_reservoir_801848BC[6] = {
 
 TaskDesc D_shelter_b4_reservoir_801848EC[4] = {
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017DE8C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017E400, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017E4B0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB4ReservoirRampMainWaterHeightTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB4ReservoirRampView10WaterHeightTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b4_reservoir_8017E0AC, { .value = 0 } },
 };
 
@@ -285,33 +305,33 @@ EvsCommand D_shelter_b4_reservoir_80184948[48] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b4_reservoir_8017E7A8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4ReservoirCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E770 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetEventModelState }, { .value = SHELTER_B4_RESERVOIR_EVENT_MODEL_RESET }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E770 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetEventModelState }, { .value = SHELTER_B4_RESERVOIR_EVENT_MODEL_RESTART_MOTION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x542D0005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b4_reservoir_8017E7A8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4ReservoirCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542D0005 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x542D0006 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b4_reservoir_8017E7A8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4ReservoirCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -340,10 +360,10 @@ EvsCommand D_shelter_b4_reservoir_80184DC8[18] = {
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _screenWaveRun }, { .value = SCREEN_WAVE_RAMP_FINISHED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E690 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b4_reservoir_8017E780 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB4ReservoirSetBurstChance }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_shelter_b4_reservoir_8018491C } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b4_reservoir_8017E7A8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB4ReservoirCancelEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -366,7 +386,7 @@ s16 D_shelter_b4_reservoir_80184F80 = -2000;
 s16 D_shelter_b4_reservoir_80184F82 = 0;
 
 TaskDesc D_shelter_b4_reservoir_80184F84[1] = {
-    { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_reservoir_8017FADC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 96 } }, _shelterB4ReservoirWaterTask, { .value = 0 } },
 };
 
 RoomWaterSurface D_shelter_b4_reservoir_80184F90[2] = {
@@ -991,8 +1011,8 @@ SVECTOR D_shelter_b4_reservoir_80187634[10] = { 0 };
 
 _ShelterB4ReservoirBurstConfig D_shelter_b4_reservoir_80187684 = { 0, 0, 0 };
 
-static void func_shelter_b4_reservoir_8017E068(void);
-static void func_shelter_b4_reservoir_8017E8EC(Task* task);
+static void _shelterB4ReservoirUpdateWaterDriftSpawnArgs(void);
+static void _shelterB4ReservoirDrawWaterTask(Task* task);
 
 #include "../../shared/screen_wave.inc.c"
 
@@ -1052,10 +1072,21 @@ void func_shelter_b4_reservoir_8017DE8C(Task* task)
     }
 }
 
-static void func_shelter_b4_reservoir_8017E068(void)
+/// Rebuilds the retained water-drift spawn word from the room configuration.
+///
+/// Bits 0..11 supply half-extent, 12..15 frame period, 16..23 speed,
+/// 24..27 velocity kind and 28..31 upright-draw selection. Inputs are ORed
+/// without masking; the half-extent must fit 0..4095 and period 0..15.
+/// The initialized kind 4 has no direction-generation arm in the particle task.
+/// This retained word currently has no reader; live view-10 spray packs its own arguments.
+static void _shelterB4ReservoirUpdateWaterDriftSpawnArgs(void)
 {
-    // Water-drift spawn argument: half-extent, then period, velocity level and kind.
-    D_shelter_b4_reservoir_80187510 = (D_shelter_b4_reservoir_80184F78 << 0x18) | (D_shelter_b4_reservoir_80184F7A << 0xC) | (D_shelter_b4_reservoir_80184F79 << 0x10) | D_shelter_b4_reservoir_80184F7C.halfExtent;
+    enum {
+        SHELTER_B4_RESERVOIR_DRIFT_KIND_AND_DRAW_SHIFT = 24,
+        SHELTER_B4_RESERVOIR_DRIFT_PERIOD_SHIFT        = 12,
+        SHELTER_B4_RESERVOIR_DRIFT_SPEED_SHIFT         = 16,
+    };
+    D_shelter_b4_reservoir_80187510 = (D_shelter_b4_reservoir_80184F78 << SHELTER_B4_RESERVOIR_DRIFT_KIND_AND_DRAW_SHIFT) | (D_shelter_b4_reservoir_80184F7A << SHELTER_B4_RESERVOIR_DRIFT_PERIOD_SHIFT) | (D_shelter_b4_reservoir_80184F79 << SHELTER_B4_RESERVOIR_DRIFT_SPEED_SHIFT) | D_shelter_b4_reservoir_80184F7C.halfExtent;
 }
 
 void func_shelter_b4_reservoir_8017E0AC(Task* arg0)
@@ -1181,32 +1212,48 @@ static s32 _shelterB4ReservoirSoundMessage(Task* task, s32 messageId, s32 soundC
     return 0;
 }
 
-void func_shelter_b4_reservoir_8017E400(Task* arg0)
+/// Moves the main water plane from world Y -2000 to -500 over the requested updates.
+///
+/// Bodyless callback; spawnArg1.value is a positive duration in callback
+/// updates and killCountdown starts at zero as an elapsed-frame counter.
+/// Durations through 32766 avoid signed-halfword wrap at the final increment.
+/// The endpoint is written before the task is killed and the shared ramp handle
+/// is cleared. Integer division truncates toward zero; no clamping occurs here.
+static void _shelterB4ReservoirRampMainWaterHeightTask(Task* task)
 {
-    s16 temp_v1;
-    s32 temp_v0;
+    s16 nextElapsedFrame;
+    s32 heightDelta;
 
-    temp_v0                         = (s32)(arg0->killCountdown * 0x5DC) / (s32)arg0->spawnArg1.value;
-    temp_v1                         = (u16)arg0->killCountdown + 1;
-    arg0->killCountdown             = temp_v1;
-    D_shelter_b4_reservoir_80184F80 = temp_v0 - 0x7D0;
-    if (arg0->spawnArg1.value < temp_v1) {
-        taskKill(arg0);
+    // Sample the old elapsed frame, then advance the signed halfword counter.
+    heightDelta                     = (task->killCountdown * SHELTER_B4_RESERVOIR_MAIN_WATER_Y_TRAVEL) / task->spawnArg1.value;
+    nextElapsedFrame                = (u16)task->killCountdown + 1;
+    task->killCountdown             = nextElapsedFrame;
+    D_shelter_b4_reservoir_80184F80 = heightDelta + SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y;
+    if (task->spawnArg1.value < nextElapsedFrame) {
+        taskKill(task);
         D_shelter_b4_reservoir_8018492C = 0;
     }
 }
 
-void func_shelter_b4_reservoir_8017E4B0(Task* arg0)
+/// Moves the view-10 water plane from world Y 0 to -1800 over the requested updates.
+///
+/// Bodyless callback; spawnArg1.value is a positive duration in callback
+/// updates and killCountdown starts at zero as an elapsed-frame counter.
+/// Durations through 32766 avoid signed-halfword wrap at the final increment.
+/// The endpoint is written before the task is killed and the shared ramp handle
+/// is cleared. Integer division truncates toward zero; no clamping occurs here.
+static void _shelterB4ReservoirRampView10WaterHeightTask(Task* task)
 {
-    s16 temp_v1;
-    s32 temp_v0;
+    s16 nextElapsedFrame;
+    s32 heightDelta;
 
-    temp_v0                         = (s32) - (arg0->killCountdown * 0x708) / (s32)arg0->spawnArg1.value;
-    temp_v1                         = (u16)arg0->killCountdown + 1;
-    arg0->killCountdown             = temp_v1;
-    D_shelter_b4_reservoir_80184F82 = (s16)temp_v0;
-    if (arg0->spawnArg1.value < temp_v1) {
-        taskKill(arg0);
+    // Sample the old elapsed frame, then advance the signed halfword counter.
+    heightDelta                     = -(task->killCountdown * (-SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y)) / task->spawnArg1.value;
+    nextElapsedFrame                = (u16)task->killCountdown + 1;
+    task->killCountdown             = nextElapsedFrame;
+    D_shelter_b4_reservoir_80184F82 = heightDelta;
+    if (task->spawnArg1.value < nextElapsedFrame) {
+        taskKill(task);
         D_shelter_b4_reservoir_8018492C = 0;
     }
 }
@@ -1292,20 +1339,34 @@ void func_shelter_b4_reservoir_8017E690(s32 arg0)
     }
 }
 
-void func_shelter_b4_reservoir_8017E770(s32 arg0)
+/// Selects the live reservoir event model's placement or motion state.
+///
+/// The room initializer must already have published a live model task.
+/// modelState is stored unchanged: 0 resets into stationary state 1,
+/// 2 resets into moving state 3.
+/// Other values are stored without validation, including state 3 for continued
+/// motion from the current placement. The callback does not own the model task.
+static void _shelterB4ReservoirSetEventModelState(s32 modelState)
 {
-    D_shelter_b4_reservoir_80184930->state = arg0;
+    D_shelter_b4_reservoir_80184930->state = modelState;
 }
 
-void func_shelter_b4_reservoir_8017E780(s32 arg0)
+/// Sets the per-point, per-frame burst chance for all ten reservoir emission points.
+///
+/// The event callback retains the low 16 bits of spawnChancePercent.
+/// Zero disables emission; values at least 100 always pass the roll.
+/// Uses a 320-world-unit base half-extent before random size variation.
+static void _shelterB4ReservoirSetBurstChance(s32 spawnChancePercent)
 {
-    func_shelter_b4_reservoir_80182B04(ARRAY_SIZE(D_shelter_b4_reservoir_80187634), arg0,
-                                       SHELTER_B4_RESERVOIR_BURST_BASE_HALF_EXTENT);
+    _shelterB4ReservoirSetBurstConfig(ARRAY_SIZE(D_shelter_b4_reservoir_80187634), spawnChancePercent,
+                                      SHELTER_B4_RESERVOIR_BURST_BASE_HALF_EXTENT);
 }
 
-/// Callback the room's event tables name: requests all-effect cancellation
-/// (`ROOM_EFFECT_CANCEL_ALL`) on `gRoomEffectState`.
-void func_shelter_b4_reservoir_8017E7A8(void)
+/// Requests cancellation of the current room effects at an event-script boundary.
+///
+/// Requires the live room-effect controller; cancellation is processed by later
+/// controller and effect updates rather than releasing tasks in this callback.
+static void _shelterB4ReservoirCancelEffects(void)
 {
     roomEffectRequestCancelAll();
 }
@@ -1324,20 +1385,22 @@ static void func_shelter_b4_reservoir_8017E7C8(Task* arg0)
     arg0->state                     = (s32)(arg0->state + 1);
 }
 
-static void func_shelter_b4_reservoir_8017E864(Task* task)
+/// Updates the reservoir's retained spray configuration each room tick.
+///
+/// Runs in room state 1 and then calls the empty room hook. task is unused
+/// but retained as the task-state callback argument.
+static void _shelterB4ReservoirUpdateRoomTask(Task* task)
 {
-    func_shelter_b4_reservoir_8017E068();
+    _shelterB4ReservoirUpdateWaterDriftSpawnArgs();
     _shelterB4ReservoirNoopRoomTick();
 }
 
-/// Runs a task through the room's three-entry state table
-/// `D_shelter_b4_reservoir_8017D5C4`, copied onto the stack first.
-void func_shelter_b4_reservoir_8017E88C(Task* task)
+void shelterB4ReservoirRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b4_reservoir_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_shelter_b4_reservoir_8017D5C4;
+    states.funcs[task->state](task);
 }
 
 /// Empty hook called by the room's per-frame state after updating spray arguments.
@@ -1345,46 +1408,94 @@ static void _shelterB4ReservoirNoopRoomTick(void)
 {
 }
 
-static void func_shelter_b4_reservoir_8017E8EC(Task* task)
+/// Selects the frame's packet arena and draws the active reservoir water planes.
+///
+/// Borrows actor arena 2 without a companion, or arena 1 with one, using
+/// otBuffer 0 or 1 to select a 0xC000-byte half. That storage must remain
+/// word aligned and intact through GPU DMA, without concurrent actor loading.
+/// Normal views draw 176 quads at most (6336 bytes); raw view 10 draws 130
+/// (4680 bytes). The main strip's depth follows its water height; view 10
+/// clamps its separate height to -1800..0. task is passed to the drawers unchanged.
+static void _shelterB4ReservoirDrawWaterTask(Task* task)
 {
+    enum {
+        SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES  = 0xC000,
+        SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_DEPTH = 9000,
+    };
     RoomWaterSurface* surface = D_shelter_b4_reservoir_80184F90;
 
+    // Borrow one half of the actor arena unused by the current companion setup.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
+        D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
     } else {
-        D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
+        D_shelter_b4_reservoir_80187630 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_RESERVOIR_WATER_PACKET_HALF_BYTES;
     }
-    if (gGameSession->location.loc.view != 0xA) {
-        surface->depth = 0x2328 - (((D_shelter_b4_reservoir_80184F80 + 0x7D0) * 0x31) >> 5);
-        func_shelter_b4_reservoir_8017EA00(task);
-        func_shelter_b4_reservoir_8017EE04(task);
-        func_shelter_b4_reservoir_8017F23C(task);
+    if (gGameSession->location.loc.view != SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW) {
+        surface->depth = SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_DEPTH - (((D_shelter_b4_reservoir_80184F80 - SHELTER_B4_RESERVOIR_MAIN_WATER_INITIAL_Y) * 0x31) >> 5);
+        _shelterB4ReservoirDrawMainWaterStrip(task);
+        _shelterB4ReservoirDrawZWaterStrips(task);
+        _shelterB4ReservoirDrawXWaterStrips(task);
         return;
     }
-    if (D_shelter_b4_reservoir_80184F82 < -0x708) {
-        D_shelter_b4_reservoir_80184F82 = -0x708;
-    } else if (D_shelter_b4_reservoir_80184F82 > 0) {
-        D_shelter_b4_reservoir_80184F82 = 0;
+    if (D_shelter_b4_reservoir_80184F82 < SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y) {
+        D_shelter_b4_reservoir_80184F82 = SHELTER_B4_RESERVOIR_VIEW10_WATER_MIN_Y;
+    } else if (D_shelter_b4_reservoir_80184F82 > SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y) {
+        D_shelter_b4_reservoir_80184F82 = SHELTER_B4_RESERVOIR_VIEW10_WATER_MAX_Y;
     }
-    func_shelter_b4_reservoir_8017F674(task);
+    _shelterB4ReservoirDrawView10WaterStrips(task);
 }
 
-/// Draws each surface in `D_shelter_b4_reservoir_80184F90` as a strip of 32
-/// flat semi-transparent quads laid along Z, projected through the view
-/// matrix, each followed by a draw-mode packet selecting blend mode 2. Quads
-/// the projection flags as invalid are skipped. `task` is unused.
-static void func_shelter_b4_reservoir_8017EA00(Task* task)
+/// Draws the changing main water rectangle as 32 flat quads along Z.
+///
+/// Uses the room's main world Y, X offset and dynamically shortened depth.
+/// The descriptor count only marks the list end; drawable entries may store zero.
+/// Borrows the terminated descriptor list, one WaterQuadScratch block and
+/// the frame's byte packet cursor. Each valid projection consumes a POLY_F4
+/// and DR_MODE (36 bytes); only the first draw-mode word is transmitted.
+/// Subtractive blending sorts at projected depth + 1; the three main-water
+/// passes subtract red intensity 128. Negative GTE flags reject a quad.
+/// Scratch is released on return. task is unused in the retained call interface.
+static void _shelterB4ReservoirDrawMainWaterStrip(Task* task)
 {
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
-    WaterQuadScratch* scratchEnd;
-    WaterQuadScratch* scratch;
-    RoomWaterSurface* surface;
-    POLY_F4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
+    /// Queues one projected water quad and its subtractive blend command.
+    ///
+    /// Captures screenXY0..3, orderingDepth, waterQuad and drawMode; also uses
+    /// the room packet cursor and current display ordering table.
+    /// Advances the aligned frame byte cursor by 24 + 12 bytes; the mode sends
+    /// only its first word. Call as a statement inside braces after projection;
+    /// expands to a statement list, repeats no side effects, and links both packets.
+#define SHELTER_B4_RESERVOIR_EMIT_MAIN_WATER_STRIP_QUAD()                                                                                                                                        \
+    waterQuad                       = (POLY_F4*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
+    D_shelter_b4_reservoir_80187630 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
+    setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                                                                                                             \
+    waterQuad->r0                       = SHELTER_B4_RESERVOIR_WATER_RED_INTENSITY;                                                                                                              \
+    waterQuad->g0                       = 0;                                                                                                                                                     \
+    waterQuad->b0                       = 0;                                                                                                                                                     \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            waterQuad);                                                                                                                                                                          \
+    drawMode                        = (DR_MODE*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
+    D_shelter_b4_reservoir_80187630 = (u8*)(drawMode + 1);                                                                                                                                       \
+    setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
+    drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            drawMode);
+
+    enum { SHELTER_B4_RESERVOIR_MAIN_WATER_SEGMENTS = 32 };
+    SVECTOR                 corner0, corner1, corner2, corner3;
+    long                    screenXY0, screenXY1, screenXY2, screenXY3;
+    long                    depthCue, projectionFlags;
+    WaterQuadScratch*       scratchEnd;
+    WaterQuadScratch*       scratch;
+    const RoomWaterSurface* surface;
+    POLY_F4*                waterQuad;
+    DR_MODE*                drawMode;
+    s32                     orderingDepth;
+    s32                     segmentIndex;
 
     surface                    = D_shelter_b4_reservoir_80184F90;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
@@ -1398,66 +1509,85 @@ static void func_shelter_b4_reservoir_8017EA00(Task* task)
     (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F80;
     for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
         scratch->dx = surface->width;
-        scratch->dz = surface->depth / 32;
+        scratch->dz = surface->depth / SHELTER_B4_RESERVOIR_MAIN_WATER_SEGMENTS;
         scratch->x  = surface->x + D_shelter_b4_reservoir_80185020[0];
         scratch->z  = surface->z;
-        for (i = 0; i < 32; i++) {
-            v0.vx            = scratch->x;
-            v0.vy            = scratch->y;
-            v0.vz            = scratch->z + scratch->dz * i;
-            v1.vx            = scratch->x;
-            v1.vy            = scratch->y;
-            v1.vz            = scratch->z + scratch->dz * (i + 1);
+        for (segmentIndex = 0; segmentIndex < SHELTER_B4_RESERVOIR_MAIN_WATER_SEGMENTS; segmentIndex++) {
+            corner0.vx       = scratch->x;
+            corner0.vy       = scratch->y;
+            corner0.vz       = scratch->z + scratch->dz * segmentIndex;
+            corner1.vx       = scratch->x;
+            corner1.vy       = scratch->y;
+            corner1.vz       = scratch->z + scratch->dz * (segmentIndex + 1);
             scratch->yOffset = 0;
-            v2.vx            = scratch->x + scratch->dx;
-            v2.vy            = scratch->y + scratch->yOffset;
-            v2.vz            = scratch->z + scratch->dz * i;
+            corner2.vx       = scratch->x + scratch->dx;
+            corner2.vy       = scratch->y + scratch->yOffset;
+            corner2.vz       = scratch->z + scratch->dz * segmentIndex;
             scratch->yOffset = 0;
-            v3.vx            = scratch->x + scratch->dx;
-            v3.vy            = scratch->y + scratch->yOffset;
-            v3.vz            = scratch->z + scratch->dz * (i + 1);
-            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                            = (POLY_F4*)D_shelter_b4_reservoir_80187630;
-                D_shelter_b4_reservoir_80187630 = (u8*)(poly + 1);
-                setlen(poly, 5);
-                setcode(poly, 0x2A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r0                       = 0x80;
-                poly->g0                       = 0;
-                poly->b0                       = 0;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                              = (DR_MODE*)D_shelter_b4_reservoir_80187630;
-                D_shelter_b4_reservoir_80187630 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
+            corner3.vx       = scratch->x + scratch->dx;
+            corner3.vy       = scratch->y + scratch->yOffset;
+            corner3.vz       = scratch->z + scratch->dz * (segmentIndex + 1);
+            orderingDepth    = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &depthCue, &projectionFlags);
+            if (projectionFlags >= 0) {
+                SHELTER_B4_RESERVOIR_EMIT_MAIN_WATER_STRIP_QUAD();
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
+
+#undef SHELTER_B4_RESERVOIR_EMIT_MAIN_WATER_STRIP_QUAD
 }
 
-/// Same strip renderer as `func_shelter_b4_reservoir_8017EA00`, driven by
-/// `D_shelter_b4_reservoir_80184FA8`: each surface's `segmentCount` gives its quad
-/// count, and its X is used as stored rather than offset. `task` is unused.
-static void func_shelter_b4_reservoir_8017EE04(Task* task)
+/// Draws the two fixed reservoir water rectangles as flat strips along Z.
+///
+/// Uses the main world Y and each descriptor's positive segment count.
+/// Depth is divided by that count with truncation toward zero.
+/// Borrows the terminated descriptor list, one WaterQuadScratch block and
+/// the frame's byte packet cursor. Each valid projection consumes a POLY_F4
+/// and DR_MODE (36 bytes); only the first draw-mode word is transmitted.
+/// Subtractive blending sorts at projected depth + 1; the three main-water
+/// passes subtract red intensity 128. Negative GTE flags reject a quad.
+/// Scratch is released on return. task is unused in the retained call interface.
+static void _shelterB4ReservoirDrawZWaterStrips(Task* task)
 {
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
-    WaterQuadScratch* scratchEnd;
-    WaterQuadScratch* scratch;
-    RoomWaterSurface* surface;
-    POLY_F4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
+    /// Queues one projected water quad and its subtractive blend command.
+    ///
+    /// Captures screenXY0..3, orderingDepth, waterQuad and drawMode; also uses
+    /// the room packet cursor and current display ordering table.
+    /// Advances the aligned frame byte cursor by 24 + 12 bytes; the mode sends
+    /// only its first word. Call as a statement inside braces after projection;
+    /// expands to a statement list, repeats no side effects, and links both packets.
+#define SHELTER_B4_RESERVOIR_EMIT_Z_WATER_STRIPS_QUAD()                                                                                                                                          \
+    waterQuad                       = (POLY_F4*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
+    D_shelter_b4_reservoir_80187630 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
+    setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                                                                                                             \
+    waterQuad->r0                       = SHELTER_B4_RESERVOIR_WATER_RED_INTENSITY;                                                                                                              \
+    waterQuad->g0                       = 0;                                                                                                                                                     \
+    waterQuad->b0                       = 0;                                                                                                                                                     \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            waterQuad);                                                                                                                                                                          \
+    drawMode                        = (DR_MODE*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
+    D_shelter_b4_reservoir_80187630 = (u8*)(drawMode + 1);                                                                                                                                       \
+    setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
+    drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            drawMode);
+
+    SVECTOR                 corner0, corner1, corner2, corner3;
+    long                    screenXY0, screenXY1, screenXY2, screenXY3;
+    long                    depthCue, projectionFlags;
+    WaterQuadScratch*       scratchEnd;
+    WaterQuadScratch*       scratch;
+    const RoomWaterSurface* surface;
+    POLY_F4*                waterQuad;
+    DR_MODE*                drawMode;
+    s32                     orderingDepth;
+    s32                     segmentIndex;
 
     surface                    = D_shelter_b4_reservoir_80184FA8;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
@@ -1474,65 +1604,82 @@ static void func_shelter_b4_reservoir_8017EE04(Task* task)
         scratch->dz = surface->depth / surface->segmentCount;
         scratch->x  = surface->x;
         scratch->z  = surface->z;
-        for (i = 0; i < surface->segmentCount; i++) {
-            v0.vx            = scratch->x;
-            v0.vy            = scratch->y;
-            v0.vz            = scratch->z + scratch->dz * i;
-            v1.vx            = scratch->x;
-            v1.vy            = scratch->y;
-            v1.vz            = scratch->z + scratch->dz * (i + 1);
+        for (segmentIndex = 0; segmentIndex < surface->segmentCount; segmentIndex++) {
+            corner0.vx       = scratch->x;
+            corner0.vy       = scratch->y;
+            corner0.vz       = scratch->z + scratch->dz * segmentIndex;
+            corner1.vx       = scratch->x;
+            corner1.vy       = scratch->y;
+            corner1.vz       = scratch->z + scratch->dz * (segmentIndex + 1);
             scratch->yOffset = 0;
-            v2.vx            = scratch->x + scratch->dx;
-            v2.vy            = scratch->y + scratch->yOffset;
-            v2.vz            = scratch->z + scratch->dz * i;
+            corner2.vx       = scratch->x + scratch->dx;
+            corner2.vy       = scratch->y + scratch->yOffset;
+            corner2.vz       = scratch->z + scratch->dz * segmentIndex;
             scratch->yOffset = 0;
-            v3.vx            = scratch->x + scratch->dx;
-            v3.vy            = scratch->y + scratch->yOffset;
-            v3.vz            = scratch->z + scratch->dz * (i + 1);
-            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                            = (POLY_F4*)D_shelter_b4_reservoir_80187630;
-                D_shelter_b4_reservoir_80187630 = (u8*)(poly + 1);
-                setlen(poly, 5);
-                setcode(poly, 0x2A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r0                       = 0x80;
-                poly->g0                       = 0;
-                poly->b0                       = 0;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                              = (DR_MODE*)D_shelter_b4_reservoir_80187630;
-                D_shelter_b4_reservoir_80187630 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
+            corner3.vx       = scratch->x + scratch->dx;
+            corner3.vy       = scratch->y + scratch->yOffset;
+            corner3.vz       = scratch->z + scratch->dz * (segmentIndex + 1);
+            orderingDepth    = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &depthCue, &projectionFlags);
+            if (projectionFlags >= 0) {
+                SHELTER_B4_RESERVOIR_EMIT_Z_WATER_STRIPS_QUAD();
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
+
+#undef SHELTER_B4_RESERVOIR_EMIT_Z_WATER_STRIPS_QUAD
 }
 
-/// Strip renderer like `func_shelter_b4_reservoir_8017EE04`, driven by
-/// `D_shelter_b4_reservoir_80184FCC`, but laid along X instead of Z: each
-/// surface's `width` is divided into `segmentCount` quads, and `depth` is the
-/// extent along Z. The scratch fields `dx` and `dz` therefore hold the X step
-/// and the Z extent here. `task` is unused.
-static void func_shelter_b4_reservoir_8017F23C(Task* task)
+/// Draws the crosswise reservoir water rectangle as a flat strip along X.
+///
+/// Uses the main world Y and each descriptor's positive segment count.
+/// Width is divided by that count with truncation toward zero.
+/// Borrows the terminated descriptor list, one WaterQuadScratch block and
+/// the frame's byte packet cursor. Each valid projection consumes a POLY_F4
+/// and DR_MODE (36 bytes); only the first draw-mode word is transmitted.
+/// Subtractive blending sorts at projected depth + 1; the three main-water
+/// passes subtract red intensity 128. Negative GTE flags reject a quad.
+/// Scratch is released on return. task is unused in the retained call interface.
+static void _shelterB4ReservoirDrawXWaterStrips(Task* task)
 {
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
-    WaterQuadScratch* scratchEnd;
-    WaterQuadScratch* scratch;
-    RoomWaterSurface* surface;
-    POLY_F4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
+    /// Queues one projected water quad and its subtractive blend command.
+    ///
+    /// Captures screenXY0..3, orderingDepth, waterQuad and drawMode; also uses
+    /// the room packet cursor and current display ordering table.
+    /// Advances the aligned frame byte cursor by 24 + 12 bytes; the mode sends
+    /// only its first word. Call as a statement inside braces after projection;
+    /// expands to a statement list, repeats no side effects, and links both packets.
+#define SHELTER_B4_RESERVOIR_EMIT_X_WATER_STRIPS_QUAD()                                                                                                                                          \
+    waterQuad                       = (POLY_F4*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
+    D_shelter_b4_reservoir_80187630 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
+    setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                                                                                                             \
+    waterQuad->r0                       = SHELTER_B4_RESERVOIR_WATER_RED_INTENSITY;                                                                                                              \
+    waterQuad->g0                       = 0;                                                                                                                                                     \
+    waterQuad->b0                       = 0;                                                                                                                                                     \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            waterQuad);                                                                                                                                                                          \
+    drawMode                        = (DR_MODE*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
+    D_shelter_b4_reservoir_80187630 = (u8*)(drawMode + 1);                                                                                                                                       \
+    setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
+    drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            drawMode);
+
+    SVECTOR                 corner0, corner1, corner2, corner3;
+    long                    screenXY0, screenXY1, screenXY2, screenXY3;
+    long                    depthCue, projectionFlags;
+    WaterQuadScratch*       scratchEnd;
+    WaterQuadScratch*       scratch;
+    const RoomWaterSurface* surface;
+    POLY_F4*                waterQuad;
+    DR_MODE*                drawMode;
+    s32                     orderingDepth;
+    s32                     segmentIndex;
 
     surface                    = D_shelter_b4_reservoir_80184FCC;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
@@ -1549,66 +1696,82 @@ static void func_shelter_b4_reservoir_8017F23C(Task* task)
         scratch->dz = surface->depth;
         scratch->x  = surface->x;
         scratch->z  = surface->z;
-        for (i = 0; i < surface->segmentCount; i++) {
-            v0.vx            = scratch->x + scratch->dx * i;
-            v0.vy            = scratch->y;
-            v0.vz            = scratch->z;
-            v1.vx            = scratch->x + scratch->dx * (i + 1);
-            v1.vy            = scratch->y;
-            v1.vz            = scratch->z;
+        for (segmentIndex = 0; segmentIndex < surface->segmentCount; segmentIndex++) {
+            corner0.vx       = scratch->x + scratch->dx * segmentIndex;
+            corner0.vy       = scratch->y;
+            corner0.vz       = scratch->z;
+            corner1.vx       = scratch->x + scratch->dx * (segmentIndex + 1);
+            corner1.vy       = scratch->y;
+            corner1.vz       = scratch->z;
             scratch->yOffset = 0;
-            v2.vx            = scratch->x + scratch->dx * i;
-            v2.vy            = scratch->y + scratch->yOffset;
-            v2.vz            = scratch->z + scratch->dz;
+            corner2.vx       = scratch->x + scratch->dx * segmentIndex;
+            corner2.vy       = scratch->y + scratch->yOffset;
+            corner2.vz       = scratch->z + scratch->dz;
             scratch->yOffset = 0;
-            v3.vx            = scratch->x + scratch->dx * (i + 1);
-            v3.vy            = scratch->y + scratch->yOffset;
-            v3.vz            = scratch->z + scratch->dz;
-            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                            = (POLY_F4*)D_shelter_b4_reservoir_80187630;
-                D_shelter_b4_reservoir_80187630 = (u8*)(poly + 1);
-                setlen(poly, 5);
-                setcode(poly, 0x2A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r0                       = 0x80;
-                poly->g0                       = 0;
-                poly->b0                       = 0;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                              = (DR_MODE*)D_shelter_b4_reservoir_80187630;
-                D_shelter_b4_reservoir_80187630 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
+            corner3.vx       = scratch->x + scratch->dx * (segmentIndex + 1);
+            corner3.vy       = scratch->y + scratch->yOffset;
+            corner3.vz       = scratch->z + scratch->dz;
+            orderingDepth    = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &depthCue, &projectionFlags);
+            if (projectionFlags >= 0) {
+                SHELTER_B4_RESERVOIR_EMIT_X_WATER_STRIPS_QUAD();
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
+
+#undef SHELTER_B4_RESERVOIR_EMIT_X_WATER_STRIPS_QUAD
 }
 
-/// Strip renderer like `func_shelter_b4_reservoir_8017EE04`, driven by
-/// `D_shelter_b4_reservoir_80184FE4` and drawn at height
-/// `D_shelter_b4_reservoir_80184F82` instead of `D_shelter_b4_reservoir_80184F80`.
-/// The quads are tinted by that height: blue is `-height * 16 / 225` and green
-/// a quarter of it, so they brighten as the level sinks. `task` is unused.
-static void func_shelter_b4_reservoir_8017F674(Task* task)
+/// Draws the four view-10 water rectangles with height-dependent blue shading.
+///
+/// Uses the separate world Y in -1800..0 and positive descriptor counts
+/// for strips along Z. Blue is -Y * 16 / 225 (0..128), green its quarter.
+/// Borrows the terminated list, one WaterQuadScratch block and the frame's
+/// byte packet cursor. Each valid projection consumes 36 bytes for a POLY_F4
+/// and DR_MODE, transmitting only one mode word. Subtractive blending sorts
+/// at projected depth + 1; negative GTE flags reject a quad. Releases scratch
+/// on return. task is unused in the retained call interface.
+static void _shelterB4ReservoirDrawView10WaterStrips(Task* task)
 {
-    SVECTOR           v0, v1, v2, v3;
-    long              sxy0, sxy1, sxy2, sxy3;
-    long              p, flag;
-    WaterQuadScratch* scratchEnd;
-    WaterQuadScratch* scratch;
-    RoomWaterSurface* surface;
-    POLY_F4*          poly;
-    DR_MODE*          dr;
-    s32               otz;
-    s32               i;
-    u8                c;
+    /// Queues one projected water quad and its subtractive blend command.
+    ///
+    /// Captures screenXY0..3, orderingDepth, waterQuad, drawMode and blueIntensity;
+    /// also uses the room packet cursor and current display ordering table.
+    /// Advances the aligned frame byte cursor by 24 + 12 bytes; the mode sends
+    /// only its first word. Call as a statement inside braces after projection;
+    /// expands to a statement list, repeats no side effects, and links both packets.
+#define SHELTER_B4_RESERVOIR_EMIT_VIEW10_WATER_STRIPS_QUAD()                                                                                                                                     \
+    waterQuad                       = (POLY_F4*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
+    D_shelter_b4_reservoir_80187630 = (u8*)(waterQuad + 1);                                                                                                                                      \
+    setlen(waterQuad, sizeof(*waterQuad) / sizeof(u32) - 1);                                                                                                                                     \
+    setcode(waterQuad, SHELTER_B4_RESERVOIR_WATER_QUAD_CODE);                                                                                                                                    \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 0) = screenXY0;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 1) = screenXY1;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 2) = screenXY2;                                                                                                                                             \
+    GPU_PRIMITIVE_XY_WORD(waterQuad, 3) = screenXY3;                                                                                                                                             \
+    waterQuad->r0                       = 0;                                                                                                                                                     \
+    waterQuad->g0                       = blueIntensity >> 2;                                                                                                                                    \
+    waterQuad->b0                       = blueIntensity;                                                                                                                                         \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            waterQuad);                                                                                                                                                                          \
+    drawMode                        = (DR_MODE*)D_shelter_b4_reservoir_80187630;                                                                                                                 \
+    D_shelter_b4_reservoir_80187630 = (u8*)(drawMode + 1);                                                                                                                                       \
+    setlen(drawMode, SHELTER_B4_RESERVOIR_WATER_DRAW_MODE_WORDS);                                                                                                                                \
+    drawMode->code[0] = SHELTER_B4_RESERVOIR_WATER_DRAW_MODE;                                                                                                                                    \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(orderingDepth + SHELTER_B4_RESERVOIR_WATER_DEPTH_BIAS) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            drawMode);
+
+    SVECTOR                 corner0, corner1, corner2, corner3;
+    long                    screenXY0, screenXY1, screenXY2, screenXY3;
+    long                    depthCue, projectionFlags;
+    WaterQuadScratch*       scratchEnd;
+    WaterQuadScratch*       scratch;
+    const RoomWaterSurface* surface;
+    POLY_F4*                waterQuad;
+    DR_MODE*                drawMode;
+    s32                     orderingDepth;
+    s32                     segmentIndex;
+    u8                      blueIntensity;
 
     surface                    = D_shelter_b4_reservoir_80184FE4;
     scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
@@ -1620,57 +1783,46 @@ static void func_shelter_b4_reservoir_8017F674(Task* task)
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
     (scratchEnd - 1)->y = D_shelter_b4_reservoir_80184F82;
-    c                   = -(D_shelter_b4_reservoir_80184F82 * 16) / 225;
+    blueIntensity       = -(D_shelter_b4_reservoir_80184F82 * 16) / 225;
     for (; surface->segmentCount != WATER_SURFACE_LIST_END; surface++) {
         scratch->dx = surface->width;
         scratch->dz = surface->depth / surface->segmentCount;
         scratch->x  = surface->x;
         scratch->z  = surface->z;
-        for (i = 0; i < surface->segmentCount; i++) {
-            v0.vx            = scratch->x;
-            v0.vy            = scratch->y;
-            v0.vz            = scratch->z + scratch->dz * i;
-            v1.vx            = scratch->x;
-            v1.vy            = scratch->y;
-            v1.vz            = scratch->z + scratch->dz * (i + 1);
+        for (segmentIndex = 0; segmentIndex < surface->segmentCount; segmentIndex++) {
+            corner0.vx       = scratch->x;
+            corner0.vy       = scratch->y;
+            corner0.vz       = scratch->z + scratch->dz * segmentIndex;
+            corner1.vx       = scratch->x;
+            corner1.vy       = scratch->y;
+            corner1.vz       = scratch->z + scratch->dz * (segmentIndex + 1);
             scratch->yOffset = 0;
-            v2.vx            = scratch->x + scratch->dx;
-            v2.vy            = scratch->y + scratch->yOffset;
-            v2.vz            = scratch->z + scratch->dz * i;
+            corner2.vx       = scratch->x + scratch->dx;
+            corner2.vy       = scratch->y + scratch->yOffset;
+            corner2.vz       = scratch->z + scratch->dz * segmentIndex;
             scratch->yOffset = 0;
-            v3.vx            = scratch->x + scratch->dx;
-            v3.vy            = scratch->y + scratch->yOffset;
-            v3.vz            = scratch->z + scratch->dz * (i + 1);
-            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                            = (POLY_F4*)D_shelter_b4_reservoir_80187630;
-                D_shelter_b4_reservoir_80187630 = (u8*)(poly + 1);
-                setlen(poly, 5);
-                setcode(poly, 0x2A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r0                       = 0;
-                poly->g0                       = c >> 2;
-                poly->b0                       = c;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        poly);
-                dr                              = (DR_MODE*)D_shelter_b4_reservoir_80187630;
-                D_shelter_b4_reservoir_80187630 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)(otz + 1) << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                        dr);
+            corner3.vx       = scratch->x + scratch->dx;
+            corner3.vy       = scratch->y + scratch->yOffset;
+            corner3.vz       = scratch->z + scratch->dz * (segmentIndex + 1);
+            orderingDepth    = RotTransPers4(&corner0, &corner1, &corner2, &corner3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &depthCue, &projectionFlags);
+            if (projectionFlags >= 0) {
+                SHELTER_B4_RESERVOIR_EMIT_VIEW10_WATER_STRIPS_QUAD();
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
+
+#undef SHELTER_B4_RESERVOIR_EMIT_VIEW10_WATER_STRIPS_QUAD
 }
 
-void func_shelter_b4_reservoir_8017FADC(Task* task)
+/// Runs the reservoir water renderer and publishes the main world-unit water height.
+///
+/// Requires state 0 (borrowed arena setup) or 1 (per-frame drawing).
+/// The two-handler table is copied to the stack before dispatch, with no bounds
+/// check. Publishes the main plane even when view 10 draws its separate plane.
+static void _shelterB4ReservoirWaterTask(Task* task)
 {
-    TaskFunc states[2] = { _shelterB4ReservoirInitializeWaterTask, func_shelter_b4_reservoir_8017E8EC };
+    TaskFunc states[2] = { _shelterB4ReservoirInitializeWaterTask, _shelterB4ReservoirDrawWaterTask };
 
     states[task->state](task);
     gGameSession->waterY = D_shelter_b4_reservoir_80184F80;
@@ -1692,147 +1844,192 @@ static void _shelterB4ReservoirInitializeWaterTask(Task* task)
     task->state++;
 }
 
-void func_shelter_b4_reservoir_8017FB84(Task* task)
+/// Places one burst point around the room anchor, consuming two random draws.
+///
+/// pointIndex must address the ten-point table. Radius is a multiple of 64 in
+/// 0..448, angle is a 512-unit sector plus jitter in 4096 units per turn.
+/// work receives the radius and angle as signed halfwords; XYZ narrows likewise.
+static inline void _shelterB4ReservoirScatterBurstPoint(EffectWork* work, s32 pointIndex)
 {
+    enum {
+        SHELTER_B4_RESERVOIR_BURST_RADIUS_MASK  = 0x1C0,
+        SHELTER_B4_RESERVOIR_BURST_ANGLE_MASK   = 511,
+        SHELTER_B4_RESERVOIR_BURST_SECTOR_SHIFT = 9,
+        SHELTER_B4_RESERVOIR_BURST_Q12_SHIFT    = 12,
+        SHELTER_B4_RESERVOIR_BURST_X_OFFSET     = 2048,
+    };
+
+    work->scale                                    = RAND() & SHELTER_B4_RESERVOIR_BURST_RADIUS_MASK;
+    work->angle                                    = (RAND() & SHELTER_B4_RESERVOIR_BURST_ANGLE_MASK) + (pointIndex << SHELTER_B4_RESERVOIR_BURST_SECTOR_SHIFT);
+    D_shelter_b4_reservoir_80187634[pointIndex].vx = D_shelter_b4_reservoir_80185094.vx + SHELTER_B4_RESERVOIR_BURST_X_OFFSET;
+    D_shelter_b4_reservoir_80187634[pointIndex].vy =
+        D_shelter_b4_reservoir_80185094.vy + ((work->scale * rsin(work->angle)) >> SHELTER_B4_RESERVOIR_BURST_Q12_SHIFT);
+    D_shelter_b4_reservoir_80187634[pointIndex].vz =
+        D_shelter_b4_reservoir_80185094.vz + ((work->scale * rcos(work->angle)) >> SHELTER_B4_RESERVOIR_BURST_Q12_SHIFT);
+}
+
+void shelterB4ReservoirAmbientEffectsTask(Task* task)
+{
+    enum {
+        SHELTER_B4_RESERVOIR_AMBIENT_INITIALIZE         = 0,
+        SHELTER_B4_RESERVOIR_AMBIENT_RUNNING            = 1,
+        SHELTER_B4_RESERVOIR_PLAYER_SAMPLE_FIRST_COORD  = 14,
+        SHELTER_B4_RESERVOIR_PLAYER_SAMPLE_COORD_STRIDE = 3,
+        SHELTER_B4_RESERVOIR_SPLASH_CHANCE_MASK         = 511,
+        SHELTER_B4_RESERVOIR_RIPPLE_CHANCE_BIAS         = 32,
+        SHELTER_B4_RESERVOIR_BURST_REPOSITION_MASK      = 31,
+        SHELTER_B4_RESERVOIR_PLAYER_RIPPLE_HALF_SIZE    = 64,
+        // Rotated kind-1 spray, speed 32, period 2, half-extent 384.
+        SHELTER_B4_RESERVOIR_PLAYER_SPRAY_ARGS = (1 << 24) | (32 << 16) | (2 << 12) | 384,
+        // Rotated kind 4 is retained despite having no direction-generation arm.
+        SHELTER_B4_RESERVOIR_VIEW10_ROTATED_SPRAY_ARGS = (4 << 24) | (160 << 16) | (3 << 12) | 1536,
+        // Upright kind-1 spray, speed 96, period 2, half-extent 768.
+        SHELTER_B4_RESERVOIR_VIEW10_UPRIGHT_SPRAY_ARGS   = (1 << 28) | (1 << 24) | (96 << 16) | (2 << 12) | 768,
+        SHELTER_B4_RESERVOIR_SPRAY_PERIOD_VARIATION      = 1 << 12,
+        SHELTER_B4_RESERVOIR_SPRAY_SIZE_PERIOD_VARIATION = (1 << 12) | 255,
+        SHELTER_B4_RESERVOIR_VIEW10_RIPPLE_SIZE_MASK     = 127,
+        SHELTER_B4_RESERVOIR_VIEW10_RIPPLE_MIN_HALF_SIZE = 128,
+        SHELTER_B4_RESERVOIR_CAPSULE_RADIUS_SCALE        = 512,
+        SHELTER_B4_RESERVOIR_DISC_RADIUS_SCALE           = 256,
+        // Glow draw RGB nibbles, with the disc's flicker shift in bits 12..15.
+        SHELTER_B4_RESERVOIR_GLOW_DIM_WHITE           = 0x222,
+        SHELTER_B4_RESERVOIR_GLOW_MID_WHITE           = 0x333,
+        SHELTER_B4_RESERVOIR_GLOW_WHITE               = 0x444,
+        SHELTER_B4_RESERVOIR_DISC_EVENT_DONE_COLOR    = 0x504C,
+        SHELTER_B4_RESERVOIR_DISC_EVENT_PENDING_COLOR = 0x5C40,
+        SHELTER_B4_RESERVOIR_SPRAY_CHANCE_MASK        = 1,
+        SHELTER_B4_RESERVOIR_RIPPLE_CHANCE_MASK       = 3,
+    };
     EffectWork* work;
     Task*       player;
-    GfxCoord*   root;
-    GfxCoord*   c;
-    GfxCoord    coord;
-    s32         i;
+    GfxCoord*   playerRoot;
+    GfxCoord*   sampledPlayerCoord;
+    GfxCoord    splashCoord;
+    s32         loopIndex;
     s32         baseHalfExtent;
     s32         randomizedSpawnArgs;
 
-    work   = task->spawnArg2.pointer;
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    root   = player->extra.tmd->coords;
-    if (task->state == 0) {
+    work       = task->spawnArg2.pointer;
+    player     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerRoot = player->extra.tmd->coords;
+    if (task->state == SHELTER_B4_RESERVOIR_AMBIENT_INITIALIZE) {
         gRoomEffectWaterRippleId  = EFFECT_SHELTER_B4_RESERVOIR_WATER_RIPPLE;
         gRoomEffectWaterSprayId   = EFFECT_SHELTER_B4_RESERVOIR_WATER_SPRAY;
         gRoomEffectGlowDiscId     = EFFECT_SHELTER_B4_RESERVOIR_GLOW_DISC;
         gRoomEffectFlyingSparkId  = EFFECT_SHELTER_B4_RESERVOIR_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B4_RESERVOIR_ORANGE_BURST_2;
-        task->state               = 1;
+        task->state               = SHELTER_B4_RESERVOIR_AMBIENT_RUNNING;
         // Scatter the burst points around the anchor. The work's `scale` and
         // `angle` hold the polar radius and angle of the point being placed.
-        for (i = 0; i < 10; i++) {
-            work->scale                           = RAND() & 0x1C0;
-            work->angle                           = (RAND() & 0x1FF) + (i << 9);
-            D_shelter_b4_reservoir_80187634[i].vx = D_shelter_b4_reservoir_80185094.vx + 0x800;
-            D_shelter_b4_reservoir_80187634[i].vy =
-                D_shelter_b4_reservoir_80185094.vy + ((work->scale * rsin(work->angle)) >> 12);
-            D_shelter_b4_reservoir_80187634[i].vz =
-                D_shelter_b4_reservoir_80185094.vz + ((work->scale * rcos(work->angle)) >> 12);
+        for (loopIndex = 0; loopIndex < (s32)ARRAY_SIZE(D_shelter_b4_reservoir_80187634); loopIndex++) {
+            _shelterB4ReservoirScatterBurstPoint(work, loopIndex);
         }
         D_shelter_b4_reservoir_80187684.pointCount         = 0;
         D_shelter_b4_reservoir_80187684.spawnChancePercent = 0;
         D_shelter_b4_reservoir_80187684.baseHalfExtent     = 0;
-        for (i = 0; i < 2; i++) {
-            c                                     = &player->extra.tmd->coords[i * 3 + 14];
-            D_shelter_b4_reservoir_801850AC[i].vx = c->workm.t[0];
-            D_shelter_b4_reservoir_801850AC[i].vy = c->workm.t[1];
-            D_shelter_b4_reservoir_801850AC[i].vz = c->workm.t[2];
+        for (loopIndex = 0; loopIndex < (s32)ARRAY_SIZE(D_shelter_b4_reservoir_801850AC); loopIndex++) {
+            sampledPlayerCoord                            = &player->extra.tmd->coords[loopIndex * SHELTER_B4_RESERVOIR_PLAYER_SAMPLE_COORD_STRIDE + SHELTER_B4_RESERVOIR_PLAYER_SAMPLE_FIRST_COORD];
+            D_shelter_b4_reservoir_801850AC[loopIndex].vx = sampledPlayerCoord->workm.t[0];
+            D_shelter_b4_reservoir_801850AC[loopIndex].vy = sampledPlayerCoord->workm.t[1];
+            D_shelter_b4_reservoir_801850AC[loopIndex].vz = sampledPlayerCoord->workm.t[2];
         }
     }
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
         if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
             // `age` counts the frames run with the event done; the splash pass waits for the second.
-            if (gGameSession->waterY < root->coord.t[1] && work->age != 0) {
-                for (i = 0; i < 2; i++) {
-                    c = &player->extra.tmd->coords[i * 3 + 14];
-                    actorRenderComposeCoord(c);
+            if (gGameSession->waterY < playerRoot->coord.t[1] && work->age != 0) {
+                for (loopIndex = 0; loopIndex < (s32)ARRAY_SIZE(D_shelter_b4_reservoir_801850AC); loopIndex++) {
+                    sampledPlayerCoord = &player->extra.tmd->coords[loopIndex * SHELTER_B4_RESERVOIR_PLAYER_SAMPLE_COORD_STRIDE + SHELTER_B4_RESERVOIR_PLAYER_SAMPLE_FIRST_COORD];
+                    actorRenderComposeCoord(sampledPlayerCoord);
                     // `angle` is reused as the splash chance out of 512: the distance
                     // this coordinate moved since the previous frame, plus a ripple bias.
-                    work->angle = ABS(D_shelter_b4_reservoir_801850AC[i].vx - c->workm.t[0]) +
-                                  ABS(D_shelter_b4_reservoir_801850AC[i].vy - c->workm.t[1]) +
-                                  ABS(D_shelter_b4_reservoir_801850AC[i].vz - c->workm.t[2]) + 0x20;
-                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &c->workm, &coord.coord);
-                    coord.parent       = &gGfxViewCoord;
-                    coord.coord.t[1]   = gGameSession->waterY;
-                    coord.composeStamp = GRAPHICS_COORD_DIRTY;
-                    actorRenderComposeCoord(&coord);
-                    if ((s32)(RAND() & 0x1FF) < work->angle) {
-                        effectSpawn(gRoomEffectWaterRippleId, &coord, 0x40, NULL);
+                    work->angle = ABS(D_shelter_b4_reservoir_801850AC[loopIndex].vx - sampledPlayerCoord->workm.t[0]) +
+                                  ABS(D_shelter_b4_reservoir_801850AC[loopIndex].vy - sampledPlayerCoord->workm.t[1]) +
+                                  ABS(D_shelter_b4_reservoir_801850AC[loopIndex].vz - sampledPlayerCoord->workm.t[2]) + SHELTER_B4_RESERVOIR_RIPPLE_CHANCE_BIAS;
+                    // Place the composed player sample on the water plane in view-parent space.
+                    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &sampledPlayerCoord->workm, &splashCoord.coord);
+                    splashCoord.parent       = &gGfxViewCoord;
+                    splashCoord.coord.t[1]   = gGameSession->waterY;
+                    splashCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+                    actorRenderComposeCoord(&splashCoord);
+                    if ((s32)(RAND() & SHELTER_B4_RESERVOIR_SPLASH_CHANCE_MASK) < work->angle) {
+                        effectSpawn(gRoomEffectWaterRippleId, &splashCoord, SHELTER_B4_RESERVOIR_PLAYER_RIPPLE_HALF_SIZE, NULL);
                     }
-                    work->angle -= 0x20;
-                    if ((s32)(RAND() & 0x1FF) < work->angle) {
-                        effectSpawn(gRoomEffectWaterSprayId, &coord, 0x1202180, NULL);
+                    work->angle -= SHELTER_B4_RESERVOIR_RIPPLE_CHANCE_BIAS;
+                    if ((s32)(RAND() & SHELTER_B4_RESERVOIR_SPLASH_CHANCE_MASK) < work->angle) {
+                        effectSpawn(gRoomEffectWaterSprayId, &splashCoord, SHELTER_B4_RESERVOIR_PLAYER_SPRAY_ARGS, NULL);
                     }
-                    D_shelter_b4_reservoir_801850AC[i].vx = c->workm.t[0];
-                    D_shelter_b4_reservoir_801850AC[i].vy = c->workm.t[1];
-                    D_shelter_b4_reservoir_801850AC[i].vz = c->workm.t[2];
+                    D_shelter_b4_reservoir_801850AC[loopIndex].vx = sampledPlayerCoord->workm.t[0];
+                    D_shelter_b4_reservoir_801850AC[loopIndex].vy = sampledPlayerCoord->workm.t[1];
+                    D_shelter_b4_reservoir_801850AC[loopIndex].vz = sampledPlayerCoord->workm.t[2];
                 }
             }
             work->age++;
         }
         // Emit independently at each active point, occasionally moving its position.
         if (D_shelter_b4_reservoir_80187684.pointCount != 0 && D_shelter_b4_reservoir_80187684.spawnChancePercent != 0) {
-            for (i = 0; i < D_shelter_b4_reservoir_80187684.pointCount; i++) {
-                if ((RAND() & 0x1F) == 0) {
-                    work->scale                           = RAND() & 0x1C0;
-                    work->angle                           = (RAND() & 0x1FF) + (i << 9);
-                    D_shelter_b4_reservoir_80187634[i].vx = D_shelter_b4_reservoir_80185094.vx + 0x800;
-                    D_shelter_b4_reservoir_80187634[i].vy =
-                        D_shelter_b4_reservoir_80185094.vy + ((work->scale * rsin(work->angle)) >> 12);
-                    D_shelter_b4_reservoir_80187634[i].vz =
-                        D_shelter_b4_reservoir_80185094.vz + ((work->scale * rcos(work->angle)) >> 12);
+            for (loopIndex = 0; loopIndex < D_shelter_b4_reservoir_80187684.pointCount; loopIndex++) {
+                if ((RAND() & SHELTER_B4_RESERVOIR_BURST_REPOSITION_MASK) == 0) {
+                    _shelterB4ReservoirScatterBurstPoint(work, loopIndex);
                 }
                 if ((u16)(RAND() % SHELTER_B4_RESERVOIR_BURST_CHANCE_SCALE) < D_shelter_b4_reservoir_80187684.spawnChancePercent) {
                     baseHalfExtent      = D_shelter_b4_reservoir_80187684.baseHalfExtent;
                     randomizedSpawnArgs = (RAND() & SHELTER_B4_RESERVOIR_BURST_VARIATION_MASK) + SHELTER_B4_RESERVOIR_BURST_MOTION_ARGS;
                     effectSpawn(EFFECT_SHELTER_B4_RESERVOIR_BURST_SPRITE, NULL, baseHalfExtent + randomizedSpawnArgs,
-                                &D_shelter_b4_reservoir_80187634[i]);
+                                &D_shelter_b4_reservoir_80187634[loopIndex]);
                 }
             }
         }
     }
-    if ((u8)viewGetMappedIndex() == 10) {
+    // View spray and glow drawing continue independently of effect-control pause.
+    if ((u8)viewGetMappedIndex() == SHELTER_B4_RESERVOIR_WATER_SPRAY_VIEW) {
         D_shelter_b4_reservoir_8018509C[1].vy = D_shelter_b4_reservoir_80184F82;
-        if ((RAND() & 1) == 0) {
-            effectSpawn(gRoomEffectWaterSprayId, NULL, (RAND() & 0x1000) + 0x4A03600, &D_shelter_b4_reservoir_8018509C[0]);
+        if ((RAND() & SHELTER_B4_RESERVOIR_SPRAY_CHANCE_MASK) == 0) {
+            effectSpawn(gRoomEffectWaterSprayId, NULL, (RAND() & SHELTER_B4_RESERVOIR_SPRAY_PERIOD_VARIATION) + SHELTER_B4_RESERVOIR_VIEW10_ROTATED_SPRAY_ARGS, &D_shelter_b4_reservoir_8018509C[0]);
         }
-        if ((RAND() & 1) == 0) {
-            effectSpawn(gRoomEffectWaterSprayId, NULL, (RAND() & 0x10FF) | 0x11602300, &D_shelter_b4_reservoir_8018509C[1]);
+        if ((RAND() & SHELTER_B4_RESERVOIR_SPRAY_CHANCE_MASK) == 0) {
+            effectSpawn(gRoomEffectWaterSprayId, NULL, (RAND() & SHELTER_B4_RESERVOIR_SPRAY_SIZE_PERIOD_VARIATION) | SHELTER_B4_RESERVOIR_VIEW10_UPRIGHT_SPRAY_ARGS, &D_shelter_b4_reservoir_8018509C[1]);
         }
-        if ((RAND() & 3) == 0) {
-            effectSpawn(gRoomEffectWaterRippleId, NULL, (RAND() & 0x7F) | 0x80, &D_shelter_b4_reservoir_8018509C[1]);
+        if ((RAND() & SHELTER_B4_RESERVOIR_RIPPLE_CHANCE_MASK) == 0) {
+            effectSpawn(gRoomEffectWaterRippleId, NULL, (RAND() & SHELTER_B4_RESERVOIR_VIEW10_RIPPLE_SIZE_MASK) | SHELTER_B4_RESERVOIR_VIEW10_RIPPLE_MIN_HALF_SIZE, &D_shelter_b4_reservoir_8018509C[1]);
         }
     }
+    // Per-view point pairs supply capsule glow; the event flag changes the disc tint.
     switch ((u8)viewGetMappedIndex()) {
         case 2:
-            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[10], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[10], SHELTER_B4_RESERVOIR_CAPSULE_RADIUS_SCALE, SHELTER_B4_RESERVOIR_GLOW_WHITE);
             break;
         case 4:
-            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x222);
-            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[6], 0x200, 0x444);
-            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[8], 0x200, 0x333);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], SHELTER_B4_RESERVOIR_CAPSULE_RADIUS_SCALE, SHELTER_B4_RESERVOIR_GLOW_DIM_WHITE);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[6], SHELTER_B4_RESERVOIR_CAPSULE_RADIUS_SCALE, SHELTER_B4_RESERVOIR_GLOW_WHITE);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[8], SHELTER_B4_RESERVOIR_CAPSULE_RADIUS_SCALE, SHELTER_B4_RESERVOIR_GLOW_MID_WHITE);
             if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
-                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
+                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], SHELTER_B4_RESERVOIR_DISC_RADIUS_SCALE, SHELTER_B4_RESERVOIR_DISC_EVENT_DONE_COLOR);
             } else {
-                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
+                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], SHELTER_B4_RESERVOIR_DISC_RADIUS_SCALE, SHELTER_B4_RESERVOIR_DISC_EVENT_PENDING_COLOR);
             }
             break;
         case 5:
-            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[0], SHELTER_B4_RESERVOIR_CAPSULE_RADIUS_SCALE, SHELTER_B4_RESERVOIR_GLOW_WHITE);
             if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
-                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
+                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], SHELTER_B4_RESERVOIR_DISC_RADIUS_SCALE, SHELTER_B4_RESERVOIR_DISC_EVENT_DONE_COLOR);
             } else {
-                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
+                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], SHELTER_B4_RESERVOIR_DISC_RADIUS_SCALE, SHELTER_B4_RESERVOIR_DISC_EVENT_PENDING_COLOR);
             }
             break;
         case 6:
             if (gameFlagGetNibble(GAME_FLAG_B4_RESERVOIR_EVENT_DONE) != 0) {
-                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x504C);
+                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], SHELTER_B4_RESERVOIR_DISC_RADIUS_SCALE, SHELTER_B4_RESERVOIR_DISC_EVENT_DONE_COLOR);
             } else {
-                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], 0x100, 0x5C40);
+                glowDrawTintedDiscNoBias(&D_shelter_b4_reservoir_80185024[12], SHELTER_B4_RESERVOIR_DISC_RADIUS_SCALE, SHELTER_B4_RESERVOIR_DISC_EVENT_PENDING_COLOR);
             }
             break;
         case 7:
-            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[2], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[2], SHELTER_B4_RESERVOIR_CAPSULE_RADIUS_SCALE, SHELTER_B4_RESERVOIR_GLOW_WHITE);
             break;
         case 3:
         case 9:
-            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[4], 0x200, 0x444);
+            _glowDrawCapsule(&D_shelter_b4_reservoir_80185024[4], SHELTER_B4_RESERVOIR_CAPSULE_RADIUS_SCALE, SHELTER_B4_RESERVOIR_GLOW_WHITE);
             break;
     }
 }
@@ -2047,11 +2244,18 @@ static void _shelterB4ReservoirDrawBurstSprite(const GfxCoord* spriteCoord, u16 
 
 #include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"
 
-static void func_shelter_b4_reservoir_80182B04(s16 arg0, u16 arg1, s16 arg2)
+/// Replaces the reservoir burst emitter's active point count, chance and size.
+///
+/// pointCount must be 0..10; neither it nor spawnChancePercent is clamped.
+/// Zero count or chance disables emission, and chance >=100 always passes.
+/// baseHalfExtent is in world units and must be 0..3840 so random 0..255
+/// variation fits the packed argument's low 12 bits. Signed parameters retain
+/// their low 16 bits when stored; negative values violate the emitter bounds.
+static void _shelterB4ReservoirSetBurstConfig(s16 pointCount, u16 spawnChancePercent, s16 baseHalfExtent)
 {
-    D_shelter_b4_reservoir_80187684.pointCount         = arg0;
-    D_shelter_b4_reservoir_80187684.spawnChancePercent = arg1;
-    D_shelter_b4_reservoir_80187684.baseHalfExtent     = arg2;
+    D_shelter_b4_reservoir_80187684.pointCount         = pointCount;
+    D_shelter_b4_reservoir_80187684.spawnChancePercent = spawnChancePercent;
+    D_shelter_b4_reservoir_80187684.baseHalfExtent     = baseHalfExtent;
 }
 
 #include "../../shared/room_visual_effects.inc.c"

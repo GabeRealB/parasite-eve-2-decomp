@@ -864,7 +864,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3ElevatorHallDrawGlowsTask, { NULL } },                                     // 0x146
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4LowerSewerDrawGlowsTask, { NULL } },                                       // 0x147
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4UpperSewerDrawGlowsTask, { NULL } },                                       // 0x148
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_reservoir_8017FB84, { NULL } },                                     // 0x149
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirAmbientEffectsTask, { NULL } },                                   // 0x149
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_8017EE54, { NULL } },                                  // 0x14A
     { { { TASK_BODY_COORD, 0x70 } }, shelterR47DrawViewGlowsTask, { NULL } },                                            // 0x14B
     { { { TASK_BODY_COORD, 0x70 } }, shelterR48InitRingsAndDrawGlowTask, { NULL } },                                     // 0x14C

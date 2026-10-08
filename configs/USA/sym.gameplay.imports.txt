@@ -1079,7 +1079,7 @@ func_shelter_b1_sterilization_room_8018188C = 0x8018188C; // type:func absolute:
 
 shelterB1SterilizationRoomPuffTask = 0x801823D8; // type:func absolute:True owner=shelter_b1_sterilization_room
 
-shelterB1StoreroomRoomVisualEffectsMoteTask = 0x8017E7A8; // type:func absolute:True owner=shelter_b1_storeroom shared=rooms
+shelterB1StoreroomRoomVisualEffectsMoteTask = 0x8017E7A8; // type:func absolute:True owner=shelter_b1_storeroom
 
 shelterB1StoreroomRoomVisualEffectsHaloTask = 0x8017F4F0; // type:func absolute:True owner=shelter_b1_storeroom
 
@@ -1259,7 +1259,7 @@ shelterB4LowerSewerRoomVisualEffectsTwinTrailTask = 0x80180914; // type:func abs
 
 func_shelter_b4_lower_sewer_801811FC = 0x801811FC; // type:func absolute:True owner=shelter_b4_lower_sewer
 
-func_shelter_b4_reservoir_8017FB84 = 0x8017FB84; // type:func absolute:True owner=shelter_b4_reservoir
+shelterB4ReservoirAmbientEffectsTask = 0x8017FB84; // type:func absolute:True owner=shelter_b4_reservoir
 
 shelterB4ReservoirWaterRippleTask = 0x801803DC; // type:func absolute:True owner=shelter_b4_reservoir
 
@@ -1767,7 +1767,7 @@ func_dryfield_toilet_8017DCF0 = 0x8017DCF0; // type:func absolute:True owner=dry
 
 dryfieldUnderpassDrawFlaresTask = 0x8017DE30; // type:func absolute:True owner=dryfield_underpass shared=rooms
 
-func_dryfield_main_street_8017E4B0 = 0x8017E4B0; // type:func absolute:True owner=dryfield_main_street shared=rooms
+func_dryfield_main_street_8017E4B0 = 0x8017E4B0; // type:func absolute:True owner=dryfield_main_street
 
 dryfieldGeneralStoreNoOpEffectTask = 0x8017E150; // type:func absolute:True owner=dryfield_general_store shared=rooms
 
@@ -1889,7 +1889,7 @@ shelterB2PodAccessTunnelDrawLightBeamsTask = 0x8017DC6C; // type:func absolute:T
 
 shelterB3IncineratorControlRoomDrawViewGlowsTask = 0x8017FD10; // type:func absolute:True owner=shelter_b3_incinerator_control_room shared=rooms
 
-shelterB4LowerSewerDrawGlowsTask = 0x8017E400; // type:func absolute:True owner=shelter_b4_lower_sewer shared=rooms
+shelterB4LowerSewerDrawGlowsTask = 0x8017E400; // type:func absolute:True owner=shelter_b4_lower_sewer
 
 shelterR47DrawViewGlowsTask = 0x801858BC; // type:func absolute:True owner=shelter_r47
 

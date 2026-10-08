@@ -44,7 +44,13 @@ extern SpriteView D_shelter_b4_reservoir_80186730[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b4_reservoir_80187480[];
 
-void func_shelter_b4_reservoir_8017E88C(Task* task);
+/// Runs the reservoir room's initialization, update or teardown state.
+///
+/// Requires state 0..2: initialization binds messages, water rendering and
+/// the event model; state 1 refreshes retained spray arguments; state 2 kills
+/// the task. Copies its handler table before unchecked dispatch. The reservoir
+/// overlay and its room resources must remain loaded while this callback runs.
+void shelterB4ReservoirRoomTask(Task* task);
 
 /// Runs one six-cell burst sprite emitted by the reservoir event.
 ///
@@ -62,7 +68,21 @@ void func_shelter_b4_reservoir_8017E88C(Task* task);
 /// cancellation redraws once before releasing the work and task.
 void shelterB4ReservoirBurstSpriteTask(Task* task);
 
-void func_shelter_b4_reservoir_8017FB84(Task* task);
+/// Runs the reservoir's player splashes, event bursts, view spray and glow drawing.
+///
+/// Requires a counted effect task with zeroed owned `EffectWork` in `spawnArg2`,
+/// initial state 0, the live player TMD with at least 18 coordinates and live
+/// room-effect state. Initializes the room's effect IDs, ten burst positions
+/// and two cached player positions. Coordinates 14 and 17 supply splash samples;
+/// their anatomical identity is unproven. Cached view-space positions narrow
+/// to halfwords; initialization reads the existing matrices without composing.
+/// After the reservoir event, running updates age the splash gate and compare
+/// motion against rolls out of 512. Configured bursts roll out of 100 per point.
+/// Mapped view 10 emits spray/ripples even during pause or cancellation, and
+/// per-view glows always draw. This task has no cancellation or retirement arm;
+/// the effect exit callback owns teardown. Burst offsets live for the room,
+/// and `effectSpawn` snapshots temporary splash placement during each call.
+void shelterB4ReservoirAmbientEffectsTask(Task* task);
 
 /// Runs the reservoir's expanding, fading water-surface ripple.
 ///
