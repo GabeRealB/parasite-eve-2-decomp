@@ -105199,7 +105199,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Two
 builds, no pins, no permuter. Scratch
 `nonmatchings/func_actor_205600_8014CFD0-vacuum`.
 
-## m2c reads a stack-local dispatch table's stores as call arguments (Actor04400_Fn06A78, 2026-09-16)
+## m2c reads a stack-local dispatch table's stores as call arguments (_madChaserStatusHoldState, 2026-09-16)
 
 A state handler that builds its table *on the stack* from two function
 addresses comes out of m2c as a **call with two arguments**:
@@ -105207,7 +105207,7 @@ addresses comes out of m2c as a **call with two arguments**:
 ```c
 M2C_FIELD((sp + (M2C_FIELD(M2C_FIELD(arg0, void **, 0x1C), s16 *, 0x422) * 4)),
           M2C_UNK (**)(M2C_UNK *, void (*)(Task *)), 0x10)
-    (&Actor04400_Fn06BC4, Actor04400_Fn06BF8);
+    (&_madChaserStatusHoldStart, _madChaserStatusHold);
 ```
 
 The giveaway is where the stores land: `0x10($sp)` and `0x14($sp)` are the o32
@@ -105218,15 +105218,15 @@ the "arguments" are `lui`/`addiu` pairs forming two *function addresses*, which 
 arg setup would do. They are a local array's initializer:
 
 ```c
-void Actor04400_Fn06A78(Task* arg0)
+static void _madChaserStatusHoldState(Task* task)
 {
-    Actor104400Work* work                = (Actor104400Work*)arg0->work;
-    void             (*states[2])(Task*) = {
-        Actor04400_Fn06BC4,
-        Actor04400_Fn06BF8,
+    MadChaserWork* work           = task->work;
+    TaskFunc       stepHandlers[] = {
+        _madChaserStatusHoldStart,
+        _madChaserStatusHold,
     };
 
-    states[(s16)work->field_422](arg0);
+    stepHandlers[(s16)work->subState](task);
 }
 ```
 
@@ -105244,7 +105244,7 @@ Inputs: `base.i` SHA256
 `c99c607ec97f031c064506bb3f0f0cded537f8a5c75e6392dc3da020285e1bfe`; target
 SHA256 `97545fc1f3d5ed5413b6934ad9fdc0d58a8b6f351baa496d9194ec270265632a`;
 two builds (mid-quilt `base.c` 59.762%), no pins, no permuter. Scratch
-`nonmatchings/Actor04400_Fn06A78-vacuum`.
+`nonmatchings/_madChaserStatusHoldState-vacuum`.
 
 ## m2c passes a copied dispatch table's base register as a second argument
 

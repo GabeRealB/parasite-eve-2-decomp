@@ -85,8 +85,8 @@ static void _madChaserCombatToAlertState1(Task* task);
 static void _madChaserCombatToAlertState2(Task* task);
 static void _madChaserWalkState(Task* task);
 static void _madChaserAlertState(Task* task);
-static void func_actor_341700_80168874(Task* arg0);
-static void func_actor_341700_801688C8(Task* arg0);
+static void _madChaserRecoilHeavyState(Task* task);
+static void _madChaserStatusHoldState(Task* task);
 static void _madChaserLurkIdleState(Task* task);
 static void _madChaserLurkLookState(Task* task);
 static void _madChaserLurkShiftState(Task* task);
@@ -132,8 +132,8 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     madChaserLeapState,
     _madChaserAlertState,
     madChaserRecoilLightState,
-    func_actor_341700_80168874,
-    func_actor_341700_801688C8,
+    _madChaserRecoilHeavyState,
+    _madChaserStatusHoldState,
     _madChaserKnockdownState,
     _madChaserPullState,
 } };
@@ -1124,23 +1124,26 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 #undef MAD_CHASER_ALERT_STATE_HANDLER
 #undef MAD_CHASER_ALERT_STEP_HANDLERS
 
+/// Selects the declared void(Task*) light-recoil dispatcher for this inclusion.
+#define MAD_CHASER_REACTION_STATE_HANDLER madChaserRecoilLightState
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
+#undef MAD_CHASER_REACTION_STATE_HANDLER
 
-/// A further copy, under this file's own name.
-#define madChaserRecoilLightState    func_actor_341700_80168874
-#define _madChaserRecoilLight        _madChaserRecoilHeavy
-#define _madChaserRecoilLightRecover _madChaserRecoilHeavyEnd
+/// Selects this carrier's declared static void(Task*) heavy-recoil dispatcher.
+#define MAD_CHASER_REACTION_STATE_HANDLER _madChaserRecoilHeavyState
+#define _madChaserRecoilLight             _madChaserRecoilHeavy
+#define _madChaserRecoilLightRecover      _madChaserRecoilHeavyEnd
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
-#undef madChaserRecoilLightState
+#undef MAD_CHASER_REACTION_STATE_HANDLER
 #undef _madChaserRecoilLight
 #undef _madChaserRecoilLightRecover
 
-/// A further copy, under this file's own name.
-#define madChaserRecoilLightState    func_actor_341700_801688C8
-#define _madChaserRecoilLight        _madChaserStatusHoldStart
-#define _madChaserRecoilLightRecover _madChaserStatusHold
+/// Selects this carrier's declared static void(Task*) buildup-status dispatcher.
+#define MAD_CHASER_REACTION_STATE_HANDLER _madChaserStatusHoldState
+#define _madChaserRecoilLight             _madChaserStatusHoldStart
+#define _madChaserRecoilLightRecover      _madChaserStatusHold
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"
-#undef madChaserRecoilLightState
+#undef MAD_CHASER_REACTION_STATE_HANDLER
 #undef _madChaserRecoilLight
 #undef _madChaserRecoilLightRecover
 
