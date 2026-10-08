@@ -13,8 +13,9 @@ one row per entry, with a status that a later check or a person sets.
                       [--item NAME] [--run RUN] [--format tsv|md|json]
     followups.py show ID
     followups.py mark ID... --status resolved --reason TEXT [--commit SHA]
-    followups.py mark --from FILE          id, status, reason, commit per line
+    followups.py mark --from FILE          id, status, reason, commit, duplicate_of per line
     followups.py export [--out FILE]
+    followups.py batches --out DIR [--size 60]   open entries as review batches
 
 `ingest` can be run at any time, as often as wanted, and is how the table is
 extended when a later pass (data, constants) has written its reports: a row is
@@ -33,6 +34,14 @@ in the code but still in the document or tool the entry points at), or `gone` -
 which later step visited it, and how many other entries share its location.
 Those are signals a reviewer starts from, and it sets no status. `gone` in
 particular is not "resolved": it also covers a rename nothing logged.
+
+`batches` writes the open entries as Markdown files for a reviewer, each with
+its signals, and an index. A batch follows the code, not a count: a file's
+entries stay together (a large file is cut between symbols, never inside one),
+and small files are joined with others of their directory, then their family,
+because duplicates only show when the entries about one place are read side by
+side. A reviewer answers with a TSV of `id, status, reason, commit,
+duplicate_of`, which `mark --from` applies.
 
 `--symbol` follows local/renames.tsv in both directions, so an entry written
 against `func_800A1234` is found under the name that function has now.
@@ -407,6 +416,67 @@ def emit(rows, fmt: str, out) -> None:
             out.write("\t".join(flat(r[k]) for k in COLUMNS) + "\n")
 
 
+def batches(db, out_dir: str, size: int) -> None:
+    rows = db.execute(
+        "SELECT e.*, r.path AS report_path, r.run, r.step, r.landed_commit FROM entries e JOIN reports r "
+        "ON r.id = e.report WHERE e.present = 1 AND e.status = 'open' ORDER BY e.loc_file, e.loc_symbol, e.id").fetchall()
+    by_file = {}
+    for r in rows:
+        by_file.setdefault(r["loc_file"] or "", []).append(r)
+    # Whole files first; one over the size is cut where the symbol changes.
+    pieces = []                                   # (file, rows)
+    for file, items in by_file.items():
+        if len(items) <= size:
+            pieces.append((file, items))
+            continue
+        cur = []
+        for i, r in enumerate(items):
+            if len(cur) >= size and r["loc_symbol"] != items[i - 1]["loc_symbol"]:
+                pieces.append((file, cur)); cur = []
+            cur.append(r)
+        if cur:
+            pieces.append((file, cur))
+    # Then the small ones are joined: same directory, then same family.
+    packed, rest = [], []
+    for piece in pieces:
+        (packed if len(piece[1]) * 2 >= size else rest).append([piece])
+    for depth in (None, 2, 1):
+        groups = {}
+        for group in rest:
+            folder = os.path.dirname(group[0][0])
+            key = folder if depth is None else "/".join(folder.split("/")[:depth])
+            groups.setdefault(key, []).append(group)
+        rest = []
+        for key in sorted(groups):
+            cur, n = [], 0
+            for group in groups[key]:
+                m = sum(len(p[1]) for p in group)
+                if cur and n + m > size:
+                    (packed if n * 2 >= size else rest).append(cur); cur, n = [], 0
+                cur = cur + group; n += m
+            if cur:
+                (packed if n * 2 >= size or depth == 1 else rest).append(cur)
+    packed.sort(key=lambda g: g[0][0])
+    os.makedirs(out_dir, exist_ok=True)
+    index = []
+    for number, group in enumerate(packed, 1):
+        name = f"{number:04d}"
+        entries = [r for _, items in group for r in items]
+        with open(os.path.join(out_dir, name + ".md"), "w") as fh:
+            fh.write(f"# Batch {name}: {len(entries)} follow-ups\n\n")
+            for file, items in group:
+                fh.write(f"## {file or '(no file)'} - {len(items)}\n\n")
+                emit(items, "md", fh)
+        index.append((name, len(entries), len(group), group[0][0]))
+    with open(os.path.join(out_dir, "index.tsv"), "w") as fh:
+        fh.write("batch\tentries\tfiles\tfirst_file\n")
+        for row in index:
+            fh.write("\t".join(map(str, row)) + "\n")
+    sizes = sorted(n for _, n, _, _ in index)
+    print(f"{len(rows)} open entries in {len(index)} batches -> {out_dir} "
+          f"(smallest {sizes[0]}, median {sizes[len(sizes) // 2]}, largest {sizes[-1]})")
+
+
 def mark(db, ids, status, reason, commit, by, duplicate_of=None) -> int:
     if status not in STATUSES:
         sys.exit(f"status must be one of {', '.join(STATUSES)}")
@@ -453,7 +523,11 @@ def main() -> int:
     p.add_argument("ids", nargs="*")
     p.add_argument("--status"); p.add_argument("--reason"); p.add_argument("--commit")
     p.add_argument("--duplicate-of"); p.add_argument("--by", default=os.environ.get("USER", ""))
-    p.add_argument("--from", dest="source", help="TSV: id, status, reason, commit (a header line is skipped)")
+    p.add_argument("--from", dest="source",
+                   help="TSV: id, status, reason, commit, duplicate_of (a header line is skipped)")
+    p = sub.add_parser("batches")
+    p.add_argument("--out", required=True)
+    p.add_argument("--size", type=int, default=60)
     args = ap.parse_args()
     db = connect(args.db)
 
@@ -478,6 +552,8 @@ def main() -> int:
         if args.out:
             out.close()
             print(f"{len(rows)} entries -> {args.out}")
+    elif args.command == "batches":
+        batches(db, args.out, args.size)
     elif args.command == "show":
         rows = db.execute("SELECT e.*, r.path AS report_path, r.landed_commit FROM entries e JOIN reports r "
                           "ON r.id = e.report WHERE e.id LIKE ?", (args.id + "%",)).fetchall()
@@ -497,8 +573,8 @@ def main() -> int:
                 for row in csv.reader(fh, delimiter="\t"):
                     if len(row) < 2 or row[0] == "id":
                         continue
-                    row += [""] * (4 - len(row))
-                    n += mark(db, [row[0]], row[1], row[2] or None, row[3] or None, args.by)
+                    row += [""] * (5 - len(row))
+                    n += mark(db, [row[0]], row[1], row[2] or None, row[3] or None, args.by, row[4] or None)
         elif args.ids and args.status:
             n = mark(db, args.ids, args.status, args.reason, args.commit, args.by, args.duplicate_of)
         else:
