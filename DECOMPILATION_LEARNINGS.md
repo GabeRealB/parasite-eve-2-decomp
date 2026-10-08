@@ -42635,7 +42635,7 @@ same-register `la` (see the `lui tmp` / `addiu dest, tmp` unpin note):
 register s32 cap asm("a0");
 ```
 
-`func_dryfield_night_trailer_coach_8018243C` is the example. The overlay already
+`_dryfieldNightTrailerCoachTalkTask` is the example. The overlay already
 had a `rodata` cut at `0x21C`; the 0x10-byte leading `INCLUDE_RODATA` plus this
 function's jtbl needs no further manifest change.
 
@@ -43650,7 +43650,7 @@ the delay slot while the **then arm** is the fall-through. So the rule for
 reproducing a target is one line: the constant sitting in the delay slot must
 be the *else* arm, which fixes the polarity you have to write.
 
-`func_dryfield_night_trailer_coach_80182864` is the minimal case -- m2c's pre-set
+`_dryfieldNightTrailerCoachOpenShop` is the minimal case -- m2c's pre-set
 local scored 54.933% with the `$s0` spill, `!= 0 ? 0x21 : 0x20` scored 83.846%
 with `beqz v0` and `0x20` in the delay slot where the target has `bnez v0` and
 `0x21`, and `== 0 ? 0x20 : 0x21` is 100% with every penalty zero. The
@@ -95078,7 +95078,7 @@ spawned `D_..._801818AC` is 0xC bytes (`TaskDesc`) and the latched
 
 Input `base_1.c`
 `f85275a5b6c2262a0f962858d62e3e88c5340c8c591a6ed5c9a1dc68573f4e5c` (100.000%).
-## A reloc-fold fix re-types the body, and a second flag hides behind it (func_dryfield_night_trailer_coach_8018231C, 2026-09-16)
+## A reloc-fold fix re-types the body, and a second flag hides behind it (_dryfieldNightTrailerCoachInitRoomTask, 2026-09-16)
 
 An m2c seed at 98.292% with `delete=1 branch=3 regs=4` is the reloc-fold shape of
 "The reloc fold's single-field shape": m2c's

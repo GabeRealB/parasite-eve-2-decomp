@@ -293,7 +293,7 @@ D_dryfield_night_trailer_coach_801881F8 = 0x801881F8; // size:0x150 defined:True
 D_dryfield_night_trailer_coach_80188348 = 0x80188348; // size:0x1C8 defined:True
 D_dryfield_night_trailer_coach_80188510 = 0x80188510; // size:0x1F8 defined:True
 
-func_dryfield_night_trailer_coach_8018138C = 0x8018138C; // type:func
+dryfieldNightTrailerCoachTelephoneMenuTask = 0x8018138C; // type:func
 
 dryfieldNightTrailerCoachDrawGlowsTask = 0x80182924; // type:func
 _telephoneDrawPlayDataRow = 0x8017FFF4; // type:func
@@ -342,3 +342,13 @@ roomCutsceneTask = 0x80181DB0; // type:func
 _roomCutsceneSoundTask = 0x80182610; // type:func
 _trailerCoachSetDepthShift = 0x80182898; // type:func
 _dryfieldNightTrailerCoachDrawGlowCapsule = 0x801838b4; // type:func
+_dryfieldNightTrailerCoachInitRoomTask = 0x8018231c; // type:func
+_dryfieldNightTrailerCoachStartTalkVariant1 = 0x8018283c; // type:func
+_dryfieldNightTrailerCoachOpenShop = 0x80182864; // type:func
+_dryfieldNightTrailerCoachTalkTask = 0x8018243c; // type:func
+_dryfieldNightTrailerCoachRejectKeyItemMessage = 0x801826a0; // type:func
+_dryfieldNightTrailerCoachResolveRoomVariantMessage = 0x801826a8; // type:func
+_dryfieldNightTrailerCoachCommandMessage = 0x801826ec; // type:func
+_dryfieldNightTrailerCoachIgnoreActionMessage = 0x80182800; // type:func
+_dryfieldNightTrailerCoachSoundMessage = 0x80182808; // type:func
+dryfieldNightTrailerCoachRoomTask = 0x801828cc; // type:func

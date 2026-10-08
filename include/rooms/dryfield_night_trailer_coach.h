@@ -35,7 +35,14 @@ extern SpriteView D_dryfield_night_trailer_coach_8018B64C[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_trailer_coach_8018C1E8[];
 
-void func_dryfield_night_trailer_coach_8018138C(Task* task);
+/// Updates the night trailer coach's telephone save menu and statistics panels.
+///
+/// Requires the loaded room and a live UI task owning its object through
+/// `spawnArg2.pointer`. State 0 initializes the menu; states 1..3 handle save,
+/// statistics and notice dismissal. Before a clear, normal play opens saving
+/// directly; a clear or demo scene 1 enables the four-row menu. Child UI tasks
+/// supply their results through this controller.
+void dryfieldNightTrailerCoachTelephoneMenuTask(Task* task);
 
 /// Draws the night trailer coach's glows for the current room view each frame.
 ///
@@ -46,6 +53,13 @@ void func_dryfield_night_trailer_coach_8018138C(Task* task);
 /// current frame's initialized scratch stack, ordering table and packet arena.
 void dryfieldNightTrailerCoachDrawGlowsTask(Task* unusedTask);
 
-void func_dryfield_night_trailer_coach_801828CC(Task* task);
+/// Runs the night trailer coach's room receiver and view-depth updates.
+///
+/// Requires the loaded room and task state 0 (initialize), 1 (update), or 2
+/// (kill); dispatch has no bounds check. Initialization registers the message
+/// receiver and starts arrival scenes. Updates apply view 5's 1x depth scale
+/// or 8x for other views. The task borrows the room's table for its lifetime;
+/// scenes and message-spawned tasks also require the overlay to remain loaded.
+void dryfieldNightTrailerCoachRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_TRAILER_COACH_H
