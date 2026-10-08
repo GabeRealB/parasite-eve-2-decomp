@@ -1583,7 +1583,7 @@ static void func_dryfield_trailer_coach_80182888(Task* arg0);
 
 extern SVECTOR D_dryfield_trailer_coach_801871C4;
 
-static void func_dryfield_trailer_coach_801826A0(Task* task);
+static void _dryfieldTrailerCoachOpenTopicChoice(Task* task);
 
 #include "../../shared/shop.inc.c"
 
@@ -1715,46 +1715,50 @@ s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, s32 arg
     return 0;
 }
 
-/// Opens the room's two-option choice: allocates the `RoomOptionDialog` (killing
-/// the task if that fails), labels its two options from the topic menu chosen
-/// by `spawnArg1` (menu 1 when it is 1, menu 0 otherwise), passes the request
-/// to `uiSpawnOptionDialog` and advances the task. Cancelling is not permitted.
-static void func_dryfield_trailer_coach_801826A0(Task* task)
+/// Opens the trailer coach's two-topic choice and advances to its answer wait.
+///
+/// Owns a primary-heap `RoomOptionDialog` in `task->work` until task teardown.
+/// `spawnArg1.value == 1` selects firearms/anything else; every other value
+/// selects firearms/shelter. The UI borrows the request and its two linked
+/// options until answered; cancellation is disabled. Allocation failure kills
+/// the task. Requires the label table and this overlay to stay loaded.
+static void _dryfieldTrailerCoachOpenTopicChoice(Task* task)
 {
+    enum { DRYFIELD_TRAILER_COACH_SECOND_TOPIC_MENU = 1 };
     RoomOptionDialog* dialog;
     UiDialogOption*   option;
-    u8**              line;
-    u8**              table;
-    s32               mode;
-    s32               index;
-    s32               i;
+    u8**              firstMenuCursor;
+    u8**              topicLabels;
+    s32               secondMenuSelector;
+    s32               labelIndex;
+    s32               optionIndex;
 
-    dialog = memCalloc(sizeof(RoomOptionDialog), 0);
-    option = dialog->options;
+    dialog = memCalloc(sizeof(*dialog), 0);
     if (dialog == NULL) {
         taskKill(task);
         return;
     }
 
-    // `line` walks the first menu; the second menu's options are indexed from
-    // the start of the table.
-    i                  = 0;
-    mode               = 1;
-    line               = D_dryfield_trailer_coach_801853E4;
-    table              = line;
+    option = dialog->options;
+
+    // Select one of the two contiguous label pairs without crossing its bounds.
+    optionIndex        = 0;
+    secondMenuSelector = DRYFIELD_TRAILER_COACH_SECOND_TOPIC_MENU;
+    firstMenuCursor    = D_dryfield_trailer_coach_801853E4;
+    topicLabels        = firstMenuCursor;
     task->work         = dialog;
     task->exitCallback = _dryfieldTrailerCoachExitTopicChoice;
 
-    for (; i < ARRAY_SIZE(dialog->options); i++) {
-        if (task->spawnArg1.value == mode) {
-            index        = i + ARRAY_SIZE(dialog->options);
-            option->text = table[index];
+    for (; optionIndex < ARRAY_SIZE(dialog->options); optionIndex++) {
+        if (task->spawnArg1.value == secondMenuSelector) {
+            labelIndex   = optionIndex + ARRAY_SIZE(dialog->options);
+            option->text = topicLabels[labelIndex];
         } else {
-            option->text = *line;
+            option->text = *firstMenuCursor;
         }
         option->next = option + 1;
         option++;
-        line++;
+        firstMenuCursor++;
     }
     option[-1].next = NULL;
 
@@ -1815,7 +1819,7 @@ static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
 /// answer, then kill the task and call `stageRequestModeTaskExit`.
 static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
     {
-        func_dryfield_trailer_coach_801826A0,
+        _dryfieldTrailerCoachOpenTopicChoice,
         _dryfieldTrailerCoachWaitForTopicChoice,
         _dryfieldTrailerCoachExitTopicChoice,
     },

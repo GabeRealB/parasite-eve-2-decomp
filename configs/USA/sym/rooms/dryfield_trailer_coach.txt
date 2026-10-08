@@ -329,3 +329,4 @@ _dryfieldTrailerCoachResolveRoomEvent = 0x80182580; // type:func
 _dryfieldTrailerCoachWaitForTopicChoice = 0x80182794; // type:func
 _dryfieldTrailerCoachExitTopicChoice = 0x801827d0; // type:func
 _dryfieldTrailerCoachTopicChoiceTask = 0x801827f8; // type:func
+_dryfieldTrailerCoachOpenTopicChoice = 0x801826a0; // type:func

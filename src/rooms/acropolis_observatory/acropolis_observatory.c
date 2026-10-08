@@ -26,12 +26,12 @@ extern s32 D_acropolis_observatory_8017E7D8;
 
 static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisObservatoryRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_acropolis_observatory_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisObservatoryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 TaskMessageEntry D_acropolis_observatory_8017E7B8[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisObservatoryResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisObservatoryRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_observatory_8017D7C4 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisObservatoryHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -114,14 +114,25 @@ static s32 _acropolisObservatoryRejectKeyItemUse(Task* unusedTask, s32 messageId
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Message gate for the observatory hotspot: sub-id 1 arms the room's task the
-/// first time it fires during session phase 2, latching nibble 0xCA so a later
-/// visit does nothing. The outgoing record is never written - this handler only
-/// consumes the message.
-s32 func_acropolis_observatory_8017D7C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Starts the observatory's unseen event when room 2 receives action 1.
+///
+/// Borrows a four-byte `DirectionActionRequest` for synchronous dispatch;
+/// latches the event before spawning it. Other actions, rooms and later visits
+/// leave progress intact. Ignores the receiver, message ID and zero second
+/// payload word, retains no request pointer and always returns zero.
+static s32 _acropolisObservatoryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if ((in->warp == 1) && (gGameSession->location.loc.room == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == 0)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN, 1);
+    enum {
+        ACROPOLIS_OBSERVATORY_ACTION_START_EVENT = 1,
+        ACROPOLIS_OBSERVATORY_EVENT_ROOM         = 2,
+        ACROPOLIS_OBSERVATORY_EVENT_UNSEEN       = 0,
+        ACROPOLIS_OBSERVATORY_EVENT_SEEN         = 1
+    };
+
+    if ((request->actionId == ACROPOLIS_OBSERVATORY_ACTION_START_EVENT) &&
+        (gGameSession->location.loc.room == ACROPOLIS_OBSERVATORY_EVENT_ROOM) &&
+        (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN) == ACROPOLIS_OBSERVATORY_EVENT_UNSEEN)) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OBSERVATORY_EVENT_SEEN, ACROPOLIS_OBSERVATORY_EVENT_SEEN);
         taskSpawnFromTable(&D_acropolis_observatory_8017FE6C, 0, 0, 0);
     }
     return 0;

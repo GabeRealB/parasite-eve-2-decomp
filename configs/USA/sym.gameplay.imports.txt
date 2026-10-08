@@ -878,7 +878,7 @@ neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask = 0x8017E890; // type:f
 
 func_neo_ark_north_promenade_8017FCA0 = 0x8017FCA0; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
 
-neoArkNorthPromenadeRoomVisualEffectsFlashTask = 0x8017FDD4; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
+neoArkNorthPromenadeRoomVisualEffectsFlashTask = 0x8017FDD4; // type:func absolute:True owner=neo_ark_north_promenade
 
 neoArkNorthPromenadeRoomVisualEffectsTwinTrailTask = 0x80180838; // type:func absolute:True owner=neo_ark_north_promenade
 

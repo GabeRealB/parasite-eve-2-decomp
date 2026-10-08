@@ -867,7 +867,7 @@ The paired values must be the same expression for the stores to collapse; two
 different expressions that happen to be equal are two pseudos.
 ## Naming one `memCalloc` result twice is how the target keeps it in `$v0` *and* `$a0`
 
-`func_mine_cavern_801836D0` reached 99.900% with only two instructions differing:
+`_mineCavernTargetRemainsSpawn` reached 99.900% with only two instructions differing:
 the target tests and parks the allocation through `$v0` (`bnez $v0` then
 `sw $v0, 0x1C($s0)` in the delay slot) and uses `$a0` for that same pointer
 afterwards, where one C variable put all five uses in `$a0`. Everything else
@@ -7251,7 +7251,7 @@ if (gameFlagGetNibble(0xC7) == 1) {
 
 Jump2 merges `li a1,1` / `jal` / the rest of the function, leaving only
 the `la` in each arm, and the arm-local temp is free to be `$a0`. One
-`jal` still comes out. `func_shelter_b6_nursery_8017FEC4` is the example.
+`jal` still comes out. `_shelterB6NurseryInitializeRoomTask` is the example.
 
 ## if/else on the same field keeps the phi in `$v0`; a ternary steals `$t0`
 
@@ -49175,7 +49175,7 @@ and the `0x48` frame exactly. Read the offsets rather than the frame size: two
 functions in the same TU can disagree about where one type lives.
 `_actor136100ResetBodyAnimation` is the same trick without a second local.
 
-**Sizing the missing local.** `func_mine_cavern_80183AD4` is the case where the
+**Sizing the missing local.** `_mineCavernTargetRemainsTick` is the case where the
 reserved local is never touched at all: the target's `stack_accesses` count
 equals the candidate's, so nothing in the object dump names it, and the frame
 delta is all the evidence there is. cc1 probes against the bundled compiler give
@@ -147994,7 +147994,7 @@ arrays' `i + base` (base hoisted), so a byte array does get the index first as
 an inline argument when it is a struct member or a named global; only a byte
 array reached through a pointer local stays base first.
 
-### A byte-offset counter beside a loop index is a giv the loop pass could not extend: put `i + K` in a local (func_dryfield_trailer_coach_801826A0, 2026-10-05)
+### A byte-offset counter beside a loop index is a giv the loop pass could not extend: put `i + K` in a local (_dryfieldTrailerCoachOpenTopicChoice, 2026-10-05)
 
 Target keeps the loop index, a second counter stepping by the element size from
 `K * size` (`li a2,8` ... `addiu a2,a2,4`) and adds it to a hoisted base at the

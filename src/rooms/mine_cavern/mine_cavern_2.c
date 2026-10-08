@@ -120,7 +120,7 @@ static void _mineCavernUpdateTargetSound(s16 targetIndex);
 static void _mineCavernSpawnTargets(Task* task);
 static void func_mine_cavern_80182DA8(Task* task);
 static void _mineCavernTargetExplode(Enemy* enemy, Task* task);
-static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task);
+static void _mineCavernTargetRemainsTick(Enemy* enemy, Task* task);
 
 static void _mineCavernTargetExitCallback(Task* task);
 
@@ -2146,7 +2146,7 @@ static void _mineCavernRefreshTargetLight(s16 targetIndex);
 static void _mineCavernDrawTargetGlow(s16 targetIndex);
 static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1);
 static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1);
-static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1);
+static void _mineCavernTargetRemainsSpawn(Enemy* enemy, Task* task);
 static void _mineCavernTargetRetireBody(Enemy* enemy, Task* task);
 
 /// Selects the cavern's mote, halo, orange-burst and spark-emitter effect tasks.
@@ -3156,43 +3156,40 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     SCRATCH_STACK_RELEASE_BLOCK(_MineCavernTargetHitScratch);
 }
 
-/// Second state handler of `D_mine_cavern_8017D7F8` (`mineCavernTargetTask`
-/// dispatches it). It allocates the work block, parks it at `Task::work` and
-/// hands its two matrices to the model, then seats the model on the spawn spot
-/// `Task::spawnArg1` names: the block's own coordinate adopts that spot with the
-/// model's coordinate hung under it, and the model is lit at that position through
-/// `worldCoordSetModelLighting`.
+/// Allocates and places the target's remains model before its visibility tick.
 ///
-/// `mem` and `work` are the same block: the original build tests and parks the
-/// allocation through `mem` and reaches the block through `work` afterwards,
-/// which is what keeps the two live ranges - and so `$v0` / `$a0` - apart.
-static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1)
+/// State 0 of `mineCavernTargetRemainsTask`. The low unsigned half of
+/// `spawnArg1.value` selects one of the four target spots (0..3). Requires a
+/// live enemy and model, room lighting and view state. The task owns the zeroed
+/// work block; its matrices supply the model's lighting until teardown.
+/// Allocation failure destroys the enemy; success advances to state 1.
+static void _mineCavernTargetRemainsSpawn(Enemy* enemy, Task* task)
 {
-    _MineCavernTargetWork* mem;
+    _MineCavernTargetWork* allocation;
     _MineCavernTargetWork* work;
-    VECTOR                 vec;
+    VECTOR                 worldPosition;
 
-    mem        = memCalloc(sizeof(_MineCavernTargetWork), false);
-    work       = mem;
-    arg1->work = mem;
-    if (mem == NULL) {
-        enemyDestroy(arg0, arg1);
+    allocation = memCalloc(sizeof(*allocation), false);
+    work       = allocation;
+    task->work = allocation;
+    if (allocation == NULL) {
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->extra.tmd->coords->parent       = &gGfxViewCoord;
-    arg1->extra.tmd->flags                = 0;
-    arg1->extra.tmd->lightMtx             = &work->light;
-    arg1->extra.tmd->colorMtx             = &work->color;
-    arg1->extra.tmd->coords->coord.t[0]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vx;
-    arg1->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vy;
-    arg1->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)arg1->spawnArg1.value].vz;
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(arg1->extra.tmd->coords);
-    vec.vx = arg1->extra.tmd->coords->workm.t[0];
-    vec.vy = arg1->extra.tmd->coords->workm.t[1];
-    vec.vz = arg1->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(arg1->extra.tmd, &vec, 0, 3);
-    arg1->state++;
+    task->extra.tmd->coords->parent       = &gGfxViewCoord;
+    task->extra.tmd->flags                = 0;
+    task->extra.tmd->lightMtx             = &work->light;
+    task->extra.tmd->colorMtx             = &work->color;
+    task->extra.tmd->coords->coord.t[0]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vx;
+    task->extra.tmd->coords->coord.t[1]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vy;
+    task->extra.tmd->coords->coord.t[2]   = D_mine_cavern_8018EB18[(u16)task->spawnArg1.value].vz;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
+    worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(task->extra.tmd, &worldPosition, 0, 3);
+    task->state++;
 }
 
 /// Unlinks the intact target's attack-taking body when its exit callback is dispatched.
@@ -3243,7 +3240,7 @@ static const EnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
 
 /// The second enemy's state handlers, run by `mineCavernTargetRemainsTask`.
 static const EnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
-    { func_mine_cavern_801836D0, func_mine_cavern_80183AD4, enemyDestroy },
+    { _mineCavernTargetRemainsSpawn, _mineCavernTargetRemainsTick, enemyDestroy },
 };
 
 /// Runs the destroyed target's 60-tick explosion, then advances to teardown.
@@ -3323,31 +3320,30 @@ void mineCavernTargetTask(Task* task)
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Third state handler of `D_mine_cavern_8017D7F8` (`mineCavernTargetTask`
-/// dispatches it). It rebuilds the model's lighting at its world position through
-/// `worldCoordSetModelLighting`, then settles the work block's `centerCoord`: when the
-/// `gameFlagGetNibble(0xE2)` bit selected by `Task::spawnArg1` is set the
-/// coordinate is reset to an identity rotation parked at (0, -0x320, 0) under
-/// the model's own coordinate, `work->frame` ticks, and the model's `field_C` is
-/// cleared; otherwise the model is flagged hidden with `field_C = 0x80`.
+/// Lights the target remains and reveals them once that target is destroyed.
 ///
-/// `ang` is declared and never read - the original build's frame reserved 8
-/// bytes for it ahead of nothing, so dropping it shrinks the frame from 0x38 to
-/// 0x30 and moves every spill.
-static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
+/// State 1 of `mineCavernTargetRemainsTask`; enemy is an unused dispatch argument.
+/// Requires initialized target work, model and view/lighting state, with the low
+/// unsigned spawn-selector half in 0..3. A clear destruction bit suppresses
+/// active drawing. A set bit rebuilds the model-local centre at Y = -800 whole
+/// coordinate units, increments the unsigned-halfword frame counter and enables
+/// drawing. The task keeps this state until external teardown.
+static void _mineCavernTargetRemainsTick(Enemy* enemy, Task* task)
 {
+    enum { MINE_CAVERN_TARGET_REMAINS_CENTER_Y = -800 };
     _MineCavernTargetWork* work;
-    VECTOR                 vec;
-    SVECTOR                ang;
+    VECTOR                 worldPosition;
+    // Retain the original frame's unused eight-byte vector slot.
+    SVECTOR unusedStackVector;
 
     work = task->work;
 
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
-    vec.vx = task->extra.tmd->coords->workm.t[0];
-    vec.vy = task->extra.tmd->coords->workm.t[1];
-    vec.vz = task->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(task->extra.tmd, &vec, 0, 3);
+    worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(task->extra.tmd, &worldPosition, 0, 3);
 
     if (!((gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> (u16)task->spawnArg1.value) & 1)) {
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3356,7 +3352,7 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
         work->centerCoord.parent       = task->extra.tmd->coords;
         work->centerCoord.coord.t[2]   = 0;
         work->centerCoord.coord.t[0]   = 0;
-        work->centerCoord.coord.t[1]   = -0x320;
+        work->centerCoord.coord.t[1]   = MINE_CAVERN_TARGET_REMAINS_CENTER_Y;
         work->centerCoord.composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&work->centerCoord);
         work->frame++;

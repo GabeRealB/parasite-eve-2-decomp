@@ -940,10 +940,10 @@ static void func_actor_403600_801396F8(Task* arg0)
                         sndEvtRequestScriptStart(temp_s2, temp_s0_2, (s32)(((temp_v0_10 >> 0x1F) + temp_v0_10) << 0x17) >> 0x18);
                     }
                     if (((u16)work->phaseFrame & 0xF) == 0xF) {
-                        func_shelter_b2_pod_bottom_80181940(arg0);
+                        shelterB2PodBottomSpawnJointFlash(arg0);
                     }
                 } else {
-                    func_shelter_b2_pod_bottom_80181940(arg0);
+                    shelterB2PodBottomSpawnJointFlash(arg0);
                     if (work->phaseFrame == 0x32) {
                         temp_s0_3  = &work->worldCoord;
                         temp_s2    = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x54160014;
@@ -1331,7 +1331,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                 sndEvtRequestScriptStart(temp_s4, temp_s0_2, (s32)(((temp_v0 >> 0x1F) + temp_v0) << 0x17) >> 0x18);
             }
             if (work->phaseFrame >= 0x14) {
-                func_shelter_b2_pod_bottom_80181940(arg0);
+                shelterB2PodBottomSpawnJointFlash(arg0);
             }
             work->animId        = 4U;
             work->forwardSpeed  = 0U;
@@ -1345,7 +1345,7 @@ static void func_actor_403600_8013A444(Task* arg0)
             break;
         case ACTOR_403600_ACTION_RECHARGE_END:
             if (work->phaseFrame < 0xC) {
-                func_shelter_b2_pod_bottom_80181940(arg0);
+                shelterB2PodBottomSpawnJointFlash(arg0);
             }
             work->animId = 5U;
             temp_v0_3    = work->phaseFrame;
@@ -1826,7 +1826,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     }
                     break;
                 case 2:
-                    func_shelter_b2_pod_bottom_80181A48(arg0);
+                    shelterB2PodBottomSpawnJointEnergySparks(arg0);
                     work->animId = 0x13U;
                     if (work->phaseFrame == 0x19) {
                         temp_s0_18 = &work->worldCoord;

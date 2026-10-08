@@ -99,3 +99,4 @@ _acropolisObservatoryRejectKeyItemUse = 0x8017d7bc; // type:func
 _acropolisObservatoryScriptedBattleTask = 0x8017e19c; // type:func
 _acropolisObservatoryInitializeRoomTask = 0x8017d834; // type:func
 acropolisObservatoryRoomTask = 0x8017d950; // type:func
+_acropolisObservatoryHandleRoomAction = 0x8017d7c4; // type:func

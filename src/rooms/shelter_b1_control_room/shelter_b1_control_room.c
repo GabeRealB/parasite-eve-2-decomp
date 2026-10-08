@@ -324,8 +324,10 @@ static void _shelterB1ControlRoomConfigureMirror(Task* unusedTask, _ShelterB1Con
 
 /// Chooses a positive Q12 axis least aligned with the mirror plane normal.
 ///
-/// Borrows configuration and scratch. Absolute values narrow to s16 after
-/// negation; strict comparisons give X, then Y, then Z priority on ties.
+/// Borrows readable configuration and distinct writable scratch storage.
+/// Writes `refAxis` at scale 4096 = 1.0 without changing the normal.
+/// Absolute values narrow to s16 after negation, including -32768's wrap;
+/// strict comparisons give X, then Y, then Z priority on ties.
 static inline void _shelterB1ControlRoomChooseMirrorAxis(const _ShelterB1ControlRoomMirrorConfig* config, _ShelterB1ControlRoomMirrorScratch* scratch)
 {
     scratch->leastAbs = config->normal.vx;
@@ -363,14 +365,17 @@ static inline void _shelterB1ControlRoomChooseMirrorAxis(const _ShelterB1Control
     }
 }
 
-/// Builds the reflected view basis and places it about the configured plane point.
+/// Builds a plane-reflection transform around the configured plane point.
 ///
-/// Borrows live view state, work, configuration and scratch. Normal/basis values
-/// use Q12; translations use whole parent-coordinate units. Rotation of the
-/// plane point narrows with GTE signed-halfword saturation. Leaves composition
-/// invalidation and parenting to the caller and changes GTE state.
+/// Borrows live view state, work with its configuration, and disjoint scratch.
+/// The nonzero normal and basis use Q12; the offset uses whole parent-coordinate
+/// units. Translation is the view position plus offset minus reflected offset;
+/// reflecting the offset narrows with GTE signed-halfword saturation. Requires
+/// initialized GTE and scratch-stack state. Leaves composition invalidation and
+/// parenting to the caller, retains no pointer and changes GTE state.
 static inline void _shelterB1ControlRoomBuildMirrorPlaneFrame(_ShelterB1ControlRoomMirrorWork* work, const _ShelterB1ControlRoomMirrorConfig* config, _ShelterB1ControlRoomMirrorScratch* scratch)
 {
+    // Reflect the normal axis in an orthonormal frame, then return to parent axes.
     _shelterB1ControlRoomChooseMirrorAxis(config, scratch);
     gfxBuildOrthonormalBasis(&scratch->basis, &config->normal, &scratch->refAxis);
     gte_TransposeMatrix(&scratch->basis, &scratch->reflect);
@@ -378,6 +383,7 @@ static inline void _shelterB1ControlRoomBuildMirrorPlaneFrame(_ShelterB1ControlR
     scratch->reflect.m[2][1] = -scratch->reflect.m[2][1];
     scratch->reflect.m[2][2] = -scratch->reflect.m[2][2];
     gte_MulMatrix0(&scratch->basis, &scratch->reflect, &scratch->reflect);
+    // Keep the plane point fixed relative to the current view position.
     work->coord.coord      = scratch->reflect;
     work->coord.coord.t[0] = gGfxViewCoord.coord.t[0] + config->offset.vx;
     work->coord.coord.t[1] = gGfxViewCoord.coord.t[1] + config->offset.vy;

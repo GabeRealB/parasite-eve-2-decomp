@@ -2093,7 +2093,9 @@ static void _dryfieldWaterTowerFallingPropTask(Task* task)
 /// Advances the prop's dust cursor through entries 0..10 and spawns a local puff.
 ///
 /// Requires a live model root and the loaded twelve-word room offset table.
-/// Only its first eleven entries participate; X narrows to a signed halfword.
+/// `killCountdown` must be initialized in 0..10; it is this prop's cyclic index,
+/// not a teardown countdown. Only the table's first eleven entries participate;
+/// X narrows from the stored unsigned word to a signed halfword in local units.
 /// The packed argument enables child puffs, two updates per texture frame,
 /// and an initial scale of 0x300. The effect consumes the stack offset on spawn.
 static inline void _dryfieldWaterTowerSpawnPropSlideDust(Task* task)

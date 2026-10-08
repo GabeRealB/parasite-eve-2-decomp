@@ -318,3 +318,5 @@ mineCavernTargetEffectsTask = 0x80182dc8; // type:func
 _mineCavernTargetExplode = 0x801838f4; // type:func
 mineCavernTargetTask = 0x80183a68; // type:func
 mineCavernTargetRemainsTask = 0x80183c10; // type:func
+_mineCavernTargetRemainsSpawn = 0x801836d0; // type:func
+_mineCavernTargetRemainsTick = 0x80183ad4; // type:func

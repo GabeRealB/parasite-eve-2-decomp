@@ -1247,7 +1247,11 @@ void shelterR47ConsoleDrawSprite(s16 originX, s16 originY, s16 spriteId)
 
 #include "../../shared/action_prompt_outline_rect.inc.c"
 
-/// Clears hit results through the console table's hotspot terminator.
+/// Clears the console hotspot hit results before its next interaction.
+///
+/// Borrows a writable table ending in `ACTION_PROMPT_HOTSPOT_END`. Clears
+/// every preceding entry's hit byte, including disabled hotspots, and leaves
+/// the terminator and all other fields intact. Retains no pointer.
 static inline void _shelterR47ConsoleClearHotspotHits(ActionPromptHotspot* hotspot)
 {
     while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {

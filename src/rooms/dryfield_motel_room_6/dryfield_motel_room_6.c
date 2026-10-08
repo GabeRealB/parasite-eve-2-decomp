@@ -146,12 +146,12 @@ extern TaskDesc gRoomCutsceneTaskDescs[];
 extern TaskMessageEntry D_dryfield_motel_room_6_80182D48[];
 
 /// Task table whose entry 0 runs the room's event task
-/// `func_dryfield_motel_room_6_80181A08`.
+/// `_dryfieldMotelRoom6RunActorEventTask`.
 extern TaskDesc D_dryfield_motel_room_6_80182D78[];
 
 /// World position the room's marker is drawn at.
 
-/// The event task `func_dryfield_motel_room_6_80181A08` spawned and waits on.
+/// The event task `_dryfieldMotelRoom6RunActorEventTask` spawned and waits on.
 extern Task* D_dryfield_motel_room_6_80186828;
 
 /// The sound task the cutscene task spawned, killed when the player skips the
@@ -193,7 +193,7 @@ static s32                        _dryfieldMotelRoom6RejectKeyItemMessage(Task* 
 static s32                        _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 s32                               func_dryfield_motel_room_6_801819A8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 static s32                        _dryfieldMotelRoom6IgnoreSoundMessage(Task* receiver, s32 messageId, s32 soundCommand, s32 unusedSecondArg);
-void                              func_dryfield_motel_room_6_80181A08(Task*);
+static void                       _dryfieldMotelRoom6RunActorEventTask(Task* task);
 
 /// Key-item use request sent to the room task by the inventory menu.
 enum { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -233,7 +233,7 @@ TaskMessageEntry D_dryfield_motel_room_6_80182D48[6] = {
 };
 
 TaskDesc D_dryfield_motel_room_6_80182D78[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_motel_room_6_80181A08, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldMotelRoom6RunActorEventTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -2103,25 +2103,34 @@ static s32 _dryfieldMotelRoom6IgnoreSoundMessage(Task* receiver, s32 messageId, 
     return 0;
 }
 
-/// Spawns this room's event task from entry 1 of `D_actor_120500_8013843C`, keeps it in
-/// `D_dryfield_motel_room_6_80186828`, waits for it to be killed and then kills
-/// this task. Same shape as `func_dryfield_gas_station_8017FE20`.
-void func_dryfield_motel_room_6_80181A08(Task* arg0)
+/// Spawns the motel room 6 scene actor and waits for its stop request.
+///
+/// Requires the actor_120500 resources to remain loaded through the handshake.
+/// States 0..2 spawn and publish the actor task, poll and dispatch its requested
+/// exit, then release this bodyless wrapper. The actor's result word is ignored.
+/// The shared handle is valid only until the successful poll and is not cleared.
+static void _dryfieldMotelRoom6RunActorEventTask(Task* task)
 {
-    s32 out;
+    enum {
+        DRYFIELD_MOTEL_ROOM_6_EVENT_SPAWN            = 0,
+        DRYFIELD_MOTEL_ROOM_6_EVENT_WAIT             = 1,
+        DRYFIELD_MOTEL_ROOM_6_EVENT_EXIT             = 2,
+        DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_DESCRIPTOR = 1
+    };
+    s32 ignoredActorResult;
 
-    switch (arg0->state) {
-        case 0:
-            D_dryfield_motel_room_6_80186828 = taskSpawnFromTable(&D_actor_120500_8013843C, 1, 0, 0);
-            arg0->state++;
+    switch (task->state) {
+        case DRYFIELD_MOTEL_ROOM_6_EVENT_SPAWN:
+            D_dryfield_motel_room_6_80186828 = taskSpawnFromTable(&D_actor_120500_8013843C, DRYFIELD_MOTEL_ROOM_6_SCENE_ACTOR_DESCRIPTOR, 0, 0);
+            task->state++;
             break;
-        case 1:
-            if (taskPollKill(D_dryfield_motel_room_6_80186828, &out) != 0) {
-                arg0->state++;
+        case DRYFIELD_MOTEL_ROOM_6_EVENT_WAIT:
+            if (taskPollKill(D_dryfield_motel_room_6_80186828, &ignoredActorResult) != 0) {
+                task->state++;
             }
             break;
-        case 2:
-            taskKill(arg0);
+        case DRYFIELD_MOTEL_ROOM_6_EVENT_EXIT:
+            taskKill(task);
             break;
     }
 }

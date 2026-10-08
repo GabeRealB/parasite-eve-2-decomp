@@ -1257,38 +1257,50 @@ static void _shelterB2PodBottomDrawLightBeam(const GfxCoord* coord, s16 radiusSc
     SCRATCH_STACK_RELEASE_BLOCK(RoomBeamScratch);
 }
 
-void func_shelter_b2_pod_bottom_80181940(Task* arg0)
+void shelterB2PodBottomSpawnJointFlash(Task* task)
 {
-    GfxCoord* coord;
-    u32       rnd;
+    enum {
+        SHELTER_B2_POD_BOTTOM_FLASH_JOINT_FIRST = 2,
+        SHELTER_B2_POD_BOTTOM_FLASH_JOINT_COUNT = 18,
+        // Fixed palette 1 in the high halfword and base size 768 in bits 0..11.
+        SHELTER_B2_POD_BOTTOM_JOINT_FLASH_ARGUMENT = (1 << 16) | 768
+    };
+    GfxCoord* jointCoord;
+    u32       randomState;
 
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rnd;
-        coord           = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
-        effectSpawn(EFFECT_FLASH_BURST, coord, 0x10300, 0);
-        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rnd;
-        if ((rnd >> 16) & 1) {
-            effectSpawn(EFFECT_SPARK_FADE, coord, 0x10300, 0);
+        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomState;
+        jointCoord      = &task->extra.tmd->coords[(u16)((randomState >> 16) % SHELTER_B2_POD_BOTTOM_FLASH_JOINT_COUNT) + SHELTER_B2_POD_BOTTOM_FLASH_JOINT_FIRST];
+        effectSpawn(EFFECT_FLASH_BURST, jointCoord, SHELTER_B2_POD_BOTTOM_JOINT_FLASH_ARGUMENT, 0);
+        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomState;
+        if ((randomState >> 16) & 1) {
+            effectSpawn(EFFECT_SPARK_FADE, jointCoord, SHELTER_B2_POD_BOTTOM_JOINT_FLASH_ARGUMENT, 0);
         }
     }
 }
 
-void func_shelter_b2_pod_bottom_80181A48(Task* arg0)
+void shelterB2PodBottomSpawnJointEnergySparks(Task* task)
 {
-    GfxCoord* coord;
-    u32       rnd;
+    enum {
+        SHELTER_B2_POD_BOTTOM_ENERGY_JOINT_FIRST = 2,
+        SHELTER_B2_POD_BOTTOM_ENERGY_JOINT_COUNT = 18,
+        // Random palette in bit 15 and perspective size 1536 in bits 0..11.
+        SHELTER_B2_POD_BOTTOM_JOINT_ENERGY_ARGUMENT = 0x8000 | 1536
+    };
+    GfxCoord* jointCoord;
+    u32       randomState;
 
     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rnd;
-        coord           = &arg0->extra.tmd->coords[(u16)((rnd >> 16) % 18) + 2];
-        effectSpawn(EFFECT_RISING_ENERGY_SPARK, coord, 0x8600, 0);
-        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rnd;
-        if (!((rnd >> 16) & 1)) {
-            effectSpawn(EFFECT_RISING_ENERGY_SPARK, coord, 0x8600, 0);
+        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomState;
+        jointCoord      = &task->extra.tmd->coords[(u16)((randomState >> 16) % SHELTER_B2_POD_BOTTOM_ENERGY_JOINT_COUNT) + SHELTER_B2_POD_BOTTOM_ENERGY_JOINT_FIRST];
+        effectSpawn(EFFECT_RISING_ENERGY_SPARK, jointCoord, SHELTER_B2_POD_BOTTOM_JOINT_ENERGY_ARGUMENT, 0);
+        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomState;
+        if (!((randomState >> 16) & 1)) {
+            effectSpawn(EFFECT_RISING_ENERGY_SPARK, jointCoord, SHELTER_B2_POD_BOTTOM_JOINT_ENERGY_ARGUMENT, 0);
         }
     }
 }

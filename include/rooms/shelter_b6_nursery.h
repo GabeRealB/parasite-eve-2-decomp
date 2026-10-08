@@ -48,7 +48,13 @@ extern WorldCollisionSurfaceProperties* D_shelter_b6_nursery_80187958[];
 /// state 2 releases the task. Dispatch uses a copy of the three-entry table.
 void shelterB6NurseryRoomTask(Task* task);
 
-void func_shelter_b6_nursery_8017FFF4(void);
+/// Latches and spawns positional nursery ambience when its start latch is clear.
+///
+/// Event scripts may call this without arguments while the nursery overlay is
+/// loaded. Repeated calls with a set latch do nothing. Sets the latch before
+/// spawning and leaves it set even if task allocation fails. Room command 10
+/// clears it to request that the ambience task stop and release itself.
+void shelterB6NurseryStartAmbience(void);
 
 /// Shows or hides the second sprite batch in the nursery's view 13.
 ///

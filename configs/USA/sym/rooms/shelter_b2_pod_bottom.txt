@@ -88,9 +88,9 @@ _gShelterB2PodBottomModel0AE48Normals = 0x80188328; // size:0xE0 defined:True
 _gShelterB2PodBottomModel0AE48Stream = 0x80188408; // size:0x244 defined:True
 gShelterB2PodBottomModel0AE48 = 0x8018864C; // size:0x24 defined:True
 
-func_shelter_b2_pod_bottom_80181A48 = 0x80181A48; // type:func
+shelterB2PodBottomSpawnJointEnergySparks = 0x80181A48; // type:func
 
-func_shelter_b2_pod_bottom_80181940 = 0x80181940; // type:func
+shelterB2PodBottomSpawnJointFlash = 0x80181940; // type:func
 
 shelterB2PodBottomEffectSpriteDriftTask = 0x8017D850; // type:func
 

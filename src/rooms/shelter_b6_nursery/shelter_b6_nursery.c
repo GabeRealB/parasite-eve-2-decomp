@@ -200,7 +200,7 @@ extern _ShelterB6NurseryEffectCues D_shelter_b6_nursery_801879F0;
 #include "../../shared/telephone.h"
 #include "../../shared/sprite_quad.h"
 
-static void func_shelter_b6_nursery_8017FEC4(Task* task);
+static void _shelterB6NurseryInitializeRoomTask(Task* task);
 static void _shelterB6NurseryMessageIdle(Task* task);
 static void _shelterB6NurseryDrawParticleFrame(const GfxCoord* coord, u16 animationFrame, s16 halfDiagonal, s16 rotation);
 static void _shelterB6NurseryDrawSparkShowerShard(const GfxCoord* coord, s16 radius, s16 shade);
@@ -217,19 +217,26 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 
 TaskDesc D_shelter_b6_nursery_80185000 = { { { TASK_BODY_NONE, 32 } }, _shelterB6NurseryAmbienceTask, { .value = 0 } };
 
-s32 func_shelter_b6_nursery_8017FA54(Task*, s32, s32, s32);
+/// Values shared by nursery entry and command-driven story progression.
+enum {
+    SHELTER_B6_NURSERY_PROGRESS_NOT_ENTERED = 0,
+    SHELTER_B6_NURSERY_PROGRESS_ENTERED     = 1,
+    SHELTER_B6_NURSERY_PROGRESS_ADVANCED    = 2
+};
+
+static s32 _shelterB6NurseryHandleRoomCommand(Task* unusedTask, s32 messageId, s32 command, s32 unusedSecondArg);
 /// Room message carrying an inventory key-item ID in its first argument word.
 enum { SHELTER_B6_NURSERY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static s32 _shelterB6NurseryRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
-s32        func_shelter_b6_nursery_8017FDD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionRequest* msg, s32);
+static s32 _shelterB6NurseryResolveRoomTransition(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _shelterB6NurseryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 TaskMessageEntry D_shelter_b6_nursery_8018500C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_nursery_8017FDD4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB6NurseryResolveRoomTransition },
     { SHELTER_B6_NURSERY_MESSAGE_USE_KEY_ITEM, _shelterB6NurseryRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_nursery_8017FE3C },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b6_nursery_8017FA54 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB6NurseryHandleRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB6NurseryHandleRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -885,50 +892,92 @@ void shelterB6NurseryTelephoneMenuTask(Task* task)
 /// `shelterB6NurseryRoomTask`: install the message table, idle, die.
 static const TaskFuncTable3 D_shelter_b6_nursery_8017D6A4 = {
     {
-        func_shelter_b6_nursery_8017FEC4,
+        _shelterB6NurseryInitializeRoomTask,
         _shelterB6NurseryMessageIdle,
         taskKill,
     },
 };
 
-s32 func_shelter_b6_nursery_8017FA54(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Starts a nursery cutscene with the current CAP file and the selected follow-up.
+///
+/// Borrows the persistent record through cutscene completion. Slot and skip
+/// values narrow to signed bytes; followUpCommand is the runner's CAP command.
+static inline void _shelterB6NurseryStartCommandScene(RoomCutsceneRec* scene, s32 capSlot, s32 skipScene, s32 followUpCommand)
 {
-    s32 flag;
+    enum {
+        SHELTER_B6_NURSERY_SCENE_VIEW            = 6,
+        SHELTER_B6_NURSERY_CAP_FILE_KEEP_CURRENT = 0
+    };
 
-    if (arg2 == 0xA) {
-        D_shelter_b6_nursery_8018797C                     = 0;
-        D_shelter_b6_nursery_80187980.rec.startSound      = 0x55160002;
-        D_shelter_b6_nursery_80187980.rec.endSound        = 0x55160005;
-        D_shelter_b6_nursery_80187980.rec.sceneSound      = 0x55160003;
-        D_shelter_b6_nursery_80187980.rec.afterSceneSound = 0x55160004;
-        flag                                              = gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS);
-        if (flag == 1) {
+    scene->view      = SHELTER_B6_NURSERY_SCENE_VIEW;
+    scene->capSlot   = capSlot;
+    scene->capFile   = SHELTER_B6_NURSERY_CAP_FILE_KEEP_CURRENT;
+    scene->skipScene = skipScene;
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, followUpCommand, scene);
+}
+
+/// Handles command 10's nursery progress, CAP playback and cutscene selection.
+///
+/// The first payload is an integer command; other commands leave state intact.
+/// Command 10 requests ambience stop and fills persistent scene sounds. At
+/// progress 1 it advances the objective and progress, starts a cutscene task
+/// with movie playback skipped, prepares the actor and clears effect cues.
+/// Otherwise the first request latches a CAP event even if playback is busy;
+/// later requests start the repeat cutscene. The cutscene borrows the persistent
+/// record, which must remain loaded and unchanged through playback. Ignores
+/// receiver, message ID and second payload; always returns zero.
+static s32 _shelterB6NurseryHandleRoomCommand(Task* unusedTask, s32 messageId, s32 command, s32 unusedSecondArg)
+{
+    enum {
+        SHELTER_B6_NURSERY_COMMAND_SCENE             = 10,
+        SHELTER_B6_NURSERY_AMBIENCE_STOP_REQUEST     = 0,
+        SHELTER_B6_NURSERY_SCENE_START_SOUND         = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_NURSERY, 2),
+        SHELTER_B6_NURSERY_SCENE_PLAYBACK_SOUND      = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_NURSERY, 3),
+        SHELTER_B6_NURSERY_SCENE_AFTER_SOUND         = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_NURSERY, 4),
+        SHELTER_B6_NURSERY_SCENE_END_SOUND           = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_NURSERY, 5),
+        SHELTER_B6_NURSERY_PROGRESS_OBJECT_ID        = 0x22,
+        SHELTER_B6_NURSERY_PROGRESS_OBJECT_STATE     = 1,
+        SHELTER_B6_NURSERY_OBJECTIVE_AFTER_COMMAND   = 0x31,
+        SHELTER_B6_NURSERY_INITIAL_SCENE_CAP_SLOT    = 11,
+        SHELTER_B6_NURSERY_INITIAL_FOLLOW_UP_COMMAND = 25,
+        SHELTER_B6_NURSERY_REPEAT_SCENE_CAP_SLOT     = 22,
+        SHELTER_B6_NURSERY_FIRST_REPEAT_CAP_COMMAND  = 23,
+        SHELTER_B6_NURSERY_REPEAT_FOLLOW_UP_COMMAND  = 10,
+        SHELTER_B6_NURSERY_REPEAT_EVENT_UNSEEN       = 0,
+        SHELTER_B6_NURSERY_REPEAT_EVENT_SEEN         = 1,
+        SHELTER_B6_NURSERY_SCENE_PLAY_MOVIE          = 0
+    };
+    s32 nurseryProgress;
+
+    if (command == SHELTER_B6_NURSERY_COMMAND_SCENE) {
+        D_shelter_b6_nursery_8018797C                     = SHELTER_B6_NURSERY_AMBIENCE_STOP_REQUEST;
+        D_shelter_b6_nursery_80187980.rec.startSound      = SHELTER_B6_NURSERY_SCENE_START_SOUND;
+        D_shelter_b6_nursery_80187980.rec.endSound        = SHELTER_B6_NURSERY_SCENE_END_SOUND;
+        D_shelter_b6_nursery_80187980.rec.sceneSound      = SHELTER_B6_NURSERY_SCENE_PLAYBACK_SOUND;
+        D_shelter_b6_nursery_80187980.rec.afterSceneSound = SHELTER_B6_NURSERY_SCENE_AFTER_SOUND;
+        nurseryProgress                                   = gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS);
+        if (nurseryProgress == SHELTER_B6_NURSERY_PROGRESS_ENTERED) {
+            // Commit the first command's progress before starting its scene.
             if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
-                areaSetObjectState(0x22, 1, GAME_STAGE_MINE_SHELTER);
+                areaSetObjectState(SHELTER_B6_NURSERY_PROGRESS_OBJECT_ID, SHELTER_B6_NURSERY_PROGRESS_OBJECT_STATE, GAME_STAGE_MINE_SHELTER);
             }
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x31);
-            gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 2);
-            D_shelter_b6_nursery_80187980.rec.view      = 6;
-            D_shelter_b6_nursery_80187980.rec.capSlot   = 0xB;
-            D_shelter_b6_nursery_80187980.rec.capFile   = 0;
-            D_shelter_b6_nursery_80187980.rec.skipScene = flag;
-            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0x19,
-                               &D_shelter_b6_nursery_80187980.rec);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_NURSERY_OBJECTIVE_AFTER_COMMAND);
+            gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, SHELTER_B6_NURSERY_PROGRESS_ADVANCED);
+            _shelterB6NurseryStartCommandScene(&D_shelter_b6_nursery_80187980.rec,
+                                               SHELTER_B6_NURSERY_INITIAL_SCENE_CAP_SLOT,
+                                               nurseryProgress, SHELTER_B6_NURSERY_INITIAL_FOLLOW_UP_COMMAND);
             actor450800PrepareNurseryKyleMadigan();
             shelterB6NurserySetEffectCues(0, 0);
             return 0;
         }
-        if (gameFlagGetNibble(GAME_FLAG_NURSERY_SCENE_SEEN) == 0) {
-            capSpawnEventIfIdle(0x17, CAP_EVENT_NO_FLAGS);
-            gameFlagSetNibble(GAME_FLAG_NURSERY_SCENE_SEEN, 1);
+        if (gameFlagGetNibble(GAME_FLAG_NURSERY_SCENE_SEEN) == SHELTER_B6_NURSERY_REPEAT_EVENT_UNSEEN) {
+            capSpawnEventIfIdle(SHELTER_B6_NURSERY_FIRST_REPEAT_CAP_COMMAND, CAP_EVENT_NO_FLAGS);
+            gameFlagSetNibble(GAME_FLAG_NURSERY_SCENE_SEEN, SHELTER_B6_NURSERY_REPEAT_EVENT_SEEN);
             return 0;
         }
-        D_shelter_b6_nursery_80187980.rec.view      = 6;
-        D_shelter_b6_nursery_80187980.rec.capSlot   = 0x16;
-        D_shelter_b6_nursery_80187980.rec.capFile   = 0;
-        D_shelter_b6_nursery_80187980.rec.skipScene = 0;
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 0xA,
-                           &D_shelter_b6_nursery_80187980.rec);
+        _shelterB6NurseryStartCommandScene(&D_shelter_b6_nursery_80187980.rec,
+                                           SHELTER_B6_NURSERY_REPEAT_SCENE_CAP_SLOT,
+                                           SHELTER_B6_NURSERY_SCENE_PLAY_MOVIE, SHELTER_B6_NURSERY_REPEAT_FOLLOW_UP_COMMAND);
     }
     return 0;
 }
@@ -1016,46 +1065,78 @@ static s32 _shelterB6NurseryRejectKeyItemUse(Task* task, s32 messageId, s32 item
     return KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Resolves nursery departures and requests their CAP transition on execution.
+///
+/// Borrows complete eight-byte request/reply records, which may alias. Copies
+/// the request and resolves its Neo Ark room variant before testing query mode;
+/// queries start no playback. Requires map_neo_ark to remain loaded for the
+/// synchronous resolver. Retains no payload, ignores receiver/message ID and
+/// always returns zero to keep departure under CAP control.
+static s32 _shelterB6NurseryResolveRoomTransition(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    mapNeoArkResolveRoomVariant(src, dst);
-    if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-        capRunCommandWithTransition(0xC);
+    enum { SHELTER_B6_NURSERY_DEPARTURE_CAP_COMMAND = 12 };
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+        capRunCommandWithTransition(SHELTER_B6_NURSERY_DEPARTURE_CAP_COMMAND);
     }
     return 0;
 }
 
-s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
+/// Dispatches nursery interaction, companion dialogue and the enabled later scene.
+///
+/// Borrows a four-byte `DirectionActionRequest`. Actions 1 and 2 request the
+/// actor's interaction and companion dialogue; action 3 starts a skippable
+/// scene only after the nursery scene count is nonzero. The request's argument
+/// byte, receiver, message ID and zero second payload are ignored. Retains no
+/// payload and returns zero for every action, including unsupported IDs.
+static s32 _shelterB6NurseryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if (msg->actionId == 1) {
+    enum {
+        SHELTER_B6_NURSERY_ACTION_INTERACT           = 1,
+        SHELTER_B6_NURSERY_ACTION_COMPANION_DIALOGUE = 2,
+        SHELTER_B6_NURSERY_ACTION_LATER_SCENE        = 3
+    };
+
+    if (request->actionId == SHELTER_B6_NURSERY_ACTION_INTERACT) {
         actor450800StartNurseryInteraction();
     }
-    if (msg->actionId == 2) {
+    if (request->actionId == SHELTER_B6_NURSERY_ACTION_COMPANION_DIALOGUE) {
         actor450800StartNurseryCompanionDialogue();
     }
-    if (msg->actionId == 3 && gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) != 0) {
+    if (request->actionId == SHELTER_B6_NURSERY_ACTION_LATER_SCENE && gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) != 0) {
         evsStartScriptWithSkip(D_actor_450800_8013AF8C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450800_8013BA84);
     }
     return 0;
 }
 
-static void func_shelter_b6_nursery_8017FEC4(Task* arg0)
+/// Registers nursery messages, restores companion HP and selects the entry scene.
+///
+/// Requires a live state-0 room task and loaded actor_450800 scripts. Publishes
+/// the borrowed message table and room task slot. First entry commits progress
+/// 1, clears the follow-up state and updates the objective; later entries choose
+/// the intermediate or advanced script without changing progress. Advances to
+/// idle state 1 after starting the selected script.
+static void _shelterB6NurseryInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_b6_nursery_8018500C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    enum {
+        SHELTER_B6_NURSERY_FOLLOW_UP_RESET    = 0,
+        SHELTER_B6_NURSERY_OBJECTIVE_ON_ENTRY = 0x30
+    };
+    task->msgTable = D_shelter_b6_nursery_8018500C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     companionRestoreFullHp();
-    if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
-        gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, 1);
+    if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == SHELTER_B6_NURSERY_PROGRESS_NOT_ENTERED) {
+        gameFlagSetNibble(GAME_FLAG_B6_NURSERY_PROGRESS, SHELTER_B6_NURSERY_PROGRESS_ENTERED);
         evsStartScriptWithSkip(D_actor_450800_80139964, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450800_8013A33C);
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x30);
-    } else if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 1) {
+        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, SHELTER_B6_NURSERY_FOLLOW_UP_RESET);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B6_NURSERY_OBJECTIVE_ON_ENTRY);
+    } else if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == SHELTER_B6_NURSERY_PROGRESS_ENTERED) {
         evsStartScript(D_actor_450800_8013A84C, EVENT_SCRIPT_HUD_KEEP);
     } else {
         evsStartScript(D_actor_450800_8013A8DC, EVENT_SCRIPT_HUD_KEEP);
     }
-    arg0->state++;
+    task->state++;
 }
 
 /// Keeps the room message task alive while it waits for messages.
@@ -1073,10 +1154,15 @@ void shelterB6NurseryRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-void func_shelter_b6_nursery_8017FFF4(void)
+void shelterB6NurseryStartAmbience(void)
 {
-    if (D_shelter_b6_nursery_8018797C == 0) {
-        D_shelter_b6_nursery_8018797C = 1;
+    enum {
+        SHELTER_B6_NURSERY_AMBIENCE_STOPPED = 0,
+        SHELTER_B6_NURSERY_AMBIENCE_STARTED = 1
+    };
+
+    if (D_shelter_b6_nursery_8018797C == SHELTER_B6_NURSERY_AMBIENCE_STOPPED) {
+        D_shelter_b6_nursery_8018797C = SHELTER_B6_NURSERY_AMBIENCE_STARTED;
         taskSpawnFromTable(&D_shelter_b6_nursery_80185000, 0, 0, 0);
     }
 }

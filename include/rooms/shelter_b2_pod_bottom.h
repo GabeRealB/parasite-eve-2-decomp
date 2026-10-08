@@ -41,9 +41,24 @@ extern WorldCollisionSurfaceProperties* D_shelter_b2_pod_bottom_80188770[];
 
 void func_shelter_b2_pod_bottom_8017D708(Task* task);
 
-void func_shelter_b2_pod_bottom_80181A48(Task* task);
+/// Spawns one or two rising energy sparks on a random model joint while running.
+///
+/// Requires a live TMD task with at least twenty coordinates; selects parts
+/// 2..19 using the shared LCG's upper half. Both sparks share that joint, size
+/// 1536 and random palettes. The second spawns when the next random upper-half
+/// bit 0 is clear. Nonzero room-effect control leaves both RNG and effects alone.
+/// Spawning snapshots the selected joint's placement; the sparks then move
+/// independently in their own coordinates.
+void shelterB2PodBottomSpawnJointEnergySparks(Task* task);
 
-void func_shelter_b2_pod_bottom_80181940(Task* arg0);
+/// Spawns a flash and an optional fading spark on a random model joint while running.
+///
+/// Requires a live TMD task with at least twenty coordinates; selects parts
+/// 2..19 using the shared LCG's upper half. Both effects share base size 768 and
+/// palette 1. The fading spark spawns when the next upper-half bit 0 is set.
+/// Nonzero room-effect control leaves both RNG and effects alone. Spawning
+/// snapshots the joint's placement; these effects then draw independently.
+void shelterB2PodBottomSpawnJointFlash(Task* task);
 
 /// Advances the pod bottom's drifting animated sprite and releases it at completion.
 ///
