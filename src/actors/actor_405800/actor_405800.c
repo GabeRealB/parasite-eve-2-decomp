@@ -244,18 +244,18 @@ static TmdSource _gActor405800StalkerEffect;
 static TmdSource _gActor405800StalkerBurstHandLeft;
 
 static void _actor405800InitCollision(Task* task);
-static void func_actor_405800_80132E3C(Task* arg0, s16 arg1, u8 arg2);
+static void _actor405800DrawLimbShadows(Task* actor, s16 worldY, u8 shade);
 static void func_actor_405800_80132FE0(Task* arg0);
 static void func_actor_405800_8013315C(Task* arg0);
-static void func_actor_405800_8013340C(Task* arg0);
-static void func_actor_405800_801334B8(Task* arg0);
+static void _actor405800SetHideTimingFromHealth(Task* task);
+static void _actor405800InitEnemy(Task* task);
 static void func_actor_405800_80133800(Task* arg0);
-static void func_actor_405800_80133CD0(Task* arg0);
+static void _actor405800WaitForTarget(Task* task);
 static void _actor405800TickLeftStrike(Task* task);
 static void _actor405800TickRightStrike(Task* task);
-static void func_actor_405800_801340E0(Task* arg0);
+static void _actor405800TryStartPlayerHold(Task* task);
 static void func_actor_405800_80134314(Task* arg0);
-static void func_actor_405800_8013471C(Task* arg0);
+static void _actor405800TickHoldReleaseHop(Task* task);
 static void _actor405800PrepareBackLeap(Task* task);
 static void _actor405800TickBackLeap(Task* task);
 static void _actor405800TickCeilingLeap(Task* task);
@@ -317,10 +317,10 @@ static void _actor405800StartStun(Task* task);
 static void _actor405800TickStun(Task* task);
 static void _actor405800FinishStun(Task* task);
 static void _actor405800StartLeftStrike(Task* task);
-static void func_actor_405800_801395E8(Task* task);
+static void _actor405800StartRightStrike(Task* task);
 static void func_actor_405800_8013967C(Task* task);
 static void _actor405800ProbeBackLeap(Task* task);
-static void func_actor_405800_80139844(Task* task);
+static void _actor405800StartRighting(Task* task);
 static void _actor405800StartCeilingLeap(Task* task);
 static void _actor405800FinishCeilingLeap(Task* task);
 static void _actor405800StartCeilingDrop(Task* task);
@@ -330,11 +330,11 @@ static void _actor405800TickCeilingFall(Task* task);
 static void _actor405800StartKnockdownRecoil(Task* task);
 static void _actor405800BlendKnockdownRest(Task* task);
 static void _actor405800FinishKnockdownRest(Task* task);
-static void func_actor_405800_80139E2C(Task* task);
-static void func_actor_405800_80139EAC(Task* arg0);
+static void _actor405800StartCeilingExit(Task* task);
+static void _actor405800StartIdle(Task* task);
 static void _actor405800ExtendArm(Task* task, u8 armIndex);
 static void _actor405800SelectDeathState(Task* task, s16 deathState);
-static void func_actor_405800_8013A1F8(Task* task, s16 arg1, s16 arg2, s16 arg3);
+static void _actor405800RequestClipBlend(Task* task, s16 clipIndex, s16 rate, s16 blendFrames);
 
 static TmdSource _gActor405800IvoryStalkerBody;
 void             func_actor_405800_80138634(Task*);
@@ -1493,9 +1493,6 @@ enum {
     ACTOR_405800_STRIKE_RETREAT_DISTANCE   = 1400,
     ACTOR_405800_STRIKE_FACING_HALF_WIDTH  = 512,
     ACTOR_405800_STRIKE_FACING_TEST_SPAN   = 3072,
-    ACTOR_405800_SPAWN_ENTRANCE_MASK       = 0xF0,
-    ACTOR_405800_SPAWN_WATER_ENTRANCE      = 0x10,
-    ACTOR_405800_STRIKE_SOUND_VOICE_SHIFT  = 8,
     ACTOR_405800_SOUND_STRIKE              = 0x40050005,
     ACTOR_405800_SOUND_WATER_STRIKE        = 0x404A0005,
     ACTOR_405800_IDLE_RANDOM_HIGH_SHIFT    = 16,
@@ -1508,6 +1505,9 @@ enum {
     ACTOR_405800_WALK_MEDIUM_TURN_STEP     = 30,
     ACTOR_405800_WALK_FAST_TURN_STEP       = 36,
 };
+
+/// Idle body clip shared by spawn setup and the idle behavior.
+enum { ACTOR_405800_CLIP_IDLE = 1 };
 
 /// Death-table entries selected by the emitted selector's callers.
 enum {
@@ -1619,14 +1619,17 @@ static __inline__ void _actor405800CopyArmRotation(MATRIX* dest, const MATRIX* s
     dest->m[2][2] = source->m[2][2];
 }
 
-/// Copies parent texture placement to a child and rebuilds its two buffer halves.
+/// Copies the parent's texture-page and CLUT-row offsets to an arm model.
 ///
-/// Requires live TMD tasks; a child without a primitive buffer needs no rebuild.
-/// Borrows both models and keeps the buffer's original two-build ordering.
-static __inline__ void _actor405800CopyArmTexture(Task* ownerTask, Task* armTask)
+/// Borrows live TMD tasks; the owner is read only and the arm keeps its own
+/// primitive-buffer allocation. With a buffer, requires valid stream metadata
+/// and scratch space for rebuilding both halves, with no pending GPU use.
+/// The two builds toggle the next-half selector twice, preserving its value.
+/// Without a buffer, copies only the offsets.
+static __inline__ void _actor405800CopyArmTexture(const Task* ownerTask, Task* armTask)
 {
-    TmdObject* textureSource = ownerTask->extra.tmd;
-    TmdObject* textureDest   = armTask->extra.tmd;
+    const TmdObject* textureSource = ownerTask->extra.tmd;
+    TmdObject*       textureDest   = armTask->extra.tmd;
 
     textureDest->texturePageOffset = textureSource->texturePageOffset;
     textureDest->clutRowOffset     = textureSource->clutRowOffset;
@@ -1643,16 +1646,7 @@ static __inline__ void _actor405800CopyArmTexture(Task* ownerTask, Task* armTask
 /// signed low bytes, with a depth unit spanning 256 game-coordinate units.
 static __inline__ void _actor405800PlayStrikeSound(Task* task)
 {
-    s32 baseScriptId = ACTOR_405800_SOUND_STRIKE;
-    u32 soundId;
-    s32 soundPan;
-
-    if ((task->spawnArg1.value & ACTOR_405800_SPAWN_ENTRANCE_MASK) == ACTOR_405800_SPAWN_WATER_ENTRANCE) {
-        baseScriptId = ACTOR_405800_SOUND_WATER_STRIKE;
-    }
-    soundId  = baseScriptId | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_405800_STRIKE_SOUND_VOICE_SHIFT);
-    soundPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+    _actor405800PlayMovementSound(task, ACTOR_405800_SOUND_STRIKE, ACTOR_405800_SOUND_WATER_STRIKE);
 }
 
 #include "../../shared/frame_capture.inc.c"
@@ -1737,21 +1731,29 @@ static void _actor405800InitCollision(Task* task)
 
 #include "../../shared/limb_shadows_segment.inc.c"
 
-static void func_actor_405800_80132E3C(Task* arg0, s16 arg1, u8 arg2)
+/// Queues thirteen limb shadows for the Ivory Stalker's 18-part body rig.
+///
+/// worldY is the horizontal shadow plane in signed world-coordinate units;
+/// shade is subtractive grey modulation (0..255). Each segment has half-width
+/// 256. Requires the initialized body model, scratch stack, current ordering
+/// table and frame-packet space for up to thirteen quads. Refreshes coordinate
+/// caches; queued packets remain live until the frame DMA finishes.
+static void _actor405800DrawLimbShadows(Task* actor, s16 worldY, u8 shade)
 {
-    _limbShadowDrawSegment(arg0, 3, 9, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 9, 0xA, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 0xA, 0xB, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 3, 6, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 6, 7, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 7, 8, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 1, 5, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 1, 0xC, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 0xC, 0xD, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 0xD, 0xE, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 1, 0xF, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 0xF, 0x10, 0x100, arg1, arg2);
-    _limbShadowDrawSegment(arg0, 0x10, 0x11, 0x100, arg1, arg2);
+    enum { ACTOR_405800_LIMB_SHADOW_HALF_WIDTH = 256 };
+    _limbShadowDrawSegment(actor, 3, 9, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 9, 0xA, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 0xA, 0xB, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 3, 6, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 6, 7, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 7, 8, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 1, 5, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 1, 0xC, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 0xC, 0xD, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 0xD, 0xE, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 1, 0xF, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 0xF, 0x10, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
+    _limbShadowDrawSegment(actor, 0x10, 0x11, ACTOR_405800_LIMB_SHADOW_HALF_WIDTH, worldY, shade);
 }
 
 static void func_actor_405800_80132FE0(Task* arg0)
@@ -1862,7 +1864,7 @@ static void func_actor_405800_8013315C(Task* arg0)
                     if (work->cloakLevel < 9) {
                         work->cloakLevel   = 0;
                         work->cloakRequest = 0;
-                        func_actor_405800_8013340C(arg0);
+                        _actor405800SetHideTimingFromHealth(arg0);
                         if (work->hideCooldown == 0) {
                             work->hideCooldown = work->hideCooldownReset;
                         }
@@ -1877,133 +1879,149 @@ static void func_actor_405800_8013315C(Task* arg0)
     }
 }
 
-static void func_actor_405800_8013340C(Task* arg0)
+/// Sets cloak hold and hide cooldown durations from the enemy's remaining health.
+///
+/// Strict thresholds use the truncated half plus quarter, quarter, eighth and
+/// sixteenth of starting health. Their bands select hold durations of
+/// 16/32/48/64/80 updates and cooldown resets of 0/64/128/192/256 updates.
+/// Reads the live Enemy and work records; leaves the running fade and current
+/// cooldown intact. Retains signed shift/truncation of the health thresholds.
+static void _actor405800SetHideTimingFromHealth(Task* task)
 {
+    enum { ACTOR_405800_HIDE_HOLD_STEP_TICKS     = 16,
+           ACTOR_405800_HIDE_COOLDOWN_STEP_TICKS = 64 };
     Enemy*                        enemy;
     _Actor405800IvoryStalkerWork* work;
-    s16                           hp;
-    s32                           maxHp;
-    s32                           quarter;
+    s16                           currentHp;
+    s32                           scaledMaxHp;
+    s32                           quarterHp;
 
-    enemy   = (Enemy*)arg0->spawnArg2.pointer;
-    hp      = enemy->hp;
-    work    = (_Actor405800IvoryStalkerWork*)arg0->work;
-    maxHp   = enemy->hpMax << 0x10;
-    quarter = maxHp >> 0x12;
-    if ((quarter + (maxHp >> 0x11)) < hp) {
-        work->hideHoldFrames    = 0x10;
+    enemy     = task->spawnArg2.pointer;
+    currentHp = enemy->hp;
+    work      = task->work;
+    // Keep the signed high-halfword representation used by every threshold.
+    scaledMaxHp = enemy->hpMax << 0x10;
+    quarterHp   = scaledMaxHp >> 0x12;
+    if ((quarterHp + (scaledMaxHp >> 0x11)) < currentHp) {
+        work->hideHoldFrames    = ACTOR_405800_HIDE_HOLD_STEP_TICKS;
         work->hideCooldownReset = 0;
         return;
     }
-    if (quarter < hp) {
-        work->hideHoldFrames    = 0x20;
-        work->hideCooldownReset = 0x40;
+    if (quarterHp < currentHp) {
+        work->hideHoldFrames    = 2 * ACTOR_405800_HIDE_HOLD_STEP_TICKS;
+        work->hideCooldownReset = ACTOR_405800_HIDE_COOLDOWN_STEP_TICKS;
         return;
     }
-    if ((maxHp >> 0x13) < hp) {
-        work->hideHoldFrames    = 0x30;
-        work->hideCooldownReset = 0x80;
+    if ((scaledMaxHp >> 0x13) < currentHp) {
+        work->hideHoldFrames    = 3 * ACTOR_405800_HIDE_HOLD_STEP_TICKS;
+        work->hideCooldownReset = 2 * ACTOR_405800_HIDE_COOLDOWN_STEP_TICKS;
         return;
     }
-    if ((maxHp >> 0x14) < hp) {
-        work->hideHoldFrames    = 0x40;
-        work->hideCooldownReset = 0xC0;
+    if ((scaledMaxHp >> 0x14) < currentHp) {
+        work->hideHoldFrames    = 4 * ACTOR_405800_HIDE_HOLD_STEP_TICKS;
+        work->hideCooldownReset = 3 * ACTOR_405800_HIDE_COOLDOWN_STEP_TICKS;
         return;
     }
-    work->hideHoldFrames    = 0x50;
-    work->hideCooldownReset = 0x100;
+    work->hideHoldFrames    = 5 * ACTOR_405800_HIDE_HOLD_STEP_TICKS;
+    work->hideCooldownReset = 4 * ACTOR_405800_HIDE_COOLDOWN_STEP_TICKS;
 }
 
-static void func_actor_405800_801334B8(Task* arg0)
+/// Initializes the Ivory Stalker encounter in the Mine Secret Passage.
+///
+/// Requires the task's 18-part body model and Enemy spawn record. Destroys the
+/// enemy outside that area or if work allocation fails. On success the task
+/// owns zeroed work, collision bodies and two arm tasks until teardown, and
+/// holds a battle reference. Entry warp chooses the root position and heading;
+/// playback starts at normal rate and the body begins cloaked and un-lockable.
+static void _actor405800InitEnemy(Task* task)
 {
+    enum { ACTOR_405800_BATTLE_MUSIC_ENTRY       = 2,
+           ACTOR_405800_STATE_HIDE               = 0,
+           ACTOR_405800_TASK_RUNNING             = 1,
+           ACTOR_405800_SPAWN_RANDOM_HIGH_SHIFT  = 16,
+           ACTOR_405800_CLOAK_FULL_LEVEL         = 255,
+           ACTOR_405800_CLOAK_INITIAL_HOLD_TICKS = 16 };
     TmdObject*                    model;
     Enemy*                        enemy;
-    GfxCoord*                     coord;
+    GfxCoord*                     rootCoord;
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* w2;
-    _Actor405800IvoryStalkerWork* w3;
-    _Actor405800IvoryStalkerWork* w4;
-    TmdObject*                    extra;
-    u32                           rnd;
+    _Actor405800IvoryStalkerWork* cloakWork;
+    TmdObject*                    cloakModel;
+    u32                           randomState;
 
-    model = arg0->extra.tmd;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    coord = model->coords;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(4, 8, 0, 0)) {
-        enemyDestroy(enemy, arg0);
+    model     = task->extra.tmd;
+    enemy     = task->spawnArg2.pointer;
+    rootCoord = model->coords;
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_MINE_SECRET_PASSAGE, 0, 0)) {
+        enemyDestroy(enemy, task);
         return;
     }
-    arg0->work = memCalloc(sizeof(_Actor405800IvoryStalkerWork), false);
-    work       = (_Actor405800IvoryStalkerWork*)arg0->work;
+    // Work storage owns the rig, lighting matrices and collision records.
+    task->work = memCalloc(sizeof(_Actor405800IvoryStalkerWork), false);
+    work       = task->work;
     if (work == NULL) {
-        enemyDestroy(enemy, arg0);
+        enemyDestroy(enemy, task);
         return;
     }
-    gStageSceneMusicEntry = 2;
+    gStageSceneMusicEntry = ACTOR_405800_BATTLE_MUSIC_ENTRY;
     model->lightMtx       = &work->lightMtx;
     model->colorMtx       = &work->colorMtx;
     model->flags          = 0;
-    arg0->msgTable        = D_actor_405800_8015149C;
-    enemy->field_4        = &coord->coord;
+    task->msgTable        = D_actor_405800_8015149C;
+    enemy->field_4        = &rootCoord->coord;
     enemy->field_48       = 0;
     enemy->bodyPos.vx     = 0;
     enemy->bodyPos.vy     = 0;
     enemy->bodyPos.vz     = 0;
-    enemy->coord          = &arg0->extra.tmd->coords[3];
+    enemy->coord          = &task->extra.tmd->coords[ACTOR_405800_PART_BODY];
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
     enemy->param                  = &D_actor_405800_801418FC;
     enemy->recs                   = work->bodyContacts;
-    work->effectArg.coord         = &arg0->extra.tmd->coords[3];
+    work->effectArg.coord         = &task->extra.tmd->coords[ACTOR_405800_PART_BODY];
     work->effectArg.spawnArgLo    = 0x100;
     work->effectArg.spawnArgHi    = 2;
     enemy->hp = enemy->hpMax = D_actor_405800_801418FC.hpMax;
     animationInitContext(&work->rig.anim, D_actor_405800_80151410, model, work->rig.poses, work->rig.slots);
 
-    w2              = (_Actor405800IvoryStalkerWork*)arg0->work;
-    w2->animStep    = 0x10;
-    w2->animClip    = 1;
-    w2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_RESTART;
+    _actor405800SetRestartRequest(task, ACTOR_405800_CLIP_IDLE, ANIMATION_RATE_ONE);
 
-    _stalkerZebraIvoryTickAnimInline(arg0);
+    _stalkerZebraIvoryTickAnimInline(task);
 
-    coord->parent = &gGfxViewCoord;
-    _actor405800InitCollision(arg0);
-    _actor405800SpawnArmModels(arg0);
+    // Link collision and arm children before taking the encounter reference.
+    rootCoord->parent = &gGfxViewCoord;
+    _actor405800InitCollision(task);
+    _actor405800SpawnArmModels(task);
     (sceneAcquireBattleRef)(0);
-    w3           = (_Actor405800IvoryStalkerWork*)arg0->work;
-    w3->state    = 0;
-    w3->subState = 0;
+    _stalkerZebraIvorySelectState(task, ACTOR_405800_STATE_HIDE);
     if (gGameSession->location.loc.warp == 1) {
-        coord->coord.t[0] = 0x14B4;
-        coord->coord.t[2] = 0xD7A;
-        coord->coord.t[1] = 0;
-        work->yaw         = 0x400;
+        rootCoord->coord.t[0] = 0x14B4;
+        rootCoord->coord.t[2] = 0xD7A;
+        rootCoord->coord.t[1] = 0;
+        work->yaw             = ACTOR_TRANSFORM_ANGLE_TURN / 4;
     } else {
-        coord->coord.t[0] = 0x514;
-        coord->coord.t[1] = 0;
-        coord->coord.t[2] = 0x251C;
-        work->yaw         = 0;
+        rootCoord->coord.t[0] = 0x514;
+        rootCoord->coord.t[1] = 0;
+        rootCoord->coord.t[2] = 0x251C;
+        work->yaw             = 0;
     }
-    work->spawnX       = coord->coord.t[0];
-    work->floorY       = coord->coord.t[1];
-    work->spawnZ       = coord->coord.t[2];
-    rnd                = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    gRandomLcgState    = rnd;
-    work->frameCount   = rnd >> 0x10;
-    work->shadowHeight = work->floorY;
-    w4                 = (_Actor405800IvoryStalkerWork*)arg0->work;
-    extra              = arg0->extra.tmd;
-    w4->cloakLevel     = 0xFF;
-    w4->colorBlend     = 0;
-    w4->shadowShade    = 0;
-    w4->hideHoldFrames = 0x10;
-    modelLightingSetLayerMaterials(w4->cloakLevel);
-    extra->shading.colorBlend = w4->colorBlend;
-    w3                        = (_Actor405800IvoryStalkerWork*)arg0->work;
-    arg0->state               = 1;
-    w3->state                 = 0;
-    w3->subState              = 0;
+    work->spawnX              = rootCoord->coord.t[0];
+    work->floorY              = rootCoord->coord.t[1];
+    work->spawnZ              = rootCoord->coord.t[2];
+    randomState               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState           = randomState;
+    work->frameCount          = randomState >> ACTOR_405800_SPAWN_RANDOM_HIGH_SHIFT;
+    work->shadowHeight        = work->floorY;
+    cloakWork                 = task->work;
+    cloakModel                = task->extra.tmd;
+    cloakWork->cloakLevel     = ACTOR_405800_CLOAK_FULL_LEVEL;
+    cloakWork->colorBlend     = 0;
+    cloakWork->shadowShade    = 0;
+    cloakWork->hideHoldFrames = ACTOR_405800_CLOAK_INITIAL_HOLD_TICKS;
+    modelLightingSetLayerMaterials(cloakWork->cloakLevel);
+    cloakModel->shading.colorBlend = cloakWork->colorBlend;
+    task->state                    = ACTOR_405800_TASK_RUNNING;
+    _stalkerZebraIvorySelectState(task, ACTOR_405800_STATE_HIDE);
 }
 
 /// Behaviour handlers `func_actor_405800_80138698` runs by `state`.
@@ -2027,7 +2045,7 @@ static const TaskFuncTable12 D_actor_405800_80131E24 = {
 /// The task's four state handlers, run by `func_actor_405800_80138634`.
 static const TaskFuncTable4 D_actor_405800_80131E54 = {
     {
-        func_actor_405800_801334B8,
+        _actor405800InitEnemy,
         func_actor_405800_80133800,
         func_actor_405800_80138698,
         func_actor_405800_80138788,
@@ -2038,7 +2056,7 @@ static const TaskFuncTable4 D_actor_405800_80131E54 = {
 static const TaskFuncTable18 D_actor_405800_80131E64 = {
     {
         func_actor_405800_80137A14,
-        func_actor_405800_80133CD0,
+        _actor405800WaitForTarget,
         func_actor_405800_80137A60,
         func_actor_405800_80137B34,
         func_actor_405800_80137B9C,
@@ -2071,9 +2089,9 @@ static const TaskFuncTable3 D_actor_405800_80131EAC = {
 static const TaskFuncTable5 D_actor_405800_80131EB8 = {
     {
         func_actor_405800_8013967C,
-        func_actor_405800_801340E0,
+        _actor405800TryStartPlayerHold,
         func_actor_405800_80134314,
-        func_actor_405800_8013471C,
+        _actor405800TickHoldReleaseHop,
         _stalkerZebraIvoryReleaseHold,
     },
 };
@@ -2194,37 +2212,41 @@ static void func_actor_405800_80133800(Task* arg0)
             }
         case SCENE_COMBAT_ACTORS_PAUSED:
             _actorRenderUpdateModelColor(arg0);
-            func_actor_405800_80132E3C(arg0, work->shadowHeight, work->shadowShade);
+            _actor405800DrawLimbShadows(arg0, work->shadowHeight, work->shadowShade);
             Actor405800_ProjectPart(part);
             model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
 
-static void func_actor_405800_80133CD0(Task* arg0)
+/// Begins the encounter when the target is within 5200 horizontal world units.
+///
+/// Requires live work, Enemy placement and root coordinates. Queues the
+/// placement-voice engagement cue, requests a reveal, engages battle and starts
+/// ceiling-leap behavior 12. Equality keeps waiting; unlike movement cues this
+/// entry always uses the ordinary sound bank, including water-entrance spawns.
+static void _actor405800WaitForTarget(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
-    u32                           sound;
-    s32                           pan;
+    enum { ACTOR_405800_BATTLE_TRIGGER_DISTANCE = 5200,
+           ACTOR_405800_SOUND_ENGAGE            = 0x40050004,
+           ACTOR_405800_SOUND_VOICE_SHIFT       = 8,
+           ACTOR_405800_STATE_CEILING_LEAP      = 12 };
+    _Actor405800IvoryStalkerWork* work = task->work;
+    Enemy*                        enemy;
+    u32                           scriptId;
+    s32                           soundPan;
 
-    if (((_Actor405800IvoryStalkerWork*)arg0->work)->playerDistance < 0x1450) {
-        sound   = ((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        sound >>= 0xC;
-        sound <<= 8;
-        sound  |= 0x40050004;
-        pan     = worldCoordGetOriginAudioPan(arg0->extra.tmd->coords) << 24;
-        pan   >>= 24;
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work = (_Actor405800IvoryStalkerWork*)arg0->work;
-        if (((s8)work->cloakRequest >= 0) || ((work->cloakRequest & ACTOR_405800_CLOAK_KIND_MASK) != ACTOR_405800_CLOAK_SHOW)) {
-            work->cloakRequest = ACTOR_405800_CLOAK_RUNNING | ACTOR_405800_CLOAK_SHOW;
-            work->cloakPhase   = 0;
-        }
+    if (work->playerDistance < ACTOR_405800_BATTLE_TRIGGER_DISTANCE) {
+        enemy      = task->spawnArg2.pointer;
+        scriptId   = enemy->placeKey;
+        scriptId >>= ENEMY_PLACE_INDEX_SHIFT;
+        scriptId <<= ACTOR_405800_SOUND_VOICE_SHIFT;
+        scriptId  |= ACTOR_405800_SOUND_ENGAGE;
+        soundPan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(scriptId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        _actor405800RequestShow(task);
         sceneEngageBattle(1);
-        work2           = (_Actor405800IvoryStalkerWork*)arg0->work;
-        work2->state    = 0xC;
-        work2->subState = 0;
+        _stalkerZebraIvorySelectState(task, ACTOR_405800_STATE_CEILING_LEAP);
     }
 }
 
@@ -2294,68 +2316,65 @@ static void _actor405800TickRightStrike(Task* task)
     }
 }
 
-static void func_actor_405800_801340E0(Task* arg0)
+/// Accepts a player grab or returns to walking or a ceiling drop when blocked.
+///
+/// Grab sub-state 1 consumes the previous update's wall probe unless the player
+/// is already scripted. Recovery can reject the synchronous 24-button-press
+/// escape request. On acceptance, installs player hold clip 4, locks equipment
+/// events, disables both body collision tests and blends body clip 33 over four
+/// normal-rate frames. Resets hold counters and advances to the bite loop.
+/// The two stack payloads are borrowed only during their message dispatches.
+static void _actor405800TryStartPlayerHold(Task* task)
 {
-    AnimationPlayRequest          msg;
-    GameActorButtonPressHold      query;
+    enum { ACTOR_405800_HOLD_ESCAPE_BUTTON_PRESSES = 24,
+           ACTOR_405800_PLAYER_CLIP_HOLD           = 4,
+           ACTOR_405800_CLIP_HOLD                  = 33,
+           ACTOR_405800_SOUND_HOLD                 = 0x40050004,
+           ACTOR_405800_SOUND_WATER_HOLD           = 0x404A0004 };
+    AnimationPlayRequest          holdAnimation;
+    GameActorButtonPressHold      escapeRequest;
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
-    _Actor405800IvoryStalkerWork* work3;
-    s32                           base;
-    s32                           sound;
-    s32                           pan;
 
-    work = (_Actor405800IvoryStalkerWork*)arg0->work;
-    if (((GameActor*)gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work)->mode == GAME_ACTOR_MODE_SCRIPTED || (_stalkerZebraIvoryWallDistance(arg0) << 0x10) != 0) {
-        _stalkerZebraIvoryDisableCapsuleGrid(arg0);
-        work3           = (_Actor405800IvoryStalkerWork*)arg0->work;
-        work3->state    = 2;
-        work3->subState = 0;
-        _actor405800TickHorizontalWalk(arg0, work->walkStep);
+    GameActor* playerActor;
+
+    work        = task->work;
+    playerActor = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->work;
+    if (playerActor->mode == GAME_ACTOR_MODE_SCRIPTED || (s16)_stalkerZebraIvoryWallDistance(task) != 0) {
+        _stalkerZebraIvoryDisableCapsuleGrid(task);
+        _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_WALK);
+        _actor405800TickHorizontalWalk(task, work->walkStep);
         return;
     }
-    query.pressCount = 0x18;
-    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &query, 0) != 0) {
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+    // The player reads only pressCount; the companion fallback payload is unused.
+    escapeRequest.pressCount = ACTOR_405800_HOLD_ESCAPE_BUTTON_PRESSES;
+    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &escapeRequest, 0) != 0) {
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, PLAYER_ACTOR_END_SCRIPTED_DEFAULT, 0);
         if (work->onCeiling == 0) {
-            work3           = (_Actor405800IvoryStalkerWork*)arg0->work;
-            work3->state    = 2;
-            work3->subState = 0;
+            _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_WALK);
             return;
         }
-        work2           = (_Actor405800IvoryStalkerWork*)arg0->work;
-        work2->state    = 0xD;
-        work2->subState = 0;
+        _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_CEILING_DROP);
         return;
     }
+    // Commit the hold only after the player accepts scripted control.
     work->shadowHeight = work->floorY;
-    _stalkerZebraIvoryDisableCapsuleGrid(arg0);
-    work->onCeiling          = 0;
-    Gp_StateC08.flags       |= ATTACHMENT_FLAG_EVENT_LOCK;
-    work->holding            = 1;
-    work->leapY              = work->floorY;
-    msg.source.sets          = D_actor_405800_801513F8;
-    msg.blend                = ANIMATION_BLEND_RESET;
-    msg.blendFrames          = 0;
-    msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-    msg.animationId          = 4;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &msg, 0);
+    _stalkerZebraIvoryDisableCapsuleGrid(task);
+    work->onCeiling                    = 0;
+    Gp_StateC08.flags                 |= ATTACHMENT_FLAG_EVENT_LOCK;
+    work->holding                      = 1;
+    work->leapY                        = work->floorY;
+    holdAnimation.source.sets          = D_actor_405800_801513F8;
+    holdAnimation.blend                = ANIMATION_BLEND_RESET;
+    holdAnimation.blendFrames          = 0;
+    holdAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    holdAnimation.animationId          = ACTOR_405800_PLAYER_CLIP_HOLD;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &holdAnimation, 0);
     work->body.flags     &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->gridBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-    work2                 = (_Actor405800IvoryStalkerWork*)arg0->work;
-    work2->animStep       = 0x10;
-    work2->animClip       = 0x21;
-    work2->animBlend      = 4;
-    work2->animRequest    = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
-    work->stateFrames     = 0;
-    work->holdFrames      = 0;
-    base                  = 0x40050004;
-    if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
-        base = 0x404A0004;
-    }
-    sound = base | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-    pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_HOLD, ANIMATION_RATE_ONE, 4);
+    work->stateFrames = 0;
+    work->holdFrames  = 0;
+    _actor405800PlayMovementSound(task, ACTOR_405800_SOUND_HOLD, ACTOR_405800_SOUND_WATER_HOLD);
     work->holdLoops = 0;
     work->subState++;
 }
@@ -2440,48 +2459,44 @@ static void func_actor_405800_80134314(Task* arg0)
     }
 }
 
-static void func_actor_405800_8013471C(Task* arg0)
+/// Advances the hop away from the player after the bite hold releases.
+///
+/// Grab sub-state 3 eases roll toward zero and starts motion on update 8.
+/// leapX/leapZ are signed coordinate steps per update; vertical acceleration
+/// grows by 6 each update, preserving the work fields' signed-halfword narrowing.
+/// At or below leapY, clamps to that floor height, refreshes the player's root
+/// cache, plays the dry/water landing cue and requests a two-frame landing
+/// blend at normal rate. Advances to hold teardown only after landing.
+static void _actor405800TickHoldReleaseHop(Task* task)
 {
+    enum { ACTOR_405800_RELEASE_HOP_START_TICK = 8 };
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
-    GfxCoord*                     coord;
-    GfxCoord*                     player;
-    s32                           y;
-    s32                           id;
-    s32                           sound;
-    s32                           pan;
+    GfxCoord*                     rootCoord;
+    GfxCoord*                     playerCoord;
+    s32                           nextY;
 
-    work        = (_Actor405800IvoryStalkerWork*)arg0->work;
-    coord       = arg0->extra.tmd->coords;
-    player      = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
+    work        = task->work;
+    rootCoord   = task->extra.tmd->coords;
+    playerCoord = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]->extra.tmd->coords;
     work->roll += -work->roll >> 2;
     work->stateFrames++;
-    if (work->stateFrames >= 8) {
-        work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        coord->coord.t[0]    += work->leapX;
-        coord->coord.t[2]    += work->leapZ;
-        work->body.flags     |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->moveAccel      += 6;
-        work->moveSpeed      += work->moveAccel;
-        y                     = coord->coord.t[1] + work->moveSpeed;
-        coord->coord.t[1]     = y;
-        if (y >= work->leapY) {
-            coord->coord.t[1]    = work->leapY;
-            player->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(player);
-            id = 0x40050003;
-            if ((arg0->spawnArg1.value & 0xF0) == 0x10) {
-                id = 0x404A0003;
-            }
-            sound = id | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    if (work->stateFrames >= ACTOR_405800_RELEASE_HOP_START_TICK) {
+        work->gridBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        rootCoord->coord.t[0] += work->leapX;
+        rootCoord->coord.t[2] += work->leapZ;
+        work->body.flags      |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->moveAccel       += 6;
+        work->moveSpeed       += work->moveAccel;
+        nextY                  = rootCoord->coord.t[1] + work->moveSpeed;
+        rootCoord->coord.t[1]  = nextY;
+        if (nextY >= work->leapY) {
+            rootCoord->coord.t[1]     = work->leapY;
+            playerCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(playerCoord);
+            _actor405800PlayMovementSound(task, ACTOR_405800_SOUND_LANDING, ACTOR_405800_SOUND_WATER_LANDING);
+            // Restore the grid test again after the cue before recording the blend.
             work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-            work2                 = (_Actor405800IvoryStalkerWork*)arg0->work;
-            work2->animBlend      = 2;
-            work2->animClip       = 0x19;
-            work2->animStep       = 0x10;
-            work2->animRequest    = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+            _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_LANDING, ANIMATION_RATE_ONE, 2);
             work->subState++;
         }
     }
@@ -3424,25 +3439,21 @@ static s32 _actor405800TrySelectAttack(Task* task)
     return 0;
 }
 
-/// Replaces the rotation of `coord` with the one `RotMatrixY` applies to an
-/// identity matrix for `angle`.
-static inline void _actor405800SetCoordRotation(GfxCoord* coord, s16 angle)
+/// Replaces an arm coordinate's rotation with a pure Y-axis turn.
+///
+/// yaw is a signed angle in 4096ths of a turn. Copies only the nine 4.12
+/// rotation coefficients, preserving translation, alignment bytes and the
+/// composition stamp; the caller controls cache invalidation. Borrows coord
+/// for the call, with the temporary rotation matrix confined to the stack.
+static inline void _actor405800SetCoordYaw(GfxCoord* coord, s16 yaw)
 {
-    MATRIX  rot;
-    MATRIX* dst;
+    MATRIX  rotation;
+    MATRIX* destRotation;
 
-    gfxSetRotIdentity(&rot);
-    RotMatrixY(angle, &rot);
-    dst          = &coord->coord;
-    dst->m[0][0] = rot.m[0][0];
-    dst->m[0][1] = rot.m[0][1];
-    dst->m[0][2] = rot.m[0][2];
-    dst->m[1][0] = rot.m[1][0];
-    dst->m[1][1] = rot.m[1][1];
-    dst->m[1][2] = rot.m[1][2];
-    dst->m[2][0] = rot.m[2][0];
-    dst->m[2][1] = rot.m[2][1];
-    dst->m[2][2] = rot.m[2][2];
+    gfxSetRotIdentity(&rotation);
+    RotMatrixY(yaw, &rotation);
+    destRotation = &coord->coord;
+    _actor405800CopyArmRotation(destRotation, &rotation);
 }
 
 static void func_actor_405800_801375C4(Task* task)
@@ -3457,7 +3468,7 @@ static void func_actor_405800_801375C4(Task* task)
         work->armSwingAngles[1] = angle;
         child                   = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[1];
         child->extra.tmd->flags = 0;
-        _actor405800SetCoordRotation(child->extra.tmd->coords, angle);
+        _actor405800SetCoordYaw(child->extra.tmd->coords, angle);
     } else {
         work->rightArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->rightArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3468,7 +3479,7 @@ static void func_actor_405800_801375C4(Task* task)
         } else {
             child                   = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[1];
             child->extra.tmd->flags = 0;
-            _actor405800SetCoordRotation(child->extra.tmd->coords, angle);
+            _actor405800SetCoordYaw(child->extra.tmd->coords, angle);
         }
     }
 
@@ -3478,7 +3489,7 @@ static void func_actor_405800_801375C4(Task* task)
         child                   = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[0];
         angle                   = -angle;
         child->extra.tmd->flags = 0;
-        _actor405800SetCoordRotation(child->extra.tmd->coords, angle);
+        _actor405800SetCoordYaw(child->extra.tmd->coords, angle);
     } else {
         work->leftArmOuter.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmInner.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3489,7 +3500,7 @@ static void func_actor_405800_801375C4(Task* task)
         } else {
             child                   = ((_Actor405800IvoryStalkerWork*)task->work)->armTasks[0];
             child->extra.tmd->flags = 0;
-            _actor405800SetCoordRotation(child->extra.tmd->coords, -angle);
+            _actor405800SetCoordYaw(child->extra.tmd->coords, -angle);
         }
     }
 
@@ -3623,7 +3634,7 @@ static void func_actor_405800_80137C78(Task* task)
 static void func_actor_405800_80137CEC(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { func_actor_405800_801395E8, _actor405800TickRightStrike };
+    TaskFunc                      states[2] = { _actor405800StartRightStrike, _actor405800TickRightStrike };
 
     if (_actor405800TakeArmedStrikeReaction(task) == 0) {
         states[work->subState](task);
@@ -3673,7 +3684,7 @@ static void func_actor_405800_80137E64(Task* task)
 static void func_actor_405800_80137EF0(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { func_actor_405800_80139844, _stalkerZebraIvoryRightItself };
+    TaskFunc                      states[2] = { _actor405800StartRighting, _stalkerZebraIvoryRightItself };
 
     _stalkerZebraIvoryFoldArms(task);
     states[work->subState](task);
@@ -3711,7 +3722,7 @@ static void func_actor_405800_80138040(Task* task)
 static void func_actor_405800_80138154(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { func_actor_405800_80139E2C, _stalkerZebraIvorySelectCeilingExit };
+    TaskFunc                      states[2] = { _actor405800StartCeilingExit, _stalkerZebraIvorySelectCeilingExit };
 
     _stalkerZebraIvoryFoldArms(task);
     states[work->subState](task);
@@ -3720,7 +3731,7 @@ static void func_actor_405800_80138154(Task* task)
 static void func_actor_405800_801381BC(Task* task)
 {
     _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { func_actor_405800_80139EAC, _actor405800TickIdle };
+    TaskFunc                      states[2] = { _actor405800StartIdle, _actor405800TickIdle };
 
     _stalkerZebraIvoryFoldArms(task);
     states[work->subState](task);
@@ -3765,7 +3776,7 @@ static void func_actor_405800_80138698(Task* arg0)
             fns.funcs[work->state](arg0);
         case SCENE_COMBAT_ACTORS_PAUSED:
             _stalkerZebraIvoryUpdateColor(arg0);
-            func_actor_405800_80132E3C(arg0, work->shadowHeight, work->shadowShade);
+            _actor405800DrawLimbShadows(arg0, work->shadowHeight, work->shadowShade);
             break;
     }
 }
@@ -3936,7 +3947,7 @@ static void func_actor_405800_80138CF0(Task* task)
     _Actor405800IvoryStalkerWork* work;
 
     work = (_Actor405800IvoryStalkerWork*)task->work;
-    func_actor_405800_8013A1F8(task, 9, 0x10, 2);
+    _actor405800RequestClipBlend(task, ACTOR_405800_CLIP_CEILING_FALL, ANIMATION_RATE_ONE, 2);
     work->moveAccel    = 0;
     work->moveSpeed    = 0;
     work->shadowHeight = work->floorY;
@@ -4257,23 +4268,21 @@ static void _actor405800StartLeftStrike(Task* task)
     work->subState = work->subState + 1;
 }
 
-static void func_actor_405800_801395E8(Task* task)
+/// Begins the right-arm strike, reveals the body and extends the right arm.
+///
+/// Requests an eight-frame blend into clip 8 at normal rate, clears the
+/// contact-window counter and advances subState. Requires live work and rig;
+/// an already running reveal keeps its phase, and collision starts later.
+static void _actor405800StartRightStrike(Task* task)
 {
+    enum { ACTOR_405800_CLIP_RIGHT_STRIKE = 8 };
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
 
-    work              = (_Actor405800IvoryStalkerWork*)task->work;
-    work->animBlend   = 8;
-    work->animStep    = 0x10;
-    work->animClip    = 8;
-    work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+    work = task->work;
+    _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_RIGHT_STRIKE, ANIMATION_RATE_ONE, 8);
     work->stateFrames = 0;
     _actor405800ExtendArm(task, ACTOR_405800_ARM_RIGHT);
-    work2 = (_Actor405800IvoryStalkerWork*)task->work;
-    if (((s8)work2->cloakRequest >= 0) || ((work2->cloakRequest & ACTOR_405800_CLOAK_KIND_MASK) != ACTOR_405800_CLOAK_SHOW)) {
-        work2->cloakRequest = ACTOR_405800_CLOAK_RUNNING | ACTOR_405800_CLOAK_SHOW;
-        work2->cloakPhase   = 0;
-    }
+    _actor405800RequestShow(task);
     work->subState = work->subState + 1;
 }
 
@@ -4311,18 +4320,20 @@ static void _actor405800ProbeBackLeap(Task* task)
 
 #include "../../shared/stalker_zebra_ivory_wait_clip.inc.c"
 
-static void func_actor_405800_80139844(Task* task)
+/// Starts the animation that rights the Ivory Stalker from its back.
+///
+/// Requires the initialized rig and on-back pose. Clears the state counter,
+/// requests clip 22 at normal rate without blending and advances to the
+/// righting-completion handler; the later animation update applies the request.
+static void _actor405800StartRighting(Task* task)
 {
+    enum { ACTOR_405800_CLIP_RIGHTING = 22 };
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
 
-    work               = (_Actor405800IvoryStalkerWork*)task->work;
-    work->stateFrames  = 0;
-    work2              = (_Actor405800IvoryStalkerWork*)task->work;
-    work2->animStep    = 0x10;
-    work2->animClip    = 0x16;
-    work2->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_RESTART;
-    work->subState     = work->subState + 1;
+    work              = task->work;
+    work->stateFrames = 0;
+    _actor405800SetRestartRequest(task, ACTOR_405800_CLIP_RIGHTING, ANIMATION_RATE_ONE);
+    work->subState = work->subState + 1;
 }
 
 /// Begins the ceiling leap with a four-update blend into the normal-rate leap clip.
@@ -4506,29 +4517,37 @@ static void _actor405800FinishKnockdownRest(Task* task)
     }
 }
 
-static void func_actor_405800_80139E2C(Task* task)
+/// Advances the ceiling-exit entry to its decision on the following update.
+///
+/// Requires ceiling-exit behavior 16 at sub-state 0. Changes only subState;
+/// the next handler chooses a drop or grab from the current target distance.
+static void _actor405800StartCeilingExit(Task* task)
 {
     _Actor405800IvoryStalkerWork* work;
 
-    work           = (_Actor405800IvoryStalkerWork*)task->work;
+    work           = task->work;
     work->subState = work->subState + 1;
 }
 
 #include "../../shared/stalker_zebra_ivory_select_ceiling_exit.inc.c"
 
-static void func_actor_405800_80139EAC(Task* arg0)
+/// Starts an idle lasting 90..153 updates with a four-frame body-clip blend.
+///
+/// Requests idle clip 1 at normal rate and advances subState. Advances the
+/// shared unsigned 32-bit LCG once; six bits of its high halfword set the
+/// duration. Requires live work and the initialized body animation rig.
+static void _actor405800StartIdle(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work = (_Actor405800IvoryStalkerWork*)arg0->work;
-    u32                           rnd;
+    enum { ACTOR_405800_IDLE_DURATION_SPREAD_MASK = 63,
+           ACTOR_405800_IDLE_DURATION_BASE_TICKS  = 90 };
+    _Actor405800IvoryStalkerWork* work = task->work;
+    u32                           randomState;
 
-    work->animBlend   = 4;
-    work->animStep    = 0x10;
-    work->animClip    = 1;
-    work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
-    rnd               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-    gRandomLcgState   = rnd;
-    work->idleFrames  = ((rnd >> 0x10) & 0x3F) + 0x5A;
-    work->subState    = work->subState + 1;
+    _actor405800SetBlendRequest(task, ACTOR_405800_CLIP_IDLE, ANIMATION_RATE_ONE, 4);
+    randomState      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+    gRandomLcgState  = randomState;
+    work->idleFrames = ((randomState >> ACTOR_405800_IDLE_RANDOM_HIGH_SHIFT) & ACTOR_405800_IDLE_DURATION_SPREAD_MASK) + ACTOR_405800_IDLE_DURATION_BASE_TICKS;
+    work->subState   = work->subState + 1;
 }
 
 /// Latches one arm model outward for the parent's strike update.
@@ -4569,13 +4588,15 @@ static void _actor405800SelectDeathState(Task* task, s16 deathState)
 
 #include "../../shared/stalker_zebra_ivory_request_clip_restart.inc.c"
 
-static void func_actor_405800_8013A1F8(Task* task, s16 arg1, s16 arg2, s16 arg3)
+/// Records a body-animation blend for the later animation update.
+///
+/// clipIndex must select a loaded body clip (1..34 except 5, 6, 23 and 24).
+/// rate is in sixteenths of a frame per update and later narrows to s8;
+/// blendFrames counts whole normal-rate animation frames in a signed halfword,
+/// with 0..2047 keeping the later signed transition time nonnegative. The
+/// playback rate determines its duration in updates; no bounds are checked here.
+/// Requires live work; preserves current playback and its frame counter.
+static void _actor405800RequestClipBlend(Task* task, s16 clipIndex, s16 rate, s16 blendFrames)
 {
-    _Actor405800IvoryStalkerWork* work;
-
-    work              = (_Actor405800IvoryStalkerWork*)task->work;
-    work->animBlend   = arg3;
-    work->animStep    = arg2;
-    work->animClip    = arg1;
-    work->animRequest = STALKER_ZEBRA_IVORY_ANIM_REQUEST_BLEND;
+    _actor405800SetBlendRequest(task, clipIndex, rate, blendFrames);
 }

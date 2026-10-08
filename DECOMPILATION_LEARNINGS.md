@@ -4225,7 +4225,7 @@ MIPS picks `ori`. Signed HImode keeps `-0x9C4` and picks `addiu`. The `sh`
 payload is identical; only the materialisation differs.
 
 The field is a signed height (seeded from Y, later passed as `s16` into
-`func_actor_405800_80132E3C`). The already-matched caller already loaded it
+`_actor405800DrawLimbShadows`). The already-matched caller already loaded it
 with `lh`, so changing `_Actor405800IvoryStalkerWork::shadowHeight` from `u16` to `s16`
 matched this function without disturbing the copies from `floorY`. Do not
 cast at the store: `work->shadowHeight = (s16)-0x9C4` still converts through
@@ -4296,7 +4296,7 @@ arm; later `onCeiling == 0` failures fall through to the outer `return 0`;
 
 ## Interleave two stores of the same constant around another to keep it live
 
-`func_actor_405800_801395E8` writes `8` to two fields and `0x10` to a third.
+`_actor405800StartRightStrike` writes `8` to two fields and `0x10` to a third.
 The target keeps `8` in `$v1` across both stores, overlapping `0x10` in `$v0`:
 
 ```
@@ -153447,13 +153447,13 @@ local and passing `&src->mat` gives the same wrong code.
 **What matched instead.** The matrix belongs to a helper inline of its own:
 
 ```c
-static inline void _actor405800SetCoordRotation(GfxCoord* coord, s16 angle)
+static inline void _actor405800SetCoordYaw(GfxCoord* coord, s16 yaw)
 {
-    GfxMatrix rot;
+    MATRIX rotation;
 
-    gfxSetRotIdentity(&rot.mat);
-    RotMatrixY(angle, &rot.mat);
-    ...copy the nine cells into coord->coord...
+    gfxSetRotIdentity(&rotation);
+    RotMatrixY(yaw, &rotation);
+    _actor405800CopyArmRotation(&coord->coord, &rotation);
 }
 ```
 
