@@ -9,8 +9,12 @@
 
 /// Prepares the held player's animation and move request before starting playback.
 ///
-/// Borrows the live player and chaser work; the selected clip belongs to the
-/// already-selected front/rear set. The player retains its current control state.
+/// Requires a live held player and initialized chaser work with its front/rear
+/// animation set already selected. `playerClip` is 1 (throw) or 3 (close catch).
+/// Clears whole-coordinate displacement, enables grid/body collision requests,
+/// retains the player's current control state and marks the catch active.
+/// Water Tower also resets its catch timer. Animation dispatch borrows the
+/// embedded request synchronously; the prepared movement is sent by later states.
 static __inline__ void _desertChaserBeginPlayerHold(Task* playerTask, DesertChaserWork* work, s32 playerClip)
 {
     work->playerAnim.animationId       = playerClip;

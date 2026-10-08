@@ -49,6 +49,7 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 /// Selects the nighttime sound bank for the shared G & R kitchen door handler.
 ///
 /// Keep this binding through the door-handler implementation fragment.
@@ -75,6 +76,8 @@ extern TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E27C[];
 extern SVECTOR D_dryfield_night_g_r_kitchen_8017E29C[];
 
+static s32 _roomVariantGRKitchenMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+
 static s32 _dryfieldNightGRKitchenRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedSecondArg);
 static s32 _dryfieldNightGRKitchenIgnoreCommand(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 static s32 _dryfieldNightGRKitchenIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
@@ -92,7 +95,7 @@ extern WorldCoordRoomLights  D_dryfield_night_g_r_kitchen_8017E84C[1];
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_g_r_kitchen_8017E254[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, grKitchenDoorMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGRKitchenMsg },
     { DRYFIELD_NIGHT_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM, _dryfieldNightGRKitchenRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightGRKitchenIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldNightGRKitchenIgnoreCommand },

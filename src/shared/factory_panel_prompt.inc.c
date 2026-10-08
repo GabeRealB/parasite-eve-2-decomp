@@ -1,10 +1,12 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Runs the prompt state of the night factory script: hides the cursor and
-/// stops it. If `itemMenuIsHotspotActionConfirmed` reports the Examine/Push
-/// row was accepted, it runs the cap step `FactoryPanelWork::choice` selects.
-/// Otherwise it advances to state 2. Both paths arm `scanDelay`.
-void factoryPanelPrompt(Task* task)
+/// Applies an accepted operator-panel choice or returns to hotspot scanning.
+///
+/// Requires initialized panel work with a latched hotspot choice and a completed
+/// command prompt. Hides/stops the cursor before testing acceptance; accepted
+/// choices select dialogue or lift motion, while cancellation returns to IDLE.
+/// Both paths arm the ten-frame scan delay. Works in both factory variants.
+static void _factoryPanelPrompt(Task* task)
 {
     FactoryPanelWork* work = task->work;
 
@@ -13,7 +15,7 @@ void factoryPanelPrompt(Task* task)
     if (itemMenuIsHotspotActionConfirmed() != 0) {
         _factoryPanelApplyChoice(task, work->choice);
     } else {
-        task->state = 2;
+        task->state = FACTORY_PANEL_STATE_IDLE;
     }
     work->scanDelay = FACTORY_PANEL_SCAN_DELAY_FRAMES;
 }

@@ -1,26 +1,35 @@
 /* Part of the G & R kitchen library; see g_r_kitchen.h. */
 
-/// Handler for message 0x13EE in the room's message table, which filters a
-/// warp request: copies `in` to `out`, and for area 0x14 passes the warp
-/// through the event gate with the room's own request - nibble 0x34, no collected bit,
-/// cap command 3 and the stage bank's sounds 0x130001 and 0x130004 - answering
-/// with the gate's result. Any other area answers 1.
-s32 grKitchenDoorMsg(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves the G & R kitchen's gated departure to the water tower.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; borrows complete eight-byte request
+/// and reply records, which may alias, and copies the request first. The water
+/// tower door uses the room event gate: flag 0x34 bypasses it when set, otherwise
+/// CAP command 3 and stage-relative unlock/open sounds manage the departure.
+/// Queries suppress event playback. Returns the gate's 0/1/2 result, or 1 for
+/// other destinations. Retains no input pointer; an event copies the records
+/// and requires the room resources to remain loaded until its task completes.
+static s32 _roomVariantGRKitchenMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq req;
-    s32          ret;
+    enum {
+        G_R_KITCHEN_WATER_TOWER_CAP_COMMAND  = 3,
+        G_R_KITCHEN_WATER_TOWER_UNLOCK_SOUND = DRYFIELD_STAGE_SOUND((GAME_AREA_DRYFIELD_G_R_KITCHEN << 16) | 1),
+        G_R_KITCHEN_WATER_TOWER_OPEN_SOUND   = DRYFIELD_STAGE_SOUND((GAME_AREA_DRYFIELD_G_R_KITCHEN << 16) | 4),
+    };
+    RoomEventReq eventRequest;
+    s32          transitionResult;
 
-    *out = *in;
-    if (in->areaId == 0x14) {
-        req.capCmd        = 3;
-        req.missingCapCmd = 3;
-        req.firstSnd      = DRYFIELD_STAGE_SOUND(0x130001);
-        req.secondSnd     = DRYFIELD_STAGE_SOUND(0x130004);
-        req.flagId        = GAME_FLAG_KITCHEN_WATER_TOWER_DOOR_UNLOCKED;
-        req.collectedBit  = 0;
-        ret               = _roomEventGate(&req, in);
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_WATER_TOWER) {
+        eventRequest.capCmd        = G_R_KITCHEN_WATER_TOWER_CAP_COMMAND;
+        eventRequest.missingCapCmd = G_R_KITCHEN_WATER_TOWER_CAP_COMMAND;
+        eventRequest.firstSnd      = G_R_KITCHEN_WATER_TOWER_UNLOCK_SOUND;
+        eventRequest.secondSnd     = G_R_KITCHEN_WATER_TOWER_OPEN_SOUND;
+        eventRequest.flagId        = GAME_FLAG_KITCHEN_WATER_TOWER_DOOR_UNLOCKED;
+        eventRequest.collectedBit  = ROOM_EVENT_GATE_NO_COLLECTION_REQUIRED;
+        transitionResult           = _roomEventGate(&eventRequest, request);
     } else {
-        ret = 1;
+        transitionResult = ROOM_VARIANT_TRANSITION_DIRECT;
     }
-    return ret;
+    return transitionResult;
 }

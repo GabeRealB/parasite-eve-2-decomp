@@ -680,6 +680,9 @@ Those included instances and the `underpass` switch command/prompt instances
 are static, with prototypes in each carrier's prologue. The water-tower
 departure resolver uses `roomVariant` and remains externally linked between
 each room overlay's translation units, declared in `src/shared/water_tower.h`.
+The factory departure resolver and the G & R kitchen's water-tower door
+resolver also use `roomVariant`; the factory shares it between room translation
+units, while each kitchen carrier keeps a static instance.
 The paired cellar rooms' underpass resolver follows this interface as well;
 its implementation declaration is in `src/shared/cellar.h`.
 The paired water-hole rooms' driveway/underpass resolver also uses this

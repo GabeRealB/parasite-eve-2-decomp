@@ -52,6 +52,8 @@
 #define gGeneratorTasks gActor105400GeneratorTasks
 #include "../../shared/generator.h"
 
+static void _generatorDeathState(Enemy* enemy, Task* task);
+
 static void _generatorBodyHit(Task* task);
 static s32  _generatorIsAlive(Task* task, s32 messageId, s32 unusedArg2, s32 unusedArg3);
 static void _generatorLifeSupportHit(Enemy* enemy, Task* task);
@@ -319,7 +321,7 @@ static const EnemyTaskFuncTable3 gGeneratorTaskStates = {
     {
         _generatorSpawn,
         _generatorTickState,
-        generatorDeathState,
+        _generatorDeathState,
     },
 };
 

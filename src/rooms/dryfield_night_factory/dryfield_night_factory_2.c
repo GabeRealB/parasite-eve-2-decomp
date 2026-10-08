@@ -54,11 +54,15 @@
 #include "rooms/dryfield_factory.h"
 
 #include "rooms/room_common.h"
+static void _factoryRoomInit(Task* task);
+static void _factoryPanelPrompt(Task* task);
+
 static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY);
 #define ACTION_PROMPT_HIT_TEST _actionPromptHitTestDefault
 #include "../../shared/action_prompt.h"
 #include "../../shared/glow_draw.h"
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 /// Selects the nighttime factory instance for shared room declarations and code.
 ///
 /// Keep this binding through all factory implementation fragments.
@@ -227,7 +231,7 @@ TaskDesc gFactoryNightSpawnTable[8] = {
     { { { TASK_BODY_NONE, 192 } }, factoryPowerScene, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, factoryLampScene, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, factoryCapScene, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, factoryWhiteoutScene, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, factoryBarrierTransitionScene, { .value = 0 } },
     { { { TASK_BODY_TMD, 192 } }, factoryLiftRun, { .model = &_gDryfieldNightFactoryDryfieldFactoryModel06604 } },
     { { { TASK_BODY_COORD, 192 } }, factoryBarrierCollision, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, factoryHatchScene, { .value = 0 } },
@@ -242,7 +246,7 @@ TaskDesc gFactoryPanelSessionDesc[2] = {
 };
 
 TaskMessageEntry gFactoryMsgTable[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, factoryResolveWarp },
+    { ROOM_EVENT_MESSAGE_RESOLVE, roomVariantFactoryMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, factoryIgnoreMessage },
     { ROOM_MESSAGE_COMMAND, factoryCommand },
     { ROOM_MESSAGE_SOUND, factorySoundCommand },
@@ -831,7 +835,7 @@ SpriteBatch D_dryfield_night_factory_801899E4[6] = {
 /// State handlers of the room entry task: set-up, an empty tick and
 /// `taskKill`.
 static const TaskFuncTable3 _gFactoryEntryStates = {
-    { factoryRoomInit, _factoryEntryIdle, taskKill },
+    { _factoryRoomInit, _factoryEntryIdle, taskKill },
 };
 
 #include "../../shared/factory_room_init.inc.c"
@@ -864,7 +868,7 @@ static const TaskFuncTable7 _gFactoryPanelStates = {
         _factoryPanelArmPrompt,
         _factoryPanelIdle,
         _factoryPanelOpenPrompt,
-        factoryPanelPrompt,
+        _factoryPanelPrompt,
         _factoryPanelExit,
         _factoryPanelWaitMove,
     },

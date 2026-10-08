@@ -1,6 +1,11 @@
 /* Included General Store departure resolver; each carrier declares its static instance. */
 
 /// Selects the General Store's underpass destination from event and switch state.
+///
+/// Borrows a writable reply and changes only its room selector. Before the
+/// event, switch 1 selects room 5 when on or 6 when off. Afterwards, flag 0x53
+/// selects base room 1 (clear) or 2 (set), with 2 added while switch 1 is off.
+/// Flag 0x53's story meaning remains unproven; no transition effects are started.
 static inline void _roomVariantGeneralStoreSelectUnderpassRoom(RoomEventMsg* reply)
 {
     enum {

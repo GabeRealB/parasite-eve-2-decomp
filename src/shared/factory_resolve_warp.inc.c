@@ -1,68 +1,75 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Filters a warp request: copies `in` to `out`, choosing the destination room
-/// for area 0x19 from the stage variant and progress flags, and for area 0x18
-/// from game flag 0x7A. Area 0x18 is refused with cap slot 4 until game flag
-/// 0x4A reaches 2, area 0x16 with cap command 0xD while game flag 0x37 is
-/// clear, and area 0x19 goes through the event gate with the room's own
-/// request. Any other warp answers 1.
-s32 factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 roomVariantFactoryMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq req;
-    u8           variant;
+    enum {
+        FACTORY_DRIVEWAY_PROGRESS_OPEN        = 2,
+        FACTORY_GARAGE_LAMP_READY             = 2,
+        FACTORY_GARAGE_FINAL_CHAPTER          = 4,
+        FACTORY_GARAGE_REFUSAL_CAP_SLOT       = 4,
+        FACTORY_BREEZEWAY_REFUSAL_CAP_COMMAND = 13,
+        FACTORY_DRIVEWAY_CAP_COMMAND          = 14,
+        FACTORY_DRIVEWAY_DEFAULT_ROOM         = 1,
+        FACTORY_GARAGE_EARLY_ROOM             = 1,
+        FACTORY_GARAGE_LATE_ROOM              = 2,
+        FACTORY_DEPARTURE_REFUSAL_MAP_MARK    = 2,
+    };
+    RoomEventReq eventRequest;
+    u8           stageId;
 
-    *out = *in;
-    if (in->areaId == 0x19) {
-        variant = gGameSession->location.loc.stage;
-        if (variant == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= 2) {
-                    out->room = variant;
+    // Preserve the complete request before execution-only destination selection.
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_DRIVEWAY) {
+        stageId = gGameSession->location.loc.stage;
+        if (stageId == GAME_STAGE_DRYFIELD) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) >= FACTORY_DRIVEWAY_PROGRESS_OPEN) {
+                    reply->room = stageId;
                 } else {
-                    out->room = 1;
+                    reply->room = FACTORY_DRIVEWAY_DEFAULT_ROOM;
                 }
             }
-        } else if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
+        } else if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            reply->room = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) + 1;
         }
     }
-    if (in->areaId == 0x18) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 4) {
-                out->room = 1;
+    if (request->areaId == GAME_AREA_DRYFIELD_GARAGE) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < FACTORY_GARAGE_FINAL_CHAPTER) {
+                reply->room = FACTORY_GARAGE_EARLY_ROOM;
             } else {
-                out->room = 2;
+                reply->room = FACTORY_GARAGE_LATE_ROOM;
             }
         }
-        if (in->areaId == 0x18) {
-            if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) != 2) {
-                if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-                    return 0;
+        if (request->areaId == GAME_AREA_DRYFIELD_GARAGE) {
+            if (gameFlagGetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS) != FACTORY_GARAGE_LAMP_READY) {
+                if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+                    return ROOM_VARIANT_TRANSITION_REFUSED;
                 }
-                capStartSequenceSlot(4, 1, 0);
-                gameFlagSetNibbleIfPresent(in->flagId, 2);
-                return 0;
+                capStartSequenceSlot(FACTORY_GARAGE_REFUSAL_CAP_SLOT, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
+                gameFlagSetNibbleIfPresent(request->flagId, FACTORY_DEPARTURE_REFUSAL_MAP_MARK);
+                return ROOM_VARIANT_TRANSITION_REFUSED;
             }
         }
     }
-    if (in->areaId == 0x16) {
+    if (request->areaId == GAME_AREA_DRYFIELD_BREEZEWAY) {
         if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_UNLOCKED) == 0) {
-            if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-                return 0;
+            if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+                return ROOM_VARIANT_TRANSITION_REFUSED;
             }
-            gameFlagSetNibbleIfPresent(in->flagId, 2);
-            capRunCommandWithTransition(0xD);
-            return 0;
+            gameFlagSetNibbleIfPresent(request->flagId, FACTORY_DEPARTURE_REFUSAL_MAP_MARK);
+            capRunCommandWithTransition(FACTORY_BREEZEWAY_REFUSAL_CAP_COMMAND);
+            return ROOM_VARIANT_TRANSITION_REFUSED;
         }
     }
-    if (in->areaId == 0x19) {
-        req.capCmd        = 0xE;
-        req.missingCapCmd = 0xE;
-        req.firstSnd      = 0x52170013;
-        req.secondSnd     = 0x52170003;
-        req.flagId        = -GAME_FLAG_030;
-        req.collectedBit  = 0;
-        return _roomEventGate(&req, in);
+    if (request->areaId == GAME_AREA_DRYFIELD_DRIVEWAY) {
+        eventRequest.capCmd        = FACTORY_DRIVEWAY_CAP_COMMAND;
+        eventRequest.missingCapCmd = FACTORY_DRIVEWAY_CAP_COMMAND;
+        eventRequest.firstSnd      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 0x13);
+        eventRequest.secondSnd     = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_FACTORY, 3);
+        eventRequest.flagId        = -GAME_FLAG_030;
+        eventRequest.collectedBit  = ROOM_EVENT_GATE_NO_COLLECTION_REQUIRED;
+        return _roomEventGate(&eventRequest, request);
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }

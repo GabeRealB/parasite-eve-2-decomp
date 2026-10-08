@@ -2,8 +2,12 @@
 
 /// Applies one bearing-derived X/Z translation in the coordinate's parent frame.
 ///
-/// The scratch direction is normalized at Q12, scaled by negative pushDistance
-/// and narrowed by the GTE. Requires live scratch/coordinate and GTE state.
+/// `scratch->i` selects a valid bearing slot (0..15), relative to the root's
+/// current local yaw; angles use 4096 units per turn. The Q12-normalized axis
+/// is scaled by negative `pushDistance` in parent-coordinate units and narrowed
+/// to signed halfwords by the GTE. Borrows both inputs, overwrites the scratch
+/// rotation/forward/delta and GTE working state, and leaves the composed cache
+/// and dirty stamp unchanged. The caller must arrange subsequent composition.
 static inline void _actorContactApplyBearingStep(GfxCoord* coord, ActorContactBearingPushScratch* scratch, s16 pushDistance)
 {
     gfxRotMatrixY(&scratch->rot,

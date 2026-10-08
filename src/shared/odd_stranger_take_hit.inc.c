@@ -2,8 +2,12 @@
 
 /// Applies the hit-bearing recoil before calculating distance-based damage.
 ///
-/// Recent damage shortens the step from 100 to 25 units. The normalized Q12
-/// axis is GTE-scaled and added to XYZ local translation, then marked dirty.
+/// Requires a live model root and scratch `hitYaw` measured relative to its
+/// composed facing (4096 units per turn). Composes that yaw with the local root
+/// basis, normalizes its Z axis at Q12 and steps opposite it in the parent frame.
+/// A positive recent-damage timer shortens the step from 100 to 25 whole units.
+/// GTE output narrows to signed halfwords before adding XYZ; the root is marked
+/// dirty. Overwrites scratch rotation/offset and GTE state, retaining no pointer.
 static inline void _oddStrangerApplyHitRecoil(Task* task, OddStrangerWork* work, ActorHitScratch* hitScratch)
 {
     enum { ODD_STRANGER_HIT_RECENT_RECOIL = 25,

@@ -2,10 +2,15 @@
 
 /* Part of the fireball library; see fireball.h. */
 
-/// Refreshes the fireball's shared orange point-light slot for two light updates.
+/// Refreshes the fireball's shared orange point-light slot for two gameplay frames.
 ///
-/// Copies local translation and consumes one shared LCG draw for Q12 colour
-/// intensity. Requires the transient slot's coordinate parent initialized.
+/// Copies local XYZ translation into transient slot 2; the last fireball drawn
+/// owns that frame's contribution. Consumes one shared LCG draw for Q12 colour
+/// intensity (red 2048..3840, green half, blue quarter), with falloff radii
+/// 768 and 12288 world units. Requires the transient slot's view parent already
+/// initialized and the input translation in that parent's world frame. Only
+/// the position is copied; no input pointer is retained. Expiry advances while
+/// room effects are unpaused.
 static inline void _fireballRefreshGlowLight(const GfxCoord* coord)
 {
     enum {

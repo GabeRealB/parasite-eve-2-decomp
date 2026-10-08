@@ -11,8 +11,8 @@
  * script over five hotspots: raise, lower, turn and two dialogue spots. It
  * moves the lift only after the power scene has set nibble 0x48; until then
  * each press only plays a caption. Other parts: cap-driven scenes (power on
- * with lit-panel background sprites and lamp nibble 0x4A; lamp to 2; a white-
- * out scene that sets 0x47, reloads the room as variant 2 and slides a
+ * with lit-panel background sprites and lamp nibble 0x4A; lamp to 2; a barrier
+ * transition scene that fades to black, sets 0x47, reloads variant 2 and slides a
  * barrier's collision 2000 units along x), the room's warp filter, its command
  * handler and a one-time examine action.
  *
@@ -29,6 +29,7 @@
 
 #include "gameplay/action_prompt.h"
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/geometry.h"
 #include "gameplay/message.h"
 #include "gameplay/pad_script.h"
@@ -299,9 +300,27 @@ extern PadScriptVibrationSegment gFactoryNightJoltRecs[3];
 #define FACTORY_ROOM_INSTANCE_ENTRY_TASK dryfieldFactoryEntryTask
 #endif
 
-void factoryLiftInit(Task* task);
+/// Runs the factory power-on CAP choice and restores player/companion control.
+///
+/// Start in state 0 with a valid in-place CAP command in `spawnArg1.value`.
+/// Holds scripted control, hides the player and view-11 sprite while unpowered,
+/// then waits for CAP completion. Choice 3 enables power and lamp progress,
+/// shows the panel/light sprites and queues that command's explicit variant
+/// key 2 with a display transition. Every choice waits for playback before
+/// restoring controls/model drawing and killing the task. Borrows the live
+/// room's CAP and sprite resources.
 void factoryPowerScene(Task* task);
-void factoryWhiteoutScene(Task* task);
+/// Covers the factory barrier change with a thirty-frame subtractive fade.
+///
+/// Start in state 0 with a valid transition CAP command in `spawnArg1.value`.
+/// An already-cleared barrier ends immediately. Otherwise holds both actors'
+/// scripted control; after one intervening tick, choice 1 ramps the overlay to
+/// black, records the barrier clear and switches live/saved room to 2
+/// while requesting object rebuild. The reverse ramp then restores control and
+/// ends the task. Other choices restore control on the following tick.
+/// Playback completion is not polled. `killCountdown` counts callback ticks, not remaining lifetime;
+/// room/CAP/save resources must remain live throughout.
+void factoryBarrierTransitionScene(Task* task);
 /// Restores and then moves the factory barrier's two reserved collision faces.
 ///
 /// Both grid variants need at least two normals/faces and eight leading vertices
@@ -313,7 +332,6 @@ void factoryWhiteoutScene(Task* task);
 /// otherwise. Cell lists are retained, so both positions must use their existing
 /// reserved memberships. No work block or collision records are owned here.
 void        factoryBarrierCollision(Task* task);
-void        factoryLiftUpdate(Task* task);
 static void _factoryLiftBindLighting(Task* task);
 /// Runs the factory lamp scene and records CAP choice 3 before restoring the actors.
 ///
@@ -333,8 +351,18 @@ void factoryLampScene(Task* task);
 /// and killing the task. Playback is not polled. The live saved flag stays raised
 /// through the first wait; hatch setup must not assume it is always clear.
 void factoryHatchScene(Task* task);
-void factoryRoomInit(Task* arg0);
-s32  factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+/// Resolves factory departures to the driveway, garage and breezeway.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with borrowed complete eight-byte records;
+/// request and reply may alias. Copies the request before choosing execution-only
+/// destination variants. Garage departure requires lamp progress 2; breezeway
+/// departure requires its door-unlocked flag. Refused execution plays CAP and
+/// writes 2 to the optional request flag; queries suppress those effects.
+/// Driveway departure uses the room event gate while flag 0x30 is set, clearing
+/// that latch when execution starts its event. Returns 0 refused, 1 direct or
+/// 2 managed.
+/// The event gate may retain copies for its deferred task; keep the room loaded.
+s32 roomVariantFactoryMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 /// Spawns the selected factory panel script and waits for its exit request.
 ///
 /// The room entry must first publish a live `gFactoryPanelSlot` and a valid
@@ -358,11 +386,18 @@ s32 factoryCommand(Task* task, s32 messageId, s32 command, s32 unusedArgument);
 /// starts script 21 and records the lamp's second position. Other cues do
 /// nothing. Uses the current stage's sound bank with centred pan/depth;
 /// the receiver, message ID and second payload are ignored. Always returns 0.
-s32         factorySoundCommand(Task* task, s32 messageId, s32 soundCue, s32 secondArg);
-s32         factoryRoomAction(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+s32 factorySoundCommand(Task* task, s32 messageId, s32 soundCue, s32 secondArg);
+/// Starts the factory's one-time action-1 scene from a direction trigger.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a complete four-byte request. Action
+/// 1 while flag 0x2C is clear requests CAP command 11, sets that flag, advances
+/// the objective byte to 10 and starts daytime factory sound 10.
+/// Progress is committed even when CAP is busy and declines the request.
+/// Other actions have no effect. Retains no pointer and always returns 0;
+/// the receiver, message ID and second payload are unused.
+s32         factoryRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static void _factoryPanelApplyChoice(Task* task, s16 choice);
 static void _factoryPanelInit(Task* task);
-void        factoryPanelPrompt(Task* task);
 
 /// Dispatches the factory lift task's setup, frame update or teardown state.
 ///

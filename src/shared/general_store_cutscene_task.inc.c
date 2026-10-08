@@ -1,6 +1,11 @@
 /* Included General Store underpass transition; each carrier declares its static instance. */
 
-/// Restores the presentation and live view held by the underpass prompt.
+/// Cancels the underpass prompt by restoring actor control and the saved view.
+///
+/// Requires the live saved-view slot and `gStoreSavedView` captured before the
+/// prompt. Resumes player scripted control and automatic model drawing, enables
+/// actor updates and requests the cancellation sound. This restores the saved
+/// view selector without requesting a reload; the caller ends the prompt task.
 static inline void _generalStoreCancelUnderpassTransition(void)
 {
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;

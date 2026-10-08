@@ -84,7 +84,7 @@ D_acropolis_fountain_8017E868 = 0x8017E868; // absolute:True owner=acropolis_fou
 D_acropolis_fountain_8018375C = 0x8018375C; // absolute:True owner=acropolis_fountain shared=rooms
 D_acropolis_fountain_80183864 = 0x80183864; // absolute:True owner=acropolis_fountain shared=rooms
 D_acropolis_fountain_80183B90 = 0x80183B90; // absolute:True owner=acropolis_fountain shared=rooms
-acropolisForkedRoadRoomTask = 0x8017D9CC; // type:func absolute:True owner=acropolis_forked_road shared=rooms
+acropolisForkedRoadRoomTask = 0x8017D9CC; // type:func absolute:True owner=acropolis_forked_road
 D_acropolis_forked_road_80182214 = 0x80182214; // absolute:True owner=acropolis_forked_road
 D_acropolis_forked_road_8018225C = 0x8018225C; // absolute:True owner=acropolis_forked_road
 D_acropolis_forked_road_80182268 = 0x80182268; // absolute:True owner=acropolis_forked_road

@@ -52,11 +52,16 @@
 
 #include "rooms/room_common.h"
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 /// Selects the daytime factory instance for shared room declarations and code.
 ///
 /// Keep this binding through all factory implementation fragments.
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/factory_lift.h"
+
+static void _factoryRoomInit(Task* task);
+static void _factoryLiftInit(Task* task);
+static void _factoryLiftUpdate(Task* task);
 
 static void _factoryEntryIdle(Task* task);
 
@@ -735,7 +740,7 @@ RoomEventReq gRoomEventReq = { 0 };
 /// State handlers of the room entry task, indexed by `Task::state`: the set-up
 /// tick, the idle tick and `taskKill`.
 static const TaskFuncTable3 _gFactoryEntryStates = {
-    { factoryRoomInit, _factoryEntryIdle, taskKill },
+    { _factoryRoomInit, _factoryEntryIdle, taskKill },
 };
 
 #include "../../shared/factory_ignore_message.inc.c"
@@ -745,7 +750,7 @@ static const TaskFuncTable3 _gFactoryEntryStates = {
 /// State handlers of the factory model task: set-up, the per-frame state and
 /// `taskKill`.
 static const TaskFuncTable3 _gFactoryLiftStates = {
-    { factoryLiftInit, factoryLiftUpdate, taskKill },
+    { _factoryLiftInit, _factoryLiftUpdate, taskKill },
 };
 
 /// State handlers of the cutscene task: set-up, the cutscene sequence and

@@ -1,51 +1,55 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Runs the factory model for the bit of game flag 0x49 the task last saw: bit
-/// 1 picks the first handler pair and bit 0 the second of the pair, the frame
-/// counter at `FactoryLiftWork::moveFrames` is bumped, and the model's coordinate
-/// is rebuilt before `worldCoordSetModelLighting` lights the model at its world position.
-void factoryLiftUpdate(Task* task)
+/// Advances the lift's independent height and yaw movements and room collision.
+///
+/// Requires initialized lift work/model and the room-owned panel-task slot in
+/// `spawnArg2.pointer`. Changed position bits restart their motion selectors
+/// and frame counter. Lowered turns jam and roll back their request. Collision
+/// selects its template from the request read before those handlers, so the
+/// completion/skip frame retains the canceled footprint with restored yaw;
+/// the next update selects the restored footprint. Composes the root and samples
+/// room lighting after both movements and collision have been applied.
+static void _factoryLiftUpdate(Task* task)
 {
     GfxCoord*        coord;
     FactoryLiftWork* work;
-    TmdObject*       obj;
-    s32              flag;
-    s32              prev;
+    TmdObject*       liftModel;
+    s32              requestedPosition;
+    s32              previousPosition;
 
-    /* The model pointer is read twice on purpose: the second read is what
-       leaves the target's `move s4, v0` copy. */
-    coord = task->extra.tmd->coords;
-    work  = task->work;
-    obj   = task->extra.tmd;
-    flag  = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION);
-    prev  = work->position;
-    if (flag != prev) {
-        if ((flag ^ prev) & FACTORY_LIFT_POSITION_TURNED) {
-            work->yawStep = 0;
+    coord             = task->extra.tmd->coords;
+    work              = task->work;
+    liftModel         = task->extra.tmd;
+    requestedPosition = gameFlagGetNibble(GAME_FLAG_FACTORY_LIFT_POSITION);
+    previousPosition  = work->position;
+    if (requestedPosition != previousPosition) {
+        if ((requestedPosition ^ previousPosition) & FACTORY_LIFT_POSITION_TURNED) {
+            work->yawStep = FACTORY_LIFT_STEP_RESET;
         }
-        if ((flag ^ work->position) & FACTORY_LIFT_POSITION_RAISED) {
-            work->yStep = 0;
+        if ((requestedPosition ^ work->position) & FACTORY_LIFT_POSITION_RAISED) {
+            work->yStep = FACTORY_LIFT_STEP_RESET;
         }
-        work->position   = flag;
+        work->position   = requestedPosition;
         work->moveFrames = 0;
     }
-    if (flag & FACTORY_LIFT_POSITION_RAISED) {
+    if (requestedPosition & FACTORY_LIFT_POSITION_RAISED) {
         _factoryLiftRaise(task);
-        if (flag & FACTORY_LIFT_POSITION_TURNED) {
+        if (requestedPosition & FACTORY_LIFT_POSITION_TURNED) {
             _factoryLiftTurnOut(task);
         } else {
             _factoryLiftTurnBack(task);
         }
     } else {
         _factoryLiftLower(task);
-        if (flag & FACTORY_LIFT_POSITION_TURNED) {
+        if (requestedPosition & FACTORY_LIFT_POSITION_TURNED) {
             _factoryLiftJamTurnOut(task);
         } else {
             _factoryLiftJamTurnBack(task);
         }
     }
     work->moveFrames++;
-    _factoryLiftSyncCollision(task, 0, flag & FACTORY_LIFT_POSITION_TURNED);
+    // Use this frame's original request even if a jam handler just rolled it back.
+    _factoryLiftSyncCollision(task, 0, requestedPosition & FACTORY_LIFT_POSITION_TURNED);
     actorRenderComposeCoord(coord);
-    worldCoordSetModelLighting(obj, coord->workm.t, 0, 3);
+    worldCoordSetModelLighting(liftModel, coord->workm.t, 0, 3);
 }

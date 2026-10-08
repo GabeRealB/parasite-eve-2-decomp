@@ -47,6 +47,7 @@
 // The flag symbol is four bytes; the gate writes the first.
 #define ROOM_EVENT_ACTIVE gRoomEventActive.eventStarted
 #include "../../shared/room_events.h"
+#include "../../shared/room_variants.h"
 #include "../../shared/glow_draw.h"
 /// Selects the daytime sound bank for the shared G & R kitchen door handler.
 ///
@@ -74,6 +75,8 @@ extern TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[];
 /// Endpoints of the two beams drawn in view 3: `[0]` to `[1]` and `[2]` to
 /// `[3]`.
 
+static s32 _roomVariantGRKitchenMsg(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+
 static void _dryfieldGRKitchenInitRoomTask(Task* task);
 static void _dryfieldGRKitchenIdleRoomTask(Task* task);
 static void _dryfieldGRKitchenDrawDimTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale);
@@ -94,7 +97,7 @@ extern WorldCoordRoomLights  D_dryfield_g_r_kitchen_8017F464[1];
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, grKitchenDoorMsg },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGRKitchenMsg },
     { DRYFIELD_G_R_KITCHEN_MESSAGE_USE_KEY_ITEM, _dryfieldGRKitchenRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldGRKitchenIgnoreActionRequest },
     { ROOM_MESSAGE_COMMAND, _dryfieldGRKitchenIgnoreCommand },
