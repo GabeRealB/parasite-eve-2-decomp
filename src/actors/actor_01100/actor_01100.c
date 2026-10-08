@@ -34,6 +34,7 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -378,7 +379,7 @@ static void _actor01100PunchLeft(Enemy* enemy, Task* task, _Actor01100Work* work
 static void _actor01100PunchRight(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn04DB4(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100Advance(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
-static void Actor01100_Fn05678(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
+static void _actor01100Death(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch);
 static void _actor01100SpitGlobInit(Task* task);
 static void _actor01100SpitGlobFly(Task* task);
@@ -2069,7 +2070,7 @@ static const _Actor01100StateTable Actor01100_D00064 = { {
     _actor01100Flinch,
     Actor01100_Fn07148,
     _actor01100Rise,
-    Actor01100_Fn05678,
+    _actor01100Death,
     Actor01100_Fn05CFC,
 } };
 
@@ -2790,7 +2791,7 @@ static void _actor01100FacePlayer(Enemy* enemy, Task* task, _Actor01100Work* wor
     task->killCountdown = spitWaitFrames;
 }
 
-/// Scale `Actor01100_Fn05678` applies to the model's matrix: 0x10 on each axis.
+/// Scale `_actor01100Death` applies to the model's matrix: 0x10 on each axis.
 static const VECTOR Actor01100_D000CC = { 0x10, 0x10, 0x10, 0 };
 
 /// Stretches the left arm into a punch aimed at the player's initial distance.
@@ -3411,37 +3412,76 @@ static __inline__ void _actor01100SpawnBurstPart(Task* task, TmdSource* model)
     }
 }
 
-static void Actor01100_Fn05678(
+/// Disables grid and pair collision on every Mossback body as death begins.
+///
+/// Borrows live writable work; keeps body registration and all other flags.
+static inline void _actor01100DisableDeathCollision(_Actor01100Work* work)
+{
+    s32                 bodyIndex;
+    WorldCollisionBody* body;
+
+    for (bodyIndex = 0; bodyIndex < ARRAY_SIZE(work->bodies); bodyIndex++) {
+        body         = &work->bodies[bodyIndex];
+        body->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    }
+}
+
+/// Runs the Mossback's fatal fall or burst, corpse burn, fade and hide phases.
+///
+/// Requires the live owning enemy, TMD task, initialized work and per-tick scratch.
+/// A zero stateStep starts death, withdraws collision/lock-on and selects a front
+/// or rear fall unless spawnState requests a burst. Counts active handler ticks;
+/// look yaw uses 4096 units per turn and flattening uses Q12 matrix scale.
+/// Writes the chest splash selector in scratch. The final hide countdown marks
+/// work finished only outside the Shelter B6 corridor; that room receives a
+/// single actor-event notification once the player can leave scripted control.
+/// Detached model effects borrow this package's geometry until their teardown.
+static void _actor01100Death(
     Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
-    TmdObject*          extra;
-    GfxCoord*           coords;
-    PlayerStatus*       status;
-    GameActor*          actor;
-    VECTOR              scale;
-    s16                 time;
-    s16                 walk;
-    s32                 i;
-    WorldCollisionBody* obj;
+    enum {
+        ACTOR_01100_DEATH_START                = 0,
+        ACTOR_01100_DEATH_WAIT                 = 1,
+        ACTOR_01100_DEATH_FADE                 = 2,
+        ACTOR_01100_DEATH_BURST_SPAWN_STATE    = 3,
+        ACTOR_01100_DEATH_BURN_SPAWN_STATE     = 0x10,
+        ACTOR_01100_DEATH_FRONT_SPAWN_STATE    = 1,
+        ACTOR_01100_MOTION_DEATH_FRONT         = 17,
+        ACTOR_01100_MOTION_DEATH_BEHIND        = 18,
+        ACTOR_01100_DEATH_BURST_TICKS          = 52,
+        ACTOR_01100_DEATH_WAIT_TICKS           = 32,
+        ACTOR_01100_DEATH_BURN_TICKS_LEFT      = 12,
+        ACTOR_01100_DEATH_FADE_TICKS           = 32,
+        ACTOR_01100_DEATH_HIDE_TICKS           = 4,
+        ACTOR_01100_DEATH_CORPSE_BURN_ARGUMENT = 5,
+        ACTOR_01100_DEATH_LOOK_YAW_STEP        = 48,
+        ACTOR_01100_DEATH_MIN_Y_SCALE          = ONE / 2,
+        ACTOR_01100_DEATH_Y_SCALE_STEP         = 32
+    };
+    TmdObject*    model;
+    GfxCoord*     coords;
+    PlayerStatus* playerStatus;
+    GameActor*    playerActor;
+    VECTOR        scale;
+    s16           framesLeft;
+    s16           lookYaw;
 
-    extra = task->extra.tmd;
-    if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(5, 24, 0, 0)) && (work->roomNotified == 0)) {
-        actor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-        status = &gPlayerStatus;
-        if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (status->hp > 0)) {
+    model = task->extra.tmd;
+    if (((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 0, 0)) && (work->roomNotified == 0)) {
+        playerActor  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+        playerStatus = &gPlayerStatus;
+        if ((playerActor->mode != GAME_ACTOR_MODE_SCRIPTED) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && (playerStatus->hp > 0)) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_ACTOR_EVENT, 0, 0);
             work->roomNotified = 1;
         }
     }
 
-    if (work->stateStep == 0) {
+    // Withdraw collision and targeting before choosing the fall or burst.
+    if (work->stateStep == ACTOR_01100_DEATH_START) {
         work->hp  = 0;
         enemy->hp = 0;
-        for (i = 0; i < ACTOR_01100_BODY_COUNT; i++) {
-            obj         = &work->bodies[i];
-            obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-        }
-        if (enemy->spawnState == 0x10) {
+        _actor01100DisableDeathCollision(work);
+        if (enemy->spawnState == ACTOR_01100_DEATH_BURN_SPAWN_STATE) {
             worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
             enemy->spawnState = 0;
         } else {
@@ -3453,68 +3493,69 @@ static void Actor01100_Fn05678(
         work->mode                    = ACTOR_01100_MODE_DYING;
         work->reaction                = ACTOR_01100_REACTION_DYING;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        if (enemy->spawnState == 3) {
+        if (enemy->spawnState == ACTOR_01100_DEATH_BURST_SPAWN_STATE) {
             _actor01100SpawnBurstPart(task, &_gActor01100BruteMossbackBurstArm);
             _actor01100SpawnBurstPart(task, &_gActor01100BruteMossbackBurstHead);
             _actor01100SpawnBurstPart(task, &_gActor01100BruteMossbackBurstArm);
-            work->stateCounter = 0x34;
+            work->stateCounter = ACTOR_01100_DEATH_BURST_TICKS;
             work->stateStep++;
         } else {
-            if (enemy->spawnState == 1) {
-                work->motion = 0x11;
+            if (enemy->spawnState == ACTOR_01100_DEATH_FRONT_SPAWN_STATE) {
+                work->motion = ACTOR_01100_MOTION_DEATH_FRONT;
             } else {
-                work->motion = 0x12;
+                work->motion = ACTOR_01100_MOTION_DEATH_BEHIND;
             }
-            work->stateCounter = 0x20;
+            work->stateCounter = ACTOR_01100_DEATH_WAIT_TICKS;
             work->stateStep++;
         }
-    } else if (work->stateStep == 1) {
-        time               = work->stateCounter - 1;
-        work->stateCounter = time;
-        if (time == 0xC) {
-            effectSpawn(EFFECT_CORPSE_BURN, task->extra.tmd->coords, 5, 0);
-        } else if (time <= 0) {
-            extra->flags |= TMD_OBJECT_SEMI_TRANS;
+    } else if (work->stateStep == ACTOR_01100_DEATH_WAIT) {
+        framesLeft         = work->stateCounter - 1;
+        work->stateCounter = framesLeft;
+        if (framesLeft == ACTOR_01100_DEATH_BURN_TICKS_LEFT) {
+            effectSpawn(EFFECT_CORPSE_BURN, task->extra.tmd->coords, ACTOR_01100_DEATH_CORPSE_BURN_ARGUMENT, 0);
+        } else if (framesLeft <= 0) {
+            model->flags |= TMD_OBJECT_SEMI_TRANS;
             worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
-            work->stateCounter = 0x20;
+            work->stateCounter = ACTOR_01100_DEATH_FADE_TICKS;
             work->stateStep++;
         }
-    } else if (work->stateStep == 2) {
-        time               = work->stateCounter - 1;
-        work->stateCounter = time;
-        if (time == 0) {
+    } else if (work->stateStep == ACTOR_01100_DEATH_FADE) {
+        framesLeft         = work->stateCounter - 1;
+        work->stateCounter = framesLeft;
+        if (framesLeft == 0) {
             task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->stateCounter      = 4;
+            work->stateCounter      = ACTOR_01100_DEATH_HIDE_TICKS;
             work->stateStep++;
         }
     } else {
-        time               = work->stateCounter - 1;
-        work->stateCounter = time;
-        if ((time == 0) && ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(5, 24, 0, 0))) {
+        framesLeft         = work->stateCounter - 1;
+        work->stateCounter = framesLeft;
+        if ((framesLeft == 0) && ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_B6_CORRIDOR, 0, 0))) {
             work->mode = ACTOR_01100_MODE_FINISHED;
         }
     }
 
-    walk = work->lookYaw;
-    if (walk >= 0x31) {
-        work->lookYaw -= 0x30;
-    } else if (walk < -0x30) {
-        work->lookYaw += 0x30;
+    // Relax the look angle while the corpse burns and flattens.
+    lookYaw = work->lookYaw;
+    if (lookYaw >= ACTOR_01100_DEATH_LOOK_YAW_STEP + 1) {
+        work->lookYaw -= ACTOR_01100_DEATH_LOOK_YAW_STEP;
+    } else if (lookYaw < -ACTOR_01100_DEATH_LOOK_YAW_STEP) {
+        work->lookYaw += ACTOR_01100_DEATH_LOOK_YAW_STEP;
     }
 
     scratch->splashPart = ACTOR_01100_PART_CHEST;
-    if (enemy->spawnState == 3) {
+    if (enemy->spawnState == ACTOR_01100_DEATH_BURST_SPAWN_STATE) {
         coords = task->extra.tmd->coords;
         scale  = Actor01100_D000CC;
-        _gfxScaleMatrixColumns(&coords[3].coord, &scale);
-        coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        if ((enemy->spawnState == 3) && !(extra->flags & TMD_OBJECT_SEMI_TRANS)) {
+        _gfxScaleMatrixColumns(&coords[ACTOR_01100_PART_CHEST].coord, &scale);
+        coords[ACTOR_01100_PART_CHEST].composeStamp = GRAPHICS_COORD_DIRTY;
+        if ((enemy->spawnState == ACTOR_01100_DEATH_BURST_SPAWN_STATE) && !(model->flags & TMD_OBJECT_SEMI_TRANS)) {
             return;
         }
     }
 
-    if (work->scaleCoord.coord.m[1][1] >= 0x801) {
-        work->scaleCoord.coord.m[1][1] -= 0x20;
+    if (work->scaleCoord.coord.m[1][1] >= ACTOR_01100_DEATH_MIN_Y_SCALE + 1) {
+        work->scaleCoord.coord.m[1][1] -= ACTOR_01100_DEATH_Y_SCALE_STEP;
         work->scaleCoord.composeStamp   = GRAPHICS_COORD_DIRTY;
         work->scaleCoord.coord.t[1]     = work->scaleCoord.coord.t[1] + 2;
     }
@@ -3533,7 +3574,7 @@ static void Actor01100_Fn05678(
 /// counts it keeps the state on the 0x17 motion with the 0x10 pair when
 /// `reactionFlags` has no buildup, and stages the 0x14 motion through `mode`
 /// when it does; once that count has run out it hands the frame to
-/// `Actor01100_Fn05678` on state 0x18 instead.
+/// `_actor01100Death` on state 0x18 instead.
 static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     u16 time;
@@ -3573,7 +3614,7 @@ static void Actor01100_Fn05CFC(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
         work->state     = ACTOR_01100_STATE_DEATH;
         work->stateStep = 0;
-        Actor01100_Fn05678(enemy, task, work, scratch);
+        _actor01100Death(enemy, task, work, scratch);
     }
 }
 
@@ -4220,7 +4261,7 @@ static void _actor01100IdleRest(Enemy* unusedEnemy, Task* unusedTask, _Actor0110
 /// slot 1 reports `ANIMATION_SLOT_FOLLOWED_JUMP`, it clears `recentDamage`.
 /// While `hp` is still positive and `reactionFlags` value 2 is clear, it moves
 /// to motion 0x17; once that count has run out it hands the frame to
-/// `Actor01100_Fn05678` on motion 0x18.
+/// `_actor01100Death` on motion 0x18.
 static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
     AnimationSlot* motion = &work->rig.slots[1];
@@ -4248,7 +4289,7 @@ static void Actor01100_Fn07014(Enemy* enemy, Task* task, _Actor01100Work* work, 
         } else {
             work->state     = ACTOR_01100_STATE_DEATH;
             work->stateStep = 0;
-            Actor01100_Fn05678(enemy, task, work, scratch);
+            _actor01100Death(enemy, task, work, scratch);
         }
     }
 }
@@ -4290,7 +4331,7 @@ static void _actor01100Flinch(Enemy* unusedEnemy, Task* unusedTask, _Actor01100W
 /// way, and `motionEnded` ends the sub-state: while `hp` still counts it keeps
 /// the state on the 0x17 motion with the 0x10 pair when `reactionFlags` has no
 /// buildup, and stages the 0x14 motion through `mode` when it does; once that
-/// count has run out it hands the frame to `Actor01100_Fn05678` on the 0x18
+/// count has run out it hands the frame to `_actor01100Death` on the 0x18
 /// motion instead.
 static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, _Actor01100Scratch* scratch)
 {
@@ -4331,7 +4372,7 @@ static void Actor01100_Fn07148(Enemy* enemy, Task* task, _Actor01100Work* work, 
         }
         work->state     = ACTOR_01100_STATE_DEATH;
         work->stateStep = 0;
-        Actor01100_Fn05678(enemy, task, work, scratch);
+        _actor01100Death(enemy, task, work, scratch);
     }
 }
 

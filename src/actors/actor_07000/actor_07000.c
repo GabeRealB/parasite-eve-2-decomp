@@ -803,11 +803,11 @@ MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
 static void _actor07000SlouchSpawn(Enemy* enemy, Task* task);
 
-static void Actor07000_Fn03164(Enemy* arg0, Task* arg1);
+static void _actor07000SlouchUpdateState(Enemy* enemy, Task* task);
 
 static void _actor07000SlouchIdle(Task* task, TmdObject* unusedModel, s32 unusedOne);
 
-static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2);
+static void _actor07000SlouchEngaged(Task* task);
 
 static void _actor07000SlouchContacts(Task* task);
 
@@ -825,9 +825,9 @@ static void _actor07000SlouchProjectileLaunch(Task* task);
 
 static void _actor07000SlouchProjectileFly(Task* task);
 
-static void Actor07000_Fn05068(Enemy* arg0, Task* arg1);
+static void _actor07000SlouchHiddenSpawn(Enemy* enemy, Task* task);
 
-static void Actor07000_Fn05400(Enemy* arg0, Task* arg1);
+static void _actor07000SlouchDropState(Enemy* enemy, Task* task);
 
 static void _actor07000SlouchDropCollide(Task* task);
 
@@ -904,14 +904,14 @@ static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
 /// Task states of the specimen's second form as `_actor07000SlouchTask`
 /// dispatches them: spawn, per-frame update, death and destruction.
 static const EnemyTaskFuncTable4 Actor07000_D0003C = {
-    { _actor07000SlouchSpawn, Actor07000_Fn03164, _actor07000SlouchDeathState, enemyDestroy },
+    { _actor07000SlouchSpawn, _actor07000SlouchUpdateState, _actor07000SlouchDeathState, enemyDestroy },
 };
 
 /// Task states of the hidden Slouch as `_actor07000SlouchHiddenTask`
 /// dispatches them: the same update, death and destruction after a spawn that
 /// parks the model hidden, and a fifth state for its drop into place.
 static const EnemyTaskFuncTable5 Actor07000_D0004C = {
-    { Actor07000_Fn05068, Actor07000_Fn03164, _actor07000SlouchDeathState, enemyDestroy, Actor07000_Fn05400 },
+    { _actor07000SlouchHiddenSpawn, _actor07000SlouchUpdateState, _actor07000SlouchDeathState, enemyDestroy, _actor07000SlouchDropState },
 };
 
 #include "../../shared/sucklerceph_drop_state.inc.c"
@@ -1050,116 +1050,118 @@ static void _actor07000SlouchSpawn(Enemy* enemy, Task* task)
     task->state            += 1;
 }
 
-/// Per-frame mode handler of the specimen. The `gSceneCombatState.actorControl` switch is the same
-/// one `_sucklercephUpdateState` runs: mode 1 skips to the tail, mode 2 puts
-/// the model in its hidden pose and returns, mode 0 clears both flags and falls
-/// into the body. The body first dispatches the behaviour `state` - idle and
-/// engaged hand the frame to their own handler, the status hold counts
-/// `stateFrames` out to 0xB before restarting the flinch animation and drops
-/// back to idle once the enemy's buildup runs out, puffing does the count
-/// alone, and the puffing death counts those flinches in `watchFrames`, the
-/// fifth of which re-cues the impact sound, switches the task to its death
-/// state and disables the attack body. The two puffing states share the
-/// `idleFrames` count that spawns a 0x60080 effect every 0x10 frames. The
-/// tail then twists the model's second
-/// coordinate part, runs the five per-frame helpers, and clears the display
-/// flags of the model's first two parts before recomputing the second.
-static void Actor07000_Fn03164(Enemy* arg0, Task* arg1)
+/// Runs the Slouch's active behaviour, hit reactions and posed-model update.
+///
+/// Requires live enemy/model and initialized Slouch work. Paused combat updates
+/// colour only; hidden combat hides drawing and lock-on. Running combat dispatches
+/// idle/engaged behaviour or held flinches. Puffing emits every 16 ticks; its death
+/// variant enters the death task state on the fifth flinch. Applies the body Y
+/// offset before reactions and contacts, then updates the six animated slots,
+/// stretch/twist, coordinate composition and lighting. State counters narrow to
+/// halfwords and count handler ticks, independently of animation-frame counters.
+static void _actor07000SlouchUpdateState(Enemy* enemy, Task* task)
 {
-    TmdObject*             obj;
+    enum { ACTOR_07000_SLOUCH_STATUS_FLINCH_TICKS = 11,
+           ACTOR_07000_SLOUCH_PUFF_INTERVAL_TICKS = 16,
+           ACTOR_07000_SLOUCH_PUFF_DEATH_FLINCHES = 5,
+           ACTOR_07000_SLOUCH_PUFF_SIZE           = 1024,
+           ACTOR_07000_SLOUCH_TASK_DEATH          = 2,
+           ACTOR_07000_SLOUCH_BODY_Y_OFFSET       = 128 };
+    TmdObject*             model;
     _Actor07000SlouchWork* work;
-    GfxCoord*              coord;
-    s32                    state;
-    s32                    one;
+    GfxCoord*              rootCoord;
+    s32                    actorControl;
+    s32                    notLockable;
     s32                    soundId;
 
-    obj   = arg1->extra.tmd;
-    state = gSceneCombatState.actorControl;
-    work  = arg1->work;
-    coord = obj->coords;
-    one   = 1;
-    switch (state) {
-        case 0:
-            obj->flags                   = 0;
-            arg0->node.state.parts.flags = 0;
+    model        = task->extra.tmd;
+    actorControl = gSceneCombatState.actorControl;
+    work         = task->work;
+    rootCoord    = model->coords;
+    notLockable  = WORLD_TARGET_NOT_LOCKABLE;
+    switch (actorControl) {
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            model->flags                  = 0;
+            enemy->node.state.parts.flags = 0;
             break;
-        case 2:
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = one;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = notLockable;
             return;
-        case 1:
-            _actor07000SlouchUpdateColor(arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor07000SlouchUpdateColor(task);
             return;
         default:
             break;
     }
     switch (work->state) {
         case ACTOR_07000_SLOUCH_STATE_IDLE:
-            _actor07000SlouchIdle(arg1, obj, one);
+            _actor07000SlouchIdle(task, model, notLockable);
             break;
         case ACTOR_07000_SLOUCH_STATE_ENGAGED:
-            Actor07000_Fn037EC(arg1, obj, one);
+            _actor07000SlouchEngaged(task);
             break;
         case ACTOR_07000_SLOUCH_STATE_STATUS_HOLD:
             work->stateFrames += 1;
-            if (work->stateFrames >= 0xB) {
+            if (work->stateFrames >= ACTOR_07000_SLOUCH_STATUS_FLINCH_TICKS) {
                 work->appliedAnim = ACTOR_07000_SLOUCH_ANIM_FIDGET;
                 work->animId      = ACTOR_07000_SLOUCH_ANIM_STATUS_FLINCH;
                 work->animFrames  = 0;
                 work->stateFrames = 0;
             }
-            if (damageTickEnemyBuildup(arg1->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
                 work->state = ACTOR_07000_SLOUCH_STATE_IDLE;
             }
             break;
         case ACTOR_07000_SLOUCH_STATE_PUFFING:
             work->stateFrames += 1;
-            if (work->stateFrames >= 0xB) {
+            if (work->stateFrames >= ACTOR_07000_SLOUCH_STATUS_FLINCH_TICKS) {
                 work->appliedAnim = ACTOR_07000_SLOUCH_ANIM_FIDGET;
                 work->animId      = ACTOR_07000_SLOUCH_ANIM_STATUS_FLINCH;
                 work->animFrames  = 0;
                 work->stateFrames = 0;
             }
             work->idleFrames += 1;
-            if (work->idleFrames >= 0x10) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
+            if (work->idleFrames >= ACTOR_07000_SLOUCH_PUFF_INTERVAL_TICKS) {
+                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, ACTOR_07000_SLOUCH_PUFF_SIZE, &Actor07000_D0D7B8);
                 work->idleFrames = 0;
             }
             break;
         case ACTOR_07000_SLOUCH_STATE_PUFFING_DEATH:
             work->stateFrames += 1;
-            if (work->stateFrames >= 0xB) {
+            if (work->stateFrames >= ACTOR_07000_SLOUCH_STATUS_FLINCH_TICKS) {
                 work->appliedAnim  = ACTOR_07000_SLOUCH_ANIM_FIDGET;
                 work->animId       = ACTOR_07000_SLOUCH_ANIM_STATUS_FLINCH;
                 work->animFrames   = 0;
                 work->stateFrames  = 0;
                 work->watchFrames += 1;
-                if (work->watchFrames >= 5) {
+                if (work->watchFrames >= ACTOR_07000_SLOUCH_PUFF_DEATH_FLINCHES) {
                     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 3), SOUND_SCRIPT_STOP_NO_FADE);
-                    soundId = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460005;
-                    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 5);
+                    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    arg1->state             = 2;
+                    task->state             = ACTOR_07000_SLOUCH_TASK_DEATH;
                     work->deathPhase        = ACTOR_07000_SLOUCH_DEATH_PHASE_BEGIN;
                 }
             }
             work->idleFrames += 1;
-            if (work->idleFrames >= 0x10) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, arg1->extra.tmd->coords, 0x400, &Actor07000_D0D7B8);
+            if (work->idleFrames >= ACTOR_07000_SLOUCH_PUFF_INTERVAL_TICKS) {
+                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, ACTOR_07000_SLOUCH_PUFF_SIZE, &Actor07000_D0D7B8);
                 work->idleFrames = 0;
             }
             break;
     }
-    coord->coord.t[1] += 0x80;
-    _actor07000SlouchTickReactions(arg1);
-    _actor07000SlouchContacts(arg1);
-    _actor07000SlouchAnimate(arg1);
-    _actor07000SlouchStretch(arg1);
-    _actor07000SlouchApplyTwist(arg1);
-    arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
-    _actor07000SlouchUpdateColor(arg1);
+    // Apply the body offset before reactions, contacts and pose composition.
+    rootCoord->coord.t[1] += ACTOR_07000_SLOUCH_BODY_Y_OFFSET;
+    _actor07000SlouchTickReactions(task);
+    _actor07000SlouchContacts(task);
+    _actor07000SlouchAnimate(task);
+    _actor07000SlouchStretch(task);
+    _actor07000SlouchApplyTwist(task);
+    task->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&task->extra.tmd->coords[1]);
+    _actor07000SlouchUpdateColor(task);
 }
 
 /// Runs the Slouch's idle, fidget, watch and light-hit animations.
@@ -1246,34 +1248,91 @@ static void _actor07000SlouchIdle(Task* task, TmdObject* unusedModel, s32 unused
     worldCollisionClearContacts(work->senseContacts);
 }
 
-static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
+/// Sets the Slouch's strike stretch from horizontal player distance.
+///
+/// Range uses game units and stretch adds Q12 scale to unity. Distances 900..2700
+/// use 512/100 per excess unit, including 9216 at 2700; greater ranges use 8192.
+/// Borrows writable work, preserving the unsigned calculation and halfword store.
+static inline void _actor07000SlouchSetStrikeReach(_Actor07000SlouchWork* work, u32 playerRange)
 {
-    u32                    distance;
-    _Actor07000SlouchWork* work;
-    GfxCoord*              coord;
-    Enemy*                 enemy;
-    s32                    soundId;
-    s16                    amount;
+    enum { ACTOR_07000_SLOUCH_REACH_NEAR          = 900,
+           ACTOR_07000_SLOUCH_REACH_FAR           = 2700,
+           ACTOR_07000_SLOUCH_REACH_FAR_SCALE     = 2 * ONE,
+           ACTOR_07000_SLOUCH_REACH_SCALE_SHIFT   = 9,
+           ACTOR_07000_SLOUCH_REACH_RANGE_DIVISOR = 100 };
+    if (playerRange < (u32)ACTOR_07000_SLOUCH_REACH_NEAR) {
+        work->stretchTarget = 0;
+    } else if (playerRange > (u32)ACTOR_07000_SLOUCH_REACH_FAR) {
+        work->stretchTarget = ACTOR_07000_SLOUCH_REACH_FAR_SCALE;
+    } else {
+        work->stretchTarget = ((playerRange - ACTOR_07000_SLOUCH_REACH_NEAR) << ACTOR_07000_SLOUCH_REACH_SCALE_SHIFT) / ACTOR_07000_SLOUCH_REACH_RANGE_DIVISOR;
+    }
+}
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    coord = arg0->extra.tmd->coords;
+/// Runs the Slouch's watch, strike, spit, fidget and recoil actions.
+///
+/// Requires initialized Slouch work/model and its owning Enemy in spawnArg2.
+/// Player range is horizontal distance in game units; action windows use animation
+/// driver ticks. Strike reach is Q12 scale added to unity, with signed-halfword
+/// stores retained, including negative retraction results. Consumes sensing
+/// contacts after watching; strike contacts are armed only during their windows.
+/// A fatal projectile launch enters the death task state.
+static void _actor07000SlouchEngaged(Task* task)
+{
+    enum {
+        ACTOR_07000_SLOUCH_STRETCH_RETRACT_THRESHOLD = ONE / 8,
+        ACTOR_07000_SLOUCH_STRETCH_RETRACT_STEP      = 592,
+        ACTOR_07000_SLOUCH_STRETCH_EXTEND_SHIFT      = 3,
+        ACTOR_07000_SLOUCH_TASK_DEATH                = 2,
+        ACTOR_07000_SLOUCH_ALERT_TICK                = 18,
+        ACTOR_07000_SLOUCH_WATCH_RANGE               = 5000,
+        ACTOR_07000_SLOUCH_IDLE_TICKS_BASE           = 80,
+        ACTOR_07000_SLOUCH_IDLE_TICKS_COUNT          = 20,
+        ACTOR_07000_SLOUCH_STRIKE_SOUND_TICK         = 40,
+        ACTOR_07000_SLOUCH_STRIKE_EXTEND_TICK        = 32,
+        ACTOR_07000_SLOUCH_STRIKE_RETRACT_TICK       = 42,
+        ACTOR_07000_SLOUCH_STRIKE_CONTACT_END_TICK   = 43,
+        ACTOR_07000_SLOUCH_STRIKE_END_TICK           = 64,
+        ACTOR_07000_SLOUCH_SPIT_TICK                 = 48,
+        ACTOR_07000_SLOUCH_SHORT_SPIT_END_TICK       = 50,
+        ACTOR_07000_SLOUCH_SPIT_END_TICK             = 83,
+        ACTOR_07000_SLOUCH_FIDGET_SOUND_TICK         = 105,
+        ACTOR_07000_SLOUCH_FIDGET_END_TICK           = 110,
+        ACTOR_07000_SLOUCH_RECOIL_SOUND_TICK         = 30,
+        ACTOR_07000_SLOUCH_RECOIL_EXTEND_TICK        = 25,
+        ACTOR_07000_SLOUCH_RECOIL_RETRACT_TICK       = 35,
+        ACTOR_07000_SLOUCH_RECOIL_CONTACT_END_TICK   = 36,
+        ACTOR_07000_SLOUCH_RECOIL_SPIT_TICK          = 2,
+        ACTOR_07000_SLOUCH_RECOIL_END_TICK           = 47
+    };
+    u32                    playerRange;
+    _Actor07000SlouchWork* work;
+    GfxCoord*              rootCoord;
+    Enemy*                 enemy;
+    Enemy*                 soundEnemy;
+    s32                    soundId;
+    s16                    stretchTarget;
+
+    work      = task->work;
+    enemy     = task->spawnArg2.pointer;
+    rootCoord = task->extra.tmd->coords;
+    // Attack windows follow animation ticks, not the task-state wait counter.
     switch (work->engagedAction) {
         case ACTOR_07000_SLOUCH_ENGAGED_WATCH:
             work->animId = ACTOR_07000_SLOUCH_ANIM_WATCH;
-            if (work->animFrames >= 18) {
+            if (work->animFrames >= ACTOR_07000_SLOUCH_ALERT_TICK) {
                 sceneSetEnemyAlert(1);
                 sceneEngageBattle(1);
             }
-            _actor07000SlouchMeasurePlayer(arg0->extra.tmd->coords, &distance);
-            if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) == 0 || distance >= 5000U) {
+            _actor07000SlouchMeasurePlayer(task->extra.tmd->coords, &playerRange);
+            if (worldCollisionCountContactsByKind(work->senseContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) == 0 || playerRange >= (u32)ACTOR_07000_SLOUCH_WATCH_RANGE) {
                 work->stateFrames++;
                 if (work->stateFrames > work->idleFrames) {
                     work->stateFrames = 0;
                     work->state       = ACTOR_07000_SLOUCH_STATE_IDLE;
                     work->animId      = ACTOR_07000_SLOUCH_ANIM_FIDGET;
                     gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    work->idleFrames  = (gRandomLcgState >> 16) % 20 + 80;
+                    work->idleFrames  = (gRandomLcgState >> 16) % ACTOR_07000_SLOUCH_IDLE_TICKS_COUNT + ACTOR_07000_SLOUCH_IDLE_TICKS_BASE;
                 }
             } else {
                 work->engagedAction = ACTOR_07000_SLOUCH_ENGAGED_STRIKE;
@@ -1284,59 +1343,54 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             sceneEngageBattle(1);
             work->animId       = ACTOR_07000_SLOUCH_ANIM_STRIKE;
             work->forwardSpeed = 0;
-            _actor07000SlouchMeasurePlayer(arg0->extra.tmd->coords, &distance);
-            if (distance < 900U) {
-                work->stretchTarget = 0;
-            } else if (distance > 2700U) {
-                work->stretchTarget = 0x2000;
-            } else {
-                work->stretchTarget = ((distance - 900) << 9) / 100;
+            _actor07000SlouchMeasurePlayer(task->extra.tmd->coords, &playerRange);
+            _actor07000SlouchSetStrikeReach(work, playerRange);
+            if (work->animFrames == ACTOR_07000_SLOUCH_STRIKE_SOUND_TICK) {
+                soundEnemy = task->spawnArg2.pointer;
+                soundId    = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 1);
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
             }
-            if (work->animFrames == 40) {
-                soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460001;
-                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            }
-            if (work->animFrames >= 32 && work->animFrames < 42) {
-                amount = work->stretchTarget;
-                if (work->stretch < amount) {
-                    work->stretch += amount >> 3;
+            if (work->animFrames >= ACTOR_07000_SLOUCH_STRIKE_EXTEND_TICK && work->animFrames < ACTOR_07000_SLOUCH_STRIKE_RETRACT_TICK) {
+                stretchTarget = work->stretchTarget;
+                if (work->stretch < stretchTarget) {
+                    work->stretch += stretchTarget >> ACTOR_07000_SLOUCH_STRETCH_EXTEND_SHIFT;
                 }
-            } else if (work->animFrames >= 42) {
-                if (work->stretch >= 0x200) {
-                    work->stretch -= 0x250;
+            } else if (work->animFrames >= ACTOR_07000_SLOUCH_STRIKE_RETRACT_TICK) {
+                if (work->stretch >= ACTOR_07000_SLOUCH_STRETCH_RETRACT_THRESHOLD) {
+                    work->stretch -= ACTOR_07000_SLOUCH_STRETCH_RETRACT_STEP;
                 } else {
                     work->stretch = 0;
                 }
             }
-            if (work->animFrames >= 32 && work->animFrames < 43) {
+            if (work->animFrames >= ACTOR_07000_SLOUCH_STRIKE_EXTEND_TICK && work->animFrames < ACTOR_07000_SLOUCH_STRIKE_CONTACT_END_TICK) {
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             } else {
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            if (work->animFrames >= 64) {
-                _actor07000SlouchPickAction(arg0, 1);
+            if (work->animFrames >= ACTOR_07000_SLOUCH_STRIKE_END_TICK) {
+                _actor07000SlouchPickAction(task, 1);
             }
             break;
         case ACTOR_07000_SLOUCH_ENGAGED_SPIT:
             sceneEngageBattle(1);
             work->animId = ACTOR_07000_SLOUCH_ANIM_SPIT;
-            if (work->animFrames == 48) {
-                _actor07000SlouchSpawnProjectile(arg0);
+            if (work->animFrames == ACTOR_07000_SLOUCH_SPIT_TICK) {
+                _actor07000SlouchSpawnProjectile(task);
                 if (enemy->hp <= 0) {
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    arg0->state             = 2;
+                    task->state             = ACTOR_07000_SLOUCH_TASK_DEATH;
                     work->deathPhase        = ACTOR_07000_SLOUCH_DEATH_PHASE_BEGIN;
                     return;
                 }
             }
-            if (work->field_388 != 0 && work->animFrames == 50) {
-                _actor07000SlouchPickAction(arg0, 0);
+            if (work->field_388 != 0 && work->animFrames == ACTOR_07000_SLOUCH_SHORT_SPIT_END_TICK) {
+                _actor07000SlouchPickAction(task, 0);
             }
-            if (work->animFrames >= 83) {
-                _actor07000SlouchPickAction(arg0, 0);
+            if (work->animFrames >= ACTOR_07000_SLOUCH_SPIT_END_TICK) {
+                _actor07000SlouchPickAction(task, 0);
             }
-            if (work->stretch >= 0x200) {
-                work->stretch -= 0x250;
+            if (work->stretch >= ACTOR_07000_SLOUCH_STRETCH_RETRACT_THRESHOLD) {
+                work->stretch -= ACTOR_07000_SLOUCH_STRETCH_RETRACT_STEP;
             } else {
                 work->stretch = 0;
             }
@@ -1344,62 +1398,58 @@ static void Actor07000_Fn037EC(Task* arg0, TmdObject* arg1, s32 arg2)
             break;
         case ACTOR_07000_SLOUCH_ENGAGED_FIDGET:
             work->animId = ACTOR_07000_SLOUCH_ANIM_FIDGET;
-            if (work->animFrames == 105) {
-                soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460006;
-                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            if (work->animFrames == ACTOR_07000_SLOUCH_FIDGET_SOUND_TICK) {
+                soundEnemy = task->spawnArg2.pointer;
+                soundId    = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 6);
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
             }
-            if (work->animFrames >= 110) {
-                _actor07000SlouchPickAction(arg0, 0);
+            if (work->animFrames >= ACTOR_07000_SLOUCH_FIDGET_END_TICK) {
+                _actor07000SlouchPickAction(task, 0);
             }
             break;
         case ACTOR_07000_SLOUCH_ENGAGED_RECOIL:
             work->animId = ACTOR_07000_SLOUCH_ANIM_RECOIL;
-            _actor07000SlouchMeasurePlayer(arg0->extra.tmd->coords, &distance);
-            if (distance < 900U) {
-                work->stretchTarget = 0;
-            } else if (distance > 2700U) {
-                work->stretchTarget = 0x2000;
-            } else {
-                work->stretchTarget = ((distance - 900) << 9) / 100;
+            _actor07000SlouchMeasurePlayer(task->extra.tmd->coords, &playerRange);
+            _actor07000SlouchSetStrikeReach(work, playerRange);
+            if (work->animFrames == ACTOR_07000_SLOUCH_RECOIL_SOUND_TICK) {
+                soundEnemy = task->spawnArg2.pointer;
+                soundId    = ((soundEnemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_SUCKLERCEPH, 1);
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
             }
-            if (work->animFrames == 30) {
-                soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460001;
-                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            }
-            if (work->animFrames >= 25 && work->animFrames < 35) {
-                amount = work->stretchTarget;
-                if (work->stretch < amount) {
-                    work->stretch += amount >> 3;
+            if (work->animFrames >= ACTOR_07000_SLOUCH_RECOIL_EXTEND_TICK && work->animFrames < ACTOR_07000_SLOUCH_RECOIL_RETRACT_TICK) {
+                stretchTarget = work->stretchTarget;
+                if (work->stretch < stretchTarget) {
+                    work->stretch += stretchTarget >> ACTOR_07000_SLOUCH_STRETCH_EXTEND_SHIFT;
                 }
-            } else if (work->animFrames >= 35) {
-                if (work->stretch >= 0x200) {
-                    work->stretch -= 0x250;
+            } else if (work->animFrames >= ACTOR_07000_SLOUCH_RECOIL_RETRACT_TICK) {
+                if (work->stretch >= ACTOR_07000_SLOUCH_STRETCH_RETRACT_THRESHOLD) {
+                    work->stretch -= ACTOR_07000_SLOUCH_STRETCH_RETRACT_STEP;
                 } else {
                     work->stretch = 0;
                 }
             } else {
-                if (work->stretch >= 0x200) {
-                    work->stretch -= 0x250;
+                if (work->stretch >= ACTOR_07000_SLOUCH_STRETCH_RETRACT_THRESHOLD) {
+                    work->stretch -= ACTOR_07000_SLOUCH_STRETCH_RETRACT_STEP;
                 } else {
                     work->stretch = 0;
                 }
             }
-            if (work->animFrames >= 25 && work->animFrames < 36) {
+            if (work->animFrames >= ACTOR_07000_SLOUCH_RECOIL_EXTEND_TICK && work->animFrames < ACTOR_07000_SLOUCH_RECOIL_CONTACT_END_TICK) {
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             } else {
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            if (work->animFrames == 2) {
-                _actor07000SlouchSpawnProjectile(arg0);
+            if (work->animFrames == ACTOR_07000_SLOUCH_RECOIL_SPIT_TICK) {
+                _actor07000SlouchSpawnProjectile(task);
                 if (enemy->hp <= 0) {
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    arg0->state             = 2;
+                    task->state             = ACTOR_07000_SLOUCH_TASK_DEATH;
                     work->deathPhase        = ACTOR_07000_SLOUCH_DEATH_PHASE_BEGIN;
                     return;
                 }
             }
-            if (work->animFrames >= 47) {
-                _actor07000SlouchPickAction(arg0, 0);
+            if (work->animFrames >= ACTOR_07000_SLOUCH_RECOIL_END_TICK) {
+                _actor07000SlouchPickAction(task, 0);
             }
             break;
     }
@@ -2021,72 +2071,89 @@ static void _actor07000SlouchProjectileFly(Task* task)
     worldCollisionClearContacts(work->contacts);
 }
 
-/// The variant's spawn handler: allocate the `_Actor07000SlouchWork` block,
-/// rebind the model's light and colour matrices into it, link its three `WorldCollisionBody`
-/// render nodes and their collision tables, and hand the task over to the state
-/// table in `Task::msgTable`.
+/// Binds the hidden Slouch's seven-slot rig and starts non-root slots at clip 1.
 ///
-/// Node 1 is the odd one: it points its context at the `WorldCollisionCapsule` at 0x1FC
-/// rather than at a record table, and the record's own `contacts` names the one
-/// `WorldCollisionContact` beside it - the pair `CompanionWork` keeps, and the three constants it
-/// carries are that record's fields rather than an object's. Node 3's `field_8`
-/// is the model's seventh coordinate (`&coord[6]`), which is the value the
-/// sibling `_sucklercephSpawnState` computes for its `bodyCoord`.
-///
-/// The spawn arg seeds `spawnArgHi`/`spawnArgLo` the same way it does there, and
-/// a high halfword of 1 kills the specimen instead. The tail draws two numbers
-/// off `gRandomLcgState` for `idleFrames`/`watchFrames`, the lengths of the
-/// idle wait and of the watch animation.
-static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
+/// Borrows live work/model and the loaded clip table. Playback storage remains
+/// owned by work for the animation context's lifetime; slot zero stays unstarted.
+static inline void _actor07000SlouchInitHiddenRig(_Actor07000SlouchWork* work, TmdObject* model)
 {
-    _Actor07000SlouchWork* work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    GfxCoord*              part;
-    u32                    draw;
-    s32                    one;
-    s32                    i;
+    s32 slotIndex;
 
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    part  = &coord[6];
-    one   = 1;
-    if ((s16)(arg1->spawnArg1.value >> 16) == one) {
-        enemyDestroy(arg0, arg1);
+    animationInitContext(&work->rig.anim, Actor07000_D0D77C, model, work->rig.poses, &work->rig.slots[0]);
+    slotIndex = 1;
+    do {
+        animationResetSlot(&work->rig.anim, slotIndex, ACTOR_07000_SLOUCH_ANIM_IDLE);
+        slotIndex += 1;
+    } while (slotIndex < ARRAY_SIZE(work->rig.slots));
+}
+
+/// Initializes a hidden Slouch with inactive collision until its room reveals it.
+///
+/// Requires a live enemy/TMD task and this package's seven-part model and clips.
+/// A spawnArg1 high halfword of 1 cancels spawning; allocation failure destroys
+/// the enemy. Allocates zeroed task-owned Slouch work, lends its rig and lighting
+/// to the model, registers the sensing/body/strike shapes with pair tests disabled
+/// and disables the body's grid/floor tests. Stores both spawn argument halves;
+/// their further roles are unproven. Installs room commands and hidden task state 4.
+/// Idle waits draw 80..99 ticks and watch waits 50..99 from the shared LCG.
+static void _actor07000SlouchHiddenSpawn(Enemy* enemy, Task* task)
+{
+    enum { ACTOR_07000_SLOUCH_HIDDEN_SPAWN_CANCEL        = 1,
+           ACTOR_07000_SLOUCH_STRIKE_PART                = 6,
+           ACTOR_07000_SLOUCH_HIDDEN_HIT_EFFECT_ARGUMENT = 256,
+           ACTOR_07000_SLOUCH_SENSE_LENGTH               = 3000,
+           ACTOR_07000_SLOUCH_SENSE_FAR_RADIUS           = 4000,
+           ACTOR_07000_SLOUCH_SENSE_ROOT_RADIUS          = 2000,
+           ACTOR_07000_SLOUCH_BODY_RADIUS                = 600,
+           ACTOR_07000_SLOUCH_BODY_CONTACT_KEY           = 0x3002A,
+           ACTOR_07000_SLOUCH_STRIKE_X_OFFSET            = -340,
+           ACTOR_07000_SLOUCH_STRIKE_RADIUS              = 300,
+           ACTOR_07000_SLOUCH_IDLE_TICKS_COUNT           = 20,
+           ACTOR_07000_SLOUCH_IDLE_TICKS_BASE            = 80,
+           ACTOR_07000_SLOUCH_WATCH_TICKS_COUNT          = 50,
+           ACTOR_07000_SLOUCH_WATCH_TICKS_BASE           = 50,
+           ACTOR_07000_SLOUCH_TASK_HIDDEN                = 4 };
+    _Actor07000SlouchWork* work;
+    TmdObject*             model;
+    GfxCoord*              rootCoord;
+    GfxCoord*              strikeCoord;
+    u32                    randomDraw;
+
+    model       = task->extra.tmd;
+    rootCoord   = model->coords;
+    strikeCoord = &rootCoord[ACTOR_07000_SLOUCH_STRIKE_PART];
+    if ((s16)(task->spawnArg1.value >> 16) == ACTOR_07000_SLOUCH_HIDDEN_SPAWN_CANCEL) {
+        enemyDestroy(enemy, task);
         return;
     }
     work = memCalloc(sizeof(_Actor07000SlouchWork), false);
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->work          = work;
-    work->spawnArgLo    = arg1->spawnArg1.value;
-    work->spawnArgHi    = arg1->spawnArg1.value >> 16;
-    obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
-    arg0->field_4       = &coord->coord;
-    arg0->field_48      = 0;
-    worldTargetLinkNode(&arg0->node);
-    arg0->coord                   = coord;
-    arg0->node.state.parts.flags  = one;
-    arg0->bodyPos.vx              = 0;
-    arg0->bodyPos.vy              = 0;
-    arg0->bodyPos.vz              = 0;
-    arg0->param                   = &Actor07000_D08080;
-    arg0->hp                      = Actor07000_D08080.hpMax;
-    arg0->recs                    = &work->contacts[0];
-    work->hitEffectArg.coord      = &arg1->extra.tmd->coords[1];
-    work->hitEffectArg.spawnArgLo = 0x100;
-    work->hitEffectArg.spawnArgHi = one;
-    animationInitContext(&work->rig.anim, Actor07000_D0D77C, obj, work->rig.poses, &work->rig.slots[0]);
-    i = 1;
-    do {
-        animationResetSlot(&work->rig.anim, i, 1);
-        i += 1;
-    } while (i < ARRAY_SIZE(work->rig.slots));
+    // Bind the work-owned rig and lighting before registering inactive bodies.
+    task->work              = work;
+    work->spawnArgLo        = task->spawnArg1.value;
+    work->spawnArgHi        = task->spawnArg1.value >> 16;
+    model->flags           |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->lightMtx         = &work->lightMtx;
+    model->colorMtx         = &work->colorMtx;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->coord                  = rootCoord;
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vy             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->param                  = &Actor07000_D08080;
+    enemy->hp                     = Actor07000_D08080.hpMax;
+    enemy->recs                   = &work->contacts[0];
+    work->hitEffectArg.coord      = &task->extra.tmd->coords[1];
+    work->hitEffectArg.spawnArgLo = ACTOR_07000_SLOUCH_HIDDEN_HIT_EFFECT_ARGUMENT;
+    work->hitEffectArg.spawnArgHi = true;
+    _actor07000SlouchInitHiddenRig(work, model);
     (sceneAcquireBattleRef)(0);
     work->animId                    = ACTOR_07000_SLOUCH_ANIM_IDLE;
     work->appliedAnim               = ACTOR_07000_SLOUCH_ANIM_IDLE;
@@ -2095,12 +2162,12 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
     work->stretchTarget             = 0;
     work->alert                     = 0;
     work->hitCooldown               = 0;
-    work->senseCapsule.ends[0].vz   = 0xBB8;
-    work->senseCapsule.end0Radius   = 0xFA0;
-    work->senseCapsule.end1Radius   = 0x7D0;
+    work->senseCapsule.ends[0].vz   = ACTOR_07000_SLOUCH_SENSE_LENGTH;
+    work->senseCapsule.end0Radius   = ACTOR_07000_SLOUCH_SENSE_FAR_RADIUS;
+    work->senseCapsule.end1Radius   = ACTOR_07000_SLOUCH_SENSE_ROOT_RADIUS;
     work->senseCapsule.contacts     = work->senseContacts;
     work->senseBody.context.capsule = &work->senseCapsule;
-    work->senseBody.coord           = coord;
+    work->senseBody.coord           = rootCoord;
     work->senseBody.pos.vx          = 0;
     work->senseBody.pos.vy          = 0;
     work->senseBody.pos.vz          = 0;
@@ -2109,37 +2176,38 @@ static void Actor07000_Fn05068(Enemy* arg0, Task* arg1)
     work->senseBody.flags           = (u32)WORLD_COLLISION_BODY_CAPSULE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->senseBody);
     worldCollisionInitContacts(work->senseContacts, ARRAY_SIZE(work->senseContacts), 0);
-    work->body.coord            = coord;
+    work->body.coord            = rootCoord;
     work->body.context.contacts = &work->contacts[0];
     work->body.pos.vx           = 0;
-    work->body.pos.vy           = -0x258;
+    work->body.pos.vy           = -ACTOR_07000_SLOUCH_BODY_RADIUS;
     work->body.pos.vz           = 0;
-    work->body.key              = 0x3002A;
-    work->body.radius           = 0x258;
+    work->body.key              = ACTOR_07000_SLOUCH_BODY_CONTACT_KEY;
+    work->body.radius           = ACTOR_07000_SLOUCH_BODY_RADIUS;
     work->body.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     work->senseBody.flags       = (u16)(work->senseBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(&work->contacts[0], ARRAY_SIZE(work->contacts), 0);
-    work->attackBody.coord            = part;
+    work->attackBody.coord            = strikeCoord;
     work->attackBody.context.contacts = &work->attackContacts[0];
-    work->attackBody.pos.vx           = -0x154;
+    work->attackBody.pos.vx           = ACTOR_07000_SLOUCH_STRIKE_X_OFFSET;
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0;
     work->body.flags                  = (u16)(work->body.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED)));
     work->attackBody.key              = damagePackAttackKey(Actor07000_D08078, 0);
-    work->attackBody.radius           = 0x12C;
+    work->attackBody.radius           = ACTOR_07000_SLOUCH_STRIKE_RADIUS;
     work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(&work->attackContacts[0], ARRAY_SIZE(work->attackContacts), 0);
+    // Keep all three collision shapes inactive until a room command reveals it.
     work->hasBurst         = 0;
     work->dropArmed        = 0;
     work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    draw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->idleFrames       = (u16)(((u32)draw >> 16) % 20U + 0x50);
-    draw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->watchFrames      = (u16)(((u32)draw >> 16) % 50U + 0x32);
-    arg1->msgTable         = Actor07000_D0D7C0;
-    arg1->state            = 4;
+    randomDraw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->idleFrames             = (u16)(((u32)randomDraw >> 16) % (u32)ACTOR_07000_SLOUCH_IDLE_TICKS_COUNT + ACTOR_07000_SLOUCH_IDLE_TICKS_BASE);
+    randomDraw = gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->watchFrames            = (u16)(((u32)randomDraw >> 16) % (u32)ACTOR_07000_SLOUCH_WATCH_TICKS_COUNT + ACTOR_07000_SLOUCH_WATCH_TICKS_BASE);
+    task->msgTable               = Actor07000_D0D7C0;
+    task->state                  = ACTOR_07000_SLOUCH_TASK_HIDDEN;
 }
 
 /// Right-multiplies one part's rotation by the Euler twist using borrowed scratch.
@@ -2212,61 +2280,64 @@ static __inline__ void _actor07000SlouchApplyDropTwist(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
-/// Per-frame handler of the specimen's second form while it drops into place,
-/// entry 4 of `Actor07000_D0004C`. `gSceneCombatState.actorControl` mode 1 only re-colours the
-/// actor and mode 2 hides the model; otherwise, once `dropArmed` has armed the
-/// drop, the root is stepped along its facing and by the fall speed
-/// `fallSpeed`, the collision response is applied, the six helper animation
-/// slots tick, the reaction twist is applied to coordinates 3 and 5, and the
-/// root is recomputed, with the step length `forwardSpeed` decaying by 2 a frame.
-/// Once the root is below the floor (Y above 0) the landing sound is cued, the
-/// twist is armed at 0x400, the root is pinned at 0 and the task moves to
-/// state 1; until then the fall speed grows by 10 a frame, or 20 once the
-/// collision response has latched `dropCollided`.
-static void Actor07000_Fn05400(Enemy* arg0, Task* arg1)
+/// Drops an armed hidden Slouch to the floor, then resumes its active task state.
+///
+/// Requires initialized Slouch work and its seven-part model. Paused combat only
+/// updates colour; hidden combat hides drawing and lock-on. An armed running tick
+/// moves, resolves collision, animates, applies reaction twist, composes and lights
+/// before reducing forward speed by two game units per tick. Downward acceleration
+/// is 10 units per tick, or 20 after a grid hit. Crossing Y=0 clamps to the floor,
+/// plays the landing cue, arms a quarter-turn twist and selects task state 1.
+static void _actor07000SlouchDropState(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_07000_SLOUCH_DROP_SPEED_DECAY      = 2,
+           ACTOR_07000_SLOUCH_DROP_LANDING_TWIST    = ONE / 4,
+           ACTOR_07000_SLOUCH_DROP_GRAVITY          = 10,
+           ACTOR_07000_SLOUCH_DROP_COLLIDED_GRAVITY = 20,
+           ACTOR_07000_SLOUCH_TASK_UPDATE           = 1 };
     _Actor07000SlouchWork* work;
-    GfxCoord*              coord;
-    s32                    sound;
-    s32                    pan;
-    work = arg1->work;
+    GfxCoord*              rootCoord;
+    s32                    soundId;
+    s32                    audioPan;
+    work = task->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _actor07000SlouchColorAtCoord(arg1->spawnArg2.pointer, &arg1->extra.tmd->coords[1]);
+            _actor07000SlouchColorAtCoord(task->spawnArg2.pointer, &task->extra.tmd->coords[1]);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            task->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             if (work->dropArmed != 0) {
-                _actor07000SlouchFallStep(arg1);
-                _actor07000SlouchDropCollide(arg1);
-                _actor07000SlouchAnimateInline(arg1);
-                _actor07000SlouchApplyDropTwist(arg1);
-                actorRenderComposeCoord(arg1->extra.tmd->coords);
-                _actor07000SlouchColorAtCoord(arg1->spawnArg2.pointer, &arg1->extra.tmd->coords[1]);
-                work->forwardSpeed -= 2;
+                // Resolve the falling step before composing the posed model.
+                _actor07000SlouchFallStep(task);
+                _actor07000SlouchDropCollide(task);
+                _actor07000SlouchAnimateInline(task);
+                _actor07000SlouchApplyDropTwist(task);
+                actorRenderComposeCoord(task->extra.tmd->coords);
+                _actor07000SlouchColorAtCoord(task->spawnArg2.pointer, &task->extra.tmd->coords[1]);
+                work->forwardSpeed -= ACTOR_07000_SLOUCH_DROP_SPEED_DECAY;
                 if (work->forwardSpeed < 0)
                     work->forwardSpeed = 0;
-                coord = arg1->extra.tmd->coords;
-                if (coord->coord.t[1] > 0) {
-                    sound = ((((Enemy*)arg1->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-                    pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                rootCoord = task->extra.tmd->coords;
+                if (rootCoord->coord.t[1] > 0) {
+                    soundId  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 9);
+                    audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+                    sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
                     work->twistActive                   = 1;
-                    work->twist.vx                      = 0x400;
+                    work->twist.vx                      = ACTOR_07000_SLOUCH_DROP_LANDING_TWIST;
                     work->fallSpeed                     = 0;
                     work->forwardSpeed                  = 0;
-                    arg1->extra.tmd->coords->coord.t[1] = 0;
-                    arg1->state                         = 1;
+                    task->extra.tmd->coords->coord.t[1] = 0;
+                    task->state                         = ACTOR_07000_SLOUCH_TASK_UPDATE;
                     return;
                 }
                 if (work->dropCollided == 0)
-                    work->fallSpeed += 10;
+                    work->fallSpeed += ACTOR_07000_SLOUCH_DROP_GRAVITY;
                 else
-                    work->fallSpeed += 20;
+                    work->fallSpeed += ACTOR_07000_SLOUCH_DROP_COLLIDED_GRAVITY;
             }
             break;
     }
@@ -2317,9 +2388,11 @@ static void _actor07000SlouchDropCollide(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorContactDeltaScratch);
 }
 
-/// Restarts the Slouch's puff animation and emits its additive root puff.
+/// Enters the Slouch's puffing state and emits its first additive root puff.
 ///
-/// Borrows live work/root storage and optionally resets the watch time.
+/// Borrows initialized writable work and a live root coordinate through the spawn.
+/// Resets the between-puff counter; nonzero resetWatch also clears the watch count.
+/// Leaves the current animation and held-flinch counter unchanged.
 static inline void _actor07000SlouchStartPuffing(_Actor07000SlouchWork* work, GfxCoord* rootCoord, s32 resetWatch)
 {
     enum { ACTOR_07000_SLOUCH_PUFF_SIZE = 1024 };

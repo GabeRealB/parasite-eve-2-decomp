@@ -4250,17 +4250,17 @@ static __inline__ void _actor444000InitializeRootPose(Task* task, GluttonWork* w
 /// Requires live models and work. Existing buffers and draw flags are preserved;
 /// each successful auxiliary-heap allocation remains owned by its model. Failure
 /// leaves the buffer NULL. Pointers are borrowed only for this call.
-static __inline__ void _actor444000EnsureModelBuffers(TmdObject* hostModel, GluttonWork* bufferWork)
+static __inline__ void _actor444000EnsureModelBuffers(TmdObject* hostModel, const GluttonWork* hostWork)
 {
     TmdObject* escortModel;
-    s16        bufferIndex;
+    s16        escortIndex;
 
     if (hostModel->buffer == NULL) {
         tmdAllocPrimitiveBuffer(hostModel);
     }
-    for (bufferIndex = 0; bufferIndex < ARRAY_SIZE(bufferWork->escorts); bufferIndex++) {
-        if (bufferWork->escorts[bufferIndex] != NULL) {
-            escortModel = bufferWork->escorts[bufferIndex]->task->extra.tmd;
+    for (escortIndex = 0; escortIndex < ARRAY_SIZE(hostWork->escorts); escortIndex++) {
+        if (hostWork->escorts[escortIndex] != NULL) {
+            escortModel = hostWork->escorts[escortIndex]->task->extra.tmd;
             if (escortModel->buffer == NULL) {
                 tmdAllocPrimitiveBuffer(escortModel);
             }

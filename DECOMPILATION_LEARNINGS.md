@@ -124070,7 +124070,7 @@ truncated value is consumed unsigned by a signed comparison the plain `s8` local
 is what the target wants, so read the target's shift placement before choosing.
 ## `combine` drops the sign-bias from a `/2` when the dividend is provably even: keep the mask out of the dividend's statement
 
-`func_actor_361100_80161E3C` divides `(0x18000 - D_8006D868) & ~7` by two, and
+`_actor361100StreamWaterTask` divides `(0x18000 - D_8006D868) & ~7` by two, and
 the target keeps the full signed-division bias:
 
 ```
@@ -150184,10 +150184,10 @@ attempts; left as it was.
   predicate `_companionShouldRetainSoundBank`, with three `return 1` and a
   final `return 0` as the call's argument: the returns go straight into `$a0`.
 - **A constant local survives a switch conversion when the constant is also a
-  call argument past a second dispatch.** `Actor07000_Fn03164` passes `one` to
+  call argument past a second dispatch.** In this experiment, `_actor07000SlouchUpdateState` passed `notLockable` to
   two cases of an inner jump-table switch; with literals the mode switch still
   compares against `li a2,1`, but each call reloads it (cse does not carry
-  the register through the table jump). The mode ladder is a `switch`, `one`
+  the register through the table jump). The mode ladder is a `switch`, `notLockable`
   stays.
 - Not converted: **`_actor01200PollAnimationSound`**, whose case 3 jumps back into
   case 2's `check:` body. Three written-out copies of the body merge only

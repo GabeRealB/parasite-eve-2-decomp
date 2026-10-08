@@ -224,3 +224,6 @@ _pacedWalkSpawn = 0x80132208; // type:func
 _pacedWalkPlayAnimation = 0x8013252C; // type:func
 _pacedWalkSetPairModelDraw = 0x80132598; // type:func
 _pacedWalkExit = 0x80132350; // type:func
+_actor160600DismissCompanion = 0x80131e24; // type:func
+_pacedWalkTask = 0x801321b4; // type:func
+_pacedWalkStartSmoking = 0x8013268c; // type:func

@@ -186,3 +186,4 @@ _actor361100SpawnShakeTask = 0x80162a24; // type:func
 _actor361100AddFlowFlags = 0x80162aec; // type:func
 actor361100ClearHeadAimTaskHandle = 0x80162b0c; // type:func
 _actor361100CancelScene = 0x8016297c; // type:func
+_actor361100StreamWaterTask = 0x80161e3c; // type:func

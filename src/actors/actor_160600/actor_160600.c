@@ -38,9 +38,9 @@ extern u8               gPacedWalkAnimBank[];
 extern u8               gPacedWalkEffectParts[];
 
 static TmdSource _gActor160600SoldierABody;
-void             func_actor_160600_801321B4(Task*);
+static void      _pacedWalkTask(Task* task);
 
-s32 func_actor_160600_8013268C(Task* task, s32 msgId, ActorCommand* args, s32 arg3);
+static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 
 extern AnimationPlayRequest D_actor_160600_80134E8C;
 extern AnimationPlayRequest D_actor_160600_80134EA0;
@@ -81,7 +81,7 @@ extern ActorTransform       D_actor_160600_80135148;
 extern ActorTransform       D_actor_160600_80135160;
 extern ActorTransform       D_actor_160600_80135178;
 extern ActorTransform       D_actor_160600_80135190;
-void                        func_actor_160600_80131E24(void);
+static void                 _actor160600DismissCompanion(void);
 
 static AnimationSet _gActor160600Animation02BE0;
 static AnimationSet _gActor160600Animation02DA0;
@@ -626,7 +626,7 @@ EvsCommand D_actor_160600_80135940[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_160600_80135190 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160600_80131E24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160600DismissCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_160600_80134F04 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5410000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -728,7 +728,7 @@ EvsCommand D_actor_160600_80136258[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_160600_80131E24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor160600DismissCompanion }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_160600_801351A8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_160600_80135190 } }, { .value = 0 } },
@@ -1108,12 +1108,12 @@ TaskMessageEntry gPacedWalkMsgTable[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _pacedWalkPlayAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _pacedWalkSetPairModelDraw },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_160600_8013268C },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _pacedWalkStartSmoking },
     { ACTOR_MESSAGE_WALK_TO, _pacedWalkSetWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_actor_160600_8013DFA0 = { { { TASK_BODY_TMD, 96 } }, func_actor_160600_801321B4, { .model = &_gActor160600SoldierABody } };
+TaskDesc D_actor_160600_8013DFA0 = { { { TASK_BODY_TMD, 96 } }, _pacedWalkTask, { .model = &_gActor160600SoldierABody } };
 
 u8 gPacedWalkAnimBank[64] = {
     0,
@@ -1184,9 +1184,11 @@ u8 gPacedWalkAnimBank[64] = {
 
 u8 gPacedWalkEffectParts[11] = { 1, 3, 5, 6, 9, 14, 15, 16, 17, 18, 19 };
 
-/// Passes the task filed in the session's pointer slot 0xA, if any, to
-/// `taskCallExit` and empties the slot.
-void func_actor_160600_80131E24(void)
+/// Releases the current companion task and clears its session slot.
+///
+/// Called synchronously by this package's scene scripts. An empty slot is a
+/// no-op; a live companion's exit callback must release its owned resources.
+static void _actor160600DismissCompanion(void)
 {
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
         taskCallExit(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION));
@@ -1200,17 +1202,19 @@ void func_actor_160600_80131E24(void)
 
 #include "../../shared/paced_walk_update.inc.c"
 
-/// The actor's task body: dispatches on `Task::state` to the spawn routine
-/// (state 0) or the per-frame body (state 1), handing each the task's
-/// `Enemy` from `Task::spawnArg2`. The handler table is built on the stack.
-void func_actor_160600_801321B4(Task* task)
+/// Dispatches the paced walker's spawn and per-frame states.
+///
+/// Requires a live TMD task with state 0 or 1 and its owning Enemy borrowed
+/// through spawnArg2.pointer. Spawn allocates work and installs teardown;
+/// the frame state requires that initialized work and model to remain live.
+static void _pacedWalkTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[2] = {
         _pacedWalkSpawn,
         _pacedWalkFrame,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 #include "../../shared/paced_walk_spawn.inc.c"
@@ -1241,18 +1245,21 @@ static void _pacedWalkExit(Task* task)
 
 #include "../../shared/paced_walk_place.inc.c"
 
-/// Script opcode: sets the work block's `smoking`, which makes the per-frame
-/// body emit smoke puffs, when the payload is exactly 1; any other payload is
-/// ignored.
-s32 func_actor_160600_8013268C(Task* task, s32 arg1, ActorCommand* args, s32 arg3)
+/// Latches scripted smoking on the paced walker for command word 1.
+///
+/// Requires live PacedWalkWork and a borrowed readable command through this
+/// synchronous call. Other command words leave the latch unchanged; no command
+/// clears it. The message ID and trailing argument are ignored. Returns zero.
+static s32 _pacedWalkStartSmoking(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
+    enum { PACED_WALK_COMMAND_START_SMOKING = 1 };
     PacedWalkWork* work;
-    u16            value;
+    u16            commandValue;
 
-    value = args->command;
-    work  = task->work;
-    if (value == 1) {
-        work->smoking = value;
+    commandValue = command->command;
+    work         = task->work;
+    if (commandValue == PACED_WALK_COMMAND_START_SMOKING) {
+        work->smoking = commandValue;
     }
     return 0;
 }

@@ -1385,7 +1385,8 @@ static inline void _actor403600RotateSv(const MATRIX* rotationMatrix, const SVEC
 
 /// Converts a composed loose-part origin to the saved room-axis scratch frame.
 ///
-/// Requires the inverse view rotation already in scratch->basis. Subtracts the
+/// Requires part/view workm caches in the same composed frame and the inverse
+/// view rotation already in scratch->basis. Subtracts the
 /// view translation before signed-halfword narrowing and Q12 rotation; borrows
 /// both pointers and overwrites scratch->aux and GTE rotation/vector state.
 static inline void _actor403600GetLoosePartRoomOrigin(const GfxCoord* part, _Actor403600ChainScratch* scratch)
@@ -2072,34 +2073,36 @@ void func_actor_403600_80134398(Task* arg0)
 
 /// Clamps one radial-grid vertex's geometry and assigns its capture page/UV.
 ///
-/// Borrows a writable quad and displaced screen pixels. Vertical edges clamp
+/// Borrows a writable quad and signed capture-image pixel coordinates.
+/// projectedY retains the original vertex Y bits as an unsigned halfword.
+/// Vertical edges clamp
 /// both geometry and V; the left edge clamps geometry and U. At the right edge
 /// geometry is clamped but U retains the displaced X, narrowed to a byte after
 /// subtracting page shift 64. Width/height are 320/240; geometry stores retain
 /// halfword wrap. Uses no GTE or scratch storage.
-static inline void _actor403600ClampRippleVertex(_Actor403600GridQuad* quad, s32 screenW, s32 screenH, u16 unclampedY, s32 screenX, s32 screenY)
+static inline void _actor403600ClampRippleVertex(_Actor403600GridQuad* quad, s32 captureWidth, s32 captureHeight, u16 projectedY, s32 captureX, s32 captureY)
 {
     enum { ACTOR_403600_RIPPLE_PAGE_PIXELS = 256,
            ACTOR_403600_RIPPLE_PAGE_SHIFT  = 64 };
-    if (screenY >= screenH) {
-        quad->vertex0.y = unclampedY + (screenH - 1) - screenY;
-        screenY         = screenH - 1;
-    } else if (screenY < 0) {
-        quad->vertex0.y = unclampedY - screenY;
-        screenY         = 0;
+    if (captureY >= captureHeight) {
+        quad->vertex0.y = projectedY + (captureHeight - 1) - captureY;
+        captureY        = captureHeight - 1;
+    } else if (captureY < 0) {
+        quad->vertex0.y = projectedY - captureY;
+        captureY        = 0;
     }
-    if (screenX >= screenW) {
-        quad->vertex0.x = (u16)quad->vertex0.x + (screenW - 1) - screenX;
-    } else if (screenX < 0) {
-        quad->vertex0.x = (u16)quad->vertex0.x - screenX;
-        screenX         = 0;
+    if (captureX >= captureWidth) {
+        quad->vertex0.x = (u16)quad->vertex0.x + (captureWidth - 1) - captureX;
+    } else if (captureX < 0) {
+        quad->vertex0.x = (u16)quad->vertex0.x - captureX;
+        captureX        = 0;
     }
     quad->page0 = 0;
-    if (screenX >= ACTOR_403600_RIPPLE_PAGE_PIXELS) {
+    if (captureX >= ACTOR_403600_RIPPLE_PAGE_PIXELS) {
         quad->page0 = ACTOR_403600_RIPPLE_PAGE_SHIFT;
     }
-    quad->vertex0.v = screenY;
-    quad->vertex0.u = screenX - quad->page0;
+    quad->vertex0.v = captureY;
+    quad->vertex0.u = captureX - quad->page0;
 }
 
 void actor403600DrawRipple(const Actor403600Ripple* ripple, GfxCoord* discCoord)

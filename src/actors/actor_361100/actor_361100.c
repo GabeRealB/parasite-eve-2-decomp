@@ -236,11 +236,11 @@ static void                      _actor361100CancelScene(void);
 static void                      _actor361100SpawnHeadAimTask(void);
 static void                      _actor361100SpawnShakeTask(s32 durationTicks);
 
-void        func_actor_361100_80161E3C(Task*);
+static void _actor361100StreamWaterTask(Task* task);
 static void _actor361100HeadAimTask(Task* task);
 void        func_actor_361100_80162A54(Task*);
 
-TaskDesc D_actor_361100_801637C8 = { { { TASK_BODY_COORD, 192 } }, func_actor_361100_80161E3C, { .value = 0 } };
+TaskDesc D_actor_361100_801637C8 = { { { TASK_BODY_COORD, 192 } }, _actor361100StreamWaterTask, { .value = 0 } };
 
 static AnimationPackedPose _gActor361100Animation01C90Bank1[6] = {
 #include "assets/actor_361100_animation_01C90_bank1.inc"
@@ -954,70 +954,80 @@ TaskMessageEntry D_actor_361100_80171BB8[5] = {
 
 Task* D_actor_361100_80171BE0;
 
-/// Runs while `Fs_ChunkOutputSizes[2]` reports a streaming write in flight -- it is `-1`
-/// until `fsLoadFile` has a chunk, and the mode byte in `gGameSession->location.loc.view`
-/// then picks this actor's part in the load: 11 hands the task to
-/// `_actor361100DrawStreamRefraction`, 12 publishes the stream position `D_actor_403600_8016069C`
-/// (half the remaining 0x18000-byte window past the write pointer, times the
-/// per-chunk rate) and uploads the coordinate, and 10 exits the task.
+/// Draws the pod-bottom scene's water while actor data streams into slot 2.
 ///
-/// State 0 allocates the `Actor403600Ripple` block into
-/// `Task::work`, sets its `emitting` and `shallow` and ticks it 0x1E
-/// times, then resets the body's coordinate matrix to identity with the fixed
-/// translation (0x1CA2, 0x712, 0x189C) and parks the view coordinate in its
-/// `parent` slot. A failed allocation takes the exit call and is *not* branched
-/// around: the block pointer is NULL for the rest of the state, as it was in
-/// the original.
-void func_actor_361100_80161E3C(Task* arg0)
+/// Requires this overlay and actor_403600 loaded, a live coordinate-body task,
+/// initialized graphics/scratch state and a 0x18000-byte stream window. Waits for
+/// a written-byte count, then allocates a task-owned shallow ripple and warms it
+/// for 30 ticks at (7330,1810,6300) game units under the view coordinate.
+/// View 11 draws refracted strips; view 12 draws the ripple using the current
+/// display buffer's half of the aligned free tail; view 10 releases the task.
+/// The ripple draw needs 192 complete 40-byte packet records per half (at least
+/// 15360 free bytes), aligned packet storage and no streaming overwrite until GPU
+/// consumption. This branch has no capacity check. Written count must be in
+/// 0..0x18000; allocation must succeed because the retained failure path exits
+/// and then continues using the allocation. Other view IDs leave the task live.
+static void _actor361100StreamWaterTask(Task* task)
 {
-    Actor403600Ripple* state;
-    GfxCoord*          coord;
-    s32                i;
-    u8*                writePtr;
-    u32                streamLeft;
-    u8*                modePtr;
-    u8                 mode;
+    enum { ACTOR_361100_STREAM_WINDOW_BYTES          = 0x18000,
+           ACTOR_361100_STREAM_NOT_STARTED           = -1,
+           ACTOR_361100_STREAM_PACKET_ALIGNMENT_MASK = 7,
+           ACTOR_361100_STREAM_RIPPLE_WARMUP_TICKS   = 30,
+           ACTOR_361100_STREAM_VIEW_EXIT             = 10,
+           ACTOR_361100_STREAM_VIEW_REFRACTION       = 11,
+           ACTOR_361100_STREAM_VIEW_RIPPLE           = 12,
+           ACTOR_361100_STREAM_DISC_X                = 7330,
+           ACTOR_361100_STREAM_DISC_Y                = 1810,
+           ACTOR_361100_STREAM_DISC_Z                = 6300 };
+    Actor403600Ripple* ripple;
+    GfxCoord*          discCoord;
+    s32                warmupTick;
+    u8*                streamWrite;
+    u32                freeBytes;
+    u8*                viewIdPtr;
+    u8                 viewId;
 
-    state   = arg0->work;
-    modePtr = &gGameSession->location.loc.view;
-    coord   = arg0->extra.coordBody->coord;
-    if (Fs_ChunkOutputSizes[2] != -1) {
-        streamLeft  = 0x18000 - Fs_ChunkOutputSizes[2];
-        streamLeft &= ~7;
-        writePtr    = (u8*)Fs_ActorLoadBase2 + Fs_ChunkOutputSizes[2];
-        if (arg0->state == 0) {
-            state = memCalloc(sizeof(Actor403600Ripple), false);
-            if (state == NULL) {
-                taskCallExit(arg0);
-                i = 0;
+    ripple    = task->work;
+    viewIdPtr = &gGameSession->location.loc.view;
+    discCoord = task->extra.coordBody->coord;
+    if (Fs_ChunkOutputSizes[2] != ACTOR_361100_STREAM_NOT_STARTED) {
+        freeBytes   = ACTOR_361100_STREAM_WINDOW_BYTES - Fs_ChunkOutputSizes[2];
+        freeBytes  &= ~ACTOR_361100_STREAM_PACKET_ALIGNMENT_MASK;
+        streamWrite = (u8*)Fs_ActorLoadBase2 + Fs_ChunkOutputSizes[2];
+        // Seed a shallow disc before either water presentation can draw.
+        if (task->state == 0) {
+            ripple = memCalloc(sizeof(Actor403600Ripple), false);
+            if (ripple == NULL) {
+                taskCallExit(task);
             }
-            arg0->work      = state;
-            state->shallow  = 1;
-            state->emitting = 1;
-            i               = 0;
+            task->work       = ripple;
+            ripple->shallow  = 1;
+            ripple->emitting = 1;
+            warmupTick       = 0;
             do {
-                actor403600TickRipple(state);
-                i += 1;
-            } while (i < 0x1E);
-            coord->parent = &gGfxViewCoord;
-            gfxSetRotIdentity(&coord->coord);
-            coord->coord.t[0]   = 0x1CA2;
-            coord->coord.t[1]   = 0x712;
-            coord->coord.t[2]   = 0x189C;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            arg0->state        += 1;
+                actor403600TickRipple(ripple);
+                warmupTick += 1;
+            } while (warmupTick < ACTOR_361100_STREAM_RIPPLE_WARMUP_TICKS);
+            discCoord->parent = &gGfxViewCoord;
+            gfxSetRotIdentity(&discCoord->coord);
+            discCoord->coord.t[0]   = ACTOR_361100_STREAM_DISC_X;
+            discCoord->coord.t[1]   = ACTOR_361100_STREAM_DISC_Y;
+            discCoord->coord.t[2]   = ACTOR_361100_STREAM_DISC_Z;
+            discCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            task->state            += 1;
         }
-        mode = *modePtr;
-        if (mode == 11) {
-            _actor361100DrawStreamRefraction(arg0);
+        viewId = *viewIdPtr;
+        if (viewId == ACTOR_361100_STREAM_VIEW_REFRACTION) {
+            _actor361100DrawStreamRefraction(task);
             return;
-        } else if (mode == 12) {
-            D_actor_403600_8016069C = writePtr + (gDisplayState.otBuffer * ((s32)(streamLeft + (streamLeft >> 0x1F)) >> 1));
-            actor403600TickRipple(state);
-            actor403600DrawRipple(state, coord);
+        } else if (viewId == ACTOR_361100_STREAM_VIEW_RIPPLE) {
+            // Borrow the current buffer's half of the free streaming tail.
+            D_actor_403600_8016069C = streamWrite + (gDisplayState.otBuffer * ((s32)(freeBytes + (freeBytes >> 0x1F)) >> 1));
+            actor403600TickRipple(ripple);
+            actor403600DrawRipple(ripple, discCoord);
             return;
-        } else if (mode == 10) {
-            taskCallExit(arg0);
+        } else if (viewId == ACTOR_361100_STREAM_VIEW_EXIT) {
+            taskCallExit(task);
         }
     }
 }
