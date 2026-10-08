@@ -174,7 +174,7 @@ static inline void _neoArkEveAccessTunnelDrawGlowPair(const SVECTOR worldPoints[
 void neoArkEveAccessTunnelSetPartDestroyedSprites(u8 partSlot, u8 destroyed)
 {
     const GameLocationKey* location = &gGameSession->location.loc;
-    SpriteView*            views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    SpriteView*            views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     SpriteBatch*           batches;
     s32                    slot = partSlot;
     s32                    destroyedState;

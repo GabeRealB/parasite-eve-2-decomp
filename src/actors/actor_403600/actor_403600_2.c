@@ -360,7 +360,7 @@ s32 D_actor_403600_80160698 = 0;
 
 u8* D_actor_403600_8016069C = NULL;
 
-GfxCoord* D_actor_403600_801606A0 = NULL;
+GfxCoord* gActor403600RipplePlaneCoord = NULL;
 
 DamageAttack D_actor_403600_801606A4 = { 0, 0 };
 

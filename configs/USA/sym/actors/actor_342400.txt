@@ -142,7 +142,7 @@ D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // absolute:True owner=s
 
 D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True owner=shelter_b3_dumping_hole
 
-D_shelter_b3_garbage_incinerator_80187328 = 0x80187328; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
+gShelterB3GarbageIncineratorRoom1And3ViewMap = 0x80187328; // absolute:True owner=shelter_b3_garbage_incinerator shared=rooms
 _madChaserTwistSpine = 0x801639A8; // type:func
 _madChaserLinkBodies = 0x80165E4C; // type:func
 _madChaserPinPart = 0x80169654; // type:func

@@ -85,31 +85,31 @@ static s32 _mainStreetCapSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cue
 /// 0xFF first byte: `(view, 0xFF)` selects that view's command list, and any
 /// other `(cmd, value)` stores `value` in that batch's `hidden` byte. The list
 /// starts on the view named by its first byte.
-#define DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(table, nibble)           \
-    {                                                                        \
-        GameLocationKey* sess;                                               \
-        SpriteView*      rec;                                                \
-        SpriteBatch*     batches;                                            \
-        u8*              p;                                                  \
-        s16              idx;                                                \
-        u8**             tbl;                                                \
-                                                                             \
-        idx     = gameFlagGetNibble(nibble);                                 \
-        tbl     = table;                                                     \
-        p       = tbl[idx];                                                  \
-        sess    = &gGameSession->location.loc;                               \
-        rec     = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1]; \
-        batches = rec[p[0]].batches;                                         \
-        if (p[0] != 0xFF) {                                                  \
-            do {                                                             \
-                if (p[1] == 0xFF) {                                          \
-                    batches = rec[p[0]].batches;                             \
-                    p      += 2;                                             \
-                }                                                            \
-                batches[p[0]].hidden = p[1];                                 \
-                p                   += 2;                                    \
-            } while (p[0] != 0xFF);                                          \
-        }                                                                    \
+#define DRYFIELD_NIGHT_MAIN_STREET_APPLY_SPRT_PATCH(table, nibble)               \
+    {                                                                            \
+        GameLocationKey* sess;                                                   \
+        SpriteView*      rec;                                                    \
+        SpriteBatch*     batches;                                                \
+        u8*              p;                                                      \
+        s16              idx;                                                    \
+        u8**             tbl;                                                    \
+                                                                                 \
+        idx     = gameFlagGetNibble(nibble);                                     \
+        tbl     = table;                                                         \
+        p       = tbl[idx];                                                      \
+        sess    = &gGameSession->location.loc;                                   \
+        rec     = gSpriteAreaTables[sess->stage - 1]->areaViews[sess->area - 1]; \
+        batches = rec[p[0]].batches;                                             \
+        if (p[0] != 0xFF) {                                                      \
+            do {                                                                 \
+                if (p[1] == 0xFF) {                                              \
+                    batches = rec[p[0]].batches;                                 \
+                    p      += 2;                                                 \
+                }                                                                \
+                batches[p[0]].hidden = p[1];                                     \
+                p                   += 2;                                        \
+            } while (p[0] != 0xFF);                                              \
+        }                                                                        \
     }
 
 /// Descriptor of the room's own event task, which the message handler spawns.

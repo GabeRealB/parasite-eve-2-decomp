@@ -396,7 +396,7 @@ static void _shelter1fGuardroomSetUnlockOverlayVisible(u8 visible)
     const GameLocationKey* location = &gGameSession->location.loc;
     SpriteBatch*           batches;
 
-    batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_VIEW_INDEX].batches;
+    batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_VIEW_INDEX].batches;
     if (visible == 0) {
         batches[SHELTER_1F_GUARDROOM_UNLOCK_OVERLAY_BATCH_INDEX].hidden = 1;
     } else {

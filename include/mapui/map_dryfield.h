@@ -53,11 +53,12 @@ extern TaskDesc D_map_dryfield_8017A6A4[];
 /// This stage's flag table for `menuMapGetMarkerState`.
 extern u16 D_map_dryfield_8017A824[];
 
-/// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_WarpTables`,
-/// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
-/// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
-/// one pointer per room into that room's package.
-extern WorldCoordRoomLighting* D_map_dryfield_8017A860[];
+/// Daytime Dryfield's 38-area directory of room-lighting descriptor arrays.
+///
+/// Indexed by area minus one, then room minus one within that area's own extent.
+/// NULL areas have no room lighting. The map borrows room-owned records, which
+/// remain valid only while the corresponding room overlay is loaded.
+extern WorldCoordRoomLighting* gMapDryfieldRoomLightingTables[38];
 
 extern DirectionWarpEntry* D_map_dryfield_8017A8F8[];
 
@@ -67,9 +68,18 @@ extern WorldCollisionStageResources D_map_dryfield_8017AAC4;
 
 extern ViewCameraTable D_map_dryfield_8017AB60;
 
-extern ViewIndexTable D_map_dryfield_8017ABFC;
+/// Daytime Dryfield's directory of logical-view maps for 38 areas.
+///
+/// Area, room and logical-view IDs are one-based with separate extents; NULL
+/// areas have no maps. The map overlay owns the area directory and borrows
+/// each room overlay's map directory, valid while that room is loaded.
+extern ViewIndexTable gMapDryfieldViewIndexTable;
 
-extern SpriteAreaTable D_map_dryfield_8017AC98;
+/// Daytime Dryfield's directory of mapped-view sprite arrays for 38 areas.
+///
+/// Contains one directory record; area and mapped-view IDs are one-based with
+/// separate extents. Room-owned mutable sprite resources must remain loaded.
+extern SpriteAreaTable gMapDryfieldSpriteAreaTable;
 
 extern WorldCollisionSurfaceProperties** D_map_dryfield_8017AC9C[];
 

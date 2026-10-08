@@ -248,12 +248,12 @@ D_dryfield_motel_room_5_8017DDF8 = 0x8017DDF8; // absolute:True owner=dryfield_m
 D_dryfield_motel_room_5_8017E5BC = 0x8017E5BC; // absolute:True owner=dryfield_motel_room_5 shared=rooms
 func_dryfield_motel_balcony_8017DBD0 = 0x8017DBD0; // type:func absolute:True owner=dryfield_motel_balcony
 D_dryfield_motel_balcony_801822D0 = 0x801822D0; // absolute:True owner=dryfield_motel_balcony
-D_dryfield_motel_balcony_801822E0 = 0x801822E0; // absolute:True owner=dryfield_motel_balcony
+gDryfieldMotelBalconyViewMaps = 0x801822E0; // absolute:True owner=dryfield_motel_balcony
 D_dryfield_motel_balcony_801822E4 = 0x801822E4; // absolute:True owner=dryfield_motel_balcony shared=rooms
-D_dryfield_motel_balcony_801822E8 = 0x801822E8; // absolute:True owner=dryfield_motel_balcony
+gDryfieldMotelBalconyRoomLighting = 0x801822E8; // absolute:True owner=dryfield_motel_balcony
 D_dryfield_motel_balcony_801822F0 = 0x801822F0; // absolute:True owner=dryfield_motel_balcony shared=rooms
 D_dryfield_motel_balcony_80182B80 = 0x80182B80; // absolute:True owner=dryfield_motel_balcony shared=rooms
-D_dryfield_motel_balcony_80185C98 = 0x80185C98; // absolute:True owner=dryfield_motel_balcony shared=rooms
+gDryfieldMotelBalconySpriteViews = 0x80185C98; // absolute:True owner=dryfield_motel_balcony shared=rooms
 D_dryfield_motel_balcony_80186704 = 0x80186704; // absolute:True owner=dryfield_motel_balcony shared=rooms
 dryfieldMotelRoom6Task = 0x80181B18; // type:func absolute:True owner=dryfield_motel_room_6
 D_dryfield_motel_room_6_80182D98 = 0x80182D98; // absolute:True owner=dryfield_motel_room_6 shared=rooms
@@ -332,3 +332,5 @@ D_mappic_s2_03_8012EFD8 = 0x8012EFD8; // absolute:True owner=mappic_s2_03 shared
 D_mappic_s2_03_8012F084 = 0x8012F084; // absolute:True owner=mappic_s2_03 shared=mappic
 D_mappic_s2_03_8012F180 = 0x8012F180; // absolute:True owner=mappic_s2_03 shared=mappic
 mapDryfieldSetupMovieBuffers = 0x80179954; // type:func
+_gMapDryfieldAreaViewMaps = 0x8017ab64;
+_gMapDryfieldAreaSpriteViews = 0x8017ac00;

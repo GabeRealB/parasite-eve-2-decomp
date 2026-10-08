@@ -16,17 +16,29 @@ extern AreaVariant D_dryfield_motel_balcony_80186220[13];
 // dryfield_motel_balcony
 extern WorldCollisionRoomResources D_dryfield_motel_balcony_801822D0[];
 
-extern u8* D_dryfield_motel_balcony_801822E0[];
+/// Logical-view map directory for the balcony's single room.
+///
+/// Room 1 borrows the resident identity map: logical views 1..22 select the
+/// same one-based camera/image/sprite indices. The room overlay owns this directory.
+extern u8* gDryfieldMotelBalconyViewMaps[1];
 
 extern ViewCount D_dryfield_motel_balcony_801822E4[];
 
-extern WorldCoordRoomLighting D_dryfield_motel_balcony_801822E8[];
+/// Lighting descriptor for the balcony's single room.
+///
+/// Borrows nine mutable point lights and minimum ambient levels for 22 mapped
+/// logical views. All room-owned pointers must remain live while lighting is queried.
+extern WorldCoordRoomLighting gDryfieldMotelBalconyRoomLighting[1];
 
 extern DirectionWarpEntry D_dryfield_motel_balcony_801822F0[];
 
 extern ViewCamera D_dryfield_motel_balcony_80182B80[];
 
-extern SpriteView D_dryfield_motel_balcony_80185C98[];
+/// Sprite descriptors for balcony mapped views 1..22.
+///
+/// Indexed by mapped view minus one. The room owns mutable sources, terminated
+/// batch lists and these descriptors for the lifetime of the loaded overlay.
+extern SpriteView gDryfieldMotelBalconySpriteViews[22];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_motel_balcony_80186704[];
 

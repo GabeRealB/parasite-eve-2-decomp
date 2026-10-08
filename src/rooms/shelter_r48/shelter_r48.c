@@ -2310,7 +2310,7 @@ void shelterR48SetBackgroundSpritesVisible(u8 visible)
         SHELTER_R48_BACKGROUND_SPRITES_SHOW = 1
     };
     GameLocationKey* location = &gGameSession->location.loc;
-    SpriteView*      views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    SpriteView*      views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     SpriteBatch*     batches;
 
     if (visible == SHELTER_R48_BACKGROUND_SPRITES_HIDE) {

@@ -114,8 +114,8 @@ STATIC_ASSERT_SIZEOF(SpriteDrawArea, 0xA);
 
 /// Borrowed sprite sources, drawing batches and clipping areas for one room view.
 ///
-/// Room overlays own arrays selected through `Gp_SprtTables` by stage and area.
-/// The 1-based byte from `Gp_ViewIndexTables` selects an element in that area's
+/// Room overlays own arrays selected through `gSpriteAreaTables` by stage and area.
+/// The 1-based byte from `gViewIndexTables` selects an element in that area's
 /// array; it must be nonzero and within the array's extent. The descriptor and
 /// its referenced lists must remain valid while allocating or drawing sprites.
 ///
@@ -137,7 +137,7 @@ STATIC_ASSERT_SIZEOF(SpriteView, 0xC);
 
 /// A stage map's directory of per-area sprite-view arrays.
 ///
-/// `Gp_SprtTables[stage - 1]` selects the record owned by that stage's map
+/// `gSpriteAreaTables[stage - 1]` selects the record owned by that stage's map
 /// overlay. Callers that index `[spriteVariant - 1]` or `[0]` address the
 /// same record: each published stage entry is one record and the session
 /// sprite variant is 1. The record stores no further variant slots.

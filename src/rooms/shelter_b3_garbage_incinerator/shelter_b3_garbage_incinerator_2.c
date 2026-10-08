@@ -147,16 +147,34 @@ static s32 _gCapCaptionCaretPulseFalling;
 
 void func_shelter_b3_garbage_incinerator_8017F968(void);
 // This carrier borrows the caption storage defined by its third translation unit.
-#define CAP_CAPTION_GLYPH_CELLS       CapCaption_Data_8015E654
-#define CAP_CAPTION_SEQUENCE          CapCaption_Data_8015E658
-#define CAP_CAPTION_BLOCK_LEFT_X      CapCaption_Data_8015E65C
-#define CAP_CAPTION_FIRST_BASELINE_Y  CapCaption_Data_8015E65E
+#define CAP_CAPTION_COMMAND_REFS CapCaption_Data_8015E650
+#define CAP_CAPTION_SELECTED_KEY CapCaption_Data_8015E666
+/// Writable pointer lvalue borrowing readable glyph cells from the loaded CAP file.
+///
+/// Nonnegative text uses low-ten-bit cell indices; title selectors use eight bits.
+#define CAP_CAPTION_GLYPH_CELLS CapCaption_Data_8015E654
+/// Writable pointer lvalue borrowing the selected CAP sequence, or NULL.
+///
+/// Text records follow its command header and end at CAP_TEXT_REF_END.
+#define CAP_CAPTION_SEQUENCE CapCaption_Data_8015E658
+/// Writable s16 left X in biased screen pixels: (320 - widest closed line)/2 - 5.
+#define CAP_CAPTION_BLOCK_LEFT_X CapCaption_Data_8015E65C
+/// Writable s16 first baseline in screen pixels, derived from the bottom baseline.
+#define CAP_CAPTION_FIRST_BASELINE_Y CapCaption_Data_8015E65E
+/// Writable s16 final baseline in screen pixels, narrowed from the selector input.
 #define CAP_CAPTION_BOTTOM_BASELINE_Y CapCaption_Data_8015E660
-#define CAP_CAPTION_RECORD_INDEX      CapCaption_Data_8015E662
-#define CAP_CAPTION_BLOCK_HEIGHT      CapCaption_Data_8015E664
-#define CAP_CAPTION_CARET_LEFT_X      CapCaption_Data_8015E668
-#define CAP_CAPTION_CARET_TIP_Y       CapCaption_Data_8015E66A
-#define CAP_CAPTION_CARET_DRAWS_LEFT  CapCaption_Data_8015E66C[0]
+/// Writable s16 record slot in the selected sequence; text begins at slot one.
+#define CAP_CAPTION_RECORD_INDEX CapCaption_Data_8015E662
+/// Writable s16 closed-line block height in pixels.
+///
+/// Each closed line contributes its tallest glyph height plus the two-pixel gap.
+#define CAP_CAPTION_BLOCK_HEIGHT CapCaption_Data_8015E664
+/// Writable u16 continuation-triangle left X in draw pixels, with unsigned wrapping.
+#define CAP_CAPTION_CARET_LEFT_X CapCaption_Data_8015E668
+/// Writable u16 continuation-triangle tip Y in draw pixels, with unsigned wrapping.
+#define CAP_CAPTION_CARET_TIP_Y CapCaption_Data_8015E66A
+/// Writable u8 delay before the continuation caret, counted in eligible draw calls.
+#define CAP_CAPTION_CARET_DRAWS_LEFT (CapCaption_Data_8015E66C[0])
 #include "../../shared/cap_captions.h"
 
 /// Progress of the burn scene, held in `_ShelterB3GarbageIncineratorBlazeWork::sceneState`.
@@ -445,7 +463,7 @@ WorldCollisionRoomResources D_shelter_b3_garbage_incinerator_801872B8[7] = {
     { D_shelter_b3_garbage_incinerator_80188388, D_shelter_b3_garbage_incinerator_8018F228, D_shelter_b3_garbage_incinerator_8018F734, D_shelter_b3_garbage_incinerator_8018FAD8 },
 };
 
-u8 D_shelter_b3_garbage_incinerator_80187328[40] = {
+u8 gShelterB3GarbageIncineratorRoom1And3ViewMap[40] = {
     1,
     2,
     3,
@@ -488,7 +506,11 @@ u8 D_shelter_b3_garbage_incinerator_80187328[40] = {
     40,
 };
 
-u8 D_shelter_b3_garbage_incinerator_80187350[40] = {
+/// Forty logical-view mappings for incinerator room 2.
+///
+/// Indexed by logical view minus one; each byte is a one-based camera/image/
+/// sprite index in 1..40. The room directory borrows this map while loaded.
+static u8 _gShelterB3GarbageIncineratorRoom2ViewMap[40] = {
     1,
     2,
     3,
@@ -531,7 +553,11 @@ u8 D_shelter_b3_garbage_incinerator_80187350[40] = {
     40,
 };
 
-u8 D_shelter_b3_garbage_incinerator_80187378[40] = {
+/// Forty logical-view mappings for incinerator rooms 4 and 6.
+///
+/// Indexed by logical view minus one; each byte is a one-based camera/image/
+/// sprite index in 1..40. The room directory borrows this map while loaded.
+static u8 _gShelterB3GarbageIncineratorRoom4And6ViewMap[40] = {
     1,
     22,
     23,
@@ -574,7 +600,11 @@ u8 D_shelter_b3_garbage_incinerator_80187378[40] = {
     40,
 };
 
-u8 D_shelter_b3_garbage_incinerator_801873A0[40] = {
+/// Forty logical-view mappings for incinerator room 5.
+///
+/// Indexed by logical view minus one; each byte is a one-based camera/image/
+/// sprite index in 1..40. The room directory borrows this map while loaded.
+static u8 _gShelterB3GarbageIncineratorRoom5ViewMap[40] = {
     1,
     22,
     23,
@@ -617,7 +647,11 @@ u8 D_shelter_b3_garbage_incinerator_801873A0[40] = {
     40,
 };
 
-u8 D_shelter_b3_garbage_incinerator_801873C8[40] = {
+/// Forty logical-view mappings for incinerator room 7.
+///
+/// Indexed by logical view minus one; each byte is a one-based camera/image/
+/// sprite index in 1..40. The room directory borrows this map while loaded.
+static u8 _gShelterB3GarbageIncineratorRoom7ViewMap[40] = {
     1,
     22,
     23,
@@ -660,14 +694,14 @@ u8 D_shelter_b3_garbage_incinerator_801873C8[40] = {
     40,
 };
 
-u8* D_shelter_b3_garbage_incinerator_801873F0[7] = {
-    D_shelter_b3_garbage_incinerator_80187328,
-    D_shelter_b3_garbage_incinerator_80187350,
-    D_shelter_b3_garbage_incinerator_80187328,
-    D_shelter_b3_garbage_incinerator_80187378,
-    D_shelter_b3_garbage_incinerator_801873A0,
-    D_shelter_b3_garbage_incinerator_80187378,
-    D_shelter_b3_garbage_incinerator_801873C8,
+u8* gShelterB3GarbageIncineratorViewMaps[7] = {
+    gShelterB3GarbageIncineratorRoom1And3ViewMap,
+    _gShelterB3GarbageIncineratorRoom2ViewMap,
+    gShelterB3GarbageIncineratorRoom1And3ViewMap,
+    _gShelterB3GarbageIncineratorRoom4And6ViewMap,
+    _gShelterB3GarbageIncineratorRoom5ViewMap,
+    _gShelterB3GarbageIncineratorRoom4And6ViewMap,
+    _gShelterB3GarbageIncineratorRoom7ViewMap,
 };
 
 ViewCount D_shelter_b3_garbage_incinerator_8018740C[7] = { 40, 40, 40, 40, 40, 40, 40 };

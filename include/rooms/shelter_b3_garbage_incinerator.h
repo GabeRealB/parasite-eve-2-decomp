@@ -19,7 +19,19 @@ extern u16 D_shelter_b3_garbage_incinerator_801855DE;
 
 extern TaskDesc D_shelter_b3_garbage_incinerator_80187150[4];
 
-extern u8 D_shelter_b3_garbage_incinerator_80187328[40];
+/// Mutable logical-view map shared by incinerator rooms 1 and 3.
+///
+/// Forty one-based camera/image/sprite indices, indexed by logical view minus
+/// one. Initially identity; the encounter switches logical view 2 between
+/// mapped views 2 and 17. The room overlay owns the storage while loaded.
+extern u8 gShelterB3GarbageIncineratorRoom1And3ViewMap[40];
+
+/// Logical-view byte offset and the two mappings switched by the encounter.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_VIEW_OFFSET = 1,
+    SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_NORMAL_VIEW = 2,
+    SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_REVEAL_VIEW = 17,
+};
 
 extern AreaApplyRec D_shelter_b3_garbage_incinerator_8018FB6C[23];
 
@@ -37,7 +49,12 @@ extern WorldCoordRoomLighting gShelterB3GarbageIncineratorRoomLighting[7];
 
 extern WorldCollisionRoomResources D_shelter_b3_garbage_incinerator_801872B8[];
 
-extern u8* D_shelter_b3_garbage_incinerator_801873F0[];
+/// Logical-view map directory for incinerator rooms 1..7.
+///
+/// Every map has forty entries selected by logical view minus one; bytes are
+/// one-based camera/image/sprite indices. Rooms 1/3 and 4/6 share their maps.
+/// All maps belong to the loaded room overlay.
+extern u8* gShelterB3GarbageIncineratorViewMaps[7];
 
 extern ViewCount D_shelter_b3_garbage_incinerator_8018740C[];
 

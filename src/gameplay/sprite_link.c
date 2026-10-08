@@ -126,12 +126,12 @@ static inline const SpriteView* _spriteGetCurrentView(void)
 
     session         = gGameSession;
     location        = &session->location.loc;
-    viewIndexTable  = Gp_ViewIndexTables[location->stage - 1];
+    viewIndexTable  = gViewIndexTables[location->stage - 1];
     areaViewMaps    = viewIndexTable->viewMaps;
     roomViewMaps    = areaViewMaps[location->area - 1];
     viewMap         = roomViewMaps[location->room - 1];
     mappedViewIndex = viewMap[location->view - 1];
-    spriteTable     = Gp_SprtTables[location->stage - 1];
+    spriteTable     = gSpriteAreaTables[location->stage - 1];
     spriteAreaViews = spriteTable->areaViews;
     areaViews       = spriteAreaViews[location->area - 1];
     return &areaViews[mappedViewIndex - 1];
@@ -169,7 +169,7 @@ void spriteLinkViewCachedPackets(void)
     packetBuffers   = Gp_SprtLists;
     display         = &gDisplayState;
     Gp_SprtCursor   = packetBuffers[display->drawBuffer];
-    spriteTable     = Gp_SprtTables[location->stage - 1];
+    spriteTable     = gSpriteAreaTables[location->stage - 1];
     areaViews       = spriteTable->areaViews[location->area - 1];
     batch           = areaViews[(u8)mappedViewIndex - 1].batches;
     sources         = areaViews[(u8)mappedViewIndex - 1].sources.elements;
@@ -260,7 +260,7 @@ static void _spriteSetViewRawTexture(s32 rawTexture)
     location        = &gGameSession->location.loc;
     mappedViewIndex = viewGetMappedIndex();
     Gp_SprtCursor   = Gp_SprtLists[gDisplayState.drawBuffer];
-    spriteTable     = Gp_SprtTables[location->stage - 1];
+    spriteTable     = gSpriteAreaTables[location->stage - 1];
     areaViews       = spriteTable->areaViews[location->area - 1];
     batch           = areaViews[(u8)mappedViewIndex - 1].batches;
     packet          = Gp_SprtCursor;
@@ -323,7 +323,7 @@ void spriteAllocateViewCachedPackets(void)
     location        = &gGameSession->location.loc;
     spriteCount     = 0;
     mappedViewIndex = viewGetMappedIndex();
-    areaViews       = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    areaViews       = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     batch           = areaViews[mappedViewIndex - 1].batches;
     sourceElements  = areaViews[mappedViewIndex - 1].sources.elements;
     while (batch->firstSprite != SPRITE_BATCH_END) {
@@ -447,7 +447,7 @@ s8 viewFindLogicalIndex(s32 mappedViewIndex)
     logicalViewOffset = 0;
     location          = &gGameSession->location.loc;
     viewCount         = Gp_ViewCountTables[location->stage - 1]->viewCounts[location->area - 1][location->room - 1];
-    viewMap           = Gp_ViewIndexTables[location->stage - 1]->viewMaps[location->area - 1][location->room - 1];
+    viewMap           = gViewIndexTables[location->stage - 1]->viewMaps[location->area - 1][location->room - 1];
     // Search logical slots in order: duplicate mapped indices select the first.
     if (viewCount > 0) {
         do {
@@ -481,11 +481,11 @@ static s32 _spriteViewUsesImageStrips(void)
     SpriteView*       areaViews;
 
     session          = gGameSession;
-    stageSpriteEntry = Gp_SprtTables;
+    stageSpriteEntry = gSpriteAreaTables;
     location         = &session->location.loc;
     stageIndex       = location->stage - 1;
     stageSpriteEntry = &stageSpriteEntry[stageIndex];
-    viewIndexTable   = Gp_ViewIndexTables[stageIndex];
+    viewIndexTable   = gViewIndexTables[stageIndex];
     areaViewMaps     = viewIndexTable->viewMaps;
     roomViewMaps     = areaViewMaps[location->area - 1];
     viewMap          = roomViewMaps[location->room - 1];
@@ -549,7 +549,7 @@ s32 viewGetMappedIndex(void)
 
     session      = gGameSession;
     location     = &session->location.loc;
-    areaViewMaps = Gp_ViewIndexTables[location->stage - 1]->viewMaps;
+    areaViewMaps = gViewIndexTables[location->stage - 1]->viewMaps;
     roomViewMaps = areaViewMaps[location->area - 1];
     viewMap      = roomViewMaps[location->room - 1];
     return viewMap[location->view - 1];

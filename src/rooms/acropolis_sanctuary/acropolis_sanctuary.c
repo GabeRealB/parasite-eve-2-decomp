@@ -2231,7 +2231,7 @@ static void _acropolisSanctuarySelectViewSpriteBatch(s32 useSecondBatch, s32 vie
     GameLocationKey* location = &session->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][(viewId & ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK) - 1].batches;
+    batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][(viewId & ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK) - 1].batches;
     if ((useSecondBatch & ACROPOLIS_SANCTUARY_SCRIPT_SPRITE_FIELD_MASK) == 0) {
         batches[1].hidden = 0;
         batches[2].hidden = 1;

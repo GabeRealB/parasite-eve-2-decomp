@@ -26461,7 +26461,7 @@ unsigned byte load. Read the current session's logical view through
 `GameLocationKey::view`, whose declaration is now `u8`:
 
 ```c
-areaViewMaps = Gp_ViewIndexTables[location->stage - 1]->viewMaps;
+areaViewMaps = gViewIndexTables[location->stage - 1]->viewMaps;
 roomViewMaps = areaViewMaps[location->area - 1];
 viewMap      = roomViewMaps[location->room - 1];
 return viewMap[location->view - 1];
@@ -27850,15 +27850,15 @@ immediately (keeps `&array[i]` live, load delayed), then index the
 other global with the same `i`:
 
 ```c
-stageSpriteEntry = Gp_SprtTables;
+stageSpriteEntry = gSpriteAreaTables;
 stageIndex       = location->stage - 1;
 stageSpriteEntry = &stageSpriteEntry[stageIndex]; /* addu a2, v1, a2 */
-viewIndexTable = Gp_ViewIndexTables[stageIndex]; /* addu v1, v1, v0; lw 0(v1) */
+viewIndexTable = gViewIndexTables[stageIndex]; /* addu v1, v1, v0; lw 0(v1) */
 ...
 spriteTable = *stageSpriteEntry; /* delayed lw 0(a2) */
 ```
 
-Direct `Gp_SprtTables[location->stage - 1]` rematerialises that address
+Direct `gSpriteAreaTables[location->stage - 1]` rematerialises that address
 later (`spriteGetViewDrawAreas`). `_spriteViewUsesImageStrips` is the example.
 
 ## `volatile` walk pointer so a field reloads after `sltiu`
@@ -57705,12 +57705,12 @@ computation and the scheduler emits it in the first slot after the `jal`:
 ```c
 /* andi lands immediately after the jal's delay slot */
 view = viewGetMappedIndex() & 0xFF;
-rec  = Gp_SprtTables[...][...].areaViews[...];
+rec  = gSpriteAreaTables[...][...].areaViews[...];
 rec[view - 1].batches[35].hidden = 1;
 
 /* andi sinks into the table walk, as the target has */
 view = viewGetMappedIndex();
-rec  = Gp_SprtTables[...][...].areaViews[...];
+rec  = gSpriteAreaTables[...][...].areaViews[...];
 rec[(u8)view - 1].batches[35].hidden = 1;
 ```
 
@@ -92211,16 +92211,16 @@ Inputs: `base.c` (98.45%, `regs=1 reorder=1`), `base_1.c` (100%). Compiler SHA25
 ## A 1-based global table from an m2c byte-pointer seed: the `-1` folds into the symbol
 
 `func_dryfield_night_junk_yard_8017D9B8` walks
-`Gp_SprtTables[gGameSession->location.loc.stage - 1][0].areaViews[gGameSession->location.loc.area - 1]`,
+`gSpriteAreaTables[gGameSession->location.loc.stage - 1][0].areaViews[gGameSession->location.loc.area - 1]`,
 and m2c seeded the first level as byte arithmetic,
-`(u8 *)&Gp_SprtTables + (idx - 1) * 4`. That spelling lets `pointer_int_sum`
+`(u8 *)&gSpriteAreaTables + (idx - 1) * 4`. That spelling lets `pointer_int_sum`
 apply the distributive law, so combine emerges with `idx * 4 + (%lo(SYM) - 4)`:
 the target's `addiu v0,v0,-0x1` / `sll v0,v0,0x2` / `addu v0,v0,v1` comes out as
 `sll v1,v1,0x2` / `addu v1,v1,v0` against a single
-`addiu v0,v0,%lo(Gp_SprtTables-0x4)` - two instructions short of the target, at
+`addiu v0,v0,%lo(gSpriteAreaTables-0x4)` - two instructions short of the target, at
 89.09% with `regs=10 delete=2 branch=1`.
 
-Writing the real index, `Gp_SprtTables[sess->field_3 - 1]`, is an `ARRAY_REF`
+Writing the real index, `gSpriteAreaTables[sess->field_3 - 1]`, is an `ARRAY_REF`
 and does not distribute, so the `addiu` stays. Same rule as "A table address
 that is not CSE'd with an identical earlier one: `&other[x - K]` folded into the
 symbol", reached from the other end: there the fold renamed the symbol, here it
@@ -94434,7 +94434,7 @@ magic constant, and do not chase the operand's register home — it follows.
 
 ## A displacement past the struct's own size is an array index: `rec[16].batches` reads as `0xC4` (func_dryfield_night_motel_balcony_8017E4B8, 2026-09-16)
 
-The room sprite idiom `Gp_SprtTables[sess->field_3 - 1][g->spriteVariant - 1].areaViews[sess->field_2 - 1]`
+The room sprite idiom `gSpriteAreaTables[sess->field_3 - 1][g->spriteVariant - 1].areaViews[sess->field_2 - 1]`
 yields a `SpriteView*` (`SpriteView` is 0xC bytes), but the m2c seed then loaded
 four "fields" of it — `M2C_FIELD(temp_v1, void **, 0xC4)`, `0xD0`, `0xDC`,
 `0x100` — none of which exists. Each is a subscript:
@@ -94454,7 +94454,7 @@ Gaps are the source's business, not a mis-read: index 21 skips 19 and 20 because
 the function touches four sprites of that view, not a contiguous run.
 
 ```c
-rec = Gp_SprtTables[sess->field_3 - 1][g->spriteVariant - 1].areaViews[sess->field_2 - 1];
+rec = gSpriteAreaTables[sess->field_3 - 1][g->spriteVariant - 1].areaViews[sess->field_2 - 1];
 
 cmd            = rec[16].batches;
 cmd[2].hidden = 0;
@@ -94468,8 +94468,8 @@ carrying both the retyping and the `rec[k]` indexing took the seed from 91.744%
 the base sat in `$a0` and the loaded commands cycled through `$v0`, where the
 target keeps the base in `$v1` and the commands in `$a0`. The two fixes were not
 isolated here. The same seed also had the lost `M2C_UNK` scaling above — `sll
-0x4` and `%lo(Gp_SprtTables-0x10)` where the target has `sll 0x2` and
-`%lo(Gp_SprtTables)`, because `M2C_UNK` is `s32` and the hand-written `* 4`
+0x4` and `%lo(gSpriteAreaTables-0x10)` where the target has `sll 0x2` and
+`%lo(gSpriteAreaTables)`, because `M2C_UNK` is `s32` and the hand-written `* 4`
 scales again — so when both signatures appear in one seed, look for one lost
 pointer type rather than two bugs.
 
@@ -94552,7 +94552,7 @@ across the rooms (the dryfield night motel balcony's
 `dryfieldWaterTowerSetMechanismSpriteVisible` is the worked example: the m2c baseline sat
 at 96% with `branch=2 regs=1 delete=1` and the overlay struct alone took it to
 100% on the first edit. Read the shape-similar matched siblings for the rest of
-the body -- `Room_Util16` / `Room_Util17` carry the same `Gp_SprtTables`
+the body -- `Room_Util16` / `Room_Util17` carry the same `gSpriteAreaTables`
 walk.
 ## A duplicated store to one address is a source-level double write; stores only sink, never rise (_mineMesaPlayerPathTask, 2026-09-16)
 
@@ -95342,9 +95342,9 @@ way the `- 1` is lost: the front end distributes `(idx - 1) * 4` into
 decrement never appears as an instruction and the block is one shorter:
 
 ```
-lui    v1, %hi(Gp_SprtTables)
+lui    v1, %hi(gSpriteAreaTables)
 lbu    v0, 3(a2)
-addiu  v1, v1, %lo(Gp_SprtTables-0x4)   /* -4 absorbed into the symbol */
+addiu  v1, v1, %lo(gSpriteAreaTables-0x4)   /* -4 absorbed into the symbol */
 sll    v0, v0, 2
 addu   v0, v0, v1
 ```
@@ -95352,7 +95352,7 @@ addu   v0, v0, v1
 The target decrements first and scales second:
 
 ```
-addiu  v1, v1, %lo(Gp_SprtTables)
+addiu  v1, v1, %lo(gSpriteAreaTables)
 addiu  v0, v0, -0x1
 sll    v0, v0, 2
 addu   v0, v0, v1
@@ -95363,8 +95363,8 @@ expression as a unit and only then shifts it, so the `- 1` survives. Write the
 lookup as an array index on the real type rather than as byte arithmetic:
 
 ```c
-views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];   /* 100% */
-views = (*(SpriteAreaTable**)((s8*)Gp_SprtTables + (location->stage - 1) * 4))
+views = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];   /* 100% */
+views = (*(SpriteAreaTable**)((s8*)gSpriteAreaTables + (location->stage - 1) * 4))
             ->areaViews[location->area - 1];                             /* 96.2% */
 ```
 
@@ -95381,7 +95381,7 @@ Example: `_dryfieldR08SetViewSpriteBatchHidden`. Inputs: `base_1.i`
 
 ## A room's sprite table is an array of `SpriteView`: `rec[N].batches` is `lw ...,12*N+4`, and an 8-scaled index at `0xC` is `cmd[idx + 1].hidden`
 
-`Gp_SprtTables[stage - 1]->areaViews[area - 1]` is a `SpriteView*` pointing to
+`gSpriteAreaTables[stage - 1]->areaViews[area - 1]` is a `SpriteView*` pointing to
 that area's array of 0xC-byte view descriptors. The per-view `SpriteBatch*`
 lists occupy the same member in consecutive elements, preserving the 0xC
 array stride. So a `lw r, 0x28(v0)` on that table is `rec[3].batches`
@@ -95393,7 +95393,7 @@ landing at displacement 0xC addresses the *next* record's `hidden` off a base
 of `cmd`:
 
 ```c
-batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][3].batches;
+batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][3].batches;
 batches[lampSpriteIndex + 1].hidden = true;   /* sll v0,a0,3 ; addu v0,v0,a1 ; sb ...,0xC(v0) */
 ```
 
@@ -98344,13 +98344,13 @@ Session: `nonmatchings/_actor521100TryStartAttack-vacuum` (`base_2.i.greg`,
 ## A pointer cached in a local is its own allocno: read the global the target reloads (func_actor_521100_80135DDC, 2026-09-16)
 
 The create body calls `memCalloc`, publishes the result as the overlay's
-work-block global `D_actor_521100_8016A3D8` and in `Task::work`, then fills
+work-block global `_gActor521100AnmcWomanWork` and in `Task::work`, then fills
 two matrices *inside* that block. m2c's seed reached the block through the
 calloc local instead:
 
 ```c
 mem = memCalloc(0x4B4, 0);
-D_actor_521100_8016A3D8 = mem;
+_gActor521100AnmcWomanWork = mem;
 ...
 obj->field_1C = &mem->light;     /* target: lw v0,%lo(glob)(s4), no register */
 obj->field_20 = &mem->color;     /* holding the work pointer */
@@ -98361,7 +98361,7 @@ too. Keeping the local costs more than one `move`: 93.62%, with `move v1,v0`
 after the `jal` (`delete=2 insert=2`) **and** the two arguments in the wrong
 saved registers — `$s2` = `task`, `$s3` = `enemy`, where the target has
 `$s2` = `enemy`, `$s3` = `task`. Writing the stores as
-`obj->field_1C = (MATRIX*)D_actor_521100_8016A3D8;` and `... + 1` for the
+`obj->field_1C = (MATRIX*)_gActor521100AnmcWomanWork;` and `... + 1` for the
 second is 100%.
 
 Both arguments are long-lived, so both are global allocnos whose homes come
@@ -99251,7 +99251,7 @@ The same build settled the field accesses. The target computes
 ```c
 session  = gGameSession;
 location = &session->location.loc;
-views    = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
+views    = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
 ```
 
 Keeping `session` for `session->spriteVariant` matters as much as taking `location` for the two
@@ -119459,7 +119459,7 @@ sb   zero,0x44(v1)                                  sb   zero,0x44(v0)
 ```
 
 The tell is the whole function: in the target `$v1` is the pointer temp *everywhere*
-— the `Gp_SprtTables` chain in the prologue as well as all six loads — while `$v0`
+— the `gSpriteAreaTables` chain in the prologue as well as all six loads — while `$v0`
 holds the chain's intermediate values and the case-0 constant 1.
 
 **Why.** local-alloc only allocates a quantity for a pseudo that lives in a single
@@ -120206,7 +120206,7 @@ a definition in *both* arms is not block-local at all -- it goes to
 cannot pick `$v0`, because the branch constant has it over an overlapping range.
 
 ```c
-    rec = Gp_SprtTables[sess->field_3 - 1][0].areaViews[sess->field_2 - 1];
+    rec = gSpriteAreaTables[sess->field_3 - 1][0].areaViews[sess->field_2 - 1];
     if (gameFlagGetNibble(0xD9) == 0) {
         cmd            = rec[3].batches;
         cmd[1].hidden = 1;
@@ -121716,7 +121716,7 @@ delay slot (`addiu $v0,$zero,1`), with both arms' pointer temps in `$v1`:
 
 ```c
     if (location->stage == GAME_STAGE_DRYFIELD) {
-        views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+        views = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
         if (!beforeOperation) { views[2].batches[3].hidden = 0; views[7].batches[1].hidden = 1; return; }
         views[2].batches[3].hidden = 1;  views[7].batches[1].hidden = 0;
     }

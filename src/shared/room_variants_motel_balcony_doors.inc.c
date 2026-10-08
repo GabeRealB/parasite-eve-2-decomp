@@ -1,11 +1,15 @@
 /* Part of the room variants library; see room_variants.h. */
 
 /// Retires the two individual motel keys and identifies the Bronco masterkey.
+///
+/// Requires the live inventory/save state after a masterkey door event starts.
+/// Clears the room-6 and lobby collection bits before marking the masterkey
+/// identified; this does not acquire the masterkey or change item quantities.
 static inline void _roomVariantExchangeMotelKeys(void)
 {
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_MOTEL_ROOM_6_KEY);
     inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_LOBBY_KEY);
-    itemSetIdentified(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY, 1);
+    itemSetIdentified(INVENTORY_COLLECTION_ID_BRONCO_MASTERKEY, true);
 }
 
 /// Selects the carrier-declared s32 (Task*, s32, const RoomEventMsg*, RoomEventMsg*) handler.

@@ -442,12 +442,12 @@ static CapSequenceRecord*       _gCapCaptionSequence;
 static s16                      _gCapCaptionRecordIndex;
 static CapCaptionScheduleWindow CapCaption_Data_80154514[];
 static const TextGlyphCell*     _gCapCaptionGlyphCells;
-static CapCommandRef*           CapCaption_Data_8015E650;
+static const CapCommandRef*     _gCapCaptionCommandRefs;
 static s16                      _gCapCaptionBlockLeftX;
 static s16                      _gCapCaptionFirstBaselineY;
 static s16                      _gCapCaptionBottomBaselineY;
 static s16                      _gCapCaptionBlockHeight;
-static s16                      CapCaption_Data_8015E666;
+static s16                      _gCapCaptionSelectedKey;
 
 static s16      _gCapCaptionTexturePageX;
 static s16      _gCapCaptionTexturePageY;
@@ -584,56 +584,9 @@ void func_shelter_b3_dumping_hole_801835C8(Task*);
 void func_shelter_b3_dumping_hole_80183620(Task*);
 void func_shelter_b3_dumping_hole_80183678(Task*);
 
-extern SpriteDrawArea D_shelter_b3_dumping_hole_8018D3E0[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018C944[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018C954[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018C964[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018CAA0[3];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018CAB8[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018CAC8[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018CAD8[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC28[3];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC40[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC50[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC60[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018CC70[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018D3B0[6];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018D7B4[4];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018D964[4];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018D984[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DB24[4];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DBE4[3];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DBFC[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DC0C[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD34[3];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD4C[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD5C[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD80[3];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DD98[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DF88[3];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFA0[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFB0[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFC0[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFD0[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFE0[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018DFF0[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018E000[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018E010[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018E020[2];
-extern SpriteBatch    D_shelter_b3_dumping_hole_8018E030[2];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018C974[15];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018CAE8[16];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018CC80[92];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018D3F4[48];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018D7D4[20];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018D994[20];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018DB44[8];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018DC1C[14];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018DD6C[1];
-extern SpriteSource   D_shelter_b3_dumping_hole_8018DDA8[24];
-extern TaskDesc       D_actor_342100_80164B78[];
-extern TaskDesc       D_actor_341700_80174D58;
-extern TaskDesc       D_shelter_b3_dumping_hole_80188BC8[5];
+extern TaskDesc D_actor_342100_80164B78[];
+extern TaskDesc D_actor_341700_80174D58;
+extern TaskDesc D_shelter_b3_dumping_hole_80188BC8[5];
 
 _ShelterB3DumpingHoleSpriteFrame D_shelter_b3_dumping_hole_801880B8[13] = {
     { 704, 0, 112, 112, 48, 48 },
@@ -1133,7 +1086,7 @@ WorldCollisionRoomResources D_shelter_b3_dumping_hole_8018B678[2] = {
     { D_shelter_b3_dumping_hole_8018C3EC, D_shelter_b3_dumping_hole_8018E88C, D_shelter_b3_dumping_hole_8018EF9C, NULL },
 };
 
-u8* D_shelter_b3_dumping_hole_8018B698[2] = {
+u8* gShelterB3DumpingHoleViewMaps[2] = {
     gViewIdentityMap,
     gViewIdentityMap,
 };
@@ -1306,201 +1259,284 @@ ViewCamera D_shelter_b3_dumping_hole_8018C410[37] = {
     { { { { 618, 0, 4049 }, { -574, 4054, 87 }, { -4008, -580, 611 } }, { -0x511E, 690, 6915 } }, 257 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018C944[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 1.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView1Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018C954[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 2.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView2Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018C964[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 3.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView3Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018C974[15] = {
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 72, 32, 1637, { .fields = { 56, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 88 } }, 80, 0, 1612, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 40, 1575, { .fields = { 72, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, 32, 1587, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, -16, 1587, { .fields = { 80, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 216 } }, 112, -120, 1537, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 224 } }, 120, -120, 1500, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 224 } }, 128, -120, 1462, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 224 } }, 136, -120, 1425, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 224 } }, 144, -120, 1412, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 224 } }, 152, -120, 1375, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 112 } }, 104, -120, 1575, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 96 } }, 104, -8, 1500, { .fields = { 72, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, -16, 1600, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 96, -80, 1575, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
+/// Unit RGB modulation for colour-modulated sprite emission (Q7, 128 is 1.0).
+enum { SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION = 128 };
+
+/// Mutable source rectangles for shelter b3 dumping hole view 4.
+///
+/// Batch ranges count these 15 elements; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView4Sources[15] = {
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 72, 32, 1637, { .fields = { 56, 56 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 88 } }, 80, 0, 1612, { .fields = { 64, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 40, 1575, { .fields = { 72, 208 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 88, 32, 1587, { .fields = { 56, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, -16, 1587, { .fields = { 80, 216 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 216 } }, 112, -120, 1537, { .fields = { 80, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 120, -120, 1500, { .fields = { 112, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 128, -120, 1462, { .fields = { 120, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 136, -120, 1425, { .fields = { 104, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 144, -120, 1412, { .fields = { 88, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 224 } }, 152, -120, 1375, { .fields = { 96, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 112 } }, 104, -120, 1575, { .fields = { 72, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 96 } }, 104, -8, 1500, { .fields = { 72, 112 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 96, -16, 1600, { .fields = { 64, 152 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 96, -80, 1575, { .fields = { 64, 88 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018CAA0[3] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 4.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView4Batches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 15, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018CAB8[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 5.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView5Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018CAC8[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 6.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView6Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018CAD8[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 7.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView7Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018CAE8[16] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 16, 1025, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 64, 1125, { .fields = { 120, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 64, 32, 1075, { .fields = { 64, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 144 } }, 104, -40, 1000, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 152 } }, 112, -40, 975, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, -80, 950, { .fields = { 64, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 240 } }, 120, -120, 950, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 240 } }, 136, -120, 900, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 88, 24, 1050, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -40, 1000, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 104 } }, 96, 0, 1025, { .fields = { 80, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, -24, 1000, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -8, 986, { .fields = { 64, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 32, 1087, { .fields = { 72, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 72, 1125, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 72, 24, 1075, { .fields = { 72, 144 } }, 128, 128, 128, 0 },
+/// Mutable source rectangles for shelter b3 dumping hole view 8.
+///
+/// Batch ranges count these 16 elements; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView8Sources[16] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 16, 1025, { .fields = { 112, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 56, 64, 1125, { .fields = { 120, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 64, 32, 1075, { .fields = { 64, 72 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 144 } }, 104, -40, 1000, { .fields = { 72, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 152 } }, 112, -40, 975, { .fields = { 80, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, -80, 950, { .fields = { 64, 216 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 240 } }, 120, -120, 950, { .fields = { 112, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 240 } }, 136, -120, 900, { .fields = { 88, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 88, 24, 1050, { .fields = { 64, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -40, 1000, { .fields = { 56, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 104 } }, 96, 0, 1025, { .fields = { 80, 152 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, -24, 1000, { .fields = { 64, 128 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -8, 986, { .fields = { 64, 176 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 32, 1087, { .fields = { 72, 216 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 80, 72, 1125, { .fields = { 56, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 72, 24, 1075, { .fields = { 72, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018CC28[3] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 8.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView8Batches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018CC40[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 9.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView9Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018CC50[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 10.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView10Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018CC60[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 11.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView11Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018CC70[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 12.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView12Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018CC80[92] = {
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -120, 16, 950, { .fields = { 96, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -120, -64, 987, { .fields = { 120, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -128, -64, 987, { .fields = { 120, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -128, 16, 950, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -136, -64, 987, { .fields = { 112, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -136, 16, 950, { .fields = { 104, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -144, -64, 1012, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -144, 16, 937, { .fields = { 104, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -152, -64, 1025, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -152, 16, 937, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 80 } }, -160, -64, 1025, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, -160, 16, 937, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -88, 48, 2700, { .fields = { 64, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -24, 48, 2700, { .fields = { 32, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 48, 2700, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -104, 56, 2700, { .fields = { 48, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -40, 56, 2700, { .fields = { 48, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 24, 56, 2700, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 56, 2700, { .fields = { 64, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 64, 2700, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 64, 2700, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 64, 2700, { .fields = { 64, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, 64, 2700, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 64, 2700, { .fields = { 64, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 64, 2700, { .fields = { 64, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 64, 2700, { .fields = { 64, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 104, 64, 2700, { .fields = { 64, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 56, 2125, { .fields = { 56, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 48, 2125, { .fields = { 72, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 72, 8 } }, -104, 56, 2125, { .fields = { 40, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -32, 56, 2125, { .fields = { 32, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 32, 56, 2125, { .fields = { 32, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -120, 64, 2125, { .fields = { 32, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, 64, 2125, { .fields = { 32, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 8, 64, 2125, { .fields = { 32, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 72, 64, 2125, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 80, 2125, { .fields = { 64, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 80, 2125, { .fields = { 64, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 80, 2125, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 80, 2125, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 80, 2125, { .fields = { 64, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 80, 2125, { .fields = { 64, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 80, 2125, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 80, 2125, { .fields = { 32, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 80, 2125, { .fields = { 64, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 80, 2125, { .fields = { 48, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -136, 72, 2125, { .fields = { 80, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -120, 72, 2125, { .fields = { 56, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -104, 72, 2125, { .fields = { 80, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 72, 2125, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 72, 2125, { .fields = { 48, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 72, 2125, { .fields = { 48, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 72, 2125, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 72, 2125, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -8, 72, 2125, { .fields = { 48, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, 72, 2125, { .fields = { 48, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 72, 2125, { .fields = { 48, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 72, 2125, { .fields = { 48, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, 72, 2125, { .fields = { 48, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 72, 2125, { .fields = { 48, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 72, 2125, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 72, 2125, { .fields = { 48, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, 72, 2125, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 72, 2125, { .fields = { 40, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 56, 1400, { .fields = { 24, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 64, 56, 1425, { .fields = { 24, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 8 } }, 72, 64, 1425, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, 120, 72, 1400, { .fields = { 24, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 80, 1400, { .fields = { 24, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 80, 1400, { .fields = { 24, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 80, 1400, { .fields = { 16, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 80, 1400, { .fields = { 16, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 80, 1400, { .fields = { 16, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 80, 1400, { .fields = { 16, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 80, 1400, { .fields = { 16, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 80, 1400, { .fields = { 16, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 80, 1400, { .fields = { 16, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 80, 1400, { .fields = { 16, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 72, 1400, { .fields = { 16, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 72, 1400, { .fields = { 64, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -72, 72, 1400, { .fields = { 16, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -40, 72, 1400, { .fields = { 16, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -8, 72, 1400, { .fields = { 16, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, 72, 1400, { .fields = { 16, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, 72, 1400, { .fields = { 0, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 88, 72, 1400, { .fields = { 16, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 64, 1400, { .fields = { 8, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 64, 1400, { .fields = { 16, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 64, 1400, { .fields = { 0, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, 64, 1400, { .fields = { 16, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 64, 1400, { .fields = { 8, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 64, 1400, { .fields = { 0, 72 } }, 128, 128, 128, 0 },
+/// Mutable source rectangles for shelter b3 dumping hole views 13, 37.
+///
+/// Batch ranges count these 92 elements; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView13Sources[92] = {
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -120, 16, 950, { .fields = { 96, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -120, -64, 987, { .fields = { 120, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -128, -64, 987, { .fields = { 120, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -128, 16, 950, { .fields = { 104, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -136, -64, 987, { .fields = { 112, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -136, 16, 950, { .fields = { 104, 72 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -144, -64, 1012, { .fields = { 112, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -144, 16, 937, { .fields = { 104, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -152, -64, 1025, { .fields = { 120, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -152, 16, 937, { .fields = { 96, 72 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 80 } }, -160, -64, 1025, { .fields = { 112, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, -160, 16, 937, { .fields = { 96, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -88, 48, 2700, { .fields = { 64, 248 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -24, 48, 2700, { .fields = { 32, 16 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 48, 2700, { .fields = { 112, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -104, 56, 2700, { .fields = { 48, 232 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -40, 56, 2700, { .fields = { 48, 216 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 24, 56, 2700, { .fields = { 32, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 56, 2700, { .fields = { 64, 136 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 64, 2700, { .fields = { 80, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 64, 2700, { .fields = { 64, 24 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 64, 2700, { .fields = { 64, 8 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, 64, 2700, { .fields = { 64, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 64, 2700, { .fields = { 64, 96 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 64, 2700, { .fields = { 64, 32 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 72, 64, 2700, { .fields = { 64, 64 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 104, 64, 2700, { .fields = { 64, 48 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 96, 56, 2125, { .fields = { 56, 192 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 24, 48, 2125, { .fields = { 72, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 72, 8 } }, -104, 56, 2125, { .fields = { 40, 224 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -32, 56, 2125, { .fields = { 32, 72 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 32, 56, 2125, { .fields = { 32, 104 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -120, 64, 2125, { .fields = { 32, 88 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, -56, 64, 2125, { .fields = { 32, 176 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 8, 64, 2125, { .fields = { 32, 184 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 72, 64, 2125, { .fields = { 32, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 80, 2125, { .fields = { 64, 128 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 80, 2125, { .fields = { 64, 112 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 80, 2125, { .fields = { 64, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 80, 2125, { .fields = { 64, 168 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 80, 2125, { .fields = { 64, 152 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 80, 2125, { .fields = { 64, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 80, 2125, { .fields = { 64, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 80, 2125, { .fields = { 32, 24 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 80, 2125, { .fields = { 64, 192 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 80, 2125, { .fields = { 48, 208 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -136, 72, 2125, { .fields = { 80, 208 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -120, 72, 2125, { .fields = { 56, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -104, 72, 2125, { .fields = { 80, 136 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -88, 72, 2125, { .fields = { 64, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -72, 72, 2125, { .fields = { 48, 32 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -56, 72, 2125, { .fields = { 48, 8 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -40, 72, 2125, { .fields = { 48, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -24, 72, 2125, { .fields = { 48, 48 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -8, 72, 2125, { .fields = { 48, 56 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 8, 72, 2125, { .fields = { 48, 64 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 24, 72, 2125, { .fields = { 48, 96 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 40, 72, 2125, { .fields = { 48, 112 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 56, 72, 2125, { .fields = { 48, 128 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 72, 72, 2125, { .fields = { 48, 136 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 88, 72, 2125, { .fields = { 48, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 104, 72, 2125, { .fields = { 48, 152 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 120, 72, 2125, { .fields = { 48, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 8 } }, 136, 72, 2125, { .fields = { 40, 168 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, -48, 56, 1400, { .fields = { 24, 16 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, 64, 56, 1425, { .fields = { 24, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 8 } }, 72, 64, 1425, { .fields = { 0, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, 120, 72, 1400, { .fields = { 24, 248 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -96, 80, 1400, { .fields = { 24, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -64, 80, 1400, { .fields = { 24, 192 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -32, 80, 1400, { .fields = { 16, 8 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 0, 80, 1400, { .fields = { 16, 32 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -128, 80, 1400, { .fields = { 16, 232 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -160, 80, 1400, { .fields = { 16, 48 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 32, 80, 1400, { .fields = { 16, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 64, 80, 1400, { .fields = { 16, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 96, 80, 1400, { .fields = { 16, 96 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 80, 1400, { .fields = { 16, 56 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -136, 72, 1400, { .fields = { 16, 128 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -104, 72, 1400, { .fields = { 64, 56 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -72, 72, 1400, { .fields = { 16, 112 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -40, 72, 1400, { .fields = { 16, 152 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -8, 72, 1400, { .fields = { 16, 136 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 24, 72, 1400, { .fields = { 16, 208 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 56, 72, 1400, { .fields = { 0, 24 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 88, 72, 1400, { .fields = { 16, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -120, 64, 1400, { .fields = { 8, 168 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -88, 64, 1400, { .fields = { 16, 216 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -56, 64, 1400, { .fields = { 0, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, -24, 64, 1400, { .fields = { 16, 64 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 8, 64, 1400, { .fields = { 8, 224 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 40, 64, 1400, { .fields = { 0, 72 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018D3B0[6] = {
+/// Mutable sprite batches for shelter b3 dumping hole views 13, 37.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView13Batches[6] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 12, 0, 0, { 3, 0 } },
     { 12, 15, 0, 0, { 0, 0 } },
@@ -1509,288 +1545,442 @@ SpriteBatch D_shelter_b3_dumping_hole_8018D3B0[6] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteDrawArea D_shelter_b3_dumping_hole_8018D3E0[2] = {
+/// Draw-buffer clipping list for dumping-hole view 13, followed by its terminal.
+///
+/// The first rectangle is in pixels; its unscaled restore depth controls when
+/// full-screen drawing resumes. View 37 shares the sources without this clip.
+static SpriteDrawArea _gShelterB3DumpingHoleView13DrawAreas[2] = {
     { { 1, 0, 318, 196 }, 1400 },
     { { 0, 0, 0, 0 }, SPRITE_DRAW_AREA_END },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018D3F4[48] = {
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 0, -120, 1050, { .fields = { 40, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 8, -120, 1050, { .fields = { 40, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, -120, 1050, { .fields = { 32, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 24, -120, 1050, { .fields = { 40, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 32, -120, 1050, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, -120, 1000, { .fields = { 48, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -120, 1000, { .fields = { 40, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, -120, 912, { .fields = { 40, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 56, -80, 1025, { .fields = { 0, 176 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 88, -80, 975, { .fields = { 8, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, -80, 900, { .fields = { 8, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, -80, 1075, { .fields = { 8, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, -80, 1050, { .fields = { 0, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, -120, 887, { .fields = { 24, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, -120, 887, { .fields = { 32, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 128, -120, 875, { .fields = { 32, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, -120, 925, { .fields = { 32, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -120, 925, { .fields = { 24, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, -120, 950, { .fields = { 32, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -120, 950, { .fields = { 32, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -120, 1000, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 64, -120, 1000, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -96, 750, { .fields = { 96, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -56, 750, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -16, 750, { .fields = { 80, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -96, 800, { .fields = { 96, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -56, 800, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -16, 800, { .fields = { 112, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -96, 875, { .fields = { 96, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -56, 875, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -16, 900, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -96, 925, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -56, 925, { .fields = { 48, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -16, 837, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -96, 950, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -56, 975, { .fields = { 48, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -16, 875, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 120 } }, -48, -96, 1125, { .fields = { 64, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -96, 1000, { .fields = { 72, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -56, 1000, { .fields = { 64, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -16, 900, { .fields = { 64, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -48, 24, 1125, { .fields = { 0, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 24, 1025, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 24, 775, { .fields = { 8, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, 24, 800, { .fields = { 96, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 24, 912, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 24, 962, { .fields = { 64, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 24, 962, { .fields = { 80, 240 } }, 128, 128, 128, 0 },
+/// Mutable source rectangles for shelter b3 dumping hole view 14.
+///
+/// Batch ranges count these 48 elements; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView14Sources[48] = {
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 0, -120, 1050, { .fields = { 40, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 8, -120, 1050, { .fields = { 40, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 16, -120, 1050, { .fields = { 32, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 24, -120, 1050, { .fields = { 40, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 32, -120, 1050, { .fields = { 40, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 40, -120, 1000, { .fields = { 48, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 48, -120, 1000, { .fields = { 40, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 104, -120, 912, { .fields = { 40, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 56, -80, 1025, { .fields = { 0, 176 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 88, -80, 975, { .fields = { 8, 208 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 112, -80, 900, { .fields = { 8, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 32 } }, 32, -80, 1075, { .fields = { 8, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 32 } }, 0, -80, 1050, { .fields = { 0, 112 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 112, -120, 887, { .fields = { 24, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 120, -120, 887, { .fields = { 32, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 128, -120, 875, { .fields = { 32, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 88, -120, 925, { .fields = { 32, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, -120, 925, { .fields = { 24, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 72, -120, 950, { .fields = { 32, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, -120, 950, { .fields = { 32, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 56, -120, 1000, { .fields = { 56, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 64, -120, 1000, { .fields = { 88, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -96, 750, { .fields = { 96, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -56, 750, { .fields = { 80, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -136, -16, 750, { .fields = { 80, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -96, 800, { .fields = { 96, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -56, 800, { .fields = { 112, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -120, -16, 800, { .fields = { 112, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -96, 875, { .fields = { 96, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -56, 875, { .fields = { 112, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -104, -16, 900, { .fields = { 72, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -96, 925, { .fields = { 48, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -56, 925, { .fields = { 48, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -88, -16, 837, { .fields = { 48, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -96, 950, { .fields = { 48, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -56, 975, { .fields = { 48, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -72, -16, 875, { .fields = { 64, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 120 } }, -48, -96, 1125, { .fields = { 64, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -96, 1000, { .fields = { 72, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -56, 1000, { .fields = { 64, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, -56, -16, 900, { .fields = { 64, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -48, 24, 1125, { .fields = { 0, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, -56, 24, 1025, { .fields = { 16, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -136, 24, 775, { .fields = { 8, 16 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -120, 24, 800, { .fields = { 96, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -104, 24, 912, { .fields = { 112, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -88, 24, 962, { .fields = { 64, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 16 } }, -72, 24, 962, { .fields = { 80, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018D7B4[4] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 14.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView14Batches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 22, 0, 0, { 1, 0 } },
     { 22, 26, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018D7D4[20] = {
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 96, 625, { .fields = { 96, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 64 } }, 48, 8, 625, { .fields = { 96, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 0, 32, 625, { .fields = { 0, 48 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 48, 24 } }, -104, 48, 625, { .fields = { 120, 112 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -128, 72, 625, { .fields = { 48, 192 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -88, 72, 625, { .fields = { 40, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -48, 72, 625, { .fields = { 16, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, -8, 72, 625, { .fields = { 48, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 32, 72, 625, { .fields = { 88, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, 72, 625, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 48 } }, 112, 72, 625, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, 72, 625, { .fields = { 80, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 40 } }, 80, 32, 625, { .fields = { 0, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, 80, -16, 625, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, -40, 625, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 32, 625, { .fields = { 16, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 32, -64, 875, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 56, -112, 875, { .fields = { 120, 224 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 24 } }, 56, -88, 875, { .fields = { 112, 88 } }, 128, 128, 128, 0 },
-    { 142, 0x3FC0, { .fields = { 56, 16 } }, 56, -64, 875, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
+/// Mutable source rectangles for shelter b3 dumping hole view 15.
+///
+/// Batch ranges count these 20 elements; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView15Sources[20] = {
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -160, 96, 625, { .fields = { 96, 232 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 64 } }, 48, 8, 625, { .fields = { 96, 72 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, 0, 32, 625, { .fields = { 0, 48 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 48, 24 } }, -104, 48, 625, { .fields = { 120, 112 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -128, 72, 625, { .fields = { 48, 192 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -88, 72, 625, { .fields = { 40, 96 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -48, 72, 625, { .fields = { 16, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, -8, 72, 625, { .fields = { 48, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 32, 72, 625, { .fields = { 88, 184 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 72, 72, 625, { .fields = { 88, 136 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 48 } }, 112, 72, 625, { .fields = { 56, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 152, 72, 625, { .fields = { 80, 96 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 40 } }, 80, 32, 625, { .fields = { 0, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, 80, -16, 625, { .fields = { 48, 48 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 72 } }, 128, -40, 625, { .fields = { 96, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 40 } }, 128, 32, 625, { .fields = { 16, 184 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 32, -64, 875, { .fields = { 72, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, 56, -112, 875, { .fields = { 120, 224 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 24 } }, 56, -88, 875, { .fields = { 112, 88 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 142, 0x3FC0, { .fields = { 56, 16 } }, 56, -64, 875, { .fields = { 88, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018D964[4] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 15.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView15Batches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 16, 0, 0, { 1, 0 } },
     { 16, 4, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018D984[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 16.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView16Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018D994[20] = {
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -24, -56, 768, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, -8, -56, 769, { .fields = { 56, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 8, -56, 769, { .fields = { 56, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, -56, 789, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -56, -80, 595, { .fields = { 48, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -56, 0, 573, { .fields = { 48, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -56, 40, 691, { .fields = { 72, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -80, 634, { .fields = { 48, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -40, 598, { .fields = { 88, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, 0, 590, { .fields = { 88, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -96, 40, 622, { .fields = { 88, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, -80, 490, { .fields = { 88, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, -40, 465, { .fields = { 88, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, 0, 456, { .fields = { 88, 160 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 8 } }, -136, 40, 450, { .fields = { 48, 248 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, -80, 392, { .fields = { 72, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, -40, 383, { .fields = { 72, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, 0, 371, { .fields = { 112, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 40, 359, { .fields = { 112, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 40 } }, -56, -40, 568, { .fields = { 72, 200 } }, 128, 128, 128, 0 },
+/// Mutable source rectangles for shelter b3 dumping hole view 17.
+///
+/// Batch ranges count these 20 elements; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView17Sources[20] = {
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -24, -56, 768, { .fields = { 40, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, -8, -56, 769, { .fields = { 56, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 8, -56, 769, { .fields = { 56, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 32 } }, 24, -56, 789, { .fields = { 56, 32 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -56, -80, 595, { .fields = { 48, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -56, 0, 573, { .fields = { 48, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -56, 40, 691, { .fields = { 72, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -80, 634, { .fields = { 48, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, -40, 598, { .fields = { 88, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -96, 0, 590, { .fields = { 88, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -96, 40, 622, { .fields = { 88, 248 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, -80, 490, { .fields = { 88, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, -40, 465, { .fields = { 88, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -136, 0, 456, { .fields = { 88, 160 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 8 } }, -136, 40, 450, { .fields = { 48, 248 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, -80, 392, { .fields = { 72, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, -40, 383, { .fields = { 72, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 40 } }, -152, 0, 371, { .fields = { 112, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, -152, 40, 359, { .fields = { 112, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 40 } }, -56, -40, 568, { .fields = { 72, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DB24[4] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 17.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView17Batches[4] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 4, 0, 0, { 1, 0 } },
     { 4, 16, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018DB44[8] = {
-    { 143, 0x3FC0, { .fields = { 24, 96 } }, -160, 24, 375, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 88 } }, -136, 32, 375, { .fields = { 104, 96 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 80 } }, -112, 40, 375, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 72 } }, -88, 48, 375, { .fields = { 104, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 64 } }, -64, 56, 375, { .fields = { 80, 80 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 56 } }, -40, 64, 375, { .fields = { 80, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 48 } }, -16, 72, 375, { .fields = { 80, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 24 } }, 8, 96, 375, { .fields = { 40, 0 } }, 128, 128, 128, 0 },
+/// Mutable source rectangles for shelter b3 dumping hole view 18.
+///
+/// Batch ranges count these 8 elements; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView18Sources[8] = {
+    { 143, 0x3FC0, { .fields = { 24, 96 } }, -160, 24, 375, { .fields = { 104, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 88 } }, -136, 32, 375, { .fields = { 104, 96 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 80 } }, -112, 40, 375, { .fields = { 80, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 72 } }, -88, 48, 375, { .fields = { 104, 184 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 64 } }, -64, 56, 375, { .fields = { 80, 80 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 56 } }, -40, 64, 375, { .fields = { 80, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 48 } }, -16, 72, 375, { .fields = { 80, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 24 } }, 8, 96, 375, { .fields = { 40, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DBE4[3] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 18.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView18Batches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 8, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DBFC[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 19.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView19Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DC0C[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 20.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView20Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018DC1C[14] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, -40, 375, { .fields = { 120, 216 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 0, -120, 375, { .fields = { 88, 152 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 40, 16 } }, 40, -120, 375, { .fields = { 88, 136 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 16 } }, -24, -104, 375, { .fields = { 72, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 32, -104, 375, { .fields = { 64, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -40, -88, 375, { .fields = { 64, 184 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 24, -88, 375, { .fields = { 64, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 24, 16 } }, 88, -88, 375, { .fields = { 104, 104 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -48, -72, 375, { .fields = { 64, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, 16, -72, 375, { .fields = { 64, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 16 } }, 80, -72, 375, { .fields = { 96, 56 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 64, 16 } }, -56, -56, 375, { .fields = { 64, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 16 } }, 8, -56, 375, { .fields = { 80, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 24 } }, -40, -40, 375, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
+/// Mutable source rectangles for shelter b3 dumping hole view 21.
+///
+/// Batch ranges count these 14 elements; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView21Sources[14] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 8, -40, 375, { .fields = { 120, 216 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 0, -120, 375, { .fields = { 88, 152 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 40, 16 } }, 40, -120, 375, { .fields = { 88, 136 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 16 } }, -24, -104, 375, { .fields = { 72, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, 32, -104, 375, { .fields = { 64, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -40, -88, 375, { .fields = { 64, 184 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, 24, -88, 375, { .fields = { 64, 168 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 24, 16 } }, 88, -88, 375, { .fields = { 104, 104 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -48, -72, 375, { .fields = { 64, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, 16, -72, 375, { .fields = { 64, 24 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 16 } }, 80, -72, 375, { .fields = { 96, 56 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 64, 16 } }, -56, -56, 375, { .fields = { 64, 88 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 16 } }, 8, -56, 375, { .fields = { 80, 72 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 24 } }, -40, -40, 375, { .fields = { 96, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DD34[3] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 21.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView21Batches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 14, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DD4C[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 22.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView22Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DD5C[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 23.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView23Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018DD6C[1] = {
-    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, 8, 625, { .fields = { 80, 0 } }, 128, 128, 128, 0 },
+/// Mutable source rectangles for shelter b3 dumping hole view 24.
+///
+/// Batch ranges count this one element; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView24Sources[1] = {
+    { 143, 0x3FC0, { .fields = { 48, 48 } }, -136, 8, 625, { .fields = { 80, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DD80[3] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 24.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView24Batches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 1, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DD98[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 25.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView25Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteSource D_shelter_b3_dumping_hole_8018DDA8[24] = {
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 56, 562, { .fields = { 96, 8 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 88, 1300, { .fields = { 96, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 72, 1250, { .fields = { 120, 208 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, 80, 1200, { .fields = { 104, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 112, 16, 750, { .fields = { 56, 40 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 56, 8 } }, 104, 24, 712, { .fields = { 48, 48 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 48, 8 } }, 112, 32, 675, { .fields = { 56, 32 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 40, 637, { .fields = { 72, 16 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 48, 600, { .fields = { 88, 24 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 88, 1150, { .fields = { 104, 168 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 96, 1100, { .fields = { 104, 200 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 120, 104, 1050, { .fields = { 104, 240 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 32, 1200, { .fields = { 104, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, 32, 1150, { .fields = { 112, 64 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 40, 1100, { .fields = { 112, 120 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 120, 40, 1050, { .fields = { 120, 144 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 128, 48, 1000, { .fields = { 120, 72 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 72 } }, 136, 48, 950, { .fields = { 120, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 64 } }, 144, 56, 900, { .fields = { 112, 0 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 16 } }, 144, 0, 750, { .fields = { 104, 224 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, -24, 750, { .fields = { 104, 128 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 48, 1225, { .fields = { 112, 232 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 64, 1300, { .fields = { 104, 88 } }, 128, 128, 128, 0 },
-    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, 64, 850, { .fields = { 112, 176 } }, 128, 128, 128, 0 },
+/// Mutable source rectangles for shelter b3 dumping hole view 26.
+///
+/// Batch ranges count these 24 elements; positions/sizes are draw pixels,
+/// UVs are texels and depth is the unscaled sprite sorting value.
+/// Storage stays live with the room overlay while packets are built and linked.
+static SpriteSource _gShelterB3DumpingHoleView26Sources[24] = {
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 152, 56, 562, { .fields = { 96, 8 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 8 } }, 72, 88, 1300, { .fields = { 96, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 88, 72, 1250, { .fields = { 120, 208 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 96, 80, 1200, { .fields = { 104, 48 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, 112, 16, 750, { .fields = { 56, 40 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 56, 8 } }, 104, 24, 712, { .fields = { 48, 48 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 48, 8 } }, 112, 32, 675, { .fields = { 56, 32 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 32, 8 } }, 128, 40, 637, { .fields = { 72, 16 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 16, 8 } }, 144, 48, 600, { .fields = { 88, 24 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 32 } }, 104, 88, 1150, { .fields = { 104, 168 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 112, 96, 1100, { .fields = { 104, 200 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 120, 104, 1050, { .fields = { 104, 240 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 48 } }, 96, 32, 1200, { .fields = { 104, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 104, 32, 1150, { .fields = { 112, 64 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 112, 40, 1100, { .fields = { 112, 120 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 120, 40, 1050, { .fields = { 120, 144 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 128, 48, 1000, { .fields = { 120, 72 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 72 } }, 136, 48, 950, { .fields = { 120, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 64 } }, 144, 56, 900, { .fields = { 112, 0 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 16 } }, 144, 0, 750, { .fields = { 104, 224 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 152, -24, 750, { .fields = { 104, 128 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 24 } }, 88, 48, 1225, { .fields = { 112, 232 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 40 } }, 80, 64, 1300, { .fields = { 104, 88 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
+    { 143, 0x3FC0, { .fields = { 8, 56 } }, 152, 64, 850, { .fields = { 112, 176 } }, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, SHELTER_B3_DUMPING_HOLE_SPRITE_NEUTRAL_MODULATION, 0 },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DF88[3] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 26.
+///
+/// Nonterminal ranges index the view's source array in elements.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView26Batches[3] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { 0, 24, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DFA0[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 27.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView27Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DFB0[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 28.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView28Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DFC0[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 29.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView29Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DFD0[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 30.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView30Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DFE0[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 31.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView31Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018DFF0[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 32.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView32Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018E000[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 33.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView33Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018E010[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 34.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView34Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018E020[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 35.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView35Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteBatch D_shelter_b3_dumping_hole_8018E030[2] = {
+/// Mutable sprite batches for shelter b3 dumping hole view 36.
+///
+/// The zero-count first record enables background image strips; no sources are read.
+/// The last record is SPRITE_BATCH_END. Hidden and excluded flags remain writable
+/// while the room is loaded; identical empty lists belong to different views.
+static SpriteBatch _gShelterB3DumpingHoleView36Batches[2] = {
     { 0, 0, 0, 0, { 0, 0 } },
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
@@ -1800,44 +1990,44 @@ SpriteBatch D_shelter_b3_dumping_hole_8018E040[2] = {
     { SPRITE_BATCH_END, 0, 0, 0, { 0, 0 } },
 };
 
-SpriteView D_shelter_b3_dumping_hole_8018E050[37] = {
-    { { .empty = D_shelter_b3_dumping_hole_8018C944 }, D_shelter_b3_dumping_hole_8018C944, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018C954 }, D_shelter_b3_dumping_hole_8018C954, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018C964 }, D_shelter_b3_dumping_hole_8018C964, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018C974 }, D_shelter_b3_dumping_hole_8018CAA0, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018CAB8 }, D_shelter_b3_dumping_hole_8018CAB8, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018CAC8 }, D_shelter_b3_dumping_hole_8018CAC8, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018CAD8 }, D_shelter_b3_dumping_hole_8018CAD8, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018CAE8 }, D_shelter_b3_dumping_hole_8018CC28, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018CC40 }, D_shelter_b3_dumping_hole_8018CC40, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018CC50 }, D_shelter_b3_dumping_hole_8018CC50, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018CC60 }, D_shelter_b3_dumping_hole_8018CC60, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018CC70 }, D_shelter_b3_dumping_hole_8018CC70, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018CC80 }, D_shelter_b3_dumping_hole_8018D3B0, D_shelter_b3_dumping_hole_8018D3E0 },
-    { { .elements = D_shelter_b3_dumping_hole_8018D3F4 }, D_shelter_b3_dumping_hole_8018D7B4, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018D7D4 }, D_shelter_b3_dumping_hole_8018D964, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018D984 }, D_shelter_b3_dumping_hole_8018D984, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018D994 }, D_shelter_b3_dumping_hole_8018DB24, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018DB44 }, D_shelter_b3_dumping_hole_8018DBE4, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DBFC }, D_shelter_b3_dumping_hole_8018DBFC, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DC0C }, D_shelter_b3_dumping_hole_8018DC0C, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018DC1C }, D_shelter_b3_dumping_hole_8018DD34, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DD4C }, D_shelter_b3_dumping_hole_8018DD4C, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DD5C }, D_shelter_b3_dumping_hole_8018DD5C, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018DD6C }, D_shelter_b3_dumping_hole_8018DD80, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DD98 }, D_shelter_b3_dumping_hole_8018DD98, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018DDA8 }, D_shelter_b3_dumping_hole_8018DF88, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DFA0 }, D_shelter_b3_dumping_hole_8018DFA0, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DFB0 }, D_shelter_b3_dumping_hole_8018DFB0, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DFC0 }, D_shelter_b3_dumping_hole_8018DFC0, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DFD0 }, D_shelter_b3_dumping_hole_8018DFD0, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DFE0 }, D_shelter_b3_dumping_hole_8018DFE0, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018DFF0 }, D_shelter_b3_dumping_hole_8018DFF0, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018E000 }, D_shelter_b3_dumping_hole_8018E000, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018E010 }, D_shelter_b3_dumping_hole_8018E010, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018E020 }, D_shelter_b3_dumping_hole_8018E020, NULL },
-    { { .empty = D_shelter_b3_dumping_hole_8018E030 }, D_shelter_b3_dumping_hole_8018E030, NULL },
-    { { .elements = D_shelter_b3_dumping_hole_8018CC80 }, D_shelter_b3_dumping_hole_8018D3B0, NULL },
+SpriteView gShelterB3DumpingHoleSpriteViews[37] = {
+    { { .empty = _gShelterB3DumpingHoleView1Batches }, _gShelterB3DumpingHoleView1Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView2Batches }, _gShelterB3DumpingHoleView2Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView3Batches }, _gShelterB3DumpingHoleView3Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView4Sources }, _gShelterB3DumpingHoleView4Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView5Batches }, _gShelterB3DumpingHoleView5Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView6Batches }, _gShelterB3DumpingHoleView6Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView7Batches }, _gShelterB3DumpingHoleView7Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView8Sources }, _gShelterB3DumpingHoleView8Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView9Batches }, _gShelterB3DumpingHoleView9Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView10Batches }, _gShelterB3DumpingHoleView10Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView11Batches }, _gShelterB3DumpingHoleView11Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView12Batches }, _gShelterB3DumpingHoleView12Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView13Sources }, _gShelterB3DumpingHoleView13Batches, _gShelterB3DumpingHoleView13DrawAreas },
+    { { .elements = _gShelterB3DumpingHoleView14Sources }, _gShelterB3DumpingHoleView14Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView15Sources }, _gShelterB3DumpingHoleView15Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView16Batches }, _gShelterB3DumpingHoleView16Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView17Sources }, _gShelterB3DumpingHoleView17Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView18Sources }, _gShelterB3DumpingHoleView18Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView19Batches }, _gShelterB3DumpingHoleView19Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView20Batches }, _gShelterB3DumpingHoleView20Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView21Sources }, _gShelterB3DumpingHoleView21Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView22Batches }, _gShelterB3DumpingHoleView22Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView23Batches }, _gShelterB3DumpingHoleView23Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView24Sources }, _gShelterB3DumpingHoleView24Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView25Batches }, _gShelterB3DumpingHoleView25Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView26Sources }, _gShelterB3DumpingHoleView26Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView27Batches }, _gShelterB3DumpingHoleView27Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView28Batches }, _gShelterB3DumpingHoleView28Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView29Batches }, _gShelterB3DumpingHoleView29Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView30Batches }, _gShelterB3DumpingHoleView30Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView31Batches }, _gShelterB3DumpingHoleView31Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView32Batches }, _gShelterB3DumpingHoleView32Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView33Batches }, _gShelterB3DumpingHoleView33Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView34Batches }, _gShelterB3DumpingHoleView34Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView35Batches }, _gShelterB3DumpingHoleView35Batches, NULL },
+    { { .empty = _gShelterB3DumpingHoleView36Batches }, _gShelterB3DumpingHoleView36Batches, NULL },
+    { { .elements = _gShelterB3DumpingHoleView13Sources }, _gShelterB3DumpingHoleView13Batches, NULL },
 };
 
 /// Two all-view directional lights for dumping-hole room index 1.
@@ -2105,7 +2295,11 @@ u16 D_shelter_b3_dumping_hole_8018F4B0 = 0;
 /// A halfword stored after the scalar; nothing references it.
 u16 D_shelter_b3_dumping_hole_8018F4B2 = 0xDF0D;
 
-static CapCommandRef* CapCaption_Data_8015E650 = NULL;
+/// Borrowed relocated command-reference entries of the loaded CAP resource.
+///
+/// Indexed by a nonnegative signed-halfword command index below the file count.
+/// The file owns the entries and all referenced sequences through caption use.
+static const CapCommandRef* _gCapCaptionCommandRefs = NULL;
 
 /// Glyph and title cells borrowed read-only from the selected loaded CAP file.
 ///
@@ -2154,7 +2348,10 @@ static s16 _gCapCaptionRecordIndex = 0;
 /// an unfinished last line contributes nothing. Used to size the caption box.
 static s16 _gCapCaptionBlockHeight = 0;
 
-static s16 CapCaption_Data_8015E666 = 0;
+/// Selected caption variant key, compared with each record's unsigned byte key.
+///
+/// Valid text selections use 0..255; the signed-halfword input is retained.
+static s16 _gCapCaptionSelectedKey = 0;
 
 /// Continuation triangle's left X, retaining the low halfword of draw-coordinate pixels.
 ///
@@ -3925,7 +4122,7 @@ void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
 static void func_shelter_b3_dumping_hole_80183218(u8 arg0)
 {
     GameLocationKey* g4      = &gGameSession->location.loc;
-    SpriteBatch*     batches = Gp_SprtTables[g4->stage - 1]->areaViews[g4->area - 1][13].batches;
+    SpriteBatch*     batches = gSpriteAreaTables[g4->stage - 1]->areaViews[g4->area - 1][13].batches;
 
     if (arg0 == 0) {
         batches[1].hidden = 1;

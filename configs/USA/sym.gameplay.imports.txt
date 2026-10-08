@@ -388,14 +388,14 @@ D_map_dryfield_full_8017A93C = 0x8017A93C; // absolute:True owner=map_dryfield_f
 D_map_shelter_8017B110 = 0x8017B110; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AB88 = 0x8017AB88; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AC68 = 0x8017AC68; // absolute:True owner=map_akropolis
-D_map_dryfield_8017ABFC = 0x8017ABFC; // absolute:True owner=map_dryfield
+gMapDryfieldViewIndexTable = 0x8017ABFC; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017AB10 = 0x8017AB10; // absolute:True owner=map_dryfield_full
-D_map_shelter_8017B548 = 0x8017B548; // absolute:True owner=map_shelter
+gMapShelterViewIndexTable = 0x8017B548; // absolute:True owner=map_shelter
 D_map_neo_ark_8017ADB0 = 0x8017ADB0; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AB1C = 0x8017AB1C; // absolute:True owner=map_akropolis
-D_map_dryfield_8017AC98 = 0x8017AC98; // absolute:True owner=map_dryfield
+gMapDryfieldSpriteAreaTable = 0x8017AC98; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017ABAC = 0x8017ABAC; // absolute:True owner=map_dryfield_full
-D_map_shelter_8017B610 = 0x8017B610; // absolute:True owner=map_shelter shared=mapui
+gMapShelterSpriteAreaTable = 0x8017B610; // absolute:True owner=map_shelter shared=mapui
 D_map_neo_ark_8017AE38 = 0x8017AE38; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AAC8 = 0x8017AAC8; // absolute:True owner=map_akropolis
 D_map_dryfield_8017AAC4 = 0x8017AAC4; // absolute:True owner=map_dryfield
@@ -408,7 +408,7 @@ D_map_dryfield_full_8017A80C = 0x8017A80C; // absolute:True owner=map_dryfield_f
 D_map_shelter_8017AF88 = 0x8017AF88; // absolute:True owner=map_shelter
 D_map_neo_ark_8017AA80 = 0x8017AA80; // absolute:True owner=map_neo_ark
 D_map_akropolis_8017AA28 = 0x8017AA28; // absolute:True owner=map_akropolis shared=mapui
-D_map_dryfield_8017A860 = 0x8017A860; // absolute:True owner=map_dryfield
+gMapDryfieldRoomLightingTables = 0x8017A860; // absolute:True owner=map_dryfield
 D_map_dryfield_full_8017A774 = 0x8017A774; // absolute:True owner=map_dryfield_full
 gMapShelterRoomLightingTables = 0x8017AEC4; // absolute:True owner=map_shelter
 D_map_neo_ark_8017A9FC = 0x8017A9FC; // absolute:True owner=map_neo_ark
@@ -1663,7 +1663,7 @@ D_shelter_b3_incinerator_control_room_80182610 = 0x80182610; // absolute:True ow
 
 D_shelter_b4_lower_sewer_80183D48 = 0x80183D48; // absolute:True owner=shelter_b4_lower_sewer
 
-D_shelter_b4_reservoir_80187350 = 0x80187350; // absolute:True owner=shelter_b4_reservoir shared=rooms
+D_shelter_b4_reservoir_80187350 = 0x80187350; // absolute:True owner=shelter_b4_reservoir
 
 D_shelter_b4_upper_sewer_80188B9C = 0x80188B9C; // absolute:True owner=shelter_b4_upper_sewer shared=rooms
 

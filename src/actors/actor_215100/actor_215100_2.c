@@ -109,21 +109,21 @@ extern TaskMessageEntry     D_actor_215100_8015E5A0[];
 static const TextGlyphCell* _gCapCaptionGlyphCells;
 
 /// Caption script table.
-static CapCommandRef*     CapCaption_Data_8015E650;
-static CapSequenceRecord* _gCapCaptionSequence;
-static s16                _gCapCaptionBlockLeftX;
-static s16                _gCapCaptionFirstBaselineY;
-static s16                _gCapCaptionBottomBaselineY;
-static s16                _gCapCaptionRecordIndex;
-static s16                _gCapCaptionBlockHeight;
-static s16                CapCaption_Data_8015E666;
-static s32                _gCapCaptionCaretPulseLevel;
-static s32                _gCapCaptionCaretPulseFalling;
-static u16                _gCapCaptionCaretLeftX;
-static u16                _gCapCaptionCaretTipY;
-static s16                _gCapCaptionTexturePageX;
-static s16                _gCapCaptionTexturePageY;
-extern RoomEventMsg       D_actor_215100_8015E678;
+static const CapCommandRef* _gCapCaptionCommandRefs;
+static CapSequenceRecord*   _gCapCaptionSequence;
+static s16                  _gCapCaptionBlockLeftX;
+static s16                  _gCapCaptionFirstBaselineY;
+static s16                  _gCapCaptionBottomBaselineY;
+static s16                  _gCapCaptionRecordIndex;
+static s16                  _gCapCaptionBlockHeight;
+static s16                  _gCapCaptionSelectedKey;
+static s32                  _gCapCaptionCaretPulseLevel;
+static s32                  _gCapCaptionCaretPulseFalling;
+static u16                  _gCapCaptionCaretLeftX;
+static u16                  _gCapCaptionCaretTipY;
+static s16                  _gCapCaptionTexturePageX;
+static s16                  _gCapCaptionTexturePageY;
+extern RoomEventMsg         D_actor_215100_8015E678;
 /// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by an
 /// `upper` of `CAP_CAPTION_SCHEDULE_END`.
 static CapCaptionScheduleWindow CapCaption_Data_80154514[];
@@ -1742,7 +1742,11 @@ AnimationSet* D_actor_215100_8015E5E8[25] = {
 
 Task* D_actor_215100_8015E64C = NULL;
 
-static CapCommandRef* CapCaption_Data_8015E650 = NULL;
+/// Borrowed relocated command-reference entries of the loaded CAP resource.
+///
+/// Indexed by a nonnegative signed-halfword command index below the file count.
+/// The file owns the entries and all referenced sequences through caption use.
+static const CapCommandRef* _gCapCaptionCommandRefs = NULL;
 
 /// Glyph and title cells borrowed read-only from the selected loaded CAP file.
 ///
@@ -1791,7 +1795,10 @@ static s16 _gCapCaptionRecordIndex = 0;
 /// an unfinished last line contributes nothing. Used to size the caption box.
 static s16 _gCapCaptionBlockHeight = 0;
 
-static s16 CapCaption_Data_8015E666 = 0;
+/// Selected caption variant key, compared with each record's unsigned byte key.
+///
+/// Valid text selections use 0..255; the signed-halfword input is retained.
+static s16 _gCapCaptionSelectedKey = 0;
 
 /// Continuation triangle's left X, retaining the low halfword of draw-coordinate pixels.
 ///

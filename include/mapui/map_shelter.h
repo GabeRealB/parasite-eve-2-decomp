@@ -61,7 +61,7 @@ extern WorldCoordRoomLighting* gMapShelterRoomLightingTables[49];
 
 /// This stage's entries in `Gp_WarpTables`,
 /// `Gp_ViewCountTables`, `Gp_RoomObjTables`, `Gp_ViewTables`,
-/// `Gp_ViewIndexTables`, `Gp_SprtTables` and `Gp_RoomParamTables`: each leads to
+/// `gViewIndexTables`, `gSpriteAreaTables` and `Gp_RoomParamTables`: each leads to
 /// one pointer per room into that room's package, except that some rooms'
 /// object records are this overlay's own.
 extern DirectionWarpEntry* D_map_shelter_8017AF88[];
@@ -72,9 +72,17 @@ extern WorldCollisionStageResources D_map_shelter_8017B3B8;
 
 extern ViewCameraTable D_map_shelter_8017B480;
 
-extern ViewIndexTable D_map_shelter_8017B548;
+/// Mine/Shelter's directory of logical-view maps for 49 areas.
+///
+/// Area, room and logical-view IDs are one-based with separate extents. The map
+/// overlay owns the area directory and borrows each loaded room's maps.
+extern ViewIndexTable gMapShelterViewIndexTable;
 
-extern SpriteAreaTable D_map_shelter_8017B610;
+/// Mine/Shelter's directory of mapped-view sprite arrays for 49 areas.
+///
+/// Contains one directory record; area and mapped-view IDs are one-based with
+/// separate extents. Room-owned mutable sprite resources must remain loaded.
+extern SpriteAreaTable gMapShelterSpriteAreaTable;
 
 extern WorldCollisionSurfaceProperties** D_map_shelter_8017B614[];
 

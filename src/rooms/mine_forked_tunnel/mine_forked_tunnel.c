@@ -1508,7 +1508,7 @@ static void _mineForkedTunnelSetSpriteBatchesHidden(u8 hidden)
     SpriteBatch*           view5Batches;
 
     location  = &gGameSession->location.loc;
-    areaViews = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    areaViews = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
 
     if (!hidden) {
         view4Batches           = areaViews[3].batches;

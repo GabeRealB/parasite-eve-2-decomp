@@ -898,7 +898,7 @@ void func_neo_ark_power_plant_1_8017E524(s32 arg0)
     s32              v;
 
     sess = &gGameSession->location.loc;
-    rec  = Gp_SprtTables[sess->stage - 1]->areaViews[sess->area - 1];
+    rec  = gSpriteAreaTables[sess->stage - 1]->areaViews[sess->area - 1];
     v    = arg0 & 0xFF;
 
     if (v == 0) {

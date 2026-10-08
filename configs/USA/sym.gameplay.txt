@@ -1231,7 +1231,7 @@ Gp_StrItem                  = 0x80093870;
 Gp_StrNewEnemyNull          = 0x800939F8;
 Gp_EnemyWaitFuncs           = 0x80093A10; // size:0xC
 Gp_ViewTables = 0x8010CB2C; // size:0x14 defined:True
-Gp_ViewIndexTables = 0x8010CB54; // size:0x14 defined:True
+gViewIndexTables = 0x8010CB54; // size:0x14 defined:True
 Gp_SndMaskTable = 0x8010D1C4; // size:0x38 defined:True
 _gModelObjectSavedModelList = 0x80114B80; // size:0x8 defined:True
 _gModelObjectSavedDisp2dList = 0x80114B88; // size:0x8 defined:True
@@ -1243,7 +1243,7 @@ Gp_ReplayCursor = 0x80114C38; // size:0x4 defined:True
 
 // Gameplay naming pass 2 (SPRT/HUD, area, anim, flags/msg)
 Gp_SprtLists = 0x8010CAE8; // size:0x8 defined:True
-Gp_SprtTables = 0x8010CB68; // size:0x14 defined:True
+gSpriteAreaTables = 0x8010CB68; // size:0x14 defined:True
 Gp_RoomObjTables = 0x8010CB7C; // size:0x14 defined:True
 Gp_AreaTables = 0x8010CBCC; // size:0x18 defined:True
 Gp_Slot4MsgTable = 0x8010D208; // size:0x28 defined:True

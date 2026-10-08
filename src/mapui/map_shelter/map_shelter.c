@@ -1124,7 +1124,11 @@ static ViewCamera* D_map_shelter_8017B3BC[49] = {
 
 ViewCameraTable D_map_shelter_8017B480 = { D_map_shelter_8017B3BC };
 
-static u8** D_map_shelter_8017B484[49] = {
+/// 49 area entries borrowing room-local logical-view map directories.
+///
+/// Indexed by area minus one; rooms and logical views use their own bounds.
+/// NULL entries have no maps. Room pointers stay valid only while that room is loaded.
+static u8** _gMapShelterAreaViewMaps[49] = {
     D_mine_mesa_80186548,
     D_mine_cavern_80189060,
     D_mine_tunnel_entrance_8017DB70,
@@ -1163,8 +1167,8 @@ static u8** D_map_shelter_8017B484[49] = {
     D_shelter_r36_8017E9BC,
     D_shelter_r37_8017D6F8,
     D_shelter_1f_heliport_s4_8017D6F8,
-    D_shelter_b3_dumping_hole_8018B698,
-    D_shelter_b3_garbage_incinerator_801873F0,
+    gShelterB3DumpingHoleViewMaps,
+    gShelterB3GarbageIncineratorViewMaps,
     D_shelter_b3_incinerator_control_room_80181920,
     D_shelter_b3_elevator_hall_80182B54,
     D_shelter_b4_lower_sewer_80181FA4,
@@ -1176,9 +1180,13 @@ static u8** D_map_shelter_8017B484[49] = {
     D_shelter_r49_8017DA28,
 };
 
-ViewIndexTable D_map_shelter_8017B548 = { D_map_shelter_8017B484 };
+ViewIndexTable gMapShelterViewIndexTable = { _gMapShelterAreaViewMaps };
 
-static SpriteView* D_map_shelter_8017B54C[49] = {
+/// 49 area entries borrowing mapped-view sprite arrays from room overlays.
+///
+/// Indexed by area minus one, then the mapped view minus one. Room pointers
+/// must stay loaded; an area entry supplies no sprite-view count or sentinel.
+static SpriteView* _gMapShelterAreaSpriteViews[49] = {
     D_mine_mesa_80188744,
     D_mine_cavern_8018CD10,
     D_mine_tunnel_entrance_8017EA4C,
@@ -1217,7 +1225,7 @@ static SpriteView* D_map_shelter_8017B54C[49] = {
     D_shelter_r36_8017F318,
     D_shelter_r37_8017D9E0,
     D_shelter_1f_heliport_s4_8017DAF0,
-    D_shelter_b3_dumping_hole_8018E050,
+    gShelterB3DumpingHoleSpriteViews,
     D_shelter_b3_garbage_incinerator_8018D100,
     D_shelter_b3_incinerator_control_room_80182140,
     D_shelter_b3_elevator_hall_801841DC,
@@ -1230,7 +1238,7 @@ static SpriteView* D_map_shelter_8017B54C[49] = {
     D_shelter_r49_8017DCA0,
 };
 
-SpriteAreaTable D_map_shelter_8017B610 = { D_map_shelter_8017B54C };
+SpriteAreaTable gMapShelterSpriteAreaTable = { _gMapShelterAreaSpriteViews };
 
 WorldCollisionSurfaceProperties** D_map_shelter_8017B614[49] = {
     D_mine_mesa_80189A60,

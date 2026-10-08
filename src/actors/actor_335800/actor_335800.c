@@ -1218,7 +1218,7 @@ static void _actor335800SetSceneSpriteBatchesHidden(s32 hidden)
 
     session  = gGameSession;
     location = &session->location.loc;
-    views    = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
+    views    = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
     switch (hidden) {
         case ACTOR_335800_SCENE_SPRITES_VISIBLE:
             batches                                                = views[ACTOR_335800_SCENE_SPRITE_VIEW_INDEX].batches;

@@ -2241,7 +2241,7 @@ void mineCavernSetProgressSpritesHidden(s32 hiddenValue)
     s32                    hidden;
 
     location = &gGameSession->location.loc;
-    views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     hidden   = hiddenValue & 0xFF;
 
     if (hidden == true) {

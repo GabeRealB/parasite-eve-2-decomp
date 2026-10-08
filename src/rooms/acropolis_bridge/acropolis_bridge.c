@@ -3038,7 +3038,7 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     sess                    = &gGameSession->location.loc;
     task->state++;
     view                                 = viewGetMappedIndex();
-    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
+    rec                                  = gSpriteAreaTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
     rec[(u8)view - 1].batches[35].hidden = 1;
     gGameSession->cutsceneHold           = 1;
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
@@ -3134,7 +3134,7 @@ static void func_acropolis_bridge_8017E3A0(Task* task)
     s16                         tick;
 
     view                                 = viewGetMappedIndex();
-    rec                                  = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
+    rec                                  = gSpriteAreaTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
     rec[(u8)view - 1].batches[35].hidden = 0;
 
     tick = work->timer;
@@ -3227,7 +3227,7 @@ static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
     u8               lo;
 
     viewGetMappedIndex();
-    batches = Gp_SprtTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1][7].batches;
+    batches = gSpriteAreaTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1][7].batches;
 
     if ((s16)hidePrompt != 0) {
         batches[35].hidden = 1;
@@ -3322,7 +3322,7 @@ static void _acropolisBridgeShowKeypadError(void)
     SpriteBatch*     batches;
 
     viewGetMappedIndex();
-    batches = Gp_SprtTables[location->stage - 1][gGameSession->spriteVariant - 1].areaViews[location->area - 1][ACROPOLIS_BRIDGE_KEYPAD_VIEW_INDEX].batches;
+    batches = gSpriteAreaTables[location->stage - 1][gGameSession->spriteVariant - 1].areaViews[location->area - 1][ACROPOLIS_BRIDGE_KEYPAD_VIEW_INDEX].batches;
 
     _acropolisBridgeHideKeypadDigitBatches(batches);
     batches[ACROPOLIS_BRIDGE_KEYPAD_ERROR_BATCH].hidden          = 0;
@@ -3364,7 +3364,7 @@ static void _acropolisBridgeOffsetArrivalSpriteFrame(s32 frame, s8 offsetX, s8 o
     SpriteBatch*     batches;
     s32              selectedFrame;
 
-    views         = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
+    views         = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
     batches       = views[ACROPOLIS_BRIDGE_ARRIVAL_VIEW_INDEX].batches;
     sources       = views[ACROPOLIS_BRIDGE_ARRIVAL_VIEW_INDEX].sources.elements;
     selectedFrame = frame & 0xFF;
@@ -3422,7 +3422,7 @@ static void _acropolisBridgeSetArrivalSpritesHidden(s32 arrivalSceneSeen)
     SpriteView*      views;
     SpriteBatch*     batches;
 
-    views = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
+    views = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
 
     batches = views[1].batches;
     if ((arrivalSceneSeen & 0xFF) == 0) {
@@ -3452,7 +3452,7 @@ static void _acropolisBridgeSelectArrivalSpriteFrame(s32 frame)
     SpriteBatch*     batches;
     s32              selectedFrame;
 
-    views         = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
+    views         = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1];
     batches       = views[ACROPOLIS_BRIDGE_ARRIVAL_VIEW_INDEX].batches;
     selectedFrame = frame & 0xFF;
 

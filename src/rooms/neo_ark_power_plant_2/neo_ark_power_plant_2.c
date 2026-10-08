@@ -994,7 +994,7 @@ void neoArkPowerPlant2SetView6SpritesHidden(u8 hidden)
     const GameLocationKey* location = &gGameSession->location.loc;
     SpriteBatch*           view6Batches;
 
-    view6Batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;
+    view6Batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;
     if (hidden == SPRITES_VISIBLE) {
         view6Batches[BATCH_INDEX].hidden = SPRITES_VISIBLE;
     } else if (hidden == SPRITES_HIDDEN) {

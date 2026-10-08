@@ -1066,7 +1066,7 @@ void dryfieldR08SetLampSpritesHidden(u8 lampSpriteIndex, u8 hidden)
 
     location = &gGameSession->location.loc;
     if (lampSpriteIndex < DRYFIELD_R08_LAMP_SPRITE_COUNT) {
-        batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][3].batches;
+        batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][3].batches;
         if (hidden) {
             batches[lampSpriteIndex + 1].hidden = true;
             return;
@@ -1090,7 +1090,7 @@ static void _dryfieldR08SetViewSpriteBatchHidden(u8 viewSelector, u8 hidden)
 
     location = &gGameSession->location.loc;
     if (viewSelector < DRYFIELD_R08_SPRITE_VIEW_SELECTOR_COUNT) {
-        views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+        views = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
         if (viewSelector == 0) {
             batches = views[1].batches;
         } else {

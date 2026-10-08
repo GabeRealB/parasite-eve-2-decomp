@@ -1232,7 +1232,7 @@ static void _shelterB4UpperSewerSetView13SpriteHidden(s32 hidden)
     const GameLocationKey* location = &gGameSession->location.loc;
     SpriteBatch*           batches;
 
-    batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_VIEW - 1].batches;
+    batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_VIEW - 1].batches;
     if ((hidden & 0xFF) == 0) {
         batches[SHELTER_B4_UPPER_SEWER_TOGGLE_SPRITE_BATCH].hidden = 0;
     } else {

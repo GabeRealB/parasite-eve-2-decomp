@@ -30,7 +30,11 @@ extern AreaVariant D_shelter_b3_dumping_hole_8018EC3C[13];
 // shelter_b3_dumping_hole
 extern WorldCollisionRoomResources D_shelter_b3_dumping_hole_8018B678[];
 
-extern u8* D_shelter_b3_dumping_hole_8018B698[];
+/// Logical-view map directory for dumping-hole rooms 1 and 2.
+///
+/// Both borrow the resident identity map for logical views 1..37. The directory
+/// stays valid only while this room overlay is loaded.
+extern u8* gShelterB3DumpingHoleViewMaps[2];
 
 extern ViewCount D_shelter_b3_dumping_hole_8018B6A0[];
 
@@ -38,7 +42,12 @@ extern DirectionWarpEntry D_shelter_b3_dumping_hole_8018B6A4[];
 
 extern ViewCamera D_shelter_b3_dumping_hole_8018C410[];
 
-extern SpriteView D_shelter_b3_dumping_hole_8018E050[];
+/// Sprite descriptors for dumping-hole mapped views 1..37.
+///
+/// Indexed by mapped view minus one. Views 13 and 37 share sources and batches;
+/// only view 13 supplies clipping commands. Lists and mutable sprites are owned
+/// by the loaded room overlay and must stay live while drawing.
+extern SpriteView gShelterB3DumpingHoleSpriteViews[37];
 
 /// Dumping-hole room index 1's two directional and three point lights, with no cone lights.
 ///

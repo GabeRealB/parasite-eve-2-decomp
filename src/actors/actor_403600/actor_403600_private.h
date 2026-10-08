@@ -299,7 +299,13 @@ extern TaskDesc D_actor_403600_801421A0[4];
 
 extern s32 D_actor_403600_80160698;
 
-extern GfxCoord* D_actor_403600_801606A0;
+/// Currently selected ripple plane for clamping the model's streamed vertices.
+///
+/// NULL disables plane clamping. Otherwise borrows the live ripple work's
+/// clip coordinate, already composed with its ancestors into the drawing frame.
+/// Draw callbacks transform into it, flatten positive local Y and transform back;
+/// the selected ripple work and its coordinate parents must remain live.
+extern GfxCoord* gActor403600RipplePlaneCoord;
 
 void func_actor_403600_80138C68(Task* arg0);
 

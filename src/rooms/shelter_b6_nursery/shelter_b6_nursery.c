@@ -1093,7 +1093,7 @@ void shelterB6NurserySetView13SpriteHidden(u8 hidden)
     const GameLocationKey* location = &gGameSession->location.loc;
     SpriteBatch*           view13Batches;
 
-    view13Batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;
+    view13Batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][VIEW_INDEX].batches;
     if (hidden == SPRITE_VISIBLE) {
         view13Batches[BATCH_INDEX].hidden = SPRITE_VISIBLE;
     } else if (hidden == SPRITE_HIDDEN) {

@@ -498,7 +498,7 @@ u16 D_map_dryfield_8017A824[29] = {
     0x1BD,
 };
 
-WorldCoordRoomLighting* D_map_dryfield_8017A860[38] = {
+WorldCoordRoomLighting* gMapDryfieldRoomLightingTables[38] = {
     D_dryfield_gas_station_80183160,
     D_dryfield_main_street_80181BD4,
     D_dryfield_general_store_8017E688,
@@ -527,7 +527,7 @@ WorldCoordRoomLighting* D_map_dryfield_8017A860[38] = {
     D_dryfield_junk_yard_8017ED14,
     D_dryfield_trailer_coach_801871DC,
     D_dryfield_motel_room_5_8017D6F4,
-    D_dryfield_motel_balcony_801822E8,
+    gDryfieldMotelBalconyRoomLighting,
     D_dryfield_motel_room_6_80182DB0,
     D_dryfield_motel_loft_8017D6F4,
     D_dryfield_water_hole_8017FD9C,
@@ -709,7 +709,11 @@ static ViewCamera* D_map_dryfield_8017AAC8[38] = {
 
 ViewCameraTable D_map_dryfield_8017AB60 = { D_map_dryfield_8017AAC8 };
 
-static u8** D_map_dryfield_8017AB64[38] = {
+/// 38 area entries borrowing room-local logical-view map directories.
+///
+/// Indexed by area minus one; rooms and logical views use their own bounds.
+/// NULL entries have no maps. Room pointers stay valid only while that room is loaded.
+static u8** _gMapDryfieldAreaViewMaps[38] = {
     D_dryfield_gas_station_8018315C,
     D_dryfield_main_street_80181BCC,
     D_dryfield_general_store_8017E680,
@@ -738,7 +742,7 @@ static u8** D_map_dryfield_8017AB64[38] = {
     D_dryfield_junk_yard_8017ED1C,
     D_dryfield_trailer_coach_801871E4,
     D_dryfield_motel_room_5_8017D6EC,
-    D_dryfield_motel_balcony_801822E0,
+    gDryfieldMotelBalconyViewMaps,
     D_dryfield_motel_room_6_80182DA8,
     D_dryfield_motel_loft_8017D6EC,
     D_dryfield_water_hole_8017FD84,
@@ -750,9 +754,13 @@ static u8** D_map_dryfield_8017AB64[38] = {
     D_dryfield_underpass_8017EBBC,
 };
 
-ViewIndexTable D_map_dryfield_8017ABFC = { D_map_dryfield_8017AB64 };
+ViewIndexTable gMapDryfieldViewIndexTable = { _gMapDryfieldAreaViewMaps };
 
-static SpriteView* D_map_dryfield_8017AC00[38] = {
+/// 38 area entries borrowing mapped-view sprite arrays from room overlays.
+///
+/// Indexed by area minus one, then the mapped view minus one. Room pointers
+/// must stay loaded; an area entry supplies no sprite-view count or sentinel.
+static SpriteView* _gMapDryfieldAreaSpriteViews[38] = {
     D_dryfield_gas_station_801842A8,
     D_dryfield_main_street_80184308,
     D_dryfield_general_store_8018402C,
@@ -781,7 +789,7 @@ static SpriteView* D_map_dryfield_8017AC00[38] = {
     D_dryfield_junk_yard_80180C28,
     D_dryfield_trailer_coach_801891D0,
     D_dryfield_motel_room_5_8017DDF8,
-    D_dryfield_motel_balcony_80185C98,
+    gDryfieldMotelBalconySpriteViews,
     D_dryfield_motel_room_6_801856CC,
     D_dryfield_motel_loft_8017DDD8,
     D_dryfield_water_hole_80181634,
@@ -793,7 +801,7 @@ static SpriteView* D_map_dryfield_8017AC00[38] = {
     D_dryfield_underpass_80180250,
 };
 
-SpriteAreaTable D_map_dryfield_8017AC98 = { D_map_dryfield_8017AC00 };
+SpriteAreaTable gMapDryfieldSpriteAreaTable = { _gMapDryfieldAreaSpriteViews };
 
 WorldCollisionSurfaceProperties** D_map_dryfield_8017AC9C[38] = {
     D_dryfield_gas_station_80184BAC,

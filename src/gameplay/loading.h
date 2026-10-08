@@ -124,8 +124,13 @@ void companionEnqueueResources(u8 companionType, u8 resourceVariant);
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern ViewCountTable* Gp_ViewCountTables[];
 
-/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern ViewIndexTable* Gp_ViewIndexTables[];
+/// Five stage-map directories of room-local logical-view byte maps.
+///
+/// Indexed by stage minus one (stages 1..5), then area, room and logical view
+/// minus one through separately bounded directories. All selected entries must
+/// exist; mapped bytes are one-based camera/image/sprite indices. The map borrows
+/// room data, so both owning overlays must stay loaded during lookup.
+extern ViewIndexTable* gViewIndexTables[5];
 
 /// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
 extern WorldCollisionStageResources* Gp_RoomObjTables[];

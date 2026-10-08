@@ -789,10 +789,10 @@ static void _actor342400WaveBeginPairReveal(Task* waveTask)
 static void func_actor_342400_801631DC(s16 arg0)
 {
     if (arg0 == 0) {
-        D_shelter_b3_garbage_incinerator_80187328[1] = 2;
+        gShelterB3GarbageIncineratorRoom1And3ViewMap[SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_VIEW_OFFSET] = SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_NORMAL_VIEW;
         return;
     }
-    D_shelter_b3_garbage_incinerator_80187328[1] = 0x11;
+    gShelterB3GarbageIncineratorRoom1And3ViewMap[SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_VIEW_OFFSET] = SHELTER_B3_GARBAGE_INCINERATOR_ENCOUNTER_REVEAL_VIEW;
 }
 
 void madChaserWaveSpawnSlot(s16 arg0, s16 arg1, s16 arg2)

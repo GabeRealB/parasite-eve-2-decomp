@@ -289,7 +289,7 @@ static void _shelterB1NorthMaintenanceWalkwaySetSceneSpriteVisibility(u8 sceneSe
     SpriteView*            views;
     SpriteBatch*           batches;
 
-    views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    views = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     if (sceneSeen == SCENE_NOT_SEEN) {
         batches                           = views[SCENE_VIEW_INDEX].batches;
         batches[SCENE_BATCH_INDEX].hidden = 1;

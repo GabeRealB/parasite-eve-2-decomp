@@ -31,7 +31,10 @@
 /// default static instance; actor_215100 binds its public export and an empty
 /// `CAP_CAPTION_SELECT_SCRIPT_LINKAGE`. Each carrier owns independent CAP state.
 /// The object-like alias has no arguments, captures, side effects or token
-/// construction; linkage is selected separately.
+/// construction; linkage is selected separately. commandIndex must be a valid
+/// relocated command-table index; a non-NULL sequence requires an existing
+/// nonterminal key in 0..255 and readable text/glyph cells owned by the live CAP
+/// file. bottomBaselineY is in screen pixels and is narrowed to s16.
 #ifndef CAP_CAPTION_SELECT_RECORD
 #define CAP_CAPTION_SELECT_RECORD _capCaptionSelectRecord
 #endif
@@ -73,43 +76,64 @@ typedef struct {
 } CapCaptionScheduleWindow;
 STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 
-/// Selects per-carrier caption storage for the included implementation.
+// Bind stable per-carrier storage before this header and retain the bindings
+// through all caption fragments. Defaults name TU-local storage; the incinerator
+// supplies overlay-private globals. Bindings may be read repeatedly and must
+// have no side effects or token construction.
+/// Writable pointer lvalue borrowing readable glyph cells from the loaded CAP file.
 ///
-/// Bind before this header and retain through all caption fragments. Defaults
-/// name TU-local storage; the incinerator supplies its overlay-private globals.
-/// The glyph binding is a writable pointer lvalue to readable TextGlyphCell
-/// storage, accepting const cells. The sequence binding is a writable
-/// CapSequenceRecord* lvalue. Both borrow the loaded CAP file. Metric and
-/// record-index bindings are s16 lvalues; caret positions are u16, and
-/// CAP_CAPTION_CARET_DRAWS_LEFT is a writable u8 lvalue.
-/// Bindings have no side effects or token construction and may be read repeatedly.
+/// Nonnegative text uses low-ten-bit cell indices; title selectors use eight bits.
 #ifndef CAP_CAPTION_GLYPH_CELLS
 #define CAP_CAPTION_GLYPH_CELLS _gCapCaptionGlyphCells
 #endif
+/// Writable pointer lvalue borrowing relocated command references from the CAP file.
+///
+/// Entries are read by command index through this view; relocation writes
+/// them through the loaded file before publishing the pointer.
+#ifndef CAP_CAPTION_COMMAND_REFS
+#define CAP_CAPTION_COMMAND_REFS _gCapCaptionCommandRefs
+#endif
+/// Signed-halfword key selected for the current sequence's nonterminal text record.
+#ifndef CAP_CAPTION_SELECTED_KEY
+#define CAP_CAPTION_SELECTED_KEY _gCapCaptionSelectedKey
+#endif
+/// Writable pointer lvalue borrowing the selected CAP sequence, or NULL.
+///
+/// Text records follow its command header and end at CAP_TEXT_REF_END.
 #ifndef CAP_CAPTION_SEQUENCE
 #define CAP_CAPTION_SEQUENCE _gCapCaptionSequence
 #endif
+/// Writable s16 left X in biased screen pixels: (320 - widest closed line)/2 - 5.
 #ifndef CAP_CAPTION_BLOCK_LEFT_X
 #define CAP_CAPTION_BLOCK_LEFT_X _gCapCaptionBlockLeftX
 #endif
+/// Writable s16 first baseline in screen pixels, derived from the bottom baseline.
 #ifndef CAP_CAPTION_FIRST_BASELINE_Y
 #define CAP_CAPTION_FIRST_BASELINE_Y _gCapCaptionFirstBaselineY
 #endif
+/// Writable s16 final baseline in screen pixels, narrowed from the selector input.
 #ifndef CAP_CAPTION_BOTTOM_BASELINE_Y
 #define CAP_CAPTION_BOTTOM_BASELINE_Y _gCapCaptionBottomBaselineY
 #endif
+/// Writable s16 record slot in the selected sequence; text begins at slot one.
 #ifndef CAP_CAPTION_RECORD_INDEX
 #define CAP_CAPTION_RECORD_INDEX _gCapCaptionRecordIndex
 #endif
+/// Writable s16 closed-line block height in pixels.
+///
+/// Each closed line contributes its tallest glyph height plus the two-pixel gap.
 #ifndef CAP_CAPTION_BLOCK_HEIGHT
 #define CAP_CAPTION_BLOCK_HEIGHT _gCapCaptionBlockHeight
 #endif
+/// Writable u16 continuation-triangle left X in draw pixels, with unsigned wrapping.
 #ifndef CAP_CAPTION_CARET_LEFT_X
 #define CAP_CAPTION_CARET_LEFT_X _gCapCaptionCaretLeftX
 #endif
+/// Writable u16 continuation-triangle tip Y in draw pixels, with unsigned wrapping.
 #ifndef CAP_CAPTION_CARET_TIP_Y
 #define CAP_CAPTION_CARET_TIP_Y _gCapCaptionCaretTipY
 #endif
+/// Writable u8 delay before the continuation caret, counted in eligible draw calls.
 #ifndef CAP_CAPTION_CARET_DRAWS_LEFT
 #define CAP_CAPTION_CARET_DRAWS_LEFT (_gCapCaptionCaretDelayStorage.drawsLeft)
 #endif

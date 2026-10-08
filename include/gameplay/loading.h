@@ -75,8 +75,13 @@ void loadingRestoreViewGraphicsTask(Task* task);
 /// their `suppressPushback` flags into `Gp_RoomParams`.
 extern WorldCollisionSurfaceProperties*** Gp_RoomParamTables[];
 
-/// Per-stage pointer table. Index is `GameSession.location.loc.stage - 1`.
-extern SpriteAreaTable* Gp_SprtTables[];
+/// Five stage-map directories of per-area mapped-view sprite arrays.
+///
+/// Indexed by stage minus one (stages 1..5). Each entry borrows exactly one
+/// map-overlay record; consumers using spriteVariant minus one require variant 1.
+/// Area and mapped-view bounds belong to their directories and sprite arrays.
+/// Selected map and room overlays must stay loaded while resources are used.
+extern SpriteAreaTable* gSpriteAreaTables[5];
 
 /// Links the current view's cached sprites into the current frame ordering table.
 ///

@@ -83,8 +83,8 @@ extern TaskDesc D_map_akropolis_8017A8AC[];
 extern u16 D_map_akropolis_8017AA0C[];
 
 /// This stage's entries in `gWorldCoordRoomLightingTables`, `Gp_RoomObjTables`,
-/// `Gp_SprtTables`, `Gp_WarpTables`, `Gp_ViewCountTables`, `Gp_ViewTables`,
-/// `Gp_ViewIndexTables` and `Gp_RoomParamTables`: each leads to one pointer per
+/// `gSpriteAreaTables`, `Gp_WarpTables`, `Gp_ViewCountTables`, `Gp_ViewTables`,
+/// `gViewIndexTables` and `Gp_RoomParamTables`: each leads to one pointer per
 /// room into that room's package.
 extern WorldCoordRoomLighting* D_map_akropolis_8017AA28[];
 

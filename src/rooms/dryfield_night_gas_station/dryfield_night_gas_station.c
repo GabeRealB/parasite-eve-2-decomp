@@ -3292,7 +3292,7 @@ static void _dryfieldNightGasStationSetCutsceneSpritesHidden(s32 hiddenArgumentW
     s32              hidden;
 
     location = &gGameSession->location.loc;
-    views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     hidden   = hiddenArgumentWord & 0xFF;
 
     switch (hidden) {
@@ -3312,7 +3312,7 @@ static void _dryfieldNightGasStationSetCutsceneSpritesHidden(s32 hiddenArgumentW
 static void func_dryfield_night_gas_station_80180D1C(void)
 {
     GameLocationKey* sess = &gGameSession->location.loc;
-    SpriteView*      view = Gp_SprtTables[sess->stage - 1][0].areaViews[sess->area - 1];
+    SpriteView*      view = gSpriteAreaTables[sess->stage - 1][0].areaViews[sess->area - 1];
     s32              flag = gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SECTION_8_STATE);
 
     switch (flag) {
@@ -3353,7 +3353,7 @@ static void _dryfieldNightGasStationSetFlickerSpritesVisible(s16 visible)
     } while (0)
 
     GameLocationKey* location = &gGameSession->location.loc;
-    SpriteView*      views    = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+    SpriteView*      views    = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
     SpriteBatch*     batches;
 
     switch (visible) {

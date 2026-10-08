@@ -1227,7 +1227,7 @@ void dryfieldWaterTankSetPreOperationSprites(u8 beforeOperation)
 
     location = &gGameSession->location.loc;
     if (location->stage == GAME_STAGE_DRYFIELD) {
-        views = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1];
+        views = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1];
         if (beforeOperation == 0) {
             batches                                                        = views[DRYFIELD_WATER_TANK_POST_OPERATION_VIEW_INDEX].batches;
             batches[DRYFIELD_WATER_TANK_POST_OPERATION_BATCH_INDEX].hidden = false;

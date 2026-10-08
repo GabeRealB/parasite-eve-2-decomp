@@ -3277,7 +3277,7 @@ void dryfieldWaterTowerSetMechanismSpriteVisible(u8 visible)
 
     location = &gGameSession->location.loc;
     if (location->stage == GAME_STAGE_DRYFIELD) {
-        batches = Gp_SprtTables[location->stage - 1]->areaViews[location->area - 1][DRYFIELD_WATER_TOWER_MECHANISM_SPRITE_VIEW_INDEX - 1].batches;
+        batches = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][DRYFIELD_WATER_TOWER_MECHANISM_SPRITE_VIEW_INDEX - 1].batches;
         if (!visible) {
             batches[DRYFIELD_WATER_TOWER_MECHANISM_SPRITE_BATCH_INDEX].hidden = 1;
             return;

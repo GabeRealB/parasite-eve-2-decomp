@@ -2075,7 +2075,7 @@ static void _acropolisSecurityRoomShowReleasedLocks(s32 releasedLocks)
     GameLocationKey* location = &session->location.loc;
     SpriteBatch*     batches;
 
-    batches = Gp_SprtTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_VIEW - 1].batches;
+    batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][ACROPOLIS_SECURITY_ROOM_POWER_SUPPLY_VIEW - 1].batches;
     switch (releasedLocks & 0xFF) {
         case ACROPOLIS_SECURITY_ROOM_LOCKS_NEITHER:
             batches[1].hidden = 1;

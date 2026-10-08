@@ -161,7 +161,7 @@ extern s32           D_actor_403600_80142120[];
 void func_actor_403600_80134398(Task* arg0);
 
 static const SVECTOR D_actor_403600_80131E2C;
-static const CVECTOR D_actor_403600_80131E34;
+static const CVECTOR _gActor403600NeutralLightColor;
 
 void        func_actor_403600_801353D0(Actor403600Ripple* arg0, GfxCoord* arg1);
 static void func_actor_403600_80132A18(Task* arg0, Actor403600Work* work, Actor403600FxWork* fx);
@@ -1564,9 +1564,9 @@ void func_actor_403600_80134288(Task* arg0)
         if (child != NULL) {
             taskReparent(arg0, child);
         }
-        work                    = arg0->parent->work;
-        work->fxTask            = arg0;
-        D_actor_403600_801606A0 = 0;
+        work                         = arg0->parent->work;
+        work->fxTask                 = arg0;
+        gActor403600RipplePlaneCoord = NULL;
         arg0->state++;
     }
     fx                      = arg0->work;
@@ -2344,9 +2344,9 @@ void func_actor_403600_80135C28(Task* arg0)
     temp_s4   = arg0->extra.coordBody->coord;
     temp_s2   = ownerWork->fxTask;
     if (ownerWork->defeated == 1) {
-        temp_v0                 = temp_a0->extra.tmd;
-        D_actor_403600_801606A0 = NULL;
-        temp_v0->flags          = (u16)(temp_v0->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
+        temp_v0                      = temp_a0->extra.tmd;
+        gActor403600RipplePlaneCoord = NULL;
+        temp_v0->flags               = (u16)(temp_v0->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
         taskCallExit(arg0);
         return;
     }
@@ -2403,11 +2403,11 @@ void func_actor_403600_80135C28(Task* arg0)
                 temp_v0_9              = temp_s0->clipCountdown - 1;
                 temp_s0->clipCountdown = temp_v0_9;
                 if (temp_v0_9 == 0) {
-                    temp_a0_5               = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
-                    D_actor_403600_801606A0 = NULL;
-                    temp_a0_5->flags        = (u16)(temp_a0_5->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
+                    temp_a0_5                    = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
+                    gActor403600RipplePlaneCoord = NULL;
+                    temp_a0_5->flags             = (u16)(temp_a0_5->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
                 } else if (temp_v0_9 > 0) {
-                    D_actor_403600_801606A0 = &temp_s0->clipCoord;
+                    gActor403600RipplePlaneCoord = &temp_s0->clipCoord;
                     actorRenderComposeCoord(&temp_s0->clipCoord);
                 }
                 break;
@@ -2415,15 +2415,15 @@ void func_actor_403600_80135C28(Task* arg0)
                 temp_v1_10             = temp_s0->clipCountdown - 1;
                 temp_s0->clipCountdown = temp_v1_10;
                 if (temp_v1_10 == 0) {
-                    temp_a1                 = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
-                    D_actor_403600_801606A0 = &temp_s0->clipCoord;
-                    temp_a1->flags          = (u16)(temp_a1->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
+                    temp_a1                      = ((Task*)arg0->spawnArg2.pointer)->extra.tmd;
+                    gActor403600RipplePlaneCoord = &temp_s0->clipCoord;
+                    temp_a1->flags               = (u16)(temp_a1->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW);
                     actorRenderComposeCoord(&temp_s0->clipCoord);
                 } else if (temp_v1_10 >= -7) {
-                    D_actor_403600_801606A0 = &temp_s0->clipCoord;
+                    gActor403600RipplePlaneCoord = &temp_s0->clipCoord;
                     actorRenderComposeCoord(&temp_s0->clipCoord);
                 } else if (temp_v1_10 == -8) {
-                    D_actor_403600_801606A0 = NULL;
+                    gActor403600RipplePlaneCoord = NULL;
                 }
                 break;
         }
@@ -2459,7 +2459,7 @@ u32* actor403600DrawStreamGt3BottomFade(TmdStreamWorkspace* workspace, s32 objec
     DisplayState* display;
 
     packet       = (POLY_GT3*)workspace->primWrite;
-    lightColor   = D_actor_403600_80131E34;
+    lightColor   = _gActor403600NeutralLightColor;
     fadeDistance = workspace->obj->shading.screenFadeDistance;
     if (workspace->elemCount-- > 0) {
         gteResult  = &workspace->gteResult;
@@ -2664,7 +2664,7 @@ u32* actor403600DrawStreamGt4BottomFade(TmdStreamWorkspace* workspace, s32 objec
     DisplayState* display;
 
     packet       = (POLY_GT4*)workspace->primWrite;
-    lightColor   = D_actor_403600_80131E34;
+    lightColor   = _gActor403600NeutralLightColor;
     fadeDistance = workspace->obj->shading.screenFadeDistance;
     gte_ldrgb(&lightColor);
     if (workspace->elemCount-- > 0) {
@@ -2853,7 +2853,7 @@ u32* actor403600DrawStreamGt3TopDisplace(TmdStreamWorkspace* workspace, s32 obje
     DisplayState* display;
 
     packet       = (POLY_GT3*)workspace->primWrite;
-    lightColor   = D_actor_403600_80131E34;
+    lightColor   = _gActor403600NeutralLightColor;
     fadeDistance = workspace->obj->shading.screenFadeDistance;
     if (workspace->elemCount-- > 0) {
         gteResult  = &workspace->gteResult;
@@ -2934,7 +2934,7 @@ u32* actor403600DrawStreamGt3TopDisplaceSemiTrans(TmdStreamWorkspace* workspace,
     DisplayState* display;
 
     packet       = (POLY_GT3*)workspace->primWrite;
-    lightColor   = D_actor_403600_80131E34;
+    lightColor   = _gActor403600NeutralLightColor;
     fadeDistance = workspace->obj->shading.screenFadeDistance;
     if (workspace->elemCount-- > 0) {
         gteResult  = &workspace->gteResult;
@@ -3018,7 +3018,7 @@ u32* actor403600DrawStreamGt4TopDisplace(TmdStreamWorkspace* workspace, s32 obje
     DisplayState* display;
 
     packet       = (POLY_GT4*)workspace->primWrite;
-    lightColor   = D_actor_403600_80131E34;
+    lightColor   = _gActor403600NeutralLightColor;
     fadeDistance = workspace->obj->shading.screenFadeDistance;
     gte_ldrgb(&lightColor);
     if (workspace->elemCount-- > 0) {
@@ -3106,17 +3106,17 @@ u32* actor403600DrawStreamGt3PlaneClamp(TmdStreamWorkspace* workspace, s32 objec
     const u16*              offsets;
     s32                     cornerIndex;
 
-    if (D_actor_403600_801606A0 != NULL) {
+    if (gActor403600RipplePlaneCoord != NULL) {
         packet           = (POLY_GT3*)workspace->primWrite;
-        color            = D_actor_403600_80131E34;
+        color            = _gActor403600NeutralLightColor;
         savedScratchHead = SCRATCH_STACK_CURSOR(u8);
         scratch          = SCRATCH_STACK_CURSOR(_Actor403600TriScratch) =
             (_Actor403600TriScratch*)(savedScratchHead - sizeof(_Actor403600TriScratch));
         // Save the part transform and compose it into the ripple plane frame.
         gte_sttr(&scratch->trans);
         gte_ReadRotMatrix(&scratch->savedRot);
-        TransposeMatrix(&D_actor_403600_801606A0->workm, &scratch->local);
-        planeCoord         = D_actor_403600_801606A0;
+        TransposeMatrix(&gActor403600RipplePlaneCoord->workm, &scratch->local);
+        planeCoord         = gActor403600RipplePlaneCoord;
         scratch->offset.vx = scratch->trans.vx - planeCoord->workm.t[0];
         scratch->offset.vy = scratch->trans.vy - planeCoord->workm.t[1];
         scratch->offset.vz = scratch->trans.vz - planeCoord->workm.t[2];
@@ -3137,8 +3137,8 @@ u32* actor403600DrawStreamGt3PlaneClamp(TmdStreamWorkspace* workspace, s32 objec
             for (cornerIndex = 0; cornerIndex < (s32)ARRAY_SIZE(scratch->verts); cornerIndex++) {
                 ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(&workspace->verts[scratch->index[cornerIndex]], scratch->verts[cornerIndex]);
             }
-            gte_SetRotMatrix(&D_actor_403600_801606A0->workm);
-            gte_SetTransMatrix(&D_actor_403600_801606A0->workm);
+            gte_SetRotMatrix(&gActor403600RipplePlaneCoord->workm);
+            gte_SetTransMatrix(&gActor403600RipplePlaneCoord->workm);
             gte_ldv3(&scratch->verts[0], &scratch->verts[1], &scratch->verts[2]);
             gte_rtpt();
             gte_stflg(&workspace->gteFlag);
@@ -3179,17 +3179,17 @@ u32* actor403600DrawStreamGt4PlaneClamp(TmdStreamWorkspace* workspace, s32 objec
     const u16*               offsets;
     s32                      cornerIndex;
 
-    if (D_actor_403600_801606A0 != NULL) {
+    if (gActor403600RipplePlaneCoord != NULL) {
         packet           = (POLY_GT4*)workspace->primWrite;
-        color            = D_actor_403600_80131E34;
+        color            = _gActor403600NeutralLightColor;
         savedScratchHead = SCRATCH_STACK_CURSOR(u8);
         scratch          = SCRATCH_STACK_CURSOR(_Actor403600QuadScratch) =
             (_Actor403600QuadScratch*)(savedScratchHead - sizeof(_Actor403600QuadScratch));
         // Save the part transform and compose it into the ripple plane frame.
         gte_sttr(&scratch->trans);
         gte_ReadRotMatrix(&scratch->savedRot);
-        TransposeMatrix(&D_actor_403600_801606A0->workm, &scratch->local);
-        planeCoord         = D_actor_403600_801606A0;
+        TransposeMatrix(&gActor403600RipplePlaneCoord->workm, &scratch->local);
+        planeCoord         = gActor403600RipplePlaneCoord;
         scratch->offset.vx = scratch->trans.vx - planeCoord->workm.t[0];
         scratch->offset.vy = scratch->trans.vy - planeCoord->workm.t[1];
         scratch->offset.vz = scratch->trans.vz - planeCoord->workm.t[2];
@@ -3211,8 +3211,8 @@ u32* actor403600DrawStreamGt4PlaneClamp(TmdStreamWorkspace* workspace, s32 objec
             for (cornerIndex = 0; cornerIndex < (s32)ARRAY_SIZE(scratch->verts); cornerIndex++) {
                 ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(&workspace->verts[scratch->index[cornerIndex]], scratch->verts[cornerIndex]);
             }
-            gte_SetRotMatrix(&D_actor_403600_801606A0->workm);
-            gte_SetTransMatrix(&D_actor_403600_801606A0->workm);
+            gte_SetRotMatrix(&gActor403600RipplePlaneCoord->workm);
+            gte_SetTransMatrix(&gActor403600RipplePlaneCoord->workm);
             gte_ldv3(&scratch->verts[0], &scratch->verts[1], &scratch->verts[2]);
             gte_rtpt();
             gte_stflg(&workspace->gteFlag);
@@ -3267,11 +3267,11 @@ u32* actor403600XformStreamVertsPlaneClamp(TmdStreamWorkspace* workspace, s32 ob
     const u16*              offsets;
     s32                     previousVertexOffset;
 
-    if (D_actor_403600_801606A0 != NULL) {
+    if (gActor403600RipplePlaneCoord != NULL) {
         enum { ACTOR_403600_NO_PREVIOUS_VERTEX = -1 };
 
         previousVertexOffset = ACTOR_403600_NO_PREVIOUS_VERTEX;
-        color                = D_actor_403600_80131E34;
+        color                = _gActor403600NeutralLightColor;
         if (workspace->elemCount == 0) {
             return elements;
         }
@@ -3281,8 +3281,8 @@ u32* actor403600XformStreamVertsPlaneClamp(TmdStreamWorkspace* workspace, s32 ob
         // Save the part transform and compose it into the ripple plane frame.
         gte_sttr(&scratch->trans);
         gte_ReadRotMatrix(&scratch->savedRot);
-        TransposeMatrix(&D_actor_403600_801606A0->workm, &scratch->local);
-        planeCoord         = D_actor_403600_801606A0;
+        TransposeMatrix(&gActor403600RipplePlaneCoord->workm, &scratch->local);
+        planeCoord         = gActor403600RipplePlaneCoord;
         scratch->offset.vx = scratch->trans.vx - planeCoord->workm.t[0];
         scratch->offset.vy = scratch->trans.vy - planeCoord->workm.t[1];
         scratch->offset.vz = scratch->trans.vz - planeCoord->workm.t[2];
@@ -3299,8 +3299,8 @@ u32* actor403600XformStreamVertsPlaneClamp(TmdStreamWorkspace* workspace, s32 ob
                 gte_SetTransMatrix(&scratch->local);
                 gte_SetRotMatrix(&scratch->local);
                 ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX(&workspace->verts[offsets[0] >> ACTOR_403600_GEOMETRY_OFFSET_SHIFT], scratch->verts[0]);
-                gte_SetRotMatrix(&D_actor_403600_801606A0->workm);
-                gte_SetTransMatrix(&D_actor_403600_801606A0->workm);
+                gte_SetRotMatrix(&gActor403600RipplePlaneCoord->workm);
+                gte_SetTransMatrix(&gActor403600RipplePlaneCoord->workm);
                 gte_ldv0(&scratch->verts[0]);
                 gte_rtps();
                 gte_stsz(&workspace->gteResult);
@@ -3328,4 +3328,10 @@ u32* actor403600XformStreamVertsPlaneClamp(TmdStreamWorkspace* workspace, s32 ob
 
 #undef ACTOR_403600_TRANSFORM_AND_CLAMP_PLANE_VERTEX
 
-static const CVECTOR D_actor_403600_80131E34 = { 0x80, 0x80, 0x80, 0 };
+/// Neutral Q7 RGB lighting seed for the model-stream draw and transform callbacks.
+///
+/// Each component is one (128); the zero GTE colour-command byte survives when
+/// fade callbacks overwrite RGB.
+static const CVECTOR _gActor403600NeutralLightColor = {
+    ACTOR_403600_SCREEN_FADE_COLOR_ONE, ACTOR_403600_SCREEN_FADE_COLOR_ONE, ACTOR_403600_SCREEN_FADE_COLOR_ONE, 0
+};

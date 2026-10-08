@@ -116,7 +116,11 @@ typedef struct {
 } _Actor521100AnmcWomanWork;
 STATIC_ASSERT_SIZEOF(_Actor521100AnmcWomanWork, 0x4B4);
 
-extern _Actor521100AnmcWomanWork* D_actor_521100_8016A3D8;
+/// Borrowed ANMC-woman work published by spawn and refreshed by task dispatch.
+///
+/// Valid only while her task-owned allocation is live. Teardown does not clear
+/// this singleton reference; animation and message handlers require the live task.
+static _Actor521100AnmcWomanWork* _gActor521100AnmcWomanWork;
 
 // Message-table callbacks use the argument views required by this TU.
 
@@ -431,8 +435,6 @@ EffectSpawnArg D_actor_521100_8016A3CC = { NULL, 320, 1 };
 
 u16 D_actor_521100_8016A3D4 = 5;
 
-_Actor521100AnmcWomanWork* D_actor_521100_8016A3D8;
-
 Task* D_actor_521100_8016A3DC;
 
 Task* D_actor_521100_8016A3E0;
@@ -504,18 +506,18 @@ s32 actor521100IsPresent(Task* task, s32 messageId, s32 unusedFirstArgument, s32
 static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
 {
     VECTOR                     vec;
-    _Actor521100AnmcWomanWork* mem;
+    _Actor521100AnmcWomanWork* work;
     Enemy*                     enemy;
     TmdObject*                 obj;
     GfxCoord*                  coord;
 
-    enemy                   = spawnArg2;
-    obj                     = task->extra.tmd;
-    coord                   = obj->coords;
-    mem                     = memCalloc(sizeof(_Actor521100AnmcWomanWork), 0);
-    D_actor_521100_8016A3D8 = mem;
-    task->work              = mem;
-    if (mem == NULL) {
+    enemy                      = spawnArg2;
+    obj                        = task->extra.tmd;
+    coord                      = obj->coords;
+    work                       = memCalloc(sizeof(_Actor521100AnmcWomanWork), 0);
+    _gActor521100AnmcWomanWork = work;
+    task->work                 = work;
+    if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
@@ -526,17 +528,17 @@ static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
     obj->otOffset                    = 1;
-    obj->lightMtx                    = &D_actor_521100_8016A3D8->light;
-    obj->colorMtx                    = &D_actor_521100_8016A3D8->color;
+    obj->lightMtx                    = &_gActor521100AnmcWomanWork->light;
+    obj->colorMtx                    = &_gActor521100AnmcWomanWork->color;
     vec.vx                           = coord->workm.t[0];
     vec.vy                           = coord->workm.t[1] - 0x320;
     D_actor_521100_8016A3DC          = task;
     vec.vz                           = coord->workm.t[2];
     worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationBindModelContext(&D_actor_521100_8016A3D8->rig.anim, D_actor_521100_8016A3A0, obj, D_actor_521100_8016A3D8->rig.poses);
-    D_actor_521100_8016A3D8->st.animId = ACTOR_521100_ANMC_WOMAN_ANIM_WALK;
-    D_actor_521100_8016A3D8->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable                     = D_actor_521100_8016A358;
+    animationBindModelContext(&_gActor521100AnmcWomanWork->rig.anim, D_actor_521100_8016A3A0, obj, _gActor521100AnmcWomanWork->rig.poses);
+    _gActor521100AnmcWomanWork->st.animId = ACTOR_521100_ANMC_WOMAN_ANIM_WALK;
+    _gActor521100AnmcWomanWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
+    task->msgTable                        = D_actor_521100_8016A358;
     _actor521100AnmcWomanUpdate(task);
     task->state += 1;
 }
@@ -554,15 +556,15 @@ static void _actor521100AnmcWomanUpdate(Task* task)
     _Actor521100AnmcWomanWork* work;
     s16                        animId;
 
-    work = D_actor_521100_8016A3D8;
+    work = _gActor521100AnmcWomanWork;
     if (work->st.state == ACTOR_ENEMY_ANIM_BLEND) {
         _actor521100AnmcWomanBlendAnim();
-        D_actor_521100_8016A3D8->st.state = ACTOR_ENEMY_ANIM_TICK;
+        _gActor521100AnmcWomanWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
     if (work->st.state == ACTOR_ENEMY_ANIM_RESET) {
         _actor521100AnmcWomanResetAnim();
-        D_actor_521100_8016A3D8->st.state = ACTOR_ENEMY_ANIM_TICK;
+        _gActor521100AnmcWomanWork->st.state = ACTOR_ENEMY_ANIM_TICK;
         return;
     }
     if (work->st.state == ACTOR_ENEMY_ANIM_TICK) {
@@ -570,7 +572,7 @@ static void _actor521100AnmcWomanUpdate(Task* task)
         if (animId == ACTOR_521100_ANMC_WOMAN_ANIM_WALK && work->st.travel != 0) {
             // Preserve the countdown even when the movement helper suppresses translation.
             _actorMovementStepForward(task->extra.tmd->coords, ACTOR_521100_ANMC_WOMAN_WALK_STRIDE);
-            D_actor_521100_8016A3D8->st.travel--;
+            _gActor521100AnmcWomanWork->st.travel--;
         }
         _actor521100AnmcWomanTickAnim();
         return;
@@ -627,7 +629,7 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
 
     i = 1;
     do {
-        animationTickDirectSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[i]);
+        animationTickDirectSlot(&_gActor521100AnmcWomanWork->rig.anim, &_gActor521100AnmcWomanWork->rig.slots[i]);
         i++;
     } while (i < 0x13);
 
@@ -661,7 +663,7 @@ static void func_actor_521100_80136290(Enemy* arg0, Task* task)
     block->vy = coord->workm.t[1];
     block->vz = coord->workm.t[2];
     worldCoordUpdateActorColor(arg0, block, 0, 0);
-    work            = D_actor_521100_8016A3D8;
+    work            = _gActor521100AnmcWomanWork;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     block->vx       = work->st.flattenScaleY * (s32)((gRandomLcgState >> 16) + 0x8000) / 0x10000;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -746,11 +748,11 @@ static void _actor521100AnmcWomanTask(Task* task)
         u16 field_2;
     } unread;
 
-    stateHandlers           = D_actor_521100_80131E68;
-    unread.field_0          = 2;
-    unread.field_1          = 9;
-    unread.field_2          = 1;
-    D_actor_521100_8016A3D8 = task->work;
+    stateHandlers              = D_actor_521100_80131E68;
+    unread.field_0             = 2;
+    unread.field_1             = 9;
+    unread.field_2             = 1;
+    _gActor521100AnmcWomanWork = task->work;
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
@@ -791,9 +793,9 @@ static void _actor521100AnmcWomanTickAnim(void)
 
     slotIndex = 1;
     do {
-        animationTickDirectSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[slotIndex]);
+        animationTickDirectSlot(&_gActor521100AnmcWomanWork->rig.anim, &_gActor521100AnmcWomanWork->rig.slots[slotIndex]);
         slotIndex++;
-    } while (slotIndex < ARRAY_SIZE(D_actor_521100_8016A3D8->rig.slots));
+    } while (slotIndex < ARRAY_SIZE(_gActor521100AnmcWomanWork->rig.slots));
 }
 
 /// Restarts the ANMC woman's nonroot tracks and records the requested clip.
@@ -809,12 +811,12 @@ static void _actor521100AnmcWomanResetAnim(void)
 
     slotIndex = 1;
     do {
-        D_actor_521100_8016A3D8->rig.slots[slotIndex].rate = FOOTSTEP_WALK_PRE_RESET_RATE;
-        animationInitDirectSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[slotIndex], slotIndex,
-                                D_actor_521100_8016A3D8->st.animId);
+        _gActor521100AnmcWomanWork->rig.slots[slotIndex].rate = FOOTSTEP_WALK_PRE_RESET_RATE;
+        animationInitDirectSlot(&_gActor521100AnmcWomanWork->rig.anim, &_gActor521100AnmcWomanWork->rig.slots[slotIndex], slotIndex,
+                                _gActor521100AnmcWomanWork->st.animId);
         slotIndex++;
-    } while (slotIndex < ARRAY_SIZE(D_actor_521100_8016A3D8->rig.slots));
-    D_actor_521100_8016A3D8->st.appliedAnimId = D_actor_521100_8016A3D8->st.animId;
+    } while (slotIndex < ARRAY_SIZE(_gActor521100AnmcWomanWork->rig.slots));
+    _gActor521100AnmcWomanWork->st.appliedAnimId = _gActor521100AnmcWomanWork->st.animId;
 }
 
 /// Starts the ANMC woman's nonroot tracks with an eight-frame demo transition.
@@ -829,11 +831,11 @@ static void _actor521100AnmcWomanBlendAnim(void)
 
     slotIndex = 1;
     do {
-        animationStartDirectSlot(&D_actor_521100_8016A3D8->rig.anim, &D_actor_521100_8016A3D8->rig.slots[slotIndex], slotIndex,
-                                 D_actor_521100_8016A3D8->st.animId, 0, FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES);
+        animationStartDirectSlot(&_gActor521100AnmcWomanWork->rig.anim, &_gActor521100AnmcWomanWork->rig.slots[slotIndex], slotIndex,
+                                 _gActor521100AnmcWomanWork->st.animId, 0, FOOTSTEP_WALK_DEFAULT_BLEND_FRAMES);
         slotIndex++;
-    } while (slotIndex < ARRAY_SIZE(D_actor_521100_8016A3D8->rig.slots));
-    D_actor_521100_8016A3D8->st.appliedAnimId = D_actor_521100_8016A3D8->st.animId;
+    } while (slotIndex < ARRAY_SIZE(_gActor521100AnmcWomanWork->rig.slots));
+    _gActor521100AnmcWomanWork->st.appliedAnimId = _gActor521100AnmcWomanWork->st.animId;
 }
 
 /// Restores the woman's saved root and applies a Q12 Y scale without compounding it.
@@ -892,10 +894,10 @@ static s32 _actor521100AnmcWomanPlayAnim(Task* task, s32 messageId, const Animat
     Task* dispatcher;
 
     if (request->animationId + 1 < ARRAY_SIZE(D_actor_521100_8016A3A0)) {
-        D_actor_521100_8016A3D8->st.animId  = request->animationId + 1;
-        dispatcher                          = D_actor_521100_8016A3DC;
-        D_actor_521100_8016A3D8->st.state   = ACTOR_ENEMY_ANIM_RESET;
-        D_actor_521100_8016A3D8->st.field_6 = 0;
+        _gActor521100AnmcWomanWork->st.animId  = request->animationId + 1;
+        dispatcher                             = D_actor_521100_8016A3DC;
+        _gActor521100AnmcWomanWork->st.state   = ACTOR_ENEMY_ANIM_RESET;
+        _gActor521100AnmcWomanWork->st.field_6 = 0;
         _actor521100AnmcWomanUpdate(dispatcher);
         return 0;
     }
@@ -925,8 +927,9 @@ static s32 _actor521100AnmcWomanSetModelDrawFlags(Task* task, s32 messageId, s32
     return 0;
 }
 
+/// Placement records yaw in the live ANMC woman, independently of footstep-walker state.
 #undef FOOTSTEP_WALK_PLACE_WORK
-#define FOOTSTEP_WALK_PLACE_WORK D_actor_521100_8016A3D8
+#define FOOTSTEP_WALK_PLACE_WORK _gActor521100AnmcWomanWork
 #include "../../shared/footstep_walk_place.inc.c"
 #undef FOOTSTEP_WALK_PLACE_WORK
 #define FOOTSTEP_WALK_PLACE_WORK _gFootstepWalkWork
@@ -948,8 +951,8 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
             break;
 
         case 2:
-            D_actor_521100_8016A3D8->st.flattenStep = ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN;
-            task->state                             = 2;
+            _gActor521100AnmcWomanWork->st.flattenStep = ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN;
+            task->state                                = 2;
             break;
 
         case 3:
@@ -989,13 +992,13 @@ static s32 _actor521100AnmcWomanWalkTo(Task* task, s32 messageId, const ActorTra
     s32       offsetZ;
     s16       yaw;
 
-    rootCoord                       = task->extra.tmd->coords;
-    offsetX                         = target->pos.vx - rootCoord->coord.t[0];
-    offsetZ                         = target->pos.vz - rootCoord->coord.t[2];
-    yaw                             = ratan2(offsetX, offsetZ);
-    D_actor_521100_8016A3D8->st.yaw = yaw;
+    rootCoord                          = task->extra.tmd->coords;
+    offsetX                            = target->pos.vx - rootCoord->coord.t[0];
+    offsetZ                            = target->pos.vz - rootCoord->coord.t[2];
+    yaw                                = ratan2(offsetX, offsetZ);
+    _gActor521100AnmcWomanWork->st.yaw = yaw;
     gfxRotMatrixY(&rootCoord->coord, yaw, GRAPHICS_ROTATION_REPLACE);
     // Travel is truncated to whole frames; the update keeps the original nonzero test.
-    D_actor_521100_8016A3D8->st.travel = SquareRoot0(offsetX * offsetX + offsetZ * offsetZ) / ACTOR_521100_ANMC_WOMAN_WALK_STRIDE;
+    _gActor521100AnmcWomanWork->st.travel = SquareRoot0(offsetX * offsetX + offsetZ * offsetZ) / ACTOR_521100_ANMC_WOMAN_WALK_STRIDE;
     return 0;
 }

@@ -232,7 +232,7 @@ static bool _capCaptionRelocateFile(CapFile* file)
 
     // These tables stay owned by the loaded resource, including on repeat calls.
     CAP_CAPTION_GLYPH_CELLS  = file->glyphs.cells;
-    CapCaption_Data_8015E650 = file->commands.table->entries;
+    CAP_CAPTION_COMMAND_REFS = file->commands.table->entries;
     return true;
 }
 
@@ -255,8 +255,8 @@ static inline void _capCaptionCacheSelectedRecordLayout(s16 recordIndex, s32 bot
 ///
 /// Requires a relocated CAP command index and loaded glyph metrics. commandIndex
 /// is in 0..32767 and below the command-table count. A null entry hides captions
-/// and returns 1 without changing the remaining state. Otherwise key must match
-/// a nonterminal record in slots 1..32767; a miss reaches the terminal, whose
+/// and returns 1 without changing the remaining state. Otherwise key is in
+/// 0..255 and must match a nonterminal record in slots 1..32767; a miss reaches the terminal, whose
 /// invalid text reference is still measured. Text must end within 32768 words
 /// and nonnegative codes' low-ten-bit glyph indices must exist in the table.
 /// bottomBaselineY is the last baseline in screen pixels, narrowed to s16.
@@ -272,13 +272,13 @@ CAP_CAPTION_SELECT_SCRIPT_LINKAGE s32 CAP_CAPTION_SELECT_RECORD(s16 commandIndex
     CapSequenceRecord* sequence;
     s16                recordIndex;
 
-    sequence             = CapCaption_Data_8015E650[commandIndex].sequence;
+    sequence             = CAP_CAPTION_COMMAND_REFS[commandIndex].sequence;
     CAP_CAPTION_SEQUENCE = sequence;
     if (sequence == NULL) {
         return CAP_CAPTION_SELECTION_NULL;
     }
     // Slot zero is the command header; only following records supply text.
-    CapCaption_Data_8015E666 = key;
+    CAP_CAPTION_SELECTED_KEY = key;
     recordIndex              = _capCaptionFindRecordByKey(CAP_CAPTION_FIRST_RECORD_INDEX);
     CAP_CAPTION_RECORD_INDEX = recordIndex;
     _capCaptionCacheSelectedRecordLayout(recordIndex, bottomBaselineY);
@@ -731,7 +731,7 @@ static s32 _capCaptionFindRecordByKey(s32 recordIndex)
 
     for (;;) {
         record = _capSequenceRecordAt(CAP_CAPTION_SEQUENCE, recordIndex);
-        if (record->textRef.offset != CAP_TEXT_REF_END && record->key != CapCaption_Data_8015E666) {
+        if (record->textRef.offset != CAP_TEXT_REF_END && record->key != CAP_CAPTION_SELECTED_KEY) {
             recordIndex++;
         } else {
             break;
