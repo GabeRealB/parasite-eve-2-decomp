@@ -158,21 +158,9 @@ enum {
 
 static inline s32 _inventoryIsRowUnattachedAndUnequipped(const InventoryItemRow* row);
 
-static InventoryItemRow* func_800CE980(InventoryItemRange* arg0, s32 arg1);
-
-static s32 func_800CEA00(InventoryItemRange* arg0, s32 arg1);
-
 static s32 _equipmentIsSelectedItem(s32 itemId);
 
-static s32 func_800CEC5C(InventoryItemRow* arg0);
-
-static InventoryItemRow* func_800CECC0(InventoryItemRange* arg0, s32 arg1);
-
 static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemRow* arg2, s32 arg3);
-
-static void func_800CEE5C(UiObject* arg0);
-
-static s32 func_800CF204(CdCmdEntry* entry);
 
 static void _itemMenuOpenUsePanel(UiList* unusedList, UiObject* parent);
 
@@ -402,51 +390,64 @@ void itemMenuDrawExitCommandRow(UiList* list, UiObject* object)
     }
 }
 
-static InventoryItemRow* func_800CE980(InventoryItemRange* arg0, s32 arg1)
+/// Borrows the first row at an armour attachment position in an inventory range.
+///
+/// `range` must be readable and fit its live backing table. Positions 0..9
+/// match stored slots 1..10; -1 matches unattached rows, -2 equipped armour.
+/// Item id and quantity are not checked, so an empty row can match.
+/// Returns NULL if absent; sorting, transfers or replacing the table can
+/// change the item at the returned writable address. No storage is retained.
+static InventoryItemRow* _inventoryFindAttachmentRowInRange(const InventoryItemRange* range, s32 attachmentIndex)
 {
-    InventoryItemRow* table;
-    s32               i;
-    s32               count;
-    InventoryItemRow* rec;
+    InventoryItemRow* row;
+    s32               rowIndex;
+    s32               rowCount;
+    InventoryItemRow* matchingRow;
 
-    table = inventoryGetRangeTable(arg0);
-    i     = 0;
-    rec   = NULL;
-    table = &table[arg0->firstRow];
-    count = arg0->rowCount;
-    for (; i < count; i++) {
-        if (table->attachSlot == arg1 + 1) {
-            rec = table;
+    row         = inventoryGetRangeTable(range);
+    rowIndex    = 0;
+    matchingRow = NULL;
+    row         = &row[range->firstRow];
+    rowCount    = range->rowCount;
+    for (; rowIndex < rowCount; rowIndex++) {
+        if (row->attachSlot == attachmentIndex + 1) {
+            matchingRow = row;
             break;
         }
-        table++;
+        row++;
     }
-    return rec;
+    return matchingRow;
 }
 
-static s32 func_800CEA00(InventoryItemRange* arg0, s32 arg1)
+/// Returns the first item id at an armour attachment position, or `INVENTORY_ITEM_NONE`.
+///
+/// Borrows a readable range that fits its live backing table. Positions 0..9
+/// match stored slots 1..10; -1 matches unattached rows, -2 equipped armour.
+/// Item id and quantity do not filter the scan: an empty first match returns
+/// `INVENTORY_ITEM_NONE` even if a later matching row holds an item.
+static s32 _inventoryGetAttachmentItemInRange(const InventoryItemRange* range, s32 attachmentIndex)
 {
-    InventoryItemRow* table;
-    s32               i;
-    s32               count;
-    InventoryItemRow* rec;
+    const InventoryItemRow* row;
+    s32                     rowIndex;
+    s32                     rowCount;
+    const InventoryItemRow* matchingRow;
 
-    table = inventoryGetRangeTable(arg0);
-    i     = 0;
-    rec   = NULL;
-    table = &table[arg0->firstRow];
-    count = arg0->rowCount;
-    for (; i < count; i++) {
-        if (table->attachSlot == arg1 + 1) {
-            rec = table;
+    row         = inventoryGetRangeTable(range);
+    rowIndex    = 0;
+    matchingRow = NULL;
+    row         = &row[range->firstRow];
+    rowCount    = range->rowCount;
+    for (; rowIndex < rowCount; rowIndex++) {
+        if (row->attachSlot == attachmentIndex + 1) {
+            matchingRow = row;
             break;
         }
-        table++;
+        row++;
     }
-    if (rec == NULL) {
-        return 0;
+    if (matchingRow == NULL) {
+        return INVENTORY_ITEM_NONE;
     }
-    return rec->itemId;
+    return matchingRow->itemId;
 }
 
 void Gp_WeaponSummaryTask(Task* arg0)
@@ -497,30 +498,44 @@ static s32 _equipmentIsSelectedItem(s32 itemId)
     return equipped;
 }
 
-static s32 func_800CEC5C(InventoryItemRow* arg0)
+/// Returns 1 if a row is unattached and is neither the equipped weapon nor armour.
+///
+/// Borrows a readable row and the live player's equipment selections. Empty
+/// rows pass when their attachment marker is zero; quantity and weapon-load
+/// selections do not affect eligibility. Returns 0 for ineligible rows.
+static s32 _inventoryIsReorderableRow(const InventoryItemRow* row)
 {
-    return _inventoryIsRowUnattachedAndUnequipped(arg0);
+    return _inventoryIsRowUnattachedAndUnequipped(row);
 }
 
-static InventoryItemRow* func_800CECC0(InventoryItemRange* arg0, s32 arg1)
+/// Borrows the zero-based nth unattached, unequipped row in a range, or NULL.
+///
+/// Borrows a readable range that fits its live backing table; `choiceIndex`
+/// must permit a signed decrement. A nonnegative index counts rows passing
+/// `_inventoryIsRowUnattachedAndUnequipped`,
+/// including empty rows with no attachment marker. A negative index selects
+/// the first scanned row even when it is ineligible. Sorting, transfers or
+/// replacing the table can change the item at the returned writable address.
+static InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryItemRange* range, s32 choiceIndex)
 {
-    InventoryItemRow* table;
-    s32               i;
-    InventoryItemRow* rec;
+    InventoryItemRow* row;
+    s32               rowIndex;
+    InventoryItemRow* foundRow;
 
-    table = inventoryGetRangeTable(arg0);
-    rec   = NULL;
-    table = &table[arg0->firstRow];
-    for (i = 0; i < arg0->rowCount; i++, table++) {
-        if (_inventoryIsRowUnattachedAndUnequipped(table) == 1) {
-            arg1--;
+    row      = inventoryGetRangeTable(range);
+    foundRow = NULL;
+    row      = &row[range->firstRow];
+    for (rowIndex = 0; rowIndex < range->rowCount; rowIndex++, row++) {
+        if (_inventoryIsRowUnattachedAndUnequipped(row) == 1) {
+            choiceIndex--;
         }
-        if (arg1 < 0) {
-            rec = table;
+        // Test after eligibility so negative input keeps the original first-row behavior.
+        if (choiceIndex < 0) {
+            foundRow = row;
             break;
         }
     }
-    return rec;
+    return foundRow;
 }
 
 static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemRow* arg2, s32 arg3)
@@ -544,49 +559,67 @@ static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemR
     return obj;
 }
 
-static void func_800CEE5C(UiObject* arg0)
+/// Closes a child's UI subtree and restores the parent's input focus.
+///
+/// Borrows distinct live UI nodes; `activeMode` must be `USER_INTERFACE_PANEL_ACTIVE`.
+/// Closing detaches the child but leaves its object alive for the closing animation.
+static inline void _itemMenuCloseChildAndRestoreFocus(UiObject* parent, UiObject* child, s32 activeMode)
 {
-    Task*     owner;
-    Task*     child;
-    Task*     next;
-    Task*     head;
-    UiObject* obj;
-    s32       one;
-    s32       mask;
-    s32       flag;
+    uiStartTreeClosing(child, child->owner);
+    parent->panel.control.word = activeMode;
+}
 
-    owner = arg0->owner;
-    head  = owner->firstChild;
-    if (head != NULL) {
-        one   = 1;
-        child = head;
-        mask  = (u32)~USER_INTERFACE_PANEL_DIMMED;
+/// Applies child command-dialog outcomes to an item-reordering panel.
+///
+/// Borrows a live object whose owner's child ring contains UI tasks. Cancel
+/// propagates to the parent. Confirm and Move close the child's subtree,
+/// restore active input and remove dimming; Move also starts destination
+/// selection. Other results leave the parent unchanged. Closing changes the
+/// ring, so traversal stops at its current head or when it becomes empty.
+static void _itemMenuApplyReorderChildResults(UiObject* object)
+{
+    enum { ITEM_MENU_REORDER_SELECT_DESTINATION = 1 };
+    Task*     ownerTask;
+    Task*     childTask;
+    Task*     nextSibling;
+    Task*     childHead;
+    UiObject* childObject;
+    s32       activeMode;
+    s32       undimMask;
+    s32       childResult;
+
+    ownerTask = object->owner;
+    childHead = ownerTask->firstChild;
+    if (childHead != NULL) {
+        // Mode 1 restores panel input and selects the reorder destination.
+        activeMode = ITEM_MENU_REORDER_SELECT_DESTINATION;
+        childTask  = childHead;
+        undimMask  = ~USER_INTERFACE_PANEL_DIMMED;
         do {
-            obj  = child->spawnArg2.pointer;
-            flag = obj->result;
-            next = child->nextSibling;
-            switch (flag) {
+            childObject = childTask->spawnArg2.pointer;
+            childResult = childObject->result;
+            // Closing detaches the child; keep its sibling before resolving the result.
+            nextSibling = childTask->nextSibling;
+            switch (childResult) {
                 case USER_INTERFACE_RESULT_CANCEL:
-                    arg0->result = flag;
+                    object->result = childResult;
                     break;
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    uiStartTreeClosing(obj, obj->owner);
-                    arg0->panel.control.word = one;
-                    arg0->panel.style       &= mask;
+                    _itemMenuCloseChildAndRestoreFocus(object, childObject, activeMode);
+                    object->panel.style &= undimMask;
                     break;
-                case 0x23:
-                    uiStartTreeClosing(obj, obj->owner);
-                    arg0->panel.control.word = one;
-                    Gp_ItemOrderMode         = one;
-                    arg0->panel.style       &= mask;
+                case USER_INTERFACE_LIST_ACTION_MOVE:
+                    _itemMenuCloseChildAndRestoreFocus(object, childObject, activeMode);
+                    Gp_ItemOrderMode     = activeMode;
+                    object->panel.style &= undimMask;
                     break;
             }
-            head  = owner->firstChild;
-            child = next;
-            if (child == head) {
+            childHead = ownerTask->firstChild;
+            childTask = nextSibling;
+            if (childTask == childHead) {
                 break;
             }
-        } while (head != NULL);
+        } while (childHead != NULL);
     }
 }
 
@@ -684,7 +717,13 @@ void itemMenuApplyChildDialogResults(UiObject* object, Task* ownerTask)
     }
 }
 
-static s32 func_800CF204(CdCmdEntry* entry)
+/// Appends a copy of a saved CD request and returns its ring slot (0..7).
+///
+/// `entry` must be a readable complete request; all four argument bytes are
+/// preserved and its pointer is not retained. It may name a ring slot because
+/// the request is read before enqueueing. The caller must leave free capacity
+/// under `cdCmdEnqueue`'s contract; this wrapper does not test whether it is full.
+static s32 _cdCmdEnqueueSavedRequest(const CdCmdEntry* entry)
 {
     return _cdCmdEnqueueEntry(entry);
 }
@@ -3160,12 +3199,13 @@ static void _itemMenuDrawPeSpecifications(UiObject* object, s32 abilityId, s32 n
     _itemMenuDrawAbilityParameterBar(object, abilityId, nextLevel, contentX, contentY, ATTACHMENT_LEVEL_ATP_LOSS);
 }
 
-/// Fits the hotspot command panel and keeps its right/bottom edges on screen.
+/// Fits the hotspot command panel inside its lower/right screen margins.
 ///
-/// Borrows the list and writable object. Bounds are centred-screen pixels;
-/// each stored u16 component is interpreted as s16 before summing. Only excess
-/// beyond (150, 110) is shifted back, with the stored coordinates wrapping to u16.
-static inline void _itemMenuFitHotspotCommandPanel(UiList* list, UiObject* object)
+/// Borrows a writable list and panel; fitting can change the list's viewport.
+/// Bounds are signed screen-centered pixels. Only excess beyond (150, 110)
+/// is shifted back. Position stores retain sixteen bits; left/top overflow
+/// is not corrected, and the generic content layout is not recomputed here.
+static inline void _itemMenuFitHotspotCommandPanel(UiList* list, UiPanel* panel)
 {
     enum {
         ITEM_MENU_HOTSPOT_RIGHT_LIMIT_PIXELS  = 150,
@@ -3174,14 +3214,14 @@ static inline void _itemMenuFitHotspotCommandPanel(UiList* list, UiObject* objec
     s32 rightAdjustment;
     s32 bottomAdjustment;
 
-    uiFitPanelToList(list, &object->panel);
-    rightAdjustment  = ITEM_MENU_HOTSPOT_RIGHT_LIMIT_PIXELS - ((s16)object->panel.bounds.unsignedRect.x + (s16)object->panel.bounds.unsignedRect.w);
-    bottomAdjustment = ITEM_MENU_HOTSPOT_BOTTOM_LIMIT_PIXELS - ((s16)object->panel.bounds.unsignedRect.y + (s16)object->panel.bounds.unsignedRect.h);
+    uiFitPanelToList(list, panel);
+    rightAdjustment  = ITEM_MENU_HOTSPOT_RIGHT_LIMIT_PIXELS - (panel->bounds.rect.x + panel->bounds.rect.w);
+    bottomAdjustment = ITEM_MENU_HOTSPOT_BOTTOM_LIMIT_PIXELS - (panel->bounds.rect.y + panel->bounds.rect.h);
     if (rightAdjustment < 0) {
-        object->panel.bounds.unsignedRect.x += rightAdjustment;
+        panel->bounds.rect.x += rightAdjustment;
     }
     if (bottomAdjustment < 0) {
-        object->panel.bounds.unsignedRect.y += bottomAdjustment;
+        panel->bounds.rect.y += bottomAdjustment;
     }
 }
 
@@ -3197,7 +3237,7 @@ void itemMenuHotspotCommandTask(Task* task)
     list           = &D_8010F81C;
     object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == ITEM_MENU_STATE_INITIAL) {
-        _itemMenuFitHotspotCommandPanel(list, object);
+        _itemMenuFitHotspotCommandPanel(list, &object->panel);
         task->state = task->state + 1;
     }
     uiUpdateList(list, &object->panel);
@@ -3717,10 +3757,14 @@ void itemMenuDrawDiscardRow(UiList* list, UiObject* object)
     }
 }
 
-/// Advances a text dialog's timer and reports active dismissal input.
+/// Counts one timed-dialog update and publishes active dismissal input.
 ///
-/// Borrows the live dialog and owning task. Timeout/Confirm/Cancel wins over
-/// Menu and reports CONFIRM; Menu reports CANCEL. Acceptance rearms the timer.
+/// Borrows a writable dialog and its owning task. The signed halfword counter
+/// decrements once per call even while input is inactive, retaining sixteen
+/// bits independently of elapsed display ticks. An active timeout or pressed
+/// Confirm/Cancel reports CONFIRM and rearms to 0x7FFF calls, taking precedence over Menu.
+/// Menu reports CANCEL without rearming. Other calls preserve the result;
+/// no dialog is closed. The caller initializes the counter before ticking.
 static inline void _itemMenuTickTimedDialogInput(UiObject* object, Task* task)
 {
     task->killCountdown--;

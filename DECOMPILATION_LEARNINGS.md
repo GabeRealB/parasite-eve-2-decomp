@@ -25253,7 +25253,7 @@ return rec->itemId;
 ```
 
 A `do { ... } while (i < count)` of the same body inlines the break
-(i++ / i-- / `bne`) and never emits that out-of-line block. `func_800CEA00`
+(i++ / i-- / `bne`) and never emits that out-of-line block. `_inventoryGetAttachmentItemInRange`
 is the example.
 
 ## Keep the byte index live so `base + idx` dest is `$v0`, not the index reg
@@ -26547,7 +26547,7 @@ for (rowIndex = 0; rowIndex < rowCount; rowIndex++) {
 
 `matchingRow = NULL` after the call CSEs with `rowIndex = 0` and lands in `$a3`, so the
 hi stays in `$s0` for the whole function (~92%). `_inventoryFindCarriedAttachmentRow` is the
-example; `func_800CE980` is the same search with the scan passed in
+example; `_inventoryFindAttachmentRowInRange` is the same search with the scan passed in
 (result stays in `$a3` because there is no leftover hi).
 
 ## Load the stream word into a temp so `setlen` stays after the `lw`
@@ -27559,7 +27559,7 @@ is identical enough that GCC 2.8.1 cross-jumps the `and`/`sw` into one tail
 (`lw v1; j shared; sw status`). The compound `&=` hoists the load before the
 independent stores and keeps a dedicated `lw`/`and`/`sw` per case.
 
-`func_800CEE5C` is the example.
+`_itemMenuApplyReorderChildResults` is the example.
 
 ## Combine same-result predicates with `||` so `ret` takes `$s2`
 
@@ -28205,7 +28205,7 @@ if (count != 0) {
 }
 ```
 
-`func_800CECC0` is the example. `n = count` before `one = 1` stuck at
+`_inventoryFindNthReorderableRow` is the example. `n = count` before `one = 1` stuck at
 98% with only those two instructions swapped, and without `n` the
 count never entered `$a0` at all (`lbu t1` / no `move`).
 
@@ -143388,7 +143388,7 @@ with separate `+= 1` statements does not.
 A search loop that returns a pointer starts with two zeros: `found = NULL`
 and the counter `i = 0`. The target of `Gp_DrawItemOrderRow` reads
 `move a1,zero; move t0,a1` (found first, counter copied from it); its
-out-of-line twin `func_800CECC0` reads the reverse.
+out-of-line twin `_inventoryFindNthReorderableRow` reads the reverse.
 
 The copy is `reload_cse` turning the *later* of the two `li 0`s into a move,
 so the question is which init comes last. In a `for (i = 0; i < n; ...)`
@@ -146407,7 +146407,7 @@ A `register s32 clut asm("t3")` held a clut constant stored into two SPRTs and a
 ## A `nop` after the index load, then `lui` of the table, is a `desc = &table[i]` local (func_800C41A4, 2026-09-27)
 The target read `lw v0,Gp_SelItemRec; nop; lbu v1,0(v0); lui v0,%hi(Gp_ItemDescs)` - the table's `lui` reusing the pointer's register and leaving the load delay unfilled. `Gp_ItemDescs[*p].flags` in one expression (with or without an `s32`/`u8` index local, or an inline returning the field) lets sched1 hoist the independent `lui` above the `lbu`, and a `USE_REG(p)` barrier after the index load had been holding it back. Taking the element address into its own local, `const ItemDesc* desc = &Gp_ItemDescs[*p]; if (desc->flags & ITEM_FLAG_NO_ATTACHMENT)`, reproduces the order unaided; an inline returning `&Gp_ItemDescs[id]` does too.
 
-## A pinned flag in a loop may be the inlined body of the function just before it, written as one `||` condition (func_800CECC0, 2026-09-27)
+## A pinned flag in a loop may be the inlined body of the function just before it, written as one `||` condition (_inventoryFindNthReorderableRow, 2026-09-27)
 A `register s32 ok asm("a2")` held a "row is usable" flag set by an `if / else if / else if` chain inside a search loop; the static function directly above, with no callers, computed exactly that flag. Inlining the same chain as a helper left the flag and the row pointer swapped (`a1`/`a2`, 99.339%): the chain's three `ret = 0` stores gave the flag 10 refs over 22 insns in `.lreg`, outranking the pointer. Writing the test as a single `if (a || (b && c) || (d && e)) ret = 0;` - the shape the file's other predicates already use - gives one store, lowers the flag's rank, and matches. The out-of-line neighbour matched with the same body, so it became `return helper(index);` rather than a second copy. When an uncalled static sits beside a pinned function, try it as the inline first, and try both the chained and the `||` spelling.
 
 ## A pin on a value stored to a global and returned is `g = x; return g;` (_menuMapSelectCurrentAreaPage, 2026-09-27)
