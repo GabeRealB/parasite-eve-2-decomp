@@ -918,11 +918,19 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
 
     def unit(g):
         kinds = {_node_kind(u) for u in g}
-        files = {nodes[u].get("file") or "" for u in g}
-        if len(kinds) != 1 or len(files) != 1 or "" in files:
+        if len(kinds) != 1:
             return None
         kind = next(iter(kinds))
         if limits.get(kind, 1) <= 1:
+            return None
+        files = {nodes[u].get("file") or "" for u in g}
+        if kind == "enum" and files == {""}:
+            # The graph records no file for an enum's constants. Their unit is
+            # the enum itself - the USR up to the constant's own name - which
+            # is also the better one: its values are named against each other.
+            enums = {u.rsplit("@", 1)[0] for u in g}
+            return (kind, ENUM_UNIT + next(iter(enums))) if len(enums) == 1 else None
+        if len(files) != 1 or "" in files:
             return None
         return kind, _unit_of(root, next(iter(files)))
 
@@ -931,6 +939,8 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
     def near(g):
         """The wider places a small step of `g`'s unit may be filled from."""
         kind, where = unit_of[g]
+        if where.startswith(ENUM_UNIT):
+            return ()                   # an enum has no directory to fill from
         folder = os.path.dirname(where)
         return (kind, "dir", folder), (kind, "family", "/".join(folder.split("/")[:2]))
 
@@ -1036,6 +1046,7 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
 
 
 RESIDENT_UNITS = ("src/main/", "src/gameplay/")
+ENUM_UNIT = "enum:"
 
 RUN_KINDS = os.path.join("local", "name_pass_kinds")
 
@@ -1278,6 +1289,12 @@ def main() -> int:
     ap.add_argument("--batch-funcs", type=int, default=int(os.environ.get("PE2_NAME_BATCH_FUNCS") or 16),
                     help="worklist: join up to N pending functions of one file, or of one shared "
                          "library's fragments, into a step (default 16, or PE2_NAME_BATCH_FUNCS)")
+    ap.add_argument("--batch-data", type=int, default=int(os.environ.get("PE2_NAME_BATCH_DATA") or 32),
+                    help="worklist: the same for pending globals of one file (default 32, or "
+                         "PE2_NAME_BATCH_DATA); only in a run that works data")
+    ap.add_argument("--batch-consts", type=int, default=int(os.environ.get("PE2_NAME_BATCH_CONSTS") or 32),
+                    help="worklist: the same for enum constants and for macros (default 32, or "
+                         "PE2_NAME_BATCH_CONSTS); only in a run that works them")
     args = ap.parse_args()
 
     root = cref.repo_root()
@@ -1308,8 +1325,15 @@ def main() -> int:
 
     if args.command == "worklist":
         out = args.worklist if os.path.isabs(args.worklist) else os.path.join(root, args.worklist)
-        rows = worklist(root, args.version, nodes, edges, comp, done, out,
-                        {"type": args.batch, "func": args.batch_funcs})
+        limits = {"type": args.batch, "func": args.batch_funcs}
+        # Globals and constants are batched only by a run that works them. A
+        # run restricted to functions leaves them one to a step, as they always
+        # were, so its own steps and their numbering do not move.
+        rk = run_kinds(root)
+        for kind, n in (("data", args.batch_data), ("enum", args.batch_consts), ("macro", args.batch_consts)):
+            if rk is not None and kind in rk:
+                limits[kind] = n
+        rows = worklist(root, args.version, nodes, edges, comp, done, out, limits)
         groups = len({r[0] for r in rows})
         multi = len({r[0] for r in rows if int(r[1]) > 1})
         print(f"{len(rows)} items in {groups} ordered steps -> {os.path.relpath(out, root)}")

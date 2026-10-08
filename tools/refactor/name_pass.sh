@@ -6,6 +6,8 @@
 #                                 [--from ORDER] [--step ORDER]
 #                                 [--kinds func,type,data,enum,macro]
 #                                 [--batch N] [--batch-funcs N]
+#                                 [--batch-data N] [--batch-consts N]
+#                                 [--queue K] [--round-minutes N]
 #                                 [--list-profiles] [--clean-workers]
 #
 # With no --times the whole worklist is walked. --times N stops after N rounds -
@@ -18,7 +20,9 @@
 # worked one per round. --batch-funcs N is the same for functions (default 16),
 # where the unit is a source file or all the fragments of one shared library,
 # and a step may hold a function together with the callers that were waiting
-# for it. Both apply when the worklist is next rebuilt.
+# for it. --batch-data N and --batch-consts N do it for globals and for enum
+# constants and macros (default 32 each), in a run whose --kinds names them.
+# All apply when the worklist is next rebuilt.
 #
 # --kinds restricts the pass to steps holding an item of the listed kinds (the
 # worklist's `kind` column: func, type, data, enum, macro). A cycle is one step, so it
@@ -63,12 +67,14 @@
 # and since nothing lands before the join, none of them can stop being ready or
 # become ready while the round runs: the queue is simply worked off. A worker
 # takes one step, and on finishing asks for the next. It is given one until
-# every worker has finished its first, and after that it is told to stop; the
-# steps still queued stay in the worklist for the next round. A second step is
+# every worker has finished its first and --round-minutes N have passed
+# (default 90; 0 closes at the slowest first step), and after that it is told
+# to stop; the steps still queued stay in the worklist for the next round. A second step is
 # worked in the tree that holds the worker's first commit, and the join replays
 # every commit in the order the steps were started. The join, the verification
 # and the worklist rebuild happen once, when all workers have stopped. K = 1 is
-# one step per worker, as before; the default is 3.
+# one step per worker, as before; the default is 6, which is what a 90-minute
+# round of 20-minute steps works off.
 #
 # Only steps that do not wait on each other share a round. The worklist's
 # `after` column gives the last step each one depends on, and a round is
@@ -107,7 +113,8 @@ PROFILE="${PROFILE-${VACUUM_PROFILE:-}}"
 # had run out of work.
 TIMES=0
 WORKERS=1
-QUEUE="${PE2_NAME_QUEUE:-3}"
+QUEUE="${PE2_NAME_QUEUE:-6}"
+ROUND_MINUTES="${PE2_NAME_ROUND_MINUTES:-90}"
 # Beside the repository by default, the way the matching vacuum places its
 # worktrees, so a checkout is not nested inside another one.
 WORKER_ROOT="${NAME_PASS_WORKTREE_ROOT:-$(dirname "$ROOT")}"
@@ -131,9 +138,12 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --times) TIMES="$2"; shift 2 ;;
     --queue) QUEUE="$2"; shift 2 ;;
+    --round-minutes) ROUND_MINUTES="$2"; shift 2 ;;
     --workers|-j) WORKERS="$2"; shift 2 ;;
     --batch) export PE2_NAME_BATCH="$2"; shift 2 ;;
     --batch-funcs) export PE2_NAME_BATCH_FUNCS="$2"; shift 2 ;;
+    --batch-data) export PE2_NAME_BATCH_DATA="$2"; shift 2 ;;
+    --batch-consts) export PE2_NAME_BATCH_CONSTS="$2"; shift 2 ;;
     --worktree-root) WORKER_ROOT="$2"; shift 2 ;;
     --clean-workers) CLEAN_WORKERS=1; shift ;;
     --cli)   CLI="$2"; CLI_EXPLICIT=1; shift 2 ;;
@@ -685,8 +695,13 @@ queue_take() {
     flock 9
     if [[ -e "$QDIR/first.$w" ]]; then
       [[ ! -e "$QDIR/stop" ]] || exit 0
-      # Every worker has finished its first step: the round is closing.
-      (( $(find "$QDIR" -maxdepth 1 -name 'first.*' | wc -l) < QACTIVE )) || exit 0
+      # The round closes once every worker has finished a step and its time
+      # is up. Both, because the tail and the join cost the same however much
+      # the round landed: closing at the slowest first step alone left the
+      # workers busy 54-69% of a round, and a longer round spreads that cost.
+      if (( $(find "$QDIR" -maxdepth 1 -name 'first.*' | wc -l) >= QACTIVE )); then
+        (( $(date +%s) - QSTART < ROUND_MINUTES * 60 )) || exit 0
+      fi
     fi
     next="$(head -n 1 "$QDIR/queue" 2>/dev/null)"
     [[ -n "$next" ]] || exit 0
@@ -1068,6 +1083,7 @@ BARRIER
     QDIR="$(mktemp -d -t name_pass_round.XXXXXX)"
     printf '%s\n' "${batch[@]}" >"$QDIR/queue"
     : >"$QDIR/started"
+    QSTART="$(date +%s)"
     QACTIVE=$(( ${#batch[@]} < WORKERS ? ${#batch[@]} : WORKERS ))
     (( STOP_REQUESTED )) && : >"$QDIR/stop"
     pids=()
