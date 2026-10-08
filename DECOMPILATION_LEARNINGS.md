@@ -64431,7 +64431,7 @@ table at `0x20`, so `pos` is declared first, then `ext`, then `work`, then the
 table.
 
 An m2c seed reaches this failure mode through its own shape, and both halves
-have to be replaced at once (`Actor00400_Fn09348`, 2026-09-16). m2c emits the
+have to be replaced at once (`_actor00400StrandedDischarge`, 2026-09-16). m2c emits the
 handlers as casts of the *extern data* symbols it bootstrapped — it has no
 prototype for them — and stores them element-wise:
 
@@ -64446,7 +64446,7 @@ temp_states[1] = (void (*)(Actor100400 *))&_actor00400StrandedDischargeWait;
 T-9 where the target fires the `lw` of the work pointer, leaving the `lui` three
 slots early after `.sched`. Declaring the handlers as functions (they are
 already-decompiled bodies elsewhere in the overlay) and brace-initializing the
-table — the sibling `Actor00400_Fn09260`/`Fn092D4` shape in the same unit —
+table — the sibling `_actor00400StrandedState3`/`_actor00400StrandedCrawl` shape in the same unit —
 is 100%, and the `.rtl` then carries `(clobber (mem/s:BLK (reg:SI 77)))` that
 the seed form does not. The element type is not what moves: the brace
 initializer with the casts still in place (`extern M2C_UNK` + cast on each
@@ -104204,9 +104204,9 @@ Inputs: `base_7.i` (100.000%) SHA256 `c550579a33aa262c076f86b59ce83117363b546ad9
 target SHA256 `4f7afbfde205f7117829679e1b300cf0fb2077d86cda0e853d112a8212b85b59`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor01600StepPathProbe-vacuum`.
-## A lone `reorder=1` in the prologue, part 2: per-element stores to a local function-pointer array hoist the first `lui`; the aggregate initializer does not (Actor00400_Fn09260, 2026-09-16)
+## A lone `reorder=1` in the prologue, part 2: per-element stores to a local function-pointer array hoist the first `lui`; the aggregate initializer does not (_actor00400StrandedState3, 2026-09-16)
 
-`Actor00400_Fn09260` is a byte-for-byte copy of the matched `Actor00400_Fn078C8`
+`_actor00400StrandedState3` is a byte-for-byte copy of the matched `Actor00400_Fn078C8`
 (one 0x74-byte body, two function-pointer constants) and its m2c seed scored
 97.931% with every penalty zero but `reorder=1` and exactly one instruction
 misplaced: the `lui` (`high`) of the *first* array element's address sat at the
@@ -104275,7 +104275,7 @@ Inputs: `base_1.i` (100.000%) SHA256
 `df7c97fb9b9e7db57aa2f1e525221ee623e57e1623276bb248d2eac52e7cd80a`;
 target SHA256 `69d43542a055091f7aef7a7be3c4cd11469b044e0f3552fd1f1f4c5c25eee1e9`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor00400_Fn09260-vacuum`.
+Scratch `nonmatchings/_actor00400StrandedState3-vacuum`.
 
 ## A stack-copied dispatcher sizes the table by the copy, so its extern goes in the consuming TU
 
@@ -104705,9 +104705,9 @@ target SHA256 `8164ce6714022f1130ef12a98fba523bbddbd662052aa50ca51bf4bcdc637c38`
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor00400TurnTowardPointMaskedRange-vacuum`.
 
-## A merge-block flag copy is a global allocno until every edge reaches it; cse then bypasses the redundant edge and reorg fills the delay slot (Actor00400_Fn09124, 2026-09-16)
+## A merge-block flag copy is a global allocno until every edge reaches it; cse then bypasses the redundant edge and reorg fills the delay slot (_actor00400StrandedIdleWait, 2026-09-16)
 
-`Actor00400_Fn09124` is one register from the target at 99.717%: `regs=3` and
+`_actor00400StrandedIdleWait` is one register from the target at 99.717%: `regs=3` and
 every other penalty zero, the object differing only in the two copies that
 carry the "we just armed the state" flag. The target has
 
@@ -104734,7 +104734,7 @@ register gets into that set.
 the copy:
 
 ```c
-    work   = arg0->field_1C;
+    work   = task->work;
     active = 0;
     if (work->targetDistance >= 0xDAC) {
         goto set;               /* the seed had this goto inside the oob body */
@@ -104776,7 +104776,7 @@ Inputs: `base.i` (99.717%) SHA256
 `62f4e3763c890786a9b8ab5f2367e3ea89700a8f45615e1898318783c73f8a2f`; target.o
 SHA256 `580bf3d944f4f5101d1328ced5e67b487b51a47ad906ca48dce07587bd485923`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor00400_Fn09124-vacuum`.
+Scratch `nonmatchings/_actor00400StrandedIdleWait-vacuum`.
 
 ## Where a loop counter's init sits decides `addiu v0,v0,1` vs `addu v0,v0,s0`
 
@@ -111120,7 +111120,7 @@ already marked `$v0` against it: each arm's own condition temporaries (`lh`,
 `lbu`/`andi`) are block-local quantities that `local-alloc` homed in `$v0`, and
 `global_conflicts` turns a renumbered pseudo into a hard register
 (`record_one_conflict (2)`) for every live allocno. Same mechanism as the
-merge-block flag copy in `Actor00400_Fn09124`, one register over.
+merge-block flag copy in `_actor00400StrandedIdleWait`, one register over.
 
 **Lever.** Store the field in each arm instead of through a shared variable:
 
@@ -111145,7 +111145,7 @@ This is the shape the rest of the family uses, so prefer it over m2c's variable:
 `src/actors/lib/actor_400100_tail.c` carries the same tail matched as
 `Actor00100_Fn0B98C` / `_actor00100DownedHitReaction`, whose object is instruction-for-
 instruction the target above. The reverse (a single assignment on a merge edge)
-is `Actor00400_Fn09124`'s lever; both come down to "which arm's pseudo gets to
+is `_actor00400StrandedIdleWait`'s lever; both come down to "which arm's pseudo gets to
 be block-local".
 
 Inputs: `base.i` (99.655%) SHA256
@@ -131176,9 +131176,9 @@ register allocation by shortening a live range". That entry is about
 match instruction-for-instruction but permute `$sN`, split the locals per arm
 before looking at the schedule.
 
-## The same `li` in a delay slot *and* at the join block is one assignment duplicated by `dbr`, not two in the source (Actor00400_Fn08C54, 2026-09-18)
+## The same `li` in a delay slot *and* at the join block is one assignment duplicated by `dbr`, not two in the source (_actor00400StrandedDeathFallWait, 2026-09-18)
 
-`Actor00400_Fn08C54` runs a three-way dispatch on `work->field_624`, then ticks
+`_actor00400StrandedDeathFallWait` runs a three-way dispatch on `work->animRequest`, then ticks
 14 animation slots from a loop counter that starts at 1. The ROM sets that
 counter twice:
 
@@ -150238,7 +150238,7 @@ attempts; left as it was.
   as needed for the pointer's allocation rank was not needed, nor was the
   local aliasing `hitTaken` for the stored state (`work->state = 1`).
 - **`done = active;` at a label every path funnels through, with `move v0,a0;
-  bnez v0` in the image** (`Actor00400_Fn09124`) is a `static inline` returning
+  bnez v0` in the image** (`_actor00400StrandedIdleWait`) is a `static inline` returning
   `s16`: the promoted return value is a second pseudo, hence the copy. With an
   `s32` return the test uses `a0` directly (two insns shorter).
 - **A constant in the middle of an `|` chain moves to the end when written as

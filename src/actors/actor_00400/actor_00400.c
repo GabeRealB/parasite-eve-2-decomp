@@ -482,7 +482,7 @@ static void _actor00400WoundedGroundIdleTick(Task* task);
 static void _actor00400WoundedGroundIdleEnter(Task* task);
 static void Actor00400_Fn08A88(Task* arg0);
 static void Actor00400_Fn08B40(Task* arg0);
-static void Actor00400_Fn08B94(Task* arg0);
+static void _actor00400WoundedGroundFlinchEnter(Task* task);
 static void _actor00400WoundedGroundFlinchWait(Task* task);
 static void _actor00400StrandedLightRecoilEnter(Task* task);
 static void _actor00400StrandedLightRecoilWait(Task* task);
@@ -537,23 +537,23 @@ static void _actor00400SwimDeathBlastHide(Task* task);
 static void _actor00400SwimDeathBlastWait(Task* task);
 static void Actor00400_Fn07F88(Task* arg0);
 static void _actor00400SwimDeathBlastEnd(Task* task);
-static void Actor00400_Fn08C54(Task* arg0);
-static void Actor00400_Fn08D70(Task* arg0);
-static void Actor00400_Fn08DFC(Task* arg0);
+static void _actor00400StrandedDeathFallWait(Task* task);
+static void _actor00400StrandedDeathWeigh(Task* task);
+static void _actor00400StrandedDeathFadeWait(Task* task);
 static void Actor00400_Fn08E50(Task* arg0);
-static void Actor00400_Fn08FB0(Task* arg0);
-static void Actor00400_Fn08FC8(Task* arg0);
-static void Actor00400_Fn08FF4(Task* arg0);
+static void _actor00400StrandedDeathEnd(Task* task);
+static void _actor00400StrandedDeathBlastHide(Task* task);
+static void _actor00400StrandedDeathBlastWait(Task* task);
 static void Actor00400_Fn09038(Task* arg0);
-static void Actor00400_Fn0909C(Task* arg0);
-static void Actor00400_Fn090B4(Task* arg0);
-static void Actor00400_Fn09124(Task* arg0);
-static void Actor00400_Fn091F8(Task* arg0);
-static void Actor00400_Fn09260(Task* arg0);
-static void Actor00400_Fn092D4(Task* arg0);
-static void Actor00400_Fn09348(Task* arg0);
-static void Actor00400_Fn093BC(Task* task);
-static void Actor00400_Fn093C4(Task* arg0);
+static void _actor00400StrandedDeathBlastEnd(Task* task);
+static void _actor00400StrandedStart(Task* task);
+static void _actor00400StrandedIdleWait(Task* task);
+static void _actor00400StrandedDecision(Task* task);
+static void _actor00400StrandedState3(Task* task);
+static void _actor00400StrandedCrawl(Task* task);
+static void _actor00400StrandedDischarge(Task* task);
+static void _actor00400StrandedUnusedState6(Task* task);
+static void _actor00400StrandedLightRecoil(Task* task);
 static void Actor00400_Fn09418(Task* arg0);
 static void Actor00400_Fn0946C(Task* arg0);
 static void Actor00400_Fn094C0(Task* arg0);
@@ -3070,14 +3070,14 @@ static void _actor00400SwimDeathFallWait(Task* task)
 /// States `Actor00400_Fn04580` dispatches on `_Actor00400Work::state`:
 /// `ACTOR_00400_STRANDED_STATE_*` and the three recoil states.
 static const TaskFuncTable10 Actor00400_D000A8 = { {
-    Actor00400_Fn090B4,
-    Actor00400_Fn09124,
-    Actor00400_Fn091F8,
-    Actor00400_Fn09260,
-    Actor00400_Fn092D4,
-    Actor00400_Fn09348,
-    Actor00400_Fn093BC,
-    Actor00400_Fn093C4,
+    _actor00400StrandedStart,
+    _actor00400StrandedIdleWait,
+    _actor00400StrandedDecision,
+    _actor00400StrandedState3,
+    _actor00400StrandedCrawl,
+    _actor00400StrandedDischarge,
+    _actor00400StrandedUnusedState6,
+    _actor00400StrandedLightRecoil,
     Actor00400_Fn09418,
     Actor00400_Fn0946C,
 } };
@@ -3235,15 +3235,15 @@ static void _actor00400StrandedHeavyRecoilWait(Task* task)
 /// `ACTOR_00400_STRANDED_DEATH_*`.
 static const TaskFuncTable10 Actor00400_D000D0 = { {
     _actor00400StrandedDeathEnter,
-    Actor00400_Fn08C54,
-    Actor00400_Fn08D70,
-    Actor00400_Fn08DFC,
+    _actor00400StrandedDeathFallWait,
+    _actor00400StrandedDeathWeigh,
+    _actor00400StrandedDeathFadeWait,
     Actor00400_Fn08E50,
-    Actor00400_Fn08FB0,
-    Actor00400_Fn08FC8,
-    Actor00400_Fn08FF4,
+    _actor00400StrandedDeathEnd,
+    _actor00400StrandedDeathBlastHide,
+    _actor00400StrandedDeathBlastWait,
     Actor00400_Fn09038,
-    Actor00400_Fn0909C,
+    _actor00400StrandedDeathBlastEnd,
 } };
 
 /// Per-frame callback for the main actor task. `gSceneCombatState.actorControl` gates the frame:
@@ -5279,92 +5279,85 @@ static void Actor00400_Fn08B40(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn08B94,
+        _actor00400WoundedGroundFlinchEnter,
         _actor00400WoundedGroundFlinchWait,
     };
 
     states[work->subState](arg0);
 }
 
-static void Actor00400_Fn08B94(Task* arg0)
+/// Plays the hit sound and enters the lying wounded diver's flinch wait.
+///
+/// Requires live work, enemy and model. The placement-tagged sound precedes
+/// the normal-rate clip-19 request with a two-frame blend. The outer wounded
+/// driver applies the request; this entry only advances substate 0 to 1.
+static void _actor00400WoundedGroundFlinchEnter(Task* task)
 {
-    s32              sound;
-    s32              pan;
+    enum { ACTOR_00400_ANIM_WOUNDED_GROUND_FLINCH  = 19,
+           ACTOR_00400_WOUNDED_FLINCH_BLEND_FRAMES = 2 };
     _Actor00400Work* work;
-    _Actor00400Work* w;
+    _Actor00400Work* requestWork;
 
-    work  = arg0->work;
-    sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-    w              = arg0->work;
-    w->animBlend   = 2;
-    w->animStep    = ANIMATION_RATE_ONE;
-    w->animClip    = 0x13;
-    w->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    work = task->work;
+    _actor00400PlayHitSound(task);
+    requestWork = task->work;
+    _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_WOUNDED_GROUND_FLINCH,
+                           ANIMATION_RATE_ONE, ACTOR_00400_WOUNDED_FLINCH_BLEND_FRAMES);
     work->subState++;
 }
 
-static void Actor00400_Fn08C54(Task* arg0)
+/// Advances the stranded death animation for thirty running ticks.
+///
+/// Requires a live initialized rig and the timer cleared by death entry.
+/// Consumes clip requests and ticks body slots 1..14 without publishing their
+/// status; the outer death driver publishes slot 1 afterwards. The timer,
+/// rather than an animation boundary, selects the weighted-colour phase.
+static void _actor00400StrandedDeathFallWait(Task* task)
 {
+    enum { ACTOR_00400_STRANDED_DEATH_FALL_FRAMES = 30 };
     _Actor00400Work* work;
-    _Actor00400Work* w;
-    s16              mode;
-    s32              i;
 
-    work = arg0->work;
+    work = task->work;
     work->stateFrames++;
-
-    w    = arg0->work;
-    mode = w->animRequest;
-    if (mode == DIVER_ANIM_REQUEST_BLEND) {
-        if (w->animPlaying != w->animClip) {
-            w->animFrames = 0;
-        } else {
-            w->animFrames = _actor00400ScaleFramesForAnimRate(arg0, w->animFrames);
-        }
-        _actor00400BlendRequestedClip(arg0);
-        w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-    } else if (mode == DIVER_ANIM_REQUEST_RESET) {
-        _diverRestartClip(arg0);
-        w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-        w->animFrames  = 0;
-    } else if (mode == DIVER_ANIM_REQUEST_PLAYING) {
-        w->animFrames++;
-    }
-
-    for (i = 1; i < ARRAY_SIZE(w->rig.slots); i++) {
-        animationTickSlot(&w->rig.anim, i);
-    }
-
-    if (work->stateFrames >= 0x1E) {
+    _actor00400AdvanceAnimation(task);
+    if (work->stateFrames >= ACTOR_00400_STRANDED_DEATH_FALL_FRAMES) {
         work->state++;
     }
 }
 
-static void Actor00400_Fn08D70(Task* arg0)
+/// Saves the stranded corpse's root transform and starts its weighted-colour fade.
+///
+/// Requires live work, enemy and root coordinate. Initializes the later Y
+/// shrink at Q12 unity and saves the full matrix before any scaling. Selects
+/// weighted colouring, clears the phase timer and advances from state 2 to 3.
+static void _actor00400StrandedDeathWeigh(Task* task)
 {
     _Actor00400Work* work;
-    GfxCoord*        coord;
+    GfxCoord*        rootCoord;
 
-    work               = arg0->work;
-    coord              = arg0->extra.tmd->coords;
+    work               = task->work;
+    rootCoord          = task->extra.tmd->coords;
     work->shrinkScaleY = ONE;
-    work->savedRootMtx = coord->coord;
-    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
+    work->savedRootMtx = rootCoord->coord;
+    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_WEIGHTED);
     work->stateFrames = 0;
-    work->state       = work->state + 1;
+    work->state++;
 }
 
-static void Actor00400_Fn08DFC(Task* arg0)
+/// Waits twenty-four running ticks before making the stranded corpse translucent.
+///
+/// Requires live work and model with the phase timer initially zero. Enables
+/// semitransparent drawing, clears the timer and enters the shrink phase.
+static void _actor00400StrandedDeathFadeWait(Task* task)
 {
-    TmdObject*       ctx;
+    enum { ACTOR_00400_STRANDED_DEATH_FADE_FRAMES = 24 };
+    TmdObject*       model;
     _Actor00400Work* work;
 
-    work = arg0->work;
-    ctx  = arg0->extra.tmd;
-    if (++work->stateFrames >= 0x18) {
-        ctx->flags       |= TMD_OBJECT_SEMI_TRANS;
+    work  = task->work;
+    model = task->extra.tmd;
+    if (++work->stateFrames >= ACTOR_00400_STRANDED_DEATH_FADE_FRAMES) {
+        model->flags     |= TMD_OBJECT_SEMI_TRANS;
         work->stateFrames = 0;
         work->state++;
     }
@@ -5408,34 +5401,47 @@ static void Actor00400_Fn08E50(Task* arg0)
     }
 }
 
-static void Actor00400_Fn08FB0(Task* arg0)
+/// Enters surface-spot release and delayed despawn after the stranded corpse shrinks.
+///
+/// Requires live work; the shrink phase has already hidden the model. Selects
+/// the despawn task state at its release entry, resetting both inner indices.
+static void _actor00400StrandedDeathEnd(Task* task)
 {
     _Actor00400Work* work;
 
-    work           = arg0->work;
-    arg0->state    = 5;
-    work->state    = 0;
+    work           = task->work;
+    task->state    = ACTOR_00400_TASK_DESPAWN;
+    work->state    = ACTOR_00400_DESPAWN_STATE_RELEASE_SPOT;
     work->subState = 0;
 }
 
-static void Actor00400_Fn08FC8(Task* arg0)
+/// Hides the blast-killed stranded diver before the two-tick burst delay.
+///
+/// Requires live work and model. Disables active drawing, clears the phase
+/// timer and advances to the blast wait; model buffers remain allocated.
+static void _actor00400StrandedDeathBlastHide(Task* task)
 {
-    TmdObject*       ctx;
+    TmdObject*       model;
     _Actor00400Work* work;
 
-    ctx               = arg0->extra.tmd;
-    work              = arg0->work;
-    ctx->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model             = task->extra.tmd;
+    work              = task->work;
+    model->flags     |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     work->stateFrames = 0;
     work->state++;
 }
 
-static void Actor00400_Fn08FF4(Task* arg0)
+/// Delays the stranded corpse burst for two running ticks after hiding it.
+///
+/// Requires live work and the zeroed phase timer. Advances to the burst state
+/// on the second tick; the timer is retained for the following state.
+static void _actor00400StrandedDeathBlastWait(Task* task)
 {
+    enum { ACTOR_00400_STRANDED_DEATH_BLAST_DELAY_FRAMES = 2 };
     _Actor00400Work* work;
 
-    work = arg0->work;
-    if (++work->stateFrames >= 2) {
+    work = task->work;
+    if (++work->stateFrames >= ACTOR_00400_STRANDED_DEATH_BLAST_DELAY_FRAMES) {
         work->state++;
     }
 }
@@ -5453,34 +5459,45 @@ static void Actor00400_Fn09038(Task* arg0)
     work->state = (u16)work->state + 1;
 }
 
-static void Actor00400_Fn0909C(Task* arg0)
+/// Enters surface-spot release and delayed despawn after the stranded corpse bursts.
+///
+/// Requires live work. The preceding burst has hidden the model and freed its
+/// primitive buffers; this state resets both inner indices for despawn.
+static void _actor00400StrandedDeathBlastEnd(Task* task)
 {
     _Actor00400Work* work;
 
-    work           = arg0->work;
-    arg0->state    = 5;
-    work->state    = 0;
+    work           = task->work;
+    task->state    = ACTOR_00400_TASK_DESPAWN;
+    work->state    = ACTOR_00400_DESPAWN_STATE_RELEASE_SPOT;
     work->subState = 0;
 }
 
-static void Actor00400_Fn090B4(Task* arg0)
+/// Makes the stranded diver lockable and starts its normal-rate idle animation.
+///
+/// Requires the live linked enemy and initialized rig. Acquires one battle
+/// reference, clears bob phase, seeds the frame counter and requests clip 2
+/// from its beginning. Selects stranded idle at substate zero; the outer driver
+/// applies the animation request later in the same frame.
+static void _actor00400StrandedStart(Task* task)
 {
+    enum { ACTOR_00400_ANIM_STRANDED_IDLE           = 2,
+           ACTOR_00400_STRANDED_INITIAL_FRAME_COUNT = 0x174B };
     _Actor00400Work* work;
-    _Actor00400Work* w;
-    _Actor00400Work* w2;
+    _Actor00400Work* requestWork;
+    Enemy*           enemy;
 
-    work                                                      = arg0->work;
-    ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
+    work                          = task->work;
+    enemy                         = task->spawnArg2.pointer;
+    enemy->node.state.parts.flags = 0;
     sceneAcquireBattleRef(0);
-    work->bobPhase   = 0;
-    work->frameCount = 0x174B;
-    w                = arg0->work;
-    w->animStep      = ANIMATION_RATE_ONE;
-    w->animClip      = 2;
-    w->animRequest   = DIVER_ANIM_REQUEST_RESET;
-    w2               = arg0->work;
-    w2->state        = ACTOR_00400_STRANDED_STATE_WAIT;
-    w2->subState     = 0;
+    work->bobPhase           = 0;
+    work->frameCount         = ACTOR_00400_STRANDED_INITIAL_FRAME_COUNT;
+    requestWork              = task->work;
+    requestWork->animStep    = ANIMATION_RATE_ONE;
+    requestWork->animClip    = ACTOR_00400_ANIM_STRANDED_IDLE;
+    requestWork->animRequest = DIVER_ANIM_REQUEST_RESET;
+    _diverSetState(task, ACTOR_00400_STRANDED_STATE_WAIT);
 }
 
 /// Engages combat and leaves stranded idle when a nearby target is outside the rear sector.
@@ -5516,89 +5533,125 @@ static inline s16 _actor00400StrandedNoticeTarget(Task* task)
     return noticedTarget;
 }
 
-static void Actor00400_Fn09124(Task* arg0)
+/// Leaves stranded idle on noticing a nearby target or taking a hit.
+///
+/// Requires the current target distance and bearing, live enemy and work.
+/// Target notice takes precedence over hit consumption. A state-changing hit
+/// engages battle; a hit without a state change selects decision. Neither path
+/// acquires another battle reference or ticks the animation here.
+static void _actor00400StrandedIdleWait(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* w2;
 
-    work = arg0->work;
-    if (_actor00400StrandedNoticeTarget(arg0) == 0) {
-        if ((_actor00400ApplyHitReaction(arg0) << 0x10) != 0) {
+    work = task->work;
+    if (_actor00400StrandedNoticeTarget(task) == 0) {
+        if (_actor00400ApplyHitReaction(task) != 0) {
             sceneEngageBattle(1);
             return;
         }
         if (work->hitTaken != 0) {
-            w2           = arg0->work;
-            w2->state    = ACTOR_00400_STRANDED_STATE_DECIDE;
-            w2->subState = 0;
+            _diverSetState(task, ACTOR_00400_STRANDED_STATE_DECIDE);
         }
     }
 }
 
-static void Actor00400_Fn091F8(Task* arg0)
+/// Handles pending hit reactions before dispatching the stranded attack decision.
+///
+/// Requires live work at substate 0; the one-entry stack table is indexed
+/// without a bounds check. A state-changing hit skips the decision, otherwise
+/// target distance and recent choices select a crawl or discharge.
+static void _actor00400StrandedDecision(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[1])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[1] = {
         _actor00400StrandedDecide,
     };
 
-    if (_actor00400ApplyHitReaction(arg0) == 0) {
-        states[work->subState](arg0);
+    if (_actor00400ApplyHitReaction(task) == 0) {
+        states[work->subState](task);
     }
 }
 
-static void Actor00400_Fn09260(Task* arg0)
+/// Dispatches stranded state 3's clip entry or wait after handling hit reactions.
+///
+/// Requires live work and substate 0 (entry) or 1 (wait), without a bounds
+/// check. Entry blends clip 6 at normal rate; wait returns to decision on a
+/// published animation boundary, jump or settled pose. No living transition
+/// selects this state, and the clip's visual role is unproven.
+static void _actor00400StrandedState3(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[2] = {
         _actor00400StrandedState3Enter,
         _actor00400StrandedState3Wait,
     };
 
-    if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        states[work->subState](arg0);
+    if (_actor00400ApplyHitReaction(task) == 0) {
+        states[work->subState](task);
     }
 }
 
-static void Actor00400_Fn092D4(Task* arg0)
+/// Handles pending hit reactions before dispatching a stranded crawl step.
+///
+/// Requires live work, initialized rig, current target distance and live player.
+/// Substate 0 enters and 1 ticks, without a bounds check. A state-changing hit
+/// skips the stride; otherwise the crawl anchors the arms and turns toward the
+/// player until the target is close or the published animation status fires.
+static void _actor00400StrandedCrawl(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[2] = {
         _actor00400StrandedCrawlEnter,
         _actor00400StrandedCrawlTick,
     };
 
-    if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        states[work->subState](arg0);
+    if (_actor00400ApplyHitReaction(task) == 0) {
+        states[work->subState](task);
     }
 }
 
-static void Actor00400_Fn09348(Task* arg0)
+/// Handles pending hit reactions before dispatching the stranded spark discharge.
+///
+/// Requires live work, initialized rig and the linked attack sphere. Substate
+/// 0 enters and 1 waits, without a bounds check. A state-changing hit skips the
+/// handler. The entry starts the 24-frame attack window; the outer frame driver
+/// emits its sparks and enables the sphere independently of the clip wait.
+static void _actor00400StrandedDischarge(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[2] = {
         _actor00400StrandedDischargeEnter,
         _actor00400StrandedDischargeWait,
     };
 
-    if ((_actor00400ApplyHitReaction(arg0) << 0x10) == 0) {
-        states[work->subState](arg0);
+    if (_actor00400ApplyHitReaction(task) == 0) {
+        states[work->subState](task);
     }
 }
 
-static void Actor00400_Fn093BC(Task* task)
+/// Leaves unused stranded state-table slot 6 inert.
+///
+/// No living transition selects this slot. Accepts the dispatcher task without
+/// accessing it; its distinct callback remains part of the ten-entry table.
+static void _actor00400StrandedUnusedState6(Task* task)
 {
 }
 
-static void Actor00400_Fn093C4(Task* arg0)
+/// Dispatches the stranded light recoil's entry or animation wait.
+///
+/// Requires live work, enemy and initialized rig at substate 0 (entry) or 1
+/// (wait), without a bounds check. Entry plays the sound before requesting the
+/// clip; wait handles repeated hits and returns to decision when the published
+/// animation status fires. Hit consumption belongs to that wait.
+static void _actor00400StrandedLightRecoil(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[2] = {
         _actor00400StrandedLightRecoilEnter,
         _actor00400StrandedLightRecoilWait,
     };
 
-    states[work->subState](arg0);
+    states[work->subState](task);
 }
 
 static void Actor00400_Fn09418(Task* arg0)
