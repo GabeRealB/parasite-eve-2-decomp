@@ -13236,7 +13236,7 @@ No loop, no `end` variable and no tail statement should be written out; the
 initializer/assignment form reproduces all three parts exactly. The eleven
 entries occupy states 0..10, and `index->state` is a `s32`, so the index is a
 bare `sll`/`addu` — a `s16` field instead gets an `lh` (compare
-`func_actor_403100_8013DD78`, the same 0x2C copy off a sibling overlay's table
+`_actor403100StepGrabAndSqueeze`, the same 0x2C copy off a sibling overlay's table
 at the same link address, indexed by an `lh`).
 
 **The copy's load destinations are not the call's arguments.** When the three

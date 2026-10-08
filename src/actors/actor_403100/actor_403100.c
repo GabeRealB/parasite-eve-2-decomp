@@ -18,6 +18,7 @@
 #include "gameplay/actor_presentation.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
@@ -65,6 +66,20 @@
 
 #include "rooms/dryfield_night_motel_balcony.h"
 #include "../../shared/coord_math.h"
+
+/// Timing and packed room-effect arguments shared by the two puff emitters.
+///
+/// The low twelve bits are the sizing numerator, bits 16..17 choose palette
+/// row 2, and bit 31 chooses rising rather than horizontal generated drift.
+enum {
+    ACTOR_403100_PUFF_EMISSION_TICKS = 90,
+    ACTOR_403100_PUFF_INTERVAL_MASK  = 7,
+    ACTOR_403100_PUFF_SIZE           = 1024,
+    ACTOR_403100_PUFF_PALETTE_ROW    = 2,
+    ACTOR_403100_PUFF_RISING         = 0x80000000U,
+    ACTOR_403100_PUFF_DRIFT_ARG      = (ACTOR_403100_PUFF_PALETTE_ROW << 16) | ACTOR_403100_PUFF_SIZE,
+    ACTOR_403100_PUFF_RISING_ARG     = ACTOR_403100_PUFF_RISING | ACTOR_403100_PUFF_DRIFT_ARG,
+};
 
 extern GpuImageUpload D_actor_403100_801555EC[2];
 
@@ -399,7 +414,7 @@ static void _actor403100PlacePlayer(s16 x, s16 y, s16 z, s16 yaw);
 static void _actor403100PlayPlayerAnimation(s16 animationId, s16 messageId);
 static void _actor403100RequestHitPitchKick(void);
 static s32  _actor403100GetWorldRotation(const GfxCoord* joint, MATRIX* rotation);
-static s32  func_actor_403100_8013E33C(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
+static s32  _actorRenderAccumulateJointRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor);
 static void _actor403100TurnForearm(Task* task);
 static void _actor403100RequestAnimationBlend(s16 animationId, s16 rate, s16 blendFrames);
 static void _actor403100BeginStagger(void);
@@ -522,9 +537,9 @@ static AnimationSet _gActor403100Animation2142C;
 static AnimationSet _gActor403100Animation2192C;
 
 static TmdSource _gActor403100BurnerBody;
-void             func_actor_403100_8013E04C(Task*);
-void             func_actor_403100_8013E0A4(Task*);
-void             func_actor_403100_8013E0FC(Task*);
+static void      _actor403100FloorPuffEmitterTask(Task* task);
+static void      _actor403100DriftPuffEmitterTask(Task* task);
+static void      _actor403100Task(Task* task);
 
 extern u_long D_actor_403100_80153774[1950];
 
@@ -1241,11 +1256,11 @@ GpuImageUpload D_actor_403100_801555EC[2] = {
 };
 
 TaskDesc D_actor_403100_8015560C[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_403100_8013E0FC, { .model = &_gActor403100BurnerBody } },
-    { { { TASK_BODY_COORD, 96 } }, func_actor_403100_8013E04C, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor403100Task, { .model = &_gActor403100BurnerBody } },
+    { { { TASK_BODY_COORD, 96 } }, _actor403100FloorPuffEmitterTask, { .value = 0 } },
 };
 
-TaskDesc D_actor_403100_80155624 = { { { TASK_BODY_COORD, 96 } }, func_actor_403100_8013E0A4, { .value = 0 } };
+TaskDesc D_actor_403100_80155624 = { { { TASK_BODY_COORD, 96 } }, _actor403100DriftPuffEmitterTask, { .value = 0 } };
 
 EffectSpawnArg D_actor_403100_80155630 = { NULL, 1536, 3 };
 
@@ -1375,7 +1390,7 @@ static s16 _actor403100HandleHitReaction(void);
 
 static void func_actor_403100_801345E0(Task* arg0, Task* arg1);
 
-static void func_actor_403100_8013E6F0(Task* arg0);
+static void _actor403100EmitFloorPuffs(Task* task);
 
 static void _actor403100WaitForFightStart(Task* task);
 
@@ -1423,15 +1438,15 @@ static void _actor403100StepAttackApproach(Task* task);
 
 static void _actor403100StepArmSwingCombo(Task* task);
 
-static void func_actor_403100_8013DC18(Task* arg0);
+static void _actor403100StepAimedFlameAttack(Task* task);
 
-static void func_actor_403100_8013DCAC(Task* arg0);
+static void _actor403100StepJumpSlam(Task* task);
 
-static void func_actor_403100_8013DD78(Task* arg0);
+static void _actor403100StepGrabAndSqueeze(Task* task);
 
-static void func_actor_403100_8013DE0C(Task* arg0);
+static void _actor403100StepSideFlameAttack(Task* task);
 
-static void func_actor_403100_8013DEA0(Task* arg0);
+static void _actor403100StepGrabAndDrag(Task* task);
 
 static void _actor403100StepStagger(Task* unusedTask);
 
@@ -1439,13 +1454,13 @@ static void _actor403100DispatchLowHealthScene(Task* task);
 
 static void _actor403100StepBuildupStun(Task* task);
 
-static void func_actor_403100_8013E6A0(Task* arg0);
+static void _actor403100BeginFloorPuffEmission(Task* task);
 
 static void _actor403100WaitAfterFloorPuffEmission(Task* task);
 
-static void func_actor_403100_8013E7C8(Task* arg0);
+static void _actor403100BeginDriftPuffEmission(Task* task);
 
-static void func_actor_403100_8013E88C(Task* arg0);
+static void _actor403100EmitDriftPuffs(Task* task);
 
 static void _actor403100WaitAfterDriftPuffEmission(Task* task);
 
@@ -1553,7 +1568,7 @@ static void            _actor403100BeginSceneFlameBreath(Task* task);
 static void            _actor403100StepSceneFlameBreath(Task* task);
 static void            func_actor_403100_8013588C(Task* arg0);
 static void            func_actor_403100_801359DC(Task* arg0);
-static void            func_actor_403100_80135AE0(Task* arg0);
+static void            _actor403100StepSceneTurn(Task* task);
 static void            func_actor_403100_80135C00(Task* arg0);
 static void            func_actor_403100_80135F30(Task* arg0);
 static void            func_actor_403100_80136100(Task* arg0);
@@ -1594,7 +1609,7 @@ static void            func_actor_403100_8013AE28(Task* task);
 static inline void     _actor403100StepApproachRoot(TmdObject* model, GfxCoord* rootCoord);
 static inline s32      _actor403100PointToWorld(const GfxCoord* coord, SVECTOR* point);
 static inline void     _actor403100RequestAnimationBlendInline(s16 animationId, s16 rate, s16 blendFrames);
-static s32             func_actor_403100_8013E450(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2);
+static s32             _actorRenderLocalizeRotationToAncestor(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor);
 
 static __inline__ void _actor403100CopyRotation(MATRIX* destination, const MATRIX* source);
 
@@ -2884,20 +2899,20 @@ static void func_actor_403100_8013480C(Task* arg0, s32 arg1)
     }
 }
 
-/// States of the task `func_actor_403100_8013E04C` runs, by `Task::state`.
+/// States of the task `_actor403100FloorPuffEmitterTask` runs, by `Task::state`.
 static const TaskFuncTable3 D_actor_403100_80131E70 = {
     {
-        func_actor_403100_8013E6A0,
-        func_actor_403100_8013E6F0,
+        _actor403100BeginFloorPuffEmission,
+        _actor403100EmitFloorPuffs,
         _actor403100WaitAfterFloorPuffEmission,
     },
 };
 
-/// States of the task `func_actor_403100_8013E0A4` runs, by `Task::state`.
+/// States of the task `_actor403100DriftPuffEmitterTask` runs, by `Task::state`.
 static const TaskFuncTable3 D_actor_403100_80131E7C = {
     {
-        func_actor_403100_8013E7C8,
-        func_actor_403100_8013E88C,
+        _actor403100BeginDriftPuffEmission,
+        _actor403100EmitDriftPuffs,
         _actor403100WaitAfterDriftPuffEmission,
     },
 };
@@ -3208,22 +3223,39 @@ static void func_actor_403100_801359DC(Task* arg0)
     work->subState        += 1;
     areaApplySavedUpdates(D_dryfield_night_motel_balcony_8018F2CC);
 }
-static void func_actor_403100_80135AE0(Task* arg0)
+/// Eases the scene heading toward a negative quarter-turn and plays its timed cue.
+///
+/// Scene-turn substate 1 requires live singleton work, model and an Enemy in
+/// `task->spawnArg2.pointer`. Yaw uses 4096 units per turn. The prior wrapping
+/// halfword timer selects sound/rumble/shake at tick 190 and the walk blend at
+/// tick 240, then increments; animation advances in the enclosing dispatcher.
+static void _actor403100StepSceneTurn(Task* task)
 {
-    s32 sound;
-    s32 pan;
-    u16 angle;
+    enum {
+        ACTOR_403100_SCENE_TURN_TARGET_YAW  = -ACTOR_TRANSFORM_ANGLE_TURN / 4,
+        ACTOR_403100_SCENE_TURN_YAW_SCALE   = 16,
+        ACTOR_403100_SCENE_TURN_STEP_SHIFT  = 9,
+        ACTOR_403100_SCENE_TURN_SOUND_TICK  = 190,
+        ACTOR_403100_SCENE_TURN_END_TICK    = 240,
+        ACTOR_403100_SCENE_TURN_SHAKE_TICKS = 30,
+        ACTOR_403100_SCENE_TURN_MOTOR_START = 255,
+        ACTOR_403100_SCENE_TURN_MOTOR_END   = 8,
+    };
+    s32 soundId;
+    s32 audioPan;
+    u16 rootYawBits;
 
-    angle                                = (u16)D_actor_403100_80155808->rotation.vy;
-    D_actor_403100_80155808->rotation.vy = angle + ((s16)(-0x4000 - angle * 0x10) >> 9);
-    if ((s16)D_actor_403100_80155808->stateFrames == 0xBE) {
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound, (s32)pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
-        padScriptSpawnVariableMotorRamp(0x1E, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 0x1E;
+    // Narrow the scaled yaw error to twelve angle bits before easing by 1/32.
+    rootYawBits                          = (u16)D_actor_403100_80155808->rotation.vy;
+    D_actor_403100_80155808->rotation.vy = rootYawBits + ((s16)(ACTOR_403100_SCENE_TURN_TARGET_YAW * ACTOR_403100_SCENE_TURN_YAW_SCALE - rootYawBits * ACTOR_403100_SCENE_TURN_YAW_SCALE) >> ACTOR_403100_SCENE_TURN_STEP_SHIFT);
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_SCENE_TURN_SOUND_TICK) {
+        soundId  = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 1);
+        audioPan = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+        sndEvtRequestScriptStart(soundId, audioPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]) / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_SCENE_TURN_SHAKE_TICKS, ACTOR_403100_SCENE_TURN_MOTOR_START, ACTOR_403100_SCENE_TURN_MOTOR_END);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_SCENE_TURN_SHAKE_TICKS;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0xF0) {
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_SCENE_TURN_END_TICK) {
         D_actor_403100_80155808->subState += 1;
     }
     D_actor_403100_80155808->stateFrames += 1;
@@ -3574,7 +3606,7 @@ static const TaskFuncTable3 D_actor_403100_80131EE4 = {
 static const TaskFuncTable4 D_actor_403100_80131EF0 = {
     {
         func_actor_403100_801359DC,
-        func_actor_403100_80135AE0,
+        _actor403100StepSceneTurn,
         _actor403100BlendSceneWalk,
         _actor403100WaitAfterSceneTurn,
     },
@@ -3600,7 +3632,7 @@ static const TaskFuncTable3 D_actor_403100_80131F10 = {
 };
 
 /// The actor's six top-level states, by `Task::state`; run by
-/// `func_actor_403100_8013E0FC`.
+/// `_actor403100Task`.
 static const TaskFuncTable6 D_actor_403100_80131F1C = {
     {
         func_actor_403100_80136610,
@@ -3619,11 +3651,11 @@ static const TaskFuncTable11 D_actor_403100_80131F34 = {
         _actor403100StepFightInitialization,
         _actor403100StepAttackApproach,
         _actor403100StepArmSwingCombo,
-        func_actor_403100_8013DC18,
-        func_actor_403100_8013DCAC,
-        func_actor_403100_8013DD78,
-        func_actor_403100_8013DE0C,
-        func_actor_403100_8013DEA0,
+        _actor403100StepAimedFlameAttack,
+        _actor403100StepJumpSlam,
+        _actor403100StepGrabAndSqueeze,
+        _actor403100StepSideFlameAttack,
+        _actor403100StepGrabAndDrag,
         _actor403100StepStagger,
         _actor403100DispatchLowHealthScene,
         _actor403100StepBuildupStun,
@@ -5840,7 +5872,7 @@ static const TaskFuncTable6 D_actor_403100_80131F84 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DC18`, indexed by `subState`.
+/// Steps of the behaviour mode `_actor403100StepAimedFlameAttack`, indexed by `subState`.
 static const TaskFuncTable5 D_actor_403100_80131F9C = {
     {
         _actor403100BeginAimedFlameAttack,
@@ -5851,7 +5883,7 @@ static const TaskFuncTable5 D_actor_403100_80131F9C = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DCAC`, indexed by `subState`.
+/// Steps of the behaviour mode `_actor403100StepJumpSlam`, indexed by `subState`.
 static const TaskFuncTable9 D_actor_403100_80131FB0 = {
     {
         _actor403100PrepareJumpSlam,
@@ -5866,7 +5898,7 @@ static const TaskFuncTable9 D_actor_403100_80131FB0 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DD78`, indexed by `subState`.
+/// Steps of the behaviour mode `_actor403100StepGrabAndSqueeze`, indexed by `subState`.
 static const TaskFuncTable11 D_actor_403100_80131FD4 = {
     {
         _actor403100BeginGrabAndSqueeze,
@@ -5883,7 +5915,7 @@ static const TaskFuncTable11 D_actor_403100_80131FD4 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DE0C`, indexed by `subState`.
+/// Steps of the behaviour mode `_actor403100StepSideFlameAttack`, indexed by `subState`.
 static const TaskFuncTable5 D_actor_403100_80132000 = {
     {
         _actor403100BeginSideFlameAttack,
@@ -5894,7 +5926,7 @@ static const TaskFuncTable5 D_actor_403100_80132000 = {
     },
 };
 
-/// Steps of the behaviour mode `func_actor_403100_8013DEA0`, indexed by `subState`.
+/// Steps of the behaviour mode `_actor403100StepGrabAndDrag`, indexed by `subState`.
 static const TaskFuncTable4 D_actor_403100_80132014 = {
     {
         _actor403100BeginGrabAndDrag,
@@ -7005,11 +7037,12 @@ static void _actor403100StepAttackApproach(Task* task)
         handlers.funcs[(s16)D_actor_403100_80155808->subState](task);
     }
 }
-/// Draws the two floor-shadow strips under the arm during its swing combo.
+/// Draws two floor-shadow strips beneath the Burner's long arm.
 ///
-/// Requires the live Burner model and the arm-shadow drawer's rendering and
-/// scratch resources. Samples the current pose from parts 6 through 8.
-static inline void _actor403100DrawSwingComboShadow(Task* task)
+/// Requires the live fifteen-part model and the arm-shadow drawer's rendering
+/// resources. Samples segments 6->7 then 7->8, with half-width 1024 game units
+/// at world Y -3200. Drawing follows the attack step and its current pose.
+static inline void _actor403100DrawLongArmShadow(Task* task)
 {
     _actor403100DrawArmShadow(task, ACTOR_403100_ARM_SHADOW_BASE_PART, ACTOR_403100_ARM_SHADOW_MIDDLE_PART, ACTOR_403100_ARM_SHADOW_HALF_WIDTH, ACTOR_403100_ARM_SHADOW_FLOOR_Y);
     _actor403100DrawArmShadow(task, ACTOR_403100_ARM_SHADOW_MIDDLE_PART, ACTOR_403100_ARM_SHADOW_TIP_PART, ACTOR_403100_ARM_SHADOW_HALF_WIDTH, ACTOR_403100_ARM_SHADOW_FLOOR_Y);
@@ -7028,49 +7061,74 @@ static void _actor403100StepArmSwingCombo(Task* task)
     handlers = D_actor_403100_80131F84;
     if (_actor403100HandleHitReaction() == 0) {
         handlers.funcs[(s16)D_actor_403100_80155808->subState](task);
-        _actor403100DrawSwingComboShadow(task);
+        _actor403100DrawLongArmShadow(task);
     }
 }
-static void func_actor_403100_8013DC18(Task* arg0)
+/// Dispatches the aimed flame attack or its contact recovery unless a hit interrupts.
+///
+/// Requires the live Burner task/model, singleton work and `subState` 0..4:
+/// begin, emit, wait, begin contact recovery, finish recovery. A hit reaction
+/// skips the selected step. The fight update advances animation afterwards.
+static void _actor403100StepAimedFlameAttack(Task* task)
 {
-    TaskFuncTable5 sp;
+    TaskFuncTable5 handlers;
 
-    sp = D_actor_403100_80131F9C;
+    handlers = D_actor_403100_80131F9C;
     if (_actor403100HandleHitReaction() == 0) {
-        sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
+        handlers.funcs[(s16)D_actor_403100_80155808->subState](task);
     }
 }
-static void func_actor_403100_8013DCAC(Task* arg0)
+/// Dispatches the jump slam and draws the long arm's shadow after every step.
+///
+/// Requires the live Burner task/model, singleton work and `subState` 0..8:
+/// prepare, begin, crouch, accelerate, decelerate, descend, impact, recover,
+/// wait. Individual steps handle hits; shadow drawing remains unconditional.
+/// The fight update advances animation afterwards.
+static void _actor403100StepJumpSlam(Task* task)
 {
-    TaskFuncTable9 sp;
+    TaskFuncTable9 handlers;
 
-    sp = D_actor_403100_80131FB0;
-    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
-    _actor403100DrawArmShadow(arg0, ACTOR_403100_ARM_SHADOW_BASE_PART, ACTOR_403100_ARM_SHADOW_MIDDLE_PART, ACTOR_403100_ARM_SHADOW_HALF_WIDTH, ACTOR_403100_ARM_SHADOW_FLOOR_Y);
-    _actor403100DrawArmShadow(arg0, ACTOR_403100_ARM_SHADOW_MIDDLE_PART, ACTOR_403100_ARM_SHADOW_TIP_PART, ACTOR_403100_ARM_SHADOW_HALF_WIDTH, ACTOR_403100_ARM_SHADOW_FLOOR_Y);
+    handlers = D_actor_403100_80131FB0;
+    handlers.funcs[(s16)D_actor_403100_80155808->subState](task);
+    _actor403100DrawLongArmShadow(task);
 }
-static void func_actor_403100_8013DD78(Task* arg0)
+/// Dispatches the grab, held-player squeeze and flame breath, throw or missed-grab rewind.
+///
+/// Requires the live Burner task/model, player and singleton work with
+/// `subState` 0..10. Individual steps gate hits and manage player control;
+/// dispatch itself has no hit gate. The fight update advances animation afterwards.
+static void _actor403100StepGrabAndSqueeze(Task* task)
 {
-    TaskFuncTable11 sp;
+    TaskFuncTable11 handlers;
 
-    sp = D_actor_403100_80131FD4;
-    sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
+    handlers = D_actor_403100_80131FD4;
+    handlers.funcs[(s16)D_actor_403100_80155808->subState](task);
 }
-static void func_actor_403100_8013DE0C(Task* arg0)
+/// Dispatches the side flame sweep or its contact recovery unless a hit interrupts.
+///
+/// Requires the live Burner task/model, singleton work and `subState` 0..4:
+/// begin, emit, wait, begin contact recovery, finish recovery. A hit reaction
+/// skips the selected step. The fight update advances animation afterwards.
+static void _actor403100StepSideFlameAttack(Task* task)
 {
-    TaskFuncTable5 sp;
+    TaskFuncTable5 handlers;
 
-    sp = D_actor_403100_80132000;
+    handlers = D_actor_403100_80132000;
     if (_actor403100HandleHitReaction() == 0) {
-        sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
+        handlers.funcs[(s16)D_actor_403100_80155808->subState](task);
     }
 }
-static void func_actor_403100_8013DEA0(Task* arg0)
+/// Dispatches the grab-and-drag reach, player displacement or release.
+///
+/// Requires the live Burner task/model, player and singleton work with
+/// `subState` 0..3: begin, reach, drag, release. Hit gates belong to the selected
+/// step; the fight update advances animation after dispatch.
+static void _actor403100StepGrabAndDrag(Task* task)
 {
     TaskFuncTable4 handlers;
 
     handlers = D_actor_403100_80132014;
-    handlers.funcs[(s16)D_actor_403100_80155808->subState](arg0);
+    handlers.funcs[(s16)D_actor_403100_80155808->subState](task);
 }
 /// Dispatches the start or completion of a hit-induced stagger.
 ///
@@ -7119,29 +7177,43 @@ static void _actor403100RequestAnimationBlend(s16 animationId, s16 rate, s16 ble
     _actor403100RequestAnimationBlendInline(animationId, rate, blendFrames);
 }
 
-void func_actor_403100_8013E04C(Task* task)
+/// Dispatches a floor-puff emitter's initialization, emission or terminal wait.
+///
+/// Requires an owned `TASK_BODY_COORD` body and state 0..2. Normal expiration
+/// advances to state 2 and immediately releases the task, so its retained wait
+/// slot is not reached by that path. The task owns its emission coordinate.
+static void _actor403100FloorPuffEmitterTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_403100_80131E70;
-    sp.funcs[task->state](task);
+    states = D_actor_403100_80131E70;
+    states.funcs[task->state](task);
 }
 
-void func_actor_403100_8013E0A4(Task* task)
+/// Dispatches a drift-puff emitter's initialization, emission or terminal wait.
+///
+/// Requires an owned `TASK_BODY_COORD` body and state 0..2. The first update
+/// uses rising puff arguments; subsequent updates select horizontal drift.
+/// Expiration advances to state 2 and immediately releases the task and coordinate.
+static void _actor403100DriftPuffEmitterTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_actor_403100_80131E7C;
-    sp.funcs[task->state](task);
+    states = D_actor_403100_80131E7C;
+    states.funcs[task->state](task);
 }
 
-/// Runs the handler for the task's current top-level state.
-void func_actor_403100_8013E0FC(Task* arg0)
+/// Dispatches the Burner's setup, scripted scene, fight, defeat, post-fight scene or teardown.
+///
+/// Requires the live `TASK_BODY_TMD` Burner task and state 0..5. Setup creates
+/// singleton work; subsequent handlers require that work and its Enemy spawn
+/// record to remain live. Teardown releases the model, work and enemy.
+static void _actor403100Task(Task* task)
 {
-    TaskFuncTable6 sp;
+    TaskFuncTable6 states;
 
-    sp = D_actor_403100_80131F1C;
-    sp.funcs[arg0->state](arg0);
+    states = D_actor_403100_80131F1C;
+    states.funcs[task->state](task);
 }
 
 /// Leaves the player alone when no Burner arm-hit reaction is running.
@@ -7213,56 +7285,42 @@ static void _actor403100FinishPlayerHitRecovery(void)
         D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_NONE;
     }
 }
-static s32 func_actor_403100_8013E33C(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2)
+/// Composes a joint's rotation into the frame of an excluded ancestor.
+///
+/// Borrows a live acyclic joint chain and separate word-aligned output matrix.
+/// Uses 12-fractional-bit coefficients, including the joint and normalizing
+/// each raw parent product. Returns 1 at the non-NULL excluded ancestor or 0
+/// at NULL, leaving the partial result. Only the output's 3x3 is valid after
+/// a parent product; translation/alignment bytes are overwritten. Changes GTE state.
+static s32 _actorRenderAccumulateJointRotation(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor)
 {
-    MATRIX    matrix;
-    GfxCoord* coord;
+    const GfxCoord* ancestor;
 
-    coord = arg0->parent;
-    *arg1 = arg0->coord;
+    ancestor  = joint->parent;
+    *rotation = joint->coord;
     while (1) {
-        if (coord == NULL) {
+        if (ancestor == NULL) {
             return 0;
         }
-        if (coord == arg2) {
+        if (ancestor == excludedAncestor) {
             return 1;
         }
-        gte_SetRotMatrix(&coord->coord);
-        MulRotMatrix(arg1);
-        MatrixNormal(arg1, &matrix);
-        *arg1 = matrix;
-        coord = coord->parent;
+        _actorRenderPreMultiplyNormalizedRotation(&ancestor->coord, rotation);
+        ancestor = ancestor->parent;
     }
 }
-static s32 func_actor_403100_8013E450(GfxCoord* arg0, MATRIX* arg1, GfxCoord* arg2)
+/// Converts an excluded-ancestor-frame rotation into a joint's parent frame.
+///
+/// Requires a non-NULL parent and a live acyclic chain; `excludedAncestor`
+/// must lie above that parent for success. Borrows the chain and a separate
+/// writable word-aligned matrix with initialized 12-fractional-bit rotation.
+/// Normalizes parent products, then applies their transpose without final
+/// normalization. Returns 1 on conversion or 0 unchanged at NULL or when the
+/// immediate parent is the view. Translation is retained; alignment bytes and
+/// GTE working registers can change.
+static s32 _actorRenderLocalizeRotationToAncestor(const GfxCoord* joint, MATRIX* rotation, const GfxCoord* excludedAncestor)
 {
-    MATRIX    matrix;
-    MATRIX    normal;
-    MATRIX    transposed;
-    GfxCoord* coord;
-
-    coord = arg0->parent;
-    if (coord == &gGfxViewCoord) {
-        return 0;
-    }
-    matrix = coord->coord;
-    while (1) {
-        coord = coord->parent;
-        if (coord == NULL) {
-            return 0;
-        }
-        if (coord == arg2) {
-            break;
-        }
-        gte_SetRotMatrix(&coord->coord);
-        MulRotMatrix(&matrix);
-        MatrixNormal(&matrix, &normal);
-        matrix = normal;
-    }
-    gte_TransposeMatrix(&matrix, &transposed);
-    gte_SetRotMatrix(&transposed);
-    MulRotMatrix(arg1);
-    return 1;
+    return _actor403100LocalizeRotation(joint, rotation, excludedAncestor);
 }
 /// Detaches the defeated enemy's hit records and starts the reward wait.
 ///
@@ -7301,37 +7359,68 @@ static void _actor403100StepDefeatRewardWait(Task* task)
         D_actor_403100_80155808->subState = 0;
     }
 }
-static void func_actor_403100_8013E6A0(Task* arg0)
+/// Parents the emitter's owned coordinate to the view and starts its emission lifetime.
+///
+/// Requires a live coordinate-body task in its initial state. Retains its
+/// placed local matrix, dirties composition and advances to the emission state.
+static inline void _actor403100InitializePuffEmitter(Task* task)
 {
-    GfxCoord* coord;
+    GfxCoord* emissionCoord;
 
-    coord               = arg0->extra.tmd->coords;
-    arg0->killCountdown = 0x5A;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    arg0->state         = arg0->state + 1;
-    func_actor_403100_8013E6F0(arg0);
+    emissionCoord               = task->extra.coordBody->coord;
+    task->killCountdown         = ACTOR_403100_PUFF_EMISSION_TICKS;
+    emissionCoord->parent       = &gGfxViewCoord;
+    emissionCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->state                += 1;
 }
 
-static void func_actor_403100_8013E6F0(Task* arg0)
+/// Emits at eight-tick intervals while actors run and releases an expired emitter.
+///
+/// Requires the live coordinate-body task. The countdown wraps as a halfword
+/// and is tested as signed after decrement; its prior value selects emission.
+/// Room effects snapshot placement before the task releases its coordinate.
+static inline void _actor403100StepPuffEmission(Task* task, u32 puffArg)
 {
-    GfxCoord* coord;
-    u16       countdown;
+    GfxCoord* emissionCoord;
+    u16       remainingTicks;
 
-    coord = arg0->extra.tmd->coords;
+    emissionCoord = task->extra.coordBody->coord;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        if (!(arg0->killCountdown & 7)) {
-            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x80020400, NULL);
+        emissionCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        if (!(task->killCountdown & ACTOR_403100_PUFF_INTERVAL_MASK)) {
+            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, emissionCoord, puffArg, NULL);
         }
-        countdown           = arg0->killCountdown - 1;
-        arg0->killCountdown = countdown;
-        if ((countdown << 0x10) <= 0) {
-            arg0->killCountdown = 0;
-            arg0->state         = arg0->state + 1;
-            taskKill(arg0);
+        remainingTicks      = task->killCountdown - 1;
+        task->killCountdown = remainingTicks;
+        if ((s16)remainingTicks <= 0) {
+            task->killCountdown = 0;
+            task->state        += 1;
+            // The terminal wait slot remains unused by normal expiration.
+            taskKill(task);
         }
     }
+}
+
+/// Starts a ninety-running-update floor-puff emitter and performs its first step.
+///
+/// Requires an owned coordinate body with its floor placement already set.
+/// Initialization runs even while actors pause; emission honors their run gate.
+/// Subsequent puffs use rising drift with palette row 2 and size 1024.
+static void _actor403100BeginFloorPuffEmission(Task* task)
+{
+    _actor403100InitializePuffEmitter(task);
+    _actor403100EmitFloorPuffs(task);
+}
+
+/// Emits rising floor puffs every eight running updates until the emitter expires.
+///
+/// Requires an owned coordinate body and remaining lifetime in killCountdown.
+/// A fresh lifetime is ninety updates; its first puff is on the third running
+/// update. Puffs use size 1024 and palette row 2. Pause freezes the timer;
+/// expiration advances state and immediately releases the task.
+static void _actor403100EmitFloorPuffs(Task* task)
+{
+    _actor403100StepPuffEmission(task, ACTOR_403100_PUFF_RISING_ARG);
 }
 
 /// Counts terminal floor-puff updates and releases the coordinate task at thirty.
@@ -7351,52 +7440,25 @@ static void _actor403100WaitAfterFloorPuffEmission(Task* task)
     }
 }
 
-static void func_actor_403100_8013E7C8(Task* arg0)
+/// Starts a ninety-running-update drift emitter with a rising-puff first step.
+///
+/// Requires an owned, placed coordinate body. Initialization runs while actors
+/// pause, then emission honors their run gate. Later callbacks use horizontal
+/// drift; a fresh countdown of ninety emits nothing on this first step.
+static void _actor403100BeginDriftPuffEmission(Task* task)
 {
-    GfxCoord* coord;
-    GfxCoord* coord2;
-    u16       countdown;
-
-    coord2               = arg0->extra.tmd->coords;
-    arg0->killCountdown  = 0x5A;
-    coord2->parent       = &gGfxViewCoord;
-    coord2->composeStamp = GRAPHICS_COORD_DIRTY;
-    arg0->state         += 1;
-    coord                = arg0->extra.tmd->coords;
-    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        if (!(arg0->killCountdown & 7)) {
-            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x80020400, NULL);
-        }
-        countdown           = arg0->killCountdown - 1;
-        arg0->killCountdown = countdown;
-        if ((countdown << 0x10) <= 0) {
-            arg0->killCountdown = 0;
-            arg0->state         = arg0->state + 1;
-            taskKill(arg0);
-        }
-    }
+    _actor403100InitializePuffEmitter(task);
+    _actor403100StepPuffEmission(task, ACTOR_403100_PUFF_RISING_ARG);
 }
 
-static void func_actor_403100_8013E88C(Task* arg0)
+/// Emits horizontally drifting puffs every eight running updates until expiration.
+///
+/// Requires an owned coordinate body and remaining lifetime in killCountdown.
+/// Puffs use size 1024 and palette row 2. Paused actors freeze emission and
+/// the timer; expiration advances state and immediately releases the task.
+static void _actor403100EmitDriftPuffs(Task* task)
 {
-    GfxCoord* coord;
-    u16       countdown;
-
-    coord = arg0->extra.tmd->coords;
-    if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        if (!(arg0->killCountdown & 7)) {
-            effectSpawn(EFFECT_DRYFIELD_NIGHT_MOTEL_DRIFT_PUFF, coord, 0x20400, NULL);
-        }
-        countdown           = arg0->killCountdown - 1;
-        arg0->killCountdown = countdown;
-        if ((countdown << 0x10) <= 0) {
-            arg0->killCountdown = 0;
-            arg0->state         = arg0->state + 1;
-            taskKill(arg0);
-        }
-    }
+    _actor403100StepPuffEmission(task, ACTOR_403100_PUFF_DRIFT_ARG);
 }
 
 /// Counts terminal drift-puff updates and releases the coordinate task at thirty.
