@@ -119,7 +119,7 @@ extern Task* D_acropolis_west_elevator_hall_80186AE4[];
 #include "../../shared/red_beacon.h"
 
 static void _acropolisWestElevatorHallUpdateArrivalEvent(Task* unusedTask);
-static void func_acropolis_west_elevator_hall_8017F568(Task* arg0);
+static void _acropolisWestElevatorHallInitRoomTask(Task* task);
 static void _acropolisWestElevatorHallInitializeDoorLeaf(Task* task);
 static void _acropolisWestElevatorHallUpdateDoorLeaf(Task* task);
 
@@ -130,7 +130,7 @@ static void _acropolisWestElevatorHallUpdateDoorLeaf(Task* task);
 /// State handlers of the room task: set-up, the cutscene hand-off and
 /// `taskKill`.
 static const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5D4 = {
-    { func_acropolis_west_elevator_hall_8017F568, _acropolisWestElevatorHallUpdateArrivalEvent, taskKill },
+    { _acropolisWestElevatorHallInitRoomTask, _acropolisWestElevatorHallUpdateArrivalEvent, taskKill },
 };
 
 /// State handlers of an elevator-car task: set-up, travel and `taskKill`.
@@ -1089,15 +1089,28 @@ static s32 _acropolisWestElevatorHallRejectKeyItemMessage(Task* task, s32 messag
     return ACROPOLIS_WEST_ELEVATOR_HALL_KEY_ITEM_REFUSED;
 }
 
-static void func_acropolis_west_elevator_hall_8017F568(Task* arg0)
+/// Registers the hall's room task and spawns its two stationary elevator-door leaves.
+///
+/// Called in state 0 with both door models loaded. Descriptor 0 retracts along
+/// negative X and descriptor 1 along positive X, each with its own travel work.
+/// Saves both spawn results and advances to state 1 even on failure. Door
+/// messages subsequently require both saved handles to be live.
+static void _acropolisWestElevatorHallInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_acropolis_west_elevator_hall_801849CC;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    D_acropolis_west_elevator_hall_80186AE4[0] =
-        taskSpawnFromTable(D_acropolis_west_elevator_hall_80184568, 0, 0, -1);
-    D_acropolis_west_elevator_hall_80186AE4[1] =
-        taskSpawnFromTable(D_acropolis_west_elevator_hall_80184568, 1, 0, 1);
-    arg0->state = (s32)(arg0->state + 1);
+    enum {
+        ACROPOLIS_WEST_ELEVATOR_HALL_NEGATIVE_LEAF_INDEX = 0,
+        ACROPOLIS_WEST_ELEVATOR_HALL_POSITIVE_LEAF_INDEX = 1,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_REST           = 0,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_SIDE_NEGATIVE  = -1,
+        ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_SIDE_POSITIVE  = 1,
+    };
+    task->msgTable = D_acropolis_west_elevator_hall_801849CC;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    D_acropolis_west_elevator_hall_80186AE4[ACROPOLIS_WEST_ELEVATOR_HALL_NEGATIVE_LEAF_INDEX] =
+        taskSpawnFromTable(D_acropolis_west_elevator_hall_80184568, ACROPOLIS_WEST_ELEVATOR_HALL_NEGATIVE_LEAF_INDEX, ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_REST, ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_SIDE_NEGATIVE);
+    D_acropolis_west_elevator_hall_80186AE4[ACROPOLIS_WEST_ELEVATOR_HALL_POSITIVE_LEAF_INDEX] =
+        taskSpawnFromTable(D_acropolis_west_elevator_hall_80184568, ACROPOLIS_WEST_ELEVATOR_HALL_POSITIVE_LEAF_INDEX, ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_REST, ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_SIDE_POSITIVE);
+    task->state = task->state + 1;
 }
 
 void acropolisWestElevatorHallRoomTask(Task* task)

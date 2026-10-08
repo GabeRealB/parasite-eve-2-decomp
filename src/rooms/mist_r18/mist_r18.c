@@ -90,7 +90,7 @@ extern EvsCommand D_mist_r18_8018639C[];
 extern EvsCommand D_mist_r18_8018645C[];
 extern EvsCommand D_mist_r18_8018651C[];
 extern EvsCommand D_mist_r18_80186564[];
-/// The two prop tasks `func_mist_r18_8017E6D8` spawns and
+/// The two attached-model tasks `_mistR18SpawnAttachedModel` spawns and
 /// `_mistR18KillAttachedModel` tears down, by index.
 extern Task* D_mist_r18_80186E90;
 extern Task* D_mist_r18_80186E94;
@@ -126,20 +126,26 @@ extern AreaResource D_mist_r18_80186BD8[3];
 extern WorldCollisionGrid D_mist_r18_801866F8[1];
 
 extern AnimationSet* D_mist_r18_80184F64[11];
-void                 func_mist_r18_8017E6D8(s32);
-static void          _mistR18KillAttachedModel(s32 modelIndex);
-void                 func_mist_r18_8017E7F0(void);
-void                 func_mist_r18_8017E824(void);
-static void          _mistR18SpawnPlacedProp(void);
-static void          _mistR18KillPlacedProp(void);
-void                 func_mist_r18_8017EB48(void);
-static void          _mistR18PrepareBriefingScene(void);
-void                 func_mist_r18_8017EBF8(void);
-static void          _mistR18EnqueueScenePlayback(void);
-static void          _mistR18FinishSceneStream(void);
-static void          _mistR18CancelScene(void);
-static void          _mistR18SetOrderingDepthShift(s8 depthShift);
-static void          _mistR18OpenKeyItemMenu(void);
+/// Attached-model selectors passed by the briefing scripts and their parent part.
+enum {
+    MIST_R18_ATTACHMENT_MODEL_FIRST  = 0,
+    MIST_R18_ATTACHMENT_MODEL_SECOND = 1,
+    MIST_R18_ATTACHMENT_PLAYER_PART  = 8,
+};
+static void _mistR18SpawnAttachedModel(s32 modelIndex);
+static void _mistR18KillAttachedModel(s32 modelIndex);
+void        func_mist_r18_8017E7F0(void);
+void        func_mist_r18_8017E824(void);
+static void _mistR18SpawnPlacedProp(void);
+static void _mistR18KillPlacedProp(void);
+void        func_mist_r18_8017EB48(void);
+static void _mistR18PrepareBriefingScene(void);
+void        func_mist_r18_8017EBF8(void);
+static void _mistR18EnqueueScenePlayback(void);
+static void _mistR18FinishSceneStream(void);
+static void _mistR18CancelScene(void);
+static void _mistR18SetOrderingDepthShift(s8 depthShift);
+static void _mistR18OpenKeyItemMenu(void);
 
 static AnimationSet _gMistR18Animation02274;
 static AnimationSet _gMistR18Animation030E8;
@@ -666,7 +672,7 @@ EvsCommand D_mist_r18_8018522C[56] = {
 
 EvsCommand D_mist_r18_8018576C[37] = {
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_r18_8017E6D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18SpawnAttachedModel }, { .value = MIST_R18_ATTACHMENT_MODEL_FIRST }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_r18_80185204 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
@@ -707,7 +713,7 @@ EvsCommand D_mist_r18_8018576C[37] = {
 EvsCommand D_mist_r18_80185AE4[41] = {
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_r18_8017E6D8 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistR18SpawnAttachedModel }, { .value = MIST_R18_ATTACHMENT_MODEL_SECOND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_mist_r18_80185204 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_r18_80184F90 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_r18_80185024 }, { .value = 0 } },
@@ -1600,30 +1606,35 @@ static void _mistR18SetTexturePage(s16 blendMode, s16 vramX, s16 vramY, s32 orde
     AddPrim(gGpuCurrentOt + orderingTableSlot, pageCommand);
 }
 
-/// Spawn prop task `idx` (0 or 1) into its slot if it is not already running,
-/// and clear bit 7 of its model's flags. Other indices do nothing.
-void func_mist_r18_8017E6D8(s32 idx)
+/// Spawns either briefing model for attachment to the live player's part 8.
+///
+/// `modelIndex` is 0 first model or 1 second model; other values do nothing.
+/// Spawns only when the selected saved handle is NULL, leaving it NULL on
+/// failure. A successful model is drawable and its setup task later borrows
+/// the player's part coordinate and lighting, joining the player's teardown
+/// tree. The player/model resources must remain live through that attachment.
+static void _mistR18SpawnAttachedModel(s32 modelIndex)
 {
-    Task** slot;
-    Task*  task;
+    Task** modelTaskSlot;
+    Task*  modelTask;
 
-    switch (idx) {
-        case 0:
-            slot = &D_mist_r18_80186E90;
+    switch (modelIndex) {
+        case MIST_R18_ATTACHMENT_MODEL_FIRST:
+            modelTaskSlot = &D_mist_r18_80186E90;
             break;
-        case 1:
-            slot = &D_mist_r18_80186E94;
+        case MIST_R18_ATTACHMENT_MODEL_SECOND:
+            modelTaskSlot = &D_mist_r18_80186E94;
             break;
         default:
-            slot = NULL;
+            modelTaskSlot = NULL;
             break;
     }
 
-    if ((slot != NULL) && (*slot == NULL)) {
-        task  = taskSpawnFromTable(D_mist_r18_80184F04, idx, 8, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
-        *slot = task;
-        if (task != NULL) {
-            task->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if ((modelTaskSlot != NULL) && (*modelTaskSlot == NULL)) {
+        modelTask      = taskSpawnFromTable(D_mist_r18_80184F04, modelIndex, MIST_R18_ATTACHMENT_PLAYER_PART, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
+        *modelTaskSlot = modelTask;
+        if (modelTask != NULL) {
+            modelTask->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         }
     }
 }

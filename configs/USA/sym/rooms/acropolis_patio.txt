@@ -203,3 +203,4 @@ _acropolisPatioPlayerTurnLeftTask = 0x8017e054; // type:func
 _acropolisPatioSetPlayerHeadAimState = 0x8017df38; // type:func
 _acropolisPatioSetBattleActive = 0x8017dfe4; // type:func
 acropolisPatioRoomTask = 0x8017df8c; // type:func
+_acropolisPatioSpawnPlayerTurnLeft = 0x8017e024; // type:func

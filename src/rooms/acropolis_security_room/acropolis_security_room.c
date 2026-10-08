@@ -1907,6 +1907,11 @@ static void _acropolisSecurityRoomPowerSupplyScanHotspots(Task* task)
 #include "../../shared/action_prompt_outline_rect.inc.c"
 
 /// Commits the left lock release and transfers the panel from cursor input to its scene.
+///
+/// Requires the live panel's work, a collected blue key and its live cursor
+/// task in `spawnArg2.pointer`. Records the observatory route as unlocked,
+/// clears the key latch, selects the left fade and suppresses gameplay input.
+/// Saved-area updates precede cursor teardown; this does not run the scene.
 static inline void _acropolisSecurityRoomPowerSupplyBeginLeftUnlock(Task* task, _AcropolisSecurityRoomPowerSupplyWork* work)
 {
     enum { ACROPOLIS_SECURITY_ROOM_OBSERVATORY_ROUTE_UNLOCKED = 2 };
@@ -1961,6 +1966,11 @@ static void _acropolisSecurityRoomPowerSupplyUseLeftLock(Task* task)
 }
 
 /// Commits the right lock release and transfers the panel from cursor input to its scene.
+///
+/// Requires the live panel's work, a collected red key and its live cursor
+/// task in `spawnArg2.pointer`. Clears the key latch, selects the right fade,
+/// holds event state and suppresses gameplay input. Applies the saved-area
+/// updates selected by story progress before cursor teardown.
 static inline void _acropolisSecurityRoomPowerSupplyBeginRightUnlock(Task* task, _AcropolisSecurityRoomPowerSupplyWork* work)
 {
     enum { ACROPOLIS_SECURITY_ROOM_FOLLOW_UP_UPDATE_SPLIT = 3 };

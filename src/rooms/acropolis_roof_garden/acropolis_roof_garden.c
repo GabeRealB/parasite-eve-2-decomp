@@ -113,12 +113,12 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
             setRGB2((quad), (red), (green), 0),                 \
             setRGB3((quad), 0, 0, 0)))
 
-static void func_acropolis_roof_garden_8017DB74(Task* arg0);
+static void _acropolisRoofGardenInitRoomTask(Task* task);
 static void _acropolisRoofGardenTickRoom(Task* task);
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
-    { func_acropolis_roof_garden_8017DB74, _acropolisRoofGardenTickRoom, taskKill },
+    { _acropolisRoofGardenInitRoomTask, _acropolisRoofGardenTickRoom, taskKill },
 };
 
 extern WorldCollisionGrid     D_acropolis_roof_garden_801854A4[1];
@@ -145,7 +145,13 @@ extern AnimationBankCopyRequest D_acropolis_roof_garden_80183CC4;
 extern ActorTransform           D_acropolis_roof_garden_80183C58;
 extern ActorTransform           D_acropolis_roof_garden_80183C70;
 extern ActorTransform           D_acropolis_roof_garden_80183CA0;
-void                            func_acropolis_roof_garden_8017DAD4(s32);
+/// Sound-task actions passed by the arrival scene and its skip script.
+enum {
+    ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_OPENING = 0,
+    ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CLOSING = 1,
+    ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CANCEL  = 2,
+};
+static void _acropolisRoofGardenControlCutsceneSound(s32 soundAction);
 
 static AnimationSet _gAcropolisRoofGardenAnimation04164;
 static AnimationSet _gAcropolisRoofGardenAnimation060FC;
@@ -155,7 +161,7 @@ static s32  _acropolisRoofGardenResolveRoomTransition(Task* task, s32 messageId,
 static s32  _acropolisRoofGardenRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32  _acropolisRoofGardenHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32  _acropolisRoofGardenHandleSoundMessage(Task* task, s32 messageId, s32 soundCue, s32 unusedArg);
-s32         func_acropolis_roof_garden_8017D8AC(Task*, s32, s32, s32);
+static s32  _acropolisRoofGardenHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandIndex, s32 unusedArg);
 static void _acropolisRoofGardenAmbienceTask(Task* task);
 static void _acropolisRoofGardenCutsceneOpeningSoundTask(Task* task);
 static void _acropolisRoofGardenCutsceneClosingSoundTask(Task* task);
@@ -231,7 +237,7 @@ enum { ACROPOLIS_ROOF_GARDEN_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 TaskMessageEntry D_acropolis_roof_garden_80183BDC[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisRoofGardenResolveRoomTransition },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisRoofGardenHandleRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_roof_garden_8017D8AC },
+    { ROOM_MESSAGE_COMMAND, _acropolisRoofGardenHandleCommandMessage },
     { ACROPOLIS_ROOF_GARDEN_MESSAGE_USE_KEY_ITEM, _acropolisRoofGardenRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, _acropolisRoofGardenHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -291,7 +297,7 @@ EvsCommand D_acropolis_roof_garden_80183D74[44] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_acropolis_roof_garden_80183CC4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_roof_garden_80183C70 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80183CCC }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_roof_garden_8017DAD4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisRoofGardenControlCutsceneSound }, { .value = ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_OPENING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x31080005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 154 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -320,7 +326,7 @@ EvsCommand D_acropolis_roof_garden_80183D74[44] = {
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80183CE0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_roof_garden_8017DAD4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisRoofGardenControlCutsceneSound }, { .value = ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CLOSING }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 115 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_roof_garden_80183C44 }, { .value = 0 } },
@@ -341,7 +347,7 @@ EvsCommand D_acropolis_roof_garden_80184194[17] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_roof_garden_80183D08 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_roof_garden_8017DAD4 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisRoofGardenControlCutsceneSound }, { .value = ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CANCEL }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1253,23 +1259,45 @@ static s32 _acropolisRoofGardenHandleSoundMessage(Task* task, s32 messageId, s32
     return 0;
 }
 
-s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects the pickup dialogue or starts the roof-garden story dialogue.
+///
+/// `ROOM_MESSAGE_COMMAND` carries the CAP command index as its first integer
+/// payload. Command 2 chooses pickup command 5 for saved object states 0/1,
+/// otherwise sequence slot 2, variant 0. Command 4 advances dialogue progress
+/// to at least 6, pauses actor updates, plays CAP 4 in place and sets objective 7.
+/// Other commands do nothing; all paths return zero. Requires live flags and
+/// relocated CAP data; the receiver, message ID and second payload are unused.
+static s32 _acropolisRoofGardenHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandIndex, s32 unusedArg)
 {
-    if (arg2 == 2) {
-        if ((areaGetCurrentObjectState(0x13) == 0) || (areaGetCurrentObjectState(0x13) == 1)) {
-            capRunCommandWithTransition(5);
+    enum {
+        ACROPOLIS_ROOF_GARDEN_COMMAND_PICKUP           = 2,
+        ACROPOLIS_ROOF_GARDEN_COMMAND_STORY            = 4,
+        ACROPOLIS_ROOF_GARDEN_COMMAND_PICKUP_AVAILABLE = 5,
+        ACROPOLIS_ROOF_GARDEN_PICKUP_OBJECT_ID         = 0x13,
+        ACROPOLIS_ROOF_GARDEN_PICKUP_STATE_UNSET       = 0,
+        ACROPOLIS_ROOF_GARDEN_PICKUP_STATE_PRESENT     = 1,
+        ACROPOLIS_ROOF_GARDEN_PICKUP_CAP_SLOT          = 2,
+        ACROPOLIS_ROOF_GARDEN_PICKUP_CAP_VARIANT       = 0,
+        ACROPOLIS_ROOF_GARDEN_DIALOGUE_PROGRESS        = 6,
+        ACROPOLIS_ROOF_GARDEN_FOLLOW_UP_UNSET          = 0,
+        ACROPOLIS_ROOF_GARDEN_STORY_OBJECTIVE          = 7,
+    };
+    if (commandIndex == ACROPOLIS_ROOF_GARDEN_COMMAND_PICKUP) {
+        // Retain the separate reads of the saved two-bit object state.
+        if ((areaGetCurrentObjectState(ACROPOLIS_ROOF_GARDEN_PICKUP_OBJECT_ID) == ACROPOLIS_ROOF_GARDEN_PICKUP_STATE_UNSET) || (areaGetCurrentObjectState(ACROPOLIS_ROOF_GARDEN_PICKUP_OBJECT_ID) == ACROPOLIS_ROOF_GARDEN_PICKUP_STATE_PRESENT)) {
+            capRunCommandWithTransition(ACROPOLIS_ROOF_GARDEN_COMMAND_PICKUP_AVAILABLE);
         } else {
-            capStartSequenceSlot(2, 1, 0);
+            capStartSequenceSlot(ACROPOLIS_ROOF_GARDEN_PICKUP_CAP_SLOT, CAP_PLAYBACK_DISPLAY_TRANSITION, ACROPOLIS_ROOF_GARDEN_PICKUP_CAP_VARIANT);
         }
     }
-    if (arg2 == 4) {
-        if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < 6) {
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
+    if (commandIndex == ACROPOLIS_ROOF_GARDEN_COMMAND_STORY) {
+        if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) < ACROPOLIS_ROOF_GARDEN_DIALOGUE_PROGRESS) {
+            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACROPOLIS_ROOF_GARDEN_FOLLOW_UP_UNSET);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_ROOF_GARDEN_DIALOGUE_PROGRESS);
         }
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-        capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 7);
+        capRunCommand(ACROPOLIS_ROOF_GARDEN_COMMAND_STORY, CAP_PLAYBACK_IN_PLACE);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACROPOLIS_ROOF_GARDEN_STORY_OBJECTIVE);
     }
     return 0;
 }
@@ -1334,16 +1362,26 @@ static void _acropolisRoofGardenCutsceneClosingSoundTask(Task* task)
     task->state += 1;
 }
 
-void func_acropolis_roof_garden_8017DAD4(s32 arg0)
+/// Starts or cancels the arrival cutscene's singleton timed-sound task.
+///
+/// `soundAction` is 0 opening, 1 closing, or 2 cancel; other values do nothing.
+/// Starts replace the saved handle even on allocation failure and assume the
+/// previous sequence has finished. Cancel kills a live task before clearing
+/// its handle. Room sound data must remain loaded until the sequence ends.
+static void _acropolisRoofGardenControlCutsceneSound(s32 soundAction)
 {
-    switch (arg0) {
-        case 0:
-            D_acropolis_roof_garden_80183C0C = taskSpawnFromTable(D_acropolis_roof_garden_80183C10, 1, 0, 0);
+    enum {
+        ACROPOLIS_ROOF_GARDEN_OPENING_SOUND_TASK_INDEX = 1,
+        ACROPOLIS_ROOF_GARDEN_CLOSING_SOUND_TASK_INDEX = 2,
+    };
+    switch (soundAction) {
+        case ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_OPENING:
+            D_acropolis_roof_garden_80183C0C = taskSpawnFromTable(D_acropolis_roof_garden_80183C10, ACROPOLIS_ROOF_GARDEN_OPENING_SOUND_TASK_INDEX, 0, 0);
             break;
-        case 1:
-            D_acropolis_roof_garden_80183C0C = taskSpawnFromTable(D_acropolis_roof_garden_80183C10, 2, 0, 0);
+        case ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CLOSING:
+            D_acropolis_roof_garden_80183C0C = taskSpawnFromTable(D_acropolis_roof_garden_80183C10, ACROPOLIS_ROOF_GARDEN_CLOSING_SOUND_TASK_INDEX, 0, 0);
             break;
-        case 2:
+        case ACROPOLIS_ROOF_GARDEN_CUTSCENE_SOUND_CANCEL:
             if (D_acropolis_roof_garden_80183C0C != NULL) {
                 taskKill(D_acropolis_roof_garden_80183C0C);
                 D_acropolis_roof_garden_80183C0C = NULL;
@@ -1352,15 +1390,25 @@ void func_acropolis_roof_garden_8017DAD4(s32 arg0)
     }
 }
 
-static void func_acropolis_roof_garden_8017DB74(Task* arg0)
+/// Registers the roof-garden room task and starts its ambient-sound controller.
+///
+/// Called in state 0 with the room resources loaded. Installs the message table
+/// and room slot, changes music event 6 to 5 and attempts the ambience spawn.
+/// Advances to state 1 even if that spawn fails; it retains no child handle.
+static void _acropolisRoofGardenInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_acropolis_roof_garden_80183BDC;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 6) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 5;
+    enum {
+        ACROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_EVENT = 6,
+        ACROPOLIS_ROOF_GARDEN_ROOM_MUSIC_EVENT    = 5,
+        ACROPOLIS_ROOF_GARDEN_AMBIENCE_TASK_INDEX = 0,
+    };
+    task->msgTable = D_acropolis_roof_garden_80183BDC;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ACROPOLIS_ROOF_GARDEN_ARRIVAL_MUSIC_EVENT) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_ROOF_GARDEN_ROOM_MUSIC_EVENT;
     }
-    taskSpawnFromTable(D_acropolis_roof_garden_80183C10, 0, 0, 0);
-    arg0->state += 1;
+    taskSpawnFromTable(D_acropolis_roof_garden_80183C10, ACROPOLIS_ROOF_GARDEN_AMBIENCE_TASK_INDEX, 0, 0);
+    task->state += 1;
 }
 
 /// Starts the skippable arrival scene once per overlay load when arrival warp is 2.

@@ -95,7 +95,7 @@ extern s16                   D_acropolis_fountain_8017E7F8;
 extern TaskDesc              D_acropolis_fountain_8017E7FC[];
 extern Task*                 D_acropolis_fountain_80183BB4;
 
-static void func_acropolis_fountain_8017E15C(Task* task, s32 view);
+static void _acropolisFountainUpdateWaterLoop(Task* task, u16 logicalViewIndex);
 
 /// Ordered phases of the player's single-step climb and subsequent walk.
 enum {
@@ -115,7 +115,7 @@ static void _acropolisFountainClimbWaitForStep(Task* task);
 static void _acropolisFountainClimbMovePlayer(Task* task);
 static void _acropolisFountainClimbFinish(Task* task);
 
-void        func_acropolis_fountain_8017E3D4(Task*);
+static void _acropolisFountainWaterMovieTask(Task* task);
 static void _acropolisFountainStopWaterMovieTask(Task* task);
 
 extern WorldCollisionGrid    D_acropolis_fountain_8017F60C[1];
@@ -154,7 +154,7 @@ SVECTOR D_acropolis_fountain_8017E7F0 = { 4000, -688, -6300, 0 };
 s16 D_acropolis_fountain_8017E7F8 = 0;
 
 TaskDesc D_acropolis_fountain_8017E7FC[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_fountain_8017E3D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisFountainWaterMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisFountainStopWaterMovieTask, { .value = 0 } },
 };
 
@@ -1618,14 +1618,35 @@ void func_acropolis_fountain_8017E014(Task* task)
     }
 }
 
-static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
+/// Starts the water loop or changes the mix of its previously requested instance.
+///
+/// Pan offsets use three SPU steps per unit; attenuation uses 0..127.
+/// The room's running latch selects the request and is left unchanged here.
+static inline void _acropolisFountainRequestWaterLoopMix(s32 panOffset, s32 attenuation)
+{
+    if (D_acropolis_fountain_8017E7F8 != 0) {
+        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, panOffset, attenuation);
+    } else {
+        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, panOffset, attenuation);
+    }
+}
+
+/// Synchronizes the water sound's playback window and mix with the fountain movie.
+///
+/// Borrows initialized water-loop work. Movie frames 15..239 accept a command;
+/// frame 240 onward fades a requested loop over 20 audio updates. After a new
+/// window is accepted, one deferred tick precedes applying the current logical
+/// view index's mix. Indices 2..8 select a mix; other indices still set the
+/// requested-running latch without sending sound. Requests can be dropped by
+/// the sound queue. The movie queue and room sound data must remain live.
+static void _acropolisFountainUpdateWaterLoop(Task* task, u16 logicalViewIndex)
 {
     _AcropolisFountainWaterLoop* waterLoop;
     CdCmdQueue*                  queue;
     u16                          frame;
 
     queue     = &gCdCmdQueue;
-    waterLoop = (_AcropolisFountainWaterLoop*)task->work;
+    waterLoop = task->work;
     switch (waterLoop->state) {
         case ACROPOLIS_FOUNTAIN_WATER_LOOP_WAIT:
             // Outside the window, fade a running loop out. Inside it, command
@@ -1652,51 +1673,26 @@ static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
             break;
 
         case ACROPOLIS_FOUNTAIN_WATER_LOOP_APPLY:
-            // Indices 2..8 re-pan a running loop or start one, at that index's
-            // pan and depth. The loop is then marked running for every index.
-            switch ((u16)view) {
+            // Mark every index requested, including indices without a mix.
+            switch (logicalViewIndex) {
                 case 2:
                 case 3:
-                    if (D_acropolis_fountain_8017E7F8 != 0) {
-                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 2);
-                    } else {
-                        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 2);
-                    }
+                    _acropolisFountainRequestWaterLoopMix(7, 2);
                     break;
                 case 4:
-                    if (D_acropolis_fountain_8017E7F8 != 0) {
-                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 0);
-                    } else {
-                        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 0);
-                    }
+                    _acropolisFountainRequestWaterLoopMix(0, 0);
                     break;
                 case 5:
-                    if (D_acropolis_fountain_8017E7F8 != 0) {
-                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 2);
-                    } else {
-                        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 2);
-                    }
+                    _acropolisFountainRequestWaterLoopMix(-7, 2);
                     break;
                 case 6:
-                    if (D_acropolis_fountain_8017E7F8 != 0) {
-                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 0);
-                    } else {
-                        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, -7, 0);
-                    }
+                    _acropolisFountainRequestWaterLoopMix(-7, 0);
                     break;
                 case 7:
-                    if (D_acropolis_fountain_8017E7F8 != 0) {
-                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 2);
-                    } else {
-                        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 0, 2);
-                    }
+                    _acropolisFountainRequestWaterLoopMix(0, 2);
                     break;
                 case 8:
-                    if (D_acropolis_fountain_8017E7F8 != 0) {
-                        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 3);
-                    } else {
-                        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP, 7, 3);
-                    }
+                    _acropolisFountainRequestWaterLoopMix(7, 3);
                     break;
             }
             D_acropolis_fountain_8017E7F8 = 1;
@@ -1705,28 +1701,47 @@ static void func_acropolis_fountain_8017E15C(Task* task, s32 view)
     }
 }
 
-void func_acropolis_fountain_8017E3D4(Task* task)
+/// Controls the fountain water sound and presents or advances its texture movie.
+///
+/// Publishes this task on every call and acts only in room 1. State 0 owns a
+/// zeroed primary-heap water-loop block until task teardown; failure kills the
+/// task without clearing the published pointer. State 1 updates the sound,
+/// draws an opaque raw 15-bit sprite in logical indices 3/5, and advances the
+/// shared encoded-frame clock on odd animation ticks in indices 2/8. That clock
+/// wraps to frame 1 ten frames before the selected movie's stop limit.
+/// Requires live view mappings, movie stream slots and room sound data, and
+/// space for SPRT/DR_TPAGE packets until GPU completion. Other indices only
+/// update sound; presentation suppression affects drawing rather than sound.
+static void _acropolisFountainWaterMovieTask(Task* task)
 {
-    CdCmdQueue* queue;
-    CdCmdQueue* queue2;
-    StreamSlot* textureStream;
-    StreamSlot* loopStream;
-    SPRT*       p;
-    DR_TPAGE*   dr;
-    GameLoc     key;
-    GameLoc     key2;
-    s16         view;
-    s32         ot;
-    u16         count;
-    u32         tpage;
+    enum {
+        ACROPOLIS_FOUNTAIN_MOVIE_INIT             = 0,
+        ACROPOLIS_FOUNTAIN_MOVIE_UPDATE           = 1,
+        ACROPOLIS_FOUNTAIN_MOVIE_TEXTURE_DEPTH    = 2,
+        ACROPOLIS_FOUNTAIN_MOVIE_VIEW3_OT_SLOT    = 35,
+        ACROPOLIS_FOUNTAIN_MOVIE_VIEW5_OT_SLOT    = 29,
+        ACROPOLIS_FOUNTAIN_MOVIE_LOOP_TAIL_FRAMES = 10,
+        ACROPOLIS_FOUNTAIN_MOVIE_FIRST_FRAME      = 1,
+    };
+    CdCmdQueue* movieQueue;
+    CdCmdQueue* loopQueue;
+    StreamSlot* movieTexture;
+    StreamSlot* loopMovie;
+    SPRT*       movieSprite;
+    DR_TPAGE*   pageCommand;
+    GameLoc     textureKey;
+    GameLoc     loopKey;
+    s16         logicalViewIndex;
+    s32         orderingTableSlot;
+    u16         nextFrame;
 
     D_acropolis_fountain_80183BB4 = task;
-    queue                         = &gCdCmdQueue;
+    movieQueue                    = &gCdCmdQueue;
     if (gGameSession->location.loc.room != 1) {
         return;
     }
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_FOUNTAIN_MOVIE_INIT:
             task->work = memCalloc(sizeof(_AcropolisFountainWaterLoop), 0);
             if (task->work == NULL) {
                 taskKill(task);
@@ -1736,59 +1751,61 @@ void func_acropolis_fountain_8017E3D4(Task* task)
             task->state = task->state + 1;
             break;
 
-        case 1:
-            view = viewFindLogicalIndex(gGameSession->location.loc.view);
-            func_acropolis_fountain_8017E15C(task, (u16)view);
-            switch ((u16)view) {
+        case ACROPOLIS_FOUNTAIN_MOVIE_UPDATE:
+            logicalViewIndex = viewFindLogicalIndex(gGameSession->location.loc.view);
+            _acropolisFountainUpdateWaterLoop(task, logicalViewIndex);
+            switch ((u16)logicalViewIndex) {
                 case 3:
                 case 5:
-                    if (queue->suppressMoviePresentation != 0) {
+                    if (movieQueue->suppressMoviePresentation != 0) {
                         return;
                     }
                     gGameSession->field_4E = 1;
-                    key                    = gGameSession->location;
-                    key.loc.view           = view;
-                    textureStream          = streamGetSlot(streamFindViewMovieSlot(&key.loc));
+                    textureKey             = gGameSession->location;
+                    textureKey.loc.view    = logicalViewIndex;
+                    movieTexture           = streamGetSlot(streamFindViewMovieSlot(&textureKey.loc));
 
-                    p              = gGpuPrimCursor;
-                    gGpuPrimCursor = p + 1;
-                    setlen(p, 4);
-                    setcode(p, 0x65);
-                    p->u0 = 0;
-                    p->v0 = 0;
-                    if ((u16)view == 3) {
-                        ot    = 0x23;
-                        p->x0 = 0x70;
-                        p->y0 = 8;
-                    } else if ((u16)view == 5) {
-                        ot    = 0x1D;
-                        p->x0 = -0xA0;
-                        p->y0 = 0x2A;
+                    movieSprite    = gGpuPrimCursor;
+                    gGpuPrimCursor = movieSprite + 1;
+                    // Raw texture ignores modulation RGB and needs no CLUT at 15-bit depth.
+                    setSprt(movieSprite);
+                    setShadeTex(movieSprite, true);
+                    movieSprite->u0 = 0;
+                    movieSprite->v0 = 0;
+                    if ((u16)logicalViewIndex == 3) {
+                        orderingTableSlot = ACROPOLIS_FOUNTAIN_MOVIE_VIEW3_OT_SLOT;
+                        movieSprite->x0   = 0x70;
+                        movieSprite->y0   = 8;
+                    } else if ((u16)logicalViewIndex == 5) {
+                        orderingTableSlot = ACROPOLIS_FOUNTAIN_MOVIE_VIEW5_OT_SLOT;
+                        movieSprite->x0   = -0xA0;
+                        movieSprite->y0   = 0x2A;
                     }
-                    dr   = gGpuPrimCursor;
-                    p->w = textureStream->data.movie.width;
-                    p->h = textureStream->data.movie.height;
-                    addPrim(&gGpuCurrentOt[ot], p);
+                    pageCommand    = gGpuPrimCursor;
+                    movieSprite->w = movieTexture->data.movie.width;
+                    movieSprite->h = movieTexture->data.movie.height;
+                    addPrim(&gGpuCurrentOt[orderingTableSlot], movieSprite);
 
-                    gGpuPrimCursor = dr + 1;
-                    setlen(dr, 1);
-                    tpage       = (u32)(textureStream->data.movie.vramY & 0x100) >> 4;
-                    dr->code[0] = tpage | (((u32)(textureStream->data.movie.vramX & 0x3FF) >> 6) | 0x100) |
-                                  ((textureStream->data.movie.vramY & 0x200) * 4) | 0xE1000000;
-                    addPrim(&gGpuCurrentOt[ot], dr);
+                    gGpuPrimCursor = pageCommand + 1;
+                    setDrawTPage(pageCommand, false, false,
+                                 getTPage(ACROPOLIS_FOUNTAIN_MOVIE_TEXTURE_DEPTH, 0,
+                                          (u32)movieTexture->data.movie.vramX,
+                                          (u32)movieTexture->data.movie.vramY));
+                    addPrim(&gGpuCurrentOt[orderingTableSlot], pageCommand);
                     break;
 
                 case 2:
                 case 8:
+                    // Views without a drawn movie still keep its sound clock looping.
                     if (gDisplayState.animFrame & 1) {
-                        queue2             = &gCdCmdQueue;
-                        key2               = gGameSession->location;
-                        key2.loc.view      = viewFindLogicalIndex(4);
-                        loopStream         = streamGetSlot(streamFindMovieSlot(&key2.loc, 0, 1));
-                        count              = queue2->movieFrame + 1;
-                        queue2->movieFrame = count;
-                        if (count >= loopStream->data.movie.frameLimit - 0xA) {
-                            queue2->movieFrame = 1;
+                        loopQueue             = &gCdCmdQueue;
+                        loopKey               = gGameSession->location;
+                        loopKey.loc.view      = viewFindLogicalIndex(4);
+                        loopMovie             = streamGetSlot(streamFindMovieSlot(&loopKey.loc, 0, true));
+                        nextFrame             = loopQueue->movieFrame + 1;
+                        loopQueue->movieFrame = nextFrame;
+                        if (nextFrame >= loopMovie->data.movie.frameLimit - ACROPOLIS_FOUNTAIN_MOVIE_LOOP_TAIL_FRAMES) {
+                            loopQueue->movieFrame = ACROPOLIS_FOUNTAIN_MOVIE_FIRST_FRAME;
                         }
                     }
                     break;

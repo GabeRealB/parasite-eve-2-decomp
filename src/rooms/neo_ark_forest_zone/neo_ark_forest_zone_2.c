@@ -77,13 +77,13 @@ extern RoamerSpawnPoint D_neo_ark_forest_zone_80182DE8[5];
 extern s16 gRoamerPrevBattleRefs;
 
 static void _roamerTickPoolB(Task* unusedTask);
-static void func_neo_ark_forest_zone_8018141C(Task* arg0);
+static void _neoArkForestZoneFinishRoamerPoolAState(Task* task);
 
 /// State table of the first arming task, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
     _roamerArmPoolA,
     _roamerTickPoolA,
-    func_neo_ark_forest_zone_8018141C,
+    _neoArkForestZoneFinishRoamerPoolAState,
     taskKill,
 } };
 
@@ -754,9 +754,13 @@ static s32 _neoArkForestZoneIgnorePoolAActorCommand(Task* unusedTask, s32 unused
 #include "../../shared/roaming_enemies_latch_request.inc.c"
 #undef ROAMER_LATCH_SPAWN_REQUEST
 
-static void func_neo_ark_forest_zone_8018141C(Task* arg0)
+/// Advances the forest pool-A controller from its finishing state to teardown.
+///
+/// Called in state 2; state 3 releases the controller on the next dispatch.
+/// This callback neither clears reserves nor releases the placed enemy tasks.
+static void _neoArkForestZoneFinishRoamerPoolAState(Task* task)
 {
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// The first arming task: runs the state handler its state selects, through a

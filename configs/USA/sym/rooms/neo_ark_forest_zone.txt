@@ -141,3 +141,4 @@ neoArkForestZoneResolveTransition = 0x8017d7e4; // type:func
 neoArkForestZoneHandleAction = 0x8017d958; // type:func
 _neoArkForestZoneInitializeRoom = 0x8017da80; // type:func
 _roamerTickPoolB = 0x80180d24; // type:func
+_neoArkForestZoneFinishRoamerPoolAState = 0x8018141c; // type:func

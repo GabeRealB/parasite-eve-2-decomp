@@ -98,3 +98,5 @@ _acropolisFountainInitializeRoomTask = 0x8017d960; // type:func
 acropolisFountainRoomTask = 0x8017d9c4; // type:func
 _acropolisFountainResolveTransitionMessage = 0x8017d604; // type:func
 _acropolisFountainHandleCommandMessage = 0x8017d77c; // type:func
+_acropolisFountainUpdateWaterLoop = 0x8017e15c; // type:func
+_acropolisFountainWaterMovieTask = 0x8017e3d4; // type:func

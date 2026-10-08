@@ -5893,11 +5893,12 @@ static void _acropolisBridgeEnemyDeathEffect(Task* task)
     }
 }
 
-/// Credits Life Drain and the damage readout before mirroring the two HP halfwords.
+/// Accounts for a hit's healing credit, damage readout and enemy HP loss.
 ///
-/// Requires the enemy's pre-hit HP for Life Drain and a valid packed attack key.
-/// Subtractions narrow to signed halfwords; the work HP is authoritative for
-/// the final enemy value. The readout retains the enemy's node for its lifetime.
+/// Borrows live work and enemy storage; `damage` is nonnegative HP and
+/// `attackKey` is the player's packed attack key. Life Drain sees pre-hit HP.
+/// Both subtractions narrow to signed halfwords without clamping; the work's
+/// remaining HP then replaces the enemy's. The readout borrows the enemy node.
 static inline void _acropolisBridgeEnemyAccountHitHp(_AcropolisBridgeEnemyWork* work, Enemy* enemy, u32 attackKey, s32 damage)
 {
     damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);

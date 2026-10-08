@@ -131,7 +131,7 @@ extern AnimationPlayRequest     D_acropolis_patio_80182720;
 extern AnimationBankCopyRequest D_acropolis_patio_801825C4;
 extern ActorTransform           D_acropolis_patio_80182630;
 extern ActorTransform           D_acropolis_patio_80182678;
-void                            func_acropolis_patio_8017E024(void);
+static void                     _acropolisPatioSpawnPlayerTurnLeft(void);
 static void                     _acropolisPatioPlayerTurnLeftTask(Task* task);
 
 extern SpriteBatch  D_acropolis_patio_80184AF0[2];
@@ -707,7 +707,7 @@ EvsCommand D_acropolis_patio_8018280C[41] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_patio_8018261C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_patio_8017E024 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _acropolisPatioSpawnPlayerTurnLeft }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _acropolisPatioSetBattleActive }, { .value = true }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2083,7 +2083,12 @@ static void _acropolisPatioSetBattleActive(s32 battleActive)
     }
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
 }
-void func_acropolis_patio_8017E024(void)
+/// Starts the live player's half-turn left for the patio event script.
+///
+/// Allocates a bodyless controller; its sixteen ticks update the player's
+/// yaw before teardown. The player must remain live through those updates.
+/// Allocation failure leaves no controller and is ignored by the script.
+static void _acropolisPatioSpawnPlayerTurnLeft(void)
 {
     taskSpawnFromTable(&D_acropolis_patio_80182800, 0, 0, 0);
 }

@@ -136,3 +136,6 @@ _acropolisRoofGardenCutsceneClosingSoundTask = 0x8017da48; // type:func
 _acropolisRoofGardenTickRoom = 0x8017dbec; // type:func
 acropolisRoofGardenRoomTask = 0x8017dc74; // type:func
 acropolisRoofGardenPickupModelTask = 0x80180160; // type:func
+_acropolisRoofGardenHandleCommandMessage = 0x8017d8ac; // type:func
+_acropolisRoofGardenControlCutsceneSound = 0x8017dad4; // type:func
+_acropolisRoofGardenInitRoomTask = 0x8017db74; // type:func

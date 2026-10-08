@@ -1160,6 +1160,8 @@ static void _dryfieldWaterTankSyncMechanismSprites(void)
 /// This task uses `killCountdown` as an index in 0..10, initialized to zero.
 /// Only those eleven entries of the twelve-word offset table participate.
 /// Each offset narrows to a signed halfword in the prop's local X axis.
+/// Requires a live model root during the call. The puff uses copied XYZ after
+/// spawning and does not read the temporary offset again.
 static inline void _dryfieldWaterTankSpawnPropSlideDust(Task* task)
 {
     enum {

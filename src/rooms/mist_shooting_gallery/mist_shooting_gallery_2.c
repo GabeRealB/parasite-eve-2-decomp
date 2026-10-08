@@ -2686,11 +2686,13 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
 /// advancing outside the script. Equal frame keys spawn together; the script
 /// must provide a following record for each equal-frame run. The clock saturates
 /// below all markers; END holds the cursor. Storage stays live across spawns.
-static inline void _mistShootingGalleryStepRepeatingWaves(Task* controller, MistShootingGalleryWork* work, _MistShootingGallerySpawn* script, s32 loopRestartThreshold, s32 loopStartIndex, u16 loopStartFrame)
+/// Indices count records, and frames count active script ticks. The restart
+/// index/frame pair must select an in-bounds suffix of the same script.
+static inline void _mistShootingGalleryStepRepeatingWaves(Task* controller, MistShootingGalleryWork* work, const _MistShootingGallerySpawn* script, s32 loopRestartThreshold, s32 loopStartIndex, u16 loopStartFrame)
 {
-    _MistShootingGallerySpawn* spawn;
-    u16                        spawnFrame;
-    u16                        scriptFrame;
+    const _MistShootingGallerySpawn* spawn;
+    u16                              spawnFrame;
+    u16                              scriptFrame;
 
     spawn      = &script[work->spawnIndex];
     spawnFrame = spawn->frame;

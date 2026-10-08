@@ -1167,6 +1167,8 @@ static s32 _shelterB3GarbageIncineratorAdvanceBlazeAnimation(Task* task)
 /// Work and player must remain live through synchronous dispatch; clip pointers
 /// and their data remain borrowed afterward. The table ends at NULL; only the
 /// low sixteen bits of its scanned count are used as the element index/count.
+/// The three playable entries occupy extension slots 0..2; the terminator is
+/// excluded from the word copy and the installed bank outlives scene playback.
 static inline void _shelterB3GarbageIncineratorInstallBlazeClips(Task* task)
 {
     _ShelterB3GarbageIncineratorBlazeWork* clipWork = task->work;
@@ -1176,10 +1178,10 @@ static inline void _shelterB3GarbageIncineratorInstallBlazeClips(Task* task)
 
     // The terminated table counts playable extension pointers, excluding NULL.
     extensionCount = 0;
-    while (D_shelter_b3_garbage_incinerator_80186F78[extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK] != 0) {
+    while (D_shelter_b3_garbage_incinerator_80186F78[extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK] != NULL) {
         extensionCount += 1;
     }
-    bankRequest.source.sets = &D_shelter_b3_garbage_incinerator_80186F78[0];
+    bankRequest.source.sets = D_shelter_b3_garbage_incinerator_80186F78;
     bankRequest.wordCount   = extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK;
     TASK_MESSAGE_DISPATCH_POINTER(clipWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankRequest, 0);
 }

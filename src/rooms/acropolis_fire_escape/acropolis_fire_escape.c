@@ -185,7 +185,7 @@ static s32 _acropolisFireEscapeResolveRoomTransition(Task* unusedTask, s32 messa
 static s32 _acropolisFireEscapeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _acropolisFireEscapeIgnoreSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 unusedArg);
 
-void func_acropolis_fire_escape_8017FB40(Task*);
+static void _acropolisFireEscapeAmbienceTask(Task* task);
 
 extern WorldCollisionGrid     D_acropolis_fire_escape_801822A8[1];
 extern WorldCollisionOccluder D_acropolis_fire_escape_801828BC[2];
@@ -224,7 +224,7 @@ TaskMessageEntry D_acropolis_fire_escape_80181D3C[5] = {
 };
 
 TaskDesc D_acropolis_fire_escape_80181D64[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_fire_escape_8017FB40, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisFireEscapeAmbienceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -678,22 +678,38 @@ s32 func_acropolis_fire_escape_8017F9F8(Task* task, s32 msgId, s32 event, s32 ar
     return 0;
 }
 
-/// Task body of the room's ambient sound. Each frame it picks a level for the
-/// looping sound event 0x510F0005 from the current view (views 2-5 and 8 hear
-/// it, the rest silence it) and, when the level changes, starts the sound,
-/// fades it out or retunes it. Entering view 8 while the save's scene event is
-/// 5 also advances it to 7 and spawns `Stage_MusicTaskDesc`.
-void func_acropolis_fire_escape_8017FB40(Task* task)
+/// Requests view-dependent ambience and the view-8 story music transition.
+///
+/// State 0 resets the room's requested-level latch; state 1 updates it each
+/// tick. Logical views 2/3, 4/5 and 8 request levels 30%, 15% and 100%; others
+/// request silence. Changes start, mix or fade the sound over 30 audio updates.
+/// The latch records requests even if the sound queue rejects them. In view 8,
+/// music event 5 becomes 7 once, queuing ordinary area music and clearing the
+/// session's flow options. Requires live session/save and loaded room sound data.
+static void _acropolisFireEscapeAmbienceTask(Task* task)
 {
-    s32 vol;
-    s32 prev;
+    enum {
+        ACROPOLIS_FIRE_ESCAPE_AMBIENCE_INIT            = 0,
+        ACROPOLIS_FIRE_ESCAPE_AMBIENCE_UPDATE          = 1,
+        ACROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT          = 0,
+        ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT    = 100,
+        ACROPOLIS_FIRE_ESCAPE_AMBIENCE_VIEWS23_PERCENT = 30,
+        ACROPOLIS_FIRE_ESCAPE_AMBIENCE_VIEWS45_PERCENT = 15,
+        ACROPOLIS_FIRE_ESCAPE_AMBIENCE_ATTENUATION_MAX = 127,
+        ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FADE_TICKS      = 30,
+        ACROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT        = 5,
+        ACROPOLIS_FIRE_ESCAPE_VIEW8_MUSIC_EVENT        = 7,
+        ACROPOLIS_FIRE_ESCAPE_MUSIC_REQUEST_ORDINARY   = 0,
+    };
+    s32 levelPercent;
+    s32 previousLevelPercent;
 
     switch (task->state) {
-        case 0:
-            D_acropolis_fire_escape_80183040 = 0;
+        case ACROPOLIS_FIRE_ESCAPE_AMBIENCE_INIT:
+            D_acropolis_fire_escape_80183040 = ACROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT;
             task->state                      = task->state + 1;
             return;
-        case 1:
+        case ACROPOLIS_FIRE_ESCAPE_AMBIENCE_UPDATE:
             break;
         default:
             return;
@@ -701,40 +717,41 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
 
     switch (gGameSession->location.loc.view) {
         case 8:
-            vol = 0x64;
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == 5) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 7;
+            levelPercent = ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT;
+            // Commit the music column before queuing its asynchronous loader.
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent == ACROPOLIS_FIRE_ESCAPE_ENTRY_MUSIC_EVENT) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_FIRE_ESCAPE_VIEW8_MUSIC_EVENT;
                 gStageMusicParams.fadeOutTicks                      = 1;
                 gStageMusicParams.field_2                           = 1;
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, ACROPOLIS_FIRE_ESCAPE_MUSIC_REQUEST_ORDINARY, 0);
                 gGameSession->flowFlags = 0;
             }
             break;
         case 2:
         case 3:
-            vol = 0x1E;
+            levelPercent = ACROPOLIS_FIRE_ESCAPE_AMBIENCE_VIEWS23_PERCENT;
             break;
         case 4:
         case 5:
-            vol = 0xF;
+            levelPercent = ACROPOLIS_FIRE_ESCAPE_AMBIENCE_VIEWS45_PERCENT;
             break;
         default:
-            vol = 0;
+            levelPercent = ACROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT;
             break;
     }
 
-    prev = D_acropolis_fire_escape_80183040;
-    if (vol == prev) {
+    previousLevelPercent = D_acropolis_fire_escape_80183040;
+    if (levelPercent == previousLevelPercent) {
         return;
     }
-    if (prev == 0) {
-        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
-    } else if (vol == 0) {
-        sndEvtRequestScriptStop(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0x1E);
+    if (previousLevelPercent == ACROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT) {
+        sndEvtRequestScriptStart(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT - levelPercent) * ACROPOLIS_FIRE_ESCAPE_AMBIENCE_ATTENUATION_MAX) / ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT));
+    } else if (levelPercent == ACROPOLIS_FIRE_ESCAPE_AMBIENCE_SILENT) {
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FADE_TICKS);
     } else {
-        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
+        sndEvtRequestScriptMix(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0, (s8)(((ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT - levelPercent) * ACROPOLIS_FIRE_ESCAPE_AMBIENCE_ATTENUATION_MAX) / ACROPOLIS_FIRE_ESCAPE_AMBIENCE_FULL_PERCENT));
     }
-    D_acropolis_fire_escape_80183040 = vol;
+    D_acropolis_fire_escape_80183040 = levelPercent;
 }
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
