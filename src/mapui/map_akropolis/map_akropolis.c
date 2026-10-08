@@ -549,7 +549,7 @@ static AreaObjectSpawn D_map_akropolis_8017A72C[3] = {
 };
 
 static AreaObjectSpawn D_map_akropolis_8017A75C[2] = {
-    { 0x105, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_roof_garden_80180160, { &gAcropolisRoofGardenModel09868 } } },
+    { 0x105, { { { TASK_BODY_TMD, 0x62 } }, acropolisRoofGardenPickupModelTask, { &gAcropolisRoofGardenModel09868 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -613,7 +613,7 @@ TaskDesc D_map_akropolis_8017A8AC[] = {
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_observatory_8017D950, { .value = GP_TASK_LOC_KEY(1, 10, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_promenade_8017DA4C, { .value = GP_TASK_LOC_KEY(1, 11, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_sanctuary_8017D9E8, { .value = GP_TASK_LOC_KEY(1, 12, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_roof_garden_8017DC74, { .value = GP_TASK_LOC_KEY(1, 13, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, acropolisRoofGardenRoomTask, { .value = GP_TASK_LOC_KEY(1, 13, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, acropolisBridgeRoomTask, { .value = GP_TASK_LOC_KEY(1, 14, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_fire_escape_8017FF24, { .value = GP_TASK_LOC_KEY(1, 15, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, acropolisHelicopterLandingPadRoomTask, { .value = GP_TASK_LOC_KEY(1, 16, 0) } },

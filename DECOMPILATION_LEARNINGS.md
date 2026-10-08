@@ -53908,7 +53908,7 @@ struct traffic. Restructuring the `switch` cannot fix it.
 
 ## A `switch` decision tree with a `slti` high-bound check needs a *third*, invisible case
 
-`func_acropolis_roof_garden_8017D868` is a room message handler whose entire
+`_acropolisRoofGardenHandleSoundMessage` is a room message handler whose entire
 body is one `sndEvtRequestScriptStart` call, yet the target opens with a three-test
 decision tree:
 
@@ -53991,7 +53991,7 @@ of the three-node `case 2: default: return;`, the same body scores 90%.
 
 ## Two bounds on one variable fold into a `sltiu` range test unless they are separate `if` statements
 
-`func_acropolis_roof_garden_80180160` hides an item mesh unless the room is
+`acropolisRoofGardenPickupModelTask` hides an item mesh unless the room is
 being drawn from views 5..7 and the item's 2-bit flag is not 2. The target
 tests the two bounds separately:
 
@@ -54002,8 +54002,8 @@ slti  $v0, $v1, 0x5
 bnez  $v0, .store
 ```
 
-Both of the obvious spellings — `if (view < 8 && view >= 5 && flag != 2)` and
-its inverted `if (view >= 8 || view < 5 || flag == 2)` — instead give
+Both of the obvious spellings — `if (mappedView < 8 && mappedView >= 5 && objectState != 2)` and
+its inverted `if (mappedView >= 8 || mappedView < 5 || objectState == 2)` — instead give
 
 ```
 addiu $v0, $v0, -0x5
@@ -54016,15 +54016,15 @@ single expression, so writing the three hidden cases as an `else if` chain
 keeps the two `slti`s:
 
 ```c
-if (view >= 8) {
-    tmd->field_C = 0x80;
-} else if (view < 5) {
-    tmd->field_C = 0x80;
-} else if (flag == 2) {
-    tmd->field_C = 0x80;
+if (mappedView >= 8) {
+    tmd->flags = 0x80;
+} else if (mappedView < 5) {
+    tmd->flags = 0x80;
+} else if (objectState == 2) {
+    tmd->flags = 0x80;
 } else {
-    tmd->field_C = 8;
-    tmd->field_E = 0;
+    tmd->flags = 8;
+    tmd->otOffset = 0;
 }
 ```
 
@@ -54032,7 +54032,7 @@ The duplicated arms are not a problem: cross-jumping merges the three `sh
 $v0, 0xC($s0)` tails into one and leaves the `li 0x80` duplicated, one copy of
 it in a branch delay slot — which is exactly the asymmetry the target shows
 (`.set80` loads the constant and falls through to the shared store, while the
-`view < 5` branch carries its own `li` in the delay slot). So a range check
+`mappedView < 5` branch carries its own `li` in the delay slot). So a range check
 written as *two* `slti`s is direct evidence that the source used separate
 statements rather than one `&&`/`||` condition.
 
@@ -54065,7 +54065,7 @@ lets the delay-slot pass fold the one-instruction arm into the first branch and
 drop the jump entirely:
 
 ```c
-if (state == 5) { vol = 0x1E; } else if (state == 7) { vol = 0x64; } else { vol = 0; }
+if (view == 5) { volumePercent = 0x1E; } else if (view == 7) { volumePercent = 0x64; } else { volumePercent = 0; }
 ```
 
 ```
@@ -54078,16 +54078,16 @@ li   $s0, 0x64
 .Ljoin:
 ```
 
-Assigning the default first and nesting the second test keeps `vol = 0x1E` as
+Assigning the default first and nesting the second test keeps `volumePercent = 0x1E` as
 its own basic block at the bottom, so the middle arm needs a real `j` to skip
 over it:
 
 ```c
-if (state != 5) {
-    vol = 0;
-    if (state == 7) { vol = 0x64; }
+if (view != 5) {
+    volumePercent = 0;
+    if (view == 7) { volumePercent = 0x64; }
 } else {
-    vol = 0x1E;
+    volumePercent = 0x1E;
 }
 ```
 
@@ -54107,8 +54107,8 @@ So an extra `j` plus a trailing single-`li` block (penalties `branch`/`insert`,
 not `regs`) is the signature of the second shape: the tested value's *unequal*
 side carries the body, and the default is a plain assignment ahead of the
 nested `if`. Both shapes are one `%` apart, so this is worth trying before
-anything structural. Inverting the outer test the other way (`if (state == 5)
-{ vol = 0x1E; } else { vol = 0; if (state == 7) ... }`) does not work: GCC emits
+anything structural. Inverting the outer test the other way (`if (view == 5)
+{ volumePercent = 0x1E; } else { volumePercent = 0; if (view == 7) ... }`) does not work: GCC emits
 the *then* arm first, which puts the `li $s0, 0x1E` block above the compare
 against 7 rather than below it.
 
@@ -54120,14 +54120,14 @@ pseudo and reaches the rest with `addiu`. *Which* address becomes that base is
 decided by the first `&sym[k]` expression the pass sees, and that is visible in
 the object dump.
 
-`func_acropolis_roof_garden_8017DCDC` spawns one effect from
+`acropolisRoofGardenAmbientEffectsTask` spawns one effect from
 `D_acropolis_roof_garden_80184BF8[2]` and then loops over `[3]`..`[9]`. Writing
 both references against the symbol,
 
 ```c
 effectSpawn(0x6008A, coord, 0x4000102, &D_acropolis_roof_garden_80184BF8[2]);
-for (i = 3; i < 10; i++) {
-    effectSpawn(0x6008A, coord, i + 0x200, &D_acropolis_roof_garden_80184BF8[i]);
+for (lightIndex = 3; lightIndex < 10; lightIndex++) {
+    effectSpawn(0x6008A, coord, lightIndex + 0x200, &D_acropolis_roof_garden_80184BF8[lightIndex]);
 }
 ```
 
@@ -54157,15 +54157,15 @@ To get that, give the base its own local and assign it the *plain* symbol right
 before the first use, so `&sym` is what CSE sees first:
 
 ```c
-vec = D_acropolis_roof_garden_80184BF8;
-effectSpawn(0x6008A, coord, 0x4000102, &vec[2]);
-for (i = 3; i < 10; i++) {
-    effectSpawn(0x6008A, coord, i + 0x200, &vec[i]);
+lightOffsets = D_acropolis_roof_garden_80184BF8;
+effectSpawn(0x6008A, coord, 0x4000102, &lightOffsets[2]);
+for (lightIndex = 3; lightIndex < 10; lightIndex++) {
+    effectSpawn(0x6008A, coord, lightIndex + 0x200, &lightOffsets[lightIndex]);
 }
 ```
 
 Placement of that assignment matters as much as its existence. Hoisting it
-above an *earlier* loop that also walks the array keeps `vec` live across the
+above an *earlier* loop that also walks the array keeps `lightOffsets` live across the
 loop's calls, which costs a whole extra callee-saved register (`$s6` appears,
 the frame grows 8 bytes and every `sw`/`lw` slot shifts) — a 91% score, worse
 than the 97% the plain-symbol spelling scored. Assign it between the loops,
@@ -54178,7 +54178,7 @@ Two `for` loops in sequence, each with its own counter and its own
 strength-reduced pointer, produce four pseudos, and global allocation orders
 them by refs-per-live-length. Those ratios come out nearly tied between a
 counter and a pointer (`9/14 = 0.643` against `7/11 = 0.636` in
-`func_acropolis_roof_garden_8017DCDC`), so the two loops can end up coloring
+`acropolisRoofGardenAmbientEffectsTask`), so the two loops can end up coloring
 their counter/pointer pairs *opposite* ways round: the second loop matched with
 counter in `$s1` and pointer in `$s0` while the first loop got the reverse, for
 a residual `regs=9` and nothing else.
@@ -54836,7 +54836,7 @@ and never reads those bytes or takes the address of anything on the stack. m2c
 drops them entirely. They are a leftover `GameLocationKey key; key.stage = 1;
 key.area = 4;` — the sibling rooms follow it with
 `areaSetPlacementVariant(&key, …)` (`_acropolisBridgeResolveRoomTransition`,
-`func_acropolis_roof_garden_8017DBEC`), this room does not. GCC 2.8.1 does not
+`_acropolisRoofGardenTickRoom`), this room does not. GCC 2.8.1 does not
 dead-store-eliminate stores to a stack *aggregate*, so writing the same dead
 struct back reproduces them exactly; the offsets in the asm give the field
 offsets, and the local's size sets the frame padding.
@@ -84382,7 +84382,7 @@ sinks the pair back to the tail. A wrong register can therefore be a scheduling
 consequence rather than an allocation one: before reaching for a pin, compile a
 matched function with the same tail shape alone under the scratch flags and read
 its `.lreg` — `_acropolisSecurityRoomRegisterRoomMessages` and
-`func_acropolis_roof_garden_8017D5D4` both have this tail and both show `mem/s`
+`_acropolisRoofGardenAmbienceTask` both have this tail and both show `mem/s`
 on the state access. Inputs: `base_2.i`
 `ac93762280d36b4b90feac3c58c9539259752988e10bca28f4740e15ec38f830` (99.83%),
 `base_5.i` `379a062c792785396fa125202ac9205a248c135abaa6fac31baacd5d7b9a2237`
@@ -87352,7 +87352,7 @@ Nothing merges the two calls early either — every `jump_optimize` call before
 where the store-flag block is already disabled by `! reload_completed`. So the
 merge happens late and lands exactly on the ROM's `beqz` + delay-slot constant.
 The idiom is everywhere in this project (`Gp_MapTaskState2`,
-`_acropolisSecurityRoomRegisterRoomMessages`, `func_acropolis_roof_garden_8017D5D4`),
+`_acropolisSecurityRoomRegisterRoomMessages`, `_acropolisRoofGardenAmbienceTask`),
 so a branchy 0/1 argument is a signal to look for the two-call form rather than
 to fight the scheduler. `func_mine_cavern_8017DDFC`. Inputs: `base_1.i`
 `d071dc9b40e5ce0f52dfd28e943d210037645ba7843fc647d81c70fc0493f526` (else-form,
@@ -119753,7 +119753,7 @@ either way; what follows the source is the order the bodies are emitted in, and
 therefore which one becomes the fall-through into the break target. Read the
 target's leaf order off the object - two leaves ending in `j <merge>` plus one
 that runs into it - and write the cases to match. The same rule explains the
-`if/else` form: in the matched `func_acropolis_roof_garden_8017D5D4` the `else`
+`if/else` form: in the matched `_acropolisRoofGardenAmbienceTask` the `else`
 arm is last in the source and is the arm that falls through.
 
 **Two more things this function needed**, both worth checking on any small

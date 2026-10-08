@@ -114,11 +114,11 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
             setRGB3((quad), 0, 0, 0)))
 
 static void func_acropolis_roof_garden_8017DB74(Task* arg0);
-static void func_acropolis_roof_garden_8017DBEC(Task* task);
+static void _acropolisRoofGardenTickRoom(Task* task);
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_roof_garden_8017D5C4 = {
-    { func_acropolis_roof_garden_8017DB74, func_acropolis_roof_garden_8017DBEC, taskKill },
+    { func_acropolis_roof_garden_8017DB74, _acropolisRoofGardenTickRoom, taskKill },
 };
 
 extern WorldCollisionGrid     D_acropolis_roof_garden_801854A4[1];
@@ -151,14 +151,14 @@ static AnimationSet _gAcropolisRoofGardenAnimation04164;
 static AnimationSet _gAcropolisRoofGardenAnimation060FC;
 static AnimationSet _gAcropolisRoofGardenAnimation065F4;
 
-s32        func_acropolis_roof_garden_8017D71C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32 _acropolisRoofGardenRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_acropolis_roof_garden_8017D7A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_acropolis_roof_garden_8017D868(Task*, s32, s32, s32);
-s32        func_acropolis_roof_garden_8017D8AC(Task*, s32, s32, s32);
-void       func_acropolis_roof_garden_8017D5D4(Task*);
-void       func_acropolis_roof_garden_8017D970(Task*);
-void       func_acropolis_roof_garden_8017DA48(Task*);
+static s32  _acropolisRoofGardenResolveRoomTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _acropolisRoofGardenRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _acropolisRoofGardenHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32  _acropolisRoofGardenHandleSoundMessage(Task* task, s32 messageId, s32 soundCue, s32 unusedArg);
+s32         func_acropolis_roof_garden_8017D8AC(Task*, s32, s32, s32);
+static void _acropolisRoofGardenAmbienceTask(Task* task);
+static void _acropolisRoofGardenCutsceneOpeningSoundTask(Task* task);
+static void _acropolisRoofGardenCutsceneClosingSoundTask(Task* task);
 
 static AnimationPackedPose _gAcropolisRoofGardenAnimation04164Bank1[38] = {
 #include "assets/acropolis_roof_garden_animation_04164_bank1.inc"
@@ -229,20 +229,20 @@ static AnimationSet _gAcropolisRoofGardenAnimation065F4 = {
 enum { ACROPOLIS_ROOF_GARDEN_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_acropolis_roof_garden_80183BDC[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_roof_garden_8017D71C },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_roof_garden_8017D7A0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisRoofGardenResolveRoomTransition },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisRoofGardenHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, func_acropolis_roof_garden_8017D8AC },
     { ACROPOLIS_ROOF_GARDEN_MESSAGE_USE_KEY_ITEM, _acropolisRoofGardenRejectKeyItemUse },
-    { ROOM_MESSAGE_SOUND, func_acropolis_roof_garden_8017D868 },
+    { ROOM_MESSAGE_SOUND, _acropolisRoofGardenHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 Task* D_acropolis_roof_garden_80183C0C = NULL;
 
 TaskDesc D_acropolis_roof_garden_80183C10[4] = {
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_roof_garden_8017D5D4, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_roof_garden_8017D970, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_roof_garden_8017DA48, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisRoofGardenAmbienceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisRoofGardenCutsceneOpeningSoundTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisRoofGardenCutsceneClosingSoundTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -1110,68 +1110,84 @@ s32 D_acropolis_roof_garden_80186E94 = 0;
 
 SVECTOR ActorContact_ScratchPosition;
 
-/// Keeps the roof garden's ambience (sound id 0x510D0005) in step with the
-/// session's weather/time state: state 5 plays it at 0x1E, state 7 at full
-/// 0x64 and anything else silences it. `D_acropolis_roof_garden_80186E94`
-/// latches the volume currently playing, so the task only talks to the sound
-/// driver on a change - starting the loop, fading it out, or ramping it to the
-/// new level. The driver wants attenuation rather than volume, hence the
-/// `(0x64 - vol) * 127 / 100` conversion.
-void func_acropolis_roof_garden_8017D5D4(Task* task)
+/// Adjusts the roof-garden ambience to the current camera view.
+///
+/// The first tick resets the requested-volume latch. Subsequent ticks request
+/// 30 percent in view 5, 100 percent in view 7 and silence elsewhere, sending
+/// sound commands only when that percentage changes. Leaving an audible view
+/// requests a 30-update fade. The latch tracks requests, not driver completion.
+static void _acropolisRoofGardenAmbienceTask(Task* task)
 {
-    s32 vol;
-    u8  state;
-    s32 prev;
+    enum {
+        ACROPOLIS_ROOF_GARDEN_AMBIENCE_INITIALIZE      = 0,
+        ACROPOLIS_ROOF_GARDEN_AMBIENCE_UPDATE          = 1,
+        ACROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT          = 0,
+        ACROPOLIS_ROOF_GARDEN_AMBIENCE_VIEW5_PERCENT   = 30,
+        ACROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT    = 100,
+        ACROPOLIS_ROOF_GARDEN_AMBIENCE_MAX_ATTENUATION = 127,
+        ACROPOLIS_ROOF_GARDEN_AMBIENCE_FADE_UPDATES    = 30,
+    };
+    s32 volumePercent;
+    u8  view;
+    s32 previousPercent;
 
     switch (task->state) {
-        case 0:
-            D_acropolis_roof_garden_80186E94 = 0;
+        case ACROPOLIS_ROOF_GARDEN_AMBIENCE_INITIALIZE:
+            D_acropolis_roof_garden_80186E94 = ACROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT;
             task->state                      = task->state + 1;
             return;
-        case 1:
+        case ACROPOLIS_ROOF_GARDEN_AMBIENCE_UPDATE:
             break;
         default:
             return;
     }
 
-    state = gGameSession->location.loc.view;
-    if (state != 5) {
-        vol = 0;
-        if (state == 7) {
-            vol = 0x64;
+    view = gGameSession->location.loc.view;
+    if (view != 5) {
+        volumePercent = ACROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT;
+        if (view == 7) {
+            volumePercent = ACROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT;
         }
     } else {
-        vol = 0x1E;
+        volumePercent = ACROPOLIS_ROOF_GARDEN_AMBIENCE_VIEW5_PERCENT;
     }
 
-    prev = D_acropolis_roof_garden_80186E94;
-    if (vol == prev) {
+    previousPercent = D_acropolis_roof_garden_80186E94;
+    if (volumePercent == previousPercent) {
         return;
     }
-    if (prev == 0) {
-        sndEvtRequestScriptStart(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
-    } else if (vol == 0) {
-        sndEvtRequestScriptStop(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0x1E);
+    // Convert the requested percentage to the driver's signed attenuation byte.
+    if (previousPercent == ACROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT) {
+        sndEvtRequestScriptStart(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((ACROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT - volumePercent) * ACROPOLIS_ROOF_GARDEN_AMBIENCE_MAX_ATTENUATION) / ACROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT));
+    } else if (volumePercent == ACROPOLIS_ROOF_GARDEN_AMBIENCE_SILENT) {
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, ACROPOLIS_ROOF_GARDEN_AMBIENCE_FADE_UPDATES);
     } else {
-        sndEvtRequestScriptMix(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((0x64 - vol) * 127) / 100));
+        sndEvtRequestScriptMix(SOUND_ACROPOLIS_ROOF_GARDEN_AMBIENCE, 0, (s8)(((ACROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT - volumePercent) * ACROPOLIS_ROOF_GARDEN_AMBIENCE_MAX_ATTENUATION) / ACROPOLIS_ROOF_GARDEN_AMBIENCE_FULL_PERCENT));
     }
-    D_acropolis_roof_garden_80186E94 = vol;
+    D_acropolis_roof_garden_80186E94 = volumePercent;
 }
 
-/// Message gate for the roof garden's hotspot: copies the incoming record to
-/// the outgoing one, then runs the message's one-shot side effect.
+/// Allows a room transition and suppresses the untriggered sanctuary event on departure.
 ///
-/// Message 0xC, when not a "report only" query (`queryOnly == 0`) and its nibble
-/// is still clear, advances nibble 7 to 2 and stores saved object state 2 at slot 0x13.
-/// The copy itself is unedited, so the answer is always "allowed".
-s32 func_acropolis_roof_garden_8017D71C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Borrows a complete request and writable reply, which may alias, through
+/// synchronous dispatch. The reply preserves all eight bytes. Executing a
+/// sanctuary-bound transition with a clear event latch sets it to 2 and hides
+/// saved object 0x13; queries change neither. Always returns 1 (allowed).
+static s32 _acropolisRoofGardenResolveRoomTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    if (in->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == 0) {
-        gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, 2);
-        areaSetCurrentObjectState(0x13, 2);
+    enum {
+        ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_UNSET      = 0,
+        ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_SUPPRESSED = 2,
+        ACROPOLIS_ROOF_GARDEN_PICKUP_OBJECT_ID           = 0x13,
+        ACROPOLIS_ROOF_GARDEN_PICKUP_HIDDEN              = 2,
+        ACROPOLIS_ROOF_GARDEN_TRANSITION_ALLOWED         = 1,
+    };
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_SANCTUARY && request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH) == ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_UNSET) {
+        gameFlagSetNibble(GAME_FLAG_SANCTUARY_EVENT_LATCH, ACROPOLIS_ROOF_GARDEN_SANCTUARY_EVENT_SUPPRESSED);
+        areaSetCurrentObjectState(ACROPOLIS_ROOF_GARDEN_PICKUP_OBJECT_ID, ACROPOLIS_ROOF_GARDEN_PICKUP_HIDDEN);
     }
-    return 1;
+    return ACROPOLIS_ROOF_GARDEN_TRANSITION_ALLOWED;
 }
 
 /// Refuses every key-item use request in the roof garden.
@@ -1185,29 +1201,49 @@ static s32 _acropolisRoofGardenRejectKeyItemUse(Task* task, s32 messageId, s32 i
     return ACROPOLIS_ROOF_GARDEN_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_acropolis_roof_garden_8017D7A0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Arms and starts the Maggot/Caterpillar entrance at the room's action triggers.
+///
+/// Borrows a four-byte `DirectionActionRequest` through synchronous dispatch;
+/// only `actionId` is read and no pointer is retained. In variants 1/7, action
+/// 1 arms clear progress and action 2 starts the script only while armed.
+/// Other actions do nothing. The zero second word is ignored; returns 1.
+static s32 _acropolisRoofGardenHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    switch (in->warp) {
-        case 1:
-            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == 0)) {
-                gameFlagSetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, 1);
+    enum {
+        ACROPOLIS_ROOF_GARDEN_ACTION_ARM_ENTRANCE       = 1,
+        ACROPOLIS_ROOF_GARDEN_ACTION_START_ENTRANCE     = 2,
+        ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_CLEAR   = 0,
+        ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED   = 1,
+        ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_STARTED = 2,
+        ACROPOLIS_ROOF_GARDEN_ACTION_REPLY              = 1,
+    };
+    switch (request->actionId) {
+        case ACROPOLIS_ROOF_GARDEN_ACTION_ARM_ENTRANCE:
+            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_CLEAR)) {
+                gameFlagSetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED);
             }
             break;
-        case 2:
-            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == 1)) {
+        case ACROPOLIS_ROOF_GARDEN_ACTION_START_ENTRANCE:
+            if (((gGameSession->location.loc.variant == 1) || (gGameSession->location.loc.variant == 7)) && (gameFlagGetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS) == ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_ARMED)) {
                 evsStartScript(D_acropolis_roof_garden_80184B08, EVENT_SCRIPT_HUD_KEEP);
-                gameFlagSetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, 2);
+                gameFlagSetNibble(GAME_FLAG_ROOF_GARDEN_PROGRESS, ACROPOLIS_ROOF_GARDEN_ENTRANCE_PROGRESS_STARTED);
             }
             break;
     }
-    return 1;
+    return ACROPOLIS_ROOF_GARDEN_ACTION_REPLY;
 }
 
-s32 func_acropolis_roof_garden_8017D868(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Plays roof-garden sound entry 3 for room sound cue 3; other cues do nothing.
+///
+/// Integer payloads are consumed synchronously; the second is ignored.
+/// Always returns zero. The empty switch arms preserve the compiled dispatch
+/// tree; the last arm's original cue value is unproven.
+static s32 _acropolisRoofGardenHandleSoundMessage(Task* task, s32 messageId, s32 soundCue, s32 unusedArg)
 {
-    switch (arg2) {
-        case 3:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 3), 0, 0);
+    enum { ACROPOLIS_ROOF_GARDEN_SOUND_CUE_ENTRY3 = 3 };
+    switch (soundCue) {
+        case ACROPOLIS_ROOF_GARDEN_SOUND_CUE_ENTRY3:
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, ACROPOLIS_ROOF_GARDEN_SOUND_CUE_ENTRY3), 0, 0);
             break;
         case 5:
             break;
@@ -1238,49 +1274,64 @@ s32 func_acropolis_roof_garden_8017D8AC(Task* arg0, s32 arg1, s32 arg2, s32 arg3
     return 0;
 }
 
-void func_acropolis_roof_garden_8017D970(Task* arg0)
+/// Plays the arrival cutscene's opening sound sequence and retires its task.
+///
+/// `state` counts callback ticks from zero. Entries 6..10 play at ticks
+/// 20, 39, 57, 99 and 114. The last cue clears the script's task handle before
+/// teardown; the final counter increment is retained after that call.
+static void _acropolisRoofGardenCutsceneOpeningSoundTask(Task* task)
 {
-    s32 temp_v1;
-
-    temp_v1 = arg0->state;
-    switch (temp_v1) { /* irregular */
-        case 0x14:
+    enum {
+        ACROPOLIS_ROOF_GARDEN_OPENING_CUE6_TICK  = 20,
+        ACROPOLIS_ROOF_GARDEN_OPENING_CUE7_TICK  = 39,
+        ACROPOLIS_ROOF_GARDEN_OPENING_CUE8_TICK  = 57,
+        ACROPOLIS_ROOF_GARDEN_OPENING_CUE9_TICK  = 99,
+        ACROPOLIS_ROOF_GARDEN_OPENING_FINAL_TICK = 114,
+    };
+    switch (task->state) {
+        case ACROPOLIS_ROOF_GARDEN_OPENING_CUE6_TICK:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 6), 0, 0);
             break;
-        case 0x27:
+        case ACROPOLIS_ROOF_GARDEN_OPENING_CUE7_TICK:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 7), 0, 0);
             break;
-        case 0x39:
+        case ACROPOLIS_ROOF_GARDEN_OPENING_CUE8_TICK:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 8), 0, 0);
             break;
-        case 0x63:
+        case ACROPOLIS_ROOF_GARDEN_OPENING_CUE9_TICK:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 9), 0, 0);
             break;
-        case 0x72:
+        case ACROPOLIS_ROOF_GARDEN_OPENING_FINAL_TICK:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0A), 0, 0);
             D_acropolis_roof_garden_80183C0C = NULL;
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
-    arg0->state += 1;
+    task->state += 1;
 }
 
-void func_acropolis_roof_garden_8017DA48(Task* arg0)
+/// Plays the arrival cutscene's closing sound sequence and retires its task.
+///
+/// `state` counts callback ticks from zero. Entries 15/16 play at ticks 76/100.
+/// The final cue clears the script's task handle before teardown, retaining
+/// the counter increment after that call.
+static void _acropolisRoofGardenCutsceneClosingSoundTask(Task* task)
 {
-    s32 temp_v1;
-
-    temp_v1 = arg0->state;
-    switch (temp_v1) { /* irregular */
-        case 0x4C:
+    enum {
+        ACROPOLIS_ROOF_GARDEN_CLOSING_CUE15_TICK = 76,
+        ACROPOLIS_ROOF_GARDEN_CLOSING_FINAL_TICK = 100,
+    };
+    switch (task->state) {
+        case ACROPOLIS_ROOF_GARDEN_CLOSING_CUE15_TICK:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
             break;
-        case 0x64:
+        case ACROPOLIS_ROOF_GARDEN_CLOSING_FINAL_TICK:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
             D_acropolis_roof_garden_80183C0C = NULL;
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
-    arg0->state += 1;
+    task->state += 1;
 }
 
 void func_acropolis_roof_garden_8017DAD4(s32 arg0)
@@ -1312,28 +1363,38 @@ static void func_acropolis_roof_garden_8017DB74(Task* arg0)
     arg0->state += 1;
 }
 
-static void func_acropolis_roof_garden_8017DBEC(Task* task)
+/// Starts the skippable arrival scene once per overlay load when arrival warp is 2.
+///
+/// Marks the sanctuary blocker cleared and immediately selects its placement
+/// variant 3, discarding saved poses. The event latch is set before starting
+/// the scene; only stage and area of the temporary location key are consumed.
+static void _acropolisRoofGardenTickRoom(Task* task)
 {
-    GameLocationKey key;
+    enum {
+        ACROPOLIS_ROOF_GARDEN_CUTSCENE_WARP             = 2,
+        ACROPOLIS_ROOF_GARDEN_CUTSCENE_NOT_STARTED      = 0,
+        ACROPOLIS_ROOF_GARDEN_CUTSCENE_STARTED          = 1,
+        ACROPOLIS_ROOF_GARDEN_SANCTUARY_CLEARED_VARIANT = 3,
+        ACROPOLIS_ROOF_GARDEN_SANCTUARY_BLOCKER_CLEARED = 1,
+    };
+    GameLocationKey sanctuary;
 
-    if ((gGameSession->location.loc.warp == 2) && (D_acropolis_roof_garden_8018432C == 0)) {
-        D_acropolis_roof_garden_8018432C = 1;
+    if ((gGameSession->location.loc.warp == ACROPOLIS_ROOF_GARDEN_CUTSCENE_WARP) && (D_acropolis_roof_garden_8018432C == ACROPOLIS_ROOF_GARDEN_CUTSCENE_NOT_STARTED)) {
+        D_acropolis_roof_garden_8018432C = ACROPOLIS_ROOF_GARDEN_CUTSCENE_STARTED;
         evsStartScriptWithSkip(D_acropolis_roof_garden_80183D74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_roof_garden_80184194);
-        gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, 1);
-        key.stage = GAME_STAGE_ACROPOLIS;
-        key.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
-        areaSetPlacementVariant(&key, 3, AREA_VARIANT_RESET_ALWAYS);
+        gameFlagSetNibble(GAME_FLAG_SANCTUARY_BLOCKER_CLEARED, ACROPOLIS_ROOF_GARDEN_SANCTUARY_BLOCKER_CLEARED);
+        sanctuary.stage = GAME_STAGE_ACROPOLIS;
+        sanctuary.area  = GAME_AREA_ACROPOLIS_SANCTUARY;
+        areaSetPlacementVariant(&sanctuary, ACROPOLIS_ROOF_GARDEN_SANCTUARY_CLEARED_VARIANT, AREA_VARIANT_RESET_ALWAYS);
     }
 }
 
-/// Runs the task's current state through a stack copy of the room's
-/// three-entry state table.
-void func_acropolis_roof_garden_8017DC74(Task* task)
+void acropolisRoofGardenRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_acropolis_roof_garden_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_acropolis_roof_garden_8017D5C4;
+    states.funcs[task->state](task);
 }
 
 /// Releases the Maggot/Caterpillar scripted entrance for the roof garden encounter.
@@ -1344,43 +1405,65 @@ static void _acropolisRoofGardenReleaseMaggotCaterpillarEntrance(void)
     gSceneCombatState.maggotCaterpillarEntranceReady = ACROPOLIS_ROOF_GARDEN_ENTRANCE_RELEASED;
 }
 
-/// Roof-garden ambient effect task. On its first frame it fires one effect per
-/// entry of `D_acropolis_roof_garden_80184BF8` - two with a 0x02000000 flavour,
-/// one flagged 0x04000102, then seven more - and every frame after that it adds
-/// the two view-dependent effects: one while the current view is 5 or 6 (the
-/// `0x30 >> view - 1` bit test) and one while it is 7.
-void func_acropolis_roof_garden_8017DCDC(Task* task)
+/// Spawns a red flare at a fixed offset in the emitter coordinate's space.
+///
+/// Borrows the emitter's writable work and coordinate through the spawn.
+/// Position is copied during spawning; the flare never reads its retained offset pointer.
+/// `options` uses the packed pulse/radius/shape format of the flare task.
+static inline void _acropolisRoofGardenEmitFlare(EffectWork* work, GfxCoord* coord, s32 options)
 {
+    work->move.vx = -4770;
+    work->move.vy = -220;
+    work->move.vz = -3865;
+    effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE, coord, options, &work->move);
+}
+
+void acropolisRoofGardenAmbientEffectsTask(Task* task)
+{
+    enum {
+        ACROPOLIS_ROOF_GARDEN_EFFECT_INITIALIZE   = 0,
+        ACROPOLIS_ROOF_GARDEN_GLOW_SCALE_SHIFT    = 16,
+        ACROPOLIS_ROOF_GARDEN_GLOW_CELL_SHIFT     = 8,
+        ACROPOLIS_ROOF_GARDEN_LARGE_GLOW_COUNT    = 2,
+        ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_INDEX    = 2,
+        ACROPOLIS_ROOF_GARDEN_SMALL_GLOW_FIRST    = 3,
+        ACROPOLIS_ROOF_GARDEN_LARGE_GLOW_SCALE    = 512,
+        ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_SCALE    = 1024,
+        ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_CELL     = 1,
+        ACROPOLIS_ROOF_GARDEN_SMALL_GLOW_CELL     = 2,
+        ACROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_VIEWS = (1 << (5 - 1)) | (1 << (6 - 1)),
+        ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_STEPS   = 14,
+        ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT  = 8,
+        ACROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_SCALE = 6,
+        ACROPOLIS_ROOF_GARDEN_FLARE_DISC_SCALE    = 3,
+        ACROPOLIS_ROOF_GARDEN_FLARE_DISC_SHAPE    = 0x80000000,
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    SVECTOR*    vec;
-    s32         i;
+    SVECTOR*    lightOffsets;
+    s32         lightIndex;
 
     work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (task->state == 0) {
-        for (i = 0; i < 2; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, i + 0x2000000, &D_acropolis_roof_garden_80184BF8[i]);
+    if (task->state == ACROPOLIS_ROOF_GARDEN_EFFECT_INITIALIZE) {
+        // Place ten persistent glows, keeping one index across both table walks.
+        for (lightIndex = 0; lightIndex < ACROPOLIS_ROOF_GARDEN_LARGE_GLOW_COUNT; lightIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, lightIndex + (ACROPOLIS_ROOF_GARDEN_LARGE_GLOW_SCALE << ACROPOLIS_ROOF_GARDEN_GLOW_SCALE_SHIFT), &D_acropolis_roof_garden_80184BF8[lightIndex]);
         }
-        vec = D_acropolis_roof_garden_80184BF8;
-        effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, 0x4000102, &vec[2]);
-        for (i = 3; i < 10; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, i + 0x200, &vec[i]);
+        lightOffsets = D_acropolis_roof_garden_80184BF8;
+        effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, (ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_SCALE << ACROPOLIS_ROOF_GARDEN_GLOW_SCALE_SHIFT) | (ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_CELL << ACROPOLIS_ROOF_GARDEN_GLOW_CELL_SHIFT) | ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_INDEX, &lightOffsets[ACROPOLIS_ROOF_GARDEN_UPPER_GLOW_INDEX]);
+        for (lightIndex = ACROPOLIS_ROOF_GARDEN_SMALL_GLOW_FIRST; lightIndex < ARRAY_SIZE(D_acropolis_roof_garden_80184BF8); lightIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_LIGHT_GLOW, coord, lightIndex + (ACROPOLIS_ROOF_GARDEN_SMALL_GLOW_CELL << ACROPOLIS_ROOF_GARDEN_GLOW_CELL_SHIFT), &lightOffsets[lightIndex]);
         }
         task->state = task->state + 1;
     }
+    // Emit one-frame flares only while room effects accept new spawns.
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        if ((0x30 >> (gGameSession->location.loc.view - 1)) & 1) {
-            work->move.vx = -0x12A2;
-            work->move.vy = -0xDC;
-            work->move.vz = -0xF19;
-            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE, coord, 0x60E, &work->move);
+        if ((ACROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_VIEWS >> (gGameSession->location.loc.view - 1)) & 1) {
+            _acropolisRoofGardenEmitFlare(work, coord, (ACROPOLIS_ROOF_GARDEN_FLARE_DIAMOND_SCALE << ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) | ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_STEPS);
         }
         if (gGameSession->location.loc.view == 7) {
-            work->move.vx = -0x12A2;
-            work->move.vy = -0xDC;
-            work->move.vz = -0xF19;
-            effectSpawn(EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE, coord, 0x8000030E, &work->move);
+            _acropolisRoofGardenEmitFlare(work, coord, ACROPOLIS_ROOF_GARDEN_FLARE_DISC_SHAPE | (ACROPOLIS_ROOF_GARDEN_FLARE_DISC_SCALE << ACROPOLIS_ROOF_GARDEN_FLARE_RADIUS_SHIFT) | ACROPOLIS_ROOF_GARDEN_FLARE_PULSE_STEPS);
         }
     }
 }
@@ -1700,26 +1783,29 @@ void acropolisRoofGardenLeafFallTask(Task* task)
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-/// Item-pickup model task step: the item's mesh is only visible from views 5
-/// through 7, and stays hidden once the item's 2-bit flag reads 2 (already
-/// taken). The three hidden cases are written as separate tests so the two view
-/// comparisons are not folded into one unsigned range check.
-void func_acropolis_roof_garden_80180160(Task* task)
+void acropolisRoofGardenPickupModelTask(Task* task)
 {
+    enum {
+        ACROPOLIS_ROOF_GARDEN_PICKUP_FIRST_VIEW = 5,
+        ACROPOLIS_ROOF_GARDEN_PICKUP_VIEW_LIMIT = 8,
+        ACROPOLIS_ROOF_GARDEN_PICKUP_HIDDEN     = 2,
+    };
     Enemy*     enemy;
     TmdObject* tmd;
-    s32        flag;
-    s32        view;
+    s32        objectState;
+    s32        mappedView;
 
     enemy = task->spawnArg2.pointer;
     tmd   = task->extra.tmd;
-    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
-    view  = viewGetMappedIndex();
-    if (view >= 8) {
+    // Only the low byte is the saved object ID; mapped views can differ from logical views.
+    objectState = areaGetCurrentObjectState((u8)enemy->placeKey);
+    mappedView  = viewGetMappedIndex();
+    // Separate view tests preserve the two comparisons in the compiled draw gate.
+    if (mappedView >= ACROPOLIS_ROOF_GARDEN_PICKUP_VIEW_LIMIT) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else if (view < 5) {
+    } else if (mappedView < ACROPOLIS_ROOF_GARDEN_PICKUP_FIRST_VIEW) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    } else if (flag == 2) {
+    } else if (objectState == ACROPOLIS_ROOF_GARDEN_PICKUP_HIDDEN) {
         tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
         tmd->flags    = TMD_OBJECT_FLAGGED_PASS;

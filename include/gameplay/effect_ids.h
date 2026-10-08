@@ -423,7 +423,7 @@ enum {
     /// toward its jet anchor; spawned per jet by the patio task.
     EFFECT_ACROPOLIS_PATIO_FOUNTAIN_MIST = EFFECT_ID(EFFECT_TASK_BANK, 0x08F),
     /// Pulsating Gouraud flare with optional rays on the Akropolis roof garden, spawned
-    /// by the room task (func_acropolis_roof_garden_8017DCDC) for particular camera
+    /// by the room task (acropolisRoofGardenAmbientEffectsTask) for particular camera
     /// views.
     EFFECT_ACROPOLIS_ROOF_GARDEN_FLARE = EFFECT_ID(EFFECT_TASK_BANK, 0x090),
     /// Unidentified. effectThrownModelTask instance of the small procedural model D_801124B8

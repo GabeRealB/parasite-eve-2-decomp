@@ -115,7 +115,7 @@ D_acropolis_roof_garden_80183C0C = 0x80183C0C; // size:0x4 defined:True
 D_acropolis_roof_garden_80183C10 = 0x80183C10; // size:0x30 defined:True
 D_acropolis_roof_garden_80183C40 = 0x80183C40; // size:0x4 defined:True
 
-func_acropolis_roof_garden_8017DCDC = 0x8017DCDC; // type:func
+acropolisRoofGardenAmbientEffectsTask = 0x8017DCDC; // type:func
 
 acropolisRoofGardenLightGlowTask = 0x8017DE90; // type:func
 
@@ -127,3 +127,12 @@ _actorContactApplyGridPushback = 0x8017F870; // type:func
 ActorContact_Push = 0x8017FA14; // type:func
 _acropolisRoofGardenRejectKeyItemUse = 0x8017d798; // type:func
 _acropolisRoofGardenReleaseMaggotCaterpillarEntrance = 0x8017dccc; // type:func
+_acropolisRoofGardenAmbienceTask = 0x8017d5d4; // type:func
+_acropolisRoofGardenResolveRoomTransition = 0x8017d71c; // type:func
+_acropolisRoofGardenHandleRoomAction = 0x8017d7a0; // type:func
+_acropolisRoofGardenHandleSoundMessage = 0x8017d868; // type:func
+_acropolisRoofGardenCutsceneOpeningSoundTask = 0x8017d970; // type:func
+_acropolisRoofGardenCutsceneClosingSoundTask = 0x8017da48; // type:func
+_acropolisRoofGardenTickRoom = 0x8017dbec; // type:func
+acropolisRoofGardenRoomTask = 0x8017dc74; // type:func
+acropolisRoofGardenPickupModelTask = 0x80180160; // type:func

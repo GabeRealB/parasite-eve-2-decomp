@@ -33,7 +33,17 @@ extern ViewCamera D_acropolis_roof_garden_80186BF4[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_roof_garden_80186DB0[];
 
-void func_acropolis_roof_garden_8017DCDC(Task* task);
+/// Places the roof garden's ten light glows and emits its view-dependent red flares.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` from `effectSpawn`.
+/// The first tick places glows 0/1 in cell 0 at scale 512, glow 2 in cell 1 at
+/// scale 1024 and glows 3..9 in cell 2 at the default scale 640. Every accepting
+/// tick also emits a diamond flare in logical views 5/6 or a disc flare in view
+/// 7, with pulse step 14 and radius scales 6/3 respectively. Logical views must
+/// be 1..7. Control 4 and above suppresses further flares but leaves the emitter
+/// live. Spawned work retains borrowed offset and coordinate pointers, while
+/// the glow and flare drawers use the copied positions and their own bodies.
+void acropolisRoofGardenAmbientEffectsTask(Task* task);
 
 /// Draws a flickering light sprite in the roof garden views that see it.
 ///
@@ -68,8 +78,22 @@ void acropolisRoofGardenFlareTask(Task* task);
 /// the work and task. Drawing requires frame-arena and scratch-stack capacity.
 void acropolisRoofGardenLeafFallTask(Task* task);
 
-void func_acropolis_roof_garden_8017DC74(Task* task);
+/// Dispatches the roof-garden room task's setup, per-frame scene check and teardown.
+///
+/// `state` must be 0 (register messages and spawn ambience), 1 (arrival-scene
+/// check), or 2 (kill). Copies the three callbacks before dispatch; the selected
+/// callback may retire the task. The map's Acropolis area 13 descriptor starts
+/// it at state zero, with the room overlay loaded throughout its lifetime.
+void acropolisRoofGardenRoomTask(Task* task);
 
-void func_acropolis_roof_garden_80180160(Task* task);
+/// Selects the roof-garden pickup model's visibility from its saved state and view.
+///
+/// Requires the placed object's `Enemy` in `spawnArg2.pointer` and a TMD body.
+/// The placement key's low byte selects saved object state 0..3. State 2 hides
+/// the model, including when a room event suppresses the pickup; otherwise only
+/// mapped views 5..7 select the flagged draw pass, with ordering offset zero.
+/// Hidden ticks replace all flags with the active-draw skip flag. The task
+/// changes neither saved object state nor resource ownership.
+void acropolisRoofGardenPickupModelTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_ROOF_GARDEN_H
