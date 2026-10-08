@@ -22,7 +22,7 @@ extern WorldCollisionPairHandler Gp_PairHandlers[5];
 extern WorldCollisionPairRule D_8010FA4C[4][4];
 
 /// Set to 1 by `worldCollisionReadActionHit` when a pending `Gp_PendingObj4C` node is found;
-/// `Gp_TickWorldCollision` then calls `worldCollisionClearActionHits` to clear those flags.
+/// `worldCollisionUpdateTask` then calls `worldCollisionClearActionHits` to clear those flags.
 extern s32 Gp_PendingObj4CFlag;
 
 /// Appends grid-face overlap contacts for an ordinary sphere's centre cell.
@@ -205,8 +205,8 @@ void worldCollisionTestViewBoundarySphere(const WorldCollisionBody* body, WorldC
 /// The nine list heads `Gp_ObjLists` points at. Each is a bare `WorldCollisionBody*`
 /// whose address is the first link. A node's `prev` points to the link that
 /// contains it, either this head or the preceding node's `next`.
-/// `Gp_TickWorldCollision` runs `worldCollisionCollideBodyListGrid` over each list and
-/// `worldCollisionCollideBodyLists` over the pairs that can interact.
+/// `worldCollisionUpdateTask` runs `worldCollisionCollideBodyListGrid` over lists
+/// 0..4, 7 and 8 and `worldCollisionCollideBodyLists` over the pairs that can interact.
 extern WorldCollisionBody* Gp_ObjList0;
 
 extern WorldCollisionBody* Gp_ObjList1;

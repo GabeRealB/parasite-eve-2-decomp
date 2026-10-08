@@ -120,7 +120,7 @@ segments:
       - [0x10DF0, c, attach_combo] # attachmentApplySelfEffect
       - [0x11104, c, linked_actors] # attachmentTargetAll
       - [0x12C80, c, hud_sprites] # hudDrawRadar
-      - [0x15810, c, view_load] # Gp_ViewBeginLoad
+      - [0x15810, c, view_load] # loadingBeginViewLoadTask
       - [0x159CC, c, view_image] # loadingUploadViewImageTask
       - [0x15B10, c, cd_loading] # _loadingEnqueueWeaponAmmoResources
       - [0x16644, c, area_cd] # loadingPollAreaPlacementFiles
@@ -133,7 +133,7 @@ segments:
       - [0x1BD90, c, scene_runtime] # streamReadSceneImageSector
       - [0x22BB8, c, item_publish] # itemPickupPublishPlacedObject
       - [0x22DB0, c, item_notice] # itemPickupActionPromptTask
-      - [0x23150, c, item_placement] # Gp_SpawnPlaceById
+      - [0x23150, c, item_placement] # _areaSpawnRoomObjectByFlagIndex
       - [0x234F0, c, equipment] # related item quantities and equipment changes
       - [0x24518, c, starter_inventory] # inventoryInitializeStarterLoadout
       - [0x24814, c, item_inventory] # item-description readers and inventory operations
@@ -154,7 +154,7 @@ segments:
       - [0x42314, c, item_use] # _itemUseAttachedItem
       - [0x43320, c, world_coords] # worldCoordUpdateRoomLightsTask
       - [0x465FC, c, world_targets] # worldTargetDrawOverlay
-      - [0x47F2C, c, world_collision] # Gp_TickWorldCollision
+      - [0x47F2C, c, world_collision] # worldCollisionUpdateTask
       - [0x4A140, c, collision_grid] # worldCollisionQueryMotionSphereFloor
       - [0x4CA94, c, object_lists] # worldCollisionResetListsAndGrid
       - [0x4E7EC, c, damage] # damageComputePlayerAttack

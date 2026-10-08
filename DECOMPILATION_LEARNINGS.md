@@ -6527,7 +6527,7 @@ also need separate block-scope pointers: a function-level `pos` lives in
 
 ## Fresh block-scope pointer at a join so it reuses a dead `s` register
 
-A function-level `save = &gMcSaveData` lives in `$s2` from the first half. At a
+A function-level `save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE]` lives in `$s2` from the first half. At a
 later join the target reloads `&gMcSaveData` into `$s1` (the now-dead `work`
 register). Reassigning the same `save` reloads into `$s2`. Give the join its
 own block-scope pointer so the allocator takes the lowest free saved reg:
@@ -6535,15 +6535,15 @@ own block-scope pointer so the allocator takes the lowest free saved reg:
 ```c
 block_companion:
 {
-    McSaveData* p;
-    p = &gMcSaveData;
-    if ((s16)p->field_6C8 <= 0) {
+    McSaveData* companionSave;
+    companionSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    if (companionSave->state.companionHp <= 0) {
         /* ... */
     }
 }
 ```
 
-`Gp_TickPlayClock` is the example.
+`playClockUpdateTask` is the example.
 
 ## Pin `ws = index` so `move a1, a0` precedes an independent `lui`
 
@@ -7089,7 +7089,7 @@ banks = tmp;
 
 Non-volatile (not `asm volatile`) lets `-fschedule-insns` hoist the `lui`
 above the prologue `sw`s and keep `addiu` after the `lbu`. `volatile` parks
-the `lui` *after* those stores. `Gp_SpawnPlaceById` is the example.
+the `lui` *after* those stores. `_areaSpawnRoomObjectByFlagIndex` is the example.
 
 ## Expand `* 100` so the last `<< 2` can land in a pinned `$s1`/`$s2`
 
@@ -35458,7 +35458,7 @@ Emit the pair (non-volatile, so the scheduler can place them):
 }
 ```
 
-Same split-`la` style as `Gp_SpawnPlaceById` / `itemMenuConsumableChoiceListTask`. `loadingPollAreaPlacementFiles`
+Same split-`la` style as `_areaSpawnRoomObjectByFlagIndex` / `itemMenuConsumableChoiceListTask`. `loadingPollAreaPlacementFiles`
 is the example.
 
 ## Separate vertex-base locals so each `gte_ldv3` can overwrite `$a0`
@@ -144658,7 +144658,7 @@ ROM's `g0, b0, r0` order needs those three written in that order - `setRGB0`,
 which writes `r0` first, leaves a two-line difference that the scratch score
 reports as 100%.
 
-## An inlined packed-flag read: `p = &base[i].bits[id >> 4]` in one expression, not `p = …bits; p += id >> 4` (Gp_SpawnPlaceById, 2026-09-26)
+## An inlined packed-flag read: `p = &base[i].bits[id >> 4]` in one expression, not `p = …bits; p += id >> 4` (_areaSpawnRoomObjectByFlagIndex, 2026-09-26)
 
 **Symptom.** A loop body inlines a 2-bit flag read that another file keeps as
 a function. The target loads the bits pointer into `$v0` and computes

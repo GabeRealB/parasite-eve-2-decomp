@@ -24,7 +24,7 @@ TaskDesc D_800676A8[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80722624 },
-    { { { TASK_BODY_NONE, 0xF0 } }, Gp_TickWorldCollision },
+    { { { TASK_BODY_NONE, 0xF0 } }, worldCollisionUpdateTask },
     { { { TASK_BODY_NONE, 0xF0 } }, func_8071E24C },
     { { { TASK_BODY_TMD, 0x70 } }, effectBurstModelPartTask },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80723944 },

@@ -360,9 +360,10 @@ static __inline__ void _worldCollisionBuildGridEdgePlaneNormal(_WorldCollisionGr
     gte_stlvnl(&scratch->edgeWork);
 }
 
-void Gp_TickWorldCollision(Task* unused)
+void worldCollisionUpdateTask(Task* unusedTask)
 {
     if (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) != NULL) {
+        // Movement supplies this frame's transforms before grid and body contacts.
         playerActorUpdateMove();
         worldCollisionCollideBodyListGrid(Gp_ObjList0);
         worldCollisionCollideBodyListGrid(Gp_ObjList1);
@@ -371,6 +372,7 @@ void Gp_TickWorldCollision(Task* unused)
         worldCollisionCollideBodyListGrid(Gp_ObjList4);
         worldCollisionCollideBodyListGrid(Gp_ObjList7);
         worldCollisionCollideBodyListGrid(Gp_ObjList8);
+        // Only the interaction routes below participate; list 6 has no grid pass.
         worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList2);
         worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList3);
         worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList4);
@@ -384,6 +386,7 @@ void Gp_TickWorldCollision(Task* unused)
         _worldCollisionCollideListPairs(Gp_ObjList2);
         worldCollisionCollideBodyLists(Gp_ObjList3, Gp_ObjList4);
         worldCollisionCollideBodyLists(Gp_ObjList4, Gp_ObjList8);
+        // Retire consumed action hits before collecting fresh action/view crossings.
         if (Gp_PendingObj4CFlag != 0) {
             worldCollisionClearActionHits();
         }

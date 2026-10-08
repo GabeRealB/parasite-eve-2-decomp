@@ -21,7 +21,7 @@ static inline s32 _gpGetCurBit2Flag(s32 arg0);
 
 static inline void _gpSpawnPlace(AreaObjectSpawn* spawn, AreaObjectPlace* place);
 
-static void Gp_SpawnPlaceById(u16 arg0);
+static void _areaSpawnRoomObjectByFlagIndex(u16 flagIndex);
 
 static inline s32 _gpGetCurBit2Flag(s32 arg0)
 {
@@ -214,32 +214,42 @@ AreaObjectPlace D_801149B8[] = {
     { 0xFFFF, 0x0, 0x0, 0x0, 0, 0, 0, 0x0 },
 };
 
-static void Gp_SpawnPlaceById(u16 arg0)
+/// Spawns the first saved-area placement with this flag index when its live-stage state is nonzero.
+///
+/// `flagIndex` is an object-state index in 0..63. Selects the room table from
+/// the live save's stage/area, but reads the two-bit state in the session's
+/// current stage. Missing room/place tables or an absent index do nothing.
+/// Both locations must be valid for their loaded tables; a matched placement
+/// requires a live, END-terminated spawn table. A first match consumes the
+/// search even if its state is zero, its kind is absent or allocation fails.
+/// Spawned tasks own their enemy/model storage; referenced overlay resources
+/// must stay loaded. Placement uses the record's parent-frame XYZ and yaw.
+static void _areaSpawnRoomObjectByFlagIndex(u16 flagIndex)
 {
-    GameLocationKey* sess;
-    AreaObjectRoom*  rooms;
-    AreaObjectPlace* place;
-    u16              id;
+    const GameLocationKey* savedLocation;
+    const AreaObjectRoom*  stageRooms;
+    AreaObjectPlace*       place;
+    u16                    placeFlagIndex;
 
-    sess  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-    rooms = Gp_Bit2Banks[sess->stage].rooms;
-    if (rooms == NULL) {
+    savedLocation = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+    stageRooms    = Gp_Bit2Banks[savedLocation->stage].rooms;
+    if (stageRooms == NULL) {
         return;
     }
-    place = rooms[sess->area].places.list;
+    place = stageRooms[savedLocation->area].places.list;
     if (place == NULL) {
         return;
     }
-    id = place->flagIndex;
-    while (id != AREA_OBJECT_PLACE_END) {
-        if (id == arg0) {
-            if (_gpGetCurBit2Flag(id) != 0) {
-                _gpSpawnPlace(rooms[sess->area].spawns, place);
+    placeFlagIndex = place->flagIndex;
+    while (placeFlagIndex != AREA_OBJECT_PLACE_END) {
+        if (placeFlagIndex == flagIndex) {
+            if (_gpGetCurBit2Flag(placeFlagIndex) != 0) {
+                _gpSpawnPlace(stageRooms[savedLocation->area].spawns, place);
             }
             return;
         }
         place++;
-        id = place->flagIndex;
+        placeFlagIndex = place->flagIndex;
     }
 }
 

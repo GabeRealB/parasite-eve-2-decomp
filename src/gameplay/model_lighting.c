@@ -149,6 +149,14 @@ typedef struct {
 } _PlayClockWork;
 STATIC_ASSERT_SIZEOF(_PlayClockWork, 0x30);
 
+/// Play-time units and the saved/displayed minute cap used by this frame update.
+enum {
+    PLAY_CLOCK_TICKS_PER_SECOND = 60,
+    PLAY_CLOCK_TICKS_PER_MINUTE = 60 * PLAY_CLOCK_TICKS_PER_SECOND,
+    PLAY_CLOCK_MINUTES_PER_HOUR = 60,
+    PLAY_CLOCK_MAX_MINUTES      = 59999
+};
+
 extern CVECTOR D_80114BA4;
 
 extern CVECTOR D_80114BA8;
@@ -2899,100 +2907,128 @@ void playClockInitializeTask(Task* task)
     task->state++;
 }
 
-void Gp_TickPlayClock(Task* task)
+/// Advances the saved minute count and its display from one elapsed game-tick sample.
+///
+/// Borrows initialized task work and the resident save/remainder. At most one
+/// minute is consumed; saturation retains any remaining ticks for later calls.
+static inline void _playClockAdvanceSavedTime(_PlayClockWork* work, s32 currentGameTick)
 {
-    TextDrawReq     req;
-    u8              buf[0x20];
-    _PlayClockWork* work;
-    McSaveData*     save;
-    PlayerStatus*   cfg;
-    GameSession*    session;
-    s32             temp;
-    s32             companion;
-
-    work = task->work;
-    cfg  = &gPlayerStatus;
-    padInputUpdate();
-
-    temp               = gDisplayState.gameTick;
-    D_8005ED68        += temp - work->lastGameTick;
-    work->lastGameTick = temp;
-    if (D_8005ED68 >= 0xE10) {
-        McSaveData* p;
-        D_8005ED68 -= 0xE10;
-        p           = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        if (p->state.playTime <= 0xEA5E) {
-            p->state.playTime++;
+    D_8005ED68        += currentGameTick - work->lastGameTick;
+    work->lastGameTick = currentGameTick;
+    if (D_8005ED68 >= PLAY_CLOCK_TICKS_PER_MINUTE) {
+        McSaveData* minuteSave;
+        D_8005ED68 -= PLAY_CLOCK_TICKS_PER_MINUTE;
+        minuteSave  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        if (minuteSave->state.playTime <= PLAY_CLOCK_MAX_MINUTES - 1) {
+            minuteSave->state.playTime++;
             work->minutes++;
-            if (work->minutes >= 60) {
-                work->minutes -= 60;
+            if (work->minutes >= PLAY_CLOCK_MINUTES_PER_HOUR) {
+                work->minutes -= PLAY_CLOCK_MINUTES_PER_HOUR;
                 work->hours++;
             }
         } else {
-            p->state.playTime = 0xEA5F;
-            work->hours       = 999;
-            work->minutes     = 59;
+            minuteSave->state.playTime = PLAY_CLOCK_MAX_MINUTES;
+            work->hours                = PLAY_CLOCK_MAX_MINUTES / PLAY_CLOCK_MINUTES_PER_HOUR;
+            work->minutes              = PLAY_CLOCK_MAX_MINUTES % PLAY_CLOCK_MINUTES_PER_HOUR;
         }
     }
+}
 
+/// Cancels active attachment and room PE effects before death presentation.
+static inline void _playClockCancelDeathEffects(void)
+{
+    Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
+    attachmentCancel();
+    roomEffectRequestCancelPe();
+}
+
+void playClockUpdateTask(Task* task)
+{
+    enum {
+        PLAY_CLOCK_READOUT_DEMO_SCENE        = 1,
+        PLAY_CLOCK_READOUT_OT_INDEX          = 4,
+        PLAY_CLOCK_READOUT_COLOR_RGB         = 0x502008,
+        PLAY_CLOCK_READOUT_PAD_PORT          = 1,
+        PLAY_CLOCK_COMPANION_KYLE            = 1,
+        PLAY_CLOCK_COMPANION_GROWTH_ROOM     = 3,
+        PLAY_CLOCK_WEAPON_STOP_CONTROL       = 8,
+        PLAY_CLOCK_DEATH_RESOURCE_GROUP      = 9,
+        PLAY_CLOCK_PLAYER_DEATH_FILE_BASE    = 0x1D,
+        PLAY_CLOCK_COMPANION_DEATH_FILE_BASE = 0x20
+    };
+    TextDrawReq     timeRequest;
+    u8              numberText[0x20];
+    _PlayClockWork* work;
+    McSaveData*     save;
+    PlayerStatus*   player;
+    GameSession*    session;
+    s32             currentGameTick;
+    s32             companionType;
+
+    work   = task->work;
+    player = &gPlayerStatus;
+    padInputUpdate();
+
+    // Account for at most one minute per call, retaining excess ticks.
+    currentGameTick = gDisplayState.gameTick;
+    _playClockAdvanceSavedTime(work, currentGameTick);
+
+    // Only attract demo 1 draws the clock readout.
     save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    if (save->state.demoScene == 1) {
-        req.x          = -0x96;
-        req.y          = 0x64;
-        req.otIndex    = 4;
-        req.colorRgb   = 0x502008;
-        req.glyphTable = TEXT_GLYPH_TABLE_LARGE_ALTERNATE;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = 1;
-        textDrawString(&req, textItoaUnsigned(buf, work->hours));
-        textDrawString(&req, ":");
-        textDrawString(&req, textItoaPadded(buf, work->minutes, 2));
-        textDrawString(&req, "'");
-        textDrawString(&req, textItoaPadded(buf, D_8005ED68 / 60, 2));
-        padCheckButtons(1, 1, PAD_BUTTON_SELECT);
+    if (save->state.demoScene == PLAY_CLOCK_READOUT_DEMO_SCENE) {
+        timeRequest.x          = -0x96;
+        timeRequest.y          = 0x64;
+        timeRequest.otIndex    = PLAY_CLOCK_READOUT_OT_INDEX;
+        timeRequest.colorRgb   = PLAY_CLOCK_READOUT_COLOR_RGB;
+        timeRequest.glyphTable = TEXT_GLYPH_TABLE_LARGE_ALTERNATE;
+        timeRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+        timeRequest.drawMode   = TEXT_DRAW_OUTLINED;
+        textDrawString(&timeRequest, textItoaUnsigned(numberText, work->hours));
+        textDrawString(&timeRequest, (const u8*)":");
+        textDrawString(&timeRequest, textItoaPadded(numberText, work->minutes, 2));
+        textDrawString(&timeRequest, (const u8*)"'");
+        textDrawString(&timeRequest, textItoaPadded(numberText, D_8005ED68 / PLAY_CLOCK_TICKS_PER_SECOND, 2));
+        padCheckButtons(PLAY_CLOCK_READOUT_PAD_PORT, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT);
     }
 
-    if (gGameSession->suppressDeathChecks == 0 && (cfg->hp <= 0 || (save->state.companionType == 1 && save->state.companionHp <= 0) || (save->state.companionType == 3 && save->state.companionHp <= 0))) {
-        McSaveData* p;
+    // Active events postpone death; eligible deaths prepare presentation before holding the display.
+    if (gGameSession->suppressDeathChecks == 0 && (player->hp <= 0 || (save->state.companionType == PLAY_CLOCK_COMPANION_KYLE && save->state.companionHp <= 0) || (save->state.companionType == PLAY_CLOCK_COMPANION_GROWTH_ROOM && save->state.companionHp <= 0))) {
+        McSaveData* companionSave;
 
-        if (cfg->hp <= 0) {
+        if (player->hp <= 0) {
             if (gGameSession->eventState != 0) {
-                cfg->hp = 1;
+                player->hp = 1;
                 return;
             }
-            Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
-            attachmentCancel();
-            roomEffectRequestCancelPe();
+            _playClockCancelDeathEffects();
             session = gGameSession;
             if (session->restartMode != GAME_SESSION_RESTART_PRESERVE_DISPLAY) {
                 gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 session->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
-                sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, 8);
+                sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, PLAY_CLOCK_WEAPON_STOP_CONTROL);
                 sndScriptSetTypeRequestsEnabled(0, SOUND_BANK_TYPE_WEAPON_ALL);
-                cdCmdEnqueueDisplayResource(9, ((u8)gGameSession->deathVariant + 0x1D) & 0xFF, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
+                cdCmdEnqueueDisplayResource(PLAY_CLOCK_DEATH_RESOURCE_GROUP, ((u8)gGameSession->deathVariant + PLAY_CLOCK_PLAYER_DEATH_FILE_BASE) & 0xFF, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
             }
         }
 
-        p = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        if (p->state.companionHp <= 0) {
+        companionSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        if (companionSave->state.companionHp <= 0) {
             if (gGameSession->eventState != 0) {
-                p->state.companionHp = 1;
+                companionSave->state.companionHp = 1;
                 return;
             }
-            Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;
-            attachmentCancel();
-            roomEffectRequestCancelPe();
-            companion = p->state.companionType;
-            if (companion == 1) {
-                gGameSession->restartMode  = companion;
+            _playClockCancelDeathEffects();
+            companionType = companionSave->state.companionType;
+            if (companionType == PLAY_CLOCK_COMPANION_KYLE) {
+                gGameSession->restartMode  = companionType;
                 gRandomLcgState            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 gGameSession->deathVariant = (gRandomLcgState >> 16 & 1) + 1;
-                sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, 8);
+                sndEvtRequestScriptStop(SOUND_BANK_TYPE_WEAPON_ALL, PLAY_CLOCK_WEAPON_STOP_CONTROL);
                 sndScriptSetTypeRequestsEnabled(0, SOUND_BANK_TYPE_WEAPON_ALL);
-                cdCmdEnqueueDisplayResource(9, ((u8)gGameSession->deathVariant + 0x20) & 0xFF, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
-                companion = p->state.companionType;
+                cdCmdEnqueueDisplayResource(PLAY_CLOCK_DEATH_RESOURCE_GROUP, ((u8)gGameSession->deathVariant + PLAY_CLOCK_COMPANION_DEATH_FILE_BASE) & 0xFF, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
+                companionType = companionSave->state.companionType;
             }
-            if (companion == 3) {
+            if (companionType == PLAY_CLOCK_COMPANION_GROWTH_ROOM) {
                 gGameSession->restartMode = GAME_SESSION_RESTART_COMPANION_3_DOWN;
             }
         }
@@ -3003,6 +3039,7 @@ void Gp_TickPlayClock(Task* task)
         return;
     }
 
+    // Ending shares the death wait; continuing play owns the ordinary HUD update.
     if (gGameSession->restartMode == GAME_SESSION_RESTART_ENDING) {
         displayAcquireMenuHold();
         gGameSession->deathVariant = 1;

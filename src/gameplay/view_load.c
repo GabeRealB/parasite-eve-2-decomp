@@ -15,54 +15,76 @@
 
 s16 D_80114C40;
 
-void Gp_ViewBeginLoad(Task* task)
+/// Queues a view file key after assigning its mapped index and default load options.
+///
+/// The borrowed four-byte key must already hold stage/area; byte 1 is ignored.
+/// Requires loaded view mapping, valid destinations and one free CD-ring slot.
+/// Enqueue copies both records immediately; no request pointers are retained.
+static inline void _loadingEnqueueViewFile(_LoadingFileKey* fileKey, _LoadingFileArgs* loadArgs)
 {
-    DisplayState*    ds;
-    CdCmdQueue*      q;
-    GameLocationKey* sess;
-    u8               param1[8];
-    u8               param2[8];
+    enum { LOADING_VIEW_FOLDER_SUFFIX = 1 };
 
-    sess = &gGameSession->location.loc;
-    q    = &gCdCmdQueue;
-    if (task->spawnArg1.value != 0) {
+    fileKey->fileIndex         = viewGetMappedIndex();
+    loadArgs->fileIdHundreds   = LOADING_VIEW_FOLDER_SUFFIX;
+    loadArgs->loadMode         = CD_COMMAND_LOAD_DEFAULT;
+    loadArgs->imageXPageOffset = 0;
+    loadArgs->imageYOffset     = 0;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadArgs);
+}
+
+void loadingBeginViewLoadTask(Task* viewLoadTask)
+{
+    enum {
+        LOADING_VIEW_WAIT_FOR_SCENE_IMAGE = 5,
+        LOADING_VIEW_MOVIE_SUB_ID         = 0,
+        LOADING_VIEW_REQUIRE_VIEW_MOVIE   = 1,
+        LOADING_VIEW_MOVIE_SELECTED       = 1,
+        LOADING_VIEW_NO_MOVIE_SELECTED    = 0
+    };
+    DisplayState*          display;
+    CdCmdQueue*            queue;
+    const GameLocationKey* location;
+    _LoadingFileKey        fileKey;
+    _LoadingFileArgs       loadArgs;
+
+    location = &gGameSession->location.loc;
+    queue    = &gCdCmdQueue;
+    if (viewLoadTask->spawnArg1.value != 0) {
         gDisplayState.control.flags.flipMode = DISPLAY_FLIP_HOLD;
     }
-    ds = &gDisplayState;
-    if (ds->otBuffer == ds->frameBuffer) {
+    display = &gDisplayState;
+    // Wait for the game and task buffer selectors to agree before holding the frame.
+    if (display->otBuffer == display->frameBuffer) {
         DrawSync(0);
         SetDrawStp(&D_80114C50, 0);
         DrawPrim(&D_80114C50);
-        ds->control.flags.flipMode = DISPLAY_FLIP_HOLD;
-        if (q->scenePayloadAvailable != 0) {
+        display->control.flags.flipMode = DISPLAY_FLIP_HOLD;
+        if (queue->scenePayloadAvailable != 0) {
             mdecRequestSceneImageDecode(&gGameSession->location.loc.view);
-            task->state = 5;
+            viewLoadTask->state = LOADING_VIEW_WAIT_FOR_SCENE_IMAGE;
         } else {
-            D_80114C40 = streamFindMovieSlot(&gGameSession->location.loc, 0, 1);
+            // Movie views release model packets; leaving movie mode restores their policy.
+            D_80114C40 = streamFindMovieSlot(&gGameSession->location.loc, LOADING_VIEW_MOVIE_SUB_ID, LOADING_VIEW_REQUIRE_VIEW_MOVIE);
             if (D_80114C40 >= 0) {
                 sceneFreeActorPrimitiveBuffers();
-                q->viewMovieSelected = 1;
+                queue->viewMovieSelected = LOADING_VIEW_MOVIE_SELECTED;
             } else {
-                if (q->viewMovieSelected != 0) {
+                if (queue->viewMovieSelected != 0) {
                     areaRestoreModelBufferPolicy();
-                    q->viewMovieSelected = 0;
+                    queue->viewMovieSelected = LOADING_VIEW_NO_MOVIE_SELECTED;
                 }
             }
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+            // Cancellation waits in state 1; an idle queue starts the image state immediately.
+            if (cdCmdIsIdle() == 0) {
                 cdCmdRequestCancel();
-                task->state += 1;
-                loadingEnqueueViewResourcesTask(task);
+                viewLoadTask->state += 1;
+                loadingEnqueueViewResourcesTask(viewLoadTask);
             } else {
-                param1[3] = sess->stage;
-                param1[2] = sess->area;
-                param1[0] = viewGetMappedIndex();
-                param2[0] = 1;
-                param2[1] = 0;
-                param2[2] = 0;
-                param2[3] = 0;
-                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-                task->state += 2;
-                loadingUploadViewImageTask(task);
+                fileKey.stage     = location->stage;
+                fileKey.fileGroup = location->area;
+                _loadingEnqueueViewFile(&fileKey, &loadArgs);
+                viewLoadTask->state += 2;
+                loadingUploadViewImageTask(viewLoadTask);
             }
         }
     }

@@ -28,7 +28,7 @@ s16 D_801156BC;
 
 extern TaskMessageEntry D_8010FB90[10];
 
-s32 Gp_StartCapAndClear(Task* arg0, s32 arg1, s16 arg2, s32 arg3);
+static s32 _capStartControlledSequence(Task* unusedTask, s32 unusedMessageId, s16 commandIndex, s32 unusedSecondArg);
 
 static s32 _capResumeTimedRecord(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
@@ -58,7 +58,7 @@ enum {
 };
 
 TaskMessageEntry D_8010FB90[10] = {
-    { CAP_CONTROL_MESSAGE_START, Gp_StartCapAndClear },
+    { CAP_CONTROL_MESSAGE_START, _capStartControlledSequence },
     { CAP_CONTROL_MESSAGE_RESUME_TIMED_RECORD, _capResumeTimedRecord },
     { CAP_CONTROL_MESSAGE_ABORT, _capAbortControlledPlayback },
     { CAP_CONTROL_MESSAGE_IS_BUSY, _capQueryPlaybackBusy },
@@ -121,10 +121,18 @@ void capUpdateControlTask(Task* unusedTask)
     _capTickSceneSync();
 }
 
-s32 Gp_StartCapAndClear(Task* arg0, s32 arg1, s16 arg2, s32 arg3)
+/// Starts a CAP command's variant zero in place and disarms scene synchronization.
+///
+/// The first payload narrows to a signed halfword command-table slot and must
+/// satisfy `capStartSequenceSlot`'s bounds and loaded-resource lifetime.
+/// The receiver, message ID and second payload are ignored. Disarms the timer
+/// even when playback is busy or cannot start; always returns 0.
+static s32 _capStartControlledSequence(Task* unusedTask, s32 unusedMessageId, s16 commandIndex, s32 unusedSecondArg)
 {
-    capStartSequenceSlot(arg2, 0, 0);
-    D_801156B0 = 0;
+    enum { CAP_CONTROL_DEFAULT_VARIANT = 0 };
+
+    capStartSequenceSlot(commandIndex, CAP_PLAYBACK_IN_PLACE, CAP_CONTROL_DEFAULT_VARIANT);
+    D_801156B0 = CAP_CONTROL_SCENE_SYNC_DISABLED;
     return 0;
 }
 

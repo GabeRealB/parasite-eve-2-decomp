@@ -22,7 +22,16 @@ struct Task;
 /// Equality is not floor. The comparison uses the grid's original room normal.
 enum { WORLD_COLLISION_FLOOR_NORMAL_Y = -0xDDA };
 
-void Gp_TickWorldCollision(struct Task* unused);
+/// Updates player movement, world contacts and room triggers for the current frame.
+///
+/// The task argument is ignored. Without a registered player, changes nothing.
+/// Requires live collision lists, initialized contact tables and the current
+/// room's composed grid/transforms satisfying the collision routines' bounds.
+/// Tests grid contacts for lists 0..4, 7 and 8, selected inter-list pairs and
+/// the unordered pairs within lists 0 and 2. Clears consumed action hits before
+/// rescanning list 0; view-boundary scanning obeys the session suppression flag.
+/// Contact storage and trigger latches are updated without taking ownership.
+void worldCollisionUpdateTask(struct Task* unusedTask);
 
 extern s32 Gp_RoomParams[8];
 

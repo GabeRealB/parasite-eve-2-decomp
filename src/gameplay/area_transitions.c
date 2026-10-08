@@ -157,7 +157,7 @@ static void _directionClearAction(void);
 
 static void _directionDispatchRoomAction(void);
 
-static void Gp_SpawnEvt1IfCapIdle(void);
+static void _directionDispatchWeaponCapEvent(void);
 
 static void _directionHoldWarpFrame(void);
 
@@ -431,7 +431,7 @@ const DirectionActionTable Gp_DirActionFns = { {
     [WORLD_COLLISION_TRIGGER_ACTION_CALLBACK]   = directionDispatchCallbackAction,
     [WORLD_COLLISION_TRIGGER_ACTION_CLEAR]      = _directionClearAction,
     [WORLD_COLLISION_TRIGGER_ACTION_ROOM]       = _directionDispatchRoomAction,
-    [WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON] = Gp_SpawnEvt1IfCapIdle,
+    [WORLD_COLLISION_TRIGGER_ACTION_CAP_WEAPON] = _directionDispatchWeaponCapEvent,
 } };
 
 static const _DirectionWarpPhaseTable Gp_WarpPhaseFns = { {
@@ -676,20 +676,22 @@ static void _directionDispatchRoomAction(void)
     }
 }
 
-static void Gp_SpawnEvt1IfCapIdle(void)
+/// Consumes a weapon-presentation CAP trigger, dispatching only while events and CAP are idle.
+///
+/// The latched command byte and flag byte follow `capSpawnWeaponEvent`'s
+/// resource and player lifetime contract. Allocation failure or either busy
+/// gate still discards the primary request and secondary hit. The session's
+/// direction-busy flag and phase remain for the direction task to handle.
+static void _directionDispatchWeaponCapEvent(void)
 {
     if (gGameSession->eventState == 0) {
         if (capIsBusy() == 0) {
             capSpawnWeaponEvent(Gp_DirByte, Gp_DirNibble);
         }
     }
-    D_80114CF8      = 0;
-    Gp_DirNibble    = 0;
-    Gp_DirByte      = 0;
-    Gp_DirFlags     = 0;
-    Gp_DirAltNibble = 0;
-    Gp_DirAlt       = 0;
-    D_80114CD4      = 0;
+    // Consume blocked requests too, releasing activity before the parameters.
+    D_80114CF8 = 0;
+    _directionClearTriggerParameters();
 }
 
 /// Draws and steps the departure fade, then hands the warp to its resolve phase next frame.

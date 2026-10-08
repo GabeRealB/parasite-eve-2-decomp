@@ -619,7 +619,7 @@ const TaskFuncTable8 Gp_LoadStateFns;
 const TaskFuncTable3 Gp_RoomObjStates;
 
 static const TaskFuncTable6 Gp_LoadWaitFns = { {
-    Gp_ViewBeginLoad,
+    loadingBeginViewLoadTask,
     loadingEnqueueViewResourcesTask,
     loadingUploadViewImageTask,
     _loadingWaitForMovieReadyTask,

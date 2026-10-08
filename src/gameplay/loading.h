@@ -364,6 +364,19 @@ void loadingUploadViewImageTask(Task* viewLoadTask);
 
 extern s16 D_80114C40;
 
-void Gp_ViewBeginLoad(Task* task);
+/// Holds a synchronized frame and starts the current view's image/movie load.
+///
+/// State 0 of `loadingViewLoadTask`. Requires the selected view/location tables,
+/// live file destinations and movie descriptors; presentation modes 0..2 follow
+/// `loadingFinishViewLoad`. Nonzero modes request a flip hold before waiting
+/// for the game/task buffer selectors to agree. Agreement waits for GPU work
+/// and disables mask-bit writes before holding the frame.
+/// A cached scene payload queues decoding and selects state 5. Otherwise selects
+/// a view-enabled movie (0..14 or negative), releasing model packets for movies
+/// or restoring their policy on leaving movie mode. A busy CD queue requests
+/// cancellation and advances to state 1; an idle queue requests the mapped file,
+/// advances to state 2 and calls its image-load handler immediately. That call
+/// can complete loading and kill the task. CD and decode work remain asynchronous.
+void loadingBeginViewLoadTask(Task* viewLoadTask);
 
 #endif // GAMEPLAY_PRIVATE_LOADING_H

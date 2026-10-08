@@ -17,8 +17,9 @@
 /// the HUD flag. Every handler here returns 0 unless noted. Dispatch only the
 /// listed IDs; unsupported IDs have no safe lookup terminator in this table.
 enum {
-    /// Starts the CAP sequence in the slot given by the first argument and clears
-    /// the control's completion flag (`Gp_StartCapAndClear`).
+    /// Starts variant zero of the first argument's signed-halfword CAP command
+    /// slot in place and disarms scene synchronization, even if playback cannot
+    /// start. The second argument is ignored; returns 0.
     CAP_CONTROL_MESSAGE_START = 0xFA0,
     /// Releases both timing waits of the current CAP record, including an
     /// indefinite pause. Both arguments are ignored; playback advances later.

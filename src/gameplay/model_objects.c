@@ -470,25 +470,41 @@ void modelObjectFreeCoordBody(ModelObjectCoordBody* body)
     memFree(body);
 }
 
-/// Saves the current lists and starts drawing from temporary empty lists.
-///
-/// Only one stash may be outstanding, and the saved elements must stay alive
-/// until the lists are restored to their original sentinels.
-static void _modelObjectStashLists(void)
+/// Initializes both render lists as empty chains ending at their live sentinels.
+static inline void _modelObjectResetRenderLists(void)
 {
-    // Save endpoints, keeping the elements tied to their original sentinels.
-    _gModelObjectSavedModelList    = gTmdList;
-    _gModelObjectSavedDisp2dList   = gModelObjectCoordBodyList;
     gTmdList.next                  = NULL;
     gTmdList.prev                  = &gTmdList;
     gModelObjectCoordBodyList.next = NULL;
     gModelObjectCoordBodyList.prev = &gModelObjectCoordBodyList;
+}
+
+/// Saves the current lists and starts drawing from temporary empty lists.
+///
+/// Saves both sentinels' two link pointers by value, without moving their nodes.
+/// Only one stash may be outstanding. Saved bodies and their owning tasks must
+/// remain live and must not be unlinked or freed until restore: their first
+/// nodes still point back to the original sentinels, now used by the temporary lists.
+/// Newly linked temporary bodies must be retired before restore overwrites
+/// their endpoints. Starts a bank-0 coordinate/model draw task; a later restore
+/// requires that allocation to succeed and its exit callback to be installed.
+static void _modelObjectStashLists(void)
+{
+    // Save endpoints, keeping the elements tied to their original sentinels.
+    _gModelObjectSavedModelList  = gTmdList;
+    _gModelObjectSavedDisp2dList = gModelObjectCoordBodyList;
+    _modelObjectResetRenderLists();
     _gModelObjectTemporaryDrawTask = taskSpawn(0, MODEL_OBJECT_STASH_DRAW_TASK, 0, 0);
 }
 
 /// Stops the temporary draw task and restores the saved lists to their sentinels.
 ///
-/// Requires a preceding stash whose saved elements are still alive.
+/// Requires one preceding stash, live untouched saved bodies and a non-NULL
+/// temporary draw task with its exit callback installed. Temporary bodies must
+/// already be retired; replacing the endpoints neither unlinks nor frees them.
+/// Runs the temporary task's exit before restoring both endpoint snapshots.
+/// Saved nodes need no link repair because their original sentinels return.
+/// The saved snapshots and draw-task pointer remain stored; do not restore twice.
 static void _modelObjectRestoreLists(void)
 {
     taskCallExit(_gModelObjectTemporaryDrawTask);
