@@ -379,7 +379,7 @@ static AreaObjectSpawn D_map_dryfield_8017A514[1] = {
 };
 
 static AreaObjectSpawn D_map_dryfield_8017A524[2] = {
-    { 0x114, { { { TASK_BODY_TMD, 0x62 } }, func_dryfield_junk_yard_8017D5F4, { &gDryfieldJunkYardModel01378 } } },
+    { 0x114, { { { TASK_BODY_TMD, 0x62 } }, dryfieldJunkYardWireRopeTask, { &gDryfieldJunkYardModel01378 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -432,14 +432,14 @@ AreaObjectRoom D_map_dryfield_8017A564[40] = {
 };
 
 TaskDesc D_map_dryfield_8017A6A4[] = {
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_gas_station_8017FF8C, { .value = GP_TASK_LOC_KEY(2, 1, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldGasStationRoomTask, { .value = GP_TASK_LOC_KEY(2, 1, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldMainStreetTask, { .value = GP_TASK_LOC_KEY(2, 2, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_general_store_8017DF5C, { .value = GP_TASK_LOC_KEY(2, 3, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldGeneralStoreRoomTask, { .value = GP_TASK_LOC_KEY(2, 3, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldBackStreetRoomTask, { .value = GP_TASK_LOC_KEY(2, 5, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldSouvenirShopRoomTask, { .value = GP_TASK_LOC_KEY(2, 6, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_warehouse_8017DA00, { .value = GP_TASK_LOC_KEY(2, 7, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldDilapidatedHouseRoomTask, { .value = GP_TASK_LOC_KEY(2, 9, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_motel_room_1_8017D754, { .value = GP_TASK_LOC_KEY(2, 11, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldMotelRoom1Task, { .value = GP_TASK_LOC_KEY(2, 11, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldMotelRoom2Task, { .value = GP_TASK_LOC_KEY(2, 12, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldMotelRoom3Task, { .value = GP_TASK_LOC_KEY(2, 13, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldMotelRoom4Task, { .value = GP_TASK_LOC_KEY(2, 14, 0) } },
@@ -447,21 +447,21 @@ TaskDesc D_map_dryfield_8017A6A4[] = {
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldToiletRoomTask, { .value = GP_TASK_LOC_KEY(2, 16, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldMotelLobbyTask, { .value = GP_TASK_LOC_KEY(2, 17, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_saloon_g_r_8017DA18, { .value = GP_TASK_LOC_KEY(2, 18, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_g_r_kitchen_8017D9A4, { .value = GP_TASK_LOC_KEY(2, 19, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldGRKitchenRoomTask, { .value = GP_TASK_LOC_KEY(2, 19, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_water_tower_8017DDD8, { .value = GP_TASK_LOC_KEY(2, 20, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldWaterTankRoomTask, { .value = GP_TASK_LOC_KEY(2, 21, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldBreezewayMessageTask, { .value = GP_TASK_LOC_KEY(2, 22, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldFactoryEntryTask, { .value = GP_TASK_LOC_KEY(2, 23, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_garage_8017DC10, { .value = GP_TASK_LOC_KEY(2, 24, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldGarageRoomTask, { .value = GP_TASK_LOC_KEY(2, 24, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldDrivewayRoomTask, { .value = GP_TASK_LOC_KEY(2, 25, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_junk_yard_8017DCB4, { .value = GP_TASK_LOC_KEY(2, 26, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldJunkYardRoomTask, { .value = GP_TASK_LOC_KEY(2, 26, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_trailer_coach_80182950, { .value = GP_TASK_LOC_KEY(2, 27, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldMotelRoom5Task, { .value = GP_TASK_LOC_KEY(2, 28, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_motel_balcony_8017DBD0, { .value = GP_TASK_LOC_KEY(2, 29, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_motel_room_6_80181B18, { .value = GP_TASK_LOC_KEY(2, 30, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldMotelRoom6Task, { .value = GP_TASK_LOC_KEY(2, 30, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, dryfieldMotelLoftTask, { .value = GP_TASK_LOC_KEY(2, 31, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_water_hole_8017D840, { .value = GP_TASK_LOC_KEY(2, 32, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_cellar_8017D784, { .value = GP_TASK_LOC_KEY(2, 34, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, dryfieldCellarRoomTask, { .value = GP_TASK_LOC_KEY(2, 34, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_dryfield_underpass_8017DAC8, { .value = GP_TASK_LOC_KEY(2, 38, 0) } },
     { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
 };

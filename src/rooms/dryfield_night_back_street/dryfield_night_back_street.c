@@ -431,7 +431,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_back_street_8018161C[8] = {
     D_dryfield_night_back_street_80181604,
 };
 
-static void func_dryfield_night_back_street_8017D73C(Task* task);
+static void _dryfieldNightBackStreetInitRoomTask(Task* task);
 static void _dryfieldNightBackStreetIdleState(Task* task);
 
 #include "../../shared/back_street_event_msg.inc.c"
@@ -463,13 +463,15 @@ static s32 _dryfieldNightBackStreetIgnoreRoomActionMessage(Task* task, s32 messa
     return 0;
 }
 
-/// The room entry task's first state: installs the room's message table, hands
-/// the task to pointer slot 7 and moves on to the next state.
-static void func_dryfield_night_back_street_8017D73C(Task* task)
+/// Registers the night back street's room receiver and advances it to idle state 1.
+///
+/// Requires the live room task in state 0. The installed message table is
+/// borrowed for the room task's lifetime.
+static void _dryfieldNightBackStreetInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_night_back_street_80180324;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state += 1;
 }
 
 /// Keeps the initialized room task available for messages until its state changes.
@@ -479,7 +481,7 @@ static void _dryfieldNightBackStreetIdleState(Task* task)
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_night_back_street_8017D5C4 = {
-    { func_dryfield_night_back_street_8017D73C, _dryfieldNightBackStreetIdleState, taskKill },
+    { _dryfieldNightBackStreetInitRoomTask, _dryfieldNightBackStreetIdleState, taskKill },
 };
 
 /// Runs the room entry task's current state from its three-entry table, which

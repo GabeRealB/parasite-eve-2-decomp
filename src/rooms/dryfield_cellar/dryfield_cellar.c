@@ -879,7 +879,7 @@ WorldCollisionSurfaceProperties* D_dryfield_cellar_80180B40[8] = {
     D_dryfield_cellar_80180B38,
 };
 
-static void func_dryfield_cellar_8017D730(Task* task);
+static void _dryfieldCellarInitRoomTask(Task* task);
 static void _dryfieldCellarIdle(Task* task);
 
 #include "../../shared/cellar_cap_msg.inc.c"
@@ -925,15 +925,18 @@ static s32 _dryfieldCellarHandleSoundMessage(Task* task, s32 messageId, s32 soun
     return 0;
 }
 
-/// The room entry task's first state: installs the room's message table, hands
-/// the task to pointer slot 7, moves on to the next state and sets the
-/// gameplay byte `D_80115598`.
-static void func_dryfield_cellar_8017D730(Task* task)
+/// Registers the cellar's room receiver and permits post-CAP sound messages.
+///
+/// Requires the live room task in state 0. Borrows the room's message table
+/// for its lifetime and advances to the idle state 1.
+static void _dryfieldCellarInitRoomTask(Task* task)
 {
+    enum { DRYFIELD_CELLAR_POST_CAP_SOUND_ENABLED = 1 };
+
     task->msgTable = D_dryfield_cellar_8017DB8C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
-    D_80115598  = 1;
+    task->state += 1;
+    D_80115598   = DRYFIELD_CELLAR_POST_CAP_SOUND_ENABLED;
 }
 
 /// Leaves the initialized room task alive without per-frame updates.
@@ -946,17 +949,15 @@ static void _dryfieldCellarIdle(Task* task)
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_cellar_8017D5C4 = {
-    { func_dryfield_cellar_8017D730, _dryfieldCellarIdle, taskKill },
+    { _dryfieldCellarInitRoomTask, _dryfieldCellarIdle, taskKill },
 };
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_dryfield_cellar_8017D784(Task* task)
+void dryfieldCellarRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_cellar_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_cellar_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_flare_local.inc.c"

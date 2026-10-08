@@ -74,7 +74,7 @@ extern TaskMessageEntry D_dryfield_g_r_kitchen_8017EBC0[];
 /// Endpoints of the two beams drawn in view 3: `[0]` to `[1]` and `[2]` to
 /// `[3]`.
 
-static void func_dryfield_g_r_kitchen_8017D958(Task* task);
+static void _dryfieldGRKitchenInitRoomTask(Task* task);
 static void _dryfieldGRKitchenIdleRoomTask(Task* task);
 static void _dryfieldGRKitchenDrawDimTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale);
 
@@ -284,11 +284,11 @@ RoomEventReq gRoomEventReq;
 #include "../../shared/room_event_task.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
-/// `func_dryfield_g_r_kitchen_8017D9A4`: the entry state
-/// `func_dryfield_g_r_kitchen_8017D958`, the idle state
+/// `dryfieldGRKitchenRoomTask`: the entry state
+/// `_dryfieldGRKitchenInitRoomTask`, the idle state
 /// `_dryfieldGRKitchenIdleRoomTask`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_g_r_kitchen_8017D5DC = {
-    { func_dryfield_g_r_kitchen_8017D958, _dryfieldGRKitchenIdleRoomTask, taskKill },
+    { _dryfieldGRKitchenInitRoomTask, _dryfieldGRKitchenIdleRoomTask, taskKill },
 };
 
 /// Refuses every key-item use request in this room.
@@ -322,13 +322,15 @@ static s32 _dryfieldGRKitchenIgnoreActionRequest(Task* task, s32 messageId, cons
     return 0;
 }
 
-/// Entry state of the room task: installs the room's message table, registers
-/// the task in pointer slot 7 and advances to the idle state.
-static void func_dryfield_g_r_kitchen_8017D958(Task* task)
+/// Registers the kitchen's room receiver and advances it to idle state 1.
+///
+/// Requires the live room task in state 0. The installed message table is
+/// borrowed for the room task's lifetime.
+static void _dryfieldGRKitchenInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_g_r_kitchen_8017EBC0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state += 1;
 }
 
 /// Keeps the registered room task idle between message dispatches.
@@ -339,14 +341,12 @@ static void _dryfieldGRKitchenIdleRoomTask(Task* task)
 {
 }
 
-/// The room task: runs the state the task is in from a stack copy of the
-/// room's three-state table.
-void func_dryfield_g_r_kitchen_8017D9A4(Task* task)
+void dryfieldGRKitchenRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_g_r_kitchen_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_g_r_kitchen_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_tapered_beam.inc.c"

@@ -91919,7 +91919,7 @@ boundaries, so nothing renumbers.
 Inputs: `base.i` (41.1%, m2c's `M2C_ERROR` placeholders standing in for the
 8-byte `*out = *in` copy - see the `lwl`/`lwr` quad entry above), `base_1.i`
 (100%). Compiler SHA256
-## A `regs` leftover that changes which argument register a call uses is a signature difference, not allocation (func_dryfield_general_store_8017DEAC, 2026-09-16)
+## A `regs` leftover that changes which argument register a call uses is a signature difference, not allocation (_dryfieldGeneralStoreInitRoomTask, 2026-09-16)
 
 The seed called `gameSetTaskSlot(7)` and scored 98.875% with `regs=9`,
 `topology: match`, every predicate, call target and delay slot identical. Both
@@ -91943,8 +91943,8 @@ and the constant landed in `$a0` instead of `$a1`. Writing the call the way
 every matched sibling does -
 
 ```c
-    arg0->field_24 = D_dryfield_general_store_8017E188;
-    gameSetTaskSlot(arg0, 7);
+    task->msgTable = D_dryfield_general_store_8017E188;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
 ```
 
 - took the function to 100.000% with every penalty zero on the next build, and
@@ -92372,9 +92372,9 @@ Inputs: `base.c` 100.000% (zero penalties), unmodified apart from the two
 declaration edits. Compiler SHA256
 ## A store never fills a conditional branch's delay slot eagerly: write it before the `if`
 
-`func_dryfield_junk_yard_8017D5F4` is a pickup-model step, the same shape as the
+`dryfieldJunkYardWireRopeTask` is a pickup-model step, the same shape as the
 shared `RoomsShared80182574`: read the item's 2-bit flag, set the model's
-`field_C` from it, call the next state. The target puts the *else* arm's store in
+`flags` from it, draw the ground shadow. The target puts the *else* arm's store in
 the `bne`'s delay slot and leaves the else block a single `sb`:
 
 ```
@@ -92392,11 +92392,11 @@ Writing the store where it reads — in the else arm — scores 91.76% and gives
 delay slot to the *if* arm's constant instead:
 
 ```c
-if (flag == 2) {
-    tmd->field_C = 0x84;
+if (objectState == DRYFIELD_JUNK_YARD_WIRE_ROPE_COLLECTED_STATE) {
+    model->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
 } else {
-    tmd->field_C = 0;     /* reorg will not take this */
-    tmd->field_E = 0;
+    model->flags = 0;     /* reorg will not take this */
+    model->otOffset = 0;
 }
 ```
 
@@ -92425,16 +92425,16 @@ from *before* the branch. So the store belongs in the block ahead of the `bne`,
 after the flag call — compute the flag into a local first:
 
 ```c
-flag = areaGetCurrentObjectState(obj->field_8);
-tmd->field_C = 0;
-if (flag == 2) {
-    tmd->field_C = 0x84;
+objectState = areaGetCurrentObjectState((u8)placedObject->placeKey);
+model->flags = 0;
+if (objectState == DRYFIELD_JUNK_YARD_WIRE_ROPE_COLLECTED_STATE) {
+    model->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
 } else {
-    tmd->field_E = 0;
+    model->otOffset = 0;
 }
 ```
 
-100% at once, with the `lw` of `tmd` scheduled after the `lbu` exactly as in the
+100% at once, with the `lw` of `model` scheduled after the `lbu` exactly as in the
 target. The `.dbr` dump does not print `INSN_FROM_TARGET_P`, so the two sources
 look alike there; the mechanism is what tells them apart, and it says a store in
 the slot was written ahead of the branch.
@@ -93172,7 +93172,7 @@ declared `extern` at file scope, e.g. `extern TaskDesc D_80141B6C;` - see
 above the load address is `<family>/<overlay>.txt` if named, else splat's
 `D_<overlay>_<vram>`.
 
-## The reloc fold's single-field shape: 98% with exactly one `addiu` missing (func_dryfield_garage_8017DB18, 2026-09-16)
+## The reloc fold's single-field shape: 98% with exactly one `addiu` missing (_dryfieldGarageInitRoomTask, 2026-09-16)
 
 The entry "`M2C_FIELD(&global, T*, off)` folds the offset into the symbol reloc"
 shows the fold as a *rebased* store sequence - an `addiu` too many, every later

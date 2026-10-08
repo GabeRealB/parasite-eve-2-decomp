@@ -1636,23 +1636,23 @@ WorldCollisionSurfaceProperties* D_dryfield_junk_yard_80181C28[8] = {
     D_dryfield_junk_yard_80181C18,
 };
 
-/// Model task tick: reads the 2-bit game flag named by the low byte of the
-/// spawned `Enemy`'s `placeKey`, clears the model's flags and sets them to 0x84 when the flag
-/// reads 2 (otherwise zeroing `otOffset`), then runs the model's draw below.
-void func_dryfield_junk_yard_8017D5F4(Task* task)
+void dryfieldJunkYardWireRopeTask(Task* task)
 {
-    Enemy*     enemy;
-    TmdObject* tmd;
-    s32        flag;
+    enum { DRYFIELD_JUNK_YARD_WIRE_ROPE_COLLECTED_STATE = 2 };
 
-    enemy      = task->spawnArg2.pointer;
-    tmd        = task->extra.tmd;
-    flag       = areaGetCurrentObjectState((u8)enemy->placeKey);
-    tmd->flags = 0;
-    if (flag == 2) {
-        tmd->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+    const Enemy* placedObject;
+    TmdObject*   model;
+    s32          objectState;
+
+    placedObject = task->spawnArg2.pointer;
+    model        = task->extra.tmd;
+    objectState  = areaGetCurrentObjectState((u8)placedObject->placeKey);
+    // Clear flags before the branch; collection hides both model and shadow.
+    model->flags = 0;
+    if (objectState == DRYFIELD_JUNK_YARD_WIRE_ROPE_COLLECTED_STATE) {
+        model->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
     } else {
-        tmd->otOffset = 0;
+        model->otOffset = 0;
     }
     _dryfieldJunkYardDrawModelGroundShadow(task);
 }
@@ -1865,14 +1865,12 @@ static void _dryfieldJunkYardIdleRoomTask(Task* unusedTask)
     }
 }
 
-/// The room task: copies its three-state table to the stack and runs the
-/// entry the task's state selects.
-void func_dryfield_junk_yard_8017DCB4(Task* task)
+void dryfieldJunkYardRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_junk_yard_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_junk_yard_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 void dryfieldJunkYardEnableViewEffectsTask(Task* unusedTask)

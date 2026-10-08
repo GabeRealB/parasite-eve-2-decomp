@@ -255,18 +255,16 @@ static void _dryfieldGasStationIdleRoomTask(Task* unusedTask)
 }
 
 /// The three states of the room's main task, run by
-/// `func_dryfield_gas_station_8017FF8C`: set-up, the per-frame handler and the
+/// `dryfieldGasStationRoomTask`: set-up, the per-frame handler and the
 /// kill.
 static const TaskFuncTable3 D_dryfield_gas_station_8017D6A4 = {
     { func_dryfield_gas_station_8017FEDC, _dryfieldGasStationIdleRoomTask, taskKill },
 };
 
-/// Dispatches the task through the room's three-state table, copied onto the
-/// stack first.
-void func_dryfield_gas_station_8017FF8C(Task* task)
+void dryfieldGasStationRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_gas_station_8017D6A4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_gas_station_8017D6A4;
+    stateHandlers.funcs[task->state](task);
 }

@@ -43,6 +43,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_g_r_kitchen_8017F53C[];
 /// live until GPU completion.
 void dryfieldGRKitchenDrawLightBeamsTask(Task* task);
 
-void func_dryfield_g_r_kitchen_8017D9A4(Task* task);
+/// Runs the G & R kitchen's room receiver through initialization, idle and teardown.
+///
+/// Requires a live bodyless task with state 0 (register), 1 (idle) or 2 (kill).
+/// Initialization installs the room message table in `GAME_TASK_SLOT_ROOM`.
+/// Keep the kitchen overlay loaded for the task's lifetime.
+void dryfieldGRKitchenRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_G_R_KITCHEN_H

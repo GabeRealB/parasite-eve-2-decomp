@@ -60,3 +60,5 @@ _dryfieldCellarRejectKeyItem = 0x8017d62c; // type:func
 _dryfieldCellarIgnoreActionMessage = 0x8017d6f4; // type:func
 _dryfieldCellarHandleSoundMessage = 0x8017d6fc; // type:func
 _dryfieldCellarIdle = 0x8017d77c; // type:func
+_dryfieldCellarInitRoomTask = 0x8017d730; // type:func
+dryfieldCellarRoomTask = 0x8017d784; // type:func

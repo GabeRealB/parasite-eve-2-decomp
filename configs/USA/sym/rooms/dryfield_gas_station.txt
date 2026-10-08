@@ -157,3 +157,4 @@ _dryfieldGasStationRejectKeyItemUse = 0x8017fd4c; // type:func
 _dryfieldGasStationIdleRoomTask = 0x8017ff84; // type:func
 _dryfieldGasStationSuppressPlayerEquipment = 0x80180944; // type:func
 _dryfieldGasStationSetCutsceneCommand = 0x80180b2c; // type:func
+dryfieldGasStationRoomTask = 0x8017ff8c; // type:func

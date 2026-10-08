@@ -40,6 +40,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_cellar_80180B40[];
 /// queued flare packets belong to the current frame.
 void dryfieldCellarDrawGlowsTask(Task* task);
 
-void func_dryfield_cellar_8017D784(Task* task);
+/// Runs the cellar's room receiver through initialization, idle and teardown.
+///
+/// Requires a live bodyless task with state 0 (register), 1 (idle) or 2 (kill).
+/// Initialization registers `GAME_TASK_SLOT_ROOM` and permits post-CAP sound
+/// messages. Keep the cellar overlay loaded for the task's lifetime.
+void dryfieldCellarRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_CELLAR_H

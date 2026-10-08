@@ -84,7 +84,7 @@ extern s32              D_dryfield_general_store_8017E560;
 extern s32              D_dryfield_general_store_8017E564;
 extern EvsCommand       D_dryfield_general_store_8017E568[];
 
-static void func_dryfield_general_store_8017DEAC(Task* arg0);
+static void _dryfieldGeneralStoreInitRoomTask(Task* task);
 static void _dryfieldGeneralStoreIdleRoomTask(Task* task);
 
 extern AnimationPlayRequest     D_dryfield_general_store_8017E4FC;
@@ -1576,11 +1576,11 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 #include "../../shared/general_store_cutscene_task.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
-/// `func_dryfield_general_store_8017DF5C`: the entry state
-/// `func_dryfield_general_store_8017DEAC`, the idle state
+/// `dryfieldGeneralStoreRoomTask`: the entry state
+/// `_dryfieldGeneralStoreInitRoomTask`, the idle state
 /// `_dryfieldGeneralStoreIdleRoomTask`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_general_store_8017D5F4 = {
-    { func_dryfield_general_store_8017DEAC, _dryfieldGeneralStoreIdleRoomTask, taskKill },
+    { _dryfieldGeneralStoreInitRoomTask, _dryfieldGeneralStoreIdleRoomTask, taskKill },
 };
 
 #include "../../shared/general_store_toggle_task.inc.c"
@@ -1620,17 +1620,30 @@ s32 func_dryfield_general_store_8017DDFC(Task* task, s32 msgId, RoomEventMsg* ar
     return 0;
 }
 
-static void func_dryfield_general_store_8017DEAC(Task* arg0)
+/// Registers the store's room receiver and reconciles its entry scene state.
+///
+/// Requires the live room task in state 0 and a live scene manager. Before the
+/// scene starts, broadcasts the room's entry actor command; an already started
+/// scene is marked complete on re-entry. Permits post-CAP sound messages and
+/// advances to idle state 1, borrowing the room's message table.
+static void _dryfieldGeneralStoreInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_general_store_8017E188;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 0) {
+    enum {
+        DRYFIELD_GENERAL_STORE_CUTSCENE_NOT_STARTED   = 0,
+        DRYFIELD_GENERAL_STORE_CUTSCENE_STARTED       = 1,
+        DRYFIELD_GENERAL_STORE_CUTSCENE_COMPLETE      = 2,
+        DRYFIELD_GENERAL_STORE_POST_CAP_SOUND_ENABLED = 1,
+    };
+
+    task->msgTable = D_dryfield_general_store_8017E188;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == DRYFIELD_GENERAL_STORE_CUTSCENE_NOT_STARTED) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E1B8, ACTOR_COMMAND_MESSAGE_APPLY);
-    } else if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == 1) {
-        gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, 2);
+    } else if (gameFlagGetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE) == DRYFIELD_GENERAL_STORE_CUTSCENE_STARTED) {
+        gameFlagSetNibble(GAME_FLAG_GENERAL_STORE_CUTSCENE_STATE, DRYFIELD_GENERAL_STORE_CUTSCENE_COMPLETE);
     }
-    arg0->state = arg0->state + 1;
-    D_80115598  = 1;
+    task->state += 1;
+    D_80115598   = DRYFIELD_GENERAL_STORE_POST_CAP_SOUND_ENABLED;
 }
 
 /// Keeps the room task idle after initialization, leaving its state unchanged.
@@ -1640,14 +1653,12 @@ static void _dryfieldGeneralStoreIdleRoomTask(Task* task)
     char unusedStack[0x10];
 }
 
-/// The room task: runs the state `D_dryfield_general_store_8017D5F4` names for
-/// `task->state`, through a stack copy of the table.
-void func_dryfield_general_store_8017DF5C(Task* task)
+void dryfieldGeneralStoreRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_general_store_8017D5F4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_general_store_8017D5F4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Advances the scene-cue lifetime and destroys its task once the counter is negative.

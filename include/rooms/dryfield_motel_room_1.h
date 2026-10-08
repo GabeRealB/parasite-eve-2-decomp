@@ -36,6 +36,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_motel_room_1_8018157C[];
 /// advancing its state. The task's resources remain owned until external teardown.
 void dryfieldMotelRoom1NoOpEffectTask(Task* unusedTask);
 
-void func_dryfield_motel_room_1_8017D754(Task* task);
+/// Runs motel room 1's room receiver through entry setup, idle and teardown.
+///
+/// Requires a live bodyless task with state 0 (entry), 1 (idle) or 2 (kill).
+/// Entry registers `GAME_TASK_SLOT_ROOM`; variant 3 broadcasts command 0 to
+/// placed actors until the room event has been seen. The scene manager must
+/// be live on that path. Keep the room overlay loaded for the task's lifetime.
+void dryfieldMotelRoom1Task(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_MOTEL_ROOM_1_H

@@ -103,3 +103,5 @@ _dryfieldGeneralStoreRejectKeyItemUse = 0x8017ddf4; // type:func
 _dryfieldGeneralStoreIdleRoomTask = 0x8017df4c; // type:func
 _dryfieldGeneralStorePlaySceneCueTask = 0x8017dfb4; // type:func
 _dryfieldGeneralStoreEngageBattle = 0x8017e130; // type:func
+_dryfieldGeneralStoreInitRoomTask = 0x8017deac; // type:func
+dryfieldGeneralStoreRoomTask = 0x8017df5c; // type:func

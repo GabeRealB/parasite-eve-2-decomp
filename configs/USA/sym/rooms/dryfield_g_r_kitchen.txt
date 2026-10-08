@@ -48,3 +48,5 @@ _dryfieldGRKitchenIgnoreCommand = 0x8017d948; // type:func
 _dryfieldGRKitchenIgnoreActionRequest = 0x8017d950; // type:func
 _dryfieldGRKitchenIdleRoomTask = 0x8017d99c; // type:func
 _dryfieldGRKitchenDrawDimTaperedBeam = 0x8017e27c; // type:func
+_dryfieldGRKitchenInitRoomTask = 0x8017d958; // type:func
+dryfieldGRKitchenRoomTask = 0x8017d9a4; // type:func

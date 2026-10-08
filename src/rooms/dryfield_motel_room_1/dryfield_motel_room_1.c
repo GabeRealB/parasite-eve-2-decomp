@@ -28,7 +28,7 @@ TaskMessageEntry D_dryfield_motel_room_1_8017E0A8[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_dryfield_motel_room_1_8017D69C(Task* arg0);
+static void _dryfieldMotelRoom1InitRoomTask(Task* task);
 static void _dryfieldMotelRoom1IdleRoomTask(Task* unusedTask);
 
 /// Refuses every request to use a collected key item in motel room 1.
@@ -80,25 +80,30 @@ s32 func_dryfield_motel_room_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* in, 
     return 0;
 }
 
-/// Room entry task tick: park the room's hotspot table in `Task::msgTable` -
-/// the table whose 0x13EF entry is the gate `func_dryfield_motel_room_1_8017D624`
-/// matches - register the task in pointer slot 7, then, on the phase-3 visit
-/// whose nibble 0x5C is still clear, announce the room to the slot-4 task with
-/// message 0x7DA carrying the session's two id bytes and a zero halfword. Then
-/// advance state.
-static void func_dryfield_motel_room_1_8017D69C(Task* arg0)
+/// Registers motel room 1's receiver and broadcasts its pending entry actor command.
+///
+/// Requires the live room task in state 0. Variant 3 broadcasts command 0 in
+/// the current stage/area namespace until the room event has been seen;
+/// the scene manager must be live on that path. The command is borrowed only
+/// through synchronous dispatch. Advances to idle state 1 with a borrowed
+/// message table.
+static void _dryfieldMotelRoom1InitRoomTask(Task* task)
 {
-    ActorCommand msg;
+    enum {
+        DRYFIELD_MOTEL_ROOM_1_EVENT_VARIANT       = 3,
+        DRYFIELD_MOTEL_ROOM_1_ENTRY_ACTOR_COMMAND = 0,
+    };
+    ActorCommand entryCommand;
 
-    arg0->msgTable = D_dryfield_motel_room_1_8017E0A8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 3 && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0) {
-        msg.context.loc.stage = gGameSession->location.loc.stage;
-        msg.context.loc.area  = gGameSession->location.loc.area;
-        msg.command           = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    task->msgTable = D_dryfield_motel_room_1_8017E0A8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gGameSession->location.loc.variant == DRYFIELD_MOTEL_ROOM_1_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_1_EVENT_SEEN) == 0) {
+        entryCommand.context.loc.stage = gGameSession->location.loc.stage;
+        entryCommand.context.loc.area  = gGameSession->location.loc.area;
+        entryCommand.command           = DRYFIELD_MOTEL_ROOM_1_ENTRY_ACTOR_COMMAND;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &entryCommand, ACTOR_COMMAND_MESSAGE_APPLY);
     }
-    arg0->state = arg0->state + 1;
+    task->state += 1;
 }
 /// Keeps the initialized motel room 1 task idle in state 1.
 ///
@@ -107,19 +112,17 @@ static void _dryfieldMotelRoom1IdleRoomTask(Task* unusedTask)
 {
 }
 
-/// State handlers of the room entry task `func_dryfield_motel_room_1_8017D754`,
+/// State handlers of the room entry task `dryfieldMotelRoom1Task`,
 /// indexed by `Task::state`: the set-up tick, which advances the state, the
 /// idle tick, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_motel_room_1_8017D5C4 = {
-    { func_dryfield_motel_room_1_8017D69C, _dryfieldMotelRoom1IdleRoomTask, taskKill },
+    { _dryfieldMotelRoom1InitRoomTask, _dryfieldMotelRoom1IdleRoomTask, taskKill },
 };
 
-/// Room entry task: runs the state handler `D_dryfield_motel_room_1_8017D5C4`
-/// names for `Task::state`, through a copy of the table taken onto the stack.
-void func_dryfield_motel_room_1_8017D754(Task* task)
+void dryfieldMotelRoom1Task(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_motel_room_1_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_motel_room_1_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

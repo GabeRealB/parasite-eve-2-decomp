@@ -68,3 +68,4 @@ _dryfieldNightBackStreetRejectKeyItemUse = 0x8017d724; // type:func
 _dryfieldNightBackStreetIgnoreCommandMessage = 0x8017d72c; // type:func
 _dryfieldNightBackStreetIgnoreRoomActionMessage = 0x8017d734; // type:func
 _dryfieldNightBackStreetIdleState = 0x8017d780; // type:func
+_dryfieldNightBackStreetInitRoomTask = 0x8017d73c; // type:func

@@ -40,8 +40,26 @@ extern WorldCollisionSurfaceProperties* D_dryfield_junk_yard_80181C28[];
 /// controller must be live; the task argument is ignored and no state advances.
 void dryfieldJunkYardEnableViewEffectsTask(Task* unusedTask);
 
-void func_dryfield_junk_yard_8017D5F4(Task* task);
+/// Updates the placed Wire Rope pickup's visibility and ground shadow.
+///
+/// Requires a live TMD-bodied task with a model root and its live `Enemy`
+/// metadata in `spawnArg2.pointer`. Its place-key low byte selects a current-stage
+/// object state (0..63); the stage must be 1..5. State 2 suppresses model drawing,
+/// automatic buffer allocation and the shadow. Other states clear the model
+/// flags and ordering bias, drawing the shadow when a primitive buffer exists.
+/// Keeps the task alive without advancing its state or allocating work.
+/// The enemy metadata and model remain owned by the task until external teardown.
+/// Visible buffered models require an initialized scratch stack, current view
+/// matrices, and a frame packet arena and ordering table. Keep the junk-yard
+/// overlay and those resources live while scheduled.
+void dryfieldJunkYardWireRopeTask(Task* task);
 
-void func_dryfield_junk_yard_8017DCB4(Task* task);
+/// Runs the junk yard's room receiver through entry setup, idle and teardown.
+///
+/// Requires a live bodyless task with state 0 (entry), 1 (idle) or 2 (kill).
+/// Entry registers `GAME_TASK_SLOT_ROOM`; idle also runs the companion debug
+/// hook when debug mode is enabled. Keep the junk-yard overlay loaded for
+/// the task's lifetime.
+void dryfieldJunkYardRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_JUNK_YARD_H

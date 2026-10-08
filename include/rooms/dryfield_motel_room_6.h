@@ -53,6 +53,11 @@ void dryfieldMotelRoom6PlayerReflectionTask(Task* reflectionTask);
 /// room overlay loaded while the effect task is live.
 void dryfieldMotelRoom6DrawGlowTask(Task* unusedTask);
 
-void func_dryfield_motel_room_6_80181B18(Task* task);
+/// Runs daytime motel room 6's receiver through initialization, idle and teardown.
+///
+/// Requires a live bodyless task with state 0 (register), 1 (idle) or 2 (kill).
+/// Initialization registers `GAME_TASK_SLOT_ROOM` and permits post-CAP sound
+/// messages. Keep the room overlay loaded for the task's lifetime.
+void dryfieldMotelRoom6Task(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_MOTEL_ROOM_6_H

@@ -36,6 +36,13 @@ extern WorldCollisionSurfaceProperties* D_dryfield_general_store_801856D8[];
 /// Its coordinate body remains owned by the task until external teardown.
 void dryfieldGeneralStoreNoOpEffectTask(Task* unusedTask);
 
-void func_dryfield_general_store_8017DF5C(Task* task);
+/// Runs the General Store's room receiver through entry setup, idle and teardown.
+///
+/// Requires a live bodyless task with state 0 (entry), 1 (idle) or 2 (kill).
+/// Entry registers `GAME_TASK_SLOT_ROOM`, broadcasts the pending entry actor
+/// command or completes the started scene flag, and permits post-CAP sound
+/// messages. Requires a live scene manager before the scene starts; keep the
+/// store overlay loaded for the task's lifetime.
+void dryfieldGeneralStoreRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_GENERAL_STORE_H

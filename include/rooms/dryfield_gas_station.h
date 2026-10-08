@@ -47,8 +47,12 @@ void dryfieldGasStationCyanGlowTask(Task* task);
 
 void func_dryfield_gas_station_8017EA90(Task* task);
 
-/// Task entries the Dryfield map UI overlay's stage tables name: each room's
-/// entry task, started for its location, and the enemy descriptors' tasks.
-void func_dryfield_gas_station_8017FF8C(Task* task);
+/// Runs the gas station's room receiver through entry setup, idle and teardown.
+///
+/// Requires a live bodyless task with state 0 (entry), 1 (idle) or 2 (kill).
+/// Entry registers `GAME_TASK_SLOT_ROOM`, starts the arrival scene or area music,
+/// and permits post-CAP sound messages. Keep the gas-station overlay loaded
+/// for the task's lifetime.
+void dryfieldGasStationRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_GAS_STATION_H

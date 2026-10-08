@@ -49,6 +49,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_garage_801801E4[];
 /// Keep the Dryfield Garage overlay loaded while this callback is scheduled.
 void dryfieldGarageEffectNoopTaskD6(Task* unusedTask);
 
-void func_dryfield_garage_8017DC10(Task* task);
+/// Runs the garage's room receiver through entry setup, idle and teardown.
+///
+/// Requires a live bodyless task with state 0 (entry), 1 (idle) or 2 (kill).
+/// Entry registers `GAME_TASK_SLOT_ROOM`, applies companion placement for warp 2,
+/// advances follow-up dialogue and restricts the first action trigger to variant 1.
+/// Keep the garage overlay and active layout live for the task's lifetime.
+void dryfieldGarageRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_GARAGE_H

@@ -181,7 +181,7 @@ extern RoomCutsceneRec gMotelRoom6CutsceneRec;
 #define PLANAR_REFLECTION_DEFINE_SCALE_WITH_IMPLEMENTATION 1
 #include "../../shared/planar_reflection.h"
 
-static void func_dryfield_motel_room_6_80181AC4(Task* task);
+static void _dryfieldMotelRoom6InitRoomTask(Task* task);
 static void _dryfieldMotelRoom6IdleTask(Task* unusedTask);
 
 extern WorldCollisionGrid         D_dryfield_motel_room_6_8018381C[1];
@@ -2015,11 +2015,11 @@ void dryfieldMotelRoom6PlayerReflectionTask(Task* reflectionTask)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// State handlers of the room entry task `func_dryfield_motel_room_6_80181B18`,
+/// State handlers of the room entry task `dryfieldMotelRoom6Task`,
 /// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_motel_room_6_8017D6B4 = {
     {
-        func_dryfield_motel_room_6_80181AC4,
+        _dryfieldMotelRoom6InitRoomTask,
         _dryfieldMotelRoom6IdleTask,
         taskKill,
     },
@@ -2119,15 +2119,18 @@ void func_dryfield_motel_room_6_80181A08(Task* arg0)
     }
 }
 
-/// First state of the room entry task: installs the room's message table,
-/// publishes the task in pointer slot 7, advances the state and sets the
-/// gameplay byte `D_80115598`.
-static void func_dryfield_motel_room_6_80181AC4(Task* arg0)
+/// Registers motel room 6's room receiver and permits post-CAP sound messages.
+///
+/// Requires the live room task in state 0. Borrows the room's message table
+/// for its lifetime and advances to idle state 1.
+static void _dryfieldMotelRoom6InitRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_motel_room_6_80182D48;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    arg0->state = (s32)(arg0->state + 1);
-    D_80115598  = 1;
+    enum { DRYFIELD_MOTEL_ROOM_6_POST_CAP_SOUND_ENABLED = 1 };
+
+    task->msgTable = D_dryfield_motel_room_6_80182D48;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    task->state += 1;
+    D_80115598   = DRYFIELD_MOTEL_ROOM_6_POST_CAP_SOUND_ENABLED;
 }
 
 /// Keeps the room task alive to receive messages after initialization.
@@ -2137,14 +2140,12 @@ static void _dryfieldMotelRoom6IdleTask(Task* unusedTask)
 {
 }
 
-/// Room entry task: runs the state handler `D_dryfield_motel_room_6_8017D6B4`
-/// names for `Task::state`, through a copy of the table taken onto the stack.
-void func_dryfield_motel_room_6_80181B18(Task* task)
+void dryfieldMotelRoom6Task(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_motel_room_6_8017D6B4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_motel_room_6_8017D6B4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_wide_diamond.inc.c"

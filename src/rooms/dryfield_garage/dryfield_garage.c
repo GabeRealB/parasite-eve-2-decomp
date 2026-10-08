@@ -86,7 +86,7 @@ extern _DryfieldGarageDoorSceneStorage D_dryfield_garage_8018021C;
 enum { DRYFIELD_GARAGE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static s32  _dryfieldGarageRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
-static void func_dryfield_garage_8017DB18(Task* arg0);
+static void _dryfieldGarageInitRoomTask(Task* task);
 static void _dryfieldGarageIdleRoomTask(Task* unusedTask);
 
 extern TaskDesc Actor00100_D1BA84;
@@ -615,11 +615,11 @@ RoomEventReq gRoomEventReq;
 #include "../../shared/room_event_task.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
-/// `func_dryfield_garage_8017DC10`: the entry state
-/// `func_dryfield_garage_8017DB18`, the idle state
+/// `dryfieldGarageRoomTask`: the entry state
+/// `_dryfieldGarageInitRoomTask`, the idle state
 /// `_dryfieldGarageIdleRoomTask`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_garage_8017D5DC = {
-    { func_dryfield_garage_8017DB18, _dryfieldGarageIdleRoomTask, taskKill },
+    { _dryfieldGarageInitRoomTask, _dryfieldGarageIdleRoomTask, taskKill },
 };
 
 #include "../../shared/garage_sound_msg.inc.c"
@@ -719,27 +719,45 @@ void func_dryfield_garage_8017DAA0(Task* arg0)
     }
 }
 
-/// Entry state of the room task: installs the room's message table, registers
-/// the task in pointer slot 7, sends message 0x3E9 with
-/// `D_dryfield_garage_8017DCC4` to the task in pointer slot 0xA when arriving
-/// by warp 2, moves nibble 0x155 from 1 to 2 (clearing nibble 3), clears bit 6
-/// of `D_dryfield_garage_8017FD1C[0].flags` outside place 1, and advances to
-/// the idle state.
-static void func_dryfield_garage_8017DB18(Task* arg0)
+/// Selects the garage entry's follow-up dialogue after the preceding story beat.
+static inline void _dryfieldGarageAdvanceEntryDialogue(void)
 {
-    arg0->msgTable = D_dryfield_garage_8017DC7C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == 2)) {
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0x3E9, &D_dryfield_garage_8017DCC4, 0);
+    enum {
+        DRYFIELD_GARAGE_PRE_ENTRY_DIALOGUE = 1,
+        DRYFIELD_GARAGE_ENTRY_DIALOGUE     = 2,
+        DRYFIELD_GARAGE_NO_FOLLOW_UP       = 0,
+    };
+
+    if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == DRYFIELD_GARAGE_PRE_ENTRY_DIALOGUE) {
+        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, DRYFIELD_GARAGE_NO_FOLLOW_UP);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, DRYFIELD_GARAGE_ENTRY_DIALOGUE);
     }
-    if (gameFlagGetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX) == 1) {
-        gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
+}
+
+/// Registers the garage's room receiver and applies its entry placement and progress.
+///
+/// Requires the live room task in state 0 and the active garage layout. Warp 2
+/// places a live companion at the room's entry transform. The first room-action
+/// trigger is available only in variant 1. Borrows the message table and
+/// advances to idle state 1.
+static void _dryfieldGarageInitRoomTask(Task* task)
+{
+    enum {
+        DRYFIELD_GARAGE_COMPANION_PLACEMENT_WARP = 2,
+        DRYFIELD_GARAGE_ROOM_ACTION_VARIANT      = 1,
+        DRYFIELD_GARAGE_VARIANT_ACTION_TRIGGER   = 0,
+    };
+
+    task->msgTable = D_dryfield_garage_8017DC7C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if ((gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) && (gGameSession->location.loc.warp == DRYFIELD_GARAGE_COMPANION_PLACEMENT_WARP)) {
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_garage_8017DCC4, 0);
     }
-    if (gGameSession->location.loc.variant != 1) {
-        D_dryfield_garage_8017FD1C[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+    _dryfieldGarageAdvanceEntryDialogue();
+    if (gGameSession->location.loc.variant != DRYFIELD_GARAGE_ROOM_ACTION_VARIANT) {
+        D_dryfield_garage_8017FD1C[DRYFIELD_GARAGE_VARIANT_ACTION_TRIGGER].flags &= (u8)~WORLD_COLLISION_TRIGGER_ENABLED;
     }
-    arg0->state = arg0->state + 1;
+    task->state += 1;
 }
 
 /// Keeps the initialized room task idle between messages.
@@ -750,14 +768,12 @@ static void _dryfieldGarageIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The room task: runs the state the task is in from a stack copy of the
-/// room's three-state table.
-void func_dryfield_garage_8017DC10(Task* task)
+void dryfieldGarageRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_garage_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_garage_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 void dryfieldGarageEffectNoopTaskD6(Task* unusedTask)
