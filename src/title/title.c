@@ -299,19 +299,31 @@ static void _titleDrawChromeRow(s32 screenY, s32 atlasV, s32 brightness)
     _titlePrependChromeDrawMode();
 }
 
-/// Prepends the subtractive draw mode for a title-screen fade tile.
+/// Prepends the GPU draw mode for the title screen's subtractive black fade.
 ///
-/// Queue the tile at the current ordering tag first so this mode executes
-/// before it. Requires word-aligned packet space for one DR_TPAGE, retained
-/// until GPU consumption. The untextured tile ignores the texture page;
-/// dithering is enabled and drawing into the displayed area is disabled.
+/// Queue the semitransparent, untextured fade tile at `gGpuCurrentOt` first:
+/// prepending this command makes the GPU subtract the tile's RGB from the
+/// framebuffer when drawing it. The mode persists until another draw-mode
+/// command replaces it. The dithering bit is enabled and drawing into the
+/// displayed area is disabled; the selected 4-bit texture page at VRAM (0, 0)
+/// is unused by the tile.
+///
+/// Requires a writable current ordering tag and `sizeof(DR_TPAGE)` writable,
+/// word-aligned bytes at `gGpuPrimCursor`; advances the cursor by that extent.
+/// The packet and ordering-table storage are borrowed until GPU drawing ends.
 static inline void _titlePrependScreenFadeDrawMode(void)
 {
+    enum {
+        TITLE_SCREEN_FADE_TEXTURE_DEPTH_4BIT = 0,
+        TITLE_SCREEN_FADE_DRAW_MODE_COMMAND =
+            _get_mode(false, true, getTPage(TITLE_SCREEN_FADE_TEXTURE_DEPTH_4BIT, GPU_BLEND_SUBTRACT, 0, 0)),
+    };
     DR_TPAGE* drawMode;
 
     drawMode       = gGpuPrimCursor;
     gGpuPrimCursor = drawMode + 1;
-    setDrawTPage(drawMode, false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
+    setlen(drawMode, ARRAY_SIZE(drawMode->code));
+    drawMode->code[0] = TITLE_SCREEN_FADE_DRAW_MODE_COMMAND;
     addPrim(gGpuCurrentOt, drawMode);
 }
 
