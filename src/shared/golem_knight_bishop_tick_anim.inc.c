@@ -1,12 +1,14 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// 1BC.h keeps this out of scope on purpose: callers hand it a sign-extended
-/// animation id, which a `u16` prototype would zero-extend.
-/// Reseeds animation slots 1..0x12 when the actor's animation id changes,
-/// handing each slot the blend weight the id selects from
-/// `gGolemKnightBishopAnimBlend`; while the id is unchanged it instead ticks every
-/// slot one frame and walks the id's frame counter up.
-void golemKnightBishopTickAnim(Task* arg0)
+/// Applies a changed GOLEM animation request or advances the active animation.
+///
+/// `task` owns an initialized nineteen-part rig. Requested clip IDs 1..21
+/// select live entries in the carrier's animation and blend-duration tables;
+/// animation entry 0 is empty. A changed ID
+/// restarts slots 1..18 with the selected duration in frames and clears
+/// `animFrame`; an unchanged ID increments that signed halfword and ticks the
+/// same slots once. Root slot 0 is left alone.
+static void _golemKnightBishopTickAnim(Task* task)
 {
-    _golemKnightBishopTickAnimInline(arg0);
+    _golemKnightBishopTickAnimInline(task);
 }

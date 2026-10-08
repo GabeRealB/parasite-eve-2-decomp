@@ -2,14 +2,20 @@
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Rolls one flicker half-period and its positive fade divisors using two LCG draws.
+/// Starts a random flicker half-period and sets both appearance fade divisors.
 ///
-/// The dwell is 2..17 frames; the shared fade divisor is that dwell plus 0..15.
+/// `work` retains the new countdown and divisors for the appearance update.
+/// Two successive LCG draws choose a 2..17-frame countdown and add 0..15 to
+/// produce the shared 2..32-frame fade divisor. No visibility or tint changes here.
 static inline void _golemKnightBishopResetFlickerPeriod(GolemKnightBishopWork* work)
 {
+    enum {
+        GOLEM_KNIGHT_BISHOP_FLICKER_RANDOM_MASK = 15,
+        GOLEM_KNIGHT_BISHOP_FLICKER_MIN_FRAMES  = 2,
+    };
     s16 fadeFrames;
-    work->flickerTimer           = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 2;
-    fadeFrames                   = work->flickerTimer + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
+    work->flickerTimer           = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & GOLEM_KNIGHT_BISHOP_FLICKER_RANDOM_MASK) + GOLEM_KNIGHT_BISHOP_FLICKER_MIN_FRAMES;
+    fadeFrames                   = work->flickerTimer + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & GOLEM_KNIGHT_BISHOP_FLICKER_RANDOM_MASK);
     work->translucencyFadeFrames = fadeFrames;
     work->colorBlendFadeFrames   = fadeFrames;
 }

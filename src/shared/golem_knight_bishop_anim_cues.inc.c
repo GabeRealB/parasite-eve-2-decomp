@@ -1,37 +1,50 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Plays the animation cue sounds of the room's `soundSet`: while the second
-/// animation slot's record carries `flags` bit 0x20 or 0x10, a sound is
-/// queued on the frame that bit has just dropped from `prevCueFlags`, panned
-/// and depth-attenuated from the actor's display object. The cue id is the
-/// matching word of `gGolemKnightBishopAnimCues` with the `Enemy` work id's
-/// high nibble in bits 8-11, and a zero `soundSet` plays nothing. The
-/// record's two bits are kept for the next frame at the end.
-void golemKnightBishopPlayAnimCues(Task* arg0)
-{
-    s32                    snd;
-    s32                    pan;
-    s32                    pan2;
-    GolemKnightBishopWork* work;
-    GfxCoord*              coord;
-    const AnimationRecord* rec;
+/// Queues a GOLEM cue with placement-instance selection and spatial audio.
+///
+/// `root` is a `GfxCoord*` with a composed view matrix; `placeKey` is the Enemy's
+/// unsigned halfword placement key, promoted before extracting its index.
+/// `soundId` is a base script ID. Invoke as a standalone statement inside a
+/// braced block. Root is evaluated twice, the integers once each; arguments
+/// must have no side effects. Captures the enclosing function's writable s32
+/// `instanceSoundId`, which must not alias an argument; pan is local to the block.
+#define GOLEM_KNIGHT_BISHOP_PLAY_ANIM_CUE(root, soundId, placeKey)                                                         \
+    {                                                                                                                      \
+        enum { GOLEM_KNIGHT_BISHOP_CUE_INSTANCE_SHIFT = 8 };                                                               \
+        s32 audioPan;                                                                                                      \
+        instanceSoundId = (soundId) | (((placeKey) >> ENEMY_PLACE_INDEX_SHIFT) << GOLEM_KNIGHT_BISHOP_CUE_INSTANCE_SHIFT); \
+        audioPan        = (s8)worldCoordGetOriginAudioPan((root));                                                         \
+        sndEvtRequestScriptStart(instanceSoundId, audioPan, (s8)worldCoordGetOriginAudioDepth((root)));                    \
+    }
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+/// Plays spatial sound scripts on falling edges of the GOLEM's animation cues.
+///
+/// `task` owns a live rig/model and borrows its Enemy through `spawnArg2`.
+/// Room sound sets 1..4 select paired script IDs; set 0 disables cues.
+/// Slot 1 supplies cue bits 0x20 and 0x10, played in that order if both fall.
+/// The Enemy placement index occupies script bits 8..11. Pan and depth narrow
+/// to signed bytes. Disabled cues and buffered poses retain the previous bits.
+static void _golemKnightBishopPlayAnimCues(Task* task)
+{
+    s32                    instanceSoundId;
+    GolemKnightBishopWork* work;
+    GfxCoord*              root;
+    const AnimationRecord* record;
+
+    work = task->work;
+    root = task->extra.tmd->coords;
     if (work->soundSet != 0) {
-        rec = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
-        if (rec != NULL) {
-            if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->prevCueFlags & ANIMATION_RECORD_CUE_2)) {
-                snd = gGolemKnightBishopAnimCues[work->soundSet * 2 - 1] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        record = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
+        if (record != NULL) {
+            if (!(record->flags & ANIMATION_RECORD_CUE_2) && (work->prevCueFlags & ANIMATION_RECORD_CUE_2)) {
+                GOLEM_KNIGHT_BISHOP_PLAY_ANIM_CUE(root, gGolemKnightBishopAnimCues[work->soundSet * 2 - 1], ((Enemy*)task->spawnArg2.pointer)->placeKey);
             }
-            if (!(rec->flags & ANIMATION_RECORD_CUE_1) && (work->prevCueFlags & ANIMATION_RECORD_CUE_1)) {
-                snd  = gGolemKnightBishopAnimCues[work->soundSet * 2] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan2 = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(snd, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+            if (!(record->flags & ANIMATION_RECORD_CUE_1) && (work->prevCueFlags & ANIMATION_RECORD_CUE_1)) {
+                GOLEM_KNIGHT_BISHOP_PLAY_ANIM_CUE(root, gGolemKnightBishopAnimCues[work->soundSet * 2], ((Enemy*)task->spawnArg2.pointer)->placeKey);
             }
-            work->prevCueFlags = rec->flags & ANIMATION_RECORD_CUE_MASK;
+            work->prevCueFlags = record->flags & ANIMATION_RECORD_CUE_MASK;
         }
     }
 }
+
+#undef GOLEM_KNIGHT_BISHOP_PLAY_ANIM_CUE

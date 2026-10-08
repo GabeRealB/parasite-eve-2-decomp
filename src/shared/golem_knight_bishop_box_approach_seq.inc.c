@@ -1,6 +1,11 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Breaks off the box approach into exposed recovery and disables its aim probe.
+/// Interrupts box waiting or advance with a flickering recovery and stops movement.
+///
+/// `work` is the live GOLEM work block whose accumulated damage reached the
+/// carrier's interruption threshold. Disables the aim capsule's grid and pair
+/// tests while retaining its shape and other flags. Keeps the current animation
+/// and reaction lock; recovery sets its clip on the next sequence update.
 static inline void _golemKnightBishopInterruptBoxApproach(GolemKnightBishopWork* work)
 {
     work->sequence           = GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER;

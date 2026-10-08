@@ -18,10 +18,13 @@ typedef struct {
 } _GolemKnightBishopAimBeamScratch;
 STATIC_ASSERT_SIZEOF(_GolemKnightBishopAimBeamScratch, 0x3C);
 
-/// Emits the two fading ribbons, core and additive draw mode of one beam segment.
+/// Queues the red core and two ribbons that fade to black across one beam segment.
 ///
-/// Vertices and ordering depth are already prepared; packets borrow the GPU arena.
-static inline void _golemKnightBishopEmitAimBeamSegment(_GolemKnightBishopAimBeamScratch* beam)
+/// `beam` supplies six screen-pixel vertex pairs and a positive quarter-Z depth.
+/// The carrier's two corner rows select vertices 0..5. The current GPU arena
+/// must have room for two `POLY_G4`, one `LINE_F2` and one `DR_TPAGE`, and remain
+/// live through submission; the scratch input is only borrowed during this call.
+static inline void _golemKnightBishopEmitAimBeamSegment(const _GolemKnightBishopAimBeamScratch* beam)
 {
     enum {
         GOLEM_KNIGHT_BISHOP_BEAM_DRAW_MODE   = 0xE1000620, // Additive blending, dithering and drawing in the display area.
@@ -61,6 +64,7 @@ static inline void _golemKnightBishopEmitAimBeamSegment(_GolemKnightBishopAimBea
     line->y1   = beam->vertexY[1];
     setRGB0(line, 0xFF, 0, 0);
     addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(beam->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), line);
+    // Prepending the draw mode last makes it execute before the additive packets.
     drawMode       = gGpuPrimCursor;
     gGpuPrimCursor = drawMode + 1;
     setlen(drawMode, sizeof(*drawMode) / sizeof(u32) - 1);

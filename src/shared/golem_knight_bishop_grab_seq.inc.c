@@ -16,18 +16,27 @@ typedef struct {
 } _GolemKnightBishopGrabScratch;
 STATIC_ASSERT_SIZEOF(_GolemKnightBishopGrabScratch, 0x5C);
 
-/// Plays one grab clip on the player using a synchronously borrowed request.
+/// Replaces the player's animation bank and resets playback to one grab clip.
 ///
-/// `clipId` selects the carrier's grab bank; scratch storage lives through dispatch.
-static inline void _golemKnightBishopPlayGrabPlayerAnimation(Task* player, _GolemKnightBishopGrabScratch* scratch, s32 clipId)
-{
-    scratch->playerAnim.source.sets          = gGolemKnightBishopPlayerAnims;
-    scratch->playerAnim.animationId          = clipId;
-    scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
-    scratch->playerAnim.blendFrames          = 0;
-    scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
-}
+/// `clipId` is 1 start, 2 hold, 3 kill or 4 release in the carrier's five-entry
+/// player bank. `request` is writable storage borrowed only through synchronous
+/// dispatch; the bank and clip data must remain loaded through playback.
+/// Requests grid collision enablement and resets without interpolation.
+///
+/// `player` is a live `Task*`, `request` an `AnimationPlayRequest*` and `clipId`
+/// an integer. Use as a standalone statement inside a braced block. The request
+/// expression is evaluated six times and must have no side effects; player and
+/// clip are evaluated once. Borrows `gGolemKnightBishopPlayerAnims` from the
+/// carrier and captures no caller locals.
+#define GOLEM_KNIGHT_BISHOP_PLAY_GRAB_PLAYER_ANIMATION(player, request, clipId)                    \
+    {                                                                                              \
+        (request)->source.sets          = gGolemKnightBishopPlayerAnims;                           \
+        (request)->animationId          = (clipId);                                                \
+        (request)->blend                = ANIMATION_BLEND_RESET;                                   \
+        (request)->blendFrames          = 0;                                                       \
+        (request)->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                        \
+        TASK_MESSAGE_DISPATCH_POINTER((player), ANIMATION_MESSAGE_REPLACE_AND_PLAY, (request), 0); \
+    }
 
 /// Takes scripted control of the player for a damaging hold or fatal grab.
 ///
@@ -128,7 +137,7 @@ static void _golemKnightBishopGrabSeq(Task* task)
             }
             break;
         case GOLEM_KNIGHT_BISHOP_GRAB_PLAY_START:
-            _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_START);
+            GOLEM_KNIGHT_BISHOP_PLAY_GRAB_PLAYER_ANIMATION(player, &scratch->playerAnim, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_START);
             work->step                   = GOLEM_KNIGHT_BISHOP_GRAB_WAIT_START;
             work->translucencyFadeFrames = 0x3C;
             work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
@@ -143,7 +152,7 @@ static void _golemKnightBishopGrabSeq(Task* task)
                 work->auxTimer        = 0x1E;
                 work->timer           = 0;
                 work->grabDamageTicks = 0;
-                _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_HOLD);
+                GOLEM_KNIGHT_BISHOP_PLAY_GRAB_PLAYER_ANIMATION(player, &scratch->playerAnim, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_HOLD);
                 sceneEngageBattle(1);
                 work->interruptDamage = 0;
                 if (work->hitCooldown == 0) {
@@ -182,7 +191,7 @@ static void _golemKnightBishopGrabSeq(Task* task)
                     if (killSelected != 0) {
                         work->anim = GOLEM_KNIGHT_BISHOP_ANIM_GRAB_KILL;
                         work->step = GOLEM_KNIGHT_BISHOP_GRAB_KILL;
-                        _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_KILL);
+                        GOLEM_KNIGHT_BISHOP_PLAY_GRAB_PLAYER_ANIMATION(player, &scratch->playerAnim, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_KILL);
                     } else {
                         work->timer = GOLEM_KNIGHT_BISHOP_GRAB_RECHECK;
                         taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gGolemKnightBishopAttacks, 0), 0);
@@ -218,7 +227,7 @@ static void _golemKnightBishopGrabSeq(Task* task)
                 }
                 work->grabStage = GOLEM_KNIGHT_BISHOP_GRAB_RELEASED;
                 work->grabBreak = GOLEM_KNIGHT_BISHOP_GRAB_BREAK_NONE;
-                _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_RELEASE);
+                GOLEM_KNIGHT_BISHOP_PLAY_GRAB_PLAYER_ANIMATION(player, &scratch->playerAnim, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_RELEASE);
             }
             break;
         case GOLEM_KNIGHT_BISHOP_GRAB_BACK_AWAY:
@@ -241,7 +250,7 @@ static void _golemKnightBishopGrabSeq(Task* task)
                 if (work->grabBreak != GOLEM_KNIGHT_BISHOP_GRAB_BREAK_NONE) {
                     work->anim      = GOLEM_KNIGHT_BISHOP_ANIM_GRAB_RELEASE;
                     work->grabBreak = GOLEM_KNIGHT_BISHOP_GRAB_BREAK_NONE;
-                    _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_RELEASE);
+                    GOLEM_KNIGHT_BISHOP_PLAY_GRAB_PLAYER_ANIMATION(player, &scratch->playerAnim, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_RELEASE);
                     work->timer                  = 0x69;
                     work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_VANISH;
                     work->translucencyFadeFrames = 0x4B;
@@ -296,3 +305,5 @@ static void _golemKnightBishopGrabSeq(Task* task)
     }
     SCRATCH_STACK_RELEASE_BLOCK(_GolemKnightBishopGrabScratch);
 }
+
+#undef GOLEM_KNIGHT_BISHOP_PLAY_GRAB_PLAYER_ANIMATION

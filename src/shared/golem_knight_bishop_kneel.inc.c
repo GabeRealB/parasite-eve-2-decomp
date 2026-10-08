@@ -2,17 +2,24 @@
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Releases the fall lock and begins the side's lying pose with a random dwell.
+/// Ends a knockdown fall with an unlocked lying pose and a random rest countdown.
+///
+/// `lyingAnimation` is the rear or front lying clip of the live GOLEM rig.
+/// One LCG draw sets the stored countdown to 0..63 frames; the rest sequence
+/// decrements before testing, so both 0 and 1 advance on its next update.
 static inline void _golemKnightBishopFinishKnockdownFall(GolemKnightBishopWork* work, s16 lyingAnimation)
 {
-    enum { GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_STEP = 3 };
+    enum {
+        GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_STEP       = 3,
+        GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_MAX_FRAMES = 63,
+    };
     u32 randomDraw;
     work->anim         = lyingAnimation;
     work->step         = GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_STEP;
     work->reactionLock = GOLEM_KNIGHT_BISHOP_REACTION_UNLOCKED;
     randomDraw         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     gRandomLcgState    = randomDraw;
-    work->timer        = (randomDraw >> 16) & 0x3F;
+    work->timer        = (randomDraw >> 16) & GOLEM_KNIGHT_BISHOP_KNOCKDOWN_REST_MAX_FRAMES;
 }
 
 /// Falls at low HP, then alternates the retained lying and writhing poses.

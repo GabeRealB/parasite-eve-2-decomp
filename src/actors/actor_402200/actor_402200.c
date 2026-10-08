@@ -56,8 +56,8 @@ static void _frameCaptureQueue(s32 orderingTableSlot);
 #define GOLEM_KNIGHT_BISHOP_KIND GOLEM_KNIGHT
 #include "../../shared/golem_knight_bishop.h"
 
-/// Per-animation-id value `golemKnightBishopTickAnim` hands `animationSeekSlotWithBlend`
-/// as its fifth argument when it reseeds animation slots 1..0x12.
+/// Per-clip blend duration in frames used by `_golemKnightBishopTickAnim`
+/// when a changed animation request restarts slots 1..18.
 extern s16 gGolemKnightBishopAnimBlend[];
 
 extern GolemKnightBishopChargeSpeedSpan gGolemKnightBishopFrameSteps[];
@@ -1277,8 +1277,8 @@ AnimationSet* gGolemKnightBishopAnimSets[22] = {
 /// before running its own short sequence.
 static const EnemyTaskFuncTable3 D_actor_402200_80131F18 = {
     _golemKnightBishopSpawn,
-    golemKnightBishopFrameState,
-    golemKnightBishopDeadState,
+    _golemKnightBishopFrameState,
+    _golemKnightBishopDeadState,
 };
 
 #include "../../shared/golem_knight_bishop_collapse_death.inc.c"

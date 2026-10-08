@@ -149971,7 +149971,7 @@ attempts; left as it was.
   with `break`, not `default: return 0;` (the `move v0,zero` is then local to
   the arm, 2 insns longer; the `break` vs `return 0` entry above).
 - A mode ladder on `gSceneCombatState.actorControl` whose mode 0 has a body
-  (`golemKnightBishopFrameState`, four functions of `actor_510900_2.c`) is
+  (`_golemKnightBishopFrameState`, four functions of `actor_510900_2.c`) is
   `switch { case 0: ...; break; case 1: ...; return; case 2: ...; return; }`
   with the cases in image order; a mode 1 that jumped to the function's last
   call is that call and a `return`. The `one = 1` local goes each time.

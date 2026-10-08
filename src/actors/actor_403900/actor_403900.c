@@ -91,8 +91,8 @@ extern s32 gGolemKnightBishopAnimCues[];
 /// and 11-15 hold 1, so the appearance is a feint about a third of the time.
 extern u16 gGolemKnightBishopApproachRoll[];
 
-/// Per-animation-id value `golemKnightBishopTickAnim` hands `animationSeekSlotWithBlend`
-/// as its fifth argument when it reseeds animation slots 1..0x12.
+/// Per-clip blend duration in frames used by `_golemKnightBishopTickAnim`
+/// when a changed animation request restarts slots 1..18.
 extern s16 gGolemKnightBishopAnimBlend[];
 
 /// The spawn's tables: the task's next handler record, the `DamageAttack`
@@ -1261,8 +1261,8 @@ AnimationSet* gGolemKnightBishopAnimSets[22] = {
 /// before running its own short sequence.
 static const EnemyTaskFuncTable3 D_actor_403900_80131F18 = {
     _golemKnightBishopSpawn,
-    golemKnightBishopFrameState,
-    golemKnightBishopDeadState,
+    _golemKnightBishopFrameState,
+    _golemKnightBishopDeadState,
 };
 
 #include "../../shared/golem_knight_bishop_collapse_death.inc.c"
