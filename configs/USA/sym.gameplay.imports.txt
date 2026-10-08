@@ -1723,7 +1723,7 @@ shelterR47TelephoneMenuTask = 0x8017EC04; // type:func absolute:True owner=shelt
 
 shelterB6NurseryTelephoneMenuTask = 0x8017EAC4; // type:func absolute:True owner=shelter_b6_nursery
 
-func_shelter_1f_tent_8017EA60 = 0x8017EA60; // type:func absolute:True owner=shelter_1f_tent
+shelter1fTentTelephoneMenuTask = 0x8017EA60; // type:func absolute:True owner=shelter_1f_tent
 
 mistShootingGalleryOpenCarryoverModeMenu = 0x8017FBD8; // type:func absolute:True owner=mist_shooting_gallery
 

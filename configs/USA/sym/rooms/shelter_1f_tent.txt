@@ -90,7 +90,7 @@ D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_squar
 gRoomCutsceneTaskDescs = 0x80181CB8; // size:0x24 defined:True
 D_shelter_1f_tent_80181CDC = 0x80181CDC; // size:0x28 defined:True
 
-func_shelter_1f_tent_8017EA60 = 0x8017EA60; // type:func
+shelter1fTentTelephoneMenuTask = 0x8017EA60; // type:func
 
 shelter1fTentDrawViewGlowsTask = 0x8017FE10; // type:func
 _telephoneDrawPlayDataRow = 0x8017D6C8; // type:func

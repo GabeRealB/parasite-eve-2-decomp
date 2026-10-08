@@ -4005,13 +4005,13 @@ static void _dryfieldNightMotelBalconyDrawFallingParticle(const Task* task, cons
 /// `effectSpawn` copies the offset, so this work can be reused for the next draw.
 static inline void _dryfieldNightMotelBalconyChooseLampParticleOffset(EffectWork* work)
 {
-    enum { SIZE_RANDOM_MASK = 0x1FF };
+    enum { DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK = 0x1FF };
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vx   = 0x100 - ((gRandomLcgState >> 16) & SIZE_RANDOM_MASK);
+    work->move.vx   = 0x100 - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vy   = 0x100 - ((gRandomLcgState >> 16) & SIZE_RANDOM_MASK);
+    work->move.vy   = 0x100 - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & SIZE_RANDOM_MASK);
+    work->move.vz   = 0x100 - ((gRandomLcgState >> 16) & DRYFIELD_NIGHT_MOTEL_BALCONY_PARTICLE_OFFSET_RANDOM_MASK);
 }
 
 void dryfieldNightMotelBalconyLampBurstTask(Task* task)

@@ -441,7 +441,9 @@ s32 dryfieldBreezewayResolveRoomEventMessage(Task* unusedTask, s32 unusedMessage
 
 /// Selects locked-door progress from the collected factory key and magnet.
 ///
-/// Leaves unlocked progress and an acknowledged missing-magnet notice intact.
+/// Unlocked progress is final. A collected key overrides retrieval progress;
+/// after a retrieval attempt, an absent magnet preserves the acknowledged
+/// missing-magnet notice and otherwise selects the missing or ready state.
 static inline void _dryfieldBreezewayUpdateFactoryDoorProgress(void)
 {
     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != DRYFIELD_BREEZEWAY_DOOR_UNLOCKED) {

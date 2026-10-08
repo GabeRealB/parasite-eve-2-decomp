@@ -568,88 +568,107 @@ static void _waterDrawTileU16(const GfxCoord* coord, u16 textureCell, s16 radius
     SCRATCH_POP_AT(scratchCursor, EffectCentreScratch);
 }
 
-/// Draws a glowing disc at the point (0, -0xC4, 0) in `arg0`'s local frame:
-/// the point is rotated by `workm`, offset by its translation and projected
-/// through `GsWSMATRIX` into a zeroed scratch block popped from
-/// the scratch stack. When the GTE flag is non-negative, four Gouraud
-/// `POLY_G4` quarter-wedges of radius `arg2 * 64 / depth` are queued, each lit
-/// at the centre vertex and black on the rim. `arg3` packs the centre colour
-/// as three 4-bit channels (red in bits 8-11, green 4-7, blue 0-3); a one-bit
-/// flicker, taken from the global at 0x801752EC plus the per-slot byte
-/// `arg1 & 7` of this room's random table, is shifted left by `arg3`'s top
-/// nibble and added to every channel.
-void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
+void shelterB1PodServiceGantryDrawChainGlow(const GfxCoord* coord, s32 chainNumber, s32 radiusScale, s16 packedColor)
 {
-    u8*                  head;
-    EffectCentreScratch* block;
-    POLY_G4*             prim;
-    s32                  ang;
-    s32                  t;
-    s32                  t2;
-    s32                  blend;
-    s32                  color;
-    u16                  color16;
-    u32                  c;
+    enum {
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_LOCAL_Y            = -196,
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_PERSPECTIVE_SCALE  = 64,
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_NIBBLE_BITS        = 4,
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_CHANNEL_MASK       = 0xF,
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_CHANNEL_BYTE_MASK  = 0xF0,
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_FLICKER_SHIFT      = 12,
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS = 12,
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_EIGHTH_TURN        = 0x200,
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_QUARTER_TURN       = 0x400,
+        SHELTER_B1_POD_SERVICE_GANTRY_GLOW_FULL_TURN          = 0x1000,
+    };
+    EffectCentreScratch* scratchEnd;
+    EffectCentreScratch* projection;
+    POLY_G4*             wedge;
+    s32                  startAngle;
+    s32                  midpointAngle;
+    s32                  endAngle;
+    s32                  flickerIncrement;
+    s32                  packedColorValue;
+    u16                  colorBits;
+    u32                  channels;
     s32                  green;
     u8                   red;
+    s32                  screenRadius;
+    s16                  blue;
 
-    head                       = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(void) = head - sizeof(EffectCentreScratch);
-    block                      = SCRATCH_STACK_CURSOR(EffectCentreScratch);
-    color                      = arg3;
-    color16                    = color;
-    memFillBytes(block, 0, sizeof(*block));
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = 0;
-    block->worldPoint.vy                                                        = -0xC4;
-    block->worldPoint.vz                                                        = 0;
-    gte_SetRotMatrix(&arg0->workm);
-    gte_ldv0(&block->worldPoint);
+    // Reserve and clear the local-point projection workspace.
+    scratchEnd                 = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    SCRATCH_STACK_CURSOR(void) = scratchEnd - 1;
+    projection                 = SCRATCH_STACK_CURSOR(EffectCentreScratch);
+    packedColorValue           = packedColor;
+    colorBits                  = packedColorValue;
+    memFillBytes(projection, 0, sizeof(*projection));
+    scratchEnd[-1].worldPoint.vx = 0;
+    projection->worldPoint.vy    = SHELTER_B1_POD_SERVICE_GANTRY_GLOW_LOCAL_Y;
+    projection->worldPoint.vz    = 0;
+    gte_SetRotMatrix(&coord->workm);
+    gte_ldv0(&projection->worldPoint);
     gte_rtv0();
-    gte_stsv(&block->worldPoint);
-    ((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx = (u16)((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->worldPoint.vx + (u16)arg0->workm.t[0];
-    block->worldPoint.vy                                                        = (u16)block->worldPoint.vy + (u16)arg0->workm.t[1];
-    block->worldPoint.vz                                                        = (u16)block->worldPoint.vz + (u16)arg0->workm.t[2];
+    gte_stsv(&projection->worldPoint);
+    scratchEnd[-1].worldPoint.vx = (u16)scratchEnd[-1].worldPoint.vx + (u16)coord->workm.t[0];
+    projection->worldPoint.vy    = (u16)projection->worldPoint.vy + (u16)coord->workm.t[1];
+    projection->worldPoint.vz    = (u16)projection->worldPoint.vz + (u16)coord->workm.t[2];
 
+    // Project the halfword world point; rejected projections emit no packets.
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
-    gte_ldv0(&block->worldPoint);
+    gte_ldv0(&projection->worldPoint);
     gte_rtps();
-    gte_stsxy(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->screenX);
-    gte_stflg(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->projectionFlags);
-    if (block->projectionFlags >= 0) {
-        gte_stszotz(&((EffectCentreScratch*)(head - sizeof(EffectCentreScratch)))->depth);
-        arg2                = ((s16)arg2 * 64) / block->depth;
-        ang                 = 0;
-        blend               = (D_actor_560800_801752EC + (u8)D_shelter_b1_pod_service_gantry_8018256C[arg1 & 7]) & 1;
-        c                   = color16;
-        blend             <<= c >> 12;
-        red                 = blend + ((c >> 4) & 0xF0);
-        green               = blend + (c & 0xF0);
-        arg3                = blend + ((arg3 & 0xF) << 4);
-        block->screenExtent = arg2;
+    gte_stsxy(&scratchEnd[-1].screenX);
+    gte_stflg(&scratchEnd[-1].projectionFlags);
+    if (projection->projectionFlags >= 0) {
+        gte_stszotz(&scratchEnd[-1].depth);
+        // Size the projected disc and expand RGB with its alternating increment.
+        screenRadius             = ((s16)radiusScale * SHELTER_B1_POD_SERVICE_GANTRY_GLOW_PERSPECTIVE_SCALE) / projection->depth;
+        startAngle               = 0;
+        flickerIncrement         = (D_actor_560800_801752EC + (u8)D_shelter_b1_pod_service_gantry_8018256C[chainNumber & (ARRAY_SIZE(D_shelter_b1_pod_service_gantry_8018256C) - 1)]) & 1;
+        channels                 = colorBits;
+        flickerIncrement       <<= channels >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_FLICKER_SHIFT;
+        red                      = flickerIncrement + ((channels >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_NIBBLE_BITS) & SHELTER_B1_POD_SERVICE_GANTRY_GLOW_CHANNEL_BYTE_MASK);
+        green                    = flickerIncrement + (channels & SHELTER_B1_POD_SERVICE_GANTRY_GLOW_CHANNEL_BYTE_MASK);
+        blue                     = flickerIncrement + ((packedColor & SHELTER_B1_POD_SERVICE_GANTRY_GLOW_CHANNEL_MASK) << SHELTER_B1_POD_SERVICE_GANTRY_GLOW_NIBBLE_BITS);
+        projection->screenExtent = screenRadius;
+        // Four quarter wedges share the lit centre and leave their rim black.
+        /// Queues one additive quarter wedge and advances the angle by a quarter turn.
+        ///
+        /// Expands to several statements; invoke only in the braced loop below.
+        /// Captures projection, wedge, the three angle locals and RGB locals, the
+        /// frame packet cursor and current ordering table. Reads projection and
+        /// angles repeatedly, writes wedge/angles and advances the packet cursor.
+        /// Requires quad and blend-mode packet capacity; retains no scratch pointer.
+#define SHELTER_B1_POD_SERVICE_GANTRY_DRAW_GLOW_WEDGE()                                                                                                    \
+    wedge          = gGpuPrimCursor;                                                                                                                       \
+    gGpuPrimCursor = wedge + 1;                                                                                                                            \
+    setPolyG4(wedge);                                                                                                                                      \
+    setRGB0(wedge, 0, 0, 0);                                                                                                                               \
+    setRGB1(wedge, 0, 0, 0);                                                                                                                               \
+    setRGB2(wedge, red, green, blue);                                                                                                                      \
+    setRGB3(wedge, 0, 0, 0);                                                                                                                               \
+    wedge->x0     = projection->screenX + ((projection->screenExtent * rsin(startAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);        \
+    midpointAngle = startAngle + SHELTER_B1_POD_SERVICE_GANTRY_GLOW_EIGHTH_TURN;                                                                           \
+    wedge->y0     = projection->screenY + ((projection->screenExtent * rcos(startAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);        \
+    wedge->x1     = projection->screenX + ((projection->screenExtent * rsin(midpointAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);     \
+    wedge->y1     = projection->screenY + ((projection->screenExtent * rcos(midpointAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);     \
+    endAngle      = startAngle + SHELTER_B1_POD_SERVICE_GANTRY_GLOW_QUARTER_TURN;                                                                          \
+    wedge->x2     = projection->screenX;                                                                                                                   \
+    wedge->y2     = projection->screenY;                                                                                                                   \
+    wedge->x3     = projection->screenX + ((projection->screenExtent * rsin(endAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);          \
+    wedge->y3     = projection->screenY + ((projection->screenExtent * rcos(endAngle)) >> SHELTER_B1_POD_SERVICE_GANTRY_GLOW_TRIG_FRACTION_BITS);          \
+    startAngle    = endAngle;                                                                                                                              \
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)projection->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)), \
+            wedge);                                                                                                                                        \
+    gpuSetPrimitiveBlendMode(wedge, GPU_BLEND_ADD, projection->depth);
+
         do {
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyG4(prim);
-            setRGB0(prim, 0, 0, 0);
-            setRGB1(prim, 0, 0, 0);
-            setRGB2(prim, red, green, arg3);
-            setRGB3(prim, 0, 0, 0);
-            prim->x0 = block->screenX + ((block->screenExtent * rsin(ang)) >> 12);
-            t        = ang + 0x200;
-            prim->y0 = block->screenY + ((block->screenExtent * rcos(ang)) >> 12);
-            prim->x1 = block->screenX + ((block->screenExtent * rsin(t)) >> 12);
-            prim->y1 = block->screenY + ((block->screenExtent * rcos(t)) >> 12);
-            t2       = ang + 0x400;
-            prim->x2 = block->screenX;
-            prim->y2 = block->screenY;
-            prim->x3 = block->screenX + ((block->screenExtent * rsin(t2)) >> 12);
-            prim->y3 = block->screenY + ((block->screenExtent * rcos(t2)) >> 12);
-            ang      = t2;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
-            gpuSetPrimitiveBlendMode(prim, GPU_BLEND_ADD, block->depth);
-        } while (ang < 0x1000);
+            SHELTER_B1_POD_SERVICE_GANTRY_DRAW_GLOW_WEDGE();
+        } while (startAngle < SHELTER_B1_POD_SERVICE_GANTRY_GLOW_FULL_TURN);
+#undef SHELTER_B1_POD_SERVICE_GANTRY_DRAW_GLOW_WEDGE
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectCentreScratch);
 }

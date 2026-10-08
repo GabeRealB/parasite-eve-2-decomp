@@ -23,6 +23,11 @@
 #include "../../shared/streamed_scene_play.inc.c"
 
 /// Hands frame presentation and the current view to R36's movie player.
+///
+/// Forwards the launcher's first task word unchanged; the selected player
+/// ignores it. Requires loaded movie, camera and sprite resources until the
+/// player restores the game loop. A failed spawn still selects task-only
+/// flipping and queues the current view.
 static inline void _shelterR36HandoffMovieDisplay(s32 spawnWord)
 {
     enum { SHELTER_R36_MOVIE_PLAYER_TASK = 1 };

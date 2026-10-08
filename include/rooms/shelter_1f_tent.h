@@ -43,7 +43,14 @@ extern WorldCollisionSurfaceProperties* D_shelter_1f_tent_801842B4[];
 /// owns no work; the first-arrival script and scene tasks have their own lifetimes.
 void shelter1fTentRoomTask(Task* task);
 
-void func_shelter_1f_tent_8017EA60(Task* task);
+/// Updates the tent's telephone save menu and optional statistics panels.
+///
+/// Called by the gameplay telephone dispatcher with a live UI task in state
+/// 0..3 and its owned `UiObject` in `spawnArg2.pointer`. Start in state 0; keep
+/// the tent's menu resources loaded until the UI tree closes. Normal play
+/// opens the save dialog directly; a cleared game or demo scene 1 also offers
+/// Play Data, Weapon Data and PE Data. Publishes dismissal through the UI object.
+void shelter1fTentTelephoneMenuTask(Task* task);
 
 /// Draws the tent's fixed world-space glows for the current mapped camera view.
 ///

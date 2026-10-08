@@ -166,7 +166,7 @@ extern SVECTOR D_shelter_b2_main_corridor_8018306C[];
 /// Areas the room re-applies when it clears its pending game-flag state.
 extern AreaApplyRec D_shelter_b2_main_corridor_80189644[];
 
-static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg);
+static void _shelterB2MainCorridorResetCompanionScheduleOnDeparture(const RoomEventMsg* request);
 static void _shelterB2MainCorridorInitializeRoomTask(Task* task);
 static void _shelterB2MainCorridorIdleRoomTask(Task* task);
 static void _shelterB2MainCorridorInitializeWaterTask(Task* task);
@@ -1659,25 +1659,25 @@ s32 func_shelter_b2_main_corridor_8017D9C4(Task* arg0, s32 arg1, RoomEventMsg* i
         return 2;
     }
     if (in->areaId == GAME_AREA_SHELTER_B2_SEPTIC_TANK) {
-        func_shelter_b2_main_corridor_8017E264(out);
+        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(out);
         sndId           = 0x54210001;
         capCmd          = 0xA;
         staged.stageSnd = sndId;
         flag            = 0x133;
     } else if (in->areaId == GAME_AREA_SHELTER_B2_BREEDING_ROOM) {
-        func_shelter_b2_main_corridor_8017E264(out);
+        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(out);
         sndId           = 0x54210001;
         capCmd          = 9;
         staged.stageSnd = sndId;
         flag            = 0x134;
     } else if (in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR_HALL) {
-        func_shelter_b2_main_corridor_8017E264(out);
+        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(out);
         sndId           = 0x54210001;
         capCmd          = 0xB;
         staged.stageSnd = sndId;
         flag            = 0x135;
     } else if (in->areaId == GAME_AREA_SHELTER_B2_LABORATORY) {
-        func_shelter_b2_main_corridor_8017E264(out);
+        _shelterB2MainCorridorResetCompanionScheduleOnDeparture(out);
         sndId           = 0x54210001;
         capCmd          = 0xC;
         staged.stageSnd = sndId;
@@ -1894,10 +1894,24 @@ static void _shelterB2MainCorridorRecordCapCompletionTask(Task* task)
     }
 }
 
-static void func_shelter_b2_main_corridor_8017E264(RoomEventMsg* msg)
+/// Clears the corridor's temporary family-1 companion schedule on departure.
+///
+/// Borrows a non-NULL resolved transition request without modifying it. Only
+/// execute requests act: schedule 9 and progress nibble 0x0D1 equal to 3 select
+/// schedule 0, set Neo Ark area 7's saved placement variant to 1 and clear its
+/// saved enemy poses and map mark. Other combinations do nothing; the story
+/// meaning of progress value 3 is unproven.
+static void _shelterB2MainCorridorResetCompanionScheduleOnDeparture(const RoomEventMsg* request)
 {
-    if ((gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) == 9) && (gameFlagGetNibble(GAME_FLAG_0D1) == 3) && (msg->queryOnly == ROOM_EVENT_EXECUTE)) {
-        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
+    enum {
+        SHELTER_B2_MAIN_CORRIDOR_TEMPORARY_COMPANION_SCHEDULE = 9,
+        SHELTER_B2_MAIN_CORRIDOR_COMPANION_RESET_PROGRESS     = 3,
+        SHELTER_B2_MAIN_CORRIDOR_DEFAULT_COMPANION_SCHEDULE   = 0,
+    };
+
+    if ((gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) == SHELTER_B2_MAIN_CORRIDOR_TEMPORARY_COMPANION_SCHEDULE) &&
+        (gameFlagGetNibble(GAME_FLAG_0D1) == SHELTER_B2_MAIN_CORRIDOR_COMPANION_RESET_PROGRESS) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
+        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, SHELTER_B2_MAIN_CORRIDOR_DEFAULT_COMPANION_SCHEDULE);
         areaApplySavedUpdates(D_shelter_b2_main_corridor_80189644);
     }
 }

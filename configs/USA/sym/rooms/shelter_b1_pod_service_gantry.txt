@@ -80,7 +80,7 @@ D_shelter_b1_pod_service_gantry_80182128 = 0x80182128; // size:0x3CC defined:Tru
 D_shelter_b1_pod_service_gantry_801824F4 = 0x801824F4; // size:0x18 defined:True
 D_shelter_b1_pod_service_gantry_8018250C = 0x8018250C; // size:0xC defined:True
 
-func_shelter_b1_pod_service_gantry_8017F450 = 0x8017F450; // type:func
+shelterB1PodServiceGantryDrawChainGlow = 0x8017F450; // type:func
 
 shelterB1PodServiceGantryInitEffectsTask = 0x8017FA7C; // type:func
 

@@ -23,6 +23,10 @@
 #include "../../shared/streamed_scene_play_then_hold.inc.c"
 
 /// Hands frame presentation and the current view to the room's movie player.
+///
+/// Requires loaded movie, camera and sprite resources. The new display task
+/// owns presentation through restoration and its completion hold. A failed
+/// spawn still selects task-only flipping and queues the current view.
 static inline void _shelterB6TrainingRoomHandoffMovieDisplay(void)
 {
     enum { SHELTER_B6_TRAINING_ROOM_MOVIE_PLAYER_TASK = 1 };

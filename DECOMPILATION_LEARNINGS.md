@@ -86851,7 +86851,7 @@ indexed by `task->state`, spelled as either shape of
 initializer" above. Which of the two it is still has to come from where the table
 sits relative to the units that own the surrounding rodata.
 
-## An overlay that carries a body twice cannot promote it (func_neo_ark_forest_zone_80181430, 2026-09-15)
+## An overlay that carries a body twice cannot promote it (_neoArkForestZoneRoamerPoolATask, 2026-09-15)
 
 `overlay_dup_index.py find` marks a copy `=` (identical bytes) or `~` (same body,
 different link offset), but neither mark says whether `promote` can use it: a
@@ -141854,7 +141854,7 @@ wants the shift placed immediately before the branch, where reorg moves it into 
 delay slot. Diagnose first: in `.sched`, look for the insn at priority 1 sitting at
 the end of the ready list while everything else is 2 or `7f000001`.
 
-## A copy that must cross a call it is emitted after: declare the parameter narrower so sched1 can sink it (func_shelter_b1_pod_service_gantry_8017F450, 2026-09-24)
+## A copy that must cross a call it is emitted after: declare the parameter narrower so sched1 can sink it (shelterB1PodServiceGantryDrawChainGlow, 2026-09-24)
 
 **Symptom.** Target: `jal memFillBytes; …; move s7,s5` - a copy of a parameter taken
 *after* a call, in a callee-saved register, although it dies before the next call.
@@ -141881,18 +141881,18 @@ global-alloc priority, of the late position.
 
 **Fix.**
 ```c
-void f(GfxCoord* arg0, s32 arg1, s32 arg2, s16 arg3)
+void f(const GfxCoord* coord, s32 chainNumber, s32 radiusScale, s16 packedColor)
 {
     ...
-    color   = arg3;      /* s32, then the u16 snapshot, both before the call */
-    color16 = color;
-    memFillBytes(block, 0, 0x18);
+    packedColorValue   = packedColor;      /* s32, then the u16 snapshot, both before the call */
+    colorBits = packedColorValue;
+    memFillBytes(projection, 0, sizeof(*projection));
     ...
-        c     = color16;              /* the only later read */
-        green = blend + (c & 0xF0);   /* a fresh variable, not color reused */
-        arg3  = blend + ((arg3 & 0xF) << 4);
+        channels     = colorBits;              /* the only later read */
+        green = flickerIncrement + (channels & 0xF0);   /* a fresh variable, not packedColorValue reused */
+        blue = flickerIncrement + ((packedColor & 0xF) << 4);
 ```
-`lo = arg3` straight from the `s16` did not work (an HI-to-HI copy of the
+`lo = packedColor` straight from the `s16` did not work (an HI-to-HI copy of the
 parameter's own pseudo, which cse made canonical); going through an `s32` did.
 Recognise it by a callee-saved copy just after a call, used only before the next
 call, in a function where the separate-variable version gets a caller-saved

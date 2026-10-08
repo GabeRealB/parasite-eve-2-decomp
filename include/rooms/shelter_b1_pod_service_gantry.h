@@ -42,7 +42,22 @@ extern WorldCollisionSurfaceProperties* D_shelter_b1_pod_service_gantry_80182520
 /// waits for the area transition to tear down the room.
 void shelterB1PodServiceGantryRoomTask(Task* task);
 
-void func_shelter_b1_pod_service_gantry_8017F450(GfxCoord* arg0, s32 arg1, s32 arg2, s16 arg3);
+/// Draws the additive disc at a chain end in its composed coordinate frame.
+///
+/// Borrows `coord` with a current world-space `workm`; transforms local point
+/// (0, -196, 0), retaining signed halfword coordinates, then projects it through
+/// the current view. `chainNumber` modulo eight selects the persistent flicker
+/// phase. The signed low halfword of `radiusScale` gives screen radius
+/// `radiusScale * 64 / (SZ3 / 4)` in pixels; accepted depth must be nonzero.
+///
+/// `packedColor` contains red, green and blue nibbles in bits 8..11, 4..7 and
+/// 0..3, each expanded by 16. Bits 12..15 give the shift of a parity-controlled
+/// increment added to all channels; packet bytes retain the low eight bits.
+/// Requires actor-560800's tick, initialized flicker phases, scratch space for
+/// one `EffectCentreScratch` and frame-arena capacity for four Gouraud quads
+/// plus their additive draw-mode packets. Scratch is released before return;
+/// queued packets remain live until the GPU consumes this frame.
+void shelterB1PodServiceGantryDrawChainGlow(const GfxCoord* coord, s32 chainNumber, s32 radiusScale, s16 packedColor);
 
 /// Seeds the chain-glow flicker offsets and selects the room's water-spray effect.
 ///

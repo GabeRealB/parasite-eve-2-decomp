@@ -137,3 +137,4 @@ shelterB2MainCorridorRoomTask = 0x8017e338; // type:func
 _shelterB2MainCorridorInitializeWaterTask = 0x8017ebf4; // type:func
 _shelterB2MainCorridorWaterTask = 0x8017eb8c; // type:func
 _shelterB2MainCorridorRecordCapCompletionTask = 0x8017e210; // type:func
+_shelterB2MainCorridorResetCompanionScheduleOnDeparture = 0x8017e264; // type:func

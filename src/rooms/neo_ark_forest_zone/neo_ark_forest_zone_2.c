@@ -97,7 +97,7 @@ extern WorldCollisionTrigger D_neo_ark_forest_zone_801826B4[6];
 extern WorldCollisionTrigger D_neo_ark_forest_zone_801829D0[10];
 extern WorldCoordRoomLights  D_neo_ark_forest_zone_8018269C[1];
 
-void        func_neo_ark_forest_zone_80181430(Task*);
+static void _neoArkForestZoneRoamerPoolATask(Task* task);
 static void _neoArkForestZoneRoamerPoolBTask(Task* task);
 
 static AnimationPackedPose _gNeoArkForestZoneAnimation04364Bank1[6] = {
@@ -575,7 +575,7 @@ s16 D_neo_ark_forest_zone_80182E10[4] = {
 
 TaskDesc D_neo_ark_forest_zone_80182E18 = { { { TASK_BODY_NONE, 32 } }, _neoArkForestZoneRoamerPoolBTask, { .value = 0 } };
 
-TaskDesc D_neo_ark_forest_zone_80182E24 = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_forest_zone_80181430, { .value = 0 } };
+TaskDesc D_neo_ark_forest_zone_80182E24 = { { { TASK_BODY_NONE, 32 } }, _neoArkForestZoneRoamerPoolATask, { .value = 0 } };
 
 static void _neoArkForestZoneFinishRoamerPoolBState(Task* task);
 
@@ -763,9 +763,13 @@ static void _neoArkForestZoneFinishRoamerPoolAState(Task* task)
     task->state = task->state + 1;
 }
 
-/// The first arming task: runs the state handler its state selects, through a
-/// copy of the state table on the stack.
-void func_neo_ark_forest_zone_80181430(Task* task)
+/// Dispatches the forest's roaming-enemy pool-A controller for this visit.
+///
+/// Start a bodyless task in state 0; states 0..3 arm the reserve, process spawn
+/// requests, advance to teardown and release the controller. Active states need
+/// location variant 0..13 and live placed actors. Both pools share reserve HP
+/// and cooldown storage; this controller does not own the placed actor tasks.
+static void _neoArkForestZoneRoamerPoolATask(Task* task)
 {
     TaskFuncTable4 handlers;
 

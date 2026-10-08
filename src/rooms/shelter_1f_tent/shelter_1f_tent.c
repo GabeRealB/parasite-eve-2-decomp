@@ -147,7 +147,7 @@ static void _shelter1fTentRoomIdleState(Task* task);
 
 #include "../../shared/telephone.inc.c"
 
-void func_shelter_1f_tent_8017EA60(Task* task)
+void shelter1fTentTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }

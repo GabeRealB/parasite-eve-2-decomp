@@ -6682,7 +6682,7 @@ static void _actor560800InitChainModel(Task* task)
 /// state 3 ticks them, state 4 spawns the falling copy from
 /// `D_actor_560800_8017575C` and gives it this chain's part coordinates, and
 /// state 5 kills the task a frame later. Every frame that survives rebuilds the root translation and, while
-/// visible, drives `func_shelter_b1_pod_service_gantry_8017F450` and the periodic `effectSpawn`.
+/// visible, drives `shelterB1PodServiceGantryDrawChainGlow` and the periodic `effectSpawn`.
 void func_actor_560800_80137820(Task* arg0)
 {
     _Actor560800PropWork* work;
@@ -6789,7 +6789,7 @@ done:
     coord->coord.t[2]   = work->position.vz + work->offset.vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        func_shelter_b1_pod_service_gantry_8017F450(&arg0->extra.tmd->coords[6], work->chainNumber, 0x100, 0x3C36);
+        shelterB1PodServiceGantryDrawChainGlow(&arg0->extra.tmd->coords[6], work->chainNumber, 0x100, 0x3C36);
         if (viewFindLogicalIndex(gGameSession->location.loc.view) != 0x16) {
             tick = D_actor_560800_801752E8 + 1;
             if (!(tick & 0x7F) && ((tick >> 7) & 7) == work->chainNumber) {
