@@ -139,7 +139,7 @@ extern SpriteSource D_acropolis_promenade_8018590C[78];
 s32                 func_acropolis_promenade_8017D70C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 static s32          _acropolisPromenadeRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 s32                 func_acropolis_promenade_8017D8E0(Task*, s32, s32, s32);
-s32                 func_acropolis_promenade_8017D938(Task*, s32, s32, s32);
+static s32          _acropolisPromenadeHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
 static s32          _acropolisPromenadeIgnoreRoomAction(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 void                func_acropolis_promenade_8017D988(Task*);
 
@@ -179,7 +179,7 @@ TaskMessageEntry D_acropolis_promenade_80180E74[6] = {
     { ROOM_MESSAGE_COMMAND, func_acropolis_promenade_8017D8E0 },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisPromenadeIgnoreRoomAction },
     { ACROPOLIS_PROMENADE_MESSAGE_USE_KEY_ITEM, _acropolisPromenadeRefuseKeyItem },
-    { ROOM_MESSAGE_SOUND, func_acropolis_promenade_8017D938 },
+    { ROOM_MESSAGE_SOUND, _acropolisPromenadeHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1631,13 +1631,23 @@ static s32 _acropolisPromenadeIgnoreRoomAction(Task* task, s32 messageId, s32 fi
 {
 }
 
-s32 func_acropolis_promenade_8017D938(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues promenade sound-bank entries for direct and completed CAP sound cues.
+///
+/// Cue 10 starts entry 9; cue 103 (CAP command 3 completed) starts entry 10.
+/// Uses each script's base mix and ignores other cues and queue failures.
+/// Receiver, ID and second payload are unused; always returns zero.
+static s32 _acropolisPromenadeHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg)
 {
-    switch (arg2) {
-        case 0xA:
+    enum {
+        ACROPOLIS_PROMENADE_SOUND_CUE_ENTRY_9            = 10,
+        ACROPOLIS_PROMENADE_SOUND_CUE_CAP_COMMAND_3_DONE = 103
+    };
+
+    switch (soundCue) {
+        case ACROPOLIS_PROMENADE_SOUND_CUE_ENTRY_9:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 9), 0, 0);
             break;
-        case 0x67:
+        case ACROPOLIS_PROMENADE_SOUND_CUE_CAP_COMMAND_3_DONE:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PROMENADE, 0x0A), 0, 0);
             break;
     }

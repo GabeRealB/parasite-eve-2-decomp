@@ -23,25 +23,25 @@ extern TaskMessageEntry D_acropolis_fountain_8017E764[];
 extern TaskDesc         D_acropolis_fountain_8017E78C[];
 
 static void func_acropolis_fountain_8017D960(Task* arg0);
-static void func_acropolis_fountain_8017D9BC(Task* task);
+static void _acropolisFountainIdleRoomTask(Task* unusedTask);
 
 /// State handlers of the room task: set-up, an empty per-frame tick and
 /// `taskKill`.
 static const TaskFuncTable3 D_acropolis_fountain_8017D5C4 = {
-    { func_acropolis_fountain_8017D960, func_acropolis_fountain_8017D9BC, taskKill },
+    { func_acropolis_fountain_8017D960, _acropolisFountainIdleRoomTask, taskKill },
 };
 
-s32  func_acropolis_fountain_8017D604(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_acropolis_fountain_8017D774(Task*, s32, s32, s32);
-s32  func_acropolis_fountain_8017D77C(Task*, s32, s32, s32);
-s32  func_acropolis_fountain_8017D7F4(Task*, s32, s32, s32);
-void func_acropolis_fountain_8017D868(Task*);
+s32        func_acropolis_fountain_8017D604(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisFountainRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_acropolis_fountain_8017D77C(Task*, s32, s32, s32);
+static s32 _acropolisFountainHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
+void       func_acropolis_fountain_8017D868(Task*);
 
 TaskMessageEntry D_acropolis_fountain_8017E764[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fountain_8017D604 },
     { ROOM_MESSAGE_COMMAND, func_acropolis_fountain_8017D77C },
-    { 5105, func_acropolis_fountain_8017D774 },
-    { ROOM_MESSAGE_SOUND, func_acropolis_fountain_8017D7F4 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisFountainRejectKeyItemUse },
+    { ROOM_MESSAGE_SOUND, _acropolisFountainHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -93,11 +93,12 @@ s32 func_acropolis_fountain_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-/// Handler for message 0x13F1 in the room task's message table: ignores the
-/// message and answers 0.
-s32 func_acropolis_fountain_8017D774(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use without consuming the item or starting a room event.
+///
+/// All arguments are ignored. The reply selects the inventory's "No use now" notice.
+static s32 _acropolisFountainRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_acropolis_fountain_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
@@ -109,22 +110,33 @@ s32 func_acropolis_fountain_8017D77C(Task* task, s32 msgId, s32 arg2, s32 arg3)
     }
     if (arg2 == 4) {
         capStartSequenceSlot(4, 1, 0);
-        func_acropolis_fountain_8017DA1C();
+        acropolisFountainEnableClimbTrigger();
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012, 1);
     }
     return 0;
 }
 
-s32 func_acropolis_fountain_8017D7F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Queues the fountain sound script selected by a room sound cue.
+///
+/// Cues 3, 4 and 9 start the corresponding area-bank entry with its base mix.
+/// Other cues do nothing. Receiver, ID and second payload are unused; always
+/// returns zero, discarding sound-queue admission failures.
+static s32 _acropolisFountainHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg)
 {
-    switch (arg2) {
-        case 3:
+    enum {
+        ACROPOLIS_FOUNTAIN_SOUND_CUE_ENTRY_3 = 3,
+        ACROPOLIS_FOUNTAIN_SOUND_CUE_ENTRY_4 = 4,
+        ACROPOLIS_FOUNTAIN_SOUND_CUE_ENTRY_9 = 9
+    };
+
+    switch (soundCue) {
+        case ACROPOLIS_FOUNTAIN_SOUND_CUE_ENTRY_3:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 3), 0, 0);
             break;
-        case 4:
+        case ACROPOLIS_FOUNTAIN_SOUND_CUE_ENTRY_4:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 4), 0, 0);
             break;
-        case 9:
+        case ACROPOLIS_FOUNTAIN_SOUND_CUE_ENTRY_9:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 9), 0, 0);
             break;
     }
@@ -163,12 +175,13 @@ static void func_acropolis_fountain_8017D960(Task* arg0)
     arg0->msgTable = D_acropolis_fountain_8017E764;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_FOUNTAIN_012) != 0) {
-        func_acropolis_fountain_8017DA1C();
+        acropolisFountainEnableClimbTrigger();
     }
     arg0->state = (s32)(arg0->state + 1);
 }
 
-static void func_acropolis_fountain_8017D9BC(Task* task)
+/// Keeps the fountain's room task idle after initialization, without changing it.
+static void _acropolisFountainIdleRoomTask(Task* unusedTask)
 {
 }
 

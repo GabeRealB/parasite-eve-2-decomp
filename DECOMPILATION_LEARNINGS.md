@@ -53855,7 +53855,7 @@ and the compare is then sign-extended from it, which changes nothing. The
 `u16` temp is what forces the `andi` — an `s32 uv = (u16)*p` folds the mask
 into the `lhu` and loses the instruction. CSE keeps only one `mem:HI` load
 insn, so the extend `lh` and the `lhu` end up on the same pointer, exactly as
-the target has them. `func_acropolis_observatory_8017E19C` is the example.
+the target has them. `_acropolisObservatoryScriptedBattleTask` is the example.
 
 ## Cross-jumping only merges tails that already agree on registers, so a scalar-global store shows up as a `branch`/`insert`/`delete` miss
 
@@ -53927,7 +53927,7 @@ right child 5 and emits `beq ==3` first. Three nodes are rebalanced around the
 middle one, which is what produces `root 5, left 3, right X` — and the root's
 missing high bound is exactly the `slti index, 6` test. So a `slti` bound one
 past a case value is evidence of a *further* case above it. The already-matched
-`func_acropolis_fountain_8017D7F4` (`{3, 4, 9}` -> root 4, `slti 5`, left 3) is
+`_acropolisFountainHandleSoundCue` (`{3, 4, 9}` -> root 4, `slti 5`, left 3) is
 the same tree with every arm populated.
 
 **Empty arms disappear later, in jump optimisation, and only where the branch
@@ -91622,7 +91622,7 @@ separate: every `beq` compared `$a0` where the target compares `$a2`. m2c names
 parameters by register and drops the leading ones the body never reads, so the
 live switch value came out as the first parameter. Restoring the family's arity
 - `s32 f(s32 index, s32 value, s32 arg2)`, matching
-`func_acropolis_hallway_8017D734` and the other sound-key handlers - moves it to
+`_acropolisHallwayHandleSoundCue` and the other sound-key handlers - moves it to
 `$a2`. Both fixes together scored 100.00% with every penalty zero on the first
 build.
 
@@ -93196,7 +93196,7 @@ operand.
 No pointer local is needed for the fix here. A member access on a global whose
 *type* has the field - `extern WorldCollisionTrigger D_x;` then `D_x.flags &= 0xBF;` -
 leaves the symbol bare and puts the displacement in the memory operand. That is
-what the sibling rooms do for the same clear (`func_acropolis_fire_escape_8017FECC`,
+what the sibling rooms do for the same clear (`_acropolisFireEscapeDisableAbsentActorInteraction`,
 `func_dryfield_night_motel_loft_8017D8B0`, `func_acropolis_helicopter_landing_pad_8017EA6C`,
 all `extern WorldCollisionTrigger`), so it is also the shape the original source had. One
 build, 100.000%, all penalties zero.
@@ -120454,7 +120454,7 @@ born in arm blocks where `$v0` is already dead, and reorg moves the else arm's
 a *matched* body from the same repo that uses the same idiom and read its pass
 trail rather than theorising about allocation: `./dump.sh` on the sibling's
 source gives `.rtl`/`.jump`/`.cse`/`.lreg` for a body whose result is known
-correct. Here `func_acropolis_fire_escape_8017FD98` - a matched if/else-double-
+correct. Here `_acropolisFireEscapeResolveRoomTransition` - a matched if/else-double-
 store two-message handler in the same family - spent `.rtl` through `.lreg` with
 *two* stores and two `reg:QI` temps, then printed the target's single `sb` with
 `# 74` (the else block's store) after the then block's `li`: that is jump.c's
@@ -141329,9 +141329,9 @@ work->scale = (u16)((rand8) + 0x180) + sizeBias;
 
 In the same function a store to a *struct* field did not force a reload of `gRandomLcgState` (a fixed-address scalar), but a store to another struct (`task->spawnArg1.value &= 0xFFF`) did force a reload of a `work` field (`lhu` again). Placing that statement between the two uses is what reproduced the target's reload.
 
-### A permuter `f(volatile short)` prototype mutation ports as a call-site `(s16)` cast (func_shelter_b1_sterilization_room_8018188C, 2026-09-24)
+### A permuter `f(volatile short)` prototype mutation ports as a call-site `(s16)` cast (shelterB1SterilizationRoomEffectsTask, 2026-09-24)
 
-The permuter can rewrite prototypes in the flattened context, for example `extern int rsin(volatile short a);` in place of the Psy-Q `rsin(int)`. A retained output can then look like a pure control-flow permutation, while the flattened header actually changed underneath it. `volatile` on a parameter only matters inside the callee. In the caller the effect is converting the argument to `short`, which is exactly `rsin((s16)angle)` under the real prototype: source `6ef674b0…` (cast plus the permuter's `do { } while (0)` wrap) produced the candidate's assembly byte for byte. When `angle` is `& 0xFFF`, combine uses the known-zero high bits to fold the `sll 16`/`sra 16` into a plain copy (`(set (reg 153) (reg/v 82))`). No instructions are added, but the argument becomes its own block-local pseudo, and the long-lived variable crosses fewer calls (11 → 5 here). That changes allocation. In this function the cast alone (`2f9bf8fa…`) and the wrap alone were both worse; only the pair helped. So before porting a retained output, diff the declaration context as well as the function body, and port a prototype mutation as a cast. Evidence (gitignored archive): `tools/permuter_findings/func_shelter_b1_sterilization_room_8018188C/sessions/7586f650…/`, `PERMUTER_EVIDENCE/73e1cd95dd0b4054/analysis/`.
+The permuter can rewrite prototypes in the flattened context, for example `extern int rsin(volatile short a);` in place of the Psy-Q `rsin(int)`. A retained output can then look like a pure control-flow permutation, while the flattened header actually changed underneath it. `volatile` on a parameter only matters inside the callee. In the caller the effect is converting the argument to `short`, which is exactly `rsin((s16)angle)` under the real prototype: source `6ef674b0…` (cast plus the permuter's `do { } while (0)` wrap) produced the candidate's assembly byte for byte. When `angle` is `& 0xFFF`, combine uses the known-zero high bits to fold the `sll 16`/`sra 16` into a plain copy (`(set (reg 153) (reg/v 82))`). No instructions are added, but the argument becomes its own block-local pseudo, and the long-lived variable crosses fewer calls (11 → 5 here). That changes allocation. In this function the cast alone (`2f9bf8fa…`) and the wrap alone were both worse; only the pair helped. So before porting a retained output, diff the declaration context as well as the function body, and port a prototype mutation as a cast. Evidence (gitignored archive): `tools/permuter_findings/shelterB1SterilizationRoomEffectsTask/sessions/7586f650…/`, `PERMUTER_EVIDENCE/73e1cd95dd0b4054/analysis/`.
 
 ### `&global` rebuilt into an odd temp (`$t2`) inside a loop is a pre-loop local that lost the last saved register (func_shelter_b4_water_supply_8017EE54, 2026-09-24)
 
@@ -141941,7 +141941,7 @@ barrier. With the constant written before the pointer, its luid is lowest, and
 sched2 puts it ahead of `lui`. Any insn the notes land on must be one that the
 target places after the last prologue save.
 
-## Keeping a sign extension that combine proves redundant, without a second life for the variable (func_shelter_b1_sterilization_room_8018188C, 2026-09-24)
+## Keeping a sign extension that combine proves redundant, without a second life for the variable (shelterB1SterilizationRoomEffectsTask, 2026-09-24)
 
 **Symptom.** A random radius `s16 radius = ((state >> 16) & 0x1FF) + 0x100` is
 multiplied after a call, and the target keeps `sll 16; sra 16` on it while the
@@ -141974,7 +141974,7 @@ the block is recorded invalid. The `+0x100` value then validates to
 emitted code has no trace of the `(u16)`. `rnd >>= 16; rnd = (u16)rnd;` produces
 the same object.
 
-## A call-argument move sinks to the top only if every competing set is single-set; keep the extension with a folded-away earlier life (func_shelter_b1_sterilization_room_8018188C, 2026-09-24)
+## A call-argument move sinks to the top only if every competing set is single-set; keep the extension with a folded-away earlier life (shelterB1SterilizationRoomEffectsTask, 2026-09-24)
 
 **Symptom.** The previous entry's in-place chain matched everything except one
 `move a0,s1` per call: the target puts the `rcos` argument move right after the

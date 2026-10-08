@@ -24,13 +24,13 @@ extern TaskMessageEntry D_acropolis_observatory_8017E7B8[];
 /// Set once the room task has spawned the streamed scene for this visit.
 extern s32 D_acropolis_observatory_8017E7D8;
 
-s32 func_acropolis_observatory_8017D618(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_acropolis_observatory_8017D7BC(Task*, s32, s32, s32);
-s32 func_acropolis_observatory_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _acropolisObservatoryRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_acropolis_observatory_8017D7C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 TaskMessageEntry D_acropolis_observatory_8017E7B8[4] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_observatory_8017D618 },
-    { 5105, func_acropolis_observatory_8017D7BC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisObservatoryResolveRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisObservatoryRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_observatory_8017D7C4 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -40,67 +40,78 @@ s32 D_acropolis_observatory_8017E7D8;
 static void func_acropolis_observatory_8017D834(Task* task);
 static void func_acropolis_observatory_8017D8AC(Task* task);
 
-/// Message gate for the observatory's two hotspots: copies the incoming record
-/// to the outgoing one, then edits the copy according to the message id and the
-/// game's progress nibbles.
+/// Resolves the observatory's exits from route progress and movie availability.
 ///
-/// Transitions to the forked road (area 9) and the promenade (area 0xB) answer with a
-/// `warp` refusal code — 5 and 1 respectively — while the disc has no `.STR`
-/// movie file (`gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0`) or the message's
-/// nibble is not in the state that lets it run once. The first pass through
-/// each also advances that nibble, so the refusal only shows on later visits.
-/// `queryOnly` non-zero means "report only", which suppresses both the nibble
-/// writes and the refusals.
-s32 func_acropolis_observatory_8017D618(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Borrows complete request/reply records, which may alias. Queries only copy
+/// the request. Execution records the forked-road exit's first use and advances
+/// promenade route progress from 3 to 4. Missing movie data, debug bypass or
+/// an already-used route selects alternate arrival 5 (forked road) or 1
+/// (promenade). Destination rooms follow the security-lock and bridge flags.
+/// Always returns 1 to permit the transition; receiver and message ID are unused.
+static s32 _acropolisObservatoryResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    s32 answer;
+    enum {
+        ACROPOLIS_OBSERVATORY_FORKED_ROAD_ALTERNATE_ARRIVAL = 5,
+        ACROPOLIS_OBSERVATORY_PROMENADE_ALTERNATE_ARRIVAL   = 1,
+        ACROPOLIS_OBSERVATORY_EXIT_UNUSED                   = 0,
+        ACROPOLIS_OBSERVATORY_EXIT_USED                     = 1,
+        ACROPOLIS_OBSERVATORY_ROUTE_ARRIVED                 = 3,
+        ACROPOLIS_OBSERVATORY_ROUTE_DEPARTED                = 4,
+        ACROPOLIS_OBSERVATORY_SECURITY_EXIT_ROOM_BIT        = 1,
+        ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_INITIAL      = 1,
+        ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_CHANGED      = 2,
+        ACROPOLIS_OBSERVATORY_TRANSITION_ALLOWED            = 1
+    };
+    s32 destinationRoom;
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD && in->queryOnly == ROOM_EVENT_EXECUTE) {
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0) {
-            out->warp = 5;
+            reply->warp = ACROPOLIS_OBSERVATORY_FORKED_ROAD_ALTERNATE_ARRIVAL;
         }
-        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED) == 0) {
-            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, 1);
+        if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED) == ACROPOLIS_OBSERVATORY_EXIT_UNUSED) {
+            gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EXIT_USED, ACROPOLIS_OBSERVATORY_EXIT_USED);
         } else {
-            out->warp = 5;
+            reply->warp = ACROPOLIS_OBSERVATORY_FORKED_ROAD_ALTERNATE_ARRIVAL;
         }
-        if (in->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
-            if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 1) {
-                out->room = 2;
+        if (request->areaId == GAME_AREA_ACROPOLIS_FORKED_ROAD) {
+            if (gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_OBSERVATORY_SECURITY_EXIT_ROOM_BIT) {
+                reply->room = ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_CHANGED;
             }
         }
     }
-    if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
+    if (request->areaId == GAME_AREA_ACROPOLIS_PROMENADE) {
         if (gDisplayState.debugMode < 0 || D_8006AC30.startSector == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                out->warp = 1;
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                reply->warp = ACROPOLIS_OBSERVATORY_PROMENADE_ALTERNATE_ARRIVAL;
             }
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == 3) {
-                gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, 4);
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (gameFlagGetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS) == ACROPOLIS_OBSERVATORY_ROUTE_ARRIVED) {
+                gameFlagSetNibble(GAME_FLAG_OBSERVATORY_ROUTE_PROGRESS, ACROPOLIS_OBSERVATORY_ROUTE_DEPARTED);
             } else {
-                out->warp = 1;
+                reply->warp = ACROPOLIS_OBSERVATORY_PROMENADE_ALTERNATE_ARRIVAL;
             }
         }
-        if (in->areaId == GAME_AREA_ACROPOLIS_PROMENADE && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            answer = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
-            if (answer == 0) {
-                answer = 1;
+        if (request->areaId == GAME_AREA_ACROPOLIS_PROMENADE && request->queryOnly == ROOM_EVENT_EXECUTE) {
+            destinationRoom = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS);
+            if (destinationRoom == 0) {
+                destinationRoom = ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_INITIAL;
             } else {
-                answer = 2;
+                destinationRoom = ACROPOLIS_OBSERVATORY_DESTINATION_ROOM_CHANGED;
             }
-            out->room = answer;
+            reply->room = destinationRoom;
         }
     }
-    return 1;
+    return ACROPOLIS_OBSERVATORY_TRANSITION_ALLOWED;
 }
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_acropolis_observatory_8017D7BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use without consuming the item or starting a room event.
+///
+/// All arguments are ignored. The reply selects the inventory's "No use now" notice.
+static s32 _acropolisObservatoryRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Message gate for the observatory hotspot: sub-id 1 arms the room's task the

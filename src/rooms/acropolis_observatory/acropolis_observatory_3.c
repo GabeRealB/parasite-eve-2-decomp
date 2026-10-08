@@ -66,12 +66,6 @@ typedef struct {
 } _AcropolisObservatorySceneWork;
 STATIC_ASSERT_SIZEOF(_AcropolisObservatorySceneWork, 8);
 
-/// `gPlayerStatus.weapon` is the
-/// equipped-weapon index the slot-3 msg 0x3E8 record is keyed on,
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` picks which of the two weapon-id bases that record uses, and
-/// `gDisplayState.pendingMode` / `Gp_StateC08.mode` gate the scene's setup (the latter is 1 while the attachment wheel is open). `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room` is the field-actor mode byte the
-/// scene switches to 1 when it hands control back.
-
 extern s16 D_acropolis_observatory_8017FE68[];
 
 /// Per-view spawn table for the observatory's ambient effect. Entry `i` of
@@ -86,7 +80,7 @@ extern WorldCollisionTrigger D_acropolis_observatory_80180A74[10];
 extern WorldCollisionTrigger D_acropolis_observatory_80180D6C[9];
 extern WorldCoordRoomLights  D_acropolis_observatory_8018177C[1];
 
-void func_acropolis_observatory_8017E19C(Task*);
+static void _acropolisObservatoryScriptedBattleTask(Task* task);
 
 extern SpriteBatch  D_acropolis_observatory_80181794[2];
 extern SpriteBatch  D_acropolis_observatory_80181B78[7];
@@ -99,7 +93,7 @@ s16 D_acropolis_observatory_8017FE68[2] = {
     1,
 };
 
-TaskDesc D_acropolis_observatory_8017FE6C = { { { TASK_BODY_NONE, 192 } }, func_acropolis_observatory_8017E19C, { .value = 0 } };
+TaskDesc D_acropolis_observatory_8017FE6C = { { { TASK_BODY_NONE, 192 } }, _acropolisObservatoryScriptedBattleTask, { .value = 0 } };
 
 SVECTOR D_acropolis_observatory_8017FE78[8] = {
     { -6832, -6250, -1216, 0 },
@@ -965,109 +959,149 @@ WorldCollisionSurfaceProperties* D_acropolis_observatory_801834DC[8] = {
     D_acropolis_observatory_801834CC,
 };
 
-/// The observatory's scene task. State 0 allocates the `_AcropolisObservatorySceneWork` block,
-/// captures slot 3 in it and cues the scene with the 0x3F4 record at
-/// `gAcropolisObservatoryPlayerAnimationSets`; it does nothing at all while the
-/// attachment wheel is open (`Gp_StateC08.mode`) or `gDisplayState.pendingMode` is set. States 1, 2 and 4 just
-/// tick, state 3 waits for the shared field-actor byte to reach 2 and arms
-/// `sceneEngageBattle`, state 5 republishes the player's weapon to slot 3 and puts
-/// the session back into field mode, and state 6 releases slot 3 (msg 0x3F1)
-/// and kills the task.
+/// Runs the observatory's scripted player pose and enemy-entrance battle handoff.
 ///
-/// Every state then falls into the same tail: while slot 3 is idle (msg 0x3ED
-/// returns 0) the `followUpIndex`th entry of `D_acropolis_observatory_8017FE68` is sent
-/// as a second 0x3F4 record, unless that entry is negative.
-void func_acropolis_observatory_8017E19C(Task* task)
+/// Starts at state 0; states 0..6 install scene clip 1, defer, wait for the first
+/// enemy wave, restore the equipped weapon's animation bank and field room,
+/// then send `GAME_ACTOR_MESSAGE_END_SCRIPTED` and retire. Initialization waits
+/// while the attachment wheel or a display transition is active. Requires the
+/// player in `GAME_TASK_SLOT_PLAYER` and loaded scene/weapon animation data.
+///
+/// Owns eight bytes at `Task::work`; later states borrow the captured player.
+/// An idle player may receive a follow-up clip with a ten-frame blend, but the
+/// zeroed follow-up index selects a negative entry in this build. Retains the
+/// original continuation after allocation failure and task teardown.
+static void _acropolisObservatoryScriptedBattleTask(Task* task)
 {
-    AnimationPlayRequest            rec;
-    AnimationPlayRequest            arg;
-    AnimationPlayRequest*           msg;
-    _AcropolisObservatorySceneWork* work;
-    _AcropolisObservatorySceneWork* tail;
-    _AcropolisObservatorySceneWork* dest;
-    _AcropolisObservatorySceneWork* blk;
-    s16*                            p;
-    u16                             entry;
-    s32                             temp;
-    s32                             weaponId;
-    s32                             id;
+    enum {
+        ACROPOLIS_OBSERVATORY_SCENE_INITIALIZE                 = 0,
+        ACROPOLIS_OBSERVATORY_SCENE_DEFER_FIRST                = 1,
+        ACROPOLIS_OBSERVATORY_SCENE_DEFER_SECOND               = 2,
+        ACROPOLIS_OBSERVATORY_SCENE_WAIT_ENTRANCE              = 3,
+        ACROPOLIS_OBSERVATORY_SCENE_DEFER_BATTLE               = 4,
+        ACROPOLIS_OBSERVATORY_SCENE_RESTORE_PLAYER             = 5,
+        ACROPOLIS_OBSERVATORY_SCENE_RELEASE_PLAYER             = 6,
+        ACROPOLIS_OBSERVATORY_SCENE_CLIP                       = 1,
+        ACROPOLIS_OBSERVATORY_SCENE_HOLD_ENTRANCE              = 0,
+        ACROPOLIS_OBSERVATORY_SCENE_FIRST_WAVE                 = 2,
+        ACROPOLIS_OBSERVATORY_SCENE_PRIMARY_CHARACTER          = 1,
+        ACROPOLIS_OBSERVATORY_SCENE_PRIMARY_WEAPON_BANK_BASE   = 1,
+        ACROPOLIS_OBSERVATORY_SCENE_ALTERNATE_WEAPON_BANK_BASE = 34,
+        ACROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM                 = 1,
+        ACROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_BLEND_FRAMES     = 10
+    };
+    AnimationPlayRequest            playbackRequest;
+    AnimationPlayRequest            followUpRequest;
+    AnimationPlayRequest*           followUpMessage;
+    _AcropolisObservatorySceneWork* sceneWork;
+    _AcropolisObservatorySceneWork* idleWork;
+    _AcropolisObservatorySceneWork* playbackWork;
+    _AcropolisObservatorySceneWork* allocatedWork;
+    s16*                            followUpEntry;
+    u16                             followUpAnimationId;
+    s32                             allocationCheckOrClip;
+    s32                             weaponIndex;
+    s32                             animationBankIndex;
 
-    work = task->work;
+    /// Allocates owned scene work and captures the player without exiting the caller.
+    ///
+    /// Captures allocatedWork and allocationCheckOrClip. Evaluates sceneTask to
+    /// store work and, on failure, kill it: require a stable, side-effect-free Task*.
+    /// Expands statements in this task body's braced scope; failure still continues.
+#define ACROPOLIS_OBSERVATORY_ALLOCATE_SCENE_WORK(sceneTask)                \
+    allocatedWork         = memCalloc(sizeof(*allocatedWork), 0);           \
+    allocationCheckOrClip = (allocatedWork == NULL);                        \
+    (sceneTask)->work     = allocatedWork;                                  \
+    if (allocationCheckOrClip) {                                            \
+        taskKill(sceneTask);                                                \
+    } else {                                                                \
+        memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));             \
+        allocatedWork->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER); \
+    }
+
+    /// Starts a nonnegative follow-up clip when the captured player is idle.
+    ///
+    /// Captures followUpRequest/followUpMessage, idleWork, playbackWork,
+    /// followUpEntry, followUpAnimationId, allocationCheckOrClip and the blend
+    /// constant. Borrows the room's clip/set tables; sceneTask is read up to
+    /// twice and must be a stable, side-effect-free Task*. Expands statements in
+    /// this task body's braced scope, retaining both work reloads and entry loads.
+#define ACROPOLIS_OBSERVATORY_PLAY_IDLE_FOLLOW_UP(sceneTask)                                                                     \
+    idleWork        = (sceneTask)->work;                                                                                         \
+    followUpMessage = &followUpRequest;                                                                                          \
+    if (idleWork->playerTask != NULL && taskMessageDispatch(idleWork->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {    \
+        followUpEntry         = &D_acropolis_observatory_8017FE68[idleWork->followUpIndex];                                      \
+        allocationCheckOrClip = *followUpEntry;                                                                                  \
+        followUpAnimationId   = *followUpEntry;                                                                                  \
+        if (allocationCheckOrClip >= 0) {                                                                                        \
+            playbackWork = (sceneTask)->work;                                                                                    \
+            if (playbackWork->playerTask != NULL) {                                                                              \
+                followUpRequest.source.sets           = gAcropolisObservatoryPlayerAnimationSets;                                \
+                followUpRequest.animationId           = followUpAnimationId;                                                     \
+                followUpMessage->blend                = ANIMATION_BLEND_INTERPOLATE;                                             \
+                followUpMessage->blendFrames          = ACROPOLIS_OBSERVATORY_SCENE_FOLLOW_UP_BLEND_FRAMES;                      \
+                followUpMessage->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                        \
+                TASK_MESSAGE_DISPATCH_POINTER(playbackWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, followUpMessage, 0); \
+            }                                                                                                                    \
+        }                                                                                                                        \
+    }
+
+    sceneWork = task->work;
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_OBSERVATORY_SCENE_INITIALIZE:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
-            blk        = memCalloc(sizeof(*blk), 0);
-            temp       = (blk == NULL);
-            task->work = blk;
-            if (temp) {
-                taskKill(task);
-            } else {
-                memFillBytes(blk, 0, sizeof(*blk));
-                blk->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            // Capture the player once; teardown owns the eight-byte work allocation.
+            ACROPOLIS_OBSERVATORY_ALLOCATE_SCENE_WORK(task);
+            sceneWork = task->work;
+            if (sceneWork->playerTask != NULL) {
+                playbackRequest.source.sets          = gAcropolisObservatoryPlayerAnimationSets;
+                playbackRequest.animationId          = ACROPOLIS_OBSERVATORY_SCENE_CLIP;
+                playbackRequest.blend                = ANIMATION_BLEND_RESET;
+                playbackRequest.blendFrames          = 0;
+                playbackRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(sceneWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &playbackRequest, 0);
             }
-            work = task->work;
-            if (work->playerTask != NULL) {
-                rec.source.sets          = gAcropolisObservatoryPlayerAnimationSets;
-                rec.animationId          = 1;
-                rec.blend                = ANIMATION_BLEND_RESET;
-                rec.blendFrames          = 0;
-                rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &rec, 0);
-            }
-            gSceneCombatState.actor03700Wave = 0;
+            gSceneCombatState.actor03700Wave = ACROPOLIS_OBSERVATORY_SCENE_HOLD_ENTRANCE;
             /* fallthrough */
-        case 1:
-        case 2:
-        case 4:
+        case ACROPOLIS_OBSERVATORY_SCENE_DEFER_FIRST:
+        case ACROPOLIS_OBSERVATORY_SCENE_DEFER_SECOND:
+        case ACROPOLIS_OBSERVATORY_SCENE_DEFER_BATTLE:
             task->state = task->state + 1;
             break;
-        case 3:
-            if (gSceneCombatState.actor03700Wave == 2) {
+        case ACROPOLIS_OBSERVATORY_SCENE_WAIT_ENTRANCE:
+            if (gSceneCombatState.actor03700Wave == ACROPOLIS_OBSERVATORY_SCENE_FIRST_WAVE) {
                 sceneEngageBattle(1);
                 task->state = task->state + 1;
             }
             break;
-        case 5:
-            weaponId                 = gPlayerStatus.weapon;
-            id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.source.index         = id;
-            rec.animationId          = 1;
-            rec.blend                = ANIMATION_BLEND_RESET;
-            rec.blendFrames          = 0;
-            rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &rec, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-            gGameSession->location.loc.room                            = 1;
+        case ACROPOLIS_OBSERVATORY_SCENE_RESTORE_PLAYER:
+            // Restore the equipped weapon bank before returning to the field room.
+            weaponIndex                          = gPlayerStatus.weapon;
+            animationBankIndex                   = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACROPOLIS_OBSERVATORY_SCENE_PRIMARY_CHARACTER) ? weaponIndex + ACROPOLIS_OBSERVATORY_SCENE_PRIMARY_WEAPON_BANK_BASE : weaponIndex + ACROPOLIS_OBSERVATORY_SCENE_ALTERNATE_WEAPON_BANK_BASE;
+            playbackRequest.source.index         = animationBankIndex;
+            playbackRequest.animationId          = ACROPOLIS_OBSERVATORY_SCENE_CLIP;
+            playbackRequest.blend                = ANIMATION_BLEND_RESET;
+            playbackRequest.blendFrames          = 0;
+            playbackRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(sceneWork->playerTask, ANIMATION_MESSAGE_PLAY, &playbackRequest, 0);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM;
+            gGameSession->location.loc.room                            = ACROPOLIS_OBSERVATORY_SCENE_FIELD_ROOM;
             gGameSession->roomObjsDirty                                = 1;
             gGameSession->viewDirty                                    = 1;
             task->state                                                = task->state + 1;
             break;
-        case 6:
-            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+        case ACROPOLIS_OBSERVATORY_SCENE_RELEASE_PLAYER:
+            taskMessageDispatch(sceneWork->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             taskKill(task);
             break;
     }
 
-    tail = task->work;
-    msg  = &arg;
-    if (tail->playerTask != NULL && taskMessageDispatch(tail->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-        p     = &D_acropolis_observatory_8017FE68[tail->followUpIndex];
-        temp  = *p;
-        entry = *p;
-        if (temp >= 0) {
-            dest = task->work;
-            if (dest->playerTask != NULL) {
-                arg.source.sets           = gAcropolisObservatoryPlayerAnimationSets;
-                arg.animationId           = entry;
-                msg->blend                = ANIMATION_BLEND_INTERPOLATE;
-                msg->blendFrames          = 0xA;
-                msg->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(dest->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, msg, 0);
-            }
-        }
-    }
+    // The original also runs the idle tail after task teardown.
+    ACROPOLIS_OBSERVATORY_PLAY_IDLE_FOLLOW_UP(task);
+#undef ACROPOLIS_OBSERVATORY_PLAY_IDLE_FOLLOW_UP
+#undef ACROPOLIS_OBSERVATORY_ALLOCATE_SCENE_WORK
 }
 
 /// Sets the screen-aligned square corners of a glow quad around its projected centre.

@@ -92,3 +92,4 @@ Reflection_Data_8017D5C4 = 0x8017D5C4;
 _acropolisEastElevatorHallResolveTransitionMessage = 0x8017f348; // type:func
 _acropolisEastElevatorHallRejectKeyItemMessage = 0x8017f370; // type:func
 acropolisEastElevatorHallPointTileTask = 0x8017faac; // type:func
+_acropolisEastElevatorHallUpdatePlayerDebugDisplay = 0x8017f4e8; // type:func

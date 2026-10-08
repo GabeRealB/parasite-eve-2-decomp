@@ -115,8 +115,8 @@ static void _acropolisFountainClimbWaitForStep(Task* task);
 static void _acropolisFountainClimbMovePlayer(Task* task);
 static void _acropolisFountainClimbFinish(Task* task);
 
-void func_acropolis_fountain_8017E3D4(Task*);
-void func_acropolis_fountain_8017E72C(Task*);
+void        func_acropolis_fountain_8017E3D4(Task*);
+static void _acropolisFountainStopWaterMovieTask(Task* task);
 
 extern WorldCollisionGrid    D_acropolis_fountain_8017F60C[1];
 extern WorldCollisionTrigger D_acropolis_fountain_8017F630[12];
@@ -155,7 +155,7 @@ s16 D_acropolis_fountain_8017E7F8 = 0;
 
 TaskDesc D_acropolis_fountain_8017E7FC[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_fountain_8017E3D4, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_fountain_8017E72C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisFountainStopWaterMovieTask, { .value = 0 } },
 };
 
 WorldCollisionRoomResources D_acropolis_fountain_8017E814[2] = {
@@ -1411,9 +1411,11 @@ static inline void _acropolisFountainInitSprayQuad(POLY_FT4* quad, u8 modulation
     setSemiTrans(quad, true);
 }
 
-void func_acropolis_fountain_8017DA1C(void)
+void acropolisFountainEnableClimbTrigger(void)
 {
-    worldCollisionUnlinkTrigger(0, &D_acropolis_fountain_8017F9C0[5]);
+    enum { ACROPOLIS_FOUNTAIN_INSPECTION_TRIGGER = 5 };
+
+    worldCollisionUnlinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &D_acropolis_fountain_8017F9C0[ACROPOLIS_FOUNTAIN_INSPECTION_TRIGGER]);
     D_acropolis_fountain_8017E7A4.coord = &gGfxViewCoord;
     worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &D_acropolis_fountain_8017E7A4);
     D_acropolis_fountain_8017E7A4.flags |= WORLD_COLLISION_TRIGGER_ENABLED;
@@ -1795,8 +1797,12 @@ void func_acropolis_fountain_8017E3D4(Task* task)
     }
 }
 
-void func_acropolis_fountain_8017E72C(Task* arg0)
+/// Retires the fountain's movie/water-loop task and this one-shot stop task.
+///
+/// The saved movie-task pointer must still be live; it is not cleared here.
+/// Task teardown releases the movie task's work, but does not stop its sound.
+static void _acropolisFountainStopWaterMovieTask(Task* task)
 {
     taskKill(D_acropolis_fountain_80183BB4);
-    taskKill(arg0);
+    taskKill(task);
 }

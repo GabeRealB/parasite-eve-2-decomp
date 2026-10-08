@@ -91,14 +91,14 @@ static TaskDesc D_acropolis_east_elevator_hall_8017FC90[];
 #include "../../shared/red_beacon.h"
 
 static void func_acropolis_east_elevator_hall_8017F478(Task* task);
-static void func_acropolis_east_elevator_hall_8017F4E8(Task* task);
+static void _acropolisEastElevatorHallUpdatePlayerDebugDisplay(Task* unusedTask);
 
 /// Scale handed to `ScaleMatrix` to flip the reflection across X.
 #include "../../shared/planar_reflection_rodata.inc.c"
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_east_elevator_hall_8017D5D4 = {
-    { func_acropolis_east_elevator_hall_8017F478, func_acropolis_east_elevator_hall_8017F4E8, taskKill },
+    { func_acropolis_east_elevator_hall_8017F478, _acropolisEastElevatorHallUpdatePlayerDebugDisplay, taskKill },
 };
 
 static AnimationSet _gAcropolisEastElevatorHallAnimation02EB8;
@@ -812,12 +812,23 @@ static void func_acropolis_east_elevator_hall_8017F478(Task* task)
 /// "Player", followed by the non-zero padding the original toolchain left.
 static const char D_acropolis_east_elevator_hall_8017D5E0[8] = "Player\0\x0F";
 
-static void func_acropolis_east_elevator_hall_8017F4E8(Task* task)
+/// Updates the player's diagnostic display during the room task's idle state.
+///
+/// With a nonzero debug mode, calls the player diagnostic hook, then checks the
+/// mode again before passing the player label and display position (-140, -50).
+/// The receiver is unused; the player slot and diagnostic hooks must be live.
+static void _acropolisEastElevatorHallUpdatePlayerDebugDisplay(Task* unusedTask)
 {
+    enum {
+        ACROPOLIS_EAST_ELEVATOR_HALL_PLAYER_DEBUG_X = -140,
+        ACROPOLIS_EAST_ELEVATOR_HALL_PLAYER_DEBUG_Y = -50
+    };
+
     if (gDisplayState.debugMode != 0) {
         func_807245E4(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER));
         if (gDisplayState.debugMode != 0) {
-            func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), -0x8C, -0x32, &D_acropolis_east_elevator_hall_8017D5E0);
+            func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACROPOLIS_EAST_ELEVATOR_HALL_PLAYER_DEBUG_X,
+                          ACROPOLIS_EAST_ELEVATOR_HALL_PLAYER_DEBUG_Y, &D_acropolis_east_elevator_hall_8017D5E0);
         }
     }
 }

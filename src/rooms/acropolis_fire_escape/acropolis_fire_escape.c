@@ -178,10 +178,10 @@ enum { ACROPOLIS_FIRE_ESCAPE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
             setRGB3((quad), 0, 0, 0)))
 
 static void func_acropolis_fire_escape_8017FE50(Task* task);
-static void func_acropolis_fire_escape_8017FECC(Task* task);
+static void _acropolisFireEscapeDisableAbsentActorInteraction(Task* unusedTask);
 
 s32        func_acropolis_fire_escape_8017F9F8(Task*, s32, s32, s32);
-s32        func_acropolis_fire_escape_8017FD98(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisFireEscapeResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _acropolisFireEscapeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _acropolisFireEscapeIgnoreSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 unusedArg);
 
@@ -216,7 +216,7 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 TaskMessageEntry D_acropolis_fire_escape_80181D3C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_fire_escape_8017FD98 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisFireEscapeResolveRoomTransition },
     { ACROPOLIS_FIRE_ESCAPE_MESSAGE_USE_KEY_ITEM, _acropolisFireEscapeRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_acropolis_fire_escape_8017F9F8 },
     { ROOM_MESSAGE_SOUND, _acropolisFireEscapeIgnoreSoundMessage },
@@ -623,7 +623,7 @@ void func_acropolis_fire_escape_8017EA68(Task* task)
 static const TaskFuncTable3 D_acropolis_fire_escape_8017D6A4 = {
     {
         func_acropolis_fire_escape_8017FE50,
-        func_acropolis_fire_escape_8017FECC,
+        _acropolisFireEscapeDisableAbsentActorInteraction,
         taskKill,
     },
 };
@@ -739,24 +739,34 @@ void func_acropolis_fire_escape_8017FB40(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-/// The `0x13EE` message handler of `D_acropolis_fire_escape_80181D3C`: copies
-/// the incoming save location onto the outgoing one, fades the ambient sound
-/// out when `queryOnly` is 0, and for location 0xE with `queryOnly` 0 sets the
-/// outgoing `room` to 2 when game flag 2 is 3, to 1 otherwise.
-s32 func_acropolis_fire_escape_8017FD98(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Resolves departure from the fire escape and fades its ambience on execution.
+///
+/// Borrows complete request/reply records, which may be the same object.
+/// Queries only copy the request. Execution fades ambience over 15 audio
+/// updates and selects bridge room 2 at progress 3, room 1 otherwise.
+/// Always returns 1 to permit the resolved transition; receiver and ID are unused.
+static s32 _acropolisFireEscapeResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-        sndEvtRequestScriptStop(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, 0xF);
+    enum {
+        ACROPOLIS_FIRE_ESCAPE_DEPARTURE_FADE_TICKS    = 15,
+        ACROPOLIS_FIRE_ESCAPE_BRIDGE_PROGRESS_CHANGED = 3,
+        ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_INITIAL     = 1,
+        ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_CHANGED     = 2,
+        ACROPOLIS_FIRE_ESCAPE_TRANSITION_ALLOWED      = 1
+    };
+
+    *reply = *request;
+    if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+        sndEvtRequestScriptStop(SOUND_ACROPOLIS_FIRE_ESCAPE_AMBIENCE, ACROPOLIS_FIRE_ESCAPE_DEPARTURE_FADE_TICKS);
     }
-    if (src->areaId == GAME_AREA_ACROPOLIS_BRIDGE && src->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
-            dst->room = 2;
+    if (request->areaId == GAME_AREA_ACROPOLIS_BRIDGE && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_FIRE_ESCAPE_BRIDGE_PROGRESS_CHANGED) {
+            reply->room = ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_CHANGED;
         } else {
-            dst->room = 1;
+            reply->room = ACROPOLIS_FIRE_ESCAPE_BRIDGE_ROOM_INITIAL;
         }
     }
-    return 1;
+    return ACROPOLIS_FIRE_ESCAPE_TRANSITION_ALLOWED;
 }
 
 /// Refuses every key-item use in this room, returning zero without consuming it.
@@ -789,19 +799,21 @@ static void func_acropolis_fire_escape_8017FE50(Task* task)
     task->state = task->state + 1;
 }
 
-/// Per-frame state of the room's message task: clears bit 0x40 of
-/// `D_acropolis_fire_escape_8018252C[5].field_4A` unless the slot-4 task exists
-/// and answers message 0x7D6.
-static void func_acropolis_fire_escape_8017FECC(Task* task)
+/// Disables the placed actor's interaction when the actor is absent.
+///
+/// Idle room-state callback; the receiver is unused. Queries placement 0 with
+/// `ACTOR_MESSAGE_IS_PRESENT` and clears the trigger's ENABLED bit on a zero
+/// reply or missing actor. Never re-enables it. The presence query retains the
+/// original zero second payload, although this room's actor writes through it.
+static void _acropolisFireEscapeDisableAbsentActorInteraction(Task* unusedTask)
 {
-    Task* slot;
+    enum { ACROPOLIS_FIRE_ESCAPE_ACTOR_INTERACTION_TRIGGER = 5 };
+    Task* actorTask;
 
-    slot = sceneFindPlacedActor(0);
-    if (slot == NULL || taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
-        {
-            WorldCollisionTrigger* object = &D_acropolis_fire_escape_8018252C[5];
-            object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-        }
+    actorTask = sceneFindPlacedActor(0);
+    if (actorTask == NULL || taskMessageDispatch(actorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
+        WorldCollisionTrigger* interaction = &D_acropolis_fire_escape_8018252C[ACROPOLIS_FIRE_ESCAPE_ACTOR_INTERACTION_TRIGGER];
+        interaction->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
 }
 

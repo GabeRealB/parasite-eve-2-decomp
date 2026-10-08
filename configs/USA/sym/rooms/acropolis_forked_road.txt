@@ -144,3 +144,4 @@ _leafDraw = 0x8017EC70; // type:func
 _acropolisForkedRoadSkipFadeInTask = 0x8017e220; // type:func
 _acropolisForkedRoadReleaseMaggotCaterpillarEntrance = 0x8017e288; // type:func
 _acropolisForkedRoadSkipFadeOutTask = 0x8017e1c0; // type:func
+_acropolisForkedRoadRejectKeyItemUse = 0x8017d850; // type:func

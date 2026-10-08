@@ -54,14 +54,14 @@ static const TaskFuncTable3 D_acropolis_forked_road_8017D5C4 = {
     { func_acropolis_forked_road_8017D92C, func_acropolis_forked_road_8017D970, taskKill }
 };
 
-s32 func_acropolis_forked_road_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_acropolis_forked_road_8017D850(Task*, s32, s32, s32);
-s32 func_acropolis_forked_road_8017D858(Task*, s32, s32, s32);
-s32 func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+s32        func_acropolis_forked_road_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _acropolisForkedRoadRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
+s32        func_acropolis_forked_road_8017D858(Task*, s32, s32, s32);
+s32        func_acropolis_forked_road_8017D8A8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
 TaskMessageEntry D_acropolis_forked_road_80180F14[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_forked_road_8017D5EC },
-    { 5105, func_acropolis_forked_road_8017D850 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisForkedRoadRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_acropolis_forked_road_8017D858 },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_forked_road_8017D8A8 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -148,10 +148,12 @@ s32 func_acropolis_forked_road_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, 
     return 1;
 }
 
-/// Room script callback with nothing to do: always answers 0.
-s32 func_acropolis_forked_road_8017D850(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use without consuming the item or starting a room event.
+///
+/// All arguments are ignored. The reply selects the inventory's "No use now" notice.
+static s32 _acropolisForkedRoadRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_acropolis_forked_road_8017D858(Task* arg0, s32 arg1, s32 arg2, s32 arg3)

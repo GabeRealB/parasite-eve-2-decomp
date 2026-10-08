@@ -120,3 +120,5 @@ roomCutsceneTask = 0x8017F48C; // type:func
 _roomCutsceneSoundTask = 0x8017FD08; // type:func
 _acropolisFireEscapeRejectKeyItemUse = 0x8017fe40; // type:func
 _acropolisFireEscapeIgnoreSoundMessage = 0x8017fe48; // type:func
+_acropolisFireEscapeResolveRoomTransition = 0x8017fd98; // type:func
+_acropolisFireEscapeDisableAbsentActorInteraction = 0x8017fecc; // type:func

@@ -42,7 +42,23 @@ extern WorldCollisionSurfaceProperties* D_shelter_b1_sterilization_room_8018C314
 /// Spawn arguments are unused; the task and room resources live with the overlay.
 void shelterB1SterilizationRoomTask(Task* task);
 
-void func_shelter_b1_sterilization_room_8018188C(Task* task);
+/// Draws view-dependent sterilization glows and emits smoke or trap puffs.
+///
+/// Gameplay effect 0x12F requires a live coordinate body. State 0 draws glows
+/// and emits smoke in mapped views 20..24; mapped view 14 permanently enters
+/// the trap-puff phase. A nonzero spawnArg1 arms one cancellation in view 6,
+/// and the smoke views re-arm it. Other spawn arguments and Task::work are unused.
+/// New particles require running room effects; glows continue while paused.
+///
+/// Puff sources are indices 0..63, grouped in four Q12 directions. Their packed
+/// high halfword adjusts perspective size by -128, 96, 256 or 384 by view.
+/// Smoke points occupy writable entries 81/82 of the room's 87-vector table;
+/// both use the same random angle (4096 units/turn) and radius 256..767 game
+/// units in the task coordinate's local space. Spawns copy their placement.
+/// Requires loaded room resources, composed view transforms, a scratch stack
+/// and the frame's GPU arena/table. It never retires itself; room teardown owns
+/// its lifetime and releases the unused counted effect work through its exit callback.
+void shelterB1SterilizationRoomEffectsTask(Task* task);
 
 /// Animates one drifting, expanding sterilization puff through ten sprite frames.
 ///

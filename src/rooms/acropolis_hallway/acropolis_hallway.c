@@ -79,12 +79,12 @@ extern WorldCollisionTrigger D_acropolis_hallway_8017E724[9];
 extern WorldCoordRoomLights  D_acropolis_hallway_8017EBC4[1];
 s32                          func_acropolis_hallway_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 static s32                   _acropolisHallwayRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
-s32                          func_acropolis_hallway_8017D734(Task*, s32, s32, s32);
+static s32                   _acropolisHallwayHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
 
 TaskMessageEntry D_acropolis_hallway_8017E238[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_hallway_8017D5D0 },
     { ACROPOLIS_HALLWAY_MESSAGE_USE_KEY_ITEM, _acropolisHallwayRejectKeyItemUse },
-    { ROOM_MESSAGE_SOUND, func_acropolis_hallway_8017D734 },
+    { ROOM_MESSAGE_SOUND, _acropolisHallwayHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -428,13 +428,22 @@ static s32 _acropolisHallwayRejectKeyItemUse(Task* unusedTask, s32 messageId, s3
     return ACROPOLIS_HALLWAY_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_acropolis_hallway_8017D734(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues hallway sound-bank entry 6 or 7 for the corresponding room sound cue.
+///
+/// Other cues do nothing. Uses each script's base mix; queue failures are
+/// discarded. Receiver, ID and second payload are unused; always returns zero.
+static s32 _acropolisHallwayHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg)
 {
-    switch (arg2) { /* irregular */
-        case 6:
+    enum {
+        ACROPOLIS_HALLWAY_SOUND_CUE_ENTRY_6 = 6,
+        ACROPOLIS_HALLWAY_SOUND_CUE_ENTRY_7 = 7
+    };
+
+    switch (soundCue) {
+        case ACROPOLIS_HALLWAY_SOUND_CUE_ENTRY_6:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HALLWAY, 6), 0, 0);
             break;
-        case 7:
+        case ACROPOLIS_HALLWAY_SOUND_CUE_ENTRY_7:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HALLWAY, 7), 0, 0);
             break;
     }

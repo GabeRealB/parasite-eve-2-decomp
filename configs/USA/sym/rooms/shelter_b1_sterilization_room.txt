@@ -176,7 +176,7 @@ D_shelter_b1_sterilization_room_80188650 = 0x80188650; // size:0x18 defined:True
 D_shelter_b1_sterilization_room_80188668 = 0x80188668; // size:0xC0 defined:True
 D_shelter_b1_sterilization_room_80188728 = 0x80188728; // size:0x10 defined:True
 
-func_shelter_b1_sterilization_room_8018188C = 0x8018188C; // type:func
+shelterB1SterilizationRoomEffectsTask = 0x8018188C; // type:func
 
 shelterB1SterilizationRoomPuffTask = 0x801823D8; // type:func
 

@@ -312,7 +312,7 @@ extern u16 D_dryfield_water_tower_80181C60[];
 /// The room's 4A object -- the list node `worldCollisionLinkTrigger` chains into
 /// `Gp_Obj4ALists` and `worldCollisionUnlinkTrigger` takes out again. Command 3 of
 /// `func_dryfield_water_tower_8017E93C` enables its action trigger with `flags`, the
-/// same bit `func_acropolis_fountain_8017DA1C` raises on the fountain's node.
+/// same bit `acropolisFountainEnableClimbTrigger` raises on the fountain's node.
 
 /// The two player placements the cap script's commands 3, 4 and 7 dispatch as
 /// the payload of message 0x3E9 (their handler is the slot-3 game task at
@@ -2340,7 +2340,7 @@ void func_dryfield_water_tower_8017E764(Task* arg0)
 /// 0x3E9. Command 3 sends the two player placements the state's `runResult`
 /// picks between: with it 2, `80181AE8` with 0x3E9 and then its 0x18-byte
 /// neighbour `80181AD0` with 0x3F2, otherwise 0x3F3 with a null payload; it
-/// also raises bit 0x40 of the room's 4A object, as `func_acropolis_fountain_8017DA1C`
+/// also raises bit 0x40 of the room's 4A object, as `acropolisFountainEnableClimbTrigger`
 /// does for the fountain's. Commands 4 and 2 share their tail: 4 sends 0x3E9
 /// (with `80181AD0`) only when `runResult` is 2, then both stash
 /// `nextView` in `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` and raise the session's `viewDirty`, the pair
