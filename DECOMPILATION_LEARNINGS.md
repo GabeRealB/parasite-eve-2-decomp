@@ -76607,7 +76607,7 @@ Inputs: `base_2.i`
 
 ## A call block with no argument setup can mean the call passes *fewer* arguments
 
-`func_actor_800100_80165C38`'s case-1 block calls
+`_actor800100TickSingleShotAttack`'s case-1 block calls
 `_actor800100SpawnWeaponImpact` with `$a0`-`$a2` set and **no `$a3` at all**: the
 `1` the callee observes is the decision tree's own comparison operand, still
 live from `beq $v1, $a3`. A C call whose fourth argument is the literal `1`
@@ -88374,9 +88374,9 @@ compiler SHA256
 `nonmatchings/ActorsShared80131e24Sub1-vacuum`. Unverified beyond this function:
 whether the split still inverts the homes when the carve does *not* cross a call.
 **The copy is also an allocno-rank lever, and that is sometimes the only visible
-symptom.** `func_actor_800100_80165F50` (93.72% -> 100%, `regs=17`) has no
+symptom.** `_actor800100TickM950Attack` (93.72% -> 100%, `regs=17`) has no
 scheduling complaint at all: the scratch push is written the way its matched
-sibling `func_actor_800100_80165C38` writes it,
+sibling `_actor800100TickSingleShotAttack` writes it,
 
 ```c
     place                            = (GfxCoord*)((u8*)*SCRATCH_STACK_CURSOR_SLOT - 0x50);
@@ -99072,7 +99072,7 @@ Example: `_actor800300Init`. Inputs: `base_5.i`
 ## A negative constant into a `u8` field folds to its positive byte; an `s8` temporary keeps the sign (_actor800300Init, 2026-09-16)
 
 The last instruction of `_actor800300Init` is `li $2,-0x6a` followed by
-`sb $2,0xcc($s6)`. `CompanionWork::activity.distress.flinchInterval` really is `u8` - `func_actor_800100_80165C38`
+`sb $2,0xcc($s6)`. `CompanionWork::activity.distress.flinchInterval` really is `u8` - `_actor800100TickSingleShotAttack`
 reads the same byte as `activity.combat.repeatsRemaining` with `lbu` at 0xCC - and `companion->activity.distress.flinchInterval = -0x6A;` compiles to `li $2,150`:
 
 - the conversion to an unsigned 8-bit type masks the constant at tree level, so
@@ -106168,7 +106168,7 @@ section above also applies to a `switch`: `case 0: actor->stateAux = 1;` after
 `case 1`'s comparison materialised — one SImode constant-1 pseudo serves the
 comparison and the store (the store's RTL is
 `(set (mem:HI …) (subreg:HI (reg:SI C) 0))`), which is what the matched sibling
-`func_actor_800100_80165C38` does.
+`_actor800100TickSingleShotAttack` does.
 
 It does *not* happen automatically. CSE folds a narrow constant into the wider
 one only if the wider constant's defining insn was scanned earlier **in the same
@@ -110012,7 +110012,7 @@ compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 Evidence: `tools/permuter_findings/_actor401000Chase/`, session
 `LEARNINGS.md` in the scratch directory, `/tmp/gcc-obs-35aa4` (tracer events).
 
-## Every long-lived register wrong by one: a reused local the source wrote once (func_actor_800100_80163214, 2026-09-16)
+## Every long-lived register wrong by one: a reused local the source wrote once (_actor800100InitTask, 2026-09-16)
 
 **Symptom:** the register allocation is a *rotation* of the target's - the same
 values, each one callee-saved register away from where the oracle has it
@@ -110037,7 +110037,7 @@ Related, same function: an `s32 temp;` declared **inside** each object's block
 (also the sibling's form) rather than once at function scope removed the ties in
 the three `temp | packed | 0x80` chains and took `regs` from 24 to 10 by itself.
 
-## The same literal stored twice: one shared constant pseudo, one register (func_actor_800100_80163214, 2026-09-16)
+## The same literal stored twice: one shared constant pseudo, one register (_actor800100InitTask, 2026-09-16)
 
 **Symptom:** the oracle materialises `0x14` twice (`li $v0,0x14` at each store)
 while the C source produces a single `li $s5,0x14` hoisted to the top of the
@@ -110962,7 +110962,7 @@ for a cross-family lib unit to hand-write - the layout has none.
 
 ## The allocator counts source copies that cross-jump later erases
 
-`func_actor_800100_80166190` sat at 99.80% with `branch = insert = delete = 0`,
+`_actor800100TickM4a1PykeAttack` sat at 99.80% with `branch = insert = delete = 0`,
 `blocks = 33/33` and `instructions = 225/225` - every leftover was `regs`, and
 all of it one swap: the target has `d4` in `$s2` and the scratch `place` in
 `$s3`, the pointer in `$s2` and the record in `$s3`.
@@ -137306,7 +137306,7 @@ with `✅ BUILD SUCCEEDED`. Selected sources, plans, hashes, UID 113 dumps,
 scheduling orders, register dispositions and verification output are retained
 in `tools/compiler_evidence/2026-09-20-actor800100-66f50.json`.
 
-## A scalar alias of an actor-slot array hides scheduler dependencies (func_actor_800100_80163214, 2026-09-20)
+## A scalar alias of an actor-slot array hides scheduler dependencies (_actor800100InitTask, 2026-09-20)
 
 The retry seed reproduced 97.784% after field-name repairs. Its entry published
 `D_80115764 = index` early, taking v0 and pushing the scratchpad address into a1.
@@ -150421,7 +150421,7 @@ attempts; left as it was.
 - **A mode ladder whose `case 1` jumps to the two calls that end the
   function** (`_actor521100FightTick`) is `case 1: f(); g(); return;`
   written out; it merges into the function's tail.
-- Not converted: the re-fire jump of `func_actor_800100_80165F50` (`case 4`
+- Not converted: the re-fire jump of `_actor800100TickM950Attack` (`case 4`
   back to `case 1`'s body). One attempt, with the two bodies as inlines called
   in both places: same length, but the merged body is kept in `case 4`'s
   position, so cases 3/4 are emitted ahead of case 1.

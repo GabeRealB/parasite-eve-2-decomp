@@ -148,7 +148,7 @@ extern s16              D_actor_800100_80167218[];
 extern s16              D_actor_800100_80167224[];
 extern u8               D_actor_800100_80167230[];
 
-static void func_actor_800100_80163214(Task* arg0);
+static void _actor800100InitTask(Task* task);
 static void _actor800100Teardown(Task* task);
 static void _actor800100DecideIdleBehavior(Task* task);
 static void _actor800100TickNativeMode(Task* task);
@@ -175,10 +175,10 @@ static void _actor800100DamageRecoveryState(Task* task);
 static void _actor800100StoppedDamageState(Task* unusedTask);
 static void _actor800100TickScriptedMode(Task* task);
 static void _actor800100DecideCombatBehavior(Task* task);
-static void func_actor_800100_80165C38(Task* arg0);
-static void func_actor_800100_80165DE8(Task* arg0);
-static void func_actor_800100_80165F50(Task* arg0);
-static void func_actor_800100_80166190(Task* arg0);
+static void _actor800100TickSingleShotAttack(Task* task);
+static void _actor800100TickMm1Attack(Task* task);
+static void _actor800100TickM950Attack(Task* task);
+static void _actor800100TickM4a1PykeAttack(Task* task);
 static void _actor800100DrawAimBeamLine(const GfxCoord* beamCoord, s16 contactDistance);
 static void _actor800100DrawAimBeamQuad(const GfxCoord* beamCoord);
 static s32  _actor800100SpawnWeaponImpact(const WorldCollisionContact* contacts, const GfxCoord* weaponCoord, GfxCoord* impactCoordOut);
@@ -212,6 +212,18 @@ enum {
     ACTOR_800100_ANIMATION_CONTROLLER_CLIP_END = 7,
     ACTOR_800100_MOVEMENT_BLEND_FRAMES         = 5,
     ACTOR_800100_COMBAT_BLEND_FRAMES           = 6,
+};
+
+/// Selectors shared by the armed companion's weapon attack sequences.
+/// Flash bit 16 suppresses the screen-burst request, independently of collision keys.
+enum {
+    ACTOR_800100_MOVEMENT_STOPPED        = 0,
+    ACTOR_800100_ATTACK_ANIMATION        = 10,
+    ACTOR_800100_ATTACK_FINISH_ANIMATION = 11,
+    ACTOR_800100_ATTACK_COMPLETION_SLOT  = 8,
+    ACTOR_800100_ATTACK_TURN_RATE        = 2,
+    ACTOR_800100_ATTACK_IMPACT_SOUND     = 0x17,
+    ACTOR_800100_FLASH_SUPPRESS_BURST    = 1 << 16,
 };
 
 extern u8* D_actor_800100_801672F8[];
@@ -617,11 +629,13 @@ static void _actor800100ScheduleTeardown(Task* task);
 static void _actor800100DrawAimBeam(Task* task);
 static void _actor800100InitAimCollision(Task* actorTask);
 
-/// Refreshes the emitter's transient light in the view coordinate's local frame.
+/// Refreshes the Pyke emitter's expiring orange light at the composed nozzle.
 ///
-/// Borrows the chosen pool slot and its embedded light/coordinate aliases.
-/// Radii use integer world units; red intensity has 12 fractional bits. Consumes
-/// one unsigned LCG sample and retains halfword narrowing before green/blue shifts.
+/// pointLight must be `&transientLight->light`, and lightCoord its embedded
+/// `head.transform.coord`, parented to the view. These are borrowed aliases. Both
+/// nozzle and view caches must be current. Radii use integer world units,
+/// with 0 <= innerRadius <= outerRadius; redMinimum uses 12 fractional bits.
+/// Consumes one unsigned LCG sample and refreshes expiry to four gameplay frames.
 static inline void _actor800100RefreshPykeLight(WorldCoordTransientPointLight* transientLight,
                                                 WorldCoordPointLight* pointLight, GfxCoord* lightCoord,
                                                 const GfxCoord* nozzleCoord, s32 innerRadius, s32 outerRadius, s32 redMinimum)
@@ -757,139 +771,163 @@ void actor800100PykeFlameTask(Task* task)
 
 #include "../../shared/pyke_flame_release.inc.c"
 
-static void func_actor_800100_80163214(Task* arg0)
+/// Initializes the armed companion's playback, collision bodies and equipment.
+///
+/// Requires a fresh actor/model and allocated companion work, native animation
+/// resources and saved companion variant 0..4. Root and joints 1/4 must exist.
+/// Links actor-owned bodies and their borrowed contact storage, publishes the
+/// companion task and installs teardown. Body identities preserve the saved
+/// character ID and add bit 7 to select the companion; weapon keys also add it.
+/// Equipment/flare allocation may fail. Successfully spawned children stay
+/// live with the actor until teardown; the probe endpoint is copied before
+/// its eight-byte scratch reservation is released. Distances use game units.
+static void _actor800100InitTask(Task* task)
 {
+    enum {
+        ACTOR_800100_COMPANION_KEY_BIT            = 0x80,
+        ACTOR_800100_ROOT_BODY_RADIUS             = 300,
+        ACTOR_800100_CHILD_BODY_RADIUS            = 220,
+        ACTOR_800100_BODY_PART4_JOINT             = 4,
+        ACTOR_800100_BODY_PART1_JOINT             = 1,
+        ACTOR_800100_PART4_BODY_Y                 = 100,
+        ACTOR_800100_PART1_BODY_Y                 = 82,
+        ACTOR_800100_PYKE_RESOURCE_VARIANT        = 4,
+        ACTOR_800100_PROBE_ENDPOINT_SCRATCH_BYTES = 8,
+        ACTOR_800100_PROBE_NEAR_Y                 = -512,
+        ACTOR_800100_PROBE_FAR_Z                  = 4096,
+        ACTOR_800100_INITIAL_DECISION_TICKS       = 60,
+        ACTOR_800100_INITIAL_DECISION_RANDOM_MASK = 0x7F,
+    };
     GameActor*             actor;
-    TmdObject*             extra;
-    GfxCoord*              coord;
-    GfxCoord*              next;
-    GfxCoord*              third;
-    McSaveData*            save;
-    WorldCollisionContact* recs;
-    WorldCollisionBody*    obj;
+    TmdObject*             model;
+    GfxCoord*              rootCoord;
+    GfxCoord*              part4Coord;
+    GfxCoord*              part1Coords;
+    McSaveData*            liveSave;
+    WorldCollisionContact* bodyContacts;
+    WorldCollisionBody*    body;
     CompanionWork*         companion;
-    EffectWork*            eff;
-    Task*                  task;
-    SVECTOR3*              scratch;
-    s32                    idx;
-    s32                    packed;
+    EffectWork*            flareWork;
+    Task*                  weaponTask;
+    SVECTOR3*              probeNearEndpoint;
+    s32                    weaponId;
+    s32                    bodyCategory;
     u8                     savedResourceVariant;
-    void*                  head;
 
-    actor                      = arg0->work;
-    head                       = SCRATCH_STACK_CURSOR(void);
-    SCRATCH_STACK_CURSOR(void) = head - 8;
-    scratch                    = (SVECTOR3*)(head - 8);
-    extra                      = arg0->extra.tmd;
-    coord                      = extra->coords;
-    arg0->state++;
-    arg0->msgTable                                 = D_actor_800100_80167130;
-    arg0->exitCallback                             = _actor800100Teardown;
+/// Publishes and links a companion sphere with radius in game units.
+///
+/// Supply an unlinked sphere with its coordinate/context already installed.
+/// Arguments are side-effect-free live pointers/scalars; sphere is evaluated
+/// repeatedly. Radius/flags narrow to u16; the category supplies the high key
+/// halfword. Captures the initializer's established companion-key bit.
+/// Expands to a braced block and retains no save pointer.
+#define ACTOR_800100_LINK_COMPANION_BODY(sphere, save, radiusValue, bodyFlags, category) \
+    {                                                                                    \
+        s32 characterId  = (save)->state.characterId;                                    \
+        (sphere)->radius = (radiusValue);                                                \
+        (sphere)->flags  = (bodyFlags);                                                  \
+        (sphere)->key    = characterId | (category) | ACTOR_800100_COMPANION_KEY_BIT;    \
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, (sphere));            \
+    }
+
+    actor = task->work;
+    // Only the three XYZ halfwords are used; the remaining two reserved bytes are unproven.
+    probeNearEndpoint = SCRATCH_STACK_RESERVE_BYTES(ACTOR_800100_PROBE_ENDPOINT_SCRATCH_BYTES);
+    model             = task->extra.tmd;
+    rootCoord         = model->coords;
+    task->state++;
+    task->msgTable                                 = D_actor_800100_80167130;
+    task->exitCallback                             = _actor800100Teardown;
     actor->animationSlotCount                      = GAME_ACTOR_ARMED_COMPANION_ANIMATION_SLOTS;
-    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = arg0;
-    coord->parent                                  = &gGfxViewCoord;
-    coord->composeStamp                            = GRAPHICS_COORD_DIRTY;
-    extra->flags                                   = 0;
-    RotMatrix(&actor->rotation, &coord->coord);
-    companionInitNativeAnimation(arg0);
+    gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = task;
+    rootCoord->parent                              = &gGfxViewCoord;
+    rootCoord->composeStamp                        = GRAPHICS_COORD_DIRTY;
+    model->flags                                   = 0;
+    RotMatrix(&actor->rotation, &rootCoord->coord);
+    companionInitNativeAnimation(task);
     actor->animationRate = ANIMATION_RATE_ONE;
-    playerActorResetChildSlots(arg0, actor->actionArgument);
-    playerActorTickChildSlots(arg0);
-    recs                                       = actor->collisionContacts;
-    obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
-    actor->previousPosition.vx                 = coord->coord.t[0];
-    actor->previousPosition.vy                 = coord->coord.t[1];
-    actor->previousPosition.vz                 = coord->coord.t[2];
-    obj->context.motion                        = &actor->collisionMotionContexts[0];
-    obj->coord                                 = coord;
-    actor->collisionMotionContexts[0].contacts = recs;
-    save                                       = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    obj->pos.vy                                = -0x12C;
-    obj->pos.vx                                = 0;
-    obj->pos.vz                                = 0;
-    packed                                     = 0x10000;
+    playerActorResetChildSlots(task, actor->actionArgument);
+    playerActorTickChildSlots(task);
+    bodyContacts               = actor->collisionContacts;
+    body                       = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    actor->previousPosition.vx = rootCoord->coord.t[0];
+    actor->previousPosition.vy = rootCoord->coord.t[1];
+    actor->previousPosition.vz = rootCoord->coord.t[2];
+    // The three motion spheres share the actor-owned contact table.
+    body->context.motion                                          = &actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT];
+    body->coord                                                   = rootCoord;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].contacts = bodyContacts;
+    liveSave                                                      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    body->pos.vy                                                  = -ACTOR_800100_ROOT_BODY_RADIUS;
+    body->pos.vx                                                  = 0;
+    body->pos.vz                                                  = 0;
+    bodyCategory                                                  = WORLD_COLLISION_CONTACT_PLAYER_BODY;
+    ACTOR_800100_LINK_COMPANION_BODY(body, liveSave, ACTOR_800100_ROOT_BODY_RADIUS, WORLD_COLLISION_BODY_MOTION_SPHERE, bodyCategory);
+    worldCollisionInitContacts(actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
+    body->flags                                                   |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    part4Coord                                                     = task->extra.tmd->coords + ACTOR_800100_BODY_PART4_JOINT;
+    body                                                           = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
+    body->context.motion                                           = &actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4];
+    body->coord                                                    = part4Coord;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].contacts = bodyContacts;
+    body->pos.vx                                                   = 0;
+    body->pos.vy                                                   = ACTOR_800100_PART4_BODY_Y;
+    body->pos.vz                                                   = 0;
     {
-        s32 temp;
-
-        temp        = save->state.characterId;
-        obj->radius = 0x12C;
-        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
-        obj->key    = temp | packed | 0x80;
-        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
+        s32 part4BodyFlags = WORLD_COLLISION_BODY_MOTION_SPHERE |
+                             (GAME_ACTOR_BODY_PART4 << WORLD_COLLISION_CONTACT_BODY_INDEX_SHIFT);
+        ACTOR_800100_LINK_COMPANION_BODY(body, liveSave, ACTOR_800100_CHILD_BODY_RADIUS, part4BodyFlags, bodyCategory);
     }
-    worldCollisionInitContacts(actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), 0);
-    obj->flags                                |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    next                                       = arg0->extra.tmd->coords + 4;
-    obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_PART4];
-    obj->context.motion                        = &actor->collisionMotionContexts[1];
-    obj->coord                                 = next;
-    actor->collisionMotionContexts[1].contacts = recs;
-    obj->pos.vx                                = 0;
-    obj->pos.vy                                = 0x64;
-    obj->pos.vz                                = 0;
-    {
-        s32 f = 0x14;
-        s32 temp;
-
-        temp        = save->state.characterId;
-        obj->radius = 0xDC;
-        obj->flags  = f;
-        obj->key    = temp | packed | 0x80;
-        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
-    }
-    obj->flags                                |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    obj                                        = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
-    third                                      = arg0->extra.tmd->coords;
-    obj->context.motion                        = &actor->collisionMotionContexts[2];
-    obj->coord                                 = third + 1;
-    actor->collisionMotionContexts[2].contacts = recs;
-    obj->pos.vx                                = 0;
-    obj->pos.vy                                = 0x52;
-    obj->pos.vz                                = 0;
-    {
-        s32 temp;
-
-        temp        = save->state.characterId;
-        obj->radius = 0xDC;
-        obj->flags  = WORLD_COLLISION_BODY_MOTION_SPHERE;
-        obj->key    = temp | packed | 0x80;
-        worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_BODIES, obj);
-    }
-    obj->flags                   |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    actor->collisionEnableMask    = GAME_ACTOR_COLLISION_REQUEST_MASK;
+    body->flags                                                   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    body                                                           = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
+    part1Coords                                                    = task->extra.tmd->coords;
+    body->context.motion                                           = &actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1];
+    body->coord                                                    = part1Coords + ACTOR_800100_BODY_PART1_JOINT;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].contacts = bodyContacts;
+    body->pos.vx                                                   = 0;
+    body->pos.vy                                                   = ACTOR_800100_PART1_BODY_Y;
+    body->pos.vz                                                   = 0;
+    ACTOR_800100_LINK_COMPANION_BODY(body, liveSave, ACTOR_800100_CHILD_BODY_RADIUS, WORLD_COLLISION_BODY_MOTION_SPHERE, bodyCategory);
+    body->flags               |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+    actor->collisionEnableMask = GAME_ACTOR_COLLISION_REQUEST_MASK;
+    // Attachment spawning consumes the player resource selector synchronously.
     savedResourceVariant          = gPlayerStatus.resourceVariant;
-    gPlayerStatus.resourceVariant = save->state.companionVariant;
-    actor->attachmentTasks[0]     = playerActorSpawnAttachment(arg0, 0, PLAYER_ACTOR_ATTACHMENT_COMPANION_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
-    actor->attachmentTasks[1]     = playerActorSpawnAttachment(arg0, 1, PLAYER_ACTOR_ATTACHMENT_COMPANION_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
+    gPlayerStatus.resourceVariant = liveSave->state.companionVariant;
+    actor->attachmentTasks[0]     = playerActorSpawnAttachment(task, 0, PLAYER_ACTOR_ATTACHMENT_COMPANION_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
+    actor->attachmentTasks[1]     = playerActorSpawnAttachment(task, 1, PLAYER_ACTOR_ATTACHMENT_COMPANION_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
     gPlayerStatus.resourceVariant = savedResourceVariant;
     if (actor->attachmentTasks[1] != NULL) {
-        task                     = playerActorSpawnWeaponModel(actor->attachmentTasks[1], save->state.companionType + 1, save->state.companionVariant, 0);
-        actor->equipmentTasks[1] = task;
-        if (task != NULL) {
+        weaponTask               = playerActorSpawnWeaponModel(actor->attachmentTasks[1], liveSave->state.companionType + 1, liveSave->state.companionVariant, 0);
+        actor->equipmentTasks[1] = weaponTask;
+        if (weaponTask != NULL) {
             companion = actor->companionWork;
-            idx       = D_actor_800100_80167218[save->state.companionVariant];
-            playerActorInitWeaponCollision(arg0, idx, D_actor_800100_80167224[save->state.companionVariant]);
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= 0x80;
-            companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[save->state.companionVariant];
-            if ((u8)save->state.companionVariant == 4) {
-                eff = effectSpawn((EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[1]->extra.tmd->coords, idx, 0);
-                if (eff != NULL) {
-                    actor->weaponEffectTask = eff->task;
-                    taskReparent(arg0, eff->task);
-                    playerActorResetWeaponAttack(arg0, idx, 0);
+            weaponId  = D_actor_800100_80167218[liveSave->state.companionVariant];
+            playerActorInitWeaponCollision(task, weaponId, D_actor_800100_80167224[liveSave->state.companionVariant]);
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= ACTOR_800100_COMPANION_KEY_BIT;
+            companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[liveSave->state.companionVariant];
+            if ((u8)liveSave->state.companionVariant == ACTOR_800100_PYKE_RESOURCE_VARIANT) {
+                flareWork = effectSpawn((EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[1]->extra.tmd->coords, weaponId, 0);
+                if (flareWork != NULL) {
+                    actor->weaponEffectTask = flareWork->task;
+                    taskReparent(task, flareWork->task);
+                    playerActorResetWeaponAttack(task, weaponId, 0);
                 }
             }
         }
     }
-    scratch->vx = 0;
-    scratch->vy = -0x200;
-    scratch->vz = 0;
-    companionBindCollisionProbe(arg0, scratch, 0x1000);
-    companionSetDecisionDelay(arg0, 0x3C, 0x7F);
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    probeNearEndpoint->vx = 0;
+    probeNearEndpoint->vy = ACTOR_800100_PROBE_NEAR_Y;
+    probeNearEndpoint->vz = 0;
+    companionBindCollisionProbe(task, probeNearEndpoint, ACTOR_800100_PROBE_FAR_Z);
+    companionSetDecisionDelay(task, ACTOR_800100_INITIAL_DECISION_TICKS, ACTOR_800100_INITIAL_DECISION_RANDOM_MASK);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_800100_PROBE_ENDPOINT_SCRATCH_BYTES);
+#undef ACTOR_800100_LINK_COMPANION_BODY
 }
 
-/// Restores the root translation from the position accepted before grid response.
+/// Restores the root's saved room-space translation after a rejected height step.
+///
+/// Copies three signed game-coordinate words. Rotation and cache stamp are
+/// untouched; the movement update marks and recomposes the root later.
 static inline void _actor800100RestorePreviousPosition(GfxCoord* rootCoord, const GameActor* actor)
 {
     rootCoord->coord.t[0] = actor->previousPosition.vx;
@@ -899,28 +937,29 @@ static inline void _actor800100RestorePreviousPosition(GfxCoord* rootCoord, cons
 
 /// Publishes a Q12 movement or pushback heading to all three motion contexts.
 ///
-/// Requires the composed root basis and a live caller-owned scratch block.
-/// Only XYZ halfwords are staged and copied; vector pads remain untouched.
-static inline void _actor800100PublishMotionDirection(GameActor* actor, const GfxCoord* rootCoord, CompanionMoveScratch* block)
+/// Uses the root's composed Z axis times movementSign, or the normalized
+/// pushback direction in that same composition frame. Borrows a writable
+/// movement scratch block; stages and copies XYZ halfwords only, leaving pads intact.
+static inline void _actor800100PublishMotionDirection(GameActor* actor, const GfxCoord* rootCoord, CompanionMoveScratch* moveScratch)
 {
     if (actor->usesPushbackDirection != 0) {
-        block->motionDirection.vx = actor->pushbackDirection.vx;
-        block->motionDirection.vy = actor->pushbackDirection.vy;
-        block->motionDirection.vz = actor->pushbackDirection.vz;
+        moveScratch->motionDirection.vx = actor->pushbackDirection.vx;
+        moveScratch->motionDirection.vy = actor->pushbackDirection.vy;
+        moveScratch->motionDirection.vz = actor->pushbackDirection.vz;
     } else {
-        block->motionDirection.vx = rootCoord->workm.m[0][2] * actor->movementSign;
-        block->motionDirection.vy = rootCoord->workm.m[1][2] * actor->movementSign;
-        block->motionDirection.vz = rootCoord->workm.m[2][2] * actor->movementSign;
+        moveScratch->motionDirection.vx = rootCoord->workm.m[0][2] * actor->movementSign;
+        moveScratch->motionDirection.vy = rootCoord->workm.m[1][2] * actor->movementSign;
+        moveScratch->motionDirection.vz = rootCoord->workm.m[2][2] * actor->movementSign;
     }
-    actor->collisionMotionContexts[0].motionDirection.vx = block->motionDirection.vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = block->motionDirection.vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = block->motionDirection.vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = block->motionDirection.vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = block->motionDirection.vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = block->motionDirection.vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = block->motionDirection.vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = block->motionDirection.vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = block->motionDirection.vz;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].motionDirection.vx  = moveScratch->motionDirection.vx;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].motionDirection.vy  = moveScratch->motionDirection.vy;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].motionDirection.vz  = moveScratch->motionDirection.vz;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].motionDirection.vx = moveScratch->motionDirection.vx;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].motionDirection.vy = moveScratch->motionDirection.vy;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].motionDirection.vz = moveScratch->motionDirection.vz;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].motionDirection.vx = moveScratch->motionDirection.vx;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].motionDirection.vy = moveScratch->motionDirection.vy;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].motionDirection.vz = moveScratch->motionDirection.vz;
 }
 
 /// Applies collision response, advances the companion, publishes motion and draws its shadow.
@@ -1176,7 +1215,7 @@ static void _actor800100Teardown(Task* task)
 
 /// State handlers of the actor's main task, indexed by its state.
 static const TaskFuncTable4 D_actor_800100_80161E3C = { {
-    func_actor_800100_80163214,
+    _actor800100InitTask,
     _actor800100UpdateMove,
     _actor800100ScheduleTeardown,
     _actor800100Teardown,
@@ -1283,9 +1322,11 @@ static const TaskFuncTable12 D_actor_800100_80161E58 = { {
     _actor800100WanderState,
 } };
 
-/// Places an effect at the water surface relative to the actor's room-space root.
+/// Computes a root-relative offset to the room's water height for splash effects.
 ///
-/// Stores XYZ only, retaining the low signed halfword of the height difference.
+/// Root Y and waterY use the same room-coordinate units. Writes XYZ only and
+/// leaves pad untouched; unsigned-halfword subtraction retains wrapping before
+/// narrowing the vertical difference to s16. The caller owns the output vector.
 static inline void _actor800100SetWaterSurfaceOffset(SVECTOR* surfaceOffset, const GfxCoord* rootCoord)
 {
     surfaceOffset->vx = 0;
@@ -2664,80 +2705,111 @@ static void _actor800100DecideCombatBehavior(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
-static void func_actor_800100_80165C38(Task* arg0)
+/// Advances the single-shot weapon sequence shared by companion variants 0/1.
+///
+/// Requires live weapon model, actor/companion work and child animation slots.
+/// stateAux 0 fires and arms collision, 1 consumes contacts on the next tick,
+/// and 2 waits until slot 8 settles or follows a control jump. Spends one attack
+/// on firing and one repeat on completion, then starts a ten-tick cooldown.
+/// Borrows one scratch coordinate for impact translation only; no pointer escapes.
+static void _actor800100TickSingleShotAttack(Task* task)
 {
+    enum {
+        ACTOR_800100_SINGLE_SHOT_START          = 0,
+        ACTOR_800100_SINGLE_SHOT_CONTACT        = 1,
+        ACTOR_800100_SINGLE_SHOT_FINISH         = 2,
+        ACTOR_800100_SINGLE_SHOT_BLEND_FRAMES   = 3,
+        ACTOR_800100_SINGLE_SHOT_COOLDOWN_TICKS = 10,
+        ACTOR_800100_SINGLE_SHOT_FLASH_PROFILE  = 33,
+    };
     GameActor*     actor;
     CompanionWork* companion;
-    GfxCoord*      coord;
-    GfxCoord*      place;
-    u16            state;
+    GfxCoord*      weaponCoord;
+    GfxCoord*      impactCoord;
+    u16            phase;
 
-    place = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
 
-    actor     = arg0->work;
-    companion = actor->companionWork;
-    state     = actor->stateAux;
-    coord     = actor->equipmentTasks[1]->extra.tmd->coords;
+    actor       = task->work;
+    companion   = actor->companionWork;
+    phase       = actor->stateAux;
+    weaponCoord = actor->equipmentTasks[1]->extra.tmd->coords;
 
-    switch (state) {
-        case 0:
+    switch (phase) {
+        case ACTOR_800100_SINGLE_SHOT_START:
             actor->mode                                  = GAME_ACTOR_MODE_NORMAL;
-            actor->movementMode                          = 0;
-            actor->turnRateIndex                         = 0;
-            actor->animationState                        = 0;
-            actor->stateAux                              = 1;
+            actor->movementMode                          = ACTOR_800100_MOVEMENT_STOPPED;
+            actor->turnRateIndex                         = ACTOR_800100_TURN_STOPPED;
+            actor->animationState                        = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
+            actor->stateAux                              = ACTOR_800100_SINGLE_SHOT_CONTACT;
             companion->activity.combat.attacksRemaining -= 1;
-            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
-            playerActorSetWeaponAttackFlags(arg0, 0, 0);
+            playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ATTACK_ANIMATION, 1, ACTOR_800100_SINGLE_SHOT_BLEND_FRAMES);
+            playerActorSetWeaponAttackFlags(task, false, false);
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_SINGLE_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            worldCoordPlaySound(arg0->extra.tmd->coords, 0x40650001, 1);
-            effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 0x21, NULL);
+            worldCoordPlaySound(task->extra.tmd->coords, SOUND_ACTOR_800100_ATTACK, true);
+            effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, weaponCoord, ACTOR_800100_SINGLE_SHOT_FLASH_PROFILE, NULL);
             break;
 
-        case 1:
-            actor->stateAux                                       = 2;
+        case ACTOR_800100_SINGLE_SHOT_CONTACT:
+            actor->stateAux                                       = ACTOR_800100_SINGLE_SHOT_FINISH;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
-                worldCoordPlaySound(place, 0x17, 1);
+            if (_actor800100SpawnWeaponImpact(actor->weaponContacts, weaponCoord, impactCoord) != 0) {
+                worldCoordPlaySound(impactCoord, ACTOR_800100_ATTACK_IMPACT_SOUND, true);
             }
             /* fallthrough */
 
-        case 2:
-            if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
-                actor->attackControl.cooldownTicks           = 0xA;
+        case ACTOR_800100_SINGLE_SHOT_FINISH:
+            if (playerActorIsSlotAdvancingLinearly(task, ACTOR_800100_ATTACK_COMPLETION_SLOT, 0, 0) == 0) {
+                actor->attackControl.cooldownTicks           = ACTOR_800100_SINGLE_SHOT_COOLDOWN_TICKS;
                 companion->activity.combat.repeatsRemaining -= 1;
-                _actor800100EnterAttackLoop(arg0);
+                _actor800100EnterAttackLoop(task);
             }
             break;
     }
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
-static void func_actor_800100_80165DE8(Task* arg0)
+/// Advances variant 2's MM1 fragmentation-grenade attack and recovery.
+///
+/// Requires an equipped weapon task and live native child playback. stateAux
+/// 0 stops motion and falls through to firing; 1 fires directly; 2 waits for
+/// slot 8 to settle or follow a control jump. Spends one attack before spawning
+/// and one repeat on completion. A live weapon coordinate launches a companion
+/// MM1 round and starts a 40-tick cooldown; completion installs 18 ticks.
+static void _actor800100TickMm1Attack(Task* task)
 {
+    enum {
+        ACTOR_800100_MM1_START                     = 0,
+        ACTOR_800100_MM1_FIRE                      = 1,
+        ACTOR_800100_MM1_FINISH                    = 2,
+        ACTOR_800100_MM1_BLEND_FRAMES              = 3,
+        ACTOR_800100_MM1_PROJECTILE_COOLDOWN_TICKS = 40,
+        ACTOR_800100_MM1_FINISH_COOLDOWN_TICKS     = 18,
+        ACTOR_800100_MM1_SOUND                     = SOUND_CHARACTER(0x66, 1),
+    };
     GameActor*     actor;
     CompanionWork* companion;
-    u16            state;
-    GfxCoord*      coord;
+    u16            phase;
+    GfxCoord*      weaponCoord;
 
-    actor     = arg0->work;
-    companion = actor->companionWork;
-    state     = actor->stateAux;
-    coord     = actor->equipmentTasks[1]->extra.tmd->coords;
+    actor       = task->work;
+    companion   = actor->companionWork;
+    phase       = actor->stateAux;
+    weaponCoord = actor->equipmentTasks[1]->extra.tmd->coords;
 
-    switch (state) {
-        case 0:
+    switch (phase) {
+        case ACTOR_800100_MM1_START:
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
-            actor->movementMode   = 0;
-            actor->turnRateIndex  = 0;
-            actor->animationState = 0;
+            actor->movementMode   = ACTOR_800100_MOVEMENT_STOPPED;
+            actor->turnRateIndex  = ACTOR_800100_TURN_STOPPED;
+            actor->animationState = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
             /* fallthrough */
-        case 1:
-            actor->stateAux                              = 2;
+        case ACTOR_800100_MM1_FIRE:
+            actor->stateAux                              = ACTOR_800100_MM1_FINISH;
             companion->activity.combat.attacksRemaining -= 1;
-            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
-            worldCoordPlaySound(coord, 0x40660001, 1);
-            if (coord != NULL) {
+            playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ATTACK_ANIMATION, 1, ACTOR_800100_MM1_BLEND_FRAMES);
+            worldCoordPlaySound(weaponCoord, ACTOR_800100_MM1_SOUND, true);
+            if (weaponCoord != NULL) {
                 enum {
                     ACTOR_800100_MM1_WEAPON            = 12,
                     ACTOR_800100_MM1_MUZZLE_ROW        = 1,
@@ -2745,17 +2817,17 @@ static void func_actor_800100_80165DE8(Task* arg0)
                                                          (ACTOR_800100_MM1_MUZZLE_ROW << PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT) |
                                                          (ACTOR_800100_MM1_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT) | GRENADE_ROUND_FRAGMENTATION,
                 };
-                actor->attackControl.cooldownTicks = 0x28;
-                effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
-                playerActorSpawnGrenadeProjectile(arg0, PLAYER_ACTOR_GRENADE_COMPANION, PLAYER_ACTOR_GRENADE_MM1, ACTOR_800100_MM1_FRAGMENTATION_ARG);
-                return;
+                actor->attackControl.cooldownTicks = ACTOR_800100_MM1_PROJECTILE_COOLDOWN_TICKS;
+                effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH, weaponCoord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | ACTOR_800100_FLASH_SUPPRESS_BURST, NULL);
+                // The projectile task owns flight and blast after this launch.
+                playerActorSpawnGrenadeProjectile(task, PLAYER_ACTOR_GRENADE_COMPANION, PLAYER_ACTOR_GRENADE_MM1, ACTOR_800100_MM1_FRAGMENTATION_ARG);
             }
-            return;
-        case 2:
-            if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
-                actor->attackControl.cooldownTicks           = 0x12;
+            break;
+        case ACTOR_800100_MM1_FINISH:
+            if (playerActorIsSlotAdvancingLinearly(task, ACTOR_800100_ATTACK_COMPLETION_SLOT, 0, 0) == 0) {
+                actor->attackControl.cooldownTicks           = ACTOR_800100_MM1_FINISH_COOLDOWN_TICKS;
                 companion->activity.combat.repeatsRemaining -= 1;
-                _actor800100EnterAttackLoop(arg0);
+                _actor800100EnterAttackLoop(task);
             }
             break;
     }
@@ -2763,158 +2835,215 @@ static void func_actor_800100_80165DE8(Task* arg0)
 
 /// Handlers `_actor800100TickWeaponAttack` runs, indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant`.
 static const TaskFuncTable5 D_actor_800100_80161EC8 = { {
-    func_actor_800100_80165C38,
-    func_actor_800100_80165C38,
-    func_actor_800100_80165DE8,
-    func_actor_800100_80165F50,
-    func_actor_800100_80166190,
+    _actor800100TickSingleShotAttack,
+    _actor800100TickSingleShotAttack,
+    _actor800100TickMm1Attack,
+    _actor800100TickM950Attack,
+    _actor800100TickM4a1PykeAttack,
 } };
 
-static void func_actor_800100_80165F50(Task* arg0)
+/// Advances variant 3's M950 burst, consuming each shot's collision contacts.
+///
+/// Requires a live weapon task, initialized weapon contacts and native playback.
+/// stateAux 0 selects 3..10 shots; 1/2 delay firing; 3 resolves the hit; 4 repeats
+/// while both signed-byte budgets remain positive, then waits for slot 8.
+/// Phase 4 spends a repeat on each visit, including visits waiting for the clip.
+/// Arming falls through to the first countdown tick. A repeat restarts arming
+/// in the same call without resetting the burst. Borrows one scratch coordinate
+/// for impact translation only and releases it before returning.
+static void _actor800100TickM950Attack(Task* task)
 {
+    enum {
+        ACTOR_800100_M950_START            = 0,
+        ACTOR_800100_M950_ARM              = 1,
+        ACTOR_800100_M950_DELAY            = 2,
+        ACTOR_800100_M950_CONTACT          = 3,
+        ACTOR_800100_M950_REPEAT           = 4,
+        ACTOR_800100_M950_REPEAT_MASK      = 7,
+        ACTOR_800100_M950_MIN_SHOTS        = 3,
+        ACTOR_800100_M950_SHOT_DELAY_TICKS = 3,
+        ACTOR_800100_M950_BLEND_FRAMES     = 2,
+        ACTOR_800100_M950_SOUND            = SOUND_CHARACTER(0x67, 1),
+    };
     GameActor*     actor;
     CompanionWork* companion;
-    GfxCoord*      coord;
-    GfxCoord*      place;
-    u16            state;
-    void**         scratch;
-    GfxCoord*      head;
+    GfxCoord*      weaponCoord;
+    GfxCoord*      impactCoord;
+    u16            phase;
 
-    scratch                            = SCRATCH_HEAD_ADDR;
-    head                               = SCRATCH_HEAD_AT(scratch, GfxCoord);
-    SCRATCH_HEAD_AT(scratch, GfxCoord) = head - 1;
-    place                              = head - 1;
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
 
-    actor     = arg0->work;
-    companion = actor->companionWork;
-    state     = actor->stateAux;
-    coord     = actor->equipmentTasks[1]->extra.tmd->coords;
+    actor       = task->work;
+    companion   = actor->companionWork;
+    phase       = actor->stateAux;
+    weaponCoord = actor->equipmentTasks[1]->extra.tmd->coords;
 
-    switch (state) {
-        case 0:
+    switch (phase) {
+        case ACTOR_800100_M950_START:
             actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
-            actor->movementMode                                   = 0;
-            actor->turnRateIndex                                  = 2;
-            actor->animationState                                 = 0;
-            companion->activity.combat.repeatsRemaining           = (rand() & 7) + 3;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
+            actor->movementMode                                   = ACTOR_800100_MOVEMENT_STOPPED;
+            actor->turnRateIndex                                  = ACTOR_800100_ATTACK_TURN_RATE;
+            actor->animationState                                 = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
+            companion->activity.combat.repeatsRemaining           = (rand() & ACTOR_800100_M950_REPEAT_MASK) + ACTOR_800100_M950_MIN_SHOTS;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
             /* fallthrough */
 
-        case 1:
-        block_4:
-            actor->stateAux                    = 2;
+        case ACTOR_800100_M950_ARM:
+        // A repeated shot includes its first delay tick before this call ends.
+        restartShot:
+            actor->stateAux                    = ACTOR_800100_M950_DELAY;
             actor->attackControl.cooldownTicks = 0;
-            actor->stateTimer                  = 3;
-            playerActorSetWeaponAttackFlags(arg0, 0, 0);
+            actor->stateTimer                  = ACTOR_800100_M950_SHOT_DELAY_TICKS;
+            playerActorSetWeaponAttackFlags(task, false, false);
             /* fallthrough */
 
-        case 2:
+        case ACTOR_800100_M950_DELAY:
             actor->stateTimer -= 1;
             if (actor->stateTimer == 0) {
                 actor->stateAux                                      += 1;
                 companion->activity.combat.attacksRemaining          -= 1;
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                worldCoordPlaySound(arg0->extra.tmd->coords, 0x40670001, 1);
-                effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
-                playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 2);
+                worldCoordPlaySound(task->extra.tmd->coords, ACTOR_800100_M950_SOUND, true);
+                effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, weaponCoord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | ACTOR_800100_FLASH_SUPPRESS_BURST, NULL);
+                playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ATTACK_ANIMATION, 1, ACTOR_800100_M950_BLEND_FRAMES);
             }
             break;
 
-        case 3:
+        case ACTOR_800100_M950_CONTACT:
             actor->stateAux                                      += 1;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
-                worldCoordPlaySound(place, 0x17, 1);
+            if (_actor800100SpawnWeaponImpact(actor->weaponContacts, weaponCoord, impactCoord) != 0) {
+                worldCoordPlaySound(impactCoord, ACTOR_800100_ATTACK_IMPACT_SOUND, true);
             }
             /* fallthrough */
 
-        case 4:
+        case ACTOR_800100_M950_REPEAT:
             companion->activity.combat.repeatsRemaining -= 1;
-            if ((s8)companion->activity.combat.repeatsRemaining > 0) {
-                if ((s8)companion->activity.combat.attacksRemaining > 0) {
-                    goto block_4;
-                }
+            if ((s8)companion->activity.combat.repeatsRemaining > 0 &&
+                (s8)companion->activity.combat.attacksRemaining > 0) {
+                goto restartShot;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
-                _actor800100EnterAttackLoop(arg0);
+            if (playerActorIsSlotAdvancingLinearly(task, ACTOR_800100_ATTACK_COMPLETION_SLOT, 0, 0) == 0) {
+                _actor800100EnterAttackLoop(task);
             }
             break;
     }
     SCRATCH_STACK_RELEASE_BLOCK(GfxCoord);
 }
 
-static void func_actor_800100_80166190(Task* arg0)
+/// Resolves a rifle shot's impact after disabling further weapon contacts.
+///
+/// Borrows live actor storage and the composed weapon coordinate. impactCoord
+/// receives only cached translation and is read synchronously by the sound call.
+static inline void _actor800100ResolveRifleImpact(GameActor* actor, const GfxCoord* weaponCoord, GfxCoord* impactCoord)
 {
-    void**         scratch;
-    GfxCoord*      head;
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    if (_actor800100SpawnWeaponImpact(actor->weaponContacts, weaponCoord, impactCoord) != 0) {
+        worldCoordPlaySound(impactCoord, ACTOR_800100_ATTACK_IMPACT_SOUND, true);
+    }
+}
+
+/// Advances variant 4's three-shot M4A1 burst or timed Pyke flame attack.
+///
+/// Requires live weapon/native playback, actor/companion work and initialized
+/// weapon contacts; the persistent Pyke effect may be NULL. stateAux 0/1 raise
+/// the weapon, 2 selects fire, 3/4 consume rifle contacts, 5 ends the flame and
+/// 6 waits for slot 8. One unsigned LCG draw selects Pyke for 63 of 256 values.
+/// Rifle shots spend the signed-byte attack allowance; flame duration instead
+/// uses 20 handler decrements after a 40-behavior-tick cooldown, then stops on
+/// the next visit. Completion preserves repeat budget only for primary
+/// fire and returns to attack-loop behavior with a 15-tick cooldown. Borrows
+/// one scratch coordinate for impact translation; no pointer is retained.
+static void _actor800100TickM4a1PykeAttack(Task* task)
+{
+    enum {
+        ACTOR_800100_RIFLE_START                 = 0,
+        ACTOR_800100_RIFLE_READY                 = 1,
+        ACTOR_800100_RIFLE_SELECT                = 2,
+        ACTOR_800100_RIFLE_BURST                 = 3,
+        ACTOR_800100_RIFLE_CONTACT               = 4,
+        ACTOR_800100_RIFLE_PYKE                  = 5,
+        ACTOR_800100_RIFLE_FINISH                = 6,
+        ACTOR_800100_RIFLE_READY_SLOT            = 1,
+        ACTOR_800100_RIFLE_READY_BLEND_FRAMES    = 1,
+        ACTOR_800100_RIFLE_FIRE_BLEND_FRAMES     = 2,
+        ACTOR_800100_RIFLE_RANDOM_MASK           = 0xFF,
+        ACTOR_800100_RIFLE_PYKE_THRESHOLD        = 63,
+        ACTOR_800100_RIFLE_PYKE_COOLDOWN_TICKS   = 40,
+        ACTOR_800100_RIFLE_PYKE_CANCEL_TICKS     = 28,
+        ACTOR_800100_RIFLE_PYKE_DURATION_TICKS   = 20,
+        ACTOR_800100_RIFLE_BURST_CANCEL_TICKS    = 9,
+        ACTOR_800100_RIFLE_BURST_SHOTS           = 3,
+        ACTOR_800100_RIFLE_SHOT_INTERVAL_TICKS   = 3,
+        ACTOR_800100_RIFLE_FINISH_COOLDOWN_TICKS = 15,
+        ACTOR_800100_RIFLE_SOUND                 = SOUND_CHARACTER(SOUND_BANK_PLAYER, 1),
+    };
     GameActor*     actor;
     CompanionWork* companion;
-    GfxCoord*      coord;
-    GfxCoord*      place;
-    u16            state;
+    GfxCoord*      weaponCoord;
+    GfxCoord*      impactCoord;
+    u16            phase;
 
-    scratch                            = SCRATCH_HEAD_ADDR;
-    head                               = SCRATCH_HEAD_AT(scratch, GfxCoord);
-    SCRATCH_HEAD_AT(scratch, GfxCoord) = head - 1;
-    place                              = head - 1;
+    impactCoord = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
 
-    actor     = arg0->work;
-    companion = actor->companionWork;
-    state     = actor->stateAux;
-    coord     = actor->equipmentTasks[1]->extra.tmd->coords;
+    actor       = task->work;
+    companion   = actor->companionWork;
+    phase       = actor->stateAux;
+    weaponCoord = actor->equipmentTasks[1]->extra.tmd->coords;
 
-    switch (state) {
-        case 0:
+    switch (phase) {
+        case ACTOR_800100_RIFLE_START:
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
-            actor->movementMode   = 0;
-            actor->animationState = 0;
+            actor->movementMode   = ACTOR_800100_MOVEMENT_STOPPED;
+            actor->animationState = ACTOR_800100_ANIMATION_CONTROLLER_NONE;
             actor->stateAux      += 1;
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, 1);
+            playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ANIMATION_COMBAT_HOLD, 0, ACTOR_800100_RIFLE_READY_BLEND_FRAMES);
             break;
 
-        case 1:
+        case ACTOR_800100_RIFLE_READY:
+            // Wait until slot 1 leaves the captured blend pose for a bank record.
             if (animationGetCurrentRecord(&actor->animationContext,
-                                          actor->animationSlots + 1) != NULL) {
+                                          actor->animationSlots + ACTOR_800100_RIFLE_READY_SLOT) != NULL) {
                 actor->stateAux += 1;
             }
             break;
 
-        case 2:
+        case ACTOR_800100_RIFLE_SELECT:
             gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 16) & 0xFF) < 0x3F) {
-                actor->stateAux                    = 5;
-                actor->turnRateIndex               = 2;
-                actor->attackControl.cooldownTicks = 0x28;
-                actor->attackCancelTicks           = 0x1C;
-                actor->actionValue                 = 0x14;
-                worldCoordPlaySound(coord, 0x40680002, 1);
+            if (((gRandomLcgState >> 16) & ACTOR_800100_RIFLE_RANDOM_MASK) < ACTOR_800100_RIFLE_PYKE_THRESHOLD) {
+                actor->stateAux                    = ACTOR_800100_RIFLE_PYKE;
+                actor->turnRateIndex               = ACTOR_800100_ATTACK_TURN_RATE;
+                actor->attackControl.cooldownTicks = ACTOR_800100_RIFLE_PYKE_COOLDOWN_TICKS;
+                actor->attackCancelTicks           = ACTOR_800100_RIFLE_PYKE_CANCEL_TICKS;
+                actor->actionValue                 = ACTOR_800100_RIFLE_PYKE_DURATION_TICKS;
+                worldCoordPlaySound(weaponCoord, SOUND_COMPANION_PYKE_FIRE_TAIL, true);
                 if (actor->weaponEffectTask != NULL) {
                     actor->weaponEffectTask->spawnArg1.value = ACTOR_800100_PYKE_FIRE;
                 }
                 break;
             }
-            actor->stateAux          = 3;
-            actor->turnRateIndex     = 0;
+            actor->stateAux          = ACTOR_800100_RIFLE_BURST;
+            actor->turnRateIndex     = ACTOR_800100_TURN_STOPPED;
             actor->stateTimer        = 0;
-            actor->attackCancelTicks = 9;
-            actor->actionValue       = 3;
-            playerActorSetWeaponAttackFlags(arg0, 0, 1);
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0x800;
+            actor->attackCancelTicks = ACTOR_800100_RIFLE_BURST_CANCEL_TICKS;
+            actor->actionValue       = ACTOR_800100_RIFLE_BURST_SHOTS;
+            playerActorSetWeaponAttackFlags(task, false, true);
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_SINGLE_CONTACT;
             /* fallthrough */
 
-        case 3:
+        case ACTOR_800100_RIFLE_BURST:
             if (actor->actionValue != 0) {
                 if (actor->stateTimer == 0) {
                     actor->actionValue                                    = (u16)actor->actionValue - 1;
-                    actor->stateTimer                                     = 3;
+                    actor->stateTimer                                     = ACTOR_800100_RIFLE_SHOT_INTERVAL_TICKS;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
                     companion->activity.combat.attacksRemaining          -= 1;
                     if ((s8)companion->activity.combat.attacksRemaining == 0) {
                         actor->actionValue = 0;
                     }
-                    worldCoordPlaySound(coord, 0x40680001, 1);
-                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
-                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
+                    worldCoordPlaySound(weaponCoord, ACTOR_800100_RIFLE_SOUND, true);
+                    effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH, weaponCoord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | ACTOR_800100_FLASH_SUPPRESS_BURST, NULL);
+                    playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ATTACK_ANIMATION, 0, ACTOR_800100_RIFLE_FIRE_BLEND_FRAMES);
                     break;
                 } else {
                     actor->stateTimer -= 1;
@@ -2922,40 +3051,35 @@ static void func_actor_800100_80166190(Task* arg0)
                         break;
                     }
                 }
-                actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
-                    worldCoordPlaySound(place, 0x17, 1);
-                }
+                _actor800100ResolveRifleImpact(actor, weaponCoord, impactCoord);
                 break;
             }
             /* fallthrough */
 
-        case 4:
-            actor->stateAux                                       = 6;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
-                worldCoordPlaySound(place, 0x17, 1);
-            }
+        case ACTOR_800100_RIFLE_CONTACT:
+            actor->stateAux = ACTOR_800100_RIFLE_FINISH;
+            _actor800100ResolveRifleImpact(actor, weaponCoord, impactCoord);
             break;
 
-        case 5:
+        case ACTOR_800100_RIFLE_PYKE:
+            // This counter advances only after the attack-loop cooldown gate opens.
             if (actor->actionValue == 0) {
-                actor->stateAux = 6;
+                actor->stateAux = ACTOR_800100_RIFLE_FINISH;
                 if (actor->weaponEffectTask != NULL) {
                     actor->weaponEffectTask->spawnArg1.value = ACTOR_800100_PYKE_RESET_IDLE;
                 }
                 sndEvtRequestScriptStop(SOUND_COMPANION_PYKE_FIRE_TAIL, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 2);
+                playerActorPlayChildSlotsWithBlend(task, ACTOR_800100_ATTACK_FINISH_ANIMATION, 0, ACTOR_800100_RIFLE_FIRE_BLEND_FRAMES);
             } else {
                 actor->actionValue = (u16)actor->actionValue - 1;
             }
             break;
 
-        case 6:
-            if (playerActorIsSlotAdvancingLinearly(arg0, 8, 0, 0) == 0) {
-                actor->attackControl.cooldownTicks          = 0xF;
-                companion->activity.combat.repeatsRemaining = (actor->attackButton == 1) ? companion->activity.combat.repeatsRemaining - 1 : 0;
-                _actor800100EnterAttackLoop(arg0);
+        case ACTOR_800100_RIFLE_FINISH:
+            if (playerActorIsSlotAdvancingLinearly(task, ACTOR_800100_ATTACK_COMPLETION_SLOT, 0, 0) == 0) {
+                actor->attackControl.cooldownTicks          = ACTOR_800100_RIFLE_FINISH_COOLDOWN_TICKS;
+                companion->activity.combat.repeatsRemaining = (actor->attackButton == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY) ? companion->activity.combat.repeatsRemaining - 1 : 0;
+                _actor800100EnterAttackLoop(task);
             }
             break;
     }
