@@ -15536,7 +15536,7 @@ static void _primDrawTexturePage(s32 blendMode, s32 tpageX, s32 tpageY, s32 otIn
 ```
 
 That keeps the callee's leading `sll`/`sra` chain while call sites can emit
-plain `move aN, s0`. `Prim_DrawFadeTile` is the pure example.
+plain `move aN, s0`. `_primDrawTimedDimTile` is the pure example.
 
 ## `(s8)u8_field` at call sites forces `lb` with `s32` formals
 
@@ -16043,7 +16043,7 @@ Two pieces together fix it:
    load. Without splitting `0x25800` into `0x20000 | 0x5800`, the full constant
    is materialised before the call and the `jal` delay becomes `nop`.
 
-`Boot_LoadInitialFile` is the pure example (fade-out complete → clear image
+`bootColdStartTask` is the pure example (fade-out complete → clear image
 buffers). Same shape as the empty-asm REG_EQUAL kill under “Force `move aN, s0`
 for a known-zero live return value”.
 
@@ -16709,7 +16709,7 @@ p->v0   = v;
 
 Also type the CLUT X argument as `u32` (or cast) so `((x) >> 4)` emits `srl`
 rather than `sra`. `_primDrawCaptionSprite` is the pure example (SPRT twin of TILE
-helper `Prim_DrawTile`).
+helper `_primDrawTile`).
 
 ## Force `move v0, tN; sw v0` when CSE wants `sw tN`
 
@@ -20638,7 +20638,7 @@ An `s32 one = 1` produces `move a0,s1` instead. Pair with
 register for a saved global (e.g. `lb s1, D_xxx` / `sb s1, D_xxx`) so
 `CdCmdQueue* p` can claim `$s0`.
 
-`GameFlow_StateByField34` is the pure example.
+`gameFlowLaunchSessionTask` is the pure example.
 
 ## Nested block for clear-loop regalloc (`a0`=ptr, `v1`=i)
 
@@ -23464,7 +23464,7 @@ sibling.
 When the target lays out `case N` fallthrough into `field_30++` *before* a later
 case that returns without advancing (e.g. case 6 → advance → case 7 kill), a
 plain `switch` + trailing `field_30++` puts the increment *after* case 7 and
-emits an extra jump. Use gotos like `Boot_LoadInitialFile`:
+emits an extra jump. Use gotos like `bootColdStartTask`:
 
 ```c
 switch (task->field_30) {
@@ -145485,7 +145485,7 @@ branch has nowhere different to go. The seed kept it with a `$v1` pin and a
 to the return label that is not a jump-to-next (the outer fall-through sits
 between), so it and both branches stay, and the second byte's load picks
 `$v1` on its own because the return value already holds `$v0`.
-## `move aN,s0` for a zero call argument is `reload_cse`, and needs the call's block to fall through from the `s0 = 0` (Prim_DrawFadeTile, 2026-09-26)
+## `move aN,s0` for a zero call argument is `reload_cse`, and needs the call's block to fall through from the `s0 = 0` (_primDrawTimedDimTile, 2026-09-26)
 
 **Symptom.** The target passes a constant 0 as a copy of a callee-saved
 result local (`move a0,s0; move a1,s0; move a2,s0`), and a pin plus a
@@ -145496,14 +145496,14 @@ result local (`move a0,s0; move a1,s0; move a2,s0`), and a pin plus a
 register copy comes later, from `reload_cse_regs`, which rewrites a constant
 load as a copy of a hard register already holding that value. It forgets
 everything at a `CODE_LABEL`, so it only fires when the code between
-`ret = 0` and the call contains no label. `if (*state != 0) ret = 1; else
+`dimStatus = 0` and the call contains no label. `if (*phase != 0) dimStatus = 1; else
 { ...call... }` places the call after the else label, so it cannot fire.
 
 **Fix.** Make the call's code the fallthrough of the test, with the local
 joining at a label so CSE cannot fold the returned value either. Here that was
-the file's state-machine idiom: `ret = 0; switch (*state) { case 0: ...;
-if (--*timer > 0) break; /* fallthrough */ default: ret = 1; break; }`. The
-same body written with a second `ret = 1` in its own arm turns into a
+the file's state-machine idiom: `dimStatus = 0; switch (*phase) { case 0: ...;
+if (--*framesLeft > 0) break; /* fallthrough */ default: dimStatus = 1; break; }`. The
+same body written with a second `dimStatus = 1` in its own arm turns into a
 store-flag (`slti`) and loses the callee-saved local altogether.
 
 ## Identical case bodies each count a reference to the pointer they store through; fallthrough labels remove them (_mcStateOpenSaveFileForRead, 2026-09-26)
@@ -146709,7 +146709,7 @@ and deletes it, so it emits nothing. The increment has to sit in the same block
 as the load it feeds: `*screenComponent++` on the first read leaves a separate `addiu`
 behind.
 
-## A label right after a call ends its block and changes how sched1 orders the argument setup (Boot_LoadInitialFile, 2026-09-27)
+## A label right after a call ends its block and changes how sched1 orders the argument setup (bootColdStartTask, 2026-09-27)
 
 **Symptom.** `memFillBytes(Fs_ImgBuffers, 0, 0x25800)` compiles as `lui/lw a0`
 then `move a1,zero; lui a2`, while the target sets `a1` and the `a2` high half

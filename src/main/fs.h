@@ -7,10 +7,7 @@
 #include "types.h"
 
 #include "fs_types.h"
-#include "main/task_types.h"
 #include "main/text.h"
-
-struct Task;
 
 extern s32 Fs_ReqSector;
 
@@ -351,9 +348,6 @@ void fsStartFolderDirectoryRead(s32 stageIndex, s32 fileGroup, s32 folderIndex);
 /// with file IDs inside the destination table's extent (currently unproven).
 /// The stream list must end at a zero key with at most 15 active records.
 void fsBuildFolderTables(s32 stage, s32 fileGroup, s32 folderIndex);
-
-/// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
-void Boot_LoadInitialFile(struct Task* task);
 
 /// Polls the selected loading image, then advances its caption and fade presentation.
 ///

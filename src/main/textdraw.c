@@ -9,7 +9,6 @@
 #include "boot.h"
 #include "main/display.h"
 #include "main/display_types.h"
-#include "fs.h"
 #include "gameflow.h"
 #include "mc.h"
 #include "session.h"
@@ -31,6 +30,8 @@
 #include "gameplay/view.h"
 
 #include "title/title.h"
+
+#include "options/options.h"
 
 /// Byte encodings of the font's three pair-kerning classes.
 enum {
@@ -169,9 +170,9 @@ static void _textDrawGlyphFill(TextDrawReq* request, const _FontGlyph* glyph, s3
 
 static void _textDrawGlyphOutline(TextDrawReq* request, const _FontGlyph* glyph, s32 unusedColor);
 
-static void Text_UiTaskCallback(Task* task);
+static void _uiVibrationOptionsTask(Task* task);
 
-static void Text_BootTask(Task* task);
+static void _bootStartTitleTask(Task* task);
 
 static const char Text_MaxEightDigits[];
 static const char Text_ZeroDigit[];
@@ -181,9 +182,9 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, taskNoopCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, taskCountdownCallback },
     { { { TASK_BODY_NONE, 0xC0 } }, titleScreenTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, GameFlow_StateByField34 },
+    { { { TASK_BODY_NONE, 0xC0 } }, gameFlowLaunchSessionTask },
     { { { TASK_BODY_NONE, 0xC0 } }, gameFlowLoadDialogTask },
-    { { { TASK_BODY_NONE, 0xC0 } }, Text_UiTaskCallback },
+    { { { TASK_BODY_NONE, 0xC0 } }, _uiVibrationOptionsTask },
     { { { TASK_BODY_NONE, 0xC0 } }, titleExitTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill },
     { { { TASK_BODY_NONE, 0x0 } }, NULL },
@@ -191,7 +192,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0x10 } }, mcSaveDialogTask },
     { { { TASK_BODY_NONE, 0x10 } }, mcLoadDialogTask },
     { { { TASK_BODY_NONE, 0xC0 } }, taskNoopBank0Slot12 },
-    { { { TASK_BODY_NONE, 0x10 } }, Text_BootTask },
+    { { { TASK_BODY_NONE, 0x10 } }, _bootStartTitleTask },
     { { { TASK_BODY_COORD, 0x2F } }, viewApplyCoordTask },
     { { { TASK_BODY_NONE, 0x2F } }, viewApplyCameraTask },
     { { { TASK_BODY_NONE, 0x40 } }, loadingRoomResourcesTask },
@@ -209,8 +210,8 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0x2F } }, Gp_LoadStateTask },
     { { { TASK_BODY_NONE, 0x18 } }, playClockTask },
     { { { TASK_BODY_NONE, 0xF8 } }, loadingViewLoadTask },
-    { { { TASK_BODY_NONE, 0x10 } }, Boot_LoadInitialFile },
-    { { { TASK_BODY_NONE, 0x10 } }, Boot_LoadTask },
+    { { { TASK_BODY_NONE, 0x10 } }, bootColdStartTask },
+    { { { TASK_BODY_NONE, 0x10 } }, bootReloadTitleTask },
     { { { TASK_BODY_NONE, 0x2F } }, fadeResumeSessionTask },
     { { { TASK_BODY_NONE, 0xF8 } }, NULL },
     { { { TASK_BODY_NONE, 0xC0 } }, func_80701400 },
@@ -1485,41 +1486,69 @@ static void _textDrawGlyphOutline(TextDrawReq* request, const _FontGlyph* glyph,
     addPrim(gGpuCurrentOt + request->otIndex, outline);
 }
 
-static void Text_UiTaskCallback(Task* task)
+/// Runs the title's vibration-only options panel and returns to the title prompt.
+///
+/// Resident bank 0, slot 5 starts at state zero. Requires initialized UI/save
+/// state and options code loaded before its content callback runs. Spawn payloads
+/// are ignored. Retries allocation until successful, then borrows the UI-owned
+/// panel in spawnArg2 until confirm/cancel. The UI may release it after closing
+/// is requested; only a ten-tick signed countdown is accessed afterwards. The title
+/// prompt is spawned with a twelve-callback opening delay before this task exits.
+static void _uiVibrationOptionsTask(Task* task)
 {
-    UiObject* obj;
-    s16       temp;
+    enum {
+        USER_INTERFACE_VIBRATION_OPEN        = 0,
+        USER_INTERFACE_VIBRATION_WAIT        = 1,
+        USER_INTERFACE_VIBRATION_CLOSE       = 2,
+        USER_INTERFACE_VIBRATION_OPEN_TICKS  = 2,
+        USER_INTERFACE_VIBRATION_CLOSE_TICKS = 10,
+        USER_INTERFACE_TITLE_DELAY_FRAMES    = 12,
+        USER_INTERFACE_RESIDENT_TASK_BANK    = 0,
+        USER_INTERFACE_TITLE_SCREEN_SLOT     = 2,
+    };
+    UiObject* panel;
+    s16       closingTicksLeft;
 
-    if (task->state == 0) {
+    if (task->state == USER_INTERFACE_VIBRATION_OPEN) {
         Wip_UiHolder = NULL;
-        obj          = uiSpawnObject(Ui_OverlayLoadingDesc, 1, 1, 2, 0);
-        if (obj != NULL) {
-            task->spawnArg2.pointer = obj;
+        panel        = uiSpawnObject(Ui_OverlayLoadingDesc, OPTIONS_MENU_VIBRATION_ONLY, USER_INTERFACE_PANEL_ACTIVE,
+                                     USER_INTERFACE_VIBRATION_OPEN_TICKS, NULL);
+        if (panel != NULL) {
+            task->spawnArg2.pointer = panel;
             task->state             = task->state + 1;
         }
-    } else if (task->state == 1) {
-        obj = task->spawnArg2.pointer;
-        if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            task->killCountdown = 0xA;
+    } else if (task->state == USER_INTERFACE_VIBRATION_WAIT) {
+        panel = task->spawnArg2.pointer;
+        if (panel->result == USER_INTERFACE_RESULT_CANCEL || panel->result == USER_INTERFACE_RESULT_CONFIRM) {
+            task->killCountdown = USER_INTERFACE_VIBRATION_CLOSE_TICKS;
             task->state         = task->state + 1;
-            uiStartTreeClosing(obj, obj->owner);
+            uiStartTreeClosing(panel, panel->owner);
         }
     } else {
-        temp                = task->killCountdown - gDisplayState.frameTicks;
-        task->killCountdown = temp;
-        if (temp <= 0) {
-            taskSpawn(0, 2, 0xC, 0);
+        // Closing may release the panel; wait without dereferencing its borrowed pointer.
+        closingTicksLeft    = task->killCountdown - gDisplayState.frameTicks;
+        task->killCountdown = closingTicksLeft;
+        if (closingTicksLeft <= 0) {
+            taskSpawn(USER_INTERFACE_RESIDENT_TASK_BANK, USER_INTERFACE_TITLE_SCREEN_SLOT, USER_INTERFACE_TITLE_DELAY_FRAMES, 0);
             taskCallExit(task);
         }
     }
 }
 
-static void Text_BootTask(Task* task)
+/// Initializes title drawing/session state and hands off to the loaded title overlay.
+///
+/// Resident bank 0, slot 13 is a one-callback boot handoff. Requires loaded font
+/// palette data, title code/descriptors and initialized resident display/session
+/// state. Uploads palettes, selects default framebuffers and clears the session
+/// before spawning title descriptor zero and killing this task. Payloads are ignored.
+static void _bootStartTitleTask(Task* task)
 {
+    enum { BOOT_TITLE_STARTUP_DESCRIPTOR = 0 };
+
     textUploadPalettes();
     displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
     gameClearSession();
-    taskSpawnFromTable(Title_TaskDescs, 0, 0, 0);
+    taskSpawnFromTable(Title_TaskDescs, BOOT_TITLE_STARTUP_DESCRIPTOR, 0, 0);
     taskKill(task);
 }
 

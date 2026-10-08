@@ -457,8 +457,12 @@ static inline s32 _gameMainPaceToSceneTiming(s32 frameStartLines, s32 elapsedLin
 /// Begins a game frame in the opposite ordering-table and primitive-buffer halves.
 ///
 /// Requires `otBuffer` to be 0 or 1 and initialized, word-aligned arenas with
-/// previous GPU use of the selected halves complete. Advances game-frame clocks,
-/// preserving the CD play-clock pause, and resets both byte-addressed cursors.
+/// previous GPU use of the selected halves complete. Counts one animation frame;
+/// the play clock adds 1 + (VSync wait argument >> 1) unless CD loading pauses it.
+/// The loop clock adds only the pacing term here; its base tick is counted by
+/// the caller. These differ from frameTicks. Resets both byte-addressed cursors.
+/// The static arena has two equal halves; the heap reservation must also support
+/// two aligned halves, with any odd trailing byte excluded by its right shift.
 /// Drawing tasks borrow these halves until GPU completion and must fit in them.
 static inline void _gameMainBeginFrame(void)
 {
@@ -470,6 +474,7 @@ static inline void _gameMainBeginFrame(void)
     cdQueue                   = &gCdCmdQueue;
     gDisplayState.otBuffer    = bufferIndex;
     gDisplayState.drawBuffer  = gDisplayState.otBuffer;
+    // Animation frames, play time and paced loop time use separate clocks.
     gDisplayState.animFrame++;
     if (cdQueue->pausePlayClock == 0) {
         gDisplayState.gameTick += 1 + (D_8005EC68 >> 1);
@@ -477,6 +482,7 @@ static inline void _gameMainBeginFrame(void)
     gDisplayState.loopTicks += D_8005EC68 >> 1;
     _gpuBeginOt(bufferIndex);
 
+    // Select matching halves of the system-packet and heap-packet arenas.
     Gpu_SysPrimCursor = Gpu_PrimBufStatic + gDisplayState.otBuffer * (s32)(sizeof(Gpu_PrimBufStatic) / 2);
     gGpuPrimCursor    = Gpu_PrimHeapBase + gDisplayState.otBuffer * (Gpu_PrimHeapSize >> 1);
 }

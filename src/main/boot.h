@@ -34,6 +34,23 @@ enum {
 /// failures are not reported.
 void bootResetCd(s32 resetMode);
 
-void Boot_LoadTask(Task* task);
+/// Discovers the startup files and shows the cold-boot image before starting the title.
+///
+/// Resident bank 0, slot 31 starts at state zero. States 0..4 decode INIT.BS,
+/// fade it in, hold it for at least 90 callbacks while stage-zero file 1 loads,
+/// fade it out, then clear the image workspace and queue title initialization.
+/// `killCountdown` holds byte brightness or callback counts, independent of
+/// frameTicks. Requires initialized CD, display and decoder state; directory
+/// discovery and the initial decode block until completion. Spawn payloads are
+/// ignored. The final state kills this task and disables external debug hooks.
+void bootColdStartTask(Task* task);
+
+/// Reloads stage-zero file 1 and hands off to the title's startup descriptor.
+///
+/// Resident bank 0, slot 32 starts at state zero with the stage-zero file table
+/// already mounted. State 0 hides the display and queues normal loading; state
+/// 1 waits for an idle CD queue, restores the display, reconfigures image memory
+/// and kills this task after spawning the title. Spawn payloads are ignored.
+void bootReloadTitleTask(Task* task);
 
 #endif // MAIN_PRIVATE_BOOT_H

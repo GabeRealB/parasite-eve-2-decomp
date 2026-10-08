@@ -165,26 +165,51 @@ static const TaskFuncTable3 GameFlow_States3 = { {
     _gameFlowHandOffSessionLoad,
 } };
 
-void GameFlow_StateByField34(Task* task)
+/// Stops dispatch and replaces disposable session resources with a startup task.
+///
+/// The launch task and every current task/model/heap allocation become invalid.
+/// GPU and decoder borrowers must have finished using those resources. Stop the
+/// current walk before killing its cursor and resetting lists; spawn only after
+/// the primary and selected auxiliary heaps have been reinitialized.
+static inline void _gameFlowHandOffSessionStartup(Task* launchTask)
 {
-    CdCmdQueue* p;
-    s32         saved;
+    gDisplayState.stopTaskWalk = 1;
+    taskKill(launchTask);
+    taskResetDefaultList();
+    actorRenderResetLists();
+    memInitHeaps();
+    taskSpawn(GAME_FLOW_RESIDENT_TASK_BANK, GAME_FLOW_START_SESSION_TASK_SLOT, 0, 0);
+}
 
-    p = &gCdCmdQueue;
-    if (task->spawnArg1.value == 2) {
-        if (task->state == 0) {
+void gameFlowLaunchSessionTask(Task* task)
+{
+    enum {
+        GAME_FLOW_LAUNCH_NEW_GAME        = 0,
+        GAME_FLOW_LAUNCH_ATTRACT_DEMO    = 2,
+        GAME_FLOW_DEMO_QUEUE_REPLAY      = 0,
+        GAME_FLOW_FIRST_DEMO_SCENE       = 1,
+        GAME_FLOW_SPRITE_VARIANT_UNSET   = 0,
+        GAME_FLOW_DEFAULT_SPRITE_VARIANT = 1,
+    };
+    CdCmdQueue* queue;
+    s32         savedVibration;
+
+    queue = &gCdCmdQueue;
+    if (task->spawnArg1.value == GAME_FLOW_LAUNCH_ATTRACT_DEMO) {
+        // Queue a numbered replay once, then wait before restoring its saved state.
+        if (task->state == GAME_FLOW_DEMO_QUEUE_REPLAY) {
             padStartInputBlock(0);
             if (gDisplayState.demoScene == DISPLAY_DEMO_NONE) {
-                gDisplayState.demoScene = 1;
+                gDisplayState.demoScene = GAME_FLOW_FIRST_DEMO_SCENE;
             }
             if (gDisplayState.demoScene < DISPLAY_DEMO_FIXED_REPLAY) {
-                titleEnqueueAttractDemoFile(gDisplayState.demoScene - 1);
+                titleEnqueueAttractDemoFile(gDisplayState.demoScene - GAME_FLOW_FIRST_DEMO_SCENE);
             }
             task->state = task->state + 1;
         }
         if (cdCmdIsIdle() != 0) {
-            if (gDisplayState.spriteVariant == 0) {
-                gDisplayState.spriteVariant = 1;
+            if (gDisplayState.spriteVariant == GAME_FLOW_SPRITE_VARIANT_UNSET) {
+                gDisplayState.spriteVariant = GAME_FLOW_DEFAULT_SPRITE_VARIANT;
             }
             titleRestoreAttractDemoState();
             MEM_CLEAR(gGameSession, sizeof(*gGameSession));
@@ -194,42 +219,33 @@ void GameFlow_StateByField34(Task* task)
             gGameSession->field_80                       = 0;
             sndVolumeSetReducedMode(1);
             gDisplayState.control.flags.pendingPlayerPos = 0;
-            gDisplayState.stopTaskWalk                   = 1;
-            taskKill(task);
-            taskResetDefaultList();
-            actorRenderResetLists();
-            memInitHeaps();
-            taskSpawn(0, 9, 0, 0);
+            _gameFlowHandOffSessionStartup(task);
         }
     } else {
         gDisplayState.demoScene = DISPLAY_DEMO_NONE;
         padStartInputBlock(0);
-        if (task->spawnArg1.value == 0) {
-            saved = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
+        // A new save keeps the user's vibration preference; other selectors keep the save.
+        if (task->spawnArg1.value == GAME_FLOW_LAUNCH_NEW_GAME) {
+            savedVibration = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration;
             MEM_CLEAR(gGameSession, sizeof(*gGameSession));
             gDisplayState.control.flags.pendingPlayerPos = 0;
             gDisplayState.gameRunning                    = 1;
-            p->releasePauseBlockAfterFade                = 1;
-            p->blockGamePause                            = 1;
+            queue->releasePauseBlockAfterFade            = 1;
+            queue->blockGamePause                        = 1;
             Wip_SysFlags.skipTitleIntro                  = 1;
             mcResetSaveData();
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = saved;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.vibration = savedVibration;
             task->state                                        = task->state + 1;
         } else {
             MEM_CLEAR(gGameSession, sizeof(*gGameSession));
             gDisplayState.gameRunning                    = 1;
             gDisplayState.control.flags.pendingPlayerPos = 0;
-            p->releasePauseBlockAfterFade                = 1;
-            p->blockGamePause                            = 1;
+            queue->releasePauseBlockAfterFade            = 1;
+            queue->blockGamePause                        = 1;
             Wip_SysFlags.skipTitleIntro                  = 1;
             gGameSession->applySaveVariant               = 1;
         }
-        gDisplayState.stopTaskWalk = 1;
-        taskKill(task);
-        taskResetDefaultList();
-        actorRenderResetLists();
-        memInitHeaps();
-        taskSpawn(0, 9, 0, 0);
+        _gameFlowHandOffSessionStartup(task);
     }
 }
 

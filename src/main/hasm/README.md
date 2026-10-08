@@ -6,7 +6,7 @@ rodata (`linker_section_order: .rodata` in `configs/USA/main.yaml`).
 Permanent handwritten assembly (splat `type: hasm`, `hasm_in_src_path: True`).
 
 After the last hasm unit, `boot` `.rodata` begins at `0x2F50`
-(`Boot_BuildStamp` + `Boot_LoadInitialFile` jtbl from `src/main/boot.c`).
+(`Boot_BuildStamp` + `bootColdStartTask` jtbl from `src/main/boot.c`).
 That is the first normal module `.rodata`; PsyQ `.rdata` follows.
 
 | File | Symbol(s) | VRAM | Role |

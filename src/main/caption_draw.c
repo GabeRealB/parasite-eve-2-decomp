@@ -20,9 +20,9 @@ static void _primDrawCaptionSprite(const PrimDrawParams* draw, u32 clutX, s32 cl
 
 static void _primDrawTexturePage(s32 blendMode, s32 tpageX, s32 tpageY, s32 otIndex);
 
-static s32 Prim_DrawFadeTile(RECT* rect, u8* arg1, s16* arg2);
+static s32 _primDrawTimedDimTile(const RECT* rect, const u8* phase, s16* framesLeft);
 
-static void Prim_DrawTile(PrimDrawParams* draw);
+static void _primDrawTile(const PrimDrawParams* draw);
 
 TextGlyphCell Caption_Glyphs[] = {
 #include "assets/caption_glyphs.inc"
@@ -187,56 +187,100 @@ static void _primDrawTexturePage(s32 blendMode, s32 tpageX, s32 tpageY, s32 otIn
     AddPrim(gGpuCurrentOt + otIndex, pagePacket);
 }
 
-static s32 Prim_DrawFadeTile(RECT* rect, u8* arg1, s16* arg2)
+/// Draws a black average-blended rectangle and advances its callback countdown.
+///
+/// Retained standalone helper with no callers. Phase zero draws and subtracts
+/// one from the signed halfword countdown, returning 0 while it remains positive;
+/// any other phase returns 1 without drawing. Phase is borrowed and never changed.
+/// Phase must be readable; rect/countdown need valid storage only in phase zero.
+/// The subtraction narrows back to s16 before testing; callers must avoid wrap.
+/// Rectangle dimensions use the tile emitter's minus-one pixel convention.
+/// Requires one TILE and DR_TPAGE in the aligned system arena and writable OT
+/// tag 5; packets remain live through GPU completion. Returns 1 on completion.
+static s32 _primDrawTimedDimTile(const RECT* rect, const u8* phase, s16* framesLeft)
 {
-    PrimDrawParams sp;
-    s32            ret;
+    enum {
+        PRIMITIVE_DIM_PHASE_DRAW = 0,
+        PRIMITIVE_DIM_PROGRESS   = 0,
+        PRIMITIVE_DIM_COMPLETE   = 1,
+    };
+    PrimDrawParams draw;
+    s32            dimStatus;
 
-    ret = 0;
-    switch (*arg1) {
-        case 0:
-            sp.x         = rect->x;
-            sp.y         = rect->y;
-            sp.w         = rect->w;
-            sp.h         = rect->h;
-            sp.b         = 0;
-            sp.g         = 0;
-            sp.r         = 0;
-            sp.semiTrans = 1;
-            Prim_DrawTile(&sp);
+    /// Builds the untextured black rectangle used by this timed dimming overlay.
+    ///
+    /// Captures local draw and the borrowed rect pointer, reading rect four times.
+    /// Writes only fields consumed by the tile emitter; other members stay untouched.
+#define PRIMITIVE_INIT_BLACK_DIM_TILE() \
+    {                                   \
+        draw.x         = rect->x;       \
+        draw.y         = rect->y;       \
+        draw.w         = rect->w;       \
+        draw.h         = rect->h;       \
+        draw.b         = 0;             \
+        draw.g         = 0;             \
+        draw.r         = 0;             \
+        draw.semiTrans = true;          \
+    }
+
+    dimStatus = PRIMITIVE_DIM_PROGRESS;
+    switch (*phase) {
+        case PRIMITIVE_DIM_PHASE_DRAW:
+            PRIMITIVE_INIT_BLACK_DIM_TILE();
+            _primDrawTile(&draw);
+            // OT insertion prepends the blend command so it runs before the tile.
             _primDrawTexturePage(GPU_BLEND_AVERAGE, 0, 0, PRIMITIVE_FADE_OT_INDEX);
-            *arg2 = *arg2 - 1;
-            if (*arg2 > 0) {
+            *framesLeft = *framesLeft - 1;
+            if (*framesLeft > 0) {
                 break;
             }
-            /* The countdown has run out: the fade is finished. */
+            // Fall through when the countdown completes.
         default:
-            ret = 1;
+            dimStatus = PRIMITIVE_DIM_COMPLETE;
             break;
     }
-    return ret;
+    return dimStatus;
+#undef PRIMITIVE_INIT_BLACK_DIM_TILE
 }
 
-static void Prim_DrawTile(PrimDrawParams* draw)
+/// Sets the SDK packet flags for an opaque or semitransparent tile.
+///
+/// Borrows a writable TILE; nonzero semiTrans enables blending and clears the
+/// raw-texture flag, while zero does the reverse. The latter flag has no texture
+/// to affect on an untextured tile, but its packet bit is retained.
+static inline void _primSetTileBlend(TILE* tile, s32 semiTrans)
 {
-    TILE* p;
-
-    p                 = (TILE*)Gpu_SysPrimCursor;
-    Gpu_SysPrimCursor = (u8*)(p + 1);
-    SetTile(p);
-    if (draw->semiTrans == 0) {
-        SetShadeTex(p, 1);
-        SetSemiTrans(p, 0);
+    if (semiTrans == 0) {
+        SetShadeTex(tile, 1);
+        SetSemiTrans(tile, 0);
     } else {
-        SetShadeTex(p, 0);
-        SetSemiTrans(p, 1);
+        SetShadeTex(tile, 0);
+        SetSemiTrans(tile, 1);
     }
-    p->r0 = draw->r;
-    p->g0 = draw->g;
-    p->b0 = draw->b;
-    p->x0 = draw->x;
-    p->y0 = draw->y;
-    p->w  = draw->w - 1;
-    p->h  = draw->h - 1;
-    AddPrim(gGpuCurrentOt + 5, p);
+}
+
+/// Queues an untextured coloured rectangle at the fade ordering-table tag.
+///
+/// Borrows draw only for this call. X/Y are draw-environment pixels; packet
+/// width/height are w-1/h-1 narrowed to halfwords (positive dimensions are the
+/// normal domain). UV and unused fields are not read. Nonzero semiTrans enables
+/// blending; the caller must prepend the desired draw-mode command at tag 5.
+/// Requires one word-aligned TILE slot in Gpu_SysPrimCursor and writable OT tag 5.
+/// The arena is byte-addressed; the queued packet is borrowed until GPU completion.
+static void _primDrawTile(const PrimDrawParams* draw)
+{
+    TILE* tile;
+
+    tile              = (TILE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(tile + 1);
+    SetTile(tile);
+    _primSetTileBlend(tile, draw->semiTrans);
+    tile->r0 = draw->r;
+    tile->g0 = draw->g;
+    tile->b0 = draw->b;
+    tile->x0 = draw->x;
+    tile->y0 = draw->y;
+    tile->w  = draw->w - 1;
+    tile->h  = draw->h - 1;
+    AddPrim(gGpuCurrentOt + PRIMITIVE_FADE_OT_INDEX, tile);
 }

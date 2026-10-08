@@ -7,7 +7,17 @@
 
 extern u16 D_8005ED8A;
 
-void GameFlow_StateByField34(Task* task);
+/// Prepares a new game, saved session or attract demo and queues session startup.
+///
+/// Resident bank 0, slot 3 interprets spawnArg1 as 0 for a new save (retaining
+/// vibration), 2 for an attract demo, or any other value for the existing save.
+/// Demo state zero queues its replay file; subsequent callbacks wait for the
+/// CD queue before restoring replay state. Live-game paths complete in one
+/// callback. Requires initialized resident session/save/input state; demo
+/// restoration also requires its replay storage to remain valid.
+/// The handoff stops the current task walk before killing the task and
+/// discarding task/model lists and heap allocations, then spawns bank 0 slot 9.
+void gameFlowLaunchSessionTask(Task* task);
 
 /// Runs one stage of the title's memory-card load flow.
 ///

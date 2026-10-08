@@ -101,14 +101,14 @@ SetSp                       = 0x800144E8;
 //--- PA: 0x04CF8   VA: 0x800144F8   subsegment: c, boot
 //--------------------------------------------------------------------
 memConfigureImageMemory               = 0x800144F8; // type:func
-Boot_LoadInitialFile        = 0x80014650; // type:func
+bootColdStartTask        = 0x80014650; // type:func
 cdAudioCancelAndWait             = 0x800148A0; // type:func
 bootInitCdAudio             = 0x800148EC; // type:func
 gfxCaptureAreaFrame               = 0x8001490C; // type:func
 gfxRestoreAreaFrame               = 0x800149E8; // type:func
 bootInitCd             = 0x80014A50; // type:func
 bootResetCd             = 0x80014A98; // type:func
-Boot_LoadTask               = 0x80014B38; // type:func
+bootReloadTitleTask               = 0x80014B38; // type:func
 cdCmdService               = 0x80014C2C; // type:func
 fsIsStageCdfAvailable      = 0x80014C4C; // type:func
 
@@ -748,7 +748,7 @@ chkRC2wait                  = 0x8002B794;
 //--------------------------------------------------------------------
 //--- PA: 0x1C034   VA: 0x8002B834   subsegment: c, 1C034
 //--------------------------------------------------------------------
-GameFlow_StateByField34               = 0x8002B834; // type:func
+gameFlowLaunchSessionTask               = 0x8002B834; // type:func
 fadeDrawOverlay               = 0x8002BA9C; // type:func
 gameClearSession               = 0x8002BB9C; // type:func
 _gameFlowResetForSessionStart               = 0x8002BBC8; // type:func
@@ -860,8 +860,8 @@ textAppendString               = 0x8002F588; // type:func
 _textDrawGlyphImmediate               = 0x8002F5E4; // type:func
 _textDrawGlyphFill               = 0x8002F69C; // type:func
 _textDrawGlyphOutline               = 0x8002F798; // type:func
-Text_UiTaskCallback               = 0x8002F890; // type:func
-Text_BootTask               = 0x8002F98C; // type:func
+_uiVibrationOptionsTask               = 0x8002F890; // type:func
+_bootStartTitleTask               = 0x8002F98C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x201E0   VA: 0x8002F9E0   subsegment: c, 201E0
@@ -1502,8 +1502,8 @@ stageMusicUpdateAreaAmbient               = 0x8004323C; // type:func
 textDrawStream               = 0x80043310; // type:func
 _primDrawCaptionSprite               = 0x800435F8; // type:func
 _primDrawTexturePage               = 0x80043718; // type:func
-Prim_DrawFadeTile               = 0x8004379C; // type:func
-Prim_DrawTile               = 0x80043854; // type:func
+_primDrawTimedDimTile               = 0x8004379C; // type:func
+_primDrawTile               = 0x80043854; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x34138   VA: 0x80043938   subsegment: o, libgpu/p00

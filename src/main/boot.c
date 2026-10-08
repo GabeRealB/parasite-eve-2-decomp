@@ -77,7 +77,7 @@ extern u8 D_80161E20[];
 
 extern u8 D_80400000[];
 
-// Build stamp (must stay in .rodata ahead of Boot_LoadInitialFile jtbl).
+// Build stamp (must stay in .rodata ahead of bootColdStartTask jtbl).
 /// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
 static const char Boot_BuildStamp[];
 
@@ -89,7 +89,7 @@ static void* Mem_UnusedDevKitEndPointer;
 
 static GfxImageSlot* Gfx_ImageSlotTables[];
 
-// Build stamp (must stay in .rodata ahead of Boot_LoadInitialFile jtbl).
+// Build stamp (must stay in .rodata ahead of bootColdStartTask jtbl).
 /// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
 static const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
 
@@ -126,6 +126,26 @@ enum {
 enum {
     GRAPHICS_AREA_FRAME_SECOND_Y = FILE_SYSTEM_IMAGE_HEIGHT + 32,
 };
+
+/// Queues stage-zero file 1 for title startup.
+///
+/// Borrows writable key and option blocks of at least four bytes for this call.
+/// Key byte 1 is ignored by the enqueue API and left untouched. All four option
+/// bytes are supplied: zero hundreds/X/Y and normal loading. The CD queue copies
+/// the seven consumed bytes immediately; loading completes asynchronously.
+static inline void _bootQueueStartupFile(u8* fileKey, u8* loadOptions)
+{
+    enum { BOOT_STARTUP_FILE_INDEX = 1 };
+
+    fileKey[3]     = GAME_STAGE_NONE;
+    fileKey[2]     = 0;
+    fileKey[0]     = BOOT_STARTUP_FILE_INDEX;
+    loadOptions[0] = 0;
+    loadOptions[1] = CD_COMMAND_LOAD_DEFAULT;
+    loadOptions[2] = 0;
+    loadOptions[3] = 0;
+    cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadOptions);
+}
 
 /// Resets the decoder and detaches the movie ring after CD delivery has paused.
 ///
@@ -215,80 +235,90 @@ void memConfigureImageMemory(s32 stageId, s32 areaId)
     _memClearPrimitiveTrailer();
 }
 
-void Boot_LoadInitialFile(Task* task)
+void bootColdStartTask(Task* task)
 {
-    u8          modeParam[8];
-    u8          param1[8];
-    u8          param2[8];
-    u8          fade;
+    enum {
+        BOOT_COLD_START_DECODE_IMAGE = 0,
+        BOOT_COLD_START_FADE_IN      = 1,
+        BOOT_COLD_START_HOLD_IMAGE   = 2,
+        BOOT_COLD_START_FADE_OUT     = 3,
+        BOOT_COLD_START_START_TITLE  = 4,
+        BOOT_COLD_START_HOLD_FRAMES  = 90,
+        BOOT_FADE_FULL_BRIGHTNESS    = 255,
+        BOOT_FADE_FINISHED           = 256,
+        BOOT_FADE_BRIGHTNESS_STEP    = 8,
+        BOOT_RESIDENT_TASK_BANK      = 0,
+        BOOT_START_TITLE_TASK_SLOT   = 13,
+        BOOT_SCAN_WITH_STARTUP_IMAGE = 1,
+    };
+    u8          driveMode[8]; // Only byte 0 is sent; the retained scratch extent preserves stack placement.
+    u8          fileKey[4];
+    u8          loadOptions[sizeof(gCdCmdQueue.entries[0].args)];
+    u8          brightness;
     CdCmdQueue* queue;
 
     queue = &gCdCmdQueue;
     switch (task->state) {
-        case 0:
+        case BOOT_COLD_START_DECODE_IMAGE:
+            // Discover the mounted library and decode the separate startup image.
             displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
-            modeParam[0] = CdlModeSpeed | CdlModeSize1;
-            CdControlB(CdlSetmode, modeParam, NULL);
+            driveMode[0] = CdlModeSpeed | CdlModeSize1;
+            CdControlB(CdlSetmode, driveMode, NULL);
             SetDispMask(0);
-            fsScanIsoDirectory(1);
+            fsScanIsoDirectory(BOOT_SCAN_WITH_STARTUP_IMAGE);
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
+            // This opcode ignores the key/options copied from low RAM at address zero.
             cdCmdEnqueue(CD_COMMAND_READ_STAGE_HEADER, NULL, NULL);
             memConfigureImageMemory(GAME_STAGE_NONE, 0);
             while (queue->imageLoadStatus != CD_COMMAND_IMAGE_COMPLETE) {
                 mdecStepImageDecode();
             }
-            param1[3] = 0;
-            param1[2] = 0;
-            param1[0] = 1;
-            param2[0] = 0;
-            param2[1] = 0;
-            param2[2] = 0;
-            param2[3] = 0;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-            task->killCountdown = 0xFF;
-            fade                = task->killCountdown;
-            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+            _bootQueueStartupFile(fileKey, loadOptions);
+            task->killCountdown = BOOT_FADE_FULL_BRIGHTNESS;
+            brightness          = task->killCountdown;
+            fadeDrawOverlay(brightness, brightness, brightness, GPU_BLEND_SUBTRACT);
             task->state++;
             break;
 
-        case 1:
+        case BOOT_COLD_START_FADE_IN:
             SetDispMask(1);
-            task->killCountdown -= 8;
+            task->killCountdown -= BOOT_FADE_BRIGHTNESS_STEP;
             if (task->killCountdown <= 0) {
                 task->killCountdown = 0;
                 task->state++;
             }
-            fade = task->killCountdown;
-            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+            brightness = task->killCountdown;
+            fadeDrawOverlay(brightness, brightness, brightness, GPU_BLEND_SUBTRACT);
             break;
 
-        case 2:
-            if (task->killCountdown < 0x5A) {
+        case BOOT_COLD_START_HOLD_IMAGE:
+            // The image stays visible until both its minimum hold and file loading finish.
+            if (task->killCountdown < BOOT_COLD_START_HOLD_FRAMES) {
                 task->killCountdown++;
             }
             if (cdCmdIsIdle() == 0) {
                 return;
             }
-            if (task->killCountdown < 0x5A) {
+            if (task->killCountdown < BOOT_COLD_START_HOLD_FRAMES) {
                 return;
             }
             task->killCountdown = 0;
             task->state++;
             break;
 
-        case 3:
-            task->killCountdown += 8;
-            if (task->killCountdown >= 0x100) {
+        case BOOT_COLD_START_FADE_OUT:
+            task->killCountdown += BOOT_FADE_BRIGHTNESS_STEP;
+            if (task->killCountdown >= BOOT_FADE_FINISHED) {
                 memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
                 task->state++;
                 break;
             }
-            fade = task->killCountdown;
-            fadeDrawOverlay(fade, fade, fade, GPU_BLEND_SUBTRACT);
+            brightness = task->killCountdown;
+            fadeDrawOverlay(brightness, brightness, brightness, GPU_BLEND_SUBTRACT);
             break;
 
-        case 4:
-            taskSpawn(0, 0xD, 0, 0);
+        case BOOT_COLD_START_START_TITLE:
+            taskSpawn(BOOT_RESIDENT_TASK_BANK, BOOT_START_TITLE_TASK_SLOT, 0, 0);
             taskKill(task);
             SetDispMask(1);
             gDisplayState.debugMode = 0;
@@ -376,34 +406,32 @@ void bootResetCd(s32 resetMode)
     cdCmdResetState();
 }
 
-void Boot_LoadTask(Task* task)
+void bootReloadTitleTask(Task* task)
 {
-    u8  modeParam[8];
-    u8  param1[8];
-    u8  param2[8];
+    enum {
+        BOOT_TITLE_RELOAD_QUEUE       = 0,
+        BOOT_TITLE_RELOAD_WAIT        = 1,
+        BOOT_TITLE_STARTUP_DESCRIPTOR = 0,
+    };
+    u8  driveMode[8]; // Only byte 0 is sent; the retained scratch extent preserves stack placement.
+    u8  fileKey[4];
+    u8  loadOptions[sizeof(gCdCmdQueue.entries[0].args)];
     s32 state;
 
     state = task->state;
     switch (state) {
-        case 0:
-            modeParam[0] = CdlModeSpeed | CdlModeSize1;
-            CdControlB(CdlSetmode, modeParam, NULL);
+        case BOOT_TITLE_RELOAD_QUEUE:
+            driveMode[0] = CdlModeSpeed | CdlModeSize1;
+            CdControlB(CdlSetmode, driveMode, NULL);
             SetDispMask(0);
-            param1[3] = 0;
-            param1[2] = 0;
-            param1[0] = 1;
-            param2[0] = 0;
-            param2[1] = 0;
-            param2[2] = 0;
-            param2[3] = 0;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            _bootQueueStartupFile(fileKey, loadOptions);
             task->state = task->state + 1;
             return;
-        case 1:
+        case BOOT_TITLE_RELOAD_WAIT:
             if (cdCmdIsIdle() != 0) {
                 SetDispMask(1);
                 memConfigureImageMemory(GAME_STAGE_NONE, 0);
-                taskSpawnFromTable(Title_TaskDescs, 0, 0, 0);
+                taskSpawnFromTable(Title_TaskDescs, BOOT_TITLE_STARTUP_DESCRIPTOR, 0, 0);
                 taskKill(task);
                 gDisplayState.debugMode = 0;
             }
