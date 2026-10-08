@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "gameplay/collision.h"
+#include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
@@ -37,21 +38,49 @@ extern WorldCoordSpotLight D_dryfield_night_dilapidated_house_80189800[1];
 
 // Callbacks referenced by the overlay's shared data tables.
 
-s32 func_dryfield_night_dilapidated_house_8017D8D4(Task*, s32, s32, s32);
+/// Refuses `ROOM_MESSAGE_USE_KEY_ITEM` without consuming the selected collected item.
+///
+/// Ignores both payload words and returns `ROOM_KEY_ITEM_USE_REFUSED`.
+s32 dryfieldNightDilapidatedHouseRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArgument);
 
 s32 func_dryfield_night_dilapidated_house_8017D8DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
-s32 func_dryfield_night_dilapidated_house_8017D960(Task*, s32, s32, s32);
+/// Ignores `ROOM_MESSAGE_COMMAND` and returns zero without changing room state.
+///
+/// The integer command ID and its command-specific argument are unused.
+s32 dryfieldNightDilapidatedHouseIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArgument);
 
-s32 func_dryfield_night_dilapidated_house_8017D968(Task*, s32, s32, s32);
+/// Ignores `DIRECTION_MESSAGE_ROOM_ACTION` and returns zero without changing room state.
+///
+/// The borrowed trigger request is neither read nor retained; the second
+/// payload word is unused.
+s32 dryfieldNightDilapidatedHouseIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArgument);
 
-void func_dryfield_night_dilapidated_house_8017DA70(void);
+/// Stages audio start for the scene selected by the first-visit event script.
+///
+/// The selected scene and its prepared buffers must survive CD consumption.
+/// A later CD dispatch commits this deferred request; this callback does not
+/// change the scene/audio mode.
+void dryfieldNightDilapidatedHouseStageSceneAudioStart(void);
 
-void func_dryfield_night_dilapidated_house_8017DA90(void);
+/// Enqueues playback of the first-visit script's selected scene/audio session.
+///
+/// Requires free CD request capacity and prepared playback buffers that remain
+/// live through consumption. Without a selected slot, enters playing mode directly.
+void dryfieldNightDilapidatedHouseEnqueueScenePlayback(void);
 
-void func_dryfield_night_dilapidated_house_8017DAB0(void);
+/// Ends first-visit scene streaming and restores the random values saved at selection.
+///
+/// Requires prior successful scene selection. Leaves CD cancellation, buffers
+/// and task teardown to their owners.
+void dryfieldNightDilapidatedHouseFinishScene(void);
 
-void func_dryfield_night_dilapidated_house_8017DAD0(void);
+/// Cancels the first-visit scene when its event script is skipped.
+///
+/// Discards the deferred CD replacement, requests asynchronous cancellation and
+/// immediately ends streaming and restores saved random values. Requires prior
+/// successful scene selection; buffer and task teardown remain with their owners.
+void dryfieldNightDilapidatedHouseCancelScene(void);
 
 void func_dryfield_night_dilapidated_house_8017DAF0(void);
 

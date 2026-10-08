@@ -49626,7 +49626,7 @@ to zero on that one edit. So an arity error found in one call is worth fixing
 before reading any `reorder` dump, even when it is a different call that moved.
 
 The penalty signature is not a reliable tell, so count the arguments before
-reading a dump at all. `func_dryfield_night_dilapidated_house_8017D970`, the same
+reading a dump at all. `_dryfieldNightDilapidatedHouseSetupRoomTask`, the same
 room opener, came back at 99.868% with `regs=1` and nothing else — no `reorder`,
 and both later calls byte-identical. That opener (`field_24 = <msg table>`,
 `gameSetTaskSlot(index, 7)`, `state++`) is the standard room state-entry prologue:

@@ -168,16 +168,16 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 192, 47, 192 } };
 
 RoomEventReq gRoomEventReq;
 
-static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0);
-static void func_dryfield_night_dilapidated_house_8017DA08(Task* task);
+static void _dryfieldNightDilapidatedHouseSetupRoomTask(Task* task);
+static void _dryfieldNightDilapidatedHouseIdleRoomTask(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
 
 #include "../../shared/room_event_task.inc.c"
 
-s32 func_dryfield_night_dilapidated_house_8017D8D4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldNightDilapidatedHouseRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArgument)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Handler for the room's `0x13EE` message, the warp destination the gameplay
@@ -202,84 +202,87 @@ s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEv
     return 1;
 }
 
-s32 func_dryfield_night_dilapidated_house_8017D960(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldNightDilapidatedHouseIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArgument)
 {
     return 0;
 }
 
-s32 func_dryfield_night_dilapidated_house_8017D968(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldNightDilapidatedHouseIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArgument)
 {
     return 0;
 }
 
-/// Room task state 0: installs the room's message table, registers the task
-/// in pointer slot 7 and advances. On the first visit (flag nibble 0x92 still
-/// clear) it starts the cutscene script pair when pointer slot 0xA is filled,
-/// then sets nibble 0x92 to 1 and nibble 0x7A to 3 and calls
-/// `gameFlagSetPackedByte(0xA2, 0x11)`.
-static void func_dryfield_night_dilapidated_house_8017D970(Task* arg0)
+/// Starts the first-visit scene when a companion is present and commits its progress.
+static inline void _dryfieldNightDilapidatedHouseStartFirstVisitEvent(void)
 {
-    arg0->msgTable = D_dryfield_night_dilapidated_house_8017E700;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    arg0->state = (s32)(arg0->state + 1);
-    if (gameFlagGetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN) == 0) {
-        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
+    enum {
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EVENT_UNSEEN          = 0,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN            = 1,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_STORY_CHAPTER         = 3,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_GAS_STATION_OBJECTIVE = 0x11
+    };
+
+    if (gameFlagGetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN) == DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EVENT_UNSEEN) {
+        if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
             evsStartScriptWithSkip(D_dryfield_night_dilapidated_house_801868F4, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                    D_dryfield_night_dilapidated_house_80187134);
         }
-        gameFlagSetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN, 1);
-        gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 3);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x11);
+        // Progress advances even when the companion is absent and no scene starts.
+        gameFlagSetNibble(GAME_FLAG_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EVENT_SEEN);
+        gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_STORY_CHAPTER);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_GAS_STATION_OBJECTIVE);
     }
 }
 
-/// The room task's idle state, entry 1 of its three-state table: does nothing.
-/// The 0x10-byte local is never used, but the original reserved the frame.
-static void func_dryfield_night_dilapidated_house_8017DA08(Task* task)
+/// Registers the room's message receiver and enters idle before first-visit scene setup.
+static void _dryfieldNightDilapidatedHouseSetupRoomTask(Task* task)
 {
-    char pad[0x10];
+    task->msgTable = D_dryfield_night_dilapidated_house_8017E700;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    task->state++;
+    _dryfieldNightDilapidatedHouseStartFirstVisitEvent();
+}
+
+/// Keeps the registered room task alive without performing per-frame work.
+static void _dryfieldNightDilapidatedHouseIdleRoomTask(Task* task)
+{
+    // Retain the idle state's unused 16-byte stack frame.
+    char unusedStackFrame[16];
 }
 
 /// The room task's three states: setup, idle, and exit.
 static const TaskFuncTable3 D_dryfield_night_dilapidated_house_8017D5DC = {
     {
-        func_dryfield_night_dilapidated_house_8017D970,
-        func_dryfield_night_dilapidated_house_8017DA08,
+        _dryfieldNightDilapidatedHouseSetupRoomTask,
+        _dryfieldNightDilapidatedHouseIdleRoomTask,
         taskKill,
     },
 };
 
-/// Runs the room task's current state, through a copy of its state table
-/// taken onto the stack.
-void func_dryfield_night_dilapidated_house_8017DA18(Task* task)
+void dryfieldNightDilapidatedHouseRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_dryfield_night_dilapidated_house_8017D5DC;
-    sp.funcs[task->state](task);
+    handlers = D_dryfield_night_dilapidated_house_8017D5DC;
+    handlers.funcs[task->state](task);
 }
 
-/// Cutscene script callback: queues the replacement of overlay 0x82.
-void func_dryfield_night_dilapidated_house_8017DA70(void)
+void dryfieldNightDilapidatedHouseStageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-/// Cutscene script callback: queues overlay 0x81.
-void func_dryfield_night_dilapidated_house_8017DA90(void)
+void dryfieldNightDilapidatedHouseEnqueueScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-/// Cutscene script callback: restores the stream random state.
-void func_dryfield_night_dilapidated_house_8017DAB0(void)
+void dryfieldNightDilapidatedHouseFinishScene(void)
 {
     streamFinishScene();
 }
 
-/// Cutscene script callback: clears the queued CD command and restarts the CD
-/// queue.
-void func_dryfield_night_dilapidated_house_8017DAD0(void)
+void dryfieldNightDilapidatedHouseCancelScene(void)
 {
     cdCmdCancelScene();
 }

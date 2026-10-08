@@ -40,6 +40,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_dilapidated_house_8018A
 /// arena must be ready; queued packet storage must survive GPU drawing.
 void dryfieldNightDilapidatedHouseDrawLightPrismsTask(Task* task);
 
-void func_dryfield_night_dilapidated_house_8017DA18(Task* task);
+/// Runs the nighttime dilapidated house's room message receiver and first-visit event.
+///
+/// Requires a live task and this room overlay loaded. The state must be 0 setup,
+/// 1 idle or 2 teardown; dispatch has no bounds check and teardown releases the
+/// task. Setup registers the receiver in `GAME_TASK_SLOT_ROOM` and advances
+/// progress once, starting the event's normal/skip scripts only with a companion.
+void dryfieldNightDilapidatedHouseRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_H
