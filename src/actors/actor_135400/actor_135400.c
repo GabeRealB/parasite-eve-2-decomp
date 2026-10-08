@@ -675,21 +675,23 @@ static void _actor135400GaryDouglasUpdateCarriedPlacement(Task* task)
 
 /// Spawns Gary's head and carried model, applying placement textures to the head.
 ///
-/// Requires live body work and its Enemy placement owner in spawnArg2.
-/// Retains successful child handles; failure leaves each zero pointer intact.
+/// Requires live body work and its Enemy placement owner in spawnArg2. The body
+/// must outlive attachment initialization at parts 4 and 8. Retains successful
+/// child handles; a failed spawn leaves that handle unchanged. The caller's
+/// cleared work makes an initial failure an absent attachment.
 static inline void _actor135400SpawnGaryAttachments(Task* task, _Actor135400GaryDouglasWork* work)
 {
-    enum { HEAD_TASK    = 1,
-           HEAD_PART    = 4,
-           CARRIED_TASK = 2,
-           CARRIED_PART = 8 };
+    enum { ACTOR_135400_GARY_HEAD_TASK    = 1,
+           ACTOR_135400_GARY_HEAD_PART    = 4,
+           ACTOR_135400_GARY_CARRIED_TASK = 2,
+           ACTOR_135400_GARY_CARRIED_PART = 8 };
     Task* childTask;
-    childTask = taskSpawnFromTable(D_actor_135400_8013A4AC, HEAD_TASK, HEAD_PART, task);
+    childTask = taskSpawnFromTable(D_actor_135400_8013A4AC, ACTOR_135400_GARY_HEAD_TASK, ACTOR_135400_GARY_HEAD_PART, task);
     if (childTask != NULL) {
         work->headTask = childTask;
         _actorRenderApplyTaskPlacementTextureOffsets(childTask, task->spawnArg2.pointer);
     }
-    childTask = taskSpawnFromTable(D_actor_135400_8013A4AC, CARRIED_TASK, CARRIED_PART, task);
+    childTask = taskSpawnFromTable(D_actor_135400_8013A4AC, ACTOR_135400_GARY_CARRIED_TASK, ACTOR_135400_GARY_CARRIED_PART, task);
     if (childTask != NULL) {
         work->carriedTask = childTask;
     }

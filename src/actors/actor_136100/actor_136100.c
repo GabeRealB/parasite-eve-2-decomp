@@ -1412,14 +1412,14 @@ checkSettled:
 /// remaining texture relocation and state advance; entry 106 falls back to END.
 static inline void _actor136100InitializeHead(Task* task)
 {
-    enum { HEAD_TEXTURE_ENTRY = 106 };
+    enum { ACTOR_136100_HEAD_TEXTURE_ENTRY = 106 };
     _Actor136100Work* work;
     AreaPlacement*    place;
     u8                resourceEntryId;
     TmdObject*        model     = task->extra.tmd;
     GfxCoord*         rootCoord = model->coords;
 
-    work       = memMalloc(sizeof(_Actor136100Work), false);
+    work       = memMalloc(sizeof(*work), false);
     task->work = work;
     if (work == NULL) {
         taskKill(task);
@@ -1436,7 +1436,7 @@ static inline void _actor136100InitializeHead(Task* task)
     place           = areaGetVariant(&gGameSession->location.loc)->placements;
     resourceEntryId = place->entryId;
     while (resourceEntryId != AREA_PLACEMENT_END) {
-        if (resourceEntryId == HEAD_TEXTURE_ENTRY) {
+        if (resourceEntryId == ACTOR_136100_HEAD_TEXTURE_ENTRY) {
             break;
         }
         place++;

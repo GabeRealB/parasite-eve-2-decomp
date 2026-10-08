@@ -95,10 +95,10 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(_Actor342100BlazeWork, 0x44);
 
 /// The overlay's event/controller task, published by
-/// `func_actor_342100_801630A4`.
+/// `_actor342100EncounterBlazeControllerTask`.
 extern Task* D_actor_342100_80164BB8;
 
-/// Single-entry spawn table `func_actor_342100_80163454` starts as entry 3.
+/// Single-entry spawn table `_actor342100SetBlazeBodyFireMode` starts as entry 3.
 extern TaskDesc D_actor_342100_80164B78[];
 
 /// Records a burn clip and sends its synchronous, collision-disabled play request.
@@ -127,7 +127,7 @@ static void _actor342100SetBlazeFadeState(s32 fadeState);
 
 static void _actor342100StartBlazeHeatHaze(void);
 
-void func_actor_342100_80163454(s32 arg0);
+static void _actor342100SetBlazeBodyFireMode(s32 spreadToWholeBody);
 
 static void _actor342100TriggerBlazeDeath(void);
 
@@ -139,7 +139,7 @@ static void _actor342100TriggerBlazeDeath(void);
 extern TaskDesc D_actor_342100_801648DC[];
 
 /// Null-terminated table of the overlay's per-state message tables, counted
-/// and reported by `func_actor_342100_80162F54` when it arms the encounter:
+/// and reported by `_actor342100UpdateBlazeScene` when it arms the encounter:
 /// three live entries and the null word that ends them.
 extern AnimationSet* D_actor_342100_80164900[4];
 
@@ -148,7 +148,7 @@ extern AnimationSet* D_actor_342100_80164900[4];
 /// `ANIMATION_BANK_BASE_SET_COUNT`; the first three entries are `-1`, which ends
 /// the chain, and only the fourth is live. Sits directly after
 /// `D_actor_342100_80164900`'s null word, and its first element is the address
-/// `func_actor_342100_80162F54`'s encounter table of a different size would
+/// `_actor342100UpdateBlazeScene`'s encounter table of a different size would
 /// have started at, so splat cut it out as a symbol of its own.
 extern s16 D_actor_342100_80164910[];
 
@@ -157,14 +157,14 @@ extern s16 D_actor_342100_80164910[];
 /// / 0x80164918 / 0x80164948 / 0x80164960 / 0x80164980 table respectively, and
 /// the values in between select none. Each is a zero-`vx`-terminated `SVECTOR`
 /// list of two to three placements -- the terminator is an all-zero entry -- and
-/// `func_actor_342100_80162C88` drops one effect task on every live entry.
+/// `_actor342100SpawnBlazeFireEmitters` drops one effect task on every live entry.
 extern SVECTOR D_actor_342100_80164918[];
 extern SVECTOR D_actor_342100_80164930[];
 extern SVECTOR D_actor_342100_80164948[];
 extern SVECTOR D_actor_342100_80164960[];
 extern SVECTOR D_actor_342100_80164980[];
 
-/// Model/animation set `func_actor_342100_80162F54` installs with
+/// Model/animation set `_actor342100UpdateBlazeScene` installs with
 /// `evsStartScript` on the same arm; a byte address is all the installer sees.
 extern EvsCommand D_actor_342100_801649C8[];
 
@@ -198,9 +198,9 @@ extern ScreenWaveGridOscillator gScreenWaveRows[30];
 /// buffer. `_screenWaveGridTask` builds them once and moves their corners.
 extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
-void func_actor_342100_80162AB0(Task*);
-void func_actor_342100_80162C88(void);
-void func_actor_342100_801630A4(Task*);
+static void _actor342100BlazeFireEmitterTask(Task* task);
+static void _actor342100SpawnBlazeFireEmitters(void);
+static void _actor342100EncounterBlazeControllerTask(Task* task);
 
 static AnimationPackedPose _gActor342100Animation019F0Bank1[6] = {
 #include "assets/actor_342100_animation_019F0_bank1.inc"
@@ -349,15 +349,15 @@ u16 gBlazePlayerParts[16] = {
 EvsCommand D_actor_342100_801649C8[18] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_80163454 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeBodyFireMode }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeFadeState }, { .value = ACTOR_342100_BLAZE_FADE_FAST_RED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_342100_80162C88 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342100SpawnBlazeFireEmitters }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor342100StartBlazeHeatHaze }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100PlayBlazeAnimation }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_342100_80163454 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeBodyFireMode }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor342100SetBlazeFadeState }, { .value = ACTOR_342100_BLAZE_FADE_SLOW_RED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -368,11 +368,11 @@ EvsCommand D_actor_342100_801649C8[18] = {
 };
 
 TaskDesc D_actor_342100_80164B78[5] = {
-    { { { TASK_BODY_NONE, 192 } }, func_actor_342100_801630A4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor342100EncounterBlazeControllerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _blazeFadeTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _blazeBodyFireTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, func_actor_342100_80162AB0, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _actor342100BlazeFireEmitterTask, { .value = 0 } },
 };
 
 ScreenWaveCtx* gScreenWaveCtx = NULL;
@@ -386,7 +386,7 @@ ScreenWaveGridOscillator gScreenWaveRows[30] = { 0 };
 
 POLY_FT4 gScreenWaveGrid[2][30][8] = { 0 };
 
-static s32 func_actor_342100_80162F54(Task* arg0);
+static s32 _actor342100UpdateBlazeScene(Task* controller);
 
 #include "../../shared/screen_wave_grid.inc.c"
 
@@ -433,171 +433,198 @@ static s32 _actor342100AdvanceBlazeAnimation(Task* controller)
     return 0;
 }
 
-/// State 0 allocates the overlay's effect record -- `sizeof(EffectSpawnArg)`, scale 0x100,
-/// count 1, aimed at the model's root coordinate -- through `arg0->work`,
-/// which is also where the null check reads it back: that is what leaves the
-/// copy into `eff` after the branch instead of before it. State 1 waits out
-/// `spawnArg1` and steps to 2. State 2 runs on every fourth frame, and builds
-/// the effect's offset vector out of five LCG rolls: two per signed component
-/// (the value from one roll, its sign from the next) plus a third that is
-/// always negative. Only the three rolls whose value goes into `gRandomLcgState`
-/// are stored, so the two temporary rolls are separate variables -- one `rng`
-/// would be a single long-lived pseudo and take a register the constant needs.
+/// Chooses one blaze emitter's local fire offset from five successive LCG draws.
 ///
-/// Where `vec.vx = vx` sits is load-bearing. Placed with the last roll it is
-/// scheduled past the argument setup, which lengthens `vx`'s live range enough
-/// that global-alloc prefers the `0x71357911` constant and hands the component
-/// $a2 (99.49%); between the third roll and the `vec.vy` store it stays short
-/// and takes $a1, the constant falling to $a2 (100.00%).
-void func_actor_342100_80162AB0(Task* arg0)
-{
-    EffectSpawnArg* eff;
-    GfxCoord*       coord;
-    SVECTOR         vec;
-    s32             rng;
-    s32             rng2;
-    s32             vx;
-    s32             vz;
+/// offsetValue is a stable, side-effect-free pointer to writable SVECTOR storage;
+/// it is evaluated three times. Writes XYZ only, with X/Z in -63..63 and Y in
+/// -63..0; leaves vector metadata untouched and retains the fifth LCG state.
+/// Temporaries are local to the compound statement; no caller locals are captured.
+#define ACTOR_342100_CHOOSE_BLAZE_FIRE_OFFSET(offsetValue)                                       \
+    {                                                                                            \
+        enum { ACTOR_342100_FIRE_EMITTER_OFFSET_MASK = 63 };                                     \
+        s32 xMagnitudeRoll, zMagnitudeRoll, xOffset, zOffset;                                    \
+        xMagnitudeRoll  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;        \
+        xOffset         = ((u32)xMagnitudeRoll >> 16) & ACTOR_342100_FIRE_EMITTER_OFFSET_MASK;   \
+        gRandomLcgState = xMagnitudeRoll * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;         \
+        if ((gRandomLcgState >> 16) & 1) {                                                       \
+            xOffset = -xOffset;                                                                  \
+        }                                                                                        \
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;      \
+        (offsetValue)->vx = xOffset;                                                             \
+        (offsetValue)->vy = -((gRandomLcgState >> 16) & ACTOR_342100_FIRE_EMITTER_OFFSET_MASK);  \
+        zMagnitudeRoll    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;      \
+        zOffset           = ((u32)zMagnitudeRoll >> 16) & ACTOR_342100_FIRE_EMITTER_OFFSET_MASK; \
+        gRandomLcgState   = zMagnitudeRoll * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;       \
+        if ((gRandomLcgState >> 16) & 1) {                                                       \
+            zOffset = -zOffset;                                                                  \
+        }                                                                                        \
+        (offsetValue)->vz = zOffset;                                                             \
+    }
 
-    eff   = (EffectSpawnArg*)arg0->work;
-    coord = arg0->extra.coordBody->coord;
-    switch (arg0->state) {
-        case 0:
-            arg0->work = memMalloc(sizeof(EffectSpawnArg), false);
-            if (arg0->work == NULL) {
-                taskKill(arg0);
+/// Emits scattered fire from one fixed coordinate during the dumping-hole blaze.
+///
+/// Entry owns a coordinate body and starts at state 0. Allocates an EffectSpawnArg
+/// until task teardown; allocation failure kills the task and returns immediately.
+/// spawnArg1 is a nonnegative delay in callback updates (the script's spawner uses
+/// 0..31). After the delay, emits one size-256 blast every sixteen display frames.
+/// Local XYZ offsets are -63..63, with Y restricted to -63..0. Each emission
+/// consumes five successive shared LCG draws and retains the final state.
+/// The coordinate must outlive effects that borrow it; this task stays active
+/// until external teardown and does not gate emission on the combat pause state.
+static void _actor342100BlazeFireEmitterTask(Task* task)
+{
+    enum {
+        ACTOR_342100_FIRE_EMITTER_INITIALIZE     = 0,
+        ACTOR_342100_FIRE_EMITTER_DELAY          = 1,
+        ACTOR_342100_FIRE_EMITTER_EMIT           = 2,
+        ACTOR_342100_FIRE_EMITTER_SIZE           = 256,
+        ACTOR_342100_FIRE_EMITTER_REPEAT_COUNT   = 1,
+        ACTOR_342100_FIRE_EMITTER_DISPLAY_PERIOD = 16,
+    };
+    EffectSpawnArg* spawnRecord;
+    GfxCoord*       coord;
+    SVECTOR         localOffset;
+
+    spawnRecord = task->work;
+    coord       = task->extra.coordBody->coord;
+    switch (task->state) {
+        case ACTOR_342100_FIRE_EMITTER_INITIALIZE:
+            task->work = memMalloc(sizeof(*spawnRecord), false);
+            if (task->work == NULL) {
+                taskKill(task);
                 return;
             }
-            eff = (EffectSpawnArg*)arg0->work;
-            memFillBytes(eff, 0, sizeof(EffectSpawnArg));
-            eff->spawnArgLo = 0x100;
-            eff->coord      = arg0->extra.coordBody->coord;
-            eff->spawnArgHi = 1;
-            arg0->state++;
+            spawnRecord = task->work;
+            memFillBytes(spawnRecord, 0, sizeof(*spawnRecord));
+            spawnRecord->spawnArgLo = ACTOR_342100_FIRE_EMITTER_SIZE;
+            spawnRecord->coord      = task->extra.coordBody->coord;
+            spawnRecord->spawnArgHi = ACTOR_342100_FIRE_EMITTER_REPEAT_COUNT;
+            task->state++;
             return;
-        case 1:
-            if (arg0->spawnArg1.value <= 0) {
-                arg0->state = 2;
+        case ACTOR_342100_FIRE_EMITTER_DELAY:
+            if (task->spawnArg1.value <= 0) {
+                task->state = ACTOR_342100_FIRE_EMITTER_EMIT;
                 return;
             }
-            arg0->spawnArg1.value--;
+            task->spawnArg1.value--;
             return;
-        case 2:
-            if (gDisplayState.animFrame & 0xF) {
+        case ACTOR_342100_FIRE_EMITTER_EMIT:
+            if (gDisplayState.animFrame & (ACTOR_342100_FIRE_EMITTER_DISPLAY_PERIOD - 1)) {
                 return;
             }
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            vx              = ((u32)rng >> 16) & 0x3F;
-            gRandomLcgState = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
-                vx = -vx;
-            }
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            vec.vx          = vx;
-            vec.vy          = -((gRandomLcgState >> 16) & 0x3F);
-            rng2            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            vz              = ((u32)rng2 >> 16) & 0x3F;
-            gRandomLcgState = rng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if ((gRandomLcgState >> 16) & 1) {
-                vz = -vz;
-            }
-            vec.vz = vz;
-            effectSpawnHit(EFFECT_HIT_KIND_BLAST, coord, &vec, eff);
+            ACTOR_342100_CHOOSE_BLAZE_FIRE_OFFSET(&localOffset);
+            effectSpawnHit(EFFECT_HIT_KIND_BLAST, coord, &localOffset, spawnRecord);
             return;
     }
 }
 
-/// Spawn the encounter's effect tasks: `gGameSession->location.loc.view` selects one of
-/// the overlay's placement tables, and every entry in it rolls the LCG once,
-/// starts spawn entry 4 (`func_actor_342100_80162AB0`) with the roll's masked
-/// high half as its `spawnArg1` -- the lifetime that task's state 1 counts down
-/// -- and lays the entry onto the model the new task displays: identity rotation,
-/// the entry's `vx` / `vy` / `vz` written to `coord.t[0..2]`. The walk is `while (pos->vx != 0)`,
-/// so a table is as many entries as it has non-zero `vx`s and a table whose
-/// first entry is zero spawns nothing.
+#undef ACTOR_342100_CHOOSE_BLAZE_FIRE_OFFSET
+
+/// Gives a newly spawned blaze emitter identity rotation and a parent-space position.
 ///
-/// The table pointer is deliberately uninitialised: `gGameSession->location.loc.view`
-/// values 0x20..0x22 -- and anything outside the jump table -- leave it holding
-/// whatever the caller left in `$s1`, which is the target's shape.
-///
-/// Referenced from the `0x0D` entry of the command table in
-/// `D_actor_342100_801649C8` (+0x90), next to the same-shaped entries naming
-/// `_actor342100PlayBlazeAnimation` / `_actor342100SetBlazeFadeState` /
-/// `_actor342100StartBlazeHeatHaze` / `func_actor_342100_80163454`. That entry
-/// passes it no arguments, which is why the declaration is `(void)`.
-void func_actor_342100_80162C88(void)
+/// Borrows a live coordinate and three signed placement components. The spawn
+/// supplies its parent and dirty composition stamp; this preserves both.
+static inline void _actor342100PlaceBlazeFireEmitter(GfxCoord* coord, const SVECTOR* placement)
 {
+    gfxSetRotIdentity(&coord->coord);
+    coord->coord.t[0] = placement->vx;
+    coord->coord.t[1] = placement->vy;
+    coord->coord.t[2] = placement->vz;
+}
+
+/// Places delayed fire emitters for the dumping-hole blaze's current view.
+///
+/// The burn script calls this with no payload. Requires view 29, 30, 31, 35 or
+/// 36, the corresponding placement data and successful coordinate-body spawns.
+/// Walks until X is zero, consuming one shared LCG draw per placement for a
+/// 0..31-update delay. Coordinates use the view-parent frame's integer units.
+/// Unsupported views retain an uninitialized placement pointer. View 31's
+/// sentinel lies beyond its declared array; the complete list extent is unproven.
+static void _actor342100SpawnBlazeFireEmitters(void)
+{
+    enum { ACTOR_342100_BLAZE_FIRE_EMITTER_DESCRIPTOR = 4,
+           ACTOR_342100_BLAZE_FIRE_DELAY_MASK         = 31 };
     GfxCoord* coord;
-    SVECTOR*  pos;
-    Task*     task;
-    u32       rng;
+    SVECTOR*  placement;
+    Task*     emitter;
+    u32       delayRoll;
 
     switch (gGameSession->location.loc.view) {
         case 29:
-            pos = D_actor_342100_80164930;
+            placement = D_actor_342100_80164930;
             break;
         case 30:
-            pos = D_actor_342100_80164918;
+            placement = D_actor_342100_80164918;
             break;
         case 31:
-            pos = D_actor_342100_80164948;
+            placement = D_actor_342100_80164948;
             break;
         case 35:
-            pos = D_actor_342100_80164960;
+            placement = D_actor_342100_80164960;
             break;
         case 36:
-            pos = D_actor_342100_80164980;
+            placement = D_actor_342100_80164980;
             break;
     }
-    while (pos->vx != 0) {
-        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = rng;
-        task            = taskSpawnFromTable(D_actor_342100_80164B78, 4, (rng >> 16) & 0x1F, 0);
-        coord           = task->extra.tmd->coords;
-        gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[0] = pos->vx;
-        coord->coord.t[1] = pos->vy;
-        coord->coord.t[2] = pos->vz;
-        pos++;
+    while (placement->vx != 0) {
+        delayRoll       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = delayRoll;
+        emitter         = taskSpawnFromTable(D_actor_342100_80164B78, ACTOR_342100_BLAZE_FIRE_EMITTER_DESCRIPTOR, (delayRoll >> 16) & ACTOR_342100_BLAZE_FIRE_DELAY_MASK, 0);
+        coord           = emitter->extra.coordBody->coord;
+        _actor342100PlaceBlazeFireEmitter(coord, placement);
+        placement++;
     }
 }
 
 #include "../../shared/incinerator_blaze_body_fire.inc.c"
 
-/// First tick of the overlay's event/controller task, the one that arms the
-/// encounter as state 0 and then waits for the player's arrival as state 1.
+/// Copies the blaze's three loaded clip pointers into the player's animation extension.
 ///
-/// State 0 counts the live entries of the overlay's message-table list and
-/// hands slot 3 that list with message 0x3F7, lets the player's weapon into
-/// the message stream (`playerActorSetScriptedControl`), raises the `Gp_StateC08` flag
-/// `attachmentQueueIndex` gates on, installs the model set and hands slot 6 the
-/// 0xFA4 that starts the encounter, then starts spawn entry 2 with the task
-/// itself and steps to state 1. State 1 ticks the child and reports 1 to keep
-/// the task alive until `gGameSession->eventState` is set.
-static s32 func_actor_342100_80162F54(Task* arg0)
+/// Requires live controller work, player and writable selected animation bank.
+/// The NULL-terminated set list is scanned with the original low-halfword index;
+/// the terminator is excluded. The synchronous request borrows its stack record,
+/// while the copied clip descriptors and data remain borrowed for later playback.
+static inline void _actor342100CopyBlazeAnimationSets(Task* controller)
 {
-    _Actor342100BlazeWork*   work = arg0->work;
-    _Actor342100BlazeWork*   msgWork;
-    AnimationBankCopyRequest msg;
-    s32                      n;
+    enum { ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK = 0xFFFF };
+    _Actor342100BlazeWork*   dispatchWork;
+    AnimationBankCopyRequest bankCopyRequest;
+    s32                      setWordCount;
+    // Copy clip pointers before the script can request any of them.
+    dispatchWork = controller->work;
+    setWordCount = 0;
+    while (D_actor_342100_80164900[setWordCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK] != 0) {
+        setWordCount += 1;
+    }
+    bankCopyRequest.source.sets = &D_actor_342100_80164900[0];
+    bankCopyRequest.wordCount   = setWordCount & ACTOR_342100_BLAZE_EXTENSION_COUNT_MASK;
+    TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
+}
+
+/// Starts the player's blaze scene and reports completion after its event script ends.
+///
+/// Requires live controller work, player and writable character/weapon animation
+/// bank. The three loaded extension sets remain borrowed by the bank for playback;
+/// the terminating NULL is excluded from the synchronous three-word transfer.
+/// First update takes scripted control, locks attachments, starts the burn script,
+/// hides the HUD and spawns the fade with a borrowed controller pointer.
+/// Later updates advance settled clips while eventState remains nonzero. Returns
+/// 1 once it clears, otherwise 0. The caller retains the controller after completion.
+static s32 _actor342100UpdateBlazeScene(Task* controller)
+{
+    enum { ACTOR_342100_BLAZE_FADE_DESCRIPTOR = 2 };
+    _Actor342100BlazeWork* work = controller->work;
 
     switch (work->sceneState) {
         case ACTOR_342100_BLAZE_SCENE_START:
-            msgWork = arg0->work;
-            n       = 0;
-            while (D_actor_342100_80164900[n & 0xFFFF] != 0) {
-                n += 1;
-            }
-            msg.source.sets = &D_actor_342100_80164900[0];
-            msg.wordCount   = n & 0xFFFF;
-            TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+            _actor342100CopyBlazeAnimationSets(controller);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             evsStartScript(D_actor_342100_801649C8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            work->fadeTask   = taskSpawnFromTable(D_actor_342100_80164B78, 2, 0, arg0);
+            work->fadeTask   = taskSpawnFromTable(D_actor_342100_80164B78, ACTOR_342100_BLAZE_FADE_DESCRIPTOR, 0, controller);
             work->sceneState = work->sceneState + 1;
             break;
         case ACTOR_342100_BLAZE_SCENE_RUNNING:
@@ -606,95 +633,114 @@ static s32 func_actor_342100_80162F54(Task* arg0)
             }
             return 1;
     }
-    _actor342100AdvanceBlazeAnimation(arg0);
+    _actor342100AdvanceBlazeAnimation(controller);
     return 0;
 }
 
-/// The overlay's event/controller task. Idles while the session or any of
-/// the global pause flags hold it. State 0 allocates the work block and
-/// publishes the task, then picks state 1 or 2 from
-/// `gGameSession->spawnPhase[0]`; state 1 waits on flag 0x11E and pending
-/// object 5, and states 1 and 2 both move to 3 once `field_120` has dropped
-/// to zero while the player still has HP. State 3 ticks
-/// `func_actor_342100_80162F54` until it reports done.
+/// Allocates cleared blaze-controller work and publishes its player and task handles.
 ///
-/// `work` is read from `work` before state 0 replaces it, so the two
-/// `encounterTask` stores go through the block the task held on entry.
-void func_actor_342100_801630A4(Task* arg0)
+/// The task owns the block until teardown. Allocation failure kills the task;
+/// its caller preserves the following caption, sound and state operations.
+static inline void _actor342100InitializeBlazeController(Task* task)
 {
-    u16                    control;
-    u8                     actionId;
-    u8                     actionArgument;
-    _Actor342100BlazeWork* work;
-    _Actor342100BlazeWork* newWork;
-    s32                    ready;
-    PlayerStatus*          cfg;
+    _Actor342100BlazeWork* allocatedWork;
+    allocatedWork = memMalloc(sizeof(*allocatedWork), false);
+    task->work    = allocatedWork;
+    if (allocatedWork == NULL) {
+        taskKill(task);
+    } else {
+        memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));
+        allocatedWork->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        D_actor_342100_80164BB8   = task;
+    }
+}
 
-    work = arg0->work;
+/// Runs the dumping-hole encounter until the clock expires, then stages the player's blaze death.
+///
+/// Starts in state 0 with the room's caption and enemy-wave descriptors loaded.
+/// Scene/menu/combat pause gates stop all updates; setup also waits for the
+/// attachment wheel and display transition. Owns a cleared blaze work block and
+/// publishes the task for event callbacks. Idle spawn phase waits for room action
+/// 1 after flag 0x11E; armed phase starts an encounter immediately. Other phases
+/// only wait for the clock. An expired sceneClock and positive player HP begin
+/// the burn script; its completion leaves the controller idle until teardown.
+/// Allocation failure retains the subsequent caption, sound and state operations.
+static void _actor342100EncounterBlazeControllerTask(Task* task)
+{
+    enum {
+        ACTOR_342100_CONTROLLER_INITIALIZE             = 0,
+        ACTOR_342100_CONTROLLER_WAIT_ACTION            = 1,
+        ACTOR_342100_CONTROLLER_WAIT_CLOCK             = 2,
+        ACTOR_342100_CONTROLLER_BLAZE                  = 3,
+        ACTOR_342100_CONTROLLER_FINISHED               = 4,
+        ACTOR_342100_CONTROLLER_CAPTION_PRIORITY       = 208,
+        ACTOR_342100_CONTROLLER_START_ENCOUNTER_ACTION = 1,
+    };
+    u16                    actionControl;
+    u8                     roomActionId;
+    u8                     roomActionArgument;
+    _Actor342100BlazeWork* entryWork;
+    s32                    blazeReady;
+    PlayerStatus*          playerStatus;
+
+    entryWork = task->work;
     if (gGameSession->sceneUpdatesPaused != 0 || Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
     }
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case ACTOR_342100_CONTROLLER_INITIALIZE:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 break;
             }
-            newWork    = memMalloc(sizeof(*newWork), false);
-            arg0->work = newWork;
-            if (newWork == NULL) {
-                taskKill(arg0);
-            } else {
-                memFillBytes(newWork, 0, sizeof(*newWork));
-                newWork->playerTask     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_actor_342100_80164BB8 = arg0;
-            }
-            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B57C, 0, 0xD0, 0);
+            _actor342100InitializeBlazeController(task);
+            taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B57C, 0, ACTOR_342100_CONTROLLER_CAPTION_PRIORITY, 0);
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_DUMPING_HOLE_ALERT, 0, 0);
             switch (gGameSession->spawnPhase[0]) {
                 case GAME_SESSION_SPAWN_IDLE:
-                    arg0->state++;
+                    task->state++;
                     break;
                 case GAME_SESSION_SPAWN_ARMED:
-                    work->encounterTask = taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 1, 0);
+                    // Keep the entry pointer: this store precedes its next-tick refresh.
+                    entryWork->encounterTask = taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 1, 0);
                 default:
-                    arg0->state = 2;
+                    task->state = ACTOR_342100_CONTROLLER_WAIT_CLOCK;
                     break;
             }
             break;
-        case 1:
+        case ACTOR_342100_CONTROLLER_WAIT_ACTION:
             if (gameFlagGetNibble(GAME_FLAG_11E) != 0) {
-                if (worldCollisionReadActionHit(&control, &actionId, &actionArgument) != 0 && (control & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (s8)actionId == 1) {
-                    work->encounterTask = taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
-                    arg0->state++;
+                if (worldCollisionReadActionHit(&actionControl, &roomActionId, &roomActionArgument) != 0 && (actionControl & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM && (s8)roomActionId == ACTOR_342100_CONTROLLER_START_ENCOUNTER_ACTION) {
+                    entryWork->encounterTask = taskSpawnFromTable(D_shelter_b3_dumping_hole_8018B83C, 0, 0, 0);
+                    task->state++;
                 }
             }
-            cfg = &gPlayerStatus;
-            if (gGameSession->sceneClock > 0 || cfg->hp <= 0) {
-                ready = 0;
+            playerStatus = &gPlayerStatus;
+            if (gGameSession->sceneClock > 0 || playerStatus->hp <= 0) {
+                blazeReady = 0;
             } else {
-                ready = 1;
+                blazeReady = 1;
             }
-            if (ready) {
-                arg0->state = 3;
+            if (blazeReady) {
+                task->state = ACTOR_342100_CONTROLLER_BLAZE;
             }
             break;
-        case 2:
-            cfg = &gPlayerStatus;
-            if (gGameSession->sceneClock > 0 || cfg->hp <= 0) {
-                ready = 0;
+        case ACTOR_342100_CONTROLLER_WAIT_CLOCK:
+            playerStatus = &gPlayerStatus;
+            if (gGameSession->sceneClock > 0 || playerStatus->hp <= 0) {
+                blazeReady = 0;
             } else {
-                ready = 1;
+                blazeReady = 1;
             }
-            if (ready) {
-                arg0->state = 3;
-            }
-            break;
-        case 3:
-            if ((s16)func_actor_342100_80162F54(arg0) != 0) {
-                arg0->state++;
+            if (blazeReady) {
+                task->state = ACTOR_342100_CONTROLLER_BLAZE;
             }
             break;
-        case 4:
+        case ACTOR_342100_CONTROLLER_BLAZE:
+            if ((s16)_actor342100UpdateBlazeScene(task) != 0) {
+                task->state++;
+            }
+            break;
+        case ACTOR_342100_CONTROLLER_FINISHED:
             break;
     }
 }
@@ -766,27 +812,34 @@ static void _actor342100StartBlazeHeatHaze(void)
     taskSpawnFromTable(D_actor_342100_801648DC, 0, 0, &work->blaze.wave);
 }
 
-/// Entry/exit of the overlay's spawned child. A zero arm plays the cue, asks
-/// slot 4 to forward message 0x7DB with the `{ 0, 0x2C, 4 }` record, passes the
-/// same record on to `encounterTask` if that target exists, and starts the child at
-/// entry 3; a non-zero arm tells the already-spawned child so through its
-/// `Task::spawnArg1`.
-void func_actor_342100_80163454(s32 arg0)
+/// Starts the blaze's body fire and stops the encounter, or spreads existing fire over the player.
+///
+/// Called by the burn script with 0 to start and 1 to spread; every nonzero value
+/// selects spreading. Requires the published controller and its loaded player
+/// effects. Starting cancels room effects, broadcasts a borrowed stop command to
+/// placed actors, sends it to a recorded encounter controller, then retains the
+/// body-fire task. The command uses synthetic stage 0/area 44, not a room ID.
+/// Both dispatches consume the stack record synchronously and their results are
+/// ignored. Spreading requires a successfully spawned, still-live body-fire task.
+static void _actor342100SetBlazeBodyFireMode(s32 spreadToWholeBody)
 {
+    enum { ACTOR_342100_BLAZE_STOP_COMMAND_STAGE   = 0,
+           ACTOR_342100_BLAZE_STOP_COMMAND_AREA    = 44,
+           ACTOR_342100_BLAZE_BODY_FIRE_DESCRIPTOR = 3 };
     _Actor342100BlazeWork* work = D_actor_342100_80164BB8->work;
-    ActorCommand           msg;
+    ActorCommand           stopRequest;
 
-    if (arg0 == 0) {
+    if (spreadToWholeBody == 0) {
         sndEvtRequestScriptStart(SOUND_SHELTER_B3_DUMPING_HOLE_BLAZE, 0, 0);
         roomEffectRequestCancelAll();
-        msg.context.loc.area  = 0x2C;
-        msg.context.loc.stage = 0;
-        msg.command           = 4;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        stopRequest.context.loc.area  = ACTOR_342100_BLAZE_STOP_COMMAND_AREA;
+        stopRequest.context.loc.stage = ACTOR_342100_BLAZE_STOP_COMMAND_STAGE;
+        stopRequest.command           = OVERLAY_ENCOUNTER_COMMAND_STOP;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &stopRequest, ACTOR_COMMAND_MESSAGE_APPLY);
         if (work->encounterTask != NULL) {
-            TASK_MESSAGE_DISPATCH_POINTER(work->encounterTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->encounterTask, ACTOR_COMMAND_MESSAGE_APPLY, &stopRequest, 0);
         }
-        work->bodyFireTask = taskSpawnFromTable(D_actor_342100_80164B78, 3, 0, 0);
+        work->bodyFireTask = taskSpawnFromTable(D_actor_342100_80164B78, ACTOR_342100_BLAZE_BODY_FIRE_DESCRIPTOR, 0, 0);
         return;
     }
     work->bodyFireTask->spawnArg1.value = 1;

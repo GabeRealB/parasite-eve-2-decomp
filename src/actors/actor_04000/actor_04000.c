@@ -3021,6 +3021,10 @@ static const _Actor04000StateTable Actor04000_D001F4 = {
 };
 
 /// Consumes this tick's grid, hit and burst-attack contacts without unlinking bodies.
+///
+/// Requires initialized, writable contact tables ending in WORLD_COLLISION_CONTACT_LAST.
+/// Clears occupied entries' flags and contact data while preserving terminators;
+/// unoccupied entries are unchanged. The separately handled burst-wave table stays intact.
 static __inline__ void _actor04000ClearTickContacts(_Actor04000Work* work)
 {
     worldCollisionClearContacts(work->gridContacts);
@@ -3030,11 +3034,13 @@ static __inline__ void _actor04000ClearTickContacts(_Actor04000Work* work)
 
 /// Ends scripted control of the held player before clearing the actor's hold flag.
 ///
-/// Requires live actor work and the current player task. Each synchronous
-/// message uses a fresh slot lookup, so no player task/work pointer survives it.
+/// Requires live actor work and the current player task. The synchronous message
+/// uses a fresh slot lookup; no player work pointer is reused after dispatch.
 static __inline__ void _actor04000ReleaseTickHold(_Actor04000Work* work)
 {
-    if (((GameActor*)gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
+    GameActor* heldPlayer = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+
+    if (heldPlayer->mode == GAME_ACTOR_MODE_SCRIPTED) {
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
     }
     work->holdingPlayer = 0;

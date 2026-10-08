@@ -761,7 +761,9 @@ static inline void _actor341300SpawnShardBatch(Task* emitter, s32 spawnIndex)
 ///
 /// Both position indices must fit the four-position table. The emitter must
 /// outlive each child's first update, which establishes its teardown parent.
-/// Allocation failures are ignored independently for each attempted shard.
+/// Sends each signed index unchanged in spawnArg1 and the borrowed emitter in
+/// spawnArg2. The s16 loop attempts ten first/second pairs, including failed
+/// spawns; allocation failures are ignored independently for each shard.
 static inline void _actor341300SpawnShardPairs(Task* emitter, s32 firstSpawnIndex, s32 secondSpawnIndex)
 {
     s16 pairIndex;

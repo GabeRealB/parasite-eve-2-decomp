@@ -10492,8 +10492,8 @@ switches appear in the `.c`, followed by any table an `INCLUDE_ASM`ed
 function's `.s` still defines, at its include point - which is the order the
 original build laid them out in. Here 0x4..0x50 came back as the 6-entry table
 of the function being decompiled (0x18), the 8-entry table of an already-matched
-neighbour (0x20, `func_actor_342100_80162C88`) and the 5-entry table of the one
-still-`INCLUDE_ASM` neighbour (0x14, `func_actor_342100_801630A4`, whose `.s`
+neighbour (0x20, `_actor342100SpawnBlazeFireEmitters`) and the 5-entry table of the one
+still-`INCLUDE_ASM` neighbour (0x14, `_actor342100EncounterBlazeControllerTask`, whose `.s`
 carries it in a `.section .rodata` block): 0x4C bytes, the whole run, and the
 overlay and `SLUS_010.42` checksums both matched unscoped. The generator's own
 comment says the same ("It cannot simply be folded into the main unit's
@@ -99811,10 +99811,10 @@ equalling the number of dropped stores, with the frame short by the slots they
 needed, is the signature to sight-read. Note this is the mirror of the two
 "dead store" entries above - there a store is *written* to steer `cse`, here a
 store the source has is *deleted* because nothing addresses the slot.
-## m2c splits one asm store sequence into separate scalars: only the one whose address escapes survives, and the payload's other stores are dead (func_actor_342100_80163454, 2026-09-16)
+## m2c splits one asm store sequence into separate scalars: only the one whose address escapes survives, and the payload's other stores are dead (_actor342100SetBlazeBodyFireMode, 2026-09-16)
 
 Three adjacent stores at `$sp,0x10` / `0x11` / `0x12` (`sb 0x2C`, `sb 0`,
-`sh 4`) are one four-byte record handed to two calls as `&msg`. m2c renders the
+`sh 4`) are one four-byte record handed to two calls as `&stopRequest`. m2c renders the
 sequence as three locals, `s8 sp10; s8 sp11; s16 sp12;`, and passes `(s32)&sp10`
 -- so *only* `sp10` is addressable and `.flow` deletes the other two stores as
 unobservable. The seed scored 79.245% with `delete=5 insert=4 regs=11` and the
@@ -99826,7 +99826,7 @@ the complementary cause. Where that entry's single local aliased one struct
 field, here a *group* of stores has one addressable member.
 
 The fix is the project's dispatch-payload idiom: declare the record as a named
-four-byte struct (`ActorCommand`, `include/gameplay/message.h`) and take `&msg`
+four-byte struct (`ActorCommand`, `include/gameplay/message.h`) and take `&stopRequest`
 once.
 Every field is then addressable, the stores survive, and the same edit also
 settled the register penalty: with no ADDRESSOF pseudo to keep alive across the
@@ -128325,7 +128325,7 @@ Inputs: `base.i` (95.200%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm. Scratch `nonmatchings/_actor213000AttachThreeRootModel-vacuum`.
 
-## Reading the same field through the same pointer twice is what puts `addu $aN,$sN,$zero` in front of a load — `cse` folds the second load into a copy, and it is already at `.lreg` (func_actor_342100_80162F54, 2026-09-17)
+## Reading the same field through the same pointer twice is what puts `addu $aN,$sN,$zero` in front of a load — `cse` folds the second load into a copy, and it is already at `.lreg` (_actor342100UpdateBlazeScene, 2026-09-17)
 
 The target loads the first dispatch argument through a copy of the work pointer
 that no single statement seems to need:
@@ -128345,12 +128345,12 @@ difference (`regs=4`, `reorder=3`). What produces it is a *second read of the
 same field* in the C, taken at the top of the case:
 
 ```c
-    _Actor342100BlazeWork* work = arg0->work;
+    _Actor342100BlazeWork* work = controller->work;
     ...
     case 0:
-        msgWork = arg0->work;   /* the copy's origin */
+        dispatchWork = controller->work;   /* the copy's origin */
         ...
-        taskMessageDispatch(msgWork->playerTask, 0x3F7, (s32)&msg, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(dispatchWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankCopyRequest, 0);
 ```
 
 The dumps name the pass: `.rtl` holds two
@@ -128465,33 +128465,33 @@ Inputs: `base_2.i`
 `jump.c:707`, `jump.c:1898`, `jump.c:2528` (`find_cross_jump`), `jump.c:3418`
 (`do_cross_jump`), `toplev.c:3548`.
 
-## A store statement's *position* sets the live length that decides a register -- same instructions, different `$aN` (func_actor_342100_80162AB0, 2026-09-17)
+## A store statement's *position* sets the live length that decides a register -- same instructions, different `$aN` (_actor342100BlazeFireEmitterTask, 2026-09-17)
 
-`func_actor_342100_80162AB0` stalled at 99.49% with `branch = insert = delete =
-reorder = 0` and 12 register penalties: its `vx` component and the `0x71357911`
+`_actor342100BlazeFireEmitterTask` stalled at 99.49% with `branch = insert = delete =
+reorder = 0` and 12 register penalties: its `xOffset` component and the `0x71357911`
 constant had swapped `$a1`/`$a2`. Every instruction was otherwise identical, so
 nothing in the schedule was wrong — only which of two quantities `global_alloc`
 handed the lower register to.
 
-The three long-lived quantities (a `vz` component, the constant, `vx`) are
+The three long-lived quantities (a `zOffset` component, the constant, `xOffset`) are
 ranked by the same `floor_log2(n_refs) * n_refs / live_length` ratio
 `local_alloc` uses, and `.lreg` prints both terms directly:
 
 ```
-Register 85  used 4 times across 27 insns;   /* vx     4/27 -> 0.296 */
+Register 85  used 4 times across 27 insns;   /* xOffset 4/27 -> 0.296 */
 Register 110 used 6 times across 33 insns;   /* const  6/33 -> 0.364 */
 ```
 
-The constant wins `$a1` and `vx` is pushed to `$a2`. The ref counts are pinned
+The constant wins `$a1` and `xOffset` is pushed to `$a2`. The ref counts are pinned
 by the arithmetic, so the span is the only lever — and here the lever was the
 *position of a store statement*, not any computation. Written with the last LCG
-roll, `vec.vx = vx;` is scheduled past the call's argument setup and the
-register lives 27 insns; moved up between the third roll and the `vec.vy`
+roll, `(offsetValue)->vx = xOffset;` is scheduled past the call's argument setup and the
+register lives 27 insns; moved up between the third roll and the `(offsetValue)->vy`
 store, `.lreg` reports `used 4 times across 19 insns`, the ratio passes the
 constant's, and the two registers swap:
 
 ```
-Register 85  used 4 times across 19 insns;   /* vx     4/19 -> 0.421 */
+Register 85  used 4 times across 19 insns;   /* xOffset 4/19 -> 0.421 */
 Register 110 used 6 times across 34 insns;   /* const  6/34 -> 0.353 */
 ```
 
@@ -128515,7 +128515,7 @@ Inputs: `base_7.i`
 (`allocno_compare`), `global.c:423` (`REG_LIVE_LENGTH`), `sched.c:5035`
 (`REG_LIVE_LENGTH` replaced by `sched_reg_live_length`).
 
-## Landing a 100.000% function that leaves the overlay 4 bytes long: the `rodata_head` pad, and why `rodata_cut.py` says "no change needed" (func_actor_342100_80162C88, 2026-09-17)
+## Landing a 100.000% function that leaves the overlay 4 bytes long: the `rodata_head` pad, and why `rodata_cut.py` says "no change needed" (_actor342100SpawnBlazeFireEmitters, 2026-09-17)
 
 A function that scores 100.000% in the scratch with every penalty zero, and
 still fails the overlay checksum, is the `.align 3` pad in front of a
@@ -128558,18 +128558,18 @@ its own when the table belongs to the overlay's only (or first) unit: the
 generator's default `lead` is already `<name>/<name>`.
 
 Verified: `actor_342100.pe2pkg` is byte-identical to the built overlay, the
-table lands at 0x1C, and `func_actor_342100_80162C88` goes in at 100.000% on the
+table lands at 0x1C, and `_actor342100SpawnBlazeFireEmitters` goes in at 100.000% on the
 first struct-based attempt (`base_1.c`, sha256
 `3f379c50ad9ed1d9bc8a057dba13d9f935dc2ba240fa238aef25c62c5e93171d`).
 
-## Two single-use givs of *different* fields combine -- so an asm with two walking pointers 4 bytes apart needs one pointer in C (func_actor_342100_80162C88, 2026-09-17)
+## Two single-use givs of *different* fields combine -- so an asm with two walking pointers 4 bytes apart needs one pointer in C (_actor342100SpawnBlazeFireEmitters, 2026-09-17)
 
 The companion case to "A walked pointer's second field becomes a second
 induction variable": there, one field read *and written* merges with itself and
 the extra register displaces the allocation. Here the target walks an
-`SVECTOR[]` (`while (pos->vx != 0)`) and carries `s0 = s1 + 4`, reading `vx` off
+`SVECTOR[]` (`while (placement->vx != 0)`) and carries `s0 = s1 + 4`, reading `vx` off
 `s1` and `vy`/`vz` off `-2(s0)`/`0(s0)` -- which reads like two source pointers.
-It is not: a single `pos` pointer reproduces it, because `combine_givs` merges
+It is not: a single `placement` pointer reproduces it, because `combine_givs` merges
 the two *different* single-use givs.
 
     Insn 160: dest address src reg 82 benefit 2 used 1 lifetime 1 replaceable mult 1 add 2
@@ -128585,7 +128585,7 @@ displacement), and the emitted `addiu s0,s1,4` in the loop preheader with both
 registers incremented by 8 is the target's shape rather than a mismatch. The
 `.loop` dump is where this is visible; there is nothing to do in the source.
 
-Inputs: scratch `nonmatchings/func_actor_342100_80162C88-vacuum`, `base.c` (m2c,
+Inputs: scratch `nonmatchings/_actor342100SpawnBlazeFireEmitters-vacuum`, `base.c` (m2c,
 97.529%) and `base_1.c` 100.000% (preprocessed `base_1.i` sha256
 `d6498c504d4b8c8e6c87075916c8fc8f65fbc9a4d2565e8226aa5dacc3702508`). Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`,
@@ -129474,7 +129474,7 @@ loads `lh 0x478(a0)` while the `field_476 = animId;` store below it reads
 field shows `lh` and the plain read gives `lhu`.
 
 The prologue's `move` is the same "field read twice" mechanism as
-"Reading the same field through the same pointer twice ... (func_actor_342100_80162F54)",
+"Reading the same field through the same pointer twice ... (_actor342100UpdateBlazeScene)",
 reached from the other side - here it is the *assignment order* that selects it:
 
 ```c

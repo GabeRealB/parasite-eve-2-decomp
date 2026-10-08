@@ -529,8 +529,10 @@ static void _actor303600DispatchCutsceneCue(Task* task)
 
 /// Allocates and publishes the shaft/figure scene controller and its player handle.
 ///
-/// Requires loaded scene resources. Failure kills the task; the caller retains
-/// its subsequent state increment and script start.
+/// Requires a live bodyless controller and the current player. Owns the cleared
+/// work until task teardown and clears the auxiliary scene-effect handle.
+/// Failure kills the task without publishing it; the caller retains its subsequent
+/// state increment and script start, so normal playback requires successful allocation.
 static inline void _actor303600InitializeCutscene(Task* task)
 {
     _Actor303600CutsceneWork* work;

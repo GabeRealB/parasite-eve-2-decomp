@@ -2735,10 +2735,12 @@ static __inline__ void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
-/// Scales a fresh corpse color matrix and its RGB translation by a signed Q12 factor.
+/// Scales the saved corpse color matrix and its RGB translation for the burn fade.
 ///
-/// Work and the caller's full VECTOR stay live through the GTE transfer. The
-/// factor is not clamped: the hidden corpse keeps its retail negative tail.
+/// colorScale supplies signed Q12 XYZ axis factors; Z also scales all three
+/// translation components through the GTE. The caller supplies a uniform scale.
+/// Starts from burnColorMtx on every call, so the fade does not compound. Work
+/// and the full VECTOR stay live through the transfer; negative factors are kept.
 static __inline__ void _actor110600FadeBurnColor(_Actor110600Work* work, VECTOR* colorScale)
 {
     work->colorMtx = work->burnColorMtx;

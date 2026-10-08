@@ -1930,7 +1930,8 @@ static inline void _actor105100UpdateColor(Task* task)
 /// Withdraws the dying enemy's target, hit intake and three registered bodies.
 ///
 /// Requires live enemy/work with linked bodies. Keeps work allocated for the
-/// remaining death animation and shrink sequence.
+/// remaining death animation and shrink sequence. Ends borrowed hit-table access
+/// before unlinking the target and bodies; contact storage remains owned by work.
 static inline void _actor105100WithdrawDeathCollision(Enemy* enemy, _Actor105100Work* work)
 {
     enemy->recs = NULL;
@@ -2208,8 +2209,10 @@ static const EnemyTaskFuncTable3 D_actor_105100_80131E90 = {
 
 /// Doubles a fireball's halfword speed, caps it and moves along local +Z.
 ///
-/// Borrows live work and coordinate; maximumSpeed is 50 or 300 game units per
-/// update. Matrix direction coefficients use Q12; narrowing precedes the cap.
+/// Borrows live work and coordinate; maximumSpeed is 50 or 300 parent-coordinate
+/// units per update. Both flight phases start speed at 1. Doubling narrows to s16
+/// before the cap, and Q12 local-Z coefficients determine XYZ displacement.
+/// The caller invalidates the composition cache after all movement for the tick.
 static inline void _actor105100AdvanceFireball(_Actor105100FireballWork* work, GfxCoord* coord, s32 maximumSpeed)
 {
     work->speed += work->speed;

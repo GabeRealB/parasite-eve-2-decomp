@@ -1517,10 +1517,11 @@ static __inline__ void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Tas
     SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }
 
-/// Detaches the dying enemy from targeting and all five collision lists.
+/// Detaches the dying enemy from targeting and its five collision bodies.
 ///
 /// Requires the live enemy and its initialized work. Ends the borrowed hit-table
-/// access before unlinking; retains the task, work and model for the death pose.
+/// access before unlinking. Sense and attack bodies leave the enemy-attack list;
+/// body and head leave the enemy-body list. Retains task, work and model for death.
 static inline void _actor207200CreepingStrangerUnlinkDeathBodies(Enemy* enemy, _Actor207200CreepingStrangerWork* work)
 {
     enemy->recs = NULL;

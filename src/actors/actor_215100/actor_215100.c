@@ -211,19 +211,21 @@ AnimationSet gActor215100Animation042F4 = {
 
 /// Advances the caption-reply animation timer without going below -1000.
 ///
-/// Requires the loaded gallery actor at placement 1. Sends borrowed static
-/// requests at timer 0 and -22; caption completion remains with the caller.
+/// killCountdown counts callback updates, beginning at 27 in the caller. The
+/// comparisons use its value after decrementing. Requires the loaded gallery
+/// actor at placement 1; sends borrowed static requests at 0 and -22. A value
+/// already below -1000 stays unchanged. Caption completion remains with the caller.
 static inline void _actor215100UpdateLevelReplyAnimations(Task* task)
 {
-    enum { LAST_DECREMENT        = -999,
-           SECOND_ANIMATION_TICK = -22 };
-    if (task->killCountdown >= LAST_DECREMENT) {
+    enum { ACTOR_215100_LEVEL_REPLY_LAST_DECREMENT        = -999,
+           ACTOR_215100_LEVEL_REPLY_SECOND_ANIMATION_TICK = -22 };
+    if (task->killCountdown >= ACTOR_215100_LEVEL_REPLY_LAST_DECREMENT) {
         task->killCountdown--;
     }
     if (task->killCountdown == 0) {
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_215100_8014D024, 0);
     }
-    if (task->killCountdown == SECOND_ANIMATION_TICK) {
+    if (task->killCountdown == ACTOR_215100_LEVEL_REPLY_SECOND_ANIMATION_TICK) {
         TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(1), ACTOR_MESSAGE_PLAY_ANIMATION, &D_actor_215100_8014CFAC, 0);
     }
 }
