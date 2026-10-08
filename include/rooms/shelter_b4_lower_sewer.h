@@ -45,7 +45,13 @@ extern WorldCollisionTrigger D_shelter_b4_lower_sewer_801837D4[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b4_lower_sewer_80183DF4[];
 
-void func_shelter_b4_lower_sewer_8017D6D4(Task* task);
+/// Runs the lower sewer's room setup, idle or teardown state.
+///
+/// Requires a live task with state 0..2 and this room and the Shelter map overlay
+/// loaded. State 0 installs the room messages and room task slot, starts water
+/// when the reservoir event is complete, then enters the persistent idle state.
+/// State 2 releases the task. The body and spawn arguments are unused.
+void shelterB4LowerSewerRoomTask(Task* task);
 
 /// Runs the lower sewer's charging pink flash, peak screen tint and fading star.
 ///

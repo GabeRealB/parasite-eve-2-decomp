@@ -37,27 +37,37 @@ extern TaskDesc                D_shelter_b4_lower_sewer_80181E70[];
 extern RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E7C[];
 extern RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E90[];
 
-static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0);
-static void func_shelter_b4_lower_sewer_8017E37C(Task* task);
+static void _shelterB4LowerSewerInitializeWater(Task* task);
+static void _shelterB4LowerSewerDrawWater(Task* task);
 
-s32  func_shelter_b4_lower_sewer_8017D608(Task*, s32, s32, s32);
-s32  func_shelter_b4_lower_sewer_8017D610(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b4_lower_sewer_8017D654(Task*, s32, s32, s32);
-s32  func_shelter_b4_lower_sewer_8017D65C(Task*, s32, s32, s32);
-void func_shelter_b4_lower_sewer_8017E2D4(Task*);
+static s32  _shelterB4LowerSewerRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32  _shelterB4LowerSewerResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _shelterB4LowerSewerIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg);
+static s32  _shelterB4LowerSewerIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
+static void _shelterB4LowerSewerWaterTask(Task* task);
+
+enum {
+    SHELTER_B4_LOWER_SEWER_MESSAGE_IGNORED       = 0,
+    SHELTER_B4_LOWER_SEWER_WAVE_PHASE_STEP_SHIFT = 9, // 512 of 4096 angle units per segment
+    SHELTER_B4_LOWER_SEWER_WAVE_PHASE_PER_FRAME  = 16,
+    SHELTER_B4_LOWER_SEWER_WAVE_AMPLITUDE_SHIFT  = 6, // Q12 sine to signed-halfword -64..64 world units
+    SHELTER_B4_LOWER_SEWER_WATER_EDGE_GREEN      = 0x20,
+    SHELTER_B4_LOWER_SEWER_WATER_EDGE_BLUE       = 0x80,
+    SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS = 0x20
+};
 
 TaskMessageEntry D_shelter_b4_lower_sewer_80181E44[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_lower_sewer_8017D610 },
-    { 5105, func_shelter_b4_lower_sewer_8017D608 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b4_lower_sewer_8017D65C },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b4_lower_sewer_8017D654 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB4LowerSewerResolveRoomVariant },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB4LowerSewerRejectKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4LowerSewerIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB4LowerSewerIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 s16 D_shelter_b4_lower_sewer_80181E6C = -1700;
 
 TaskDesc D_shelter_b4_lower_sewer_80181E70[1] = {
-    { { { TASK_BODY_NONE, 96 } }, func_shelter_b4_lower_sewer_8017E2D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 96 } }, _shelterB4LowerSewerWaterTask, { .value = 0 } },
 };
 
 RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E7C[2] = {
@@ -71,38 +81,49 @@ RoomCompactWaterSurface D_shelter_b4_lower_sewer_80181E90[2] = {
 };
 
 static void func_shelter_b4_lower_sewer_8017D664(Task* task);
-static void func_shelter_b4_lower_sewer_8017D6CC(Task* task);
-static void func_shelter_b4_lower_sewer_8017D72C(Task* task);
-static void func_shelter_b4_lower_sewer_8017DE8C(Task* task);
+static void _shelterB4LowerSewerIdleRoom(Task* task);
+static void _shelterB4LowerSewerDrawXWaveStrips(Task* task);
+static void _shelterB4LowerSewerDrawXWaveStrip(Task* task);
 
-/// Handler for message 0x13F1 in the room's message table
-/// `D_shelter_b4_lower_sewer_80181E44`: does nothing and returns 0.
-s32 func_shelter_b4_lower_sewer_8017D608(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the lower sewer without changing game state.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; `itemId` is the selected collected-item
+/// ID and the unused second payload is zero. Returns the item menu's refused reply.
+static s32 _shelterB4LowerSewerRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Message handler that copies the incoming record onto the outgoing one and
-/// passes both on to `mapShelterRoomVariantResolve`. Always returns 1.
-s32 func_shelter_b4_lower_sewer_8017D610(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Accepts a room transition and resolves its destination from Mine/Shelter progress.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Borrows a readable eight-byte request
+/// and writable reply through dispatch; they may be the same record. Copies
+/// the complete request before resolving its room. Query-only requests preserve
+/// the supplied destination. The map overlay must remain loaded. Always returns 1.
+static s32 _shelterB4LowerSewerResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    enum { SHELTER_B4_LOWER_SEWER_ROOM_EVENT_ACCEPTED = 1 };
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_B4_LOWER_SEWER_ROOM_EVENT_ACCEPTED;
 }
 
-/// Handler for message 0x13F0 in the room's message table: does nothing and
-/// returns 0.
-s32 func_shelter_b4_lower_sewer_8017D654(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores lower-sewer CAP room commands and returns zero without side effects.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies an integer command selector and command
+/// argument. Neither word is consumed, and callers discard the reply.
+static s32 _shelterB4LowerSewerIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg)
 {
-    return 0;
+    return SHELTER_B4_LOWER_SEWER_MESSAGE_IGNORED;
 }
 
-/// Handler for message 0x13EF in the room's message table: does nothing and
-/// returns 0.
-s32 func_shelter_b4_lower_sewer_8017D65C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores lower-sewer direction-trigger actions and returns zero without side effects.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` supplies a borrowed request and a zero
+/// second payload. The request is neither read nor retained; the reply is discarded.
+static s32 _shelterB4LowerSewerIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
-    return 0;
+    return SHELTER_B4_LOWER_SEWER_MESSAGE_IGNORED;
 }
 
 /// First state of the room task: installs the room's message table, takes
@@ -118,287 +139,320 @@ static void func_shelter_b4_lower_sewer_8017D664(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// The room task's idle state.
-static void func_shelter_b4_lower_sewer_8017D6CC(Task* task)
+/// Keeps the initialized lower-sewer room task live without per-frame work.
+static void _shelterB4LowerSewerIdleRoom(Task* task)
 {
 }
 
-/// State handlers of the room task `func_shelter_b4_lower_sewer_8017D6D4`
+/// State handlers of the room task `shelterB4LowerSewerRoomTask`
 /// runs, which copies the table to the stack and calls the entry for the
 /// task's state: the room's setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b4_lower_sewer_8017D5C4 = {
-    { func_shelter_b4_lower_sewer_8017D664, func_shelter_b4_lower_sewer_8017D6CC, taskKill }
+    { func_shelter_b4_lower_sewer_8017D664, _shelterB4LowerSewerIdleRoom, taskKill }
 };
 
-/// Runs one tick of the room task through the three-state table
-/// `D_shelter_b4_lower_sewer_8017D5C4`, copying the table onto the stack and
-/// calling the entry for the task's current state.
-void func_shelter_b4_lower_sewer_8017D6D4(Task* task)
+void shelterB4LowerSewerRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b4_lower_sewer_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b4_lower_sewer_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// Draws each surface in `D_shelter_b4_lower_sewer_80181E7C` at height
-/// `D_shelter_b4_lower_sewer_80181E6C` as two strips of 32 semi-transparent
-/// Gouraud quads laid side by side along Z, each strip running along X. The
-/// seam between the strips is lifted by a sine wave whose phase advances with
-/// the frame counter. The outer edges are coloured (0, 0x20, 0x80) and the seam
-/// (0x20, 0x20, 0x20); each quad is followed by a draw-mode packet selecting
-/// blend mode 2. Quads the projection flags as invalid are skipped. Called
-/// from the water task's drawing state with the task, which it does not read.
-static void func_shelter_b4_lower_sewer_8017D72C(Task* task)
+/// Draws the main water rectangle as two X-running strips with a waving grey seam.
+///
+/// The terminated list supplies signed world-unit geometry. Each strip has 32
+/// quads with blue outer edges and a seam displaced by -64..64 Y units; phase
+/// scrolls -16 of 4096 angle units per display frame. Signed width/32 and
+/// depth/2 divisions truncate before narrowing to world-coordinate halfwords.
+/// Appends at most 0xC00 bytes of subtractive quad and draw-mode packets for
+/// this list. Requires a word-aligned cursor and storage reserved through GPU
+/// consumption. Borrows one `WaterQuadScratch` and overwrites GTE state.
+/// Projection rejects quads with a negative GTE flag word. `task` is unused.
+static void _shelterB4LowerSewerDrawXWaveStrips(Task* task)
 {
-    SVECTOR                  v0, v1, v2, v3;
-    long                     sxy0, sxy1, sxy2, sxy3;
-    long                     p, flag;
-    RoomCompactWaterSurface* surface;
-    WaterQuadScratch*        scratchEnd;
-    WaterQuadScratch*        scratch;
-    s32                      phase;
-    POLY_G4*                 poly;
-    DR_MODE*                 dr;
-    s32                      otz;
-    s32                      i;
+    enum { SHELTER_B4_LOWER_SEWER_WAVE_SEGMENTS_PER_STRIP = 32 };
+    SVECTOR                        vertex0, vertex1, vertex2, vertex3;
+    long                           screenXY0, screenXY1, screenXY2, screenXY3;
+    long                           projectionScale, projectionFlags;
+    const RoomCompactWaterSurface* surface;
+    WaterQuadScratch*              scratchTop;
+    WaterQuadScratch*              strip;
+    s32                            wavePhase;
+    POLY_G4*                       quad;
+    DR_MODE*                       drawMode;
+    s32                            depth;
+    s32                            segment;
+
+    /// Queues the completed quad and its subtractive mode in the same depth bucket.
+    ///
+    /// Captures `quad`, `depth`, `drawMode`, the byte cursor and display state.
+    /// Takes no arguments; invoke only within a braced block. The one-tag bias
+    /// follows depth quantization. Prepending the mode last makes the GPU
+    /// consume it before the quad. Undefined before leaving this function.
+#define SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD()                                                                                                           \
+    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), quad); \
+    drawMode                          = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;                                                                        \
+    D_shelter_b4_lower_sewer_80183E14 = (u8*)(drawMode + 1);                                                                                                \
+    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                                  \
+    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), drawMode)
 
     surface                    = D_shelter_b4_lower_sewer_80181E7C;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
-    phase                      = -(gDisplayState.animFrame * 16);
+    scratchTop                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
+    wavePhase                  = -(gDisplayState.animFrame * SHELTER_B4_LOWER_SEWER_WAVE_PHASE_PER_FRAME);
     // One scratch reservation holds the values reused across the surface list.
-    SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
-    scratch                                = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchTop - 1;
+    strip                                  = scratchTop - 1;
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    (scratchEnd - 1)->y = D_shelter_b4_lower_sewer_80181E6C;
+    strip->y = D_shelter_b4_lower_sewer_80181E6C;
+    // Subdivide along X; the displaced Z edge joins the two strips.
     for (; surface->listMarker != WATER_SURFACE_LIST_END; surface++) {
-        scratch->dx = surface->width / 32;
-        scratch->dz = surface->depth / 2;
-        scratch->x  = surface->x;
-        scratch->z  = surface->z;
-        for (i = 0; i < 32; i++) {
-            v0.vx            = scratch->x + scratch->dx * i;
-            v0.vy            = scratch->y;
-            v0.vz            = scratch->z;
-            v1.vx            = scratch->x + scratch->dx * (i + 1);
-            v1.vy            = scratch->y;
-            v1.vz            = scratch->z;
-            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> 6;
-            v2.vx            = scratch->x + scratch->dx * i;
-            v2.vy            = scratch->y + scratch->yOffset;
-            v2.vz            = scratch->z + scratch->dz;
-            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> 6;
-            v3.vx            = scratch->x + scratch->dx * (i + 1);
-            v3.vy            = scratch->y + scratch->yOffset;
-            v3.vz            = scratch->z + scratch->dz;
-            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                              = (POLY_G4*)D_shelter_b4_lower_sewer_80183E14;
-                D_shelter_b4_lower_sewer_80183E14 = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r0                       = 0;
-                poly->g0                       = 0x20;
-                poly->b0                       = 0x80;
-                poly->r1                       = 0;
-                poly->g1                       = 0x20;
-                poly->b1                       = 0x80;
-                poly->r2                       = 0x20;
-                poly->g2                       = 0x20;
-                poly->b2                       = 0x20;
-                poly->r3                       = 0x20;
-                poly->g3                       = 0x20;
-                poly->b3                       = 0x20;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
-                        poly);
-                dr                                = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;
-                D_shelter_b4_lower_sewer_80183E14 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
-                        dr);
+        strip->dx = surface->width / SHELTER_B4_LOWER_SEWER_WAVE_SEGMENTS_PER_STRIP;
+        strip->dz = surface->depth / 2;
+        strip->x  = surface->x;
+        strip->z  = surface->z;
+        // First strip: blue outer edge to the grey displaced seam.
+        for (segment = 0; segment < SHELTER_B4_LOWER_SEWER_WAVE_SEGMENTS_PER_STRIP; segment++) {
+            vertex0.vx     = strip->x + strip->dx * segment;
+            vertex0.vy     = strip->y;
+            vertex0.vz     = strip->z;
+            vertex1.vx     = strip->x + strip->dx * (segment + 1);
+            vertex1.vy     = strip->y;
+            vertex1.vz     = strip->z;
+            strip->yOffset = (u32)rsin(wavePhase + (segment << SHELTER_B4_LOWER_SEWER_WAVE_PHASE_STEP_SHIFT)) >> SHELTER_B4_LOWER_SEWER_WAVE_AMPLITUDE_SHIFT;
+            vertex2.vx     = strip->x + strip->dx * segment;
+            vertex2.vy     = strip->y + strip->yOffset;
+            vertex2.vz     = strip->z + strip->dz;
+            strip->yOffset = (u32)rsin(wavePhase + ((segment + 1) << SHELTER_B4_LOWER_SEWER_WAVE_PHASE_STEP_SHIFT)) >> SHELTER_B4_LOWER_SEWER_WAVE_AMPLITUDE_SHIFT;
+            vertex3.vx     = strip->x + strip->dx * (segment + 1);
+            vertex3.vy     = strip->y + strip->yOffset;
+            vertex3.vz     = strip->z + strip->dz;
+            depth          = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
+            if (projectionFlags >= 0) {
+                quad                              = (POLY_G4*)D_shelter_b4_lower_sewer_80183E14;
+                D_shelter_b4_lower_sewer_80183E14 = (u8*)(quad + 1);
+                setPolyG4(quad);
+                setSemiTrans(quad, 1);
+                GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;
+                GPU_PRIMITIVE_XY_WORD(quad, 1) = screenXY1;
+                GPU_PRIMITIVE_XY_WORD(quad, 2) = screenXY2;
+                GPU_PRIMITIVE_XY_WORD(quad, 3) = screenXY3;
+                quad->r0                       = 0;
+                quad->g0                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_GREEN;
+                quad->b0                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_BLUE;
+                quad->r1                       = 0;
+                quad->g1                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_GREEN;
+                quad->b1                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_BLUE;
+                quad->r2                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->g2                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->b2                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->r3                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->g3                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->b3                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD();
             }
         }
-        for (i = 0; i < 32; i++) {
-            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> 6;
-            v0.vx            = scratch->x + scratch->dx * i;
-            v0.vy            = scratch->y + scratch->yOffset;
-            v0.vz            = scratch->z + scratch->dz;
-            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> 6;
-            v1.vx            = scratch->x + scratch->dx * (i + 1);
-            v1.vy            = scratch->y + scratch->yOffset;
-            v1.vz            = scratch->z + scratch->dz;
-            v2.vx            = scratch->x + scratch->dx * i;
-            v2.vy            = scratch->y;
-            v2.vz            = scratch->z + scratch->dz * 2;
-            v3.vx            = scratch->x + scratch->dx * (i + 1);
-            v3.vy            = scratch->y;
-            v3.vz            = scratch->z + scratch->dz * 2;
-            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                              = (POLY_G4*)D_shelter_b4_lower_sewer_80183E14;
-                D_shelter_b4_lower_sewer_80183E14 = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r2                       = 0;
-                poly->g2                       = 0x20;
-                poly->b2                       = 0x80;
-                poly->r3                       = 0;
-                poly->g3                       = 0x20;
-                poly->b3                       = 0x80;
-                poly->r0                       = 0x20;
-                poly->g0                       = 0x20;
-                poly->b0                       = 0x20;
-                poly->r1                       = 0x20;
-                poly->g1                       = 0x20;
-                poly->b1                       = 0x20;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
-                        poly);
-                dr                                = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;
-                D_shelter_b4_lower_sewer_80183E14 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
-                        dr);
+        // Second strip: the shared displaced seam to the other blue edge.
+        for (segment = 0; segment < SHELTER_B4_LOWER_SEWER_WAVE_SEGMENTS_PER_STRIP; segment++) {
+            strip->yOffset = (u32)rsin(wavePhase + (segment << SHELTER_B4_LOWER_SEWER_WAVE_PHASE_STEP_SHIFT)) >> SHELTER_B4_LOWER_SEWER_WAVE_AMPLITUDE_SHIFT;
+            vertex0.vx     = strip->x + strip->dx * segment;
+            vertex0.vy     = strip->y + strip->yOffset;
+            vertex0.vz     = strip->z + strip->dz;
+            strip->yOffset = (u32)rsin(wavePhase + ((segment + 1) << SHELTER_B4_LOWER_SEWER_WAVE_PHASE_STEP_SHIFT)) >> SHELTER_B4_LOWER_SEWER_WAVE_AMPLITUDE_SHIFT;
+            vertex1.vx     = strip->x + strip->dx * (segment + 1);
+            vertex1.vy     = strip->y + strip->yOffset;
+            vertex1.vz     = strip->z + strip->dz;
+            vertex2.vx     = strip->x + strip->dx * segment;
+            vertex2.vy     = strip->y;
+            vertex2.vz     = strip->z + strip->dz * 2;
+            vertex3.vx     = strip->x + strip->dx * (segment + 1);
+            vertex3.vy     = strip->y;
+            vertex3.vz     = strip->z + strip->dz * 2;
+            depth          = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
+            if (projectionFlags >= 0) {
+                quad                              = (POLY_G4*)D_shelter_b4_lower_sewer_80183E14;
+                D_shelter_b4_lower_sewer_80183E14 = (u8*)(quad + 1);
+                setPolyG4(quad);
+                setSemiTrans(quad, 1);
+                GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;
+                GPU_PRIMITIVE_XY_WORD(quad, 1) = screenXY1;
+                GPU_PRIMITIVE_XY_WORD(quad, 2) = screenXY2;
+                GPU_PRIMITIVE_XY_WORD(quad, 3) = screenXY3;
+                quad->r2                       = 0;
+                quad->g2                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_GREEN;
+                quad->b2                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_BLUE;
+                quad->r3                       = 0;
+                quad->g3                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_GREEN;
+                quad->b3                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_BLUE;
+                quad->r0                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->g0                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->b0                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->r1                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->g1                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->b1                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD();
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
+#undef SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD
 }
 
-/// Draws each surface in `D_shelter_b4_lower_sewer_80181E90` as a strip of 8
-/// Gouraud semi-transparent quads laid along X at height
-/// `D_shelter_b4_lower_sewer_80181E6C`. The far edge of each quad is lifted by
-/// a sine wave whose phase advances with the frame counter, so the surface
-/// ripples. Each quad is followed by a draw-mode packet selecting blend mode 2;
-/// quads the projection flags as invalid are skipped. Called from the water
-/// task's drawing state with the task, which it does not read.
-static void func_shelter_b4_lower_sewer_8017DE8C(Task* task)
+/// Draws the second water rectangle as one X-running strip with a waving far edge.
+///
+/// The terminated list supplies signed world-unit geometry. Eight quads span
+/// the rectangle; the blue near edge stays flat and the grey far edge is
+/// displaced by -64..64 Y units. Phase scrolls -16 of 4096 angle units per
+/// display frame. Signed width/8 truncates before narrowing to a halfword.
+/// Appends at most 0x180 bytes to the initialized word-aligned packet cursor;
+/// storage must remain reserved through GPU consumption. Borrows one
+/// `WaterQuadScratch` and overwrites GTE state. Projection rejects quads with
+/// a negative GTE flag word. `task` is unused.
+static void _shelterB4LowerSewerDrawXWaveStrip(Task* task)
 {
-    SVECTOR                  v0, v1, v2, v3;
-    long                     sxy0, sxy1, sxy2, sxy3;
-    long                     p, flag;
-    s32                      phase;
-    WaterQuadScratch*        scratchEnd;
-    WaterQuadScratch*        scratch;
-    RoomCompactWaterSurface* surface;
-    POLY_G4*                 poly;
-    DR_MODE*                 dr;
-    s32                      otz;
-    s32                      i;
+    enum { SHELTER_B4_LOWER_SEWER_WAVE_SEGMENTS_PER_STRIP = 8 };
+    SVECTOR                        vertex0, vertex1, vertex2, vertex3;
+    long                           screenXY0, screenXY1, screenXY2, screenXY3;
+    long                           projectionScale, projectionFlags;
+    s32                            wavePhase;
+    WaterQuadScratch*              scratchTop;
+    WaterQuadScratch*              strip;
+    const RoomCompactWaterSurface* surface;
+    POLY_G4*                       quad;
+    DR_MODE*                       drawMode;
+    s32                            depth;
+    s32                            segment;
+
+    /// Queues the completed quad and its subtractive mode in the same depth bucket.
+    ///
+    /// Captures `quad`, `depth`, `drawMode`, the byte cursor and display state.
+    /// Takes no arguments; invoke only within a braced block. The one-tag bias
+    /// follows depth quantization. Prepending the mode last makes the GPU
+    /// consume it before the quad. Undefined before leaving this function.
+#define SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD()                                                                                                           \
+    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), quad); \
+    drawMode                          = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;                                                                        \
+    D_shelter_b4_lower_sewer_80183E14 = (u8*)(drawMode + 1);                                                                                                \
+    setDrawTPage(drawMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));                                                                                  \
+    addPrim((GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET((((u32)(depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) + 1), drawMode)
 
     surface                    = D_shelter_b4_lower_sewer_80181E90;
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    scratchEnd                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
-    phase                      = -(gDisplayState.animFrame * 16);
+    scratchTop                 = SCRATCH_STACK_CURSOR(WaterQuadScratch);
+    wavePhase                  = -(gDisplayState.animFrame * SHELTER_B4_LOWER_SEWER_WAVE_PHASE_PER_FRAME);
     // One scratch reservation holds the values reused across the surface list.
-    SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchEnd - 1;
-    scratch                                = scratchEnd - 1;
+    SCRATCH_STACK_CURSOR(WaterQuadScratch) = scratchTop - 1;
+    strip                                  = scratchTop - 1;
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    (scratchEnd - 1)->y = D_shelter_b4_lower_sewer_80181E6C;
+    strip->y = D_shelter_b4_lower_sewer_80181E6C;
+    // Keep the near Z edge flat and displace the far edge along each X segment.
     for (; surface->listMarker != WATER_SURFACE_LIST_END; surface++) {
-        scratch->dx = surface->width / 8;
-        scratch->dz = surface->depth;
-        scratch->x  = surface->x;
-        scratch->z  = surface->z;
-        for (i = 0; i < 8; i++) {
-            v0.vx            = scratch->x + scratch->dx * i;
-            v0.vy            = scratch->y;
-            v0.vz            = scratch->z;
-            v1.vx            = scratch->x + scratch->dx * (i + 1);
-            v1.vy            = scratch->y;
-            v1.vz            = scratch->z;
-            scratch->yOffset = (u32)rsin(phase + (i << 9)) >> 6;
-            v2.vx            = scratch->x + scratch->dx * i;
-            v2.vy            = scratch->y + scratch->yOffset;
-            v2.vz            = scratch->z + scratch->dz;
-            scratch->yOffset = (u32)rsin(phase + ((i + 1) << 9)) >> 6;
-            v3.vx            = scratch->x + scratch->dx * (i + 1);
-            v3.vy            = scratch->y + scratch->yOffset;
-            v3.vz            = scratch->z + scratch->dz;
-            otz              = RotTransPers4(&v0, &v1, &v2, &v3, &sxy0, &sxy1, &sxy2, &sxy3, &p, &flag);
-            if (flag >= 0) {
-                poly                              = (POLY_G4*)D_shelter_b4_lower_sewer_80183E14;
-                D_shelter_b4_lower_sewer_80183E14 = (u8*)(poly + 1);
-                setlen(poly, 8);
-                setcode(poly, 0x3A);
-                GPU_PRIMITIVE_XY_WORD(poly, 0) = sxy0;
-                GPU_PRIMITIVE_XY_WORD(poly, 1) = sxy1;
-                GPU_PRIMITIVE_XY_WORD(poly, 2) = sxy2;
-                GPU_PRIMITIVE_XY_WORD(poly, 3) = sxy3;
-                poly->r0                       = 0;
-                poly->g0                       = 0x20;
-                poly->b0                       = 0x80;
-                poly->r1                       = 0;
-                poly->g1                       = 0x20;
-                poly->b1                       = 0x80;
-                poly->r2                       = 0x20;
-                poly->g2                       = 0x20;
-                poly->b2                       = 0x20;
-                poly->r3                       = 0x20;
-                poly->g3                       = 0x20;
-                poly->b3                       = 0x20;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
-                        poly);
-                dr                                = (DR_MODE*)D_shelter_b4_lower_sewer_80183E14;
-                D_shelter_b4_lower_sewer_80183E14 = (u8*)(dr + 1);
-                setlen(dr, 1);
-                dr->code[0] = 0xE100004A;
-                addPrim((&gGpuCurrentOt[((((u32)(otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt) + 1]),
-                        dr);
+        strip->dx = surface->width / SHELTER_B4_LOWER_SEWER_WAVE_SEGMENTS_PER_STRIP;
+        strip->dz = surface->depth;
+        strip->x  = surface->x;
+        strip->z  = surface->z;
+        for (segment = 0; segment < SHELTER_B4_LOWER_SEWER_WAVE_SEGMENTS_PER_STRIP; segment++) {
+            vertex0.vx     = strip->x + strip->dx * segment;
+            vertex0.vy     = strip->y;
+            vertex0.vz     = strip->z;
+            vertex1.vx     = strip->x + strip->dx * (segment + 1);
+            vertex1.vy     = strip->y;
+            vertex1.vz     = strip->z;
+            strip->yOffset = (u32)rsin(wavePhase + (segment << SHELTER_B4_LOWER_SEWER_WAVE_PHASE_STEP_SHIFT)) >> SHELTER_B4_LOWER_SEWER_WAVE_AMPLITUDE_SHIFT;
+            vertex2.vx     = strip->x + strip->dx * segment;
+            vertex2.vy     = strip->y + strip->yOffset;
+            vertex2.vz     = strip->z + strip->dz;
+            strip->yOffset = (u32)rsin(wavePhase + ((segment + 1) << SHELTER_B4_LOWER_SEWER_WAVE_PHASE_STEP_SHIFT)) >> SHELTER_B4_LOWER_SEWER_WAVE_AMPLITUDE_SHIFT;
+            vertex3.vx     = strip->x + strip->dx * (segment + 1);
+            vertex3.vy     = strip->y + strip->yOffset;
+            vertex3.vz     = strip->z + strip->dz;
+            depth          = RotTransPers4(&vertex0, &vertex1, &vertex2, &vertex3, &screenXY0, &screenXY1, &screenXY2, &screenXY3, &projectionScale, &projectionFlags);
+            if (projectionFlags >= 0) {
+                quad                              = (POLY_G4*)D_shelter_b4_lower_sewer_80183E14;
+                D_shelter_b4_lower_sewer_80183E14 = (u8*)(quad + 1);
+                setPolyG4(quad);
+                setSemiTrans(quad, 1);
+                GPU_PRIMITIVE_XY_WORD(quad, 0) = screenXY0;
+                GPU_PRIMITIVE_XY_WORD(quad, 1) = screenXY1;
+                GPU_PRIMITIVE_XY_WORD(quad, 2) = screenXY2;
+                GPU_PRIMITIVE_XY_WORD(quad, 3) = screenXY3;
+                quad->r0                       = 0;
+                quad->g0                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_GREEN;
+                quad->b0                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_BLUE;
+                quad->r1                       = 0;
+                quad->g1                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_GREEN;
+                quad->b1                       = SHELTER_B4_LOWER_SEWER_WATER_EDGE_BLUE;
+                quad->r2                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->g2                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->b2                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->r3                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->g3                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                quad->b3                       = SHELTER_B4_LOWER_SEWER_WATER_SEAM_BRIGHTNESS;
+                SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD();
             }
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(WaterQuadScratch);
+#undef SHELTER_B4_LOWER_SEWER_QUEUE_WATER_QUAD
 }
 
-/// The room's water task: runs its state (`func_shelter_b4_lower_sewer_8017E33C`
-/// once, then `func_shelter_b4_lower_sewer_8017E37C` every frame) and publishes
-/// `D_shelter_b4_lower_sewer_80181E6C` as the session's water height.
-void func_shelter_b4_lower_sewer_8017E2D4(Task* task)
+/// Runs the lower sewer's water state and publishes its undisplaced world Y.
+///
+/// Requires a live task with state 0 or 1 and unused actor-load storage reserved
+/// for water until GPU consumption. State 0 initializes without drawing; state
+/// 1 draws both rectangles each tick. Body and spawn arguments are unused.
+static void _shelterB4LowerSewerWaterTask(Task* task)
 {
-    TaskFunc states[2] = { func_shelter_b4_lower_sewer_8017E33C, func_shelter_b4_lower_sewer_8017E37C };
+    TaskFunc states[] = { _shelterB4LowerSewerInitializeWater, _shelterB4LowerSewerDrawWater };
 
     states[task->state](task);
     gGameSession->waterY = D_shelter_b4_lower_sewer_80181E6C;
 }
 
-/// First state of the water task: clears the session's `field_80` or
-/// `field_7E`, chosen by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, and advances to the next state.
-static void func_shelter_b4_lower_sewer_8017E33C(Task* arg0)
+/// Prepares the unused actor-load buffer for water packets and enters the drawing state.
+///
+/// A saved companion selects buffer 1; without one, buffer 2 is reused. Previous
+/// actor data in that buffer must no longer be needed. Clears its session marker,
+/// whose nonzero meaning is unproven. Requires state 0; this tick does not draw.
+static void _shelterB4LowerSewerInitializeWater(Task* task)
 {
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         gGameSession->field_80 = 0;
     } else {
         gGameSession->field_7E = 0;
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
-/// Drawing state of the water task: points the primitive cursor
-/// `D_shelter_b4_lower_sewer_80183E14` at `Fs_ActorLoadBase2` or `Fs_ActorLoadBase1`, chosen
-/// by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType`, plus 0xC000 bytes per `gDisplayState.otBuffer`, then draws both sets
-/// of water surfaces.
-static void func_shelter_b4_lower_sewer_8017E37C(Task* task)
+/// Selects the current display half of the actor-load buffer borrowed for water.
+///
+/// Requires `otBuffer` 0 or 1 and previous actor data no longer needed. Each
+/// word-aligned 0xC000-byte half must remain reserved until GPU consumption.
+static inline void _shelterB4LowerSewerResetWaterPackets(void)
 {
+    enum { SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES = 0xC000 };
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
-        D_shelter_b4_lower_sewer_80183E14 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * 0xC000;
+        D_shelter_b4_lower_sewer_80183E14 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
     } else {
-        D_shelter_b4_lower_sewer_80183E14 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * 0xC000;
+        D_shelter_b4_lower_sewer_80183E14 = (u8*)Fs_ActorLoadBase1 + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
     }
-    func_shelter_b4_lower_sewer_8017D72C(task);
-    func_shelter_b4_lower_sewer_8017DE8C(task);
+}
+
+/// Draws both water lists into the current display half of the borrowed actor buffer.
+///
+/// Requires initialized water state and `otBuffer` 0 or 1. A saved companion
+/// selects buffer 1, otherwise buffer 2. Each word-aligned 0xC000-byte half
+/// remains reserved until GPU consumption; both rectangles use at most 0xD80
+/// bytes together. `task` is forwarded only for the drawers' task signatures.
+static void _shelterB4LowerSewerDrawWater(Task* task)
+{
+    // Reset once so the second rectangle appends after the main rectangle.
+    _shelterB4LowerSewerResetWaterPackets();
+    _shelterB4LowerSewerDrawXWaveStrips(task);
+    _shelterB4LowerSewerDrawXWaveStrip(task);
 }
