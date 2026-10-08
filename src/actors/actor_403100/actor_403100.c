@@ -202,6 +202,13 @@ enum {
     ACTOR_403100_ANIMATION_GRAB_REACH   = 9,
 };
 
+/// Clips and camera shared by the held-player squeeze and throw steps.
+enum {
+    ACTOR_403100_ANIMATION_SQUEEZE           = 12,
+    ACTOR_403100_ANIMATION_THROW_HELD_PLAYER = 14,
+    ACTOR_403100_HELD_PLAYER_THROW_VIEW      = 12,
+};
+
 /// Shoulder yaw limits and signed 12-bit turn-angle easing used by arm attacks.
 enum {
     ACTOR_403100_ARM_YAW_MIN            = -0x160,
@@ -473,9 +480,9 @@ static AnimationSet _gActor403100Animation1BCAC;
 static AnimationSet _gActor403100Animation1C240;
 static AnimationSet _gActor403100Animation1CDF0;
 static AnimationSet _gActor403100Animation1D8EC;
-s32                 func_actor_403100_8013D564(Task*, s32, u16*, s32);
-s32                 func_actor_403100_8013D5F4(Task*, s32, s32, s32);
-void                func_actor_403100_8013D608(Task*, s32, s32, s32);
+static void         _actor403100ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedSecondArg);
+static void         _actor403100RequestPlayerRelease(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
+static void         _actor403100SetModelDrawMode(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedSecondArg);
 
 static AnimationSet _gActor403100Animation15BB0;
 static AnimationSet _gActor403100Animation163CC;
@@ -1251,12 +1258,10 @@ _Actor403100Zone D_actor_403100_80155698[7] = {
     { 0, 0, 0, 0, ACTOR_403100_ZONE_END },
 };
 
-// Message-table callbacks use the argument views required by this TU.
-
 TaskMessageEntry D_actor_403100_801556EC[4] = {
-    { 2014, func_actor_403100_8013D5F4 },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_403100_8013D564 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_403100_8013D608 },
+    { ACTOR_MESSAGE_RELEASE_HOLD, _actor403100RequestPlayerRelease },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor403100ApplyCommand },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor403100SetModelDrawMode },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1396,13 +1401,13 @@ static void func_actor_403100_8013BDE4(Task* arg0);
 
 static void func_actor_403100_8013BEF0(Task* arg0);
 
-static void func_actor_403100_8013D88C(Task* arg0);
+static void _actor403100Destroy(Task* task);
 
 static void func_actor_403100_8013D8F4(Task* arg0);
 
-static void func_actor_403100_8013DA6C(Task* task);
+static void _actor403100StepFightInitialization(Task* task);
 
-static void func_actor_403100_8013DAC4(Task* arg0);
+static void _actor403100StepAttackApproach(Task* task);
 
 static void func_actor_403100_8013DB48(Task* arg0);
 
@@ -1561,17 +1566,17 @@ static void            _actor403100StepJumpSlamImpact(Task* task);
 static void            _actor403100FinishJumpSlamRecovery(Task* task);
 static void            _actor403100BeginGrabAndSqueeze(Task* task);
 static void            _actor403100StepGrabAndSqueezeReach(Task* task);
-static void            func_actor_403100_80138F88(Task* arg0);
+static void            _actor403100BeginHeldPlayerSqueeze(Task* task);
 static void            func_actor_403100_8013922C(Task* arg0);
-static void            func_actor_403100_801395EC(Task* arg0);
+static void            _actor403100PrepareHeldPlayerFlameBreath(Task* task);
 static void            func_actor_403100_80139818(Task* arg0);
-static void            func_actor_403100_80139E80(Task* arg0);
-static void            func_actor_403100_8013A064(Task* arg0);
+static void            _actor403100RecoverHeldPlayerFromFlameBreath(Task* task);
+static void            _actor403100ThrowHeldPlayer(Task* task);
 static void            func_actor_403100_8013A254(Task* task);
-static void            func_actor_403100_8013A4C8(Task* arg0);
+static void            _actor403100BeginSideFlameAttack(Task* task);
 static void            func_actor_403100_8013A5AC(Task* arg0);
 static void            func_actor_403100_8013A81C(Task* arg0);
-static void            func_actor_403100_8013AA04(Task* arg0);
+static void            _actor403100StepGrabAndDragReach(Task* task);
 static void            func_actor_403100_8013AC04(Task* task);
 static void            func_actor_403100_8013AE28(Task* task);
 static inline void     _actor403100StepRoot(TmdObject* obj, GfxCoord* coords);
@@ -3556,7 +3561,7 @@ static const TaskFuncTable6 D_actor_403100_80131F1C = {
         func_actor_403100_80136830,
         func_actor_403100_801339EC,
         func_actor_403100_8013D8F4,
-        func_actor_403100_8013D88C,
+        _actor403100Destroy,
     },
 };
 
@@ -3564,8 +3569,8 @@ static const TaskFuncTable6 D_actor_403100_80131F1C = {
 /// mode steps through its own table by `subState`.
 static const TaskFuncTable11 D_actor_403100_80131F34 = {
     {
-        func_actor_403100_8013DA6C,
-        func_actor_403100_8013DAC4,
+        _actor403100StepFightInitialization,
+        _actor403100StepAttackApproach,
         func_actor_403100_8013DB48,
         func_actor_403100_8013DC18,
         func_actor_403100_8013DCAC,
@@ -3818,7 +3823,7 @@ static void _actor403100BeginFight(Task* task)
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     D_actor_403100_80155808->subState += 1;
 }
-/// Steps of the behaviour mode `func_actor_403100_8013DAC4`, indexed by `subState`.
+/// Steps of the behaviour mode `_actor403100StepAttackApproach`, indexed by `subState`.
 static const TaskFuncTable3 D_actor_403100_80131F60 = {
     {
         _actor403100BeginAttackApproach,
@@ -4689,64 +4694,73 @@ static void _actor403100StepGrabAndSqueezeReach(Task* task)
         }
     }
 }
-static void func_actor_403100_80138F88(Task* arg0)
+/// Finishes lifting the grabbed player and starts the squeeze/button-press cycle.
+///
+/// Requires live singleton work, enemy, player and the fifteen-part model.
+/// Eases root Y to zero by one sixty-fourth per update while retaining
+/// the held pose. At the clip boundary, selects view eleven, resets the squeeze
+/// pose and timers, and synchronously asks the player for forty button presses.
+/// Only the press count of the borrowed request is read by the player.
+static void _actor403100BeginHeldPlayerSqueeze(Task* task)
 {
-    s32       message[6];
-    s32       sound;
-    s32       pan;
-    s32       depth;
-    GfxCoord* coords;
-    GfxCoord* part;
+    enum { ACTOR_403100_SQUEEZE_VIEW           = 11,
+           ACTOR_403100_PLAYER_HELD_CLIP       = 1,
+           ACTOR_403100_SQUEEZE_BUTTON_PRESSES = 40 };
+    GameActorButtonPressHold pressHold;
+    s32                      soundId;
+    s32                      audioPan;
+    s32                      audioDepth;
+    GfxCoord*                rootCoord;
+    GfxCoord*                forearmCoord;
 
-    coords = arg0->extra.tmd->coords;
-    part   = coords + 6;
+    rootCoord    = task->extra.tmd->coords;
+    forearmCoord = rootCoord + 6;
     _actor403100DrawHoldForeground(D_actor_403100_80155808->overlayX, D_actor_403100_80155808->overlayY);
     D_actor_403100_80155808->overlayX    = (u16)D_actor_403100_80155808->overlayX - 1;
     D_actor_403100_80155808->overlayY    = (u16)D_actor_403100_80155808->overlayY + 6;
-    coords->coord.t[1]                  += -coords->coord.t[1] >> 6;
+    rootCoord->coord.t[1]               += -rootCoord->coord.t[1] >> 6;
     D_actor_403100_80155808->rotation.vx = 0;
-    D_actor_403100_80155808->rotation.vy = 0xA00;
+    D_actor_403100_80155808->rotation.vy = ACTOR_TRANSFORM_ANGLE_TURN * 5 / 8;
     D_actor_403100_80155808->rotation.vz = 0;
-    _actor403100PlaceHeldPlayer(arg0);
+    _actor403100PlaceHeldPlayer(task);
+    // Hand control to the player's struggle counter once the lift clip finishes.
     if (_actor403100AnimationAtBoundaryOrJump()) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000C;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xB;
-        coords->coord.t[0]                                         = -0x44C;
-        coords->coord.t[1]                                         = 0;
-        coords->coord.t[2]                                         = 0x1770;
+        soundId    = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 12);
+        audioPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[4]);
+        audioDepth = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[4]);
+        sndEvtRequestScriptStart(soundId, audioPan, (s8)(audioDepth / 2));
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_SQUEEZE_VIEW;
+        rootCoord->coord.t[0]                                      = -0x44C;
+        rootCoord->coord.t[1]                                      = 0;
+        rootCoord->coord.t[2]                                      = 0x1770;
         D_actor_403100_80155808->rotation.vx                       = 0;
-        D_actor_403100_80155808->rotation.vy                       = 0xC00;
+        D_actor_403100_80155808->rotation.vy                       = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
         D_actor_403100_80155808->rotation.vz                       = 0;
-        D_actor_403100_80155808->animationRate                     = ANIMATION_RATE_ONE;
-        D_actor_403100_80155808->animationId                       = 0xC;
-        D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        D_actor_403100_80155808->armPitch                          = 0xD0;
-        D_actor_403100_80155808->armYaw                            = -0x350;
-        D_actor_403100_80155808->forearmTurn.vx                    = -0x110;
-        D_actor_403100_80155808->forearmTurn.vy                    = 0x290;
-        D_actor_403100_80155808->stateFrames                       = 0;
-        D_actor_403100_80155808->forearmTurn.vz                    = 0x60;
-        D_actor_403100_80155808->subState                         += 1;
-        part->coord.t[0]                                           = -0xBD0;
-        D_actor_403100_80155808->armPitch                          = 0x30;
-        D_actor_403100_80155808->armYaw                            = -0xD0;
-        D_actor_403100_80155808->forearmTurn.vx                    = -0x150;
-        D_actor_403100_80155808->forearmTurn.vy                    = 0x270;
-        D_actor_403100_80155808->forearmTurn.vz                    = -0xA0;
-        part->coord.t[0]                                           = -0x1120;
-        D_actor_403100_80155808->headBody.radius                   = 0x500;
-        _actor403100ResetHoldCycle(arg0);
+        _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_SQUEEZE);
+        D_actor_403100_80155808->armPitch        = 0xD0;
+        D_actor_403100_80155808->armYaw          = -0x350;
+        D_actor_403100_80155808->forearmTurn.vx  = -0x110;
+        D_actor_403100_80155808->forearmTurn.vy  = 0x290;
+        D_actor_403100_80155808->stateFrames     = 0;
+        D_actor_403100_80155808->forearmTurn.vz  = 0x60;
+        D_actor_403100_80155808->subState       += 1;
+        forearmCoord->coord.t[0]                 = -0xBD0;
+        D_actor_403100_80155808->armPitch        = 0x30;
+        D_actor_403100_80155808->armYaw          = -0xD0;
+        D_actor_403100_80155808->forearmTurn.vx  = -0x150;
+        D_actor_403100_80155808->forearmTurn.vy  = 0x270;
+        D_actor_403100_80155808->forearmTurn.vz  = -0xA0;
+        forearmCoord->coord.t[0]                 = -0x1120;
+        D_actor_403100_80155808->headBody.radius = 0x500;
+        _actor403100ResetHoldCycle(task);
         D_actor_403100_80155808->forearmStrokeDone = 0;
         D_actor_403100_80155808->releaseRequested  = 0;
         D_actor_403100_80155808->promptPending     = 0;
         D_actor_403100_80155808->jawPitchOffset    = 0;
         taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-        _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
-        message[5] = 0x28;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, message, 0);
+        _actor403100PlayPlayerAnimation(ACTOR_403100_PLAYER_HELD_CLIP, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
+        pressHold.pressCount = ACTOR_403100_SQUEEZE_BUTTON_PRESSES;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &pressHold, 0);
         D_actor_403100_80155808->holdStartHp = D_actor_403100_8015580C->hp;
     }
 }
@@ -4850,74 +4864,78 @@ static void func_actor_403100_8013922C(Task* arg0)
         D_actor_403100_80155808->subState                          = 8;
     }
 }
-static void func_actor_403100_801395EC(Task* arg0)
+/// Resets shoulder/forearm angles and the forearm translation for held playback.
+///
+/// Borrows the live forearm coordinate (model coordinate six) and singleton work.
+/// The rest translation is in the forearm's parent frame; no pose is ticked.
+static inline void _actor403100ResetHeldArmPose(GfxCoord* forearmCoord)
 {
-    _Actor403100Flame*  flame;
-    _Actor403100Flame*  flames;
-    WorldCollisionBody* body;
-    s32                 x;
-    s32                 i;
-    u16                 frame;
-    TmdObject*          model;
-    GfxCoord*           part;
-    GfxCoord*           coords;
+    D_actor_403100_80155808->armPitch       = 0;
+    D_actor_403100_80155808->armYaw         = 0;
+    D_actor_403100_80155808->forearmTurn.vx = 0;
+    D_actor_403100_80155808->forearmTurn.vy = 0;
+    D_actor_403100_80155808->forearmTurn.vz = 0;
+    forearmCoord->coord.t[0]                = -0x877;
+}
 
-    model                                   = arg0->extra.tmd;
-    coords                                  = model->coords;
-    part                                    = coords + 6;
+/// Poses the held player for thirty-one updates before starting flame breath.
+///
+/// Requires live singleton work, player, model and initialized flame pool.
+/// Eases shoulder/forearm angles and forearm X by one eighth while maintaining
+/// the grip. Then switches to view twenty-four and the raised breath placement,
+/// resets the arm, and starts the aimed-flame clip with a twenty-update puff
+/// lifetime. All old puffs and breath audio are released at that transition.
+static void _actor403100PrepareHeldPlayerFlameBreath(Task* task)
+{
+    enum { ACTOR_403100_HELD_FLAME_PREPARE_FRAMES = 31,
+           ACTOR_403100_HELD_FLAME_VIEW           = 24,
+           ACTOR_403100_HELD_FLAME_LIFETIME       = 20 };
+    s32        forearmX;
+    u16        elapsedFrames;
+    TmdObject* model;
+    GfxCoord*  forearmCoord;
+    GfxCoord*  rootCoord;
+
+    model                                   = task->extra.tmd;
+    rootCoord                               = model->coords;
+    forearmCoord                            = rootCoord + 6;
     D_actor_403100_80155808->armPitch       = (u16)D_actor_403100_80155808->armPitch + ((s32)(-0x2E0 - D_actor_403100_80155808->armPitch) >> 3);
     D_actor_403100_80155808->armYaw         = (u16)D_actor_403100_80155808->armYaw + ((s32)(0x10 - D_actor_403100_80155808->armYaw) >> 3);
     D_actor_403100_80155808->forearmTurn.vx = (u16)D_actor_403100_80155808->forearmTurn.vx + ((s32)(-0x150 - D_actor_403100_80155808->forearmTurn.vx) >> 3);
     D_actor_403100_80155808->forearmTurn.vy = (u16)D_actor_403100_80155808->forearmTurn.vy + ((s32)(0x280 - D_actor_403100_80155808->forearmTurn.vy) >> 3);
     D_actor_403100_80155808->forearmTurn.vz = (u16)D_actor_403100_80155808->forearmTurn.vz + ((s32)(0x140 - D_actor_403100_80155808->forearmTurn.vz) >> 3);
-    x                                       = part->coord.t[0];
-    part->coord.t[0]                        = (s32)(x + ((s32)(-0xBE0 - x) >> 3));
+    forearmX                                = forearmCoord->coord.t[0];
+    forearmCoord->coord.t[0]                = forearmX + ((-0xBE0 - forearmX) >> 3);
     D_actor_403100_80155808->rotation.vx    = 0;
-    D_actor_403100_80155808->rotation.vy    = 0xC00;
+    D_actor_403100_80155808->rotation.vy    = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
     D_actor_403100_80155808->rotation.vz    = 0;
-    _actor403100PlaceHeldPlayer(arg0);
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    i                                    = 0;
-    if (((s32)(frame << 0x10) >> 0x10) >= 0x1F) {
-        flames                                                     = D_actor_403100_80155814;
-        body                                                       = &flames->body;
-        flame                                                      = flames;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x18;
-        coords->coord.t[1]                                         = -0x1388;
+    _actor403100PlaceHeldPlayer(task);
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    // Start the breath from its fixed placement with an empty flame pool.
+    if ((s16)elapsedFrames >= ACTOR_403100_HELD_FLAME_PREPARE_FRAMES) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_FLAME_VIEW;
+        rootCoord->coord.t[1]                                      = -0x1388;
         D_actor_403100_80155808->jawPitchOffset                    = 0;
-        D_actor_403100_80155808->armPitch                          = 0;
-        D_actor_403100_80155808->armYaw                            = 0;
-        D_actor_403100_80155808->forearmTurn.vx                    = 0;
-        D_actor_403100_80155808->forearmTurn.vy                    = 0;
-        D_actor_403100_80155808->forearmTurn.vz                    = 0;
-        part->coord.t[0]                                           = -0x877;
-        D_actor_403100_80155808->animationId                       = 7;
-        D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        D_actor_403100_80155808->flameLifetime                     = 0x14;
-        D_actor_403100_80155808->headAim.vy                        = 0x200;
-        D_actor_403100_80155808->stateFrames                       = 0;
-        D_actor_403100_80155808->animationRate                     = ANIMATION_RATE_ONE;
-        D_actor_403100_80155808->aimMode                           = ACTOR_403100_AIM_TRACK;
-        D_actor_403100_80155808->headAim.vx                        = 0;
-        D_actor_403100_80155808->headAim.vz                        = 0;
-        D_actor_403100_80155810                                    = 0;
-        D_actor_403100_80155808->subState                         += 1;
-        coords->coord.t[0]                                         = -0x44C;
-        coords->coord.t[2]                                         = 0x2710;
-        coords->coord.t[1]                                         = -0x1388;
-        D_actor_403100_80155808->rotation.vx                       = 0;
-        D_actor_403100_80155808->rotation.vy                       = 0xA00;
-        D_actor_403100_80155808->rotation.vz                       = 0;
-        do {
-            if (flame->active != 0) {
-                flame->active = 0;
-                worldCollisionUnlinkBody(body);
-            }
-            body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
-            i   += 1;
-            flame++;
-        } while (i < ARRAY_SIZE(D_actor_403100_80155814));
+        _actor403100ResetHeldArmPose(forearmCoord);
+        D_actor_403100_80155808->animationId      = ACTOR_403100_ANIMATION_AIMED_FLAME;
+        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        D_actor_403100_80155808->flameLifetime    = ACTOR_403100_HELD_FLAME_LIFETIME;
+        D_actor_403100_80155808->headAim.vy       = 0x200;
+        D_actor_403100_80155808->stateFrames      = 0;
+        D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+        D_actor_403100_80155808->aimMode          = ACTOR_403100_AIM_TRACK;
+        D_actor_403100_80155808->headAim.vx       = 0;
+        D_actor_403100_80155808->headAim.vz       = 0;
+        D_actor_403100_80155810                   = 0;
+        D_actor_403100_80155808->subState        += 1;
+        rootCoord->coord.t[0]                     = -0x44C;
+        rootCoord->coord.t[2]                     = 0x2710;
+        rootCoord->coord.t[1]                     = -0x1388;
+        D_actor_403100_80155808->rotation.vx      = 0;
+        D_actor_403100_80155808->rotation.vy      = ACTOR_TRANSFORM_ANGLE_TURN * 5 / 8;
+        D_actor_403100_80155808->rotation.vz      = 0;
+        _actor403100ReleaseFlames();
         sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 }
@@ -5068,111 +5086,134 @@ static void func_actor_403100_80139818(Task* arg0)
         }
     }
 }
-static void func_actor_403100_80139E80(Task* arg0)
+/// Returns the held player from flame breath to the half-speed throw clip.
+///
+/// Requires live singleton work, player and the fifteen-part model.
+/// For thirty-one updates, moves the foreground and eases root Y, shoulder
+/// angles and forearm pose. Each angle is sign-extended from twelve turn bits
+/// into a four-fractional-bit value before taking one eighth of the target
+/// difference; stores retain the low halfword. The transition selects view
+/// twelve and resets the arm at the ground-level throw placement.
+static void _actor403100RecoverHeldPlayerFromFlameBreath(Task* task)
 {
-    s16       angle;
-    s32       y;
-    s32       x;
-    u16       velocityX;
-    u16       rotationX;
-    u16       rotationZ;
-    u16       velocityZ;
-    u16       rotationY;
-    u16       frame;
-    GfxCoord* part;
-    GfxCoord* coords;
+    enum { ACTOR_403100_HELD_FLAME_RECOVERY_FRAMES = 31,
+           ACTOR_403100_HELD_POSE_ANGLE_SCALE      = 16,
+           ACTOR_403100_HELD_POSE_STEP_SHIFT       = 7 };
+    s16       foregroundY;
+    s32       rootY;
+    s32       forearmX;
+    u16       armPitchBits;
+    u16       forearmPitchBits;
+    u16       forearmRollBits;
+    u16       armYawBits;
+    u16       forearmYawBits;
+    u16       elapsedFrames;
+    GfxCoord* forearmCoord;
+    GfxCoord* rootCoord;
 
-    coords                            = arg0->extra.tmd->coords;
+    rootCoord                         = task->extra.tmd->coords;
     D_actor_403100_80155808->overlayX = (u16)D_actor_403100_80155808->overlayX - 1;
-    angle                             = (u16)D_actor_403100_80155808->overlayY + 6;
-    D_actor_403100_80155808->overlayY = angle;
-    _actor403100DrawHoldForeground(D_actor_403100_80155808->overlayX, angle);
-    part                                    = coords + 6;
-    y                                       = coords->coord.t[1];
-    coords->coord.t[1]                      = (s32)(y + ((s32)-y >> 6));
-    velocityX                               = (u16)D_actor_403100_80155808->armPitch;
-    velocityZ                               = (u16)D_actor_403100_80155808->armYaw;
-    D_actor_403100_80155808->armPitch       = velocityX + ((s32)(-0x1100 - (s16)(velocityX * 0x10)) >> 7);
-    rotationX                               = (u16)D_actor_403100_80155808->forearmTurn.vx;
-    D_actor_403100_80155808->armYaw         = velocityZ + ((s32)(0x4E00 - (s16)(velocityZ * 0x10)) >> 7);
-    rotationY                               = (u16)D_actor_403100_80155808->forearmTurn.vy;
-    D_actor_403100_80155808->forearmTurn.vx = rotationX + ((s32)(0x2400 - (s16)(rotationX * 0x10)) >> 7);
-    rotationZ                               = (u16)D_actor_403100_80155808->forearmTurn.vz;
-    D_actor_403100_80155808->forearmTurn.vy = rotationY + ((s32)(-0x1D00 - (s16)(rotationY * 0x10)) >> 7);
-    D_actor_403100_80155808->forearmTurn.vz = rotationZ + ((s32)(0x2E00 - (s16)(rotationZ * 0x10)) >> 7);
-    x                                       = part->coord.t[0];
-    part->coord.t[0]                        = (s32)(x + ((s32)(-0x807 - x) >> 3));
-    _actor403100PlaceHeldPlayer(arg0);
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame >= 0x1F) {
-        D_actor_403100_80155808->animationRate                     = 8;
-        D_actor_403100_80155808->animationId                       = 0xE;
+    foregroundY                       = (u16)D_actor_403100_80155808->overlayY + 6;
+    D_actor_403100_80155808->overlayY = foregroundY;
+    _actor403100DrawHoldForeground(D_actor_403100_80155808->overlayX, foregroundY);
+    forearmCoord          = rootCoord + 6;
+    rootY                 = rootCoord->coord.t[1];
+    rootCoord->coord.t[1] = rootY + (-rootY >> 6);
+    // Sign-extend each twelve-bit angle before easing toward the recovery pose.
+    armPitchBits                            = (u16)D_actor_403100_80155808->armPitch;
+    armYawBits                              = (u16)D_actor_403100_80155808->armYaw;
+    D_actor_403100_80155808->armPitch       = armPitchBits + ((s32)(-0x1100 - (s16)(armPitchBits * ACTOR_403100_HELD_POSE_ANGLE_SCALE)) >> ACTOR_403100_HELD_POSE_STEP_SHIFT);
+    forearmPitchBits                        = (u16)D_actor_403100_80155808->forearmTurn.vx;
+    D_actor_403100_80155808->armYaw         = armYawBits + ((s32)(0x4E00 - (s16)(armYawBits * ACTOR_403100_HELD_POSE_ANGLE_SCALE)) >> ACTOR_403100_HELD_POSE_STEP_SHIFT);
+    forearmYawBits                          = (u16)D_actor_403100_80155808->forearmTurn.vy;
+    D_actor_403100_80155808->forearmTurn.vx = forearmPitchBits + ((s32)(0x2400 - (s16)(forearmPitchBits * ACTOR_403100_HELD_POSE_ANGLE_SCALE)) >> ACTOR_403100_HELD_POSE_STEP_SHIFT);
+    forearmRollBits                         = (u16)D_actor_403100_80155808->forearmTurn.vz;
+    D_actor_403100_80155808->forearmTurn.vy = forearmYawBits + ((s32)(-0x1D00 - (s16)(forearmYawBits * ACTOR_403100_HELD_POSE_ANGLE_SCALE)) >> ACTOR_403100_HELD_POSE_STEP_SHIFT);
+    D_actor_403100_80155808->forearmTurn.vz = forearmRollBits + ((s32)(0x2E00 - (s16)(forearmRollBits * ACTOR_403100_HELD_POSE_ANGLE_SCALE)) >> ACTOR_403100_HELD_POSE_STEP_SHIFT);
+    forearmX                                = forearmCoord->coord.t[0];
+    forearmCoord->coord.t[0]                = forearmX + ((-0x807 - forearmX) >> 3);
+    _actor403100PlaceHeldPlayer(task);
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames >= ACTOR_403100_HELD_FLAME_RECOVERY_FRAMES) {
+        D_actor_403100_80155808->animationRate                     = ANIMATION_RATE_ONE / 2;
+        D_actor_403100_80155808->animationId                       = ACTOR_403100_ANIMATION_THROW_HELD_PLAYER;
         D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_RESET;
         D_actor_403100_80155808->stateFrames                       = 0;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
-        coords->coord.t[0]                                         = -0x44C;
-        coords->coord.t[2]                                         = 0x1770;
-        coords->coord.t[1]                                         = 0;
-        D_actor_403100_80155808->rotation.vy                       = 0xC00;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_PLAYER_THROW_VIEW;
+        rootCoord->coord.t[0]                                      = -0x44C;
+        rootCoord->coord.t[2]                                      = 0x1770;
+        rootCoord->coord.t[1]                                      = 0;
+        D_actor_403100_80155808->rotation.vy                       = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
         D_actor_403100_80155808->rotation.vx                       = 0;
         D_actor_403100_80155808->rotation.vz                       = 0;
-        D_actor_403100_80155808->armPitch                          = 0;
-        D_actor_403100_80155808->armYaw                            = 0;
-        D_actor_403100_80155808->forearmTurn.vx                    = 0;
-        D_actor_403100_80155808->forearmTurn.vy                    = 0;
-        D_actor_403100_80155808->forearmTurn.vz                    = 0;
-        part->coord.t[0]                                           = -0x877;
-        D_actor_403100_80155808->subState                         += 1;
+        _actor403100ResetHeldArmPose(forearmCoord);
+        D_actor_403100_80155808->subState += 1;
     }
 }
-static void func_actor_403100_8013A064(Task* arg0)
+/// Releases the squeezed player into the balcony throw and applies its damage.
+///
+/// Requires live singleton work, enemy, player and the fifteen-part model.
+/// Sounds at update sixty; update sixty-eight places the player at
+/// the impact, applies attack row five, and blends the Burner into recovery.
+/// A lethal player result selects the death clip and suppresses death checks;
+/// if the Burner also has no HP, its HP is restored to 1000 for this sequence.
+static void _actor403100ThrowHeldPlayer(Task* task)
 {
-    GameActor* actor;
-    Task*      task;
-    s16        state;
-    s16        message;
-    s32        sound;
-    s32        pan;
-    u16        frame;
-    s32        depth;
+    enum { ACTOR_403100_HELD_THROW_SOUND_FRAME   = 60,
+           ACTOR_403100_HELD_THROW_RELEASE_FRAME = 68,
+           ACTOR_403100_HELD_THROW_BLEND_FRAMES  = 20,
+           ACTOR_403100_HELD_THROW_IMPACT_VIEW   = 23,
+           ACTOR_403100_HELD_THROW_ATTACK_ROW    = 5,
+           ACTOR_403100_PLAYER_THROWN_CLIP       = 2,
+           ACTOR_403100_PLAYER_DEATH_CLIP        = 7,
+           ACTOR_403100_PLAYER_LETHAL_HIT_STATE  = 10 };
+    GameActor* playerActor;
+    Task*      playerTask;
+    s16        playerClipId;
+    s16        animationMessageId;
+    s32        soundId;
+    s32        audioPan;
+    u16        elapsedFrames;
+    s32        audioDepth;
 
-    actor                                = (*gPlayerActorTasks)->work;
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame == 0x3C) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000F;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[8]);
-        depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[8]);
-        sndEvtRequestScriptStart(sound, (s32)pan, (s8)(depth / 2));
+    playerActor                          = (*gPlayerActorTasks)->work;
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_403100_HELD_THROW_SOUND_FRAME) {
+        soundId    = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 15);
+        audioPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[8]);
+        audioDepth = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[8]);
+        sndEvtRequestScriptStart(soundId, audioPan, (s8)(audioDepth / 2));
     }
     D_actor_403100_80155808->rotation.vx = 0;
-    D_actor_403100_80155808->rotation.vy = 0xC00;
+    D_actor_403100_80155808->rotation.vy = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
     D_actor_403100_80155808->rotation.vz = 0;
-    _actor403100PlaceHeldPlayer(arg0);
-    if ((s16)D_actor_403100_80155808->stateFrames >= 0x44) {
-        D_actor_403100_80155808->animationBlendFrames              = 0x14;
+    _actor403100PlaceHeldPlayer(task);
+    // Move the player out of the grip before choosing the damaged or death clip.
+    if ((s16)D_actor_403100_80155808->stateFrames >= ACTOR_403100_HELD_THROW_RELEASE_FRAME) {
+        D_actor_403100_80155808->animationBlendFrames              = ACTOR_403100_HELD_THROW_BLEND_FRAMES;
         D_actor_403100_80155808->animationRate                     = ANIMATION_RATE_ONE;
-        D_actor_403100_80155808->animationId                       = 5;
+        D_actor_403100_80155808->animationId                       = ACTOR_403100_ANIMATION_ARM_RECOVERY;
         D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_BLEND;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x17;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_THROW_IMPACT_VIEW;
         D_actor_403100_80155808->subState                         += 1;
-        _actor403100PlacePlayer(-0x1BBC, -0xC80, -0x4B0, 0x400);
-        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 5), 0) != 0) {
+        _actor403100PlacePlayer(-0x1BBC, -0xC80, -0x4B0, ACTOR_TRANSFORM_ANGLE_TURN / 4);
+        playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, ACTOR_403100_HELD_THROW_ATTACK_ROW), 0) != 0) {
             gGameSession->suppressDeathChecks = 1;
-            state                             = 7;
+            playerClipId                      = ACTOR_403100_PLAYER_DEATH_CLIP;
             if (D_actor_403100_8015580C->hp <= 0) {
                 D_actor_403100_8015580C->hp = 0x3E8;
             }
-            message                               = 0x3FF;
+            animationMessageId                    = ANIMATION_MESSAGE_REPLACE_AND_PLAY;
             D_actor_403100_80155808->playerKilled = 1;
-            actor->state                          = 0xA;
+            playerActor->state                    = ACTOR_403100_PLAYER_LETHAL_HIT_STATE;
         } else {
-            state   = 2;
-            message = 0x3F4;
+            playerClipId       = ACTOR_403100_PLAYER_THROWN_CLIP;
+            animationMessageId = ANIMATION_MESSAGE_INSTALL_AND_PLAY;
         }
-        _actor403100PlayPlayerAnimation(state, message);
+        _actor403100PlayPlayerAnimation(playerClipId, animationMessageId);
         D_actor_403100_80155808->stateFrames = 0;
     }
 }
@@ -5231,35 +5272,27 @@ static void func_actor_403100_8013A254(Task* task)
         gGameSession->suppressDeathChecks = 0;
     }
 }
-static void func_actor_403100_8013A4C8(Task* arg0)
+/// Begins the side flame sweep with a fresh full-pool puff lifetime.
+///
+/// Requires live singleton work, model and initialized flame pool. Sets ordering
+/// depth to 31, clears the breath interrupt latch, approaches at 48 units per
+/// update and gives puffs a 28-update lifetime. Releases old puffs and breath
+/// audio before restarting the normal-rate flame clip and advancing the step.
+static void _actor403100BeginSideFlameAttack(Task* task)
 {
-    _Actor403100Flame*  flames;
-    WorldCollisionBody* body;
-    s32                 i;
-    Actor403100Work*    work;
+    Actor403100Work* work;
 
-    i                                          = 0;
-    flames                                     = D_actor_403100_80155814;
-    body                                       = &flames->body;
-    arg0->extra.tmd->otOffset                  = 0x1F;
+    task->extra.tmd->otOffset                  = 0x1F;
     work                                       = *(Actor403100Work* volatile*)&D_actor_403100_80155808;
     (*(volatile s16*)&D_actor_403100_80155810) = 0;
     work->walkSpeed                            = 0x30;
-    work->walkStage                            = 0;
-    work->flameLifetime                        = 0x1C;
-    for (; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
-        if (flames[i].active != 0) {
-            flames[i].active = 0;
-            worldCollisionUnlinkBody(body);
-        }
-        body = &(PARENT_OF(body, _Actor403100Flame, body) + 1)->body;
-    }
+    work->walkStage                            = ACTOR_403100_WALK_APPROACH;
+    work->flameLifetime                        = ARRAY_SIZE(D_actor_403100_80155814);
+    _actor403100ReleaseFlames();
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-    D_actor_403100_80155808->animationId      = 7;
-    D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    D_actor_403100_80155808->stateFrames      = 0;
-    D_actor_403100_80155808->subState        += 1;
+    _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_AIMED_FLAME);
+    D_actor_403100_80155808->stateFrames = 0;
+    D_actor_403100_80155808->subState   += 1;
 }
 static void func_actor_403100_8013A5AC(Task* arg0)
 {
@@ -5349,35 +5382,52 @@ static void func_actor_403100_8013A81C(Task* arg0)
         D_actor_403100_80155808->subState = 0;
     }
 }
-static void func_actor_403100_8013AA04(Task* arg0)
+/// Samples the grab-and-drag reach while turning toward negative quarter-turn yaw.
+///
+/// Requires live singleton work, player and model coordinates through part
+/// seven. Eases the signed twelve-bit yaw error by one quarter. The previous
+/// wrapping halfword timer selects contacts at 51..72; outside that window,
+/// a hit reaction interrupts the step. Either latched arm contact locks the
+/// player into the drag clip, offsets it 3000 units along Z, suppresses view
+/// triggers and advances. A completed miss returns to attack approach.
+static void _actor403100StepGrabAndDragReach(Task* task)
 {
-    s32 sound;
-    s32 pan;
-    u16 angle;
-    u16 frame;
-    s32 depth;
+    enum { ACTOR_403100_DRAG_YAW_SCALE           = 16,
+           ACTOR_403100_DRAG_SIGNED_YAW_SHIFT    = 16,
+           ACTOR_403100_DRAG_YAW_STEP_SHIFT      = 22,
+           ACTOR_403100_FRAME_COUNTER_MASK       = 0xFFFF,
+           ACTOR_403100_DRAG_CONTACT_START_FRAME = 51,
+           ACTOR_403100_DRAG_CONTACT_FRAMES      = 22,
+           ACTOR_403100_DRAG_CONTACT_SOUND_FRAME = 68,
+           ACTOR_403100_PLAYER_DRAG_CLIP         = 3 };
+    s32 soundId;
+    s32 audioPan;
+    u16 rootYawBits;
+    u16 previousFrames;
+    s32 audioDepth;
 
-    angle                                = (u16)D_actor_403100_80155808->rotation.vy;
-    frame                                = D_actor_403100_80155808->stateFrames;
-    D_actor_403100_80155808->rotation.vy = angle + ((s32)((-0x4000 - (angle * 0x10)) << 0x10) >> 0x16);
-    D_actor_403100_80155808->stateFrames = frame + 1;
-    if ((u32)((frame - 0x33) & 0xFFFF) < 0x16U) {
-        _actor403100ProbeArmPlayerContact(arg0);
+    rootYawBits                          = (u16)D_actor_403100_80155808->rotation.vy;
+    previousFrames                       = D_actor_403100_80155808->stateFrames;
+    D_actor_403100_80155808->rotation.vy = rootYawBits + ((s32)(((-ACTOR_TRANSFORM_ANGLE_TURN / 4 * ACTOR_403100_DRAG_YAW_SCALE) - (rootYawBits * ACTOR_403100_DRAG_YAW_SCALE)) << ACTOR_403100_DRAG_SIGNED_YAW_SHIFT) >> ACTOR_403100_DRAG_YAW_STEP_SHIFT);
+    D_actor_403100_80155808->stateFrames = previousFrames + 1;
+    // Contact frames use the pre-increment timer; hit interruptions use the rest.
+    if ((u32)((previousFrames - ACTOR_403100_DRAG_CONTACT_START_FRAME) & ACTOR_403100_FRAME_COUNTER_MASK) < (u32)ACTOR_403100_DRAG_CONTACT_FRAMES) {
+        _actor403100ProbeArmPlayerContact(task);
     } else if (_actor403100HandleHitReaction() != 0) {
         return;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x44) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0008;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[7]);
-        depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[7]);
-        sndEvtRequestScriptStart(sound, (s32)pan, (s8)(depth / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_DRAG_CONTACT_SOUND_FRAME) {
+        soundId    = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 8);
+        audioPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[7]);
+        audioDepth = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[7]);
+        sndEvtRequestScriptStart(soundId, audioPan, (s8)(audioDepth / 2));
     }
     if (D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) {
         D_actor_403100_80155808->vulnerable    = 1;
         D_actor_403100_80155808->holdingPlayer = 1;
         Gp_StateC08.flags                     |= ATTACHMENT_FLAG_EVENT_LOCK;
-        _actor403100PlayPlayerAnimation(3, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-        _actor403100PlacePlayer(D_actor_403100_80155808->playerPosition.vx, D_actor_403100_80155808->playerPosition.vy, (s16)((u16)D_actor_403100_80155808->playerPosition.vz + 0xBB8), 0x800);
+        _actor403100PlayPlayerAnimation(ACTOR_403100_PLAYER_DRAG_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
+        _actor403100PlacePlayer(D_actor_403100_80155808->playerPosition.vx, D_actor_403100_80155808->playerPosition.vy, (s16)((u16)D_actor_403100_80155808->playerPosition.vz + 0xBB8), ACTOR_TRANSFORM_ANGLE_HALF_TURN);
         D_actor_403100_80155808->handTouchedPlayer = 0;
         D_actor_403100_80155808->stateFrames       = 0;
         gGameSession->suppressViewTriggers         = 1;
@@ -5386,7 +5436,7 @@ static void func_actor_403100_8013AA04(Task* arg0)
     }
     if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->handTouchedPlayer = 0;
-        D_actor_403100_80155808->state             = 1;
+        D_actor_403100_80155808->state             = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
         D_actor_403100_80155808->subState          = 0;
     }
 }
@@ -5779,12 +5829,12 @@ static const TaskFuncTable11 D_actor_403100_80131FD4 = {
         _actor403100BeginGrabAndSqueeze,
         _actor403100StepGrabAndSqueezeReach,
         func_actor_403100_8013F3EC,
-        func_actor_403100_80138F88,
+        _actor403100BeginHeldPlayerSqueeze,
         func_actor_403100_8013922C,
-        func_actor_403100_801395EC,
+        _actor403100PrepareHeldPlayerFlameBreath,
         func_actor_403100_80139818,
-        func_actor_403100_80139E80,
-        func_actor_403100_8013A064,
+        _actor403100RecoverHeldPlayerFromFlameBreath,
+        _actor403100ThrowHeldPlayer,
         func_actor_403100_8013A254,
         func_actor_403100_8013F488,
     },
@@ -5793,7 +5843,7 @@ static const TaskFuncTable11 D_actor_403100_80131FD4 = {
 /// Steps of the behaviour mode `func_actor_403100_8013DE0C`, indexed by `subState`.
 static const TaskFuncTable5 D_actor_403100_80132000 = {
     {
-        func_actor_403100_8013A4C8,
+        _actor403100BeginSideFlameAttack,
         func_actor_403100_8013A5AC,
         func_actor_403100_8013F4E0,
         func_actor_403100_8013F520,
@@ -5805,7 +5855,7 @@ static const TaskFuncTable5 D_actor_403100_80132000 = {
 static const TaskFuncTable4 D_actor_403100_80132014 = {
     {
         func_actor_403100_8013F588,
-        func_actor_403100_8013AA04,
+        _actor403100StepGrabAndDragReach,
         func_actor_403100_8013AC04,
         func_actor_403100_8013AE28,
     },
@@ -6635,59 +6685,88 @@ static s32 _actor403100GetWorldRotation(const GfxCoord* joint, MATRIX* rotation)
 
 #include "../../shared/coord_math_local_to_world.inc.c"
 
-s32 func_actor_403100_8013D564(Task* arg0, s32 arg1, u16* arg2, s32 arg3)
+/// Applies a Burner behaviour, scripted-scene or defeat command.
+///
+/// Borrows a readable ActorCommand through synchronous dispatch; its context
+/// is ignored. Commands 0..8 enter the fight at that behaviour, 10 enters
+/// defeat, and 65535 enters the scripted scene. Every command, including an
+/// unsupported value, resets the substate. Requires live singleton work.
+/// This callback supplies no message result; senders must ignore the return word.
+static void _actor403100ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedSecondArg)
 {
-    u16 value;
+    enum { ACTOR_403100_COMMAND_DEFEAT          = 10,
+           ACTOR_403100_COMMAND_SCRIPTED_SCENE  = 0xFFFF,
+           ACTOR_403100_COMMAND_BEHAVIOUR_LIMIT = 9,
+           ACTOR_403100_TASK_FIGHT              = 1,
+           ACTOR_403100_TASK_SCENE              = 2,
+           ACTOR_403100_TASK_DEFEAT             = 3 };
+    u16 behaviourId;
 
-    switch (arg2[1]) {
-        case 10:
-            arg0->state                       = 3;
+    switch (command->command) {
+        case ACTOR_403100_COMMAND_DEFEAT:
+            task->state                       = ACTOR_403100_TASK_DEFEAT;
             D_actor_403100_80155808->state    = 0;
             D_actor_403100_80155808->subState = 0;
             break;
-        case 0xFFFF:
+        case ACTOR_403100_COMMAND_SCRIPTED_SCENE:
             D_actor_403100_80155808->state    = 0;
             D_actor_403100_80155808->subState = 0;
-            arg0->state                       = 2;
+            task->state                       = ACTOR_403100_TASK_SCENE;
             break;
         default:
-            value = arg2[1];
-            if (value < 9U) {
-                D_actor_403100_80155808->state    = value;
+            behaviourId = command->command;
+            if (behaviourId < (u32)ACTOR_403100_COMMAND_BEHAVIOUR_LIMIT) {
+                D_actor_403100_80155808->state    = behaviourId;
                 D_actor_403100_80155808->subState = 0;
-                arg0->state                       = 1;
+                task->state                       = ACTOR_403100_TASK_FIGHT;
             }
             break;
     }
     D_actor_403100_80155808->subState = 0;
 }
-s32 func_actor_403100_8013D5F4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Latches the player's request to end the current hold.
+///
+/// Requires live singleton work. Takes no payload; hold steps consume the
+/// latch when their pose is ready. This callback supplies no message result;
+/// senders must ignore the dispatch result.
+static void _actor403100RequestPlayerRelease(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     D_actor_403100_80155808->releaseRequested = 1;
 }
 
-void func_actor_403100_8013D608(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Sets the Burner model's active drawing and automatic-buffer mode.
+///
+/// Requires a live receiver model and singleton work. Modes 0/1 hide/show
+/// with automatic buffering; 2 hides and disables buffering while scheduling
+/// release with a countdown of two; 3 shows while disabling automatic buffering.
+/// Other values leave state unchanged. The second payload and message ID are
+/// ignored, and this void callback supplies no result to the sender.
+static void _actor403100SetModelDrawMode(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedSecondArg)
 {
-    u16        flags;
-    TmdObject* object;
+    enum { ACTOR_403100_MODEL_HIDE_AUTO_BUFFER    = 0,
+           ACTOR_403100_MODEL_SHOW_AUTO_BUFFER    = 1,
+           ACTOR_403100_MODEL_HIDE_RELEASE_BUFFER = 2,
+           ACTOR_403100_MODEL_SHOW_NO_AUTO_BUFFER = 3 };
+    u16        modelFlags;
+    TmdObject* model;
 
-    object = arg0->extra.tmd;
-    switch (arg2) {
-        case 0:
-            object->flags = (object->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+    model = task->extra.tmd;
+    switch (drawMode) {
+        case ACTOR_403100_MODEL_HIDE_AUTO_BUFFER:
+            model->flags = (model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW) & (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
             return;
-        case 1:
-            object->flags = object->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        case ACTOR_403100_MODEL_SHOW_AUTO_BUFFER:
+            model->flags = model->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
-        case 2:
-            object->flags                               = object->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            D_actor_403100_80155808->bufferReleaseDelay = arg2;
-            flags                                       = object->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
-            object->flags                               = flags;
+        case ACTOR_403100_MODEL_HIDE_RELEASE_BUFFER:
+            model->flags                                = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            D_actor_403100_80155808->bufferReleaseDelay = drawMode;
+            modelFlags                                  = model->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags                                = modelFlags;
             return;
-        case 3:
-            flags         = (object->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW) | TMD_OBJECT_SKIP_AUTO_BUFFER;
-            object->flags = flags;
+        case ACTOR_403100_MODEL_SHOW_NO_AUTO_BUFFER:
+            modelFlags   = (model->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW) | TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags = modelFlags;
             return;
     }
 }
@@ -6734,13 +6813,18 @@ static void _actor403100TurnForearm(Task* task)
 {
     _actor403100TurnForearmInline(task);
 }
-static void func_actor_403100_8013D88C(Task* arg0)
+/// Unlinks the four combat bodies before destroying the Burner task and enemy.
+///
+/// Requires live singleton work and the task's Enemy spawn argument. The task
+/// teardown releases its owned model/work storage; the published singleton
+/// pointers are not cleared and must not be used after destruction.
+static void _actor403100Destroy(Task* task)
 {
     worldCollisionUnlinkBody(&D_actor_403100_80155808->headBody);
     worldCollisionUnlinkBody(&D_actor_403100_80155808->trunkBody);
     worldCollisionUnlinkBody(&D_actor_403100_80155808->handAttack);
     worldCollisionUnlinkBody(&D_actor_403100_80155808->forearmAttack);
-    enemyDestroy(arg0->spawnArg2.pointer, arg0);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 static void func_actor_403100_8013D8F4(Task* arg0)
@@ -6771,20 +6855,30 @@ static s32 func_actor_403100_8013D9C4(s16 x, s16 y, _Actor403100Zone* zone)
     }
     return 0;
 }
-static void func_actor_403100_8013DA6C(Task* task)
+/// Dispatches the fight setup or wait-for-start substate.
+///
+/// Requires live singleton work and subState 0..1. Setup advances to the wait,
+/// which changes behaviour to attack approach after thirty-one uninterrupted
+/// updates. A hit reaction can divert the wait without advancing its timer.
+static void _actor403100StepFightInitialization(Task* task)
 {
-    TaskFunc fns[2] = { _actor403100BeginFight, _actor403100WaitForFightStart };
+    TaskFunc handlers[2] = { _actor403100BeginFight, _actor403100WaitForFightStart };
 
-    fns[(s16)D_actor_403100_80155808->subState](task);
+    handlers[(s16)D_actor_403100_80155808->subState](task);
 }
 
-static void func_actor_403100_8013DAC4(Task* arg0)
+/// Dispatches attack approach, range gating or attack selection unless a hit interrupts.
+///
+/// Requires live singleton work with subState 0..2. A stagger or build-up
+/// stun changes behaviour through the hit handler and skips the approach
+/// callback for this update. The selected callback owns substate advancement.
+static void _actor403100StepAttackApproach(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_403100_80131F60;
+    handlers = D_actor_403100_80131F60;
     if (_actor403100HandleHitReaction() == 0) {
-        sp.funcs[(s16)D_actor_403100_80155808->subState](arg0);
+        handlers.funcs[(s16)D_actor_403100_80155808->subState](task);
     }
 }
 static void func_actor_403100_8013DB48(Task* arg0)

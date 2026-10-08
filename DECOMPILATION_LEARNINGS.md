@@ -46409,7 +46409,7 @@ type - `extern s32 D_actor_403100_80155808;` became
 bodies matched instruction for instruction. The scoped build still failed the
 checksum, on the *first* function landed.
 
-The culprit was a function nobody touched. `func_actor_403100_8013D88C` had
+The culprit was a function nobody touched. `_actor403100Destroy` had
 been landed earlier as
 
 ```c
@@ -146292,7 +146292,7 @@ So when a copy survives with one visible use, rebuild the arm in its siblings'
 shape, including tests whose bodies turned out identical.
 ## A `SOFT_TOUCH_REG` that only lifts a pointer's local-alloc priority is not replaced by routing the global through an inline helper
 
-`func_actor_403100_80138F88` loads a scalar global work pointer into a local and
+`_actor403100BeginHeldPlayerSqueeze` loads a scalar global work pointer into a local and
 stores ~20 fields through it. Without its `SOFT_TOUCH_REG(work)` the pointer has
 21 refs over a span of 86 (priority 9767) against the constant pseudos' exact
 10000 (2 refs, span 2), so the constants take `$v0` first and the pointer lands
@@ -146306,12 +146306,12 @@ straight into the parameter (or combine merges the load into the copy because
 the temporary dies there) - and statement order, block scope and splitting the
 stores into a pose helper leave the count at 21. The load's position between
 the coordinate stores is a separate matter: it is a true dependence, because
-the `*(s32*)(u32)&coords->coord.t[i]` stores used across this file are scalar
+the `*(s32*)(u32)&rootCoord->coord.t[i]` stores used across this file are scalar
 MEMs and so conflict with the scalar global load, where plain
-`coords->coord.t[i]` stores are in-struct and let sched1 sink the load.
+`rootCoord->coord.t[i]` stores are in-struct and let sched1 sink the load.
 
 A scalar cursor removes those pointer/integer round-trip casts without changing
-the emitted code: initialize `long* translation = coords->coord.t`, then write
+the emitted code: initialize `long* translation = rootCoord->coord.t`, then write
 the X, Y and Z values through `*translation++`, `*translation++` and
 `*translation`. In `base_9.c` of the 2026-09-27 dehack retry, `.combine` has plain
 `mem:SI` stores at root offsets 24, 28 and 32; the increments fold away, and
@@ -148665,11 +148665,11 @@ Not found: the natural second set. Tried: `s16 hp`, the difference
   store fences the `a1` setup out as well and is worse. The `flags` pointer
   local and the `activeEnemy`/`hp` block were not needed: `obj->flags = 0` and
   `D->hp = D->hpMax = table.hpMax` match.
-- `func_actor_403100_80138F88` (`SOFT_TOUCH_REG(work)`). Corrects the entry "A
+- `_actor403100BeginHeldPlayerSqueeze` (`SOFT_TOUCH_REG(work)`). Corrects the entry "A
   `SOFT_TOUCH_REG` that only lifts a pointer's local-alloc priority...": the
   two extra refs are only needed because the scalar `*translation++` stores
   hold the pointer load early and lengthen its span. With plain
-  `coords->coord.t[i]` stores and either a `work` local or the global named at
+  `rootCoord->coord.t[i]` stores and either a `work` local or the global named at
   every store, the pointer takes `$v0` with no touch, and the whole function
   matches except three instructions: the load sinks below `li 6000 / sw t[2]`,
   so that constant shares `$v0` instead of using `$v1`. The target has the load
@@ -151444,7 +151444,7 @@ the result crosses a call too and that register is the lowest free call-saved
 one when global reaches it.
 
 
-## A pointer load two instructions above its first user: the first store through it had no constant, and the store before it filled the stall (func_actor_403100_80138F88, 2026-10-06)
+## A pointer load two instructions above its first user: the first store through it had no constant, and the store before it filled the stall (_actor403100BeginHeldPlayerSqueeze, 2026-10-06)
 
 **Symptom.** After a call the block stores a coord's translation and then ~20
 fields through a global work pointer. Target:
@@ -151463,7 +151463,7 @@ then needed `SOFT_TOUCH_REG(work)` to win `$v0`.
 
 - Stores through one base register at different offsets do not conflict in
   sched (`memrefs_conflict_p`), so the ~20 `D->field` stores are free to be
-  reordered among themselves, and so are the three `coords->coord.t[i]`
+  reordered among themselves, and so are the three `rootCoord->coord.t[i]`
   stores. The output order of the work stores therefore says nothing about
   their source order; only "every coord store precedes every work store" is
   fixed (different bases may alias).
@@ -151499,9 +151499,9 @@ it, between `li 0xC00` and its `sh`.
 **Fix.** Natural order, global named at every store, no local:
 
 ```c
-coords->coord.t[0]   = -0x44C;
-coords->coord.t[1]   = 0;
-coords->coord.t[2]   = 0x1770;
+rootCoord->coord.t[0]   = -0x44C;
+rootCoord->coord.t[1]   = 0;
+rootCoord->coord.t[2]   = 0x1770;
 D->rotation.vx       = 0;
 D->rotation.vy       = 0xC00;
 D->rotation.vz       = 0;
