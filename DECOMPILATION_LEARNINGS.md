@@ -81155,7 +81155,7 @@ Inputs: `base_2.i`
 
 ## A callee prototyped only in the host `.c` is unprototyped in the scratch env
 
-`func_actor_215100_8014AFAC` calls `actor215100CapCaptionSelectRecord(s16, s16, s32)`,
+`_capCaptionRunSchedule` calls `actor215100CapCaptionSelectRecord(s16, s16, s32)`,
 which the overlay then declared above its own definition and nowhere in
 `include/actors/actor_215100.h`. A scratch env includes the header, so the call
 compiled against an *implicit* declaration: the `s16` parameters were never

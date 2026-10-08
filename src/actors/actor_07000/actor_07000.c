@@ -196,7 +196,7 @@ static AnimationSet _gActor07000Actor107000Animation08008 = {
 };
 
 TaskMessageEntry gSucklercephDropMsgTable[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, sucklercephMessage },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _sucklercephMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -876,7 +876,7 @@ static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
 /// the same update and teardown after a spawn that parks the specimen hidden,
 /// and a fourth state for its drop into place.
 static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
-    { sucklercephDropSpawnState, _sucklercephUpdateState, _sucklercephDeathState, _sucklercephDropState },
+    { _sucklercephDropSpawnState, _sucklercephUpdateState, _sucklercephDeathState, _sucklercephDropState },
 };
 
 #include "../../shared/sucklerceph_reaction_dispatch.inc.c"

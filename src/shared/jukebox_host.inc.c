@@ -1,34 +1,48 @@
 /* Part of the jukebox library; see jukebox.h. */
 
-/// Runs the jukebox panel over the room: takes the prim buffer and stops the
-/// frame timer while the panel is up, waits for the panel to report closed,
-/// then after ten more ticks gives both back, kills itself and ends the stage.
-void jukeboxHostTask(Task* task)
+/// Hosts the jukebox panel and returns the stage mode after its closing delay.
+///
+/// Requires the carrier's panel descriptor and live stage/session state.
+/// Forwards `spawnArg1` as panel content, borrows the UI object in `spawnArg2`
+/// and uses the stage's heap primitive buffer. Spawn failure retries in state 0.
+/// A successful panel switches to one-vblank timing and marks UI open. Confirm
+/// or cancel starts tree closing and a ten-tick countdown, including that tick;
+/// expiry restores two-vblank timing, releases the buffer and requests mode exit.
+static void _jukeboxHostTask(Task* task)
 {
-    UiObject* obj;
+    enum {
+        JUKEBOX_HOST_OPEN         = 0,
+        JUKEBOX_HOST_WAIT         = 1,
+        JUKEBOX_HOST_CLOSING      = 2,
+        JUKEBOX_HOST_CLOSE_TICKS  = 10,
+        JUKEBOX_HOST_CONTROL_MODE = 1,
+        JUKEBOX_HOST_OPEN_DELAY   = 1
+    };
+    UiObject* panel;
 
-    if (task->state == 0) {
+    if (task->state == JUKEBOX_HOST_OPEN) {
         stageEnsureHeapTaskPrimitiveBuffer();
-        obj = uiSpawnObject(&gJukeboxPanelDesc, task->spawnArg1, 1, 1, NULL);
-        if (obj == NULL) {
+        panel = uiSpawnObject(&gJukeboxPanelDesc, task->spawnArg1, JUKEBOX_HOST_CONTROL_MODE, JUKEBOX_HOST_OPEN_DELAY, NULL);
+        if (panel == NULL) {
             return;
         }
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen    = 1;
-        task->spawnArg2.pointer = obj;
+        task->spawnArg2.pointer = panel;
         task->state++;
     }
 
-    if (task->state == 1) {
-        obj = task->spawnArg2.pointer;
-        if (obj->result == USER_INTERFACE_RESULT_CANCEL || obj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            uiStartTreeClosing(obj, obj->owner);
-            task->killCountdown = 10;
-            task->state         = 2;
+    if (task->state == JUKEBOX_HOST_WAIT) {
+        panel = task->spawnArg2.pointer;
+        if (panel->result == USER_INTERFACE_RESULT_CANCEL || panel->result == USER_INTERFACE_RESULT_CONFIRM) {
+            uiStartTreeClosing(panel, panel->owner);
+            task->killCountdown = JUKEBOX_HOST_CLOSE_TICKS;
+            task->state         = JUKEBOX_HOST_CLOSING;
         }
     }
 
-    if (task->state == 2) {
+    // Closing consumes its first tick in the same call that requested it.
+    if (task->state == JUKEBOX_HOST_CLOSING) {
         task->killCountdown--;
         if (task->killCountdown <= 0) {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);

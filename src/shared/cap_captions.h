@@ -1,6 +1,6 @@
 /* CAP caption relocation, rendering, timing and schedule playback.
  *
- * CapCaption_ShowTimed and _capCaptionLoadResource are static-inline
+ * _capCaptionShowTimed and _capCaptionLoadResource are static-inline
  * implementations behind ordinary overlay entry points. Helpers and common settings are private. The including
  * overlay defines its own schedule descriptor and caption work at their data
  * positions. Cross-TU work declarations belong in the overlay's private header;
@@ -11,7 +11,7 @@
  *
  * Include this header in the prologue and the _settings and _schedule storage
  * fragments at their data positions. At the function run, include
- * cap_captions.inc.c, define the ShowTimed wrapper, include
+ * cap_captions.inc.c, define the timed-caption wrapper, include
  * cap_captions_resource.inc.c, then define the resource-selection wrapper.
  */
 
@@ -154,7 +154,6 @@ STATIC_ASSERT_SIZEOF(CapCaptionScheduleWindow, 0x10);
 #endif
 CAP_CAPTION_DRAW_CURRENT_LINKAGE void CAP_CAPTION_DRAW_CURRENT(void);
 
-static inline void CapCaption_ShowTimed(s16 arg0, s16 arg1, s16 arg2);
 static inline void _capCaptionLoadResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex);
 
 #endif /* SRC_SHARED_CAP_CAPTIONS_H */

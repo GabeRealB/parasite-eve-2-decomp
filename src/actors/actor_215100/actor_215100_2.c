@@ -85,6 +85,8 @@ void        func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
 /// This object-like alias captures no arguments and constructs no tokens.
 #define CAP_CAPTION_DRAW_CURRENT actor215100CapCaptionDrawCurrent
 #include "../../shared/cap_captions.h"
+
+static void _capCaptionRunSchedule(Task* task);
 #include "../../shared/walker.h"
 
 extern TaskDesc   D_actor_215100_8014E13C[];
@@ -124,7 +126,7 @@ static u16                  _gCapCaptionCaretTipY;
 static s16                  _gCapCaptionTexturePageX;
 static s16                  _gCapCaptionTexturePageY;
 extern RoomEventMsg         D_actor_215100_8015E678;
-/// Caption schedule `func_actor_215100_8014AFAC` scans, terminated by an
+/// Caption schedule `_capCaptionRunSchedule` scans, terminated by an
 /// `upper` of `CAP_CAPTION_SCHEDULE_END`.
 static CapCaptionScheduleWindow CapCaption_Data_80154514[];
 
@@ -1142,10 +1144,8 @@ EvsCommand D_actor_215100_801543E4[11] = {
 
 #include "../../shared/cap_captions_settings.inc.c"
 
-static void CapCaption_RunSchedule(Task* task);
-
 static TaskDesc D_actor_215100_801544F0[1] = {
-    { { { TASK_BODY_NONE, 32 } }, CapCaption_RunSchedule, { .value = 0 } }
+    { { { TASK_BODY_NONE, 32 } }, _capCaptionRunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/cap_captions_schedule.inc.c"
@@ -2285,7 +2285,7 @@ void actor215100StartPierceConversation(void)
 
 static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2)
 {
-    CapCaption_ShowTimed(arg0, arg1, arg2);
+    _capCaptionShowTimed(arg0, arg1, arg2);
 }
 
 #include "../../shared/cap_captions_resource.inc.c"

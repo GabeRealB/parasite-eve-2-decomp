@@ -122,7 +122,7 @@ extern UiList D_dryfield_night_saloon_g_r_80185028;
 /// `_dryfieldNightSaloonGRJukeboxMenuTask`.
 extern UiObjectDesc gJukeboxPanelDesc;
 
-/// Descriptor of the jukebox task `jukeboxHostTask`.
+/// Descriptor of the jukebox task `_jukeboxHostTask`.
 extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 
 /// The room's effect positions in the model's local space. The frame hook
@@ -1008,7 +1008,7 @@ UiList D_dryfield_night_saloon_g_r_80185028 = { D_dryfield_night_saloon_g_r_8018
 
 UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, _dryfieldNightSaloonGRJukeboxMenuTask, 0 };
 
-TaskDesc D_dryfield_night_saloon_g_r_80185068 = { { { TASK_BODY_NONE, 192 } }, jukeboxHostTask, { .value = 0 } };
+TaskDesc D_dryfield_night_saloon_g_r_80185068 = { { { TASK_BODY_NONE, 192 } }, _jukeboxHostTask, { .value = 0 } };
 
 SVECTOR gSaloonLightPoints[28] = {
     { 4915, -1870, -727, 0 },

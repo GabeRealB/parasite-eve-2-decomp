@@ -307,6 +307,13 @@ void factoryLampScene(Task* task);
 void factoryHatchScene(Task* task);
 void factoryRoomInit(Task* arg0);
 s32  factoryResolveWarp(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out);
+/// Spawns the selected factory panel script and waits for its exit request.
+///
+/// The room entry must first publish a live `gFactoryPanelSlot` and a valid
+/// `gFactoryPanelDesc`. State 0 stores the spawned task in that borrowed slot;
+/// state 1 dispatches its requested exit and kills this poller. The script's
+/// result is ignored. Spawning must succeed, since the poll requires a live
+/// task; the room entry retains ownership of the slot.
 void factoryPanelSpawn(Task* task);
 s32  factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3);
 /// Handles factory sound cues delivered by `ROOM_MESSAGE_SOUND`.

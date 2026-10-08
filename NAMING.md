@@ -1129,7 +1129,7 @@ private to that interface.
 
 `jukebox` owns the included SELECT menu that lists music tracks and plays the
 chosen sequence. Its interface is `src/shared/jukebox.h` (`_jukeboxDrawRow`,
-`jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the
+`_jukeboxHostTask`). Each row is a `JukeboxTrack`: a MIDI sequence id and the
 label drawn for that row. The saloon and shooting-gallery overlays each define
 their own tables, so the record stays in `include/rooms/rooms_shared_8018055c.h`
 beside `JukeboxTrackLists`, the ten-list table whose stack copy the row callback

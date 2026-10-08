@@ -1,13 +1,13 @@
 /* Private per-instance storage. Include at the original data position.
  * The configuration contract is documented in cap_captions.h. */
 
-static void CapCaption_CancelableTask(Task* task);
+static void _capCaptionCancelableTask(Task* task);
 
-static void CapCaption_TimedTask(Task* task);
+static void _capCaptionTimedTask(Task* task);
 
-static TaskDesc CapCaption_Data_801544FC = { { { TASK_BODY_NONE, 32 } }, CapCaption_TimedTask, { .value = 0 } };
+static TaskDesc CapCaption_Data_801544FC = { { { TASK_BODY_NONE, 32 } }, _capCaptionTimedTask, { .value = 0 } };
 
-static TaskDesc CapCaption_Data_80154508 = { { { TASK_BODY_NONE, 32 } }, CapCaption_CancelableTask, { .value = 0 } };
+static TaskDesc CapCaption_Data_80154508 = { { { TASK_BODY_NONE, 32 } }, _capCaptionCancelableTask, { .value = 0 } };
 
 static CapCaptionScheduleWindow CapCaption_Data_80154514[13] = {
     { 300, 295, 16, 5 },

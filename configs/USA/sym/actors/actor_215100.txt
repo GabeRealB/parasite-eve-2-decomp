@@ -388,7 +388,7 @@ D_mist_shooting_gallery_8018E0C4 = 0x8018E0C4; // absolute:True owner=mist_shoot
 mistShootingGalleryPrepareTrainingLoadout = 0x8017DCAC; // type:func absolute:True owner=mist_shooting_gallery
 
 mistShootingGalleryOpenWeaponMenu = 0x8017F95C; // type:func absolute:True owner=mist_shooting_gallery
-CapCaption_RunSchedule = 0x8014AFAC; // type:func
+_capCaptionRunSchedule = 0x8014AFAC; // type:func
 actor215100CapCaptionDrawCurrent = 0x8014B0D4; // type:func
 _capCaptionRelocateFile = 0x8014B1B0; // type:func
 actor215100CapCaptionSelectRecord = 0x8014B2B8; // type:func
@@ -400,9 +400,9 @@ _capCaptionGetTextLineLeftX = 0x8014C17C; // type:func
 _capCaptionGetTextBlockHeight = 0x8014C298; // type:func
 _capCaptionGetTextLineAdvance = 0x8014C360; // type:func
 _capCaptionFindRecordByKey = 0x8014C418; // type:func
-CapCaption_TimedTask = 0x8014C46C; // type:func
-CapCaption_CancelableTask = 0x8014C4A8; // type:func
-CapCaption_ShowModal = 0x8014C58C; // type:func
+_capCaptionTimedTask = 0x8014C46C; // type:func
+_capCaptionCancelableTask = 0x8014C4A8; // type:func
+_capCaptionShowModal = 0x8014C58C; // type:func
 _pacedWalkUpdate = 0x8014C874; // type:func
 _pacedWalkTickAnim = 0x8014CBB8; // type:func
 _pacedWalkResetAnim = 0x8014CC04; // type:func

@@ -2554,7 +2554,7 @@ static const TaskFuncTable18 D_actor_400600_80131EEC = { {
     _actor400600RunCeilingLeap,
     _actor400600RunCeilingDrop,
     _actor400600RunCeilingFall,
-    stalkerZebraIvoryRunSubStates,
+    _stalkerZebraIvoryRunSubStates,
     _actor400600RunCeilingExit,
     _actor400600RunHiddenIdle,
 } };

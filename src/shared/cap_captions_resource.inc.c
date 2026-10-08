@@ -1,9 +1,16 @@
 /* Continue cap_captions.inc.c after the preceding overlay wrappers. */
 
-static void CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2)
+/// Selects a keyed caption at baseline 208 and queues a cancellable mode task.
+///
+/// Requires a loaded relocated CAP file with a valid command and key 0..255;
+/// its storage and textures remain live through the queued mode. The signed
+/// duration counts ticks after the mode task's initial arming tick. Cancel or
+/// expiry requests mode exit with reload entry behavior. Selection is shared
+/// per carrier and remains selected if queueing cannot start the mode.
+static void _capCaptionShowModal(s16 commandIndex, s16 key, s16 durationTicks)
 {
-    CAP_CAPTION_SELECT_RECORD(arg0, arg1, 0xD0);
-    displayQueueModeTask(&CapCaption_Data_80154508, arg2, 0, STAGE_ENTRY_RELOAD);
+    CAP_CAPTION_SELECT_RECORD(commandIndex, key, CAP_CAPTION_DEFAULT_BOTTOM_BASELINE_Y);
+    displayQueueModeTask(&CapCaption_Data_80154508, durationTicks, 0, STAGE_ENTRY_RELOAD);
 }
 
 /// Selects a loaded CAP data payload and its font texture-page origin.

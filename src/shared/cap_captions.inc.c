@@ -42,7 +42,8 @@ enum {
 enum { CAP_CAPTION_CARET_PULSE_MIN = 8,
        CAP_CAPTION_CARET_PULSE_MAX = 15 };
 
-static void CapCaption_RunSchedule(Task* task);
+// Screen-pixel baseline shared by timed and modal caption selection.
+enum { CAP_CAPTION_DEFAULT_BOTTOM_BASELINE_Y = 208 };
 
 static bool _capCaptionRelocateFile(CapFile* file);
 static s32  _capCaptionDrawText(const u16* textStream, s32 unusedDrawArg, s32 unusedRevealAll, s32 titleIndex);
@@ -53,40 +54,43 @@ static s16  _capCaptionGetTextLineLeftX(const u16* text, s32 selectedLineIndex);
 static s16  _capCaptionGetTextBlockHeight(const u16* text);
 static s32  _capCaptionGetTextLineAdvance(const u16* text);
 static s32  _capCaptionFindRecordByKey(s32 recordIndex);
-static void CapCaption_TimedTask(Task* task);
-static void CapCaption_CancelableTask(Task* task);
-static void CapCaption_ShowModal(s16 arg0, s16 arg1, s16 arg2);
+static void _capCaptionShowModal(s16 commandIndex, s16 key, s16 durationTicks);
 
 /// Plays scheduled captions as the scene clock counts down.
 ///
-/// Schedule bounds use units of 30 scene-clock frames. The task's `spawnArg1`
-/// supplies the per-line delay in frames. The first containing window supplies
-/// both the script and its line key.
-static void CapCaption_RunSchedule(Task* task)
+/// Requires the carrier's terminated schedule and a loaded CAP resource with
+/// its referenced command/key pairs. Bounds use units of 30 scene-clock frames;
+/// the first containing window selects a command and variant key. The low
+/// signed halfword of `spawnArg1` is the caption's bottom baseline in screen
+/// pixels, normally 208. State 0 only arms playback; state 1 reselects each tick.
+/// The scene clock decrements with halfword wrap only while CAP is idle and
+/// actors are running. The task owns no caption storage and does not end itself.
+static void _capCaptionRunSchedule(Task* task)
 {
-    s32 i;
-    s32 script;
+    enum { CAP_CAPTION_SCHEDULE_NO_COMMAND = 0 };
+    s32 windowIndex;
+    s32 commandIndex;
     s32 key;
-    s32 time;
+    s32 sceneFrames;
 
     switch (task->state) {
         case CAP_CAPTION_SCHEDULE_INIT:
             task->state = CAP_CAPTION_SCHEDULE_RUNNING;
             break;
         case CAP_CAPTION_SCHEDULE_RUNNING:
-            script = 0;
-            // A selected window always supplies its key before script playback.
-            for (i = 0; CapCaption_Data_80154514[i].upper != CAP_CAPTION_SCHEDULE_END; i++) {
-                time = gGameSession->sceneClock;
-                if ((CapCaption_Data_80154514[i].upper * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT >= time) &&
-                    (CapCaption_Data_80154514[i].lower * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT < time)) {
-                    script = CapCaption_Data_80154514[i].commandIndex;
-                    key    = CapCaption_Data_80154514[i].key;
+            commandIndex = CAP_CAPTION_SCHEDULE_NO_COMMAND;
+            // A containing window supplies both values before selection.
+            for (windowIndex = 0; CapCaption_Data_80154514[windowIndex].upper != CAP_CAPTION_SCHEDULE_END; windowIndex++) {
+                sceneFrames = gGameSession->sceneClock;
+                if ((CapCaption_Data_80154514[windowIndex].upper * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT >= sceneFrames) &&
+                    (CapCaption_Data_80154514[windowIndex].lower * CAP_CAPTION_SCHEDULE_FRAMES_PER_UNIT < sceneFrames)) {
+                    commandIndex = CapCaption_Data_80154514[windowIndex].commandIndex;
+                    key          = CapCaption_Data_80154514[windowIndex].key;
                     break;
                 }
             }
-            if (script != 0) {
-                CAP_CAPTION_SELECT_RECORD(script, key, (s16)task->spawnArg1.value);
+            if (commandIndex != CAP_CAPTION_SCHEDULE_NO_COMMAND) {
+                CAP_CAPTION_SELECT_RECORD(commandIndex, key, (s16)task->spawnArg1.value);
                 CAP_CAPTION_DRAW_CURRENT();
             }
             if ((capIsBusy() == 0) && (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING)) {
@@ -740,7 +744,12 @@ static s32 _capCaptionFindRecordByKey(s32 recordIndex)
     return recordIndex;
 }
 
-static void CapCaption_TimedTask(Task* task)
+/// Draws the selected caption while counting down the first spawn argument.
+///
+/// `spawnArg1.value` is a signed count of task ticks, decremented before the
+/// test. A nonpositive result kills the task; that tick still queues the caption.
+/// Requires the carrier's selected CAP state and its storage to remain loaded.
+static void _capCaptionTimedTask(Task* task)
 {
     s32 remaining;
 
@@ -752,17 +761,25 @@ static void CapCaption_TimedTask(Task* task)
     CAP_CAPTION_DRAW_CURRENT();
 }
 
-static void CapCaption_CancelableTask(Task* task)
+/// Holds a mode-task caption until its countdown expires or cancel is pressed.
+///
+/// The first tick arms state 1 without decrementing `spawnArg1.value`; following
+/// ticks consume its signed duration and query port zero's pressed cancel mask.
+/// Completion kills the task and requests mode exit, then still queues the
+/// caption on that tick. Requires loaded selected CAP state through mode exit.
+static void _capCaptionCancelableTask(Task* task)
 {
+    enum { CAP_CAPTION_MODAL_INIT = 0,
+           CAP_CAPTION_MODAL_WAIT = 1 };
     s32 remaining;
     s32 state;
 
     state = task->state;
     switch (state) {
-        case 0:
-            task->state = 1;
+        case CAP_CAPTION_MODAL_INIT:
+            task->state = CAP_CAPTION_MODAL_WAIT;
             break;
-        case 1:
+        case CAP_CAPTION_MODAL_WAIT:
             remaining             = task->spawnArg1.value - 1;
             task->spawnArg1.value = remaining;
             if ((remaining <= 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0)) {
@@ -774,8 +791,16 @@ static void CapCaption_CancelableTask(Task* task)
     CAP_CAPTION_DRAW_CURRENT();
 }
 
-static inline void CapCaption_ShowTimed(s16 arg0, s16 arg1, s16 arg2)
+/// Selects a keyed caption at baseline 208 and spawns its timed drawing task.
+///
+/// Requires a relocated CAP file with a valid command index and nonterminal key
+/// 0..255. The file and font textures stay loaded for the spawned task. Duration
+/// counts task ticks; zero or negative values end on its first tick, which still
+/// draws. Selection is shared per carrier, so later selections replace its text.
+/// The task owns no CAP storage; a failed spawn leaves the selection in place.
+static inline void _capCaptionShowTimed(s16 commandIndex, s16 key, s16 durationTicks)
 {
-    CAP_CAPTION_SELECT_RECORD(arg0, arg1, 0xD0);
-    taskSpawnFromTable(&CapCaption_Data_801544FC, 0, (s32)(arg2), 0);
+    CAP_CAPTION_SELECT_RECORD(commandIndex, key, CAP_CAPTION_DEFAULT_BOTTOM_BASELINE_Y);
+    // Widen to the signed word member of the transparent spawn-argument union.
+    taskSpawnFromTable(&CapCaption_Data_801544FC, 0, (s32)durationTicks, 0);
 }

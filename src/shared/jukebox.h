@@ -21,7 +21,7 @@
 
 #include "main/task_types.h"
 
-void jukeboxHostTask(Task* task);
+static void _jukeboxHostTask(Task* task);
 
 static void _jukeboxDrawRow(UiList* list, UiObject* object);
 

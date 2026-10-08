@@ -177,6 +177,8 @@ void func_shelter_b3_garbage_incinerator_8017F968(void);
 #define CAP_CAPTION_CARET_DRAWS_LEFT (CapCaption_Data_8015E66C[0])
 #include "../../shared/cap_captions.h"
 
+static void _capCaptionRunSchedule(Task* task);
+
 /// Progress of the burn scene, held in `_ShelterB3GarbageIncineratorBlazeWork::sceneState`.
 enum {
     SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_START   = 0, // Not started; the next update installs the clips and the event script
@@ -227,7 +229,7 @@ static s32 _shelterB3GarbageIncineratorAdvanceBlazeAnimation(Task* task);
 /// Main-executable global with no module header yet: the base animation-set
 /// id, whose alternate range `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId` selects when it is 1.
 
-/// Caption schedule scanned by `func_shelter_b3_garbage_incinerator_8017FA58`.
+/// Caption schedule scanned by `_capCaptionRunSchedule`.
 static CapCaptionScheduleWindow CapCaption_Data_80154514[];
 
 static TaskDesc CapCaption_Data_801544FC;
@@ -435,10 +437,8 @@ TaskDesc D_shelter_b3_garbage_incinerator_80187150[4] = {
 
 #include "../../shared/cap_captions_settings.inc.c"
 
-static void CapCaption_RunSchedule(Task* task);
-
 static TaskDesc D_shelter_b3_garbage_incinerator_80187184[1] = {
-    { { { TASK_BODY_NONE, 32 } }, CapCaption_RunSchedule, { .value = 0 } }
+    { { { TASK_BODY_NONE, 32 } }, _capCaptionRunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/cap_captions_schedule.inc.c"
@@ -1270,7 +1270,7 @@ static void _shelterB3GarbageIncineratorKillPlayerInBlaze(void)
 
 void func_shelter_b3_garbage_incinerator_80180FE4(s16 arg0, s16 arg1, s16 arg2)
 {
-    CapCaption_ShowTimed(arg0, arg1, arg2);
+    _capCaptionShowTimed(arg0, arg1, arg2);
 }
 
 #include "../../shared/cap_captions_resource.inc.c"

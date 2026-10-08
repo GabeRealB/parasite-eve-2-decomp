@@ -3771,7 +3771,7 @@ static const EnemyTaskFuncTable5 gGluttonGlobStates = {
     {
         _gluttonGlobSpawn,
         _gluttonGlobFall,
-        gluttonGlobEngulf,
+        _gluttonGlobEngulf,
         _gluttonGlobHold,
         enemyDestroy,
     },
@@ -3823,7 +3823,7 @@ static const EnemyTaskFuncTable4 gGluttonSpinnerStates = {
     {
         _gluttonSpinnerSpawn,
         _gluttonSpinnerWait,
-        gluttonSpinnerChase,
+        _gluttonSpinnerChase,
         enemyDestroy,
     },
 };

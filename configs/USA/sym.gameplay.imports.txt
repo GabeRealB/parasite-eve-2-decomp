@@ -1318,7 +1318,7 @@ shelterB6CorridorPlayerHitGlowTask = 0x8017ECA8; // type:func absolute:True owne
 
 shelterB6GrowthRoomAmbientEffectsTask = 0x8017D9D8; // type:func absolute:True owner=shelter_b6_growth_room
 
-shelterB6GrowthRoomMistTask = 0x8017E564; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
+shelterB6GrowthRoomMistTask = 0x8017E564; // type:func absolute:True owner=shelter_b6_growth_room
 
 shelterB6GrowthRoomDriftPuffTask = 0x8017EAC8; // type:func absolute:True owner=shelter_b6_growth_room
 

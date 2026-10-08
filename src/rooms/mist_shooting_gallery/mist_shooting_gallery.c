@@ -844,7 +844,7 @@ UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1,
 
 UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, _mistShootingGalleryJukeboxPanelTask, 0 };
 
-TaskDesc D_mist_shooting_gallery_80185378 = { { { TASK_BODY_NONE, 192 } }, jukeboxHostTask, { .value = 0 } };
+TaskDesc D_mist_shooting_gallery_80185378 = { { { TASK_BODY_NONE, 192 } }, _jukeboxHostTask, { .value = 0 } };
 
 TaskDesc D_mist_shooting_gallery_80185384[3] = {
     { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryMovieSessionTask, { .value = 0 } },

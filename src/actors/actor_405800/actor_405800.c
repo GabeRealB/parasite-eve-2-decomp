@@ -1951,7 +1951,7 @@ static const TaskFuncTable18 D_actor_405800_80131E64 = {
         func_actor_405800_80137F58,
         func_actor_405800_80137FCC,
         func_actor_405800_80138040,
-        stalkerZebraIvoryRunSubStates,
+        _stalkerZebraIvoryRunSubStates,
         func_actor_405800_80138154,
         func_actor_405800_801381BC,
     },
@@ -2015,7 +2015,7 @@ static const TaskFuncTable4 D_actor_405800_80131EF4 = {
     },
 };
 
-/// Sub-state handlers of `stalkerZebraIvoryRunSubStates`, by `subState`.
+/// Sub-state handlers of `_stalkerZebraIvoryRunSubStates`, by `subState`.
 static const TaskFuncTable3 gStalkerZebraIvorySubStates = {
     {
         _actor405800StartKnockdownRecoil,

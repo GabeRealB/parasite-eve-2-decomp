@@ -500,7 +500,7 @@ enum {
     /// starts the body-fire child).
     SOUND_SHELTER_B3_DUMPING_HOLE_BLAZE = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 5),
     /// Played when the blaze encounter controller starts, alongside its caption
-    /// schedule (CapCaption_RunSchedule 0xD0).
+    /// schedule (_capCaptionRunSchedule 0xD0).
     SOUND_SHELTER_B3_DUMPING_HOLE_ALERT = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 7),
     /// Played by Gp_ItemPickupTilt in this room as the item container's lid tilts open.
     SOUND_SHELTER_B3_DUMPING_HOLE_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 8),

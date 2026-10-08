@@ -2156,7 +2156,7 @@ AnimationSet* D_actor_460200_8015153C[17] = {
 /// The scene's negative freeze-frame (see screen_negative.h).
 void func_actor_460200_80131E24(Task* task)
 {
-    screenNegativeCaptureTask(task);
+    _screenNegativeCaptureTask(task);
 }
 
 #include "../../shared/screen_negative_filter.inc.c"

@@ -185,6 +185,8 @@ extern SVECTOR D_shelter_b3_dumping_hole_8018B86C[44];
 static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2);
 #include "../../shared/cap_captions.h"
 
+static void _capCaptionRunSchedule(Task* task);
+
 extern u16 D_shelter_b3_dumping_hole_8018F4D4;
 
 static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage;
@@ -1073,10 +1075,8 @@ EvsCommand D_shelter_b3_dumping_hole_8018B428[14] = {
 
 #include "../../shared/cap_captions_settings.inc.c"
 
-static void CapCaption_RunSchedule(Task* task);
-
 TaskDesc D_shelter_b3_dumping_hole_8018B57C[1] = {
-    { { { TASK_BODY_NONE, 32 } }, CapCaption_RunSchedule, { .value = 0 } }
+    { { { TASK_BODY_NONE, 32 } }, _capCaptionRunSchedule, { .value = 0 } }
 };
 
 #include "../../shared/cap_captions_schedule.inc.c"
@@ -4107,7 +4107,7 @@ static void _shelterB3DumpingHoleRequestPlayerSpriteStop(s32 selector)
 
 static void func_shelter_b3_dumping_hole_801830F0(s16 arg0, s16 arg1, s16 arg2)
 {
-    CapCaption_ShowTimed(arg0, arg1, arg2);
+    _capCaptionShowTimed(arg0, arg1, arg2);
 }
 
 #include "../../shared/cap_captions_resource.inc.c"

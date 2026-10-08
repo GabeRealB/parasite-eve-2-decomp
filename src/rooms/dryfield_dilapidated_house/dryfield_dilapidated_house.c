@@ -2559,7 +2559,7 @@ extern GfxCoord D_dryfield_dilapidated_house_8018A060[8];
 /// The scene's negative freeze-frame (see screen_negative.h).
 void func_dryfield_dilapidated_house_8017DE88(Task* task)
 {
-    screenNegativeCaptureTask(task);
+    _screenNegativeCaptureTask(task);
 }
 
 /// State handlers of the room task, indexed by `Task::state`: set-up, the room

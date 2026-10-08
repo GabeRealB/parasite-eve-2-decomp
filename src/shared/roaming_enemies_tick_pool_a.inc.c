@@ -1,6 +1,10 @@
 /* Part of the roaming enemies library; see roaming_enemies.h. */
 
-/// Counts signed-positive reserve HP without changing the five banked slots.
+/// Returns the number of living reserve enemies across all five banked slots.
+///
+/// The u16 storage is tested as signed HP: zero and negative halfwords do not
+/// count. Scans the complete bank regardless of the active reserve count and
+/// returns 0..5 without consuming a slot.
 static __inline__ s16 _roamerCountReserveSlots(void)
 {
     s16 count;
@@ -8,14 +12,14 @@ static __inline__ s16 _roamerCountReserveSlots(void)
 
     count = 0;
     for (slot = 0; slot < ARRAY_SIZE(gRoamerReserveHp); slot++) {
-        if (((s16*)gRoamerReserveHp)[slot] > 0) {
+        if ((s16)gRoamerReserveHp[slot] > 0) {
             count++;
         }
     }
     return count;
 }
 
-/// Places a revived actor at the pending pool-A point, retaining each task lookup.
+/// Places a revived pool-A actor at the requested room spawn point.
 ///
 /// actorIndex is 0..1 and its placed actor/model must remain live. The selector
 /// is one-based (forest 1..5, woodland 1..6). Position is in the root's parent

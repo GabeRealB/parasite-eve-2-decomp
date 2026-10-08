@@ -104,7 +104,7 @@ static s32  _stalkerZebraIvoryWallDistance(Task* task);
 static void _stalkerZebraIvoryPinPartXZ(Task* task, s16 partIndex, const SVECTOR3* anchorPosition);
 static void _stalkerZebraIvoryFinishCeilingFall(Task* task);
 static void _stalkerZebraIvoryReleaseHold(Task* task);
-void        stalkerZebraIvoryRunSubStates(Task* arg0);
+static void _stalkerZebraIvoryRunSubStates(Task* task);
 static void _stalkerZebraIvoryApplyRoomCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static void _stalkerZebraIvoryRestartClip(Task* task);
 static void _stalkerZebraIvoryStartDeathClip(Task* task);
