@@ -106,3 +106,4 @@ _gActor146000Animation033B4 = 0x801351D4; // size:0x28 defined:True
 D_actor_146000_801351FC = 0x801351FC; // size:0xC defined:True
 
 D_dryfield_night_water_hole_80183618 = 0x80183618; // absolute:True owner=dryfield_night_water_hole
+_actor146000WaterHoleSceneTask = 0x80131e24; // type:func

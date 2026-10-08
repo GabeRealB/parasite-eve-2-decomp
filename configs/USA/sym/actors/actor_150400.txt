@@ -69,3 +69,5 @@ _actor150400IgnorePairWalkCommand = 0x801327ec; // type:func
 _actor150400PairWalkSetWalkTarget = 0x801327f4; // type:func
 _actor150400SetSlidingModelState = 0x80131f9c; // type:func
 _actor150400DestroyPairWalker = 0x801324b8; // type:func
+actor150400SpawnSlidingModels = 0x80131fb8; // type:func
+_actor150400PairWalkSpawn = 0x80132014; // type:func

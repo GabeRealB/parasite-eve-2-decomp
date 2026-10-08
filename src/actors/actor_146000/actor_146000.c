@@ -54,7 +54,7 @@ static AnimationSet _gActor146000Animation0294C;
 static AnimationSet _gActor146000Animation02C20;
 static AnimationSet _gActor146000Animation02E40;
 static AnimationSet _gActor146000Animation033B4;
-void                func_actor_146000_80131E24(Task*);
+static void         _actor146000WaterHoleSceneTask(Task* task);
 
 static AnimationPackedPose _gActor146000Animation00504Bank1[6] = {
 #include "assets/actor_146000_animation_00504_bank1.inc"
@@ -389,7 +389,7 @@ static AnimationSet _gActor146000Animation033B4 = {
 // The stored handler has the two-argument enemy shape, not a `TaskFunc`'s.
 TaskDesc D_actor_146000_801351FC = { { { TASK_BODY_NONE, 192 } }, (TaskFunc)enemyDestroy, { .value = 0 } };
 
-TaskDesc D_actor_146000_80135208 = { { { TASK_BODY_NONE, 32 } }, func_actor_146000_80131E24, { .value = 0 } };
+TaskDesc D_actor_146000_80135208 = { { { TASK_BODY_NONE, 32 } }, _actor146000WaterHoleSceneTask, { .value = 0 } };
 
 /// Companion clips for extended ids 47-53.
 ///
@@ -581,39 +581,56 @@ EvsCommand D_actor_146000_80135BD8[16] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-void func_actor_146000_80131E24(Task* arg0)
+/// Runs the water-hole scene variant and reloads the night driveway on completion.
+///
+/// Starts the skippable script selected by the burner-defeated flag, preserving
+/// the HUD for the pre-burner variant and selecting saved warp 2 or 4. Waits for
+/// event state 2, stops nonambient sound, applies the room’s saved updates and
+/// requests reload to night driveway room 2. Begin at task state 0 with both
+/// overlays and scene resources live. This workless task kills itself at handoff.
+static void _actor146000WaterHoleSceneTask(Task* task)
 {
-    s32 state;
-    s8  session;
+    enum {
+        ACTOR_146000_SCENE_START                     = 0,
+        ACTOR_146000_SCENE_WAIT                      = 1,
+        ACTOR_146000_SCENE_RELOAD                    = 2,
+        ACTOR_146000_EVENT_FINISHED                  = 2,
+        ACTOR_146000_COMPANION_SCHEDULE_AFTER_BURNER = 7,
+        ACTOR_146000_WARP_AFTER_BURNER               = 4,
+        ACTOR_146000_WARP_BEFORE_BURNER              = 2,
+    };
 
-    state = arg0->state;
+    s32 state;
+    s8  eventState;
+
+    state = task->state;
     switch (state) {
-        case 0:
+        case ACTOR_146000_SCENE_START:
             if (gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) != 0) {
                 evsStartScriptWithSkip(D_actor_146000_80135980, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_146000_80135BD8);
-                gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 7);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 4;
+                gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, ACTOR_146000_COMPANION_SCHEDULE_AFTER_BURNER);
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_146000_WARP_AFTER_BURNER;
             } else {
                 evsStartScriptWithSkip(D_actor_146000_80135428, EVENT_SCRIPT_HUD_KEEP, D_actor_146000_80135BD8);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_146000_WARP_BEFORE_BURNER;
             }
-            arg0->state++;
+            task->state++;
             return;
-        case 1:
-            session = gGameSession->eventState;
-            if (session == 2) {
-                arg0->state = session;
+        case ACTOR_146000_SCENE_WAIT:
+            eventState = gGameSession->eventState;
+            if (eventState == ACTOR_146000_EVENT_FINISHED) {
+                task->state = eventState;
             }
             return;
-        case 2:
+        case ACTOR_146000_SCENE_RELOAD:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
             areaApplySavedUpdates(D_dryfield_night_water_hole_80183618);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x19;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_DRYFIELD_NIGHT_DRIVEWAY;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = state;
             gDisplayState.spriteVariant                                = 1;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }

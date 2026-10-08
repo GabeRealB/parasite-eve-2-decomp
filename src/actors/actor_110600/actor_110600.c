@@ -1061,9 +1061,7 @@ extern AnimationSet* D_actor_110600_8014850C[];
 
 extern TaskMessageEntry D_actor_110600_80148624[7];
 
-/// Per-frame step the tick hands off to once the `hitCooldown` countdown reaches
-/// zero.
-static void func_actor_110600_80136210(Task* arg0);
+static void _actor110600ApplyDamage(Task* task);
 
 static void            _actor110600LayPatrolNodes(BossStrangerWalker* walker, s16 radius, s16 nodeYawStep);
 static __inline__ void _actor110600RescaleRootYaw(Task* task, s16 uniformScale);
@@ -2425,27 +2423,59 @@ static __inline__ s32 _actor110600FindAttackContact(SVECTOR* hitPoint, const Wor
     return 0;
 }
 
-static void func_actor_110600_80136210(Task* arg0)
+/// Credits Life Drain, subtracts narrowed HP and posts the attack's damage readout.
+///
+/// Requires a live enemy and populated, caller-owned scratch hit key/damage.
+/// HP arithmetic deliberately narrows both operands to unsigned halfwords.
+static inline void _actor110600AccountAttackDamage(Enemy* enemy, const _Actor110600HitScratch* hit)
 {
+    damageAccumulateLifeDrainHp(enemy, hit->hitKey, hit->damage, 0);
+    enemy->hp = (u16)enemy->hp - (u16)hit->damage;
+    worldTargetAddReadoutAmount(&enemy->node, hit->damage, 0);
+}
+
+/// Applies player attack contacts and ongoing damage to the Stranger enemy.
+///
+/// Requires live actor work/model/enemy, current contact arrays, player state and
+/// scratch/GTE state. Takes the first attack among five hit contacts, falling back
+/// to twelve grid contacts. Updates HP, drain/readouts, reactions and hit cooldown;
+/// with a dead player it only disables the attack body. HP subtraction retains
+/// its unsigned-halfword narrowing. Scratch storage is released before returning.
+static void _actor110600ApplyDamage(Task* task)
+{
+    // These attribute codes select local behavior; their shared meanings are unproven.
+    enum {
+        ACTOR_110600_REACTION_RESET_BLEND_4         = 4,
+        ACTOR_110600_REACTION_RESET_BLEND_5         = 5,
+        ACTOR_110600_REACTION_IGNORE_8              = 8,
+        ACTOR_110600_REACTION_IGNORE_9              = 9,
+        ACTOR_110600_REACTION_ATTRIBUTE_MASK        = 0xFFFF,
+        ACTOR_110600_RETAINED_YAW_DAMAGE_MULTIPLIER = 2,
+        ACTOR_110600_HIT_BODY_PART                  = 2,
+        ACTOR_110600_CRITICAL_DAMAGE_MULTIPLIER     = 5,
+        ACTOR_110600_RETAINED_YAW_BONUS_THRESHOLD   = 1281,
+        ACTOR_110600_ANIM_HIT_REACTION              = 11,
+    };
+
     _Actor110600Work*       work;
     Enemy*                  enemy;
     GfxCoord*               facing;
-    s16                     angle;
-    s16                     dz;
-    s16                     state;
-    s32                     magnitude;
-    s32                     yaw;
-    s32                     x;
-    s32                     y;
-    s32                     z;
-    s32                     distance;
-    s32                     pan;
-    u32                     kind;
+    s16                     relativeHitYaw;
+    s16                     hitOffsetZ;
+    s16                     priorState;
+    s32                     retainedYawMagnitude;
+    s32                     hitBearing;
+    s32                     playerOffsetX;
+    s32                     playerOffsetY;
+    s32                     playerOffsetZ;
+    s32                     playerDistance;
+    s32                     audioPan;
+    u32                     reaction;
     _Actor110600HitScratch* scratch;
     PlayerStatus*           player;
 
-    enemy  = arg0->spawnArg2.pointer;
-    work   = arg0->work;
+    enemy  = task->spawnArg2.pointer;
+    work   = task->work;
     player = &gPlayerStatus;
     if (player->hp <= 0) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -2457,48 +2487,49 @@ static void func_actor_110600_80136210(Task* arg0)
         scratch->hitKey = _actor110600FindAttackContact(&scratch->hitPos, work->gridContacts, ARRAY_SIZE(work->gridContacts));
     }
     if (scratch->hitKey) {
-        state = work->state;
-        if ((state == ACTOR_110600_STATE_PATROL) || (state == ACTOR_110600_STATE_IDLE) || (state == ACTOR_110600_STATE_LURK)) {
+        priorState = work->state;
+        if ((priorState == ACTOR_110600_STATE_PATROL) || (priorState == ACTOR_110600_STATE_IDLE) || (priorState == ACTOR_110600_STATE_LURK)) {
             work->state = ACTOR_110600_STATE_ALERT;
         }
-        x                       = player->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-        scratch->toPlayer.vx    = x;
-        y                       = player->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-        scratch->toPlayer.vy    = y;
-        z                       = player->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-        scratch->toPlayer.vz    = z;
-        distance                = SquareRoot0((x * x) + (y * y) + (z * z));
-        scratch->playerDistance = distance;
-        scratch->damage         = damageComputePlayerAttack(scratch->hitKey, distance, 0, 0);
+        playerOffsetX           = player->coordMtx->t[0] - task->extra.tmd->coords->coord.t[0];
+        scratch->toPlayer.vx    = playerOffsetX;
+        playerOffsetY           = player->coordMtx->t[1] - task->extra.tmd->coords->coord.t[1];
+        scratch->toPlayer.vy    = playerOffsetY;
+        playerOffsetZ           = player->coordMtx->t[2] - task->extra.tmd->coords->coord.t[2];
+        scratch->toPlayer.vz    = playerOffsetZ;
+        playerDistance          = SquareRoot0((playerOffsetX * playerOffsetX) + (playerOffsetY * playerOffsetY) + (playerOffsetZ * playerOffsetZ));
+        scratch->playerDistance = playerDistance;
+        scratch->damage         = damageComputePlayerAttack(scratch->hitKey, playerDistance, 0, 0);
         if (damageRollCriticalHit(enemy, scratch->hitKey, 0) != 0) {
-            scratch->damage *= 5;
-            effectSpawn(EFFECT_CRITICAL_HIT, arg0->extra.tmd->coords + 2, 0, NULL);
+            scratch->damage *= ACTOR_110600_CRITICAL_DAMAGE_MULTIPLIER;
+            effectSpawn(EFFECT_CRITICAL_HIT, task->extra.tmd->coords + ACTOR_110600_HIT_BODY_PART, 0, NULL);
         }
-        magnitude = scratch->hitYaw;
-        if (magnitude < 0) {
-            magnitude = -magnitude;
+        // Retained behavior: the bonus reads old scratch bytes before this hit
+        // writes hitYaw below. Their source is unproven, not necessarily a prior hit.
+        retainedYawMagnitude = scratch->hitYaw;
+        if (retainedYawMagnitude < 0) {
+            retainedYawMagnitude = -retainedYawMagnitude;
         }
-        if (magnitude >= 0x501) {
-            scratch->damage *= 2;
+        if (retainedYawMagnitude >= ACTOR_110600_RETAINED_YAW_BONUS_THRESHOLD) {
+            scratch->damage *= ACTOR_110600_RETAINED_YAW_DAMAGE_MULTIPLIER;
         }
         if (work->enraged == 1) {
             scratch->damage >>= 1;
         }
-        damageAccumulateLifeDrainHp(enemy, scratch->hitKey, scratch->damage, 0);
-        enemy->hp = (u16)enemy->hp - (u16)scratch->damage;
-        worldTargetAddReadoutAmount(&enemy->node, scratch->damage, 0);
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(arg0->extra.tmd->coords);
-        scratch->hitOffset.vx = (s16)(scratch->hitPos.vx - (u16)arg0->extra.tmd->coords->workm.t[0]);
-        scratch->hitOffset.vy = (s16)(scratch->hitPos.vy - (u16)arg0->extra.tmd->coords->workm.t[1]);
-        dz                    = scratch->hitPos.vz - (u16)arg0->extra.tmd->coords->workm.t[2];
-        scratch->hitOffset.vz = dz;
-        yaw                   = ratan2(scratch->hitOffset.vx, dz);
-        facing                = arg0->extra.tmd->coords;
-        angle                 = yaw - ratan2((s32)-facing->workm.m[2][0], (s32)facing->workm.m[2][2]);
-        scratch->hitYaw       = angle;
+        // Credit drain and record damage before composing the current hit bearing.
+        _actor110600AccountAttackDamage(enemy, scratch);
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(task->extra.tmd->coords);
+        scratch->hitOffset.vx = (s16)(scratch->hitPos.vx - (u16)task->extra.tmd->coords->workm.t[0]);
+        scratch->hitOffset.vy = (s16)(scratch->hitPos.vy - (u16)task->extra.tmd->coords->workm.t[1]);
+        hitOffsetZ            = scratch->hitPos.vz - (u16)task->extra.tmd->coords->workm.t[2];
+        scratch->hitOffset.vz = hitOffsetZ;
+        hitBearing            = ratan2(scratch->hitOffset.vx, hitOffsetZ);
+        facing                = task->extra.tmd->coords;
+        relativeHitYaw        = hitBearing - ratan2((s32)-facing->workm.m[2][0], (s32)facing->workm.m[2][2]);
+        scratch->hitYaw       = relativeHitYaw;
         scratch->hitYaw       = _actorAngleNormalizeYaw(scratch->hitYaw);
-        _actor110600SpawnHitEffect(arg0, scratch->hitYaw, scratch->hitKey);
+        _actor110600SpawnHitEffect(task, scratch->hitYaw, scratch->hitKey);
         work->lookYaw       = 0;
         work->lookYawTarget = 0;
         if ((work->enraged == 0) && (enemy->hp < (s32)((u16)D_actor_110600_80138F14.hpMax >> 1))) {
@@ -2510,29 +2541,29 @@ static void func_actor_110600_80136210(Task* arg0)
             work->hitBody.pos.vy    = 0;
             work->hitBody.pos.vz    = 0;
             work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            work->hitBody.coord     = arg0->extra.tmd->coords + 2;
+            work->hitBody.coord     = task->extra.tmd->coords + ACTOR_110600_HIT_BODY_PART;
             work->lookYaw           = 0;
             work->lookYawTarget     = 0;
             displaySetShakeY(0);
         } else {
-            pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            sndEvtRequestScriptStart(SOUND_STRANGER_HURT, (s32)pan, (s32)(s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+            audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(SOUND_STRANGER_HURT, (s32)audioPan, (s32)(s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         }
         work->hitCooldown = damageGetPlayerAttackHitCooldown(scratch->hitKey);
-        kind              = damageGetPlayerAttackReaction(scratch->hitKey) & 0xFFFF;
-        switch (kind) {
+        reaction          = damageGetPlayerAttackReaction(scratch->hitKey) & ACTOR_110600_REACTION_ATTRIBUTE_MASK;
+        switch (reaction) {
             case DAMAGE_PLAYER_REACTION_NONE:
-            case 4:
-            case 5:
+            case ACTOR_110600_REACTION_RESET_BLEND_4:
+            case ACTOR_110600_REACTION_RESET_BLEND_5:
             case DAMAGE_PLAYER_REACTION_EXPLOSION:
             case DAMAGE_PLAYER_REACTION_INCENDIARY:
                 work->blendActive  = 1;
-                work->blendAnimId  = 0xB;
+                work->blendAnimId  = ACTOR_110600_ANIM_HIT_REACTION;
                 work->blendRequest = ACTOR_110600_ANIM_REQUEST_RESET;
                 break;
             case DAMAGE_PLAYER_REACTION_STAGGER:
-            case 8:
-            case 9:
+            case ACTOR_110600_REACTION_IGNORE_8:
+            case ACTOR_110600_REACTION_IGNORE_9:
                 break;
             case DAMAGE_PLAYER_REACTION_BUILDUP:
                 damageStartEnemyBuildup(enemy, scratch->hitKey, 0);
@@ -2543,6 +2574,7 @@ static void func_actor_110600_80136210(Task* arg0)
                 break;
         }
     }
+    // Ongoing damage is accounted separately and may request the same hit clip.
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
         scratch->damage = damageTickEnemyDamageOverTime(enemy);
         if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
@@ -2553,7 +2585,7 @@ static void func_actor_110600_80136210(Task* arg0)
             worldTargetAddReadoutAmount(&enemy->node, scratch->damage, 0);
             if (work->state != ACTOR_110600_STATE_STATUS_HOLD) {
                 work->blendActive  = 1;
-                work->blendAnimId  = 0xB;
+                work->blendAnimId  = ACTOR_110600_ANIM_HIT_REACTION;
                 work->blendRequest = ACTOR_110600_ANIM_REQUEST_RESET;
             } else {
                 work->prevState = -1;
@@ -3425,7 +3457,7 @@ static void func_actor_110600_80137F2C(Enemy* arg0, Task* arg1)
         if (work->hitCooldown > 0) {
             work->hitCooldown = (s16)((u16)work->hitCooldown - 1);
         } else {
-            func_actor_110600_80136210(arg1);
+            _actor110600ApplyDamage(arg1);
         }
     }
     if ((arg0->hp <= 0) && (gPlayerStatus.hp <= 0)) {

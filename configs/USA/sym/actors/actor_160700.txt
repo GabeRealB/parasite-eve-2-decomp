@@ -293,3 +293,4 @@ _pacedWalkSetPairModelDraw = 0x8013265c; // type:func
 _actor160700IgnoreCommand = 0x80132738; // type:func
 _pacedWalkSubModelTask = 0x80132808; // type:func
 _actorRenderWalkerFrame = 0x80132390; // type:func
+_actor160700PacedWalkSpawn = 0x80131f70; // type:func

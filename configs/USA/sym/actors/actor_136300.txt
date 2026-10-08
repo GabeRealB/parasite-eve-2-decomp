@@ -279,3 +279,4 @@ _actor136300StartGarageMovie = 0x801328e0; // type:func
 _actor136300ControlScreenWave = 0x80132910; // type:func
 _actor136300StartGarageDialogue = 0x80132998; // type:func
 _actor136300PlayCompanionDialogueAnimation = 0x801329ec; // type:func
+_actor136300GarageDepartureTask = 0x8013267c; // type:func

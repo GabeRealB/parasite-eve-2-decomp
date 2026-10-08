@@ -92,7 +92,7 @@ static AnimationSet _gActor136300Animation036E8;
 static AnimationSet _gActor136300Animation039F8;
 static AnimationSet _gActor136300Animation04074;
 static AnimationSet _gActor136300Animation04658;
-void                func_actor_136300_8013267C(Task*);
+static void         _actor136300GarageDepartureTask(Task* task);
 void                func_actor_136300_80132854(Task*);
 
 extern AnimationPlayRequest D_actor_136300_8013B1CC;
@@ -1048,7 +1048,7 @@ static AnimationSet _gActor136300Animation092D4 = {
 // have the one-argument shape a task callback is called with.
 TaskDesc D_actor_136300_8013B11C = { { { TASK_BODY_NONE, 192 } }, (TaskFunc)enemyDestroy, { .value = 0 } };
 
-TaskDesc D_actor_136300_8013B128 = { { { TASK_BODY_NONE, 32 } }, func_actor_136300_8013267C, { .value = 0 } };
+TaskDesc D_actor_136300_8013B128 = { { { TASK_BODY_NONE, 32 } }, _actor136300GarageDepartureTask, { .value = 0 } };
 
 TaskDesc D_actor_136300_8013B134 = { { { TASK_BODY_NONE, 32 } }, func_actor_136300_80132854, { .value = 0 } };
 
@@ -1414,58 +1414,72 @@ ScreenWaveCtx D_actor_136300_8013C99C = { 0 };
 
 #include "../../shared/screen_wave.inc.c"
 
-/// State machine for the capture-event actor: arms the ending, waits for the
-/// capture key, then hands control to the boot loader and spawns the drop-in
-/// task. The two `evsStartScript` calls and the `arg0->state += 1` blocks are
-/// written out in every arm that needs them; jump optimization merges the
-/// identical tails, so one copy of the increment lands between case 3 and case
-/// 6 and one copy of the call lands after case 0. Hoisting either tail into a
-/// shared `goto` target compiles to a different allocation - the call's address
-/// then reaches `$a0` through `$v0` instead of being built there directly.
-void func_actor_136300_8013267C(Task* arg0)
+/// Runs the garage departure dialogue, movie and handoff to Mine Mesa.
+///
+/// Begin in state 0 with garage/actor overlays and scripts loaded. CAP choice 2
+/// cancels after dialogue and restores HUD/player control. Other choices start
+/// the movie, wait for event state to leave 1 and then wait two task updates
+/// before changing story/save state, consuming the truck key and requesting the
+/// Mine/Shelter reload. Completion and cancellation kill this workless task.
+static void _actor136300GarageDepartureTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum {
+        ACTOR_136300_DEPART_START              = 0,
+        ACTOR_136300_DEPART_WAIT_DIALOGUE      = 1,
+        ACTOR_136300_DEPART_CHOOSE             = 2,
+        ACTOR_136300_DEPART_WAIT_MOVIE         = 3,
+        ACTOR_136300_DEPART_DELAY_FIRST        = 4,
+        ACTOR_136300_DEPART_DELAY_SECOND       = 5,
+        ACTOR_136300_DEPART_RELOAD             = 6,
+        ACTOR_136300_DEPART_CANCEL_KEY         = 2,
+        ACTOR_136300_DEPART_STORY_CHAPTER      = 4,
+        ACTOR_136300_DEPART_DIALOGUE_INDEX     = 15,
+        ACTOR_136300_DEPART_COMPANION_SCHEDULE = 4,
+        ACTOR_136300_MESA_SCENE_EVENT          = 9,
+    };
+
+    switch (task->state) {
+        case ACTOR_136300_DEPART_START:
             gGameSession->hideHud = 1;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             evsStartScript(D_actor_136300_8013C5C8, EVENT_SCRIPT_HUD_KEEP);
-            arg0->state += 1;
+            task->state += 1;
             return;
-        case 1:
+        case ACTOR_136300_DEPART_WAIT_DIALOGUE:
             if (gGameSession->eventState == 0) {
-                arg0->state += 1;
+                task->state += 1;
             }
             return;
-        case 2:
-            if (capGetVariantKey() == 2) {
+        case ACTOR_136300_DEPART_CHOOSE:
+            if (capGetVariantKey() == ACTOR_136300_DEPART_CANCEL_KEY) {
                 gGameSession->hideHud = 0;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                taskKill(arg0);
+                taskKill(task);
                 return;
             }
             evsStartScript(D_actor_136300_8013C6C0, EVENT_SCRIPT_HUD_KEEP);
-            arg0->state += 1;
+            task->state += 1;
             return;
-        case 3:
+        case ACTOR_136300_DEPART_WAIT_MOVIE:
             if (gGameSession->eventState != 1) {
-                arg0->state += 1;
+                task->state += 1;
             }
             return;
-        case 4:
-        case 5:
-            arg0->state += 1;
+        case ACTOR_136300_DEPART_DELAY_FIRST:
+        case ACTOR_136300_DEPART_DELAY_SECOND:
+            task->state += 1;
             return;
-        case 6:
+        case ACTOR_136300_DEPART_RELOAD:
             SetDispMask(1);
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 4);
+            gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, ACTOR_136300_DEPART_STORY_CHAPTER);
             gameFlagSetNibble(GAME_FLAG_097, 0);
             gameFlagSetNibble(GAME_FLAG_098, 1);
             gameFlagSetNibble(GAME_FLAG_09A, 1);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0xF);
-            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 4);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 9;
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACTOR_136300_DEPART_DIALOGUE_INDEX);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, ACTOR_136300_DEPART_COMPANION_SCHEDULE);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = ACTOR_136300_MESA_SCENE_EVENT;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MINE_MESA;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
@@ -1474,7 +1488,7 @@ void func_actor_136300_8013267C(Task* arg0)
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_TRUCK_KEY);
             gDisplayState.spriteVariant = 1;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(arg0);
+            taskKill(task);
             return;
     }
 }

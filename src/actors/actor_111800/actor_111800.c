@@ -250,8 +250,8 @@ TaskDesc D_actor_111800_8013A468 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 
 static inline void _actor111800TickAnim(Task* task);
 static inline void _actor111800BlendBodyAnimation(Task* task, u16 animationId, u16 blendFrames);
-static void        func_actor_111800_8013214C(Task* task);
-static void        func_actor_111800_80132390(Task* task);
+static void        _actor111800RunSequence(Task* task);
+static void        _actor111800InitBody(Task* task);
 
 #include "../../shared/actor_contacts_turn_joint.inc.c"
 
@@ -298,52 +298,66 @@ static inline void _actor111800BlendBodyAnimation(Task* task, u16 animationId, u
     _ACTOR111800_BLEND_SLOTS(work, animationId, blendFrames);
 }
 
-/// Per-frame handler: ticks animation slots 1..0x12, latches `slots[1].currentPose.indices.recordIndex`
-/// into `slot1RecordIndex`, then runs the seven-step sequence in `sequenceStep` (reseed,
-/// ramp the two angles, wait, reverse the first angle, reseed again, wait,
-/// then drop the model coordinate's Z and clear its flag).
-static void func_actor_111800_8013214C(Task* task)
+/// Ticks the body animation and advances the staged Stranger sequence.
+///
+/// Requires initialized work and a live model. Steps blend clips, lower part 5
+/// in pitch/yaw, hold, swing its yaw, then depart along parent-frame negative Z
+/// by 150 units per update. Angles use 4096 units per turn; holds count updates.
+static void _actor111800RunSequence(Task* task)
 {
-    _Actor111800Work* work;
-    GfxCoord*         coord;
-    s32               flag1;
-    s32               flag2;
+    enum {
+        ACTOR_111800_SEQUENCE_START_CLIP = 0,
+        ACTOR_111800_DEPART_CLIP         = 2,
+        ACTOR_111800_START_BLEND_FRAMES  = 15,
+        ACTOR_111800_DEPART_BLEND_FRAMES = 10,
+        ACTOR_111800_LOWER_ANGLE_LIMIT   = -340,
+        ACTOR_111800_SWING_ANGLE_LIMIT   = 682,
+        ACTOR_111800_TURN_HOLD_UPDATES   = 31,
+        ACTOR_111800_SWING_HOLD_UPDATES  = 16,
+        ACTOR_111800_SET_WAIT_UPDATES    = 2,
+        ACTOR_111800_DEPART_STEP_UNITS   = 150,
+    };
 
-    work  = task->work;
-    coord = task->extra.tmd->coords;
+    _Actor111800Work* work;
+    GfxCoord*         rootCoord;
+    s32               yawLowered;
+    s32               pitchLowered;
+
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     _actor111800TickAnim(task);
     switch (work->sequenceStep) {
         case ACTOR_111800_STEP_START:
-            _actor111800BlendBodyAnimation(task, 0, 0xF);
+            _actor111800BlendBodyAnimation(task, ACTOR_111800_SEQUENCE_START_CLIP, ACTOR_111800_START_BLEND_FRAMES);
             work->stepFrames = 0;
             work->sequenceStep++;
             break;
         case ACTOR_111800_STEP_TURN:
-            flag1 = 0;
-            flag2 = 0;
-            if (work->part5Yaw >= -0x154) {
+            yawLowered   = 0;
+            pitchLowered = 0;
+            if (work->part5Yaw >= ACTOR_111800_LOWER_ANGLE_LIMIT) {
                 work->part5Yaw -= 0x10;
             } else {
-                flag1 = 1;
+                yawLowered = 1;
             }
-            if (work->part5Pitch >= -0x154) {
+            if (work->part5Pitch >= ACTOR_111800_LOWER_ANGLE_LIMIT) {
                 work->part5Pitch -= 0x10;
             } else {
-                flag2 = 1;
+                pitchLowered = 1;
             }
-            if (flag2 & flag1) {
+            if (pitchLowered & yawLowered) {
                 work->stepFrames = 0;
                 work->sequenceStep++;
             }
             break;
         case ACTOR_111800_STEP_TURN_HOLD:
             work->stepFrames++;
-            if (work->stepFrames >= 0x1F) {
+            if (work->stepFrames >= ACTOR_111800_TURN_HOLD_UPDATES) {
                 work->sequenceStep++;
             }
             break;
         case ACTOR_111800_STEP_SWING:
-            if (work->part5Yaw < 0x2AA) {
+            if (work->part5Yaw < ACTOR_111800_SWING_ANGLE_LIMIT) {
                 work->part5Yaw += 0x80;
             } else {
                 work->stepFrames = 0;
@@ -352,47 +366,69 @@ static void func_actor_111800_8013214C(Task* task)
             break;
         case ACTOR_111800_STEP_SWING_HOLD:
             work->stepFrames++;
-            if (work->stepFrames >= 0x10) {
-                _actor111800BlendBodyAnimation(task, 2, 0xA);
+            if (work->stepFrames >= ACTOR_111800_SWING_HOLD_UPDATES) {
+                _actor111800BlendBodyAnimation(task, ACTOR_111800_DEPART_CLIP, ACTOR_111800_DEPART_BLEND_FRAMES);
                 work->stepFrames = 0;
                 work->sequenceStep++;
             }
             break;
         case ACTOR_111800_STEP_SET_WAIT:
             work->stepFrames++;
-            if (work->stepFrames >= 2) {
+            if (work->stepFrames >= ACTOR_111800_SET_WAIT_UPDATES) {
                 work->stepFrames = 0;
                 work->sequenceStep++;
             }
             break;
         case ACTOR_111800_STEP_DEPART:
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            coord->coord.t[2]  -= 0x96;
+            rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+            rootCoord->coord.t[2]  -= ACTOR_111800_DEPART_STEP_UNITS;
             break;
     }
 }
 
-/// Spawn/setup handler for the actor's model: allocates the work block
-/// into `Task::work`, hands the model object the view coordinate and the
-/// block's two matrices, builds the animation context over the nineteen slots
-/// and applies the nested area record matching id 0x13 through `tmdSetTextureOffsets`.
+/// Restarts the eighteen body tracks at the idle clip's normal playback rate.
 ///
-/// The allocation is parked in `Task::work` and read back before it is used, so
-/// the first thing the block is named by is a reload: the `memCalloc` result is
-/// stored straight from `$v0` and the failing branch tests that register, which
-/// is what leaves the surviving copy of it to be emitted *after* the branch --
-/// one declaration earlier and the copy lands before the test.
-static void func_actor_111800_80132390(Task* task)
+/// Requires an initialized nineteen-part rig. Slot zero is untouched and the
+/// cached slot-1 record is cleared. Clip 5 and its model tracks remain loaded.
+static inline void _actor111800StartIdleTracks(Task* task)
 {
-    _Actor111800Work* work;
-    _Actor111800Work* work2;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    AreaPlacement*    place;
-    s32               i;
+    enum {
+        ACTOR_111800_IDLE_CLIP = 5,
+    };
 
-    coord      = task->extra.tmd->coords;
-    obj        = task->extra.tmd;
+    _Actor111800Work* slotsWork;
+    s32               slotIndex;
+
+    slotIndex                   = 1;
+    slotsWork                   = task->work;
+    slotsWork->slot1RecordIndex = 0;
+    do {
+        slotsWork->rig.slots[slotIndex & 0xFFFF].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&slotsWork->rig.anim, slotIndex & 0xFFFF, ACTOR_111800_IDLE_CLIP);
+        slotIndex += 1;
+    } while ((u32)(slotIndex & 0xFFFF) < ARRAY_SIZE(slotsWork->rig.slots));
+}
+
+/// Initializes the staged Stranger body and its eighteen non-root animation tracks.
+///
+/// Allocates zeroed task-owned work, killing the task on failure. The model borrows
+/// its lighting matrices and the loaded clip bank. Parents the root to the view,
+/// starts clip 5 and sets part-5 pitch to 341/4096 turns. Texture offsets come from
+/// placement entry 19, or the end record when absent. Setup does not advance task state.
+static void _actor111800InitBody(Task* task)
+{
+    enum {
+        ACTOR_111800_INITIAL_PART5_PITCH = 341,
+        ACTOR_111800_TEXTURE_ENTRY_ID    = 19,
+    };
+
+    _Actor111800Work* work;
+    TmdObject*        model;
+    GfxCoord*         rootCoord;
+    AreaPlacement*    place;
+
+    rootCoord  = task->extra.tmd->coords;
+    model      = task->extra.tmd;
     task->work = memCalloc(sizeof(_Actor111800Work), false);
     if (task->work == NULL) {
         taskKill(task);
@@ -400,29 +436,22 @@ static void func_actor_111800_80132390(Task* task)
     }
     work = task->work;
     memFillBytes(work, 0U, sizeof(*work));
-    coord->parent = &gGfxViewCoord;
-    tmdAllocPrimitiveBuffer(obj);
-    obj->lightMtx = &work->light;
-    obj->colorMtx = &work->color;
-    obj->flags    = 0;
-    animationInitContext(&work->rig.anim, D_actor_111800_8013A448, obj, work->rig.poses,
+    rootCoord->parent = &gGfxViewCoord;
+    tmdAllocPrimitiveBuffer(model);
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    model->flags    = 0;
+    animationInitContext(&work->rig.anim, D_actor_111800_8013A448, model, work->rig.poses,
                          &work->rig.slots[0]);
-    work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work->playerMtx         = gPlayerStatus.coordMtx;
-    i                       = 1;
-    work2                   = task->work;
-    work2->slot1RecordIndex = 0;
-    do {
-        work2->rig.slots[i & 0xFFFF].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&work2->rig.anim, i & 0xFFFF, 5);
-        i += 1;
-    } while ((u32)(i & 0xFFFF) < 0x13U);
-    work->part5Pitch = 0x155;
+    work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work->playerMtx  = gPlayerStatus.coordMtx;
+    _actor111800StartIdleTracks(task);
+    work->part5Pitch = ACTOR_111800_INITIAL_PART5_PITCH;
     place            = areaGetVariant(&gGameSession->location.loc)->placements;
-    while (place->entryId != AREA_PLACEMENT_END && place->entryId != 0x13) {
+    while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_111800_TEXTURE_ENTRY_ID) {
         place++;
     }
-    tmdSetTextureOffsets(obj, place->texturePageOffset, place->clutRowOffset);
+    tmdSetTextureOffsets(model, place->texturePageOffset, place->clutRowOffset);
 }
 
 /// Per-frame state machine. State 0 waits until no cutscene is up, then runs
@@ -453,7 +482,7 @@ void func_actor_111800_8013251C(Task* task)
     switch (state) {
         case 0:
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                func_actor_111800_80132390(task);
+                _actor111800InitBody(task);
                 task->state += 1;
                 break;
             }
@@ -475,7 +504,7 @@ void func_actor_111800_8013251C(Task* task)
             }
             break;
         case 2:
-            func_actor_111800_8013214C(task);
+            _actor111800RunSequence(task);
             if (gGameSession->eventState == 0) {
                 taskKill(task);
             }

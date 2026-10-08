@@ -180,7 +180,7 @@ part pointer in `$s2` (`regs=24` at 98.7%). `.lreg` had task `14/260` vs part
 
 ```
 case 0:
-    func_actor_111800_80132390(task);
+    _actor111800InitBody(task);
     task->state += 1;
     break;
 case 1:
@@ -65010,7 +65010,7 @@ and fails the checksum inside the shared span, four bytes into the first `lui`.
 `overlay_dup_index.py promote` refuses any body whose refs start with
 `func_<unit>_`, `D_<unit>_` or `jtbl_<unit>_`, and its docstring reads that as
 "cannot be shared". For *code* refs the workaround is the `<Sym>Sub0` aliasing
-above; the same trick works on data. `func_actor_110300_80131F9C` is the
+above; the same trick works on data. `_actor110300ViewFigureTask` is the
 `ActorsShared80131e24` dispatcher plus one store of `Task::work` into an
 overlay-local global, and all eleven carriers were promoted by adding a third
 alias to each `configs/USA/sym/actors/<overlay>.txt`:
@@ -81384,7 +81384,7 @@ Preprocessed SHA256:
 
 ## A malloc result stored and then re-copied: two pseudos, one `$v0`
 
-`func_actor_136100_80133A88` sat at 96.487% with `blocks=7/7`,
+`_actor136100InitBody` sat at 96.487% with `blocks=7/7`,
 `predicates_match=True`, `insert=delete=branch=1` and `regs=16`, and every
 remaining difference was one thing: the target wanted `$s0` for the
 `Task::extra` model object and `$s1` for the malloc'd work block, ours had them
@@ -103066,7 +103066,7 @@ reproduces it: cross-jump merges only the `sb`, and each arm keeps its own
 address materialisation. The register pairing flips with the placement
 (`$v1` address / `$v0` value rather than the reverse), which the scorer reports
 as `regs`, but the cause is the merge point, not the allocator: removing the
-temp local took `func_actor_146000_80131E24` from 93.862% (`branch=4 regs=6
+temp local took `_actor146000WaterHoleSceneTask` from 93.862% (`branch=4 regs=6
 insert=2 delete=3`) to 100.000% with both edits above.
 
 Inputs (preprocessed sha256): `base.i`
@@ -124312,7 +124312,7 @@ One C variable held the result, was tested, and stayed live to the end of the
 function, so its single live range needs a callee-saved register: the allocator
 places the copy at the *definition*, one instruction after the call returns, and
 every later use reads `$s2`. Splitting it the way the matched sibling
-`func_actor_136100_80133A88` is written gives the target shape exactly:
+`_actor136100InitBody` is written gives the target shape exactly:
 
 ```c
 _Actor120300Work* map = memMalloc(0x4E4, 0);
@@ -124954,9 +124954,9 @@ its sibling fade tasks, with `s16` channels and
 `(u8)` casts at the call; the decrement reads back through the `(u16)` casts
 the siblings use, `fade->r = (s16)((u16)fade->r - (u16)index->spawnArg1);`.
 
-## One C variable is one pseudo for the whole function: a reload must be a *second* local variable, or it cannot leave the register the first value died in (func_actor_121300_80133BFC, 2026-09-17)
+## One C variable is one pseudo for the whole function: a reload must be a *second* local variable, or it cannot leave the register the first value died in (_actor121300InitBody, 2026-09-17)
 
-`func_actor_121300_80133BFC` allocates a work block, wires the model up through
+`_actor121300InitBody` allocates a work block, wires the model up through
 a call, and then re-reads `index->work` for the slot loop. Writing that re-read
 back into the variable that already held the block is the natural C, and it
 scores 99.223% with `regs=4`: the reload comes out as
@@ -124998,7 +124998,7 @@ after allocation, so the two spellings are indistinguishable there. Same family
 as "Which pseudo gets which saved register", but the lever is the *number of
 variables*, not the live-length of one.
 
-## A constant store is `sh $sN,field(reg)` or `addu $v0,$sN,$zero; sh $v0,field(reg)` depending on where the loop counter's init sits (func_actor_121300_80133BFC, 2026-09-17)
+## A constant store is `sh $sN,field(reg)` or `addu $v0,$sN,$zero; sh $v0,field(reg)` depending on where the loop counter's init sits (_actor121300InitBody, 2026-09-17)
 
 The slot count is stored before the loop that re-arms the slots, and the same
 `1` initialises the counter:
@@ -125030,7 +125030,7 @@ scheduling rather than guessed: `tmd->field_1C`, `tmd->field_C = 0`,
 `tmd->field_20` is the source order that yields retail's `sh $zero,0xc($s3)`
 between the two `sw`s (`_actor105100Spawn` shows this compiler keeps
 adjacent TmdObject stores in source order), and the search loop's early exit
-adds `0x84` to the `0xFF` terminator scan of `func_actor_136100_80133A88`.
+adds `0x84` to the `0xFF` terminator scan of `_actor136100InitBody`.
 
 ## A `case N:` materialized by the switch tree seeds a register that `cse` then reuses for every other use of N in the function (func_actor_121300_80133D98, 2026-09-17)
 
@@ -128956,7 +128956,7 @@ preprocessed `52cdf55d75e571dd4e731605b31c11d87033d70eb8135d4a08b4ea50113a4365`)
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 ## Naming a call result through the field it is stored into puts the caller-side copy *after* the null test
 
-`func_actor_111800_80132390` allocates its work block and keeps it in the task:
+`_actor111800InitBody` allocates its work block and keeps it in the task:
 `memCalloc` returns in `$v0`, and the surviving copy of that value into its home
 register (`$s2`) is a real instruction. Where that copy lands is decided by which
 expression the test reads:
@@ -128995,7 +128995,7 @@ call's own register and only copies afterwards.
 
 ## A bare `extern T*` global read next to a struct store needs the one-element-aggregate form to keep its true dependence
 
-`func_actor_111800_80132390` stores `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` and then `D_80073B8C`
+`_actor111800InitBody` stores `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` and then `D_80073B8C`
 into two words of its work block. The first store's MEM is in-struct with a PLUS
 address, so `rtx_addr_varies_p` is 1 for it; the global's load is a plain
 `(mem:SI (lo_sum (reg) (symbol_ref)))`, not in-struct, and `rtx_addr_varies_p` is
@@ -129146,7 +129146,7 @@ serves both divisors at different shifts, because `mfhi` leaves the high half of
 function. Read the shift operand off the target and write the division in C as
 `unfadedOffsetY * D_actor_142900_801382A8 / ACTOR_142900_SCREEN_SHAKE_FADE_TICKS`; GCC
 regenerates magic and shift together.
-## A 100.00% score is normalized text: two `j`s can still name the wrong label, and only the checksum catches it (func_actor_120500_8013241C, 2026-09-17)
+## A 100.00% score is normalized text: two `j`s can still name the wrong label, and only the checksum catches it (_actor120500SceneTask, 2026-09-17)
 
 `build.sh` scored this body 100.00% with every penalty zero and an empty
 `base_N_diff`, and the full build then failed the *overlay* checksum while
@@ -129186,7 +129186,7 @@ screen_request_clear:               /* the `code < 2` arm branches here */
 screen_request_done:
 ```
 
-## A scan loop written `while`/`do` is rotated by `duplicate_loop_exit_test`; an explicit `goto` label reproduces retail's test-at-top block (func_actor_120500_8013241C, 2026-09-17)
+## A scan loop written `while`/`do` is rotated by `duplicate_loop_exit_test`; an explicit `goto` label reproduces retail's test-at-top block (_actor120500SceneTask, 2026-09-17)
 
 The body's second loop walks the nineteen animation slots and stops at the
 first whose `flags` bit 0 is clear. Both `while ((slots[i].flags & 1) != 0)
@@ -129221,7 +129221,7 @@ Corrected 2026-10-06: the label is not needed. `while (1) { if (c) { i++; if
 ((u16)i < N) continue; } break; }` is not rotated either (the exit is not the
 loop's first jump) and matches; see "Goto removal, batch 18".
 
-## `x != 0 && x == 1` folds to one compare, and a two-case `switch` can never emit the `slti`/`bnez` range split (func_actor_120500_8013241C, 2026-09-17)
+## `x != 0 && x == 1` folds to one compare, and a two-case `switch` can never emit the `slti`/`bnez` range split (_actor120500SceneTask, 2026-09-17)
 
 The request-code dispatch reads `<u16> != 0` then `<u16> == 1` and branches to
 one shared clear store from both. Written as `&&` the front end folds the pair
@@ -129245,17 +129245,20 @@ clear written once after the switch is what the three clear sites were (reorg
 copies the merged store into the delay slot of each jump to it). The function
 now has no `goto`; see "Goto removal, batch 18".
 
-## Two payloads that never overlap share one stack slot: declare each in its own block (func_actor_120500_8013241C, 2026-09-17)
+## Two payloads that never overlap share one stack slot: declare each in its own block (_actor120500SceneTask, 2026-09-17)
 
 State 0 fills a 0x14-byte `AnimationPlayRequest` for message 0x3E8 and the epilogue fills a
 0x10-byte `VECTOR` for `worldCoordSetModelLighting`; the target's frame has one 0x14 slot
 carrying both. Two locals declared at function scope never share a slot, and
-that form adds 0x10 to the frame and a saved register with it. Two locals of
-*disjoint blocks* do share one: `expand_decl` gives an addressable local an
-`assign_stack_temp` slot at its block's nesting level, `expand_end_bindings`
-frees that level's slots, and a later block's local takes a freed slot that
-is large enough. So the request is a local of the state-0 arm and the
-translation a local of a block around the epilogue:
+that form adds 0x10 to the frame and a saved register with it. Here the locals
+of disjoint blocks share a slot, but scope alone is not sufficient: the slot
+must actually be released and both allocations must have the same machine mode.
+A read-only GDB trace of the matched body confirmed `assign_stack_temp` allocates
+the 20-byte request in BLKmode at level 3 with keep=1. Taking its address promotes
+it to level 2; `expand_end_bindings` at the switch contour calls `pop_temp_slots`
+and releases it. The epilogue's 16-byte BLKmode vector then reuses that same
+20-byte slot. Tracing left the assembly byte-for-byte unchanged. So the request
+is a local of the state-0 arm and the translation a local of the epilogue block:
 
 ```c
         case 0:
@@ -129277,7 +129280,10 @@ The slot keeps the size of its first, larger occupant, so the frame comes out
 exactly as retail's. This body was first matched with the pair as members of
 a union at function scope, which produces the same frame; the block-scoped
 locals match too and need no type that says the two payloads are one object.
-Try them before reaching for a union when a frame is one slot short.
+Try them before reaching for a union when a frame is one slot short, and check
+the generated frame rather than assuming every disjoint-block probe must share.
+The naming review subsequently moved the weapon request into an inline helper;
+that form also retains the same 64-byte frame and payload address at sp+16.
 ## An `alabel` on an absolute import hides the last carrier of an already-shared body from `find` (func_actor_304000_80162DFC, 2026-09-17)
 
 `overlay_dup_index.py find func_actor_304000_80162DFC` reports `same body: 1
@@ -131089,7 +131095,7 @@ CSE's block now ends at the `else` label, the two constants stay distinct, and
 (`anim = D_80073BA9; if (...) anim = anim + 1; else anim = anim + 0x22;`) does
 **not** work — that emits the `j`-over-`else` shape instead.
 `_actor160900UpdatePlayerCue` and `_actor341900UpdatePlayerAction` are matched
-examples of the two-variable form; `func_actor_120500_8013241C` is a matched
+examples of the two-variable form; `_actor120500SceneTask` is a matched
 example of the one-variable form and does emit the `j`.
 
 **Confirmed by controlled variation (_actor120500RunPlayerRequest, permuter
@@ -138066,7 +138072,7 @@ Matched input SHA256:
 `15dc0cb26721f30253eba484d4683ff91222eeb436e4d9382756fec74c9f6a14`.
 
 
-## A store/preheader scheduling boundary can remove a global register conflict (func_actor_121300_80133854, 2026-09-20)
+## A store/preheader scheduling boundary can remove a global register conflict (_actor121300RunSceneStep, 2026-09-20)
 
 The unpinned retry reproduced 98.355% (`regs=1 reorder=3 insert=1 delete=1`). Both inline animation helpers stored the animation id before a loop, but sched1 moved counter=1 and loop-hoisted blend=10 ahead of the work-pointer load/store. In case 2 this extended the 10 constant across the task's last use: .greg recorded r107 conflicting with task r80, so the constant occupied s4 instead of the target's reusable s3. Case 7 still needed task after its loop, so s4 was correct there.
 
@@ -138831,7 +138837,7 @@ with their natural alignment, and nothing has to be viewed through a
 
 ## A per-case reload of the same pointer must not share a C variable with the copy used in the first loop
 
-`func_actor_111800_8013214C` loads `task->work` into `work`, copies it to `ctx`
+`_actor111800RunSequence` loads `task->work` into `work`, copies it to `ctx`
 for the opening `animationTickSlot` loop, then reloads `task->work` in two switch
 cases before `animationSeekSlotWithBlend`. One C variable for those three lifetimes is one
 pseudo: 13 refs across 37 insns, which outranks the whole-function `work`
@@ -144290,7 +144296,7 @@ carries no `REG_DEAD` for the value, so the load survives. A range such as
 all grant nothing). The compare is gone from the output, so only the load's
 width constrains the source: `lhu` needed the field declared `u16`.
 
-## An inline helper's arguments are loaded before its body: a caller-side load the target puts after the helper's own loads means the helper took the container (func_actor_146300_801324AC, 2026-09-26)
+## An inline helper's arguments are loaded before its body: a caller-side load the target puts after the helper's own loads means the helper took the container (_actor146300SpawnScriptedWalker, 2026-09-26)
 
 **Symptom.** Calling the existing `_actorRenderApplyPlacementTextureOffsets(spawned->extra.tmd, enemy)`
 matched to one pair: the target loads `enemy->placeKey` before `task->extra.tmd`,
@@ -147644,9 +147650,12 @@ The second point generalises: the position of an initialiser's constant in
 
 The earlier entry "Two payloads that never overlap share one stack slot:
 declare each in its own block" reports the opposite of the first row for
-`func_actor_120500_8013241C`; a probe of that shape (a 0x14 record inside a
-`case`'s `if`, a 0x10 one in a trailing bare block) gave two slots here. That
-function was not re-examined.
+`_actor120500SceneTask`; a probe of that shape (a 0x14 record inside a
+`case`'s `if`, a 0x10 one in a trailing bare block) gave two slots here. The
+later naming review traced that matched function: its request and vector are
+both BLKmode, and the switch contour releases the request slot before the vector
+is allocated. The earlier entry now states those conditions explicitly; the
+minimal probes did not establish that their own modes and slot lifetimes agreed.
 
 ## A constant stored `sp`-relative above offset 0 of a shared frame slot is a *nested* helper's local (_actor206100FightTick, 2026-10-04)
 

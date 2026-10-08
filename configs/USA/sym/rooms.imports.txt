@@ -487,7 +487,7 @@ actor160700RestoreMeetingAnimation = 0x80131E24; // type:func absolute:True owne
 actor450800StartNurseryInteraction = 0x80131E2C; // type:func absolute:True owner=actor_450800
 actor161500StartSoldierBRemark = 0x80131E38; // type:func absolute:True owner=actor_161500
 actor160700StartMeetingScript = 0x80131E70; // type:func absolute:True owner=actor_160700
-func_actor_150400_80131FB8 = 0x80131FB8; // type:func absolute:True owner=actor_150400
+actor150400SpawnSlidingModels = 0x80131FB8; // type:func absolute:True owner=actor_150400
 actor161500StartSoldierBTalkA = 0x80131FBC; // type:func absolute:True owner=actor_161500
 actor450800StartNurseryCompanionDialogue = 0x80132000; // type:func absolute:True owner=actor_450800
 actor450800PrepareNurseryKyleMadigan = 0x80132028; // type:func absolute:True owner=actor_450800

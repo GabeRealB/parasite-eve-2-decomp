@@ -1303,7 +1303,7 @@ static void        _actor136100UpdateAfterBurnerCompanionRequest(Task* task);
 static void        _actor136100UpdateBeforeBurnerPlayerRequest(Task* task);
 static void        _actor136100UpdateBeforeBurnerCompanionRequest(Task* task);
 static s16         _actor136100TryStartFollowUpScene(Task* task);
-static void        func_actor_136100_80133A88(Task* task);
+static void        _actor136100InitBody(Task* task);
 static inline s16  _actor136100ReadOpeningSceneCue(u16* triggerControl, u8* sceneAction, u8* actionArgument);
 static inline void _actor136100UpdateBodyLighting(Task* task, VECTOR* samplePosition);
 
@@ -2219,11 +2219,14 @@ static s16 _actor136100TryStartFollowUpScene(Task* task)
     return 0;
 }
 
-/// Initialize the cutscene actor's model and animations.
+/// Initializes the night main-street scene body and its animation/message bindings.
 ///
-/// Uses the area placement for resource-entry 0x6A, or the end record when
-/// that entry is absent. Allocation failure kills `task`.
-static void func_actor_136100_80133A88(Task* task)
+/// Allocates zeroed task-owned work, killing the task on failure, and publishes
+/// the body task. Parents the root to the view, allocates primitive buffers and
+/// lends work matrices to the model. Placement entry 106, or the end record when
+/// absent, supplies texture offsets. Binds loaded clips without starting one;
+/// the caller selects the burner-dependent scene and starts playback.
+static void _actor136100InitBody(Task* task)
 {
     enum { TEXTURE_RESOURCE_ENTRY_ID = 0x6A };
 
@@ -2383,7 +2386,7 @@ void func_actor_136100_80133BC8(Task* arg0)
                 taskKill(arg0);
                 return;
             }
-            func_actor_136100_80133A88(arg0);
+            _actor136100InitBody(arg0);
             work           = arg0->work;
             work->scene    = gameFlagGetNibble(GAME_FLAG_BURNER_DEFEATED) == 0;
             work->headTask = taskSpawnFromTable(D_actor_136100_80140744, 2, 0,

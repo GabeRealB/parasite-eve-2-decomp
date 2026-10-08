@@ -1364,7 +1364,7 @@ Task* gActorSelfTask;
 
 Task* gActorHelperTask;
 
-static void func_actor_146300_801324AC(Enemy* enemy, Task* task);
+static void _actor146300SpawnScriptedWalker(Enemy* enemy, Task* task);
 
 /// Runs one ice-bag handover or follow-up conversation, then releases scripted control.
 ///
@@ -1578,31 +1578,42 @@ static void _actor146300ApplyHandoverChoice(s32 phase)
     }
 }
 
-/// Spawn routine, state 0 of the task handler `func_actor_146300_801326CC`:
-/// allocates the work block and publishes it in `_gScriptedWalkWork`
-/// and the task's `work` slot (destroying the enemy if the allocation fails),
-/// installs the exit callback, binds the model's coordinate frame to the view
-/// and publishes the task in `gActorSelfTask`.
+/// Samples all three lights at cached root XYZ with Y minus 800.
 ///
-/// The companion task from `D_actor_146300_801427C8` carries the model whose
-/// texture page and CLUT row come out of the current area record - the session
-/// location key is copied onto the stack, `areaSyncLocationVariant` fills in its
-/// nested index and the enemy's `placeKey >> ENEMY_PLACE_INDEX_SHIFT` selects the 0x10-byte record.
-/// The actor's task is then reparented under that companion, the model gets the
-/// block's light and colour matrices and is relit from a point 0x320 above its
-/// root translation, the animation stream is bound, the animation state is
-/// seeded with mode 2 / id 0xB, the message table is published and the
-/// per-frame update runs once before the state advances.
-static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
-{
-    VECTOR            vec;
-    _Actor146300Work* work;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    Task*             helper;
+/// Use as standalone statements; model/root/sample are side-effect-free lvalues.
+/// Captures the spawn's sample offset and row count. The caller owns the VECTOR;
+/// root composition and matrices are already valid and no pointer is retained.
+#define ACTOR_146300_RELIGHT_SPAWN(model, rootCoord, lightPosition)                    \
+    (lightPosition).vx = (rootCoord)->workm.t[0];                                      \
+    (lightPosition).vy = (rootCoord)->workm.t[1] - ACTOR_146300_LIGHT_SAMPLE_Y_OFFSET; \
+    (lightPosition).vz = (rootCoord)->workm.t[2];                                      \
+    worldCoordSetModelLighting((model), &(lightPosition), 0, ACTOR_146300_LIGHT_COUNT)
 
-    obj                = task->extra.tmd;
-    coord              = obj->coords;
+/// Initializes the ice-bag handover scripted walker and creates its attachment task.
+///
+/// Allocates zeroed task-owned work, destroying the enemy on failure. Requires
+/// a live model/Enemy and descriptor slot 1 to produce a live attachment. Parents
+/// the untargetable root to the view, textures the attachment from the owner’s
+/// area placement and adopts it into task teardown. The model borrows work-owned
+/// lighting matrices and samples cached XYZ with Y minus 800, before composition.
+/// Binds the loaded clip table, requests clip 11, installs messages/exit, updates
+/// once and advances spawn state 0 to running state 1. Resources must outlive work.
+static void _actor146300SpawnScriptedWalker(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_146300_SPAWN_CLIP            = 11,
+        ACTOR_146300_LIGHT_SAMPLE_Y_OFFSET = 800,
+        ACTOR_146300_LIGHT_COUNT           = 3,
+    };
+
+    VECTOR            lightPosition;
+    _Actor146300Work* work;
+    TmdObject*        model;
+    GfxCoord*         rootCoord;
+    Task*             attachmentTask;
+
+    model              = task->extra.tmd;
+    rootCoord          = model->coords;
     work               = memCalloc(sizeof(_Actor146300Work), false);
     _gScriptedWalkWork = work;
     task->work         = work;
@@ -1611,32 +1622,30 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
         return;
     }
     task->exitCallback               = _actor146300Destroy;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->flags                       = 0;
+    model->otOffset                  = 1;
+    model->flags                     = 0;
     gActorSelfTask                   = task;
-    helper                           = taskSpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
-    gActorHelperTask                 = helper;
-    _actorRenderApplyTaskPlacementTextureOffsets(helper, enemy);
+    attachmentTask                   = taskSpawnFromTable(D_actor_146300_801427C8, 1, 0, 0);
+    gActorHelperTask                 = attachmentTask;
+    _actorRenderApplyTaskPlacementTextureOffsets(attachmentTask, enemy);
     taskReparent(task, gActorHelperTask);
-    obj->lightMtx = &_gScriptedWalkWork->light;
-    obj->colorMtx = &_gScriptedWalkWork->color;
-    vec.vx        = coord->workm.t[0];
-    vec.vy        = coord->workm.t[1] - 0x320;
-    vec.vz        = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_146300_801427E0, obj,
+    model->lightMtx = &_gScriptedWalkWork->light;
+    model->colorMtx = &_gScriptedWalkWork->color;
+    ACTOR_146300_RELIGHT_SPAWN(model, rootCoord, lightPosition);
+    animationInitContext(&_gScriptedWalkWork->rig.anim, (AnimationSet**)D_actor_146300_801427E0, model,
                          _gScriptedWalkWork->rig.poses, _gScriptedWalkWork->rig.slots);
-    _gScriptedWalkWork->st.animId = 0xB;
+    _gScriptedWalkWork->st.animId = ACTOR_146300_SPAWN_CLIP;
     _gScriptedWalkWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable                = D_actor_146300_801427A0;
     _actor146300UpdateAnimation(task);
     task->state++;
 }
+#undef ACTOR_146300_RELIGHT_SPAWN
 
 /// The actor's task handler: publishes the task's work block in
 /// `_gScriptedWalkWork` on the way through, then runs the handler its
@@ -1645,7 +1654,7 @@ static void func_actor_146300_801324AC(Enemy* enemy, Task* task)
 void func_actor_146300_801326CC(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        func_actor_146300_801324AC,
+        _actor146300SpawnScriptedWalker,
         _actor146300UpdateModel,
     };
 

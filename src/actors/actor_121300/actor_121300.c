@@ -734,8 +734,8 @@ static void        _actor121300SpawnUpperRowSprites(Task* task, s16 dwindle);
 static void        _actor121300ShatterLamps(Task* task);
 static inline void _actor121300BlendAnimationSet(Task* task, s32 animSet);
 static inline void _actor121300SetDebrisSpeed(s32 speedPercent);
-static void        func_actor_121300_80133854(Task* arg0);
-static void        func_actor_121300_80133BFC(Task* task);
+static void        _actor121300RunSceneStep(Task* task);
+static void        _actor121300InitBody(Task* task);
 
 #include "../../shared/screen_wave.inc.c"
 
@@ -1372,110 +1372,130 @@ static inline void _actor121300SetDebrisSpeed(s32 speedPercent)
     D_actor_121300_8013CC04 = speedPercent;
 }
 
-static void func_actor_121300_80133854(Task* arg0)
+/// Restarts the double's eighteen non-root tracks at its mark animation.
+///
+/// Requires initialized live work, model and loaded set 1. Resets rates to
+/// normal speed and records the set; the root slot remains untouched.
+static inline void _actor121300RestartMarkTracks(Task* task)
 {
-    _Actor121300AyaBreaWork* work;
-    CdCmdQueue*              queue;
+    enum {
+        ACTOR_121300_MARK_CLIP = 1,
+    };
 
-    work  = arg0->work;
-    queue = &gCdCmdQueue;
-    _actor121300TickAnimations(arg0);
+    _Actor121300AyaBreaWork* slotsWork;
+    s32                      slotIndex;
+
+    slotsWork          = task->work;
+    slotsWork->animSet = ACTOR_121300_MARK_CLIP;
+    for (slotIndex = 1; (u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots); slotIndex++) {
+        slotsWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
+        animationResetSlot(&slotsWork->rig.anim, (u16)slotIndex, ACTOR_121300_MARK_CLIP);
+    }
+}
+
+/// Executes the posted Dryfield lamp-shattering scene step and ticks the double.
+///
+/// Requires initialized live double work, player task, room lights and loaded
+/// scene/effect tables. One-shot steps clear themselves; sustained steps run until
+/// the script replaces them. Drives clips 1..3, debris speed percentages, room lighting, sprite rings
+/// and screen waves. Wave contexts are borrowed
+/// from the work block and must outlive their spawned tasks.
+static void _actor121300RunSceneStep(Task* task)
+{
+    enum {
+        ACTOR_121300_STEP_FIRST_TICK   = 0,
+        ACTOR_121300_LONG_WAVE_UPDATES = 60,
+        ACTOR_121300_WAVE_SCALE        = 256,
+        ACTOR_121300_PULSE_UPDATES     = 8,
+        ACTOR_121300_PULSE_RISING      = 0,
+        ACTOR_121300_PULSE_HELD        = 1,
+    };
+
+    _Actor121300AyaBreaWork* work;
+    CdCmdQueue*              cdQueue;
+
+    work    = task->work;
+    cdQueue = &gCdCmdQueue;
+    _actor121300TickAnimations(task);
     switch (work->step) {
         case ACTOR_121300_STEP_REPLACE_PLAYER:
-            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_121300_8013CCA0, 0);
+            taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_121300_8013CCA0, 0);
             gGameSession->viewDirty = 1;
-            {
-                _Actor121300AyaBreaWork* slotsWork;
-                s32                      i;
-
-                slotsWork          = arg0->work;
-                slotsWork->animSet = 1;
-                for (i = 1; (u16)i < ARRAY_SIZE(slotsWork->rig.slots); i++) {
-                    slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-                    animationResetSlot(&slotsWork->rig.anim, (u16)i, 1);
-                }
-            }
+            _actor121300RestartMarkTracks(task);
             work->step = ACTOR_121300_STEP_NONE;
             break;
         case ACTOR_121300_STEP_PLAY_SET_2:
-            _actor121300BlendAnimationSet(arg0, 2);
+            _actor121300BlendAnimationSet(task, 2);
             work->step = ACTOR_121300_STEP_NONE;
             break;
         case ACTOR_121300_STEP_SHATTER_LAMPS_WAVE:
-            if (work->stepState == 0) {
+            if (work->stepState == ACTOR_121300_STEP_FIRST_TICK) {
                 _actor121300SetDebrisSpeed(ACTOR_121300_DEBRIS_WAVE_SPEED_PERCENT);
-                work->wave.span  = 0x3C;
-                work->wave.scale = 0x100;
+                work->wave.span  = ACTOR_121300_LONG_WAVE_UPDATES;
+                work->wave.scale = ACTOR_121300_WAVE_SCALE;
                 work->waveTask   = taskSpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
                 work->stepState++;
             }
+            // The wave setup shares the ordinary shatter update on this tick.
+            /* fallthrough */
         case ACTOR_121300_STEP_SHATTER_LAMPS:
-            _actor121300ShatterLamps(arg0);
+            _actor121300ShatterLamps(task);
             break;
         case ACTOR_121300_STEP_SHATTER_LAMPS_SLOW:
             _actor121300SetDebrisSpeed(ACTOR_121300_DEBRIS_SLOW_SPEED_PERCENT);
-            _actor121300ShatterLamps(arg0);
+            _actor121300ShatterLamps(task);
             break;
         case ACTOR_121300_STEP_END_SHATTER:
             work->wave.state        = SCREEN_WAVE_RAMP_FINISHED;
-            queue->imageMdecMode    = MDEC_IMAGE_MODE_RGB16;
+            cdQueue->imageMdecMode  = MDEC_IMAGE_MODE_RGB16;
             D_actor_121300_8013D41C = 0;
-            work->step              = 0;
+            work->step              = ACTOR_121300_STEP_NONE;
             break;
         case ACTOR_121300_STEP_HOLD_ON_MARK:
-            if (work->stepState == 0) {
-                TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_121300_8013CCA0, 0);
-                {
-                    _Actor121300AyaBreaWork* slotsWork;
-                    s32                      i;
-
-                    slotsWork          = arg0->work;
-                    slotsWork->animSet = 1;
-                    for (i = 1; (u16)i < ARRAY_SIZE(slotsWork->rig.slots); i++) {
-                        slotsWork->rig.slots[(u16)i].rate = ANIMATION_RATE_ONE;
-                        animationResetSlot(&slotsWork->rig.anim, (u16)i, 1);
-                    }
-                }
+            if (work->stepState == ACTOR_121300_STEP_FIRST_TICK) {
+                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_121300_8013CCA0, 0);
+                _actor121300RestartMarkTracks(task);
                 dryfieldR08SelectLightingBank(1);
             }
-            _actor121300SpawnRingSprites(arg0, 0);
-            _actor121300SpawnUpperRowSprites(arg0, 0);
+            _actor121300SpawnRingSprites(task, 0);
+            _actor121300SpawnUpperRowSprites(task, 0);
             break;
         case ACTOR_121300_STEP_PLAY_SET_3:
-            if (work->stepState == 0) {
-                _actor121300BlendAnimationSet(arg0, 3);
+            if (work->stepState == ACTOR_121300_STEP_FIRST_TICK) {
+                _actor121300BlendAnimationSet(task, 3);
                 work->stepState++;
             }
-            _actor121300SpawnRingSprites(arg0, 0);
+            _actor121300SpawnRingSprites(task, 0);
             break;
         case ACTOR_121300_STEP_SPRITES_DWINDLE:
-            _actor121300SpawnUpperRowSprites(arg0, 1);
-            _actor121300SpawnRingSprites(arg0, 0);
+            _actor121300SpawnUpperRowSprites(task, 1);
+            _actor121300SpawnRingSprites(task, 0);
             break;
         case ACTOR_121300_STEP_WAVE_PULSE:
             switch (work->stepState) {
-                case 0:
-                    work->wave.span   = 8;
-                    work->wave.scale  = 0x100;
+                case ACTOR_121300_PULSE_RISING:
+                    work->wave.span   = ACTOR_121300_PULSE_UPDATES;
+                    work->wave.scale  = ACTOR_121300_WAVE_SCALE;
                     work->waveTask    = taskSpawnFromTable(D_actor_121300_8013BBCC, 0, 0, &work->wave);
                     work->pulseFrames = 0;
                     work->stepState++;
                     break;
-                case 1:
-                    if (++work->pulseFrames >= 8) {
+                case ACTOR_121300_PULSE_HELD:
+                    if (++work->pulseFrames >= ACTOR_121300_PULSE_UPDATES) {
                         work->wave.state = SCREEN_WAVE_RAMP_FALLING;
-                        work->wave.span  = 8;
-                        work->step       = 0;
+                        work->wave.span  = ACTOR_121300_PULSE_UPDATES;
+                        work->step       = ACTOR_121300_STEP_NONE;
                     }
                     break;
             }
             break;
         case ACTOR_121300_STEP_RAISED_RING:
-            _actor121300SpawnRingSprites(arg0, 1);
+            _actor121300SpawnRingSprites(task, 1);
             break;
         case ACTOR_121300_STEP_MASK_STREAM:
-            queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+            cdQueue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+            /* fallthrough */
         case ACTOR_121300_STEP_NONE:
         default:
             work->step = ACTOR_121300_STEP_NONE;
@@ -1483,12 +1503,19 @@ static void func_actor_121300_80133854(Task* arg0)
     }
 }
 
-/// Initialize the cutscene model, animations and image-upload relocation.
+/// Initializes Aya’s scene double, clip playback and streamed-texture offset.
 ///
-/// Uses the area placement for resource-entry 0x84, or the end record when
-/// that entry is absent. Allocation failure kills `task`.
-static void func_actor_121300_80133BFC(Task* task)
+/// Allocates zeroed task-owned work and publishes the double task; allocation
+/// failure kills the task. Parents the root to the view and lends work matrices
+/// to the model. Placement entry 132, or the end record when absent, supplies
+/// texture offsets; its page offset is retained for later uploads. Starts clip 1
+/// on tracks 1..18 and installs messages. Model, work and borrowed clips stay live.
+static void _actor121300InitBody(Task* task)
 {
+    enum {
+        ACTOR_121300_INITIAL_CLIP = 1,
+    };
+
     enum { TEXTURE_RESOURCE_ENTRY_ID = 0x84 };
 
     _Actor121300AyaBreaWork* work;
@@ -1531,11 +1558,11 @@ static void func_actor_121300_80133BFC(Task* task)
     animationInitContext(&work->rig.anim, D_actor_121300_8013CC08, tmd, work->rig.poses,
                          work->rig.slots);
     slotsWork          = task->work;
-    slotsWork->animSet = 1;
+    slotsWork->animSet = ACTOR_121300_INITIAL_CLIP;
     slotIndex          = 1;
     do {
         slotsWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&slotsWork->rig.anim, (u16)slotIndex, 1);
+        animationResetSlot(&slotsWork->rig.anim, (u16)slotIndex, ACTOR_121300_INITIAL_CLIP);
         slotIndex++;
     } while ((u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots));
     task->msgTable = D_actor_121300_8013CC88;
@@ -1544,7 +1571,7 @@ static void func_actor_121300_80133BFC(Task* task)
 /// State machine of the cutscene actor, run once per frame from its slot.
 /// State 0 waits while the attachment wheel is open (`Gp_StateC08.mode`) or
 /// `gDisplayState.pendingMode` is live, and then builds the work block through
-/// `func_actor_121300_80133BFC` and arms the player's weapon: the slot-3
+/// `_actor121300InitBody` and arms the player's weapon: the slot-3
 /// message 0x3E8 record is `gPlayerStatus.weapon` plus 1 in the alternate weapon block
 /// and plus 0x22 in the base one, with `field_4` 1 and the rest of the frame
 /// zero.  State 1 hands the cutscene's two script blocks to `evsStartScriptWithSkip`,
@@ -1555,7 +1582,7 @@ static void func_actor_121300_80133BFC(Task* task)
 /// States 0, 1 and 2 all leave through the same `Task::state` increment; the
 /// compiler cross-jumps the three copies, so it appears once, after state 2's
 /// body.  Every path but state 3 also steps the actor through
-/// `func_actor_121300_80133854` and hands the model's part-1 translation to
+/// `_actor121300RunSceneStep` and hands the model's part-1 translation to
 /// `worldCoordSetModelLighting`.
 void func_actor_121300_80133D98(Task* arg0)
 {
@@ -1578,7 +1605,7 @@ void func_actor_121300_80133D98(Task* arg0)
                 request.blendFrames          = 0;
                 request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
-                func_actor_121300_80133BFC(arg0);
+                _actor121300InitBody(arg0);
                 arg0->state += 1;
                 break;
             }
@@ -1615,7 +1642,7 @@ void func_actor_121300_80133D98(Task* arg0)
             return;
         }
     }
-    func_actor_121300_80133854(arg0);
+    _actor121300RunSceneStep(arg0);
     {
         VECTOR pos;
 

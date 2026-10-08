@@ -1,3 +1,5 @@
+#include "actors/actor_150400.h"
+
 #include <psyq/sys/types.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
@@ -374,8 +376,7 @@ Task* D_actor_150400_8013C924 = NULL;
 
 Task* D_actor_150400_8013C928;
 
-void        func_actor_150400_80131FB8(void);
-static void func_actor_150400_80132014(Enemy* enemy, Task* task);
+static void _actor150400PairWalkSpawn(Enemy* enemy, Task* task);
 
 /// Places and slides one of the freezer scene's paired models along X.
 ///
@@ -462,68 +463,94 @@ static void _actor150400SetSlidingModelState(s32 state)
     D_actor_150400_8013C928->state = state;
 }
 
-void func_actor_150400_80131FB8(void)
+void actor150400SpawnSlidingModels(void)
 {
-    D_actor_150400_8013C924 = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, 1, 0);
-    D_actor_150400_8013C928 = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, 2, 0);
+    enum {
+        ACTOR_150400_SLIDING_FIRST_COPY  = 1,
+        ACTOR_150400_SLIDING_SECOND_COPY = 2,
+    };
+
+    D_actor_150400_8013C924 = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, ACTOR_150400_SLIDING_FIRST_COPY, 0);
+    D_actor_150400_8013C928 = taskSpawnFromTable(&D_actor_150400_80132CF0, 0, ACTOR_150400_SLIDING_SECOND_COPY, 0);
 }
 
-/// State-0 handler of the actor's task: allocates the work block, starts the
-/// sub-model task and parents it under this one, textures the sub-model from
-/// the placement record of the current area, then starts the animation in
-/// state 2 and runs the step body `_pairWalkUpdate` once.
-static void func_actor_150400_80132014(Enemy* enemy, Task* task)
-{
-    VECTOR        vec;
-    PairWalkWork* work;
-    GfxCoord*     coord;
-    TmdObject*    obj;
-    Enemy*        spawned;
+/// Binds the walker’s work matrices and samples its cached root lighting.
+///
+/// Standalone statements only. All four arguments must be side-effect-free
+/// lvalues; model/work/root are read repeatedly and sample is a writable VECTOR.
+/// Captures the spawn’s 800-unit Y offset and three-row light count. The model
+/// borrows the matrices until teardown; root composition is not refreshed.
+#define ACTOR_150400_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, sample)        \
+    (model)->lightMtx = &(work)->light;                                               \
+    (model)->colorMtx = &(work)->color;                                               \
+    (sample).vx       = (rootCoord)->workm.t[0];                                      \
+    (sample).vy       = (rootCoord)->workm.t[1] - ACTOR_150400_LIGHT_SAMPLE_Y_OFFSET; \
+    (sample).vz       = (rootCoord)->workm.t[2];                                      \
+    worldCoordSetModelLighting((model), &(sample), 0, ACTOR_150400_LIGHT_COUNT)
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
+/// Initializes the freezer scene pair walker and creates its attachment task.
+///
+/// Allocates zeroed task-owned work, destroying the enemy on failure. Requires
+/// a live model/Enemy and descriptor slot 1 to produce a live attachment. Parents
+/// the untargetable root to the view, textures the attachment from the owner’s
+/// area placement and adopts it into task teardown. The model borrows work-owned
+/// lighting matrices and samples cached XYZ with Y minus 800, before composition.
+/// Binds the loaded clip table, requests clip 1, installs messages/exit, updates
+/// once and advances spawn state 0 to running state 1. Resources must outlive work.
+static void _actor150400PairWalkSpawn(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_150400_SPAWN_CLIP            = 1,
+        ACTOR_150400_LIGHT_SAMPLE_Y_OFFSET = 800,
+        ACTOR_150400_LIGHT_COUNT           = 3,
+    };
+
+    VECTOR        lightPosition;
+    PairWalkWork* work;
+    GfxCoord*     rootCoord;
+    TmdObject*    model;
+    Enemy*        attachmentEnemy;
+
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
     task->work = (work = memCalloc(sizeof(PairWalkWork), false));
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = _actor150400DestroyPairWalker;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->flags                       = 0;
-    obj->otOffset                    = 1;
+    model->flags                     = 0;
+    model->otOffset                  = 1;
     work->enemy                      = enemy;
-    spawned                          = enemySpawnFromTable(D_actor_150400_8013C8F4, 1, 0, enemy);
-    _actorRenderApplyPlacementTextureOffsets(spawned->task->extra.tmd, enemy);
-    taskReparent(task, spawned->task);
-    work->pairTask = spawned->task;
-    obj->lightMtx  = &work->light;
-    obj->colorMtx  = &work->color;
-    vec.vx         = coord->workm.t[0];
-    vec.vy         = coord->workm.t[1] - 0x320;
-    vec.vz         = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_150400_8013C90C, obj,
+    attachmentEnemy                  = enemySpawnFromTable(D_actor_150400_8013C8F4, 1, 0, enemy);
+    _actorRenderApplyPlacementTextureOffsets(attachmentEnemy->task->extra.tmd, enemy);
+    taskReparent(task, attachmentEnemy->task);
+    work->pairTask = attachmentEnemy->task;
+    ACTOR_150400_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, lightPosition);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_150400_8013C90C, model,
                          work->rig.poses, work->rig.slots);
-    work->st.animId = 1;
+    work->st.animId = ACTOR_150400_SPAWN_CLIP;
     work->st.state  = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable  = D_actor_150400_8013C8C4;
     _pairWalkUpdate(task);
     task->state++;
 }
+#undef ACTOR_150400_INITIALIZE_MODEL_LIGHTING
 
 #include "../../shared/pair_walk_update.inc.c"
 
 /// Per-frame callback of the actor's task: runs the state's handler, the spawn
-/// handler `func_actor_150400_80132014` in state 0 and the per-frame update
+/// handler `_actor150400PairWalkSpawn` in state 0 and the per-frame update
 /// `_actorRenderWalkerFrame` after it, passing the task's `Enemy`.
 void func_actor_150400_801323E0(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        func_actor_150400_80132014,
+        _actor150400PairWalkSpawn,
         _actorRenderWalkerFrame,
     };
 

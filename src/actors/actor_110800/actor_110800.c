@@ -283,91 +283,69 @@ Task* gActorSelfTask;
 
 Task* gActorHelperTask;
 
-static void func_actor_110800_80131F9C(Enemy* enemy, Task* task);
+static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task);
 
 #include "../../shared/view_figure_spawn.inc.c"
 
-/// Step 1 of the `func_actor_110800_801322A0` dispatcher, the walk/run
-/// footstep cue:
-/// run the body the actor's step selects, cue the sound the running
-/// animation's frame table asks for, then refresh the model root as step 0 did
-/// by feeding its world translation to `worldCoordSetModelLighting` (the light solve)
-/// against the model object itself.
+/// Emits a loaded area sound at one track record and updates the shared cue latch.
 ///
-/// The two animation ids this actor plays carry a frame table each: id 4
-/// watches slot 19 alone, id 5 watches slot 19 and then slot 16. An entry
-/// latches the frame it fired for in `st.cueRecord`, so a frame that is held
-/// over several calls only cues once; the mask is the frame index of the slot's
-/// halfword.
-///
-/// The body reaches the task through the second argument, so the incoming `$a1`
-/// is copied into `$a0` (the first, unused, is the `Enemy*`), and the model
-/// and its coordinate are read through that copy. `task->extra` is written
-/// twice with the coordinate taken through the first read: that leaves cse's
-/// load in a temporary and copies it into `obj`, which is the `move` between
-/// the two loads the target has.
-static void func_actor_110800_80131F9C(Enemy* enemy, Task* task)
-{
-    GfxCoord*  coord;
-    TmdObject* obj;
-    VECTOR     vec;
+/// Requires the live singleton rig. Track/record/script arguments select one
+/// of this carrier's established cues; held records compare against the single
+/// latch shared by both tracks. Playback and sound resources must be loaded.
+/// Standalone compound statements only; captures gViewFigureWork. trackIndex
+/// is read repeatedly and must be side-effect-free; cueRecordIndex is evaluated
+/// once and soundScript only on a new cue. No argument or payload is retained.
+#define ACTOR_110800_CUE_ANIMATION_SOUND(trackIndex, cueRecordIndex, soundScript)                                                                              \
+    {                                                                                                                                                          \
+        if ((gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == (cueRecordIndex)) {                  \
+            if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) { \
+                sndEvtRequestScriptStart((soundScript), 0, 0);                                                                                                 \
+            }                                                                                                                                                  \
+            gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[(trackIndex)].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;          \
+        }                                                                                                                                                      \
+    }
 
-    coord = task->extra.tmd->coords;
-    obj   = task->extra.tmd;
+/// Advances the figure animation, emits record cues and refreshes root lighting.
+///
+/// Requires the initialized twenty-slot singleton rig and live model. Clips 4 and
+/// 5 select cue records on tracks 19 and 16. Each matching cue emits only when
+/// its record differs from the single shared latch, then overwrites that latch.
+/// Other clips leave the latch unchanged.
+/// Lighting uses cached view-frame XYZ without composition. unusedEnemy is ignored.
+static void _actor110800UpdateViewFigure(Enemy* unusedEnemy, Task* task)
+{
+    enum {
+        ACTOR_110800_CUED_CLIP_4 = 4,
+        ACTOR_110800_CUED_CLIP_5 = 5,
+        ACTOR_110800_LIGHT_COUNT = 3,
+    };
+
+    GfxCoord*  rootCoord;
+    TmdObject* model;
+    VECTOR     lightPosition;
+
+    rootCoord = task->extra.tmd->coords;
+    model     = task->extra.tmd;
     _viewFigureStepAnim(task);
     switch (gViewFigureWork->st.animId) {
-        case 4:
-            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xC8) {
-                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x11), 0, 0);
-                }
-                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            }
-            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCA) {
-                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0D), 0, 0);
-                }
-                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            }
-            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCD) {
-                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0E), 0, 0);
-                }
-                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            }
+        case ACTOR_110800_CUED_CLIP_4:
+            ACTOR_110800_CUE_ANIMATION_SOUND(19, 0xC8, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x11));
+            ACTOR_110800_CUE_ANIMATION_SOUND(19, 0xCA, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0D));
+            ACTOR_110800_CUE_ANIMATION_SOUND(19, 0xCD, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0E));
             break;
-        case 5:
-            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x115) {
-                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
-                }
-                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            }
-            if ((gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0x11F) {
-                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F), 0, 0);
-                }
-                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[19].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            }
-            if ((gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xCE) {
-                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
-                }
-                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            }
-            if ((gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xD8) {
-                if (gViewFigureWork->st.cueRecord != (gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK)) {
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10), 0, 0);
-                }
-                gViewFigureWork->st.cueRecord = gViewFigureWork->rig.slots[16].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            }
+        case ACTOR_110800_CUED_CLIP_5:
+            ACTOR_110800_CUE_ANIMATION_SOUND(19, 0x115, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F));
+            ACTOR_110800_CUE_ANIMATION_SOUND(19, 0x11F, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x0F));
+            ACTOR_110800_CUE_ANIMATION_SOUND(16, 0xCE, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10));
+            ACTOR_110800_CUE_ANIMATION_SOUND(16, 0xD8, SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_ROOF_GARDEN, 0x10));
             break;
     }
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
+    lightPosition.vx = rootCoord->workm.t[0];
+    lightPosition.vy = rootCoord->workm.t[1];
+    lightPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightPosition, 0, ACTOR_110800_LIGHT_COUNT);
 }
+#undef ACTOR_110800_CUE_ANIMATION_SOUND
 
 /// The actor's task entry: a two-state dispatcher whose handler table is built
 /// on the stack. It publishes the task's work block in
@@ -377,7 +355,7 @@ void func_actor_110800_801322A0(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
         _viewFigureSpawnState,
-        func_actor_110800_80131F9C,
+        _actor110800UpdateViewFigure,
     };
 
     gViewFigureWork = task->work;

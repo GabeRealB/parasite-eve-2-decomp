@@ -27,7 +27,7 @@ static s32 _viewFigurePlayMessage(Task* unusedTask, s32 unusedMessageId, const A
 
 static void _viewFigureStepAnim(Task* task);
 
-/// The block above, published by `func_actor_110300_80131F9C` from the task's
+/// The block above, published by `_actor110300ViewFigureTask` from the task's
 /// `Task::work`.
 extern ViewFigureWork* gViewFigureWork;
 
@@ -56,11 +56,11 @@ extern u8 gViewFigureAnimSets[];
 
 extern TaskMessageEntry gViewFigureMessages[];
 
-static void func_actor_110300_80132020(Enemy* enemy, Task* task);
+static void _actor110300UpdateViewFigure(Enemy* unusedEnemy, Task* task);
 
 static TmdSource _gActor110300SwatMember2Body;
 static TmdSource _gActor110300Model05E6C;
-void             func_actor_110300_80131F9C(Task*);
+static void      _actor110300ViewFigureTask(Task* task);
 static void      _actor110300AttachModelTask(Task* task);
 
 static TmdBone _gActor110300SwatMember2BodySkeleton[20] = {
@@ -244,7 +244,7 @@ TaskMessageEntry gViewFigureMessages[3] = {
 };
 
 TaskDesc gViewFigureTasks[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_110300_80131F9C, { .model = &_gActor110300SwatMember2Body } },
+    { { { TASK_BODY_TMD, 192 } }, _actor110300ViewFigureTask, { .model = &_gActor110300SwatMember2Body } },
     { { { TASK_BODY_TMD, 192 } }, _actor110300AttachModelTask, { .model = &_gActor110300Model05E6C } },
 };
 
@@ -287,19 +287,20 @@ Task* gActorHelperTask;
 
 #include "../../shared/view_figure_spawn.inc.c"
 
-/// The actor's task entry: a two-state dispatcher whose handler table is built
-/// on the stack. It publishes the task's work block in
-/// `gViewFigureWork` before calling the handler, which is how the
-/// overlay's other functions reach the block without the task.
-void func_actor_110300_80131F9C(Task* task)
+/// Dispatches spawn or animation/lighting updates for the view-parented figure.
+///
+/// Task state must be 0 (spawn) or 1 (update), with a live model and Enemy in
+/// spawnArg2. Publishes the task work for the singleton message/animation helpers;
+/// spawn owns allocation and teardown of the work and attached model task.
+static void _actor110300ViewFigureTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[2] = {
         _viewFigureSpawnState,
-        func_actor_110300_80132020,
+        _actor110300UpdateViewFigure,
     };
 
     gViewFigureWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Attaches the helper model's root to part 8 of this figure's body model.
@@ -320,28 +321,28 @@ static void _actor110300AttachModelTask(Task* task)
     helperRoot->parent       = &bodyCoords[ACTOR_110300_HELPER_PARENT_PART];
 }
 
-/// Step 1 of the `func_actor_110300_80131F9C` dispatcher: run the body the
-/// actor's step selects, then refresh the model root as step 0 did by feeding
-/// its world translation to `worldCoordSetModelLighting` (the light solve) against the
-/// model object itself.
+/// Advances the figure animation and refreshes lighting at its cached root.
 ///
-/// The body reaches the task through the second argument, so the incoming `$a1`
-/// is copied into `$a0` (the first, unused, is the `Enemy*`): that copy is
-/// what the first call's argument, and the `Task::extra` load feeding it, are
-/// both read off.
-static void func_actor_110300_80132020(Enemy* enemy, Task* task)
+/// Requires the live twenty-part model and its initialized singleton work.
+/// The root cache supplies view-frame XYZ without a new composition here.
+/// All three model-light rows are updated; unusedEnemy is ignored.
+static void _actor110300UpdateViewFigure(Enemy* unusedEnemy, Task* task)
 {
-    TmdObject* obj;
-    GfxCoord*  coord;
-    VECTOR     vec;
+    enum {
+        ACTOR_110300_LIGHT_COUNT = 3,
+    };
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
+    TmdObject* model;
+    GfxCoord*  rootCoord;
+    VECTOR     lightPosition;
+
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
     _viewFigureStepAnim(task);
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
+    lightPosition.vx = rootCoord->workm.t[0];
+    lightPosition.vy = rootCoord->workm.t[1];
+    lightPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightPosition, 0, ACTOR_110300_LIGHT_COUNT);
 }
 
 #include "../../shared/view_figure_exit.inc.c"

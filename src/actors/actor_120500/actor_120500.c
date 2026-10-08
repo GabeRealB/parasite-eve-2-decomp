@@ -137,7 +137,7 @@ extern AnimationSet* D_actor_120500_8013807C[];
 extern ActorTransform D_actor_120500_80138090;
 extern ActorTransform D_actor_120500_801380A8;
 
-/// Pair of blocks `func_actor_120500_8013241C` passes to `evsStartScriptWithSkip`.
+/// Pair of blocks `_actor120500SceneTask` passes to `evsStartScriptWithSkip`.
 extern EvsCommand D_actor_120500_801380D8[];
 extern EvsCommand D_actor_120500_80138318[];
 
@@ -151,7 +151,7 @@ static void _actor120500SkipScene(void);
 
 static TmdSource _gActor120500KyleMadiganBody;
 void             func_actor_120500_80131E58(Task*);
-void             func_actor_120500_8013241C(Task*);
+static void      _actor120500SceneTask(Task* task);
 static void      _actor120500SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedArg);
 
 static TmdBone _gActor120500KyleMadiganBodySkeleton[20] = {
@@ -344,7 +344,7 @@ TaskDesc D_actor_120500_80138418[3] = {
 
 TaskDesc D_actor_120500_8013843C = { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } };
 
-TaskDesc D_actor_120500_80138448 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120500_8013241C, { .model = &_gActor120500KyleMadiganBody } };
+TaskDesc D_actor_120500_80138448 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120500SceneTask, { .model = &_gActor120500KyleMadiganBody } };
 
 Task* D_actor_120500_80138454 = NULL;
 
@@ -622,82 +622,101 @@ static void _actor120500InitBody(Task* task)
     _actor120500ResetBodyTracks(slotsWork);
 }
 
-/// Per-frame body of the actor task, entry 4 of the task table. State 0 waits
-/// until `Gp_StateC08.mode` is not 1 and `gDisplayState.pendingMode` is clear, then brings the actor
-/// up through `_actor120500InitBody`, sends the task in pointer slot 3
-/// the equipped-weapon animation as message 0x3E8 and installs the two
-/// `evsStartScriptWithSkip` blocks; state 1 kills the actor once the session's
-/// `eventState` clears.
+/// Blends the current equipped-weapon pose for the scene's player task.
 ///
-/// Every state then steps the request handler, ticks the nineteen animation
-/// slots past slot 0 and walks the slots to the first whose
-/// `ANIMATION_SLOT_REACHED_BOUNDARY` result is clear. The body request
-/// `ACTOR_120500_BODY_REQUEST_APPEAR` allocates the model's buffers, spawns the
-/// fade from black and places the actor with its own placement record. Of the
-/// screen requests, `ACTOR_120500_SCREEN_REQUEST_FADE_OUT` spawns the fade to
-/// black and `ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE` hides the player's model,
-/// spawns the streamed sequence, raises `gDisplayState.control.flags.flipMode`
-/// and spawns the view tasks. The model's part-1 translation goes to
-/// `worldCoordSetModelLighting` last.
-///
-/// The animation request and the translation are locals of two separate
-/// blocks so that they share one stack slot, as the retail frame has them.
-void func_actor_120500_8013241C(Task* arg0)
+/// Requires saved character 1 with weapon 0..32 in the loaded player bank.
+/// The retained other-character bank offset is unproven. Collision is disabled
+/// and the stack request is borrowed only through synchronous dispatch.
+static inline void _actor120500BlendPlayerWeaponPose(void)
 {
+    enum {
+        ACTOR_120500_PRIMARY_CHARACTER          = 1,
+        ACTOR_120500_PRIMARY_WEAPON_BANK_BASE   = 1,
+        ACTOR_120500_ALTERNATE_WEAPON_BANK_BASE = 34,
+        ACTOR_120500_WEAPON_CLIP                = 1,
+        ACTOR_120500_WEAPON_BLEND_FRAMES        = 10,
+    };
+
+    AnimationPlayRequest request;
+    s32                  animationBank;
+
+    animationBank = gPlayerStatus.weapon;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_120500_PRIMARY_CHARACTER) {
+        animationBank = animationBank + ACTOR_120500_PRIMARY_WEAPON_BANK_BASE;
+    } else {
+        animationBank = animationBank + ACTOR_120500_ALTERNATE_WEAPON_BANK_BASE;
+    }
+    request.source.index         = animationBank;
+    request.animationId          = ACTOR_120500_WEAPON_CLIP;
+    request.blend                = ANIMATION_BLEND_INTERPOLATE;
+    request.blendFrames          = ACTOR_120500_WEAPON_BLEND_FRAMES;
+    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
+}
+
+/// Runs the motel room 6 body, player choreography and movie/fade requests.
+///
+/// State 0 waits for the attachment wheel and pending display mode to clear,
+/// initializes the body, blends the equipped-weapon pose and starts the skippable
+/// scene. State 1 requests teardown when event playback becomes idle. Other paths
+/// tick non-root body tracks, consume body/screen requests and sample part-1 lighting.
+/// Requests borrow overlay and stack data synchronously; model/work and scene assets
+/// must remain live. The retained initialization-failure path continues after taskKill.
+static void _actor120500SceneTask(Task* task)
+{
+    enum {
+        ACTOR_120500_LIGHT_COUNT         = 3,
+        ACTOR_120500_SCENE_INITIALIZE    = 0,
+        ACTOR_120500_SCENE_RUNNING       = 1,
+        ACTOR_120500_SCENE_OBJECTIVE     = 13,
+        ACTOR_120500_FADE_IN_DESCRIPTOR  = 1,
+        ACTOR_120500_FADE_OUT_DESCRIPTOR = 2,
+        ACTOR_120500_FADE_STEP           = 8,
+    };
+
     _Actor120500Work* work;
     _Actor120500Work* slotsWork;
     _Actor120500Work* screenWork;
-    TmdObject*        mdl;
-    s32               anim;
-    s32               i;
+    TmdObject*        model;
+    s32               slotIndex;
 
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case ACTOR_120500_SCENE_INITIALIZE:
             if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL && gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                AnimationPlayRequest request;
 
-                _actor120500InitBody(arg0);
-                anim = gPlayerStatus.weapon;
-                if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                    anim = anim + 1;
-                } else {
-                    anim = anim + 0x22;
-                }
-                request.source.index         = anim;
-                request.animationId          = 1;
-                request.blend                = ANIMATION_BLEND_INTERPOLATE;
-                request.blendFrames          = 10;
-                request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xD);
+                _actor120500InitBody(task);
+                _actor120500BlendPlayerWeaponPose();
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_120500_SCENE_OBJECTIVE);
                 evsStartScriptWithSkip(D_actor_120500_801380D8, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_120500_80138318);
-                arg0->state += 1;
+                task->state += 1;
                 break;
             }
             return;
-        case 1:
+        case ACTOR_120500_SCENE_RUNNING:
             if (gGameSession->eventState == 0) {
-                taskRequestKill(arg0, 0);
+                taskRequestKill(task, 0);
                 return;
             }
             break;
     }
 
-    _actor120500RunPlayerRequest(arg0);
-    work      = arg0->work;
+    // Choreography precedes body playback and the one-tick appearance/screen requests.
+    _actor120500RunPlayerRequest(task);
+    work      = task->work;
     slotsWork = work;
 
-    i = 1;
+    slotIndex = 1;
     do {
-        animationTickSlot(&slotsWork->rig.anim, (u16)i);
-        i++;
-    } while ((u16)i < ARRAY_SIZE(slotsWork->rig.slots));
+        animationTickSlot(&slotsWork->rig.anim, (u16)slotIndex);
+        slotIndex++;
+    } while ((u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots));
 
-    i = 1;
+    // The original scans for the first unfinished track and discards the result.
+    slotIndex = 1;
     while (1) {
-        if ((slotsWork->rig.slots[(u16)i].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) != 0) {
-            i++;
-            if ((u16)i < ARRAY_SIZE(slotsWork->rig.slots)) {
+        if ((slotsWork->rig.slots[(u16)slotIndex].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) != 0) {
+            slotIndex++;
+            if ((u16)slotIndex < ARRAY_SIZE(slotsWork->rig.slots)) {
                 continue;
             }
         }
@@ -706,20 +725,20 @@ void func_actor_120500_8013241C(Task* arg0)
 
     if (work->bodyRequest != ACTOR_120500_BODY_REQUEST_NONE) {
         if (work->bodyRequest == ACTOR_120500_BODY_REQUEST_APPEAR) {
-            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
-            taskSpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120500_801380C0, 0);
+            tmdAllocPrimitiveBuffer(task->extra.tmd);
+            taskSpawnFromTable(D_actor_120500_80138418, ACTOR_120500_FADE_IN_DESCRIPTOR, ACTOR_120500_FADE_STEP, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120500_801380C0, 0);
         }
     }
     work->bodyRequest = ACTOR_120500_BODY_REQUEST_NONE;
 
-    screenWork = arg0->work;
+    screenWork = task->work;
     switch (screenWork->screenRequest) {
         case ACTOR_120500_SCREEN_REQUEST_FADE_OUT:
-            taskSpawnFromTable(D_actor_120500_80138418, 2, 8, 0);
+            taskSpawnFromTable(D_actor_120500_80138418, ACTOR_120500_FADE_OUT_DESCRIPTOR, ACTOR_120500_FADE_STEP, 0);
             break;
         case ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE:
-            taskMessageDispatch(screenWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(screenWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             displaySpawnTaskFromTable(D_actor_120500_80138418, 0, 0, 0);
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
             viewQueueCurrentCameraAndPackets();
@@ -731,13 +750,13 @@ void func_actor_120500_8013241C(Task* arg0)
     screenWork->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
 
     {
-        VECTOR pos;
+        VECTOR lightPosition;
 
-        mdl    = arg0->extra.tmd;
-        pos.vx = arg0->extra.tmd->coords[1].workm.t[0];
-        pos.vy = arg0->extra.tmd->coords[1].workm.t[1];
-        pos.vz = arg0->extra.tmd->coords[1].workm.t[2];
-        worldCoordSetModelLighting(mdl, &pos, 0, 3);
+        model            = task->extra.tmd;
+        lightPosition.vx = task->extra.tmd->coords[1].workm.t[0];
+        lightPosition.vy = task->extra.tmd->coords[1].workm.t[1];
+        lightPosition.vz = task->extra.tmd->coords[1].workm.t[2];
+        worldCoordSetModelLighting(model, &lightPosition, 0, ACTOR_120500_LIGHT_COUNT);
     }
 }
 

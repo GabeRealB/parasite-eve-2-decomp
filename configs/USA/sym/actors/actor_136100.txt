@@ -213,3 +213,4 @@ _actor136100UpdateBeforeBurnerCompanionRequest = 0x80133558; // type:func
 _actor136100TryStartFollowUpScene = 0x80133904; // type:func
 _actor136100StartFadeIn = 0x80134898; // type:func
 _actor136100StartFadeOut = 0x801348c8; // type:func
+_actor136100InitBody = 0x80133a88; // type:func

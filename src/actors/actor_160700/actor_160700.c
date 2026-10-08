@@ -1483,7 +1483,7 @@ u8 D_actor_160700_801416C0[100] = {
     0,
 };
 
-static void func_actor_160700_80131F70(Enemy* enemy, Task* task);
+static void _actor160700PacedWalkSpawn(Enemy* enemy, Task* task);
 
 void actor160700RestoreMeetingAnimation(void)
 {
@@ -1527,56 +1527,76 @@ void actor160700StartMeetingScript(void)
     }
 }
 
-/// State-0 handler of the actor's dispatcher: allocates the work block, spawns
-/// the sub-model and adopts it as a child, takes the model's texture page and
-/// CLUT from the area placement the enemy's `placeKey` selects, sets up the
-/// animation context on clip 1, installs the message table whose handlers are
-/// the actor's script opcodes, and starts the animation.
-static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
-{
-    VECTOR         vec;
-    PacedWalkWork* work;
-    PacedWalkWork* mem;
-    GfxCoord*      coord;
-    TmdObject*     obj;
-    Enemy*         spawned;
+/// Binds the walker’s work matrices and samples its cached root lighting.
+///
+/// Standalone statements only. All four arguments must be side-effect-free
+/// lvalues; model/work/root are read repeatedly and sample is a writable VECTOR.
+/// Captures the spawn’s 800-unit Y offset and three-row light count. The model
+/// borrows the matrices until teardown; root composition is not refreshed.
+#define ACTOR_160700_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, sample)        \
+    (model)->lightMtx = &(work)->light;                                               \
+    (model)->colorMtx = &(work)->color;                                               \
+    (sample).vx       = (rootCoord)->workm.t[0];                                      \
+    (sample).vy       = (rootCoord)->workm.t[1] - ACTOR_160700_LIGHT_SAMPLE_Y_OFFSET; \
+    (sample).vz       = (rootCoord)->workm.t[2];                                      \
+    worldCoordSetModelLighting((model), &(sample), 0, ACTOR_160700_LIGHT_COUNT)
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
-    mem        = memCalloc(sizeof(PacedWalkWork), false);
-    work       = mem;
-    task->work = mem;
-    if (mem == NULL) {
+/// Initializes the Pierce paced walker and creates its attachment task.
+///
+/// Allocates zeroed task-owned work, destroying the enemy on failure. Requires
+/// a live model/Enemy and descriptor slot 1 to produce a live attachment. Parents
+/// the untargetable root to the view, textures the attachment from the owner’s
+/// area placement and adopts it into task teardown. The model borrows work-owned
+/// lighting matrices and samples cached XYZ with Y minus 800, before composition.
+/// Binds the loaded clip table, requests clip 1, installs messages/exit, updates
+/// once and advances spawn state 0 to running state 1. Resources must outlive work.
+static void _actor160700PacedWalkSpawn(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_160700_SPAWN_CLIP            = 1,
+        ACTOR_160700_LIGHT_SAMPLE_Y_OFFSET = 800,
+        ACTOR_160700_LIGHT_COUNT           = 3,
+    };
+
+    VECTOR         lightPosition;
+    PacedWalkWork* work;
+    PacedWalkWork* allocatedWork;
+    GfxCoord*      rootCoord;
+    TmdObject*     model;
+    Enemy*         attachmentEnemy;
+
+    model         = task->extra.tmd;
+    rootCoord     = model->coords;
+    allocatedWork = memCalloc(sizeof(PacedWalkWork), false);
+    work          = allocatedWork;
+    task->work    = allocatedWork;
+    if (allocatedWork == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = _actor160700Exit;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->flags                       = 0;
-    obj->otOffset                    = 1;
+    model->flags                     = 0;
+    model->otOffset                  = 1;
     work->enemy                      = enemy;
-    spawned                          = enemySpawnFromTable(D_actor_160700_801416A8, 1, 0, enemy);
-    _actorRenderApplyPlacementTextureOffsets(spawned->task->extra.tmd, enemy);
-    taskReparent(task, spawned->task);
-    work->pairTask  = spawned->task;
-    work->st.animId = 1;
-    obj->lightMtx   = &work->light;
-    obj->colorMtx   = &work->color;
-    vec.vx          = coord->workm.t[0];
-    vec.vy          = coord->workm.t[1] - 0x320;
-    vec.vz          = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_160700_801416C0, obj,
+    attachmentEnemy                  = enemySpawnFromTable(D_actor_160700_801416A8, 1, 0, enemy);
+    _actorRenderApplyPlacementTextureOffsets(attachmentEnemy->task->extra.tmd, enemy);
+    taskReparent(task, attachmentEnemy->task);
+    work->pairTask  = attachmentEnemy->task;
+    work->st.animId = ACTOR_160700_SPAWN_CLIP;
+    ACTOR_160700_INITIALIZE_MODEL_LIGHTING(model, work, rootCoord, lightPosition);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_160700_801416C0, model,
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = D_actor_160700_80141678;
     _pacedWalkUpdate(task);
     task->state += 1;
 }
+#undef ACTOR_160700_INITIALIZE_MODEL_LIGHTING
 
 #include "../../shared/paced_walk_update.inc.c"
 
@@ -1586,7 +1606,7 @@ static void func_actor_160700_80131F70(Enemy* enemy, Task* task)
 void func_actor_160700_8013233C(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        func_actor_160700_80131F70,
+        _actor160700PacedWalkSpawn,
         _actorRenderWalkerFrame,
     };
 
