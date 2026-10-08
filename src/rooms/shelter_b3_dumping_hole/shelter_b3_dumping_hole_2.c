@@ -30,6 +30,7 @@
 #include "gameplay/enemy.h"
 #include "gameplay/evs.h"
 #include "gameplay/evs_scripts.h"
+#include "gameplay/glutton_rain_effect.h"
 #include "gameplay/light.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
@@ -549,13 +550,13 @@ static void _shelterB3DumpingHoleEncounterSpawnSlot(s16 slotIndex, s16 kind, s16
 
 static void _shelterB3DumpingHoleEncounterPairSpawn(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterInitialize(Task* controllerTask);
-static void func_shelter_b3_dumping_hole_8018378C(Task* arg0);
+static void _shelterB3DumpingHoleEncounterOpen(Task* controllerTask);
 static void _shelterB3DumpingHoleEncounterArmBattle(Task* controllerTask);
-static void func_shelter_b3_dumping_hole_801838A0(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183950(Task* arg0);
+static void _shelterB3DumpingHoleEncounterRun(Task* controllerTask);
+static void _shelterB3DumpingHoleEncounterSpawnMadChaser(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterRevealMadChaser(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterWatchMadChaser(Task* waveTask);
-static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0);
+static void _shelterB3DumpingHoleEncounterSpawnSlouch(Task* waveTask);
 static void _overlayEncounterRevealSlouch(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterWatchSlouch(Task* waveTask);
 static void _shelterB3DumpingHoleEncounterPairWaitFrame(Task* waveTask);
@@ -4458,16 +4459,16 @@ static s32 _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, 
 /// once all 16 have been cleared.
 static const TaskFuncTable4 D_shelter_b3_dumping_hole_8017D654 = { {
     _shelterB3DumpingHoleEncounterInitialize,
-    func_shelter_b3_dumping_hole_8018378C,
+    _shelterB3DumpingHoleEncounterOpen,
     _shelterB3DumpingHoleEncounterArmBattle,
-    func_shelter_b3_dumping_hole_801838A0,
+    _shelterB3DumpingHoleEncounterRun,
 } };
 
 /// States of a slot task holding one enemy from `Actor04400_D107E4`: spawn it, after
 /// a delay switch its palette and send it message 0x7DB, then wait for its hit
 /// points to run out.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
-    func_shelter_b3_dumping_hole_80183950,
+    _shelterB3DumpingHoleEncounterSpawnMadChaser,
     _shelterB3DumpingHoleEncounterRevealMadChaser,
     _shelterB3DumpingHoleEncounterWatchMadChaser,
 } };
@@ -4476,7 +4477,7 @@ static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
 /// a delay switch its palette and send it message 0x7DB, then wait for its hit
 /// points to run out.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
-    func_shelter_b3_dumping_hole_80183AEC,
+    _shelterB3DumpingHoleEncounterSpawnSlouch,
     _overlayEncounterRevealSlouch,
     _shelterB3DumpingHoleEncounterWatchSlouch,
 } };
@@ -4576,18 +4577,24 @@ static void _shelterB3DumpingHoleEncounterInitialize(Task* controllerTask)
     controllerTask->state             += 1;
 }
 
-static void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
+/// Opens the encounter by spawning its first three rows and advancing.
+///
+/// Requires zeroed controller work with nextSlot == 0 and the sixteen-row
+/// room table. Each spawn borrows its row's appearance command; nextSlot still
+/// advances if a spawn fails. The controller owns its work, not the enemies.
+static void _shelterB3DumpingHoleEncounterOpen(Task* controllerTask)
 {
-    OverlayEncounterControllerWork* work = arg0->work;
-    s32                             i;
+    enum { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_OPEN_SLOT_COUNT = 3 };
+    OverlayEncounterControllerWork* work = controllerTask->work;
+    s32                             openingSlot;
 
-    for (i = 0; i < 3; i++) {
-        s16 idx = work->nextSlot;
-        _shelterB3DumpingHoleEncounterSpawnSlot(idx, D_shelter_b3_dumping_hole_8018B7BC[idx].kind,
-                                                D_shelter_b3_dumping_hole_8018B7BC[idx].command);
+    for (openingSlot = 0; openingSlot < SHELTER_B3_DUMPING_HOLE_ENCOUNTER_OPEN_SLOT_COUNT; openingSlot++) {
+        s16 slotIndex = work->nextSlot;
+        _shelterB3DumpingHoleEncounterSpawnSlot(slotIndex, D_shelter_b3_dumping_hole_8018B7BC[slotIndex].kind,
+                                                D_shelter_b3_dumping_hole_8018B7BC[slotIndex].command);
         work->nextSlot += 1;
     }
-    arg0->state += 1;
+    controllerTask->state += 1;
 }
 
 /// Arms the encounter on the fifteenth controller update after the opening spawns.
@@ -4608,47 +4615,71 @@ static void _shelterB3DumpingHoleEncounterArmBattle(Task* controllerTask)
     }
 }
 
-static void func_shelter_b3_dumping_hole_801838A0(Task* arg0)
+/// Feeds encounter rows and releases the battle hold once all sixteen are done.
+///
+/// Requires live controller work and the room table; the controller dispatcher
+/// calls this only while actors run. Stop command 4 suspends both feeding and
+/// completion, leaving the battle hold intact. Completion clears rewards,
+/// records spawnPhase[0] complete and kills this task and its owned work.
+static void _shelterB3DumpingHoleEncounterRun(Task* controllerTask)
 {
-    OverlayEncounterControllerWork* work = arg0->work;
-    s16                             count;
-    s32                             i;
+    OverlayEncounterControllerWork* work = controllerTask->work;
+    s16                             completedSlots;
+    s32                             slotIndex;
 
-    count = 0;
+    completedSlots = 0;
     if (work->stop != OVERLAY_ENCOUNTER_COMMAND_STOP) {
-        _shelterB3DumpingHoleEncounterFeed(arg0);
-        for (i = 0; i < 0x10; i++) {
-            if (D_shelter_b3_dumping_hole_8018B7BC[i].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
-                count++;
+        _shelterB3DumpingHoleEncounterFeed(controllerTask);
+        for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(D_shelter_b3_dumping_hole_8018B7BC); slotIndex++) {
+            if (D_shelter_b3_dumping_hole_8018B7BC[slotIndex].status == OVERLAY_ENCOUNTER_SLOT_DONE) {
+                completedSlots++;
             }
         }
-        if (count == 0x10) {
-            sceneReleaseBattleRefAndClearRewards(arg0, 0);
+        if (completedSlots == (s32)ARRAY_SIZE(D_shelter_b3_dumping_hole_8018B7BC)) {
+            sceneReleaseBattleRefAndClearRewards(controllerTask, 0);
             gGameSession->spawnPhase[0] = GAME_SESSION_SPAWN_COMPLETE;
-            taskKill(arg0);
+            taskKill(controllerTask);
         }
     }
 }
 
-static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
+/// Registers a spawned enemy in its encounter row and assigns the next place index.
+///
+/// Requires task-owned single-slot work, a live borrowed enemy and packed row
+/// 0..15 in the task's high spawn halfword. Does not adopt or own the enemy task.
+static inline void _shelterB3DumpingHoleRegisterSingleEncounter(Task* waveTask, OverlayEncounterSingleWork* work, Enemy* enemy)
 {
-    OverlayEncounterSingleWork* work = memCalloc(sizeof(*work), 0);
+    u16 placeIndex;
+
+    D_shelter_b3_dumping_hole_8018B7BC[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
+    placeIndex                                                                 = D_shelter_b3_dumping_hole_8018F4D4;
+    work->enemy                                                                = enemy;
+    enemy->placeKey                                                            = placeIndex << ENEMY_PLACE_INDEX_SHIFT;
+    D_shelter_b3_dumping_hole_8018F4D4                                         = placeIndex + 1;
+    waveTask->state                                                           += 1;
+}
+
+/// Spawns and numbers the Mad Chaser for one dumping-hole encounter row.
+///
+/// Entry is single-slot state 0; the packed high spawn halfword selects row
+/// 0..15 and the low halfword is retained for its delayed reveal command.
+/// Allocates zeroed primary-heap work owned by this task and borrows the enemy,
+/// whose task belongs to the scene. Allocation or enemy-spawn failure kills
+/// the slot task without marking the row live. Success advances to reveal.
+static void _shelterB3DumpingHoleEncounterSpawnMadChaser(Task* waveTask)
+{
+    enum { SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TASK_INDEX = 1 };
+    OverlayEncounterSingleWork* work = memCalloc(sizeof(*work), false);
     if (work != NULL) {
         Enemy* enemy;
-        arg0->work = work;
-        enemy      = enemySpawnFromTable(&Actor04400_D107E4, 1, 0, NULL);
+        waveTask->work = work;
+        enemy          = enemySpawnFromTable(&Actor04400_D107E4, SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TASK_INDEX, 0, NULL);
         if (enemy != NULL) {
-            u16 idx;
-            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
-            idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4;
-            work->enemy                                                                   = enemy;
-            enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
-            D_shelter_b3_dumping_hole_8018F4D4                                            = idx + 1;
-            arg0->state                                                                  += 1;
+            _shelterB3DumpingHoleRegisterSingleEncounter(waveTask, work, enemy);
             return;
         }
     }
-    taskKill(arg0);
+    taskKill(waveTask);
 }
 
 /// Reveals the slot's Mad Chaser on its forty-sixth delay update.
@@ -4700,25 +4731,27 @@ static void _shelterB3DumpingHoleEncounterWatchMadChaser(Task* waveTask)
     }
 }
 
-static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
+/// Spawns and numbers the Slouch for one dumping-hole encounter row.
+///
+/// Entry is single-slot state 0; the packed high spawn halfword selects row
+/// 0..15 and the low halfword is retained for its delayed reveal command.
+/// Allocates zeroed primary-heap work owned by this task and borrows the scene's
+/// enemy. Allocation or enemy-spawn failure kills the slot task without marking
+/// the row live. Success advances to the Slouch reveal state.
+static void _shelterB3DumpingHoleEncounterSpawnSlouch(Task* waveTask)
 {
-    OverlayEncounterSingleWork* work = memCalloc(sizeof(*work), 0);
+    enum { SHELTER_B3_DUMPING_HOLE_SLOUCH_TASK_INDEX = 2 };
+    OverlayEncounterSingleWork* work = memCalloc(sizeof(*work), false);
     if (work != NULL) {
         Enemy* enemy;
-        arg0->work = work;
-        enemy      = enemySpawnFromTable(&D_actor_207000_801575F0, 2, 0, NULL);
+        waveTask->work = work;
+        enemy          = enemySpawnFromTable(&D_actor_207000_801575F0, SHELTER_B3_DUMPING_HOLE_SLOUCH_TASK_INDEX, 0, NULL);
         if (enemy != NULL) {
-            u16 idx;
-            D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_LIVE;
-            idx                                                                           = D_shelter_b3_dumping_hole_8018F4D4;
-            work->enemy                                                                   = enemy;
-            enemy->placeKey                                                               = idx << ENEMY_PLACE_INDEX_SHIFT;
-            D_shelter_b3_dumping_hole_8018F4D4                                            = idx + 1;
-            arg0->state                                                                  += 1;
+            _shelterB3DumpingHoleRegisterSingleEncounter(waveTask, work, enemy);
             return;
         }
     }
-    taskKill(arg0);
+    taskKill(waveTask);
 }
 
 #include "../../shared/mad_chaser_waves_reveal_second.inc.c"
@@ -5162,54 +5195,79 @@ void shelterB3DumpingHoleGluttonRainParticleTask(Task* task)
 
 #include "../../shared/effect_sprite_draw_billboard.inc.c"
 
-void func_shelter_b3_dumping_hole_80186D4C(Task* arg0)
+/// Attaches the rain effect at its projectile parent's origin and refreshes its cache.
+///
+/// Requires live, disjoint coordinate and counted effect work, with a live parent
+/// hierarchy. Replaces rotation and all three local translations; retains the parent.
+static inline void _shelterB3DumpingHoleAttachRainBlob(GfxCoord* coord, const EffectWork* work)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    s32         i;
+    coord->parent = work->parent;
+    gfxSetRotIdentity(&coord->coord);
+    coord->coord.t[2]   = 0;
+    coord->coord.t[1]   = 0;
+    coord->coord.t[0]   = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
 
-    mem   = (EffectWork*)arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+void shelterB3DumpingHoleGluttonRainBlobTask(Task* task)
+{
+    enum {
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_ATTACH              = 0,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_ATTACHED            = 1,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BILLBOARD_SIZE      = 0x380,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_FRAME_AGE_UNITS     = 2,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_FRAME_HALFWORD_MASK = 0xFFFF,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BURST_SPRAY_COUNT   = 4,
+        // Packed particle arguments: billboard/chip, velocity kind, speed, frame period, size.
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_START_PARTICLE_ARG  = 0x14002400,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_FLYING_PARTICLE_ARG = 0x01001400,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BURST_PARTICLE_ARG  = 0x10002380,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BURST_SPRAY_ARG     = 0x02002400,
+        SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BURST_DRIFT_ARG     = 0x02202300
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    s32         sprayIndex;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-        _effectSpriteDrawBillboard(coord, (mem->age / 2) & 0xFFFF, 0x380);
+        // A suspended or cancelled blob redraws once before any teardown.
+        _effectSpriteDrawBillboard(coord, (work->age / SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_FRAME_AGE_UNITS) & SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_FRAME_HALFWORD_MASK, SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BILLBOARD_SIZE);
         if (gRoomEffectState->effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
         return;
     }
-    if (arg0->state == 0) {
-        coord->parent = mem->parent;
-        gfxSetRotIdentity(&coord->coord);
-        coord->coord.t[2]   = 0;
-        coord->coord.t[1]   = 0;
-        coord->coord.t[0]   = 0;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(coord);
-        arg0->state = 1;
+    if (task->state == SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_ATTACH) {
+        _shelterB3DumpingHoleAttachRainBlob(coord, work);
+        task->state = SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_ATTACHED;
     }
-    mem->age += 1;
-    switch (arg0->spawnArg1.value) {
-        case 0:
-            effectSpawn(EFFECT_GLUTTON_RAIN_PARTICLE, coord, 0x14002400, NULL);
-            arg0->spawnArg1.value = 1;
+    work->age += 1;
+    switch (task->spawnArg1.value) {
+        case EFFECT_GLUTTON_RAIN_BLOB_START:
+            effectSpawn(EFFECT_GLUTTON_RAIN_PARTICLE, coord, SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_START_PARTICLE_ARG, NULL);
+            task->spawnArg1.value = EFFECT_GLUTTON_RAIN_BLOB_FLYING;
             return;
-        case 1:
-            _effectSpriteDrawBillboard(coord, (mem->age / 2) & 0xFFFF, 0x380);
-            if (!(mem->age & 1)) {
-                effectSpawn(EFFECT_GLUTTON_RAIN_PARTICLE, coord, 0x1001400, NULL);
+        case EFFECT_GLUTTON_RAIN_BLOB_FLYING:
+            _effectSpriteDrawBillboard(coord, (work->age / SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_FRAME_AGE_UNITS) & SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_FRAME_HALFWORD_MASK, SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BILLBOARD_SIZE);
+            if (!(work->age & (SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_FRAME_AGE_UNITS - 1))) {
+                effectSpawn(EFFECT_GLUTTON_RAIN_PARTICLE, coord, SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_FLYING_PARTICLE_ARG, NULL);
             }
-            mem->age += 1;
+            // Flying advances age a second time after drawing and emission.
+            work->age += 1;
             return;
-        case 2:
-            effectSpawn(EFFECT_GLUTTON_RAIN_PARTICLE, coord, 0x10002380, NULL);
-            for (i = 0; i < 4; i++) {
-                effectSpawn(EFFECT_GLUTTON_RAIN_PARTICLE, coord, 0x2002400, NULL);
-                effectSpawn(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, coord, 0x2202300, NULL);
+        case EFFECT_GLUTTON_RAIN_BLOB_BURST:
+            effectSpawn(EFFECT_GLUTTON_RAIN_PARTICLE, coord, SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BURST_PARTICLE_ARG, NULL);
+            for (sprayIndex = 0; sprayIndex < SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BURST_SPRAY_COUNT; sprayIndex++) {
+                effectSpawn(EFFECT_GLUTTON_RAIN_PARTICLE, coord, SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BURST_SPRAY_ARG, NULL);
+                effectSpawn(EFFECT_SHELTER_B3_DUMPING_HOLE_DRIFT_SPRITE, coord, SHELTER_B3_DUMPING_HOLE_RAIN_BLOB_BURST_DRIFT_ARG, NULL);
             }
-            arg0->spawnArg1.value = 3;
+            task->spawnArg1.value = EFFECT_GLUTTON_RAIN_BLOB_END;
             return;
-        case 3:
-            effectKillTask(mem, arg0);
+        case EFFECT_GLUTTON_RAIN_BLOB_END:
+            effectKillTask(work, task);
             return;
     }
 }

@@ -65,9 +65,9 @@ shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlashTask = 0x8017E99C; // type
 
 shelterB2SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask = 0x8017F400; // type:func
 
-func_shelter_b2_south_maintenance_walkway_8017FCE8 = 0x8017FCE8; // type:func
+shelterB2SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask = 0x8017FCE8; // type:func
 
-func_shelter_b2_south_maintenance_walkway_80180930 = 0x80180930; // type:func
+shelterB2SouthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask = 0x80180930; // type:func
 
 shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask = 0x80180E88; // type:func
 

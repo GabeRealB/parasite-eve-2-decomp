@@ -35,10 +35,11 @@ extern TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6];
 extern TaskDesc D_actor_342100_80164B78[];
 
 static s32  _shelterB3DumpingHoleRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unused);
-s32         func_shelter_b3_dumping_hole_8017D760(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32         func_shelter_b3_dumping_hole_8017D82C(Task*, s32, s32, s32);
+static s32  _shelterB3DumpingHoleResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _shelterB3DumpingHoleHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
 static s32  _shelterB3DumpingHoleIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
-s32         func_shelter_b3_dumping_hole_8017D870(Task*, s32, s32, s32);
+static s32  _shelterB3DumpingHoleStartCollapseOnActorEvent(Task* task, s32 messageId, s32 eventId, s32 unusedArg);
+static void _shelterB3DumpingHoleInitializeRoomTask(Task* task);
 static void _shelterB3DumpingHoleIdleRoom(Task* task);
 
 static AnimationSet _gShelterB3DumpingHoleAnimation0AAB4;
@@ -76,11 +77,11 @@ TmdSource gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 = {
 };
 
 TaskMessageEntry D_shelter_b3_dumping_hole_80187574[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_dumping_hole_8017D760 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB3DumpingHoleResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB3DumpingHoleRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3DumpingHoleIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b3_dumping_hole_8017D82C },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b3_dumping_hole_8017D870 },
+    { ROOM_MESSAGE_COMMAND, _shelterB3DumpingHoleHandleRoomCommand },
+    { ROOM_MESSAGE_ACTOR_EVENT, _shelterB3DumpingHoleStartCollapseOnActorEvent },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -213,8 +214,6 @@ AnimationSet* D_shelter_b3_dumping_hole_801880A0[6] = {
     NULL,
 };
 
-static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0);
-
 /// Refuses key-item use with the inventory menu's refused reply.
 ///
 /// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; the selected collected-item ID and
@@ -224,31 +223,52 @@ static s32 _shelterB3DumpingHoleRejectKeyItem(Task* task, s32 messageId, s32 ite
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_shelter_b3_dumping_hole_8017D760(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves departures and refuses the incinerator exit while it is blocked.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`, borrowing complete eight-byte records
+/// for this call; request and reply may alias. Returns 1 for ordinary passage
+/// and 0 for a blocked exit. Execute requests play the refusal CAP or select
+/// the incinerator room from the zero-based event room index; queries do neither.
+/// The receiver and message ID are unused.
+static s32 _shelterB3DumpingHoleResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
+    enum { INCINERATOR_EXIT_BLOCKED_CAP_COMMAND = 0x16,
+           ROOM_TRANSITION_HANDLED              = 0,
+           ROOM_TRANSITION_ALLOWED              = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR) {
         if (shelterB3DumpingHoleIsIncineratorExitBlocked() != 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(0x16);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(INCINERATOR_EXIT_BLOCKED_CAP_COMMAND);
             }
-            return 0;
+            return ROOM_TRANSITION_HANDLED;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = gGameSession->eventRoomIndex + 1;
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            reply->room = gGameSession->eventRoomIndex + 1;
         }
-        return 1;
+        return ROOM_TRANSITION_ALLOWED;
     }
-    return 1;
+    return ROOM_TRANSITION_ALLOWED;
 }
 
-s32 func_shelter_b3_dumping_hole_8017D82C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts the progress-selected CAP event for room command 18 when CAP is idle.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`: command 18 selects CAP 23 while flag 0x11D
+/// is clear and CAP 18 otherwise, holding actors for the event. Other commands
+/// have no effect. The receiver and other words are unused; every call returns 0.
+static s32 _shelterB3DumpingHoleHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg)
 {
-    if (arg2 == 0x12) {
-        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_11D) != 0 ? 0x12 : 0x17, CAP_EVENT_PAUSE_ACTORS);
+    enum { DUMPING_HOLE_PROGRESS_COMMAND     = 0x12,
+           DUMPING_HOLE_PROGRESS_CAP_COMMAND = 0x12,
+           DUMPING_HOLE_INITIAL_CAP_COMMAND  = 0x17,
+           DUMPING_HOLE_COMMAND_REPLY        = 0 };
+
+    if (commandId == DUMPING_HOLE_PROGRESS_COMMAND) {
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_11D) != 0 ? DUMPING_HOLE_PROGRESS_CAP_COMMAND : DUMPING_HOLE_INITIAL_CAP_COMMAND, CAP_EVENT_PAUSE_ACTORS);
     }
-    return 0;
+    return DUMPING_HOLE_COMMAND_REPLY;
 }
 
 /// Ignores direction-triggered room actions and returns zero.
@@ -260,31 +280,55 @@ static s32 _shelterB3DumpingHoleIgnoreRoomAction(Task* task, s32 messageId, cons
     return 0;
 }
 
-s32 func_shelter_b3_dumping_hole_8017D870(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Starts the room collapse sequence when the Glutton reports its death handoff.
+///
+/// Handles `ROOM_MESSAGE_ACTOR_EVENT` without filtering the event payload.
+/// All arguments are unused, and even a failed task spawn returns 0.
+static s32 _shelterB3DumpingHoleStartCollapseOnActorEvent(Task* task, s32 messageId, s32 eventId, s32 unusedArg)
 {
-    taskSpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, 0, 0, 0);
-    return 0;
+    enum { DUMPING_HOLE_COLLAPSE_TASK_INDEX = 0,
+           DUMPING_HOLE_ACTOR_EVENT_REPLY   = 0 };
+
+    taskSpawnFromTable(D_shelter_b3_dumping_hole_80189ADC, DUMPING_HOLE_COLLAPSE_TASK_INDEX, 0, 0);
+    return DUMPING_HOLE_ACTOR_EVENT_REPLY;
 }
 
-static void func_shelter_b3_dumping_hole_8017D8A0(Task* arg0)
+/// Registers the room receiver and selects its arrival scene and encounter.
+///
+/// Runs at state 0 with loaded captions and event-script resources. The first
+/// variant-1 arrival records the objective and arrival flag; warp 3 also starts
+/// the skippable entry script. Room selectors 2 and above start the controller
+/// that schedules the enemy waves and the later burn scene. Advances to idle.
+static void _shelterB3DumpingHoleInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_b3_dumping_hole_80187574;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    shelterB3DumpingHoleSelectCaptionResource(0x180, 0, 0);
+    enum { DUMPING_HOLE_CAPTION_TEXTURE_X_WORDS = 0x180,
+           DUMPING_HOLE_CAPTION_TEXTURE_Y_ROWS  = 0,
+           DUMPING_HOLE_CAPTION_DATA_INDEX      = 0,
+           DUMPING_HOLE_ARRIVAL_VARIANT         = 1,
+           DUMPING_HOLE_ARRIVAL_WARP            = 3,
+           DUMPING_HOLE_ARRIVAL_OBJECTIVE       = 0x21,
+           DUMPING_HOLE_ARRIVAL_SEEN            = 1,
+           DUMPING_HOLE_ENCOUNTER_FIRST_ROOM    = 2,
+           DUMPING_HOLE_ENCOUNTER_TASK_INDEX    = 0 };
+
+    task->msgTable = D_shelter_b3_dumping_hole_80187574;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    shelterB3DumpingHoleSelectCaptionResource(DUMPING_HOLE_CAPTION_TEXTURE_X_WORDS, DUMPING_HOLE_CAPTION_TEXTURE_Y_ROWS, DUMPING_HOLE_CAPTION_DATA_INDEX);
+    // Record first arrival independently of whether this warp runs the entry scene.
     if (gameFlagGetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN) == 0) {
-        if (gGameSession->location.loc.variant == 1) {
-            if (gGameSession->location.loc.warp == 3) {
+        if (gGameSession->location.loc.variant == DUMPING_HOLE_ARRIVAL_VARIANT) {
+            if (gGameSession->location.loc.warp == DUMPING_HOLE_ARRIVAL_WARP) {
                 evsStartScriptWithSkip(D_shelter_b3_dumping_hole_8018B080, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_shelter_b3_dumping_hole_8018B428);
             }
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x21);
-            gameFlagSetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN, 1);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DUMPING_HOLE_ARRIVAL_OBJECTIVE);
+            gameFlagSetNibble(GAME_FLAG_DUMPING_HOLE_ARRIVAL_SEEN, DUMPING_HOLE_ARRIVAL_SEEN);
         }
     }
-    if (gGameSession->location.loc.room >= 2) {
-        taskSpawnFromTable(D_actor_342100_80164B78, 0, 0, 0);
+    if (gGameSession->location.loc.room >= DUMPING_HOLE_ENCOUNTER_FIRST_ROOM) {
+        taskSpawnFromTable(D_actor_342100_80164B78, DUMPING_HOLE_ENCOUNTER_TASK_INDEX, 0, 0);
     }
-    arg0->state                       += 1;
+    task->state                       += 1;
     D_shelter_b3_dumping_hole_8018F4A4 = 0;
 }
 
@@ -298,18 +342,18 @@ static void _shelterB3DumpingHoleIdleRoom(Task* task)
 }
 
 /// State handlers of the room's controller task, run by
-/// `func_shelter_b3_dumping_hole_8017D9A8`: set-up, an idle state, and the
+/// `shelterB3DumpingHoleRoomTask`: set-up, an idle state, and the
 /// kill.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D5C4 = { {
-    func_shelter_b3_dumping_hole_8017D8A0,
+    _shelterB3DumpingHoleInitializeRoomTask,
     _shelterB3DumpingHoleIdleRoom,
     taskKill,
 } };
 
-void func_shelter_b3_dumping_hole_8017D9A8(Task* task)
+void shelterB3DumpingHoleRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_shelter_b3_dumping_hole_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers = D_shelter_b3_dumping_hole_8017D5C4;
+    handlers.funcs[task->state](task);
 }

@@ -12,6 +12,8 @@
 
 #include "main/task_types.h"
 
+#include "rooms/room_visual_effects.h"
+
 extern AreaVariant D_shelter_b2_south_maintenance_walkway_801837AC[22];
 
 // shelter_b2_south_maintenance_walkway
@@ -71,9 +73,27 @@ void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlashTask(Task* task);
 /// releases the effect work and both histories.
 void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b2_south_maintenance_walkway_8017FCE8(Task* task);
+/// Emits an impact flash with smoke puffs or bouncing sparks and fading orange rings.
+///
+/// Requires a coordinate body, initial state 0 and owned, zero-aged, counted
+/// `EffectWork` in `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects smoke;
+/// zero selects sparks and rings. Enters release at active age seven and tears
+/// down on the next active tick. Child effects are independent. Room control
+/// pauses at nonzero values below four and cancels at four or above. The room
+/// overlay and borrowed coordinate hierarchy must stay loaded and live.
+void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task);
 
-void func_shelter_b2_south_maintenance_walkway_80180930(Task* arg0);
+/// Runs an attached charge disc, player-joint sparks and a fading release ring.
+///
+/// Requires a coordinate body and owned, zeroed, counted `EffectWork` in
+/// `spawnArg2.pointer`, starting in state 0. `spawnArg1.value` selects tint 0 or 1.
+/// The work's parent and ancestors stay live; attachment uses its copied local
+/// position. The owner uses `ROOM_VISUAL_EFFECTS_GLOW_DISC_*` to request flicker,
+/// release or cancel; GROW emits adopted flying sparks from live player
+/// model coordinates 3..18. Room control pauses at nonzero values below four and
+/// cancels at four or above. Completion releases work, body and adopted tasks;
+/// the room overlay and installed flying-spark callback must remain loaded.
+void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs an animated spark on a fixed flight step toward an initial target.
 ///

@@ -670,7 +670,7 @@ void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b2_south_maintenance_walkway_8017FCE8(Task* task)
+void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
@@ -679,9 +679,9 @@ void func_shelter_b2_south_maintenance_walkway_8017FCE8(Task* task)
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_shelter_b2_south_maintenance_walkway_80180930(Task* arg0)
+void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB2SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask(Task* task)

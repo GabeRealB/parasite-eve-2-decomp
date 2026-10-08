@@ -29,6 +29,8 @@
 #ifndef SRC_SHARED_GLUTTON_H
 #define SRC_SHARED_GLUTTON_H
 
+#include "gameplay/glutton_rain_effect.h"
+
 /// Binds the shared shake helper to the current instance's borrowed host task.
 ///
 /// Must expand to a side-effect-free `Task*` expression. The default selects

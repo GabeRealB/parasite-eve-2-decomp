@@ -159,7 +159,7 @@ static void _gluttonRainSpawn(Enemy* enemy, Task* task)
     audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.coordBody->coord);
     sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.coordBody->coord));
 
-    work->rainEffect = effectSpawn(EFFECT_GLUTTON_RAIN_BLOB, task->extra.coordBody->coord, 0, NULL);
+    work->rainEffect = effectSpawn(EFFECT_GLUTTON_RAIN_BLOB, task->extra.coordBody->coord, EFFECT_GLUTTON_RAIN_BLOB_START, NULL);
     if (work->rainEffect != NULL) {
         taskReparent(task, work->rainEffect->task);
     }

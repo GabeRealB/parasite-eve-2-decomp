@@ -77,7 +77,14 @@ extern WorldCoordRoomAmbientEntry gShelterB3DumpingHoleRoom2AmbientByView[38];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b3_dumping_hole_8018F480[];
 
-void func_shelter_b3_dumping_hole_8017D9A8(Task* task);
+/// Runs the dumping hole's room receiver through setup, idle and teardown.
+///
+/// Requires the loaded room and state 0..2. Setup installs the room message
+/// table and `GAME_TASK_SLOT_ROOM`, selects caption resources and starts the
+/// arrival event or encounter appropriate to the live session. State 1 leaves
+/// messages active without per-frame work; state 2 kills the task. No body or
+/// work allocation is required.
+void shelterB3DumpingHoleRoomTask(Task* task);
 
 /// Spawns a dark rising sprite at a coordinate's world position plus `worldOffset`.
 ///
@@ -135,6 +142,17 @@ void shelterB3DumpingHoleEffectSpriteDriftTaskAimed(Task* task);
 /// redraws without advancing; cancellation releases through `effectKillTask`.
 void shelterB3DumpingHoleGluttonRainParticleTask(Task* task);
 
-void func_shelter_b3_dumping_hole_80186D4C(Task* arg0);
+/// Attaches and animates the Glutton's falling rain blob, then emits its landing burst.
+///
+/// Requires a coordinate body, initial state 0 and owned, zeroed, counted
+/// `EffectWork` in `spawnArg2.pointer`. Attachment discards the spawn offset and
+/// follows the work's borrowed parent at its origin; that hierarchy must remain
+/// live. `spawnArg1.value` uses `EFFECT_GLUTTON_RAIN_BLOB_*` from
+/// `gameplay/glutton_rain_effect.h`; the projectile owner requests BURST on landing.
+/// FLYING advances age twice per running tick and cycles eight billboard cells
+/// using age / 2. Suspension redraws without advancing; cancellation redraws
+/// before teardown. END releases work and task on the next running tick. Emitted
+/// particles are independent; this overlay and rendering resources must stay loaded.
+void shelterB3DumpingHoleGluttonRainBlobTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_B3_DUMPING_HOLE_H

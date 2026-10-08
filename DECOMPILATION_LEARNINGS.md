@@ -8638,7 +8638,7 @@ aliasing only the tail:
 
 ```c
 MATRIX* m = &coord->coord;
-coord->parent                   = mem->field_8;   /* on s0 */
+coord->parent                   = work->parent;   /* on s0 */
 *(s32*)&coord->coord.m[0][0] = 0x1000;         /* on s0, offset 4 */
 *(s32*)&m->m[0][2]           = 0;              /* on s0+4 base */
 *(s32*)&m->m[1][1]           = 0x1000;
@@ -8648,10 +8648,10 @@ m->m[2][2]                   = 0x1000;
 
 Two levers together: (1) `m00` written through `coord->coord` (not `m`) keeps it
 on `s0` while the four aliased stores form and reuse `s0+4`; (2) doing the far
-`coord->parent` store *before* `m00` (load `mem->field_8` first) keeps the coord arg
+`coord->parent` store *before* `m00` (load `work->parent` first) keeps the coord arg
 live in `$a0` across the earlier branch so the following `actorRenderComposeCoord(coord)`
 needs no `move a0,s0` reload — writing `m00` first re-derives `a0` and costs one
-insn. `func_shelter_b3_dumping_hole_80186D4C` is the worked example.
+insn. `shelterB3DumpingHoleGluttonRainBlobTask` is the worked example.
 
 **Base before index without a second pseudo — assign inside the subscript.**
 The local-pointer form above costs a register: a user pointer variable splits
@@ -43464,7 +43464,7 @@ shelter_b3_elevator_hall = { rodata_head = "0x3C",
                              shared = [...] }
 ```
 
-`func_shelter_b3_elevator_hall_8017DAF0`'s 7-entry table is at `0x3C`, the third
+`_shelterB3ElevatorHallElevatorTransitTask`'s 7-entry table is at `0x3C`, the third
 of four rodata symbols ahead of `.text`. `rodata_head = "0x3C"` puts
 `D_…_8017D5C0`, `jtbl_…_8017D5C4`, `jtbl_…_8017D5DC` and `D_…_8017D5F0` into an
 asm-only `shelter_b3_elevator_hall_hdr` object, so unit 1's `.rodata` now
@@ -71347,7 +71347,7 @@ after: initialise `count = 0;` **before** the call (e.g. the `func_x();` ahead o
 the loop), not after it. A value live across a call must occupy a callee-saved
 reg, so GCC parks `count` in `s0` on its own, pushes the argument to `s1`, grows
 the frame to `0x20`, and — because `count` is a real variable, not a pinned
-throwaway — reads it into a fresh temp for the `(s16)` compare. `func_shelter_b3_dumping_hole_801838A0`.
+throwaway — reads it into a fresh temp for the `(s16)` compare. `_shelterB3DumpingHoleEncounterRun`.
 
 ### Inline a sign-extended `s16` param at its use instead of a hoisted local
 **Symptom.** Everything matched except the one-time `sll/sra` that sign-extends
@@ -88856,7 +88856,7 @@ Two independent things were wrong, and the target's own operands name both.
 **The compare register is the arity.** `bne $a2, $v0` against an `$a2` the seed
 never declared means three parameters, whatever the body appears to use - the
 handler signature here is `(s32 index, s32 value, s32 arg2)`, which its matched
-sibling `func_shelter_b3_dumping_hole_8017D82C` spells out.
+sibling `_shelterB3DumpingHoleHandleRoomCommand` spells out.
 
 **A store before the call outlives it.** The seed's shape,
 
@@ -92676,9 +92676,9 @@ truncated signature from the asm alone, so this is m2c's behaviour and not a
 hand-trimmed seed.
 
 The body itself came from the brief's "similar matched bodies" list -
-`func_shelter_b3_dumping_hole_8017D82C` scored 1.00 in both `shape` and `calls`
+`_shelterB3DumpingHoleHandleRoomCommand` scored 1.00 in both `shape` and `calls`
 and is the same code modulo constants (`0x11D`/`0x12`/`0x17` against
-`0x141`/`5`/`1`, and `arg2 == 0x12` against `arg2 == 1`), including the ternary
+`0x141`/`5`/`1`, and `commandId == 0x12` against `arg2 == 1`), including the ternary
 that puts the *else* value in the `beqz` delay slot. Its matched C is the body to
 write; only the constants and the padded prototype change.
 
@@ -93031,7 +93031,7 @@ Inputs: `base_1.c` (100%). Compiler SHA256
 The room opcode callbacks that pick between two command ids passed to
 `capRunCommandWithTransition` are a recurring family: `func_dryfield_garage_8017DA18`
 (`gameFlagGetNibble(0xFD) != 0 ? 0x16 : 0x10`), `_mineMesaRoomCommandMsg`
-(`>= 2 ? 0xD : 0xC`), `func_shelter_b3_dumping_hole_8017D82C` (`!= 0 ? 0x12 :
+(`>= 2 ? 0xD : 0xC`), `_shelterB3DumpingHoleHandleRoomCommand` (`!= 0 ? 0x12 :
 0x17`). Written as the ternary **in the call argument**, GCC 2.8.1 materialises
 the *else* constant into the argument register in the branch delay slot and
 overwrites it with the *then* constant on the fall-through:

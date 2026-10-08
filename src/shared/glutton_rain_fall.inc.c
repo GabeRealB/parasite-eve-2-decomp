@@ -11,8 +11,7 @@
 static void _gluttonRainFall(Enemy* enemy, Task* task)
 {
     enum { GLUTTON_RAIN_SHADOW_LEAD_TICKS = 20,
-           GLUTTON_RAIN_DROP_SPEED        = 600,
-           GLUTTON_RAIN_EFFECT_BURST      = 2 };
+           GLUTTON_RAIN_DROP_SPEED        = 600 };
     GluttonProjectileWork* work;
     GfxCoord               shadowCoord;
     Enemy*                 owner;
@@ -49,7 +48,7 @@ static void _gluttonRainFall(Enemy* enemy, Task* task)
             task->extra.coordBody->coord->coord.t[1] = 0;
             work->stateTicks                         = 0;
             if (work->rainEffect != NULL) {
-                work->rainEffect->task->spawnArg1.value = GLUTTON_RAIN_EFFECT_BURST;
+                work->rainEffect->task->spawnArg1.value = EFFECT_GLUTTON_RAIN_BLOB_BURST;
             }
             task->state++;
             soundId  = ((owner->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0C);

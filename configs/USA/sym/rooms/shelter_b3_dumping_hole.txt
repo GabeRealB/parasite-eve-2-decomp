@@ -225,7 +225,7 @@ shelterB3DumpingHoleEffectSpriteDriftTaskAimed = 0x8018521C; // type:func
 
 shelterB3DumpingHoleGluttonRainParticleTask = 0x80186218; // type:func
 
-func_shelter_b3_dumping_hole_80186D4C = 0x80186D4C; // type:func
+shelterB3DumpingHoleGluttonRainBlobTask = 0x80186D4C; // type:func
 _capCaptionRunSchedule = 0x80181B64; // type:func
 _capCaptionDrawCurrent = 0x80181C8C; // type:func
 _capCaptionRelocateFile = 0x80181D68; // type:func
@@ -311,3 +311,12 @@ _shelterB3DumpingHoleEncounterMadChaserTask = 0x801835c8; // type:func
 _shelterB3DumpingHoleEncounterSlouchTask = 0x80183620; // type:func
 _shelterB3DumpingHoleEncounterPairTask = 0x80183678; // type:func
 _shelterB3DumpingHoleEncounterSpawnSlot = 0x80183e6c; // type:func
+_shelterB3DumpingHoleResolveRoomTransition = 0x8017d760; // type:func
+_shelterB3DumpingHoleHandleRoomCommand = 0x8017d82c; // type:func
+_shelterB3DumpingHoleStartCollapseOnActorEvent = 0x8017d870; // type:func
+_shelterB3DumpingHoleInitializeRoomTask = 0x8017d8a0; // type:func
+shelterB3DumpingHoleRoomTask = 0x8017d9a8; // type:func
+_shelterB3DumpingHoleEncounterOpen = 0x8018378c; // type:func
+_shelterB3DumpingHoleEncounterRun = 0x801838a0; // type:func
+_shelterB3DumpingHoleEncounterSpawnMadChaser = 0x80183950; // type:func
+_shelterB3DumpingHoleEncounterSpawnSlouch = 0x80183aec; // type:func

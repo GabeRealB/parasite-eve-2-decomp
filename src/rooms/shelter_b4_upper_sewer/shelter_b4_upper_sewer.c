@@ -144,8 +144,8 @@ static const TaskFuncTable3 D_shelter_b4_upper_sewer_8017D5C4 = {
 static void _shelterB4UpperSewerWaterTask(Task* task);
 
 static s32  _shelterB4UpperSewerRejectKeyItemMessage(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
-s32         func_shelter_b4_upper_sewer_8017D9C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32         func_shelter_b4_upper_sewer_8017DAB0(Task*, s32, s32, s32);
+static s32  _shelterB4UpperSewerResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _shelterB4UpperSewerHandleWaterHoleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
 static s32  _shelterB4UpperSewerIgnoreRoomActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32  _shelterB4UpperSewerHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
 static void _shelterB4UpperSewerOpenWaterHoleTask(Task* task);
@@ -157,10 +157,10 @@ extern TaskDesc D_actor_100400_80147E48;
 enum { SHELTER_B4_UPPER_SEWER_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_shelter_b4_upper_sewer_801862D0[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b4_upper_sewer_8017D9C4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB4UpperSewerResolveRoomTransition },
     { SHELTER_B4_UPPER_SEWER_MESSAGE_USE_KEY_ITEM, _shelterB4UpperSewerRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB4UpperSewerIgnoreRoomActionMessage },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b4_upper_sewer_8017DAB0 },
+    { ROOM_MESSAGE_COMMAND, _shelterB4UpperSewerHandleWaterHoleCommand },
     { ROOM_MESSAGE_SOUND, _shelterB4UpperSewerHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -962,51 +962,85 @@ static s32 _shelterB4UpperSewerRejectKeyItemMessage(Task* task, s32 messageId, s
     return SHELTER_B4_UPPER_SEWER_KEY_ITEM_REFUSED;
 }
 
-s32 func_shelter_b4_upper_sewer_8017D9C4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Saves a resolved exit selector and starts the room's confirmation/transit task.
+///
+/// Borrows the reply for this call. Area narrows to a byte, warp stays unsigned
+/// and room retains its byte encoding in the saved selector's second byte.
+/// The loaded room owns that selector until transit consumes it; another start
+/// overwrites it. `capCommand` selects the exit confirmation script.
+static inline void _shelterB4UpperSewerStageExit(const RoomEventMsg* reply, s32 capCommand)
 {
-    *dst = *src;
-    mapShelterRoomVariantResolve(src, dst);
-    if (src->areaId == GAME_AREA_SHELTER_B4_RESERVOIR) {
-        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b4_upper_sewer_80188D24.warp              = (u8)dst->areaId;
-            D_shelter_b4_upper_sewer_80188D24.field_4           = dst->warp;
-            ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1] = dst->room;
-            taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, 1, 7, 0);
-        }
-        return 0;
-    }
-    if (src->areaId == GAME_AREA_SHELTER_B4_WATER_SUPPLY) {
-        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            D_shelter_b4_upper_sewer_80188D24.warp              = (u8)dst->areaId;
-            D_shelter_b4_upper_sewer_80188D24.field_4           = dst->warp;
-            ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1] = dst->room;
-            taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, 1, 8, 0);
-        }
-        return 0;
-    }
-    return 1;
+    enum { SHELTER_B4_UPPER_SEWER_EXIT_TASK_INDEX = 1 };
+
+    D_shelter_b4_upper_sewer_80188D24.warp              = (u8)reply->areaId;
+    D_shelter_b4_upper_sewer_80188D24.field_4           = reply->warp;
+    ((u8*)&D_shelter_b4_upper_sewer_80188D24.areaId)[1] = reply->room;
+    taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, SHELTER_B4_UPPER_SEWER_EXIT_TASK_INDEX, capCommand, 0);
 }
 
-s32 func_shelter_b4_upper_sewer_8017DAB0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Resolves departures and handles the reservoir and water-supply exits locally.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`, borrowing complete eight-byte records
+/// which may alias. Returns 0 for these two exits and 1 for ordinary passage.
+/// Queries only resolve the reply; execute requests save its destination and
+/// start confirmation CAP 7 or 8. The receiver and message ID are unused.
+static s32 _shelterB4UpperSewerResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    u8 temp_a1;
+    enum { SHELTER_B4_UPPER_SEWER_RESERVOIR_EXIT_CAP_COMMAND    = 7,
+           SHELTER_B4_UPPER_SEWER_WATER_SUPPLY_EXIT_CAP_COMMAND = 8,
+           SHELTER_B4_UPPER_SEWER_TRANSITION_HANDLED            = 0,
+           SHELTER_B4_UPPER_SEWER_TRANSITION_ALLOWED            = 1 };
 
-    if (arg2 == 1) {
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B4_RESERVOIR) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            _shelterB4UpperSewerStageExit(reply, SHELTER_B4_UPPER_SEWER_RESERVOIR_EXIT_CAP_COMMAND);
+        }
+        return SHELTER_B4_UPPER_SEWER_TRANSITION_HANDLED;
+    }
+    if (request->areaId == GAME_AREA_SHELTER_B4_WATER_SUPPLY) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            _shelterB4UpperSewerStageExit(reply, SHELTER_B4_UPPER_SEWER_WATER_SUPPLY_EXIT_CAP_COMMAND);
+        }
+        return SHELTER_B4_UPPER_SEWER_TRANSITION_HANDLED;
+    }
+    return SHELTER_B4_UPPER_SEWER_TRANSITION_ALLOWED;
+}
+
+/// Starts the unopened water-hole route scene or replays its open-route CAP.
+///
+/// Handles `ROOM_MESSAGE_COMMAND` command 1. An unopened route hides and holds
+/// player, companion and scene actors, saves the live view byte, selects view
+/// 13 and starts the opening task. An open route plays CAP 6 instead. Other
+/// commands have no effect. All calls return 0; the receiver and other words
+/// are unused. The room owns the saved view until the scene restores it.
+static s32 _shelterB4UpperSewerHandleWaterHoleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg)
+{
+    enum { SHELTER_B4_UPPER_SEWER_WATER_HOLE_COMMAND          = 1,
+           SHELTER_B4_UPPER_SEWER_WATER_HOLE_SCENE_VIEW       = 13,
+           SHELTER_B4_UPPER_SEWER_WATER_HOLE_OPEN_TASK_INDEX  = 0,
+           SHELTER_B4_UPPER_SEWER_WATER_HOLE_OPEN_CAP_COMMAND = 6,
+           SHELTER_B4_UPPER_SEWER_COMMAND_REPLY               = 0 };
+    u8 savedView;
+
+    if (commandId == SHELTER_B4_UPPER_SEWER_WATER_HOLE_COMMAND) {
         if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) == 0) {
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
-            temp_a1                                                    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
-            D_shelter_b4_upper_sewer_80188D2C[0]                       = temp_a1;
-            taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, 0, 0, 0);
+            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
+            // Preserve the interrupted camera view before the opening scene takes it.
+            savedView                                                  = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B4_UPPER_SEWER_WATER_HOLE_SCENE_VIEW;
+            D_shelter_b4_upper_sewer_80188D2C[0]                       = savedView;
+            taskSpawnFromTable(D_shelter_b4_upper_sewer_80186300, SHELTER_B4_UPPER_SEWER_WATER_HOLE_OPEN_TASK_INDEX, 0, 0);
         } else {
-            capRunCommandWithTransition(6);
+            capRunCommandWithTransition(SHELTER_B4_UPPER_SEWER_WATER_HOLE_OPEN_CAP_COMMAND);
         }
     }
-    return 0;
+    return SHELTER_B4_UPPER_SEWER_COMMAND_REPLY;
 }
 
 /// Ignores the room action supplied by a direction trigger and returns zero.

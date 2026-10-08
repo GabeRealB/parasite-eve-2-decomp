@@ -103,3 +103,5 @@ _shelterB3ElevatorHallHandleSoundCue = 0x8017dd98; // type:func
 _shelterB3ElevatorHallInitRoomTask = 0x8017ddcc; // type:func
 _shelterB3ElevatorHallIdleRoomTask = 0x8017de10; // type:func
 shelterB3ElevatorHallRoomTask = 0x8017de18; // type:func
+_shelterB3ElevatorHallElevatorTransitTask = 0x8017daf0; // type:func
+_shelterB3ElevatorHallResolveRoomTransition = 0x8017dc80; // type:func

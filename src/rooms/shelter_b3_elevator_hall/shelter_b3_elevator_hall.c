@@ -78,12 +78,12 @@ extern SVECTOR          D_shelter_b3_elevator_hall_80182AF4[];
 static void _shelterB3ElevatorHallInitRoomTask(Task* task);
 static void _shelterB3ElevatorHallIdleRoomTask(Task* task);
 
-void       func_shelter_b3_elevator_hall_8017DAF0(Task*);
-static s32 _shelterB3ElevatorHallRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_shelter_b3_elevator_hall_8017DC80(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-static s32 _shelterB3ElevatorHallIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-static s32 _shelterB3ElevatorHallIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
-static s32 _shelterB3ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
+static void _shelterB3ElevatorHallElevatorTransitTask(Task* task);
+static s32  _shelterB3ElevatorHallRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _shelterB3ElevatorHallResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _shelterB3ElevatorHallIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
+static s32  _shelterB3ElevatorHallIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32  _shelterB3ElevatorHallHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
 
 enum { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -94,7 +94,7 @@ TaskDesc D_shelter_b3_elevator_hall_80182A2C[1] = {
 };
 
 TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b3_elevator_hall_8017DC80 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB3ElevatorHallResolveRoomTransition },
     { SHELTER_B3_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _shelterB3ElevatorHallRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB3ElevatorHallIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB3ElevatorHallIgnoreRoomCommand },
@@ -103,7 +103,7 @@ TaskMessageEntry D_shelter_b3_elevator_hall_80182A38[6] = {
 };
 
 TaskDesc D_shelter_b3_elevator_hall_80182A68[1] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b3_elevator_hall_8017DAF0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB3ElevatorHallElevatorTransitTask, { .value = 0 } },
 };
 
 SVECTOR D_shelter_b3_elevator_hall_80182A74[8] = {
@@ -171,39 +171,63 @@ static const TaskFuncTable3 D_shelter_b3_elevator_hall_8017D5F0 = {
     },
 };
 
-void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
+/// Offers elevator travel and either opens floor selection or enters the cab.
+///
+/// Runs at states 0..6 with loaded CAP and sound resources, holding player and
+/// scene actors. A nonzero access flag opens the floor-selection task. Otherwise
+/// CAP choice 21 commits B2 elevator room 1/warp 1, waits for the ride sound and
+/// reloads gameplay; other choices resume actors and kill this task. Owns no work.
+static void _shelterB3ElevatorHallElevatorTransitTask(Task* task)
 {
+    enum {
+        SHELTER_B3_ELEVATOR_HALL_TRANSIT_HOLD,
+        SHELTER_B3_ELEVATOR_HALL_TRANSIT_WAIT_ENTRY_CAP,
+        SHELTER_B3_ELEVATOR_HALL_TRANSIT_OFFER,
+        SHELTER_B3_ELEVATOR_HALL_TRANSIT_WAIT_OFFER_CAP,
+        SHELTER_B3_ELEVATOR_HALL_TRANSIT_CHOOSE,
+        SHELTER_B3_ELEVATOR_HALL_TRANSIT_WAIT_SOUND,
+        SHELTER_B3_ELEVATOR_HALL_TRANSIT_RELOAD,
+        SHELTER_B3_ELEVATOR_HALL_SELECT_FLOOR_CAP_COMMAND = 4,
+        SHELTER_B3_ELEVATOR_HALL_ENTER_CAB_CAP_COMMAND    = 3,
+        SHELTER_B3_ELEVATOR_HALL_ENTER_CAB_CHOICE         = 0x15,
+        SHELTER_B3_ELEVATOR_HALL_CAB_WARP                 = 1,
+        SHELTER_B3_ELEVATOR_HALL_CAB_ROOM                 = 1,
+        SHELTER_B3_ELEVATOR_HALL_FLOOR_SELECT_TASK_INDEX  = 0,
+        SHELTER_B3_ELEVATOR_HALL_DEFAULT_SPRITE_VARIANT   = 1
+    };
+
     switch (task->state) {
-        case 0:
+        case SHELTER_B3_ELEVATOR_HALL_TRANSIT_HOLD:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state++;
             break;
-        case 1:
+        case SHELTER_B3_ELEVATOR_HALL_TRANSIT_WAIT_ENTRY_CAP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 2:
+        case SHELTER_B3_ELEVATOR_HALL_TRANSIT_OFFER:
             if (gameFlagGetNibble(GAME_FLAG_0CF) != 0) {
-                capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
-                taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
+                capRunCommand(SHELTER_B3_ELEVATOR_HALL_SELECT_FLOOR_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE);
+                taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, SHELTER_B3_ELEVATOR_HALL_FLOOR_SELECT_TASK_INDEX, SOUND_SHELTER_B3_ELEVATOR_RIDE, 0);
                 taskKill(task);
             } else {
-                capRunCommandWithTransition(3);
+                capRunCommandWithTransition(SHELTER_B3_ELEVATOR_HALL_ENTER_CAB_CAP_COMMAND);
             }
             task->state++;
             break;
-        case 3:
+        case SHELTER_B3_ELEVATOR_HALL_TRANSIT_WAIT_OFFER_CAP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 4:
-            if (capGetVariantKey() == 0x15) {
+        case SHELTER_B3_ELEVATOR_HALL_TRANSIT_CHOOSE:
+            if (capGetVariantKey() == SHELTER_B3_ELEVATOR_HALL_ENTER_CAB_CHOICE) {
+                // The accepted ride selects the cab before waiting for its sound.
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B3_ELEVATOR_HALL_CAB_WARP;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = SHELTER_B3_ELEVATOR_HALL_CAB_ROOM;
             } else {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -211,14 +235,14 @@ void func_shelter_b3_elevator_hall_8017DAF0(Task* task)
             }
             task->state++;
             break;
-        case 5:
+        case SHELTER_B3_ELEVATOR_HALL_TRANSIT_WAIT_SOUND:
             if (sndScriptHasActiveId(SOUND_SHELTER_B3_ELEVATOR_RIDE) == 0) {
                 task->state++;
             }
             break;
-        case 6:
+        case SHELTER_B3_ELEVATOR_HALL_TRANSIT_RELOAD:
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gDisplayState.spriteVariant = 1;
+            gDisplayState.spriteVariant = SHELTER_B3_ELEVATOR_HALL_DEFAULT_SPRITE_VARIANT;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             taskKill(task);
             break;
@@ -231,32 +255,50 @@ static s32 _shelterB3ElevatorHallRejectKeyItem(Task* task, s32 messageId, s32 it
     return 0;
 }
 
-s32 func_shelter_b3_elevator_hall_8017DC80(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves room departures, gates the control-room door and starts elevator travel.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with complete borrowed eight-byte
+/// records, which may alias. The door returns the event gate's 0/1/2 result.
+/// Other ordinary departures return 1; the elevator returns 0 and only execute
+/// requests enable access, play the first-use CAP and spawn the transit task.
+/// The receiver and message ID are unused. Keep this overlay loaded through travel.
+static s32 _shelterB3ElevatorHallResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq req;
+    enum {
+        SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_CAP_COMMAND   = 1,
+        SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_FIRST_SOUND   = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 5),
+        SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_SECOND_SOUND  = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_ELEVATOR_HALL, 3),
+        SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_NO_COLLECTION = 0,
+        SHELTER_B3_ELEVATOR_HALL_FIRST_USE_CAP_COMMAND      = 2,
+        SHELTER_B3_ELEVATOR_HALL_ELEVATOR_ENABLED           = 1,
+        SHELTER_B3_ELEVATOR_HALL_TRANSIT_TASK_INDEX         = 0,
+        SHELTER_B3_ELEVATOR_HALL_TRANSITION_ALLOWED         = 1,
+        SHELTER_B3_ELEVATOR_HALL_TRANSITION_HANDLED         = 0
+    };
+    RoomEventReq doorEvent;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM) {
-        req.capCmd        = 1;
-        req.missingCapCmd = 1;
-        req.firstSnd      = 0x542A0005;
-        req.secondSnd     = 0x542A0003;
-        req.flagId        = GAME_FLAG_B3_INCINERATOR_CONTROL_DOOR_UNLOCKED;
-        req.collectedBit  = 0;
-        return _roomEventGate(&req, out);
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B3_INCINERATOR_CONTROL_ROOM) {
+        doorEvent.capCmd        = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_CAP_COMMAND;
+        doorEvent.missingCapCmd = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_CAP_COMMAND;
+        doorEvent.firstSnd      = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_FIRST_SOUND;
+        doorEvent.secondSnd     = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_SECOND_SOUND;
+        doorEvent.flagId        = GAME_FLAG_B3_INCINERATOR_CONTROL_DOOR_UNLOCKED;
+        doorEvent.collectedBit  = SHELTER_B3_ELEVATOR_HALL_CONTROL_DOOR_NO_COLLECTION;
+        return _roomEventGate(&doorEvent, reply);
     }
-    if (in->areaId != GAME_AREA_SHELTER_B2_ELEVATOR) {
-        return 1;
+    if (request->areaId != GAME_AREA_SHELTER_B2_ELEVATOR) {
+        return SHELTER_B3_ELEVATOR_HALL_TRANSITION_ALLOWED;
     }
-    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+    if (request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
-            capRunCommandWithTransition(2);
-            gameFlagSetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, 1);
+            capRunCommandWithTransition(SHELTER_B3_ELEVATOR_HALL_FIRST_USE_CAP_COMMAND);
+            gameFlagSetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED, SHELTER_B3_ELEVATOR_HALL_ELEVATOR_ENABLED);
         }
-        taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A68, 0, 0x542A0001, 0);
+        taskSpawnFromTable(D_shelter_b3_elevator_hall_80182A68, SHELTER_B3_ELEVATOR_HALL_TRANSIT_TASK_INDEX, SOUND_SHELTER_B3_ELEVATOR_RIDE, 0);
     }
-    return 0;
+    return SHELTER_B3_ELEVATOR_HALL_TRANSITION_HANDLED;
 }
 
 /// Ignores room commands and both argument words, returning zero.

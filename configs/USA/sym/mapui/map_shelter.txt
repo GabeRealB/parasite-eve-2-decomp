@@ -409,7 +409,7 @@ D_shelter_1f_heliport_s4_8017DAF0 = 0x8017DAF0; // absolute:True owner=shelter_1
 D_shelter_1f_heliport_s4_8017DE6C = 0x8017DE6C; // absolute:True owner=shelter_1f_heliport_s4
 D_shelter_1f_heliport_s4_8017DE84 = 0x8017DE84; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
 D_shelter_1f_heliport_s4_8017E060 = 0x8017E060; // absolute:True owner=shelter_1f_heliport_s4 shared=rooms
-func_shelter_b3_dumping_hole_8017D9A8 = 0x8017D9A8; // type:func absolute:True owner=shelter_b3_dumping_hole shared=rooms
+shelterB3DumpingHoleRoomTask = 0x8017D9A8; // type:func absolute:True owner=shelter_b3_dumping_hole shared=rooms
 gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 = 0x80187550; // absolute:True owner=shelter_b3_dumping_hole
 D_shelter_b3_dumping_hole_8018B678 = 0x8018B678; // absolute:True owner=shelter_b3_dumping_hole shared=rooms
 gShelterB3DumpingHoleViewMaps = 0x8018B698; // absolute:True owner=shelter_b3_dumping_hole
