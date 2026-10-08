@@ -935,12 +935,19 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
         return kind, _unit_of(root, next(iter(files)))
 
     unit_of = {g: unit(g) for g in pending}
+    enum_file = _enum_files(root) if limits.get("enum", 1) > 1 else {}
 
     def near(g):
         """The wider places a small step of `g`'s unit may be filled from."""
         kind, where = unit_of[g]
         if where.startswith(ENUM_UNIT):
-            return ()                   # an enum has no directory to fill from
+            # Most enums are a handful of constants, so a step of one enum is
+            # small; the others declared in its file are the natural company.
+            where = enum_file.get(g[0], "")
+            if not where:
+                return ()
+            folder = os.path.dirname(where)
+            return (kind, "file", where), (kind, "dir", folder), (kind, "family", "/".join(folder.split("/")[:2]))
         folder = os.path.dirname(where)
         return (kind, "dir", folder), (kind, "family", "/".join(folder.split("/")[:2]))
 
@@ -968,12 +975,26 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
             waiting[unit_of[g]] -= len(g)
         for u in users.get(g, ()):
             left[u] -= 1
-            if left[u] == 0:
+            if left[u] == 0 and u not in placed:     # placed already: it opened a loop
                 heapq.heappush(heap, (rank[u], u))
                 if unit_of[u]:
                     offer(rank[u], u)
 
-    while heap:
+    stuck = iter(pending)
+    while True:
+        if not heap:
+            # What is left waits on itself: a loop the condensation did not
+            # merge, such as a resident table of pointers into an overlay whose
+            # own tables lead back to it. The plain order goes through such a
+            # loop at its earliest member, so that one is taken as ready here
+            # too and the rest follows from it. Leaving them unplaced instead
+            # made a step of each: 1,250 globals, a hundred in one actor.
+            g = next((h for h in stuck if h not in placed), None)
+            if g is None:
+                break
+            heapq.heappush(heap, (rank[g], g))
+            if unit_of[g]:
+                offer(rank[g], g)
         _, g = heapq.heappop(heap)
         if g in placed:
             continue
@@ -1039,14 +1060,37 @@ def batch_ready(root: str, order, nodes, edges, comp, done, limits: dict, kinds=
         for u in merged:
             comp[u] = merged
         steps.append(merged)
-    # Anything unplaced sits in a cycle the condensation did not break; keep it,
-    # in its old order, rather than dropping it.
-    steps.extend(g for g in pending if g not in placed)
+    steps.extend(g for g in pending if g not in placed)      # none: the loop places all
     return [g for g in order if g not in pset] + steps
 
 
 RESIDENT_UNITS = ("src/main/", "src/gameplay/")
 ENUM_UNIT = "enum:"
+
+
+def _enum_files(root: str) -> dict:
+    """The file declaring each enum constant, by USR, from the reference index.
+
+    The graph records none for them. Read straight from the database, without
+    the refresh a query through cref would start: this only chooses which small
+    steps to join, so a slightly stale answer costs nothing.
+    """
+    path = os.path.join(root, "local", "ref_index.sqlite")
+    if not os.path.exists(path):
+        return {}
+    import sqlite3
+    try:
+        db = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        rows = db.execute(
+            "SELECT y.usr, f.path FROM sites s JOIN symbols y ON y.id = s.sym JOIN files f ON f.id = s.file "
+            "JOIN strings u ON u.id = s.use WHERE (u.text LIKE 'declaration%' OR u.text LIKE 'definition%') "
+            "AND y.usr LIKE '%@E%'").fetchall()
+    except sqlite3.Error:
+        return {}
+    out = {}
+    for usr, where in sorted(rows, key=lambda r: (not r[1].startswith("include"), r[1])):
+        out.setdefault(usr, where)
+    return out
 
 RUN_KINDS = os.path.join("local", "name_pass_kinds")
 
