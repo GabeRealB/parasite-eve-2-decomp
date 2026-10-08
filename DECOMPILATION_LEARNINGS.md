@@ -78366,8 +78366,7 @@ promotion's span ends and the following unit starts on the same byte.
 the `ninja_config.py` re-split, or just reading the generated yaml, is what tells
 you which of the two cases you are in.
 
-`_actor548100OpenHotspotCommands` / `func_actor_143000_80133698` → 100% with the
-`func_actor_548100_80134DBC` / `_actor143000OpenKeypadCommands` → 100% with the
+`_actor548100OpenHotspotCommands` / `_actor143000OpenKeypadCommands` → 100% with the
 carrier diffs at two and twenty-one lines.
 
 ## A data symbol's `dlabel` extent is not the array's length
