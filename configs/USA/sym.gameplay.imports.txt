@@ -1701,7 +1701,7 @@ func_dryfield_trailer_coach_80181364 = 0x80181364; // type:func absolute:True ow
 
 func_dryfield_motel_room_6_8017EA58 = 0x8017EA58; // type:func absolute:True owner=dryfield_motel_room_6
 
-dryfieldNightGasStationTelephoneMenuTask = 0x8017E9F8; // type:func absolute:True owner=dryfield_night_gas_station shared=rooms
+dryfieldNightGasStationTelephoneMenuTask = 0x8017E9F8; // type:func absolute:True owner=dryfield_night_gas_station
 
 dryfieldNightMotelLobbyTelephoneMenuTask = 0x8017EAE0; // type:func absolute:True owner=dryfield_night_motel_lobby shared=rooms
 

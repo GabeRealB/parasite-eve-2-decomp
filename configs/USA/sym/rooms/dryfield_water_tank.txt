@@ -241,7 +241,7 @@ _gDryfieldWaterTankModel020D4 = 0x8017FD3C; // size:0x24 defined:True
 D_dryfield_water_tank_8017FD60 = 0x8017FD60; // size:0x30 defined:True
 D_dryfield_water_tank_8017FD90 = 0x8017FD90; // size:0x18 defined:True
 
-func_dryfield_water_tank_8017E78C = 0x8017E78C; // type:func
+_dryfieldWaterTankExecuteEventCommand = 0x8017E78C; // type:func
 
 dryfieldWaterTankUpdateViewEffectGateTask = 0x8017F084; // type:func
 actorMsgPlaceYawPitchRoll = 0x8017E0E8; // type:func
@@ -264,3 +264,12 @@ _dryfieldWaterTankRestorePlayerAfterSkip = 0x8017eba0; // type:func
 dryfieldWaterTankMovePlayerFirstLegTask = 0x8017ec6c; // type:func
 dryfieldWaterTankMovePlayerSecondLegTask = 0x8017ed30; // type:func
 _dryfieldWaterTankSetEventCommand = 0x8017eb80; // type:func
+dryfieldWaterTankMechanismPromptTask = 0x8017d618; // type:func
+dryfieldWaterTankHandleRoomAction = 0x8017d7ec; // type:func
+dryfieldWaterTankHandleRoomCommand = 0x8017d910; // type:func
+dryfieldWaterTankWaitMovieEventTask = 0x8017d948; // type:func
+_dryfieldWaterTankInitRoomTask = 0x8017d9d4; // type:func
+dryfieldWaterTankPropTask = 0x8017dd20; // type:func
+dryfieldWaterTankPropSceneTask = 0x8017dea4; // type:func
+_dryfieldWaterTankMovieEventTask = 0x8017e9f8; // type:func
+dryfieldWaterTankSpawnPlayerPathTask = 0x8017ec38; // type:func

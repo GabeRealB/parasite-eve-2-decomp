@@ -6,6 +6,14 @@
 #include "main/gameflag_ids.h"
 #include "main/gameflag_types.h"
 
+/// Values of `GAME_FLAG_WATER_TOWER_MECHANISM_STATE`, shared by both water rooms.
+enum {
+    GAME_FLAG_WATER_TOWER_MECHANISM_INITIAL        = 0,
+    GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_RESTORED = 1,
+    GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED = 2,
+    GAME_FLAG_WATER_TOWER_MECHANISM_TANK_OPERATED  = 3,
+};
+
 /// Live packed game flags followed by their memory-card comparison copy.
 ///
 /// The two contiguous 256-byte banks remain resident across overlay changes.

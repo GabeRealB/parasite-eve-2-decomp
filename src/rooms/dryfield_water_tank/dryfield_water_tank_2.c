@@ -114,7 +114,7 @@ extern SVECTOR D_dryfield_water_tank_80184530[];
 /// its walk consumes, so unlike the first table it has no clamp tail.
 extern SVECTOR D_dryfield_water_tank_801847C0[];
 
-void func_dryfield_water_tank_8017E9F8(Task*);
+static void _dryfieldWaterTankMovieEventTask(Task* task);
 
 static TmdSource _gDryfieldWaterTankModel020D4;
 static void      _dryfieldWaterTankFadeOutTileTask(Task* task);
@@ -159,14 +159,14 @@ EvsCommand D_dryfield_water_tank_8017F21C[11] = {
 TaskMessageEntry D_dryfield_water_tank_8017F324[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldWaterTankResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldWaterTankRefuseKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_tank_8017D7EC },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_water_tank_8017D910 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldWaterTankHandleRoomAction },
+    { ROOM_MESSAGE_COMMAND, dryfieldWaterTankHandleRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_water_tank_8017F34C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_water_tank_8017D948, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_water_tank_8017D618, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, dryfieldWaterTankWaitMovieEventTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, dryfieldWaterTankMechanismPromptTask, { .value = 0 } },
 };
 
 static TmdBone _gDryfieldWaterTankModel020D4Skeleton[1] = {
@@ -249,8 +249,8 @@ EvsCommand D_dryfield_water_tank_8017FEC8[8] = {
 };
 
 TaskDesc D_dryfield_water_tank_8017FF88[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017DEA4, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_dryfield_water_tank_8017DD20, { .model = &_gDryfieldWaterTankModel020D4 } },
+    { { { TASK_BODY_NONE, 192 } }, dryfieldWaterTankPropSceneTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, dryfieldWaterTankPropTask, { .model = &_gDryfieldWaterTankModel020D4 } },
 };
 
 static AnimationPackedPose _gDryfieldWaterTankAnimation02B70Bank1[2] = {
@@ -342,7 +342,7 @@ TaskDesc D_dryfield_water_tank_80180764[4] = {
     { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTankFadeOutTileTask, { .value = 0 } },
 };
 
-TaskDesc D_dryfield_water_tank_80180794 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_water_tank_8017E9F8, { .value = 0 } };
+TaskDesc D_dryfield_water_tank_80180794 = { { { TASK_BODY_NONE, 192 } }, _dryfieldWaterTankMovieEventTask, { .value = 0 } };
 
 static AnimationPackedPose _gDryfieldWaterTankAnimation034BCBank1[6] = {
 #include "assets/dryfield_water_tank_animation_034BC_bank1.inc"
@@ -748,9 +748,14 @@ SVECTOR D_dryfield_water_tank_801847C0[52] = {
 #include "assets/dryfield_water_tank_motion_07200.inc"
 };
 
-static void func_dryfield_water_tank_8017E78C(Task* task);
-
-/// Resumes room presentation after movie resources have been restored.
+/// Resumes room presentation after the movie's game resources have been restored.
+///
+/// Requires completed CD cancellation/playback and game-resource restoration;
+/// movie decoding must no longer use the resident 320x240 image workspace.
+/// Restarts ambience, clears that whole workspace, makes display visible and
+/// kills the movie task before spawning a fade-in at eight colour units per
+/// tick. Returning display ownership reconfigures image memory for the current
+/// session. The task is not accessed after teardown.
 static inline void _dryfieldWaterTankResumeAfterMovie(Task* task)
 {
     enum {
@@ -978,89 +983,100 @@ static void _dryfieldWaterTankMovieTask(Task* task)
     }
 }
 
-/// Carries out the pending `_DryfieldWaterTankEventWork::command`, then clears
-/// it; a command that takes several frames advances `commandStep` and returns
-/// early until its last one.
-static void func_dryfield_water_tank_8017E78C(Task* task)
+/// Installs a room clip after reloading the cached player, if that player is present.
+///
+/// taskArg is a live Task pointer and is evaluated once. A missing player skips
+/// all other argument uses. animationRequest is a side-effect-free
+/// AnimationPlayRequest lvalue, evaluated for five stores and its address.
+/// clipId, blendMode and blendFrameCount are evaluated once in field order.
+/// Requires live event work and the room's two-set animation table; dispatch
+/// borrows the request synchronously and playback borrows the loaded table.
+#define DRYFIELD_WATER_TANK_PLAY_EVENT_ANIMATION(taskArg, animationRequest, clipId, blendMode, blendFrameCount)             \
+    {                                                                                                                       \
+        _DryfieldWaterTankEventWork* currentWork = (taskArg)->work;                                                         \
+        if (currentWork->player != NULL) {                                                                                  \
+            (animationRequest).source.sets          = D_dryfield_water_tank_801804EC;                                       \
+            (animationRequest).animationId          = (clipId);                                                             \
+            (animationRequest).blend                = (blendMode);                                                          \
+            (animationRequest).blendFrames          = (blendFrameCount);                                                    \
+            (animationRequest).enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                    \
+            TASK_MESSAGE_DISPATCH_POINTER(currentWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(animationRequest), 0); \
+        }                                                                                                                   \
+    }
+
+/// Executes one frame of the movie event's pending command and clears completed commands.
+///
+/// Animation installation takes two event updates; movie startup yields for
+/// three before player placement/stance restoration. The player's task, room
+/// resources and allocated work must remain live. Only animation installation
+/// guards a missing player; its following rate request still requires one.
+/// Turn yaw is a half-turn, playback rate is half normal, and blending counts
+/// whole frames. Unknown command IDs are cleared; an unknown movie step waits.
+static void _dryfieldWaterTankExecuteEventCommand(Task* task)
 {
+    enum {
+        DRYFIELD_WATER_TANK_EVENT_COMMAND_UNUSED         = 1,
+        DRYFIELD_WATER_TANK_EVENT_ANIMATION_INSTALL      = 0,
+        DRYFIELD_WATER_TANK_EVENT_ANIMATION_BLEND        = 1,
+        DRYFIELD_WATER_TANK_EVENT_ANIMATION_BLEND_FRAMES = 15,
+        DRYFIELD_WATER_TANK_EVENT_FADE_OUT_TASK_INDEX    = 3,
+        DRYFIELD_WATER_TANK_EVENT_FADE_RATE              = 8,
+        DRYFIELD_WATER_TANK_EVENT_MOVIE_TASK_INDEX       = 1,
+        DRYFIELD_WATER_TANK_EVENT_MOVIE_START            = 0,
+        DRYFIELD_WATER_TANK_EVENT_MOVIE_WAIT_FIRST       = 1,
+        DRYFIELD_WATER_TANK_EVENT_MOVIE_WAIT_SECOND      = 2,
+        DRYFIELD_WATER_TANK_EVENT_MOVIE_RESTORE_PLAYER   = 3,
+    };
     _DryfieldWaterTankEventWork* work;
-    _DryfieldWaterTankEventWork* cur;
     union {
-        AnimationPlayRequest rec;
-        ActorTransform       warp;
-    } msg;
-    AnimationPlayRequest  script;
-    AnimationPlayRequest* rec;
-    u16                   step;
-    s32                   weaponId;
-    s32                   idx;
+        AnimationPlayRequest animation;
+        ActorTransform       turn;
+    } commandMessage;
+    u16 animationStep;
+    s32 movieStep;
 
     work = task->work;
     switch (work->command) {
         case DRYFIELD_WATER_TANK_EVENT_COMMAND_NONE:
-        case 1:
+        case DRYFIELD_WATER_TANK_EVENT_COMMAND_UNUSED:
             break;
         case DRYFIELD_WATER_TANK_EVENT_COMMAND_PLAY_PLAYER_ANIMATION:
-            step = work->commandStep;
-            switch (step) {
-                case 0:
-                    cur = task->work;
-                    if (cur->player != NULL) {
-                        msg.rec.source.sets          = D_dryfield_water_tank_801804EC;
-                        msg.rec.animationId          = 0;
-                        msg.rec.blend                = ANIMATION_BLEND_RESET;
-                        msg.rec.blendFrames          = 0;
-                        msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
-                    }
+            animationStep = work->commandStep;
+            switch (animationStep) {
+                case DRYFIELD_WATER_TANK_EVENT_ANIMATION_INSTALL:
+                    DRYFIELD_WATER_TANK_PLAY_EVENT_ANIMATION(task, commandMessage.animation, 0, ANIMATION_BLEND_RESET, 0);
                     work->commandStep++;
                     return;
-                case 1:
-                    cur = task->work;
-                    if (cur->player != NULL) {
-                        msg.rec.source.sets          = D_dryfield_water_tank_801804EC;
-                        msg.rec.animationId          = step;
-                        msg.rec.blend                = step;
-                        msg.rec.blendFrames          = 0xF;
-                        msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
-                    }
-                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+                case DRYFIELD_WATER_TANK_EVENT_ANIMATION_BLEND:
+                    DRYFIELD_WATER_TANK_PLAY_EVENT_ANIMATION(task, commandMessage.animation, animationStep, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_WATER_TANK_EVENT_ANIMATION_BLEND_FRAMES);
+                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, ANIMATION_RATE_ONE / 2, 0);
                     break;
             }
             break;
         case DRYFIELD_WATER_TANK_EVENT_COMMAND_FADE_OUT:
-            taskSpawnFromTable(D_dryfield_water_tank_80180764, 3, 8, 0);
+            taskSpawnFromTable(D_dryfield_water_tank_80180764, DRYFIELD_WATER_TANK_EVENT_FADE_OUT_TASK_INDEX, DRYFIELD_WATER_TANK_EVENT_FADE_RATE, 0);
             break;
         case DRYFIELD_WATER_TANK_EVENT_COMMAND_TURN_PLAYER:
-            msg.warp.rot.vy = 0x800;
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &msg.warp, 0);
+            commandMessage.turn.rot.vy = ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &commandMessage.turn, 0);
             break;
         case DRYFIELD_WATER_TANK_EVENT_COMMAND_PLAY_MOVIE:
-            idx = work->commandStep;
-            switch (idx) {
-                case 0:
-                    displaySpawnTaskFromTable(D_dryfield_water_tank_80180764, 1, 0, 0);
+            movieStep = work->commandStep;
+            switch (movieStep) {
+                case DRYFIELD_WATER_TANK_EVENT_MOVIE_START:
+                    // Hand frame presentation to the movie task and retain the view packets.
+                    displaySpawnTaskFromTable(D_dryfield_water_tank_80180764, DRYFIELD_WATER_TANK_EVENT_MOVIE_TASK_INDEX, 0, 0);
                     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
                     viewQueueCurrentCameraAndPackets();
                     work->commandStep++;
                     return;
-                case 1:
-                case 2:
-                    work->commandStep = idx + 1;
+                case DRYFIELD_WATER_TANK_EVENT_MOVIE_WAIT_FIRST:
+                case DRYFIELD_WATER_TANK_EVENT_MOVIE_WAIT_SECOND:
+                    work->commandStep = movieStep + 1;
                     return;
-                case 3:
+                case DRYFIELD_WATER_TANK_EVENT_MOVIE_RESTORE_PLAYER:
                     TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_801804F4, 0);
-                    // Taken before the record is filled, the address sits in
-                    // $a1 and `animationId` is stored through it.
-                    rec                         = &script;
-                    weaponId                    = gPlayerStatus.weapon;
-                    script.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                    rec->animationId            = 1;
-                    script.blend                = ANIMATION_BLEND_RESET;
-                    script.blendFrames          = 0;
-                    script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
+                    _dryfieldWaterTankRestoreWeaponStance();
                     gGameSession->viewDirty = 1;
                     break;
                 default:
@@ -1071,26 +1087,61 @@ static void func_dryfield_water_tank_8017E78C(Task* task)
     work->command = DRYFIELD_WATER_TANK_EVENT_COMMAND_NONE;
 }
 
-/// Cutscene task state machine. State 0 refuses to run when the cutscene flag
-/// is already up or one is live, otherwise it parks the freshly zeroed
-/// `_DryfieldWaterTankEventWork` block in `Task::work`, republishes this task as
-/// `D_dryfield_water_tank_80188D50` so the room's script commands can reach
-/// that block, and hands slot 3 the 0x3E8 message carrying the animation set of the
-/// equipped weapon: `gPlayerStatus.weapon + 1` for the alternate block and
-/// `gPlayerStatus.weapon + 0x22` for the base one. A failed `memMalloc` kills the task
-/// outright instead of returning, so the message and the state step still run
-/// on that path. States 2, 3 and 4 only step; state 1 runs the per-frame
-/// driver once the session is up, or steps when it has already torn down;
-/// state 5 asks to be killed.
-void func_dryfield_water_tank_8017E9F8(Task* task)
+#undef DRYFIELD_WATER_TANK_PLAY_EVENT_ANIMATION
+
+/// Blends the player into the equipped weapon's standing clip for the movie event.
+///
+/// Borrows the request synchronously, while the selected bank remains loaded
+/// during playback. Uses a ten-frame blend and disables world grid collision.
+/// Requires the live registered player and the character's loaded weapon bank.
+static inline void _dryfieldWaterTankBlendPlayerWeaponStance(void)
 {
+    enum {
+        DRYFIELD_WATER_TANK_EVENT_PRIMARY_CHARACTER   = 1,
+        DRYFIELD_WATER_TANK_EVENT_PRIMARY_WEAPON_BANK = 1,
+        DRYFIELD_WATER_TANK_EVENT_OTHER_WEAPON_BANK   = 34,
+        DRYFIELD_WATER_TANK_EVENT_STANCE_CLIP         = 1,
+        DRYFIELD_WATER_TANK_EVENT_STANCE_BLEND_FRAMES = 10,
+    };
+    AnimationPlayRequest stance;
+    s32                  weaponId;
+    s32                  animationBank;
+
+    weaponId                    = gPlayerStatus.weapon;
+    animationBank               = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_WATER_TANK_EVENT_PRIMARY_CHARACTER) ? weaponId + DRYFIELD_WATER_TANK_EVENT_PRIMARY_WEAPON_BANK : weaponId + DRYFIELD_WATER_TANK_EVENT_OTHER_WEAPON_BANK;
+    stance.source.index         = animationBank;
+    stance.animationId          = DRYFIELD_WATER_TANK_EVENT_STANCE_CLIP;
+    stance.blend                = ANIMATION_BLEND_INTERPOLATE;
+    stance.blendFrames          = DRYFIELD_WATER_TANK_EVENT_STANCE_BLEND_FRAMES;
+    stance.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &stance, 0);
+}
+
+/// Runs the room's scripted player animation, fade and movie event.
+///
+/// A fresh bodyless task waits for display-transition and attachment-wheel
+/// inactivity, owns a zeroed twelve-byte work block and publishes itself before
+/// starting the normal/skip scripts. Commands run while eventState is nonzero;
+/// completion waits three further updates, then requests teardown for the
+/// polling waiter. Script callbacks require the published task and work to stay
+/// live. Requires the player and loaded room/weapon/CAP resources throughout.
+/// Allocation failure tears down the task but retains the original subsequent
+/// stance request, script start and state increment on that update.
+static void _dryfieldWaterTankMovieEventTask(Task* task)
+{
+    enum {
+        DRYFIELD_WATER_TANK_MOVIE_EVENT_INIT         = 0,
+        DRYFIELD_WATER_TANK_MOVIE_EVENT_RUN          = 1,
+        DRYFIELD_WATER_TANK_MOVIE_EVENT_DRAIN_FIRST  = 2,
+        DRYFIELD_WATER_TANK_MOVIE_EVENT_DRAIN_SECOND = 3,
+        DRYFIELD_WATER_TANK_MOVIE_EVENT_DRAIN_LAST   = 4,
+        DRYFIELD_WATER_TANK_MOVIE_EVENT_REQUEST_EXIT = 5,
+    };
     _DryfieldWaterTankEventWork* work;
-    AnimationPlayRequest         script;
-    s32                          weaponId;
-    s32                          anim;
 
     switch (task->state) {
-        case 0:
+        case DRYFIELD_WATER_TANK_MOVIE_EVENT_INIT:
+            // Defer presentation until the wheel and pending display transition are idle.
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = memMalloc(sizeof(*work), false);
                 task->work = work;
@@ -1101,32 +1152,26 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
                     work->player                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_dryfield_water_tank_80188D50 = task;
                 }
-                weaponId                    = gPlayerStatus.weapon;
-                anim                        = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-                script.source.index         = anim;
-                script.animationId          = 1;
-                script.blend                = ANIMATION_BLEND_INTERPOLATE;
-                script.blendFrames          = 0xA;
-                script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &script, 0);
+                _dryfieldWaterTankBlendPlayerWeaponStance();
                 evsStartScriptWithSkip(D_dryfield_water_tank_8018050C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_dryfield_water_tank_8018068C);
                 task->state = task->state + 1;
             }
             break;
-        case 1:
+        case DRYFIELD_WATER_TANK_MOVIE_EVENT_RUN:
             if (gGameSession->eventState != 0) {
-                func_dryfield_water_tank_8017E78C(task);
+                _dryfieldWaterTankExecuteEventCommand(task);
                 break;
             }
             task->state = task->state + 1;
             break;
-        case 2:
-        case 3:
-        case 4:
+        // Give the script cleanup three event updates before requesting teardown.
+        case DRYFIELD_WATER_TANK_MOVIE_EVENT_DRAIN_FIRST:
+        case DRYFIELD_WATER_TANK_MOVIE_EVENT_DRAIN_SECOND:
+        case DRYFIELD_WATER_TANK_MOVIE_EVENT_DRAIN_LAST:
             task->state = task->state + 1;
             break;
-        case 5:
+        case DRYFIELD_WATER_TANK_MOVIE_EVENT_REQUEST_EXIT:
             taskRequestKill(task, 0);
             break;
     }
@@ -1164,9 +1209,14 @@ static void _dryfieldWaterTankRestorePlayerAfterSkip(void)
     SetDispMask(1);
 }
 
-void func_dryfield_water_tank_8017EC38(u32 arg0)
+void dryfieldWaterTankSpawnPlayerPathTask(u32 packedPath)
 {
-    taskSpawnFromTable(D_dryfield_water_tank_80184DF4, arg0 & 0xFFFF, (s32)(arg0 >> 0x10), 0);
+    enum {
+        DRYFIELD_WATER_TANK_PATH_INDEX_MASK     = 0xFFFF,
+        DRYFIELD_WATER_TANK_PATH_ARGUMENT_SHIFT = 16,
+    };
+
+    taskSpawnFromTable(D_dryfield_water_tank_80184DF4, packedPath & DRYFIELD_WATER_TANK_PATH_INDEX_MASK, (s32)(packedPath >> DRYFIELD_WATER_TANK_PATH_ARGUMENT_SHIFT), 0);
 }
 
 void dryfieldWaterTankMovePlayerFirstLegTask(Task* task)

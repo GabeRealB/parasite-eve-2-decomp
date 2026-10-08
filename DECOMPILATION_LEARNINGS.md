@@ -44352,23 +44352,23 @@ Copy `index` to a local and keep **one** mixed increment so both names stay
 live; using the copy for every access leaves the swap:
 
 ```c
-Task* task;
+Task* promptTask;
 
-task = arg0;
-switch (task->state) {
+promptTask = task;
+switch (promptTask->state) {
     case 0:
         /* ... */
-        arg0->state = task->state + 1; /* both names */
+        task->state = promptTask->state + 1; /* both names */
         return;
     case 1:
         /* ... */
-        task->state = task->state + 1;
+        promptTask->state = promptTask->state + 1;
         return;
 }
-taskKill(task);
+taskKill(promptTask);
 ```
 
-`func_dryfield_water_tank_8017D618` is the example. The sibling
+`dryfieldWaterTankMechanismPromptTask` is the example. The sibling
 `func_dryfield_water_tower_8017D948` does not need this: `field_1 = 1` sits
 after more calls, so the hoisted `1` is already the lower-priority allocno.
 
@@ -80103,7 +80103,7 @@ instruction count and the block count together. Read `regs` together with
 the arms for a duplicated reload before reaching for anything else.
 
 **The same choice also decides whether later constants reuse the compare's
-register, and that shows up as `regs` alone.** `func_dryfield_water_tank_8017E9F8`
+register, and that shows up as `regs` alone.** `_dryfieldWaterTankMovieEventTask`
 (`base_1.c`, 93.408%, `regs=9`, topology/predicates/calls all matching) keeps the
 result register and the store constants as leftovers beyond the block/delay-slot
 story above: with the default-before-`if` form, `cse` folded the payload's
@@ -121669,7 +121669,7 @@ target.o SHA256
 `41e59e9c0ba34f06693ca44081b8e40a17fc1d10a5ea3b89dd93f5b2edd51853`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_dryfield_night_parking_lot_8017D8D0-vacuum`.
-## One leftover `reorder` between two independent insns: the scheduler's LAUNCH_PRIORITY boost, and the fix is an adjacent statement's order (func_dryfield_water_tank_8017DD20, 2026-09-17)
+## One leftover `reorder` between two independent insns: the scheduler's LAUNCH_PRIORITY boost, and the fix is an adjacent statement's order (dryfieldWaterTankPropTask, 2026-09-17)
 
 Symptom: 99.38%, `reorder=1`, and the only difference is `lui $v0,%hi(SYM)` and
 `move $a1,$s2` swapped in front of `taskReparent(SYM, index)` - two insns with
@@ -121699,8 +121699,8 @@ LUIDs are sched1's output order.
 
 Fix, and the point of the entry: do not argue with the comparator, move the
 pair's *timing*. Swapping the source order of two adjacent statements in the
-same block - here `extra->lightMtx = &mtx->light;` before
-`extra->colorMtx = &mtx->color;`, the order the actor sibling uses - changed
+same block - here `initialModel->lightMtx = &work->lightMtx;` before
+`initialModel->colorMtx = &work->colorMtx;`, the order the actor sibling uses - changed
 which insns are scheduled in the cycles before, and the `lw` was then blocked
 for one cycle by a function-unit hazard (`;; blocking insn 97 for 1 cycles`).
 The arg copy issued first, the `lw` released the `lui` one cycle later, and
@@ -121780,7 +121780,7 @@ in the scratch env `nonmatchings/dryfieldWaterTankSetPreOperationSprites-vacuum/
 next to `mine_oracle.c`, the sibling compiled as the oracle.
 
 
-## A store sunk into a call's delay slot blocks the cross-jump of two identical call tails (func_dryfield_water_tank_8017DEA4, 2026-09-17)
+## A store sunk into a call's delay slot blocks the cross-jump of two identical call tails (dryfieldWaterTankPropSceneTask, 2026-09-17)
 
 The `dryfieldWaterTankSkipPropScene` entry above is the same clause with a
 `reorder`-only symptom. Here the identical one-access change fixes a
@@ -121841,7 +121841,7 @@ the same label, and the difference is the insn between the `call_insn` and the
 differs - in this case both calls' usage lists are `(use a3)(use a2)(use a1)(use a0)`
 and match, so the store was the whole cause.
 
-## The first comparison of a switch's dispatch chain names the case *set*: an empty `case 0` can be required (func_dryfield_water_tank_8017DEA4, 2026-09-17)
+## The first comparison of a switch's dispatch chain names the case *set*: an empty `case 0` can be required (dryfieldWaterTankPropSceneTask, 2026-09-17)
 
 `balance_case_nodes` (`stmt.c`) splits the sorted case list into a decision tree
 before `emit_case_nodes` walks it, and for a list of `i` single-value nodes with
@@ -121893,7 +121893,7 @@ non-negative).
 Input hashes: `base_2.c`
 `ba55ccd67e935ee7cf89e3dc83e30b8f8735204a50f735537c99e6490bb51183` (case 0 and u16, 95.904%), `base_3.c`
 `9be92a8b61adf0508c04b9863ce3db0e819a7b281a4c8f1f1fb905415e4e5666` (the cast deref above, 100.000%), both in the scratch env
-`nonmatchings/func_dryfield_water_tank_8017DEA4-vacuum/`.
+`nonmatchings/dryfieldWaterTankPropSceneTask-vacuum/`.
 
 ### A load the pointer variable must copy: cse.c's `(set REG0 REG1)` destination swap
 

@@ -21,6 +21,13 @@ enum {
     DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_PLAY_SOUNDS = 3, // Queue the scene's two sound events
 };
 
+/// Prop task states also sent in `ActorCommand::command` to restart its slide.
+enum {
+    DRYFIELD_WATER_TANK_PROP_STATE_INIT    = 0,
+    DRYFIELD_WATER_TANK_PROP_STATE_IDLE    = 1,
+    DRYFIELD_WATER_TANK_PROP_STATE_SLIDING = 2,
+};
+
 extern TaskDesc D_dryfield_water_tank_80184DF4[2];
 
 extern u16 D_dryfield_water_tank_801868CC[10];
@@ -97,10 +104,27 @@ extern TaskMessageEntry D_dryfield_water_tank_8017FD90[3];
 /// Mutates the room-owned batches without allocating or releasing resources.
 void dryfieldWaterTankSetPreOperationSprites(u8 beforeOperation);
 
-// Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_water_tank_8017DD20(Task*);
+/// Initializes and lights the scene prop, advancing its requested slide each frame.
+///
+/// Spawned by `dryfieldWaterTankPropSceneTask` with a TMD body whose primitive
+/// buffer has not been allocated. Owns a zeroed work block and model buffer,
+/// borrows the room's model data, and joins the driver's teardown tree. The
+/// driver must be published before initialization. `DRYFIELD_WATER_TANK_PROP_STATE_*`
+/// selects initialization, idle or sliding; arrival returns to idle. Lighting
+/// samples the root's composed world translation every frame, including idle.
+/// Requires successful work allocation and composed coordinates for that query.
+void dryfieldWaterTankPropTask(Task* task);
 
-void func_dryfield_water_tank_8017DEA4(Task*);
+/// Runs the sliding prop scene and consumes requests posted by its event script.
+///
+/// Owns its zeroed work and the spawned prop task; publishes the driver before
+/// spawning the prop. Initialization requires successful work and child-task
+/// allocation. The next frame places the prop and starts the normal/skip scripts.
+/// Requests hide/show the player, start the slide or queue sounds, then clear.
+/// On script completion exits its child and suspends this driver with a stop
+/// request; the driver's own work remains allocated until external teardown.
+/// Room resources, the player and published driver must outlive script callbacks.
+void dryfieldWaterTankPropSceneTask(Task* task);
 
 /// Posts a single-frame prop-scene request for the driver's next update.
 ///
@@ -116,7 +140,13 @@ void dryfieldWaterTankPostPropSceneRequest(s16 request);
 /// audio updates of scene sound entry 2. Scene-task cleanup belongs to the skip script.
 void dryfieldWaterTankSkipPropScene(void);
 
-void func_dryfield_water_tank_8017EC38(u32);
+/// Spawns one of the room's two scripted player-path tasks from a packed word.
+///
+/// Bits 0..15 select leg 0 or 1; bits 16..31 are an unsigned spawnArg1 value
+/// in 0..65535, and spawnArg2 is zero. Both current script calls pass zero in
+/// the high half. The room's descriptor table and player must remain loaded
+/// through path playback. No selector bounds check or allocation result is returned.
+void dryfieldWaterTankSpawnPlayerPathTask(u32 packedPath);
 
 /// Places the player at one entry of the first scripted path per callback tick.
 ///
@@ -137,8 +167,16 @@ void dryfieldWaterTankMovePlayerFirstLegTask(Task* task);
 /// synchronously. Negative counters are outside this callback's domain.
 void dryfieldWaterTankMovePlayerSecondLegTask(Task* task);
 
-// Callbacks referenced by the overlay's shared data tables.
-void func_dryfield_water_tank_8017D618(Task*);
+/// Offers the tank mechanism's CAP prompt and starts its prop scene on acceptance.
+///
+/// CAP command 14, variant 0 prompts; retained choice key 10 operates the tank.
+/// Already-operated state 3 instead plays variant 1 with a display transition
+/// and immediately ends this task. A fresh prompt holds/hides the player, saves
+/// the current saved-view byte, waits for CAP to finish, then hides actors until
+/// resolving the choice. Declining restores the player, HUD, event flag and view;
+/// accepting sets mechanism state 3 and hands presentation to the prop scene.
+/// Requires idle CAP playback, the room's CAP resources and live player/session.
+void dryfieldWaterTankMechanismPromptTask(Task* task);
 
 /// Refuses every `ROOM_MESSAGE_USE_KEY_ITEM` request without consuming an item.
 ///
@@ -152,11 +190,28 @@ s32 dryfieldWaterTankRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 se
 /// even in query mode; retains neither pointer and performs no departure effects.
 s32 dryfieldWaterTankResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
-s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+/// Handles the water tank's direction-trigger actions, returning 1 for every ID.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a four-byte request synchronously;
+/// only actionId is read. ID 1 latches and starts the movie event once, ID 2
+/// latches the player-path scene and updates story progress once, and IDs 3/4
+/// start the two player-placement scripts. Other IDs have no effect. The room
+/// resources and player must be live; task, messageId and secondArg are unused.
+s32 dryfieldWaterTankHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
-s32 func_dryfield_water_tank_8017D910(Task*, s32, s32, s32);
+/// Routes CAP room command 14 to the mechanism prompt task, returning 0.
+///
+/// `ROOM_MESSAGE_COMMAND` carries the CAP command index as its first word.
+/// Other indices do nothing; task, messageId and secondArg are unused.
+s32 dryfieldWaterTankHandleRoomCommand(Task* task, s32 messageId, s32 commandIndex, s32 secondArg);
 
-void func_dryfield_water_tank_8017D948(Task*);
+/// Spawns the movie-event task, then polls its requested teardown before ending.
+///
+/// A fresh bodyless task starts at state 0; state 1 polls the published child
+/// handle and kills this waiter when its exit handler has run. Requires a
+/// successful child spawn and that handle to remain live until polling succeeds.
+/// This waiter performs the movie-event task's requested cleanup.
+void dryfieldWaterTankWaitMovieEventTask(Task* task);
 
 /// Applies `ACTOR_MESSAGE_SET_MODEL_DRAW` to the scene prop's live model.
 ///
@@ -167,8 +222,9 @@ void dryfieldWaterTankSetPropModelDraw(Task* task, s32 messageId, s32 visible, s
 /// Restarts the prop's movement phase and applies the command's task state.
 ///
 /// `ACTOR_COMMAND_MESSAGE_APPLY` borrows `command` through dispatch and reads
-/// only its command word: 0 initializes, 1 idles, 2 slides. The scene driver sends
-/// 2. Requires allocated prop work; resets the dust index and an unread halfword
+/// only its command word: `DRYFIELD_WATER_TANK_PROP_STATE_*` selects initialization,
+/// idle or sliding. The scene driver sends the sliding state. Requires allocated
+/// prop work; resets the dust index and an unread halfword
 /// of unproven purpose, retaining the settle count and current model position.
 /// `messageId` and `secondArg` are unused. No reply is defined.
 void dryfieldWaterTankRestartPropSlide(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg);

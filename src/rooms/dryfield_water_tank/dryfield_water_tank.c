@@ -346,14 +346,14 @@ EvsCommand D_dryfield_water_tank_80184E0C[126] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_801849C8 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_dryfield_water_tank_8017EC38 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = dryfieldWaterTankSpawnPlayerPathTask }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184AE0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 52 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184A18 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2013 }, { .message = { .pointer = &D_dryfield_water_tank_80184DDC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 26 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_dryfield_water_tank_8017EC38 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = dryfieldWaterTankSpawnPlayerPathTask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_water_tank_80184AE0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -933,52 +933,71 @@ Task* D_dryfield_water_tank_80188D44 = NULL;
 
 Task* D_dryfield_water_tank_80188D50;
 
-static void func_dryfield_water_tank_8017D9D4(Task* task);
+// CAP uses the same command slot for the prompt and its room-message request.
+enum { DRYFIELD_WATER_TANK_MECHANISM_CAP_COMMAND = 14 };
 
-void func_dryfield_water_tank_8017D618(Task* arg0)
+/// Returns player control and the saved view after a declined mechanism prompt.
+static inline void _dryfieldWaterTankRestorePlayerAfterPrompt(void)
 {
-    Task* task;
+    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = 0;
+    gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_dryfield_water_tank_80188D48;
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+}
 
-    task = arg0;
-    switch (task->state) {
-        case 0:
-            if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == 3) {
-                capStartSequenceSlot(0xE, 1, 1);
+void dryfieldWaterTankMechanismPromptTask(Task* task)
+{
+    enum {
+        DRYFIELD_WATER_TANK_PROMPT_START          = 0,
+        DRYFIELD_WATER_TANK_PROMPT_WAIT_CAP       = 1,
+        DRYFIELD_WATER_TANK_PROMPT_RESOLVE        = 2,
+        DRYFIELD_WATER_TANK_PROMPT_VARIANT        = 0,
+        DRYFIELD_WATER_TANK_ALREADY_OPERATED_KEY  = 1,
+        DRYFIELD_WATER_TANK_OPERATE_CHOICE_KEY    = 10,
+        DRYFIELD_WATER_TANK_PROP_SCENE_TASK_INDEX = 0,
+        DRYFIELD_WATER_TANK_OPERATION_SOUND       = 4,
+    };
+
+    Task* promptTask;
+
+    promptTask = task;
+    switch (promptTask->state) {
+        case DRYFIELD_WATER_TANK_PROMPT_START:
+            if (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE) == GAME_FLAG_WATER_TOWER_MECHANISM_TANK_OPERATED) {
+                capStartSequenceSlot(DRYFIELD_WATER_TANK_MECHANISM_CAP_COMMAND, CAP_PLAYBACK_DISPLAY_TRANSITION, DRYFIELD_WATER_TANK_ALREADY_OPERATED_KEY);
                 break;
             }
             gGameSession->eventState       = 1;
             D_dryfield_water_tank_80188D48 = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view;
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capStartSequenceSlot(0xE, 0, 0);
-            arg0->state = task->state + 1;
+            capStartSequenceSlot(DRYFIELD_WATER_TANK_MECHANISM_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE, DRYFIELD_WATER_TANK_PROMPT_VARIANT);
+            task->state = promptTask->state + 1;
             return;
-        case 1:
+        case DRYFIELD_WATER_TANK_PROMPT_WAIT_CAP:
             if (capIsBusy() == 0) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_HIDDEN;
-                task->state                    = task->state + 1;
+                promptTask->state              = promptTask->state + 1;
             }
             return;
-        case 2:
-            if (capGetVariantKey() == 0xA) {
+        case DRYFIELD_WATER_TANK_PROMPT_RESOLVE:
+            // A retained CAP choice hands presentation to the prop scene.
+            if (capGetVariantKey() == DRYFIELD_WATER_TANK_OPERATE_CHOICE_KEY) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 3);
-                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 4), 0, 0);
-                taskSpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
+                gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, GAME_FLAG_WATER_TOWER_MECHANISM_TANK_OPERATED);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, DRYFIELD_WATER_TANK_OPERATION_SOUND), 0, 0);
+                taskSpawnFromTable(D_dryfield_water_tank_8017FF88, DRYFIELD_WATER_TANK_PROP_SCENE_TASK_INDEX, 0, 0);
                 _dryfieldWaterTankSyncMechanismSprites();
             } else {
-                gGameSession->eventState                                   = 0;
-                gGameSession->hideHud                                      = 0;
-                gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = (u8)D_dryfield_water_tank_80188D48;
-                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+                _dryfieldWaterTankRestorePlayerAfterPrompt();
             }
             break;
         default:
             return;
     }
-    taskKill(task);
+    taskKill(promptTask);
 }
 
 s32 dryfieldWaterTankRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg)
@@ -992,79 +1011,88 @@ s32 dryfieldWaterTankResolveRoomEvent(Task* task, s32 messageId, const RoomEvent
     return 1;
 }
 
-s32 func_dryfield_water_tank_8017D7EC(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+s32 dryfieldWaterTankHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum {
+        DRYFIELD_WATER_TANK_ACTION_MOVIE_EVENT             = 1,
+        DRYFIELD_WATER_TANK_ACTION_PLAYER_PATH_SCENE       = 2,
+        DRYFIELD_WATER_TANK_ACTION_FIRST_PLACEMENT_SCRIPT  = 3,
+        DRYFIELD_WATER_TANK_ACTION_SECOND_PLACEMENT_SCRIPT = 4,
+        DRYFIELD_WATER_TANK_MOVIE_WAITER_TASK_INDEX        = 0,
+        DRYFIELD_WATER_TANK_PLAYER_PATH_SCENE_OBJECTIVE    = 14,
+        DRYFIELD_WATER_TANK_PLAYER_PATH_SCENE_DIALOGUE     = 3,
+    };
 
-    if (request->actionId == 1) {
+    // Latch each one-shot scene before it can be requested again.
+    if (request->actionId == DRYFIELD_WATER_TANK_ACTION_MOVIE_EVENT) {
         if (gameFlagGetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036) == 0) {
             gameFlagSetNibble(GAME_FLAG_DRYFIELD_WATER_TANK_036, 1);
-            taskSpawnFromTable(D_dryfield_water_tank_8017F34C, 0, 0, 0);
+            taskSpawnFromTable(D_dryfield_water_tank_8017F34C, DRYFIELD_WATER_TANK_MOVIE_WAITER_TASK_INDEX, 0, 0);
             gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 1);
         }
     }
-    if ((request->actionId == 2) && (gameFlagGetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0)) {
+    if ((request->actionId == DRYFIELD_WATER_TANK_ACTION_PLAYER_PATH_SCENE) && (gameFlagGetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN, 1);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xE);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_WATER_TANK_PLAYER_PATH_SCENE_OBJECTIVE);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 3);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, DRYFIELD_WATER_TANK_PLAYER_PATH_SCENE_DIALOGUE);
         areaApplySavedUpdates(D_dryfield_water_tank_80188D1C);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         evsStartScriptWithSkip(D_dryfield_water_tank_80184E0C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tank_801859DC);
     }
-    if (request->actionId == 3) {
+    if (request->actionId == DRYFIELD_WATER_TANK_ACTION_FIRST_PLACEMENT_SCRIPT) {
         evsStartScript(D_dryfield_water_tank_8017F114, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
-    if (request->actionId == 4) {
+    if (request->actionId == DRYFIELD_WATER_TANK_ACTION_SECOND_PLACEMENT_SCRIPT) {
         evsStartScript(D_dryfield_water_tank_8017F21C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 1;
 }
 
-/// Room message handler: on message `0xE` spawn the second entry of
-/// `D_dryfield_water_tank_8017F34C`, the same table `func_dryfield_water_tank_8017D7EC`
-/// takes entry 0 from.
-s32 func_dryfield_water_tank_8017D910(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 dryfieldWaterTankHandleRoomCommand(Task* task, s32 messageId, s32 commandIndex, s32 secondArg)
 {
-    if (arg2 == 0xE) {
-        taskSpawnFromTable(D_dryfield_water_tank_8017F34C, 1, 0, 0);
+    enum { DRYFIELD_WATER_TANK_MECHANISM_PROMPT_TASK_INDEX = 1 };
+
+    if (commandIndex == DRYFIELD_WATER_TANK_MECHANISM_CAP_COMMAND) {
+        taskSpawnFromTable(D_dryfield_water_tank_8017F34C, DRYFIELD_WATER_TANK_MECHANISM_PROMPT_TASK_INDEX, 0, 0);
     }
     return 0;
 }
 
-/// Room event task: state 0 spawns the child from `D_dryfield_water_tank_80180794`
-/// and parks it in `D_dryfield_water_tank_80188D44`, state 1 kills this task once
-/// that child has been killed.
-void func_dryfield_water_tank_8017D948(Task* task)
+void dryfieldWaterTankWaitMovieEventTask(Task* task)
 {
-    s32 poll;
+    enum {
+        DRYFIELD_WATER_TANK_MOVIE_WAITER_SPAWN = 0,
+        DRYFIELD_WATER_TANK_MOVIE_WAITER_POLL  = 1,
+    };
+    s32 childResult;
 
     switch (task->state) {
-        case 0:
+        case DRYFIELD_WATER_TANK_MOVIE_WAITER_SPAWN:
             D_dryfield_water_tank_80188D44 = taskSpawnFromTable(&D_dryfield_water_tank_80180794, 0, 0, 0);
             task->state++;
             return;
-        case 1:
-            if (taskPollKill(D_dryfield_water_tank_80188D44, &poll) != 0) {
+        case DRYFIELD_WATER_TANK_MOVIE_WAITER_POLL:
+            if (taskPollKill(D_dryfield_water_tank_80188D44, &childResult) != 0) {
                 taskKill(task);
             }
             return;
     }
 }
 
-/// State 0 of the room's event task: publish the message table the room's
-/// handlers hang off (`0x13EE`–`0x13F1`), take pointer slot 7, spawn the
-/// cutscene task from `D_dryfield_water_tank_801868A4`, queue sound event
-/// `0x52150009`, run the game-flag `0x55` dispatch in
-/// `_dryfieldWaterTankSyncMechanismSprites`, then advance.
-static void func_dryfield_water_tank_8017D9D4(Task* task)
+/// Registers room messages and starts the swaying tank model and ambience.
+///
+/// Runs as room-task state 0 with room resources loaded, publishes
+/// `GAME_TASK_SLOT_ROOM`, initializes mechanism sprite visibility and advances
+/// to the per-view ambience state. The model task borrows room-owned geometry.
+static void _dryfieldWaterTankInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_water_tank_8017F324;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
     sndEvtRequestScriptStart(SOUND_WATER_TANK_AMBIENCE, 0, 0);
     _dryfieldWaterTankSyncMechanismSprites();
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Maintains the room's two view-specific ambience scripts while the view is ready.
@@ -1097,7 +1125,7 @@ static void _dryfieldWaterTankUpdateViewAmbience(Task* task)
 /// `dryfieldWaterTankRoomTask`: the entry tick, the per-frame
 /// ambience, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_water_tank_8017D5C4 = {
-    { func_dryfield_water_tank_8017D9D4, _dryfieldWaterTankUpdateViewAmbience, taskKill },
+    { _dryfieldWaterTankInitRoomTask, _dryfieldWaterTankUpdateViewAmbience, taskKill },
 };
 
 void dryfieldWaterTankRoomTask(Task* task)
@@ -1209,126 +1237,132 @@ static s32 _dryfieldWaterTankStepPropSlide(Task* task)
     return 0;
 }
 
-/// Drives the model task the room's script spawns: state 0 allocates the
-/// light/colour matrix pair for the task's `TmdObject` and reparents the task
-/// to the script driver, state 1 idles, and state 2 waits for
-/// `_dryfieldWaterTankStepPropSlide` to report the model finished. Every
-/// frame it hands the model part's translation to `worldCoordSetModelLighting`, which turns
-/// it into the light/colour matrices.
-void func_dryfield_water_tank_8017DD20(Task* arg0)
+/// Allocates the scene prop's work and binds its model to the driver's lifetime.
+///
+/// The driver's published task and the prop's TMD body must be live. The model
+/// borrows the work's lighting matrices; teardown releases work and body together.
+static inline void _dryfieldWaterTankInitPropModel(Task* task)
 {
-    TmdObject*                       extra;
-    GfxCoord*                        coord;
+    TmdObject*                       initialModel;
+    GfxCoord*                        rootCoord;
     _DryfieldWaterTankPropSceneWork* work;
-    TmdObject*                       mdl;
-    VECTOR                           pos;
 
-    switch (arg0->state) {
-        case 0:
-            extra      = arg0->extra.tmd;
-            coord      = extra->coords;
-            work       = memMalloc(sizeof(*work), false);
-            arg0->work = work;
-            if (work == NULL) {
-                taskKill(arg0);
-            } else {
-                memFillBytes(work, 0, sizeof(*work));
-                work->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                coord->parent    = &gGfxViewCoord;
-                extra->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                tmdAllocPrimitiveBuffer(extra);
-                extra->lightMtx = &work->lightMtx;
-                extra->colorMtx = &work->colorMtx;
-                arg0->msgTable  = D_dryfield_water_tank_8017FD90;
-                taskReparent(D_dryfield_water_tank_80188D4C, arg0);
-            }
-            arg0->state += 1;
+    initialModel = task->extra.tmd;
+    rootCoord    = initialModel->coords;
+    work         = memMalloc(sizeof(*work), false);
+    task->work   = work;
+    if (work == NULL) {
+        taskKill(task);
+    } else {
+        memFillBytes(work, 0, sizeof(*work));
+        work->playerTask    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        rootCoord->parent   = &gGfxViewCoord;
+        initialModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        tmdAllocPrimitiveBuffer(initialModel);
+        initialModel->lightMtx = &work->lightMtx;
+        initialModel->colorMtx = &work->colorMtx;
+        task->msgTable         = D_dryfield_water_tank_8017FD90;
+        taskReparent(D_dryfield_water_tank_80188D4C, task);
+    }
+}
+
+void dryfieldWaterTankPropTask(Task* task)
+{
+    TmdObject* model;
+    VECTOR     worldPosition;
+
+    switch (task->state) {
+        case DRYFIELD_WATER_TANK_PROP_STATE_INIT:
+            _dryfieldWaterTankInitPropModel(task);
+            task->state += 1;
             break;
-        case 1:
+        case DRYFIELD_WATER_TANK_PROP_STATE_IDLE:
             break;
-        case 2:
-            if (_dryfieldWaterTankStepPropSlide(arg0) & 0xFFFF) {
-                arg0->state = 1;
+        case DRYFIELD_WATER_TANK_PROP_STATE_SLIDING:
+            if (_dryfieldWaterTankStepPropSlide(task) & 0xFFFF) {
+                task->state = DRYFIELD_WATER_TANK_PROP_STATE_IDLE;
             }
             break;
     }
 
-    mdl    = arg0->extra.tmd;
-    pos.vx = arg0->extra.tmd->coords->workm.t[0];
-    pos.vy = arg0->extra.tmd->coords->workm.t[1];
-    pos.vz = arg0->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(mdl, &pos, 0, 3);
+    // Lighting follows the composed root, even while the prop is idle.
+    model            = task->extra.tmd;
+    worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(model, &worldPosition, 0, 3);
 }
 
-/// Per-frame driver of the water tank's prop scene. It is the task parked in
-/// `D_dryfield_water_tank_80188D4C`, which is how the scene script's two
-/// callbacks reach the `_DryfieldWaterTankPropSceneWork` it keeps at
-/// `Task::work`. State 0 allocates that block, stores the player task in it and
-/// spawns the prop task from `D_dryfield_water_tank_8017FF88` as its
-/// `propTask`; state 1 places the prop and starts the scene's event script;
-/// state 2 asks to be killed once the event is over. Every frame it then
-/// carries out the block's `request`, if one was posted, and clears it.
-void func_dryfield_water_tank_8017DEA4(Task* arg0)
+/// Hides the player, reveals the prop and sends its restart-and-slide command.
+///
+/// Both tasks and prop work must be live; only ActorCommand.command is consumed.
+static inline void _dryfieldWaterTankStartPropSlide(_DryfieldWaterTankPropSceneWork* work)
 {
-    _DryfieldWaterTankPropSceneWork* work;
-    ActorCommand                     msg;
-    Task**                           playerTask;
+    ActorCommand slideCommand;
 
-    work = arg0->work;
-    switch (arg0->state) {
-        case 0:
+    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, false, 0);
+    taskMessageDispatch(work->propTask, ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
+    slideCommand.command = DRYFIELD_WATER_TANK_PROP_STATE_SLIDING;
+    TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_COMMAND_MESSAGE_APPLY, &slideCommand, 0);
+}
+
+void dryfieldWaterTankPropSceneTask(Task* task)
+{
+    enum {
+        DRYFIELD_WATER_TANK_PROP_SCENE_INIT         = 0,
+        DRYFIELD_WATER_TANK_PROP_SCENE_START_SCRIPT = 1,
+        DRYFIELD_WATER_TANK_PROP_SCENE_RUN          = 2,
+        DRYFIELD_WATER_TANK_PROP_TASK_INDEX         = 1,
+        DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW = 3,
+        DRYFIELD_WATER_TANK_PROP_SCENE_SLIDE_SOUND  = 2,
+        DRYFIELD_WATER_TANK_PROP_SCENE_EXTRA_SOUND  = 8,
+    };
+    _DryfieldWaterTankPropSceneWork* work;
+
+    work = task->work;
+    switch (task->state) {
+        case DRYFIELD_WATER_TANK_PROP_SCENE_INIT:
             work       = memMalloc(sizeof(*work), false);
-            arg0->work = work;
+            task->work = work;
             if (work == NULL) {
-                taskKill(arg0);
+                taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
                 work->playerTask               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_dryfield_water_tank_80188D4C = arg0;
+                D_dryfield_water_tank_80188D4C = task;
             }
-            work           = arg0->work;
-            work->propTask = taskSpawnFromTable(D_dryfield_water_tank_8017FF88, 1, 0, 0);
-            arg0->state    = arg0->state + 1;
+            work           = task->work;
+            work->propTask = taskSpawnFromTable(D_dryfield_water_tank_8017FF88, DRYFIELD_WATER_TANK_PROP_TASK_INDEX, 0, 0);
+            task->state    = task->state + 1;
             break;
-        case 1:
-            TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_8017FD60, 0);
+        case DRYFIELD_WATER_TANK_PROP_SCENE_START_SCRIPT:
+            TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_8017FD60[0], 0);
             evsStartScriptWithSkip(D_dryfield_water_tank_8017FDC0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_water_tank_8017FEC8);
-            arg0->state = arg0->state + 1;
+            task->state = task->state + 1;
             break;
-        case 2:
+        case DRYFIELD_WATER_TANK_PROP_SCENE_RUN:
             if (gGameSession->eventState == 0) {
-                taskRequestKill(arg0, 0);
+                taskRequestKill(task, 0);
             }
             break;
     }
 
     // Carry out the request the scene script posted, for this one frame.
-    work = arg0->work;
+    work = task->work;
     switch (work->request) {
-        /* This arm does nothing, and the switch needs it as written: it is what
-         * puts four values in the case list, so the decision tree roots at the
-         * start-slide node the way the ROM's does. */
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_NONE:
             break;
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_START_SLIDE:
-            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-            taskMessageDispatch(work->propTask, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            msg.command = 2;
-            TASK_MESSAGE_DISPATCH_POINTER(work->propTask, ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+            _dryfieldWaterTankStartPropSlide(work);
             break;
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_SHOW_PLAYER:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(3);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW);
             gGameSession->viewDirty                                    = 1;
-            /* Through a pointer rather than as `work->playerTask`: a member load
-             * is struct memory, which lets the store to the view index sink into
-             * the call's delay slot; the two request tails then no longer
-             * cross-jump as the original's do. */
-            playerTask = &work->playerTask;
-            taskMessageDispatch(*playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
             break;
         case DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_PLAY_SOUNDS:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0, 0);
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 8), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, DRYFIELD_WATER_TANK_PROP_SCENE_SLIDE_SOUND), 0, 0);
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, DRYFIELD_WATER_TANK_PROP_SCENE_EXTRA_SOUND), 0, 0);
             break;
     }
     work->request = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_NONE;
