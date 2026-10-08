@@ -3113,7 +3113,7 @@ heading = work->yaw;
 Do not change the global prototype: other matched callers (`lhu` of a `u16`
 field into an `s32` local, then `-angle`) need the extend. The permuter
 found the same lever as `volatile int` on the preprocessed declaration.
-Example: `func_actor_400500_80132438`. Inputs: `base_9.i`
+Example: `_actor400500UpdateTargetMotion`. Inputs: `base_9.i`
 `e56d16995af549aebf636d661637b42f20726c97cb04970b24fdd722c84923dc`,
 `base_11.i`
 `b0a93e02146704145b19a5af8d6d670e0a3a88491dd968c3450b32ccb93c378b`.
@@ -71601,7 +71601,7 @@ heading = work->yaw;
 Do not change the global prototype: other matched callers (`lhu` of a `u16`
 field into an `s32` local, then `-angle`) need the extend. The permuter
 found the same lever as `volatile int` on the preprocessed declaration.
-Example: `func_actor_400500_80132438`. Inputs: `base_9.i`
+Example: `_actor400500UpdateTargetMotion`. Inputs: `base_9.i`
 `e56d16995af549aebf636d661637b42f20726c97cb04970b24fdd722c84923dc`,
 `base_11.i`
 `b0a93e02146704145b19a5af8d6d670e0a3a88491dd968c3450b32ccb93c378b`.
@@ -77327,8 +77327,7 @@ differently. `temp_s1` is `AnimationContext *` (0x14 bytes) and the seed initial
 through it — `var_s2 = temp_s1 + 0x28` is 0x28 × 20 = 0x320 — while the
 increment `var_s2 += 0x28` is on the `void *` local and stays byte-wise. The
 target walks one 0x28-byte record per step from `+0x28`, so the init has to be
-the unscaled one too. Give the walk the record type, the way the matched
-sibling `func_actor_400500_801348D8` does:
+the unscaled one too. The earlier explicit-stride port used the record type:
 
 ```c
 stride = (Actor206100AnimStride*)work + 1;   /* addiu $s2,$s1,0x28 */
@@ -77339,17 +77338,18 @@ do {
 } while (i < 0xF);                           /* addiu $s2,$s2,0x28 */
 ```
 
-The 0x28-byte sliding view is an idiom of this family (`Actor400500AnimStride`,
-`Actor206100AnimStride`): with `anim` 0x14 bytes, `stride[i].field_1D` lands on
-`slots[i].rate`, so the view and a `slots[i].rate` write touch the same
-byte — but only the view emits the target's `0x28` walk with a `0x1D` access,
-because the `slots[i]` form folds its element and field offsets into the
-immediates. Read the split as the source's own: when a loop walks a stride and
-accesses an offset inside the record, model the record.
+The historical 0x28-byte sliding views (`Actor400500AnimStride`,
+`Actor206100AnimStride`) put `stride[i].field_1D` on `slots[i].rate` after
+the 0x14-byte animation context. Those are the same byte. The current
+`_actor400500PositionGrabbedPlayer` calls `_actor400500TickAnim` for both pose
+passes; its `work->rig.slots[slotIndex].rate` assignment emits the target's
+`0x28` walk and `0x1D` access with the real rig layout. A sliding view is not
+required for that instruction shape.
 
 The `(u8)` cast is enough to get the byte load; the field does not have to be
 declared `u8`. `(u8)work->animStep` over an `s16` field emits `lbu`, as the
-matched `(u8)work2->animRate` does in `func_actor_400500_801348D8`, so an
+matched slot-rate assignment from `work->animRate` does in
+`_actor400500PositionGrabbedPlayer`, so an
 `lh`/`andi` pair is not the risk it looks like and the field can keep the width
 the rest of the overlay stores it with.
 
@@ -133865,7 +133865,7 @@ A neutral base_2 trace and failed helper variants are retained alongside the
 plans, conclusions and full verification log.
 
 
-## Repeated switch arms hoist constants before late cross-jumping (func_actor_400500_8013456C, 2026-09-19)
+## Repeated switch arms hoist constants before late cross-jumping (_actor400500TakeDamage, 2026-09-19)
 
 A grouped `case 4: case 6:` storing 4 to two halfword fields kept the literal
 inside this three-record loop. Separate identical bodies for cases 4 and 6 let
@@ -133880,7 +133880,7 @@ This changes hoisting and allocation while producing the same final switch
 connections. The prediction preceded the build; 97.146% became 100% without
 pins or empty asm.
 
-The prerequisite was natural `work->rec0[i].key.value` accesses instead of computing a
+The prerequisite was natural `work->bodyContacts[contactIndex].key.value` accesses instead of computing a
 cast record pointer only once at loop entry. As in actor_205200_8014BD4C, repeated
 multiply chains survive CSE across switch destinations; `combine_givs` combines
 their benefit, and `.loop` can eliminate the counter while keeping a work-based
@@ -133894,8 +133894,8 @@ but still dereferenced it in `damageComputePlayerAttack`. Another retained outpu
 indexed addresses without changing values; the controlled port used normal
 array accesses. Search distance is not semantic evidence.
 
-Evidence: scratch `nonmatchings/func_actor_400500_8013456C-vacuum`, retained under
-`tools/permuter_findings/func_actor_400500_8013456C/`; base_1/base_2 loop, allocation
+Evidence: scratch `nonmatchings/_actor400500TakeDamage-vacuum`, retained under
+`tools/permuter_findings/_actor400500TakeDamage/`; base_1/base_2 loop, allocation
 and jump2 dumps, plans and conclusions. Input SHA256: base_1
 `8c68ed56b5bd710ce48e6d7be42ac7abbefdcfcd1c2b21e59747eeff04c781a9`, base_2
 `c5dade95b59fab0f5970bb1fe93a580348a4ddb6f700881f41a57d20e4807d40`;
@@ -134653,7 +134653,7 @@ Evidence: scratch `nonmatchings/_actor403100ProcessCombatContacts-vacuum`, base_
 `13be8de4e33bf1ea5d58f0b22de3b6f4b2b9647142af27ccf536e79551a9d098`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-The sibling `func_actor_400500_8013456C` is the same shape and is already
+The sibling `_actor400500TakeDamage` is the same shape and is already
 matched with literals: its prologue hoists `addiu s6,zero,1`,
 `addiu s5,zero,2` and `addiu s7,zero,4` for constants 1, 2 and 4 used only by
 stores. It is worth reading before treating a prologue constant register as a
