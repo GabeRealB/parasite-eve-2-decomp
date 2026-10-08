@@ -36,7 +36,7 @@ static s32 _capAbortControlledPlayback(Task* unusedTask, s32 unusedMessageId, s3
 
 static s32 _capQueryPlaybackBusy(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-s32 func_800E7378(Task*, s32, s32, s32);
+static s32 _capHideEventHud(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 static s32 _capReleaseEventHud(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
@@ -62,7 +62,7 @@ TaskMessageEntry D_8010FB90[10] = {
     { CAP_CONTROL_MESSAGE_RESUME_TIMED_RECORD, _capResumeTimedRecord },
     { CAP_CONTROL_MESSAGE_ABORT, _capAbortControlledPlayback },
     { CAP_CONTROL_MESSAGE_IS_BUSY, _capQueryPlaybackBusy },
-    { CAP_CONTROL_MESSAGE_HIDE_HUD, func_800E7378 },
+    { CAP_CONTROL_MESSAGE_HIDE_HUD, _capHideEventHud },
     { CAP_CONTROL_MESSAGE_SHOW_HUD, _capReleaseEventHud },
     { CAP_CONTROL_MESSAGE_SHOW_HUD_ABORT, _capAbortEventHud },
     { CAP_CONTROL_MESSAGE_SELECT_SCENE, _capSelectScene },
@@ -166,15 +166,27 @@ static s32 _capQueryPlaybackBusy(Task* unusedTask, s32 unusedMessageId, s32 unus
     return capIsBusy();
 }
 
-s32 func_800E7378(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Suppresses the event HUD, sliding the HP/MP display upward in saved demo scene 9.
+///
+/// The demo path retains one slide task until a show or abort request releases
+/// its handle. Repeated hides leave that task and its direction unchanged.
+/// Allocation failure leaves the handle NULL, so a later hide can retry.
+/// Other scenes set the session's HUD suppression flag. The receiver, message
+/// ID and both payloads are ignored. Always returns 0, including spawn failure.
+static s32 _capHideEventHud(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
+    enum {
+        CAP_CONTROL_HUD_SLIDE_TASK_BANK  = 9,
+        CAP_CONTROL_HUD_SLIDE_TASK_INDEX = 8
+    };
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == CAP_CONTROL_HUD_SLIDE_DEMO_SCENE) {
         if (D_801156B8 != NULL) {
             return 0;
         }
-        D_801156B8 = taskSpawn(9, 8, 0, 0);
+        D_801156B8 = taskSpawn(CAP_CONTROL_HUD_SLIDE_TASK_BANK, CAP_CONTROL_HUD_SLIDE_TASK_INDEX, 0, 0);
     } else {
-        gGameSession->hideHud = 1;
+        gGameSession->hideHud = true;
     }
     return 0;
 }
