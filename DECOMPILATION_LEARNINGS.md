@@ -131835,9 +131835,10 @@ sequence written out by hand - `head - 1`, the cursor store placed between the
 second and third component stores, `_gfxLoadRotSv` / `gte_rtv0` / `gte_stsv` -
 and compiles to the same bytes as a reserve, `_actorAngleBearingInFrame(scratch, self,
 playerCoord)` and a release. The helper stops fitting where the fold differs:
-`func_actor_403600_8013E470` stores the unfolded angle through its out
-pointer before folding, and `func_actor_403600_8013E66C` truncates to `s16`
-before the comparisons, so both match the helper only as far as the `ratan2`.
+`_actor403600MeasurePlayerRangeBearing` uses `_actorAngleMeasureBearingInFrame`
+and stores its raw result through the output before folding;
+`func_actor_403600_8013E66C` truncates to `s16` before the comparisons. The wrapped
+helper does not reproduce these caller-specific stores and narrowing.
 
 ## Between two eligible insns after a branch, reorg picks one you cannot steer: hoist the wanted one above the compare (_actor01900UpdateAnimation, 2026-09-18)
 
@@ -134171,7 +134172,7 @@ Preprocessed SHA256s:
 
 ## Actor403600 facing: one-iteration loop weighting versus atomic absolute value (2026-09-19)
 
-`func_actor_403600_8013DDF4`'s archived unpinned seed rebuilt at 99.715%:
+`_actor403600TurnYawToAim`'s archived unpinned seed rebuilt at 99.715%:
 angle/turnDiff were swapped and the handwritten absolute-value negation used
 its source instead of its destination. UID191 first changes from `neg r90`
 to `neg r147` in **cse2**, not combine.
@@ -134197,7 +134198,7 @@ Inputs: baseline `81fe2979136c974dba9c921fe824a93a859739510ffdf9af2fe1863190fb74
 permuter `6807fb424240bb31de9ad7b65b9d6cd5119d465fcd65bf6f209c02cf2ce0879e`;
 wrapper removal `102447670bf4226ef349046655509878d2479fdfd1f9769c6a1dce595eb6b73f`;
 exact abs `6700c8de160c4c8d0cee8a847341445358de172f281f8cedfcb4c48098606156`.
-Evidence is retained under `tools/permuter_findings/func_actor_403600_8013DDF4/`
+Evidence is retained in the facing experiment archive under `tools/permuter_findings/`
 (session `72d715c95a2b429297d0244fb646a310`), including PERMUTER_ANALYSIS.md,
 planned experiments, inputs, and relevant dumps.
 
@@ -134283,7 +134284,7 @@ rejected for using an uninitialized pointer; this correction was independent.
 Compiler SHA-256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Inputs: base.i `47a9427330645d88bce5960499245378ab4f16044bc04c42e9c30fdd53347ebd`, base_3.i `50e1616a3e04ffbd04e30c6a3d89e5bdb1712f1195c9ce1411d224dde5117c93`, base_4.i `4f9b4633f69b84a9ae52d4bbe5299ff9fac1812d1a2b339719ee734c4f16aca1`, final base_6.i `607de8ae80b63654574a471402240a7efe7d72881a1bacfe312f7fd89b617047`.
 
-## Replace a fallback scheduling boundary with the specific memory dependence (func_actor_403600_8013C864, 2026-09-19)
+## Replace a fallback scheduling boundary with the specific memory dependence (_actor403600PlaceRushPass, 2026-09-19)
 
 An archived 98.808% seed had the correct registers but computed a global's
 low address immediately after its X load, filling a load-delay slot that should
@@ -146328,7 +146329,7 @@ through a new, unchained label, and the two identical arms can no longer find
 each other. When the anonymous-tail trick does not work, look at what sits
 between the last arm and the label the arms return to.
 
-### Two adjacent arrays flattened into one `[2N]` array is a different expression, and a `move` asm covered it (func_actor_403600_80138C9C, 2026-09-27)
+### Two adjacent arrays flattened into one `[2N]` array is a different expression, and a `move` asm covered it (actor403600TickRipple, 2026-09-27)
 
 A local struct declared the two 0x20-halfword rings at the start of a state
 block as one `s16 field_0[0x40]`, so the second ring became
@@ -149904,7 +149905,7 @@ attempts; left as it was.
   and the whole body of `func_actor_403600_8014174C`, are
   `_actor403600ResetState(arg0)` once its definition sits above the callers
   (the order differences were sched filling load delays). One is not
-  (`func_actor_403600_8013DAF4`: `animRate` is stored three insns later than
+  (`_actor403600ApplyDamage`: `animRate` is stored three insns later than
   the inline gives).
 - A counted scan `for (i = 0; i < N; i++, p++) { if (*p != 0) return 0; }
   return 1;` needs the pointer step in the `for` header: with `*p++` in the

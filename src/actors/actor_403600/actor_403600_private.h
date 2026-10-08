@@ -318,6 +318,11 @@ void func_actor_403600_80138C68(Task* arg0);
 /// arithmetic. Only running updates change them. Borrows work for the call.
 void actor403600SwingLooseParts(Task* fxTask, const Actor403600Work* work, Actor403600FxWork* fx);
 
-void func_actor_403600_80138C34(Task* task);
+/// Updates the loose boss-model parts through its parent effect task.
+///
+/// task is the child of the boss's effect task, itself parented to the boss.
+/// Requires both parents and their Actor403600FxWork/Actor403600Work blocks
+/// live for this callback; borrows them and delegates the running-frame update.
+void actor403600LoosePartsTask(Task* task);
 
 #endif // SRC_ACTORS_ACTOR_403600_ACTOR_403600_PRIVATE_H

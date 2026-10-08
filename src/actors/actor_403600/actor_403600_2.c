@@ -167,17 +167,16 @@ extern ViewCamera D_actor_403600_80160700;
 
 static void func_actor_403600_80138EF8(struct Enemy* enemy, Task* task);
 static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1);
-static void func_actor_403600_8013C864(Task* arg0);
-void        func_actor_403600_80138C9C(Actor403600Ripple* arg0);
+static void _actor403600PlaceRushPass(Task* task);
 static u8*  func_actor_403600_80138DCC(Task* arg0);
-static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1);
+static void _actor403600ChooseFlightTarget(Task* task, s32 useRushReferences);
 static s32  func_actor_403600_8013D9A8(Task* arg0);
-static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1);
-static s32  func_actor_403600_8013DDF4(Task* arg0, s16 arg1);
+static void _actor403600ApplyDamage(Task* task, s32 damage);
+static s32  _actor403600TurnYawToAim(Task* task, s16 turnStep);
 static s32  func_actor_403600_8013DFE0(Task* arg0);
-static void func_actor_403600_8013E470(GfxCoord* arg0, s32* arg1, s32* arg2);
+static void _actor403600MeasurePlayerRangeBearing(const GfxCoord* referenceCoord, u32* rangeOut, s32* bearingOut);
 static s16  func_actor_403600_8013E66C(GfxCoord* arg0);
-static s32  func_actor_403600_8013E7D4(Task* arg0, u16 arg1);
+static s32  _actor403600PlacePlayerForKnockback(Task* unusedTask, u16 placementFlags);
 static void func_actor_403600_8013EA04(Task* arg0);
 static void func_actor_403600_8013F608(Task* arg0);
 static void func_actor_403600_801417A8(Task* arg0, s32 arg1);
@@ -223,7 +222,7 @@ STATIC_ASSERT_SIZEOF(_Actor403600RecentAttackSlotStorage, 36);
 
 extern _Actor403600RecentAttackSlotStorage D_actor_403600_801606BC;
 
-static void func_actor_403600_80141598(Task* arg0);
+static void _actor403600EnemyExit(Task* task);
 static void func_actor_403600_8014174C(Task* arg0);
 
 static void func_actor_403600_8013A444(Task* arg0);
@@ -239,9 +238,9 @@ static void func_actor_403600_801412D0(Enemy* arg0, Task* arg1);
 static void func_actor_403600_80141338(Task* arg0);
 static void func_actor_403600_801414FC(Task* arg0);
 static void func_actor_403600_8014161C(Task* arg0);
-static void func_actor_403600_80141954(s32 arg0);
+static void _actor403600SetWeakTextures(s32 weakAppearance);
 static void func_actor_403600_80141A34(Task* arg0);
-static void func_actor_403600_80141B24(Task* arg0);
+static void _actor403600CancelDrain(Task* task);
 static void func_actor_403600_80141C3C(Task* arg0);
 
 static void func_actor_403600_801400BC(Task* arg0);
@@ -382,24 +381,44 @@ _Actor403600TransformStorage D_actor_403600_801606E0;
 
 ViewCamera D_actor_403600_80160700;
 
+enum {
+    ACTOR_403600_DEFAULT_BLEND_FRAMES = 8,
+    ACTOR_403600_DEFAULT_ACTION_DELAY = 10,
+    ACTOR_403600_DEFAULT_TURN_RATE    = 64
+};
+
+enum {
+    ACTOR_403600_RUSH_CIRCLE_Z_EDGE        = 15000,
+    ACTOR_403600_RUSH_PLAYER_HEIGHT_OFFSET = 1000,
+    ACTOR_403600_RUSH_FINAL_START_Y        = -2400,
+    ACTOR_403600_RUSH_FINAL_TARGET_Y       = -8000,
+    ACTOR_403600_RUSH_FINAL_PASS           = 0xFF,
+    ACTOR_403600_RUSH_INNER_X              = 3500,
+    ACTOR_403600_RUSH_INNER_Z              = 2000,
+    ACTOR_403600_RUSH_INNER_X_SPAN         = 8501,
+    ACTOR_403600_RUSH_INNER_Z_SPAN         = 10001,
+    ACTOR_403600_RUSH_EVEN_WAIT_FRAMES     = 10,
+    ACTOR_403600_RUSH_ODD_WAIT_FRAMES      = 150
+};
+
 static s32             func_actor_403600_80138D9C(s16* arg0);
 static __inline__ u8*  _actor403600ProjectDepth(GfxCoord* coord);
-static inline void     _actor403600ArcStart(_Actor403600RushPassScratch* s);
-static inline void     _actor403600ArcFinish(Actor403600Work* work, _Actor403600RushPassScratch* s);
+static inline void     _actor403600InitRushArm(_Actor403600RushPassScratch* scratch);
+static inline void     _actor403600PlaceOnRushCircle(Actor403600Work* work, _Actor403600RushPassScratch* scratch);
 static inline u32      _actor403600Rand(void);
-static __inline__ void _actor403600UpdateAnimation(Task* task, u8 count);
+static __inline__ void _actor403600UpdateAnimation(Task* task, u8 partCount);
 static void            func_actor_403600_8013F7B8(Enemy* enemy, Task* task);
 static __inline__ void _actor403600UpdateColor(Enemy* enemy, Task* task);
 static __inline__ void _actor403600RotateParts(Task* task);
 static void            func_actor_403600_8013FC2C(Enemy* arg0, Task* arg1);
 static inline void     _actor403600ResetState(Task* task);
 
-void func_actor_403600_80138C34(Task* arg0)
+void actor403600LoosePartsTask(Task* task)
 {
-    Task* parent;
+    Task* fxTask;
 
-    parent = arg0->parent;
-    actor403600SwingLooseParts(parent, parent->parent->work, parent->work);
+    fxTask = task->parent;
+    actor403600SwingLooseParts(fxTask, fxTask->parent->work, fxTask->work);
 }
 
 void func_actor_403600_80138C68(Task* arg0)
@@ -408,13 +427,15 @@ void func_actor_403600_80138C68(Task* arg0)
     taskKill(arg0);
 }
 
-/// Advances the ripple by one step: moves `head` back one slot in the two
-/// sample rings, clears it, ramps the source's strength up while `emitting` is
-/// set (restarting its phase on a rising edge) or down otherwise, and records
-/// the source's phase and strength in the new head while the strength is
-/// non-zero.
-void func_actor_403600_80138C9C(Actor403600Ripple* state)
+void actor403600TickRipple(Actor403600Ripple* state)
 {
+    enum {
+        ACTOR_403600_RIPPLE_FULL_STRENGTH      = ONE,
+        ACTOR_403600_RIPPLE_STRENGTH_RISE      = 512,
+        ACTOR_403600_RIPPLE_STRENGTH_FALL      = 128,
+        ACTOR_403600_RIPPLE_PHASE_STEP         = 384,
+        ACTOR_403600_RIPPLE_SHALLOW_PHASE_STEP = 256
+    };
     s32 head;
 
     state->head          += ACTOR_403600_RIPPLE_SAMPLE_COUNT - 1;
@@ -426,20 +447,20 @@ void func_actor_403600_80138C9C(Actor403600Ripple* state)
         if (state->wasEmitting == 0) {
             state->sourcePhase = 0;
         }
-        if (state->sourceStrength < 0x1000) {
-            state->sourceStrength += 0x200;
+        if (state->sourceStrength < ACTOR_403600_RIPPLE_FULL_STRENGTH) {
+            state->sourceStrength += ACTOR_403600_RIPPLE_STRENGTH_RISE;
         }
     } else if (state->sourceStrength > 0) {
-        state->sourceStrength -= 0x80;
+        state->sourceStrength -= ACTOR_403600_RIPPLE_STRENGTH_FALL;
     }
     state->wasEmitting = state->emitting;
     if (state->sourceStrength != 0) {
         state->phase[head]    = state->sourcePhase;
         state->strength[head] = state->sourceStrength;
         if (state->shallow == 0) {
-            state->sourcePhase += 0x180;
+            state->sourcePhase += ACTOR_403600_RIPPLE_PHASE_STEP;
         } else {
-            state->sourcePhase += 0x100;
+            state->sourcePhase += ACTOR_403600_RIPPLE_SHALLOW_PHASE_STEP;
         }
     }
 }
@@ -630,7 +651,7 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     D_actor_403600_801606B8[1]          = 0;
     D_actor_403600_801606B8[0]          = 0;
     task->msgTable                      = D_actor_403600_80160504;
-    task->exitCallback                  = func_actor_403600_80141598;
+    task->exitCallback                  = _actor403600EnemyExit;
     work->mode                          = ACTOR_403600_MODE_PARKED;
     state                               = task->state;
     D_actor_403600_801606BC.nextSlot    = 0;
@@ -732,7 +753,7 @@ static void func_actor_403600_8013955C(Task* arg0)
                         gRandomLcgState    = temp_v0_2;
                         work->flinchRot.vx = -(((temp_v0_2 >> 0xB) & 0x60) + 0x80);
                     }
-                    func_actor_403600_8013DAF4(arg0, temp_ret / 5);
+                    _actor403600ApplyDamage(arg0, temp_ret / 5);
                 }
             }
             if ((damageIsEnemyDamageOverTimeExpired(temp_s0) != 0) || (temp_s0->hp < 0x1F4)) {
@@ -742,15 +763,20 @@ static void func_actor_403600_8013955C(Task* arg0)
     }
 }
 
-/// Restores a fixed set of fields in `task`'s work block to their starting
-/// values.
+/// Restores the boss's combat movement and action defaults.
+///
+/// Requires a live task with `Actor403600Work`. Clears defeat and active-flight
+/// flags, stops movement and roll, aims at the player and returns the action to
+/// choosing. Restores normal animation rate, eight-frame blending, a ten-frame
+/// action delay and a turn rate of 64 angle units per frame. Leaves mode,
+/// animation selection, HP, target, damage history and weakened-phase state intact.
 static inline void _actor403600ResetState(Task* task)
 {
     Actor403600Work* work = task->work;
 
     work->defeated        = 0;
-    work->animBlendFrames = 8;
-    work->animRate        = 0x10;
+    work->animBlendFrames = ACTOR_403600_DEFAULT_BLEND_FRAMES;
+    work->animRate        = ANIMATION_RATE_ONE;
     work->aimMode         = ACTOR_403600_AIM_PLAYER;
     work->ignorePushOut   = 0;
     work->ambientBoost    = 0;
@@ -759,8 +785,8 @@ static inline void _actor403600ResetState(Task* task)
     work->action          = ACTOR_403600_ACTION_CHOOSE;
     work->verticalSpeed   = 0;
     work->phaseFrame      = 0;
-    work->actionDelay     = 0xA;
-    work->turnRate        = 0x40;
+    work->actionDelay     = ACTOR_403600_DEFAULT_ACTION_DELAY;
+    work->turnRate        = ACTOR_403600_DEFAULT_TURN_RATE;
     work->roll            = 0;
     work->diving          = 0;
     work->repositioning   = 0;
@@ -821,7 +847,7 @@ static void func_actor_403600_801396F8(Task* arg0)
             func_actor_403600_8013A444(arg0);
             return;
         case ACTOR_403600_MODE_STAGGER:
-            func_actor_403600_80141B24(arg0);
+            _actor403600CancelDrain(arg0);
             work->ignorePushOut = 0;
             work->committed     = 1;
             work->verticalSpeed = 0;
@@ -837,7 +863,7 @@ static void func_actor_403600_801396F8(Task* arg0)
         default:
             return;
         case ACTOR_403600_MODE_STUN:
-            func_actor_403600_80141B24(arg0);
+            _actor403600CancelDrain(arg0);
             work->forwardSpeed  = 0;
             work->verticalSpeed = 0;
             if (work->animId == 0xE) {
@@ -854,7 +880,7 @@ static void func_actor_403600_801396F8(Task* arg0)
             }
             break;
         case ACTOR_403600_MODE_FREEZE:
-            func_actor_403600_80141B24(arg0);
+            _actor403600CancelDrain(arg0);
             work->forwardSpeed  = 0;
             work->verticalSpeed = 0;
             temp_v0_4           = work->stunFrames - 1;
@@ -868,7 +894,7 @@ static void func_actor_403600_801396F8(Task* arg0)
             work->mode = ACTOR_403600_MODE_FIGHT;
             return;
         case ACTOR_403600_MODE_WEAKEN:
-            func_actor_403600_80141B24(arg0);
+            _actor403600CancelDrain(arg0);
             work->weakPhase     = 1;
             work->committed     = 1;
             work->animId        = 0xB;
@@ -879,7 +905,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                 memset(&sp10, 0, 8);
                 sp10.vy = 0x64;
                 effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[1], 3, &sp10);
-                func_actor_403600_80141954(1);
+                _actor403600SetWeakTextures(1);
                 D_800626EC[5].data.model = &gShelterB2PodBottomModel0A2A0;
                 temp_v0_5                = effectSpawn(EFFECT_BURST_BODY_PART_BANK8, &arg0->extra.tmd->coords[1], 0, NULL);
                 if (temp_v0_5 != NULL) {
@@ -954,7 +980,7 @@ static void func_actor_403600_801396F8(Task* arg0)
                     }
                 }
                 if (work->phaseFrame == 0x3C) {
-                    func_actor_403600_80141954(0);
+                    _actor403600SetWeakTextures(0);
                 }
                 work->forwardSpeed  = 0;
                 work->verticalSpeed = 0;
@@ -1300,7 +1326,7 @@ static void func_actor_403600_8013A444(Task* arg0)
             if (work->phaseFrame >= work->actionDelay) {
                 work->actionDelay = 0xA;
                 work->phaseFrame  = 0;
-                func_actor_403600_8013E470(&work->worldCoord, &sp10, &sp14);
+                _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &sp10, &sp14);
                 if ((sp10 < 0x835U) && (work->meleeGaveUp == 0)) {
                     work->attackBody.pos.vz = 0x3E8;
                     work->attackBody.key    = damagePackAttackKey(&D_actor_403600_80150E9C, 1);
@@ -1437,7 +1463,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         if (gPlayerStatus.coordMtx->t[1] < -0xF3B) {
                             temp_s4_4                     = &work->worldCoord;
                             D_actor_403600_801606A4.power = (u16)D_actor_403600_80150EA4;
-                            func_actor_403600_8013E470(temp_s4_4, &sp10, &sp14);
+                            _actor403600MeasurePlayerRangeBearing(temp_s4_4, &sp10, &sp14);
                             if ((u32)(sp10 - 0xFA0) < 0x7D1U) {
                                 temp_v1_2                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
                                 D_actor_403600_801606A4.reaction = 0;
@@ -1455,11 +1481,11 @@ static void func_actor_403600_8013A444(Task* arg0)
                                     }
                                     if (var_v0_3 >= 0x401) {
                                         D_actor_403600_80160568.animationId = 4;
-                                        func_actor_403600_8013E7D4(arg0, 0);
+                                        _actor403600PlacePlayerForKnockback(arg0, 0);
                                         work->knockbackSpeed = 0x64;
                                     } else {
                                         D_actor_403600_80160568.animationId = 3;
-                                        func_actor_403600_8013E7D4(arg0, 1);
+                                        _actor403600PlacePlayerForKnockback(arg0, 1);
                                         work->knockbackSpeed = -0x64;
                                     }
                                     TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
@@ -1468,7 +1494,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 } else if (sp10 < 0x9C4U) {
                                     D_actor_403600_801606A4.reaction    = 0;
                                     D_actor_403600_80160568.animationId = 1;
-                                    func_actor_403600_8013E7D4(arg0, 1);
+                                    _actor403600PlacePlayerForKnockback(arg0, 1);
                                     work->knockbackSpeed = -0x190;
                                     TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
                                     var_s2               = 3;
@@ -1573,7 +1599,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     if (func_actor_403600_8013DFE0(arg0) < 0x7D1) {
                         if (work->step == 0) {
                             work->step = 1;
-                            func_actor_403600_8013CCEC(arg0, 0);
+                            _actor403600ChooseFlightTarget(arg0, 0);
                             return;
                         }
                         work->forwardSpeed  = 0U;
@@ -1692,7 +1718,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     break;
                 case 2:
                     work->aimMode = ACTOR_403600_AIM_TARGET;
-                    func_actor_403600_8013DDF4(arg0, 0x20);
+                    _actor403600TurnYawToAim(arg0, 0x20);
                     if (work->phaseFrame >= 0x28) {
                         work->animRate      = 0x20;
                         work->verticalSpeed = 0;
@@ -1805,7 +1831,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     work->forwardSpeed  = 0xC8U;
                     adjusted_y0         = gPlayerStatus.coordMtx->t[1] + 0x1F4;
                     work->verticalSpeed = (s16)((adjusted_y0 - work->worldCoord.coord.t[1]) / 25);
-                    if (func_actor_403600_8013DDF4(arg0, 0xB0) < 0x3E9) {
+                    if (_actor403600TurnYawToAim(arg0, 0xB0) < 0x3E9) {
                         work->forwardSpeed  = 0U;
                         work->verticalSpeed = 0;
                         work->phaseFrame    = 0;
@@ -1815,10 +1841,10 @@ static void func_actor_403600_8013A444(Task* arg0)
                     break;
                 case 1:
                     work->aimMode = ACTOR_403600_AIM_PLAYER;
-                    func_actor_403600_8013DDF4(arg0, 0x20);
+                    _actor403600TurnYawToAim(arg0, 0x20);
                     work->forwardSpeed  = 0U;
                     work->verticalSpeed = 0;
-                    func_actor_403600_8013E470(&work->worldCoord, &sp10, &sp14);
+                    _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &sp10, &sp14);
                     if (work->phaseFrame >= 0x32) {
                         work->phaseFrame = 0;
                         work->step       = (s16)((u16)work->step + 1);
@@ -1890,7 +1916,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     work->animId                    = 0x12U;
                     func_actor_403600_801417A8(arg0, 0xA);
                     temp_s0_20 = &work->worldCoord;
-                    func_actor_403600_8013E470(temp_s0_20, &sp10, &sp14);
+                    _actor403600MeasurePlayerRangeBearing(temp_s0_20, &sp10, &sp14);
                     if (sp10 < 0x5DDU) {
                         temp_s1_3 = &D_actor_403600_80160568;
                         if (temp_s1_3->animationId == 0) {
@@ -1899,7 +1925,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                                 D_actor_403600_801606A4.reaction = 0xA;
                                 temp_s1_3->animationId           = 1;
                                 D_actor_403600_801606A4.power    = (u16)D_actor_403600_80150EAC;
-                                func_actor_403600_8013E7D4(arg0, 1);
+                                _actor403600PlacePlayerForKnockback(arg0, 1);
                                 work->knockbackSpeed = -0x190;
                                 TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, temp_s1_3, 0);
                                 work->knockbackFrame = 0;
@@ -1972,7 +1998,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                     }
                     if (work->actionDelay == (s16)work->actionCounter) {
                         sndEvtRequestScriptStart(SOUND_SHELTER_B2_POD_BTM_ENEMY_RUMBLE_LOOP, 0, 0);
-                        func_actor_403600_8013C864(arg0);
+                        _actor403600PlaceRushPass(arg0);
                         work->aimMode = ACTOR_403600_AIM_TARGET_SNAP;
                         func_actor_403600_8013DFE0(arg0);
                         taskSpawnFromTable(D_actor_403600_801421A0, 3, 2, arg0);
@@ -2025,11 +2051,11 @@ static void func_actor_403600_8013A444(Task* arg0)
             switch (temp_v1_9) {
                 case 2:
                     work->aimMode = ACTOR_403600_AIM_PLAYER;
-                    func_actor_403600_8013DDF4(arg0, 0xA0);
+                    _actor403600TurnYawToAim(arg0, 0xA0);
                     work->forwardSpeed  = 0x12CU;
                     adjusted_y1         = gPlayerStatus.coordMtx->t[1] + 0x1F4;
                     work->verticalSpeed = (s16)((adjusted_y1 - work->worldCoord.coord.t[1]) / 25);
-                    func_actor_403600_8013E470(&work->worldCoord, &sp10, &sp14);
+                    _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &sp10, &sp14);
                     if ((sp10 < 0x1389U) && (work->verticalSpeed < 0x12D)) {
                         work->forwardSpeed  = 0U;
                         work->verticalSpeed = 0;
@@ -2117,7 +2143,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         work->animId     = 0xAU;
                     }
                     if (work->damageTaken >= 0xC8) {
-                        func_actor_403600_80141B24(arg0);
+                        _actor403600CancelDrain(arg0);
                         work->forwardSpeed  = 0U;
                         work->verticalSpeed = 0;
                         work->action        = ACTOR_403600_ACTION_CHOOSE;
@@ -2168,7 +2194,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         work->phaseFrame       = 0;
                     }
                     if ((work->damageTaken >= 0xC8) && (work->phaseFrame < 0x32)) {
-                        func_actor_403600_80141B24(arg0);
+                        _actor403600CancelDrain(arg0);
                         work->forwardSpeed  = 0U;
                         work->verticalSpeed = 0;
                         work->action        = ACTOR_403600_ACTION_CHOOSE;
@@ -2182,8 +2208,8 @@ static void func_actor_403600_8013A444(Task* arg0)
             switch (temp_v1_12) {
                 case 2:
                     work->aimMode = ACTOR_403600_AIM_PLAYER;
-                    func_actor_403600_8013DDF4(arg0, 0x20);
-                    func_actor_403600_8013E470(&work->worldCoord, &sp10, &sp14);
+                    _actor403600TurnYawToAim(arg0, 0x20);
+                    _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &sp10, &sp14);
                     if (sp10 < 0x7D1U) {
                         work->forwardSpeed = 0U;
                     } else {
@@ -2241,7 +2267,7 @@ static void func_actor_403600_8013A444(Task* arg0)
                         work->forwardSpeed = 0U;
                         work->phaseFrame   = 0;
                         work->animId       = 0xDU;
-                        func_actor_403600_8013E470(&work->worldCoord, &sp10, &sp14);
+                        _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &sp10, &sp14);
                         if (sp10 >= 0x7D0U) {
                             work->animBlendFrames = 8;
                             work->forwardSpeed    = 0U;
@@ -2276,197 +2302,180 @@ static void func_actor_403600_8013A444(Task* arg0)
     }
 }
 
-/// Starts the arc point: a vector 0x3A98 minus the anchor's depth along Z, and
-/// an identity turn matrix for `RotMatrixY` to rotate.
-static inline void _actor403600ArcStart(_Actor403600RushPassScratch* s)
+/// Initializes the horizontal radius arm and rotation for a rush placement.
+///
+/// scratch belongs to the caller's live rush-pass block. The arm's length is
+/// the room's Z edge (15000 world units) minus the room-centre anchor's Z;
+/// its initial direction is +Z and its rotation starts as identity.
+static inline void _actor403600InitRushArm(_Actor403600RushPassScratch* scratch)
 {
-    s->offset.vx = 0;
-    s->offset.vy = 0;
-    s->offset.vz = 0x3A98 - D_actor_403600_801605D4.vz;
-    gfxSetRotIdentity(&s->rotation);
+    scratch->offset.vx = 0;
+    scratch->offset.vy = 0;
+    scratch->offset.vz = ACTOR_403600_RUSH_CIRCLE_Z_EDGE - D_actor_403600_801605D4.vz;
+    gfxSetRotIdentity(&scratch->rotation);
 }
 
-/// Rotates the arc vector by the turn matrix on the GTE and places the actor's
-/// target at the result offset from the anchor, 0x3E8 above the player.
-static inline void _actor403600ArcFinish(Actor403600Work* work, _Actor403600RushPassScratch* s)
+/// Places the boss on the rush circle, 1000 world units above the player.
+///
+/// Rotates scratch's radius arm with its prepared Q12 rotation, overwriting the
+/// arm with signed-halfword GTE results, then adds the room-centre anchor.
+/// Borrows the live boss work and caller-owned scratch block; changes position,
+/// not targetPos. The caller handles facing and coordinate-cache invalidation.
+static inline void _actor403600PlaceOnRushCircle(Actor403600Work* work, _Actor403600RushPassScratch* scratch)
 {
-    gte_SetRotMatrix(&s->rotation);
-    gte_ldv0(&s->offset);
+    gte_SetRotMatrix(&scratch->rotation);
+    gte_ldv0(&scratch->offset);
     gte_rtv0();
-    gte_stsv(&s->offset);
-    work->worldCoord.coord.t[0] = s->offset.vx + D_actor_403600_801605D4.vx;
-    work->worldCoord.coord.t[1] = gPlayerStatus.coordMtx->t[1] - 0x3E8;
-    work->worldCoord.coord.t[2] = s->offset.vz + D_actor_403600_801605D4.vz;
+    gte_stsv(&scratch->offset);
+    work->worldCoord.coord.t[0] = scratch->offset.vx + D_actor_403600_801605D4.vx;
+    work->worldCoord.coord.t[1] = gPlayerStatus.coordMtx->t[1] - ACTOR_403600_RUSH_PLAYER_HEIGHT_OFFSET;
+    work->worldCoord.coord.t[2] = scratch->offset.vz + D_actor_403600_801605D4.vz;
 }
 
-static void func_actor_403600_8013C864(Task* arg0)
+/// Places the boss for its next rush pass or the final central dive.
+///
+/// actionParam is the completed-pass count, compared with rushPasses. Even
+/// passes derive a bearing from the player, aim across the inner rectangle
+/// towards the player or otherwise towards the centre, and save the opposite
+/// bearing for the following odd pass. Odd passes retain that target. The last
+/// placement uses centre X/Z, start Y -2400 and target Y -8000, then marks the
+/// final pass with 255. Non-final placements reserve and release one scratch block.
+/// Bearings use 4096 units per turn; the historical negative fold is retained.
+static void _actor403600PlaceRushPass(Task* task)
 {
     Actor403600Work*             work;
-    _Actor403600RushPassScratch* s;
+    _Actor403600RushPassScratch* scratch;
 
-    work = arg0->work;
+    work = task->work;
+    // The final dive uses fixed heights rather than the player-height circle.
     if (work->actionParam == work->rushPasses) {
         work->worldCoord.coord.t[0] = D_actor_403600_801605D4.vx;
-        work->worldCoord.coord.t[1] = -0x960;
+        work->worldCoord.coord.t[1] = ACTOR_403600_RUSH_FINAL_START_Y;
         work->worldCoord.coord.t[2] = D_actor_403600_801605D4.vz;
         work->targetPos.vx          = D_actor_403600_801605D4.vx;
-        work->targetPos.vy          = -0x1F40;
+        work->targetPos.vy          = ACTOR_403600_RUSH_FINAL_TARGET_Y;
         work->targetPos.vz          = D_actor_403600_801605D4.vz;
-        work->actionParam           = 0xFF;
+        work->actionParam           = ACTOR_403600_RUSH_FINAL_PASS;
         return;
     }
-    s = SCRATCH_STACK_RESERVE_BLOCK(_Actor403600RushPassScratch);
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403600RushPassScratch);
     if (!(work->actionParam & 1)) {
-        s->offset.vx = gPlayerStatus.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx;
-        s->offset.vz = gPlayerStatus.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
-        s->bearing   = ratan2(s->offset.vx, s->offset.vz);
-        if (ABS(s->bearing) > 0x800) {
-            s->bearing = (s->bearing > 0) ? s->bearing - 0x1000 : 0x1000 - s->bearing;
+        scratch->offset.vx = gPlayerStatus.coordMtx->t[0] - (u16)D_actor_403600_801605D4.vx;
+        scratch->offset.vz = gPlayerStatus.coordMtx->t[2] - (u16)D_actor_403600_801605D4.vz;
+        scratch->bearing   = ratan2(scratch->offset.vx, scratch->offset.vz);
+        if (ABS(scratch->bearing) > ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+            scratch->bearing = (scratch->bearing > 0) ? scratch->bearing - ACTOR_TRANSFORM_ANGLE_TURN : ACTOR_TRANSFORM_ANGLE_TURN - scratch->bearing;
         }
-        if ((u32)(gPlayerStatus.coordMtx->t[0] - 0xDAC) < 0x2135 &&
-            (u32)(gPlayerStatus.coordMtx->t[2] - 0x7D0) < 0x2711) {
-            s->bearing = -s->bearing;
+        if ((u32)(gPlayerStatus.coordMtx->t[0] - ACTOR_403600_RUSH_INNER_X) < ACTOR_403600_RUSH_INNER_X_SPAN &&
+            (u32)(gPlayerStatus.coordMtx->t[2] - ACTOR_403600_RUSH_INNER_Z) < ACTOR_403600_RUSH_INNER_Z_SPAN) {
+            scratch->bearing = -scratch->bearing;
         }
-        _actor403600ArcStart(s);
-        RotMatrixY(s->bearing, &s->rotation);
-        _actor403600ArcFinish(work, s);
-        if ((u32)(gPlayerStatus.coordMtx->t[0] - 0xDAC) < 0x2135 &&
-            (u32)(gPlayerStatus.coordMtx->t[2] - 0x7D0) < 0x2711) {
+        _actor403600InitRushArm(scratch);
+        RotMatrixY(scratch->bearing, &scratch->rotation);
+        _actor403600PlaceOnRushCircle(work, scratch);
+        if ((u32)(gPlayerStatus.coordMtx->t[0] - ACTOR_403600_RUSH_INNER_X) < ACTOR_403600_RUSH_INNER_X_SPAN &&
+            (u32)(gPlayerStatus.coordMtx->t[2] - ACTOR_403600_RUSH_INNER_Z) < ACTOR_403600_RUSH_INNER_Z_SPAN) {
             work->targetPos.vx = gPlayerStatus.coordMtx->t[0];
-            work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - 0x3E8;
+            work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - ACTOR_403600_RUSH_PLAYER_HEIGHT_OFFSET;
             work->targetPos.vz = gPlayerStatus.coordMtx->t[2];
         } else {
             work->targetPos.vx = D_actor_403600_801605D4.vx;
-            work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - 0x3E8;
+            work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - ACTOR_403600_RUSH_PLAYER_HEIGHT_OFFSET;
             work->targetPos.vz = D_actor_403600_801605D4.vz;
         }
-        work->rushAngle = s->bearing + 0x800;
-        if (ABS(work->rushAngle) > 0x800) {
-            work->rushAngle = (work->rushAngle > 0) ? work->rushAngle - 0x1000 : 0x1000 - work->rushAngle;
+        work->rushAngle = scratch->bearing + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+        // Keep the original fold: a negative input below -2048 becomes 4096-input.
+        if (ABS(work->rushAngle) > ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+            work->rushAngle = (work->rushAngle > 0) ? work->rushAngle - ACTOR_TRANSFORM_ANGLE_TURN : ACTOR_TRANSFORM_ANGLE_TURN - work->rushAngle;
         }
-        work->actionTimer = 0xA;
+        work->actionTimer = ACTOR_403600_RUSH_EVEN_WAIT_FRAMES;
         work->actionParam++;
     } else {
-        _actor403600ArcStart(s);
-        RotMatrixY(work->rushAngle, &s->rotation);
-        _actor403600ArcFinish(work, s);
-        work->actionTimer = 0x96;
+        _actor403600InitRushArm(scratch);
+        RotMatrixY(work->rushAngle, &scratch->rotation);
+        _actor403600PlaceOnRushCircle(work, scratch);
+        work->actionTimer = ACTOR_403600_RUSH_ODD_WAIT_FRAMES;
         work->actionParam++;
     }
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403600RushPassScratch);
 }
 
-static void func_actor_403600_8013CCEC(Task* arg0, s32 arg1)
+/// Measures the player's horizontal distance from one of the nine flight-table rows.
+///
+/// Requires a live scratch block and pointIndex in 0..8; overwrites the shared
+/// delta operands and returns whole world units. No storage is retained.
+static inline s32 _actor403600MeasureFlightPoint(_Actor403600NearestPointScratch* scratch, s32 pointIndex)
 {
-    s32                              temp_a0;
-    s32                              temp_v0;
-    s32                              temp_v0_10;
-    s32                              temp_v0_2;
-    s32                              temp_v0_3;
-    s32                              temp_v0_4;
-    s32                              temp_v0_5;
-    s32                              temp_v0_6;
-    s32                              temp_v0_7;
-    s32                              temp_v0_8;
-    s32                              temp_v0_9;
-    s32                              temp_v1;
-    s32                              temp_v1_2;
-    s32                              temp_v1_3;
-    s32                              temp_v1_4;
-    s32                              temp_v1_5;
-    s32                              temp_v1_6;
-    s32                              temp_v1_7;
-    s32                              temp_v1_8;
-    s32                              temp_v1_9;
-    s32                              var_a1;
-    s32                              var_a2;
-    s32                              var_v1;
-    _Actor403600NearestPointScratch* scratch;
-    Actor403600Work*                 work;
-    SVECTOR*                         temp_v0_11;
-    SVECTOR*                         temp_v1_10;
+    s32 deltaX;
+    s32 deltaZ;
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403600NearestPointScratch);
-    work    = arg0->work;
-    if (arg1 == 0) {
-        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[0].vx;
-        temp_v1               = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[0].vz;
-        scratch->deltaZ       = temp_v1;
-        temp_v0               = scratch->deltaX;
-        scratch->distances[0] = SquareRoot0((temp_v0 * temp_v0) + (temp_v1 * temp_v1));
-
-        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[1].vx;
-        temp_v1_2             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[1].vz;
-        scratch->deltaZ       = temp_v1_2;
-        temp_v0_2             = scratch->deltaX;
-        scratch->distances[1] = SquareRoot0((temp_v0_2 * temp_v0_2) + (temp_v1_2 * temp_v1_2));
-
-        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[2].vx;
-        temp_v1_3             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[2].vz;
-        scratch->deltaZ       = temp_v1_3;
-        temp_v0_3             = scratch->deltaX;
-        scratch->distances[2] = SquareRoot0((temp_v0_3 * temp_v0_3) + (temp_v1_3 * temp_v1_3));
-
-        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[3].vx;
-        temp_v1_4             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[3].vz;
-        scratch->deltaZ       = temp_v1_4;
-        temp_v0_4             = scratch->deltaX;
-        scratch->distances[3] = SquareRoot0((temp_v0_4 * temp_v0_4) + (temp_v1_4 * temp_v1_4));
-
-        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[4].vx;
-        temp_v1_5             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[4].vz;
-        scratch->deltaZ       = temp_v1_5;
-        temp_v0_5             = scratch->deltaX;
-        scratch->distances[4] = SquareRoot0((temp_v0_5 * temp_v0_5) + (temp_v1_5 * temp_v1_5));
-
-        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[5].vx;
-        temp_v1_6             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[5].vz;
-        scratch->deltaZ       = temp_v1_6;
-        temp_v0_6             = scratch->deltaX;
-        scratch->distances[5] = SquareRoot0((temp_v0_6 * temp_v0_6) + (temp_v1_6 * temp_v1_6));
-
-        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[6].vx;
-        temp_v1_7             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[6].vz;
-        scratch->deltaZ       = temp_v1_7;
-        temp_v0_7             = scratch->deltaX;
-        scratch->distances[6] = SquareRoot0((temp_v0_7 * temp_v0_7) + (temp_v1_7 * temp_v1_7));
-        var_a2                = 0xFFFFFF;
-        var_v1                = 0;
-        var_a1                = 0;
-        do {
-            temp_a0 = scratch->distances[var_a1 & 0xFF];
-            if (temp_a0 < var_a2) {
-                var_v1 = var_a1;
-                var_a2 = temp_a0;
-            }
-            var_a1 += 1;
-        } while ((u32)(var_a1 & 0xFF) < 7U);
-    } else {
-        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[7].vx;
-        temp_v1_8             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[7].vz;
-        scratch->deltaZ       = temp_v1_8;
-        temp_v0_8             = scratch->deltaX;
-        scratch->distances[0] = SquareRoot0((temp_v0_8 * temp_v0_8) + (temp_v1_8 * temp_v1_8));
-
-        scratch->deltaX       = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[8].vx;
-        temp_v1_9             = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[8].vz;
-        scratch->deltaZ       = temp_v1_9;
-        temp_v0_9             = scratch->deltaX;
-        temp_v0_10            = SquareRoot0((temp_v0_9 * temp_v0_9) + (temp_v1_9 * temp_v1_9));
-        scratch->distances[1] = temp_v0_10;
-        var_v1                = temp_v0_10 >= scratch->distances[0];
-    }
-    temp_v0_11 = D_actor_403600_801605F4;
-    temp_v1_10 = (var_v1 & 0xFF) + temp_v0_11;
-    do {
-        work->targetPos.vx = temp_v1_10->vx;
-    } while (0);
-    work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - 0x258;
-    SCRATCH_STACK_RELEASE_BLOCK(_Actor403600NearestPointScratch);
-    work->targetPos.vz = temp_v1_10->vz;
+    scratch->deltaX = gPlayerStatus.coordMtx->t[0] - D_actor_403600_801605F4[pointIndex].vx;
+    deltaZ          = gPlayerStatus.coordMtx->t[2] - D_actor_403600_801605F4[pointIndex].vz;
+    scratch->deltaZ = deltaZ;
+    deltaX          = scratch->deltaX;
+    return SquareRoot0((deltaX * deltaX) + (deltaZ * deltaZ));
 }
 
-/// Steps the shared LCG and returns the upper half of the new state.
+/// Chooses the boss's flight target from the player's horizontal position.
+///
+/// Zero useRushReferences chooses the nearest of rows 0..6. Nonzero measures
+/// rows 7 and 8, then deliberately retains the binary's selection of row 1
+/// when distance8 >= distance7, otherwise row 0; it does not choose row 7 or 8.
+/// All destinations use player Y minus 600 world units. Borrows the task's
+/// live work and releases its temporary seven-distance scratch block.
+static void _actor403600ChooseFlightTarget(Task* task, s32 useRushReferences)
+{
+    enum { ACTOR_403600_FLIGHT_DISTANCE_INITIAL_LIMIT = 0xFFFFFF,
+           ACTOR_403600_FLIGHT_PLAYER_HEIGHT_OFFSET   = 600 };
+    s32                              candidateDistance;
+    s32                              referenceDistanceB;
+    s32                              candidateIndex;
+    s32                              nearestDistance;
+    s32                              destinationIndex;
+    _Actor403600NearestPointScratch* scratch;
+    Actor403600Work*                 work;
+    SVECTOR*                         points;
+    SVECTOR*                         destination;
+
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor403600NearestPointScratch);
+    work    = task->work;
+    if (useRushReferences == 0) {
+        scratch->distances[0] = _actor403600MeasureFlightPoint(scratch, 0);
+        scratch->distances[1] = _actor403600MeasureFlightPoint(scratch, 1);
+        scratch->distances[2] = _actor403600MeasureFlightPoint(scratch, 2);
+        scratch->distances[3] = _actor403600MeasureFlightPoint(scratch, 3);
+        scratch->distances[4] = _actor403600MeasureFlightPoint(scratch, 4);
+        scratch->distances[5] = _actor403600MeasureFlightPoint(scratch, 5);
+        scratch->distances[6] = _actor403600MeasureFlightPoint(scratch, 6);
+        nearestDistance       = ACTOR_403600_FLIGHT_DISTANCE_INITIAL_LIMIT;
+        destinationIndex      = 0;
+        candidateIndex        = 0;
+        do {
+            candidateDistance = scratch->distances[candidateIndex & 0xFF];
+            if (candidateDistance < nearestDistance) {
+                destinationIndex = candidateIndex;
+                nearestDistance  = candidateDistance;
+            }
+            candidateIndex += 1;
+        } while ((u32)(candidateIndex & 0xFF) < (u32)ARRAY_SIZE(scratch->distances));
+    } else {
+        scratch->distances[0] = _actor403600MeasureFlightPoint(scratch, 7);
+        referenceDistanceB    = _actor403600MeasureFlightPoint(scratch, 8);
+        scratch->distances[1] = referenceDistanceB;
+        destinationIndex      = referenceDistanceB >= scratch->distances[0];
+    }
+    points             = D_actor_403600_801605F4;
+    destination        = (destinationIndex & 0xFF) + points;
+    work->targetPos.vx = destination->vx;
+    work->targetPos.vy = gPlayerStatus.coordMtx->t[1] - ACTOR_403600_FLIGHT_PLAYER_HEIGHT_OFFSET;
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor403600NearestPointScratch);
+    work->targetPos.vz = destination->vz;
+}
+
+/// Draws 0..65535 from the resident gameplay random sequence.
+///
+/// Advances the shared unsigned 32-bit LCG once with wraparound and returns
+/// its upper halfword. This consumes the same sequence as other overlays.
 static inline u32 _actor403600Rand(void)
 {
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2475,7 +2484,7 @@ static inline u32 _actor403600Rand(void)
 
 static void func_actor_403600_8013D15C(Task* arg0)
 {
-    s32                           sp10;
+    u32                           sp10;
     s32                           sp14;
     Actor403600Work*              work;
     Enemy*                        enemy;
@@ -2640,7 +2649,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
             func_actor_403600_80141C7C(arg0, damage);
         } else {
             damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, damage, 0);
-            func_actor_403600_8013DAF4(arg0, damage);
+            _actor403600ApplyDamage(arg0, damage);
             if (work->mode == ACTOR_403600_MODE_FIGHT) {
                 for (j = 0; j < ARRAY_SIZE(D_actor_403600_8016066C); j++) {
                     if (damage >= D_actor_403600_8016066C[j].minDamage) {
@@ -2658,7 +2667,7 @@ static void func_actor_403600_8013D15C(Task* arg0)
         if (stun > 0) {
             work->hitCooldown = stun;
         }
-        func_actor_403600_8013E470(&work->worldCoord, &sp10, &sp14);
+        _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &sp10, &sp14);
         if (__builtin_abs(sp14) <= 0x400) {
             work->flinchRot.vx = ((_actor403600Rand() & 3) << 5) + 0x80;
         } else {
@@ -2717,59 +2726,81 @@ static s32 func_actor_403600_8013D9A8(Task* arg0)
     return 0;
 }
 
-static void func_actor_403600_8013DAF4(Task* arg0, s32 arg1)
+/// Restores combat defaults in the fatal-hit path's store order.
+///
+/// Reloads the live work after player-message dispatch, as the ordinary reset
+/// does; leaves mode, animation selection and weakened-phase state untouched.
+static inline void _actor403600ResetForDeath(Task* task)
 {
-    Enemy*           temp_v0;
-    Enemy*           temp_s0;
-    Actor403600Work* work;
-    Task*            temp_v0_2;
-    Actor403600Work* temp_v0_3;
+    Actor403600Work* work = task->work;
+    work->animBlendFrames = ACTOR_403600_DEFAULT_BLEND_FRAMES;
+    work->actionDelay     = ACTOR_403600_DEFAULT_ACTION_DELAY;
+    work->defeated        = 0;
+    work->aimMode         = ACTOR_403600_AIM_PLAYER;
+    work->ignorePushOut   = 0;
+    work->animRate        = ANIMATION_RATE_ONE;
+    work->ambientBoost    = 0;
+    work->committed       = 0;
+    work->forwardSpeed    = 0;
+    work->action          = ACTOR_403600_ACTION_CHOOSE;
+    work->verticalSpeed   = 0;
+    work->phaseFrame      = 0;
+    work->turnRate        = ACTOR_403600_DEFAULT_TURN_RATE;
+    work->roll            = 0;
+    work->diving          = 0;
+    work->repositioning   = 0;
+    work->pauseSoundSent  = 0;
+}
 
-    temp_s0     = arg0->spawnArg2.pointer;
-    work        = arg0->work;
-    temp_s0->hp = (u16)temp_s0->hp - arg1;
-    worldTargetAddReadoutAmount(&temp_s0->node, arg1, 0);
-    if (temp_s0->hp <= 0) {
+/// Subtracts hit damage from the boss and starts its defeat sequence at zero HP.
+///
+/// Uses the task's enemy and Actor403600Work, reporting damage to the target
+/// readout. If the player is already dead, restores boss HP to 10 and returns.
+/// Otherwise ends the child enemy, releases paired attacks and scripted player
+/// control, cancels drain effects, restores combat defaults, then enters dying
+/// mode with animation 1, no blend and zero whiteout. HP subtraction retains the
+/// unsigned-halfword read followed by the enemy's signed-halfword store.
+static void _actor403600ApplyDamage(Task* task, s32 damage)
+{
+    enum { ACTOR_403600_FATAL_HIT_PLAYER_DEAD_HP = 10,
+           ACTOR_403600_CHILD_EXIT_STATE         = 2,
+           ACTOR_403600_CHILD_FADE_STEP          = 1,
+           ACTOR_403600_DEATH_ANIMATION          = 1,
+           ACTOR_403600_DEFEAT_SCENE_HOLD        = 1,
+           ACTOR_403600_PLAYER_ANIMATION_IDLE    = 0 };
+    Enemy*           childEnemy;
+    Enemy*           enemy;
+    Actor403600Work* work;
+    Task*            childTask;
+
+    enemy     = task->spawnArg2.pointer;
+    work      = task->work;
+    enemy->hp = (u16)enemy->hp - damage;
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    if (enemy->hp <= 0) {
         if (gPlayerStatus.hp <= 0) {
-            temp_s0->hp = 0xA;
+            enemy->hp = ACTOR_403600_FATAL_HIT_PLAYER_DEAD_HP;
             return;
         }
-        temp_v0 = work->childEnemy;
-        if (temp_v0 != NULL) {
-            temp_v0_2                                 = temp_v0->task;
-            temp_v0_2->state                          = 2;
-            temp_v0_2->killCountdown                  = 0;
-            ((Actor403600Work*)temp_v0_2->work)->step = 1;
+        childEnemy = work->childEnemy;
+        if (childEnemy != NULL) {
+            childTask                                 = childEnemy->task;
+            childTask->state                          = ACTOR_403600_CHILD_EXIT_STATE;
+            childTask->killCountdown                  = 0;
+            ((Actor403600Work*)childTask->work)->step = ACTOR_403600_CHILD_FADE_STEP;
         }
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         roomEffectRequestCancelPe();
-        gGameSession->eventState            = 1;
-        D_actor_403600_80160568.animationId = 0;
+        gGameSession->eventState            = ACTOR_403600_DEFEAT_SCENE_HOLD;
+        D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIMATION_IDLE;
         taskMessageDispatch(*gPlayerActorTasks, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-        temp_v0_3                  = arg0->work;
-        temp_v0_3->animBlendFrames = 8;
-        temp_v0_3->actionDelay     = 0xA;
-        temp_v0_3->defeated        = 0;
-        temp_v0_3->aimMode         = ACTOR_403600_AIM_PLAYER;
-        temp_v0_3->ignorePushOut   = 0;
-        temp_v0_3->animRate        = 0x10;
-        temp_v0_3->ambientBoost    = 0;
-        temp_v0_3->committed       = 0;
-        temp_v0_3->forwardSpeed    = 0;
-        temp_v0_3->action          = ACTOR_403600_ACTION_CHOOSE;
-        temp_v0_3->verticalSpeed   = 0;
-        temp_v0_3->phaseFrame      = 0;
-        temp_v0_3->turnRate        = 0x40;
-        temp_v0_3->roll            = 0;
-        temp_v0_3->diving          = 0;
-        temp_v0_3->repositioning   = 0;
-        temp_v0_3->pauseSoundSent  = 0;
-        func_actor_403600_80141954(0);
-        func_actor_403600_80141B24(arg0);
+        _actor403600ResetForDeath(task);
+        _actor403600SetWeakTextures(0);
+        _actor403600CancelDrain(task);
         work->defeated        = 1;
-        work->animId          = 1;
+        work->animId          = ACTOR_403600_DEATH_ANIMATION;
         work->animBlendFrames = 0;
-        work->animRate        = 0x10;
+        work->animRate        = ANIMATION_RATE_ONE;
         work->mode            = ACTOR_403600_MODE_DYING;
         work->step            = 0;
         work->whiteout        = 0;
@@ -2821,65 +2852,72 @@ static void func_actor_403600_8013DC7C(Task* arg0)
     }
 }
 
-static s32 func_actor_403600_8013DDF4(Task* arg0, s16 arg1)
+/// Turns the boss's yaw toward its player or flight aim and returns ground range.
+///
+/// Requires aimMode PLAYER or TARGET and a live Actor403600Work. turnStep is
+/// angle units per call (4096 per turn); zero uses 32. Measures full-width X/Z
+/// range in world units, but bearing operands narrow to signed halfwords.
+/// Rebuilds a yaw-only rotation, discarding pitch/roll/scale while retaining
+/// translation. Owns one temporary ActorFaceScratch block for the call.
+static s32 _actor403600TurnYawToAim(Task* task, s16 turnStep)
 {
+    enum { ACTOR_403600_DEFAULT_YAW_STEP = 32 };
     Actor403600Work*  work;
     ActorFaceScratch* scratch;
-    ActorFaceScratch* oldHead;
-    s16               step;
+    s16               effectiveTurnStep;
     s32               distance;
-    u16               angle;
-    s32               rawDiff;
-    s32               adiff;
-    s32               turnDiff;
-    s32               next;
+    u16               desiredYaw;
+    s32               angleValue;
+    s32               absoluteDifference;
+    s32               turnDirection;
+    s32               wrappedDifference;
+    s32               nextYaw;
 
-    step    = arg1;
-    oldHead = SCRATCH_STACK_CURSOR(ActorFaceScratch);
-    scratch = (SCRATCH_STACK_CURSOR(ActorFaceScratch) =
-                   oldHead - 1);
-    work    = arg0->work;
-    if ((arg1 << 0x10) == 0) {
-        step = 0x20;
+    effectiveTurnStep = turnStep;
+    scratch           = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    work              = task->work;
+    if ((turnStep << 16) == 0) {
+        effectiveTurnStep = ACTOR_403600_DEFAULT_YAW_STEP;
     }
 
     switch (work->aimMode) {
         case ACTOR_403600_AIM_PLAYER:
-            oldHead[-1].delta.vx = gPlayerStatus.coordMtx->t[0] - work->worldCoord.coord.t[0];
-            scratch->delta.vy    = 0;
-            scratch->delta.vz    = gPlayerStatus.coordMtx->t[2] - work->worldCoord.coord.t[2];
+            scratch->delta.vx = gPlayerStatus.coordMtx->t[0] - work->worldCoord.coord.t[0];
+            scratch->delta.vy = 0;
+            scratch->delta.vz = gPlayerStatus.coordMtx->t[2] - work->worldCoord.coord.t[2];
             break;
         case ACTOR_403600_AIM_TARGET:
-            oldHead[-1].delta.vx = work->targetPos.vx - work->worldCoord.coord.t[0];
-            scratch->delta.vy    = 0;
-            scratch->delta.vz    = work->targetPos.vz - work->worldCoord.coord.t[2];
+            scratch->delta.vx = work->targetPos.vx - work->worldCoord.coord.t[0];
+            scratch->delta.vy = 0;
+            scratch->delta.vz = work->targetPos.vz - work->worldCoord.coord.t[2];
             break;
     }
 
-    distance = SquareRoot0((scratch->delta.vx * scratch->delta.vx) +
-                           (scratch->delta.vy * scratch->delta.vy) +
-                           (scratch->delta.vz * scratch->delta.vz));
-    angle    = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & 0xFFF;
-    rawDiff  = angle - (work->yaw & 0xFFF);
-    adiff    = __builtin_abs((s16)rawDiff);
-    turnDiff = rawDiff;
-    if (step >= adiff) {
-        work->yaw = angle;
+    distance           = SquareRoot0((scratch->delta.vx * scratch->delta.vx) +
+                                     (scratch->delta.vy * scratch->delta.vy) +
+                                     (scratch->delta.vz * scratch->delta.vz));
+    desiredYaw         = ratan2((s16)scratch->delta.vx, (s16)scratch->delta.vz) & (ACTOR_TRANSFORM_ANGLE_TURN - 1);
+    angleValue         = desiredYaw - (work->yaw & (ACTOR_TRANSFORM_ANGLE_TURN - 1));
+    absoluteDifference = __builtin_abs((s16)angleValue);
+    turnDirection      = angleValue;
+    if (effectiveTurnStep >= absoluteDifference) {
+        work->yaw = desiredYaw;
     } else {
-        if (adiff >= 0x801) {
-            next = rawDiff - 0x1000;
-            if ((s16)rawDiff <= 0) {
-                next = 0x1000 - rawDiff;
+        if (absoluteDifference >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
+            wrappedDifference = angleValue - ACTOR_TRANSFORM_ANGLE_TURN;
+            if ((s16)angleValue <= 0) {
+                wrappedDifference = ACTOR_TRANSFORM_ANGLE_TURN - angleValue;
             }
-            turnDiff = next;
+            turnDirection = wrappedDifference;
         }
-        rawDiff = (s16)work->yaw;
-        if ((turnDiff << 0x10) > 0) {
-            next = rawDiff + step;
+        // Reuse the signed angle temporary for the current heading.
+        angleValue = (s16)work->yaw;
+        if ((turnDirection << 16) > 0) {
+            nextYaw = angleValue + effectiveTurnStep;
         } else {
-            next = (s16)work->yaw - step;
+            nextYaw = (s16)work->yaw - effectiveTurnStep;
         }
-        work->yaw = next;
+        work->yaw = nextYaw;
     }
 
     scratch->rot.vx = 0;
@@ -3032,43 +3070,38 @@ static s32 func_actor_403600_8013DFE0(Task* arg0)
     return temp_s5;
 }
 
-static void func_actor_403600_8013E470(GfxCoord* arg0, s32* arg1, s32* arg2)
+/// Measures horizontal player range and player yaw in the reference's cached frame.
+///
+/// Requires live composed workm caches in the same frame and distinct writable
+/// outputs. Bearing rotates the signed-halfword XYZ cache difference through
+/// the reference's transpose; writes signed yaw in [-2048,2048], 4096 per turn.
+/// Range ignores Y and uses full-width room X/Z from gPlayerStatus and coord,
+/// returning whole world units; the squared X/Z sum must fit signed 32 bits.
+/// Uses GTE working registers and one temporary
+/// ActorRangeBearingScratch; does not compose or retain either coordinate.
+static void _actor403600MeasurePlayerRangeBearing(const GfxCoord* referenceCoord, u32* rangeOut, s32* bearingOut)
 {
-    GfxCoord*                 coord;
-    s32                       angle;
-    s32                       x;
-    s32                       z;
-    ActorRangeBearingScratch* head;
-    SVECTOR*                  vec;
-    MATRIX*                   matrix;
+    GfxCoord*                 playerCoord;
+    s32                       deltaX;
+    s32                       deltaZ;
     ActorRangeBearingScratch* scratch;
 
-    head                      = SCRATCH_STACK_CURSOR(void);
-    coord                     = (*gPlayerActorTasks)->extra.tmd->coords;
-    head[-1].bearing.delta.vx = (s16)(coord->workm.t[0] - arg0->workm.t[0]);
-    vec                       = &head[-1].bearing.delta;
-    vec->vy                   = (s16)(coord->workm.t[1] - arg0->workm.t[1]);
-    scratch                   = (SCRATCH_STACK_CURSOR(void) = &head[-1]);
-    vec->vz                   = (s16)(coord->workm.t[2] - arg0->workm.t[2]);
-    matrix                    = &head[-1].bearing.inverseRotation;
-    TransposeMatrix(&arg0->workm, matrix);
-    _gfxLoadRotSv(matrix, vec);
-    gte_rtv0();
-    gte_stsv(vec);
-    angle = ratan2(head[-1].bearing.delta.vx, vec->vz);
-    *arg2 = angle;
-    if (angle >= 0x801) {
-        *arg2 = angle - 0x1000;
-    } else if (angle < -0x800) {
-        *arg2 = angle + 0x1000;
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(ActorRangeBearingScratch);
+    playerCoord = (*gPlayerActorTasks)->extra.tmd->coords;
+    // Keep the raw output store before folding the caller-visible angle.
+    *bearingOut = _actorAngleMeasureBearingInFrame(&scratch->bearing, referenceCoord, playerCoord);
+    if (*bearingOut >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
+        *bearingOut -= ACTOR_TRANSFORM_ANGLE_TURN;
+    } else if (*bearingOut < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        *bearingOut += ACTOR_TRANSFORM_ANGLE_TURN;
     }
-    x                  = gPlayerStatus.coordMtx->t[0] - arg0->coord.t[0];
-    scratch->offset.vx = x;
-    scratch->offset.vy = gPlayerStatus.coordMtx->t[1] - arg0->coord.t[1];
-    z                  = gPlayerStatus.coordMtx->t[2] - arg0->coord.t[2];
-    scratch->offset.vz = z;
-    *arg1              = SquareRoot0((x * x) + (z * z));
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorRangeBearingScratch));
+    deltaX             = gPlayerStatus.coordMtx->t[0] - referenceCoord->coord.t[0];
+    scratch->offset.vx = deltaX;
+    scratch->offset.vy = gPlayerStatus.coordMtx->t[1] - referenceCoord->coord.t[1];
+    deltaZ             = gPlayerStatus.coordMtx->t[2] - referenceCoord->coord.t[2];
+    scratch->offset.vz = deltaZ;
+    *rangeOut          = SquareRoot0((deltaX * deltaX) + (deltaZ * deltaZ));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorRangeBearingScratch);
 }
 
 static s16 func_actor_403600_8013E66C(GfxCoord* arg0)
@@ -3099,65 +3132,75 @@ static s16 func_actor_403600_8013E66C(GfxCoord* arg0)
     return result;
 }
 
-static s32 func_actor_403600_8013E7D4(Task* arg0, u16 arg1)
+/// Faces and optionally relocates the player for the boss's knockback sequence.
+///
+/// placementFlags bit 0 faces the farther of the two fixed anchors (clear:
+/// nearer); bit 1 places the player at the opposite anchor, keeping player Y.
+/// With bit 1 clear, retains position and returns 0. With it set, returns 1
+/// for placement at anchor A, 0 for anchor B; the caller uses this for view
+/// selection. Yaw is 4096 units per turn. unusedTask is ignored. Dispatches a
+/// borrowed static placement synchronously and marks the player's cache dirty.
+static s32 _actor403600PlacePlayerForKnockback(Task* unusedTask, u16 placementFlags)
 {
-    Task*     temp_s7;
-    GfxCoord* temp_s3;
-    s32       temp_s0;
-    s32       temp_s0_3;
-    s32       temp_s1;
-    s32       temp_s5;
-    s32       var_s2;
-    s32       var_s4;
-    s32       var_v1;
+    enum { ACTOR_403600_KNOCKBACK_FACE_FAR_ANCHOR = 1,
+           ACTOR_403600_KNOCKBACK_RELOCATE        = 2 };
+    Task*     playerTask;
+    GfxCoord* playerCoord;
+    s32       deltaZ;
+    s32       distanceB;
+    s32       deltaX;
+    s32       distanceA;
+    s32       bearingA;
+    s32       placedAtA;
+    s32       bearingB;
 
-    temp_s7 = *gPlayerActorTasks;
-    temp_s3 = temp_s7->extra.tmd->coords;
-    temp_s1 = D_actor_403600_801605E4.vx - temp_s3->coord.t[0];
-    temp_s0 = D_actor_403600_801605E4.vz - temp_s3->coord.t[2];
-    var_s4  = 0;
-    temp_s5 = SquareRoot0((temp_s1 * temp_s1) + (temp_s0 * temp_s0));
-    var_s2  = ratan2(temp_s1, temp_s0);
-    if (var_s2 >= 0x801) {
-        var_s2 -= 0x1000;
-    } else if (var_s2 < -0x800) {
-        var_s2 += 0x1000;
+    playerTask  = *gPlayerActorTasks;
+    playerCoord = playerTask->extra.tmd->coords;
+    deltaX      = D_actor_403600_801605E4.vx - playerCoord->coord.t[0];
+    deltaZ      = D_actor_403600_801605E4.vz - playerCoord->coord.t[2];
+    placedAtA   = 0;
+    distanceA   = SquareRoot0((deltaX * deltaX) + (deltaZ * deltaZ));
+    bearingA    = ratan2(deltaX, deltaZ);
+    if (bearingA >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
+        bearingA -= ACTOR_TRANSFORM_ANGLE_TURN;
+    } else if (bearingA < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        bearingA += ACTOR_TRANSFORM_ANGLE_TURN;
     }
-    temp_s1   = D_actor_403600_801605EC.vx - temp_s3->coord.t[0];
-    temp_s0   = D_actor_403600_801605EC.vz - temp_s3->coord.t[2];
-    temp_s0_3 = SquareRoot0((temp_s1 * temp_s1) + (temp_s0 * temp_s0));
-    var_v1    = ratan2(temp_s1, temp_s0);
-    if (var_v1 >= 0x801) {
-        var_v1 -= 0x1000;
-    } else if (var_v1 < -0x800) {
-        var_v1 += 0x1000;
+    deltaX    = D_actor_403600_801605EC.vx - playerCoord->coord.t[0];
+    deltaZ    = D_actor_403600_801605EC.vz - playerCoord->coord.t[2];
+    distanceB = SquareRoot0((deltaX * deltaX) + (deltaZ * deltaZ));
+    bearingB  = ratan2(deltaX, deltaZ);
+    if (bearingB >= ACTOR_TRANSFORM_ANGLE_HALF_TURN + 1) {
+        bearingB -= ACTOR_TRANSFORM_ANGLE_TURN;
+    } else if (bearingB < -ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        bearingB += ACTOR_TRANSFORM_ANGLE_TURN;
     }
-    if ((arg1 & 1) ? (temp_s0_3 < temp_s5) : (temp_s5 < temp_s0_3)) {
-        D_actor_403600_801606E0.placement.rot.vy = var_s2;
+    if ((placementFlags & ACTOR_403600_KNOCKBACK_FACE_FAR_ANCHOR) ? (distanceB < distanceA) : (distanceA < distanceB)) {
+        D_actor_403600_801606E0.placement.rot.vy = bearingA;
     } else {
-        D_actor_403600_801606E0.placement.rot.vy = var_v1;
+        D_actor_403600_801606E0.placement.rot.vy = bearingB;
     }
-    temp_s3->composeStamp                    = GRAPHICS_COORD_DIRTY;
+    playerCoord->composeStamp                = GRAPHICS_COORD_DIRTY;
     D_actor_403600_801606E0.placement.rot.vx = 0;
     D_actor_403600_801606E0.placement.rot.vz = 0;
-    if (arg1 & 2) {
-        D_actor_403600_801606E0.placement.pos.vy = temp_s3->coord.t[1];
-        if (D_actor_403600_801606E0.placement.rot.vy == var_s2) {
+    if (placementFlags & ACTOR_403600_KNOCKBACK_RELOCATE) {
+        D_actor_403600_801606E0.placement.pos.vy = playerCoord->coord.t[1];
+        if (D_actor_403600_801606E0.placement.rot.vy == bearingA) {
             D_actor_403600_801606E0.placement.pos.vx = D_actor_403600_801605EC.vx;
             D_actor_403600_801606E0.placement.pos.vz = D_actor_403600_801605EC.vz;
-            var_s4                                   = 0;
+            placedAtA                                = 0;
         } else {
             D_actor_403600_801606E0.placement.pos.vx = D_actor_403600_801605E4.vx;
             D_actor_403600_801606E0.placement.pos.vz = D_actor_403600_801605E4.vz;
-            var_s4                                   = 1;
+            placedAtA                                = 1;
         }
     } else {
-        D_actor_403600_801606E0.placement.pos.vx = temp_s3->coord.t[0];
-        D_actor_403600_801606E0.placement.pos.vy = temp_s3->coord.t[1];
-        D_actor_403600_801606E0.placement.pos.vz = temp_s3->coord.t[2];
+        D_actor_403600_801606E0.placement.pos.vx = playerCoord->coord.t[0];
+        D_actor_403600_801606E0.placement.pos.vy = playerCoord->coord.t[1];
+        D_actor_403600_801606E0.placement.pos.vz = playerCoord->coord.t[2];
     }
-    TASK_MESSAGE_DISPATCH_POINTER(temp_s7, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403600_801606E0.placement, 0);
-    return var_s4;
+    TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_403600_801606E0.placement, 0);
+    return placedAtA;
 }
 
 static void func_actor_403600_8013EA04(Task* arg0)
@@ -3344,7 +3387,7 @@ static void func_actor_403600_8013EA04(Task* arg0)
             work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
             work->rushPasses      = (_actor403600Rand() & 3) * 2;
             work->actionParam     = (_actor403600Rand() % 20) + 0x28;
-            func_actor_403600_8013CCEC(arg0, 1);
+            _actor403600ChooseFlightTarget(arg0, 1);
             return;
         case 4:
             work->aimMode     = ACTOR_403600_AIM_PLAYER;
@@ -3398,7 +3441,7 @@ static void func_actor_403600_8013F0C0(Task* arg0)
                 (temp_a0->coord.m[2][2] * temp_a1->knockbackSpeed) >> 0xC;
             if ((work->knockbackFrame >= 0xC) || (gGameSession->viewReady != 0)) {
                 work->knockbackFrame = 0;
-                if (func_actor_403600_8013E7D4(arg0, 3) == 0) {
+                if (_actor403600PlacePlayerForKnockback(arg0, 3) == 0) {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
                 } else {
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
@@ -3567,28 +3610,31 @@ static void func_actor_403600_8013F608(Task* arg0)
     }
 }
 
-/// Steps the rig's twenty parts: restarts every part on the animation in
-/// `animId` when it changed, otherwise advances the frame counter and
-/// ticks each part at rate `animRate`. Animations with no entry in
-/// `D_actor_403600_8016057C` are not played.
-static __inline__ void _actor403600UpdateAnimation(Task* task, u8 count)
+/// Reseeds or ticks the selected animation on model parts 1 through partCount-1.
+///
+/// Requires a live `Actor403600Work`, an animId in the package's 22-entry table
+/// and partCount no greater than the twenty-slot rig. A NULL table entry does
+/// nothing. A changed animation resets phaseFrame and seeks each driven slot
+/// with animBlendFrames; subsequent calls increment phaseFrame and tick those
+/// slots at animRate (16 is normal playback). Part 0 is not driven.
+static __inline__ void _actor403600UpdateAnimation(Task* task, u8 partCount)
 {
     Actor403600Work* work;
-    s32              i;
+    s32              partIndex;
 
     work = task->work;
     if (D_actor_403600_8016057C[work->animId] != 0) {
         if (work->animId != work->appliedAnimId) {
             work->appliedAnimId = work->animId;
             work->phaseFrame    = 0;
-            for (i = 1; i < count; i++) {
-                animationSeekSlotWithBlend(&work->rig.anim, i, work->animId, 0, work->animBlendFrames);
+            for (partIndex = 1; partIndex < partCount; partIndex++) {
+                animationSeekSlotWithBlend(&work->rig.anim, partIndex, work->animId, 0, work->animBlendFrames);
             }
         } else {
             work->phaseFrame++;
-            for (i = 1; i < count; i++) {
-                work->rig.slots[i].rate = work->animRate;
-                animationTickSlot(&work->rig.anim, i);
+            for (partIndex = 1; partIndex < partCount; partIndex++) {
+                work->rig.slots[partIndex].rate = work->animRate;
+                animationTickSlot(&work->rig.anim, partIndex);
             }
         }
     }
@@ -3717,7 +3763,7 @@ static void func_actor_403600_8013F7B8(Enemy* enemy, Task* task)
     }
     _actor403600UpdateAnimation(task, 20);
     work->animRate     = 0x10;
-    task->exitCallback = func_actor_403600_80141598;
+    task->exitCallback = _actor403600EnemyExit;
     task->state       += 1;
 }
 
@@ -3865,13 +3911,13 @@ static void func_actor_403600_801400BC(Task* arg0)
         default:
             return;
         case ACTOR_403600_DOUBLE_ACTION_CHASE:
-            func_actor_403600_8013DDF4(arg0, 0);
+            _actor403600TurnYawToAim(arg0, 0);
             work->animId        = 2;
             work->forwardSpeed  = work->chaseSpeed;
             temp_v1_2           = gPlayerStatus.coordMtx->t[1];
             temp_v0             = work->worldCoord.coord.t[1] + 0x3E8;
             work->verticalSpeed = (s16)((temp_v1_2 - temp_v0) / 25);
-            func_actor_403600_8013E470(&work->worldCoord, (s32*)&sp10, &sp14);
+            _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &sp10, &sp14);
             if (sp10 < 0x835U) {
                 var_v0 = sp14;
                 if (var_v0 < 0) {
@@ -3908,7 +3954,7 @@ static void func_actor_403600_801400BC(Task* arg0)
             if (work->phaseFrame >= 0x1E) {
                 work->forwardSpeed = 0U;
                 work->phaseFrame   = 0;
-                func_actor_403600_8013E470(&work->worldCoord, (s32*)&sp10, &sp14);
+                _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &sp10, &sp14);
                 if (sp10 < 0x7D1U) {
                     var_v0_2 = sp14;
                     if (var_v0_2 < 0) {
@@ -3946,7 +3992,7 @@ static void func_actor_403600_801400BC(Task* arg0)
                 work->animBlendFrames = 8;
                 work->forwardSpeed    = 0U;
                 work->phaseFrame      = 0;
-                func_actor_403600_8013E470(&work->worldCoord, (s32*)&sp10, &sp14);
+                _actor403600MeasurePlayerRangeBearing(&work->worldCoord, &sp10, &sp14);
                 if (sp10 < 0x7D1U) {
                     var_v0_3 = sp14;
                     if (var_v0_3 < 0) {
@@ -4386,7 +4432,13 @@ static void func_actor_403600_801414FC(Task* arg0)
     }
 }
 
-static void func_actor_403600_80141598(Task* task)
+/// Unlinks collision and targeting state before releasing a boss or double task.
+///
+/// Requires a live enemy in spawnArg2 and Actor403600Work. Detaches the model
+/// root from work-owned coordinates, clears the enemy's borrowed hit records,
+/// unlinks its target and hit/attack bodies, and also unlinks the grid body for
+/// the singleton boss. enemyTaskExit performs the final resource release.
+static void _actor403600EnemyExit(Task* task)
 {
     Actor403600Work* work;
     Enemy*           enemy;
@@ -4394,7 +4446,7 @@ static void func_actor_403600_80141598(Task* task)
     enemy                           = task->spawnArg2.pointer;
     work                            = task->work;
     task->extra.tmd->coords->parent = &gGfxViewCoord;
-    enemy->recs                     = 0;
+    enemy->recs                     = NULL;
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->hitBody);
     worldCollisionUnlinkBody(&work->attackBody);
@@ -4468,7 +4520,7 @@ static s32 func_actor_403600_80141840(Task* arg0)
     count         = 0;
     work          = arg0->work;
     work->aimMode = ACTOR_403600_AIM_TARGET;
-    func_actor_403600_8013DDF4(arg0, 0xA0);
+    _actor403600TurnYawToAim(arg0, 0xA0);
 
     work->forwardSpeed = 0x12C;
     deltaX             = work->targetPos.vx - work->worldCoord.coord.t[0];
@@ -4498,28 +4550,46 @@ static s32 func_actor_403600_80141840(Task* arg0)
     return count & 0xFF;
 }
 
-static void func_actor_403600_80141954(s32 arg0)
+/// Installs the boss's weakened or normal texture and palette blocks in VRAM.
+///
+/// Exactly 1 selects the weakened appearance; any other value restores normal.
+/// Copies a 128-word by 128-row block to (384,384), then a 256-word palette to
+/// row 249 at X 0. Requires the package's source image already uploaded.
+static void _actor403600SetWeakTextures(s32 weakAppearance)
 {
+    enum {
+        ACTOR_403600_TEXTURE_BLOCK_WORDS = 128,
+        ACTOR_403600_TEXTURE_BLOCK_ROWS  = 128,
+        ACTOR_403600_TEXTURE_SOURCE_Y    = 128,
+        ACTOR_403600_WEAK_TEXTURE_X      = 384,
+        ACTOR_403600_NORMAL_TEXTURE_X    = 448,
+        ACTOR_403600_TEXTURE_DEST_X      = 384,
+        ACTOR_403600_TEXTURE_DEST_Y      = 384,
+        ACTOR_403600_PALETTE_WORDS       = 256,
+        ACTOR_403600_WEAK_PALETTE_ROW    = 253,
+        ACTOR_403600_NORMAL_PALETTE_ROW  = 254,
+        ACTOR_403600_PALETTE_DEST_ROW    = 249
+    };
     RECT rect;
 
-    rect.y = 0x80;
-    rect.h = 0x80;
-    rect.w = 0x80;
-    if (arg0 == 1) {
-        rect.x = 0x180;
+    rect.y = ACTOR_403600_TEXTURE_SOURCE_Y;
+    rect.h = ACTOR_403600_TEXTURE_BLOCK_ROWS;
+    rect.w = ACTOR_403600_TEXTURE_BLOCK_WORDS;
+    if (weakAppearance == 1) {
+        rect.x = ACTOR_403600_WEAK_TEXTURE_X;
     } else {
-        rect.x = 0x1C0;
+        rect.x = ACTOR_403600_NORMAL_TEXTURE_X;
     }
-    MoveImage(&rect, 0x180, 0x180);
-    rect.w = 0x100;
+    MoveImage(&rect, ACTOR_403600_TEXTURE_DEST_X, ACTOR_403600_TEXTURE_DEST_Y);
+    rect.w = ACTOR_403600_PALETTE_WORDS;
     rect.h = 1;
     rect.x = 0;
-    if (arg0 == 1) {
-        rect.y = 0xFD;
+    if (weakAppearance == 1) {
+        rect.y = ACTOR_403600_WEAK_PALETTE_ROW;
     } else {
-        rect.y = 0xFE;
+        rect.y = ACTOR_403600_NORMAL_PALETTE_ROW;
     }
-    MoveImage(&rect, 0, 0xF9);
+    MoveImage(&rect, 0, ACTOR_403600_PALETTE_DEST_ROW);
 }
 
 static void func_actor_403600_801419E8(Task* arg0)
@@ -4577,9 +4647,14 @@ static void func_actor_403600_80141A34(Task* arg0)
     }
 }
 
-static void func_actor_403600_80141B24(Task* arg0)
+/// Cancels the boss's drain presentation and clears its screen distortion.
+///
+/// Requires a live task with Actor403600Work. Halts scripted input and requests
+/// the drain wind-up sound to stop while keeping its release behavior. Does not
+/// change the combat action, accumulated damage or the player's MP.
+static void _actor403600CancelDrain(Task* task)
 {
-    Actor403600Work* work = arg0->work;
+    Actor403600Work* work = task->work;
 
     padScriptHalt();
     sndEvtRequestScriptStop(SOUND_SHELTER_B2_POD_BTM_ENEMY_DRAIN_WINDUP, SOUND_SCRIPT_STOP_KEEP_RELEASE);

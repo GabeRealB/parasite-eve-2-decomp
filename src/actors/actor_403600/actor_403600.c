@@ -237,7 +237,7 @@ static void _actor403600RippleTask(Task* task);
 TaskDesc D_actor_403600_801421A0[4] = {
     { { { TASK_BODY_NONE, 95 } }, func_actor_403600_80134288, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, func_actor_403600_80134398, { .value = 0 } },
-    { { { TASK_BODY_NONE, 97 } }, func_actor_403600_80138C34, { .value = 0 } },
+    { { { TASK_BODY_NONE, 97 } }, actor403600LoosePartsTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 112 } }, _actor403600RippleTask, { .value = 0 } },
 };
 

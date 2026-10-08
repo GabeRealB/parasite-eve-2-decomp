@@ -41,6 +41,16 @@ typedef struct {
 } Actor403600Ripple;
 STATIC_ASSERT_SIZEOF(Actor403600Ripple, 0xE8);
 
+/// Records one ripple-source sample and advances its outward history.
+///
+/// Requires actor_403600 loaded and a live initialized ripple with head in 0..31.
+/// Emission adds 512 strength per tick while below 4096; release subtracts 128
+/// while positive. An emission edge restarts phase. Clears the new head before
+/// recording nonzero strength. Phase uses 4096 units per turn and advances 384,
+/// or 256 when shallow; samples retain its signed low halfword. Owns no storage
+/// and retains no pointer. actor_361100 calls this while the owning overlay lives.
+void actor403600TickRipple(Actor403600Ripple* state);
+
 /// Draws a spreading ripple with the captured frame as its texture.
 ///
 /// Requires this overlay loaded, a live ripple with head in 0..31, a live disc
