@@ -102735,7 +102735,7 @@ last swap in a hand-written `_actorRenderTransformToWorld`: create
 the caller's output-vector address right after `parentPointPtr = &parentPoint`
 instead of passing that address through a second level of inlining.
 
-## A variable shared by two cross-jumped arms is global; give each arm its own (func_actor_401300_80134F90)
+## A variable shared by two cross-jumped arms is global; give each arm its own (_actor401300TakeHit)
 
 **Problem.** Retail picks a sound id in two arms and cross-jumping merges the
 rest: `lui v1; ori v1,8 | ori v1,7`, then `lhu s0; srl s0; sll s0; or s0,s0,v1`
@@ -102761,7 +102761,7 @@ Swapping the helper's *parameter* order (`FindHit(SVECTOR* pos, WorldCollisionCo
 records)`) fixed it. Inline arguments are bound in parameter order, and the other
 call's order was hidden by scheduling.
 
-## A dead `ret = cmp` in each arm keeps a 1/0 flag off the comparison's register (func_actor_401300_801405DC, 2026-09-16)
+## A dead `ret = cmp` in each arm keeps a 1/0 flag off the comparison's register (_actor401300Tick, 2026-09-16)
 
 Target: `sltiu v0,v0,0xa27; bnez v0,L; li v1,1 (slot); move v1,zero; L: li v0,1; bne v1,v0` -
 the comparison and the 1/0 flag in different registers. Every clean spelling misses:
@@ -109364,7 +109364,7 @@ with per-arm constants is *not* evidence of a source-level shared temp; the
 shape, and "Prefer separate stores over `next` + goto for shared `field_30`" is
 the same call.
 
-The registry pair `func_actor_401300_80141DF4` (body in
+The registry pair `_actor401300StateDown` (body in
 `src/actors/actor_401300/actor_401300_4.c`, ROM in its `matchings/` `.s`) is the
 oracle here: the two read together show that sibling's `switch (work->animId)`
 over its own `addiu $v0,$v0,-0xB` / `sltiu $v0,$v1,0x18` (cases 11/12/23/24/34),
