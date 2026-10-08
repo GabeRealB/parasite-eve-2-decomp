@@ -1,5 +1,5 @@
 {
-  "function": "func_replay_bonus_801183B8",
+  "function": "_replayBonusDrawCreditsRow",
   "status": "exact match integrated and full project verified",
   "session": {
     "id": "7c204b1ab9a7478a86a2b4963091ddad",
@@ -247,5 +247,5 @@
     "PERMUTER_EVIDENCE/manual/final-match/base_6.i.sched2",
     "PERMUTER_EVIDENCE/manual/final-match/full-build.log"
   ],
-  "archive": "tools/permuter_findings/func_replay_bonus_801183B8/sessions/7c204b1ab9a7478a86a2b4963091ddad/41c820d94ae2f21fc02f"
+  "archive": "tools/permuter_findings/_replayBonusDrawCreditsRow/sessions/7c204b1ab9a7478a86a2b4963091ddad/41c820d94ae2f21fc02f"
 }

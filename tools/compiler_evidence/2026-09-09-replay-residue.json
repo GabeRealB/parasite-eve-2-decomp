@@ -1,5 +1,5 @@
 {
-  "function": "func_replay_bonus_801183B8",
+  "function": "_replayBonusDrawCreditsRow",
   "scope": "Controlled compiler diagnostics; no exact-match claim",
   "sources": {
     "base.c": {
@@ -148,7 +148,7 @@
       "manifest": {
         "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
         "input_sha256": "80589c0f25b73aeb8b4396806a0d0d867a1e1cd9d76e34f7ebcb47b8dd2bbbaf",
-        "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/func_replay_bonus_801183B8-compiler-residue/base_1.i",
+        "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/_replayBonusDrawCreditsRow-compiler-residue/base_1.i",
         "flags": [
           "-O2",
           "-mips1",
@@ -487,7 +487,7 @@
       "manifest": {
         "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
         "input_sha256": "7e15fbc6bb9bf8a4dc2252f06f378ca68ec5db3b150ce95dc0145735b33ee146",
-        "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/func_replay_bonus_801183B8-compiler-residue/base_2.i",
+        "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/_replayBonusDrawCreditsRow-compiler-residue/base_2.i",
         "flags": [
           "-O2",
           "-mips1",
@@ -729,7 +729,7 @@
     "wrapper": {
       "returncode": 33,
       "object_created": false,
-      "source": "tools/giveups/func_replay_bonus_801183B8/sessions/694e31a0545e4cca87e61ca5ce86e097/5f7b7d483e7ac2c30aac/base_perm_04d26e42d330443f.c"
+      "source": "tools/giveups/_replayBonusDrawCreditsRow/sessions/694e31a0545e4cca87e61ca5ce86e097/5f7b7d483e7ac2c30aac/base_perm_04d26e42d330443f.c"
     }
   },
   "experiments": [

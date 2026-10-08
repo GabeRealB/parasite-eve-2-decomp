@@ -71,7 +71,7 @@ rm -f "${CPP_OUTPUT}.d"
 # string equality (maspsx/__init__.py: `line in ("#.set\tvolatile", ...)`), so
 # the annotated one slips through and is counted as a real instruction - which
 # shows up as phantom branch/delete penalties and can score a perfect match
-# below 100%. func_replay_bonus_80117E04 read 99.430% here and 100.000% without
+# below 100%. _replayBonusDrawCreditsFrame read 99.430% here and 100.000% without
 # -dp. Strip the annotation from just those two markers; every other -dp uid is
 # left alone, because dump.sh joins the .s to its RTL dumps through them.
 sed -i -E 's/^([[:space:]]*#?\.set[[:space:]]+(no)?volatile)[[:space:]]+#.*$/\1/' "$CC_OUTPUT"

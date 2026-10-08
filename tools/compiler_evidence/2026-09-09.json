@@ -1444,8 +1444,8 @@
     },
     {
       "name": "replay11",
-      "function": "func_replay_bonus_801183B8",
-      "archived_input": "tools/giveups/func_replay_bonus_801183B8/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_11.i.gz",
+      "function": "_replayBonusDrawCreditsRow",
+      "archived_input": "tools/giveups/_replayBonusDrawCreditsRow/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_11.i.gz",
       "input_sha256": "40ca3ac39a46293fe63a4c4ddc09337db24ececf549c1a6899ea99818fe91f78",
       "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
       "observer_sha256_at_run": "b0773bcf421531d9c1923846ce12c4a733c9e94bf6174e1f6633cec52e5f1a9b",
@@ -1675,8 +1675,8 @@
     },
     {
       "name": "replay23",
-      "function": "func_replay_bonus_801183B8",
-      "archived_input": "tools/giveups/func_replay_bonus_801183B8/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_23.i.gz",
+      "function": "_replayBonusDrawCreditsRow",
+      "archived_input": "tools/giveups/_replayBonusDrawCreditsRow/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_23.i.gz",
       "input_sha256": "863b368b5537fb90195ccea32541f48807cf3f9ef86310802f3cc933912a9073",
       "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
       "observer_sha256_at_run": "cb81afd367b6cc7f24785e835c4e571b6fa34dee0c441177225e5aa0720696b1",
@@ -1953,8 +1953,8 @@
     },
     {
       "name": "replay33sched",
-      "function": "func_replay_bonus_801183B8",
-      "archived_input": "tools/giveups/func_replay_bonus_801183B8/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_33.i.gz",
+      "function": "_replayBonusDrawCreditsRow",
+      "archived_input": "tools/giveups/_replayBonusDrawCreditsRow/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_33.i.gz",
       "input_sha256": "5c2c1067c966b42df5cd1cdb1d4045d2561f16476f20b62a5550dce20805857f",
       "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
       "observer_sha256_at_run": "cb81afd367b6cc7f24785e835c4e571b6fa34dee0c441177225e5aa0720696b1",
@@ -2495,8 +2495,8 @@
     },
     {
       "name": "replay5",
-      "function": "func_replay_bonus_801183B8",
-      "archived_input": "tools/giveups/func_replay_bonus_801183B8/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_33.i.gz",
+      "function": "_replayBonusDrawCreditsRow",
+      "archived_input": "tools/giveups/_replayBonusDrawCreditsRow/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_33.i.gz",
       "input_sha256": "f32a1acb655a2541f0d77e76769e093a669e6fbcce9c4459f40037393861dbf9",
       "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
       "observer_sha256_at_run": "b0773bcf421531d9c1923846ce12c4a733c9e94bf6174e1f6633cec52e5f1a9b",
@@ -2702,7 +2702,7 @@
         }
       ],
       "intervention": {
-        "parent": "tools/giveups/func_replay_bonus_801183B8/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_33.i.gz",
+        "parent": "tools/giveups/_replayBonusDrawCreditsRow/sessions/1b6f7aef07844a02b7ca6d3bf6402bca/e18ee77eabc4be99270e/base_33.i.gz",
         "replace_first": "                        __asm__(\"\");\n                        __asm__(\"\");\n                        __asm__(\"\");\n                        __asm__(\"\");\n                        __asm__(\"\");\n                        __asm__(\"\");\n",
         "with": "                        __asm__(\"\");\n                        __asm__(\"\");\n                        __asm__(\"\");\n                        __asm__(\"\");\n                        __asm__(\"\");\n",
         "prediction": "brightness priority 911 exceeds palette 909, brightness gets fp, palette has no home",

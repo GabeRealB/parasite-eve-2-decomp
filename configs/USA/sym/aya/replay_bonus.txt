@@ -33,3 +33,6 @@ _replayBonusSelectCreditsResource = 0x80118f00; // type:func
 replayBonusCompleteBonusPanelTask = 0x80115ed0; // type:func
 _replayBonusWaitForAwardUi = 0x801178c0; // type:func
 _replayBonusAwardScreenTask = 0x8011797c; // type:func
+_replayBonusStartCreditsPictureTask = 0x80118c64; // type:func
+_replayBonusDrawCreditsRow = 0x801183b8; // type:func
+_replayBonusDrawCreditsFrame = 0x80117e04; // type:func

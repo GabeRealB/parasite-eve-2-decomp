@@ -5343,7 +5343,8 @@ case 1:
 GCC still cross-jumps the two calls into one `jal` (shared tail after
 case 1). The two `t = index` / `taskKill(index)` copies fill the `bnez` /
 `beqz` delays as `move a0, s0`, and the merged `jal` keeps a `nop`.
-`func_replay_bonus_80118C64` is the example. A function-scope
+`_replayBonusStartCreditsPictureTask` was the example; its current calls use
+`task` directly and compile to the same instructions. A function-scope
 `register Task *t asm("a0")` pin is the wrong fix: it reserves `$a0`
 through the spawn call as well.
 
@@ -67253,13 +67254,13 @@ been casting the qualifier away to match; the declaration was the artefact.
 
 ## Replay Bonus: control the reload's insertion point with a direct field store
 
-In `func_replay_bonus_801183B8`, correcting the first schedule's draw constant
+In `_replayBonusDrawCreditsRow`, correcting the first schedule's draw constant
 and x advance still failed after reload: the stack-y load acquired true
 dependencies on every preceding dimension/UV field store. Moving the direct
-`sprt->y0 = y - gh` store before those stores put the reload earlier; sched2
+`imageSprite->y0 = bottomY - heightValue` store before those stores put the reload earlier; sched2
 then moved the y0 store itself back to the target position. This reduced
 distance300 to60 without another asm helper or a register change. Computing a
-named `top = y - gh` instead had introduced loop-hoisted code and regressed.
+named `top = bottomY - heightValue` instead had introduced loop-hoisted code and regressed.
 Choose the source use that locates the reload, then inspect both schedules;
 moving only the arithmetic that fills the eventual load gap is insufficient.
 
@@ -67287,9 +67288,9 @@ The next session matched Replay Bonus by giving the existing flags read its
 own byte local before computing the page:
 
 ```c
-pageFlags = sprites[idx].flags;
-page = (u32)(tpageX & 0x3FF) >> 6;
-dr->code[0] = ((pageFlags & 3) << 7) | otherPageBits;
+drawPixelMode = D_replay_bonus_8011929C[imageIndex].pixelMode;
+texturePageColumn = (u32)(texturePageX & 0x3FF) >> 6;
+drawPage->code[0] = ((drawPixelMode & 3) << 7) | otherPageBits;
 ```
 
 This puts metadata-address expansion before the mask in RTL without keeping
@@ -148427,26 +148428,26 @@ register to `count` and everything shifts. What keeps it in the loop:
   not a second instance: `columnCount = 2` at the top of the function is a
   `REG_EQUIV` pseudo that gets no register and reload rematerialises it.
 
-### Unresolved, with the mechanism measured: the two barriers of func_replay_bonus_801183B8 (2026-10-05)
+### Unresolved, with the mechanism measured: the two barriers of _replayBonusDrawCreditsRow (2026-10-05)
 
 Removing both `SOFT_USE_REG` lines leaves 13 differing instructions, all one
-swap: `gh` and `gv` exchange `$t4`/`$t5` in the glyph loop and the sprite loop.
+swap: `heightValue` and `textureV` exchange `$t4`/`$t5` in the glyph loop and the sprite loop.
 Removing either one alone is worse, because they compensate each other:
 
-- `gh` has to be allocated before `gv`. Without barriers both have 17
-  weighted refs; `gv` lives 135 insns (0.504) and `gh` 157 (0.433). The
-  `SOFT_USE_REG2(piece, gh)` gives `gh` three refs (20 / 158 = 0.506); the
-  `SOFT_USE_REG(gv)` stretches `gv` to the end of the glyph body (20 / 183 =
+- `heightValue` has to be allocated before `textureV`. Without barriers both have 17
+  weighted refs; `textureV` lives 135 insns (0.504) and `heightValue` 157 (0.433). The
+  `SOFT_USE_REG2(pieceWidth, heightValue)` gives `heightValue` three refs (20 / 158 = 0.506); the
+  `SOFT_USE_REG(textureV)` stretches `textureV` to the end of the glyph body (20 / 183 =
   0.437).
-- The `gv` barrier's two extra insns also decide `clut` (5 refs / 110) against
+- The `textureV` barrier's two extra insns also decide `clutId` (5 refs / 110) against
   the hoisted `%hi(D_replay_bonus_801192AC)` (19 / 836): 10/110 and 76/836 are
-  both 0.0909, and the lower pseudo (`clut`) wins the tie and `$fp`. With both
-  barriers gone `clut` is at 109 and wins outright.
+  both 0.0909, and the lower pseudo (`clutId`) wins the tie and `$fp`. With both
+  barriers gone `clutId` is at 109 and wins outright.
 
-So the natural source has to give `gh` one more inner-loop reference than
-`gv`, or a shorter life. Tried without effect: every integer type for each of
+So the natural source has to give `heightValue` one more inner-loop reference than
+`textureV`, or a shorter life. Tried without effect: every integer type for each of
 18 locals, all 24 orders of the four glyph loads and of the four sprite
-loads, the page flag computed next to the height. `clut` is `getClut(...)`;
+loads, the page flag computed next to the height. `clutId` is `getClut(...)`;
 the `clutY` local was not needed.
 
 ### A temporary feeding `aN = temp + K` sits in `$aN` only once the parameter that arrived there is dead: read the parameter last (playerActorTurnAimTowardPoint, 2026-10-05)
@@ -152586,57 +152587,57 @@ constant means it will sink; ask for a block boundary between it and the call
 before asking for a second set. A load that stays behind a store it does not
 depend on, in the same place, is the same boundary.
 
-### Two barriers that stood for two references: a chained load through a variable that is set again (func_replay_bonus_801183B8, 2026-10-07)
+### Two barriers that stood for two references: a chained load through a variable that is set again (_replayBonusDrawCreditsRow, 2026-10-07)
 
-**Was.** `SOFT_USE_REG(gv);` in the glyph loop and `SOFT_USE_REG2(piece, gh);`
+**Was.** `SOFT_USE_REG(textureV);` in the glyph loop and `SOFT_USE_REG2(pieceWidth, heightValue);`
 in the sprite loop, each sitting inside a hand-expanded `addPrim` (`glyphOt` /
 `glyphTag` / `drawTag` locals existed only to give the barriers a place).
-Without both, `gh` and `gv` exchange `$t4`/`$t5` (24 differing lines).
+Without both, `heightValue` and `textureV` exchange `$t4`/`$t5` (24 differing lines).
 
 **The two sites are two separate constraints** (the 2026-10-05 entry "the two
-barriers of func_replay_bonus_801183B8" has the numbers but treated them as
+barriers of _replayBonusDrawCreditsRow" has the numbers but treated them as
 one):
 
-- A. `gh` (pseudo 99) has to be allocated before `gv` (95). Barrier-free both
-  have 17 weighted references; `gv` lives 135 insns (5037), `gh` 157 (4331).
+- A. `heightValue` (pseudo 99) has to be allocated before `textureV` (95). Barrier-free both
+  have 17 weighted references; `textureV` lives 135 insns (5037), `heightValue` 157 (4331).
   The sprite-loop barrier alone fixes this: 20 / 158 = 5063.
-- B. `clut` (5 refs / 109) has to stay ahead of the hoisted
+- B. `clutId` (5 refs / 109) has to stay ahead of the hoisted
   `%hi(D_replay_bonus_801192AC)` (19 / 832) for `$fp`: 917 against 913. This
   is true with no barrier at all. The sprite-loop barrier breaks it (its insn
-  costs `clut` 1 and the `%hi` 2: 909.09 against 911), and the glyph-loop
+  costs `clutId` 1 and the `%hi` 2: 909.09 against 911), and the glyph-loop
   barrier existed only to repair that (two more insns for the `%hi`, 836: a
-  tie, lower pseudo wins). So the `gv` barrier never had anything to do with
-  `gv`.
+  tie, lower pseudo wins). So the `textureV` barrier never had anything to do with
+  `textureV`.
 
-**What cannot move.** The lengths. `gh` runs from its `lbu` to the page-flag
+**What cannot move.** The lengths. `heightValue` runs from its `lbu` to the page-flag
 `srl`, which has to follow the last use of the masked height (they share
-`$a0`); `gv` ends at `gv + height`, which has to precede `y - height`. Both
+`$a0`); `textureV` ends at `textureV + glyphHeight`, which has to precede `bottomY - glyphHeight`. Both
 are live across the whole sprite loop. Separate glyph-loop locals for any of
-`gh`/`gu`/`gv` change the frame and 118-293 lines, so the sharing is right.
-Every visible reference is an instruction of the image, so `gh` needs 20 or
+`heightValue`/`textureU`/`textureV` change the frame and 118-293 lines, so the sharing is right.
+Every visible reference is an instruction of the image, so `heightValue` needs 20 or
 more references with nothing added: phantom ones.
 
 **Fix (fitted).** In the sprite's load run:
 
 ```c
-gv = gh = D_replay_bonus_8011929C[idx].v;
-gh = D_replay_bonus_8011929C[idx].height;
+textureV = heightValue = D_replay_bonus_8011929C[imageIndex].v;
+heightValue = D_replay_bonus_8011929C[imageIndex].height;
 ```
 
-Flow counts `gh`'s set and the copy's use (2 + 2 at that depth); combine
-merges the load into the copy (`(set gv:HI (zero_extend:HI (mem:QI)))`, the
-image's `lbu t5,9(v1)`), and because `gh` has other sets its count is not
+Flow counts `heightValue`'s set and the copy's use (2 + 2 at that depth); combine
+merges the load into the copy (`(set textureV:HI (zero_extend:HI (mem:QI)))`, the
+image's `lbu t5,9(v1)`), and because `heightValue` has other sets its count is not
 reset: `Register 99 used 21 times across 157 insns`, 5350. No insn is added,
 so B holds by itself. No statement is needed between the load and the copy
 here, unlike itemMenuDrawPlayerStats (measured; presumably because the copy is `HI`
-from `SI` and cse's copy swap wants equal modes - not checked in the dumps). The same thing through `gu`, or in the glyph loop through
-`width`, gives the right order too but moves one `lbu` (the merged load sits
+from `SI` and cse's copy swap wants equal modes - not checked in the dumps). The same thing through `textureU`, or in the glyph loop through
+`drawWidth`, gives the right order too but moves one `lbu` (the merged load sits
 where the copy was).
 
-With the barriers gone both links are the plain `addPrim(gGpuCurrentOt + 10,
-p)`; the "redundant `getaddr(ot) & 0xFFFFFF`" of the 2026-09-09 entry was
+With the barriers gone both links are the plain `addPrim(gGpuCurrentOt + REPLAY_BONUS_CREDITS_TEXT_OT_INDEX,
+glyphQuad)`; the "redundant `getaddr(ot) & 0xFFFFFF`" of the 2026-09-09 entry was
 only needed beside the barrier. Fitted constructs 2 barriers + 2 hand-expanded
-links -> 1 chained assignment. That `gh` carried `v` first is read off the
+links -> 1 chained assignment. That `heightValue` carried `v` first is read off the
 allocation only; which value the original passed through it is not known.
 
 **Use.** When two barriers "compensate each other", print the allocation

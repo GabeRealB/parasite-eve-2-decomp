@@ -1,5 +1,5 @@
 {
-  "function": "func_replay_bonus_801183B8",
+  "function": "_replayBonusDrawCreditsRow",
   "scope": "Bounded scratch matching attempt; no exact match, semantic proof or integration claim",
   "session": {
     "id": "d132ce656e3347ba8606277775b2d6b0",
@@ -335,7 +335,7 @@
       "path": "PERMUTER_EVIDENCE/manual/page-narrow",
       "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
       "input_sha256": "e8c218c3e53f872551bd7b79a2eb70bddbc322e08829dc2f82309f6fd76c3cf2",
-      "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/func_replay_bonus_801183B8-constraint-match/base_16.i",
+      "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/_replayBonusDrawCreditsRow-constraint-match/base_16.i",
       "flags": [
         "-O2",
         "-mips1",
@@ -387,7 +387,7 @@
       "path": "PERMUTER_EVIDENCE/manual/remaining-reloads",
       "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
       "input_sha256": "b1c205f8b0c5c73d6d9fb9a7a9dd9c11a18cd9ed3df0969aee9fed62942fc366",
-      "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/func_replay_bonus_801183B8-constraint-match/base_27.i",
+      "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/_replayBonusDrawCreditsRow-constraint-match/base_27.i",
       "flags": [
         "-O2",
         "-mips1",
@@ -439,7 +439,7 @@
       "path": "PERMUTER_EVIDENCE/manual/final-mask",
       "compiler_sha256": "60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd",
       "input_sha256": "a0d8264b4f6505e32d7acd3d62a83556ad0f6caaa03474b9b73ae29a86b2dc60",
-      "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/func_replay_bonus_801183B8-constraint-match/base_38.i",
+      "input_origin": "/home/gabriel/parasite-eve-2-decomp/nonmatchings/_replayBonusDrawCreditsRow-constraint-match/base_38.i",
       "flags": [
         "-O2",
         "-mips1",
@@ -1102,7 +1102,7 @@
     "PERMUTER_EVIDENCE/manual/constraint-pairs",
     "PERMUTER_EVIDENCE/36de27ab0b77444c/manifest.json"
   ],
-  "archive": "tools/giveups/func_replay_bonus_801183B8/sessions/d132ce656e3347ba8606277775b2d6b0/deb4dda975ed9565169b",
-  "permuter_archive": "tools/permuter_findings/func_replay_bonus_801183B8/sessions/d132ce656e3347ba8606277775b2d6b0/deb4dda975ed9565169b",
+  "archive": "tools/giveups/_replayBonusDrawCreditsRow/sessions/d132ce656e3347ba8606277775b2d6b0/deb4dda975ed9565169b",
+  "permuter_archive": "tools/permuter_findings/_replayBonusDrawCreditsRow/sessions/d132ce656e3347ba8606277775b2d6b0/deb4dda975ed9565169b",
   "resolved_by": "2026-09-09-replay-final-match.json"
 }
