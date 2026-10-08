@@ -56,17 +56,13 @@
 
 #include "mapui/map_akropolis.h"
 
-/// Main-executable byte with no module header yet; `+ 1` seeds the slot-3
-/// msg 0x3E8 record's `field_0` in `func_acropolis_helicopter_landing_pad_8017DA9C`.
-
 /// Turn-to-heading task state: current unwrapped yaw and signed step.
 extern s32   D_acropolis_helicopter_landing_pad_80187F74;
 extern s32   D_acropolis_helicopter_landing_pad_80187F78;
 extern s16   D_acropolis_helicopter_landing_pad_80187F7C;
 extern Task* D_acropolis_helicopter_landing_pad_80187F80;
 
-/// Three `padScriptSpawn` argument pairs used by the state timeline in
-/// `func_acropolis_helicopter_landing_pad_8017DE78`, one pair per phase.
+/// Vibration programs paired with the departure timeline's screen shakes.
 extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D40[2];
 extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D48[2];
 extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D50[4];
@@ -74,8 +70,28 @@ extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D60[2];
 extern PadScriptCmd              D_acropolis_helicopter_landing_pad_80187D68[4];
 extern PadScriptVibrationSegment D_acropolis_helicopter_landing_pad_80187D78[2];
 
-static void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1);
-static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task);
+static void _acropolisHelicopterLandingPadSpawnScreenShake(s32 halfDurationFrames, s32 amplitudePixels);
+static void _acropolisHelicopterLandingPadInitRoom(Task* task);
+
+/// Script-task indices in the landing pad's shared descriptor table.
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PREPARE_DEPARTURE = 0,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_MOVE_PLAYER       = 1,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_SCREEN_SHAKE      = 2,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_SHAKE_TIMELINE    = 3,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_CONFIRM_DEPARTURE = 4,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_RETURN_TO_MIST    = 5,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_TURN_PLAYER       = 6,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PLAYER_PITCH      = 7,
+};
+
+/// Encounter/departure phases consulted by the room's departure callbacks.
+enum {
+    ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_WAITING            = 0,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_ENCOUNTER_FINISHED = 2,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_DEPARTURE_ACCEPTED = 3,
+    ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_DEPARTURE_READY    = 4,
+};
 
 /// A debug format string nothing in the room reads.
 static const char D_acropolis_helicopter_landing_pad_8017D5D0[] = "%s (%5d,%5d,%5d)";
@@ -84,7 +100,7 @@ static const char D_acropolis_helicopter_landing_pad_8017D5D0[] = "%s (%5d,%5d,%
 /// `acropolisHelicopterLandingPadRoomTask`, indexed by
 /// `Task::state`: set-up, the per-frame phase tick and `taskKill`.
 static const TaskFuncTable3 D_acropolis_helicopter_landing_pad_8017D5E4 = {
-    { func_acropolis_helicopter_landing_pad_8017EA6C, acropolisHelicopterLandingPadUpdateEncounterPhase, taskKill },
+    { _acropolisHelicopterLandingPadInitRoom, acropolisHelicopterLandingPadUpdateEncounterPhase, taskKill },
 };
 
 extern SpriteDrawArea D_acropolis_helicopter_landing_pad_80186C8C[2];
@@ -1233,106 +1249,134 @@ static inline s32 _acropolisHelicopterLandingPadSampleScreenShake(Task* task, s3
     return shakeSample;
 }
 
-/// Room state-machine task. State 0 resets the player weapon, posts 0x7D5 to
-/// slot-4 entry 1 on a second-or-later visit (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant`), stamps
-/// the save location with 0x12 and sets the override vector. States 1-4 wait
-/// for `gGameSession->viewReady`, post 0x7D9 to slot 4 on a first visit, then
-/// call `loadingRequestViewGraphicsRestore`. State 5 asks the scene task to look up child 0x28,
-/// plays that child's animation from a zeroed request, pushes the slot-3
-/// weapon record with `field_4 = 9`
-/// and hands the enemy's coordinate to slot 3 (0x3F5). State 6 queues CD
-/// command 0x21 on a first visit and arms a 0x78 frame countdown; state 7
-/// waits for the CD to go idle (or skips to 9 on a later visit); state 8
-/// registers the area object and spawns the area; state 9 starts the exit
-/// script pair and kills the task. Every frame, hitting countdown 0x5A queues
-/// sound event 0x51100003.
-void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
+void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task)
 {
-    u8      param1[8];
-    u8      param2[8];
-    SVECTOR vec;
-    Task*   spawned;
-    void*   coord;
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SETUP            = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_WAIT_VIEW        = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_EXIT_ACTORS      = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_WAIT_ACTOR_EXIT  = 3,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_RESTORE_VIEW     = 4,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_START_LIFT       = 5,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_LOAD_RESOURCES   = 6,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_WAIT_LOAD        = 7,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SPAWN_PLACEMENTS = 8,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_START_SCENE      = 9,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT          = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VIEW             = 18,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_CHILD                 = 40,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_PLAYER_CLIP      = 9,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_DELAY_FRAMES     = 120,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SOUND_REMAINING  = 90,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_REVISIT_HIDDEN_ACTOR       = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ACTOR_HIDE_MODEL           = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_CD_FILE_KEY_BYTES          = 4,
+    };
+    u8        fileKey[ACROPOLIS_HELICOPTER_LANDING_PAD_CD_FILE_KEY_BYTES];
+    u8        loadArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
+    SVECTOR   ambientColor;
+    Task*     liftTask;
+    GfxCoord* liftCoord;
+
+    /// Enqueues the stage-zero departure bundle with its image-placement offsets.
+    ///
+    /// Expands to a compound statement and repeatedly evaluates both arguments.
+    /// They must be side-effect-free, distinct writable byte arrays of at least
+    /// four bytes. Enqueue copies the consumed bytes synchronously and ignores
+    /// key byte 1. Captures no local identifiers; subsequent calls retain their
+    /// original order. Kept as a macro so stores address the caller's arrays directly.
+#define ACROPOLIS_HELICOPTER_LANDING_PAD_QUEUE_DEPARTURE_RESOURCES(fileKey, loadArgs) \
+    {                                                                                 \
+        enum {                                                                        \
+            ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_FILE_GROUP    = 51,            \
+            ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_FILE_HUNDREDS = 10,            \
+            ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_IMAGE_X_PAGES = 3,             \
+            ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_IMAGE_Y_ROWS  = 5,             \
+        };                                                                            \
+        (fileKey)[2]  = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_FILE_GROUP;        \
+        (loadArgs)[0] = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_FILE_HUNDREDS;     \
+        (loadArgs)[2] = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_IMAGE_X_PAGES;     \
+        (fileKey)[3]  = 0;                                                            \
+        (fileKey)[0]  = 0;                                                            \
+        (loadArgs)[1] = CD_COMMAND_LOAD_DEFAULT;                                      \
+        (loadArgs)[3] = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_IMAGE_Y_ROWS;      \
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, (fileKey), (loadArgs));                    \
+        func_800ABFF8();                                                              \
+        func_800AC000();                                                              \
+    }
 
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SETUP:
             task->spawnArg1.value = 0;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             task->state += 1;
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
-                taskMessageDispatch(sceneFindPlacedActor(1), ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
+                taskMessageDispatch(sceneFindPlacedActor(ACROPOLIS_HELICOPTER_LANDING_PAD_REVISIT_HIDDEN_ACTOR), ACTOR_MESSAGE_SET_MODEL_DRAW, ACROPOLIS_HELICOPTER_LANDING_PAD_ACTOR_HIDE_MODEL, 0);
             }
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x12;
-            vec.vx                                                     = 0x4B0;
-            vec.vy                                                     = 0x4B0;
-            vec.vz                                                     = 0x610;
-            worldCoordSetAmbientColorOverride(&vec);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VIEW;
+            ambientColor.vx                                            = 1200;
+            ambientColor.vy                                            = 1200;
+            ambientColor.vz                                            = 1552;
+            worldCoordSetAmbientColorOverride(&ambientColor);
             break;
-        case 1:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_WAIT_VIEW:
             if (gGameSession->viewReady != 0) {
                 task->state += 1;
             }
             break;
-        case 2:
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < 2) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_EXIT_ACTORS:
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_EXIT_PLACED_ACTORS, 0, 0);
             }
             task->state += 1;
             break;
-        case 3:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_WAIT_ACTOR_EXIT:
             task->state += 1;
             break;
-        case 4:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_RESTORE_VIEW:
             loadingRequestViewGraphicsRestore();
             task->state += 1;
             break;
-        case 5:
-            TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_OTHER_CHILD, 0x28, &spawned);
-            TASK_MESSAGE_DISPATCH_POINTER(spawned, 0x7D3, &D_acropolis_helicopter_landing_pad_80184E28, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
-            D_acropolis_helicopter_landing_pad_80184E3C.animationId  = 9;
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_START_LIFT:
+            // Place in the lift's frame before attaching the player to its root.
+            TASK_MESSAGE_DISPATCH_SECOND_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_FIND_OTHER_CHILD, ACROPOLIS_HELICOPTER_LANDING_PAD_LIFT_CHILD, &liftTask);
+            TASK_MESSAGE_DISPATCH_POINTER(liftTask, ACTOR_MESSAGE_PLAY_ANIMATION, &D_acropolis_helicopter_landing_pad_80184E28, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &D_acropolis_helicopter_landing_pad_801837B0, 0);
+            D_acropolis_helicopter_landing_pad_80184E3C.animationId  = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_PLAYER_CLIP;
             D_acropolis_helicopter_landing_pad_80184E3C.source.index = gPlayerStatus.weapon + 1;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_acropolis_helicopter_landing_pad_80184E3C, 0);
-            coord = spawned->extra.tmd->coords;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3F5, coord, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x3E9, &D_acropolis_helicopter_landing_pad_801837B0, 0);
+            liftCoord = liftTask->extra.tmd->coords;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, liftCoord, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_PLACE, &D_acropolis_helicopter_landing_pad_801837B0, 0);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             task->state += 1;
             break;
-        case 6:
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < 2) {
-                param1[2] = 0x33;
-                param2[0] = 0xA;
-                param2[2] = 3;
-                param1[3] = 0;
-                param1[0] = 0;
-                param2[1] = 0;
-                param2[3] = 5;
-                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-                func_800ABFF8();
-                func_800AC000();
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_LOAD_RESOURCES:
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant < ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
+                ACROPOLIS_HELICOPTER_LANDING_PAD_QUEUE_DEPARTURE_RESOURCES(fileKey, loadArgs);
             }
-            task->spawnArg1.value = 0x78;
+            task->spawnArg1.value = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_DELAY_FRAMES;
             task->state          += 1;
             break;
-        case 7:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_WAIT_LOAD:
             task->spawnArg1.value -= 1;
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= 2) {
-                task->state = 9;
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.variant >= ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT) {
+                task->state = ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_START_SCENE;
             } else if (cdCmdIsIdle()) {
                 loadingRequestViewGraphicsRestore();
                 task->state += 1;
             }
             break;
-        case 8:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SPAWN_PLACEMENTS:
             task->spawnArg1.value -= 1;
-            areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
+            // The newly loaded actor variant must be spawned before the scene script.
+            areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_VARIANT, AREA_VARIANT_RESET_ALWAYS);
             areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
             areaSpawnPlacements(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
-            D_acropolis_helicopter_landing_pad_80184D9C = 4;
+            D_acropolis_helicopter_landing_pad_80184D9C = ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_DEPARTURE_READY;
             task->state                                += 1;
             break;
-        case 9:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_START_SCENE:
             task->spawnArg1.value -= 1;
             if (task->spawnArg1.value <= 0) {
                 evsStartScriptWithSkip(D_acropolis_helicopter_landing_pad_8018467C, EVENT_SCRIPT_HUD_KEEP,
@@ -1341,74 +1385,97 @@ void func_acropolis_helicopter_landing_pad_8017DA9C(Task* task)
             }
             break;
     }
-    if (task->spawnArg1.value == 0x5A) {
+    if (task->spawnArg1.value == ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_SOUND_REMAINING) {
         sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_HELICOPTER_LANDING_PAD, 3), 0, 0);
     }
 }
+#undef ACROPOLIS_HELICOPTER_LANDING_PAD_QUEUE_DEPARTURE_RESOURCES
 
-/// Frame-counted timeline task: three phases, each spawning the enemy task
-/// (`func_..._8017E618`) and, a few frames later, a script-18 pair; kills
-/// itself at frame 0x280.
-void func_acropolis_helicopter_landing_pad_8017DE78(Task* task)
+void acropolisHelicopterLandingPadDepartureShakeTimelineTask(Task* task)
 {
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_FIRST_FRAME        = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_FIRST_FRAME    = 7,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_REPEAT_FRAME       = 200,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_REPEAT_FRAME   = 207,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_SECOND_FRAME       = 410,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_SECOND_FRAME   = 421,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_THIRD_FRAME        = 520,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_THIRD_FRAME    = 535,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_TIMELINE_END_FRAME = 640,
+    };
+
+    // Screen impulses precede the corresponding controller vibration cues.
     switch (task->state) {
-        case 0xC8:
-        case 0x0:
-            func_acropolis_helicopter_landing_pad_8017E618(0xF, 2);
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_REPEAT_FRAME:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_FIRST_FRAME:
+            _acropolisHelicopterLandingPadSpawnScreenShake(15, 2);
             break;
-        case 0x7:
-        case 0xCF:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_FIRST_FRAME:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_REPEAT_FRAME:
             padScriptSpawn(D_acropolis_helicopter_landing_pad_80187D68, D_acropolis_helicopter_landing_pad_80187D78);
             break;
-        case 0x19A:
-            func_acropolis_helicopter_landing_pad_8017E618(0x16, 3);
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_SECOND_FRAME:
+            _acropolisHelicopterLandingPadSpawnScreenShake(22, 3);
             break;
-        case 0x1A5:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_SECOND_FRAME:
             padScriptSpawn(D_acropolis_helicopter_landing_pad_80187D50, D_acropolis_helicopter_landing_pad_80187D60);
             break;
-        case 0x208:
-            func_acropolis_helicopter_landing_pad_8017E618(0x1E, 4);
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_THIRD_FRAME:
+            _acropolisHelicopterLandingPadSpawnScreenShake(30, 4);
             break;
-        case 0x217:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_VIBRATION_THIRD_FRAME:
             padScriptSpawn(D_acropolis_helicopter_landing_pad_80187D40, D_acropolis_helicopter_landing_pad_80187D48);
             break;
-        case 0x280:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_TIMELINE_END_FRAME:
             taskKill(task);
             break;
     }
     task->state += 1;
 }
 
-void func_acropolis_helicopter_landing_pad_8017DFCC(Task* arg0)
+void acropolisHelicopterLandingPadReturnToMistTask(Task* task)
 {
-    s32 temp_v1;
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_PREPARE        = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WAIT_MOVIE     = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_RELOAD         = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_ITEM_MICRO_DEVICE     = 0x102,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_DIALOGUE       = 7,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SCENE_EVENT    = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WARP           = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_ROOM           = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SPRITE_VARIANT = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_MOVIE_TASK     = 0,
+    };
 
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
-        case 0:
+    switch (task->state) {
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_PREPARE:
+            // Reset Acropolis rewards and progress before the streamed interlude.
             playerStateRestoreFullHpMp();
             inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_PARTHENON_KEY);
-            inventoryClearCollectedBit(0x102);
-            itemSetIdentified(0x102, 1);
+            inventoryClearCollectedBit(ACROPOLIS_HELICOPTER_LANDING_PAD_ITEM_MICRO_DEVICE);
+            itemSetIdentified(ACROPOLIS_HELICOPTER_LANDING_PAD_ITEM_MICRO_DEVICE, true);
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 7);
-            taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184E68, 0, 0, 0);
-            arg0->state = (s32)(arg0->state + 1);
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_DIALOGUE);
+            taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184E68, ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_MOVIE_TASK, 0, 0);
+            task->state += 1;
             return;
-        case 1:
-            arg0->state = 2;
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WAIT_MOVIE:
+            task->state = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_RELOAD;
             return;
-        case 2:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_RELOAD:
+            // The movie task holds the task list while playback owns the display.
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent         = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SCENE_EVENT;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MIST_R18;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant                                 = 1;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_WARP;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_ROOM;
+            gDisplayState.spriteVariant                                 = ACROPOLIS_HELICOPTER_LANDING_PAD_RETURN_SPRITE_VARIANT;
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
             displayReleaseMenuHold();
-            taskKill(arg0);
+            taskKill(task);
             return;
     }
 }
@@ -1535,30 +1602,34 @@ void acropolisHelicopterLandingPadPlayerPitchPulseTask(Task* task)
     }
 }
 
-/// Message 0x13EE handler: copies the requested `RoomEventMsg` to `dst`. For a
-/// warp into stage 0xF it consults the room's phase
-/// (`D_acropolis_helicopter_landing_pad_80184D9C`): phase 0 queues sound
-/// event 0x1E and refuses the warp (returns 1); phase 2 starts cap slot 9
-/// first. `queryOnly` set skips the side effect either way.
-s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+s32 acropolisHelicopterLandingPadResolveDeparture(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    if (src->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
-        if (D_acropolis_helicopter_landing_pad_80184D9C == 0) {
-            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                sndEvtRequestScriptStop(-1, 0x1E);
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_CAP_SLOT = 9,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_WARP_ORDINARY      = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_WARP_ROOM_HANDLED  = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_STOP_SELECTOR = -1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_STOP_CONTROL  = 30,
+    };
+
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_FIRE_ESCAPE) {
+        if (D_acropolis_helicopter_landing_pad_80184D9C == ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_WAITING) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                // This exact-entry selector matches idle sound slots; its purpose is unproven.
+                sndEvtRequestScriptStop(ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_STOP_SELECTOR, ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_STOP_CONTROL);
             }
-            return 1;
+            return ACROPOLIS_HELICOPTER_LANDING_PAD_WARP_ORDINARY;
         }
-        if (D_acropolis_helicopter_landing_pad_80184D9C == 2) {
-            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                capStartSequenceSlot(9, 1, 0);
+        if (D_acropolis_helicopter_landing_pad_80184D9C == ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_ENCOUNTER_FINISHED) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capStartSequenceSlot(ACROPOLIS_HELICOPTER_LANDING_PAD_DEPARTURE_CAP_SLOT, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
             }
-            return 0;
+            return ACROPOLIS_HELICOPTER_LANDING_PAD_WARP_ROOM_HANDLED;
         }
-        return 0;
+        return ACROPOLIS_HELICOPTER_LANDING_PAD_WARP_ROOM_HANDLED;
     }
-    return 1;
+    return ACROPOLIS_HELICOPTER_LANDING_PAD_WARP_ORDINARY;
 }
 
 s32 acropolisHelicopterLandingPadRefuseKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
@@ -1599,33 +1670,41 @@ s32 acropolisHelicopterLandingPadHandleRoomAction(Task* unusedTask, s32 unusedMe
     return 0;
 }
 
-s32 func_acropolis_helicopter_landing_pad_8017E570(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 acropolisHelicopterLandingPadHandleCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    if ((arg2 == 4) && (D_acropolis_helicopter_landing_pad_80184D9C == 2)) {
-        taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 4, 0, 0);
+    enum { ACROPOLIS_HELICOPTER_LANDING_PAD_COMMAND_CONFIRM_DEPARTURE = 4 };
+
+    if ((commandId == ACROPOLIS_HELICOPTER_LANDING_PAD_COMMAND_CONFIRM_DEPARTURE) && (D_acropolis_helicopter_landing_pad_80184D9C == ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_ENCOUNTER_FINISHED)) {
+        taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_CONFIRM_DEPARTURE, 0, 0);
     }
     return 0;
 }
 
-/// Spawns entry 3 of the room's task table.
-void func_acropolis_helicopter_landing_pad_8017E5B8(void)
+void acropolisHelicopterLandingPadStartDepartureShakeTimeline(void)
 {
-    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 3, 0, 0);
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_SHAKE_TIMELINE, 0, 0);
 }
 
-void func_acropolis_helicopter_landing_pad_8017E5E8(void)
+void acropolisHelicopterLandingPadStartPlayerMoveToSceneMark(void)
 {
-    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 1, 0, 0);
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_MOVE_PLAYER, 0, 0);
 }
 
-static void func_acropolis_helicopter_landing_pad_8017E618(s32 arg0, s32 arg1)
+/// Spawns one triangular vertical shake from a duration and signed pixel amplitude.
+///
+/// Half-duration is 1..255 updates; the amplitude's left shift and the shake
+/// task's signed products must fit s32. Authored amplitudes are 2, 3 and 4.
+/// Packs the duration into bits 0..7 and the amplitude above it; retains no pointer.
+static void _acropolisHelicopterLandingPadSpawnScreenShake(s32 halfDurationFrames, s32 amplitudePixels)
 {
-    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 2, 0, arg0 | (arg1 << 8));
+    enum { ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_AMPLITUDE_SHIFT = 8 };
+
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_SCREEN_SHAKE, 0, halfDurationFrames | (amplitudePixels << ACROPOLIS_HELICOPTER_LANDING_PAD_SHAKE_AMPLITUDE_SHIFT));
 }
 
-void func_acropolis_helicopter_landing_pad_8017E64C(void)
+void acropolisHelicopterLandingPadStartReturnToMist(void)
 {
-    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 5, 0, 0);
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_RETURN_TO_MIST, 0, 0);
 }
 
 void acropolisHelicopterLandingPadPlacePlayerAfterEncounter(void)
@@ -1635,9 +1714,9 @@ void acropolisHelicopterLandingPadPlacePlayerAfterEncounter(void)
     }
 }
 
-void func_acropolis_helicopter_landing_pad_8017E6C0(s32 arg0)
+void acropolisHelicopterLandingPadStartPlayerYawTurn(s32 targetYaw)
 {
-    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 6, arg0, 0);
+    taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_TURN_PLAYER, targetYaw, 0);
 }
 
 void acropolisHelicopterLandingPadReleaseEncounterBattle(void)
@@ -1721,19 +1800,30 @@ void acropolisHelicopterLandingPadScreenShakeTask(Task* task)
     }
 }
 
-void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
+void acropolisHelicopterLandingPadConfirmDepartureTask(Task* task)
 {
+    enum {
+        ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_START         = 0,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_CHECK_CHOICE  = 1,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_DELAY         = 2,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_WAIT_HOLD     = 3,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_DEPART        = 4,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_CAP_SLOT      = 4,
+        ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_CANCEL_CHOICE = 1,
+    };
+
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capStartSequenceSlot(4, 1, 0);
-        case 2:
-        case 3:
+            capStartSequenceSlot(ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_CAP_SLOT, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
+            // Fall through: starting the CAP also advances to the choice check.
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_DELAY:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_WAIT_HOLD:
             task->state++;
             break;
-        case 1:
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_CHECK_CHOICE:
             if (capIsBusy() == 0) {
-                if (D_801156A8 == 1) {
+                if (D_801156A8 == ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_CANCEL_CHOICE) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                     taskKill(task);
                     break;
@@ -1741,26 +1831,37 @@ void func_acropolis_helicopter_landing_pad_8017E974(Task* task)
                 displayAcquireMenuHold();
                 task->state++;
             }
+            // Advance even while CAP is busy; acceptance advances twice in this update.
             task->state++;
             break;
-        case 4:
-            D_acropolis_helicopter_landing_pad_80184D9C = 3;
-            taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 0, 0, 0);
+        case ACROPOLIS_HELICOPTER_LANDING_PAD_CONFIRM_DEPART:
+            D_acropolis_helicopter_landing_pad_80184D9C = ACROPOLIS_HELICOPTER_LANDING_PAD_PHASE_DEPARTURE_ACCEPTED;
+            taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PREPARE_DEPARTURE, 0, 0);
             taskKill(task);
             break;
     }
 }
 
-static void func_acropolis_helicopter_landing_pad_8017EA6C(Task* task)
+/// Initializes the room task's message routing, encounter gates and persistent pitch task.
+///
+/// Requires the room resources and task bank to remain loaded. Registers the
+/// task in the room slot, clears both encounter latches, starts the initial room sound script
+/// and disables placement trigger 4. The retained pitch task lives until room
+/// teardown; allocation failure is not checked. Advances to the room update state.
+static void _acropolisHelicopterLandingPadInitRoom(Task* task)
 {
+    enum { ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER = 4 };
+    WorldCollisionTrigger* placementTrigger;
+
     task->msgTable = D_acropolis_helicopter_landing_pad_80183710;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_acropolis_helicopter_landing_pad_80187F84 = 0;
     D_acropolis_helicopter_landing_pad_80184E0C = 0;
     task->state++;
     evsStartScript(D_acropolis_helicopter_landing_pad_80183A04, EVENT_SCRIPT_HUD_KEEP);
-    D_acropolis_helicopter_landing_pad_80187F80                 = taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, 7, 0, 0);
-    (D_acropolis_helicopter_landing_pad_80185E7C + 4)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+    D_acropolis_helicopter_landing_pad_80187F80 = taskSpawnFromTable(D_acropolis_helicopter_landing_pad_80184DA0, ACROPOLIS_HELICOPTER_LANDING_PAD_TASK_PLAYER_PITCH, 0, 0);
+    placementTrigger                            = &D_acropolis_helicopter_landing_pad_80185E7C[ACROPOLIS_HELICOPTER_LANDING_PAD_PLACEMENT_TRIGGER];
+    placementTrigger->flags                    &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
 }
 
 void acropolisHelicopterLandingPadRoomTask(Task* task)

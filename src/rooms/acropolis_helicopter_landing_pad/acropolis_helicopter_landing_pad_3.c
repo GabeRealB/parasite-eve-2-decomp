@@ -125,10 +125,10 @@ extern WorldCollisionGrid D_acropolis_helicopter_landing_pad_80185998[1];
 extern WorldCollisionTrigger D_acropolis_helicopter_landing_pad_801859BC[16];
 
 TaskMessageEntry D_acropolis_helicopter_landing_pad_80183710[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_helicopter_landing_pad_8017E3F0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, acropolisHelicopterLandingPadResolveDeparture },
     { ROOM_MESSAGE_USE_KEY_ITEM, acropolisHelicopterLandingPadRefuseKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, acropolisHelicopterLandingPadHandleRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_helicopter_landing_pad_8017E570 },
+    { ROOM_MESSAGE_COMMAND, acropolisHelicopterLandingPadHandleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -260,7 +260,7 @@ EvsCommand D_acropolis_helicopter_landing_pad_80183A34[58] = {
     { EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_acropolis_helicopter_landing_pad_8017E6C0 }, { .value = 3072 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = acropolisHelicopterLandingPadStartPlayerYawTurn }, { .value = 3072 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -395,7 +395,7 @@ EvsCommand D_acropolis_helicopter_landing_pad_8018467C[69] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_acropolis_helicopter_landing_pad_80183958 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1013 }, { .message = { .pointer = &gGfxViewCoord } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_801837C8 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E5E8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadStartPlayerMoveToSceneMark }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183750 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_acropolis_helicopter_landing_pad_80183998 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -434,7 +434,7 @@ EvsCommand D_acropolis_helicopter_landing_pad_8018467C[69] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 350 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E5B8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadStartDepartureShakeTimeline }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x313A0003 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -452,7 +452,7 @@ EvsCommand D_acropolis_helicopter_landing_pad_8018467C[69] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 32 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 2 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E64C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadStartReturnToMist }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -463,19 +463,19 @@ EvsCommand D_acropolis_helicopter_landing_pad_80184CF4[7] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_acropolis_helicopter_landing_pad_8017E64C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = acropolisHelicopterLandingPadStartReturnToMist }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 s32 D_acropolis_helicopter_landing_pad_80184D9C = 0;
 
 TaskDesc D_acropolis_helicopter_landing_pad_80184DA0[9] = {
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017DA9C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadPrepareDepartureTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadMovePlayerToSceneMarkTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadScreenShakeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017DE78, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017E974, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_helicopter_landing_pad_8017DFCC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadDepartureShakeTimelineTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadConfirmDepartureTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadReturnToMistTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, acropolisHelicopterLandingPadTurnPlayerYawTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 97 } }, acropolisHelicopterLandingPadPlayerPitchPulseTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },

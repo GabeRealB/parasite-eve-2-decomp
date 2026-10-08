@@ -21,9 +21,9 @@ extern TaskDesc D_acropolis_helicopter_landing_pad_80184E68[];
 
 /// Progress of the helicopter sequence. The msg 0x3EF handler moves it from 0
 /// to 1, the phase tick from 1 to 2, the cap-slot task to 3 and the room
-/// state-machine task to 4. Phase 0 refuses the warp into stage 0xF; phase 2
+/// state-machine task to 4. Phase 0 permits ordinary departure to fire-escape area 15; phase 2
 /// makes the warp start cap slot 9 and lets
-/// `func_acropolis_helicopter_landing_pad_8017E570` spawn task entry 4.
+/// `acropolisHelicopterLandingPadHandleCommand` spawn task entry 4.
 extern s32 D_acropolis_helicopter_landing_pad_80184D9C;
 
 /// Raised by the phase tick once the session reaches camera view 5 and
@@ -84,11 +84,37 @@ extern ActorTransform D_acropolis_helicopter_landing_pad_80184E50;
 void acropolisHelicopterLandingPadUpdateEncounterPhase(Task* unusedTask);
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_acropolis_helicopter_landing_pad_8017DA9C(Task*);
+/// Raises the player on the lift and prepares the helicopter departure scene.
+///
+/// Starts in state 0 with the live player, scene task and lift child 40 available.
+/// Selects view 18 and Q12 ambient RGB (1200,1200,1552), takes scripted control,
+/// starts the lift's raise request and reparents the player to its root coordinate.
+/// The lift must remain live while the player borrows that coordinate. A variant
+/// below 2 loads resource 511000, replaces placements with variant 2 and sets
+/// departure phase 4; later variants reuse their resources and retain the phase.
+/// Uses `spawnArg1.value` as a signed 120-update countdown; loading overlaps the
+/// countdown and sound entry 3 starts at 90 remaining. After both loading and the
+/// delay, starts the normal/skip departure scripts and ends. Runs once per departure.
+void acropolisHelicopterLandingPadPrepareDepartureTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_8017DE78(Task*);
+/// Times four screen shakes and their controller vibration during departure.
+///
+/// `state` counts updates from zero. Shakes at 0,200,410,520 have half-durations
+/// 15,15,22,30 updates and amplitudes 2,2,3,4 pixels; vibration follows at
+/// 7,207,421,535. Ends at 640 and still increments the retired task's state.
+/// Requires the room's task descriptors and vibration programs to remain loaded.
+void acropolisHelicopterLandingPadDepartureShakeTimelineTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_8017DFCC(Task*);
+/// Restores health, starts the departure movie and reloads the M.I.S.T. arrival.
+///
+/// Starts in state 0. Clears collection bits for the Parthenon Key and Micro
+/// Device, identifies the device and selects follow-up dialogue 7. Spawns the
+/// movie handoff task, then takes one intervening update before selecting
+/// Acropolis area 18, room 1, warp 1 with scene event 1 and sprite variant 1.
+/// Movie playback owns the display and suspends ordinary task updates. Stops
+/// non-ambient sounds, requests a captured-frame reload, releases the menu hold
+/// and ends. Requires the live save, display and room movie resources.
+void acropolisHelicopterLandingPadReturnToMistTask(Task* task);
 
 /// Turns the live player's yaw toward `spawnArg1.value` by 256 angle units per update.
 ///
@@ -114,7 +140,17 @@ enum {
 /// Uses a room-global weight: run only one instance, retained for script cues.
 void acropolisHelicopterLandingPadPlayerPitchPulseTask(Task* task);
 
-s32 func_acropolis_helicopter_landing_pad_8017E3F0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Resolves ordinary fire-escape departure versus the post-encounter CAP exit.
+///
+/// Borrows the request and copies its full eight bytes to the writable reply;
+/// they may be the same object. Returns 1 for destinations other than fire-escape
+/// area 15, and for that area in phase 0, permitting ordinary departure.
+/// Phase 2 returns 0 and execution starts CAP slot 9 with variant 0; all other
+/// phases return 0 without starting CAP. Queries omit side effects. Phase-zero
+/// execution also queues sound-stop selector -1 with control 30: the selector
+/// is not a stop-all request and its intended purpose is unproven.
+/// The receiver and message ID are ignored; the room and CAP resources must be live.
+s32 acropolisHelicopterLandingPadResolveDeparture(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
 /// Refuses every `ROOM_MESSAGE_USE_KEY_ITEM` request without changing the room.
 s32 acropolisHelicopterLandingPadRefuseKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
@@ -128,13 +164,26 @@ s32 acropolisHelicopterLandingPadRefuseKeyItemUse(Task* unusedTask, s32 unusedMe
 /// The request's argument byte and second payload are unused. Returns zero.
 s32 acropolisHelicopterLandingPadHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
-s32 func_acropolis_helicopter_landing_pad_8017E570(Task*, s32, s32, s32);
+/// Starts departure confirmation for room command 4 after the encounter ends.
+///
+/// Phase 2 and command 4 spawn the confirmation task with zero payloads; all
+/// other combinations do nothing. Returns zero, including allocation failure.
+/// Requires loaded room descriptors; the receiver, ID and second payload are ignored.
+s32 acropolisHelicopterLandingPadHandleCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 
-void func_acropolis_helicopter_landing_pad_8017E5B8(void);
+/// Starts the departure screen-shake/vibration timeline at frame zero.
+void acropolisHelicopterLandingPadStartDepartureShakeTimeline(void);
 
-void func_acropolis_helicopter_landing_pad_8017E5E8(void);
+/// Starts the player's scripted approach to the departure scene mark.
+///
+/// Requires the live player and loaded room descriptors through the movement task.
+void acropolisHelicopterLandingPadStartPlayerMoveToSceneMark(void);
 
-void func_acropolis_helicopter_landing_pad_8017E64C(void);
+/// Starts the movie and M.I.S.T. return task after normal or skipped departure.
+///
+/// Requires the live save, display and loaded room descriptors; allocation failure
+/// is ignored. The spawned task releases the script's menu hold during reload.
+void acropolisHelicopterLandingPadStartReturnToMist(void);
 
 /// Applies the post-encounter player placement when room action 1 was latched.
 ///
@@ -142,7 +191,11 @@ void func_acropolis_helicopter_landing_pad_8017E64C(void);
 /// 1024 in its current parent frame. Leaves the latch set for later callbacks.
 void acropolisHelicopterLandingPadPlacePlayerAfterEncounter(void);
 
-void func_acropolis_helicopter_landing_pad_8017E6C0(s32);
+/// Starts the singleton scripted player turn toward `targetYaw` (0..4095).
+///
+/// Angles use 4096 units per turn. Requires a live player and loaded room
+/// descriptors, and no other turn task using the room's shared yaw state.
+void acropolisHelicopterLandingPadStartPlayerYawTurn(s32 targetYaw);
 
 /// Releases the encounter's battle hold, credits its enemy rewards and arms a three-frame end delay.
 ///
@@ -181,6 +234,14 @@ void acropolisHelicopterLandingPadMovePlayerToSceneMarkTask(Task* task);
 /// The room overlay must remain loaded.
 void acropolisHelicopterLandingPadScreenShakeTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_8017E974(Task*);
+/// Asks for departure confirmation and starts the lift/scene preparation task.
+///
+/// State 0 holds the player and starts CAP slot 4. State 1 checks its retained
+/// choice only if CAP is idle: index 1 resumes control and cancels; other indices
+/// acquire the menu hold. State 1 advances even while CAP is busy, and advances
+/// twice on acceptance. States 2 and 3 delay; state 4 sets phase 3, starts
+/// departure preparation and ends. Requires live player, CAP and room resources;
+/// does not continuously poll CAP completion and does not check spawn failure.
+void acropolisHelicopterLandingPadConfirmDepartureTask(Task* task);
 
 #endif // SRC_ROOMS_ACROPOLIS_HELICOPTER_LANDING_PAD_ACROPOLIS_HELICOPTER_LANDING_PAD_PRIVATE_H

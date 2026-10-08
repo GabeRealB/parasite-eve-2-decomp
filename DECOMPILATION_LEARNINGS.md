@@ -52733,7 +52733,7 @@ look at the other cases for a local the original evidently recycled.
 
 ### A bare `extern u8` inside `gMcSaveData` lets its load hoist over a struct store; name the member
 
-`func_acropolis_helicopter_landing_pad_8017DA9C` state 7 decrements a
+`acropolisHelicopterLandingPadPrepareDepartureTask` state 7 decrements a
 countdown and then tests the visit counter:
 
 ```asm
@@ -93212,7 +93212,7 @@ No pointer local is needed for the fix here. A member access on a global whose
 *type* has the field - `extern WorldCollisionTrigger D_x;` then `D_x.flags &= 0xBF;` -
 leaves the symbol bare and puts the displacement in the memory operand. That is
 what the sibling rooms do for the same clear (`_acropolisFireEscapeDisableAbsentActorInteraction`,
-`_dryfieldNightMotelLoftUpdateRoom`, `func_acropolis_helicopter_landing_pad_8017EA6C`,
+`_dryfieldNightMotelLoftUpdateRoom`, `_acropolisHelicopterLandingPadInitRoom`,
 all `extern WorldCollisionTrigger`), so it is also the shape the original source had. One
 build, 100.000%, all penalties zero.
 
