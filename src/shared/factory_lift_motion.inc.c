@@ -21,21 +21,30 @@ enum {
     FACTORY_LIFT_JAM_YAW_BACK = FACTORY_LIFT_YAW_TURNED - FACTORY_LIFT_JAM_YAW_OUT
 };
 
-/// Reports turn completion to the panel and replaces the turn loop with its stop cue.
+/// Notifies the operator panel that a turn ended and queues the turn stop cue.
 ///
-/// The slot must be live; NULL contents mean no panel is open. Audio pan and
-/// depth are narrowed to signed bytes at the lift origin, as for the start cue.
-static __inline__ void _factoryLiftFinishTurn(Task* task, GfxCoord* coord)
+/// Used when a normal turn or jam rebound settles or is skipped. The live
+/// `liftTask` borrows a room-owned `Task*` slot in `spawnArg2.pointer`; the slot
+/// must remain live, and its contents must be NULL or a live panel task.
+/// Notification is synchronous and precedes the sound requests.
+///
+/// Runtime stage selects daytime Dryfield sounds, or nighttime sounds otherwise.
+/// Stopping retains the loop's existing release settings. `liftRoot` must have
+/// its local-to-view matrix already composed: the stop cue samples that cached
+/// origin before the caller rebuilds yaw. Pan [-16, 15] and depth [-128, 127]
+/// are narrowed to signed bytes; scratch and GTE requirements follow
+/// `worldCoordGetOriginAudioPan`.
+static __inline__ void _factoryLiftFinishTurn(const Task* liftTask, const GfxCoord* liftRoot)
 {
-    Task** panelSlot = task->spawnArg2.pointer;
+    Task* const* panelSlot = liftTask->spawnArg2.pointer;
 
     _factoryLiftNotifyPanel(*panelSlot);
     if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
         sndEvtRequestStageScriptStop(SOUND_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestStageScriptStart(SOUND_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(liftRoot), (s8)worldCoordGetOriginAudioDepth(liftRoot));
     } else {
         sndEvtRequestStageScriptStop(SOUND_NIGHT_FACTORY_LIFT_TURN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        sndEvtRequestStageScriptStart(SOUND_NIGHT_FACTORY_LIFT_TURN_STOP, (s8)worldCoordGetOriginAudioPan(liftRoot), (s8)worldCoordGetOriginAudioDepth(liftRoot));
     }
 }
 
