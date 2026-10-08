@@ -3608,7 +3608,7 @@ quantity then overlaps the A12 temp in `$v0` and takes `$a0`. Incoming `$a0`
 is copied out (`move a2, a0`) and coord reuses `$a0` for the rest of the
 function (regs + an extra `addu`).
 
-`func_actor_400500_8013D210` in the same TU keeps `$a0` without a barrier
+`_actor400500StartRoomSequence` in the same TU keeps `$a0` without a barrier
 because it has no halfword math to interleave. `_actor400600TickJunkYardFloorDrop`
 uses coord for other `t[]` stores *before* the step/accum, which is a real
 dependence the scheduler cannot sink past the coord load.
@@ -3747,9 +3747,9 @@ if (zone != 1) {
 }
 ```
 
-`func_actor_400500_8013CBD8` (`base_1.c` 95.2%, `base_3.c` 100%;
+`_actor400500TickFallenCrawlFacingNegativeX` (`base_1.c` 95.2%, `base_3.c` 100%;
 preprocessed `486d0cc84d065c614c955ae9a6c7ef05155c50dfc0be5e6338ffefc01778504b`).
-Sibling `func_actor_400500_8013CDA8` stores a fresh constant 7, so it never
+Sibling `_actor400500TickFallenCrawlFacingPositiveZ` stores a fresh constant 7, so it never
 needs the loaded HI and one `lh` is enough.
 
 When the halfword is loaded *only* to be stored back - no compare and no
@@ -71813,7 +71813,7 @@ quantity then overlaps the A12 temp in `$v0` and takes `$a0`. Incoming `$a0`
 is copied out (`move a2, a0`) and coord reuses `$a0` for the rest of the
 function (regs + an extra `addu`).
 
-`func_actor_400500_8013D210` in the same TU keeps `$a0` without a barrier
+`_actor400500StartRoomSequence` in the same TU keeps `$a0` without a barrier
 because it has no halfword math to interleave. `_actor400600TickJunkYardFloorDrop`
 uses coord for other `t[]` stores *before* the step/accum, which is a real
 dependence the scheduler cannot sink past the coord load.
@@ -71951,9 +71951,9 @@ if (zone != 1) {
 }
 ```
 
-`func_actor_400500_8013CBD8` (`base_1.c` 95.2%, `base_3.c` 100%;
+`_actor400500TickFallenCrawlFacingNegativeX` (`base_1.c` 95.2%, `base_3.c` 100%;
 preprocessed `486d0cc84d065c614c955ae9a6c7ef05155c50dfc0be5e6338ffefc01778504b`).
-Sibling `func_actor_400500_8013CDA8` stores a fresh constant 7, so it never
+Sibling `_actor400500TickFallenCrawlFacingPositiveZ` stores a fresh constant 7, so it never
 needs the loaded HI and one `lh` is enough.
 
 ## Assign both constants in the `if/else` arms so the temp can reuse `$v0` after `andi`
