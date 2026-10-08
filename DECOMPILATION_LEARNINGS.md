@@ -54766,7 +54766,7 @@ uses. `func_acropolis_square_80181794` is the example; the permuter found the
 
 ## Duplicate the join store in every arm to win the lower callee-saved register
 
-**Problem.** `func_acropolis_bridge_8017F544` matched at 99.2% with every
+**Problem.** `_acropolisBridgeKeypadCheckCode` matched at 99.2% with every
 penalty but `regs` at zero: the target keeps the incoming `Task*` in `$s1` and
 the `&D_80114D28` pointer in `$s2`, and the build had them swapped. The other
 two saved registers (`$s0` for the work block, `$s3` for the hotspot table)
@@ -57514,7 +57514,7 @@ register, so `local_alloc` gives it the first free caller-saved one. After a
 call whose result is still in `$v0`, that is `$v1` — and `$v1` is exactly the
 register a preceding `p->field++` has just released.
 
-`func_acropolis_bridge_8017DD9C` is the whole pattern in five instructions: the
+`_acropolisBridgeStartKeypadMovie` is the whole pattern in five instructions: the
 target wants
 
 ```
@@ -57696,7 +57696,7 @@ the live ranges do not overlap.
 ## Mask a call result at the *use*, not at the assignment
 
 Where the byte mask on a function's return value is written decides where GCC
-2.8.1 schedules the `andi`. `func_acropolis_bridge_8017E04C` calls
+2.8.1 schedules the `andi`. `_acropolisBridgeKeypadOpen` calls
 `viewGetMappedIndex()` and then indexes a three-level sprite table with the low
 byte; masking at the assignment leaves exactly one instruction misplaced
 (99.4%, `reorder=1`), because the `andi` becomes part of the call's own value
@@ -57792,7 +57792,7 @@ register: writing the constants into a pseudo makes that pseudo live across the
 register local-alloc gave that constant — usually `$v0` — and global-alloc
 pushes both the temp and the compared value one register along.
 
-`func_acropolis_bridge_801876A8` ends by stepping a state halfword: 4 and 8
+`_acropolisBridgeEnemyApplyHit` ends by stepping a state halfword: 4 and 8
 advance to 6, 5 and 6 stay put, anything else resets to 5. The temp spelling
 reaches 99.6% with control flow already exact and `regs=8`:
 
@@ -57856,7 +57856,7 @@ with the C body left in the slot its `INCLUDE_ASM` line occupied, lands the
 	.rdata
 	.align	2
 $LC0:
-	.word	func_acropolis_bridge_8017DB60
+	.word	_acropolisBridgeStartKeypadCaption
 	…
 ```
 

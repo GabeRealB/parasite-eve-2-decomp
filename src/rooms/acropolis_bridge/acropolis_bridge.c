@@ -134,6 +134,27 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 /// Wrong codes after which the keypad closes instead of taking another entry.
 #define ACROPOLIS_BRIDGE_KEYPAD_REJECTED_LIMIT 3
 
+/// Dispatch indices of the keypad task; stored in `Task::state`.
+enum {
+    ACROPOLIS_BRIDGE_KEYPAD_STATE_OPEN         = 0,
+    ACROPOLIS_BRIDGE_KEYPAD_STATE_ARM_CURSOR   = 1,
+    ACROPOLIS_BRIDGE_KEYPAD_STATE_ENTER_CODE   = 2,
+    ACROPOLIS_BRIDGE_KEYPAD_STATE_OPEN_EXAMINE = 3,
+    ACROPOLIS_BRIDGE_KEYPAD_STATE_WAIT_EXAMINE = 4,
+    ACROPOLIS_BRIDGE_KEYPAD_STATE_CHECK_CODE   = 5,
+    ACROPOLIS_BRIDGE_KEYPAD_STATE_ACCEPTED     = 6,
+    ACROPOLIS_BRIDGE_KEYPAD_STATE_REJECTED     = 7,
+    ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE        = 8
+};
+
+/// CAP command and variants for the keypad caption.
+enum {
+    ACROPOLIS_BRIDGE_KEYPAD_COMMAND                  = 7,
+    ACROPOLIS_BRIDGE_KEYPAD_CAPTION_VARIANT          = 1,
+    ACROPOLIS_BRIDGE_KEYPAD_COMPLETE_CAPTION_VARIANT = 2,
+    ACROPOLIS_BRIDGE_KEYPAD_CAPTION_PLAYBACK_MODE    = 1
+};
+
 /// Key-item-use message answered by this room; the first payload is an item ID.
 enum { ACROPOLIS_BRIDGE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
@@ -163,7 +184,8 @@ enum {
     ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH     = 31,
     ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH     = 32,
     ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH = 33,
-    ACROPOLIS_BRIDGE_KEYPAD_ERROR_BATCH          = 34
+    ACROPOLIS_BRIDGE_KEYPAD_ERROR_BATCH          = 34,
+    ACROPOLIS_BRIDGE_KEYPAD_PROMPT_BATCH         = 35
 };
 
 /// Cutscene views, keypad result and post-movie bridge placement variant.
@@ -172,6 +194,7 @@ enum {
     ACROPOLIS_BRIDGE_VIEW_KEYPAD                    = 8,
     ACROPOLIS_BRIDGE_VIEW_KEYPAD_MOVIE              = 9,
     ACROPOLIS_BRIDGE_KEYPAD_CANCELLED               = 0,
+    ACROPOLIS_BRIDGE_KEYPAD_ACCEPTED                = 1,
     ACROPOLIS_BRIDGE_ROOM_AFTER_KEYPAD_MOVIE        = 2,
     ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE = 3
 };
@@ -188,12 +211,15 @@ enum {
 
 /// Enemy behavior indices used by this room's state dispatcher.
 enum {
-    ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE     = 0,
-    ACROPOLIS_BRIDGE_ENEMY_STATE_PATROL_SUNK  = 1,
-    ACROPOLIS_BRIDGE_ENEMY_STATE_CHASE        = 2,
-    ACROPOLIS_BRIDGE_ENEMY_STATE_RETREAT      = 3,
-    ACROPOLIS_BRIDGE_ENEMY_STATE_FOLLOW_MOVIE = 4,
-    ACROPOLIS_BRIDGE_ENEMY_STATE_DEATH_EFFECT = 7
+    ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE             = 0,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_PATROL_SUNK          = 1,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_CHASE                = 2,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_RETREAT              = 3,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_FOLLOW_MOVIE         = 4,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_DEFEATED_BOB         = 5,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_COLLAPSE             = 6,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_DEATH_EFFECT         = 7,
+    ACROPOLIS_BRIDGE_ENEMY_STATE_ANIMATE_AT_PLACEMENT = 8
 };
 
 /// Enemy animation requests and clips; playback rates use `ANIMATION_RATE_ONE`.
@@ -364,28 +390,28 @@ extern Task* D_acropolis_bridge_80191798;
 extern Task* D_acropolis_bridge_8019179C;
 extern s32   D_acropolis_bridge_801917A0;
 
-static void func_acropolis_bridge_8017D98C(Task* task);
+static void _acropolisBridgeRoomSetup(Task* task);
 static void _acropolisBridgeRoomIdle(Task* task);
 static void _acropolisBridgeUpdateModelVisibility(Task* task);
-static void func_acropolis_bridge_8017DB60(Task* task);
+static void _acropolisBridgeStartKeypadCaption(Task* task);
 static void _acropolisBridgeWaitForKeypadCaption(Task* task);
-static void func_acropolis_bridge_8017DC1C(Task* task);
+static void _acropolisBridgeStartKeypad(Task* task);
 static void _acropolisBridgeResumeAfterKeypad(Task* task);
 static void _acropolisBridgeAdvanceCutsceneState(Task* task);
-static void func_acropolis_bridge_8017DD9C(Task* task);
+static void _acropolisBridgeStartKeypadMovie(Task* sequenceTask);
 static void _acropolisBridgeFinishKeypadMovie(Task* task);
 static void _acropolisBridgeRestoreAfterKeypadMovie(Task* task);
-static void func_acropolis_bridge_8017E04C(Task* task);
-static void func_acropolis_bridge_8017E1D0(Task* task);
-static void func_acropolis_bridge_8017E3A0(Task* task);
-static void func_acropolis_bridge_8017E4FC(Task* task);
+static void _acropolisBridgeKeypadOpen(Task* task);
+static void _acropolisBridgeKeypadEnterCode(Task* task);
+static void _acropolisBridgeKeypadBlinkAcceptedCode(Task* task);
+static void _acropolisBridgeKeypadBlinkError(Task* task);
 static void _acropolisBridgeShowKeypadError(void);
 static void _acropolisBridgeSetArrivalSpritesHidden(s32 arrivalSceneSeen);
-static void func_acropolis_bridge_8017F404(Task* task);
-static void func_acropolis_bridge_8017F460(Task* task);
+static void _acropolisBridgeKeypadArmCursor(Task* task);
+static void _acropolisBridgeKeypadOpenExaminePrompt(Task* task);
 static void func_acropolis_bridge_8017F4CC(Task* task);
-static void func_acropolis_bridge_8017F544(Task* task);
-static void func_acropolis_bridge_8017F658(Task* task);
+static void _acropolisBridgeKeypadCheckCode(Task* task);
+static void _acropolisBridgeKeypadClose(Task* task);
 static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize, s16 brightness);
 static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task);
 static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task);
@@ -448,7 +474,7 @@ STATIC_ASSERT_SIZEOF(_AcropolisBridgeHitScratch, 0xC);
 /// Returns the patrol node nearest the walker, by squared distance in the
 /// XZ plane between the node table and the walker's coordinate translation.
 
-static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt);
+static void _acropolisBridgeShowKeypadCode(s32 code, s16 hidePrompt);
 
 static void _acropolisBridgeKeypadMovieTask(Task* movieTask);
 static void _acropolisBridgeKeypadCursorTask(Task* task);
@@ -472,10 +498,10 @@ static u32     _gAcropolisBridgeModel0AD9CPartVerts[1];
 static u32     _gAcropolisBridgeModel0AD9CStream[691];
 static s32     _acropolisBridgeResolveRoomTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32     _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32            func_acropolis_bridge_8017D7F8(Task*, s32, s32, s32);
+static s32     _acropolisBridgeHandleKeypadCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedArg);
 static s32     _acropolisBridgeIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32     _acropolisBridgeIgnoreSoundCommand(Task* task, s32 messageId, s32 soundId, s32 unusedArg);
-void           func_acropolis_bridge_8017D878(Task*);
+static void    _acropolisBridgeModelTask(Task* task);
 static void    _acropolisBridgeKeypadSequenceTask(Task* task);
 
 /// Storage of the one-entry task descriptor table the bridge enemy spawns from.
@@ -533,7 +559,7 @@ TmdSource D_acropolis_bridge_80188E28[1] = {
 
 TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisBridgeResolveRoomTransition },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_bridge_8017D7F8 },
+    { ROOM_MESSAGE_COMMAND, _acropolisBridgeHandleKeypadCommand },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisBridgeIgnoreRoomAction },
     { ACROPOLIS_BRIDGE_MESSAGE_USE_KEY_ITEM, _acropolisBridgeRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, _acropolisBridgeIgnoreSoundCommand },
@@ -541,7 +567,7 @@ TaskMessageEntry D_acropolis_bridge_80188E4C[6] = {
 };
 
 TaskDesc D_acropolis_bridge_80188E7C[3] = {
-    { { { TASK_BODY_TMD, 192 } }, func_acropolis_bridge_8017D878, { .model = D_acropolis_bridge_80188E28 } },
+    { { { TASK_BODY_TMD, 192 } }, _acropolisBridgeModelTask, { .model = D_acropolis_bridge_80188E28 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisBridgeKeypadSequenceTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
@@ -2629,7 +2655,7 @@ enum {
 };
 
 static __inline__ void _acropolisBridgePlayEnemySound(Task* task, Enemy* enemy, s32 baseSoundId);
-static void            func_acropolis_bridge_801876A8(Task* task, u32 attackId);
+static void            _acropolisBridgeEnemyApplyHit(Task* task, u32 attackKey);
 static void            _acropolisBridgeEnemyRelightModel(Task* task, s16 recomposeRoot);
 
 /// Reserves a textured-quad packet for the bridge's ground glow.
@@ -2695,17 +2721,21 @@ static s32 _acropolisBridgeRejectKeyItemUse(Task* task, s32 messageId, s32 itemI
     return 0;
 }
 
-/// Slot-7 handler for the "player used the bridge switch" message: with the
-/// room's progress nibble already at 3 it just restarts cap slot 7, otherwise
-/// it clears the script step and spawns entry 1 of the room task table.
-s32 func_acropolis_bridge_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Handles the keypad CAP command, starting its entry sequence if needed.
+///
+/// `commandIndex` is the integer CAP slot; only slot 7 acts. Completed bridge
+/// progress selects the slot's completed caption, otherwise the keypad display
+/// is blanked and its sequence task is spawned. Always returns 0; the receiver,
+/// message ID and second payload are unused. The room's CAP and sprites must be live.
+static s32 _acropolisBridgeHandleKeypadCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedArg)
 {
-    if (arg2 == 7) {
-        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == 3) {
-            capStartSequenceSlot(7, 1, 2);
+    if (commandIndex == ACROPOLIS_BRIDGE_KEYPAD_COMMAND) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_BRIDGE_PROGRESS) == ACROPOLIS_BRIDGE_PROGRESS_KEYPAD_MOVIE_COMPLETE) {
+            capStartSequenceSlot(ACROPOLIS_BRIDGE_KEYPAD_COMMAND, ACROPOLIS_BRIDGE_KEYPAD_CAPTION_PLAYBACK_MODE,
+                                 ACROPOLIS_BRIDGE_KEYPAD_COMPLETE_CAPTION_VARIANT);
             return 0;
         }
-        func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 1);
+        _acropolisBridgeShowKeypadCode(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 1);
         taskSpawnFromTable(D_acropolis_bridge_80188E7C, 1, 0, 0);
     }
     return 0;
@@ -2725,7 +2755,7 @@ static s32 _acropolisBridgeIgnoreSoundCommand(Task* task, s32 messageId, s32 sou
 
 /// State handlers of the room's own task.
 static const TaskFuncTable3 D_acropolis_bridge_8017D5C4 = {
-    { func_acropolis_bridge_8017D98C, _acropolisBridgeRoomIdle, taskKill }
+    { _acropolisBridgeRoomSetup, _acropolisBridgeRoomIdle, taskKill }
 };
 
 /// State handlers of the bridge model task.
@@ -2733,30 +2763,33 @@ static const TaskFuncTable3 D_acropolis_bridge_8017D5D0 = {
     { _bridgeModelSetup, _acropolisBridgeUpdateModelVisibility, taskKill }
 };
 
-/// Three-state dispatcher of the bridge model task: setup, per-frame update,
-/// then `taskKill`. The table is copied onto the stack before the call.
-void func_acropolis_bridge_8017D878(Task* task)
+/// Dispatches the bridge model's setup, visibility update or teardown.
+///
+/// Requires a live TMD-bodied task with `state` in 0..2 and the room loaded.
+/// Copies the three callback pointers by value before dispatch; teardown may
+/// release the task.
+static void _acropolisBridgeModelTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_acropolis_bridge_8017D5D0;
-    sp.funcs[task->state](task);
+    states = D_acropolis_bridge_8017D5D0;
+    states.funcs[task->state](task);
 }
 
 /// State handlers of the room's cutscene task.
 static const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
-    { func_acropolis_bridge_8017DB60, _acropolisBridgeWaitForKeypadCaption, _acropolisBridgeAdvanceCutsceneState,
-      func_acropolis_bridge_8017DC1C, _acropolisBridgeWaitForKeypadResult, _acropolisBridgeResumeAfterKeypad,
+    { _acropolisBridgeStartKeypadCaption, _acropolisBridgeWaitForKeypadCaption, _acropolisBridgeAdvanceCutsceneState,
+      _acropolisBridgeStartKeypad, _acropolisBridgeWaitForKeypadResult, _acropolisBridgeResumeAfterKeypad,
       _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeAdvanceCutsceneState,
-      _acropolisBridgeAdvanceCutsceneState, func_acropolis_bridge_8017DD9C, _acropolisBridgeFinishKeypadMovie,
+      _acropolisBridgeAdvanceCutsceneState, _acropolisBridgeStartKeypadMovie, _acropolisBridgeFinishKeypadMovie,
       _acropolisBridgeRestoreAfterKeypadMovie, taskKill }
 };
 
 /// State handlers of the room's prompt script task.
 static const TaskFuncTable9 D_acropolis_bridge_8017D614 = {
-    { func_acropolis_bridge_8017E04C, func_acropolis_bridge_8017F404, func_acropolis_bridge_8017E1D0,
-      func_acropolis_bridge_8017F460, func_acropolis_bridge_8017F4CC, func_acropolis_bridge_8017F544,
-      func_acropolis_bridge_8017E3A0, func_acropolis_bridge_8017E4FC, func_acropolis_bridge_8017F658 }
+    { _acropolisBridgeKeypadOpen, _acropolisBridgeKeypadArmCursor, _acropolisBridgeKeypadEnterCode,
+      _acropolisBridgeKeypadOpenExaminePrompt, func_acropolis_bridge_8017F4CC, _acropolisBridgeKeypadCheckCode,
+      _acropolisBridgeKeypadBlinkAcceptedCode, _acropolisBridgeKeypadBlinkError, _acropolisBridgeKeypadClose }
 };
 
 /// Runs the caption, keypad and accepted-code movie sequence.
@@ -2782,12 +2815,17 @@ static void _acropolisBridgePrepareArrivalScene(void)
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
-static void func_acropolis_bridge_8017D98C(Task* arg0)
+/// Installs the room receiver, spawns the bridge model and synchronizes arrival sprites.
+///
+/// Requires the room resources loaded and the room task in its setup state.
+/// Publishes the model handle and advances to idle; spawn failure leaves a null
+/// handle. Arrival-scene progress is narrowed to its low byte for sprite selection.
+static void _acropolisBridgeRoomSetup(Task* task)
 {
-    arg0->msgTable = D_acropolis_bridge_80188E4C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_acropolis_bridge_80188E4C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_acropolis_bridge_80191794 = taskSpawnFromTable(D_acropolis_bridge_80188E7C, 0, 0, 0);
-    arg0->state                 = (s32)(arg0->state + 1);
+    task->state                 = task->state + 1;
     _acropolisBridgeSetArrivalSpritesHidden(gameFlagGetNibble(GAME_FLAG_BRIDGE_ARRIVAL_SCENE_SEEN) & 0xFF);
 }
 
@@ -2828,10 +2866,15 @@ static void _acropolisBridgeUpdateModelVisibility(Task* task)
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-static void func_acropolis_bridge_8017DB60(Task* arg0)
+/// Starts the keypad caption and advances the sequence to wait for CAP.
+///
+/// Requires the room's relocated CAP table. The playback request's result is
+/// ignored; even an already-busy CAP advances this state.
+static void _acropolisBridgeStartKeypadCaption(Task* task)
 {
-    capStartSequenceSlot(7, 1, 1);
-    arg0->state = (s32)(arg0->state + 1);
+    capStartSequenceSlot(ACROPOLIS_BRIDGE_KEYPAD_COMMAND, ACROPOLIS_BRIDGE_KEYPAD_CAPTION_PLAYBACK_MODE,
+                         ACROPOLIS_BRIDGE_KEYPAD_CAPTION_VARIANT);
+    task->state = task->state + 1;
 }
 
 /// Waits for the switch caption, then opens the keypad view under scripted control.
@@ -2849,13 +2892,19 @@ static void _acropolisBridgeWaitForKeypadCaption(Task* task)
     }
 }
 
-static void func_acropolis_bridge_8017DC1C(Task* arg0)
+/// Spawns the keypad and publishes its handle for the following result poll.
+///
+/// Requires the room's keypad bank loaded. Advances the sequence even if spawning
+/// fails; the existing caller assumes a live handle when it polls.
+static void _acropolisBridgeStartKeypad(Task* task)
 {
-    Task* temp_v0;
+    enum { ACROPOLIS_BRIDGE_KEYPAD_TASK_BANK  = 2,
+           ACROPOLIS_BRIDGE_KEYPAD_TASK_INDEX = 8 };
+    Task* keypadTask;
 
-    temp_v0                     = taskSpawn(2, 8, 0, 0);
-    arg0->state                 = (s32)(arg0->state + 1);
-    D_acropolis_bridge_80191798 = temp_v0;
+    keypadTask                  = taskSpawn(ACROPOLIS_BRIDGE_KEYPAD_TASK_BANK, ACROPOLIS_BRIDGE_KEYPAD_TASK_INDEX, 0, 0);
+    task->state                 = task->state + 1;
+    D_acropolis_bridge_80191798 = keypadTask;
 }
 
 /// Collects the keypad result and selects the overview or bridge movie view.
@@ -2905,13 +2954,18 @@ static void _acropolisBridgeAdvanceCutsceneState(Task* task)
     task->state = task->state + 1;
 }
 
-static void func_acropolis_bridge_8017DD9C(Task* arg0)
+/// Spawns the accepted-code movie and advances the sequence to wait for it.
+///
+/// Publishes the movie task handle without transferring it into a child tree.
+/// Requires the movie descriptor and room resources to remain loaded; the next
+/// state assumes the spawn succeeded.
+static void _acropolisBridgeStartKeypadMovie(Task* sequenceTask)
 {
-    Task* task = taskSpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
-    s32   next = arg0->state + 1;
+    Task* movieTask = taskSpawnFromTable(&D_acropolis_bridge_80189234, 0, 0, 0);
+    s32   nextState = sequenceTask->state + 1;
 
-    D_acropolis_bridge_8019179C = task;
-    arg0->state                 = next;
+    D_acropolis_bridge_8019179C = movieTask;
+    sequenceTask->state         = nextState;
 }
 
 /// Finishes the keypad movie and selects the following bridge room variant.
@@ -3013,18 +3067,20 @@ static s16 _acropolisBridgeGetMovieEnemyHeight(void)
     return D_acropolis_bridge_80189240[D_acropolis_bridge_801917A4[0] + 1].vy;
 }
 
-/// Brings the bridge's action-prompt script online: allocates its
-/// `_AcropolisBridgeKeypadWork` block, spawns the prompt task it drives,
-/// blanks the entered code, raises the "bridge is up" sprite command of the
-/// camera the player is on, and clears every hotspot's hit flag so the first
-/// hit test starts clean. A failed allocation kills the task instead.
-static void func_acropolis_bridge_8017E04C(Task* task)
+/// Opens the keypad with owned work and a separately spawned cursor task.
+///
+/// Requires live action-prompt state and mapped keypad view 8, including
+/// batch 35. Allocation failure requests exit with result 0. Success
+/// holds menu display and player control, clears hotspot hits and initializes a
+/// blank entry; close releases the cursor and teardown releases the work.
+/// Cursor spawning is unchecked, so the normal close path requires it to succeed.
+static void _acropolisBridgeKeypadOpen(Task* task)
 {
     _AcropolisBridgeKeypadWork* work;
-    GameLocationKey*            sess;
-    ActionPromptHotspot*        hs;
-    SpriteView*                 rec;
-    s32                         view;
+    GameLocationKey*            location;
+    ActionPromptHotspot*        hotspot;
+    SpriteView*                 views;
+    s32                         mappedView;
 
     work = memCalloc(sizeof(_AcropolisBridgeKeypadWork), 0);
     if (work == NULL) {
@@ -3035,35 +3091,41 @@ static void func_acropolis_bridge_8017E04C(Task* task)
     task->work              = work;
     work->field_0           = 0x14;
     work->code              = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
-    sess                    = &gGameSession->location.loc;
+    location                = &gGameSession->location.loc;
     task->state++;
-    view                                 = viewGetMappedIndex();
-    rec                                  = gSpriteAreaTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
-    rec[(u8)view - 1].batches[35].hidden = 1;
-    gGameSession->cutsceneHold           = 1;
+    mappedView                                                                     = viewGetMappedIndex();
+    views                                                                          = gSpriteAreaTables[location->stage - 1][gGameSession->spriteVariant - 1].areaViews[location->area - 1];
+    views[(u8)mappedView - 1].batches[ACROPOLIS_BRIDGE_KEYPAD_PROMPT_BATCH].hidden = 1;
+    // Hold the keypad display and control until its close state.
+    gGameSession->cutsceneHold = 1;
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     displayAcquireMenuHold();
     gGameSession->eventState = 1;
     gGameSession->hideHud    = 1;
-    for (hs = D_acropolis_bridge_8018983C; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
-        hs->hit = 0;
+    for (hotspot = D_acropolis_bridge_8018983C; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+        hotspot->hit = 0;
     }
-    D_acropolis_bridge_801917A8 = 0;
-    func_acropolis_bridge_8017E60C(work->code, 0);
+    D_acropolis_bridge_801917A8 = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
+    _acropolisBridgeShowKeypadCode(work->code, 0);
 }
 
-/// Runs one frame of the bridge's action prompt while the player is entering a
-/// code: the cursor is hit-tested against the room's hotspot table, and a
-/// confirm press on a hit hotspot either latches that hotspot in `selectedKey`
-/// and `promptKind` and goes to state 3 (while `keypadExamined` is clear) or
-/// shifts its id into `code`'s low nibble and beeps. The clear key blanks
-/// `code` instead. A complete entry ends the script in state 5, a cancel press
-/// ends it in state 8, and a busy cap suspends the whole scan for that frame.
-static void func_acropolis_bridge_8017E1D0(Task* task)
+/// Collects keypad digits after Examine, or opens Examine for the selected key.
+///
+/// Requires initialized keypad work and the sentinel-terminated hotspot table.
+/// Confirm shifts digit IDs 0..9 into the low nibble; clear blanks all three.
+/// A complete three-digit entry starts checking. Cancel closes with result 0
+/// and takes precedence over completion on the same frame. CAP playback stops
+/// cursor movement and input for that update.
+static void _acropolisBridgeKeypadEnterCode(Task* task)
 {
-    _AcropolisBridgeKeypadWork* work   = task->work;
-    ActionPromptHotspot*        hs     = D_acropolis_bridge_8018983C;
-    ActionPrompt*               prompt = D_80114D28;
+    enum {
+        ACROPOLIS_BRIDGE_KEYPAD_CONFIRM_BUTTON      = 0,
+        ACROPOLIS_BRIDGE_KEYPAD_CANCEL_BUTTON       = 1,
+        ACROPOLIS_BRIDGE_KEYPAD_SHIFTED_DIGITS_MASK = 0xFF0
+    };
+    _AcropolisBridgeKeypadWork* work    = task->work;
+    ActionPromptHotspot*        hotspot = D_acropolis_bridge_8018983C;
+    ActionPrompt*               prompt  = D_80114D28;
 
     gGameSession->hideHud    = 1;
     gGameSession->eventState = 1;
@@ -3072,220 +3134,204 @@ static void func_acropolis_bridge_8017E1D0(Task* task)
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     } else {
         prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-        if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+        if (_actionPromptHitTestDefault(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
             prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-            if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-                while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
-                    if (hs->hit != 0) {
+            if (prompt->buttons.slots[ACROPOLIS_BRIDGE_KEYPAD_CONFIRM_BUTTON].state == ACTION_PROMPT_BUTTON_PRESSED) {
+                while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
+                    if (hotspot->hit != 0) {
+                        // A first confirmed key offers Examine before accepting digits.
                         if (work->keypadExamined == 0) {
                             prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                             prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                            work->selectedKey   = hs->id;
-                            work->promptKind    = hs->promptKind;
-                            task->state         = 3;
+                            work->selectedKey   = hotspot->id;
+                            work->promptKind    = hotspot->promptKind;
+                            task->state         = ACROPOLIS_BRIDGE_KEYPAD_STATE_OPEN_EXAMINE;
                             return;
                         }
-                        if (hs->id == ACROPOLIS_BRIDGE_KEYPAD_KEY_CLEAR) {
+                        if (hotspot->id == ACROPOLIS_BRIDGE_KEYPAD_KEY_CLEAR) {
                             work->code       = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
                             work->digitCount = 0;
                         } else {
                             work->code <<= 4;
-                            work->code   = (work->code & 0xFF0) | hs->id;
+                            work->code   = (work->code & ACROPOLIS_BRIDGE_KEYPAD_SHIFTED_DIGITS_MASK) | hotspot->id;
                             work->digitCount++;
                         }
                         sndEvtRequestScriptStart(SOUND_ACROPOLIS_BRIDGE_KEYPAD_BEEP, 0, 0);
                         break;
                     }
-                    hs++;
+                    hotspot++;
                 }
             }
         } else {
             prompt->mode = ACTION_PROMPT_MODE_IDLE;
         }
         if (work->digitCount == ACROPOLIS_BRIDGE_KEYPAD_CODE_DIGITS) {
-            task->state = 5;
+            task->state = ACROPOLIS_BRIDGE_KEYPAD_STATE_CHECK_CODE;
             work->timer = 0;
         }
-        if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            task->state                 = 8;
-            D_acropolis_bridge_801917A8 = 0;
+        // Cancellation wins when completion and cancel occur together.
+        if (prompt->buttons.slots[ACROPOLIS_BRIDGE_KEYPAD_CANCEL_BUTTON].state == ACTION_PROMPT_BUTTON_PRESSED) {
+            task->state                 = ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE;
+            D_acropolis_bridge_801917A8 = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
         }
     }
-    func_acropolis_bridge_8017E60C(work->code, 0);
+    _acropolisBridgeShowKeypadCode(work->code, 0);
 }
 
-/// Winds the bridge prompt back down, the mirror of
-/// `func_acropolis_bridge_8017E04C`: it clears the "bridge is up" sprite
-/// command of the camera the player is on, then runs the same twenty-frame
-/// pass as `func_acropolis_bridge_8017E4FC` - the first ten frames blank the
-/// code display, the next ten show the entered `code`, and the frame after
-/// them resets `timer` and counts one blink in `blinkCount`.
-/// The cursor is hit-tested against the room's hotspot table either way so
-/// `mode` reports whether it sits over one, and the third blink ends the script
-/// in state 8 with `D_acropolis_bridge_801917A8` raised.
-static void func_acropolis_bridge_8017E3A0(Task* task)
+/// Advances one keypad result blink without resetting entry counters.
+///
+/// Borrows live work and sprite state. Acceptance blanks then shows the code;
+/// rejection shows error then blanks. Two ten-frame halves are followed by one
+/// counting update. The caller chooses what three completed blinks do.
+static inline void _acropolisBridgeKeypadStepResultBlink(_AcropolisBridgeKeypadWork* work, s32 accepted)
 {
-    ActionPrompt*               prompt = D_80114D28;
-    ActionPromptHotspot*        hs     = D_acropolis_bridge_8018983C;
-    _AcropolisBridgeKeypadWork* work   = task->work;
-    GameLocationKey*            sess   = &gGameSession->location.loc;
-    SpriteView*                 rec;
-    s32                         view;
-    s16                         tick;
+    s16 blinkFrame = work->timer;
 
-    view                                 = viewGetMappedIndex();
-    rec                                  = gSpriteAreaTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1];
-    rec[(u8)view - 1].batches[35].hidden = 0;
-
-    tick = work->timer;
-    if (tick < ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
-        func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
+    if (blinkFrame < ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
+        if (accepted) {
+            _acropolisBridgeShowKeypadCode(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
+        } else {
+            _acropolisBridgeShowKeypadError();
+        }
         work->timer++;
-    } else if (tick < 2 * ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
-        func_acropolis_bridge_8017E60C(work->code, 0);
+    } else if (blinkFrame < 2 * ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
+        _acropolisBridgeShowKeypadCode(accepted ? work->code : ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
         work->timer++;
     } else {
         work->timer = 0;
         work->blinkCount++;
     }
+}
 
-    if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+/// Blinks the accepted code, then closes the keypad with result 1.
+///
+/// Requires live work, prompt state and mapped keypad view 8's batch 35. Each cycle
+/// has ten blank frames, ten code frames and a counting frame. Entry retains
+/// `timer` and `blinkCount`: the check leaves timer at 10, starting with the
+/// code visible, and a previous rejection leaves three blinks, closing this
+/// state on its first update. Cursor hotspot feedback remains active.
+static void _acropolisBridgeKeypadBlinkAcceptedCode(Task* task)
+{
+    ActionPrompt*               prompt   = D_80114D28;
+    ActionPromptHotspot*        hotspots = D_acropolis_bridge_8018983C;
+    _AcropolisBridgeKeypadWork* work     = task->work;
+    GameLocationKey*            location = &gGameSession->location.loc;
+    SpriteView*                 views;
+    s32                         mappedView;
+
+    mappedView                                                                     = viewGetMappedIndex();
+    views                                                                          = gSpriteAreaTables[location->stage - 1][gGameSession->spriteVariant - 1].areaViews[location->area - 1];
+    views[(u8)mappedView - 1].batches[ACROPOLIS_BRIDGE_KEYPAD_PROMPT_BATCH].hidden = 0;
+
+    _acropolisBridgeKeypadStepResultBlink(work, 1);
+
+    if (_actionPromptHitTestDefault(hotspots, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
 
     if (work->blinkCount == ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT) {
-        task->state                 = 8;
-        D_acropolis_bridge_801917A8 = 1;
+        task->state                 = ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE;
+        D_acropolis_bridge_801917A8 = ACROPOLIS_BRIDGE_KEYPAD_ACCEPTED;
     }
 }
 
-/// Idles the bridge prompt for twenty frames per pass: the first ten frames
-/// show the keypad error through `_acropolisBridgeShowKeypadError`, the
-/// next ten blank the code display, and the frame after them counts one blink
-/// in `blinkCount`. Either way the cursor is re-hit-tested against the room's
-/// hotspot table so `mode` reports whether it sits over one. After three
-/// blinks the script rewinds to state 2 with `code` blank for another entry,
-/// and once `rejectedCount` reaches its limit it gives up into state 8.
-static void func_acropolis_bridge_8017E4FC(Task* task)
+/// Blinks the keypad error and retries entry, closing after three rejected codes.
+///
+/// Requires initialized work and live prompt/display state. Each cycle shows
+/// error for ten frames, blanks for ten and then counts a blink. Three cycles
+/// clear the entry and increment the byte rejection count. `blinkCount` stays
+/// at three on retry; the next rejected check resets it. Cursor hotspot
+/// feedback remains active throughout.
+static void _acropolisBridgeKeypadBlinkError(Task* task)
 {
-    ActionPrompt*               prompt = D_80114D28;
-    ActionPromptHotspot*        hs     = D_acropolis_bridge_8018983C;
-    _AcropolisBridgeKeypadWork* work   = task->work;
-    s16                         tick;
-    u8                          retry;
+    ActionPrompt*               prompt   = D_80114D28;
+    ActionPromptHotspot*        hotspots = D_acropolis_bridge_8018983C;
+    _AcropolisBridgeKeypadWork* work     = task->work;
+    u8                          rejectedCount;
 
     viewGetMappedIndex();
-    tick = work->timer;
-    if (tick < ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
-        _acropolisBridgeShowKeypadError();
-        work->timer++;
-    } else if (tick < 2 * ACROPOLIS_BRIDGE_KEYPAD_BLINK_PHASE_FRAMES) {
-        func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
-        work->timer++;
-    } else {
-        work->timer = 0;
-        work->blinkCount++;
-    }
+    _acropolisBridgeKeypadStepResultBlink(work, 0);
 
-    if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (_actionPromptHitTestDefault(hotspots, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
 
     if (work->blinkCount == ACROPOLIS_BRIDGE_KEYPAD_BLINK_COUNT) {
-        task->state         = 2;
+        task->state         = ACROPOLIS_BRIDGE_KEYPAD_STATE_ENTER_CODE;
         work->digitCount    = 0;
         work->code          = ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK;
-        retry               = work->rejectedCount + 1;
-        work->rejectedCount = retry;
-        if (retry >= ACROPOLIS_BRIDGE_KEYPAD_REJECTED_LIMIT) {
-            task->state                 = 8;
-            D_acropolis_bridge_801917A8 = 0;
+        rejectedCount       = work->rejectedCount + 1;
+        work->rejectedCount = rejectedCount;
+        if (rejectedCount >= ACROPOLIS_BRIDGE_KEYPAD_REJECTED_LIMIT) {
+            task->state                 = ACROPOLIS_BRIDGE_KEYPAD_STATE_CLOSE;
+            D_acropolis_bridge_801917A8 = ACROPOLIS_BRIDGE_KEYPAD_CANCELLED;
         }
     }
 }
 
-/// Draws the three-digit bridge code onto the current room's eighth SPRT
-/// record. Each nibble of `digits` indexes one row of
-/// `D_acropolis_bridge_801898CC`, which maps it to the single command left
-/// drawing in that digit's band - commands 1..10, 11..20 and 21..30 - while
-/// every other command in the band gets its skip-OT-link flag set. A nibble
-/// above 9 maps to the row's sentinel (0x1F / 0x20 / 0x21), which blanks the
-/// band and shows the placeholder at command 31, 32 or 33 instead, so
-/// `func_acropolis_bridge_8017E60C(0xFFF, 0)` clears the whole display.
-/// Command 34 is always hidden; `hidePrompt` also hides command 35.
-static void func_acropolis_bridge_8017E60C(s32 digits, s32 hidePrompt)
+/// Selects the visible sprite for each nibble of the bridge's three-digit code.
+///
+/// Only bits 0..11 of `code` are used: hundreds, tens and ones index three
+/// 16-entry rows, so each lookup is in bounds. Nibbles 0..9 show a digit;
+/// 10..15 hide the digit band and show its blank sprite. Requires the eighth
+/// view's writable batches 1..35. Always hides the error sprite; a nonzero
+/// `hidePrompt` additionally hides batch 35, while zero preserves its visibility.
+/// Updates flags for later sprite rendering.
+static void _acropolisBridgeShowKeypadCode(s32 code, s16 hidePrompt)
 {
-    GameLocationKey* sess = &gGameSession->location.loc;
+    GameLocationKey* location = &gGameSession->location.loc;
     SpriteBatch*     batches;
-    s32              i;
-    u8               hi;
-    u8               mid;
-    u8               lo;
+    s32              batchIndex;
+    u8               hundredsBatch;
+    u8               tensBatch;
+    u8               onesBatch;
+
+    /// Selects a digit or blank sprite in one ten-batch band.
+    ///
+    /// All arguments must be stable expressions without side effects: batches,
+    /// selected digit and first/blank indices are read repeatedly. The selected
+    /// batch must be one of the ten digits or the band's separate blank. `batchIndex`
+    /// must be a writable s32 local and is left one past the band's last digit.
+    /// Use only as a standalone statement, since expansion is a complete if/else.
+#define ACROPOLIS_BRIDGE_SELECT_KEYPAD_DIGIT(batches, digitBatch, firstBatch, blankBatch, batchIndex)                                \
+    if ((digitBatch) == (blankBatch)) {                                                                                              \
+        for ((batchIndex) = (firstBatch); (batchIndex) < (firstBatch) + ACROPOLIS_BRIDGE_KEYPAD_DIGIT_BATCH_COUNT; (batchIndex)++) { \
+            (batches)[(batchIndex)].hidden = 1;                                                                                      \
+        }                                                                                                                            \
+        (batches)[(blankBatch)].hidden = 0;                                                                                          \
+    } else {                                                                                                                         \
+        for ((batchIndex) = (firstBatch); (batchIndex) < (firstBatch) + ACROPOLIS_BRIDGE_KEYPAD_DIGIT_BATCH_COUNT; (batchIndex)++) { \
+            if ((digitBatch) == (batchIndex)) {                                                                                      \
+                (batches)[(batchIndex)].hidden = 0;                                                                                  \
+                (batches)[(blankBatch)].hidden = 1;                                                                                  \
+            } else {                                                                                                                 \
+                (batches)[(batchIndex)].hidden = 1;                                                                                  \
+            }                                                                                                                        \
+        }                                                                                                                            \
+    }
 
     viewGetMappedIndex();
-    batches = gSpriteAreaTables[sess->stage - 1][gGameSession->spriteVariant - 1].areaViews[sess->area - 1][7].batches;
+    batches = gSpriteAreaTables[location->stage - 1][gGameSession->spriteVariant - 1].areaViews[location->area - 1][ACROPOLIS_BRIDGE_KEYPAD_VIEW_INDEX].batches;
 
-    if ((s16)hidePrompt != 0) {
-        batches[35].hidden = 1;
+    if (hidePrompt != 0) {
+        batches[ACROPOLIS_BRIDGE_KEYPAD_PROMPT_BATCH].hidden = 1;
     }
 
-    hi  = D_acropolis_bridge_801898CC[0][((u32)digits & 0xF00) >> 8];
-    mid = D_acropolis_bridge_801898CC[1][((u32)digits & 0xF0) >> 4];
-    lo  = D_acropolis_bridge_801898CC[2][digits & 0xF];
+    hundredsBatch = D_acropolis_bridge_801898CC[0][((u32)code & 0xF00) >> 8];
+    tensBatch     = D_acropolis_bridge_801898CC[1][((u32)code & 0xF0) >> 4];
+    onesBatch     = D_acropolis_bridge_801898CC[2][code & 0xF];
 
-    if (hi == 0x21) {
-        for (i = 0x15; i < 0x1F; i++) {
-            batches[i].hidden = 1;
-        }
-        batches[33].hidden = 0;
-    } else {
-        for (i = 0x15; i < 0x1F; i++) {
-            if (hi == i) {
-                batches[i].hidden  = 0;
-                batches[33].hidden = 1;
-            } else {
-                batches[i].hidden = 1;
-            }
-        }
-    }
+    ACROPOLIS_BRIDGE_SELECT_KEYPAD_DIGIT(batches, hundredsBatch, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_FIRST_BATCH, ACROPOLIS_BRIDGE_KEYPAD_HUNDREDS_BLANK_BATCH, batchIndex);
+    ACROPOLIS_BRIDGE_SELECT_KEYPAD_DIGIT(batches, tensBatch, ACROPOLIS_BRIDGE_KEYPAD_TENS_FIRST_BATCH, ACROPOLIS_BRIDGE_KEYPAD_TENS_BLANK_BATCH, batchIndex);
+    ACROPOLIS_BRIDGE_SELECT_KEYPAD_DIGIT(batches, onesBatch, ACROPOLIS_BRIDGE_KEYPAD_ONES_FIRST_BATCH, ACROPOLIS_BRIDGE_KEYPAD_ONES_BLANK_BATCH, batchIndex);
 
-    if (mid == 0x20) {
-        for (i = 0xB; i < 0x15; i++) {
-            batches[i].hidden = 1;
-        }
-        batches[32].hidden = 0;
-    } else {
-        for (i = 0xB; i < 0x15; i++) {
-            if (mid == i) {
-                batches[i].hidden  = 0;
-                batches[32].hidden = 1;
-            } else {
-                batches[i].hidden = 1;
-            }
-        }
-    }
+#undef ACROPOLIS_BRIDGE_SELECT_KEYPAD_DIGIT
 
-    if (lo == 0x1F) {
-        for (i = 1; i < 0xB; i++) {
-            batches[i].hidden = 1;
-        }
-        batches[31].hidden = 0;
-    } else {
-        for (i = 1; i < 0xB; i++) {
-            if (lo == i) {
-                batches[i].hidden  = 0;
-                batches[31].hidden = 1;
-            } else {
-                batches[i].hidden = 1;
-            }
-        }
-    }
-
-    batches[34].hidden = 1;
+    batches[ACROPOLIS_BRIDGE_KEYPAD_ERROR_BATCH].hidden = 1;
 }
 
 /// Hides the three ten-digit bands of the keypad's sprite display.
@@ -3475,10 +3521,11 @@ static void _acropolisBridgeSelectArrivalSpriteFrame(s32 frame)
     }
 }
 
-/// Arms the action prompt for a fresh script step: parks the cursor at the top
-/// left with the highlight mode on and the cursor speed at 0x80, tears down any
-/// prompt still up, then advances the task to its next state.
-static void func_acropolis_bridge_8017F404(Task* task)
+/// Arms the keypad cursor at pixel (0, 0) and advances to code entry.
+///
+/// Requires the live gameplay action prompt. Enables aim-speed motion with the
+/// idle cursor sprite and blanks the keypad display; button state is retained.
+static void _acropolisBridgeKeypadArmCursor(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
 
@@ -3486,38 +3533,39 @@ static void func_acropolis_bridge_8017F404(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
-    func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
+    _acropolisBridgeShowKeypadCode(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
     task->state++;
 }
 
-/// Opens the command prompt for the key latched in the work block: redraws the
-/// entered `code`, hides the cursor, then spawns the prompt at the coordinates
-/// the gameplay side left in `D_80114D28` with the key's `promptKind` as its
-/// Examine/Push action, and advances the task to state 4.
-static void func_acropolis_bridge_8017F460(Task* task)
+/// Opens Examine at the keypad cursor and advances to collect its answer.
+///
+/// Requires live keypad work and prompt state. Passes the selected hotspot's
+/// command kind and pixel position to the item menu, keeping the entered code
+/// visible while cursor movement and rendering are stopped.
+static void _acropolisBridgeKeypadOpenExaminePrompt(Task* task)
 {
     ActionPrompt*               prompt = D_80114D28;
     _AcropolisBridgeKeypadWork* work   = task->work;
 
-    func_acropolis_bridge_8017E60C(work->code, 0);
+    _acropolisBridgeShowKeypadCode(work->code, 0);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = 4;
+    task->state = ACROPOLIS_BRIDGE_KEYPAD_STATE_WAIT_EXAMINE;
 }
 
 /// Collects the answer to the command prompt opened for the latched key:
 /// redraws the entered `code`, keeps the cursor hidden, and advances the task
 /// to state 2. If `itemMenuIsHotspotActionConfirmed` reports the command was confirmed,
 /// `keypadExamined` is raised (which the hotspot scan in
-/// `func_acropolis_bridge_8017E1D0` gates on, so keys type from then on) and
+/// `_acropolisBridgeKeypadEnterCode` gates on, so keys type from then on) and
 /// cap slot 9 is started.
 static void func_acropolis_bridge_8017F4CC(Task* task)
 {
     ActionPrompt*               prompt = D_80114D28;
     _AcropolisBridgeKeypadWork* work   = task->work;
 
-    func_acropolis_bridge_8017E60C(work->code, 0);
+    _acropolisBridgeShowKeypadCode(work->code, 0);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
@@ -3527,17 +3575,19 @@ static void func_acropolis_bridge_8017F4CC(Task* task)
     task->state = 2;
 }
 
-/// Holds a complete entry on the display for ten frames, then checks it. The
-/// correct code is the one the room answers with message 0x7DA before its
-/// confirmation sound and state 6; every other entry just clears `blinkCount`
-/// and `timer`, plays the rejection sound and goes to state 7. Either way the
-/// entered `code` is redrawn and the cursor is re-hit-tested against the
-/// room's hotspot table, so `mode` reports whether it ended up over one.
-static void func_acropolis_bridge_8017F544(Task* task)
+/// Checks a complete keypad code after ten updates and starts its result display.
+///
+/// Requires initialized work with three entered digits. Code 561 broadcasts
+/// the accepted command to actors and plays confirmation; other codes play
+/// rejection and reset the blink counters. Acceptance retains both counters.
+/// The broadcast borrows the stack command only during synchronous dispatch.
+/// While waiting for the check delay, this state does not update sprites or
+/// cursor feedback.
+static void _acropolisBridgeKeypadCheckCode(Task* task)
 {
-    ActionPrompt*               prompt = D_80114D28;
-    _AcropolisBridgeKeypadWork* work   = task->work;
-    ActionPromptHotspot*        hs     = D_acropolis_bridge_8018983C;
+    ActionPrompt*               prompt   = D_80114D28;
+    _AcropolisBridgeKeypadWork* work     = task->work;
+    ActionPromptHotspot*        hotspots = D_acropolis_bridge_8018983C;
 
     if (work->timer < ACROPOLIS_BRIDGE_KEYPAD_CHECK_DELAY_FRAMES) {
         work->timer++;
@@ -3548,32 +3598,41 @@ static void func_acropolis_bridge_8017F544(Task* task)
         sndEvtRequestScriptStart(SOUND_ACROPOLIS_BRIDGE_CODE_REJECTED, 0, 0);
         work->blinkCount = 0;
         work->timer      = 0;
-        task->state      = 7;
+        task->state      = ACROPOLIS_BRIDGE_KEYPAD_STATE_REJECTED;
     } else {
-        ActorCommand msg = { { { 1, 0xE } }, 2 };
+        // Keep the inherited blink counters on acceptance.
+        ActorCommand acceptedCommand = { { { GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_BRIDGE } }, ACROPOLIS_BRIDGE_COMMAND_KEYPAD_ACCEPTED };
 
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &acceptedCommand, ACTOR_COMMAND_MESSAGE_APPLY);
         sndEvtRequestScriptStart(SOUND_ACROPOLIS_BRIDGE_CODE_ACCEPTED, 0, 0);
-        task->state = 6;
+        task->state = ACROPOLIS_BRIDGE_KEYPAD_STATE_ACCEPTED;
     }
-    func_acropolis_bridge_8017E60C(work->code, 0);
-    if (_actionPromptHitTestDefault(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    _acropolisBridgeShowKeypadCode(work->code, 0);
+    if (_actionPromptHitTestDefault(hotspots, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
     } else {
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
 }
 
-static void func_acropolis_bridge_8017F658(Task* task)
+/// Closes the keypad, releases its cursor and requests exit with the saved result.
+///
+/// Requires a live cursor task in `spawnArg2.pointer` and a held menu display.
+/// Blanks the code, restores HUD/event/player holds and rearms manual interaction
+/// for ten eligible direction updates. Work remains task-owned until teardown;
+/// the surrounding sequence restores the player model and scripted control.
+static void _acropolisBridgeKeypadClose(Task* task)
 {
+    enum { ACROPOLIS_BRIDGE_KEYPAD_INTERACTION_REARM_UPDATES = 10 };
+
     displayReleaseMenuHold();
-    func_acropolis_bridge_8017E60C(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
+    _acropolisBridgeShowKeypadCode(ACROPOLIS_BRIDGE_KEYPAD_CODE_BLANK, 0);
     taskKill(task->spawnArg2.pointer);
     taskRequestKill(task, D_acropolis_bridge_801917A8);
     gGameSession->eventState   = 0;
     gGameSession->hideHud      = 0;
     gGameSession->cutsceneHold = 0;
-    D_80114D08                 = 0xA;
+    D_80114D08                 = ACROPOLIS_BRIDGE_KEYPAD_INTERACTION_REARM_UPDATES;
 }
 
 #include "../../shared/action_prompt_hit_test.inc.c"
@@ -5832,64 +5891,83 @@ static void _acropolisBridgeEnemyDeathEffect(Task* task)
     }
 }
 
-/// Applies one hit to the bridge enemy. While the work block still has HP it
-/// rolls the damage for the incoming attack id, spawns the hit effect on the
-/// model's second part coordinate, quadruples the damage on a critical roll,
-/// credits it to the kill tally and the link node, and subtracts it from both
-/// the work block's and the enemy's HP; the pending `gSceneCombatState` request is
-/// armed once the HP runs out. When there is no HP left to take (before or
-/// after the hit) it steps the behaviour state instead: 5 and 6 are already
-/// reaction states and stay put, 4 and 8 advance to 6, everything else resets
-/// to 5.
-static void func_acropolis_bridge_801876A8(Task* task, u32 attackId)
+/// Credits Life Drain and the damage readout before mirroring the two HP halfwords.
+///
+/// Requires the enemy's pre-hit HP for Life Drain and a valid packed attack key.
+/// Subtractions narrow to signed halfwords; the work HP is authoritative for
+/// the final enemy value. The readout retains the enemy's node for its lifetime.
+static inline void _acropolisBridgeEnemyAccountHitHp(_AcropolisBridgeEnemyWork* work, Enemy* enemy, u32 attackKey, s32 damage)
 {
-    _AcropolisBridgeEnemyWork* work  = (_AcropolisBridgeEnemyWork*)task->work;
-    Enemy*                     enemy = (Enemy*)task->spawnArg2.pointer;
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    enemy->hp -= damage;
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    work->hp -= damage;
+    enemy->hp = work->hp;
+}
+
+/// Applies an attack contact's HP damage and selects the enemy's defeat behavior.
+///
+/// Requires live enemy/work and model coordinate 1. `attackKey` is a packed
+/// category-2 collision key with valid weapon/PE rows. Damage uses distance
+/// zero and no reaction scaling, is quadrupled for a critical hit, credits Life Drain
+/// and the target readout, then narrows into both HP halfwords. A lethal hit
+/// credits rewards only while a battle reference remains. Already-defeated
+/// calls skip damage/effects: bobbing and collapse stay active, movie-following
+/// or placement animation selects collapse, and every other state selects bobbing.
+static void _acropolisBridgeEnemyApplyHit(Task* task, u32 attackKey)
+{
+    enum {
+        ACROPOLIS_BRIDGE_ENEMY_HIT_ARGUMENT_LOW       = 128,
+        ACROPOLIS_BRIDGE_ENEMY_HIT_ARGUMENT_HIGH      = 2,
+        ACROPOLIS_BRIDGE_ENEMY_CRITICAL_DAMAGE_FACTOR = 4,
+        ACROPOLIS_BRIDGE_ENEMY_UNUSED_REACTION_SCALE  = 4096,
+        ACROPOLIS_BRIDGE_ENEMY_REWARD_ARGUMENT        = 0x29
+    };
+    _AcropolisBridgeEnemyWork* work  = task->work;
+    Enemy*                     enemy = task->spawnArg2.pointer;
     s32                        damage;
     s16                        state;
 
+    // Account for the hit before choosing the defeat presentation.
     if (work->hp > 0) {
-        damage                     = damageComputePlayerAttack(attackId, 0, 0, 0x1000);
+        damage                     = damageComputePlayerAttack(attackKey, 0, 0, ACROPOLIS_BRIDGE_ENEMY_UNUSED_REACTION_SCALE);
         work->effectArg.coord      = &task->extra.tmd->coords[1];
-        work->effectArg.spawnArgLo = 0x80;
-        work->effectArg.spawnArgHi = 2;
-        effectSpawnHit(damageGetPlayerAttackEffectId(attackId), &task->extra.tmd->coords[1],
+        work->effectArg.spawnArgLo = ACROPOLIS_BRIDGE_ENEMY_HIT_ARGUMENT_LOW;
+        work->effectArg.spawnArgHi = ACROPOLIS_BRIDGE_ENEMY_HIT_ARGUMENT_HIGH;
+        effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[1],
                        NULL, &work->effectArg);
-        if (damageRollCriticalHit(enemy, attackId, 0) != 0) {
-            damage *= 4;
+        if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+            damage *= ACROPOLIS_BRIDGE_ENEMY_CRITICAL_DAMAGE_FACTOR;
             effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[1], 0, NULL);
         }
-        damageAccumulateLifeDrainHp(enemy, attackId, damage, 0);
-        enemy->hp -= damage;
-        worldTargetAddReadoutAmount(&enemy->node, damage, 0);
-        work->hp -= damage;
-        enemy->hp = work->hp;
+        _acropolisBridgeEnemyAccountHitHp(work, enemy, attackKey, damage);
         if (work->hp > 0) {
             return;
         }
         if (gSceneCombatState.battleRefs != 0) {
-            sceneReleaseBattleRefWithRewards(task, 0x29);
+            sceneReleaseBattleRefWithRewards(task, ACROPOLIS_BRIDGE_ENEMY_REWARD_ARGUMENT);
         }
         if (work->hp > 0) {
             return;
         }
     }
+    // Preserve active defeat states; a falling enemy collapses instead of bobbing.
     state = work->state;
-    if (state < 7) {
-        if (state >= 5) {
+    if (state < ACROPOLIS_BRIDGE_ENEMY_STATE_DEATH_EFFECT) {
+        if (state >= ACROPOLIS_BRIDGE_ENEMY_STATE_DEFEATED_BOB) {
             return;
         }
-        if (state != 4) {
-            work->state = 5;
+        if (state != ACROPOLIS_BRIDGE_ENEMY_STATE_FOLLOW_MOVIE) {
+            work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_DEFEATED_BOB;
             return;
         }
-        work->state = 6;
+        work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_COLLAPSE;
     } else {
-        if (state != 8) {
-            work->state = 5;
+        if (state != ACROPOLIS_BRIDGE_ENEMY_STATE_ANIMATE_AT_PLACEMENT) {
+            work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_DEFEATED_BOB;
             return;
         }
-        work->state = 6;
+        work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_COLLAPSE;
     }
 }
 
@@ -5926,7 +6004,7 @@ static inline s32 _acropolisBridgeFindAttackContact(SVECTOR* hitPoint, const Wor
 /// and remembering the view it last synced to in `syncedView`. Outside the
 /// death and cleanup states it then borrows an `_AcropolisBridgeHitScratch`, scans
 /// the body's three collision records for a hit (high halfword 0x2), applies
-/// it through `func_acropolis_bridge_801876A8`, raises `stateEntered` on the frame
+/// it through `_acropolisBridgeEnemyApplyHit`, raises `stateEntered` on the frame
 /// the behaviour state changes, runs the state's handler from
 /// `D_acropolis_bridge_8019175C`, clears both record tables and -- while no
 /// `gSceneCombatState` request is pending -- resets any state other than 5 or 6 back
@@ -6006,7 +6084,7 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
     hit        = _acropolisBridgeFindAttackContact(&block->point, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
     block->key = hit;
     if (hit != 0) {
-        func_acropolis_bridge_801876A8(task, hit);
+        _acropolisBridgeEnemyApplyHit(task, hit);
     }
 
     cur = (_AcropolisBridgeEnemyWork*)task->work;
