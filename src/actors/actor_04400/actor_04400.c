@@ -95,6 +95,7 @@ static void _madChaserCombatToAlertState1(Task* task);
 static void _madChaserCombatToAlertState2(Task* task);
 static void _madChaserWalkState(Task* task);
 static void _madChaserAlertState(Task* task);
+static void _madChaserRecoilLightState(Task* task);
 static void _madChaserRecoilHeavyState(Task* task);
 static void _madChaserStatusHoldState(Task* task);
 static void _madChaserLurkIdleState(Task* task);
@@ -803,7 +804,7 @@ static const TaskFuncTable11 gMadChaserCombatStates = { {
     _madChaserWalkState,
     _madChaserLeapState,
     _madChaserAlertState,
-    madChaserRecoilLightState,
+    _madChaserRecoilLightState,
     _madChaserRecoilHeavyState,
     _madChaserStatusHoldState,
     _madChaserKnockdownState,
@@ -1381,8 +1382,8 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 #undef MAD_CHASER_ALERT_STATE_HANDLER
 #undef MAD_CHASER_ALERT_STEP_HANDLERS
 
-/// Selects the declared void(Task*) light-recoil dispatcher for this inclusion.
-#define MAD_CHASER_REACTION_STATE_HANDLER madChaserRecoilLightState
+/// Selects this carrier's declared static void(Task*) light-recoil dispatcher.
+#define MAD_CHASER_REACTION_STATE_HANDLER _madChaserRecoilLightState
 /// Use this carrier's signed-halfword behavior setter during recoil recovery.
 #define _madChaserRecoilLightRecover _madChaserRecoilRecover
 #include "../../shared/mad_chaser_recoil_light_state.inc.c"

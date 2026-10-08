@@ -16,6 +16,14 @@
 /// a bounds check. Entry advances to continuation; continuation owns recovery
 /// and behavior changes. The combat frame callback advances animation afterwards.
 ///
+/// Light recoil requires a current clip in 1..19 on entry, with live enemy/model
+/// and initialized animation storage. Entry saves the interrupted stance and
+/// requests an eight-frame normal-rate blend. Upright recovery restarts repeated
+/// light hits at twice normal rate, otherwise lets new hits replace the behavior
+/// before an animation boundary resumes walking. Low recovery waits for a
+/// boundary, jump or held pose to claim the alert and enter its behavior.
+/// The task and carrier must remain live through the selected callback.
+///
 /// Heavy recoil selects a clip from the interrupted stance, then waits for a
 /// boundary, jump or held pose to resume walking or alert. Status hold requires
 /// a started enemy buildup reaction: it enters the hold pose, then ticks it until
