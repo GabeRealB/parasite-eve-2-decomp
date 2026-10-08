@@ -120108,14 +120108,14 @@ is the low half, on big-endian it would be `lbu` at offset 1.
 record's `u16`-in-a-`u16` field shape; the two-record staging itself is the
 `*dst = *src; func_80179A04(src, dst);` idiom already documented for the map
 resolvers, with the caller's descriptor playing `src`.
-**Addendum (func_shelter_b1_underground_parking_80182DB4, 2026-09-24).** The
+**Addendum (_shelterB1UndergroundParkingGarageDepartureTask, 2026-09-24).** The
 helper is not required. The same two tells - the staged record read back
 through `addiu $s0,$sp,0x10`, and `jalr $s1` - came out of a plain caller body
-with two locals: `p = &rec;` written after the separating call and used for the
-reads and write-backs, and `handler = func_...;` assigned before that call.
+with two locals: a departure-pointer alias written after the separating call and used for the
+reads and write-backs, and `resolve = _roomVariantResolveNeoArk;` assigned before that call.
 Without the function-pointer local the call is a direct `jal` (93%); whether
-`p` is needed was not tested separately. The last sched1 tie, `sb zero,0x25($sp)` one slot early, moved
-by storing `msg.field_5 = 0` after `msg.field_3` rather than before it.
+the alias is needed was not tested separately. The last sched1 tie, `sb zero,0x25($sp)` one slot early, moved
+by storing `request.queryOnly = ROOM_EVENT_EXECUTE` after `request.room` rather than before it.
 ## A symbol address rematerialized after a call cannot be hoisted above it, so `&table[i]` written after the call lands in a caller-saved scratch (_neoArkAltarDrawTileWalls, 2026-09-17)
 
 Target: `lui s2,%hi(D_table)` / `addiu s2,s2,%lo(D_table)` sit *before* the
@@ -141101,11 +141101,11 @@ into a local) is if-converted into `a0=K2; if (c) a0=K1`. Writing the call in bo
 arms keeps the if/else, and crossjump merges the shared `a1/a2/jal` tail to give
 the target's `j` into the common call.
 
-## `a.x == K1 && a.y == K2` on adjacent byte fields becomes one `lhu` compare (func_shelter_b1_underground_parking_80182830, 2026-09-24)
+## `a.x == K1 && a.y == K2` on adjacent byte fields becomes one `lhu` compare (_shelterB1UndergroundParkingHandleDirectionAction, 2026-09-24)
 
 **Symptom.** The target tests two neighbouring `u8` fields with two loads and two
 branches (`lbu v1,2(s0)` / `bne ...,0xa` then `lbu v1,3(s0)` / `bne ...,1`), but
-`if (msg->warp == 0xA && msg->room == 1 && ...)` compiles to a single
+`if (request->actionId == 0xA && request->argument == 1 && ...)` compiles to a single
 `lhu v1,2(s0)` against `0x10a`, shifting every branch after it.
 
 **Cause.** `fold_truthop` (`fold-const.c`) merges `&&`/`||` comparisons of
@@ -141116,14 +141116,13 @@ the same `TRUTH_ANDIF_EXPR`.
 **Fix.** Nest the test so the two comparisons are separate statements:
 
 ```c
-if (msg->warp == 0xA) {
-    if ((u8)msg->room == 1 && gGameSession->location.loc.room < 7) { ... }
+if (request->actionId == 0xA) {
+    if (request->argument == 1 && gGameSession->location.loc.room < 7) { ... }
 }
 ```
 
-The `(u8)` was a separate issue: the shared `RoomEventMsg.room` is `s8`
-(loads `lb`), while this site loads `lbu`, so the cast is applied at the use
-rather than retyping the shared field.
+The offset-3 access is `DirectionActionRequest.argument`, an unsigned byte,
+so the corrected payload declaration emits `lbu` without a cast.
 
 ## A `lw` + `andi` mask test on a `u16` flags field is two bit tests joined by `||` (actor_403100, 2026-10-04)
 

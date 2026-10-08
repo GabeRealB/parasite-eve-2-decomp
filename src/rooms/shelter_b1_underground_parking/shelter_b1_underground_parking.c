@@ -108,6 +108,43 @@ enum {
     SHELTER_B1_UNDERGROUND_PARKING_PANEL_STATE_COMMIT         = 6,
 };
 
+/// Entries of the room-owned auxiliary task table used by these handlers.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_TASK_PANEL_SESSION        = 0,
+    SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM6_CHOICE         = 1,
+    SHELTER_B1_UNDERGROUND_PARKING_TASK_GARAGE_DEPARTURE     = 3,
+    SHELTER_B1_UNDERGROUND_PARKING_TASK_RESUME_AFTER_CAPTION = 4,
+    SHELTER_B1_UNDERGROUND_PARKING_TASK_AMBIENCE             = 5,
+    SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP        = 6,
+};
+
+/// CAP command-table slots selected by this room; their text remains resource-owned.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_01 = 1,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_02 = 2,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_03 = 3,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_04 = 4,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_05 = 5,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_06 = 6,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_07 = 7,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_08 = 8,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_09 = 9,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0C = 12,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0E = 14,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0F = 15,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_10 = 16,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_1E = 30,
+};
+
+/// CAP sequence slots and the room variants that select their room-specific behavior.
+enum {
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_HANDOFF       = 10,
+    SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_GARAGE_CHOICE = 11,
+    SHELTER_B1_UNDERGROUND_PARKING_ROOM_CAR_SCENE         = 7,
+    SHELTER_B1_UNDERGROUND_PARKING_VARIANT_SOLDIER_B      = 21,
+    SHELTER_B1_UNDERGROUND_PARKING_FINAL_CHAPTER          = 6,
+};
+
 /// Room variant in which an access card can start the electric-car scene.
 enum { SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS = 6 };
 
@@ -398,9 +435,10 @@ extern SVECTOR D_shelter_b1_underground_parking_80187714[];
 extern SVECTOR D_shelter_b1_underground_parking_80187784[];
 extern SVECTOR D_shelter_b1_underground_parking_801877A4[];
 
-static void func_shelter_b1_underground_parking_80183810(Task* arg0);
-static void func_shelter_b1_underground_parking_80184304(Task* task);
-static void func_shelter_b1_underground_parking_801843F0(Task* task);
+static void _shelterB1UndergroundParkingCheckCaptionHandoff(Task* roomTask);
+static void _shelterB1UndergroundParkingRoomInitialize(Task* roomTask);
+static void _shelterB1UndergroundParkingPanelInitialize(Task* task);
+static void _shelterB1UndergroundParkingPanelOpen(Task* task);
 static void _shelterB1UndergroundParkingPanelScanHotspots(Task* task);
 static void _shelterB1UndergroundParkingPanelOpenCommands(Task* task);
 static void _shelterB1UndergroundParkingPanelHandleCommand(Task* task);
@@ -408,7 +446,7 @@ static void _shelterB1UndergroundParkingPanelCancel(Task* task);
 static void _shelterB1UndergroundParkingPanelCommitSelection(Task* task);
 static void _shelterB1UndergroundParkingPanelFadeOut(Task* task);
 
-static void func_shelter_b1_underground_parking_8018390C(void);
+static void _shelterB1UndergroundParkingStartAmbience(void);
 static void _shelterB1UndergroundParkingPanelResetSelection(void);
 static void _shelterB1UndergroundParkingPanelApplySelection(void);
 static void _shelterB1UndergroundParkingDrawPanelGlow(s16 screenX, s16 screenY, s16 pixelRadius, s16 packedRgb);
@@ -438,18 +476,18 @@ extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018CE34[16];
 extern WorldCollisionTrigger      D_shelter_b1_underground_parking_8018D2F4[11];
 extern WorldCoordRoomAmbientEntry D_shelter_b1_underground_parking_8018D638[25];
 extern WorldCoordRoomLights       D_shelter_b1_underground_parking_8018B07C[1];
-s32                               func_shelter_b1_underground_parking_80182830(Task*, s32, RoomEventMsg*, s32);
-s32                               func_shelter_b1_underground_parking_80182A60(Task*, s32, s32, s32);
+static s32                        _shelterB1UndergroundParkingHandleDirectionAction(Task* roomTask, s32 messageId, const DirectionActionRequest* request, s32 unused);
+static s32                        _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 messageId, s32 commandId, s32 unused);
 static s32                        _shelterB1UndergroundParkingUseKeyItem(Task* roomTask, s32 messageId, s32 itemId, s32 unused);
-s32                               func_shelter_b1_underground_parking_80183360(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32                        _shelterB1UndergroundParkingResolveRoomEvent(Task* roomTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32                        _shelterB1UndergroundParkingCapSoundCue(Task* roomTask, s32 messageId, s32 soundCue, s32 unused);
-void                              func_shelter_b1_underground_parking_80182DB4(Task*);
+static void                       _shelterB1UndergroundParkingGarageDepartureTask(Task* task);
 static void                       _shelterB1UndergroundParkingAmbienceTask(Task* task);
-void                              func_shelter_b1_underground_parking_801834D4(Task*);
+static void                       _shelterB1UndergroundParkingPanelSessionTask(Task* task);
 static void                       _shelterB1UndergroundParkingResolveRoom6ChoiceTask(Task* task);
 static void                       _shelterB1UndergroundParkingStartRoom7SceneTask(Task* task);
 static void                       _shelterB1UndergroundParkingResumePlayerAfterCaptionTask(Task* task);
-void                              func_shelter_b1_underground_parking_80183714(Task*);
+static void                       _shelterB1UndergroundParkingAlternateCapTask(Task* task);
 static void                       _shelterB1UndergroundParkingSetRoom(u8 roomNumber);
 static void                       _shelterB1UndergroundParkingSetPlayerTickHold(u8 holdPlayerTick);
 static void                       _shelterB1UndergroundParkingActionPromptTask(Task* task);
@@ -481,10 +519,10 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 TaskMessageEntry D_shelter_b1_underground_parking_80187230[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_underground_parking_80183360 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1UndergroundParkingResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1UndergroundParkingUseKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_underground_parking_80182830 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_underground_parking_80182A60 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1UndergroundParkingHandleDirectionAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB1UndergroundParkingHandleCommand },
     { ROOM_MESSAGE_SOUND, _shelterB1UndergroundParkingCapSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -494,13 +532,13 @@ TaskDesc D_shelter_b1_underground_parking_80187260[1] = {
 };
 
 TaskDesc D_shelter_b1_underground_parking_8018726C[7] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_801834D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingPanelSessionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingResolveRoom6ChoiceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingStartRoom7SceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_underground_parking_80182DB4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingGarageDepartureTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingResumePlayerAfterCaptionTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterB1UndergroundParkingAmbienceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_underground_parking_80183714, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB1UndergroundParkingAlternateCapTask, { .value = 0 } },
 };
 
 ActorTransform D_shelter_b1_underground_parking_801872C0 = { { 3155, 0, -247, 0 }, { 0, -1024, 0, 0 } };
@@ -1703,7 +1741,6 @@ u16 D_shelter_b1_underground_parking_8018D78A = 0xCCEE;
 
 u16 D_shelter_b1_underground_parking_8018D78C = 0;
 
-static void func_shelter_b1_underground_parking_801826C0(Task* roomTask);
 static void _shelterB1UndergroundParkingDrawPanelIndicators(void);
 
 #include "../../shared/telephone.inc.c"
@@ -1729,43 +1766,54 @@ void shelterB1UndergroundParkingTelephoneMenuTask(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// Starts caption slot 0xA and spawns entry 4 of
-/// `D_shelter_b1_underground_parking_8018726C` when the player asks for it.
-///
-/// The player must not be aiming (`field_954 != 2`), captions must be idle,
-/// the session room must be 7 or later, and the model root must stand with X
-/// below -0x1266 and Z inside [-0x7CF, 0x7D0), with `Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL` and
-/// `gDisplayState.pendingMode` clear. Then the 0x1000 pad mask with the yaw in the 0x3FF-wide
-/// window opening at 0xA01, or the 0x4000 mask with it in the window at 0x201,
-/// takes the weapon away and runs the handoff.
-static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
+/// Holds player control for the boundary caption and queues its completion task.
+static inline void _shelterB1UndergroundParkingStartCaptionHandoff(void)
 {
-    Task*      task;
-    GameActor* actor;
-    GfxCoord*  coord;
-    s32        z;
-    s32        facing;
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_HANDOFF, CAP_PLAYBACK_IN_PLACE, 1);
+    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_RESUME_AFTER_CAPTION, 0, 0);
+}
 
-    task  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    actor = (GameActor*)task->work;
-    coord = task->extra.tmd->coords;
-    if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (gGameSession->location.loc.room >= 7) &&
-        (coord->coord.t[0] < -0x1266)) {
-        z = coord->coord.t[2];
-        if (z < 0x7D0) {
-            if ((z >= -0x7CF) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                facing = (u16)actor->rotation.vy & 0xFFF;
+/// Checks the late-room boundary for a held-direction caption request each frame.
+///
+/// Requires the live player model in the room coordinate frame. With CAP idle,
+/// scripted control and the attachment wheel inactive, X must be below -4710
+/// and Z in [-1999, 2000). Up uses yaw 2561..3583, Down 513..1535, in 4096
+/// units per turn. Both tests run independently; the receiver is unused.
+static void _shelterB1UndergroundParkingCheckCaptionHandoff(Task* roomTask)
+{
+    // Room-coordinate limits and normalized yaw windows (4096 units per turn).
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_X_LIMIT        = -4710,
+        SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_Z_MIN          = -1999,
+        SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_Z_LIMIT        = 2000,
+        SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_UP_YAW_FIRST   = 2561,
+        SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_DOWN_YAW_FIRST = 513,
+        SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_YAW_COUNT      = 1023,
+    };
+
+    Task*      playerTask;
+    GameActor* player;
+    GfxCoord*  rootCoord;
+    s32        roomZ;
+    s32        yaw;
+
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    player     = playerTask->work;
+    rootCoord  = playerTask->extra.tmd->coords;
+    if ((player->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (gGameSession->location.loc.room >= SHELTER_B1_UNDERGROUND_PARKING_ROOM_CAR_SCENE) &&
+        (rootCoord->coord.t[0] < SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_X_LIMIT)) {
+        roomZ = rootCoord->coord.t[2];
+        if (roomZ < SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_Z_LIMIT) {
+            if ((roomZ >= SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_Z_MIN) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+                yaw = (u16)player->rotation.vy & ACTOR_TRANSFORM_ANGLE_MASK;
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
-                    if ((u32)(facing - 0xA01) < 0x3FFU) {
-                        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                        capStartSequenceSlot(0xA, 0, 1);
-                        taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
+                    if ((u32)(yaw - SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_UP_YAW_FIRST) < SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_YAW_COUNT) {
+                        _shelterB1UndergroundParkingStartCaptionHandoff();
                     }
                 }
-                if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
-                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    capStartSequenceSlot(0xA, 0, 1);
-                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 4, 0, 0);
+                if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(yaw - SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_DOWN_YAW_FIRST) < SHELTER_B1_UNDERGROUND_PARKING_HANDOFF_YAW_COUNT)) {
+                    _shelterB1UndergroundParkingStartCaptionHandoff();
                 }
             }
         }
@@ -1777,242 +1825,311 @@ static void func_shelter_b1_underground_parking_801826C0(Task* roomTask)
 /// handler, and the kill.
 static const TaskFuncTable3 D_shelter_b1_underground_parking_8017D7F4 = {
     {
-        func_shelter_b1_underground_parking_80183810,
-        func_shelter_b1_underground_parking_801826C0,
+        _shelterB1UndergroundParkingRoomInitialize,
+        _shelterB1UndergroundParkingCheckCaptionHandoff,
         taskKill,
     },
 };
 
-/// Room event handler keyed on `msg->field_2`: 1 calls `actor161500StartSoldierBRemark` in
-/// place 0x15, 0xA starts caption slot 0xA and sets nibble 0x1B4 to 2 while
-/// the room is below 7, and 0xB / 0xC pick a caption or spawn per room.
-s32 func_shelter_b1_underground_parking_80182830(Task* task, s32 msgId, RoomEventMsg* msg, s32 arg3)
+/// Handles the room trigger's directed action using a borrowed four-byte request.
+///
+/// Action 1 starts Soldier B's remark in variant 21; 10 handles the map handoff,
+/// 11 selects room-dependent CAP commands, and 12 selects the garage choice or scene.
+/// The full unsigned argument byte is used by action 10. The request is consumed
+/// synchronously and never retained. Receiver, message ID and second word are
+/// unused; the reply is always zero.
+static s32 _shelterB1UndergroundParkingHandleDirectionAction(Task* roomTask, s32 messageId, const DirectionActionRequest* request, s32 unused)
 {
-    if (msg->warp == 1 && gGameSession->location.loc.variant == 0x15) {
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_ACTION_SOLDIER_REMARK = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF    = 10,
+        SHELTER_B1_UNDERGROUND_PARKING_ACTION_ROOM_CAP       = 11,
+        SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE  = 12,
+    };
+
+    if (request->actionId == SHELTER_B1_UNDERGROUND_PARKING_ACTION_SOLDIER_REMARK && gGameSession->location.loc.variant == SHELTER_B1_UNDERGROUND_PARKING_VARIANT_SOLDIER_B) {
         actor161500StartSoldierBRemark();
     }
-    if (msg->warp == 0xA) {
-        if ((u8)msg->room == 1 && gGameSession->location.loc.room < 7) {
-            capStartSequenceSlot(0xA, 1, 0);
+    if (request->actionId == SHELTER_B1_UNDERGROUND_PARKING_ACTION_MAP_HANDOFF) {
+        if (request->argument == 1 && gGameSession->location.loc.room < SHELTER_B1_UNDERGROUND_PARKING_ROOM_CAR_SCENE) {
+            capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_HANDOFF, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_UNDERGROUND_PARKING, 2);
         }
     }
-    if (msg->warp == 0xB) {
+    if (request->actionId == SHELTER_B1_UNDERGROUND_PARKING_ACTION_ROOM_CAP) {
         switch (gGameSession->location.loc.room) {
             case 2:
-                capRunCommandWithTransition(8);
+                capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_08);
                 break;
             case 3:
-                capRunCommandWithTransition(0xF);
+                capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0F);
                 break;
             case 4:
-                capRunCommandWithTransition(9);
+                capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_09);
                 break;
             case 5:
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                capRunCommandWithTransition(0xC);
-                taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 1, 0, 0);
+                capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0C);
+                taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_ROOM6_CHOICE, 0, 0);
                 break;
             case 6:
             case 7:
             case 8:
-                capRunCommandWithTransition(0xE);
+                capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0E);
                 break;
         }
     }
-    if (msg->warp == 0xC) {
+    if (request->actionId == SHELTER_B1_UNDERGROUND_PARKING_ACTION_GARAGE_CHOICE) {
         switch (gGameSession->location.loc.room) {
             case 6:
-                capStartSequenceSlot(0xB, 1, 0);
+                capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_GARAGE_CHOICE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
                 break;
             case 7:
                 if (D_shelter_b1_underground_parking_8018D758 != 0) {
-                    capRunCommandWithTransition(0x1E);
-                } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_1E);
+                } else if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < SHELTER_B1_UNDERGROUND_PARKING_FINAL_CHAPTER) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    capStartSequenceSlot(0xB, 1, 1);
-                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 3, 0, 0);
+                    capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_GARAGE_CHOICE, CAP_PLAYBACK_DISPLAY_TRANSITION, 1);
+                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_GARAGE_DEPARTURE, 0, 0);
                 } else {
-                    capStartSequenceSlot(0xB, 1, 2);
+                    capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_GARAGE_CHOICE, CAP_PLAYBACK_DISPLAY_TRANSITION, 2);
                 }
                 break;
             case 8:
-                capStartSequenceSlot(0xB, 1, 2);
+                capStartSequenceSlot(SHELTER_B1_UNDERGROUND_PARKING_CAP_SLOT_GARAGE_CHOICE, CAP_PLAYBACK_DISPLAY_TRANSITION, 2);
                 break;
         }
     }
     return 0;
 }
 
-s32 func_shelter_b1_underground_parking_80182A60(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Holds and hides the player before starting the selector panel session.
+static inline void _shelterB1UndergroundParkingStartPanelSession(void)
 {
-    RoomCutsceneRec* st;
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_PANEL_SESSION, 0, 0);
+}
 
-    switch (arg2) {
-        case 1:
-            if (gGameSession->location.loc.room < 6) {
+/// Routes CAP room-command indices to playback, panel sessions and scenes.
+///
+/// Handles ROOM_MESSAGE_COMMAND. The signed command ID is an index in the
+/// loaded CAP resources: 1 opens the selector when progress permits, 4/7 choose
+/// room-dependent playback, 2/3/5 and 48 run alternate-file commands, 13 selects the recorded
+/// scene, and 22 starts the dialogue loop. Scene tasks borrow the room's
+/// persistent scene record. Unknown indices do nothing; the reply is always zero.
+/// The receiver, message ID and second payload word are unused.
+static s32 _shelterB1UndergroundParkingHandleCommand(Task* roomTask, s32 messageId, s32 commandId, s32 unused)
+{
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL               = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_7          = 7,
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4          = 4,
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2     = 2,
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_3     = 3,
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_5     = 5,
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE               = 13,
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_DIALOGUE_LOOP       = 22,
+        SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4     = 48,
+        SHELTER_B1_UNDERGROUND_PARKING_SCENE_VIEW                  = 20,
+        SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_RESOURCE          = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_SLOT              = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_EVENT_CAP_SLOT              = 31,
+        SHELTER_B1_UNDERGROUND_PARKING_SCENE_AFTER_COMMAND         = 9,
+        SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_COMMAND_INTRO = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_COMMAND_4     = 4,
+    };
+
+    RoomCutsceneRec* scene;
+
+    switch (commandId) {
+        case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_PANEL:
+            if (gGameSession->location.loc.room < SHELTER_B1_UNDERGROUND_PARKING_ROOM_CARD_ACCESS) {
                 if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 0) {
-                    capRunCommandWithTransition(1);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_01);
                 } else if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0) {
                     if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E8) == 0) {
-                        capRunCommandWithTransition(2);
+                        capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_02);
                     } else {
-                        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                        playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                        taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 0, 0, 0);
+                        _shelterB1UndergroundParkingStartPanelSession();
                     }
                 } else {
-                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 0, 0, 0);
+                    _shelterB1UndergroundParkingStartPanelSession();
                 }
             } else {
-                capRunCommandWithTransition(0x10);
+                capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_10);
             }
             break;
-        case 7:
+        case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_7:
             switch (gGameSession->location.loc.room) {
                 case 1:
-                    capRunCommandWithTransition(7);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_07);
                     break;
                 case 2:
-                    capRunCommandWithTransition(8);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_08);
                     break;
                 case 3:
-                    capRunCommandWithTransition(0xF);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0F);
                     break;
                 case 4:
-                    capRunCommandWithTransition(9);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_09);
                     break;
                 case 6:
                 case 7:
                 case 8:
-                    capRunCommandWithTransition(0xE);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_0E);
                     break;
             }
             break;
-        case 4:
+        case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ROOM_CAP_4:
             switch (gGameSession->location.loc.room) {
                 case 1:
                 case 2:
                 case 3:
                 case 4:
                 case 5:
-                    capRunCommandWithTransition(4);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_04);
                     break;
                 case 6:
-                    capRunCommandWithTransition(5);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_05);
                     break;
                 case 7:
-                    capRunCommandWithTransition(6);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_06);
                     break;
                 case 8:
-                    capRunCommandWithTransition(0x10);
+                    capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_10);
                     break;
             }
             break;
-        case 2:
-        case 3:
-        case 5:
+        case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_2:
+        case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_3:
+        case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_5:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, arg2, 0);
+            taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP, commandId, 0);
             break;
-        case 13:
-            st                  = &D_shelter_b1_underground_parking_8018D75C.rec;
-            st->startSound      = 0x5414000B;
-            st->endSound        = 0x5414000E;
-            st->sceneSound      = 0x5414000C;
-            st->afterSceneSound = 0x5414000D;
-            st->view            = 0x14;
+        case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_SCENE:
+            // Prepare persistent scene storage before handing it to an asynchronous task.
+            scene                  = &D_shelter_b1_underground_parking_8018D75C.rec;
+            scene->startSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0B);
+            scene->endSound        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0E);
+            scene->sceneSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0C);
+            scene->afterSceneSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x0D);
+            scene->view            = SHELTER_B1_UNDERGROUND_PARKING_SCENE_VIEW;
             if (D_shelter_b1_underground_parking_8018D758 == 0) {
                 if (gameFlagGetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE) == 0) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_FIRST_SCENE, 1);
-                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 1, 0);
+                    taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP, SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_COMMAND_INTRO, 0);
                 } else {
-                    st->capSlot   = 1;
-                    st->capFile   = 1;
-                    st->skipScene = 0;
-                    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 9, st);
+                    scene->capSlot   = SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_SLOT;
+                    scene->capFile   = SHELTER_B1_UNDERGROUND_PARKING_SCENE_CAP_RESOURCE;
+                    scene->skipScene = 0;
+                    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_B1_UNDERGROUND_PARKING_SCENE_AFTER_COMMAND, scene);
                 }
             } else {
                 D_shelter_b1_underground_parking_8018D758 = 0;
-                st->capSlot                               = 0x1F;
-                st->capFile                               = 0;
-                st->skipScene                             = 1;
-                taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, arg2, st);
+                scene->capSlot                            = SHELTER_B1_UNDERGROUND_PARKING_EVENT_CAP_SLOT;
+                scene->capFile                            = 0;
+                scene->skipScene                          = 1;
+                taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, commandId, scene);
             }
             break;
-        case 22:
+        case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_DIALOGUE_LOOP:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_b1_underground_parking_80187260, 0, arg2, 0);
+            taskSpawnFromTable(D_shelter_b1_underground_parking_80187260, 0, commandId, 0);
             break;
-        case 48:
+        case SHELTER_B1_UNDERGROUND_PARKING_COMMAND_ALTERNATE_CAP_4:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 6, 4, 0);
+            taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_ALTERNATE_CAP, SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_COMMAND_4, 0);
             break;
     }
     return 0;
 }
 
-/// Task body that waits for the caption to finish, then on caption key 0xB
-/// spawns the 0x31 task and after 30 frames publishes
-/// `gRoomDeparture` and spawns entry 0 of
-/// `D_shelter_b1_underground_parking_80187200`. Any other key restores the
-/// weapon and ends the task.
-void func_shelter_b1_underground_parking_80182DB4(Task* task)
+/// Resolves a departure's destination selectors in place.
+///
+/// Borrows both arguments synchronously; the resolver must read only areaId,
+/// warp, room and queryOnly from this request. Other departure fields survive.
+static inline void _shelterB1UndergroundParkingResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
 {
-    RoomDeparture       rec;
-    RoomEventMsg        msg;
-    RoomDeparture*      p;
-    RoomVariantResolver handler;
+    RoomEventMsg request;
+
+    request.areaId    = departure->area;
+    request.warp      = departure->warp;
+    request.room      = departure->room;
+    request.queryOnly = ROOM_EVENT_EXECUTE;
+    resolve(&request, &request);
+    departure->area = request.areaId;
+    departure->warp = request.warp;
+    departure->room = request.room;
+}
+
+/// Waits for the garage choice, fades out and publishes the 1F garage departure.
+///
+/// Starts bodyless at state 0. Choice key 11 starts a 30-frame subtractive fade;
+/// other keys resume the player and end the task. At zero countdown it updates
+/// companion/music progress, resolves the destination in place, and starts the
+/// departure task. The countdown is decremented even on that final invocation.
+/// Room, fade and resolver storage must remain loaded throughout.
+static void _shelterB1UndergroundParkingGarageDepartureTask(Task* task)
+{
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_WAIT_CAP                 = 0,
+        SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_CHECK_CHOICE             = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_WAIT_FADE                = 2,
+        SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_CHOICE_ACCEPT            = 11,
+        SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_FRAMES              = 30,
+        SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_BANK           = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_TYPE           = 49,
+        SHELTER_B1_UNDERGROUND_PARKING_COMPANION_SCHEDULE_MINE_SHELTER    = 10,
+        SHELTER_B1_UNDERGROUND_PARKING_COMPANION_SCHEDULE_SHELTER_NEO_ARK = 9,
+        SHELTER_B1_UNDERGROUND_PARKING_MUSIC_OVERRIDE_SUBMARINE           = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_MUSIC_OVERRIDE_PARKING             = 2,
+        SHELTER_B1_UNDERGROUND_PARKING_SCENE_EVENT_PARKING                = 27,
+    };
+
+    RoomDeparture       departure;
+    RoomVariantResolver resolve;
 
     switch (task->state) {
-        case 0:
+        case SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_WAIT_CAP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 1:
-            if (capGetVariantKey() == 0xB) {
+        case SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_CHECK_CHOICE:
+            if (capGetVariantKey() == SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_CHOICE_ACCEPT) {
                 D_shelter_b1_underground_parking_8018D750.blend      = SCREEN_FADE_SUBTRACT;
                 D_shelter_b1_underground_parking_8018D750.phase      = SCREEN_FADE_RUNNING;
-                D_shelter_b1_underground_parking_8018D750.rampFrames = 0x1E;
-                taskSpawn(1, 0x31, 0, &D_shelter_b1_underground_parking_8018D750);
-                task->killCountdown = 0x1E;
+                D_shelter_b1_underground_parking_8018D750.rampFrames = SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_FRAMES;
+                taskSpawn(SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_BANK, SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_TASK_TYPE, 0, &D_shelter_b1_underground_parking_8018D750);
+                task->killCountdown = SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_FADE_FRAMES;
                 task->state++;
             } else {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 taskKill(task);
             }
             break;
-        case 2:
+        case SHELTER_B1_UNDERGROUND_PARKING_DEPARTURE_WAIT_FADE:
             if (task->killCountdown == 0) {
-                if (gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == 0xA) {
-                    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 9);
+                if (gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE) == SHELTER_B1_UNDERGROUND_PARKING_COMPANION_SCHEDULE_MINE_SHELTER) {
+                    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, SHELTER_B1_UNDERGROUND_PARKING_COMPANION_SCHEDULE_SHELTER_NEO_ARK);
                 }
-                if (gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE) == 1) {
-                    gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, 2);
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x1B;
+                if (gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE) == SHELTER_B1_UNDERGROUND_PARKING_MUSIC_OVERRIDE_SUBMARINE) {
+                    gameFlagSetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE, SHELTER_B1_UNDERGROUND_PARKING_MUSIC_OVERRIDE_PARKING);
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SHELTER_B1_UNDERGROUND_PARKING_SCENE_EVENT_PARKING;
                 }
-                handler      = _roomVariantResolveNeoArk;
-                rec.stage    = GAME_STAGE_SHELTER_NEO_ARK;
-                rec.area     = GAME_AREA_SHELTER_1F_PARKING_GARAGE;
-                rec.room     = 1;
-                rec.warp     = 1;
-                rec.sndEvent = 0x54140008;
-                rec.facing   = ROOM_DEPARTURE_SKIP_FACING;
+                // Resolve the garage room from progress before publishing the departure.
+                resolve            = _roomVariantResolveNeoArk;
+                departure.stage    = GAME_STAGE_SHELTER_NEO_ARK;
+                departure.area     = GAME_AREA_SHELTER_1F_PARKING_GARAGE;
+                departure.room     = 1;
+                departure.warp     = 1;
+                departure.sndEvent = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_UNDERGROUND_PARKING, 0x08);
+                departure.facing   = ROOM_DEPARTURE_SKIP_FACING;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                p             = &rec;
-                msg.areaId    = p->area;
-                msg.warp      = p->warp;
-                msg.room      = p->room;
-                msg.queryOnly = ROOM_EVENT_EXECUTE;
-                handler(&msg, &msg);
-                p->area        = msg.areaId;
-                p->warp        = msg.warp;
-                p->room        = msg.room;
-                gRoomDeparture = rec;
+                _shelterB1UndergroundParkingResolveDeparture(&departure, resolve);
+                gRoomDeparture = departure;
                 taskSpawnFromTable(&D_shelter_b1_underground_parking_80187200, 0, 0, 0);
                 taskKill(task);
             }
@@ -2110,8 +2227,8 @@ static void _shelterB1UndergroundParkingAmbienceTask(Task* task)
 /// fade.
 static const TaskFuncTable8 D_shelter_b1_underground_parking_8017D9A4 = {
     {
-        func_shelter_b1_underground_parking_80184304,
-        func_shelter_b1_underground_parking_801843F0,
+        _shelterB1UndergroundParkingPanelInitialize,
+        _shelterB1UndergroundParkingPanelOpen,
         _shelterB1UndergroundParkingPanelScanHotspots,
         _shelterB1UndergroundParkingPanelOpenCommands,
         _shelterB1UndergroundParkingPanelHandleCommand,
@@ -2168,17 +2285,24 @@ static s32 _shelterB1UndergroundParkingUseKeyItem(Task* roomTask, s32 messageId,
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_shelter_b1_underground_parking_80183360(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a Shelter room transition and defers departures while ambience is active.
+///
+/// Copies the complete eight-byte request into a writable reply before resolving
+/// the room; both pointers may name the same object. Returns DIRECT when the
+/// event latch is clear, otherwise HANDLED. Execute requests in the latter case
+/// start CAP command 30; queries suppress it. The pointers are borrowed only
+/// through dispatch. Receiver and message ID are unused.
+static s32 _shelterB1UndergroundParkingResolveRoomEvent(Task* roomTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
     if (D_shelter_b1_underground_parking_8018D758 == 0) {
-        return 1;
+        return ROOM_VARIANT_TRANSITION_DIRECT;
     }
-    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        capRunCommandWithTransition(0x1E);
+    if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+        capRunCommandWithTransition(SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_1E);
     }
-    return 2;
+    return ROOM_VARIANT_TRANSITION_HANDLED;
 }
 
 /// Plays this room's sound for CAP cue 99 and ignores other sound cues.
@@ -2200,19 +2324,26 @@ static s32 _shelterB1UndergroundParkingCapSoundCue(Task* roomTask, s32 messageId
 
 #include "../../shared/cap_dialogue_loop.inc.c"
 
-/// Spawns entry 0 of `D_shelter_b1_underground_parking_80187670` and kills
-/// itself once that task has gone.
-void func_shelter_b1_underground_parking_801834D4(Task* task)
+/// Starts the selector panel and waits for its child task to be removed.
+///
+/// Bodyless states 0/1 start and poll the room-owned panel handle. Spawning
+/// must succeed: the next state requires a live, non-NULL child. Polling
+/// dispatches its requested exit before this task dies; the result is discarded.
+static void _shelterB1UndergroundParkingPanelSessionTask(Task* task)
 {
-    s32 poll;
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SESSION_START = 0,
+        SHELTER_B1_UNDERGROUND_PARKING_PANEL_SESSION_WAIT  = 1,
+    };
+    s32 childResult;
 
     switch (task->state) {
-        case 0:
+        case SHELTER_B1_UNDERGROUND_PARKING_PANEL_SESSION_START:
             D_shelter_b1_underground_parking_8018D74C = taskSpawnFromTable(&D_shelter_b1_underground_parking_80187670, 0, 0, 0);
             task->state++;
             return;
-        case 1:
-            if (taskPollKill(D_shelter_b1_underground_parking_8018D74C, &poll) != 0) {
+        case SHELTER_B1_UNDERGROUND_PARKING_PANEL_SESSION_WAIT:
+            if (taskPollKill(D_shelter_b1_underground_parking_8018D74C, &childResult) != 0) {
                 taskKill(task);
             }
             return;
@@ -2297,22 +2428,36 @@ static void _shelterB1UndergroundParkingResumePlayerAfterCaptionTask(Task* task)
     }
 }
 
-void func_shelter_b1_underground_parking_80183714(Task* task)
+/// Runs the spawned CAP command from this bundle's third data resource.
+///
+/// Starts bodyless at state 0 with command index 1..5 in spawnArg1.
+/// Selects data ordinal 2 and texture origin (768, 0) in VRAM pixels, waits for
+/// playback to finish, resumes the player, then restores the default CAP resource
+/// and texture selection. The bundle and room overlay must remain loaded.
+static void _shelterB1UndergroundParkingAlternateCapTask(Task* task)
 {
+    enum {
+        SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_START    = 0,
+        SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_WAIT     = 1,
+        SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_RESTORE  = 2,
+        SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_RESOURCE = 2,
+        SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_VRAM_X   = 768,
+    };
+
     switch (task->state) {
-        case 0:
+        case SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_START:
             Gp_CapFile = 0;
-            capSelectLoadedFile(2);
-            capSetTexturePage(0x300, 0);
+            capSelectLoadedFile(SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_RESOURCE);
+            capSetTexturePage(SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_VRAM_X, 0);
             capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
-        case 1:
+        case SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_WAIT:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 2:
+        case SHELTER_B1_UNDERGROUND_PARKING_ALTERNATE_CAP_RESTORE:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
@@ -2341,19 +2486,25 @@ static void _shelterB1UndergroundParkingSetPlayerTickHold(u8 holdPlayerTick)
     D_80115768 = holdPlayerTick;
 }
 
-static void func_shelter_b1_underground_parking_80183810(Task* arg0)
+/// Registers the room message receiver and initializes the selector and ambience.
+///
+/// Resets the pending panel selection, enables placed actor 0 in Soldier B's
+/// variant, and starts the ambience once when the final chapter has begun.
+/// Advances the room task to its per-frame handler; the room tables and overlay
+/// must remain loaded while the registered receiver is live.
+static void _shelterB1UndergroundParkingRoomInitialize(Task* roomTask)
 {
-    arg0->msgTable = D_shelter_b1_underground_parking_80187230;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    roomTask->msgTable = D_shelter_b1_underground_parking_80187230;
+    gameSetTaskSlot(roomTask, GAME_TASK_SLOT_ROOM);
     _shelterB1UndergroundParkingPanelResetSelection();
-    if (gGameSession->location.loc.variant == 0x15) {
+    if (gGameSession->location.loc.variant == SHELTER_B1_UNDERGROUND_PARKING_VARIANT_SOLDIER_B) {
         sceneSetPlacedActorDrawMode(0, 1);
     }
-    if ((gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) && (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123) == 0)) {
+    if ((gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= SHELTER_B1_UNDERGROUND_PARKING_FINAL_CHAPTER) && (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123) == 0)) {
         gameFlagSetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_123, 1);
-        func_shelter_b1_underground_parking_8018390C();
+        _shelterB1UndergroundParkingStartAmbience();
     }
-    arg0->state = arg0->state + 1;
+    roomTask->state = roomTask->state + 1;
 }
 
 void shelterB1UndergroundParkingRoomTask(Task* task)
@@ -2364,12 +2515,16 @@ void shelterB1UndergroundParkingRoomTask(Task* task)
     states.funcs[task->state](task);
 }
 
-static void func_shelter_b1_underground_parking_8018390C(void)
+/// Latches the room event and starts its fast light pulse and ambience task once.
+///
+/// A set latch suppresses further starts. The latch is set before spawning and
+/// stays set if task allocation fails; the ambience task stops when it is cleared.
+static void _shelterB1UndergroundParkingStartAmbience(void)
 {
     if (D_shelter_b1_underground_parking_8018D758 == 0) {
         D_shelter_b1_underground_parking_8018D758 = 1;
         _shelterB1UndergroundParkingSetFastLightPulse(SHELTER_B1_UNDERGROUND_PARKING_LIGHT_PULSE_FAST);
-        taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, 5, 0, 0);
+        taskSpawnFromTable(D_shelter_b1_underground_parking_8018726C, SHELTER_B1_UNDERGROUND_PARKING_TASK_AMBIENCE, 0, 0);
     }
 }
 
@@ -2457,39 +2612,46 @@ static void _shelterB1UndergroundParkingPanelTask(Task* task)
     states.funcs[task->state](task);
 }
 
-static void func_shelter_b1_underground_parking_80184304(Task* task)
+/// Allocates the selector panel's work and acquires its cursor and display hold.
+///
+/// Task teardown owns the zeroed 16-byte work. Failure to allocate it kills this
+/// task before acquiring any holds. A successful start spawns port 0's cursor,
+/// requests view 21, clears all hotspot hits, holds room/HUD activity and enters
+/// the opening state. Cursor allocation failure retains the existing behavior.
+static void _shelterB1UndergroundParkingPanelInitialize(Task* task)
 {
+    enum { SHELTER_B1_UNDERGROUND_PARKING_PANEL_VIEW          = 21,
+           SHELTER_B1_UNDERGROUND_PARKING_PANEL_CURSOR_PORT_0 = 1 };
+
     _ShelterB1UndergroundParkingPanelWork* work;
-    ActionPromptHotspot*                   hs;
+    ActionPromptHotspot*                   hotspot;
 
     work = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, 1, 0);
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_shelter_b1_underground_parking_80187664, 0, SHELTER_B1_UNDERGROUND_PARKING_PANEL_CURSOR_PORT_0, 0);
     task->work                                                 = work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0x15;
-    /* The once-loops fold away, but flow weights the references inside them
-       by loop depth. The outer one keeps the state load below the mode store;
-       the inner one lifts the work pointer's global-alloc priority back above
-       the parameter's so the two keep their callee-saved homes. */
-    do {
-        task->state++;
-        do {
-            work->field_0 = 0;
-        } while (0);
-    } while (0);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = SHELTER_B1_UNDERGROUND_PARKING_PANEL_VIEW;
+    task->state++;
+    work->field_0 = 0;
     displayAcquireMenuHold();
-    for (hs = D_shelter_b1_underground_parking_8018767C; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
-        hs->hit = 0;
+    for (hotspot = D_shelter_b1_underground_parking_8018767C; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+        hotspot->hit = 0;
     }
     gGameSession->cutsceneHold = 1;
     gGameSession->hideHud      = 1;
     gGameSession->eventState   = 1;
 }
 
-static void func_shelter_b1_underground_parking_801843F0(Task* task)
+/// Draws the selector indicators and starts its opening CAP command.
+///
+/// Requires initialized panel work and the port-0 prompt. Resets idle mode, aim
+/// speed and integer pixel position to zero; the cursor's fixed-point position
+/// is left for its movement task. Flag 0xE7 selects command 2 when clear or 3
+/// when set, in the current loaded CAP table, then advances to hotspot scanning.
+static void _shelterB1UndergroundParkingPanelOpen(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
 
@@ -2498,7 +2660,7 @@ static void func_shelter_b1_underground_parking_801843F0(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->screen.xy.x = 0;
     prompt->screen.xy.y = 0;
-    capRunCommand(gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0 ? 2 : 3, CAP_PLAYBACK_IN_PLACE);
+    capRunCommand(gameFlagGetNibble(GAME_FLAG_SHELTER_B1_UNDERGROUND_PARKING_0E7) == 0 ? SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_02 : SHELTER_B1_UNDERGROUND_PARKING_CAP_COMMAND_03, CAP_PLAYBACK_IN_PLACE);
     task->state++;
 }
 
