@@ -65,7 +65,6 @@ static const TaskFuncTable5 gMadChaserLeapSteps;      // dispatcher table madCha
 static const TaskFuncTable5 Actor04400_D0009C;        // dispatcher table Actor04400_Fn06964 copies onto its stack
 static const TaskFuncTable3 Actor04400_D00150;        // dispatcher table _madChaserLurkIdleState copies onto its stack
 static const TaskFuncTable3 Actor04400_D0015C;        // dispatcher table _madChaserLurkLookState copies onto its stack
-static const TaskFuncTable4 Actor04400_D00174;        // dispatcher table _madChaserLurkShiftState copies onto its stack
 static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table _madChaserPullState copies onto its stack
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`): the angle is a `long`,
@@ -115,7 +114,6 @@ static const TaskFuncTable5 gMadChaserLeapSteps;
 static const TaskFuncTable5 Actor04400_D0009C;
 static const TaskFuncTable3 Actor04400_D00150;
 static const TaskFuncTable3 Actor04400_D0015C;
-static const TaskFuncTable4 Actor04400_D00174;
 static const TaskFuncTable6 gMadChaserPullSteps;
 
 static TmdSource _gActor04400MadChaserBody;
@@ -837,8 +835,12 @@ static const TaskFuncTable5 Actor04400_D0009C = { {
     _madChaserAlertSidestep,
 } };
 
-/// Sub-state handlers `madChaserDangleState` dispatches by `subState`.
-static const TaskFuncTable4 gMadChaserDangleSteps = { {
+/// Ordered phases of the anchored dangle and its release into combat.
+///
+/// `MadChaserWork::subState` selects 0 start, 1 sway, 2 fall or 3 land.
+/// All entries are non-NULL void(Task*) callbacks; their code stays loaded
+/// through dispatch. Copying the table copies pointers, never task storage.
+static const TaskFuncTable4 _gMadChaserDangleSteps = { {
     _madChaserDangleStart,
     _madChaserDangleSway,
     _madChaserDangleFall,
@@ -1191,8 +1193,12 @@ static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
     _madChaserLurkSidestepToCombat,
 } };
 
-/// Sub-state handlers `_madChaserLurkShiftState` dispatches by `subState`.
-static const TaskFuncTable4 Actor04400_D00174 = { {
+/// Ordered phases of the lurk sidestep sequence.
+///
+/// `MadChaserWork::subState` selects 0 opening animation, 1 right-step start,
+/// 2 move right or 3 return left. All entries are non-NULL void(Task*) callbacks;
+/// their code stays loaded through dispatch. Completion returns to lurk idle.
+static const TaskFuncTable4 _gMadChaserLurkShiftSteps = { {
     _madChaserLurkShiftStart,
     _madChaserLurkShiftStartSidestep,
     _madChaserLurkSidestepRight,
@@ -1467,9 +1473,11 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 /// undefines this identifier binding. The accompanying table supplies the
 /// opening clip, right-step start, right move and left return in that order.
 #define MAD_CHASER_FOUR_STEP_STATE _madChaserLurkShiftState
-#define gMadChaserDangleSteps      Actor04400_D00174
+/// Supplies the lurk shift's complete four-phase `TaskFuncTable4` value.
+///
+/// The fragment copies it and undefines this object-identifier binding.
+#define MAD_CHASER_FOUR_STEP_HANDLERS _gMadChaserLurkShiftSteps
 #include "../../shared/mad_chaser_dangle_state.inc.c"
-#undef gMadChaserDangleSteps
 
 #include "../../shared/mad_chaser_start_hold.inc.c"
 

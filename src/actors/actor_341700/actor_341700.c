@@ -170,8 +170,12 @@ static const TaskFuncTable5 gMadChaserAlertSteps = { {
     _madChaserAlertSidestep,
 } };
 
-/// Sub-state handlers `madChaserDangleState` dispatches by `subState`.
-static const TaskFuncTable4 gMadChaserDangleSteps = { {
+/// Ordered phases of the anchored dangle and its release into combat.
+///
+/// `MadChaserWork::subState` selects 0 start, 1 sway, 2 fall or 3 land.
+/// All entries are non-NULL void(Task*) callbacks; their code stays loaded
+/// through dispatch. Copying the table copies pointers, never task storage.
+static const TaskFuncTable4 _gMadChaserDangleSteps = { {
     _madChaserDangleStart,
     _madChaserDangleSway,
     _madChaserDangleFall,
@@ -946,8 +950,12 @@ static const TaskFuncTable3 gMadChaserLurkAlertSteps = { {
     _madChaserLurkSidestepToCombat,
 } };
 
-/// Sub-state handlers `_madChaserLurkShiftState` dispatches by `subState`.
-static const TaskFuncTable4 gMadChaserLurkShiftSteps = { {
+/// Ordered phases of the lurk sidestep sequence.
+///
+/// `MadChaserWork::subState` selects 0 opening animation, 1 right-step start,
+/// 2 move right or 3 return left. All entries are non-NULL void(Task*) callbacks;
+/// their code stays loaded through dispatch. Completion returns to lurk idle.
+static const TaskFuncTable4 _gMadChaserLurkShiftSteps = { {
     _madChaserLurkShiftStart,
     _madChaserLurkShiftStartSidestep,
     _madChaserLurkSidestepRight,
@@ -1234,9 +1242,11 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 /// undefines this identifier binding. The accompanying table supplies the
 /// opening clip, right-step start, right move and left return in that order.
 #define MAD_CHASER_FOUR_STEP_STATE _madChaserLurkShiftState
-#define gMadChaserDangleSteps      gMadChaserLurkShiftSteps
+/// Supplies the lurk shift's complete four-phase `TaskFuncTable4` value.
+///
+/// The fragment copies it and undefines this object-identifier binding.
+#define MAD_CHASER_FOUR_STEP_HANDLERS _gMadChaserLurkShiftSteps
 #include "../../shared/mad_chaser_dangle_state.inc.c"
-#undef gMadChaserDangleSteps
 
 #include "../../shared/mad_chaser_start_hold.inc.c"
 

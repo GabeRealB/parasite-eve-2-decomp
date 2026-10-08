@@ -321,7 +321,7 @@ static void _madChaserLurkAlertState(Task* task);
 static void _madChaserHiddenTask(Task* task);
 void        madChaserTask(Task* arg0);
 void        madChaserLeapState(Task* arg0);
-void        madChaserDangleState(Task* task);
+static void _madChaserDangleState(Task* task);
 static void _madChaserVanishState(Task* task);
 void        madChaserRecoilLightState(Task* arg0);
 static s16  _madChaserJoinAlert(Task* task);

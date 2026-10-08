@@ -12,7 +12,7 @@ void madChaserDangleFrame(Task* arg0)
     MadChaserWork* work  = (MadChaserWork*)arg0->work;
     Enemy*         enemy = arg0->spawnArg2.pointer;
     GfxCoord*      coord = obj->coords;
-    TaskFunc       sp[1] = { madChaserDangleState };
+    TaskFunc       sp[1] = { _madChaserDangleState };
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
