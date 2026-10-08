@@ -1,21 +1,25 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// In the day stage only, shows or hides sprite batch 1 of view 9's background
-/// layer according to show.
-void factoryShowView9Sprite(s32 show)
+void FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE(s32 visible)
 {
-    GameSession*     g;
-    GameLocationKey* sess;
-    SpriteBatch*     batches;
+    enum {
+        FACTORY_ROOM_POWER_SPRITE_VIEW    = 9,
+        FACTORY_ROOM_POWER_SPRITE_BATCH   = 1,
+        FACTORY_ROOM_VISIBILITY_BYTE_MASK = 0xFF
+    };
+    const GameSession*     session;
+    const GameLocationKey* location;
+    SpriteBatch*           view9Batches;
 
-    g    = gGameSession;
-    sess = &g->location.loc;
-    if (sess->stage == GAME_STAGE_DRYFIELD) {
-        batches = gSpriteAreaTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1][8].batches;
-        if (!(show & 0xFF)) {
-            batches[1].hidden = 1;
+    session  = gGameSession;
+    location = &session->location.loc;
+    // The separate power sprite belongs to the daytime background in both instances.
+    if (location->stage == GAME_STAGE_DRYFIELD) {
+        view9Batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][FACTORY_ROOM_POWER_SPRITE_VIEW - 1].batches;
+        if (!(visible & FACTORY_ROOM_VISIBILITY_BYTE_MASK)) {
+            view9Batches[FACTORY_ROOM_POWER_SPRITE_BATCH].hidden = true;
             return;
         }
-        batches[1].hidden = 0;
+        view9Batches[FACTORY_ROOM_POWER_SPRITE_BATCH].hidden = false;
     }
 }

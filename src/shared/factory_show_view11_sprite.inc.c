@@ -1,6 +1,6 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// As factoryShowView9Sprite, for view 11's layer.
+/// As `dryfieldFactorySetView9SpriteVisible`, for view 11's layer.
 void factoryShowView11Sprite(s32 show)
 {
     GameSession*     g;

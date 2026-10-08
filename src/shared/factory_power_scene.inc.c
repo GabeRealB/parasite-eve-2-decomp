@@ -35,10 +35,10 @@ void factoryPowerScene(Task* task)
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 1);
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
                     factoryDayShowView11Sprite(1);
-                    factoryDayShowView9Sprite(1);
+                    dryfieldFactorySetView9SpriteVisible(1);
                 } else {
                     factoryNightShowView11Sprite(1);
-                    factoryNightShowView9Sprite(1);
+                    dryfieldNightFactorySetView9SpriteVisible(1);
                 }
                 capStartSequenceSlot(task->spawnArg1.value, 1, 2);
             }

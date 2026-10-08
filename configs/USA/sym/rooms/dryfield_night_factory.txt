@@ -1,7 +1,7 @@
 // Overlay-local symbols for dryfield_night_factory.
 
 // Stage 2 uses the day factory's view-sprite routines.
-factoryDayShowView9Sprite = 0x80181620; // type:func absolute:True owner=dryfield_factory
+dryfieldFactorySetView9SpriteVisible = 0x80181620; // type:func absolute:True owner=dryfield_factory
 factoryDayShowView11Sprite = 0x80181B38; // type:func absolute:True owner=dryfield_factory
 gFactoryPanelHotspots = 0x80186EBC; // size:0x48 defined:True
 gFactoryGlowPos48 = 0x80186F04; // size:0x8 defined:True
@@ -150,7 +150,7 @@ factorySoundCommand = 0x80180914; // type:func
 factoryRoomAction = 0x80180980; // type:func
 _factoryPanelIdle = 0x80180A4C; // type:func
 factoryPanelRunStep = 0x80180DE8; // type:func
-factoryNightShowView9Sprite = 0x80181620; // type:func rom:0x4060
+dryfieldNightFactorySetView9SpriteVisible = 0x80181620; // type:func rom:0x4060
 factoryPanelInit = 0x8018182C; // type:func
 _factoryPanelOpenPrompt = 0x8018196C; // type:func
 factoryPanelPrompt = 0x801819BC; // type:func

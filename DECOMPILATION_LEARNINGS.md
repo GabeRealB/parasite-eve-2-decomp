@@ -147332,10 +147332,10 @@ follow:
 - The two view-sprite routines sit at the same address in both packages, and
   each package calls them in both arms of a stage test. Calling one symbol in
   both arms lets GCC merge the arms (the image came out 144 bytes short). The
-  arms have to call two names, `factoryDayShowView9Sprite` and
-  `factoryNightShowView9Sprite`, one defined and one absolute in each package.
-  The fragment defines `factoryShowView9Sprite`, which the library header maps
-  to the build's own name under `FACTORY_ROOM_NIGHT_INSTANCE`.
+  arms have to call two names, `dryfieldFactorySetView9SpriteVisible` and
+  `dryfieldNightFactorySetView9SpriteVisible`, one defined and one absolute in each package.
+  The fragment defines `FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE`, which
+  the library header maps to the build's own name under `DRYFIELD_TIME`.
 - An absolute address of the other build can coincide with an unrelated own
   object. Night's reference to the day panel descriptor (0x80186E94) is the
   address of night's own prompt descriptor, so splat printed one name for both

@@ -244,8 +244,6 @@ extern PadScriptCmd              gFactoryNightJoltCmds[3];
 extern PadScriptVibrationSegment gFactoryDayJoltRecs[3];
 extern PadScriptVibrationSegment gFactoryNightJoltRecs[3];
 
-void factoryDayShowView9Sprite(s32 show);
-void factoryNightShowView9Sprite(s32 show);
 void factoryDayShowView11Sprite(s32 show);
 void factoryNightShowView11Sprite(s32 show);
 
@@ -262,15 +260,20 @@ void factoryNightShowView11Sprite(s32 show);
 #define FACTORY_DRAW_GLOWS_TASK dryfieldFactoryDrawGlowsTask
 #endif
 
-// Each build exports the view-sprite functions under its
-// own name, which gameplay and the other build refer to; the library's names
-// map onto the build's own.
+/// Binds the view 9 visibility setter definition to this factory room's export.
+///
+/// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this
+/// header is included and remain bound through `factory_show_view9_sprite.inc.c`.
+/// Expands to the corresponding public room header's function identifier with
+/// signature `void (s32)`. Both carriers include both public room headers for
+/// the runtime day/night calls. This object-like binding has no arguments,
+/// captured values, stringification or token pasting and performs no call.
 #if DRYFIELD_TIME == DRYFIELD_NIGHT
-#define factoryShowView9Sprite  factoryNightShowView9Sprite
-#define factoryShowView11Sprite factoryNightShowView11Sprite
+#define FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE dryfieldNightFactorySetView9SpriteVisible
+#define factoryShowView11Sprite                        factoryNightShowView11Sprite
 #else
-#define factoryShowView9Sprite  factoryDayShowView9Sprite
-#define factoryShowView11Sprite factoryDayShowView11Sprite
+#define FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE dryfieldFactorySetView9SpriteVisible
+#define factoryShowView11Sprite                        factoryDayShowView11Sprite
 #endif
 
 /// Binds the shared factory entry task definition to this room's exported callback.
