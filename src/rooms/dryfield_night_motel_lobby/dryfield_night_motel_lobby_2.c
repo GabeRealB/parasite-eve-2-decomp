@@ -13,9 +13,9 @@ s32 D_dryfield_night_motel_lobby_801844D4;
 /// The seven digits of the lobby keypad code as entered so far, most recent
 /// first at index 0; `0xA` marks a slot the player has not filled. The room's
 /// init resets all seven to `0xA`,
-/// `func_dryfield_night_motel_lobby_80180440` shifts a new digit in at index 0
+/// `dryfieldNightMotelLobbyPressCashRegisterKey` shifts a new digit in at index 0
 /// (its own count of digits entered is bounded by 7) and
-/// `func_dryfield_night_motel_lobby_80180734` tests the filled slots against
+/// `_dryfieldNightMotelLobbyCashRegisterHasValidCode` tests the filled slots against
 /// the code. The datum's eighth byte is padding before the cap script.
 u8 D_dryfield_night_motel_lobby_801844D8[7];
 
@@ -79,7 +79,7 @@ extern AreaApplyRec D_dryfield_night_motel_lobby_801844AC[];
 /// World-space points of the markers `dryfieldNightMotelLobbyDrawGlowsTask`
 /// draws; the second name is the same run from its second entry.
 
-static s16  func_dryfield_night_motel_lobby_80180734(void);
+static s16  _dryfieldNightMotelLobbyCashRegisterHasValidCode(void);
 static void _actionPromptResetDefault(Task* task);
 static void _dryfieldNightMotelLobbyDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
@@ -95,31 +95,31 @@ enum {
 };
 
 static void func_dryfield_night_motel_lobby_80180E98(Task* task);
-static void func_dryfield_night_motel_lobby_80180FA4(Task* task);
-static void func_dryfield_night_motel_lobby_80180FD8(Task* task);
+static void _dryfieldNightMotelLobbyCashRegisterArmCursor(Task* task);
+static void _dryfieldNightMotelLobbyCashRegisterOpenPrompt(Task* task);
 static void func_dryfield_night_motel_lobby_8018103C(Task* task);
 static void _actionPromptEventEnd(Task* eventTask);
-static void func_dryfield_night_motel_lobby_80181138(Task* arg0);
-static void func_dryfield_night_motel_lobby_8018119C(Task* arg0);
+static void _dryfieldNightMotelLobbyCashRegisterAcceptCode(Task* task);
+static void _dryfieldNightMotelLobbyCashRegisterPlayAcceptSound(Task* task);
 static void func_dryfield_night_motel_lobby_801811E0(Task* arg0);
 static void _dryfieldNightMotelLobbyCashRegisterExitDelay(Task* task);
-static void func_dryfield_night_motel_lobby_8018122C(Task* arg0);
+static void _dryfieldNightMotelLobbyCashRegisterFinish(Task* task);
 
 /// The eleven states of the room's examine task, run by
 /// `func_dryfield_night_motel_lobby_80180D58`.
 static const TaskFuncTable11 D_dryfield_night_motel_lobby_8017D6B0 = {
     {
         func_dryfield_night_motel_lobby_80180E98,
-        func_dryfield_night_motel_lobby_80180FA4,
+        _dryfieldNightMotelLobbyCashRegisterArmCursor,
         func_dryfield_night_motel_lobby_8017FE90,
-        func_dryfield_night_motel_lobby_80180FD8,
+        _dryfieldNightMotelLobbyCashRegisterOpenPrompt,
         func_dryfield_night_motel_lobby_8018103C,
         _actionPromptEventEnd,
-        func_dryfield_night_motel_lobby_80181138,
-        func_dryfield_night_motel_lobby_8018119C,
+        _dryfieldNightMotelLobbyCashRegisterAcceptCode,
+        _dryfieldNightMotelLobbyCashRegisterPlayAcceptSound,
         func_dryfield_night_motel_lobby_801811E0,
         _dryfieldNightMotelLobbyCashRegisterExitDelay,
-        func_dryfield_night_motel_lobby_8018122C,
+        _dryfieldNightMotelLobbyCashRegisterFinish,
     },
 };
 
@@ -130,11 +130,11 @@ extern WorldCollisionTrigger      D_dryfield_night_motel_lobby_80184164[8];
 extern WorldCoordRoomAmbientEntry D_dryfield_night_motel_lobby_8018441C[8];
 extern WorldCoordRoomLights       D_dryfield_night_motel_lobby_8018401C[1];
 
-void func_dryfield_night_motel_lobby_80180D08(Task*);
-void func_dryfield_night_motel_lobby_80180D58(Task*);
+static void _dryfieldNightMotelLobbyCashRegisterCursorTask(Task* task);
+void        func_dryfield_night_motel_lobby_80180D58(Task*);
 
 TaskDesc D_dryfield_night_motel_lobby_80182814[1] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_motel_lobby_80180D08, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightMotelLobbyCashRegisterCursorTask, { .value = 0 } },
 };
 
 ActionPromptHotspot D_dryfield_night_motel_lobby_80182820[15] = {
@@ -660,9 +660,13 @@ RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 static void _glowDrawPulsingDisc(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-/// Selects a 24-texel cash-register digit or the empty glyph on the second row.
+/// Sets a cash-register quad's texture coordinates for one display slot.
 ///
-/// `glyph` must be writable and `digit` in 0..10; 10 selects the empty glyph.
+/// Borrows a writable `glyph`; `digit` is 0..9 or
+/// `DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY` (10).
+/// Digits select 24-texel columns in the first row; empty selects the first
+/// column in the second row. Only UV coordinates change; the caller supplies
+/// the texture page, palette, screen bounds and packet header.
 static inline void _dryfieldNightMotelLobbySetCashRegisterGlyph(POLY_FT4* glyph, u8 digit)
 {
     u8 textureU;
@@ -729,23 +733,33 @@ void dryfieldNightMotelLobbyDrawCashRegisterDisplay(Task* task)
     }
 }
 
-void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
+/// Shifts the seven display slots toward older positions and inserts a digit.
+///
+/// `digit` is 0..9 and occupies index 0, the right-hand display slot.
+/// The caller owns the capacity and leading-zero checks and updates its count.
+static inline void _dryfieldNightMotelLobbyCashRegisterShiftDigit(s16 digit)
+{
+    D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
+    D_dryfield_night_motel_lobby_801844D8[5] = D_dryfield_night_motel_lobby_801844D8[4];
+    D_dryfield_night_motel_lobby_801844D8[4] = D_dryfield_night_motel_lobby_801844D8[3];
+    D_dryfield_night_motel_lobby_801844D8[3] = D_dryfield_night_motel_lobby_801844D8[2];
+    D_dryfield_night_motel_lobby_801844D8[2] = D_dryfield_night_motel_lobby_801844D8[1];
+    D_dryfield_night_motel_lobby_801844D8[1] = D_dryfield_night_motel_lobby_801844D8[0];
+    D_dryfield_night_motel_lobby_801844D8[0] = digit;
+}
+
+void dryfieldNightMotelLobbyPressCashRegisterKey(Task* task, s16 keyId)
 {
     DryfieldNightMotelLobbyCashRegisterWork* work = task->work;
-    s32                                      i;
+    s32                                      slotIndex;
 
-    switch (key) {
+    // A clear's displayed zero is a placeholder and is not counted as an entered digit.
+    switch (keyId) {
         case 0:
             sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
-            if (work->digitCount < 7) {
-                if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != 0xA) {
-                    D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
-                    D_dryfield_night_motel_lobby_801844D8[5] = D_dryfield_night_motel_lobby_801844D8[4];
-                    D_dryfield_night_motel_lobby_801844D8[4] = D_dryfield_night_motel_lobby_801844D8[3];
-                    D_dryfield_night_motel_lobby_801844D8[3] = D_dryfield_night_motel_lobby_801844D8[2];
-                    D_dryfield_night_motel_lobby_801844D8[2] = D_dryfield_night_motel_lobby_801844D8[1];
-                    D_dryfield_night_motel_lobby_801844D8[1] = D_dryfield_night_motel_lobby_801844D8[0];
-                    D_dryfield_night_motel_lobby_801844D8[0] = key;
+            if (work->digitCount < (s32)ARRAY_SIZE(D_dryfield_night_motel_lobby_801844D8)) {
+                if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY) {
+                    _dryfieldNightMotelLobbyCashRegisterShiftDigit(keyId);
                     work->digitCount++;
                 }
             }
@@ -760,38 +774,21 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
         case 8:
         case 9:
             sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
-            if (work->digitCount < 7) {
-                D_dryfield_night_motel_lobby_801844D8[work->digitCount] = 0xA;
-                D_dryfield_night_motel_lobby_801844D8[6]                = D_dryfield_night_motel_lobby_801844D8[5];
-                D_dryfield_night_motel_lobby_801844D8[5]                = D_dryfield_night_motel_lobby_801844D8[4];
-                D_dryfield_night_motel_lobby_801844D8[4]                = D_dryfield_night_motel_lobby_801844D8[3];
-                D_dryfield_night_motel_lobby_801844D8[3]                = D_dryfield_night_motel_lobby_801844D8[2];
-                D_dryfield_night_motel_lobby_801844D8[2]                = D_dryfield_night_motel_lobby_801844D8[1];
-                D_dryfield_night_motel_lobby_801844D8[1]                = D_dryfield_night_motel_lobby_801844D8[0];
-                D_dryfield_night_motel_lobby_801844D8[0]                = key;
+            if (work->digitCount < (s32)ARRAY_SIZE(D_dryfield_night_motel_lobby_801844D8)) {
+                // Discard the uncounted placeholder before shifting the entered digits.
+                D_dryfield_night_motel_lobby_801844D8[work->digitCount] = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY;
+                _dryfieldNightMotelLobbyCashRegisterShiftDigit(keyId);
                 work->digitCount++;
             }
             break;
         case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_DOUBLE_ZERO:
             sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
-            if (work->digitCount < 7) {
-                if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != 0xA) {
-                    D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
-                    D_dryfield_night_motel_lobby_801844D8[5] = D_dryfield_night_motel_lobby_801844D8[4];
-                    D_dryfield_night_motel_lobby_801844D8[4] = D_dryfield_night_motel_lobby_801844D8[3];
-                    D_dryfield_night_motel_lobby_801844D8[3] = D_dryfield_night_motel_lobby_801844D8[2];
-                    D_dryfield_night_motel_lobby_801844D8[2] = D_dryfield_night_motel_lobby_801844D8[1];
-                    D_dryfield_night_motel_lobby_801844D8[1] = D_dryfield_night_motel_lobby_801844D8[0];
-                    D_dryfield_night_motel_lobby_801844D8[0] = 0;
+            if (work->digitCount < (s32)ARRAY_SIZE(D_dryfield_night_motel_lobby_801844D8)) {
+                if (D_dryfield_night_motel_lobby_801844D8[0] != 0 || D_dryfield_night_motel_lobby_801844D8[1] != DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY) {
+                    _dryfieldNightMotelLobbyCashRegisterShiftDigit(0);
                     work->digitCount++;
-                    if (work->digitCount < 7) {
-                        D_dryfield_night_motel_lobby_801844D8[6] = D_dryfield_night_motel_lobby_801844D8[5];
-                        D_dryfield_night_motel_lobby_801844D8[5] = D_dryfield_night_motel_lobby_801844D8[4];
-                        D_dryfield_night_motel_lobby_801844D8[4] = D_dryfield_night_motel_lobby_801844D8[3];
-                        D_dryfield_night_motel_lobby_801844D8[3] = D_dryfield_night_motel_lobby_801844D8[2];
-                        D_dryfield_night_motel_lobby_801844D8[2] = D_dryfield_night_motel_lobby_801844D8[1];
-                        D_dryfield_night_motel_lobby_801844D8[1] = D_dryfield_night_motel_lobby_801844D8[0];
-                        D_dryfield_night_motel_lobby_801844D8[0] = 0;
+                    if (work->digitCount < (s32)ARRAY_SIZE(D_dryfield_night_motel_lobby_801844D8)) {
+                        _dryfieldNightMotelLobbyCashRegisterShiftDigit(0);
                         work->digitCount++;
                     }
                 }
@@ -800,22 +797,22 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
         case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_HASH:
             sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             work->digitCount   = 0;
-            work->entryCleared = 1;
-            for (i = 0; i < 7; i++) {
-                D_dryfield_night_motel_lobby_801844D8[i] = 0xA;
+            work->entryCleared = true;
+            for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(D_dryfield_night_motel_lobby_801844D8); slotIndex++) {
+                D_dryfield_night_motel_lobby_801844D8[slotIndex] = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY;
             }
             break;
         case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_CLEAR:
             sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_PRESS, 0, 0);
             work->digitCount   = 0;
-            work->entryCleared = 1;
-            for (i = 0; i < 7; i++) {
-                D_dryfield_night_motel_lobby_801844D8[i] = 0xA;
+            work->entryCleared = true;
+            for (slotIndex = 0; slotIndex < (s32)ARRAY_SIZE(D_dryfield_night_motel_lobby_801844D8); slotIndex++) {
+                D_dryfield_night_motel_lobby_801844D8[slotIndex] = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY;
             }
             break;
         case DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_KEY_TOTAL:
-            if (func_dryfield_night_motel_lobby_80180734() != 0) {
-                work->codeAccepted = 1;
+            if (_dryfieldNightMotelLobbyCashRegisterHasValidCode() != 0) {
+                work->codeAccepted = true;
             } else {
                 sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ERROR, 0, 0);
             }
@@ -823,44 +820,50 @@ void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key)
     }
 }
 
-/// Whether the keypad holds the lobby's code: exactly four digits, the three
-/// older slots still `0xA`, and those four reading `3 0 3 3` in the order they
-/// were typed.
-static s16 func_dryfield_night_motel_lobby_80180734(void)
+/// Returns 1 only when the display reads exactly 3033, otherwise 0.
+///
+/// Reads the seven live slots, newest first at index 0. The three older slots
+/// must be empty. This checks display contents independently of the work block
+/// and neither clears digits nor plays sounds. The halfword result is Boolean.
+static s16 _dryfieldNightMotelLobbyCashRegisterHasValidCode(void)
 {
-    u8* p = D_dryfield_night_motel_lobby_801844D8;
+    enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CODE_REPEATED_DIGIT = 3 };
+    const u8* digits = D_dryfield_night_motel_lobby_801844D8;
 
-    if (p[6] != 0xA) {
+    if (digits[6] != DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY) {
         return 0;
     }
-    if (p[5] != p[6]) {
+    if (digits[5] != digits[6]) {
         return 0;
     }
-    if (p[4] != p[5]) {
+    if (digits[4] != digits[5]) {
         return 0;
     }
-    if (p[3] != 3) {
+    if (digits[3] != DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CODE_REPEATED_DIGIT) {
         return 0;
     }
-    if (p[2] != 0) {
+    if (digits[2] != 0) {
         return 0;
     }
-    /* Compares the third digit with the first rather than against a repeated
-       literal: the earlier test leaves that load live, and re-testing it is
-       what keeps it in one register instead of a fresh `addiu`. */
-    if (p[1] != p[3]) {
+    // Reuse the checked older digit for the repeated 3 in the code.
+    if (digits[1] != digits[3]) {
         return 0;
     }
-    return p[0] == 3;
+    return digits[0] == DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_CODE_REPEATED_DIGIT;
 }
 
 #include "../../shared/action_prompt_move_cursors.inc.c"
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
-void func_dryfield_night_motel_lobby_80180D08(Task* task)
+/// Updates the cash register's action cursor through reset and motion states.
+///
+/// Requires a live task with state 0 (reset both ports) or 1 (update motion).
+/// The register spawns it with `spawnArg1.value` 1, selecting port 0 for motion.
+/// No work block is used. The cash-register event retains and kills this child.
+static void _dryfieldNightMotelLobbyCashRegisterCursorTask(Task* task)
 {
-    TaskFunc states[2] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
+    TaskFunc states[] = { _actionPromptResetDefault, _actionPromptMoveCursorsDefault };
 
     states[task->state](task);
 }
@@ -919,9 +922,12 @@ static void func_dryfield_night_motel_lobby_80180E98(Task* task)
     gGameSession->eventState   = 1;
 }
 
-/// Arms the first action prompt at `ACTION_PROMPT_SPEED_AIM` with the idle
-/// cursor, clears its screen position, and steps the task on one state.
-static void func_dryfield_night_motel_lobby_80180FA4(Task* task)
+/// Arms port 0's cash-register cursor and advances to keypad scanning.
+///
+/// Requires the cursor child's reset state to have run. Selects idle drawing
+/// and aiming speed, and resets the published position to the screen center.
+/// Fixed-point motion and press timers retain the values set by the child.
+static void _dryfieldNightMotelLobbyCashRegisterArmCursor(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
 
@@ -932,12 +938,15 @@ static void func_dryfield_night_motel_lobby_80180FA4(Task* task)
     task->state         = task->state + 1;
 }
 
-/// Re-spawns the action prompt over the examine cursor: clears the highlight
-/// state the prompt was left in, then hands the prompt's own coordinates and
-/// this room's Examine/Push action to `itemMenuOpenHotspotCommands`, which parks them in the
-/// gameplay-side globals the prompt's display task reads.
-static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
+/// Opens the cash register's hotspot command menu at port 0's cursor position.
+///
+/// Borrows live cash-register work; `promptKind` selects the menu's first row
+/// (0 Examine, 1 Push). Draws the digit display before hiding and stopping the
+/// cursor, then advances to the answer state. Coordinates are screen-center
+/// pixels. The cursor child remains live while the command menu is open.
+static void _dryfieldNightMotelLobbyCashRegisterOpenPrompt(Task* task)
 {
+    enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_PROMPT_ANSWER = 4 };
     ActionPrompt*                            prompt = D_80114D28;
     DryfieldNightMotelLobbyCashRegisterWork* work   = task->work;
 
@@ -945,7 +954,7 @@ static void func_dryfield_night_motel_lobby_80180FD8(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = 4;
+    task->state = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_STATE_PROMPT_ANSWER;
 }
 
 /// Acts on the answer to the examine prompt: drops the highlight state, then,
@@ -969,19 +978,31 @@ static void func_dryfield_night_motel_lobby_8018103C(Task* task)
 
 #include "../../shared/action_prompt_event_end.inc.c"
 
-static void func_dryfield_night_motel_lobby_80181138(Task* arg0)
+/// Commits the accepted cash-register code and starts the completion sequence.
+///
+/// Applies the lobby's saved-area updates, keeps ordinary direction handling
+/// blocked, destroys the cursor retained in `task->spawnArg2.pointer`, and
+/// latches the one-time lobby event flag. The event task and work remain live
+/// for the following sound, CAP and restoration states.
+static void _dryfieldNightMotelLobbyCashRegisterAcceptCode(Task* task)
 {
+    enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_EVENT_ACTIVE = 1 };
+
     areaApplySavedUpdates(D_dryfield_night_motel_lobby_801844AC);
-    gGameSession->eventState = 1;
-    taskKill(arg0->spawnArg2.pointer);
-    gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN, 1);
-    arg0->state = (s32)(arg0->state + 1);
+    gGameSession->eventState = DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_EVENT_ACTIVE;
+    taskKill(task->spawnArg2.pointer);
+    gameFlagSetNibble(GAME_FLAG_NIGHT_MOTEL_LOBBY_EVENT_SEEN, true);
+    task->state = task->state + 1;
 }
 
-static void func_dryfield_night_motel_lobby_8018119C(Task* arg0)
+/// Requests the cash-register acceptance sound and advances to the CAP state.
+///
+/// Requires a live event task and the lobby's stage sound bank. The request is
+/// asynchronous; this callback does not wait for sound playback to complete.
+static void _dryfieldNightMotelLobbyCashRegisterPlayAcceptSound(Task* task)
 {
     sndEvtRequestScriptStart(SOUND_NIGHT_MOTEL_LOBBY_KEYPAD_ACCEPT, 0, 0);
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 static void func_dryfield_night_motel_lobby_801811E0(Task* arg0)
@@ -999,16 +1020,18 @@ static void _dryfieldNightMotelLobbyCashRegisterExitDelay(Task* task)
     task->state = task->state + 1;
 }
 
-static void func_dryfield_night_motel_lobby_8018122C(Task* arg0)
+/// Restores play after code acceptance and hands event teardown to its owner.
+///
+/// Requires the event's menu hold and live player/model/session/save state.
+/// The acceptance state already destroyed the cursor. Restores player control,
+/// automatic drawing, HUD and saved view 4, then suspends the event with result
+/// 0 for its polling owner. No cursor kill or reentry-delay write is needed.
+static void _dryfieldNightMotelLobbyCashRegisterFinish(Task* task)
 {
-    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-    displayReleaseMenuHold();
-    gGameSession->eventState                                   = 0;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->cutsceneHold                                 = 0;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
-    taskRequestKill(arg0, 0);
+    enum { DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_END_RESULT = 0 };
+
+    _actionPromptRestoreEventPlay();
+    taskRequestKill(task, DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_END_RESULT);
 }
 
 #include "../../shared/action_prompt_reset.inc.c"

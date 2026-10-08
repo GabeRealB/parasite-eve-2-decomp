@@ -67,13 +67,18 @@ extern RoomCutsceneRec D_dryfield_night_motel_lobby_801844E0;
 /// writable GPU primitive storage for seven `POLY_FT4` packets when drawing.
 void dryfieldNightMotelLobbyDrawCashRegisterDisplay(Task* task);
 
-/// Applies one keypad press, `key` being the id of the hotspot pressed. Keys
-/// 0-9 shift that digit in at index 0, the double-zero key shifts in two
-/// zeros, the hash and clear keys clear the entry and the total key submits
-/// it, raising `codeAccepted` when the code checks out and playing the reject
-/// sound otherwise. A digit is refused once seven are entered, and a zero is
-/// refused while the entry is a lone zero.
-void func_dryfield_night_motel_lobby_80180440(Task* task, s16 key);
+/// Applies one key press to the open cash-register entry.
+///
+/// Borrows live cash-register work from `task->work`; the caller must already
+/// have opened entry with the hash key. `keyId` is the hotspot id: 0..9 enter
+/// digits, 10 enters up to two zeros, 11/12 clear, and 13 submits the code.
+/// Other ids have no effect. New digits shift older slots toward index 6.
+/// The count stays in 0..7. A full display refuses any digit; a lone leading
+/// zero refuses another zero. Both still play the key sound.
+/// Clears reset the count and all seven slots and latch `entryCleared`, so the
+/// display drawer emits no packets and leaves a lone zero for the next frame.
+/// Submission latches `codeAccepted` for exactly 3033, or plays the error sound.
+void dryfieldNightMotelLobbyPressCashRegisterKey(Task* task, s16 keyId);
 
 /// Hit-tests (`x`, `y`) against every entry of the hotspot `table`, setting
 /// each entry's `hit` flag, and returns whether any entry was hit.

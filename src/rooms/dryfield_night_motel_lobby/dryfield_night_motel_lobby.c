@@ -296,7 +296,7 @@ void func_dryfield_night_motel_lobby_8017FE38(Task* task)
 /// room's hotspot table. Until the register has been examined, a confirm press
 /// on a hit hotspot latches it for the examine prompt the next state opens.
 /// Afterwards the press goes to the keypad
-/// (`func_dryfield_night_motel_lobby_80180440`), once the hash key has opened
+/// (`dryfieldNightMotelLobbyPressCashRegisterKey`), once the hash key has opened
 /// code entry, and a code that checks out ends the sequence in state 6. A
 /// cancel press ends it in state 5.
 ///
@@ -341,7 +341,7 @@ void func_dryfield_night_motel_lobby_8017FE90(Task* task)
                             }
                             break;
                         }
-                        func_dryfield_night_motel_lobby_80180440(task, hs->id);
+                        dryfieldNightMotelLobbyPressCashRegisterKey(task, hs->id);
                         if (work->codeAccepted != 0) {
                             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 7;
                             task->state                                                = 6;

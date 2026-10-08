@@ -88663,7 +88663,7 @@ Inputs: `base.i`
 
 ## Passing the enclosing parameter to a call emits no instruction, but still moves the allocation
 
-`func_dryfield_night_motel_lobby_80180FD8` is the room's "re-spawn the action
+`_dryfieldNightMotelLobbyCashRegisterOpenPrompt` is the room's "re-spawn the action
 prompt" state. The already-matched `_shelterB1UndergroundParkingPanelOpenCommands`
 carries the same body, so the seed was written from it with the leading call
 left argument-less, as m2c had it, and scored 98.2% (`regs=9`) with exactly one
@@ -88789,7 +88789,7 @@ allocation choice is upstream of the whole visible difference; the empty delay
 slot is a symptom, not the thing to fix.
 
 This is not a coincidence of this function: the already-matched
-`func_dryfield_night_motel_lobby_80180FD8` - the same room, the same prompt -
+`_dryfieldNightMotelLobbyCashRegisterOpenPrompt` - the same room, the same prompt -
 has the identical `$s0` shape, and it is written in the pointer form. When a
 room's state bodies touch the shared `D_80114D28` prompt, adopt the file's
 existing form (declare the pointer locally, store through it) before treating
@@ -118892,7 +118892,7 @@ the loop's counter/IV setup, the original held it in a variable, not as a
 literal in the loop body. `./insn.py <uid>` shows which pass created the
 constant's insn: a uid born at `.loop` is a `move_movables` hoist.
 
-## A test on a byte an earlier test already checked compares the *load*, not the constant: a constant compare cannot reuse the register (func_dryfield_night_motel_lobby_80180734, 2026-09-17)
+## A test on a byte an earlier test already checked compares the *load*, not the constant: a constant compare cannot reuse the register (_dryfieldNightMotelLobbyCashRegisterHasValidCode, 2026-09-17)
 
 **Symptom.** The lobby's keypad check tests the entered digits in order. The target
 tests the fourth slot against a literal, keeping the loaded byte in `$v1`, and
@@ -118902,26 +118902,26 @@ fresh `3`:
 ```
 lbu  v1,0x3(a1)
 li   v0,3
-bne  v1,v0,.Lfail        # p[3] != 3
+bne  v1,v0,.Lfail        # digits[3] != 3
 ...
 lbu  v0,0x1(a1)
-bne  v0,v1,.Lfail        # p[1] != p[3], not `li v1,3`
+bne  v0,v1,.Lfail        # digits[1] != digits[3], not `li v1,3`
 ```
 
 Both loads are of the same address, so cse hands the second use the first load's
-pseudo and the value stays live across the intervening `p[2]` load. The obvious
-`if (p[1] != 3) return 0;` cannot reproduce it: a compare against a constant
+pseudo and the value stays live across the intervening `digits[2]` load. The obvious
+`if (digits[1] != 3) return 0;` cannot reproduce it: a compare against a constant
 needs that constant in a register, so materialisation puts an
 `addiu $v1,$zero,3` before the branch that the target does not have. **When a
 target compares two registers that both hold loads from the same array, the
 source compared two elements -- even where the first is already known, from an
 earlier guard, to equal the literal being tested for.**
 
-**Structure.** The m2c body, `if (p[6] != 0xA || p[5] != p[6] || p[4] != p[5] ||
-p[3] != 3 || p[2] != 0) return 0;`, scores 73.31% with
+**Structure.** The m2c body, `if (digits[6] != 0xA || digits[5] != digits[6] || digits[4] != digits[5] ||
+digits[3] != 3 || digits[2] != 0) return 0;`, scores 73.31% with
 insert=3 delete=5 branch=4: each `||` needs its own merge block. Seven sequential
 `if (...) { return 0; }` guards, keeping the target's test order, are its shape
-and score 100%. The tail `if (p[1] != p[3]) return 0; return p[0] == 3;` has to
+and score 100%. The tail `if (digits[1] != digits[3]) return 0; return digits[0] == 3;` has to
 stay split the same way -- the trailing `return 0` is its own block in the
 target, not merged with the first guard's.
 
@@ -139925,7 +139925,7 @@ their field stores, the rand values stopped overlapping, and `lddp` fell into
 `$t0` on its own (100%). When a reload register is off, look for pseudos in
 *other* blocks sitting in the registers reload skipped.
 
-## A count-down loop with a walking pointer seeded by `addu base, base, 6` is a count-*up* source loop that loop.c reversed (func_dryfield_night_motel_lobby_80180440, 2026-09-23)
+## A count-down loop with a walking pointer seeded by `addu base, base, 6` is a count-*up* source loop that loop.c reversed (dryfieldNightMotelLobbyPressCashRegisterKey, 2026-09-23)
 
 **Target:** `li v1,6; addu a0,&D,v1; L: sb a1,0(a0); addiu v1,-1; bgez v1,L; addiu a0,-1`.
 The pointer init is a register `addu` of the counter's start value, not a
@@ -139950,7 +139950,7 @@ field offset stays in the `sb`. A hand-written reverse walk needs a byte view
 of the whole struct plus `OFFSET_OF` to reproduce that; the forward loop needs
 neither.
 
-Same function: a digit shift `D[6] = D[5]; ... D[1] = D[0]; D[0] = key;`
+Same function: a digit shift `D[6] = D[5]; ... D[1] = D[0]; D[0] = digit;`
 matched only when written against the global itself. Through a local
 `u8 *p = D` the stores scheduled into a different order (84-88%); indexing `D`
 directly gave every load and store the target's position at once.
@@ -139979,7 +139979,7 @@ not as a user accumulator `x += 0x18`. The accumulator puts the copy before
 the constants and keeps `-0x48` out of the hoisted set.
 
 The digit-blanking loop in front of it is the reversed count-up loop from the
-`func_dryfield_night_motel_lobby_80180440` entry above:
+`dryfieldNightMotelLobbyPressCashRegisterKey` entry above:
 `for (slotIndex = 0; slotIndex < 7; slotIndex++) D[slotIndex] = 0xA;`. An explicit
 `textureU = 0xA; slotIndex = 6; d = &D[slotIndex]; for (; slotIndex >= 0; slotIndex--) *d-- = textureU;` also matches
 byte for byte, but only because the early `textureU = 0xA` stretches the constant's
