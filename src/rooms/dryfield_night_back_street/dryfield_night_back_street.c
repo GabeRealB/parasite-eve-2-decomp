@@ -484,14 +484,12 @@ static const TaskFuncTable3 D_dryfield_night_back_street_8017D5C4 = {
     { _dryfieldNightBackStreetInitRoomTask, _dryfieldNightBackStreetIdleState, taskKill },
 };
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_dryfield_night_back_street_8017D788(Task* task)
+void dryfieldNightBackStreetRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_dryfield_night_back_street_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers = D_dryfield_night_back_street_8017D5C4;
+    handlers.funcs[task->state](task);
 }
 
 /// Draws view 2's two textured flares and two grey light shafts, also used by view 3.
@@ -570,7 +568,7 @@ void dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_dryfield_night_back_street_8017F6DC(Task* task)
+void dryfieldNightBackStreetRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

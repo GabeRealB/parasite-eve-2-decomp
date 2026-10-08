@@ -56,12 +56,12 @@ extern WorldCollisionGrid D_dryfield_night_dilapidated_house_80187D44[1];
 extern WorldCollisionTrigger D_dryfield_night_dilapidated_house_801892A0[8];
 
 static void _dryfieldNightDilapidatedHouseMovieTask(Task* task);
-void        func_dryfield_night_dilapidated_house_8017DCE0(Task*);
+static void _dryfieldNightDilapidatedHouseLaunchMovieTask(Task* task);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_night_dilapidated_house_8017E700[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_night_dilapidated_house_8017D8DC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldNightDilapidatedHouseGateBackStreetExit },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldNightDilapidatedHouseRefuseKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldNightDilapidatedHouseIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, dryfieldNightDilapidatedHouseIgnoreRoomCommand },
@@ -1067,7 +1067,7 @@ EvsCommand D_dryfield_night_dilapidated_house_801868F4[88] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 11 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_dilapidated_house_8017DAF0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightDilapidatedHouseStartMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_dryfield_night_dilapidated_house_801868EC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightDilapidatedHouseStageSceneAudioStart }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1174,7 +1174,7 @@ EvsCommand D_dryfield_night_dilapidated_house_80187134[16] = {
 };
 
 TaskDesc D_dryfield_night_dilapidated_house_801872B4[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_dilapidated_house_8017DCE0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightDilapidatedHouseLaunchMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _dryfieldNightDilapidatedHouseMovieTask, { .value = 0 } },
 };
 
@@ -2475,15 +2475,27 @@ static void _dryfieldNightDilapidatedHouseMovieTask(Task* task)
     }
 }
 
-/// Entry 0 of the room's two-entry descriptor table: spawns entry 1, the
-/// stream-playing task, with an ordering table, sets `gDisplayState.control.flags.flipMode`, spawns the
-/// view tasks and kills itself.
-void func_dryfield_night_dilapidated_house_8017DCE0(Task* arg0)
+/// Hands presentation to the movie controller and queues the current camera packets.
+static inline void _dryfieldNightDilapidatedHouseTakeMovieDisplay(void)
 {
-    displaySpawnTaskFromTable(D_dryfield_night_dilapidated_house_801872B4, 1, 0, 0);
+    enum { DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_CONTROLLER = 1 };
+
+    displaySpawnTaskFromTable(D_dryfield_night_dilapidated_house_801872B4, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_CONTROLLER, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+}
+
+/// Transfers display presentation to the house's movie controller, then retires.
+///
+/// Requires game-loop display ownership, loaded movie descriptors and current
+/// camera/packet resources. Controller allocation is unchecked: flip mode and
+/// camera queuing still proceed if the display spawn fails. Keep the room
+/// loaded through movie playback and game-display restoration.
+static void _dryfieldNightDilapidatedHouseLaunchMovieTask(Task* task)
+{
+    // Queue the camera into the handed-off display before releasing the launcher.
+    _dryfieldNightDilapidatedHouseTakeMovieDisplay();
+    taskKill(task);
 }
 
 #include "../../shared/glow_draw_prism.inc.c"

@@ -52,7 +52,14 @@ void dryfieldNightBackStreetRoomVisualEffectsFlashTask(Task* task);
 /// drawing without cancelling. Requires a live effect controller and room overlay.
 void dryfieldNightBackStreetRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_dryfield_night_back_street_8017F6DC(Task* task);
+/// Runs the night back street's impact flash with smoke or rings and bouncing sparks.
+///
+/// Starts in state 0 with a coordinate body and a counted, owned, zero-aged
+/// `EffectWork` in `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects smoke;
+/// zero selects sparks and orange rings. Active age 7 enters release and age 8
+/// frees the work and task. Nonzero room control below 4 pauses it; 4 or above
+/// cancels it. Spawned effects run independently; keep their callbacks loaded.
+void dryfieldNightBackStreetRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Selects the night back street's enemy effects and draws the current view's light glows.
 ///
@@ -65,6 +72,12 @@ void func_dryfield_night_back_street_8017F6DC(Task* task);
 /// selected effects can be spawned or run.
 void dryfieldNightBackStreetDrawGlowsTask(Task* task);
 
-void func_dryfield_night_back_street_8017D788(Task* task);
+/// Dispatches the night back street's room receiver lifecycle.
+///
+/// `state` must be 0 (register messages), 1 (idle), or 2 (kill). Start in state
+/// 0; initialization publishes the task in `GAME_TASK_SLOT_ROOM` and enters
+/// state 1. The room's borrowed message and state tables must remain loaded
+/// through teardown. Dispatch copies the complete three-entry state table.
+void dryfieldNightBackStreetRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_BACK_STREET_H

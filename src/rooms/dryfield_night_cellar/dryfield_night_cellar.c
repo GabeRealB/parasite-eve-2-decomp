@@ -854,7 +854,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_cellar_801807F4[8] = {
     D_dryfield_night_cellar_801807EC,
 };
 
-static void func_dryfield_night_cellar_8017D6FC(Task* task);
+static void _dryfieldNightCellarInitRoomTask(Task* task);
 
 #include "../../shared/cellar_cap_msg.inc.c"
 
@@ -883,13 +883,15 @@ static s32 _dryfieldNightCellarIgnoreActionMessage(Task* task, s32 messageId, co
     return 0;
 }
 
-/// The room entry task's first state: installs the room's message table, hands
-/// the task to pointer slot 7 and moves on to the next state.
-static void func_dryfield_night_cellar_8017D6FC(Task* task)
+/// Registers the nighttime cellar's room-message receiver and enters idle.
+///
+/// Requires state 0 and borrows the room's message table until teardown.
+/// Keep the overlay loaded while the registered receiver can be messaged.
+static void _dryfieldNightCellarInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_night_cellar_8017DAA8;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room task alive between message dispatches.
@@ -902,17 +904,15 @@ static void _dryfieldNightCellarIdle(Task* task)
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_dryfield_night_cellar_8017D5C4 = {
-    { func_dryfield_night_cellar_8017D6FC, _dryfieldNightCellarIdle, taskKill },
+    { _dryfieldNightCellarInitRoomTask, _dryfieldNightCellarIdle, taskKill },
 };
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_dryfield_night_cellar_8017D748(Task* task)
+void dryfieldNightCellarRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_dryfield_night_cellar_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers = D_dryfield_night_cellar_8017D5C4;
+    handlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_flare.inc.c"

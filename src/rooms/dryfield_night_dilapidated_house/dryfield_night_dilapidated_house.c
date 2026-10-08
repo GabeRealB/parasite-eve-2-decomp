@@ -180,26 +180,27 @@ s32 dryfieldNightDilapidatedHouseRefuseKeyItemUse(Task* task, s32 messageId, s32
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Handler for the room's `0x13EE` message, the warp destination the gameplay
-/// side posts as `Gp_WarpLoc`: copies the incoming payload through to `out` and,
-/// when the destination id is 5, offers the event gate a request that plays
-/// the room's pair of stage sounds under flag nibble 0x3F. Returns 1 for a
-/// destination it does not own.
-s32 func_dryfield_night_dilapidated_house_8017D8DC(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+s32 dryfieldNightDilapidatedHouseGateBackStreetExit(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq req;
+    enum {
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EXIT_CAP_COMMAND  = 12,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_EXIT_SOUND  = 0x53090005,
+        DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SECOND_EXIT_SOUND = 0x53090001,
+    };
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_DRYFIELD_NIGHT_BACK_STREET) {
-        req.capCmd        = 0xC;
-        req.missingCapCmd = 0xC;
-        req.firstSnd      = 0x53090005;
-        req.secondSnd     = 0x53090001;
-        req.flagId        = GAME_FLAG_DILAPIDATED_HOUSE_DOOR_UNLOCKED;
-        req.collectedBit  = 0;
-        return _roomEventGate(&req, in);
+    RoomEventReq eventRequest;
+
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_NIGHT_BACK_STREET) {
+        eventRequest.capCmd        = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EXIT_CAP_COMMAND;
+        eventRequest.missingCapCmd = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_EXIT_CAP_COMMAND;
+        eventRequest.firstSnd      = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_FIRST_EXIT_SOUND;
+        eventRequest.secondSnd     = DRYFIELD_NIGHT_DILAPIDATED_HOUSE_SECOND_EXIT_SOUND;
+        eventRequest.flagId        = GAME_FLAG_DILAPIDATED_HOUSE_DOOR_UNLOCKED;
+        eventRequest.collectedBit  = ROOM_EVENT_GATE_NO_COLLECTION_REQUIRED;
+        return _roomEventGate(&eventRequest, request);
     }
-    return 1;
+    return ROOM_EVENT_GATE_BYPASSED;
 }
 
 s32 dryfieldNightDilapidatedHouseIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArgument)
@@ -291,9 +292,9 @@ void dryfieldNightDilapidatedHouseCancelScene(void)
     cdCmdCancelScene();
 }
 
-/// Cutscene script callback: spawns the first task of the room's two-entry
-/// descriptor table, the one that starts the streamed sequence.
-void func_dryfield_night_dilapidated_house_8017DAF0(void)
+void dryfieldNightDilapidatedHouseStartMovie(void)
 {
-    taskSpawnFromTable(D_dryfield_night_dilapidated_house_801872B4, 0, 0, 0);
+    enum { DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_LAUNCHER = 0 };
+
+    taskSpawnFromTable(D_dryfield_night_dilapidated_house_801872B4, DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_LAUNCHER, 0, 0);
 }

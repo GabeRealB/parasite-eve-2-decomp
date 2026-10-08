@@ -137,3 +137,4 @@ _dryfieldMotelRoom6RejectKeyItemMessage = 0x80181918; // type:func
 _dryfieldMotelRoom6IgnoreSoundMessage = 0x80181a00; // type:func
 _dryfieldMotelRoom6InitRoomTask = 0x80181ac4; // type:func
 dryfieldMotelRoom6Task = 0x80181b18; // type:func
+_dryfieldMotelRoom6GateWaterTowerExit = 0x80181920; // type:func

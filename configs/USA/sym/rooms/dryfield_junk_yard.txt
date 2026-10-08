@@ -80,3 +80,4 @@ _dryfieldJunkYardSetSceneEvent = 0x8017dc54; // type:func
 _dryfieldJunkYardIdleRoomTask = 0x8017dc60; // type:func
 dryfieldJunkYardWireRopeTask = 0x8017d5f4; // type:func
 dryfieldJunkYardRoomTask = 0x8017dcb4; // type:func
+_dryfieldJunkYardHandleRoomAction = 0x8017db78; // type:func

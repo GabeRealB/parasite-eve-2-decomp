@@ -43,7 +43,16 @@ extern WorldCoordSpotLight D_dryfield_night_dilapidated_house_80189800[1];
 /// Ignores both payload words and returns `ROOM_KEY_ITEM_USE_REFUSED`.
 s32 dryfieldNightDilapidatedHouseRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArgument);
 
-s32 func_dryfield_night_dilapidated_house_8017D8DC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Gates the first back-street departure with the house's door event.
+///
+/// Borrows an eight-byte request and writable reply, which may be the same
+/// record, and copies the whole request. Returns 1 for other destinations or
+/// an unlocked door, and 2 while the door event is eligible. Queries preserve
+/// progress; execution latches the request, unlocks the door and requests the
+/// deferred CAP/sound/transition task, without rollback if allocation fails.
+/// Keep the room and its event records loaded through that task's completion.
+/// The receiver and message ID are unused.
+s32 dryfieldNightDilapidatedHouseGateBackStreetExit(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
 /// Ignores `ROOM_MESSAGE_COMMAND` and returns zero without changing room state.
 ///
@@ -82,6 +91,11 @@ void dryfieldNightDilapidatedHouseFinishScene(void);
 /// successful scene selection; buffer and task teardown remain with their owners.
 void dryfieldNightDilapidatedHouseCancelScene(void);
 
-void func_dryfield_night_dilapidated_house_8017DAF0(void);
+/// Requests the house's movie-display launcher from the first-visit event script.
+///
+/// Borrows the room's two-entry descriptor table; keep the room loaded until
+/// movie playback and game-display restoration finish. Allocation failure is
+/// unchecked. This callback has no arguments or result.
+void dryfieldNightDilapidatedHouseStartMovie(void);
 
 #endif // SRC_ROOMS_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_DRYFIELD_NIGHT_DILAPIDATED_HOUSE_PRIVATE_H

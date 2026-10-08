@@ -40,6 +40,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_cellar_801807F4[];
 /// packets belong to the current frame and remain live until GPU completion.
 void dryfieldNightCellarDrawGlowsTask(Task* unused);
 
-void func_dryfield_night_cellar_8017D748(Task* task);
+/// Dispatches the nighttime cellar's room receiver lifecycle.
+///
+/// `state` must be 0 (register messages), 1 (idle), or 2 (kill). Start in state
+/// 0; initialization publishes the task in `GAME_TASK_SLOT_ROOM` and enters
+/// state 1. The room's borrowed message and state tables must remain loaded
+/// through teardown. Dispatch copies the complete three-entry state table.
+void dryfieldNightCellarRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_CELLAR_H

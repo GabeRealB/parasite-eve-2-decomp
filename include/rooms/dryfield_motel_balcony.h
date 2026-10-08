@@ -61,7 +61,14 @@ void dryfieldMotelBalconyRoomVisualEffectsFlashTask(Task* task);
 /// failure resets it for retry. Teardown releases both allocations.
 void dryfieldMotelBalconyRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_dryfield_motel_balcony_80181628(Task* task);
+/// Runs the balcony's impact flash with smoke or orange rings and bouncing sparks.
+///
+/// Starts in state 0 with a coordinate body and a counted, owned, zero-aged
+/// `EffectWork` in `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects smoke;
+/// zero selects sparks and rings. Active age 7 enters release and age 8 frees
+/// the work and task. Nonzero room control below 4 pauses it; 4 or above cancels
+/// it. Spawned effects run independently; keep their room callbacks loaded.
+void dryfieldMotelBalconyRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs this room's vertically drifting animated mote until its brightness fades.
 ///
@@ -96,7 +103,16 @@ void dryfieldMotelBalconyRoomVisualEffectsHaloTask(Task* task);
 /// control pauses the task; control 4 or above or completion releases it.
 void dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_dryfield_motel_balcony_801801A8(Task* arg0);
+/// Emits twenty descending motes from turning offsets around the balcony effect.
+///
+/// Requires a coordinate body and a counted, owned, zero-aged `EffectWork` in
+/// `spawnArg2.pointer`; `spawnArg1` is unused. Each active tick emits at local
+/// Y = -128 * age and a turning radial offset near 768 game-coordinate units.
+/// The motes descend by 8 units per active tick and run independently. Active
+/// age 21 releases the emitter. Nonzero room control below 4 pauses it; 4 or
+/// above cancels it. Keep this room and its installed mote callback loaded
+/// until the emitter and all its motes finish.
+void dryfieldMotelBalconyRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Installs this room's seven enemy-effect IDs once, then keeps the task idle.
 ///
@@ -105,6 +121,12 @@ void func_dryfield_motel_balcony_801801A8(Task* arg0);
 /// slots, then becomes state 1. Later ticks do nothing until external teardown.
 void dryfieldMotelBalconyInitRoomEffectsTask(Task* task);
 
-void func_dryfield_motel_balcony_8017DBD0(Task* task);
+/// Dispatches the balcony's room receiver lifecycle.
+///
+/// `state` must be 0 (register messages), 1 (idle), or 2 (kill). Start in state
+/// 0; initialization publishes the task in `GAME_TASK_SLOT_ROOM` and enters
+/// state 1. The room's borrowed message and state tables must remain loaded
+/// through teardown. Dispatch copies the complete three-entry state table.
+void dryfieldMotelBalconyRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_MOTEL_BALCONY_H

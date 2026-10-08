@@ -190,7 +190,7 @@ extern WorldCollisionTrigger      D_dryfield_motel_room_6_80185A54[15];
 extern WorldCoordRoomAmbientEntry D_dryfield_motel_room_6_801866D8[13];
 extern WorldCoordRoomLights       D_dryfield_motel_room_6_801866C0[1];
 static s32                        _dryfieldMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId, s32 itemId, s32 unusedSecondArg);
-s32                               func_dryfield_motel_room_6_80181920(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32                        _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 s32                               func_dryfield_motel_room_6_801819A8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 static s32                        _dryfieldMotelRoom6IgnoreSoundMessage(Task* receiver, s32 messageId, s32 soundCommand, s32 unusedSecondArg);
 void                              func_dryfield_motel_room_6_80181A08(Task*);
@@ -224,7 +224,7 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 TaskMessageEntry D_dryfield_motel_room_6_80182D48[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_6_80181920 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom6GateWaterTowerExit },
     { DRYFIELD_MOTEL_ROOM_6_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom6RejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_6_801819A8 },
     { ROOM_MESSAGE_SOUND, _dryfieldMotelRoom6IgnoreSoundMessage },
@@ -2046,29 +2046,36 @@ static s32 _dryfieldMotelRoom6RejectKeyItemMessage(Task* receiver, s32 messageId
     return DRYFIELD_MOTEL_ROOM_6_KEY_ITEM_RESULT_REFUSED;
 }
 
-/// Handler for a message `0x14` request: copies the incoming record to the
-/// outgoing one, then answers 1 while the request is not the one this room
-/// waits for or the 0x54 nibble is already latched. Otherwise, with no
-/// sub-state pending, it latches nibble 0x54 and runs cap command 7, and
-/// answers 0 either way.
-/// Same gate as `func_neo_ark_shrine_8017D6AC` and
-/// `func_shelter_b3_incinerator_control_room_8017FA8C`, which also latch a
-/// nibble and run a cap command.
-s32 func_dryfield_motel_room_6_80181920(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Intercepts the first departure toward the water tower with a CAP event.
+///
+/// Borrows an eight-byte request and writable reply, which may be the same
+/// record, and copies the complete request. Returns 1 for other destinations
+/// or a previously seen event; otherwise returns 0. Queries leave progress
+/// unchanged. Execution latches the event before requesting CAP command 7.
+/// The receiver and message ID are unused; retain the room through CAP playback.
+static s32 _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    if (in->areaId != GAME_AREA_DRYFIELD_WATER_TOWER) {
-        return 1;
+    enum {
+        DRYFIELD_MOTEL_ROOM_6_EXIT_EVENT_UNSEEN = 0,
+        DRYFIELD_MOTEL_ROOM_6_EXIT_EVENT_SEEN   = 1,
+        DRYFIELD_MOTEL_ROOM_6_EXIT_CAP_COMMAND  = 7,
+        DRYFIELD_MOTEL_ROOM_6_EXIT_INTERCEPTED  = 0,
+        DRYFIELD_MOTEL_ROOM_6_EXIT_ALLOWED      = 1,
+    };
+
+    *reply = *request;
+    if (request->areaId != GAME_AREA_DRYFIELD_WATER_TOWER) {
+        return DRYFIELD_MOTEL_ROOM_6_EXIT_ALLOWED;
     }
-    if (gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_6_WATER_TOWER_EXIT_SEEN) != 0) {
-        return 1;
+    if (gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_6_WATER_TOWER_EXIT_SEEN) != DRYFIELD_MOTEL_ROOM_6_EXIT_EVENT_UNSEEN) {
+        return DRYFIELD_MOTEL_ROOM_6_EXIT_ALLOWED;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 0;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return DRYFIELD_MOTEL_ROOM_6_EXIT_INTERCEPTED;
     }
-    gameFlagSetNibble(GAME_FLAG_MOTEL_ROOM_6_WATER_TOWER_EXIT_SEEN, 1);
-    capRunCommandWithTransition(7);
-    return 0;
+    gameFlagSetNibble(GAME_FLAG_MOTEL_ROOM_6_WATER_TOWER_EXIT_SEEN, DRYFIELD_MOTEL_ROOM_6_EXIT_EVENT_SEEN);
+    capRunCommandWithTransition(DRYFIELD_MOTEL_ROOM_6_EXIT_CAP_COMMAND);
+    return DRYFIELD_MOTEL_ROOM_6_EXIT_INTERCEPTED;
 }
 
 /// Handler for a slot-7 msg `0x13EF` request (`DirectionActionRequest`) whose sub-id

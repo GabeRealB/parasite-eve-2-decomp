@@ -65,3 +65,5 @@ _roomVariantResolveCellar = 0x8017D634; // type:func
 _dryfieldNightCellarRejectKeyItem = 0x8017d62c; // type:func
 _dryfieldNightCellarIgnoreActionMessage = 0x8017d6f4; // type:func
 _dryfieldNightCellarIdle = 0x8017d740; // type:func
+_dryfieldNightCellarInitRoomTask = 0x8017d6fc; // type:func
+dryfieldNightCellarRoomTask = 0x8017d748; // type:func

@@ -86,7 +86,7 @@ static const char D_dryfield_junk_yard_8017D5D0[] = "DOG";
 void       func_dryfield_junk_yard_8017D848(Task*);
 static s32 _dryfieldJunkYardRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 s32        func_dryfield_junk_yard_8017DA4C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32 _dryfieldJunkYardHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArgument);
 
 enum {
     DRYFIELD_JUNK_YARD_MESSAGE_USE_KEY_ITEM = 0x13F1,
@@ -114,7 +114,7 @@ TaskMessageEntry D_dryfield_junk_yard_8017DD20[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_junk_yard_8017DA4C },
     { DRYFIELD_JUNK_YARD_MESSAGE_USE_KEY_ITEM, _dryfieldJunkYardRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, junkYardCapMsg },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_junk_yard_8017DB78 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldJunkYardHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1814,28 +1814,39 @@ s32 func_dryfield_junk_yard_8017DA4C(Task* arg0, s32 arg1, RoomEventMsg* in, Roo
     return 1;
 }
 
-/// Handler for message 0x13EF in the room's message table. When the record's
-/// `actionId` is 1 and nibble 0x38 is clear, it latches the nibble to 1 and
-/// spawns the sequence task. When it is 2, the slot-0xA task stands at x
-/// 0x5209 or beyond and nibble 0x38 is 1, it advances the nibble to 2 and
-/// starts a `evsStartScriptWithSkip` sequence. Always returns 0.
-s32 func_dryfield_junk_yard_8017DB78(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Starts and finishes the junk-yard companion sequence from room trigger actions.
+///
+/// Borrows `request` for synchronous dispatch. Action 1 starts the sequence
+/// while progress is 0; action 2 advances progress 1 to 2 once the companion's
+/// root X reaches 21001 whole room-coordinate units. Progress is committed
+/// before task/script allocation, with no rollback on failure. Returns zero;
+/// the receiver, message ID and second payload word are unused. The room and
+/// its scripts must remain loaded until the spawned sequence finishes.
+static s32 _dryfieldJunkYardHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArgument)
 {
-    const DirectionActionRequest* msg = firstArg;
+    enum {
+        DRYFIELD_JUNK_YARD_ACTION_BEGIN_SEQUENCE  = 1,
+        DRYFIELD_JUNK_YARD_ACTION_FINISH_SEQUENCE = 2,
+        DRYFIELD_JUNK_YARD_PROGRESS_INITIAL       = 0,
+        DRYFIELD_JUNK_YARD_PROGRESS_SEQUENCE      = 1,
+        DRYFIELD_JUNK_YARD_PROGRESS_FINAL_SCENE   = 2,
+        DRYFIELD_JUNK_YARD_COMPANION_EXIT_X_MIN   = 21001,
+        DRYFIELD_JUNK_YARD_SEQUENCE_TASK          = 0,
+    };
 
-    Task* player;
+    Task* companion;
 
-    if (msg->actionId == 1) {
-        if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 0) {
-            gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, 1);
-            taskSpawnFromTable(D_dryfield_junk_yard_8017DD48, 0, 0, 0);
+    if (request->actionId == DRYFIELD_JUNK_YARD_ACTION_BEGIN_SEQUENCE) {
+        if (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == DRYFIELD_JUNK_YARD_PROGRESS_INITIAL) {
+            gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, DRYFIELD_JUNK_YARD_PROGRESS_SEQUENCE);
+            taskSpawnFromTable(D_dryfield_junk_yard_8017DD48, DRYFIELD_JUNK_YARD_SEQUENCE_TASK, 0, 0);
         }
     }
-    if (msg->actionId == 2) {
-        player = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-        if ((player != NULL) && (player->extra.tmd->coords->coord.t[0] >= 0x5209) &&
-            (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == 1)) {
-            gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, 2);
+    if (request->actionId == DRYFIELD_JUNK_YARD_ACTION_FINISH_SEQUENCE) {
+        companion = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+        if ((companion != NULL) && (companion->extra.tmd->coords->coord.t[0] >= DRYFIELD_JUNK_YARD_COMPANION_EXIT_X_MIN) &&
+            (gameFlagGetNibble(GAME_FLAG_JUNK_YARD_PROGRESS) == DRYFIELD_JUNK_YARD_PROGRESS_SEQUENCE)) {
+            gameFlagSetNibble(GAME_FLAG_JUNK_YARD_PROGRESS, DRYFIELD_JUNK_YARD_PROGRESS_FINAL_SCENE);
             evsStartScriptWithSkip(D_dryfield_junk_yard_8017E160, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_junk_yard_8017E2B0);
         }
     }

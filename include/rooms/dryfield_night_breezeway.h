@@ -41,6 +41,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_breezeway_801804B8[];
 /// frame's packet arena and ordering table. Queued packets live until GPU completion.
 void dryfieldNightBreezewayDrawGlowsTask(Task* task);
 
-void func_dryfield_night_breezeway_8017D680(Task* task);
+/// Dispatches the night breezeway's room receiver lifecycle.
+///
+/// `state` must be 0 (register messages), 1 (idle), or 2 (kill). Start in state
+/// 0; initialization publishes the task in `GAME_TASK_SLOT_ROOM` and enters
+/// state 1. The room's borrowed message and state tables must remain loaded
+/// through teardown. Dispatch copies the complete three-entry state table.
+void dryfieldNightBreezewayRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_BREEZEWAY_H

@@ -1326,7 +1326,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 238, 254, 37 } };
 
 RoomEventReq gRoomEventReq;
 
-static void func_dryfield_motel_balcony_8017DB84(Task* task);
+static void _dryfieldMotelBalconyInitRoomTask(Task* task);
 static void _dryfieldMotelBalconyIdleState(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
@@ -1358,13 +1358,15 @@ static s32 _dryfieldMotelBalconyRoomActionMsg(Task* task, s32 messageId, s32 fir
     return 0;
 }
 
-/// Room task state 0: installs the room's message table, registers the task
-/// in pointer slot 7 and advances to the next state.
-static void func_dryfield_motel_balcony_8017DB84(Task* task)
+/// Registers the balcony's room-message receiver and advances state 0 to idle.
+///
+/// The task borrows the room's message table until teardown; keep the overlay
+/// loaded while the registered receiver can be messaged.
+static void _dryfieldMotelBalconyInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_motel_balcony_8018227C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room task alive while it waits for messages or teardown.
@@ -1374,19 +1376,17 @@ static void _dryfieldMotelBalconyIdleState(Task* task)
 
 /// The room task's three states: setup, idle and exit.
 static const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
-    func_dryfield_motel_balcony_8017DB84,
+    _dryfieldMotelBalconyInitRoomTask,
     _dryfieldMotelBalconyIdleState,
     taskKill,
 };
 
-/// Runs the room task's current state from its state table, dispatching
-/// through a copy of the table taken onto the stack.
-void func_dryfield_motel_balcony_8017DBD0(Task* task)
+void dryfieldMotelBalconyRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_dryfield_motel_balcony_8017D5DC;
-    sp.funcs[task->state](task);
+    handlers = D_dryfield_motel_balcony_8017D5DC;
+    handlers.funcs[task->state](task);
 }
 
 void dryfieldMotelBalconyInitRoomEffectsTask(Task* task)
@@ -1428,9 +1428,9 @@ void dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_dryfield_motel_balcony_801801A8(Task* arg0)
+void dryfieldMotelBalconyRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -1449,7 +1449,7 @@ void dryfieldMotelBalconyRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_dryfield_motel_balcony_80181628(Task* task)
+void dryfieldMotelBalconyRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

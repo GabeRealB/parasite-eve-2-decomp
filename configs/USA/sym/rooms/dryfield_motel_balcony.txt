@@ -90,7 +90,7 @@ dryfieldMotelBalconyRoomVisualEffectsFlashTask = 0x801802DC; // type:func
 
 dryfieldMotelBalconyRoomVisualEffectsTwinTrailTask = 0x80180D40; // type:func
 
-func_dryfield_motel_balcony_80181628 = 0x80181628; // type:func
+dryfieldMotelBalconyRoomVisualEffectsSparkBurstTask = 0x80181628; // type:func
 
 dryfieldMotelBalconyRoomVisualEffectsMoteTask = 0x8017DCB8; // type:func
 
@@ -98,7 +98,7 @@ dryfieldMotelBalconyRoomVisualEffectsHaloTask = 0x8017EA00; // type:func
 
 dryfieldMotelBalconyRoomVisualEffectsHaloOrangeBurstTask = 0x8017ED98; // type:func
 
-func_dryfield_motel_balcony_801801A8 = 0x801801A8; // type:func
+dryfieldMotelBalconyRoomVisualEffectsSparkEmitterTask = 0x801801A8; // type:func
 
 dryfieldMotelBalconyInitRoomEffectsTask = 0x8017DC28; // type:func
 _roomVisualEffectsDrawMote = 0x8017DF84; // type:func
@@ -119,3 +119,5 @@ _dryfieldMotelBalconyUseKeyItemMsg = 0x8017db6c; // type:func
 _dryfieldMotelBalconyCommandMsg = 0x8017db74; // type:func
 _dryfieldMotelBalconyRoomActionMsg = 0x8017db7c; // type:func
 _dryfieldMotelBalconyIdleState = 0x8017dbc8; // type:func
+_dryfieldMotelBalconyInitRoomTask = 0x8017db84; // type:func
+dryfieldMotelBalconyRoomTask = 0x8017dbd0; // type:func

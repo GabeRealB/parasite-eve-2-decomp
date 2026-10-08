@@ -39,7 +39,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-static void func_dryfield_night_breezeway_8017D634(Task* task);
+static void _dryfieldNightBreezewayInitRoomTask(Task* task);
 static void _dryfieldNightBreezewayIdleRoomTask(Task* task);
 
 /// The room's message table: 0x13EE, 0x13F1, 0x13EF and 0x13F0 to their
@@ -53,13 +53,13 @@ extern TaskMessageEntry D_dryfield_night_breezeway_8017E67C[];
 /// The room's event task states: open the message table, idle, then kill the
 /// task.
 static const TaskFuncTable3 D_dryfield_night_breezeway_8017D5C4 = {
-    { func_dryfield_night_breezeway_8017D634, _dryfieldNightBreezewayIdleRoomTask, taskKill },
+    { _dryfieldNightBreezewayInitRoomTask, _dryfieldNightBreezewayIdleRoomTask, taskKill },
 };
 
 // Indexed views below share one contiguous table.
 static s32 _dryfieldNightBreezewayRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
 static s32 _dryfieldNightBreezewayAcceptTransition(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-s32        func_dryfield_night_breezeway_8017D600(Task*, s32, s32, s32);
+static s32 _dryfieldNightBreezewayHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArgument);
 static s32 _dryfieldNightBreezewayIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 enum {
@@ -77,7 +77,7 @@ TaskMessageEntry D_dryfield_night_breezeway_8017E67C[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldNightBreezewayAcceptTransition },
     { DRYFIELD_NIGHT_BREEZEWAY_MESSAGE_USE_KEY_ITEM, _dryfieldNightBreezewayRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldNightBreezewayIgnoreRoomAction },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_night_breezeway_8017D600 },
+    { ROOM_MESSAGE_COMMAND, _dryfieldNightBreezewayHandleRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -663,13 +663,20 @@ static s32 _dryfieldNightBreezewayAcceptTransition(Task* task, s32 messageId, co
     return DRYFIELD_NIGHT_BREEZEWAY_TRANSITION_ALLOWED;
 }
 
-/// The room's 0x13F0 message handler: when `arg2` is 1, spawns the gameplay
-/// event task (`capSpawnEventIfIdle(1, 1)`) unless the cap interpreter is busy.
-/// Always answers 0.
-s32 func_dryfield_night_breezeway_8017D600(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Requests CAP event 1 for room command 1 when the interpreter is idle.
+///
+/// The event holds the player and pauses other actors until completion. Busy
+/// requests are discarded. Other command IDs do nothing; every call returns
+/// zero. The receiver, message ID and second payload word are unused.
+static s32 _dryfieldNightBreezewayHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArgument)
 {
-    if (arg2 == 1) {
-        capSpawnEventIfIdle(1, CAP_EVENT_PAUSE_ACTORS);
+    enum {
+        DRYFIELD_NIGHT_BREEZEWAY_COMMAND_CAP_EVENT = 1,
+        DRYFIELD_NIGHT_BREEZEWAY_CAP_EVENT         = 1,
+    };
+
+    if (commandId == DRYFIELD_NIGHT_BREEZEWAY_COMMAND_CAP_EVENT) {
+        capSpawnEventIfIdle(DRYFIELD_NIGHT_BREEZEWAY_CAP_EVENT, CAP_EVENT_PAUSE_ACTORS);
     }
     return 0;
 }
@@ -684,14 +691,15 @@ static s32 _dryfieldNightBreezewayIgnoreRoomAction(Task* task, s32 messageId, co
     return 0;
 }
 
-/// State 0 of the room's event task: parks the room's message table in
-/// `Task::msgTable`, publishes the task in pointer slot 7 and advances to the
-/// next state.
-static void func_dryfield_night_breezeway_8017D634(Task* task)
+/// Registers the night breezeway's room-message receiver and enters idle.
+///
+/// Requires state 0 and borrows the room's message table until teardown.
+/// Keep the overlay loaded while the registered receiver can be messaged.
+static void _dryfieldNightBreezewayInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_night_breezeway_8017E67C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Leaves the initialized room task idle while its message table remains active.
@@ -702,14 +710,12 @@ static void _dryfieldNightBreezewayIdleRoomTask(Task* task)
 {
 }
 
-/// The room's event task: copies the three-state table onto the stack and
-/// calls the entry for the task's current state.
-void func_dryfield_night_breezeway_8017D680(Task* task)
+void dryfieldNightBreezewayRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_dryfield_night_breezeway_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers = D_dryfield_night_breezeway_8017D5C4;
+    handlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_pulsing_star.inc.c"

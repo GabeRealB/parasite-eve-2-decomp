@@ -48509,18 +48509,18 @@ is *last* in the unit's `.rodata` goes at the end of the file:
 ```c
 extern const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC;
 
-void func_dryfield_motel_balcony_8017DBD0(Task* task)
+void dryfieldMotelBalconyRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_dryfield_motel_balcony_8017D5DC;
-    sp.funcs[task->state](task);
+    handlers = D_dryfield_motel_balcony_8017D5DC;
+    handlers.funcs[task->state](task);
 }
 
 /* ... rest of the unit ... */
 
 const TaskFuncTable3 D_dryfield_motel_balcony_8017D5DC = {
-    func_dryfield_motel_balcony_8017DB84,
+    _dryfieldMotelBalconyInitRoomTask,
     _dryfieldMotelBalconyIdleState,
     taskKill,
 };
@@ -48694,7 +48694,7 @@ nop               <- target
 ```
 
 Adding `default: return;` (or `default: break;`) to the same switch restores
-the `nop` and matched `func_dryfield_motel_balcony_80181628` exactly. The
+the `nop` and matched `dryfieldMotelBalconyRoomVisualEffectsSparkBurstTask` exactly. The
 `default` arm emits nothing extra - it only changes what the delay-slot filler
 is allowed to reach.
 
@@ -92524,26 +92524,26 @@ then answer 1 while the request is not the one this room waits for or its nibble
 is already latched, and 0 otherwise.
 
 ```c
-s32 func_dryfield_motel_room_6_80181920(s32 arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+static s32 _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    if (in->msgId != 0x14) {
+    *reply = *request;
+    if (request->areaId != GAME_AREA_DRYFIELD_WATER_TOWER) {
         return 1;
     }
-    if (gameFlagGetNibble(0x54) != 0) {
+    if (gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_6_WATER_TOWER_EXIT_SEEN) != 0) {
         return 1;
     }
-    if (in->queryOnly != 0) {
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
         return 0;
     }
-    gameFlagSetNibble(0x54, 1);
+    gameFlagSetNibble(GAME_FLAG_MOTEL_ROOM_6_WATER_TOWER_EXIT_SEEN, 1);
     capRunCommandWithTransition(7);
     return 0;
 }
 ```
 
 `func_neo_ark_shrine_8017D6AC`, `func_shelter_b3_incinerator_control_room_8017FA8C`
-and this one differ only in `msgId`, the nibble index and the cap command (and, in
+and this one differ only in destination `areaId`, the nibble index and the cap command (and, in
 the shrine and incinerator, a `gameFlagSetNibbleIfPresent(in->flagId, 2)` where this one has a
 plain `gameFlagSetNibble`). Two of the three carry the required duplicated
 `return 0;` already - both the `queryOnly` early return and a trailing one - which is
@@ -92844,15 +92844,15 @@ Restore the full arity first, before touching anything else:
 
 ```c
 /* m2c seed - cannot match */
-s32 func_dryfield_night_breezeway_8017D600(s32 arg2) { ... }
+s32 _dryfieldNightBreezewayHandleRoomCommand(s32 commandId) { ... }
 
 /* the same body, matching */
-s32 func_dryfield_night_breezeway_8017D600(s32 arg0, s32 arg1, s32 arg2) { ... }
+static s32 _dryfieldNightBreezewayHandleRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArgument) { ... }
 ```
 
-`func_dryfield_night_breezeway_8017D600` scored 100.000% on the first build this
+`_dryfieldNightBreezewayHandleRoomCommand` scored 100.000% on the first build this
 way, all penalties zero; the already-matched siblings in the same family show the
-convention (`func_dryfield_night_water_tank_8017D73C` declares all three).
+convention (`func_dryfield_night_water_tank_8017D73C` declares the same four positions).
 
 The same seed is also a reminder not to hand-materialize a shared constant. The
 three uses of `1` — the `bne` against `$a2` and both call arguments — unify under

@@ -314,3 +314,6 @@ dryfieldNightDilapidatedHouseStageSceneAudioStart = 0x8017da70; // type:func
 dryfieldNightDilapidatedHouseEnqueueScenePlayback = 0x8017da90; // type:func
 dryfieldNightDilapidatedHouseFinishScene = 0x8017dab0; // type:func
 dryfieldNightDilapidatedHouseCancelScene = 0x8017dad0; // type:func
+dryfieldNightDilapidatedHouseGateBackStreetExit = 0x8017d8dc; // type:func
+_dryfieldNightDilapidatedHouseLaunchMovieTask = 0x8017dce0; // type:func
+dryfieldNightDilapidatedHouseStartMovie = 0x8017daf0; // type:func

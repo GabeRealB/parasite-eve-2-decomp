@@ -54,3 +54,6 @@ _dryfieldNightBreezewayRejectKeyItemUse = 0x8017d5d0; // type:func
 _dryfieldNightBreezewayAcceptTransition = 0x8017d5d8; // type:func
 _dryfieldNightBreezewayIgnoreRoomAction = 0x8017d62c; // type:func
 _dryfieldNightBreezewayIdleRoomTask = 0x8017d678; // type:func
+_dryfieldNightBreezewayHandleRoomCommand = 0x8017d600; // type:func
+_dryfieldNightBreezewayInitRoomTask = 0x8017d634; // type:func
+dryfieldNightBreezewayRoomTask = 0x8017d680; // type:func
