@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_800100_80166F50",
+  "function": "_actor800100InitAimCollision",
   "date": "2026-09-20",
   "status": "supported",
   "scope": "MEM_IN_STRUCT dependency change, observed dumps and preplanned controlled build; no tracer used",

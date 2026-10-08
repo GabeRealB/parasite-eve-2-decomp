@@ -36975,8 +36975,7 @@ expected objects also have the raw immediate. Overlay `rom:` is
 C still emits as a real reloc (the D4 `gCdCmdQueue` `lhu` is only the
 `%lo`).
 
-`loadingEnqueueStageResourcesTask` / `Gp_AttachListTask` / `Gp_SelectArmorMenuTask` / `itemMenuCanMoveAllItems`
-`Gp_LoadWaitStage` / `itemMenuConsumableChoiceListTask` / `itemMenuArmorSelectionTask` / `itemMenuCanMoveAllItems`
+`loadingEnqueueStageResourcesTask` / `itemMenuConsumableChoiceListTask` / `itemMenuArmorSelectionTask` / `itemMenuCanMoveAllItems`
 are the examples.
 
 The entry is state that belongs to the faked address, so it has to come out
@@ -149098,12 +149097,9 @@ none needed a hack. The forms, by what the `goto` was standing for:
 
   The exit is then not the loop's first jump, so the test is not duplicated.
   18 of 18 such loops converted this way (`_actor421600WatchRunPlayerState`,
-  `_8013BA70`, `func_actor_444000_8013E058`, `func_actor_403000_8013C2D4`), and
+  `_8013BA70`, `func_actor_444000_8013E058`, `_actor403000ProwlState`), and
   the same shape with a larger body in `_actor00400FindNearestSurfaceSpot`
   (`if (claimMark != ACTOR_00400_SURFACE_SPOT_END) { ...; spotIndex++; continue; } break;`).
-  `_8013BA70`, `func_actor_444000_8013E058`, `_actor403000ProwlState`), and
-  the same shape with a larger body in `Actor00400_Fn031A4`
-  (`if (kind != -1) { ...; index++; continue; } break;`).
 - **`goto advance` into another case's `task->state++; break;`.** Write the
   increment in each case; jump2's cross-jumping merges them
   (`factoryPowerScene`, `storeToggleTask`, `_shelterR47PlayCapCommandTask`, first

@@ -1,5 +1,5 @@
 {
-  "function": "func_actor_800100_80165010",
+  "function": "_actor800100ObstacleScanState",
   "date": "2026-09-20",
   "scope": "Once-loop scheduling dependencies and global reuse for heading load allocation",
   "traces": {
