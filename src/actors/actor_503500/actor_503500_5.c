@@ -986,7 +986,7 @@ s32 D_actor_503500_80171464[2] = {
     5,
 };
 
-TaskDesc D_actor_503500_8017146C = { { { TASK_BODY_NONE, 192 } }, func_actor_503500_80143AC0, { .value = 0 } };
+TaskDesc D_actor_503500_8017146C = { { { TASK_BODY_NONE, 192 } }, actor503500KnockbackTask, { .value = 0 } };
 
 SVECTOR D_actor_503500_80171478 = { 0 };
 

@@ -53128,7 +53128,7 @@ the call instead emits the call twice.
 
 ## `li` in a branch's delay slot on the register the branch tests: the constant arm comes first
 
-The ROM (`func_actor_503500_80143AC0`) has a constant written in the delay
+The ROM (`actor503500KnockbackTask`) has a constant written in the delay
 slot, into the same register the branch just tested, with the other arm inline:
 
     lh    $v0, %lo(D_80073BA0)($v0)
@@ -69982,23 +69982,23 @@ compiles to two `slti` compares.
 
 ## `tbl[i].f` with a pre-extended `s32 i` puts `%hi/%lo` between `sll 16` and `sra 13`
 
-`func_actor_503500_8013B8D0` copies three halfwords out of an `SVECTOR`
-table indexed by `(s16)(work->field_EA % 9)`, and the target emits `sll
+`_actor503500LargeOrbEmitterStepDying` copies three halfwords out of an `SVECTOR`
+table indexed by `(s16)(work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016F168))`, and the target emits `sll
 a0,a0,16; lui v0,%hi(tbl); addiu v0,v0,%lo(tbl); sra a0,a0,13; addu`. A
 `SVECTOR *src = &tbl[(s16)(...)]` pointer gives every instruction but puts the
 `sra 13` *before* the `lui` (99.7%): `&tbl[x]` is pointer arithmetic, and
 `force_operand` emits the `* 8` shift before loading the symbol. sched1 sees the
 `sra` and the `lui/addiu` at equal priority and breaks the tie on insn LUID, so
 source emission order decides it. Hoisting `src = tbl;` into its own statement
-puts the `lui` before the whole modulo instead (97.7%). Writing `i = (s16)(...)`
-with `s32 i` and then `vec.vx = tbl[i].vx; vec.vy = tbl[i].vy; ...` matches: the
+puts the `lui` before the whole modulo instead (97.7%). Writing `effectOffsetIndex = (s16)(...)`
+with `s32 effectOffsetIndex` and then `effectPosition.vx = tbl[effectOffsetIndex].vx; effectPosition.vy = tbl[effectOffsetIndex].vy; ...` matches: the
 ARRAY_REF expansion loads the base symbol before it expands the offset, the
-sign extension (`sll 16`) is already done in `i`'s statement, and combine
+sign extension (`sll 16`) is already done in `effectOffsetIndex`'s statement, and combine
 leaves the fused `sra 13` where the `* 8` shift was, after the `addiu` (100%).
-Same function: `vec.vx = -vec.vx` compiles to a bare `negu`, because `convert`
+Same function: `effectPosition.vx = -effectPosition.vx` compiles to a bare `negu`, because `convert`
 narrows `(short)-(int)x` into an HImode negate, while the target sign-extends
 first (`sll/sra/negu`, and `lh` rather than `lhu` for a stack field). Going
-through an `s32 t = vec.vx; vec.vx = -t;` keeps the negate in SImode.
+through an `s32 mirroredComponent = effectPosition.vx; effectPosition.vx = -mirroredComponent;` keeps the negate in SImode.
 
 ## `points[i + 1]` is not a giv when `points` is a register: use a second index `j`
 
@@ -70359,7 +70359,7 @@ one header block.
 directly in front of it (`actor503500HandlePlayAnimation` here). So a name-set diff
 before and after a move can report one false swap. Count the bodies and run
 `check_lost_matches.py`.
-**Second use.** `func_actor_503500_8013C088` hit the same pad one boundary
+**Second use.** `_actor503500RearPartApplyHits` hit the same pad one boundary
 earlier (table at `_6` offset `0x10C`). The slide worked again: `units` `0xC094` ->
 `0xA268`, `_7`'s `rodata` `0x288` -> `0x218` (`0x70` apart, so `_7`'s existing
 table stays 8-aligned). Try the slide before adding a unit. Adding one renumbers
@@ -70385,7 +70385,7 @@ warning; only an undeclared *variable* (`gPlayerStatus`) stops the build.
 `#include <psyq/abs.h>`, `<psyq/inline_c.h>`, `<psyq/libgpu.h>`, the `gte.h` that
 follows `inline_c.h`, or file-local macros.
 **Fix.** Copy the host file's angle-bracket includes, `#include "gte.h"` and its
-`#define` block into the scratch source. `func_actor_503500_8013C088` went from 91.5% to 100% on that change alone.
+`#define` block into the scratch source. `_actor503500RearPartApplyHits` went from 91.5% to 100% on that change alone.
 
 ### `(rsin(a) << 4) * s`, not `rsin(a) * 0x10 * s`, keeps the `sll` on the call result
 **Symptom.** Target does `sll $v0,$v0,4` / `mult $v0,$s0` after each `rsin` /
@@ -149568,7 +149568,7 @@ attempts; left as it was.
   the second test (4 insns longer, `$s6/$s7` swapped), and a `static inline`
   predicate returning 1/0 is not threaded (`li v0,1` / `move v0,zero; bnez`).
   Moving the whole per-record body, with its stack locals, into an inline
-  (`_actor503500ArmHandleHit(arg0, work, enemy, coord, rec, i)`) and writing the
+  (`_actor503500ArmHandleHit(task, work, enemy, coord, contacts, contactIndex)`) and writing the
   skips as `return` matched all seven on the first build: a `return` in an
   inlined void function is a jump to the end of the expansion, which is the
   loop step. The locals keep their frame slots when declared in the same order.

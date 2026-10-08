@@ -1662,7 +1662,7 @@ TaskDesc D_actor_503500_8016E924[17] = {
 
 TaskDesc D_actor_503500_8016E9F0[5] = {
     { { { TASK_BODY_COORD, 192 } }, actor503500BallisticShotTask, { .value = 0 } },
-    { { { TASK_BODY_COORD, 192 } }, func_actor_503500_80144E34, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, actor503500LingeringShotTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, actor503500PinkFlashAttackTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, actor503500YellowFlashAttackTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 192 } }, actor503500OrangeFlashAttackTask, { .value = 0 } },

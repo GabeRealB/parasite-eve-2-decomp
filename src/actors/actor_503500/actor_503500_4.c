@@ -16,6 +16,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
@@ -570,6 +571,15 @@ enum {
     ACTOR_503500_PART_HIT_EFFECT_HIGH_ARG = 3,
 };
 
+/// Damage multiplier and low-halfword selectors used by these part-hit handlers.
+enum {
+    ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER = 4,
+    ACTOR_503500_ATTACK_SOURCE_INDEX_SHIFT      = 7, // Bit 7 selects player (0) or companion (1)
+    ACTOR_503500_ATTACK_SOURCE_INDEX_MASK       = 1,
+    ACTOR_503500_ATTACHMENT_ATTACK_FLAG         = 0x8000,
+    ACTOR_503500_ATTACK_ROW_MASK                = 0x7F,
+};
+
 static void _actor503500LungingChainApplyPitch(const SVECTOR* linkAngles, GfxCoord* coordinates);
 
 extern _Actor503500SmallOrbEmitterWork D_actor_503500_8017797C;
@@ -581,9 +591,9 @@ static void _actor503500LargeOrbEmitterExit(Task* task);
 extern _Actor503500ChainBaseWork D_actor_503500_80177794[2];
 static void                      _actor503500ChainBaseExit(Task* task);
 
-static void func_actor_503500_8013AF60(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
+static void _actor503500LargeOrbEmitterApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* contacts, s32 contactCount);
 static void func_actor_503500_8013CCBC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
-static void func_actor_503500_8013C088(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
+static void _actor503500RearPartApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* rec, s32 count);
 static void func_actor_503500_8013DEB4(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count);
 static void _actor503500SmallOrbEmitterExit(Task* task);
 static void _actor503500SmallOrbEmitterEnterState(Task* task, s32 state);
@@ -592,7 +602,7 @@ static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, Wor
 static void _actor503500LungingChainDisableAttackOnPlayerContact(Task* unusedTask, WorldCollisionBody* attackBody, const WorldCollisionContact* contacts, s32 contactCount);
 static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
 static void func_actor_503500_8013B460(Task* arg0);
-static void func_actor_503500_8013B8D0(Task* arg0);
+static void _actor503500LargeOrbEmitterStepDying(Task* task);
 static void _actor503500LargeOrbEmitterStepIdle(Task* task);
 static void _actor503500LargeOrbEmitterClearReactions(Task* task);
 static void _actor503500RearPartExit(Task* task);
@@ -695,12 +705,12 @@ static void func_actor_503500_8013FA74(Task* arg0);
 static void func_actor_503500_8013FF0C(Task* arg0);
 static void _actor503500ArmInit(Task* task);
 static void func_actor_503500_80143EB4(Task* arg0);
-static void func_actor_503500_80144300(Task* arg0);
+static void _actor503500BallisticShotInit(Task* task);
 static void _actor503500BallisticShotUpdate(Task* task);
-static void func_actor_503500_801448E8(Task* arg0);
+static void _actor503500LingeringShotInit(Task* task);
 static void _actor503500LingeringShotUpdate(Task* task);
 
-static void func_actor_503500_8013BD0C(Task* arg0);
+static void _actor503500LargeOrbEmitterUpdateHits(Task* task);
 static void _actor503500LungingChainPlaceLinks(const SVECTOR* points, GfxCoord* coordinates);
 
 /// Integrates a shot's signed 16.16 velocity and publishes its integer position.
@@ -860,56 +870,90 @@ static void _actor503500LargeOrbEmitterInit(Task* task)
     task->state       += 1;
 }
 
-/// One contact record of `func_actor_503500_8013AF60`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500LargeOrbEmitterHandleHit(Task* arg0, _Actor503500LargeOrbEmitterWork* work, Enemy* enemy, GfxCoord* coord,
-                                                        WorldCollisionContact* rec, s32 i)
+/// Applies one eligible attack contact to a large-orb emitter.
+///
+/// Borrows live task, work, enemy, coordinate and read-only contacts. Requires
+/// `contactIndex` within the caller's table; earlier keys are readable. Only
+/// category-2 attacks land with a clear cooldown; bit 7 selects a live player
+/// or companion task. Attack rows must satisfy the damage APIs' bounds.
+/// Fatal hits start its dying state before applying status reactions.
+/// The cached world transform must be current and the contact offset nonzero
+/// after halfword narrowing. Effects use radius 1600 in game units, then the
+/// target sphere's local offset. The cooldown narrows to signed halfword frames.
+static inline void _actor503500LargeOrbEmitterHandleHit(Task* task, _Actor503500LargeOrbEmitterWork* work, Enemy* enemy, GfxCoord* coord,
+                                                        const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    MATRIX    mtx;
-    MATRIX    rot;
-    VECTOR    d;
-    SVECTOR   pos;
-    GfxCoord* src;
-    s16       stun;
-    u32       id;
-    s32       dmg;
-    s32       crit;
-    s32       scale;
-    s32       j;
+/// Projects a contact into this part's local hit-effect point.
+///
+/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
+/// radialScale and the radius constant below. No arguments. Requires a current
+/// cached transform and a nonzero narrowed offset; changes GTE state and
+/// preserves signed-halfword narrowing after each position step.
+/// `work` selects the side's local sphere centre.
+#define ACTOR_503500_LARGE_ORB_EMITTER_PROJECT_HIT_POINT()                                                                                                                                                     \
+    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                      \
+    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                   \
+    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                   \
+    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                   \
+    radialScale       = (ACTOR_503500_LARGE_ORB_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
+    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                 \
+    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                 \
+    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                 \
+    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                        \
+    gte_ldv0(&effectPosition);                                                                                                                                                                                 \
+    gte_rtv0();                                                                                                                                                                                                \
+    gte_stsv(&effectPosition);                                                                                                                                                                                 \
+    effectPosition.vx += D_actor_503500_8016F0F0[work->side].vx;                                                                                                                                               \
+    effectPosition.vy += D_actor_503500_8016F0F0[work->side].vy;                                                                                                                                               \
+    effectPosition.vz += D_actor_503500_8016F0F0[work->side].vz;
+    enum { ACTOR_503500_LARGE_ORB_HIT_EFFECT_RADIUS = 1600 };
+    MATRIX    worldRotation;
+    MATRIX    inverseRotation;
+    VECTOR    attackerOffset;
+    SVECTOR   effectPosition;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    u32       attackKey;
+    s32       damage;
+    s32       criticalHit;
+    s32       radialScale;
+    s32       previousContactIndex;
 
-    id = rec[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (rec[j].key.value == id) {
+    // Earlier equal keys suppress repeated contacts from the same attack.
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    crit = 0;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
-        crit = 1;
+    attackerCoord = gPlayerActorTasks[(attackKey >> ACTOR_503500_ATTACK_SOURCE_INDEX_SHIFT) & ACTOR_503500_ATTACK_SOURCE_INDEX_MASK]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &effectPosition);
+    attackerOffset.vx = attackerCoord->coord.t[0] - effectPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - effectPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - effectPosition.vz;
+    criticalHit       = 0;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage     *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
+        criticalHit = 1;
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-    enemy->hp -= dmg;
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    enemy->hp -= damage;
     if (enemy->hp <= 0) {
-        _actor503500LargeOrbEmitterEnterState(arg0, ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING);
+        _actor503500LargeOrbEmitterEnterState(task, ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING);
     }
-    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+    switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
+
         case DAMAGE_PLAYER_REACTION_NONE:
         case 4:
         case 5:
@@ -922,57 +966,43 @@ static inline void _actor503500LargeOrbEmitterHandleHit(Task* arg0, _Actor503500
             damageStartEnemyStagger(enemy);
             break;
         case DAMAGE_PLAYER_REACTION_BUILDUP:
-            damageStartEnemyBuildup(enemy, id, 0);
+            damageStartEnemyBuildup(enemy, attackKey, 0);
             break;
         case DAMAGE_PLAYER_REACTION_POISON:
-            damageTryStartEnemyDamageOverTime(enemy, id, 0);
+            damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
             break;
     }
-    gte_TransposeMatrix(&coord->workm, &rot);
-    pos.vx = rec[i].point.vx - coord->workm.t[0];
-    pos.vy = rec[i].point.vy - coord->workm.t[1];
-    pos.vz = rec[i].point.vz - coord->workm.t[2];
-    scale  = 0x640000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-    pos.vx = pos.vx * scale / 4096;
-    pos.vy = pos.vy * scale / 4096;
-    pos.vz = pos.vz * scale / 4096;
-    gte_SetRotMatrix(&rot);
-    gte_ldv0(&pos);
-    gte_rtv0();
-    gte_stsv(&pos);
-    pos.vx += D_actor_503500_8016F0F0[work->side].vx;
-    pos.vy += D_actor_503500_8016F0F0[work->side].vy;
-    pos.vz += D_actor_503500_8016F0F0[work->side].vz;
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
-    if (crit != 0) {
-        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+    // Project the contact radially, then move the effect point into the part frame.
+    ACTOR_503500_LARGE_ORB_EMITTER_PROJECT_HIT_POINT();
+#undef ACTOR_503500_LARGE_ORB_EMITTER_PROJECT_HIT_POINT
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
+    if (criticalHit != 0) {
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);
     }
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
 }
 
-/// Applies this frame's hits from the collision records `rec[0..count)` to a
-/// large-orb emitter, like `_actor503500PinkFlashEmitterApplyHits`: each attack id is
-/// taken once, only type-2 ids land while `hitCooldown` is clear, and a hit
-/// that empties the enemy's health starts
-/// `ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING` but still applies the id's
-/// status effect. The hit effect is pulled to 1600 units along the contact
-/// offset and placed from the offset of `side`'s target sphere. `arg1` is
-/// passed by the caller but unused.
-static void func_actor_503500_8013AF60(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* rec, s32 count)
+/// Applies eligible attack contacts to a large-orb emitter.
+///
+/// Requires initialized work, its live enemy/model and `contactCount` readable
+/// elements. Processes earlier equal keys only once and honors hit cooldown.
+/// Borrows contacts without changing them; `unusedBody` retains the original
+/// four-argument collision-pass interface and is ignored.
+static void _actor503500LargeOrbEmitterApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* contacts, s32 contactCount)
 {
     _Actor503500LargeOrbEmitterWork* work;
     Enemy*                           enemy;
     GfxCoord*                        coord;
-    s32                              i;
+    s32                              contactIndex;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    for (i = 0; i < count; i++) {
-        _actor503500LargeOrbEmitterHandleHit(arg0, work, enemy, coord, rec, i);
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        _actor503500LargeOrbEmitterHandleHit(task, work, enemy, coord, contacts, contactIndex);
     }
 }
 
@@ -1094,79 +1124,104 @@ static void func_actor_503500_8013B60C(Task* arg0, s32 side, s32 arg2)
     }
 }
 
-/// `ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING` step of a large-orb emitter,
-/// stepped by `stateStep`: step 0 is the death setup shared with
-/// `func_actor_503500_8013F4A4`; step 1 spawns a mirrored pair of effects per
-/// frame from `D_actor_503500_8016F168`, drifting with `stateFrames`, moves
-/// `side`'s VRAM rects on frame
-/// `ACTOR_503500_LARGE_ORB_EMITTER_DYING_REPAINT_FRAME` and leaves after
-/// `ACTOR_503500_LARGE_ORB_EMITTER_DYING_FRAMES`.
-static void func_actor_503500_8013B8D0(Task* arg0)
+/// Removes the dying emitter's target and reports its lost slot to the boss.
+///
+/// Requires live initialized task, work, enemy and root. Stops pair tests,
+/// detaches the enemy's borrowed contacts, credits rewards and starts its death
+/// sound before advancing the death step. The collision body remains linked.
+static inline void _actor503500LargeOrbEmitterBeginDeath(Task* task, _Actor503500LargeOrbEmitterWork* work, Enemy* enemy, GfxCoord* partCoord)
 {
+    s32 audioPan;
+    work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    enemy->recs       = NULL;
+    worldTargetUnlinkNode(&enemy->node);
+    actor503500ClearSlotEnemy(task->parent, task->spawnArg1.value);
+    work->hitCooldown = 0;
+    (sceneAcquireBattleRef)(0);
+    sceneReleaseBattleRefWithRewards(task, 0);
+    actor503500EnterPartLostState(task->parent);
+    enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
+    audioPan              = (s8)worldCoordGetOriginAudioPan(partCoord);
+    sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, audioPan, (s8)(worldCoordGetOriginAudioDepth(partCoord) / 2));
+    work->stateStep++;
+}
+
+/// Removes a defeated large-orb emitter and runs its smoke and texture transition.
+///
+/// Requires live emitter work, enemy and boss parent. Step 0 removes its target
+/// and enemy slot and reports part loss; step 1 sheds mirrored effects for
+/// 31 active updates and repaints the side's texture on update 20. The following
+/// step releases its effect reservation and advances the task to exit.
+/// Frame counts are active updates; effect positions narrow to signed halfwords.
+static void _actor503500LargeOrbEmitterStepDying(Task* task)
+{
+    enum {
+        ACTOR_503500_LARGE_ORB_DEATH_BEGIN          = 0,
+        ACTOR_503500_LARGE_ORB_DEATH_EFFECTS        = 1,
+        ACTOR_503500_LARGE_ORB_DEATH_EFFECT_COST    = 3,
+        ACTOR_503500_LARGE_ORB_DEATH_HIT_PUFF_ARG   = 0x1800,
+        ACTOR_503500_LARGE_ORB_DEATH_SMOKE_PUFF_ARG = 0x80008600,
+        ACTOR_503500_LARGE_ORB_DEATH_SOUND_FADE     = 45, // Audio updates, subject to integer fade rounding
+        ACTOR_503500_LARGE_ORB_REPAINT_INDEX_SIDE_0 = 2,
+        ACTOR_503500_LARGE_ORB_REPAINT_INDEX_SIDE_1 = 4,
+        ACTOR_503500_LARGE_ORB_REPAINT_BASE_X       = 320,
+        ACTOR_503500_LARGE_ORB_REPAINT_Y            = 256,
+        ACTOR_503500_LARGE_ORB_REPAINT_ROW_BASE     = 247,
+    };
     Enemy*                           enemy;
     _Actor503500LargeOrbEmitterWork* work;
-    GfxCoord*                        coord;
-    SVECTOR                          vec;
-    s32                              pan;
+    GfxCoord*                        partCoord;
+    SVECTOR                          effectPosition;
     s32                              side;
-    s32                              n;
-    s32                              i;
-    s32                              t;
+    s32                              repaintIndex;
+    s32                              effectOffsetIndex;
+    s32                              mirroredComponent;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    enemy     = task->spawnArg2.pointer;
+    work      = task->work;
+    partCoord = task->extra.tmd->coords;
     switch (work->stateStep) {
-        case 0:
-            work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            enemy->recs       = 0;
-            worldTargetUnlinkNode(&enemy->node);
-            actor503500ClearSlotEnemy(arg0->parent, arg0->spawnArg1.value);
-            work->hitCooldown = 0;
-            (sceneAcquireBattleRef)(0);
-            sceneReleaseBattleRefWithRewards(arg0, 0);
-            actor503500EnterPartLostState(arg0->parent);
-            enemy->reactionFlags &= ENEMY_REACTION_LOW_CLEAR;
-            pan                   = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(SOUND_BRAHMAN_DEATH_LOOP, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-            work->stateStep++;
+        case ACTOR_503500_LARGE_ORB_DEATH_BEGIN:
+            // Remove the target before notifying the boss of the lost part.
+            _actor503500LargeOrbEmitterBeginDeath(task, work, enemy, partCoord);
             break;
-        case 1:
-            if (actor503500TryReserveSlotEffects(arg0->spawnArg1.value, 3) != 0) {
-                i       = (s16)(work->stateFrames % 9);
-                vec.vx  = D_actor_503500_8016F168[i].vx;
-                vec.vy  = D_actor_503500_8016F168[i].vy;
-                vec.vz  = D_actor_503500_8016F168[i].vz;
-                vec.vx -= work->stateFrames * 10;
-                vec.vy -= work->stateFrames * 20;
+        case ACTOR_503500_LARGE_ORB_DEATH_EFFECTS:
+            // Shed mirrored effects while the side's two texture regions are replaced.
+            if (actor503500TryReserveSlotEffects(task->spawnArg1.value, ACTOR_503500_LARGE_ORB_DEATH_EFFECT_COST) != 0) {
+                effectOffsetIndex  = (s16)(work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016F168));
+                effectPosition.vx  = D_actor_503500_8016F168[effectOffsetIndex].vx;
+                effectPosition.vy  = D_actor_503500_8016F168[effectOffsetIndex].vy;
+                effectPosition.vz  = D_actor_503500_8016F168[effectOffsetIndex].vz;
+                effectPosition.vx -= work->stateFrames * 10;
+                effectPosition.vy -= work->stateFrames * 20;
                 if (work->side != 0) {
-                    t      = vec.vx;
-                    vec.vx = -t;
+                    mirroredComponent = effectPosition.vx;
+                    effectPosition.vx = -mirroredComponent;
                 }
-                effectSpawn(EFFECT_HIT_PUFF, coord, 0x1800, &vec);
-                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x80008600, &vec);
-                t      = vec.vz;
-                vec.vz = -t;
-                effectSpawn(EFFECT_HIT_PUFF, coord, 0x1800, &vec);
-                effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x80008600, &vec);
+                effectSpawn(EFFECT_HIT_PUFF, partCoord, ACTOR_503500_LARGE_ORB_DEATH_HIT_PUFF_ARG, &effectPosition);
+                effectSpawn(EFFECT_SMOKE_PUFF, partCoord, ACTOR_503500_LARGE_ORB_DEATH_SMOKE_PUFF_ARG, &effectPosition);
+                mirroredComponent = effectPosition.vz;
+                effectPosition.vz = -mirroredComponent;
+                effectSpawn(EFFECT_HIT_PUFF, partCoord, ACTOR_503500_LARGE_ORB_DEATH_HIT_PUFF_ARG, &effectPosition);
+                effectSpawn(EFFECT_SMOKE_PUFF, partCoord, ACTOR_503500_LARGE_ORB_DEATH_SMOKE_PUFF_ARG, &effectPosition);
             }
             work->stateFrames++;
             if (work->stateFrames >= ACTOR_503500_LARGE_ORB_EMITTER_DYING_FRAMES) {
-                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, 0x2D);
+                sndEvtRequestScriptStop(SOUND_BRAHMAN_DEATH_LOOP, ACTOR_503500_LARGE_ORB_DEATH_SOUND_FADE);
                 work->stateStep++;
             } else if (work->stateFrames == ACTOR_503500_LARGE_ORB_EMITTER_DYING_REPAINT_FRAME) {
-                side = work->side;
-                n    = 2;
+                side         = work->side;
+                repaintIndex = ACTOR_503500_LARGE_ORB_REPAINT_INDEX_SIDE_0;
                 if (side != 0) {
-                    n = 4;
+                    repaintIndex = ACTOR_503500_LARGE_ORB_REPAINT_INDEX_SIDE_1;
                 }
-                MoveImage(&D_actor_503500_8016F148[side][0], (n << 6) + 0x140, 0x100);
-                MoveImage(&D_actor_503500_8016F148[side][1], 0, n + 0xF7);
+                MoveImage(&D_actor_503500_8016F148[side][0], (repaintIndex << 6) + ACTOR_503500_LARGE_ORB_REPAINT_BASE_X, ACTOR_503500_LARGE_ORB_REPAINT_Y);
+                MoveImage(&D_actor_503500_8016F148[side][1], 0, repaintIndex + ACTOR_503500_LARGE_ORB_REPAINT_ROW_BASE);
             }
             break;
         default:
-            actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
-            arg0->state++;
+            actor503500ReleaseSlotEffects(task->spawnArg1.value);
+            task->state++;
             break;
     }
 }
@@ -1189,7 +1244,7 @@ static void func_actor_503500_8013BBCC(Task* arg0)
     if (enemy->reactionFlags != 0) {
         _actor503500LargeOrbEmitterClearReactions(arg0);
     }
-    func_actor_503500_8013BD0C(arg0);
+    _actor503500LargeOrbEmitterUpdateHits(arg0);
     func_actor_503500_8013BD88(arg0);
 }
 
@@ -1232,21 +1287,23 @@ static void _actor503500LargeOrbEmitterClearReactions(Task* task)
     }
 }
 
-static void func_actor_503500_8013BD0C(Task* arg0)
+/// Ticks a large-orb emitter's hit cooldown, applies contacts and empties the table.
+///
+/// Requires initialized work. A nonzero cooldown decrements as a signed
+/// halfword and floors at zero. Defeat suppresses new damage, but contacts
+/// are cleared on every call, including the defeat frame.
+static void _actor503500LargeOrbEmitterUpdateHits(Task* task)
 {
     _Actor503500LargeOrbEmitterWork* work;
-    s16                              timer;
 
-    work = arg0->work;
+    work = task->work;
     if (work->hitCooldown != 0) {
-        timer             = (u16)work->hitCooldown - 1;
-        work->hitCooldown = timer;
-        if (timer < 0) {
+        if (--work->hitCooldown < 0) {
             work->hitCooldown = 0;
         }
     }
     if (actor503500IsDefeated() == 0) {
-        func_actor_503500_8013AF60(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        _actor503500LargeOrbEmitterApplyHits(task, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
 }
@@ -1263,7 +1320,7 @@ static void func_actor_503500_8013BD88(Task* arg0)
             func_actor_503500_8013B460(arg0);
             break;
         case ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING:
-            func_actor_503500_8013B8D0(arg0);
+            _actor503500LargeOrbEmitterStepDying(arg0);
             break;
     }
 }
@@ -1365,56 +1422,90 @@ static void _actor503500RearPartInit(Task* task)
     task->state       += 1;
 }
 
-/// One contact record of `func_actor_503500_8013C088`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500RearPartHandleHit(Task* arg0, _Actor503500RearPartWork* work, Enemy* enemy, GfxCoord* coord,
-                                                 WorldCollisionContact* arg2, s32 i)
+/// Applies one eligible attack contact to the rear part.
+///
+/// Borrows live task, work, enemy, coordinate and read-only contacts. Requires
+/// `contactIndex` within the caller's table; earlier keys are readable. Only
+/// category-2 attacks land with a clear cooldown; bit 7 selects a live player
+/// or companion task. Attack rows must satisfy the damage APIs' bounds.
+/// Fatal hits start its dying state before applying status reactions.
+/// The cached world transform must be current and the contact offset nonzero
+/// after halfword narrowing. Effects use radius 1400 in game units, then the
+/// target sphere's local offset. The cooldown narrows to signed halfword frames.
+static inline void _actor503500RearPartHandleHit(Task* task, _Actor503500RearPartWork* work, Enemy* enemy, GfxCoord* coord,
+                                                 const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    VECTOR    d;
-    SVECTOR   pos;
-    MATRIX    mtx;
-    MATRIX    rot;
-    GfxCoord* src;
-    s16       stun;
-    u32       id;
-    s32       dmg;
-    s32       crit;
-    s32       scale;
-    s32       j;
+/// Projects a contact into this part's local hit-effect point.
+///
+/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
+/// radialScale and the radius constant below. No arguments. Requires a current
+/// cached transform and a nonzero narrowed offset; changes GTE state and
+/// preserves signed-halfword narrowing after each position step.
+/// Adds the part's fixed local sphere centre.
+#define ACTOR_503500_REAR_PART_PROJECT_HIT_POINT()                                                                                                                                                             \
+    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                      \
+    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                   \
+    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                   \
+    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                   \
+    radialScale       = (ACTOR_503500_REAR_PART_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
+    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                 \
+    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                 \
+    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                 \
+    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                        \
+    gte_ldv0(&effectPosition);                                                                                                                                                                                 \
+    gte_rtv0();                                                                                                                                                                                                \
+    gte_stsv(&effectPosition);                                                                                                                                                                                 \
+    effectPosition.vx += D_actor_503500_8016F1B0.vx;                                                                                                                                                           \
+    effectPosition.vy += D_actor_503500_8016F1B0.vy;                                                                                                                                                           \
+    effectPosition.vz += D_actor_503500_8016F1B0.vz;
+    enum { ACTOR_503500_REAR_PART_HIT_EFFECT_RADIUS = 1400 };
+    VECTOR    attackerOffset;
+    SVECTOR   effectPosition;
+    MATRIX    worldRotation;
+    MATRIX    inverseRotation;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    u32       attackKey;
+    s32       damage;
+    s32       criticalHit;
+    s32       radialScale;
+    s32       previousContactIndex;
 
-    id = arg2[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (arg2[j].key.value == id) {
+    // Earlier equal keys suppress repeated contacts from the same attack.
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    crit = 0;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
-        crit = 1;
+    attackerCoord = gPlayerActorTasks[(attackKey >> ACTOR_503500_ATTACK_SOURCE_INDEX_SHIFT) & ACTOR_503500_ATTACK_SOURCE_INDEX_MASK]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &effectPosition);
+    attackerOffset.vx = attackerCoord->coord.t[0] - effectPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - effectPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - effectPosition.vz;
+    criticalHit       = 0;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage     *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
+        criticalHit = 1;
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-    enemy->hp -= dmg;
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    enemy->hp -= damage;
     if (enemy->hp <= 0) {
-        _actor503500RearPartEnterState(arg0, ACTOR_503500_REAR_PART_STATE_DYING);
+        _actor503500RearPartEnterState(task, ACTOR_503500_REAR_PART_STATE_DYING);
     }
-    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+    switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
+
         case DAMAGE_PLAYER_REACTION_NONE:
         case 4:
         case 5:
@@ -1427,55 +1518,43 @@ static inline void _actor503500RearPartHandleHit(Task* arg0, _Actor503500RearPar
             damageStartEnemyStagger(enemy);
             break;
         case DAMAGE_PLAYER_REACTION_BUILDUP:
-            damageStartEnemyBuildup(enemy, id, 0);
+            damageStartEnemyBuildup(enemy, attackKey, 0);
             break;
         case DAMAGE_PLAYER_REACTION_POISON:
-            damageTryStartEnemyDamageOverTime(enemy, id, 0);
+            damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
             break;
     }
-    gte_TransposeMatrix(&coord->workm, &rot);
-    pos.vx = arg2[i].point.vx - coord->workm.t[0];
-    pos.vy = arg2[i].point.vy - coord->workm.t[1];
-    pos.vz = arg2[i].point.vz - coord->workm.t[2];
-    scale  = 0x578000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-    pos.vx = pos.vx * scale / 4096;
-    pos.vy = pos.vy * scale / 4096;
-    pos.vz = pos.vz * scale / 4096;
-    gte_SetRotMatrix(&rot);
-    gte_ldv0(&pos);
-    gte_rtv0();
-    gte_stsv(&pos);
-    pos.vx += D_actor_503500_8016F1B0.vx;
-    pos.vy += D_actor_503500_8016F1B0.vy;
-    pos.vz += D_actor_503500_8016F1B0.vz;
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
-    if (crit != 0) {
-        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+    // Project the contact radially, then move the effect point into the part frame.
+    ACTOR_503500_REAR_PART_PROJECT_HIT_POINT();
+#undef ACTOR_503500_REAR_PART_PROJECT_HIT_POINT
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
+    if (criticalHit != 0) {
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);
     }
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
 }
 
-/// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// the rear part - the same body as `_actor503500PinkFlashEmitterApplyHits` on this
-/// block's fields: each attack id is taken once, only type-2 ids land while
-/// `hitCooldown` is clear, and a hit that exhausts the enemy's health starts
-/// `ACTOR_503500_REAR_PART_STATE_DYING`. The hit effect is pulled to 1400
-/// units along the contact offset. `arg1` is passed by the caller but unused.
-static void func_actor_503500_8013C088(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3)
+/// Applies eligible attack contacts to the rear part.
+///
+/// Requires initialized work, its live enemy/model and `contactCount` readable
+/// elements. Processes earlier equal keys only once and honors hit cooldown.
+/// Borrows contacts without changing them; `unusedBody` retains the original
+/// four-argument collision-pass interface and is ignored.
+static void _actor503500RearPartApplyHits(Task* task, WorldCollisionBody* unusedBody, const WorldCollisionContact* contacts, s32 contactCount)
 {
     _Actor503500RearPartWork* work;
     Enemy*                    enemy;
     GfxCoord*                 coord;
-    s32                       i;
+    s32                       contactIndex;
 
-    enemy = arg0->spawnArg2.pointer;
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    for (i = 0; i < arg3; i++) {
-        _actor503500RearPartHandleHit(arg0, work, enemy, coord, arg2, i);
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
+    coord = task->extra.tmd->coords;
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        _actor503500RearPartHandleHit(task, work, enemy, coord, contacts, contactIndex);
     }
 }
 
@@ -1603,7 +1682,7 @@ static void func_actor_503500_8013C960(Task* arg0)
         }
     }
     if (actor503500IsDefeated() == 0) {
-        func_actor_503500_8013C088(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
+        _actor503500RearPartApplyHits(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
     }
     worldCollisionClearContacts(work->contacts);
 }
@@ -1729,56 +1808,99 @@ static void _actor503500ChainBaseInit(Task* task)
     task->state       += 1;
 }
 
-/// One contact record of `func_actor_503500_8013CCBC`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500ChainBaseHandleHit(Task* arg0, _Actor503500ChainBaseWork* work, Enemy* enemy, GfxCoord* coord,
-                                                  WorldCollisionContact* arg2, s32 i)
+/// Applies one eligible attack contact to a chain base.
+///
+/// Borrows live task, work, enemy, coordinate and read-only contacts. Requires
+/// `contactIndex` within the caller's table; earlier keys are readable. Only
+/// category-2 attacks land with a clear cooldown; bit 7 selects a live player
+/// or companion task. Attack rows must satisfy the damage APIs' bounds.
+/// Fatal hits start its dying state before applying status reactions.
+/// The cached world transform must be current and the contact offset nonzero
+/// after halfword narrowing. Effects use radius 200 in game units, then the
+/// target sphere's local offset. The cooldown narrows to signed halfword frames.
+static inline void _actor503500ChainBaseHandleHit(Task* task, _Actor503500ChainBaseWork* work, Enemy* enemy, GfxCoord* coord,
+                                                  const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    VECTOR    d;
-    SVECTOR   pos;
-    MATRIX    mtx;
-    MATRIX    rot;
-    GfxCoord* src;
-    s16       stun;
-    u32       id;
-    s32       dmg;
-    s32       crit;
-    s32       scale;
-    s32       j;
+/// Projects a contact into this part's local hit-effect point.
+///
+/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
+/// radialScale and the radius constant below. No arguments. Requires a current
+/// cached transform and a nonzero narrowed offset; changes GTE state and
+/// preserves signed-halfword narrowing after each position step.
+/// `task` selects the local centre for slot 7 or 8.
+#define ACTOR_503500_CHAIN_BASE_PROJECT_HIT_POINT()                                                                                                                                                             \
+    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                       \
+    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                    \
+    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                    \
+    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                    \
+    radialScale       = (ACTOR_503500_CHAIN_BASE_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
+    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                  \
+    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                  \
+    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                  \
+    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                         \
+    gte_ldv0(&effectPosition);                                                                                                                                                                                  \
+    gte_rtv0();                                                                                                                                                                                                 \
+    gte_stsv(&effectPosition);                                                                                                                                                                                  \
+    {                                                                                                                                                                                                           \
+        const SVECTOR* targetCenter = &D_actor_503500_8016F248[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                                     \
+        effectPosition.vx          += targetCenter->vx;                                                                                                                                                         \
+    }                                                                                                                                                                                                           \
+    {                                                                                                                                                                                                           \
+        const SVECTOR* targetCenter = &D_actor_503500_8016F248[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                                     \
+        effectPosition.vy          += targetCenter->vy;                                                                                                                                                         \
+    }                                                                                                                                                                                                           \
+    {                                                                                                                                                                                                           \
+        const SVECTOR* targetCenter = &D_actor_503500_8016F248[task->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];                                                                                     \
+        effectPosition.vz          += targetCenter->vz;                                                                                                                                                         \
+    }
+    enum { ACTOR_503500_CHAIN_BASE_HIT_EFFECT_RADIUS = 200 };
+    VECTOR    attackerOffset;
+    SVECTOR   effectPosition;
+    MATRIX    worldRotation;
+    MATRIX    inverseRotation;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    u32       attackKey;
+    s32       damage;
+    s32       criticalHit;
+    s32       radialScale;
+    s32       previousContactIndex;
 
-    id = arg2[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (arg2[j].key.value == id) {
+    // Earlier equal keys suppress repeated contacts from the same attack.
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    crit = 0;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
-        crit = 1;
+    attackerCoord = gPlayerActorTasks[(attackKey >> ACTOR_503500_ATTACK_SOURCE_INDEX_SHIFT) & ACTOR_503500_ATTACK_SOURCE_INDEX_MASK]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &effectPosition);
+    attackerOffset.vx = attackerCoord->coord.t[0] - effectPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - effectPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - effectPosition.vz;
+    criticalHit       = 0;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage     *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
+        criticalHit = 1;
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-    enemy->hp -= dmg;
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    enemy->hp -= damage;
     if (enemy->hp <= 0) {
-        _actor503500ChainBaseEnterState(arg0, ACTOR_503500_CHAIN_BASE_STATE_DYING);
+        _actor503500ChainBaseEnterState(task, ACTOR_503500_CHAIN_BASE_STATE_DYING);
     }
-    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+    switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
+
         case DAMAGE_PLAYER_REACTION_NONE:
         case 4:
         case 5:
@@ -1791,48 +1913,27 @@ static inline void _actor503500ChainBaseHandleHit(Task* arg0, _Actor503500ChainB
             damageStartEnemyStagger(enemy);
             break;
         case DAMAGE_PLAYER_REACTION_BUILDUP:
-            damageStartEnemyBuildup(enemy, id, 0);
+            damageStartEnemyBuildup(enemy, attackKey, 0);
             break;
         case DAMAGE_PLAYER_REACTION_POISON:
-            damageTryStartEnemyDamageOverTime(enemy, id, 0);
+            damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
             break;
     }
-    gte_TransposeMatrix(&coord->workm, &rot);
-    pos.vx = arg2[i].point.vx - coord->workm.t[0];
-    pos.vy = arg2[i].point.vy - coord->workm.t[1];
-    pos.vz = arg2[i].point.vz - coord->workm.t[2];
-    scale  = 0xC8000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-    pos.vx = pos.vx * scale / 4096;
-    pos.vy = pos.vy * scale / 4096;
-    pos.vz = pos.vz * scale / 4096;
-    gte_SetRotMatrix(&rot);
-    gte_ldv0(&pos);
-    gte_rtv0();
-    gte_stsv(&pos);
-    {
-        SVECTOR* offset = &D_actor_503500_8016F248[arg0->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
-        pos.vx         += offset->vx;
+    // Project the contact radially, then move the effect point into the part frame.
+    ACTOR_503500_CHAIN_BASE_PROJECT_HIT_POINT();
+#undef ACTOR_503500_CHAIN_BASE_PROJECT_HIT_POINT
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
+    if (criticalHit != 0) {
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);
     }
-    {
-        SVECTOR* offset = &D_actor_503500_8016F248[arg0->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
-        pos.vy         += offset->vy;
-    }
-    {
-        SVECTOR* offset = &D_actor_503500_8016F248[arg0->spawnArg1.value - ACTOR_503500_CHAIN_BASE_FIRST_SLOT];
-        pos.vz         += offset->vz;
-    }
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
-    if (crit != 0) {
-        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
-    }
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
 }
 
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// a chain base - the same pass as `func_actor_503500_8013C088`: each attack
+/// a chain base - the same pass as `_actor503500RearPartApplyHits`: each attack
 /// id is taken once, only type-2 ids land while `hitCooldown` is clear, and a
 /// hit that exhausts the enemy's health starts
 /// `ACTOR_503500_CHAIN_BASE_STATE_DYING`. The hit effect is pulled to 200
@@ -2290,56 +2391,90 @@ static void _actor503500SmallOrbEmitterInit(Task* task)
     task->state       += 1;
 }
 
-/// One contact record of `func_actor_503500_8013DEB4`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500SmallOrbEmitterHandleHit(Task* arg0, _Actor503500SmallOrbEmitterWork* work, Enemy* enemy, GfxCoord* coord,
-                                                        WorldCollisionContact* arg2, s32 i)
+/// Applies one eligible attack contact to the small-orb emitter.
+///
+/// Borrows live task, work, enemy, coordinate and read-only contacts. Requires
+/// `contactIndex` within the caller's table; earlier keys are readable. Only
+/// category-2 attacks land with a clear cooldown; bit 7 selects a live player
+/// or companion task. Attack rows must satisfy the damage APIs' bounds.
+/// Fatal hits start its dying state before applying status reactions.
+/// The cached world transform must be current and the contact offset nonzero
+/// after halfword narrowing. Effects use radius 600 in game units, then the
+/// target sphere's local offset. The cooldown narrows to signed halfword frames.
+static inline void _actor503500SmallOrbEmitterHandleHit(Task* task, _Actor503500SmallOrbEmitterWork* work, Enemy* enemy, GfxCoord* coord,
+                                                        const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    VECTOR    d;
-    SVECTOR   pos;
-    MATRIX    mtx;
-    MATRIX    rot;
-    GfxCoord* src;
-    s16       stun;
-    u32       id;
-    s32       dmg;
-    s32       crit;
-    s32       scale;
-    s32       j;
+/// Projects a contact into this part's local hit-effect point.
+///
+/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
+/// radialScale and the radius constant below. No arguments. Requires a current
+/// cached transform and a nonzero narrowed offset; changes GTE state and
+/// preserves signed-halfword narrowing after each position step.
+/// Adds the part's fixed local sphere centre.
+#define ACTOR_503500_SMALL_ORB_EMITTER_PROJECT_HIT_POINT()                                                                                                                                                     \
+    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                      \
+    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                   \
+    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                   \
+    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                   \
+    radialScale       = (ACTOR_503500_SMALL_ORB_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
+    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                 \
+    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                 \
+    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                 \
+    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                        \
+    gte_ldv0(&effectPosition);                                                                                                                                                                                 \
+    gte_rtv0();                                                                                                                                                                                                \
+    gte_stsv(&effectPosition);                                                                                                                                                                                 \
+    effectPosition.vx += D_actor_503500_8016F2D8.vx;                                                                                                                                                           \
+    effectPosition.vy += D_actor_503500_8016F2D8.vy;                                                                                                                                                           \
+    effectPosition.vz += D_actor_503500_8016F2D8.vz;
+    enum { ACTOR_503500_SMALL_ORB_HIT_EFFECT_RADIUS = 600 };
+    VECTOR    attackerOffset;
+    SVECTOR   effectPosition;
+    MATRIX    worldRotation;
+    MATRIX    inverseRotation;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    u32       attackKey;
+    s32       damage;
+    s32       criticalHit;
+    s32       radialScale;
+    s32       previousContactIndex;
 
-    id = arg2[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (arg2[j].key.value == id) {
+    // Earlier equal keys suppress repeated contacts from the same attack.
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    crit = 0;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
-        crit = 1;
+    attackerCoord = gPlayerActorTasks[(attackKey >> ACTOR_503500_ATTACK_SOURCE_INDEX_SHIFT) & ACTOR_503500_ATTACK_SOURCE_INDEX_MASK]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &effectPosition);
+    attackerOffset.vx = attackerCoord->coord.t[0] - effectPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - effectPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - effectPosition.vz;
+    criticalHit       = 0;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage     *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
+        criticalHit = 1;
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-    enemy->hp -= dmg;
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    enemy->hp -= damage;
     if (enemy->hp <= 0) {
-        _actor503500SmallOrbEmitterEnterState(arg0, ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING);
+        _actor503500SmallOrbEmitterEnterState(task, ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING);
     }
-    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+    switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
+
         case DAMAGE_PLAYER_REACTION_NONE:
         case 4:
         case 5:
@@ -2352,34 +2487,22 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* arg0, _Actor503500
             damageStartEnemyStagger(enemy);
             break;
         case DAMAGE_PLAYER_REACTION_BUILDUP:
-            damageStartEnemyBuildup(enemy, id, 0);
+            damageStartEnemyBuildup(enemy, attackKey, 0);
             break;
         case DAMAGE_PLAYER_REACTION_POISON:
-            damageTryStartEnemyDamageOverTime(enemy, id, 0);
+            damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
             break;
     }
-    gte_TransposeMatrix(&coord->workm, &rot);
-    pos.vx = arg2[i].point.vx - coord->workm.t[0];
-    pos.vy = arg2[i].point.vy - coord->workm.t[1];
-    pos.vz = arg2[i].point.vz - coord->workm.t[2];
-    scale  = 0x258000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-    pos.vx = pos.vx * scale / 4096;
-    pos.vy = pos.vy * scale / 4096;
-    pos.vz = pos.vz * scale / 4096;
-    gte_SetRotMatrix(&rot);
-    gte_ldv0(&pos);
-    gte_rtv0();
-    gte_stsv(&pos);
-    pos.vx += D_actor_503500_8016F2D8.vx;
-    pos.vy += D_actor_503500_8016F2D8.vy;
-    pos.vz += D_actor_503500_8016F2D8.vz;
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
-    if (crit != 0) {
-        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+    // Project the contact radially, then move the effect point into the part frame.
+    ACTOR_503500_SMALL_ORB_EMITTER_PROJECT_HIT_POINT();
+#undef ACTOR_503500_SMALL_ORB_EMITTER_PROJECT_HIT_POINT
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
+    if (criticalHit != 0) {
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);
     }
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
 }
 
@@ -2751,56 +2874,90 @@ static void _actor503500YellowFlashEmitterInit(Task* task)
     task->state       += 1;
 }
 
-/// One contact record of `func_actor_503500_8013EE5C`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500YellowFlashEmitterHandleHit(Task* arg0, _Actor503500YellowFlashEmitterWork* work, Enemy* enemy, GfxCoord* coord,
-                                                           WorldCollisionContact* arg2, s32 i)
+/// Applies one eligible attack contact to the yellow-flash emitter.
+///
+/// Borrows live task, work, enemy, coordinate and read-only contacts. Requires
+/// `contactIndex` within the caller's table; earlier keys are readable. Only
+/// category-2 attacks land with a clear cooldown; bit 7 selects a live player
+/// or companion task. Attack rows must satisfy the damage APIs' bounds.
+/// Fatal hits start its dying state before applying status reactions.
+/// The cached world transform must be current and the contact offset nonzero
+/// after halfword narrowing. Effects use radius 400 in game units, then the
+/// target sphere's local offset. The cooldown narrows to signed halfword frames.
+static inline void _actor503500YellowFlashEmitterHandleHit(Task* task, _Actor503500YellowFlashEmitterWork* work, Enemy* enemy, GfxCoord* coord,
+                                                           const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    VECTOR    d;
-    SVECTOR   pos;
-    MATRIX    mtx;
-    MATRIX    rot;
-    GfxCoord* src;
-    s16       stun;
-    u32       id;
-    s32       dmg;
-    s32       crit;
-    s32       scale;
-    s32       j;
+/// Projects a contact into this part's local hit-effect point.
+///
+/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
+/// radialScale and the radius constant below. No arguments. Requires a current
+/// cached transform and a nonzero narrowed offset; changes GTE state and
+/// preserves signed-halfword narrowing after each position step.
+/// Adds the part's fixed local sphere centre.
+#define ACTOR_503500_YELLOW_FLASH_EMITTER_PROJECT_HIT_POINT()                                                                                                                                                     \
+    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                         \
+    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                      \
+    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                      \
+    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                      \
+    radialScale       = (ACTOR_503500_YELLOW_FLASH_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
+    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                    \
+    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                    \
+    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                    \
+    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                           \
+    gte_ldv0(&effectPosition);                                                                                                                                                                                    \
+    gte_rtv0();                                                                                                                                                                                                   \
+    gte_stsv(&effectPosition);                                                                                                                                                                                    \
+    effectPosition.vx += D_actor_503500_8016F36C.vx;                                                                                                                                                              \
+    effectPosition.vy += D_actor_503500_8016F36C.vy;                                                                                                                                                              \
+    effectPosition.vz += D_actor_503500_8016F36C.vz;
+    enum { ACTOR_503500_YELLOW_FLASH_HIT_EFFECT_RADIUS = 400 };
+    VECTOR    attackerOffset;
+    SVECTOR   effectPosition;
+    MATRIX    worldRotation;
+    MATRIX    inverseRotation;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    u32       attackKey;
+    s32       damage;
+    s32       criticalHit;
+    s32       radialScale;
+    s32       previousContactIndex;
 
-    id = arg2[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (arg2[j].key.value == id) {
+    // Earlier equal keys suppress repeated contacts from the same attack.
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    crit = 0;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
-        crit = 1;
+    attackerCoord = gPlayerActorTasks[(attackKey >> ACTOR_503500_ATTACK_SOURCE_INDEX_SHIFT) & ACTOR_503500_ATTACK_SOURCE_INDEX_MASK]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &effectPosition);
+    attackerOffset.vx = attackerCoord->coord.t[0] - effectPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - effectPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - effectPosition.vz;
+    criticalHit       = 0;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage     *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
+        criticalHit = 1;
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-    enemy->hp -= dmg;
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    enemy->hp -= damage;
     if (enemy->hp <= 0) {
-        _actor503500YellowFlashEmitterEnterState(arg0, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING);
+        _actor503500YellowFlashEmitterEnterState(task, ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING);
     }
-    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+    switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
+
         case DAMAGE_PLAYER_REACTION_NONE:
         case 4:
         case 5:
@@ -2813,34 +2970,22 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* arg0, _Actor503
             damageStartEnemyStagger(enemy);
             break;
         case DAMAGE_PLAYER_REACTION_BUILDUP:
-            damageStartEnemyBuildup(enemy, id, 0);
+            damageStartEnemyBuildup(enemy, attackKey, 0);
             break;
         case DAMAGE_PLAYER_REACTION_POISON:
-            damageTryStartEnemyDamageOverTime(enemy, id, 0);
+            damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
             break;
     }
-    gte_TransposeMatrix(&coord->workm, &rot);
-    pos.vx = arg2[i].point.vx - coord->workm.t[0];
-    pos.vy = arg2[i].point.vy - coord->workm.t[1];
-    pos.vz = arg2[i].point.vz - coord->workm.t[2];
-    scale  = 0x190000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-    pos.vx = pos.vx * scale / 4096;
-    pos.vy = pos.vy * scale / 4096;
-    pos.vz = pos.vz * scale / 4096;
-    gte_SetRotMatrix(&rot);
-    gte_ldv0(&pos);
-    gte_rtv0();
-    gte_stsv(&pos);
-    pos.vx += D_actor_503500_8016F36C.vx;
-    pos.vy += D_actor_503500_8016F36C.vy;
-    pos.vz += D_actor_503500_8016F36C.vz;
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
-    if (crit != 0) {
-        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+    // Project the contact radially, then move the effect point into the part frame.
+    ACTOR_503500_YELLOW_FLASH_EMITTER_PROJECT_HIT_POINT();
+#undef ACTOR_503500_YELLOW_FLASH_EMITTER_PROJECT_HIT_POINT
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
+    if (criticalHit != 0) {
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);
     }
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
 }
 
@@ -3666,58 +3811,93 @@ static void _actor503500LungingChainReactToDamage(Task* task)
     }
 }
 
-/// One contact record of `func_actor_503500_80140D38`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500LungingChainHandleHit(Task* arg0, _Actor503500LungingChainWork* work, Enemy* enemy, GfxCoord* coord,
-                                                     WorldCollisionContact* arg2, s32 i)
+/// Applies one eligible attack contact to a lunging chain.
+///
+/// Borrows live task, work, enemy, coordinate and read-only contacts. Requires
+/// `contactIndex` within the caller's table; earlier keys are readable. Only
+/// category-2 attacks land with a clear cooldown; bit 7 selects a live player
+/// or companion task. Attack rows must satisfy the damage APIs' bounds.
+/// Fatal hits skip status reactions and start dying only before the unfolding states.
+/// A surviving lunge returns to idle after the hit.
+/// The cached world transform must be current and the contact offset nonzero
+/// after halfword narrowing. Effects use radius 500 in game units, then the
+/// target sphere's local offset. The cooldown narrows to signed halfword frames.
+static inline void _actor503500LungingChainHandleHit(Task* task, _Actor503500LungingChainWork* work, Enemy* enemy, GfxCoord* coord,
+                                                     const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    SVECTOR   pos;
-    MATRIX    rot;
-    MATRIX    mtx;
-    VECTOR    d;
-    GfxCoord* src;
-    s16       stun;
-    u32       id;
-    s32       dmg;
-    s32       crit;
-    s32       scale;
-    s32       j;
+/// Projects a contact into this part's local hit-effect point.
+///
+/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
+/// radialScale and the radius constant below. No arguments. Requires a current
+/// cached transform and a nonzero narrowed offset; changes GTE state and
+/// preserves signed-halfword narrowing after each position step.
+/// Adds the part's fixed local sphere centre.
+#define ACTOR_503500_LUNGING_CHAIN_PROJECT_HIT_POINT()                                                                                                                                                             \
+    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                          \
+    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                                       \
+    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                                       \
+    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                                       \
+    radialScale       = (ACTOR_503500_LUNGING_CHAIN_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
+    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                                     \
+    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                                     \
+    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                                     \
+    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                            \
+    gte_ldv0(&effectPosition);                                                                                                                                                                                     \
+    gte_rtv0();                                                                                                                                                                                                    \
+    gte_stsv(&effectPosition);                                                                                                                                                                                     \
+    effectPosition.vx += D_actor_503500_8016F3EC.vx;                                                                                                                                                               \
+    effectPosition.vy += D_actor_503500_8016F3EC.vy;                                                                                                                                                               \
+    effectPosition.vz += D_actor_503500_8016F3EC.vz;
+    enum { ACTOR_503500_LUNGING_CHAIN_HIT_EFFECT_RADIUS = 500 };
+    SVECTOR   effectPosition;
+    MATRIX    inverseRotation;
+    MATRIX    worldRotation;
+    VECTOR    attackerOffset;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    u32       attackKey;
+    s32       damage;
+    s32       criticalHit;
+    s32       radialScale;
+    s32       previousContactIndex;
 
-    id = arg2[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (arg2[j].key.value == id) {
+    // Earlier equal keys suppress repeated contacts from the same attack.
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    src  = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    crit = 0;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
-        crit = 1;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &effectPosition);
+    attackerCoord     = gPlayerActorTasks[(attackKey >> ACTOR_503500_ATTACK_SOURCE_INDEX_SHIFT) & ACTOR_503500_ATTACK_SOURCE_INDEX_MASK]->extra.tmd->coords;
+    attackerOffset.vx = attackerCoord->coord.t[0] - effectPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - effectPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - effectPosition.vz;
+    criticalHit       = 0;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage     *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
+        criticalHit = 1;
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-    enemy->hp -= dmg;
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    enemy->hp -= damage;
     if (enemy->hp <= 0) {
         if (work->state < ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING) {
-            _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
+            _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_DYING);
         }
     } else {
-        switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+        switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
+
             case DAMAGE_PLAYER_REACTION_NONE:
             case 4:
             case 5:
@@ -3730,38 +3910,26 @@ static inline void _actor503500LungingChainHandleHit(Task* arg0, _Actor503500Lun
                 damageStartEnemyStagger(enemy);
                 break;
             case DAMAGE_PLAYER_REACTION_BUILDUP:
-                damageStartEnemyBuildup(enemy, id, 0);
+                damageStartEnemyBuildup(enemy, attackKey, 0);
                 break;
             case DAMAGE_PLAYER_REACTION_POISON:
-                damageTryStartEnemyDamageOverTime(enemy, id, 0);
+                damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
                 break;
         }
     }
-    gte_TransposeMatrix(&coord->workm, &rot);
-    pos.vx = arg2[i].point.vx - coord->workm.t[0];
-    pos.vy = arg2[i].point.vy - coord->workm.t[1];
-    pos.vz = arg2[i].point.vz - coord->workm.t[2];
-    scale  = 0x1F4000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-    pos.vx = pos.vx * scale / 4096;
-    pos.vy = pos.vy * scale / 4096;
-    pos.vz = pos.vz * scale / 4096;
-    gte_SetRotMatrix(&rot);
-    gte_ldv0(&pos);
-    gte_rtv0();
-    gte_stsv(&pos);
-    pos.vx += D_actor_503500_8016F3EC.vx;
-    pos.vy += D_actor_503500_8016F3EC.vy;
-    pos.vz += D_actor_503500_8016F3EC.vz;
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
-    if (crit != 0) {
-        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &pos);
+    // Project the contact radially, then move the effect point into the part frame.
+    ACTOR_503500_LUNGING_CHAIN_PROJECT_HIT_POINT();
+#undef ACTOR_503500_LUNGING_CHAIN_PROJECT_HIT_POINT
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
+    if (criticalHit != 0) {
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &effectPosition);
     }
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
     if (work->state == ACTOR_503500_LUNGING_CHAIN_STATE_LUNGE) {
-        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+        _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
     }
 }
 
@@ -4745,62 +4913,105 @@ static void func_actor_503500_80142980(Task* arg0)
     }
 }
 
-/// One contact record of `func_actor_503500_801431EC`'s pass; a `return`
-/// moves the caller on to the next record.
-static inline void _actor503500ArmHandleHit(Task* arg0, _Actor503500ArmWork* work, Enemy* enemy, GfxCoord* coord,
-                                            WorldCollisionContact* arg2, s32 i)
+/// Applies one eligible attack contact to an arm.
+///
+/// Borrows live task, work, enemy, coordinate and read-only contacts. Requires
+/// `contactIndex` within the caller's table; earlier keys are readable. Only
+/// category-2 attacks land with a clear cooldown; bit 7 selects a live player
+/// or companion task. Attack rows must satisfy the damage APIs' bounds.
+/// HP loss narrows to s16 before flooring at zero and starting recovery.
+/// Reaction 4 or explosion destroys a depleted arm; flagged attachment rows
+/// destroy it at any HP. Destruction selects critical-hit effect variant 2 instead of variant 0.
+/// The cached world transform must be current and the contact offset nonzero
+/// after halfword narrowing. Effects use radius 1500 in game units, then the
+/// target sphere's local offset. The cooldown narrows to signed halfword frames.
+static inline void _actor503500ArmHandleHit(Task* task, _Actor503500ArmWork* work, Enemy* enemy, GfxCoord* coord,
+                                            const WorldCollisionContact* contacts, s32 contactIndex)
 {
-    VECTOR    d;
-    SVECTOR   pos;
-    MATRIX    mtx;
-    MATRIX    rot;
-    GfxCoord* src;
-    s16       stun;
-    s16       hp;
-    u32       id;
-    s32       dmg;
-    s32       crit;
-    s32       scale;
-    s32       j;
+/// Projects a contact into this part's local hit-effect point.
+///
+/// Captures coord, contacts, contactIndex, inverseRotation, effectPosition,
+/// radialScale and the radius constant below. No arguments. Requires a current
+/// cached transform and a nonzero narrowed offset; changes GTE state and
+/// preserves signed-halfword narrowing after each position step.
+/// `work` selects the side's local sphere centre.
+#define ACTOR_503500_ARM_PROJECT_HIT_POINT()                                                                                                                                                             \
+    gte_TransposeMatrix(&coord->workm, &inverseRotation);                                                                                                                                                \
+    effectPosition.vx = contacts[contactIndex].point.vx - coord->workm.t[0];                                                                                                                             \
+    effectPosition.vy = contacts[contactIndex].point.vy - coord->workm.t[1];                                                                                                                             \
+    effectPosition.vz = contacts[contactIndex].point.vz - coord->workm.t[2];                                                                                                                             \
+    radialScale       = (ACTOR_503500_ARM_HIT_EFFECT_RADIUS * ONE) / SquareRoot0(effectPosition.vx * effectPosition.vx + effectPosition.vy * effectPosition.vy + effectPosition.vz * effectPosition.vz); \
+    effectPosition.vx = effectPosition.vx * radialScale / ONE;                                                                                                                                           \
+    effectPosition.vy = effectPosition.vy * radialScale / ONE;                                                                                                                                           \
+    effectPosition.vz = effectPosition.vz * radialScale / ONE;                                                                                                                                           \
+    gte_SetRotMatrix(&inverseRotation);                                                                                                                                                                  \
+    gte_ldv0(&effectPosition);                                                                                                                                                                           \
+    gte_rtv0();                                                                                                                                                                                          \
+    gte_stsv(&effectPosition);                                                                                                                                                                           \
+    effectPosition.vx += D_actor_503500_80171480[work->side].vx;                                                                                                                                         \
+    effectPosition.vy += D_actor_503500_80171480[work->side].vy;                                                                                                                                         \
+    effectPosition.vz += D_actor_503500_80171480[work->side].vz;
+    enum {
+        ACTOR_503500_ARM_HIT_EFFECT_RADIUS            = 1500,
+        ACTOR_503500_ARM_HIT_NORMAL                   = 0,
+        ACTOR_503500_ARM_HIT_CRITICAL                 = 1,
+        ACTOR_503500_ARM_HIT_DESTROYING               = 2,
+        ACTOR_503500_ARM_DESTROY_IF_DEPLETED_REACTION = 4,
+        ACTOR_503500_ARM_DESTROYING_EFFECT_ARG        = 2,
+    };
+    VECTOR    attackerOffset;
+    SVECTOR   effectPosition;
+    MATRIX    worldRotation;
+    MATRIX    inverseRotation;
+    GfxCoord* attackerCoord;
+    s16       hitCooldownFrames;
+    s16       remainingHp;
+    u32       attackKey;
+    s32       damage;
+    s32       hitKind;
+    s32       radialScale;
+    s32       previousContactIndex;
 
-    id = arg2[i].key.value;
-    for (j = 0; j < i; j++) {
-        if (arg2[j].key.value == id) {
+    // Earlier equal keys suppress repeated contacts from the same attack.
+    attackKey = contacts[contactIndex].key.value;
+    for (previousContactIndex = 0; previousContactIndex < contactIndex; previousContactIndex++) {
+        if (contacts[previousContactIndex].key.value == attackKey) {
             return;
         }
     }
-    if ((id & 0xFFFF0000) == 0x10000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
         return;
     }
-    if ((id & 0xFFFF0000) != 0x20000) {
+    if ((attackKey & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
         return;
     }
     if (work->hitCooldown != 0) {
         return;
     }
-    src = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-    gfxComposeNodeWorldTransform(coord, &mtx, &pos);
-    d.vx = src->coord.t[0] - pos.vx;
-    d.vy = src->coord.t[1] - pos.vy;
-    d.vz = src->coord.t[2] - pos.vz;
-    crit = 0;
-    dmg  = damageComputePlayerAttack(id, SquareRoot0(d.vx * d.vx + d.vy * d.vy + d.vz * d.vz), 0, 0);
-    if (damageRollCriticalHit(enemy, id, 0) != 0) {
-        dmg *= 4;
-        crit = 1;
+    attackerCoord = gPlayerActorTasks[(attackKey >> ACTOR_503500_ATTACK_SOURCE_INDEX_SHIFT) & ACTOR_503500_ATTACK_SOURCE_INDEX_MASK]->extra.tmd->coords;
+    gfxComposeNodeWorldTransform(coord, &worldRotation, &effectPosition);
+    attackerOffset.vx = attackerCoord->coord.t[0] - effectPosition.vx;
+    attackerOffset.vy = attackerCoord->coord.t[1] - effectPosition.vy;
+    attackerOffset.vz = attackerCoord->coord.t[2] - effectPosition.vz;
+    hitKind           = ACTOR_503500_ARM_HIT_NORMAL;
+    damage            = damageComputePlayerAttack(attackKey, SquareRoot0(attackerOffset.vx * attackerOffset.vx + attackerOffset.vy * attackerOffset.vy + attackerOffset.vz * attackerOffset.vz), 0, 0);
+    if (damageRollCriticalHit(enemy, attackKey, 0) != 0) {
+        damage *= ACTOR_503500_CRITICAL_HIT_DAMAGE_MULTIPLIER;
+        hitKind = ACTOR_503500_ARM_HIT_CRITICAL;
     }
-    damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
-    hp        = enemy->hp - dmg;
-    enemy->hp = hp;
-    if (hp <= 0) {
+    damageAccumulateLifeDrainHp(enemy, attackKey, damage, 0);
+    remainingHp = enemy->hp - damage;
+    enemy->hp   = remainingHp;
+    if (remainingHp <= 0) {
         enemy->hp = 0;
-        dmg      += hp;
+        damage   += remainingHp;
         if (work->recoveryFrames == 0) {
             work->recoveryFrames = ACTOR_503500_ARM_RECOVERY_FRAMES;
         }
     }
-    worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
-    switch (damageGetPlayerAttackReaction(id) & 0xFFFF) {
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+    switch (damageGetPlayerAttackReaction(attackKey) & 0xFFFF) {
+
         case DAMAGE_PLAYER_REACTION_NONE:
         case 5:
         case DAMAGE_PLAYER_REACTION_INCENDIARY:
@@ -4811,45 +5022,33 @@ static inline void _actor503500ArmHandleHit(Task* arg0, _Actor503500ArmWork* wor
             damageStartEnemyStagger(enemy);
             break;
         case DAMAGE_PLAYER_REACTION_BUILDUP:
-            damageStartEnemyBuildup(enemy, id, 0);
+            damageStartEnemyBuildup(enemy, attackKey, 0);
             break;
         case DAMAGE_PLAYER_REACTION_POISON:
-            damageTryStartEnemyDamageOverTime(enemy, id, 0);
+            damageTryStartEnemyDamageOverTime(enemy, attackKey, 0);
             break;
-        case 4:
+        case ACTOR_503500_ARM_DESTROY_IF_DEPLETED_REACTION:
         case DAMAGE_PLAYER_REACTION_EXPLOSION:
             if (enemy->hp <= 0) {
-                _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_DYING);
-                crit = 2;
+                _actor503500ArmEnterState(task, ACTOR_503500_ARM_STATE_DYING);
+                hitKind = ACTOR_503500_ARM_HIT_DESTROYING;
             }
             break;
     }
-    if ((id & 0x8000) && D_actor_503500_80171490[id & 0x7F] != 0) {
-        _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_DYING);
-        crit = 2;
+    if ((attackKey & ACTOR_503500_ATTACHMENT_ATTACK_FLAG) && D_actor_503500_80171490[attackKey & ACTOR_503500_ATTACK_ROW_MASK] != 0) {
+        _actor503500ArmEnterState(task, ACTOR_503500_ARM_STATE_DYING);
+        hitKind = ACTOR_503500_ARM_HIT_DESTROYING;
     }
-    gte_TransposeMatrix(&coord->workm, &rot);
-    pos.vx = arg2[i].point.vx - coord->workm.t[0];
-    pos.vy = arg2[i].point.vy - coord->workm.t[1];
-    pos.vz = arg2[i].point.vz - coord->workm.t[2];
-    scale  = 0x5DC000 / SquareRoot0(pos.vx * pos.vx + pos.vy * pos.vy + pos.vz * pos.vz);
-    pos.vx = pos.vx * scale / 4096;
-    pos.vy = pos.vy * scale / 4096;
-    pos.vz = pos.vz * scale / 4096;
-    gte_SetRotMatrix(&rot);
-    gte_ldv0(&pos);
-    gte_rtv0();
-    gte_stsv(&pos);
-    pos.vx += D_actor_503500_80171480[work->side].vx;
-    pos.vy += D_actor_503500_80171480[work->side].vy;
-    pos.vz += D_actor_503500_80171480[work->side].vz;
-    effectSpawnHit(damageGetPlayerAttackEffectId(id), coord, &pos, &work->hitEffect);
-    if (crit != 0) {
-        effectSpawn(EFFECT_CRITICAL_HIT, coord, (crit == 2) * 2, &pos);
+    // Project the contact radially, then move the effect point into the part frame.
+    ACTOR_503500_ARM_PROJECT_HIT_POINT();
+#undef ACTOR_503500_ARM_PROJECT_HIT_POINT
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), coord, &effectPosition, &work->hitEffect);
+    if (hitKind != ACTOR_503500_ARM_HIT_NORMAL) {
+        effectSpawn(EFFECT_CRITICAL_HIT, coord, (hitKind == ACTOR_503500_ARM_HIT_DESTROYING) * ACTOR_503500_ARM_DESTROYING_EFFECT_ARG, &effectPosition);
     }
-    stun = damageGetPlayerAttackHitCooldown(id);
-    if (work->hitCooldown < stun) {
-        work->hitCooldown = stun;
+    hitCooldownFrames = damageGetPlayerAttackHitCooldown(attackKey);
+    if (work->hitCooldown < hitCooldownFrames) {
+        work->hitCooldown = hitCooldownFrames;
     }
 }
 
@@ -4949,41 +5148,52 @@ static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* rec, s
     }
 }
 
-/// Knock-back task spawned from `D_actor_503500_8017146C` by
-/// `func_actor_503500_801437D0`, with the hit side in `spawnArg1` and the
-/// enemy's turned rotation in `spawnArg2`. State 0 copies that rotation, starts
-/// the push at `ACTOR_503500_KNOCKBACK_START_SPEED` and shakes the camera for
-/// `ACTOR_503500_KNOCKBACK_SHAKE_FRAMES`; state 1 moves the player by the
-/// rotated speed through `GAME_ACTOR_MESSAGE_MOVE_BY`, decaying it by
-/// `ACTOR_503500_KNOCKBACK_SPEED_DECAY` a frame, and once it has rested more than
-/// `ACTOR_503500_KNOCKBACK_REST_FRAMES` moves on (or ends at -1 when the
-/// player has no HP left). States 2-4 wait out message 0x3ED between the two
-/// 0x3FF payloads and the closing 0x3F1. Frame
-/// `ACTOR_503500_KNOCKBACK_SOUND_FRAME` plays the knock-back sound at the
-/// player.
-void func_actor_503500_80143AC0(Task* arg0)
+void actor503500KnockbackTask(Task* task)
 {
-    VECTOR                     vec;
-    GameActorMoveBy            msg;
+/// Copies 18 Q12 rotation bytes, excluding matrix alignment and translation.
+///
+/// Captures task, work, rotationSourceWords, rotationDestinationWords,
+/// rotationWordIndex and the four-word bound. No arguments; requires live,
+/// word-aligned disjoint matrices and borrows spawnArg2 only during the copy.
+#define ACTOR_503500_KNOCKBACK_COPY_ROTATION()                                                                         \
+    rotationSourceWords      = (const s32*)task->spawnArg2.pointer;                                                    \
+    rotationDestinationWords = (s32*)&work->rotation;                                                                  \
+    for (rotationWordIndex = 0; rotationWordIndex < ACTOR_503500_KNOCKBACK_ROTATION_WORD_COUNT; rotationWordIndex++) { \
+        *rotationDestinationWords++ = *rotationSourceWords++;                                                          \
+    }                                                                                                                  \
+    work->rotation.m[2][2] = ((const MATRIX*)task->spawnArg2.pointer)->m[2][2];
+    enum {
+        ACTOR_503500_KNOCKBACK_PLAYER_DEAD         = -1,
+        ACTOR_503500_KNOCKBACK_INIT                = 0,
+        ACTOR_503500_KNOCKBACK_PUSH                = 1,
+        ACTOR_503500_KNOCKBACK_RECOVER             = 2,
+        ACTOR_503500_KNOCKBACK_RESTORE_POSE        = 3,
+        ACTOR_503500_KNOCKBACK_FINISH              = 4,
+        ACTOR_503500_KNOCKBACK_ENABLE_FIRST_BODY   = 1,
+        ACTOR_503500_KNOCKBACK_WEAPON_BANK_WORD    = 7,
+        ACTOR_503500_KNOCKBACK_ROTATION_WORD_COUNT = 4, // First 16 bytes; final coefficient copied separately
+    };
+    VECTOR                     velocityStep;
+    GameActorMoveBy            moveRequest;
     _Actor503500KnockbackWork* work;
     Task*                      player;
-    GfxCoord*                  coord;
-    s32*                       src;
-    s32*                       dst;
-    s32                        i;
-    s32                        pan;
-    s32                        next;
-    s32                        shake;
+    GfxCoord*                  playerCoord;
+    const s32*                 rotationSourceWords;
+    s32*                       rotationDestinationWords;
+    s32                        rotationWordIndex;
+    s32                        audioPan;
+    s32                        nextState;
+    s32                        cameraShake;
 
     work   = &D_actor_503500_80178F10;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
         return;
     }
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case ACTOR_503500_KNOCKBACK_INIT:
             if (gPlayerStatus.hp <= 0) {
-                taskKill(arg0);
+                taskKill(task);
                 return;
             }
             memFillBytes(work, 0, sizeof(*work));
@@ -4991,33 +5201,31 @@ void func_actor_503500_80143AC0(Task* arg0)
             work->displacementCarry.fixed.vx.word = 0;
             work->displacementCarry.fixed.vy.word = 0;
             work->displacementCarry.fixed.vz.word = 0;
-            src                                   = (s32*)arg0->spawnArg2.pointer;
-            dst                                   = (s32*)&work->rotation;
-            for (i = 0; i < 4; i++) {
-                *dst++ = *src++;
-            }
-            work->rotation.m[2][2] = ((MATRIX*)arg0->spawnArg2.pointer)->m[2][2];
+            ACTOR_503500_KNOCKBACK_COPY_ROTATION();
+#undef ACTOR_503500_KNOCKBACK_COPY_ROTATION
             padScriptSpawn(D_actor_503500_8017159C, D_actor_503500_801715A4);
             work->shakeFrames = ACTOR_503500_KNOCKBACK_SHAKE_FRAMES;
             // An s32 temp: passed straight to the s8 parameter, the masked
             // expression is shortened into a byte load of the frame counter.
-            shake = (gDisplayState.animFrame ^ 1) & 1;
-            displaySetShakeY(shake);
-            arg0->state++;
-        case 1:
-            vec.vx = 0;
-            vec.vy = 0;
-            vec.vz = work->speed;
-            ApplyMatrixLV(&work->rotation, &vec, &vec);
-            work->displacementCarry.fixed.vx.word += vec.vx;
-            work->displacementCarry.fixed.vy.word += vec.vy;
-            work->displacementCarry.fixed.vz.word += vec.vz;
-            msg.collisionRequests                  = 1;
-            msg.keepControl                        = 1;
-            msg.displacement.vx                    = work->displacementCarry.fixed.vx.halves.integer;
-            msg.displacement.vy                    = work->displacementCarry.fixed.vy.halves.integer;
-            msg.displacement.vz                    = work->displacementCarry.fixed.vz.halves.integer;
-            if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &msg, 0) != 0) {
+            cameraShake = (gDisplayState.animFrame ^ 1) & 1;
+            displaySetShakeY(cameraShake);
+            task->state++;
+            // Initialization also performs the first push on this update.
+        case ACTOR_503500_KNOCKBACK_PUSH:
+            // Send integer travel and retain only each axis's fractional carry.
+            velocityStep.vx = 0;
+            velocityStep.vy = 0;
+            velocityStep.vz = work->speed;
+            ApplyMatrixLV(&work->rotation, &velocityStep, &velocityStep);
+            work->displacementCarry.fixed.vx.word += velocityStep.vx;
+            work->displacementCarry.fixed.vy.word += velocityStep.vy;
+            work->displacementCarry.fixed.vz.word += velocityStep.vz;
+            moveRequest.collisionRequests          = ACTOR_503500_KNOCKBACK_ENABLE_FIRST_BODY;
+            moveRequest.keepControl                = true;
+            moveRequest.displacement.vx            = work->displacementCarry.fixed.vx.halves.integer;
+            moveRequest.displacement.vy            = work->displacementCarry.fixed.vy.halves.integer;
+            moveRequest.displacement.vz            = work->displacementCarry.fixed.vz.halves.integer;
+            if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_MOVE_BY, &moveRequest, 0) != 0) {
                 work->speed = 0;
             }
             work->displacementCarry.fixed.vx.word = work->displacementCarry.fixed.vx.halves.fraction;
@@ -5030,47 +5238,48 @@ void func_actor_503500_80143AC0(Task* arg0)
                     // The -1 arm first: reorg inverts the branch around it and
                     // leaves the `li` in the delay slot, sharing $v0 with the load.
                     if (gPlayerStatus.hp <= 0) {
-                        next = -1;
+                        nextState = ACTOR_503500_KNOCKBACK_PLAYER_DEAD;
                     } else {
-                        next = arg0->state + 1;
+                        nextState = task->state + 1;
                     }
-                    arg0->state = next;
+                    task->state = nextState;
                 }
             }
             if (work->shakeFrames > 0) {
-                shake = (gDisplayState.animFrame ^ 1) & 1;
-                displaySetShakeY(shake);
+                cameraShake = (gDisplayState.animFrame ^ 1) & 1;
+                displaySetShakeY(cameraShake);
                 work->shakeFrames--;
             } else {
                 displaySetShakeY(0);
             }
             break;
-        case 2:
+        case ACTOR_503500_KNOCKBACK_RECOVER:
+            // Finish the fall, recover by hit side, then restore the weapon pose.
             if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171508[arg0->spawnArg1.value], 0);
-                arg0->state++;
+                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171508[task->spawnArg1.value], 0);
+                task->state++;
             }
             break;
-        case 3:
+        case ACTOR_503500_KNOCKBACK_RESTORE_POSE:
             if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 D_actor_503500_801714DC =
                     Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]
-                        ->table.words[7];
+                        ->table.words[ACTOR_503500_KNOCKBACK_WEAPON_BANK_WORD];
                 TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &D_actor_503500_80171530, 0);
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 4:
+        case ACTOR_503500_KNOCKBACK_FINISH:
             if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
-                taskKill(arg0);
+                taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET, 0);
+                taskKill(task);
             }
             break;
     }
-    if (++arg0->killCountdown == ACTOR_503500_KNOCKBACK_SOUND_FRAME) {
-        coord = player->extra.tmd->coords;
-        pan   = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(SOUND_SHELTER_R48_PLAYER_KNOCKBACK, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+    if (++task->killCountdown == ACTOR_503500_KNOCKBACK_SOUND_FRAME) {
+        playerCoord = player->extra.tmd->coords;
+        audioPan    = (s8)worldCoordGetOriginAudioPan(playerCoord);
+        sndEvtRequestScriptStart(SOUND_SHELTER_R48_PLAYER_KNOCKBACK, audioPan, (s8)worldCoordGetOriginAudioDepth(playerCoord));
     }
 }
 
@@ -5260,73 +5469,98 @@ void actor503500ArmTask(Task* task)
 /// `Task::state` handlers `actor503500BallisticShotTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_801321DC = {
     {
-        func_actor_503500_80144300,
+        _actor503500BallisticShotInit,
         _actor503500BallisticShotUpdate,
         _actor503500BallisticShotExit,
     },
 };
 
-static void func_actor_503500_80144300(Task* arg0)
+/// Links this shot's attack sphere with its key before enabling collision passes.
+///
+/// Requires live coordinate, work and its four writable contacts. Borrows their
+/// storage until exit unlinks the body; radius uses game-coordinate units.
+static inline void _actor503500BallisticShotLinkSphere(Task* task, _Actor503500BallisticShotWork* work, GfxCoord* coord, WorldCollisionContact* contacts)
 {
-    _Actor503500BallisticShotWork* work;
-    GfxCoord*                      coord;
-    WorldCollisionContact*         contacts;
-    EffectWork*                    eff;
-    Task*                          child;
-    VECTOR                         v;
-    s32                            pan;
-    coord = arg0->extra.tmd->coords;
-
-    work = memCalloc(sizeof(*work), false);
-    if (work == NULL) {
-        taskKill(arg0);
-        return;
-    }
-    arg0->work = work;
-
-    work->position.fixed.vx.word       = coord->coord.t[0] << 16;
-    work->position.fixed.vy.word       = coord->coord.t[1] << 16;
-    work->position.fixed.vz.word       = coord->coord.t[2] << 16;
-    work->launchPosition.fixed.vx.word = work->position.fixed.vx.word;
-    work->field_B8                     = 0x1000;
-    work->launchPosition.fixed.vy.word = work->position.fixed.vy.word;
-    work->launchPosition.fixed.vz.word = work->position.fixed.vz.word;
-
-    if (arg0->spawnArg2.pointer != NULL) {
-        v.vx = 0;
-        v.vy = 0;
-        v.vz = arg0->spawnArg2.value;
-        ApplyMatrixLV(&coord->coord, &v, &work->velocity.vector);
-    } else {
-        gfxSetRotIdentity(&coord->coord);
-    }
-    contacts = work->contacts;
-
+    enum { ACTOR_503500_BALLISTIC_SHOT_FLIGHT_RADIUS = 300 };
     work->body.coord            = coord;
     work->body.context.contacts = contacts;
     work->body.pos.vx           = D_actor_503500_801715AC.vx;
     work->body.pos.vy           = D_actor_503500_801715AC.vy;
     work->body.pos.vz           = D_actor_503500_801715AC.vz;
-    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7CC[0], arg0->spawnArg1.value);
-    work->body.radius           = 0x12C;
+    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7CC[0], task->spawnArg1.value);
+    work->body.radius           = ACTOR_503500_BALLISTIC_SHOT_FLIGHT_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
+}
 
-    eff = effectSpawn(EFFECT_BRAHMAN_SMALL_ORB, coord, 0, NULL);
-    if (eff == NULL) {
-        _actor503500BallisticShotExit(arg0);
+/// Launches a ballistic small-orb shot with an owned work block and child effect.
+///
+/// Requires a world-space coordinate body; `spawnArg1.value` selects attack 0
+/// or 1. `spawnArg2.value` is forward speed in signed 16.16 units per update;
+/// zero resets rotation and leaves velocity zero. The 300-unit attack sphere
+/// participates in grid and pair tests. Work and effect live until task exit.
+/// Effect creation failure exits before budget acquisition, retaining its
+/// unconditional subtraction and possible budget wrap.
+static void _actor503500BallisticShotInit(Task* task)
+{
+    enum {
+        ACTOR_503500_BALLISTIC_SHOT_POSITION_FRACTION_BITS = 16,
+
+        ACTOR_503500_BALLISTIC_SHOT_LAUNCH_SOUND = SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 5),
+    };
+    _Actor503500BallisticShotWork* work;
+    GfxCoord*                      coord;
+    WorldCollisionContact*         contacts;
+    EffectWork*                    effectWork;
+    Task*                          effectTask;
+    VECTOR                         launchVelocity;
+    s32                            audioPan;
+    coord = task->extra.coordBody->coord;
+
+    work = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(task);
         return;
     }
-    child            = eff->task;
-    work->effectTask = child;
-    taskReparent(arg0, child);
-    pan = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 5), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    task->work = work;
+
+    work->position.fixed.vx.word       = coord->coord.t[0] << ACTOR_503500_BALLISTIC_SHOT_POSITION_FRACTION_BITS;
+    work->position.fixed.vy.word       = coord->coord.t[1] << ACTOR_503500_BALLISTIC_SHOT_POSITION_FRACTION_BITS;
+    work->position.fixed.vz.word       = coord->coord.t[2] << ACTOR_503500_BALLISTIC_SHOT_POSITION_FRACTION_BITS;
+    work->launchPosition.fixed.vx.word = work->position.fixed.vx.word;
+    work->field_B8                     = 0x1000;
+    work->launchPosition.fixed.vy.word = work->position.fixed.vy.word;
+    work->launchPosition.fixed.vz.word = work->position.fixed.vz.word;
+
+    if (task->spawnArg2.value != 0) {
+        launchVelocity.vx = 0;
+        launchVelocity.vy = 0;
+        launchVelocity.vz = task->spawnArg2.value;
+        ApplyMatrixLV(&coord->coord, &launchVelocity, &work->velocity.vector);
+    } else {
+        gfxSetRotIdentity(&coord->coord);
+    }
+    contacts = work->contacts;
+
+    // Link the sphere before enabling the passes used by this shot.
+    _actor503500BallisticShotLinkSphere(task, work, coord, contacts);
+
+    effectWork = effectSpawn(EFFECT_BRAHMAN_SMALL_ORB, coord, 0, NULL);
+    if (effectWork == NULL) {
+        // Exit subtracts the effect cost even though acquisition has not run.
+        _actor503500BallisticShotExit(task);
+        return;
+    }
+    effectTask       = effectWork->task;
+    work->effectTask = effectTask;
+    taskReparent(task, effectTask);
+    audioPan = (s8)worldCoordGetOriginAudioPan(coord);
+    sndEvtRequestScriptStart(ACTOR_503500_BALLISTIC_SHOT_LAUNCH_SOUND, audioPan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_BALLISTIC);
-    arg0->exitCallback = _actor503500BallisticShotExit;
-    arg0->state       += 1;
+    task->exitCallback = _actor503500BallisticShotExit;
+    task->state       += 1;
 }
 
 /// Advances a ballistic shot's flight or landing burst by one active update.
@@ -5482,80 +5716,109 @@ void actor503500BallisticShotTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_80144E34` dispatches through.
+/// `Task::state` handlers `actor503500LingeringShotTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_801321E8 = {
     {
-        func_actor_503500_801448E8,
+        _actor503500LingeringShotInit,
         _actor503500LingeringShotUpdate,
         _actor503500LingeringShotExit,
     },
 };
 
-static void func_actor_503500_801448E8(Task* arg0)
+/// Links this shot's attack sphere with its key before enabling collision passes.
+///
+/// Requires live coordinate, work and its four writable contacts. Borrows their
+/// storage until exit unlinks the body; radius uses game-coordinate units.
+static inline void _actor503500LingeringShotLinkSphere(Task* task, _Actor503500LingeringShotWork* work, GfxCoord* coord, WorldCollisionContact* contacts)
 {
-    _Actor503500LingeringShotWork* work;
-    GfxCoord*                      coord;
-    WorldCollisionContact*         contacts;
-    EffectWork*                    eff;
-    Task*                          child;
-    s32                            pan;
-    s32                            pan2;
-    coord = arg0->extra.tmd->coords;
-
-    work = memCalloc(sizeof(*work), false);
-    if (work == NULL) {
-        taskKill(arg0);
-        return;
-    }
-    arg0->work = work;
-
-    work->position.vx       = coord->coord.t[0] << 16;
-    work->position.vy       = coord->coord.t[1] << 16;
-    work->position.vz       = coord->coord.t[2] << 16;
-    work->launchPosition.vx = work->position.vx;
-    work->field_AC          = 0x1000;
-    work->launchPosition.vy = work->position.vy;
-    work->launchPosition.vz = work->position.vz;
-
-    if (arg0->spawnArg2.pointer != NULL) {
-        work->speed = arg0->spawnArg2.value;
-    } else {
-        gfxSetRotIdentity(&coord->coord);
-        work->speed = 0x100000;
-    }
-    contacts = work->contacts;
-
+    enum { ACTOR_503500_LINGERING_SHOT_RADIUS = 2200 };
     work->body.coord            = coord;
     work->body.context.contacts = contacts;
     work->body.pos.vx           = D_actor_503500_801715B4.vx;
     work->body.pos.vy           = D_actor_503500_801715B4.vy;
     work->body.pos.vz           = D_actor_503500_801715B4.vz;
-    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7D0[0], arg0->spawnArg1.value);
-    work->body.radius           = 0x898;
+    work->body.key              = damagePackAttackKey(D_actor_503500_8016E7D0[0], task->spawnArg1.value);
+    work->body.radius           = ACTOR_503500_LINGERING_SHOT_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+}
 
-    if (arg0->spawnArg1.value == 0) {
-        eff = effectSpawn(EFFECT_BRAHMAN_LARGE_ORB, coord, 0, NULL);
-        pan = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 8), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-    } else {
-        eff  = effectSpawn(EFFECT_BRAHMAN_PROJECTILE, coord, 0, NULL);
-        pan2 = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7), pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-    }
-    if (eff == NULL) {
-        _actor503500LingeringShotExit(arg0);
+/// Launches a lingering large orb or projectile with owned work and a child effect.
+///
+/// Requires a world-space coordinate body. `spawnArg1.value` is 0 (large orb)
+/// or 1 (projectile); it selects the attack and the later linger duration.
+/// `spawnArg2.value` is forward speed in signed 16.16 units per update. Zero
+/// resets rotation and chooses 16 units per update; movement later takes two
+/// forward steps each update. Its 2200-unit sphere uses pair tests alone.
+/// Work and effect live until exit. Effect creation failure exits before budget
+/// acquisition, retaining the unconditional subtraction and possible wrap.
+static void _actor503500LingeringShotInit(Task* task)
+{
+    enum {
+        ACTOR_503500_LINGERING_SHOT_POSITION_FRACTION_BITS = 16,
+
+        ACTOR_503500_LINGERING_SHOT_DEFAULT_SPEED    = 16 * 0x10000,
+        ACTOR_503500_LINGERING_SHOT_LARGE_ORB_KIND   = 0,
+        ACTOR_503500_LINGERING_SHOT_LARGE_ORB_SOUND  = SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 8),
+        ACTOR_503500_LINGERING_SHOT_PROJECTILE_SOUND = SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 7),
+    };
+    _Actor503500LingeringShotWork* work;
+    GfxCoord*                      coord;
+    WorldCollisionContact*         contacts;
+    EffectWork*                    effectWork;
+    Task*                          effectTask;
+    s32                            orbAudioPan;
+    s32                            projectileAudioPan;
+    coord = task->extra.coordBody->coord;
+
+    work = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(task);
         return;
     }
-    child            = eff->task;
-    work->effectTask = child;
-    taskReparent(arg0, child);
+    task->work = work;
+
+    work->position.vx       = coord->coord.t[0] << ACTOR_503500_LINGERING_SHOT_POSITION_FRACTION_BITS;
+    work->position.vy       = coord->coord.t[1] << ACTOR_503500_LINGERING_SHOT_POSITION_FRACTION_BITS;
+    work->position.vz       = coord->coord.t[2] << ACTOR_503500_LINGERING_SHOT_POSITION_FRACTION_BITS;
+    work->launchPosition.vx = work->position.vx;
+    work->field_AC          = 0x1000;
+    work->launchPosition.vy = work->position.vy;
+    work->launchPosition.vz = work->position.vz;
+
+    if (task->spawnArg2.value != 0) {
+        work->speed = task->spawnArg2.value;
+    } else {
+        gfxSetRotIdentity(&coord->coord);
+        work->speed = ACTOR_503500_LINGERING_SHOT_DEFAULT_SPEED;
+    }
+    contacts = work->contacts;
+
+    // Link the sphere before enabling the passes used by this shot.
+    _actor503500LingeringShotLinkSphere(task, work, coord, contacts);
+
+    if (task->spawnArg1.value == ACTOR_503500_LINGERING_SHOT_LARGE_ORB_KIND) {
+        effectWork  = effectSpawn(EFFECT_BRAHMAN_LARGE_ORB, coord, 0, NULL);
+        orbAudioPan = (s8)worldCoordGetOriginAudioPan(coord);
+        sndEvtRequestScriptStart(ACTOR_503500_LINGERING_SHOT_LARGE_ORB_SOUND, orbAudioPan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    } else {
+        effectWork         = effectSpawn(EFFECT_BRAHMAN_PROJECTILE, coord, 0, NULL);
+        projectileAudioPan = (s8)worldCoordGetOriginAudioPan(coord);
+        sndEvtRequestScriptStart(ACTOR_503500_LINGERING_SHOT_PROJECTILE_SOUND, projectileAudioPan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    }
+    if (effectWork == NULL) {
+        // Exit subtracts the effect cost even though acquisition has not run.
+        _actor503500LingeringShotExit(task);
+        return;
+    }
+    effectTask       = effectWork->task;
+    work->effectTask = effectTask;
+    taskReparent(task, effectTask);
     actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_LINGERING);
-    arg0->exitCallback = _actor503500LingeringShotExit;
-    arg0->state       += 1;
+    task->exitCallback = _actor503500LingeringShotExit;
+    task->state       += 1;
 }
 
 /// Advances a lingering shot's deceleration, lingering interval and world position.
@@ -5691,10 +5954,10 @@ static void _actor503500LingeringShotClearContacts(Task* task)
     worldCollisionClearContacts(work->contacts);
 }
 
-void func_actor_503500_80144E34(Task* task)
+void actor503500LingeringShotTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_503500_801321E8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_503500_801321E8;
+    stateHandlers.funcs[task->state](task);
 }

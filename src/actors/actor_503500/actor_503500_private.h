@@ -648,7 +648,14 @@ void actor503500ArmTask(Task* task);
 /// Update pauses for paused/hidden actors; launch and exit still run.
 void actor503500BallisticShotTask(Task* task);
 
-void func_actor_503500_80144E34(Task* task);
+/// Dispatches a lingering orb or projectile through launch, movement and exit.
+///
+/// Requires a world-space coordinate body and `state` in 0..2. Spawn argument 1
+/// is 0 (large orb) or 1 (projectile); argument 2 is signed 16.16 forward speed,
+/// with zero selecting the default 16 units per movement step and identity
+/// rotation. Launch owns allocated work and a child effect until exit.
+/// Movement pauses for paused/hidden actors; launch and exit still run.
+void actor503500LingeringShotTask(Task* task);
 
 /// Dispatches one pink-flash sweeping capsule through initialization, update and exit.
 ///
@@ -778,7 +785,18 @@ void actor503500PinkFlashEmitterTask(Task* task);
 /// may destroy the task.
 void actor503500LargeChainTask(Task* task);
 
-void func_actor_503500_80143AC0(Task*);
+/// Pushes the player away from an arm strike, then runs recovery animations.
+///
+/// Requires the live player and one active knockback task: work is a singleton.
+/// `spawnArg1.value` is hit side 0 or 1; `spawnArg2.pointer` borrows a word-aligned
+/// MATRIX rotation through initialization. Copies exactly 18 rotation bytes,
+/// preserving alignment bytes and translation. Only running actor control
+/// advances the task; initial state 0 falls through into the first push.
+/// Speed and fractional travel are signed 16.16. A refused move stops speed;
+/// after more than 20 resting updates, animation completion restores control.
+/// A dead player moves the task to state -1 without killing it here.
+/// `killCountdown` counts active updates for the sound on update 17.
+void actor503500KnockbackTask(Task* task);
 
 // Callbacks referenced by the overlay's shared data tables.
 /// Applies an animation request to the boss's nineteen driven model tracks.
