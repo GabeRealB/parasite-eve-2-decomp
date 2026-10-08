@@ -52,7 +52,7 @@ typedef struct {
 } PlayerActorWeaponImpactScratch;
 STATIC_ASSERT_SIZEOF(PlayerActorWeaponImpactScratch, 0x68);
 
-/// 2-wide rows indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`. `Gp_PlayerMode2StateB` passes
+/// 2-wide rows indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId`. `_playerActorTickScriptedItemUse` passes
 /// `D_80112E04[field_22][1]` to `playerActorIsSlotAdvancingLinearly`.
 extern u8 D_80112E04[][2];
 
@@ -521,7 +521,14 @@ s32 playerActorPlayFootstepCue(Task* task);
 /// or completion transition is performed here; the enclosing dispatcher owns it.
 void playerActorScriptedState0(Task* task);
 
-void Gp_PlayerMode2State1(Task* arg0);
+/// Advances child animation and footstep cues while scripted control remains active.
+///
+/// Shared by the player and companions, including companion slots that hold
+/// unsupported scripted motions. Requires live GameActor playback/model and
+/// footstep surface/sound/effect resources. Slot 0 is untouched; child slots
+/// use their configured track indices. Does not move the root, clear motion
+/// pending or change mode/state; completion belongs to the surrounding script.
+void playerActorTickScriptedAnimation(Task* task);
 
 /// Advances the player or companion's scripted yaw turn, mode 2 state 2.
 ///

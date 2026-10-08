@@ -2562,11 +2562,11 @@ static void _actor800100StoppedDamageState(Task* unusedTask)
 /// indexed by `state`.
 static const TaskFuncTable7 D_actor_800100_80161E98 = { {
     playerActorScriptedState0,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
     playerActorMode2State2,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
     playerActorTickScriptedMoveTo,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
     playerActorMode2State6,
 } };
 

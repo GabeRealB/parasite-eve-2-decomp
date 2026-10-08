@@ -2847,13 +2847,13 @@ static const TaskFuncTable4 D_actor_800200_80161EB8 = { {
 /// gameplay entries are the player's own mode-2 state handlers.
 static const TaskFuncTable9 D_actor_800200_80161EC8 = { {
     playerActorScriptedState0,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
     _actor800200TickScriptedTurn,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
     _actor800200TickScriptedWalkToDestination,
-    Gp_PlayerMode2State1,
-    Gp_PlayerMode2State1,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
+    playerActorTickScriptedAnimation,
+    playerActorTickScriptedAnimation,
     _actor800200TickScriptedRunToDestination,
 } };
 

@@ -363,7 +363,7 @@ extern GpuImageUpload** D_80112E74[];
 extern GpuImageUpload** D_80112EB4[];
 
 /// Per-item flag byte indexed by `gPlayerStatus.weapon`. Nonzero makes
-/// `Gp_PlayerNormalState2` / `Gp_PlayerMode2StateA` pass `GameActor.attackButton` (the current
+/// `Gp_PlayerNormalState2` / `_playerActorTickScriptedAttack` pass `GameActor.attackButton` (the current
 /// primary/secondary fire-input selector) to `playerActorQueryWeaponLoads` instead of the default 1.
 extern u8 D_80112EF8[];
 
@@ -537,11 +537,11 @@ static void _playerActorNormalState6(Task* task);
 
 static void _playerActorUpdateParalysis(Task* task);
 
-static void Gp_PlayerMode2State3(Task* arg0);
+static void _playerActorTickScriptedStairClimb(Task* task);
 
-static void Gp_PlayerMode2StateA(Task* arg0);
+static void _playerActorTickScriptedAttack(Task* task);
 
-static void Gp_PlayerMode2StateB(Task* arg0);
+static void _playerActorTickScriptedItemUse(Task* task);
 
 static void _playerActorTick(Task* task);
 
@@ -561,7 +561,7 @@ static void func_80108A0C(Task* arg0);
 
 static void func_80108AD4(Task* arg0);
 
-static void Gp_PlayerMode2State8(Task* arg0);
+static void _playerActorTickScriptedRunTo(Task* task);
 
 static inline void _playerActorSetTargetNode(Task* task, WorldTargetNode* target);
 
@@ -591,11 +591,11 @@ static void _playerActorUpdateAimRequest(Task* task);
 
 static void _playerActorUpdateLockTargetFromPad(Task* task);
 
-static void Gp_PlayerMode2State5(Task* arg0);
+static void _playerActorTickScriptedWalkSteps(Task* task);
 
 static void _playerActorWriteWeaponSoundVariant(s32* variantBitsOut);
 
-static void Gp_PlayerMode2State7(Task* arg0);
+static void _playerActorTickScriptedPresentation(Task* task);
 
 static void _playerActorScriptedState9(Task* task);
 
@@ -1606,23 +1606,26 @@ static inline void _effectSpawnProjectileBurstParticle(const EffectWork* work, G
 
 /// Copies a projectile's composed pose into the glow's view-parented coordinate.
 ///
-/// Both coordinates and their parent chains must be writable, live and acyclic.
-/// The glow must be parented to `gGfxViewCoord`, with a current view cache in the
-/// same composition frame as the parent. Replaces its local matrix, then
-/// composes it. Borrows 48 scratch bytes, changes GTE matrices and retains no
-/// new pointer; view rotation must be orthonormal for the transpose to invert it.
-static inline void _effectSyncProjectileGlowCoord(GfxCoord* coord, GfxCoord* parent)
+/// glowCoord must be a distinct writable node parented to `gGfxViewCoord`;
+/// projectileCoord and both parent chains must be live, writable and acyclic.
+/// Requires a current view cache in the projectile's composition frame. Rebuilds
+/// the projectile cache, converts that pose into the glow's parent frame, then
+/// rebuilds the glow cache. Matrices use Q12 rotations and signed game-coordinate
+/// translations. Borrows 48 scratch bytes and changes GTE state; retains no
+/// pointer. The view rotation must be orthonormal for its transpose to invert it.
+static inline void _effectSyncProjectileGlowCoord(GfxCoord* glowCoord, GfxCoord* projectileCoord)
 {
     MATRIX* viewTransform;
 
-    actorRenderComposeCoord(parent);
-    coord->workm = parent->workm;
-    gte_SetRotMatrix(&parent->workm);
-    gte_SetTransMatrix(&parent->workm);
+    actorRenderComposeCoord(projectileCoord);
+    glowCoord->workm = projectileCoord->workm;
+    gte_SetRotMatrix(&projectileCoord->workm);
+    gte_SetTransMatrix(&projectileCoord->workm);
     viewTransform = &gGfxViewCoord.workm;
-    gfxMakeRelativeTransform(viewTransform, &coord->workm, &coord->coord);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
+    // Preserve the projectile's composed pose under the glow's view parent.
+    gfxMakeRelativeTransform(viewTransform, &glowCoord->workm, &glowCoord->coord);
+    glowCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(glowCoord);
 }
 
 void effectProjectileGlowTask(Task* task)
@@ -8948,116 +8951,152 @@ static void _playerActorUpdateParalysis(Task* task)
     }
 }
 
-static void Gp_PlayerMode2State3(Task* arg0)
+/// Adds one active tick's stair velocity to the model root in its parent frame.
+///
+/// Borrows distinct live root and velocity storage, in game-coordinate units.
+/// Leaves the composition stamp for the surrounding actor frame to invalidate.
+static inline void _playerActorApplyStairVelocity(GfxCoord* rootCoord, const VECTOR3* velocity)
 {
-    _PlayerActorStairClimbScratch* block;
-    _PlayerActorStairClimbScratch* blockAlias; // Second pointer to `block`, kept so each division reloads the divisor
-    GameActor*                     actor;
-    GfxCoord*                      coord;
-    s32                            angle;
-    s32                            delay;
-    s32                            mode;
+    rootCoord->coord.t[0] += velocity->vx;
+    rootCoord->coord.t[1] += velocity->vy;
+    rootCoord->coord.t[2] += velocity->vz;
+}
 
-    block      = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorStairClimbScratch);
-    blockAlias = block;
-    actor      = arg0->work;
-    coord      = arg0->extra.tmd->coords;
+/// Advances a scripted stair flight using animation footstep cues to gate displacement.
+///
+/// Requires live native-bank playback/root and a positive retained stair count.
+/// `jumpVariant` selects ascent for zero, descent otherwise; `scriptMotion.jumpSteps`
+/// is the remaining stair count. Pitch is 384 of 4096 angle units per turn.
+/// The normalized forward axis is Q12 and velocity
+/// is game-coordinate displacement per active tick in the root's parent frame.
+/// Ascent finishes with a level stride; descent accelerates X/Z for its last step
+/// while retaining pitched Y. Completion clears motion pending and blends to
+/// scripted animation state 1. Reserves/releases one stair scratch block per call.
+static void _playerActorTickScriptedStairClimb(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_STAIR_START_PHASE              = 0,
+        PLAYER_ACTOR_STAIR_ASCEND_PHASE             = 1,
+        PLAYER_ACTOR_STAIR_ASCENT_FINISH_PHASE      = 2,
+        PLAYER_ACTOR_STAIR_DESCEND_PHASE            = 3,
+        PLAYER_ACTOR_STAIR_PITCH                    = 0x180,
+        PLAYER_ACTOR_STAIR_ASCENT_DIVISOR           = 110,
+        PLAYER_ACTOR_STAIR_DESCENT_DIVISOR          = 100,
+        PLAYER_ACTOR_STAIR_ASCENT_FINISH_DIVISOR    = 180,
+        PLAYER_ACTOR_STAIR_DESCENT_FINISH_DIVISOR   = 58,
+        PLAYER_ACTOR_STAIR_ASCENT_STRIDE_TICKS      = 10,
+        PLAYER_ACTOR_STAIR_ASCENT_LAST_STRIDE_TICKS = 11,
+        PLAYER_ACTOR_STAIR_ASCENT_FINISH_TICKS      = 8,
+        PLAYER_ACTOR_STAIR_DESCENT_STRIDE_TICKS     = 9,
+        PLAYER_ACTOR_STAIR_DESCENT_EDGE_TICKS       = 5,
+        PLAYER_ACTOR_STAIR_ASCENT_FINISH_EVEN_SET   = 38,
+        PLAYER_ACTOR_STAIR_ASCENT_FINISH_ODD_SET    = 39,
+        PLAYER_ACTOR_STAIR_FINISH_BLEND_FRAMES      = 3,
+        PLAYER_ACTOR_STAIR_IDLE_SET                 = 1,
+        PLAYER_ACTOR_STAIR_IDLE_BLEND_FRAMES        = 5,
+    };
+    _PlayerActorStairClimbScratch* scratch;
+    GameActor*                     actor;
+    GfxCoord*                      rootCoord;
+    s32                            stairPitch;
+    s32                            strideTicks;
+    s32                            setIndex;
+
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorStairClimbScratch);
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
     switch (actor->statePhase) {
-        case 0:
+        case PLAYER_ACTOR_STAIR_START_PHASE:
             // Head along the model's forward axis tilted by the flight's slope.
-            block->pitchedMatrix = coord->coord;
-            angle                = -0x180;
+            scratch->pitchedMatrix = rootCoord->coord;
+            stairPitch             = -PLAYER_ACTOR_STAIR_PITCH;
             if (actor->jumpVariant == 0) {
-                angle = 0x180;
+                stairPitch = PLAYER_ACTOR_STAIR_PITCH;
             }
-            gfxRotMatrixX(&block->pitchedMatrix, angle, GRAPHICS_ROTATION_COMPOSE);
-            gfxReadMatrixZAxis(&block->pitchedMatrix, &block->direction);
-            VectorNormalSS(&block->direction, &block->direction);
+            gfxRotMatrixX(&scratch->pitchedMatrix, stairPitch, GRAPHICS_ROTATION_COMPOSE);
+            gfxReadMatrixZAxis(&scratch->pitchedMatrix, &scratch->direction);
+            VectorNormalSS(&scratch->direction, &scratch->direction);
             if (actor->jumpVariant == 0) {
-                actor->statePhase   = 1;
-                actor->stateTimer   = 0;
-                actor->actionValue  = actor->scriptMotion.jumpSteps & 1;
-                block->speedDivisor = 110;
+                actor->statePhase     = PLAYER_ACTOR_STAIR_ASCEND_PHASE;
+                actor->stateTimer     = 0;
+                actor->actionValue    = actor->scriptMotion.jumpSteps & 1;
+                scratch->speedDivisor = PLAYER_ACTOR_STAIR_ASCENT_DIVISOR;
             } else {
-                actor->statePhase   = 3;
-                actor->stateTimer   = 5;
-                block->speedDivisor = 100;
+                actor->statePhase     = PLAYER_ACTOR_STAIR_DESCEND_PHASE;
+                actor->stateTimer     = PLAYER_ACTOR_STAIR_DESCENT_EDGE_TICKS;
+                scratch->speedDivisor = PLAYER_ACTOR_STAIR_DESCENT_DIVISOR;
             }
-            actor->velocity.vx = blockAlias->direction.vx / blockAlias->speedDivisor;
-            actor->velocity.vy = blockAlias->direction.vy / blockAlias->speedDivisor;
-            actor->velocity.vz = blockAlias->direction.vz / blockAlias->speedDivisor;
+            actor->velocity.vx = scratch->direction.vx / scratch->speedDivisor;
+            actor->velocity.vy = scratch->direction.vy / scratch->speedDivisor;
+            actor->velocity.vz = scratch->direction.vz / scratch->speedDivisor;
             break;
-        case 1:
-            if (playerActorPlayFootstepCue(arg0) != 0) {
-                delay = 0xA;
+        case PLAYER_ACTOR_STAIR_ASCEND_PHASE:
+            // Each non-silent cue starts a stride; cue ticks themselves do not move.
+            if (playerActorPlayFootstepCue(task) != 0) {
+                strideTicks = PLAYER_ACTOR_STAIR_ASCENT_STRIDE_TICKS;
                 if (actor->scriptMotion.jumpSteps == 1) {
-                    delay = 0xB;
+                    strideTicks = PLAYER_ACTOR_STAIR_ASCENT_LAST_STRIDE_TICKS;
                 }
-                actor->stateTimer = delay;
+                actor->stateTimer = strideTicks;
             } else if (actor->stateTimer > 0) {
                 actor->stateTimer--;
                 if (actor->stateTimer == 0) {
                     actor->scriptMotion.jumpSteps--;
                     if (actor->scriptMotion.jumpSteps <= 0) {
-                        actor->stateTimer = 8;
+                        actor->stateTimer = PLAYER_ACTOR_STAIR_ASCENT_FINISH_TICKS;
                         actor->statePhase++;
-                        gfxReadMatrixZAxis(&coord->coord, &block->direction);
-                        VectorNormalSS(&block->direction, &block->direction);
-                        actor->velocity.vx = (s16)(block->direction.vx / 180);
-                        actor->velocity.vy = (s16)(block->direction.vy / 180);
-                        mode               = 0x26;
-                        actor->velocity.vz = (s16)(block->direction.vz / 180);
+                        gfxReadMatrixZAxis(&rootCoord->coord, &scratch->direction);
+                        VectorNormalSS(&scratch->direction, &scratch->direction);
+                        actor->velocity.vx = (s16)(scratch->direction.vx / PLAYER_ACTOR_STAIR_ASCENT_FINISH_DIVISOR);
+                        actor->velocity.vy = (s16)(scratch->direction.vy / PLAYER_ACTOR_STAIR_ASCENT_FINISH_DIVISOR);
+                        setIndex           = PLAYER_ACTOR_STAIR_ASCENT_FINISH_EVEN_SET;
+                        actor->velocity.vz = (s16)(scratch->direction.vz / PLAYER_ACTOR_STAIR_ASCENT_FINISH_DIVISOR);
                         if (actor->actionValue != 0) {
-                            mode = 0x27;
+                            setIndex = PLAYER_ACTOR_STAIR_ASCENT_FINISH_ODD_SET;
                         }
-                        playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
+                        playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_STAIR_FINISH_BLEND_FRAMES);
                     }
                 }
-                coord->coord.t[0] += actor->velocity.vx;
-                coord->coord.t[1] += actor->velocity.vy;
-                coord->coord.t[2] += actor->velocity.vz;
+                _playerActorApplyStairVelocity(rootCoord, &actor->velocity);
             }
             break;
-        case 2:
-            playerActorPlayFootstepCue(arg0);
+        case PLAYER_ACTOR_STAIR_ASCENT_FINISH_PHASE:
+            playerActorPlayFootstepCue(task);
             if (actor->stateTimer > 0) {
                 actor->stateTimer--;
-                coord->coord.t[0] += actor->velocity.vx;
-                coord->coord.t[1] += actor->velocity.vy;
-                coord->coord.t[2] += actor->velocity.vz;
+                _playerActorApplyStairVelocity(rootCoord, &actor->velocity);
             }
-            if (playerActorIsAnimationPlaying(arg0, 0, 0, 0) == 0) {
-            block_land:
+            if (playerActorIsAnimationPlaying(task, 0, 0, 0) == 0) {
+            finishFlight:
                 actor->scriptedMotionPending = 0;
-                actor->state                 = 1;
-                playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 5);
+                actor->state                 = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
+                playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_STAIR_IDLE_SET, 0, PLAYER_ACTOR_STAIR_IDLE_BLEND_FRAMES);
             }
             break;
-        case 3:
-            if (playerActorPlayFootstepCue(arg0) != 0) {
+        case PLAYER_ACTOR_STAIR_DESCEND_PHASE:
+            // The last descent stride levels only X/Z; pitched Y is retained.
+            if (playerActorPlayFootstepCue(task) != 0) {
                 if (actor->scriptMotion.jumpSteps == 1) {
-                    gfxReadMatrixZAxis(&coord->coord, &block->direction);
-                    VectorNormalSS(&block->direction, &block->direction);
-                    actor->velocity.vx = (s16)(block->direction.vx / 58);
-                    actor->velocity.vz = (s16)(block->direction.vz / 58);
+                    gfxReadMatrixZAxis(&rootCoord->coord, &scratch->direction);
+                    VectorNormalSS(&scratch->direction, &scratch->direction);
+                    actor->velocity.vx = (s16)(scratch->direction.vx / PLAYER_ACTOR_STAIR_DESCENT_FINISH_DIVISOR);
+                    actor->velocity.vz = (s16)(scratch->direction.vz / PLAYER_ACTOR_STAIR_DESCENT_FINISH_DIVISOR);
                 }
-                delay = 9;
+                strideTicks = PLAYER_ACTOR_STAIR_DESCENT_STRIDE_TICKS;
                 if (actor->scriptMotion.jumpSteps == 1) {
-                    delay = 5;
+                    strideTicks = PLAYER_ACTOR_STAIR_DESCENT_EDGE_TICKS;
                 }
-                actor->stateTimer = delay;
+                actor->stateTimer = strideTicks;
                 actor->scriptMotion.jumpSteps--;
             } else if (actor->stateTimer != 0) {
                 actor->stateTimer--;
-                coord->coord.t[0] += actor->velocity.vx;
-                coord->coord.t[1] += actor->velocity.vy;
-                coord->coord.t[2] += actor->velocity.vz;
+                _playerActorApplyStairVelocity(rootCoord, &actor->velocity);
             } else if (actor->scriptMotion.jumpSteps == 0) {
-                goto block_land;
+                goto finishFlight;
             }
             break;
     }
-    playerActorTickChildSlots(arg0);
+    playerActorTickChildSlots(task);
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorStairClimbScratch);
 }
 
@@ -9168,110 +9207,121 @@ void playerActorTickScriptedMoveTo(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
-static void Gp_PlayerMode2StateA(Task* arg0)
+/// Starts normal-mode aim exit after scripted firing loses its engaged battle.
+///
+/// Borrows task's live actor/native playback, stops displacement, selects the
+/// return-to-locomotion controller and blends aim-exit set 8 for six frames.
+/// Clears the target after starting the clip, preserving transition ordering.
+static inline void _playerActorBeginScriptedAttackAimExit(Task* task, GameActor* actor)
 {
-    s32        variant;
-    GameActor* actor;
-    s32        res;
-    s32        dir;
-    u8         item;
-    s32        base;
-    s32        val;
+    enum {
+        PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_STATE     = 3,
+        PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_TURN_RATE = 2,
+        PLAYER_ACTOR_SCRIPTED_ATTACK_RETURN_CONTROLLER  = 4,
+        PLAYER_ACTOR_SCRIPTED_ATTACK_STOPPED            = 0,
+        PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_SET       = 8,
+        PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_BLEND     = 6,
+    };
 
-    actor = arg0->work;
+    actor->state          = PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_STATE;
+    actor->turnRateIndex  = PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_TURN_RATE;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode   = PLAYER_ACTOR_SCRIPTED_ATTACK_STOPPED;
+    actor->animationState = PLAYER_ACTOR_SCRIPTED_ATTACK_RETURN_CONTROLLER;
+    actor->statePhase     = 0;
+    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_SET, 0, PLAYER_ACTOR_SCRIPTED_ATTACK_AIM_EXIT_BLEND);
+    playerActorClearLockTarget(task);
+}
+
+/// Waits for fire input under scripted control, then dispatches the equipped weapon attack.
+///
+/// Requires live actor/playback and weapon tables/resources for index 1..32.
+/// Fire selects primary or secondary loads; a load-free attack is also allowed
+/// by its table flag. Empty selected loads play the weapon's empty-fire sound
+/// with a 20-tick cooldown. Battle disengagement enters normal aim exit; zero
+/// HP suppresses both paths. Child slots tick even when neither path runs.
+static void _playerActorTickScriptedAttack(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_SCRIPTED_ATTACK_EMPTY_COOLDOWN_TICKS = 20,
+        PLAYER_ACTOR_SCRIPTED_ATTACK_WEAPON_SOUND_SHIFT   = 16,
+        PLAYER_ACTOR_SCRIPTED_ATTACK_EMPTY_SOUND          = 0x20000001,
+    };
+    s32        soundVariantBits;
+    GameActor* actor;
+    s32        remainingLoads;
+    s32        loadMask;
+    u8         attackButton;
+    s32        weaponSoundBits;
+    s32        emptySoundBits;
+
+    actor = task->work;
     if (gPlayerStatus.hp > 0) {
         if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-            actor->state          = 3;
-            actor->turnRateIndex  = 2;
-            actor->mode           = GAME_ACTOR_MODE_NORMAL;
-            actor->movementMode   = 0;
-            actor->animationState = 4;
-            actor->statePhase     = 0;
-            playerActorPlayChildSlotsWithBlend(arg0, 8, 0, 6);
-            playerActorClearLockTarget(arg0);
-        } else if (playerActorReadAttackButton(arg0) != 0 &&
+            _playerActorBeginScriptedAttackAimExit(task, actor);
+        } else if (playerActorReadAttackButton(task) != 0 &&
                    animationGetCurrentRecord(&actor->animationContext,
                                              actor->animationSlots + 1) != NULL &&
                    actor->attackControl.cooldownTicks == 0) {
-            dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? (s8)actor->attackButton : 1;
-            res = playerActorQueryWeaponLoads(dir);
-            if (res > 0 ||
-                (item = actor->attackButton,
-                 D_80112F1C[gPlayerStatus.weapon][(u8)(item - 1)] != 0)) {
+            loadMask       = D_80112EF8[gPlayerStatus.weapon] != 0 ? (s8)actor->attackButton : PLAYER_ACTOR_WEAPON_LOAD_PRIMARY;
+            remainingLoads = playerActorQueryWeaponLoads(loadMask);
+            if (remainingLoads > 0 ||
+                (attackButton = actor->attackButton,
+                 D_80112F1C[gPlayerStatus.weapon][(u8)(attackButton - PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY)] != 0)) {
                 actor->aimControl = GAME_ACTOR_AIM_REQUEST_SCRIPTED;
                 actor->statePhase = 0;
-                _playerActorDispatchWeaponAttack(arg0);
-            } else if (res == 0) {
-                _playerActorWriteWeaponSoundVariant(&variant);
-                actor->attackControl.cooldownTicks = 0x14;
-                base                               = gPlayerStatus.weapon << 16;
-                val                                = variant | 0x20000001;
-                worldCoordPlaySound(arg0->extra.tmd->coords, base | val, 0);
+                _playerActorDispatchWeaponAttack(task);
+            } else if (remainingLoads == 0) {
+                _playerActorWriteWeaponSoundVariant(&soundVariantBits);
+                actor->attackControl.cooldownTicks = PLAYER_ACTOR_SCRIPTED_ATTACK_EMPTY_COOLDOWN_TICKS;
+                weaponSoundBits                    = gPlayerStatus.weapon << PLAYER_ACTOR_SCRIPTED_ATTACK_WEAPON_SOUND_SHIFT;
+                emptySoundBits                     = soundVariantBits | PLAYER_ACTOR_SCRIPTED_ATTACK_EMPTY_SOUND;
+                worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | emptySoundBits, 0);
             }
         }
     }
-    playerActorTickChildSlots(arg0);
+    playerActorTickChildSlots(task);
 }
 
-static void Gp_PlayerMode2StateB(Task* arg0)
+/// Plays the deferred item-use clip, then restores normal aim locomotion.
+///
+/// Requires live actor/native playback and characterId 1..5. Clip 40 blends in
+/// over six normal-rate frames. Once slot 1 has a record and the character rig's
+/// attachment-slot playback settles or follows a control jump, aim locomotion
+/// resumes over four frames. Child playback runs before contact damage on every
+/// tick, including the transition tick; this state does not apply the item.
+static void _playerActorTickScriptedItemUse(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_ITEM_USE_START_PHASE  = 0,
+        PLAYER_ACTOR_ITEM_USE_PLAY_PHASE   = 1,
+        PLAYER_ACTOR_ITEM_USE_SET          = 40,
+        PLAYER_ACTOR_ITEM_USE_ENTRY_BLEND  = 6,
+        PLAYER_ACTOR_ITEM_USE_RESUME_BLEND = 4,
+        PLAYER_ACTOR_ITEM_USE_RIG_SLOT     = 1,
+    };
     GameActor* actor;
-    GameActor* inner;
-    s32        mode;
-    s32        temp;
-    s32        flag;
 
-    actor = arg0->work;
+    actor = task->work;
     switch (actor->statePhase) {
-        case 0:
-            flag              = 1;
-            actor->statePhase = flag;
-            playerActorPlayChildSlotsWithBlend(arg0, 0x28, 0, 6);
+        case PLAYER_ACTOR_ITEM_USE_START_PHASE: {
+            s32 playbackPhase;
+
+            playbackPhase     = PLAYER_ACTOR_ITEM_USE_PLAY_PHASE;
+            actor->statePhase = playbackPhase;
+            playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_ITEM_USE_SET, 0, PLAYER_ACTOR_ITEM_USE_ENTRY_BLEND);
             break;
-        case 1:
-            if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
-                NULL) {
-                if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
-                    inner               = arg0->work;
-                    inner->mode         = GAME_ACTOR_MODE_NORMAL;
-                    inner->state        = 2;
-                    inner->movementMode = 0;
-                    if (inner->movementSign != 0) {
-                        temp = 1;
-                    } else {
-                        temp = 3;
-                    }
-                    inner->turnRateIndex  = temp;
-                    inner->animationState = 0;
-                    inner->statePhase     = 0;
-                    if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
-                        playerActorClearLockTarget(arg0);
-                        inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
-                    } else {
-                        inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
-                    }
-                    temp = inner->movementSign;
-                    if (temp == 0) {
-                        if (inner->turnSign != 0) {
-                            mode = 0xD;
-                        } else {
-                            mode = 9;
-                        }
-                    } else if (temp == 1) {
-                        mode                    = 0xC;
-                        inner->movementMode     = 3;
-                        inner->aimTrackingState = temp;
-                    } else {
-                        inner->movementMode = 2;
-                        mode                = 0xD;
-                    }
-                    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 4);
+        }
+        case PLAYER_ACTOR_ITEM_USE_PLAY_PHASE:
+            if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) != NULL) {
+                if (playerActorIsSlotAdvancingLinearly(task, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][PLAYER_ACTOR_ITEM_USE_RIG_SLOT], 0, 0) == 0) {
+                    _playerActorResumeAimLocomotion(task, PLAYER_ACTOR_ITEM_USE_RESUME_BLEND);
                 }
             }
             break;
     }
-    playerActorTickChildSlots(arg0);
-    playerActorCheckContactDamage(arg0);
+    playerActorTickChildSlots(task);
+    playerActorCheckContactDamage(task);
 }
 
 /// Advances the player's current control mode and its actor-tick timers.
@@ -9695,10 +9745,10 @@ void playerActorScriptedState0(Task* task)
     playerActorPlayFootstepCue(task);
 }
 
-void Gp_PlayerMode2State1(Task* arg0)
+void playerActorTickScriptedAnimation(Task* task)
 {
-    playerActorTickChildSlots(arg0);
-    playerActorPlayFootstepCue(arg0);
+    playerActorTickChildSlots(task);
+    playerActorPlayFootstepCue(task);
 }
 
 void playerActorMode2State2(Task* task)
@@ -9744,27 +9794,42 @@ void playerActorMode2State2(Task* task)
     playerActorTickChildSlots(task);
 }
 
-static void Gp_PlayerMode2State8(Task* arg0)
+/// Turns toward a scripted destination, then runs using the move-to arrival test.
+///
+/// Requires the move-to state's live actor/native playback/root resources and
+/// destination in the root's parent frame. Only the tick completing the turn
+/// overrides walking with movement mode 3 and run set 4 (or actionArgument).
+/// The delegated arrival test is |dx| < 105 and |dz| < 105 game units, ignoring Y;
+/// it clears motion pending, enters state 1 and selects the arrival clip.
+static void _playerActorTickScriptedRunTo(Task* task)
 {
-    GameActor* inner;
-    s32        mode;
+    enum {
+        PLAYER_ACTOR_RUN_TO_START_PHASE   = 0,
+        PLAYER_ACTOR_RUN_TO_TURN_PHASE    = 1,
+        PLAYER_ACTOR_RUN_TO_TRAVEL_PHASE  = 2,
+        PLAYER_ACTOR_RUN_TO_MOVEMENT_MODE = 3,
+        PLAYER_ACTOR_RUN_TO_SET           = 4,
+        PLAYER_ACTOR_RUN_TO_BLEND_FRAMES  = 5,
+    };
+    GameActor* actor;
+    s32        setIndex;
 
-    inner = arg0->work;
-    switch (inner->statePhase) {
-        case 0:
-        case 1:
-            playerActorTickScriptedMoveTo(arg0);
-            if (inner->statePhase == 2) {
-                inner->movementMode = 3;
-                mode                = 4;
-                if (inner->actionArgument != 0) {
-                    mode = inner->actionArgument;
+    actor = task->work;
+    switch (actor->statePhase) {
+        case PLAYER_ACTOR_RUN_TO_START_PHASE:
+        case PLAYER_ACTOR_RUN_TO_TURN_PHASE:
+            playerActorTickScriptedMoveTo(task);
+            if (actor->statePhase == PLAYER_ACTOR_RUN_TO_TRAVEL_PHASE) {
+                actor->movementMode = PLAYER_ACTOR_RUN_TO_MOVEMENT_MODE;
+                setIndex            = PLAYER_ACTOR_RUN_TO_SET;
+                if (actor->actionArgument != 0) {
+                    setIndex = actor->actionArgument;
                 }
-                playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+                playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_RUN_TO_BLEND_FRAMES);
             }
             break;
-        case 2:
-            playerActorTickScriptedMoveTo(arg0);
+        case PLAYER_ACTOR_RUN_TO_TRAVEL_PHASE:
+            playerActorTickScriptedMoveTo(task);
             break;
     }
 }
@@ -9842,17 +9907,17 @@ static void Gp_TickPlayerMode1(Task* arg0)
 /// `state` dispatcher copied by `Gp_TickPlayerMode2`.
 static const TaskFuncTable12 Gp_PlayerMode2States = { {
     playerActorScriptedState0,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
     playerActorMode2State2,
-    Gp_PlayerMode2State3,
+    _playerActorTickScriptedStairClimb,
     playerActorTickScriptedMoveTo,
-    Gp_PlayerMode2State5,
+    _playerActorTickScriptedWalkSteps,
     playerActorMode2State6,
-    Gp_PlayerMode2State7,
-    Gp_PlayerMode2State8,
+    _playerActorTickScriptedPresentation,
+    _playerActorTickScriptedRunTo,
     _playerActorScriptedState9,
-    Gp_PlayerMode2StateA,
-    Gp_PlayerMode2StateB,
+    _playerActorTickScriptedAttack,
+    _playerActorTickScriptedItemUse,
 } };
 
 static void Gp_TickPlayerMode2(Task* arg0)
@@ -10159,43 +10224,62 @@ static void _playerActorUpdateLockTargetFromPad(Task* task)
     }
 }
 
-static void Gp_PlayerMode2State5(Task* arg0)
+/// Walks forward until the requested number of non-silent footstep cues has occurred.
+///
+/// actionValue is a positive signed-halfword count set by the walk-steps message.
+/// Requires live actor/root/playback and footstep surface/sound/effect resources.
+/// Selects walk set 2, or unarmed set 19 when equipment slot 1 is empty; movement
+/// mode 1 supplies game-coordinate displacement per tick. Entry falls through
+/// to movement/cue handling. A nonzero cue decrements the count without moving
+/// that tick; completion clears motion pending and blends to state 1/idle set 1.
+/// stateTimer only chooses between legacy values of an ignored playback argument.
+static void _playerActorTickScriptedWalkSteps(Task* task)
 {
-    GameActor* inner;
-    s32        mode;
-    s32        flag;
-    s32        arg2;
+    enum {
+        PLAYER_ACTOR_WALK_STEPS_START_PHASE = 0,
+        PLAYER_ACTOR_WALK_STEPS_WALK_PHASE  = 1,
+        PLAYER_ACTOR_WALK_STEPS_FORWARD     = 1,
+        PLAYER_ACTOR_WALK_STEPS_WALK_SET    = 2,
+        PLAYER_ACTOR_WALK_STEPS_UNARMED_SET = 19,
+        PLAYER_ACTOR_WALK_STEPS_IDLE_SET    = 1,
+        PLAYER_ACTOR_WALK_STEPS_IDLE_BLEND  = 5,
+    };
+    GameActor* actor;
+    s32        setIndex;
+    s32        walkingPhaseAndMode;
+    s32        unusedPlaybackArgument;
 
-    inner = arg0->work;
-    switch (inner->statePhase) {
-        case 0:
-            mode                = 2;
-            flag                = 1;
-            inner->statePhase   = flag;
-            inner->movementMode = flag;
-            if (inner->equipmentTasks[1] == NULL) {
-                mode = 0x13;
+    actor = task->work;
+    switch (actor->statePhase) {
+        case PLAYER_ACTOR_WALK_STEPS_START_PHASE:
+            setIndex            = PLAYER_ACTOR_WALK_STEPS_WALK_SET;
+            walkingPhaseAndMode = PLAYER_ACTOR_WALK_STEPS_WALK_PHASE;
+            actor->statePhase   = walkingPhaseAndMode;
+            actor->movementMode = walkingPhaseAndMode;
+            if (actor->equipmentTasks[1] == NULL) {
+                setIndex = PLAYER_ACTOR_WALK_STEPS_UNARMED_SET;
             }
-            arg2 = 1;
-            if (inner->stateTimer == 0) {
-                arg2 = 6;
+            unusedPlaybackArgument = 1;
+            if (actor->stateTimer == 0) {
+                unusedPlaybackArgument = 6;
             }
-            playerActorPlayChildSlots(arg0, mode, arg2);
-        case 1:
-            if (playerActorPlayFootstepCue(arg0) != 0) {
-                inner->actionValue--;
-                if (inner->actionValue <= 0) {
-                    inner->scriptedMotionPending = 0;
-                    inner->state                 = 1;
-                    playerActorPlayChildSlotsWithBlend(arg0, 1, 0, 5);
+            playerActorPlayChildSlots(task, setIndex, unusedPlaybackArgument);
+            // Count or move on the entry tick as well as later walking ticks.
+        case PLAYER_ACTOR_WALK_STEPS_WALK_PHASE:
+            if (playerActorPlayFootstepCue(task) != 0) {
+                actor->actionValue--;
+                if (actor->actionValue <= 0) {
+                    actor->scriptedMotionPending = 0;
+                    actor->state                 = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
+                    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_WALK_STEPS_IDLE_SET, 0, PLAYER_ACTOR_WALK_STEPS_IDLE_BLEND);
                 }
             } else {
-                inner->movementSign = 1;
-                playerActorStepMovement(arg0);
+                actor->movementSign = PLAYER_ACTOR_WALK_STEPS_FORWARD;
+                playerActorStepMovement(task);
             }
             break;
     }
-    playerActorTickChildSlots(arg0);
+    playerActorTickChildSlots(task);
 }
 
 /// Writes the equipped ammunition's sound-script variant in bits 24..31.
@@ -10238,27 +10322,41 @@ static void _playerActorWriteWeaponSoundVariant(s32* variantBitsOut)
     }
 }
 
-static void Gp_PlayerMode2State7(Task* arg0)
+/// Starts one of the paired scripted presentation clips and keeps checking contact damage.
+///
+/// The retained stateTimer halfword selects active-bank set 32 for zero or 33
+/// otherwise; the clips' visual roles are unproven. Requires live actor/model,
+/// both sets in the active bank and contact-damage resources. Entry resets
+/// child playback, then falls through to advance it on the same tick. Phase 1
+/// continues playback; this state performs no completion or motion-pending update.
+static void _playerActorTickScriptedPresentation(Task* task)
 {
-    GameActor* inner;
-    s32        mode;
-    s32        flag;
+    enum {
+        PLAYER_ACTOR_PRESENTATION_START_PHASE = 0,
+        PLAYER_ACTOR_PRESENTATION_PLAY_PHASE  = 1,
+        PLAYER_ACTOR_PRESENTATION_ZERO_SET    = 32,
+        PLAYER_ACTOR_PRESENTATION_NONZERO_SET = 33,
+    };
+    GameActor* actor;
+    s32        setIndex;
+    s32        playbackPhase;
 
-    inner = arg0->work;
-    switch (inner->statePhase) {
-        case 0:
-            mode              = 0x20;
-            flag              = 1;
-            inner->statePhase = flag;
-            if (inner->stateTimer != 0) {
-                mode = 0x21;
+    actor = task->work;
+    switch (actor->statePhase) {
+        case PLAYER_ACTOR_PRESENTATION_START_PHASE:
+            setIndex          = PLAYER_ACTOR_PRESENTATION_ZERO_SET;
+            playbackPhase     = PLAYER_ACTOR_PRESENTATION_PLAY_PHASE;
+            actor->statePhase = playbackPhase;
+            if (actor->stateTimer != 0) {
+                setIndex = PLAYER_ACTOR_PRESENTATION_NONZERO_SET;
             }
-            playerActorPlayChildSlots(arg0, mode, 1);
-        case 1:
-            playerActorTickChildSlots(arg0);
+            playerActorPlayChildSlots(task, setIndex, 1);
+            // Advance the new clip on the entry tick as well as later ticks.
+        case PLAYER_ACTOR_PRESENTATION_PLAY_PHASE:
+            playerActorTickChildSlots(task);
             break;
     }
-    playerActorCheckContactDamage(arg0);
+    playerActorCheckContactDamage(task);
 }
 
 /// Advances only child animation slots in scripted player state 9.

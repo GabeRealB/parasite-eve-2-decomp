@@ -1329,11 +1329,11 @@ static void _actor800300TickDamageMode(Task* task)
 /// gameplay module's own mode-2 player states.
 static const TaskFuncTable7 D_actor_800300_80161E64 = { {
     playerActorScriptedState0,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
     playerActorMode2State2,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
     playerActorTickScriptedMoveTo,
-    Gp_PlayerMode2State1,
+    playerActorTickScriptedAnimation,
     playerActorMode2State6,
 } };
 

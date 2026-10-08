@@ -8099,7 +8099,7 @@ case 0:
 }
 ```
 
-`Gp_PlayerMode2State7` is the pure example. A bare `p->statePhase = 1` stuck at ~94%
+`_playerActorTickScriptedPresentation` is the pure example. A bare `p->statePhase = 1` stuck at ~94%
 with an otherwise identical switch.
 
 ## Assign the delay-slot default first so `bnez` keeps the `== 0` overwrite
@@ -8118,13 +8118,13 @@ an if/else with the nonzero arm first emits the inverted `beqz` + `li OTHER` in
 the delay slot. Assign the default, then overwrite on `== 0`:
 
 ```c
-arg2 = 1;
+unusedPlaybackArgument = 1;
 if (p->stateTimer == 0) {
-    arg2 = 6;
+    unusedPlaybackArgument = 6;
 }
 ```
 
-`Gp_PlayerMode2State5` is the example. `if (p->stateTimer) { arg2 = 1; } else { arg2 = 6; }`
+`_playerActorTickScriptedWalkSteps` is the example. `if (p->stateTimer) { unusedPlaybackArgument = 1; } else { unusedPlaybackArgument = 6; }`
 stuck at 96% with only that branch flipped.
 
 ## Write the `== 0` arm first so a sibling store rematerializes the field
@@ -28253,16 +28253,18 @@ switch (actor->statePhase) {
 case 1:
     if (func(actor->ctx, actor->slot + 1) != NULL) {
         if (func2(...) == 0) {
-            inner = arg0->actor; /* second local → $s0 */
-            inner->mode = 0;
+            resumeActor = arg0->actor; /* second local → $s0 */
+            resumeActor->mode = 0;
             ...
         }
     }
 }
 ```
 
-`Gp_PlayerMode2StateB` is the example. Reusing `inner` for both loads stuck at
+`_playerActorTickScriptedItemUse` is the example. Reusing `resumeActor` for both loads stuck at
 99.7% with only `$a1` vs `$s0` on the first pointer.
+The second load now lives in `_playerActorResumeAimLocomotion`, preserving the
+separate pointer lifetimes while sharing the aim-return implementation.
 
 ## Nest `if (x != 0)` so the zero case is a real else, not a delay-slot assign
 
@@ -38773,24 +38775,27 @@ lw   v1, 0x28(s4)   /* reload, even though v0 still holds the stored value */
 div  zero, v0, v1
 ```
 
-One pointer is not enough: GCC 2.8.1 forwards the stored constant into the first
+In the expanded stair-tick body, one pointer was not enough: GCC 2.8.1 forwards the stored constant into the first
 `div` (`div zero, v0, a0`) and sinks the `sw` past it. Assign a plain **copy** of
 the pointer and read through the copy — the copy is a different base register, so
 store-to-load forwarding does not fire and the load is re-emitted:
 
 ```c
-block      = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorStairClimbScratch);
-blockAlias = block;        /* move s4, s3 — same address, second register */
+scratch      = SCRATCH_STACK_RESERVE_BLOCK(_PlayerActorStairClimbScratch);
+divisorReader = scratch;   /* move s4, s3 — same address, second register */
 …
-block->speedDivisor = 110; /* store through block */
-actor->velocity.vx  = blockAlias->direction.vx / blockAlias->speedDivisor; /* reads through blockAlias → lw each time */
+scratch->speedDivisor = 110; /* store through scratch */
+actor->velocity.vx = divisorReader->direction.vx / divisorReader->speedDivisor; /* reads through divisorReader → lw each time */
 ```
 
 The copy also has to be assigned up front (next to the original), which is what
 puts `move s4, s3` in the entry branch's delay slot. Pair this with per-arm
-stores of the constant (`block->speedDivisor = 110;` / `= 100;` instead of a shared
+stores of the constant (`scratch->speedDivisor = 110;` / `= 100;` instead of a shared
 `frames` local) so cross-jumping keeps the `li v0, 0x6E` in the `j` delay slot
-and the value in `$v0` rather than a spare `$v1`. `Gp_PlayerMode2State3` is the example.
+and the value in `$v0` rather than a spare `$v1`. `_playerActorTickScriptedStairClimb` is the example.
+Extracting its three XYZ translation steps into `_playerActorApplyStairVelocity`
+preserves the instructions and lets the caller use only `scratch`, including
+the three divisor reads; the second pointer is no longer needed in that body.
 
 ## Inline the `(s16)` cast at the first call sites so `lui %hi(sym)` wins the ready list
 
@@ -65560,12 +65565,12 @@ miss, not a permuter candidate.
 
 ## A ternary can stop global-address CSE even when its final branch matches an if
 
-`Gp_PlayerMode2StateA` reached 98.010% with `dir = 1; if (flag) dir =
+`_playerActorTickScriptedAttack` reached 98.010% with `loadMask = 1; if (flag) loadMask =
 (s8)actor->attackButton;`. The only missing instructions were a second
 `lui`/`addiu` for `gPlayerStatus`; the branch penalties were displaced targets.
 The `.cse` dump reused the initial address pseudo throughout the function.
 
-Changing that selection to `dir = flag ? (s8)actor->attackButton : 1;` matched
+Changing that selection to `loadMask = flag ? (s8)actor->attackButton : 1;` matched
 100% without pins or barriers. In `.jump` and `.cse`, the ternary retained
 separate arms and a join, and the later global access kept its own address
 pseudo. `.greg` assigned both disjoint address lifetimes to `$s2`. Later
@@ -84815,7 +84820,7 @@ merge, so neither set can be deleted: `dbr` threads the compare's set into the
 `beqz` delay slot, and the arm's `li` survives next to the store.
 
 Store through an `s32` local instead — the idiom the already-matched gameplay
-sibling `Gp_PlayerMode2State7` uses for the same `statePhase`:
+sibling `_playerActorTickScriptedPresentation` uses for the same `statePhase`:
 
 ```c
 s32 flag;
@@ -106224,7 +106229,7 @@ Written as a literal the arm grows its own `li` (80 instructions against 79, `in
 reached by *following* the `beqz`, the path that skips `[const 1]`, so the narrow constant it stands up
 is the only one in its EBB (see the `switch` + `field = 1` entry above for the cse/EBB mechanics).
 
-**Fix:** borrow the idiom the already-matched `_playerActorUpdateParalysis`, `Gp_PlayerMode2StateB` and
+**Fix:** borrow the idiom the already-matched `_playerActorUpdateParalysis`, `_playerActorTickScriptedItemUse` and
 `_actor800300TickDamageMode` use for this shape - an `s32` local that the store subregs:
 
 ```c
@@ -149224,7 +149229,7 @@ label, and deletes the *earlier* copy. It matched in `effectThrownModelTask`,
 It fails in two ways:
 
 - the image keeps the *earlier* copy and jumps backward to it
-  (`Gp_PlayerMode2State3`: the later arm has a constant 1 in `$s5`, so the
+  (`_playerActorTickScriptedStairClimb`: the later arm has a constant 1 in `$s5`, so the
   surviving later copy stores `s5` where the image has `move v0,a1`);
 - cse makes the copies different: in `_actor800200TickArea23Route7` the
   duplicated `routeComplete = 1` reuses the register that held 1 for an
@@ -149291,7 +149296,7 @@ put the last copy where the image has the block:
 
 Not converted: `playerActorRestoreEquipment` keeps the *earlier* copy of its success
 block and reaches it with a backward `bnez` from the shared call, like
-`Gp_PlayerMode2State3`; an if/else chain with the call and success in each arm
+`_playerActorTickScriptedStairClimb`; an if/else chain with the call and success in each arm
 puts the success after the call and also turns the reload of `cfg->weapon`
 into `move a2,v0` (the image reloads it because the weapon id variable was
 overwritten with the effect id first). Its early-outs and the 0x19/0x1C choice
