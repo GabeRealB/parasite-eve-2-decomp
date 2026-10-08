@@ -276,3 +276,6 @@ dryfieldNightGarageStageSceneAudioStart = 0x80180924; // type:func
 dryfieldNightGarageEnqueueScenePlayback = 0x80180944; // type:func
 dryfieldNightGarageFinishScene = 0x80180964; // type:func
 dryfieldNightGarageCancelScene = 0x80180984; // type:func
+dryfieldNightGarageFindPlacedActor = 0x80180a64; // type:func
+_dryfieldNightGarageCommitRefuelingProgress = 0x80180ab0; // type:func
+_dryfieldNightGarageStartMovieTask = 0x80180d4c; // type:func

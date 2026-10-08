@@ -60,6 +60,13 @@ enum {
     SHELTER_B6_GROWTH_ROOM_PARTICLE_STATE_DRIFT        = 1
 };
 
+/// Reserved leading geometry of the movable collision box in the live room mesh.
+enum {
+    SHELTER_B6_GROWTH_ROOM_BOX_FACE_COUNT   = 4,
+    SHELTER_B6_GROWTH_ROOM_BOX_VERTEX_COUNT = 8,
+    SHELTER_B6_GROWTH_ROOM_BOX_Y_OFFSET     = 2000,
+};
+
 extern TaskDesc D_actor_450900_80135E78[];
 
 /// The layout template and the live copy the reset below restores from it.
@@ -423,45 +430,53 @@ AreaApplyRec D_shelter_b6_growth_room_801807C8[58] = {
     { 255, 0, 0, 0 },
 };
 
-/// Resets the live layout lists from the template: the four-entry vector list
-/// and its 12-byte records, then the eight-entry list, which is afterwards
-/// raised by 0x7D0 on y when `arg0` is nonzero.
-void func_shelter_b6_growth_room_8017D82C(s32 arg0)
+void shelterB6GrowthRoomResetCollisionBox(s32 useYOffset)
 {
-    WorldCollisionGrid* dst;
-    WorldCollisionGrid* src;
-    SVECTOR             d;
-    s32                 i;
+    WorldCollisionGrid*       liveGrid;
+    const WorldCollisionGrid* boxTemplate;
+    SVECTOR                   offset;
+    s32                       geometryIndex;
 
-    dst = &D_shelter_b6_growth_room_8017FAF0;
-    src = &D_shelter_b6_growth_room_8017F234;
-
-    for (i = 0; i < 4; i++) {
-        dst->normals[i].vx = src->normals[i].vx;
-        dst->normals[i].vy = src->normals[i].vy;
-        dst->normals[i].vz = src->normals[i].vz;
-        dst->faces[i]      = src->faces[i];
+    /// Copies the reserved box from disjoint template pools, preserving vector fourth components.
+    ///
+    /// Captures liveGrid, boxTemplate and geometryIndex; reevaluates the two local
+    /// grid pointers and uses the signed index for both loops. Requires four
+    /// normals/faces and eight vertices. Leaves descriptors and cell lists intact.
+#define SHELTER_B6_GROWTH_ROOM_COPY_COLLISION_BOX()                                                         \
+    {                                                                                                       \
+        for (geometryIndex = 0; geometryIndex < SHELTER_B6_GROWTH_ROOM_BOX_FACE_COUNT; geometryIndex++) {   \
+            liveGrid->normals[geometryIndex].vx = boxTemplate->normals[geometryIndex].vx;                   \
+            liveGrid->normals[geometryIndex].vy = boxTemplate->normals[geometryIndex].vy;                   \
+            liveGrid->normals[geometryIndex].vz = boxTemplate->normals[geometryIndex].vz;                   \
+            liveGrid->faces[geometryIndex]      = boxTemplate->faces[geometryIndex];                        \
+        }                                                                                                   \
+        for (geometryIndex = 0; geometryIndex < SHELTER_B6_GROWTH_ROOM_BOX_VERTEX_COUNT; geometryIndex++) { \
+            liveGrid->vertices[geometryIndex].vx = boxTemplate->vertices[geometryIndex].vx;                 \
+            liveGrid->vertices[geometryIndex].vy = boxTemplate->vertices[geometryIndex].vy;                 \
+            liveGrid->vertices[geometryIndex].vz = boxTemplate->vertices[geometryIndex].vz;                 \
+        }                                                                                                   \
     }
 
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i].vx = src->vertices[i].vx;
-        dst->vertices[i].vy = src->vertices[i].vy;
-        dst->vertices[i].vz = src->vertices[i].vz;
-    }
+    liveGrid    = &D_shelter_b6_growth_room_8017FAF0;
+    boxTemplate = &D_shelter_b6_growth_room_8017F234;
 
-    if (arg0 == 0) {
-        d.vx = 0;
-        d.vy = 0;
+    SHELTER_B6_GROWTH_ROOM_COPY_COLLISION_BOX();
+#undef SHELTER_B6_GROWTH_ROOM_COPY_COLLISION_BOX
+
+    if (useYOffset == 0) {
+        offset.vx = 0;
+        offset.vy = 0;
     } else {
-        d.vx = 0;
-        d.vy = 0x7D0;
+        offset.vx = 0;
+        offset.vy = SHELTER_B6_GROWTH_ROOM_BOX_Y_OFFSET;
     }
-    d.vz = 0;
+    offset.vz = 0;
 
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i].vx += d.vx;
-        dst->vertices[i].vy += d.vy;
-        dst->vertices[i].vz += d.vz;
+    // Always restore the template first; repeated calls must not accumulate the shift.
+    for (geometryIndex = 0; geometryIndex < SHELTER_B6_GROWTH_ROOM_BOX_VERTEX_COUNT; geometryIndex++) {
+        liveGrid->vertices[geometryIndex].vx += offset.vx;
+        liveGrid->vertices[geometryIndex].vy += offset.vy;
+        liveGrid->vertices[geometryIndex].vz += offset.vz;
     }
 }
 

@@ -36,9 +36,12 @@ extern s32 Shop_Data_80187628;
 
 extern const EquipmentWeaponSupply* Shop_Data_8018762C;
 
-/// Returns the task of the room work object whose id is the current area and
-/// stage with `arg0` in bits 12 and up, or NULL when there is none.
-Task* func_dryfield_night_garage_80180A64(s32 arg0);
+/// Finds a placed actor in the current stage and area, or returns NULL.
+///
+/// `placementIndex` must be 0..15; it occupies the high nibble of the u16
+/// placement key. Requires a live scene manager whose children carry Enemy
+/// work. Returns a borrowed task, valid only while that actor remains live.
+Task* dryfieldNightGarageFindPlacedActor(s32 placementIndex);
 
 void func_dryfield_night_garage_801807E4(Task* arg0);
 

@@ -502,8 +502,14 @@ static void _neoArkAltarResumeTileSequence(Task* task);
 static void func_neo_ark_altar_8017DF0C(Task* task);
 static void func_neo_ark_altar_8017E148(void);
 
-/// Queues the selected altar movie in the current room without retaining local scratch.
-static inline void _neoArkAltarQueueMovie(Task* task)
+/// Queues the current room's altar movie selected by the task's spawn argument.
+///
+/// Borrows `task`; spawnArg1 0 selects stream ID 100, 1 selects 101, and all
+/// other values select 102. Requires a loaded matching room/sub-ID-0 slot
+/// (0..14) and space in the CD ring. Enqueue copies the full argument envelope
+/// immediately; only its slot byte is initialized and interpreted. The zero
+/// file-key address reads low RAM under the resident enqueue contract.
+static inline void _neoArkAltarQueueMovie(const Task* task)
 {
     enum {
         NEO_ARK_ALTAR_MOVIE_SWITCH_SET      = 0,
@@ -512,7 +518,7 @@ static inline void _neoArkAltarQueueMovie(Task* task)
         NEO_ARK_ALTAR_MOVIE_SWITCH_CLEAR_ID = 101,
         NEO_ARK_ALTAR_MOVIE_SEQUENCE_ID     = 102,
     };
-    u8      commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    u8      commandArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
     GameLoc movieLocation;
 
     movieLocation = gGameSession->location;

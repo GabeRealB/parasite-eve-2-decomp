@@ -2503,10 +2503,12 @@ static void func_shelter_b1_underground_parking_801843F0(Task* task)
     task->state++;
 }
 
-/// Saves a confirmed hotspot while holding the cursor for its command menu.
+/// Latches a confirmed panel choice and stops its cursor before opening commands.
 ///
-/// Borrows the panel task, its work, the port-0 prompt and one hit table entry.
-/// The choice is that entry's switch bit or Enter ID; its command kind is Push.
+/// Requires live panel work, its writable prompt and a readable hit entry.
+/// Copies ID 1/2/4/8 (switch bit) or 16 (Enter) and the entry's prompt kind,
+/// then enters OPEN_COMMANDS. Only the copied values survive the call; no
+/// hotspot pointer is retained, and the pending switch pattern is untouched.
 static inline void _shelterB1UndergroundParkingPanelLatchHotspot(Task* task, ActionPrompt* prompt, _ShelterB1UndergroundParkingPanelWork* work, const ActionPromptHotspot* hotspot)
 {
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;

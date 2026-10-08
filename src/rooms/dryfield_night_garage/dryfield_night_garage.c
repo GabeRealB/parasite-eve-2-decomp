@@ -614,7 +614,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
     switch (arg0->state) {
         case 0:
             capStartSequenceSlot((s16)arg0->spawnArg1.value, 0, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
             arg0->state++;
             return;
         case 1:
@@ -635,7 +635,7 @@ void func_dryfield_night_garage_801807E4(Task* arg0)
                 break;
             }
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
         default:
             taskKill(arg0);
             break;

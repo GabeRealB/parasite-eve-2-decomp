@@ -2,7 +2,7 @@
 D_actor_450900_80135E70 = 0x80135E70; // size:0x1 defined:True
 D_actor_450900_80135E74 = 0x80135E74; // size:0x4 defined:True
 D_actor_450900_80135E78 = 0x80135E78; // size:0x48 defined:True
-func_shelter_b6_growth_room_8017D82C = 0x8017D82C; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
+shelterB6GrowthRoomResetCollisionBox = 0x8017D82C; // type:func absolute:True owner=shelter_b6_growth_room shared=rooms
 _gActor450900Animation00F80Bank1 = 0x801328A4; // size:0x3C defined:True
 _gActor450900Animation00F80Bank4 = 0x801328E0; // size:0x194 defined:True
 _gActor450900Animation00F80Records = 0x80132A74; // size:0x304 defined:True

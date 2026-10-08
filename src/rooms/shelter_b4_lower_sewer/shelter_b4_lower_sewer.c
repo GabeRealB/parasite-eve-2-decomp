@@ -429,13 +429,15 @@ static void _shelterB4LowerSewerInitializeWater(Task* task)
     task->state = task->state + 1;
 }
 
-/// Selects the current display half of the actor-load buffer borrowed for water.
+/// Resets the water packet cursor to the current display half of a borrowed actor buffer.
 ///
-/// Requires `otBuffer` 0 or 1 and previous actor data no longer needed. Each
-/// word-aligned 0xC000-byte half must remain reserved until GPU consumption.
-static inline void _shelterB4LowerSewerResetWaterPackets(void)
+/// A saved companion selects buffer 1, otherwise buffer 2. Requires otBuffer
+/// 0 or 1 and previous actor data no longer needed. Each word-aligned 0xC000-byte
+/// half must remain reserved until GPU consumption. Does not clear its bytes.
+static inline void _shelterB4LowerSewerResetWaterPacketCursor(void)
 {
     enum { SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES = 0xC000 };
+    // These are byte offsets into reusable arenas, rather than object members.
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 0) {
         D_shelter_b4_lower_sewer_80183E14 = (u8*)Fs_ActorLoadBase2 + gDisplayState.otBuffer * SHELTER_B4_LOWER_SEWER_WATER_PACKET_HALF_BYTES;
     } else {
@@ -452,7 +454,7 @@ static inline void _shelterB4LowerSewerResetWaterPackets(void)
 static void _shelterB4LowerSewerDrawWater(Task* task)
 {
     // Reset once so the second rectangle appends after the main rectangle.
-    _shelterB4LowerSewerResetWaterPackets();
+    _shelterB4LowerSewerResetWaterPacketCursor();
     _shelterB4LowerSewerDrawXWaveStrips(task);
     _shelterB4LowerSewerDrawXWaveStrip(task);
 }

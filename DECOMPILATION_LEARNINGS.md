@@ -90561,7 +90561,7 @@ never declared means the seed *undercounts* parameters (see the
 `func_mine_mesa_8017DA7C` entry above), while an `$a3` fed by a delay-slot store
 usually means it is overcounting.
 
-## A value that merely *lands* in an argument register is a third way m2c overcounts parameters (func_dryfield_night_garage_80180A64, 2026-09-16)
+## A value that merely *lands* in an argument register is a third way m2c overcounts parameters (dryfieldNightGarageFindPlacedActor, 2026-09-16)
 
 The seed for this one-argument function came out two-argument:
 

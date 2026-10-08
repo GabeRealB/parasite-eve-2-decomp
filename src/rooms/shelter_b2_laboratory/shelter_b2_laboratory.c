@@ -167,7 +167,7 @@ extern TaskMessageEntry D_shelter_b2_laboratory_80182A38[];
 extern Task* D_shelter_b2_laboratory_80182A68;
 
 /// Per-view attenuation, in percent, of the looping sound played by
-/// `func_shelter_b2_laboratory_8017FEB8`.
+/// `_shelterB2LaboratoryAmbienceTask`.
 extern s8 D_shelter_b2_laboratory_80182A90[];
 
 /// Glow positions `shelterB2LaboratoryGlowTask` draws per view:
@@ -188,7 +188,7 @@ extern RoomEventReq gRoomEventReq;
 /// cleared on every other call.
 extern u8 gRoomEventActive;
 
-/// Non-zero while the looping sound of `func_shelter_b2_laboratory_8017FEB8`
+/// Non-zero while the looping sound of `_shelterB2LaboratoryAmbienceTask`
 /// should keep playing; set by `func_shelter_b2_laboratory_801804FC`.
 extern s32 D_shelter_b2_laboratory_801864B8;
 
@@ -218,13 +218,13 @@ enum {
     SHELTER_B2_LABORATORY_GLOW_PULSE_FAST = 1,
 };
 
-s32  func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, s32);
-s32  func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* firstArg, s32);
-s32  func_shelter_b2_laboratory_8018025C(Task*, s32, s32, s32);
-void func_shelter_b2_laboratory_8017FEB8(Task*);
-void func_shelter_b2_laboratory_80180290(Task*);
-void func_shelter_b2_laboratory_80180350(Task*);
+s32         func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, s32);
+s32         func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32         func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* firstArg, s32);
+s32         func_shelter_b2_laboratory_8018025C(Task*, s32, s32, s32);
+static void _shelterB2LaboratoryAmbienceTask(Task* task);
+void        func_shelter_b2_laboratory_80180290(Task*);
+void        func_shelter_b2_laboratory_80180350(Task*);
 
 extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186450[1];
 extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186458[1];
@@ -288,7 +288,7 @@ Task* D_shelter_b2_laboratory_80182A68 = NULL;
 
 TaskDesc D_shelter_b2_laboratory_80182A6C[3] = {
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_laboratory_80180290, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_laboratory_8017FEB8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB2LaboratoryAmbienceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_laboratory_80180350, { .value = 0 } },
 };
 
@@ -1140,47 +1140,76 @@ static const TaskFuncTable3 D_shelter_b2_laboratory_8017D6BC = {
     },
 };
 
-void func_shelter_b2_laboratory_8017FEB8(Task* arg0)
+/// Composes the laboratory ambience's room-space origin against the current view.
+static inline void _shelterB2LaboratoryComposeAmbienceOrigin(void)
 {
-    s8  pan;
-    s8  depth;
-    s32 vol;
-
     D_shelter_b2_laboratory_801864DC.coord.t[0]   = 0xC1C;
     D_shelter_b2_laboratory_801864DC.coord.t[1]   = -0x5DC;
     D_shelter_b2_laboratory_801864DC.coord.t[2]   = -0xC80;
     D_shelter_b2_laboratory_801864DC.parent       = &gGfxViewCoord;
     D_shelter_b2_laboratory_801864DC.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&D_shelter_b2_laboratory_801864DC);
-    pan   = worldCoordGetOriginAudioPan(&D_shelter_b2_laboratory_801864DC);
-    depth = worldCoordGetOriginAudioDepth(&D_shelter_b2_laboratory_801864DC);
-    switch (arg0->state) {
-        case 0:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), pan, depth);
-            arg0->state++;
+}
+
+/// Runs the laboratory's looping ambience and retunes it after view changes.
+///
+/// Start at state 0 with the room bank loaded and the room's ambience-enable
+/// latch set. Begins at the spatial pan/depth of room point (3100, -1500, -3200).
+/// When the saved and active views diverge, waits three intervening callback
+/// ticks, then replaces attenuation from the active view's percentage table.
+/// The active view must be 0..15. Stop is checked only in the watching state;
+/// clearing the latch queues a release-preserving stop and destroys the task.
+/// The body, work and spawn arguments are unused. Bank resources must outlive
+/// queued events and the running sound; queue-admission failures are ignored.
+static void _shelterB2LaboratoryAmbienceTask(Task* task)
+{
+    enum {
+        SHELTER_B2_LABORATORY_AMBIENCE_START           = 0,
+        SHELTER_B2_LABORATORY_AMBIENCE_WATCH_VIEW      = 1,
+        SHELTER_B2_LABORATORY_AMBIENCE_DELAY_FIRST     = 2,
+        SHELTER_B2_LABORATORY_AMBIENCE_DELAY_SECOND    = 3,
+        SHELTER_B2_LABORATORY_AMBIENCE_DELAY_THIRD     = 4,
+        SHELTER_B2_LABORATORY_AMBIENCE_RETUNE          = 5,
+        SHELTER_B2_LABORATORY_AMBIENCE_SOUND_ENTRY     = 0x0E,
+        SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION = 127,
+        SHELTER_B2_LABORATORY_AMBIENCE_PERCENT_SCALE   = 100,
+    };
+    s8  panOffset;
+    s8  initialAttenuation;
+    s32 viewAttenuation;
+
+    // Recompose every tick so both phases use the current camera's spatial pan.
+    _shelterB2LaboratoryComposeAmbienceOrigin();
+    panOffset          = worldCoordGetOriginAudioPan(&D_shelter_b2_laboratory_801864DC);
+    initialAttenuation = worldCoordGetOriginAudioDepth(&D_shelter_b2_laboratory_801864DC);
+    switch (task->state) {
+        case SHELTER_B2_LABORATORY_AMBIENCE_START:
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_AMBIENCE_SOUND_ENTRY), panOffset, initialAttenuation);
+            task->state++;
             break;
-        case 1:
+        case SHELTER_B2_LABORATORY_AMBIENCE_WATCH_VIEW:
             if (D_shelter_b2_laboratory_801864B8 == 0) {
-                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                taskKill(arg0);
+                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_AMBIENCE_SOUND_ENTRY), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                taskKill(task);
                 return;
             }
             if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) {
-                arg0->state++;
+                task->state++;
             }
             break;
-        case 2:
-        case 3:
-        case 4:
-            arg0->state++;
+        case SHELTER_B2_LABORATORY_AMBIENCE_DELAY_FIRST:
+        case SHELTER_B2_LABORATORY_AMBIENCE_DELAY_SECOND:
+        case SHELTER_B2_LABORATORY_AMBIENCE_DELAY_THIRD:
+            task->state++;
             break;
-        case 5:
-            vol = 0x7F - D_shelter_b2_laboratory_80182A90[gGameSession->location.loc.view] * 0x7F / 100;
-            if (vol >= 0x80) {
-                vol = 0x7F;
+        case SHELTER_B2_LABORATORY_AMBIENCE_RETUNE:
+            // The table is a gain percentage; the sound API takes attenuation.
+            viewAttenuation = SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION - D_shelter_b2_laboratory_80182A90[gGameSession->location.loc.view] * SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION / SHELTER_B2_LABORATORY_AMBIENCE_PERCENT_SCALE;
+            if (viewAttenuation >= SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION + 1) {
+                viewAttenuation = SHELTER_B2_LABORATORY_AMBIENCE_MAX_ATTENUATION;
             }
-            sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x0E), pan, (s8)vol);
-            arg0->state = 1;
+            sndEvtRequestScriptMix(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_AMBIENCE_SOUND_ENTRY), panOffset, (s8)viewAttenuation);
+            task->state = SHELTER_B2_LABORATORY_AMBIENCE_WATCH_VIEW;
             break;
     }
 }

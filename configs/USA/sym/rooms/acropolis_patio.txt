@@ -200,3 +200,4 @@ _acropolisPatioActivateRoom2 = 0x8017df48; // type:func
 _acropolisPatioSetActorControl = 0x8017df70; // type:func
 _acropolisPatioRoomIdleState = 0x8017df7c; // type:func
 _acropolisPatioPlayerTurnLeftTask = 0x8017e054; // type:func
+_acropolisPatioSetPlayerHeadAimState = 0x8017df38; // type:func

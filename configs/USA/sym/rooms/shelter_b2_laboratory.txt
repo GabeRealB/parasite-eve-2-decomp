@@ -142,3 +142,4 @@ _shelterB2LaboratoryRejectKeyItemUse = 0x801800f4; // type:func
 _shelterB2LaboratoryIdleMessageTask = 0x80180494; // type:func
 _shelterB2LaboratoryDrawGlowDiamond = 0x801812f8; // type:func
 _shelterB2LaboratorySetFastGlowPulse = 0x801820f4; // type:func
+_shelterB2LaboratoryAmbienceTask = 0x8017feb8; // type:func

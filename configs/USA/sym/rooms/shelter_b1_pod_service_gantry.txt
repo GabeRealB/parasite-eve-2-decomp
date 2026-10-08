@@ -93,3 +93,7 @@ _waterDrawSpinU16 = 0x8017ED3C; // type:func
 _waterDrawTileU16 = 0x8017F160; // type:func
 _shelterB1PodServiceGantryDrawBankedDriftSprite = 0x8017df70; // type:func
 _shelterB1PodServiceGantryDrawAlternateDriftSprite = 0x8017e400; // type:func
+_shelterB1PodServiceGantryRejectKeyItemUse = 0x8017d7c0; // type:func
+_shelterB1PodServiceGantryResolveRoomVariant = 0x8017d7c8; // type:func
+_shelterB1PodServiceGantryIgnoreCommand = 0x8017d80c; // type:func
+_shelterB1PodServiceGantryIgnoreRoomAction = 0x8017d814; // type:func

@@ -77,19 +77,19 @@ static const TaskFuncTable3 D_shelter_b1_pod_service_gantry_8017D5C4 = {
     { func_shelter_b1_pod_service_gantry_8017D81C, func_shelter_b1_pod_service_gantry_8017D628, taskKill },
 };
 
-s32 func_shelter_b1_pod_service_gantry_8017D7C0(Task*, s32, s32, s32);
-s32 func_shelter_b1_pod_service_gantry_8017D7C8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_pod_service_gantry_8017D80C(Task*, s32, s32, s32);
-s32 func_shelter_b1_pod_service_gantry_8017D814(Task*, s32, s32, s32);
+static s32 _shelterB1PodServiceGantryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
+static s32 _shelterB1PodServiceGantryResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _shelterB1PodServiceGantryIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg);
+static s32 _shelterB1PodServiceGantryIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 extern WorldCoordPointLight                      D_shelter_b1_pod_service_gantry_80181DC8[9];
 extern ShelterB1PodServiceGantrySpotLightStorage D_shelter_b1_pod_service_gantry_80182128;
 
 TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_pod_service_gantry_8017D7C8 },
-    { 5105, func_shelter_b1_pod_service_gantry_8017D7C0 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_pod_service_gantry_8017D814 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_pod_service_gantry_8017D80C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1PodServiceGantryResolveRoomVariant },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1PodServiceGantryRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1PodServiceGantryIgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelterB1PodServiceGantryIgnoreCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1581,28 +1581,51 @@ static void func_shelter_b1_pod_service_gantry_8017D628(Task* task)
     }
 }
 
-s32 func_shelter_b1_pod_service_gantry_8017D7C0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use at the gantry without consuming the selected item.
+///
+/// Handles ROOM_MESSAGE_USE_KEY_ITEM. All arguments are unused; the reply
+/// selects the inventory's refusal notice.
+static s32 _shelterB1PodServiceGantryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Handler of message 0x13EE in the room's message table: copies the incoming
-/// record onto the outgoing one, passes both to `mapShelterRoomVariantResolve` and returns 1.
-s32 func_shelter_b1_pod_service_gantry_8017D7C8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Accepts a room transition and resolves its Mine/Shelter destination from progress.
+///
+/// Handles ROOM_EVENT_MESSAGE_RESOLVE with a readable complete eight-byte
+/// request and writable reply; both may be the same record. Copies the request
+/// before resolving the reply's room. Queries preserve its destination. The map
+/// overlay must be loaded; neither pointer is retained. Always returns 1.
+static s32 _shelterB1PodServiceGantryResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    enum { SHELTER_B1_POD_SERVICE_GANTRY_ROOM_EVENT_ACCEPTED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_B1_POD_SERVICE_GANTRY_ROOM_EVENT_ACCEPTED;
 }
 
-s32 func_shelter_b1_pod_service_gantry_8017D80C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores gantry CAP room commands and returns zero without side effects.
+///
+/// ROOM_MESSAGE_COMMAND carries an integer selector and argument. All four
+/// parameters are unused; the sender discards the result.
+static s32 _shelterB1PodServiceGantryIgnoreCommand(Task* task, s32 messageId, s32 command, s32 commandArg)
 {
-    return 0;
+    enum { SHELTER_B1_POD_SERVICE_GANTRY_COMMAND_IGNORED = 0 };
+
+    return SHELTER_B1_POD_SERVICE_GANTRY_COMMAND_IGNORED;
 }
 
-s32 func_shelter_b1_pod_service_gantry_8017D814(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores gantry direction-trigger actions and returns zero without side effects.
+///
+/// DIRECTION_MESSAGE_ROOM_ACTION borrows a request and carries a zero second
+/// payload. The request is neither read nor retained, and the sender ignores
+/// the result. The task and message ID are also unused.
+static s32 _shelterB1PodServiceGantryIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    return 0;
+    enum { SHELTER_B1_POD_SERVICE_GANTRY_ROOM_ACTION_IGNORED = 0 };
+
+    return SHELTER_B1_POD_SERVICE_GANTRY_ROOM_ACTION_IGNORED;
 }
 
 static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)

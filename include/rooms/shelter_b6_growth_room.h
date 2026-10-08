@@ -39,8 +39,15 @@ extern WorldCollisionSurfaceProperties* D_shelter_b6_growth_room_801807A8[];
 
 void func_shelter_b6_growth_room_8017D7D4(Task* task);
 
-// Called by the actor overlay's event scripts while this room is loaded.
-void func_shelter_b6_growth_room_8017D82C(s32 arg0);
+/// Restores the growth room's reserved collision box with an optional Y displacement.
+///
+/// Requires the growth-room overlay and writable live grid pools. Zero
+/// useYOffset restores the template's room coordinates; nonzero adds 2000 game
+/// units to Y. Replaces the leading four faces/normals and eight vertices,
+/// preserving vector fourth components, later geometry and all cell lists.
+/// Repeated calls restore before shifting. Actor scene scripts call this while
+/// the room's collision grid remains active; no resource is allocated or freed.
+void shelterB6GrowthRoomResetCollisionBox(s32 useYOffset);
 
 void func_shelter_b6_growth_room_8017D9D8(Task* task);
 

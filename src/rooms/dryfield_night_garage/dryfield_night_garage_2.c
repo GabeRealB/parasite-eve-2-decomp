@@ -84,10 +84,10 @@ extern WorldCoordRoomLights       D_dryfield_night_garage_80186D64[1];
 
 static void _dryfieldNightGaragePlayMovieTask(Task* task);
 static void _dryfieldNightGarageBlackoutTask(Task* task);
-void        func_dryfield_night_garage_80180D4C(Task*);
+static void _dryfieldNightGarageStartMovieTask(Task* task);
 
-void func_dryfield_night_garage_801809A4(Task*);
-void func_dryfield_night_garage_80180AB0(void);
+void        func_dryfield_night_garage_801809A4(Task*);
+static void _dryfieldNightGarageCommitRefuelingProgress(void);
 
 TaskDesc D_dryfield_night_garage_80182C98[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_801809A4, { .value = 0 } },
@@ -183,7 +183,7 @@ EvsCommand D_dryfield_night_garage_80182DF8[40] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldNightGarageFinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldNightGaragePlaceLowCollisionBox }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_garage_80180AB0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGarageCommitRefuelingProgress }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -202,7 +202,7 @@ EvsCommand D_dryfield_night_garage_801831B8[19] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = dryfieldNightGaragePlaceLowCollisionBox }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_night_garage_80180AB0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldNightGarageCommitRefuelingProgress }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -211,7 +211,7 @@ EvsCommand D_dryfield_night_garage_801831B8[19] = {
 };
 
 TaskDesc D_dryfield_night_garage_80183380[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_night_garage_80180D4C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGarageStartMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _dryfieldNightGaragePlayMovieTask, { .value = 0 } },
 };
 
@@ -1115,13 +1115,13 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
     switch (temp_v1) {
         case 0:
             capRunCommand(arg0->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
-            TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE0, 0);
             arg0->state = arg0->state + 1;
             return;
         case 1:
             if (capIsBusy() == 0) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                TASK_MESSAGE_DISPATCH_POINTER(func_dryfield_night_garage_80180A64(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
+                TASK_MESSAGE_DISPATCH_POINTER(dryfieldNightGarageFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_dryfield_night_garage_80182DE4, 0);
                 break;
             }
             return;
@@ -1129,46 +1129,55 @@ void func_dryfield_night_garage_801809A4(Task* arg0)
     taskKill(arg0);
 }
 
-Task* func_dryfield_night_garage_80180A64(s32 arg0)
+Task* dryfieldNightGarageFindPlacedActor(s32 placementIndex)
 {
-    Enemy* enemy;
-    Task*  task;
+    const Enemy* placedEnemy;
+    Task*        actorTask;
 
-    enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((arg0 << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT)));
-    task  = NULL;
-    if (enemy != NULL) {
-        task = enemy->task;
+    placedEnemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((placementIndex << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT)));
+    actorTask   = NULL;
+    if (placedEnemy != NULL) {
+        actorTask = placedEnemy->task;
     }
-    return task;
+    return actorTask;
 }
 
-void func_dryfield_night_garage_80180AB0(void)
+/// Commits the saved-area and story changes shared by both refueling-scene exits.
+///
+/// Resets saloon conversation progress, advances companion type 2's schedule
+/// and unlocks the saloon/parking door. Also applies the underpass saved-area
+/// update if Gray Stalker has been defeated. Requires the live save and
+/// initialized area tables.
+static void _dryfieldNightGarageCommitRefuelingProgress(void)
 {
+    enum { DRYFIELD_NIGHT_GARAGE_POST_REFUELING_COMPANION_SCHEDULE = 5 };
+
     areaApplySavedUpdates(D_dryfield_night_garage_801875D8);
     gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_CUTSCENE_SEEN, 0);
     gameFlagSetNibble(GAME_FLAG_NIGHT_SALOON_TALK_PROGRESS, 0);
-    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 5);
+    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, DRYFIELD_NIGHT_GARAGE_POST_REFUELING_COMPANION_SCHEDULE);
     gameFlagSetNibble(GAME_FLAG_SALOON_PARKING_LOT_DOOR_UNLOCKED, 1);
     if (gameFlagGetNibble(GAME_FLAG_GRAY_STALKER_DEFEATED) != 0) {
         areaApplySavedUpdates(D_dryfield_night_garage_80187620);
     }
 }
 
-/// Queues the garage movie selected by disc and the task's alternate-movie flag.
+/// Queues the current room's garage movie selected by disc and alternate-movie flag.
 ///
-/// The selected stream descriptor must already be loaded. Copies a four-byte
-/// command envelope immediately; only byte zero is interpreted by this opcode.
-/// Leaves opcode-unused bytes unspecified; the zero file key reads low RAM.
-static inline void _dryfieldNightGarageQueueMovie(Task* task)
+/// Borrows `task`; zero spawnArg1 selects stream ID 100 (disc 1) or 101
+/// (disc 2), nonzero selects 102 or 103. Requires a loaded matching room/sub-ID-0
+/// slot (0..14) and space in the CD ring. Enqueue copies the full argument
+/// envelope immediately; only its slot byte is initialized and interpreted.
+/// The zero file-key address reads low RAM under the resident enqueue contract.
+static inline void _dryfieldNightGarageQueueMovie(const Task* task)
 {
     enum {
-        DRYFIELD_NIGHT_GARAGE_MOVIE_COMMAND_BYTES    = 4,
         DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_PRIMARY   = 100,
         DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_PRIMARY   = 101,
         DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_1_ALTERNATE = 102,
         DRYFIELD_NIGHT_GARAGE_MOVIE_DISC_2_ALTERNATE = 103,
     };
-    u8      commandArgs[DRYFIELD_NIGHT_GARAGE_MOVIE_COMMAND_BYTES];
+    u8      commandArgs[sizeof(gCdCmdQueue.entries[0].args.bytes)];
     GameLoc movieKey;
     s16     streamSlot;
 
@@ -1287,15 +1296,19 @@ static void _dryfieldNightGarageBlackoutTask(Task* task)
     }
 }
 
-/// Spawns `D_dryfield_night_garage_80183380` with an ordering table, passing
-/// on the task's `spawnArg1`, sets `gDisplayState.control.flags.flipMode`, spawns the view tasks and
-/// kills itself.
-void func_dryfield_night_garage_80180D4C(Task* arg0)
+/// Hands display presentation to the garage movie task and releases this launcher.
+///
+/// Requires the loaded garage overlay and a live bodyless task. Forwards
+/// spawnArg1's alternate-movie flag to the playback task, selects task-only
+/// presentation and queues the current view camera/packets before teardown.
+static void _dryfieldNightGarageStartMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_dryfield_night_garage_80183380, 1, arg0->spawnArg1.value, 0);
+    enum { DRYFIELD_NIGHT_GARAGE_MOVIE_PLAYBACK_DESCRIPTOR = 1 };
+
+    displaySpawnTaskFromTable(D_dryfield_night_garage_80183380, DRYFIELD_NIGHT_GARAGE_MOVIE_PLAYBACK_DESCRIPTOR, task->spawnArg1.value, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+    taskKill(task);
 }
 
 #include "../../shared/glow_draw_grey_capsule.inc.c"

@@ -53,3 +53,4 @@ glowDrawDisc = 0x8017E0A8; // type:func
 _shelterB6GrowthRoomDrawMist = 0x8017e7f0; // type:func
 _shelterB6GrowthRoomDrawDriftPuff = 0x8017ed28; // type:func
 _shelterB6GrowthRoomDrawBottomGlow = 0x8017e448; // type:func
+shelterB6GrowthRoomResetCollisionBox = 0x8017d82c; // type:func
