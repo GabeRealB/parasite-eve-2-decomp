@@ -86,29 +86,21 @@ extern const char D_80093898[];
 
 static void Gp_DrawItemPrompt(s32 arg0, s32 arg1);
 
-/// Inline copy of `attachmentGetEffectiveLevel`.
-static __inline__ s32 getAttachLevel(s32 idx);
+static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex);
 
-/// Inline copy of `sceneIsBattleActive`.
-static __inline__ s32 isStateF0Active_(void);
+static __inline__ s32 _sceneIsBattleActive(void);
 
-/// Reads column `field` of the `Gp_IdParamHi` row that attach `idx` uses at
-/// level `lvl`.
-static __inline__ u16 _gpAttachParam(s32 idx, s32 lvl, s32 field);
+static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column);
 
-static s32 Gp_CheckAttachThreshold(s32 arg0);
+static s32 _attachmentIsCastBlocked(s32 abilityIndex);
 
 static void Gp_SetAttachState(s32 arg0);
 
 static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save);
 
-static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1);
+static __inline__ s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps);
 
-static __inline__ s32 getAttachWheelLevel(s32 idx);
-
-/// Inline copy of `attachmentGetActiveLevelValue` for an explicit slot: parameter `field`
-/// of the `Gp_IdParamHi` row for `slot` at its current level.
-static __inline__ u16 getAttachWheelParam(s32 slot, s32 field);
+static __inline__ u16 _attachmentGetEffectiveLevelValue(s32 abilityIndex, s32 column);
 
 static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2);
 
@@ -117,11 +109,7 @@ static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2);
 /// Inline copy of `attachmentGetLearnedLevels`.
 static __inline__ u8* getAttachLevels(void);
 
-/// Inline copy of `_hudCanSwitchCategory`: normal or aimed locomotion permits
-/// a HUD category switch after input and battle-end delays expire, provided no
-/// direction action or interaction press is active. `ignoreSwapLock` bypasses
-/// `ATTACHMENT_FLAG_SWAP_LOCK`, as `Gp_HudTask` does for START in battle.
-static __inline__ s32 hudSwapReady(s32 ignoreSwapLock);
+static __inline__ s32 _hudCanSwitchCategory(s32 ignoreSwapLock);
 
 /// Inline copy of `_attachmentIsBattleSoundLoadReady`.
 static __inline__ s32 cdIdleIfF0Active_(void);
@@ -545,43 +533,65 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
 #undef DRAW_PROMPT_LABEL
 #undef DRAW_PROMPT_COUNT
 
-/// Inline copy of `attachmentGetEffectiveLevel`.
-static __inline__ s32 getAttachLevel(s32 idx)
+/// Tests whether the live shooting-gallery session uses training spell levels.
+///
+/// Borrows the player record; room and view do not affect this stage/area test.
+static __inline__ s32 _attachmentUsesTrainingLevels(const PlayerStatus* player)
 {
-    PlayerStatus* p;
-    u8*           table;
-    s32           cond;
-    s32           lvl;
+    enum { ATTACHMENT_TRAINING_RESOURCE_VARIANT = 4 };
+    s32 usesTrainingLevels;
 
-    if (idx >= 0xC) {
-        lvl = 1;
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+        usesTrainingLevels = 0;
     } else {
-        p = &gPlayerStatus;
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-            cond = 0;
-        } else {
-            cond = p->resourceVariant == 4;
-        }
-        if (cond == 0) {
-            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-        } else {
-            table = Gp_DebugAttachLevels;
-        }
-        lvl = table[idx];
-        if (lvl == 0) {
-            lvl = 1;
-        }
-        if ((p->statusFlags & PLAYER_STATUS_BERSERKER) && lvl < 3) {
-            lvl++;
-        }
+        usesTrainingLevels = player->resourceVariant == ATTACHMENT_TRAINING_RESOURCE_VARIANT;
     }
-    return lvl;
+    return usesTrainingLevels;
 }
 
-/// Inline copy of `sceneIsBattleActive`.
-static __inline__ s32 isStateF0Active_(void)
+/// Returns a spell's effective cast level, or level one for an item attachment.
+///
+/// `abilityIndex` must be nonnegative: spells 0..11 use the live save's learned
+/// levels, or training levels in the shooting gallery; item slots 12..17 return
+/// one. A learned zero becomes one without unlocking the spell. Berserker adds
+/// one only below level three. Stored levels above three are retained; callers
+/// indexing level tables require learned values 0..3. No state is changed.
+static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex)
 {
-    SceneCombatState* combat;
+    enum { ATTACHMENT_MIN_EFFECTIVE_LEVEL = 1 };
+    const PlayerStatus* player;
+    const u8*           learnedLevels;
+    s32                 usesTrainingLevels;
+    s32                 level;
+
+    if (abilityIndex >= ATTACHMENT_SPELL_COUNT) {
+        level = ATTACHMENT_MIN_EFFECTIVE_LEVEL;
+    } else {
+        player             = &gPlayerStatus;
+        usesTrainingLevels = _attachmentUsesTrainingLevels(player);
+        if (usesTrainingLevels == 0) {
+            learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
+        } else {
+            learnedLevels = Gp_DebugAttachLevels;
+        }
+        level = learnedLevels[abilityIndex];
+        if (level == 0) {
+            level = ATTACHMENT_MIN_EFFECTIVE_LEVEL;
+        }
+        if ((player->statusFlags & PLAYER_STATUS_BERSERKER) && level < ATTACHMENT_AREA_LEVEL_COUNT) {
+            level++;
+        }
+    }
+    return level;
+}
+
+/// Returns one while an engaged battle has holds or its end delay is nonzero.
+///
+/// The end delay keeps the gate active regardless of battle phase. No state is
+/// changed.
+static __inline__ s32 _sceneIsBattleActive(void)
+{
+    const SceneCombatState* combat;
 
     combat = &gSceneCombatState;
     if ((combat->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
@@ -590,33 +600,55 @@ static __inline__ s32 isStateF0Active_(void)
     return 0;
 }
 
-/// Reads column `field` of the `Gp_IdParamHi` row that attach `idx` uses at
-/// level `lvl`.
-static __inline__ u16 _gpAttachParam(s32 idx, s32 lvl, s32 field)
+/// Reads one unsigned halfword parameter for an explicit ability and cast level.
+///
+/// `abilityIndex` is 0..17, `level` is 1..3, and `column` selects a stored
+/// `ATTACHMENT_LEVEL_*` column in 0..7. The inputs are not checked or masked;
+/// level zero reads the preceding row directly. No table pointer is retained.
+static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
 {
-    return Gp_IdParamHi.rows[idx * 3 + lvl].value[field];
+    return Gp_IdParamHi.rows[abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level].value[column];
 }
 
-static s32 Gp_CheckAttachThreshold(s32 arg0)
+/// Returns one when the selected spell or item attachment cannot be cast.
+///
+/// `abilityIndex` must be 0..17 and learned levels must be 0..3. Outside battle,
+/// only Healing with missing HP and sufficient MP is allowed. In battle, item
+/// slots bypass spell checks; spells obey silence, resources, wards and Energy
+/// Ball capacity. Berserker permits only the first six spells and requires HP
+/// strictly greater than twice the cast cost. Cheats bypass only the ordinary
+/// in-battle MP and full-HP Healing checks. This does not spend resources or
+/// test whether the spell is learned; callers handle selection and release.
+static s32 _attachmentIsCastBlocked(s32 abilityIndex)
 {
-    PlayerStatus* cfg;
-    s32           result;
-    s32           n;
+    enum {
+        ATTACHMENT_ENERGY_BALL_LIMIT            = 3,
+        ATTACHMENT_BERSERKER_HP_COST_MULTIPLIER = 2
+    };
+    const PlayerStatus* player;
+    s32                 blocked;
+    s32                 level;
 
-    cfg    = &gPlayerStatus;
-    result = 0;
-    n      = getAttachLevel(arg0);
+    player  = &gPlayerStatus;
+    blocked = 0;
+    level   = _attachmentGetEffectiveLevel(abilityIndex);
 
-    if (!isStateF0Active_()) {
-        if (cfg->mp < _gpAttachParam(arg0, n, ATTACHMENT_LEVEL_CAST_COST) || arg0 != ATTACHMENT_INDEX_HEALING || cfg->hpMax == cfg->hp) {
-            result = 1;
+    if (!_sceneIsBattleActive()) {
+        if (player->mp < _attachmentGetLevelValue(abilityIndex, level, ATTACHMENT_LEVEL_CAST_COST) || abilityIndex != ATTACHMENT_INDEX_HEALING || player->hpMax == player->hp) {
+            blocked = 1;
         }
-    } else if (arg0 < ATTACHMENT_SPELL_COUNT) {
-        if ((cfg->statusFlags & PLAYER_STATUS_SILENCE) || (!(cfg->statusFlags & PLAYER_STATUS_BERSERKER) && cfg->mp < _gpAttachParam(arg0, n, ATTACHMENT_LEVEL_CAST_COST) && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == ATTACHMENT_INDEX_METABOLISM && Gp_StateC08.mindWard != 0 && Gp_StateC08.bodyWard != 0) || (arg0 == ATTACHMENT_INDEX_HEALING && cfg->hpMax == cfg->hp && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) || (arg0 == ATTACHMENT_INDEX_ENERGY_BALL && gEnergyBallInFlightCount >= 3) || ((cfg->statusFlags & PLAYER_STATUS_BERSERKER) && (arg0 >= ATTACHMENT_INDEX_METABOLISM || _gpAttachParam(arg0, n, ATTACHMENT_LEVEL_CAST_COST) * 2 >= cfg->hp))) {
-            result = 1;
+    } else if (abilityIndex < ATTACHMENT_SPELL_COUNT) {
+        // Cheats leave status restrictions, ward redundancy and HP safety intact.
+        if ((player->statusFlags & PLAYER_STATUS_SILENCE) ||
+            (!(player->statusFlags & PLAYER_STATUS_BERSERKER) && player->mp < _attachmentGetLevelValue(abilityIndex, level, ATTACHMENT_LEVEL_CAST_COST) && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) ||
+            (abilityIndex == ATTACHMENT_INDEX_METABOLISM && Gp_StateC08.mindWard != 0 && Gp_StateC08.bodyWard != 0) ||
+            (abilityIndex == ATTACHMENT_INDEX_HEALING && player->hpMax == player->hp && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.cheatMode == 0) ||
+            (abilityIndex == ATTACHMENT_INDEX_ENERGY_BALL && gEnergyBallInFlightCount >= ATTACHMENT_ENERGY_BALL_LIMIT) ||
+            ((player->statusFlags & PLAYER_STATUS_BERSERKER) && (abilityIndex >= ATTACHMENT_INDEX_METABOLISM || _attachmentGetLevelValue(abilityIndex, level, ATTACHMENT_LEVEL_CAST_COST) * ATTACHMENT_BERSERKER_HP_COST_MULTIPLIER >= player->hp))) {
+            blocked = 1;
         }
     }
-    return result;
+    return blocked;
 }
 
 static void Gp_SetAttachState(s32 arg0)
@@ -641,7 +673,7 @@ static void Gp_SetAttachState(s32 arg0)
     column                  = idx % 3;
     attachId                = rowPrefix + column;
     attachId               *= 10;
-    level                   = getAttachLevel(idx);
+    level                   = _attachmentGetEffectiveLevel(idx);
     attachId               += level;
 
     attachment              = &Gp_StateC08;
@@ -702,89 +734,64 @@ static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
     return arg0;
 }
 
-static __inline__ s32 stepAttachWheel(s32 arg0, s32 arg1)
+/// Moves through learned wheel spells by a signed count of eligible positions.
+///
+/// `abilityIndex` is 0..11. Positive `steps` moves forward, negative backward,
+/// wrapping within the twelve spells; zero retains the index. Uses the live
+/// save or shooting-gallery training levels. Cheats make every spell eligible.
+/// Nonzero steps require a learned spell or cheats, or the search never ends.
+/// Returns the new index without changing selection or either level table.
+static __inline__ s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps)
 {
-    PlayerStatus* p;
-    McSaveData*   save;
-    s32           cond;
-    u8*           table;
+    const PlayerStatus* player;
+    const McSaveData*   liveSave;
+    s32                 usesTrainingLevels;
+    const u8*           learnedLevels;
 
-    p = &gPlayerStatus;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-        cond = 0;
+    player             = &gPlayerStatus;
+    usesTrainingLevels = _attachmentUsesTrainingLevels(player);
+    if (usesTrainingLevels == 0) {
+        learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
-        cond = p->resourceVariant == 4;
+        learnedLevels = Gp_DebugAttachLevels;
     }
-    if (cond == 0) {
-        table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-    } else {
-        table = Gp_DebugAttachLevels;
-    }
-    if (arg1 != 0) {
-        save = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    if (steps != 0) {
+        liveSave = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        // Each requested step searches past unlearned slots before consuming it.
         do {
-            if (arg1 > 0) {
+            if (steps > 0) {
                 do {
-                    arg0++;
-                    if (arg0 >= 0xC) {
-                        arg0 = 0;
+                    abilityIndex++;
+                    if (abilityIndex >= ATTACHMENT_SPELL_COUNT) {
+                        abilityIndex = 0;
                     }
-                } while (table[arg0] == 0 && save->state.cheatMode == 0);
-                arg1--;
+                } while (learnedLevels[abilityIndex] == 0 && liveSave->state.cheatMode == 0);
+                steps--;
             } else {
                 do {
-                    arg0--;
-                    if (arg0 < 0) {
-                        arg0 += 0xC;
+                    abilityIndex--;
+                    if (abilityIndex < 0) {
+                        abilityIndex += ATTACHMENT_SPELL_COUNT;
                     }
-                } while (table[arg0] == 0 && save->state.cheatMode == 0);
-                arg1++;
+                } while (learnedLevels[abilityIndex] == 0 && liveSave->state.cheatMode == 0);
+                steps++;
             }
-        } while (arg1 != 0);
+        } while (steps != 0);
     }
-    return arg0;
+    return abilityIndex;
 }
 
-static __inline__ s32 getAttachWheelLevel(s32 idx)
+/// Reads one level parameter of a spell or item attachment at its effective level.
+///
+/// `abilityIndex` must be 0..17, learned levels 0..3, and `column` an
+/// `ATTACHMENT_LEVEL_*` index in 0..7. Uses the effective-level rules without
+/// checking cast eligibility or changing state. Returns an unsigned halfword.
+static __inline__ u16 _attachmentGetEffectiveLevelValue(s32 abilityIndex, s32 column)
 {
-    PlayerStatus* p;
-    u8*           table;
-    s32           cond;
-    s32           lvl;
+    s32 level;
 
-    if (idx >= 0xC) {
-        lvl = 1;
-    } else {
-        p = &gPlayerStatus;
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-            cond = 0;
-        } else {
-            cond = p->resourceVariant == 4;
-        }
-        if (cond == 0) {
-            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-        } else {
-            table = Gp_DebugAttachLevels;
-        }
-        lvl = table[idx];
-        if (lvl == 0) {
-            lvl = 1;
-        }
-        if ((p->statusFlags & PLAYER_STATUS_BERSERKER) && lvl < 3) {
-            lvl++;
-        }
-    }
-    return lvl;
-}
-
-/// Inline copy of `attachmentGetActiveLevelValue` for an explicit slot: parameter `field`
-/// of the `Gp_IdParamHi` row for `slot` at its current level.
-static __inline__ u16 getAttachWheelParam(s32 slot, s32 field)
-{
-    s32 lvl;
-
-    lvl = getAttachWheelLevel(slot);
-    return Gp_IdParamHi.rows[slot * 3 + lvl].value[field];
+    level = _attachmentGetEffectiveLevel(abilityIndex);
+    return _attachmentGetLevelValue(abilityIndex, level, column);
 }
 
 static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
@@ -849,11 +856,11 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
     if (hud->wheelTurn == 0) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-                Gp_StateC08.wheelIndex = stepAttachWheel(Gp_StateC08.wheelIndex, 1);
+                Gp_StateC08.wheelIndex = _attachmentStepLearnedSpell(Gp_StateC08.wheelIndex, 1);
                 changed                = 1;
                 hud->wheelTurn        += 4;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-                Gp_StateC08.wheelIndex = stepAttachWheel(Gp_StateC08.wheelIndex, -1);
+                Gp_StateC08.wheelIndex = _attachmentStepLearnedSpell(Gp_StateC08.wheelIndex, -1);
                 changed                = 1;
                 hud->wheelTurn        -= 4;
             }
@@ -863,10 +870,10 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
     if (Gp_StateC08.queuedIndex == 0) {
         xOff                 = arg1 + 2;
         yOff                 = arg2 + 2;
-        hud->previewCastCost = getAttachWheelParam(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
+        hud->previewCastCost = _attachmentGetEffectiveLevelValue(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
 
         item  = ((Gp_StateC08.wheelIndex / 3) << 4) + ((Gp_StateC08.wheelIndex % 3) << 2) + 0x300;
-        param = getAttachWheelParam(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
+        param = _attachmentGetEffectiveLevelValue(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
         if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
             param <<= 1;
         }
@@ -884,7 +891,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
         scratch.text.nameRequest.drawMode      = TEXT_DRAW_OUTLINED;
         textDrawString(&scratch.text.nameRequest, itemGetText(item, ITEM_TEXT_NAME, 0));
 
-        ret   = getAttachWheelLevel(Gp_StateC08.wheelIndex);
+        ret   = _attachmentGetEffectiveLevel(Gp_StateC08.wheelIndex);
         color = 0x606060;
         itemMenuDrawParasiteEnergyLevel(&obj, -0xB, 0x28, ret, color);
         textDrawUiLine(&obj, 0x8E, 0x28, textItoaSigned(scratch.text.costDigits, param), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
@@ -951,7 +958,7 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
 
                 slot = stepAttachWheelSaved(Gp_StateC08.wheelIndex, best, save);
 
-                if (Gp_CheckAttachThreshold(slot) != 0) {
+                if (_attachmentIsCastBlocked(slot) != 0) {
                     flags = ITEM_MENU_ICON_DIMMED;
                 }
                 if (best == 0 && hud->wheelTurn == 0) {
@@ -1078,27 +1085,34 @@ static __inline__ u8* getAttachLevels(void)
     return Gp_DebugAttachLevels;
 }
 
-/// Inline copy of `_hudCanSwitchCategory`: normal or aimed locomotion permits
-/// a HUD category switch after input and battle-end delays expire, provided no
-/// direction action or interaction press is active. `ignoreSwapLock` bypasses
-/// `ATTACHMENT_FLAG_SWAP_LOCK`, as `Gp_HudTask` does for START in battle.
-static __inline__ s32 hudSwapReady(s32 ignoreSwapLock)
+/// Tests whether player action and input gates permit opening a HUD category.
+///
+/// An occupied player task slot must hold a live actor. Normal and aimed
+/// locomotion qualify, including movement; direction actions, interaction
+/// presses, the HUD input delay and battle-end delay block entry. Nonzero
+/// `ignoreSwapLock` bypasses only `ATTACHMENT_FLAG_SWAP_LOCK`. Returns 0 or 1
+/// without changing player, attachment or HUD state.
+static __inline__ s32 _hudCanSwitchCategory(s32 ignoreSwapLock)
 {
-    Task*         work;
-    GameActor*    actor;
-    PlayerStatus* p;
-    s32           flag;
+    enum {
+        HUD_SWITCH_PLAYER_LOCOMOTION_STATE     = 0,
+        HUD_SWITCH_PLAYER_AIM_LOCOMOTION_STATE = 2
+    };
+    const Task*         playerTask;
+    const GameActor*    actor;
+    const PlayerStatus* player;
+    s32                 eligible;
 
-    flag = 0;
-    work = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
-    if (work != NULL) {
-        actor = work->work;
-        p     = &gPlayerStatus;
+    eligible   = 0;
+    playerTask = gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER];
+    if (playerTask != NULL) {
+        actor  = playerTask->work;
+        player = &gPlayerStatus;
         if (actor->mode == GAME_ACTOR_MODE_NORMAL) {
-            if (actor->state == 0 || actor->state == 2) {
+            if (actor->state == HUD_SWITCH_PLAYER_LOCOMOTION_STATE || actor->state == HUD_SWITCH_PLAYER_AIM_LOCOMOTION_STATE) {
                 if (gGameSession->dirActionBusy == 0) {
-                    if (p->interactionPressed == 0) {
-                        flag = 1;
+                    if (player->interactionPressed == 0) {
+                        eligible = 1;
                     }
                 }
             }
@@ -1106,10 +1120,10 @@ static __inline__ s32 hudSwapReady(s32 ignoreSwapLock)
     }
     if (ignoreSwapLock == 0) {
         if (Gp_StateC08.flags & ATTACHMENT_FLAG_SWAP_LOCK) {
-            flag = 0;
+            eligible = 0;
         }
     }
-    if (flag != 0) {
+    if (eligible != 0) {
         if (Gp_ItemGrantCooldown > 0) {
             return 0;
         }
@@ -1182,9 +1196,9 @@ static void Gp_UseItemTask(HudState* hud)
     hud->previewCastCost = 0;
     if (Gp_StateC08.soundStep == ATTACHMENT_SOUND_QUEUED) {
         if (++D_80114C34 > 0) {
-            lvl   = getAttachLevel(Gp_StateC08.activeIndex);
+            lvl   = _attachmentGetEffectiveLevel(Gp_StateC08.activeIndex);
             sndId = Gp_StateC08.activeIndex * 3 + lvl;
-            if (isStateF0Active_()) {
+            if (_sceneIsBattleActive()) {
                 sndLoadEnqueuePeFile(sndId);
             }
             Gp_StateC08.soundStep    = ATTACHMENT_SOUND_PLAYED;
@@ -1224,7 +1238,7 @@ static void Gp_UseItemTask(HudState* hud)
             D_80115768                     = 0;
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             Gp_StateC08.menuOpen           = ATTACHMENT_MENU_CLOSED;
-            if (isStateF0Active_()) {
+            if (_sceneIsBattleActive()) {
                 Gp_DrawItemPrompt(x, y);
             }
             return;
@@ -1233,7 +1247,7 @@ static void Gp_UseItemTask(HudState* hud)
 
     // Open the wheel from idle when the pad asks, or when a script forces it.
     if (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE && Gp_StateC08.queuedIndex == 0) {
-        ok = hudSwapReady(0);
+        ok = _hudCanSwitchCategory(0);
         if ((ok != 0 && (gGameSession->padPressed & 0x10) && gDisplayState.pendingMode == DISPLAY_MODE_NONE &&
              !(Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK)) ||
             (Gp_StateC08.flags & ATTACHMENT_FLAG_OPEN_WHEEL)) {
@@ -1249,14 +1263,14 @@ static void Gp_UseItemTask(HudState* hud)
             if (Gp_StateC08.wheelIndex < 0) {
                 Gp_StateC08.wheelIndex = 0;
             }
-            if (!isStateF0Active_()) {
+            if (!_sceneIsBattleActive()) {
                 if (getAttachLevels()[ATTACHMENT_INDEX_HEALING] != 0) {
                     Gp_StateC08.wheelIndex = ATTACHMENT_INDEX_HEALING;
                 }
             }
             flag = 1;
         } else {
-            if (isStateF0Active_()) {
+            if (_sceneIsBattleActive()) {
                 Gp_DrawItemPrompt(x, y);
             }
             return;
@@ -1350,7 +1364,7 @@ static void Gp_UseItemTask(HudState* hud)
             } else {
                 Gp_StateC08.activeIndex = Gp_StateC08.wheelIndex;
             }
-            if (Gp_CheckAttachThreshold(Gp_StateC08.activeIndex) == 0) {
+            if (_attachmentIsCastBlocked(Gp_StateC08.activeIndex) == 0) {
                 Gp_SetAttachState(Gp_StateC08.activeIndex);
             }
         }
@@ -1360,7 +1374,7 @@ static void Gp_UseItemTask(HudState* hud)
         Gp_ApplyAttachStats(0, hud);
     }
     if (flag) {
-        idx                      = getAttachLevel(Gp_StateC08.wheelIndex);
+        idx                      = _attachmentGetEffectiveLevel(Gp_StateC08.wheelIndex);
         Gp_StateC08.previewSound = Gp_StateC08.wheelIndex * 3 + idx;
     }
     if (Gp_StateC08.previewSound > 0) {
@@ -1529,7 +1543,7 @@ void Gp_HudTask(HudState* hud)
                 if (hud->inBattle == 0) {
                     hud->queuedMenuMode = 0x41;
                     hud->suppression    = HUD_SUPPRESS_ALL;
-                } else if (hudSwapReady(1) != 0 && gPlayerStatus.armor != PLAYER_STATUS_EQUIPMENT_NONE) {
+                } else if (_hudCanSwitchCategory(1) != 0 && gPlayerStatus.armor != PLAYER_STATUS_EQUIPMENT_NONE) {
                     hud->queuedMenuMode = 0x42;
                     hud->suppression    = HUD_SUPPRESS_PARASITE_ENERGY;
                 }

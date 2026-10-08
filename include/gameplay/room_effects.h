@@ -23,7 +23,7 @@
 /// means the room has none.
 extern s32 gRoomEffectSparkEmitterId;
 
-/// Energy Ball balls currently in flight; `Gp_CheckAttachThreshold` refuses a new
+/// Energy Ball balls currently in flight; `_attachmentIsCastBlocked` refuses a new
 /// Energy Ball cast while three are.
 extern s32 gEnergyBallInFlightCount;
 

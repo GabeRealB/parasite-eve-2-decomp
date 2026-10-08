@@ -33130,7 +33130,7 @@ as `3CD8_34D8.c` / `3FB8_75BC.c`.
 ## Isolate `ret = 1` from `* 10` so the shift stays `sll`, not `sllv`
 
 Update (Gp_SetAttachState, 2026-09-27): the barrier recipe below is superseded
-by reusing the existing `getAttachLevel` inline helper and expressing the ID's
+by reusing the existing `_attachmentGetEffectiveLevel` inline helper and expressing the ID's
 decimal stages with signed-byte row and column locals:
 
 ```c
@@ -33139,7 +33139,7 @@ rowPrefix = (row + 1) * 10 + 1;
 column = idx % 3;
 attachId = rowPrefix + column;
 attachId *= 10;
-level = getAttachLevel(idx);
+level = _attachmentGetEffectiveLevel(idx);
 attachId += level;
 ```
 
@@ -34827,7 +34827,7 @@ addu   v0, v0, v1
 lhu    v0, 0(v0)
 ```
 
-`Gp_CheckAttachThreshold` is the example.
+`_attachmentIsCastBlocked` is the example.
 
 ## `goto` the spawn body so a shared kill is fall-through between `slt` and `jal`
 
@@ -41173,12 +41173,12 @@ where the caller's destination already lives elsewhere, that shows up as an
 extra `move`:
 
 ```c
-static __inline__ s32 getAttachLevel(s32 idx)
+static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex)
 {
     ...
-    idx = table[idx];        /* param reused as the result */
-    if (idx == 0) { idx = 1; }
-    return idx;
+    abilityIndex = learnedLevels[abilityIndex]; /* param reused as the result */
+    if (abilityIndex == 0) { abilityIndex = 1; }
+    return abilityIndex;
 }
 ```
 
@@ -41195,11 +41195,11 @@ parameter keeps `$a0` and the result is produced directly in the caller's
 register:
 
 ```c
-    s32 lvl;
+    s32 level;
     ...
-    lvl = table[idx];
-    if (lvl == 0) { lvl = 1; }
-    return lvl;
+    level = learnedLevels[abilityIndex];
+    if (level == 0) { level = 1; }
+    return level;
 ```
 
 The same helper can need *both* forms at different call sites: where the
@@ -142650,24 +142650,24 @@ destination is set once, so reassigned locals lose it and the argument moves
 reorder around the call. A two-draw LCG through one `_rand()`-style helper
 still emits a single state store - the first is dead and deleted.
 
-## `addiu idx16,4; addu base; lhu 0` is a column subscript that reached the access as an inline parameter (Gp_CheckAttachThreshold, 2026-09-26)
+## `addiu idx16,4; addu base; lhu 0` is a column subscript that reached the access as an inline parameter (_attachmentIsCastBlocked, 2026-09-26)
 
-Reading `Gp_IdParamHi[row].field[2]` (16-byte rows) with a literal `2` folds the
+Reading `Gp_IdParamHi.rows[row].value[2]` (16-byte rows) with a literal `2` folds the
 column into the load, `sll 4; addu base; lhu 4(v0)`. The target instead adds the
 column to the scaled row before the base - `sll 4; addiu 4; addu base; lhu 0(v0)` -
 which the tree had rebuilt by hand as `off = row * 16; TOUCH_REG(off); off += 4;
 off += (s32)recs`. It is an inline helper taking the column as a parameter: the
-subscript is expanded as `(mult field 2)` and only becomes `4` when integration
+subscript is expanded as `(mult column 2)` and only becomes `4` when integration
 substitutes the constant, too late to join the displacement.
 
 ```c
-static __inline__ u16 _gpAttachParam(s32 idx, s32 lvl, s32 field)
+static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 column)
 {
-    return Gp_IdParamHi[idx * 3 + lvl].field[field];
+    return Gp_IdParamHi.rows[abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level].value[column];
 }
 ```
 
-The row has to be computed inside the helper too (`idx * 3 + lvl`, not a `row`
+The row has to be computed inside the helper too (`abilityIndex * ATTACHMENT_AREA_LEVEL_COUNT + level`, not a `row`
 argument): with the row as the argument it is evaluated at the call, before the
 helper's `lui/addiu` of the table, and the base load schedules after the index
 instead of before it. The register pins in the same function were `result` set
@@ -149977,7 +149977,7 @@ attempts; left as it was.
   `Gp_HudTask` carried `hit = ...; if (hit) { if (cooldown > 0) { ok = 0; goto
   have; } if (endDelay == 0) { ok = 1; goto have; } } ok = 0; have:`, the body
   of `_hudCanSwitchCategory` without its `ignoreSwapLock == 0` swap-lock test. It is the file's
-  `hudSwapReady` inline given that parameter and called as `hudSwapReady(1)`;
+  `_hudCanSwitchCategory` inline given that parameter and called as `_hudCanSwitchCategory(1)`;
   the test folds away. The inline's ending has to be `if (cooldown > 0) return
   0; if (endDelay == 0) return 1; ... return 0;`. Nested as `if (cooldown <= 0)
   { if (endDelay == 0) return 1; } return 0;` both callers come out 2 insns
