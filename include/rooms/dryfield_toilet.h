@@ -78,6 +78,12 @@ void dryfieldToiletFlyingOrangeBurstTask(Task* task);
 
 void func_dryfield_toilet_8017DCF0(Task* arg0);
 
-void func_dryfield_toilet_8017D9E4(Task* task);
+/// Runs the Dryfield toilet room task's entry, idle or teardown state.
+///
+/// The stage map spawns this task for area 16. Requires state 0..2: entry
+/// installs the room message table and claims `GAME_TASK_SLOT_ROOM`, idle
+/// keeps receiving messages, and state 2 releases the task. Keep this room
+/// overlay loaded throughout dispatch and while the task can receive messages.
+void dryfieldToiletRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_TOILET_H

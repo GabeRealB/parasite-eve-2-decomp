@@ -126,7 +126,7 @@ D_dryfield_parking_lot_8017DC64 = 0x8017DC64; // absolute:True owner=dryfield_pa
 D_dryfield_parking_lot_8017E900 = 0x8017E900; // absolute:True owner=dryfield_parking_lot shared=rooms
 D_dryfield_parking_lot_8017F054 = 0x8017F054; // absolute:True owner=dryfield_parking_lot shared=rooms
 D_dryfield_parking_lot_8017FB30 = 0x8017FB30; // absolute:True owner=dryfield_parking_lot
-func_dryfield_toilet_8017D9E4 = 0x8017D9E4; // type:func absolute:True owner=dryfield_toilet
+dryfieldToiletRoomTask = 0x8017D9E4; // type:func absolute:True owner=dryfield_toilet
 D_dryfield_toilet_8018112C = 0x8018112C; // absolute:True owner=dryfield_toilet shared=rooms
 D_dryfield_toilet_8018113C = 0x8018113C; // absolute:True owner=dryfield_toilet shared=rooms
 D_dryfield_toilet_80181140 = 0x80181140; // absolute:True owner=dryfield_toilet shared=rooms

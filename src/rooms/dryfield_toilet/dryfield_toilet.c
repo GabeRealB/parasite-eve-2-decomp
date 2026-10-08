@@ -38,23 +38,30 @@ extern s32 D_dryfield_toilet_801802D4;
 /// itself.
 extern WorldCollisionGrid D_dryfield_toilet_80180314;
 
-static void func_dryfield_toilet_8017D940(Task* arg0);
-static void func_dryfield_toilet_8017D9D4(Task* task);
+static void _dryfieldToiletInitRoom(Task* task);
+static void _dryfieldToiletIdleRoom(Task* unusedTask);
 
 /// The room task's three states: entry, idle and `taskKill`.
 static const TaskFuncTable3 D_dryfield_toilet_8017D5C4 = {
-    { func_dryfield_toilet_8017D940, func_dryfield_toilet_8017D9D4, taskKill },
+    { _dryfieldToiletInitRoom, _dryfieldToiletIdleRoom, taskKill },
 };
 
-s32 func_dryfield_toilet_8017D8B8(Task*, s32, s32, s32);
-s32 func_dryfield_toilet_8017D8C0(Task*, s32, s32, s32);
-s32 func_dryfield_toilet_8017D8C8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _dryfieldToiletRefuseKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+static s32 _dryfieldToiletIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg);
+static s32 _dryfieldToiletHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+
+/// Action and area variant selecting the room's once-only event.
+enum {
+    DRYFIELD_TOILET_ACTION_START_EVENT      = 1,
+    DRYFIELD_TOILET_EVENT_VARIANT           = 1,
+    DRYFIELD_TOILET_EVENT_COLLISION_SHIFT_X = 2000, // Whole room-coordinate units toward negative X
+};
 
 TaskMessageEntry D_dryfield_toilet_801802A4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantParkingLotMsg },
-    { 5105, func_dryfield_toilet_8017D8B8 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_toilet_8017D8C8 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_toilet_8017D8C0 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldToiletRefuseKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldToiletHandleRoomAction },
+    { ROOM_MESSAGE_COMMAND, _dryfieldToiletIgnoreRoomCommand },
     { ROOM_MESSAGE_SOUND, _toiletSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -129,162 +136,160 @@ AnimationSet gDryfieldToiletAnimation035A4 = {
     { NULL, _gDryfieldToiletAnimation035A4Bank1, NULL, NULL, _gDryfieldToiletAnimation035A4Bank4, NULL, NULL, NULL },
 };
 
-static void func_dryfield_toilet_8017D5E4(void);
-
-/// Restores one face of the room's collision grid (its normal, four corners and
-/// face record) from the template, then slides the four corners 2000 units toward
-/// negative x once game flag nibble 0x60 is set.
-static void func_dryfield_toilet_8017D5E4(void)
+/// Initializes the room grid's reserved event face from its collision template.
+///
+/// Restores normal 0, vertices 0..3 and face 0, preserving the vectors' fourth
+/// components and all other grid data. A seen event shifts those vertices
+/// 2000 whole room-coordinate units toward negative X after restoration.
+static void _dryfieldToiletInitEventCollision(void)
 {
-    WorldCollisionGrid* geom = &D_dryfield_toilet_80181404;
-    WorldCollisionGrid* src  = &D_dryfield_toilet_80180314;
-    s32                 i;
+    // Copy XYZ while retaining the fourth component. Each argument is evaluated
+    // three times and must be a stable, side-effect-free SVECTOR lvalue.
+#define DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(destination, source) \
+    {                                                                   \
+        (destination).vx = (source).vx;                                 \
+        (destination).vy = (source).vy;                                 \
+        (destination).vz = (source).vz;                                 \
+    }
 
-    for (i = 0; i < 1; i++) {
-        geom->normals[i].vx          = src->normals[i].vx;
-        geom->normals[i].vy          = src->normals[i].vy;
-        geom->normals[i].vz          = src->normals[i].vz;
-        geom->vertices[i * 4 + 0].vx = src->vertices[i * 4 + 0].vx;
-        geom->vertices[i * 4 + 0].vy = src->vertices[i * 4 + 0].vy;
-        geom->vertices[i * 4 + 0].vz = src->vertices[i * 4 + 0].vz;
-        geom->vertices[i * 4 + 1].vx = src->vertices[i * 4 + 1].vx;
-        geom->vertices[i * 4 + 1].vy = src->vertices[i * 4 + 1].vy;
-        geom->vertices[i * 4 + 1].vz = src->vertices[i * 4 + 1].vz;
-        geom->vertices[i * 4 + 2].vx = src->vertices[i * 4 + 2].vx;
-        geom->vertices[i * 4 + 2].vy = src->vertices[i * 4 + 2].vy;
-        geom->vertices[i * 4 + 2].vz = src->vertices[i * 4 + 2].vz;
-        geom->vertices[i * 4 + 3].vx = src->vertices[i * 4 + 3].vx;
-        geom->vertices[i * 4 + 3].vy = src->vertices[i * 4 + 3].vy;
-        geom->vertices[i * 4 + 3].vz = src->vertices[i * 4 + 3].vz;
-        geom->faces[i]               = src->faces[i];
+    WorldCollisionGrid*       liveGrid          = &D_dryfield_toilet_80181404;
+    const WorldCollisionGrid* collisionTemplate = &D_dryfield_toilet_80180314;
+    s32                       index;
+
+    for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletCollision02D54Faces); index++) {
+        DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(liveGrid->normals[index], collisionTemplate->normals[index]);
+        DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(liveGrid->vertices[index * 4 + 0], collisionTemplate->vertices[index * 4 + 0]);
+        DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(liveGrid->vertices[index * 4 + 1], collisionTemplate->vertices[index * 4 + 1]);
+        DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(liveGrid->vertices[index * 4 + 2], collisionTemplate->vertices[index * 4 + 2]);
+        DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ(liveGrid->vertices[index * 4 + 3], collisionTemplate->vertices[index * 4 + 3]);
+        liveGrid->faces[index] = collisionTemplate->faces[index];
     }
     if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) != 0) {
-        for (i = 0; i < 4; i++) {
-            geom->vertices[i].vx -= 2000;
+        for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletCollision02D54Verts); index++) {
+            liveGrid->vertices[index].vx -= DRYFIELD_TOILET_EVENT_COLLISION_SHIFT_X;
         }
     }
+#undef DRYFIELD_TOILET_COPY_INITIAL_COLLISION_XYZ
 }
 
 #include "../../shared/room_variants_parking_lot.inc.c"
 
 #include "../../shared/toilet_sound_msg.inc.c"
 
-s32 func_dryfield_toilet_8017D8B8(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
+/// Refuses every key-item-use request without consuming the selected item.
+static s32 _dryfieldToiletRefuseKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Ignores room commands and returns zero without changing room state.
+static s32 _dryfieldToiletIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg)
 {
     return 0;
 }
 
-s32 func_dryfield_toilet_8017D8C0(Task* task, s32 messageId, s32 firstArg, s32 secondArg)
+/// Starts the room event once when action 1 arrives in area variant 1.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows `request` through synchronous
+/// dispatch; only its action byte is read. The second payload is unused.
+/// Starts the event with its skip script, keeps the HUD setting, then latches
+/// `GAME_FLAG_TOILET_EVENT_SEEN`. Returns zero whether or not the event starts.
+static s32 _dryfieldToiletHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    return 0;
-}
+    u8 actionId = request->actionId;
 
-/// Handler for message `0x13EF` in the room's `(msgId, handler)` table - the
-/// direction record `_directionDispatchRoomAction` posts. On the visit whose sub-id
-/// (`warp`) is 1, that agrees with the session's own sub-id
-/// (`gGameSession::location.loc.variant`) and that has not yet latched nibble 0x60, the
-/// toilet starts its cutscene pair and latches the nibble. The outgoing record
-/// is never written: this handler only consumes the message.
-s32 func_dryfield_toilet_8017D8C8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    u8 subId = in->warp;
-
-    if (subId == 1 && gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == subId) {
+    if (actionId == DRYFIELD_TOILET_ACTION_START_EVENT && gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
         evsStartScriptWithSkip(D_dryfield_toilet_80180C58, EVENT_SCRIPT_HUD_KEEP, D_dryfield_toilet_80180F40);
         gameFlagSetNibble(GAME_FLAG_TOILET_EVENT_SEEN, 1);
     }
     return 0;
 }
 
-/// The room task's entry state: publish the message table, claim game pointer
-/// slot 7, and on the visit that agrees with the session's sub-id
-/// (`gGameSession::location.loc.variant` == 1) and has not yet latched nibble 0x60, post
-/// message `0x7DA` with the room's payload and run the scene setup. Advance to
-/// the next state either way.
-static void func_dryfield_toilet_8017D940(Task* arg0)
+/// Registers the room task and prepares the actors and collision for its unseen event.
+///
+/// State 0 installs the message table and claims `GAME_TASK_SLOT_ROOM`. An
+/// unseen event in area variant 1 requires a live scene task for the borrowed
+/// actor-command broadcast. Advances the task to idle state 1 in either case.
+static void _dryfieldToiletInitRoom(Task* task)
 {
-    arg0->msgTable = D_dryfield_toilet_801802A4;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == 1) {
+    task->msgTable = D_dryfield_toilet_801802A4;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gameFlagGetNibble(GAME_FLAG_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == DRYFIELD_TOILET_EVENT_VARIANT) {
+        // Prepare placed actors before installing the event's collision face.
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_toilet_801802D4, ACTOR_COMMAND_MESSAGE_APPLY);
-        func_dryfield_toilet_8017D5E4();
+        _dryfieldToiletInitEventCollision();
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
-/// The room task's idle state, entry 1 of its state table: does nothing but
-/// open and close a stack frame.
-static void func_dryfield_toilet_8017D9D4(Task* task)
+/// Keeps the room task alive in idle state 1 to receive messages.
+static void _dryfieldToiletIdleRoom(Task* unusedTask)
 {
-    char pad[0x10];
+    // The binary retains this otherwise unused sixteen-byte stack frame.
+    char unusedStackFrame[0x10];
 }
 
-/// The room task's update: runs the handler for its current state from a stack
-/// copy of the room's state table.
-void func_dryfield_toilet_8017D9E4(Task* task)
+void dryfieldToiletRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_dryfield_toilet_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_dryfield_toilet_8017D5C4;
+    states.funcs[task->state](task);
 }
 
-/// With a zero argument, restores one face of the room's collision grid (its
-/// normal, four corners and face record) from the template; otherwise slides
-/// the grid's four corners 2000 units toward negative x.
-void func_dryfield_toilet_8017DA3C(s32 arg0)
+void dryfieldToiletMoveEventCollision(s32 moveAside)
 {
-    WorldCollisionGrid* geom = &D_dryfield_toilet_80181404;
-    WorldCollisionGrid* src  = &D_dryfield_toilet_80180314;
-    s32                 i;
+    // Copy XYZ while retaining the fourth component. Each argument is evaluated
+    // three times and must be a stable, side-effect-free SVECTOR lvalue.
+#define DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ(destination, source) \
+    {                                                                  \
+        (destination).vx = (source).vx;                                \
+        (destination).vy = (source).vy;                                \
+        (destination).vz = (source).vz;                                \
+    }
 
-    if (arg0 == 0) {
-        for (i = 0; i < 1; i++) {
-            geom->normals[i].vx          = src->normals[i].vx;
-            geom->normals[i].vy          = src->normals[i].vy;
-            geom->normals[i].vz          = src->normals[i].vz;
-            geom->vertices[i * 4 + 0].vx = src->vertices[i * 4 + 0].vx;
-            geom->vertices[i * 4 + 0].vy = src->vertices[i * 4 + 0].vy;
-            geom->vertices[i * 4 + 0].vz = src->vertices[i * 4 + 0].vz;
-            geom->vertices[i * 4 + 1].vx = src->vertices[i * 4 + 1].vx;
-            geom->vertices[i * 4 + 1].vy = src->vertices[i * 4 + 1].vy;
-            geom->vertices[i * 4 + 1].vz = src->vertices[i * 4 + 1].vz;
-            geom->vertices[i * 4 + 2].vx = src->vertices[i * 4 + 2].vx;
-            geom->vertices[i * 4 + 2].vy = src->vertices[i * 4 + 2].vy;
-            geom->vertices[i * 4 + 2].vz = src->vertices[i * 4 + 2].vz;
-            geom->vertices[i * 4 + 3].vx = src->vertices[i * 4 + 3].vx;
-            geom->vertices[i * 4 + 3].vy = src->vertices[i * 4 + 3].vy;
-            geom->vertices[i * 4 + 3].vz = src->vertices[i * 4 + 3].vz;
-            geom->faces[i]               = src->faces[i];
+    WorldCollisionGrid*       liveGrid          = &D_dryfield_toilet_80181404;
+    const WorldCollisionGrid* collisionTemplate = &D_dryfield_toilet_80180314;
+    s32                       index;
+
+    if (moveAside == DRYFIELD_TOILET_EVENT_COLLISION_RESTORE) {
+        for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletCollision02D54Faces); index++) {
+            DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ(liveGrid->normals[index], collisionTemplate->normals[index]);
+            DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ(liveGrid->vertices[index * 4 + 0], collisionTemplate->vertices[index * 4 + 0]);
+            DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ(liveGrid->vertices[index * 4 + 1], collisionTemplate->vertices[index * 4 + 1]);
+            DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ(liveGrid->vertices[index * 4 + 2], collisionTemplate->vertices[index * 4 + 2]);
+            DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ(liveGrid->vertices[index * 4 + 3], collisionTemplate->vertices[index * 4 + 3]);
+            liveGrid->faces[index] = collisionTemplate->faces[index];
         }
     } else {
-        for (i = 0; i < 4; i++) {
-            geom->vertices[i].vx -= 2000;
+        for (index = 0; index < (s32)ARRAY_SIZE(_gDryfieldToiletCollision02D54Verts); index++) {
+            liveGrid->vertices[index].vx -= DRYFIELD_TOILET_EVENT_COLLISION_SHIFT_X;
         }
     }
+#undef DRYFIELD_TOILET_COPY_SCRIPT_COLLISION_XYZ
 }
 
-void func_dryfield_toilet_8017DC50(void)
+void dryfieldToiletStageSceneAudioStart(void)
 {
     cdCmdStageSceneAudioStart();
 }
 
-void func_dryfield_toilet_8017DC70(void)
+void dryfieldToiletStartScenePlayback(void)
 {
     cdCmdEnqueueScenePlayback();
 }
 
-void func_dryfield_toilet_8017DC90(void)
+void dryfieldToiletFinishScene(void)
 {
     streamFinishScene();
 }
 
-void func_dryfield_toilet_8017DCB0(void)
+void dryfieldToiletCancelScene(void)
 {
     cdCmdCancelScene();
 }
 
-void func_dryfield_toilet_8017DCD0(s32 arg0)
+void dryfieldToiletEngageBattle(s32 unusedArg)
 {
-    sceneEngageBattle(arg0);
+    sceneEngageBattle(unusedArg);
 }
