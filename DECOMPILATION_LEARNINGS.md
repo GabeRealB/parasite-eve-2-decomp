@@ -8289,7 +8289,7 @@ if ((node != NULL && state < 2) || (flag = 1, state == flag) || extra) {
 }
 ```
 
-`Gp_PlayerNormalState1` is the example. A MIPS delay-slot `sb zero,field` on
+`_playerActorNormalState1` is the example. A MIPS delay-slot `sb zero,field` on
 `beqz node` also means the clear always runs once the outer flag is set —
 write `p->field = 0` *before* `if (node != NULL)`, not inside it.
 
@@ -27432,7 +27432,7 @@ temp = temp - tgt;
 temp = ABS(temp);
 ```
 
-`Gp_PlayerWorkState1` is the example. The one-shot `temp = cur - tgt` was a
+`_playerActorWorkState1` is the example. The one-shot `temp = cur - tgt` was a
 99.8% register swap of those two `lw`s.
 
 ## Assign `tgt - K` before `cur - wrap` so K stays on `tgt`
@@ -33599,7 +33599,7 @@ beqz   v1, join
 delay slot instead. An empty `asm volatile("" ::: "memory")` between
 the store and the default assignment keeps `sh` before the branch so
 `li` fills the delay. Pin the increment load to `$v0` and `kind` to
-`$v1` so the two `lhu`s stay in that order. `Gp_PlayerNormalState6` is the
+`$v1` so the two `lhu`s stay in that order. `_playerActorNormalState6` is the
 example.
 
 ## Put a shared switch tail after later cases so `j` / `bnez` land on it
@@ -33627,7 +33627,7 @@ shared:
 
 Fallthrough from case 0 into case 1 in source order glues the tail
 onto case 0 (`jal` then `j epilogue`) instead of a `j` to a later
-block. `Gp_PlayerNormalState6` is the example.
+block. `_playerActorNormalState6` is the example.
 
 ## 3-way if/else-if stores keep `bnez; li K; j join`
 

@@ -372,7 +372,7 @@ extern u16 D_801132BC[33][2];
 
 static const TaskFuncTable3 Gp_EffTask07States;
 
-/// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `Gp_PlayerWorkState1`,
+/// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `_playerActorWorkState1`,
 /// `_playerActorWorkState2`, `_playerActorTeardown`.
 static const TaskFuncTable4 Gp_PlayerWorkStates;
 
@@ -393,11 +393,14 @@ static const TaskFuncTable4 Gp_PlayerMode1States;
 /// `state` dispatcher copied by `Gp_TickPlayerMode2`.
 static const TaskFuncTable12 Gp_PlayerMode2States;
 
-/// Enters scripted player playback using a receiver-valid animation-bank index.
-///
-/// The request also selects blending and world collision; returns zero.
-/// `msgId` and `unusedArg3` are unused, including for direct initialization.
-s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedArg3);
+static s32 _playerActorPlayScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
+
+/// Additional player-table IDs sharing indexed animation playback and its request contract.
+enum {
+    PLAYER_ACTOR_MESSAGE_PLAY_ANIMATION_ALIAS_1002 = 1002,
+    PLAYER_ACTOR_MESSAGE_PLAY_ANIMATION_ALIAS_1003 = 1003,
+    PLAYER_ACTOR_MESSAGE_PLAY_ANIMATION_ALIAS_1004 = 1004,
+};
 
 static s32 _playerActorEnterScriptedAttack(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
@@ -428,7 +431,7 @@ static inline void _gpLinkPlayerObj(GameActor* actor, s32 i, WorldCollisionBody*
 
 static void Gp_InitPlayerWork(Task* arg0);
 
-static void Gp_PlayerWorkState1(Task* arg0);
+static void _playerActorWorkState1(Task* task);
 
 static void func_8010133C(void);
 
@@ -517,7 +520,7 @@ static void Gp_PlayerNormalState5(Task* arg0);
 
 static inline void _playerActorResumeAimLocomotion(Task* task, s32 blendFrames);
 
-static void Gp_PlayerNormalState6(Task* arg0);
+static void _playerActorNormalState6(Task* task);
 
 static void func_8010771C(Task* arg0);
 
@@ -527,7 +530,7 @@ static void Gp_PlayerMode2StateA(Task* arg0);
 
 static void Gp_PlayerMode2StateB(Task* arg0);
 
-static void Gp_TickPlayerActor(Task* arg0);
+static void _playerActorTick(Task* task);
 
 static void Gp_ArmLockOnState(Task* arg0);
 
@@ -555,7 +558,7 @@ static void Gp_TickPlayerMode2(Task* arg0);
 
 static void func_80108FA0(Task* arg0);
 
-static void Gp_PlayerNormalState1(Task* arg0);
+static void _playerActorNormalState1(Task* task);
 
 static void func_801090E8(Task* arg0);
 
@@ -973,11 +976,11 @@ s32            D_80112C7C[3] = {
 };
 
 TaskMessageEntry Gp_PlayerMsgTable[28] = {
-    { ANIMATION_MESSAGE_PLAY, func_80104508 },
+    { ANIMATION_MESSAGE_PLAY, _playerActorPlayScriptedAnimation },
     { GAME_ACTOR_MESSAGE_PLACE, playerActorPlace },
-    { 1002, func_80104508 },
-    { 1003, func_80104508 },
-    { 1004, func_80104508 },
+    { PLAYER_ACTOR_MESSAGE_PLAY_ANIMATION_ALIAS_1002, _playerActorPlayScriptedAnimation },
+    { PLAYER_ACTOR_MESSAGE_PLAY_ANIMATION_ALIAS_1003, _playerActorPlayScriptedAnimation },
+    { PLAYER_ACTOR_MESSAGE_PLAY_ANIMATION_ALIAS_1004, _playerActorPlayScriptedAnimation },
     { ANIMATION_MESSAGE_IS_PLAYING, playerActorIsAnimationPlaying },
     { GAME_ACTOR_MESSAGE_TURN_TO_YAW, playerActorTurnToYaw },
     { GAME_ACTOR_MESSAGE_CLIMB_STAIRS, func_80104F5C },
@@ -2350,10 +2353,12 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-/// Projects corner 0 and records its FLAG before the other three corners may run.
+/// Projects the animated ground quad's first world-space corner for early rejection.
 ///
-/// The caller owns the live scratch block and supplies GTE projection settings.
-/// Installs the world-to-screen matrices; a negative FLAG must reject the quad.
+/// Requires a live, word-aligned scratch block with vertex 0 initialized and
+/// current world-to-screen matrices and GTE projection settings. Writes screen
+/// corner 0 and FLAG; a negative FLAG rejects the quad before its other corners.
+/// Changes the GTE matrices and projection registers; does not write depth.
 static inline void _effectProjectAnimatedGroundQuadFirstCorner(EffectQuadScratch* quadScratch)
 {
     gte_SetTransMatrix(&GsWSMATRIX);
@@ -2364,10 +2369,12 @@ static inline void _effectProjectAnimatedGroundQuadFirstCorner(EffectQuadScratch
     gte_stflg(&quadScratch->projectionFlags);
 }
 
-/// Projects corners 1..3 after corner 0 succeeded, recording their separate FLAG.
+/// Projects the animated ground quad's remaining three world-space corners together.
 ///
-/// Requires the first-corner helper's GTE matrices and the same live scratch block.
-/// Leaves corner 3's SZ3 available for ordering depth when FLAG is nonnegative.
+/// Requires initialized vertices 1..3 in the same live scratch block after a
+/// successful first-corner projection, with its GTE settings still installed.
+/// Writes screen corners 1..3 and replaces FLAG; a negative FLAG rejects this
+/// stage. Leaves corner 3's SZ3 in the GTE for depth, without storing it here.
 static inline void _effectProjectAnimatedGroundQuadRemainingCorners(EffectQuadScratch* quadScratch)
 {
     gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
@@ -3781,11 +3788,11 @@ void effectSpawnHit(s32 effectKind, GfxCoord* coord, SVECTOR* localOffset, Effec
     }
 }
 
-/// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `Gp_PlayerWorkState1`,
+/// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `_playerActorWorkState1`,
 /// `_playerActorWorkState2`, `_playerActorTeardown`.
 static const TaskFuncTable4 Gp_PlayerWorkStates = { {
     Gp_InitPlayerWork,
-    Gp_PlayerWorkState1,
+    _playerActorWorkState1,
     _playerActorWorkState2,
     _playerActorTeardown,
 } };
@@ -4857,7 +4864,7 @@ static void Gp_InitPlayerWork(Task* arg0)
         sp.blend                = ANIMATION_BLEND_RESET;
         sp.animationId          = anim;
         sp.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        func_80104508(arg0, 0, &sp, 0);
+        _playerActorPlayScriptedAnimation(arg0, 0, &sp, 0);
         actor->collisionEnableMask = PLAYER_ACTOR_WORLD_COLLISION_DISABLE;
     }
     if ((GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
@@ -4865,48 +4872,72 @@ static void Gp_InitPlayerWork(Task* arg0)
     }
 }
 
-static void Gp_PlayerWorkState1(Task* arg0)
+/// Reports whether a root-height step is within the accepted position's continuity limit.
+///
+/// Coordinates use game units; subtraction and its absolute value must fit s32.
+static inline s32 _playerActorIsHeightStepWithinLimit(const GfxCoord* rootCoord, const VECTOR3* previousPosition)
 {
-    GameActor*          actor;
-    GfxCoord*           coord;
-    WorldCollisionBody* objs[2];
-    s32                 dy;
-    s32                 i;
-    s8                  bits;
+    enum { PLAYER_ACTOR_VERTICAL_STEP_LIMIT = 0x300 };
+    s32 verticalChange;
 
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    verticalChange = rootCoord->coord.t[1];
+    verticalChange = verticalChange - previousPosition->vy;
+    verticalChange = ABS(verticalChange);
+    return verticalChange < PLAYER_ACTOR_VERTICAL_STEP_LIMIT;
+}
+
+/// Updates collision response and deferred body enables, then composes the player root.
+///
+/// Task work and model root must be live. Outside scripted mode, a vertical
+/// change of at least 768 game units restores all three accepted coordinates.
+/// Otherwise records the position before applying grid contact pushback.
+/// Applies enable/disable requests to the root and part-1 bodies, with enable
+/// taking precedence, then consumes the entire request byte. Only bits 0/1 and
+/// their disable counterparts 3/4 are applied; all other request bits are discarded.
+static void _playerActorWorkState1(Task* task)
+{
+    enum { PLAYER_ACTOR_ROOT_GRID_RESPONSE = 1 };
+    GameActor*          actor;
+    GfxCoord*           rootCoord;
+    WorldCollisionBody* collisionBodies[2];
+    s32                 bodyIndex;
+    s8                  collisionRequests;
+
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
+    // Reject a discontinuous height without applying the old contact response.
     if (actor->mode != GAME_ACTOR_MODE_SCRIPTED &&
-        (dy = coord->coord.t[1], dy = dy - actor->previousPosition.vy, dy = ABS(dy), dy >= 0x300)) {
-        coord->coord.t[0] = actor->previousPosition.vx;
-        coord->coord.t[1] = actor->previousPosition.vy;
-        coord->coord.t[2] = actor->previousPosition.vz;
+        !_playerActorIsHeightStepWithinLimit(rootCoord, &actor->previousPosition)) {
+        rootCoord->coord.t[0] = actor->previousPosition.vx;
+        rootCoord->coord.t[1] = actor->previousPosition.vy;
+        rootCoord->coord.t[2] = actor->previousPosition.vz;
     } else {
-        actor->previousPosition.vx = coord->coord.t[0];
-        actor->previousPosition.vy = coord->coord.t[1];
-        actor->previousPosition.vz = coord->coord.t[2];
-        if (actor->collisionEnableMask & 1) {
-            actor->gridResponse = worldCollisionApplyResponsePushback(coord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
+        actor->previousPosition.vx = rootCoord->coord.t[0];
+        actor->previousPosition.vy = rootCoord->coord.t[1];
+        actor->previousPosition.vz = rootCoord->coord.t[2];
+        if (actor->collisionEnableMask & PLAYER_ACTOR_ROOT_GRID_RESPONSE) {
+            actor->gridResponse = worldCollisionApplyResponsePushback(rootCoord, actor->collisionMotionContexts[0].contacts, ARRAY_SIZE(actor->collisionContacts), &actor->surfaceClass);
         } else {
             actor->gridResponse = 0;
         }
     }
 
-    objs[0] = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
-    objs[1] = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
-    for (i = 0; i < 2; i++) {
-        bits = actor->pendingCollisionUpdates;
-        if ((bits >> i) & 1) {
-            actor->collisionEnableMask |= 1 << i;
-            objs[i]->flags             |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        } else if (bits & (8 << i)) {
-            actor->collisionEnableMask &= ~(1 << i);
-            objs[i]->flags             &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
+    // The request's bit order follows this body pair, rather than body-array indices.
+    collisionBodies[0] = &actor->collisionBodies[GAME_ACTOR_BODY_ROOT];
+    collisionBodies[1] = &actor->collisionBodies[GAME_ACTOR_BODY_PART1];
+    for (bodyIndex = 0; bodyIndex < ARRAY_SIZE(collisionBodies); bodyIndex++) {
+        collisionRequests = actor->pendingCollisionUpdates;
+        if ((collisionRequests >> bodyIndex) & 1) {
+            actor->collisionEnableMask        |= 1 << bodyIndex;
+            collisionBodies[bodyIndex]->flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        } else if (collisionRequests & ((1 << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT) << bodyIndex)) {
+            actor->collisionEnableMask        &= ~(1 << bodyIndex);
+            collisionBodies[bodyIndex]->flags &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
         }
     }
     actor->pendingCollisionUpdates = 0;
-    coord->composeStamp            = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
+    rootCoord->composeStamp        = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
 }
 
 void playerActorInitWeaponCollision(Task* actorTask, s32 weaponId, s32 attackRow)
@@ -5130,7 +5161,7 @@ void Gp_UpdatePlayerMove(void)
     _playerActorCapturePad(work);
     gSceneCombatState.signals.bytes.actionFlags = 0;
     if (D_80115768 == 0) {
-        Gp_TickPlayerActor(work);
+        _playerActorTick(work);
     }
     coord->coord.t[0]            += actor->pendingDisplacement.vx;
     coord->coord.t[1]            += actor->pendingDisplacement.vy;
@@ -5758,16 +5789,20 @@ static void Gp_AimPitchDirect(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 }
 
-/// Queues one frame into the selected player texture region.
+/// Queues a texture frame in a rectangle relative to the player model's texture page.
 ///
-/// Borrows a scratch RECT; X uses two positions per VRAM word, width uses
-/// VRAM words, and Y/height use rows, following `actorRenderUploadTexture`.
-/// Upload descriptors are writable and their pixels survive the GPU transfer.
+/// Requires a live task and TMD; borrows writable scratch rectangle storage.
+/// xHalfWords counts half VRAM words, widthWords counts 16-bit words, and
+/// yRows/heightRows count
+/// rows. The translated destination must fit VRAM and the first frame upload's
+/// pixels must cover that full rectangle. A present upload list is writable,
+/// terminated and remains live through this call; its word-aligned pixels stay
+/// live until GPU transfer completes. NULL fills the rectangle without uploading.
 static inline void _playerActorUploadTextureFrame(Task* task, GpuImageUpload* frameUploads, RECT* textureRect,
-                                                  s16 x, s16 y, s16 widthWords, s16 heightRows)
+                                                  s16 xHalfWords, s16 yRows, s16 widthWords, s16 heightRows)
 {
-    textureRect->x = x;
-    textureRect->y = y;
+    textureRect->x = xHalfWords;
+    textureRect->y = yRows;
     textureRect->w = widthWords;
     textureRect->h = heightRows;
     actorRenderUploadTexture(task, frameUploads, textureRect);
@@ -6510,15 +6545,11 @@ Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return task;
 }
 
-s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unusedArg3)
+/// Stops player motion, aiming and weapon effects before scripted bank playback.
+///
+/// Borrows the live task, its writable work and the resident player status.
+static inline void _playerActorPrepareScriptedPlayback(Task* task, GameActor* actor, PlayerStatus* playerStatus)
 {
-    GameActor*    actor;
-    TmdObject*    extra;
-    PlayerStatus* playerStatus;
-
-    actor                                                 = task->work;
-    extra                                                 = task->extra.tmd;
-    playerStatus                                          = &gPlayerStatus;
     actor->mode                                           = GAME_ACTOR_MODE_SCRIPTED;
     actor->statePhase                                     = 0;
     actor->movementSign                                   = 0;
@@ -6538,11 +6569,37 @@ s32 func_80104508(Task* task, s32 msgId, AnimationPlayRequest* request, s32 unus
     if (gGameSession->eventState != 0) {
         actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED);
     }
+}
+
+/// Takes scripted control and plays a clip from a loaded player animation bank.
+///
+/// Borrows request only for this call; source.index must select a non-NULL bank
+/// in `Gp_PlayerAnimBlkTbl` (currently 1..33). Its sets and records stay live during
+/// playback. Requires live actor/model, initialized pose and child-slot storage,
+/// session and weapon effects. animationId narrows to u16 and must supply every
+/// active child track; when blending, blendFrames counts 0..2047 whole normal-rate
+/// frames and is ignored on reset.
+/// Every nonzero blend chooses blending. Rebinds the context and
+/// records the bank index only when the set-table pointer changes.
+///
+/// Requests deferred grid participation from enableWorldCollision, retaining
+/// only the request's meaning (zero disable, nonzero enable). Returns 0;
+/// message ID and second payload word are unused, including direct initialization.
+static s32 _playerActorPlayScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
+{
+    GameActor*    actor;
+    TmdObject*    model;
+    PlayerStatus* playerStatus;
+
+    actor        = task->work;
+    model        = task->extra.tmd;
+    playerStatus = &gPlayerStatus;
+    _playerActorPrepareScriptedPlayback(task, actor, playerStatus);
     // Select the animation table before resetting or blending its slots.
-    actor->state = 1;
+    actor->state = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
     if (actor->animationSets != Gp_PlayerAnimBlkTbl[request->source.index]->table.sets) {
         actor->animationSets = Gp_PlayerAnimBlkTbl[request->source.index]->table.sets;
-        animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+        animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                              actor->animationSlots);
         actor->animationBankIndex = (u16)request->source.index;
     }
@@ -7883,12 +7940,12 @@ static const TaskFuncTable3 Gp_PlayerModeFns = { {
 /// `state` dispatcher copied by `Gp_TickPlayerNormal`.
 static const TaskFuncTable8 D_8009794C = { {
     func_80108FA0,
-    Gp_PlayerNormalState1,
+    _playerActorNormalState1,
     Gp_PlayerNormalState2,
     func_801090E8,
     func_80109138,
     Gp_PlayerNormalState5,
-    Gp_PlayerNormalState6,
+    _playerActorNormalState6,
     func_8010771C,
 } };
 
@@ -8350,73 +8407,108 @@ static inline void _playerActorResumeAimLocomotion(Task* task, s32 blendFrames)
     }
 }
 
-static void Gp_PlayerNormalState6(Task* arg0)
+/// Selects one of a Parasite Energy phase's three native clip families.
+///
+/// The live actor's actionArgument selects family 0, 1 or other; set IDs must
+/// be valid in its borrowed native bank.
+static inline s32 _playerActorSelectPeClip(const GameActor* actor, s32 variant0Set, s32 variant1Set, s32 otherSet)
 {
+    s32 setIndex;
+
+    if (actor->actionArgument == 0) {
+        setIndex = variant0Set;
+    } else if (actor->actionArgument == 1) {
+        setIndex = variant1Set;
+    } else {
+        setIndex = otherSet;
+    }
+    return setIndex;
+}
+
+/// Runs the normal-mode Parasite Energy release, charge and cast sequence (state 6).
+///
+/// Requires live actor/native animation resources and the active attachment.
+/// actionArgument selects clip family 0, 1 or other; stateAux holds the prior
+/// normal state. Phase 0 requests release, phases 1/4 await clip completion,
+/// phase 2 starts the charge clip and phase 3 waits for duration to reach zero.
+/// Cancellation selects phase 5 immediately; that phase restores locomotion
+/// or aiming. The animation controller advances phases 1 and 4 after playback.
+static void _playerActorNormalState6(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_PE_PHASE_RELEASE           = 0,
+        PLAYER_ACTOR_PE_PHASE_WAIT_RELEASE      = 1,
+        PLAYER_ACTOR_PE_PHASE_CHARGE            = 2,
+        PLAYER_ACTOR_PE_PHASE_WAIT_CHARGE       = 3,
+        PLAYER_ACTOR_PE_PHASE_WAIT_CAST         = 4,
+        PLAYER_ACTOR_PE_PHASE_RESUME            = 5,
+        PLAYER_ACTOR_PE_ANIMATION_IDLE          = 0,
+        PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE = 9,
+        PLAYER_ACTOR_PE_RELEASE_SET_VARIANT0    = 26,
+        PLAYER_ACTOR_PE_RELEASE_SET_VARIANT1    = 29,
+        PLAYER_ACTOR_PE_RELEASE_SET_OTHER       = 42,
+        PLAYER_ACTOR_PE_CHARGE_SET_VARIANT0     = 27,
+        PLAYER_ACTOR_PE_CHARGE_SET_VARIANT1     = 30,
+        PLAYER_ACTOR_PE_CHARGE_SET_OTHER        = 43,
+        PLAYER_ACTOR_PE_CAST_SET_VARIANT0       = 28,
+        PLAYER_ACTOR_PE_CAST_SET_VARIANT1       = 31,
+        PLAYER_ACTOR_PE_CAST_SET_OTHER          = 44,
+        PLAYER_ACTOR_PE_RELEASE_BLEND_FRAMES    = 6,
+        PLAYER_ACTOR_PE_PREVIOUS_LOCOMOTION     = 0,
+        PLAYER_ACTOR_PE_PREVIOUS_AIM_ENTRY      = 1,
+        PLAYER_ACTOR_PE_AIM_ENTRY_BLEND_FRAMES  = 6,
+        PLAYER_ACTOR_PE_AIM_BLEND_FRAMES        = 8,
+    };
     GameActor* actor;
-    s32        mode;
+    s32        setIndex;
     s32        actionSignal;
 
-    actor               = arg0->work;
+    actor               = task->work;
     actor->movementSign = 0;
     if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_CANCELLED) {
-        actor->statePhase = 5;
+        actor->statePhase = PLAYER_ACTOR_PE_PHASE_RESUME;
     }
     switch (actor->statePhase) {
-        case 0:
-            actor->animationState = 9;
+        case PLAYER_ACTOR_PE_PHASE_RELEASE:
+            // Start the attachment countdown while the release clip plays.
+            actor->animationState = PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE;
             actor->statePhase    += 1;
             Gp_StateC08.flags    |= ATTACHMENT_FLAG_RELEASE;
-            if (actor->actionArgument == 0) {
-                mode = 0x1A;
-            } else if (actor->actionArgument == 1) {
-                mode = 0x1D;
-            } else {
-                mode = 0x2A;
-            }
-            playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 6);
+            setIndex              = _playerActorSelectPeClip(actor, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT0, PLAYER_ACTOR_PE_RELEASE_SET_VARIANT1, PLAYER_ACTOR_PE_RELEASE_SET_OTHER);
+            playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_PE_RELEASE_BLEND_FRAMES);
             sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_PE_ACTIVE);
             break;
-        case 2:
-            actor->animationState = 0;
+        case PLAYER_ACTOR_PE_PHASE_CHARGE:
+            actor->animationState = PLAYER_ACTOR_PE_ANIMATION_IDLE;
             actor->statePhase    += 1;
-            if (actor->actionArgument == 0) {
-                mode = 0x1B;
-            } else if (actor->actionArgument == 1) {
-                mode = 0x1E;
-            } else {
-                mode = 0x2B;
-            }
-            playerActorResetChildSlots(arg0, mode);
-        case 3:
+            setIndex              = _playerActorSelectPeClip(actor, PLAYER_ACTOR_PE_CHARGE_SET_VARIANT0, PLAYER_ACTOR_PE_CHARGE_SET_VARIANT1, PLAYER_ACTOR_PE_CHARGE_SET_OTHER);
+            playerActorResetChildSlots(task, setIndex);
+            // Check the countdown on the same tick that starts the charge clip.
+        case PLAYER_ACTOR_PE_PHASE_WAIT_CHARGE:
             if (Gp_StateC08.duration == 0) {
-                actor->animationState = 9;
+                actor->animationState = PLAYER_ACTOR_PE_ANIMATION_ADVANCE_PHASE;
                 actor->statePhase    += 1;
                 actionSignal          = SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_300_TO_600;
                 if (Gp_StateC08.attachId < ATTACHMENT_ID_EARLY_SPELL_LIMIT || Gp_StateC08.attachId > ATTACHMENT_ID_LAST_SPELL) {
                     actionSignal = SCENE_COMBAT_ACTION_SIGNAL_PE_CAST_OTHER;
                 }
                 sceneLatchActionSignal(actionSignal);
-                if (actor->actionArgument == 0) {
-                    mode = 0x1C;
-                } else if (actor->actionArgument == 1) {
-                    mode = 0x1F;
-                } else {
-                    mode = 0x2C;
-                }
-                playerActorResetChildSlots(arg0, mode);
+                setIndex = _playerActorSelectPeClip(actor, PLAYER_ACTOR_PE_CAST_SET_VARIANT0, PLAYER_ACTOR_PE_CAST_SET_VARIANT1, PLAYER_ACTOR_PE_CAST_SET_OTHER);
+                playerActorResetChildSlots(task, setIndex);
                 break;
             }
-        case 1:
+            // An unfinished charge keeps publishing the active PE stimulus.
+        case PLAYER_ACTOR_PE_PHASE_WAIT_RELEASE:
             sceneLatchActionSignal(SCENE_COMBAT_ACTION_SIGNAL_PE_ACTIVE);
             break;
-        case 4:
+        case PLAYER_ACTOR_PE_PHASE_WAIT_CAST:
             break;
-        case 5:
-            if (actor->stateAux == 0) {
-                playerActorEnterLocomotion(arg0, 0);
+        case PLAYER_ACTOR_PE_PHASE_RESUME:
+            if (actor->stateAux == PLAYER_ACTOR_PE_PREVIOUS_LOCOMOTION) {
+                playerActorEnterLocomotion(task, 0);
                 break;
             }
-            _playerActorResumeAimLocomotion(arg0, actor->stateAux == 1 ? 6 : 8);
+            _playerActorResumeAimLocomotion(task, actor->stateAux == PLAYER_ACTOR_PE_PREVIOUS_AIM_ENTRY ? PLAYER_ACTOR_PE_AIM_ENTRY_BLEND_FRAMES : PLAYER_ACTOR_PE_AIM_BLEND_FRAMES);
             break;
     }
 }
@@ -8778,24 +8870,31 @@ static void Gp_PlayerMode2StateB(Task* arg0)
     playerActorCheckContactDamage(arg0);
 }
 
-static void Gp_TickPlayerActor(Task* arg0)
+/// Advances the player's current control mode and its actor-tick timers.
+///
+/// Requires live GameActor work/model and mode 0..2. Captures the interaction
+/// press before mode dispatch, decrements positive attack/recovery timers,
+/// clears the pushback-heading override, then updates turn yaw and textures.
+/// Recovery retains its signed-byte interpretation. The caller's hold gate
+/// skips this whole tick while its outer movement/collision pass still runs.
+static void _playerActorTick(Task* task)
 {
-    GameActor*     inner;
-    TaskFuncTable3 sp;
+    GameActor*     actor;
+    TaskFuncTable3 modeHandlers;
 
-    sp    = Gp_PlayerModeFns;
-    inner = arg0->work;
-    _playerActorCaptureInteractionPress(arg0);
-    if (inner->attackControl.cooldownTicks > 0) {
-        inner->attackControl.cooldownTicks--;
+    modeHandlers = Gp_PlayerModeFns;
+    actor        = task->work;
+    _playerActorCaptureInteractionPress(task);
+    if (actor->attackControl.cooldownTicks > 0) {
+        actor->attackControl.cooldownTicks--;
     }
-    if ((s8)inner->recoveryTicks > 0) {
-        inner->recoveryTicks--;
+    if ((s8)actor->recoveryTicks > 0) {
+        actor->recoveryTicks--;
     }
-    inner->usesPushbackDirection = 0;
-    sp.funcs[inner->mode](arg0);
-    _playerActorUpdateTurnYawOffset(arg0);
-    _playerActorTickTextureSequences(arg0);
+    actor->usesPushbackDirection = 0;
+    modeHandlers.funcs[actor->mode](task);
+    _playerActorUpdateTurnYawOffset(task);
+    _playerActorTickTextureSequences(task);
 }
 
 static void Gp_ArmLockOnState(Task* arg0)
@@ -9336,35 +9435,53 @@ static void func_80108FA0(Task* arg0)
     playerActorPlayFootstepCue(arg0);
 }
 
-static void Gp_PlayerNormalState1(Task* arg0)
+/// Enters aim locomotion when the normal aim-entry phase has completed.
+///
+/// Borrows live actor work and the current lock node, which may be NULL. Clears
+/// a pending transition before assigning its target; blends for three frames.
+static inline void _playerActorFinishNormalAimEntry(Task* task, GameActor* actor, WorldTargetNode* node)
 {
-    GameActor*       inner;
-    WorldTargetNode* node;
-    s32              flag;
+    enum { PLAYER_ACTOR_AIM_ENTRY_BLEND_FRAMES = 3 };
 
-    playerActorTrackLockTarget(arg0);
-    inner               = arg0->work;
-    node                = worldTargetFindLockNode(arg0);
-    inner->movementSign = 0;
-    if ((node != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || (flag = 1, gSceneCombatState.signals.bytes.battlePhase == flag) ||
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
-        if (inner->statePhase != 0) {
-            sceneEngageBattle(1);
-            if (inner->aimTransitionPending != 0) {
-                inner->aimTransitionPending = 0;
-                if (node != NULL) {
-                    playerActorSetLockTarget(arg0, node);
-                }
+    if (actor->statePhase != 0) {
+        sceneEngageBattle(1);
+        if (actor->aimTransitionPending != 0) {
+            actor->aimTransitionPending = 0;
+            if (node != NULL) {
+                playerActorSetLockTarget(task, node);
             }
-            _playerActorEnterAimLocomotion(arg0, 3);
         }
+        _playerActorEnterAimLocomotion(task, PLAYER_ACTOR_AIM_ENTRY_BLEND_FRAMES);
+    }
+}
+
+/// Completes aim entry or begins aim exit in normal-mode state 1.
+///
+/// Requires live actor work, native child-slot resources and a live borrowed
+/// target if selected. Movement stops while aim tracking continues. A target
+/// in an unfinished battle, engaged battle phase or nonzero saved gate
+/// retains aim entry; a completed phase then enters aim locomotion with a
+/// three-frame blend. Without those gates, an exit request clears the target
+/// and starts angle decay. The saved gate's wider purpose is unproven.
+static void _playerActorNormalState1(Task* task)
+{
+    GameActor*       actor;
+    WorldTargetNode* node;
+
+    playerActorTrackLockTarget(task);
+    actor               = task->work;
+    node                = worldTargetFindLockNode(task);
+    actor->movementSign = 0;
+    if ((node != NULL && gSceneCombatState.signals.bytes.battlePhase < SCENE_COMBAT_BATTLE_FINISHED) || gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED ||
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.field_929 != 0) {
+        _playerActorFinishNormalAimEntry(task, actor, node);
     } else {
-        _playerActorUpdateAimRequest(arg0);
-        if (inner->aimControl & GAME_ACTOR_AIM_REQUEST_EXIT) {
-            inner->aimTransitionPending = 0;
-            inner->aimTrackingState     = flag;
-            playerActorClearLockTarget(arg0);
-            playerActorExitAim(arg0);
+        _playerActorUpdateAimRequest(task);
+        if (actor->aimControl & GAME_ACTOR_AIM_REQUEST_EXIT) {
+            actor->aimTransitionPending = 0;
+            actor->aimTrackingState     = GAME_ACTOR_AIM_TRACKING_DECAY;
+            playerActorClearLockTarget(task);
+            playerActorExitAim(task);
         }
     }
 }
