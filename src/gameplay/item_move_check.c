@@ -32,7 +32,7 @@ InventoryItemRange Gp_MoveScanSrc = { 0, 60, INVENTORY_ITEM_TABLE_INDIRECT, 0 };
 
 InventoryItemRange Gp_MoveScanDst = { 60, 60, INVENTORY_ITEM_TABLE_INDIRECT, 0 };
 
-UiListRowCallback D_8010D630[1] = { Gp_ItemMoveRow };
+UiListRowCallback D_8010D630[1] = { itemMenuDrawTransferInventoryRow };
 
 UiList Gp_InvLists[2] = {
     { D_8010D630, 60, { 60 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 },

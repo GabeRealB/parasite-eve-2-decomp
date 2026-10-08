@@ -16,12 +16,21 @@
 
 extern UiObjectDesc D_8010D6D8;
 
-/// List-item callback for an inventory row. Looks up
-/// `Gp_MoveScanSrc[owner->spawnArg1.value]` at `field_8`, highlights the move-source
-/// row in `0x37A78`, draws the item (and ammo count for ids `0xA0..0xBF`),
-/// then on confirm either opens the stack/info popup (`owner->state == 1`)
-/// or starts a move / restriction prompt.
-void Gp_ItemMoveRow(UiList* arg0, UiObject* arg1);
+/// Draws a transfer-pane inventory row and handles command or swap-partner input.
+///
+/// Borrows the shared row list and live task-owned object. Its owner carries pane
+/// index 0/1; currentItemIndex and the pane's selected row must fit the copied
+/// range and its live backing table. During swap selection, the source row is
+/// highlighted. The selected row of an active or suspended-active pane updates
+/// preview and description. Consumable rows show total quantities.
+/// Browsing Confirm opens Move/Switch commands; Triangle on a nonempty row opens
+/// details. Swap Confirm publishes the candidate row or opens a restriction
+/// notice: cross-pane swaps reject restricted items, item-box ammunition and
+/// equipped carried weapons/armor. Same-pane candidates bypass those checks.
+/// Publishes the active row pointer for other menu callbacks without owning it;
+/// the transfer screen and shared work must remain live. Requires loaded menu
+/// resources and writable GPU primitive/ordering-table storage.
+void itemMenuDrawTransferInventoryRow(UiList* list, UiObject* object);
 
 /// Draws the transfer popup's Move row and handles its confirmation.
 ///

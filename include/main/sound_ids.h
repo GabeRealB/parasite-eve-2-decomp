@@ -176,20 +176,20 @@ enum {
     /// Loop started with the security room's streamed cutscene and faded out (0x14) at
     /// movie frame 0x46 or when the player skips.
     SOUND_ACROPOLIS_SECURITY_ROOM_MOVIE_LOOP = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 8),
-    /// Played by Gp_ItemPickupTilt in the security room when the item container's part
+    /// Played by `itemPickupContainerLidTask` in the security room when the item container's part
     /// starts tilting open for a pickup.
     SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 9),
-    /// Played by Gp_ItemPickupTilt in the security room when the tilted part swings
+    /// Played by `itemPickupContainerLidTask` in the security room when the tilted part swings
     /// back after the pickup result.
     SOUND_ACROPOLIS_SECURITY_ROOM_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SECURITY_ROOM, 0x0A),
     /// The fountain's waterfall loop, (re)started or re-panned per camera view while
     /// the streamed fountain video is in its playing window and faded out at movie
     /// frame 0xF0.
     SOUND_ACROPOLIS_FOUNTAIN_WATER_LOOP = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_FOUNTAIN, 1),
-    /// Played by Gp_ItemPickupTilt in the sanctuary when the item container's part
+    /// Played by `itemPickupContainerLidTask` in the sanctuary when the item container's part
     /// starts tilting open (case falls through and also queues 0x521B000B).
     SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 5),
-    /// Played by Gp_ItemPickupTilt in the sanctuary when the tilted part swings back
+    /// Played by `itemPickupContainerLidTask` in the sanctuary when the tilted part swings back
     /// after the pickup.
     SOUND_ACROPOLIS_SANCTUARY_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SANCTUARY, 6),
     /// Looping ambience whose level follows the camera view (view 7 full, view 5 at
@@ -443,9 +443,9 @@ enum {
     /// 0x77 clear) and plays the player's reaction animation; stopped when paused or
     /// cleared.
     SOUND_SHELTER_B1_STERILIZATION_PLAYER_HURT = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x11),
-    /// Played by Gp_ItemPickupTilt in this room as the item container's lid tilts open.
+    /// Played by `itemPickupContainerLidTask` in this room as the item container's lid tilts open.
     SOUND_SHELTER_B1_STERILIZATION_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x12),
-    /// Played by Gp_ItemPickupTilt in this room as the lid tilts back after the pickup.
+    /// Played by `itemPickupContainerLidTask` in this room as the lid tilts back after the pickup.
     SOUND_SHELTER_B1_STERILIZATION_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0x13),
     /// Played after confirming the B1 pod access tunnel exit (toward R47, story flag
     /// 0x7A >= 6); the warp to the pod service gantry waits for it.
@@ -489,9 +489,9 @@ enum {
     /// Key beep of the code keypad: on a key hotspot press and for each digit of the
     /// automatic code entry.
     SOUND_SHELTER_B2_LAB_KEYPAD_KEY = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x13),
-    /// Played by Gp_ItemPickupTilt in this room as the item container's lid tilts open.
+    /// Played by `itemPickupContainerLidTask` in this room as the item container's lid tilts open.
     SOUND_SHELTER_B2_LAB_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x15),
-    /// Played by Gp_ItemPickupTilt in this room as the lid tilts back after the pickup.
+    /// Played by `itemPickupContainerLidTask` in this room as the lid tilts back after the pickup.
     SOUND_SHELTER_B2_LAB_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, 0x16),
     /// Played after confirming the pod ride; the warp to the B1 pod access tunnel waits
     /// for it.
@@ -502,9 +502,9 @@ enum {
     /// Played when the blaze encounter controller starts, alongside its caption
     /// schedule (_capCaptionRunSchedule 0xD0).
     SOUND_SHELTER_B3_DUMPING_HOLE_ALERT = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 7),
-    /// Played by Gp_ItemPickupTilt in this room as the item container's lid tilts open.
+    /// Played by `itemPickupContainerLidTask` in this room as the item container's lid tilts open.
     SOUND_SHELTER_B3_DUMPING_HOLE_ITEM_LID_OPEN = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 8),
-    /// Played by Gp_ItemPickupTilt in this room as the lid tilts back after the pickup.
+    /// Played by `itemPickupContainerLidTask` in this room as the lid tilts back after the pickup.
     SOUND_SHELTER_B3_DUMPING_HOLE_ITEM_LID_CLOSE = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_DUMPING_HOLE, 9),
     /// Loop while the incinerator lift model moves to its first rest pose after the
     /// action trigger; stopped on arrival.

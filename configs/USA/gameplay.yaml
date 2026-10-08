@@ -87,7 +87,7 @@ segments:
       - [0x150, .rodata, area_transitions] # the direction tables, then the jtbl from menuMapGetMarkerState
       - [0x1BC, .rodata, scene_runtime] # jtbls from streamReadSceneImageSector and cdCmdHandleSceneAudio, then its strings and state tables
       - [0x268, .rodata, equipment] # jtbl from inventoryIsItemLimitReached, then Gp_StrNotice2
-      - [0x4CC, .rodata, item_menu] # jtbls: Gp_ItemMoveChild + strings/tables + _itemMenuHandlePaneChildResult
+      - [0x4CC, .rodata, item_menu] # jtbls: _itemMenuHandleTransferChildResult + strings/tables + _itemMenuHandlePaneChildResult
       - [0x668, .rodata, item_inventory]
       - [0x364C, .rodata, attachment_menu]
       - [0x3670, .rodata, pickup_dispatch]
@@ -141,7 +141,7 @@ segments:
       - [0x25D4C, c, item_boost] # itemMenuApplyPouchPanel
       - [0x27E68, c, item_collect] # inventoryGetCollectedItemId
       - [0x28D0C, c, item_move_check] # itemMenuCanMoveAllItems
-      - [0x28E34, c, item_menu] # Gp_ItemMoveChild
+      - [0x28E34, c, item_menu] # _itemMenuHandleTransferChildResult
       - [0x2C1FC, c, menu_root] # menuRootTask
       - [0x2CAA0, c, menu_prompt] # itemMenuDispatchCommand
       - [0x31B28, c, menu_armor] # itemMenuDrawAttachmentCandidateRow

@@ -517,7 +517,7 @@ static AreaObjectSpawn D_map_akropolis_8017A67C[3] = {
 };
 
 static AreaObjectSpawn D_map_akropolis_8017A6AC[2] = {
-    { 0x701, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 } } },
+    { 0x701, { { { TASK_BODY_TMD, 0x62 } }, itemPickupContainerLidTask, { &gAcropolisSecurityRoomAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -544,7 +544,7 @@ static AreaObjectSpawn D_map_akropolis_8017A71C[1] = {
 
 static AreaObjectSpawn D_map_akropolis_8017A72C[3] = {
     { 0x103, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, acropolisSanctuaryItemVisibilityTask, { &gAcropolisSanctuaryModel09584 } } },
-    { 0x702, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, Gp_ItemPickupTilt, { &gAcropolisSanctuaryModel090F0 } } },
+    { 0x702, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, itemPickupContainerLidTask, { &gAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 

@@ -465,9 +465,9 @@ itemMenuCanMoveAllItems = 0x800BC50C; // type:func
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/item_menu.c) — file-split 0x28E34
 // ---------------------------------------------------------------------------
-Gp_ItemMoveChild = 0x800BC634; // type:func
-Gp_ItemMoveTask = 0x800BCC44; // type:func
-Gp_ItemMoveRow = 0x800BCEA4; // type:func
+_itemMenuHandleTransferChildResult = 0x800BC634; // type:func
+_itemMenuTransferScreenTask = 0x800BCC44; // type:func
+itemMenuDrawTransferInventoryRow = 0x800BCEA4; // type:func
 _itemMenuTransferPaneTask = 0x800BD2FC; // type:func
 itemMenuDrawTransferMoveRow = 0x800BD6DC; // type:func
 itemMenuDrawSwitchRow = 0x800BDAA8; // type:func
@@ -475,7 +475,7 @@ _itemMenuFillTransferActions = 0x800BDC80; // type:func
 _itemMenuTransferActionsTask = 0x800BDDC4; // type:func
 _itemMenuAmmoSplitTask = 0x800BDF6C; // type:func
 _itemMenuTransferExitRow = 0x800BE808; // type:func
-Gp_ItemPickupTilt = 0x800BEBE4; // type:func
+itemPickupContainerLidTask = 0x800BEBE4; // type:func
 _uiVisitChildObjects = 0x800BF2C8; // type:func
 _itemMenuIsTransferRestricted = 0x800BF334; // type:func
 _itemMenuHandlePaneChildResult = 0x800BF398; // type:func

@@ -446,7 +446,7 @@ static AreaObjectSpawn D_map_shelter_8017A8B8[2] = {
 };
 
 static AreaObjectSpawn D_map_shelter_8017A8D8[2] = {
-    { 0x70A, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gShelterB2LaboratoryAcropolisSanctuaryModel090F0 } } },
+    { 0x70A, { { { TASK_BODY_TMD, 0x62 } }, itemPickupContainerLidTask, { &gShelterB2LaboratoryAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -456,7 +456,7 @@ static AreaObjectSpawn D_map_shelter_8017A8F8[2] = {
 };
 
 static AreaObjectSpawn D_map_shelter_8017A918[2] = {
-    { 0x37, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 } } },
+    { 0x37, { { { TASK_BODY_TMD, 0x62 } }, itemPickupContainerLidTask, { &gShelterB3DumpingHoleAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -471,7 +471,7 @@ static AreaObjectSpawn D_map_shelter_8017A968[1] = {
 };
 
 static AreaObjectSpawn D_map_shelter_8017A978[2] = {
-    { 0x708, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 } } },
+    { 0x708, { { { TASK_BODY_TMD, 0x62 } }, itemPickupContainerLidTask, { &gShelterB1SterilizationRoomAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 

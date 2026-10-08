@@ -384,7 +384,7 @@ static AreaObjectSpawn D_map_dryfield_8017A524[2] = {
 };
 
 static AreaObjectSpawn D_map_dryfield_8017A544[2] = {
-    { 0x82, { { { TASK_BODY_TMD, 0x62 } }, Gp_ItemPickupTilt, { &gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 } } },
+    { 0x82, { { { TASK_BODY_TMD, 0x62 } }, itemPickupContainerLidTask, { &gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 

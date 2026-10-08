@@ -10,18 +10,33 @@
 
 // Inventory menu tasks, item panels, prompts and their shared descriptors.
 
-/// Item-move `UiObjectDesc` table. `Gp_ItemMoveTask` spawns `[0]` / `[1]`
+/// Item-move `UiObjectDesc` table. `_itemMenuTransferScreenTask` spawns `[0]` / `[1]`
 /// and, when `spawnArg1 == 1`, `[9]`.
-/// `[4]` is the popup `Gp_ItemMoveRow` spawns on confirm when
+/// `[4]` is the popup `itemMenuDrawTransferInventoryRow` spawns on confirm when
 /// `owner->state == 1`, `[5]` the quantity-selection popup `itemMenuDrawTransferMoveRow`
 /// opens when moving ammo stacks, `[9]` also the "Move items" confirmation
-/// `Gp_ItemMoveChild` spawns when the pane is closed with items still selected
+/// `_itemMenuHandleTransferChildResult` spawns when the pane is closed with items still selected
 /// (`itemMenuCanMoveAllItems` result as arg1), and `[10]` an extra descriptor spawned
 /// after the `[0]` / `[1]` pair.
 extern UiObjectDesc D_8010D6F4[];
 
-/// Named as a task entry by the enemy descriptor tables in the map UI overlays.
-void Gp_ItemPickupTilt(Task* arg0);
+/// Animates a placed container's lid around its pickup prompt and completes its CAP request.
+///
+/// spawnArg2 borrows a live placed Enemy; extra owns a TMD model with at least
+/// three coordinates. Coordinate 2 is the lid. The place key's low byte must
+/// be a valid object-state index for the current stage. Installs a CAP action
+/// message table: a retained writable request must stay live until done is set.
+/// A collected place remains idle. An action opens the lid for twenty updates
+/// at 32/4096 turns per update, queues pickup bank 1/type 0x26, then closes by
+/// four opening steps per update and completes the request at zero angle.
+/// Advances to closing even if the display-mode queue rejects pickup.
+/// Owns two lighting matrices in Task.work, lent to the model until teardown;
+/// allocation failure keeps the model's existing matrices. Lighting samples
+/// the fixed world point (0, -100, 0). Combat hiding and selected Shelter view
+/// slots gate visibility; initialization subsequently clears the model flags.
+/// Room/model/gameplay resources must remain live through queued pickup and
+/// completion. Sounds use the current stage/area and the composed model origin.
+void itemPickupContainerLidTask(Task* task);
 
 /// Task-bank selectors for the CAP-requested placed-object prompt.
 enum {

@@ -26384,8 +26384,8 @@ front.
 
 Assign `child = next` *before* the reloaded-`firstChild == NULL` break
 so `move a1, s0` fills that `beqz` delay slot. `_uiVisitChildObjects` is the
-helper; `_itemMenuTransferPaneTask` and `Gp_ItemMoveTask` inline the same walk with
-`_itemMenuHandlePaneChildResult` / `Gp_ItemMoveChild`.
+helper; `_itemMenuTransferPaneTask` and `_itemMenuTransferScreenTask` inline the same walk with
+`_itemMenuHandlePaneChildResult` / `_itemMenuHandleTransferChildResult`.
 
 ## Snapshot `(u16)s32` before an early-out so `lhu` fills the load delay
 
@@ -33472,7 +33472,7 @@ do {
 } while (i < 2);
 ```
 
-`Gp_ItemMoveTask` is the example. `dest = &Gp_MoveScanSrc; *dest = *src;
+`_itemMenuTransferScreenTask` is the example. `dest = &Gp_MoveScanSrc; *dest = *src;
 dest++` stuck at 98.6% with only that `la` two instructions early.
 
 ## Pin fail `-1` and shared `0x34` through `$v0` so the store is a phi
@@ -33513,7 +33513,7 @@ end:
 obj->resultValue = code;
 ```
 
-`Gp_ItemMoveTask` is the example. Unpinned `code` stuck at 98.8% (`li v1,
+`_itemMenuTransferScreenTask` is the example. Unpinned `code` stuck at 98.8% (`li v1,
 0x34` first, then `li v0, -1`).
 
 ## `table[x * 4 + (y - C)]` puts `-C` on the scaled `x`, not on `y`
@@ -35394,7 +35394,7 @@ switch (stageAreaKey) {
 
 State 1 of the same function has a real `0x21B0000` body, so the tree
 already has the right child. State 3 must keep the empty case or the
-lower half collapses to two sequential `beq`s. `Gp_ItemPickupTilt` is the
+lower half collapses to two sequential `beq`s. `itemPickupContainerLidTask` is the
 example.
 
 A `(s8)func()` result that must be `sll s0, v0, 24` / `sra s0, s0, 24` in
@@ -35976,7 +35976,7 @@ those copies and the leftover `sw ra/s4/s1/s0`. Copying into
 `lui` next to `%lo`. Pin the earlier live-across-call locals (`rec` in
 `$s1`, `item` in `$s0`) and leave the incoming args unpinned.
 
-`Gp_ItemMoveRow` is the example. Same “pin the later `$s` regs, leave the
+`itemMenuDrawTransferInventoryRow` is the example. Same “pin the later `$s` regs, leave the
 arg unpinned” idea as `_spriteEmitBatch`.
 
 ## Pin the second `1` to `$a0` so it does not CSE with an earlier `$v1`
@@ -36002,7 +36002,7 @@ status = arg1->status;
 }
 ```
 
-`Gp_ItemMoveRow` is the example.
+`itemMenuDrawTransferInventoryRow` is the example.
 
 ## Pin the last 3-level index to `$a0` so the table `la` uses `$v1`
 
@@ -39600,7 +39600,7 @@ to its assignment point.
 
 ## A separate index biv puts the giv init in the loop preheader
 
-`Gp_ItemMoveChild` walks an item table slice. The target sets the walking
+`_itemMenuHandleTransferChildResult` walks an item table slice. The target sets the walking
 pointer up *after* the loop guard, and adds the scaled index first:
 
 ```
@@ -146578,7 +146578,7 @@ CSE merges them and only one register remains.
 **Fix.** Load the pointer before the scratch push, and let the repeated block
 be a `static inline` helper that fetches it from the task itself.
 
-## A dead load held in an `$s` register to the end of the function is a test whose arms were merged after allocation (Gp_ItemPickupTilt, 2026-09-27)
+## A dead load held in an `$s` register to the end of the function is a test whose arms were merged after allocation (itemPickupContainerLidTask, 2026-09-27)
 
 **Symptom.** `lhu s4,0xA(a2)` in the entry block, never read again, while the
 function makes calls throughout. Seeded with `USE_REG(item)` at the end.
@@ -149709,7 +149709,7 @@ attempts; left as it was.
 ### Goto forms from the bridge room, the factory scenes and the item menu (batch 10, 2026-10-06)
 
 - **`code = K; obj->result = code; code = 0x34; ...; goto end;` ... `code =
-  0x34; end: obj->resultValue = code;`** (`Gp_ItemMoveTask`) is the store
+  0x34; end: obj->resultValue = code;`** (`_itemMenuTransferScreenTask`) is the store
   written at both sites with a `return` in the early one. The value local
   that was reassigned between two stores only reproduced cse's reuse of one
   register.
@@ -149722,7 +149722,7 @@ attempts; left as it was.
   through `consumeScan = ...; goto consume_transfer;` are the two calls written
   in each arm; the image's `j; addiu a0,s0,4` is the cross-jump.
 - **`check = 3; goto compare_room; ... check = 0x11; compare_room: if (room !=
-  check)`** (`Gp_ItemPickupTilt`) is `if (room != 3)` and `if (room != 0x11)`
+  check)`** (`itemPickupContainerLidTask`) is `if (room != 3)` and `if (room != 0x11)`
   with the body in each arm. Both constants load into the same register, so
   the compare and the body merge and leave `j; li v0,3`.
 - **`if (a) { if (p) goto act; } if (b) { if (q) goto act; } if (!r) goto
