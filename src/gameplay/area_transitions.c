@@ -147,7 +147,7 @@ static void _directionInitTask(Task* task);
 
 static void _directionUpdateTask(Task* task);
 
-static u8 Gp_GetViewCountLo(void);
+static u8 _viewGetCurrentRoomCount(void);
 
 static void _directionUpdateWarpAction(void);
 
@@ -589,14 +589,19 @@ void directionTask(Task* task)
     }
 }
 
-static u8 Gp_GetViewCountLo(void)
+/// Returns the low byte of the current room's signed logical-view count.
+///
+/// Requires a live session with stage 1..5, valid one-based area/room indices
+/// in a populated count directory, and the owning map and room overlays loaded.
+/// There is no range or NULL check. The byte conversion retains truncation.
+static u8 _viewGetCurrentRoomCount(void)
 {
-    GameSession*    session;
-    ViewCountTable* tbl;
+    const GameSession*    session;
+    const ViewCountTable* viewCountTable;
 
-    session = gGameSession;
-    tbl     = Gp_ViewCountTables[session->location.loc.stage - 1];
-    return (u8)tbl->viewCounts[session->location.loc.area - 1][session->location.loc.room - 1];
+    session        = gGameSession;
+    viewCountTable = Gp_ViewCountTables[session->location.loc.stage - 1];
+    return (u8)viewCountTable->viewCounts[session->location.loc.area - 1][session->location.loc.room - 1];
 }
 
 /// Runs one phase of the latched warp action through its copied handler table.

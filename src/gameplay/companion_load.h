@@ -82,6 +82,4 @@ void gameFlowRebuildSessionTask(Task* task);
 
 void Gp_LoadFinishTask(Task* task);
 
-void Gp_LinkRoomObjectsSpawn(Task* task);
-
 #endif // GAMEPLAY_PRIVATE_COMPANION_LOAD_H

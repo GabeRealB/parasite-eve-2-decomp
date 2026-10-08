@@ -311,6 +311,18 @@ void loadingPollAreaResourcesTask(Task* task);
 /// this callback neither kills the task nor clears `bootLoadActive` itself.
 void loadingHoldFadeAndReleaseBootImageTask(Task* task);
 
+/// Binds initial room collision resources and starts its child view-sprite task.
+///
+/// State 0 of loadingRoomResourcesTask. Requires a live task, loaded stage
+/// 1..5 and valid one-based area/room indices. Non-NULL trigger and occluder
+/// lists must be writable, LAST-terminated and remain loaded until unlinked;
+/// previous registrations must already be cleared. Binds grids and triggers
+/// to the view coordinate without applying the camera or clearing prior lists.
+/// A NULL area list or grid retains the prior grid publication. Spawns bank-0
+/// slot 0x1B as a teardown child when allocation succeeds, then clears the
+/// dirty request and advances to state 1 even when that spawn fails.
+void loadingInitRoomResourcesTask(Task* task);
+
 /// Refreshes room collision/view state and queues the current view's clipping packets.
 ///
 /// State 1 of `loadingRoomResourcesTask`. A live `task` caches the last logical

@@ -923,88 +923,101 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
 #undef ITEM_MENU_DRAW_COLLECTED_ROW_CONTENTS
 #undef ITEM_MENU_SET_COLLECTED_ROW_PREVIEW
 
-void Gp_KeyItemMenuTask(Task* arg0)
+/// Refreshes the collection count and its initial inclusive selection clamp.
+///
+/// list borrows writable singleton menu state. The viewport pass applies the
+/// later exclusive clamp; an empty list then retains selectedItemIndex == -1.
+static inline void _itemMenuRefreshCollectedCount(UiList* list)
 {
-    UiObject* obj;
-    UiList*   menu;
-    Task*     child;
-    Task*     next;
-    Task*     head;
-    UiObject* childObj;
-    s32       flag;
+    list->visibleRowCount.unsignedValue = list->itemCount = inventoryCountCollectedBits();
+    if (list->itemCount < list->selectedItemIndex) {
+        list->selectedItemIndex = list->itemCount;
+    }
+}
 
-    obj         = arg0->spawnArg2.pointer;
-    menu        = &D_8010E960;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrKeyItem);
-    if (arg0->state == 0) {
-        menu->visibleRowCount.unsignedValue = menu->itemCount = inventoryCountCollectedBits();
-        if (menu->itemCount < menu->selectedItemIndex) {
-            menu->selectedItemIndex = menu->itemCount;
+void itemMenuCollectedItemsTask(Task* task)
+{
+    enum {
+        ITEM_MENU_COLLECTED_INIT            = 0,
+        ITEM_MENU_COLLECTED_LIST_ROWS       = 10,
+        ITEM_MENU_COLLECTED_RETURN          = 1,
+        ITEM_MENU_COLLECTED_PREVIEW_PROFILE = 1
+    };
+    UiObject* object;
+    UiList*   collectedList;
+    Task*     childTask;
+    Task*     nextChildTask;
+    Task*     firstChildTask;
+    UiObject* childObject;
+    s32       childResult;
+
+    object         = task->spawnArg2.pointer;
+    collectedList  = &D_8010E960;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, Gp_StrKeyItem);
+    if (task->state == ITEM_MENU_COLLECTED_INIT) {
+        _itemMenuRefreshCollectedCount(collectedList);
+        uiInitList(collectedList, &object->panel);
+        collectedList->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        if (task->spawnArg1.value == 0) {
+            uiSetPanelContentSize(&object->panel, 0, uiGetTextRowsHeight(ITEM_MENU_COLLECTED_LIST_ROWS) + 1);
+            uiSpawnObject(&D_8010F868, 0, 0, ITEM_MENU_COLLECTED_PREVIEW_PROFILE, object);
         }
-        uiInitList(menu, &(obj)->panel);
-        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        if (arg0->spawnArg1.value == 0) {
-            uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(0xA) + 1);
-            uiSpawnObject(&D_8010F868, 0, 0, 1, obj);
-        }
-        menu->selectedItemIndex                   = 0;
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        arg0->state                               = arg0->state + 1;
+        collectedList->selectedItemIndex                   = 0;
+        collectedList->firstVisibleItemIndex.unsignedValue = 0;
+        task->state                                        = task->state + 1;
     } else {
-        menu->visibleRowCount.unsignedValue = menu->itemCount = inventoryCountCollectedBits();
-        if (menu->itemCount < menu->selectedItemIndex) {
-            menu->selectedItemIndex = menu->itemCount;
+        _itemMenuRefreshCollectedCount(collectedList);
+        uiRefreshListViewport(collectedList, &object->panel);
+        collectedList->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        if (collectedList->selectedItemIndex >= collectedList->itemCount) {
+            collectedList->selectedItemIndex = collectedList->itemCount - 1;
         }
-        uiRefreshListViewport(menu, &(obj)->panel);
-        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        if (menu->selectedItemIndex >= menu->itemCount) {
-            menu->selectedItemIndex = menu->itemCount - 1;
-        }
-        uiUpdateList(menu, &obj->panel);
-        if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            if (obj->result == USER_INTERFACE_RESULT_NONE) {
+        uiUpdateList(collectedList, &object->panel);
+        if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+            if (object->result == USER_INTERFACE_RESULT_NONE) {
                 if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-                    obj->result = USER_INTERFACE_RESULT_CANCEL;
+                    object->result = USER_INTERFACE_RESULT_CANCEL;
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                     if (gGameSession->cutsceneHold == 1) {
                         sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-                        obj->result = USER_INTERFACE_RESULT_CANCEL;
+                        object->result = USER_INTERFACE_RESULT_CANCEL;
                     } else {
                         sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-                        obj->resultValue = 1;
-                        obj->result      = USER_INTERFACE_RESULT_CONFIRM;
+                        object->resultValue = ITEM_MENU_COLLECTED_RETURN;
+                        object->result      = USER_INTERFACE_RESULT_CONFIRM;
                     }
                 } else {
                     padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_L2 | PAD_BUTTON_R2);
                 }
             }
-        } else if (obj->panel.control.word >= USER_INTERFACE_PANEL_REQUEST_MIN) {
-            obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+        } else if (object->panel.control.word >= USER_INTERFACE_PANEL_REQUEST_MIN) {
+            object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
         }
     }
-    head = arg0->firstChild;
-    if (head != NULL) {
-        child = head;
+    // Closing a child can change the circular ring; save its successor first.
+    firstChildTask = task->firstChild;
+    if (firstChildTask != NULL) {
+        childTask = firstChildTask;
         do {
-            childObj = child->spawnArg2.pointer;
-            flag     = childObj->result;
-            next     = child->nextSibling;
-            switch (flag) {
+            childObject   = childTask->spawnArg2.pointer;
+            childResult   = childObject->result;
+            nextChildTask = childTask->nextSibling;
+            switch (childResult) {
                 case USER_INTERFACE_RESULT_CANCEL:
-                    obj->result = flag;
+                    object->result = childResult;
                     break;
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    uiStartTreeClosing(childObj, childObj->owner);
-                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+                    uiStartTreeClosing(childObject, childObject->owner);
+                    object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
             }
-            head  = arg0->firstChild;
-            child = next;
-            if (head == NULL) {
+            firstChildTask = task->firstChild;
+            childTask      = nextChildTask;
+            if (firstChildTask == NULL) {
                 break;
             }
-        } while (child != head);
+        } while (childTask != firstChildTask);
     }
 }
 

@@ -89,12 +89,14 @@ static inline void _capTickSceneSync(void)
     }
 }
 
-void Gp_InitCapTask(Task* task)
+void capInitializeControlTask(Task* task)
 {
-    void* mem;
+    // No CAP control handler reads this allocation; preserve its four-byte extent.
+    enum { CAP_CONTROL_WORK_BYTES = 4 };
+    void* workStorage;
 
-    mem = memCalloc(4, 0);
-    if (mem == NULL) {
+    workStorage = memCalloc(CAP_CONTROL_WORK_BYTES, false);
+    if (workStorage == NULL) {
         taskKill(task);
         return;
     }
@@ -102,8 +104,8 @@ void Gp_InitCapTask(Task* task)
     D_801156B8     = NULL;
     task->msgTable = D_8010FB90;
     gameSetTaskSlot(task, GAME_TASK_SLOT_CAP_CONTROL);
-    task->work = mem;
-    D_801156B0 = 0;
+    task->work = workStorage;
+    D_801156B0 = CAP_CONTROL_SCENE_SYNC_DISABLED;
     task->state++;
 }
 

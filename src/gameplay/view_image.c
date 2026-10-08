@@ -28,8 +28,13 @@ ViewCameraTable* Gp_ViewTables[5] = { &D_map_akropolis_8017AC14, &D_map_dryfield
 
 /// Uploads the current mapped view's retained image, retrying every incomplete result.
 ///
-/// Borrows loaded directory payloads throughout the call; the image uploader's
-/// scratch, timer and GPU requirements apply. No matching image skips the upload.
+/// The mapped one-based view is narrowed to u8, then compared with each of the
+/// fifty directory slots after subtracting one as signed int. Zero or an index
+/// beyond the directory matches nothing. Kind is tested before the slot index.
+/// Borrows the selected loaded payload until `fsUploadImageChunk` completes;
+/// both `FILE_SYSTEM_IMAGE_UPLOAD_RETRY` and `FILE_SYSTEM_IMAGE_UPLOAD_TIMER_FAILED`
+/// are retried. Requires that uploader's live image, GPU, scratch-stack and
+/// timer state. No match leaves VRAM intact.
 static inline void _loadingUploadCurrentViewImage(void)
 {
     enum { LOADING_VIEW_IMAGE_IGNORE_GPU_TIME_LIMIT = 1 };

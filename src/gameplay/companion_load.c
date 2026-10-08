@@ -506,62 +506,80 @@ s32 taskMessageDispatch(Task* receiver, s32 messageId, s32 firstArg, s32 secondA
     return entry->handler(receiver, messageId, firstArg, secondArg);
 }
 
-void Gp_LinkRoomObjectsSpawn(Task* task)
+/// Binds borrowed collision records for initial room setup without clearing lists.
+///
+/// The loaded stage directory must provide valid one-based area/room indices.
+/// Each non-NULL trigger/occluder list must contain its LAST-marked entry and
+/// remain writable and loaded until unlinked. Existing registrations must be
+/// empty or disposable; NULL resources retain the existing grid publication.
+static inline void _loadingBindInitialRoomCollisionResources(const GameLocationKey* location, const WorldCollisionRoomResources* roomResources)
 {
-    GameLocationKey*                   sess;
-    const WorldCollisionRoomResources* roomResources;
-    WorldCollisionGrid*                grid;
-    WorldCollisionTrigger*             viewBoundaryTriggers;
-    WorldCollisionTrigger*             actionTriggers;
-    WorldCollisionOccluder*            occluders;
-    s32                                i;
-    Task*                              spawned;
+    enum { WORLD_COLLISION_OCCLUDER_LIST_ACTIVE = 0 };
+    WorldCollisionGrid*     grid;
+    WorldCollisionTrigger*  viewBoundaryTriggers;
+    WorldCollisionTrigger*  actionTriggers;
+    WorldCollisionOccluder* occluders;
+    s32                     resourceIndex;
 
-    sess          = &gGameSession->location.loc;
-    roomResources = Gp_RoomObjTables[sess->stage - 1]->areaRooms[sess->area - 1];
     if (roomResources != NULL) {
-        grid                 = roomResources[sess->room - 1].grid;
-        viewBoundaryTriggers = roomResources[sess->room - 1].viewBoundaryTriggers;
-        actionTriggers       = roomResources[sess->room - 1].actionTriggers;
-        occluders            = roomResources[sess->room - 1].occluders;
+        grid                 = roomResources[location->room - 1].grid;
+        viewBoundaryTriggers = roomResources[location->room - 1].viewBoundaryTriggers;
+        actionTriggers       = roomResources[location->room - 1].actionTriggers;
+        occluders            = roomResources[location->room - 1].occluders;
         if (grid != NULL) {
             // Bind the room mesh to the current view before publishing it.
             grid->viewCoord = &gGfxViewCoord;
             Gp_GridParams   = grid;
         }
         if (viewBoundaryTriggers != NULL) {
-            for (i = 0;; i++) {
-                viewBoundaryTriggers[i].coord = &gGfxViewCoord;
-                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES, &viewBoundaryTriggers[i]);
-                viewBoundaryTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
-                if (viewBoundaryTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
+            for (resourceIndex = 0;; resourceIndex++) {
+                viewBoundaryTriggers[resourceIndex].coord = &gGfxViewCoord;
+                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_VIEW_BOUNDARIES, &viewBoundaryTriggers[resourceIndex]);
+                viewBoundaryTriggers[resourceIndex].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+                if (viewBoundaryTriggers[resourceIndex].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
                 }
             }
         }
         if (actionTriggers != NULL) {
-            for (i = 0;; i++) {
-                actionTriggers[i].coord = &gGfxViewCoord;
-                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &actionTriggers[i]);
-                actionTriggers[i].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
-                if (actionTriggers[i].flags & WORLD_COLLISION_TRIGGER_LAST) {
+            for (resourceIndex = 0;; resourceIndex++) {
+                actionTriggers[resourceIndex].coord = &gGfxViewCoord;
+                worldCollisionLinkTrigger(WORLD_COLLISION_TRIGGER_LIST_ACTION, &actionTriggers[resourceIndex]);
+                actionTriggers[resourceIndex].flags |= WORLD_COLLISION_TRIGGER_ENABLED;
+                if (actionTriggers[resourceIndex].flags & WORLD_COLLISION_TRIGGER_LAST) {
                     break;
                 }
             }
         }
         if (occluders != NULL) {
-            for (i = 0;; i++) {
-                worldCollisionLinkOccluder(0, &occluders[i]);
-                occluders[i].flags |= WORLD_COLLISION_OCCLUDER_ENABLED;
-                if (occluders[i].flags & WORLD_COLLISION_OCCLUDER_LAST) {
+            for (resourceIndex = 0;; resourceIndex++) {
+                worldCollisionLinkOccluder(WORLD_COLLISION_OCCLUDER_LIST_ACTIVE, &occluders[resourceIndex]);
+                occluders[resourceIndex].flags |= WORLD_COLLISION_OCCLUDER_ENABLED;
+                if (occluders[resourceIndex].flags & WORLD_COLLISION_OCCLUDER_LAST) {
                     break;
                 }
             }
         }
     }
-    spawned = taskSpawn(0, 0x1B, 0, 0);
-    if (spawned != NULL) {
-        taskReparent(task, spawned);
+}
+
+void loadingInitRoomResourcesTask(Task* task)
+{
+    enum {
+        LOADING_VIEW_SPRITE_TASK_BANK = 0,
+        LOADING_VIEW_SPRITE_TASK_TYPE = 0x1B
+    };
+    const GameLocationKey*             location;
+    const WorldCollisionRoomResources* roomResources;
+    Task*                              viewSpriteTask;
+
+    location      = &gGameSession->location.loc;
+    roomResources = Gp_RoomObjTables[location->stage - 1]->areaRooms[location->area - 1];
+    _loadingBindInitialRoomCollisionResources(location, roomResources);
+    // The room task owns the sprite task in its teardown tree.
+    viewSpriteTask = taskSpawn(LOADING_VIEW_SPRITE_TASK_BANK, LOADING_VIEW_SPRITE_TASK_TYPE, 0, 0);
+    if (viewSpriteTask != NULL) {
+        taskReparent(task, viewSpriteTask);
     }
     gGameSession->roomObjsDirty = 0;
     task->state++;

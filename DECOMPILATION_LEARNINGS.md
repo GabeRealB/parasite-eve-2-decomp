@@ -26457,7 +26457,7 @@ this hoist.
 
 A wrapper-then-3-level lookup (`viewIndexTable->viewMaps[a-1][b-1][c-1]`) written as
 one expression (or with only `viewIndexTable`) inverts `$v0`/`$v1` versus the 2-level
-sibling (`Gp_GetViewCountLo`): each `lw` lands in the other register and the
+sibling (`_viewGetCurrentRoomCount`): each `lw` lands in the other register and the
 last `lw` schedules after the final `lbu`.
 
 Assign each pointer level to its own temp. The last index must retain its
@@ -30590,7 +30590,7 @@ and leaves the next `jal`'s delay for `move a1, s1`. A `::: "memory"`
 barrier or a volatile `itemCount` store empties that delay (`nop`) and
 parks `visibleRowCount` in the following `jal` delay instead.
 
-`Gp_KeyItemMenuTask` is the example.
+`itemMenuCollectedItemsTask` is the example.
 
 ## Child-walk `beq` chain: compare named constants, not `switch`
 
@@ -30645,7 +30645,7 @@ pointer into that same saved reg and rewrites the earlier `lui v0,
 %hi(list)` / `addiu s0, v0, %lo` as `lui s0`. Leave the three constants
 unpinned.
 
-`Gp_KeyItemMenuTask` is the example.
+`itemMenuCollectedItemsTask` is the example.
 
 ## Widen a `u8` load to `s32` before an `s32` store
 
@@ -66917,7 +66917,7 @@ leaving the scratch-head pointer in `$t8` and the segment start in `$t9`.
 The result is 100% with no register pins.
 
 
-## func_800E44A0: keep-live placement can change allocation without changing scheduling
+## capUpdatePlaybackTask: keep-live placement can change allocation without changing scheduling
 
 The remaining countdown pair at 99.968% was separated by a narrow priority
 margin: the loaded value had 3 references over 8 insns, while its destination
@@ -144738,7 +144738,7 @@ address RTL, so the two spellings are never equated and the load stays. When a
 constant store "should" fold but the target reloads, look for a sibling
 function that performs those stores and inline it.
 
-## A load hoisted above two narrow stores of one value, then compared masked, is a chained assignment (Gp_KeyItemMenuTask, 2026-09-26)
+## A load hoisted above two narrow stores of one value, then compared masked, is a chained assignment (itemMenuCollectedItemsTask, 2026-09-26)
 
 The target stored a call result to two `u8` members (`sb v0,4(s0)`, `sb v0,5(s0)`),
 but loaded the `s32` selection `lw v1,0x10(s0)` *before* both stores and
@@ -150000,7 +150000,7 @@ attempts; left as it was.
   past the second test, which is the image's shape.
 - **Which copy of `state += 1` survives between two `if (end) state += 1; else
   {...}; <tail>` blocks depends on the orientation of the earlier one**
-  (`func_800E44A0`). Both tails merge into the later block first. With the
+  (`capUpdatePlaybackTask`). Both tails merge into the later block first. With the
   earlier block written `if (!end) {...} else { state += 1; }` its increment
   then sits directly in front of the jump to the merged tail, the later
   block's `state += 1; j tail` finds it and the *later* copy is deleted.
@@ -150018,7 +150018,7 @@ attempts; left as it was.
   (`_shelterB1PodAccessTunnelRideToB2Task`, `_shelterB1PodAccessTunnelTravelToGantryTask`) are
   `if (busy() == 0) task->state++; break;` per case; first try.
 - **`ok` / `flag` goto pairs in a text advance** (`checkChoice` / `checkCaret`
-  / `drawCaret` in `func_800E44A0`) were one `(a && b && (c || d) && e && !f)
+  / `drawCaret` in `capUpdatePlaybackTask`) were one `(a && b && (c || d) && e && !f)
   || g` condition, the same one the function already had written out thirty
   lines below.
 - Not converted: `_shelterB1NorthMaintenanceWalkwayResolveRoomTransition` and

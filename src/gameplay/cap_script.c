@@ -22,7 +22,7 @@ void func_800E70AC(Task* task)
                 task->state++;
                 break;
         }
-        func_800E44A0(task);
+        capUpdatePlaybackTask(task);
     }
 }
 

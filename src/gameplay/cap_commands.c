@@ -60,13 +60,13 @@ enum {
 
 static const TaskFuncTable3 D_800974C8;
 
-void Gp_EvtCapWeaponTask(Task* arg0);
+static void _capWeaponEventTask(Task* task);
 
 static void _objectTaskRoomIdleState(Task* unusedTask);
 
 TaskDesc Gp_EvtSpawnTable[3] = {
     { { { TASK_BODY_NONE, 32 } }, capEventTask, { NULL } },
-    { { { TASK_BODY_NONE, 32 } }, Gp_EvtCapWeaponTask, { NULL } },
+    { { { TASK_BODY_NONE, 32 } }, _capWeaponEventTask, { NULL } },
     { { { TASK_DESC_END, 0 } }, NULL, { NULL } },
 };
 
@@ -185,89 +185,127 @@ void capRunCommand(s32 commandIndex, s16 playbackMode)
 
 #undef CAP_ADVANCE_COMMAND_COUNTER
 
-void Gp_EvtCapWeaponTask(Task* arg0)
+/// Holds the player in its equipped weapon bank's idle animation for event entry.
+///
+/// The stack request is consumed synchronously; its selected animation bank
+/// must remain loaded through playback. Requires the live player and equipment.
+static inline void _capHoldWeaponEventPlayer(void)
 {
-    s32                  flags;
-    GameActor*           actor;
-    s32                  mode;
-    AnimationPlayRequest recB;
-    AnimationPlayRequest recA;
+    AnimationPlayRequest idleRequest;
 
-    flags = arg0->spawnArg2.value;
-    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
-    switch (arg0->state) {
-        case 0:
-            if ((flags & 1) && (flags != 0xFF)) {
-                recA              = Gp_WeaponMsgRec;
-                recA.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-                TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &recA, 0);
+    idleRequest              = Gp_WeaponMsgRec;
+    idleRequest.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &idleRequest, 0);
+}
+
+/// Runs a CAP event between the player's weapon entry and exit presentations.
+///
+/// spawnArg1 is the command index and spawnArg2 contains CAP_EVENT_* flags,
+/// reversing the normal event payload order. CAP_WEAPON_EVENT_ROOM_COMMAND
+/// instead dispatches the command directly to the room in in-place mode.
+/// Requires serialized events, a live player and room, and loaded command and
+/// weapon animation resources through completion. States 1 and 6 give the
+/// player's deferred presentations a tick before polling their animations.
+/// Losing scripted player control aborts the task; otherwise it restores player
+/// drawing and actor control after playback. Enabled room completion cues use
+/// spawnArg2 + 100, including the room-command sentinel.
+static void _capWeaponEventTask(Task* task)
+{
+    enum {
+        CAP_WEAPON_EVENT_ENTER_PRESENTATION  = 0,
+        CAP_WEAPON_EVENT_HOLD_ENTRY          = 1,
+        CAP_WEAPON_EVENT_WAIT_ENTRY          = 2,
+        CAP_WEAPON_EVENT_START_COMMAND       = 3,
+        CAP_WEAPON_EVENT_WAIT_COMMAND        = 4,
+        CAP_WEAPON_EVENT_EXIT_PRESENTATION   = 5,
+        CAP_WEAPON_EVENT_HOLD_EXIT           = 6,
+        CAP_WEAPON_EVENT_WAIT_EXIT           = 7,
+        CAP_WEAPON_EVENT_FINISH              = 8,
+        CAP_WEAPON_EVENT_ENTRY_CLIP          = 0,
+        CAP_WEAPON_EVENT_EXIT_CLIP           = 1,
+        CAP_WEAPON_EVENT_COMPLETION_CUE_BASE = 100
+    };
+    s32                  eventFlags;
+    const GameActor*     player;
+    s32                  playbackMode;
+    AnimationPlayRequest unusedPresentationRequest;
+
+    eventFlags = task->spawnArg2.value;
+    player     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    switch (task->state) {
+        case CAP_WEAPON_EVENT_ENTER_PRESENTATION:
+            if ((eventFlags & CAP_EVENT_PAUSE_ACTORS) && (eventFlags != CAP_WEAPON_EVENT_ROOM_COMMAND)) {
+                _capHoldWeaponEventPlayer();
             }
-            recB              = D_8010FB10;
-            recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 0, 0);
-            arg0->state++;
+            // The request copy is retained; presentation itself receives only a clip selector.
+            unusedPresentationRequest              = D_8010FB10;
+            unusedPresentationRequest.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, CAP_WEAPON_EVENT_ENTRY_CLIP, 0);
+            task->state++;
             break;
-        case 1:
-            arg0->state++;
+        case CAP_WEAPON_EVENT_HOLD_ENTRY:
+            task->state++;
             break;
-        case 2:
+        case CAP_WEAPON_EVENT_WAIT_ENTRY:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                arg0->state++;
+                task->state++;
             }
-            if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
-                taskKill(arg0);
+            if (player->mode != GAME_ACTOR_MODE_SCRIPTED) {
+                taskKill(task);
             }
             break;
-        case 3:
-            if ((flags & 1) && (flags != 0xFF)) {
+        case CAP_WEAPON_EVENT_START_COMMAND:
+            // Room commands bypass the CAP flag effects and use in-place mode.
+            if ((eventFlags & CAP_EVENT_PAUSE_ACTORS) && (eventFlags != CAP_WEAPON_EVENT_ROOM_COMMAND)) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             }
-            if ((flags & 2) && (flags != 0xFF)) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+            if ((eventFlags & CAP_EVENT_HIDE_PLAYER) && (eventFlags != CAP_WEAPON_EVENT_ROOM_COMMAND)) {
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE, 0);
             }
-            if ((flags & 4) && (flags != 0xFF)) {
-                mode = 2;
-            } else if ((flags & 1) == 0) {
-                mode = 3;
+            if ((eventFlags & CAP_EVENT_ACTION_CAPTURE) && (eventFlags != CAP_WEAPON_EVENT_ROOM_COMMAND)) {
+                playbackMode = CAP_PLAYBACK_ACTION_CAPTURE;
+            } else if ((eventFlags & CAP_EVENT_PAUSE_ACTORS) == 0) {
+                playbackMode = CAP_PLAYBACK_CLEAR_IF_UNSTARTED;
             } else {
-                mode = 0;
+                playbackMode = CAP_PLAYBACK_IN_PLACE;
             }
-            if (flags == 0xFF) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, arg0->spawnArg1.value, mode);
+            if (eventFlags == CAP_WEAPON_EVENT_ROOM_COMMAND) {
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_COMMAND, task->spawnArg1.value, playbackMode);
             } else {
-                capRunCommand(arg0->spawnArg1.value, mode);
+                capRunCommand(task->spawnArg1.value, playbackMode);
             }
-            arg0->state++;
+            task->state++;
             break;
-        case 4:
+        case CAP_WEAPON_EVENT_WAIT_COMMAND:
             if (capIsBusy() == 0) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-                arg0->state++;
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
+                task->state++;
             }
             break;
-        case 5:
+        case CAP_WEAPON_EVENT_EXIT_PRESENTATION:
+            // This variant routes its completion cue from the flags payload.
             if (D_80115598 != 0) {
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, arg0->spawnArg2.value + 0x64, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM), ROOM_MESSAGE_SOUND, task->spawnArg2.value + CAP_WEAPON_EVENT_COMPLETION_CUE_BASE, 0);
             }
-            recB              = D_8010FB24;
-            recB.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 1, 0);
-            arg0->state++;
+            unusedPresentationRequest              = D_8010FB24;
+            unusedPresentationRequest.source.index = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, CAP_WEAPON_EVENT_EXIT_CLIP, 0);
+            task->state++;
             break;
-        case 6:
-            arg0->state++;
+        case CAP_WEAPON_EVENT_HOLD_EXIT:
+            task->state++;
             break;
-        case 7:
+        case CAP_WEAPON_EVENT_WAIT_EXIT:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
-                arg0->state++;
+                task->state++;
             }
-            if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
-                taskKill(arg0);
+            if (player->mode != GAME_ACTOR_MODE_SCRIPTED) {
+                taskKill(task);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             }
             break;
-        case 8:
-            taskKill(arg0);
+        case CAP_WEAPON_EVENT_FINISH:
+            taskKill(task);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             break;
@@ -279,7 +317,7 @@ const CapTextLayout D_80097518       = { 0 };
 const char          Gp_StrEvsFmt[]   = "evs%d_%d_%d.txt";
 
 const TaskFuncTable3 Gp_CapTaskStates = { {
-    Gp_InitCapTask,
+    capInitializeControlTask,
     capUpdateControlTask,
     taskKill,
 } };

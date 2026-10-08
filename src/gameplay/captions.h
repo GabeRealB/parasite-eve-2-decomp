@@ -56,7 +56,15 @@ enum {
     CAP_CONTROL_SCENE_SYNC_DELAY_FRAMES = 30
 };
 
-void Gp_InitCapTask(Task* task);
+/// Initializes and publishes the singleton CAP control task and its message receiver.
+///
+/// Runs in state 0, advances to the update state on success, and kills the task
+/// if its four-byte primary-heap allocation fails. That retained allocation has
+/// no observed payload access and is released by ordinary task teardown.
+/// Resets playback, clears the held demo-HUD task handle and disarms scene sync;
+/// the scene-key-presence latch is retained. Requires initialized task/heap and
+/// CAP singleton state. Both spawn arguments are unused.
+void capInitializeControlTask(Task* task);
 
 /// Relocates the loaded CAP file and advances the scene-sync gate each task tick.
 ///
@@ -199,7 +207,25 @@ extern s16 D_8011569A;
 
 extern u8 D_8011569C;
 
-void func_800E44A0(Task* task);
+/// Advances the selected CAP record's text, choice, action and view-control playback.
+///
+/// Called each unfrozen playback tick after the wrapper's state-0 setup. States
+/// 0/1 process records; reaching a terminator starts states 2..4's three-tick
+/// hold, and state 5 releases playback and the task. Neither spawn argument is
+/// read. Scene synchronization, text transitions and minimum-frame gates can
+/// defer processing. Timed records reveal text, display it, then pause; untimed
+/// records accept Continue or a laid-out choice after its confirmation lockout.
+///
+/// Requires a selected relocated sequence with each scan and look-ahead inside
+/// its live CAP file, at signed-halfword indices 1..32767. Text/glyph/choice and
+/// GPU storage must satisfy the text drawer's contract; choices fit
+/// CAP_CHOICE_CAPACITY and their current selection and row stride must be valid.
+/// View selectors must resolve in the loaded room. Placed actions (1..63) must
+/// index valid current-stage two-bit state storage before prompt lookup. Child
+/// actions require the live scene task. The singleton action request is borrowed across
+/// frames until its receiver sets done, so playback and those resources must
+/// remain live. Action-capture mode delays its capture/prompt by four ticks.
+void capUpdatePlaybackTask(Task* task);
 
 /// Measures the CAP text box's height in pixels from break-terminated lines.
 ///

@@ -433,7 +433,18 @@ void itemMenuKeyItemCommandTask(Task* task);
 /// Use-command path checks allocation failure before deactivating its parent.
 void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object);
 
-void Gp_KeyItemMenuTask(Task* arg0);
+/// Updates the Key Item menu's collected-item list and handles its child panels.
+///
+/// spawnArg2 borrows the task's live UiObject; spawnArg1 == 0 resizes the list
+/// for ten text rows and creates preview profile 1 on initialization. Other
+/// values preserve the supplied layout. Uses singleton collected-list state,
+/// with rows addressed by collected-bit ordinal rather than inventory slot.
+/// Empty refreshes retain selectedItemIndex == -1. Requires loaded menu/item
+/// resources, live save/input state and a closed circular child-task ring.
+/// Menu cancels; Cancel confirms return value 1 except during cutscene hold,
+/// when it cancels. Child cancellation propagates; child confirmation closes
+/// that panel tree and restores parent input. The callback retains its task.
+void itemMenuCollectedItemsTask(Task* task);
 
 /// Updates one element's PE list and transfers focus through the four sibling panels.
 ///

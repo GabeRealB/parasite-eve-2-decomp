@@ -1581,17 +1581,26 @@ static __inline__ void _hudCancelAttachment(AttachmentState* attachment)
     _attachmentResumeActors();
 }
 
-/// Places a demo panel's four corners in its fixed rectangle relative to screen centre.
+/// Sets a demo HUD quad's 128-by-63-pixel rectangle relative to screen centre.
+///
+/// panel must address a writable POLY_FT4; only XY corners are changed. Packet
+/// setup, texture coordinates and ordering-table insertion belong to the caller.
 static inline void _hudPlaceDemoPanel(POLY_FT4* panel)
 {
-    panel->x2 = 22;
-    panel->x0 = 22;
-    panel->x3 = 150;
-    panel->x1 = 150;
-    panel->y1 = -107;
-    panel->y0 = -107;
-    panel->y3 = -44;
-    panel->y2 = -44;
+    enum {
+        HUD_DEMO_PANEL_LEFT   = 22,
+        HUD_DEMO_PANEL_RIGHT  = 150,
+        HUD_DEMO_PANEL_TOP    = -107,
+        HUD_DEMO_PANEL_BOTTOM = -44
+    };
+    panel->x2 = HUD_DEMO_PANEL_LEFT;
+    panel->x0 = HUD_DEMO_PANEL_LEFT;
+    panel->x3 = HUD_DEMO_PANEL_RIGHT;
+    panel->x1 = HUD_DEMO_PANEL_RIGHT;
+    panel->y1 = HUD_DEMO_PANEL_TOP;
+    panel->y0 = HUD_DEMO_PANEL_TOP;
+    panel->y3 = HUD_DEMO_PANEL_BOTTOM;
+    panel->y2 = HUD_DEMO_PANEL_BOTTOM;
 }
 
 /// Queues the demo scene's two overlaid raw-texture panels in the foreground.
