@@ -1718,10 +1718,11 @@ from the instruction listing alone:
   here — 95.3% with matching registers still could not be searched.
 - `blk->vec.vy = 0` sits **between** the two coordinate subtractions, not before
   them; there it fills the load-delay slot they leave open.
-A helper is not the only way to get that register, and the same tell can be
-answered with a local: `func_actor_206100_8014D380`'s deadband is a plain local
-`limit` assigned just before the comparison, and `if (diff > limit)` is enough
-for the `GT` to survive to `gen_int_relational`'s `reverse_regs` arm.  The
+A helper is not the only way to get that register: a plain local assigned
+just before the comparison supplies the same tell. `_actor206100DispatchDive`
+passes its deadband to `_actor206100TurnTowardPoint`'s `deadband` parameter;
+`if (yawDifference > deadband)` is enough for the `GT` to survive to
+`gen_int_relational`'s `reverse_regs` arm. The
 literal spelling of the same row scored 94.96% with every other instruction of
 the 125 identical; the local scored 100%.  Where the assignment sits decides
 which register the `li` lands in and the allocation of the whole block that
@@ -67913,7 +67914,7 @@ the example.
 
 ## A dereference-store's address load is ranked with its store, so give the pointer its own local
 
-`func_actor_206100_8014FAE4` loads three fields of `Task` and the target emits
+`_actor206100PlaceOnWaypointRing` loads three fields of `Task` and the target emits
 them in source order, the third being the pointer behind a store:
 
 ```
@@ -77496,7 +77497,7 @@ produce it" and pointed at live ranges instead.
 
 ## A bare `0x50*n + 4` offset on `field_8` is `coords[n].coord`
 
-`func_actor_206100_8014EB60` loads `((TmdObject*)task->extra)->coords` into
+`_actor206100ApplyPart5Recoil` loads `((TmdObject*)task->extra)->coords` into
 `$s2` and then does `addiu $s0, $s2, 0x194`. That is not a field of some
 larger object: `GfxCoord` leads with `composeStamp` and puts `coord` at +4 inside
 the 0x50 element, so `0x194` is `5 * 0x50 + 4` and the pointer is
@@ -86192,7 +86193,7 @@ function of the same translation unit. This family dispatches such a table as
 `fns[task->state](task->spawnArg2, task)` - `ActorsShared80131e24` is the
 decompiled example - so the pair is `(Enemy*, Task*)` and the two loads become
 `(Work*)task->work` and `(TmdObject*)task->extra`, the reading
-`func_actor_206100_8014FAE4` already uses.
+`_actor206100PlaceOnWaypointRing` already uses.
 
 The byte store then settles the first argument on its own: `Task::callback` is
 at `0x14`, so `sb …, 0x14($a0)` rules out a `Task*`, and
@@ -101416,7 +101417,7 @@ The mix in the source is legible in the target object. Here the target's first
 store is `sw $s3,0x10($sp)` and the rest are on the same register the two calls
 pass in `a1`, i.e. one direct store then four through the pointer - and that is
 exactly what the source has to say. Both splits appear among matched siblings:
-`func_actor_206100_8014EB60` writes two direct (`matrix.rotationWords.m00M01`,
+`_actor206100ApplyPart5Recoil` writes two direct (`matrix.rotationWords.m00M01`,
 `matrix.rotationWords.m02M10`) and three through `mtx`, and its target asm shows the
 same two `($sp)` / three `($s1)` split; `actor_107600` and `actor_403600` write
 all five through a pointer that is a runtime value already. Read a sibling's
@@ -117273,7 +117274,7 @@ Inputs: `base_1.i` (98.609%)
 `base_2.i` (100.000%)
 `56b315489f09c15dce13c4b289ca88d7922d96188ce9cd1613d2ee8d07b35cc3`.
 
-## A constant store in a branch's delay slot decides whether post-reload CSE folds it into a later increment (func_actor_206100_8014FCD4, 2026-09-16)
+## A constant store in a branch's delay slot decides whether post-reload CSE folds it into a later increment (_actor206100EnterDeathPlayback, 2026-09-16)
 
 **Symptom:** 97.1% with exactly one wrong instruction: `addu v0,v0,s0` where the
 target has `addiu v0,v0,1` - the `$s0` in question is the loop counter the same
@@ -117313,11 +117314,13 @@ delay slot either way. Only the block the store belongs to differs, and that is
 what decides the fold:
 
 ```c
-    if (state == 1) { ... } else if (state == 2) { ... } else if (state == 3) {
-        next->animFrames = next->animFrames + 1;   /* stays addiu */
+    if (requestKind == DIVER_ANIM_REQUEST_BLEND) { ... }
+    else if (requestKind == DIVER_ANIM_REQUEST_RESET) { ... }
+    else if (requestKind == DIVER_ANIM_REQUEST_PLAYING) {
+        work->animFrames = work->animFrames + 1;   /* stays addiu */
     }
-    for (i = 1; i < 0xF; i++) {
-        animationTickSlot(&next->rig.anim, i);
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationTickSlot(&work->rig.anim, slotIndex);
     }
 ```
 
@@ -117341,7 +117344,7 @@ trigger, because m2c writes the counter's init as `var_s0 = 1;` on the line
 before the `if` and the loop as a `do`/`while` - so the init lands in the block
 the constant-using instruction is in. `_actor206100DeathPlaybackTick` reached
 97.297% on that seed with the identical one-instruction mismatch (200 distance,
-`insert=1 delete=1`), and rewriting it in the sibling `func_actor_206100_8014FCD4`'s
+`insert=1 delete=1`), and rewriting it in the sibling `_actor206100EnterDeathPlayback`'s
 shape - struct fields, `for (i = 1; i < 0xF; i++)`, the init after the chain -
 matched on the first build with no other change.
 
@@ -117514,9 +117517,9 @@ target `d42d84699b29db682eca202e9b7f23b01a87ddb2fb05d4d8171a7dab35adde0f`.
 
 
 
-## The same `lh`+`lhu` pair can come from the use or from a cast - rebuild each one alone (func_actor_206100_8014E0C0, 2026-09-16)
+## The same `lh`+`lhu` pair can come from the use or from a cast - rebuild each one alone (_actor206100RecoilPitchTick, 2026-09-16)
 
-`func_actor_206100_8014E0C0` reads its `s16` `recoilPitch` twice in one statement
+`_actor206100RecoilPitchTick` reads its `s16` `recoilPitch` twice in one statement
 and the target has both a signed and an unsigned load:
 
 ```
@@ -117852,7 +117855,7 @@ load-delay slot the retail's own `lui` fills.
 
 ## A global read moved above a run of field stores relocates the whole `%hi` group
 
-`func_actor_206100_8014B698` is the same shape `ActorsShared801662ec` has: three
+`_actor206100TrackTarget` is the same shape `ActorsShared801662ec` has: three
 `coord.t[]` halves stored into work fields, then `gPlayerActorTasks[0]` read and
 tested, then the `gPlayerActorTasks[1]` read inside the `else`. The `lui`/`lw` pair
 for slot 0 and the `addiu` for slot 1's `%lo` (CSE'd back into the entry block)
@@ -117987,7 +117990,7 @@ whenever the address is a frame, hard-frame or argument pointer:
 So no amount of reuse turns `0x18($sp)` into `0($s0)` — but the *same* address
 reached through a pointer local is `(plus (reg mtx) (const 8))`, rooted at a
 pseudo, and survives with a register of its own. Two locals in this overlay
-(`func_actor_206100_8014EB60`, `func_actor_403100_801339EC`) and
+(`_actor206100ApplyPart5Recoil`, `func_actor_403100_801339EC`) and
 `Actor444000_80139C80` already carry the `mtx` form for that reason; the split
 is the tell, not the aliasing.
 
@@ -118099,7 +118102,7 @@ equivalence, here the two branches put the store on a different CSE path
 entirely. Reach for it before a pin: it costs one build and the score goes from
 96.83% to 100.00%.
 
-## An m2c `x & 0x8000` test is the original's signed compare (func_actor_206100_8014EC54, 2026-09-16)
+## An m2c `x & 0x8000` test is the original's signed compare (_actor206100Part5RecoilTick, 2026-09-16)
 
 m2c rendered the target's `sll v0,v0,0x10` / `bltz v0,label` as
 `if (!(temp_v0_2 & 0x8000))`, which compiles to `andi v0,v0,0x8000` / `bnez`:
