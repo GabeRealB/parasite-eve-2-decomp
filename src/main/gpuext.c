@@ -47,9 +47,8 @@ static inline _GpuStatusRegister _gpuExtReadStatus(void)
     return *(_GpuStatusRegister*)GPUEXT_GPU1;
 }
 
-i32 GpuExt_IsDisplayEnabled()
+s32 gpuExtIsDisplayEnabled(void)
 {
-    // The original inverts the bit before masking it, which a one-bit bitfield
-    // read does not reproduce (it masks first), so the register is a plain word.
-    return (_gpuExtReadStatus() >> GPU_STATUS_REGISTER_DISPLAY_DISABLED_BIT ^ 1) & 1;
+    // Display blanking is active high; invert before isolating its status bit.
+    return ((_gpuExtReadStatus() >> GPU_STATUS_REGISTER_DISPLAY_DISABLED_BIT) ^ 1) & 1;
 }

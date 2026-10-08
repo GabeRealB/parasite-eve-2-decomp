@@ -600,6 +600,11 @@ void spuResetSystem(void)
 }
 
 /// Arms an extra audio update after six events of the installed PAL root counter.
+///
+/// Requires the PAL counter-zero interrupt to be installed and running. Called
+/// under the audio-work guard after a VBlank update: replaces the countdown,
+/// resets the timer origin, then publishes the arm. The timer callback consumes
+/// it once; no sound events or audio work are processed here.
 static inline void _spuArmPalExtraAudioUpdate(void)
 {
     enum {

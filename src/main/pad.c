@@ -23,8 +23,12 @@ s32 D_80071210;
 
 #include "gameplay/model_objects.h"
 
-/// Zeroes `state` through its byte representation.
-static inline void Pad_ClearState(PadState* state)
+/// Clears the complete input, setup and vibration state for one controller port.
+///
+/// `state` is a writable PadState borrowed for initialization, before polling
+/// or controller communication starts. All sizeof(*state) bytes become zero;
+/// the caller then installs the unavailable-input and pending-setup values.
+static inline void _padClearState(PadState* state)
 {
     u8* stateByte;
     u32 stateByteIndex;
@@ -45,7 +49,7 @@ void Pad_Init(void)
 
     for (i = 0; i < ARRAY_SIZE(gPadStates); i++) {
         // Clear each complete state, then publish setup fields.
-        Pad_ClearState(&gPadStates[i]);
+        _padClearState(&gPadStates[i]);
         gPadStates[i].actuatorCommand[0] = 0;
         gPadStates[i].actuatorCommand[1] = 0;
         gPadStates[i].inputFormat        = PAD_INPUT_FORMAT_UNAVAILABLE;

@@ -3,9 +3,9 @@
 
 #include "types.h"
 
-/// Check if the display flag is set in the GPU.
+/// Returns 1 while GPU display output is enabled, or 0 while it is blanked.
 ///
-/// @return Whether display is enabled.
-i32 GpuExt_IsDisplayEnabled();
+/// Samples the GP1 status word once; the active-high blanking bit is inverted.
+s32 gpuExtIsDisplayEnabled(void);
 
 #endif // MAIN_PRIVATE_GPUEXT_H

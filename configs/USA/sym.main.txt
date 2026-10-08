@@ -78,7 +78,7 @@ main                        = 0x80014300;
 //--------------------------------------------------------------------
 //--- PA: 0x04B38   VA: 0x80014338   subsegment: c, gpuext
 //--------------------------------------------------------------------
-GpuExt_IsDisplayEnabled     = 0x80014338; // type:func
+gpuExtIsDisplayEnabled     = 0x80014338; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x04B58   VA: 0x80014358   subsegment: o, libsn/snmain
@@ -632,7 +632,7 @@ _spu_Fw1ts                  = 0x8002716C;
 //--------------------------------------------------------------------
 GameMain_Init               = 0x800271D4; // type:func
 displayPresentTaskFrame               = 0x8002731C; // type:func
-Display_VSyncCallback               = 0x80027498; // type:func
+_displayVSyncCallback               = 0x80027498; // type:func
 GameMain_ShowLoading               = 0x8002764C; // type:func
 GameMain_Loop               = 0x8002785C; // type:func
 gfxResetView               = 0x80027E7C; // type:func
@@ -873,7 +873,7 @@ textMeasureUiTextSize               = 0x8002FD08; // type:func
 textDrawUiLine               = 0x8002FDCC; // type:func
 _textDrawUiLineVoid               = 0x8002FEAC; // type:func
 _textDrawUiLinesScrolled               = 0x8002FEE0; // type:func
-Text_LoadClutImages               = 0x80030074; // type:func
+textUploadPalettes               = 0x80030074; // type:func
 _mcBuildSaveFileName               = 0x800300EC; // type:func
 _mcSeedNewGameRecords               = 0x800301FC; // type:func
 mcResetSaveData               = 0x800303AC; // type:func

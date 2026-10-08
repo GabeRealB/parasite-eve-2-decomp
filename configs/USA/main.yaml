@@ -152,7 +152,7 @@ segments:
 
       # .text section
       - [0x4b00, c, main] # Main function.
-      - [0x4b38, c, gpuext] # GpuExt_IsDisplayEnabled
+      - [0x4b38, c, gpuext] # gpuExtIsDisplayEnabled
       - [0x4b54, pad] # libsn/snmain is aligned to an 8 byte boundary
       - [0x4b58, asm, psyq/libsn/snmain] # entry point (psyq-obj-parser doesn't support it...)
       - [0x4cd8, o, libapi/c57] # InitHeap

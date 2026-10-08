@@ -462,7 +462,7 @@ static void _textDrawGlyphTranslucentOutlined(TextDrawReq* request, const _FontG
         /// GPU CLUT selector for the color-modulated fill of translucent outlined UI text.
         ///
         /// Encodes VRAM word X=976, row Y=511 as 0x7FFD for `SPRT::clut`.
-        /// The first 16-color palette uploaded there by `Text_LoadClutImages`
+        /// The first 16-color palette uploaded there by `textUploadPalettes`
         /// must be resident: indices 0..10 are transparent, and 11..15 are
         /// increasing gray with the semi-transparency bit set. The fill sprite
         /// modulates those colors by RGB and enables blending; its ordering-table
@@ -471,7 +471,7 @@ static void _textDrawGlyphTranslucentOutlined(TextDrawReq* request, const _FontG
         /// GPU CLUT selector for the subtractive outline of translucent UI text.
         ///
         /// Encodes VRAM word X=992, row Y=511 as 0x7FFE for `SPRT::clut`.
-        /// The middle 16-color palette uploaded by `Text_LoadClutImages` must be
+        /// The middle 16-color palette uploaded by `textUploadPalettes` must be
         /// resident: indices 0..10 are transparent, and 11..15 contain RGB5
         /// grays 2, 4, 6, 16 and 31 with the semi-transparency bit set.
         /// The raw-texture sprite ignores RGB modulation and requires subtractive
@@ -525,14 +525,14 @@ static void _textDrawGlyphOutlined(TextDrawReq* request, const _FontGlyph* glyph
         /// GPU CLUT selector for the color-modulated fill of an outlined UI glyph.
         ///
         /// Encodes VRAM word X=976, row Y=511 as 0x7FFD for `SPRT::clut`.
-        /// `Text_LoadClutImages` uploads the 16-color palette there: texel indices
+        /// `textUploadPalettes` uploads the 16-color palette there: texel indices
         /// 0..10 are transparent and 11..15 are progressively brighter gray.
         /// The fill sprite disables semi-transparency and modulates these colors by RGB.
         TEXT_OUTLINED_GLYPH_FILL_CLUT = getClut(0x3D0, 0x1FF),
         /// GPU CLUT selector for the subtractive outline of an opaque UI glyph.
         ///
         /// Encodes VRAM word X=1008, row Y=511 as 0x7FFF for `SPRT::clut`.
-        /// The final 16-color palette uploaded by `Text_LoadClutImages` must be
+        /// The final 16-color palette uploaded by `textUploadPalettes` must be
         /// resident: indices 0..5 are transparent, 6..9 are increasing gray,
         /// and 10..15 are white. All nonzero colors enable semi-transparency.
         /// The raw-texture sprite ignores RGB; with subtractive page blending,
@@ -592,7 +592,7 @@ static void _textDrawGlyphOutlinedSingleEntry(TextDrawReq* request, const _FontG
         /// GPU CLUT selector for the opaque, color-modulated fill in one OT entry.
         ///
         /// Encodes VRAM word X=976, row Y=511 as 0x7FFD for `SPRT::clut`.
-        /// The first 16-color palette uploaded by `Text_LoadClutImages` must be
+        /// The first 16-color palette uploaded by `textUploadPalettes` must be
         /// resident: indices 0..10 are transparent; 11..15 have RGB5 gray levels
         /// 7, 13, 19, 25 and 31. These colors set the semi-transparency bit, but
         /// the fill sprite disables blending and modulates them by RGB.
@@ -600,7 +600,7 @@ static void _textDrawGlyphOutlinedSingleEntry(TextDrawReq* request, const _FontG
         /// GPU CLUT selector for the subtractive glyph outline in one OT entry.
         ///
         /// Encodes VRAM word X=1008, row Y=511 as 0x7FFF for `SPRT::clut`.
-        /// The final 16-color palette uploaded by `Text_LoadClutImages` must be
+        /// The final 16-color palette uploaded by `textUploadPalettes` must be
         /// resident: indices 0..5 are transparent, 6..9 have RGB5 gray levels
         /// 1, 3, 6 and 9, and 10..15 are white. Every nonzero color sets the
         /// semi-transparency bit. The outline sprite uses raw texture colors,
@@ -1372,7 +1372,7 @@ static inline void _textInitGlyphFillSprite(SPRT* fill, const TextDrawReq* reque
         ///
         /// Encodes VRAM word X=976, row Y=511 as 0x7FFD in `SPRT::clut`.
         /// Selects the first 16 entries of the 48-color row uploaded by
-        /// `Text_LoadClutImages`; these must remain resident while drawing.
+        /// `textUploadPalettes`; these must remain resident while drawing.
         /// 4bpp texel indices 0..10 are transparent; 11..15 are RGB5 grays
         /// 7, 13, 19, 25 and 31, with the semi-transparency bit set.
         /// The fill's sprite command modulates them by RGB and disables blending;
@@ -1440,7 +1440,7 @@ static inline void _textInitOutlineGlyphSprite(SPRT* outline, const TextDrawReq*
         /// 4bpp outline CLUT at VRAM word X=1008, Y=511.
         ///
         /// `getClut` packs X / 16 and Y into selector 0x7FFF. This is the final
-        /// 16-color block uploaded by `Text_LoadClutImages`: indices 0..5 are
+        /// 16-color block uploaded by `textUploadPalettes`: indices 0..5 are
         /// transparent, 6..9 have RGB5 gray levels 1, 3, 6 and 9, and 10..15
         /// are white. Nonzero colors enable blending; the raw sprite subtracts
         /// their coverage from the background when the font page selects
@@ -1472,7 +1472,7 @@ static inline void _textInitOutlineGlyphSprite(SPRT* outline, const TextDrawReq*
 ///
 /// Reserves one `SPRT` (20 bytes) at the word-aligned `gGpuPrimCursor`. The arena
 /// and signed `request->otIndex` entry in `gGpuCurrentOt` must be writable and in
-/// bounds. Font textures and the final palette from `Text_LoadClutImages` must
+/// bounds. Font textures and the final palette from `textUploadPalettes` must
 /// already be resident. The caller must prepend a 4bpp font-page command with
 /// subtractive blending to this entry; packets remain live until GPU completion.
 static void _textDrawGlyphOutline(TextDrawReq* request, const _FontGlyph* glyph, s32 unusedColor)
@@ -1516,7 +1516,7 @@ static void Text_UiTaskCallback(Task* task)
 
 static void Text_BootTask(Task* task)
 {
-    Text_LoadClutImages();
+    textUploadPalettes();
     displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT);
     gameClearSession();
     taskSpawnFromTable(Title_TaskDescs, 0, 0, 0);

@@ -14,10 +14,10 @@
 #include "gameplay/collision.h"
 #include "gameplay/gpu_image_upload.h"
 
-/// Fill palettes (64 entries) for Text_LoadClutImages → (256, 243).
+/// Fill palettes (64 entries) for textUploadPalettes → (256, 243).
 static u_long Text_FillClutPixels[];
 
-/// Outline palettes (48 entries) for Text_LoadClutImages → (0x3D0, 0x1FF).
+/// Outline palettes (48 entries) for textUploadPalettes → (0x3D0, 0x1FF).
 static u_long Text_OutlineClutPixels[];
 
 /// How `_textParseLine` finished the line it copied.
@@ -56,28 +56,28 @@ static inline void _textDrawLine(const UiObject* object, s32 x, s32 y, const u8*
 
 static void _textDrawUiLineVoid(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
 
-/// Fill palettes (64 entries) for Text_LoadClutImages → (256, 243).
+/// Fill palettes (64 entries) for textUploadPalettes → (256, 243).
 static u_long Text_FillClutPixels[] = {
 #include "assets/text_clut0.inc"
 };
 /// Upload list for the fill palettes: one copy to (256, 243) and the end record.
 ///
 /// The palette data carries the list form that gameplay's `gpuUploadImages`
-/// walks, but the resident executable never reads it: `Text_LoadClutImages`
+/// walks, but the resident executable never reads it: `textUploadPalettes`
 /// uploads the same words to the same rectangle itself.
 static GpuImageUpload Text_FillClut[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0x100, 0xF3, 0x40, 1 }, Text_FillClutPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
 };
 
-/// Outline palettes (48 entries) for Text_LoadClutImages → (0x3D0, 0x1FF).
+/// Outline palettes (48 entries) for textUploadPalettes → (0x3D0, 0x1FF).
 static u_long Text_OutlineClutPixels[] = {
 #include "assets/text_clut1.inc"
 };
 /// Upload list for the outline palettes: one copy to (256, 240) and the end record.
 ///
 /// Never read, like `Text_FillClut`. Its destination is not where
-/// `Text_LoadClutImages` uploads these words.
+/// `textUploadPalettes` uploads these words.
 static GpuImageUpload Text_OutlineClut[2] = {
     { GPU_IMAGE_UPLOAD_COPY, 0, { 0x100, 0xF0, 0x30, 1 }, Text_OutlineClutPixels },
     { GP_IMG_REC_END, 0, { 0, 0, 0, 0 }, NULL },
@@ -427,19 +427,27 @@ static s32 _textDrawUiLinesScrolled(const UiObject* object, s32 startX, s32 star
     return endedBeforeLimit;
 }
 
-void Text_LoadClutImages(void)
+void textUploadPalettes(void)
 {
-    RECT rect;
+    enum {
+        TEXT_FONT_PALETTE_ROW_X  = 256,
+        TEXT_FONT_PALETTE_ROW_Y  = 243,
+        TEXT_GLYPH_PALETTE_ROW_X = 976,
+        TEXT_GLYPH_PALETTE_ROW_Y = 511,
+    };
+    RECT uploadRect;
 
-    rect.x = 0x100;
-    rect.y = 0xF3;
-    rect.w = 0x40;
-    rect.h = 1;
-    LoadImage(&rect, Text_FillClutPixels);
+    // VRAM widths count 16-bit colors; each RAM word packs two colors.
+    uploadRect.x = TEXT_FONT_PALETTE_ROW_X;
+    uploadRect.y = TEXT_FONT_PALETTE_ROW_Y;
+    uploadRect.w = sizeof(Text_FillClutPixels) / sizeof(u16);
+    uploadRect.h = 1;
+    LoadImage(&uploadRect, Text_FillClutPixels);
 
-    rect.x = 0x3D0;
-    rect.y = 0x1FF;
-    rect.w = 0x30;
-    rect.h = 1;
-    LoadImage(&rect, Text_OutlineClutPixels);
+    // The glyph row contains the fill and both outline palettes.
+    uploadRect.x = TEXT_GLYPH_PALETTE_ROW_X;
+    uploadRect.y = TEXT_GLYPH_PALETTE_ROW_Y;
+    uploadRect.w = sizeof(Text_OutlineClutPixels) / sizeof(u16);
+    uploadRect.h = 1;
+    LoadImage(&uploadRect, Text_OutlineClutPixels);
 }

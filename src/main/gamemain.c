@@ -96,12 +96,8 @@ static void GameMain_Init(void);
 
 static inline void _displayPresentFrame(s32 bufferIndex);
 
-/// VSync callback: timed flip / strip load / audio tick (gamemain.c).
-static void Display_VSyncCallback(void);
+static void _displayVSyncCallback(void);
 
-/// Nonzero while the game cannot be halted: a CD command is running without
-/// the halt flag that permits it, the flip is holding the displayed frame, a CD
-/// operation is in progress, or the display is off.
 static inline s32 _gameMainPauseBlocked(void);
 
 static void GameMain_ShowLoading(s32 arg0);
@@ -169,7 +165,7 @@ static void GameMain_Init(void)
     spuResetSystem();
     sndVolumeSetReducedMode(0);
     Boot_InitCdAudio();
-    VSyncCallback(Display_VSyncCallback);
+    VSyncCallback(_displayVSyncCallback);
 
     flag                     = 1;
     gDisplayState.drawBuffer = flag;
@@ -227,23 +223,35 @@ static inline void _displayPresentFrame(s32 bufferIndex)
     }
 }
 
-/// VSync callback: timed flip / strip load / audio tick (gamemain.c).
-static void Display_VSyncCallback(void)
+/// Presents a due framebuffer and services the resident drivers at vertical blank.
+///
+/// Registered as the SDK's void(void) VSync callback. A pending buffer is 0 or 1;
+/// negative values suppress presentation. The low 16 scanline-counter bits plus
+/// prior callback time must exceed half the frame budget before either the game
+/// or task presenter runs. An unselected presenter leaves the request pending.
+/// Advances the VSync clocks and countdown, then polls CD audio, SPU audio and
+/// controller input in that order. Records its elapsed scanlines for frame pacing.
+static void _displayVSyncCallback(void)
 {
-    s32 start;
+    enum {
+        DISPLAY_VSYNC_SCANLINE_MASK = 0xFFFF,
+        DISPLAY_FLIP_REQUEST_NONE   = -1,
+    };
+    s32 startScanlines;
 
-    start = VSync(1);
+    startScanlines = VSync(1);
     if (Display_PendingFlip >= 0) {
-        if (((start & 0xFFFF) + D_8005EC78) > (D_8005EC6C >> 1)) {
+        if (((startScanlines & DISPLAY_VSYNC_SCANLINE_MASK) + D_8005EC78) > (D_8005EC6C >> 1)) {
             if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_GAME) {
                 _displayPresentFrame(Display_PendingFlip);
-                Display_PendingFlip = -1;
+                Display_PendingFlip = DISPLAY_FLIP_REQUEST_NONE;
             } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK) {
                 displayPresentTaskFrame(Display_PendingFlip);
-                Display_PendingFlip = -1;
+                Display_PendingFlip = DISPLAY_FLIP_REQUEST_NONE;
             }
         }
     }
+    // Driver polling continues even when no frame is presented or play is paused.
     D_80070F64 -= 1;
     if (gDisplayState.displayOwner == DISPLAY_OWNER_GAME_LOOP) {
         gDisplayState.frameCount += 1;
@@ -252,28 +260,34 @@ static void Display_VSyncCallback(void)
     cdAudioPollDriver();
     spuRunVBlankAudioUpdate();
     padPollPort0();
-    D_8005EC74 = VSync(1) - (start & 0xFFFF);
+    D_8005EC74 = VSync(1) - (startScanlines & DISPLAY_VSYNC_SCANLINE_MASK);
 }
 
 // Drawn by GameMain_ShowLoading (must stay in .rodata for this TU).
 /// "PAUSE!" overlay text for GameMain_ShowLoading (@ VA 0x80013404).
 static const u8 GameMain_PauseText[] = "PAUSE!";
 
-/// Nonzero while the game cannot be halted: a CD command is running without
-/// the halt flag that permits it, the flip is holding the displayed frame, a CD
-/// operation is in progress, or the display is off.
+/// Returns 1 when the loading/pause overlay and halted main-loop path are blocked.
+///
+/// A scene-error halt overrides the CD queue's pause block only. Task-owned
+/// frame hold, an unfinished filesystem operation or GPU display blanking still
+/// block pausing. Reads live state without changing it; returns 0 when permitted.
 static inline s32 _gameMainPauseBlocked(void)
 {
+    enum {
+        GAME_MAIN_HALT_SCENE_ERROR        = 8,
+        FILE_SYSTEM_CD_OPERATION_COMPLETE = 0xFF,
+    };
     s32 blocked;
 
     blocked = 0;
-    if (gCdCmdQueue.blockGamePause != 0 && !(GameMain_HaltFlags & 8)) {
+    if (gCdCmdQueue.blockGamePause != 0 && !(GameMain_HaltFlags & GAME_MAIN_HALT_SCENE_ERROR)) {
         blocked = 1;
     } else if (gDisplayState.vsyncFlag == DISPLAY_VSYNC_TASK && gDisplayState.control.flags.flipMode == DISPLAY_FLIP_HOLD) {
         blocked = 1;
-    } else if (Fs_CdOpStatus != 0xFF) {
+    } else if (Fs_CdOpStatus != FILE_SYSTEM_CD_OPERATION_COMPLETE) {
         blocked = 1;
-    } else if (GpuExt_IsDisplayEnabled() == 0) {
+    } else if (gpuExtIsDisplayEnabled() == 0) {
         blocked = 1;
     }
     return blocked;
@@ -327,9 +341,13 @@ static void GameMain_ShowLoading(s32 arg0)
     }
 }
 
-/// Advances one scene deadline, passing at most one skip marker and retaining zero.
+/// Advances the scene's scanline-deadline cursor, retaining its zero terminator.
 ///
-/// The borrowed timing buffer must contain every word examined by this step.
+/// `queue` borrows aligned u32 timing words from the live scene reservation.
+/// Unless the current word is zero, advances one word and skips at most one
+/// following 0xFFFFFFFF marker. Requires the current and any examined following
+/// word to be readable, and the resulting cursor to remain usable by scene pacing.
+/// Does not change the buffer contents or accumulated scanline time.
 static inline void _gameMainAdvanceSceneTimingCursor(CdCmdQueue* queue)
 {
     if (*queue->timingCursor != CD_COMMAND_TIMING_END) {

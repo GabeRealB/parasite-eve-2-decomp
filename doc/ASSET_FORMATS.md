@@ -473,7 +473,7 @@ HED file order (`stages.json` TREE names): **gameplay** (file 0), **title**
 (file 1), **file2** (still + chrome). Boot brings in the title overlay from
 file 1; `Title_InitTask` then queues the category-2 display resource 20100 with
 `cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU)` and calls
-`Text_LoadClutImages`. Chrome/still are file 2.
+`textUploadPalettes`. Chrome/still are file 2.
 
 | Path | Payload | VRAM (halfwords) | BPP |
 |---|---|---|---|
@@ -486,9 +486,9 @@ file 1; `Title_InitTask` then queues the category-2 display resource 20100 with
 | `file2/1.pe2clut` (`pe2clut_2`) | Chrome clut | `(0, 255)` 256×6 | — |
 | `file2/2.pe2img` (`pe2img_2`) | Menu chrome | `(768, 256)` 128×256 | **8** (two columns) |
 
-`pe2clut_0` **row 0 is all zero**. 4bpp font draws nothing until
-`Text_LoadClutImages` overwrites `(256, 243)` (and the outline palettes at
-`(0x3D0, 0x1FF)`). See §7.6.
+`pe2clut_0` **row 0 is all zero**. `textUploadPalettes` installs resident colors
+at `(256, 243)` and the glyph-fill/outline palettes at `(0x3D0, 0x1FF)`.
+The UI glyph drawers select the latter row's fill palette, `0x7FFD`. See §7.6.
 
 Chrome clut `(0, 255)` `h=6` sits on the last draw-band line and the 32-line
 CLUT gutter (`y=240…271`). Do not `isbg` a 256-high env at `y=240`.
@@ -516,7 +516,7 @@ Atlas `atlasV` (texel Y in the chrome page):
 | `0x40` | Continue |
 | `0x50` | Option |
 
-### 7.6 UI font (main EXE) and `Text_LoadClutImages`
+### 7.6 UI font (main EXE) and `textUploadPalettes`
 
 Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
 
@@ -548,12 +548,16 @@ case) use this bias; inline commands leave `glyphTable` unchanged.
 pen by 2 pixels, or by 1 when `glyphTable` is `TEXT_GLYPH_TABLE_SMALL`.
 `xOffset` / `yOffset` are signed pixel offsets.
 
-`Text_LoadClutImages` (`src/main/textutil.c`):
+`textUploadPalettes` (`src/main/textutil.c`):
 
 | Source | Size | `LoadImage` dest | GPU clut |
 |---|---|---|---|
-| `D_80060910` | 64 entries (4×16) | `(0x100, 0xF3)` = `(256, 243)`, `w=0x40`, `h=1` | fill rows at that origin |
-| `D_800609B0` | 48 entries (3×16) | `(0x3D0, 0x1FF)`, `w=0x30`, `h=1` | `0x7FFD` / `0x7FFE` / `0x7FFF` |
+| `Text_FillClutPixels` | 32 packed 32-bit words / 64 colors (4×16) | `(0x100, 0xF3)` = `(256, 243)`, `w=0x40`, `h=1` | `0x3CD0` / `0x3CD1` / `0x3CD2` / `0x3CD3` |
+| `Text_OutlineClutPixels` | 24 packed 32-bit words / 48 colors (3×16) | `(0x3D0, 0x1FF)`, `w=0x30`, `h=1` | glyph fill `0x7FFD` / translucent-text outline `0x7FFE` / ordinary outline `0x7FFF` |
+
+Both transfers cover their complete resident arrays. Rectangle widths count
+16-bit VRAM colors, rather than the packed `u_long` source elements. The
+uploader queues the copies without waiting for GPU completion.
 
 Opaque UI glyph fills (`_textDrawGlyphImmediate` / `_textDrawGlyphFill`) use **`0x7FFD` only**.
 Indices 0–10 are transparent; 11–15 are the letter. Dual SPRT (`0x7FFD` +

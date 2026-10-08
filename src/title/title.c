@@ -202,7 +202,7 @@ static void Title_InitTask(Task* arg0)
         if (Wip_SysFlags.gameOver != 0) {
             work->selection = TITLE_MENU_LOAD_GAME;
         }
-        Text_LoadClutImages();
+        textUploadPalettes();
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_KEEP_VIEW);
         ds->holdState                 = DISPLAY_HOLD_INITIAL;
         work->idleFrames              = -TITLE_SCREEN_FADE_FRAMES;

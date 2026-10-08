@@ -324,7 +324,7 @@ static void _replayBonusWaitToLoadAwardUi(Task* task)
 static void func_replay_bonus_801178C0(Task* arg0)
 {
     if (cdCmdIsIdle() & 0xFFFF) {
-        Text_LoadClutImages();
+        textUploadPalettes();
         arg0->spawnArg2.pointer = uiSpawnObject(&D_replay_bonus_80119154, 0, 1, 1, NULL);
         arg0->state             = (s32)(arg0->state + 1);
     }

@@ -8387,7 +8387,7 @@ obviously have filled, the global involved is probably `volatile` — most often
 because it is shared with an interrupt or VSync callback.
 
 Corollary: this is a useful signal *about the game*, not just a matching trick.
-`Display_PendingFlip` is written by the VSync callback `Display_VSyncCallback` and read by the
+`Display_PendingFlip` is written by the VSync callback `_displayVSyncCallback` and read by the
 main loop `GameMain_Loop`, so `volatile` is semantically correct there.
 
 Inverse check: if the target *does* fill the slot with a store, that variable is
@@ -8423,7 +8423,7 @@ volatile `_gCdAudioState` matches.
 
 `D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
 `Display_FrameFlipDraw` writes them (copies of `gDisplayState.control.flags.imageSource` /
-`gDisplayState.control.flags.flipMode`) and the VSync callback `Display_VSyncCallback` → `displayPresentTaskFrame` reads
+`gDisplayState.control.flags.flipMode`) and the VSync callback `_displayVSyncCallback` → `displayPresentTaskFrame` reads
 them. Without `volatile`:
 
 - successive `if (D_8006EC30 == …)` arms CSE the load (target reloads via a
@@ -8442,7 +8442,7 @@ ExitCriticalSection();
 ```
 
 `D_8005EC74` / `D_8005EC78` are the same VSync-shared pair on the lag path
-(`Display_VSyncCallback` writes `D_8005EC74` and reads `D_8005EC78`; `Display_FrameFlipDraw`
+(`_displayVSyncCallback` writes `D_8005EC74` and reads `D_8005EC78`; `Display_FrameFlipDraw`
 does the inverse). Mark both `volatile` so the draw path reloads `D_8005EC74`
 twice and keeps `D_8005EC78 = 0` *outside* the following `jal VSync` delay
 slot.
@@ -16847,7 +16847,7 @@ PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
 /* later DrawOTag((u_long*)Gpu_OtBuffers[buf].tag) reuses $s2 */
 ```
 
-`Display_VSyncCallback` needs this for `PutDispEnv(&gDisplayState.dispEnv[buf])`
+`_displayVSyncCallback` needs this for `PutDispEnv(&gDisplayState.dispEnv[buf])`
 (DISPENV and GsOT are both 0x14). Without the dead `stride` store the
 `addiu a0,s1,0x20` lands either too early (right after `PutDrawEnv`) or as
 `addiu a0,s2,0x20` / `addu a0,a0,s1`.
@@ -16859,7 +16859,7 @@ PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
 slot. Use `s8` when the target has plain `lb`.
 
 `gDisplayState.vsyncFlag` is written by main-line code and read by the VSync
-callback `Display_VSyncCallback`. Marking it `volatile u8` forces a second load for
+callback `_displayVSyncCallback`. Marking it `volatile u8` forces a second load for
 `if (f == 0) … else if (f == 1)` (target reloads into `$v1` rather than CSE'ing
 the first `lbu`). Same idea as `D_8006EC30` / `D_80070E38`.
 
@@ -148048,7 +148048,7 @@ for (i = 0; (s32)i < ARRAY_SIZE(song->voiceSlots); i++) {
 }
 ```
 
-Matched this way: `_midiResetSongSlot`, `Pad_Init` (`Pad_ClearState(&gPadStates[i])`
+Matched this way: `_midiResetSongSlot`, `Pad_Init` (`_padClearState(&gPadStates[i])`
 followed by `gPadStates[i].field = ...`; the byte-offset counter and the
 separate `state` pointer of the old source were both givs the loop pass made
 from one `i`), `fsBuildFolderTables` (byte copy of

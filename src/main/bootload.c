@@ -1761,9 +1761,11 @@ static void _gameFlowSelectMineShelterLoadScreenAssets(u8* imageFileIndex)
 
 /// Clears both loading-screen framebuffers and blanks the display.
 ///
-/// `clearRect` supplies writable scratch, left describing the second framebuffer.
-/// Requires both 320x240 VRAM regions to be available for reuse. The queued clears
-/// precede the incoming image; decoded-image strip presentation is disabled.
+/// `clearRect` is borrowed writable scratch, left describing the second buffer.
+/// Requires the 320x240 VRAM regions at rows 0 and 272 to be available for reuse.
+/// Queues both clears, disables background-image presentation, then blanks GPU
+/// output. Does not wait for GPU completion; the caller supplies the incoming
+/// image and controls when it is revealed.
 static inline void _gameFlowPrepareLoadScreenDisplay(RECT* clearRect)
 {
     clearRect->y = 0;

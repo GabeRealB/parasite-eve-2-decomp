@@ -331,10 +331,16 @@ s32 textMeasureLineWidth(const u8* text);
 /// requirements: the starting OT entry is panel base + 1, or 4 without an object.
 s32 textDrawUiLine(const UiObject* object, s32 x, s32 y, const u8* text, u32 colorRgb, s32 drawMode, s32 alignment);
 
-/// EXE palettes over the title font clut dests. Text_FillClutPixels (64) → (256, 243);
-/// Text_OutlineClutPixels (48) → (0x3D0, 0x1FF) = clut 0x7FFD/E/F. TIM pe2clut_0 row 0 is
-/// empty; UI text uses 0x7FFD (indices 0–10 skip). Called from Title_InitTask.
-void Text_LoadClutImages(void);
+/// Uploads the two resident text palette rows to VRAM.
+///
+/// Writes one row of 64 RGB555 colors at VRAM (256, 243), then 48 colors at
+/// (976, 511). Widths count 16-bit colors, packed two per resident u_long word.
+/// The second row contains three 16-color palettes: glyph fill at CLUT 0x7FFD,
+/// translucent-text outline at 0x7FFE and ordinary/standalone outline at 0x7FFF.
+/// Fill indices 0..10 are transparent, so texture-cell padding is not drawn.
+/// Requires the destination rows to be available for replacement. Queues the
+/// transfers without waiting; the rows must remain resident while text is drawn.
+void textUploadPalettes(void);
 
 /// Draws one encoded UI-text line and advances the request's pixel pen.
 ///
