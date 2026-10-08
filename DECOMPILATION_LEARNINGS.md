@@ -70963,16 +70963,16 @@ put the second half's copy in `$a1` rather than `$a0`. A second local fixed it.
 
 ### State-change tails merged by cross-jumping: one pointer local per arm
 
-`func_actor_400600_80133E38` ends in `if (...) { w->state = 9; w->subState = 0; }
-else { w->state = 2; w->subState = 0; }`, each arm reloading `index->work`.
+`_actor400600TickRightStrike` ends with `_actor400600SelectStateInline` calls
+selecting state 9 or 2, each reloading `task->work` through its own expansion.
 jump2 cross-jumps the common `sh $zero, 0x71E` into one tail. Reusing a single
-`work2` local in both arms makes one pseudo live across blocks, so global alloc
-picks `$a0`; the target has `$v1`. A separate local per arm (`work2`, `work3`)
+state-work local in both arms makes one pseudo live across blocks, so global alloc
+picks `$a0`; the target has `$v1`. A fresh `stateWork` local per inline expansion
 keeps each pseudo local, both land in `$v1`, and the tails still merge. Writing
-`((Work*)index->work)->field` directly instead reloads `work` per store (97%).
+`((Work*)task->work)->field` directly instead reloads `work` per store (97%).
 
-In the same function, `sound = id | ((x >> 12) << 8)` gives the target's
-`or $s0, $a1, $s0`, while `sound = x; sound >>= 12; sound <<= 8; sound |= id;`
+In the same function, `soundId = baseSoundId | ((x >> 12) << 8)` gives the target's
+`or $s0, $a1, $s0`, while `soundId = x; soundId >>= 12; soundId <<= 8; soundId |= baseSoundId;`
 gives `or $s0, $s0, $a1`: `expand_binop` swaps commutative operands so the
 first matches the target pseudo, so the accumulator form always puts it first.
 
@@ -75308,7 +75308,7 @@ controlled experiment, not a permuter discovery.
 ## Split a RMW so its load sits between two other assignments
 
 **Symptom.** `func_actor_405800_80139928` (shape-sibling of matched
-`func_actor_400600_8013C124`) was 99.2% with only two independent `lhu`s swapped.
+`_actor400600StartCeilingDrop`) was 99.2% with only two independent `lhu`s swapped.
 Retail does `lhu subState; lhu t[2]` after `sh leapX` plus a load-delay nop
 on `t[0]`. Writing `work->subState = work->subState + 1` last kept the nop
 (the increment chain was already scheduled in the backward pass) but ranked the
