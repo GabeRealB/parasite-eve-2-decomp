@@ -75,22 +75,22 @@ extern NeoArkShrineTileOrigin D_neo_ark_shrine_801825AC[16];
 static s16  _neoArkShrineCheckPuzzleArrangement(void);
 static void _neoArkShrineRoomIdle(Task* task);
 
-static s32 _neoArkShrineRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_neo_ark_shrine_8017D6AC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_neo_ark_shrine_8017D740(Task*, s32, s32, s32);
-s32        func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-void       func_neo_ark_shrine_8017D84C(Task*);
+static s32  _neoArkShrineRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _neoArkShrineResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _neoArkShrineHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
+static s32  _neoArkShrineHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _neoArkShrinePuzzleSessionTask(Task* task);
 
 TaskMessageEntry D_neo_ark_shrine_80181E34[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_shrine_8017D6AC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkShrineResolveRoomEvent },
     { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkShrineRefuseKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_shrine_8017D7F0 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_shrine_8017D740 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkShrineHandleRoomAction },
+    { ROOM_MESSAGE_COMMAND, _neoArkShrineHandleRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_neo_ark_shrine_80181E5C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_neo_ark_shrine_8017D84C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _neoArkShrinePuzzleSessionTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -289,72 +289,115 @@ static s32 _neoArkShrineRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, 
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_neo_ark_shrine_8017D6AC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a shrine exit and blocks Power Plant 1 until the puzzle is solved.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Copies the eight-byte borrowed request
+/// to the writable reply before map resolution; the pointers may alias.
+/// Returns 1 for allowed exits and 0 for the blocked exit, including queries.
+/// Executing a blocked exit marks its optional flag with 2 and starts CAP
+/// command 4. Requires the Neo Ark map and room CAP resources to be loaded.
+static s32 _neoArkShrineResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    if (in->areaId != GAME_AREA_NEO_ARK_POWER_PLANT_1) {
-        return 1;
+    enum { NEO_ARK_SHRINE_EXIT_ALLOWED          = 1,
+           NEO_ARK_SHRINE_EXIT_BLOCKED          = 0,
+           NEO_ARK_SHRINE_BLOCKED_EXIT_MAP_MARK = 2,
+           NEO_ARK_SHRINE_BLOCKED_EXIT_COMMAND  = 4 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId != GAME_AREA_NEO_ARK_POWER_PLANT_1) {
+        return NEO_ARK_SHRINE_EXIT_ALLOWED;
     }
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED) != 0) {
-        return 1;
+        return NEO_ARK_SHRINE_EXIT_ALLOWED;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 0;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return NEO_ARK_SHRINE_EXIT_BLOCKED;
     }
-    gameFlagSetNibbleIfPresent(in->flagId, 2);
-    capRunCommandWithTransition(4);
-    return 0;
+    gameFlagSetNibbleIfPresent(request->flagId, NEO_ARK_SHRINE_BLOCKED_EXIT_MAP_MARK);
+    capRunCommandWithTransition(NEO_ARK_SHRINE_BLOCKED_EXIT_COMMAND);
+    return NEO_ARK_SHRINE_EXIT_BLOCKED;
 }
 
-s32 func_neo_ark_shrine_8017D740(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects shrine CAP playback from object state and Power Plant 1 progress.
+///
+/// Handles `ROOM_MESSAGE_COMMAND` with an integer command and ignored second
+/// word. Command 7 runs sequence 7: object 7 in state 1 uses the latched event
+/// key (initially 2, then 1), other states use key 0. Command 5 runs CAP command
+/// 5 before Power Plant 1 is cleared and 12 afterwards. Always returns zero.
+static s32 _neoArkShrineHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    s32 bit2;
+    enum { NEO_ARK_SHRINE_COMMAND_OBJECT_EVENT            = 7,
+           NEO_ARK_SHRINE_EVENT_OBJECT                    = 7,
+           NEO_ARK_SHRINE_EVENT_OBJECT_READY              = 1,
+           NEO_ARK_SHRINE_OBJECT_EVENT_SEQUENCE           = 7,
+           NEO_ARK_SHRINE_OBJECT_EVENT_FIRST_KEY          = 2,
+           NEO_ARK_SHRINE_COMMAND_POWER_PLANT_1           = 5,
+           NEO_ARK_SHRINE_POWER_PLANT_1_UNCLEARED_COMMAND = 5,
+           NEO_ARK_SHRINE_POWER_PLANT_1_CLEARED_COMMAND   = 12 };
+    s32 objectState;
 
-    if (arg2 == 7) {
-        bit2 = areaGetCurrentObjectState(7);
-        if (bit2 == 1) {
-            capStartSequenceSlot(7, 1, (s16)D_neo_ark_shrine_80181E74);
-            if (D_neo_ark_shrine_80181E74 == 2) {
-                D_neo_ark_shrine_80181E74 = bit2;
+    if (commandId == NEO_ARK_SHRINE_COMMAND_OBJECT_EVENT) {
+        objectState = areaGetCurrentObjectState(NEO_ARK_SHRINE_EVENT_OBJECT);
+        if (objectState == NEO_ARK_SHRINE_EVENT_OBJECT_READY) {
+            capStartSequenceSlot(NEO_ARK_SHRINE_OBJECT_EVENT_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, (s16)D_neo_ark_shrine_80181E74);
+            if (D_neo_ark_shrine_80181E74 == NEO_ARK_SHRINE_OBJECT_EVENT_FIRST_KEY) {
+                D_neo_ark_shrine_80181E74 = objectState;
             }
         } else {
-            capStartSequenceSlot(7, 1, 0);
+            capStartSequenceSlot(NEO_ARK_SHRINE_OBJECT_EVENT_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
         }
     }
-    if (arg2 == 5) {
-        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0 ? 5 : 0xC);
+    if (commandId == NEO_ARK_SHRINE_COMMAND_POWER_PLANT_1) {
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0 ? NEO_ARK_SHRINE_POWER_PLANT_1_UNCLEARED_COMMAND : NEO_ARK_SHRINE_POWER_PLANT_1_CLEARED_COMMAND);
     }
     return 0;
 }
 
-s32 func_neo_ark_shrine_8017D7F0(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Opens the sliding-tile puzzle while Power Plant 2 remains uncleared.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` with a borrowed four-byte request
+/// and ignored second word. Action 1 spawns the puzzle session, or runs CAP
+/// command 9 once Power Plant 2 is cleared. Other actions do nothing; returns zero.
+static s32 _neoArkShrineHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { NEO_ARK_SHRINE_ACTION_OPEN_PUZZLE            = 1,
+           NEO_ARK_SHRINE_POWER_PLANT_2_CLEARED_COMMAND = 9 };
 
-    if (request->actionId == 1) {
+    if (request->actionId == NEO_ARK_SHRINE_ACTION_OPEN_PUZZLE) {
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0) {
             taskSpawnFromTable(D_neo_ark_shrine_80181E5C, 0, 0, 0);
         } else {
-            capRunCommandWithTransition(9);
+            capRunCommandWithTransition(NEO_ARK_SHRINE_POWER_PLANT_2_CLEARED_COMMAND);
         }
     }
     return 0;
 }
 
-void func_neo_ark_shrine_8017D84C(Task* task)
+/// Holds the player while the puzzle runs, then polls and releases its task.
+///
+/// State 0 requires a bodyless task and a live player; holds and hides the player
+/// before spawning the puzzle controller. State 1 polls its stop request, freeing
+/// that task and its owned work before clearing the handle and killing this task.
+/// The puzzle restores room control before requesting its stop. No work is
+/// allocated here; requires successful puzzle spawning and the room overlay
+/// to stay loaded through completion.
+static void _neoArkShrinePuzzleSessionTask(Task* task)
 {
-    s32 sp10;
+    enum { NEO_ARK_SHRINE_PUZZLE_SESSION_START,
+           NEO_ARK_SHRINE_PUZZLE_SESSION_WAIT,
+           NEO_ARK_SHRINE_PUZZLE_CONTROLLER_ENTRY = 0 };
+    s32 puzzleResult;
 
     switch (task->state) {
-        case 0:
+        case NEO_ARK_SHRINE_PUZZLE_SESSION_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-            D_neo_ark_shrine_80186864 = taskSpawnFromTable(D_neo_ark_shrine_80182508, 0, 0, 0);
+            D_neo_ark_shrine_80186864 = taskSpawnFromTable(D_neo_ark_shrine_80182508, NEO_ARK_SHRINE_PUZZLE_CONTROLLER_ENTRY, 0, 0);
             task->state++;
             return;
-        case 1:
-            if (taskPollKill(D_neo_ark_shrine_80186864, &sp10) != 0) {
+        case NEO_ARK_SHRINE_PUZZLE_SESSION_WAIT:
+            if (taskPollKill(D_neo_ark_shrine_80186864, &puzzleResult) != 0) {
                 D_neo_ark_shrine_80186864 = NULL;
                 taskKill(task);
             }
@@ -467,84 +510,79 @@ void neoArkShrinePuzzleIdle(Task* task)
 
 #undef NEO_ARK_SHRINE_ROUTE_PUZZLE_CONFIRMATION
 
-/// Runs one step of the shrine's arrangement puzzle: for each of the five
-/// entries of the group the current slot selects, it rotates the entry's index
-/// to the front of `D_neo_ark_shrine_8018686C` when that index is still unused,
-/// and plays a click for each move. The task then advances to state 2 and, if
-/// anything moved, hands the step the group's helper reports to the cap
-/// script - state 9 for a completed set, 7 / 0xE for the two sound-only steps,
-/// and the flag-0xDB branch that starts the cap slot for the last one.
+/// Records first puzzle completion, clears its map marker and starts the solved CAP.
 ///
-/// Three shapes here are load-bearing, not style:
-///
-/// - The walk is a `for` loop rather than the `do { } while` splat's `goto`
-///   form compiles to. Only the front end's `NOTE_INSN_LOOP_BEG` marks make
-///   loop.c run, and it is what hoists the two table addresses into the
-///   preheader; the `goto` form leaves both `lui/addiu` pairs re-materialized
-///   inside the loop.
-/// - The tables are indexed as arrays (`D_...[i]`), which is what puts the
-///   scaled index on the left of the address sum and adds the base last.
-///   Reaching them through a pointer local instead flips both adds.
-/// - `swapped` is a `u8`, and it is tested as an assignment inside the
-///   condition. Narrow, its 0/1 stores are recorded by reload's CSE in QImode,
-///   so they are not substituted for the `SImode` constant 0 of `i = 0` or the
-///   shift amount of `state * 2`; and the `u8` store and the `zero_extend` the
-///   test needs sit in one statement, which is close enough for combine to fold
-///   the pair into a plain copy of the flag. Widen `swapped` or split the test
-///   from the assignment and one of those three spots stops matching.
-void func_neo_ark_shrine_8017DB10(Task* arg0)
+/// Called only while the solved flag is zero. Sound, persistent flags and CAP
+/// playback are updated in that order; the room's playback resources must be live.
+static inline void _neoArkShrineRecordPuzzleCompletion(void)
 {
+    enum { NEO_ARK_SHRINE_PUZZLE_SOLVED_SEQUENCE = 3 };
+
+    sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PUZZLE_SOLVED, 0, 0);
+    gameFlagSetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED, 1);
+    gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHRINE, 0);
+    capStartSequenceSlot(NEO_ARK_SHRINE_PUZZLE_SOLVED_SEQUENCE, CAP_PLAYBACK_IN_PLACE, 0);
+}
+
+void neoArkShrineSlidePuzzleTile(Task* task)
+{
+    enum { NEO_ARK_SHRINE_NEIGHBOUR_END                = 255,
+           NEO_ARK_SHRINE_PUZZLE_STATE_IDLE            = 2,
+           NEO_ARK_SHRINE_PUZZLE_STATE_RELEASE_ENEMIES = 9,
+           NEO_ARK_SHRINE_PUZZLE_STATE_ACTIVATE_LAYOUT = 7,
+           NEO_ARK_SHRINE_PUZZLE_STATE_RESTORE_LAYOUT  = 14 };
+
     s16                     arrangementResult;
-    s16                     state;
-    s16                     slot;
-    s32                     i;
-    u8                      swapped;
-    u8                      moved;
-    u16*                    ord;
-    u16                     prev;
+    s16                     neighbourCell;
+    s16                     selectedCell;
+    s32                     neighbourIndex;
+    u8                      tileSlid;
+    u8                      moveAccepted;
+    s16*                    selectedTile;
+    u16                     tileNumber;
     NeoArkShrinePuzzleWork* work;
 
-    work    = arg0->work;
-    swapped = 0;
+    work     = task->work;
+    tileSlid = 0;
     neoArkShrineDrawPuzzleFrame();
-    for (i = 0; i < 5; i++) {
-        state = D_neo_ark_shrine_801825EC[work->selection][i];
-        if (state == 0xFF) {
+    // A valid board contains one gap, so at most one neighbour can accept the tile.
+    for (neighbourIndex = 0; neighbourIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_801825EC[0]); neighbourIndex++) {
+        neighbourCell = D_neo_ark_shrine_801825EC[work->selection][neighbourIndex];
+        if (neighbourCell == NEO_ARK_SHRINE_NEIGHBOUR_END) {
             break;
         }
-        if (D_neo_ark_shrine_8018686C[state] == 0) {
+        if (D_neo_ark_shrine_8018686C[neighbourCell] == NEO_ARK_SHRINE_PUZZLE_GAP_TILE) {
             sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_TILE_SLIDE, 0, 0);
-            slot                                                                     = work->selection;
-            ord                                                                      = (u16*)&D_neo_ark_shrine_8018686C[slot];
-            prev                                                                     = *ord;
-            *ord                                                                     = D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[slot][i]];
-            swapped                                                                  = 1;
-            D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[work->selection][i]] = prev;
+            selectedCell                                                                          = work->selection;
+            selectedTile                                                                          = &D_neo_ark_shrine_8018686C[selectedCell];
+            tileNumber                                                                            = *selectedTile;
+            *selectedTile                                                                         = D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[selectedCell][neighbourIndex]];
+            tileSlid                                                                              = 1;
+            D_neo_ark_shrine_8018686C[D_neo_ark_shrine_801825EC[work->selection][neighbourIndex]] = tileNumber;
         }
     }
-    arg0->state = 2;
-    if ((moved = swapped != 0)) {
+    // Only a successful slide can trigger arrangement-dependent room changes.
+    task->state = NEO_ARK_SHRINE_PUZZLE_STATE_IDLE;
+    // The binary copies the byte result before testing it.
+    if ((moveAccepted = tileSlid != 0)) {
         arrangementResult = _neoArkShrineCheckPuzzleArrangement();
         switch (arrangementResult) {
             case NEO_ARK_SHRINE_PUZZLE_MATCH_SOLVED:
                 if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED) == 0) {
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PUZZLE_SOLVED, 0, 0);
-                    gameFlagSetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED, 1);
-                    gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHRINE, 0);
-                    capStartSequenceSlot(3, 0, 0);
+                    _neoArkShrineRecordPuzzleCompletion();
                     return;
                 }
                 break;
             case NEO_ARK_SHRINE_PUZZLE_MATCH_RELEASE_ENEMIES:
-                arg0->state = 9;
+                task->state = NEO_ARK_SHRINE_PUZZLE_STATE_RELEASE_ENEMIES;
                 break;
             case NEO_ARK_SHRINE_PUZZLE_MATCH_ACTIVATE_LAYOUT:
                 sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
-                arg0->state = 7;
+                task->state = NEO_ARK_SHRINE_PUZZLE_STATE_ACTIVATE_LAYOUT;
                 break;
             case NEO_ARK_SHRINE_PUZZLE_MATCH_RESTORE_LAYOUT:
                 sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_MECHANISM_ACTIVATE, 0, 0);
-                arg0->state = 0xE;
+                task->state = NEO_ARK_SHRINE_PUZZLE_STATE_RESTORE_LAYOUT;
                 break;
         }
     }

@@ -118,7 +118,15 @@ void neoArkShrineResetPuzzle(void);
 /// Requires the puzzle drawing resources and the terminated hotspot table.
 void neoArkShrinePuzzleIdle(Task* task);
 
-void func_neo_ark_shrine_8017DB10(Task* arg0);
+/// Slides the confirmed tile into an adjacent gap and selects the board's outcome.
+///
+/// State 6 requires owned puzzle work with selection in 0..15 and a board that
+/// is a permutation of tile numbers 0..15 (zero is the gap). Draws one frame,
+/// scans the selected cell's terminated neighbour list and sounds each swap.
+/// Returns to idle even if no tile moved. A move may solve the puzzle once,
+/// release enemies or start a layout transition. Requires the room's board,
+/// drawing, CAP and sound resources to remain loaded; allocates no work.
+void neoArkShrineSlidePuzzleTile(Task* task);
 
 // Callbacks referenced by the overlay's shared data tables.
 /// Resets and updates the sliding-tile puzzle's action cursors.

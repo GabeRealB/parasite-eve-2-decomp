@@ -66,7 +66,11 @@ extern AnimationPlayRequest D_neo_ark_r26_8017D904;
 extern AnimationPlayRequest D_neo_ark_r26_8017D918;
 extern AnimationPlayRequest D_neo_ark_r26_8017D9CC;
 extern ActorCommand         D_neo_ark_r26_8017D798;
-void                        func_neo_ark_r26_8017D5D0(void);
+static void                 _neoArkR26ReturnToShelterTent(void);
+static void                 _neoArkR26InitializeRoom(Task* task);
+
+/// Replay scene whose entry script and departure callback are suppressed.
+enum { NEO_ARK_R26_ATTRACT_DEMO = 9 };
 
 AnimationPlayRequest D_neo_ark_r26_8017D780 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -188,7 +192,7 @@ EvsCommand D_neo_ark_r26_8017DA74[57] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 5 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_neo_ark_r26_8017D5D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _neoArkR26ReturnToShelterTent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -200,7 +204,7 @@ EvsCommand D_neo_ark_r26_8017DFCC[9] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_neo_ark_r26_8017D5D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _neoArkR26ReturnToShelterTent }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -446,19 +450,24 @@ WorldCollisionSurfaceProperties* D_neo_ark_r26_8017EA30[8] = {
     D_neo_ark_r26_8017EA20,
 };
 
-static void func_neo_ark_r26_8017D6A4(Task* arg0);
-
-/// Script callback: unless attract demo 9 is playing, points the save's
-/// location at stage 5, area 0x1C, warp 1, room 1, sets `gDisplayState.spriteVariant`, spawns
-/// task 0x11 and starts loading that location.
-void func_neo_ark_r26_8017D5D0(void)
+/// Returns to Shelter 1F Tent after the room-entry scene finishes or is skipped.
+///
+/// The no-argument event-script callback preserves the save during attract demo 9.
+/// Otherwise selects tent warp 1 and room 1, chooses sprite variant 1 and starts
+/// a frame-capturing session reload with the alternate loading caption.
+/// Requires live saved state and the gameplay reload/loading interfaces.
+static void _neoArkR26ReturnToShelterTent(void)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+    enum { NEO_ARK_R26_TENT_ARRIVAL   = 1,
+           NEO_ARK_R26_TENT_ROOM      = 1,
+           NEO_ARK_R26_SPRITE_VARIANT = 1 };
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != NEO_ARK_R26_ATTRACT_DEMO) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_1F_TENT;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant                                 = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = NEO_ARK_R26_TENT_ARRIVAL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = NEO_ARK_R26_TENT_ROOM;
+        gDisplayState.spriteVariant                                 = NEO_ARK_R26_SPRITE_VARIANT;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_ALTERNATE);
     }
@@ -506,17 +515,20 @@ static s32 _neoArkR26IgnoreRoomActionMessage(Task* unusedTask, s32 unusedMessage
     return 0;
 }
 
-/// Room task state 0: installs the message table, claims pointer slot 7, then
-/// starts the room script unless the attract demo 9 is playing. Advances to
-/// state 1.
-static void func_neo_ark_r26_8017D6A4(Task* arg0)
+/// Registers the room receiver and starts its skippable entry scene.
+///
+/// State 0 installs room messages and publishes the borrowed task in the room
+/// slot. Starts the room's entry and skip scripts with HUD hold/restoration,
+/// except during attract demo 9, then advances to message-only idle state 1.
+/// Requires the event-script and room resources to remain loaded during playback.
+static void _neoArkR26InitializeRoom(Task* task)
 {
-    arg0->msgTable = D_neo_ark_r26_8017E0A4;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+    task->msgTable = D_neo_ark_r26_8017E0A4;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != NEO_ARK_R26_ATTRACT_DEMO) {
         evsStartScriptWithSkip(D_neo_ark_r26_8017DA74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_r26_8017DFCC);
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// Keeps the room task in its idle state after setup.
@@ -533,7 +545,7 @@ static void _neoArkR26RoomIdleState(Task* unusedTask)
 /// `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_neo_ark_r26_8017D5C4 = {
     {
-        func_neo_ark_r26_8017D6A4,
+        _neoArkR26InitializeRoom,
         _neoArkR26RoomIdleState,
         taskKill,
     },

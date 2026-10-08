@@ -68,7 +68,7 @@ neoArkSavannaZoneRoomVisualEffectsFlashTask = 0x8017DA0C; // type:func
 
 neoArkSavannaZoneRoomVisualEffectsTwinTrailTask = 0x8017E470; // type:func
 
-func_neo_ark_savanna_zone_8017ED58 = 0x8017ED58; // type:func
+neoArkSavannaZoneRoomVisualEffectsSparkBurstTask = 0x8017ED58; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017DCB0; // type:func
 _roomVisualEffectsDrawFlashDisc = 0x8017E0DC; // type:func
 _roomVisualEffectsDrawTwinTrail = 0x8017E960; // type:func
@@ -80,3 +80,4 @@ _neoArkSavannaZoneIgnoreRoomAction = 0x8017d900; // type:func
 _neoArkSavannaZoneSetupIdleState = 0x8017d94c; // type:func
 _neoArkSavannaZoneInitializeRoom = 0x8017d908; // type:func
 neoArkSavannaZoneRoomTask = 0x8017d954; // type:func
+_neoArkSavannaZoneResolveRoomEvent = 0x8017d77c; // type:func

@@ -9088,7 +9088,7 @@ consequences, both verified by scoring edited copies of an object dump (`a0`→
   comma-field is dropped from the operand comparison entirely. The instruction
   is compared on nothing but the bogus register-as-number difference.
 
-`func_neo_ark_shrine_8017D7F0` is the worked example: the m2c seed scored
+`_neoArkShrineHandleRoomAction` is the worked example: the m2c seed scored
 99.913% with `stack=2` and the only object difference was `lbu v1,2(a0)` where
 the target reads `2(a2)` — `|0xA0 - 0xA2| = 2`. The body was already right; the
 signature was missing two leading parameters (see the arity entry above), and
@@ -87641,7 +87641,7 @@ Inputs: `base.i`
 The room-script tail `displayReleaseMenuHold(); gGameSession->eventState/0x68/0x66 = 0;
 D_8007216C = N; taskKill(task->spawnArg2);` recurs across rooms: the shared
 bodies `Room_Script10`/`Room_Script11` are the same tail with other constants,
-and this overlay's own `func_neo_ark_shrine_8017F0F0` has it. Retail keeps source
+and this overlay's own `_neoArkShrineWaitToSpawnFirstFallingProp` has it. Retail keeps source
 order and takes a genuine `nop`:
 
 ```asm
@@ -87917,7 +87917,7 @@ Inputs: `base.i` `c848ce07458f28a0e8ecb67bd03ab17c1f76474253f0273309256651d81b4c
 `base_1.i` `1236914c918a59c1c55f5758ca7e900b117a5c7b3f9fff4c1ab5ea9f09d7761b`,
 `base_2.i` `379a54b9b0d14b3f82d2eeb1a4dd2a5349ec0067ff05881ec44923510f62beec`.
 
-## A call inside the `if` body sends the result to a callee-saved register; the ternary keeps `$a0` (func_neo_ark_shrine_8017D740, 2026-09-15)
+## A call inside the `if` body sends the result to a callee-saved register; the ternary keeps `$a0` (_neoArkShrineHandleRoomCommand, 2026-09-15)
 
 The handler picks a cap command from a game flag:
 
@@ -87968,7 +87968,7 @@ Inputs: `base.i` `79b53b4e9ea881de336c2b7fa0c0dfdca62ee1ec42199a344c482b6fcb8c65
 `base_1.i` `9f16fe3b1b6843c315a9c3200e76bdba98c630be27050b15f535d607ce1be9f8`,
 `base_2.i` `c814decb74e0f4f0814dc9c673e794eeb5d3bbff1769b3166313cfc0009090df`.
 
-## One global read at two widths is a parameter conversion, not a wrong type (func_neo_ark_shrine_8017D740, 2026-09-15)
+## One global read at two widths is a parameter conversion, not a wrong type (_neoArkShrineHandleRoomCommand, 2026-09-15)
 
 The same address is loaded with `lh` for the call and `lw` for the comparison
 two instructions later, and stored with `sw`:
@@ -88034,7 +88034,7 @@ Isolating it: rebuilding m2c's own structure with only the *arity* corrected
 `move s1,a2` - the pointer is pushed up by the return temporary alone.
 
 Writing each path as an early `return` is the whole fix, and it is what the
-matched family members already do (`func_neo_ark_shrine_8017D6AC`,
+matched family members already do (`_neoArkShrineResolveRoomEvent`,
 `func_acropolis_cafeteria_8017D700`, `func_shelter_b3_incinerator_control_room_8017FA8C`):
 
 ```c
@@ -92544,6 +92544,8 @@ static s32 _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, cons
 
 `func_neo_ark_shrine_8017D6AC`, `func_shelter_b3_incinerator_control_room_8017FA8C`
 and this one differ only in destination `areaId`, the nibble index and the cap command (and, in
+`_neoArkShrineResolveRoomEvent`, `func_shelter_b3_incinerator_control_room_8017FA8C`
+and this one differ only in `msgId`, the nibble index and the cap command (and, in
 the shrine and incinerator, a `gameFlagSetNibbleIfPresent(in->flagId, 2)` where this one has a
 plain `gameFlagSetNibble`). Two of the three carry the required duplicated
 `return 0;` already - both the `queryOnly` early return and a trailing one - which is
@@ -92714,7 +92716,7 @@ Inputs: `base.i` 67.000% (`branch=2 regs=5 insert=5 delete=1`)
 100.000%, zero penalties
 `ac9fff60e0ad3785a536b3ffac3b77621ae50de22f354f85282115e9eff63571`.
 Compiler SHA256
-## One single-use store through a global struct: the pointer local is what crosses the call (func_neo_ark_r31_8017D90C, 2026-09-16)
+## One single-use store through a global struct: the pointer local is what crosses the call (_neoArkR31InitializeRoom, 2026-09-16)
 
 **Problem.** m2c's seed `M2C_FIELD(&gCdCmdQueue, s16*, 0x22A) = 2;` scored 77.9%
 with `regs=16 delete=4 insert=1` and a candidate *smaller* than the target (26
@@ -92736,11 +92738,11 @@ is what pushes `index` to `$s1` and the frame to 0x20.
 CdCmdQueue* queue;
 
 queue            = &gCdCmdQueue;      /* before the call: the range spans it */
-arg0->field_24   = D_neo_ark_r31_8017D9F4;
-gameSetTaskSlot(arg0, 7);
-queue->imageMdecMode = 2;
-evsStartScriptWithSkip((s32)&D_80133F90, 0, (s32)&D_80134470);
-arg0->state      = (s32)(arg0->state + 1);
+task->msgTable   = D_neo_ark_r31_8017D9F4;
+gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
+evsStartScriptWithSkip(D_actor_461800_80133F90, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_461800_80134470);
+task->state      = task->state + 1;
 ```
 
 **Tell.** A base address in a *callee-saved* register with a displacement store,
@@ -118757,7 +118759,7 @@ Corpus note: the same class of seed defect as entry 27's "parameters m2c could
 not see used" — m2c's inferred *types* are the first thing to distrust in a
 near-miss seed, ahead of any pass-level mechanism.
 
-## A `goto` loop carries no `NOTE_INSN_LOOP_BEG`, so loop.c never runs: write the walk as a `for` (func_neo_ark_shrine_8017DB10, 2026-09-17)
+## A `goto` loop carries no `NOTE_INSN_LOOP_BEG`, so loop.c never runs: write the walk as a `for` (neoArkShrineSlidePuzzleTile, 2026-09-17)
 
 Symptom: the seed's loop body recomputes both table addresses every iteration
 (`lui`/`addiu` pairs inside the body, one of them parked in the loop's
@@ -118776,9 +118778,9 @@ there is no CFG-based loop discovery in this version). m2c emits every loop as
 Fix: write the walk as a real `for` (or `while`), keeping the same body:
 
 ```c
-    for (i = 0; i < 5; i++) {
-        state = D_neo_ark_shrine_801825EC[st->field_C][i];
-        if (state == 0xFF) break;          /* m2c's `if (x != 0xFF) { ... }` */
+    for (neighbourIndex = 0; neighbourIndex < (s32)ARRAY_SIZE(D_neo_ark_shrine_801825EC[0]); neighbourIndex++) {
+        neighbourCell = D_neo_ark_shrine_801825EC[work->selection][neighbourIndex];
+        if (neighbourCell == NEO_ARK_SHRINE_NEIGHBOUR_END) break;          /* m2c's `if (x != 0xFF) { ... }` */
         ...
     }
 ```
@@ -118801,23 +118803,23 @@ Two things that ride along with the same rewrite:
   three places. The hoist needs the array form's *symbol* base, which reload
   materializes into the saved register the target holds it in.
 
-## A 0/1 flag has to be `u8`, tested as `if ((v = flag != 0))`: reload CSE matches constants by mode, combine folds the pair into a copy (func_neo_ark_shrine_8017DB10, 2026-09-17)
+## A 0/1 flag has to be `u8`, tested as `if ((v = flag != 0))`: reload CSE matches constants by mode, combine folds the pair into a copy (neoArkShrineSlidePuzzleTile, 2026-09-17)
 
 With the loop fixed, the last three instructions of the function were all about
 one `s32` flag set to 0 and 1 and tested after the loop:
 
 | target | `s32` flag | `u8` flag | `u8` + assignment-in-condition |
 |---|---|---|---|
-| `addu $s1,$zero,$zero` (`i = 0`) | `move $s1,$s4` | `move $s1,$zero` | `move $s1,$zero` |
-| `sll $v0,$v0,1` (`state * 2`) | `sllv $v0,$v0,$s4` | `sll $v0,$v0,1` | `sll $v0,$v0,1` |
+| `addu $s1,$zero,$zero` (`neighbourIndex = 0`) | `move $s1,$s4` | `move $s1,$zero` | `move $s1,$zero` |
+| `sll $v0,$v0,1` (`neighbourCell * 2`) | `sllv $v0,$v0,$s4` | `sll $v0,$v0,1` | `sll $v0,$v0,1` |
 | `addu $v0,$s4,$zero` `beqz $v0` | `beqz $s4` | `andi $v0,$s4,0xff` | `addu $v0,$s4,$zero` `beqz $v0` |
 
 Rows one and two: the post-reload CSE (`reload_cse_simplify_set` /
 `reload_cse_simplify_operands`) substitutes a constant operand with a hard
 register holding it, but `reload_cse_regno_equal_p` requires the recorded entry
 to have **the same mode** as the operand for a `CONST_INT`. A `s32` flag's
-`(set (reg:SI) (const_int 0/1))` is recorded in SImode and steals the `i = 0`
-constant and the `state * 2` shift amount; a `u8` flag's stores are recorded in
+`(set (reg:SI) (const_int 0/1))` is recorded in SImode and steals the `neighbourIndex = 0`
+constant and the `neighbourCell * 2` shift amount; a `u8` flag's stores are recorded in
 QImode, match nothing in SImode, and both stay constants. (`-funsigned-char`
 means a plain `char` behaves the same.)
 
@@ -122400,7 +122402,7 @@ copies from `.rodata` — and then the template is a `.rodata`-cut problem, as i
 "A stack array initializer is rodata, so a later code unit needs a `rodata`
 cut".
 
-## A plain `u8` store is not `MEM_IN_STRUCT_P`, so sched1 hoists a later struct load - and that moves where jump2 merges a shared tail (func_neo_ark_pyramid_8017D600, 2026-09-17)
+## A plain `u8` store is not `MEM_IN_STRUCT_P`, so sched1 hoists a later struct load - and that moves where jump2 merges a shared tail (_neoArkPyramidRotationPuzzleTask, 2026-09-17)
 
 Every arm of this cutscene driver's state switch ends in `task->state++`, so
 `jump.c`'s cross-jumping (which runs only after reload, `jump.c:2528`
@@ -122461,7 +122463,7 @@ Sources: `base_1.c` SHA256
 SHA256 `349b06aa42650f6dc8c685fbcbd2d5409117d2a17af872ac32c8a19a759a977a`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Scratch
-`nonmatchings/func_neo_ark_pyramid_8017D600-vacuum`. Landing it also needed the
+`nonmatchings/_neoArkPyramidRotationPuzzleTask-vacuum`. Landing it also needed the
 `rodata_head = "0x14"` cut and the deleted `INCLUDE_RODATA` lines from the
 `rodata_head` section above - the compiler's table has to start this unit's
 `.rodata`, and the 0x14-byte header is `4 mod 8`.
@@ -122584,7 +122586,7 @@ segment, which is why their `INCLUDE_RODATA` lines had to be deleted.
 
 ## A tail the *first* arm falls into and the second jumps back to cannot come from `else if`
 
-`func_neo_ark_savanna_zone_8017D77C` dispatches two save-location messages onto
+`_neoArkSavannaZoneResolveRoomEvent` dispatches two save-location messages onto
 one tail (fill the event, clear the running flag, call `gameFlagGetNibble`, and
 so on). Written the way this room family's siblings are —
 
@@ -140834,7 +140836,7 @@ to the host file.
 
 **Fix.** Load the early `cursorDeltaX`/`cursorDeltaY` terms through the same locals: `endX = work->lineEndX; cursorDeltaX = endX - prompt->screen.xy.x; endY = work->lineEndY; cursorDeltaY = endY - prompt->screen.xy.y`. The HImode load plus sign-extension folds into `lh`, so the early code is unchanged, and `endX`/`endY` reach 5 refs (priority about 780, above `lineY`). That gave the target's allocation at 100%. Reusing the *parameters* instead did nothing: cse bypasses a parameter's HImode copy at entry, flow then deletes it as dead, and deleted insns add no refs. When a `regs`-only permutation of callee-saved registers comes from global priority and the lengths already match, look for a variable that can also carry an earlier value which combine will absorb.
 
-### A store placed between an arm's argument setup and its `jal` needs a second memory insn in that block, not a load (func_neo_ark_shrine_8017EE44, 2026-09-23)
+### A store placed between an arm's argument setup and its `jal` needs a second memory insn in that block, not a load (_neoArkShrineResolvePuzzleExamine, 2026-09-23)
 
 **Symptom.** Two arms each call `capStartSequenceSlot`, and jump2 merges only the `jal`. The else arm is `a1 = 0; a2 = a1; move v0,a0; sb v0,0xF(s1)` falling into the shared `jal`. That means sched1 put the store *after* the argument setup. Two sessions and the permuter reached 97.1% only by re-reading `task->work` for the store base. The extra `lw` (latency 2) raised the store's priority, but it stayed in the object as an extra instruction. With the cached pointer, the store keeps source order ahead of the argument moves. The two setups then cross-jump, and the score falls to 86%.
 
@@ -150033,7 +150035,7 @@ attempts; left as it was.
   || g` condition, the same one the function already had written out thirty
   lines below.
 - Not converted: `func_shelter_b1_north_maintenance_walkway_8017D7A4` and
-  `func_neo_ark_savanna_zone_8017D77C`. Arm A sets `cmd`/`flag`, the shared
+  `_neoArkSavannaZoneResolveRoomEvent`. Arm A sets `cmd`/`flag`, the shared
   stores and the inlined start follow it, and arm B jumps *backward* into
   them. The constants are held in two registers across the join, so the join
   is real (duplicated arms cannot merge the `capCmd` store, 1 insn longer);

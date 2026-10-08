@@ -65,7 +65,7 @@ neoArkPyramidRoomVisualEffectsFlashTask = 0x8017DC50; // type:func
 
 neoArkPyramidRoomVisualEffectsTwinTrailTask = 0x8017E6B4; // type:func
 
-func_neo_ark_pyramid_8017EF9C = 0x8017EF9C; // type:func
+neoArkPyramidRoomVisualEffectsSparkBurstTask = 0x8017EF9C; // type:func
 
 neoArkPyramidConfigureEffectsTask = 0x8017DBF0; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017DEF4; // type:func
@@ -80,3 +80,5 @@ _neoArkPyramidSetRotationPuzzleAngle = 0x8017dac0; // type:func
 _neoArkPyramidDrawRotationPuzzleState = 0x8017db5c; // type:func
 _neoArkPyramidInitializeRoom = 0x8017db18; // type:func
 neoArkPyramidRoomTask = 0x8017db98; // type:func
+_neoArkPyramidRotationPuzzleTask = 0x8017d600; // type:func
+_neoArkPyramidHandleRoomAction = 0x8017da44; // type:func

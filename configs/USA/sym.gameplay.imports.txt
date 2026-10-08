@@ -914,7 +914,7 @@ neoArkPyramidRoomVisualEffectsFlashTask = 0x8017DC50; // type:func absolute:True
 
 neoArkPyramidRoomVisualEffectsTwinTrailTask = 0x8017E6B4; // type:func absolute:True owner=neo_ark_pyramid
 
-func_neo_ark_pyramid_8017EF9C = 0x8017EF9C; // type:func absolute:True owner=neo_ark_pyramid
+neoArkPyramidRoomVisualEffectsSparkBurstTask = 0x8017EF9C; // type:func absolute:True owner=neo_ark_pyramid
 
 neoArkR31RoomTask = 0x8017D990; // type:func absolute:True owner=neo_ark_r31 shared=rooms
 
@@ -924,7 +924,7 @@ neoArkSavannaZoneRoomVisualEffectsFlashTask = 0x8017DA0C; // type:func absolute:
 
 neoArkSavannaZoneRoomVisualEffectsTwinTrailTask = 0x8017E470; // type:func absolute:True owner=neo_ark_savanna_zone
 
-func_neo_ark_savanna_zone_8017ED58 = 0x8017ED58; // type:func absolute:True owner=neo_ark_savanna_zone
+neoArkSavannaZoneRoomVisualEffectsSparkBurstTask = 0x8017ED58; // type:func absolute:True owner=neo_ark_savanna_zone
 
 neoArkShrineFlareTask = 0x8017F8DC; // type:func absolute:True owner=neo_ark_shrine
 

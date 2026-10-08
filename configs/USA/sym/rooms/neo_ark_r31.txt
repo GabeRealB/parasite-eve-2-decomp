@@ -29,3 +29,4 @@ _neoArkR31ResolveRoomTransition = 0x8017d8b8; // type:func
 _neoArkR31IgnoreRoomCommand = 0x8017d8fc; // type:func
 _neoArkR31IgnoreRoomAction = 0x8017d904; // type:func
 _neoArkR31SetImageMaskMode = 0x8017d980; // type:func
+_neoArkR31InitializeRoom = 0x8017d90c; // type:func

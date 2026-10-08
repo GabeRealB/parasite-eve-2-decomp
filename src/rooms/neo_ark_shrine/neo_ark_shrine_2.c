@@ -170,13 +170,13 @@ extern SVECTOR D_neo_ark_shrine_80182704[];
 static void func_neo_ark_shrine_8017ECC4(Task* task);
 static void _neoArkShrinePreparePuzzleCursor(Task* task);
 static void _neoArkShrineOpenPuzzleCommands(Task* task);
-static void func_neo_ark_shrine_8017EE44(Task* task);
+static void _neoArkShrineResolvePuzzleExamine(Task* task);
 static void _neoArkShrineClosePuzzle(Task* task);
 static void _neoArkShrineBeginPuzzleLayoutActivation(Task* task);
 static void _neoArkShrineWaitPuzzleLayoutActivation(Task* task);
 static void _neoArkShrineBeginPuzzleEnemyRelease(Task* task);
-static void func_neo_ark_shrine_8017F0F0(Task* task);
-static void func_neo_ark_shrine_8017F178(Task* task);
+static void _neoArkShrineWaitToSpawnFirstFallingProp(Task* task);
+static void _neoArkShrineWaitToSpawnSecondFallingProp(Task* task);
 static void _neoArkShrineWaitPuzzleEnemyReveal(Task* task);
 static void _neoArkShrineFinishPuzzleEnemyRelease(Task* task);
 static void _neoArkShrineBeginPuzzleLayoutRestoration(Task* task);
@@ -194,14 +194,14 @@ static const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
         _neoArkShrinePreparePuzzleCursor,
         neoArkShrinePuzzleIdle,
         _neoArkShrineOpenPuzzleCommands,
-        func_neo_ark_shrine_8017EE44,
+        _neoArkShrineResolvePuzzleExamine,
         _neoArkShrineClosePuzzle,
-        func_neo_ark_shrine_8017DB10,
+        neoArkShrineSlidePuzzleTile,
         _neoArkShrineBeginPuzzleLayoutActivation,
         _neoArkShrineWaitPuzzleLayoutActivation,
         _neoArkShrineBeginPuzzleEnemyRelease,
-        func_neo_ark_shrine_8017F0F0,
-        func_neo_ark_shrine_8017F178,
+        _neoArkShrineWaitToSpawnFirstFallingProp,
+        _neoArkShrineWaitToSpawnSecondFallingProp,
         _neoArkShrineWaitPuzzleEnemyReveal,
         _neoArkShrineFinishPuzzleEnemyRelease,
         _neoArkShrineBeginPuzzleLayoutRestoration,
@@ -1224,13 +1224,17 @@ static void _neoArkShrineOpenPuzzleCommands(Task* task)
     task->state = NEO_ARK_SHRINE_PUZZLE_STATE_COMMAND_RESULT;
 }
 
-/// Hides the action prompt's cursor, stops it, and runs the shrine's per-step
-/// helper. When `itemMenuIsHotspotActionConfirmed` reports acceptance, starts cap slot 2 if the
-/// latched `selection` is `NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD`, and otherwise
-/// sets `boardExamined` and starts cap slot 1. The task advances to state 2
-/// on every path.
-static void func_neo_ark_shrine_8017EE44(Task* task)
+/// Applies the puzzle's Examine command and returns to cursor input.
+///
+/// State 4 requires owned puzzle work with the confirmed hotspot latched.
+/// Hides and stops port 0's cursor, then draws one frame. On acceptance runs
+/// sequence 2 off the board, or latches board examination and runs sequence 1
+/// on a tile. Every path enters idle state 2; CAP playback gates further input.
+static void _neoArkShrineResolvePuzzleExamine(Task* task)
 {
+    enum { NEO_ARK_SHRINE_EXAMINE_BOARD_SEQUENCE     = 1,
+           NEO_ARK_SHRINE_EXAMINE_OFF_BOARD_SEQUENCE = 2 };
+
     ActionPrompt*           prompt = D_80114D28;
     NeoArkShrinePuzzleWork* work   = task->work;
 
@@ -1238,17 +1242,17 @@ static void func_neo_ark_shrine_8017EE44(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     neoArkShrineDrawPuzzleFrame(task);
     if (itemMenuIsHotspotActionConfirmed() == 0) {
-        task->state = 2;
+        task->state = NEO_ARK_SHRINE_PUZZLE_STATE_IDLE;
         return;
     }
     if (work->selection == NEO_ARK_SHRINE_HOTSPOT_OFF_BOARD) {
-        capStartSequenceSlot(2, 0, 0);
-        task->state = 2;
+        capStartSequenceSlot(NEO_ARK_SHRINE_EXAMINE_OFF_BOARD_SEQUENCE, CAP_PLAYBACK_IN_PLACE, 0);
+        task->state = NEO_ARK_SHRINE_PUZZLE_STATE_IDLE;
         return;
     }
     work->boardExamined = 1;
-    capStartSequenceSlot(1, 0, 0);
-    task->state = 2;
+    capStartSequenceSlot(NEO_ARK_SHRINE_EXAMINE_BOARD_SEQUENCE, CAP_PLAYBACK_IN_PLACE, 0);
+    task->state = NEO_ARK_SHRINE_PUZZLE_STATE_IDLE;
 }
 
 /// Restores player control, HUD, event gates and the room view after the puzzle.
@@ -1323,45 +1327,66 @@ static void _neoArkShrineBeginPuzzleEnemyRelease(Task* task)
     task->state++;
 }
 
-static void func_neo_ark_shrine_8017F0F0(Task* task)
+/// Draws the puzzle during the thirty-frame delay before the first falling prop.
+///
+/// State 10 requires owned puzzle work with its u16 timer reset on entry.
+/// At the threshold spawns the first model prop, selects saved view 14,
+/// clears the timer and advances to the second-prop delay. The prop runs
+/// independently; puzzle and prop resources must remain loaded.
+static void _neoArkShrineWaitToSpawnFirstFallingProp(Task* task)
 {
+    enum { NEO_ARK_SHRINE_FIRST_PROP_DELAY_FRAMES  = 30,
+           NEO_ARK_SHRINE_FIRST_FALLING_PROP_ENTRY = 1,
+           NEO_ARK_SHRINE_FIRST_PROP_VIEW          = 14 };
+
     NeoArkShrinePuzzleWork* work;
-    u16                     timer;
+    u16                     elapsedFrames;
 
     work = task->work;
     neoArkShrineDrawPuzzleFrame();
-    timer       = work->timer + 1;
-    work->timer = timer;
-    if (timer >= 0x1EU) {
-        taskSpawnFromTable(D_neo_ark_shrine_80182508, 1, 0, 0);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xE;
-        /* Without this the scheduler hoists the `task->state` reload above the
-           `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` byte store to fill its load-delay slot. */
+    elapsedFrames = work->timer + 1;
+    work->timer   = elapsedFrames;
+    if (elapsedFrames >= (u32)NEO_ARK_SHRINE_FIRST_PROP_DELAY_FRAMES) {
+        taskSpawnFromTable(D_neo_ark_shrine_80182508, NEO_ARK_SHRINE_FIRST_FALLING_PROP_ENTRY, 0, 0);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_FIRST_PROP_VIEW;
+        // Reset the following delay before advancing to its state.
         work->timer = 0;
         task->state++;
     }
 }
 
-static void func_neo_ark_shrine_8017F178(Task* task)
+/// Waits ninety frames and selects the first or repeated enemy-release path.
+///
+/// State 11 requires owned puzzle work with its u16 timer reset on entry.
+/// At the threshold clears the timer. On the first release spawns the second
+/// falling prop, selects saved view 13, sets the reveal latch and enters
+/// state 12. Later releases skip that prop and reveal delay for state 13.
+/// The independently running props and room resources must remain loaded.
+static void _neoArkShrineWaitToSpawnSecondFallingProp(Task* task)
 {
-    NeoArkShrinePuzzleWork* work;
-    u16                     timer;
-    s32                     next;
+    enum { NEO_ARK_SHRINE_SECOND_PROP_DELAY_FRAMES  = 90,
+           NEO_ARK_SHRINE_SECOND_FALLING_PROP_ENTRY = 2,
+           NEO_ARK_SHRINE_SECOND_PROP_VIEW          = 13 };
 
-    work        = task->work;
-    timer       = work->timer + 1;
-    work->timer = timer;
-    if (timer >= 0x5AU) {
+    NeoArkShrinePuzzleWork* work;
+    u16                     elapsedFrames;
+    s32                     nextState;
+
+    work          = task->work;
+    elapsedFrames = work->timer + 1;
+    work->timer   = elapsedFrames;
+    if (elapsedFrames >= (u32)NEO_ARK_SHRINE_SECOND_PROP_DELAY_FRAMES) {
         work->timer = 0;
+        // The second prop and enemy reveal occur only on the first release.
         if (gameFlagGetNibble(GAME_FLAG_0E9) == 0) {
-            taskSpawnFromTable(D_neo_ark_shrine_80182508, 2, 0, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
+            taskSpawnFromTable(D_neo_ark_shrine_80182508, NEO_ARK_SHRINE_SECOND_FALLING_PROP_ENTRY, 0, 0);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_SECOND_PROP_VIEW;
             gameFlagSetNibble(GAME_FLAG_0E9, 1);
-            next = task->state + 1;
+            nextState = task->state + 1;
         } else {
-            next = task->state + 2;
+            nextState = task->state + 2;
         }
-        task->state = next;
+        task->state = nextState;
     }
 }
 

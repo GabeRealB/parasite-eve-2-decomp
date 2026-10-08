@@ -53,7 +53,16 @@ void neoArkPyramidRoomVisualEffectsFlashTask(Task* task);
 /// `gRoomEffectState` and the room overlay to remain loaded while running.
 void neoArkPyramidRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_neo_ark_pyramid_8017EF9C(Task* task);
+/// Runs the pyramid's impact flash with smoke or orange rings and bouncing sparks.
+///
+/// Requires state 0, a coordinate body and counted, owned, zero-aged `EffectWork`
+/// in `spawnArg2.pointer`; its parent coordinate must stay live until teardown.
+/// Nonzero `spawnArg1.value` selects smoke puffs, zero selects two independent
+/// sparks followed by fading rings. Active age seven enters release; the next
+/// active tick frees the work and task. Nonzero room effect control below four
+/// pauses the task; four or above cancels it. Child effects run independently.
+/// The gameplay bank-6 descriptor selects this room's loaded implementation.
+void neoArkPyramidRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Selects the pyramid's enemy effects and enables the current view's ambient effects.
 ///

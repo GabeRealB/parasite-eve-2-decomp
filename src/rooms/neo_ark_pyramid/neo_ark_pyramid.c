@@ -74,11 +74,11 @@ static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
     { _neoArkPyramidInitializeRoom, _neoArkPyramidDrawRotationPuzzleState, taskKill }
 };
 
-void       func_neo_ark_pyramid_8017D600(Task*);
-static s32 _neoArkPyramidRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-static s32 _neoArkPyramidResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
-static s32 _neoArkPyramidIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
-s32        func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static void _neoArkPyramidRotationPuzzleTask(Task* task);
+static s32  _neoArkPyramidRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
+static s32  _neoArkPyramidResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _neoArkPyramidIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
+static s32  _neoArkPyramidHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 /// Room message carrying the integer item ID selected in the key-item menu.
 enum { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -92,12 +92,12 @@ extern WorldCoordRoomLights   D_neo_ark_pyramid_80181298[1];
 TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPyramidResolveRoomVariant },
     { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM, _neoArkPyramidRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_pyramid_8017DA44 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPyramidHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkPyramidIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_neo_ark_pyramid_8017FC0C = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_pyramid_8017D600, { .value = 0 } };
+TaskDesc D_neo_ark_pyramid_8017FC0C = { { { TASK_BODY_NONE, 32 } }, _neoArkPyramidRotationPuzzleTask, { .value = 0 } };
 
 #include "../../shared/room_visual_effects_trail_data.inc.c"
 
@@ -494,75 +494,105 @@ s32 D_neo_ark_pyramid_801818A4 = 0;
 
 static void _neoArkPyramidDrawRotationPuzzleQuad(s32 angle);
 
-/// Event task that turns the room's rotating quad one step. It hides the HUD
-/// and runs capture command 1; unless that ends on event key 0xC it plays a
-/// sound and sweeps the quad's angle over 0x156 in steps of 4, then bumps
-/// game-flag nibble 0xEC. Below four turns it returns to the capture command;
-/// on the fourth it plays the closing sound and capture command 2. Either exit
-/// restores the HUD and the player's weapon before the task kills itself.
-void func_neo_ark_pyramid_8017D600(Task* task)
+/// Restores the room view and player presentation after a rotation-puzzle exit.
+///
+/// Requires the live player and held event state. Clears the room's event gates
+/// before resuming player control and automatic model drawing, then kills the
+/// bodyless puzzle task. The caller must have finished CAP playback.
+static inline void _neoArkPyramidRestoreRoomControl(Task* task)
 {
-    u16 count;
+    enum { NEO_ARK_PYRAMID_ROTATION_ROOM_VIEW = 3 };
+
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_PYRAMID_ROTATION_ROOM_VIEW;
+    gGameSession->hideHud                                      = 0;
+    gGameSession->eventState                                   = 0;
+    gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
+    taskKill(task);
+}
+
+/// Runs the rotation puzzle's prompt, angle sweep and return to room control.
+///
+/// Starts with a bodyless state-0 task after the player has been held and hidden.
+/// View 8 shows the puzzle. Each accepted prompt sweeps one twelfth-turn in
+/// four-unit steps (4096 units per turn), using `killCountdown` as a halfword
+/// angle accumulator. Four completed steps play the completion CAP; variant
+/// key 12 cancels. Both exits select view 3 and restore actors, HUD and player.
+/// Requires the room, CAP and drawing resources to remain loaded until teardown.
+static void _neoArkPyramidRotationPuzzleTask(Task* task)
+{
+    enum { NEO_ARK_PYRAMID_ROTATION_PREPARE          = 0,
+           NEO_ARK_PYRAMID_ROTATION_PROMPT           = 1,
+           NEO_ARK_PYRAMID_ROTATION_WAIT_PROMPT      = 2,
+           NEO_ARK_PYRAMID_ROTATION_BEGIN_SWEEP      = 3,
+           NEO_ARK_PYRAMID_ROTATION_SWEEP            = 4,
+           NEO_ARK_PYRAMID_ROTATION_WAIT_COMPLETION  = 5,
+           NEO_ARK_PYRAMID_ROTATION_EXIT             = 10,
+           NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW      = 8,
+           NEO_ARK_PYRAMID_ROTATION_PROMPT_COMMAND   = 1,
+           NEO_ARK_PYRAMID_ROTATION_COMPLETE_COMMAND = 2,
+           NEO_ARK_PYRAMID_ROTATION_CANCEL_KEY       = 12,
+           NEO_ARK_PYRAMID_ROTATION_ANGLE_STEP       = 4,
+           NEO_ARK_PYRAMID_ROTATION_SWEEP_LIMIT      = 342,
+           NEO_ARK_PYRAMID_ROTATION_REQUIRED_STEPS   = 4,
+           NEO_ARK_PYRAMID_ROTATION_KEEP_ACTORS_HELD = 1 };
+    u16 sweepAngle;
 
     switch (task->state) {
-        case 0:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
+        case NEO_ARK_PYRAMID_ROTATION_PREPARE:
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW;
             gGameSession->hideHud                                      = 1;
             gGameSession->eventState                                   = 1;
             gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_HIDDEN;
             task->state++;
             break;
-        case 1:
-            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
+        case NEO_ARK_PYRAMID_ROTATION_PROMPT:
+            capRunCommand(NEO_ARK_PYRAMID_ROTATION_PROMPT_COMMAND, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
-        case 2:
-            D_80115690 = 1;
+        case NEO_ARK_PYRAMID_ROTATION_WAIT_PROMPT:
+            D_80115690 = NEO_ARK_PYRAMID_ROTATION_KEEP_ACTORS_HELD;
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 3:
-            if (capGetVariantKey() == 0xC) {
-                task->state = 0xA;
+        case NEO_ARK_PYRAMID_ROTATION_BEGIN_SWEEP:
+            if (capGetVariantKey() == NEO_ARK_PYRAMID_ROTATION_CANCEL_KEY) {
+                task->state = NEO_ARK_PYRAMID_ROTATION_EXIT;
                 break;
             }
             sndEvtRequestScriptStart(SOUND_NEO_ARK_PYRAMID_ROTATE, 0, 0);
             task->killCountdown = 0;
             task->state++;
             break;
-        case 4:
-            count               = task->killCountdown + 4;
-            task->killCountdown = count;
-            if ((s16)count >= 0x156) {
+        case NEO_ARK_PYRAMID_ROTATION_SWEEP:
+            // Commit the completed turn before settling the displayed angle.
+            sweepAngle          = task->killCountdown + NEO_ARK_PYRAMID_ROTATION_ANGLE_STEP;
+            task->killCountdown = sweepAngle;
+            if ((s16)sweepAngle >= NEO_ARK_PYRAMID_ROTATION_SWEEP_LIMIT) {
                 gameFlagSetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT, gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) + 1);
                 _neoArkPyramidSetRotationPuzzleAngle(0);
-                if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) >= 4) {
+                if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) >= NEO_ARK_PYRAMID_ROTATION_REQUIRED_STEPS) {
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_PYRAMID_ROTATE_DONE, 0, 0);
-                    capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
+                    capRunCommand(NEO_ARK_PYRAMID_ROTATION_COMPLETE_COMMAND, CAP_PLAYBACK_IN_PLACE);
                     task->state++;
                 } else {
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_PYRAMID_ROTATE_STOP, 0, 0);
-                    task->state = 1;
+                    task->state = NEO_ARK_PYRAMID_ROTATION_PROMPT;
                 }
             } else {
-                _neoArkPyramidSetRotationPuzzleAngle((s16)count);
+                _neoArkPyramidSetRotationPuzzleAngle((s16)sweepAngle);
             }
             break;
-        case 5:
-            D_80115690 = 1;
+        case NEO_ARK_PYRAMID_ROTATION_WAIT_COMPLETION:
+            D_80115690 = NEO_ARK_PYRAMID_ROTATION_KEEP_ACTORS_HELD;
             if (capIsBusy() == 0) {
-                task->state = 0xA;
+                task->state = NEO_ARK_PYRAMID_ROTATION_EXIT;
             }
             break;
-        case 10:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 3;
-            gGameSession->hideHud                                      = 0;
-            gGameSession->eventState                                   = 0;
-            gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
-            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-            playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-            taskKill(task);
+        case NEO_ARK_PYRAMID_ROTATION_EXIT:
+            _neoArkPyramidRestoreRoomControl(task);
             break;
     }
 }
@@ -664,18 +694,22 @@ static s32 _neoArkPyramidIgnoreRoomCommand(Task* task, s32 messageId, s32 comman
     return 0;
 }
 
-/// Handler for message 0x13EF in the room's message table. When the message's
-/// `actionId` is 1 it resets the quad's angle; once the quad has turned four
-/// times it spawns capture event 3, otherwise it has the player lower the
-/// weapon and starts the task that turns the quad another step.
-s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Opens the rotation puzzle or its completed-puzzle CAP event.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` with a borrowed four-byte request
+/// and ignored second word. Action 1 settles the displayed angle, then starts
+/// CAP event 3 at exactly four completed turns, or holds and hides the player
+/// before spawning the puzzle task. Other actions do nothing; returns zero.
+static s32 _neoArkPyramidHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { NEO_ARK_PYRAMID_ACTION_ROTATION_PUZZLE  = 1,
+           NEO_ARK_PYRAMID_ROTATION_COMPLETE_TURNS = 4,
+           NEO_ARK_PYRAMID_COMPLETED_PUZZLE_EVENT  = 3 };
 
-    if (request->actionId == 1) {
+    if (request->actionId == NEO_ARK_PYRAMID_ACTION_ROTATION_PUZZLE) {
         _neoArkPyramidSetRotationPuzzleAngle(0);
-        if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) == 4) {
-            capSpawnEventIfIdle(3, CAP_EVENT_PAUSE_ACTORS);
+        if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) == NEO_ARK_PYRAMID_ROTATION_COMPLETE_TURNS) {
+            capSpawnEventIfIdle(NEO_ARK_PYRAMID_COMPLETED_PUZZLE_EVENT, CAP_EVENT_PAUSE_ACTORS);
         } else {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
@@ -766,7 +800,7 @@ void neoArkPyramidRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_neo_ark_pyramid_8017EF9C(Task* task)
+void neoArkPyramidRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

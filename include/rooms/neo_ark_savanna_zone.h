@@ -61,7 +61,16 @@ void neoArkSavannaZoneRoomVisualEffectsFlashTask(Task* task);
 /// effect work, body and task. Drawing needs scratch and frame packet space.
 void neoArkSavannaZoneRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_neo_ark_savanna_zone_8017ED58(Task* task);
+/// Runs the savanna zone's impact flash with smoke or orange rings and bouncing sparks.
+///
+/// Requires state 0, a coordinate body and counted, owned, zero-aged `EffectWork`
+/// in `spawnArg2.pointer`; its parent coordinate must stay live until teardown.
+/// Nonzero `spawnArg1.value` selects smoke puffs, zero selects two independent
+/// sparks followed by fading rings. Active age seven enters release; the next
+/// active tick frees the work and task. Nonzero room effect control below four
+/// pauses the task; four or above cancels it. Child effects run independently.
+/// The gameplay bank-6 descriptor selects this room's loaded implementation.
+void neoArkSavannaZoneRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs the Neo Ark Savanna Zone room controller for one tick.
 ///

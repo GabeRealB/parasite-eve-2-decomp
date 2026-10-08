@@ -140,7 +140,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_r31_8017DC34[8] = {
 
 s32 D_neo_ark_r31_8017DC54 = 0;
 
-static void func_neo_ark_r31_8017D90C(Task* arg0);
+static void _neoArkR31InitializeRoom(Task* task);
 static void _neoArkR31SetImageMaskMode(Task* unusedTask);
 
 /// Brackets the shifted framebuffer draw with GPU mask-bit writes enabled and disabled.
@@ -290,19 +290,22 @@ static s32 _neoArkR31IgnoreRoomAction(Task* task, s32 messageId, const Direction
     return 0;
 }
 
-/// Room task state 0: installs the message table, claims pointer slot 7,
-/// sets `gCdCmdQueue.imageMdecMode` to 2 and starts the room script with
-/// `evsStartScriptWithSkip`. Advances to state 1.
-static void func_neo_ark_r31_8017D90C(Task* arg0)
+/// Registers the room receiver and starts its skippable actor scene.
+///
+/// State 0 installs room messages, publishes the borrowed task in the room slot
+/// and arms RGB16 background decoding with pixel bit 15 set. Starts the loaded
+/// actor-461800 scene and skip scripts with HUD hold/restoration, then enters
+/// state 1, which re-arms that decoder policy for each image. Allocates no work.
+static void _neoArkR31InitializeRoom(Task* task)
 {
     CdCmdQueue* queue;
 
     queue          = &gCdCmdQueue;
-    arg0->msgTable = D_neo_ark_r31_8017D9F4;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_neo_ark_r31_8017D9F4;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     evsStartScriptWithSkip(D_actor_461800_80133F90, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_461800_80134470);
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Re-arms pixel bit 15 for the next RGB16 background decode.
@@ -319,7 +322,7 @@ static void _neoArkR31SetImageMaskMode(Task* unusedTask)
 /// and `taskKill`.
 static const TaskFuncTable3 D_neo_ark_r31_8017D5C4 = {
     {
-        func_neo_ark_r31_8017D90C,
+        _neoArkR31InitializeRoom,
         _neoArkR31SetImageMaskMode,
         taskKill,
     },

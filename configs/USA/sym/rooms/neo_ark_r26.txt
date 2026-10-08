@@ -61,3 +61,5 @@ _neoArkR26IgnoreRoomActionMessage = 0x8017d69c; // type:func
 _neoArkR26RoomIdleState = 0x8017d710; // type:func
 _neoArkR26ResolveRoomVariant = 0x8017d650; // type:func
 neoArkR26RoomTask = 0x8017d720; // type:func
+_neoArkR26ReturnToShelterTent = 0x8017d5d0; // type:func
+_neoArkR26InitializeRoom = 0x8017d6a4; // type:func

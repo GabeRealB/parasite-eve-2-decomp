@@ -1068,12 +1068,12 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80180FFC, { NULL } },                                         // 0x212
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_island_80180EE8, { NULL } },                                           // 0x213
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017F140, { NULL } },                                    // 0x214
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_savanna_zone_8017ED58, { NULL } },                                     // 0x215
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkSavannaZoneRoomVisualEffectsSparkBurstTask, { NULL } },                       // 0x215
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_south_promenade_8017EA6C, { NULL } },                                  // 0x216
     { { { TASK_BODY_COORD, 0x70 } }, neoArkShrineRoomVisualEffectsSparkBurstTask, { NULL } },                            // 0x217
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6NurseryRoomVisualEffectsSparkBurstTask, { NULL } },                        // 0x218
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_801812D0, { NULL } },                                           // 0x219
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pyramid_8017EF9C, { NULL } },                                          // 0x21A
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkPyramidRoomVisualEffectsSparkBurstTask, { NULL } },                           // 0x21A
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask, { NULL } },       // 0x21B
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_south_maintenance_walkway_801806F4, { NULL } },                     // 0x21C
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask, { NULL } }, // 0x21D

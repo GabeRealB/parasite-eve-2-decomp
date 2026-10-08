@@ -77,7 +77,7 @@ extern WorldCollisionTrigger      D_neo_ark_savanna_zone_8018061C[5];
 extern WorldCoordRoomAmbientEntry D_neo_ark_savanna_zone_80180908[5];
 extern WorldCoordRoomLights       D_neo_ark_savanna_zone_801804D4[1];
 extern TaskDesc                   Actor00100_D1BA84;
-s32                               func_neo_ark_savanna_zone_8017D77C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32                        _neoArkSavannaZoneResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32                        _neoArkSavannaZoneRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32                        _neoArkSavannaZoneIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32                        _neoArkSavannaZoneIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
@@ -88,7 +88,7 @@ enum { NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 TaskDesc D_neo_ark_savanna_zone_8017F9A0 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_savanna_zone_8017F9AC[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_savanna_zone_8017D77C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkSavannaZoneResolveRoomEvent },
     { NEO_ARK_SAVANNA_ZONE_MESSAGE_USE_KEY_ITEM, _neoArkSavannaZoneRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkSavannaZoneIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkSavannaZoneIgnoreRoomCommand },
@@ -454,41 +454,54 @@ static __inline__ s32 _neoArkSavannaZoneStartEvent(const RoomEventMsg* transitio
     return ROOM_EVENT_ALREADY_SEEN;
 }
 
-/// Room handler for the save-location message: copies the incoming record onto
-/// the outgoing one and forwards both to `mapNeoArkResolveRoomVariant`. Messages 0x13 and
-/// 0x15 build the room's event record - cap command 3 / 2, the stage sound and
-/// flag 0x15E / 0x15F - and hand it to `_neoArkSavannaZoneStartEvent`; every
-/// other message is not consumed and answers 1.
-s32 func_neo_ark_savanna_zone_8017D77C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves savanna exits and stages each destination's first departure event.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with borrowed eight-byte request and
+/// writable reply storage, which may alias. Resolves the copied destination
+/// before checking South Promenade or Shrine: each has its own CAP command,
+/// sound and seen flag, with no extra fade. Returns 2 while that event is
+/// eligible (including queries), or 1 if already seen or for any other exit.
+/// Only execute mode latches the records and spawns the event; the room and
+/// map overlays and playback resources must remain loaded until it finishes.
+static s32 _neoArkSavannaZoneResolveRoomEvent(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomLatchedEvent event;
-    s32              cmd;
-    s32              snd;
-    s16              flag;
+    enum { NEO_ARK_SAVANNA_ZONE_SOUTH_PROMENADE_COMMAND    = 3,
+           NEO_ARK_SAVANNA_ZONE_SHRINE_COMMAND             = 2,
+           NEO_ARK_SAVANNA_ZONE_SOUTH_PROMENADE_SOUND      = 0x55120003,
+           NEO_ARK_SAVANNA_ZONE_SHRINE_SOUND               = 0x55120001,
+           NEO_ARK_SAVANNA_ZONE_SOUTH_PROMENADE_EVENT_FLAG = 0x15E,
+           NEO_ARK_SAVANNA_ZONE_SHRINE_EVENT_FLAG          = 0x15F,
+           NEO_ARK_SAVANNA_ZONE_DEPARTURE_NO_FADE          = 0,
+           NEO_ARK_SAVANNA_ZONE_EXIT_ALLOWED               = 1 };
 
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    if (in->areaId != GAME_AREA_NEO_ARK_SOUTH_PROMENADE) {
-        goto message15;
+    RoomLatchedEvent event;
+    s32              capCommandIndex;
+    s32              soundId;
+    s16              eventFlagId;
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId != GAME_AREA_NEO_ARK_SOUTH_PROMENADE) {
+        goto resolveShrineEvent;
     }
-    snd            = 0x55120003;
-    cmd            = 3;
-    event.stageSnd = snd;
-    flag           = 0x15E;
-start_event:
-    event.capCmd = cmd;
-    event.flagId = flag;
-    event.fade   = 0;
-    return _neoArkSavannaZoneStartEvent(out, &event);
-message15:
-    if (in->areaId == GAME_AREA_NEO_ARK_SHRINE) {
-        snd            = 0x55120001;
-        cmd            = 2;
-        event.stageSnd = snd;
-        flag           = 0x15F;
-        goto start_event;
+    soundId         = NEO_ARK_SAVANNA_ZONE_SOUTH_PROMENADE_SOUND;
+    capCommandIndex = NEO_ARK_SAVANNA_ZONE_SOUTH_PROMENADE_COMMAND;
+    event.stageSnd  = soundId;
+    eventFlagId     = NEO_ARK_SAVANNA_ZONE_SOUTH_PROMENADE_EVENT_FLAG;
+startDepartureEvent:
+    event.capCmd = capCommandIndex;
+    event.flagId = eventFlagId;
+    event.fade   = NEO_ARK_SAVANNA_ZONE_DEPARTURE_NO_FADE;
+    return _neoArkSavannaZoneStartEvent(reply, &event);
+resolveShrineEvent:
+    if (request->areaId == GAME_AREA_NEO_ARK_SHRINE) {
+        soundId         = NEO_ARK_SAVANNA_ZONE_SHRINE_SOUND;
+        capCommandIndex = NEO_ARK_SAVANNA_ZONE_SHRINE_COMMAND;
+        event.stageSnd  = soundId;
+        eventFlagId     = NEO_ARK_SAVANNA_ZONE_SHRINE_EVENT_FLAG;
+        goto startDepartureEvent;
     }
-    return 1;
+    return NEO_ARK_SAVANNA_ZONE_EXIT_ALLOWED;
 }
 
 /// Refuses every collected key-item use with zero, leaving the item unused.
@@ -572,7 +585,7 @@ void neoArkSavannaZoneRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_neo_ark_savanna_zone_8017ED58(Task* task)
+void neoArkSavannaZoneRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
