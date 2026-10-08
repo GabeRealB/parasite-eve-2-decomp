@@ -287,8 +287,8 @@ static void func_actor_105100_80133134(Task* arg0);
 static void _actor105100Idle(Task* task, Enemy* unusedEnemy);
 static void _actor105100SummonFireballs(Task* task, Enemy* unusedEnemy);
 static void _actor105100SummonBeams(Task* task, Enemy* unusedEnemy);
-static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1);
-static void func_actor_105100_80133CE4(Task* arg0);
+static void _actor105100TickChargedStrike(Task* task, Enemy* unusedEnemy);
+static void _actor105100TickPlayerKnockback(Task* task);
 static void _actor105100PlayAnimationSounds(Task* task);
 static void func_actor_105100_80134284(Enemy* arg0, Task* arg1);
 static void _actor105100FireballSpawn(Enemy* enemy, Task* task);
@@ -1059,7 +1059,7 @@ static void func_actor_105100_80132AA0(Enemy* arg0, Task* arg1)
     func_actor_105100_80132C2C(arg1);
     func_actor_105100_80133134(arg1);
     if (work->knockbackActive != 0) {
-        func_actor_105100_80133CE4(arg1);
+        _actor105100TickPlayerKnockback(arg1);
     }
     _actor105100UpdateAnimation(arg1);
     _actor105100PlayAnimationSounds(arg1);
@@ -1265,7 +1265,7 @@ static void func_actor_105100_80133134(Task* arg0)
             _actor105100SummonBeams(arg0, ctx);
             break;
         case ACTOR_105100_ACTION_CHARGE:
-            func_actor_105100_80133A14(arg0, ctx);
+            _actor105100TickChargedStrike(arg0, ctx);
             break;
         case ACTOR_105100_ACTION_RAISE_SHIELD:
             _actor105100RaiseShield(arg0);
@@ -1575,150 +1575,210 @@ static void _actor105100SummonBeams(Task* task, Enemy* unusedEnemy)
     }
 }
 
-/// `ACTION_CHARGE`: the charged strike.
+/// Advances the training enemy's charged strike through charge, hit and recovery.
 ///
-/// Step 0 starts the cast animation, loads `timer` with the 0xBC ticks of the
-/// charge, drops the shield with a 0x1E-tick cooldown and marks the charge in
-/// progress, then spawns the charge ring at the model's coordinate - offset
-/// 0/-0x6D6/0x1F4, living ten ticks longer than the charge and kept in
-/// `ringEffect` - and starts the looping `...0009`, kept in `chargeSound`.
-/// Step 1 waits the timer out, playing `...000A` at its 0x5A mark; on expiry
-/// it starts the strike animation, stops the looping sound, plays `...000B`
-/// and runs the pad lerp in. Step 2 turns `strikeBody`'s pair tests on for
-/// the single frame `animFrame` is 0xC and off on every other, and moves on
-/// to the strike-end animation once the frame passes 0x1B. Step 3 clears
-/// `charging` and, past frame 0x1C, returns to `ACTION_IDLE` with an idle
-/// wait drawn from the gameplay LCG.
-///
-/// The pan and depth are cast at the call rather than through locals: the
-/// sign extension then occupies the argument's own temporary (`$s0`) instead
-/// of `work`'s register, which is what the original allocation needs.
-static void func_actor_105100_80133A14(Task* arg0, Enemy* arg1)
+/// Requires live work, a model root and enemy placement in `spawnArg2.pointer`;
+/// `unusedEnemy` preserves the action-dispatch signature. Tick counters follow
+/// the actor update cadence. Charging lowers the shield for 188 ticks and keeps
+/// a ring effect and looping sound; release stops the sound and starts the
+/// strike. Pair tests enable only at strike frame 12 and disable on other strike
+/// frames. Frames 27 and 28 select recovery and then idle. Sound placement tags
+/// occupy bits 8..15; pan and depth narrow to signed bytes at the call.
+static void _actor105100TickChargedStrike(Task* task, Enemy* unusedEnemy)
 {
+    enum {
+        ACTOR_105100_CHARGE_BEGIN            = 0,
+        ACTOR_105100_CHARGE_WAIT             = 1,
+        ACTOR_105100_CHARGE_STRIKE           = 2,
+        ACTOR_105100_CHARGE_RECOVER          = 3,
+        ACTOR_105100_CHARGE_TICKS            = 188,
+        ACTOR_105100_CHARGE_SHIELD_COOLDOWN  = 30,
+        ACTOR_105100_CHARGE_CUE_TICKS_LEFT   = 90,
+        ACTOR_105100_CHARGE_RING_EXTRA_TICKS = 10,
+        ACTOR_105100_CHARGE_RING_Y           = -1750,
+        ACTOR_105100_CHARGE_RING_Z           = 500,
+        ACTOR_105100_CHARGE_SOUND            = 0x40330009,
+        ACTOR_105100_CHARGE_CUE_SOUND        = 0x4033000A,
+        ACTOR_105100_CHARGE_RELEASE_SOUND    = 0x4033000B,
+        ACTOR_105100_CHARGE_SOUND_SLOT_SHIFT = 8,
+        ACTOR_105100_STRIKE_HIT_FRAME        = 12,
+        ACTOR_105100_STRIKE_END_FRAME        = 27,
+        ACTOR_105100_STRIKE_RECOVER_FRAME    = 28,
+        ACTOR_105100_CHARGE_IDLE_WAIT_MASK   = 63,
+        ACTOR_105100_STRIKE_RUMBLE_TICKS     = 15,
+        ACTOR_105100_STRIKE_RUMBLE_MIN       = 8,
+        ACTOR_105100_STRIKE_RUMBLE_MAX       = 255,
+        ACTOR_105100_STRIKE_RUMBLE_END       = 128,
+    };
+    /// Plays a charge cue with the enemy placement's sound-instance byte.
+    ///
+    /// Captures the local instance shift. scriptId must have bits 8..15 clear;
+    /// pan and depth narrow to signed bytes at the call. Invoke in a braced
+    /// block with side-effect-free arguments: taskArgument and scriptId are
+    /// evaluated once, origin and requestId twice; requestId is an s32 lvalue.
+#define ACTOR_105100_PLAY_CHARGE_CUE(taskArgument, origin, scriptId, requestId)                                                                                  \
+    {                                                                                                                                                            \
+        (requestId) = ((((Enemy*)(taskArgument)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_105100_CHARGE_SOUND_SLOT_SHIFT) | (scriptId); \
+        sndEvtRequestScriptStart((requestId), (s8)worldCoordGetOriginAudioPan(origin), (s8)worldCoordGetOriginAudioDepth(origin));                               \
+    }
     _Actor105100Work* work;
-    GfxCoord*         self;
-    SVECTOR           pos;
-    s32               snd;
-    u32               rnd;
+    GfxCoord*         rootCoord;
+    SVECTOR           ringOffset;
+    s32               soundId;
+    u32               randomState;
 
-    work = arg0->work;
-    self = arg0->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_105100_CHARGE_BEGIN:
+            // Keep the charge effect and looping sound alive through the countdown.
             work->anim                   = ACTOR_105100_ANIM_CAST;
-            work->timer                  = 0xBC;
-            work->shield.fields.cooldown = 0x1E;
+            work->timer                  = ACTOR_105100_CHARGE_TICKS;
+            work->shield.fields.cooldown = ACTOR_105100_CHARGE_SHIELD_COOLDOWN;
             work->shield.fields.active   = 0;
             work->charging               = 1;
-            work->actionStep             = 1;
-            pos.vx                       = 0;
-            pos.vy                       = -0x6D6;
-            pos.vz                       = 0x1F4;
-            work->ringEffect             = effectSpawn((EFFECT_SHELTER_B6_TRAINING_CHARGE_RING | EFFECT_SPAWN_UNLIMITED), arg0->extra.tmd->coords, work->timer + 0xA, &pos);
-            work->chargeSound            = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40330009;
-            sndEvtRequestScriptStart(work->chargeSound, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+            work->actionStep             = ACTOR_105100_CHARGE_WAIT;
+            ringOffset.vx                = 0;
+            ringOffset.vy                = ACTOR_105100_CHARGE_RING_Y;
+            ringOffset.vz                = ACTOR_105100_CHARGE_RING_Z;
+            work->ringEffect             = effectSpawn((EFFECT_SHELTER_B6_TRAINING_CHARGE_RING | EFFECT_SPAWN_UNLIMITED), task->extra.tmd->coords, work->timer + ACTOR_105100_CHARGE_RING_EXTRA_TICKS, &ringOffset);
+            work->chargeSound            = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_105100_CHARGE_SOUND_SLOT_SHIFT) | ACTOR_105100_CHARGE_SOUND;
+            sndEvtRequestScriptStart(work->chargeSound, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
             break;
-        case 1:
+        case ACTOR_105100_CHARGE_WAIT:
             if (--work->timer <= 0) {
-                work->actionStep = 2;
+                work->actionStep = ACTOR_105100_CHARGE_STRIKE;
                 work->anim       = ACTOR_105100_ANIM_STRIKE;
                 sndEvtRequestScriptStop(work->chargeSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->chargeSound = 0;
-                snd               = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000B;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
-                padScriptSpawnVariableMotorRamp(0xF, 8, 0xFF);
+                ACTOR_105100_PLAY_CHARGE_CUE(task, rootCoord, ACTOR_105100_CHARGE_RELEASE_SOUND, soundId);
+                padScriptSpawnVariableMotorRamp(ACTOR_105100_STRIKE_RUMBLE_TICKS, ACTOR_105100_STRIKE_RUMBLE_MIN, ACTOR_105100_STRIKE_RUMBLE_MAX);
             }
-            if (work->timer == 0x5A) {
-                snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4033000A;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+            if (work->timer == ACTOR_105100_CHARGE_CUE_TICKS_LEFT) {
+                ACTOR_105100_PLAY_CHARGE_CUE(task, rootCoord, ACTOR_105100_CHARGE_CUE_SOUND, soundId);
             }
             break;
-        case 2:
-            if (work->animFrame == 0xC) {
+        case ACTOR_105100_CHARGE_STRIKE:
+            // The attack body participates in contact tests for one strike tick.
+            if (work->animFrame == ACTOR_105100_STRIKE_HIT_FRAME) {
                 work->ringEffect        = NULL;
                 work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                padScriptSpawnVariableMotorRamp(0xF, 0xFF, 0x80);
+                padScriptSpawnVariableMotorRamp(ACTOR_105100_STRIKE_RUMBLE_TICKS, ACTOR_105100_STRIKE_RUMBLE_MAX, ACTOR_105100_STRIKE_RUMBLE_END);
             } else {
                 work->strikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            if (work->animFrame >= 0x1B) {
-                work->actionStep = 3;
+            if (work->animFrame >= ACTOR_105100_STRIKE_END_FRAME) {
+                work->actionStep = ACTOR_105100_CHARGE_RECOVER;
                 work->anim       = ACTOR_105100_ANIM_STRIKE_END;
             }
             break;
-        case 3:
+        case ACTOR_105100_CHARGE_RECOVER:
             work->charging = 0;
-            if (work->animFrame >= 0x1C) {
+            if (work->animFrame >= ACTOR_105100_STRIKE_RECOVER_FRAME) {
                 work->anim       = ACTOR_105100_ANIM_IDLE;
                 work->action     = ACTOR_105100_ACTION_IDLE;
-                work->actionStep = 0;
-                rnd              = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                gRandomLcgState  = rnd;
-                work->timer      = (rnd >> 16) & 0x3F;
+                work->actionStep = ACTOR_105100_CHARGE_BEGIN;
+                randomState      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+                gRandomLcgState  = randomState;
+                work->timer      = (randomState >> 16) & ACTOR_105100_CHARGE_IDLE_WAIT_MASK;
             }
             break;
     }
+#undef ACTOR_105100_PLAY_CHARGE_CUE
 }
 
-/// The knockback, run while `knockbackActive` is set. It carves an
-/// `ActorPlayerKnockbackScratch` from the scratch stack and steps `knockbackStep`:
-/// stage 0 records whether the player faces away from the actor
-/// (`knockbackFromBehind`), starts the player's first animation for that side
-/// and spawns the flash; stage 1 pushes the player away from the actor for
-/// 0x10 frames and starts the second animation after 0x1E/0x20; stage 2 waits
-/// for that animation to finish, ends the player's scripted mode and clears
-/// `knockbackActive`. A player already in scripted mode cancels it at stage 0.
-static void func_actor_105100_80133CE4(Task* arg0)
+/// Pushes the player away and plays the training enemy's paired knockback clips.
+///
+/// Requires live actor/player work and roots in the same parent frame. Scripted
+/// players cancel a new request. Front/behind selects clips 1/2, then 3/4;
+/// these package-owned sets must remain loaded through playback. Sixteen ticks
+/// move X/Z by a Q12-normalized XYZ direction scaled to 100 game units, placing
+/// Y at zero. Facing uses the offset narrowed to signed halfwords and angles
+/// at 4096 units per turn. Recovery starts after 30 behind or 32 front ticks;
+/// after 37 recovery ticks, animation completion releases scripted control.
+/// Borrows one scratch block through synchronous messages and releases it on
+/// every return; no message receiver retains its request or placement pointer.
+static void _actor105100TickPlayerKnockback(Task* task)
 {
+    /// Installs clip 1..4, preserving the package sets through player playback.
+    ///
+    /// Arguments must have no side effects: scratchBlock is evaluated six times,
+    /// playerTask and clipId once. Captures the package's player animation table.
+    /// The player borrows the request through synchronous message dispatch.
+#define ACTOR_105100_PLAY_PLAYER_KNOCKBACK_CLIP(playerTask, scratchBlock, clipId)                                        \
+    {                                                                                                                    \
+        (scratchBlock)->playerAnim.source.sets          = _gActor105100PlayerAnimationSets;                              \
+        (scratchBlock)->playerAnim.animationId          = (clipId);                                                      \
+        (scratchBlock)->playerAnim.blend                = ANIMATION_BLEND_RESET;                                         \
+        (scratchBlock)->playerAnim.blendFrames          = 0;                                                             \
+        (scratchBlock)->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                              \
+        TASK_MESSAGE_DISPATCH_POINTER((playerTask), ANIMATION_MESSAGE_INSTALL_AND_PLAY, &(scratchBlock)->playerAnim, 0); \
+    }
+    enum {
+        ACTOR_105100_KNOCKBACK_BEGIN            = 0,
+        ACTOR_105100_KNOCKBACK_PUSH             = 1,
+        ACTOR_105100_KNOCKBACK_END              = 2,
+        ACTOR_105100_KNOCKBACK_PUSH_TICKS       = 16,
+        ACTOR_105100_KNOCKBACK_BEHIND_TICKS     = 30,
+        ACTOR_105100_KNOCKBACK_FRONT_TICKS      = 32,
+        ACTOR_105100_KNOCKBACK_RECOVERY_TICKS   = 37,
+        ACTOR_105100_KNOCKBACK_FIRST_CLIP       = 1,
+        ACTOR_105100_KNOCKBACK_RECOVERY_CLIP    = 3,
+        ACTOR_105100_KNOCKBACK_PUSH_NUMERATOR   = 25,
+        ACTOR_105100_KNOCKBACK_PUSH_SHIFT       = 10,
+        ACTOR_105100_KNOCKBACK_SOUND            = 7,
+        ACTOR_105100_KNOCKBACK_LAND_SOUND       = 0x55190003,
+        ACTOR_105100_KNOCKBACK_SOUND_SLOT_SHIFT = 8,
+        ACTOR_105100_KNOCKBACK_FLASH_Y          = -1000,
+        ACTOR_105100_KNOCKBACK_RUMBLE_TICKS     = 10,
+        ACTOR_105100_KNOCKBACK_RUMBLE_START     = 255,
+        ACTOR_105100_KNOCKBACK_RUMBLE_END       = 128,
+    };
     _Actor105100Work*            work;
-    GfxCoord*                    coord;
+    GfxCoord*                    actorCoord;
     Task*                        player;
-    GfxCoord*                    target;
+    GfxCoord*                    playerCoord;
     ActorPlayerKnockbackScratch* scratch;
-    s32                          sound;
-    s32                          count;
+    s32                          soundId;
+    s32                          knockbackFrame;
 
-    work    = arg0->work;
-    player  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(ActorPlayerKnockbackScratch);
-    coord   = arg0->extra.tmd->coords;
-    target  = player->extra.tmd->coords;
+    work        = task->work;
+    player      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(ActorPlayerKnockbackScratch);
+    actorCoord  = task->extra.tmd->coords;
+    playerCoord = player->extra.tmd->coords;
 
     switch (work->knockbackStep) {
-        case 0:
+        case ACTOR_105100_KNOCKBACK_BEGIN:
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED) {
-                scratch->toPlayer.vx                     = target->coord.t[0] - coord->coord.t[0];
-                scratch->toPlayer.vy                     = 0;
-                scratch->toPlayer.vz                     = target->coord.t[2] - coord->coord.t[2];
-                work->knockbackFromBehind                = (scratch->toPlayer.vx * target->coord.m[0][2] + scratch->toPlayer.vz * target->coord.m[2][2]) > 0;
-                scratch->playerAnim.source.sets          = _gActor105100PlayerAnimationSets;
-                scratch->playerAnim.animationId          = work->knockbackFromBehind + 1;
-                scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
-                scratch->playerAnim.blendFrames          = 0;
-                scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &scratch->playerAnim, 0);
-                work->knockbackStep  = 1;
+                scratch->toPlayer.vx      = playerCoord->coord.t[0] - actorCoord->coord.t[0];
+                scratch->toPlayer.vy      = 0;
+                scratch->toPlayer.vz      = playerCoord->coord.t[2] - actorCoord->coord.t[2];
+                work->knockbackFromBehind = (scratch->toPlayer.vx * playerCoord->coord.m[0][2] + scratch->toPlayer.vz * playerCoord->coord.m[2][2]) > 0;
+                ACTOR_105100_PLAY_PLAYER_KNOCKBACK_CLIP(player, scratch, work->knockbackFromBehind + ACTOR_105100_KNOCKBACK_FIRST_CLIP);
+                work->knockbackStep  = ACTOR_105100_KNOCKBACK_PUSH;
                 work->knockbackFrame = 0;
-                padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x80);
-                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-                sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                padScriptSpawnVariableMotorRamp(ACTOR_105100_KNOCKBACK_RUMBLE_TICKS, ACTOR_105100_KNOCKBACK_RUMBLE_START, ACTOR_105100_KNOCKBACK_RUMBLE_END);
+                soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_105100_KNOCKBACK_SOUND_SLOT_SHIFT) | ACTOR_105100_KNOCKBACK_SOUND;
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(actorCoord), (s8)worldCoordGetOriginAudioDepth(actorCoord));
                 scratch->pushDirection.vx = 0;
-                scratch->pushDirection.vy = -1000;
+                scratch->pushDirection.vy = ACTOR_105100_KNOCKBACK_FLASH_Y;
                 scratch->pushDirection.vz = 0;
                 effectSpawn(EFFECT_SHELTER_B6_TRAINING_ROOM_HIT_FLASH, player->extra.tmd->coords, 0, &scratch->pushDirection);
             } else {
                 work->knockbackActive = 0;
             }
             break;
-        case 1:
-            if (work->knockbackFrame < 0x10) {
-                scratch->toPlayer.vx = target->coord.t[0] - coord->coord.t[0];
-                scratch->toPlayer.vy = target->coord.t[1] - coord->coord.t[1];
-                scratch->toPlayer.vz = target->coord.t[2] - coord->coord.t[2];
+        case ACTOR_105100_KNOCKBACK_PUSH:
+            // Apply horizontal motion, retaining the full XYZ normalization and s16 yaw inputs.
+            if (work->knockbackFrame < ACTOR_105100_KNOCKBACK_PUSH_TICKS) {
+                scratch->toPlayer.vx = playerCoord->coord.t[0] - actorCoord->coord.t[0];
+                scratch->toPlayer.vy = playerCoord->coord.t[1] - actorCoord->coord.t[1];
+                scratch->toPlayer.vz = playerCoord->coord.t[2] - actorCoord->coord.t[2];
                 VectorNormalS(&scratch->toPlayer, &scratch->pushDirection);
-                scratch->playerPlacement.pos.vx = target->coord.t[0] + ((scratch->pushDirection.vx * 25) >> 10);
+                scratch->playerPlacement.pos.vx = playerCoord->coord.t[0] + ((scratch->pushDirection.vx * ACTOR_105100_KNOCKBACK_PUSH_NUMERATOR) >> ACTOR_105100_KNOCKBACK_PUSH_SHIFT);
                 scratch->playerPlacement.pos.vy = 0;
-                scratch->playerPlacement.pos.vz = target->coord.t[2] + ((scratch->pushDirection.vz * 25) >> 10);
+                scratch->playerPlacement.pos.vz = playerCoord->coord.t[2] + ((scratch->pushDirection.vz * ACTOR_105100_KNOCKBACK_PUSH_NUMERATOR) >> ACTOR_105100_KNOCKBACK_PUSH_SHIFT);
                 scratch->playerPlacement.rot.vx = 0;
                 if (work->knockbackFromBehind == 0) {
                     scratch->playerPlacement.rot.vy = (ratan2((s16)scratch->toPlayer.vx, (s16)scratch->toPlayer.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN) & ACTOR_TRANSFORM_ANGLE_MASK;
@@ -1728,27 +1788,22 @@ static void func_actor_105100_80133CE4(Task* arg0)
                 scratch->playerPlacement.rot.vz = 0;
                 TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &scratch->playerPlacement, 0);
             }
-            if (work->knockbackFrame == 0x10) {
-                sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x55190003;
-                sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            if (work->knockbackFrame == ACTOR_105100_KNOCKBACK_PUSH_TICKS) {
+                soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_105100_KNOCKBACK_SOUND_SLOT_SHIFT) | ACTOR_105100_KNOCKBACK_LAND_SOUND;
+                sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(actorCoord), (s8)worldCoordGetOriginAudioDepth(actorCoord));
             }
-            count = ++work->knockbackFrame;
-            if ((work->knockbackFromBehind != 0 && count >= 0x1E) || (work->knockbackFromBehind == 0 && count >= 0x20)) {
-                scratch->playerAnim.source.sets          = _gActor105100PlayerAnimationSets;
-                scratch->playerAnim.animationId          = work->knockbackFromBehind + 3;
-                scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
-                scratch->playerAnim.blendFrames          = 0;
-                scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &scratch->playerAnim, 0);
-                work->knockbackStep  = 2;
+            knockbackFrame = ++work->knockbackFrame;
+            if ((work->knockbackFromBehind != 0 && knockbackFrame >= ACTOR_105100_KNOCKBACK_BEHIND_TICKS) || (work->knockbackFromBehind == 0 && knockbackFrame >= ACTOR_105100_KNOCKBACK_FRONT_TICKS)) {
+                ACTOR_105100_PLAY_PLAYER_KNOCKBACK_CLIP(player, scratch, work->knockbackFromBehind + ACTOR_105100_KNOCKBACK_RECOVERY_CLIP);
+                work->knockbackStep  = ACTOR_105100_KNOCKBACK_END;
                 work->knockbackFrame = 0;
             }
             break;
-        case 2:
-            if (++work->knockbackFrame >= 0x25) {
+        case ACTOR_105100_KNOCKBACK_END:
+            if (++work->knockbackFrame >= ACTOR_105100_KNOCKBACK_RECOVERY_TICKS) {
                 if (taskMessageDispatch(player, ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                     taskMessageDispatch(player, GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-                    work->knockbackStep   = 0;
+                    work->knockbackStep   = ACTOR_105100_KNOCKBACK_BEGIN;
                     work->knockbackFrame  = 0;
                     work->knockbackActive = 0;
                 }
@@ -1756,6 +1811,7 @@ static void func_actor_105100_80133CE4(Task* arg0)
             break;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorPlayerKnockbackScratch);
+#undef ACTOR_105100_PLAY_PLAYER_KNOCKBACK_CLIP
 }
 
 /// Plays spatial sounds when the animated part's cue bits turn off.
@@ -1877,7 +1933,7 @@ static void func_actor_105100_80134284(Enemy* arg0, Task* arg1)
             break;
     }
     if (work->knockbackActive != 0) {
-        func_actor_105100_80133CE4(actor);
+        _actor105100TickPlayerKnockback(actor);
     }
     switch (work->actionStep) {
         case 0:

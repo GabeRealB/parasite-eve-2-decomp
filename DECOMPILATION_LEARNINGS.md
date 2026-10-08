@@ -2473,12 +2473,12 @@ costs a second, sign-extending load. A `switch` never reaches `fold_range_test`
 at all.
 
 A single-value guard in the same idiom stays an `if`: the sibling
-`func_actor_310100_801631B0` is `if (work->playState == 0)` → `lhu` + `bnez`.
+`_actor310100Officer1CulledBodyTask` is `if (work->playState == 0)` → `lhu` + `bnez`.
 `_acropolisPlazaUpdateSceneAmbience` is the same `{0, 1}` cluster reached from a
 3-case switch, emitted as `bltz` / `slti`+`bnez` (the `node->right` form at line
 ~6485).
 
-Example: `func_actor_310100_801632B0` — `&&` form 93.9%, nested switch 100% with
+Example: `_actor310100Officer2CulledBodyTask` — `&&` form 93.9%, nested switch 100% with
 a zero penalty mix. Inputs: `base_2.i`
 `233b3fc41cff3b6b6d64acea062a9777c9cf3a785aece9408c480d7dc0fcd293` (`&&`),
 `base_3.i`
@@ -53961,7 +53961,7 @@ message ids the sibling handlers in the overlay use, and do not read the
 constant back out of the assembly — it is not there.
 
 **The hidden case's *arm* can survive after its test is gone.** The same tree
-over `_Actor310100PoliceOfficerWork::playState` in `func_actor_310100_8016309C` — root 1, left
+over `_Actor310100PoliceOfficerWork::playState` in `_actor310100Officer2BodyTask` — root 1, left
 0, right 2 — whose default arm is a `return` rather than a `break`:
 
 ```
@@ -53983,7 +53983,7 @@ arm, and still no `li` of the hidden value.
 
 Choose that value from the overlay's own evidence rather than guessing: here
 `_actor310100SetOfficerCulledBodyModel` parks `playState` at 2 and the sibling handler
-`func_actor_310100_801632B0` groups `case 0: case 1:`, so the state the hidden
+`_actor310100Officer2CulledBodyTask` groups `case 0: case 1:`, so the state the hidden
 arm returns on is the 2 the overlay already names — and the `slti` bound
 coinciding with it is a coincidence of that choice, not a reading of it. Written
 as the two-node `case 0: break; case 1: call(); break; default: return;` instead
@@ -82445,7 +82445,7 @@ the real signature `(Task*, s32 msgId, s32 arg2)`.
 
 ## Count a field's loads to count the source's mentions — a temp hides on the call's argument register
 
-`func_actor_310100_801631B0`'s spawn tick reads the model's part-1 frame three
+`_actor310100Officer1CulledBodyTask`'s spawn tick reads the model's part-1 frame three
 times and hands the model to `worldCoordSetModelLighting`. Written the plain way, five
 `lw 0x2C($s0)` (the `task->extra` chain, once per mention) reach the object and
 the call comes out as `lw a0,0x2C(s0)` / `jal`, with the argument setup rotated
@@ -93763,7 +93763,7 @@ The helpers' locals need not share a type. A 16-byte slot written as a `VECTOR`
 in one arm and as an `SVECTOR` in another had been matched with a union of the
 two; it is a light-position helper followed by a ground-shadow helper, the
 smaller frame taking the front of the freed larger one
-(`func_actor_310100_801631B0`, `_dryfieldWaterTowerFallingPropTask`,
+(`_actor310100Officer1CulledBodyTask`, `_dryfieldWaterTowerFallingPropTask`,
 2026-10-04). Order decides it: with the 8-byte helper expanded first the
 16-byte one cannot reuse its slot and the two stack, which is the frame two
 function-scope locals give as well.
@@ -97984,7 +97984,7 @@ the branch — so it cannot share `$v0` with the condition and takes `$a1`. A
 register like `$a1` on a value whose only use is far below the branch is the
 tell that the load was hoisted at the C level, not by the scheduler.
 
-This is the mirror of the `func_actor_310100_801631B0` entry above (a chase that
+This is the mirror of the `_actor310100Officer1CulledBodyTask` entry above (a chase that
 must move *out* of an arm for the same reason). Before reconstructing it by hand,
 check the family's shared bodies: `_actor01900StateRise` in
 `src/actors/lib/actor_101900_text_tail.c` is this body one actor over, and its
@@ -117179,13 +117179,13 @@ style (`_actor105100RaiseShield` writes `step = work->actionStep` and uses
 
 ## A cast written inline at the call site is a call-crossing temp; through a local it is not
 
-`func_actor_105100_80133A14` pipes a `(s8)worldCoordGetOriginAudioPan(...)` pan and a
+`_actor105100TickChargedStrike` pipes a `(s8)worldCoordGetOriginAudioPan(...)` pan and a
 `(s8)worldCoordGetOriginAudioDepth(...)` depth into `sndEvtRequestScriptStart` in three of its four
 paths. Written through a named local --
 
 ```c
-    pan = (s8)worldCoordGetOriginAudioPan(self);
-    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(self));
+    pan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+    sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
 ```
 
 -- the build stops at 96.7%: the function's long-lived `work` pointer sits in
@@ -117194,7 +117194,7 @@ register off (`regs=46`, the only structural diagnostic left). Inlining the
 cast instead --
 
 ```c
-    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(self), (s8)worldCoordGetOriginAudioDepth(self));
+    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
 ```
 
 -- is 100%. The two forms allocate the same expression differently: in the
@@ -117274,7 +117274,7 @@ call-crossing temp; through a local it is not": `s32 pan` assigned from
 `sra $s0,$s0,24` / `move $a1,$s0` triple plus the depth's own `sll`/`sra`. The
 m2c `s8 temp` local instead extends at the use site and loses the depth's
 extension outright (`insert=3 delete=4`, `regs=6`; fixing it alone is 98.609%).
-Same shape as the sibling `func_actor_105100_80133A14` -- the sibling's C is the
+Same shape as the sibling `_actor105100TickChargedStrike` -- the sibling's C is the
 evidence.
 
 Inputs: `base_1.i` (98.609%)
@@ -123814,10 +123814,10 @@ Inputs: scratch `nonmatchings/dryfieldSaloonGRDrawLightEffectsTask-vacuum`,
 (`insert=7`). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A predicate repeated in two switch cases can be one function-level local, not an inline: the shared pseudo outranks the switch value (func_actor_310100_801627BC, 2026-09-17)
+## A predicate repeated in two switch cases can be one function-level local, not an inline: the shared pseudo outranks the switch value (_actor310100Officer1ControllerTask, 2026-09-17)
 
 Cases 1 and 2 of a `switch (task->state)` compute the same `u16` flag from
-`gCdCmdQueue` (`on = 1; if (..<2) on = ..>=0xE6; if (..==2 && ..) on = 0;`).
+`gCdCmdQueue` (`modelVisible = 1; if (..<2) modelVisible = ..>=0xE6; if (..==2 && ..) modelVisible = 0;`).
 Written as a `static inline u16` helper called from both cases, the build is
 99.58% with a `regs`-only residue: the switch value gets `$v1` and the case-2
 flag `$a0`, the target has them the other way round.
@@ -123825,14 +123825,14 @@ flag `$a0`, the target has them the other way round.
 Each inline expansion is its own short pseudo, so the switch value (live into
 case 2, where CSE reuses it for `plazaStreamSubId == 2`) is allocated first in
 `global_alloc` and takes the first free register. Declaring one function-level
-`u16 on;` and writing the computation out in both cases makes the flag a
+`u16 modelVisible;` and writing the computation out in both cases makes the flag a
 single pseudo with twice the refs and a live range spanning both cases; it
 now sorts ahead of the switch value, takes `$v1`, and the switch value falls
 to `$a0` - 100%.
 
 Also in this function: `if (q.plazaStreamSubId == 3) task->state = q.plazaStreamSubId;`
 reloads the field into a second register (`move v0,v1`); the target's direct
-`sw v1` comes from a `u16 st = q.plazaStreamSubId;` local used for both the test and
+`sw v1` comes from a `u16 streamSubId = q.plazaStreamSubId;` local used for both the test and
 the store.
 
 ## A redundant-looking `move $sN,$vN` after a computation is `cse` keeping two pseudos: put the store *before* the variable assignment (func_actor_800300_80162D74, 2026-09-17)
@@ -144255,15 +144255,15 @@ address an anti-dependence on the first store, which is the ordering
 `SOFT_BARRIER` for. Writing `work->rig.slots[i].rate` directly instead folds both
 into one walking pointer. Try the reused pointer before a hand-built offset.
 
-## A `MATRIX` column walk is `m[0][i]`, `m[1][i]`, `m[2][i]`, not a column-overlay pointer (func_actor_107600_80134608, 2026-09-26)
+## A `MATRIX` column walk is `m[0][lightIndex]`, `m[1][lightIndex]`, `m[2][lightIndex]`, not a column-overlay pointer (_actor107600UpdateTargetColor, 2026-09-26)
 
 A loop reading one column of a 3x3 per iteration compiles to a pointer that
 steps by 2 and loads at `0`, `6` and `0xC`. Modelling that as a 14-byte
 "column" struct walked by hand (`src = (Col*)&src->_0`) needed `TOUCH_REG` on
 both pointers to stop loop splitting each field into its own induction
 variable (`addiu v1,a1,0xc`, `lhu -0x6(v1)`). Plain indexing,
-`colorMtx->m[0][i]` … `m[2][i]` with a `for (i = 0; i < 3; i++)`, gives the
-single stepped pointer per matrix without help, and `&block->currentColumn` for the GTE
+`colorMtx->m[0][lightIndex]` … `m[2][lightIndex]` with a `for (lightIndex = 0; lightIndex < 3; lightIndex++)`, gives the
+single stepped pointer per matrix without help, and `&blendScratch->currentColumn` for the GTE
 operand folds to the old head minus 0x10 on its own once the block is taken
 with `SCRATCH_STACK_RESERVE_BLOCK`.
 

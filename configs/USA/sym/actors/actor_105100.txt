@@ -122,3 +122,5 @@ _actor105100UpdateAnimation = 0x80136408; // type:func
 _actor105100RefreshColor = 0x801364cc; // type:func
 _actor105100DrawShadow = 0x80136524; // type:func
 _actor105100FireballTask = 0x8013667c; // type:func
+_actor105100TickChargedStrike = 0x80133a14; // type:func
+_actor105100TickPlayerKnockback = 0x80133ce4; // type:func

@@ -1,4 +1,5 @@
 #include <psyq/sys/types.h>
+#include <psyq/gtemac.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/abs.h>
@@ -305,7 +306,7 @@ static void _actor107600FoldTarget(Task* task);
 static void _actor107600TumbleDestroyedTarget(Task* task);
 static void _actor107600DrawTargetDeathBurst(const GfxCoord* rootCoord, const SVECTOR* centerOffset);
 static void _actor107600DrawTargetHitMark(const GfxCoord* rootCoord, const SVECTOR* centerOffset);
-static void func_actor_107600_80134608(struct Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+static void _actor107600UpdateTargetColor(struct Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3);
 static void _actor107600TargetTask(Task* task);
 static void _actor107600HideTarget(Task* task);
 static void _actor107600DestroyTarget(Task* task);
@@ -2142,61 +2143,80 @@ static void _actor107600RemapTargetColor(Enemy* unusedEnemy, MATRIX* colorMatrix
     }
 }
 
-/// Recolours the model's colour matrix from the `colorMode` pair, blending
-/// the two remaps by `colorBlend` while it counts down; a copy of
-/// `worldCoordUpdateActorColor`.
-static void func_actor_107600_80134608(Enemy* arg0, VECTOR* arg1, s32 arg2, s32 arg3)
+/// Copies the nine directional-light colour coefficients for a target's blend.
+///
+/// Both arrays must be disjoint. Copies signed Q12 coefficients without the
+/// enclosing matrices' alignment bytes or ambient translation.
+static inline void _actor107600CopyTargetLightColor(s16 destination[3][3], const s16 source[3][3])
 {
-    TmdObject*                   extra;
-    MATRIX*                      colorMtx;
-    s32                          mode;
-    WorldCoordActorColorScratch* block;
-    s32                          i;
-    s32                          w0;
-    s32                          w1;
+    destination[0][0] = source[0][0];
+    destination[0][1] = source[0][1];
+    destination[0][2] = source[0][2];
+    destination[1][0] = source[1][0];
+    destination[1][1] = source[1][1];
+    destination[1][2] = source[1][2];
+    destination[2][0] = source[2][0];
+    destination[2][1] = source[2][1];
+    destination[2][2] = source[2][2];
+}
 
-    extra    = arg0->task->extra.tmd;
-    colorMtx = extra->colorMtx;
-    mode     = arg0->colorMode & ENEMY_COLOR_MODE_MASK;
-    if ((!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (extra->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != 1)) {
-        block = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordActorColorScratch);
-        worldCoordSetModelLighting(extra, arg1, 0, 3);
-        if ((s8)arg0->colorBlend <= 0) {
-            _actor107600RemapTargetColor(arg0, colorMtx, mode);
+/// Rebuilds a gallery target's lighting and applies or blends its colour modes.
+///
+/// Requires a live enemy/model with writable light and colour matrices.
+/// `worldPosition` supplies three word-aligned signed 32-bit world coordinates;
+/// only those 12 bytes are read, following `worldCoordSetModelLighting`'s frame
+/// contract. Neither it nor the ignored trailing arguments are retained.
+/// With scene updates paused exactly at 1, only actively drawn models with a
+/// buffer update. A positive signed-byte countdown weights the previous mode
+/// by countdown/16; weighted mode includes the target's sine pulse. Only the
+/// nine light coefficients are blended, preserving the sampled ambient term.
+/// The countdown decreases only while actors run. Borrows and releases one
+/// `WorldCoordActorColorScratch` plus the query's nested scratch; changes GTE
+/// state. Input and output storage must be disjoint from those reservations.
+static void _actor107600UpdateTargetColor(Enemy* enemy, const void* worldPosition, s32 unusedArg2, s32 unusedArg3)
+{
+    enum {
+        ACTOR_107600_COLOR_UPDATE_PAUSED      = 1,
+        ACTOR_107600_COLOR_BLEND_WEIGHT_SHIFT = 8,
+    };
+    TmdObject*                   model;
+    MATRIX*                      colorMtx;
+    s32                          currentMode;
+    WorldCoordActorColorScratch* blendScratch;
+    s32                          lightIndex;
+    s32                          previousWeight;
+    s32                          currentWeight;
+
+    model       = enemy->task->extra.tmd;
+    colorMtx    = model->colorMtx;
+    currentMode = enemy->colorMode & ENEMY_COLOR_MODE_MASK;
+    if ((!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW) && (model->buffer != NULL)) || (gGameSession->sceneUpdatesPaused != ACTOR_107600_COLOR_UPDATE_PAUSED)) {
+        blendScratch = SCRATCH_STACK_RESERVE_BLOCK(WorldCoordActorColorScratch);
+        // Sample the three lights before remapping their colour coefficients.
+        worldCoordSetModelLighting(model, worldPosition, 0, ARRAY_SIZE(colorMtx->m[0]));
+        if ((s8)enemy->colorBlend <= 0) {
+            _actor107600RemapTargetColor(enemy, colorMtx, currentMode);
         } else {
-            block->previousColor.m[0][0] = colorMtx->m[0][0];
-            block->previousColor.m[0][1] = colorMtx->m[0][1];
-            block->previousColor.m[0][2] = colorMtx->m[0][2];
-            block->previousColor.m[1][0] = colorMtx->m[1][0];
-            block->previousColor.m[1][1] = colorMtx->m[1][1];
-            block->previousColor.m[1][2] = colorMtx->m[1][2];
-            block->previousColor.m[2][0] = colorMtx->m[2][0];
-            block->previousColor.m[2][1] = colorMtx->m[2][1];
-            block->previousColor.m[2][2] = colorMtx->m[2][2];
-            _actor107600RemapTargetColor(arg0, colorMtx, mode);
-            _actor107600RemapTargetColor(arg0, &block->previousColor, (arg0->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
-            w0 = (s8)arg0->colorBlend << 8;
-            w1 = 0x1000 - w0;
-            for (i = 0; i < 3; i++) {
-                block->currentColumn.vx  = colorMtx->m[0][i];
-                block->currentColumn.vy  = colorMtx->m[1][i];
-                block->currentColumn.vz  = colorMtx->m[2][i];
-                block->previousColumn.vx = block->previousColor.m[0][i];
-                block->previousColumn.vy = block->previousColor.m[1][i];
-                block->previousColumn.vz = block->previousColor.m[2][i];
-                gte_lddp(w1);
-                gte_ldsv(&block->currentColumn);
-                gte_gpf12();
-                gte_lddp(w0);
-                gte_ldsv(&block->previousColumn);
-                gte_gpl12();
-                gte_stsv(&block->currentColumn);
-                colorMtx->m[0][i] = block->currentColumn.vx;
-                colorMtx->m[1][i] = block->currentColumn.vy;
-                colorMtx->m[2][i] = block->currentColumn.vz;
+            // Remap two copies of the same sample; ambient is never blended.
+            _actor107600CopyTargetLightColor(blendScratch->previousColor.m, colorMtx->m);
+            _actor107600RemapTargetColor(enemy, colorMtx, currentMode);
+            _actor107600RemapTargetColor(enemy, &blendScratch->previousColor, (enemy->colorMode >> ENEMY_COLOR_PREVIOUS_SHIFT) & ENEMY_COLOR_MODE_MASK);
+            previousWeight = (s8)enemy->colorBlend << ACTOR_107600_COLOR_BLEND_WEIGHT_SHIFT;
+            currentWeight  = ONE - previousWeight;
+            for (lightIndex = 0; lightIndex < (s32)ARRAY_SIZE(colorMtx->m[0]); lightIndex++) {
+                blendScratch->currentColumn.vx  = colorMtx->m[0][lightIndex];
+                blendScratch->currentColumn.vy  = colorMtx->m[1][lightIndex];
+                blendScratch->currentColumn.vz  = colorMtx->m[2][lightIndex];
+                blendScratch->previousColumn.vx = blendScratch->previousColor.m[0][lightIndex];
+                blendScratch->previousColumn.vy = blendScratch->previousColor.m[1][lightIndex];
+                blendScratch->previousColumn.vz = blendScratch->previousColor.m[2][lightIndex];
+                gte_LoadAverageShort12(&blendScratch->currentColumn, &blendScratch->previousColumn, currentWeight, previousWeight, &blendScratch->currentColumn);
+                colorMtx->m[0][lightIndex] = blendScratch->currentColumn.vx;
+                colorMtx->m[1][lightIndex] = blendScratch->currentColumn.vy;
+                colorMtx->m[2][lightIndex] = blendScratch->currentColumn.vz;
             }
             if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                arg0->colorBlend--;
+                enemy->colorBlend--;
             }
         }
         SCRATCH_STACK_RELEASE_BLOCK(WorldCoordActorColorScratch);
@@ -2265,9 +2285,10 @@ static void _actor107600InitTargetCollision(Task* task)
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
 }
 
-/// Copies the world position of the model's first attach coordinate onto a
-/// 0x10-byte `VECTOR` carved off the scratch stack and hands it to
-/// `func_actor_107600_80134608` with no blend parameters.
+/// Samples the cached root translation for the gallery target colour update.
+///
+/// Borrows a scratch VECTOR through `_actor107600UpdateTargetColor`; only its
+/// three signed world-coordinate components are initialized and consumed.
 static void func_actor_107600_801349E0(Task* arg0)
 {
     GfxCoord* coord;
@@ -2285,7 +2306,7 @@ static void func_actor_107600_801349E0(Task* arg0)
     block->vy                      = coord->workm.t[1];
     block->vz                      = coord->workm.t[2];
     SCRATCH_HEAD_AT(scratch, void) = block;
-    func_actor_107600_80134608(obj, block, 0, 0);
+    _actor107600UpdateTargetColor(obj, block, 0, 0);
     SCRATCH_POP_BYTES_AT(scratch, 0x10);
 }
 

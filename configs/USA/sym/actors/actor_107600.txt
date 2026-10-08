@@ -128,3 +128,4 @@ _actor107600InitMount = 0x80131f10; // type:func
 _actor107600UpdateMount = 0x80132930; // type:func
 _actor107600MountTask = 0x801328cc; // type:func
 _actor107600TargetTask = 0x801348a0; // type:func
+_actor107600UpdateTargetColor = 0x80134608; // type:func

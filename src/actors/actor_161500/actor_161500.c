@@ -1419,7 +1419,11 @@ AnimationSet* gStrideWalkAnimParams[12] = {
     &_gActor161500Animation0D544,
 };
 
-/// Promotes the departed visitor's remark once no sterilization outcome is pending.
+/// Queues soldier B's visitor-departure remark after pending sterilization outcomes.
+///
+/// The two initial sterilization remarks take priority. When meeting progress
+/// reaches departed, records its remark as handled before selecting the line;
+/// subsequent calls leave it alone. A sterilization follow-up may be replaced.
 static inline void _actor161500PrepareVisitorDepartureRemark(void)
 {
     if ((gameFlagGetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE) != ACTOR_161500_REMARK_STERILIZATION_WITH_COMPANION) &&

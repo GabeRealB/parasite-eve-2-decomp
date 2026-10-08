@@ -3042,12 +3042,17 @@ static void _actor403200SummonState(Task* hostTask);
 /// Borrows live work, escort 0's part 1 and writable hit scratch through the
 /// synchronous effect spawn. Requires initialized scratch for the nested call.
 /// The burst snapshots placement and does not follow the retained source pointers.
-static __inline__ void _actor403200SpawnCriticalFlash(GluttonWork* work, GluttonHitScratch* scratch)
+static __inline__ void _actor403200SpawnCriticalFlash(const GluttonWork* work, GluttonHitScratch* scratch)
 {
+    enum {
+        ACTOR_403200_CRITICAL_FLASH_FORWARD = 800,
+        ACTOR_403200_CRITICAL_FLASH_STYLE   = 0,
+    };
+
     scratch->offset.vy = 0;
     scratch->offset.vx = 0;
-    scratch->offset.vz = 0x320;
-    effectSpawn(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], 0, &scratch->offset);
+    scratch->offset.vz = ACTOR_403200_CRITICAL_FLASH_FORWARD;
+    effectSpawn(EFFECT_CRITICAL_HIT, &work->escorts[0]->task->extra.tmd->coords[1], ACTOR_403200_CRITICAL_FLASH_STYLE, &scratch->offset);
 }
 
 /// Allocates missing primitive-buffer halves for the host and its live escorts.

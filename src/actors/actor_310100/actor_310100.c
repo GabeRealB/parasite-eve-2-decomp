@@ -69,6 +69,23 @@ enum {
     ACTOR_310100_MODEL_TASK_CULLED_BODY = 2,
 };
 
+/// Controller lifecycle and one-time model initialization states.
+enum {
+    ACTOR_310100_CONTROLLER_INIT   = 0,
+    ACTOR_310100_CONTROLLER_HIDDEN = 1,
+    ACTOR_310100_CONTROLLER_SHOWN  = 2,
+    ACTOR_310100_MODEL_INIT        = 0,
+    ACTOR_310100_MODEL_READY       = 1,
+};
+
+/// Plaza movie parts whose timeline controls automatic officer visibility.
+enum {
+    ACTOR_310100_PLAZA_STREAM_PART_2 = 2,
+    ACTOR_310100_PLAZA_STREAM_PART_3 = 3,
+    ACTOR_310100_PLAZA_STREAM_PART_4 = 4,
+    ACTOR_310100_PLAZA_STREAM_PART_5 = 5,
+};
+
 /// Presentation hold preceding installation of a replacement model.
 enum {
     ACTOR_310100_SWAP_STATE_HOLD    = 0,
@@ -129,36 +146,6 @@ STATIC_ASSERT_SIZEOF(_Actor310100PoliceOfficerWork, 0x50C);
 /// `stepSoundIndex` indexes the first three.
 extern s32 D_actor_310100_801798A8[];
 
-/// State handler for the display model spawned by `_actor310100SetOfficerBodyModel`:
-/// the spawn tick lights the model at its part-1 coordinate's world position and
-/// steps to state 1, and every later tick draws the floor quad until the display
-/// state goes non-zero.
-void func_actor_310100_801631B0(Task* task);
-
-/// Second state handler of the display model spawned from
-/// `D_actor_310100_801798FC` (descriptor arg 0x80168C00): the spawn tick hands
-/// the model to `_actor310100InitOfficerBodyModel` with display id 0x6C and steps to
-/// state 1, and every later tick draws the floor quad at the model's part-1
-/// frame, runs `_actor310100UpdateOfficerAnimation` while the display state is 1 and
-/// hands that frame's translation to `worldCoordSetModelLighting`. Display state 2, the
-/// freeze parked by `_actor310100SetOfficerCulledBodyModel`, returns before either.
-void func_actor_310100_80162F88(Task* task);
-
-/// Second state handler of the display model spawned from
-/// `D_actor_310100_80179920` (descriptor arg 0x801730B0): the spawn tick hands
-/// the model to `_actor310100InitOfficerBodyModel` with display id 0x6D and steps to
-/// state 1, and every later tick draws the floor quad at the model's part-1
-/// frame, runs `_actor310100UpdateOfficerAnimation` while the display state is 1 and
-/// hands that frame's translation to `worldCoordSetModelLighting`. Display state 2, the
-/// freeze parked by `_actor310100SetOfficerCulledBodyModel`, returns before either.
-void func_actor_310100_8016309C(Task* task);
-
-/// The other display-model state handler (message 0x6D): the spawn tick lights
-/// the model at its part-1 coordinate's world position and steps to state 1,
-/// and every later tick draws the floor quad while the display state is still
-/// below 2.
-void func_actor_310100_801632B0(Task* task);
-
 static s32 _actor310100SetOfficerBodyModel(Task* task, s32 messageId, s32 officerSelector, const AnimationPlayRequest* animation);
 static s32 _actor310100SetOfficerCulledBodyModel(Task* task, s32 messageId, s32 mode, s32 unusedSecondArg);
 static s32 _actor310100PlayOfficerOrPlayerAnimation(Task* task, s32 messageId, const AnimationPlayRequest* animation, s32 unusedSecondArg);
@@ -184,12 +171,12 @@ static TmdSource _gActor310100PoliceOfficer2Body;
 static TmdSource _gActor310100PoliceOfficer2CulledBody;
 static void      _actor310100SwapOfficerBodyModelTask(Task* task);
 static void      _actor310100SwapOfficerCulledBodyModelTask(Task* task);
-void             func_actor_310100_801627BC(Task*);
-void             func_actor_310100_801629FC(Task*);
-void             func_actor_310100_80162F88(Task*);
-void             func_actor_310100_8016309C(Task*);
-void             func_actor_310100_801631B0(Task*);
-void             func_actor_310100_801632B0(Task*);
+static void      _actor310100Officer1ControllerTask(Task* task);
+static void      _actor310100Officer2ControllerTask(Task* task);
+static void      _actor310100Officer1BodyTask(Task* task);
+static void      _actor310100Officer2BodyTask(Task* task);
+static void      _actor310100Officer1CulledBodyTask(Task* task);
+static void      _actor310100Officer2CulledBodyTask(Task* task);
 
 static TmdBone _gActor310100PoliceOfficer1BodySkeleton[19] = {
 #include "assets/police_officer_1_body_skeleton.inc"
@@ -672,15 +659,15 @@ TaskDesc D_actor_310100_801798E4 = { { { TASK_BODY_NONE, 192 } }, _actor310100Sw
 TaskDesc D_actor_310100_801798F0 = { { { TASK_BODY_NONE, 192 } }, _actor310100SwapOfficerCulledBodyModelTask, { .value = 0 } };
 
 TaskDesc D_actor_310100_801798FC[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_actor_310100_801627BC, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_310100_80162F88, { .model = &_gActor310100PoliceOfficer1Body } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_310100_801631B0, { .model = &_gActor310100PoliceOfficer1CulledBody } },
+    { { { TASK_BODY_NONE, 192 } }, _actor310100Officer1ControllerTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310100Officer1BodyTask, { .model = &_gActor310100PoliceOfficer1Body } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310100Officer1CulledBodyTask, { .model = &_gActor310100PoliceOfficer1CulledBody } },
 };
 
 TaskDesc D_actor_310100_80179920[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_actor_310100_801629FC, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_310100_8016309C, { .model = &_gActor310100PoliceOfficer2Body } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_310100_801632B0, { .model = &_gActor310100PoliceOfficer2CulledBody } },
+    { { { TASK_BODY_NONE, 192 } }, _actor310100Officer2ControllerTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310100Officer2BodyTask, { .model = &_gActor310100PoliceOfficer2Body } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor310100Officer2CulledBodyTask, { .model = &_gActor310100PoliceOfficer2CulledBody } },
 };
 
 /// Emits newly entered slot-1 sound cues, advances the eighteen non-root slots,
@@ -1044,30 +1031,54 @@ static void _actor310100InitOfficerCulledBodyModel(Task* task, s32 placementId)
     tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
 }
 
-/// Controller for the display model spawned from `D_actor_310100_801798FC`.
-/// Plaza stream sub-ID 3 (`gCdCmdQueue.plazaStreamSubId`) forces the task into state
-/// 3, where it idles. Otherwise state 0 allocates the 0x50C work block, and
-/// states 1 and 2 toggle the model against the plaza scene frame: it is shown while
-/// the stream sub-ID is 0/1 with `sceneFrame` at 0xE6 or above, or state 2
-/// with the frame outside 7..0x6B. State 1 spawns it at the area place with
-/// id 0x6C; state 2 kills it again once that condition drops.
-void func_actor_310100_801627BC(Task* task)
+/// Shows or releases police officer 1's posed model as the plaza movie advances.
+///
+/// Allocates uncleared controller work and installs the scene-message table.
+/// Stream sub-ID 3 parks the controller without releasing its current model.
+/// Sub-IDs 0/1 show it from movie frame 230; sub-ID 2 hides it at frames 7..107.
+/// Other sub-IDs show it. Requires an officer-1 area placement and successful
+/// model-task creation. Hidden-to-shown transitions restart culled-body clip 1;
+/// placement uses parent-frame game units and yaw at 4096 units per turn.
+static void _actor310100Officer1ControllerTask(Task* task)
 {
+    enum {
+        ACTOR_310100_OFFICER_1_SHOW_FRAME       = 230,
+        ACTOR_310100_OFFICER_1_HIDE_FRAME       = 7,
+        ACTOR_310100_OFFICER_1_HIDE_FRAME_COUNT = 101,
+        ACTOR_310100_OFFICER_1_SPAWN_CLIP       = 1,
+    };
+    /// Stores whether this movie part and frame should show the officer.
+    ///
+    /// Captures gCdCmdQueue and the local timeline constants. result must be a
+    /// side-effect-free u16 lvalue; it may be assigned repeatedly. Invoke in a
+    /// braced block. The unsigned
+    /// frame subtraction also excludes frames before the window starts.
+#define ACTOR_310100_OFFICER_1_MOVIE_VISIBLE(result)                                                                            \
+    {                                                                                                                           \
+        (result) = 1;                                                                                                           \
+        if (gCdCmdQueue.plazaStreamSubId < (u32)ACTOR_310100_PLAZA_STREAM_PART_2) {                                             \
+            (result) = gCdCmdQueue.sceneFrame >= (u32)ACTOR_310100_OFFICER_1_SHOW_FRAME;                                        \
+        }                                                                                                                       \
+        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_2 &&                                                 \
+            (u32)(gCdCmdQueue.sceneFrame - ACTOR_310100_OFFICER_1_HIDE_FRAME) < (u32)ACTOR_310100_OFFICER_1_HIDE_FRAME_COUNT) { \
+            (result) = 0;                                                                                                       \
+        }                                                                                                                       \
+    }
     _Actor310100PoliceOfficerWork* work;
-    _Actor310100PoliceOfficerWork* work2;
-    AreaPlacement*                 place;
-    GfxCoord*                      coord;
-    Task*                          child;
-    u16                            st;
-    u16                            on;
+    _Actor310100PoliceOfficerWork* hiddenWork;
+    AreaPlacement*                 placement;
+    GfxCoord*                      rootCoord;
+    Task*                          modelTask;
+    u16                            streamSubId;
+    u16                            modelVisible;
 
-    st = gCdCmdQueue.plazaStreamSubId;
-    if (st == 3) {
-        task->state = st;
+    streamSubId = gCdCmdQueue.plazaStreamSubId;
+    if (streamSubId == ACTOR_310100_PLAZA_STREAM_PART_3) {
+        task->state = streamSubId;
     }
     switch (task->state) {
-        case 0:
-            task->work = memMalloc(sizeof(_Actor310100PoliceOfficerWork), false);
+        case ACTOR_310100_CONTROLLER_INIT:
+            task->work = memMalloc(sizeof(*work), false);
             if (task->work == NULL) {
                 enemyDestroy(task->spawnArg2.pointer, task);
                 return;
@@ -1075,130 +1086,126 @@ void func_actor_310100_801627BC(Task* task)
             task->msgTable = D_actor_310100_801798B4;
             task->state++;
             break;
-        case 1:
-            on = 1;
-            if (gCdCmdQueue.plazaStreamSubId < 2U) {
-                on = gCdCmdQueue.sceneFrame >= 0xE6U;
-            }
-            if (gCdCmdQueue.plazaStreamSubId == 2 && (u32)(gCdCmdQueue.sceneFrame - 7) < 0x65U) {
-                on = 0;
-            }
-            if (on) {
-                work  = (_Actor310100PoliceOfficerWork*)task->work;
-                place = areaGetVariant(&gGameSession->location.loc)->placements;
-                while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_310100_PLACEMENT_OFFICER_1) {
-                    place++;
+        case ACTOR_310100_CONTROLLER_HIDDEN:
+            // Keep the model lifetime synchronized with its movie visibility window:
+            ACTOR_310100_OFFICER_1_MOVIE_VISIBLE(modelVisible);
+            if (modelVisible) {
+                work      = task->work;
+                placement = areaGetVariant(&gGameSession->location.loc)->placements;
+                while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_OFFICER_1) {
+                    placement++;
                 }
-                child             = taskSpawnFromTable(D_actor_310100_801798FC, 2, 1, 0);
-                work->modelTask   = child;
-                coord             = child->extra.tmd->coords;
-                coord->coord.t[0] = place->x;
-                coord->coord.t[1] = place->y;
-                coord->coord.t[2] = place->z;
-                gfxRotMatrixY(&coord->coord, place->yaw, 0);
+                modelTask             = taskSpawnFromTable(D_actor_310100_801798FC, ACTOR_310100_MODEL_TASK_CULLED_BODY, ACTOR_310100_OFFICER_1_SPAWN_CLIP, 0);
+                work->modelTask       = modelTask;
+                rootCoord             = modelTask->extra.tmd->coords;
+                rootCoord->coord.t[0] = placement->x;
+                rootCoord->coord.t[1] = placement->y;
+                rootCoord->coord.t[2] = placement->z;
+                gfxRotMatrixY(&rootCoord->coord, placement->yaw, 0);
                 task->state++;
             }
             break;
-        case 2:
-            on = 1;
-            if (gCdCmdQueue.plazaStreamSubId < 2U) {
-                on = gCdCmdQueue.sceneFrame >= 0xE6U;
-            }
-            if (gCdCmdQueue.plazaStreamSubId == 2 && (u32)(gCdCmdQueue.sceneFrame - 7) < 0x65U) {
-                on = 0;
-            }
-            if (!on) {
-                work2 = (_Actor310100PoliceOfficerWork*)task->work;
+        case ACTOR_310100_CONTROLLER_SHOWN:
+            ACTOR_310100_OFFICER_1_MOVIE_VISIBLE(modelVisible);
+            if (!modelVisible) {
+                hiddenWork = task->work;
                 task->state--;
-                taskKill(work2->modelTask);
-                work2->modelTask = NULL;
+                taskKill(hiddenWork->modelTask);
+                hiddenWork->modelTask = NULL;
             }
             break;
     }
+#undef ACTOR_310100_OFFICER_1_MOVIE_VISIBLE
 }
 
-/// Controller for the display model spawned from `D_actor_310100_80179920`
-/// (id 0x6D), the counterpart of `func_actor_310100_801627BC`. State 0 allocates
-/// the 0x50C work block and seeds the display task's `spawnArg1` (`spawnAnimationId`)
-/// with 0x18. The model is shown while the plaza stream sub-ID is 0/1 with frame
-/// `sceneFrame` in 0x4B..0xC3; sub-IDs 2, 4 and 5 hide it. On hiding, state 2 keeps
-/// the display task's `spawnAnimationId` before killing it.
-void func_actor_310100_801629FC(Task* task)
+/// Shows or releases police officer 2's posed model as the plaza movie advances.
+///
+/// Allocates uncleared controller work, installs scene messages and seeds clip
+/// 24. Stream sub-ID 3 parks the controller without releasing its current model.
+/// Sub-IDs 0/1 show it at movie frames 75..195; 2, 4 and 5 hide it; others show it.
+/// Requires an officer-2 area placement and successful model-task creation.
+/// Saves the model's spawn clip before hiding and reuses it on the next spawn.
+/// Placement uses parent-frame game units and yaw at 4096 units per turn.
+static void _actor310100Officer2ControllerTask(Task* task)
 {
+    enum {
+        ACTOR_310100_OFFICER_2_SHOW_FRAME       = 75,
+        ACTOR_310100_OFFICER_2_SHOW_FRAME_COUNT = 121,
+        ACTOR_310100_OFFICER_2_SPAWN_CLIP       = 24,
+    };
+    /// Stores whether this movie part and frame should show the officer.
+    ///
+    /// Captures gCdCmdQueue and the local timeline constants. result must be a
+    /// side-effect-free u16 lvalue; it may be assigned repeatedly. Invoke in a
+    /// braced block. The unsigned
+    /// frame subtraction also excludes frames before the window starts.
+#define ACTOR_310100_OFFICER_2_MOVIE_VISIBLE(result)                                                                                     \
+    {                                                                                                                                    \
+        (result) = 1;                                                                                                                    \
+        if (gCdCmdQueue.plazaStreamSubId < (u32)ACTOR_310100_PLAZA_STREAM_PART_2) {                                                      \
+            (result) = (u32)(gCdCmdQueue.sceneFrame - ACTOR_310100_OFFICER_2_SHOW_FRAME) < (u32)ACTOR_310100_OFFICER_2_SHOW_FRAME_COUNT; \
+        }                                                                                                                                \
+        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_2) {                                                          \
+            (result) = 0;                                                                                                                \
+        }                                                                                                                                \
+        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_4) {                                                          \
+            (result) = 0;                                                                                                                \
+        }                                                                                                                                \
+        if (gCdCmdQueue.plazaStreamSubId == ACTOR_310100_PLAZA_STREAM_PART_5) {                                                          \
+            (result) = 0;                                                                                                                \
+        }                                                                                                                                \
+    }
     _Actor310100PoliceOfficerWork* work;
-    AreaPlacement*                 place;
-    GfxCoord*                      coord;
-    Task*                          child;
-    u16                            st;
-    u16                            on;
+    AreaPlacement*                 placement;
+    GfxCoord*                      rootCoord;
+    Task*                          modelTask;
+    u16                            streamSubId;
+    u16                            modelVisible;
 
-    work = (_Actor310100PoliceOfficerWork*)task->work;
-    st   = gCdCmdQueue.plazaStreamSubId;
-    if (st == 3) {
-        task->state = st;
+    work        = task->work;
+    streamSubId = gCdCmdQueue.plazaStreamSubId;
+    if (streamSubId == ACTOR_310100_PLAZA_STREAM_PART_3) {
+        task->state = streamSubId;
     }
     switch (task->state) {
-        case 0:
-            task->work = (work = memMalloc(sizeof(_Actor310100PoliceOfficerWork), false));
+        case ACTOR_310100_CONTROLLER_INIT:
+            task->work = (work = memMalloc(sizeof(*work), false));
             if (work == NULL) {
                 enemyDestroy(task->spawnArg2.pointer, task);
                 return;
             }
             task->msgTable         = D_actor_310100_801798B4;
-            work->spawnAnimationId = 0x18;
+            work->spawnAnimationId = ACTOR_310100_OFFICER_2_SPAWN_CLIP;
             task->state++;
             break;
-        case 1:
-            on = 1;
-            if (gCdCmdQueue.plazaStreamSubId < 2U) {
-                on = (u32)(gCdCmdQueue.sceneFrame - 0x4B) < 0x79U;
-            }
-            if (gCdCmdQueue.plazaStreamSubId == 2) {
-                on = 0;
-            }
-            if (gCdCmdQueue.plazaStreamSubId == 4) {
-                on = 0;
-            }
-            if (gCdCmdQueue.plazaStreamSubId == 5) {
-                on = 0;
-            }
-            if (on) {
-                place = areaGetVariant(&gGameSession->location.loc)->placements;
-                while (place->entryId != AREA_PLACEMENT_END && place->entryId != ACTOR_310100_PLACEMENT_OFFICER_2) {
-                    place++;
+        case ACTOR_310100_CONTROLLER_HIDDEN:
+            ACTOR_310100_OFFICER_2_MOVIE_VISIBLE(modelVisible);
+            if (modelVisible) {
+                placement = areaGetVariant(&gGameSession->location.loc)->placements;
+                while (placement->entryId != AREA_PLACEMENT_END && placement->entryId != ACTOR_310100_PLACEMENT_OFFICER_2) {
+                    placement++;
                 }
-                child             = taskSpawnFromTable(D_actor_310100_80179920, 2, (s32)(work->spawnAnimationId), 0);
-                work->modelTask   = child;
-                coord             = child->extra.tmd->coords;
-                coord->coord.t[0] = place->x;
-                coord->coord.t[1] = place->y;
-                coord->coord.t[2] = place->z;
-                gfxRotMatrixY(&coord->coord, place->yaw, 0);
+                modelTask             = taskSpawnFromTable(D_actor_310100_80179920, ACTOR_310100_MODEL_TASK_CULLED_BODY, (s32)work->spawnAnimationId, 0);
+                work->modelTask       = modelTask;
+                rootCoord             = modelTask->extra.tmd->coords;
+                rootCoord->coord.t[0] = placement->x;
+                rootCoord->coord.t[1] = placement->y;
+                rootCoord->coord.t[2] = placement->z;
+                gfxRotMatrixY(&rootCoord->coord, placement->yaw, 0);
                 task->state++;
             }
             break;
-        case 2:
-            on = 1;
-            if (gCdCmdQueue.plazaStreamSubId < 2U) {
-                on = (u32)(gCdCmdQueue.sceneFrame - 0x4B) < 0x79U;
-            }
-            if (gCdCmdQueue.plazaStreamSubId == 2) {
-                on = 0;
-            }
-            if (gCdCmdQueue.plazaStreamSubId == 4) {
-                on = 0;
-            }
-            if (gCdCmdQueue.plazaStreamSubId == 5) {
-                on = 0;
-            }
-            if (!on) {
-                work->spawnAnimationId = ((_Actor310100PoliceOfficerWork*)work->modelTask->work)->spawnAnimationId;
+        case ACTOR_310100_CONTROLLER_SHOWN:
+            ACTOR_310100_OFFICER_2_MOVIE_VISIBLE(modelVisible);
+            if (!modelVisible) {
+                work->spawnAnimationId = ((const _Actor310100PoliceOfficerWork*)work->modelTask->work)->spawnAnimationId;
                 task->state--;
                 taskKill(work->modelTask);
                 work->modelTask = NULL;
             }
             break;
     }
+#undef ACTOR_310100_OFFICER_2_MOVIE_VISIBLE
 }
 
 /// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` by scheduling an officer body-model swap.
@@ -1346,98 +1353,12 @@ static s32 _actor310100StopOfficerController(Task* task, s32 messageId, s32 unus
     task->state = ACTOR_310100_CONTROLLER_STATE_STOPPED;
 }
 
-/// Second state handler of the display model spawned from
-/// `D_actor_310100_801798FC` (descriptor arg 0x80168C00): the spawn tick hands
-/// the model to `_actor310100InitOfficerBodyModel` with display id 0x6C and steps to
-/// state 1, and every later tick draws the floor quad at the model's part-1
-/// frame, runs `_actor310100UpdateOfficerAnimation` while the display state is 1 and
-/// hands that frame's translation to `worldCoordSetModelLighting`. Display state 2, the
-/// freeze parked by `_actor310100SetOfficerCulledBodyModel`, returns before either.
-void func_actor_310100_80162F88(Task* task)
-{
-    _Actor310100PoliceOfficerWork* work;
-    SVECTOR                        shadowOffset;
-    VECTOR                         vec;
-    TmdObject*                     extra;
-
-    work = (_Actor310100PoliceOfficerWork*)task->work;
-    switch (task->state) {
-        case 0:
-            _actor310100InitOfficerBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_1);
-            task->state++;
-            /* fallthrough */
-        case 1:
-            shadowOffset.vx = 0;
-            shadowOffset.vy = 0x380;
-            shadowOffset.vz = 0;
-            actorRenderDrawGroundShadow(&task->extra.tmd->coords[1], 0x300, &shadowOffset);
-            switch (work->playState) {
-                case ACTOR_310100_PLAY_STATE_POSED:
-                    break;
-                case ACTOR_310100_PLAY_STATE_PLAYING:
-                    _actor310100UpdateOfficerAnimation(task);
-                    break;
-                case ACTOR_310100_PLAY_STATE_FROZEN:
-                default:
-                    return;
-            }
-            extra  = task->extra.tmd;
-            vec.vx = extra->coords[1].workm.t[0];
-            vec.vy = task->extra.tmd->coords[1].workm.t[1];
-            vec.vz = task->extra.tmd->coords[1].workm.t[2];
-            worldCoordSetModelLighting(extra, &vec, 0, 3);
-            break;
-    }
-}
-
-/// Second state handler of the display model spawned from
-/// `D_actor_310100_80179920` (descriptor arg 0x801730B0): the spawn tick hands
-/// the model to `_actor310100InitOfficerBodyModel` with display id 0x6D and steps to
-/// state 1, and every later tick draws the floor quad at the model's part-1
-/// frame, runs `_actor310100UpdateOfficerAnimation` while the display state is 1 and
-/// hands that frame's translation to `worldCoordSetModelLighting`. Display state 2, the
-/// freeze parked by `_actor310100SetOfficerCulledBodyModel`, returns before either.
-void func_actor_310100_8016309C(Task* task)
-{
-    _Actor310100PoliceOfficerWork* work;
-    SVECTOR                        shadowOffset;
-    VECTOR                         vec;
-    TmdObject*                     extra;
-
-    work = (_Actor310100PoliceOfficerWork*)task->work;
-    switch (task->state) {
-        case 0:
-            _actor310100InitOfficerBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_2);
-            task->state++;
-            /* fallthrough */
-        case 1:
-            shadowOffset.vx = 0;
-            shadowOffset.vy = 0x380;
-            shadowOffset.vz = 0;
-            actorRenderDrawGroundShadow(&task->extra.tmd->coords[1], 0x300, &shadowOffset);
-            switch (work->playState) {
-                case ACTOR_310100_PLAY_STATE_POSED:
-                    break;
-                case ACTOR_310100_PLAY_STATE_PLAYING:
-                    _actor310100UpdateOfficerAnimation(task);
-                    break;
-                case ACTOR_310100_PLAY_STATE_FROZEN:
-                default:
-                    return;
-            }
-            extra  = task->extra.tmd;
-            vec.vx = extra->coords[1].workm.t[0];
-            vec.vy = task->extra.tmd->coords[1].workm.t[1];
-            vec.vz = task->extra.tmd->coords[1].workm.t[2];
-            worldCoordSetModelLighting(extra, &vec, 0, 3);
-            break;
-    }
-}
-
-/// Relights an officer model for where it stands: rebuilds its colour matrix
-/// from the room's lights as they fall on the origin of its part-1 frame.
+/// Rebuilds an officer model's full lighting at the origin of its part-1 frame.
 ///
-/// The frame's world matrix is read as it stands, so it has to be current.
+/// Requires a live nineteen-part model with writable light and colour matrices.
+/// Samples its cached signed world translation without composing it; the part
+/// and view must already be current. The lighting query borrows nested scratch
+/// storage and changes GTE state; no pointer to this local sample is retained.
 static inline void _actor310100LightOfficerModel(Task* task)
 {
     VECTOR     position;
@@ -1447,7 +1368,7 @@ static inline void _actor310100LightOfficerModel(Task* task)
     position.vx = model->coords[1].workm.t[0];
     position.vy = task->extra.tmd->coords[1].workm.t[1];
     position.vz = task->extra.tmd->coords[1].workm.t[2];
-    worldCoordSetModelLighting(model, &position, 0, 3);
+    worldCoordSetModelLighting(model, &position, 0, ARRAY_SIZE(model->colorMtx->m[0]));
 }
 
 /// Draws an officer model's ground shadow: a square in the XZ plane of its
@@ -1466,23 +1387,96 @@ static inline void _actor310100DrawOfficerShadow(Task* modelTask)
     actorRenderDrawGroundShadow(&modelTask->extra.tmd->coords[1], ACTOR_310100_SHADOW_SIDE, &offset);
 }
 
-/// State handler for the display model spawned by `_actor310100SetOfficerBodyModel`:
-/// the spawn tick lights the model at its part-1 coordinate's world position and
-/// steps to state 1, and every later tick draws the floor quad until the display
-/// state goes non-zero.
-void func_actor_310100_801631B0(Task* task)
+/// Initializes and updates officer 1's animated body, lighting and ground shadow.
+///
+/// Requires a nineteen-part model; ready ticks require initialized work.
+/// Initialization binds the officer-1 rig and falls through to ready processing.
+/// Every ready tick draws the shadow first. Playing advances animation and
+/// follow-ups; posed holds the rig. Frozen or unhandled playback states return
+/// after the shadow, before animation and lighting.
+static void _actor310100Officer1BodyTask(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
 
-    work = (_Actor310100PoliceOfficerWork*)task->work;
+    // Retain the incoming work pointer across the spawn tick's initialization.
+    work = task->work;
     switch (task->state) {
-        case 0:
+        case ACTOR_310100_MODEL_INIT:
+            _actor310100InitOfficerBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_1);
+            task->state++;
+            /* fallthrough */
+        case ACTOR_310100_MODEL_READY:
+            _actor310100DrawOfficerShadow(task);
+            switch (work->playState) {
+                case ACTOR_310100_PLAY_STATE_POSED:
+                    break;
+                case ACTOR_310100_PLAY_STATE_PLAYING:
+                    _actor310100UpdateOfficerAnimation(task);
+                    break;
+                case ACTOR_310100_PLAY_STATE_FROZEN:
+                default:
+                    return;
+            }
+            _actor310100LightOfficerModel(task);
+            break;
+    }
+}
+
+/// Initializes and updates officer 2's animated body, lighting and ground shadow.
+///
+/// Requires a nineteen-part model; ready ticks require initialized work.
+/// Initialization binds the officer-2 rig and falls through to ready processing.
+/// Every ready tick draws the shadow first. Playing advances animation and
+/// follow-ups; posed holds the rig. Frozen or unhandled playback states return
+/// after the shadow, before animation and lighting.
+static void _actor310100Officer2BodyTask(Task* task)
+{
+    _Actor310100PoliceOfficerWork* work;
+
+    // Retain the incoming work pointer across the spawn tick's initialization.
+    work = task->work;
+    switch (task->state) {
+        case ACTOR_310100_MODEL_INIT:
+            _actor310100InitOfficerBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_2);
+            task->state++;
+            /* fallthrough */
+        case ACTOR_310100_MODEL_READY:
+            _actor310100DrawOfficerShadow(task);
+            switch (work->playState) {
+                case ACTOR_310100_PLAY_STATE_POSED:
+                    break;
+                case ACTOR_310100_PLAY_STATE_PLAYING:
+                    _actor310100UpdateOfficerAnimation(task);
+                    break;
+                case ACTOR_310100_PLAY_STATE_FROZEN:
+                default:
+                    return;
+            }
+            _actor310100LightOfficerModel(task);
+            break;
+    }
+}
+
+/// Initializes officer 1's culled body and draws its shadow while posed.
+///
+/// Requires a nineteen-part model; ready ticks require initialized work.
+/// The spawn tick binds
+/// the selected pose, composes part 1 and samples lighting once. Ready ticks
+/// never advance animation or lighting; only the posed playback state draws
+/// the shadow. Playing, frozen and unhandled states draw no shadow.
+static void _actor310100Officer1CulledBodyTask(Task* task)
+{
+    _Actor310100PoliceOfficerWork* work;
+
+    work = task->work;
+    switch (task->state) {
+        case ACTOR_310100_MODEL_INIT:
             _actor310100InitOfficerCulledBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_1);
             actorRenderComposeCoord(&task->extra.tmd->coords[1]);
             _actor310100LightOfficerModel(task);
             task->state++;
             break;
-        case 1:
+        case ACTOR_310100_MODEL_READY:
             if (work->playState == ACTOR_310100_PLAY_STATE_POSED) {
                 _actor310100DrawOfficerShadow(task);
             }
@@ -1490,23 +1484,26 @@ void func_actor_310100_801631B0(Task* task)
     }
 }
 
-/// The other display-model state handler (message 0x6D): the spawn tick lights
-/// the model at its part-1 coordinate's world position and steps to state 1,
-/// and every later tick draws the floor quad while the display state is still
-/// below 2.
-void func_actor_310100_801632B0(Task* task)
+/// Initializes officer 2's culled body and draws its shadow until frozen.
+///
+/// Requires a nineteen-part model; ready ticks require initialized work.
+/// The spawn tick binds
+/// the selected pose, composes part 1 and samples lighting once. Ready ticks
+/// never advance animation or lighting; posed and playing states draw the
+/// shadow. Frozen and unhandled states draw no shadow.
+static void _actor310100Officer2CulledBodyTask(Task* task)
 {
     _Actor310100PoliceOfficerWork* work;
 
-    work = (_Actor310100PoliceOfficerWork*)task->work;
+    work = task->work;
     switch (task->state) {
-        case 0:
+        case ACTOR_310100_MODEL_INIT:
             _actor310100InitOfficerCulledBodyModel(task, ACTOR_310100_PLACEMENT_OFFICER_2);
             actorRenderComposeCoord(&task->extra.tmd->coords[1]);
             _actor310100LightOfficerModel(task);
             task->state++;
             break;
-        case 1:
+        case ACTOR_310100_MODEL_READY:
             switch (work->playState) {
                 case ACTOR_310100_PLAY_STATE_POSED:
                 case ACTOR_310100_PLAY_STATE_PLAYING:
