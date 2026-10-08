@@ -485,7 +485,14 @@ s32 playerActorEndScripted(Task* task, s32 unusedMessageId, s32 resumeMode, s32 
 /// No pointer is retained.
 void playerActorSetPendingDisplacement(const VECTOR3* displacement);
 
-void Gp_PlayerWorkTask(Task* arg0);
+/// Dispatches the player task's initialization, collision update or teardown phase.
+///
+/// The resident Aya model descriptors use this gameplay callback. Task state
+/// must be 0..3: initialize, update collision, schedule teardown, release.
+/// Initialization requires allocated GameActor/model work and native resources;
+/// later phases require that live work until teardown releases the task.
+/// Gameplay code must remain loaded while the callback is installed.
+void playerActorWorkTask(Task* task);
 
 /// Returns the XZ distance between two points using `SquareRoot0`, ignoring Y.
 ///

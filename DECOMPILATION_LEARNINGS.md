@@ -25126,18 +25126,19 @@ p += arg0 >> 4;
 
 Dispatchers that copy a function-pointer table onto the stack
 (`handlers = D_xxx; handlers.funcs[idx](index)`) need that copy to be the first
-memory work. Pulling `inner = index->actor` (or any other index source)
+memory work. Pulling `actor = task->work` (or any other index source)
 above the assignment hoists `lw actor` ahead of the multi-load/store,
 which also swaps the table pointer from `$a3` to `$t0`.
 
-Index through `index->actor->field` in the call itself:
+Read `task->work` after copying the table, then use the typed actor's selector:
 
 ```c
 handlers = Gp_PlayerMode1States;
-handlers.funcs[(u16)arg0->actor->hitRegion](arg0);
+actor = task->work;
+handlers.funcs[(u16)actor->hitRegion](task);
 ```
 
-`Gp_TickPlayerMode1` is the example.
+`_playerActorTickDamage` is the example.
 
 ## Mid-loop unlink: `goto` resists loop rotation; `s32 mask = ~0x78` keeps `li -0x79`
 
@@ -31077,11 +31078,11 @@ multiply and wrecks the prefix. An early `term = 0xFFFF` takes `$s2`.
 ## Overlay callback tables bundled with a function stay as inline asm
 
 Splat often puts a stack-copied function-pointer table in the same
-`.s` file as the function that copies it (`Gp_TickPlayerNormal` / `D_8009794C`).
+`.s` file as the function that copies it (`_playerActorTickNormal` / `D_8009794C`).
 `INCLUDE_RODATA` of a newly created `nonmatchings/.../D_*.s` looks like
 the `Gp_PlayerModeFns` pattern, but configure/splat regenerates that tree and
 deletes the extra file. Emit the table with the same inline
-`.section .rodata` block used for `Gp_PlayerMode1States` (`Gp_TickPlayerMode1`). Keep
+`.section .rodata` block used for `Gp_PlayerMode1States` (`_playerActorTickDamage`). Keep
 any trailing `0` word that sits before the next `.align 3` jump table.
 
 ## Copy a `VECTOR3` through the parent pointer; load the compared field first
@@ -31673,7 +31674,7 @@ splits them.
 `func_80108A0C` / `func_80108AD4` is the example. The first function is
 the `state = 6` body of `_playerActorTryEnterPeAction` (without the
 `field_3 == -2` guard); the second is the `state = 7` body inlined
-in `Gp_TickPlayerNormal`.
+in `_playerActorTickNormal` through `_playerActorEnterParalysis`.
 
 ## Duplicate the 1/0 call so the flag stays a branch, not `sltu`
 
@@ -39917,18 +39918,18 @@ puts `textureUEnd`'s first use third, so both stay live in separate registers
 (`addiu a1,v0,0x17` before the stores) and the emitted store order still comes
 out as the target's. `_effectDrawGravityParticle` went 96.0% → 98.2% on that rewrite.
 
-## `base | (x | CONST)` reassociates — hold the constant in a local
+## `weaponSoundBits | (x | CONST)` reassociates — hold the constant in a local
 
 For a bitwise OR, GCC 2.8.1's `fold` splits the constant out of the inner
 operand and rebuilds `A | (B | C)` as `(A | C) | B`. So
 
 ```c
-func(obj, base | (sp10 | 0x20000003), 0); /* or a1,s1,CONST; or a1,a1,sp10 */
+func(obj, weaponSoundBits | (soundBits | 0x20000003), 0); /* or a1,s1,CONST; or a1,a1,soundBits */
 ```
 
-emits the constant OR *first*, while the target wanted `sp10 | CONST` first
-and then `base | that`. Splitting the inner OR into its own statement
-(`t = sp10 | 0x20000003; ... base | t;`) fixes the operand order but gives the
+emits the constant OR *first*, while the target wanted `soundBits | CONST` first
+and then `weaponSoundBits | that`. Splitting the inner OR into its own statement
+(`t = soundBits | 0x20000003; ... weaponSoundBits | t;`) fixes the operand order but gives the
 intermediate its own pseudo, so it lands in a scratch register instead of the
 argument register, and sibling call sites stop cross-jumping together.
 
@@ -39937,13 +39938,13 @@ fold time, so nothing reassociates, and the intermediate is still computed in
 place in the argument register:
 
 ```c
-s32 flags;
+s32 cueSoundBits;
 
-flags = 0x20000003;
-func(obj, base | (sp10 | flags), 0); /* lw a1,sp10; or a1,a1,v1; or a1,s1,a1 */
+cueSoundBits = 0x20000003;
+func(obj, weaponSoundBits | (soundBits | cueSoundBits), 0); /* lw a1,soundBits; or a1,a1,v1; or a1,s1,a1 */
 ```
 
-`Gp_PlayerNormalState5` went 91.3% → 95.9% with the temp-for-the-value form and
+`_playerActorNormalState5` went 91.3% → 95.9% with the temp-for-the-value form and
 95.9% → 99.6% with the temp-for-the-constant form; the latter also restored
 the cross-jumped shared tail block that four switch arms branch into.
 
@@ -39973,12 +39974,12 @@ argument setup. Moving the assignment *after* the call in the source lets the
 scheduler sink it to just before the `jal`, which is where the target has it:
 
 ```c
-worldCoordPlaySound(obj, base | 0x20000003, 0);
-done = 1;                 /* li s3,1 ends up immediately before the jal */
-actor->statePhase = 0x64;
+worldCoordPlaySound(obj, weaponSoundBits | 0x20000003, 0);
+loadCompleted = 1;                 /* li s3,1 ends up immediately before the jal */
+actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
 ```
 
-`Gp_PlayerNormalState5` gained 1.6% across eight call sites from this alone. Same
+`_playerActorNormalState5` gained 1.6% across eight call sites from this alone. Same
 idea as the argument-setup ordering notes above: statement order, not
 semantics, decides which independent instruction fills the pre-call slot.
 
@@ -41873,7 +41874,7 @@ global tends to collapse into one shared base register (`addiu s3, v0,
 extra callee-saved register and a bigger frame, which shifts every branch
 offset in the diff.
 
-`Gp_PlayerNormalState2` wants three independent folded `%lo(gPlayerStatus+0x21)`
+`_playerActorNormalState2` wants three independent folded `%lo(gPlayerStatus+0x21)`
 reads plus one shared `&gPlayerStatus` base for the `statusFlags`/`hp`
 pair. The lever is the *shape of the statement that guards the first read*,
 not any pointer local (`cfg = &gPlayerStatus` inside the block, `volatile`

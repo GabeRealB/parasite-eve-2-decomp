@@ -26,6 +26,7 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/gpu_image_upload.h"
 #include "item_use.h"
+#include "gameplay/inventory.h"
 #include "gameplay/items.h"
 #include "items.h"
 #include "gameplay/loading.h"
@@ -87,6 +88,9 @@ enum {
     PLAYER_ACTOR_SCRIPTED_ATTACK_STATE         = 10,
     PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_ATTACK = 1024,
 };
+
+/// Normal-mode state entered by the paralysis timer and its entry helper.
+enum { PLAYER_ACTOR_NORMAL_PARALYSIS_STATE = 7 };
 
 /// Maximum per-call lock-elevation change, in 4096 angle units per turn.
 enum { PLAYER_ACTOR_LOCK_ELEVATION_STEP = 0x30 };
@@ -363,7 +367,7 @@ extern GpuImageUpload** D_80112E74[];
 extern GpuImageUpload** D_80112EB4[];
 
 /// Per-item flag byte indexed by `gPlayerStatus.weapon`. Nonzero makes
-/// `Gp_PlayerNormalState2` / `_playerActorTickScriptedAttack` pass `GameActor.attackButton` (the current
+/// `_playerActorNormalState2` / `_playerActorTickScriptedAttack` pass `GameActor.attackButton` (the current
 /// primary/secondary fire-input selector) to `playerActorQueryWeaponLoads` instead of the default 1.
 extern u8 D_80112EF8[];
 
@@ -403,16 +407,16 @@ static const TaskFuncTable4 Gp_PlayerWorkStates;
 /// `_playerActorNoWeaponAttack` serves the weapons with none.
 static const _PlayerActorWeaponAttacks D_800978BC;
 
-/// `mode` dispatcher: `Gp_TickPlayerNormal`, `Gp_TickPlayerMode1`, `Gp_TickPlayerMode2`.
+/// `mode` dispatcher: `_playerActorTickNormal`, `_playerActorTickDamage`, `_playerActorTickScripted`.
 static const TaskFuncTable3 Gp_PlayerModeFns;
 
-/// `state` dispatcher copied by `Gp_TickPlayerNormal`.
+/// `state` dispatcher copied by `_playerActorTickNormal`.
 static const TaskFuncTable8 D_8009794C;
 
 /// `hitRegion` dispatcher: three slots of `_playerActorTickDamageReaction`, then `_playerActorDamageHitRegion3`.
 static const TaskFuncTable4 Gp_PlayerMode1States;
 
-/// `state` dispatcher copied by `Gp_TickPlayerMode2`.
+/// `state` dispatcher copied by `_playerActorTickScripted`.
 static const TaskFuncTable12 Gp_PlayerMode2States;
 
 static s32 _playerActorPlayScriptedAnimation(Task* task, s32 unusedMessageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
@@ -525,11 +529,11 @@ static s32 _playerActorTryStartAutomaticReload(Task* task, s32 attackButton);
 
 static void _playerActorNoWeaponAttack(Task* unusedTask);
 
-static void Gp_TickPlayerNormal(Task* arg0);
+static void _playerActorTickNormal(Task* task);
 
-static void Gp_PlayerNormalState2(Task* arg0);
+static void _playerActorNormalState2(Task* task);
 
-static void Gp_PlayerNormalState5(Task* arg0);
+static void _playerActorNormalState5(Task* task);
 
 static inline void _playerActorResumeAimLocomotion(Task* task, s32 blendFrames);
 
@@ -565,9 +569,9 @@ static void _playerActorTickScriptedRunTo(Task* task);
 
 static inline void _playerActorSetTargetNode(Task* task, WorldTargetNode* target);
 
-static void Gp_TickPlayerMode1(Task* arg0);
+static void _playerActorTickDamage(Task* task);
 
-static void Gp_TickPlayerMode2(Task* arg0);
+static void _playerActorTickScripted(Task* task);
 
 static void func_80108FA0(Task* arg0);
 
@@ -5440,12 +5444,12 @@ static void _playerActorTeardown(Task* task)
     taskKill(task);
 }
 
-void Gp_PlayerWorkTask(Task* arg0)
+void playerActorWorkTask(Task* task)
 {
     TaskFuncTable4 handlers;
 
     handlers = Gp_PlayerWorkStates;
-    handlers.funcs[arg0->state](arg0);
+    handlers.funcs[task->state](task);
 }
 
 /// Captures the session's logical pad input and preserves the actor's previous input.
@@ -8316,416 +8320,509 @@ void playerActorEnterLocomotion(Task* task, s16 resetAnimation)
     }
 }
 
-/// `mode` dispatcher: `Gp_TickPlayerNormal`, `Gp_TickPlayerMode1`, `Gp_TickPlayerMode2`.
+/// `mode` dispatcher: `_playerActorTickNormal`, `_playerActorTickDamage`, `_playerActorTickScripted`.
 static const TaskFuncTable3 Gp_PlayerModeFns = { {
-    Gp_TickPlayerNormal,
-    Gp_TickPlayerMode1,
-    Gp_TickPlayerMode2,
+    _playerActorTickNormal,
+    _playerActorTickDamage,
+    _playerActorTickScripted,
 } };
 
-/// `state` dispatcher copied by `Gp_TickPlayerNormal`.
+/// `state` dispatcher copied by `_playerActorTickNormal`.
 static const TaskFuncTable8 D_8009794C = { {
     func_80108FA0,
     _playerActorNormalState1,
-    Gp_PlayerNormalState2,
+    _playerActorNormalState2,
     _playerActorUpdateAimExit,
     func_80109138,
-    Gp_PlayerNormalState5,
+    _playerActorNormalState5,
     _playerActorNormalState6,
     _playerActorUpdateParalysis,
 } };
 
-static void Gp_TickPlayerNormal(Task* arg0)
+/// Saves normal control and starts a paralysis episode with weapon contacts disabled.
+///
+/// Borrows live player/native playback and status resources. Clears movement,
+/// turn, phase and rumble state, releases lock-on and locks attachment events
+/// before resetting weapon effects and blending child slots 3 onward.
+static inline void _playerActorEnterParalysis(Task* task, const PlayerStatus* status)
 {
-    GameActor*     actor;
-    GameActor*     inner;
-    PlayerStatus*  p;
-    u16            prev;
-    TaskFuncTable8 sp;
+    enum {
+        PLAYER_ACTOR_PARALYSIS_FIRST_SLOT   = 3,
+        PLAYER_ACTOR_PARALYSIS_SET          = 25,
+        PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES = 6,
+    };
+    GameActor* actor;
+    u16        previousState;
 
-    sp    = D_8009794C;
-    actor = arg0->work;
+    actor                 = task->work;
+    previousState         = actor->state;
+    actor->mode           = GAME_ACTOR_MODE_NORMAL;
+    actor->state          = PLAYER_ACTOR_NORMAL_PARALYSIS_STATE;
+    actor->movementMode   = 0;
+    actor->turnRateIndex  = 0;
+    actor->animationState = 0;
+    actor->statePhase     = 0;
+    actor->rumblePosted   = 0;
+    actor->movementSign   = 0;
+    actor->turnSign       = 0;
+    actor->stateAux       = previousState;
+    playerActorClearLockTarget(task);
+    actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
+    playerActorResetWeaponAttack(task, status->weapon, 0);
+    playerActorPlayChildSlotsWithBlend(task, PLAYER_ACTOR_PARALYSIS_SET, PLAYER_ACTOR_PARALYSIS_FIRST_SLOT, PLAYER_ACTOR_PARALYSIS_BLEND_FRAMES);
+}
+
+/// Advances normal player control, status effects, animation and movement in that order.
+///
+/// Requires live player GameActor/model, native playback and equipment resources;
+/// state must index the eight normal handlers (0..7). Applies confusion before
+/// deriving movement input. After 90 eligible paralysis ticks, saves the old
+/// state and enters paralysis before dispatch; the byte counter is tested as s8.
+/// Contact damage and movement precede the final zero-HP pose request.
+static void _playerActorTickNormal(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_PARALYSIS_ENTRY_TICKS   = 90,
+        PLAYER_ACTOR_DEATH_POSE_BLEND_FRAMES = 4,
+    };
+    GameActor*     actor;
+    PlayerStatus*  status;
+    TaskFuncTable8 states;
+
+    states = D_8009794C;
+    actor  = task->work;
     if (gPlayerStatus.statusFlags & PLAYER_STATUS_CONFUSION) {
-        playerActorApplyConfusionInput(arg0);
+        playerActorApplyConfusionInput(task);
     }
     if (actor->movementInputDisabled == 0) {
-        _playerActorUpdateMovementInput(arg0);
-        _playerActorUpdateTurnInput(arg0);
+        _playerActorUpdateMovementInput(task);
+        _playerActorUpdateTurnInput(task);
     } else {
         actor->movementSign = 0;
         actor->turnSign     = 0;
     }
-    p = &gPlayerStatus;
-    if (p->statusFlags & PLAYER_STATUS_PARALYSIS) {
-        if (actor->state != 7) {
+    // Paralysis saves the interrupted state before disabling weapon contact.
+    status = &gPlayerStatus;
+    if (status->statusFlags & PLAYER_STATUS_PARALYSIS) {
+        if (actor->state != PLAYER_ACTOR_NORMAL_PARALYSIS_STATE) {
             actor->paralysisProgress++;
-            if ((s8)actor->paralysisProgress >= 0x5A) {
-                inner                 = arg0->work;
-                prev                  = inner->state;
-                inner->mode           = GAME_ACTOR_MODE_NORMAL;
-                inner->state          = 7;
-                inner->movementMode   = 0;
-                inner->turnRateIndex  = 0;
-                inner->animationState = 0;
-                inner->statePhase     = 0;
-                inner->rumblePosted   = 0;
-                inner->movementSign   = 0;
-                inner->turnSign       = 0;
-                inner->stateAux       = prev;
-                playerActorClearLockTarget(arg0);
-                inner->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                Gp_StateC08.flags                                    |= ATTACHMENT_FLAG_EVENT_LOCK;
-                playerActorResetWeaponAttack(arg0, p->weapon, 0);
-                playerActorPlayChildSlotsWithBlend(arg0, 0x19, 3, 6);
+            if ((s8)actor->paralysisProgress >= PLAYER_ACTOR_PARALYSIS_ENTRY_TICKS) {
+                _playerActorEnterParalysis(task, status);
             }
         }
     }
-    sp.funcs[actor->state](arg0);
-    playerStateTickStatusEffects(arg0);
-    playerActorCheckContactDamage(arg0);
-    playerActorTickAnimationState(arg0);
-    playerActorTickChildSlots(arg0);
-    playerActorUpdateFacing(arg0);
-    playerActorStepMovement(arg0);
+    states.funcs[actor->state](task);
+    // Status and contact damage can change control before animation and movement.
+    playerStateTickStatusEffects(task);
+    playerActorCheckContactDamage(task);
+    playerActorTickAnimationState(task);
+    playerActorTickChildSlots(task);
+    playerActorUpdateFacing(task);
+    playerActorStepMovement(task);
     if (gPlayerStatus.hp <= 0) {
-        playerActorEnterStoppedPose(arg0, 4);
+        playerActorEnterStoppedPose(task, PLAYER_ACTOR_DEATH_POSE_BLEND_FRAMES);
     }
 }
 
-static void Gp_PlayerNormalState2(Task* arg0)
+/// Tracks aim locomotion and starts a weapon attack or automatic reload (normal state 2).
+///
+/// Requires live native playback, equipped weapon index 1..32 and its loaded
+/// attack code. Fire input selects primary/secondary loads unless the weapon
+/// queries primary loads for both inputs; a table flag permits load-free attacks.
+/// A ready slot-1 record and zero cooldown gate attacks. Berserker costs 2 HP
+/// before the live-HP test. Empty-fire handling requires a new fire-button edge
+/// and imposes ten ticks of cooldown; footsteps are processed on every call.
+static void _playerActorNormalState2(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_AIM_MOVEMENT_BLEND_FRAMES = 4,
+        PLAYER_ACTOR_BERSERKER_SHOT_HP_COST    = 2,
+        PLAYER_ACTOR_EMPTY_FIRE_COOLDOWN_TICKS = 10,
+        PLAYER_ACTOR_EMPTY_SOUND_WEAPON_SHIFT  = 16,
+        PLAYER_ACTOR_EMPTY_FIRE_SOUND          = SOUND_WEAPON(0, 1),
+        PLAYER_ACTOR_AIM_DIRECTION_BUTTONS     = PAD_BUTTON_UP | PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN | PAD_BUTTON_LEFT,
+    };
     GameActor* actor;
-    s32        dir;
-    s32        res;
-    u8         item;
-    u16        pad;
-    s32        variant;
-    s32        val;
-    s32        base;
+    s32        loadMask;
+    s32        remainingLoads;
+    u8         attackButton;
+    u16        pressedButtons;
+    s32        soundVariantBits;
+    s32        emptySoundBits;
+    s32        weaponSoundBits;
 
-    actor = arg0->work;
+    actor = task->work;
     if (actor->movementSign != actor->previousMovementSign) {
-        _playerActorEnterAimLocomotion(arg0, 4);
+        _playerActorEnterAimLocomotion(task, PLAYER_ACTOR_AIM_MOVEMENT_BLEND_FRAMES);
     } else if (actor->movementSign == 0 && actor->turnSign != actor->previousTurnSign) {
-        _playerActorUpdateAimTurnAnimation(arg0);
+        _playerActorUpdateAimTurnAnimation(task);
     }
-    if (_playerActorTryEnterPeAction(arg0) == 0) {
-        if ((actor->padHeld & 0xF000) == 0) {
-            playerActorTrackLockTarget(arg0);
+    // A pending PE action takes priority over target tracking and fire input.
+    if (_playerActorTryEnterPeAction(task) == 0) {
+        if ((actor->padHeld & PLAYER_ACTOR_AIM_DIRECTION_BUTTONS) == 0) {
+            playerActorTrackLockTarget(task);
         }
-        _playerActorUpdateLockTargetFromPad(arg0);
-        if (playerActorReadAttackButton(arg0) != 0 &&
+        _playerActorUpdateLockTargetFromPad(task);
+        if (playerActorReadAttackButton(task) != 0 &&
             animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) != NULL &&
             actor->attackControl.cooldownTicks == 0) {
-            dir = D_80112EF8[gPlayerStatus.weapon] != 0 ? actor->attackButton : 1;
-            res = playerActorQueryWeaponLoads(dir);
-            if (res > 0 ||
-                (item = actor->attackButton,
-                 D_80112F1C[gPlayerStatus.weapon][(u8)(item - 1)] != 0)) {
+            loadMask       = D_80112EF8[gPlayerStatus.weapon] != 0 ? actor->attackButton : PLAYER_ACTOR_WEAPON_LOAD_PRIMARY;
+            remainingLoads = playerActorQueryWeaponLoads(loadMask);
+            if (remainingLoads > 0 ||
+                (attackButton = actor->attackButton,
+                 D_80112F1C[gPlayerStatus.weapon][(u8)(attackButton - PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY)] != 0)) {
                 if (gPlayerStatus.statusFlags & PLAYER_STATUS_BERSERKER) {
-                    playerStateApplyHpDamage(2);
+                    playerStateApplyHpDamage(PLAYER_ACTOR_BERSERKER_SHOT_HP_COST);
                 }
                 if (gPlayerStatus.hp > 0) {
                     actor->aimControl = GAME_ACTOR_AIM_REQUEST_ENTER;
                     actor->statePhase = 0;
-                    _playerActorDispatchWeaponAttack(arg0);
+                    _playerActorDispatchWeaponAttack(task);
                 }
-            } else if (res == 0) {
-                pad = actor->padPressed;
-                if ((s8)item == 1 ? (pad & 8) : (pad & 2)) {
-                    actor->attackControl.cooldownTicks = 0xA;
-                    if (_playerActorTryStartAutomaticReload(arg0, dir) == 0) {
-                        _playerActorWriteWeaponSoundVariant(&variant);
-                        base = gPlayerStatus.weapon << 16;
-                        val  = variant | 0x20000001;
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | val, 0);
+            } else if (remainingLoads == 0) {
+                pressedButtons = actor->padPressed;
+                if ((s8)attackButton == PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY ? (pressedButtons & PAD_BUTTON_R1) : (pressedButtons & PAD_BUTTON_R2)) {
+                    actor->attackControl.cooldownTicks = PLAYER_ACTOR_EMPTY_FIRE_COOLDOWN_TICKS;
+                    if (_playerActorTryStartAutomaticReload(task, loadMask) == 0) {
+                        _playerActorWriteWeaponSoundVariant(&soundVariantBits);
+                        weaponSoundBits = gPlayerStatus.weapon << PLAYER_ACTOR_EMPTY_SOUND_WEAPON_SHIFT;
+                        emptySoundBits  = soundVariantBits | PLAYER_ACTOR_EMPTY_FIRE_SOUND;
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | emptySoundBits, 0);
                     }
                 }
             }
         }
     }
-    playerActorPlayFootstepCue(arg0);
+    playerActorPlayFootstepCue(task);
 }
 
-static void Gp_PlayerNormalState5(Task* arg0)
-{
-    GameActor*             actor;
-    GameActor*             inner;
-    const AnimationRecord* rec;
-    GfxCoord*              coord;
-    s32                    base;
-    s32                    done;
-    s32                    mode;
-    s32                    temp;
-    s32                    flags;
-    s32                    tick;
-    s32                    step;
-    u8                     item;
-    u16                    next;
-    s32                    variant;
+/// Consumes a changed slot-1 record identity before interpreting reload cue flags.
+///
+/// Both arguments repeat and must be stable pointers/lvalues without side
+/// effects. Requires live actor playback; record receives the borrowed result.
+/// Updates lastCueRecord even for records without cue flags. Defined only for
+/// this reload driver and undefined afterward.
+#define PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actorWork, cueRecord)                                                           \
+    (((cueRecord) = animationGetCurrentRecord(&(actorWork)->animationContext, (actorWork)->animationSlots + 1)) != NULL && \
+     (cueRecord) != (actorWork)->lastCueRecord &&                                                                          \
+     ((actorWork)->lastCueRecord = (cueRecord), 1))
 
-    actor               = arg0->work;
-    done                = 0;
-    coord               = actor->equipmentTasks[1]->extra.tmd->coords;
-    base                = gPlayerStatus.weapon << 16;
+/// Drives weapon-specific reload sounds, effects and ammunition application (normal state 5).
+///
+/// Requires live actor/native playback and equipment slot 1 with a model root;
+/// weapon index 1..32 selects its cue pattern. actionValue retains reload source
+/// (0 automatic, 1 menu, 2 battle end); stateAux is load selection (0 primary,
+/// 1 secondary). Each new slot-1 record with both cue bits set is consumed once.
+/// The loading cue enters phase 100 and applies the selected or pending consumable;
+/// later cues can still play sounds. Animation control handles the eventual exit.
+/// Before loading, Cross cancels non-battle-end reloads into aim locomotion and
+/// suppresses a later reload effect. Ordinary ticks also update target selection.
+static void _playerActorNormalState5(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_RELOAD_PHASE_START              = 0,
+        PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE           = 1,
+        PLAYER_ACTOR_MONGOOSE_RELOAD_PHASE_WAIT_LOAD = 2,
+        PLAYER_ACTOR_GRENADE_RELOAD_CUE_COUNT        = 2,
+        PLAYER_ACTOR_RELOAD_CANCEL_MOVEMENT_STOPPED  = 0,
+        PLAYER_ACTOR_RELOAD_CANCEL_MOVEMENT_BACKWARD = 2,
+        PLAYER_ACTOR_RELOAD_CANCEL_MOVEMENT_FORWARD  = 3,
+        PLAYER_ACTOR_RELOAD_CANCEL_TURN_MOVING       = 1,
+        PLAYER_ACTOR_RELOAD_CANCEL_TURN_IDLE         = 3,
+        PLAYER_ACTOR_RELOAD_PHASE_LOADED             = 100,
+        PLAYER_ACTOR_RELOAD_TIMER_EXPIRED            = -1,
+        PLAYER_ACTOR_MONGOOSE_RELOAD_DELAY_TICKS     = 10,
+        PLAYER_ACTOR_RELOAD_CANCEL_AIM_STATE         = 2,
+        PLAYER_ACTOR_RELOAD_CANCEL_IDLE_SET          = 9,
+        PLAYER_ACTOR_RELOAD_CANCEL_FORWARD_SET       = 12,
+        PLAYER_ACTOR_RELOAD_CANCEL_TURN_SET          = 13,
+        PLAYER_ACTOR_RELOAD_CANCEL_BLEND_FRAMES      = 6,
+        PLAYER_ACTOR_RELOAD_SOUND_WEAPON_SHIFT       = 16,
+        PLAYER_ACTOR_RELOAD_SOUND_VARIANT_SHIFT      = 24,
+        PLAYER_ACTOR_RELOAD_SOUND_START              = SOUND_WEAPON(0, 2),
+        PLAYER_ACTOR_RELOAD_SOUND_LOAD               = SOUND_WEAPON(0, 3),
+        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_FIRST_CUE  = SOUND_WEAPON(0, 8),
+        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_SECOND_CUE = SOUND_WEAPON(0, 5),
+        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_LOADED_CUE = SOUND_WEAPON(0, 9),
+        PLAYER_ACTOR_GRENADE_RELOAD_SOUND_VARIANTS   = 3,
+        PLAYER_ACTOR_RELOAD_WEAPON_M950              = 3,
+        PLAYER_ACTOR_RELOAD_WEAPON_MONGOOSE          = 9,
+        PLAYER_ACTOR_RELOAD_WEAPON_GRENADE_PISTOL    = 11,
+        PLAYER_ACTOR_RELOAD_WEAPON_MM1               = 12,
+        PLAYER_ACTOR_RELOAD_WEAPON_PA3               = 13,
+        PLAYER_ACTOR_RELOAD_WEAPON_SP12              = 14,
+        PLAYER_ACTOR_RELOAD_WEAPON_AS12              = 15,
+        PLAYER_ACTOR_RELOAD_WEAPON_M4A1              = 16,
+        PLAYER_ACTOR_RELOAD_WEAPON_M249              = 17,
+        PLAYER_ACTOR_RELOAD_WEAPON_TONFA_BATON       = 19,
+        PLAYER_ACTOR_RELOAD_WEAPON_M4A1_P1           = 20,
+        PLAYER_ACTOR_RELOAD_WEAPON_M4A1_P2           = 21,
+        PLAYER_ACTOR_RELOAD_WEAPON_M4A1_BAYONET      = 26,
+        PLAYER_ACTOR_RELOAD_WEAPON_M4A1_GRENADE      = 27,
+        PLAYER_ACTOR_RELOAD_WEAPON_M4A1_JAVELIN      = 29,
+    };
+    GameActor*             actor;
+    GameActor*             aimActor;
+    const AnimationRecord* record;
+    GfxCoord*              weaponCoord;
+    s32                    weaponSoundBits;
+    s32                    loadCompleted;
+    s32                    setIndex;
+    s32                    turnRateIndex;
+    s32                    movementSign;
+    s32                    suppressEffect;
+    s32                    cueSoundBits;
+    s32                    ticksRemaining;
+    s32                    phase;
+    u8                     consumableItemId;
+    u16                    nextPhase;
+    s32                    soundBits;
+
+    actor               = task->work;
+    loadCompleted       = 0;
+    weaponCoord         = actor->equipmentTasks[1]->extra.tmd->coords;
+    weaponSoundBits     = gPlayerStatus.weapon << PLAYER_ACTOR_RELOAD_SOUND_WEAPON_SHIFT;
     actor->movementSign = 0;
-    _playerActorWriteWeaponSoundVariant(&variant);
-    if (actor->actionValue != 2 && (actor->padPressed & 0x40) && actor->statePhase != 0x64) {
+    _playerActorWriteWeaponSoundVariant(&soundBits);
+    if (actor->actionValue != PLAYER_ACTOR_RELOAD_BATTLE_END && (actor->padPressed & PAD_BUTTON_CROSS) && actor->statePhase != PLAYER_ACTOR_RELOAD_PHASE_LOADED) {
         actor->reloadEffectSuppressed = 1;
-        inner                         = arg0->work;
-        inner->mode                   = GAME_ACTOR_MODE_NORMAL;
-        inner->state                  = 2;
-        inner->movementMode           = 0;
-        if (inner->movementSign != 0) {
-            temp = 1;
+        aimActor                      = task->work;
+        aimActor->mode                = GAME_ACTOR_MODE_NORMAL;
+        aimActor->state               = PLAYER_ACTOR_RELOAD_CANCEL_AIM_STATE;
+        aimActor->movementMode        = PLAYER_ACTOR_RELOAD_CANCEL_MOVEMENT_STOPPED;
+        if (aimActor->movementSign != 0) {
+            turnRateIndex = PLAYER_ACTOR_RELOAD_CANCEL_TURN_MOVING;
         } else {
-            temp = 3;
+            turnRateIndex = PLAYER_ACTOR_RELOAD_CANCEL_TURN_IDLE;
         }
-        inner->turnRateIndex  = temp;
-        inner->animationState = 0;
-        inner->statePhase     = 0;
+        aimActor->turnRateIndex  = turnRateIndex;
+        aimActor->animationState = 0;
+        aimActor->statePhase     = PLAYER_ACTOR_RELOAD_PHASE_START;
         if (gPlayerStatus.statusFlags & PLAYER_STATUS_DARKNESS) {
-            playerActorClearLockTarget(arg0);
-            inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
+            playerActorClearLockTarget(task);
+            aimActor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_DECAY;
         } else {
-            inner->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
+            aimActor->aimTrackingState = GAME_ACTOR_AIM_TRACKING_TARGET;
         }
-        temp = inner->movementSign;
-        if (temp == 0) {
-            if (inner->turnSign != 0) {
-                mode = 0xD;
+        movementSign = aimActor->movementSign;
+        if (movementSign == 0) {
+            if (aimActor->turnSign != 0) {
+                setIndex = PLAYER_ACTOR_RELOAD_CANCEL_TURN_SET;
             } else {
-                mode = 9;
+                setIndex = PLAYER_ACTOR_RELOAD_CANCEL_IDLE_SET;
             }
-        } else if (temp == 1) {
-            mode                    = 0xC;
-            inner->movementMode     = 3;
-            inner->aimTrackingState = temp;
+        } else if (movementSign == 1) {
+            setIndex                   = PLAYER_ACTOR_RELOAD_CANCEL_FORWARD_SET;
+            aimActor->movementMode     = PLAYER_ACTOR_RELOAD_CANCEL_MOVEMENT_FORWARD;
+            aimActor->aimTrackingState = movementSign;
         } else {
-            inner->movementMode = 2;
-            mode                = 0xD;
+            aimActor->movementMode = PLAYER_ACTOR_RELOAD_CANCEL_MOVEMENT_BACKWARD;
+            setIndex               = PLAYER_ACTOR_RELOAD_CANCEL_TURN_SET;
         }
-        playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 6);
+        playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_RELOAD_CANCEL_BLEND_FRAMES);
         return;
     }
 
+    // Weapons use distinct cue sequences; only their loading cues apply ammunition.
     switch (gPlayerStatus.weapon) {
-        case 3:
-        case 17:
-            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-            if (rec != NULL && rec != actor->lastCueRecord) {
-                actor->lastCueRecord = rec;
-                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    if (actor->statePhase == 0) {
-                        actor->statePhase = 1;
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000002, 0);
+        case PLAYER_ACTOR_RELOAD_WEAPON_M950:
+        case PLAYER_ACTOR_RELOAD_WEAPON_M249:
+            if (PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actor, record)) {
+                if ((record->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                    if (actor->statePhase == PLAYER_ACTOR_RELOAD_PHASE_START) {
+                        actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE;
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | PLAYER_ACTOR_RELOAD_SOUND_START, 0);
                     } else {
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
-                        done              = 1;
-                        actor->statePhase = 0x64;
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | PLAYER_ACTOR_RELOAD_SOUND_LOAD, 0);
+                        loadCompleted     = 1;
+                        actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
                     }
                 }
             }
             break;
-        case 9:
+        case PLAYER_ACTOR_RELOAD_WEAPON_MONGOOSE:
             switch (actor->statePhase) {
-                case 0:
-                    actor->statePhase = 1;
-                    actor->stateTimer = 0xA;
+                case PLAYER_ACTOR_RELOAD_PHASE_START:
+                    actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE;
+                    actor->stateTimer = PLAYER_ACTOR_MONGOOSE_RELOAD_DELAY_TICKS;
                     /* fallthrough */
-                case 1:
-                    tick              = actor->stateTimer - 1;
-                    actor->stateTimer = tick;
-                    if (tick == -1) {
+                case PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE:
+                    ticksRemaining    = actor->stateTimer - 1;
+                    actor->stateTimer = ticksRemaining;
+                    if (ticksRemaining == PLAYER_ACTOR_RELOAD_TIMER_EXPIRED) {
                         actor->statePhase += 1;
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000002, 0);
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | PLAYER_ACTOR_RELOAD_SOUND_START, 0);
                         if (actor->reloadEffectSuppressed == 0) {
-                            effectSpawn(EFFECT_RELOAD_CASINGS_DROP, coord, 0, NULL);
+                            effectSpawn(EFFECT_RELOAD_CASINGS_DROP, weaponCoord, 0, NULL);
                         }
                     }
                     break;
-                case 2:
-                case 0x64:
-                    rec = animationGetCurrentRecord(&actor->animationContext,
-                                                    actor->animationSlots + 1);
-                    if (rec != NULL && rec != actor->lastCueRecord) {
-                        actor->lastCueRecord = rec;
-                        if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                            worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
-                            done                          = 1;
+                case PLAYER_ACTOR_MONGOOSE_RELOAD_PHASE_WAIT_LOAD:
+                case PLAYER_ACTOR_RELOAD_PHASE_LOADED:
+                    if (PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actor, record)) {
+                        if ((record->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                            worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | PLAYER_ACTOR_RELOAD_SOUND_LOAD, 0);
+                            loadCompleted                 = 1;
                             actor->reloadEffectSuppressed = 0;
-                            actor->statePhase             = 0x64;
+                            actor->statePhase             = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
                         }
                     }
                     break;
             }
             break;
-        case 11:
-            if (actor->statePhase == 0) {
-                actor->statePhase = 1;
-                flags             = 0x20000002;
-                worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
+        case PLAYER_ACTOR_RELOAD_WEAPON_GRENADE_PISTOL:
+            if (actor->statePhase == PLAYER_ACTOR_RELOAD_PHASE_START) {
+                actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE;
+                cueSoundBits      = PLAYER_ACTOR_RELOAD_SOUND_START;
+                worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | (soundBits | cueSoundBits), 0);
             } else {
-                rec = animationGetCurrentRecord(&actor->animationContext,
-                                                actor->animationSlots + 1);
-                if (rec != NULL && rec != actor->lastCueRecord) {
-                    actor->lastCueRecord = rec;
-                    if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                        flags = 0x20000003;
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
-                        done              = 1;
-                        actor->statePhase = 0x64;
+                if (PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actor, record)) {
+                    if ((record->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                        cueSoundBits = PLAYER_ACTOR_RELOAD_SOUND_LOAD;
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | (soundBits | cueSoundBits), 0);
+                        loadCompleted     = 1;
+                        actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
                     }
                 }
             }
             break;
-        case 12:
-            if (actor->statePhase == 0) {
-                temp              = actor->reloadEffectSuppressed;
-                actor->statePhase = 1;
-                if (temp == 0) {
-                    effectSpawn(EFFECT_RELOAD_EMITTER, coord, (s32)gPlayerStatus.weapon, NULL);
+        case PLAYER_ACTOR_RELOAD_WEAPON_MM1:
+            if (actor->statePhase == PLAYER_ACTOR_RELOAD_PHASE_START) {
+                suppressEffect    = actor->reloadEffectSuppressed;
+                actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE;
+                if (suppressEffect == 0) {
+                    effectSpawn(EFFECT_RELOAD_EMITTER, weaponCoord, (s32)gPlayerStatus.weapon, NULL);
                 }
             }
-            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-            if (rec != NULL && rec != actor->lastCueRecord) {
-                actor->lastCueRecord = rec;
-                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    flags = 0x20000003;
-                    worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
-                    done                          = 1;
+            if (PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actor, record)) {
+                if ((record->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                    cueSoundBits = PLAYER_ACTOR_RELOAD_SOUND_LOAD;
+                    worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | (soundBits | cueSoundBits), 0);
+                    loadCompleted                 = 1;
                     actor->reloadEffectSuppressed = 0;
-                    actor->statePhase             = 0x64;
+                    actor->statePhase             = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
                 }
             }
             break;
-        case 13:
-        case 14:
-        case 23:
-            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-            if (rec != NULL && rec != actor->lastCueRecord) {
-                actor->lastCueRecord = rec;
-                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    if (actor->statePhase == 0) {
-                        flags = 0x20000003;
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
-                        done              = 1;
-                        actor->statePhase = 0x64;
+        case PLAYER_ACTOR_RELOAD_WEAPON_PA3:
+        case PLAYER_ACTOR_RELOAD_WEAPON_SP12:
+        case PLAYER_ACTOR_WEAPON_GUNBLADE:
+            if (PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actor, record)) {
+                if ((record->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                    if (actor->statePhase == PLAYER_ACTOR_RELOAD_PHASE_START) {
+                        cueSoundBits = PLAYER_ACTOR_RELOAD_SOUND_LOAD;
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | (soundBits | cueSoundBits), 0);
+                        loadCompleted     = 1;
+                        actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
                     } else {
-                        flags = 0x20000002;
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                        cueSoundBits = PLAYER_ACTOR_RELOAD_SOUND_START;
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | (soundBits | cueSoundBits), 0);
                     }
                 }
             }
             break;
-        case 15:
-            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-            if (rec != NULL && rec != actor->lastCueRecord) {
-                actor->lastCueRecord = rec;
-                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+        case PLAYER_ACTOR_RELOAD_WEAPON_AS12:
+            if (PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actor, record)) {
+                if ((record->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
                     switch (actor->statePhase) {
-                        case 0:
-                            actor->statePhase = 1;
-                            flags             = 0x20000003;
-                            worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                        case PLAYER_ACTOR_RELOAD_PHASE_START:
+                            actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE;
+                            cueSoundBits      = PLAYER_ACTOR_RELOAD_SOUND_LOAD;
+                            worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | (soundBits | cueSoundBits), 0);
                             break;
-                        case 1:
-                            flags = 0x20000003;
-                            worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
-                            done              = 1;
-                            actor->statePhase = 0x64;
+                        case PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE:
+                            cueSoundBits = PLAYER_ACTOR_RELOAD_SOUND_LOAD;
+                            worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | (soundBits | cueSoundBits), 0);
+                            loadCompleted     = 1;
+                            actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
                             break;
-                        case 0x64:
-                            flags = 0x20000002;
-                            worldCoordPlaySound(arg0->extra.tmd->coords, base | (variant | flags), 0);
+                        case PLAYER_ACTOR_RELOAD_PHASE_LOADED:
+                            cueSoundBits = PLAYER_ACTOR_RELOAD_SOUND_START;
+                            worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | (soundBits | cueSoundBits), 0);
                             break;
                     }
                 }
             }
             break;
-        case 16:
-        case 20:
-        case 21:
-        case 25:
-        case 26:
-        case 28:
-        case 29:
-            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-            if (rec != NULL && rec != actor->lastCueRecord) {
-                actor->lastCueRecord = rec;
-                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    if (actor->statePhase == 0) {
-                        actor->statePhase = 1;
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
+        case PLAYER_ACTOR_RELOAD_WEAPON_M4A1:
+        case PLAYER_ACTOR_RELOAD_WEAPON_M4A1_P1:
+        case PLAYER_ACTOR_RELOAD_WEAPON_M4A1_P2:
+        case PLAYER_ACTOR_WEAPON_HAMMER:
+        case PLAYER_ACTOR_RELOAD_WEAPON_M4A1_BAYONET:
+        case PLAYER_ACTOR_WEAPON_PYKE:
+        case PLAYER_ACTOR_RELOAD_WEAPON_M4A1_JAVELIN:
+            if (PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actor, record)) {
+                if ((record->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                    if (actor->statePhase == PLAYER_ACTOR_RELOAD_PHASE_START) {
+                        actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE;
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | PLAYER_ACTOR_RELOAD_SOUND_LOAD, 0);
                     } else {
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
-                        done              = 1;
-                        actor->statePhase = 0x64;
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | PLAYER_ACTOR_RELOAD_SOUND_LOAD, 0);
+                        loadCompleted     = 1;
+                        actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
                     }
                 }
             }
             break;
-        case 19:
+        case PLAYER_ACTOR_RELOAD_WEAPON_TONFA_BATON:
             break;
-        case 27:
-            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-            if (rec != NULL && rec != actor->lastCueRecord) {
-                actor->lastCueRecord = rec;
-                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    item = equipmentGetWeaponLoad(gPlayerStatus.weapon + 0x7F)->secondaryItemId;
-                    if (item - 0x9F > 0) {
-                        variant = ((item - 0xA0) % 3) << 24;
+        case PLAYER_ACTOR_RELOAD_WEAPON_M4A1_GRENADE:
+            if (PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actor, record)) {
+                if ((record->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                    consumableItemId = equipmentGetWeaponLoad(gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId;
+                    if (consumableItemId - (INVENTORY_CONSUMABLE_ITEM_FIRST - 1) > 0) {
+                        soundBits = ((consumableItemId - INVENTORY_CONSUMABLE_ITEM_FIRST) % PLAYER_ACTOR_GRENADE_RELOAD_SOUND_VARIANTS) << PLAYER_ACTOR_RELOAD_SOUND_VARIANT_SHIFT;
                     }
-                    variant = base | variant;
+                    // Retain one accumulator for the variant and the full sound request.
+                    soundBits = weaponSoundBits | soundBits;
                     if (actor->stateAux != 0) {
-                        step = actor->statePhase;
-                        if (step == 0) {
-                            variant |= 0x20000008;
-                        } else if (step == 1) {
-                            variant |= 0x20000005;
-                        } else if (step == 0x64) {
-                            variant |= 0x20000009;
+                        phase = actor->statePhase;
+                        if (phase == PLAYER_ACTOR_RELOAD_PHASE_START) {
+                            soundBits |= PLAYER_ACTOR_GRENADE_RELOAD_SOUND_FIRST_CUE;
+                        } else if (phase == PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE) {
+                            soundBits |= PLAYER_ACTOR_GRENADE_RELOAD_SOUND_SECOND_CUE;
+                        } else if (phase == PLAYER_ACTOR_RELOAD_PHASE_LOADED) {
+                            soundBits |= PLAYER_ACTOR_GRENADE_RELOAD_SOUND_LOADED_CUE;
                         }
-                        worldCoordPlaySound(arg0->extra.tmd->coords, variant, 0);
+                        worldCoordPlaySound(task->extra.tmd->coords, soundBits, 0);
                     } else {
-                        worldCoordPlaySound(arg0->extra.tmd->coords, variant | 0x20000003, 0);
+                        worldCoordPlaySound(task->extra.tmd->coords, soundBits | PLAYER_ACTOR_RELOAD_SOUND_LOAD, 0);
                     }
-                    next              = actor->statePhase + 1;
-                    actor->statePhase = next;
-                    if (next == 2) {
-                        done              = 1;
-                        actor->statePhase = 0x64;
+                    nextPhase         = actor->statePhase + 1;
+                    actor->statePhase = nextPhase;
+                    if (nextPhase == PLAYER_ACTOR_GRENADE_RELOAD_CUE_COUNT) {
+                        loadCompleted     = 1;
+                        actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
                     }
                 }
             }
             break;
         default:
-            if (actor->statePhase == 0) {
-                actor->statePhase = 1;
-                worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000002, 0);
+            if (actor->statePhase == PLAYER_ACTOR_RELOAD_PHASE_START) {
+                actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_WAIT_CUE;
+                worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | PLAYER_ACTOR_RELOAD_SOUND_START, 0);
             } else {
-                rec = animationGetCurrentRecord(&actor->animationContext,
-                                                actor->animationSlots + 1);
-                if (rec != NULL && rec != actor->lastCueRecord) {
-                    actor->lastCueRecord = rec;
-                    if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                        worldCoordPlaySound(arg0->extra.tmd->coords, base | 0x20000003, 0);
-                        done              = 1;
-                        actor->statePhase = 0x64;
+                if (PLAYER_ACTOR_CONSUME_RELOAD_RECORD(actor, record)) {
+                    if ((record->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                        worldCoordPlaySound(task->extra.tmd->coords, weaponSoundBits | PLAYER_ACTOR_RELOAD_SOUND_LOAD, 0);
+                        loadCompleted     = 1;
+                        actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_LOADED;
                     }
                 }
             }
             break;
     }
-    if (done != 0) {
-        if (actor->actionValue != 0) {
-            equipmentLoadPendingConsumable(gPlayerStatus.weapon + 0x7F, actor->stateAux);
+    if (loadCompleted != 0) {
+        if (actor->actionValue != PLAYER_ACTOR_RELOAD_AUTOMATIC) {
+            equipmentLoadPendingConsumable(gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1), actor->stateAux);
         } else {
-            equipmentReloadSelectedWeaponConsumable(gPlayerStatus.weapon + 0x7F, actor->stateAux);
+            equipmentReloadSelectedWeaponConsumable(gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1), actor->stateAux);
         }
     }
-    _playerActorUpdateLockTargetFromPad(arg0);
+    _playerActorUpdateLockTargetFromPad(task);
 }
+#undef PLAYER_ACTOR_CONSUME_RELOAD_RECORD
 
 /// Resumes normal-mode aim locomotion after a Parasite Energy action.
 ///
@@ -8953,8 +9050,11 @@ static void _playerActorUpdateParalysis(Task* task)
 
 /// Adds one active tick's stair velocity to the model root in its parent frame.
 ///
-/// Borrows distinct live root and velocity storage, in game-coordinate units.
-/// Leaves the composition stamp for the surrounding actor frame to invalidate.
+/// Borrows a live root and three readable s32 displacement components, in
+/// whole game-coordinate units per active tick in the root's parent frame.
+/// Each signed translation sum must fit s32. Retains neither pointer and leaves
+/// the composition stamp intact; the actor frame must invalidate it before
+/// using the root's cached matrix after this update.
 static inline void _playerActorApplyStairVelocity(GfxCoord* rootCoord, const VECTOR3* velocity)
 {
     rootCoord->coord.t[0] += velocity->vx;
@@ -9209,8 +9309,9 @@ void playerActorTickScriptedMoveTo(Task* task)
 
 /// Starts normal-mode aim exit after scripted firing loses its engaged battle.
 ///
-/// Borrows task's live actor/native playback, stops displacement, selects the
-/// return-to-locomotion controller and blends aim-exit set 8 for six frames.
+/// actor must be task->work with live native playback resources. Stops movement,
+/// selects the return-to-locomotion controller and blends aim-exit set 8 for six
+/// whole normal-rate frames. Retains neither pointer.
 /// Clears the target after starting the clip, preserving transition ordering.
 static inline void _playerActorBeginScriptedAttackAimExit(Task* task, GameActor* actor)
 {
@@ -9892,19 +9993,26 @@ static const TaskFuncTable4 Gp_PlayerMode1States = { {
     _playerActorDamageHitRegion3,
 } };
 
-static void Gp_TickPlayerMode1(Task* arg0)
+/// Dispatches a damage reaction, then advances animation, facing and movement.
+///
+/// Requires live GameActor/model and the selected reaction's resources.
+/// hitRegion must be 0..3: 0..2 run damage presentation, 3 is an empty handler.
+/// The selector is interpreted as u16; GameActor.state is not used here.
+static void _playerActorTickDamage(Task* task)
 {
     TaskFuncTable4 handlers;
+    GameActor*     actor;
 
     handlers = Gp_PlayerMode1States;
-    handlers.funcs[(u16)((GameActor*)arg0->work)->hitRegion](arg0);
-    playerActorTickAnimationState(arg0);
-    playerActorTickChildSlots(arg0);
-    playerActorUpdateFacing(arg0);
-    playerActorStepMovement(arg0);
+    actor    = task->work;
+    handlers.funcs[(u16)actor->hitRegion](task);
+    playerActorTickAnimationState(task);
+    playerActorTickChildSlots(task);
+    playerActorUpdateFacing(task);
+    playerActorStepMovement(task);
 }
 
-/// `state` dispatcher copied by `Gp_TickPlayerMode2`.
+/// `state` dispatcher copied by `_playerActorTickScripted`.
 static const TaskFuncTable12 Gp_PlayerMode2States = { {
     playerActorScriptedState0,
     playerActorTickScriptedAnimation,
@@ -9920,18 +10028,25 @@ static const TaskFuncTable12 Gp_PlayerMode2States = { {
     _playerActorTickScriptedItemUse,
 } };
 
-static void Gp_TickPlayerMode2(Task* arg0)
+/// Dispatches the player's scripted action and updates facing.
+///
+/// Requires live actor/model and playback/resources for the selected state
+/// (0..11). Each handler owns its animation and movement stepping. At zero HP,
+/// restores the native weapon bank and requests the death pose unless the
+/// post-handler state is scripted attack (10); that handler retains control.
+static void _playerActorTickScripted(Task* task)
 {
-    GameActor*      inner;
-    TaskFuncTable12 sp;
+    enum { PLAYER_ACTOR_SCRIPTED_DEATH_POSE_BLEND_FRAMES = 4 };
+    GameActor*      actor;
+    TaskFuncTable12 states;
 
-    sp    = Gp_PlayerMode2States;
-    inner = arg0->work;
-    sp.funcs[inner->state](arg0);
-    playerActorUpdateFacing(arg0);
-    if (gPlayerStatus.hp <= 0 && inner->state != 0xA) {
-        _animationBindPlayerWeaponBank(arg0);
-        playerActorEnterStoppedPose(arg0, 4);
+    states = Gp_PlayerMode2States;
+    actor  = task->work;
+    states.funcs[actor->state](task);
+    playerActorUpdateFacing(task);
+    if (gPlayerStatus.hp <= 0 && actor->state != PLAYER_ACTOR_SCRIPTED_ATTACK_STATE) {
+        _animationBindPlayerWeaponBank(task);
+        playerActorEnterStoppedPose(task, PLAYER_ACTOR_SCRIPTED_DEATH_POSE_BLEND_FRAMES);
     }
 }
 
