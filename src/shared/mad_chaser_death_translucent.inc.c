@@ -1,7 +1,13 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
 #ifdef MAD_CHASER_SHRINK_DEATH_TRANSLUCENT_HANDLER
-/// Enters the translucent, shadowless phase of scripted shrink death.
+/// Selects translucent drawing without limb shadows for the scripted death shrink.
+///
+/// Requires the same live enemy's work block and model in shrink-death behavior 4,
+/// after the caller has counted 24 frames with actors running. Resets
+/// `stateFrames` to count the subsequent shrink frames and advances behavior to
+/// 5, whose handler shrinks the saved root transform. Both pointers are borrowed;
+/// the task owns their storage throughout the shrink.
 static __inline__ void _madChaserShrinkDeathEnterTranslucentPhase(MadChaserWork* work, TmdObject* model)
 {
     model->flags      |= TMD_OBJECT_SEMI_TRANS;
