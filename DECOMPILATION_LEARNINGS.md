@@ -69407,7 +69407,7 @@ before its use — especially one that captured a delay slot — is an aliasing
 result, not a scheduling preference. Check the declaration's type before
 touching statement order.
 
-## Entry constant moved after sched1 changes tail scheduling (actor_403100 801359DC)
+## Entry constant moved after sched1 changes tail scheduling (_actor403100BeginSceneTurn)
 
 A named s32 initialized to 16 at function entry and used only by a later HI
 store can survive through sched1 outside the tail block, then move directly
@@ -69419,7 +69419,7 @@ local a1 home (15-insn span), versus v0/13 with a tail initializer. Port base_4
 matched exactly; moving only initialization back to the tail in base_5 restored
 94.538%, as predicted. Do not infer quantity rank from those per-pseudo spans.
 
-Evidence and exact inputs: tools/permuter_findings/func_actor_403100_801359DC/;
+Evidence and exact inputs: retained `_actor403100BeginSceneTurn` permuter findings;
 PERMUTER_ANALYSIS.md and retained base_4/base_5 dumps. Router input SHA256
 b0a6868af49b3af36f5cfbe7d410eb1ef174d4602176633e0853e1b8e72289d3.
 Exact dump: entry r85=16 survives combine/sched; local allocation moves it to
@@ -142394,7 +142394,7 @@ splat may still fail to pair some `%lo` uses with such a distant `%hi`; declare
 those in the package's `relocs` file (`configs/USA/rel.<package>.txt`) so the
 objdiff target carries the relocation too.
 
-## A constant stored into an inlined helper's local keeps the helper's frame base alive (func_actor_403100_80136830)
+## A constant stored into an inlined helper's local keeps the helper's frame base alive (_actor403100StepFight)
 
 When `integrate.c` copies an inlined insn it substitutes known constants into
 the address *and* the stored value as one change group. `(set (mem ...)

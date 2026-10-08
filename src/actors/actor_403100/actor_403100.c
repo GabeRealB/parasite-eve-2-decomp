@@ -1447,7 +1447,7 @@ static void _actor403100SaveHoldPose(Task* task);
 
 static void _actor403100RestoreHoldPose(Task* task);
 
-static void func_actor_403100_80136830(Task* arg0);
+static void _actor403100StepFight(Task* task);
 
 static void _actor403100WaitForPlayerInAttackRange(Task* task);
 
@@ -1596,38 +1596,38 @@ static void            _actor403100StepSceneAdvanceImpact(Task* task);
 static void            _actor403100BeginSceneFlameBreath(Task* task);
 static void            _actor403100StepSceneFlameBreath(Task* task);
 static void            _actor403100StepSceneBalconyImpact(Task* task);
-static void            func_actor_403100_801359DC(Task* arg0);
+static void            _actor403100BeginSceneTurn(Task* task);
 static void            _actor403100StepSceneTurn(Task* task);
-static void            func_actor_403100_80135C00(Task* arg0);
-static void            func_actor_403100_80135F30(Task* arg0);
+static void            _actor403100StepSceneFlameRetreatBursts(Task* task);
+static void            _actor403100StepSceneFlameRetreatRecovery(Task* task);
 static void            _actor403100Initialize(Task* task);
 static inline void     _actor403100StepPlayerReaction(void);
 static inline void     _actor403100TurnForearmInline(Task* task);
 static inline void     _actor403100ApplyJawAndHeadPitch(Task* task);
 static void            _actor403100BeginArmSwingCombo(Task* task);
-static void            func_actor_403100_801376D8(Task* arg0);
-static void            func_actor_403100_801379B4(Task* arg0);
+static void            _actor403100StepFirstArmSwing(Task* task);
+static void            _actor403100StepRepeatedArmSwing(Task* task);
 static void            _actor403100FinishArmSwingCombo(Task* task);
 static void            _actor403100BeginAimedFlameAttack(Task* task);
-static void            func_actor_403100_80138048(Task* arg0);
+static void            _actor403100StepAimedFlameBreath(Task* task);
 static void            _actor403100CrouchForJumpSlam(Task* task);
 static void            _actor403100AccelerateJumpSlam(Task* task);
 static void            _actor403100DecelerateJumpSlam(Task* task);
-static void            func_actor_403100_80138844(Task* arg0);
+static void            _actor403100DescendJumpSlam(Task* task);
 static void            _actor403100StepJumpSlamImpact(Task* task);
 static void            _actor403100FinishJumpSlamRecovery(Task* task);
 static void            _actor403100BeginGrabAndSqueeze(Task* task);
 static void            _actor403100StepGrabAndSqueezeReach(Task* task);
 static void            _actor403100BeginHeldPlayerSqueeze(Task* task);
-static void            func_actor_403100_8013922C(Task* arg0);
+static void            _actor403100StepHeldPlayerSqueeze(Task* task);
 static void            _actor403100PrepareHeldPlayerFlameBreath(Task* task);
-static void            func_actor_403100_80139818(Task* arg0);
+static void            _actor403100StepHeldPlayerFlameBreath(Task* task);
 static void            _actor403100RecoverHeldPlayerFromFlameBreath(Task* task);
 static void            _actor403100ThrowHeldPlayer(Task* task);
-static void            func_actor_403100_8013A254(Task* task);
+static void            _actor403100FinishHeldPlayerThrow(Task* task);
 static void            _actor403100BeginSideFlameAttack(Task* task);
 static void            _actor403100StepGrabAndDragReach(Task* task);
-static void            func_actor_403100_8013AE28(Task* task);
+static void            _actor403100FinishPlayerDrag(Task* task);
 static inline void     _actor403100StepApproachRoot(TmdObject* model, GfxCoord* rootCoord);
 static inline s32      _actor403100PointToWorld(const GfxCoord* coord, SVECTOR* point);
 static inline void     _actor403100RequestAnimationBlendInline(s16 animationId, s16 rate, s16 blendFrames);
@@ -2562,9 +2562,16 @@ static inline void _actor403100RequestAnimationReset(s16 animationId)
 /// Advances the Burner's vertical screen shake and its wrapping halfword timer.
 ///
 /// Requires live singleton work and display state. The shared display frame
-/// selects an eight-tick sine wave; the final fifteen ticks use half amplitude.
+/// selects an eight-tick sine wave: offsets reach two display units at timer
+/// values >= 16, and one unit otherwise. Only a running caller spends a tick;
+/// zero clears the display offset. The signed timer retains its low halfword.
 static inline void _actor403100StepScreenShake(void)
 {
+    enum {
+        ACTOR_403100_SHAKE_STRONG_SHIFT = 13,
+        ACTOR_403100_SHAKE_WEAK_SHIFT   = 12,
+        ACTOR_403100_SHAKE_OUTPUT_SHIFT = 24,
+    };
     enum { ACTOR_403100_SHAKE_WEAK_THRESHOLD = 16,
            ACTOR_403100_SHAKE_PHASE_SHIFT    = 9 };
     s32 shakeFrames;
@@ -2573,11 +2580,11 @@ static inline void _actor403100StepScreenShake(void)
     shakeFrames = D_actor_403100_80155808->shakeFrames;
     if (shakeFrames != 0) {
         if (shakeFrames >= ACTOR_403100_SHAKE_WEAK_THRESHOLD) {
-            shakeWave = rsin(gDisplayState.animFrame << ACTOR_403100_SHAKE_PHASE_SHIFT) << 13;
+            shakeWave = rsin(gDisplayState.animFrame << ACTOR_403100_SHAKE_PHASE_SHIFT) << ACTOR_403100_SHAKE_STRONG_SHIFT;
         } else {
-            shakeWave = rsin(gDisplayState.animFrame << ACTOR_403100_SHAKE_PHASE_SHIFT) << 12;
+            shakeWave = rsin(gDisplayState.animFrame << ACTOR_403100_SHAKE_PHASE_SHIFT) << ACTOR_403100_SHAKE_WEAK_SHIFT;
         }
-        displaySetShakeY(shakeWave >> 24);
+        displaySetShakeY(shakeWave >> ACTOR_403100_SHAKE_OUTPUT_SHIFT);
         D_actor_403100_80155808->shakeFrames = (u16)D_actor_403100_80155808->shakeFrames - 1;
     } else {
         displaySetShakeY(0);
@@ -3385,36 +3392,40 @@ static void _actor403100StepSceneBalconyImpact(Task* task)
         D_actor_403100_80155808->subState += 1;
     }
 }
-static void func_actor_403100_801359DC(Task* arg0)
+/// Places the Burner and restarts the scripted turn after releasing the breath.
+///
+/// Requires live singleton work/model, initialized flames and loaded balcony
+/// updates. Sets root-parent position (-900, 0, 4400), forearm X -2055 and
+/// Q12 scale 1.25; restarts clip 19, clears the timer and advances the substate.
+/// The enclosing scene dispatcher advances animation and applies scale.
+static void _actor403100BeginSceneTurn(Task* task)
 {
-    GfxCoord*        coord;
-    GfxCoord*        joint;
-    s32              i;
+    enum {
+        ACTOR_403100_SCENE_TURN_CLIP      = 19,
+        ACTOR_403100_SCENE_TURN_SCALE_Q12 = ONE * 5 / 4,
+    };
+    GfxCoord*        rootCoord;
+    GfxCoord*        forearmCoord;
     Actor403100Work* work;
-    s32              value;
+    s32              initialAnimationRate;
 
-    value                   = 0x10;
+    initialAnimationRate    = ANIMATION_RATE_ONE;
     D_actor_403100_80155810 = 0;
-    coord                   = arg0->extra.tmd->coords;
-    joint                   = &coord[6];
-    for (i = 0; i < ARRAY_SIZE(D_actor_403100_80155814); i++) {
-        if (D_actor_403100_80155814[i].active != 0) {
-            D_actor_403100_80155814[i].active = 0;
-            worldCollisionUnlinkBody(&D_actor_403100_80155814[i].body);
-        }
-    }
+    rootCoord               = task->extra.tmd->coords;
+    forearmCoord            = &rootCoord[6];
+    _actor403100ReleaseFlames();
     sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
-    joint->coord.t[0]      = -0x807;
-    coord->coord.t[0]      = -0x384;
-    work                   = D_actor_403100_80155808;
-    coord->coord.t[2]      = 0x1130;
-    coord->coord.t[1]      = 0;
-    work->animationRate    = value;
-    work->animationId      = 0x13;
-    work->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-    work->stateFrames      = 0;
-    work->sceneScale       = 0x1400;
-    work->subState        += 1;
+    forearmCoord->coord.t[0] = -0x807;
+    rootCoord->coord.t[0]    = -0x384;
+    work                     = D_actor_403100_80155808;
+    rootCoord->coord.t[2]    = 0x1130;
+    rootCoord->coord.t[1]    = 0;
+    work->animationRate      = initialAnimationRate;
+    work->animationId        = ACTOR_403100_SCENE_TURN_CLIP;
+    work->animationRequest   = ACTOR_403100_ANIMATION_REQUEST_RESET;
+    work->stateFrames        = 0;
+    work->sceneScale         = ACTOR_403100_SCENE_TURN_SCALE_Q12;
+    work->subState          += 1;
     areaApplySavedUpdates(D_dryfield_night_motel_balcony_8018F2CC);
 }
 /// Eases the scene heading toward a negative quarter-turn and plays its timed cue.
@@ -3455,111 +3466,122 @@ static void _actor403100StepSceneTurn(Task* task)
     D_actor_403100_80155808->stateFrames += 1;
 }
 
-static void func_actor_403100_80135C00(Task* arg0)
+/// Emits one scripted balcony flame burst and starts its jaw-positioned breath audio.
+///
+/// Requires the loaded room effects and live Burner enemy/model. The placement
+/// nibble selects the audio instance; jaw pan and half depth narrow to signed
+/// bytes. The caller owns cue timing and the later ten-update sound fade.
+static inline void _actor403100SpawnSceneFlameBurst(Task* task)
 {
-    s32 sound;
-    s32 sound_2;
-    s32 sound_3;
-    s32 sound_4;
-    s32 pan;
-    s32 pan_2;
-    s32 pan_3;
-    s32 pan_4;
-    u16 frame;
-    s32 depth;
-    s32 depth_2;
-    s32 depth_3;
-    s32 depth_4;
+    s32 breathSound;
+    s32 audioPan;
+    s32 audioDepth;
 
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame == 0x1E) {
-        dryfieldNightMotelBalconySpawnFlameBurst();
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound, (s32)pan, (s8)(depth / 2));
+    dryfieldNightMotelBalconySpawnFlameBurst();
+    breathSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_BREATH_SOUND;
+    audioPan    = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+    audioDepth  = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+    sndEvtRequestScriptStart(breathSound, (s32)audioPan, (s8)(audioDepth / 2));
+}
+
+/// Plays the four timed room flame bursts before the scene retreat.
+///
+/// Requires live singleton work, enemy/model and balcony effects, with the timer
+/// cleared. Updates 30, 40, 60 and 90 start a room burst and jaw breath audio;
+/// 34, 48, 63 and 94 fade that audio over ten sound updates. A settled slot-2
+/// clip restarts clip 21, clears the timer and selects retreat recovery.
+static void _actor403100StepSceneFlameRetreatBursts(Task* task)
+{
+    enum {
+        ACTOR_403100_RETREAT_BURST_FIRST_TICK  = 30,
+        ACTOR_403100_RETREAT_FADE_FIRST_TICK   = 34,
+        ACTOR_403100_RETREAT_BURST_SECOND_TICK = 40,
+        ACTOR_403100_RETREAT_FADE_SECOND_TICK  = 48,
+        ACTOR_403100_RETREAT_BURST_THIRD_TICK  = 60,
+        ACTOR_403100_RETREAT_FADE_THIRD_TICK   = 63,
+        ACTOR_403100_RETREAT_BURST_FOURTH_TICK = 90,
+        ACTOR_403100_RETREAT_FADE_FOURTH_TICK  = 94,
+        ACTOR_403100_RETREAT_RECOVERY_CLIP     = 21,
+    };
+    u16 elapsedFrames;
+
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_403100_RETREAT_BURST_FIRST_TICK) {
+        _actor403100SpawnSceneFlameBurst(task);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x22) {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_RETREAT_FADE_FIRST_TICK) {
+        sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x28) {
-        dryfieldNightMotelBalconySpawnFlameBurst();
-        sound_2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
-        pan_2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        depth_2 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound_2, (s32)pan_2, (s8)(depth_2 / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_RETREAT_BURST_SECOND_TICK) {
+        _actor403100SpawnSceneFlameBurst(task);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x30) {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_RETREAT_FADE_SECOND_TICK) {
+        sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x3C) {
-        dryfieldNightMotelBalconySpawnFlameBurst();
-        sound_3 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
-        pan_3   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        depth_3 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound_3, (s32)pan_3, (s8)(depth_3 / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_RETREAT_BURST_THIRD_TICK) {
+        _actor403100SpawnSceneFlameBurst(task);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x3F) {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_RETREAT_FADE_THIRD_TICK) {
+        sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x5A) {
-        dryfieldNightMotelBalconySpawnFlameBurst();
-        sound_4 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
-        pan_4   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        depth_4 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound_4, (s32)pan_4, (s8)(depth_4 / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_RETREAT_BURST_FOURTH_TICK) {
+        _actor403100SpawnSceneFlameBurst(task);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x5E) {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_RETREAT_FADE_FOURTH_TICK) {
+        sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     }
     if (_actor403100Slot2AnimationSettled()) {
-        D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-        D_actor_403100_80155808->animationId      = 0x15;
-        D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        D_actor_403100_80155808->stateFrames      = 0;
-        D_actor_403100_80155808->subState        += 1;
+        _actor403100RequestAnimationReset(ACTOR_403100_RETREAT_RECOVERY_CLIP);
+        D_actor_403100_80155808->stateFrames = 0;
+        D_actor_403100_80155808->subState   += 1;
     }
 }
-static void func_actor_403100_80135F30(Task* arg0)
+/// Finishes the scene flame cues and blends into the retreat walk.
+///
+/// Requires live singleton work, enemy/model and balcony effects, with the timer
+/// cleared. Bursts at update 10, fades breath at 14 and sounds the jaw at 38.
+/// A settled slot-2 clip blends to clip 22 over 24 animation frames at 1.5x
+/// rate, resets the stride/timer and clears the model ordering-depth offset.
+static void _actor403100StepSceneFlameRetreatRecovery(Task* task)
 {
-    s32        sound;
-    s32        sound2;
-    s32        pan;
-    s32        pan2;
-    u16        frame;
-    s32        depth;
-    s32        depth2;
-    TmdObject* obj;
+    enum {
+        ACTOR_403100_RETREAT_LAST_BURST_TICK   = 10,
+        ACTOR_403100_RETREAT_LAST_FADE_TICK    = 14,
+        ACTOR_403100_RETREAT_JAW_CUE_TICK      = 38,
+        ACTOR_403100_RETREAT_WALK_BLEND_FRAMES = 24,
+        ACTOR_403100_RETREAT_WALK_CLIP         = 22,
+    };
+    s32        jawSound;
+    s32        jawPan;
+    u16        elapsedFrames;
+    s32        jawDepth;
+    TmdObject* model;
 
-    obj                                  = arg0->extra.tmd;
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame == 0xA) {
-        dryfieldNightMotelBalconySpawnFlameBurst();
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        depth = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound, (s32)pan, (s8)(depth / 2));
+    model                                = task->extra.tmd;
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_403100_RETREAT_LAST_BURST_TICK) {
+        _actor403100SpawnSceneFlameBurst(task);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0xE) {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_RETREAT_LAST_FADE_TICK) {
+        sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x26) {
-        sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
-        pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        depth2 = worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound2, (s32)pan2, (s8)(depth2 / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_RETREAT_JAW_CUE_TICK) {
+        jawSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_JAW_IMPACT_SOUND;
+        jawPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+        jawDepth = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+        sndEvtRequestScriptStart(jawSound, jawPan, (s8)(jawDepth / 2));
     }
     if (_actor403100Slot2AnimationSettled()) {
-        D_actor_403100_80155808->animationBlendFrames = 0x18;
-        D_actor_403100_80155808->animationRate        = 0x18;
-        D_actor_403100_80155808->animationId          = 0x16;
+        D_actor_403100_80155808->animationBlendFrames = ACTOR_403100_RETREAT_WALK_BLEND_FRAMES;
+        D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE * 3 / 2;
+        D_actor_403100_80155808->animationId          = ACTOR_403100_RETREAT_WALK_CLIP;
         D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_BLEND;
         D_actor_403100_80155808->stateFrames          = 0;
         D_actor_403100_80155808->stridePhase          = 0;
         D_actor_403100_80155808->subState            += 1;
-        obj->otOffset                                 = 0;
+        model->otOffset                               = 0;
     }
 }
 /// Walks the scene's flame retreat toward negative room Z while turning and bobbing.
@@ -3831,7 +3853,7 @@ static const TaskFuncTable3 D_actor_403100_80131EE4 = {
 /// Steps of the behaviour mode `_actor403100DispatchSceneTurn`, indexed by `subState`.
 static const TaskFuncTable4 D_actor_403100_80131EF0 = {
     {
-        func_actor_403100_801359DC,
+        _actor403100BeginSceneTurn,
         _actor403100StepSceneTurn,
         _actor403100BlendSceneWalk,
         _actor403100WaitAfterSceneTurn,
@@ -3842,8 +3864,8 @@ static const TaskFuncTable4 D_actor_403100_80131EF0 = {
 static const TaskFuncTable4 D_actor_403100_80131F00 = {
     {
         _actor403100BeginSceneFlameRetreat,
-        func_actor_403100_80135C00,
-        func_actor_403100_80135F30,
+        _actor403100StepSceneFlameRetreatBursts,
+        _actor403100StepSceneFlameRetreatRecovery,
         _actor403100StepSceneRetreatWalk,
     },
 };
@@ -3863,7 +3885,7 @@ static const TaskFuncTable6 D_actor_403100_80131F1C = {
     {
         _actor403100Initialize,
         _actor403100StepScene,
-        func_actor_403100_80136830,
+        _actor403100StepFight,
         _actor403100StepDefeat,
         _actor403100BeginTimeoutEvent,
         _actor403100Destroy,
@@ -3956,130 +3978,148 @@ static inline void _actor403100ApplyJawAndHeadPitch(Task* task)
     _actor403100CopyRotation(targetRotation, &rotation);
 }
 
-static void func_actor_403100_80136830(Task* arg0)
+/// Rebuilds the posed head/arm coordinate caches and samples head-origin lighting.
+///
+/// Requires live Burner model coordinates 0..8 and enemy lighting state.
+/// Posing has finished for this update; compose the claw and jaw parent chains
+/// after dirtying their shared prefix, then sample the composed head origin.
+static inline void _actor403100RefreshPosedCoords(Task* task)
 {
-    TaskFuncTable11 stateHandlers;
-    PlayerStatus*   config = &gPlayerStatus;
-    s32             flashTimer;
-    s32             scale;
-    s16             lightTimer;
-    s16             armTimer;
-    s32             countdown;
-    s32             flash;
-    GfxCoord*       side;
-    Task*           player;
-    GfxCoord*       coordinates;
-    GfxCoord*       center;
-    TmdObject*      obj;
-    GfxCoord*       playerCoord;
+    GfxCoord* actorCoords;
+    GfxCoord* jawCoord;
+    GfxCoord* headCoord;
 
-    obj           = arg0->extra.tmd;
-    player        = *gPlayerActorTasks;
+    actorCoords                 = task->extra.tmd->coords;
+    actorCoords[8].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorCoords[7].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorCoords[6].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorCoords[5].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorCoords[4].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorCoords[3].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorCoords[2].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorCoords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorCoords[0].composeStamp = GRAPHICS_COORD_DIRTY;
+    jawCoord                    = actorCoords + 4;
+    headCoord                   = actorCoords + 3;
+    actorRenderComposeCoord(actorCoords + 8);
+    actorRenderComposeCoord(jawCoord);
+    _actor403100UpdateColor(task, headCoord);
+}
+
+/// Runs Burner combat, player hold reactions and the posed-model refresh.
+///
+/// Requires live singleton work/enemy, a player task/model and the loaded balcony.
+/// state indexes eleven combat handlers (0..10); each owns its substate bounds.
+/// The engagement timer advances even when hidden or paused. Running updates
+/// count down the fight, dispatch behavior and apply animation, contacts and
+/// Q12 scale 1.25. Pause keeps the flame/draw refresh; hidden marks drawing skipped.
+/// Death hands off to scene state 9 unless the player also died, restoring 1000 HP.
+static void _actor403100StepFight(Task* task)
+{
+    enum {
+        ACTOR_403100_LOW_HEALTH_PERCENT     = 35,
+        ACTOR_403100_FIGHT_LOW_HEALTH_STATE = 9,
+        ACTOR_403100_SCENE_IDLE_STATE       = 9,
+        ACTOR_403100_FIGHT_SCALE_Q12        = ONE * 5 / 4,
+        ACTOR_403100_SIMULTANEOUS_DEATH_HP  = 1000,
+        ACTOR_403100_TASK_SCENE_DISPATCH    = 1,
+    };
+    TaskFuncTable11 stateHandlers;
+    PlayerStatus*   playerStatus = &gPlayerStatus;
+    s32             rootScaleQ12;
+    s16             hitColorFramesLeft;
+    s16             engageFramesLeft;
+    s32             fightFramesLeft;
+    Task*           playerTask;
+    TmdObject*      model;
+    GfxCoord*       playerRootCoord;
+
+    model         = task->extra.tmd;
+    playerTask    = *gPlayerActorTasks;
     stateHandlers = D_actor_403100_80131F34;
-    armTimer      = D_actor_403100_80155808->engageDelay;
-    if (armTimer != 0) {
-        if ((armTimer == 1) && (D_actor_403100_8015580C->hp > 0)) {
+    // Engagement is independent of the scene actor pause/hide gate.
+    engageFramesLeft = D_actor_403100_80155808->engageDelay;
+    if (engageFramesLeft != 0) {
+        if ((engageFramesLeft == 1) && (D_actor_403100_8015580C->hp > 0)) {
             sceneEngageBattle(1);
         }
         D_actor_403100_80155808->engageDelay = (s16)((u16)D_actor_403100_80155808->engageDelay - 1);
     }
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            if (player == NULL) {
+            if (playerTask == NULL) {
                 D_actor_403100_80155808->playerRegion = 0;
             }
-            _actor403100SamplePlayerTarget(arg0);
-            countdown = D_actor_403100_80155808->fightFramesLeft;
-            if (countdown >= 0) {
-                D_actor_403100_80155808->fightFramesLeft = (s32)(countdown - 1);
+            _actor403100SamplePlayerTarget(task);
+            fightFramesLeft = D_actor_403100_80155808->fightFramesLeft;
+            if (fightFramesLeft >= 0) {
+                D_actor_403100_80155808->fightFramesLeft = (s32)(fightFramesLeft - 1);
             }
-            if ((config->hp > 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
-                if (D_actor_403100_8015580C->hp < (s16)(((s16)D_actor_403100_8015580C->hpMax * 0x23) / 100)) {
+            if ((playerStatus->hp > 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
+                if (D_actor_403100_8015580C->hp < (s16)(((s16)D_actor_403100_8015580C->hpMax * ACTOR_403100_LOW_HEALTH_PERCENT) / 100)) {
                     D_actor_403100_80155808->lowHealth = 1U;
                 } else {
                     D_actor_403100_80155808->lowHealth = 0U;
                 }
             }
-            playerCoord                           = player->extra.tmd->coords;
-            D_actor_403100_80155808->playerRegion = _actor403100FindZoneId((s16)playerCoord->coord.t[0], (s16)playerCoord->coord.t[2], D_actor_403100_80155638);
+            playerRootCoord                       = playerTask->extra.tmd->coords;
+            D_actor_403100_80155808->playerRegion = _actor403100FindZoneId((s16)playerRootCoord->coord.t[0], (s16)playerRootCoord->coord.t[2], D_actor_403100_80155638);
+            // Advance the held-player reaction before the selected combat behavior.
             _actor403100StepPlayerReaction();
-            stateHandlers.funcs[(s16)D_actor_403100_80155808->state](arg0);
+            stateHandlers.funcs[(s16)D_actor_403100_80155808->state](task);
             if ((D_actor_403100_80155808->lowHealth != 0) && (D_actor_403100_80155808->phaseChangeDone == 0) && (D_actor_403100_80155808->holdingPlayer == 0)) {
-                D_actor_403100_80155808->state    = 9;
+                D_actor_403100_80155808->state    = ACTOR_403100_FIGHT_LOW_HEALTH_STATE;
                 D_actor_403100_80155808->subState = 0;
             }
-            _actor403100StepJawPitchKick(arg0);
+            _actor403100StepJawPitchKick(task);
             _actor403100StepHeadPitchKick();
-            _actor403100UpdateWalk(arg0);
-            _actor403100UpdateAnimation(arg0);
-            flashTimer                                      = D_actor_403100_80155808->shakeFrames;
+            _actor403100UpdateWalk(task);
+            _actor403100UpdateAnimation(task);
             D_actor_403100_80155808->previousAnimationFlags = D_actor_403100_80155808->rig.slots[1].status.fields.flags;
-            if (flashTimer != 0) {
-                if (flashTimer >= 0x10) {
-                    flash = rsin(gDisplayState.animFrame << 9) << 0xD;
-                } else {
-                    flash = rsin(gDisplayState.animFrame << 9) << 0xC;
-                }
-                displaySetShakeY(flash >> 0x18);
-                D_actor_403100_80155808->shakeFrames = (s16)((u16)D_actor_403100_80155808->shakeFrames - 1);
-            } else {
-                displaySetShakeY(0);
-            }
-            _actor403100AimHead(arg0, D_actor_403100_80155808->aimMode);
-            _actor403100SetRootYaw(arg0);
-            scale = 0x1400;
-            _actor403100ScaleRoot(arg0, scale);
-            _actor403100TurnUpperArm(arg0);
-            _actor403100TurnForearmInline(arg0);
-            _actor403100ApplyJawAndHeadPitch(arg0);
-            _actor403100ProcessCombatContacts(arg0);
+            _actor403100StepScreenShake();
+            _actor403100AimHead(task, D_actor_403100_80155808->aimMode);
+            _actor403100SetRootYaw(task);
+            rootScaleQ12 = ACTOR_403100_FIGHT_SCALE_Q12;
+            _actor403100ScaleRoot(task, rootScaleQ12);
+            _actor403100TurnUpperArm(task);
+            _actor403100TurnForearmInline(task);
+            _actor403100ApplyJawAndHeadPitch(task);
+            _actor403100ProcessCombatContacts(task);
             if (D_actor_403100_80155808->hitColorFrames != 0) {
-                lightTimer = --D_actor_403100_80155808->hitColorFrames;
-                if ((s16)lightTimer == 0) {
-                    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+                hitColorFramesLeft = --D_actor_403100_80155808->hitColorFrames;
+                if ((s16)hitColorFramesLeft == 0) {
+                    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                 }
             }
+            // Defer defeat during vulnerability/held-hit phases; simultaneous player death restores HP.
             if ((D_actor_403100_8015580C->hp <= 0) && (D_actor_403100_80155808->vulnerable == 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
-                if (config->hp <= 0) {
-                    D_actor_403100_8015580C->hp = 0x3E8;
+                if (playerStatus->hp <= 0) {
+                    D_actor_403100_8015580C->hp = ACTOR_403100_SIMULTANEOUS_DEATH_HP;
                 } else {
-                    D_actor_403100_80155808->bufferReleaseDelay = -1;
-                    D_actor_403100_80155808->sceneScale         = 0x1400;
+                    D_actor_403100_80155808->bufferReleaseDelay = ACTOR_403100_BUFFER_RELEASE_DISABLED;
+                    D_actor_403100_80155808->sceneScale         = ACTOR_403100_FIGHT_SCALE_Q12;
                     gGameSession->suppressDeathChecks           = 0;
                     Gp_StateC08.flags                           = (u8)(Gp_StateC08.flags | ATTACHMENT_FLAG_EVENT_LOCK);
                     gGameSession->suppressViewTriggers          = 0;
                     D_actor_403100_8015580C->reactionFlags      = 0;
-                    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+                    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
                     D_actor_403100_8015580C->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
                     evsStartScript(D_actor_335800_80166098, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-                    arg0->state                       = 1;
+                    task->state                       = ACTOR_403100_TASK_SCENE_DISPATCH;
                     D_actor_403100_80155808->state    = 0;
                     D_actor_403100_80155808->subState = 0;
-                    D_actor_403100_80155808->state    = 9;
+                    D_actor_403100_80155808->state    = ACTOR_403100_SCENE_IDLE_STATE;
                     D_actor_403100_80155808->subState = 0;
-                    case 1:
                 }
             }
-            _actor403100UpdateFlames(arg0, ACTOR_403100_FLAME_BASE_SIZE);
-            coordinates                 = arg0->extra.tmd->coords;
-            coordinates[8].composeStamp = GRAPHICS_COORD_DIRTY;
-            coordinates[7].composeStamp = GRAPHICS_COORD_DIRTY;
-            coordinates[6].composeStamp = GRAPHICS_COORD_DIRTY;
-            coordinates[5].composeStamp = GRAPHICS_COORD_DIRTY;
-            coordinates[4].composeStamp = GRAPHICS_COORD_DIRTY;
-            coordinates[3].composeStamp = GRAPHICS_COORD_DIRTY;
-            coordinates[2].composeStamp = GRAPHICS_COORD_DIRTY;
-            coordinates[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            coordinates[0].composeStamp = GRAPHICS_COORD_DIRTY;
-            side                        = coordinates + 4;
-            center                      = coordinates + 3;
-            actorRenderComposeCoord(coordinates + 8);
-            actorRenderComposeCoord(side);
-            _actor403100UpdateColor(arg0, center);
-            obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        // Paused combat still refreshes flame drawing and the composed pose.
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor403100UpdateFlames(task, ACTOR_403100_FLAME_BASE_SIZE);
+            _actor403100RefreshPosedCoords(task);
+            model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }
@@ -4300,101 +4340,153 @@ static void _actor403100BeginArmSwingCombo(Task* task)
     D_actor_403100_80155808->headPitchPhase       = ACTOR_403100_PITCH_PHASE_REST;
     D_actor_403100_80155808->swingConnected       = 0;
 }
-static void func_actor_403100_801376D8(Task* arg0)
+/// Starts the player's held arm-hit reaction and applies the Burner's contact attack.
+///
+/// Requires live singleton work, player and damage parameters. Acquires the
+/// scripted-action lock, installs the package's hit clip and holds the reaction
+/// for 23 updates. Attack entry zero supplies damage; a lethal result selects
+/// player state ten. This sequence retains no additional player task reference.
+static inline void _actor403100StartPlayerArmHitReaction(void)
 {
-    Task* task;
-    s32   sound;
-    s32   pan;
-    u16   counter;
-    u16   angle;
+    enum { ACTOR_403100_PLAYER_ARM_HIT_CLIP     = 5,
+           ACTOR_403100_PLAYER_HIT_HOLD_FRAMES  = 23,
+           ACTOR_403100_PLAYER_LETHAL_HIT_STATE = 10 };
+    Task* playerTask;
 
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x36) < 4U) {
-        _actor403100ProbeArmPlayerContact(arg0);
+    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
+    _actor403100PlayPlayerAnimation(ACTOR_403100_PLAYER_ARM_HIT_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
+    D_actor_403100_80155808->playerReactionFrames = ACTOR_403100_PLAYER_HIT_HOLD_FRAMES;
+    D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
+    playerTask                                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 0), 0) == 1) {
+        ((GameActor*)(*gPlayerActorTasks)->work)->state = ACTOR_403100_PLAYER_LETHAL_HIT_STATE;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x39) {
-        _actor403100BreakBalconyAtArm(arg0);
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0003;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[7]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[7]) / 2));
-        padScriptSpawnVariableMotorRamp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 0x12;
+}
+
+/// Checks the first arm swing and chooses repeat or connected-hit recovery.
+///
+/// Requires live singleton work, player and Burner model/enemy; stateFrames
+/// starts at zero. Samples contacts at prior timer values 54..57, with the
+/// balcony impact cue at 57. A touch stops the stride and starts a player hit
+/// reaction only when idle. A connected swing skips repeats; a miss starts
+/// clip 2 at 5/8 rate, caching head yaw within -352..208 angle units.
+static void _actor403100StepFirstArmSwing(Task* task)
+{
+    enum {
+        ACTOR_403100_REPEAT_SWING_CLIP       = 2,
+        ACTOR_403100_SWING_ANGLE_SCALE_SHIFT = 4,
+        ACTOR_403100_SWING_EASE_SHIFT        = 7,
+    };
+    enum {
+        ACTOR_403100_ARM_IMPACT_PART = 7,
+    };
+    enum {
+        ACTOR_403100_REPEAT_SWING_RATE    = ANIMATION_RATE_ONE * 5 / 8,
+        ACTOR_403100_SWING_CONTACT_START  = 54,
+        ACTOR_403100_SWING_CONTACT_FRAMES = 4U,
+        ACTOR_403100_SWING_IMPACT_TICK    = 57,
+    };
+    s32 armImpactSound;
+    s32 armImpactPan;
+    u16 previousSubState;
+    u16 headYawBits;
+
+    // Sample the contact window before incrementing the step timer.
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_SWING_CONTACT_START) < ACTOR_403100_SWING_CONTACT_FRAMES) {
+        _actor403100ProbeArmPlayerContact(task);
+    }
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_SWING_IMPACT_TICK) {
+        _actor403100BreakBalconyAtArm(task);
+        armImpactSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 3);
+        armImpactPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_ARM_IMPACT_PART]);
+        sndEvtRequestScriptStart(armImpactSound, armImpactPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_ARM_IMPACT_PART]) / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_IMPACT_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_IMPACT_FEEDBACK_FRAMES;
     }
     D_actor_403100_80155808->stateFrames += 1;
     if (D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) {
-        D_actor_403100_80155808->walkStage = 4;
+        D_actor_403100_80155808->walkStage = ACTOR_403100_WALK_FINISH_STRIDE;
         if (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE) {
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-            D_actor_403100_80155808->playerReactionFrames = 0x17;
-            D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
-            task                                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 0), 0) == 1) {
-                ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
-            }
+            _actor403100StartPlayerArmHitReaction();
         }
         D_actor_403100_80155808->handTouchedPlayer    = 0;
         D_actor_403100_80155808->forearmTouchedPlayer = 0;
         D_actor_403100_80155808->swingConnected       = 1;
         _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND);
     }
-    D_actor_403100_80155808->armYaw += (s16)((D_actor_403100_80155808->armYawTarget - D_actor_403100_80155808->armYaw) << 4) >> 7;
+    D_actor_403100_80155808->armYaw += (s16)((D_actor_403100_80155808->armYawTarget - D_actor_403100_80155808->armYaw) << ACTOR_403100_SWING_ANGLE_SCALE_SHIFT) >> ACTOR_403100_SWING_EASE_SHIFT;
+    // Choose recovery or cache a new shoulder target for the next swing.
     if (_actor403100AnimationAtBoundaryOrJump()) {
         if (D_actor_403100_80155808->swingConnected != 0) {
-            D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
-            D_actor_403100_80155808->animationId          = 5;
-            D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_RESET;
+            _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_ARM_RECOVERY);
             D_actor_403100_80155808->subState            += 2;
             D_actor_403100_80155808->handAttack.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             D_actor_403100_80155808->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
         }
-        counter                                                    = D_actor_403100_80155808->subState;
-        *(volatile s16*)&D_actor_403100_80155808->animationRate    = 0xA;
-        *(volatile s16*)&D_actor_403100_80155808->animationId      = 2;
+        // Qualified accesses preserve the clip-boundary store/read order.
+        previousSubState                                           = D_actor_403100_80155808->subState;
+        *(volatile s16*)&D_actor_403100_80155808->animationRate    = ACTOR_403100_REPEAT_SWING_RATE;
+        *(volatile s16*)&D_actor_403100_80155808->animationId      = ACTOR_403100_REPEAT_SWING_CLIP;
         *(volatile s16*)&D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        angle                                                      = *(volatile u16*)&D_actor_403100_80155808->headAim.vy;
+        headYawBits                                                = *(volatile s16*)&D_actor_403100_80155808->headAim.vy;
         D_actor_403100_80155808->stateFrames                       = 0;
-        D_actor_403100_80155808->armYawTarget                      = (s16)angle;
-        D_actor_403100_80155808->subState                          = counter + 1;
-        if ((s16)angle >= 0xD1) {
-            D_actor_403100_80155808->armYawTarget = 0xD0;
+        D_actor_403100_80155808->armYawTarget                      = (s16)headYawBits;
+        D_actor_403100_80155808->subState                          = previousSubState + 1;
+        if ((s16)headYawBits >= ACTOR_403100_ARM_YAW_MAX + 1) {
+            D_actor_403100_80155808->armYawTarget = ACTOR_403100_ARM_YAW_MAX;
         }
-        if (D_actor_403100_80155808->armYawTarget < -0x160) {
-            D_actor_403100_80155808->armYawTarget = -0x160;
+        if (D_actor_403100_80155808->armYawTarget < ACTOR_403100_ARM_YAW_MIN) {
+            D_actor_403100_80155808->armYawTarget = ACTOR_403100_ARM_YAW_MIN;
         }
     }
 }
-static void func_actor_403100_801379B4(Task* arg0)
+/// Repeats arm swings until the byte counter expires or a touch ends the combo.
+///
+/// Requires live singleton work, player and Burner model/enemy. Samples contacts
+/// at prior timer values 60..68, with the balcony impact cue at 68. A touch
+/// forces one remaining swing and starts a player hit reaction only when idle.
+/// At a clip boundary the unsigned-byte counter decrements with byte wrapping;
+/// zero starts recovery, otherwise clip 2 restarts with yaw limited to -320..208.
+static void _actor403100StepRepeatedArmSwing(Task* task)
 {
-    Task* task;
-    s32   sound;
-    s32   pan;
-    s8    count;
-    u16   angle;
+    enum {
+        ACTOR_403100_REPEAT_SWING_CLIP       = 2,
+        ACTOR_403100_SWING_ANGLE_SCALE_SHIFT = 4,
+        ACTOR_403100_SWING_EASE_SHIFT        = 7,
+    };
+    enum {
+        ACTOR_403100_ARM_IMPACT_PART = 7,
+    };
+    enum {
+        ACTOR_403100_REPEAT_SWING_RATE    = ANIMATION_RATE_ONE * 5 / 8,
+        ACTOR_403100_REPEAT_SWING_YAW_MIN = -320,
+        ACTOR_403100_SWING_CONTACT_START  = 60,
+        ACTOR_403100_SWING_CONTACT_FRAMES = 9U,
+        ACTOR_403100_SWING_IMPACT_TICK    = 68,
+    };
+    s32 armImpactSound;
+    s32 armImpactPan;
+    u8  swingsLeft;
+    u16 headYawBits;
 
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x3C) < 9U) {
-        _actor403100ProbeArmPlayerContact(arg0);
+    // Sample the contact window before incrementing the step timer.
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_SWING_CONTACT_START) < ACTOR_403100_SWING_CONTACT_FRAMES) {
+        _actor403100ProbeArmPlayerContact(task);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x44) {
-        _actor403100BreakBalconyAtArm(arg0);
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0003;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[7]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[7]) / 2));
-        padScriptSpawnVariableMotorRamp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 0x12;
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_SWING_IMPACT_TICK) {
+        _actor403100BreakBalconyAtArm(task);
+        armImpactSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 3);
+        armImpactPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_ARM_IMPACT_PART]);
+        sndEvtRequestScriptStart(armImpactSound, armImpactPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_ARM_IMPACT_PART]) / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_IMPACT_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_IMPACT_FEEDBACK_FRAMES;
     }
     D_actor_403100_80155808->stateFrames += 1;
     if (D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) {
-        D_actor_403100_80155808->walkStage = 4;
+        D_actor_403100_80155808->walkStage = ACTOR_403100_WALK_FINISH_STRIDE;
         if (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE) {
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-            D_actor_403100_80155808->playerReactionFrames = 0x17;
-            D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
-            task                                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            if (taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 0), 0) == 1) {
-                ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
-            }
+            _actor403100StartPlayerArmHitReaction();
         }
         D_actor_403100_80155808->handTouchedPlayer    = 0;
         D_actor_403100_80155808->forearmTouchedPlayer = 0;
@@ -4402,30 +4494,29 @@ static void func_actor_403100_801379B4(Task* arg0)
         D_actor_403100_80155808->swingConnected = 1;
         D_actor_403100_80155808->stateCounter   = 1;
     }
-    D_actor_403100_80155808->armYaw += (s16)((D_actor_403100_80155808->armYawTarget - D_actor_403100_80155808->armYaw) << 4) >> 7;
+    D_actor_403100_80155808->armYaw += (s16)((D_actor_403100_80155808->armYawTarget - D_actor_403100_80155808->armYaw) << ACTOR_403100_SWING_ANGLE_SCALE_SHIFT) >> ACTOR_403100_SWING_EASE_SHIFT;
+    // Choose recovery or cache a new shoulder target for the next swing.
     if (_actor403100AnimationAtBoundaryOrJump()) {
-        count                                 = D_actor_403100_80155808->stateCounter - 1;
-        D_actor_403100_80155808->stateCounter = count;
-        if (!(count & 0xFF)) {
-            D_actor_403100_80155808->animationRate        = ANIMATION_RATE_ONE;
-            D_actor_403100_80155808->animationId          = 5;
-            D_actor_403100_80155808->animationRequest     = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        swingsLeft                            = D_actor_403100_80155808->stateCounter - 1;
+        D_actor_403100_80155808->stateCounter = swingsLeft;
+        if (swingsLeft == 0) {
+            _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_ARM_RECOVERY);
             D_actor_403100_80155808->subState            += 1;
             D_actor_403100_80155808->handAttack.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             D_actor_403100_80155808->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
         }
-        D_actor_403100_80155808->animationRate    = 0xA;
-        angle                                     = (u16)D_actor_403100_80155808->headAim.vy;
+        D_actor_403100_80155808->animationRate    = ACTOR_403100_REPEAT_SWING_RATE;
+        headYawBits                               = (u16)D_actor_403100_80155808->headAim.vy;
         D_actor_403100_80155808->stateFrames      = 0;
-        D_actor_403100_80155808->animationId      = 2;
+        D_actor_403100_80155808->animationId      = ACTOR_403100_REPEAT_SWING_CLIP;
         D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        D_actor_403100_80155808->armYawTarget     = (s16)angle;
-        if ((s16)angle >= 0xD1) {
-            D_actor_403100_80155808->armYawTarget = 0xD0;
+        D_actor_403100_80155808->armYawTarget     = (s16)headYawBits;
+        if ((s16)headYawBits >= ACTOR_403100_ARM_YAW_MAX + 1) {
+            D_actor_403100_80155808->armYawTarget = ACTOR_403100_ARM_YAW_MAX;
         }
-        if (D_actor_403100_80155808->armYawTarget < -0x140) {
-            D_actor_403100_80155808->armYawTarget = -0x140;
+        if (D_actor_403100_80155808->armYawTarget < ACTOR_403100_REPEAT_SWING_YAW_MIN) {
+            D_actor_403100_80155808->armYawTarget = ACTOR_403100_REPEAT_SWING_YAW_MIN;
         }
     }
 }
@@ -4542,46 +4633,66 @@ static void _actor403100BeginAimedFlameAttack(Task* task)
     D_actor_403100_80155808->stateFrames = 0;
     D_actor_403100_80155808->subState   += 1;
 }
-static void func_actor_403100_80138048(Task* arg0)
+/// Tracks the player with flame breath and selects recovery when a puff touches.
+///
+/// Requires live singleton work/flames and Burner model/enemy, timer cleared.
+/// Before update 51 regions 4/5 choose fixed world targets; stepped yaw begins
+/// at 51 and normal-health tracking resumes at 61. Updates 52..123 emit
+/// damaging head-local flame and refresh breath light; 125..135 emit smoke.
+/// The final flame-hit cooldown update selects contact recovery; otherwise
+/// a clip boundary advances to the normal recovery wait.
+static void _actor403100StepAimedFlameBreath(Task* task)
 {
-    SVECTOR   offset;
-    SVECTOR   velocity;
-    GfxCoord* effectCoord;
-    s32       sound;
-    s32       sound2;
-    s32       state;
-    s32       pan;
-    s32       pan2;
+    enum {
+        ACTOR_403100_FLAME_CONTACT_CUE_FRAMES_LEFT   = 1,
+        ACTOR_403100_AIMED_FLAME_CONTACT_SUBSTATE    = 3,
+        ACTOR_403100_AIMED_BREATH_TRACK_FRAME        = 51,
+        ACTOR_403100_AIMED_BREATH_NORMAL_TRACK_FRAME = 61,
+        ACTOR_403100_AIMED_BREATH_STOP_FRAME         = 124,
+        ACTOR_403100_AIMED_BREATH_EMIT_START         = 52,
+        ACTOR_403100_AIMED_BREATH_EMIT_FRAMES        = 72,
+        ACTOR_403100_AIMED_BREATH_JAW_CUE_FRAME      = 126,
+        ACTOR_403100_AIMED_BREATH_SMOKE_START        = 125,
+    };
+    SVECTOR   emissionOffset;
+    SVECTOR   flameVelocity;
+    GfxCoord* smokeCoord;
+    s32       breathSound;
+    s32       jawSound;
+    s32       hitTaken;
+    s32       breathPan;
+    s32       jawPan;
 
-    if (D_actor_403100_80155810 == 1) {
-        D_actor_403100_80155808->subState = 3;
+    // A puff touched the target; recover on its final cooldown update.
+    if (D_actor_403100_80155810 == ACTOR_403100_FLAME_CONTACT_CUE_FRAMES_LEFT) {
+        D_actor_403100_80155808->subState = ACTOR_403100_AIMED_FLAME_CONTACT_SUBSTATE;
         return;
     }
-    state                                 = D_actor_403100_80155808->hitTaken;
+    hitTaken                              = D_actor_403100_80155808->hitTaken;
     D_actor_403100_80155808->stateFrames += 1;
-    if (state == 1) {
+    if (hitTaken == ACTOR_403100_HIT_TAKEN) {
         if (D_actor_403100_80155808->headPitchPhase == ACTOR_403100_PITCH_PHASE_REST) {
-            D_actor_403100_80155808->headPitchPhase = state;
+            D_actor_403100_80155808->headPitchPhase = hitTaken;
         }
     }
-    if ((s16)D_actor_403100_80155808->stateFrames < 0x33) {
-        if (D_actor_403100_80155808->playerRegion == 4) {
+    if ((s16)D_actor_403100_80155808->stateFrames < ACTOR_403100_AIMED_BREATH_TRACK_FRAME) {
+        if (D_actor_403100_80155808->playerRegion == ACTOR_403100_PLAYER_REGION_4) {
             D_actor_403100_80155808->aimTarget.vx = -0x1770;
             D_actor_403100_80155808->aimTarget.vy = -0xC80;
             D_actor_403100_80155808->aimTarget.vz = -0x1B58;
             D_actor_403100_80155808->aimMode      = ACTOR_403100_AIM_TRACK_FAST;
         }
-        if (D_actor_403100_80155808->playerRegion == 5) {
+        if (D_actor_403100_80155808->playerRegion == ACTOR_403100_PLAYER_REGION_5) {
             D_actor_403100_80155808->aimTarget.vx = 0x500;
             D_actor_403100_80155808->aimTarget.vy = -0xC80;
             D_actor_403100_80155808->aimTarget.vz = 0x2710;
             D_actor_403100_80155808->aimMode      = ACTOR_403100_AIM_TRACK_FAST;
         }
-        if ((s16)D_actor_403100_80155808->stateFrames < 0x33) {
+        if ((s16)D_actor_403100_80155808->stateFrames < ACTOR_403100_AIMED_BREATH_TRACK_FRAME) {
             dryfieldNightMotelBalconyTrySpawnFlame();
         }
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_AIMED_BREATH_TRACK_FRAME) {
         D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK_STEPPED;
         if (D_actor_403100_80155808->lowHealth) {
             D_actor_403100_80155808->aimYawStep = 0x10;
@@ -4589,41 +4700,42 @@ static void func_actor_403100_80138048(Task* arg0)
             D_actor_403100_80155808->aimYawStep = 8;
         }
     }
-    if (((s16)D_actor_403100_80155808->stateFrames == 0x3D) && (D_actor_403100_80155808->lowHealth == 0)) {
+    if (((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_AIMED_BREATH_NORMAL_TRACK_FRAME) && (D_actor_403100_80155808->lowHealth == 0)) {
         D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_AIMED_BREATH_STOP_FRAME) {
         D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_YAW_ONLY;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
-        pan   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound, (s32)pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_AIMED_BREATH_TRACK_FRAME) {
+        breathSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_BREATH_SOUND;
+        breathPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+        sndEvtRequestScriptStart(breathSound, breathPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]) / 2));
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_AIMED_BREATH_STOP_FRAME) {
+        sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     }
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x34) < 0x48U) {
-        offset.vy   = -0x1F0;
-        offset.vz   = 0x620;
-        velocity.vy = -0x20;
-        offset.vx   = 0;
-        velocity.vx = 0;
-        velocity.vz = 0xF0;
-        _actor403100EmitFlame(arg0, &offset, &velocity, ACTOR_403100_FLAME_COLLISION_ENABLED);
-        _actor403100RefreshBreathLight(arg0);
+    // Emit from the head frame while tracking, then replace breath with recovery smoke.
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_AIMED_BREATH_EMIT_START) < (u32)ACTOR_403100_AIMED_BREATH_EMIT_FRAMES) {
+        emissionOffset.vy = -0x1F0;
+        emissionOffset.vz = 0x620;
+        flameVelocity.vy  = -0x20;
+        emissionOffset.vx = 0;
+        flameVelocity.vx  = 0;
+        flameVelocity.vz  = 0xF0;
+        _actor403100EmitFlame(task, &emissionOffset, &flameVelocity, ACTOR_403100_FLAME_COLLISION_ENABLED);
+        _actor403100RefreshBreathLight(task);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x7E) {
-        sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0002;
-        pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[4]);
-        sndEvtRequestScriptStart(sound2, (s32)pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[4]) / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_AIMED_BREATH_JAW_CUE_FRAME) {
+        jawSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_JAW_IMPACT_SOUND;
+        jawPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]);
+        sndEvtRequestScriptStart(jawSound, jawPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_JAW]) / 2));
     }
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x7D) < 0xBU) {
-        effectCoord = &arg0->extra.tmd->coords[3];
-        offset.vy   = -0x140;
-        offset.vx   = 0;
-        offset.vz   = 0x400;
-        effectSpawn(EFFECT_SMOKE_PUFF, effectCoord, -0x3FFCB400, &offset);
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_AIMED_BREATH_SMOKE_START) < (u32)ACTOR_403100_RECOVERY_SMOKE_FRAMES) {
+        smokeCoord        = &task->extra.tmd->coords[ACTOR_403100_PART_HEAD];
+        emissionOffset.vy = -0x140;
+        emissionOffset.vx = 0;
+        emissionOffset.vz = 0x400;
+        effectSpawn(EFFECT_SMOKE_PUFF, smokeCoord, ACTOR_403100_RECOVERY_SMOKE_ARG, &emissionOffset);
     }
     if (_actor403100AnimationAtBoundaryOrJump()) {
         D_actor_403100_80155808->aimMode     = ACTOR_403100_AIM_YAW_ONLY;
@@ -4780,78 +4892,70 @@ static void _actor403100DecelerateJumpSlam(Task* task)
         D_actor_403100_80155808->subState += 1;
     }
 }
-static void func_actor_403100_80138844(Task* arg0)
+/// Requests the combat footfall sound, controller ramp and vertical screen shake.
+///
+/// Requires live singleton work/model and an Enemy in task->spawnArg2.pointer.
+/// The placement-index nibble selects the sound instance. Lower-trunk pan and
+/// half depth truncate to signed bytes. Rumble counts thirty eligible pad-script
+/// updates; shake counts thirty actor updates. All pointers remain borrowed.
+static inline void _actor403100PlayWalkFootfall(Task* task)
 {
-    Task*     player;
-    s32       sound;
-    s32       sound2;
-    s32       y;
-    s32       pan;
-    s32       pan2;
-    u16       velocity;
-    u16       accel;
-    GfxCoord* coord;
+    s32 footfallSound;
+    s32 audioPan;
+    s32 audioDepth;
 
-    coord = arg0->extra.tmd->coords;
+    padScriptSpawnVariableMotorRamp(ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+    D_actor_403100_80155808->shakeFrames = ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES;
+    footfallSound                        = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_FOOTFALL_SOUND;
+    audioPan                             = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+    audioDepth                           = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
+    sndEvtRequestScriptStart(footfallSound, audioPan, (s8)(audioDepth / 2));
+}
+
+/// Descends the jump slam, samples arm contacts and signals its landing.
+///
+/// Requires live singleton work, player and Burner model/enemy. Uses contacts
+/// latched by the preceding update before sampling new ones. Acceleration
+/// drops by four game units per update squared; signed halfword speed is
+/// subtracted from root-parent Y. At Y >= 0, breaks the balcony, plays trunk
+/// and arm impact cues with thirty-update rumble/shake, clamps Y to zero and
+/// clears the timer before selecting the landed-hit phase.
+static void _actor403100DescendJumpSlam(Task* task)
+{
+    enum {
+        ACTOR_403100_ARM_IMPACT_PART = 7,
+    };
+    enum { ACTOR_403100_JUMP_ACCELERATION_STEP = 4 };
+    s32       armImpactSound;
+    s32       rootY;
+    s32       armImpactPan;
+    GfxCoord* rootCoord;
+
+    rootCoord = task->extra.tmd->coords;
     _actor403100RequestHitPitchKick();
+    // Consume the preceding contact latches before sampling this falling pose.
     if ((D_actor_403100_80155808->handTouchedPlayer != 0 || D_actor_403100_80155808->forearmTouchedPlayer != 0) && (D_actor_403100_80155808->playerReactionStage == ACTOR_403100_PLAYER_REACTION_NONE)) {
-        Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-        _actor403100PlayPlayerAnimation(5, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-        D_actor_403100_80155808->playerReactionFrames = 0x17;
-        D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
-        player                                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        if (taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 0), 0) == 1) {
-            ((GameActor*)(*gPlayerActorTasks)->work)->state = 0xA;
-        }
+        _actor403100StartPlayerArmHitReaction();
     }
-    _actor403100ProbeArmPlayerContact(arg0);
+    _actor403100ProbeArmPlayerContact(task);
     D_actor_403100_80155808->stateFrames += 1;
     D_actor_403100_80155808->armYaw =
         (u16)D_actor_403100_80155808->armYaw +
-        ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << 0x14) >> 0x17);
-    accel                                     = D_actor_403100_80155808->jumpAcceleration - 4;
-    velocity                                  = D_actor_403100_80155808->jumpSpeed + accel;
-    D_actor_403100_80155808->jumpSpeed        = velocity;
-    D_actor_403100_80155808->jumpAcceleration = accel;
-    y                                         = coord->coord.t[1] - (s16)velocity;
-    coord->coord.t[1]                         = y;
-    if (y >= 0) {
+        ((s32)(((u16)D_actor_403100_80155808->armYawTarget - (u16)D_actor_403100_80155808->armYaw) << ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT) >> (ACTOR_403100_ARM_SIGNED_ANGLE_SHIFT + ACTOR_403100_ARM_EASE_SHIFT));
+    _actor403100IntegrateJumpHeight(rootCoord, -ACTOR_403100_JUMP_ACCELERATION_STEP);
+    rootY = rootCoord->coord.t[1];
+    // Clamp to the floor only after playing the separate trunk and arm landing cues.
+    if (rootY >= 0) {
         D_actor_403100_80155808->handTouchedPlayer    = 0;
         D_actor_403100_80155808->forearmTouchedPlayer = 0;
-        _actor403100BreakBalconyAtArm(arg0);
-        padScriptSpawnVariableMotorRamp(0x1E, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 0x1E;
-        sound                                = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0001;
-        pan                                  = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[1]) / 2));
-        sound2 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0003;
-        pan2   = (s8)worldCoordGetOriginAudioPan(&arg0->extra.tmd->coords[7]);
-        sndEvtRequestScriptStart(sound2, pan2, (s8)(worldCoordGetOriginAudioDepth(&arg0->extra.tmd->coords[7]) / 2));
-        coord->coord.t[1]                    = 0;
+        _actor403100BreakBalconyAtArm(task);
+        _actor403100PlayWalkFootfall(task);
+        armImpactSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 3);
+        armImpactPan   = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_ARM_IMPACT_PART]);
+        sndEvtRequestScriptStart(armImpactSound, armImpactPan, (s8)(worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_ARM_IMPACT_PART]) / 2));
+        rootCoord->coord.t[1]                = 0;
         D_actor_403100_80155808->stateFrames = 0;
         D_actor_403100_80155808->subState   += 1;
-    }
-}
-/// Starts the player's held arm-hit reaction and applies the Burner's contact attack.
-///
-/// Requires live singleton work, player and damage parameters. Acquires the
-/// scripted-action lock, installs the package's hit clip and holds the reaction
-/// for 23 updates. Attack entry zero supplies damage; a lethal result selects
-/// player state ten. This sequence retains no additional player task reference.
-static inline void _actor403100StartPlayerArmHitReaction(void)
-{
-    enum { ACTOR_403100_PLAYER_ARM_HIT_CLIP     = 5,
-           ACTOR_403100_PLAYER_HIT_HOLD_FRAMES  = 23,
-           ACTOR_403100_PLAYER_LETHAL_HIT_STATE = 10 };
-    Task* playerTask;
-
-    Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-    _actor403100PlayPlayerAnimation(ACTOR_403100_PLAYER_ARM_HIT_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-    D_actor_403100_80155808->playerReactionFrames = ACTOR_403100_PLAYER_HIT_HOLD_FRAMES;
-    D_actor_403100_80155808->playerReactionStage  = ACTOR_403100_PLAYER_REACTION_HIT_HELD;
-    playerTask                                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 0), 0) == 1) {
-        ((GameActor*)(*gPlayerActorTasks)->work)->state = ACTOR_403100_PLAYER_LETHAL_HIT_STATE;
     }
 }
 
@@ -5064,106 +5168,6 @@ static void _actor403100BeginHeldPlayerSqueeze(Task* task)
         D_actor_403100_80155808->holdStartHp = D_actor_403100_8015580C->hp;
     }
 }
-static void func_actor_403100_8013922C(Task* arg0)
-{
-    s32       message[6];
-    s16       health;
-    s32       damage;
-    u16       frame;
-    u32       random;
-    u8        request;
-    GfxCoord* coords;
-    GfxCoord* part;
-
-    coords                                = arg0->extra.tmd->coords;
-    part                                  = coords + 6;
-    D_actor_403100_80155808->stateFrames += 1;
-    _actor403100SaveHoldPose(arg0);
-    _actor403100StepPlayerSqueeze(arg0);
-    _actor403100StepPlayerSqueeze(arg0);
-    D_actor_403100_80155808->rotation.vy = 0xC00;
-    D_actor_403100_80155808->rotation.vx = 0;
-    D_actor_403100_80155808->rotation.vz = 0;
-    if (D_actor_403100_80155808->playerKilled == 0) {
-        request = D_actor_403100_80155808->releaseRequested;
-        if ((request == 1) && (D_actor_403100_80155808->forearmStrokeDone == request)) {
-            random                                 = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState                        = random;
-            D_actor_403100_80155808->repromptDelay = (((random >> 0x10) & 0x1F) + 0x3C) * 3;
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
-            D_actor_403100_80155808->releaseRequested = 0;
-        }
-    } else {
-        frame                                      = D_actor_403100_80155808->playerDeathFrames + 1;
-        D_actor_403100_80155808->playerDeathFrames = frame;
-        if ((s16)frame == 0x3C) {
-            _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND);
-        }
-        if ((s16)D_actor_403100_80155808->playerDeathFrames >= 0x79) {
-            gGameSession->suppressDeathChecks = 0;
-        }
-    }
-    _actor403100PlaceHeldPlayer(arg0);
-    _actor403100RestoreHoldPose(arg0);
-    _actor403100StepPlayerSqueeze(arg0);
-    if (D_actor_403100_80155808->hitTaken != 0) {
-        if (D_actor_403100_80155808->animationId != 0xD) {
-            D_actor_403100_80155808->animationId      = 0xD;
-            D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-            D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-            if (D_actor_403100_80155808->jawPitchPhase == ACTOR_403100_PITCH_PHASE_REST) {
-                D_actor_403100_80155808->jawKickSound  = 1;
-                D_actor_403100_80155808->jawPitchPhase = ACTOR_403100_PITCH_PHASE_START;
-            }
-        }
-    } else {
-        if (_actor403100PreviousAnimationAtBoundaryOrJump()) {
-            D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
-            D_actor_403100_80155808->animationId      = 0xC;
-            D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        }
-    }
-    if (D_actor_403100_80155808->promptPending != 0) {
-        D_actor_403100_80155808->promptPending = 0;
-        _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
-        message[5] = 0x28;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, message, 0);
-        D_actor_403100_80155808->stateCounter = D_actor_403100_80155808->stateCounter + 1;
-    }
-    if ((D_actor_403100_80155808->stateCounter != 0) ||
-        ((D_actor_403100_80155808->forearmStrokeDone == 1) &&
-         ((s16)D_actor_403100_80155808->stateFrames >= 0x1C2) &&
-         (D_actor_403100_80155808->playerKilled == 0)) ||
-        (D_actor_403100_8015580C->hp <= 0)) {
-        damage = D_actor_403100_80155808->holdStartHp - D_actor_403100_8015580C->hp;
-        health = D_actor_403100_8015580C->hp;
-        if ((damage >= 0x3C) && (health > 0)) {
-            D_actor_403100_80155808->stateFrames = 0;
-            D_actor_403100_80155808->subState   += 1;
-            return;
-        }
-        _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-        D_actor_403100_80155808->stateFrames                       = 0;
-        D_actor_403100_80155808->animationRate                     = 8;
-        D_actor_403100_80155808->animationId                       = 0xE;
-        D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_RESET;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xC;
-        coords->coord.t[0]                                         = -0x44C;
-        coords->coord.t[2]                                         = 0x1770;
-        coords->coord.t[1]                                         = 0;
-        D_actor_403100_80155808->rotation.vy                       = 0xC00;
-        D_actor_403100_80155808->rotation.vx                       = 0;
-        D_actor_403100_80155808->rotation.vz                       = 0;
-        D_actor_403100_80155808->armPitch                          = 0;
-        D_actor_403100_80155808->armYaw                            = 0;
-        D_actor_403100_80155808->forearmTurn.vx                    = 0;
-        D_actor_403100_80155808->forearmTurn.vy                    = 0;
-        D_actor_403100_80155808->forearmTurn.vz                    = 0;
-        part->coord.t[0]                                           = -0x877;
-        D_actor_403100_80155808->subState                          = 8;
-    }
-}
 /// Restores the arm's unmodified angles and forearm X for held-player playback.
 ///
 /// Requires live singleton work and model coordinate six. Clears the shoulder
@@ -5179,6 +5183,126 @@ static inline void _actor403100ResetHeldArmPose(GfxCoord* forearmCoord)
     D_actor_403100_80155808->forearmTurn.vy = 0;
     D_actor_403100_80155808->forearmTurn.vz = 0;
     forearmCoord->coord.t[0]                = ACTOR_403100_HELD_FOREARM_REST_X;
+}
+
+/// Steps the held-player squeeze and chooses flame retaliation or a throw.
+///
+/// Requires live singleton work, player and Burner model/enemy, holdingPlayer set.
+/// Probes two squeeze ticks ahead to place the player, restores the arm pose,
+/// then advances one visible tick; damage and prompt timers count all three.
+/// A completed forty-press prompt delays the next prompt by 180..273 calls.
+/// Completion, a 450-frame finished stroke or Burner death ends the hold: at
+/// least 60 HP lost with HP remaining selects flame breath, otherwise throw.
+/// The prompt payload is borrowed only during synchronous message dispatch.
+static void _actor403100StepHeldPlayerSqueeze(Task* task)
+{
+    enum {
+        ACTOR_403100_SQUEEZE_PLAYER_CLIP = 1,
+    };
+    enum {
+        ACTOR_403100_HOLD_BUTTON_PRESSES            = 40,
+        ACTOR_403100_SQUEEZE_HIT_CLIP               = 13,
+        ACTOR_403100_PLAYER_SCRIPTED_ATTACK_MESSAGE = 1024,
+        ACTOR_403100_HOLD_TIMEOUT_FRAMES            = 450,
+        ACTOR_403100_HOLD_FLAME_DAMAGE_THRESHOLD    = 60,
+        ACTOR_403100_HELD_DEATH_KICK_FRAME          = 60,
+        ACTOR_403100_HELD_DEATH_RELEASE_FRAME       = 121,
+        ACTOR_403100_JAW_HIT_SOUND                  = 1,
+        ACTOR_403100_HOLD_THROW_SUBSTATE            = 8,
+    };
+    GameActorButtonPressHold pressHold;
+    s16                      burnerHp;
+    s32                      damageTakenDuringHold;
+    u16                      deathFrames;
+    u32                      repromptDraw;
+    u8                       releaseRequested;
+    GfxCoord*                rootCoord;
+    GfxCoord*                forearmCoord;
+
+    rootCoord                             = task->extra.tmd->coords;
+    forearmCoord                          = rootCoord + 6;
+    D_actor_403100_80155808->stateFrames += 1;
+    // Sample the grip two ticks ahead, without rolling back damage or prompt timers.
+    _actor403100SaveHoldPose(task);
+    _actor403100StepPlayerSqueeze(task);
+    _actor403100StepPlayerSqueeze(task);
+    D_actor_403100_80155808->rotation.vy = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
+    D_actor_403100_80155808->rotation.vx = 0;
+    D_actor_403100_80155808->rotation.vz = 0;
+    if (D_actor_403100_80155808->playerKilled == 0) {
+        releaseRequested = D_actor_403100_80155808->releaseRequested;
+        if ((releaseRequested == 1) && (D_actor_403100_80155808->forearmStrokeDone == releaseRequested)) {
+            repromptDraw                           = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState                        = repromptDraw;
+            D_actor_403100_80155808->repromptDelay = (((repromptDraw >> 0x10) & 0x1F) + 0x3C) * 3;
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACTOR_403100_PLAYER_SCRIPTED_ATTACK_MESSAGE, 0, 0);
+            D_actor_403100_80155808->releaseRequested = 0;
+        }
+    } else {
+        deathFrames                                = D_actor_403100_80155808->playerDeathFrames + 1;
+        D_actor_403100_80155808->playerDeathFrames = deathFrames;
+        if ((s16)deathFrames == ACTOR_403100_HELD_DEATH_KICK_FRAME) {
+            _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_SELECT_ATTACK_SOUND);
+        }
+        if ((s16)D_actor_403100_80155808->playerDeathFrames >= ACTOR_403100_HELD_DEATH_RELEASE_FRAME) {
+            gGameSession->suppressDeathChecks = 0;
+        }
+    }
+    _actor403100PlaceHeldPlayer(task);
+    _actor403100RestoreHoldPose(task);
+    _actor403100StepPlayerSqueeze(task);
+    if (D_actor_403100_80155808->hitTaken != 0) {
+        if (D_actor_403100_80155808->animationId != ACTOR_403100_SQUEEZE_HIT_CLIP) {
+            D_actor_403100_80155808->animationId      = ACTOR_403100_SQUEEZE_HIT_CLIP;
+            D_actor_403100_80155808->animationRate    = ANIMATION_RATE_ONE;
+            D_actor_403100_80155808->animationRequest = ACTOR_403100_ANIMATION_REQUEST_RESET;
+            if (D_actor_403100_80155808->jawPitchPhase == ACTOR_403100_PITCH_PHASE_REST) {
+                D_actor_403100_80155808->jawKickSound  = ACTOR_403100_JAW_HIT_SOUND;
+                D_actor_403100_80155808->jawPitchPhase = ACTOR_403100_PITCH_PHASE_START;
+            }
+        }
+    } else {
+        if (_actor403100PreviousAnimationAtBoundaryOrJump()) {
+            _actor403100RequestAnimationReset(ACTOR_403100_ANIMATION_SQUEEZE);
+        }
+    }
+    // Reissue the press count synchronously; the player ignores the animation payload.
+    if (D_actor_403100_80155808->promptPending != 0) {
+        D_actor_403100_80155808->promptPending = 0;
+        _actor403100PlayPlayerAnimation(ACTOR_403100_SQUEEZE_PLAYER_CLIP, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
+        pressHold.pressCount = ACTOR_403100_HOLD_BUTTON_PRESSES;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &pressHold, 0);
+        D_actor_403100_80155808->stateCounter = D_actor_403100_80155808->stateCounter + 1;
+    }
+    // A finished hold retaliates with flame only after enough Burner HP was lost.
+    if ((D_actor_403100_80155808->stateCounter != 0) ||
+        ((D_actor_403100_80155808->forearmStrokeDone == 1) &&
+         ((s16)D_actor_403100_80155808->stateFrames >= ACTOR_403100_HOLD_TIMEOUT_FRAMES) &&
+         (D_actor_403100_80155808->playerKilled == 0)) ||
+        (D_actor_403100_8015580C->hp <= 0)) {
+        damageTakenDuringHold = D_actor_403100_80155808->holdStartHp - D_actor_403100_8015580C->hp;
+        burnerHp              = D_actor_403100_8015580C->hp;
+        if ((damageTakenDuringHold >= ACTOR_403100_HOLD_FLAME_DAMAGE_THRESHOLD) && (burnerHp > 0)) {
+            D_actor_403100_80155808->stateFrames = 0;
+            D_actor_403100_80155808->subState   += 1;
+            return;
+        }
+        _actor403100PlayPlayerAnimation(ACTOR_403100_SQUEEZE_PLAYER_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
+        D_actor_403100_80155808->stateFrames                       = 0;
+        D_actor_403100_80155808->animationRate                     = ANIMATION_RATE_ONE / 2;
+        D_actor_403100_80155808->animationId                       = ACTOR_403100_ANIMATION_THROW_HELD_PLAYER;
+        D_actor_403100_80155808->animationRequest                  = ACTOR_403100_ANIMATION_REQUEST_RESET;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_HELD_PLAYER_THROW_VIEW;
+        rootCoord->coord.t[0]                                      = -0x44C;
+        rootCoord->coord.t[2]                                      = 0x1770;
+        rootCoord->coord.t[1]                                      = 0;
+        D_actor_403100_80155808->rotation.vy                       = ACTOR_TRANSFORM_ANGLE_TURN * 3 / 4;
+        D_actor_403100_80155808->rotation.vx                       = 0;
+        D_actor_403100_80155808->rotation.vz                       = 0;
+        _actor403100ResetHeldArmPose(forearmCoord);
+        D_actor_403100_80155808->subState = ACTOR_403100_HOLD_THROW_SUBSTATE;
+    }
 }
 
 /// Poses the held player for thirty-one updates before starting flame breath.
@@ -5242,149 +5366,179 @@ static void _actor403100PrepareHeldPlayerFlameBreath(Task* task)
         sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), SOUND_SCRIPT_STOP_KEEP_RELEASE);
     }
 }
-static void func_actor_403100_80139818(Task* arg0)
+/// Breathes flame over the held player and applies the retaliation hit.
+///
+/// Requires live singleton work, player/model/enemy and Burner model/enemy.
+/// Emits head-local flame at updates 52..123 and smoke at 125..135; update 100
+/// applies attack row four once. Keeps the player bound to the fixed raised
+/// grip and draws its foreground. A surviving player advances to recovery at
+/// a previous-animation boundary; lethal damage selects clip 6, holds the
+/// death sound and releases normal death handling when the death timer reaches 121.
+static void _actor403100StepHeldPlayerFlameBreath(Task* task)
 {
-    SVECTOR          position;
-    SVECTOR          velocity;
+    enum {
+        ACTOR_403100_HELD_BREATH_TRACK_FRAME = 51,
+        ACTOR_403100_HELD_BREATH_STOP_FRAME  = 124,
+        ACTOR_403100_HELD_BREATH_EMIT_START  = 52,
+        ACTOR_403100_HELD_BREATH_EMIT_FRAMES = 72,
+        ACTOR_403100_HELD_BREATH_SMOKE_START = 125,
+        ACTOR_403100_HELD_FLAME_HIT_VARIANT  = 3,
+        ACTOR_403100_HELD_PLAYER_CLIP        = 1,
+        ACTOR_403100_HELD_PLAYER_DEATH_CLIP  = 6,
+        ACTOR_403100_HELD_FOREGROUND_Y       = 60,
+    };
+    enum {
+        ACTOR_403100_PLAYER_SCRIPTED_ATTACK_MESSAGE = 1024,
+        ACTOR_403100_HELD_FLAME_DAMAGE_FRAME        = 100,
+        ACTOR_403100_HELD_FLAME_ATTACK_ROW          = 4,
+        ACTOR_403100_HELD_FLAME_JAW_CUE_FRAME       = 128,
+        ACTOR_403100_HELD_FLAME_TRUNK_CUE_FRAME     = 201,
+        ACTOR_403100_HELD_FLAME_DEATH_KICK_FRAME    = 60,
+        ACTOR_403100_HELD_FLAME_DEATH_RELEASE_FRAME = 121,
+    };
+    SVECTOR          emissionOffset;
+    SVECTOR          flameVelocity;
     Task*            playerTask;
-    Task*            task;
-    s16              deathFrame;
-    s32              sound;
-    s32              sound2;
-    s32              sound3;
-    s32              sound4;
-    s32              sound5;
-    s32              pan;
-    s32              pan2;
-    s32              pan3;
-    s32              pan4;
-    s32              pan5;
-    u16              frame;
-    s32              depth;
-    s32              depth2;
-    s32              depth3;
-    s32              depth4;
-    s32              depth5;
-    GfxCoord*        effectCoords;
+    Task*            damageTarget;
+    s16              deathFrames;
+    s32              breathSound;
+    s32              fatalPlayerSound;
+    s32              hurtPlayerSound;
+    s32              jawCueSound;
+    s32              trunkCueSound;
+    s32              breathPan;
+    s32              fatalPlayerPan;
+    s32              hurtPlayerPan;
+    s32              jawCuePan;
+    s32              trunkCuePan;
+    u16              elapsedFrames;
+    s32              breathDepth;
+    s32              fatalPlayerDepth;
+    s32              hurtPlayerDepth;
+    s32              jawCueDepth;
+    s32              trunkCueDepth;
+    GfxCoord*        smokeCoords;
     Actor403100Work* work;
-    PlayerStatus*    config;
-    GfxCoord*        part;
-    GfxCoord*        coords;
+    PlayerStatus*    playerStatus;
+    GfxCoord*        forearmCoord;
+    GfxCoord*        rootCoord;
 
-    playerTask = *gPlayerActorTasks;
-    coords     = arg0->extra.tmd->coords;
-    part       = coords + 6;
-    config     = &gPlayerStatus;
+    playerTask   = *gPlayerActorTasks;
+    rootCoord    = task->extra.tmd->coords;
+    forearmCoord = rootCoord + 6;
+    playerStatus = &gPlayerStatus;
     if (D_actor_403100_80155808->playerKilled == 0) {
         if (D_actor_403100_80155808->releaseRequested == 1) {
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACTOR_403100_PLAYER_SCRIPTED_ATTACK_MESSAGE, 0, 0);
             D_actor_403100_80155808->releaseRequested = 0;
         }
     }
     D_actor_403100_80155808->overlayX = 0;
-    D_actor_403100_80155808->overlayY = 0x3C;
-    _actor403100DrawHoldForeground(D_actor_403100_80155808->overlayX, 0x3C);
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame == 0x33) {
+    D_actor_403100_80155808->overlayY = ACTOR_403100_HELD_FOREGROUND_Y;
+    _actor403100DrawHoldForeground(D_actor_403100_80155808->overlayX, ACTOR_403100_HELD_FOREGROUND_Y);
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_403100_HELD_BREATH_TRACK_FRAME) {
         D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_TRACK;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_HELD_BREATH_STOP_FRAME) {
         D_actor_403100_80155808->aimMode = ACTOR_403100_AIM_YAW_ONLY;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x33) {
-        sound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0004;
-        pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 4);
-        depth = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 4);
-        sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_HELD_BREATH_TRACK_FRAME) {
+        breathSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_BREATH_SOUND;
+        breathPan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords + 4);
+        breathDepth = worldCoordGetOriginAudioDepth(task->extra.tmd->coords + 4);
+        sndEvtRequestScriptStart(breathSound, breathPan, (s8)(breathDepth / 2));
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x7C) {
-        sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BURNER, 4), 0xA);
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_HELD_BREATH_STOP_FRAME) {
+        sndEvtRequestScriptStop(ACTOR_403100_BREATH_SOUND, ACTOR_403100_FLAME_CONTACT_STOP_FADE_UPDATES);
     }
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x34) < 0x48U) {
-        position.vy = -0x1F0;
-        position.vz = 0x620;
-        velocity.vy = -0x20;
-        position.vx = 0;
-        velocity.vx = 0;
-        velocity.vz = 0xE0;
-        _actor403100EmitFlame(arg0, &position, &velocity, ACTOR_403100_FLAME_COLLISION_ENABLED);
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_HELD_BREATH_EMIT_START) < (u32)ACTOR_403100_HELD_BREATH_EMIT_FRAMES) {
+        emissionOffset.vy = -0x1F0;
+        emissionOffset.vz = 0x620;
+        flameVelocity.vy  = -0x20;
+        emissionOffset.vx = 0;
+        flameVelocity.vx  = 0;
+        flameVelocity.vz  = 0xE0;
+        _actor403100EmitFlame(task, &emissionOffset, &flameVelocity, ACTOR_403100_FLAME_COLLISION_ENABLED);
     }
-    if ((u32)(D_actor_403100_80155808->stateFrames - 0x7D) < 0xBU) {
-        effectCoords = arg0->extra.tmd->coords;
-        position.vy  = -0x140;
-        position.vx  = 0;
-        position.vz  = 0x400;
-        effectSpawn(EFFECT_SMOKE_PUFF, effectCoords + 3, -0x3FFCB400, &position);
+    if ((u32)(D_actor_403100_80155808->stateFrames - ACTOR_403100_HELD_BREATH_SMOKE_START) < (u32)ACTOR_403100_RECOVERY_SMOKE_FRAMES) {
+        smokeCoords       = task->extra.tmd->coords;
+        emissionOffset.vy = -0x140;
+        emissionOffset.vx = 0;
+        emissionOffset.vz = 0x400;
+        effectSpawn(EFFECT_SMOKE_PUFF, smokeCoords + 3, ACTOR_403100_RECOVERY_SMOKE_ARG, &emissionOffset);
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x64) {
-        effectSpawnPlayerBodyHit(EFFECT_PLAYER_BODY_HIT_BLAST, 3);
-        _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
-        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 4), 0);
-        if (config->hp <= 0) {
-            sound2 = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531D000B;
-            pan2   = (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords + 1);
-            depth2 = worldCoordGetOriginAudioDepth(playerTask->extra.tmd->coords + 1);
-            sndEvtRequestScriptStart(sound2, pan2, (s8)(depth2 / 2));
+    // Apply the direct held-player hit once; lethal damage hands playback to the death clip.
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_HELD_FLAME_DAMAGE_FRAME) {
+        effectSpawnPlayerBodyHit(EFFECT_PLAYER_BODY_HIT_BLAST, ACTOR_403100_HELD_FLAME_HIT_VARIANT);
+        _actor403100PlayPlayerAnimation(ACTOR_403100_HELD_PLAYER_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
+        damageTarget = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        taskMessageDispatch(damageTarget, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, ACTOR_403100_HELD_FLAME_ATTACK_ROW), 0);
+        if (playerStatus->hp <= 0) {
+            fatalPlayerSound = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY, 11);
+            fatalPlayerPan   = (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords + 1);
+            fatalPlayerDepth = worldCoordGetOriginAudioDepth(playerTask->extra.tmd->coords + 1);
+            sndEvtRequestScriptStart(fatalPlayerSound, fatalPlayerPan, (s8)(fatalPlayerDepth / 2));
             gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
             work                              = D_actor_403100_80155808;
             work->playerKilled                = 1;
             work->playerDeathFrames           = 0;
             gGameSession->suppressDeathChecks = 1;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x400, 0, 0);
-            _actor403100PlayPlayerAnimation(6, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACTOR_403100_PLAYER_SCRIPTED_ATTACK_MESSAGE, 0, 0);
+            _actor403100PlayPlayerAnimation(ACTOR_403100_HELD_PLAYER_DEATH_CLIP, ANIMATION_MESSAGE_REPLACE_AND_PLAY);
         } else {
-            sound3 = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 7;
-            pan3   = (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords + 1);
-            depth3 = worldCoordGetOriginAudioDepth(playerTask->extra.tmd->coords + 1);
-            sndEvtRequestScriptStart(sound3, pan3, (s8)(depth3 / 2));
+            hurtPlayerSound = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_COMMON(7);
+            hurtPlayerPan   = (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords + 1);
+            hurtPlayerDepth = worldCoordGetOriginAudioDepth(playerTask->extra.tmd->coords + 1);
+            sndEvtRequestScriptStart(hurtPlayerSound, hurtPlayerPan, (s8)(hurtPlayerDepth / 2));
         }
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x80) {
-        sound4 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000D;
-        pan4   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 4);
-        depth4 = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 4);
-        sndEvtRequestScriptStart(sound4, pan4, (s8)(depth4 / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_HELD_FLAME_JAW_CUE_FRAME) {
+        jawCueSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 13);
+        jawCuePan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords + 4);
+        jawCueDepth = worldCoordGetOriginAudioDepth(task->extra.tmd->coords + 4);
+        sndEvtRequestScriptStart(jawCueSound, jawCuePan, (s8)(jawCueDepth / 2));
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0xC9) {
-        sound5 = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F000E;
-        pan5   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords + 1);
-        depth5 = worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords + 1);
-        sndEvtRequestScriptStart(sound5, pan5, (s8)(depth5 / 2));
-        padScriptSpawnVariableMotorRamp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 0x12;
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_HELD_FLAME_TRUNK_CUE_FRAME) {
+        trunkCueSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 14);
+        trunkCuePan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords + 1);
+        trunkCueDepth = worldCoordGetOriginAudioDepth(task->extra.tmd->coords + 1);
+        sndEvtRequestScriptStart(trunkCueSound, trunkCuePan, (s8)(trunkCueDepth / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_IMPACT_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_IMPACT_FEEDBACK_FRAMES;
     }
+    // Keep the player in the raised grip until recovery or normal death handling resumes.
     D_actor_403100_80155808->armPitch       = -0x20;
     D_actor_403100_80155808->armYaw         = 0x450;
     D_actor_403100_80155808->forearmTurn.vx = 0x290;
     D_actor_403100_80155808->forearmTurn.vy = 0x210;
     D_actor_403100_80155808->forearmTurn.vz = -0x160;
-    part->coord.t[0]                        = -0xE27;
-    coords->coord.t[0]                      = -0x44C;
-    coords->coord.t[1]                      = -0x1388;
-    coords->coord.t[2]                      = 0x2710;
+    forearmCoord->coord.t[0]                = -0xE27;
+    rootCoord->coord.t[0]                   = -0x44C;
+    rootCoord->coord.t[1]                   = -0x1388;
+    rootCoord->coord.t[2]                   = 0x2710;
     D_actor_403100_80155808->rotation.vx    = 0;
     D_actor_403100_80155808->rotation.vy    = 0xA00;
     D_actor_403100_80155808->rotation.vz    = 0;
-    _actor403100PlaceHeldPlayer(arg0);
+    _actor403100PlaceHeldPlayer(task);
     if (D_actor_403100_80155808->playerKilled == 0) {
         if (_actor403100PreviousAnimationAtBoundaryOrJump()) {
-            _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
+            _actor403100PlayPlayerAnimation(ACTOR_403100_HELD_PLAYER_CLIP, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
             D_actor_403100_80155808->stateFrames = 0;
             D_actor_403100_80155808->aimMode     = ACTOR_403100_AIM_TRACK;
-            D_actor_403100_80155808->overlayY    = 0x3C;
+            D_actor_403100_80155808->overlayY    = ACTOR_403100_HELD_FOREGROUND_Y;
             D_actor_403100_80155808->subState   += 1;
         }
     } else {
-        deathFrame                                 = (u16)D_actor_403100_80155808->playerDeathFrames + 1;
-        D_actor_403100_80155808->playerDeathFrames = deathFrame;
-        if (deathFrame == 0x3C) {
+        deathFrames                                = (u16)D_actor_403100_80155808->playerDeathFrames + 1;
+        D_actor_403100_80155808->playerDeathFrames = deathFrames;
+        if (deathFrames == ACTOR_403100_HELD_FLAME_DEATH_KICK_FRAME) {
             _actor403100RequestPitchKick(ACTOR_403100_PITCH_KICK_KEEP_SOUND);
         }
-        if (D_actor_403100_80155808->playerDeathFrames >= 0x79) {
+        if (D_actor_403100_80155808->playerDeathFrames >= ACTOR_403100_HELD_FLAME_DEATH_RELEASE_FRAME) {
             gGameSession->suppressDeathChecks = 0;
         }
     }
@@ -5520,58 +5674,76 @@ static void _actor403100ThrowHeldPlayer(Task* task)
         D_actor_403100_80155808->stateFrames = 0;
     }
 }
-static void func_actor_403100_8013A254(Task* task)
+/// Finishes the held-player throw with balcony damage and control restoration.
+///
+/// Requires live singleton work, player model/enemy and balcony section sprites;
+/// task is unused for its callback signature. Update 11 damages section 1
+/// (or selects state 2 on repeats), plays impact audio and eight-update feedback;
+/// 28 plays recovery audio. When surviving player playback ends, releases
+/// scripted control, restores the normal head radius and resumes approach.
+/// For a killed player, normal death checks resume from update 30.
+static void _actor403100FinishHeldPlayerThrow(Task* task)
 {
-    Task*            actor;
+    enum {
+        ACTOR_403100_THROW_IMPACT_FRAME           = 11,
+        ACTOR_403100_THROW_RECOVERY_SOUND_FRAME   = 28,
+        ACTOR_403100_THROW_DEATH_RELEASE_FRAME    = 30,
+        ACTOR_403100_THROW_RETURN_VIEW            = 6,
+        ACTOR_403100_NORMAL_HEAD_RADIUS           = 1024,
+        ACTOR_403100_THROW_SECTION                = 1,
+        ACTOR_403100_THROW_SECTION_REPEATED_STATE = 2,
+        ACTOR_403100_THROW_FEEDBACK_FRAMES        = 8,
+    };
+    Task*            playerTask;
     Actor403100Work* work;
-    s32              sound;
-    s32              sound2;
-    s32              pan;
-    s32              pan2;
-    u16              frame;
-    s32              depth;
-    s32              depth2;
+    s32              impactSound;
+    s32              recoverySound;
+    s32              impactPan;
+    s32              recoveryPan;
+    u16              elapsedFrames;
+    s32              impactDepth;
+    s32              recoveryDepth;
 
-    actor                                = *gPlayerActorTasks;
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame == 0xB) {
-        if (D_actor_403100_80155808->sectionDamaged[1] == 0) {
-            dryfieldNightMotelBalconySetSectionState(1, 1);
-            D_actor_403100_80155808->sectionDamaged[1] = 1;
+    playerTask                           = *gPlayerActorTasks;
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_403100_THROW_IMPACT_FRAME) {
+        if (D_actor_403100_80155808->sectionDamaged[ACTOR_403100_THROW_SECTION] == 0) {
+            dryfieldNightMotelBalconySetSectionState(ACTOR_403100_THROW_SECTION, ACTOR_403100_BALCONY_SECTION_DAMAGED);
+            D_actor_403100_80155808->sectionDamaged[ACTOR_403100_THROW_SECTION] = 1;
         } else {
-            dryfieldNightMotelBalconySetSectionState(1, 2);
+            dryfieldNightMotelBalconySetSectionState(ACTOR_403100_THROW_SECTION, ACTOR_403100_THROW_SECTION_REPEATED_STATE);
         }
-        padScriptSpawnVariableMotorRamp(8, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 8;
-        sound                                = (((u16)((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0006;
-        pan                                  = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords + 1);
-        depth                                = worldCoordGetOriginAudioDepth(actor->extra.tmd->coords + 1);
-        sndEvtRequestScriptStart(sound, (s32)pan, (s8)(depth / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_THROW_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_THROW_FEEDBACK_FRAMES;
+        impactSound                          = (((u16)((Enemy*)(playerTask)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 6);
+        impactPan                            = (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords + 1);
+        impactDepth                          = worldCoordGetOriginAudioDepth(playerTask->extra.tmd->coords + 1);
+        sndEvtRequestScriptStart(impactSound, impactPan, (s8)(impactDepth / 2));
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x1C) {
-        sound2 = (((u16)((Enemy*)(actor)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0007;
-        pan2   = (s8)worldCoordGetOriginAudioPan(actor->extra.tmd->coords + 1);
-        depth2 = worldCoordGetOriginAudioDepth(actor->extra.tmd->coords + 1);
-        sndEvtRequestScriptStart(sound2, (s32)pan2, (s8)(depth2 / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_THROW_RECOVERY_SOUND_FRAME) {
+        recoverySound = (((u16)((Enemy*)(playerTask)->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 7);
+        recoveryPan   = (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords + 1);
+        recoveryDepth = worldCoordGetOriginAudioDepth(playerTask->extra.tmd->coords + 1);
+        sndEvtRequestScriptStart(recoverySound, recoveryPan, (s8)(recoveryDepth / 2));
     }
     D_actor_403100_80155808->releaseRequested = 0;
     if (D_actor_403100_80155808->playerKilled == 0) {
         if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
             if (D_actor_403100_8015580C->hp > 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 6;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_THROW_RETURN_VIEW;
             }
             D_actor_403100_80155808->field_632         = 0;
             D_actor_403100_80155808->handTouchedPlayer = 0;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             work                                   = D_actor_403100_80155808;
             work->vulnerable                       = 0;
-            work->headBody.radius                  = 0x400;
+            work->headBody.radius                  = ACTOR_403100_NORMAL_HEAD_RADIUS;
             D_actor_403100_80155808->holdingPlayer = 0;
-            D_actor_403100_80155808->state         = 1;
+            D_actor_403100_80155808->state         = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
             D_actor_403100_80155808->subState      = 0;
         }
-    } else if ((s16)D_actor_403100_80155808->stateFrames >= 0x1E) {
+    } else if ((s16)D_actor_403100_80155808->stateFrames >= ACTOR_403100_THROW_DEATH_RELEASE_FRAME) {
         gGameSession->suppressDeathChecks = 0;
     }
 }
@@ -5843,49 +6015,67 @@ static void _actor403100StepPlayerDrag(Task* unusedTask)
         D_actor_403100_80155808->subState    = (u16)(D_actor_403100_80155808->subState + 1);
     }
 }
-static void func_actor_403100_8013AE28(Task* task)
+/// Finishes the player drag with balcony damage, reaction audio and control release.
+///
+/// Requires live singleton work, player model/enemy and balcony section sprites;
+/// task is unused for its callback signature. Update 10 damages section 0
+/// (or selects state 2 on repeats); 11 plays impact audio and eighteen-update
+/// feedback, 28 plays recovery audio and 32 sounds a fatal hit if needed.
+/// Surviving player playback completion restores view 4 if Burner still lives,
+/// re-enables view triggers and resumes approach; fatal death checks resume at 50.
+static void _actor403100FinishPlayerDrag(Task* task)
 {
-    Task* player;
-    s32   sound;
-    s32   sound2;
-    s32   sound3;
-    s32   pan;
-    s32   pan2;
-    s32   pan3;
-    s32   depth;
-    u16   frame;
+    enum {
+        ACTOR_403100_DRAG_SECTION_FRAME          = 10,
+        ACTOR_403100_DRAG_IMPACT_FRAME           = 11,
+        ACTOR_403100_DRAG_RECOVERY_SOUND_FRAME   = 28,
+        ACTOR_403100_DRAG_FATAL_SOUND_FRAME      = 32,
+        ACTOR_403100_DRAG_DEATH_RELEASE_FRAME    = 50,
+        ACTOR_403100_DRAG_RETURN_VIEW            = 4,
+        ACTOR_403100_DRAG_SECTION                = 0,
+        ACTOR_403100_DRAG_SECTION_REPEATED_STATE = 2,
+    };
+    Task* playerTask;
+    s32   impactSound;
+    s32   recoverySound;
+    s32   fatalSound;
+    s32   impactPan;
+    s32   recoveryPan;
+    s32   fatalPan;
+    s32   audioDepth;
+    u16   elapsedFrames;
 
-    player                               = *gPlayerActorTasks;
-    frame                                = D_actor_403100_80155808->stateFrames + 1;
-    D_actor_403100_80155808->stateFrames = frame;
-    if ((s16)frame == 0xA) {
-        if (D_actor_403100_80155808->sectionDamaged[0] == 0) {
-            dryfieldNightMotelBalconySetSectionState(0, 1);
-            D_actor_403100_80155808->sectionDamaged[0] = 1;
+    playerTask                           = *gPlayerActorTasks;
+    elapsedFrames                        = D_actor_403100_80155808->stateFrames + 1;
+    D_actor_403100_80155808->stateFrames = elapsedFrames;
+    if ((s16)elapsedFrames == ACTOR_403100_DRAG_SECTION_FRAME) {
+        if (D_actor_403100_80155808->sectionDamaged[ACTOR_403100_DRAG_SECTION] == 0) {
+            dryfieldNightMotelBalconySetSectionState(ACTOR_403100_DRAG_SECTION, ACTOR_403100_BALCONY_SECTION_DAMAGED);
+            D_actor_403100_80155808->sectionDamaged[ACTOR_403100_DRAG_SECTION] = 1;
         } else {
-            dryfieldNightMotelBalconySetSectionState(0, 2);
+            dryfieldNightMotelBalconySetSectionState(ACTOR_403100_DRAG_SECTION, ACTOR_403100_DRAG_SECTION_REPEATED_STATE);
         }
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0xB) {
-        sound = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0006;
-        pan   = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
-        depth = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound, pan, (s8)(depth / 2));
-        padScriptSpawnVariableMotorRamp(0x12, 0xFFU, 8U);
-        D_actor_403100_80155808->shakeFrames = 0x12;
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_DRAG_IMPACT_FRAME) {
+        impactSound = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 6);
+        impactPan   = (s8)worldCoordGetOriginAudioPan(&playerTask->extra.tmd->coords[1]);
+        audioDepth  = worldCoordGetOriginAudioDepth(&playerTask->extra.tmd->coords[1]);
+        sndEvtRequestScriptStart(impactSound, impactPan, (s8)(audioDepth / 2));
+        padScriptSpawnVariableMotorRamp(ACTOR_403100_IMPACT_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
+        D_actor_403100_80155808->shakeFrames = ACTOR_403100_IMPACT_FEEDBACK_FRAMES;
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x1C) {
-        sound2 = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x401F0007;
-        pan2   = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
-        depth  = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
-        sndEvtRequestScriptStart(sound2, pan2, (s8)(depth / 2));
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_DRAG_RECOVERY_SOUND_FRAME) {
+        recoverySound = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_BURNER, 7);
+        recoveryPan   = (s8)worldCoordGetOriginAudioPan(&playerTask->extra.tmd->coords[1]);
+        audioDepth    = worldCoordGetOriginAudioDepth(&playerTask->extra.tmd->coords[1]);
+        sndEvtRequestScriptStart(recoverySound, recoveryPan, (s8)(audioDepth / 2));
     }
-    if ((s16)D_actor_403100_80155808->stateFrames == 0x20) {
+    if ((s16)D_actor_403100_80155808->stateFrames == ACTOR_403100_DRAG_FATAL_SOUND_FRAME) {
         if (D_actor_403100_80155808->playerKilled != 0) {
-            sound3 = (((u16)((Enemy*)player->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531D000B;
-            pan3   = (s8)worldCoordGetOriginAudioPan(&player->extra.tmd->coords[1]);
-            depth  = worldCoordGetOriginAudioDepth(&player->extra.tmd->coords[1]);
-            sndEvtRequestScriptStart(sound3, pan3, (s8)(depth / 2));
+            fatalSound = (((u16)((Enemy*)playerTask->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY, 11);
+            fatalPan   = (s8)worldCoordGetOriginAudioPan(&playerTask->extra.tmd->coords[1]);
+            audioDepth = worldCoordGetOriginAudioDepth(&playerTask->extra.tmd->coords[1]);
+            sndEvtRequestScriptStart(fatalSound, fatalPan, (s8)(audioDepth / 2));
         }
     }
     if (D_actor_403100_80155808->playerKilled == 0) {
@@ -5893,15 +6083,15 @@ static void func_actor_403100_8013AE28(Task* task)
             D_actor_403100_80155808->handTouchedPlayer = 0;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
             if (D_actor_403100_8015580C->hp > 0) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 4;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_403100_DRAG_RETURN_VIEW;
             }
             gGameSession->suppressViewTriggers     = 0;
             D_actor_403100_80155808->vulnerable    = 0;
             D_actor_403100_80155808->holdingPlayer = 0;
-            D_actor_403100_80155808->state         = 1;
+            D_actor_403100_80155808->state         = ACTOR_403100_BEHAVIOUR_ATTACK_APPROACH;
             D_actor_403100_80155808->subState      = 0;
         }
-    } else if ((s16)D_actor_403100_80155808->stateFrames >= 0x32) {
+    } else if ((s16)D_actor_403100_80155808->stateFrames >= ACTOR_403100_DRAG_DEATH_RELEASE_FRAME) {
         gGameSession->suppressDeathChecks = 0;
     }
 }
@@ -6138,8 +6328,8 @@ static void _actor403100AimHead(Task* task, s16 aimMode)
 static const TaskFuncTable6 D_actor_403100_80131F84 = {
     {
         _actor403100BeginArmSwingCombo,
-        func_actor_403100_801376D8,
-        func_actor_403100_801379B4,
+        _actor403100StepFirstArmSwing,
+        _actor403100StepRepeatedArmSwing,
         _actor403100FinishArmSwingCombo,
         _actor403100StepArmComboImpact,
         _actor403100FinishArmSwingRecovery,
@@ -6150,7 +6340,7 @@ static const TaskFuncTable6 D_actor_403100_80131F84 = {
 static const TaskFuncTable5 D_actor_403100_80131F9C = {
     {
         _actor403100BeginAimedFlameAttack,
-        func_actor_403100_80138048,
+        _actor403100StepAimedFlameBreath,
         _actor403100WaitAfterAimedFlameAttack,
         _actor403100BeginAimedFlameContactRecovery,
         _actor403100StepAimedFlameContactRecovery,
@@ -6165,7 +6355,7 @@ static const TaskFuncTable9 D_actor_403100_80131FB0 = {
         _actor403100CrouchForJumpSlam,
         _actor403100AccelerateJumpSlam,
         _actor403100DecelerateJumpSlam,
-        func_actor_403100_80138844,
+        _actor403100DescendJumpSlam,
         _actor403100StepJumpSlamImpact,
         _actor403100FinishJumpSlamRecovery,
         _actor403100WaitAfterJumpSlam,
@@ -6179,12 +6369,12 @@ static const TaskFuncTable11 D_actor_403100_80131FD4 = {
         _actor403100StepGrabAndSqueezeReach,
         _actor403100BeginHeldPlayerLift,
         _actor403100BeginHeldPlayerSqueeze,
-        func_actor_403100_8013922C,
+        _actor403100StepHeldPlayerSqueeze,
         _actor403100PrepareHeldPlayerFlameBreath,
-        func_actor_403100_80139818,
+        _actor403100StepHeldPlayerFlameBreath,
         _actor403100RecoverHeldPlayerFromFlameBreath,
         _actor403100ThrowHeldPlayer,
-        func_actor_403100_8013A254,
+        _actor403100FinishHeldPlayerThrow,
         _actor403100FinishGrabRewind,
     },
 };
@@ -6206,7 +6396,7 @@ static const TaskFuncTable4 D_actor_403100_80132014 = {
         _actor403100BeginGrabAndDrag,
         _actor403100StepGrabAndDragReach,
         _actor403100StepPlayerDrag,
-        func_actor_403100_8013AE28,
+        _actor403100FinishPlayerDrag,
     },
 };
 
@@ -6338,26 +6528,6 @@ static inline void _actor403100StepApproachRoot(TmdObject* model, GfxCoord* root
     }
 }
 
-/// Requests the combat footfall sound, controller ramp and vertical screen shake.
-///
-/// Requires live singleton work/model and an Enemy in task->spawnArg2.pointer.
-/// The placement-index nibble selects the sound instance. Lower-trunk pan and
-/// half depth truncate to signed bytes. Rumble counts thirty eligible pad-script
-/// updates; shake counts thirty actor updates. All pointers remain borrowed.
-static inline void _actor403100PlayWalkFootfall(Task* task)
-{
-    s32 footfallSound;
-    s32 audioPan;
-    s32 audioDepth;
-
-    padScriptSpawnVariableMotorRamp(ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES, ACTOR_403100_FEEDBACK_START_INTENSITY, ACTOR_403100_FEEDBACK_END_INTENSITY);
-    D_actor_403100_80155808->shakeFrames = ACTOR_403100_FOOTFALL_FEEDBACK_FRAMES;
-    footfallSound                        = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_403100_FOOTFALL_SOUND;
-    audioPan                             = (s8)worldCoordGetOriginAudioPan(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
-    audioDepth                           = worldCoordGetOriginAudioDepth(&task->extra.tmd->coords[ACTOR_403100_PART_LOWER_TRUNK]);
-    sndEvtRequestScriptStart(footfallSound, audioPan, (s8)(audioDepth / 2));
-}
-
 /// Moves toward the current player-region target and bobs with the stride.
 ///
 /// Requires live singleton work/model. Stride phase is 0..2047 in 4096 units
@@ -6478,15 +6648,17 @@ static void _actor403100DrawHoldForeground(s16 offsetX, s16 offsetY)
 }
 /// Eases the five squeeze angular offsets toward one stroke pose.
 ///
-/// Requires live singleton work. Angles use 4096 units per turn; `shift`
-/// selects signed error division by 2 or 4 before wrapping each halfword.
-static inline void _actor403100EaseSqueezePose(s32 armPitch, s32 armYaw, s32 forearmPitch, s32 forearmYaw, s32 forearmRoll, s32 shift)
+/// Requires live singleton work. Targets and stored offsets use 4096 angle
+/// units per turn. `easeShift` is 1 or 2: signed 32-bit target-minus-current
+/// error is shifted by that count before the sum retains its low halfword.
+/// The error is not reduced to a shortest-turn difference.
+static inline void _actor403100EaseSqueezePose(s32 targetArmPitch, s32 targetArmYaw, s32 targetForearmPitch, s32 targetForearmYaw, s32 targetForearmRoll, s32 easeShift)
 {
-    D_actor_403100_80155808->armPitch       = (u16)D_actor_403100_80155808->armPitch + ((s32)(armPitch - D_actor_403100_80155808->armPitch) >> shift);
-    D_actor_403100_80155808->armYaw         = (u16)D_actor_403100_80155808->armYaw + ((s32)(armYaw - D_actor_403100_80155808->armYaw) >> shift);
-    D_actor_403100_80155808->forearmTurn.vx = (u16)D_actor_403100_80155808->forearmTurn.vx + ((s32)(forearmPitch - D_actor_403100_80155808->forearmTurn.vx) >> shift);
-    D_actor_403100_80155808->forearmTurn.vy = (u16)D_actor_403100_80155808->forearmTurn.vy + ((s32)(forearmYaw - D_actor_403100_80155808->forearmTurn.vy) >> shift);
-    D_actor_403100_80155808->forearmTurn.vz = (u16)D_actor_403100_80155808->forearmTurn.vz + ((s32)(forearmRoll - D_actor_403100_80155808->forearmTurn.vz) >> shift);
+    D_actor_403100_80155808->armPitch       = (u16)D_actor_403100_80155808->armPitch + ((targetArmPitch - D_actor_403100_80155808->armPitch) >> easeShift);
+    D_actor_403100_80155808->armYaw         = (u16)D_actor_403100_80155808->armYaw + ((targetArmYaw - D_actor_403100_80155808->armYaw) >> easeShift);
+    D_actor_403100_80155808->forearmTurn.vx = (u16)D_actor_403100_80155808->forearmTurn.vx + ((targetForearmPitch - D_actor_403100_80155808->forearmTurn.vx) >> easeShift);
+    D_actor_403100_80155808->forearmTurn.vy = (u16)D_actor_403100_80155808->forearmTurn.vy + ((targetForearmYaw - D_actor_403100_80155808->forearmTurn.vy) >> easeShift);
+    D_actor_403100_80155808->forearmTurn.vz = (u16)D_actor_403100_80155808->forearmTurn.vz + ((targetForearmRoll - D_actor_403100_80155808->forearmTurn.vz) >> easeShift);
 }
 
 /// Advances one held-player squeeze tick, including periodic damage and the arm stroke.
