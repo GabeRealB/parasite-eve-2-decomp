@@ -741,9 +741,9 @@ void shelterB1StoreroomRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_shelter_b1_storeroom_80180C98(Task* arg0)
+void shelterB1StoreroomRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"

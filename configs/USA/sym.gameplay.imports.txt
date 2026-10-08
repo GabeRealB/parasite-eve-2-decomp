@@ -976,7 +976,7 @@ func_shelter_1f_vehicular_airlock_80180008 = 0x80180008; // type:func absolute:T
 
 shelterB1ControlRoomDrawGlowsTask = 0x8017F150; // type:func absolute:True owner=shelter_b1_control_room
 
-shelterB1ControlRoomRoomVisualEffectsGlowDiscTask = 0x8017FF80; // type:func absolute:True owner=shelter_b1_control_room shared=rooms
+shelterB1ControlRoomRoomVisualEffectsGlowDiscTask = 0x8017FF80; // type:func absolute:True owner=shelter_b1_control_room
 
 shelterB1ControlRoomRoomVisualEffectsFlyingSparkTask = 0x801804D8; // type:func absolute:True owner=shelter_b1_control_room
 
@@ -1061,7 +1061,7 @@ shelterB1PodServiceGantryInitEffectsTask = 0x8017FA7C; // type:func absolute:Tru
 
 shelterB1SleepingQuartersDrawViewLightsTask = 0x8017D8E0; // type:func absolute:True owner=shelter_b1_sleeping_quarters shared=rooms
 
-func_shelter_b1_sleeping_quarters_8017E6DC = 0x8017E6DC; // type:func absolute:True owner=shelter_b1_sleeping_quarters
+shelterB1SleepingQuartersRoomVisualEffectsGlowDiscTask = 0x8017E6DC; // type:func absolute:True owner=shelter_b1_sleeping_quarters
 
 shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask = 0x8017F894; // type:func absolute:True owner=shelter_b1_sleeping_quarters
 
@@ -1085,7 +1085,7 @@ shelterB1StoreroomRoomVisualEffectsHaloTask = 0x8017F4F0; // type:func absolute:
 
 shelterB1StoreroomRoomVisualEffectsHaloOrangeBurstTask = 0x8017F888; // type:func absolute:True owner=shelter_b1_storeroom
 
-func_shelter_b1_storeroom_80180C98 = 0x80180C98; // type:func absolute:True owner=shelter_b1_storeroom
+shelterB1StoreroomRoomVisualEffectsSparkEmitterTask = 0x80180C98; // type:func absolute:True owner=shelter_b1_storeroom
 
 shelterB1StoreroomRoomVisualEffectsFlashTask = 0x80180DCC; // type:func absolute:True owner=shelter_b1_storeroom
 

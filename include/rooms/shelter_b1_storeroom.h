@@ -30,7 +30,13 @@ extern SpriteView D_shelter_b1_storeroom_80186090[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_storeroom_80186DEC[];
 
-void func_shelter_b1_storeroom_8017D794(Task* task);
+/// Runs the storeroom's room-message receiver until room teardown.
+///
+/// Starts at state 0 to install the handlers, register the room task and enable
+/// CAP completion sound messages. State 1 waits for messages; state 2 kills
+/// the task. The 0..2 dispatch index is unchecked. Spawn payloads are unused;
+/// keep this overlay loaded while the registered receiver is live.
+void shelterB1StoreroomTask(Task* task);
 
 /// Charges a pink flash, tints the screen at its peak, then fades as a star.
 ///
@@ -139,7 +145,16 @@ void shelterB1StoreroomRoomVisualEffectsHaloTask(Task* task);
 /// effect controller and this overlay must remain live.
 void shelterB1StoreroomRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_shelter_b1_storeroom_80180C98(Task* arg0);
+/// Emits twenty independent descending motes around a turning, rising spawn offset.
+///
+/// Requires a coordinate body and zero-aged, counted `EffectWork` in
+/// `spawnArg2.pointer` from `effectSpawn`; `spawnArg1` is unused. Active ages
+/// 1..20 emit at radius about 768 and Y = -128 * age in parent-axis game units.
+/// Each mote descends eight units per active tick and outlives the emitter,
+/// whose work and task retire at age 21. Nonzero room effect control pauses;
+/// four or above cancels and releases it. Requires the installed mote effect,
+/// live coordinate ancestors, controller and room overlay through teardown.
+void shelterB1StoreroomRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Binds the room's effect IDs once and draws its active view's light glows each frame.
 ///

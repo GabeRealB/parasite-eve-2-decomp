@@ -1079,7 +1079,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1SouthMaintenanceWalkwayRoomVisualEffectsFlyingOrangeBurstTask, { NULL } }, // 0x21D
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1StoreroomRoomVisualEffectsGlowDiscTask, { NULL } },                        // 0x21E
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1NorthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask, { NULL } },          // 0x21F
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_sleeping_quarters_8017E6DC, { NULL } },                             // 0x220
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1SleepingQuartersRoomVisualEffectsGlowDiscTask, { NULL } },                 // 0x220
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2SouthMaintenanceWalkwayRoomVisualEffectsGlowDiscTask, { NULL } },          // 0x221
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b2_operating_room_8017ECFC, { NULL } },                                // 0x222
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3ElevatorHallRoomVisualEffectsGlowDiscTask, { NULL } },                     // 0x223
@@ -1152,7 +1152,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask, { NULL } },               // 0x266
     { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsSparkEmitterTask, { NULL } },                            // 0x267
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsSparkEmitterTask, { NULL } },                 // 0x268
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80180C98, { NULL } },                                     // 0x269
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1StoreroomRoomVisualEffectsSparkEmitterTask, { NULL } },                    // 0x269
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1NorthMaintenanceWalkwayRoomVisualEffectsSparkEmitterTask, { NULL } },      // 0x26A
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1MainCorridorRoomVisualEffectsSparkEmitterTask, { NULL } },                 // 0x26B
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1TransferTunnelRoomVisualEffectsSparkEmitterTask, { NULL } },               // 0x26C

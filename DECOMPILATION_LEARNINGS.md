@@ -28590,7 +28590,7 @@ The rule above is about *distinct* bodies. When several cases share a body,
 GCC 2.8.1's post-reload cross-jumping plus label redirection rearranges the
 layout by itself, and reordering the source to chase it makes things worse.
 
-`func_shelter_b1_sterilization_room_80180188` is a 9-state task whose table
+`_shelterB1SterilizationRoomScriptedPresentationTask` is a 9-state task whose table
 reads 0, tail, 2-body, 3, 4, 5, tail, 2-body, 8 — bodies apparently emitted as
 0, 3, 4, 5, 2/7, tail, 8. Written in that order it stalled at 94.7%. Written
 in plain `case 0:` … `case 8:` order, with `task->state++` inside each arm, it
@@ -42659,7 +42659,7 @@ L:  jal   capRunCommandWithTransition
 The same rewrite removes the `j` that an if/else (or two calls merged by
 cross-jumping) leaves behind: with the default already assigned, the arm that
 overwrites it needs no else block to jump over.
-`func_shelter_b1_sterilization_room_801816E0` is the example — 83% as m2c wrote
+`shelterB1SterilizationRoomTrapDialogueTask` is the example — 83% as m2c wrote
 it, 92% cross-jumped, 95% with a shared variable, 100% with the temp.
 
 ## m2c `goto block_N` for a cross-jumped tail merges in the wrong direction
@@ -42691,7 +42691,7 @@ the `jal taskKill` delay slot, so the earlier if/else join becomes
 `j jal; nop` instead of the ROM's extra stub `j jal; move a0,s1` (and default
 then has a `nop` load delay instead of the same `move a0`). Write `taskKill`
 in the case that owns the if/else *and* in `default` (each followed by
-`return`). Cross-jumping then emits that join stub. `func_shelter_b1_sterilization_room_801813A0`
+`return`). Cross-jumping then emits that join stub. `shelterB1SterilizationRoomTrapEscapePromptTask`
 went 91% (m2c backward goto) → 95% (post-switch tail) → 100% (duplicated call).
 
 ## m2c re-reads the guarded pointer *inside* the shared block, so the tail merges one insn too early
@@ -141312,7 +141312,7 @@ stored value and the block pointer becomes a copy of it.
 Same function: an OT index of `orderingDepth + 1` used by two `addPrim`s matched when
 written inline as `(u32)(orderingDepth + 1) << shift` in both, not as a preceding `orderingDepth++`
 (which kept the incremented value in a new register and grew the frame).
-### An early exit that leaves `$v0` unset is a bare `return;` in a non-void function (func_shelter_b1_sterilization_room_8017FF80, 2026-09-24)
+### An early exit that leaves `$v0` unset is a bare `return;` in a non-void function (_shelterB1SterilizationRoomHandleCommandMessage, 2026-09-24)
 
 A room message handler returns `0` at its common exit, but one early path jumps to the epilogue with a `nop` in the `j` delay slot instead of `move v0,zero`. Writing `return 0;` there scores 98.5% with a single insert/delete at that slot. The original wrote `return;` inside an `s32` function: the `-w` build accepts it, and GCC emits no `$v0` set on that path. When the only difference is a missing `li`/`move v0` before a jump to the shared exit, try a valueless `return;` before restructuring the control flow.
 

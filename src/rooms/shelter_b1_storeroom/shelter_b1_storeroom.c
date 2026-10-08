@@ -20,23 +20,23 @@
 /// to the room's handlers, closed by id `TASK_MESSAGE_TABLE_END`.
 extern TaskMessageEntry D_shelter_b1_storeroom_80184968[];
 
-static void func_shelter_b1_storeroom_8017D740(Task* task);
+static void _shelterB1StoreroomInitializeRoomState(Task* task);
 static void _shelterB1StoreroomIdleRoomState(Task* task);
 
 /// The room task's three states, dispatched by
-/// `func_shelter_b1_storeroom_8017D794`: install the message table, idle, end.
+/// `shelterB1StoreroomTask`: install the message table, idle, end.
 static const TaskFuncTable3 D_shelter_b1_storeroom_8017D5C4 = {
-    { func_shelter_b1_storeroom_8017D740, _shelterB1StoreroomIdleRoomState, taskKill }
+    { _shelterB1StoreroomInitializeRoomState, _shelterB1StoreroomIdleRoomState, taskKill }
 };
 
 static s32 _shelterB1StoreroomRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
-s32        func_shelter_b1_storeroom_8017D604(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1StoreroomResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB1StoreroomIgnoreRoomCommand(Task* task, s32 messageId, s32 command, s32 commandArg);
 static s32 _shelterB1StoreroomIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32 _shelterB1StoreroomHandleSoundCue(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
 
 TaskMessageEntry D_shelter_b1_storeroom_80184968[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_storeroom_8017D604 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1StoreroomResolveTransitionMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1StoreroomRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1StoreroomIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1StoreroomIgnoreRoomCommand },
@@ -53,29 +53,46 @@ static s32 _shelterB1StoreroomRejectKeyItemUse(Task* task, s32 messageId, s32 ke
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_shelter_b1_storeroom_8017D604(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves the destination and gates departure through the armory and maintenance walkways.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`; task and messageId are unused. Borrows
+/// complete eight-byte records for this call; reply is writable and may alias
+/// request. Copies the request, then resolves its room variant. The locked
+/// armory and either walkway from chapter 6 onward are refused. Queries have
+/// no caption/flag effects; executing a locked-armory refusal writes 2 to the
+/// optional request flag. Returns 1 to allow departure, 0 to refuse it.
+static s32 _shelterB1StoreroomResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B1_ARMORY && gameFlagGetNibble(GAME_FLAG_B1_ARMORY_STOREROOM_DOOR_UNLOCKED) == 0) {
-        if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-            return 0;
+    enum {
+        TRANSITION_BLOCKED        = 0,
+        TRANSITION_ALLOWED        = 1,
+        REFUSAL_FLAG_VALUE        = 2,
+        LOCKED_ARMORY_CAP_COMMAND = 1,
+        LATE_WALKWAY_CAP_COMMAND  = 0xE,
+        WALKWAY_CLOSED_CHAPTER    = 6,
+    };
+    // Preserve the full request, including when request and reply are the same record.
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B1_ARMORY && gameFlagGetNibble(GAME_FLAG_B1_ARMORY_STOREROOM_DOOR_UNLOCKED) == 0) {
+        if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+            return TRANSITION_BLOCKED;
         }
-        gameFlagSetNibbleIfPresent(in->flagId, 2);
-        capRunCommandWithTransition(1);
-        return 0;
+        gameFlagSetNibbleIfPresent(request->flagId, REFUSAL_FLAG_VALUE);
+        capRunCommandWithTransition(LOCKED_ARMORY_CAP_COMMAND);
+        return TRANSITION_BLOCKED;
     }
-    if (in->areaId != GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY && in->areaId != GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY) {
-        return 1;
+    if (request->areaId != GAME_AREA_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY && request->areaId != GAME_AREA_SHELTER_B1_SOUTH_MAINTENANCE_WALKWAY) {
+        return TRANSITION_ALLOWED;
     }
-    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 6) {
-        return 1;
+    if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < WALKWAY_CLOSED_CHAPTER) {
+        return TRANSITION_ALLOWED;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 0;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return TRANSITION_BLOCKED;
     }
-    capRunCommandWithTransition(0xE);
-    return 0;
+    capRunCommandWithTransition(LATE_WALKWAY_CAP_COMMAND);
+    return TRANSITION_BLOCKED;
 }
 
 /// Ignores CAP room commands without changing room state.
@@ -126,14 +143,19 @@ static s32 _shelterB1StoreroomHandleSoundCue(Task* task, s32 messageId, s32 cueI
     return SHELTER_B1_STOREROOM_SOUND_RESULT;
 }
 
-/// Installs the room's message table on `task`, registers the task in pointer
-/// slot 7, sets `D_80115598` and advances to the idle state.
-static void func_shelter_b1_storeroom_8017D740(Task* task)
+/// Installs and registers the room receiver, enabling CAP completion sound messages.
+///
+/// Starts at state 0 and advances to state 1. Spawn arguments are unused;
+/// the borrowed message table and callbacks remain live with the room overlay.
+static void _shelterB1StoreroomInitializeRoomState(Task* task)
 {
+    enum {
+        CAP_COMPLETION_SOUNDS_ENABLED = 1,
+    };
     task->msgTable = D_shelter_b1_storeroom_80184968;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
-    D_80115598  = 1;
+    task->state++;
+    D_80115598 = CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Leaves the initialized storeroom receiver waiting for messages in state one.
@@ -141,11 +163,10 @@ static void _shelterB1StoreroomIdleRoomState(Task* task)
 {
 }
 
-/// Runs the handler for the task's state from the room's state table.
-void func_shelter_b1_storeroom_8017D794(Task* task)
+void shelterB1StoreroomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b1_storeroom_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_shelter_b1_storeroom_8017D5C4;
+    states.funcs[task->state](task);
 }

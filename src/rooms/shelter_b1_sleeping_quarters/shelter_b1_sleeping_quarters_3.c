@@ -735,9 +735,9 @@ WorldCollisionSurfaceProperties* D_shelter_b1_sleeping_quarters_801840B0[8] = {
     D_shelter_b1_sleeping_quarters_80184098,
 };
 
-void func_shelter_b1_sleeping_quarters_8017E6DC(Task* arg0)
+void shelterB1SleepingQuartersRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask(Task* task)

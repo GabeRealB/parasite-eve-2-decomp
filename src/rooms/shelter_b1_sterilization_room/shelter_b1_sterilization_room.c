@@ -156,7 +156,7 @@ extern EvsCommand D_actor_160600_80136258[];
 #define TELEPHONE_TITLE_BYTES "Telephone\0\0 "
 #include "../../shared/telephone.h"
 
-static void func_shelter_b1_sterilization_room_8017FABC(Task* task);
+static void _shelterB1SterilizationRoomInitializeState(Task* task);
 static void _shelterB1SterilizationRoomInitializeActorObstacle(s32 unused);
 static void _shelterB1SterilizationRoomUpdateState(Task* task);
 static void _shelterB1SterilizationRoomUpdateEventActorVisibility(void);
@@ -164,12 +164,12 @@ static void _shelterB1SterilizationRoomRebuildActorObstacle(const GfxCoord* mode
 static void _shelterB1SterilizationRoomCaptureCrossfadeState(Task* task);
 static void _shelterB1SterilizationRoomWaitCrossfadeViewState(Task* task);
 
-s32        func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, DirectionActionRequest* msg, s32);
-s32        func_shelter_b1_sterilization_room_8017FF80(Task*, s32, s32, s32);
-static s32 _shelterB1SterilizationRoomRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unused);
-static s32 _shelterB1SterilizationRoomResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
-static s32 _shelterB1SterilizationRoomSoundMessage(Task* task, s32 messageId, s32 soundCue, s32 unused);
-void       func_shelter_b1_sterilization_room_80180188(Task*);
+static s32  _shelterB1SterilizationRoomHandleActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static s32  _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messageId, s32 command, s32 commandArg);
+static s32  _shelterB1SterilizationRoomRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unused);
+static s32  _shelterB1SterilizationRoomResolveTransitionMessage(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _shelterB1SterilizationRoomSoundMessage(Task* task, s32 messageId, s32 soundCue, s32 unused);
+static void _shelterB1SterilizationRoomScriptedPresentationTask(Task* task);
 
 static AnimationSet _gShelterB1SterilizationRoomAnimation07C68;
 static AnimationSet _gShelterB1SterilizationRoomAnimation07E1C;
@@ -237,13 +237,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskMessageEntry D_shelter_b1_sterilization_room_80184E40[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1SterilizationRoomResolveTransitionMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1SterilizationRoomRejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_sterilization_room_8017FC78 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_sterilization_room_8017FF80 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1SterilizationRoomHandleActionMessage },
+    { ROOM_MESSAGE_COMMAND, _shelterB1SterilizationRoomHandleCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelterB1SterilizationRoomSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_shelter_b1_sterilization_room_80184E70 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80180188, { .value = 0 } };
+TaskDesc D_shelter_b1_sterilization_room_80184E70 = { { { TASK_BODY_NONE, 192 } }, _shelterB1SterilizationRoomScriptedPresentationTask, { .value = 0 } };
 
 s32 D_shelter_b1_sterilization_room_80184E7C = 0x11004;
 
@@ -429,14 +429,14 @@ static AnimationSet _gShelterB1SterilizationRoomAnimation0AF1C = {
 
 TaskDesc D_shelter_b1_sterilization_room_80188504[9] = {
     { { { TASK_BODY_NONE, 192 } }, _shelterB1SterilizationRoomCrossfadeTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801813A0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomTrapEscapePromptTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _shelterB1SterilizationRoomDoorPassageTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomSwitchRoomTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_80181588, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomDoorNoticeTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _shelterB1SterilizationRoomTrapDamageTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomResetSpawnMaskTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801816E0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sterilization_room_801817EC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomTrapDialogueTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, shelterB1SterilizationRoomSceneDialogueTask, { .value = 0 } },
 };
 
 AnimationSet* D_shelter_b1_sterilization_room_80188570[8] = {
@@ -512,236 +512,373 @@ void shelterB1SterilizationRoomTelephoneMenuTask(Task* task)
 /// handler and the kill.
 static const TaskFuncTable3 D_shelter_b1_sterilization_room_8017D6A4 = {
     {
-        func_shelter_b1_sterilization_room_8017FABC,
+        _shelterB1SterilizationRoomInitializeState,
         _shelterB1SterilizationRoomUpdateState,
         taskKill,
     },
 };
 
-static void func_shelter_b1_sterilization_room_8017FABC(Task* task)
+/// Registers the room receiver and starts its first variant-5 actor event when eligible.
+///
+/// State 0 installs the message table and room slot, applies saved area changes,
+/// and selects the companion-dependent event script. It initializes the actor
+/// obstacle, starts placed soldier 0 smoking, disables trigger 22 except in
+/// the event-without-companion state, and rearms event spawns on variant 1.
+/// Spawn arguments are unused. Requires live session, player, placement and
+/// event-script resources; advances to the room's update state.
+static void _shelterB1SterilizationRoomInitializeState(Task* task)
 {
-    Task* target;
+    enum {
+        ENTRY_EVENT_UNSEEN             = 0,
+        ENTRY_EVENT_WITHOUT_COMPANION  = 1,
+        ENTRY_EVENT_WITH_COMPANION     = 2,
+        PARKING_PROGRESS_EVENT_STARTED = 3,
+        COMPANION_REMARK_PRESENT       = 1,
+        COMPANION_REMARK_ABSENT        = 2,
+        COMPANION_EVENT_SCHEDULE       = 8,
+        COMPANION_PLACEMENT_VARIANT    = 6,
+        FIRST_ENTRY_VARIANT            = 1,
+        EVENT_TRIGGER_INDEX            = 22,
+    };
+    Task* placedActor;
 
     task->msgTable = D_shelter_b1_sterilization_room_80184E40;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 5 && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == 0) {
-        gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, 3);
+    // Start the first variant-5 event before installing its actor obstacle.
+    if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) == ENTRY_EVENT_UNSEEN) {
+        gameFlagSetNibble(GAME_FLAG_UNDERGROUND_PARKING_STATE, PARKING_PROGRESS_EVENT_STARTED);
         areaApplySavedUpdates(D_shelter_b1_sterilization_room_8018C334);
         if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 1);
-            gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 2);
-            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 8);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, COMPANION_REMARK_PRESENT);
+            gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, ENTRY_EVENT_WITH_COMPANION);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, COMPANION_EVENT_SCHEDULE);
             evsStartScriptWithSkip(D_actor_160600_80135D78, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160600_80136258);
-            areaSetPlacementVariant(&gGameSession->location.loc, 6, AREA_VARIANT_RESET_ALWAYS);
+            areaSetPlacementVariant(&gGameSession->location.loc, COMPANION_PLACEMENT_VARIANT, AREA_VARIANT_RESET_ALWAYS);
         } else {
-            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, 2);
-            gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, 1);
+            gameFlagSetNibble(GAME_FLAG_SOLDIER_B_REMARK_STATE, COMPANION_REMARK_ABSENT);
+            gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE, ENTRY_EVENT_WITHOUT_COMPANION);
             evsStartScriptWithSkip(D_actor_160600_80135AC0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_160600_80136258);
         }
     }
     _shelterB1SterilizationRoomInitializeActorObstacle(0);
-    if (gGameSession->location.loc.variant == 5) {
-        target = sceneFindPlacedActor(0);
-        if (target != NULL) {
-            TASK_MESSAGE_DISPATCH_POINTER(target, ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b1_sterilization_room_80184E7C, 0);
+    if (gGameSession->location.loc.variant == SHELTER_B1_STERILIZATION_ROOM_ACTOR_EVENT_VARIANT) {
+        placedActor = sceneFindPlacedActor(SHELTER_B1_STERILIZATION_ROOM_EVENT_ACTOR_PLACEMENT);
+        if (placedActor != NULL) {
+            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b1_sterilization_room_80184E7C, 0);
         }
     }
-    if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != 1) {
-        (D_shelter_b1_sterilization_room_8018B8A8 + 22)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+    if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_EVENT_STATE) != ENTRY_EVENT_WITHOUT_COMPANION) {
+        WorldCollisionTrigger* eventTrigger;
+
+        eventTrigger         = &D_shelter_b1_sterilization_room_8018B8A8[EVENT_TRIGGER_INDEX];
+        eventTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
-    if (gGameSession->location.loc.variant == 1) {
-        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 6, 0, 0);
+    if (gGameSession->location.loc.variant == FIRST_ENTRY_VARIANT) {
+        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_RESET_SPAWN_MASK, 0, 0);
     }
     task->state++;
 }
 
-s32 func_shelter_b1_sterilization_room_8017FC78(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
+/// Routes room actions to the trap sequence, escape prompt, door notices and passages.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` with a borrowed four-byte request;
+/// only actionId is read, and no pointer is retained. Actions 1/2 start the trap
+/// or offer escape; door actions 3..10 select zero-based door entries 0..7. Actions
+/// 5/8 latch their notes, 4/9 select progress-dependent scene dialogue, and
+/// 3/6/7/10 show the shared notice. Other actions do nothing. The task, message
+/// ID and second payload are unused; returns zero, which the sender discards.
+/// Requires the room overlay and selected CAP/script resources to remain live.
+static s32 _shelterB1SterilizationRoomHandleActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    s32 cmd;
-    s32 mask;
-    s32 flags;
+    /// Selects the one-time note for an action, writing capCommand and noteMask.
+    ///
+    /// Captures this function's two s32 locals and constants. Evaluates the
+    /// actionId argument once; use as a standalone statement inside a block.
+#define SHELTER_B1_STERILIZATION_ROOM_SELECT_DOOR_NOTE(actionId) \
+    switch (actionId) {                                          \
+        case ACTION_NOTE_DOOR_5:                                 \
+            capCommand = CAP_DOOR_5_NOTE;                        \
+            noteMask   = DOOR_5_NOTE_BIT;                        \
+            break;                                               \
+        case ACTION_NOTE_DOOR_8:                                 \
+            capCommand = CAP_DOOR_8_NOTE;                        \
+            noteMask   = DOOR_8_NOTE_BIT;                        \
+            break;                                               \
+        default:                                                 \
+            capCommand = CAP_NO_DOOR_NOTE;                       \
+            noteMask   = NO_DOOR_NOTE_MASK;                      \
+            break;                                               \
+    }
+    enum {
+        ACTION_START_TRAP                = 1,
+        ACTION_ESCAPE_PROMPT             = 2,
+        ACTION_NOTICE_DOOR_3             = 3,
+        ACTION_SCENE_DOOR_4              = 4,
+        ACTION_NOTE_DOOR_5               = 5,
+        ACTION_NOTICE_DOOR_6             = 6,
+        ACTION_NOTICE_DOOR_7             = 7,
+        ACTION_NOTE_DOOR_8               = 8,
+        ACTION_SCENE_DOOR_9              = 9,
+        ACTION_NOTICE_DOOR_10            = 10,
+        CAP_NO_TRAP_NOTICE               = 0x16,
+        CAP_ESCAPED_TRAP_NOTICE          = 0x17,
+        CAP_TRAP_BLOCKS_DOOR             = 0xA,
+        CAP_DOOR_5_NOTE                  = 5,
+        CAP_DOOR_8_NOTE                  = 3,
+        DOOR_5_NOTE_BIT                  = 2,
+        DOOR_8_NOTE_BIT                  = 8,
+        NO_DOOR_NOTE_MASK                = 0xFF,
+        CAP_NO_DOOR_NOTE                 = 0,
+        SCENE_DOOR_9_FIRST               = 1,
+        SCENE_DOOR_9_REPEAT              = 2,
+        SCENE_DOOR_4_BEFORE_ESCAPE       = 3,
+        SCENE_DOOR_4_AFTER_ESCAPE_FIRST  = 4,
+        SCENE_DOOR_4_AFTER_ESCAPE_REPEAT = 5,
+        ACTION_SCENE_UNSEEN              = 0,
+        TRAP_DIALOGUE_NOT_STARTED        = 0,
+        ACTION_SCENE_FIRST_STARTED       = 1,
+        ACTION_SCENE_POST_ESCAPE_STARTED = 2,
+        TRAP_DORMANT                     = 0,
+        TRAP_TRIGGERED                   = 1,
+        TRAP_RUNNING                     = 0,
+        TRAP_STOPPED                     = 1,
+    };
+    s32 capCommand;
+    s32 noteMask;
+    s32 shownNotes;
 
-    switch (msg->actionId) {
-        case 1:
-            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 0) {
+    switch (request->actionId) {
+        case ACTION_START_TRAP:
+            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_DORMANT) {
                 if (gameFlagGetNibble(GAME_FLAG_B2_NORTH_WALKWAY_SCENE_SEEN) != 0) {
                     evsStartScriptWithSkip(D_shelter_b1_sterilization_room_8018873C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                            D_shelter_b1_sterilization_room_80188AB4);
-                    gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED, 1);
+                    gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED, TRAP_TRIGGERED);
                 }
             }
             break;
-        case 2:
-            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 1) {
-                if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 0) {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 1, 0, 0);
+        case ACTION_ESCAPE_PROMPT:
+            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_TRIGGERED) {
+                if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_RUNNING) {
+                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_ESCAPE_PROMPT, 0, 0);
                 } else {
-                    capRunCommandWithTransition(0x17);
+                    capRunCommandWithTransition(CAP_ESCAPED_TRAP_NOTICE);
                 }
             } else {
-                capRunCommandWithTransition(0x16);
+                capRunCommandWithTransition(CAP_NO_TRAP_NOTICE);
             }
             break;
-        case 5:
-        case 8:
-            switch (msg->actionId) {
-                case 5:
-                    cmd  = 5;
-                    mask = 2;
-                    break;
-                case 8:
-                    cmd  = 3;
-                    mask = 8;
-                    break;
-                default:
-                    cmd  = 0;
-                    mask = 0xFF;
-                    break;
-            }
-            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 0 || gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 1) {
-                flags = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_NOTES_SHOWN);
-                if (cmd != 0 && !(flags & mask)) {
-                    capRunCommandWithTransition(cmd);
-                    gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_NOTES_SHOWN, flags | mask);
+        // Show each door note once, then request the corresponding passage.
+        case ACTION_NOTE_DOOR_5:
+        case ACTION_NOTE_DOOR_8:
+            SHELTER_B1_STERILIZATION_ROOM_SELECT_DOOR_NOTE(request->actionId);
+            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_DORMANT || gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_STOPPED) {
+                shownNotes = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_NOTES_SHOWN);
+                if (capCommand != CAP_NO_DOOR_NOTE && !(shownNotes & noteMask)) {
+                    capRunCommandWithTransition(capCommand);
+                    gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_NOTES_SHOWN, shownNotes | noteMask);
                 }
-                taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
+                taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_PASSAGE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
             } else {
-                capRunCommandWithTransition(0xA);
+                capRunCommandWithTransition(CAP_TRAP_BLOCKS_DOOR);
             }
             break;
-        case 3:
-        case 6:
-        case 7:
-        case 10:
-            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 0 || gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 1) {
-                taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 4, msg->actionId - 3, 0);
+        case ACTION_NOTICE_DOOR_3:
+        case ACTION_NOTICE_DOOR_6:
+        case ACTION_NOTICE_DOOR_7:
+        case ACTION_NOTICE_DOOR_10:
+            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_DORMANT || gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_STOPPED) {
+                taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_NOTICE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
             } else {
-                capRunCommandWithTransition(0xA);
+                capRunCommandWithTransition(CAP_TRAP_BLOCKS_DOOR);
             }
             break;
-        case 9:
-            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 0 || gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 1) {
-                if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_149) == 0) {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 1, 0);
+        case ACTION_SCENE_DOOR_9:
+            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_DORMANT || gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_STOPPED) {
+                if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_149) == TRAP_DIALOGUE_NOT_STARTED) {
+                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_9_FIRST, 0);
                 } else {
-                    if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION9_SCENE) == 0) {
-                        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 2, 0);
-                        gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION9_SCENE, 1);
+                    if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION9_SCENE) == ACTION_SCENE_UNSEEN) {
+                        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_9_REPEAT, 0);
+                        gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION9_SCENE, ACTION_SCENE_FIRST_STARTED);
                     }
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
+                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_PASSAGE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
                 }
             }
             break;
-        case 4:
-            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 0) {
-                if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE) == 0) {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 3, 0);
-                    gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, 1);
+        case ACTION_SCENE_DOOR_4:
+            if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_RUNNING) {
+                if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE) == ACTION_SCENE_UNSEEN) {
+                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_4_BEFORE_ESCAPE, 0);
+                    gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, ACTION_SCENE_FIRST_STARTED);
                 }
-            } else if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE) < 2) {
-                if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14A) == 0) {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 4, 0);
+            } else if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE) < ACTION_SCENE_POST_ESCAPE_STARTED) {
+                if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14A) == TRAP_DIALOGUE_NOT_STARTED) {
+                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_4_AFTER_ESCAPE_FIRST, 0);
                 } else {
-                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 5, 0);
+                    taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_DOOR_4_AFTER_ESCAPE_REPEAT, 0);
                 }
-                gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, 2);
+                gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, ACTION_SCENE_POST_ESCAPE_STARTED);
             }
-            taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 2, msg->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
+            taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_DOOR_PASSAGE, request->actionId - SHELTER_B1_STERILIZATION_ROOM_FIRST_DOOR_ACTION, 0);
             break;
     }
     return 0;
 }
+#undef SHELTER_B1_STERILIZATION_ROOM_SELECT_DOOR_NOTE
 
-s32 func_shelter_b1_sterilization_room_8017FF80(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Routes CAP room commands to cutscenes, trap dialogue and player presentation.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`: 17 starts the first CAP event or repeat
+/// cutscene, 4/19 select the two trap-dialogue routes, 14 runs the trap exchange,
+/// and 12/13 run presentation in room 3. Command 21 passes through to CAP;
+/// other selectors do nothing. The task, message ID and second payload are
+/// unused. Normally returns zero; the first-event branch has no defined result,
+/// so callers must discard it. The shared cutscene record is borrowed through
+/// playback; requests must not overlap its use. Keep the room resources loaded.
+static s32 _shelterB1SterilizationRoomHandleCommandMessage(Task* task, s32 messageId, s32 command, s32 commandArg)
 {
-    if (arg2 == 0x11) {
-        if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_FIRST_SCENE) == 0) {
-            gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_FIRST_SCENE, 1);
-            capSpawnEventIfIdle(0x18, CAP_EVENT_PAUSE_ACTORS);
+    enum {
+        SHELTER_B1_STERILIZATION_ROOM_COMMAND_TRAP_DIALOGUE           = 4,
+        SHELTER_B1_STERILIZATION_ROOM_COMMAND_ALTERNATE_TRAP_DIALOGUE = 0x13,
+        COMMAND_CUTSCENE                                              = 0x11,
+        COMMAND_CAP_21                                                = 0x15,
+        COMMAND_TRAP_EXCHANGE                                         = 0xE,
+        COMMAND_PRESENTATION_12                                       = 0xC,
+        COMMAND_PRESENTATION_13                                       = 0xD,
+        CAP_FIRST_CUTSCENE                                            = 0x18,
+        SCENE_REPEAT_TRAP_EXCHANGE                                    = 0xB,
+        PRESENTATION_ROOM                                             = 3,
+        CUTSCENE_VIEW                                                 = 0x13,
+        CUTSCENE_CAP_SLOT                                             = 1,
+        CUTSCENE_CAP_FILE                                             = 2,
+        CUTSCENE_SKIP_DISABLED                                        = 0,
+        CUTSCENE_FOLLOWUP_CAP_COMMAND                                 = 6,
+        CUTSCENE_START_SOUND                                          = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0xC),
+        CUTSCENE_END_SOUND                                            = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0xF),
+        CUTSCENE_SCENE_SOUND                                          = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0xD),
+        CUTSCENE_AFTER_SCENE_SOUND                                    = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_STERILIZATION_ROOM, 0xE),
+        SCENE_NOT_STARTED                                             = 0,
+        SCENE_FIRST_STARTED                                           = 1,
+        SCENE_REPEAT_STARTED                                          = 2,
+        TRAP_TRIGGERED                                                = 1,
+        TRAP_RUNNING                                                  = 0,
+    };
+    if (command == COMMAND_CUTSCENE) {
+        if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_FIRST_SCENE) == SCENE_NOT_STARTED) {
+            gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_FIRST_SCENE, SCENE_FIRST_STARTED);
+            capSpawnEventIfIdle(CAP_FIRST_CUTSCENE, CAP_EVENT_PAUSE_ACTORS);
+            // This branch leaves the result register unspecified; callers discard it.
             return;
         }
-        D_shelter_b1_sterilization_room_8018C344.view            = 0x13;
-        D_shelter_b1_sterilization_room_8018C344.capSlot         = 1;
-        D_shelter_b1_sterilization_room_8018C344.capFile         = 2;
-        D_shelter_b1_sterilization_room_8018C344.skipScene       = 0;
-        D_shelter_b1_sterilization_room_8018C344.startSound      = 0x5410000C;
-        D_shelter_b1_sterilization_room_8018C344.endSound        = 0x5410000F;
-        D_shelter_b1_sterilization_room_8018C344.sceneSound      = 0x5410000D;
-        D_shelter_b1_sterilization_room_8018C344.afterSceneSound = 0x5410000E;
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 6, &D_shelter_b1_sterilization_room_8018C344);
+        // Reuse the overlay-owned cutscene record for subsequent requests.
+        D_shelter_b1_sterilization_room_8018C344.view            = CUTSCENE_VIEW;
+        D_shelter_b1_sterilization_room_8018C344.capSlot         = CUTSCENE_CAP_SLOT;
+        D_shelter_b1_sterilization_room_8018C344.capFile         = CUTSCENE_CAP_FILE;
+        D_shelter_b1_sterilization_room_8018C344.skipScene       = CUTSCENE_SKIP_DISABLED;
+        D_shelter_b1_sterilization_room_8018C344.startSound      = CUTSCENE_START_SOUND;
+        D_shelter_b1_sterilization_room_8018C344.endSound        = CUTSCENE_END_SOUND;
+        D_shelter_b1_sterilization_room_8018C344.sceneSound      = CUTSCENE_SCENE_SOUND;
+        D_shelter_b1_sterilization_room_8018C344.afterSceneSound = CUTSCENE_AFTER_SCENE_SOUND;
+        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, CUTSCENE_FOLLOWUP_CAP_COMMAND, &D_shelter_b1_sterilization_room_8018C344);
     }
-    if (arg2 == 0x15) {
-        capRunCommandWithTransition(arg2);
+    if (command == COMMAND_CAP_21) {
+        capRunCommandWithTransition(command);
     }
-    if (arg2 == 4) {
-        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 7, 0, 0);
+    if (command == SHELTER_B1_STERILIZATION_ROOM_COMMAND_TRAP_DIALOGUE) {
+        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DIALOGUE, SHELTER_B1_STERILIZATION_ROOM_DIALOGUE_PRIMARY, 0);
     }
-    if (arg2 == 0x13) {
-        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 7, 1, 0);
+    if (command == SHELTER_B1_STERILIZATION_ROOM_COMMAND_ALTERNATE_TRAP_DIALOGUE) {
+        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DIALOGUE, SHELTER_B1_STERILIZATION_ROOM_DIALOGUE_ALTERNATE, 0);
     }
-    if (arg2 == 0xE) {
-        if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == 1 && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == 0) {
-            if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F) == 0) {
+    if (command == COMMAND_TRAP_EXCHANGE) {
+        if (gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_TRIGGERED) == TRAP_TRIGGERED && gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED) == TRAP_RUNNING) {
+            if (gameFlagGetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F) == SCENE_NOT_STARTED) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 evsStartScriptWithSkip(D_shelter_b1_sterilization_room_80188ED4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_sterilization_room_80188FDC);
-                gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, 1);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, SCENE_FIRST_STARTED);
             } else {
-                taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 8, 0xB, 0);
-                gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, 2);
+                taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_SCENE_DIALOGUE, SCENE_REPEAT_TRAP_EXCHANGE, 0);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14F, SCENE_REPEAT_STARTED);
             }
         } else {
-            capRunCommandWithTransition(arg2);
+            capRunCommandWithTransition(command);
         }
     }
-    if (arg2 == 0xC || arg2 == 0xD) {
-        if (gGameSession->location.loc.room == 3) {
+    if (command == COMMAND_PRESENTATION_12 || command == COMMAND_PRESENTATION_13) {
+        if (gGameSession->location.loc.room == PRESENTATION_ROOM) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&D_shelter_b1_sterilization_room_80184E70, 0, arg2, 0);
+            taskSpawnFromTable(&D_shelter_b1_sterilization_room_80184E70, 0, command, 0);
         }
     }
     return 0;
 }
 
-void func_shelter_b1_sterilization_room_80180188(Task* task)
+/// Runs an in-place CAP command between the player's entry and exit presentation clips.
+///
+/// Starts in state 0 with player control already held. `spawnArg1.value` is a
+/// valid command in loaded data-resource ordinal 1 (callers use 12 or 13);
+/// its texture must be at VRAM (704,256). States 1/6 allow the deferred clips
+/// to start before states 2/7 poll animation completion. State 4 waits for CAP;
+/// state 8 resumes player control, restores the default CAP resource and kills
+/// the task. `spawnArg2` is unused; keep player, CAP and overlay resources live.
+static void _shelterB1SterilizationRoomScriptedPresentationTask(Task* task)
 {
+    enum {
+        PRESENTATION_ENTER             = 0,
+        PRESENTATION_ENTER_DELAY       = 1,
+        PRESENTATION_WAIT_ENTER        = 2,
+        PRESENTATION_PLAY_CAP          = 3,
+        PRESENTATION_WAIT_CAP          = 4,
+        PRESENTATION_LEAVE             = 5,
+        PRESENTATION_LEAVE_DELAY       = 6,
+        PRESENTATION_WAIT_LEAVE        = 7,
+        PRESENTATION_FINISH            = 8,
+        PLAYER_PRESENTATION_ENTER_CLIP = 0,
+        PLAYER_PRESENTATION_LEAVE_CLIP = 1,
+        SCENE_FILE_ORDINAL             = 1,
+        SCENE_TEXTURE_VRAM_X           = 704,
+        SCENE_TEXTURE_VRAM_Y           = 256,
+    };
     switch (task->state) {
-        case 0:
-            Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x2C0, 0x100);
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 0, 0);
+        case PRESENTATION_ENTER:
+            Gp_CapFile = NULL;
+            capSelectLoadedFile(SCENE_FILE_ORDINAL);
+            capSetTexturePage(SCENE_TEXTURE_VRAM_X, SCENE_TEXTURE_VRAM_Y);
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, PLAYER_PRESENTATION_ENTER_CLIP, 0);
             task->state++;
             break;
-        case 1:
+        // Presentation playback begins on a later player tick; allow it to start.
+        case PRESENTATION_ENTER_DELAY:
             task->state++;
             break;
-        case 2:
+        case PRESENTATION_WAIT_ENTER:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 task->state++;
             }
             break;
-        case 3:
+        case PRESENTATION_PLAY_CAP:
             capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
-        case 4:
+        case PRESENTATION_WAIT_CAP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 5:
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, 1, 0);
+        case PRESENTATION_LEAVE:
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), PLAYER_ACTOR_MESSAGE_ENTER_SCRIPTED_PRESENTATION, PLAYER_PRESENTATION_LEAVE_CLIP, 0);
             task->state++;
             break;
-        case 6:
+        case PRESENTATION_LEAVE_DELAY:
             task->state++;
             break;
-        case 7:
+        case PRESENTATION_WAIT_LEAVE:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 task->state++;
             }
             break;
-        case 8:
+        case PRESENTATION_FINISH:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
@@ -1192,11 +1329,11 @@ static void _shelterB1SterilizationRoomTrapDamageTask(Task* task)
     }
 }
 
-void func_shelter_b1_sterilization_room_8018118C(s32 arg0)
+void shelterB1SterilizationRoomSpawnTaskOnce(s32 descriptorIndex)
 {
-    if (!(((s32)D_shelter_b1_sterilization_room_8018C340 >> arg0) & 1)) {
-        D_shelter_b1_sterilization_room_8018C340 |= 1 << arg0;
-        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, arg0, 0, 0);
+    if (!((D_shelter_b1_sterilization_room_8018C340 >> descriptorIndex) & 1)) {
+        D_shelter_b1_sterilization_room_8018C340 |= 1 << descriptorIndex;
+        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, descriptorIndex, 0, 0);
     }
 }
 

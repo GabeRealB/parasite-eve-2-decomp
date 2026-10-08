@@ -76,7 +76,7 @@ shelterB1StoreroomRoomVisualEffectsHaloTask = 0x8017F4F0; // type:func
 
 shelterB1StoreroomRoomVisualEffectsHaloOrangeBurstTask = 0x8017F888; // type:func
 
-func_shelter_b1_storeroom_80180C98 = 0x80180C98; // type:func
+shelterB1StoreroomRoomVisualEffectsSparkEmitterTask = 0x80180C98; // type:func
 
 shelterB1StoreroomDrawGlowsTask = 0x8017D7EC; // type:func
 _roomVisualEffectsDrawMote = 0x8017EA74; // type:func
@@ -101,3 +101,6 @@ _shelterB1StoreroomIgnoreRoomCommand = 0x8017d6e0; // type:func
 _shelterB1StoreroomIgnoreRoomAction = 0x8017d6e8; // type:func
 _shelterB1StoreroomHandleSoundCue = 0x8017d6f0; // type:func
 _shelterB1StoreroomIdleRoomState = 0x8017d78c; // type:func
+_shelterB1StoreroomResolveTransitionMessage = 0x8017d604; // type:func
+_shelterB1StoreroomInitializeRoomState = 0x8017d740; // type:func
+shelterB1StoreroomTask = 0x8017d794; // type:func

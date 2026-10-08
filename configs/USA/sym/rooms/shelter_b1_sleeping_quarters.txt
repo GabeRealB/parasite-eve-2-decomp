@@ -78,7 +78,7 @@ shelterB1SleepingQuartersDrawViewLightsTask = 0x8017D8E0; // type:func
 
 _shelterB1SleepingQuartersPlayAlternateCapTask = 0x8017D778; // type:func
 
-func_shelter_b1_sleeping_quarters_8017E6DC = 0x8017E6DC; // type:func
+shelterB1SleepingQuartersRoomVisualEffectsGlowDiscTask = 0x8017E6DC; // type:func
 
 shelterB1SleepingQuartersRoomVisualEffectsFlyingOrangeBurstTask = 0x8017F894; // type:func
 

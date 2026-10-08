@@ -67,7 +67,18 @@ void shelterB1SleepingQuartersRoomTask(Task* task);
 /// Queued primitives remain in the frame arena until GPU completion.
 void shelterB1SleepingQuartersDrawViewLightsTask(Task* task);
 
-void func_shelter_b1_sleeping_quarters_8017E6DC(Task* arg0);
+/// Runs an attached charge disc with player-joint sparks and a fading release ring.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` in
+/// `spawnArg2.pointer` from `effectSpawn`; `spawnArg1.value` selects tint 0 or 1.
+/// Starts at state 0 to attach at the copied offset in its borrowed parent's
+/// axes. The owner requests flicker, release or cancellation using
+/// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Growth emits a flying spark from player
+/// parts 3..18 every fourth active age, adopting each child for teardown.
+/// Nonzero room effect control pauses; four or above cancels. Completion frees
+/// work, children and task. Keep the parent, player model, installed flying-spark
+/// effect, controller and sleeping-quarters overlay live through teardown.
+void shelterB1SleepingQuartersRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs the sleeping quarters' orange burst with a growing glow and fading ring.
 ///

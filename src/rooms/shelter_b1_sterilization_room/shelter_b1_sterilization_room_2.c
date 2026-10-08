@@ -69,7 +69,7 @@ static void _shelterB1SterilizationRoomDrawPulsingGlow(const SVECTOR* worldPoint
 extern WorldCoordRoomAmbientEntry D_shelter_b1_sterilization_room_8018C21C[25];
 extern WorldCoordRoomLights       D_shelter_b1_sterilization_room_8018B630[1];
 
-void        func_shelter_b1_sterilization_room_801814B0(void);
+static void _shelterB1SterilizationRoomReloadDumpingHole(void);
 static void _shelterB1SterilizationRoomResetCapResource(s32 selectSceneFile);
 
 /// CAP resource choices carried by the scene-entry and exit callbacks.
@@ -81,7 +81,7 @@ enum {
 extern WorldCollisionOccluder D_shelter_b1_sterilization_room_8018C1A4[2];
 extern WorldCollisionTrigger  D_shelter_b1_sterilization_room_8018B648[8];
 
-void        func_shelter_b1_sterilization_room_801815EC(void);
+static void _shelterB1SterilizationRoomSpawnTrapDamageOnce(void);
 static void _shelterB1SterilizationRoomAttenuateTrapSounds(void);
 
 DamageAttack D_shelter_b1_sterilization_room_80188738 = { 25, 0 };
@@ -92,7 +92,7 @@ EvsCommand D_shelter_b1_sterilization_room_8018873C[37] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b1_sterilization_room_801885AC }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100005 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100007 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_sterilization_room_8018118C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB1SterilizationRoomSpawnTaskOnce }, { .value = SHELTER_B1_STERILIZATION_ROOM_TASK_CROSSFADE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -115,9 +115,9 @@ EvsCommand D_shelter_b1_sterilization_room_8018873C[37] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x54100010 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_sterilization_room_8018118C }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB1SterilizationRoomSpawnTaskOnce }, { .value = SHELTER_B1_STERILIZATION_ROOM_TASK_SWITCH_ROOM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_sterilization_room_801815EC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomSpawnTrapDamageOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -132,8 +132,8 @@ EvsCommand D_shelter_b1_sterilization_room_80188AB4[20] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomAttenuateTrapSounds }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x54100010 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_sterilization_room_8018118C }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_sterilization_room_801815EC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB1SterilizationRoomSpawnTaskOnce }, { .value = SHELTER_B1_STERILIZATION_ROOM_TASK_SWITCH_ROOM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomSpawnTrapDamageOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b1_sterilization_room_80188590 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b1_sterilization_room_80188638 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -164,7 +164,7 @@ EvsCommand D_shelter_b1_sterilization_room_80188C94[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_sterilization_room_801814B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomReloadDumpingHole }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -174,7 +174,7 @@ EvsCommand D_shelter_b1_sterilization_room_80188E14[8] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b1_sterilization_room_80188650 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_sterilization_room_801814B0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1SterilizationRoomReloadDumpingHole }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -926,44 +926,64 @@ RoomCutsceneRec D_shelter_b1_sterilization_room_8018C344 = { 0 };
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 static void _glowDrawDiamond(const SVECTOR* worldPoint, s32 pulseRate, s32 radiusScale);
 
-void func_shelter_b1_sterilization_room_801813A0(Task* arg0)
+void shelterB1SterilizationRoomTrapEscapePromptTask(Task* task)
 {
-    s32 temp_v1;
+    enum {
+        ESCAPE_PROMPT_START   = 0,
+        ESCAPE_PROMPT_DELAY   = 1,
+        ESCAPE_PROMPT_RESOLVE = 2,
+        ESCAPE_CAP_COMMAND    = 8,
+        ESCAPE_CHOICE_ACCEPT  = 1,
+        ESCAPE_EVENT_IDLE     = 0,
+        ESCAPE_EVENT_HELD     = 1,
+        TRAP_ESCAPE_STARTED   = 1,
+    };
+    s32 promptState;
 
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
-        case 0:
+    promptState = task->state;
+    switch (promptState) {
+        case ESCAPE_PROMPT_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommandWithTransition(8);
-            gGameSession->eventState = 1;
-            arg0->state              = arg0->state + 1;
+            capRunCommandWithTransition(ESCAPE_CAP_COMMAND);
+            gGameSession->eventState = ESCAPE_EVENT_HELD;
+            task->state              = task->state + 1;
             return;
-        case 1:
-            arg0->state = 2;
+        case ESCAPE_PROMPT_DELAY:
+            task->state = ESCAPE_PROMPT_RESOLVE;
             return;
-        case 2:
-            if (capGetVariantKey() == 1) {
+        // The queued CAP transition has completed before this choice is read.
+        case ESCAPE_PROMPT_RESOLVE:
+            if (capGetVariantKey() == ESCAPE_CHOICE_ACCEPT) {
                 evsStartScriptWithSkip(D_shelter_b1_sterilization_room_80188C94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_sterilization_room_80188E14);
-                gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED, 1);
+                gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED, TRAP_ESCAPE_STARTED);
                 gGameSession->restartMode = GAME_SESSION_RESTART_NORMAL;
             } else {
-                gGameSession->eventState = 0;
+                gGameSession->eventState = ESCAPE_EVENT_IDLE;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             }
-            taskKill(arg0);
+            taskKill(task);
             return;
         default:
-            gGameSession->eventState = 0;
-            taskKill(arg0);
+            gGameSession->eventState = ESCAPE_EVENT_IDLE;
+            taskKill(task);
             return;
     }
 }
 
-void func_shelter_b1_sterilization_room_801814B0(void)
+/// Requests a captured-frame reload at Dumping Hole arrival 3, room 1.
+///
+/// Used by both the normal and skipped trap-escape scripts. Updates only the
+/// live save's destination; the resident reload task applies it to the session.
+/// Requires the live save and scheduler, and owns no room-local work.
+static void _shelterB1SterilizationRoomReloadDumpingHole(void)
 {
+    enum {
+        DUMPING_HOLE_ARRIVAL = 3,
+        DUMPING_HOLE_ROOM    = 1,
+    };
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B3_DUMPING_HOLE;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = DUMPING_HOLE_ARRIVAL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = DUMPING_HOLE_ROOM;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
@@ -993,23 +1013,35 @@ void shelterB1SterilizationRoomSwitchRoomTask(Task* task)
     }
 }
 
-void func_shelter_b1_sterilization_room_80181588(Task* arg0)
+void shelterB1SterilizationRoomDoorNoticeTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum {
+        DOOR_NOTICE_START       = 0,
+        DOOR_NOTICE_CAP_COMMAND = 9,
+    };
+    if (task->state == DOOR_NOTICE_START) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        capRunCommandWithTransition(9);
-        arg0->state += 1;
+        capRunCommandWithTransition(DOOR_NOTICE_CAP_COMMAND);
+        task->state += 1;
         return;
     }
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-    taskKill(arg0);
+    taskKill(task);
 }
 
-void func_shelter_b1_sterilization_room_801815EC(void)
+/// Latches and requests the trap's repeating damage task once per spawn-mask reset.
+///
+/// Normal and skipped trap-entry scripts share bit 5. Both payloads are zero;
+/// the bit remains set even if allocation fails. Keep the room overlay loaded
+/// while the requested damage task is live.
+static void _shelterB1SterilizationRoomSpawnTrapDamageOnce(void)
 {
-    if (!(D_shelter_b1_sterilization_room_8018C340 & 0x20)) {
-        D_shelter_b1_sterilization_room_8018C340 |= 0x20;
-        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, 5, 0, 0);
+    enum {
+        TRAP_DAMAGE_SPAWN_BIT = 1 << SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DAMAGE,
+    };
+    if (!(D_shelter_b1_sterilization_room_8018C340 & TRAP_DAMAGE_SPAWN_BIT)) {
+        D_shelter_b1_sterilization_room_8018C340 |= TRAP_DAMAGE_SPAWN_BIT;
+        taskSpawnFromTable(D_shelter_b1_sterilization_room_80188504, SHELTER_B1_STERILIZATION_ROOM_TASK_TRAP_DAMAGE, 0, 0);
     }
 }
 
@@ -1055,38 +1087,61 @@ static void _shelterB1SterilizationRoomResetCapResource(s32 selectSceneFile)
     }
 }
 
-void func_shelter_b1_sterilization_room_801816E0(Task* task)
+/// Resets CAP playback and binds the loaded trap-scene dialogue resource and texture.
+///
+/// Requires stopped playback, loaded writable data-resource ordinal 1 and its
+/// texture at VRAM (704,256). The selected tables remain borrowed until reset.
+static inline void _shelterB1SterilizationRoomSelectSceneCap(void)
 {
-    s32 cmd;
-    s32 flag;
+    enum { SCENE_FILE_ORDINAL   = 1,
+           SCENE_TEXTURE_VRAM_X = 704,
+           SCENE_TEXTURE_VRAM_Y = 256 };
+
+    capReset();
+    Gp_CapFile = NULL;
+    capSelectLoadedFile(SCENE_FILE_ORDINAL);
+    capSetTexturePage(SCENE_TEXTURE_VRAM_X, SCENE_TEXTURE_VRAM_Y);
+}
+
+void shelterB1SterilizationRoomTrapDialogueTask(Task* task)
+{
+    enum {
+        TRAP_DIALOGUE_START         = 0,
+        TRAP_DIALOGUE_WAIT          = 1,
+        CAP_PRIMARY_BEFORE_ESCAPE   = 6,
+        CAP_PRIMARY_AFTER_ESCAPE    = 9,
+        CAP_ALTERNATE_BEFORE_ESCAPE = 7,
+        CAP_ALTERNATE_AFTER_ESCAPE  = 8,
+        TRAP_RUNNING                = 0,
+        DIALOGUE_STARTED            = 1,
+    };
+    s32 dialogueCommand;
+    s32 trapStopped;
 
     switch (task->state) {
-        case 0:
-            capReset();
-            Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x2C0, 0x100);
-            if (task->spawnArg1.value != 0) {
-                flag = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
-                cmd  = 8;
-                if (flag == 0) {
-                    cmd = 7;
+        case TRAP_DIALOGUE_START:
+            _shelterB1SterilizationRoomSelectSceneCap();
+            if (task->spawnArg1.value != SHELTER_B1_STERILIZATION_ROOM_DIALOGUE_PRIMARY) {
+                trapStopped     = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
+                dialogueCommand = CAP_ALTERNATE_AFTER_ESCAPE;
+                if (trapStopped == TRAP_RUNNING) {
+                    dialogueCommand = CAP_ALTERNATE_BEFORE_ESCAPE;
                 }
-                capRunCommandWithTransition(cmd);
-                gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_149, 1);
+                capRunCommandWithTransition(dialogueCommand);
+                gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_149, DIALOGUE_STARTED);
             } else {
-                flag = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
-                cmd  = 6;
-                if (flag != 0) {
-                    gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14A, 1);
-                    gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, 1);
-                    cmd = 9;
+                trapStopped     = gameFlagGetNibble(GAME_FLAG_STERILIZATION_ROOM_TRAP_STOPPED);
+                dialogueCommand = CAP_PRIMARY_BEFORE_ESCAPE;
+                if (trapStopped != TRAP_RUNNING) {
+                    gameFlagSetNibble(GAME_FLAG_SHELTER_B1_STERILIZATION_ROOM_14A, DIALOGUE_STARTED);
+                    gameFlagSetNibble(GAME_FLAG_STERILIZATION_ROOM_ACTION4_SCENE, DIALOGUE_STARTED);
+                    dialogueCommand = CAP_PRIMARY_AFTER_ESCAPE;
                 }
-                capRunCommandWithTransition(cmd);
+                capRunCommandWithTransition(dialogueCommand);
             }
             task->state++;
             return;
-        case 1:
+        case TRAP_DIALOGUE_WAIT:
             if (capIsBusy() == 0) {
                 capReset();
                 taskKill(task);
@@ -1095,18 +1150,20 @@ void func_shelter_b1_sterilization_room_801816E0(Task* task)
     }
 }
 
-void func_shelter_b1_sterilization_room_801817EC(Task* task)
+void shelterB1SterilizationRoomSceneDialogueTask(Task* task)
 {
+    enum {
+        SCENE_DIALOGUE_START = 0,
+        SCENE_DIALOGUE_WAIT  = 1,
+    };
     switch (task->state) {
-        case 0:
-            capReset();
-            Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x2C0, 0x100);
+        case SCENE_DIALOGUE_START:
+            _shelterB1SterilizationRoomSelectSceneCap();
             capRunCommandWithTransition(task->spawnArg1.value);
             task->state = task->state + 1;
+            // A command that finishes immediately needs no extra wait tick.
             /* fallthrough */
-        case 1:
+        case SCENE_DIALOGUE_WAIT:
             if (capIsBusy() == 0) {
                 capReset();
                 taskKill(task);
