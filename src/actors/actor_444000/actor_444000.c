@@ -66,6 +66,7 @@
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/actor_contacts.h"
+#include "../../shared/mad_chaser.h"
 /// Binds the shared shake helper to this instance's borrowed host task pointer.
 #define GLUTTON_HOST_TASK (_gGluttonHostTask.task)
 
@@ -91,6 +92,21 @@ enum {
     ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED = 1, // Blends into the weapon clip over ten frames
     ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_3        = 2, // Cuts to event clip 3 and sounds the alert if it has not sounded yet
     ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_0        = 3, // Locks the attachments for the event and blends into event clip 0 over ten frames
+};
+
+/// Incinerator-only states used by placement and command messages.
+enum {
+    ACTOR_444000_STATE_DORMANT           = 0,
+    ACTOR_444000_STATE_RETURN_TO_ADVANCE = 17,
+    ACTOR_444000_STATE_COLLAPSE          = 18,
+    ACTOR_444000_STATE_COLLAPSED         = 19,
+};
+
+/// Commands in the Mine/Shelter garbage-incinerator namespace.
+enum {
+    ACTOR_444000_COMMAND_STOP          = 0,
+    ACTOR_444000_COMMAND_REPOSITION    = 1,
+    ACTOR_444000_COMMAND_SKIP_COLLAPSE = 19,
 };
 
 /// Work block of the package's event task: the scene that follows the Glutton's
@@ -412,8 +428,6 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task);
 static void func_actor_444000_801423C4(Enemy* enemy, Task* task);
 static void func_actor_444000_801434C4(Task* arg0);
 static void func_actor_444000_801435CC(Task* arg0);
-s32         func_actor_444000_80143D68(Task* arg0, s32 msgId, s32 arg2, s32 arg3);
-s32         func_actor_444000_80143F38(Task* arg0, s32 msgId, s32 arg2, s32 arg3);
 static void func_actor_444000_80143F4C(Task* arg0);
 
 static AnimationSet _gActor444000Animation21904;
@@ -468,23 +482,26 @@ static TmdSource _gActor444000Actor403200Model19284;
 static TmdSource _gActor444000Actor403200Model1AC48;
 
 extern TmdSource gActor444000Actor403200Model10824;
-s32              func_actor_444000_8013A958(Task*, s32, s32, s32);
-s32              func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-s32              func_actor_444000_80143D68(Task*, s32, s32, s32);
-s32              func_actor_444000_80143D7C(Task* task, s32 msgId, ActorTransform* placement, s32 arg3);
-s32              func_actor_444000_80143E68(Task*, s32, s32, s32);
-s32              func_actor_444000_80143F38(Task*, s32, s32, s32);
-void             func_actor_444000_80142F28(Task*);
+
+static s32 _actor444000SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedSecondArg);
+static s32 _actor444000ApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedSecondArg);
+static s32 _actor444000IsPresent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
+static s32 _actor444000Place(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg);
+static s32 _actor444000HandleActorEvent(Task* task, s32 messageId, s32 event, s32 unusedSecondArg);
+static s32 _actor444000SetDormantState(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
+
+static void _actor444000EventPlayAlertOnce(void);
+static void _actor444000EventSetPlayerModelDraw(s32 drawMode);
+static void _actor444000EventStopFramebufferBlend(void);
+static void _actor444000EventDismissMadChasers(void);
+static void _actor444000EventBroadcastCommand(s16 command);
+static void _actor444000EventEndBattleOnce(void);
+static void _actor444000EventRequestPlayerAction(s16 action);
+
+void func_actor_444000_80142F28(Task*);
 
 void func_actor_444000_801321FC(s32);
 void func_actor_444000_80132358(Task*);
-void func_actor_444000_80132608(void);
-void func_actor_444000_8013265C(s32);
-void func_actor_444000_80132694(void);
-void func_actor_444000_801326DC(void);
-void func_actor_444000_80132724(s16);
-void func_actor_444000_80132778(void);
-void func_actor_444000_801327E8(s16);
 
 static AnimationPackedPose _gActor444000Animation124C4Bank1[6] = {
 #include "assets/actor_444000_animation_124C4_bank1.inc"
@@ -518,19 +535,19 @@ AnimationSet* D_actor_444000_8014430C[4] = {
 EvsCommand D_actor_444000_8014431C[19] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 4 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132608 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_801326DC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_8013265C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor444000EventRequestPlayerAction }, { .value = ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventPlayAlertOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventDismissMadChasers }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor444000EventSetPlayerModelDraw }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_8013265C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor444000EventSetPlayerModelDraw }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_801321FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_801321FC }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132694 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventStopFramebufferBlend }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -540,16 +557,16 @@ EvsCommand D_actor_444000_8014431C[19] = {
 EvsCommand D_actor_444000_801444E4[14] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_801326DC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventDismissMadChasers }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_801321FC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132694 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_8013265C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventStopFramebufferBlend }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor444000EventSetPlayerModelDraw }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132608 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventPlayAlertOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -557,25 +574,25 @@ EvsCommand D_actor_444000_801444E4[14] = {
 EvsCommand D_actor_444000_80144634[25] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 8 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor444000EventRequestPlayerAction }, { .value = ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_801321FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132778 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventEndBattleOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor444000EventRequestPlayerAction }, { .value = ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_8013265C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_801327E8 }, { .value = ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor444000EventSetPlayerModelDraw }, { .value = PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor444000EventRequestPlayerAction }, { .value = ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_8013265C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor444000EventSetPlayerModelDraw }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_801321FC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_801321FC }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132694 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventStopFramebufferBlend }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -586,16 +603,16 @@ EvsCommand D_actor_444000_8014488C[15] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_801321FC }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_444000_80132724 }, { .value = 19 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132694 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_444000_8013265C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor444000EventBroadcastCommand }, { .value = ACTOR_444000_COMMAND_SKIP_COLLAPSE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventStopFramebufferBlend }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor444000EventSetPlayerModelDraw }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132778 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventEndBattleOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_444000_80132608 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor444000EventPlayAlertOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
@@ -2676,12 +2693,12 @@ TaskDesc gGluttonEscortTasks[4] = {
 TaskDesc D_actor_444000_8016180C = { { { TASK_BODY_TMD, 96 } }, _gluttonSpinnerTask, { .model = &_gActor444000Actor403200Model19284 } };
 
 TaskMessageEntry D_actor_444000_80161818[7] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_444000_8013A958 },
-    { ACTOR_MESSAGE_IS_PRESENT, func_actor_444000_80143D68 },
-    { ACTOR_MESSAGE_PLACE, func_actor_444000_80143D7C },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_444000_8013ACD0 },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_actor_444000_80143E68 },
-    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, func_actor_444000_80143F38 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor444000SetModelDraw },
+    { ACTOR_MESSAGE_IS_PRESENT, _actor444000IsPresent },
+    { ACTOR_MESSAGE_PLACE, _actor444000Place },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor444000ApplyCommand },
+    { ROOM_MESSAGE_ACTOR_EVENT, _actor444000HandleActorEvent },
+    { SCENE_MESSAGE_EXIT_PLACED_ACTORS, _actor444000SetDormantState },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -2721,12 +2738,12 @@ TmdSource D_actor_444000_80161B50 = { 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL }
 static void            func_actor_444000_80132054(Task* task);
 static __inline__ void Actor444000_StepForward(GfxCoord* coord);
 static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y);
-static __inline__ void Actor444000_RebuildRotation(Task* task);
+static __inline__ void _actor444000FlattenRoot(Task* task);
 static __inline__ void Actor444000_SeedRootCoord(Task* task, GluttonWork* work);
 static void            func_actor_444000_8013CA60(Task* task);
 static void            func_actor_444000_8013D810(Task* arg0);
-static __inline__ void Actor444000_ReleaseRotScratch(void);
-static __inline__ void Actor444000_FlattenRotation(GfxCoord* coord, s32 vy);
+static __inline__ void _actorRenderReleaseYawScratch(void);
+static __inline__ void _actorRenderRescaleYawYReserve(GfxCoord* coord, s32 verticalScale);
 static void            func_actor_444000_8013D96C(Task* arg0);
 static void            func_actor_444000_8013E058(Task* task);
 static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* work,
@@ -2948,9 +2965,11 @@ void func_actor_444000_80132358(Task* task)
     func_actor_444000_80132054(task);
 }
 
-/// Play the event's alert once, latching `_Actor444000EventWork::alertPlayed`
-/// so a repeat call is a no-op.
-void func_actor_444000_80132608(void)
+/// Plays the incinerator alert once during the post-boss event.
+///
+/// Requires the live published event task and its initialized work. The latch
+/// is shared with the player-action tick so normal and skip scripts agree.
+static void _actor444000EventPlayAlertOnce(void)
 {
     _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
@@ -2960,18 +2979,23 @@ void func_actor_444000_80132608(void)
     }
 }
 
-/// Send the model-draw switch `arg0` to the player task the event work block
-/// carries.
-void func_actor_444000_8013265C(s32 arg0)
+/// Sends the event player's model-draw mode through synchronous dispatch.
+///
+/// Requires the live published event task and player. `drawMode` uses
+/// `PLAYER_ACTOR_MODEL_DRAW_*`; the scripts hide with allocation or show with
+/// automatic buffers. The player's reply is discarded.
+static void _actor444000EventSetPlayerModelDraw(s32 drawMode)
 {
     _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
-    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, arg0, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, drawMode, 0);
 }
 
-/// Kill the framebuffer-blend effect task the event work block carries, if one
-/// is running.
-void func_actor_444000_80132694(void)
+/// Stops the event's framebuffer-blend task and clears its borrowed handle.
+///
+/// Requires the live published event task and initialized work. A NULL handle
+/// makes repeated calls harmless; a non-NULL handle must still be live.
+static void _actor444000EventStopFramebufferBlend(void)
 {
     _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
@@ -2981,50 +3005,72 @@ void func_actor_444000_80132694(void)
     }
 }
 
-void func_actor_444000_801326DC(void)
+/// Broadcasts the synthetic Mad Chaser vanish command to placed actors.
+///
+/// Requires a live scene manager. Stage 0/area 44 identifies the Mad Chaser
+/// command namespace. The stack record is borrowed only through synchronous
+/// dispatch; receivers that do not accept that namespace ignore it.
+static void _actor444000EventDismissMadChasers(void)
 {
+    enum {
+        ACTOR_444000_MAD_CHASER_COMMAND_STAGE = 0,
+        ACTOR_444000_MAD_CHASER_COMMAND_AREA  = 44,
+    };
     ActorCommand msg;
 
-    msg.context.loc.stage = 0;
-    msg.context.loc.area  = 0x2C;
-    msg.command           = 3;
+    msg.context.loc.stage = ACTOR_444000_MAD_CHASER_COMMAND_STAGE;
+    msg.context.loc.area  = ACTOR_444000_MAD_CHASER_COMMAND_AREA;
+    msg.command           = MAD_CHASER_COMMAND_VANISH;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
-/// Send message 0x7DA to the slot-4 task, tagged with the current session's
-/// stage and area and the caller's selector. Nothing in the actor calls it.
-void func_actor_444000_80132724(s16 arg0)
+/// Broadcasts a command in the current session's stage/area namespace.
+///
+/// Requires a live session and scene manager. The script uses
+/// `ACTOR_444000_COMMAND_SKIP_COLLAPSE` to complete the boss collapse when
+/// skipped. The signed input's bits are stored in the unsigned command halfword;
+/// the stack record remains live through synchronous dispatch.
+static void _actor444000EventBroadcastCommand(s16 command)
 {
     ActorCommand msg;
 
     msg.context.loc.stage = gGameSession->location.loc.stage;
     msg.context.loc.area  = gGameSession->location.loc.area;
-    msg.command           = arg0;
+    msg.command           = command;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
-/// Arm the actor's death sequence once: reset the `gSceneCombatState` claim block,
-/// flag the session and pick area script 0xD, then latch
-/// `_Actor444000EventWork::combatReset` so a later call does nothing.
-void func_actor_444000_80132778(void)
+/// Ends the event's battle once and selects its post-boss scene music.
+///
+/// Requires the live published event task, session and live save. Clears battle
+/// holds and stimuli, leaves a 15-frame end delay in the idle phase, requests
+/// weapon re-equipping, and latches completion for normal and skip scripts.
+static void _actor444000EventEndBattleOnce(void)
 {
+    enum {
+        ACTOR_444000_EVENT_BATTLE_END_DELAY_FRAMES = 15,
+        ACTOR_444000_EVENT_SCENE_MUSIC             = 13,
+    };
     _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
     if (work->combatReset == 0) {
         gSceneCombatState.battleRefs                        = 0;
-        gSceneCombatState.signals.bytes.endDelayFrames      = 0xF;
+        gSceneCombatState.signals.bytes.endDelayFrames      = ACTOR_444000_EVENT_BATTLE_END_DELAY_FRAMES;
         gSceneCombatState.signals.bytes.battlePhase         = SCENE_COMBAT_BATTLE_IDLE;
         gSceneCombatState.signals.bytes.actionFlags         = 0;
         gSceneCombatState.signals.bytes.enemyAlert          = 0;
         gGameSession->flowFlags                            |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xD;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_444000_EVENT_SCENE_MUSIC;
         work->combatReset                                   = 1;
     }
 }
 
-/// Leave a player request (`ACTOR_444000_PLAYER_ACTION_*`) for the event task's
-/// next tick, zeroing the step that goes with it.
-void func_actor_444000_801327E8(s16 action)
+/// Queues one player action for the event task's next update.
+///
+/// Requires the live published event task and initialized work. `action` uses
+/// `ACTOR_444000_PLAYER_ACTION_*`; a new request replaces any pending one and
+/// resets its step. The request halfword retains the signed input's bits.
+static void _actor444000EventRequestPlayerAction(s16 action)
 {
     _Actor444000EventWork* work = D_actor_444000_80161860->work;
 
@@ -3908,216 +3954,209 @@ static const EnemyTaskFuncTable4 gGluttonSpinnerStates = {
 
 #include "../../shared/glutton_shake_tick.inc.c"
 
-/// Message 0x7D5 handler, the visibility control the event task drives the
-/// boss with: each sub-command sets the host model's flag word and pushes it
-/// onto all seven escorts' models, differing in what the flag word becomes and
-/// whether the model buffers are (re)allocated first.
+/// Copies the host's complete draw flags to every live escort model.
 ///
-/// 0 brings the group back with buffers and the 0x80 flag, 1 clears the flag
-/// before making sure the buffers exist, 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER`
-/// and, finding that bit set, stores 3 in `freeCountdown` and replaces the flag
-/// word with `TMD_OBJECT_SKIP_ACTIVE_DRAW`. 3 clears the word, pushes the
-/// clear, then sets `TMD_OBJECT_SKIP_AUTO_BUFFER` on the host alone. Cases 0
-/// and 2 also reset `state`. Case 2 tests the bit it just set, so that test
-/// is always true.
-s32 func_actor_444000_8013A958(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Requires live models for each non-NULL escort. Reads the host flags for
+/// every write so allocation/lifetime ordering in the caller is preserved.
+static __inline__ void _actor444000CopyEscortModelFlags(Task* task, GluttonWork* work)
 {
-    TmdObject*   tmd;
-    GluttonWork* work;
-    GluttonWork* escorts;
-    GluttonWork* buffers;
-    GluttonWork* rebuilt;
-    TmdObject*   hostTmd;
-    TmdObject*   escortTmd;
-    s32          flags;
-    s16          i;
-    s16          j;
+    s16 escortIndex;
 
-    tmd  = task->extra.tmd;
-    work = task->work;
-    switch (arg2) {
-        case 0:
-            buffers = task->work;
-            if (tmd->buffer == NULL) {
-                tmdAllocPrimitiveBuffer(tmd);
+    for (escortIndex = 0; escortIndex < ARRAY_SIZE(work->escorts); escortIndex++) {
+        if (work->escorts[escortIndex] != NULL) {
+            work->escorts[escortIndex]->task->extra.tmd->flags = task->extra.tmd->flags;
+        }
+    }
+}
+
+/// Sets drawing and buffer policy for the Glutton host and its seven escorts.
+///
+/// Requires live host work and model; each non-NULL escort must have a live
+/// model. Modes: 0 allocate missing buffers and hide, 1 show then allocate
+/// missing buffers, 2 hide and defer buffer release by three updates, 3 show
+/// all models and disable automatic allocation on the host alone. Modes 0/2
+/// return the boss to its dormant state. Unknown modes do nothing. Returns 0;
+/// `messageId` and `unusedSecondArg` are ignored.
+static s32 _actor444000SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedSecondArg)
+{
+    enum {
+        ACTOR_444000_MODEL_DRAW_HIDE_ALLOCATE   = 0,
+        ACTOR_444000_MODEL_DRAW_SHOW_ALLOCATE   = 1,
+        ACTOR_444000_MODEL_DRAW_HIDE_RELEASE    = 2,
+        ACTOR_444000_MODEL_DRAW_SHOW_NO_AUTO    = 3,
+        ACTOR_444000_MODEL_RELEASE_DELAY_FRAMES = 3,
+    };
+    TmdObject*   hostModel;
+    GluttonWork* work;
+    GluttonWork* flagWork;
+    GluttonWork* hiddenBufferWork;
+    GluttonWork* visibleBufferWork;
+    TmdObject*   visibleHostModel;
+    TmdObject*   escortModel;
+    s32          hostFlags;
+    s16          bufferIndex;
+
+    hostModel = task->extra.tmd;
+    work      = task->work;
+    switch (drawMode) {
+        // Ensure buffers before hiding and propagating the host flags.
+        case ACTOR_444000_MODEL_DRAW_HIDE_ALLOCATE:
+            hiddenBufferWork = task->work;
+            if (hostModel->buffer == NULL) {
+                tmdAllocPrimitiveBuffer(hostModel);
             }
-            for (j = 0; j < ARRAY_SIZE(buffers->escorts); j++) {
-                if (buffers->escorts[j] != NULL) {
-                    escortTmd = buffers->escorts[j]->task->extra.tmd;
-                    if (escortTmd->buffer == NULL) {
-                        tmdAllocPrimitiveBuffer(escortTmd);
+            for (bufferIndex = 0; bufferIndex < ARRAY_SIZE(hiddenBufferWork->escorts); bufferIndex++) {
+                if (hiddenBufferWork->escorts[bufferIndex] != NULL) {
+                    escortModel = hiddenBufferWork->escorts[bufferIndex]->task->extra.tmd;
+                    if (escortModel->buffer == NULL) {
+                        tmdAllocPrimitiveBuffer(escortModel);
                     }
                 }
             }
-            escorts                = task->work;
-            escorts->freeCountdown = 0;
-            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-                if (escorts->escorts[i] != NULL) {
-                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
-                }
-            }
-            work->state = 0;
+            flagWork                = task->work;
+            flagWork->freeCountdown = 0;
+            task->extra.tmd->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            _actor444000CopyEscortModelFlags(task, flagWork);
+            work->state = ACTOR_444000_STATE_DORMANT;
             break;
-        case 1:
-            escorts                = task->work;
-            escorts->freeCountdown = 0;
-            task->extra.tmd->flags = 0;
-            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-                if (escorts->escorts[i] != NULL) {
-                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
-                }
+        // Clear drawing flags before buffer allocation on the show path.
+        case ACTOR_444000_MODEL_DRAW_SHOW_ALLOCATE:
+            flagWork                = task->work;
+            flagWork->freeCountdown = 0;
+            task->extra.tmd->flags  = 0;
+            _actor444000CopyEscortModelFlags(task, flagWork);
+            visibleHostModel  = task->extra.tmd;
+            visibleBufferWork = task->work;
+            if (visibleHostModel->buffer == NULL) {
+                tmdAllocPrimitiveBuffer(visibleHostModel);
             }
-            hostTmd = task->extra.tmd;
-            rebuilt = task->work;
-            if (hostTmd->buffer == NULL) {
-                tmdAllocPrimitiveBuffer(hostTmd);
-            }
-            for (j = 0; j < ARRAY_SIZE(rebuilt->escorts); j++) {
-                if (rebuilt->escorts[j] != NULL) {
-                    escortTmd = rebuilt->escorts[j]->task->extra.tmd;
-                    if (escortTmd->buffer == NULL) {
-                        tmdAllocPrimitiveBuffer(escortTmd);
+            for (bufferIndex = 0; bufferIndex < ARRAY_SIZE(visibleBufferWork->escorts); bufferIndex++) {
+                if (visibleBufferWork->escorts[bufferIndex] != NULL) {
+                    escortModel = visibleBufferWork->escorts[bufferIndex]->task->extra.tmd;
+                    if (escortModel->buffer == NULL) {
+                        tmdAllocPrimitiveBuffer(escortModel);
                     }
                 }
             }
             break;
-        case 2:
-            tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-            flags       = tmd->flags;
-            escorts     = task->work;
-            if (flags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
-                escorts->freeCountdown = 3;
-                task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        // The frame update releases host and escort buffers after this delay.
+        case ACTOR_444000_MODEL_DRAW_HIDE_RELEASE:
+            hostModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            hostFlags         = hostModel->flags;
+            flagWork          = task->work;
+            if (hostFlags & TMD_OBJECT_SKIP_AUTO_BUFFER) {
+                flagWork->freeCountdown = ACTOR_444000_MODEL_RELEASE_DELAY_FRAMES;
+                task->extra.tmd->flags  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             } else {
-                escorts->freeCountdown = 0;
-                task->extra.tmd->flags = flags;
+                flagWork->freeCountdown = 0;
+                task->extra.tmd->flags  = hostFlags;
             }
-            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-                if (escorts->escorts[i] != NULL) {
-                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
-                }
-            }
-            work->state = 0;
+            _actor444000CopyEscortModelFlags(task, flagWork);
+            work->state = ACTOR_444000_STATE_DORMANT;
             break;
-        case 3:
-            tmd->flags             = 0;
-            escorts                = task->work;
-            escorts->freeCountdown = 0;
-            task->extra.tmd->flags = 0;
-            for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-                if (escorts->escorts[i] != NULL) {
-                    escorts->escorts[i]->task->extra.tmd->flags = task->extra.tmd->flags;
-                }
-            }
-            tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_444000_MODEL_DRAW_SHOW_NO_AUTO:
+            hostModel->flags        = 0;
+            flagWork                = task->work;
+            flagWork->freeCountdown = 0;
+            task->extra.tmd->flags  = 0;
+            _actor444000CopyEscortModelFlags(task, flagWork);
+            hostModel->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
     }
     return 0;
 }
 
-/// Rebuilds the host's root coordinate around the yaw it is already facing:
-/// `ratan2` of the rotation's Z basis gives the yaw, `gfxRotMatrixY` rebuilds
-/// the rotation from it, and `ScaleMatrix` widens it to 1.0 / 0.0 / 1.0 so the
-/// model flattens vertically. The working matrix lives in a frame carved off
-/// the scratch stack, which is handed back before the coordinate is refreshed.
-static __inline__ void Actor444000_RebuildRotation(Task* task)
+/// Flattens the boss root at its existing yaw and refreshes its composition.
+///
+/// Requires a live TMD task with root coordinate and initialized scratch stack
+/// with 0x58 free aligned bytes. Replaces pitch, roll and scale with X/Z unity
+/// and Y zero, preserving translation and hierarchy. Releases its temporary
+/// frame before composing; composition also requires its normal scratch space.
+static __inline__ void _actor444000FlattenRoot(Task* task)
 {
-    GfxCoord*             coord = task->extra.tmd->coords;
-    ActorScaleRotScratch* sc;
-    s16                   ang;
+    GfxCoord* coord = task->extra.tmd->coords;
 
-    sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
-
-    ang     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->yaw = ang;
-    gfxRotMatrixY(&sc->rotation, ang, 1);
-    sc->scale.vx = 0x1000;
-    sc->scale.vy = 0;
-    sc->scale.vz = 0x1000;
-    ScaleMatrix(&sc->rotation, &sc->scale);
-
-    coord->coord.m[0][0] = sc->rotation.m[0][0];
-    coord->coord.m[0][1] = sc->rotation.m[0][1];
-    coord->coord.m[0][2] = sc->rotation.m[0][2];
-    coord->coord.m[1][0] = sc->rotation.m[1][0];
-    coord->coord.m[1][1] = sc->rotation.m[1][1];
-    coord->coord.m[1][2] = sc->rotation.m[1][2];
-    coord->coord.m[2][0] = sc->rotation.m[2][0];
-    coord->coord.m[2][1] = sc->rotation.m[2][1];
-    coord->coord.m[2][2] = sc->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-
+    // The common rebuild releases scratch before the composition refresh.
+    _actorRenderRescaleYawY(coord, ONE, 0);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
     actorRenderComposeCoord(task->extra.tmd->coords);
 }
-
-/// The enemy task's 0x7DB message handler, listed in `D_actor_444000_80161818`.
-/// The three payload bytes are always recorded in the work block; only messages
-/// from sender 0x2804 act, and then on three of the selector's values. 0 and 1
-/// both announce the state change with the same pair of cues, 1 additionally
-/// re-arms the animation blocks and drops the model onto its start position,
-/// and 19 switches the host and its fourth escort to light mode 2 before
-/// raising eight floor vertices and flattening the model's rotation.
-s32 func_actor_444000_8013ACD0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Applies an incinerator command and records its context in the boss work.
+///
+/// Requires live host/escorts, initialized animation rigs and a complete borrowed
+/// request through dispatch. Only Mine/Shelter garbage-incinerator context acts:
+/// 0 stops the boss, 1 advances clip 10 then repositions it to resume advancing,
+/// 19 selects the collapsed state, blackens host/escort 3, locks the view, raises
+/// floor vertices 24..31 and flattens the root. Command 19 requires that writable
+/// room grid. The cached command retains only the low byte; dispatch uses the
+/// full halfword. Returns 1 even for ignored contexts or commands; other args
+/// are ignored.
+static s32 _actor444000ApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedSecondArg)
 {
+    enum {
+        ACTOR_444000_COMMAND_CONTEXT         = (GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR << 8) | GAME_STAGE_MINE_SHELTER,
+        ACTOR_444000_REPOSITION_CLIP         = 10,
+        ACTOR_444000_REPOSITION_FINAL_RATE   = ANIMATION_RATE_ONE / 16,
+        ACTOR_444000_COLLAPSED_FLOOR_LOWER_Y = 500,
+        ACTOR_444000_COLLAPSED_FLOOR_UPPER_Y = 800,
+    };
     GluttonWork* work  = task->work;
     Enemy*       enemy = task->spawnArg2.pointer;
-    SVECTOR*     verts;
-    s32          action;
+    SVECTOR*     floorVertices;
+    s32          command;
 
-    work->lastCommandStage = msg->context.loc.stage;
-    work->lastCommandArea  = msg->context.loc.area;
-    work->lastCommand      = (u8)msg->command;
+    // Retain every context, including ignored commands; the cached selector is a byte.
+    work->lastCommandStage = request->context.loc.stage;
+    work->lastCommandArea  = request->context.loc.area;
+    work->lastCommand      = (u8)request->command;
 
-    if (msg->context.key == 0x2804) {
-        action = msg->command;
-        switch (action) {
-            case 0:
-                work->state = 0;
+    if (request->context.key == ACTOR_444000_COMMAND_CONTEXT) {
+        command = request->command;
+        switch (command) {
+            case ACTOR_444000_COMMAND_STOP:
+                work->state = ACTOR_444000_STATE_DORMANT;
                 sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 break;
 
-            case 1:
-                work->animId   = 0xA;
+            case ACTOR_444000_COMMAND_REPOSITION:
+                work->animId   = ACTOR_444000_REPOSITION_CLIP;
                 work->animStep = GLUTTON_ANIM_STEP_RESTART;
                 _gluttonTickAnim(task);
                 _gluttonTickAnim(task);
                 _gluttonTickAnim(task);
-                work->animRate = 1;
+                work->animRate = ACTOR_444000_REPOSITION_FINAL_RATE;
                 _gluttonTickAnim(task);
-                work->animRate                        = 0x10;
+                work->animRate                        = ANIMATION_RATE_ONE;
                 task->extra.tmd->coords->coord.t[0]   = -0xBB8;
                 task->extra.tmd->coords->coord.t[1]   = 0;
                 task->extra.tmd->coords->coord.t[2]   = -0x992;
                 task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                work->state                           = 0x11;
+                work->state                           = ACTOR_444000_STATE_RETURN_TO_ADVANCE;
                 sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 break;
 
-            case 19:
+            case ACTOR_444000_COMMAND_SKIP_COLLAPSE:
                 worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                 worldCoordSetActorColorMode(work->escorts[3], ENEMY_COLOR_BLACK);
-                work->state      = action;
-                work->prevState  = -1;
+                work->state      = ACTOR_444000_STATE_COLLAPSED;
+                work->prevState  = GLUTTON_STATE_REENTER;
                 work->viewLocked = 1;
                 sndEvtRequestScriptStop(((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 7), SOUND_SCRIPT_STOP_KEEP_RELEASE);
 
-                verts        = Gp_GridParams->vertices;
-                verts[24].vy = 0x1F4;
-                verts[25].vy = 0x1F4;
-                verts[26].vy = 0x320;
-                verts[27].vy = 0x320;
-                verts[28].vy = 0x1F4;
-                verts[29].vy = 0x1F4;
-                verts[30].vy = 0x320;
-                verts[31].vy = 0x320;
+                // Complete the collapse floor pose when the presentation is skipped.
+                floorVertices        = Gp_GridParams->vertices;
+                floorVertices[24].vy = ACTOR_444000_COLLAPSED_FLOOR_LOWER_Y;
+                floorVertices[25].vy = ACTOR_444000_COLLAPSED_FLOOR_LOWER_Y;
+                floorVertices[26].vy = ACTOR_444000_COLLAPSED_FLOOR_UPPER_Y;
+                floorVertices[27].vy = ACTOR_444000_COLLAPSED_FLOOR_UPPER_Y;
+                floorVertices[28].vy = ACTOR_444000_COLLAPSED_FLOOR_LOWER_Y;
+                floorVertices[29].vy = ACTOR_444000_COLLAPSED_FLOOR_LOWER_Y;
+                floorVertices[30].vy = ACTOR_444000_COLLAPSED_FLOOR_UPPER_Y;
+                floorVertices[31].vy = ACTOR_444000_COLLAPSED_FLOOR_UPPER_Y;
 
-                Actor444000_RebuildRotation(task);
+                _actor444000FlattenRoot(task);
                 break;
         }
     }
@@ -4717,54 +4756,51 @@ static void func_actor_444000_8013D810(Task* arg0)
     }
 }
 
-/// Hands the scratchpad frame `Actor444000_FlattenRotation` borrowed back to
-/// the scratch stack. Written as an inline like the rotation itself: only
-/// inline-expanded code keeps the absolute `lui $at` form of the scratch-head
-/// accesses, so a release written straight into the caller does not match.
-static __inline__ void Actor444000_ReleaseRotScratch(void)
+/// Releases the frame retained by `_actorRenderRescaleYawYReserve`.
+///
+/// Requires its matching reservation at the top of the initialized scratch
+/// stack, with any nested reservations already released. Releases one complete
+/// `ActorScaleRotScratch`; no scratch pointer may be used afterward.
+static __inline__ void _actorRenderReleaseYawScratch(void)
 {
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
-/// Rebuilds one model's root coordinate around the yaw it already faces and
-/// flattens it vertically: `ratan2` of the rotation's Z basis gives the yaw,
-/// `gfxRotMatrixY` rebuilds the rotation from it and `ScaleMatrix` applies
-/// 1.0 / `vy` / 1.0. The working matrix lives in a frame carved off
-/// the scratch stack; the caller releases it with
-/// `Actor444000_ReleaseRotScratch` once it has cleared the coordinate again.
-static __inline__ void Actor444000_FlattenRotation(GfxCoord* coord, s32 vy)
+/// Rebuilds a coordinate at its current yaw with unity X/Z and a requested Y scale.
+///
+/// Requires a live writable coordinate outside scratch and an initialized stack
+/// with 0x58 free aligned bytes. `verticalScale` is a signed 32-bit Q12 factor
+/// (`ONE` is unity); the callers use 0 or ONE/4. Discards pitch, roll and old
+/// scale, preserves translation/hierarchy and marks composition dirty. Products
+/// retain the SDK's arithmetic and halfword narrowing without saturation.
+/// Retains one `ActorScaleRotScratch` frame: the caller must release it with
+/// `_actorRenderReleaseYawScratch` before its storage is reused.
+static __inline__ void _actorRenderRescaleYawYReserve(GfxCoord* coord, s32 verticalScale)
 {
-    ActorScaleRotScratch* sc;
-    s16                   ang;
+    ActorScaleRotScratch* yawScratch;
+    s16                   yaw;
 
-    sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
+    yawScratch = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleRotScratch);
 
-    ang     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->yaw = ang;
-    gfxRotMatrixY(&sc->rotation, ang, 1);
-    sc->scale.vx = 0x1000;
-    sc->scale.vy = vy;
-    sc->scale.vz = 0x1000;
-    ScaleMatrix(&sc->rotation, &sc->scale);
+    // Replace the old pitch, roll and scale while preserving the heading.
+    yaw             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    yawScratch->yaw = yaw;
+    gfxRotMatrixY(&yawScratch->rotation, yaw, GRAPHICS_ROTATION_REPLACE);
+    yawScratch->scale.vx = ONE;
+    yawScratch->scale.vy = verticalScale;
+    yawScratch->scale.vz = ONE;
+    ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
-    coord->coord.m[0][0] = sc->rotation.m[0][0];
-    coord->coord.m[0][1] = sc->rotation.m[0][1];
-    coord->coord.m[0][2] = sc->rotation.m[0][2];
-    coord->coord.m[1][0] = sc->rotation.m[1][0];
-    coord->coord.m[1][1] = sc->rotation.m[1][1];
-    coord->coord.m[1][2] = sc->rotation.m[1][2];
-    coord->coord.m[2][0] = sc->rotation.m[2][0];
-    coord->coord.m[2][1] = sc->rotation.m[2][1];
-    coord->coord.m[2][2] = sc->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
+    // Retain the frame until the caller finishes its coordinate writes.
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Re-arm handler run once the block asks for a reset: clear the host's model
 /// flag word onto itself and every escort, clear `neckPitchEnabled` and `neckYawEnabled`, then
 /// step the animation on and flatten six of the models -- escorts 2, 4, 3, 0 and
 /// 1 plus the host itself -- onto the ground plane. Escort 3 keeps a little
-/// height (`vy` 0x400) where the rest are flattened outright. The last release
+/// height (`verticalScale` ONE/4) where the rest are flattened outright. The last release
 /// clears escort 2's coordinate flag again rather than escort 1's, which looks
 /// like a copy-paste slip in the original but is what the ROM does.
 static void func_actor_444000_8013D96C(Task* arg0)
@@ -4790,29 +4826,29 @@ static void func_actor_444000_8013D96C(Task* arg0)
 
     _gluttonTickAnim(arg0);
 
-    Actor444000_FlattenRotation(work->escorts[2]->task->extra.tmd->coords, 0);
+    _actorRenderRescaleYawYReserve(work->escorts[2]->task->extra.tmd->coords, 0);
     work->escorts[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor444000_ReleaseRotScratch();
+    _actorRenderReleaseYawScratch();
 
-    Actor444000_FlattenRotation(arg0->extra.tmd->coords, 0);
+    _actorRenderRescaleYawYReserve(arg0->extra.tmd->coords, 0);
     arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor444000_ReleaseRotScratch();
+    _actorRenderReleaseYawScratch();
 
-    Actor444000_FlattenRotation(work->escorts[4]->task->extra.tmd->coords, 0);
+    _actorRenderRescaleYawYReserve(work->escorts[4]->task->extra.tmd->coords, 0);
     work->escorts[4]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor444000_ReleaseRotScratch();
+    _actorRenderReleaseYawScratch();
 
-    Actor444000_FlattenRotation(work->escorts[3]->task->extra.tmd->coords, 0x400);
+    _actorRenderRescaleYawYReserve(work->escorts[3]->task->extra.tmd->coords, ONE / 4);
     work->escorts[3]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor444000_ReleaseRotScratch();
+    _actorRenderReleaseYawScratch();
 
-    Actor444000_FlattenRotation(work->escorts[0]->task->extra.tmd->coords, 0);
+    _actorRenderRescaleYawYReserve(work->escorts[0]->task->extra.tmd->coords, 0);
     work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor444000_ReleaseRotScratch();
+    _actorRenderReleaseYawScratch();
 
-    Actor444000_FlattenRotation(work->escorts[1]->task->extra.tmd->coords, 0);
+    _actorRenderRescaleYawYReserve(work->escorts[1]->task->extra.tmd->coords, 0);
     work->escorts[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    Actor444000_ReleaseRotScratch();
+    _actorRenderReleaseYawScratch();
 }
 
 /// Drag tick of the arena fight: the state the boss runs while it is hauling the
@@ -6986,54 +7022,74 @@ static void func_actor_444000_801435CC(Task* arg0)
 
 #include "../../shared/glutton_spinner_task.inc.c"
 
-s32 func_actor_444000_80143D68(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
+/// Reports whether the boss enemy has positive HP.
+///
+/// Requires a live Enemy in `task->spawnArg2.pointer`. Returns 0 or 1; the
+/// message ID and both payloads are ignored.
+static s32 _actor444000IsPresent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    return ((Enemy*)arg0->spawnArg2.pointer)->hp > 0;
+    Enemy* enemy = task->spawnArg2.pointer;
+
+    return enemy->hp > 0;
 }
 
-/// Seeds the enemy's `TmdObject` coordinate frame from `placement`: the three
-/// longs become the translation, the Euler angles are applied X/Y/Z unless the
-/// work block's state index is 0x12 or 0x13, and the coordinate is marked
-/// dirty. Same body as `ActorsShared80135990` with that state gate added.
-s32 func_actor_444000_80143D7C(Task* arg0, s32 arg1, ActorTransform* placement, s32 arg3)
+/// Places the boss root while preserving its collapse orientation.
+///
+/// Requires live work/model and a complete borrowed placement through dispatch.
+/// Translation uses parent-frame world units; Euler angles use 4096 per turn.
+/// Rebuilds X/Y/Z rotation except in collapse states 18/19, which retain their
+/// current basis. Marks composition dirty without refreshing it. Returns 1;
+/// the message ID and second payload are ignored.
+static s32 _actor444000Place(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedSecondArg)
 {
-    GluttonWork* work = arg0->work;
+    GluttonWork* work = task->work;
 
-    arg0->extra.tmd->coords->coord.t[0] = placement->pos.vx;
-    arg0->extra.tmd->coords->coord.t[1] = placement->pos.vy;
-    arg0->extra.tmd->coords->coord.t[2] = placement->pos.vz;
-    if ((u32)((u16)work->state - 0x12) >= 2U) {
-        gfxRotMatrixX(&arg0->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, placement->rot.vy, 0);
-        gfxRotMatrixZ(&arg0->extra.tmd->coords->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
+    task->extra.tmd->coords->coord.t[0] = placement->pos.vx;
+    task->extra.tmd->coords->coord.t[1] = placement->pos.vy;
+    task->extra.tmd->coords->coord.t[2] = placement->pos.vz;
+    if ((u32)((u16)work->state - ACTOR_444000_STATE_COLLAPSE) >= (u32)(ACTOR_444000_STATE_COLLAPSED - ACTOR_444000_STATE_COLLAPSE + 1)) {
+        gfxRotMatrixX(&task->extra.tmd->coords->coord, placement->rot.vx, GRAPHICS_ROTATION_REPLACE);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, placement->rot.vy, GRAPHICS_ROTATION_COMPOSE);
+        gfxRotMatrixZ(&task->extra.tmd->coords->coord, placement->rot.vz, GRAPHICS_ROTATION_COMPOSE);
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     return 1;
 }
 
-/// Per-frame upkeep for the enemy, dispatched by `arg2`: state 0 bumps the
-/// heal counter, files a negative "damage" with `worldTargetAddReadoutAmount` so the HUD
-/// shows it as a heal, and tops the enemy's HP back up by 0x64; state 1 ticks
-/// `summonsAlive` down, re-arms `deathDelay` and drops either tracked
-/// enemy whose HP has run out.
-s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles summon capture and despawn reports sent to the placed boss.
+///
+/// Requires live boss work/Enemy and live non-NULL tracked summons through
+/// dispatch. Event 0 increments the byte heal counter, queues a 100-HP healing
+/// readout and grants HP only to a living boss, without clamping. Event 1
+/// decrements a positive summon count, sets a two-update death delay and clears
+/// either dead entry in the two-slot summon table. Unknown events do nothing.
+/// Returns 1; the message ID and second payload are ignored.
+static s32 _actor444000HandleActorEvent(Task* task, s32 messageId, s32 event, s32 unusedSecondArg)
 {
-    GluttonWork* work = arg0->work;
-    Enemy*       obj  = arg0->spawnArg2.pointer;
+    enum {
+        ACTOR_444000_EVENT_SUMMON_CAPTURED     = 0,
+        ACTOR_444000_EVENT_SUMMON_DESPAWNED    = 1,
+        ACTOR_444000_SUMMON_HEAL_HP            = 100,
+        ACTOR_444000_SUMMON_DEATH_DELAY_FRAMES = 2,
+    };
+    GluttonWork* work  = task->work;
+    Enemy*       enemy = task->spawnArg2.pointer;
 
-    switch (arg2) {
-        case 0:
+    switch (event) {
+        // Credit the capture even after boss death; HP is raised only while alive.
+        case ACTOR_444000_EVENT_SUMMON_CAPTURED:
             work->pendingHeals++;
-            worldTargetAddReadoutAmount(&obj->node, -0x64, 0);
-            if (obj->hp > 0) {
-                obj->hp += 0x64;
+            worldTargetAddReadoutAmount(&enemy->node, -ACTOR_444000_SUMMON_HEAL_HP, 0);
+            if (enemy->hp > 0) {
+                enemy->hp += ACTOR_444000_SUMMON_HEAL_HP;
             }
             break;
-        case 1:
+        // Despawn reports arrive while tracked enemy storage is still live.
+        case ACTOR_444000_EVENT_SUMMON_DESPAWNED:
             if (work->summonsAlive > 0) {
                 work->summonsAlive--;
             }
-            work->deathDelay = 2;
+            work->deathDelay = ACTOR_444000_SUMMON_DEATH_DELAY_FRAMES;
             if (work->summons[0] != NULL && work->summons[0]->hp <= 0) {
                 work->summons[0] = NULL;
             }
@@ -7045,9 +7101,16 @@ s32 func_actor_444000_80143E68(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 1;
 }
 
-s32 func_actor_444000_80143F38(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
+/// Selects the boss's dormant behavior for actor message 0x7D9.
+///
+/// Requires live boss work. Its frame update handles hiding and buffer cleanup
+/// after this state change. Returns 1; the message ID and both payloads are
+/// ignored.
+static s32 _actor444000SetDormantState(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    ((GluttonWork*)arg0->work)->state = 0;
+    GluttonWork* work = task->work;
+
+    work->state = ACTOR_444000_STATE_DORMANT;
     return 1;
 }
 

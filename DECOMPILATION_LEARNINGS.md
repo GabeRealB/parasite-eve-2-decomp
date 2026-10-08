@@ -57067,7 +57067,7 @@ use, which puts the two `zero_extend`s in separate insns with one use each.
 Generally: when the ROM keeps a provably redundant mask or extension, the
 source held it in a variable that was read more than once.
 
-`func_actor_444000_8013A958` is the same rule reached from a different-looking
+`_actor444000SetModelDraw` is the same rule reached from a different-looking
 source shape: the value is a `u16` field read back immediately after being
 stored. `tmd->field_C |= 4;` leaves the `ior:SI` result live, and the following
 read is CSE'd into a truncation of it rather than a fresh `lhu` -- so the
@@ -64089,7 +64089,7 @@ it. The prologue's `sw $ra` in turn has an output dependency the clobber sees,
 so sched2 is forced to emit `addiu $sp` / `sw $ra` / clobber before any field
 store — `sw $ra` can never move past them.
 
-`func_actor_444000_801326DC` wants the opposite: the prologue save sits in the
+`_actor444000EventDismissMadChasers` wants the opposite: the prologue save sits in the
 *middle* of the four-byte payload it builds.
 
 ```
@@ -72601,7 +72601,7 @@ the wrong register:
 +beqz    a1,2c          # m2c seed
 ```
 
-`func_actor_444000_80143E68` scored 99.81% this way, with `regs=2` and zero
+`_actor444000HandleActorEvent` scored 99.81% this way, with `regs=2` and zero
 `stack` / `branch` / `reorder` / `insert` / `delete`, and the structural
 diagnostic reporting `blocks=14/14 predicates_match=True`. That combination —
 an otherwise perfect structure whose only difference is the register named in
@@ -73176,7 +73176,7 @@ stylistic accident: the inline body is expanded from RTL saved by
 `save_for_inline`, so its MEMs do not go back through `memory_address`.
 Rearranging statements around the accesses does not help; only the inline does.
 
-On `func_actor_444000_8013ACD0` this was the whole remaining gap, 93.4% to
+On `_actor444000ApplyCommand` this was the whole remaining gap, 93.4% to
 97.6%, with the last 2.4% being a `dst = &coord->coord` temp that gcc turned
 into a second walking pointer (`addiu $v1,$s2,4`) for the nine-element matrix
 copy. Spelling the stores `coord->coord.m[i][j] = ...` keeps one base register
@@ -73881,7 +73881,7 @@ substitutes a pseudo's known constant equivalent into the address and
 re-validates it, and a bare `CONST_INT` is `CONSTANT_ADDRESS_P` on MIPS, so the
 MEM keeps the absolute form however many times the inline touches it. That is
 why the scratchpad helpers in this project (`Actor444000_ShrinkRotation`,
-`Actor444000_RebuildRotation`) are inlines and not open-coded blocks - the
+`_actor444000FlattenRoot`) are inlines and not open-coded blocks - the
 same TU shows both forms, absolute in the functions that call the inline and
 register-based in the ones that carve the frame in line. If the target loads or
 stores against a fixed address and your attempt materialises the address,
@@ -74675,7 +74675,7 @@ lw   $s2, 0($s3)
 get a chance to cse them", and CSE then unifies every occurrence into one
 pseudo, which `global.c` parks in a callee-saved register because the carve and
 the release straddle calls. In an inlined body each access keeps its own
-materialisation instead. `Actor444000_RebuildRotation` and
+materialisation instead. `_actor444000FlattenRoot` and
 `actors/actor_342400_7.c`'s `update_color` (whose comment already records the
 effect) are the inlined form; `func_actor_444000_8013799C` and
 `func_actor_444000_80134688` are the plain form. `func_actor_444000_8013AFF8`
@@ -75455,8 +75455,8 @@ into `$a2` and matches.
 s32 func_actor_510900_8013BE64(Actor510900* arg0, s32 msgId, s32 arg2)
 ```
 
-The convention is visible in the matched siblings: `func_actor_444000_8013A958(
-Actor444000* task, s32 msgId, s32 arg2)` and the shared `ActorsShared80132074(
+The convention is visible in the matched siblings: `_actor444000SetModelDraw(
+Task* task, s32 messageId, s32 drawMode, s32 unusedSecondArg)` and the shared `ActorsShared80132074(
 Task* task, s32 arg1, ActorTransform* args)`, which is the 0x7D4 entry
 of the same table our function is the 0x7D5 entry of. A handler that branches on
 an argument register one slot early is this, not an allocation problem — do not
@@ -83112,7 +83112,7 @@ The second load is `lbu` because the subtraction's result is only needed modulo
 needs no third load, because CSE forwards the stored value and sign-extends it
 with `sll 24`. Do not tidy this into a single load, and do not introduce a local
 `s8 tmp`: one `lbu` for both loses the `lb` the outer compare wants, and a temp
-reloads. The matched sibling `func_actor_444000_80143E68` shows the same
+reloads. The matched sibling `_actor444000HandleActorEvent` shows the same
 `lb`/`lbu` pair for the same source shape with only the compare and the
 decrement, so this is the field type talking, not the surrounding statements.
 (A dead leading parameter is a separate issue here, already covered above.)
@@ -98011,9 +98011,10 @@ lui  $v0,0x1F80 ; lw $v0,0x3FC($v0) ; addiu $v0,$v0,0x34 ; sw $v0,0x3FC($at)
 
 That double clear plus the re-fetch is not something a straight-line body would
 write; it is what an **inlined** helper looks like when the helper takes the
-`task` and re-derives `task->extra->coords` for its own tail. `Actor444000_RebuildRotation`
-(`src/actors/actor_444000/actor_444000_6.c`) ends with exactly
-`coord->composeStamp = 0; ((TmdObject*)task->extra)->coords->composeStamp = 0; *scratch += sizeof(...); actorRenderComposeCoord(...)`,
+`task` and re-derives `task->extra.tmd->coords` for its own tail. `_actor444000FlattenRoot`
+(`src/actors/actor_444000/actor_444000.c`) now uses
+`_actorRenderRescaleYawY(coord, ONE, 0); task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY; actorRenderComposeCoord(task->extra.tmd->coords);`,
+whose inlined common rebuild supplies the first clear and scratch release,
 and `Actor444000_ShrinkRotation` in `actor_444000_5.c` is the same body without
 the placement half. So the original source called an inline, and the fix is to
 reconstruct one:
@@ -101848,7 +101849,7 @@ Reproducing the arithmetic is what the two forms cost:
 Two smaller things the same function needed, both visible in the leftover diff:
 a `u16` local as the switch index gets an `andi v0,$a2,0xffff` in front of the
 dispatch (stmt.c widens HImode to SImode because MIPS has no HImode compare
-pattern), so type the index `s32` — the family's `func_actor_444000_8013ACD0`
+pattern), so type the index `s32` — the family's `_actor444000ApplyCommand`
 does exactly that; and the handler's fourth parameter is unread, so the seed's
 two-parameter m2c signature puts the payload in `$a1` where the target reads
 `$a2`. The arity comes from the dispatch table, not the body:

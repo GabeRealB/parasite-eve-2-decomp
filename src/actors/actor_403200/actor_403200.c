@@ -3716,7 +3716,7 @@ static const EnemyTaskFuncTable4 gGluttonSpinnerStates = {
 /// that end with the work block's state index reset are the ones that set the
 /// word to 0x80.
 ///
-/// Same body as `func_actor_444000_8013A958` without that sibling's
+/// Same body as `_actor444000SetModelDraw` without that sibling's
 /// `TmdObject::buffer` buffer tests, so every escort is re-allocated
 /// unconditionally.
 s32 func_actor_403200_80138468(Task* task, s32 arg1, s32 arg2, s32 arg3)
@@ -6785,7 +6785,7 @@ s32 func_actor_403200_8014196C(Task* task, s32 msgId, s32 arg2, s32 arg3)
 /// heal counter, files a negative "damage" with `worldTargetAddReadoutAmount` so the HUD
 /// shows it as a heal, and tops the enemy's HP back up by 0x64; state 1 ticks
 /// `summonsAlive` down and, once it has run out, re-arms the enemy's
-/// `deathDelay`. Same body as `func_actor_444000_80143E68` without its tracked
+/// `deathDelay`. Same body as `_actor444000HandleActorEvent` without its tracked
 /// `summons` slots.
 s32 func_actor_403200_80141A94(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {

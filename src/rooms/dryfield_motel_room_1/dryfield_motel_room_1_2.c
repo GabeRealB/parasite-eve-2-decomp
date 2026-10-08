@@ -143,7 +143,7 @@ void func_dryfield_motel_room_1_8017DD3C(Task* arg0);
 void func_dryfield_motel_room_1_8017DFD0(void);
 
 /// Set the event task's pending `action`, resetting the `actionStep` that goes with
-/// it - the same body as `func_actor_444000_801327E8`.
+/// it - the same body as `_actor444000EventRequestPlayerAction`.
 void func_dryfield_motel_room_1_8017DFB0(s16 arg0);
 
 /// Arm the player's weapon, then re-issue the room task's messages: the 0x7DA
