@@ -78,25 +78,36 @@ enum { AREA_NEW_GAME_SETUP_DONE = 1 };
 
 static inline void _loadingDrawFadeOverlay(TILE* fadeTile, DR_TPAGE* blendCommand, const DisplayState* displayState, s32 darkness);
 
-static inline u16 _gpAdvanceAreaCd(void);
-
 static void _areaInitializeStageVisit(GameLocationKey* location);
 
 void func_80724748(GameLocationKey* arg0);
 
-static inline u16 _gpAdvanceAreaCd(void)
+/// Polls base resources, then placement files, using the shared area-load cursors.
+///
+/// Start with `D_80114C74` at zero and keep the loaded layout and live saved
+/// destination valid through both passes. Returns 0 until the placement pass
+/// completes, then 1. Base completion starts placements on the next call;
+/// completion leaves the pass selector at 2 until the next area load resets it.
+static inline u16 _loadingPollAreaResourcePasses(void)
 {
+    enum {
+        LOADING_AREA_PASS_INIT       = 0,
+        LOADING_AREA_PASS_BASE       = 1,
+        LOADING_AREA_PASS_PLACEMENTS = 2,
+    };
+
     switch (D_80114C74) {
-        case 0:
+        case LOADING_AREA_PASS_INIT:
             D_80114C70 = LOADING_AREA_INIT;
-            D_80114C74 = 1;
-        case 1:
+            D_80114C74 = LOADING_AREA_PASS_BASE;
+            // Initialize and poll the base pass in the same callback tick.
+        case LOADING_AREA_PASS_BASE:
             if (loadingPollAreaBaseResources()) {
                 Gp_AreaCdPhase = LOADING_AREA_INIT;
                 D_80114C74++;
             }
             return 0;
-        case 2:
+        case LOADING_AREA_PASS_PLACEMENTS:
             if (loadingPollAreaPlacementFiles()) {
                 return 1;
             }
@@ -119,96 +130,140 @@ WorldCoordRoomLighting**      gWorldCoordRoomLightingTables[5] = {
 };
 WorldCollisionSurfaceProperties*** Gp_RoomParamTables[5] = { D_map_akropolis_8017AC6C, D_map_dryfield_8017AC9C, D_map_dryfield_full_8017ABB0, D_map_shelter_8017B614, D_map_neo_ark_8017AE3C };
 
-void func_800AA548(s32 arg0)
+/// Expands a captured signed-halfword player pose into the room-start transform.
+///
+/// Borrows the saved world-coordinate pose and writes all four transform words,
+/// sign-extending XYZ and yaw without normalizing the 4096-units-per-turn angle.
+static inline void _areaRestorePlayerSpawnTransform(ActorSpawnTransform* spawnTransform, const PlayerPos* savedPosition)
 {
+    spawnTransform->yaw.word = savedPosition->yaw;
+    spawnTransform->x        = savedPosition->x;
+    spawnTransform->y        = savedPosition->y;
+    spawnTransform->z        = savedPosition->z;
+}
+
+void areaStartRoomRuntime(s32 skipViewGate)
+{
+    enum {
+        AREA_ROOM_DEATH_PRESENTATION_INACTIVE = 0,
+        AREA_ROOM_MINIMUM_LIVE_HP             = 1,
+        AREA_ROOM_WARP_INITIAL_ANIMATION      = 1,
+        AREA_ROOM_RESTORE_INITIAL_ANIMATION   = 0x23,
+        AREA_ROOM_DEMO_NO_START_TASK          = 0xB,
+        AREA_ROOM_DEMO_START_TASK_TYPE        = 1,
+        AREA_ROOM_GARAGE_VIEW                 = 2,
+        AREA_ROOM_GARAGE_ROOM                 = 2,
+        AREA_ROOM_GARAGE_WARP                 = 2,
+        PLAYER_ACTOR_ROOM_TEXTURE_PAGE_OFFSET = 6,
+        MODEL_OBJECT_DRAW_TEMPORARY_TASK_BANK = 0,
+        MODEL_OBJECT_DRAW_TEMPORARY_TASK_TYPE = 0x1A,
+        WORLD_COLLISION_TICK_TASK_BANK        = 4,
+        WORLD_COLLISION_TICK_TASK_TYPE        = 5,
+        DIRECTION_TASK_BANK                   = 0,
+        DIRECTION_TASK_TYPE                   = 0x14,
+        VIEW_TRANSITION_GATE_TASK_BANK        = 0,
+        VIEW_TRANSITION_GATE_TASK_TYPE        = 0x16,
+        LOADING_ROOM_RESOURCES_TASK_BANK      = 0,
+        LOADING_ROOM_RESOURCES_TASK_TYPE      = 0x10,
+        SCENE_MANAGER_TASK_BANK               = 1,
+        SCENE_MANAGER_TASK_TYPE               = 0x23,
+        ROOM_EFFECT_TASK_BANK                 = 6,
+        ROOM_EFFECT_TASK_TYPE                 = 4,
+        OBJECT_TASK_ROOM_TASK_BANK            = 9,
+        OBJECT_TASK_ROOM_TASK_TYPE            = 0x11,
+        WORLD_COORD_ROOM_LIGHTS_TASK_BANK     = 1,
+        WORLD_COORD_ROOM_LIGHTS_TASK_TYPE     = 0xF,
+        WORLD_COORD_PLAYER_LIGHTING_TASK_BANK = 1,
+        WORLD_COORD_PLAYER_LIGHTING_TASK_TYPE = 0x10,
+    };
     DirectionWarpEntry warpEntry;
     ActorSpawnOptions  spawnOptions;
-    TmdObject*         model;
-    GameLocationKey*   sess;
+    TmdObject*         playerModel;
+    GameLocationKey*   location;
     GameSession*       session;
-    PlayerPos*         savedPos;
+    const PlayerPos*   savedPosition;
     s32                stage;
-    s32                warp;
-    u32                playerId;
+    s32                warpId;
+    s8                 characterId;
 
     session                    = gGameSession;
-    session->deathVariant      = 0;
+    session->deathVariant      = AREA_ROOM_DEATH_PRESENTATION_INACTIVE;
     gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
-    sess                       = &session->location.loc;
+    location                   = &session->location.loc;
+    // The player and present companion start alive, including after a dead save.
     if (gPlayerStatus.hp <= 0) {
-        gPlayerStatus.hp = 1;
+        gPlayerStatus.hp = AREA_ROOM_MINIMUM_LIVE_HP;
     }
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp <= 0)) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionHp = AREA_ROOM_MINIMUM_LIVE_HP;
     }
     worldCollisionLoadSurfacePushbackFlags();
-    gGameSession->cutsceneHold = 0;
+    gGameSession->cutsceneHold = false;
     padInputResetSuppression();
     displaySetShakeY(0);
+    // Install the controllers before room placement setup can spawn its actors.
     taskSpawn(PLAY_CLOCK_TASK_BANK, PLAY_CLOCK_TASK_TYPE, 0, 0);
-    taskSpawn(0, 0x1A, 0, 0);
-    gameSetTaskSlot(taskSpawn(4, 5, 0, 0), 9);
-    taskSpawn(0, 0x14, 0, 0);
-    if ((arg0 & 0xFFFF) != 1) {
-        gameSetTaskSlot(taskSpawn(0, 0x16, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
+    taskSpawn(MODEL_OBJECT_DRAW_TEMPORARY_TASK_BANK, MODEL_OBJECT_DRAW_TEMPORARY_TASK_TYPE, 0, 0);
+    gameSetTaskSlot(taskSpawn(WORLD_COLLISION_TICK_TASK_BANK, WORLD_COLLISION_TICK_TASK_TYPE, 0, 0), 9);
+    taskSpawn(DIRECTION_TASK_BANK, DIRECTION_TASK_TYPE, 0, 0);
+    if ((skipViewGate & 0xFFFF) != AREA_ROOM_START_SKIP_VIEW_GATE) {
+        gameSetTaskSlot(taskSpawn(VIEW_TRANSITION_GATE_TASK_BANK, VIEW_TRANSITION_GATE_TASK_TYPE, 0, 0), GAME_TASK_SLOT_VIEW_GATE);
     }
-    gameSetTaskSlot(taskSpawn(0, 0x10, 0, 0), 2);
+    gameSetTaskSlot(taskSpawn(LOADING_ROOM_RESOURCES_TASK_BANK, LOADING_ROOM_RESOURCES_TASK_TYPE, 0, 0), 2);
     // The destination endpoint supplies actor placements and the default view.
-    stage     = sess->stage;
-    warp      = sess->warp;
-    warpEntry = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
+    stage     = location->stage;
+    warpId    = location->warp;
+    warpEntry = Gp_WarpTables[stage - 1][location->area - 1][warpId - 1];
     if (!(gDisplayState.control.word & DISPLAY_ROOM_START_KEEP_VIEW_MASK)) {
-        if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(3, 24, 2, 0)) && (gGameSession->location.loc.warp == 2)) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = 2;
+        if (((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_KEY(0xFF, 0xFF, 0xFF, 0)) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_GARAGE, AREA_ROOM_GARAGE_ROOM, 0)) && (gGameSession->location.loc.warp == AREA_ROOM_GARAGE_WARP)) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = AREA_ROOM_GARAGE_VIEW;
         } else {
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = gGameSession->location.loc.view = warpEntry.initialView;
         }
     }
     gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER]    = NULL;
     gPlayerActorTasks[PLAYER_ACTOR_TASK_COMPANION] = NULL;
-    if (gDisplayState.control.flags.pendingPlayerPos == 1) {
+    if (gDisplayState.control.flags.pendingPlayerPos == true) {
         // Restore the captured signed coordinates instead of the warp's start.
-        savedPos                        = &(&gPlayerStatus)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
-        D_80114CB0.yaw.word             = savedPos->yaw;
-        D_80114CB0.x                    = savedPos->x;
-        D_80114CB0.y                    = savedPos->y;
-        D_80114CB0.z                    = savedPos->z;
-        spawnOptions.initialAnimationId = 0x23;
-        spawnOptions.startScripted      = 0;
-        playerActorSpawn(&D_80114CB0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &spawnOptions);
+        savedPosition = &(&gPlayerStatus)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1].pos;
+        _areaRestorePlayerSpawnTransform(&D_80114CB0, savedPosition);
+        spawnOptions.initialAnimationId = AREA_ROOM_RESTORE_INITIAL_ANIMATION;
+        spawnOptions.startScripted      = false;
+        playerActorSpawn(&D_80114CB0, (u16)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId, 0, &spawnOptions);
         companionSpawnScheduledActor(&warpEntry.companion, &spawnOptions);
-        gDisplayState.control.flags.pendingPlayerPos = 0;
+        gDisplayState.control.flags.pendingPlayerPos = false;
     } else {
-        playerId                        = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
-        spawnOptions.initialAnimationId = 1;
+        characterId                     = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
+        spawnOptions.initialAnimationId = AREA_ROOM_WARP_INITIAL_ANIMATION;
         spawnOptions.startScripted      = warpEntry.flags & DIRECTION_WARP_FLAG_SCRIPTED_PLAYER;
-        playerActorSpawn(&warpEntry.player, (s8)playerId & 0xFFFF, 0, &spawnOptions);
-        spawnOptions.startScripted = 0;
+        playerActorSpawn(&warpEntry.player, (u16)characterId, 0, &spawnOptions);
+        spawnOptions.startScripted = false;
         companionSpawnScheduledActor(&warpEntry.companion, &spawnOptions);
     }
-    model                    = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
-    model->texturePageOffset = 6;
-    model->clutRowOffset     = 0;
-    tmdBuildBufferHalf(model);
-    tmdBuildBufferHalf(model);
+    playerModel = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd;
+    // Building twice refreshes both packet halves and restores the half selector.
+    playerModel->texturePageOffset = PLAYER_ACTOR_ROOM_TEXTURE_PAGE_OFFSET;
+    playerModel->clutRowOffset     = 0;
+    tmdBuildBufferHalf(playerModel);
+    tmdBuildBufferHalf(playerModel);
     viewApplyCurrentCamera();
-    gameSetTaskSlot(taskSpawn(1, 0x23, 0, 0), GAME_TASK_SLOT_SCENE);
-    gameSetTaskSlot(taskSpawn(6, 4, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
+    gameSetTaskSlot(taskSpawn(SCENE_MANAGER_TASK_BANK, SCENE_MANAGER_TASK_TYPE, 0, 0), GAME_TASK_SLOT_SCENE);
+    gameSetTaskSlot(taskSpawn(ROOM_EFFECT_TASK_BANK, ROOM_EFFECT_TASK_TYPE, 0, 0), GAME_TASK_SLOT_ROOM_EFFECT);
     taskSpawn(CAP_CONTROL_TASK_BANK, CAP_CONTROL_TASK_TYPE, 0, 0);
-    taskSpawn(9, 0x11, 0, 0);
-    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 0xB)) {
-        taskSpawn((s32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene, 1, 0, 0);
+    taskSpawn(OBJECT_TASK_ROOM_TASK_BANK, OBJECT_TASK_ROOM_TASK_TYPE, 0, 0);
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != DISPLAY_DEMO_NONE) && (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != AREA_ROOM_DEMO_NO_START_TASK)) {
+        taskSpawn((s32)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene, AREA_ROOM_DEMO_START_TASK_TYPE, 0, 0);
     }
-    areaSpawnRoomObjects(sess);
-    areaSpawnPlacements(sess);
+    areaSpawnRoomObjects(location);
+    areaSpawnPlacements(location);
     sceneResetCombatState();
-    taskSpawn(1, 0xF, 0, 0);
-    taskSpawn(1, 0x10, 0, 0);
+    taskSpawn(WORLD_COORD_ROOM_LIGHTS_TASK_BANK, WORLD_COORD_ROOM_LIGHTS_TASK_TYPE, 0, 0);
+    taskSpawn(WORLD_COORD_PLAYER_LIGHTING_TASK_BANK, WORLD_COORD_PLAYER_LIGHTING_TASK_TYPE, 0, 0);
     // Read arrival effects after the room's setup has run.
-    stage     = sess->stage;
-    warp      = sess->warp;
-    warpEntry = Gp_WarpTables[stage - 1][sess->area - 1][warp - 1];
-    if (gGameSession->areaSetupDone != 0) {
+    stage     = location->stage;
+    warpId    = location->warp;
+    warpEntry = Gp_WarpTables[stage - 1][location->area - 1][warpId - 1];
+    if (gGameSession->areaSetupDone != false) {
         if (warpEntry.arrivalSound != DIRECTION_WARP_SOUND_NONE) {
             sndEvtRequestScriptStart(warpEntry.arrivalSound, 0, 0);
         }
@@ -216,16 +271,18 @@ void func_800AA548(s32 arg0)
             gameFlagSetNibble(warpEntry.mapFlagId, DIRECTION_WARP_MAP_FLAG_ARRIVED);
         }
     } else {
-        gGameSession->areaSetupDone = 1;
+        gGameSession->areaSetupDone = true;
     }
-    gCdCmdQueue.viewMovieSelected = 0;
-    gGameSession->freezeRoomObjs  = 0;
+    gCdCmdQueue.viewMovieSelected = false;
+    gGameSession->freezeRoomObjs  = false;
 }
 
-/// Discards the default task list and both frame ordering tables before heap reuse.
+/// Detaches the default session task list and clears both frame packet chains.
 ///
-/// Previous tasks and GPU packet users must already be disposable or finished.
-/// The stop request prevents the walker from reading its discarded cursor again.
+/// Requires writable resident display/task/OT state and finished GPU uses of
+/// both tag buffers. Stops the current task walk before replacing its list head.
+/// Runs no task exits and frees no storage; the caller retires task handles and
+/// resets their heap separately. Previous tasks must already be disposable.
 static inline void _gameFlowDiscardSessionTasksAndPackets(DisplayState* displayState)
 {
     enum { GAME_FLOW_STOP_TASK_WALK = 1 };
@@ -555,49 +612,37 @@ void loadingPrepareAreaStateTask(Task* task)
     }
 }
 
-void Gp_LoadWaitAreaCd(Task* task)
+void loadingPollAreaResourcesTask(Task* task)
 {
-    TILE*         tile;
-    DR_TPAGE*     dr;
-    DisplayState* ds;
-    DisplayState* ds2;
-    s32           color;
-    s32           queued;
-    s32           buf;
-    s8            yoff;
+    enum { LOADING_INTERLACE_ENABLED = 1 };
+    TILE*         fadeTile;
+    DR_TPAGE*     blendCommand;
+    DisplayState* displayState;
+    DisplayState* completedDisplayState;
+    s32           darkness;
+    s32           bootLoadActive;
+    s32           packetBufferIndex;
 
-    color  = 8;
-    queued = gCdCmdQueue.bootLoadActive;
-    ds     = &gDisplayState;
-    buf    = ds->otBuffer;
-    tile   = &Gp_FadeTiles[buf];
-    dr     = &Gp_FadeTpages[buf];
-    if (queued == 0) {
-        setlen(tile, 3);
-        setcode(tile, 0x62);
-        tile->r0 = color;
-        tile->g0 = color;
-        tile->b0 = color;
-        tile->x0 = -0xA0;
-        yoff     = ds->vramYOffset;
-        tile->w  = 0x140;
-        tile->h  = 0xF0;
-        tile->y0 = -0x78 - yoff;
-        addPrim(gGpuCurrentOt - 0x10, tile);
-        setlen(dr, 1);
-        dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(gGpuCurrentOt - 0x10, dr);
+    darkness          = LOADING_FADE_WAIT_DARKNESS;
+    bootLoadActive    = gCdCmdQueue.bootLoadActive;
+    displayState      = &gDisplayState;
+    packetBufferIndex = displayState->otBuffer;
+    fadeTile          = &Gp_FadeTiles[packetBufferIndex];
+    blendCommand      = &Gp_FadeTpages[packetBufferIndex];
+    if (bootLoadActive == 0) {
+        _loadingDrawFadeOverlay(fadeTile, blendCommand, displayState, darkness);
     }
 
-    if (_gpAdvanceAreaCd()) {
+    // Retire the previous room's lists only after both resource passes finish.
+    if (_loadingPollAreaResourcePasses()) {
         worldCollisionResetListsAndGrid();
         actorRenderResetLists();
-        ds2 = &gDisplayState;
-        actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[ds2->drawBuffer]);
+        completedDisplayState = &gDisplayState;
+        actorRenderComposeAndDrawActiveModels(&Gpu_OtBuffers[completedDisplayState->drawBuffer]);
         task->state++;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.interlace != 0) {
-            ds2->dispEnv[1].isinter = 1;
-            ds2->dispEnv[0].isinter = 1;
+            completedDisplayState->dispEnv[1].isinter = LOADING_INTERLACE_ENABLED;
+            completedDisplayState->dispEnv[0].isinter = LOADING_INTERLACE_ENABLED;
         }
     }
 }
@@ -630,10 +675,15 @@ void loadingHoldFadeAndReleaseBootImageTask(Task* task)
     }
 }
 
-/// Installs the initial live flags, map marks, companion health and inventory.
+/// Seeds first-game live event flags, saved map marks, companion health and inventory.
 ///
-/// Called only while the save's new-game setup bit is clear. Replaces its visit
-/// flags with that bit; the save and resident state must be live and writable.
+/// `liveSave` must be the writable live save, with its setup bit clear and the
+/// saved-area directories loaded. Replaces every visit flag with the setup bit,
+/// clears the live event-nibble bank, applies initial map marks and sets current
+/// and maximum companion HP to 100. Inventory setup also needs writable resident
+/// player/collection state under `inventoryInitializeNewGame`'s bounds. The base
+/// player status and destination must already be initialized; stage object-state
+/// seeding runs separately.
 static inline void _areaInitializeNewGameState(McSaveData* liveSave)
 {
     enum { AREA_NEW_GAME_COMPANION_HP = 100 };

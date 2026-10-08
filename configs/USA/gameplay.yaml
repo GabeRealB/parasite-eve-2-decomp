@@ -124,7 +124,7 @@ segments:
       - [0x159CC, c, view_image] # Gp_ViewLoadImage
       - [0x15B10, c, cd_loading] # _loadingEnqueueWeaponAmmoResources
       - [0x16644, c, area_cd] # loadingPollAreaPlacementFiles
-      - [0x16D48, c, load_screen] # func_800AA548
+      - [0x16D48, c, load_screen] # areaStartRoomRuntime
       - [0x1824C, c, companion_load] # companionSelectForArea
       - [0x18E88, c, sprite_link] # spriteLinkViewCachedPackets
       - [0x19EBC, c, direction_input] # directionUpdateAction

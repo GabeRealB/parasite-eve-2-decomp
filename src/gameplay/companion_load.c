@@ -408,9 +408,9 @@ void Gp_LoadFinishTask(Task* task)
         Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_IDLE;
         taskKill(task);
         if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
-            func_800AA548(1);
+            areaStartRoomRuntime(AREA_ROOM_START_SKIP_VIEW_GATE);
         } else {
-            func_800AA548(0);
+            areaStartRoomRuntime(AREA_ROOM_START_WITH_VIEW_GATE);
         }
         gDisplayState.holdCount  = 0;
         gDisplayState.holdState &= DISPLAY_HOLD_MODE_MASK;

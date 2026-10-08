@@ -39,15 +39,15 @@ enum {
 };
 
 /// Phase for `loadingPollAreaPlacementFiles` (0 init, 1 walk/enqueue, 2 wait idle).
-/// `Gp_LoadWaitAreaCd` clears it when phase 1 (`loadingPollAreaBaseResources`) finishes
+/// `loadingPollAreaResourcesTask` clears it when phase 1 (`loadingPollAreaBaseResources`) finishes
 /// so phase 2 can start.
 extern s16 Gp_AreaCdPhase;
 
-/// Phase for `loadingPollAreaBaseResources`. `Gp_LoadWaitAreaCd` clears it when entering
+/// Phase for `loadingPollAreaBaseResources`. `loadingPollAreaResourcesTask` clears it when entering
 /// its own phase 1.
 extern u16 D_80114C70;
 
-/// Phase for `Gp_LoadWaitAreaCd` (0 init, 1 `loadingPollAreaBaseResources`, 2 `loadingPollAreaPlacementFiles`).
+/// Phase for `loadingPollAreaResourcesTask` (0 init, 1 `loadingPollAreaBaseResources`, 2 `loadingPollAreaPlacementFiles`).
 /// `loadingPrepareAreaStateTask` clears it when advancing to this task state.
 extern u16 D_80114C74;
 
@@ -185,7 +185,33 @@ extern WorldCollisionStageResources* Gp_RoomObjTables[];
 /// `GameSession.location.loc.area` / `GameLocationKey.area`.
 extern DirectionWarpEntry** Gp_WarpTables[];
 
-void func_800AA548(s32 arg0);
+/// Room-start choice for creating the automatic view-transition gate.
+enum {
+    AREA_ROOM_START_WITH_VIEW_GATE = 0,
+    AREA_ROOM_START_SKIP_VIEW_GATE = 1,
+};
+
+/// Starts the destination room's actors, controllers, placements and arrival effects.
+///
+/// Called after area resources and the boot-image fade finish. `skipViewGate`'s
+/// low halfword equal to `AREA_ROOM_START_SKIP_VIEW_GATE` omits the automatic
+/// view-transition gate; every other value creates it. Resets runtime controls,
+/// raises nonpositive player/present-companion HP to 1 and clears actor task
+/// publications before spawning replacements. Uses the warp's default view
+/// unless room-start display flags preserve the saved view; nighttime Garage
+/// room 2 / warp 2 selects view 2. Pending saved-position restoration uses the
+/// resident player pose, otherwise the warp supplies both actor transforms.
+/// Arrival sound/map effects are skipped on the session's first room start.
+///
+/// Requires matching live save/session state; valid loaded stage (1..5), area,
+/// one-based warp, view, actor and placement resources; empty/disposable prior
+/// room registrations; and enough task/model/packet storage for all spawns.
+/// A saved demo selector other than 0 or 11 must name a loaded task bank with
+/// a valid descriptor at index 1.
+/// Player spawning must succeed. Saved-pose restoration requires `characterId`
+/// to select valid resident player storage; only value 1 is established for the
+/// single `gPlayerStatus` record. Spawn transforms/options are read synchronously.
+void areaStartRoomRuntime(s32 skipViewGate);
 
 /// Queues character, weapon and healing-sound resources after CD and disk readiness.
 ///
@@ -258,7 +284,21 @@ void loadingEnqueueAreaAndCompanionResourcesTask(Task* task);
 /// the darkness-8 packet/OT contract of `loadingEnqueueStageResourcesTask`.
 void loadingPrepareAreaStateTask(Task* task);
 
-void Gp_LoadWaitAreaCd(Task* task);
+/// Completes the area's base and placement-resource passes before runtime setup.
+///
+/// State 5 of the gameplay loading task. Start with `D_80114C74 == 0`; both
+/// passes share cursors and run serially, with the placement pass beginning on
+/// the callback after base completion. On completion, resets collision/model
+/// lists, runs the model composition/draw pass, then advances to state 6. A
+/// nonzero saved interlace option enables both display environments; zero
+/// leaves their existing flags unchanged.
+///
+/// Requires a live task and stable matching saved/session destinations, loaded
+/// area layouts and resource tables under the two polling functions' contracts,
+/// and disposable old collision/model lists. Drawing uses the darkness-8 packet
+/// and OT contract of `loadingEnqueueStageResourcesTask`, and is skipped while
+/// a boot image owns presentation. The current draw-buffer index must be 0 or 1.
+void loadingPollAreaResourcesTask(Task* task);
 
 /// Holds the loading fade for seven callback ticks, then releases the boot image.
 ///

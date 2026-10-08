@@ -1198,7 +1198,7 @@ const TaskFuncTable8 Gp_LoadStateFns  = { {
     loadingInitializeAreaMemoryAndAudioTask,
     loadingEnqueueAreaAndCompanionResourcesTask,
     loadingPrepareAreaStateTask,
-    Gp_LoadWaitAreaCd,
+    loadingPollAreaResourcesTask,
     loadingHoldFadeAndReleaseBootImageTask,
     Gp_LoadFinishTask,
 } };

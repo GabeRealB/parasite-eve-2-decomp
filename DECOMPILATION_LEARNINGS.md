@@ -33919,7 +33919,7 @@ default:
 if (done & 0xFFFF) {
 ```
 
-`Gp_LoadWaitAreaCd` is the example.
+`loadingPollAreaResourcesTask` is the example.
 
 ## Fill cdCmdEnqueue arg `addiu`s between session-field `lbu`s
 
@@ -35986,17 +35986,17 @@ Pin `k` in `$a0` before the assign:
 
 ```c
 {
-    register s32 room asm("a0");
-    room = sess->field_4;
-    asm volatile("" : "+r"(room));
-    rec = Gp_WarpTables[sess->field_3 - 1][sess->field_2 - 1][room - 1];
+    register s32 warpId asm("a0");
+    warpId = location->warp;
+    asm volatile("" : "+r"(warpId));
+    warpEntry = Gp_WarpTables[location->stage - 1][location->area - 1][warpId - 1];
 }
 ```
 
 The `lbu k` still lands two insns early (`lbu a0, k` before `addiu dst`
-/ `lui table`). `asm volatile("" : "+m"(rec))` after the copy finishes
+/ `lui table`). `asm volatile("" : "+m"(warpEntry))` after the copy finishes
 the 8-byte tail before the next `if`, but switches memcpy src from `$a0`
-to `$v1`. `func_800AA548` is the example.
+to `$v1`. `areaStartRoomRuntime` is the example.
 
 ## Clobber `$v0` on a rematerialize barrier so split-address `lui` uses `$v1`
 
@@ -36965,7 +36965,7 @@ expected object holding the raw immediate - the same objdiff mismatch as
 before, only inverted. Nothing catches it: the instruction word is unchanged,
 so the checksum and the full build stay green either way. Delete the `rom:`
 line and re-split; the `.s` should read `%lo(sym + off)` where it read the
-numeric displacement. `Gp_LoadWaitAreaCd` is the worked example.
+numeric displacement. `loadingPollAreaResourcesTask` is the worked example.
 
 ## Request field order replaces a setup barrier (`_worldTargetDrawReadouts`, 2026-09-27)
 
