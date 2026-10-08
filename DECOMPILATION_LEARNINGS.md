@@ -3411,10 +3411,11 @@ first branch delay. A store in a later jump delay can use the copy
 (`sh v0, 0x9FA(s3)`) if that assignment is spelled through `work2`.
 
 Siblings that reload `work2 = (T*)index->work` after an earlier call emit
-a second `lw`, not `move`. `func_actor_400500_8013AA98` is the example
-(the 9FA dispatch plus AnimStride loop plus a hit-flag tail that still
-needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
-`li v0, 2`); the copy is 99.94%; `work2->animRequest = 3` in case 1 is
+a second `lw`, not `move`. `_actor400500WaitDeathAnimation` is the example
+(the 9FA dispatch plus AnimStride loop plus a boundary-flag tail that still
+needs `work` and `task`). One name is 92% (`task` in `$s3`, delay
+`li v0, 2`); the copy is 99.94%; `_actor400500TickAnim`'s
+`work->animRequest = ACTOR_400500_ANIM_REQUEST_PLAYING` in case 1 is
 100%. Inputs: `base_1.i`
 `215f581ad6af1e2ce9c49aa6593d38d678a15ceccd8ee16de7b0daca93c1f72e`,
 `base_2.i`
@@ -3449,8 +3450,8 @@ stride->field_1D = (u8)work->animRate;
 stride++;
 ```
 
-`func_actor_400500_8013A8E4` is the example. Computing
-`mapped = table[work->animId]` *before* the `animRate` / `animRequest`
+`_actor400500StartDeath` is the example. Computing
+`deathAnimId = table[work->animId]` *before* the `animRate` / `animRequest`
 stores is what hoists the table `lui` into the prologue and keeps `lbu` in
 `$v1` across those stores (same function). Inputs: `base_1.i`
 `7e8d3dfb642f4b70105a041b51235e353d475f9c96a829b30a18bfe0fea6c10e`,
@@ -71729,10 +71730,11 @@ first branch delay. A store in a later jump delay can use the copy
 (`sh v0, 0x9FA(s3)`) if that assignment is spelled through `work2`.
 
 Siblings that reload `work2 = (T*)index->work` after an earlier call emit
-a second `lw`, not `move`. `func_actor_400500_8013AA98` is the example
-(the 9FA dispatch plus AnimStride loop plus a hit-flag tail that still
-needs `work` and `index`). One name is 92% (`index` in `$s3`, delay
-`li v0, 2`); the copy is 99.94%; `work2->animRequest = 3` in case 1 is
+a second `lw`, not `move`. `_actor400500WaitDeathAnimation` is the example
+(the 9FA dispatch plus AnimStride loop plus a boundary-flag tail that still
+needs `work` and `task`). One name is 92% (`task` in `$s3`, delay
+`li v0, 2`); the copy is 99.94%; `_actor400500TickAnim`'s
+`work->animRequest = ACTOR_400500_ANIM_REQUEST_PLAYING` in case 1 is
 100%. Inputs: `base_1.i`
 `215f581ad6af1e2ce9c49aa6593d38d678a15ceccd8ee16de7b0daca93c1f72e`,
 `base_2.i`
@@ -71767,8 +71769,8 @@ stride->field_1D = (u8)work->animRate;
 stride++;
 ```
 
-`func_actor_400500_8013A8E4` is the example. Computing
-`mapped = table[work->animId]` *before* the `animRate` / `animRequest`
+`_actor400500StartDeath` is the example. Computing
+`deathAnimId = table[work->animId]` *before* the `animRate` / `animRequest`
 stores is what hoists the table `lui` into the prologue and keeps `lbu` in
 `$v1` across those stores (same function). Inputs: `base_1.i`
 `7e8d3dfb642f4b70105a041b51235e353d475f9c96a829b30a18bfe0fea6c10e`,
