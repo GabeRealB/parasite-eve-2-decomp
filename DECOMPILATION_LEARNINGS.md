@@ -4940,7 +4940,7 @@ case 2:
     break;
 ```
 
-`func_actor_215100_8014A7C4` is the worked example. The surviving block is the
+`actor215100GalleryAbortDecisionTask` is the worked example. The surviving block is the
 one later in insn order: the increment ends up between case 1 and case 2, the
 `taskKill` after case 2, and the earlier case branches forward to it (`j` from
 case 0's success path, `bne` straight to the `taskKill` from its failure path).
@@ -54039,15 +54039,15 @@ it in a branch delay slot — which is exactly the asymmetry the target shows
 written as *two* `slti`s is direct evidence that the source used separate
 statements rather than one `&&`/`||` condition.
 
-The `else if` chain above is not the only way back. `func_actor_215100_8014A398`
+The `else if` chain above is not the only way back. `actor215100CheckGalleryExitInput`
 has the same pair sitting inside a longer `&&` chain whose other terms have to
-stay in that one expression (`mode != 2 && capIsBusy() == 0 && … && z <
-0x1644 && z >= 0x10CD && …`), and there the cheapest split is to nest just the
+stay in that one expression (`mode != 2 && capIsBusy() == 0 && … && rootZ <
+0x1644 && rootZ >= 0x10CD && …`), and there the cheapest split is to nest just the
 second bound:
 
 ```c
-if (z < 0x1644) {
-    if ((z >= 0x10CD) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (D_80071075 == 0)) {
+if (rootZ < 0x1644) {
+    if ((rootZ >= 0x10CD) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
 ```
 
 Every failing term still branches to the shared exit, so the topology is
@@ -70559,9 +70559,9 @@ CSE'd across two calls, and sched2 hoists it into the delay slot of the call
 
 ## A `do { } while (0)` whose `break` is the branch makes `reorg` fill that branch's delay slot from the fall-through
 
-`func_actor_215100_8014AA54` sat at 98.5% with exactly one extra instruction:
-three `li v0,2` where the ROM has two. The branch that tests the "already
-committed" flag targets the shared `return 2` tail, and our build filled its
+`actor215100ResolveGalleryExit` sat at 98.5% with exactly one extra instruction:
+three `li v0,2` where the ROM has two. The branch that tests the query-only
+request byte targets the shared `return 2` tail, and our build filled its
 delay slot from *that* thread — `reorg` copied `li v0,2` in and redirected the
 branch past it, leaving the original tail as a second copy. The ROM instead
 moves the fall-through's `lui %hi(D_actor_215100_8015E678)` into the slot and
@@ -81082,7 +81082,7 @@ stop: do not go looking for a `switch`, a `goto` or a label to explain it.
 
 ## A second zero-init copies the first variable's register, so `move a3,t0` is not `i = count`
 
-`func_actor_215100_8014C5E0` opens with two instructions that look like a
+`actor215100SelectCaptionResource` opens with two instructions that look like a
 cross-assignment:
 
 ```
@@ -81107,7 +81107,7 @@ produces it. `func_shelter_b3_dumping_hole_80183198` (rooms) has that inline
 form and is instruction-for-instruction identical to this target.
 
 Both are copies of one `FsResourceSlot` scan: walk `D_8006C338[0..49]`, take the
-`arg2`-th entry whose `kind == 3`, call the overlay's relocation helper on its
+`dataResourceIndex`-th entry whose `kind == 3`, call the overlay's relocation helper on its
 `data`. `overlay_dup_index find` shows the four carriers, and `promote`
 refuses them — the body names its own overlay's globals and callee.
 
@@ -81255,15 +81255,15 @@ Inputs: `base_1.i`
 
 ## A switch arm that reads the selector field again: check the constant first
 
-`func_actor_215100_8014A5C0` dispatches on `index->state`, and case 1 stores that
-state's value three times (`gMcSaveData.sceneEvent`, `gGameSession->hideHud`,
-`D_80071076`) around two calls. Since the state *is* 1 in that arm, m2c reads the
-three stores as `index->state` and the target agrees byte for byte — but the
+`actor215100GalleryExitDecisionTask` dispatches on `task->state`, and case 1 stores that
+state's value three times (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent`, `gGameSession->hideHud`,
+`gDisplayState.spriteVariant`) around two calls. Since the state *is* 1 in that arm, m2c reads the
+three stores as `task->state` and the target agrees byte for byte — but the
 target keeps the value in one register the whole arm while the C reloads it:
 
 ```
 target:   jal  inventoryRestoreCarriedLoadout
-          sb   $s1, 0x5C5($s0)      /* and later sh $s1, %lo(D_80071076) */
+          sb   $s1, 0x5C5($s0)      /* and later sh $s1, %lo(gDisplayState.spriteVariant) */
 candidate:jal  inventoryRestoreCarriedLoadout
           lbu  $v0, 0x30($s1)       /* a fresh load per store site */
           sb   $v0, 0x5C5($s0)
@@ -81271,14 +81271,14 @@ candidate:jal  inventoryRestoreCarriedLoadout
 
 A `mem` expression cannot survive that arm: the stores in between go through
 register bases (`$s0 = &gMcSaveData`), which CSE cannot prove distinct from
-`index->state`, so each store invalidates it and the next use reloads. A constant
+`task->state`, so each store invalidates it and the next use reloads. A constant
 cannot be invalidated at all. Writing the literal `1` in all three stores took
 the function from 92.97% to 100.00%.
 
 This is not a local peephole — it moves the whole prologue and every `$sN`
 reference. The long-lived constant needs a callee-saved home (`$s1` here), so the
 pointer argument is pushed from `$s1` to `$s2`, and the dispatch's own load of
-`index->state` then shares `$s1` because its live range (the two compares) is
+`task->state` then shares `$s1` because its live range (the two compares) is
 disjoint from the arm's. The `lreg` dumps show the swap directly: at 92.97% the
 argument is `Register 80 ... 13 times across 198 insns` and case 1 holds three
 separate one-byte loads (`131/134/138 ... 2 times across 6 insns`); at 100% the
@@ -81288,7 +81288,7 @@ times across 31 insns; crosses 3 calls` carries all three stores.
 So when a switch arm's stores all land in one register in the target and your C
 re-reads the selector at each site, suspect the constant before you reach for a
 pin: a value that CSE keeps live across register-based stores is one the compiler
-cannot have read from memory. Corollary: case 0's `index->state += 1` *does*
+cannot have read from memory. Corollary: case 0's `task->state += 1` *does*
 reload in the target (`lw $v0, 0x30($s2)` after `sb $s0, 0x126($v0)`), which is
 the same invalidation rule seen from the other side.
 

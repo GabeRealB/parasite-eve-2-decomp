@@ -573,11 +573,11 @@ actor260400StartHeliportConversation = 0x80149E38; // type:func absolute:True ow
 actor260500RestoreHeliportPlacement = 0x80149E80; // type:func absolute:True owner=actor_260500 shared=actors
 actor260500StartHeliportConversation = 0x80149EBC; // type:func absolute:True owner=actor_260500
 actor260400RestoreHeliportPlacement = 0x80149FA4; // type:func absolute:True owner=actor_260400
-func_actor_215100_8014A398 = 0x8014A398; // type:func absolute:True owner=actor_215100
-func_actor_215100_8014A908 = 0x8014A908; // type:func absolute:True owner=actor_215100
-func_actor_215100_8014A9A0 = 0x8014A9A0; // type:func absolute:True owner=actor_215100
-func_actor_215100_8014AA54 = 0x8014AA54; // type:func absolute:True owner=actor_215100
-func_actor_215100_8014AB6C = 0x8014AB6C; // type:func absolute:True owner=actor_215100
+actor215100CheckGalleryExitInput = 0x8014A398; // type:func absolute:True owner=actor_215100
+actor215100FinishGalleryCourse = 0x8014A908; // type:func absolute:True owner=actor_215100
+actor215100RequestGalleryAbort = 0x8014A9A0; // type:func absolute:True owner=actor_215100
+actor215100ResolveGalleryExit = 0x8014AA54; // type:func absolute:True owner=actor_215100
+actor215100HandleGalleryAction = 0x8014AB6C; // type:func absolute:True owner=actor_215100
 actor215100StartPierceConversation = 0x8014AF0C; // type:func absolute:True owner=actor_215100
 actor215100CapCaptionDrawCurrent = 0x8014B0D4; // type:func absolute:True owner=actor_215100
 actor215100CapCaptionSelectRecord = 0x8014B2B8; // type:func absolute:True owner=actor_215100
@@ -586,7 +586,7 @@ D_actor_503500_8014B964 = 0x8014B964; // absolute:True owner=actor_503500
 D_actor_503500_8014BD48 = 0x8014BD48; // absolute:True owner=actor_503500
 D_actor_503500_8014C288 = 0x8014C288; // absolute:True owner=actor_503500
 D_actor_503500_8014C540 = 0x8014C540; // absolute:True owner=actor_503500
-func_actor_215100_8014C5E0 = 0x8014C5E0; // type:func absolute:True owner=actor_215100
+actor215100SelectCaptionResource = 0x8014C5E0; // type:func absolute:True owner=actor_215100
 D_actor_503500_8014CAF8 = 0x8014CAF8; // absolute:True owner=actor_503500
 D_actor_215100_8014D038 = 0x8014D038; // absolute:True owner=actor_215100
 D_actor_503500_8014D158 = 0x8014D158; // absolute:True owner=actor_503500

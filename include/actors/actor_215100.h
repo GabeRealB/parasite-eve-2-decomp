@@ -3,6 +3,64 @@
 
 #include "types.h"
 
+#include "gameplay/message.h"
+
+/// Gallery exit-gate replies to the room-transition resolver.
+enum {
+    ACTOR_215100_GALLERY_EXIT_ALLOW = 1,
+    ACTOR_215100_GALLERY_EXIT_DEFER = 2,
+};
+
+/// Checks movement input near the gallery exit and starts a training-exit prompt.
+///
+/// Called each room tick with live player/model and gallery overlays. Active
+/// courses 3..5 rearm at view 18 after a 60-tick attachment-action cooldown.
+/// The zone uses root world coordinates: X < -6150 and 4301 <= Z < 5700.
+/// Held UP with yaw 2561..3583, or DOWN with yaw 513..1535, starts the prompt;
+/// yaw uses 4096 units per turn. Scripted control, CAP playback, an attachment
+/// menu or pending display mode suppress it. The decision task restores control.
+void actor215100CheckGalleryExitInput(void);
+
+/// Ends the completed gallery course's interaction and restores its barrier or view.
+///
+/// Courses 1..2 select saved return view 8 and default lights; 3..5 lower the
+/// training barrier. Courses below 4 also release weapon-swap locking. Stops
+/// music with a 30-audio-tick fade request. Requires both overlays to stay loaded.
+void actor215100FinishGalleryCourse(void);
+
+/// Requests course-dependent gallery cancellation or abort confirmation.
+///
+/// Course 5 ends training, lowers the barrier and requests weapon restoration;
+/// courses 1..2 start CAP abort confirmation and its decision task. Courses
+/// 3..4 do nothing. Requires the live gallery/controller and loaded CAP resources.
+void actor215100RequestGalleryAbort(void);
+
+/// Resolves a gallery exit request, deferring it through confirmation when needed.
+///
+/// Used for arrival warp 5. Returns `ACTOR_215100_GALLERY_EXIT_ALLOW` when no
+/// training session is active and `GAME_FLAG_0ED` is clear; otherwise returns
+/// `ACTOR_215100_GALLERY_EXIT_DEFER`. Query mode has no effects. Deferred
+/// execution copies the complete request into overlay-owned pending
+/// storage and queues the exit decision task, with a confirmation during training
+/// or transition playback when the flag is set. The request is borrowed only
+/// during this call; both overlays and CAP resources stay loaded until handoff.
+s32 actor215100ResolveGalleryExit(const RoomEventMsg* request);
+
+/// Handles the gallery's action point by signaling training or starting its CAP event.
+///
+/// During training the published controller must be live. Otherwise CAP command
+/// 17 starts only when playback is idle and pauses actors. Requires both overlays.
+void actor215100HandleGalleryAction(void);
+
+/// Selects the gallery caption CAP payload and its font texture-page origin.
+///
+/// texturePageX counts VRAM words and texturePageY rows. dataResourceIndex is a
+/// zero-based ordinal among loaded data resources. Selection relocates existing
+/// storage, with no I/O or allocation; CAP/font storage must outlive caption use.
+/// Coordinates are stored even when the ordinal is absent or CAP magic invalid;
+/// failed selection keeps the previous caption tables.
+void actor215100SelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex);
+
 /// Selects a keyed caption record and caches its screen-pixel text layout.
 ///
 /// commandIndex is zero-based and must be below the loaded `CapCommandTable`'s

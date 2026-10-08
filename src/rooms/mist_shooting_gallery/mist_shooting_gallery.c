@@ -150,11 +150,6 @@ static const char D_mist_shooting_gallery_8017D838[];
 static const char D_mist_shooting_gallery_8017D844[];
 static const char D_mist_shooting_gallery_8017D850[];
 
-extern void func_actor_215100_8014A398(void);
-extern s32  func_actor_215100_8014AA54(RoomEventMsg* loc);
-extern void func_actor_215100_8014AB6C(void);
-extern void func_actor_215100_8014C5E0(s16, s16, s16);
-
 extern s32        D_actor_215100_8014D038;
 extern TaskDesc   D_actor_215100_8014E13C[];
 extern EvsCommand D_actor_215100_80153274[];
@@ -1829,7 +1824,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
 
     arg0->msgTable = D_mist_shooting_gallery_801850E8;
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    func_actor_215100_8014C5E0(0x340, 0, 2);
+    actor215100SelectCaptionResource(0x340, 0, 2);
     if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
         sceneSetPlacedActorDrawMode(1, 0);
         var_a0 = 1;
@@ -1861,7 +1856,7 @@ static void func_mist_shooting_gallery_8017FD40(Task* task)
             sceneSetPlacedActorDrawMode(1, 1);
         }
     }
-    func_actor_215100_8014A398();
+    actor215100CheckGalleryExitInput();
 }
 /// Plays one room CAP command, then restores player control and releases itself.
 ///
@@ -1939,7 +1934,7 @@ s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src
         }
     }
     if (src->areaId == GAME_AREA_MIST_SHOOTING_GALLERY) {
-        if (dst->warp == 5 && func_actor_215100_8014AA54(src) == 2) {
+        if (dst->warp == 5 && actor215100ResolveGalleryExit(src) == ACTOR_215100_GALLERY_EXIT_DEFER) {
             return 2;
         }
         if (src->queryOnly == ROOM_EVENT_EXECUTE) {
@@ -2005,7 +2000,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
         actor215100StartPierceConversation();
     }
     if (request->actionId == 3) {
-        func_actor_215100_8014AB6C();
+        actor215100HandleGalleryAction();
     }
     if ((request->actionId == 4) && (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
         gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x3B);

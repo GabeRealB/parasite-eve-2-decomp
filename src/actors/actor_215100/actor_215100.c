@@ -26,8 +26,8 @@ extern AnimationPlayRequest D_actor_215100_8014D024;
 extern s32                  D_actor_215100_8014D040;
 
 TaskDesc D_actor_215100_8014CF6C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_actor_215100_8014A5C0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_actor_215100_8014A7C4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, actor215100GalleryExitDecisionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, actor215100GalleryAbortDecisionTask, { .value = 0 } },
 };
 
 AnimationPlayRequest D_actor_215100_8014CF84 = { { .index = 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };

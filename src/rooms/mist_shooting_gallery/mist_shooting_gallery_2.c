@@ -134,11 +134,6 @@ extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
 /// Bonus-course variant selected before the round starts. It picks both the
 /// banner sprite (`variant + 0xB`) and the colour it is drawn in (variant 2
 /// uses 2 instead of 0x10).
-/// Gameplay-side abort request. While it is 1 the bonus course tears itself
-/// down: the state machine remembers where it was in `resumePhase` / `resumeCaptionStep`
-/// and jumps to the state-9 shutdown banner.
-extern void   func_actor_215100_8014A908(void);
-extern void   func_actor_215100_8014A9A0(void);
 static void   _mistShootingGalleryExitCourse(Task* task);
 static void   _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
 static u16    _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
@@ -2406,7 +2401,7 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
     work  = arg0->work;
     bonus = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
-        func_actor_215100_8014A9A0();
+        actor215100RequestGalleryAbort();
         return;
     }
 
@@ -2610,7 +2605,7 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
 
     work = arg0->work;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
-        func_actor_215100_8014A9A0();
+        actor215100RequestGalleryAbort();
         return;
     }
 
@@ -3241,7 +3236,7 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                     work->timer = 4;
                     D_80115768  = 0;
                     work->phase++;
-                    func_actor_215100_8014A9A0();
+                    actor215100RequestGalleryAbort();
                 } else {
                     work->captionStep = step + 1;
                 }
@@ -3301,7 +3296,7 @@ static void func_mist_shooting_gallery_801842D0(Task* arg0)
             actor->pendingCollisionUpdates                      = 7;
             actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
             sceneReleaseBattleRefAndClearRewards(arg0, 0);
-            func_actor_215100_8014A908();
+            actor215100FinishGalleryCourse();
             return;
         case 3:
             if (gGameSession->battleResetPending == 0) {

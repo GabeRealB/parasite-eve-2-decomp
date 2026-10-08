@@ -58,16 +58,33 @@
 #include "../../shared/paced_walk.h"
 #include "../../shared/cap_captions_types.h"
 
+// Course selections are 1-based; the room controller receives selection minus one.
+enum {
+    ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE = 3,
+    ACTOR_215100_GALLERY_FIRST_SWAP_COURSE          = 4,
+    ACTOR_215100_GALLERY_BONUS_COURSE               = 5,
+    ACTOR_215100_GALLERY_EXIT_DECISION_TASK         = 0,
+    ACTOR_215100_GALLERY_ABORT_DECISION_TASK        = 1,
+    ACTOR_215100_GALLERY_END_TRAINING               = 0,
+    ACTOR_215100_GALLERY_CONFIRM_ROOM_EXIT          = 1,
+    ACTOR_215100_GALLERY_COMMIT_ROOM_EXIT           = 2,
+    ACTOR_215100_GALLERY_EXIT_CONFIRM_COMMAND       = 0x14,
+    ACTOR_215100_GALLERY_EXIT_TRANSITION_COMMAND    = 0x17,
+    ACTOR_215100_GALLERY_ABORT_CONFIRM_COMMAND      = 0x1D,
+    ACTOR_215100_GALLERY_EXIT_KEEP_ACTORS_HELD      = 1,
+    ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS     = 30,
+    ACTOR_215100_GALLERY_RETURN_VIEW                = 8,
+};
+
 static CapCaptionCaretDelayStorage _gCapCaptionCaretDelayStorage;
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
+static void _actor215100SpawnPierce(Enemy* enemy, Task* task);
 static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
 static void _pacedWalkExit(Task* task);
 
-/* cap captions instance: retain the original overlay symbols. */
-static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2);
-void        func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2);
+static void _actor215100ShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks);
 // The gallery selects and draws captions using this actor's loaded CAP state.
 #define CAP_CAPTION_SELECT_SCRIPT_LINKAGE
 /// Binds shared record selection to this actor's exported selector.
@@ -134,7 +151,7 @@ static TmdSource _gActor215100PierceCarradineBody;
 static TmdSource _gActor215100Actor113100Model07960;
 static s32       _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 requestFlags, s32 unusedArgument);
 static s32       _actor215100IgnoreCommand(Task* task, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument);
-void             func_actor_215100_8014CA2C(Task*);
+static void      _actor215100PierceTask(Task* task);
 static void      _pacedWalkSubModelTask(Task* task);
 
 static AnimationSet _gActor215100Animation10DE8;
@@ -164,10 +181,10 @@ static void _actor215100SetConversationCap(s32 enabled);
 
 static void _actor215100GalleryIntroTask(Task* task);
 static void _actor215100GalleryRedFlashLoopTask(Task* task);
-void        func_actor_215100_8014ADD8(void);
-void        func_actor_215100_8014AE08(s32);
+static void _actor215100StartGalleryMovie(void);
+static void _actor215100SpawnGalleryDemoTargetIfEnabled(s32 enabled);
 static void _actor215100SetGalleryRedFlashLoop(s32 enabled);
-void        func_actor_215100_8014AE90(s16);
+static void _actor215100SelectGalleryRoomLights(s16 useAlternate);
 static void _actor215100SetViewRespawnPending(s16 pending);
 
 TaskDesc D_actor_215100_8014E13C[3] = {
@@ -247,7 +264,7 @@ EvsCommand D_actor_215100_8014E370[59] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_215100_8014E2B8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_215100_8014ADD8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor215100StartGalleryMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
@@ -262,7 +279,7 @@ EvsCommand D_actor_215100_8014E370[59] = {
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5114000C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_215100_8014AE08 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SpawnGalleryDemoTargetIfEnabled }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor215100SetGalleryRedFlashLoop }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -402,7 +419,7 @@ EvsCommand D_actor_215100_8014EFA0[8] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_actor_215100_8014E358 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_215100_8014AE90 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor215100SelectGalleryRoomLights }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = CAP_CONTROL_MESSAGE_SHOW_HUD }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1708,7 +1725,7 @@ TaskMessageEntry D_actor_215100_8015E5A0[6] = {
 };
 
 TaskDesc D_actor_215100_8015E5D0[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_215100_8014CA2C, { .model = &_gActor215100PierceCarradineBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor215100PierceTask, { .model = &_gActor215100PierceCarradineBody } },
     { { { TASK_BODY_TMD, 192 } }, _pacedWalkSubModelTask, { .model = &_gActor215100Actor113100Model07960 } },
 };
 
@@ -1822,75 +1839,65 @@ s32 D_actor_215100_8015E670;
 
 RoomEventMsg D_actor_215100_8015E678;
 
-void func_actor_215100_8014A398(void);
-void func_actor_215100_8014A908(void);
-void func_actor_215100_8014A9A0(void);
-s32  func_actor_215100_8014AA54(RoomEventMsg* arg0);
-void func_actor_215100_8014AB6C(void);
-
-static void func_actor_215100_8014C660(Enemy* enemy, Task* task);
-
-/// Arms the weapon pickup at this actor's spot while the event flag
-/// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
-/// leave (`gGameSession->location.loc.view == 0x12`) restores the training barrier with
-/// `mistShootingGallerySetTrainingBarrierLowered(0)` and clears
-/// `D_actor_215100_8014D03C`; sub-states 2 and 3 of
-/// `Gp_StateC08.mode` start the 0x3C-frame cooldown in
-/// `D_actor_215100_8014D044`, and while that cooldown runs the function only
-/// ticks it down.
-///
-/// Otherwise the player has to be standing in the zone — its model root's X
-/// below -0x1806 and its Z inside [0x10CD, 0x1644) — not aiming
-/// (`GameActor.mode != 2`), with the caption system idle, `D_80115768`
-/// and `gDisplayState.pendingMode` clear, its yaw inside one of the two 0x3FF-wide windows
-/// opening at 0x201 and 0xA01, and one of the 0x1000 / 0x4000 pad masks held.
-/// Either mask runs the handoff `func_actor_215100_8014AA54` uses: the weapon
-/// message, caption command 0x14 and the scene task `D_actor_215100_8014CF6C`.
-void func_actor_215100_8014A398(void)
+/// Holds the training scene through its exit reply and queues the decision task.
+static inline void _actor215100StartGalleryExitPrompt(void)
 {
-    Task*      task;
-    GameActor* actor;
-    GfxCoord*  coord;
-    s32        z;
-    s32        facing;
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
+    capRunCommand(ACTOR_215100_GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
+    D_80115690 = ACTOR_215100_GALLERY_EXIT_KEEP_ACTORS_HELD;
+    taskSpawnFromTable(D_actor_215100_8014CF6C, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_END_TRAINING, 0);
+}
 
-    task  = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    actor = (GameActor*)task->work;
-    coord = task->extra.tmd->coords;
+void actor215100CheckGalleryExitInput(void)
+{
+    enum {
+        ACTOR_215100_GALLERY_EXIT_INPUT_COOLDOWN_TICKS = 60,
+        ACTOR_215100_GALLERY_EXIT_INPUT_VIEW           = 18,
+        ACTOR_215100_GALLERY_EXIT_ZONE_MAX_X           = -6150,
+        ACTOR_215100_GALLERY_EXIT_ZONE_MIN_Z           = 4301,
+        ACTOR_215100_GALLERY_EXIT_ZONE_END_Z           = 5700,
+        ACTOR_215100_GALLERY_EXIT_UP_YAW_START         = 0xA01,
+        ACTOR_215100_GALLERY_EXIT_DOWN_YAW_START       = 0x201,
+        ACTOR_215100_GALLERY_EXIT_YAW_WINDOW           = 0x3FF,
+        ACTOR_215100_GALLERY_YAW_MASK                  = 0xFFF,
+    };
+    Task*      playerTask;
+    GameActor* player;
+    GfxCoord*  rootCoord;
+    s32        rootZ;
+    s32        yaw;
+
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    player     = playerTask->work;
+    rootCoord  = playerTask->extra.tmd->coords;
     if (D_actor_215100_8014D038 != 0) {
-        if (D_actor_215100_8015E670 >= 3) {
-            if (gGameSession->location.loc.view == 0x12) {
+        if (D_actor_215100_8015E670 >= ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+            if (gGameSession->location.loc.view == ACTOR_215100_GALLERY_EXIT_INPUT_VIEW) {
                 mistShootingGallerySetTrainingBarrierLowered(0);
                 D_actor_215100_8014D03C = 0;
             }
+            // Rearm the interaction only after the attachment action has settled.
             if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) < 2U) {
-                D_actor_215100_8014D044 = 0x3C;
+                D_actor_215100_8014D044 = ACTOR_215100_GALLERY_EXIT_INPUT_COOLDOWN_TICKS;
             }
             if (D_actor_215100_8014D044 != 0) {
                 D_actor_215100_8014D044 -= 1;
                 return;
             }
-            if ((actor->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (D_actor_215100_8014D03C == 0) &&
-                (D_80115768 == 0) && (coord->coord.t[0] < -0x1806)) {
-                z = coord->coord.t[2];
-                if (z < 0x1644) {
-                    if ((z >= 0x10CD) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                        facing = (u16)actor->rotation.vy & 0xFFF;
+            if ((player->mode != GAME_ACTOR_MODE_SCRIPTED) && (capIsBusy() == 0) && (D_actor_215100_8014D03C == 0) &&
+                (D_80115768 == 0) && (rootCoord->coord.t[0] < ACTOR_215100_GALLERY_EXIT_ZONE_MAX_X)) {
+                rootZ = rootCoord->coord.t[2];
+                if (rootZ < ACTOR_215100_GALLERY_EXIT_ZONE_END_Z) {
+                    if ((rootZ >= ACTOR_215100_GALLERY_EXIT_ZONE_MIN_Z) && (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
+                        yaw = (u16)player->rotation.vy & ACTOR_215100_GALLERY_YAW_MASK;
                         if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP) != 0) {
-                            if ((u32)(facing - 0xA01) < 0x3FFU) {
-                                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-                                capRunCommand(0x14, CAP_PLAYBACK_IN_PLACE);
-                                D_80115690 = 1;
-                                taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
+                            if ((u32)(yaw - ACTOR_215100_GALLERY_EXIT_UP_YAW_START) < (u32)ACTOR_215100_GALLERY_EXIT_YAW_WINDOW) {
+                                _actor215100StartGalleryExitPrompt();
                             }
                         }
-                        if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(facing - 0x201) < 0x3FFU)) {
-                            playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                            gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-                            capRunCommand(0x14, CAP_PLAYBACK_IN_PLACE);
-                            D_80115690 = 1;
-                            taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 0, 0);
+                        if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_DOWN) != 0) && ((u32)(yaw - ACTOR_215100_GALLERY_EXIT_DOWN_YAW_START) < (u32)ACTOR_215100_GALLERY_EXIT_YAW_WINDOW)) {
+                            _actor215100StartGalleryExitPrompt();
                         }
                     }
                 }
@@ -1899,50 +1906,41 @@ void func_actor_215100_8014A398(void)
     }
 }
 
-/// Watches the caption system while the actor waits to be talked to.
-///
-/// State 0 first honours the spawn argument: `spawnArg1 == 2` means the actor
-/// was placed already committed, so it just steps to state 1, and only
-/// `spawnArg1 == 0` is the interactive case. Otherwise it waits for
-/// `capIsBusy` to drop and switches on the key `capGetVariantKey` returns.
-/// Key 1 is the plain "talk to me" — it takes the player's weapon away and
-/// clears `gSceneCombatState.actorControl`; every other key ends the encounter, and which ending
-/// depends on `spawnArg1`: non-zero plays caption command 0x17 behind story
-/// flag 0xED and steps to state 1, while zero starts the full ending from here
-/// (the caption system is stopped, the scene task `D_mist_shooting_gallery_8018E0C4` gets its exit,
-/// the sound plays and the weapon is taken). All of those finish by killing
-/// this task.
-///
-/// State 1 commits the deferred room transition once the caption system is
-/// idle again: it copies the area, warp and room of the request held in
-/// `D_actor_215100_8015E678` into the live save's location, clears the
-/// inventory, then spawns task 0x11 and kills itself.
-void func_actor_215100_8014A5C0(Task* arg0)
+void actor215100GalleryExitDecisionTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
-            if (arg0->spawnArg1.value == 2) {
-                arg0->state = 1;
+    enum {
+        ACTOR_215100_GALLERY_EXIT_WAIT_REPLY         = 0,
+        ACTOR_215100_GALLERY_EXIT_WAIT_TRANSITION    = 1,
+        ACTOR_215100_GALLERY_EXIT_REPLY_CONTINUE     = 1,
+        ACTOR_215100_GALLERY_RETURN_RESOURCE_VARIANT = 3,
+        ACTOR_215100_GALLERY_RETURN_SCENE_EVENT      = 1,
+        ACTOR_215100_GALLERY_RETURN_SPRITE_VARIANT   = 1,
+        ACTOR_215100_GALLERY_RETURN_SOUND            = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5),
+    };
+    switch (task->state) {
+        case ACTOR_215100_GALLERY_EXIT_WAIT_REPLY:
+            if (task->spawnArg1.value == ACTOR_215100_GALLERY_COMMIT_ROOM_EXIT) {
+                task->state = ACTOR_215100_GALLERY_EXIT_WAIT_TRANSITION;
                 break;
             }
             if (capIsBusy() != 0) {
                 break;
             }
-            if (capGetVariantKey() == 1) {
+            if (capGetVariantKey() == ACTOR_215100_GALLERY_EXIT_REPLY_CONTINUE) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                taskKill(arg0);
+                taskKill(task);
                 break;
             }
-            if (arg0->spawnArg1.value != 0) {
+            if (task->spawnArg1.value != 0) {
                 if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
-                    capRunCommandWithTransition(0x17);
+                    capRunCommandWithTransition(ACTOR_215100_GALLERY_EXIT_TRANSITION_COMMAND);
                 }
                 gGameSession->battleResetPending = 1;
-                arg0->state                     += 1;
+                task->state                     += 1;
                 break;
             }
-            if (D_actor_215100_8015E670 == 3) {
+            if (D_actor_215100_8015E670 == ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
                 Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             }
             D_actor_215100_8014D038 = 0;
@@ -1951,152 +1949,148 @@ void func_actor_215100_8014A5C0(Task* arg0)
             taskCallExit(D_mist_shooting_gallery_8018E0C4);
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-            sndEvtRequestMidiStop(0, 0x1E);
+            sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-            taskKill(arg0);
+            taskKill(task);
             break;
-        case 1:
+        case ACTOR_215100_GALLERY_EXIT_WAIT_TRANSITION:
+            // Restore the carried loadout before reloading the retained destination.
             if (capIsBusy() == 0) {
-                gPlayerStatus.resourceVariant                       = 3;
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
+                gPlayerStatus.resourceVariant                       = ACTOR_215100_GALLERY_RETURN_RESOURCE_VARIANT;
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_215100_GALLERY_RETURN_SCENE_EVENT;
                 inventoryRestoreCarriedLoadout();
                 gGameSession->hideHud = 1;
-                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 5), 0, 0);
-                gDisplayState.spriteVariant                                = 1;
+                sndEvtRequestScriptStart(ACTOR_215100_GALLERY_RETURN_SOUND, 0, 0);
+                gDisplayState.spriteVariant                                = ACTOR_215100_GALLERY_RETURN_SPRITE_VARIANT;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_actor_215100_8015E678.areaId;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_actor_215100_8015E678.warp;
                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_actor_215100_8015E678.room;
                 taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }
 }
 
-/// Watches the caption system while the actor waits to be talked to: state 0
-/// polls `capIsBusy` / `capGetVariantKey`, and on key 2 hands the scene task
-/// `D_mist_shooting_gallery_8018E0C4` its exit and steps to state 1, while any other key kills the
-/// task outright. State 1 starts the caption playback and steps to state 2,
-/// which commits the ending: it flags the save-slot session, plays the sound,
-/// clears the actor's own 0x97B, drops the story flag the sibling
-/// `func_actor_215100_8014A908` sets, and releases the menu hold.
-void func_actor_215100_8014A7C4(Task* arg0)
+void actor215100GalleryAbortDecisionTask(Task* task)
 {
-    GameActor* actor;
+    enum {
+        ACTOR_215100_GALLERY_ABORT_WAIT_REPLY  = 0,
+        ACTOR_215100_GALLERY_ABORT_RETURN_VIEW = 1,
+        ACTOR_215100_GALLERY_ABORT_FINISH      = 2,
+        ACTOR_215100_GALLERY_ABORT_REPLY_STOP  = 2,
+    };
+    GameActor* player;
 
-    actor = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
-    switch (arg0->state) {
-        case 0:
+    player = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
+    switch (task->state) {
+        case ACTOR_215100_GALLERY_ABORT_WAIT_REPLY:
             if (capIsBusy() != 0) {
                 break;
             }
-            if (capGetVariantKey() == 2) {
+            if (capGetVariantKey() == ACTOR_215100_GALLERY_ABORT_REPLY_STOP) {
                 taskCallExit(D_mist_shooting_gallery_8018E0C4);
-                arg0->state++;
+                task->state++;
             } else {
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
-        case 1:
+        case ACTOR_215100_GALLERY_ABORT_RETURN_VIEW:
+            // Let the normal room update observe the saved return view on the next tick.
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_215100_GALLERY_RETURN_VIEW;
             mistShootingGallerySelectRoomLights(0);
-            arg0->state++;
+            task->state++;
             break;
-        case 2:
+        case ACTOR_215100_GALLERY_ABORT_FINISH:
             gGameSession->battleResetPending = 1;
             gGameSession->flowFlags         |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-            sndEvtRequestMidiStop(0, 0x1E);
-            actor->movementInputDisabled = 0;
-            D_actor_215100_8014D038      = 0;
+            sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
+            player->movementInputDisabled = 0;
+            D_actor_215100_8014D038       = 0;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             if (gDisplayState.holdCount != 0) {
                 displayReleaseMenuHold();
             }
-            taskKill(arg0);
+            taskKill(task);
             break;
     }
 }
 
-void func_actor_215100_8014A908(void)
+void actor215100FinishGalleryCourse(void)
 {
     D_actor_215100_8014D038 = 0;
-    if (D_actor_215100_8015E670 < 3) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
+    if (D_actor_215100_8015E670 < ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_215100_GALLERY_RETURN_VIEW;
         mistShootingGallerySelectRoomLights(0);
     } else {
         mistShootingGallerySetTrainingBarrierLowered(1);
         D_actor_215100_8014D03C = 1;
     }
-    if (D_actor_215100_8015E670 < 4) {
+    if (D_actor_215100_8015E670 < ACTOR_215100_GALLERY_FIRST_SWAP_COURSE) {
         Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
     }
-    sndEvtRequestMidiStop(0, 0x1E);
+    sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
 }
 
-void func_actor_215100_8014A9A0(void)
+void actor215100RequestGalleryAbort(void)
 {
-    if (D_actor_215100_8015E670 == 5) {
+    if (D_actor_215100_8015E670 == ACTOR_215100_GALLERY_BONUS_COURSE) {
         D_actor_215100_8014D038 = 0;
         mistShootingGallerySetTrainingBarrierLowered(1);
         D_actor_215100_8014D03C          = 1;
         gGameSession->battleResetPending = 1;
-        sndEvtRequestMidiStop(0, 0x1E);
+        sndEvtRequestMidiStop(0, ACTOR_215100_GALLERY_MUSIC_FADE_AUDIO_TICKS);
         gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     }
-    if (D_actor_215100_8015E670 < 3) {
-        capRunCommand(0x1D, CAP_PLAYBACK_CLEAR_IF_UNSTARTED);
-        taskSpawnFromTable(D_actor_215100_8014CF6C, 1, 0, 0);
+    if (D_actor_215100_8015E670 < ACTOR_215100_GALLERY_FIRST_FREE_MOVEMENT_COURSE) {
+        capRunCommand(ACTOR_215100_GALLERY_ABORT_CONFIRM_COMMAND, CAP_PLAYBACK_CLEAR_IF_UNSTARTED);
+        taskSpawnFromTable(D_actor_215100_8014CF6C, ACTOR_215100_GALLERY_ABORT_DECISION_TASK, 0, 0);
     }
 }
 
-/// Hands the actor off to its caption script, or starts one, depending on
-/// whether the script for the current story flag has already run.
-///
-/// The `else` arm is a `do { } while (0)` whose `break` is the "already
-/// committed" exit. It is not vestigial: the loop notes it emits make `reorg`
-/// mark that branch's label as leaving a loop, so the delay-slot pass predicts
-/// it not-taken and fills its slot from the fall-through rather than from the
-/// shared `return 2` tail. Without the loop the branch reaches the same label
-/// by a copied `li v0,2`, one instruction longer.
-s32 func_actor_215100_8014AA54(RoomEventMsg* arg0)
+s32 actor215100ResolveGalleryExit(const RoomEventMsg* request)
 {
     if (D_actor_215100_8014D038 != 0) {
-        if (arg0->queryOnly != ROOM_EVENT_EXECUTE) {
-            return 2;
+        if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+            return ACTOR_215100_GALLERY_EXIT_DEFER;
         }
-        D_actor_215100_8015E678 = *arg0;
+        // The decision task owns this full request copy until its deferred reload.
+        D_actor_215100_8015E678 = *request;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
-        capRunCommand(0x14, CAP_PLAYBACK_IN_PLACE);
-        D_80115690 = 1;
-        taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 1, 0);
+        capRunCommand(ACTOR_215100_GALLERY_EXIT_CONFIRM_COMMAND, CAP_PLAYBACK_IN_PLACE);
+        D_80115690 = ACTOR_215100_GALLERY_EXIT_KEEP_ACTORS_HELD;
+        taskSpawnFromTable(D_actor_215100_8014CF6C, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_CONFIRM_ROOM_EXIT, 0);
     } else {
+        // Keep the one-shot scope for the original query branch's delay-slot layout.
         do {
             if (gameFlagGetNibble(GAME_FLAG_0ED) == 0) {
-                return 1;
+                return ACTOR_215100_GALLERY_EXIT_ALLOW;
             }
-            if (arg0->queryOnly != ROOM_EVENT_EXECUTE) {
+            if (request->queryOnly != ROOM_EVENT_EXECUTE) {
                 break;
             }
-            D_actor_215100_8015E678 = *arg0;
+            D_actor_215100_8015E678 = *request;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommandWithTransition(0x17);
-            taskSpawnFromTable(D_actor_215100_8014CF6C, 0, 2, 0);
+            capRunCommandWithTransition(ACTOR_215100_GALLERY_EXIT_TRANSITION_COMMAND);
+            taskSpawnFromTable(D_actor_215100_8014CF6C, ACTOR_215100_GALLERY_EXIT_DECISION_TASK, ACTOR_215100_GALLERY_COMMIT_ROOM_EXIT, 0);
         } while (0);
     }
-    return 2;
+    return ACTOR_215100_GALLERY_EXIT_DEFER;
 }
 
-void func_actor_215100_8014AB6C(void)
+void actor215100HandleGalleryAction(void)
 {
+    enum { ACTOR_215100_GALLERY_ACTION_COMMAND = 0x11 };
+
     if (D_actor_215100_8014D038 != 0) {
         mistShootingGallerySignalAction();
         return;
     }
-    capSpawnEventIfIdle(0x11, CAP_EVENT_PAUSE_ACTORS);
+    capSpawnEventIfIdle(ACTOR_215100_GALLERY_ACTION_COMMAND, CAP_EVENT_PAUSE_ACTORS);
 }
 
 /// Runs the first-visit gallery introduction and hands control to its menu or exit scene.
@@ -2191,14 +2185,22 @@ static void _actor215100GalleryRedFlashLoopTask(Task* task)
     task->killCountdown = task->killCountdown + 1;
 }
 
-void func_actor_215100_8014ADD8(void)
+/// Starts the gallery introduction's movie session, including the cleared-run splash.
+///
+/// Event-script callback; the gallery overlay must stay loaded through the session.
+static void _actor215100StartGalleryMovie(void)
 {
-    taskSpawnFromTable(D_mist_shooting_gallery_80185384, 0, 0, 0);
+    enum { ACTOR_215100_GALLERY_MOVIE_SESSION_TASK = 0 };
+
+    taskSpawnFromTable(D_mist_shooting_gallery_80185384, ACTOR_215100_GALLERY_MOVIE_SESSION_TASK, 0, 0);
 }
 
-void func_actor_215100_8014AE08(s32 arg0)
+/// Spawns the introduction's demonstration target for a nonzero enable word.
+///
+/// Zero does nothing. Requires the gallery and target actor overlays and scene root.
+static void _actor215100SpawnGalleryDemoTargetIfEnabled(s32 enabled)
 {
-    if (arg0 != 0) {
+    if (enabled != 0) {
         mistShootingGallerySpawnDemoTarget();
     }
 }
@@ -2223,9 +2225,12 @@ static void _actor215100SetGalleryRedFlashLoop(s32 enabled)
     }
 }
 
-void func_actor_215100_8014AE90(s16 arg0)
+/// Selects default room lights for zero, or alternate lights for a nonzero halfword.
+///
+/// Event-script callback; the gallery overlay must be loaded.
+static void _actor215100SelectGalleryRoomLights(s16 useAlternate)
 {
-    mistShootingGallerySelectRoomLights(arg0);
+    mistShootingGallerySelectRoomLights(useAlternate);
 }
 
 /// Sets the deferred view-respawn request when the introduction is skipped.
@@ -2283,62 +2288,82 @@ void actor215100StartPierceConversation(void)
 
 #include "../../shared/cap_captions.inc.c"
 
-static void func_actor_215100_8014C538(s16 arg0, s16 arg1, s16 arg2)
+/// Selects a keyed caption and spawns its drawing task for signed tick duration.
+///
+/// Retained out-of-line wrapper with no callers. A valid loaded command/key and
+/// font storage must outlive the task. Zero or negative duration still draws once;
+/// later selections replace its text because caption state is shared per overlay.
+static void _actor215100ShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks)
 {
-    _capCaptionShowTimed(arg0, arg1, arg2);
+    _capCaptionShowTimed(commandIndex, key, durationTicks);
 }
 
 #include "../../shared/cap_captions_resource.inc.c"
 
-void func_actor_215100_8014C5E0(s16 arg0, s16 arg1, s16 arg2)
+void actor215100SelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex)
 {
-    _capCaptionLoadResource(arg0, arg1, arg2);
+    _capCaptionLoadResource(texturePageX, texturePageY, dataResourceIndex);
 }
 
-/// State-0 handler of the actor's dispatcher: allocates the work block, spawns
-/// the sub-model and adopts it as a child, takes the model's texture page and
-/// CLUT from the area placement the enemy's `placeKey` selects, sets up the
-/// animation context on clip 0xC, installs the message table whose handlers
-/// are the actor's script opcodes, and starts the animation.
-static void func_actor_215100_8014C660(Enemy* enemy, Task* task)
+/// Spawns and adopts Pierce's paired model with the parent's placement textures.
+///
+/// Requires a live parent and successful child allocation. The task tree owns
+/// the returned child; the helper preserves the retained unchecked failure path.
+static inline Task* _actor215100SpawnPiercePair(Enemy* enemy, Task* task)
 {
-    VECTOR         vec;
-    PacedWalkWork* work;
-    PacedWalkWork* mem;
-    GfxCoord*      coord;
-    TmdObject*     obj;
-    Enemy*         spawned;
+    enum { ACTOR_215100_PIERCE_PAIR_TASK = 1 };
+    Enemy* pairedEnemy;
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
-    mem        = memCalloc(sizeof(PacedWalkWork), false);
-    work       = mem;
-    task->work = mem;
-    if (mem == NULL) {
+    pairedEnemy = enemySpawnFromTable(D_actor_215100_8015E5D0, ACTOR_215100_PIERCE_PAIR_TASK, 0, enemy);
+    _actorRenderApplyPlacementTextureOffsets(pairedEnemy->task->extra.tmd, enemy);
+    taskReparent(task, pairedEnemy->task);
+    return pairedEnemy->task;
+}
+
+/// Allocates Pierce's paced-walk state, adopts his paired model and starts clip 12.
+///
+/// Requires the loaded twenty-part body, 25-slot clip bank and pair descriptor.
+/// Work-allocation failure destroys the owning enemy/task. The retained child
+/// spawn path requires allocation to succeed before it dereferences the child.
+/// The task owns the work and child; model lighting matrices borrow that work.
+static void _actor215100SpawnPierce(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_215100_PIERCE_INITIAL_CLIP = 12,
+        ACTOR_215100_PIERCE_LIGHT_HEIGHT = 800,
+        ACTOR_215100_PIERCE_LIGHT_COUNT  = 3,
+    };
+    VECTOR         lightingPosition;
+    PacedWalkWork* work;
+    GfxCoord*      rootCoord;
+    TmdObject*     model;
+
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    if ((task->work = work = memCalloc(sizeof(*work), false)) == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = _pacedWalkExit;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->flags                       = 0;
-    obj->otOffset                    = 1;
+    model->flags                     = 0;
+    model->otOffset                  = 1;
     work->enemy                      = enemy;
-    spawned                          = enemySpawnFromTable(D_actor_215100_8015E5D0, 1, 0, enemy);
-    _actorRenderApplyPlacementTextureOffsets(spawned->task->extra.tmd, enemy);
-    taskReparent(task, spawned->task);
-    work->pairTask  = spawned->task;
-    work->st.animId = 0xC;
-    obj->lightMtx   = &work->light;
-    obj->colorMtx   = &work->color;
-    vec.vx          = coord->workm.t[0];
-    vec.vy          = coord->workm.t[1] - 0x320;
-    vec.vz          = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&work->rig.anim, D_actor_215100_8015E5E8, obj,
+    // The paired model becomes a child released with the parent task tree.
+    work->pairTask  = _actor215100SpawnPiercePair(enemy, task);
+    work->st.animId = ACTOR_215100_PIERCE_INITIAL_CLIP;
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    // Sample lighting 800 world units above the root, then seed the actor rig.
+    lightingPosition.vx = rootCoord->workm.t[0];
+    lightingPosition.vy = rootCoord->workm.t[1] - ACTOR_215100_PIERCE_LIGHT_HEIGHT;
+    lightingPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingPosition, 0, ACTOR_215100_PIERCE_LIGHT_COUNT);
+    animationInitContext(&work->rig.anim, D_actor_215100_8015E5E8, model,
                          work->rig.poses, work->rig.slots);
     work->st.state = ACTOR_ENEMY_ANIM_RESET;
     task->msgTable = D_actor_215100_8015E5A0;
@@ -2348,17 +2373,19 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task)
 
 #include "../../shared/paced_walk_update.inc.c"
 
-/// Two-state dispatcher, its handler table built on the stack: state 0 spawns
-/// the actor, state 1 runs it. Both handlers take the task's `Enemy` as
-/// well as the task.
-void func_actor_215100_8014CA2C(Task* task)
+/// Dispatches Pierce's spawn state or paced movement, animation, lighting and shadow.
+///
+/// State must be 0 or 1; spawn increments it once and the frame handler retains 1.
+/// The second spawn payload is the live owning Enemy. The actor resources and
+/// task model stay loaded; spawn failure may destroy both before dispatch returns.
+static void _actor215100PierceTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
-        func_actor_215100_8014C660,
+    EnemyTaskFunc stateHandlers[] = {
+        _actor215100SpawnPierce,
         _actorRenderWalkerFrame,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
