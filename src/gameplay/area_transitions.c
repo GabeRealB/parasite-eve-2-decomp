@@ -675,7 +675,7 @@ static void Gp_SpawnEvt1IfCapIdle(void)
 {
     if (gGameSession->eventState == 0) {
         if (capIsBusy() == 0) {
-            Gp_SpawnEvt1(Gp_DirByte, Gp_DirNibble);
+            capSpawnWeaponEvent(Gp_DirByte, Gp_DirNibble);
         }
     }
     D_80114CF8      = 0;

@@ -1568,40 +1568,56 @@ static __inline__ void _hudWaitForBattleEndAction(HudState* hud)
 ///
 /// Borrows the live global attachment state. Armed/casting effects receive
 /// CANCELLED; idle/wheel effects keep their phase. Menu and sound cleanup stays
-/// with the caller.
+/// with the caller. Releases both control holds to running, without restoring
+/// earlier holds; the argument must name the global state resumed by the helper.
 static __inline__ void _hudCancelAttachment(AttachmentState* attachment)
 {
+    enum { HUD_ATTACHMENT_NO_QUEUED_SELECTION = 0 };
+
     if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
         attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
     }
-    attachment->queuedIndex = 0;
+    attachment->queuedIndex = HUD_ATTACHMENT_NO_QUEUED_SELECTION;
     _attachmentResumeActors();
+}
+
+/// Places a demo panel's four corners in its fixed rectangle relative to screen centre.
+static inline void _hudPlaceDemoPanel(POLY_FT4* panel)
+{
+    panel->x2 = 22;
+    panel->x0 = 22;
+    panel->x3 = 150;
+    panel->x1 = 150;
+    panel->y1 = -107;
+    panel->y0 = -107;
+    panel->y3 = -44;
+    panel->y2 = -44;
 }
 
 /// Queues the demo scene's two overlaid raw-texture panels in the foreground.
 ///
 /// Requires 80 bytes in the current GPU packet arena and a live ordering table.
 /// Both quads use the same 128-by-63 screen rectangle; the second uses
-/// subtractive blending. Packet storage remains borrowed by the GPU.
+/// subtractive blending and is prepended ahead of the first in OT entry -5.
+/// Storage must be word-aligned and remain live until the GPU consumes it.
 static __inline__ void _hudDrawDemoPanels(void)
 {
-    enum { HUD_DEMO_TEXTURE_8_BIT = 1 };
+    enum {
+        HUD_DEMO_TEXTURE_8_BIT        = 1,
+        HUD_DEMO_TEXTURE_PAGE_X       = 448,
+        HUD_DEMO_BASE_PALETTE_ROW     = 254,
+        HUD_DEMO_SUBTRACT_PALETTE_ROW = 253,
+        HUD_DEMO_ORDERING_TABLE_INDEX = -5
+    };
     POLY_FT4* demoPanel;
 
-    demoPanel        = gGpuPrimCursor;
-    gGpuPrimCursor   = demoPanel + 1;
-    demoPanel->x2    = 0x16;
-    demoPanel->x0    = 0x16;
-    demoPanel->x3    = 0x96;
-    demoPanel->x1    = 0x96;
-    demoPanel->y1    = -0x6B;
-    demoPanel->y0    = -0x6B;
-    demoPanel->y3    = -0x2C;
-    demoPanel->y2    = -0x2C;
-    demoPanel->tpage = getTPage(HUD_DEMO_TEXTURE_8_BIT, GPU_BLEND_ADD, 448, 0);
+    demoPanel      = gGpuPrimCursor;
+    gGpuPrimCursor = demoPanel + 1;
+    _hudPlaceDemoPanel(demoPanel);
+    demoPanel->tpage = getTPage(HUD_DEMO_TEXTURE_8_BIT, GPU_BLEND_ADD, HUD_DEMO_TEXTURE_PAGE_X, 0);
     demoPanel->v2    = 0xBF;
     demoPanel->v3    = 0xBF;
-    demoPanel->clut  = getClut(0, 254);
+    demoPanel->clut  = getClut(0, HUD_DEMO_BASE_PALETTE_ROW);
     demoPanel->u0    = 0;
     demoPanel->v0    = 0x80;
     demoPanel->u1    = 0x80;
@@ -1610,27 +1626,20 @@ static __inline__ void _hudDrawDemoPanels(void)
     demoPanel->u3    = 0x80;
     setPolyFT4(demoPanel);
     setShadeTex(demoPanel, true);
-    addPrim(gGpuCurrentOt - 5, demoPanel);
+    addPrim(gGpuCurrentOt + HUD_DEMO_ORDERING_TABLE_INDEX, demoPanel);
 
-    demoPanel        = gGpuPrimCursor;
-    gGpuPrimCursor   = demoPanel + 1;
-    demoPanel->x2    = 0x16;
-    demoPanel->x0    = 0x16;
-    demoPanel->x3    = 0x96;
-    demoPanel->x1    = 0x96;
-    demoPanel->y1    = -0x6B;
-    demoPanel->y0    = -0x6B;
-    demoPanel->y3    = -0x2C;
-    demoPanel->y2    = -0x2C;
+    demoPanel      = gGpuPrimCursor;
+    gGpuPrimCursor = demoPanel + 1;
+    _hudPlaceDemoPanel(demoPanel);
     demoPanel->b0    = 0x40;
     demoPanel->g0    = 0x40;
     demoPanel->r0    = 0x40;
-    demoPanel->tpage = getTPage(HUD_DEMO_TEXTURE_8_BIT, GPU_BLEND_SUBTRACT, 448, 0);
+    demoPanel->tpage = getTPage(HUD_DEMO_TEXTURE_8_BIT, GPU_BLEND_SUBTRACT, HUD_DEMO_TEXTURE_PAGE_X, 0);
     demoPanel->v0    = 0xC0;
     demoPanel->v1    = 0xC0;
     demoPanel->v2    = 0xFF;
     demoPanel->v3    = 0xFF;
-    demoPanel->clut  = getClut(0, 253);
+    demoPanel->clut  = getClut(0, HUD_DEMO_SUBTRACT_PALETTE_ROW);
     demoPanel->u0    = 0;
     demoPanel->u1    = 0x80;
     demoPanel->u2    = 0;
@@ -1638,7 +1647,7 @@ static __inline__ void _hudDrawDemoPanels(void)
     setPolyFT4(demoPanel);
     setShadeTex(demoPanel, true);
     setSemiTrans(demoPanel, true);
-    addPrim(gGpuCurrentOt - 5, demoPanel);
+    addPrim(gGpuCurrentOt + HUD_DEMO_ORDERING_TABLE_INDEX, demoPanel);
 }
 
 void hudUpdateAndDraw(HudState* hud)

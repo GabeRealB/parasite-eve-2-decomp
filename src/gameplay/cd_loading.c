@@ -621,7 +621,7 @@ const TaskFuncTable3 Gp_RoomObjStates;
 static const TaskFuncTable6 Gp_LoadWaitFns = { {
     Gp_ViewBeginLoad,
     loadingEnqueueViewResourcesTask,
-    Gp_ViewLoadImage,
+    loadingUploadViewImageTask,
     _loadingWaitForMovieReadyTask,
     _loadingWaitForViewCdIdleTask,
     _loadingWaitForSceneImageTask,

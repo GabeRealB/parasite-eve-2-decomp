@@ -62,7 +62,7 @@ void Gp_ViewBeginLoad(Task* task)
                 param2[3] = 0;
                 cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
                 task->state += 2;
-                Gp_ViewLoadImage(task);
+                loadingUploadViewImageTask(task);
             }
         }
     }

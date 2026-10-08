@@ -326,7 +326,19 @@ extern ViewCameraTable* Gp_ViewTables[];
 
 extern DR_STP D_80114C50;
 
-void Gp_ViewLoadImage(Task* task);
+/// Uploads the loaded view image, then starts its selected movie or finishes loading.
+///
+/// State 2 of `loadingViewLoadTask`; a busy CD queue leaves the task untouched.
+/// Clears the complete active-request snapshot, searches all fifty retained
+/// directory slots using the mapped view minus one, and retries a matching image
+/// until upload completes, including timer failure. A missing image skips upload.
+/// Requires live view maps/payloads and `fsUploadImageChunk`'s GPU/scratch contract.
+/// The selected movie slot must be negative (none) or in 0..14.
+/// A movie queues playback and advances to state 3 with its ready counter zero;
+/// otherwise a staged replacement advances to state 4, and an empty replacement
+/// finishes immediately. Requires one free CD ring slot and the completion
+/// resources of `loadingFinishViewLoad`; immediate completion kills the task.
+void loadingUploadViewImageTask(Task* viewLoadTask);
 
 extern s16 D_80114C40;
 

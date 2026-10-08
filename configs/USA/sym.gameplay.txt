@@ -161,7 +161,7 @@ _viewQueueDefaultTransform = 0x800A8D5C; // type:func
 viewQueueCurrentCamera = 0x800A8DC0; // type:func
 viewTransitionGateTask = 0x800A8E8C; // type:func
 Gp_ViewBeginLoad = 0x800A9010; // type:func
-Gp_ViewLoadImage = 0x800A91CC; // type:func
+loadingUploadViewImageTask = 0x800A91CC; // type:func
 
 // ---------------------------------------------------------------------------
 // Code (src/gameplay/cd_loading.c) — file-split 0x15B10
@@ -835,7 +835,7 @@ objectTaskRefuseDefaultRoomKeyItemUse = 0x800E4018; // type:func
 _objectTaskRoomIdleState = 0x800E4020; // type:func
 objectTaskRoomTask = 0x800E4028; // type:func
 gameFlagClearLiveNibbles = 0x800E4080; // type:func
-Gp_SpawnEvt1 = 0x800E40BC; // type:func
+capSpawnWeaponEvent = 0x800E40BC; // type:func
 capRelocateFile = 0x800E40EC; // type:func
 capStartSequence = 0x800E41F4; // type:func
 func_800E44A0 = 0x800E44A0; // type:func
@@ -1175,7 +1175,7 @@ _playerStateApplyBerserker = 0x8010B0C8; // type:func
 playerActorCheckContactDamage = 0x8010B120; // type:func
 playerActorClearPendingHit = 0x8010B210; // type:func
 _playerStateTestFatalAttack = 0x8010B228; // type:func
-func_8010B2A0 = 0x8010B2A0; // type:func
+effectSpawnPlayerBodyHit = 0x8010B2A0; // type:func
 _playerActorRecordAttackContact = 0x8010B2D4; // type:func
 _playerActorRecordHazardContact = 0x8010B348; // type:func
 effectPlayerBodyBlastTask = 0x8010B3F8; // type:func
@@ -1186,7 +1186,7 @@ _modelObjectDeferChildTaskRemoval = 0x8010B5E4; // type:func
 _modelObjectKillChildTask = 0x8010B5F0; // type:func
 modelObjectChildTask = 0x8010B610; // type:func
 companionRemoveEquipment = 0x8010B674; // type:func
-Gp_SetupAllyWeapon = 0x8010B79C; // type:func
+companionRestoreEquipment = 0x8010B79C; // type:func
 companionEnterDamageReaction = 0x8010B9A4; // type:func
 companionSpawnActor = 0x8010BAC8; // type:func
 companionEnterIdle = 0x8010BC04; // type:func

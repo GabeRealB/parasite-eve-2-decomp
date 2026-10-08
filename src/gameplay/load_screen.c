@@ -134,6 +134,7 @@ WorldCollisionSurfaceProperties*** Gp_RoomParamTables[5] = { D_map_akropolis_801
 ///
 /// Borrows the saved world-coordinate pose and writes all four transform words,
 /// sign-extending XYZ and yaw without normalizing the 4096-units-per-turn angle.
+/// The live source and destination records must not overlap.
 static inline void _areaRestorePlayerSpawnTransform(ActorSpawnTransform* spawnTransform, const PlayerPos* savedPosition)
 {
     spawnTransform->yaw.word = savedPosition->yaw;

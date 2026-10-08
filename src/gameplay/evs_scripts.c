@@ -575,7 +575,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 }
                 if ((u32)(mode - 1) < 2U) {
                     if (D_801156CE != 0) {
-                        Gp_SetupAllyWeapon();
+                        companionRestoreEquipment();
                         D_801156CE = 0;
                     }
                 }

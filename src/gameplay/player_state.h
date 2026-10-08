@@ -8,7 +8,20 @@
 
 #include "main/task_types.h"
 
-Task* Gp_SetupAllyWeapon(void);
+/// Restores the live companion's saved weapon and returns it to native idle playback.
+///
+/// Requires a registered companion task, loaded native animation/model resources,
+/// and saved family/variant indices valid for those resources. Family 1 variants
+/// 0..4 use the imported weapon, attack-row and attack-count tables. A missing
+/// work block returns NULL; a missing weapon attachment skips allocation.
+/// Successful weapon allocation binds its capsule and replenishes its attacks;
+/// Pyke variant 4 also spawns a missing persistent flare. Both allocation-failure
+/// paths still restore native idle and request all actor collision updates.
+/// Reattaching requires loaded companion weapon tables/models; flare resources
+/// must remain loaded until the persistent effect is removed.
+/// Returns the equipment slot's task, or NULL; its lifetime belongs to the actor.
+/// Call after equipment removal, with the weapon slot empty.
+Task* companionRestoreEquipment(void);
 
 /// Spawns the selected companion model and initializes its actor and probe work.
 ///

@@ -1179,9 +1179,9 @@ static s32 _playerStateTestFatalAttack(s32 attackKey)
     return fatal;
 }
 
-void func_8010B2A0(s32 arg0, s32 arg1)
+void effectSpawnPlayerBodyHit(s32 effectKind, s32 effectArgument)
 {
-    taskSpawnFromTable(D_80113340, arg0, arg1, 0);
+    taskSpawnFromTable(D_80113340, effectKind, effectArgument, 0);
 }
 
 /// Latches the first category-4 attack against a player or companion motion body.
@@ -1445,70 +1445,90 @@ void companionRemoveEquipment(Task* task)
     }
 }
 
-Task* Gp_SetupAllyWeapon(void)
+Task* companionRestoreEquipment(void)
 {
-    Task*          work;
-    GameActor*     actor;
-    GameActor*     inner;
-    GameActor*     next;
-    Task*          task;
-    McSaveData*    save;
-    CompanionWork* companion;
-    s16            val1;
-    s16            val2;
-    EffectWork*    eff;
-    TmdObject*     extra;
-    Task*          ret;
+    enum {
+        COMPANION_RESTORE_WEAPON_SLOT               = 1,
+        COMPANION_RESTORE_PYKE_VARIANT              = 4,
+        COMPANION_RESTORE_ATTACK_KEY_BIT            = 0x80,
+        COMPANION_RESTORE_IDLE_ANIMATION_SET        = 1,
+        COMPANION_RESTORE_IDLE_STATE                = 0,
+        COMPANION_RESTORE_MOVEMENT_STOPPED          = 0,
+        COMPANION_RESTORE_TURN_DISABLED             = 0,
+        COMPANION_RESTORE_ANIMATION_CONTROLLER_NONE = 0
+    };
+    Task*             companionTask;
+    GameActor*        actor;
+    GameActor*        animationActor;
+    GameActor*        idleActor;
+    Task*             equipmentTask;
+    const McSaveData* save;
+    CompanionWork*    companion;
+    s16               weaponId;
+    s16               attackRow;
+    EffectWork*       flareWork;
+    TmdObject*        companionModel;
+    Task*             restoredEquipment;
 
-    work  = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    actor = work->work;
-    if (!work | !actor) {
-        return 0;
+    companionTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    actor         = companionTask->work;
+    if (!companionTask | !actor) {
+        return NULL;
     }
 
-    if (actor->attachmentTasks[1] != NULL) {
-        save                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        task                     = playerActorSpawnWeaponModel(actor->attachmentTasks[1], save->state.companionType + 1, save->state.companionVariant, 0);
-        actor->equipmentTasks[1] = task;
-        if (task != NULL) {
+    // Reattach the saved weapon before restoring native animation and idle state.
+    if (actor->attachmentTasks[COMPANION_RESTORE_WEAPON_SLOT] != NULL) {
+        save                                                 = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        equipmentTask                                        = playerActorSpawnWeaponModel(actor->attachmentTasks[COMPANION_RESTORE_WEAPON_SLOT], save->state.companionType + 1, save->state.companionVariant, 0);
+        actor->equipmentTasks[COMPANION_RESTORE_WEAPON_SLOT] = equipmentTask;
+        if (equipmentTask != NULL) {
             companion = actor->companionWork;
-            val1      = D_actor_800100_80167218[save->state.companionVariant];
-            val2      = D_actor_800100_80167224[save->state.companionVariant];
-            playerActorInitWeaponCollision(work, val1, val2);
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= 0x80;
+            weaponId  = D_actor_800100_80167218[save->state.companionVariant];
+            attackRow = D_actor_800100_80167224[save->state.companionVariant];
+            playerActorInitWeaponCollision(companionTask, weaponId, attackRow);
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].key |= COMPANION_RESTORE_ATTACK_KEY_BIT;
             companion->activity.combat.attacksRemaining         = D_actor_800100_80167230[save->state.companionVariant];
-            if ((u8)save->state.companionVariant == 4 && actor->weaponEffectTask == NULL) {
-                eff = effectSpawn(
-                    (EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[1]->extra.tmd->coords, (s32)(val1), 0);
-                if (eff != NULL) {
-                    actor->weaponEffectTask = eff->task;
-                    playerActorResetWeaponAttack(work, val1, 0);
+            if ((u8)save->state.companionVariant == COMPANION_RESTORE_PYKE_VARIANT && actor->weaponEffectTask == NULL) {
+                flareWork = effectSpawn(
+                    (EFFECT_COMPANION_WEAPON_FLARE | EFFECT_SPAWN_UNLIMITED), actor->equipmentTasks[COMPANION_RESTORE_WEAPON_SLOT]->extra.tmd->coords, (s32)weaponId, 0);
+                if (flareWork != NULL) {
+                    actor->weaponEffectTask = flareWork->task;
+                    playerActorResetWeaponAttack(companionTask, weaponId, 0);
                 }
             }
         }
     }
 
-    inner                     = work->work;
-    extra                     = work->extra.tmd;
-    inner->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
-    inner->animationSets      = Gp_AnimBlkTbl[inner->animationBankIndex]->table.sets;
-    animationInitContext(&inner->animationContext, inner->animationSets, extra, inner->poseBuffer,
-                         inner->animationSlots);
-    next                 = work->work;
-    next->mode           = GAME_ACTOR_MODE_NORMAL;
-    next->state          = 0;
-    next->movementMode   = 0;
-    next->turnRateIndex  = 0;
-    next->animationState = 0;
-    next->statePhase     = 0;
-    next->idleTicks      = 0;
-    next->actionValue    = 0;
-    next->movementSign   = 0;
-    next->turnSign       = 0;
-    playerActorResetChildSlots(work, 1);
-    ret                            = actor->equipmentTasks[1];
+    animationActor                     = companionTask->work;
+    companionModel                     = companionTask->extra.tmd;
+    animationActor->animationBankIndex = Gp_AllyIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType - 1] + gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant;
+    animationActor->animationSets      = Gp_AnimBlkTbl[animationActor->animationBankIndex]->table.sets;
+    animationInitContext(&animationActor->animationContext, animationActor->animationSets, companionModel, animationActor->poseBuffer,
+                         animationActor->animationSlots);
+    idleActor = companionTask->work;
+    /// Resets native companion idle dispatch before restarting the child tracks.
+    ///
+    /// `actor` must be a live GameActor pointer without evaluation side effects;
+    /// every store evaluates it. The caller retains animation and collision setup.
+#define COMPANION_RESTORE_RESET_IDLE(actor)                                    \
+    {                                                                          \
+        (actor)->mode           = GAME_ACTOR_MODE_NORMAL;                      \
+        (actor)->state          = COMPANION_RESTORE_IDLE_STATE;                \
+        (actor)->movementMode   = COMPANION_RESTORE_MOVEMENT_STOPPED;          \
+        (actor)->turnRateIndex  = COMPANION_RESTORE_TURN_DISABLED;             \
+        (actor)->animationState = COMPANION_RESTORE_ANIMATION_CONTROLLER_NONE; \
+        (actor)->statePhase     = 0;                                           \
+        (actor)->idleTicks      = 0;                                           \
+        (actor)->actionValue    = 0;                                           \
+        (actor)->movementSign   = 0;                                           \
+        (actor)->turnSign       = 0;                                           \
+    }
+    COMPANION_RESTORE_RESET_IDLE(idleActor);
+#undef COMPANION_RESTORE_RESET_IDLE
+    playerActorResetChildSlots(companionTask, COMPANION_RESTORE_IDLE_ANIMATION_SET);
+    restoredEquipment              = actor->equipmentTasks[COMPANION_RESTORE_WEAPON_SLOT];
     actor->pendingCollisionUpdates = GAME_ACTOR_COLLISION_REQUEST_MASK;
-    return ret;
+    return restoredEquipment;
 }
 
 /// Applies pending companion damage to saved family 1, retaining its event survival floor.

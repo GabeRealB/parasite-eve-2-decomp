@@ -390,8 +390,10 @@ static void _worldCollisionMarkMotionSphereGridCandidates(const WorldCollisionBo
 /// Stores a capsule crossing's grid key, query-frame point and original room normal.
 ///
 /// Borrows a writable contact and the current face's accepted scratch hit.
-/// faceIndex must name a valid active-grid face. Flags and distance are left
-/// to the caller, as is shortening the segment for a clipping capsule.
+/// `faceIndex` must be in [0, faceCount), with a valid normal-pool index. The hit
+/// uses signed-halfword view-space game units; the unrotated room normal uses
+/// 4096 per unit. Both complete SVECTORs are copied, including unused fourth
+/// halfwords. The caller sets flags/distance and clips its segment if required.
 static __inline__ void _worldCollisionWriteCapsuleGridHit(WorldCollisionContact*                          contact,
                                                           const _WorldCollisionCapsuleGridContactScratch* scratch,
                                                           s32                                             faceIndex)

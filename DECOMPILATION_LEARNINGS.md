@@ -25950,7 +25950,7 @@ table  = D_8006C338;
 target = (u8)raw - 1;
 ```
 
-`Gp_ViewLoadImage` is the example. Pair with `register s32 typeN asm("v0")` (see
+`loadingUploadViewImageTask` is the example. Pair with `register s32 typeN asm("v0")` (see
 `capSelectLoadedFile`) so the per-iteration kind compare rematerializes as `li v0, K`
 instead of a hoisted `li t0, K`.
 

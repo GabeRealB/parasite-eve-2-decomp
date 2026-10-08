@@ -31,7 +31,22 @@ extern const char Gp_StrEvsFmt[];
 
 extern const TaskFuncTable3 Gp_CapTaskStates;
 
-void Gp_SpawnEvt1(s32 arg0, s32 arg1);
+/// Weapon-event flags selecting a room command instead of CAP playback.
+enum { CAP_WEAPON_EVENT_ROOM_COMMAND = 0xFF };
+
+/// Spawns a CAP event bracketed by the player's weapon presentation animations.
+///
+/// Copies `commandIndex` to spawnArg1 and `eventFlags` to spawnArg2, the reverse
+/// of `capSpawnEventIfIdle`. The caller must gate active events and CAP playback;
+/// this spawner does not check either and silently drops allocation failure.
+/// `CAP_EVENT_*` bits pause actors, hide the player and select action capture.
+/// `CAP_WEAPON_EVENT_ROOM_COMMAND` instead sends `commandIndex` to the room in
+/// in-place mode, without those flag effects. For every other flag word,
+/// `commandIndex` must satisfy `capRunCommand`.
+/// Requires a live player and loaded weapon-presentation resources through
+/// completion; the room must also remain live for room commands or sound cues.
+/// Enabled completion sound routing sends eventFlags + 100 as the cue key.
+void capSpawnWeaponEvent(s32 commandIndex, s32 eventFlags);
 
 extern s16 D_801156BC;
 

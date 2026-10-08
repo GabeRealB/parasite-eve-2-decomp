@@ -5319,7 +5319,7 @@ static void func_actor_403100_80139818(Task* arg0)
         effectSpawn(EFFECT_SMOKE_PUFF, effectCoords + 3, -0x3FFCB400, &position);
     }
     if ((s16)D_actor_403100_80155808->stateFrames == 0x64) {
-        func_8010B2A0(0, 3);
+        effectSpawnPlayerBodyHit(EFFECT_PLAYER_BODY_HIT_BLAST, 3);
         _actor403100PlayPlayerAnimation(1, ANIMATION_MESSAGE_INSTALL_AND_PLAY);
         task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         taskMessageDispatch(task, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(D_actor_403100_80147614, 4), 0);

@@ -121,7 +121,7 @@ segments:
       - [0x11104, c, linked_actors] # attachmentTargetAll
       - [0x12C80, c, hud_sprites] # hudDrawRadar
       - [0x15810, c, view_load] # Gp_ViewBeginLoad
-      - [0x159CC, c, view_image] # Gp_ViewLoadImage
+      - [0x159CC, c, view_image] # loadingUploadViewImageTask
       - [0x15B10, c, cd_loading] # _loadingEnqueueWeaponAmmoResources
       - [0x16644, c, area_cd] # loadingPollAreaPlacementFiles
       - [0x16D48, c, load_screen] # areaStartRoomRuntime

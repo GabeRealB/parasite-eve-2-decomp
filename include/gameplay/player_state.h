@@ -158,7 +158,22 @@ void playerActorEnterPendingHit(Task* task);
 /// The receiver, message ID and second payload are unused message-ABI words.
 s32 companionApplyDamage(Task* unusedTask, s32 unusedMessageId, s32 attackKey, s32 unusedSecondArg);
 
-void func_8010B2A0(s32 arg0, s32 arg1);
+/// Player-body hit task selectors accepted by `effectSpawnPlayerBodyHit`.
+enum {
+    EFFECT_PLAYER_BODY_HIT_BLAST = 0,
+    EFFECT_PLAYER_BODY_HIT_PUFF  = 1
+};
+
+/// Spawns a delayed player-body blast sequence or a one-shot tinted-puff recipe.
+///
+/// `effectKind` is one of `EFFECT_PLAYER_BODY_HIT_*`; other indices are unchecked.
+/// Blast uses the low two bits of `effectArgument` as level 0..3 (size 192..480
+/// game units, recipe 1..4). Puff uses low16 plus one as a signed-halfword extra
+/// count; 0..32766 keeps it nonnegative. Copies the argument into the task and
+/// returns no handle; allocation failure is ignored. Does not apply player damage.
+/// Requires a live player/model and loaded effect resources through the last
+/// emission, with initialized GTE/scratch storage when the callback runs.
+void effectSpawnPlayerBodyHit(s32 effectKind, s32 effectArgument);
 
 /// Indices selecting companion behavior distributions by remaining HP.
 enum {

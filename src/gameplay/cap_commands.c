@@ -451,7 +451,9 @@ void gameFlagClearLiveNibbles(void)
     }
 }
 
-void Gp_SpawnEvt1(s32 arg0, s32 arg1)
+void capSpawnWeaponEvent(s32 commandIndex, s32 eventFlags)
 {
-    taskSpawnFromTable(Gp_EvtSpawnTable, 1, arg0, arg1);
+    enum { CAP_EVENT_TASK_WEAPON = 1 };
+
+    taskSpawnFromTable(Gp_EvtSpawnTable, CAP_EVENT_TASK_WEAPON, commandIndex, eventFlags);
 }

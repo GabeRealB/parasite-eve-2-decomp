@@ -10,11 +10,11 @@
 extern s16 D_actor_800100_80167218[];
 
 /// Overlay-imported s16 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant` and passed
-/// as the third argument of `playerActorInitWeaponCollision` (`Gp_SetupAllyWeapon`).
+/// as the third argument of `playerActorInitWeaponCollision` (`companionRestoreEquipment`).
 extern s16 D_actor_800100_80167224[];
 
 /// Overlay-imported u8 table indexed by `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant` and stored
-/// at `CompanionWork.activity.combat.attacksRemaining` (`Gp_SetupAllyWeapon`).
+/// at `CompanionWork.activity.combat.attacksRemaining` (`companionRestoreEquipment`).
 extern u8 D_actor_800100_80167230[];
 
 /// Starts the armed companion's reload behavior and stops its movement and turning.
