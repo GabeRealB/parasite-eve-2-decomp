@@ -1399,39 +1399,40 @@ static __inline__ void _actorMovementStepModelForward(Task* modelTask, s16 stepD
     _actorMovementStepForward(rootCoord, stepDistance);
 }
 
-/// Rebuilds `coord`'s rotation as a turn about Y by its current heading at
-/// unit scale.
-static __inline__ void actorResetYaw(GfxCoord* coord)
+/// Collapses a model part's rotation to its current yaw at 1/4096 scale.
+///
+/// `coord` must be live, writable and word-aligned, separate from the scratch
+/// stack. Heading comes from its local matrix in 4096 units per turn; a zero
+/// horizontal pair gives yaw zero. Pitch, roll and previous scale are replaced
+/// with a yaw rotation scaled by Q12 factor 1. Scaling shifts products
+/// arithmetically by 12 bits, so small negative coefficients round down.
+/// Translation, parent and stored Euler angles stay intact; the composition
+/// cache is marked dirty for its next refresh.
+///
+/// The initialized scratch stack needs 0x58 free word-aligned bytes: one
+/// `ActorScaleRotScratch` block plus the nested axis-rotation workspace.
+/// Both reservations are released before return; no pointer is retained.
+static __inline__ void _actorRenderCollapseYawRotation(GfxCoord* coord)
 {
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
+    enum { ACTOR_RENDER_COLLAPSED_YAW_SCALE = 1 };
+    ActorScaleRotScratch* yawScratch;
+    s16                   yaw;
 
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
+    yawScratch = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleRotScratch);
 
-    ang      = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->yaw = ang;
-    gfxRotMatrixY(&blk->rotation, ang, 1);
-    blk->scale.vz = 1;
-    blk->scale.vy = 1;
-    blk->scale.vx = 1;
-    ScaleMatrix(&blk->rotation, &blk->scale);
+    // Replace the animated pose with a nearly collapsed yaw rotation.
+    yaw             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    yawScratch->yaw = yaw;
+    gfxRotMatrixY(&yawScratch->rotation, yaw, GRAPHICS_ROTATION_REPLACE);
+    yawScratch->scale.vz = ACTOR_RENDER_COLLAPSED_YAW_SCALE;
+    yawScratch->scale.vy = ACTOR_RENDER_COLLAPSED_YAW_SCALE;
+    yawScratch->scale.vx = ACTOR_RENDER_COLLAPSED_YAW_SCALE;
+    ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
-    coord->coord.m[0][0] = (u16)blk->rotation.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->rotation.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->rotation.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->rotation.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->rotation.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->rotation.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->rotation.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->rotation.m[2][1];
-    coord->coord.m[2][2] = (u16)blk->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
+    // Keep the part's attachment position while collapsing its geometry.
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
 /// Replaces a coordinate's rotation with its current yaw and separate horizontal and vertical scales.

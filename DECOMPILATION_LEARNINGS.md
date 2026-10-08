@@ -956,7 +956,7 @@ Check the prototype before believing an m2c `void`: the overlay's own header is
 ours, and changing it costs nothing when the callers ignore the value.
 ## A 1/4096-scale scratch helper is not the scaled one with `1`: its pop re-loads, and that decides who gets a call-saved register
 
-`_actorRenderRescaleYaw(coord, 1)` and `actorResetYaw(coord)` compute the
+`_actorRenderRescaleYaw(coord, 1)` and `_actorRenderCollapseYawRotation(coord)` compute the
 same thing, but only the second compiles to the target's tail in
 `oddStrangerWalkingDeath`. Inlining the *scaled* body nine times gave
 98.166% (`regs=56 reorder=10 delete=8`); the 1/4096-scale body gave 100.000%.
@@ -977,7 +977,7 @@ m22                  = *(u16*)&blk->rotation.m[2][2];
 coord->composeStamp           = 0;
 coord->coord.m[2][2] = m22;
 
-/* ResetYaw(coord) -- 1/4096-scale form, the target's */
+/* _actorRenderCollapseYawRotation(coord) -- 1/4096-scale form, the target's */
 head                    = *SCRATCH_STACK_CURSOR_SLOT;
 blk                     = (ActorScaleRotScratch*)((u8*)head - 0x34);
 *SCRATCH_STACK_CURSOR_SLOT = blk;

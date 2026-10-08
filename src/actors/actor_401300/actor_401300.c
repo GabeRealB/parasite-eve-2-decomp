@@ -4576,17 +4576,17 @@ static void func_actor_401300_8013BB30(Task* arg0)
             break;
     }
     _actor401300UpdateAnimationEffects(arg0);
-    actorResetYaw(arg0->extra.tmd->coords + 2);
-    actorResetYaw(arg0->extra.tmd->coords + 3);
-    actorResetYaw(arg0->extra.tmd->coords + 4);
-    actorResetYaw(arg0->extra.tmd->coords + 5);
-    actorResetYaw(arg0->extra.tmd->coords + 6);
-    actorResetYaw(arg0->extra.tmd->coords + 7);
-    actorResetYaw(arg0->extra.tmd->coords + 8);
-    actorResetYaw(arg0->extra.tmd->coords + 9);
-    actorResetYaw(arg0->extra.tmd->coords + 10);
-    actorResetYaw(arg0->extra.tmd->coords + 11);
-    actorResetYaw(arg0->extra.tmd->coords + 12);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 2);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 3);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 4);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 5);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 6);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 7);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 8);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 9);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 10);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 11);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 12);
 }
 
 static void func_actor_401300_8013CBAC(Task* arg0)

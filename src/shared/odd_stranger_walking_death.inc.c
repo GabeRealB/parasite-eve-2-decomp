@@ -19,7 +19,7 @@
 /// off `stateTimer - 0x19`, and from 0x1A on rebuilds the root coordinate through
 /// its current yaw, keeping X/Z at `ODD_STRANGER_ROOT_SCALE` and reducing Y
 /// by `(stateTimer - 0x14) * 0xB`. Both arms end in
-/// `_oddStrangerDriveAnimation` and `actorResetYaw` on nodes 2..10.
+/// `_oddStrangerDriveAnimation` and `_actorRenderCollapseYawRotation` on nodes 2..10.
 void oddStrangerWalkingDeath(Task* arg0)
 {
 #if !ODD_STRANGER_HIT_FX_OFFSET
@@ -107,15 +107,15 @@ void oddStrangerWalkingDeath(Task* arg0)
             break;
     }
     _oddStrangerDriveAnimation(arg0);
-    actorResetYaw(arg0->extra.tmd->coords + 2);
-    actorResetYaw(arg0->extra.tmd->coords + 3);
-    actorResetYaw(arg0->extra.tmd->coords + 4);
-    actorResetYaw(arg0->extra.tmd->coords + 5);
-    actorResetYaw(arg0->extra.tmd->coords + 6);
-    actorResetYaw(arg0->extra.tmd->coords + 7);
-    actorResetYaw(arg0->extra.tmd->coords + 8);
-    actorResetYaw(arg0->extra.tmd->coords + 9);
-    actorResetYaw(arg0->extra.tmd->coords + 10);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 2);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 3);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 4);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 5);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 6);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 7);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 8);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 9);
+    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 10);
 }
 
 #undef ODD_STRANGER_FX_OFFSET
