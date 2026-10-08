@@ -2476,6 +2476,11 @@ static void _dryfieldNightDilapidatedHouseMovieTask(Task* task)
 }
 
 /// Hands presentation to the movie controller and queues the current camera packets.
+///
+/// Requires the loaded room's display-task table and current view resources.
+/// Selects task-owned flipping even if the controller allocation fails. Camera
+/// packets are queued after the display spawn; keep their resources live through
+/// movie playback and display restoration.
 static inline void _dryfieldNightDilapidatedHouseTakeMovieDisplay(void)
 {
     enum { DRYFIELD_NIGHT_DILAPIDATED_HOUSE_MOVIE_CONTROLLER = 1 };

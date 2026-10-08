@@ -487,11 +487,12 @@ static void _dryfieldWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing
 
 /// Restores equipment, weapon animation and final placement for the skipped warehouse scene.
 ///
-/// Borrows live cutscene work and its player. A suppressed-equipment latch is
-/// cleared only after restoration. The animation request is stack-owned and
-/// borrowed by the player only during synchronous dispatch; no pointer is kept.
-/// Requires character 1, weapon index 0..32 and the selected bank 1..33 loaded.
-/// The retained other-character base is 34; its safe reachability is unproven.
+/// Requires live cutscene work, its player and the closing room transform.
+/// Restoring suppressed equipment clears its latch and holds scripted control;
+/// an already clear latch leaves control unchanged. The animation request is
+/// borrowed only during synchronous dispatch. Character 1 with weapon 0..32
+/// selects loaded animation bank 1..33. Any other character uses the retained
+/// base 34, beyond the declared bank table; that path's reachability is unproven.
 static inline void _dryfieldWarehouseRestoreSkippedPlayer(_DryfieldWarehouseCutsceneWork* work)
 {
     enum { CHARACTER_WITH_FIRST_WEAPON_BANKS = 1,

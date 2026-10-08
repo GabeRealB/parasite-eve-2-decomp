@@ -121,3 +121,7 @@ _neoArkObservatoryRejectKeyItemMessage = 0x8017fbe0; // type:func
 _neoArkObservatoryDrawLightBeam = 0x80180534; // type:func
 _neoArkObservatoryUpdateCompanionVisibility = 0x8017fd7c; // type:func
 neoArkObservatoryRoomTask = 0x8017fddc; // type:func
+_neoArkObservatoryRoomActionMessage = 0x8017f6f8; // type:func
+_neoArkObservatoryCapEventTask = 0x8017fb1c; // type:func
+_neoArkObservatoryResolveRoomEventMessage = 0x8017fbe8; // type:func
+_neoArkObservatoryCommandMessage = 0x8017fca0; // type:func

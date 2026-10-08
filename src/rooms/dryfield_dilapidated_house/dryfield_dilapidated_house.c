@@ -2619,7 +2619,11 @@ static void _dryfieldDilapidatedHouseRoomUpdate(Task* task)
     }
 }
 
-/// Paints a black cover over the frame at the current ordering-table depth.
+/// Queues an opaque 320-by-256 black tile at the current ordering-table depth.
+///
+/// Requires room drawing coordinates centred on the screen and one free TILE
+/// in the current frame's packet arena. Advances the packet cursor; the tile
+/// stays borrowed by the GPU until that frame finishes.
 static inline void _dryfieldDilapidatedHouseDrawBlackout(void)
 {
     enum { COVER_LEFT_PIXELS   = -160,
@@ -2692,11 +2696,12 @@ static void _dryfieldDilapidatedHouseBlackoutTask(Task* task)
     }
 }
 
-/// Commits the encounter's progression and requests the next Dryfield session.
+/// Commits the encounter's saved progression and queues a captured-frame reload.
 ///
-/// Requires the live save, party state and loaded gameplay resources. Applies
-/// the alternate area updates only after Gray Stalker's defeat, restores the
-/// party and queues the captured-frame reload after recording its destination.
+/// Restores player HP/MP and companion HP, selects Dryfield R08 room/warp 1
+/// with scene event 1, and restores sprite variant 1. Gray Stalker's defeat
+/// enables the second area-update list. Requires the live save, party state,
+/// room update lists and gameplay reload resources; the spawn result is ignored.
 static inline void _dryfieldDilapidatedHousePrepareNextSession(void)
 {
     enum {

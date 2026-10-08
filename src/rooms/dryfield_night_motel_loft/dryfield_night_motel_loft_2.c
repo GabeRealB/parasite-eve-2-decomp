@@ -462,23 +462,25 @@ void dryfieldNightMotelLoftRebuildJerryCanCollision(s32 collected)
 
 /// Attempts one falling-shard spawn using the seventh room point as workspace.
 ///
-/// `points` borrows the room's writable seven-vector array. Four LCG draws
-/// replace element 6's XYZ with world-matrix input coordinates and select a
-/// radius of 16..79 coordinate units. The effect spawner snapshots placement
-/// and retains this overlay-owned pointer; its shard task never reads it again.
-/// An allocation failure still consumes all four draws.
-static inline void _dryfieldNightMotelLoftSpawnShard(SVECTOR* points)
+/// `points` borrows at least seven writable room vectors; only element 6's XYZ
+/// changes. Four LCG draws select matrix-input XYZ in [3001,4024], [-3420,-2909],
+/// [-1023,1024] and a radius of 16..79 coordinate units. Placement uses the
+/// current GsWSMATRIX. The spawner snapshots XYZ and retains the overlay-owned
+/// pointer, which this shard never reads again. Failure still consumes all draws.
+static inline void _dryfieldNightMotelLoftSpawnShard(SVECTOR points[7])
 {
-    enum { DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS = 16 };
+    enum { SHARD_WORKSPACE_POINT                      = 6,
+           DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS = 16,
+           SHARD_RADIUS_JITTER_MASK                   = 0x3F };
 
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    points[6].vx    = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    points[6].vy    = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    points[6].vz    = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
-    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & 0x3F) + DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS, &points[6]);
+    gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    points[SHARD_WORKSPACE_POINT].vx = 0xFB8 - ((gRandomLcgState >> 16) & 0x3FF);
+    gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    points[SHARD_WORKSPACE_POINT].vy = ((gRandomLcgState >> 16) & 0x1FF) - 0xD5C;
+    gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    points[SHARD_WORKSPACE_POINT].vz = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
+    gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    effectSpawn(EFFECT_NIGHT_MOTEL_LOFT_FALLING_SHARD, NULL, ((gRandomLcgState >> 16) & SHARD_RADIUS_JITTER_MASK) + DRYFIELD_NIGHT_MOTEL_LOFT_SHARD_MIN_RADIUS, &points[SHARD_WORKSPACE_POINT]);
 }
 
 void dryfieldNightMotelLoftFlaresAndShardsTask(Task* task)

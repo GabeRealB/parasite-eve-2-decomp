@@ -1615,14 +1615,16 @@ void func_dryfield_trailer_coach_80181364(Task* task)
 /// and the saved-area changes are committed as soon as playback is requested.
 static inline void _dryfieldTrailerCoachStartFirstStoryConversation(void)
 {
-    enum { CONVERSATION_OBJECTIVE   = 15,
-           CONVERSATION_SCENE_EVENT = 6 };
+    enum { CONVERSATION_OBJECTIVE                = 15,
+           CONVERSATION_SCENE_EVENT              = 6,
+           DRIVEWAY_FIRST_CONVERSATION_PROGRESS  = 1,
+           COMPANION_FIRST_CONVERSATION_SCHEDULE = 1 };
 
     evsStartScriptWithSkip(D_dryfield_trailer_coach_80185D54, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                            D_dryfield_trailer_coach_80186684);
     gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, DRYFIELD_TRAILER_COACH_FIRST_CONVERSATION_COMPLETE);
-    gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 1);
-    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 1);
+    gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, DRIVEWAY_FIRST_CONVERSATION_PROGRESS);
+    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, COMPANION_FIRST_CONVERSATION_SCHEDULE);
     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, CONVERSATION_OBJECTIVE);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = CONVERSATION_SCENE_EVENT;
     areaApplySavedUpdates(D_dryfield_trailer_coach_80189C50);
@@ -1714,20 +1716,23 @@ static s32 _dryfieldTrailerCoachResolveRoomEvent(Task* task, s32 messageId, cons
 
 /// Queues the repeat trailer-coach story scene with its persistent room record.
 ///
-/// The cutscene borrows this record through playback; CAP slot/file 1, view 10
-/// and room sound scripts 3/4/5/6 must remain loaded. Its later CAP command is 3.
+/// The cutscene borrows this record through playback; CAP slot/data resource 1,
+/// view 10 and room sound scripts 3/4/5/6 must remain loaded. Texture-page values
+/// remain those already in the record. Its later CAP command is 3. The record
+/// must not be overwritten while a runner is live; allocation failure is ignored.
 static inline void _dryfieldTrailerCoachStartRepeatStoryScene(void)
 {
     enum { REPEAT_SCENE_VIEW          = 10,
-           REPEAT_SCENE_CAP           = 1,
+           REPEAT_SCENE_CAP_SLOT      = 1,
+           REPEAT_SCENE_CAP_FILE      = 1,
            REPEAT_SCENE_TASK          = 0,
            REPEAT_SCENE_FOLLOW_UP_CAP = 3 };
 
     // The cutscene task borrows this persistent record after dispatch returns.
     D_dryfield_trailer_coach_80189C9C.view            = REPEAT_SCENE_VIEW;
-    D_dryfield_trailer_coach_80189C9C.capSlot         = REPEAT_SCENE_CAP;
-    D_dryfield_trailer_coach_80189C9C.capFile         = REPEAT_SCENE_CAP;
-    D_dryfield_trailer_coach_80189C9C.skipScene       = 0;
+    D_dryfield_trailer_coach_80189C9C.capSlot         = REPEAT_SCENE_CAP_SLOT;
+    D_dryfield_trailer_coach_80189C9C.capFile         = REPEAT_SCENE_CAP_FILE;
+    D_dryfield_trailer_coach_80189C9C.skipScene       = false;
     D_dryfield_trailer_coach_80189C9C.startSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 3);
     D_dryfield_trailer_coach_80189C9C.endSound        = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 5);
     D_dryfield_trailer_coach_80189C9C.sceneSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 4);

@@ -85,7 +85,7 @@ extern TaskDesc D_neo_ark_observatory_80180DD4;
 
 extern EvsCommand D_neo_ark_observatory_801812C0[];
 
-/// Descriptor of the cap-file task `func_neo_ark_observatory_8017FB1C`.
+/// Descriptor of the CAP playback task `_neoArkObservatoryCapEventTask`.
 extern TaskDesc D_neo_ark_observatory_801811AC;
 
 /// Messages the room task answers, terminated by id `TASK_MESSAGE_TABLE_END`.
@@ -154,12 +154,12 @@ extern WorldCollisionTrigger  D_neo_ark_observatory_8018742C[14];
 extern WorldCoordRoomLights   D_neo_ark_observatory_80186844[1];
 extern WorldCoordRoomLights   D_neo_ark_observatory_80186EBC[1];
 
-s32        func_neo_ark_observatory_8017F6F8(Task* task, s32 msgId, const void* firstArg, s32);
+static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* actionRequest, s32 unusedSecondArg);
 static s32 _neoArkObservatoryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-s32        func_neo_ark_observatory_8017FBE8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_neo_ark_observatory_8017FCA0(Task*, s32, s32, s32);
+static s32 _neoArkObservatoryResolveRoomEventMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _neoArkObservatoryCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg);
 
-void func_neo_ark_observatory_8017FB1C(Task*);
+static void _neoArkObservatoryCapEventTask(Task* task);
 
 #include "../../shared/planar_reflection_data.inc.c"
 
@@ -202,13 +202,13 @@ static AnimationSet _gNeoArkObservatoryAnimation03BC4 = {
     { NULL, _gNeoArkObservatoryAnimation03BC4Bank1, NULL, NULL, _gNeoArkObservatoryAnimation03BC4Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_neo_ark_observatory_801811AC = { { { TASK_BODY_NONE, 192 } }, func_neo_ark_observatory_8017FB1C, { .value = 0 } };
+TaskDesc D_neo_ark_observatory_801811AC = { { { TASK_BODY_NONE, 192 } }, _neoArkObservatoryCapEventTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_observatory_801811B8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_observatory_8017FBE8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkObservatoryResolveRoomEventMessage },
     { NEO_ARK_OBSERVATORY_MESSAGE_USE_KEY_ITEM, _neoArkObservatoryRejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_observatory_8017F6F8 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_observatory_8017FCA0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkObservatoryRoomActionMessage },
+    { ROOM_MESSAGE_COMMAND, _neoArkObservatoryCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1606,7 +1606,7 @@ RoomDeparture gRoomDeparture;
 
 s16 D_neo_ark_observatory_80187A3C;
 
-static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, RoomVariantResolver resolve);
+static __inline__ void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve);
 static void            func_neo_ark_observatory_8017FCE0(Task* arg0);
 static void            _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask);
 
@@ -1630,91 +1630,137 @@ static void _neoArkObservatoryPlayerReflectionTask(Task* reflectionTask)
 
 #include "../../shared/room_event_departure_task.inc.c"
 
-/// Copies the area, warp and room of `desc` into a resolver record, lets
-/// `resolve` rewrite the record in place, and copies the result back.
-static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, RoomVariantResolver resolve)
+/// Resolves a prepared departure's area, warp and room through an execute request.
+///
+/// Borrows a writable departure with valid 1-based selectors and a resolver for
+/// its stage. The resolver must support an aliased request/reply and read only
+/// area, warp, room and queryOnly: other request fields are uninitialized. Its
+/// result is ignored; the resolved area narrows back to a byte. Stage, sound and
+/// facing stay intact, and neither the helper nor the resolver retains storage.
+static __inline__ void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
 {
-    RoomEventMsg rec;
+    RoomEventMsg request;
 
-    rec.areaId    = desc->area;
-    rec.warp      = desc->warp;
-    rec.room      = desc->room;
-    rec.queryOnly = ROOM_EVENT_EXECUTE;
-    resolve(&rec, &rec);
-    desc->area = rec.areaId;
-    desc->warp = rec.warp;
-    desc->room = rec.room;
+    request.areaId    = departure->area;
+    request.warp      = departure->warp;
+    request.room      = departure->room;
+    request.queryOnly = ROOM_EVENT_EXECUTE;
+    resolve(&request, &request);
+    departure->area = request.areaId;
+    departure->warp = request.warp;
+    departure->room = request.room;
 }
 
-s32 func_neo_ark_observatory_8017F6F8(Task* arg0, s32 arg1, const void* firstArg, s32 arg3)
+/// Resolves and publishes a prepared Shelter departure after holding player control.
+///
+/// Borrows the initialized departure for this call; its resolver follows
+/// `_neoArkObservatoryResolveDeparture`'s selector-only, aliased-message contract.
+/// Copies the result into the room's persistent departure record before queuing
+/// its bodyless task. Keep the room loaded and do not overwrite that record
+/// while the task runs. Failed allocation still leaves control held and the
+/// destination committed to the record.
+static inline void _neoArkObservatoryQueueDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { DEPARTURE_TASK = 0 };
 
-    RoomDeparture       desc;
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    _neoArkObservatoryResolveDeparture(departure, resolve);
+    gRoomDeparture = *departure;
+    taskSpawnFromTable(&D_neo_ark_observatory_80180DD4, DEPARTURE_TASK, 0, 0);
+}
+
+/// Handles the observatory's room-action triggers and their one-time story scenes.
+///
+/// Borrows a four-byte DirectionActionRequest during synchronous dispatch.
+/// Action 10 departs for Mine/Shelter using the argument as the destination area,
+/// except the first cleared-power-plant return selects Control Room warp 3.
+/// Actions 1/2 start gated companion scenes, 3 starts companion talk in view 2,
+/// and 4 starts the observatory scene after Power Plant 1 is cleared. Unknown
+/// actions do nothing. Returns zero; other callback arguments are unused.
+/// The room, companion scene resources and relevant map overlay must stay loaded
+/// through the queued work. Progress changes survive failed spawns/start attempts.
+static s32 _neoArkObservatoryRoomActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* actionRequest, s32 unusedSecondArg)
+{
+    enum { ACTION_SHELTER_DEPARTURE          = 10,
+           ACTION_COMPANION_ARRIVAL_SCENE    = 1,
+           ACTION_COMPANION_SECOND_SCENE     = 2,
+           ACTION_COMPANION_TALK             = 3,
+           ACTION_OBSERVATORY_SCENE          = 4,
+           COMPANION_ROUTE_BEFORE_ARRIVAL    = 2,
+           COMPANION_ROUTE_AT_OBSERVATORY    = 3,
+           COMPANION_RETURN_SCHEDULE         = 8,
+           POWER_PLANT_2_RETURN_READY        = 1,
+           CONTROL_ROOM_RETURN_WARP          = 3,
+           REQUESTED_SHELTER_WARP            = 4,
+           DEFAULT_DESTINATION_ROOM          = 1,
+           DEPARTURE_FACING                  = ACTOR_TRANSFORM_ANGLE_TURN / 4,
+           DEPARTURE_SOUND                   = SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_OBSERVATORY, 5),
+           COMPANION_FIRST_BRANCH_OBJECTIVE  = 0x2C,
+           COMPANION_SECOND_BRANCH_OBJECTIVE = 0x2D,
+           SECOND_SCENE_DIALOGUE_INDEX       = 6,
+           SECOND_SCENE_EVENT                = 0x15,
+           COMPANION_TALK_VIEW               = 2 };
+    RoomDeparture       departure;
     RoomVariantResolver resolve;
-    s32                 temp;
+    s32                 powerPlant2Cleared;
 
-    if (request->actionId == 0xA) {
-        if (gameFlagGetNibble(GAME_FLAG_0D1) == 2) {
-            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 8);
+    // Prepare and resolve the Shelter destination before publishing it to its task.
+    if (actionRequest->actionId == ACTION_SHELTER_DEPARTURE) {
+        if (gameFlagGetNibble(GAME_FLAG_0D1) == COMPANION_ROUTE_BEFORE_ARRIVAL) {
+            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_RETURN_SCHEDULE);
         }
         if (gameFlagGetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN) == 0) {
-            temp = gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED);
-            if (temp == 1) {
+            powerPlant2Cleared = gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED);
+            if (powerPlant2Cleared == POWER_PLANT_2_RETURN_READY) {
                 RoomVariantResolver resolve;
 
-                gameFlagSetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN, 1);
-                desc.stage    = GAME_STAGE_MINE_SHELTER;
-                desc.area     = GAME_AREA_SHELTER_B1_CONTROL_ROOM;
-                desc.warp     = 3;
-                desc.room     = temp;
-                desc.sndEvent = 0x55070005;
-                desc.facing   = 0x400;
-                resolve       = _roomVariantResolveShelter;
-                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                _neoArkObservatoryStageMarker(&desc, resolve);
-                gRoomDeparture = desc;
-                taskSpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
+                gameFlagSetNibble(GAME_FLAG_CONTROL_ROOM_RETURN_TAKEN, true);
+                departure.stage    = GAME_STAGE_MINE_SHELTER;
+                departure.area     = GAME_AREA_SHELTER_B1_CONTROL_ROOM;
+                departure.warp     = CONTROL_ROOM_RETURN_WARP;
+                departure.room     = powerPlant2Cleared;
+                departure.sndEvent = DEPARTURE_SOUND;
+                departure.facing   = DEPARTURE_FACING;
+                resolve            = _roomVariantResolveShelter;
+                _neoArkObservatoryQueueDeparture(&departure, resolve);
                 return 0;
             }
         }
-        desc.stage    = GAME_STAGE_MINE_SHELTER;
-        desc.area     = request->argument;
-        desc.room     = 1;
-        desc.warp     = 4;
-        desc.sndEvent = 0x55070005;
-        desc.facing   = 0x400;
-        resolve       = _roomVariantResolveShelter;
-        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        _neoArkObservatoryStageMarker(&desc, resolve);
-        gRoomDeparture = desc;
-        taskSpawnFromTable(&D_neo_ark_observatory_80180DD4, 0, 0, 0);
+        departure.stage    = GAME_STAGE_MINE_SHELTER;
+        departure.area     = actionRequest->argument;
+        departure.room     = DEFAULT_DESTINATION_ROOM;
+        departure.warp     = REQUESTED_SHELTER_WARP;
+        departure.sndEvent = DEPARTURE_SOUND;
+        departure.facing   = DEPARTURE_FACING;
+        resolve            = _roomVariantResolveShelter;
+        _neoArkObservatoryQueueDeparture(&departure, resolve);
     }
-    if (request->actionId == 1 && gameFlagGetNibble(GAME_FLAG_0D7) == 0) {
-        gameFlagSetNibble(GAME_FLAG_0D7, 1);
+    // Commit each one-shot gate before requesting its scene.
+    if (actionRequest->actionId == ACTION_COMPANION_ARRIVAL_SCENE && gameFlagGetNibble(GAME_FLAG_0D7) == 0) {
+        gameFlagSetNibble(GAME_FLAG_0D7, true);
         if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2C);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, COMPANION_FIRST_BRANCH_OBJECTIVE);
             evsStartScriptWithSkip(D_actor_450200_8013C72C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_8013CAEC);
         } else {
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2D);
-            gameFlagSetNibble(GAME_FLAG_0D1, 3);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, COMPANION_SECOND_BRANCH_OBJECTIVE);
+            gameFlagSetNibble(GAME_FLAG_0D1, COMPANION_ROUTE_AT_OBSERVATORY);
             evsStartScriptWithSkip(D_actor_450200_80137EE4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_80138694);
         }
     }
-    if (request->actionId == 2) {
+    if (actionRequest->actionId == ACTION_COMPANION_SECOND_SCENE) {
         if (gameFlagGetNibble(GAME_FLAG_0E1) == 0) {
             gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 6);
-            gameFlagSetNibble(GAME_FLAG_0E1, 1);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x15;
+            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, SECOND_SCENE_DIALOGUE_INDEX);
+            gameFlagSetNibble(GAME_FLAG_0E1, true);
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SECOND_SCENE_EVENT;
             evsStartScriptWithSkip(D_actor_450200_8013FC58, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_450200_80140078);
         }
     }
-    if (request->actionId == 3 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.loc.view == 2) {
+    if (actionRequest->actionId == ACTION_COMPANION_TALK && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gGameSession->location.loc.view == COMPANION_TALK_VIEW) {
         actor450200StartCompanionTalk();
     }
-    if (request->actionId == 4 && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && gameFlagGetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
-        gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN, 1);
+    if (actionRequest->actionId == ACTION_OBSERVATORY_SCENE && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0 && gameFlagGetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN) == 0) {
+        gameFlagSetNibble(GAME_FLAG_OBSERVATORY_EVENT_SEEN, true);
         evsStartScriptWithSkip(D_neo_ark_observatory_80181200, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_observatory_801812C0);
     }
     return 0;
@@ -1741,23 +1787,38 @@ void neoArkObservatoryUpdateCompanionObstacle(s32 unusedEventArg)
     _followCollisionRebuildObstacle(obstacleActorTask->extra.tmd->coords, &D_neo_ark_observatory_80181368);
 }
 
-void func_neo_ark_observatory_8017FB1C(Task* task)
+/// Plays a command from the observatory's second loaded CAP data resource.
+///
+/// State 0 selects resource ordinal 1 and VRAM origin (768,0), then attempts the
+/// command in spawnArg1.value with no event flags. State 1 waits for CAP to be
+/// idle; state 2 resumes player control, restores default CAP resources and kills
+/// this bodyless task. Failed starts still reach cleanup; unknown states do
+/// nothing. Requires the room's CAP files/textures through playback and a valid
+/// command index for resource 1. The command handler holds control before spawn.
+static void _neoArkObservatoryCapEventTask(Task* task)
 {
+    enum { CAP_EVENT_START      = 0,
+           CAP_EVENT_WAIT       = 1,
+           CAP_EVENT_RESTORE    = 2,
+           CAP_RESOURCE_ORDINAL = 1,
+           CAP_TEXTURE_VRAM_X   = 0x300,
+           CAP_TEXTURE_VRAM_Y   = 0 };
+
     switch (task->state) {
-        case 0:
-            Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x300, 0);
+        case CAP_EVENT_START:
+            Gp_CapFile = NULL;
+            capSelectLoadedFile(CAP_RESOURCE_ORDINAL);
+            capSetTexturePage(CAP_TEXTURE_VRAM_X, CAP_TEXTURE_VRAM_Y);
             capSpawnEventIfIdle(task->spawnArg1.value, CAP_EVENT_NO_FLAGS);
             task->state++;
             break;
-        case 1:
+        case CAP_EVENT_WAIT:
             if (capIsBusy() != 0) {
                 break;
             }
             task->state++;
             break;
-        case 2:
+        case CAP_EVENT_RESTORE:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             capReset();
             taskKill(task);
@@ -1774,28 +1835,44 @@ static s32 _neoArkObservatoryRejectKeyItemMessage(Task* task, s32 messageId, s32
     return 0;
 }
 
-/// Room event-script handler: mirrors the incoming message onto the outgoing
-/// one and lets `mapNeoArkResolveRoomVariant` act on both. Once the observatory has been
-/// reached from both routes (nibbles 0xD1 == 3 and 0x4C == 9) and the script
-/// raises one of the two arrival ids with no sub-state pending, nibble 0x4C is
-/// cleared and the room's area records are applied.
-s32 func_neo_ark_observatory_8017FBE8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a Neo Ark departure and commits the companion's promenade progression.
+///
+/// Borrows a complete readable request and writable reply, which may alias.
+/// Copies all eight bytes before map resolution. An executed north/south
+/// promenade request at route state 3 and companion schedule 9 clears that
+/// schedule and applies the saved-area updates. Queries suppress those effects.
+/// Always returns 1; receiver and message ID are unused. Requires the map overlay,
+/// room update list and live saved state. Neither pointer is retained.
+static s32 _neoArkObservatoryResolveRoomEventMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    if ((gameFlagGetNibble(GAME_FLAG_0D1) == 3) && (gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) == 9) &&
-        ((in->areaId == GAME_AREA_NEO_ARK_NORTH_PROMENADE) || (in->areaId == GAME_AREA_NEO_ARK_SOUTH_PROMENADE)) && (in->queryOnly == ROOM_EVENT_EXECUTE)) {
-        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
+    enum { COMPANION_ROUTE_AT_OBSERVATORY = 3,
+           COMPANION_PROMENADE_SCHEDULE   = 9,
+           COMPANION_SCHEDULE_CLEARED     = 0,
+           TRANSITION_ALLOWED             = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if ((gameFlagGetNibble(GAME_FLAG_0D1) == COMPANION_ROUTE_AT_OBSERVATORY) && (gameFlagGetNibble(GAME_FLAG_COMPANION_1_SCHEDULE) == COMPANION_PROMENADE_SCHEDULE) &&
+        ((request->areaId == GAME_AREA_NEO_ARK_NORTH_PROMENADE) || (request->areaId == GAME_AREA_NEO_ARK_SOUTH_PROMENADE)) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
+        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_SCHEDULE_CLEARED);
         areaApplySavedUpdates(D_neo_ark_observatory_80187A28);
     }
-    return 1;
+    return TRANSITION_ALLOWED;
 }
 
-s32 func_neo_ark_observatory_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Holds player control and queues the room's alternate CAP command 1.
+///
+/// Handles ROOM_MESSAGE_COMMAND index 1; other indices do nothing. Returns zero
+/// and ignores the other arguments. The room and CAP resources must remain loaded
+/// through the spawned playback task. A failed spawn leaves the player held.
+static s32 _neoArkObservatoryCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedSecondArg)
 {
-    if (arg2 == 1) {
+    enum { ALTERNATE_CAP_COMMAND = 1,
+           CAP_EVENT_TASK        = 0 };
+
+    if (commandIndex == ALTERNATE_CAP_COMMAND) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-        taskSpawnFromTable(&D_neo_ark_observatory_801811AC, 0, 1, 0);
+        taskSpawnFromTable(&D_neo_ark_observatory_801811AC, CAP_EVENT_TASK, ALTERNATE_CAP_COMMAND, 0);
     }
     return 0;
 }

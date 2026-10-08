@@ -112,13 +112,22 @@ static inline void _dryfieldNightMotelBalconySetBreathFlameTexture(POLY_FT4* qua
     quad->v3   = textureFrame->v + EFFECT_SPRITE_ATLAS_UV_SPAN;
 }
 
-/// Disables both points of the broken lamp in both view-mask words.
+/// Clears the broken lamp shaft's view masks and the adjacent point's masks.
+///
+/// Clears both words covering views 0..63 in the room-owned table. The drawer
+/// tests the first point's mask for the shaft; the adjacent point's mask has no
+/// current reader. Already queued packets are unaffected. No masks are restored.
 static inline void _dryfieldNightMotelBalconyDisableBrokenLamp(void)
 {
-    D_dryfield_night_motel_balcony_80182D40[0][3] = 0;
-    D_dryfield_night_motel_balcony_80182D40[0][2] = 0;
-    D_dryfield_night_motel_balcony_80182D40[1][3] = 0;
-    D_dryfield_night_motel_balcony_80182D40[1][2] = 0;
+    enum { LOW_VIEW_MASK_WORD  = 0,
+           HIGH_VIEW_MASK_WORD = 1,
+           LAMP_SHAFT_POINT    = 2,
+           LAMP_ADJACENT_POINT = 3 };
+
+    D_dryfield_night_motel_balcony_80182D40[LOW_VIEW_MASK_WORD][LAMP_ADJACENT_POINT]  = 0;
+    D_dryfield_night_motel_balcony_80182D40[LOW_VIEW_MASK_WORD][LAMP_SHAFT_POINT]     = 0;
+    D_dryfield_night_motel_balcony_80182D40[HIGH_VIEW_MASK_WORD][LAMP_ADJACENT_POINT] = 0;
+    D_dryfield_night_motel_balcony_80182D40[HIGH_VIEW_MASK_WORD][LAMP_SHAFT_POINT]    = 0;
 }
 
 /// Chooses a burst offset in model-part coordinates with three shared LCG draws.

@@ -577,8 +577,11 @@ SVECTOR D_dryfield_toilet_8018705C[1604] = { 0 };
 
 /// Normalizes a spray offset to Q12, choosing a random direction for a zero offset.
 ///
-/// Borrows writable effect work; changes only `pos` for the zero case and
-/// writes `move`. Three LCG advances produce signed components in [-2048, 2047].
+/// Borrows writable effect work. Reads the signed XYZ offset in the emitter's
+/// parent frame and writes `move` at 4096 units per unit length. A zero offset
+/// consumes three LCG draws and replaces `pos` with components in [-2048,2047];
+/// that random vector can itself be zero, so no nonzero direction is guaranteed.
+/// The emitter has already copied its placement before this mutation.
 static inline void _dryfieldToiletNormalizeSprayDirection(EffectWork* work)
 {
     enum { SPRAY_RANDOM_DIRECTION_MASK = 0xFFF,

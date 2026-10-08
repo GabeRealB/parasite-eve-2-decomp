@@ -1019,7 +1019,10 @@ static s32 _dryfieldNightTrailerCoachResolveRoomVariantMessage(Task* unusedTask,
 /// Configures and queues the chapter-dependent trailer coach cutscene.
 ///
 /// The room-owned record stays borrowed until the runner finishes, so another
-/// cutscene request must not overwrite it while a runner is live.
+/// cutscene request must not overwrite it while a runner is live. Selects CAP
+/// data resource 1 at VRAM X=896 before chapter 4, otherwise resource 2 at X=960;
+/// Y remains the record's existing value. Requires those resources, view 8 and
+/// sound entries 3..6 loaded. Saved arrival becomes 1 even if spawning fails.
 static inline void _dryfieldNightTrailerCoachQueueCutscene(void)
 {
     enum {
@@ -1031,6 +1034,7 @@ static inline void _dryfieldNightTrailerCoachQueueCutscene(void)
         DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TPAGE_X_EARLY     = 0x380,
         DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TPAGE_X_LATE      = 0x3C0,
         DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_FOLLOWUP_COMMAND  = 3,
+        DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TASK              = 0,
         DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_START_SOUND       = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 3),
         DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_END_SOUND         = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 5),
         DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_SCENE_SOUND       = SOUND_AREA(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_TRAILER_COACH, 4),
@@ -1047,12 +1051,12 @@ static inline void _dryfieldNightTrailerCoachQueueCutscene(void)
         D_dryfield_night_trailer_coach_8018C21C.capTPageX = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TPAGE_X_LATE;
         D_dryfield_night_trailer_coach_8018C21C.capFile   = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_CAP_FILE_LATE;
     }
-    D_dryfield_night_trailer_coach_8018C21C.skipScene       = 0;
+    D_dryfield_night_trailer_coach_8018C21C.skipScene       = false;
     D_dryfield_night_trailer_coach_8018C21C.startSound      = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_START_SOUND;
     D_dryfield_night_trailer_coach_8018C21C.endSound        = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_END_SOUND;
     D_dryfield_night_trailer_coach_8018C21C.sceneSound      = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_SCENE_SOUND;
     D_dryfield_night_trailer_coach_8018C21C.afterSceneSound = DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_AFTER_SCENE_SOUND;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_FOLLOWUP_COMMAND, &D_dryfield_night_trailer_coach_8018C21C);
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_TASK, DRYFIELD_NIGHT_TRAILER_COACH_CUTSCENE_FOLLOWUP_COMMAND, &D_dryfield_night_trailer_coach_8018C21C);
 }
 
 /// Handles the night trailer coach's CAP room commands.

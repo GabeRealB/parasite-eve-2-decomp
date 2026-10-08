@@ -95598,7 +95598,7 @@ with the copy.
 "copy is `$sp`-relative while the field accesses are not" is the signature to
 look for, not a reason to doubt the pointer.
 
-The same body is staged in eight room overlays - `func_neo_ark_observatory_8017F6F8`
+The same body is staged in eight room overlays - `_neoArkObservatoryRoomActionMessage`
 and `func_shelter_b4_water_supply_8017DC28` carry it verbatim, the latter with
 every access `$sp`-relative because its function pointer already holds `$s0`.
 Example: `func_dryfield_night_water_hole_8017DC28`. Inputs: `base_6.i`
@@ -120024,7 +120024,7 @@ case, not as one `goto` — see "Write `state++; return;` out in every switch
 case, not one shared `goto advance`". Getting only one of the two right lands
 in the low 80s with a plausible-looking `branch`/`delete` mix.
 
-## A shared body's caller turns out to be an inlined helper: the `$sp`-relative staging plus a `jalr` are the tell (func_neo_ark_observatory_8017F6F8, 2026-09-17)
+## A shared body's caller turns out to be an inlined helper: the `$sp`-relative staging plus a `jalr` are the tell (_neoArkObservatoryRoomActionMessage, 2026-09-17)
 
 **Symptom.** A room handler stages a struct on its own stack and hands it to a
 shared resolver. Written straight out — locals in the caller, one call — the
@@ -120053,22 +120053,22 @@ but in a `static __inline__` helper the caller passes a pointer to:
 before the call that separates it from the helper invocation:
 
 ```c
-static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, RoomVariantResolver resolve)
+static __inline__ void _neoArkObservatoryResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
 {
-    RoomEventMsg rec;
+    RoomEventMsg request;
 
-    rec.areaId    = desc->area;        /* u16 = u8   -> lbu + sh  */
-    rec.warp      = desc->warp;
-    rec.room      = desc->room;
-    rec.queryOnly = ROOM_EVENT_EXECUTE;
-    resolve(&rec, &rec);               /* jalr */
-    desc->area = rec.areaId;           /* u8 = u16 -> lbu (little-endian low half) */
-    desc->warp = rec.warp;
-    desc->room = rec.room;
+    request.areaId    = departure->area;        /* u16 = u8   -> lbu + sh  */
+    request.warp      = departure->warp;
+    request.room      = departure->room;
+    request.queryOnly = ROOM_EVENT_EXECUTE;
+    resolve(&request, &request);               /* jalr */
+    departure->area = request.areaId;           /* u8 = u16 -> lbu (little-endian low half) */
+    departure->warp = request.warp;
+    departure->room = request.room;
 }
 ```
 
-with `resolve = func_...; playerActorSetScriptedControl(0); _neoArkObservatoryStageMarker(&desc, resolve);`
+with `resolve = func_...; playerActorSetScriptedControl(0); _neoArkObservatoryResolveDeparture(&departure, resolve);`
 in each arm. CSE folds the value back into a direct `jal` if the assignment and
 the helper call are adjacent in the same block (`cse`'s table does not survive
 the intervening call), so the separating call is what keeps the call indirect —
@@ -140561,7 +140561,7 @@ downstream of how the seed typed its memory. When the seed still uses
 `base_8.i` `6d57d9cfaac56d01c46271d962232c0d7090c5025458b741761ecb15d83a533b`
 (scalar source vector, 99.151%).
 
-## `lui $s1 / addiu $s1,$s1` for a function pointer means its variable is local to one block; one variable assigned in two blocks gives `lui $v0 / addiu $s1,$v0` (func_neo_ark_observatory_8017F6F8, 2026-09-23)
+## `lui $s1 / addiu $s1,$s1` for a function pointer means its variable is local to one block; one variable assigned in two blocks gives `lui $v0 / addiu $s1,$v0` (_neoArkObservatoryRoomActionMessage, 2026-09-23)
 
 A resolver was called through a variable (`jalr $s1`) in two separate bodies,
 each assigning it just before an intervening call. With one function-scope

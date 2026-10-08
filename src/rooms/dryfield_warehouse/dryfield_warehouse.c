@@ -228,11 +228,13 @@ void dryfieldWarehouseAmbienceTask(Task* task)
 
 /// Tests whether the live action list contains a hit warehouse event region.
 ///
-/// Borrows the linked trigger list without clearing hit latches or retaining
-/// pointers. Only unflagged room actions with the room-event sentinel qualify.
+/// Borrows the live, NULL-terminated trigger list without clearing hit latches
+/// or retaining pointers. The complete control word must be the room-action
+/// code: automatic and other flagged actions do not qualify. Tests the event
+/// sentinel and hit latch only; it does not consume the Monkey Wrench itself.
 static inline bool _dryfieldWarehouseHasHitEventTrigger(void)
 {
-    WorldCollisionTrigger* trigger;
+    const WorldCollisionTrigger* trigger;
 
     trigger = Gp_PendingObj4C;
     while (trigger != NULL) {
