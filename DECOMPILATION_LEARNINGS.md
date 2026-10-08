@@ -93763,7 +93763,7 @@ The helpers' locals need not share a type. A 16-byte slot written as a `VECTOR`
 in one arm and as an `SVECTOR` in another had been matched with a union of the
 two; it is a light-position helper followed by a ground-shadow helper, the
 smaller frame taking the front of the freed larger one
-(`func_actor_310100_801631B0`, `func_dryfield_water_tower_8017E1DC`,
+(`func_actor_310100_801631B0`, `_dryfieldWaterTowerFallingPropTask`,
 2026-10-04). Order decides it: with the 8-byte helper expanded first the
 16-byte one cannot reuse its slot and the two stack, which is the frame two
 function-scope locals give as well.
@@ -97468,7 +97468,7 @@ and it has the shape above; its `.s` under
 `asm/USA/actors/matchings/lib/actor_101900_text_tail/` shows the hoisted
 `lw $a1,0x20($a0)` directly, in a body that is already verified.
 
-## A hoisted *call argument* is read into a local before the preceding `if` -- and a coordinate that is `+=`d, not reloaded (func_dryfield_water_tower_8017E5B0, 2026-09-17)
+## A hoisted *call argument* is read into a local before the preceding `if` -- and a coordinate that is `+=`d, not reloaded (_dryfieldWaterTowerStepPropSlideBack, 2026-09-17)
 
 Two independent source shapes in one body, both of which the m2c rendering gets
 wrong in a way that costs instructions rather than blocks. The seed scored
@@ -97512,7 +97512,7 @@ effectSpawn(0x60054, effCoord, 0x80002300, &pos);
 Passing the expression at the call site costs 8 instructions (117 against the
 target's 109) and leaves `insert`/`delete` penalties behind, with the loads'
 registers differing too (`$v0`/`$v1` against the target's `$v1`/`$a1`). The same
-hoist is visible in the sibling `func_dryfield_water_tower_8017E428`, so a
+hoist is visible in the sibling `_dryfieldWaterTowerStepPropSlideOut`, so a
 neighbour in the same unit is worth reading before writing the body.
 
 The second shape is why the flag branch must re-read the *coordinate*. The
@@ -97531,7 +97531,7 @@ if (D_80070F6C[0] & 4) {
 ```
 
 Reading the coordinate lets `cse` forward the value its own store just put
-there, so one load serves both uses. The contrast is `func_dryfield_water_tower_8017DFAC`
+there, so one load serves both uses. The contrast is `_dryfieldWaterTowerStepPropDrop`
 in the same file, whose record is reached as a declared scalar (`s32 D_x[]`
 rather than an `ActorTransform`): not `in_struct`, so its second load *is* merged
 and the m2c shape matches there. A jump to the target's exact instruction count
@@ -122885,7 +122885,7 @@ Two traps in doing the move by hand:
   fails when a function with a `matched` commit is `INCLUDE_ASM` while its
   overlay still owns a `.s` under `nonmatchings/`.
 
-## A shared struct's `u8` field that the target reads with `lb`: cast `(s8)` at the use site (func_dryfield_water_tower_8017FD64, 2026-09-17)
+## A shared struct's `u8` field that the target reads with `lb`: cast `(s8)` at the use site (_dryfieldWaterTowerActorSceneTask, 2026-09-17)
 
 The target loads `Gp_StateC08.menuOpen` with `lb`. While the field was declared
 `u8`, an uncast read emitted `lbu`. That single instruction was the entire
@@ -122909,7 +122909,7 @@ sibling usually settles the spelling, and here
 a register or scheduling leftover, so no penalty other than those two counts
 points at it.
 
-## A `switch` on a signed field loads `lh`; the target's `lhu` needs the value widened at the load, not cast at the use (func_dryfield_water_tower_8017FBE8, 2026-09-17)
+## A `switch` on a signed field loads `lh`; the target's `lhu` needs the value widened at the load, not cast at the use (_dryfieldWaterTowerDispatchActorSceneRequest, 2026-09-17)
 
 Same signature as the `(s8)`/`lb` entry above, and the opposite fix. The target
 reads the state with `lhu` and the struct declared the field `s16`, so the seed
@@ -122942,7 +122942,7 @@ combination is a load *type*, and the object dumps name it in one line.
 
 ## A block the ROM left in source order can be re-scheduled by a *dead* local — the extra pseudo is a scheduling sink, not decoration
 
-`func_dryfield_water_tower_8017E1DC` sat at 93.469% with `topology: match`, every
+`_dryfieldWaterTowerFallingPropTask` sat at 93.469% with `topology: match`, every
 call, predicate and block edge agreeing, and `opcounts` differing in exactly one
 entry: `0:0`, the nops (24 in the target, 20 in the candidate). The same
 instruction *set* in a different order is a scheduler leftover, and the penalty
@@ -122985,7 +122985,7 @@ The lever that worked was adding a local that does nothing:
     new_var = 0;
     obj->field_C &= 0xFF7F;
     if (D_80114C11 == 0) { ... }
-    if (state->shadowEnabled != new_var) {  /* ... instead of `!= 0` */
+    if (work->shadowEnabled != new_var) {  /* ... instead of `!= 0` */
 ```
 
 together with storing a pointer field in two steps rather than one
@@ -123004,7 +123004,7 @@ the right block is a legitimate way to put them back.
 
 ---
 
-## A struct-member store does not conflict with a later plain-scalar load (func_dryfield_water_tower_8017DFAC, 2026-09-17)
+## A struct-member store does not conflict with a later plain-scalar load (_dryfieldWaterTowerStepPropDrop, 2026-09-17)
 
 `sched_analyze` builds memory dependencies from statement order, but only when its
 aliasing test lets the pair conflict. `true_dependence` (sched.c) drops a
@@ -123022,7 +123022,7 @@ address) followed by a load of a room global (`%hi`/`%lo` of a symbol: not in a
 struct, not varying) hits that clause, so **no dependence is created** and sched1
 is free to hoist the global's address (`lui`) above the store.
 
-That is the whole leftover in `func_dryfield_water_tower_8017DFAC`: its case-1 and
+That is the whole leftover in `_dryfieldWaterTowerStepPropDrop`: its case-1 and
 case-2 blocks both keep the store ahead of the load's `lui`, and a C whose loads
 are bare scalars cannot reproduce them -- the block comes out
 `lui; lw; sw; lui; lw` with a load-delay `nop` where the target has
@@ -123049,13 +123049,13 @@ stalled seed from 91.6% to 97.7%. It cannot finish -- the notes order the whole
 tail after the store, so the store's own dependents move too, and the load's `lui`
 still lands one slot late.
 
-Archived: `tools/giveups/func_dryfield_water_tower_8017DFAC/`, input hash
+Archived: `tools/giveups/_dryfieldWaterTowerStepPropDrop/`, input hash
 `83fb80b338de2813d4321ae4d61c33a1878909485f153349e6aec1c42ecb0254` (100.000%, all
 penalties zero).
 
-## A comparison's two loads follow the C operand order: mirror the test, `a > b` is not `b < a` (func_dryfield_water_tower_8017E428, 2026-09-17)
+## A comparison's two loads follow the C operand order: mirror the test, `a > b` is not `b < a` (_dryfieldWaterTowerStepPropSlideOut, 2026-09-17)
 
-`func_dryfield_water_tower_8017E428` ends state 0 by testing the cap's Z against
+`_dryfieldWaterTowerStepPropSlideOut` ends state 0 by testing the cap's Z against
 the placement record's, and the target loads the *coordinate* first:
 
 ```
@@ -140102,7 +140102,7 @@ folds that into the inverted `slti`/`bnez` to the end.
 **Fix:** write the case that does nothing: `case 0: break;`. The index must be
 `int` (a `u16` return promoted is fine); an unsigned index bounds node 0 at
 `TYPE_MIN` and changes the tree again. Seen in
-`func_dryfield_water_tower_8017F128`.
+`_dryfieldWaterTowerPropSceneTask`.
 
 ## Clearing a bit on several elements of one global array: one pointer per element, each assigned once
 
@@ -140122,7 +140122,7 @@ position of the assignments matters too: `p14 = &arr[14]` placed *after*
 target; assigning both pointers first did not. A mask constant the target
 keeps in a register (`li s2,-0x41; and`) rather than `andi 0xbf` comes from a
 `s32 mask = ~0x40` local, as in `acropolis_sanctuary`. Seen in
-`func_dryfield_water_tower_8017F128`.
+`_dryfieldWaterTowerPropSceneTask`.
 
 ## A table walk whose index is a caller-saved `$a2` and whose result keeps an `andi 0xffff` before a `u16` store is an inlined `static inline` helper
 
@@ -140139,7 +140139,7 @@ fixed the registers but not the mask.
 inlined body, and the inlined return value goes through its own `u16`
 conversion, which survives as the `andi` ahead of the store. A sibling
 non-inlined function computing the same walk (with a different mask) is the
-hint that one exists. Seen in `func_dryfield_water_tower_8017EB7C`
+hint that one exists. Seen in `_dryfieldWaterTowerStepTimedRun`
 (93.8% → 99.8%).
 
 ## Two `sh` stores to one 4-byte stack word are two `s16` spills, not a struct (_dryfieldNightWarehouseDrawLightBeam, 2026-09-23)
@@ -140641,7 +140641,7 @@ the same chain). Input: `base_3.i` `648ce2c8c69b81174075530a1ef2cec37b577dae1471
 
 `_dryfieldWaterTankStepPropSlide` plateaued at 98.6% over 29 attempts, then
 matched on the first build by porting the already-matched sibling body
-`func_dryfield_water_tower_8017E428` that the brief's `similar` list ranked
+`_dryfieldWaterTowerStepPropSlideOut` that the brief's `similar` list ranked
 first in three classes. The target is
 
 ```

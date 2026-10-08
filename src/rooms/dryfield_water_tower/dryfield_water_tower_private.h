@@ -24,10 +24,10 @@ typedef struct {
 } DryfieldWaterTowerSavedView;
 STATIC_ASSERT_SIZEOF(DryfieldWaterTowerSavedView, 8);
 
-/// The room's task table at 0x80182384: entry 0 is the cap script
-/// `func_dryfield_water_tower_8017F128`, which the room's entry task spawns,
-/// entry 1 the prop `func_dryfield_water_tower_8017E764` and entry 2 the prop
-/// `func_dryfield_water_tower_8017E1DC`, the two the cap script spawns.
+/// Prop-scene tasks: the driver, sliding prop and falling prop, in slots 0..2.
+///
+/// The room entry spawns `_dryfieldWaterTowerPropSceneTask`; that driver spawns
+/// `_dryfieldWaterTowerSlidingPropTask` and `_dryfieldWaterTowerFallingPropTask`.
 extern TaskDesc D_dryfield_water_tower_80182384[];
 
 extern Task* D_dryfield_water_tower_801876A4;
