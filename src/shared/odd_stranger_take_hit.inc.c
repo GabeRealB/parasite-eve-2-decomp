@@ -36,10 +36,10 @@ void oddStrangerTakeHit(Task* arg0)
     if (enemy->hp > 0) {
         head      = SCRATCH_STACK_CURSOR(ActorHitScratch);
         s         = (SCRATCH_STACK_CURSOR(ActorHitScratch) = head - 1);
-        s->hitKey = actorFindHit(&head[-1].hitPos, work->hitContacts);
+        s->hitKey = _actorContactFindAttack(&head[-1].hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
 #if ODD_STRANGER_VARIANT == 2
         if (s->hitKey == 0) {
-            s->hitKey = actorFindHit(&s->hitPos, work->gridContacts);
+            s->hitKey = _actorContactFindAttack(&s->hitPos, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         }
 #endif
         if (s->hitKey != 0) {

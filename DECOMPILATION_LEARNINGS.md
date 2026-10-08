@@ -149630,7 +149630,7 @@ attempts; left as it was.
   constant that is then tested unfolded.
 - **A contact scan spelled `for (...) { if (!key) goto missed; if (kind) {
   ...; id = key; goto found; } } missed: id = 0; found:`** is the inline
-  `for` + `break` + `return key` (`actorFindHit` with a count); the image's
+  `for` + `break` + `return key` (`_actorContactFindAttack` with a count); the image's
   mark is `move a1,zero; beqz a1` on the miss path. With a real loop in
   place the fake `do { } while (0)` around the angle wrap, documented as
   needed for the `sc`/`work` register ranking, was not needed.

@@ -1,6 +1,6 @@
-/* Actor joint rotation and obstacle-contact steering/push routines.
+/* Actor contact selection, joint rotation and obstacle-contact steering/push routines.
  *
- * All five functions are static: every file that uses them carries its own
+ * All five fragment functions are static: every file that uses them carries its own
  * copies, including retained helpers without callers. Each file owns its
  * last contact-push correction; `_actorContactGetLastPushStep` supplies its
  * SVECTOR view, including when the allocation retains trailing bytes.
@@ -77,6 +77,33 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(ActorContactBearingPushScratch, 0xE4);
 
 /* Interface for the including source. */
+
+/// Returns the first attack key in a contact-table prefix and copies its point.
+///
+/// `contactCount` counts readable elements, from 0 to 32767. A zero key ends
+/// the scan even if later entries are occupied; contact flags are not tested.
+/// A miss returns zero and leaves `contactPointOut` untouched. A hit copies
+/// XYZ in game units in the contact's cached-transform frame, without any
+/// coordinate conversion, and leaves `pad` untouched. Requires separate
+/// writable output and live input storage for the call. Borrows both pointers,
+/// retains neither and does not consume or clear the contact.
+static __inline__ s32 _actorContactFindAttack(SVECTOR* contactPointOut, const WorldCollisionContact* contacts, s16 contactCount)
+{
+    s16 contactIndex;
+
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
+            break;
+        }
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            contactPointOut->vx = contacts[contactIndex].point.vx;
+            contactPointOut->vy = contacts[contactIndex].point.vy;
+            contactPointOut->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
+        }
+    }
+    return 0;
+}
 
 /// Computes a horizontal room-axis push away from a body contact's centre.
 ///

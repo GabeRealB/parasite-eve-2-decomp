@@ -563,6 +563,10 @@ The static inline contact-depth helper also lives in `src/shared/actor_contacts.
 It measures overlap in composed view X/Z, rotates the normalized XYZ separation
 by the active grid view basis's transpose and produces a room-axis horizontal
 push. Each carrier keeps its own private instance marked `_`.
+The static inline attack-contact selector lives in the same private interface.
+It scans a caller-sized prefix through the first zero key, returning the first
+attack's packed key and copying its point without converting the coordinate
+frame or consuming the contact. Each carrier keeps its own private instance.
 
 `incinerator_blaze.h` uses the prefix `blaze`. It is the fade-to-white and
 body-fire tasks included by the incinerator room and `actor_342100`.

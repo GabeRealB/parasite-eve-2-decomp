@@ -1472,26 +1472,6 @@ static __inline__ void _actorRenderRescaleYawY(GfxCoord* coord, s32 horizontalSc
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// The first of the leading twelve contact records whose kind is 0x20000:
-/// copies its point to `pos` and returns its key, or returns 0 when none is
-/// found before the table ends.
-static __inline__ s32 actorFindHit(SVECTOR* pos, WorldCollisionContact* records)
-{
-    s16 i;
-
-    for (i = 0; i < 12; i++) {
-        if (!records[i].key.value)
-            break;
-        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key.value;
-        }
-    }
-    return 0;
-}
-
 /// Borrows the current area layout selected by its saved placement variant.
 ///
 /// Requires a live `gGameSession` with stage and area indexes in range; its

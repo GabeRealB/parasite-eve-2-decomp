@@ -2645,9 +2645,9 @@ static void func_actor_401300_80134F90(Task* arg0)
     if (enemy->hp > 0 && (work->state != ACTOR_401300_STATE_WITHDRAW || work->animId != 0x20)) {
         head      = SCRATCH_STACK_CURSOR(ActorHitScratch);
         s         = (SCRATCH_STACK_CURSOR(ActorHitScratch) = head - 1);
-        s->hitKey = actorFindHit(&head[-1].hitPos, work->hitContacts);
+        s->hitKey = _actorContactFindAttack(&head[-1].hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         if (s->hitKey == 0) {
-            s->hitKey = actorFindHit(&s->hitPos, work->gridContacts);
+            s->hitKey = _actorContactFindAttack(&s->hitPos, work->gridContacts, ARRAY_SIZE(work->gridContacts));
         }
         if (s->hitKey != 0) {
             work->field_D1C      = 0;
