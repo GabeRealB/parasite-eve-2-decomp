@@ -1,20 +1,25 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// As `dryfieldFactorySetView9SpriteVisible`, for view 11's layer.
-void factoryShowView11Sprite(s32 show)
+void FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE(s32 visible)
 {
-    GameSession*     g;
-    GameLocationKey* sess;
-    SpriteBatch*     batches;
+    enum {
+        FACTORY_ROOM_POWER_SCENE_SPRITE_VIEW  = 11,
+        FACTORY_ROOM_POWER_SCENE_SPRITE_BATCH = 1,
+        FACTORY_ROOM_VISIBILITY_BYTE_MASK     = 0xFF
+    };
+    const GameSession*     session;
+    const GameLocationKey* location;
+    SpriteBatch*           view11Batches;
 
-    g    = gGameSession;
-    sess = &g->location.loc;
-    if (sess->stage == GAME_STAGE_DRYFIELD) {
-        batches = gSpriteAreaTables[sess->stage - 1][g->spriteVariant - 1].areaViews[sess->area - 1][10].batches;
-        if (!(show & 0xFF)) {
-            batches[1].hidden = 1;
+    session  = gGameSession;
+    location = &session->location.loc;
+    // Only the daytime background has this sprite, including in the night instance.
+    if (location->stage == GAME_STAGE_DRYFIELD) {
+        view11Batches = gSpriteAreaTables[location->stage - 1][session->spriteVariant - 1].areaViews[location->area - 1][FACTORY_ROOM_POWER_SCENE_SPRITE_VIEW - 1].batches;
+        if (!(visible & FACTORY_ROOM_VISIBILITY_BYTE_MASK)) {
+            view11Batches[FACTORY_ROOM_POWER_SCENE_SPRITE_BATCH].hidden = true;
             return;
         }
-        batches[1].hidden = 0;
+        view11Batches[FACTORY_ROOM_POWER_SCENE_SPRITE_BATCH].hidden = false;
     }
 }

@@ -2,7 +2,7 @@
 
 // Stage 2 uses the day factory's view-sprite routines.
 dryfieldFactorySetView9SpriteVisible = 0x80181620; // type:func absolute:True owner=dryfield_factory
-factoryDayShowView11Sprite = 0x80181B38; // type:func absolute:True owner=dryfield_factory
+dryfieldFactorySetView11SpriteVisible = 0x80181B38; // type:func absolute:True owner=dryfield_factory
 gFactoryPanelHotspots = 0x80186EBC; // size:0x48 defined:True
 gFactoryGlowPos48 = 0x80186F04; // size:0x8 defined:True
 gFactoryGlowPos4A1 = 0x80186F0C; // size:0x8 defined:True
@@ -156,7 +156,7 @@ _factoryPanelOpenPrompt = 0x8018196C; // type:func
 factoryPanelPrompt = 0x801819BC; // type:func
 _factoryPanelExit = 0x80181A24; // type:func
 _factoryPanelWaitMove = 0x80181AB8; // type:func
-factoryNightShowView11Sprite = 0x80181B38; // type:func rom:0x4578
+dryfieldNightFactorySetView11SpriteVisible = 0x80181B38; // type:func rom:0x4578
 _factoryLiftExit = 0x8017FB48; // type:func
 _factoryLiftNotifyPanel = 0x8017FBC8; // type:func
 factoryCapScene = 0x80180038; // type:func

@@ -39,6 +39,17 @@ extern WorldCollisionSurfaceProperties* D_dryfield_factory_8018A37C[];
 /// the sprite tables.
 void dryfieldFactorySetView9SpriteVisible(s32 visible);
 
+/// Sets the power-scene sprite visibility in the daytime factory's mapped view 11.
+///
+/// The low byte of `visible` selects hidden (0) or visible (nonzero); higher
+/// bits are ignored. Only the daytime Dryfield stage changes sprite records.
+/// Requires a live session and, in that stage, the factory area with its loaded
+/// sprite tables, sprite variant 1, mapped view 11 and writable batch 1 containing
+/// one sprite.
+/// The hidden flag controls subsequent drawing; the loaded map and room
+/// overlays own the tables and must remain loaded during the call.
+void dryfieldFactorySetView11SpriteVisible(s32 visible);
+
 /// Draws the daytime factory's power and lamp glows for the current logical view.
 ///
 /// Per-frame effect callback for room views 1..19. Power enables one fixed-world

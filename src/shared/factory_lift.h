@@ -244,9 +244,6 @@ extern PadScriptCmd              gFactoryNightJoltCmds[3];
 extern PadScriptVibrationSegment gFactoryDayJoltRecs[3];
 extern PadScriptVibrationSegment gFactoryNightJoltRecs[3];
 
-void factoryDayShowView11Sprite(s32 show);
-void factoryNightShowView11Sprite(s32 show);
-
 /// Binds the factory glow callback definition to this carrier's exported task.
 ///
 /// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this
@@ -270,10 +267,22 @@ void factoryNightShowView11Sprite(s32 show);
 /// captured values, stringification or token pasting and performs no call.
 #if DRYFIELD_TIME == DRYFIELD_NIGHT
 #define FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE dryfieldNightFactorySetView9SpriteVisible
-#define factoryShowView11Sprite                        factoryNightShowView11Sprite
 #else
 #define FACTORY_ROOM_INSTANCE_SET_VIEW9_SPRITE_VISIBLE dryfieldFactorySetView9SpriteVisible
-#define factoryShowView11Sprite                        factoryDayShowView11Sprite
+#endif
+
+/// Binds the view 11 visibility setter definition to this factory room's export.
+///
+/// `DRYFIELD_TIME` must select `DRYFIELD_DAY` or `DRYFIELD_NIGHT` before this
+/// header is included and remain bound through `factory_show_view11_sprite.inc.c`.
+/// Expands to the corresponding public room header's function identifier with
+/// signature `void (s32)`. Both carriers include both public room headers for
+/// the runtime day/night calls. This object-like binding has no arguments,
+/// captured values, stringification or token pasting and performs no call.
+#if DRYFIELD_TIME == DRYFIELD_NIGHT
+#define FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE dryfieldNightFactorySetView11SpriteVisible
+#else
+#define FACTORY_ROOM_INSTANCE_SET_VIEW11_SPRITE_VISIBLE dryfieldFactorySetView11SpriteVisible
 #endif
 
 /// Binds the shared factory entry task definition to this room's exported callback.

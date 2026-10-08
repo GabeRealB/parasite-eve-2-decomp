@@ -16,9 +16,9 @@ void factoryPowerScene(Task* task)
         case 1:
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_POWER_ON) <= 0) {
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    factoryDayShowView11Sprite(0);
+                    dryfieldFactorySetView11SpriteVisible(false);
                 } else {
-                    factoryNightShowView11Sprite(0);
+                    dryfieldNightFactorySetView11SpriteVisible(false);
                 }
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
             }
@@ -34,10 +34,10 @@ void factoryPowerScene(Task* task)
                 gameFlagSetNibble(GAME_FLAG_FACTORY_POWER_ON, 1);
                 gameFlagSetNibble(GAME_FLAG_FACTORY_LAMP_PROGRESS, 1);
                 if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD) {
-                    factoryDayShowView11Sprite(1);
+                    dryfieldFactorySetView11SpriteVisible(true);
                     dryfieldFactorySetView9SpriteVisible(1);
                 } else {
-                    factoryNightShowView11Sprite(1);
+                    dryfieldNightFactorySetView11SpriteVisible(true);
                     dryfieldNightFactorySetView9SpriteVisible(1);
                 }
                 capStartSequenceSlot(task->spawnArg1.value, 1, 2);

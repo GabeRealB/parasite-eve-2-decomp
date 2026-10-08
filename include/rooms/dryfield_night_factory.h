@@ -46,6 +46,17 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_factory_8018A79C[];
 /// sprite tables.
 void dryfieldNightFactorySetView9SpriteVisible(s32 visible);
 
+/// Night factory instance of the mapped view 11 power-scene sprite visibility setter.
+///
+/// The low byte of `visible` selects hidden (0) or visible (nonzero); higher
+/// bits are ignored. This instance also acts only in the daytime Dryfield stage;
+/// calls in the night stage leave sprite records unchanged. Requires a live
+/// session and, in the daytime stage, the factory area with its loaded sprite
+/// tables, sprite variant 1, mapped view 11 and writable batch 1 containing one sprite.
+/// The hidden flag controls subsequent drawing; the loaded map and room
+/// overlays own the tables and must remain loaded during the call.
+void dryfieldNightFactorySetView11SpriteVisible(s32 visible);
+
 /// Draws the nighttime factory's power and lamp glows for the current logical view.
 ///
 /// Per-frame effect callback for room views 1..19. Power enables one fixed-world
