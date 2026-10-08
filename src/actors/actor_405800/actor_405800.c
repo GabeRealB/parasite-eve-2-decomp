@@ -274,25 +274,25 @@ static s32  _actor405800TrySelectAttack(Task* task);
 static void func_actor_405800_801375C4(Task* task);
 static s32  _actor405800ClipWasDone(Task* task);
 static void func_actor_405800_8013795C(Task* task);
-static void func_actor_405800_80137A14(Task* task);
-static void func_actor_405800_80137A60(Task* task);
-static void func_actor_405800_80137B34(Task* task);
-static void func_actor_405800_80137B9C(Task* task);
-static void func_actor_405800_80137C04(Task* task);
-static void func_actor_405800_80137C78(Task* task);
-static void func_actor_405800_80137CEC(Task* task);
+static void _actor405800EnterTargetWait(Task* task);
+static void _actor405800WalkState(Task* task);
+static void _actor405800LightRecoilState(Task* task);
+static void _actor405800HeavyRecoilState(Task* task);
+static void _actor405800StunState(Task* task);
+static void _actor405800LeftStrikeState(Task* task);
+static void _actor405800RightStrikeState(Task* task);
 static void func_actor_405800_80137D60(Task* task);
-static void func_actor_405800_80137DE4(Task* task);
-static void func_actor_405800_80137E64(Task* task);
-static void func_actor_405800_80137EF0(Task* task);
-static void func_actor_405800_80137F58(Task* task);
-static void func_actor_405800_80137FCC(Task* task);
-static void func_actor_405800_80138040(Task* task);
-static void func_actor_405800_80138154(Task* task);
-static void func_actor_405800_801381BC(Task* task);
+static void _actor405800BackLeapState(Task* task);
+static void _actor405800CrawlOnBackState(Task* task);
+static void _actor405800RightingState(Task* task);
+static void _actor405800CeilingLeapState(Task* task);
+static void _actor405800CeilingDropState(Task* task);
+static void _actor405800CeilingFallState(Task* task);
+static void _actor405800CeilingExitState(Task* task);
+static void _actor405800IdleState(Task* task);
 void        func_actor_405800_80138634(Task* task);
 static void func_actor_405800_80138698(Task* arg0);
-static void func_actor_405800_80138788(Task* arg0);
+static void _actor405800DestroyTaskState(Task* task);
 static void _actor405800HandleHoldReleaseMessage(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 static void _actor405800LeftArmTask(Task* task);
 static void _actor405800RightArmTask(Task* task);
@@ -2048,35 +2048,35 @@ static const TaskFuncTable4 D_actor_405800_80131E54 = {
         _actor405800InitEnemy,
         func_actor_405800_80133800,
         func_actor_405800_80138698,
-        func_actor_405800_80138788,
+        _actor405800DestroyTaskState,
     },
 };
 
 /// Behaviour handlers `func_actor_405800_80133800` runs by `state`.
 static const TaskFuncTable18 D_actor_405800_80131E64 = {
     {
-        func_actor_405800_80137A14,
+        _actor405800EnterTargetWait,
         _actor405800WaitForTarget,
-        func_actor_405800_80137A60,
-        func_actor_405800_80137B34,
-        func_actor_405800_80137B9C,
-        func_actor_405800_80137C04,
-        func_actor_405800_80137C78,
-        func_actor_405800_80137CEC,
+        _actor405800WalkState,
+        _actor405800LightRecoilState,
+        _actor405800HeavyRecoilState,
+        _actor405800StunState,
+        _actor405800LeftStrikeState,
+        _actor405800RightStrikeState,
         func_actor_405800_80137D60,
-        func_actor_405800_80137DE4,
-        func_actor_405800_80137E64,
-        func_actor_405800_80137EF0,
-        func_actor_405800_80137F58,
-        func_actor_405800_80137FCC,
-        func_actor_405800_80138040,
+        _actor405800BackLeapState,
+        _actor405800CrawlOnBackState,
+        _actor405800RightingState,
+        _actor405800CeilingLeapState,
+        _actor405800CeilingDropState,
+        _actor405800CeilingFallState,
         _stalkerZebraIvoryRunSubStates,
-        func_actor_405800_80138154,
-        func_actor_405800_801381BC,
+        _actor405800CeilingExitState,
+        _actor405800IdleState,
     },
 };
 
-/// Sub-state handlers of `func_actor_405800_80137C04`, by `subState`.
+/// Sub-state handlers of `_actor405800StunState`, by `subState`.
 static const TaskFuncTable3 D_actor_405800_80131EAC = {
     {
         _actor405800StartStun,
@@ -2096,7 +2096,7 @@ static const TaskFuncTable5 D_actor_405800_80131EB8 = {
     },
 };
 
-/// Sub-state handlers of `func_actor_405800_80137DE4`, by `subState`.
+/// Sub-state handlers of `_actor405800BackLeapState`, by `subState`.
 static const TaskFuncTable4 D_actor_405800_80131ECC = {
     {
         _actor405800ProbeBackLeap,
@@ -2106,7 +2106,7 @@ static const TaskFuncTable4 D_actor_405800_80131ECC = {
     },
 };
 
-/// Sub-state handlers of `func_actor_405800_80137F58`, by `subState`.
+/// Sub-state handlers of `_actor405800CeilingLeapState`, by `subState`.
 static const TaskFuncTable3 D_actor_405800_80131EDC = {
     {
         _actor405800StartCeilingLeap,
@@ -2115,7 +2115,7 @@ static const TaskFuncTable3 D_actor_405800_80131EDC = {
     },
 };
 
-/// Sub-state handlers of `func_actor_405800_80137FCC`, by `subState`.
+/// Sub-state handlers of `_actor405800CeilingDropState`, by `subState`.
 static const TaskFuncTable3 D_actor_405800_80131EE8 = {
     {
         _actor405800StartCeilingDrop,
@@ -2124,7 +2124,7 @@ static const TaskFuncTable3 D_actor_405800_80131EE8 = {
     },
 };
 
-/// Sub-state handlers of `func_actor_405800_80138040`, by `subState`.
+/// Sub-state handlers of `_actor405800CeilingFallState`, by `subState`.
 static const TaskFuncTable4 D_actor_405800_80131EF4 = {
     {
         _actor405800StartCeilingFall,
@@ -3548,96 +3548,116 @@ static void func_actor_405800_8013795C(Task* task)
 
 #include "../../shared/stalker_zebra_ivory_disable_capsule_grid.inc.c"
 
-static void func_actor_405800_80137A14(Task* task)
+/// Requests a hide when its cooldown permits, preserving an already running hide.
+///
+/// Borrows the live work block. A new request resets only the cloak phase;
+/// the frame update owns the fade and cooldown, and no pointer is retained.
+static __inline__ void _actor405800RequestHideWhenReady(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* cur;
+    _Actor405800IvoryStalkerWork* hideWork = task->work;
 
-    work = (_Actor405800IvoryStalkerWork*)task->work;
-    if (((s8)work->cloakRequest >= 0 || (work->cloakRequest & ACTOR_405800_CLOAK_KIND_MASK)) && work->hideCooldown == 0) {
-        work->cloakRequest = ACTOR_405800_CLOAK_RUNNING | ACTOR_405800_CLOAK_HIDE;
-        work->cloakPhase   = 0;
+    if (((s8)hideWork->cloakRequest >= 0 || (hideWork->cloakRequest & ACTOR_405800_CLOAK_KIND_MASK)) && hideWork->hideCooldown == 0) {
+        hideWork->cloakRequest = ACTOR_405800_CLOAK_RUNNING | ACTOR_405800_CLOAK_HIDE;
+        hideWork->cloakPhase   = 0;
     }
-    cur           = (_Actor405800IvoryStalkerWork*)task->work;
-    cur->state    = 1;
-    cur->subState = 0;
 }
 
-/// Per-frame entry point for one of this actor's states: folds both arms
-/// away, then runs the sub-state handler `subState` selects unless
-/// `_actor405800TakeArmedHitReaction` or `_actor405800TrySelectAttack` already
-/// consumed the frame. After the handler, a set `onCeiling` plus a root
-/// world X past 10000 switches to state 0xD. The two-entry table is small
-/// enough that GCC materialises each callback with its own `lui`/`addiu`
-/// pair instead of copying a `.rodata` pool.
-static void func_actor_405800_80137A60(Task* task)
+/// Requests a cooldown-permitted hide and starts waiting for the target.
+///
+/// Running behavior 0. Requires live Ivory Stalker work; selects behavior 1
+/// at sub-state 0 even when the hide is already running or its cooldown blocks it.
+static void _actor405800EnterTargetWait(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { _actor405800StartWalk, _actor405800TickWalk };
+    enum { ACTOR_405800_STATE_WAIT_FOR_TARGET = 1 };
+
+    _actor405800RequestHideWhenReady(task);
+    _stalkerZebraIvorySelectState(task, ACTOR_405800_STATE_WAIT_FOR_TARGET);
+}
+
+/// Runs floor or ceiling walking unless a hit reaction or attack takes priority.
+///
+/// Running behavior 2, sub-states 0..1 (start, walk). Requires live work and
+/// root coordinates. Folds both arms before testing reactions; after a walking
+/// step, root X strictly beyond 10000 room units forces a drop from the ceiling.
+static void _actor405800WalkState(Task* task)
+{
+    enum { ACTOR_405800_CEILING_AREA_END_X = 10000 };
+    _Actor405800IvoryStalkerWork* work        = task->work;
+    TaskFunc                      subStates[] = { _actor405800StartWalk, _actor405800TickWalk };
 
     _stalkerZebraIvoryFoldArms(task);
     if ((s16)_actor405800TakeArmedHitReaction(task) == 0 && (s16)_actor405800TrySelectAttack(task) == 0) {
-        states[work->subState](task);
-        if (work->onCeiling != 0 && task->extra.tmd->coords->coord.t[0] > 10000) {
-            _Actor405800IvoryStalkerWork* cur = (_Actor405800IvoryStalkerWork*)task->work;
-
-            cur->state    = 0xD;
-            cur->subState = 0;
+        subStates[work->subState](task);
+        if (work->onCeiling != 0 && task->extra.tmd->coords->coord.t[0] > ACTOR_405800_CEILING_AREA_END_X) {
+            _stalkerZebraIvorySelectState(task, STALKER_ZEBRA_IVORY_STATE_CEILING_DROP);
         }
     }
 }
 
-/// Per-frame entry point for one of this actor's states: folds both arms
-/// away, then runs the sub-state handler `subState` selects. The
-/// two-entry table is small enough that GCC materialises each callback with its
-/// own `lui`/`addiu` pair instead of copying a `.rodata` pool.
-static void func_actor_405800_80137B34(Task* task)
+/// Runs the light recoil sequence with both arm extensions cleared.
+///
+/// Running behavior 3, sub-states 0..1 (start, react or finish). Requires the
+/// live body rig; repeated light hits can restart recoil during the second step.
+static void _actor405800LightRecoilState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { _actor405800StartLightRecoil, _actor405800TickLightRecoil };
+    _Actor405800IvoryStalkerWork* work        = task->work;
+    TaskFunc                      subStates[] = { _actor405800StartLightRecoil, _actor405800TickLightRecoil };
 
     _stalkerZebraIvoryFoldArms(task);
-    states[work->subState](task);
+    subStates[work->subState](task);
 }
 
-static void func_actor_405800_80137B9C(Task* task)
+/// Runs the heavy recoil sequence with both arm extensions cleared.
+///
+/// Running behavior 4, sub-states 0..1 (start, finish). Requires the live body
+/// rig; completion returns to walking upright or crawling on the back.
+static void _actor405800HeavyRecoilState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { _actor405800StartHeavyRecoil, _actor405800FinishHeavyRecoil };
+    _Actor405800IvoryStalkerWork* work        = task->work;
+    TaskFunc                      subStates[] = { _actor405800StartHeavyRecoil, _actor405800FinishHeavyRecoil };
 
     _stalkerZebraIvoryFoldArms(task);
-    states[work->subState](task);
+    subStates[work->subState](task);
 }
 
-/// Per-frame handler for one of this actor's behaviours: clears `leftArmOut` /
-/// `rightArmOut` through `_stalkerZebraIvoryFoldArms`, then runs the sub-state
-/// handler of `D_actor_405800_80131EAC` that `subState` selects.
-static void func_actor_405800_80137C04(Task* task)
+/// Runs the timed or status-buildup stun and recovery with both arms folded.
+///
+/// Running behavior 5, sub-states 0..2 (start, hold, recover). Requires live
+/// work, body rig and Enemy spawn record; stunKind selects how the hold ends.
+static void _actor405800StunState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work   = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFuncTable3                states = D_actor_405800_80131EAC;
+    _Actor405800IvoryStalkerWork* work      = task->work;
+    TaskFuncTable3                subStates = D_actor_405800_80131EAC;
 
     _stalkerZebraIvoryFoldArms(task);
-    states.funcs[work->subState](task);
+    subStates.funcs[work->subState](task);
 }
 
-static void func_actor_405800_80137C78(Task* task)
+/// Runs the left-arm strike unless an armed interrupting reaction takes priority.
+///
+/// Running behavior 6, sub-states 0..1 (start, strike). Requires the live body
+/// rig, left arm model and attack spheres; light hits alone do not interrupt it.
+static void _actor405800LeftStrikeState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { _actor405800StartLeftStrike, _actor405800TickLeftStrike };
+    _Actor405800IvoryStalkerWork* work        = task->work;
+    TaskFunc                      subStates[] = { _actor405800StartLeftStrike, _actor405800TickLeftStrike };
 
     if (_actor405800TakeArmedStrikeReaction(task) == 0) {
-        states[work->subState](task);
+        subStates[work->subState](task);
     }
 }
 
-static void func_actor_405800_80137CEC(Task* task)
+/// Runs the right-arm strike unless an armed interrupting reaction takes priority.
+///
+/// Running behavior 7, sub-states 0..1 (start, strike). Requires the live body
+/// rig, right arm model and attack spheres; light hits alone do not interrupt it.
+static void _actor405800RightStrikeState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { _actor405800StartRightStrike, _actor405800TickRightStrike };
+    _Actor405800IvoryStalkerWork* work        = task->work;
+    TaskFunc                      subStates[] = { _actor405800StartRightStrike, _actor405800TickRightStrike };
 
     if (_actor405800TakeArmedStrikeReaction(task) == 0) {
-        states[work->subState](task);
+        subStates[work->subState](task);
     }
 }
 
@@ -3650,91 +3670,129 @@ static void func_actor_405800_80137D60(Task* task)
     states.funcs[work->subState](task);
 }
 
-static void func_actor_405800_80137DE4(Task* task)
+/// Runs the wall-limited backward leap with both arms folded.
+///
+/// Running behavior 9, sub-states 0..3 (probe, prepare, leap, wait for landing
+/// clip). Requires the live body rig, root and capsule-grid probe. The motion
+/// step handles interrupting hits before takeoff and holds death until landing.
+static void _actor405800BackLeapState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work   = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFuncTable4                states = D_actor_405800_80131ECC;
+    _Actor405800IvoryStalkerWork* work      = task->work;
+    TaskFuncTable4                subStates = D_actor_405800_80131ECC;
 
     _stalkerZebraIvoryFoldArms(task);
-    states.funcs[work->subState](task);
+    subStates.funcs[work->subState](task);
 }
 
-static void func_actor_405800_80137E64(Task* task)
+/// Crawls toward the target on the back until the righting countdown expires.
+///
+/// Running behavior 10. Requires an on-back pose, initialized rig and positive
+/// countdown (normally 30..157 updates). An armed hit takes priority without
+/// decrementing it. At zero, starts righting; otherwise turns by 24/4096 of a
+/// revolution toward targetPos and advances the hand-anchored crawl.
+static void _actor405800CrawlOnBackState(Task* task)
 {
+    enum { ACTOR_405800_STATE_RIGHTING = 11 };
     _Actor405800IvoryStalkerWork* work;
-    _Actor405800IvoryStalkerWork* work2;
-    s16                           count;
+    s16                           remainingTicks;
 
-    work = (_Actor405800IvoryStalkerWork*)task->work;
+    work = task->work;
     _stalkerZebraIvoryFoldArms(task);
     if ((s16)_actor405800TakeArmedHitReaction(task) == 0) {
-        count           = work->countdown - 1;
-        work->countdown = count;
-        if (count == 0) {
-            work2           = (_Actor405800IvoryStalkerWork*)task->work;
-            work2->state    = 0xB;
-            work2->subState = 0;
+        remainingTicks  = work->countdown - 1;
+        work->countdown = remainingTicks;
+        if (remainingTicks == 0) {
+            _stalkerZebraIvorySelectState(task, ACTOR_405800_STATE_RIGHTING);
             return;
         }
-        _stalkerZebraIvoryTurnToward(task, &work->targetPos, 0x18);
+        _stalkerZebraIvoryTurnToward(task, &work->targetPos, ACTOR_405800_WALK_BASE_TURN_STEP);
         _stalkerZebraIvoryTickOnBackCrawl(task);
     }
 }
 
-static void func_actor_405800_80137EF0(Task* task)
+/// Runs the sequence that rights the Stalker from its back with both arms folded.
+///
+/// Running behavior 11, sub-states 0..1 (start, finish). Requires the on-back
+/// pose and live rig; completion captures a new hand anchor and resumes walking.
+static void _actor405800RightingState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { _actor405800StartRighting, _stalkerZebraIvoryRightItself };
+    _Actor405800IvoryStalkerWork* work        = task->work;
+    TaskFunc                      subStates[] = { _actor405800StartRighting, _stalkerZebraIvoryRightItself };
 
     _stalkerZebraIvoryFoldArms(task);
-    states[work->subState](task);
+    subStates[work->subState](task);
 }
 
-static void func_actor_405800_80137F58(Task* task)
+/// Runs the leap onto the ceiling with both arms folded.
+///
+/// Running behavior 12, sub-states 0..2 (start, leap, finish). Requires live
+/// work, body rig, root and grid collision. The motion step transfers the pose
+/// and shadow to the ceiling; successful completion starts the leap cooldown.
+static void _actor405800CeilingLeapState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work   = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFuncTable3                states = D_actor_405800_80131EDC;
+    _Actor405800IvoryStalkerWork* work      = task->work;
+    TaskFuncTable3                subStates = D_actor_405800_80131EDC;
 
     _stalkerZebraIvoryFoldArms(task);
-    states.funcs[work->subState](task);
+    subStates.funcs[work->subState](task);
 }
 
-static void func_actor_405800_80137FCC(Task* task)
+/// Runs the upright drop from the ceiling with both arms folded.
+///
+/// Running behavior 13, sub-states 0..2 (start, drop, finish). Requires the
+/// ceiling pose and live root/rig. The drop fixes landing X/Z, keeps death on
+/// hold until landing and resumes walking after the landing clip completes.
+static void _actor405800CeilingDropState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work   = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFuncTable3                states = D_actor_405800_80131EE8;
+    _Actor405800IvoryStalkerWork* work      = task->work;
+    TaskFuncTable3                subStates = D_actor_405800_80131EE8;
 
     _stalkerZebraIvoryFoldArms(task);
-    states.funcs[work->subState](task);
+    subStates.funcs[work->subState](task);
 }
 
-static void func_actor_405800_80138040(Task* task)
+/// Runs a fall from the ceiling onto the back with both arms folded.
+///
+/// Running behavior 14, sub-states 0..3 (start, fall, landing, finish). Requires
+/// the live root/rig and Enemy record. A pending status reaction survives the
+/// fall; the landing consumes it or prepares the on-back rest and crawl.
+static void _actor405800CeilingFallState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work   = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFuncTable4                states = D_actor_405800_80131EF4;
+    _Actor405800IvoryStalkerWork* work      = task->work;
+    TaskFuncTable4                subStates = D_actor_405800_80131EF4;
 
     _stalkerZebraIvoryFoldArms(task);
-    states.funcs[work->subState](task);
+    subStates.funcs[work->subState](task);
 }
 
 #include "../../shared/stalker_zebra_ivory_run_sub_states.inc.c"
 
-static void func_actor_405800_80138154(Task* task)
+/// Runs the ceiling-exit decision with both arms folded.
+///
+/// Running behavior 16, sub-states 0..1 (start, decide). Requires live work
+/// and capsule-grid probe; the second step selects drop beyond 2000 room units
+/// of horizontal target distance, otherwise grab, and disables the probe.
+static void _actor405800CeilingExitState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { _actor405800StartCeilingExit, _stalkerZebraIvorySelectCeilingExit };
+    _Actor405800IvoryStalkerWork* work        = task->work;
+    TaskFunc                      subStates[] = { _actor405800StartCeilingExit, _stalkerZebraIvorySelectCeilingExit };
 
     _stalkerZebraIvoryFoldArms(task);
-    states[work->subState](task);
+    subStates[work->subState](task);
 }
 
-static void func_actor_405800_801381BC(Task* task)
+/// Runs the randomly timed idle with both arms folded.
+///
+/// Running behavior 17, sub-states 0..1 (start, idle). Requires live work and
+/// body rig. The idle lasts 90..153 updates unless a hit or attack takes priority;
+/// expiry requests a reveal, refreshes the hide cooldown and resumes walking.
+static void _actor405800IdleState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-    TaskFunc                      states[2] = { _actor405800StartIdle, _actor405800TickIdle };
+    _Actor405800IvoryStalkerWork* work        = task->work;
+    TaskFunc                      subStates[] = { _actor405800StartIdle, _actor405800TickIdle };
 
     _stalkerZebraIvoryFoldArms(task);
-    states[work->subState](task);
+    subStates[work->subState](task);
 }
 
 #include "../../shared/stalker_zebra_ivory_restart_clip.inc.c"
@@ -3781,15 +3839,20 @@ static void func_actor_405800_80138698(Task* arg0)
     }
 }
 
-static void func_actor_405800_80138788(Task* arg0)
+/// Runs child-arm destruction followed by delayed enemy and task teardown.
+///
+/// Task state 3, work state 0..1 (kill arms, wait 301 updates). Requires live
+/// work and Enemy spawn record; the final callback can free both, so no task
+/// or work access follows dispatch. The task system owns release of the work.
+static void _actor405800DestroyTaskState(Task* task)
 {
-    _Actor405800IvoryStalkerWork* work                = (_Actor405800IvoryStalkerWork*)arg0->work;
-    void                          (*states[2])(Task*) = {
+    _Actor405800IvoryStalkerWork* work            = task->work;
+    TaskFunc                      cleanupStates[] = {
         _actor405800DestroyArmModels,
         _actor405800TickDestroyDelay,
     };
 
-    states[work->state](arg0);
+    cleanupStates[work->state](task);
 }
 
 #include "../../shared/stalker_zebra_ivory_update_color.inc.c"

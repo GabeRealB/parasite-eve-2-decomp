@@ -64380,11 +64380,11 @@ element-wise stores it replaced. Both declarations carry initializers, table
 second:
 
 ```c
-_Actor405800IvoryStalkerWork* work      = (_Actor405800IvoryStalkerWork*)task->work;
-TaskFunc         states[2] = { handler0, handler1 };
+_Actor405800IvoryStalkerWork* work        = task->work;
+TaskFunc                      subStates[] = { handler0, handler1 };
 ```
 
-`func_actor_405800_80137B34` is the second example. A `SOFT_BARRIER()` after an
+`_actor405800LightRecoilState` is the second example. A `SOFT_BARRIER()` after an
 element-wise `work` load also reaches 100% there, by pinning the load ahead of
 the first `lui`; prefer the initializer, which needs no barrier.
 
@@ -64703,9 +64703,9 @@ cannot happen is a subsegment with no owner.
 
 ## `.rodata` unit order does not have to follow `.text` unit order
 
-`actor_405800` has a local-array initializer at `func_actor_405800_80137C04`
-(`TaskFunc states[3] = { … }`), which GCC 2.8.1 turns into a `.rdata` constant
-pool the prologue block-copies onto the stack:
+`actor_405800` has a local callback-table initializer at `_actor405800StunState`
+(`TaskFuncTable3 subStates = D_actor_405800_80131EAC`), whose `.rdata` table
+GCC 2.8.1 block-copies onto the stack in the prologue:
 
 ```
 lui   $v0, %hi(pool)
@@ -64715,7 +64715,7 @@ sw    $a1, 0x10($sp) ; sw $a2, 0x14($sp) ; sw $a3, 0x18($sp)
 ```
 
 (Two entries stay inline as `lui`/`addiu` pairs — see the sibling
-`func_actor_405800_80137B34`. Three is where the pool appears.)
+`_actor405800LightRecoilState`. Three is where the pool appears.)
 
 The pool has to land at rodata `0x8C`, but the overlay's rodata reads
 `id, tables …, pools 0x8C-0xF4, jump tables 0xF4-0x1A8` while the *text* order
@@ -75334,7 +75334,7 @@ TaskFunc states[2] = { fn0, fn1 };
 
 keeps that `lui` after the work load. Topology, predicates and delay-slot
 words were already identical; only this spelling changed the schedule.
-`func_actor_405800_80137A60` (98.87% → 100%).
+`_actor405800WalkState` (98.87% → 100%).
 
 
 ## _actor01600ApplyDamage: splitting a shared pan temporary restores local allocation (GCC 2.8.1)
