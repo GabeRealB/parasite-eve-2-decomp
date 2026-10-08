@@ -84,7 +84,7 @@ func_mine_refuge_8017EA78 = 0x8017EA78; // type:func
 
 mineRefugeDrawGlowsTask = 0x80181454; // type:func
 _telephoneDrawPlayDataRow = 0x8017D6E0; // type:func
-Telephone_DrawUsageRow = 0x8017DEAC; // type:func
+_telephoneDrawUsageRow = 0x8017DEAC; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E2A8; // type:func
 _telephoneBuildPeUsageList = 0x8017E5A4; // type:func
 _telephoneUsageTask = 0x8017E8C4; // type:func

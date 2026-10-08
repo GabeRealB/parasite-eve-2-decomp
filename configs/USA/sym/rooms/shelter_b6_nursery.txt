@@ -124,7 +124,7 @@ func_shelter_b6_nursery_80184074 = 0x80184074; // type:func
 
 func_shelter_b6_nursery_8017EAC4 = 0x8017EAC4; // type:func
 _telephoneDrawPlayDataRow = 0x8017D72C; // type:func
-Telephone_DrawUsageRow = 0x8017DEF8; // type:func
+_telephoneDrawUsageRow = 0x8017DEF8; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E2F4; // type:func
 _telephoneBuildPeUsageList = 0x8017E5F0; // type:func
 _telephoneUsageTask = 0x8017E910; // type:func

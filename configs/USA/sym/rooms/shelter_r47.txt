@@ -192,7 +192,7 @@ shelterR47TelephoneMenuTask = 0x8017EC04; // type:func
 
 shelterR47DrawViewGlowsTask = 0x801858BC; // type:func
 _telephoneDrawPlayDataRow = 0x8017D86C; // type:func
-Telephone_DrawUsageRow = 0x8017E038; // type:func
+_telephoneDrawUsageRow = 0x8017E038; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E434; // type:func
 _telephoneBuildPeUsageList = 0x8017E730; // type:func
 _telephoneUsageTask = 0x8017EA50; // type:func

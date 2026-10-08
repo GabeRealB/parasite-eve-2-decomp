@@ -162,7 +162,7 @@ static __inline__ void _actorContactCalcHorizontalPushback(const SVECTOR* positi
 #endif
 
 static void                       _actorRenderYawJointInWorld(GfxCoord* joint, s16 yawDelta);
-static s32                        ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count);
+static s32                        _actorContactFindLastObstaclePush(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount);
 static ACTOR_CONTACT_STEER_RESULT _actorContactApplyAvoidancePushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, SVECTOR* pushDelta);
 static s32                        _actorContactApplyGridPushback(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount);
 static s32                        ActorContact_Push(GfxCoord* coord, WorldCollisionContact* recs, s16 count, s16 push);

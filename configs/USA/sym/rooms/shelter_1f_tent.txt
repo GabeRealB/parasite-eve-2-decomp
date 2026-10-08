@@ -94,7 +94,7 @@ func_shelter_1f_tent_8017EA60 = 0x8017EA60; // type:func
 
 shelter1fTentDrawViewGlowsTask = 0x8017FE10; // type:func
 _telephoneDrawPlayDataRow = 0x8017D6C8; // type:func
-Telephone_DrawUsageRow = 0x8017DE94; // type:func
+_telephoneDrawUsageRow = 0x8017DE94; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E290; // type:func
 _telephoneBuildPeUsageList = 0x8017E58C; // type:func
 _telephoneUsageTask = 0x8017E8AC; // type:func

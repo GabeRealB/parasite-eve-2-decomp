@@ -754,8 +754,9 @@ offsets through `JET_CONE_` bindings. Both tail-growth modes share the same
 local XY rings and negative-Z axis.
 
 `no9Golem` owns the included No. 9 GOLEM head and shadow routines shared by
-actor_510900 and actor_521100. Its interface is `src/shared/no9_golem.h`;
-carrier-local shadow drawers are static. Shadow constants use `NO9_GOLEM_`.
+actor_510900 and actor_521100. Its fragments live under `src/shared/`; each
+carrier declares its static head aim and shadow routines in its prologue.
+Constants use `NO9_GOLEM_`.
 
 `overlayEncounter` owns the included scripted encounter bookkeeping in
 `src/shared/mad_chaser_waves.h`, shared with the encounter records in
@@ -1155,8 +1156,8 @@ interface is `src/shared/falling_leaves.h`; `LEAF_` constants describe its
 rendering and task phases. Each carrier exports its own effect-table wrapper
 and keeps the shared task and selected drawer private.
 
-`mainStreet` owns the included room handlers, play-time task and drifting puff
-effect shared by the day and night Dryfield main street packages. Its interface
+`mainStreet` owns the included room handlers, Ice Bag event completion and
+drifting puff effect shared by the day and night Dryfield main street packages. Its interface
 is `src/shared/main_street.h`. Each carrier exports its own puff task to the
 gameplay effect table and keeps the puff drawer private; rendering constants
 use `MAIN_STREET_PUFF_`.

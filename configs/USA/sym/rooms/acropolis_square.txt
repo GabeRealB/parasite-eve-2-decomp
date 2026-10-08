@@ -115,7 +115,7 @@ acropolisSquareTelephoneMenuTask = 0x80180804; // type:func
 
 acropolisSquarePlayerReflectionTask = 0x8017F41C; // type:func
 _telephoneDrawPlayDataRow = 0x8017F46C; // type:func
-Telephone_DrawUsageRow = 0x8017FC38; // type:func
+_telephoneDrawUsageRow = 0x8017FC38; // type:func
 _telephoneBuildWeaponUsageList = 0x80180034; // type:func
 _telephoneBuildPeUsageList = 0x80180330; // type:func
 _telephoneUsageTask = 0x80180650; // type:func

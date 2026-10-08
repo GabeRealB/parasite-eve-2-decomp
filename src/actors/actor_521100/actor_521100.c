@@ -51,8 +51,8 @@
 #include "main/wipsys.h"
 #include "main/wipsys_types.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/no9_golem.h"
 
+static void _no9GolemAimHead(const Task* actor);
 static void _no9GolemDrawShadow(const Task* task);
 
 /// Native clips used by the fight's movement and hit reactions.
@@ -3375,7 +3375,7 @@ static void func_actor_521100_80135478(Enemy* arg0, Task* arg1)
     _actor521100StepRootPosition(arg1);
     _actor521100PlayFootsteps(arg1);
     _actor521100TickAnimation(arg1);
-    no9GolemAimHead(arg1);
+    _no9GolemAimHead(arg1);
     if (temp_s1->hitTwistActive != 0) {
         _actor521100ApplyHitTwist(arg1);
     }

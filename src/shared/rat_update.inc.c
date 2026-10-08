@@ -1,46 +1,50 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Task state 1. Shows or hides the model and target lock with the combat
-/// actor-control state (paused: only colour and shadow). Otherwise runs the
-/// reaction handler when any reaction flag is set, the contact pass, the
-/// behaviour dispatch, the turn (when the turn rate is non-zero), the step and
-/// the animation, then recomposes the root coordinate and updates colour and
-/// shadow.
-void ratUpdate(Enemy* arg0, Task* arg1)
+/// Runs one living-rat update and refreshes its composed root lighting/shadow.
+///
+/// Requires a live enemy/model and initialized work in update task state 1.
+/// Running updates enable drawing/targeting, consume reactions and contacts,
+/// dispatch behavior, turn, step and animate before composing the root. Paused
+/// updates only sample cached lighting and draw the shadow; hidden updates
+/// disable drawing and targeting. Other control values retain the model/target
+/// flags and run the update. A fatal contact schedules the death task state.
+static void _ratUpdate(Enemy* enemy, Task* actor)
 {
-    GfxCoord*  coord;
-    TmdObject* obj;
+    GfxCoord*  rootCoord;
+    TmdObject* model;
     RatWork*   work;
 
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
-    work  = arg1->work;
+    model     = actor->extra.tmd;
+    rootCoord = model->coords;
+    work      = actor->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            obj->flags                   = 0;
-            arg0->node.state.parts.flags = 0;
+            model->flags                  = 0;
+            enemy->node.state.parts.flags = 0;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _ratUpdateColor(arg1);
-            _ratShadow(arg1);
+            _ratUpdateColor(actor);
+            _ratShadow(actor);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    if (arg0->reactionFlags != 0) {
-        _ratReactions(arg1);
+    // Contacts can select the next mode before behavior and movement run.
+    if (enemy->reactionFlags != 0) {
+        _ratReactions(actor);
     }
-    ratContacts(arg1);
-    _ratBehavior(arg1);
+    _ratContacts(actor);
+    _ratBehavior(actor);
     if (work->turnRate != 0) {
-        _ratTurn(arg1);
+        _ratTurn(actor);
     }
-    _ratStep(arg1);
-    _ratAnimate(arg1);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    _ratUpdateColor(arg1);
-    _ratShadow(arg1);
+    _ratStep(actor);
+    _ratAnimate(actor);
+    // Refresh the root cache after movement and animation, before lighting.
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _ratUpdateColor(actor);
+    _ratShadow(actor);
 }

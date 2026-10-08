@@ -78,6 +78,7 @@ static void _actor342400WaveSpawnSlouch(Task* waveTask);
 static void _actor342400WaveBeginSlouchWatch(Task* waveTask);
 static void _actor342400WaveWatchSlouch(Task* waveTask);
 static void _actor342400WaveBeginPairReveal(Task* waveTask);
+static void _overlayEncounterRevealSlouch(Task* waveTask);
 static void _overlayEncounterPairRevealFirst(Task* waveTask);
 static void _overlayEncounterPairRevealSecond(Task* waveTask);
 static void _overlayEncounterPairWatch(Task* waveTask);
@@ -497,7 +498,7 @@ static void _actor342400WaveMadChaserTask(Task* waveTask)
 /// `func_actor_342400_80162824`.
 static const TaskFuncTable4 D_actor_342400_80161E44 = { {
     _actor342400WaveSpawnSlouch,
-    madChaserWaveRevealSecond,
+    _overlayEncounterRevealSlouch,
     _actor342400WaveBeginSlouchWatch,
     _actor342400WaveWatchSlouch,
 } };

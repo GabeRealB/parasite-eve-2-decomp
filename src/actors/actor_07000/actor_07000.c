@@ -51,6 +51,8 @@
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/sucklerceph.h"
 
+static void _sucklercephDropState(Enemy* enemy, Task* task);
+
 /// Work block of the projectile a Slouch spits.
 ///
 /// The projectile's launch state allocates it zeroed and keeps it at
@@ -874,7 +876,7 @@ static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
 /// the same update and teardown after a spawn that parks the specimen hidden,
 /// and a fourth state for its drop into place.
 static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
-    { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
+    { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, _sucklercephDropState },
 };
 
 #include "../../shared/sucklerceph_reaction_dispatch.inc.c"

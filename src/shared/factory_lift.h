@@ -307,7 +307,6 @@ s32  factorySoundCommand(Task* task, s32 messageId, s32 soundCue, s32 secondArg)
 s32  factoryRoomAction(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 void factoryPanelRunStep(Task* task, s16 step);
 void factoryPanelInit(Task* task);
-void factoryPanelOpenPrompt(Task* task);
 void factoryPanelPrompt(Task* task);
 
 /// Dispatches the factory lift task's setup, frame update or teardown state.
@@ -330,8 +329,7 @@ void factoryCapScene(Task* arg0);
 ///
 /// Ignores all arguments and returns `ROOM_KEY_ITEM_USE_REFUSED`; no item or
 /// room state changes and no payload pointer is retained.
-s32  factoryIgnoreMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-void factoryPanelRun(Task* task);
+s32 factoryIgnoreMessage(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
 static s32 _factoryHatchOpen(Task* task);
 static s32 _factoryHatchClose(Task* task);

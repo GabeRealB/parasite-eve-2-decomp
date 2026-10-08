@@ -98,7 +98,7 @@ func_acropolis_fire_escape_8017EA68 = 0x8017EA68; // type:func
 
 func_acropolis_fire_escape_8017FF7C = 0x8017FF7C; // type:func
 _telephoneDrawPlayDataRow = 0x8017D6D0; // type:func
-Telephone_DrawUsageRow = 0x8017DE9C; // type:func
+_telephoneDrawUsageRow = 0x8017DE9C; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E298; // type:func
 _telephoneBuildPeUsageList = 0x8017E594; // type:func
 _telephoneUsageTask = 0x8017E8B4; // type:func

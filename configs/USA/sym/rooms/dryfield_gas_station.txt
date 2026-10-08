@@ -127,7 +127,7 @@ dryfieldGasStationCyanGlowTask = 0x80181A78; // type:func
 
 func_dryfield_gas_station_8017EA90 = 0x8017EA90; // type:func
 _telephoneDrawPlayDataRow = 0x8017D6F8; // type:func
-Telephone_DrawUsageRow = 0x8017DEC4; // type:func
+_telephoneDrawUsageRow = 0x8017DEC4; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E2C0; // type:func
 _telephoneBuildPeUsageList = 0x8017E5BC; // type:func
 _telephoneUsageTask = 0x8017E8DC; // type:func

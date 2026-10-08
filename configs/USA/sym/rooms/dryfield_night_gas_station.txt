@@ -272,7 +272,7 @@ dryfieldNightGasStationAmbientEffectsTask = 0x80180E9C; // type:func
 
 dryfieldNightGasStationTelephoneMenuTask = 0x8017E9F8; // type:func
 _telephoneDrawPlayDataRow = 0x8017D660; // type:func
-Telephone_DrawUsageRow = 0x8017DE2C; // type:func
+_telephoneDrawUsageRow = 0x8017DE2C; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E228; // type:func
 _telephoneBuildPeUsageList = 0x8017E524; // type:func
 _telephoneUsageTask = 0x8017E844; // type:func

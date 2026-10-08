@@ -2,7 +2,7 @@
  * room's 0x13EE handler: it answers the neighbours' variants from story
  * nibbles, runs two staged events from its own gate and two item events
  * through _roomEventGate. It also has the CAP cue sound handler, the 'talk'
- * handler that starts the play-time task, and the drifting puffs the room
+ * handler that starts the Ice Bag completion task, and the drifting puffs the room
  * task spawns as effect 0x601B1 by day and 0x601B2 by night. A puff is one
  * frame of a 10-cell 48x48 sheet on tpage 0x2B that drifts on a random bearing.
  *
@@ -32,7 +32,6 @@ enum {
 };
 
 s32         mainStreetResolveMsg(Task* task, s32 msgId, RoomEventMsg* msg, RoomEventMsg* out);
-void        mainStreetPlayTimeTask(Task* task);
 s32         mainStreetTalkMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 static void _mainStreetDrawPuff(const GfxCoord* coord, u16 frame, s16 sizeFactor, s16 angle);
 

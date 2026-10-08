@@ -104,7 +104,7 @@ dryfieldMotelRoom6PlayerReflectionTask = 0x80181184; // type:func
 
 dryfieldMotelRoom6DrawGlowTask = 0x80182978; // type:func
 _telephoneDrawPlayDataRow = 0x8017D6C0; // type:func
-Telephone_DrawUsageRow = 0x8017DE8C; // type:func
+_telephoneDrawUsageRow = 0x8017DE8C; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E288; // type:func
 _telephoneBuildPeUsageList = 0x8017E584; // type:func
 _telephoneUsageTask = 0x8017E8A4; // type:func

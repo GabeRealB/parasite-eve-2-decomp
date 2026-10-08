@@ -147,10 +147,5 @@ enum {
 /// coordinate 4. Success links four bodies, acquires a battle reference and
 /// advances the task to update state 1; allocation failure destroys the enemy.
 void ratSpawn(Enemy* enemy, Task* actor);
-void ratDeath(Enemy* arg0, Task* arg1);
-void ratUpdate(Enemy* arg0, Task* arg1);
-
-/* Defined by each package. */
-void ratContacts(Task* actor);
 
 #endif /* SRC_SHARED_RAT_H */

@@ -2,7 +2,7 @@
  * The configuration contract is documented in telephone.h. */
 
 static void _telephoneDrawPlayDataRow(UiList* list, UiObject* object);
-static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1);
+static void _telephoneDrawUsageRow(UiList* list, UiObject* object);
 static void _telephoneUsageTask(Task* task);
 static void _telephonePromptTask(Task* task);
 static void _telephonePlayDataTask(Task* task);
@@ -674,7 +674,7 @@ static UiListRowCallback Telephone_Data_80181C40[1] = {
 static UiList Telephone_Data_80181C44 = { Telephone_Data_80181C40, 9, { .unsignedValue = 9 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
 static UiListRowCallback Telephone_Data_80181C68[1] = {
-    Telephone_DrawUsageRow,
+    _telephoneDrawUsageRow,
 };
 
 static UiList Telephone_Data_80181C6C = { Telephone_Data_80181C68, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };

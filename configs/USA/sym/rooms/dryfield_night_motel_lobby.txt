@@ -92,7 +92,7 @@ func_dryfield_night_motel_lobby_8017EAE0 = 0x8017EAE0; // type:func
 
 dryfieldNightMotelLobbyDrawGlowsTask = 0x801812F8; // type:func
 _telephoneDrawPlayDataRow = 0x8017D748; // type:func
-Telephone_DrawUsageRow = 0x8017DF14; // type:func
+_telephoneDrawUsageRow = 0x8017DF14; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E310; // type:func
 _telephoneBuildPeUsageList = 0x8017E60C; // type:func
 _telephoneUsageTask = 0x8017E92C; // type:func

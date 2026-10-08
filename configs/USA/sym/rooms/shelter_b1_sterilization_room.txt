@@ -182,7 +182,7 @@ shelterB1SterilizationRoomPuffTask = 0x801823D8; // type:func
 
 shelterB1SterilizationRoomTelephoneMenuTask = 0x8017EB2C; // type:func
 _telephoneDrawPlayDataRow = 0x8017D794; // type:func
-Telephone_DrawUsageRow = 0x8017DF60; // type:func
+_telephoneDrawUsageRow = 0x8017DF60; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E35C; // type:func
 _telephoneBuildPeUsageList = 0x8017E658; // type:func
 _telephoneUsageTask = 0x8017E978; // type:func

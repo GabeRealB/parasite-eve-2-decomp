@@ -34,58 +34,59 @@ typedef struct {
 } _ActorContactFindPushScratch;
 STATIC_ASSERT_SIZEOF(_ActorContactFindPushScratch, 0x88);
 
-/// Walks the first `count` contact records (stopping at a zero key) and keeps,
-/// in a scratch block carved off the scratch stack, the push that would move
-/// `coord` out of the last record of kind 0x10000 or 0x30000, scaled down to
-/// 0x100 units when longer. Returns whether any such record was found; returns
-/// 0 at once when `gGameSession->viewReady` or `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen` is 1.
-static s32 ActorContact_FindPush(GfxCoord* coord, WorldCollisionContact* recs, s16 count)
+/// Finds the last body-obstacle contact's horizontal push in released scratch.
+///
+/// Borrows a live coordinate and `contactCount` readable contacts (0..32),
+/// stopping at the first zero key. Returns 1 if a player/enemy body was found,
+/// otherwise 0; frozen actors or a ready view return 0 without touching scratch.
+/// Composes and then invalidates the coordinate. The push is capped at 256 world
+/// units and remains in the released block rather than being returned. With no
+/// obstacle, prior scratch push bytes still undergo the length/GTE operations;
+/// neither a zero result nor release makes those bytes a valid new push.
+static s32 _actorContactFindLastObstaclePush(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount)
 {
-    _ActorContactFindPushScratch* head;
-    _ActorContactFindPushScratch* s;
-    _ActorContactFindPushScratch* blk;
-    SVECTOR*                      offset;
+    enum { ACTOR_CONTACT_LAST_OBSTACLE_MAX_PUSH = 256 };
+    _ActorContactFindPushScratch* scratch;
+    SVECTOR*                      pushDelta;
 
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
         return 0;
     }
-    coord->composeStamp                                = GRAPHICS_COORD_DIRTY;
-    head                                               = SCRATCH_STACK_CURSOR(_ActorContactFindPushScratch);
-    blk                                                = head - 1;
-    SCRATCH_STACK_CURSOR(_ActorContactFindPushScratch) = blk;
-    s                                                  = blk;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    scratch             = SCRATCH_STACK_RESERVE_BLOCK(_ActorContactFindPushScratch);
     actorRenderComposeCoord(coord);
-    s->position.vx     = coord->workm.t[0];
-    s->position.vy     = coord->workm.t[1];
-    s->position.vz     = coord->workm.t[2];
-    s->uncappedPush.vz = 0;
-    s->uncappedPush.vy = 0;
-    s->uncappedPush.vx = 0;
-    s->hit             = 0;
-    for (s->recordIndex = 0; s->recordIndex < count; s->recordIndex++) {
-        if (recs[s->recordIndex].key.value == 0) {
-            s->marks[s->recordIndex] = ACTOR_CONTACT_FIND_PUSH_MARK_END;
+    scratch->position.vx     = coord->workm.t[0];
+    scratch->position.vy     = coord->workm.t[1];
+    scratch->position.vz     = coord->workm.t[2];
+    scratch->uncappedPush.vz = 0;
+    scratch->uncappedPush.vy = 0;
+    scratch->uncappedPush.vx = 0;
+    scratch->hit             = 0;
+    for (scratch->recordIndex = 0; scratch->recordIndex < contactCount; scratch->recordIndex++) {
+        if (contacts[scratch->recordIndex].key.value == 0) {
+            scratch->marks[scratch->recordIndex] = ACTOR_CONTACT_FIND_PUSH_MARK_END;
             break;
         }
-        s->kind = recs[s->recordIndex].key.value & 0xFFFF0000;
-        if (s->kind == 0x10000 || s->kind == 0x30000) {
-            s->hit = 1;
-            _actorContactCalcHorizontalPushback(&s->position, &recs[s->recordIndex], &s->push);
-            s->uncappedPush.vx = s->push.vx;
-            s->uncappedPush.vz = s->push.vz;
+        scratch->kind = contacts[scratch->recordIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
+        if (scratch->kind == WORLD_COLLISION_CONTACT_PLAYER_BODY || scratch->kind == WORLD_COLLISION_CONTACT_ENEMY_BODY) {
+            scratch->hit = 1;
+            _actorContactCalcHorizontalPushback(&scratch->position, &contacts[scratch->recordIndex], &scratch->push);
+            scratch->uncappedPush.vx = scratch->push.vx;
+            scratch->uncappedPush.vz = scratch->push.vz;
         }
     }
-    s->pushLength = SquareRoot0(s->push.vx * s->push.vx + s->push.vy * s->push.vy +
-                                s->push.vz * s->push.vz);
-    if (s->pushLength > 0x100) {
-        offset = &s->push;
-        VectorNormalSS(offset, offset);
-        gte_lddp(0x100);
-        gte_ldsv(offset);
+    scratch->pushLength = SquareRoot0(scratch->push.vx * scratch->push.vx + scratch->push.vy * scratch->push.vy +
+                                      scratch->push.vz * scratch->push.vz);
+    // Preserve the no-obstacle path's reads from the uncleared scratch block.
+    if (scratch->pushLength > ACTOR_CONTACT_LAST_OBSTACLE_MAX_PUSH) {
+        pushDelta = &scratch->push;
+        VectorNormalSS(pushDelta, pushDelta);
+        gte_lddp(ACTOR_CONTACT_LAST_OBSTACLE_MAX_PUSH);
+        gte_ldsv(pushDelta);
         gte_gpf12();
-        gte_stsv(offset);
+        gte_stsv(pushDelta);
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     SCRATCH_STACK_RELEASE_BLOCK(_ActorContactFindPushScratch);
-    return s->hit;
+    return scratch->hit;
 }

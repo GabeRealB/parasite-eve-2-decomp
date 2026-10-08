@@ -1,12 +1,15 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Runs the script task's current state. The seven handlers are copied onto
-/// the stack first, so the call goes through a local table rather than through
-/// `.rodata`.
-void factoryPanelRun(Task* task)
+/// Dispatches the operator panel's current interaction state.
+///
+/// Requires a live task with state in 0..FACTORY_PANEL_STATE_COUNT-1. Copies
+/// the seven callbacks onto the stack and indexes without a bounds check.
+/// Initialization owns the panel work; later handlers require that work and
+/// may close the session and destroy the task.
+static void _factoryPanelRun(Task* task)
 {
-    TaskFuncTable7 sp;
+    TaskFuncTable7 handlers;
 
-    sp = _gFactoryPanelStates;
-    sp.funcs[task->state](task);
+    handlers = _gFactoryPanelStates;
+    handlers.funcs[task->state](task);
 }

@@ -506,7 +506,7 @@ mistParkingTelephoneMenuTask = 0x80181468; // type:func
 
 mistParkingDrawGlowsTask = 0x80184728; // type:func
 _telephoneDrawPlayDataRow = 0x801800D0; // type:func
-Telephone_DrawUsageRow = 0x8018089C; // type:func
+_telephoneDrawUsageRow = 0x8018089C; // type:func
 _telephoneBuildWeaponUsageList = 0x80180C98; // type:func
 _telephoneBuildPeUsageList = 0x80180F94; // type:func
 _telephoneUsageTask = 0x801812B4; // type:func

@@ -31,7 +31,7 @@ gAcropolisFireEscapeCollision04CE8Verts = 0x80181EC4; // absolute:True owner=acr
 
 gAcropolisFireEscapeCollision04CE8Faces = 0x8018207C; // absolute:True owner=acropolis_fire_escape shared=rooms
 _actorRenderYawJointInWorld = 0x801626CC; // type:func
-ActorContact_FindPush = 0x80161E38; // type:func
+_actorContactFindLastObstaclePush = 0x80161E38; // type:func
 _actorContactApplyAvoidancePushback = 0x80162180; // type:func
 _actor311500Init = 0x801629d8; // type:func
 _actor311500TickIdle = 0x80162c34; // type:func

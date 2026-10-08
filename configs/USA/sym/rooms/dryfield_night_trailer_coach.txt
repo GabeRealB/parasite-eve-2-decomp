@@ -297,7 +297,7 @@ func_dryfield_night_trailer_coach_8018138C = 0x8018138C; // type:func
 
 dryfieldNightTrailerCoachDrawGlowsTask = 0x80182924; // type:func
 _telephoneDrawPlayDataRow = 0x8017FFF4; // type:func
-Telephone_DrawUsageRow = 0x801807C0; // type:func
+_telephoneDrawUsageRow = 0x801807C0; // type:func
 _telephoneBuildWeaponUsageList = 0x80180BBC; // type:func
 _telephoneBuildPeUsageList = 0x80180EB8; // type:func
 _telephoneUsageTask = 0x801811D8; // type:func

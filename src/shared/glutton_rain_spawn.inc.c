@@ -5,16 +5,18 @@
 
 /// Links the rain blob's unscaled attack sphere with pair testing disabled.
 ///
-/// Requires zeroed work with an unlinked body, a readable sphere offset and a
-/// nonnegative radius in world units. Copies the offset; the linked work and
-/// its embedded coordinate must stay live until unlink.
-static __inline__ void _gluttonLinkRainAttackSphere(GluttonProjectileWork* work, const SVECTOR* offset, s16 radius)
+/// Requires an unlinked attack body and a zero-initialized body coordinate in
+/// live work. Preserves the body's preselected attack key, copies the local
+/// centre's XYZ, and clears the whole contact table. Radius is an unsigned
+/// 16-bit world-unit value; the linked work and embedded coordinate must
+/// remain live until unlink. The caller enables pairing after ascent.
+static __inline__ void _gluttonLinkRainAttackSphere(GluttonProjectileWork* work, const SVECTOR* localCenter, u16 radius)
 {
     work->bodyCoord.parent = &gGfxViewCoord;
     gfxSetRotIdentity(&work->bodyCoord.coord);
     gfxRotMatrixY(&work->bodyCoord.coord, 0, GRAPHICS_ROTATION_REPLACE);
 
-    _worldCollisionLinkSphereBody(&work->bodyCoord, &work->attackBody, work->attackContacts, offset, radius, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
+    _worldCollisionLinkSphereBody(&work->bodyCoord, &work->attackBody, work->attackContacts, localCenter, radius, WORLD_COLLISION_LIST_ENEMY_ATTACKS,
                                   ARRAY_SIZE(work->attackContacts));
     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
 }

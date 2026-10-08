@@ -1,4 +1,4 @@
-/* Part of the No. 9 GOLEM library; see no9_golem.h. */
+/* Shared No. 9 GOLEM implementation, carried by actor_510900 and actor_521100. */
 
 /// Draws the No. 9 GOLEM's ground shadow below its body coordinate.
 ///

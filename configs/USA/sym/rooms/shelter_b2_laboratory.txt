@@ -114,7 +114,7 @@ shelterB2LaboratoryGlowTask = 0x80180548; // type:func
 
 shelterB2LaboratoryTelephoneMenuTask = 0x8017EAB4; // type:func
 _telephoneDrawPlayDataRow = 0x8017D71C; // type:func
-Telephone_DrawUsageRow = 0x8017DEE8; // type:func
+_telephoneDrawUsageRow = 0x8017DEE8; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E2E4; // type:func
 _telephoneBuildPeUsageList = 0x8017E5E0; // type:func
 _telephoneUsageTask = 0x8017E900; // type:func

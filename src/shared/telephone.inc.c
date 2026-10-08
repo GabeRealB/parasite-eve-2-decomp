@@ -32,6 +32,7 @@ enum {
     TELEPHONE_SUSPENDED_CONTROL_SHIFT   = 16,
     TELEPHONE_PANEL_INITIALIZE          = 0,
     TELEPHONE_GAUGE_FRACTION_BITS       = 12,
+    TELEPHONE_USAGE_GAUGE_HEIGHT        = 9,
     TELEPHONE_MAX_UNSCALED_USE_COUNT    = 99999,
     TELEPHONE_PE_ITEM_FIRST             = 15,
     TELEPHONE_PE_SLOTS_PER_PAGE         = 3,
@@ -85,7 +86,7 @@ typedef struct {
 } _TelephoneUsageWork;
 STATIC_ASSERT_SIZEOF(_TelephoneUsageWork, 0xC4);
 
-static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1);
+static void _telephoneDrawUsageRow(UiList* list, UiObject* object);
 
 static void _telephonePromptTaskExit(Task* task);
 
@@ -300,136 +301,159 @@ static const char Telephone_Data_8017D610[] = "Play Data";
 
 static const u8 Telephone_Data_8017D61C[] = "100.0%";
 
-/// Draws one row of a usage panel from the `_TelephoneUsageWork` block in the
-/// owning task's work area: the item's name, its share of all recorded uses as
-/// a percentage with two decimals, and a gauge scaled by the row's
-/// `gaugeFractions` entry. Highlighting the row previews the item; pressing the
-/// detail button on the selected row opens the item's detail window.
-static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
+/// Formats a sub-100-percent usage share in hundredths of a percent.
+///
+/// Borrows a writable buffer of at least eight bytes and a share in 0..9999.
+/// Pads to three digits before opening the decimal slot and appending percent.
+static inline void _telephoneFormatUsageShare(u8* formatBuffer, s32 usageShare)
 {
-    u8                   buf[0x20];
-    TextDrawReq          req;
-    TextDrawReq*         request;
-    _TelephoneUsageWork* work;
-    POLY_G4*             prim;
-    u8*                  p;
-    u8*                  q;
-    s32                  item;
-    s32                  value;
-    s32                  x;
-    s32                  y;
-    s32                  color;
-    s32                  textY;
-    s32                  limit;
-    s32                  n;
-    s32                  len;
-    s32                  i;
-    s32                  avail;
-    s32                  base;
-    s32                  barW;
-    s32                  barX;
-    s32                  rowY;
-    s32                  one;
-    s32                  tx;
-    s32                  ty;
+    s32 wholePercentThreshold;
+    s32 powerIndex;
+    s32 shiftBytes;
+    s32 digitCount;
+    u8* digitEnd;
 
-    p       = buf;
-    request = &req;
-    x       = arg0->rowTextX.signedValue;
-    y       = arg0->rowTextY.signedValue;
-    work    = arg1->owner->work;
-    item    = work->itemIds[arg0->currentItemIndex];
-    value   = work->usageShares[arg0->currentItemIndex];
-    color   = arg0->colorRgb;
-    if (arg1->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
-        req.x             = arg1->panel.contentOriginX.unsignedValue + 0x11 + x;
-        textY             = arg1->panel.contentOriginY.unsignedValue - 6;
-        req.y             = textY + y;
-        req.otIndex       = arg1->panel.otIndex.signedValue + 1;
-        req.colorRgb      = color;
-        req.glyphTable    = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment     = TEXT_ALIGNMENT_LEFT;
-        request->drawMode = TEXT_DRAW_OUTLINED;
-        textDrawString(request, itemGetText(item, ITEM_TEXT_NAME, 0));
-        itemMenuDrawDefaultItemIcon(arg1, x, y, item);
+    wholePercentThreshold = 1;
+    for (powerIndex = TELEPHONE_PERCENT_FRACTIONAL_DIGITS; powerIndex > 0; powerIndex--) {
+        wholePercentThreshold *= 10;
     }
-    limit = 1;
-    if (value >= 10000) {
-        textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, Telephone_Data_8017D61C, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    if (usageShare < wholePercentThreshold) {
+        textItoaPadded(formatBuffer, usageShare, TELEPHONE_PERCENT_FRACTIONAL_DIGITS + 1);
     } else {
-        for (i = 2; i > 0; i--) {
-            limit *= 10;
-        }
-        if (value < limit) {
-            textItoaPadded(p, value, 3);
-        } else {
-            textItoaUnsigned(p, value);
-        }
-        n   = 2;
-        q   = p;
-        len = 0;
-        while (*q != 0) {
-            q++;
-            len++;
-        }
-        if (len < n) {
-            n = len;
-        }
-        n++;
-        for (len = 0; len < n; len++) {
-            q[1] = q[0];
-            q--;
-        }
-        q[1] = '.';
-        textAppendString(p, Telephone_Data_80181A78);
-        textDrawUiLine(arg1, -arg0->rowTextX.signedValue, arg0->rowTextY.signedValue, buf, arg0->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+        textItoaUnsigned(formatBuffer, usageShare);
+    }
+    shiftBytes = TELEPHONE_PERCENT_FRACTIONAL_DIGITS;
+    digitEnd   = formatBuffer;
+    digitCount = 0;
+    TELEPHONE_SHIFT_DECIMAL_DIGITS(digitEnd, digitCount, shiftBytes, digitCount);
+    textAppendString(formatBuffer, Telephone_Data_80181A78);
+}
+
+/// Queues the usage gauge's opaque red horizontal gradient.
+///
+/// Borrows a panel and pixel offsets/width; widths below two reserve nothing.
+/// Requires room for one POLY_G4 and a live OT. Retains low 16 coordinate bits,
+/// including an unsigned read of the left edge; the caller draws the bevel.
+static inline void _telephoneDrawUsageGaugeFill(const UiPanel* panel, s32 gaugeX, s32 gaugeY, s32 gaugeWidth)
+{
+    enum { TELEPHONE_USAGE_GAUGE_PACKET_CODE = 0x38 };
+    POLY_G4* gaugePrimitive;
+    s32      edgeX;
+    s32      edgeY;
+
+    if (gaugeWidth >= 2) {
+        gaugePrimitive                              = gGpuPrimCursor;
+        edgeX                                       = panel->contentOriginX.unsignedValue + gaugeX + 1;
+        gaugePrimitive->x2                          = edgeX;
+        gaugePrimitive->x0                          = edgeX;
+        edgeY                                       = panel->contentOriginY.unsignedValue;
+        gGpuPrimCursor                              = gaugePrimitive + 1;
+        edgeY                                       = edgeY + gaugeY;
+        edgeY                                      += 1;
+        GPU_PRIMITIVE_COLOR_WORD(gaugePrimitive, 3) = GPU_PACK_COLOR_WORD(0, 0, 0x01, 0);
+        GPU_PRIMITIVE_COLOR_WORD(gaugePrimitive, 1) = GPU_PACK_COLOR_WORD(0, 0, 0x01, 0);
+        setlen(gaugePrimitive, sizeof(*gaugePrimitive) / sizeof(u32) - 1);
+        GPU_PRIMITIVE_COLOR_WORD(gaugePrimitive, 0) = GPU_PACK_COLOR_WORD(0xb0, 0, 0x01, 0);
+        setcode(gaugePrimitive, TELEPHONE_USAGE_GAUGE_PACKET_CODE);
+        GPU_PRIMITIVE_COLOR_WORD(gaugePrimitive, 2) = GPU_PACK_COLOR_WORD(0xb0, 0, 0x01, 0);
+        edgeX                                       = (u16)gaugePrimitive->x0 + gaugeWidth - 1;
+        gaugePrimitive->y1                          = edgeY;
+        gaugePrimitive->y0                          = edgeY;
+        edgeY                                      += TELEPHONE_USAGE_GAUGE_HEIGHT - 1;
+        gaugePrimitive->y3                          = edgeY;
+        gaugePrimitive->y2                          = edgeY;
+        gaugePrimitive->x3                          = edgeX;
+        gaugePrimitive->x1                          = edgeX;
+        addPrim(gGpuCurrentOt + panel->otIndex.signedValue + 1, gaugePrimitive);
+    }
+}
+
+/// Draws a weapon/P.E. usage row and handles its preview/detail input.
+///
+/// Requires a live panel owner with populated usage work and current row in
+/// 0..itemCount-1, at most TELEPHONE_USAGE_ROW_CAPACITY. Shares are hundredths
+/// of a percent; shares at or above 100% use the fixed `100.0%` label. Gauges
+/// are signed Q12 ratios to the most-used row. Draws the
+/// percentage and gauge even while the caption/icon panel is hidden. An active
+/// selected row updates item preview/help; active triangle input opens a detail
+/// child and deactivates the parent. Requires loaded item text/icons, writable
+/// frame GPU storage and a live panel ordering table; no storage is retained.
+static void _telephoneDrawUsageRow(UiList* list, UiObject* object)
+{
+    enum {
+        TELEPHONE_USAGE_ICON_TEXT_OFFSET      = 17,
+        TELEPHONE_USAGE_GAUGE_LEFT_INSET      = 128,
+        TELEPHONE_USAGE_GAUGE_RIGHT_INSET     = 74,
+        TELEPHONE_USAGE_GAUGE_BASELINE_OFFSET = 12,
+        TELEPHONE_USAGE_DETAIL_TEMPLATE       = 45
+    };
+    u8                         percentageText[0x20];
+    TextDrawReq                captionRequest;
+    u8*                        formatBuffer;
+    TextDrawReq*               request;
+    const _TelephoneUsageWork* work;
+    s32                        itemId;
+    s32                        usageShare;
+    s32                        rowX;
+    s32                        rowY;
+    s32                        textColor;
+    s32                        captionBaseY;
+    s32                        gaugeRight;
+    s32                        gaugeLeft;
+    s32                        gaugeWidth;
+    s32                        gaugeX;
+    s32                        gaugeY;
+    s32                        panelActive;
+
+    formatBuffer = percentageText;
+    request      = &captionRequest;
+    rowX         = list->rowTextX.signedValue;
+    rowY         = list->rowTextY.signedValue;
+    work         = object->owner->work;
+    itemId       = work->itemIds[list->currentItemIndex];
+    usageShare   = work->usageShares[list->currentItemIndex];
+    textColor    = list->colorRgb;
+    if (object->panel.state != USER_INTERFACE_PANEL_HIDDEN) {
+        captionRequest.x          = object->panel.contentOriginX.unsignedValue + TELEPHONE_USAGE_ICON_TEXT_OFFSET + rowX;
+        captionBaseY              = object->panel.contentOriginY.unsignedValue - 6;
+        captionRequest.y          = captionBaseY + rowY;
+        captionRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+        captionRequest.colorRgb   = textColor;
+        captionRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        captionRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+        request->drawMode         = TEXT_DRAW_OUTLINED;
+        textDrawString(request, itemGetText(itemId, ITEM_TEXT_NAME, 0));
+        itemMenuDrawDefaultItemIcon(object, rowX, rowY, itemId);
+    }
+    if (usageShare >= TELEPHONE_PERCENT_WHOLE) {
+        textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, Telephone_Data_8017D61C, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    } else {
+        _telephoneFormatUsageShare(formatBuffer, usageShare);
+        textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, percentageText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
     }
 
-    base  = arg1->panel.contentLeft.signedValue + 0x80;
-    avail = arg1->panel.contentRight.signedValue - 0x4A;
-    barW  = avail - base;
-    barW  = (barW * work->gaugeFractions[arg0->currentItemIndex]) >> 12;
-    rowY  = arg0->rowTextY.signedValue - 0xC;
-    barW  = barW + 2;
-    barX  = avail - barW;
-    if (barW >= 2) {
-        prim                              = gGpuPrimCursor;
-        tx                                = arg1->panel.contentOriginX.unsignedValue + barX + 1;
-        prim->x2                          = tx;
-        prim->x0                          = tx;
-        ty                                = arg1->panel.contentOriginY.unsignedValue;
-        gGpuPrimCursor                    = prim + 1;
-        ty                                = ty + rowY;
-        ty                               += 1;
-        GPU_PRIMITIVE_COLOR_WORD(prim, 3) = GPU_PACK_COLOR_WORD(0, 0, 0x01, 0);
-        GPU_PRIMITIVE_COLOR_WORD(prim, 1) = GPU_PACK_COLOR_WORD(0, 0, 0x01, 0);
-        setlen(prim, 8);
-        GPU_PRIMITIVE_COLOR_WORD(prim, 0) = GPU_PACK_COLOR_WORD(0xb0, 0, 0x01, 0);
-        setcode(prim, 0x38);
-        GPU_PRIMITIVE_COLOR_WORD(prim, 2) = GPU_PACK_COLOR_WORD(0xb0, 0, 0x01, 0);
-        tx                                = (u16)prim->x0 + barW - 1;
-        prim->y1                          = ty;
-        prim->y0                          = ty;
-        ty                               += 8;
-        prim->y3                          = ty;
-        prim->y2                          = ty;
-        prim->x3                          = tx;
-        prim->x1                          = tx;
-        addPrim(gGpuCurrentOt + arg1->panel.otIndex.signedValue + 1, prim);
-    }
-    one = 1;
-    uiDrawBeveledRect(&(arg1)->panel, barX, arg0->rowTextY.signedValue - 0xC, barW, 9, 0, one);
-    if (((arg1->panel.control.word >> 16) == one) || (arg1->panel.control.word == one)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            itemMenuSetPreviewItem(item, CD_COMMAND_DISPLAY_LOAD_MENU);
-            itemMenuSetItemDescriptionPrompt(item);
+    // Right-anchor the Q12 usage gauge, preserving unsigned packet coordinates.
+    gaugeLeft  = object->panel.contentLeft.signedValue + TELEPHONE_USAGE_GAUGE_LEFT_INSET;
+    gaugeRight = object->panel.contentRight.signedValue - TELEPHONE_USAGE_GAUGE_RIGHT_INSET;
+    gaugeWidth = gaugeRight - gaugeLeft;
+    gaugeWidth = (gaugeWidth * work->gaugeFractions[list->currentItemIndex]) >> TELEPHONE_GAUGE_FRACTION_BITS;
+    gaugeY     = list->rowTextY.signedValue - TELEPHONE_USAGE_GAUGE_BASELINE_OFFSET;
+    gaugeWidth = gaugeWidth + 2;
+    gaugeX     = gaugeRight - gaugeWidth;
+    _telephoneDrawUsageGaugeFill(&object->panel, gaugeX, gaugeY, gaugeWidth);
+    panelActive = USER_INTERFACE_PANEL_ACTIVE;
+    uiDrawBeveledRect(&(object)->panel, gaugeX, list->rowTextY.signedValue - TELEPHONE_USAGE_GAUGE_BASELINE_OFFSET, gaugeWidth, TELEPHONE_USAGE_GAUGE_HEIGHT, 0, panelActive);
+    if (((object->panel.control.word >> TELEPHONE_SUSPENDED_CONTROL_SHIFT) == panelActive) || (object->panel.control.word == panelActive)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            itemMenuSetPreviewItem(itemId, CD_COMMAND_DISPLAY_LOAD_MENU);
+            itemMenuSetItemDescriptionPrompt(itemId);
         }
     }
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[45], item, 1, 1, arg1);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&D_8010EAB4[TELEPHONE_USAGE_DETAIL_TEMPLATE], itemId, USER_INTERFACE_PANEL_ACTIVE, 1, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }

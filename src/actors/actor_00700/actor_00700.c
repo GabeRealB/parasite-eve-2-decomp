@@ -49,6 +49,9 @@
 #include "../../shared/rat.h"
 #include "../../shared/moth.h"
 
+static void _ratDeath(Enemy* enemy, Task* actor);
+static void _ratUpdate(Enemy* enemy, Task* actor);
+static void _ratContacts(Task* actor);
 static void _ratAnimate(Task* actor);
 static void _ratAttack(Task* actor);
 static void _ratBehavior(Task* actor);
@@ -105,7 +108,7 @@ extern AnimationSet*       gMothAnimSets[2];
 /// The state handlers `_ratTask` dispatches on `Task::state`:
 /// set-up, per-frame update, and the one entered once the health runs out.
 static const EnemyTaskFuncTable3 gRatStateHandlers = {
-    { ratSpawn, ratUpdate, ratDeath },
+    { ratSpawn, _ratUpdate, _ratDeath },
 };
 
 static TmdBone _gActor00700RatBodySkeleton[7] = {

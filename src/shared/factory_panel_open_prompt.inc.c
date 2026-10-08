@@ -1,9 +1,11 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Script state: drops the prompt's highlight and spawns the action prompt at
-/// the cursor position with the confirmed hotspot's Examine/Push action, then
-/// moves the script to state 4.
-void factoryPanelOpenPrompt(Task* task)
+/// Opens the confirmed operator-panel hotspot's command prompt.
+///
+/// Requires initialized panel work and a live action cursor with a latched
+/// Examine/Push choice. Hides and stops that cursor, opens the commands at its
+/// screen-pixel position, and advances to the prompt state.
+static void _factoryPanelOpenPrompt(Task* task)
 {
     ActionPrompt*     prompt = D_80114D28;
     FactoryPanelWork* work   = task->work;
@@ -11,5 +13,5 @@ void factoryPanelOpenPrompt(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     itemMenuOpenHotspotCommands(prompt->screen.xy.x, prompt->screen.xy.y, work->promptKind);
-    task->state = 4;
+    task->state = FACTORY_PANEL_STATE_PROMPT;
 }

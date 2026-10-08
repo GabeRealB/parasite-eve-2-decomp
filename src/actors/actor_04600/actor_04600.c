@@ -47,6 +47,8 @@
 
 #include "rooms/shelter_b3_garbage_incinerator.h"
 #include "../../shared/sucklerceph.h"
+
+static void _sucklercephDropState(Enemy* enemy, Task* task);
 #include "../../shared/skull_stalker.h"
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
@@ -333,7 +335,7 @@ static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
 /// them: the same update and death after a spawn that parks the enemy hidden,
 /// and a fourth state for its drop into place.
 static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
-    { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, sucklercephDropState },
+    { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, _sucklercephDropState },
 };
 
 #include "../../shared/sucklerceph_reaction_dispatch.inc.c"

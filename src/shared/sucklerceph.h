@@ -155,7 +155,6 @@ static void _sucklercephTurnToPlayer(Task* task);
 void        sucklercephDeathState(Enemy* enemy, Task* task);
 static void _sucklercephKill(Task* task, u8 forceBurst);
 void        sucklercephDropSpawnState(Enemy* arg0, Task* arg1);
-void        sucklercephDropState(Enemy* arg0, Task* arg1);
 static void _sucklercephDropCollide(Task* task);
 s32         sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3);
 void        sucklercephUpdateState(Enemy* arg0, Task* arg1);

@@ -282,7 +282,7 @@ func_actor_510900_8013482C = 0x8013482C; // type:func
 
 func_actor_510900_801346D4 = 0x801346D4; // type:func
 actorMsgPlaceRotMatrix = 0x8013BE00; // type:func
-no9GolemAimHead = 0x80138BF0; // type:func
+_no9GolemAimHead = 0x80138BF0; // type:func
 _no9GolemDrawShadow = 0x8013BBE4; // type:func
 spriteQuadDraw = 0x80134C90; // type:func
 _actor510900TrySelectAttack = 0x8013691c; // type:func

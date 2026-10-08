@@ -1,17 +1,6 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Records whether this tick enters a new catching-glob task state.
-///
-/// Borrows live arguments for this call; no pointer is retained.
-static __inline__ void _gluttonRecordGlobTaskState(GluttonProjectileWork* work, Task* task)
-{
-    if (work->prevState != task->state) {
-        work->stateChanged = 1;
-    } else {
-        work->stateChanged = 0;
-    }
-    work->prevState = task->state;
-}
+#include "glutton_projectile_state.h"
 
 /// Dispatches the catching glob and records entry into each task state.
 ///
@@ -42,7 +31,7 @@ static void _gluttonGlobTask(Task* task)
     }
 
     if (task->state != GLUTTON_GLOB_SPAWN_STATE) {
-        _gluttonRecordGlobTaskState(work, task);
+        _gluttonRecordProjectileTaskState(work, task);
     }
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }

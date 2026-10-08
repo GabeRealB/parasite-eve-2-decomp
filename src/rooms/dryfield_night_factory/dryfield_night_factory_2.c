@@ -66,6 +66,8 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 #include "../../shared/factory_lift.h"
 
 static void _factoryEntryIdle(Task* task);
+static void _factoryPanelOpenPrompt(Task* task);
+static void _factoryPanelRun(Task* task);
 static void _factoryPanelArmPrompt(Task* task);
 static void _factoryPanelIdle(Task* task);
 static void _factoryPanelExit(Task* task);
@@ -77,7 +79,6 @@ extern TaskDesc gRoomEventTaskDesc;
 
 /// The world-space points the room's three glow discs are drawn at.
 
-void        factoryPanelRun(Task*);
 static void _factoryPromptTask(Task* task);
 static void _factoryPanelMarkMoveSettled(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
@@ -254,7 +255,7 @@ TaskDesc gFactoryPromptDesc[1] = {
 };
 
 TaskDesc gFactoryNightPanelDesc[1] = {
-    { { { TASK_BODY_NONE, 192 } }, factoryPanelRun, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _factoryPanelRun, { .value = 0 } },
 };
 
 TaskMessageEntry gFactoryPanelMsgTable[2] = {
@@ -854,7 +855,7 @@ static const TaskFuncTable3 _gFactoryEntryStates = {
 #include "../../shared/factory_panel_idle.inc.c"
 
 /// State handlers of the room's script task, run by
-/// `factoryPanelRun`: set-up, prompt arming, the idle
+/// `_factoryPanelRun`: set-up, prompt arming, the idle
 /// hotspot scan, prompt spawning, the prompt state, the exit and the wait for
 /// the message handler's trigger.
 static const TaskFuncTable7 _gFactoryPanelStates = {
@@ -862,7 +863,7 @@ static const TaskFuncTable7 _gFactoryPanelStates = {
         factoryPanelInit,
         _factoryPanelArmPrompt,
         _factoryPanelIdle,
-        factoryPanelOpenPrompt,
+        _factoryPanelOpenPrompt,
         factoryPanelPrompt,
         _factoryPanelExit,
         _factoryPanelWaitMove,

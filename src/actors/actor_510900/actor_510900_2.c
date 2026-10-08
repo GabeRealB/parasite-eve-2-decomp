@@ -55,8 +55,8 @@
 
 #include "rooms/acropolis_helicopter_landing_pad.h"
 #include "../../shared/actor_messages.h"
-#include "../../shared/no9_golem.h"
 
+static void _no9GolemAimHead(const Task* actor);
 static void _no9GolemDrawShadow(const Task* task);
 
 /// Body animation slots selected by the handlers below.
@@ -3941,7 +3941,7 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
         _actor510900AdvanceAlongLap(arg1);
         _actor510900PlayStepSounds(arg1);
         _actor510900UpdateBodyAnimation(arg1);
-        no9GolemAimHead(arg1);
+        _no9GolemAimHead(arg1);
         if (temp_s2->hitTwistActive != 0) {
             _actor510900ApplyHitTwist(arg1);
         }

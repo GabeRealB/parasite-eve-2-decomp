@@ -66,7 +66,7 @@ D_dryfield_motel_lobby_80181044 = 0x80181044; // size:0x20 defined:True
 
 dryfieldMotelLobbyTelephoneMenuTask = 0x8017E9E8; // type:func
 _telephoneDrawPlayDataRow = 0x8017D650; // type:func
-Telephone_DrawUsageRow = 0x8017DE1C; // type:func
+_telephoneDrawUsageRow = 0x8017DE1C; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E218; // type:func
 _telephoneBuildPeUsageList = 0x8017E514; // type:func
 _telephoneUsageTask = 0x8017E834; // type:func

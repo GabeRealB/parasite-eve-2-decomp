@@ -146,7 +146,7 @@ D_shelter_b3_dumping_hole_8018B74C = 0x8018B74C; // absolute:True owner=shelter_
 
 shelterB3DumpingHoleSpawnActorSprite = 0x8017FCF4; // type:func absolute:True owner=shelter_b3_dumping_hole
 _actorRenderYawJointInWorld = 0x8016AC64; // type:func
-ActorContact_FindPush = 0x8016AF70; // type:func
+_actorContactFindLastObstaclePush = 0x8016AF70; // type:func
 _actorContactApplyAvoidancePushback = 0x8016B2B8; // type:func
 _actorContactApplyGridPushback = 0x8016B804; // type:func
 ActorContact_Push = 0x8016B9A8; // type:func

@@ -41,6 +41,9 @@
 #include "../../shared/rat.h"
 #include "../../shared/moth.h"
 
+static void _ratDeath(Enemy* enemy, Task* actor);
+static void _ratUpdate(Enemy* enemy, Task* actor);
+static void _ratContacts(Task* actor);
 static void _ratAnimate(Task* actor);
 static void _ratAttack(Task* actor);
 static void _ratBehavior(Task* actor);
@@ -76,8 +79,8 @@ extern s16 gRatAnimBlend[];
 static const EnemyTaskFuncTable3 gRatStateHandlers = {
     {
         ratSpawn,
-        ratUpdate,
-        ratDeath,
+        _ratUpdate,
+        _ratDeath,
     },
 };
 

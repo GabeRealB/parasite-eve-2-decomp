@@ -1,4 +1,4 @@
-/* Part of the No. 9 GOLEM library; see no9_golem.h. */
+/* Shared No. 9 GOLEM implementation, carried by actor_510900 and actor_521100. */
 
 /// Scratch-stack block of the No. 9 GOLEM's head turned to aim at the player.
 ///
@@ -13,49 +13,55 @@ typedef struct {
 } _No9GolemHeadAimScratch;
 STATIC_ASSERT_SIZEOF(_No9GolemHeadAimScratch, 0x40);
 
-/// Aims the head coordinate (`coords[4]`) at the player. Takes the head's
-/// transform out of the view, onto the world's axes, measures the offset from
-/// it to the point 0x600 above the player's root, rotates that offset into the
-/// root's frame, clamps it to +/-0x400 on X, +/-0x300 on Y and a minimum 0x200
-/// forward, then builds the head rotation along it.
+/// Turns the GOLEM's head toward a bounded player direction in root-local space.
 ///
-/// `head` is kept as its own pointer rather than indexing `coord` twice: CSE
-/// folds `head->workm` back onto `coord + 0x164` while `head` stays live, which
-/// is what puts the `coord += 0x140` in the clamp's branch delay slot. The
-/// `+ 0x600` likewise needs the temporary, or it is sunk into the subtrahend as
-/// `- 0x600` on the player coordinate.
-void no9GolemAimHead(Task* arg0)
+/// Requires a live model with coordinate 4, a cached head transform in the view
+/// frame, and the player's world transform. Removes the view from that cache,
+/// aims 1536 world units above the player, and rotates the difference by the
+/// root's local rotation transpose. Clamps X/Y to +/-1024/768 and forward Z
+/// to at least 512 before replacing the head rotation. Does not compose or
+/// invalidate either coordinate; the caller handles composition afterwards.
+static void _no9GolemAimHead(const Task* actor)
 {
+    enum {
+        NO9_GOLEM_HEAD_COORD_INDEX = 4,
+        NO9_GOLEM_HEAD_TARGET_RISE = 1536,
+        NO9_GOLEM_HEAD_AIM_X_LIMIT = 1024,
+        NO9_GOLEM_HEAD_AIM_Y_LIMIT = 768,
+        NO9_GOLEM_HEAD_AIM_Z_MIN   = 512
+    };
     _No9GolemHeadAimScratch* scratch;
-    GfxCoord*                coord;
-    GfxCoord*                head;
-    s32                      offsetY;
+    GfxCoord*                rootCoord;
+    GfxCoord*                headCoord;
+    s32                      headTargetBaseY;
 
-    coord = arg0->extra.tmd->coords;
-    head  = &coord[4];
+    rootCoord = actor->extra.tmd->coords;
+    headCoord = &rootCoord[NO9_GOLEM_HEAD_COORD_INDEX];
     SCRATCH_STACK_RESERVE_BYTES(sizeof(_No9GolemHeadAimScratch));
     scratch = SCRATCH_STACK_CURSOR(_No9GolemHeadAimScratch);
 
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &head->workm, &scratch->headWorld);
+    // Remove the view before measuring the world-space target offset.
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &headCoord->workm, &scratch->headWorld);
     scratch->toTarget.vx = gPlayerStatus.coordMtx->t[0] - scratch->headWorld.t[0];
-    offsetY              = scratch->headWorld.t[1] + 0x600;
-    scratch->toTarget.vy = gPlayerStatus.coordMtx->t[1] - offsetY;
+    headTargetBaseY      = scratch->headWorld.t[1] + NO9_GOLEM_HEAD_TARGET_RISE;
+    scratch->toTarget.vy = gPlayerStatus.coordMtx->t[1] - headTargetBaseY;
     scratch->toTarget.vz = gPlayerStatus.coordMtx->t[2] - scratch->headWorld.t[2];
-    ApplyTransposeMatrixLV(&coord->coord, &scratch->toTarget, &scratch->aim);
+    // Clamp the direction in the root frame before rebuilding the head rotation.
+    ApplyTransposeMatrixLV(&rootCoord->coord, &scratch->toTarget, &scratch->aim);
 
-    if (scratch->aim.vx < -0x400) {
-        scratch->aim.vx = -0x400;
-    } else if (scratch->aim.vx > 0x400) {
-        scratch->aim.vx = 0x400;
+    if (scratch->aim.vx < -NO9_GOLEM_HEAD_AIM_X_LIMIT) {
+        scratch->aim.vx = -NO9_GOLEM_HEAD_AIM_X_LIMIT;
+    } else if (scratch->aim.vx > NO9_GOLEM_HEAD_AIM_X_LIMIT) {
+        scratch->aim.vx = NO9_GOLEM_HEAD_AIM_X_LIMIT;
     }
-    if (scratch->aim.vy < -0x300) {
-        scratch->aim.vy = -0x300;
-    } else if (scratch->aim.vy > 0x300) {
-        scratch->aim.vy = 0x300;
+    if (scratch->aim.vy < -NO9_GOLEM_HEAD_AIM_Y_LIMIT) {
+        scratch->aim.vy = -NO9_GOLEM_HEAD_AIM_Y_LIMIT;
+    } else if (scratch->aim.vy > NO9_GOLEM_HEAD_AIM_Y_LIMIT) {
+        scratch->aim.vy = NO9_GOLEM_HEAD_AIM_Y_LIMIT;
     }
-    if (scratch->aim.vz < 0x200) {
-        scratch->aim.vz = 0x200;
+    if (scratch->aim.vz < NO9_GOLEM_HEAD_AIM_Z_MIN) {
+        scratch->aim.vz = NO9_GOLEM_HEAD_AIM_Z_MIN;
     }
-    gfxBuildDirectionRotation(&scratch->aim, &head->coord, 0);
+    gfxBuildDirectionRotation(&scratch->aim, &headCoord->coord, 0);
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_No9GolemHeadAimScratch));
 }

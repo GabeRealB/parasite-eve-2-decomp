@@ -1,17 +1,6 @@
 /* Part of the Glutton library; see glutton.h. */
 
-/// Records whether this tick enters a new debris-chunk task state.
-///
-/// Borrows live arguments for this call; no pointer is retained.
-static __inline__ void _gluttonRecordChunkTaskState(GluttonProjectileWork* work, Task* task)
-{
-    if (work->prevState != task->state) {
-        work->stateChanged = 1;
-    } else {
-        work->stateChanged = 0;
-    }
-    work->prevState = task->state;
-}
+#include "glutton_projectile_state.h"
 
 /// Dispatches a debris chunk and records entry into each task state.
 ///
@@ -41,7 +30,7 @@ static void _gluttonChunkTask(Task* task)
 
     if (task->work != NULL) {
         work = task->work;
-        _gluttonRecordChunkTaskState(work, task);
+        _gluttonRecordProjectileTaskState(work, task);
     }
     states.funcs[task->state](task->spawnArg2.pointer, task);
 }

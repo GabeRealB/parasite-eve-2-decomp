@@ -2,54 +2,94 @@
 
 /* Part of the Rat library; see rat.h. */
 
-/// Per-frame collision pass: applies the pending move to the root coordinate,
-/// then walks the three contact records - kind 2 is a hit that damages the
-/// enemy, kinds 1 and 3 an obstacle to push out of - and applies the deepest
-/// push at the end.
-void ratContacts(Task* actor)
+/// Resolves the rat's grid/body contacts, player hits and bite sensor.
+///
+/// Requires live work, model root, enemy and player actor slots 0/1. Uses all
+/// four grid records and three hit records, then clears each consumed table.
+/// Grid corrections use Q16 world-unit components; opposed corrections restore
+/// the previous root translation. The deepest player/enemy-body overlap moves
+/// X/Z along a Q12 direction. Attack keys select player slot bit 7, damage and
+/// reactions; fatal hits enter the death task state. A bite contact disables
+/// pairing, and the one sensor record latches a player target and attack request.
+static void _ratContacts(Task* actor)
 {
-    RatWork*                 work;
-    ActorOverlapPushScratch* frame;
-    Enemy*                   ctx;
-    GfxCoord*                coord;
-    GfxCoord*                sourceCoord;
-    WorldCollisionContact*   effectRec;
-    WorldCollisionContact*   contactRec;
-    s32                      push;
-    s32                      result;
-    s32                      i;
-    s32                      depth;
-    s32                      x;
-    s32                      y;
-    s32                      z;
-    s32                      boundedDepth;
-    s32                      cooldownParam;
-    u32                      lastId;
-    u32                      id;
-    u32                      slot;
-    u32                      hitId;
-    u32                      damage;
+    enum {
+        RAT_CONTACT_KIND_SHIFT    = 16,
+        RAT_CONTACT_KIND_NONE     = 0,
+        RAT_PLAYER_REACTION_MASK  = 0xFFFF,
+        RAT_PLAYER_SLOT_SHIFT     = 7,
+        RAT_PLAYER_SLOT_MASK      = 1,
+        RAT_GRID_FRACTION_BITS    = 16,
+        RAT_CRITICAL_DAMAGE_SCALE = 4
+    };
+    // Retain the deepest positive body overlap and rotate its Q12 direction
+    // out of the grid view. Captures rootCoord, scratch, deepestPush and the
+    // delta/depth locals below; contact is a readable record expression,
+    // evaluated repeatedly, so it must have no side effects.
+#define RAT_KEEP_DEEPEST_BODY_PUSH(contact)                                                                                     \
+    {                                                                                                                           \
+        deltaX                   = rootCoord->workm.t[0] - (contact).point.vx;                                                  \
+        scratch->delta.vector.vx = deltaX;                                                                                      \
+        deltaY                   = rootCoord->workm.t[1] - (contact).point.vy;                                                  \
+        scratch->delta.vector.vy = deltaY;                                                                                      \
+        deltaZ                   = rootCoord->workm.t[2] - (contact).point.vz;                                                  \
+        scratch->delta.vector.vz = deltaZ;                                                                                      \
+        overlapDepth             = (contact).distance - SquareRoot0((deltaX * deltaX) + (deltaY * deltaY) + (deltaZ * deltaZ)); \
+        nonnegativeDepth         = overlapDepth;                                                                                \
+        if (overlapDepth <= 0) {                                                                                                \
+            nonnegativeDepth = 0;                                                                                               \
+        }                                                                                                                       \
+        overlapDepth = nonnegativeDepth;                                                                                        \
+        if (deepestPush < overlapDepth) {                                                                                       \
+            deepestPush = overlapDepth;                                                                                         \
+            VectorNormal(&scratch->delta.vector, &scratch->normal);                                                             \
+            ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->pushDirection);                \
+        }                                                                                                                       \
+    }
 
-    push   = 0;
-    lastId = 0;
-    work   = actor->work;
+    RatWork*                 work;
+    ActorOverlapPushScratch* scratch;
+    Enemy*                   enemy;
+    GfxCoord*                rootCoord;
+    GfxCoord*                playerCoord;
+    WorldCollisionContact*   attackContacts;
+    WorldCollisionContact*   sensorContacts;
+    s32                      deepestPush;
+    s32                      gridResult;
+    s32                      contactIndex;
+    s32                      overlapDepth;
+    s32                      deltaX;
+    s32                      deltaY;
+    s32                      deltaZ;
+    s32                      nonnegativeDepth;
+    s32                      hitCooldownFrames;
+    u32                      lastEffectKey;
+    u32                      contactKey;
+    u32                      playerSlotBits;
+    u32                      effectKey;
+    u32                      hitDamage;
+
+    deepestPush   = 0;
+    lastEffectKey = 0;
+    work          = actor->work;
     SCRATCH_STACK_RESERVE_BLOCK(ActorOverlapPushScratch);
-    frame  = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch);
-    coord  = actor->extra.tmd->coords;
-    ctx    = actor->spawnArg2.pointer;
-    result = worldCollisionResolvePushback(work->gridContacts, &frame->delta, 4, NULL);
-    switch (result) {
-        case 0:
+    scratch   = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch);
+    rootCoord = actor->extra.tmd->coords;
+    enemy     = actor->spawnArg2.pointer;
+    // Apply grid correction before hit damage and body-overlap selection.
+    gridResult = worldCollisionResolvePushback(work->gridContacts, &scratch->delta, ARRAY_SIZE(work->gridContacts), NULL);
+    switch (gridResult) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
-            coord->coord.t[0] += frame->delta.fixed.vx.word >> 16;
-            coord->coord.t[1] += frame->delta.fixed.vy.word >> 16;
-            coord->coord.t[2] += frame->delta.fixed.vz.word >> 16;
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
+            rootCoord->coord.t[0] += scratch->delta.fixed.vx.word >> RAT_GRID_FRACTION_BITS;
+            rootCoord->coord.t[1] += scratch->delta.fixed.vy.word >> RAT_GRID_FRACTION_BITS;
+            rootCoord->coord.t[2] += scratch->delta.fixed.vz.word >> RAT_GRID_FRACTION_BITS;
             break;
-        case 2:
-            coord->coord.t[0] = work->prevPos.vx;
-            coord->coord.t[1] = work->prevPos.vy;
-            coord->coord.t[2] = work->prevPos.vz;
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
+            rootCoord->coord.t[0] = work->prevPos.vx;
+            rootCoord->coord.t[1] = work->prevPos.vy;
+            rootCoord->coord.t[2] = work->prevPos.vz;
             break;
     }
     worldCollisionClearContacts(work->gridContacts);
@@ -58,36 +98,36 @@ void ratContacts(Task* actor)
             work->hitCooldown = 0;
         }
     }
-    for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
-        id = work->hitContacts[i].key.value;
-        switch (id >> 0x10) {
-            case 0:
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->hitContacts); contactIndex++) {
+        contactKey = work->hitContacts[contactIndex].key.value;
+        switch (contactKey >> RAT_CONTACT_KIND_SHIFT) {
+            case RAT_CONTACT_KIND_NONE:
                 break;
-            case 2:
+            case WORLD_COLLISION_CONTACT_ATTACK >> RAT_CONTACT_KIND_SHIFT:
                 if (work->hitCooldown == 0) {
-                    slot                   = id >> 7;
-                    sourceCoord            = gPlayerActorTasks[slot & 1]->extra.tmd->coords;
-                    frame->delta.vector.vx = sourceCoord->coord.t[0] - coord->coord.t[0];
-                    frame->delta.vector.vy = sourceCoord->coord.t[1] - coord->coord.t[1];
-                    frame->delta.vector.vz = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    damage                 = damageComputePlayerAttack(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
-                    if (damageRollCriticalHit(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0) != 0) {
-                        damage *= 4;
+                    playerSlotBits           = contactKey >> RAT_PLAYER_SLOT_SHIFT;
+                    playerCoord              = gPlayerActorTasks[playerSlotBits & RAT_PLAYER_SLOT_MASK]->extra.tmd->coords;
+                    scratch->delta.vector.vx = playerCoord->coord.t[0] - rootCoord->coord.t[0];
+                    scratch->delta.vector.vy = playerCoord->coord.t[1] - rootCoord->coord.t[1];
+                    scratch->delta.vector.vz = playerCoord->coord.t[2] - rootCoord->coord.t[2];
+                    hitDamage                = damageComputePlayerAttack(work->hitContacts[contactIndex].key.value, SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)), 0, 0);
+                    if (damageRollCriticalHit(actor->spawnArg2.pointer, work->hitContacts[contactIndex].key.value, 0) != 0) {
+                        hitDamage *= RAT_CRITICAL_DAMAGE_SCALE;
                         effectSpawn(EFFECT_CRITICAL_HIT, actor->extra.tmd->coords, 0, NULL);
                     }
-                    worldTargetAddReadoutAmount(&((Enemy*)actor->spawnArg2.pointer)->node, damage, 0);
-                    damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->hitContacts[i].key.value, damage, 0);
-                    ctx->hp -= damage;
-                    if (ctx->hp <= 0) {
+                    worldTargetAddReadoutAmount(&((Enemy*)actor->spawnArg2.pointer)->node, hitDamage, 0);
+                    damageAccumulateLifeDrainHp(actor->spawnArg2.pointer, work->hitContacts[contactIndex].key.value, hitDamage, 0);
+                    enemy->hp -= hitDamage;
+                    if (enemy->hp <= 0) {
                         work->mode   = RAT_MODE_DEAD;
                         work->step   = 0;
-                        actor->state = 2;
+                        actor->state = RAT_TASK_DEATH;
                     } else if (work->buildupHeld == 0) {
                         work->mode = RAT_MODE_HURT;
                         work->step = 0;
                     }
                     work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                    switch (damageGetPlayerAttackReaction(work->hitContacts[contactIndex].key.value) & RAT_PLAYER_REACTION_MASK) {
                         case DAMAGE_PLAYER_REACTION_NONE:
                         case 4:
                         case 5:
@@ -96,84 +136,54 @@ void ratContacts(Task* actor)
                         case 8:
                             break;
                         case DAMAGE_PLAYER_REACTION_BUILDUP:
-                            damageStartEnemyBuildup(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
+                            damageStartEnemyBuildup(actor->spawnArg2.pointer, work->hitContacts[contactIndex].key.value, 0);
                             break;
                         case DAMAGE_PLAYER_REACTION_POISON:
-                            damageTryStartEnemyDamageOverTime(actor->spawnArg2.pointer, work->hitContacts[i].key.value, 0);
+                            damageTryStartEnemyDamageOverTime(actor->spawnArg2.pointer, work->hitContacts[contactIndex].key.value, 0);
                             break;
                         case DAMAGE_PLAYER_REACTION_STAGGER:
                         case 9:
                             damageStartEnemyStagger(actor->spawnArg2.pointer);
                             break;
                     }
-                    hitId = work->hitContacts[i].key.value;
-                    if (lastId != hitId) {
-                        lastId = hitId;
-                        effectSpawnHit(damageGetPlayerAttackEffectId(hitId), coord, NULL, &work->hitEffectArg);
+                    effectKey = work->hitContacts[contactIndex].key.value;
+                    if (lastEffectKey != effectKey) {
+                        lastEffectKey = effectKey;
+                        effectSpawnHit(damageGetPlayerAttackEffectId(effectKey), rootCoord, NULL, &work->hitEffectArg);
                     }
-                    cooldownParam = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
-                    if (cooldownParam > 0) {
-                        work->hitCooldown = cooldownParam;
+                    hitCooldownFrames = damageGetPlayerAttackHitCooldown(work->hitContacts[contactIndex].key.value);
+                    if (hitCooldownFrames > 0) {
+                        work->hitCooldown = hitCooldownFrames;
                     }
                 }
                 break;
-            case 1:
-                x                      = coord->workm.t[0] - work->hitContacts[i].point.vx;
-                frame->delta.vector.vx = x;
-                y                      = coord->workm.t[1] - work->hitContacts[i].point.vy;
-                frame->delta.vector.vy = y;
-                z                      = coord->workm.t[2] - work->hitContacts[i].point.vz;
-                frame->delta.vector.vz = z;
-                depth                  = work->hitContacts[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                boundedDepth           = depth;
-                if (depth <= 0) {
-                    boundedDepth = 0;
-                }
-                depth = boundedDepth;
-                if (push < depth) {
-                    push = depth;
-                    VectorNormal(&frame->delta.vector, &frame->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->pushDirection);
-                }
+            case WORLD_COLLISION_CONTACT_PLAYER_BODY >> RAT_CONTACT_KIND_SHIFT:
+                RAT_KEEP_DEEPEST_BODY_PUSH(work->hitContacts[contactIndex]);
                 break;
-            case 3:
-                x                      = coord->workm.t[0] - work->hitContacts[i].point.vx;
-                frame->delta.vector.vx = x;
-                y                      = coord->workm.t[1] - work->hitContacts[i].point.vy;
-                frame->delta.vector.vy = y;
-                z                      = coord->workm.t[2] - work->hitContacts[i].point.vz;
-                frame->delta.vector.vz = z;
-                depth                  = work->hitContacts[i].distance - SquareRoot0((x * x) + (y * y) + (z * z));
-                boundedDepth           = depth;
-                if (depth <= 0) {
-                    boundedDepth = 0;
-                }
-                depth = boundedDepth;
-                if (push < depth) {
-                    push = depth;
-                    VectorNormal(&frame->delta.vector, &frame->normal);
-                    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &frame->normal, &frame->pushDirection);
-                }
+            case WORLD_COLLISION_CONTACT_ENEMY_BODY >> RAT_CONTACT_KIND_SHIFT:
+                RAT_KEEP_DEEPEST_BODY_PUSH(work->hitContacts[contactIndex]);
                 break;
         }
     }
-    if (push > 0) {
-        coord->coord.t[0] += (push * frame->pushDirection.vx) >> 0xC;
-        coord->coord.t[2] += (push * frame->pushDirection.vz) >> 0xC;
+    if (deepestPush > 0) {
+        rootCoord->coord.t[0] += (deepestPush * scratch->pushDirection.vx) >> RAT_DIRECTION_FRACTION_BITS;
+        rootCoord->coord.t[2] += (deepestPush * scratch->pushDirection.vz) >> RAT_DIRECTION_FRACTION_BITS;
     }
     worldCollisionClearContacts(work->hitContacts);
-    effectRec = work->attackContacts;
-    if (worldCollisionFindContactIndex(effectRec, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
+    // The bite stops at its first contact; the sensor latches the next target.
+    attackContacts = work->attackContacts;
+    if (worldCollisionFindContactIndex(attackContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        worldCollisionClearContacts(effectRec);
+        worldCollisionClearContacts(attackContacts);
     }
-    contactRec = work->sensorContacts;
-    if (worldCollisionCountContactsByKind(contactRec, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
-        sourceCoord             = gPlayerActorTasks[(u8)work->sensorContacts[0].key.parts.id >> 7]->extra.tmd->coords;
+    sensorContacts = work->sensorContacts;
+    if (worldCollisionCountContactsByKind(sensorContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY) != 0) {
+        playerCoord             = gPlayerActorTasks[(u8)work->sensorContacts[0].key.parts.id >> RAT_PLAYER_SLOT_SHIFT]->extra.tmd->coords;
         work->attackRequested   = 1;
         work->sensorBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->targetCoord       = sourceCoord;
+        work->targetCoord       = playerCoord;
     }
-    worldCollisionClearContacts(contactRec);
+    worldCollisionClearContacts(sensorContacts);
     SCRATCH_STACK_RELEASE_BLOCK(ActorOverlapPushScratch);
+#undef RAT_KEEP_DEEPEST_BODY_PUSH
 }

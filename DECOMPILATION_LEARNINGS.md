@@ -149519,7 +149519,7 @@ attempts; left as it was.
   table in `$a0`. The `flag_a = K; flag_b = V; goto set_and_toggle;` pair was
   just the call written in each arm.
 - **`==1 -> A; <2 -> default; ==2 -> B; default`** is `switch (x) { case 1: A;
-  case 2: B; case 0: default: break; }` (`ratDeath`, on
+  case 2: B; case 0: default: break; }` (`_ratDeath`, on
   `gSceneCombatState.actorControl`). Without the explicit `case 0:` it is a
   two-node tree, `==1; ==2`, and the `slti 2` is gone.
 - **Two early-outs to a shared failure store before the common release**

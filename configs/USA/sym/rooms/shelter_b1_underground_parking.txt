@@ -268,7 +268,7 @@ shelterB1UndergroundParkingTelephoneMenuTask = 0x8017EDE8; // type:func
 
 shelterB1UndergroundParkingDrawGlowsTask = 0x80184A18; // type:func
 _telephoneDrawPlayDataRow = 0x8017DA50; // type:func
-Telephone_DrawUsageRow = 0x8017E21C; // type:func
+_telephoneDrawUsageRow = 0x8017E21C; // type:func
 _telephoneBuildWeaponUsageList = 0x8017E618; // type:func
 _telephoneBuildPeUsageList = 0x8017E914; // type:func
 _telephoneUsageTask = 0x8017EC34; // type:func
