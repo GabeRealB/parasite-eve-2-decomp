@@ -94,3 +94,4 @@ actor800100Task = 0x80163cf0; // type:func
 _actor800100UpdateMove = 0x801635f4; // type:func
 _actor800100TickNativeMode = 0x80163f04; // type:func
 _actor800100ReloadState = 0x80164e60; // type:func
+_actor800100SpawnWeaponImpact = 0x80166b40; // type:func

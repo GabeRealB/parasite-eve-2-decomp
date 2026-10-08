@@ -76631,7 +76631,7 @@ Inputs: `base_2.i`
 ## A call block with no argument setup can mean the call passes *fewer* arguments
 
 `func_actor_800100_80165C38`'s case-1 block calls
-`func_actor_800100_80166B40` with `$a0`-`$a2` set and **no `$a3` at all**: the
+`_actor800100SpawnWeaponImpact` with `$a0`-`$a2` set and **no `$a3` at all**: the
 `1` the callee observes is the decision tree's own comparison operand, still
 live from `beq $v1, $a3`. A C call whose fourth argument is the literal `1`
 cannot produce that - `expand_call` emits its own
@@ -76649,9 +76649,9 @@ arguments. GCC emits argument setup only for the arguments the call expression
 actually has, so `$a3` keeps whatever the switch tree left in it:
 
 ```c
-s32 func_actor_800100_80166B40(WorldCollisionContact* rec, GfxCoord* coord, GfxCoord* place);
+static s32 _actor800100SpawnWeaponImpact(const WorldCollisionContact* contacts, const GfxCoord* weaponCoord, GfxCoord* impactCoordOut);
 ...
-if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0)   /* 99.055% -> 100% */
+if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0)   /* 99.055% -> 100% */
 ```
 
 Symptom to look for: a one-instruction `insert` penalty on an argument register,
@@ -97338,7 +97338,7 @@ only inside one arm of an `if`, check `overlay_dup_index.py find <func>` for a
 matched sibling of the same body and read its C: the hoisted local is the
 family's house style, so the sibling is the model rather than the m2c form.
 
-The boundary is not about stores. `func_actor_450800_80132CE0` opened at 83.237%
+The boundary is not about stores. `_actor450800ApplyKyleMadiganGunCommand` opened at 83.237%
 with one load two instructions into a `switch`'s `case 0` arm and closed at 100%
 once it was hoisted with the other pointer reads above the `switch`:
 
@@ -110866,7 +110866,7 @@ across the `jal` and the copy disappears with it.
 
 ## A hard-register pin on the walking pointer suppresses loop.c's address givs
 
-`func_actor_800100_80166B40` is `playerActorSpawnWeaponImpact` minus its `gPlayerStatus`
+`_actor800100SpawnWeaponImpact` is `playerActorSpawnWeaponImpact` minus its `gPlayerStatus`
 tail: `do { ... rec->key.value / rec->point ... rec++; } while (i < 6)`. Written
 unpinned the score stops at 83.7% with `regs=54 insert=14 delete=10`, and the
 `.loop` dump shows why:
@@ -111022,7 +111022,7 @@ repeating its own copy.
                     break;
                 }
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
-                if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
+                if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
                     worldCoordPlaySound(place, 0x17, 1);
                 }
                 break;
@@ -111032,7 +111032,7 @@ repeating its own copy.
         case 4:
             actor->stateAux = 6;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= 0x3FFF;
-            if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
+            if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
                 worldCoordPlaySound(place, 0x17, 1);
             }
             break;
@@ -125428,7 +125428,7 @@ Inputs: scratch `nonmatchings/_actor450800SetKyleMadiganWalkTarget-vacuum`, `bas
 Source SHA256 `9922fe240af2f61d798981be2fe3b67923488cbd2c6362f06660e71f9b1e337d`,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A `do { } while (0)` around one of two identical calls adds its `REF` back, lifting that value's allocation priority past a longer-lived one (func_actor_450800_80132160, 2026-09-17)
+## A `do { } while (0)` around one of two identical calls adds its `REF` back, lifting that value's allocation priority past a longer-lived one (_actor450800SpawnKyleMadigan, 2026-09-17)
 
 **Problem.** The last leftover was one register: `work` (a pointer live across
 the whole function) sat in `$s1` where the ROM has `$s2`, and `coord` sat in
@@ -128629,7 +128629,7 @@ sp+0x28, and the declaration order is what puts them there. So the offsets need
 one declaration order and the address wants no pseudo, and only the second is
 negotiable. `actors_shared_8013231c.h`'s key block and the offset arithmetic are
 in `KyleMadiganWalkerWork`'s header; the fix is the corpus's usual barrier idiom, used
-in the earlier implementation of `_actorRenderApplyEffectPlacementTextureOffsets` and `func_actor_450800_80132160` for this same call
+in the earlier implementation of `_actorRenderApplyEffectPlacementTextureOffsets` and `_actor450800SpawnKyleMadigan` for this same call
 pair:
 
 ```c
@@ -132222,7 +132222,7 @@ the match. Getting this one decision right moved a long-stuck function from
 experiment before it was noise, because the wrong variable count had made the
 whole block's dependence graph wrong.
 
-## The scratch score ignores immediates, so check that the `_diff` is empty (Actor02100_Fn01FF0, 2026-09-18)
+## The scratch score ignores immediates, so check that the `_diff` is empty (_actor02100TickGunAttack, 2026-09-18)
 
 `dist.py` compares rows whose immediates have been normalised away - it inherits
 decomp-permuter's scorer, which is looking for register, branch and ordering
@@ -132244,7 +132244,7 @@ fails at the overlay checksum, where nothing points at the field.
 Before porting a match, confirm `wc -c <name>_diff` is 0. A score of 100% with a
 non-empty diff means the difference is in a constant.
 
-## Barriers between scratch-head stores stood for pushes and pops written as `SCRATCH_STACK_RESERVE_BLOCK`/`SCRATCH_STACK_RELEASE_BLOCK` (Actor02100_Fn01FF0, 2026-09-26)
+## Barriers between scratch-head stores stood for pushes and pops written as `SCRATCH_STACK_RESERVE_BLOCK`/`SCRATCH_STACK_RELEASE_BLOCK` (_actor02100TickGunAttack, 2026-09-26)
 
 This function once needed five `SOFT_COMPILER_BARRIER()`s and a `SOFT_TOUCH_REG`
 around the scratch head: a hand-computed `head + 0x10` block stored after a
@@ -132266,7 +132266,7 @@ When a body pins or fences the scratch head, rewrite every block as push/pop
 before reasoning about dependences; the barrier was compensating for arithmetic
 on the head that the original never wrote.
 
-## `(x << 8) | 0x20000 | x` is what `fold` makes of the packed key; write it that way (Actor02100_Fn01FF0, 2026-09-26)
+## `(x << 8) | 0x20000 | x` is what `fold` makes of the packed key; write it that way (_actor02100TickGunAttack, 2026-09-26)
 
 `(x << 8) | (x | 0x20000)` does not emit the tree it spells: `fold` moves the
 constant into the left operand, giving `((x << 8) | 0x20000) | x` with the ROM's
@@ -132275,7 +132275,7 @@ two `or`s in the other order. Spelling the folded form directly,
 matches as one statement, with the field read twice and CSE'd - no
 statement-per-operand split and no register touch to order the load.
 
-## A decompiled switch needs its jump table's rodata cut, even when the table is in the header block (Actor02100_Fn01FF0, 2026-09-18)
+## A decompiled switch needs its jump table's rodata cut, even when the table is in the header block (_actor02100TickGunAttack, 2026-09-18)
 
 Decompiling a function whose jump table lives in the *leading* rodata block - ahead
 of the unit's own rodata subsegment, beside the overlay id and the state-function

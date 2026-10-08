@@ -181,7 +181,7 @@ static void func_actor_800100_80165F50(Task* arg0);
 static void func_actor_800100_80166190(Task* arg0);
 static void _actor800100DrawAimBeamLine(const GfxCoord* beamCoord, s16 contactDistance);
 static void _actor800100DrawAimBeamQuad(const GfxCoord* beamCoord);
-static s32  func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2);
+static s32  _actor800100SpawnWeaponImpact(const WorldCollisionContact* contacts, const GfxCoord* weaponCoord, GfxCoord* impactCoordOut);
 static void _actor800100EnterAttackLoop(Task* task);
 static void _actor800100EnterRetreat(Task* task);
 static void _actor800100EnterCombatExit(Task* task);
@@ -2697,7 +2697,7 @@ static void func_actor_800100_80165C38(Task* arg0)
         case 1:
             actor->stateAux                                       = 2;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
+            if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
                 worldCoordPlaySound(place, 0x17, 1);
             }
             /* fallthrough */
@@ -2823,7 +2823,7 @@ static void func_actor_800100_80165F50(Task* arg0)
         case 3:
             actor->stateAux                                      += 1;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
+            if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
                 worldCoordPlaySound(place, 0x17, 1);
             }
             /* fallthrough */
@@ -2923,7 +2923,7 @@ static void func_actor_800100_80166190(Task* arg0)
                     }
                 }
                 actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
+                if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
                     worldCoordPlaySound(place, 0x17, 1);
                 }
                 break;
@@ -2933,7 +2933,7 @@ static void func_actor_800100_80166190(Task* arg0)
         case 4:
             actor->stateAux                                       = 6;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (func_actor_800100_80166B40(actor->weaponContacts, coord, place) != 0) {
+            if (_actor800100SpawnWeaponImpact(actor->weaponContacts, coord, place) != 0) {
                 worldCoordPlaySound(place, 0x17, 1);
             }
             break;
@@ -3184,58 +3184,73 @@ static void _actor800100DrawAimBeamQuad(const GfxCoord* beamCoord)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor800100AimBeamQuadScratch);
 }
 
-static s32 func_actor_800100_80166B40(WorldCollisionContact* arg0, GfxCoord* arg1, GfxCoord* arg2)
+/// Spawns a spark at the nearest permitted room-grid contact of the companion's weapon.
+///
+/// Borrows the complete six-entry, LAST-terminated weapon contact table and a
+/// composed weapon coordinate in the contacts' frame. Any enemy-body contact
+/// suppresses the effect. Chooses the first nearest permitted grid contact by
+/// XYZ Manhattan distance; differences and their sum must fit signed words.
+/// Returns 1 for a selected contact even if effect allocation fails, otherwise 0.
+/// Optional impactCoordOut receives only cached XYZ with independent 0..7 jitter.
+/// Requires initialized scratch/GTE state. Scratch translation is supplied while
+/// its existing rotation is retained; effect placement depends on that rotation.
+static s32 _actor800100SpawnWeaponImpact(const WorldCollisionContact* contacts, const GfxCoord* weaponCoord, GfxCoord* impactCoordOut)
 {
-    s32                             minDist;
-    s32                             idx;
-    PlayerActorWeaponImpactScratch* block;
-    WorldCollisionContact*          rec;
-    s32                             i;
-    s32                             bestIdx;
-    s32                             dist;
+    enum {
+        ACTOR_800100_IMPACT_NO_CANDIDATE = 0x7FFFFFFF,
+        ACTOR_800100_IMPACT_JITTER_MASK  = 7
+    };
+    s32                             nearestDistance;
+    s32                             surfaceClass;
+    PlayerActorWeaponImpactScratch* scratch;
+    const WorldCollisionContact*    contact;
+    s32                             contactIndex;
+    s32                             nearestContactIndex;
+    s32                             distance;
 
-    minDist = 0x7FFFFFFF;
-    if (worldCollisionCountContactsByKind(arg0, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+    nearestDistance = ACTOR_800100_IMPACT_NO_CANDIDATE;
+    if (worldCollisionCountContactsByKind(contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
         return 0;
     }
-    block = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorWeaponImpactScratch);
-    for (i = 0, bestIdx = 0; i < 6; i++) {
-        rec = &arg0[i];
-        if (rec->key.value & 0x100000) {
-            dist  = abs(arg1->workm.t[0] - rec->point.vx);
-            dist += abs(arg1->workm.t[1] - rec->point.vy);
-            dist += abs(arg1->workm.t[2] - rec->point.vz);
-            if (dist < minDist) {
-                worldCollisionResolveResponsePushback(rec, &block->pushback, 1, &idx);
-                idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
-                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
-                    minDist = dist;
-                    bestIdx = i;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorWeaponImpactScratch);
+    for (contactIndex = 0, nearestContactIndex = 0; contactIndex < ARRAY_SIZE(((GameActor*)0)->weaponContacts); contactIndex++) {
+        contact = &contacts[contactIndex];
+        if (contact->key.value & WORLD_COLLISION_CONTACT_GRID) {
+            distance  = abs(weaponCoord->workm.t[0] - contact->point.vx);
+            distance += abs(weaponCoord->workm.t[1] - contact->point.vy);
+            distance += abs(weaponCoord->workm.t[2] - contact->point.vz);
+            if (distance < nearestDistance) {
+                worldCollisionResolveResponsePushback(contact, &scratch->pushback, 1, &surfaceClass);
+                surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
+                if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass]->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
+                    nearestDistance     = distance;
+                    nearestContactIndex = contactIndex;
                 }
             }
         }
     }
-    if (minDist != 0x7FFFFFFF) {
-        i                               = 1;
-        block->impactCoord.parent       = NULL;
-        block->impactCoord.composeStamp = GRAPHICS_COORD_SUPPLIED_CACHE;
-        block->impactCoord.workm.t[0]   = arg0[bestIdx].point.vx;
-        block->impactCoord.workm.t[1]   = arg0[bestIdx].point.vy;
-        block->impactCoord.workm.t[2]   = arg0[bestIdx].point.vz;
-        block->jitter.vx                = rand() & 7;
-        block->jitter.vy                = rand() & 7;
-        block->jitter.vz                = rand() & 7;
-        if (arg2 != NULL) {
-            arg2->workm.t[0] = block->impactCoord.workm.t[0] + block->jitter.vx;
-            arg2->workm.t[1] = block->impactCoord.workm.t[1] + block->jitter.vy;
-            arg2->workm.t[2] = block->impactCoord.workm.t[2] + block->jitter.vz;
+    // Reuse the search index as the result; preserve the scratch rotation for placement.
+    if (nearestDistance != ACTOR_800100_IMPACT_NO_CANDIDATE) {
+        contactIndex                      = 1;
+        scratch->impactCoord.parent       = NULL;
+        scratch->impactCoord.composeStamp = GRAPHICS_COORD_SUPPLIED_CACHE;
+        scratch->impactCoord.workm.t[0]   = contacts[nearestContactIndex].point.vx;
+        scratch->impactCoord.workm.t[1]   = contacts[nearestContactIndex].point.vy;
+        scratch->impactCoord.workm.t[2]   = contacts[nearestContactIndex].point.vz;
+        scratch->jitter.vx                = rand() & ACTOR_800100_IMPACT_JITTER_MASK;
+        scratch->jitter.vy                = rand() & ACTOR_800100_IMPACT_JITTER_MASK;
+        scratch->jitter.vz                = rand() & ACTOR_800100_IMPACT_JITTER_MASK;
+        if (impactCoordOut != NULL) {
+            impactCoordOut->workm.t[0] = scratch->impactCoord.workm.t[0] + scratch->jitter.vx;
+            impactCoordOut->workm.t[1] = scratch->impactCoord.workm.t[1] + scratch->jitter.vy;
+            impactCoordOut->workm.t[2] = scratch->impactCoord.workm.t[2] + scratch->jitter.vz;
         }
-        effectSpawn(EFFECT_IMPACT_SPARK, &block->impactCoord, 0, &block->jitter);
+        effectSpawn(EFFECT_IMPACT_SPARK, &scratch->impactCoord, 0, &scratch->jitter);
     } else {
-        i = 0;
+        contactIndex = 0;
     }
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorWeaponImpactScratch);
-    return i;
+    return contactIndex;
 }
 
 /// Restarts the attack loop that waits for cooldown and dispatches the equipped weapon.

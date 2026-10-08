@@ -1974,7 +1974,9 @@ static void _actor206100EntranceDepartureTick(Task* task)
 /// Requires a live model root and the loaded room spray handler. Offsets use a
 /// 512-unit XZ radius in root-local game coordinates; localY is signed and Y
 /// increases downward. Each particle has size 328, two updates per animation
-/// cell and upward-burst speed 32. The effect spawner copies XYZ during the call;
+/// cell and upward-burst speed 32. Unsigned trig shifts retain low signed
+/// halfwords, including the negative XZ offsets. Spawn failures are ignored.
+/// The effect spawner copies XYZ during the call;
 /// the spray task never follows the retained pointer to this temporary offset.
 static inline void _actor206100SpawnSplashRing(Task* task, s16 localY)
 {

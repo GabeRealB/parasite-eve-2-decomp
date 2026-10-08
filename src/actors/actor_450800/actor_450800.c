@@ -108,7 +108,7 @@ STATIC_ASSERT_SIZEOF(_Actor450800KyleMadiganWork, 0x504);
 /// `effectSpawn` as the effect's position.
 static const SVECTOR D_actor_450800_80131E24 = { 0x19C8, -0x578, 0x3C0, 0 };
 
-/// Message table `func_actor_450800_80132160` hangs off `Task::msgTable`, and
+/// Message table `_actor450800SpawnKyleMadigan` hangs off `Task::msgTable`, and
 /// the `TaskDesc` table its three helper tasks come from.
 // Handler views preserve the signatures used by this TU. The dispatcher
 // transports each argument in a word register.
@@ -138,24 +138,26 @@ extern EvsCommand           D_actor_450800_8013ACFC[];
 
 /* Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c). */
 
-static void _actor450800UpdateKyleMadigan(Task* task);
-static void _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
-static void _actor450800ExitKyleMadigan(Task* task);
-static void _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
-static void _actorRenderDrawWalkerGroundShadow(Task* task);
-static void _actorRenderDrawSecondWalkerGroundShadow(Task* task);
+static inline void _actor450800ApplyHelperPlacementTexture(Task* spawned, Task* actor);
+static void        _actor450800SpawnKyleMadigan(Enemy* enemy, Task* task);
+static void        _actor450800UpdateKyleMadigan(Task* task);
+static void        _actorRenderWalkerFrame(Enemy* unusedEnemy, Task* task);
+static void        _actor450800ExitKyleMadigan(Task* task);
+static void        _actorRenderWalkerFrameSecond(Enemy* unusedEnemy, Task* task);
+static void        _actorRenderDrawWalkerGroundShadow(Task* task);
+static void        _actorRenderDrawSecondWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor450800Body;
 static TmdSource _gActor450800KyleMadiganBody;
 static TmdSource _gActor450800KyleMadiganHandRight;
 static TmdSource _gActor450800KyleMadiganHandLeft;
 static TmdSource _gActor450800KyleMadiganGun;
-void             func_actor_450800_80132790(Task*);
+static void      _actor450800KyleMadiganTask(Task* task);
 static void      _actor450800KyleMadiganAttachmentTask(Task* task);
 
 static s32 _actor450800PlayKyleMadiganAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
 static s32 _actor450800SetKyleMadiganDrawFlags(Task* task, s32 messageId, s32 flags, s32 unusedArgument);
-s32        func_actor_450800_80132CE0(Task* task, s32 msgId, ActorCommand* msg, s32);
+static s32 _actor450800ApplyKyleMadiganGunCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArgument);
 static s32 _actor450800SetKyleMadiganWalkTarget(Task* task, s32 messageId, const VECTOR* target, s32 mode);
 
 static TmdSource _gActor450800PawnGolemBody;
@@ -224,8 +226,10 @@ extern AnimationPlayRequest D_actor_450800_80139754;
 extern AnimationPlayRequest D_actor_450800_80139768;
 extern AnimationPlayRequest D_actor_450800_8013977C;
 extern AnimationPlayRequest D_actor_450800_80139790;
-void                        func_actor_450800_80131F70(u32);
-static void                 _actor450800StartNurseryRepeatDialogue(s32 dialogueSelector);
+static void                 _actor450800SetNurseryEffectCues(u32 packedCues);
+// Packed high/low halfwords: fast glint pulse on, spark shower scale zero.
+enum { ACTOR_450800_NURSERY_FAST_GLINT_NO_SHOWER = (1 << 16) | 0 };
+static void _actor450800StartNurseryRepeatDialogue(s32 dialogueSelector);
 
 static AnimationPackedPose _gActor450800Animation01B20Bank1[2] = {
 #include "assets/actor_450800_animation_01B20_bank1.inc"
@@ -1108,7 +1112,7 @@ EvsCommand D_actor_450800_80139964[105] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_801393F4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_actor_450800_80131F70 }, { .value = 0x10000 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _actor450800SetNurseryEffectCues }, { .value = ACTOR_450800_NURSERY_FAST_GLINT_NO_SHOWER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b6_nursery_8017FFF4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_450800_80139408 }, { .value = 0 } },
@@ -1148,7 +1152,7 @@ EvsCommand D_actor_450800_8013A33C[23] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = func_actor_450800_80131F70 }, { .value = 0x10000 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU32 = _actor450800SetNurseryEffectCues }, { .value = ACTOR_450800_NURSERY_FAST_GLINT_NO_SHOWER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 1 }, { .value = 0 } },
@@ -2298,16 +2302,16 @@ TaskMessageEntry D_actor_450800_8014AC58[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor450800PlayKyleMadiganAnimation },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor450800SetKyleMadiganDrawFlags },
     { ACTOR_MESSAGE_PLACE, _pacedWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_450800_80132CE0 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor450800ApplyKyleMadiganGunCommand },
     { ACTOR_MESSAGE_WALK_TO, _actor450800SetKyleMadiganWalkTarget },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_actor_450800_8014AC88[5] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_450800_80132790, { .model = &_gActor450800KyleMadiganBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor450800KyleMadiganTask, { .model = &_gActor450800KyleMadiganBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor450800KyleMadiganAttachmentTask, { .model = &_gActor450800KyleMadiganHandLeft } },
     { { { TASK_BODY_TMD, 192 } }, _actor450800KyleMadiganAttachmentTask, { .model = &_gActor450800KyleMadiganHandRight } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_450800_80132790, { .model = &_gActor450800Body } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor450800KyleMadiganTask, { .model = &_gActor450800Body } },
     { { { TASK_BODY_TMD, 192 } }, _actor450800KyleMadiganAttachmentTask, { .model = &_gActor450800KyleMadiganGun } },
 };
 
@@ -2653,38 +2657,41 @@ u8 gPairWalkAnimParams[24] = {
     128,
 };
 
-void               func_actor_450800_80131E2C(void);
-static inline void _actor450800TintModel(Task* spawned, Task* actor);
-static void        func_actor_450800_80132160(Enemy* enemy, Task* task);
-
-void func_actor_450800_80131E2C(void)
+void actor450800StartNurseryInteraction(void)
 {
-    s32 temp_v0;
-    s32 n;
+    enum {
+        ACTOR_450800_NURSERY_INTERACTION_VIEW = 4,
+        ACTOR_450800_NURSERY_REPEAT_PROGRESS  = 1,
+        ACTOR_450800_NURSERY_COUNT_LIMIT      = 3,
+        ACTOR_450800_NURSERY_FIRST_SCENE      = 1,
+        ACTOR_450800_NURSERY_OBJECTIVE        = 0x32
+    };
+    s32 interactionCount;
+    s32 sceneCount;
 
-    if (gGameSession->location.loc.view == 4) {
-        if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == 1) {
-            temp_v0                 = D_actor_450800_8013930C + 1;
-            D_actor_450800_8013930C = temp_v0;
-            if (temp_v0 >= 3) {
-                D_actor_450800_8013930C = 3;
+    if (gGameSession->location.loc.view == ACTOR_450800_NURSERY_INTERACTION_VIEW) {
+        if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) == ACTOR_450800_NURSERY_REPEAT_PROGRESS) {
+            interactionCount        = D_actor_450800_8013930C + 1;
+            D_actor_450800_8013930C = interactionCount;
+            if (interactionCount >= ACTOR_450800_NURSERY_COUNT_LIMIT) {
+                D_actor_450800_8013930C = ACTOR_450800_NURSERY_COUNT_LIMIT;
                 evsStartScript(D_actor_450800_8013A774, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             } else {
                 evsStartScript(D_actor_450800_8013A684, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
         } else {
-            n = gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) + 1;
-            if (n >= 4) {
-                n = 3;
+            sceneCount = gameFlagGetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT) + 1;
+            if (sceneCount >= ACTOR_450800_NURSERY_COUNT_LIMIT + 1) {
+                sceneCount = ACTOR_450800_NURSERY_COUNT_LIMIT;
             }
-            gameFlagSetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT, n);
-            if (n == 1) {
-                if (gameFlagGetNibble(GAME_FLAG_083) == n) {
+            gameFlagSetNibble(GAME_FLAG_B6_NURSERY_SCENE_COUNT, sceneCount);
+            if (sceneCount == ACTOR_450800_NURSERY_FIRST_SCENE) {
+                if (gameFlagGetNibble(GAME_FLAG_083) == sceneCount) {
                     evsStartScript(D_actor_450800_8013A984, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 } else {
                     evsStartScript(D_actor_450800_8013AB7C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x32);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, ACTOR_450800_NURSERY_OBJECTIVE);
             } else {
                 evsStartScript(D_actor_450800_8013ACFC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
@@ -2715,9 +2722,13 @@ static void _actor450800SetNurseryCaptions(s32 useNurseryCaptions)
     capReset();
 }
 
-void func_actor_450800_80131F70(u32 arg0)
+/// Adapts a script word to the nursery's glint-pulse and spark-shower controls.
+///
+/// High halfword is fastGlintPulse; low halfword is sparkShowerScale. Requires
+/// the nursery effect state to be loaded. Both values are consumed immediately.
+static void _actor450800SetNurseryEffectCues(u32 packedCues)
 {
-    shelterB6NurserySetEffectCues(arg0 >> 16, arg0 & 0xFFFF);
+    shelterB6NurserySetEffectCues(packedCues >> 16, packedCues & 0xFFFF);
 }
 
 /// Starts the CAP sequence for a repeat nursery interaction.
@@ -2814,99 +2825,116 @@ static void _actor450800SpawnNurseryImpactSpark(void)
     effectSpawn(EFFECT_IMPACT_SPARK, NULL, ACTOR_450800_NURSERY_IMPACT_FLASH_SIZE, &worldPosition);
 }
 
-/// Gives a freshly spawned helper model the texture page and palette of the
-/// actor's placement in the current area, then streams it twice.
-static inline void _actor450800TintModel(Task* spawned, Task* actor)
+/// Applies the owning actor's placement texture offsets to a helper model.
+///
+/// Requires live helper/actor models and the actor's enemy placement index in
+/// the current area's synchronized variant. Copies texture-page and CLUT-row
+/// offsets; if a primitive buffer exists, rebuilds both alternating halves.
+/// Borrows all inputs only for this call and changes no lighting or colours.
+static inline void _actor450800ApplyHelperPlacementTexture(Task* spawned, Task* actor)
 {
     GameLocationKey  key;
     GameLocationKey* sessionKey;
-    AreaPlacement*   entry;
-    TmdObject*       model;
-    u32              idx;
+    AreaPlacement*   texturePlacement;
+    TmdObject*       helperModel;
+    u32              placementIndex;
 
-    sessionKey = &gGameSession->location.loc;
-    idx        = ((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-    model      = spawned->extra.tmd;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    key.view   = gGameSession->location.loc.view;
+    sessionKey     = &gGameSession->location.loc;
+    placementIndex = ((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    helperModel    = spawned->extra.tmd;
+    key.stage      = sessionKey->stage;
+    key.area       = sessionKey->area;
+    key.room       = sessionKey->room;
+    key.view       = gGameSession->location.loc.view;
     areaSyncLocationVariant(&key);
-    entry                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, idx);
-    model->texturePageOffset = entry->texturePageOffset;
-    model->clutRowOffset     = entry->clutRowOffset;
-    if (model->buffer != NULL) {
-        tmdBuildBufferHalf(model);
-        tmdBuildBufferHalf(model);
+    texturePlacement               = gpAreaPlaceAt(areaGetVariant(&key)->placements, placementIndex);
+    helperModel->texturePageOffset = texturePlacement->texturePageOffset;
+    helperModel->clutRowOffset     = texturePlacement->clutRowOffset;
+    if (helperModel->buffer != NULL) {
+        tmdBuildBufferHalf(helperModel);
+        tmdBuildBufferHalf(helperModel);
     }
 }
 
-/// Spawn handler of the actor's own task, state 0 of the `fns` table
-/// `func_actor_450800_80132790` dispatches through. Builds the actor's
-/// `_Actor450800KyleMadiganWork` block, hangs its leading matrices off the
-/// model's `lightMtx` / `colorMtx`, and starts the animation.
+/// Initializes a Kyle scene body, its animation and its hand/gun helper tasks.
 ///
-/// The three helper tasks come out of `D_actor_450800_8014AC88`: 1 and 2 are
-/// the hands, textured from the placement the actor's `Task::spawnArg2` enemy
-/// selects. Task 4, the gun, is spawned but not textured.
-static void func_actor_450800_80132160(Enemy* enemy, Task* task)
+/// Requires a live enemy, twenty-coordinate body and loaded clip/helper tables.
+/// Allocates zeroed owned work; failure destroys the enemy and task. The model
+/// borrows the work's lighting matrices. Starts clip 1 on slots 1..19 and spawns
+/// helpers for body parts 8/12; hand textures use the actor's placement.
+/// Later drawing and exit require all three helper spawns to have succeeded;
+/// retained behavior leaves a failed helper NULL and still advances the task.
+/// Spawn argument 1's signed high half of 1 makes the body visible.
+static void _actor450800SpawnKyleMadigan(Enemy* enemy, Task* task)
 {
-    VECTOR                       vec;
-    GfxCoord*                    coord;
-    TmdObject*                   obj;
+    enum {
+        ACTOR_450800_KYLE_SHOW_ON_SPAWN        = 1,
+        ACTOR_450800_KYLE_INITIAL_CLIP         = 1,
+        ACTOR_450800_KYLE_INITIAL_BLEND_FRAMES = 8,
+        ACTOR_450800_KYLE_LIGHT_HEIGHT         = 800,
+        ACTOR_450800_KYLE_HELPER_FIRST_HAND    = 1,
+        ACTOR_450800_KYLE_HELPER_SECOND_HAND   = 2,
+        ACTOR_450800_KYLE_HELPER_GUN           = 4,
+        ACTOR_450800_KYLE_HAND_AND_GUN_PART    = 8,
+        ACTOR_450800_KYLE_OTHER_HAND_PART      = 12
+    };
+    VECTOR                       lightingPosition;
+    GfxCoord*                    rootCoord;
+    TmdObject*                   model;
     _Actor450800KyleMadiganWork* work;
     Task*                        spawned;
 
-    obj        = task->extra.tmd;
-    coord      = obj->coords;
-    work       = memCalloc(sizeof(_Actor450800KyleMadiganWork), false);
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
+    work       = memCalloc(sizeof(*work), false);
     task->work = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     task->exitCallback               = _actor450800ExitKyleMadigan;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    if ((s16)(task->spawnArg1.value >> 16) == 1) {
-        obj->flags = 0;
+    if ((s16)(task->spawnArg1.value >> 16) == ACTOR_450800_KYLE_SHOW_ON_SPAWN) {
+        model->flags = 0;
     }
-    obj->otOffset = 1;
-    obj->lightMtx = &work->light;
-    obj->colorMtx = &work->color;
-    vec.vx        = coord->workm.t[0];
-    vec.vy        = coord->workm.t[1] - 0x320;
-    vec.vz        = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_450800_8014ACC4, obj, work->rig.poses,
+    model->otOffset     = 1;
+    model->lightMtx     = &work->light;
+    model->colorMtx     = &work->color;
+    lightingPosition.vx = rootCoord->workm.t[0];
+    lightingPosition.vy = rootCoord->workm.t[1] - ACTOR_450800_KYLE_LIGHT_HEIGHT;
+    lightingPosition.vz = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightingPosition, 0, 3);
+    animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_450800_8014ACC4, model, work->rig.poses,
                          work->rig.slots);
-    work->st.animId = 1;
+    work->st.animId = ACTOR_450800_KYLE_INITIAL_CLIP;
     work->st.state  = ACTOR_ENEMY_ANIM_RESET;
 
-    spawned = taskSpawnFromTable(D_actor_450800_8014AC88, 1, 8, 0);
+    // The actor owns the helper tasks and explicitly destroys them on exit.
+    spawned = taskSpawnFromTable(D_actor_450800_8014AC88, ACTOR_450800_KYLE_HELPER_FIRST_HAND, ACTOR_450800_KYLE_HAND_AND_GUN_PART, 0);
     if (spawned != NULL) {
         work->handLeftTask = spawned;
         spawned->parent    = task;
-        _actor450800TintModel(spawned, task);
+        _actor450800ApplyHelperPlacementTexture(spawned, task);
     }
 
-    spawned = taskSpawnFromTable(D_actor_450800_8014AC88, 2, 0xC, 0);
+    spawned = taskSpawnFromTable(D_actor_450800_8014AC88, ACTOR_450800_KYLE_HELPER_SECOND_HAND, ACTOR_450800_KYLE_OTHER_HAND_PART, 0);
     if (spawned != NULL) {
         work->handRightTask = spawned;
         spawned->parent     = task;
-        _actor450800TintModel(spawned, task);
+        _actor450800ApplyHelperPlacementTexture(spawned, task);
     }
 
-    spawned = taskSpawnFromTable(D_actor_450800_8014AC88, 4, 8, 0);
+    spawned = taskSpawnFromTable(D_actor_450800_8014AC88, ACTOR_450800_KYLE_HELPER_GUN, ACTOR_450800_KYLE_HAND_AND_GUN_PART, 0);
     if (spawned != NULL) {
         spawned->parent = task;
         work->gunTask   = spawned;
     }
 
-    work->blendFrames = 8;
+    work->blendFrames = ACTOR_450800_KYLE_INITIAL_BLEND_FRAMES;
     work->st.travel   = 0;
     work->turnFrames  = 0;
     work->gunShown    = 0;
@@ -2995,11 +3023,16 @@ static void _actor450800UpdateKyleMadigan(Task* task)
     }
 }
 
-void func_actor_450800_80132790(Task* task)
+/// Dispatches a Kyle scene body's spawn or per-frame walker state.
+///
+/// Requires task state 0 or 1 and its live owning enemy in spawnArg2.pointer.
+/// State 0 allocates work and helper tasks; state 1 requires that initialization
+/// to have succeeded and composes, lights and draws the body's current pose.
+static void _actor450800KyleMadiganTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = { func_actor_450800_80132160, _actorRenderWalkerFrame };
+    EnemyTaskFunc states[2] = { _actor450800SpawnKyleMadigan, _actorRenderWalkerFrame };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    states[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.
@@ -3186,33 +3219,38 @@ static s32 _actor450800SetKyleMadiganDrawFlags(Task* task, s32 messageId, s32 fl
 
 #include "../../shared/paced_walk_place.inc.c"
 
-/// Message handler 0x7DB of `D_actor_450800_8014AC58`: recolour this actor's
-/// body (or spawn its 0x6002B burst) according to the message's selector.
+/// Fires, shows or hides Kyle's gun in response to an actor command.
 ///
-/// The model is the actor's own -- `task->extra.tmd`, the `TmdObject` a bodyKind-1
-/// task carries -- and the one it is driven through is that of the gun task
-/// in `_Actor450800KyleMadiganWork::gunTask`. Both pointers, and `field_8` of
-/// the gun's model, are resolved before the switch: the ROM reads them there,
-/// and a scheduler pass cannot lift the loads into the entry block on its own.
-s32 func_actor_450800_80132CE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Requires live body work, gun task/model and gun root even for ignored commands.
+/// Command 0 spawns the NPC-pistol muzzle flash; 1 copies the body's draw flags
+/// and latches gunShown; 2 hides the gun and clears the latch. Other commands
+/// leave it unchanged. Borrows the request through this call, ignores its
+/// context, messageId and unusedArgument, and returns 0.
+static s32 _actor450800ApplyKyleMadiganGunCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArgument)
 {
-    _Actor450800KyleMadiganWork* work  = task->work;
-    TmdObject*                   obj   = work->gunTask->extra.tmd;
-    GfxCoord*                    coord = obj->coords;
-    TmdObject*                   self  = task->extra.tmd;
-    s32                          mode  = msg->command;
+    enum {
+        ACTOR_450800_GUN_FIRE              = 0,
+        ACTOR_450800_GUN_SHOW              = 1,
+        ACTOR_450800_GUN_HIDE              = 2,
+        ACTOR_450800_GUN_NPC_FLASH_PROFILE = 33
+    };
+    _Actor450800KyleMadiganWork* work     = task->work;
+    TmdObject*                   gun      = work->gunTask->extra.tmd;
+    GfxCoord*                    gunCoord = gun->coords;
+    TmdObject*                   body     = task->extra.tmd;
+    s32                          command  = request->command;
 
-    switch (mode) {
-        case 0:
-            effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, coord, 0x21, 0);
+    switch (command) {
+        case ACTOR_450800_GUN_FIRE:
+            effectSpawn(EFFECT_HANDGUN_MUZZLE_FLASH, gunCoord, ACTOR_450800_GUN_NPC_FLASH_PROFILE, NULL);
             break;
-        case 1:
-            work->gunShown = mode;
-            obj->flags     = self->flags;
+        case ACTOR_450800_GUN_SHOW:
+            work->gunShown = command;
+            gun->flags     = body->flags;
             break;
-        case 2:
+        case ACTOR_450800_GUN_HIDE:
             work->gunShown = 0;
-            obj->flags     = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+            gun->flags     = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             break;
     }
     return 0;

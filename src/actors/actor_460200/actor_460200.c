@@ -2299,7 +2299,12 @@ void func_actor_460200_801327B4(Task* task)
 
 #include "../../shared/paced_walk_spawn.inc.c"
 
-void pacedWalkExit(Task* task)
+/// Releases the walker's enemy record and tears down its task tree.
+///
+/// Installed after work allocation. spawnArg2.pointer must retain the live
+/// owning enemy through this callback; teardown frees owned work, model and
+/// child tasks. Neither argument remains live after the callback.
+static void _pacedWalkExit(Task* task)
 {
     enemyDestroy(task->spawnArg2.pointer, task);
 }

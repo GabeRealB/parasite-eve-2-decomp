@@ -105,8 +105,6 @@ STATIC_ASSERT_SIZEOF(_ShelterB6NurseryTriScratch, 0x20);
 s32 rsin(s32);
 s32 rcos(s32);
 
-extern void func_actor_450800_80131E2C(void);
-
 extern UiObjectDesc D_800611E4;
 
 extern EvsCommand D_actor_450800_80139964[];
@@ -1031,7 +1029,7 @@ s32 func_shelter_b6_nursery_8017FDD4(Task* task, s32 msgId, RoomEventMsg* src, R
 s32 func_shelter_b6_nursery_8017FE3C(Task* task, s32 msgId, DirectionActionRequest* msg, s32 arg3)
 {
     if (msg->actionId == 1) {
-        func_actor_450800_80131E2C();
+        actor450800StartNurseryInteraction();
     }
     if (msg->actionId == 2) {
         actor450800StartNurseryCompanionDialogue();

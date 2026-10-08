@@ -597,14 +597,16 @@ static void _actor341900DoorHalfTask(Task* task)
 
 /// Starts a Glutton part's driven slots at clip zero and normal playback rate.
 ///
-/// Requires initialized model work and a half-open slot range inside its rig.
-static inline void _actor341900InitGluttonAnimationSlots(Task* task, u16 firstSlot, u16 slotCount)
+/// Requires initialized model work and 0 <= firstSlot <= endSlot <= rig slots.
+/// endSlot is the exclusive slot index, not a count from firstSlot. Slot indices
+/// are u16; clip zero must cover every selected track. Owns no new storage.
+static inline void _actor341900InitGluttonAnimationSlots(Task* task, u16 firstSlot, u16 endSlot)
 {
     _Actor341900GluttonModelWork* work;
     u16                           slotIndex;
 
     work = task->work;
-    for (slotIndex = firstSlot; slotIndex < slotCount; slotIndex++) {
+    for (slotIndex = firstSlot; slotIndex < endSlot; slotIndex++) {
         work->rig.slots[slotIndex].rate = ANIMATION_RATE_ONE;
         animationResetSlot(&work->rig.anim, slotIndex, 0);
     }

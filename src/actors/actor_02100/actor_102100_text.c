@@ -529,7 +529,7 @@ static void _actor02100TickPatrol(Task* task);
 
 static void _actor02100TickBeamAttack(Task* task);
 
-static void Actor02100_Fn01FF0(Task* arg0);
+static void _actor02100TickGunAttack(Task* task);
 
 static void _actor02100AcquireTarget(Task* task);
 
@@ -1568,38 +1568,45 @@ static void _actor02100TickBeamAttack(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(ACTOR_02100_BEAM_SCRATCH_BYTES);
 }
 
-/// Seven-state attack cycle, run from `Actor02100_Fn031C4`. State 0 holds the
-/// wind-up: it re-aims each frame, refreshes both direction vectors, starts the
-/// looping sound on the second frame and shows the two objects, until the
-/// wind-up frame count in `Actor02100_D03D88` runs out. State 1 stops that
-/// sound and waits four frames; state 2 emits the two effects with a randomised
-/// parameter, plays the strike sound and re-aims once; states 3 and 4 set and
-/// clear the pair table entry and the colour word that make the strike hit,
-/// counting one hit in `shotsFired`; state 5 loops back to state 2 until ten
-/// hits, then hides both objects; state 6 waits out the recovery frame count
-/// and returns to state 0. `_actor02100UpdateTargetPosition` failing at any aim point drops
-/// straight to state 6.
-static void Actor02100_Fn01FF0(Task* arg0)
+/// Advances the Watcher's aimed ten-shot gun burst and recovery.
+///
+/// Requires live work/model/enemy, weapon ACTOR_02100_WEAPON_GUN and initialized
+/// scratch/GTE state. Aim and recovery use the weapon's tick counts; locked
+/// aim holds four updates. Each shot emits paired muzzle flares, re-aims, then
+/// arms and clears the player/enemy strike keys on successive updates.
+/// Losing the target skips to recovery. Recovery restores the saved velocity
+/// and resumes watching or patrolling. Scratch storage is released on return.
+static void _actor02100TickGunAttack(Task* task)
 {
+    enum {
+        ACTOR_02100_GUN_LOCK_TICKS             = 4,
+        ACTOR_02100_GUN_BURST_SHOTS            = 10,
+        ACTOR_02100_GUN_ENEMY_ATTACK_BASE      = 0x26,
+        ACTOR_02100_GUN_CHARGE_SOUND           = SOUND_CHARACTER(0x15, 1),
+        ACTOR_02100_GUN_SHOT_SOUND             = SOUND_CHARACTER(0x15, 11),
+        ACTOR_02100_GUN_FLARE_SIZE_BASE        = 0x200,
+        ACTOR_02100_GUN_FLARE_SIZE_JITTER_MASK = 0x1FF
+    };
     _Actor02100GunAttackScratch* scratch;
     _Actor02100Work*             work;
-    GfxCoord*                    coord;
-    s32                          pan0;
-    s32                          pan2;
-    s32                          sound2;
-    u32                          random;
-    s32                          packed2;
-    s16                          state;
+    GfxCoord*                    rootCoord;
+    s32                          chargePan;
+    s32                          shotPan;
+    s32                          shotSound;
+    u32                          randomState;
+    s32                          flareSize;
+    s16                          gunStep;
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100GunAttackScratch);
-    work    = arg0->work;
-    state   = work->step;
-    coord   = arg0->extra.tmd->coords;
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(_Actor02100GunAttackScratch);
+    work      = task->work;
+    gunStep   = work->step;
+    rootCoord = task->extra.tmd->coords;
 
-    switch (state) {
+    switch (gunStep) {
+        // Track the target during charge; losing it skips directly to recovery.
         case ACTOR_02100_GUN_STEP_AIM:
             if (work->stepFrames != 0) {
-                if (_actor02100UpdateTargetPosition(arg0) == 0) {
+                if (_actor02100UpdateTargetPosition(task) == 0) {
                     work->step       = ACTOR_02100_GUN_STEP_RECOVER;
                     work->stepFrames = 0;
                     if (work->loopSoundKind == ACTOR_02100_LOOP_SOUND_CHARGE) {
@@ -1609,19 +1616,18 @@ static void Actor02100_Fn01FF0(Task* arg0)
                     break;
                 }
 
-                _actor02100AimAtTarget(arg0);
-                _actor02100BuildBeamAndStrikePoints(arg0);
+                _actor02100AimBeamAndStrikePoints(task);
             }
 
             if (work->stepFrames == 1) {
-                work->loopSound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40150001;
-                pan0            = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(work->loopSound, pan0, (s8)worldCoordGetOriginAudioDepth(coord));
+                work->loopSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02100_GUN_CHARGE_SOUND;
+                chargePan       = (s8)worldCoordGetOriginAudioPan(rootCoord);
+                sndEvtRequestScriptStart(work->loopSound, chargePan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 work->loopSoundKind = ACTOR_02100_LOOP_SOUND_CHARGE;
             }
             if (work->stepFrames >= 2) {
-                _actor02100ProjectBeamPoints(arg0);
-                _actor02100DrawBeam(arg0, ACTOR_02100_BEAM_STYLE_SIGHT);
+                _actor02100ProjectBeamPoints(task);
+                _actor02100DrawBeam(task, ACTOR_02100_BEAM_STYLE_SIGHT);
             }
             work->playerStrikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->enemyStrikeBody.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
@@ -1638,38 +1644,39 @@ static void Actor02100_Fn01FF0(Task* arg0)
                 sndEvtRequestScriptStop(work->loopSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->loopSoundKind = ACTOR_02100_LOOP_SOUND_NONE;
             }
-            if (++work->stepFrames >= 4) {
+            if (++work->stepFrames >= ACTOR_02100_GUN_LOCK_TICKS) {
                 work->stepFrames = 0;
-                _actor02100BuildStrikeEndpoints(arg0);
+                _actor02100BuildStrikeEndpoints(task);
                 work->step = ACTOR_02100_GUN_STEP_SHOT;
             }
             break;
 
+        // Fire, then expose the strike keys for one update before clearing them.
         case ACTOR_02100_GUN_STEP_SHOT:
             scratch->muzzleOffset.vx = 0;
             scratch->muzzleOffset.vy = 0;
             scratch->muzzleOffset.vz = ACTOR_02100_MUZZLE_OFFSET;
-            random                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            packed2                  = ((random >> 16) & 0x1FF) | 0x200;
-            gRandomLcgState          = random;
-            effectSpawn(EFFECT_MUZZLE_FLARE, coord, packed2, &scratch->muzzleOffset);
-            effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, coord, packed2, &scratch->muzzleOffset);
-            sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4015000B;
-            pan2   = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(coord));
+            randomState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            flareSize                = ((randomState >> 16) & ACTOR_02100_GUN_FLARE_SIZE_JITTER_MASK) | ACTOR_02100_GUN_FLARE_SIZE_BASE;
+            gRandomLcgState          = randomState;
+            effectSpawn(EFFECT_MUZZLE_FLARE, rootCoord, flareSize, &scratch->muzzleOffset);
+            effectSpawn(EFFECT_MUZZLE_FLARE_ADDITIVE, rootCoord, flareSize, &scratch->muzzleOffset);
+            shotSound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_02100_GUN_SHOT_SOUND;
+            shotPan   = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(shotSound, shotPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             work->step = ACTOR_02100_GUN_STEP_ARM;
-            if (_actor02100UpdateTargetPosition(arg0) == 0) {
+            if (_actor02100UpdateTargetPosition(task) == 0) {
                 work->step       = ACTOR_02100_GUN_STEP_RECOVER;
                 work->stepFrames = 0;
             } else {
-                _actor02100AimAtTarget(arg0);
+                _actor02100AimAtTarget(task);
             }
             break;
 
         case ACTOR_02100_GUN_STEP_ARM:
             work->playerStrikeBody.key = damagePackAttackKey(Actor02100_D03D64, work->weapon);
             work->step                 = ACTOR_02100_GUN_STEP_DISARM;
-            work->enemyStrikeBody.key  = ((work->weapon + 0x26) << 8) | 0x20000 | (work->weapon + 0x26);
+            work->enemyStrikeBody.key  = ((work->weapon + ACTOR_02100_GUN_ENEMY_ATTACK_BASE) << 8) | WORLD_COLLISION_CONTACT_ATTACK | (work->weapon + ACTOR_02100_GUN_ENEMY_ATTACK_BASE);
             work->shotsFired++;
             break;
 
@@ -1680,17 +1687,14 @@ static void Actor02100_Fn01FF0(Task* arg0)
             break;
 
         case ACTOR_02100_GUN_STEP_NEXT:
-            if (work->shotsFired < 10) {
+            if (work->shotsFired < ACTOR_02100_GUN_BURST_SHOTS) {
                 work->step = ACTOR_02100_GUN_STEP_SHOT;
-                _actor02100BuildStrikeEndpoints(arg0);
+                _actor02100BuildStrikeEndpoints(task);
                 break;
             }
-            work->step                    = ACTOR_02100_GUN_STEP_RECOVER;
-            work->stepFrames              = 0;
-            work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            work->playerStrikeBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-            work->enemyStrikeBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+            work->step       = ACTOR_02100_GUN_STEP_RECOVER;
+            work->stepFrames = 0;
+            _actor02100DisableBeamCollision(work);
             break;
 
         case ACTOR_02100_GUN_STEP_RECOVER:
@@ -1960,7 +1964,7 @@ static void Actor02100_Fn032E4(Task* arg0)
             _actor02100TickBeamAttack(arg0);
             break;
         case ACTOR_02100_MODE_GUN:
-            Actor02100_Fn01FF0(arg0);
+            _actor02100TickGunAttack(arg0);
             break;
         case ACTOR_02100_MODE_DESTROYED:
             break;

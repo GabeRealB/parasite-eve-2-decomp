@@ -1107,7 +1107,8 @@ static void _actor03700ProcessContacts(Task* task, TmdObject* unusedModel, s32 u
 
 /// Counts one airborne tick and queues the bat's flight cue every sixteenth.
 ///
-/// Reloads the live work and root after the action handler. The placement index
+/// Requires live work, model root and owning enemy in spawnArg2.pointer.
+/// Reloads work and root after the action handler. The placement index
 /// supplies the sound instance tag; pan and depth retain signed-byte narrowing.
 static inline void _actor03700StepFlightSound(Task* task)
 {

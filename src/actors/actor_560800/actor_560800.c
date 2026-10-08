@@ -4510,7 +4510,7 @@ static inline u16 _actor560800AllocateBodyWork(Task* task, u8 textureEntryId)
         return 1;
     }
     root->parent = &gGfxViewCoord;
-    memFillBytes(task->work, 0, sizeof(_Actor560800CastWork));
+    memFillBytes(task->work, 0, sizeof(*allocatedWork));
     model->lightMtx = &allocatedWork->light;
     model->colorMtx = &allocatedWork->color;
     task->msgTable  = D_actor_560800_8016F34C;
@@ -4530,8 +4530,10 @@ static inline u16 _actor560800AllocateBodyWork(Task* task, u8 textureEntryId)
 
 /// Seeds a scene body's non-root tracks and animation-chain state at normal rate.
 ///
-/// Requires initialized cast work and a loaded animationId covering every used
-/// slot. Leaves root slot 0 untouched; owns no storage beyond the body's work.
+/// Requires initialized cast work and a loaded animationId covering slots
+/// 1..slotCount - 1 (19 slots for Eve/No. 9, 20 for Kyle). Normal rate is 16
+/// sixteenths of a frame per tick, narrowed into the work and each slot.
+/// Leaves root slot 0 untouched; owns no storage beyond the body's work.
 static inline void _actor560800InitializeBodyAnimation(Task* task, u16 animationId)
 {
     _Actor560800CastWork* work = task->work;
@@ -4650,7 +4652,7 @@ static void _actor560800CastAttachmentTask(Task* task)
                 root->parent = &parent->extra.tmd->coords[8];
                 break;
         }
-        memFillBytes(task->work, 0, sizeof(_Actor560800CastWork));
+        memFillBytes(task->work, 0, sizeof(*allocatedWork));
         model->lightMtx = &work->light;
         model->colorMtx = &work->color;
         if (task->spawnArg1.value < ACTOR_560800_ATTACHMENT_GUN) {

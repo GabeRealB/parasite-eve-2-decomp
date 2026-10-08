@@ -22,7 +22,7 @@ void pacedWalkSpawn(Enemy* enemy, Task* task)
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = pacedWalkExit;
+    task->exitCallback               = _pacedWalkExit;
     coord->parent                    = &gGfxViewCoord;
     enemy->field_4                   = &coord->coord;
     enemy->field_48                  = 0;

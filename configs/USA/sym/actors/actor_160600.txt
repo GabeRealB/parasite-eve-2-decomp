@@ -223,4 +223,4 @@ pacedWalkFrame = 0x80131E68; // type:func
 pacedWalkSpawn = 0x80132208; // type:func
 _pacedWalkPlayAnimation = 0x8013252C; // type:func
 _pacedWalkSetPairModelDraw = 0x80132598; // type:func
-pacedWalkExit = 0x80132350; // type:func
+_pacedWalkExit = 0x80132350; // type:func

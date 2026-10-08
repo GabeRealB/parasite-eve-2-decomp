@@ -1251,14 +1251,14 @@ extern AnimationSet* Actor04000_D0C520[4];
 extern TaskFunc Actor04000_D0C6EC[];
 
 static s32  _actor04000PollAnimationSound(_Actor04000Work* work);
-static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1);
+static void _actor04000SpawnEnemy(Enemy* enemy, Task* task);
 static void _actor04000StateLunge(Enemy* enemy, Task* task);
 static void _actor04000StateReleaseBurst(Enemy* enemy, Task* task);
 static void _actor04000StateIdle(Enemy* enemy, Task* task);
 static void _actor04000StateChase(Enemy* enemy, Task* task);
 static void _actor04000StateSelfBurst(Enemy* enemy, Task* task);
 static void _actor04000StateDeathBurst(Enemy* enemy, Task* task);
-static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2);
+static void _actor04000SpawnHitEffect(Task* task, s16 hitYaw, u32 attackKey);
 static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1);
 static void _actor04000StatePatrol(Enemy* enemy, Task* task);
 static void _actor04000StateReturn(Enemy* enemy, Task* task);
@@ -1482,167 +1482,182 @@ static s32 _actor04000PollAnimationSound(_Actor04000Work* work)
 
 // animation bank handed to `animationInitContext`
 
-/// Spawn state: allocates the work block, links the four collision objects and
-/// the enemy node, seeds the size and HP from the enemy's level nibble, records
-/// the spawn position and the points 1000 units ahead and behind it, then
-/// starts in `IDLE` when the high half of `Task::spawnArg1` is 1 and `PATROL` otherwise.
-static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1)
+/// Initializes the hanging enemy's animation, collision bodies and patrol route.
+///
+/// Requires a live enemy, a model with six coordinates and the loaded clip bank.
+/// Owns zeroed work until enemy teardown; allocation failure destroys the enemy
+/// and task. Links two body probes and two inactive burst spheres, initializes
+/// their complete contact arrays, and borrows the work's lighting matrices.
+/// Patrol endpoints are 1000 parent-coordinate units ahead and behind spawn.
+/// Spawn argument 1's high half selects IDLE for 1 and PATROL otherwise.
+/// Playback and two unused tunings vary with placement index; HP uses the
+/// fixed enemy parameter record. Acquires one scene battle reference.
+static void _actor04000SpawnEnemy(Enemy* enemy, Task* task)
 {
-    TmdObject*             obj;
-    GfxCoord*              coord;
+    enum {
+        ACTOR_04000_COLLISION_BODY_ID        = 12,
+        ACTOR_04000_PATROL_ENDPOINT_DISTANCE = 1000,
+        ACTOR_04000_SPAWN_IDLE_SELECTOR      = 1,
+        ACTOR_04000_NO_PREVIOUS_STATE        = -1
+    };
+    TmdObject*             model;
+    GfxCoord*              rootCoord;
     _Actor04000Work*       work;
-    WorldCollisionContact* hits;
-    SVECTOR                sv;
-    VECTOR                 pos;
-    SVECTOR*               p;
-    SVECTOR*               q;
-    WorldCollisionBody*    o1;
-    WorldCollisionBody*    o2;
-    WorldCollisionBody*    o3;
-    WorldCollisionBody*    o4;
+    WorldCollisionContact* hitContacts;
+    SVECTOR                offsetAndFacing;
+    VECTOR                 lightingPosition;
+    SVECTOR*               bodyOffset;
+    SVECTOR*               patrolDirection;
+    WorldCollisionBody*    gridBody;
+    WorldCollisionBody*    hitBody;
+    WorldCollisionBody*    burstAttackBody;
+    WorldCollisionBody*    burstWaveBody;
 
-    obj        = arg1->extra.tmd;
-    coord      = obj->coords;
-    work       = memCalloc(sizeof(_Actor04000Work), 0);
-    arg1->work = work;
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
+    work       = memCalloc(sizeof(*work), false);
+    task->work = work;
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    coord->parent   = &gGfxViewCoord;
-    arg1->msgTable  = Actor04000_D0C6B0;
-    work->field_180 = 0;
-    work->field_184 = 1;
-    work->field_18C = 3;
-    work->field_188 = 0;
-    work->field_190 = 1;
-    obj->flags      = 0;
-    animationInitContext(&work->rig.anim, Actor04000_D0C4C4, obj, work->rig.poses, work->rig.slots);
+    rootCoord->parent = &gGfxViewCoord;
+    task->msgTable    = Actor04000_D0C6B0;
+    work->field_180   = 0;
+    work->field_184   = 1;
+    work->field_18C   = 3;
+    work->field_188   = 0;
+    work->field_190   = 1;
+    model->flags      = 0;
+    animationInitContext(&work->rig.anim, Actor04000_D0C4C4, model, work->rig.poses, work->rig.slots);
 
-    o1                   = &work->gridBody;
-    o1->coord            = arg1->extra.tmd->coords + 1;
-    o1->context.contacts = work->gridContacts;
-    o1->pos.vy           = -0x110;
-    o1->pos.vx           = 0;
-    o1->pos.vz           = 0;
-    o1->key              = 0x3000C;
-    o1->radius           = 0x190;
-    o1->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, o1);
-    o1->flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-    worldCollisionInitContacts(o1->context.contacts, 8, 0);
+    // Link the grid probe, hit sphere and two initially inactive burst bodies.
+    // Link two probes and two initially inactive burst spheres.
+    gridBody                   = &work->gridBody;
+    gridBody->coord            = task->extra.tmd->coords + 1;
+    gridBody->context.contacts = work->gridContacts;
+    gridBody->pos.vy           = -0x110;
+    gridBody->pos.vx           = 0;
+    gridBody->pos.vz           = 0;
+    gridBody->key              = (WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_04000_COLLISION_BODY_ID);
+    gridBody->radius           = 0x190;
+    gridBody->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, gridBody);
+    gridBody->flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
+    worldCollisionInitContacts(gridBody->context.contacts, ARRAY_SIZE(work->gridContacts), 0);
 
-    o2                   = &work->hitBody;
-    sv.vx                = 0;
-    sv.vy                = -0x168;
-    sv.vz                = 0;
-    p                    = &sv;
-    hits                 = work->hitContacts;
-    o2->coord            = arg1->extra.tmd->coords + 2;
-    o2->context.contacts = hits;
-    o2->pos.vx           = p->vx;
-    o2->pos.vy           = p->vy;
-    o2->pos.vz           = p->vz;
-    o2->key              = 0x3000C;
-    o2->radius           = 0x168;
-    o2->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, o2);
-    o2->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(o2->context.contacts, 8, 0);
+    hitBody                   = &work->hitBody;
+    offsetAndFacing.vx        = 0;
+    offsetAndFacing.vy        = -0x168;
+    offsetAndFacing.vz        = 0;
+    bodyOffset                = &offsetAndFacing;
+    hitContacts               = work->hitContacts;
+    hitBody->coord            = task->extra.tmd->coords + 2;
+    hitBody->context.contacts = hitContacts;
+    hitBody->pos.vx           = bodyOffset->vx;
+    hitBody->pos.vy           = bodyOffset->vy;
+    hitBody->pos.vz           = bodyOffset->vz;
+    hitBody->key              = (WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_04000_COLLISION_BODY_ID);
+    hitBody->radius           = 0x168;
+    hitBody->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, hitBody);
+    hitBody->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    worldCollisionInitContacts(hitBody->context.contacts, ARRAY_SIZE(work->hitContacts), 0);
 
-    sv.vx                = 0;
-    sv.vy                = 0;
-    sv.vz                = 0;
-    o3                   = &work->burstAttackBody;
-    o3->coord            = &gGfxViewCoord;
-    o3->context.contacts = work->burstAttackContacts;
-    o3->pos.vx           = p->vx;
-    o3->pos.vy           = p->vy;
-    o3->pos.vz           = p->vz;
-    o3->radius           = 0x500;
-    o3->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, o3);
-    worldCollisionInitContacts(o3->context.contacts, 1, 0);
+    offsetAndFacing.vx                = 0;
+    offsetAndFacing.vy                = 0;
+    offsetAndFacing.vz                = 0;
+    burstAttackBody                   = &work->burstAttackBody;
+    burstAttackBody->coord            = &gGfxViewCoord;
+    burstAttackBody->context.contacts = work->burstAttackContacts;
+    burstAttackBody->pos.vx           = bodyOffset->vx;
+    burstAttackBody->pos.vy           = bodyOffset->vy;
+    burstAttackBody->pos.vz           = bodyOffset->vz;
+    burstAttackBody->radius           = 0x500;
+    burstAttackBody->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, burstAttackBody);
+    worldCollisionInitContacts(burstAttackBody->context.contacts, ARRAY_SIZE(work->burstAttackContacts), 0);
 
-    o4                   = &work->burstWaveBody;
-    o4->coord            = &gGfxViewCoord;
-    o4->context.contacts = work->burstWaveContacts;
-    o4->pos.vx           = p->vx;
-    o4->pos.vy           = p->vy;
-    o4->pos.vz           = p->vz;
-    o4->radius           = 0x80;
-    o4->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, o4);
-    worldCollisionInitContacts(o4->context.contacts, 1, 0);
+    burstWaveBody                   = &work->burstWaveBody;
+    burstWaveBody->coord            = &gGfxViewCoord;
+    burstWaveBody->context.contacts = work->burstWaveContacts;
+    burstWaveBody->pos.vx           = bodyOffset->vx;
+    burstWaveBody->pos.vy           = bodyOffset->vy;
+    burstWaveBody->pos.vz           = bodyOffset->vz;
+    burstWaveBody->radius           = 0x80;
+    burstWaveBody->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, burstWaveBody);
+    worldCollisionInitContacts(burstWaveBody->context.contacts, ARRAY_SIZE(work->burstWaveContacts), 0);
 
-    arg0->field_4    = &coord->coord;
-    arg0->field_48   = 0;
-    arg0->bodyPos.vx = 0;
-    arg0->bodyPos.vy = 0;
-    arg0->bodyPos.vz = 0;
-    arg0->coord      = arg1->extra.tmd->coords + 2;
-    worldTargetLinkNode(&arg0->node);
-    arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    arg0->reactionFlags          = 0;
-    arg0->hp = arg0->hpMax    = Actor04000_D07084.hpMax;
-    arg0->param               = &Actor04000_D07084;
-    arg0->recs                = hits;
+    enemy->field_4    = &rootCoord->coord;
+    enemy->field_48   = 0;
+    enemy->bodyPos.vx = 0;
+    enemy->bodyPos.vy = 0;
+    enemy->bodyPos.vz = 0;
+    enemy->coord      = task->extra.tmd->coords + 2;
+    worldTargetLinkNode(&enemy->node);
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->reactionFlags          = 0;
+    enemy->hp = enemy->hpMax  = Actor04000_D07084.hpMax;
+    enemy->param              = &Actor04000_D07084;
+    enemy->recs               = hitContacts;
     work->driver.state        = ANIM_DRIVER_STATE_RESTART_2;
-    work->driver.requestedSet = 1;
+    work->driver.requestedSet = ACTOR_04000_ANIMATION_HOLD;
     work->driver.rate         = ANIMATION_RATE_ONE;
     work->driver.rateBias     = 0;
-    _animDriverTick(arg1);
-    work->field_17E     = 0;
-    work->field_A       = 0;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0, &pos, 0, 0);
+    _animDriverTick(task);
+    work->field_17E         = 0;
+    work->field_A           = 0;
+    model->lightMtx         = &work->lightMtx;
+    model->colorMtx         = &work->colorMtx;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    lightingPosition.vx = rootCoord->workm.t[0];
+    lightingPosition.vy = rootCoord->workm.t[1];
+    lightingPosition.vz = rootCoord->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &lightingPosition, 0, 0);
     work->field_1A0 = 5;
     work->field_1A2 = 0x14;
-    if ((u16)(arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) % 2 == 1) {
-        work->driver.rate += arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        work->field_1A2   += arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        work->field_1A0   += arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    if ((u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) % 2 == 1) {
+        work->driver.rate += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_1A2   += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        work->field_1A0   += enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
     } else {
-        work->driver.rate -= (u16)(arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
-        work->field_1A2   -= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
-        work->field_1A0   -= (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
+        work->driver.rate -= (u16)(enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
+        work->field_1A2   -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
+        work->field_1A0   -= (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) / 2;
     }
-    work->spawnPos.vx = arg1->extra.tmd->coords->coord.t[0];
-    work->spawnPos.vy = arg1->extra.tmd->coords->coord.t[1];
-    work->spawnPos.vz = arg1->extra.tmd->coords->coord.t[2];
-    gfxReadMatrixZAxis(&arg1->extra.tmd->coords->coord, &sv);
-    sv.vy = 0;
-    q     = &sv;
-    VectorNormalSS(q, q);
-    gte_lddp(1000);
-    gte_ldsv(q);
+    // Patrol endpoints straddle the spawn along its flattened facing direction.
+    work->spawnPos.vx = task->extra.tmd->coords->coord.t[0];
+    work->spawnPos.vy = task->extra.tmd->coords->coord.t[1];
+    work->spawnPos.vz = task->extra.tmd->coords->coord.t[2];
+    // The temporary vector now holds the flattened patrol-facing direction.
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &offsetAndFacing);
+    offsetAndFacing.vy = 0;
+    patrolDirection    = &offsetAndFacing;
+    VectorNormalSS(patrolDirection, patrolDirection);
+    gte_lddp(ACTOR_04000_PATROL_ENDPOINT_DISTANCE);
+    gte_ldsv(patrolDirection);
     gte_gpf12();
-    gte_stsv(q);
-    work->patrolPoints[0].vx = arg1->extra.tmd->coords->coord.t[0] + sv.vx;
-    work->patrolPoints[0].vy = arg1->extra.tmd->coords->coord.t[1];
-    work->patrolPoints[0].vz = arg1->extra.tmd->coords->coord.t[2] + sv.vz;
-    work->patrolPoints[1].vx = arg1->extra.tmd->coords->coord.t[0] - sv.vx;
-    work->patrolPoints[1].vy = arg1->extra.tmd->coords->coord.t[1];
-    work->patrolPoints[1].vz = arg1->extra.tmd->coords->coord.t[2] - sv.vz;
-    /* the gameplay prototype takes no argument, but this call site passes 0 */
-    (sceneAcquireBattleRef)(0);
-    if ((arg1->spawnArg1.value >> 16) == 0) {
+    gte_stsv(patrolDirection);
+    work->patrolPoints[0].vx = task->extra.tmd->coords->coord.t[0] + offsetAndFacing.vx;
+    work->patrolPoints[0].vy = task->extra.tmd->coords->coord.t[1];
+    work->patrolPoints[0].vz = task->extra.tmd->coords->coord.t[2] + offsetAndFacing.vz;
+    work->patrolPoints[1].vx = task->extra.tmd->coords->coord.t[0] - offsetAndFacing.vx;
+    work->patrolPoints[1].vy = task->extra.tmd->coords->coord.t[1];
+    work->patrolPoints[1].vz = task->extra.tmd->coords->coord.t[2] - offsetAndFacing.vz;
+    sceneAcquireBattleRef(0);
+    if ((task->spawnArg1.value >> 16) == 0) {
         work->state = ACTOR_04000_STATE_PATROL;
-    } else if ((arg1->spawnArg1.value >> 16) == 1) {
+    } else if ((task->spawnArg1.value >> 16) == ACTOR_04000_SPAWN_IDLE_SELECTOR) {
         work->state = ACTOR_04000_STATE_IDLE;
     } else {
         work->state = ACTOR_04000_STATE_PATROL;
     }
-    work->prevState    = -1;
+    work->prevState    = ACTOR_04000_NO_PREVIOUS_STATE;
     work->airborne     = 0;
     work->missedLunges = 0;
-    arg1->state++;
+    task->state++;
 }
 
 /// Lunges at the player and starts a button-press hold when the catch succeeds.
@@ -2332,79 +2347,95 @@ static void _actor04000StateDeathBurst(Enemy* enemy, Task* task)
     }
 }
 
-/// Picks a random offset and coordinate index for an effect from the hit
-/// angle `arg1` (front, back, right or left), copies it into `work->hitEffectOffset` and
-/// spawns the effect for hit id `arg2`.
-static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
+/// Spawns a player-attack hit effect on a randomly selected point of the struck side.
+///
+/// `hitYaw` is the signed relative yaw in 4096 units per turn; front is strictly
+/// inside +/-512 and back strictly outside +/-1536. Remaining positive/negative
+/// angles select right/left. Requires live work and model coordinates 0..5.
+/// `attackKey` supplies the player attack's effect selector. Copies the chosen
+/// local offset and part index into owned work, which must outlive the effect's
+/// borrowed placement arguments. Releases the temporary scratch vector.
+static void _actor04000SpawnHitEffect(Task* task, s16 hitYaw, u32 attackKey)
 {
-    SVECTOR*         sc;
+    enum {
+        ACTOR_04000_HIT_FRONT_LIMIT  = 0x200,
+        ACTOR_04000_HIT_BACK_LIMIT   = 0x600,
+        ACTOR_04000_HIT_BACK_PART    = 1,
+        ACTOR_04000_HIT_FRONT_PART   = 2,
+        ACTOR_04000_HIT_LEFT_PART    = 4,
+        ACTOR_04000_HIT_RIGHT_PART   = 5,
+        ACTOR_04000_HIT_EFFECT_SIZE  = 0x100,
+        ACTOR_04000_HIT_EFFECT_COUNT = 1 // Series count, also packed as the recipe high half
+    };
+    SVECTOR*         offsetAndPart;
     _Actor04000Work* work;
-    s32              mag;
-    GfxCoord*        coord;
+    s32              yawMagnitude;
+    GfxCoord*        hitCoord;
 
-    sc   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(sizeof(SVECTOR));
-    mag  = (arg1 >= 0) ? arg1 : -arg1;
-    work = arg0->work;
-    if (mag < 0x200) {
+    offsetAndPart = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    yawMagnitude  = (hitYaw >= 0) ? hitYaw : -hitYaw;
+    work          = task->work;
+    if (yawMagnitude < ACTOR_04000_HIT_FRONT_LIMIT) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (!((gRandomLcgState >> 16) & 1)) {
-            sc->pad = 2;
-            sc->vx  = 80;
-            sc->vy  = -180;
-            sc->vz  = 330;
+            offsetAndPart->pad = ACTOR_04000_HIT_FRONT_PART;
+            offsetAndPart->vx  = 80;
+            offsetAndPart->vy  = -180;
+            offsetAndPart->vz  = 330;
         } else {
-            sc->pad = 2;
-            sc->vx  = -60;
-            sc->vy  = -150;
-            sc->vz  = 300;
+            offsetAndPart->pad = ACTOR_04000_HIT_FRONT_PART;
+            offsetAndPart->vx  = -60;
+            offsetAndPart->vy  = -150;
+            offsetAndPart->vz  = 300;
         }
-    } else if (mag > 0x600) {
+    } else if (yawMagnitude > ACTOR_04000_HIT_BACK_LIMIT) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (!((gRandomLcgState >> 16) & 1)) {
-            sc->pad = 1;
-            sc->vx  = 0;
-            sc->vy  = 0;
-            sc->vz  = -180;
+            offsetAndPart->pad = ACTOR_04000_HIT_BACK_PART;
+            offsetAndPart->vx  = 0;
+            offsetAndPart->vy  = 0;
+            offsetAndPart->vz  = -180;
         } else {
-            sc->pad = 2;
-            sc->vx  = 2;
-            sc->vy  = -50;
-            sc->vz  = -50;
+            offsetAndPart->pad = ACTOR_04000_HIT_FRONT_PART;
+            offsetAndPart->vx  = 2;
+            offsetAndPart->vy  = -50;
+            offsetAndPart->vz  = -50;
         }
-    } else if (arg1 > 0) {
+    } else if (hitYaw > 0) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (!((gRandomLcgState >> 16) & 1)) {
-            sc->pad = 5;
-            sc->vx  = 100;
-            sc->vy  = 0;
-            sc->vz  = 0;
+            offsetAndPart->pad = ACTOR_04000_HIT_RIGHT_PART;
+            offsetAndPart->vx  = 100;
+            offsetAndPart->vy  = 0;
+            offsetAndPart->vz  = 0;
         } else {
-            sc->pad = 5;
-            sc->vx  = 120;
-            sc->vy  = 0;
-            sc->vz  = 100;
+            offsetAndPart->pad = ACTOR_04000_HIT_RIGHT_PART;
+            offsetAndPart->vx  = 120;
+            offsetAndPart->vy  = 0;
+            offsetAndPart->vz  = 100;
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (!((gRandomLcgState >> 16) & 1)) {
-            sc->pad = 4;
-            sc->vx  = -100;
-            sc->vy  = 0;
-            sc->vz  = 0;
+            offsetAndPart->pad = ACTOR_04000_HIT_LEFT_PART;
+            offsetAndPart->vx  = -100;
+            offsetAndPart->vy  = 0;
+            offsetAndPart->vz  = 0;
         } else {
-            sc->pad = 4;
-            sc->vx  = -120;
-            sc->vy  = 0;
-            sc->vz  = 100;
+            offsetAndPart->pad = ACTOR_04000_HIT_LEFT_PART;
+            offsetAndPart->vx  = -120;
+            offsetAndPart->vy  = 0;
+            offsetAndPart->vz  = 100;
         }
     }
-    work->hitEffectOffset         = *sc;
-    coord                         = &arg0->extra.tmd->coords[sc->pad];
-    work->hitEffectArg.spawnArgLo = 0x100;
-    work->hitEffectArg.spawnArgHi = 1;
-    work->hitEffectArg.coord      = coord;
-    effectSpawnHit(damageGetPlayerAttackEffectId(arg2), &arg0->extra.tmd->coords[sc->pad], &work->hitEffectOffset, &work->hitEffectArg);
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
+    // Copy the temporary placement into work retained by the spawned hit effect.
+    work->hitEffectOffset         = *offsetAndPart;
+    hitCoord                      = &task->extra.tmd->coords[offsetAndPart->pad];
+    work->hitEffectArg.spawnArgLo = ACTOR_04000_HIT_EFFECT_SIZE;
+    work->hitEffectArg.spawnArgHi = ACTOR_04000_HIT_EFFECT_COUNT;
+    work->hitEffectArg.coord      = hitCoord;
+    effectSpawnHit(damageGetPlayerAttackEffectId(attackKey), &task->extra.tmd->coords[offsetAndPart->pad], &work->hitEffectOffset, &work->hitEffectArg);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Returns the first attack contact key and copies its world position.
@@ -2458,7 +2489,7 @@ static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1)
                 ratan2(-arg1->extra.tmd->coords->workm.m[2][0], arg1->extra.tmd->coords->workm.m[2][2]);
         sc->hitYaw = angle;
         sc->hitYaw = _actorAngleNormalizeYaw(angle);
-        Actor04000_Fn03D30(arg1, sc->hitYaw, sc->hitKey);
+        _actor04000SpawnHitEffect(arg1, sc->hitYaw, sc->hitKey);
         snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280003;
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
         sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
@@ -3450,7 +3481,7 @@ static void _actor04000StateHang(Enemy* enemy, Task* task)
 /// The enemy's spawn, per-frame and teardown handlers, indexed by the task's
 /// state.
 static const EnemyTaskFuncTable3 Actor04000_D00240 = {
-    Actor04000_Fn010B8,
+    _actor04000SpawnEnemy,
     Actor04000_Fn05F0C,
     enemyDestroy,
 };

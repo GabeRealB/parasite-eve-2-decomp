@@ -205,7 +205,7 @@ void       pacedWalkFrame(Enemy* enemy, Task* task);
 void       pacedWalkSpawn(Enemy* enemy, Task* task);
 static s32 _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
 
-/* Defined by each package. */
-void pacedWalkExit(Task* task);
+/* Private exit callback of each carrier that includes the spawn fragment. */
+static void _pacedWalkExit(Task* task);
 
 #endif /* SRC_SHARED_PACED_WALK_H */
