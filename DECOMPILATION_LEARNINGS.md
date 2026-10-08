@@ -26834,7 +26834,7 @@ CSE's `1` into a callee-saved (`li s0, 1`) and skips the second load. The
   the reload and parks `%hi(flag)` in the first two delay slots
 - rematerializes each `1` in `$v0` / `$v1` instead of `$sN`
 
-`Gp_ItemDestCursorTask` is the example. The nested if/else stuck at 88% with only the
+`itemMenuInventoryPanelTask` is the example. The nested if/else stuck at 88% with only the
 flag block different. `itemMenuWeaponPanelTask` and `Gp_ArmorMenuTask` share the same shape.
 
 ## Copy a packed halfword to a temp so `lhu` sits between two stores
@@ -26847,13 +26847,13 @@ Assign the halfword to a temp *between* the two stores so `lhu` fills the
 slot after `sw zero` and before `li K`:
 
 ```c
-obj->status = 0;
-y = cursor.y.signedValue; /* lhu v1, 0x1A(sp) */
-child->status = 0x17; /* li v0, 0x17; sw v0 */
-child->resultValue = y;  /* sh v1 */
+object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+cursorY = cursorPosition.y.signedValue; /* lhu v1, 0x1A(sp) */
+equipmentPane->panel.control.word = USER_INTERFACE_PANEL_FOCUS_TRANSFER; /* li v0, 0x17; sw v0 */
+equipmentPane->resultValue = cursorY;  /* sh v1 */
 ```
 
-`Gp_ItemDestCursorTask` is the example.
+`itemMenuInventoryPanelTask` is the example.
 
 ## Pass the id into `sndScriptHasActiveId` so the load targets `$a0`
 
@@ -36297,37 +36297,37 @@ as `playerActorAimPart6PitchToLock`'s prologue. This was an earlier `playerActor
 implementation; its current inline shortest-turn helper uses the scratch-stack
 reservation and release macros without an assembly cursor load.
 
-## Keep `right` live so the next `lhu` takes `$a1`, not `$v1`
+## Keep `imageRight` live so the next `lhu` takes `$a1`, not `$v1`
 
-A POLY_FT4 whose x edges are `x` and `x - 1` wants `right` in `$v1` through
+A POLY_FT4 whose imageX edges are `imageX` and `imageX - 1` wants `imageRight` in `$v1` through
 the `x3`/`x1` stores, then `lhu a1, y` / `li v1, 0x31` in the load delay.
-A later `fy = obj->field_E` born after those stores reuses the now-dead
-`$v1`. Assign `fy` while `right` is still live (`+r` after the stores) so
+A later `imageTop = object->panel.bounds.unsignedRect.y` born after those stores reuses the now-dead
+`$v1`. Assign `imageTop` while `imageRight` is still live (`+r` after the stores) so
 regalloc gives `$a1` to the load and `$v1` to the next constant:
 
 ```c
-right = x - 1;
-x     = x - 0x32;
-poly->x2 = x;
-poly->x0 = x;
-gGpuPrimCursor = poly + 1;
+imageRight = imageX - 1;
+imageX     = imageX - 0x32;
+playerImageQuad->x2 = imageX;
+playerImageQuad->x0 = imageX;
+gGpuPrimCursor = playerImageQuad + 1;
 asm volatile("" ::: "memory");
 vl = 0x80;
 asm volatile("" : "+r"(vl));
-poly->x3 = right;
-poly->x1 = right;
-fy       = obj->field_E;
-asm volatile("" : "+r"(right));
+playerImageQuad->x3 = imageRight;
+playerImageQuad->x1 = imageRight;
+imageTop       = object->panel.bounds.unsignedRect.y;
+asm volatile("" : "+r"(imageRight));
 ur = 0x31;
 asm volatile("" : "+r"(ur));
 ```
 
-Reuse `x` as the left edge so GCC emits `addiu v1, v0, -1` then
+Reuse `imageX` as the left edge so GCC emits `addiu v1, v0, -1` then
 `addiu v0, v0, -0x32` before either store. `vl = 0x80` after the cursor
 update puts `li v0, 0x80` between `sw gGpuPrimCursor` and the `x3` stores.
-`y0 = fy + 2; fy = fy + 0x40` is `addiu v0, a1, 2` / `addiu a1, a1, 0x40`.
-A block-scope SPRT `y = obj->field_E` right after `p->x0` hoists that
-`lhu` so `gGpuPrimCursor = p + 1` stores before `x0`. `Gp_HpMpBarTask` is the
+`y0 = imageTop + 2; imageTop = imageTop + 0x40` is `addiu v0, a1, 2` / `addiu a1, a1, 0x40`.
+A block-scope SPRT `headingTop = object->panel.bounds.unsignedRect.y` imageRight after `headingSprite->x0` hoists that
+`lhu` so `gGpuPrimCursor = headingSprite + 1` stores before `x0`. `itemMenuPlayerSummaryTask` is the
 example.
 
 ## Keep a later literal `1` dead so `>> 1` stays `sra`, not `srav`
@@ -38418,7 +38418,7 @@ value into a local; whenever it has two, the original repeated the statement.
 When a `u8` struct field is both written somewhere as a byte and read as an
 `int`, GCC 2.8.1 emits one `lbu` and then decides whether the widening `andi`
 gets its own register or clobbers the load register — and that decision is
-driven purely by statement order. `Gp_ItemListTask`'s inlined row counter needs
+driven purely by statement order. `_itemMenuInventoryListTask`'s inlined row counter needs
 
 ```
 lbu   a0, 1(s0)          /* scan->rowCount */

@@ -780,11 +780,33 @@ void itemMenuDrawPlayerStats(const UiPanel* panel, s32 topOffset);
 /// must be ready. unused is ignored by this drawing routine.
 void itemMenuDrawWeaponSummary(const UiObject* object, s32 x, s32 rowY, s32 unused);
 
-void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1);
+/// Draws the menu caption until its command delay expires, then opens the selected panel.
+///
+/// object is the live caption-strip UiObject and task is its owner in state 2;
+/// killCountdown counts dispatcher updates and is decremented before the test.
+/// spawnArg1 uses `itemMenuDrawTaskPrompt`'s borrowed text/P.E. payload contract.
+/// resultValue is a populated descriptor index in 0..49, or 0x100 for Map and
+/// 0x101 to return from Map. Dispatch returns to state 1 even if spawning fails.
+/// Captions use one row for the main menu, two otherwise; the P.E. caption ends
+/// at screen Y 76 instead of 104. Menu resources and the UI tree must stay live.
+void itemMenuDispatchCommand(UiObject* object, Task* task);
 
-void Gp_StatusPanelTask(Task* arg0);
+/// Runs the main menu's six command rows and forwards results from its child panels.
+///
+/// task->spawnArg2 is the live UiObject. State zero opens the player summary
+/// and fits the shared list; later updates reset the result and poll input.
+/// Active Cancel/Menu and child CANCEL leave the menu. Child DISMISS forwards
+/// its command as CONFIRM; child CONFIRM closes that child and restores input.
+/// Requires the shared command list, live child ring and menu drawing resources.
+void itemMenuMainPanelTask(Task* task);
 
-void Gp_HpMpBarTask(Task* arg0);
+/// Draws the player summary's fixed heading, side image, HP/MP, EXP and BP.
+///
+/// task->spawnArg2 is the live UiObject. State zero opens the weapon summary
+/// and seeds displayed HP/MP from the live player; later draws advance upward
+/// under `itemMenuDrawPlayerStats`'s contract. Maximum HP/MP must be positive.
+/// Requires loaded menu textures and writable GPU packet/ordering-table storage.
+void itemMenuPlayerSummaryTask(Task* task);
 
 /// Draws the equipped armour's HP/MP bonuses and attachment-slot overview.
 ///
@@ -815,7 +837,17 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1);
 /// The live carried range must fit its item table; no pointer is retained.
 void itemMenuSetWeaponChoiceRows(UiList* list, s32 consumableItemId);
 
-void Gp_ItemDestCursorTask(Task* arg0);
+/// Runs the carried-item pane and transfers Left input to its equipment panes.
+///
+/// task->spawnArg2 is the live inventory UiObject. State zero spawns weapon
+/// and armour children before initializing the carried list/count strip.
+/// The inventory pane hides while item details are open; when they close it
+/// limits the hidden delay to sixteen ticks plus the opening animation.
+/// Left transfers signed screen-pixel Y to the weapon pane above the armour
+/// pane's top edge, otherwise to armour. Both equipment panes
+/// must have spawned successfully and remain live while focus can transfer.
+/// Requires the live carried range, shared lists and menu drawing resources.
+void itemMenuInventoryPanelTask(Task* task);
 
 void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj);
 
@@ -832,7 +864,7 @@ void itemMenuWeaponPanelTask(Task* task);
 
 void Gp_ArmorMenuTask(Task* arg0);
 
-/// Three-entry dispatcher table: `Gp_ItemMenuInit`, `_itemMenuUpdatePromptTask`, `Gp_UiPromptDispatch`.
+/// Three-entry dispatcher table: `Gp_ItemMenuInit`, `_itemMenuUpdatePromptTask`, `itemMenuDispatchCommand`.
 extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
 
 extern char Gp_StrUsedDot[];

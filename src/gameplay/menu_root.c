@@ -334,12 +334,12 @@ UiObjectDesc D_8010EA98 = { 0, { 0, 0, 48, 32 }, 4, 0, TASK_BODY_NONE, 192, item
 /// Indexed by menu command ID; empty rows reserve unused commands.
 UiObjectDesc D_8010EAB4[50] = {
     { 3, { -144, 64, 288, 40 }, 768, 0, TASK_BODY_NONE, 192, Gp_ItemMenuTask, 0 },
-    { 3, { -144, -104, 72, 64 }, 28, 0, TASK_BODY_NONE, 192, Gp_StatusPanelTask, 0 },
+    { 3, { -144, -104, 72, 64 }, 28, 0, TASK_BODY_NONE, 192, itemMenuMainPanelTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 3, { -72, -104, 216, 65 }, 40, 0, TASK_BODY_NONE, 192, Gp_HpMpBarTask, 0 },
+    { 3, { -72, -104, 216, 65 }, 40, 0, TASK_BODY_NONE, 192, itemMenuPlayerSummaryTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -39, 144, 72 }, 36, 0, TASK_BODY_NONE, 192, Gp_WeaponSummaryTask, 0 },
     { 0, { 0, 0, 144, 20 }, 48, 0, TASK_BODY_NONE, 192, itemMenuInventoryCountTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -104, 144, 165 }, 40, 0, TASK_BODY_NONE, 192, Gp_ItemDestCursorTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -104, 144, 165 }, 40, 0, TASK_BODY_NONE, 192, itemMenuInventoryPanelTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0x80000 | USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 144, 120 }, 40, 0, TASK_BODY_NONE, 192, Gp_KeyItemMenuTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
@@ -689,7 +689,7 @@ static void _itemMenuUpdatePromptTask(UiObject* object, Task* task)
 #undef ITEM_MENU_DRAW_PROMPT_PAYLOAD
 
 /// Three-entry dispatcher table indexed by `Task::state` (`Gp_ItemMenuTask`).
-const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { Gp_ItemMenuInit, _itemMenuUpdatePromptTask, Gp_UiPromptDispatch } };
+const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { Gp_ItemMenuInit, _itemMenuUpdatePromptTask, itemMenuDispatchCommand } };
 
 /// CLUT ids for the ten item-category icons drawn by `itemMenuDrawItemIcon`,
 /// indexed by the icon index that function derives from the item id.

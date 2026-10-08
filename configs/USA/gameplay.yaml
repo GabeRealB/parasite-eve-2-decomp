@@ -143,7 +143,7 @@ segments:
       - [0x28D0C, c, item_move_check] # itemMenuCanMoveAllItems
       - [0x28E34, c, item_menu] # Gp_ItemMoveChild
       - [0x2C1FC, c, menu_root] # Gp_MenuRootTask
-      - [0x2CAA0, c, menu_prompt] # Gp_UiPromptDispatch
+      - [0x2CAA0, c, menu_prompt] # itemMenuDispatchCommand
       - [0x31B28, c, menu_armor] # Gp_DrawRemoveArmorRow
       - [0x32770, c, item_stats] # itemMenuInfoTask
       - [0x345A8, c, weapon_stats] # itemMenuDrawEquipmentStats
