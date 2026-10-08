@@ -7050,7 +7050,7 @@ menu = (UiList*)(hi + (s16)0xE9CC);
 if (state == 0) {
 ```
 
-`Gp_AttachListTask` is the example.
+`itemMenuConsumableChoiceListTask` is the example.
 
 ## Split `la` of a later-reused table so `%hi` lands in `$v1` and `%lo` in `$a1`
 
@@ -35233,7 +35233,7 @@ addiu  s1, s0, %lo(...)
 ```
 
 Keep the `%lo` addiu as asm so it retains its reloc. `0x8007` is
-`%hi(gMcSaveData+0x5BC)` (`gMcSaveData` is `0x80072168`). `Gp_SelectArmorMenuTask`
+`%hi(gMcSaveData+0x5BC)` (`gMcSaveData` is `0x80072168`). `itemMenuArmorSelectionTask`
 is the example.
 
 ## A typed scratch reservation stores `head - N` through `$v1` and reaches some members through the old cursor
@@ -35477,7 +35477,7 @@ Emit the pair (non-volatile, so the scheduler can place them):
 }
 ```
 
-Same split-`la` style as `Gp_SpawnPlaceById` / `Gp_AttachListTask`. `Gp_PollAreaCdLoads`
+Same split-`la` style as `Gp_SpawnPlaceById` / `itemMenuConsumableChoiceListTask`. `Gp_PollAreaCdLoads`
 is the example.
 
 ## Separate vertex-base locals so each `gte_ldv3` can overwrite `$a0`
@@ -36976,6 +36976,7 @@ C still emits as a real reloc (the D4 `gCdCmdQueue` `lhu` is only the
 `%lo`).
 
 `loadingEnqueueStageResourcesTask` / `Gp_AttachListTask` / `Gp_SelectArmorMenuTask` / `itemMenuCanMoveAllItems`
+`Gp_LoadWaitStage` / `itemMenuConsumableChoiceListTask` / `itemMenuArmorSelectionTask` / `itemMenuCanMoveAllItems`
 are the examples.
 
 The entry is state that belongs to the faked address, so it has to come out
@@ -68464,7 +68465,7 @@ that expand emits for a symbol address carries `REG_EQUIV (symbol_ref …)`, and
 
 deliberately deprioritising a register the reloader could rematerialise. global
 then ranks with `floor_log2 (n_refs) * n_refs / live_length * 10000`, so in
-`Gp_AttachListTask` the address pseudo fell from 12631 (8 refs, span 19) to 6315
+`itemMenuConsumableChoiceListTask` the address pseudo fell from 12631 (8 refs, span 19) to 6315
 (span 38) and lost `$s0` to the `UiObject*` at 7843. The faked `lui` had hidden
 this because `reg = hi + (s16)0xE9CC` is a `plus`, not a constant, so it got no
 REG_EQUIV and no doubling.
@@ -142334,7 +142335,7 @@ scratch head did not: compiled out of line, cse keeps `0x1F8003FC` in a register
 each use. So the standalone copies keep their own bodies, and a helper that has
 to reproduce both forms needs one written body for each.
 
-## A byte field re-read after a range test without `volatile`: the test is an inline predicate taking `u8` (Gp_SelectArmorMenuTask, 2026-09-26)
+## A byte field re-read after a range test without `volatile`: the test is an inline predicate taking `u8` (itemMenuArmorSelectionTask, 2026-09-26)
 
 The target tests `rec->itemId` and then loads it again for the next compare:
 
@@ -149780,7 +149781,7 @@ attempts; left as it was.
   `return 0x110;` has the image's shape at two insns less: the s-registers
   are dealt differently (`val` takes `menu`'s, `flags` takes `cfg`'s) and
   one save disappears. The two siblings without the 0x12/0x10 choice
-  (`Gp_SelectAmmoMenuTask`, `Gp_SelectArmorMenuTask`) are plain `if (item ==
+  (`itemMenuAmmoSelectionTask`, `itemMenuArmorSelectionTask`) are plain `if (item ==
   0) flags = 0x112; else { ... }`.
 - **`w1 = work;` copies and one index local per loop were inlines taking the
   task.** `_actor01900UpdateAnimation` ran four slot loops over `w1`/`w2`/`w3` with

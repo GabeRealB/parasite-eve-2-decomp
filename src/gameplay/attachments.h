@@ -149,10 +149,6 @@ extern UiObjectDesc D_8010F868;
 
 extern UiObjectDesc D_8010F898;
 
-void Gp_AttachListTask(Task* arg0);
-
-void Gp_SelectAmmoMenuTask(Task* arg0);
-
 /// Draws an unequipped carried armor choice and opens equip or information panels.
 ///
 /// currentItemIndex is zero-based in the carried armor list, excluding equipped
@@ -163,8 +159,6 @@ void Gp_SelectAmmoMenuTask(Task* arg0);
 /// even if allocation fails. Borrows the live list/object and carried save;
 /// requires the range to fit its table and menu/text textures and GPU storage.
 void itemMenuDrawArmorChoiceRow(UiList* list, UiObject* object);
-
-void Gp_SelectArmorMenuTask(Task* arg0);
 
 /// Draws Load and opens a weapon-slot or compatible-weapon choice on active Confirm.
 ///

@@ -37,6 +37,25 @@ enum {
 /// Opening delay for equipment command and confirmation panels, in callback ticks.
 enum { ITEM_MENU_COMMAND_OPEN_DELAY_TICKS = 1 };
 
+/// Consumable choice phases shared by the compact list and ammunition selector.
+enum {
+    ITEM_MENU_CONSUMABLE_CHOICE_INITIAL   = 0,
+    ITEM_MENU_CONSUMABLE_CHOICE_SELECTING = 1,
+    ITEM_MENU_CONSUMABLE_CHOICE_NO_AMMO   = 2,
+    ITEM_MENU_CONSUMABLE_CHOICE_EQUIPPED  = 3
+};
+
+/// Selection-panel layout, detail-panel dispatch and suspended input mode.
+enum {
+    ITEM_MENU_SELECTION_STATS_HEIGHT_PIXELS     = 76,
+    ITEM_MENU_SELECTION_SEPARATOR_Y_PIXELS      = 74,
+    ITEM_MENU_SELECTION_DETAIL_PANEL            = 14,
+    ITEM_MENU_SELECTION_DETAIL_OPEN_DELAY_TICKS = 16,
+    ITEM_MENU_SELECTION_SUSPENDED_CONTROL_SHIFT = 16,
+    ITEM_MENU_DETAIL_CONSUMABLE                 = 1,
+    ITEM_MENU_DETAIL_ARMOR                      = 2
+};
+
 /// Returns 1 for armor catalogue ids 0x60..0x7F, otherwise 0.
 static inline s32 _itemIsArmorItem(u8 itemId)
 {
@@ -275,191 +294,175 @@ UiObjectDesc      D_8010F8B4          = { USER_INTERFACE_PANEL_TITLE_STYLE, { -1
 
 const u8 Gp_StrWrongAmmo2[] = "You do not have the correct ammo.";
 
-void Gp_AttachListTask(Task* task)
+void itemMenuConsumableChoiceListTask(Task* choiceTask)
 {
-    UiList*              menu;
-    UiObject*            obj;
-    s32                  val;
-    s32                  one;
-    s32                  state;
-    EquipmentWeaponLoad* slot;
-    u8                   temp;
-    Task*                child;
-    Task*                next;
-    Task*                head;
-    UiObject*            childObj;
-    s32                  flag;
+    enum {
+        ITEM_MENU_CONSUMABLE_CHOICE_BOTTOM_PIXELS = 70,
+        ITEM_MENU_TONFA_BATON_ITEM                = 0x92,
+        ITEM_MENU_HYPERVELOCITY_ITEM              = 0x95,
+        ITEM_MENU_GUNBLADE_ITEM                   = 0x96,
+        ITEM_MENU_M4A1_BAYONET_ITEM               = 0x99
+    };
+    UiList*                    list;
+    UiObject*                  object;
+    s32                        weaponItemId;
+    s32                        selectingState;
+    s32                        currentState;
+    const EquipmentWeaponLoad* weaponLoad;
+    u8                         secondaryItemId;
 
-    obj         = task->spawnArg2.pointer;
-    val         = (u16)task->spawnArg1.value;
-    menu        = &D_8010E9CC;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    state       = task->state;
-    if (state == 0) {
-        itemMenuBuildConsumableChoiceList(menu, val);
-        uiFitPanelToList(menu, &(obj)->panel);
-        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        menu->selectedItemIndex                   = 0;
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        task->state                               = task->state + 1;
-        if (menu->itemCount == 0) {
-            task->state         = 2;
-            task->killCountdown = 0xBC;
-            obj->panel.style   |= USER_INTERFACE_PANEL_TITLE_STYLE;
-            if (task->spawnArg1.value & 0x10000) {
-                if (val != 0) {
-                    slot = equipmentGetWeaponLoad(val);
-                    if ((val == 0x92) || (val == 0x99) || (val == 0x96)) {
-                        task->state = 3;
-                    } else if (val == 0x95) {
-                        if (slot->primaryQty != 0) {
-                            task->state = 3;
+    object         = choiceTask->spawnArg2.pointer;
+    weaponItemId   = (u16)choiceTask->spawnArg1.value;
+    list           = &D_8010E9CC;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    currentState   = choiceTask->state;
+    // Build once; an empty list becomes a timed notice rather than an input list.
+    if (currentState == ITEM_MENU_CONSUMABLE_CHOICE_INITIAL) {
+        itemMenuBuildConsumableChoiceList(list, weaponItemId);
+        uiFitPanelToList(list, &object->panel);
+        list->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        list->selectedItemIndex                   = 0;
+        list->firstVisibleItemIndex.unsignedValue = 0;
+        choiceTask->state                         = choiceTask->state + 1;
+        if (list->itemCount == 0) {
+            choiceTask->state         = ITEM_MENU_CONSUMABLE_CHOICE_NO_AMMO;
+            choiceTask->killCountdown = ITEM_MENU_NOTICE_TIMEOUT_TICKS;
+            object->panel.style      |= USER_INTERFACE_PANEL_TITLE_STYLE;
+            // A just-equipped weapon can still work without a carried load choice.
+            if (choiceTask->spawnArg1.value & ITEM_MENU_LOAD_AFTER_EQUIP) {
+                if (weaponItemId != INVENTORY_ITEM_NONE) {
+                    weaponLoad = equipmentGetWeaponLoad(weaponItemId);
+                    if ((weaponItemId == ITEM_MENU_TONFA_BATON_ITEM) || (weaponItemId == ITEM_MENU_M4A1_BAYONET_ITEM) || (weaponItemId == ITEM_MENU_GUNBLADE_ITEM)) {
+                        choiceTask->state = ITEM_MENU_CONSUMABLE_CHOICE_EQUIPPED;
+                    } else if (weaponItemId == ITEM_MENU_HYPERVELOCITY_ITEM) {
+                        if (weaponLoad->primaryQty != 0) {
+                            choiceTask->state = ITEM_MENU_CONSUMABLE_CHOICE_EQUIPPED;
                         }
                     } else {
-                        temp = slot->secondaryItemId;
-                        if ((temp != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) && (temp != INVENTORY_ITEM_NONE)) {
-                            if (slot->secondaryQty != 0) {
-                                task->state = 3;
+                        secondaryItemId = weaponLoad->secondaryItemId;
+                        if ((secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) && (secondaryItemId != INVENTORY_ITEM_NONE)) {
+                            if (weaponLoad->secondaryQty != 0) {
+                                choiceTask->state = ITEM_MENU_CONSUMABLE_CHOICE_EQUIPPED;
                             }
                         }
                     }
                 }
             }
-            uiSizePanelForTextDefault(&(obj)->panel, Gp_StrWrongAmmo2);
-            if (task->state != 2) {
-                itemMenuSizeEquippedNotice(&(obj)->panel, val);
+            uiSizePanelForTextDefault(&object->panel, Gp_StrWrongAmmo2);
+            if (choiceTask->state != ITEM_MENU_CONSUMABLE_CHOICE_NO_AMMO) {
+                itemMenuSizeEquippedNotice(&object->panel, weaponItemId);
             }
-            obj->panel.animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
+            object->panel.animationTicks = USER_INTERFACE_PANEL_ANIMATION_TICKS;
             return;
         }
-        if ((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h < 0x47) {
+        if (object->panel.bounds.rect.y + object->panel.bounds.rect.h < ITEM_MENU_CONSUMABLE_CHOICE_BOTTOM_PIXELS + 1) {
             return;
         }
-        obj->panel.bounds.unsignedRect.y = 0x46 - obj->panel.bounds.unsignedRect.h;
+        object->panel.bounds.unsignedRect.y = ITEM_MENU_CONSUMABLE_CHOICE_BOTTOM_PIXELS - object->panel.bounds.unsignedRect.h;
         return;
     }
-    one = 1;
-    if (state == one) {
-        uiUpdateList(menu, &obj->panel);
-        if (obj->panel.control.word == one) {
-            if (padCheckButtons(0, one, Pad_MaskMenu) != 0) {
-                obj->result = USER_INTERFACE_RESULT_CANCEL;
+    // These selectors share 1: selecting phase, active input, pressed query and outline.
+    selectingState = ITEM_MENU_CONSUMABLE_CHOICE_SELECTING;
+    if (currentState == selectingState) {
+        uiUpdateList(list, &object->panel);
+        if (object->panel.control.word == selectingState) {
+            if (padCheckButtons(0, selectingState, Pad_MaskMenu) != 0) {
+                object->result = USER_INTERFACE_RESULT_CANCEL;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                 sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-                obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                object->result = USER_INTERFACE_RESULT_CONFIRM;
             }
         }
-        child = task->firstChild;
-        if (child != NULL) {
-            do {
-                childObj = child->spawnArg2.pointer;
-                flag     = childObj->result;
-                next     = child->nextSibling;
-                switch (flag) {
-                    case USER_INTERFACE_RESULT_DISMISS:
-                        obj->result = flag;
-                        break;
-                    case USER_INTERFACE_RESULT_CANCEL:
-                        obj->result = flag;
-                        break;
-                    case USER_INTERFACE_RESULT_CONFIRM:
-                        uiStartTreeClosing(childObj, childObj->owner);
-                        obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-                        break;
-                }
-                head  = task->firstChild;
-                child = next;
-                if (child == head) {
-                    break;
-                }
-                if (head == NULL) {
-                    break;
-                }
-            } while (1);
-        }
+        _itemMenuApplyChildDialogResults(object, choiceTask);
         return;
     }
-    if (state == 2) {
-        s32 drawMode = one;
+    if (currentState == ITEM_MENU_CONSUMABLE_CHOICE_NO_AMMO) {
+        s32 drawMode = selectingState;
 
-        uiDrawPanelLabel(&(obj)->panel, Gp_StrNotice);
-        textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, Gp_StrWrongAmmo2, 0x606060, drawMode, TEXT_ALIGNMENT_LEFT);
+        uiDrawPanelLabel(&object->panel, Gp_StrNotice);
+        textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, Gp_StrWrongAmmo2, ITEM_MENU_NOTICE_TEXT_COLOR_RGB, drawMode, TEXT_ALIGNMENT_LEFT);
     } else {
-        uiDrawPanelLabel(&(obj)->panel, Gp_StrEquip);
-        itemMenuDrawEquippedNotice(obj, val);
+        uiDrawPanelLabel(&object->panel, Gp_StrEquip);
+        itemMenuDrawEquippedNotice(object, weaponItemId);
     }
-    task->killCountdown--;
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    // Count inactive updates too, but accept expiry or input only while active.
+    choiceTask->killCountdown--;
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
             return;
         }
-        if ((task->killCountdown == 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
-            if ((task->spawnArg1.value & 0x10000) && (task->state == 2)) {
-                obj->result = USER_INTERFACE_RESULT_CONFIRM;
+        if ((choiceTask->killCountdown == 0) || (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
+            if ((choiceTask->spawnArg1.value & ITEM_MENU_LOAD_AFTER_EQUIP) && (choiceTask->state == ITEM_MENU_CONSUMABLE_CHOICE_NO_AMMO)) {
+                object->result = USER_INTERFACE_RESULT_CONFIRM;
             } else {
-                obj->result = USER_INTERFACE_RESULT_DISMISS;
+                object->result = USER_INTERFACE_RESULT_DISMISS;
             }
-            task->killCountdown = 0x7FFF;
+            choiceTask->killCountdown = ITEM_MENU_NOTICE_DISMISSED_TICKS;
         }
     }
 }
 
-void Gp_SelectAmmoMenuTask(Task* arg0)
+void itemMenuAmmoSelectionTask(Task* task)
 {
-    UiList*   menu;
-    UiObject* obj;
-    s32       savedState;
-    s32       state;
-    s32       val;
-    s32       flags;
-    Task*     parent;
+    UiList*   list;
+    UiObject* object;
+    s32       previousState;
+    s32       currentState;
+    s32       consumableItemId;
+    s32       previewFlags;
+    Task*     parentTask;
 
-    menu       = &D_8010E9CC;
-    obj        = arg0->spawnArg2.pointer;
-    savedState = arg0->state;
-    Gp_AttachListTask(arg0);
-    if (obj->result == USER_INTERFACE_RESULT_DISMISS) {
-        obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    list          = &D_8010E9CC;
+    object        = task->spawnArg2.pointer;
+    previousState = task->state;
+    itemMenuConsumableChoiceListTask(task);
+    if (object->result == USER_INTERFACE_RESULT_DISMISS) {
+        object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
-    state = arg0->state;
-    if (state == 1) {
-        uiDrawPanelLabel(&(obj)->panel, Gp_StrSelectAmmo);
-        if (savedState == 0) {
-            menu->topInset                   += 0x4C;
-            obj->panel.bounds.unsignedRect.h += 0x4C;
-            parent                            = arg0->parent;
-            D_80114DD8                        = -1;
-            uiStartPanelHiding(parent->spawnArg2.pointer, parent);
-            uiSpawnObject(&D_8010EAB4[14], 1, 0, 0x10, obj);
+    currentState = task->state;
+    if (currentState == ITEM_MENU_CONSUMABLE_CHOICE_SELECTING) {
+        uiDrawPanelLabel(&object->panel, Gp_StrSelectAmmo);
+        // The base controller has finished sizing and positioning this list.
+        if (previousState == ITEM_MENU_CONSUMABLE_CHOICE_INITIAL) {
+            list->topInset                      += ITEM_MENU_SELECTION_STATS_HEIGHT_PIXELS;
+            object->panel.bounds.unsignedRect.h += ITEM_MENU_SELECTION_STATS_HEIGHT_PIXELS;
+            parentTask                           = task->parent;
+            D_80114DD8                           = -1;
+            uiStartPanelHiding(parentTask->spawnArg2.pointer, parentTask);
+            uiSpawnObject(&D_8010EAB4[ITEM_MENU_SELECTION_DETAIL_PANEL], ITEM_MENU_DETAIL_CONSUMABLE, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_SELECTION_DETAIL_OPEN_DELAY_TICKS, object);
         }
-        uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
-        val = Gp_AttachListIds[menu->selectedItemIndex];
-        if (val != 0) {
-            itemMenuDrawEquipmentStats(obj, val, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
+        uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + ITEM_MENU_SELECTION_SEPARATOR_Y_PIXELS);
+        consumableItemId = Gp_AttachListIds[list->selectedItemIndex];
+        if (consumableItemId != INVENTORY_ITEM_NONE) {
+            itemMenuDrawEquipmentStats(object, consumableItemId, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
         }
-        flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
-        if (val == 0) {
-            flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
+        previewFlags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
+        if (consumableItemId == INVENTORY_ITEM_NONE) {
+            previewFlags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
         } else {
-            if (((obj->panel.control.word >> 16) == state) || (obj->panel.control.word == state)) {
-                GP_SET_PREVIEW_ITEM(val, 2);
+            if (((object->panel.control.word >> ITEM_MENU_SELECTION_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
+                GP_SET_PREVIEW_ITEM(consumableItemId, CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW);
             }
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
-                flags |= ITEM_MENU_PREVIEW_HIDDEN;
+            if (cdCmdIsIdle() == 0) {
+                previewFlags |= ITEM_MENU_PREVIEW_HIDDEN;
             }
         }
-        itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
+        itemMenuDrawPreview(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 2, previewFlags);
     }
 }
 
-/// Draws a visible armor choice's name, equipment status and item icon.
+/// Draws an armor-choice row's outlined name, E/L/A status and normal item icon.
 ///
-/// x/y are signed panel-relative row pixels. Origin-Y subtraction is promoted
-/// to s32 before adding y. The retained P.E. level path handles ordinary ability
-/// item ids; the armor-choice scan itself returns only armor or an empty id.
-/// attachmentState follows `itemMenuDrawEquipmentMarker`; object is borrowed
-/// for this draw, with menu/text textures and writable GPU storage required.
+/// Borrows object for this draw. x/y are signed pixels at the icon's bottom-left
+/// relative to its content origin; the name begins at x + 17, y - 6. Origin-Y
+/// subtraction promotes to s32 before y is added, and text coordinates narrow
+/// to s16. Hidden panels draw nothing. itemId must satisfy `itemGetText` and
+/// `itemMenuDrawItemIcon`; the sole caller supplies unequipped armor or item 0.
+/// Ordinary P.E. ids 15..50 retain their level 1..3 path. attachmentState follows
+/// `itemMenuDrawEquipmentMarker` (only 2 enables A; E/L is always tested).
+/// colorRgb supplies packed 24-bit RGB. Requires loaded menu/font textures and
+/// writable primitive/OT storage, including panel otIndex + 1 and + 2 for text.
 static inline void _itemMenuDrawArmorChoiceContents(const UiObject* object, s32 x, s32 y, s32 itemId, s32 colorRgb, s32 attachmentState)
 {
     enum {
@@ -533,70 +536,76 @@ void itemMenuDrawArmorChoiceRow(UiList* list, UiObject* object)
     }
 }
 
-void Gp_SelectArmorMenuTask(Task* arg0)
+void itemMenuArmorSelectionTask(Task* task)
 {
-    UiList*   menu;
-    UiObject* obj;
-    Task*     parent;
-    s32       count;
-    s32       found;
-    s32       item;
-    s32       flags;
+    enum {
+        ITEM_MENU_ARMOR_SELECTION_INITIAL      = 0,
+        ITEM_MENU_ARMOR_SELECTION_VISIBLE_ROWS = 4
+    };
+    UiList*   list;
+    UiObject* object;
+    Task*     parentTask;
+    s32       armorRowCount;
+    s32       foundArmorItemId;
+    s32       armorItemId;
+    s32       previewFlags;
 
-    menu        = &D_8010E9F4;
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, Gp_StrSelectArmor);
+    list           = &D_8010E9F4;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&object->panel, Gp_StrSelectArmor);
 
-    if (arg0->state == 0) {
-        GP_COUNT_SPARE_ARMOR(count);
-        menu->itemCount                     = count;
-        menu->visibleRowCount.unsignedValue = 4;
-        uiFitPanelToList(menu, &(obj)->panel);
-        menu->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        menu->topInset                           += 0x4C;
-        obj->panel.bounds.unsignedRect.h         += 0x4C;
-        menu->selectedItemIndex                   = 0;
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        parent                                    = arg0->parent;
-        uiStartPanelHiding(parent->spawnArg2.pointer, parent);
-        uiSpawnObject(&D_8010EAB4[14], 2, 0, 0x10, obj);
-        arg0->state++;
+    // Reserve the comparison area before rows and hide the previous command panel.
+    if (task->state == ITEM_MENU_ARMOR_SELECTION_INITIAL) {
+        GP_COUNT_SPARE_ARMOR(armorRowCount);
+        list->itemCount                     = armorRowCount;
+        list->visibleRowCount.unsignedValue = ITEM_MENU_ARMOR_SELECTION_VISIBLE_ROWS;
+        uiFitPanelToList(list, &object->panel);
+        list->flags                               = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        list->topInset                           += ITEM_MENU_SELECTION_STATS_HEIGHT_PIXELS;
+        object->panel.bounds.unsignedRect.h      += ITEM_MENU_SELECTION_STATS_HEIGHT_PIXELS;
+        list->selectedItemIndex                   = 0;
+        list->firstVisibleItemIndex.unsignedValue = 0;
+        parentTask                                = task->parent;
+        uiStartPanelHiding(parentTask->spawnArg2.pointer, parentTask);
+        uiSpawnObject(&D_8010EAB4[ITEM_MENU_SELECTION_DETAIL_PANEL], ITEM_MENU_DETAIL_ARMOR, USER_INTERFACE_PANEL_INACTIVE, ITEM_MENU_SELECTION_DETAIL_OPEN_DELAY_TICKS, object);
+        task->state++;
     }
 
-    uiDrawHorizontalSeparator(&(obj)->panel, obj->panel.contentLeft.signedValue, obj->panel.contentRight.signedValue, obj->panel.contentTop.signedValue + 0x4A);
-    uiUpdateList(menu, &obj->panel);
+    uiDrawHorizontalSeparator(&object->panel, object->panel.contentLeft.signedValue, object->panel.contentRight.signedValue, object->panel.contentTop.signedValue + ITEM_MENU_SELECTION_SEPARATOR_Y_PIXELS);
+    uiUpdateList(list, &object->panel);
 
-    GP_FIND_SPARE_ARMOR(found, menu->selectedItemIndex);
-    item = found;
-    itemMenuDrawEquipmentStats(obj, item, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
+    GP_FIND_SPARE_ARMOR(foundArmorItemId, list->selectedItemIndex);
+    armorItemId = foundArmorItemId;
+    itemMenuDrawEquipmentStats(object, armorItemId, ITEM_MENU_EQUIPMENT_STATS_COMPARE, 0);
 
-    flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
-    if (item == 0) {
-        flags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
+    previewFlags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT;
+    if (armorItemId == INVENTORY_ITEM_NONE) {
+        previewFlags = ITEM_MENU_PREVIEW_TEXTURE_RELOCATED | ITEM_MENU_PREVIEW_SCALE_EQUIPMENT | ITEM_MENU_PREVIEW_HIDDEN;
     } else {
-        if (((obj->panel.control.word >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
-            GP_SET_PREVIEW_ITEM(item, 2);
+        if (((object->panel.control.word >> ITEM_MENU_SELECTION_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE)) {
+            GP_SET_PREVIEW_ITEM(armorItemId, CD_COMMAND_DISPLAY_LOAD_RELOCATED_PREVIEW);
         }
         if (cdCmdIsIdle() == 0) {
-            flags |= ITEM_MENU_PREVIEW_HIDDEN;
+            previewFlags |= ITEM_MENU_PREVIEW_HIDDEN;
         }
     }
-    itemMenuDrawPreview(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 2, flags);
+    itemMenuDrawPreview(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 2, previewFlags);
 
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
+            object->result = USER_INTERFACE_RESULT_CANCEL;
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-            obj->result = USER_INTERFACE_RESULT_DISMISS;
+            object->result = USER_INTERFACE_RESULT_DISMISS;
         }
     }
 
-    _itemMenuApplyChildDialogResults(obj, arg0);
+    // Closing accepted children restores focus; dismissal exits this picker.
+    _itemMenuApplyChildDialogResults(object, task);
 
-    if (obj->result == USER_INTERFACE_RESULT_DISMISS) {
-        obj->result = USER_INTERFACE_RESULT_CONFIRM;
+    if (object->result == USER_INTERFACE_RESULT_DISMISS) {
+        object->result = USER_INTERFACE_RESULT_CONFIRM;
     }
 }
 
@@ -787,10 +796,14 @@ void itemMenuEquipNoticeTask(Task* task)
     _itemMenuUpdateNoticeResult(obj, task);
 }
 
-/// Draws an equipment command label at the current list row's pixel position.
+/// Draws a medium-font outlined equipment command at the current list row.
 ///
-/// Coordinates retain the unsigned halfword views used by command lists.
-/// The encoded label is borrowed for this draw; panel visibility does not gate it.
+/// Borrows list, object and encoded label for this draw. Adds unsigned halfword
+/// row coordinates to the panel's unsigned content origin in pixel units, then
+/// narrows the text position to s16. Uses the row's packed RGB and left alignment.
+/// Hidden panels still draw. label must satisfy `textDrawString`'s text contract;
+/// font textures and palettes must be loaded, with writable primitive storage
+/// and both panel otIndex + 1 and + 2 available for the fill and outline.
 static inline void _itemMenuDrawEquipmentCommandLabel(const UiList* list, const UiObject* object, const u8* label)
 {
     TextDrawReq labelRequest;

@@ -1213,4 +1213,52 @@ void itemMenuDrawConsumableChoiceRow(UiList* list, UiObject* object);
 /// remain intact and no pointer is retained.
 void itemMenuBuildConsumableChoiceList(UiList* list, s32 weaponItemId);
 
+/// First spawn payload flag for a consumable choice opened after weapon equip.
+///
+/// The low halfword remains the weapon item id. With an empty list, this flag
+/// permits an Equipped notice for melee capability or a nonempty weapon load;
+/// an unavailable-ammunition notice returns CONFIRM instead of DISMISS.
+enum { ITEM_MENU_LOAD_AFTER_EQUIP = 0x10000 };
+
+/// Controls a weapon's loadable-consumable list or its empty-list notice.
+///
+/// spawnArg1's low halfword must be weapon id 0x80..0x9F, optionally combined
+/// with `ITEM_MENU_LOAD_AFTER_EQUIP`. spawnArg2 borrows the task-owned UiObject.
+/// Uses the singleton consumable list, `Gp_AttachListIds` and reload mode 0..2;
+/// the live carried range must satisfy `itemMenuBuildConsumableChoiceList`.
+/// Initialization sizes the list and limits its bottom to 70 centered pixels.
+/// A nonempty list accepts input on later callbacks. An empty list shows a
+/// 188-callback-tick notice, counting even while inactive; expiry is exactly
+/// zero. Menu returns CANCEL. List Cancel returns CONFIRM; notice dismissal
+/// returns DISMISS except the flagged unavailable-ammunition case. Child
+/// DISMISS/CANCEL propagate; CONFIRM closes the child before reactivating input.
+/// Object, parent/children and menu resources must remain live, with writable
+/// GPU/OT storage. No inventory quantity or equipment selection changes here.
+void itemMenuConsumableChoiceListTask(Task* choiceTask);
+
+/// Adds comparison statistics and a relocated preview to the consumable picker.
+///
+/// Uses `itemMenuConsumableChoiceListTask`'s payload, ownership and range contract.
+/// On entering its nonempty list, adds 76 pixels above the rows, hides the
+/// parent and opens the equipped-consumable detail panel after sixteen ticks.
+/// List input precedes selected-item statistics and preview; the selected index
+/// must fit the built choice list. Id 0 (Remove Ammo) omits stats and hides the
+/// picture. Active or suspended-active control requests profile 2; a busy CD
+/// queue also hides the picture. Maps DISMISS to CONFIRM for the parent dialog.
+void itemMenuAmmoSelectionTask(Task* task);
+
+/// Controls the carried-armor picker with comparison statistics and preview.
+///
+/// spawnArg2 borrows the task-owned UiObject; the live carried range must fit
+/// its readable table. Keeps carried row order and duplicate ids, excluding
+/// every row of the equipped armor id. Initializes four visible rows, hides
+/// the parent and opens its equipped-armor detail panel after sixteen ticks.
+/// List input precedes lookup, statistics and the relocated preview. A missing
+/// selection becomes item 0 and hides the picture; a busy CD queue hides it too.
+/// Active or suspended-active control requests profile 2. Menu returns CANCEL;
+/// Cancel and child DISMISS become CONFIRM. Accepted children close before
+/// input reactivation. Requires live parent/children, menu resources and writable
+/// GPU/OT storage. This task itself changes no equipment or inventory quantities.
+void itemMenuArmorSelectionTask(Task* task);
+
 #endif // GAMEPLAY_PRIVATE_ITEM_MENU_H

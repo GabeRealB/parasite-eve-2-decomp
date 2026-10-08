@@ -48,7 +48,6 @@ enum {
     ITEM_MENU_RELOAD_WEAPON_SHIFT               = 8,
     ITEM_MENU_RELOAD_NOTICE_PANEL               = 39,
     ITEM_MENU_LOAD_SLOT_CHOICE_PANEL            = 40,
-    ITEM_MENU_LOAD_AFTER_EQUIP                  = 0x10000,
     ITEM_MENU_EQUIPMENT_INFO_PANEL              = 45,
     ITEM_MENU_WEAPON_CHOICE_INITIAL             = 0,
     ITEM_MENU_WEAPON_CHOICE_ACTIVE              = 1,
