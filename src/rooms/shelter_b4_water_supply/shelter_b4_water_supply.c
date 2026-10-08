@@ -769,22 +769,27 @@ static const TaskFuncTable3 D_shelter_b4_water_supply_8017D5D8 = {
     },
 };
 
-/// Starts the upper-sewer departure's 30-tick fade after committing battle escape.
+/// Pauses scene actors and starts the upper-sewer departure's fade to black.
 ///
-/// Borrows the room-owned fade storage through the spawned task's lifetime and
-/// initializes this departure task's signed-halfword countdown to the same duration.
-static inline void _shelterB4WaterSupplyStartUpperSewerFade(Task* task)
+/// Requests battle-escape results when the current battle permits them, then
+/// starts a 30-update subtractive ramp and sets `departureTask->killCountdown`
+/// to the same duration. The caller advances the departure state separately.
+/// The live departure task and room-owned fade storage must remain writable;
+/// the fade holds black until teardown and borrows the storage for its lifetime.
+/// Spawn failure still leaves actors paused and the countdown initialized.
+static inline void _shelterB4WaterSupplyStartUpperSewerFade(Task* departureTask)
 {
     enum { FADE_FRAMES    = 30,
            FADE_TASK_BANK = 1,
-           FADE_TASK_SLOT = 0x31 };
+           FADE_TASK_SLOT = 0x31,
+           FADE_OT_AUTO   = 0 };
     gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
     sceneQueueBattleEscapeResult();
     D_shelter_b4_water_supply_80184E34.fade.blend      = SCREEN_FADE_SUBTRACT;
     D_shelter_b4_water_supply_80184E34.fade.phase      = SCREEN_FADE_RUNNING;
     D_shelter_b4_water_supply_80184E34.fade.rampFrames = FADE_FRAMES;
-    taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, 0, &D_shelter_b4_water_supply_80184E34.fade);
-    task->killCountdown = FADE_FRAMES;
+    taskSpawn(FADE_TASK_BANK, FADE_TASK_SLOT, FADE_OT_AUTO, &D_shelter_b4_water_supply_80184E34.fade);
+    departureTask->killCountdown = FADE_FRAMES;
 }
 
 /// Runs the upper-sewer CAP choice, fade, transit sound and saved-location reload.
@@ -1337,48 +1342,62 @@ static void _shelterB4WaterSupplyDrawWater(Task* task)
     _shelterB4WaterSupplyDrawXWaveStrips(task);
 }
 
-/// Emits a tracked player's ripple/spray pair and records its signed-halfword position.
+/// Samples a player part's movement to attempt a ripple and an upward spray.
 ///
-/// Borrows live effect work, a player part and history index 0..1. Composes the
-/// part, narrows movement odds to s16, then consumes two LCG draws in ripple/spray
-/// order. Each spawn snapshots placement at the session's water Y; the ripple
-/// and spray callbacks never read its retained source-coordinate pointer.
-/// Only this room controller calls it.
-static inline void _shelterB4WaterSupplyEmitPartSplashes(EffectWork* work, GfxCoord* trackedPart, s32 sampleIndex)
+/// `controllerWork` borrows the live controller work; its `angle` halfword
+/// holds the narrowed odds and retains the final spray threshold on return.
+/// `historyIndex` is 0 or 1, corresponding to player coordinate 14 or 17.
+/// Composes the live part into view space and compares full-width XYZ against
+/// the signed-halfword history. Odds retain the low signed 16 bits, with no
+/// clamp: ripple adds 32 before its roll, then spray subtracts that bias.
+/// Each test consumes one LCG draw, in ripple/spray order, against 0..511.
+/// Records the new position even when neither spawn succeeds; paused sampling
+/// leaves history frozen, so this measures movement since the last sample.
+///
+/// The part and view must share a composition root, with the view cache current.
+/// Placement converts back to world coordinates and replaces Y with the live
+/// water height. These effect IDs must select callbacks that use the spawner's
+/// placement snapshot: the retained source pointer addresses stack storage.
+static inline void _shelterB4WaterSupplyEmitPartSplashes(EffectWork* controllerWork, GfxCoord* trackedPart, s32 historyIndex)
 {
     enum { SPLASH_ROLL_MASK   = 0x1FF,
+           SPLASH_ROLL_SHIFT  = 16,
            RIPPLE_ODDS_BIAS   = 32,
            RIPPLE_HALF_SIDE   = 64,
            SPRAY_SIZE         = 384,
            SPRAY_CELL_UPDATES = 2,
            SPRAY_LAUNCH_SPEED = 32,
            SPRAY_UPWARD_BURST = 1,
-           SPRAY_SPAWN_ARG    = SPRAY_SIZE | (SPRAY_CELL_UPDATES << 12) |
-                             (SPRAY_LAUNCH_SPEED << 16) | (SPRAY_UPWARD_BURST << 24) };
+           SPRAY_PERIOD_SHIFT = 12,
+           SPRAY_SPEED_SHIFT  = 16,
+           SPRAY_KIND_SHIFT   = 24,
+           SPRAY_SPAWN_ARG    = SPRAY_SIZE | (SPRAY_CELL_UPDATES << SPRAY_PERIOD_SHIFT) |
+                             (SPRAY_LAUNCH_SPEED << SPRAY_SPEED_SHIFT) | (SPRAY_UPWARD_BURST << SPRAY_KIND_SHIFT) };
     GfxCoord surfaceCoord;
     u32      randomRoll;
     actorRenderComposeCoord(trackedPart);
     // Odds narrow to s16 before each comparison; ripple gets the bias first.
-    work->angle = ABS(D_shelter_b4_water_supply_801826E0[sampleIndex].vx - trackedPart->workm.t[0]) +
-                  ABS(D_shelter_b4_water_supply_801826E0[sampleIndex].vy - trackedPart->workm.t[1]) +
-                  ABS(D_shelter_b4_water_supply_801826E0[sampleIndex].vz - trackedPart->workm.t[2]) + RIPPLE_ODDS_BIAS;
+    controllerWork->angle = ABS(D_shelter_b4_water_supply_801826E0[historyIndex].vx - trackedPart->workm.t[0]) +
+                            ABS(D_shelter_b4_water_supply_801826E0[historyIndex].vy - trackedPart->workm.t[1]) +
+                            ABS(D_shelter_b4_water_supply_801826E0[historyIndex].vz - trackedPart->workm.t[2]) + RIPPLE_ODDS_BIAS;
+    // Place both effects on the water plane in the view coordinate's local space.
     gfxMakeRelativeTransform(&gGfxViewCoord.workm, &trackedPart->workm, &surfaceCoord.coord);
     surfaceCoord.parent       = &gGfxViewCoord;
     surfaceCoord.coord.t[1]   = gGameSession->waterY;
     surfaceCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&surfaceCoord);
     randomRoll = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-    if ((s32)((randomRoll >> 16) & SPLASH_ROLL_MASK) < work->angle) {
-        effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, RIPPLE_HALF_SIDE, 0);
+    if ((s32)((randomRoll >> SPLASH_ROLL_SHIFT) & SPLASH_ROLL_MASK) < controllerWork->angle) {
+        effectSpawn(gRoomEffectWaterRippleId, &surfaceCoord, RIPPLE_HALF_SIDE, NULL);
     }
-    work->angle -= RIPPLE_ODDS_BIAS;
-    randomRoll   = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
-    if ((s32)((randomRoll >> 16) & SPLASH_ROLL_MASK) < work->angle) {
-        effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, SPRAY_SPAWN_ARG, 0);
+    controllerWork->angle -= RIPPLE_ODDS_BIAS;
+    randomRoll             = (gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT);
+    if ((s32)((randomRoll >> SPLASH_ROLL_SHIFT) & SPLASH_ROLL_MASK) < controllerWork->angle) {
+        effectSpawn(gRoomEffectWaterSprayId, &surfaceCoord, SPRAY_SPAWN_ARG, NULL);
     }
-    D_shelter_b4_water_supply_801826E0[sampleIndex].vx = trackedPart->workm.t[0];
-    D_shelter_b4_water_supply_801826E0[sampleIndex].vy = trackedPart->workm.t[1];
-    D_shelter_b4_water_supply_801826E0[sampleIndex].vz = trackedPart->workm.t[2];
+    D_shelter_b4_water_supply_801826E0[historyIndex].vx = trackedPart->workm.t[0];
+    D_shelter_b4_water_supply_801826E0[historyIndex].vy = trackedPart->workm.t[1];
+    D_shelter_b4_water_supply_801826E0[historyIndex].vz = trackedPart->workm.t[2];
 }
 
 void shelterB4WaterSupplySplashAndLightBeamsTask(Task* task)

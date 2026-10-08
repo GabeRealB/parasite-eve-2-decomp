@@ -680,25 +680,33 @@ static inline void _shelterR47EnableRepeatEntryTrigger(void)
     repeatEntryTrigger->flags  |= WORLD_COLLISION_TRIGGER_ENABLED;
 }
 
-/// Holds and hides the player and placed actor for a successfully opened tour terminal.
+/// Hides the tour terminal's actors and holds the player until terminal exit.
 ///
-/// Requires the live scene manager and this room's restoration descriptor.
-/// Spawns the room's actor-restoration task after the presentation changes;
-/// restoration allocation failure leaves the holds in place.
-static inline void _shelterR47HoldTourActors(void)
+/// The player enters scripted idle; placed actor 0 receives only a hide request.
+/// Requires the live player, its animation bank, the scene manager and a
+/// successfully opened terminal already stored in the room's terminal handle.
+/// Keep that handle and this room's restoration callback live until polling
+/// finishes. The restoration task is spawned after the presentation changes;
+/// allocation failure leaves the player held and both actors hidden.
+static inline void _shelterR47HideActorsForTourTerminal(void)
 {
-    enum { SHELTER_R47_RESTORE_ACTORS_TASK_INDEX = 0 };
+    enum { SHELTER_R47_RESTORE_ACTORS_TASK_INDEX = 0,
+           SHELTER_R47_TOUR_PLACED_ACTOR_INDEX   = 0,
+           SHELTER_R47_PLACED_ACTOR_DRAW_HIDE    = 0 };
 
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-    sceneSetPlacedActorDrawMode(0, 0);
+    sceneSetPlacedActorDrawMode(SHELTER_R47_TOUR_PLACED_ACTOR_INDEX, SHELTER_R47_PLACED_ACTOR_DRAW_HIDE);
     taskSpawnFromTable(D_shelter_r47_80186F70, SHELTER_R47_RESTORE_ACTORS_TASK_INDEX, 0, 0);
 }
 
-/// Holds and hides the player and any companion for a successfully opened terminal.
+/// Holds and hides the player and any companion until the terminal exits.
 ///
-/// Requires this room's actor-restoration descriptor. Spawns its restoration
-/// task after applying the holds; allocation failure leaves the holds in place.
+/// Requires their live models and animation banks, and a successfully opened
+/// terminal already stored in the room's terminal handle. Keep that handle and
+/// this room's restoration callback live until polling finishes. Restoration
+/// is spawned after both draw and scripted-idle requests; allocation failure
+/// leaves the affected actors hidden and held.
 static inline void _shelterR47HoldTerminalActors(void)
 {
     enum { SHELTER_R47_RESTORE_ACTORS_TASK_INDEX = 0 };
@@ -784,14 +792,14 @@ static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageI
                 tourMapTask            = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
                 D_shelter_r47_8018A690 = tourMapTask;
                 if (tourMapTask != NULL) {
-                    _shelterR47HoldTourActors();
+                    _shelterR47HideActorsForTourTerminal();
                 }
                 break;
             case SHELTER_R47_ACTION_OPEN_CONSOLE:
                 tourConsoleTask        = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
                 D_shelter_r47_8018A690 = tourConsoleTask;
                 if (tourConsoleTask != NULL) {
-                    _shelterR47HoldTourActors();
+                    _shelterR47HideActorsForTourTerminal();
                 }
                 break;
         }

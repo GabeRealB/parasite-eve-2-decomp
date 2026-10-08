@@ -899,11 +899,12 @@ static void _shelterR47ConsoleResetPromptTask(Task* task)
     task->state         = task->state + 1;
 }
 
-/// Publishes the access-map marker represented by a console status.
+/// Updates the inventory map's access markers from one console status.
 ///
-/// Transfer-door and observatory statuses show their marker with 2 when off
-/// and hide it with 0 when on. Other statuses do nothing. Call after the draw
-/// or dialogue phase has selected the current status; no task state is changed.
+/// Status 0/1 selects the transfer-door marker and 4/5 the observatory marker.
+/// Off writes visible state 2; on writes hidden state 0. Other signed-halfword
+/// statuses leave the flags intact. The caller supplies the status selected
+/// after drawing or dialogue; the live flag bank must be writable.
 static inline void _shelterR47ConsoleUpdateAccessMapMarker(s16 status)
 {
     enum { SHELTER_R47_CONSOLE_MAP_MARK_HIDDEN  = 0,
