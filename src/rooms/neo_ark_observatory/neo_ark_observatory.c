@@ -1608,7 +1608,7 @@ s16 D_neo_ark_observatory_80187A3C;
 
 static __inline__ void _neoArkObservatoryStageMarker(RoomDeparture* desc, RoomVariantResolver resolve);
 static void            func_neo_ark_observatory_8017FCE0(Task* arg0);
-static void            func_neo_ark_observatory_8017FD7C(Task* task);
+static void            _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask);
 
 #include "../../shared/planar_reflection.inc.c"
 
@@ -1817,33 +1817,38 @@ static void func_neo_ark_observatory_8017FCE0(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-/// Per-frame tick of the room entry task: sends the ally message 0x3F3 with 2
-/// while no event runs and the save's view is not 2, and otherwise with 2 in
-/// view 3 and 1 in any other view.
-static void func_neo_ark_observatory_8017FD7C(Task* task)
+/// Updates the companion's visibility for the observatory's saved view and event state.
+///
+/// The idle room shows the companion only in saved view 2. During an event,
+/// every saved view except 3 shows it. Hidden modes release model buffers;
+/// visible modes use automatic buffering. The task argument is unused and a
+/// missing companion is harmless.
+static void _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask)
 {
+    enum { NEO_ARK_OBSERVATORY_COMPANION_IDLE_VIEW         = 2,
+           NEO_ARK_OBSERVATORY_COMPANION_HIDDEN_EVENT_VIEW = 3 };
     s32 drawMode;
 
     if (gGameSession->eventState == 0) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 2) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != NEO_ARK_OBSERVATORY_COMPANION_IDLE_VIEW) {
             companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE);
             return;
         }
     }
     drawMode = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 3) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == NEO_ARK_OBSERVATORY_COMPANION_HIDDEN_EVENT_VIEW) {
         drawMode = PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE;
     }
     companionSetDrawMode(drawMode);
 }
 
 /// State handlers of the room entry task `func_neo_ark_observatory_8017FDDC`,
-/// indexed by `Task::state`: the set-up tick, the arrival-line tick, and
+/// indexed by `Task::state`: the set-up tick, the companion-visibility tick, and
 /// `taskKill`.
 static const TaskFuncTable3 D_neo_ark_observatory_8017D698 = {
     {
         func_neo_ark_observatory_8017FCE0,
-        func_neo_ark_observatory_8017FD7C,
+        _neoArkObservatoryUpdateCompanionVisibility,
         taskKill,
     },
 };

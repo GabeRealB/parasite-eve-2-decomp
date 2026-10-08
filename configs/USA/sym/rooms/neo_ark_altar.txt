@@ -62,3 +62,6 @@ _neoArkAltarLaunchMovieTask = 0x8017dbf0; // type:func
 _neoArkAltarTileSequenceTask = 0x8017ece0; // type:func
 _neoArkAltarRoomIdleState = 0x8017d9e0; // type:func
 neoArkAltarRoomTask = 0x8017d9e8; // type:func
+_neoArkAltarRejectKeyItemUse = 0x8017d8bc; // type:func
+_neoArkAltarResolveRoomVariant = 0x8017d8c4; // type:func
+_neoArkAltarIgnoreRoomCommand = 0x8017d908; // type:func

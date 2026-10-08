@@ -119,3 +119,4 @@ _followCollisionRebuildObstacle = 0x8017FE34; // type:func
 _neoArkObservatoryPlayerReflectionTask = 0x8017f3fc; // type:func
 _neoArkObservatoryRejectKeyItemMessage = 0x8017fbe0; // type:func
 _neoArkObservatoryDrawLightBeam = 0x80180534; // type:func
+_neoArkObservatoryUpdateCompanionVisibility = 0x8017fd7c; // type:func

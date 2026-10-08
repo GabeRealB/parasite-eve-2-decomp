@@ -49,7 +49,7 @@ enum {
 };
 
 static s32  _neoArkR26RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
-s32         func_neo_ark_r26_8017D650(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _neoArkR26ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _neoArkR26IgnoreCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
 static s32  _neoArkR26IgnoreRoomActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg);
 static void _neoArkR26RoomIdleState(Task* unusedTask);
@@ -209,7 +209,7 @@ EvsCommand D_neo_ark_r26_8017DFCC[9] = {
 };
 
 TaskMessageEntry D_neo_ark_r26_8017E0A4[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_r26_8017D650 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkR26ResolveRoomVariant },
     { NEO_ARK_R26_MESSAGE_USE_KEY_ITEM, _neoArkR26RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkR26IgnoreRoomActionMessage },
     { ROOM_MESSAGE_COMMAND, _neoArkR26IgnoreCommandMessage },
@@ -473,13 +473,20 @@ static s32 _neoArkR26RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32
     return NEO_ARK_R26_KEY_ITEM_USE_REFUSED;
 }
 
-/// Message handler for the save location: copies the incoming `RoomEventMsg`
-/// onto the outgoing one and passes both to `mapNeoArkResolveRoomVariant`. Returns 1.
-s32 func_neo_ark_r26_8017D650(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a Neo Ark destination room for an R26 transition request.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Copies the complete eight-byte request
+/// into writable reply storage before resolving its room from game progress.
+/// Query mode preserves the copied record. The pointers may alias and are
+/// borrowed only for this call; the Neo Ark map overlay must be loaded.
+/// Always returns 1 to allow the transition; task and message ID are unused.
+static s32 _neoArkR26ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { NEO_ARK_R26_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return NEO_ARK_R26_TRANSITION_ALLOWED;
 }
 
 /// Ignores room commands and returns zero without changing room state.

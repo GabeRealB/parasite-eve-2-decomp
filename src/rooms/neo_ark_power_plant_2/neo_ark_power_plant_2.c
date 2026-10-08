@@ -102,12 +102,12 @@ extern WorldCoordRoomLights  D_neo_ark_power_plant_2_801828A8[1];
 
 enum { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
-static s32 _neoArkPowerPlant2RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
-s32        func_neo_ark_power_plant_2_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_neo_ark_power_plant_2_8017D61C(Task*, s32, s32, s32);
-static s32 _neoArkPowerPlant2IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
-void       func_neo_ark_power_plant_2_8017D69C(void);
-void       func_neo_ark_power_plant_2_8017D6D4(void);
+static s32  _neoArkPowerPlant2RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+static s32  _neoArkPowerPlant2ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+s32         func_neo_ark_power_plant_2_8017D61C(Task*, s32, s32, s32);
+static s32  _neoArkPowerPlant2IgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _neoArkPowerPlant2PrepareGeneratorClearScene(void);
+static void _neoArkPowerPlant2StopSkippedSceneVibration(void);
 
 static AnimationPackedPose _gNeoArkPowerPlant2Animation02A4CBank1[3] = {
 #include "assets/neo_ark_power_plant_2_animation_02A4C_bank1.inc"
@@ -154,7 +154,7 @@ static AnimationSet _gNeoArkPowerPlant2Animation02C10 = {
 };
 
 TaskMessageEntry D_neo_ark_power_plant_2_801801F8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_power_plant_2_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPowerPlant2ResolveRoomVariant },
     { NEO_ARK_POWER_PLANT_2_MESSAGE_USE_KEY_ITEM, _neoArkPowerPlant2RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkPowerPlant2IgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_power_plant_2_8017D61C },
@@ -195,7 +195,7 @@ PadScriptVibrationSegment D_neo_ark_power_plant_2_801802A0[2] = {
 };
 
 EvsCommand D_neo_ark_power_plant_2_801802A8[29] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_neo_ark_power_plant_2_8017D69C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _neoArkPowerPlant2PrepareGeneratorClearScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_power_plant_2_80180220 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -231,7 +231,7 @@ EvsCommand D_neo_ark_power_plant_2_80180560[11] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_neo_ark_power_plant_2_80180274 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_neo_ark_power_plant_2_8017D6D4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _neoArkPowerPlant2StopSkippedSceneVibration }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_2_8018023C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -789,13 +789,20 @@ static s32 _neoArkPowerPlant2RejectKeyItemUse(Task* task, s32 messageId, s32 ite
     return KEY_ITEM_UNUSABLE;
 }
 
-/// Message handler that copies the incoming record onto the outgoing one and
-/// passes both on to `mapNeoArkResolveRoomVariant`. Always returns 1.
-s32 func_neo_ark_power_plant_2_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a Neo Ark destination room for a Power Plant 2 transition request.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Copies the complete eight-byte request
+/// into writable reply storage before resolving its room from game progress.
+/// Query mode preserves the copied record. The pointers may alias and are
+/// borrowed only for this call; the Neo Ark map overlay must be loaded.
+/// Always returns 1 to allow the transition; task and message ID are unused.
+static s32 _neoArkPowerPlant2ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { NEO_ARK_POWER_PLANT_2_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return NEO_ARK_POWER_PLANT_2_TRANSITION_ALLOWED;
 }
 
 s32 func_neo_ark_power_plant_2_8017D61C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -830,13 +837,23 @@ static s32 _neoArkPowerPlant2IgnoreRoomAction(Task* task, s32 messageId, const D
     return 0;
 }
 
-void func_neo_ark_power_plant_2_8017D69C(void)
+/// Cancels active effects and blocks new ability requests for the generator-clear scene.
+///
+/// Called at the scene script's start with live room-effect and attachment state.
+/// Cancellation is deferred to the effect update; the attachment event lock
+/// remains set for the ordinary attachment controller to release.
+static void _neoArkPowerPlant2PrepareGeneratorClearScene(void)
 {
     roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
-void func_neo_ark_power_plant_2_8017D6D4(void)
+/// Stops scene vibration when the generator-clear event is skipped.
+///
+/// Requests vibration-script and motor-task teardown and clears port 0's pending
+/// vibration requests. Requires a live game session; teardown can be deferred
+/// while actor updates are frozen.
+static void _neoArkPowerPlant2StopSkippedSceneVibration(void)
 {
     padScriptHalt();
 }

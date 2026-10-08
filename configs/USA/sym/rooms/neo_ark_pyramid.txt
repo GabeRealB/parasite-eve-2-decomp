@@ -75,3 +75,6 @@ _roomVisualEffectsDrawBurstStar = 0x8017F224; // type:func
 _neoArkPyramidDrawRotationPuzzleQuad = 0x8017d7f4; // type:func
 _neoArkPyramidRejectKeyItemUse = 0x8017d9f0; // type:func
 _neoArkPyramidIgnoreRoomCommand = 0x8017da3c; // type:func
+_neoArkPyramidResolveRoomVariant = 0x8017d9f8; // type:func
+_neoArkPyramidSetRotationPuzzleAngle = 0x8017dac0; // type:func
+_neoArkPyramidDrawRotationPuzzleState = 0x8017db5c; // type:func

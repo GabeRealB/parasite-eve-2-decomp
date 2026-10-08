@@ -46,19 +46,19 @@ static const TaskFuncTable3 D_neo_ark_altar_8017D5C4 = {
     taskKill,
 };
 
-void func_neo_ark_altar_8017D668(Task*);
-s32  func_neo_ark_altar_8017D8BC(Task*, s32, s32, s32);
-s32  func_neo_ark_altar_8017D8C4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_neo_ark_altar_8017D908(Task*, s32, s32, s32);
-s32  func_neo_ark_altar_8017D910(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+void       func_neo_ark_altar_8017D668(Task*);
+static s32 _neoArkAltarRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+static s32 _neoArkAltarResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _neoArkAltarIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
+s32        func_neo_ark_altar_8017D910(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 TaskDesc D_neo_ark_altar_8017EF8C = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_altar_8017D668, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_altar_8017EF98[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_altar_8017D8C4 },
-    { 5105, func_neo_ark_altar_8017D8BC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkAltarResolveRoomVariant },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _neoArkAltarRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_altar_8017D910 },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_altar_8017D908 },
+    { ROOM_MESSAGE_COMMAND, _neoArkAltarIgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -144,22 +144,36 @@ void func_neo_ark_altar_8017D668(Task* task)
     }
 }
 
-s32 func_neo_ark_altar_8017D8BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use at the altar without consuming the item or starting an event.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; all arguments are ignored. Returns
+/// `ROOM_KEY_ITEM_USE_REFUSED` for the item menu's unavailable-use notice.
+static s32 _neoArkAltarRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Handler the room's message table gives message 0x13EE: copies the incoming
-/// `RoomEventMsg` onto the outgoing one and passes both on to `mapNeoArkResolveRoomVariant`.
-/// Always returns 1.
-s32 func_neo_ark_altar_8017D8C4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a Neo Ark destination room for an altar transition request.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Copies the complete eight-byte request
+/// into writable reply storage before resolving its room from game progress.
+/// Query mode preserves the copied record. The pointers may alias and are
+/// borrowed only for this call; the Neo Ark map overlay must be loaded.
+/// Always returns 1 to allow the transition; task and message ID are unused.
+static s32 _neoArkAltarResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { NEO_ARK_ALTAR_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return NEO_ARK_ALTAR_TRANSITION_ALLOWED;
 }
 
-s32 func_neo_ark_altar_8017D908(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores CAP room commands at the altar and returns zero.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`; neither integer payload is read and the
+/// room and receiver remain unchanged.
+static s32 _neoArkAltarIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg)
 {
     return 0;
 }

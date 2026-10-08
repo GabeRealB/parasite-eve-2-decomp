@@ -139,21 +139,18 @@ static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
     }
 }
 
-/// Handler the room's message table gives message 0x13F1: accepts it and
-/// does nothing.
-s32 func_neo_ark_power_plant_1_8017D7AC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkPowerPlant1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Handler the room's message table gives message 0x13EE: copies the incoming
-/// `RoomEventMsg` onto the outgoing one and passes both on to `mapNeoArkResolveRoomVariant`.
-/// Always returns 1.
-s32 func_neo_ark_power_plant_1_8017D7B4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 neoArkPowerPlant1ResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { NEO_ARK_POWER_PLANT_1_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return NEO_ARK_POWER_PLANT_1_TRANSITION_ALLOWED;
 }
 
 /// Handler the room's message table gives message 0x13F0: for `arg2` 2, 3, 9
@@ -202,23 +199,18 @@ s32 func_neo_ark_power_plant_1_8017D7F8(Task* task, s32 msgId, s32 arg2, s32 arg
     return 0;
 }
 
-/// Handler the room's message table gives message 0x13EF: accepts it and
-/// does nothing.
-s32 func_neo_ark_power_plant_1_8017D8C8(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 neoArkPowerPlant1IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* unusedRequest, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// Native call in the power-on event script: requests all-effect cancellation on
-/// `gRoomEffectState` and sets bit 0 of `Gp_StateC08.flags`.
-void func_neo_ark_power_plant_1_8017D8D0(void)
+void neoArkPowerPlant1PrepareGeneratorClearScene(void)
 {
     roomEffectRequestCancelAll();
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
 }
 
-/// Native call in the power-on event script: halts the pad scripts.
-void func_neo_ark_power_plant_1_8017D908(void)
+void neoArkPowerPlant1StopSkippedSceneVibration(void)
 {
     padScriptHalt();
 }

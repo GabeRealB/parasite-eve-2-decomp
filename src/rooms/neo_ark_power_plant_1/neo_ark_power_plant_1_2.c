@@ -84,9 +84,9 @@ static AnimationSet _gNeoArkPowerPlant1Animation01530 = {
 };
 
 TaskMessageEntry D_neo_ark_power_plant_1_8017EB18[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_power_plant_1_8017D7B4 },
-    { 5105, func_neo_ark_power_plant_1_8017D7AC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_power_plant_1_8017D8C8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, neoArkPowerPlant1ResolveRoomVariant },
+    { ROOM_MESSAGE_USE_KEY_ITEM, neoArkPowerPlant1RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, neoArkPowerPlant1IgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_neo_ark_power_plant_1_8017D7F8 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -113,7 +113,7 @@ PadScriptVibrationSegment D_neo_ark_power_plant_1_8017EB74[2] = {
 };
 
 EvsCommand D_neo_ark_power_plant_1_8017EB7C[24] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_neo_ark_power_plant_1_8017D8D0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = neoArkPowerPlant1PrepareGeneratorClearScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_neo_ark_power_plant_1_8017EB40 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -143,7 +143,7 @@ EvsCommand D_neo_ark_power_plant_1_8017EDBC[10] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_neo_ark_power_plant_1_8017D908 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = neoArkPowerPlant1StopSkippedSceneVibration }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_neo_ark_power_plant_1_8017EB5C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

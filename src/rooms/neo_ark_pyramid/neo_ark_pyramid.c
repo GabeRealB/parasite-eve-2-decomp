@@ -52,7 +52,7 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 
-/// Angle of the room's rotating quad, set by `func_neo_ark_pyramid_8017DAC0`.
+/// Angle of the room's rotating quad, set by `_neoArkPyramidSetRotationPuzzleAngle`.
 extern s32      D_neo_ark_pyramid_801818A4;
 extern TaskDesc D_neo_ark_pyramid_8017FC0C;
 
@@ -64,19 +64,19 @@ extern TaskMessageEntry D_neo_ark_pyramid_8017FBE4[];
 /// trails: the first entry places the effect, the second (reached here both
 /// as `[1]` and under its own label) is the ribbon's other edge.
 
-static void func_neo_ark_pyramid_8017DAC0(s32 arg0);
+static void _neoArkPyramidSetRotationPuzzleAngle(s32 sweepAngle);
 static void func_neo_ark_pyramid_8017DB18(Task* task);
-static void func_neo_ark_pyramid_8017DB5C(Task* task);
+static void _neoArkPyramidDrawRotationPuzzleState(Task* unusedTask);
 
 /// State handlers of the room's entry task, indexed by its state through
 /// `func_neo_ark_pyramid_8017DB98`: set-up, per-frame draw, then kill.
 static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
-    { func_neo_ark_pyramid_8017DB18, func_neo_ark_pyramid_8017DB5C, taskKill }
+    { func_neo_ark_pyramid_8017DB18, _neoArkPyramidDrawRotationPuzzleState, taskKill }
 };
 
 void       func_neo_ark_pyramid_8017D600(Task*);
 static s32 _neoArkPyramidRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32        func_neo_ark_pyramid_8017D9F8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _neoArkPyramidResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _neoArkPyramidIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
 s32        func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s32 arg3);
 
@@ -90,7 +90,7 @@ extern WorldCollisionTrigger  D_neo_ark_pyramid_80181478[7];
 extern WorldCoordRoomLights   D_neo_ark_pyramid_80181298[1];
 
 TaskMessageEntry D_neo_ark_pyramid_8017FBE4[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_pyramid_8017D9F8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkPyramidResolveRoomVariant },
     { NEO_ARK_PYRAMID_MESSAGE_USE_KEY_ITEM, _neoArkPyramidRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_pyramid_8017DA44 },
     { ROOM_MESSAGE_COMMAND, _neoArkPyramidIgnoreRoomCommand },
@@ -536,7 +536,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
             task->killCountdown = count;
             if ((s16)count >= 0x156) {
                 gameFlagSetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT, gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) + 1);
-                func_neo_ark_pyramid_8017DAC0(0);
+                _neoArkPyramidSetRotationPuzzleAngle(0);
                 if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) >= 4) {
                     sndEvtRequestScriptStart(SOUND_NEO_ARK_PYRAMID_ROTATE_DONE, 0, 0);
                     capRunCommand(2, CAP_PLAYBACK_IN_PLACE);
@@ -546,7 +546,7 @@ void func_neo_ark_pyramid_8017D600(Task* task)
                     task->state = 1;
                 }
             } else {
-                func_neo_ark_pyramid_8017DAC0((s16)count);
+                _neoArkPyramidSetRotationPuzzleAngle((s16)count);
             }
             break;
         case 5:
@@ -640,14 +640,20 @@ static s32 _neoArkPyramidRejectKeyItemUse(Task* task, s32 messageId, s32 itemId,
     return 0;
 }
 
-/// Handler for message 0x13EE in the room's message table: copies the
-/// incoming save-location record onto the outgoing one and forwards both to
-/// `mapNeoArkResolveRoomVariant`. Always answers 1.
-s32 func_neo_ark_pyramid_8017D9F8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a Neo Ark destination room for a pyramid transition request.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Copies the complete eight-byte request
+/// into writable reply storage before resolving its room from game progress.
+/// Query mode preserves the copied record. The pointers may alias and are
+/// borrowed only for this call; the Neo Ark map overlay must be loaded.
+/// Always returns 1 to allow the transition; task and message ID are unused.
+static s32 _neoArkPyramidResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { NEO_ARK_PYRAMID_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return NEO_ARK_PYRAMID_TRANSITION_ALLOWED;
 }
 
 /// Ignores CAP room commands and returns zero without changing the pyramid.
@@ -667,7 +673,7 @@ s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s
     const DirectionActionRequest* request = firstArg;
 
     if (request->actionId == 1) {
-        func_neo_ark_pyramid_8017DAC0(0);
+        _neoArkPyramidSetRotationPuzzleAngle(0);
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) == 4) {
             capSpawnEventIfIdle(3, CAP_EVENT_PAUSE_ACTORS);
         } else {
@@ -679,11 +685,20 @@ s32 func_neo_ark_pyramid_8017DA44(Task* task, s32 msgId, const void* firstArg, s
     return 0;
 }
 
-/// Sets the quad's angle to twelfths of a turn counted by game-flag nibble
-/// 0xEC, less four, plus the in-progress sweep `arg0`.
-static void func_neo_ark_pyramid_8017DAC0(s32 arg0)
+/// Sets the rotation puzzle's screen angle from completed steps and the current sweep.
+///
+/// Angles use 4096 units per turn. Each completed step advances one twelfth of
+/// a turn, with step four aligned at zero. `sweepAngle` adds a signed angle
+/// within the current step; pass zero to settle on the completed-step angle.
+/// The stored angle is signed and is not normalized to a single turn.
+static void _neoArkPyramidSetRotationPuzzleAngle(s32 sweepAngle)
 {
-    D_neo_ark_pyramid_801818A4 = (((gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) - 4) << 0xC) / 12) + arg0;
+    enum { NEO_ARK_PYRAMID_ROTATION_ALIGNED_STEP     = 4,
+           NEO_ARK_PYRAMID_ROTATION_ANGLE_TURN_SHIFT = 12,
+           NEO_ARK_PYRAMID_ROTATION_STEPS_PER_TURN   = 12 };
+
+    // Scale the signed completed-step offset before dividing; add the sweep last.
+    D_neo_ark_pyramid_801818A4 = (((gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) - NEO_ARK_PYRAMID_ROTATION_ALIGNED_STEP) << NEO_ARK_PYRAMID_ROTATION_ANGLE_TURN_SHIFT) / NEO_ARK_PYRAMID_ROTATION_STEPS_PER_TURN) + sweepAngle;
 }
 
 /// State 0 of the room's entry task: parks the room's message table in
@@ -695,11 +710,16 @@ static void func_neo_ark_pyramid_8017DB18(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room's entry task: draws the rotating quad at its current
-/// angle while the session's view is 8.
-static void func_neo_ark_pyramid_8017DB5C(Task* task)
+/// Draws the rotation puzzle during the room task's per-frame state.
+///
+/// Only active view 8 displays the quad, using the angle last established by
+/// `_neoArkPyramidSetRotationPuzzleAngle`. Requires the frame's primitive arena,
+/// ordering table and puzzle texture to be ready. The task argument is unused.
+static void _neoArkPyramidDrawRotationPuzzleState(Task* unusedTask)
 {
-    if (gGameSession->location.loc.view == 8) {
+    enum { NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW = 8 };
+
+    if (gGameSession->location.loc.view == NEO_ARK_PYRAMID_ROTATION_PUZZLE_VIEW) {
         _neoArkPyramidDrawRotationPuzzleQuad(D_neo_ark_pyramid_801818A4);
     }
 }

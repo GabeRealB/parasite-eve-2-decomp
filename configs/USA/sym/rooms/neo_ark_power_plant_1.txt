@@ -86,3 +86,8 @@ func_neo_ark_power_plant_1_8017E524 = 0x8017E524; // type:func
 
 func_neo_ark_power_plant_1_8017DA18 = 0x8017DA18; // type:func
 glowDrawDisc = 0x8017E184; // type:func
+neoArkPowerPlant1RejectKeyItemUse = 0x8017d7ac; // type:func
+neoArkPowerPlant1ResolveRoomVariant = 0x8017d7b4; // type:func
+neoArkPowerPlant1IgnoreRoomAction = 0x8017d8c8; // type:func
+neoArkPowerPlant1PrepareGeneratorClearScene = 0x8017d8d0; // type:func
+neoArkPowerPlant1StopSkippedSceneVibration = 0x8017d908; // type:func

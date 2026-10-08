@@ -89092,7 +89092,7 @@ The entry "A switch case whose value equals the case's own constant drops the
 constant gets its own birth. That is necessary but not always sufficient, and
 the failure mode looks identical, so it is worth knowing the second half.
 
-`func_neo_ark_observatory_8017FD7C` (24 insns) tests `gGameSession->eventState`,
+`_neoArkObservatoryUpdateCompanionVisibility` (24 insns) tests `gGameSession->eventState`,
 then `D_8007216C == 2`, then `D_8007216C == 3`, and calls `companionSetDrawMode` with
 2/1/2. The target opens the middle test with
 
