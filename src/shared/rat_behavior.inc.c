@@ -1,23 +1,29 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Runs the handler of the rat's current behaviour mode (`RatWork::mode`).
-void ratBehavior(Task* arg0)
+/// Runs the rat's current living behavior mode.
+///
+/// Requires live `RatWork`. Dead and unrecognized modes do nothing; task-state
+/// dispatch owns the death sequence.
+static void _ratBehavior(Task* actor)
 {
-    switch (((RatWork*)arg0->work)->mode) {
+    RatWork* work;
+
+    work = actor->work;
+    switch (work->mode) {
         case RAT_MODE_IDLE:
-            ratIdle(arg0);
+            _ratIdle(actor);
             break;
         case RAT_MODE_ATTACK:
-            ratAttack(arg0);
+            _ratAttack(actor);
             break;
         case RAT_MODE_STAGGER:
-            ratStagger(arg0);
+            _ratStagger(actor);
             break;
         case RAT_MODE_BUILDUP:
-            ratBuildup(arg0);
+            _ratBuildup(actor);
             break;
         case RAT_MODE_HURT:
-            ratHurt(arg0);
+            _ratHurt(actor);
             break;
         case RAT_MODE_DEAD:
             break;

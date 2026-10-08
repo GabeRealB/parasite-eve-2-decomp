@@ -1,47 +1,48 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Folds the enemy's reaction flags into the behaviour mode: stagger switches
-/// to mode 2, build-up to mode 3 (unless already in 2 or 3). Damage-over-time
-/// ticks damageTickEnemyDamageOverTime damage into the hit points, entering death (task state
-/// 2) or the hurt mode 4, and clears those flags once expired.
-void ratReactions(Task* arg0)
+/// Applies stagger, build-up and damage-over-time reactions to the rat.
+///
+/// Requires live work and an `Enemy` in `Task::spawnArg2.pointer`. Stagger is consumed before
+/// build-up is considered; damage can override either with hurt or death.
+/// Health subtraction retains its low 16 bits and tests them as signed.
+static void _ratReactions(Task* actor)
 {
-    Enemy*   ctx;
+    Enemy*   enemy;
     RatWork* work;
     s32      damage;
-    u16      remaining;
-    u8       flags;
+    u16      remainingHp;
+    u8       reactionFlags;
 
-    ctx   = arg0->spawnArg2.pointer;
-    flags = ctx->reactionFlags;
-    work  = arg0->work;
-    if (flags & ENEMY_REACTION_STAGGER) {
-        ctx->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
-        work->mode         = RAT_MODE_STAGGER;
-        work->step         = 0;
+    enemy         = actor->spawnArg2.pointer;
+    reactionFlags = enemy->reactionFlags;
+    work          = actor->work;
+    if (reactionFlags & ENEMY_REACTION_STAGGER) {
+        enemy->reactionFlags = reactionFlags & ENEMY_REACTION_STAGGER_CLEAR;
+        work->mode           = RAT_MODE_STAGGER;
+        work->step           = RAT_STAGGER_STEP_BEGIN;
     }
-    if ((ctx->reactionFlags & ENEMY_REACTION_BUILDUP) && (work->mode != RAT_MODE_STAGGER && work->mode != RAT_MODE_BUILDUP)) {
+    if ((enemy->reactionFlags & ENEMY_REACTION_BUILDUP) && (work->mode != RAT_MODE_STAGGER && work->mode != RAT_MODE_BUILDUP)) {
         work->mode        = RAT_MODE_BUILDUP;
-        work->step        = 0;
+        work->step        = RAT_BUILDUP_STEP_BEGIN;
         work->buildupHeld = 1;
     }
-    if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage = damageTickEnemyDamageOverTime(ctx);
+    if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+        damage = damageTickEnemyDamageOverTime(enemy);
         if (damage != 0) {
-            worldTargetAddReadoutAmount(&ctx->node, damage, 0);
-            remaining = ctx->hp - damage;
-            ctx->hp   = remaining;
-            if ((s16)remaining <= 0) {
-                work->mode  = RAT_MODE_DEAD;
-                work->step  = 0;
-                arg0->state = 2;
+            worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+            remainingHp = enemy->hp - damage;
+            enemy->hp   = remainingHp;
+            if ((s16)remainingHp <= 0) {
+                work->mode   = RAT_MODE_DEAD;
+                work->step   = 0;
+                actor->state = RAT_TASK_DEATH;
             } else {
                 work->mode = RAT_MODE_HURT;
-                work->step = 0;
+                work->step = RAT_HURT_STEP_BEGIN;
             }
         }
-        if (damageIsEnemyDamageOverTimeExpired(ctx) != 0) {
-            ctx->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
+            enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 }

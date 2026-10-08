@@ -1,16 +1,18 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Updates the enemy's lighting colour from the world position of the model
-/// root. (Byte-identical to _mothUpdateColor and to the same helper in about a
-/// dozen other actor packages.)
-void ratUpdateColor(Task* arg0)
+/// Updates the rat's lighting and color from its cached root translation.
+///
+/// Requires a live model/`Enemy` with writable light/color matrices and a cache
+/// suitable for the lighting query. Only XYZ are supplied; this function does
+/// not compose the root or retain the temporary sample.
+static void _ratUpdateColor(Task* actor)
 {
-    GfxCoord* coord;
-    VECTOR    vec;
+    GfxCoord* rootCoord;
+    VECTOR3   samplePosition;
 
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    rootCoord         = actor->extra.tmd->coords;
+    samplePosition.vx = rootCoord->workm.t[0];
+    samplePosition.vy = rootCoord->workm.t[1];
+    samplePosition.vz = rootCoord->workm.t[2];
+    worldCoordUpdateActorColor(actor->spawnArg2.pointer, &samplePosition, 0, 0);
 }

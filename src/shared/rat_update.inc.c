@@ -21,8 +21,8 @@ void ratUpdate(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = 0;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            ratUpdateColor(arg1);
-            ratShadow(arg1);
+            _ratUpdateColor(arg1);
+            _ratShadow(arg1);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
             obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -30,17 +30,17 @@ void ratUpdate(Enemy* arg0, Task* arg1)
             return;
     }
     if (arg0->reactionFlags != 0) {
-        ratReactions(arg1);
+        _ratReactions(arg1);
     }
     ratContacts(arg1);
-    ratBehavior(arg1);
+    _ratBehavior(arg1);
     if (work->turnRate != 0) {
-        ratTurn(arg1);
+        _ratTurn(arg1);
     }
-    ratStep(arg1);
-    ratAnimate(arg1);
+    _ratStep(arg1);
+    _ratAnimate(arg1);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    ratUpdateColor(arg1);
-    ratShadow(arg1);
+    _ratUpdateColor(arg1);
+    _ratShadow(arg1);
 }

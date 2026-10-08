@@ -1,112 +1,127 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Behaviour mode 0: with the sensor sphere armed, every 30 frames rolls
-/// gRatSlowMoveChance / gRatFastMoveChance (indexed by the place row) to start
-/// a timed move at speed 0x14 (animation 7) or 0x32 (animation 2), with
-/// durations from gRatSlowMoveTimes / gRatFastMoveTimes. Re-picks a random
-/// heading within +-0x3FF of the current 1 every 0-31 frames; once the sensor
-/// has fired it switches to mode 1, sets a 60-91 frame timer and plays sound 3.
-/// Ends by ticking the idle sound.
-void ratIdle(Task* arg0)
+/// Chooses the next wander-heading offset and its 0..31-update delay.
+///
+/// Borrows writable work; consumes two LCG draws in delay/heading order.
+/// The heading draw supplies a magnitude 0..1023 and sign bit; target yaw
+/// wraps to 0..4095 around the rat's current heading.
+static __inline__ void _ratPickWanderHeading(RatWork* work)
 {
-    RatWork*   work;
-    TmdObject* obj;
-    GfxCoord*  coord;
-    s32        state;
-    s32        rng0;
-    s32        rng1;
-    s32        rng2;
-    s32        rng3;
-    s32        rng4;
-    s32        rng5;
-    s32        rng6;
-    s32        next;
-    s32        ang;
-    s32        snd;
-    s32        pan;
+    s32 wanderDelayRandom;
+    s32 wanderYawRandom;
+    s32 wanderYawOffset;
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    state = work->step;
-    coord = obj->coords;
-    switch (state) {
-        case 0:
+    work->turnRate    = RAT_WANDER_TURN_RATE;
+    wanderDelayRandom = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    wanderYawRandom   = wanderDelayRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    wanderYawOffset   = ((u32)wanderYawRandom >> 16) & 0x3FF;
+    gRandomLcgState   = wanderDelayRandom;
+    work->wanderTimer = ((u32)wanderDelayRandom >> 16) & 0x1F;
+    gRandomLcgState   = wanderYawRandom;
+    if ((((u32)wanderYawRandom >> 16) & 0x400) == 0) {
+        wanderYawOffset = -wanderYawOffset;
+    }
+    work->targetYaw = ((u16)work->yaw + wanderYawOffset) & ACTOR_TRANSFORM_ANGLE_MASK;
+}
+
+/// Wanders in timed walk/run bursts until an attack is requested.
+///
+/// Requires live work/model and an `Enemy` whose placement row indexes the
+/// carrier's chance tables. Duration draws index 0..15. Heading changes stay
+/// within 1023 angle units of the current yaw; timer values count update calls.
+/// An attack request starts a 60..91-frame approach and still ticks idle audio
+/// on that transition frame.
+static void _ratIdle(Task* actor)
+{
+    enum {
+        RAT_IDLE_MOVE_ROLL_FRAMES     = 30,
+        RAT_IDLE_APPROACH_BASE_FRAMES = 60,
+    };
+
+    RatWork*   work;
+    TmdObject* model;
+    GfxCoord*  rootCoord;
+    s32        slowChanceRandom;
+    s32        slowDurationRandom;
+    s32        fastChanceRandom;
+    s32        fastDurationRandom;
+    s32        approachDurationRandom;
+    s32        moveFrames;
+    s32        soundId;
+    s32        audioPan;
+
+    work      = actor->work;
+    model     = actor->extra.tmd;
+    rootCoord = model->coords;
+    switch (work->step) {
+        case RAT_IDLE_STEP_REST:
             work->forwardSpeed      = 0;
             work->sensorBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->timer++;
-            if (work->timer < 0x1E) {
+            if (work->timer < RAT_IDLE_MOVE_ROLL_FRAMES) {
                 break;
             }
-            rng0            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng0;
-            if ((s32)(((u32)rng0 >> 16) & 0xF) <
-                gRatSlowMoveChance[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
+            slowChanceRandom = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState  = slowChanceRandom;
+            if ((s32)(((u32)slowChanceRandom >> 16) & 0xF) <
+                gRatSlowMoveChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
                 work->animId    = RAT_ANIM_WALK;
-                next            = gRatSlowMoveTimes[((u32)(rng1 = rng0 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
-                gRandomLcgState = rng1;
-                work->step      = 1;
-                work->timer     = next;
+                moveFrames      = gRatSlowMoveTimes[((u32)(slowDurationRandom = slowChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                gRandomLcgState = slowDurationRandom;
+                work->step      = RAT_IDLE_STEP_WALK;
+                work->timer     = moveFrames;
                 break;
             }
-            rng2            = rng0 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng2;
-            if ((s32)(((u32)rng2 >> 16) & 0xF) <
-                gRatFastMoveChance[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
+            fastChanceRandom = slowChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState  = fastChanceRandom;
+            if ((s32)(((u32)fastChanceRandom >> 16) & 0xF) <
+                gRatFastMoveChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
                 work->animId    = RAT_ANIM_RUN;
-                next            = gRatFastMoveTimes[((u32)(rng3 = rng2 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
-                gRandomLcgState = rng3;
-                work->step      = 2;
-                work->timer     = next;
+                moveFrames      = gRatFastMoveTimes[((u32)(fastDurationRandom = fastChanceRandom * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+                gRandomLcgState = fastDurationRandom;
+                work->step      = RAT_IDLE_STEP_RUN;
+                work->timer     = moveFrames;
                 break;
             }
             work->timer = 0;
             break;
-        case 1:
-            work->forwardSpeed = 0x14;
+        case RAT_IDLE_STEP_WALK:
+            work->forwardSpeed = RAT_WALK_SPEED;
             work->timer--;
             if (work->timer > 0) {
                 break;
             }
             work->animId = RAT_ANIM_IDLE;
             work->timer  = 0;
-            work->step   = 0;
+            work->step   = RAT_IDLE_STEP_REST;
             break;
-        case 2:
-            work->forwardSpeed = 0x32;
+        case RAT_IDLE_STEP_RUN:
+            work->forwardSpeed = RAT_RUN_SPEED;
             work->timer--;
             if (work->timer > 0) {
                 break;
             }
             work->animId = RAT_ANIM_IDLE;
             work->timer  = 0;
-            work->step   = 0;
+            work->step   = RAT_IDLE_STEP_REST;
             break;
     }
     work->wanderTimer--;
     if (work->wanderTimer <= 0) {
-        work->turnRate    = 0x19;
-        rng4              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        rng5              = rng4 * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        ang               = ((u32)rng5 >> 16) & 0x3FF;
-        gRandomLcgState   = rng4;
-        work->wanderTimer = ((u32)rng4 >> 16) & 0x1F;
-        gRandomLcgState   = rng5;
-        if ((((u32)rng5 >> 16) & 0x400) == 0) {
-            ang = -ang;
-        }
-        work->targetYaw = ((u16)work->yaw + ang) & 0xFFF;
+        _ratPickWanderHeading(work);
     }
+    // Attack entry still falls through to this update's idle-audio tick.
     if (work->attackRequested != 0) {
-        work->mode            = RAT_MODE_ATTACK;
-        work->attackRequested = 0;
-        work->step            = 0;
-        work->animId          = RAT_ANIM_RUN;
-        rng6                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        work->timer           = (((u32)rng6 >> 16) & 0x1F) + 0x3C;
-        snd                   = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070003;
-        gRandomLcgState       = rng6;
-        pan                   = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        work->mode             = RAT_MODE_ATTACK;
+        work->attackRequested  = 0;
+        work->step             = RAT_ATTACK_STEP_APPROACH;
+        work->animId           = RAT_ANIM_RUN;
+        approachDurationRandom = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->timer            = (((u32)approachDurationRandom >> 16) & 0x1F) + RAT_IDLE_APPROACH_BASE_FRAMES;
+        soundId                = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << RAT_SOUND_PLACE_INDEX_SHIFT) | RAT_SOUND_ALERT;
+        gRandomLcgState        = approachDurationRandom;
+        audioPan               = (s8)worldCoordGetOriginAudioPan(rootCoord);
+        sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
     }
-    ratIdleSound(arg0);
+    _ratIdleSound(actor);
 }

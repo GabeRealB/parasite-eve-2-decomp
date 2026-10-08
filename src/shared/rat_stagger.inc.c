@@ -1,50 +1,59 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Behaviour mode 2: stores the normalised player-to-enemy direction, plays
-/// animation 0xA and for 15 frames pushes the root 50 units away from the
-/// player while spinning the heading by 0x5C7 a frame on frames 6-14. When the
-/// random 15-46 frame timer runs out it enters mode 3 if the build-up reaction
-/// flag is set, otherwise plays animation 9 and returns to mode 0 with the
-/// sensor flag latched at frame 0x20.
-void ratStagger(Task* arg0)
+/// Pushes the rat away from the player, spins it, then holds or recovers.
+///
+/// Requires live work/model, the live player matrix in the same parent frame,
+/// and an `Enemy` in `Task::spawnArg2.pointer`. The normalized direction includes Y, but only
+/// X/Z move: 50 units times that Q12 direction for the first 15 animation
+/// frames. Build-up enters its hold directly; ordinary recovery requests an
+/// attack after frame 32.
+static void _ratStagger(Task* actor)
 {
-    VECTOR     vec;
-    RatWork*   work;
-    TmdObject* obj;
-    GfxCoord*  coord;
-    s32        state;
-    s32        rng;
-    s32        posX;
+    enum {
+        RAT_STAGGER_PUSH_FRAMES      = 15,
+        RAT_STAGGER_PUSH_SPEED       = 50,
+        RAT_STAGGER_SPIN_START_FRAME = 6,
+        RAT_STAGGER_SPIN_TURN_RATE   = 147,
+        RAT_STAGGER_SPIN_YAW_STEP    = 1479,
+        RAT_STAGGER_RECOVER_FRAME    = 32,
+    };
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    state = work->step;
-    coord = obj->coords;
-    switch (state) {
-        case 0:
+    VECTOR     toPlayer;
+    RatWork*   work;
+    TmdObject* model;
+    GfxCoord*  rootCoord;
+    s32        durationRandom;
+    s32        rootX;
+
+    work      = actor->work;
+    model     = actor->extra.tmd;
+    rootCoord = model->coords;
+    switch (work->step) {
+        case RAT_STAGGER_STEP_BEGIN:
             work->animId        = RAT_ANIM_STAGGER;
             work->appliedAnimId = RAT_ANIM_IDLE;
             work->forwardSpeed  = 0;
             work->turnRate      = 0;
             work->knockedDown   = 1;
-            work->step          = 1;
-            rng                 = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            work->timer         = (((u32)rng >> 16) & 0x1F) + 0xF;
-            gRandomLcgState     = rng;
-            posX                = coord->coord.t[0];
-            vec.vx              = gPlayerStatus.coordMtx->t[0] - posX;
-            vec.vy              = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-            vec.vz              = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            VectorNormalS(&vec, &work->staggerDir);
+            work->step          = RAT_STAGGER_STEP_KNOCKBACK;
+            durationRandom      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            work->timer         = (((u32)durationRandom >> 16) & 0x1F) + RAT_STAGGER_PUSH_FRAMES;
+            gRandomLcgState     = durationRandom;
+            // Capture the full 3D direction; knockback later applies only X/Z.
+            rootX       = rootCoord->coord.t[0];
+            toPlayer.vx = gPlayerStatus.coordMtx->t[0] - rootX;
+            toPlayer.vy = gPlayerStatus.coordMtx->t[1] - rootCoord->coord.t[1];
+            toPlayer.vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            VectorNormalS(&toPlayer, &work->staggerDir);
             break;
-        case 1:
-            if (work->animFrame < 0xF) {
-                coord->coord.t[0] += -(work->staggerDir.vx * 50) >> 12;
-                coord->coord.t[2] += -(work->staggerDir.vz * 50) >> 12;
+        case RAT_STAGGER_STEP_KNOCKBACK:
+            if (work->animFrame < RAT_STAGGER_PUSH_FRAMES) {
+                rootCoord->coord.t[0] += -(work->staggerDir.vx * RAT_STAGGER_PUSH_SPEED) >> RAT_DIRECTION_FRACTION_BITS;
+                rootCoord->coord.t[2] += -(work->staggerDir.vz * RAT_STAGGER_PUSH_SPEED) >> RAT_DIRECTION_FRACTION_BITS;
             }
-            if (work->animFrame >= 6 && work->animFrame < 0xF) {
-                work->turnRate  = 0x93;
-                work->targetYaw = (work->targetYaw + 0x5C7) & 0xFFF;
+            if (work->animFrame >= RAT_STAGGER_SPIN_START_FRAME && work->animFrame < RAT_STAGGER_PUSH_FRAMES) {
+                work->turnRate  = RAT_STAGGER_SPIN_TURN_RATE;
+                work->targetYaw = (work->targetYaw + RAT_STAGGER_SPIN_YAW_STEP) & ACTOR_TRANSFORM_ANGLE_MASK;
             } else {
                 work->turnRate = 0;
             }
@@ -52,21 +61,21 @@ void ratStagger(Task* arg0)
             if (work->timer > 0) {
                 break;
             }
-            if ((((Enemy*)arg0->spawnArg2.pointer)->reactionFlags & ENEMY_REACTION_BUILDUP) != 0) {
+            if ((((Enemy*)actor->spawnArg2.pointer)->reactionFlags & ENEMY_REACTION_BUILDUP) != 0) {
                 work->animId = RAT_ANIM_BUILDUP_HOLD;
                 work->mode   = RAT_MODE_BUILDUP;
-                work->step   = 3;
+                work->step   = RAT_BUILDUP_STEP_HOLD;
                 break;
             }
             work->animId = RAT_ANIM_STAGGER_RECOVER;
-            work->step   = 2;
+            work->step   = RAT_STAGGER_STEP_RECOVER;
             break;
-        case 2:
-            if (work->animFrame < 0x20) {
+        case RAT_STAGGER_STEP_RECOVER:
+            if (work->animFrame < RAT_STAGGER_RECOVER_FRAME) {
                 break;
             }
             work->mode            = RAT_MODE_IDLE;
-            work->step            = 0;
+            work->step            = RAT_IDLE_STEP_REST;
             work->animId          = RAT_ANIM_IDLE;
             work->timer           = 0;
             work->attackRequested = 1;

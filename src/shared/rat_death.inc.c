@@ -79,7 +79,7 @@ void ratDeath(Enemy* arg0, Task* arg1)
             sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
             return;
         case 1:
-            ratSquash(arg1);
+            _ratSquash(arg1);
             work->timer++;
             if (work->timer == 10) {
                 obj->flags = TMD_OBJECT_SEMI_TRANS;

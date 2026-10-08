@@ -1,104 +1,127 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Behaviour mode 1: state 0 latches the target coordinate (the player task if
-/// none), turns toward it and, inside 0x2BC, starts the attack animation once
-/// the heading is within 0x32 (otherwise stops), approaching at 0x32 farther
-/// out; a timeout returns to mode 0. State 1 enables the attack sphere from
-/// animation frame 0x14 and disables it at 0x20; state 2 backs off at -0x78 for
-/// 11 frames, then plays sound 4 and rolls gRatAttackRepeatChance by place row
-/// to attack again or return to mode 0.
-void ratAttack(Task* arg0)
+/// Measures the unsigned-heading separation along the shorter arc.
+///
+/// Retains the signed low-halfword difference and final caller narrowing;
+/// headings use 4096 units per turn, including a temporarily wrapped current
+/// heading. No coordinate or work storage is changed.
+static __inline__ s32 _ratGetAimError(u16 targetYaw, u16 currentYaw)
 {
-    VECTOR*    vec;
-    RatWork*   work;
-    TmdObject* obj;
-    GfxCoord*  coord;
-    GfxCoord*  target;
-    s32        dist;
-    s32        raw;
-    s16        diff;
-    s32        adiff;
-    s32        ang;
-    s32        vel;
-    s32        pan;
-    s32        snd;
+    s32 rawYawDelta;
+    s16 yawDelta;
+    s32 absYawDelta;
+    s32 aimError;
 
-    vec   = (VECTOR*)SCRATCH_STACK_RESERVE_BYTES(0x10);
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    coord = obj->coords;
+    rawYawDelta = targetYaw - currentYaw;
+    yawDelta    = rawYawDelta;
+    absYawDelta = yawDelta >= 0 ? yawDelta : -yawDelta;
+    if (absYawDelta < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        aimError = absYawDelta;
+    } else if (yawDelta > 0) {
+        aimError = ACTOR_TRANSFORM_ANGLE_TURN - rawYawDelta;
+    } else {
+        aimError = rawYawDelta + ACTOR_TRANSFORM_ANGLE_TURN;
+    }
+    return aimError;
+}
+
+/// Approaches the selected target, bites, then retreats and rolls a repeat.
+///
+/// Requires live work/model and an `Enemy` in `Task::spawnArg2.pointer`; a missing target borrows
+/// the live player's root; an existing target must remain live. Positions share
+/// the roots' parent frame; heading uses signed low-halfword X/Z offsets, while
+/// range uses the full offsets. Yaw uses 4096 units per turn. The attack sphere pairs only during hit frames
+/// until contact or the animation ends. The approach timeout is handled before
+/// range/aim checks, so those checks still run on its expiry frame.
+static void _ratAttack(Task* actor)
+{
+    enum {
+        RAT_ATTACK_REACH           = 700,
+        RAT_ATTACK_AIM_TOLERANCE   = 50,
+        RAT_ATTACK_HIT_START_FRAME = 20,
+        RAT_ATTACK_HIT_END_FRAME   = 32,
+        RAT_ATTACK_BACK_OFF_FRAMES = 11,
+        RAT_ATTACK_BACK_OFF_SPEED  = 120,
+        RAT_ATTACK_RECOVER_FRAME   = 31,
+    };
+
+    VECTOR*    targetOffset;
+    RatWork*   work;
+    TmdObject* model;
+    GfxCoord*  rootCoord;
+    GfxCoord*  targetCoord;
+    s32        distance;
+    s32        backOffSpeed;
+    s32        audioPan;
+    s32        soundId;
+
+    targetOffset = SCRATCH_STACK_RESERVE_BLOCK(VECTOR);
+    work         = actor->work;
+    model        = actor->extra.tmd;
+    rootCoord    = model->coords;
     switch (work->step) {
-        case 0:
+        case RAT_ATTACK_STEP_APPROACH:
             sceneEngageBattle(1);
             if (work->targetCoord == 0) {
                 work->targetCoord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
             }
-            target          = work->targetCoord;
-            vec->vx         = target->coord.t[0] - coord->coord.t[0];
-            vec->vy         = 0;
-            vec->vz         = target->coord.t[2] - coord->coord.t[2];
-            work->targetYaw = ratan2((s16)vec->vx, (s16)vec->vz) & 0xFFF;
-            work->turnRate  = 0x19;
+            targetCoord      = work->targetCoord;
+            targetOffset->vx = targetCoord->coord.t[0] - rootCoord->coord.t[0];
+            targetOffset->vy = 0;
+            targetOffset->vz = targetCoord->coord.t[2] - rootCoord->coord.t[2];
+            work->targetYaw  = ratan2((s16)targetOffset->vx, (s16)targetOffset->vz) & ACTOR_TRANSFORM_ANGLE_MASK;
+            work->turnRate   = RAT_WANDER_TURN_RATE;
+            // Expiry resets idle state before the same frame still tests range and aim.
             work->timer--;
             if (work->timer <= 0) {
                 work->mode   = RAT_MODE_IDLE;
-                work->step   = 0;
+                work->step   = RAT_IDLE_STEP_REST;
                 work->animId = RAT_ANIM_IDLE;
                 work->timer  = 0;
             }
-            dist = SquareRoot0(vec->vx * vec->vx + vec->vz * vec->vz);
-            if (dist < 0x2BC) {
-                raw   = work->targetYaw - (u16)work->yaw;
-                diff  = raw;
-                adiff = diff >= 0 ? diff : -diff;
-                if (adiff < 0x800) {
-                    ang = adiff;
-                } else if (diff > 0) {
-                    ang = 0x1000 - raw;
-                } else {
-                    ang = raw + 0x1000;
-                }
-                if ((s16)ang < 0x32) {
+            distance = SquareRoot0(targetOffset->vx * targetOffset->vx + targetOffset->vz * targetOffset->vz);
+            if (distance < RAT_ATTACK_REACH) {
+                if ((s16)_ratGetAimError(work->targetYaw, (u16)work->yaw) < RAT_ATTACK_AIM_TOLERANCE) {
                     work->animId       = RAT_ANIM_ATTACK;
                     work->forwardSpeed = 0;
                     work->turnRate     = 0;
-                    work->step         = 1;
+                    work->step         = RAT_ATTACK_STEP_BITE;
                 } else {
                     work->forwardSpeed = 0;
                 }
             } else {
-                work->forwardSpeed = 0x32;
+                work->forwardSpeed = RAT_RUN_SPEED;
             }
             break;
 
-        case 1:
-            if (work->animFrame == 0x14) {
+        case RAT_ATTACK_STEP_BITE:
+            if (work->animFrame == RAT_ATTACK_HIT_START_FRAME) {
                 work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             }
-            if (work->animFrame >= 0x20) {
+            if (work->animFrame >= RAT_ATTACK_HIT_END_FRAME) {
                 work->animId            = RAT_ANIM_BACK_OFF;
-                work->step              = 2;
+                work->step              = RAT_ATTACK_STEP_RETREAT;
                 work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             break;
 
-        case 2:
-            vel = 0;
-            if (work->animFrame < 0xB) {
-                vel = -0x78;
+        case RAT_ATTACK_STEP_RETREAT:
+            backOffSpeed = 0;
+            if (work->animFrame < RAT_ATTACK_BACK_OFF_FRAMES) {
+                backOffSpeed = -RAT_ATTACK_BACK_OFF_SPEED;
             }
-            work->forwardSpeed = vel;
-            if (work->animFrame >= 0x1F) {
-                snd = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070004;
-                pan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            work->forwardSpeed = backOffSpeed;
+            if (work->animFrame >= RAT_ATTACK_RECOVER_FRAME) {
+                soundId  = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << RAT_SOUND_PLACE_INDEX_SHIFT) | RAT_SOUND_ATTACK_RECOVER;
+                audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+                sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                if ((s32)((gRandomLcgState >> 16) & 0xF) < gRatAttackRepeatChance[((Enemy*)arg0->spawnArg2.pointer)->place->rowIndex]) {
-                    work->step   = 0;
+                if ((s32)((gRandomLcgState >> 16) & 0xF) < gRatAttackRepeatChance[((Enemy*)actor->spawnArg2.pointer)->place->rowIndex]) {
+                    work->step   = RAT_ATTACK_STEP_APPROACH;
                     work->animId = RAT_ANIM_RUN;
                 } else {
                     work->mode            = RAT_MODE_IDLE;
-                    work->step            = 0;
+                    work->step            = RAT_IDLE_STEP_REST;
                     work->animId          = RAT_ANIM_IDLE;
                     work->timer           = 0;
                     work->wanderTimer     = 0;
@@ -107,5 +130,5 @@ void ratAttack(Task* arg0)
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }

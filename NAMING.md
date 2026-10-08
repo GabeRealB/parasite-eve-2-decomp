@@ -956,6 +956,15 @@ by `actor_02600` and `actor_05500`; constants use `MAGGOT_CATERPILLAR_`.
 Per-carrier helpers and handlers without imports keep static linkage and the
 `_` marker. Package-owned task descriptors provide external spawn interfaces.
 
+`rat` owns the included Rat enemy behavior, animation, collision setup and
+corpse scaling shared by `actor_00700` (packages `actor_100700` and
+`actor_200700`) and `actor_300700`. Its implementation interface is
+`src/shared/rat.h`; carriers supply enemy/attack parameters, animation/blend
+and wander tables, and the three-entry task-state table. Per-TU handlers keep
+static linkage and the `_rat` marker, declared in each carrier's prologue.
+`ratSpawn` keeps external linkage because `actor_300700` carries its spawn
+and task dispatcher in different translation units. Constants use `RAT_`.
+
 `moth` owns the included Moth enemy shared by `actor_00700` (packages
 `actor_100700` and `actor_200700`) and `actor_300700`. Its implementation
 interface is `src/shared/moth.h`, one fragment per function. `MothWork` is the

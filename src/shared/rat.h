@@ -96,26 +96,61 @@ typedef struct {
 } RatWork;
 STATIC_ASSERT_SIZEOF(RatWork, 0x39C);
 
-void ratSpawn(Enemy* ctx, Task* actor);
-void ratIdle(Task* arg0);
-void ratAttack(Task* arg0);
-void ratStagger(Task* arg0);
-void ratBuildup(Task* arg0);
-void ratTurn(Task* arg0);
+/// Indices of the carrier's three task-state callbacks.
+enum {
+    RAT_TASK_SPAWN  = 0,
+    RAT_TASK_UPDATE = 1,
+    RAT_TASK_DEATH  = 2
+};
+
+/// Mode-specific selectors stored in the signed-halfword `RatWork::step`.
+enum {
+    RAT_IDLE_STEP_REST         = 0,
+    RAT_IDLE_STEP_WALK         = 1,
+    RAT_IDLE_STEP_RUN          = 2,
+    RAT_ATTACK_STEP_APPROACH   = 0,
+    RAT_ATTACK_STEP_BITE       = 1,
+    RAT_ATTACK_STEP_RETREAT    = 2,
+    RAT_STAGGER_STEP_BEGIN     = 0,
+    RAT_STAGGER_STEP_KNOCKBACK = 1,
+    RAT_STAGGER_STEP_RECOVER   = 2,
+    RAT_BUILDUP_STEP_BEGIN     = 0,
+    RAT_BUILDUP_STEP_COLLAPSE  = 1,
+    RAT_BUILDUP_STEP_WAIT      = 2,
+    RAT_BUILDUP_STEP_HOLD      = 3,
+    RAT_HURT_STEP_BEGIN        = 0,
+    RAT_HURT_STEP_RECOVER      = 1
+};
+
+/// Wander/approach speeds in parent-coordinate units per update; yaw in 1/4096 turns.
+enum {
+    RAT_WALK_SPEED              = 20,
+    RAT_RUN_SPEED               = 50,
+    RAT_WANDER_TURN_RATE        = 25,
+    RAT_DIRECTION_FRACTION_BITS = 12
+};
+
+/// Rat-bank scripts; the placement index occupies the script-instance byte.
+enum {
+    RAT_SOUND_IDLE              = 0x40070001,
+    RAT_SOUND_HURT              = 0x40070002,
+    RAT_SOUND_ALERT             = 0x40070003,
+    RAT_SOUND_ATTACK_RECOVER    = 0x40070004,
+    RAT_SOUND_PLACE_INDEX_SHIFT = 8
+};
+
+/// Allocates and initializes the rat's work, animation, lighting and collision bodies.
+///
+/// Requires a live `Enemy` and seven-part model task at spawn state 0. The task
+/// owns the zeroed primary-heap `RatWork` until enemy teardown; model matrices
+/// and collision contacts borrow its storage. Hit/target queries use model
+/// coordinate 4. Success links four bodies, acquires a battle reference and
+/// advances the task to update state 1; allocation failure destroys the enemy.
+void ratSpawn(Enemy* enemy, Task* actor);
 void ratDeath(Enemy* arg0, Task* arg1);
-void ratTask(Task* arg0);
 void ratUpdate(Enemy* arg0, Task* arg1);
-void ratReactions(Task* arg0);
-void ratIdleSound(Task* arg0);
-void ratHurt(Task* arg0);
-void ratStep(Task* arg0);
-void ratAnimate(Task* arg0);
-void ratUpdateColor(Task* arg0);
-void ratShadow(Task* arg0);
-void ratSquash(Task* arg0);
 
 /* Defined by each package. */
 void ratContacts(Task* actor);
-void ratBehavior(Task* arg0);
 
 #endif /* SRC_SHARED_RAT_H */

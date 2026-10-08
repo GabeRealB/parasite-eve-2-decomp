@@ -1,62 +1,66 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Reads the current yaw from the root rotation and steps it toward the wanted
-/// heading by the turn rate, taking the short way round the 0x1000 circle and
-/// snapping when within one step. Rebuilds the root rotation from that yaw
-/// alone.
-void ratTurn(Task* arg0)
+/// Turns the root toward its target heading and rebuilds a yaw-only rotation.
+///
+/// Requires live work/model, a target yaw in 0..4095 and a nonnegative turn
+/// rate in angle units per update. The current heading is read from the local
+/// matrix; the shortest arc is used and a step reaching the target snaps to it.
+/// Translation is retained; pitch, roll and prior scale are replaced. The
+/// caller owns invalidation/composition. Releases `ActorFaceScratch` on return.
+static void _ratTurn(Task* actor)
 {
     RatWork*          work;
-    GfxCoord*         coord;
-    ActorFaceScratch* sc;
-    s32               ang;
-    u16               want;
-    s16               diff;
-    s32               adiff;
-    s32               step;
-    s32               cur;
-    s32               next;
-    s32               wrapStep;
+    GfxCoord*         rootCoord;
+    ActorFaceScratch* scratch;
+    s32               currentYaw;
+    u16               targetYaw;
+    s16               yawDelta;
+    s32               absYawDelta;
+    s32               turnRate;
+    s32               wrappedYaw;
+    s32               nextYaw;
+    s32               wrappedTurnRate;
 
-    sc    = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->targetYaw;
-    diff  = want - ang;
-    adiff = diff >= 0 ? diff : -diff;
+    scratch     = SCRATCH_STACK_RESERVE_BLOCK(ActorFaceScratch);
+    rootCoord   = actor->extra.tmd->coords;
+    work        = actor->work;
+    currentYaw  = ratan2(rootCoord->coord.m[0][2], rootCoord->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
+    targetYaw   = work->targetYaw;
+    yawDelta    = targetYaw - currentYaw;
+    absYawDelta = yawDelta >= 0 ? yawDelta : -yawDelta;
 
-    work->yaw = ang;
-    if (adiff < 0x800) {
-        step = work->turnRate;
-        if (step >= adiff) {
-            work->yaw = want;
+    work->yaw = currentYaw;
+    if (absYawDelta < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        turnRate = work->turnRate;
+        if (turnRate >= absYawDelta) {
+            work->yaw = targetYaw;
         } else {
-            next = work->yaw;
-            if (diff <= 0) {
-                next -= step;
+            nextYaw = work->yaw;
+            if (yawDelta <= 0) {
+                nextYaw -= turnRate;
             } else {
-                next += step;
+                nextYaw += turnRate;
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     } else {
-        step = work->turnRate;
-        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+        turnRate = work->turnRate;
+        if (yawDelta > 0 ? turnRate >= ACTOR_TRANSFORM_ANGLE_TURN - yawDelta : turnRate >= ACTOR_TRANSFORM_ANGLE_TURN + yawDelta) {
             work->yaw = work->targetYaw;
         } else {
-            wrapStep = work->turnRate;
-            cur      = work->yaw;
-            if (diff > 0) {
-                work->yaw = cur - wrapStep;
+            wrappedTurnRate = work->turnRate;
+            wrappedYaw      = work->yaw;
+            if (yawDelta > 0) {
+                work->yaw = wrappedYaw - wrappedTurnRate;
             } else {
-                work->yaw = cur + wrapStep;
+                work->yaw = wrappedYaw + wrappedTurnRate;
             }
         }
     }
-    sc->rot.vx = 0;
-    sc->rot.vy = work->yaw;
-    sc->rot.vz = 0;
-    RotMatrix(&sc->rot, &coord->coord);
+    // Rebuild from yaw alone, retaining translation and replacing pitch/roll/scale.
+    scratch->rot.vx = 0;
+    scratch->rot.vy = work->yaw;
+    scratch->rot.vz = 0;
+    RotMatrix(&scratch->rot, &rootCoord->coord);
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }

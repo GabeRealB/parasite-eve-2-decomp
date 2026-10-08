@@ -41,6 +41,22 @@
 #include "../../shared/rat.h"
 #include "../../shared/moth.h"
 
+static void _ratAnimate(Task* actor);
+static void _ratAttack(Task* actor);
+static void _ratBehavior(Task* actor);
+static void _ratBuildup(Task* actor);
+static void _ratHurt(Task* actor);
+static void _ratIdle(Task* actor);
+static void _ratIdleSound(Task* actor);
+static void _ratReactions(Task* actor);
+static void _ratShadow(Task* actor);
+static void _ratSquash(Task* actor);
+static void _ratStagger(Task* actor);
+static void _ratStep(Task* actor);
+static void _ratTask(Task* actor);
+static void _ratTurn(Task* actor);
+static void _ratUpdateColor(Task* actor);
+
 extern s16 gRatSlowMoveChance[8];
 
 extern u16 gRatSlowMoveTimes[16];
@@ -55,7 +71,7 @@ extern s16 gRatAttackRepeatChance[8];
 extern s16 gRatAnimBlend[];
 
 /// The second variant's state handlers, in the same order as the first's:
-/// spawn, per-frame update and state 2. `ratTask`
+/// spawn, per-frame update and state 2. `_ratTask`
 /// dispatches them.
 static const EnemyTaskFuncTable3 gRatStateHandlers = {
     {
@@ -371,7 +387,7 @@ s16 gRatAttackRepeatChance[8] = {
     16,
 };
 
-TaskDesc D_actor_300700_801693AC = { { { TASK_BODY_TMD, 96 } }, ratTask, { .model = &gActor300700RatBody } };
+TaskDesc D_actor_300700_801693AC = { { { TASK_BODY_TMD, 96 } }, _ratTask, { .model = &gActor300700RatBody } };
 
 AnimationSet* gRatAnimSets[11] = {
     NULL,

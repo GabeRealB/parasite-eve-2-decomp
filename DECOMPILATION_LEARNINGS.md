@@ -150165,7 +150165,7 @@ attempts; left as it was.
   (`attackKey = _gluttonFindHit(...); scratch->attackKey = attackKey;`) matches both: the extra
   copy of the result is one more pseudo competing in that block.
 - **`one = 1; if (state == one) goto case1; if (state >= 2) goto ge2; if
-  (state == 0) goto case0;`** (`ratIdle`, `ratStagger`; `ratHurt` used
+  (state == 0) goto case0;`** (`_ratIdle`, `_ratStagger`; `_ratHurt` used
   `state` itself as the constant) is `switch (state) { case 0: case 1:
   case 2: }`, and the constant local goes with the ladder: the switch's own
   `li v1,1` compare operand is what cse reuses for the `= 1` stores, so they
@@ -150266,7 +150266,7 @@ attempts; left as it was.
   `return;`. The compiler places it there on its own; eight gotos, first try.
   The mode ladder in front of it is the `case 1: case 2: case 0: default:`
   switch.
-- `ratAttack`: 16 gotos were a three-case `switch` on `work->step`; the `one =
+- `_ratAttack`: 16 gotos were a three-case `switch` on `work->step`; the `one =
   1` and `state` locals are not needed (cse keeps the dispatch's 1 and the
   step value in saved registers for the later stores, `RAT_ANIM_IDLE` and
   `RAT_ANIM_RUN`).

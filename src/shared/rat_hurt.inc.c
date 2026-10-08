@@ -1,37 +1,41 @@
 /* Part of the Rat library; see rat.h. */
 
-/// Behaviour mode 4: stops, plays animation 5 and sound 2, then at animation
-/// frame 0x18 returns to mode 0 with the sensor flag latched.
-void ratHurt(Task* arg0)
+/// Plays a stationary hit flinch, then returns to idle with an attack pending.
+///
+/// Requires live work/model and an `Enemy` in `Task::spawnArg2.pointer`. Entry restarts the hurt
+/// clip even after another flinch; recovery begins at animation frame 24.
+static void _ratHurt(Task* actor)
 {
-    RatWork*   work;
-    TmdObject* obj;
-    GfxCoord*  coord;
-    s32        state;
-    s32        snd;
-    s32        pan;
+    enum {
+        RAT_HURT_RECOVER_FRAME = 24,
+    };
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    state = work->step;
-    coord = obj->coords;
-    switch (state) {
-        case 0:
+    RatWork*   work;
+    TmdObject* model;
+    GfxCoord*  rootCoord;
+    s32        soundId;
+    s32        audioPan;
+
+    work      = actor->work;
+    model     = actor->extra.tmd;
+    rootCoord = model->coords;
+    switch (work->step) {
+        case RAT_HURT_STEP_BEGIN:
             work->animId        = RAT_ANIM_HURT;
             work->appliedAnimId = RAT_ANIM_IDLE;
             work->forwardSpeed  = 0;
             work->turnRate      = 0;
-            work->step          = 1;
-            snd                 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40070002;
-            pan                 = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            work->step          = RAT_HURT_STEP_RECOVER;
+            soundId             = ((((Enemy*)actor->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << RAT_SOUND_PLACE_INDEX_SHIFT) | RAT_SOUND_HURT;
+            audioPan            = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             break;
-        case 1:
-            if (work->animFrame < 0x18) {
+        case RAT_HURT_STEP_RECOVER:
+            if (work->animFrame < RAT_HURT_RECOVER_FRAME) {
                 break;
             }
             work->mode            = RAT_MODE_IDLE;
-            work->step            = 0;
+            work->step            = RAT_IDLE_STEP_REST;
             work->animId          = RAT_ANIM_IDLE;
             work->timer           = 0;
             work->attackRequested = 1;

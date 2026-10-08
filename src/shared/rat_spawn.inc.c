@@ -1,93 +1,115 @@
 /* Part of the Rat library; see rat.h. */
 
-/// The first body's set-up handler: allocate the work block, rebind the
-/// model's light and colour matrices into it, then link the four collision
-/// nodes and their tables. `&obj->coords[4]` -- the model's fifth
-/// coordinate -- is what both the context and the second node hang off.
-/// A failed allocation tears the enemy down and leaves the task here.
-void ratSpawn(Enemy* ctx, Task* actor)
-{
-    RatWork*   work;
-    TmdObject* obj;
-    GfxCoord*  coord;
-    s32        i;
+/// Fifth model coordinate used by both the target node and hit sphere.
+enum { RAT_HIT_COORD_INDEX = 4 };
 
-    obj   = actor->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(RatWork), false);
-    if (work == NULL) {
-        enemyDestroy(ctx, actor);
-        return;
-    }
-    actor->work         = work;
-    obj->flags          = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    obj->lightMtx       = &work->lightMtx;
-    obj->colorMtx       = &work->colorMtx;
-    ctx->field_4        = &coord->coord;
-    ctx->field_48       = 0;
-    worldTargetLinkNode(&ctx->node);
-    ctx->coord                    = &actor->extra.tmd->coords[4];
-    ctx->node.state.parts.flags   = 0;
-    ctx->bodyPos.vx               = 0;
-    ctx->bodyPos.vy               = 0;
-    ctx->bodyPos.vz               = 0;
-    ctx->param                    = &gRatParams;
-    ctx->recs                     = work->hitContacts;
-    ctx->hp                       = (u16)gRatParams.hpMax;
-    work->hitEffectArg.spawnArgLo = 0x100;
-    work->hitEffectArg.spawnArgHi = 1;
-    work->hitEffectArg.coord      = coord;
-    animationInitContext(&work->rig.anim, gRatAnimSets, obj, work->rig.poses, work->rig.slots);
-    for (i = 1; i < 7; i++) {
-        animationResetSlot(&work->rig.anim, i, RAT_ANIM_IDLE);
-    }
-    sceneAcquireBattleRef(0);
-    work->animId                      = RAT_ANIM_IDLE;
-    work->appliedAnimId               = RAT_ANIM_IDLE;
-    work->sensorBody.coord            = coord;
+/// Links the rat's sensor, hit, grid and bite spheres with their contact tables.
+///
+/// Borrows live work and the model task/root; the work must outlive all links.
+/// The sensor and bite use the enemy-attack list; hit/grid use enemy bodies.
+/// Preserve flag-enabling order across contact initialization: sensor/hit
+/// enable pairing, the grid enables floor/grid queries, and the bite is disabled.
+static __inline__ void _ratInitCollisionBodies(RatWork* work, Task* actor, GfxCoord* rootCoord)
+{
+    enum {
+        RAT_COLLISION_BODY_KEY    = 0x30007,
+        RAT_SENSOR_FORWARD_OFFSET = 750,
+        RAT_SENSOR_RADIUS         = 300,
+        RAT_HIT_RADIUS            = 150,
+        RAT_GRID_VERTICAL_OFFSET  = -250,
+        RAT_GRID_RADIUS           = 250,
+        RAT_ATTACK_FORWARD_OFFSET = 500,
+        RAT_ATTACK_RADIUS         = 200
+    };
+
+    work->sensorBody.coord            = rootCoord;
     work->sensorBody.context.contacts = work->sensorContacts;
     work->sensorBody.pos.vx           = 0;
     work->sensorBody.pos.vy           = 0;
-    work->sensorBody.pos.vz           = 0x2EE;
+    work->sensorBody.pos.vz           = RAT_SENSOR_FORWARD_OFFSET;
     work->sensorBody.key              = 0;
-    work->sensorBody.radius           = 0x12C;
-    work->sensorBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->sensorBody.radius           = RAT_SENSOR_RADIUS;
+    work->sensorBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->sensorBody);
     worldCollisionInitContacts(work->sensorContacts, ARRAY_SIZE(work->sensorContacts), 0);
-    work->sensorBody.flags         = (u16)(work->sensorBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->hitBody.coord            = &actor->extra.tmd->coords[4];
+    work->sensorBody.flags        |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->hitBody.coord            = &actor->extra.tmd->coords[RAT_HIT_COORD_INDEX];
     work->hitBody.context.contacts = work->hitContacts;
     work->hitBody.pos.vx           = 0;
     work->hitBody.pos.vy           = 0;
     work->hitBody.pos.vz           = 0;
-    work->hitBody.key              = 0x30007;
-    work->hitBody.radius           = 0x96;
-    work->hitBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->hitBody.key              = RAT_COLLISION_BODY_KEY;
+    work->hitBody.radius           = RAT_HIT_RADIUS;
+    work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
     worldCollisionInitContacts(work->hitContacts, ARRAY_SIZE(work->hitContacts), 0);
-    work->gridBody.coord            = coord;
+    work->gridBody.coord            = rootCoord;
     work->gridBody.context.contacts = work->gridContacts;
     work->gridBody.pos.vx           = 0;
-    work->gridBody.pos.vy           = -0xFA;
+    work->gridBody.pos.vy           = RAT_GRID_VERTICAL_OFFSET;
     work->gridBody.pos.vz           = 0;
-    work->hitBody.flags             = (u16)(work->hitBody.flags | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->gridBody.key              = 0x30007;
-    work->gridBody.radius           = 0xFA;
-    work->gridBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->hitBody.flags            |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->gridBody.key              = RAT_COLLISION_BODY_KEY;
+    work->gridBody.radius           = RAT_GRID_RADIUS;
+    work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->gridBody);
     worldCollisionInitContacts(work->gridContacts, ARRAY_SIZE(work->gridContacts), 0);
-    work->attackBody.coord            = coord;
+    work->attackBody.coord            = rootCoord;
     work->attackBody.context.contacts = work->attackContacts;
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = 0;
-    work->attackBody.pos.vz           = 0x1F4;
-    work->gridBody.flags              = (u16)(work->gridBody.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED));
+    work->attackBody.pos.vz           = RAT_ATTACK_FORWARD_OFFSET;
+    work->gridBody.flags             |= (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED);
     work->attackBody.key              = damagePackAttackKey(&gRatAttack, 0);
-    work->attackBody.radius           = 0xC8;
-    work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->attackBody.radius           = RAT_ATTACK_RADIUS;
+    work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
-    work->attackBody.flags = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-    actor->state           = 1;
+    work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+}
+
+void ratSpawn(Enemy* enemy, Task* actor)
+{
+    RatWork*   work;
+    TmdObject* model;
+    GfxCoord*  rootCoord;
+    s32        slot;
+
+    model     = actor->extra.tmd;
+    rootCoord = model->coords;
+    work      = memCalloc(sizeof(RatWork), false);
+    if (work == NULL) {
+        enemyDestroy(enemy, actor);
+        return;
+    }
+    // Lighting and collision readers borrow storage owned by the task.
+    actor->work             = work;
+    model->flags            = 0;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->lightMtx         = &work->lightMtx;
+    model->colorMtx         = &work->colorMtx;
+    enemy->field_4          = &rootCoord->coord;
+    enemy->field_48         = 0;
+    worldTargetLinkNode(&enemy->node);
+    enemy->coord                  = &actor->extra.tmd->coords[RAT_HIT_COORD_INDEX];
+    enemy->node.state.parts.flags = 0;
+    enemy->bodyPos.vx             = 0;
+    enemy->bodyPos.vy             = 0;
+    enemy->bodyPos.vz             = 0;
+    enemy->param                  = &gRatParams;
+    enemy->recs                   = work->hitContacts;
+    enemy->hp                     = gRatParams.hpMax;
+    work->hitEffectArg.spawnArgLo = 0x100;
+    work->hitEffectArg.spawnArgHi = 1;
+    work->hitEffectArg.coord      = rootCoord;
+    // Slot zero is the root; reset only the six articulated-part tracks.
+    animationInitContext(&work->rig.anim, gRatAnimSets, model, work->rig.poses, work->rig.slots);
+    for (slot = 1; slot < ARRAY_SIZE(work->rig.slots); slot++) {
+        animationResetSlot(&work->rig.anim, slot, RAT_ANIM_IDLE);
+    }
+    sceneAcquireBattleRef(0);
+    work->animId        = RAT_ANIM_IDLE;
+    work->appliedAnimId = RAT_ANIM_IDLE;
+    _ratInitCollisionBodies(work, actor, rootCoord);
+    actor->state = RAT_TASK_UPDATE;
 }

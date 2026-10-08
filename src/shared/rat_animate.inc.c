@@ -1,26 +1,29 @@
 /* Part of the Rat library; see rat.h. */
 
-/// When the requested animation differs from the playing one, restarts slots
-/// 1-6 on it with the start value from gRatAnimBlend and resets the frame
-/// counter; otherwise advances the frame counter and ticks the six slots.
-void ratAnimate(Task* arg0)
+/// Restarts or advances the rat's six non-root animation slots.
+///
+/// Requires live `RatWork` and animation/blend entries for the requested
+/// `RAT_ANIM_*` value. A changed request starts slots 1..6 at frame zero with
+/// the table's whole-frame blend duration; an unchanged request advances
+/// the slots and the signed 16-bit elapsed-frame counter once.
+static void _ratAnimate(Task* actor)
 {
-    RatWork* work2;
-    s32      i;
-    s32      val;
+    RatWork* work;
+    s32      slot;
+    s32      blendFrames;
 
-    work2 = arg0->work;
-    if (work2->animId != work2->appliedAnimId) {
-        work2->appliedAnimId = work2->animId;
-        work2->animFrame     = 0;
-        val                  = gRatAnimBlend[work2->animId];
-        for (i = 1; i < 7; i++) {
-            animationSeekSlotWithBlend(&work2->rig.anim, i, work2->animId, 0, val);
+    work = actor->work;
+    if (work->animId != work->appliedAnimId) {
+        work->appliedAnimId = work->animId;
+        work->animFrame     = 0;
+        blendFrames         = gRatAnimBlend[work->animId];
+        for (slot = 1; slot < ARRAY_SIZE(work->rig.slots); slot++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slot, work->animId, 0, blendFrames);
         }
     } else {
-        work2->animFrame++;
-        for (i = 1; i < 7; i++) {
-            animationTickSlot(&work2->rig.anim, i);
+        work->animFrame++;
+        for (slot = 1; slot < ARRAY_SIZE(work->rig.slots); slot++) {
+            animationTickSlot(&work->rig.anim, slot);
         }
     }
 }
