@@ -343,14 +343,12 @@ static void _shelter1fGuardroomRoomIdleState(Task* unusedTask)
 {
 }
 
-/// The room's event task: copies its state table onto the stack and calls the
-/// entry for the current state.
-void func_shelter_1f_guardroom_8017D880(Task* task)
+void shelter1fGuardroomRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_1f_guardroom_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_1f_guardroom_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Task the cutscene task spawns: calls `_shelter1fGuardroomSetUnlockOverlayVisible(0)`,

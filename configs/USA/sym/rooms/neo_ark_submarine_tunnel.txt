@@ -112,3 +112,5 @@ _neoArkSubmarineTunnelRejectKeyItemUse = 0x8017f27c; // type:func
 _neoArkSubmarineTunnelResolveRoomEvent = 0x8017f284; // type:func
 _neoArkSubmarineTunnelSetEventSeen = 0x8017f398; // type:func
 _neoArkSubmarineTunnelMessageTaskIdle = 0x8017f414; // type:func
+_neoArkSubmarineTunnelInitializeRoom = 0x8017f3bc; // type:func
+neoArkSubmarineTunnelRoomTask = 0x8017f434; // type:func

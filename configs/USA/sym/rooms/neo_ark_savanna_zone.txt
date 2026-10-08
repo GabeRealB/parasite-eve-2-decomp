@@ -78,3 +78,5 @@ _neoArkSavannaZoneRejectKeyItemUse = 0x8017d8f0; // type:func
 _neoArkSavannaZoneIgnoreRoomCommand = 0x8017d8f8; // type:func
 _neoArkSavannaZoneIgnoreRoomAction = 0x8017d900; // type:func
 _neoArkSavannaZoneSetupIdleState = 0x8017d94c; // type:func
+_neoArkSavannaZoneInitializeRoom = 0x8017d908; // type:func
+neoArkSavannaZoneRoomTask = 0x8017d954; // type:func

@@ -81,14 +81,14 @@ extern AreaApplyRec     D_neo_ark_power_plant_2_80182F94[];
 /// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
 /// `[1]` under its own name, which the per-frame path reads directly.
 
-static void func_neo_ark_power_plant_2_8017D6F4(Task* task);
+static void _neoArkPowerPlant2InitializeRoom(Task* task);
 static void func_neo_ark_power_plant_2_8017D758(Task* task);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, watch for the room's event trigger, then kill
 /// the task.
 static const TaskFuncTable3 D_neo_ark_power_plant_2_8017D5C4 = {
-    { func_neo_ark_power_plant_2_8017D6F4, func_neo_ark_power_plant_2_8017D758, taskKill },
+    { _neoArkPowerPlant2InitializeRoom, func_neo_ark_power_plant_2_8017D758, taskKill },
 };
 
 extern AreaResource D_neo_ark_power_plant_2_80182D80[3];
@@ -858,17 +858,24 @@ static void _neoArkPowerPlant2StopSkippedSceneVibration(void)
     padScriptHalt();
 }
 
-static void func_neo_ark_power_plant_2_8017D6F4(Task* arg0)
+/// Installs the power plant message receiver and selects its music options.
+///
+/// Called in state 0 with a live room task and initialized gameplay resources.
+/// Registers the borrowed task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
+/// Variant 1 suppresses ending music; other variants preserve the flow flags.
+static void _neoArkPowerPlant2InitializeRoom(Task* task)
 {
-    u8 temp_v1;
+    enum { NEO_ARK_POWER_PLANT_2_SKIP_ENDING_MUSIC_VARIANT = 1 };
+    u8 variant;
 
-    arg0->msgTable = D_neo_ark_power_plant_2_801801F8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    temp_v1 = gGameSession->location.loc.variant;
-    if (temp_v1 == 1) {
-        gGameSession->flowFlags = temp_v1;
+    task->msgTable = D_neo_ark_power_plant_2_801801F8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    // Keep the selected variant as the byte written to the music flags.
+    variant = gGameSession->location.loc.variant;
+    if (variant == NEO_ARK_POWER_PLANT_2_SKIP_ENDING_MUSIC_VARIANT) {
+        gGameSession->flowFlags = variant;
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 static void func_neo_ark_power_plant_2_8017D758(Task* task)
@@ -895,14 +902,12 @@ static void func_neo_ark_power_plant_2_8017D758(Task* task)
     }
 }
 
-/// Dispatches the room's message-driven task through its three-state table
-/// `D_neo_ark_power_plant_2_8017D5C4`, copied onto the stack before the call.
-void func_neo_ark_power_plant_2_8017D854(Task* task)
+void neoArkPowerPlant2RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_power_plant_2_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_power_plant_2_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 void func_neo_ark_power_plant_2_8017D8AC(Task* arg0)

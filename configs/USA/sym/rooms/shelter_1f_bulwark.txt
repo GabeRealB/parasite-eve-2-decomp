@@ -64,3 +64,5 @@ _shelter1fBulwarkIgnoreRoomCommand = 0x8017dbc4; // type:func
 _shelter1fBulwarkIgnoreRoomAction = 0x8017dbcc; // type:func
 _shelter1fBulwarkIdle = 0x8017dc18; // type:func
 _shelter1fBulwarkPlayDepartureMovieTask = 0x8017dc78; // type:func
+_shelter1fBulwarkInitializeRoom = 0x8017dbd4; // type:func
+shelter1fBulwarkRoomTask = 0x8017dc20; // type:func

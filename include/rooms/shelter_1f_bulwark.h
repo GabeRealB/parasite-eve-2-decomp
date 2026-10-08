@@ -30,7 +30,13 @@ extern SpriteView D_shelter_1f_bulwark_801807B0[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_bulwark_80180E9C[];
 
-void func_shelter_1f_bulwark_8017DC20(Task* task);
+/// Runs the Shelter 1F Bulwark room controller for one tick.
+///
+/// `task` must be live with state 0..2 and this room overlay loaded.
+/// Initialize room messages, remain idle between messages, then kill.
+/// State 0 registers the borrowed task in `GAME_TASK_SLOT_ROOM`; state 2
+/// requests teardown. The controller allocates no work or body of its own.
+void shelter1fBulwarkRoomTask(Task* task);
 
 /// Runs the Bulwark's charging pink flash, peak screen tint and fading star.
 ///

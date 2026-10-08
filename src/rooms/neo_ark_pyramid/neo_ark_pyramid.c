@@ -65,13 +65,13 @@ extern TaskMessageEntry D_neo_ark_pyramid_8017FBE4[];
 /// as `[1]` and under its own label) is the ribbon's other edge.
 
 static void _neoArkPyramidSetRotationPuzzleAngle(s32 sweepAngle);
-static void func_neo_ark_pyramid_8017DB18(Task* task);
+static void _neoArkPyramidInitializeRoom(Task* task);
 static void _neoArkPyramidDrawRotationPuzzleState(Task* unusedTask);
 
 /// State handlers of the room's entry task, indexed by its state through
-/// `func_neo_ark_pyramid_8017DB98`: set-up, per-frame draw, then kill.
+/// `neoArkPyramidRoomTask`: set-up, per-frame draw, then kill.
 static const TaskFuncTable3 D_neo_ark_pyramid_8017D5C4 = {
-    { func_neo_ark_pyramid_8017DB18, _neoArkPyramidDrawRotationPuzzleState, taskKill }
+    { _neoArkPyramidInitializeRoom, _neoArkPyramidDrawRotationPuzzleState, taskKill }
 };
 
 void       func_neo_ark_pyramid_8017D600(Task*);
@@ -701,13 +701,15 @@ static void _neoArkPyramidSetRotationPuzzleAngle(s32 sweepAngle)
     D_neo_ark_pyramid_801818A4 = (((gameFlagGetNibble(GAME_FLAG_NEO_ARK_PYRAMID_TURN_COUNT) - NEO_ARK_PYRAMID_ROTATION_ALIGNED_STEP) << NEO_ARK_PYRAMID_ROTATION_ANGLE_TURN_SHIFT) / NEO_ARK_PYRAMID_ROTATION_STEPS_PER_TURN) + sweepAngle;
 }
 
-/// State 0 of the room's entry task: parks the room's message table in
-/// `Task::msgTable`, publishes the task in pointer slot 7 and advances.
-static void func_neo_ark_pyramid_8017DB18(Task* task)
+/// Installs the pyramid message receiver and advances to puzzle drawing.
+///
+/// Called in state 0 with a live room task and initialized gameplay resources.
+/// Registers the borrowed task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
+static void _neoArkPyramidInitializeRoom(Task* task)
 {
     task->msgTable = D_neo_ark_pyramid_8017FBE4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Draws the rotation puzzle during the room task's per-frame state.
@@ -724,14 +726,12 @@ static void _neoArkPyramidDrawRotationPuzzleState(Task* unusedTask)
     }
 }
 
-/// Task tick that dispatches on the task's state through the three-entry
-/// handler table `D_neo_ark_pyramid_8017D5C4`, copied to the stack first.
-void func_neo_ark_pyramid_8017DB98(Task* task)
+void neoArkPyramidRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_pyramid_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_pyramid_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 void neoArkPyramidConfigureEffectsTask(Task* task)

@@ -63,6 +63,12 @@ void neoArkSavannaZoneRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_neo_ark_savanna_zone_8017ED58(Task* task);
 
-void func_neo_ark_savanna_zone_8017D954(Task* task);
+/// Runs the Neo Ark Savanna Zone room controller for one tick.
+///
+/// `task` must be live with state 0..2 and this room overlay loaded.
+/// Initialize room messages, remain idle between messages, then kill.
+/// State 0 registers the borrowed task in `GAME_TASK_SLOT_ROOM`; state 2
+/// requests teardown. The controller allocates no work or body of its own.
+void neoArkSavannaZoneRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_SAVANNA_ZONE_H

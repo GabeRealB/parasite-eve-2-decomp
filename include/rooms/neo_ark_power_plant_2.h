@@ -63,6 +63,12 @@ void func_neo_ark_power_plant_2_8017F140(Task* task);
 
 void func_neo_ark_power_plant_2_8017D8AC(Task* arg0);
 
-void func_neo_ark_power_plant_2_8017D854(Task* task);
+/// Runs the Neo Ark Power Plant 2 room controller for one tick.
+///
+/// `task` must be live with state 0..2 and this room overlay loaded.
+/// Initialize room messages and music options, watch for generator defeat, then kill.
+/// State 0 registers the borrowed task in `GAME_TASK_SLOT_ROOM`; state 2
+/// requests teardown. The controller allocates no work or body of its own.
+void neoArkPowerPlant2RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_POWER_PLANT_2_H

@@ -71,7 +71,7 @@ extern TaskMessageEntry D_neo_ark_submarine_tunnel_80181A50[];
 /// already been staged.
 extern EvsCommand D_neo_ark_submarine_tunnel_80181AF0[];
 
-static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0);
+static void _neoArkSubmarineTunnelInitializeRoom(Task* task);
 static void _neoArkSubmarineTunnelMessageTaskIdle(Task* task);
 
 s32        func_neo_ark_submarine_tunnel_8017F064(Task*, s32, RoomEventMsg*, s32);
@@ -214,12 +214,12 @@ EvsCommand D_neo_ark_submarine_tunnel_80181AF0[32] = {
 
 #include "../../shared/water_distort_band_task.inc.c"
 
-/// State handlers of the room task `func_neo_ark_submarine_tunnel_8017F434`
-/// runs: `func_neo_ark_submarine_tunnel_8017F3BC` sets it up,
+/// State handlers of the room task `neoArkSubmarineTunnelRoomTask`
+/// runs: `_neoArkSubmarineTunnelInitializeRoom` sets it up,
 /// `_neoArkSubmarineTunnelMessageTaskIdle` runs every later tick, and
 /// `taskKill` ends it.
 static const TaskFuncTable3 D_neo_ark_submarine_tunnel_8017D614 = {
-    { func_neo_ark_submarine_tunnel_8017F3BC, _neoArkSubmarineTunnelMessageTaskIdle, taskKill }
+    { _neoArkSubmarineTunnelInitializeRoom, _neoArkSubmarineTunnelMessageTaskIdle, taskKill }
 };
 
 #include "../../shared/screen_wave.inc.c"
@@ -314,14 +314,16 @@ static void _neoArkSubmarineTunnelSetEventSeen(s32 seenValue)
     gameFlagSetNibble(GAME_FLAG_SUBMARINE_TUNNEL_EVENT_SEEN, seenValue);
 }
 
-/// First state of the room task: installs the room's message table, publishes
-/// the task in pointer slot 7, plays sound event 0x550C0003 and advances.
-static void func_neo_ark_submarine_tunnel_8017F3BC(Task* arg0)
+/// Installs the tunnel message receiver and starts its ambience script.
+///
+/// Called in state 0 with a live room task and initialized gameplay resources.
+/// Registers the borrowed task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
+static void _neoArkSubmarineTunnelInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_neo_ark_submarine_tunnel_80181A50;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_neo_ark_submarine_tunnel_80181A50;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_SUBMARINE_TUNNEL_AMBIENCE, 0, 0);
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized room-message task idle between incoming messages.
@@ -332,13 +334,10 @@ static void _neoArkSubmarineTunnelMessageTaskIdle(Task* task)
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 }
 
-/// Room task tick: copies the three-entry state table
-/// `D_neo_ark_submarine_tunnel_8017D614` to the stack and calls the entry for
-/// the task's state.
-void func_neo_ark_submarine_tunnel_8017F434(Task* task)
+void neoArkSubmarineTunnelRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_submarine_tunnel_8017D614;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_submarine_tunnel_8017D614;
+    stateHandlers.funcs[task->state](task);
 }

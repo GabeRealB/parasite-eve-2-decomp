@@ -38,6 +38,12 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_r26_8017EA30[];
 /// loaded while this callback can be dispatched.
 void neoArkR26EffectNoopTask(Task* unusedTask);
 
-void func_neo_ark_r26_8017D720(Task* task);
+/// Runs the Neo Ark room 26 room controller for one tick.
+///
+/// `task` must be live with state 0..2 and this room overlay loaded.
+/// Initialize room messages and the entry scene, remain idle, then kill.
+/// State 0 registers the borrowed task in `GAME_TASK_SLOT_ROOM`; state 2
+/// requests teardown. The controller allocates no work or body of its own.
+void neoArkR26RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_R26_H

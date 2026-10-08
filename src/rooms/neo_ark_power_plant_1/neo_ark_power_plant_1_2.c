@@ -45,8 +45,6 @@
 #include "rooms/room_common.h"
 #include "../../shared/glow_draw.h"
 
-/// World positions `func_neo_ark_power_plant_1_8017DA18` draws its glows at;
-/// the second name is the one emitter it may spawn an effect at instead.
 extern SVECTOR D_neo_ark_power_plant_1_8017F020[52];
 extern SVECTOR D_neo_ark_power_plant_1_8017F1C0;
 
@@ -737,137 +735,152 @@ WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181BA8 = {
     0x1000005D,
     0x1000005F,
     0x1000005D,
-}; /// Draws the glows of the current view: a fixed set of emitter positions per
-/// view, each with its own size and tint. In views 6 and 7 the extra emitter
-/// `D_neo_ark_power_plant_1_8017F1C0` glows while nibble 0x148 is clear;
-/// once it is set, and while no event runs and nibble 0xDE is clear, it
-/// instead spawns effect 0x600E0 there on one frame in eight at random.
-void func_neo_ark_power_plant_1_8017DA18(Task* unused)
+};
+
+/// Draws the generator light or emits flashes after its support part is destroyed.
+///
+/// Advances the shared RNG only while the support part is down, effects run and
+/// the plant remains uncleared. Spawned flashes borrow the room's emitter point.
+static inline void _neoArkPowerPlant1DrawGeneratorGlow(void)
 {
+    enum {
+        NEO_ARK_POWER_PLANT_1_GENERATOR_GLOW_RADIUS_SCALE = 768,
+        NEO_ARK_POWER_PLANT_1_GENERATOR_GLOW_RGB444       = 0x334,
+        NEO_ARK_POWER_PLANT_1_GENERATOR_FLASH_BASE_SIZE   = 1024,
+        NEO_ARK_POWER_PLANT_1_GENERATOR_FLASH_CHANCE_MASK = 7,
+    };
+    if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN) != 0) {
+        if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
+            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            if (((gRandomLcgState >> 16) & NEO_ARK_POWER_PLANT_1_GENERATOR_FLASH_CHANCE_MASK) == 0) {
+                effectSpawn(EFFECT_FLASH_BURST, NULL, NEO_ARK_POWER_PLANT_1_GENERATOR_FLASH_BASE_SIZE, &D_neo_ark_power_plant_1_8017F1C0);
+            }
+        }
+    } else {
+        glowDrawDisc(&D_neo_ark_power_plant_1_8017F1C0, NEO_ARK_POWER_PLANT_1_GENERATOR_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GENERATOR_GLOW_RGB444);
+    }
+}
+
+void neoArkPowerPlant1DrawLightGlowsTask(Task* unusedTask)
+{
+    enum {
+        NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE = 512,
+        NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE = 768,
+        NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444  = 0x011,
+        NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444         = 0x122,
+        NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444      = 0x233,
+        NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444      = 0x344,
+        NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444       = 0x334,
+        NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444   = 0x223,
+    };
+
+    // The low byte selects a fixed, in-bounds set of world-space emitters.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[32], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[35], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[36], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[37], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[38], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[39], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[40], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[41], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[32], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[35], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[36], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[37], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[38], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[39], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[40], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[41], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
             break;
         case 3:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[51], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[26], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[27], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[28], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[29], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[31], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[32], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[33], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[34], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[35], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[36], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[37], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[39], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[41], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[51], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[26], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[27], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[28], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[29], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[31], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[32], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[33], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[34], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[35], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[36], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[37], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[39], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[41], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
             break;
         case 4:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[45], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[46], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[48], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[49], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[16], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[17], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[18], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[19], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[20], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[21], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[22], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[23], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[24], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[25], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[26], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[27], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[28], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[29], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], 0x200, 0x344);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[45], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[46], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[48], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[49], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[16], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[17], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[18], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[19], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[20], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[21], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[22], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[23], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[24], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[25], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[26], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[27], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[28], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[29], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[30], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
             break;
         case 5:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[48], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[49], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[12], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[13], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[14], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[15], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[16], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[17], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[18], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[19], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[20], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[21], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[22], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[23], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[24], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[25], 0x200, 0x122);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[48], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[49], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[12], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[13], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[14], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[15], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[16], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[17], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[18], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[19], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[20], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[21], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[22], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[23], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[24], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[25], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
             break;
         case 6:
-            if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN) != 0) {
-                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (((gRandomLcgState >> 16) & 7) == 0) {
-                        effectSpawn(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
-                    }
-                }
-            } else {
-                glowDrawDisc(&D_neo_ark_power_plant_1_8017F1C0, 0x300, 0x334);
-            }
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[43], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[0], 0x200, 0x11);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[1], 0x200, 0x11);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[2], 0x200, 0x11);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[3], 0x200, 0x11);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[4], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[5], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[6], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[7], 0x200, 0x122);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[8], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[9], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[10], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[11], 0x200, 0x233);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[12], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[13], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[14], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[15], 0x200, 0x344);
+            _neoArkPowerPlant1DrawGeneratorGlow();
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[43], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[0], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[1], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[2], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[3], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_FAINT_CYAN_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[4], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[5], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[6], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[7], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[8], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[9], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[10], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[11], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_MEDIUM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[12], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[13], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[14], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[15], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
             break;
         case 7:
-            if (gameFlagGetNibble(GAME_FLAG_POWER_PLANT_1_GENERATOR_PART_DOWN) != 0) {
-                if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    if (((gRandomLcgState >> 16) & 7) == 0) {
-                        effectSpawn(EFFECT_FLASH_BURST, NULL, 0x400, &D_neo_ark_power_plant_1_8017F1C0);
-                    }
-                }
-            } else {
-                glowDrawDisc(&D_neo_ark_power_plant_1_8017F1C0, 0x300, 0x334);
-            }
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[0], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[1], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[2], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[3], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[4], 0x200, 0x344);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[5], 0x200, 0x344);
+            _neoArkPowerPlant1DrawGeneratorGlow();
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[0], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[1], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[2], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[3], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[4], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[5], NEO_ARK_POWER_PLANT_1_SMALL_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_BRIGHT_RGB444);
             break;
         case 8:
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], 0x300, 0x223);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[43], 0x300, 0x223);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[44], 0x300, 0x223);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[45], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[46], 0x300, 0x334);
-            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[47], 0x300, 0x334);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[42], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[43], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[44], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_DIM_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[45], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[46], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
+            glowDrawDisc(&D_neo_ark_power_plant_1_8017F020[47], NEO_ARK_POWER_PLANT_1_LARGE_GLOW_RADIUS_SCALE, NEO_ARK_POWER_PLANT_1_GLOW_LARGE_RGB444);
             break;
     }
 }

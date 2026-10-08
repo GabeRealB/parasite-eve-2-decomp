@@ -78,3 +78,5 @@ _neoArkPyramidIgnoreRoomCommand = 0x8017da3c; // type:func
 _neoArkPyramidResolveRoomVariant = 0x8017d9f8; // type:func
 _neoArkPyramidSetRotationPuzzleAngle = 0x8017dac0; // type:func
 _neoArkPyramidDrawRotationPuzzleState = 0x8017db5c; // type:func
+_neoArkPyramidInitializeRoom = 0x8017db18; // type:func
+neoArkPyramidRoomTask = 0x8017db98; // type:func

@@ -78,7 +78,7 @@ extern ScreenFade       D_shelter_1f_bulwark_80180EC0;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-static void func_shelter_1f_bulwark_8017DBD4(Task* task);
+static void _shelter1fBulwarkInitializeRoom(Task* task);
 static void _shelter1fBulwarkIdle(Task* task);
 
 extern WorldCollisionGrid     D_shelter_1f_bulwark_80180648[1];
@@ -370,7 +370,7 @@ s32 func_shelter_1f_bulwark_8017D7B4(Task* task, s32 msgId, RoomEventMsg* src, R
 /// The controller task's states: set up, idle, and kill.
 static const TaskFuncTable3 D_shelter_1f_bulwark_8017D5D8 = {
     {
-        func_shelter_1f_bulwark_8017DBD4,
+        _shelter1fBulwarkInitializeRoom,
         _shelter1fBulwarkIdle,
         taskKill,
     },
@@ -446,13 +446,15 @@ static s32 _shelter1fBulwarkIgnoreRoomAction(Task* task, s32 messageId, const Di
     return 0;
 }
 
-/// First state of the room's controller task: installs the room's message
-/// table, registers the task in pointer slot 7 and advances to the idle state.
-static void func_shelter_1f_bulwark_8017DBD4(Task* task)
+/// Installs the Bulwark message receiver and advances to its idle state.
+///
+/// Called in state 0 with a live room task and initialized gameplay resources.
+/// Registers the borrowed task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
+static void _shelter1fBulwarkInitializeRoom(Task* task)
 {
     task->msgTable = D_shelter_1f_bulwark_8018032C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the room controller idle while its message handlers remain installed.
@@ -460,14 +462,12 @@ static void _shelter1fBulwarkIdle(Task* task)
 {
 }
 
-/// The room's controller task: copies its three-entry state table (set up,
-/// idle, kill) to the stack and runs the entry for the current state.
-void func_shelter_1f_bulwark_8017DC20(Task* task)
+void shelter1fBulwarkRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_1f_bulwark_8017D5D8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_1f_bulwark_8017D5D8;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Plays the Bulwark departure movie and resumes game presentation after restoration.

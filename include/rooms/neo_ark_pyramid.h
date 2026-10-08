@@ -63,6 +63,12 @@ void func_neo_ark_pyramid_8017EF9C(Task* task);
 /// its selected effects can be spawned or run.
 void neoArkPyramidConfigureEffectsTask(Task* task);
 
-void func_neo_ark_pyramid_8017DB98(Task* task);
+/// Runs the Neo Ark Pyramid room controller for one tick.
+///
+/// `task` must be live with state 0..2 and this room overlay loaded.
+/// Initialize room messages, draw the rotation puzzle, then kill.
+/// State 0 registers the borrowed task in `GAME_TASK_SLOT_ROOM`; state 2
+/// requests teardown. The controller allocates no work or body of its own.
+void neoArkPyramidRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_PYRAMID_H

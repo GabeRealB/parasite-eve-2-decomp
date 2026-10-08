@@ -103,3 +103,5 @@ _neoArkPowerPlant2IgnoreRoomAction = 0x8017d694; // type:func
 _neoArkPowerPlant2ResolveRoomVariant = 0x8017d5d8; // type:func
 _neoArkPowerPlant2PrepareGeneratorClearScene = 0x8017d69c; // type:func
 _neoArkPowerPlant2StopSkippedSceneVibration = 0x8017d6d4; // type:func
+_neoArkPowerPlant2InitializeRoom = 0x8017d6f4; // type:func
+neoArkPowerPlant2RoomTask = 0x8017d854; // type:func

@@ -1905,7 +1905,7 @@ neoArkSubmarineTunnelConfigureEffectsTask = 0x8017F48C; // type:func absolute:Tr
 
 func_neo_ark_power_plant_2_8017D8AC = 0x8017D8AC; // type:func absolute:True owner=neo_ark_power_plant_2 shared=rooms
 
-func_neo_ark_power_plant_1_8017DA18 = 0x8017DA18; // type:func absolute:True owner=neo_ark_power_plant_1 shared=rooms
+neoArkPowerPlant1DrawLightGlowsTask = 0x8017DA18; // type:func absolute:True owner=neo_ark_power_plant_1 shared=rooms
 
 neoArkSouthPromenadeRegisterGolemEffectsTask = 0x8017D6D0; // type:func absolute:True owner=neo_ark_south_promenade shared=rooms
 

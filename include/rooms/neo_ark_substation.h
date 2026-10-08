@@ -35,6 +35,12 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_substation_80180328[];
 /// stack and enough space in the current frame's packet arena and ordering table.
 void neoArkSubstationDrawLightGlowsTask(Task* unusedTask);
 
-void func_neo_ark_substation_8017D81C(Task* task);
+/// Runs the Neo Ark Substation room controller for one tick.
+///
+/// `task` must be live with state 0..2 and this room overlay loaded.
+/// Initialize room messages and optional ambience, remain idle, then kill.
+/// State 0 registers the borrowed task in `GAME_TASK_SLOT_ROOM`; state 2
+/// requests teardown. The controller allocates no work or body of its own.
+void neoArkSubstationRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_SUBSTATION_H

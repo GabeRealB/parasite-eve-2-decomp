@@ -27,7 +27,13 @@ extern SpriteView D_shelter_1f_guardroom_8017DCE0[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_1f_guardroom_8017DFF4[];
 
-void func_shelter_1f_guardroom_8017D880(Task* task);
+/// Runs the Shelter 1F Guardroom room controller for one tick.
+///
+/// `task` must be live with state 0..2 and this room overlay loaded.
+/// Initialize room messages and the unlock overlay, remain idle, then kill.
+/// State 0 registers the borrowed task in `GAME_TASK_SLOT_ROOM`; state 2
+/// requests teardown. The controller allocates no work or body of its own.
+void shelter1fGuardroomRoomTask(Task* task);
 
 /// Room-effect callback that leaves the guardroom's effect task idle.
 ///

@@ -644,14 +644,12 @@ static void _neoArkSubstationMessageTaskIdle(Task* unusedTask)
 {
 }
 
-/// Runs the room's message task's current state through a stack copy of
-/// `D_neo_ark_substation_8017D5C4`.
-void func_neo_ark_substation_8017D81C(Task* task)
+void neoArkSubstationRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_substation_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_substation_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 void neoArkSubstationDrawLightGlowsTask(Task* unusedTask)

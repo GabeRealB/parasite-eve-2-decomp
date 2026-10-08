@@ -42415,7 +42415,7 @@ the `units` cut that moves the function to the start of its own `.rodata`.
 
 ## Several splat `dlabel`s in one data run are usually one C array
 
-`func_neo_ark_power_plant_1_8017DA18` is a `switch` on `viewGetMappedIndex()` where
+`neoArkPowerPlant1DrawLightGlowsTask` is a `switch` on `viewGetMappedIndex()` where
 each arm calls the same helper with a list of `SVECTOR*`. m2c reported five
 different bases — `D_..._8017F110`, `D_..._8017F170`, `D_..._8017F1A0`,
 `D_..._8017F1B8`, `D_..._8017F020` — each with positive *and* negative byte
@@ -42579,7 +42579,7 @@ The target uses that form only in the cases that also read a global flag later
 nothing but the base coalesce the two halves into `lui s0` / `addiu s0, s0`.
 Dropping the local and writing `&D_..._80182AA0[n]` at every call site lets GCC
 make that choice per case and matches with no other change (99.798% -> 100%).
-`func_neo_ark_power_plant_1_8017DA18` is the already-matched example of the
+`neoArkPowerPlant1DrawLightGlowsTask` is the already-matched example of the
 same idiom.
 
 Type these pools as flat `extern SVECTOR D_<seg>_<vram>[];`, not as an array of
@@ -92445,7 +92445,7 @@ Inputs: `base_1.i` (91.76%, `branch=1 insert=1 delete=1 regs=1`), `base_2.i`
 (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
-## A local that carries a compare-proven value must survive the port out of `M2C_FIELD` (func_neo_ark_power_plant_2_8017D6F4, 2026-09-16)
+## A local that carries a compare-proven value must survive the port out of `M2C_FIELD` (_neoArkPowerPlant2InitializeRoom, 2026-09-16)
 
 Like the entry above, this m2c seed was already exact: `base.c` scored 100.000%
 with zero penalties on the first build, and the only work was porting it into
@@ -96837,7 +96837,7 @@ eff = effectSpawn(0x60045, coord, ((gRandomLcgState >> 16) & 0xF0) + ({ mem->fie
 ```
 
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
-## m2c's comma-assignment for a read-modify-write lvalue splits the symbol's address into two `high` pseudos (func_neo_ark_power_plant_1_8017D5EC, 2026-09-16)
+## m2c's comma-assignment for a read-modify-write lvalue splits the symbol's address into two `high` pseudos (_neoArkPowerPlant1UpdateRoom, 2026-09-16)
 
 m2c renders a decrement-and-test on a global as an `&&` carrying an embedded
 assignment:

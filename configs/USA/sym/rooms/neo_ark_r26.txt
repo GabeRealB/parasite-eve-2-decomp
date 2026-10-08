@@ -60,3 +60,4 @@ _neoArkR26IgnoreCommandMessage = 0x8017d694; // type:func
 _neoArkR26IgnoreRoomActionMessage = 0x8017d69c; // type:func
 _neoArkR26RoomIdleState = 0x8017d710; // type:func
 _neoArkR26ResolveRoomVariant = 0x8017d650; // type:func
+neoArkR26RoomTask = 0x8017d720; // type:func

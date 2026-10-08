@@ -529,7 +529,7 @@ static void _neoArkR26RoomIdleState(Task* unusedTask)
     char unusedStackFrame[0x10];
 }
 
-/// State handlers of the room task `func_neo_ark_r26_8017D720`, indexed by
+/// State handlers of the room task `neoArkR26RoomTask`, indexed by
 /// `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_neo_ark_r26_8017D5C4 = {
     {
@@ -539,13 +539,12 @@ static const TaskFuncTable3 D_neo_ark_r26_8017D5C4 = {
     },
 };
 
-/// Room task: dispatches through a stack copy of its state table.
-void func_neo_ark_r26_8017D720(Task* task)
+void neoArkR26RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_r26_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_r26_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 void neoArkR26EffectNoopTask(Task* unusedTask)

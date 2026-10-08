@@ -878,7 +878,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandInstallRoomEffectIdsTask, { NULL } },                                   // 0x154
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_8017EA9C, { NULL } },                                           // 0x155
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017D8AC, { NULL } },                                    // 0x156
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_1_8017DA18, { NULL } },                                    // 0x157
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkPowerPlant1DrawLightGlowsTask, { NULL } },                                    // 0x157
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSavannaZoneConfigureEffectsTask, { NULL } },                                  // 0x158
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSouthPromenadeRegisterGolemEffectsTask, { NULL } },                           // 0x159
     { { { TASK_BODY_COORD, 0x70 } }, neoArkAltarEffectNoopTask, { NULL } },                                              // 0x15A

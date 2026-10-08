@@ -416,7 +416,7 @@ s8 D_neo_ark_savanna_zone_80180998 = 0;
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
 static __inline__ s32 NeoArkSavannaZone_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           func_neo_ark_savanna_zone_8017D908(Task* task);
+static void           _neoArkSavannaZoneInitializeRoom(Task* task);
 static void           _neoArkSavannaZoneSetupIdleState(Task* task);
 
 #include "../../shared/room_event_staged_task.inc.c"
@@ -500,13 +500,15 @@ static s32 _neoArkSavannaZoneIgnoreRoomAction(Task* task, s32 messageId, const D
     return 0;
 }
 
-/// State 0 of the room setup task: installs the room's message table and
-/// pointer slot 7, then advances state.
-static void func_neo_ark_savanna_zone_8017D908(Task* task)
+/// Installs the savanna message receiver and advances to its idle state.
+///
+/// Called in state 0 with a live room task and initialized gameplay resources.
+/// Registers the borrowed task in `GAME_TASK_SLOT_ROOM` and advances to state 1.
+static void _neoArkSavannaZoneInitializeRoom(Task* task)
 {
     task->msgTable = D_neo_ark_savanna_zone_8017F9AC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the room's message task idle in state 1 until an external state change or teardown.
@@ -516,19 +518,17 @@ static void _neoArkSavannaZoneSetupIdleState(Task* task)
 
 /// State table of the room setup task, indexed by `Task::state`.
 static const TaskFuncTable3 D_neo_ark_savanna_zone_8017D5D8 = { {
-    func_neo_ark_savanna_zone_8017D908,
+    _neoArkSavannaZoneInitializeRoom,
     _neoArkSavannaZoneSetupIdleState,
     taskKill,
 } };
 
-/// The room setup task: runs the state handler its state selects, through a
-/// copy of the state table on the stack.
-void func_neo_ark_savanna_zone_8017D954(Task* task)
+void neoArkSavannaZoneRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_savanna_zone_8017D5D8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_savanna_zone_8017D5D8;
+    stateHandlers.funcs[task->state](task);
 }
 
 void neoArkSavannaZoneConfigureEffectsTask(Task* task)

@@ -53,3 +53,4 @@ _neoArkSubstationIgnoreRoomAction = 0x8017d7a4; // type:func
 _neoArkSubstationMessageTaskIdle = 0x8017d814; // type:func
 _neoArkSubstationAmbienceTask = 0x8017d608; // type:func
 _neoArkSubstationResolveRoomEvent = 0x8017d724; // type:func
+neoArkSubstationRoomTask = 0x8017d81c; // type:func

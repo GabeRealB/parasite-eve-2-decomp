@@ -72,6 +72,12 @@ void neoArkSubmarineTunnelRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 /// tunnel overlay must stay loaded while its selected effects can spawn or run.
 void neoArkSubmarineTunnelConfigureEffectsTask(Task* task);
 
-void func_neo_ark_submarine_tunnel_8017F434(Task* task);
+/// Runs the Neo Ark Submarine Tunnel room controller for one tick.
+///
+/// `task` must be live with state 0..2 and this room overlay loaded.
+/// Initialize room messages and ambience, remain idle between messages, then kill.
+/// State 0 registers the borrowed task in `GAME_TASK_SLOT_ROOM`; state 2
+/// requests teardown. The controller allocates no work or body of its own.
+void neoArkSubmarineTunnelRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_SUBMARINE_TUNNEL_H

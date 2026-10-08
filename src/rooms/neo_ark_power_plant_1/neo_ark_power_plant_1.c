@@ -32,20 +32,17 @@
 
 #include "mapui/map_neo_ark.h"
 
-/// Main-executable globals with no module header yet, which
-/// `func_neo_ark_power_plant_1_8017D5EC` tests and sets.
-
 /// Area-record list applied when the power-on script starts.
 extern AreaApplyRec D_neo_ark_power_plant_1_80181C00[];
 
-static void func_neo_ark_power_plant_1_8017D5EC(Task* task);
+static void _neoArkPowerPlant1UpdateRoom(Task* unusedTask);
 static void _neoArkPowerPlant1InitializeRoom(Task* task);
 
 /// State table of the room task: `_neoArkPowerPlant1InitializeRoom`
-/// installs the message table, `func_neo_ark_power_plant_1_8017D5EC` runs the
+/// installs the message table, `_neoArkPowerPlant1UpdateRoom` runs the
 /// plant every frame, and the last state kills the task.
 static const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
-    { _neoArkPowerPlant1InitializeRoom, func_neo_ark_power_plant_1_8017D5EC, taskKill },
+    { _neoArkPowerPlant1InitializeRoom, _neoArkPowerPlant1UpdateRoom, taskKill },
 };
 
 s32 D_neo_ark_power_plant_1_80181BB4[3] = {
@@ -86,55 +83,62 @@ AreaApplyRec D_neo_ark_power_plant_1_80181C00[2] = {
     { 255, 0, 0, 0 },
 };
 
-/// Second state of the room task, run every frame. While nibble 0xDE is clear
-/// it sends message 0x7D6 to the slot-4 task, and when that returns 0 with
-/// `Gp_StateC08.mode` not 1 and `gDisplayState.pendingMode` clear, it sets nibbles 0xDE and 0xF6,
-/// clears 0x1B2, applies `D_neo_ark_power_plant_1_80181C00`, sets
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent` to 0x16 and starts the event script at
-/// `D_neo_ark_power_plant_1_8017EB7C`. When `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` is 3 and nibble 0xFB
-/// is clear, it sets 0xFB, clears `field_126` and `gSceneCombatState.signals.bytes.battlePhase` and
-/// starts the script at `D_neo_ark_power_plant_1_8017EEE4`. It re-arms the
-/// countdown to 4 while `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view` differs from the current view with 0xDE
-/// set and 0xDF clear; otherwise it ticks the countdown down and, on reaching
-/// 0, enqueues sound event 0x5511000A (as type 6 in view 7, type 7 elsewhere).
-static void func_neo_ark_power_plant_1_8017D5EC(Task* task)
+/// Advances generator-clear events and view-dependent sound in the first power plant.
+///
+/// Runs in room state 1 with live save, session, scene, display and sound state.
+/// Generator defeat starts its clear scene only after ability-wheel and display
+/// transitions finish. Entry into saved view 3 starts a separate one-shot scene.
+/// After the first plant clears, view changes rearm a four-tick sound delay while
+/// the second plant remains uncleared; view 7 starts the script and other views stop it.
+/// The task argument is unused; the room overlay owns the retained countdown.
+static void _neoArkPowerPlant1UpdateRoom(Task* unusedTask)
 {
-    Task* slot;
+    enum {
+        NEO_ARK_POWER_PLANT_1_GENERATOR_PLACEMENT     = 0,
+        NEO_ARK_POWER_PLANT_1_CLEAR_SCENE_EVENT       = 0x16,
+        NEO_ARK_POWER_PLANT_1_ENTRY_SCENE_VIEW        = 3,
+        NEO_ARK_POWER_PLANT_1_GENERATOR_SOUND_VIEW    = 7,
+        NEO_ARK_POWER_PLANT_1_VIEW_SOUND_DELAY_FRAMES = 4,
+        NEO_ARK_POWER_PLANT_1_GENERATOR_SOUND_SCRIPT  = 0x0A,
+    };
+    Task* generatorTask;
 
+    // Wait until presentation can accept the generator-clear scene.
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) == 0) {
-        slot = sceneFindPlacedActor(0);
-        if (slot != 0) {
-            if (taskMessageDispatch(slot, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
+        generatorTask = sceneFindPlacedActor(NEO_ARK_POWER_PLANT_1_GENERATOR_PLACEMENT);
+        if (generatorTask != NULL) {
+            if (taskMessageDispatch(generatorTask, ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0) {
                 if (Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) {
                     if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                         gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED, 1);
                         gameFlagSetNibble(GAME_FLAG_NEO_ARK_FOREST_ZONE_UNLOCKED, 1);
                         gameFlagSetNibble(GAME_FLAG_MAP_MARK_POWER_PLANT_1, 0);
                         areaApplySavedUpdates(D_neo_ark_power_plant_1_80181C00);
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x16;
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = NEO_ARK_POWER_PLANT_1_CLEAR_SCENE_EVENT;
                         evsStartScriptWithSkip(D_neo_ark_power_plant_1_8017EB7C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_neo_ark_power_plant_1_8017EDBC);
                     }
                 }
             }
         }
     }
-    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == 3) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_0FB) == 0)) {
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view == NEO_ARK_POWER_PLANT_1_ENTRY_SCENE_VIEW) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_0FB) == 0)) {
         gameFlagSetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_0FB, 1);
         gGameSession->battleResetPending            = 0;
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
         evsStartScript(D_neo_ark_power_plant_1_8017EEE4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
+    // Delay sound changes until the saved and active views settle.
     if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != gGameSession->location.loc.view) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_CLEARED) != 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 0)) {
-        D_neo_ark_power_plant_1_8017F01C = 4;
+        D_neo_ark_power_plant_1_8017F01C = NEO_ARK_POWER_PLANT_1_VIEW_SOUND_DELAY_FRAMES;
         return;
     }
     if (D_neo_ark_power_plant_1_8017F01C != 0) {
         if (--D_neo_ark_power_plant_1_8017F01C == 0) {
-            if (gGameSession->location.loc.view == 7) {
-                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), 0, 0);
+            if (gGameSession->location.loc.view == NEO_ARK_POWER_PLANT_1_GENERATOR_SOUND_VIEW) {
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, NEO_ARK_POWER_PLANT_1_GENERATOR_SOUND_SCRIPT), 0, 0);
                 return;
             }
-            sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+            sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_POWER_PLANT_1, NEO_ARK_POWER_PLANT_1_GENERATOR_SOUND_SCRIPT), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         }
     }
 }
@@ -237,12 +241,10 @@ static void _neoArkPowerPlant1InitializeRoom(Task* task)
     task->state = task->state + 1;
 }
 
-/// Runs the room task's current state: the handler `Task::state` selects from
-/// `D_neo_ark_power_plant_1_8017D5C4`, copied onto the stack before the call.
-void func_neo_ark_power_plant_1_8017D9C0(Task* task)
+void neoArkPowerPlant1RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_neo_ark_power_plant_1_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_neo_ark_power_plant_1_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

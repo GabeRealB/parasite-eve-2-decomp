@@ -32,8 +32,21 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_power_plant_1_80181BE0[];
 
 void func_neo_ark_power_plant_1_8017E524(s32 arg0);
 
-void func_neo_ark_power_plant_1_8017DA18(Task* unused);
+/// Draws the first power plant's view-specific light glows and generator flashes.
+///
+/// Mapped views 2..8 select fixed world-space emitters; other low-byte views draw
+/// nothing. In views 6 and 7 destruction of the generator's support part replaces
+/// its glow with a flash on a random one-in-eight running tick until the plant clears.
+/// Requires live room-effect state, view matrices, scratch stack and frame packet resources.
+/// The task is unused; spawned effects borrow a point owned by this room overlay.
+void neoArkPowerPlant1DrawLightGlowsTask(Task* unusedTask);
 
-void func_neo_ark_power_plant_1_8017D9C0(Task* task);
+/// Runs the Neo Ark Power Plant 1 room controller for one tick.
+///
+/// `task` must be live with state 0..2 and this room overlay loaded.
+/// Initialize room messages and battle state, update events and sound, then kill.
+/// State 0 registers the borrowed task in `GAME_TASK_SLOT_ROOM`; state 2
+/// requests teardown. The controller allocates no work or body of its own.
+void neoArkPowerPlant1RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_POWER_PLANT_1_H
