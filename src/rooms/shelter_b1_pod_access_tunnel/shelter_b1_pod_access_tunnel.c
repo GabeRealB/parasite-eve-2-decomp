@@ -87,6 +87,19 @@ enum {
 /// Key-item-use message handled by this room; inventory sends the selected item ID.
 enum { SHELTER_B1_POD_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
+/// Replies to the room-transition dispatcher: refuse, use its warp, or handle it here.
+enum { SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_BLOCKED           = 0,
+       SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_DEFAULT_DEPARTURE = 1,
+       SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_HANDLED           = 2 };
+
+/// Stages of the return from the gantry, stored in `GAME_FLAG_118`.
+enum { SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_PENDING  = 1,
+       SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_COMPLETE = 2 };
+
+/// Travel-task descriptor indices in the room's two-entry table.
+enum { SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_B2     = 0,
+       SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_GANTRY = 1 };
+
 /// Work block of the task that scrolls one full-screen image vertically into
 /// another: after a fixed delay the seam between the two moves down the screen
 /// at a constant rate.
@@ -129,7 +142,7 @@ extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0);
+static void _shelterB1PodAccessTunnelInitializeRoomTask(Task* task);
 static void _shelterB1PodAccessTunnelIdleTaskState(Task* task);
 static void _shelterB1PodAccessTunnelDrawImageScroll(Task* task);
 static void _shelterB1PodAccessTunnelInitImageScroll(Task* task);
@@ -137,12 +150,12 @@ static void _shelterB1PodAccessTunnelQueueImageScrollTexturePage(s32 vramX, s16 
 
 static void _shelterB1PodAccessTunnelPostGantryDialogueTask(Task* task);
 
-void func_shelter_b1_pod_access_tunnel_8017DA74(Task*);
-void func_shelter_b1_pod_access_tunnel_8017DC18(Task*);
+static void _shelterB1PodAccessTunnelRideToB2Task(Task* task);
+static void _shelterB1PodAccessTunnelTravelToGantryTask(Task* task);
 
-s32        func_shelter_b1_pod_access_tunnel_8017D7B4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1PodAccessTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB1PodAccessTunnelRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
-s32        func_shelter_b1_pod_access_tunnel_8017DD70(Task*, s32, s32, s32);
+static s32 _shelterB1PodAccessTunnelHandleCommandMessage(Task* task, s32 messageId, s32 command, s32 secondArg);
 static s32 _shelterB1PodAccessTunnelIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* actionRequest, s32 secondArg);
 static s32 _shelterB1PodAccessTunnelHandleSoundMessage(Task* task, s32 messageId, s32 soundCommand, s32 secondArg);
 
@@ -165,26 +178,26 @@ static void                     _shelterB1PodAccessTunnelStageSceneAudioStart(vo
 static void                     _shelterB1PodAccessTunnelStartScenePlayback(void);
 static void                     _shelterB1PodAccessTunnelFinishScene(void);
 static void                     _shelterB1PodAccessTunnelCancelScene(void);
-void                            func_shelter_b1_pod_access_tunnel_8017E41C(s32);
-void                            func_shelter_b1_pod_access_tunnel_8017E52C(s32);
-void                            func_shelter_b1_pod_access_tunnel_8017E704(void);
+static void                     _shelterB1PodAccessTunnelStartSceneCameraPan(s32 frameCount);
+static void                     _shelterB1PodAccessTunnelStartImageScroll(s32 frameCount);
+static void                     _shelterB1PodAccessTunnelStartFlightController(void);
 static void                     _shelterB1PodAccessTunnelStartGrayCapture(s32 frameCount);
 static void                     _shelterB1PodAccessTunnelCancelRoomEffects(void);
 
 TaskDesc D_shelter_b1_pod_access_tunnel_801810CC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b1_pod_access_tunnel_801810D8[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_pod_access_tunnel_8017D7B4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1PodAccessTunnelResolveRoomEvent },
     { SHELTER_B1_POD_ACCESS_TUNNEL_MESSAGE_USE_KEY_ITEM, _shelterB1PodAccessTunnelRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1PodAccessTunnelIgnoreActionMessage },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b1_pod_access_tunnel_8017DD70 },
+    { ROOM_MESSAGE_COMMAND, _shelterB1PodAccessTunnelHandleCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelterB1PodAccessTunnelHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b1_pod_access_tunnel_80181108[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_pod_access_tunnel_8017DA74, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b1_pod_access_tunnel_8017DC18, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB1PodAccessTunnelRideToB2Task, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB1PodAccessTunnelTravelToGantryTask, { .value = 0 } },
 };
 
 EvsCommand D_shelter_b1_pod_access_tunnel_80181120[7] = {
@@ -472,7 +485,7 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b1_pod_access_tunnel_8017E704 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB1PodAccessTunnelStartFlightController }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182F54 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182ED8 } }, { .value = 0 } },
@@ -488,9 +501,9 @@ EvsCommand D_shelter_b1_pod_access_tunnel_80182FFC[86] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182EEC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182F9C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_pod_access_tunnel_8017E52C }, { .value = 240 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1PodAccessTunnelStartImageScroll }, { .value = 240 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 44 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b1_pod_access_tunnel_8017E41C }, { .value = 150 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB1PodAccessTunnelStartSceneCameraPan }, { .value = 150 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182F00 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = &D_shelter_b1_pod_access_tunnel_80182FB4 } }, { .value = 0 } },
@@ -985,155 +998,257 @@ u8 D_shelter_b1_pod_access_tunnel_80184D0F = 225;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-
 #include "../../shared/room_event_staged_task.inc.c"
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Tests a one-time departure event and latches its inputs when execution is requested.
+///
+/// Borrows complete eight-byte destination and twelve-byte event records for this
+/// call; execution copies both into the room's single staged-event slot. A zero
+/// flag ID is always eligible; otherwise its nibble must be clear and is set to 1.
+/// Returns the room's HANDLED result when eligible, DEFAULT_DEPARTURE otherwise. Every call clears
+/// the event-start byte, including queries; execution sets it even if spawning
+/// fails. The staged task must finish before another event replaces the slot.
+static __inline__ s32 _shelterB1PodAccessTunnelStartEvent(const RoomEventMsg* destination, const RoomLatchedEvent* event)
 {
-    D_shelter_b1_pod_access_tunnel_80184D0C = 0;
-    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+    enum { EVENT_FLAG_CLEAR   = 0,
+           EVENT_FLAG_LATCHED = 1,
+           EVENT_NO_FLAG      = 0,
+           EVENT_NOT_STARTED  = 0,
+           EVENT_STARTED      = 1 };
+
+    D_shelter_b1_pod_access_tunnel_80184D0C = EVENT_NOT_STARTED;
+    if (gameFlagGetNibble(event->flagId) == EVENT_FLAG_CLEAR || event->flagId == EVENT_NO_FLAG) {
+        if (destination->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *destination;
             gRoomEventLatched   = *event;
-            if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+            if (event->flagId != EVENT_NO_FLAG) {
+                gameFlagSetNibble(event->flagId, EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&D_shelter_b1_pod_access_tunnel_801810CC, 0, 0, 0);
-            D_shelter_b1_pod_access_tunnel_80184D0C = 1;
+            D_shelter_b1_pod_access_tunnel_80184D0C = EVENT_STARTED;
         }
-        return 2;
+        return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_HANDLED;
     }
-    return 1;
+    return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_DEFAULT_DEPARTURE;
 }
 
-s32 func_shelter_b1_pod_access_tunnel_8017D7B4(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves tunnel departures and substitutes the progress-dependent dialogue or travel.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with a borrowed request and writable reply;
+/// they may alias. Copies the entire eight-byte record before resolving its room.
+/// Queries suppress departure effects except the staged-event helper's start-byte
+/// clear. Replies are BLOCKED, DEFAULT_DEPARTURE or HANDLED; task/messageId are
+/// unused. Execution can retain the resolved destination in the staged-event slot.
+/// The request remains mutable in the signature for the room-variant resolver's
+/// interface; this handler only reads it, apart from writes through an aliased reply.
+static s32 _shelterB1PodAccessTunnelResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
+    enum { CAP_LOCKED_R47_DOOR           = 3,
+           CAP_COMPANION_ROUTE_BLOCKED   = 4,
+           CAP_STERILIZATION_DEPARTURE   = 6,
+           CAP_GANTRY_RETURN_BLOCKED     = 8,
+           STORY_CHAPTER_GANTRY_TRANSIT  = 6,
+           COMPANION_ROUTE_STARTED       = 1,
+           COMPANION_ROUTE_BLOCKED       = 2,
+           COMPANION_R47_SCHEDULE        = 7,
+           MAP_FLAG_BLOCKED_DOOR         = 2,
+           EVENT_NO_FADE                 = 0,
+           STERILIZATION_DEPARTURE_SOUND = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B1_POD_ACCESS_TUNNEL, 1) };
+
     RoomLatchedEvent event;
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_R47) {
-        if (gameFlagGetNibble(GAME_FLAG_118) == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(8);
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_R47) {
+        if (gameFlagGetNibble(GAME_FLAG_118) == SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_COMPLETE) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(CAP_GANTRY_RETURN_BLOCKED);
             }
-            return 2;
+            return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_HANDLED;
         }
-        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= 6) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) >= STORY_CHAPTER_GANTRY_TRANSIT) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, 1, 0, 0);
+                taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_GANTRY, 0, 0);
             }
-            return 2;
+            return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_HANDLED;
         }
         if (gameFlagGetNibble(GAME_FLAG_B1_POD_TUNNEL_R47_DOOR_UNLOCKED) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibbleIfPresent(in->flagId, 2);
-                capRunCommandWithTransition(3);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibbleIfPresent(request->flagId, MAP_FLAG_BLOCKED_DOOR);
+                capRunCommandWithTransition(CAP_LOCKED_R47_DOOR);
             }
-            return 0;
+            return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_BLOCKED;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_0D1) == 0 && gameFlagGetNibble(GAME_FLAG_083) == 0) {
+        // Start the companion's R47 route once when that story branch is available.
+        if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_0D1) == 0 && gameFlagGetNibble(GAME_FLAG_083) == 0) {
             companionRestoreFullHp();
-            gameFlagSetNibble(GAME_FLAG_0D1, 1);
-            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 7);
+            gameFlagSetNibble(GAME_FLAG_0D1, COMPANION_ROUTE_STARTED);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_R47_SCHEDULE);
         }
     }
-    if (in->areaId == GAME_AREA_SHELTER_B1_STERILIZATION_ROOM) {
-        if (gameFlagGetNibble(GAME_FLAG_118) == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(8);
+    if (request->areaId == GAME_AREA_SHELTER_B1_STERILIZATION_ROOM) {
+        if (gameFlagGetNibble(GAME_FLAG_118) == SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_COMPLETE) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(CAP_GANTRY_RETURN_BLOCKED);
             }
-            return 2;
+            return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_HANDLED;
         }
-        if (gameFlagGetNibble(GAME_FLAG_0D1) == 2) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(4);
+        if (gameFlagGetNibble(GAME_FLAG_0D1) == COMPANION_ROUTE_BLOCKED) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(CAP_COMPANION_ROUTE_BLOCKED);
             }
-            return 2;
+            return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_HANDLED;
         }
-        event.capCmd   = 6;
-        event.stageSnd = 0x54110001;
+        // The first sterilization-room departure owns the CAP/sound/warp sequence.
+        event.capCmd   = CAP_STERILIZATION_DEPARTURE;
+        event.stageSnd = STERILIZATION_DEPARTURE_SOUND;
         event.flagId   = GAME_FLAG_B1_POD_TUNNEL_TO_STERILIZE_SCENE;
-        event.fade     = 0;
-        return _shelterB1PodAccessTunnelStartEvent(out, &event);
+        event.fade     = EVENT_NO_FADE;
+        return _shelterB1PodAccessTunnelStartEvent(reply, &event);
     }
-    return 1;
+    return SHELTER_B1_POD_ACCESS_TUNNEL_EVENT_DEFAULT_DEPARTURE;
 }
 
 /// The room task's three states: set-up, idle and exit.
 static const TaskFuncTable3 D_shelter_b1_pod_access_tunnel_8017D5D8 = {
-    { func_shelter_b1_pod_access_tunnel_8017DE10, _shelterB1PodAccessTunnelIdleTaskState, taskKill },
+    { _shelterB1PodAccessTunnelInitializeRoomTask, _shelterB1PodAccessTunnelIdleTaskState, taskKill },
 };
 
-void func_shelter_b1_pod_access_tunnel_8017DA74(Task* task)
+/// Commits the confirmed pod ride's arrival and schedules the saved-state reload.
+static inline void _shelterB1PodAccessTunnelCommitB2Ride(Task* task)
 {
-    s32 room;
+    enum { RIDE_ARRIVAL_WARP             = 3,
+           RIDE_DEFAULT_ROOM             = 1,
+           RELOAD_CAPTURE_SPRITE_VARIANT = 1 };
+    s32 gantryReturnProgress;
+
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = RIDE_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = RIDE_DEFAULT_ROOM;
+    gantryReturnProgress                                       = gameFlagGetNibble(GAME_FLAG_118);
+    if (gantryReturnProgress == SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_COMPLETE) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gantryReturnProgress;
+    }
+    gDisplayState.spriteVariant = RELOAD_CAPTURE_SPRITE_VARIANT;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskKill(task);
+}
+
+/// Prompts for the pod ride, waits for its sound, then reloads into B2 arrival 3.
+///
+/// Start as a bodyless task in state 0 with player scripted control held.
+/// States 0..4 are prompt, wait CAP, interpret choice, wait sound and departure.
+/// CAP key 10 accepts; key 1 declines and marks the pod, other keys only decline.
+/// Declining restores actor/player control. Accepting selects B2 room 1, or room
+/// 2 after the gantry return. The room overlay and CAP/sound resources must stay
+/// loaded until the task ends; spawn arguments are unused.
+static void _shelterB1PodAccessTunnelRideToB2Task(Task* task)
+{
+    enum { RIDE_PROMPT,
+           RIDE_WAIT_CAP,
+           RIDE_INTERPRET_CHOICE,
+           RIDE_WAIT_SOUND,
+           RIDE_DEPART,
+           RIDE_CAP_PROMPT           = 1,
+           RIDE_CAP_ALTERNATE_PROMPT = 5,
+           RIDE_CHOICE_ACCEPT        = 10,
+           RIDE_CHOICE_MARK_POD      = 1,
+           RIDE_MAP_MARK_VISIBLE     = 2,
+           RIDE_MAP_MARK_HIDDEN      = 0 };
 
     switch (task->state) {
-        case 0:
-            capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_0FC) != 0 ? 5 : 1);
+        case RIDE_PROMPT:
+            capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_0FC) != 0 ? RIDE_CAP_ALTERNATE_PROMPT : RIDE_CAP_PROMPT);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state++;
             break;
-        case 1:
+        case RIDE_WAIT_CAP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 2:
-            if (capGetVariantKey() != 0xA) {
-                if (capGetVariantKey() == 1) {
-                    gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 2);
+        case RIDE_INTERPRET_CHOICE:
+            if (capGetVariantKey() != RIDE_CHOICE_ACCEPT) {
+                if (capGetVariantKey() == RIDE_CHOICE_MARK_POD) {
+                    gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, RIDE_MAP_MARK_VISIBLE);
                 }
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 return;
             }
-            gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, 0);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD, RIDE_MAP_MARK_HIDDEN);
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2, 0, 0);
             task->state++;
             break;
-        case 3:
+        case RIDE_WAIT_SOUND:
             if (sndScriptHasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_RIDE_TO_B2) == 0) {
                 task->state++;
             }
             break;
-        case 4:
-            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_POD_ACCESS_TUNNEL;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-            room                                                       = gameFlagGetNibble(GAME_FLAG_118);
-            if (room == 2) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
-            }
-            gDisplayState.spriteVariant = 1;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(task);
+        case RIDE_DEPART:
+            // Keep actor control held while the reload replaces this room.
+            _shelterB1PodAccessTunnelCommitB2Ride(task);
             break;
     }
 }
 
-void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
+/// Commits the gantry access flags, arrival and scene selection before reloading.
+static inline void _shelterB1PodAccessTunnelCommitGantryTransit(Task* task)
 {
+    enum { GANTRY_DOOR_UNLOCKED          = 1,
+           GANTRY_MAP_MARK_HIDDEN        = 0,
+           GANTRY_SCENE_EVENT            = 28,
+           GANTRY_ARRIVAL_WARP           = 1,
+           GANTRY_ARRIVAL_ROOM           = 1,
+           RELOAD_CAPTURE_SPRITE_VARIANT = 1 };
+
+    gameFlagSetNibble(GAME_FLAG_B2_POD_TUNNEL_R48_DOOR_UNLOCKED, GANTRY_DOOR_UNLOCKED);
+    gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY, GANTRY_MAP_MARK_HIDDEN);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent        = GANTRY_SCENE_EVENT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = GANTRY_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = GANTRY_ARRIVAL_ROOM;
+    gDisplayState.spriteVariant                                = RELOAD_CAPTURE_SPRITE_VARIANT;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskKill(task);
+}
+
+/// Prompts for the gantry transit and reloads there after the accepted travel sound.
+///
+/// Start as a bodyless task in state 0 with player scripted control held.
+/// States 0..4 are prompt, wait CAP, interpret choice, wait sound and departure.
+/// CAP key 10 accepts; every other key restores actor/player control and ends.
+/// Acceptance unlocks the B2 R48 door, hides the gantry marker and selects scene
+/// event 28 and gantry room/arrival 1. Keep this overlay and CAP/sound resources
+/// loaded until completion; spawn arguments are unused.
+static void _shelterB1PodAccessTunnelTravelToGantryTask(Task* task)
+{
+    enum { GANTRY_PROMPT,
+           GANTRY_WAIT_CAP,
+           GANTRY_INTERPRET_CHOICE,
+           GANTRY_WAIT_SOUND,
+           GANTRY_DEPART,
+           GANTRY_CAP_PROMPT    = 9,
+           GANTRY_CHOICE_ACCEPT = 10 };
+
     switch (task->state) {
-        case 0:
-            capRunCommandWithTransition(9);
+        case GANTRY_PROMPT:
+            capRunCommandWithTransition(GANTRY_CAP_PROMPT);
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_PAUSED;
             task->state++;
             break;
-        case 1:
+        case GANTRY_WAIT_CAP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 2:
-            if (capGetVariantKey() != 0xA) {
+        case GANTRY_INTERPRET_CHOICE:
+            if (capGetVariantKey() != GANTRY_CHOICE_ACCEPT) {
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -1142,21 +1257,14 @@ void func_shelter_b1_pod_access_tunnel_8017DC18(Task* task)
             sndEvtRequestScriptStart(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT, 0, 0);
             task->state++;
             break;
-        case 3:
+        case GANTRY_WAIT_SOUND:
             if (sndScriptHasActiveId(SOUND_SHELTER_B1_POD_TUNNEL_GANTRY_TRANSIT) == 0) {
                 task->state++;
             }
             break;
-        case 4:
-            gameFlagSetNibble(GAME_FLAG_B2_POD_TUNNEL_R48_DOOR_UNLOCKED, 1);
-            gameFlagSetNibble(GAME_FLAG_MAP_MARK_POD_SERVICE_GANTRY, 0);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent        = 0x1C;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_POD_SERVICE_GANTRY;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-            gDisplayState.spriteVariant                                = 1;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(task);
+        case GANTRY_DEPART:
+            // The reload owns restoring control after the destination is installed.
+            _shelterB1PodAccessTunnelCommitGantryTransit(task);
             break;
     }
 }
@@ -1169,15 +1277,24 @@ static s32 _shelterB1PodAccessTunnelRejectKeyItemMessage(Task* task, s32 message
     return 0;
 }
 
-s32 func_shelter_b1_pod_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles pod command 1, showing its first-use CAP or starting the B2 ride prompt.
+///
+/// Receives `ROOM_MESSAGE_COMMAND`; task, message ID and second argument are unused.
+/// The first use records its flag before running CAP command 10. Later uses hold
+/// player control for the ride task. Other commands do nothing; always returns 0.
+static s32 _shelterB1PodAccessTunnelHandleCommandMessage(Task* task, s32 messageId, s32 command, s32 secondArg)
 {
-    if (arg2 == 1) {
+    enum { COMMAND_USE_POD        = 1,
+           POD_FIRST_USE_RECORDED = 1,
+           CAP_POD_FIRST_USE      = 10 };
+
+    if (command == COMMAND_USE_POD) {
         if (gameFlagGetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE) != 0) {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, 0, 0, 0);
+            taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80181108, SHELTER_B1_POD_ACCESS_TUNNEL_TRAVEL_TO_B2, 0, 0);
         } else {
-            gameFlagSetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE, 1);
-            capRunCommandWithTransition(0xA);
+            gameFlagSetNibble(GAME_FLAG_B1_POD_ACCESS_TUNNEL_FIRST_USE, POD_FIRST_USE_RECORDED);
+            capRunCommandWithTransition(CAP_POD_FIRST_USE);
         }
     }
     return 0;
@@ -1204,20 +1321,34 @@ static s32 _shelterB1PodAccessTunnelHandleSoundMessage(Task* task, s32 messageId
     return 0;
 }
 
-static void func_shelter_b1_pod_access_tunnel_8017DE10(Task* arg0)
+/// Registers the room controller and starts the entry sequence selected by progress.
+///
+/// Requires a bodyless room task in state 0 and live room/event resources.
+/// A pending gantry return takes precedence: starts its dialogue, advances the
+/// progress flag to 2 and selects objective 55. Otherwise the first entry starts
+/// the skippable pod scene, selects objective 30 and records it as seen immediately.
+/// Advances to idle even if a child spawn fails; message table and callbacks must
+/// remain loaded while the registered room task is live.
+static void _shelterB1PodAccessTunnelInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_b1_pod_access_tunnel_801810D8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_118) == 1) {
+    enum { ROOM_IDLE                 = 1,
+           ENTRY_SCENE_RECORDED      = 1,
+           OBJECTIVE_FIRST_POD_ENTRY = 30,
+           OBJECTIVE_AFTER_GANTRY    = 55 };
+
+    task->msgTable = D_shelter_b1_pod_access_tunnel_801810D8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gameFlagGetNibble(GAME_FLAG_118) == SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_PENDING) {
+        // Consume the gantry return before considering the one-time entry scene.
         taskSpawnFromTable(&D_shelter_b1_pod_access_tunnel_801811C8, 0, 0, 0);
-        gameFlagSetNibble(GAME_FLAG_118, 2);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x37);
+        gameFlagSetNibble(GAME_FLAG_118, SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_COMPLETE);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_AFTER_GANTRY);
     } else if (gameFlagGetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN) == 0) {
         evsStartScriptWithSkip(D_shelter_b1_pod_access_tunnel_80182FFC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b1_pod_access_tunnel_8018380C);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x1E);
-        gameFlagSetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN, 1);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, OBJECTIVE_FIRST_POD_ENTRY);
+        gameFlagSetNibble(GAME_FLAG_POD_ACCESS_TUNNEL_SCENE_SEEN, ENTRY_SCENE_RECORDED);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + ROOM_IDLE;
 }
 
 /// Keeps the initialized room task alive without advancing its state or changing it.
@@ -1416,9 +1547,19 @@ static void _shelterB1PodAccessTunnelCancelScene(void)
     cdCmdCancelScene();
 }
 
-void func_shelter_b1_pod_access_tunnel_8017E41C(s32 arg0)
+/// Starts the scene camera's negative-local-Y pan for `frameCount` frame updates.
+///
+/// The entry script supplies 150; positive durations must fit the task's signed
+/// halfword move counter (1..32767); nonpositive counts perform no moves.
+/// The task ends on reaching that count or
+/// leaving logical view 11. The descriptor is consumed synchronously; keep this
+/// overlay and the edited camera live until the task completes. Spawn failure
+/// is ignored. No payload storage is retained.
+static void _shelterB1PodAccessTunnelStartSceneCameraPan(s32 frameCount)
 {
-    taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, 0, arg0, 0);
+    enum { SCENE_CAMERA_PAN_TASK_INDEX = 0 };
+
+    taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, SCENE_CAMERA_PAN_TASK_INDEX, frameCount, 0);
 }
 
 /// Moves the pod-pan camera origin along negative camera Y for a fixed duration.
@@ -1452,9 +1593,20 @@ static void _shelterB1PodAccessTunnelPanSceneCameraTask(Task* task)
     taskKill(task);
 }
 
-void func_shelter_b1_pod_access_tunnel_8017E52C(s32 arg0)
+/// Starts the pod-chamber image scroll with a `frameCount`-frame nominal line rate.
+///
+/// Requires a positive duration; the entry script supplies 240. The task holds
+/// the lower image for another 46 draws and uses a truncated 16.16 rate, so the
+/// nominal duration does not guarantee exact completion. It keeps drawing until
+/// a view becomes ready or the event ends. Start in logical view 11 and keep this
+/// overlay, both images and current graphics buffers live; end the event before
+/// the signed halfword timer or fixed-point offset overflows. The descriptor is
+/// consumed synchronously, task teardown owns its work, and spawn failure is ignored.
+static void _shelterB1PodAccessTunnelStartImageScroll(s32 frameCount)
 {
-    taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, 1, arg0, 0);
+    enum { IMAGE_SCROLL_TASK_INDEX = 1 };
+
+    taskSpawnFromTable(D_shelter_b1_pod_access_tunnel_80182D2C, IMAGE_SCROLL_TASK_INDEX, frameCount, 0);
 }
 
 /// The image-scroll task's three states: set-up, scroll and exit.
@@ -1528,9 +1680,18 @@ static void _shelterB1PodAccessTunnelQueueImageScrollTexturePage(s32 vramX, s16 
     addPrim(gGpuCurrentOt + IMAGE_SCROLL_ORDERING_SLOT, drawMode);
 }
 
-void func_shelter_b1_pod_access_tunnel_8017E704(void)
+/// Starts the entry scene's unfolding flying model and its attached beam.
+///
+/// Actor package 141000 must be loaded: descriptor 0 creates the model-owning
+/// controller, which unfolds, holds and follows its recorded flight path.
+/// Keep that actor overlay and its model resources loaded until a ready view
+/// releases the controller and its beam. The descriptor is consumed synchronously;
+/// the new task owns its body and work, and spawn failure is ignored.
+static void _shelterB1PodAccessTunnelStartFlightController(void)
 {
-    taskSpawnFromTable(D_actor_141000_801348D8, 0, 0, 0);
+    enum { FLIGHT_CONTROLLER_TASK_INDEX = 0 };
+
+    taskSpawnFromTable(D_actor_141000_801348D8, FLIGHT_CONTROLLER_TASK_INDEX, 0, 0);
 }
 
 /// Queues a gray captured-frame display task lasting `frameCount + 1` ticks.

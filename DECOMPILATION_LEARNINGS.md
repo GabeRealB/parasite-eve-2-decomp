@@ -150023,7 +150023,7 @@ attempts; left as it was.
   eliminable biv and `&p->key` is reduced instead (`addiu v1,v0,5`, `lw
   3(v1)`).
 - **`goto L_idle` / `goto L_advance` chains in a five-state room task**
-  (`func_shelter_b1_pod_access_tunnel_8017DA74`, `_8017DC18`) are
+  (`_shelterB1PodAccessTunnelRideToB2Task`, `_shelterB1PodAccessTunnelTravelToGantryTask`) are
   `if (busy() == 0) task->state++; break;` per case; first try.
 - **`ok` / `flag` goto pairs in a text advance** (`checkChoice` / `checkCaret`
   / `drawCaret` in `func_800E44A0`) were one `(a && b && (c || d) && e && !f)

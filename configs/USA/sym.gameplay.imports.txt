@@ -1357,7 +1357,7 @@ shelterR48InitRingsAndDrawGlowTask = 0x8017E3B8; // type:func absolute:True owne
 
 func_shelter_r48_8017E4C4 = 0x8017E4C4; // type:func absolute:True owner=shelter_r48
 
-func_shelter_r48_8017E704 = 0x8017E704; // type:func absolute:True owner=shelter_r48 shared=rooms
+func_shelter_r48_8017E704 = 0x8017E704; // type:func absolute:True owner=shelter_r48
 
 func_shelter_r48_8017E9B8 = 0x8017E9B8; // type:func absolute:True owner=shelter_r48
 
