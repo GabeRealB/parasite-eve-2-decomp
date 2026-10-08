@@ -1789,10 +1789,12 @@ static void _acropolisPatioInitializeRoomTask(Task* task)
     task->state = task->state + 1;
 }
 
-/// Starts the door sequence and retains only its requested arrival selectors.
+/// Starts the cafeteria-door choice and records its deferred arrival selectors.
 ///
-/// Borrows the request for this call. Marks the Parthenon Key identified and
-/// records warp/room after the spawn; task-spawn failure is not inspected.
+/// Borrows a complete transition request for this call; retains no pointer.
+/// Marks the Parthenon Key identified and copies warp/room bytes after the
+/// spawn, even on allocation failure. The singleton arrival must remain intact
+/// until the accepted door scene commits it to the live save for reload.
 static inline void _acropolisPatioStartCafeteriaDoorSequence(const RoomEventMsg* request)
 {
     enum {
@@ -1896,13 +1898,18 @@ static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId,
 
 /// Transfers the accepted door arrival to captured-frame reload and releases its task.
 ///
-/// Requires the saved warp/room recorded by the door sequence and live reload
-/// resources. Stops nonambient sound before committing the cafeteria destination.
+/// Requires the deferred warp/room bytes and a live bodyless door-scene task.
+/// Stops nonambient sound before committing the cafeteria destination to the
+/// live save; room-byte assignment retains its bit pattern in the signed saved
+/// selector. Selects sprite variant 1 and kills this task after requesting
+/// captured-frame reload, including when reload allocation fails.
 static inline void _acropolisPatioCommitCafeteriaDeparture(Task* task)
 {
+    enum { ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT = 1 };
+
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_CAFETERIA;
-    gDisplayState.spriteVariant                                = 1;
+    gDisplayState.spriteVariant                                = ACROPOLIS_PATIO_CAFETERIA_SPRITE_VARIANT;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_patio_80187064;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_patio_80187065;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);

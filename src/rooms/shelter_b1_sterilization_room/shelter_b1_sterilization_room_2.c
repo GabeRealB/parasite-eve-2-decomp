@@ -1089,8 +1089,11 @@ static void _shelterB1SterilizationRoomResetCapResource(s32 selectSceneFile)
 
 /// Resets CAP playback and binds the loaded trap-scene dialogue resource and texture.
 ///
-/// Requires stopped playback, loaded writable data-resource ordinal 1 and its
-/// texture at VRAM (704,256). The selected tables remain borrowed until reset.
+/// Requires stopped playback, loaded writable CAP data-resource ordinal 1
+/// (zero-based among data slots) and its texture at VRAM (704,256) in 16-bit
+/// pixels. First restores default selection, then clears the current-file
+/// pointer before selecting/relocating the scene resource. No allocation or I/O
+/// occurs; its storage remains borrowed while the selected tables are used.
 static inline void _shelterB1SterilizationRoomSelectSceneCap(void)
 {
     enum { SCENE_FILE_ORDINAL   = 1,

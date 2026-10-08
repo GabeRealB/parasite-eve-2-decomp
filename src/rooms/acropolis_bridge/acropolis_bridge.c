@@ -6001,7 +6001,11 @@ static inline s32 _acropolisBridgeFindAttackContact(SVECTOR* hitPoint, const Wor
 
 /// Marks whether this update enters a different bridge-enemy behavior state.
 ///
-/// Runs after hit processing, which can change the live work's state.
+/// Borrows initialized writable enemy work. A changed state sets the signed
+/// halfword entry latch to 1; an unchanged state clears it to 0. Commits the
+/// current state as the next comparison after hit processing, so hit-driven
+/// transitions receive entry handling too. Initial previous state -1 marks
+/// the first active update as an entry. No pointer is retained.
 static inline void _acropolisBridgeTrackEnemyStateEntry(_AcropolisBridgeEnemyWork* work)
 {
     if (work->prevState != work->state) {

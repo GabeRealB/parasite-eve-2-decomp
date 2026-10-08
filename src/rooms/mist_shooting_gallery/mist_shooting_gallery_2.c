@@ -2625,11 +2625,15 @@ static void _mistShootingGalleryRunCourse0(Task* controller)
 
 /// Advances one tick of a finite course script, holding at its end marker.
 ///
-/// Borrows initialized controller/work and script storage. Equal frame keys
-/// spawn together, WAIT_CLEAR advances only with no live targets and END holds
-/// the cursor. Every equal-frame run must have a following record in the script;
+/// Borrows initialized controller/work and read-only script storage; `work`
+/// must be the controller's work because target spawning updates its live count.
+/// Equal frame keys spawn together, WAIT_CLEAR advances only with no live
+/// targets and END holds the cursor. Every equal-frame run must have a following
+/// record in the script;
 /// the cursor must start in bounds and the script must end before that extent.
-/// Indices count records; script frames saturate below every marker value.
+/// Indices count records; script frames count active wave ticks and saturate
+/// below every marker value. Spawn failure still consumes the record; WAIT_CLEAR
+/// and END freeze the frame counter. No script pointer is retained.
 static inline void _mistShootingGalleryStepFiniteWaves(Task* controller, MistShootingGalleryWork* work, const _MistShootingGallerySpawn* script)
 {
     const _MistShootingGallerySpawn* spawn;

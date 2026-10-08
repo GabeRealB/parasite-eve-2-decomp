@@ -120226,9 +120226,9 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run. Scratch
 `nonmatchings/_neoArkAltarResetTileSequence-vacuum`.
 
-## A loop's RTL insn count decides whether its constant is hoisted (func_neo_ark_altar_8017DF0C, 2026-09-17)
+## A loop's RTL insn count decides whether its constant is hoisted (_neoArkAltarTrackTileSequence, 2026-09-17)
 
-The loop `if (grow == 1 && (work->currentTile - 1) == i)` tests a flag against the
+The loop `if (raiseWalls == 1 && (work->currentTile - 1) == tileIndex)` tests a flag against the
 literal `1`. The target materialises that `1` **inside** the loop -- `li $v0,1`
 sits in the back-edge delay slot, and the loop head re-tests `$v0` -- while the
 same C compiled by us put the `li` in the preheader and homed it in `$s3`: the
@@ -120260,25 +120260,25 @@ One that stays in the loop is set and used inside one iteration -- the value is
 deletes still counts.** Two dead stores to a local raise it from 28 to 30:
 
 ```c
-            work->wallTileIndex = i;
-            level             = 0;
-            level             = 1;
+            work->wallTileIndex = tileIndex;
+            height             = 0;
+            height             = 1;
             work->wallHeight += (NEO_ARK_ALTAR_WALL_HEIGHT_FULL - work->wallHeight) >> 1;
 ```
 
 The second must differ from the first: `cse` deletes a repeated
-`(set (reg) (const))` as redundant, so `level = 0; level = 0;` adds only one.
+`(set (reg) (const))` as redundant, so `height = 0; height = 0;` adds only one.
 `flow.c` then removes both, leaving no trace in the object. The lever is
 general: to keep a loop-invariant constant in a caller-saved register, count the
 loop's insns in `.loop` and pad to `threshold + 1` before looking for a source
 difference.
 
-## Splitting a pointer chain around a store is what lets the scheduler reach into a load-delay slot (func_neo_ark_altar_8017DF0C, 2026-09-17)
+## Splitting a pointer chain around a store is what lets the scheduler reach into a load-delay slot (_neoArkAltarTrackTileSequence, 2026-09-17)
 
 The entry block's `lw $s1, 0x1C($s0)` is followed in the target by the
 `lw $v0, %lo(gPlayerActorTasks)($v0)` of the *next* statement, filling the load-delay
 slot, and only then by `lhu $v1, 8($s1)`. Written as one expression --
-`coord = (*gPlayerActorTasks)->extra->coords;` after `work->previousTile =
+`playerRoot = (*gPlayerActorTasks)->extra.tmd->coords;` after `work->previousTile =
 work->currentTile;` -- sched1 cannot do that: **the scheduler will not move a load
 above a store** (no aliasing information), so the `%hi`/`%lo` pair stays behind
 the `sh` and the delay slot keeps its `nop`. The store's value also gets `$v0`,
@@ -120288,9 +120288,9 @@ Reading the first link into a local splits the chain around the store, and the
 target's schedule follows:
 
 ```c
-    actor              = *gPlayerActorTasks;
+    playerTask         = *gPlayerActorTasks;
     work->previousTile = work->currentTile;
-    coord              = actor->extra->coords;
+    playerRoot         = playerTask->extra.tmd->coords;
 ```
 
 100.000%, all penalties zero. The tell is a `nop` in a load-delay slot the
@@ -120307,7 +120307,7 @@ Inputs: `base_8.i` (95.192%) SHA256
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run (the router skipped: the frame difference
 made the block connections differ). Scratch
-`nonmatchings/func_neo_ark_altar_8017DF0C-vacuum`.
+`nonmatchings/_neoArkAltarTrackTileSequence-vacuum`.
 
 ## A two-value default written as a ternary becomes a skip block cse follows; an if/else into a stack field ends the path (_actor141000StartAyaBreaWalk, 2026-09-17)
 
@@ -122394,7 +122394,7 @@ much of the tail merges**. An arm whose own copy is adjacent to its `lw` merges
 the whole thing and jumps to the `lw`; an arm with anything between the `lw` and
 the `addu` (a `sh` of a countdown, a call) merges only the `addu`/`sw` and jumps
 one instruction later - the same two entry points the matched
-`func_neo_ark_altar_8017D668` shows at `.L8017D844` / `.L8017D848`.
+`_neoArkAltarSwitchSceneTask` shows at `.L8017D844` / `.L8017D848`.
 
 Case 0 is `D_8007216C = 8; gGameSession->hideHud = 1; gGameSession->eventState = 1;
 D_801153F4 = 2; task->state++;`. Written with `D_801153F4` as a plain

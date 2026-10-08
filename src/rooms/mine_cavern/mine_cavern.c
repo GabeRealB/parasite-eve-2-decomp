@@ -237,6 +237,9 @@ enum {
 };
 
 /// Records the first open-passage departure and resets its subsequent dialogue.
+///
+/// Requires live saved flags. The transition caller invokes this only for an
+/// executing open-passage exit not yet at progress 2; queries do not commit it.
 static inline void _mineCavernCommitPassageEntry(void)
 {
     gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, MINE_CAVERN_PASSAGE_PROGRESS_ENTERED);
@@ -297,6 +300,12 @@ s32 mineCavernResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEvent
 }
 
 /// Runs a passage caption and spawns the task that commits its final choice.
+///
+/// `commandIndex` selects a loaded room CAP command (callers use 5 or 18).
+/// Playback uses a queued display transition and this function does not wait.
+/// The independent watcher reads CAP's retained final choice after playback;
+/// loaded caption and task resources must survive until both complete.
+/// Watcher allocation failure is not reported and does not cancel playback.
 static inline void _mineCavernRunCaptionAndWatchProgress(s32 commandIndex)
 {
     capRunCommandWithTransition(commandIndex);
@@ -428,7 +437,9 @@ void mineCavernCommitCaptionProgressTask(Task* task)
 
 /// Requests the one-time intro and resets its scripted battle-release credit.
 ///
-/// Marks the intro seen even if allocating the event task fails.
+/// Requires live flags and loaded normal/skip scripts through event completion.
+/// The variant-1 room initializer gates this on the unseen flag. Script start
+/// precedes the release-count reset and seen flag, including on spawn failure.
 static inline void _mineCavernStartIntroEvent(void)
 {
     enum { MINE_CAVERN_INTRO_SEEN = 1 };

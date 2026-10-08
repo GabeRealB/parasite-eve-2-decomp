@@ -1081,9 +1081,12 @@ static s32 _acropolisCafeteriaResolveRoomTransition(Task* unusedTask, s32 messag
 
 /// Covers the centered 320-by-256 frame while the battle layout is replaced.
 ///
-/// Borrows one `TILE` from the frame primitive arena and links it at depth 10.
+/// Requires a word-aligned frame primitive cursor with room for one `TILE`
+/// and an ordering table with index 10. The opaque black packet is borrowed
+/// until GPU drawing completes; screen coordinates are centered pixels.
 static inline void _acropolisCafeteriaDrawBattleBlackout(void)
 {
+    enum { ACROPOLIS_CAFETERIA_BLACKOUT_OT_INDEX = 10 };
     TILE* tile;
 
     tile           = gGpuPrimCursor;
@@ -1096,7 +1099,7 @@ static inline void _acropolisCafeteriaDrawBattleBlackout(void)
     tile->r0 = 0;
     tile->g0 = 0;
     tile->b0 = 0;
-    addPrim(&gGpuCurrentOt[10], tile);
+    addPrim(&gGpuCurrentOt[ACROPOLIS_CAFETERIA_BLACKOUT_OT_INDEX], tile);
 }
 
 /// Runs the cafeteria introduction, hidden layout swap, battle and aftermath.

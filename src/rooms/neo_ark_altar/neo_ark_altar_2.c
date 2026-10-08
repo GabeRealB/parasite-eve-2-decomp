@@ -73,6 +73,14 @@ STATIC_ASSERT_SIZEOF(_NeoArkAltarTile, 0xC);
 /// in world units.
 enum { NEO_ARK_ALTAR_WALL_HEIGHT_FULL = 3000 };
 
+// Results shared by tile-sequence evaluation and the tracking state.
+enum {
+    NEO_ARK_ALTAR_SEQUENCE_IDLE           = 0,
+    NEO_ARK_ALTAR_SEQUENCE_FIRST_SOLVED   = 1,
+    NEO_ARK_ALTAR_SEQUENCE_SECOND_SOLVED  = 2,
+    NEO_ARK_ALTAR_SEQUENCE_PREFIX_MATCHED = 3,
+};
+
 /// Work block of the altar's tile-sequence task.
 ///
 /// Allocated zeroed when the task starts and kept in `Task::work`. While the
@@ -106,7 +114,7 @@ extern AreaApplyRec     D_neo_ark_altar_8018007C[];
 
 static void _neoArkAltarDrawTileWallSide(const SVECTOR* floorStart, const SVECTOR* floorEnd, const SVECTOR* raisedStart, const SVECTOR* unusedRaisedEnd);
 static s16  _neoArkAltarFindTile(const _NeoArkAltarTile* table, s16 x, s16 z);
-static s16  func_neo_ark_altar_8017E260(Task* task);
+static s16  _neoArkAltarEvaluateTileSequence(Task* task);
 static void _neoArkAltarDrawTileWalls(s16 tileIndex, s32 height);
 
 extern WorldCollisionGrid    D_neo_ark_altar_8017F57C[1];
@@ -493,13 +501,13 @@ static void _neoArkAltarBeginSequenceMovieFade(Task* task);
 
 static void _neoArkAltarFadeToBlack(Task* task);
 
-static void func_neo_ark_altar_8017EE90(Task* task);
+static void _neoArkAltarStartSequenceMovie(Task* task);
 
 static void _neoArkAltarSelectPostSequenceRoom(Task* task);
 
 static void _neoArkAltarResumeTileSequence(Task* task);
 
-static void func_neo_ark_altar_8017DF0C(Task* task);
+static void _neoArkAltarTrackTileSequence(Task* task);
 static void _neoArkAltarResetTileSequence(void);
 
 /// Queues the current room's altar movie selected by the task's spawn argument.
@@ -721,82 +729,88 @@ void neoArkAltarStepSwitchSprites(s32 switchChoice)
 
 #undef NEO_ARK_ALTAR_SELECT_SWITCH_FRAME
 
-/// Altar state 2: records the tile the player walks onto and, while
-/// `func_neo_ark_altar_8017E260` reports the altar sequence has matched, raises
-/// the wall of the tile the player stands on. `_neoArkAltarFindTile`
-/// resolves the player coordinate to a tile id, which is pushed onto
-/// `D_neo_ark_altar_801800B0` whenever it changes; the returned sequence state
-/// picks the sound and area record set for the frame and, at 3, arms
-/// `var_s2`, which raises the matching tile by half the remaining distance to
-/// `NEO_ARK_ALTAR_WALL_HEIGHT_FULL` per frame. With no tile raised,
-/// `wallHeight` instead decays by a quarter towards 0 while `wallTileIndex`
-/// still names a valid tile.
-static void func_neo_ark_altar_8017DF0C(Task* task)
+/// Tracks newly entered altar tiles, sequence progress and rising tile walls.
+///
+/// Runs in state 2 with initialized owned work, a live player model and loaded
+/// tile/area resources. Records only no-tile-to-tile entries (IDs 1..4), then
+/// commits the first solution or enters the second solution's movie fade.
+/// A valid sequence prefix raises the current tile's walls halfway toward
+/// 3000 world units each frame; otherwise they decay by a quarter and are drawn
+/// down to 11 units. Requires one controller sharing the history: mismatches
+/// reset its count, and a 16-entry solution pauses tracking with a nonzero
+/// current tile, so resuming evaluates/resets before another entry is appended.
+static void _neoArkAltarTrackTileSequence(Task* task)
 {
     _NeoArkAltarTileSequenceWork* work;
-    GfxCoord*                     coord;
-    Task*                         actor;
-    s32                           prev;
-    s16                           cur;
-    s16                           level;
-    s32                           i;
-    s32                           grow;
-    s16                           found;
+    GfxCoord*                     playerRoot;
+    Task*                         playerTask;
+    s32                           previousTile;
+    s16                           currentTile;
+    s16                           height;
+    s32                           tileIndex;
+    s32                           raiseWalls;
+    s16                           wallRaised;
+
+    enum {
+        NEO_ARK_ALTAR_TILE_COUNT                    = 4,
+        NEO_ARK_ALTAR_FIRST_SOLVED_CAP_COMMAND      = 1,
+        NEO_ARK_ALTAR_FIRST_SOLVED_STOP_SOUND_ENTRY = 3,
+        NEO_ARK_ALTAR_STATE_BEGIN_SEQUENCE_MOVIE    = 3,
+        NEO_ARK_ALTAR_WALL_MIN_DRAW_HEIGHT          = 11,
+    };
 
     work               = task->work;
-    actor              = *gPlayerActorTasks;
+    playerTask         = *gPlayerActorTasks;
     work->previousTile = work->currentTile;
-    grow               = 0;
-    coord              = actor->extra.tmd->coords;
-    cur                = _neoArkAltarFindTile(D_neo_ark_altar_8017EFD8, (s16)coord->coord.t[0], (s16)coord->coord.t[2]);
-    prev               = work->previousTile;
-    work->currentTile  = cur;
-    if (cur != prev && prev == 0) {
-        work->enteredTile                                  = cur;
+    raiseWalls         = 0;
+    playerRoot         = playerTask->extra.tmd->coords;
+    currentTile        = _neoArkAltarFindTile(D_neo_ark_altar_8017EFD8, (s16)playerRoot->coord.t[0], (s16)playerRoot->coord.t[2]);
+    previousTile       = work->previousTile;
+    work->currentTile  = currentTile;
+    // Record only entry from outside a tile, not a direct tile-to-tile crossing.
+    if (currentTile != previousTile && previousTile == 0) {
+        work->enteredTile                                  = currentTile;
         D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC] = work->currentTile;
         D_neo_ark_altar_801800AC                           = (u16)D_neo_ark_altar_801800AC + 1;
     } else {
         work->enteredTile = 0;
     }
-    switch (func_neo_ark_altar_8017E260(task)) {
-        case 1:
+    switch (_neoArkAltarEvaluateTileSequence(task)) {
+        case NEO_ARK_ALTAR_SEQUENCE_FIRST_SOLVED:
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 1);
             gameFlagSetNibble(GAME_FLAG_MAP_MARK_ALTAR, 0);
-            sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 3), SOUND_SCRIPT_STOP_NO_FADE);
+            sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, NEO_ARK_ALTAR_FIRST_SOLVED_STOP_SOUND_ENTRY), SOUND_SCRIPT_STOP_NO_FADE);
             sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED, 0, 0);
-            capRunCommandWithTransition(1);
+            capRunCommandWithTransition(NEO_ARK_ALTAR_FIRST_SOLVED_CAP_COMMAND);
             areaApplySavedUpdates(D_neo_ark_altar_8018007C);
             break;
-        case 2:
+        case NEO_ARK_ALTAR_SEQUENCE_SECOND_SOLVED:
             gameFlagSetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 1);
-            task->state = 3;
+            task->state = NEO_ARK_ALTAR_STATE_BEGIN_SEQUENCE_MOVIE;
             break;
-        case 3:
-            grow = 1;
+        case NEO_ARK_ALTAR_SEQUENCE_PREFIX_MATCHED:
+            raiseWalls = 1;
             break;
     }
-    found = 0;
-    for (i = 0; i < 4; i++) {
-        if (grow == 1 && (work->currentTile - 1) == i) {
-            work->wallTileIndex = i;
-            /* Two dead stores: loop.c only keeps the `grow == 1` constant
-               inside the loop (and so in a caller-saved register, remade in
-               the back-edge delay slot) while the loop holds 30 RTL insns.
-               At the 28 this body otherwise compiles to it is hoisted, which
-               costs an extra saved register and an 8-byte frame. */
-            level             = 0;
-            level             = 1;
+    // Ease the matching tile upward; otherwise lower the last raised walls.
+    wallRaised = 0;
+    for (tileIndex = 0; tileIndex < NEO_ARK_ALTAR_TILE_COUNT; tileIndex++) {
+        if (raiseWalls == 1 && (work->currentTile - 1) == tileIndex) {
+            work->wallTileIndex = tileIndex;
+            // Retain the intermediate stores required by this loop's matching form.
+            height            = 0;
+            height            = 1;
             work->wallHeight += (NEO_ARK_ALTAR_WALL_HEIGHT_FULL - work->wallHeight) >> 1;
-            level             = work->wallHeight;
-            _neoArkAltarDrawTileWalls((s16)i, level);
-            found = 1;
+            height            = work->wallHeight;
+            _neoArkAltarDrawTileWalls((s16)tileIndex, height);
+            wallRaised = 1;
         }
     }
-    if (found == 0 && work->wallTileIndex < 4) {
+    if (wallRaised == 0 && work->wallTileIndex < NEO_ARK_ALTAR_TILE_COUNT) {
         work->wallHeight += (-work->wallHeight) >> 2;
-        level             = work->wallHeight;
-        if (level >= 0xB) {
-            _neoArkAltarDrawTileWalls(work->wallTileIndex, level);
+        height            = work->wallHeight;
+        if (height >= NEO_ARK_ALTAR_WALL_MIN_DRAW_HEIGHT) {
+            _neoArkAltarDrawTileWalls(work->wallTileIndex, height);
         }
     }
 }
@@ -857,110 +871,104 @@ static void _neoArkAltarResetTileSequence(void)
     }
 }
 
-static s16 func_neo_ark_altar_8017E260(Task* task)
+/// Plays feedback for one solution, capturing the evaluator's stable work pointer.
+///
+/// `solution` is stable readable storage through the current last-entry index;
+/// `prefixMismatch` is a stable 0/1 flag. Each argument is evaluated at most
+/// once, only for a newly entered tile; an entry mismatch skips the flag test.
+/// Expands to one braced block and preserves separate sound tests for tile IDs.
+#define NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(solution, prefixMismatch)                                                                     \
+    {                                                                                                                                          \
+        if (work->enteredTile != 0) {                                                                                                          \
+            if ((solution)[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || (prefixMismatch) == 1) { \
+                if (work->enteredTile == 1) {                                                                                                  \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);                                                          \
+                }                                                                                                                              \
+                if (work->enteredTile == 2) {                                                                                                  \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);                                                          \
+                }                                                                                                                              \
+                if (work->enteredTile == 3) {                                                                                                  \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);                                                          \
+                }                                                                                                                              \
+                if (work->enteredTile == 4) {                                                                                                  \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);                                                          \
+                }                                                                                                                              \
+            } else {                                                                                                                           \
+                if (work->enteredTile == 1) {                                                                                                  \
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);                                                        \
+                }                                                                                                                              \
+                if (work->enteredTile == 2) {                                                                                                  \
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) | work->enteredTile, 0, 0);    \
+                }                                                                                                                              \
+                if (work->enteredTile == 3) {                                                                                                  \
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) | work->enteredTile, 0, 0);    \
+                }                                                                                                                              \
+                if (work->enteredTile == 4) {                                                                                                  \
+                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_NEO_ARK_ALTAR, 0) | work->enteredTile, 0, 0);    \
+                }                                                                                                                              \
+            }                                                                                                                                  \
+        }                                                                                                                                      \
+    }
+
+/// Checks entered-tile history against both altar solutions and plays tile feedback.
+///
+/// Returns idle/reset (0), first solved (1), second solved (2), or a still-valid
+/// prefix (3). Completed persistent solutions count as mismatches. The first
+/// solution ends at 12 entries and the second at 16; completion returns before
+/// that solution's tile feedback. Otherwise each solution emits feedback for
+/// this frame's entered tile, and two mismatches reset scenery/history.
+/// Requires initialized work, live flags/sound and readable shared history and
+/// solution storage for every indexed entry; the code does not enforce bounds.
+static s16 _neoArkAltarEvaluateTileSequence(Task* task)
 {
     _NeoArkAltarTileSequenceWork* work;
-    s32                           i;
-    s32                           bad1;
-    s32                           bad2;
+    s32                           historyIndex;
+    s32                           firstMismatch;
+    s32                           secondMismatch;
 
-    bad1 = 0;
-    work = task->work;
-    bad2 = 0;
+    firstMismatch  = 0;
+    work           = task->work;
+    secondMismatch = 0;
     if (D_neo_ark_altar_801800AC == 0) {
-        return 0;
+        return NEO_ARK_ALTAR_SEQUENCE_IDLE;
     }
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0) {
-        for (i = 0; i < D_neo_ark_altar_801800AC; i++) {
-            if (D_neo_ark_altar_8017F050[i] != D_neo_ark_altar_801800B0[i]) {
-                bad1 = 1;
+        for (historyIndex = 0; historyIndex < D_neo_ark_altar_801800AC; historyIndex++) {
+            if (D_neo_ark_altar_8017F050[historyIndex] != D_neo_ark_altar_801800B0[historyIndex]) {
+                firstMismatch = 1;
                 break;
             }
-            if (i == 11) {
-                return 1;
+            if (historyIndex == ARRAY_SIZE(D_neo_ark_altar_8017F050) - 1) {
+                return NEO_ARK_ALTAR_SEQUENCE_FIRST_SOLVED;
             }
         }
     } else {
-        bad1 = 1;
+        firstMismatch = 1;
     }
-    if (work->enteredTile != 0) {
-        if (D_neo_ark_altar_8017F050[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad1 == 1) {
-            if (work->enteredTile == 1) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
-            }
-            if (work->enteredTile == 2) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
-            }
-            if (work->enteredTile == 3) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
-            }
-            if (work->enteredTile == 4) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
-            }
-        } else {
-            if (work->enteredTile == 1) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
-            }
-            if (work->enteredTile == 2) {
-                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
-            }
-            if (work->enteredTile == 3) {
-                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
-            }
-            if (work->enteredTile == 4) {
-                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
-            }
-        }
-    }
+    NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(D_neo_ark_altar_8017F050, firstMismatch);
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED) == 0) {
-        for (i = 0; i < D_neo_ark_altar_801800AC; i++) {
-            if (D_neo_ark_altar_8017F068[i] != D_neo_ark_altar_801800B0[i]) {
-                bad2 = 1;
+        for (historyIndex = 0; historyIndex < D_neo_ark_altar_801800AC; historyIndex++) {
+            if (D_neo_ark_altar_8017F068[historyIndex] != D_neo_ark_altar_801800B0[historyIndex]) {
+                secondMismatch = 1;
                 break;
             }
-            if (i == 15) {
+            if (historyIndex == ARRAY_SIZE(D_neo_ark_altar_8017F068) - 1) {
                 sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_SEQUENCE_2_SOLVED, 0, 0);
-                return 2;
+                return NEO_ARK_ALTAR_SEQUENCE_SECOND_SOLVED;
             }
         }
     } else {
-        bad2 = 1;
+        secondMismatch = 1;
     }
-    if (work->enteredTile != 0) {
-        if (D_neo_ark_altar_8017F068[D_neo_ark_altar_801800AC - 1] != D_neo_ark_altar_801800B0[D_neo_ark_altar_801800AC - 1] || bad2 == 1) {
-            if (work->enteredTile == 1) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_WRONG, 0, 0);
-            }
-            if (work->enteredTile == 2) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_2_WRONG, 0, 0);
-            }
-            if (work->enteredTile == 3) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_3_WRONG, 0, 0);
-            }
-            if (work->enteredTile == 4) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_4_WRONG, 0, 0);
-            }
-        } else {
-            if (work->enteredTile == 1) {
-                sndEvtRequestScriptStart(SOUND_NEO_ARK_ALTAR_TILE_1_CORRECT, 0, 0);
-            }
-            if (work->enteredTile == 2) {
-                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
-            }
-            if (work->enteredTile == 3) {
-                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
-            }
-            if (work->enteredTile == 4) {
-                sndEvtRequestScriptStart(0x55140000 | work->enteredTile, 0, 0);
-            }
-        }
-    }
-    if (bad1 == 1 && bad2 == bad1) {
+    NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK(D_neo_ark_altar_8017F068, secondMismatch);
+    if (firstMismatch == 1 && secondMismatch == firstMismatch) {
         _neoArkAltarResetTileSequence();
-        return 0;
+        return NEO_ARK_ALTAR_SEQUENCE_IDLE;
     }
-    return 3;
+    return NEO_ARK_ALTAR_SEQUENCE_PREFIX_MATCHED;
 }
+
+#undef NEO_ARK_ALTAR_PLAY_ENTERED_TILE_FEEDBACK
 
 /// Sets a wall strip's grayscale gradient from its lower edge to its upper edge.
 ///
@@ -1149,16 +1157,16 @@ static s16 _neoArkAltarFindTile(const _NeoArkAltarTile* table, s16 x, s16 z)
 
 /// State handlers of the altar task, dispatched by
 /// `_neoArkAltarTileSequenceTask` off `Task::state`: allocation and set-up,
-/// a short wait, the tile sequence (`func_neo_ark_altar_8017DF0C`), then, once
+/// a short wait, the tile sequence (`_neoArkAltarTrackTileSequence`), then, once
 /// the sequence completes, a fade-out, a spawn from `D_neo_ark_altar_8017EFC0`
 /// and a view change before control returns to the tile sequence.
 static const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
     _neoArkAltarInitializeTileSequence,
     _neoArkAltarWaitForTileSequence,
-    func_neo_ark_altar_8017DF0C,
+    _neoArkAltarTrackTileSequence,
     _neoArkAltarBeginSequenceMovieFade,
     _neoArkAltarFadeToBlack,
-    func_neo_ark_altar_8017EE90,
+    _neoArkAltarStartSequenceMovie,
     _neoArkAltarSelectPostSequenceRoom,
     _neoArkAltarResumeTileSequence,
 };
@@ -1245,15 +1253,23 @@ static void _neoArkAltarFadeToBlack(Task* task)
     fadeDrawOverlay(shade, shade, shade, GPU_BLEND_SUBTRACT);
 }
 
-static void func_neo_ark_altar_8017EE90(Task* arg0)
+/// Hides the player/HUD and launches the second tile solution's movie.
+///
+/// Runs in state 5 after the fade, with initialized task work and loaded movie
+/// resources. Spawns launcher entry 0 with variant 2 (stream ID 102), stores
+/// its borrowed task handle and advances to room selection without waiting.
+/// Spawn failure leaves a NULL handle and still advances; no task is adopted.
+static void _neoArkAltarStartSequenceMovie(Task* task)
 {
+    enum { NEO_ARK_ALTAR_MOVIE_LAUNCHER_ENTRY  = 0,
+           NEO_ARK_ALTAR_MOVIE_SECOND_SEQUENCE = 2 };
     _NeoArkAltarTileSequenceWork* work;
 
-    work = arg0->work;
+    work = task->work;
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
     gGameSession->hideHud = 1;
-    work->movieLauncher   = taskSpawnFromTable(D_neo_ark_altar_8017EFC0, 0, 2, 0);
-    arg0->state           = (s32)(arg0->state + 1);
+    work->movieLauncher   = taskSpawnFromTable(D_neo_ark_altar_8017EFC0, NEO_ARK_ALTAR_MOVIE_LAUNCHER_ENTRY, NEO_ARK_ALTAR_MOVIE_SECOND_SEQUENCE, 0);
+    task->state           = task->state + 1;
 }
 
 /// Selects altar room 2 in live and saved state and requests a view reload.
