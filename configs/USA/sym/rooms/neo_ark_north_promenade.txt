@@ -74,3 +74,5 @@ _neoArkNorthPromenadeRejectKeyItemUse = 0x8017d5d0; // type:func
 _neoArkNorthPromenadeIgnoreRoomCommand = 0x8017d66c; // type:func
 _neoArkNorthPromenadeIgnoreRoomAction = 0x8017d674; // type:func
 _neoArkNorthPromenadeRoomIdleState = 0x8017d6c0; // type:func
+_neoArkNorthPromenadeInitializeRoom = 0x8017d67c; // type:func
+neoArkNorthPromenadeRoomTask = 0x8017d6c8; // type:func

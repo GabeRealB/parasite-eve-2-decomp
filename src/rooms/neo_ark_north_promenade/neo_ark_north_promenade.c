@@ -58,13 +58,13 @@ extern TaskMessageEntry D_neo_ark_north_promenade_80181D68[];
 /// and `[1]` the second trail's frame. `RoomFx_TrailOffsets[1]` is
 /// `[1]` under its own name, which the per-frame path reads directly.
 
-static void func_neo_ark_north_promenade_8017D67C(Task* task);
+static void _neoArkNorthPromenadeInitializeRoom(Task* task);
 static void _neoArkNorthPromenadeRoomIdleState(Task* task);
 
 /// State table of the room's message-driven task, indexed by `Task::state`:
 /// install the message table, idle, then kill the task.
 static const TaskFuncTable3 D_neo_ark_north_promenade_8017D5C4 = {
-    { func_neo_ark_north_promenade_8017D67C, _neoArkNorthPromenadeRoomIdleState, taskKill },
+    { _neoArkNorthPromenadeInitializeRoom, _neoArkNorthPromenadeRoomIdleState, taskKill },
 };
 
 extern WorldCollisionGrid     D_neo_ark_north_promenade_801823EC[1];
@@ -438,14 +438,14 @@ static s32 _neoArkNorthPromenadeIgnoreRoomAction(Task* task, s32 messageId, cons
     return 0;
 }
 
-/// State 0 of the room's message-driven task: parks the room's message table
-/// in `Task::msgTable`, publishes the task in pointer slot 7 and advances to
-/// state 1.
-static void func_neo_ark_north_promenade_8017D67C(Task* task)
+/// Installs the north promenade's room-message receiver and advances to idle.
+///
+/// The session's room slot borrows the live task; teardown does not clear it.
+static void _neoArkNorthPromenadeInitializeRoom(Task* task)
 {
     task->msgTable = D_neo_ark_north_promenade_80181D68;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the room task in its idle state while synchronous messages handle room requests.
@@ -453,14 +453,12 @@ static void _neoArkNorthPromenadeRoomIdleState(Task* task)
 {
 }
 
-/// Dispatches the room's message-driven task through its three-state table,
-/// copied onto the stack before the call.
-void func_neo_ark_north_promenade_8017D6C8(Task* task)
+void neoArkNorthPromenadeRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_north_promenade_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_north_promenade_8017D5C4;
+    handlers.funcs[task->state](task);
 }
 
 void neoArkNorthPromenadeBindRoomEffectsTask(Task* task)

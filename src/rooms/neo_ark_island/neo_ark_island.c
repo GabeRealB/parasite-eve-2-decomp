@@ -56,7 +56,7 @@ MATRIX* TransposeMatrix(MATRIX*, MATRIX*);
 /// into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `warp` / `room`.
 extern RoomEventMsg D_neo_ark_island_80184008;
 
-static void func_neo_ark_island_8017EA94(Task* arg0);
+static void _neoArkIslandInitializeRoom(Task* task);
 static void _neoArkIslandRoomIdleState(Task* unusedTask);
 
 extern AreaResource D_neo_ark_island_80183EDC[2];
@@ -562,9 +562,9 @@ RoomEventMsg D_neo_ark_island_80184008;
 #include "../../shared/water_distort_band_task.inc.c"
 
 /// State handlers of the room's entry task, indexed by its state through
-/// `func_neo_ark_island_8017EB10`: set-up, idle, then kill.
+/// `neoArkIslandRoomTask`: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_island_8017D614 = {
-    { func_neo_ark_island_8017EA94, _neoArkIslandRoomIdleState, taskKill }
+    { _neoArkIslandInitializeRoom, _neoArkIslandRoomIdleState, taskKill }
 };
 
 /// Island arrival sequence, advanced one step per call: step 0 asks for the
@@ -670,17 +670,20 @@ s32 neoArkIslandSoundMessage(Task* unusedTask, s32 unusedMessageId, s32 cueKey, 
     return 0;
 }
 
-/// Room entry task tick in the family that announces the island's arrival:
-/// installs the room's message table, hands the task to pointer slot 7, plays
-/// the two island cues, then advances state and raises the `D_80115598` flag.
-static void func_neo_ark_island_8017EA94(Task* arg0)
+/// Installs the island's room-message receiver and starts its two ambience scripts.
+///
+/// Enables room sound cues after CAP completion and advances to the idle state.
+/// The session's room slot borrows the live task; teardown does not clear it.
+static void _neoArkIslandInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_neo_ark_island_80181B48;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    enum { NEO_ARK_ISLAND_CAP_COMPLETION_SOUNDS_ENABLED = 1 };
+
+    task->msgTable = D_neo_ark_island_80181B48;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_ISLAND_AMBIENCE_1, 0, 0);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_ISLAND_AMBIENCE_2, 0, 0);
-    arg0->state = (s32)(arg0->state + 1);
-    D_80115598  = 1;
+    task->state = task->state + 1;
+    D_80115598  = NEO_ARK_ISLAND_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
 /// Keeps the island room task available for messages after initialization.
@@ -690,12 +693,10 @@ static void _neoArkIslandRoomIdleState(Task* unusedTask)
 {
 }
 
-/// Task tick that dispatches on the task's state through the three-entry
-/// handler table `D_neo_ark_island_8017D614`, copied to the stack first.
-void func_neo_ark_island_8017EB10(Task* task)
+void neoArkIslandRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_island_8017D614;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_island_8017D614;
+    handlers.funcs[task->state](task);
 }

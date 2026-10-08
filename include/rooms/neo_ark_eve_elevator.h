@@ -33,6 +33,11 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_eve_elevator_8017DC30[];
 /// task and performs no drawing, state changes or cleanup.
 void neoArkEveElevatorIdleEffectTask(Task* unusedTask);
 
-void func_neo_ark_eve_elevator_8017D6C4(Task* task);
+/// Runs the EVE elevator's room-message task.
+///
+/// Requires a live task in state 0..2: install the room receiver, idle while
+/// messages handle requests, then teardown. The room overlay must remain
+/// loaded through dispatch.
+void neoArkEveElevatorRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_EVE_ELEVATOR_H

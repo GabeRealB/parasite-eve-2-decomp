@@ -2261,7 +2261,7 @@ extern s16       D_room_80187A24;   /* the branch-arm store */
 carries the same body. The same shape recurs in the pointer-to-`gCdCmdQueue`
 idiom: `queue->imageMdecMode = 2` through a local pointer emits `addiu $v1,$v0,%lo(...)`
 plus a `sh …,0x22A($v1)` displacement, where the direct `gCdCmdQueue.imageMdecMode`
-folds into a `%lo(gCdCmdQueue+0x22A)` operand. `func_neo_ark_eve_access_tunnel_8017DFC0`
+folds into a `%lo(gCdCmdQueue+0x22A)` operand. `_neoArkEveAccessTunnelUpdateRoom`
 is the matched reference for that form.
 
 ## Duplicate the call for delay-slot `lui`; share the volatile-touch body
@@ -49438,10 +49438,10 @@ against one of those before reading the dumps.
 The `regs` count under-states the damage, so do not read it as a measure of how
 many things are wrong. Restoring the arity redefines `$a0` at the call site, and
 that earlier definition can be what a *later, unrelated* value was avoiding:
-`func_neo_ark_island_8017EA94` scored 99.14% at `regs=5` with the one-argument
+`_neoArkIslandInitializeRoom` scored 99.14% at `regs=5` with the one-argument
 form, and the five penalties were two separate symptoms — `li a1,7`/`li a0,7` at
 the call, and the `D_80115598` address at the tail landing in `$v1` instead of
-`$a0` (with the constant `1` pushed from `$v1` to `$v0`). Passing `index` fixed
+`$a0` (with the constant `1` pushed from `$v1` to `$v0`). Passing `task` fixed
 both and went straight to 100%. A single call-shape correction clearing an
 allocation difference in a different part of the function is the expected
 outcome, not a coincidence: fix the call before reading any dump.
@@ -86823,7 +86823,7 @@ state + struct `field_24`, 100%), `base_3.i`
 `303876433d06b4c5c37ea092330a217daff24db558b57a6b32a41936f35daea6` (struct
 state only, 100%). Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## m2c renders a stack-copied handler-table dispatch as a call that passes the table entries (func_neo_ark_forest_zone_8017DBBC, 2026-09-15)
+## m2c renders a stack-copied handler-table dispatch as a call that passes the table entries (neoArkForestZoneRoomTask, 2026-09-15)
 
 A dispatcher that block-copies a handler table onto the stack and calls through it
 confuses m2c: the stack local has no type it can recover, so it names it `sp` and
@@ -88794,7 +88794,7 @@ Inputs: `base.i`
 
 **Same mechanism, different symptom: the store displacement.** The two forms
 do not have to differ in *where* the address is born to be visible in the
-object. `func_neo_ark_eve_access_tunnel_8017DFC0` stored through
+object. `_neoArkEveAccessTunnelUpdateRoom` stored through
 `gCdCmdQueue.imageMdecMode` (offset 0x22A) after two calls with no pointer local,
 and scored 86.6% with `branch=2 regs=8 reorder=1 delete=3` - the missing insns
 were one `lui`, one `addiu` and one `sw $s1`, and the store itself read
@@ -92319,7 +92319,7 @@ Inputs: `base.c` 99.082% (`regs=9`), `base_1.c` 99.184% (`regs=8`),
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
 The same wrong callee arity does not have to surface as `regs`.
-`func_neo_ark_power_plant_1_8017D928` (2026-09-16) hit the identical mistake -
+`_neoArkPowerPlant1InitializeRoom` (2026-09-16) hit the identical mistake -
 the seed's `gameSetTaskSlot(7)` against the real `(void*, s32)` - and scored
 94.737% with **every penalty zero except `insert=1 delete=1`**. The scorer
 aligned `li a0,7` with nothing, because in the target that constant sits after
@@ -94919,21 +94919,21 @@ in RTL birth order, so *which* of `$v0`/`$v1` a short-lived temp receives is set
 by the C order of the statements that create it — not visible in the emitted
 code, and cheaper to try than reading `.lreg`.
 
-## m2c hoists a loop's locals above the enclosing `if`; block-scope them and the argument returns to `$s0` (func_neo_ark_eve_access_tunnel_8017DF24, 2026-09-16)
+## m2c hoists a loop's locals above the enclosing `if`; block-scope them and the argument returns to `$s0` (_neoArkEveAccessTunnelInitializeRoom, 2026-09-16)
 
 **Problem.** m2c declares every local at function scope and assigns it where the
 value is produced, so a loop that lives inside one arm of an `if` gets its
 induction variables assigned *before* the branch:
 
 ```c
-    u16* ptr = (u16*)Fs_ImgBuffers;   /* outside the if */
-    s32  i   = 0;
+    u16* pixel = (u16*)Fs_ImgBuffers;   /* outside the if */
+    s32  pixelIndex = 0;
     ...
     if (gGameSession->location.loc.variant == 0xB) {
-        do { *ptr = (u16)(*ptr | 0x8000); i += 1; ptr += 1; } while (i <= 0x12BFF);
+        do { *pixel = (u16)(*pixel | 0x8000); pixelIndex += 1; pixel += 1; } while (pixelIndex <= 0x12BFF);
 ```
 
-Both locals are then live across the branch, so `index` — which the target keeps
+Both locals are then live across the branch, so `task` — which the target keeps
 in `$s0` for the whole body — is pushed up to `$s2`, the pointer takes `$s0`, the
 counter takes `$s1`, and the frame grows 0x18 -> 0x20 with two extra callee-saved
 saves and restores. 100% -> 78.4% from a change that looks like pure style.
@@ -94945,10 +94945,10 @@ ranges start after the test:
 
 ```c
     if (gGameSession->location.loc.variant == 0xB) {
-        u16* ptr = (u16*)Fs_ImgBuffers;
-        s32  i   = 0;
+        u16* pixel = (u16*)Fs_ImgBuffers;
+        s32  pixelIndex = 0;
 
-        do { *ptr = (u16)(*ptr | 0x8000); i += 1; ptr += 1; } while (i <= 0x12BFF);
+        do { *pixel = (u16)(*pixel | 0x8000); pixelIndex += 1; pixel += 1; } while (pixelIndex <= 0x12BFF);
 ```
 
 Back to 100.000%. Statement order inside the loop body is sched1's business and

@@ -1842,7 +1842,7 @@ static void _neoArkObservatoryUpdateCompanionVisibility(Task* unusedTask)
     companionSetDrawMode(drawMode);
 }
 
-/// State handlers of the room entry task `func_neo_ark_observatory_8017FDDC`,
+/// State handlers of the room entry task `neoArkObservatoryRoomTask`,
 /// indexed by `Task::state`: the set-up tick, the companion-visibility tick, and
 /// `taskKill`.
 static const TaskFuncTable3 D_neo_ark_observatory_8017D698 = {
@@ -1853,13 +1853,12 @@ static const TaskFuncTable3 D_neo_ark_observatory_8017D698 = {
     },
 };
 
-/// Room entry task: dispatches through a stack copy of its state table.
-void func_neo_ark_observatory_8017FDDC(Task* task)
+void neoArkObservatoryRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_observatory_8017D698;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_observatory_8017D698;
+    handlers.funcs[task->state](task);
 }
 
 #include "../../shared/follow_collision_rebuild.inc.c"

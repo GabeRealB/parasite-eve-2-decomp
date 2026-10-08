@@ -39,13 +39,13 @@
 extern AreaApplyRec D_neo_ark_power_plant_1_80181C00[];
 
 static void func_neo_ark_power_plant_1_8017D5EC(Task* task);
-static void func_neo_ark_power_plant_1_8017D928(Task* task);
+static void _neoArkPowerPlant1InitializeRoom(Task* task);
 
-/// State table of the room task: `func_neo_ark_power_plant_1_8017D928`
+/// State table of the room task: `_neoArkPowerPlant1InitializeRoom`
 /// installs the message table, `func_neo_ark_power_plant_1_8017D5EC` runs the
 /// plant every frame, and the last state kills the task.
 static const TaskFuncTable3 D_neo_ark_power_plant_1_8017D5C4 = {
-    { func_neo_ark_power_plant_1_8017D928, func_neo_ark_power_plant_1_8017D5EC, taskKill },
+    { _neoArkPowerPlant1InitializeRoom, func_neo_ark_power_plant_1_8017D5EC, taskKill },
 };
 
 s32 D_neo_ark_power_plant_1_80181BB4[3] = {
@@ -215,22 +215,26 @@ void neoArkPowerPlant1StopSkippedSceneVibration(void)
     padScriptHalt();
 }
 
-/// First state of the room task: installs the room's message table, registers
-/// the task as pointer slot 7, sets `flowFlags` to 1 when the session's place
-/// is 1 and, while nibble 0xFB is clear, sets `field_126` to 1 and
-/// `gSceneCombatState.signals.bytes.battlePhase` to 2. Then advances to the next state.
-static void func_neo_ark_power_plant_1_8017D928(Task* task)
+/// Installs the power plant's room-message receiver and prepares its battle state.
+///
+/// Variant 1 selects ending-music suppression. Before the view-3 event flag
+/// is set, requests a battle/result reset and marks the battle finished.
+/// Advances to the plant's update state; the room slot borrows the live task.
+static void _neoArkPowerPlant1InitializeRoom(Task* task)
 {
+    enum { NEO_ARK_POWER_PLANT_1_SKIP_ENDING_MUSIC_VARIANT = 1,
+           NEO_ARK_POWER_PLANT_1_BATTLE_RESET_REQUESTED    = 1 };
+
     task->msgTable = D_neo_ark_power_plant_1_8017EB18;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 1) {
+    if (gGameSession->location.loc.variant == NEO_ARK_POWER_PLANT_1_SKIP_ENDING_MUSIC_VARIANT) {
         gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
     }
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_1_0FB) == 0) {
-        gGameSession->battleResetPending            = 1;
+        gGameSession->battleResetPending            = NEO_ARK_POWER_PLANT_1_BATTLE_RESET_REQUESTED;
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_FINISHED;
     }
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Runs the room task's current state: the handler `Task::state` selects from

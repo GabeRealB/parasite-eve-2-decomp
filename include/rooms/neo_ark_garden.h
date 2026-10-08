@@ -59,6 +59,11 @@ void func_neo_ark_garden_8017F790(Task* arg0);
 /// fading releases the work and task; callers must not retain released pointers.
 void neoArkGardenRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
-void func_neo_ark_garden_8017EA44(Task* task);
+/// Runs the garden's room-message task and arrival-scene setup.
+///
+/// Requires a live task in state 0..2: initialize the receiver and the scene
+/// for warp 3 in variant 2, idle while messages handle requests, then teardown.
+/// The room overlay must remain loaded through dispatch.
+void neoArkGardenRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_GARDEN_H

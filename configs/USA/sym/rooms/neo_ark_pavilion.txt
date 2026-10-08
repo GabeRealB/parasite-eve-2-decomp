@@ -109,3 +109,5 @@ _waterDrawTileU16 = 0x8017F974; // type:func
 _neoArkPavilionRejectKeyItem = 0x8017e9ec; // type:func
 _neoArkPavilionIgnoreRoomAction = 0x8017eb78; // type:func
 _neoArkPavilionRoomIdleState = 0x8017ebec; // type:func
+_neoArkPavilionInitializeRoom = 0x8017eb80; // type:func
+neoArkPavilionRoomTask = 0x8017ebf4; // type:func

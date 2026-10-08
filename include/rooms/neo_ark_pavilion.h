@@ -139,6 +139,11 @@ void neoArkPavilionRoomVisualEffectsFlyingSparkTask(Task* task);
 /// Completion and cancellation release the work.
 void neoArkPavilionRoomVisualEffectsFlyingOrangeBurstTask(Task* task);
 
-void func_neo_ark_pavilion_8017EBF4(Task* task);
+/// Runs the pavilion's room-message task.
+///
+/// Requires a live task in state 0..2: initialize the receiver and ambience,
+/// idle while messages handle requests, then teardown. The room overlay must
+/// remain loaded through dispatch.
+void neoArkPavilionRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_PAVILION_H

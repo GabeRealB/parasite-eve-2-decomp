@@ -1081,7 +1081,7 @@ u8 D_neo_ark_pavilion_80187A1F = 37;
 RoomLatchedEvent gRoomEventLatched;
 
 static __inline__ s32 NeoArkPavilion_StartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-static void           func_neo_ark_pavilion_8017EB80(Task* arg0);
+static void           _neoArkPavilionInitializeRoom(Task* task);
 static void           _neoArkPavilionRoomIdleState(Task* task);
 
 #include "../../shared/water_refraction_task.inc.c"
@@ -1154,16 +1154,17 @@ static s32 _neoArkPavilionIgnoreRoomAction(Task* task, s32 messageId, const Dire
     return 0;
 }
 
-/// Room entry task tick: installs the room's message table (ids `0x13EE`-`0x13F1`),
-/// hands the task to pointer slot 7, queues sound events `0x550D0005` and
-/// `0x550D0006`, then advances state.
-static void func_neo_ark_pavilion_8017EB80(Task* arg0)
+/// Installs the pavilion's room-message receiver and starts its two ambience scripts.
+///
+/// Advances to idle. The session's room slot borrows the live task;
+/// teardown does not clear the registration.
+static void _neoArkPavilionInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_neo_ark_pavilion_80183870;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_neo_ark_pavilion_80183870;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_PAVILION_AMBIENCE_1, 0, 0);
     sndEvtRequestScriptStart(SOUND_NEO_ARK_PAVILION_AMBIENCE_2, 0, 0);
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized room task idle while its message table remains installed.
@@ -1172,19 +1173,17 @@ static void _neoArkPavilionRoomIdleState(Task* task)
 }
 
 /// State handlers of the room's entry task, indexed by its state through
-/// `func_neo_ark_pavilion_8017EBF4`: set-up, idle, then kill.
+/// `neoArkPavilionRoomTask`: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_pavilion_8017D628 = {
-    { func_neo_ark_pavilion_8017EB80, _neoArkPavilionRoomIdleState, taskKill }
+    { _neoArkPavilionInitializeRoom, _neoArkPavilionRoomIdleState, taskKill }
 };
 
-/// Task tick that dispatches on the task's state through the three-entry
-/// handler table `D_neo_ark_pavilion_8017D628`, copied to the stack first.
-void func_neo_ark_pavilion_8017EBF4(Task* task)
+void neoArkPavilionRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_pavilion_8017D628;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_pavilion_8017D628;
+    handlers.funcs[task->state](task);
 }
 
 #include "../../shared/water_ripple_task_fixed_coord.inc.c"

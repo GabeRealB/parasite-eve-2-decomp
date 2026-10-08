@@ -70,3 +70,4 @@ _neoArkGardenDrawRotatingSquare = 0x8017f42c; // type:func
 neoArkGardenRejectKeyItemMessage = 0x8017e840; // type:func
 neoArkGardenIgnoreActionMessage = 0x8017e9ac; // type:func
 _neoArkGardenRoomIdleState = 0x8017ea34; // type:func
+neoArkGardenRoomTask = 0x8017ea44; // type:func

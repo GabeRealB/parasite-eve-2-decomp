@@ -135,3 +135,5 @@ neoArkForestZoneForwardActorEvent = 0x8017da14; // type:func
 neoArkForestZoneStartRoamerAmbush = 0x8017da48; // type:func
 _neoArkForestZonePauseRoamersState = 0x8017db40; // type:func
 _neoArkForestZoneFinishRoamerPoolBState = 0x80181508; // type:func
+neoArkForestZoneRoomTask = 0x8017dbbc; // type:func
+_neoArkForestZoneRoamerPoolBTask = 0x8018151c; // type:func

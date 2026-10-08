@@ -57,8 +57,13 @@ extern RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 /// The staged event descriptor, read by the task spawned above.
 extern RoomDeparture gRoomDeparture;
 
-static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0);
-static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task);
+static void _neoArkEveAccessTunnelInitializeRoom(Task* task);
+static void _neoArkEveAccessTunnelUpdateRoom(Task* unusedTask);
+
+enum {
+    NEO_ARK_EVE_ACCESS_TUNNEL_INTACT_PART_VARIANT_LIMIT = 4,
+    NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT   = 11,
+};
 
 extern AreaResource D_neo_ark_eve_access_tunnel_8018067C[2];
 extern AreaResource D_neo_ark_eve_access_tunnel_80180694[3];
@@ -413,11 +418,11 @@ RoomDeparture gRoomDeparture;
 #include "../../shared/room_event_departure_task.inc.c"
 
 /// The room task's three states: install the message table, adjust the views
-/// each frame, and end the task. `func_neo_ark_eve_access_tunnel_8017E038` runs
+/// each frame, and end the task. `neoArkEveAccessTunnelRoomTask` runs
 /// them through a stack copy.
 static const TaskFuncTable3 D_neo_ark_eve_access_tunnel_8017D688 = {
-    func_neo_ark_eve_access_tunnel_8017DF24,
-    func_neo_ark_eve_access_tunnel_8017DFC0,
+    _neoArkEveAccessTunnelInitializeRoom,
+    _neoArkEveAccessTunnelUpdateRoom,
     taskKill,
 };
 
@@ -645,51 +650,60 @@ void neoArkEveAccessTunnelRecordCapCompletionTask(Task* task)
     }
 }
 
-/// State 0 of the tunnel's message task: park the room's message table in
-/// `Task::msgTable` and publish the task in pointer slot 7, as every room-entry
-/// task does. Then, once the session has reached state 0xB, set bit 15 of every
-/// 16-bit half of the 0x25800-byte image buffer and latch `GameSession::flowFlags`
-/// bit 0 - the flag that suppresses the bank-load spawn when the task ends.
-static void func_neo_ark_eve_access_tunnel_8017DF24(Task* arg0)
+/// Sets the GPU mask bit on every pixel of the resident RGB16 backdrop.
+///
+/// Requires a completed image in the borrowed 320x240 workspace; no decoding
+/// or capture may overwrite it during the pass. Pixel order is immaterial.
+static __inline__ void _neoArkEveAccessTunnelMaskBackdrop(void)
 {
-    arg0->msgTable = D_neo_ark_eve_access_tunnel_8017EA94;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 0xB) {
-        u16* ptr = (u16*)Fs_ImgBuffers;
-        s32  i   = 0;
+    enum { NEO_ARK_EVE_ACCESS_TUNNEL_BACKDROP_PIXELS = (s32)(sizeof(*Fs_ImgBuffers) / sizeof(u16)) };
+    u16* pixel      = (u16*)Fs_ImgBuffers;
+    s32  pixelIndex = 0;
 
-        do {
-            *ptr = (u16)(*ptr | FILE_SYSTEM_IMAGE_PIXEL_MASK);
-            i   += 1;
-            ptr += 1;
-        } while (i <= FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS * 2 - 1);
-        gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
-    }
-    arg0->state = (s32)(arg0->state + 1);
+    do {
+        *pixel      = (u16)(*pixel | FILE_SYSTEM_IMAGE_PIXEL_MASK);
+        pixelIndex += 1;
+        pixel      += 1;
+    } while (pixelIndex <= NEO_ARK_EVE_ACCESS_TUNNEL_BACKDROP_PIXELS - 1);
 }
 
-/// State 1 of the tunnel's message task, run every frame: while the session is
-/// below state 4 it sets both runs of view flags, and at state 0xB it sets the
-/// CD command queue's `field_22A` to 2.
-static void func_neo_ark_eve_access_tunnel_8017DFC0(Task* task)
+/// Installs the tunnel's room-message receiver and advances to its update state.
+///
+/// In variant 11, masks the completed backdrop and selects ending-music
+/// suppression. The session slot borrows the task; teardown does not clear it.
+static void _neoArkEveAccessTunnelInitializeRoom(Task* task)
+{
+    task->msgTable = D_neo_ark_eve_access_tunnel_8017EA94;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gGameSession->location.loc.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
+        // Preserve the mask on the loaded backdrop before subsequent view decodes.
+        _neoArkEveAccessTunnelMaskBackdrop();
+        gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_ENDING_MUSIC;
+    }
+    task->state = task->state + 1;
+}
+
+/// Keeps both tunnel parts intact in variants 0..3 and masks view decodes in variant 11.
+///
+/// Re-arms the one-image RGB16 MDEC mode each tick because decoding consumes
+/// and resets it. The room task remains in state 1 to receive messages.
+static void _neoArkEveAccessTunnelUpdateRoom(Task* unusedTask)
 {
     CdCmdQueue* queue = &gCdCmdQueue;
 
-    if (gGameSession->location.loc.variant < 4U) {
+    if (gGameSession->location.loc.variant < (u32)NEO_ARK_EVE_ACCESS_TUNNEL_INTACT_PART_VARIANT_LIMIT) {
         neoArkEveAccessTunnelSetPartDestroyedSprites(0, NEO_ARK_EVE_ACCESS_TUNNEL_PART_INTACT);
         neoArkEveAccessTunnelSetPartDestroyedSprites(1, NEO_ARK_EVE_ACCESS_TUNNEL_PART_INTACT);
     }
-    if (gGameSession->location.loc.variant == 0xB) {
+    if (gGameSession->location.loc.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
         queue->imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
     }
 }
 
-/// Runs the task's current state through a stack copy of the room's
-/// three-entry state table.
-void func_neo_ark_eve_access_tunnel_8017E038(Task* task)
+void neoArkEveAccessTunnelRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_eve_access_tunnel_8017D688;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_eve_access_tunnel_8017D688;
+    handlers.funcs[task->state](task);
 }

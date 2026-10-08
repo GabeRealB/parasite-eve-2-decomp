@@ -83,3 +83,5 @@ neoArkIslandIgnoreCommandMessage = 0x8017ea24; // type:func
 neoArkIslandIgnoreActionMessage = 0x8017ea2c; // type:func
 neoArkIslandSoundMessage = 0x8017ea34; // type:func
 _neoArkIslandRoomIdleState = 0x8017eb08; // type:func
+_neoArkIslandInitializeRoom = 0x8017ea94; // type:func
+neoArkIslandRoomTask = 0x8017eb10; // type:func

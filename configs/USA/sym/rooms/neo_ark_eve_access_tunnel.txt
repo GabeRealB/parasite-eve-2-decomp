@@ -58,3 +58,6 @@ neoArkEveAccessTunnelSetPartDestroyedSprites = 0x8017e090; // type:func
 neoArkEveAccessTunnelRecordCapCompletionTask = 0x8017ded0; // type:func
 neoArkEveAccessTunnelRejectKeyItemMessage = 0x8017dc64; // type:func
 neoArkEveAccessTunnelSoundMessage = 0x8017de9c; // type:func
+_neoArkEveAccessTunnelInitializeRoom = 0x8017df24; // type:func
+_neoArkEveAccessTunnelUpdateRoom = 0x8017dfc0; // type:func
+neoArkEveAccessTunnelRoomTask = 0x8017e038; // type:func

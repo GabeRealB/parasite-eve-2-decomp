@@ -53,6 +53,11 @@ void neoArkEveAccessTunnelSetPartDestroyedSprites(u8 partSlot, u8 destroyed);
 /// ready. Each pair queues an additive capsule using perspective-scaled radii.
 void neoArkEveAccessTunnelDrawViewGlowsTask(Task* unusedTask);
 
-void func_neo_ark_eve_access_tunnel_8017E038(Task* task);
+/// Runs the EVE access tunnel's room-message task.
+///
+/// Requires a live task in state 0..2: initialize, update part sprites and
+/// backdrop decode masking, then teardown. State 1 remains available for
+/// messages. The room overlay must remain loaded through dispatch.
+void neoArkEveAccessTunnelRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_EVE_ACCESS_TUNNEL_H

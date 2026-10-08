@@ -202,12 +202,10 @@ static const TaskFuncTable3 D_neo_ark_garden_8017D614 = {
     { func_neo_ark_garden_8017E9B4, _neoArkGardenRoomIdleState, taskKill }
 };
 
-/// Tick of the room's entry task: copies its state table to the stack and
-/// calls the handler for the task's state.
-void func_neo_ark_garden_8017EA44(Task* task)
+void neoArkGardenRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_garden_8017D614;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_garden_8017D614;
+    handlers.funcs[task->state](task);
 }

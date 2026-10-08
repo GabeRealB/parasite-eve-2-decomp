@@ -26,13 +26,13 @@
 /// The room's message table, which state 0 of its event task installs.
 extern TaskMessageEntry D_neo_ark_eve_elevator_8017D724[];
 
-static void func_neo_ark_eve_elevator_8017D678(Task* task);
+static void _neoArkEveElevatorInitializeRoom(Task* task);
 static void _neoArkEveElevatorIdleRoomTask(Task* unusedTask);
 
 /// The event task's three states: install the message table, idle, and kill.
 static const TaskFuncTable3 D_neo_ark_eve_elevator_8017D5C4 = {
     {
-        func_neo_ark_eve_elevator_8017D678,
+        _neoArkEveElevatorInitializeRoom,
         _neoArkEveElevatorIdleRoomTask,
         taskKill,
     },
@@ -225,13 +225,14 @@ static s32 _neoArkEveElevatorIgnoreRoomAction(Task* unusedTask, s32 unusedMessag
     return 0;
 }
 
-/// State 0 of the room's event task: installs the room's message table,
-/// publishes the task in pointer slot 7 and advances to state 1.
-static void func_neo_ark_eve_elevator_8017D678(Task* task)
+/// Installs the elevator's room-message receiver and advances to the idle state.
+///
+/// The session's room slot borrows the live task; teardown does not clear it.
+static void _neoArkEveElevatorInitializeRoom(Task* task)
 {
     task->msgTable = D_neo_ark_eve_elevator_8017D724;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the room task in its idle state while its installed table receives messages.
@@ -239,14 +240,12 @@ static void _neoArkEveElevatorIdleRoomTask(Task* unusedTask)
 {
 }
 
-/// The room's event task: runs the handler for its current state, through a
-/// stack copy of the state table.
-void func_neo_ark_eve_elevator_8017D6C4(Task* task)
+void neoArkEveElevatorRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_eve_elevator_8017D5C4;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_eve_elevator_8017D5C4;
+    handlers.funcs[task->state](task);
 }
 
 void neoArkEveElevatorIdleEffectTask(Task* unusedTask)

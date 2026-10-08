@@ -129,6 +129,11 @@ void neoArkIslandRoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_neo_ark_island_80180EE8(Task* task);
 
-void func_neo_ark_island_8017EB10(Task* task);
+/// Runs the island's room-message task.
+///
+/// Requires a live task in state 0..2: initialize the receiver, ambience and
+/// CAP-completion sound cues; idle while messages handle requests; then
+/// teardown. The room overlay must remain loaded through dispatch.
+void neoArkIslandRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_ISLAND_H

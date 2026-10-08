@@ -58,6 +58,11 @@ void neoArkObservatoryUpdateCompanionObstacle(s32 unusedEventArg);
 /// table. It retains no pointers into those frame resources.
 void neoArkObservatoryGlowTask(Task* effectTask);
 
-void func_neo_ark_observatory_8017FDDC(Task* task);
+/// Runs the observatory's room-message task and companion presentation.
+///
+/// Requires a live task in state 0..2: initialize the receiver, companion
+/// obstacle and light beam; update companion visibility each tick; then
+/// teardown. The room overlay must remain loaded through dispatch.
+void neoArkObservatoryRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_OBSERVATORY_H

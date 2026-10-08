@@ -67,6 +67,11 @@ void func_neo_ark_forest_zone_8017F76C(Task* task);
 /// and cancellation controls do not gate this task.
 void neoArkForestZoneLeafFallTask(Task* task);
 
-void func_neo_ark_forest_zone_8017DBBC(Task* task);
+/// Runs the forest zone's room-message task and first-visit encounter setup.
+///
+/// Requires a live task in state 0..3: initialize the receiver, ambience and
+/// pool-B controller; pause that pool for the first-visit scene; idle; then
+/// teardown. The room overlay must remain loaded through dispatch.
+void neoArkForestZoneRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_FOREST_ZONE_H
