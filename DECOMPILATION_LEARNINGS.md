@@ -42308,7 +42308,7 @@ grep -rl "capStartSequenceSlot" src/
 `overlay_dup_index.py` compares instruction shape, so it also misses a sibling
 that is the same routine written against another actor's work struct: every
 field offset differs, and often a constant does too. `_actor02500TurnTowardTargetYaw`
-(0x16FC-0x184C, ten splat labels) is `Actor03800_Fn026F8` with `0x360/0x362/
+(0x16FC-0x184C, ten splat labels) is `_actor03800TurnTowardTargetYaw` with `0x360/0x362/
 0x364` renumbered to `0x328/0x32C/0x32A` and a 0x18-byte scratchpad frame
 instead of 0x8 — no rebuild of the index would ever report it, and the port is a
 field-offset rewrite rather than the `sed` symbol rename above.
@@ -45327,7 +45327,7 @@ if (work->anim != work->playingAnim) {              /* lh, lh */
 }
 ```
 
-`Actor03800_Fn02998`, which expands `_actor03800TickAnim`, is the example.
+`_actor03800Death`, which expands `_actor03800TickAnim`, is the example.
 Try the uncast `s16` field before settling on a `u16` one. The vacuum L-label
 `Actor03800_L02A1C` is one of its interior blocks — match the parent `Fn`
 (see "A vacuum `L`-label is a basic block, not a function").
@@ -45368,14 +45368,14 @@ bgtz  a0, L
 The knock-on is bigger than the missing `move`: with the value folded, each arm
 gets its own store, the two `sh v0,0x362(s0)` tails no longer cross-jump onto
 one label, and the sibling block that reaches the same store keeps its own copy.
-Score went 94.8% → 100% on `Actor03800_Fn026F8` from `s16 cur` → `s32 next`
+Score went 94.8% → 100% on `_actor03800TurnTowardTargetYaw` from `s16 cur` → `s32 next`
 alone. The same asymmetry runs the other way for the *non*-in-place form
 (`work->yaw = cur - step;`), which wants a plain `s32` load anyway — so
 when one turn block folds and its twin does not, look at the local's width
 before touching the control flow.
 
 The current-angle **field** must also be `s16`. `Actor00700_Fn012E4` is the
-same body as `_actor02500TurnTowardTargetYaw` / `Actor03800_Fn026F8`, but `field_388` had
+same body as `_actor02500TurnTowardTargetYaw` / `_actor03800TurnTowardTargetYaw`, but `field_388` had
 been declared `u16` because a sibling (`Fn00BC0`) loads it with `lhu`. Assigning
 `ang` through a `u16` field stores immediately (`sh` before the `andi`/`subu`)
 and the later `next = field` reloads with `lhu`, so GCC never keeps `ang` in
@@ -72187,7 +72187,7 @@ Evidence: tools/permuter_findings/_actor03800ActionShrineWait/ (session 1f7d1f1c
 
 ## Actor03800 contact: preserve definition count while changing global pointer rank
 
-`Actor03800_Fn00A98` had only the scratch/coordinate saved-register pair
+`_actor03800ProcessContacts` had only the scratch/coordinate saved-register pair
 reversed in base_24. Two read/write `SOFT_TOUCH_REG(scratch)` operations
 raised scratch from18 to22 references and placed it ahead of coordinate,
 but changed entry scheduling before allocation. `base_16.i.lreg` already
@@ -72218,7 +72218,7 @@ actor overlays, including all430 function instructions and the ten-entry
 table, are byte-identical. The table required its own shared contact unit at
 rodata0x14 and text0xA98;21 existing C bodies were preserved.
 
-Evidence: `nonmatchings/Actor03800_Fn00A98-vacuum/LEARNINGS.md`, selected
+Evidence: `nonmatchings/_actor03800ProcessContacts-vacuum/LEARNINGS.md`, selected
 `.lreg/.greg/.sched/.sched2/.dbr` dumps, `LINKED_MATCH.json`, and verification
 logs. Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 - base_16.c preprocessed SHA256: `589b6d4bf1c03d2cf9e2eeee21c74b8d73b27e0363702bef8c62c9b049b1b4d1`.
@@ -72267,9 +72267,9 @@ Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 Evidence: tools/permuter_findings/_actor03800ActionKnockedOver/ retained session; base_2/base_3 .rtl UID 242 and 255, .lreg headers, .greg dispositions/conflicts. Scheduler selection not traced.
 
 
-### Actor03800_Fn037E0: scale-store order reverses a scheduler memory dependency
+### _actor03800SquashCorpse: scale-store order reverses a scheduler memory dependency
 
-An aggregate MATRIX assignment replaces m2c scalar word copies with the required grouped block move (50.328% to 99%). Moving the scale vy assignment before vz then gives 100%. In base_1.i.dbr the vy source load UID 60 depends on both vx and vz stores; in base_2.i.dbr the load UID 55 depends only on vx, and vz UID 62 instead has REG_DEP_ANTI 55. sched1 selects vz at T-18 by potential hazard, blocks the load at T-19 and selects argument setup UID 96, then loads at T-20. The reversed forward sequence matches, with unchanged register allocation. A pre-build controlled prediction and typed sibling-scratch port both scored 100%; no pins/helpers. This is a dependency-order result, not a general statement-order rule. Evidence is retained under tools/permuter_findings/Actor03800_Fn037E0; session PERMUTER_ANALYSIS.md records scope.
+An aggregate MATRIX assignment replaces m2c scalar word copies with the required grouped block move (50.328% to 99%). Moving the scale vy assignment before vz then gives 100%. In base_1.i.dbr the vy source load UID 60 depends on both vx and vz stores; in base_2.i.dbr the load UID 55 depends only on vx, and vz UID 62 instead has REG_DEP_ANTI 55. sched1 selects vz at T-18 by potential hazard, blocks the load at T-19 and selects argument setup UID 96, then loads at T-20. The reversed forward sequence matches, with unchanged register allocation. A pre-build controlled prediction and typed sibling-scratch port both scored 100%; no pins/helpers. This is a dependency-order result, not a general statement-order rule. Evidence is retained under tools/permuter_findings/_actor03800SquashCorpse; session PERMUTER_ANALYSIS.md records scope.
 
 Inputs: base_1.i SHA256 4ba8db8acce267093f1a4ff609783fb231e3bb9aaf6dd2bef583fdaf0a43c7f7, base_2.i SHA256 99cfda7437af4ee1be11a0214745f28bea33dc8199f7bf432b0dff73112767e7.
 
@@ -99452,7 +99452,7 @@ a new basic block and the table does not reach it.
 
 `TOUCH_REG(i);` before the add (`"+r"`, so the empty asm may rewrite `i`) puts
 `addu` back. This idiom is everywhere in this family's animation-slot bodies -
-`ActorsShared8014af2c`, `_actor207200CreepingStrangerAnimate`, `Actor03800_Fn02998`
+`ActorsShared8014af2c`, `_actor207200CreepingStrangerAnimate`, `_actor03800Death`
 (`src/actors/lib/actor_103800_text.c`, three times) - and those already-matched
 siblings are the shortest path to the source shape.
 
@@ -146024,7 +146024,7 @@ if (rot != 0) {
 
 The `sll 16; sra 16` on the call argument is the tell that the stepped value
 was an `s16` local in the first place.
-## One object body under two case labels can be two source bodies, and allocation counts both (Actor03800_Fn00A98, 2026-09-27)
+## One object body under two case labels can be two source bodies, and allocation counts both (_actor03800ProcessContacts, 2026-09-27)
 
 A contact walk dispatched `case 1` and `case 3` to one physical-contact body, so
 `case 1: case 3:` looked like the source. It was not: a hoisted `&frame->normal`
@@ -149207,7 +149207,7 @@ computes `pos` first).
 - `==1; >=2 -> L; ==0; j default; L: ==2; j default` is the plain three-case
   tree. A case that must skip the code after the switch is that code
   duplicated before a `return` in the case; cross-jumping merges it back
-  (`Actor03800_Fn031B8`, `_actor205200TickLivePart`).
+  (`_actor03800Tick`, `_actor205200TickLivePart`).
 
 ### When a duplicated tail does and does not merge back
 

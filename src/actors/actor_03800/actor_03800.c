@@ -133,6 +133,13 @@ enum {
     ACTOR_03800_DROP_DELAY_JITTER_MASK = 15,
 };
 
+/// Burst selection domain and the stage at which the hidden model releases its buffer.
+enum {
+    ACTOR_03800_BURST_VARIANT_COUNT = 5,
+    ACTOR_03800_BURST_PENDING       = 1,
+    ACTOR_03800_BURST_SPAWN         = 2,
+};
+
 /// Work block of the package's enemy task.
 ///
 /// The spawn handler allocates it zeroed and keeps it at `Task::work`. It
@@ -232,32 +239,32 @@ static inline void _actor03800TickAnim(Task* task);
 
 static void _actor03800Spawn(Enemy* enemy, Task* task);
 static void _actor03800ApplyPlacementMode(Task* task);
-static void Actor03800_Fn00974(Task* arg0);
-static void Actor03800_Fn00A98(Task* arg0);
-static void Actor03800_Fn026F8(Task* arg0);
-static void Actor03800_Fn02848(Task* arg0);
-static void Actor03800_Fn02998(Enemy* arg0, Task* arg1);
-static void Actor03800_Fn02E50(Task* arg0);
-static void Actor03800_Fn03008(Task* actor, u32 variant);
-static void Actor03800_Fn031B8(Enemy* arg0, Task* arg1);
-static void Actor03800_Fn032D8(Task* arg0);
+static void _actor03800ApplyReactions(Task* task);
+static void _actor03800ProcessContacts(Task* task);
+static void _actor03800TurnTowardTargetYaw(Task* task);
+static void _actor03800MoveRoot(Task* task);
+static void _actor03800Death(Enemy* enemy, Task* task);
+static void _actor03800SpawnBurstFragments(Task* task);
+static void _actor03800SpawnBurstFragment(Task* task, u32 variant);
+static void _actor03800Tick(Enemy* enemy, Task* task);
+static void _actor03800DispatchAction(Task* task);
 static void _actor03800ActionGetUp(Task* task);
 static void _actor03800ActionShrineWait(Task* task);
-static void Actor03800_Fn03594(Task* arg0);
-static void Actor03800_Fn03628(Task* arg0);
-static void Actor03800_Fn036EC(Task* arg0);
-static void Actor03800_Fn03744(Task* arg0);
-static void Actor03800_Fn037E0(Task* arg0);
+static void _actor03800TickFootstepSound(Task* task);
+static void _actor03800Animate(Task* task);
+static void _actor03800UpdateColor(Task* task);
+static void _actor03800DrawGroundShadow(Task* task);
+static void _actor03800SquashCorpse(Task* task);
 
-/// State handlers `Actor03800_Fn0315C` dispatches, indexed by the task's state
+/// State handlers `_actor03800Task` dispatches, indexed by the task's state
 /// (`Task::state`): the spawn state that allocates the work block and
 /// moves to state 1, the per-frame tick, and the state-2 handler the tick hands
 /// over to, which carries the death sequence.
 static const EnemyTaskFuncTable3 Actor03800_D00004 = {
     {
         _actor03800Spawn,
-        Actor03800_Fn031B8,
-        Actor03800_Fn02998,
+        _actor03800Tick,
+        _actor03800Death,
     },
 };
 
@@ -273,7 +280,7 @@ static AnimationSet _gActor03800Actor103800Animation05B84;
 static AnimationSet _gActor03800Actor103800Animation05E14;
 static AnimationSet _gActor03800Actor103800Animation05F18;
 static TmdSource    _gActor03800BlackBeetleBody;
-static void         Actor03800_Fn0315C(Task*);
+static void         _actor03800Task(Task* task);
 
 static TmdBone _gActor03800BlackBeetleBodySkeleton[6] = {
 #include "assets/black_beetle_body_skeleton.inc"
@@ -715,7 +722,7 @@ DamageAttack Actor03800_D05F40[1] = {
 
 EnemyParams Actor03800_D05F44 = { Actor03800_D05F40, 280, 15, 53, 1, 0, 10, 100, 0 };
 
-TaskDesc Actor03800_D05F54 = { { { TASK_BODY_TMD, 96 } }, Actor03800_Fn0315C, { .model = &_gActor03800BlackBeetleBody } };
+TaskDesc Actor03800_D05F54 = { { { TASK_BODY_TMD, 96 } }, _actor03800Task, { .model = &_gActor03800BlackBeetleBody } };
 
 AnimationSet* Actor03800_D05F60[12] = {
     NULL,
@@ -974,44 +981,51 @@ static void _actor03800ApplyPlacementMode(Task* task)
 #undef ACTOR_03800_ATTACH_PERCH
 }
 
-static void Actor03800_Fn00974(Task* arg0)
+/// Applies pending buildup and damage-over-time reactions to the current action.
+///
+/// Requires live enemy parameters and spawned work. Buildup holds a floor actor
+/// or makes a perched actor drop; poison HP loss is narrowed to a signed halfword
+/// before choosing flinch or death. The actor owns clearing expired reactions.
+static void _actor03800ApplyReactions(Task* task)
 {
-    Enemy*           ctx;
+    enum { ACTOR_03800_REACTION_DROP_FINISHED = 4 };
+    Enemy*           enemy;
     _Actor03800Work* work;
-    s16              damage;
-    u16              remaining;
-    u8               flags;
+    s16              pulseDamage;
+    u16              remainingHp;
+    u8               reactionFlags;
 
-    ctx   = arg0->spawnArg2.pointer;
-    flags = ctx->reactionFlags;
-    work  = arg0->work;
-    if (flags & ENEMY_REACTION_BUILDUP) {
+    enemy         = task->spawnArg2.pointer;
+    reactionFlags = enemy->reactionFlags;
+    work          = task->work;
+    if (reactionFlags & ENEMY_REACTION_BUILDUP) {
         if (work->mode == ACTOR_03800_MODE_FLOOR) {
-            ctx->reactionFlags = flags & ENEMY_REACTION_BUILDUP_CLEAR;
-            work->action       = ACTOR_03800_ACTION_BUILDUP;
-            work->actionStep   = 0;
-            work->timer        = 0;
-            work->inBuildup    = 1;
-        } else if ((work->action != ACTOR_03800_ACTION_DROP) || (work->actionStep >= 4)) {
+            enemy->reactionFlags = reactionFlags & ENEMY_REACTION_BUILDUP_CLEAR;
+            work->action         = ACTOR_03800_ACTION_BUILDUP;
+            work->actionStep     = ACTOR_03800_ACTION_BEGIN;
+            work->timer          = 0;
+            work->inBuildup      = 1;
+        } else if ((work->action != ACTOR_03800_ACTION_DROP) || (work->actionStep >= ACTOR_03800_REACTION_DROP_FINISHED)) {
             work->action     = ACTOR_03800_ACTION_DROP;
-            work->actionStep = 0;
+            work->actionStep = ACTOR_03800_ACTION_BEGIN;
         }
     }
-    if (ctx->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        damage = damageTickEnemyDamageOverTime(ctx);
-        if (damage != 0) {
-            worldTargetAddReadoutAmount(&ctx->node, (s32)damage, 0);
-            remaining = ctx->hp - damage;
-            ctx->hp   = remaining;
-            if ((s16)remaining <= 0) {
+    // Keep pulse and remaining HP narrowing before the fatal-hit test.
+    if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+        pulseDamage = damageTickEnemyDamageOverTime(enemy);
+        if (pulseDamage != 0) {
+            worldTargetAddReadoutAmount(&enemy->node, pulseDamage, 0);
+            remainingHp = enemy->hp - pulseDamage;
+            enemy->hp   = remainingHp;
+            if ((s16)remainingHp <= 0) {
                 work->action = ACTOR_03800_ACTION_DIE;
             } else {
                 work->action = ACTOR_03800_ACTION_FLINCH;
             }
-            work->actionStep = 0;
+            work->actionStep = ACTOR_03800_ACTION_BEGIN;
         }
-        if (damageIsEnemyDamageOverTimeExpired(ctx) != 0) {
-            ctx->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
+            enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 }
@@ -1029,40 +1043,67 @@ static void Actor03800_Fn00974(Task* arg0)
         }                                                                                                        \
     } while (0)
 
-static void Actor03800_Fn00A98(Task* arg0)
+/// Consumes room, hit and attack contacts to correct position and choose reactions.
+///
+/// Requires the three initialized work-owned contact arrays and a composed root.
+/// Positions/distances use game units; room pushback is signed 16.16 and normals
+/// are Q12. Applies at most the deepest body overlap on X/Z while on the floor.
+/// Attack keys must contain valid damage-table rows and a player/companion selector.
+/// Clears all three arrays and releases its temporary scratch block before return.
+static void _actor03800ProcessContacts(Task* task)
 {
+    enum {
+        ACTOR_03800_FLOOR_NORMAL_Y                     = -3546,
+        ACTOR_03800_CONTACT_KIND_SHIFT                 = 16,
+        ACTOR_03800_ATTACKER_SELECTOR_SHIFT            = 7,
+        ACTOR_03800_ATTACK_ATTACHMENT_BIT              = 0x8000,
+        ACTOR_03800_HIT_RESPONSE_FLINCH                = 0,
+        ACTOR_03800_HIT_RESPONSE_KNOCK_OVER            = 1,
+        ACTOR_03800_HIT_RESPONSE_DIE                   = 2,
+        ACTOR_03800_HIT_ATTRIBUTE_BURST                = 4,
+        ACTOR_03800_HIT_ATTRIBUTE_KNOCK_OVER           = 5,
+        ACTOR_03800_HIT_ATTRIBUTE_FORCE_BUILDUP        = 8,
+        ACTOR_03800_HIT_ATTRIBUTE_KNOCK_OVER_ALTERNATE = 9,
+        ACTOR_03800_CRITICAL_MULTIPLIER                = 4,
+        ACTOR_03800_OVERTURNED_MULTIPLIER              = 3,
+        ACTOR_03800_DIRECTION_FRACTION_BITS            = 12,
+        ACTOR_03800_CRITICAL_EFFECT_NORMAL             = 0,
+        ACTOR_03800_CRITICAL_EFFECT_OVERTURNED         = 4,
+        ACTOR_03800_HIT_EFFECT_ANCHOR_PART             = 3,
+    };
     _Actor03800Work*         work;
-    ActorOverlapPushScratch* frame;
-    Enemy*                   ctx;
-    GfxCoord*                coord;
-    GfxCoord*                sourceCoord;
-    s32                      push;
-    s32                      reaction;
-    s32                      result;
-    s32                      i;
-    s32                      depth;
-    s32                      boundedDepth;
+    ActorOverlapPushScratch* scratch;
+    Enemy*                   enemy;
+    GfxCoord*                rootCoord;
+    GfxCoord*                attackerRoot;
+    s32                      deepestOverlap;
+    s32                      hitResponse;
+    s32                      queryResult;
+    s32                      contactIndex;
+    s32                      overlapDepth;
+    s32                      clampedDepth;
     s32                      dx;
     s32                      dy;
     s32                      dz;
-    u32                      lastId;
-    u32                      id;
-    u32                      hitId;
+    u32                      lastEffectKey;
+    u32                      contactKey;
+    u32                      hitKey;
     u32                      damage;
 
-    push     = 0;
-    reaction = 0;
-    lastId   = 0;
-    work     = arg0->work;
+    deepestOverlap = 0;
+    hitResponse    = ACTOR_03800_HIT_RESPONSE_FLINCH;
+    lastEffectKey  = 0;
+    work           = task->work;
     SCRATCH_STACK_RESERVE_BLOCK(ActorOverlapPushScratch);
-    frame  = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch);
-    coord  = work->rootCoord;
-    ctx    = arg0->spawnArg2.pointer;
-    result = worldCollisionResolvePushback(work->gridContacts, &frame->delta, ARRAY_SIZE(work->gridContacts), NULL);
-    if (result != 0) {
-        for (i = 0; i < ARRAY_SIZE(work->gridContacts); i++) {
-            if ((work->gridContacts[i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
-                if (work->gridContacts[i].response.direction.vy >= -0xDDA) {
+    scratch   = SCRATCH_STACK_CURSOR(ActorOverlapPushScratch);
+    rootCoord = work->rootCoord;
+    enemy     = task->spawnArg2.pointer;
+    // Resolve room correction before processing the previous pass's hit contacts.
+    queryResult = worldCollisionResolvePushback(work->gridContacts, &scratch->delta, ARRAY_SIZE(work->gridContacts), NULL);
+    if (queryResult != 0) {
+        for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->gridContacts); contactIndex++) {
+            if ((work->gridContacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_GRID) {
+                if (work->gridContacts[contactIndex].response.direction.vy >= ACTOR_03800_FLOOR_NORMAL_Y) {
                     if (work->overturned == 0) {
                         work->hitWall = 1;
                         break;
@@ -1072,18 +1113,18 @@ static void Actor03800_Fn00A98(Task* arg0)
                 }
             }
         }
-        switch (result) {
-            case 0:
+        switch (queryResult) {
+            case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
                 break;
-            case 1:
-                coord->coord.t[0] += frame->delta.fixed.vx.halves.integer;
-                coord->coord.t[1] += frame->delta.fixed.vy.halves.integer;
-                coord->coord.t[2] += frame->delta.fixed.vz.halves.integer;
+            case WORLD_COLLISION_PUSHBACK_GRID_HIT:
+                rootCoord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+                rootCoord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+                rootCoord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
                 break;
-            case 2:
-                coord->coord.t[0] = work->prevPos.vx;
-                coord->coord.t[1] = work->prevPos.vy;
-                coord->coord.t[2] = work->prevPos.vz;
+            case WORLD_COLLISION_PUSHBACK_OPPOSED:
+                rootCoord->coord.t[0] = work->prevPos.vx;
+                rootCoord->coord.t[1] = work->prevPos.vy;
+                rootCoord->coord.t[2] = work->prevPos.vz;
                 break;
         }
     }
@@ -1093,143 +1134,145 @@ static void Actor03800_Fn00A98(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
-        id = work->hitContacts[i].key.value;
-        switch (id >> 0x10) {
+    // Attack contacts select reactions; body contacts retain only the deepest push.
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->hitContacts); contactIndex++) {
+        contactKey = work->hitContacts[contactIndex].key.value;
+        switch (contactKey >> ACTOR_03800_CONTACT_KIND_SHIFT) {
             case 0:
                 break;
-            case 2:
+            case WORLD_COLLISION_CONTACT_ATTACK >> ACTOR_03800_CONTACT_KIND_SHIFT:
                 if (work->hitCooldown == 0) {
-                    sourceCoord            = gPlayerActorTasks[(id >> 7) & 1]->extra.tmd->coords;
-                    frame->delta.vector.vx = sourceCoord->coord.t[0] - coord->coord.t[0];
-                    frame->delta.vector.vy = sourceCoord->coord.t[1] - coord->coord.t[1];
-                    frame->delta.vector.vz = sourceCoord->coord.t[2] - coord->coord.t[2];
-                    damage                 = damageComputePlayerAttack(work->hitContacts[i].key.value, SquareRoot0((frame->delta.vector.vx * frame->delta.vector.vx) + (frame->delta.vector.vy * frame->delta.vector.vy) + (frame->delta.vector.vz * frame->delta.vector.vz)), 0, 0);
+                    attackerRoot             = gPlayerActorTasks[(contactKey >> ACTOR_03800_ATTACKER_SELECTOR_SHIFT) & 1]->extra.tmd->coords;
+                    scratch->delta.vector.vx = attackerRoot->coord.t[0] - rootCoord->coord.t[0];
+                    scratch->delta.vector.vy = attackerRoot->coord.t[1] - rootCoord->coord.t[1];
+                    scratch->delta.vector.vz = attackerRoot->coord.t[2] - rootCoord->coord.t[2];
+                    damage                   = damageComputePlayerAttack(work->hitContacts[contactIndex].key.value, SquareRoot0((scratch->delta.vector.vx * scratch->delta.vector.vx) + (scratch->delta.vector.vy * scratch->delta.vector.vy) + (scratch->delta.vector.vz * scratch->delta.vector.vz)), 0, 0);
                     if (work->overturned == 0) {
-                        if (damageRollCriticalHit(ctx, work->hitContacts[i].key.value, 0) != 0) {
-                            damage *= 4;
-                            effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, NULL);
+                        if (damageRollCriticalHit(enemy, work->hitContacts[contactIndex].key.value, 0) != 0) {
+                            damage *= ACTOR_03800_CRITICAL_MULTIPLIER;
+                            effectSpawn(EFFECT_CRITICAL_HIT, rootCoord, ACTOR_03800_CRITICAL_EFFECT_NORMAL, NULL);
                         }
-                    } else if (!(work->hitContacts[i].key.value & 0x8000) && (damage != 0)) {
-                        damage *= 3;
-                        effectSpawn(EFFECT_CRITICAL_HIT, coord, 4, NULL);
+                    } else if (!(work->hitContacts[contactIndex].key.value & ACTOR_03800_ATTACK_ATTACHMENT_BIT) && (damage != 0)) {
+                        damage *= ACTOR_03800_OVERTURNED_MULTIPLIER;
+                        effectSpawn(EFFECT_CRITICAL_HIT, rootCoord, ACTOR_03800_CRITICAL_EFFECT_OVERTURNED, NULL);
                     }
-                    worldTargetAddReadoutAmount(&ctx->node, damage, 0);
-                    damageAccumulateLifeDrainHp(ctx, work->hitContacts[i].key.value, damage, 0);
-                    ctx->hp -= damage;
-                    if (ctx->hp <= 0) {
-                        reaction = 2;
+                    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
+                    damageAccumulateLifeDrainHp(enemy, work->hitContacts[contactIndex].key.value, damage, 0);
+                    enemy->hp -= damage;
+                    if (enemy->hp <= 0) {
+                        hitResponse = ACTOR_03800_HIT_RESPONSE_DIE;
                     }
-                    switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                    switch (damageGetPlayerAttackReaction(work->hitContacts[contactIndex].key.value) & 0xFFFF) {
                         case DAMAGE_PLAYER_REACTION_NONE:
                         default:
                             break;
                         case DAMAGE_PLAYER_REACTION_POISON:
-                            damageTryStartEnemyDamageOverTime(ctx, work->hitContacts[i].key.value, 0);
+                            damageTryStartEnemyDamageOverTime(enemy, work->hitContacts[contactIndex].key.value, 0);
                             break;
-                        case 4:
-                            if (ctx->hp > 0) {
+                        case ACTOR_03800_HIT_ATTRIBUTE_BURST:
+                            if (enemy->hp > 0) {
                                 if (work->overturned == 0) {
-                                    reaction = 1;
+                                    hitResponse = ACTOR_03800_HIT_RESPONSE_KNOCK_OVER;
                                 }
                             } else {
-                                work->burstStage = 1;
+                                work->burstStage = ACTOR_03800_BURST_PENDING;
                             }
                             break;
                         case DAMAGE_PLAYER_REACTION_EXPLOSION:
-                            if (ctx->hp <= 0) {
-                                work->burstStage = 1;
+                            if (enemy->hp <= 0) {
+                                work->burstStage = ACTOR_03800_BURST_PENDING;
                             } else if (work->overturned == 0) {
-                                reaction = 1;
+                                hitResponse = ACTOR_03800_HIT_RESPONSE_KNOCK_OVER;
                             }
                             break;
-                        case 8:
-                            if (work->overturned == 0 && reaction == 0) {
-                                damageStartEnemyBuildup(ctx, work->hitContacts[i].key.value, 0);
+                        case ACTOR_03800_HIT_ATTRIBUTE_FORCE_BUILDUP:
+                            if (work->overturned == 0 && hitResponse == ACTOR_03800_HIT_RESPONSE_FLINCH) {
+                                damageStartEnemyBuildup(enemy, work->hitContacts[contactIndex].key.value, 0);
                             }
                             break;
                         case DAMAGE_PLAYER_REACTION_STAGGER:
                         case DAMAGE_PLAYER_REACTION_BUILDUP:
-                        case 5:
-                        case 9:
-                            if (work->overturned == 0 && reaction == 0) {
-                                reaction = 1;
+                        case ACTOR_03800_HIT_ATTRIBUTE_KNOCK_OVER:
+                        case ACTOR_03800_HIT_ATTRIBUTE_KNOCK_OVER_ALTERNATE:
+                            if (work->overturned == 0 && hitResponse == ACTOR_03800_HIT_RESPONSE_FLINCH) {
+                                hitResponse = ACTOR_03800_HIT_RESPONSE_KNOCK_OVER;
                             }
                             break;
                     }
-                    switch (reaction) {
-                        case 0:
+                    switch (hitResponse) {
+                        case ACTOR_03800_HIT_RESPONSE_FLINCH:
                             if (work->action != ACTOR_03800_ACTION_DROP && damage != 0) {
                                 work->action     = ACTOR_03800_ACTION_FLINCH;
-                                work->actionStep = 0;
+                                work->actionStep = ACTOR_03800_ACTION_BEGIN;
                             }
                             break;
-                        case 1:
+                        case ACTOR_03800_HIT_RESPONSE_KNOCK_OVER:
                             work->action     = ACTOR_03800_ACTION_KNOCKED_OVER;
-                            work->actionStep = 0;
+                            work->actionStep = ACTOR_03800_ACTION_BEGIN;
                             break;
-                        case 2:
+                        case ACTOR_03800_HIT_RESPONSE_DIE:
                             work->action     = ACTOR_03800_ACTION_DIE;
-                            work->actionStep = 0;
+                            work->actionStep = ACTOR_03800_ACTION_BEGIN;
                             break;
                     }
-                    hitId = work->hitContacts[i].key.value;
-                    if (lastId != hitId) {
-                        lastId = hitId;
-                        effectSpawnHit(damageGetPlayerAttackEffectId(lastId), arg0->extra.tmd->coords + 3, NULL, &work->hitEffectArg);
+                    hitKey = work->hitContacts[contactIndex].key.value;
+                    if (lastEffectKey != hitKey) {
+                        lastEffectKey = hitKey;
+                        effectSpawnHit(damageGetPlayerAttackEffectId(lastEffectKey), task->extra.tmd->coords + ACTOR_03800_HIT_EFFECT_ANCHOR_PART, NULL, &work->hitEffectArg);
                     }
-                    result = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
-                    if (result > 0) {
-                        work->hitCooldown = result;
+                    queryResult = damageGetPlayerAttackHitCooldown(work->hitContacts[contactIndex].key.value);
+                    if (queryResult > 0) {
+                        work->hitCooldown = queryResult;
                     }
                 }
                 break;
-            case 1:
-                dx                     = coord->workm.t[0] - work->hitContacts[i].point.vx;
-                frame->delta.vector.vx = dx;
-                dy                     = coord->workm.t[1] - work->hitContacts[i].point.vy;
-                frame->delta.vector.vy = dy;
-                dz                     = coord->workm.t[2] - work->hitContacts[i].point.vz;
-                frame->delta.vector.vz = dz;
-                depth                  = work->hitContacts[i].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
-                boundedDepth           = depth;
-                if (depth <= 0) {
-                    boundedDepth = 0;
+            case WORLD_COLLISION_CONTACT_PLAYER_BODY >> ACTOR_03800_CONTACT_KIND_SHIFT:
+                dx                       = rootCoord->workm.t[0] - work->hitContacts[contactIndex].point.vx;
+                scratch->delta.vector.vx = dx;
+                dy                       = rootCoord->workm.t[1] - work->hitContacts[contactIndex].point.vy;
+                scratch->delta.vector.vy = dy;
+                dz                       = rootCoord->workm.t[2] - work->hitContacts[contactIndex].point.vz;
+                scratch->delta.vector.vz = dz;
+                overlapDepth             = work->hitContacts[contactIndex].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
+                clampedDepth             = overlapDepth;
+                if (overlapDepth <= 0) {
+                    clampedDepth = 0;
                 }
-                depth = boundedDepth;
-                _ACTOR03800_KEEP_DEEPEST(push, depth, frame);
+                overlapDepth = clampedDepth;
+                _ACTOR03800_KEEP_DEEPEST(deepestOverlap, overlapDepth, scratch);
                 break;
-            case 3:
-                dx                     = coord->workm.t[0] - work->hitContacts[i].point.vx;
-                frame->delta.vector.vx = dx;
-                dy                     = coord->workm.t[1] - work->hitContacts[i].point.vy;
-                frame->delta.vector.vy = dy;
-                dz                     = coord->workm.t[2] - work->hitContacts[i].point.vz;
-                frame->delta.vector.vz = dz;
-                depth                  = work->hitContacts[i].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
-                boundedDepth           = depth;
-                if (depth <= 0) {
-                    boundedDepth = 0;
+            case WORLD_COLLISION_CONTACT_ENEMY_BODY >> ACTOR_03800_CONTACT_KIND_SHIFT:
+                dx                       = rootCoord->workm.t[0] - work->hitContacts[contactIndex].point.vx;
+                scratch->delta.vector.vx = dx;
+                dy                       = rootCoord->workm.t[1] - work->hitContacts[contactIndex].point.vy;
+                scratch->delta.vector.vy = dy;
+                dz                       = rootCoord->workm.t[2] - work->hitContacts[contactIndex].point.vz;
+                scratch->delta.vector.vz = dz;
+                overlapDepth             = work->hitContacts[contactIndex].distance - SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
+                clampedDepth             = overlapDepth;
+                if (overlapDepth <= 0) {
+                    clampedDepth = 0;
                 }
-                depth = boundedDepth;
-                _ACTOR03800_KEEP_DEEPEST(push, depth, frame);
+                overlapDepth = clampedDepth;
+                _ACTOR03800_KEEP_DEEPEST(deepestOverlap, overlapDepth, scratch);
                 break;
         }
     }
-    if (push > 0 && work->mode == ACTOR_03800_MODE_FLOOR) {
-        coord->coord.t[0] += (push * frame->pushDirection.vx) >> 0xC;
-        coord->coord.t[2] += (push * frame->pushDirection.vz) >> 0xC;
+    if (deepestOverlap > 0 && work->mode == ACTOR_03800_MODE_FLOOR) {
+        rootCoord->coord.t[0] += (deepestOverlap * scratch->pushDirection.vx) >> ACTOR_03800_DIRECTION_FRACTION_BITS;
+        rootCoord->coord.t[2] += (deepestOverlap * scratch->pushDirection.vz) >> ACTOR_03800_DIRECTION_FRACTION_BITS;
     }
     worldCollisionClearContacts(work->hitContacts);
+    // A player or companion touch alerts the actor and selects its escape leap.
     work->attackTouched = 0;
-    result              = worldCollisionCountContactsByKind(work->attackContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY);
-    if (result != 0) {
+    queryResult         = worldCollisionCountContactsByKind(work->attackContacts, WORLD_COLLISION_CONTACT_PLAYER_BODY);
+    if (queryResult != 0) {
         sceneEngageBattle(1);
         work->attackTouched = 1;
         work->alerted       = 1;
         if ((work->mode == ACTOR_03800_MODE_FLOOR) && (work->overturned == 0) && (work->action != ACTOR_03800_ACTION_LEAP_AWAY)) {
             work->action     = ACTOR_03800_ACTION_LEAP_AWAY;
-            work->actionStep = 0;
+            work->actionStep = ACTOR_03800_ACTION_BEGIN;
         }
     }
     worldCollisionClearContacts(work->attackContacts);
@@ -2012,98 +2055,119 @@ static void _actor03800ActionLeapAway(Task* task)
     }
 }
 
-static void Actor03800_Fn026F8(Task* arg0)
+/// Turns the model root toward the requested yaw by at most the per-tick turn rate.
+///
+/// Requires a live root and work; targetYaw is a 0..4095 heading and turnRate is
+/// nonnegative, in 4096ths of a turn. At exactly half a turn, takes the wrapped
+/// branch. Rebuilds an upright rotation without changing translation; the live
+/// tick invalidates composition after movement and animation.
+static void _actor03800TurnTowardTargetYaw(Task* task)
 {
     _Actor03800Work* work;
-    GfxCoord*        coord;
-    SVECTOR*         rot;
-    s32              ang;
-    u16              want;
-    s16              diff;
-    s32              adiff;
-    s32              step;
-    s32              cur;
-    s32              next;
-    s32              wrapStep;
+    GfxCoord*        modelRoot;
+    SVECTOR*         yawRotation;
+    s32              matrixYaw;
+    u16              targetYaw;
+    s16              yawDifference;
+    s32              absoluteDifference;
+    s32              turnRate;
+    s32              currentYaw;
+    s32              nextYaw;
+    s32              wrappedTurnRate;
 
-    rot   = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    ang   = ratan2(coord->coord.m[0][2], coord->coord.m[2][2]) & 0xFFF;
-    want  = work->targetYaw;
-    diff  = want - ang;
-    adiff = diff >= 0 ? diff : -diff;
+    yawRotation        = SCRATCH_STACK_RESERVE_BYTES(sizeof(*yawRotation));
+    modelRoot          = task->extra.tmd->coords;
+    work               = task->work;
+    matrixYaw          = ratan2(modelRoot->coord.m[0][2], modelRoot->coord.m[2][2]) & ACTOR_TRANSFORM_ANGLE_MASK;
+    targetYaw          = work->targetYaw;
+    yawDifference      = targetYaw - matrixYaw;
+    absoluteDifference = yawDifference >= 0 ? yawDifference : -yawDifference;
 
-    work->yaw = ang;
-    if (adiff < 0x800) {
-        step = work->turnRate;
-        if (step >= adiff) {
-            work->yaw = want;
+    // Choose the shorter arc; a half-turn keeps the wrapped branch's direction.
+    work->yaw = matrixYaw;
+    if (absoluteDifference < ACTOR_TRANSFORM_ANGLE_HALF_TURN) {
+        turnRate = work->turnRate;
+        if (turnRate >= absoluteDifference) {
+            work->yaw = targetYaw;
         } else {
-            next = work->yaw;
-            if (diff <= 0) {
-                next -= step;
+            nextYaw = work->yaw;
+            if (yawDifference <= 0) {
+                nextYaw -= turnRate;
             } else {
-                next += step;
+                nextYaw += turnRate;
             }
-            work->yaw = next;
+            work->yaw = nextYaw;
         }
     } else {
-        step = work->turnRate;
-        if (diff > 0 ? step >= 0x1000 - diff : step >= 0x1000 + diff) {
+        turnRate = work->turnRate;
+        if (yawDifference > 0 ? turnRate >= ACTOR_TRANSFORM_ANGLE_TURN - yawDifference : turnRate >= ACTOR_TRANSFORM_ANGLE_TURN + yawDifference) {
             work->yaw = work->targetYaw;
         } else {
-            wrapStep = work->turnRate;
-            cur      = work->yaw;
-            if (diff > 0) {
-                work->yaw = cur - wrapStep;
+            wrappedTurnRate = work->turnRate;
+            currentYaw      = work->yaw;
+            if (yawDifference > 0) {
+                work->yaw = currentYaw - wrappedTurnRate;
             } else {
-                work->yaw = cur + wrapStep;
+                work->yaw = currentYaw + wrappedTurnRate;
             }
         }
     }
-    rot->vx = 0;
-    rot->vy = work->yaw;
-    rot->vz = 0;
-    RotMatrix(rot, &coord->coord);
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    yawRotation->vx = 0;
+    yawRotation->vy = work->yaw;
+    yawRotation->vz = 0;
+    RotMatrix(yawRotation, &modelRoot->coord);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(*yawRotation));
 }
 
-static void Actor03800_Fn02848(Task* arg0)
+/// Moves the root and updates touch-attack power from the tick's speed.
+///
+/// Speed/fallSpeed are parent-frame game units per tick; the facing basis is Q12.
+/// Acceleration is narrowed to s16 before capping positive speed at 50. Each
+/// positive speed unit adds four percent of base power; nonpositive speed uses
+/// base power. Saves the pre-move position for unresolved room contacts.
+static void _actor03800MoveRoot(Task* task)
 {
+    enum {
+        ACTOR_03800_MAX_ACCELERATED_SPEED   = 50,
+        ACTOR_03800_ATTACK_BONUS_PER_SPEED  = 400,
+        ACTOR_03800_BASIS_POINTS_ONE        = 10000,
+        ACTOR_03800_DIRECTION_FRACTION_BITS = 12,
+    };
     _Actor03800Work* work;
-    GfxCoord*        coord;
-    s16              next;
+    GfxCoord*        rootCoord;
+    s16              acceleratedSpeed;
     s16              speed;
-    u16              value;
-    s32              scale;
-    _Actor03800Work* work2;
+    u16              attackPower;
+    s32              speedBonusBasisPoints;
+    _Actor03800Work* attackWork;
 
-    work  = arg0->work;
-    coord = work->rootCoord;
-    work2 = work;
+    work       = task->work;
+    rootCoord  = work->rootCoord;
+    attackWork = work;
     if (work->accel != 0) {
-        next        = work->speed + work->accel;
-        work->speed = next;
-        if (next >= 0x33) {
-            work->speed = 0x32;
+        acceleratedSpeed = work->speed + work->accel;
+        work->speed      = acceleratedSpeed;
+        if (acceleratedSpeed > ACTOR_03800_MAX_ACCELERATED_SPEED) {
+            work->speed = ACTOR_03800_MAX_ACCELERATED_SPEED;
         }
     }
-    speed = work2->speed;
+    // Base power 6 and positive speeds up to 125 keep the unmasked power <= 36.
+    speed = attackWork->speed;
     if (speed > 0) {
-        scale = speed * 0x190;
-        value = Actor03800_D05F40[0].power + ((Actor03800_D05F40[0].power * scale) / 10000);
+        speedBonusBasisPoints = speed * ACTOR_03800_ATTACK_BONUS_PER_SPEED;
+        attackPower           = Actor03800_D05F40[0].power + ((Actor03800_D05F40[0].power * speedBonusBasisPoints) / ACTOR_03800_BASIS_POINTS_ONE);
     } else {
-        value = Actor03800_D05F40[0].power;
+        attackPower = Actor03800_D05F40[0].power;
     }
-    work2->attackBody.key = (((s16)value | (Actor03800_D05F40[0].reaction << DAMAGE_ATTACK_REACTION_SHIFT)) & 0xFFFF) |
-                            DAMAGE_ATTACK_CATEGORY;
-    work->prevPos.vx   = (s16)coord->coord.t[0];
-    work->prevPos.vy   = (s16)coord->coord.t[1];
-    work->prevPos.vz   = (s16)coord->coord.t[2];
-    coord->coord.t[0] += (s32)(coord->coord.m[0][2] * work->speed) >> 0xC;
-    coord->coord.t[1] += work->fallSpeed;
-    coord->coord.t[2] += (s32)(coord->coord.m[2][2] * work->speed) >> 0xC;
+    attackWork->attackBody.key = (((s16)attackPower | (Actor03800_D05F40[0].reaction << DAMAGE_ATTACK_REACTION_SHIFT)) & 0xFFFF) |
+                                 DAMAGE_ATTACK_CATEGORY;
+    // Preserve the pre-move position for an opposed room-grid contact.
+    work->prevPos.vx       = (s16)rootCoord->coord.t[0];
+    work->prevPos.vy       = (s16)rootCoord->coord.t[1];
+    work->prevPos.vz       = (s16)rootCoord->coord.t[2];
+    rootCoord->coord.t[0] += (rootCoord->coord.m[0][2] * work->speed) >> ACTOR_03800_DIRECTION_FRACTION_BITS;
+    rootCoord->coord.t[1] += work->fallSpeed;
+    rootCoord->coord.t[2] += (rootCoord->coord.m[2][2] * work->speed) >> ACTOR_03800_DIRECTION_FRACTION_BITS;
 }
 
 /// Starts a requested clip with its table-defined blend, or advances the five driven parts.
@@ -2135,163 +2199,208 @@ static inline void _actor03800TickAnim(Task* task)
     }
 }
 
-/// Recolours the actor from the lighting at its root coordinate's world position.
-static inline void _actor03800UpdateColorAtRoot(Task* arg0)
-{
-    GfxCoord* coord;
-    VECTOR    vec;
-
-    coord  = ((_Actor03800Work*)arg0->work)->rootCoord;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
-}
-
-static void Actor03800_Fn02998(Enemy* arg0, Task* arg1)
+/// Samples actor lighting and colour from the root coordinate's cached translation.
+///
+/// Requires a live task/work/root and Enemy with its model lighting matrices.
+/// Does not compose or convert the cache; its frame and age are the caller's
+/// responsibility. Copies signed 32-bit XYZ in game units to a temporary VECTOR
+/// whose unused pad is untouched. The lighting call retains no sample pointer.
+static inline void _actor03800UpdateColorAtRoot(Task* task)
 {
     _Actor03800Work* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    s32              state;
-    s16              phase;
-    s16              anim;
-    s32              snd;
-    s32              pan;
+    GfxCoord*        rootCoord;
+    VECTOR           samplePosition;
 
-    obj   = arg1->extra.tmd;
-    work  = arg1->work;
-    state = gSceneCombatState.actorControl;
-    coord = work->rootCoord;
-    switch (state) {
-        case 1:
-            _actor03800UpdateColorAtRoot(arg1);
+    work              = task->work;
+    rootCoord         = work->rootCoord;
+    samplePosition.vx = rootCoord->workm.t[0];
+    samplePosition.vy = rootCoord->workm.t[1];
+    samplePosition.vz = rootCoord->workm.t[2];
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &samplePosition, 0, 0);
+}
+
+/// Retires collision and targeting, then collapses or bursts the dying actor.
+///
+/// Requires matching live enemy/task work on entry. Releases the battle hold
+/// and credits rewards once; collapse becomes translucent at tick 10, burns at 15 and retires
+/// at 60. Burst hides the model, releases its primitive buffer on burst stage 2
+/// and spawns fragments. The destroy stage frees the enemy and task; no accesses
+/// follow that call. Scene pause/hide controls suspend the death sequence.
+static void _actor03800Death(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_03800_DEATH_BEGIN              = 0,
+        ACTOR_03800_DEATH_COLLAPSE           = 1,
+        ACTOR_03800_DEATH_DESTROY            = 2,
+        ACTOR_03800_DEATH_BURST              = 3,
+        ACTOR_03800_DEATH_TRANSLUCENT_TICK   = 10,
+        ACTOR_03800_DEATH_BURN_TICK          = 15,
+        ACTOR_03800_DEATH_FINISH_TICK        = 60,
+        ACTOR_03800_SOUND_DEATH              = 0x40260004,
+        ACTOR_03800_REWARD_ACTOR_ID          = 0x26,
+        ACTOR_03800_CORPSE_FLAME_BATCH_COUNT = 2,
+    };
+    _Actor03800Work* work;
+    TmdObject*       model;
+    GfxCoord*        rootCoord;
+    s32              actorControl;
+    s16              deathTick;
+    s16              deathAnimation;
+    s32              soundId;
+    s32              audioPan;
+
+    model        = task->extra.tmd;
+    work         = task->work;
+    actorControl = gSceneCombatState.actorControl;
+    rootCoord    = work->rootCoord;
+    switch (actorControl) {
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor03800UpdateColorAtRoot(task);
             return;
-        case 2:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
         default:
             break;
     }
     switch (work->actionStep) {
-        case 0:
+        case ACTOR_03800_DEATH_BEGIN:
             if (work->deathAnimChosen == 0) {
-                anim = ACTOR_03800_ANIM_STAND;
+                deathAnimation = ACTOR_03800_ANIM_STAND;
                 if (work->overturned != 0) {
-                    anim = ACTOR_03800_ANIM_DIE_OVERTURNED;
+                    deathAnimation = ACTOR_03800_ANIM_DIE_OVERTURNED;
                 }
-                work->anim = anim;
+                work->anim = deathAnimation;
             }
             work->timer        = 0;
-            work->deathScaleY  = 0x1000;
-            work->savedRootMtx = coord->coord;
-            arg0->recs         = 0;
-            worldTargetUnlinkNode(&arg0->node);
+            work->deathScaleY  = ONE;
+            work->savedRootMtx = rootCoord->coord;
+            // Remove published contacts and targeting before releasing the battle hold.
+            enemy->recs = 0;
+            worldTargetUnlinkNode(&enemy->node);
             worldCollisionUnlinkBody(&work->hitBody);
             worldCollisionUnlinkBody(&work->gridBody);
             worldCollisionUnlinkBody(&work->attackBody);
-            worldCoordSetActorColorMode(arg0, ENEMY_COLOR_WEIGHTED);
-            sceneReleaseBattleRefWithRewards(arg1, 0x26);
-            work->actionStep = 1;
+            worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
+            sceneReleaseBattleRefWithRewards(task, ACTOR_03800_REWARD_ACTOR_ID);
+            work->actionStep = ACTOR_03800_DEATH_COLLAPSE;
             if (work->burstStage != 0) {
-                obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                work->actionStep = 3;
+                model->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                work->actionStep = ACTOR_03800_DEATH_BURST;
             }
-            _actor03800TickAnim(arg1);
-            _actor03800UpdateColorAtRoot(arg1);
-            snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260004;
-            pan = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            _actor03800TickAnim(task);
+            _actor03800UpdateColorAtRoot(task);
+            soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_03800_SOUND_INSTANCE_SHIFT) | ACTOR_03800_SOUND_DEATH;
+            audioPan = (s8)worldCoordGetOriginAudioPan(rootCoord);
+            sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
             return;
-        case 1:
-            Actor03800_Fn037E0(arg1);
-            phase       = work->timer + 1;
-            work->timer = phase;
-            if (phase == 10) {
-                obj->flags = TMD_OBJECT_SEMI_TRANS;
+        case ACTOR_03800_DEATH_COLLAPSE:
+            _actor03800SquashCorpse(task);
+            deathTick   = work->timer + 1;
+            work->timer = deathTick;
+            if (deathTick == ACTOR_03800_DEATH_TRANSLUCENT_TICK) {
+                model->flags = TMD_OBJECT_SEMI_TRANS;
             }
-            if (work->timer == 15) {
-                effectSpawn(EFFECT_CORPSE_BURN, coord, 2, NULL);
+            if (work->timer == ACTOR_03800_DEATH_BURN_TICK) {
+                effectSpawn(EFFECT_CORPSE_BURN, rootCoord, ACTOR_03800_CORPSE_FLAME_BATCH_COUNT, NULL);
             }
-            if (work->timer >= 0x3C) {
-                work->actionStep = 2;
-                obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            if (work->timer >= ACTOR_03800_DEATH_FINISH_TICK) {
+                work->actionStep = ACTOR_03800_DEATH_DESTROY;
+                model->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             }
-            _actor03800TickAnim(arg1);
-            _actor03800UpdateColorAtRoot(arg1);
+            _actor03800TickAnim(task);
+            _actor03800UpdateColorAtRoot(task);
             return;
-        case 2:
-            enemyDestroy(arg0, arg1);
+        case ACTOR_03800_DEATH_DESTROY:
+            enemyDestroy(enemy, task);
             return;
-        case 3:
+        case ACTOR_03800_DEATH_BURST:
             if (work->burstStage != 0) {
-                if (work->burstStage >= 2) {
+                if (work->burstStage >= ACTOR_03800_BURST_SPAWN) {
                     work->burstStage = 0;
-                    tmdFreePrimitiveBuffer(obj);
-                    obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                    Actor03800_Fn02E50(arg1);
+                    // Hide the parent and give up its primitives before allocating fragments.
+                    tmdFreePrimitiveBuffer(model);
+                    model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+                    _actor03800SpawnBurstFragments(task);
                 } else {
                     work->burstStage++;
                 }
             }
-            phase       = work->timer + 1;
-            work->timer = phase;
-            if (phase >= 0x3C) {
-                work->actionStep = 2;
+            deathTick   = work->timer + 1;
+            work->timer = deathTick;
+            if (deathTick >= ACTOR_03800_DEATH_FINISH_TICK) {
+                work->actionStep = ACTOR_03800_DEATH_DESTROY;
             }
             return;
     }
 }
 
-static void Actor03800_Fn02E50(Task* actor)
+/// Spawns one to three random body fragments, reducing the count for ongoing battles.
+///
+/// Requires live task work/model/placement and initialized effect resources.
+/// One of five variants is always attempted. With zero/one battle references,
+/// two/one additional effects are attempted. The third selection deliberately
+/// excludes the second draw's list index, preserving the stored algorithm;
+/// variants can repeat. Failed effect allocations still consume their draws.
+static void _actor03800SpawnBurstFragments(Task* task)
 {
-    s16  variants[4];
-    s16* out;
-    s32  i;
-    s32  count;
-    u32  first;
-    s32  second;
+    s16  remainingVariants[ACTOR_03800_BURST_VARIANT_COUNT - 1];
+    s16* variantOut;
+    s32  variantIndex;
+    s32  extraFragmentCount;
+    u32  firstVariant;
+    s32  secondChoiceIndex;
 
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    first           = (u16)((gRandomLcgState >> 16) % 5);
-    Actor03800_Fn03008(actor, first);
-    if (gSceneCombatState.battleRefs < 2) {
-        count = Actor03800_D05FA8[gSceneCombatState.battleRefs];
-        out   = variants;
-        for (i = 0; i < 5; i++) {
-            if (i != first) {
-                *out++ = i;
+    firstVariant    = (u16)((gRandomLcgState >> 16) % ACTOR_03800_BURST_VARIANT_COUNT);
+    _actor03800SpawnBurstFragment(task, firstVariant);
+    if (gSceneCombatState.battleRefs < ARRAY_SIZE(Actor03800_D05FA8)) {
+        extraFragmentCount = Actor03800_D05FA8[gSceneCombatState.battleRefs];
+        variantOut         = remainingVariants;
+        for (variantIndex = 0; variantIndex < ACTOR_03800_BURST_VARIANT_COUNT; variantIndex++) {
+            if (variantIndex != firstVariant) {
+                *variantOut++ = variantIndex;
             }
         }
-        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        second          = (gRandomLcgState >> 16) & 3;
-        Actor03800_Fn03008(actor, variants[second]);
-        if (--count > 0) {
-            s16* next = variants;
+        gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        secondChoiceIndex = (gRandomLcgState >> 16) & (ARRAY_SIZE(remainingVariants) - 1);
+        _actor03800SpawnBurstFragment(task, remainingVariants[secondChoiceIndex]);
+        if (--extraFragmentCount > 0) {
+            s16* thirdVariantOut = remainingVariants;
 
-            for (i = 0; i < 5; i++) {
-                if (i != first && i != second) {
-                    *next++ = i;
+            // The exclusion uses the second draw's index, not its selected variant.
+            for (variantIndex = 0; variantIndex < ACTOR_03800_BURST_VARIANT_COUNT; variantIndex++) {
+                if (variantIndex != firstVariant && variantIndex != secondChoiceIndex) {
+                    *thirdVariantOut++ = variantIndex;
                 }
             }
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            Actor03800_Fn03008(actor, variants[(u16)((gRandomLcgState >> 16) % 3)]);
+            _actor03800SpawnBurstFragment(task, remainingVariants[(u16)((gRandomLcgState >> 16) % (ACTOR_03800_BURST_VARIANT_COUNT - 2))]);
         }
     }
 }
 
-static void Actor03800_Fn03008(Task* actor, u32 variant)
+/// Spawns a selected body fragment with the dying actor's placement texture offsets.
+///
+/// `variant` is 0..4. Requires a live six-part actor, enemy placement
+/// index and current area resources. Supplies the next bank-4 effect's model
+/// through the task descriptor, then borrows the spawned model to rebuild both
+/// buffer halves. Allocation failure returns without a texture lookup.
+static void _actor03800SpawnBurstFragment(Task* task, u32 variant)
 {
-    GameLocationKey  key;
-    GameLocationKey* sessionKey;
-    u8               areaByte0;
-    AreaVariant*     layout;
-    AreaPlacement*   entry;
-    EffectWork*      eff;
+    enum { ACTOR_03800_BURST_ANCHOR_PART = 3,
+           ACTOR_03800_BURST_PUFF_SIZE   = 256 };
+    Enemy*           placementOwner;
+    GameLocationKey  location;
+    GameLocationKey* sessionLocation;
+    u8               view;
+    AreaVariant*     areaVariant;
+    AreaPlacement*   placement;
+    EffectWork*      fragmentEffect;
     TmdObject*       model;
-    s32              idx;
-    u32              raw;
+    s32              placementIndex;
+    u32              placeKey;
 
     switch (variant) {
         case 0:
@@ -2310,134 +2419,156 @@ static void Actor03800_Fn03008(Task* actor, u32 variant)
             D_80067704[0] = &_gActor03800BlackBeetleEffect5;
             break;
     }
-    eff = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, actor->extra.tmd->coords + 3, 0x100, NULL);
-    if (eff == NULL) {
+    fragmentEffect = effectSpawn(EFFECT_BURST_BODY_PART_BANK4, task->extra.tmd->coords + ACTOR_03800_BURST_ANCHOR_PART, ACTOR_03800_BURST_PUFF_SIZE, NULL);
+    if (fragmentEffect == NULL) {
         return;
     }
-    sessionKey = &gGameSession->location.loc;
-    raw        = ((Enemy*)actor->spawnArg2.pointer)->placeKey;
-    model      = eff->task->extra.tmd;
-    key.stage  = sessionKey->stage;
-    key.area   = sessionKey->area;
-    key.room   = sessionKey->room;
-    areaByte0  = sessionKey->view;
-    idx        = raw >> 12;
-    key.view   = areaByte0;
-    areaSyncLocationVariant(&key);
-    layout = areaGetVariant(&key);
+    // Resolve the saved placement variant; warp is never read by these lookups.
+    sessionLocation = &gGameSession->location.loc;
+    placementOwner  = task->spawnArg2.pointer;
+    placeKey        = placementOwner->placeKey;
+    model           = fragmentEffect->task->extra.tmd;
+    location.stage  = sessionLocation->stage;
+    location.area   = sessionLocation->area;
+    location.room   = sessionLocation->room;
+    view            = sessionLocation->view;
+    placementIndex  = placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+    location.view   = view;
+    areaSyncLocationVariant(&location);
+    areaVariant = areaGetVariant(&location);
 
-    entry                    = gpAreaPlaceAt(layout->placements, idx);
-    model->texturePageOffset = entry->texturePageOffset;
-    model->clutRowOffset     = entry->clutRowOffset;
+    placement                = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+    model->texturePageOffset = placement->texturePageOffset;
+    model->clutRowOffset     = placement->clutRowOffset;
     if (model->buffer != NULL) {
         tmdBuildBufferHalf(model);
         tmdBuildBufferHalf(model);
     }
 }
 
-static void Actor03800_Fn0315C(Task* arg0)
+/// Dispatches the actor's spawn, live or death task state.
+///
+/// Task state must be 0..2 with its Enemy in spawnArg2.pointer. Copies the
+/// three-entry callback table before dispatch; a handler may destroy the task
+/// and enemy, so neither is accessed afterwards.
+static void _actor03800Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = Actor03800_D00004;
-    sp.funcs[arg0->state](((Enemy*)arg0->spawnArg2.pointer), arg0);
+    handlers = Actor03800_D00004;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static void Actor03800_Fn031B8(Enemy* arg0, Task* arg1)
+/// Runs reactions, contacts, action, motion and animation for one live actor tick.
+///
+/// Requires matching enemy/task work initialized by the spawn state. Contacts
+/// describe the previous collision pass. Pause redraws colour and shadow from
+/// cached coordinates; hide also disables lock-on. A normal tick composes the
+/// moved root before lighting and shadow, and may hand off to the death state.
+static void _actor03800Tick(Enemy* enemy, Task* task)
 {
     _Actor03800Work* work;
 
-    work = arg1->work;
+    work = task->work;
     switch (gSceneCombatState.actorControl) {
-        case 0:
-            arg1->extra.tmd->flags       = 0;
-            arg0->node.state.parts.flags = 0;
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            task->extra.tmd->flags        = 0;
+            enemy->node.state.parts.flags = 0;
             break;
-        case 2:
-            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = 1;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            task->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
-        case 1:
-            Actor03800_Fn036EC(arg1);
-            Actor03800_Fn03744(arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor03800UpdateColor(task);
+            _actor03800DrawGroundShadow(task);
             return;
     }
-    if (arg0->reactionFlags != 0) {
-        Actor03800_Fn00974(arg1);
+    if (enemy->reactionFlags != 0) {
+        _actor03800ApplyReactions(task);
     }
-    Actor03800_Fn00A98(arg1);
-    Actor03800_Fn032D8(arg1);
+    // Reactions and contacts precede the action that chooses this tick's motion.
+    _actor03800ProcessContacts(task);
+    _actor03800DispatchAction(task);
     if (work->turnRate != 0) {
-        Actor03800_Fn026F8(arg1);
+        _actor03800TurnTowardTargetYaw(task);
     }
-    Actor03800_Fn02848(arg1);
+    _actor03800MoveRoot(task);
     if (work->stepSoundTimer != 0) {
-        Actor03800_Fn03594(arg1);
+        _actor03800TickFootstepSound(task);
     }
-    Actor03800_Fn03628(arg1);
+    _actor03800Animate(task);
+    // Compose only after motion and playback, then sample lighting and draw the shadow.
     work->rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(work->rootCoord);
-    Actor03800_Fn036EC(arg1);
-    Actor03800_Fn03744(arg1);
+    _actor03800UpdateColor(task);
+    _actor03800DrawGroundShadow(task);
 }
 
-static void Actor03800_Fn032D8(Task* arg0)
+/// Runs the selected action and sizes the room-collision sphere for its resulting posture.
+///
+/// Requires spawned task work and an ACTOR_03800_ACTION_* value. The sphere is
+/// 250 game units upright or 350 overturned, with its centre one radius above
+/// the root along negative Y; the post-handler posture controls the size.
+static void _actor03800DispatchAction(Task* task)
 {
+    enum { ACTOR_03800_UPRIGHT_GRID_RADIUS    = 250,
+           ACTOR_03800_OVERTURNED_GRID_RADIUS = 350 };
     _Actor03800Work* work;
-    s16              state;
-    s16              mag;
+    s16              action;
+    s16              gridRadius;
 
-    work  = arg0->work;
-    state = work->action;
-    switch (state) {
+    work   = task->work;
+    action = work->action;
+    switch (action) {
         case ACTOR_03800_ACTION_IDLE:
-            _actor03800ActionIdle(arg0);
+            _actor03800ActionIdle(task);
             break;
         case ACTOR_03800_ACTION_WANDER:
-            _actor03800ActionWander(arg0);
+            _actor03800ActionWander(task);
             break;
         case ACTOR_03800_ACTION_CHARGE:
-            _actor03800ActionCharge(arg0);
+            _actor03800ActionCharge(task);
             break;
         case ACTOR_03800_ACTION_KNOCKED_OVER:
-            _actor03800ActionKnockedOver(arg0);
+            _actor03800ActionKnockedOver(task);
             break;
         case ACTOR_03800_ACTION_GET_UP:
-            _actor03800ActionGetUp(arg0);
+            _actor03800ActionGetUp(task);
             break;
         case ACTOR_03800_ACTION_FLINCH:
-            _actor03800ActionFlinch(arg0);
+            _actor03800ActionFlinch(task);
             break;
         case ACTOR_03800_ACTION_BUILDUP:
-            _actor03800ActionBuildup(arg0);
+            _actor03800ActionBuildup(task);
             break;
         case ACTOR_03800_ACTION_DIE:
-            _actor03800ActionDie(arg0);
+            _actor03800ActionDie(task);
             break;
         case ACTOR_03800_ACTION_WALL_WAIT:
-            _actor03800ActionWallWait(arg0);
+            _actor03800ActionWallWait(task);
             break;
         case ACTOR_03800_ACTION_CEILING_WAIT:
-            _actor03800ActionCeilingWait(arg0);
+            _actor03800ActionCeilingWait(task);
             break;
         case ACTOR_03800_ACTION_DROP:
-            _actor03800ActionDrop(arg0);
+            _actor03800ActionDrop(task);
             break;
         case ACTOR_03800_ACTION_SHRINE_WAIT:
-            _actor03800ActionShrineWait(arg0);
+            _actor03800ActionShrineWait(task);
             break;
         case ACTOR_03800_ACTION_LEAP_AWAY:
-            _actor03800ActionLeapAway(arg0);
+            _actor03800ActionLeapAway(task);
             break;
     }
     if (work->overturned == 0) {
-        work->gridBody.pos.vy = -0xFA;
-        mag                   = 0xFA;
+        work->gridBody.pos.vy = -ACTOR_03800_UPRIGHT_GRID_RADIUS;
+        gridRadius            = ACTOR_03800_UPRIGHT_GRID_RADIUS;
     } else {
-        work->gridBody.pos.vy = -0x15E;
-        mag                   = 0x15E;
+        work->gridBody.pos.vy = -ACTOR_03800_OVERTURNED_GRID_RADIUS;
+        gridRadius            = ACTOR_03800_OVERTURNED_GRID_RADIUS;
     }
-    work->gridBody.radius = mag;
+    work->gridBody.radius = gridRadius;
 }
 
 /// Rights the actor at animation tick 30 and resumes charging from tick 58.
@@ -2511,84 +2642,117 @@ static void _actor03800ActionShrineWait(Task* task)
     }
 }
 
-static void Actor03800_Fn03594(Task* arg0)
+/// Counts down a running footstep cadence and queues a placement-specific sound every 12 ticks.
+///
+/// Requires live enemy/work/root storage and a nonzero stepSoundTimer from the
+/// caller. Audio position queries are narrowed to signed bytes for the queue.
+static void _actor03800TickFootstepSound(Task* task)
 {
+    enum { ACTOR_03800_FOOTSTEP_PERIOD_TICKS = 12,
+           ACTOR_03800_SOUND_FOOTSTEP        = 0x40260001 };
+    Enemy*           enemy;
     _Actor03800Work* work;
-    GfxCoord*        coord;
+    GfxCoord*        rootCoord;
     s32              soundId;
-    s32              pan;
+    s32              audioPan;
 
-    work  = arg0->work;
-    coord = work->rootCoord;
+    work      = task->work;
+    rootCoord = work->rootCoord;
     if (--work->stepSoundTimer <= 0) {
-        work->stepSoundTimer = 0xC;
-        soundId              = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40260001;
-        pan                  = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        work->stepSoundTimer = ACTOR_03800_FOOTSTEP_PERIOD_TICKS;
+        enemy                = task->spawnArg2.pointer;
+        soundId              = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_03800_SOUND_INSTANCE_SHIFT) | ACTOR_03800_SOUND_FOOTSTEP;
+        audioPan             = (s8)worldCoordGetOriginAudioPan(rootCoord);
+        sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(rootCoord));
     }
 }
 
-static void Actor03800_Fn03628(Task* arg0)
+/// Starts or advances the actor's requested animation for the live tick.
+///
+/// Requires the initialized five driven rig slots and the clip-index contract
+/// of `_actor03800TickAnim`; the death state uses the same playback inline.
+static void _actor03800Animate(Task* task)
 {
-    _actor03800TickAnim(arg0);
+    _actor03800TickAnim(task);
 }
 
-static void Actor03800_Fn036EC(Task* arg0)
+/// Updates live-state lighting from the cached root position.
+///
+/// Requires the live storage and composition-cache contract of
+/// `_actor03800UpdateColorAtRoot`, also used by the death state.
+static void _actor03800UpdateColor(Task* task)
 {
-    GfxCoord* coord;
-    VECTOR    vec;
-
-    coord  = ((_Actor03800Work*)arg0->work)->rootCoord;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    _actor03800UpdateColorAtRoot(task);
 }
 
-static void Actor03800_Fn03744(Task* arg0)
+/// Draws the actor's floor shadow or projects a perched root onto the ground.
+///
+/// Requires live work and a composed root. Floor mode uses the root's cached
+/// position and stored shade, including -1 to suppress drawing. Perched modes
+/// project onto the room grid and shade by the signed view-Y displacement.
+static void _actor03800DrawGroundShadow(Task* task)
 {
+    enum { ACTOR_03800_FLOOR_SHADOW_SIZE = 500,
+           ACTOR_03800_PERCH_SHADOW_SIZE = 512 };
     _Actor03800Work* work;
-    GfxCoord*        coord;
-    VECTOR3          vec;
-    s16              hit;
+    GfxCoord*        rootCoord;
+    VECTOR3          shadowPosition;
+    s16              viewYDisplacement;
 
-    work  = arg0->work;
-    coord = work->rootCoord;
+    work      = task->work;
+    rootCoord = work->rootCoord;
     if (work->mode == ACTOR_03800_MODE_FLOOR) {
-        vec.vx = coord->workm.t[0];
-        vec.vy = coord->workm.t[1];
-        vec.vz = coord->workm.t[2];
-        effectDrawGroundShadow(&vec, 0x1F4, work->shadowShade);
+        shadowPosition.vx = rootCoord->workm.t[0];
+        shadowPosition.vy = rootCoord->workm.t[1];
+        shadowPosition.vz = rootCoord->workm.t[2];
+        effectDrawGroundShadow(&shadowPosition, ACTOR_03800_FLOOR_SHADOW_SIZE, work->shadowShade);
         return;
     }
-    hit = worldCollisionProjectGroundPoint(MATRIX_TRANS(&coord->workm), &vec);
-    if (hit != 0) {
-        effectDrawGroundShadow(&vec, 0x200, effectGetGroundShadowShade(0x200, 0x80, hit));
+    viewYDisplacement = worldCollisionProjectGroundPoint(MATRIX_TRANS(&rootCoord->workm), &shadowPosition);
+    if (viewYDisplacement != 0) {
+        effectDrawGroundShadow(&shadowPosition, ACTOR_03800_PERCH_SHADOW_SIZE, effectGetGroundShadowShade(ACTOR_03800_PERCH_SHADOW_SIZE, ACTOR_03800_SHADOW_SHADE, viewYDisplacement));
     }
 }
 
-static void Actor03800_Fn037E0(Task* arg0)
+/// Restores the saved death transform and applies its Q12 local Y scale.
+///
+/// Root, work and scratch must be live and disjoint. The caller owns scratch
+/// reservation and release; restoring the full matrix prevents compounded scale.
+static inline void _actor03800ApplyCorpseScale(GfxCoord* rootCoord, const _Actor03800Work* work, ActorScaleScratch* scratch)
 {
-    _Actor03800Work*   work;
-    GfxCoord*          coord;
-    ActorScaleScratch* head;
-    ActorScaleScratch* scratch;
-
-    work                                    = arg0->work;
-    head                                    = SCRATCH_STACK_CURSOR(ActorScaleScratch);
-    scratch                                 = head - 1;
-    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
-    coord                                   = work->rootCoord;
-    if (work->deathScaleY >= 0x201) {
-        work->deathScaleY = work->deathScaleY - 0x50;
-    }
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->deathScaleY;
     scratch->scale.vz = ONE;
-    coord->coord      = work->savedRootMtx;
+    rootCoord->coord  = work->savedRootMtx;
     gfxSetRotIdentity(&scratch->matrix);
     ScaleMatrix(&scratch->matrix, &scratch->scale);
-    MulMatrix(&coord->coord, &scratch->matrix);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    MulMatrix(&rootCoord->coord, &scratch->matrix);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Squashes the corpse along local Y from its saved death transform.
+///
+/// Requires savedRootMtx captured on death entry and live work/root storage.
+/// Q12 scale decreases by 80 while above 512; a start of ONE ends at 496,
+/// preserving the undershoot. Restoring the saved matrix avoids compounded
+/// scaling and retains translation. Dirties composition and releases scratch.
+static void _actor03800SquashCorpse(Task* task)
+{
+    enum { ACTOR_03800_CORPSE_SCALE_CUTOFF_Q12 = 512,
+           ACTOR_03800_CORPSE_SCALE_STEP_Q12   = 80 };
+    _Actor03800Work*   work;
+    GfxCoord*          rootCoord;
+    ActorScaleScratch* scratchHead;
+    ActorScaleScratch* scratch;
+
+    work                                    = task->work;
+    scratchHead                             = SCRATCH_STACK_CURSOR(ActorScaleScratch);
+    scratch                                 = scratchHead - 1;
+    SCRATCH_STACK_CURSOR(ActorScaleScratch) = scratch;
+    rootCoord                               = work->rootCoord;
+    if (work->deathScaleY > ACTOR_03800_CORPSE_SCALE_CUTOFF_Q12) {
+        work->deathScaleY = work->deathScaleY - ACTOR_03800_CORPSE_SCALE_STEP_Q12;
+    }
+    _actor03800ApplyCorpseScale(rootCoord, work, scratch);
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleScratch);
 }
