@@ -147,7 +147,7 @@ static void _shelterB3IncineratorControlRoomIdleRoom(Task* task);
 
 #include "../../shared/telephone.inc.c"
 
-void func_shelter_b3_incinerator_control_room_8017EA64(Task* task)
+void shelterB3IncineratorControlRoomTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }

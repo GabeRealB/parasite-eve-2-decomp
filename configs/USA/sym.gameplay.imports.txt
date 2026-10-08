@@ -593,7 +593,7 @@ acropolisObservatoryAmbientGlowTask = 0x8017E424; // type:func absolute:True own
 
 acropolisObservatoryLensFlareEmitterTask = 0x8017E6F8; // type:func absolute:True owner=acropolis_observatory
 
-func_acropolis_patio_8017E100 = 0x8017E100; // type:func absolute:True owner=acropolis_patio
+acropolisPatioSpawnLightEffectsTask = 0x8017E100; // type:func absolute:True owner=acropolis_patio
 
 acropolisPatioFountainJetTask = 0x8017E324; // type:func absolute:True owner=acropolis_patio
 
@@ -1717,7 +1717,7 @@ shelterB1UndergroundParkingTelephoneMenuTask = 0x8017EDE8; // type:func absolute
 
 shelterB2LaboratoryTelephoneMenuTask = 0x8017EAB4; // type:func absolute:True owner=shelter_b2_laboratory
 
-func_shelter_b3_incinerator_control_room_8017EA64 = 0x8017EA64; // type:func absolute:True owner=shelter_b3_incinerator_control_room
+shelterB3IncineratorControlRoomTelephoneMenuTask = 0x8017EA64; // type:func absolute:True owner=shelter_b3_incinerator_control_room
 
 shelterR47TelephoneMenuTask = 0x8017EC04; // type:func absolute:True owner=shelter_r47
 

@@ -60800,7 +60800,7 @@ source order, is the signature; so is a 4-byte payload sharing offset 0 with a
 
 Two records of *different* types at one offset past every named local are the
 same thing with equal frames: the second helper's request is an exact fit for
-the slot the first released. `func_acropolis_plaza_8017ECF8` builds a
+the slot the first released. `_acropolisPlazaFinalSceneTask` builds a
 `GameLocationKey` twice and a stream-slot triple once at `sp+0x78`, which had
 been a union of the two; a lookup helper and a play-stream helper, each with an
 8-byte frame, reproduce it with no union.
@@ -60996,7 +60996,7 @@ as `latchedKind16 == 2` re-merges them and drops back to 98%.
 
 ## A 0xFF-terminated table search: count the loads to pick the loop spelling
 
-`func_acropolis_plaza_8017ECF8` walks the nested area records looking for id
+`_acropolisPlazaFinalSceneTask` walks the nested area records looking for id
 `0x6C` and keeps the index it stopped at. The target loop is
 
 ```
@@ -61064,7 +61064,7 @@ So: count the loads of the terminator byte in the target. Two means a pointer
 
 ## A switch whose cases end in the same call: repeat the call, don't hoist it
 
-Six of the sixteen cases in `func_acropolis_plaza_8017ECF8` end by calling
+Six of the sixteen cases in `_acropolisPlazaFinalSceneTask` end by calling
 `_acropolisPlazaApplyStreamCamera(n)` with three different `n`. Hoisting that into
 `arg = n; break;` plus one call after the switch looks like the same code and
 compiles to the same instruction count, but it cross-jumps differently: GCC
@@ -61619,7 +61619,7 @@ change anything: in the *flat* loops the target initialises the counter first
 and derives the pointer after it (`li $s0, 3` … `addiu $s1, $v0, 0x18`), which
 is the order strength reduction emits. A hand-written walking pointer is
 assigned in source order and comes out the other way round.
-`func_acropolis_patio_8017E100` went from 83.83%
+`acropolisPatioSpawnLightEffectsTask` went from 83.83%
 (`branch=5 regs=66 reorder=3 insert=7 delete=10`) to 100% on this one edit.
 
 ## A named global array flips `addu` operands only when the field offset is non-zero
@@ -86787,7 +86787,7 @@ struct form — a probe with only `field_24` fixed still came out `$v0`. So when
 `regs` penalty is one register in an otherwise byte-identical tail, check whether
 the seed's field accesses are `M2C_FIELD` before hunting the allocator.
 
-A second room instance (`func_dryfield_gas_station_8017FEDC`, 2026-09-15) says
+A second room instance (`_dryfieldGasStationInitRoomTask`, 2026-09-15) says
 *which* accesses have to be: only the one whose value feeds the tail. Typing the
 parameter `Task*` but leaving `field_24` as `M2C_FIELD(index, void**, 0x24)` is
 byte-identical to typing both, because `field_24` is stored in block 0 and never
@@ -90877,7 +90877,7 @@ work->stagedSucklerTasks[1] = sceneFindEnemyByPlaceKey(placeKey)->task;
 ```
 
 The same shape appears with `(idx << 12) | (field_3 << 8) | field_2` in
-`func_acropolis_plaza_8017ECF8`, where the matched target also puts the plain
+`_acropolisPlazaFinalSceneTask`, where the matched target also puts the plain
 byte load first - the caller's own source order is preserved only while the
 argument stays SImode. Inputs: `base_2.i`
 `4077955e23b9e1bc2d8d4fdf0bd97cb489eef5c15f207e47b5626192eaf8b14e` (99.118%),
@@ -95188,9 +95188,9 @@ So when a target materialises a constant on both sides of a call, the source was
 not the single-assignment form -- one arm holds its own copy. Read the extra
 `li` as evidence about *where the assignment lives*, not as something to pin.
 
-## A `case N: goto L;` costs nothing: `jump_optimize` tensions the dispatch table to `L` (func_dryfield_gas_station_801802C0, 2026-09-16)
+## A `case N: goto L;` costs nothing: `jump_optimize` tensions the dispatch table to `L` (dryfieldGasStationArrivalTask, 2026-09-16)
 
-`func_dryfield_gas_station_801802C0` is a five-entry state machine whose jump
+`dryfieldGasStationArrivalTask` is a five-entry state machine whose jump
 table has only four distinct destinations: states 1 and 2 both advance, and the
 advance block sits *after* state 3's body, which falls through into it. The
 table word-order in the target is
@@ -95241,7 +95241,7 @@ tension absorb the cases that merely jump to one. Do not duplicate an arm's body
 to make a case label land on it, and do not read `case N: goto L;` as evidence
 that the original had a trampoline.
 
-## A field load between the prologue and the switch dispatch is the source caching it in a local (func_dryfield_gas_station_801802C0, 2026-09-16)
+## A field load between the prologue and the switch dispatch is the source caching it in a local (dryfieldGasStationArrivalTask, 2026-09-16)
 
 The same function loads `$s1` from `Task::work` (0x1C) *before* the range check
 and `jr` that dispatch the switch, and every use of it (states 3 and 4) goes
@@ -95272,7 +95272,7 @@ into the block state 0 allocated on an earlier call. When a target hoists a
 field load above the dispatch, write the local -- typed as the task's work
 struct, as the other room bodies do -- and keep every later use on that pointer, which is what makes one callee-saved register cover the call.
 
-## An m2c five-scalar stack record keeps one slot, not five: `delete=N` with a short frame (func_dryfield_gas_station_801807E0, 2026-09-16)
+## An m2c five-scalar stack record keeps one slot, not five: `delete=N` with a short frame (_dryfieldGasStationArrivalCutsceneTask, 2026-09-16)
 
 m2c renders a small stack record as sibling scalars --
 
@@ -95307,17 +95307,17 @@ record the source never made into an aggregate.
 
 **Fix.** One aggregate whose address is taken, which is what the original
 surely had -- here the room's `AnimationPlayRequest`, the same record the sibling
-`func_dryfield_gas_station_80180A60` passes:
+`_dryfieldGasStationRestorePlayerAndShow` passes:
 
 ```c
-AnimationPlayRequest script;
+AnimationPlayRequest animationRequest;
 ...
-script.source.sets = &D_dryfield_gas_station_80182E30;
-script.animationId  = 0;
-script.blend  = 0;
-script.blendFrames  = 0;
-script.enableWorldCollision = 0;
-taskMessageDispatch((Task*) work2->owner, 0x3F4, (s32) &script, 0);
+animationRequest.source.sets = D_dryfield_gas_station_80182E30;
+animationRequest.animationId = 0;
+animationRequest.blend = ANIMATION_BLEND_RESET;
+animationRequest.blendFrames = 0;
+animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+TASK_MESSAGE_DISPATCH_POINTER(currentWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &animationRequest, 0);
 ```
 
 95.0% -> 100% with no other change. Note the zeros survive here for the reason

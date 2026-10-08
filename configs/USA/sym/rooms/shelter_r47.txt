@@ -278,3 +278,5 @@ _shelterR47MapTerminalSwitchPageTask = 0x801855b8; // type:func
 _shelterR47MapTerminalReopenPageTask = 0x801856ac; // type:func
 _shelterR47MapTerminalTimedViewTask = 0x8018571c; // type:func
 _shelterR47MapTerminalTask = 0x80185214; // type:func
+_shelterR47ConsoleValidateGuidedRow = 0x801829b8; // type:func
+_shelterR47ConsoleStartGuideDialogue = 0x801832ec; // type:func

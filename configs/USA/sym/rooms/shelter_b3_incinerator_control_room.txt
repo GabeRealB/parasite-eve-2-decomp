@@ -83,7 +83,7 @@ D_acropolis_square_80188888 = 0x80188888; // absolute:True owner=acropolis_squar
 gRoomCutsceneTaskDescs = 0x80181814; // size:0x24 defined:True
 D_shelter_b3_incinerator_control_room_80181838 = 0x80181838; // size:0x30 defined:True
 
-func_shelter_b3_incinerator_control_room_8017EA64 = 0x8017EA64; // type:func
+shelterB3IncineratorControlRoomTelephoneMenuTask = 0x8017EA64; // type:func
 
 shelterB3IncineratorControlRoomDrawViewGlowsTask = 0x8017FD10; // type:func
 _telephoneDrawPlayDataRow = 0x8017D6CC; // type:func

@@ -163,11 +163,13 @@ extern Task* gRoomCutsceneSoundTask;
 /// so it is declared here, after its neighbours and before the library header.
 extern RoomCutsceneRec gMotelRoom6CutsceneRec;
 
-/// Selects the daytime motel room 6 glow export and action-handler signature.
+/// Selects the daytime motel room 6 glow export.
 ///
 /// Keep this binding through all motel room 6 implementation fragments.
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/motel_room_6.h"
+
+static void _dryfieldMotelRoom6IgnoreCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg);
 
 /// Script record the room's event handler fills in and hands to the cutscene
 /// task as its `spawnArg2`.
@@ -2025,13 +2027,20 @@ static const TaskFuncTable3 D_dryfield_motel_room_6_8017D6B4 = {
     },
 };
 
+/// Binds the next fragment's four-word fallback to this private void handler.
+///
+/// The replacement is a function identifier; dispatch ignores its result.
+#define MOTEL_ROOM_6_HANDLE_OTHER_COMMAND _dryfieldMotelRoom6IgnoreCommand
 #include "../../shared/motel_room_6_cutscene_msg.inc.c"
+#undef MOTEL_ROOM_6_HANDLE_OTHER_COMMAND
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-/// Fallback of the room's message-0x13F0 handler for every event other than
-/// the cutscene's; this room does nothing with them.
-void motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Ignores non-cutscene room commands in daytime motel room 6.
+///
+/// All four callback arguments are unused. The shared dispatcher ignores
+/// the result, so this private daytime handler retains its void return type.
+static void _dryfieldMotelRoom6IgnoreCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedSecondArg)
 {
 }
 

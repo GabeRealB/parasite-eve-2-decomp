@@ -35,31 +35,46 @@ typedef struct {
 } _DryfieldGasStationArrivalWork;
 STATIC_ASSERT_SIZEOF(_DryfieldGasStationArrivalWork, 0x4);
 
-void func_dryfield_gas_station_8017FFE4(Task* arg0)
+void dryfieldGasStationArrivalMovieTask(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    CdCmdQueue* queue;
-    s16         slot;
-    Task*       task;
+    enum {
+        DRYFIELD_GAS_STATION_MOVIE_PREPARE          = 0,
+        DRYFIELD_GAS_STATION_MOVIE_START            = 1,
+        DRYFIELD_GAS_STATION_MOVIE_WAIT_READY       = 2,
+        DRYFIELD_GAS_STATION_MOVIE_PLAY             = 3,
+        DRYFIELD_GAS_STATION_MOVIE_RESET_RESTORE    = 4,
+        DRYFIELD_GAS_STATION_MOVIE_RESTORE          = 5,
+        DRYFIELD_GAS_STATION_MOVIE_RESOURCE_VIEW    = 100,
+        DRYFIELD_GAS_STATION_MOVIE_MUSIC_FRAME      = 390,
+        DRYFIELD_GAS_STATION_MOVIE_MUSIC_FADE_TICKS = 10,
+        DRYFIELD_GAS_STATION_MOVIE_FADE_TASK        = 2,
+        DRYFIELD_GAS_STATION_MOVIE_FADE_FRAMES      = 8,
+        DRYFIELD_GAS_STATION_MOVIE_KEEP_VRAM_IMAGES = 1,
+        DRYFIELD_GAS_STATION_MOVIE_RELOAD_SPRITES   = 1
+    };
 
-    task  = arg0;
+    u8          streamArgs[4];
+    GameLoc     movieLocation;
+    CdCmdQueue* queue;
+    s16         movieSlot;
+
     queue = &gCdCmdQueue;
     switch (task->state) {
-        case 0:
+        case DRYFIELD_GAS_STATION_MOVIE_PREPARE:
             SetDispMask(0);
-            streamPrepareMovieWorkspace(1);
+            streamPrepareMovieWorkspace(DRYFIELD_GAS_STATION_MOVIE_KEEP_VRAM_IMAGES);
             task->state = task->state + 1;
             break;
-        case 1:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slot         = streamFindMovieSlot(&key.loc, 0, 0);
-            slotParam[0] = slot;
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+        // PLAY_STREAM consumes the slot byte; the remaining argument bytes are uninterpreted.
+        case DRYFIELD_GAS_STATION_MOVIE_START:
+            movieLocation          = gGameSession->location;
+            movieLocation.loc.view = DRYFIELD_GAS_STATION_MOVIE_RESOURCE_VIEW;
+            movieSlot              = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            streamArgs[0]          = movieSlot;
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;
             break;
-        case 2:
+        case DRYFIELD_GAS_STATION_MOVIE_WAIT_READY:
             if (queue->movieReady == 0) {
                 break;
             }
@@ -68,12 +83,12 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
             SetDispMask(1);
             task->state = task->state + 1;
             break;
-        case 3:
-            if (++task->killCountdown == 0x186) {
+        case DRYFIELD_GAS_STATION_MOVIE_PLAY:
+            if (++task->killCountdown == DRYFIELD_GAS_STATION_MOVIE_MUSIC_FRAME) {
                 task->spawnArg1.value = 1;
-                stageMusicRequestAreaStart(0xA);
+                stageMusicRequestAreaStart(DRYFIELD_GAS_STATION_MOVIE_MUSIC_FADE_TICKS);
             }
-            if (cdCmdIsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle() != 0) {
                 SetDispMask(0);
                 task->state = task->state + 1;
                 break;
@@ -82,26 +97,27 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
                 break;
             }
             if (task->spawnArg1.value == 0) {
-                stageMusicRequestAreaStart(0xA);
+                stageMusicRequestAreaStart(DRYFIELD_GAS_STATION_MOVIE_MUSIC_FADE_TICKS);
             }
             SetDispMask(0);
             cdCmdRequestCancel();
             task->state = task->state + 1;
             break;
-        case 4:
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+        case DRYFIELD_GAS_STATION_MOVIE_RESET_RESTORE:
+            if (cdCmdIsIdle() == 0) {
                 break;
             }
             streamResetGameRestore();
             task->state = task->state + 1;
             break;
-        case 5:
-            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
+        // Decoder use has ended before the full image workspace is cleared.
+        case DRYFIELD_GAS_STATION_MOVIE_RESTORE:
+            if (streamPollGameRestore(0, DRYFIELD_GAS_STATION_MOVIE_RELOAD_SPRITES) == 0) {
                 break;
             }
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             taskKill(task);
-            taskSpawnFromTableOnDefaultList(D_dryfield_gas_station_80181E7C, 2, 8, 0);
+            taskSpawnFromTableOnDefaultList(D_dryfield_gas_station_80181E7C, DRYFIELD_GAS_STATION_MOVIE_FADE_TASK, DRYFIELD_GAS_STATION_MOVIE_FADE_FRAMES, 0);
             displayResumeGameLoop();
             break;
     }
@@ -109,42 +125,49 @@ void func_dryfield_gas_station_8017FFE4(Task* arg0)
 
 #include "../../shared/screen_fade_in.inc.c"
 
-/// Runs the gas station's shaft sequence. State 0 allocates the task's
-/// `_DryfieldGasStationArrivalWork` into `Task::work`, spawns the
-/// `D_dryfield_gas_station_80181E7C` entry 1 loader through
-/// `displaySpawnTaskFromTable` and turns the view tasks on; states 1 and 2 only
-/// step, so state 3 spawns the cutscene task from
-/// `D_dryfield_gas_station_8018312C` entry 0 into that block, and state 4 kills
-/// this task once the cutscene has died. The block is read at function entry,
-/// before state 0 writes the freshly allocated one, so only a later run of
-/// the state machine sees it.
-void func_dryfield_gas_station_801802C0(Task* task)
+/// Hands presentation to the arrival movie and keeps current-view packets queued.
+static inline void _dryfieldGasStationStartArrivalMovieDisplay(void)
 {
+    enum { ARRIVAL_MOVIE_DESCRIPTOR = 1 };
+    displaySpawnTaskFromTable(D_dryfield_gas_station_80181E7C, ARRIVAL_MOVIE_DESCRIPTOR, 0, 0);
+    gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
+    viewQueueCurrentCameraAndPackets();
+}
+
+void dryfieldGasStationArrivalTask(Task* task)
+{
+    enum {
+        DRYFIELD_GAS_STATION_ARRIVAL_INIT                = 0,
+        DRYFIELD_GAS_STATION_ARRIVAL_DELAY_1             = 1,
+        DRYFIELD_GAS_STATION_ARRIVAL_DELAY_2             = 2,
+        DRYFIELD_GAS_STATION_ARRIVAL_SPAWN_CUTSCENE      = 3,
+        DRYFIELD_GAS_STATION_ARRIVAL_WAIT_CUTSCENE       = 4,
+        DRYFIELD_GAS_STATION_ARRIVAL_CUTSCENE_DESCRIPTOR = 0
+    };
+
     _DryfieldGasStationArrivalWork* work;
-    _DryfieldGasStationArrivalWork* allocated;
+    _DryfieldGasStationArrivalWork* allocatedWork;
     Task*                           cutscene;
-    s32                             killed;
+    s32                             cutsceneResult;
 
     work = task->work;
     switch (task->state) {
-        case 0:
-            allocated  = memMalloc(sizeof(*allocated), false);
-            task->work = allocated;
-            if (allocated == NULL) {
+        case DRYFIELD_GAS_STATION_ARRIVAL_INIT:
+            allocatedWork = memMalloc(sizeof(*allocatedWork), false);
+            task->work    = allocatedWork;
+            if (allocatedWork == NULL) {
                 taskKill(task);
                 break;
             }
-            displaySpawnTaskFromTable(D_dryfield_gas_station_80181E7C, 1, 0, 0);
-            gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
-            viewQueueCurrentCameraAndPackets();
+            _dryfieldGasStationStartArrivalMovieDisplay();
             task->state = task->state + 1;
             break;
-        case 1:
-        case 2:
+        case DRYFIELD_GAS_STATION_ARRIVAL_DELAY_1:
+        case DRYFIELD_GAS_STATION_ARRIVAL_DELAY_2:
             task->state = task->state + 1;
             break;
-        case 3:
-            cutscene       = taskSpawnFromTable(D_dryfield_gas_station_8018312C, 0, 0, 0);
+        case DRYFIELD_GAS_STATION_ARRIVAL_SPAWN_CUTSCENE:
+            cutscene       = taskSpawnFromTable(D_dryfield_gas_station_8018312C, DRYFIELD_GAS_STATION_ARRIVAL_CUTSCENE_DESCRIPTOR, 0, 0);
             work->cutscene = cutscene;
             if (cutscene == NULL) {
                 taskRequestKill(task, 0);
@@ -152,8 +175,8 @@ void func_dryfield_gas_station_801802C0(Task* task)
             }
             task->state = task->state + 1;
             break;
-        case 4:
-            if (taskPollKill(work->cutscene, &killed) == 0) {
+        case DRYFIELD_GAS_STATION_ARRIVAL_WAIT_CUTSCENE:
+            if (taskPollKill(work->cutscene, &cutsceneResult) == 0) {
                 break;
             }
             taskRequestKill(task, 0);

@@ -30,7 +30,17 @@ extern ViewCamera D_acropolis_patio_80186D5C[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_patio_8018703C[];
 
-void func_acropolis_patio_8017E100(Task* task);
+/// Seeds the patio's fourteen fixed light glows and nine nearby moving light points.
+///
+/// Start in state 0 with a coordinate body and a live EffectWork in
+/// `spawnArg2.pointer`. Three larger, four ceiling and seven lower-wall glows
+/// use anchor indices 0..13; three points per larger light receive signed
+/// XYZ jitter in [-1023, 1024] game units before halfword narrowing.
+/// Child placement is copied synchronously. Children borrow the parent
+/// coordinate and retain position pointers, so keep the emitter and its work
+/// live until the effects end. Later ticks leave this task idle. Requires
+/// the patio and gameplay effect resources; failed spawns are not retried.
+void acropolisPatioSpawnLightEffectsTask(Task* task);
 
 /// Draws a view-gated, flickering additive sprite for one patio fountain anchor.
 ///

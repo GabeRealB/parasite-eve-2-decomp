@@ -416,6 +416,9 @@ static void _dryfieldNightGarageInitRoomTask(Task* task)
 }
 
 /// Enables the refueled hotspot and disables the preceding refueling hotspot.
+///
+/// Requires the live room trigger table. Changes only the enabled bit of
+/// entries 3 and 5; other trigger flags and story progress are retained.
 static inline void _dryfieldNightGarageEnableRefueledTriggers(void)
 {
     enum { AFTER_REFUELING_TRIGGER  = 3,

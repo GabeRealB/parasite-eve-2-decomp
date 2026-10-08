@@ -36,12 +36,4 @@ s32 motelRoom6CutsceneMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 #define MOTEL_ROOM_6_DRAW_GLOW_TASK dryfieldNightMotelRoom6DrawGlowTask
 #endif
 
-/// The 0x13F0 handler's fallback for every event but the cutscene's: empty in
-/// the day room, the room's other actions at night.
-#if DRYFIELD_TIME == DRYFIELD_DAY
-void motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-#else
-s32 motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-#endif
-
 #endif /* SRC_SHARED_MOTEL_ROOM_6_H */

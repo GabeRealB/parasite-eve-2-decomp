@@ -6,7 +6,7 @@
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 Task* gRoomCutsceneSoundTask;
 
-/// The cutscene task `func_dryfield_gas_station_801807E0` publishes once its
+/// The cutscene task `_dryfieldGasStationArrivalCutsceneTask` publishes once its
 /// `_DryfieldGasStationCutsceneWork` block is set up, so the room's script helpers can reach it.
 Task* D_dryfield_gas_station_80184BD4;
 
@@ -127,16 +127,16 @@ extern WorldCollisionTrigger D_dryfield_gas_station_80184694[10];
 extern WorldCoordRoomLights  D_dryfield_gas_station_80184B48[1];
 extern TaskDesc              Actor04400_D107E4;
 extern TaskDesc              Actor00100_D1BA84;
-void                         func_dryfield_gas_station_801807E0(Task*);
+static void                  _dryfieldGasStationArrivalCutsceneTask(Task* task);
 static void                  _screenFadeInTask(Task* task);
-void                         func_dryfield_gas_station_80180A60(void);
+static void                  _dryfieldGasStationRestorePlayerAndShow(void);
 
 /// Fade-in callback slot in the cutscene task descriptor table.
 enum { DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN = 1 };
 
 TaskDesc D_dryfield_gas_station_80181E7C[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_gas_station_801802C0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_gas_station_8017FFE4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, dryfieldGasStationArrivalTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, dryfieldGasStationArrivalMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, screenFadeInTask, { .value = 0 } },
 };
 
@@ -267,7 +267,7 @@ EvsCommand D_dryfield_gas_station_8018303C[10] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_gas_station_80180A60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldGasStationRestorePlayerAndShow }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -277,7 +277,7 @@ EvsCommand D_dryfield_gas_station_8018303C[10] = {
 };
 
 TaskDesc D_dryfield_gas_station_8018312C[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_dryfield_gas_station_801807E0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _dryfieldGasStationArrivalCutsceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeInTask, { .value = 0 } },
 };
 
@@ -765,22 +765,46 @@ static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
     work->command = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_NONE;
 }
 
-/// Cutscene task. State 0 returns while the attachment wheel is open or a
-/// display transition is pending. Otherwise it allocates and zeroes this
-/// task's `_DryfieldGasStationCutsceneWork`, records the player task and
-/// publishes itself as `D_dryfield_gas_station_80184BD4`. A failed allocation
-/// kills the task without returning, so the reload of `Task::work` below
-/// still runs. When that block has a player, state 0 installs animation 0,
-/// starts the room's two event scripts and advances. State 1 asks to be
-/// killed once `eventState` is idle, and otherwise carries out `command`.
-void func_dryfield_gas_station_801807E0(Task* task)
+/// Reinstalls the arrival cutscene's initial player animation when a player is present.
+///
+/// Reloads the task's live work. The request is consumed synchronously and
+/// playback borrows the loaded animation sets; no request pointer survives.
+static inline void _dryfieldGasStationInstallInitialPlayerAnimation(Task* task)
 {
+    enum { INITIAL_PLAYER_CLIP = 0 };
+    _DryfieldGasStationCutsceneWork* currentWork = task->work;
+    AnimationPlayRequest             animationRequest;
+
+    if (currentWork->player != NULL) {
+        animationRequest.source.sets          = D_dryfield_gas_station_80182E30;
+        animationRequest.animationId          = INITIAL_PLAYER_CLIP;
+        animationRequest.blend                = ANIMATION_BLEND_RESET;
+        animationRequest.blendFrames          = 0;
+        animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+        TASK_MESSAGE_DISPATCH_POINTER(currentWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &animationRequest, 0);
+    }
+}
+
+/// Runs and publishes the gas-station arrival's in-room cutscene controller.
+///
+/// Waits for attachment-wheel and display transitions before allocating and
+/// zeroing its owned work, then captures the player and starts the main/skip
+/// scripts. Script callbacks require this published task to remain live.
+/// Pending commands run while the event script is active; completion requests
+/// removal. The retained allocation-failure path kills but continues into a
+/// work reload, so safe startup requires allocation to succeed.
+static void _dryfieldGasStationArrivalCutsceneTask(Task* task)
+{
+    enum {
+        DRYFIELD_GAS_STATION_ARRIVAL_CUTSCENE_INIT = 0,
+        DRYFIELD_GAS_STATION_ARRIVAL_CUTSCENE_RUN  = 1,
+        DRYFIELD_GAS_STATION_ARRIVAL_OBJECTIVE     = 9
+    };
+
     _DryfieldGasStationCutsceneWork* work;
-    _DryfieldGasStationCutsceneWork* work2;
-    AnimationPlayRequest             script;
 
     switch (task->state) {
-        case 0:
+        case DRYFIELD_GAS_STATION_ARRIVAL_CUTSCENE_INIT:
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
                 work       = memMalloc(sizeof(*work), false);
                 task->work = work;
@@ -791,16 +815,8 @@ void func_dryfield_gas_station_801807E0(Task* task)
                     work->player                    = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                     D_dryfield_gas_station_80184BD4 = task;
                 }
-                work2 = task->work;
-                if (work2->player != NULL) {
-                    script.source.sets          = D_dryfield_gas_station_80182E30;
-                    script.animationId          = 0;
-                    script.blend                = ANIMATION_BLEND_RESET;
-                    script.blendFrames          = 0;
-                    script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                    TASK_MESSAGE_DISPATCH_POINTER(work2->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
-                }
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 9);
+                _dryfieldGasStationInstallInitialPlayerAnimation(task);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_GAS_STATION_ARRIVAL_OBJECTIVE);
                 evsStartScriptWithSkip(D_dryfield_gas_station_80182E8C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_dryfield_gas_station_8018303C);
                 task->state = task->state + 1;
@@ -808,7 +824,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
             }
             return;
 
-        case 1:
+        case DRYFIELD_GAS_STATION_ARRIVAL_CUTSCENE_RUN:
             if (gGameSession->eventState == 0) {
                 taskRequestKill(task, 0);
                 return;
@@ -843,18 +859,19 @@ static void _dryfieldGasStationSuppressPlayerEquipment(void)
 #include "../../shared/screen_fade_in.inc.c"
 #undef SCREEN_FADE_IN_TASK
 
-/// Opens the cutscene's view of the player: restores effects when
-/// `playerEffectsSuppressed` is set, places the player at the third placement
-/// and, when the cutscene task has a player, installs animation 0. Stops the
-/// cutscene loop and enables the display. This is
-/// `DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW` written out for
-/// the second script.
-void func_dryfield_gas_station_80180A60(void)
+/// Restores the player at the arrival cutscene's final placement and shows the display.
+///
+/// Requires the published cutscene and live player. Restores suppressed
+/// equipment once, retaining scripted control, then places the player and
+/// reinstalls the initial animation when the reloaded player is non-NULL.
+/// Stops the cutscene loop over 60 sound ticks and enables presentation.
+/// The placement and animation request are consumed synchronously.
+static void _dryfieldGasStationRestorePlayerAndShow(void)
 {
+    enum { END_PLACEMENT   = 2,
+           LOOP_FADE_TICKS = 60 };
     Task*                            task;
     _DryfieldGasStationCutsceneWork* work;
-    _DryfieldGasStationCutsceneWork* work2;
-    AnimationPlayRequest             script;
 
     task = D_dryfield_gas_station_80184BD4;
     work = task->work;
@@ -863,17 +880,9 @@ void func_dryfield_gas_station_80180A60(void)
         work->playerEffectsSuppressed = 0;
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
     }
-    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[2], 0);
-    work2 = task->work;
-    if (work2->player != NULL) {
-        script.source.sets          = D_dryfield_gas_station_80182E30;
-        script.animationId          = 0;
-        script.blend                = ANIMATION_BLEND_RESET;
-        script.blendFrames          = 0;
-        script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(work2->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &script, 0);
-    }
-    sndEvtRequestScriptStop(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[END_PLACEMENT], 0);
+    _dryfieldGasStationInstallInitialPlayerAnimation(task);
+    sndEvtRequestScriptStop(SOUND_GAS_STATION_CUTSCENE_LOOP, LOOP_FADE_TICKS);
     SetDispMask(1);
 }
 

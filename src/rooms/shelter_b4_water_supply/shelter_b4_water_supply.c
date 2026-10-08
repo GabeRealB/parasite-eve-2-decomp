@@ -109,7 +109,7 @@ extern RoomDeparture gRoomDeparture;
 /// together). The buffer stays reserved until the GPU finishes the ordering table.
 static u8* _gShelterB4WaterSupplyWaterPacketCursor;
 
-static void func_shelter_b4_water_supply_8017DB18(void);
+static void _shelterB4WaterSupplyDepartToWaterHole(void);
 static void _shelterB4WaterSupplyInitializeRoom(Task* task);
 static void _shelterB4WaterSupplyIdleRoom(Task* task);
 static s32  _shelterB4WaterSupplyResolveWaterHoleVariant(RoomEventMsg* request, RoomEventMsg* reply);
@@ -870,7 +870,7 @@ s32 func_shelter_b4_water_supply_8017DA30(Task* task, s32 msgId, const void* fir
         if (request->argument == 0x20) {
             if (gameFlagGetNibble(GAME_FLAG_WATER_HOLE_SHELTER_ROUTE_OPEN) != 0) {
                 if (gameFlagGetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE) != 0) {
-                    func_shelter_b4_water_supply_8017DB18();
+                    _shelterB4WaterSupplyDepartToWaterHole();
                 } else {
                     gameFlagSetNibble(GAME_FLAG_WATER_SUPPLY_VALVE_FIRST_USE, 1);
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
@@ -899,33 +899,52 @@ static s32 _shelterB4WaterSupplyHandleSound(Task* task, s32 messageId, s32 sound
     return 0;
 }
 
-static void func_shelter_b4_water_supply_8017DB18(void)
+/// Resolves a staged departure's area/warp/room through an in-place execution request.
+///
+/// Borrows writable departure storage and a synchronous room-variant resolver.
+/// The resolver must preserve every request field it does not replace.
+static inline void _shelterB4WaterSupplyResolveDeparture(RoomDeparture* departurePtr, RoomVariantResolver resolveDestination)
 {
-    RoomDeparture       work;
-    RoomEventMsg        param;
-    RoomDeparture*      wp;
-    RoomVariantResolver resolve = _shelterB4WaterSupplyResolveWaterHoleVariant;
+    RoomEventMsg destination;
 
-    work.stage    = GAME_STAGE_DRYFIELD_NIGHT;
-    work.area     = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
-    work.warp     = 3;
-    work.room     = 1;
-    work.sndEvent = 0x542E0003;
-    work.facing   = 0x400;
+    destination.areaId    = departurePtr->area;
+    destination.warp      = departurePtr->warp;
+    destination.room      = departurePtr->room;
+    destination.queryOnly = ROOM_EVENT_EXECUTE;
+    resolveDestination(&destination, &destination);
+    departurePtr->area = destination.areaId;
+    departurePtr->warp = destination.warp;
+    departurePtr->room = destination.room;
+}
+
+/// Starts the valve's repeat-use departure to the nighttime water hole.
+///
+/// Holds scripted player control, resolves the destination's progress-dependent
+/// room with an in-place execution request, and copies the departure into global
+/// staging before spawning its task. Warp 3/room 1 arrive facing a quarter turn
+/// (4096 units per turn). An eligible live companion gets schedule 6 even if
+/// spawning fails. The departure task borrows staging until the transition ends.
+static void _shelterB4WaterSupplyDepartToWaterHole(void)
+{
+    enum { WATER_HOLE_ARRIVAL_WARP      = 3,
+           WATER_HOLE_ARRIVAL_ROOM      = 1,
+           COMPANION_FOLLOW_UP_SCHEDULE = 6,
+           DEPARTURE_SOUND_SCRIPT       = 3 };
+    RoomDeparture       departure;
+    RoomVariantResolver resolveDestination = _shelterB4WaterSupplyResolveWaterHoleVariant;
+
+    departure.stage    = GAME_STAGE_DRYFIELD_NIGHT;
+    departure.area     = GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE;
+    departure.warp     = WATER_HOLE_ARRIVAL_WARP;
+    departure.room     = WATER_HOLE_ARRIVAL_ROOM;
+    departure.sndEvent = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B4_WATER_SUPPLY, DEPARTURE_SOUND_SCRIPT);
+    departure.facing   = ACTOR_TRANSFORM_ANGLE_TURN / 4;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-    wp              = &work;
-    param.areaId    = wp->area;
-    param.warp      = wp->warp;
-    param.room      = wp->room;
-    param.queryOnly = ROOM_EVENT_EXECUTE;
-    resolve(&param, &param);
-    wp->area       = param.areaId;
-    wp->warp       = param.warp;
-    wp->room       = param.room;
-    gRoomDeparture = work;
+    _shelterB4WaterSupplyResolveDeparture(&departure, resolveDestination);
+    gRoomDeparture = departure;
     taskSpawnFromTable(&D_shelter_b4_water_supply_801825E4, 0, 0, 0);
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL && gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
-        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 6);
+        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, COMPANION_FOLLOW_UP_SCHEDULE);
     }
 }
 

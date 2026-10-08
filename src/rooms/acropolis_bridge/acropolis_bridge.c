@@ -409,7 +409,7 @@ static void _acropolisBridgeShowKeypadError(void);
 static void _acropolisBridgeSetArrivalSpritesHidden(s32 arrivalSceneSeen);
 static void _acropolisBridgeKeypadArmCursor(Task* task);
 static void _acropolisBridgeKeypadOpenExaminePrompt(Task* task);
-static void func_acropolis_bridge_8017F4CC(Task* task);
+static void _acropolisBridgeKeypadCollectExamineAnswer(Task* task);
 static void _acropolisBridgeKeypadCheckCode(Task* task);
 static void _acropolisBridgeKeypadClose(Task* task);
 static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize, s16 brightness);
@@ -2788,7 +2788,7 @@ static const TaskFuncTable14 D_acropolis_bridge_8017D5DC = {
 /// State handlers of the room's prompt script task.
 static const TaskFuncTable9 D_acropolis_bridge_8017D614 = {
     { _acropolisBridgeKeypadOpen, _acropolisBridgeKeypadArmCursor, _acropolisBridgeKeypadEnterCode,
-      _acropolisBridgeKeypadOpenExaminePrompt, func_acropolis_bridge_8017F4CC, _acropolisBridgeKeypadCheckCode,
+      _acropolisBridgeKeypadOpenExaminePrompt, _acropolisBridgeKeypadCollectExamineAnswer, _acropolisBridgeKeypadCheckCode,
       _acropolisBridgeKeypadBlinkAcceptedCode, _acropolisBridgeKeypadBlinkError, _acropolisBridgeKeypadClose }
 };
 
@@ -3556,14 +3556,17 @@ static void _acropolisBridgeKeypadOpenExaminePrompt(Task* task)
     task->state = ACROPOLIS_BRIDGE_KEYPAD_STATE_WAIT_EXAMINE;
 }
 
-/// Collects the answer to the command prompt opened for the latched key:
-/// redraws the entered `code`, keeps the cursor hidden, and advances the task
-/// to state 2. If `itemMenuIsHotspotActionConfirmed` reports the command was confirmed,
-/// `keypadExamined` is raised (which the hotspot scan in
-/// `_acropolisBridgeKeypadEnterCode` gates on, so keys type from then on) and
-/// cap slot 9 is started.
-static void func_acropolis_bridge_8017F4CC(Task* task)
+/// Collects the keypad's Examine answer and returns to code entry.
+///
+/// Requires initialized keypad work and the live action prompt. Confirmation
+/// enables digit entry and requests CAP slot 9 in the current display, variant
+/// 0. Redraws the entered code and keeps cursor motion and drawing suspended;
+/// cancellation also returns to entry without clearing the entered digits.
+static void _acropolisBridgeKeypadCollectExamineAnswer(Task* task)
 {
+    enum { EXAMINE_CAP_SLOT            = 9,
+           CAP_PLAY_IN_CURRENT_DISPLAY = 0,
+           EXAMINE_VARIANT             = 0 };
     ActionPrompt*               prompt = D_80114D28;
     _AcropolisBridgeKeypadWork* work   = task->work;
 
@@ -3572,9 +3575,9 @@ static void func_acropolis_bridge_8017F4CC(Task* task)
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
         work->keypadExamined = 1;
-        capStartSequenceSlot(9, 0, 0);
+        capStartSequenceSlot(EXAMINE_CAP_SLOT, CAP_PLAY_IN_CURRENT_DISPLAY, EXAMINE_VARIANT);
     }
-    task->state = 2;
+    task->state = ACROPOLIS_BRIDGE_KEYPAD_STATE_ENTER_CODE;
 }
 
 /// Checks a complete keypad code after ten updates and starts its result display.

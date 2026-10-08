@@ -107,7 +107,7 @@ static void func_shelter_r47_801816CC(Task* task);
 static void _shelterR47ConsoleDrawStatusReveal(Task* task, s16 messageY);
 static void _shelterR47ConsoleDrawScrollingBackdrop(s16 scrollPixels);
 static void _shelterR47ConsoleFadeOutTask(Task* task);
-static s16  func_shelter_r47_801829B8(Task* task, s16 arg1);
+static s16  _shelterR47ConsoleValidateGuidedRow(Task* task, s16 selectedRow);
 static void _shelterR47ConsoleResetPromptTask(Task* task);
 static void func_shelter_r47_80182CA4(Task* task);
 static void _shelterR47ConsoleOpenCommandsTask(Task* task);
@@ -119,7 +119,7 @@ static void _shelterR47ConsoleApplyButtonPressTask(Task* task);
 static void _shelterR47ConsoleWaitButtonFlashTask(Task* task);
 static void _shelterR47ConsoleBeginFadeOutTask(Task* task);
 static void func_shelter_r47_801832E4(s16 status);
-static void func_shelter_r47_801832EC(Task* task);
+static void _shelterR47ConsoleStartGuideDialogue(Task* task);
 static void _shelterR47ConsoleSaveSwitches(Task* task);
 static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row);
 static void _shelterR47MapTerminalDrawPageOverlay(Task* task);
@@ -290,7 +290,7 @@ static inline void _shelterR47ConsoleDrawStatus(Task* task, ShelterR47ConsoleWor
 /// Acts on `selection`, the hotspot id stored by `shelterR47ConsoleSelectHotspotTask`,
 /// when `itemMenuIsHotspotActionConfirmed` returns nonzero: the id's high byte picks the kind.
 /// Kind 0 accepts a new low byte into `row` (checked by
-/// `func_shelter_r47_801829B8` while `guideStep` is set, and the first time
+/// `_shelterR47ConsoleValidateGuidedRow` while `guideStep` is set, and the first time
 /// gated by a one-off cap event otherwise), clears the wipe colour and
 /// moves to state 7. Kind 1 moves to state 9 after its one-off event, kind 2
 /// starts the cap event for the current `status`, and kinds 3 and 4 start their
@@ -312,7 +312,7 @@ static void func_shelter_r47_801816CC(Task* task)
         if (kind == 0) {
             if (work->row != (work->selection & 0xFF)) {
                 if (work->guideStep != 0) {
-                    if (func_shelter_r47_801829B8(task, work->selection & 0xFF) == 0) {
+                    if (_shelterR47ConsoleValidateGuidedRow(task, work->selection & 0xFF) == 0) {
                         task->state = 3;
                         return;
                     }
@@ -762,37 +762,52 @@ static void _shelterR47ConsoleFadeOutTask(Task* task)
 
 #include "../../shared/action_prompt_draw_cursor.inc.c"
 
-static s16 func_shelter_r47_801829B8(Task* task, s16 arg1)
+/// Accepts the console's next guided row or requests corrective CAP dialogue.
+///
+/// Borrows live console work. Guide steps 1..3 require the equal selected row;
+/// success advances the guide and returns signed-halfword 1. A different row
+/// requests CAP slot 16 in the current display, variant equal to the guide step,
+/// and returns 0 without advancing. Free use, completion and other steps return
+/// 0 without CAP playback. This does not commit the console's selected row.
+static s16 _shelterR47ConsoleValidateGuidedRow(Task* task, s16 selectedRow)
 {
-    ShelterR47ConsoleWork* state;
-    s8                     step;
+    enum { GUIDE_EXPECT_ROW_1        = 1,
+           GUIDE_EXPECT_ROW_2        = 2,
+           GUIDE_EXPECT_ROW_3        = 3,
+           GUIDE_DONE                = 4,
+           GUIDE_REJECTED            = 0,
+           GUIDE_ACCEPTED            = 1,
+           GUIDE_CORRECTION_CAP_SLOT = 16,
+           GUIDE_CAP_CURRENT_DISPLAY = 0 };
+    ShelterR47ConsoleWork* work;
+    s8                     requiredRow;
 
-    state = task->work;
-    step  = state->guideStep;
-    switch (step) {
-        case 1:
-            if (arg1 != step) {
-                capStartSequenceSlot(0x10, 0, 1);
-                return 0;
+    work        = task->work;
+    requiredRow = work->guideStep;
+    switch (requiredRow) {
+        case GUIDE_EXPECT_ROW_1:
+            if (selectedRow != requiredRow) {
+                capStartSequenceSlot(GUIDE_CORRECTION_CAP_SLOT, GUIDE_CAP_CURRENT_DISPLAY, GUIDE_EXPECT_ROW_1);
+                return GUIDE_REJECTED;
             }
-            state->guideStep = 2;
-            return 1;
-        case 2:
-            if (arg1 != step) {
-                capStartSequenceSlot(0x10, 0, 2);
-                return 0;
+            work->guideStep = GUIDE_EXPECT_ROW_2;
+            return GUIDE_ACCEPTED;
+        case GUIDE_EXPECT_ROW_2:
+            if (selectedRow != requiredRow) {
+                capStartSequenceSlot(GUIDE_CORRECTION_CAP_SLOT, GUIDE_CAP_CURRENT_DISPLAY, GUIDE_EXPECT_ROW_2);
+                return GUIDE_REJECTED;
             }
-            state->guideStep = 3;
-            return 1;
-        case 3:
-            if (arg1 != step) {
-                capStartSequenceSlot(0x10, 0, 3);
-                return 0;
+            work->guideStep = GUIDE_EXPECT_ROW_3;
+            return GUIDE_ACCEPTED;
+        case GUIDE_EXPECT_ROW_3:
+            if (selectedRow != requiredRow) {
+                capStartSequenceSlot(GUIDE_CORRECTION_CAP_SLOT, GUIDE_CAP_CURRENT_DISPLAY, GUIDE_EXPECT_ROW_3);
+                return GUIDE_REJECTED;
             }
-            state->guideStep = 4;
-            return 1;
+            work->guideStep = GUIDE_DONE;
+            return GUIDE_ACCEPTED;
     }
-    return 0;
+    return GUIDE_REJECTED;
 }
 
 void shelterR47ConsoleLoadSwitches(Task* task)
@@ -970,7 +985,7 @@ static void func_shelter_r47_80182F18(Task* task)
 
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     if (shelterR47ConsoleClearWipe(task) != 0) {
-        func_shelter_r47_801832EC(task);
+        _shelterR47ConsoleStartGuideDialogue(task);
         step = ((ShelterR47ConsoleWork*)task->work)->status;
         switch (step) {
             case 0:
@@ -1136,22 +1151,37 @@ static void func_shelter_r47_801832E4(s16 status)
 {
 }
 
-static void func_shelter_r47_801832EC(Task* task)
+/// Requests the console dialogue after a guided row change finishes its wipe.
+///
+/// Borrows live console work. Guide steps 2/3/4 select CAP slots 11/12/13 in
+/// the current display with variant 0. Free use forwards the current status
+/// to the retained empty callback; step 1 and other values do nothing.
+/// Does not advance the guide or wait for CAP playback.
+static void _shelterR47ConsoleStartGuideDialogue(Task* task)
 {
-    ShelterR47ConsoleWork* state = task->work;
+    enum { GUIDE_FREE_USE            = 0,
+           GUIDE_AFTER_ROW_1         = 2,
+           GUIDE_AFTER_ROW_2         = 3,
+           GUIDE_DONE                = 4,
+           GUIDE_ROW_1_CAP_SLOT      = 11,
+           GUIDE_ROW_2_CAP_SLOT      = 12,
+           GUIDE_DONE_CAP_SLOT       = 13,
+           GUIDE_CAP_CURRENT_DISPLAY = 0,
+           GUIDE_CAP_DEFAULT_VARIANT = 0 };
+    ShelterR47ConsoleWork* work = task->work;
 
-    switch (state->guideStep) {
-        case 0:
-            func_shelter_r47_801832E4(state->status);
+    switch (work->guideStep) {
+        case GUIDE_FREE_USE:
+            func_shelter_r47_801832E4(work->status);
             break;
-        case 2:
-            capStartSequenceSlot(0xB, 0, 0);
+        case GUIDE_AFTER_ROW_1:
+            capStartSequenceSlot(GUIDE_ROW_1_CAP_SLOT, GUIDE_CAP_CURRENT_DISPLAY, GUIDE_CAP_DEFAULT_VARIANT);
             break;
-        case 3:
-            capStartSequenceSlot(0xC, 0, 0);
+        case GUIDE_AFTER_ROW_2:
+            capStartSequenceSlot(GUIDE_ROW_2_CAP_SLOT, GUIDE_CAP_CURRENT_DISPLAY, GUIDE_CAP_DEFAULT_VARIANT);
             break;
-        case 4:
-            capStartSequenceSlot(0xD, 0, 0);
+        case GUIDE_DONE:
+            capStartSequenceSlot(GUIDE_DONE_CAP_SLOT, GUIDE_CAP_CURRENT_DISPLAY, GUIDE_CAP_DEFAULT_VARIANT);
             break;
     }
 }

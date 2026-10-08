@@ -2253,55 +2253,59 @@ static void _acropolisPatioPlayerTurnLeftTask(Task* task)
     }
 }
 
-/// Lights the patio fountain: a one-shot burst that seeds every jet and its
-/// mist, then leaves the task idle for the rest of the room.
+/// Stages one randomized light-point offset, narrowing each XYZ write to s16.
 ///
-/// The 14 anchors of `D_acropolis_patio_80182DDC` are handed to `effectSpawn`
-/// as three runs of effect 0x60087, each run differing only in the high bits of
-/// the spawn argument - `0x03000200` for the three main jets, `0x02000000` for
-/// the next four and a plain `0x100` for the remaining seven - so the anchor
-/// index rides in the low nibble; bits 8..9 select the sprite cell and bits
-/// 16..27 select its size. All three runs use the same additive texture page.
-///
-/// The three main jets then get three puffs of mist each (effect 0x6008F).
-/// Every puff re-uses the task's own `EffectWork.move` triple as a scratch
-/// offset: three 11-bit LCG draws centred on 0x400 give a `+/-0x400` jitter,
-/// which is added to the jet's anchor before the spawn reads it. The work block
-/// is scratch, not state - each spawn copies the vector out immediately - so
-/// all nine puffs share it.
-void func_acropolis_patio_8017E100(Task* task)
+/// Advances the shared LCG three times. Anchor 0..2 and writable emitter work
+/// are required; the resulting vector is consumed by the next effect spawn.
+static inline void _acropolisPatioOffsetLightMote(EffectWork* scratchWork, s32 anchorIndex)
 {
-    GfxCoord*   objCoord;
-    EffectWork* work;
-    s32         i;
-    s32         j;
+    enum { MOTE_JITTER_CENTRE = 1024,
+           MOTE_JITTER_MASK   = 2047 };
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    scratchWork->move.vx  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK);
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    scratchWork->move.vy  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK);
+    gRandomLcgState       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    scratchWork->move.vz  = MOTE_JITTER_CENTRE - ((gRandomLcgState >> 16) & MOTE_JITTER_MASK);
+    scratchWork->move.vx += D_acropolis_patio_80182DDC[anchorIndex].vx;
+    scratchWork->move.vy += D_acropolis_patio_80182DDC[anchorIndex].vy;
+    scratchWork->move.vz += D_acropolis_patio_80182DDC[anchorIndex].vz;
+}
 
-    work     = (EffectWork*)task->spawnArg2.pointer;
-    objCoord = task->extra.coordBody->coord;
+void acropolisPatioSpawnLightEffectsTask(Task* task)
+{
+    enum { LIGHT_EMITTER_INIT     = 0,
+           LARGE_LIGHT_END        = 3,
+           CEILING_LIGHT_END      = 7,
+           MOTES_PER_LARGE_LIGHT  = 3,
+           LARGE_LIGHT_ARGUMENT   = (768 << ACROPOLIS_PATIO_JET_SIZE_SHIFT) | (2 << ACROPOLIS_PATIO_JET_CELL_SHIFT),
+           CEILING_LIGHT_ARGUMENT = 512 << ACROPOLIS_PATIO_JET_SIZE_SHIFT,
+           WALL_LIGHT_ARGUMENT    = 1 << ACROPOLIS_PATIO_JET_CELL_SHIFT };
+    GfxCoord*   parentCoord;
+    EffectWork* scratchWork;
+    s32         anchorIndex;
+    s32         moteIndex;
 
-    if (task->state == 0) {
-        for (i = 0; i < 3; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x03000200, &D_acropolis_patio_80182DDC[i]);
+    scratchWork = task->spawnArg2.pointer;
+    parentCoord = task->extra.coordBody->coord;
+
+    if (task->state == LIGHT_EMITTER_INIT) {
+        // Seed all fixed light glows before allocating their moving points.
+        for (anchorIndex = 0; anchorIndex < LARGE_LIGHT_END; anchorIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, parentCoord, anchorIndex + LARGE_LIGHT_ARGUMENT, &D_acropolis_patio_80182DDC[anchorIndex]);
         }
-        for (i = 3; i < 7; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x02000000, &D_acropolis_patio_80182DDC[i]);
+        for (anchorIndex = LARGE_LIGHT_END; anchorIndex < CEILING_LIGHT_END; anchorIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, parentCoord, anchorIndex + CEILING_LIGHT_ARGUMENT, &D_acropolis_patio_80182DDC[anchorIndex]);
         }
-        for (i = 7; i < 0xE; i++) {
-            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, objCoord, i + 0x100, &D_acropolis_patio_80182DDC[i]);
+        for (anchorIndex = CEILING_LIGHT_END; anchorIndex < ARRAY_SIZE(D_acropolis_patio_80182DDC); anchorIndex++) {
+            effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_JET, parentCoord, anchorIndex + WALL_LIGHT_ARGUMENT, &D_acropolis_patio_80182DDC[anchorIndex]);
         }
         task->state++;
-        for (i = 0; i < 3; i++) {
-            for (j = 0; j < 3; j++) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vx   = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vy   = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->move.vz   = 0x400 - ((gRandomLcgState >> 16) & 0x7FF);
-                work->move.vx  += D_acropolis_patio_80182DDC[i].vx;
-                work->move.vy  += D_acropolis_patio_80182DDC[i].vy;
-                work->move.vz  += D_acropolis_patio_80182DDC[i].vz;
-                effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_MIST, objCoord, i, &work->move);
+        // Each child snapshots XYZ; these point tasks never read the retained offset pointer.
+        for (anchorIndex = 0; anchorIndex < LARGE_LIGHT_END; anchorIndex++) {
+            for (moteIndex = 0; moteIndex < MOTES_PER_LARGE_LIGHT; moteIndex++) {
+                _acropolisPatioOffsetLightMote(scratchWork, anchorIndex);
+                effectSpawn(EFFECT_ACROPOLIS_PATIO_FOUNTAIN_MIST, parentCoord, anchorIndex, &scratchWork->move);
             }
         }
     }

@@ -293,3 +293,5 @@ _acropolisPlazaRepeatSceneTask = 0x8017f48c; // type:func
 _acropolisPlazaStartMovieDisplayTask = 0x80180270; // type:func
 _acropolisPlazaUpdateSequenceEvent = 0x8017fb50; // type:func
 _acropolisPlazaSequenceTask = 0x80180054; // type:func
+_acropolisPlazaFinalSceneTask = 0x8017ecf8; // type:func
+_acropolisPlazaCaptionEventTask = 0x8017f620; // type:func

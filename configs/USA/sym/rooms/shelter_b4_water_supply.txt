@@ -101,3 +101,4 @@ _shelterB4WaterSupplyDrawXWaveStrips = 0x8017e5d8; // type:func
 _shelterB4WaterSupplyInitializeWater = 0x8017ed90; // type:func
 _shelterB4WaterSupplyDrawWater = 0x8017edd0; // type:func
 _shelterB4WaterSupplyWaterTask = 0x8017ed28; // type:func
+_shelterB4WaterSupplyDepartToWaterHole = 0x8017db18; // type:func

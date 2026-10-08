@@ -144,7 +144,7 @@ TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
 /// Telephone menu title, including retained bytes after its terminator.
 static const char Telephone_Data_8017D638[];
 
-static void func_dryfield_gas_station_8017FEDC(Task* arg0);
+static void _dryfieldGasStationInitRoomTask(Task* task);
 static void _dryfieldGasStationIdleRoomTask(Task* unusedTask);
 
 #include "../../shared/telephone.inc.c"
@@ -243,23 +243,28 @@ static void _dryfieldGasStationArrivalSupervisorTask(Task* task)
     }
 }
 
-/// State 0 of the gas-station cutscene task. On the first visit
-/// (`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 1`) it spawns the room's event task and clears the three
-/// progression flags; otherwise it just asks the stage for area 1. Either way
-/// it advances to state 1 and raises the `D_80115598` flag.
-static void func_dryfield_gas_station_8017FEDC(Task* arg0)
+/// Registers the gas-station room receiver and initializes its arrival or music.
+///
+/// Saved warp 1 starts the arrival supervisor and commits chapter 2 with the
+/// dialogue/follow-up flags cleared, even if spawning fails. Other arrivals
+/// request area music. Installs the message table and room task slot, advances
+/// to idle and enables post-CAP notifications. Requires loaded room resources.
+static void _dryfieldGasStationInitRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_gas_station_80181E54;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 1) {
+    enum { ARRIVAL_WARP           = 1,
+           ARRIVAL_STORY_CHAPTER  = 2,
+           AREA_MUSIC_START_TICKS = 1 };
+    task->msgTable = D_dryfield_gas_station_80181E54;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ARRIVAL_WARP) {
         taskSpawnFromTable(D_dryfield_gas_station_80181E3C, 0, 0, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, 2);
+        gameFlagSetNibble(GAME_FLAG_STORY_CHAPTER, ARRIVAL_STORY_CHAPTER);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
         gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
     } else {
-        stageMusicRequestAreaStart(1);
+        stageMusicRequestAreaStart(AREA_MUSIC_START_TICKS);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
     D_80115598  = 1;
 }
 
@@ -274,7 +279,7 @@ static void _dryfieldGasStationIdleRoomTask(Task* unusedTask)
 /// `dryfieldGasStationRoomTask`: set-up, the per-frame handler and the
 /// kill.
 static const TaskFuncTable3 D_dryfield_gas_station_8017D6A4 = {
-    { func_dryfield_gas_station_8017FEDC, _dryfieldGasStationIdleRoomTask, taskKill },
+    { _dryfieldGasStationInitRoomTask, _dryfieldGasStationIdleRoomTask, taskKill },
 };
 
 void dryfieldGasStationRoomTask(Task* task)

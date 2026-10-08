@@ -188,7 +188,7 @@ D_acropolis_patio_80187060 = 0x80187060; // size:0x4 defined:True
 D_acropolis_patio_80187064 = 0x80187064; // size:0x1 defined:True
 D_acropolis_patio_80187065 = 0x80187065; // size:0x1 defined:True
 
-func_acropolis_patio_8017E100 = 0x8017E100; // type:func
+acropolisPatioSpawnLightEffectsTask = 0x8017E100; // type:func
 
 acropolisPatioFountainJetTask = 0x8017E324; // type:func
 

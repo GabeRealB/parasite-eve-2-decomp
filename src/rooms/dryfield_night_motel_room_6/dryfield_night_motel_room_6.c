@@ -70,11 +70,13 @@
 #include "../../shared/room_variants.h"
 
 static s32 _roomVariantMotelBalconyMsg(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
-/// Selects the nighttime motel room 6 glow export and action-handler signature.
+/// Selects the nighttime motel room 6 glow export.
 ///
 /// Keep this binding through all motel room 6 implementation fragments.
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/motel_room_6.h"
+
+static s32 _dryfieldNightMotelRoom6HandleCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 
 static void _roomCutsceneSoundTask(Task* task);
 
@@ -906,7 +908,12 @@ static const TaskFuncTable3 D_dryfield_night_motel_room_6_8017D6B4 = {
     },
 };
 
+/// Binds the next fragment's four-word fallback to this private command handler.
+///
+/// The replacement is a function identifier; dispatch ignores its s32 result.
+#define MOTEL_ROOM_6_HANDLE_OTHER_COMMAND _dryfieldNightMotelRoom6HandleCommand
 #include "../../shared/motel_room_6_cutscene_msg.inc.c"
+#undef MOTEL_ROOM_6_HANDLE_OTHER_COMMAND
 
 /// Heals the player, commits the rest's story updates and reloads the saved arrival.
 ///
@@ -991,32 +998,46 @@ static void _dryfieldNightMotelRoom6RestTask(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-/// Runs the cap command for events 6, 0xD and 0xB, picking an alternative
-/// command while flag nibble 0x61 is set. Event 6 instead spawns the story
-/// task once nibble 0x6C is positive and nibble 0x70 is below 2.
-s32 motelRoom6ActionMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects nighttime motel room 6 dialogue or its refueling-dependent rest task.
+///
+/// Handles non-cutscene `ROOM_MESSAGE_COMMAND` requests; only the command word
+/// is used. Commands 6, 13 and 11 select CAP, with alternatives 20, 19 and 21
+/// after the balcony scene. Before that scene, command 6 spawns rest when garage
+/// progress is positive and rest has not been taken. Other commands do nothing.
+/// Returns zero; the shared dispatcher ignores it. Keep room/scene resources
+/// loaded through the selected CAP sequence or child task.
+static s32 _dryfieldNightMotelRoom6HandleCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
-    if (arg2 == 6) {
+    enum { ROOM_COMMAND_REST      = 6,
+           ROOM_COMMAND_13        = 13,
+           ROOM_COMMAND_11        = 11,
+           BALCONY_REST_CAP       = 20,
+           BALCONY_COMMAND_13_CAP = 19,
+           BALCONY_COMMAND_11_CAP = 21,
+           REST_TAKEN             = 2,
+           REST_TASK_SLOT         = 0,
+           REST_TASK_ARGUMENT     = 17 };
+    if (command == ROOM_COMMAND_REST) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
-            capRunCommandWithTransition(0x14);
-        } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN) < 2) {
-            taskSpawnFromTable(&D_dryfield_night_motel_room_6_80182EE0, 0, 0x11, 0);
+            capRunCommandWithTransition(BALCONY_REST_CAP);
+        } else if (gameFlagGetNibble(GAME_FLAG_NIGHT_GARAGE_PROGRESS) > 0 && gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_ROOM_6_REST_TAKEN) < REST_TAKEN) {
+            taskSpawnFromTable(&D_dryfield_night_motel_room_6_80182EE0, REST_TASK_SLOT, REST_TASK_ARGUMENT, 0);
         } else {
-            capRunCommandWithTransition(arg2);
+            capRunCommandWithTransition(command);
         }
     }
-    if (arg2 == 0xD) {
+    if (command == ROOM_COMMAND_13) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
-            capRunCommandWithTransition(0x13);
+            capRunCommandWithTransition(BALCONY_COMMAND_13_CAP);
         } else {
-            capRunCommandWithTransition(0xD);
+            capRunCommandWithTransition(ROOM_COMMAND_13);
         }
     }
-    if (arg2 == 0xB) {
+    if (command == ROOM_COMMAND_11) {
         if (gameFlagGetNibble(GAME_FLAG_NIGHT_MOTEL_BALCONY_SCENE_SEEN) != 0) {
-            capRunCommandWithTransition(0x15);
+            capRunCommandWithTransition(BALCONY_COMMAND_11_CAP);
         } else {
-            capRunCommandWithTransition(0xB);
+            capRunCommandWithTransition(ROOM_COMMAND_11);
         }
     }
     return 0;

@@ -443,9 +443,9 @@ static void _acropolisPlazaMovieDisplayTask(Task* task);
 static void _acropolisPlazaStreamedSceneTask(Task* task);
 static void _acropolisPlazaFirstSceneTask(Task* task);
 static void _acropolisPlazaStreamSceneTask(Task* task);
-void        func_acropolis_plaza_8017ECF8(Task*);
+static void _acropolisPlazaFinalSceneTask(Task* task);
 static void _acropolisPlazaRepeatSceneTask(Task* task);
-void        func_acropolis_plaza_8017F620(Task*);
+static void _acropolisPlazaCaptionEventTask(Task* task);
 static void _acropolisPlazaLetterboxTask(Task* task);
 static void _acropolisPlazaSequenceTask(Task* task);
 static void _acropolisPlazaStartMovieDisplayTask(Task* task);
@@ -732,13 +732,13 @@ TaskDesc D_acropolis_plaza_80183824[12] = {
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaSequenceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaStreamedSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaStreamSceneTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017ECF8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaFinalSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaFirstSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaStartMovieDisplayTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaRepeatSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaFadeToWhiteTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, screenFadeInTileTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017F620, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaCaptionEventTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaMovieDisplayTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaLetterboxTask, { .value = 0 } },
 };
@@ -3073,173 +3073,192 @@ static void _acropolisPlazaStreamSceneTask(Task* task)
     _acropolisPlazaApplyStreamCamera(4);
 }
 
-#undef ACROPOLIS_PLAZA_INITIALIZE_EVENT_WORK
-
-/// Sixteen-state opening sequence for the plaza's long streamed scene, and the
-/// counterpart to `_acropolisPlazaStreamSceneTask` for the rest of it. States 0
-/// to 2 allocate the work block, cache the slot-3 task in it, place the player
-/// at (0x3DE, 0, 0x33FE) with msg 0x3F2 and warp them with a 0x1000 heading
-/// (msg 0x3EE), waiting on msg 0x3F0 in between. State 3 kills the sequence
-/// work block's `sceneTask` and starts stream slot 4; state 4 runs
-/// `D_acropolis_plaza_80182C90` / `..._80182F18` once the CD queue reports in.
-/// State 5 waits out the session transition and starts stream slot 5, unless
-/// `GameSession::evtSkipped` says to skip the scene, in which case it blanks the
-/// display and jumps straight to state 8.
+/// Resets a plaza movie at sector zero using the caller's four-byte command buffer.
 ///
-/// States 6 and 8 both address the enemy placed from resource entry 0x6C
-/// (`_acropolisPlazaFindPlacedEnemy`).
-/// State 6 releases slot 3 (msg 0x3F1), re-places the player at
-/// (0x3DE, 0, 0x439E) and has that enemy play an animation; state 8 sends it 0x7D7
-/// and rebuilds the graphics state (`gpuResetAndInvalidateModelBuffers`, the aux heap from
-/// `GameSession::location.loc.stage` / `location.loc.area`, `tmdResetAuxHeapAndRestoreBuffers`). State 7
-/// waits 0x3D frames, playing 0x51050003 at frame 0x1E and spawning table entry
-/// 7 at the end.
-///
-/// States 9 to 12 restart stream slot 3, run `D_acropolis_plaza_801830DC`,
-/// spawn table entry 8 after 0xB frames and re-enable the display. State 13 is
-/// the exit: a Start press (`padIsStartPressed`) skips to state 15, otherwise
-/// it requests the map's own MIDI and starts the closing stream, state 14 runs
-/// `D_acropolis_plaza_801834B4`, and state 15 releases slot 3 and kills the
-/// task. Every state from 7 on also steps the room's per-frame work.
-void func_acropolis_plaza_8017ECF8(Task* task)
+/// Requires four writable bytes; writes slot and two big-endian offset bytes.
+/// The fourth byte remains uninterpreted. Enqueue copies the buffer synchronously.
+static inline void _acropolisPlazaResetStreamInBuffer(u8* streamArgs, u8 subId)
 {
-    ActorTransform            place;
-    ActorTransform            warp;
-    u8                        slot[4];
-    ActorTransform            placeBack;
-    AnimationPlayRequest      roomRec;
-    CdCmdQueue*               q    = &gCdCmdQueue;
-    _AcropolisPlazaEventWork* work = (_AcropolisPlazaEventWork*)task->work;
-    _AcropolisPlazaEventWork* newWork;
+    streamArgs[0] = streamFindMovieSlot(&gGameSession->location.loc, subId, 0);
+    streamArgs[1] = 0;
+    streamArgs[2] = 0;
+    cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, streamArgs);
+}
+
+/// Runs the plaza's final trigger scene, including stream handoffs and its skip path.
+///
+/// `spawnArg2.pointer` borrows live sequence work, whose traversal task is
+/// killed after the player walks and turns. Owns allocated event work through
+/// teardown. The player, officer placement entry and scene resources must stay
+/// available across graphics-memory rebuilds. Movement and animation messages
+/// consume stack payloads synchronously; animations borrow loaded banks.
+/// Start cancels the closing stream, and completion releases scripted control
+/// and requests task removal. Keep sequence work live through this child.
+static void _acropolisPlazaFinalSceneTask(Task* task)
+{
+    enum {
+        ACROPOLIS_PLAZA_FINAL_INIT                    = 0,
+        ACROPOLIS_PLAZA_FINAL_WAIT_WALK               = 1,
+        ACROPOLIS_PLAZA_FINAL_WAIT_TURN               = 2,
+        ACROPOLIS_PLAZA_FINAL_START_FIRST_STREAM      = 3,
+        ACROPOLIS_PLAZA_FINAL_WAIT_FIRST_STREAM       = 4,
+        ACROPOLIS_PLAZA_FINAL_WAIT_FIRST_SCRIPT       = 5,
+        ACROPOLIS_PLAZA_FINAL_RESTORE_PLAYER          = 6,
+        ACROPOLIS_PLAZA_FINAL_WAIT_OFFICER            = 7,
+        ACROPOLIS_PLAZA_FINAL_REBUILD_GRAPHICS        = 8,
+        ACROPOLIS_PLAZA_FINAL_START_SECOND_STREAM     = 9,
+        ACROPOLIS_PLAZA_FINAL_WAIT_SECOND_STREAM      = 10,
+        ACROPOLIS_PLAZA_FINAL_WAIT_TAIL_EFFECT        = 11,
+        ACROPOLIS_PLAZA_FINAL_WAIT_DISPLAY            = 12,
+        ACROPOLIS_PLAZA_FINAL_WAIT_TAIL_SCRIPT        = 13,
+        ACROPOLIS_PLAZA_FINAL_WAIT_CLOSING_STREAM     = 14,
+        ACROPOLIS_PLAZA_FINAL_WAIT_END                = 15,
+        ACROPOLIS_PLAZA_FINAL_OFFICER_ENTRY           = 0x6C,
+        ACROPOLIS_PLAZA_FINAL_SET_CULLED_BODY_MESSAGE = 2007,
+        ACROPOLIS_PLAZA_FINAL_OFFICER_1               = 1,
+        ACROPOLIS_PLAZA_FINAL_OFFICER_SOUND_FRAME     = 30,
+        ACROPOLIS_PLAZA_FINAL_OFFICER_EFFECT_FRAME    = 61,
+        ACROPOLIS_PLAZA_FINAL_TAIL_EFFECT_FRAME       = 11,
+        ACROPOLIS_PLAZA_FINAL_WHITE_FADE_TASK         = 7,
+        ACROPOLIS_PLAZA_FINAL_FADE_IN_TASK            = 8,
+        ACROPOLIS_PLAZA_FINAL_OFFICER_ANIMATION       = 8,
+        ACROPOLIS_PLAZA_FINAL_OFFICER_BLEND_FRAMES    = 10,
+        ACROPOLIS_PLAZA_FINAL_WHITE_FADE_FRAMES       = 9,
+        ACROPOLIS_PLAZA_FINAL_FADE_IN_FRAMES          = 8,
+        ACROPOLIS_PLAZA_FINAL_SKIP_MUSIC_FADE_TICKS   = 10,
+        ACROPOLIS_PLAZA_FINAL_MUSIC_FADE_TICKS        = 480,
+        ACROPOLIS_PLAZA_FINAL_AMBIENCE_STOP_TICKS     = 180,
+        ACROPOLIS_PLAZA_FINAL_AMBIENCE_VOLUME         = 38,
+        ACROPOLIS_PLAZA_FINAL_FIRST_STREAM            = 4,
+        ACROPOLIS_PLAZA_FINAL_OFFICER_STREAM          = 5,
+        ACROPOLIS_PLAZA_FINAL_CLOSING_STREAM          = 3,
+        ACROPOLIS_PLAZA_FINAL_FIRST_CAMERA            = 6,
+        ACROPOLIS_PLAZA_FINAL_OFFICER_CAMERA          = 7,
+        ACROPOLIS_PLAZA_FINAL_CLOSING_CAMERA          = 5
+    };
+
+    ActorTransform            walkDestination;
+    ActorTransform            heading;
+    u8                        streamArgs[4];
+    ActorTransform            returnDestination;
+    AnimationPlayRequest      officerAnimation;
+    CdCmdQueue*               queue = &gCdCmdQueue;
+    _AcropolisPlazaEventWork* work  = task->work;
 
     switch (task->state) {
-        case 0:
-            newWork    = memMalloc(sizeof(*newWork), false);
-            task->work = newWork;
-            if (newWork == NULL) {
-                taskKill(task);
-                return;
-            }
-            memFillBytes(newWork, 0, sizeof(*newWork));
-            ((_AcropolisPlazaEventWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            place.pos.vx                                        = 0x3DE;
-            place.pos.vy                                        = 0;
-            place.pos.vz                                        = 0x33FE;
-            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &place, 0);
+        // Scripted walking and turning finish before the traversal task is released.
+        case ACROPOLIS_PLAZA_FINAL_INIT:
+            ACROPOLIS_PLAZA_INITIALIZE_EVENT_WORK(task);
+            walkDestination.pos.vx = 0x3DE;
+            walkDestination.pos.vy = 0;
+            walkDestination.pos.vz = 0x33FE;
+            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &walkDestination, 0);
             task->state = task->state + 1;
             return;
-        case 1:
+        case ACROPOLIS_PLAZA_FINAL_WAIT_WALK:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
-            warp.rot.vy = 0x1000;
-            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &warp, 0);
+            heading.rot.vy = ACTOR_TRANSFORM_ANGLE_TURN;
+            TASK_MESSAGE_DISPATCH_POINTER(((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_TURN_TO_YAW, &heading, 0);
             task->state = task->state + 1;
             return;
-        case 2:
+        case ACROPOLIS_PLAZA_FINAL_WAIT_TURN:
             if (taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) != 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case 3:
+        case ACROPOLIS_PLAZA_FINAL_START_FIRST_STREAM:
             if (cdCmdIsIdle() == 0) {
                 return;
             }
             taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
-            q->sceneFrame       = 1;
-            q->movieFrame       = 1;
-            q->plazaStreamSubId = 4;
-            slot[0]             = streamFindMovieSlot(&gGameSession->location.loc, 4, 0);
-            slot[1]             = 0;
-            slot[2]             = 0;
-            cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
-            q->continueMovie = 1;
-            task->state      = task->state + 1;
+            queue->sceneFrame       = 1;
+            queue->movieFrame       = 1;
+            queue->plazaStreamSubId = ACROPOLIS_PLAZA_FINAL_FIRST_STREAM;
+            _acropolisPlazaResetStreamInBuffer(streamArgs, ACROPOLIS_PLAZA_FINAL_FIRST_STREAM);
+            queue->continueMovie = 1;
+            task->state          = task->state + 1;
             return;
-        case 4:
+        case ACROPOLIS_PLAZA_FINAL_WAIT_FIRST_STREAM:
             if (cdCmdIsIdle() != 0) {
                 evsStartScriptWithSkip(D_acropolis_plaza_80182C90, EVENT_SCRIPT_HUD_KEEP, D_acropolis_plaza_80182F18);
                 task->state = task->state + 1;
                 return;
             }
-            _acropolisPlazaApplyStreamCamera(6);
+            _acropolisPlazaApplyStreamCamera(ACROPOLIS_PLAZA_FINAL_FIRST_CAMERA);
             return;
-        case 5:
+        case ACROPOLIS_PLAZA_FINAL_WAIT_FIRST_SCRIPT:
             if (gGameSession->eventState != 0) {
                 return;
             }
             if (gGameSession->evtSkipped != 0) {
                 SetDispMask(0);
-                task->state = 8;
+                task->state = ACROPOLIS_PLAZA_FINAL_REBUILD_GRAPHICS;
                 return;
             }
-            q->sceneFrame       = 1;
-            q->movieFrame       = 1;
-            q->plazaStreamSubId = 5;
-            slot[0]             = streamFindMovieSlot(&gGameSession->location.loc, 5, 0);
-            slot[1]             = 0;
-            slot[2]             = 0;
-            cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
-            q->continueMovie = 1;
-            task->state      = task->state + 1;
+            queue->sceneFrame       = 1;
+            queue->movieFrame       = 1;
+            queue->plazaStreamSubId = ACROPOLIS_PLAZA_FINAL_OFFICER_STREAM;
+            _acropolisPlazaResetStreamInBuffer(streamArgs, ACROPOLIS_PLAZA_FINAL_OFFICER_STREAM);
+            queue->continueMovie = 1;
+            task->state          = task->state + 1;
             return;
-        case 6:
-            if (q->movieReady == 0) {
+        case ACROPOLIS_PLAZA_FINAL_RESTORE_PLAYER:
+            if (queue->movieReady == 0) {
                 return;
             }
             taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
-            placeBack.pos.vx = 0x3DE;
-            placeBack.pos.vy = 0;
-            placeBack.pos.vz = 0x439E;
+            returnDestination.pos.vx = 0x3DE;
+            returnDestination.pos.vy = 0;
+            returnDestination.pos.vz = 0x439E;
             TASK_MESSAGE_DISPATCH_POINTER(
-                ((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &placeBack, 0);
-            roomRec.source.index         = 1;
-            roomRec.animationId          = 8;
-            roomRec.blend                = ANIMATION_BLEND_RESET;
-            roomRec.blendFrames          = 0xA;
-            roomRec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(_acropolisPlazaFindPlacedEnemy(0x6C)->task, ACTOR_MESSAGE_PLAY_ANIMATION, &roomRec, 0);
+                ((_AcropolisPlazaEventWork*)task->work)->playerTask, GAME_ACTOR_MESSAGE_MOVE_TO, &returnDestination, 0);
+            officerAnimation.source.index         = ACROPOLIS_PLAZA_FINAL_OFFICER_1;
+            officerAnimation.animationId          = ACROPOLIS_PLAZA_FINAL_OFFICER_ANIMATION;
+            officerAnimation.blend                = ANIMATION_BLEND_RESET;
+            officerAnimation.blendFrames          = ACROPOLIS_PLAZA_FINAL_OFFICER_BLEND_FRAMES;
+            officerAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(_acropolisPlazaFindPlacedEnemy(ACROPOLIS_PLAZA_FINAL_OFFICER_ENTRY)->task, ACTOR_MESSAGE_PLAY_ANIMATION, &officerAnimation, 0);
             task->state         = task->state + 1;
             work->elapsedFrames = 0;
             return;
-        case 7:
-            if (work->elapsedFrames == 0x1E) {
+        case ACROPOLIS_PLAZA_FINAL_WAIT_OFFICER:
+            if (work->elapsedFrames == ACROPOLIS_PLAZA_FINAL_OFFICER_SOUND_FRAME) {
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 3), 0, 0);
             }
             work->elapsedFrames = work->elapsedFrames + 1;
-            if (work->elapsedFrames >= 0x3D) {
-                taskSpawnFromTable(D_acropolis_plaza_80183824, 7, 9, 0);
+            if (work->elapsedFrames >= ACROPOLIS_PLAZA_FINAL_OFFICER_EFFECT_FRAME) {
+                taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_FINAL_WHITE_FADE_TASK, ACROPOLIS_PLAZA_FINAL_WHITE_FADE_FRAMES, 0);
                 task->state = task->state + 1;
             }
-            _acropolisPlazaApplyStreamCamera(7);
+            _acropolisPlazaApplyStreamCamera(ACROPOLIS_PLAZA_FINAL_OFFICER_CAMERA);
             return;
-        case 8:
+        // Replace the officer body and release player buffers before rebuilding image memory.
+        case ACROPOLIS_PLAZA_FINAL_REBUILD_GRAPHICS:
             if (cdCmdIsIdle() != 0) {
-                taskMessageDispatch(_acropolisPlazaFindPlacedEnemy(0x6C)->task, 0x7D7, 1, 0);
-                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+                taskMessageDispatch(_acropolisPlazaFindPlacedEnemy(ACROPOLIS_PLAZA_FINAL_OFFICER_ENTRY)->task, ACROPOLIS_PLAZA_FINAL_SET_CULLED_BODY_MESSAGE, ACROPOLIS_PLAZA_FINAL_OFFICER_1, 0);
+                taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_RELEASE, 0);
                 gpuResetAndInvalidateModelBuffers();
                 memConfigureImageMemory(gGameSession->location.loc.stage, gGameSession->location.loc.area);
                 memSelectAuxHeapRegion(true);
                 tmdResetAuxHeapAndRestoreBuffers();
-                sndEvtRequestScriptVolume(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), 0x26);
+                sndEvtRequestScriptVolume(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 5), ACROPOLIS_PLAZA_FINAL_AMBIENCE_VOLUME);
                 task->state = task->state + 1;
                 return;
             }
-            _acropolisPlazaApplyStreamCamera(7);
+            _acropolisPlazaApplyStreamCamera(ACROPOLIS_PLAZA_FINAL_OFFICER_CAMERA);
             return;
-        case 9:
-            q->sceneFrame       = 1;
-            q->movieFrame       = 1;
-            q->plazaStreamSubId = 3;
-            slot[0]             = streamFindMovieSlot(&gGameSession->location.loc, 3, 0);
-            slot[1]             = 0;
-            slot[2]             = 0;
-            cdCmdEnqueue(CD_COMMAND_RESET_STREAM_AT_OFFSET, 0, slot);
-            q->continueMovie = 0;
-            task->state      = task->state + 1;
+        case ACROPOLIS_PLAZA_FINAL_START_SECOND_STREAM:
+            queue->sceneFrame       = 1;
+            queue->movieFrame       = 1;
+            queue->plazaStreamSubId = ACROPOLIS_PLAZA_FINAL_CLOSING_STREAM;
+            _acropolisPlazaResetStreamInBuffer(streamArgs, ACROPOLIS_PLAZA_FINAL_CLOSING_STREAM);
+            queue->continueMovie = 0;
+            task->state          = task->state + 1;
             /* fallthrough */
-        case 10:
+        case ACROPOLIS_PLAZA_FINAL_WAIT_SECOND_STREAM:
             if (cdCmdIsIdle() == 0) {
                 return;
             }
@@ -3247,57 +3266,59 @@ void func_acropolis_plaza_8017ECF8(Task* task)
             work->elapsedFrames = 0;
             task->state         = task->state + 1;
             return;
-        case 11:
+        case ACROPOLIS_PLAZA_FINAL_WAIT_TAIL_EFFECT:
             work->elapsedFrames = work->elapsedFrames + 1;
-            if (work->elapsedFrames >= 0xB) {
+            if (work->elapsedFrames >= ACROPOLIS_PLAZA_FINAL_TAIL_EFFECT_FRAME) {
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0x0B), 0, 0);
-                taskSpawnFromTable(D_acropolis_plaza_80183824, 8, 8, 0);
+                taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_FINAL_FADE_IN_TASK, ACROPOLIS_PLAZA_FINAL_FADE_IN_FRAMES, 0);
                 work->elapsedFrames = 0;
                 task->state         = task->state + 1;
             }
             return;
-        case 12:
+        case ACROPOLIS_PLAZA_FINAL_WAIT_DISPLAY:
             work->elapsedFrames = work->elapsedFrames + 1;
             if (work->elapsedFrames >= 2) {
                 SetDispMask(1);
                 task->state = task->state + 1;
             }
             return;
-        case 13:
+        case ACROPOLIS_PLAZA_FINAL_WAIT_TAIL_SCRIPT:
             if (padIsStartPressed() != 0) {
-                stageMusicRequestAreaStop(0xA);
+                stageMusicRequestAreaStop(ACROPOLIS_PLAZA_FINAL_SKIP_MUSIC_FADE_TICKS);
                 cdCmdRequestCancel();
-                task->state = 0xF;
+                task->state = ACROPOLIS_PLAZA_FINAL_WAIT_END;
             } else if (gGameSession->eventState == 0) {
-                stageMusicRequestAreaStop(0x1E0);
-                q->sceneFrame       = 1;
-                q->movieFrame       = 1;
-                q->plazaStreamSubId = 3;
-                _acropolisPlazaQueueStreamAtStart(CD_COMMAND_PLAY_STREAM_AT_OFFSET, 3);
-                q->continueMovie = 1;
-                task->state      = task->state + 1;
+                stageMusicRequestAreaStop(ACROPOLIS_PLAZA_FINAL_MUSIC_FADE_TICKS);
+                queue->sceneFrame       = 1;
+                queue->movieFrame       = 1;
+                queue->plazaStreamSubId = ACROPOLIS_PLAZA_FINAL_CLOSING_STREAM;
+                _acropolisPlazaQueueStreamAtStart(CD_COMMAND_PLAY_STREAM_AT_OFFSET, ACROPOLIS_PLAZA_FINAL_CLOSING_STREAM);
+                queue->continueMovie = 1;
+                task->state          = task->state + 1;
             }
-            _acropolisPlazaApplyStreamCamera(5);
+            _acropolisPlazaApplyStreamCamera(ACROPOLIS_PLAZA_FINAL_CLOSING_CAMERA);
             return;
-        case 14:
-            if (q->movieReady != 0) {
+        case ACROPOLIS_PLAZA_FINAL_WAIT_CLOSING_STREAM:
+            if (queue->movieReady != 0) {
                 evsStartScript(D_acropolis_plaza_801834B4, EVENT_SCRIPT_HUD_KEEP);
                 task->state = task->state + 1;
             }
-            _acropolisPlazaApplyStreamCamera(5);
+            _acropolisPlazaApplyStreamCamera(ACROPOLIS_PLAZA_FINAL_CLOSING_CAMERA);
             return;
-        case 15:
+        case ACROPOLIS_PLAZA_FINAL_WAIT_END:
             if (cdCmdIsIdle() != 0) {
-                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), 0xB4);
+                sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 2), ACROPOLIS_PLAZA_FINAL_AMBIENCE_STOP_TICKS);
                 taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
                 taskRequestKill(task, 0);
             }
-            _acropolisPlazaApplyStreamCamera(5);
+            _acropolisPlazaApplyStreamCamera(ACROPOLIS_PLAZA_FINAL_CLOSING_CAMERA);
             return;
         default:
             return;
     }
 }
+
+#undef ACROPOLIS_PLAZA_INITIALIZE_EVENT_WORK
 
 /// Runs one of the plaza's three repeat-event scripts after the traversal stream stops.
 ///
@@ -3345,40 +3366,40 @@ static void _acropolisPlazaRepeatSceneTask(Task* task)
     }
 }
 
-/// Three-state cutscene tail: state 0 republishes the player's weapon to slot
-/// 3 (msg 0x3E8), state 1 waits for the streamed scene to finish and hands
-/// control back -- latching `gCdCmdQueue.sceneFrame` into the sequence work
-/// block's `resumeFrame`, killing its `sceneTask` and running the CAP command
-/// its `eventKind` names -- and state 2 releases
-/// slot 3 (msg 0x3F1) and kills itself.
-void func_acropolis_plaza_8017F620(Task* task)
+/// Stops plaza traversal and starts the CAP command selected by a caption trigger.
+///
+/// `spawnArg2.pointer` borrows live sequence work. Requires the player and its
+/// equipped animation bank. After resetting the idle clip, waits for the CD
+/// queue, saves the resume frame, kills traversal and requests CAP using the
+/// signed low byte of `eventKind`. The next tick releases scripted control
+/// and requests removal without waiting for CAP playback. The sequence work
+/// must outlive this task; animation dispatch consumes its stack request.
+static void _acropolisPlazaCaptionEventTask(Task* task)
 {
-    AnimationPlayRequest rec;
-    CdCmdQueue*          q = &gCdCmdQueue;
-    s32                  weaponId;
-    s32                  id;
+    enum {
+        ACROPOLIS_PLAZA_CAPTION_INIT           = 0,
+        ACROPOLIS_PLAZA_CAPTION_WAIT_STREAM    = 1,
+        ACROPOLIS_PLAZA_CAPTION_END            = 2,
+        ACROPOLIS_PLAZA_CAPTION_IDLE_ANIMATION = 1,
+        ACROPOLIS_PLAZA_CAPTION_BLEND_FRAMES   = 10
+    };
+
+    CdCmdQueue* queue = &gCdCmdQueue;
 
     switch (task->state) {
-        case 0:
-            weaponId                 = gPlayerStatus.weapon;
-            id                       = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.source.index         = id;
-            rec.animationId          = 1;
-            rec.blend                = ANIMATION_BLEND_RESET;
-            rec.blendFrames          = 0xA;
-            rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &rec, 0);
+        case ACROPOLIS_PLAZA_CAPTION_INIT:
+            _acropolisPlazaPlayPlayerAnimation(ACROPOLIS_PLAZA_CAPTION_IDLE_ANIMATION, ANIMATION_BLEND_RESET, ACROPOLIS_PLAZA_CAPTION_BLEND_FRAMES);
             task->state = task->state + 1;
             break;
-        case 1:
+        case ACROPOLIS_PLAZA_CAPTION_WAIT_STREAM:
             if (cdCmdIsIdle() != 0) {
-                ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = q->sceneFrame;
+                ((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->resumeFrame = queue->sceneFrame;
                 taskKill(((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->sceneTask);
                 capRunCommandWithTransition((s8)((_AcropolisPlazaSequenceWork*)task->spawnArg2.pointer)->eventKind);
                 task->state = task->state + 1;
             }
             break;
-        case 2:
+        case ACROPOLIS_PLAZA_CAPTION_END:
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 1, 0);
             taskRequestKill(task, 0);
             break;
