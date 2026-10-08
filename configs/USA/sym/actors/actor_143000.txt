@@ -89,3 +89,5 @@ _actor143000DrawKeypad = 0x80132d10; // type:func
 _actor143000KeypadCursorTask = 0x80133578; // type:func
 _actor143000KeypadTask = 0x801335c8; // type:func
 actor143000CaptureStripTask = 0x80133cf0; // type:func
+_actor143000UpdateCaptionCursor = 0x801342f8; // type:func
+_actor143000SelectSceneCaptions = 0x801344d8; // type:func

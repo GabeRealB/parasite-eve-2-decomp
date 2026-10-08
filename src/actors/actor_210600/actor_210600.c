@@ -84,7 +84,7 @@ typedef struct {
 } _Actor210600Work;
 STATIC_ASSERT_SIZEOF(_Actor210600Work, 0x8D8);
 
-/// Step table the seeding body `func_actor_210600_8014B2C0` walks: one 5-byte
+/// Step table the seeding body `_actor210600DriveAnimation` walks: one 5-byte
 /// row per animation in `_Actor210600Work::appliedAnim`, addressed by the
 /// requested animation in `_Actor210600Work::animId`. The byte it reads is
 /// handed to `animationSeekSlotWithBlend` as the request's fifth argument.
@@ -108,8 +108,8 @@ static SVECTOR ActorContact_ScratchPosition;
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 static TmdSource _gActor210600GrinningStrangerBody;
-s32              func_actor_210600_8014B5F4(Task*, s32, s32, s32);
-s32              func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static s32       _actor210600SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedArg);
+static s32       _actor210600ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* message, s32 unusedArg);
 void             func_actor_210600_8014BA3C(Task*);
 
 #include "../../shared/actor_contacts.h"
@@ -242,9 +242,9 @@ u8 D_actor_210600_8015A4B4[24] = {
 };
 
 TaskMessageEntry D_actor_210600_8015A4CC[4] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_210600_8014B5F4 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor210600SetModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_210600_8014B770 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor210600ApplyCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -374,59 +374,73 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
     return &ActorContact_ScratchPosition;
 }
 
-static void            func_actor_210600_8014B2C0(Task* task);
+static void            _actor210600DriveAnimation(Task* task);
 static __inline__ void Actor210600_ScaleRotation(Task* task, s16 scale);
 static void            func_actor_210600_8014B434(Enemy* enemy, Task* task);
 static void            func_actor_210600_8014B8C8(Enemy* enemy, Task* task);
 
 #include "../../shared/actor_contacts.inc.c"
 
-/// Animation driver, run once per update: an `animRequest` of
-/// `ACTOR_210600_ANIM_REQUEST_BLEND` seeks slots 1 to 18 of `rig` to `animId`
-/// through the step table `D_actor_210600_8015A498`,
-/// `ACTOR_210600_ANIM_REQUEST_RESET` restarts them on it, and both latch the
-/// animation into `appliedAnim`, settle on `ACTOR_210600_ANIM_REQUEST_PLAYING`
-/// and clear `animFrames`. A reset in `blendRequest` is only marked applied.
-/// The tail counts a frame and advances every driven slot at `animRate`.
-static void func_actor_210600_8014B2C0(Task* task)
+/// Restarts the primary rig's tracks and records the requested animation.
+///
+/// Requires the initialized nineteen-part rig and a loaded set covering tracks
+/// 1..18. Leaves root slot 0 intact. Reset installs normal rate; the driver
+/// reapplies animRate before ticking. Does not consume requests or clear counters.
+static __inline__ void _actor210600RestartPrimaryAnimation(_Actor210600Work* work)
+{
+    s32 slotIndex;
+
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        work->rig.slots[slotIndex].rate = work->animRate;
+        animationResetSlot(&work->rig.anim, slotIndex, work->animId);
+    }
+    work->appliedAnim = work->animId;
+}
+
+/// Applies the actor's animation request and advances its eighteen animated parts.
+///
+/// Requires initialized work and a bound nineteen-part rig with a loaded bank.
+/// Slot 0 is the placed root; slots 1..18 are driven at animRate sixteenths of a
+/// frame per call. This package only requests set 1 with RESET. A BLEND would
+/// require appliedAnim and animId within the five-by-five transition table and
+/// a loaded requested set. Each applied request clears animFrames before this
+/// call increments it modulo 65536. A secondary reset is only marked applied.
+static void _actor210600DriveAnimation(Task* task)
 {
     _Actor210600Work* work;
-    _Actor210600Work* start;
-    _Actor210600Work* reset;
-    _Actor210600Work* tick;
-    s32               i;
-    s32               j;
-    s32               k;
+    _Actor210600Work* seekWork;
+    _Actor210600Work* resetWork;
+    _Actor210600Work* tickWork;
+    s32               seekSlot;
+    s32               tickSlot;
 
     work = task->work;
+    // Retain the blend path; this package never stores a BLEND request.
     if (work->animRequest == ACTOR_210600_ANIM_REQUEST_BLEND) {
-        start = task->work;
-        for (i = 1; i < ARRAY_SIZE(start->rig.slots); i++) {
-            start->rig.slots[i].rate = start->animRate;
-            animationSeekSlotWithBlend(&start->rig.anim, i, start->animId, 0,
-                                       D_actor_210600_8015A498[start->appliedAnim][start->animId]);
+        seekWork = task->work;
+        for (seekSlot = 1; seekSlot < ARRAY_SIZE(seekWork->rig.slots); seekSlot++) {
+            seekWork->rig.slots[seekSlot].rate = seekWork->animRate;
+            animationSeekSlotWithBlend(&seekWork->rig.anim, seekSlot, seekWork->animId, 0,
+                                       D_actor_210600_8015A498[seekWork->appliedAnim][seekWork->animId]);
         }
-        start->appliedAnim = start->animId;
-        work->animRequest  = ACTOR_210600_ANIM_REQUEST_PLAYING;
-        work->animFrames   = 0;
+        seekWork->appliedAnim = seekWork->animId;
+        work->animRequest     = ACTOR_210600_ANIM_REQUEST_PLAYING;
+        work->animFrames      = 0;
     } else if (work->animRequest == ACTOR_210600_ANIM_REQUEST_RESET) {
-        reset = task->work;
-        for (j = 1; j < ARRAY_SIZE(reset->rig.slots); j++) {
-            reset->rig.slots[j].rate = reset->animRate;
-            animationResetSlot(&reset->rig.anim, j, reset->animId);
-        }
-        reset->appliedAnim = reset->animId;
-        work->animRequest  = ACTOR_210600_ANIM_REQUEST_PLAYING;
-        work->animFrames   = 0;
+        resetWork = task->work;
+        _actor210600RestartPrimaryAnimation(resetWork);
+        work->animRequest = ACTOR_210600_ANIM_REQUEST_PLAYING;
+        work->animFrames  = 0;
     }
     if (work->blendRequest == ACTOR_210600_ANIM_REQUEST_RESET) {
         work->blendRequest = ACTOR_210600_ANIM_REQUEST_PLAYING;
     }
     work->animFrames++;
-    tick = task->work;
-    for (k = 1; k < ARRAY_SIZE(tick->rig.slots); k++) {
-        tick->rig.slots[k].rate = tick->animRate;
-        animationTickSlot(&tick->rig.anim, k);
+    // Reset installs normal rate, so restore the requested rate before advancing.
+    tickWork = task->work;
+    for (tickSlot = 1; tickSlot < ARRAY_SIZE(tickWork->rig.slots); tickSlot++) {
+        tickWork->rig.slots[tickSlot].rate = tickWork->animRate;
+        animationTickSlot(&tickWork->rig.anim, tickSlot);
     }
 }
 
@@ -485,7 +499,7 @@ static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
 
     work = task->work;
     if (work->suspended == 0) {
-        func_actor_210600_8014B2C0(task);
+        _actor210600DriveAnimation(task);
         Actor210600_ScaleRotation(task, 0xC00);
 
         id = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
@@ -500,36 +514,37 @@ static void func_actor_210600_8014B434(Enemy* enemy, Task* task)
     }
 }
 
-/// Message 0x7D5 handler, listed in `D_actor_210600_8015A4CC`: `arg2` selects
-/// the display mode. 0 hides the model (`TmdObject::flags` = 0x80) and 1 shows
-/// it (flags cleared), both reallocating its buffers through
-/// `tmdAllocPrimitiveBuffer`; 2 adds `TMD_OBJECT_SKIP_AUTO_BUFFER` to the flags and any other value sets
-/// them to `TMD_OBJECT_SKIP_AUTO_BUFFER` alone. Modes 0 and 2 set `_Actor210600Work::suspended`, which
-/// stops the update state, and the other two clear it. `arg1` is unused.
-s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Sets model draw flags and suspends or resumes the actor's update state.
+///
+/// Requires a live model and initialized work. drawMode 0 hides and allocates
+/// buffers, 1 shows and allocates buffers, and 2 adds SKIP_AUTO_BUFFER without
+/// changing active visibility. Other modes replace flags with SKIP_AUTO_BUFFER.
+/// Modes 0/2 suspend updating; 1/other modes resume it. Ignores the message ID
+/// and second payload and returns zero for every mode.
+static s32 _actor210600SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedArg)
 {
-    TmdObject*        obj;
+    TmdObject*        model;
     _Actor210600Work* work;
 
-    obj  = task->extra.tmd;
-    work = task->work;
-    switch (arg2) {
-        case 0:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
+    model = task->extra.tmd;
+    work  = task->work;
+    switch (drawMode) {
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
             work->suspended = 1;
             break;
-        case 1:
-            obj->flags = 0;
-            tmdAllocPrimitiveBuffer(obj);
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags = 0;
+            tmdAllocPrimitiveBuffer(model);
             work->suspended = 0;
             break;
-        case 2:
-            obj->flags     |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags   |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->suspended = 1;
             break;
         default:
-            obj->flags      = TMD_OBJECT_SKIP_AUTO_BUFFER;
+            model->flags    = TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->suspended = 0;
             break;
     }
@@ -538,21 +553,26 @@ s32 func_actor_210600_8014B5F4(Task* task, s32 arg1, s32 arg2, s32 arg3)
 
 #include "../../shared/actor_messages_place.inc.c"
 
-/// Message 0x7DB handler, listed in `D_actor_210600_8015A4CC`. When the payload
-/// comes from sender 0x401 with selector 1, it requests a restart on animation
-/// 1 at normal speed and clears `_Actor210600Work::suspended` so the update
-/// state runs. Always reports the message handled.
-s32 func_actor_210600_8014B770(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Restarts animation 1 and resumes updating for command 1 in context 1/4.
+///
+/// Requires initialized work and a borrowed `ActorCommand` through this call.
+/// Context packs stage tag 1 and area tag 4; other contexts or commands have
+/// no effect. The message ID and second payload are ignored. Returns 1 even
+/// for an ignored command; animation playback begins on the next update.
+static s32 _actor210600ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* message, s32 unusedArg)
 {
+    enum { ACTOR_210600_COMMAND_CONTEXT = (4 << 8) | 1,
+           ACTOR_210600_COMMAND_PLAY    = 1 };
+
     _Actor210600Work* work;
-    u16               selector;
+    u16               command;
 
     work = task->work;
-    if (msg->context.key == 0x401) {
-        selector = msg->command;
-        if (selector == 1) {
+    if (message->context.key == ACTOR_210600_COMMAND_CONTEXT) {
+        command = message->command;
+        if (command == ACTOR_210600_COMMAND_PLAY) {
             work->animRate    = ANIMATION_RATE_ONE;
-            work->animId      = selector;
+            work->animId      = command;
             work->suspended   = 0;
             work->animRequest = ACTOR_210600_ANIM_REQUEST_RESET;
         }
@@ -605,7 +625,7 @@ static void func_actor_210600_8014B8C8(Enemy* enemy, Task* task)
     animationInitContext(&work->rig.anim, (AnimationSet**)D_actor_210600_8015A4B4, obj, work->rig.poses, work->rig.slots);
     work->animRequest = ACTOR_210600_ANIM_REQUEST_RESET;
     work->animId      = 1;
-    func_actor_210600_8014B2C0(task);
+    _actor210600DriveAnimation(task);
     task->msgTable      = D_actor_210600_8015A4CC;
     coord->parent       = &gGfxViewCoord;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;

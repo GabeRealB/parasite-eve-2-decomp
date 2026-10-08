@@ -1382,7 +1382,7 @@ Inputs: `base.i` (two parameters, `s16` mode, 59.655%)
 `717145565dd4d7766d5e952b32178b2e52a1b38b0ee490932d51acd941599514`.
 The undercount is not a low-score phenomenon, and the tell above is easy to skip
 when it arrives clean: the same dropped parameter in
-`func_actor_120500_80132A04` scored **99.259%** with `regs=4` and every other
+`_actor120500SetModelDraw` scored **99.259%** with `regs=4` and every other
 penalty zero, and the entire object differed from the target at four comparison
 operands (`beq $a1,$v0` / `slti $v0,$a1,0x2` / `beqz $a1,…` / `bne $a1,$v0,…`
 where the target reads `$a2`). A single-penalty `regs` leftover that close to
@@ -45801,7 +45801,7 @@ gCdCmdQueue = 0x80068FA0; // type:CdCmdQueue size:0x254
 ```
 
 `0x800691CA` is `gCdCmdQueue + 0x22A`, i.e. the already-named
-`CdCmdQueue::imageMdecMode`, so `func_actor_121300_8013427C` matched by writing
+`CdCmdQueue::imageMdecMode`, so `_actor121300SkipScene` matched by writing
 
 ```c
 gCdCmdQueue.imageMdecMode = 0;      /* not: extern s16 D_800691CA; D_800691CA = 0; */
@@ -85817,7 +85817,7 @@ parameters still has to declare it or every later one shifts down. m2c emits
 only the parameters the body uses, which is the wrong arity whenever the
 original ignored one.
 
-`func_actor_210600_8014B770` reads a payload pointer and four work-block
+`_actor210600ApplyCommand` reads a payload pointer and four work-block
 fields; everything matched except that all four uses of the pointer were
 `$a1` where the target has `$a2` - `lhu $v0, 0($a1)` against
 `lhu $v0, 0($a2)`, `bne $a1, $v0` against `bne $a2, $v0`, `sh $a1, 0x882($a0)`
@@ -102361,7 +102361,7 @@ whole unit in *both* carriers, so each overlay's `_4.c` became `_3.c` and the
 above).
 
 Inputs: `base.i` (m2c seed, 85.111%), `base_1.i` (100.000%).
-## One pseudo per C variable, not per assignment: reusing the function's pointer local denies a reload a caller-saved home (func_actor_120500_80132920, 2026-09-16)
+## One pseudo per C variable, not per assignment: reusing the function's pointer local denies a reload a caller-saved home (_actor120500SkipScene, 2026-09-16)
 
 An `if (p->work->playerTask != 0) { ...; taskMessageDispatch(p->work->playerTask, ...); }`
 where the target loads `p->work` **once** and reuses it for the call argument
@@ -102389,13 +102389,13 @@ call and crossing no call — is a non-call-crossing allocno, and `global.c`'s
 target's `$v1`, and it is 100.000% with all penalties zero:
 
 ```c
-    animWork = actor->field_1C;
+    animWork = task->work;
     if (animWork->playerTask != NULL) {
-        msg.field_0 = D_actor_120500_8013807C;
+        request.source.sets = D_actor_120500_8013807C;
         ...
-        taskMessageDispatch(animWork->playerTask, 0x3F4, (s32)&msg, 0);
+        taskMessageDispatch(animWork->playerTask, 0x3F4, (s32)&request, 0);
     }
-    work = actor->field_1C;
+    work = task->work;
 ```
 
 So when the target reloads a pointer the seed also reloads but into a
@@ -102405,7 +102405,7 @@ call-crossing one, and split it out. The same reading applies to the seed's
 extra `lw` — one pseudo re-set at two sites is CSE plus a rematerialization, not
 two source statements.
 
-Evidence: scratch `nonmatchings/func_actor_120500_80132920-vacuum/`; `base.c`
+Evidence: scratch `nonmatchings/_actor120500SkipScene-vacuum/`; `base.c`
 88.754%, `base_1.c` 96.966% (two loads, `insert=1 reorder=1`), `base_2.c`
 99.719% (`$s0`), `base_3.c` 100.000%; `base_2.i.lreg` shows insn 44 writing
 pseudo 81, the same pseudo as the other two assignments.
@@ -127933,7 +127933,7 @@ Inputs: `base_1.c` source `e46795b5…`, preprocessed `dd76ada1…`, target
 
 ## A `u16` field that feeds a call argument *and* an array index needs the `(s16)` cast at both uses
 
-`func_actor_210600_8014B2C0` reads one animation id twice per slot:
+`_actor210600DriveAnimation` reads one animation id twice per slot:
 
 ```
 lh      v1,0x880(s0)      /* row   */
@@ -128003,7 +128003,7 @@ in one build; the remaining gap was the cast above.
 Inputs: `base_1.c` source `4c2bdd79…`, preprocessed `a12e1450…` (97.819%),
 `base_2.c` source `0b947826…`, preprocessed `b4ce2c26…` (100.000%), target
 `9ede8929…`, compiler `60d886cd…`; scratch
-`nonmatchings/func_actor_210600_8014B2C0-vacuum/`.
+`nonmatchings/_actor210600DriveAnimation-vacuum/`.
 ## Any struct-member store evicts every struct memory entry from CSE, not just its neighbours (func_actor_323400_80164974, 2026-09-17)
 
 `func_actor_323400_80164974` is the message handler sibling of
@@ -130442,7 +130442,7 @@ the `lhu` / `sh` pair missing from the first arm entirely. Nothing in the
 register or scheduling dumps points at it; the give-away is the *count* of
 stores, not their operands.
 
-The fix is the shape the matched sibling `func_actor_210600_8014B2C0` already
+The fix is the shape the matched sibling `_actor210600DriveAnimation` already
 uses: each arm reloads the pointer into its own local.
 
 ```c

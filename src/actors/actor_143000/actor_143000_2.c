@@ -51,14 +51,14 @@ extern EvsCommand D_actor_143000_80135AE0[];
 extern u8 D_actor_143000_80135C38[];
 
 void        func_actor_143000_801344A8(s32);
-void        func_actor_143000_801344D8(void);
+static void _actor143000SelectSceneCaptions(void);
 static void _actor143000ResetSceneCaptions(void);
 static void _actor143000SetActorControl(u8 actorControl);
 void        func_actor_143000_80134538(void);
 
 void func_actor_143000_80133EE4(Task*);
 
-void func_actor_143000_801342F8(s32 x, s32 y, const u16* codes, s32 index, s32 active);
+static void _actor143000UpdateCaptionCursor(s32 cursorX, s32 cursorY, const u16* text, s32 revealIndex, s32 codeAdvanced);
 
 TaskDesc D_actor_143000_801350B0[2] = {
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
@@ -109,10 +109,10 @@ ActorTransform D_actor_143000_80135194 = { { 3270, 0, -2630, 0 }, { 0, -2048, 0,
 u8 D_actor_143000_801351AC = 0;
 
 EvsCommand D_actor_143000_801351B0[72] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143000_801344D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143000SelectSceneCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackSetText = capSetTextUpdateCallback }, { .captionText = func_actor_143000_801342F8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackSetText = capSetTextUpdateCallback }, { .captionText = _actor143000UpdateCaptionCursor }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_actor_143000_80135174 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -405,30 +405,55 @@ void func_actor_143000_80133EE4(Task* arg0)
     }
 }
 
-void func_actor_143000_801342F8(s32 x, s32 y, const u16* codes, s32 index, s32 active)
+/// Draws the scene's blinking caption cursor and applies its player animation cues.
+///
+/// Follows `CapTextUpdateCallback`: coordinates are screen-centred pixels, text is
+/// borrowed CAP storage, and revealIndex is the post-update u16 element index.
+/// For Y < 89, each newly reached 0x3xxx glyph (reveal delay 6) restarts clip 48;
+/// the next newly reached line break blends to clip 50 if that cue is latched.
+/// Draws a 15-pixel green square four pixels to the cursor's right for four of
+/// every eight eligible calls. Requires the installed player bank extension,
+/// live player task, GPU primitive arena and ordering table. The overlay and
+/// caption storage must remain loaded until CAP clears the callback.
+static void _actor143000UpdateCaptionCursor(s32 cursorX, s32 cursorY, const u16* text, s32 revealIndex, s32 codeAdvanced)
 {
-    POLY_F4* prim;
+    enum {
+        ACTOR_143000_CAPTION_BOTTOM_Y       = 89,
+        ACTOR_143000_ANIMATION_CODE_MASK    = 0xF000,
+        ACTOR_143000_ANIMATION_CODE_DELAY_6 = 0x3000,
+        ACTOR_143000_TEXT_LINE_BREAK        = 0xFFFE,
+        ACTOR_143000_CURSOR_SIZE            = 15,
+        ACTOR_143000_CURSOR_X_OFFSET        = 4,
+        ACTOR_143000_CURSOR_GREEN           = 124,
+        ACTOR_143000_CURSOR_BLUE            = 44,
+        ACTOR_143000_CURSOR_BLINK_BIT       = 4,
+        ACTOR_143000_CURSOR_OT_INDEX        = 2,
+    };
 
-    if (y < 0x59) {
-        if (active != 0) {
-            if ((codes[index] & 0xF000) == 0x3000) {
+    POLY_F4* quad;
+
+    if (cursorY < ACTOR_143000_CAPTION_BOTTOM_Y) {
+        // Newly reached delayed glyphs restart clip 48; a line break releases it.
+        if (codeAdvanced != 0) {
+            if ((text[revealIndex] & ACTOR_143000_ANIMATION_CODE_MASK) == ACTOR_143000_ANIMATION_CODE_DELAY_6) {
                 playerActorWriteWeaponAnimationBankIndex(&D_actor_143000_80135124.source.index);
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_143000_80135124, 0);
                 D_actor_143000_801351AC = 1;
             }
-            if (codes[index] == 0xFFFE && D_actor_143000_801351AC == 1) {
+            if (text[revealIndex] == ACTOR_143000_TEXT_LINE_BREAK && D_actor_143000_801351AC == 1) {
                 D_actor_143000_801351AC = 0;
                 playerActorWriteWeaponAnimationBankIndex(&D_actor_143000_8013514C.source.index);
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &D_actor_143000_8013514C, 0);
             }
         }
-        prim           = gGpuPrimCursor;
-        gGpuPrimCursor = prim + 1;
-        setPolyF4(prim);
-        setRGB0(prim, 0, 0x7C, 0x2C);
-        setXY4(prim, x + 4, y - 15, x + 19, y - 15, x + 4, y, x + 19, y);
-        if (D_actor_143000_80135C10 & 4) {
-            addPrim(&gGpuCurrentOt[2], prim);
+        // Reserve the cursor packet even on the dark half of its eight-call blink.
+        quad           = gGpuPrimCursor;
+        gGpuPrimCursor = quad + 1;
+        setPolyF4(quad);
+        setRGB0(quad, 0, ACTOR_143000_CURSOR_GREEN, ACTOR_143000_CURSOR_BLUE);
+        setXY4(quad, cursorX + ACTOR_143000_CURSOR_X_OFFSET, cursorY - ACTOR_143000_CURSOR_SIZE, cursorX + ACTOR_143000_CURSOR_X_OFFSET + ACTOR_143000_CURSOR_SIZE, cursorY - ACTOR_143000_CURSOR_SIZE, cursorX + ACTOR_143000_CURSOR_X_OFFSET, cursorY, cursorX + ACTOR_143000_CURSOR_X_OFFSET + ACTOR_143000_CURSOR_SIZE, cursorY);
+        if (D_actor_143000_80135C10 & ACTOR_143000_CURSOR_BLINK_BIT) {
+            addPrim(&gGpuCurrentOt[ACTOR_143000_CURSOR_OT_INDEX], quad);
         }
         D_actor_143000_80135C10++;
     }
@@ -439,11 +464,20 @@ void func_actor_143000_801344A8(s32 arg0)
     taskSpawnFromTable(&D_actor_143000_801350C8, 0, 0, arg0);
 }
 
-void func_actor_143000_801344D8(void)
+/// Selects the laboratory scene's CAP file and title/text texture origin.
+///
+/// Requires loaded CAP data resource ordinal 3 and its texture at VRAM (384,256).
+/// Clears the current file before selecting the fourth data resource;
+/// the selected CAP data and texture must remain live throughout playback.
+static void _actor143000SelectSceneCaptions(void)
 {
+    enum { ACTOR_143000_SCENE_CAP_DATA_ORDINAL = 3,
+           ACTOR_143000_CAP_VRAM_X             = 384,
+           ACTOR_143000_CAP_VRAM_Y             = 256 };
+
     Gp_CapFile = 0;
-    capSelectLoadedFile(3);
-    capSetTexturePage(0x180, 0x100);
+    capSelectLoadedFile(ACTOR_143000_SCENE_CAP_DATA_ORDINAL);
+    capSetTexturePage(ACTOR_143000_CAP_VRAM_X, ACTOR_143000_CAP_VRAM_Y);
 }
 
 /// Restores default CAP resources after the scene has stopped playback.

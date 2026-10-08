@@ -146,13 +146,13 @@ extern ActorTransform D_actor_120500_801380C0;
 
 static void _actor120500PostPlayerRequest(s16 requestId);
 static void _actor120500PostBodyRequest(s16 requestId);
-void        func_actor_120500_80132900(s16);
-void        func_actor_120500_80132920(void);
+static void _actor120500PostScreenRequest(s16 requestId);
+static void _actor120500SkipScene(void);
 
 static TmdSource _gActor120500KyleMadiganBody;
 void             func_actor_120500_80131E58(Task*);
 void             func_actor_120500_8013241C(Task*);
-void             func_actor_120500_80132A04(Task*, s32, s32, s32);
+static void      _actor120500SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedArg);
 
 static TmdBone _gActor120500KyleMadiganBodySkeleton[20] = {
 #include "assets/kyle_madigan_body_skeleton.inc"
@@ -297,14 +297,14 @@ EvsCommand D_actor_120500_801380D8[24] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = ACTOR_120500_SCREEN_REQUEST_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostScreenRequest }, { .value = ACTOR_120500_SCREEN_REQUEST_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostScreenRequest }, { .value = ACTOR_120500_SCREEN_REQUEST_PLAY_MOVIE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostBodyRequest }, { .value = ACTOR_120500_BODY_REQUEST_APPEAR }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_actor_120500_80132900 }, { .value = ACTOR_120500_SCREEN_REQUEST_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostScreenRequest }, { .value = ACTOR_120500_SCREEN_REQUEST_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120500PostPlayerRequest }, { .value = ACTOR_120500_PLAYER_REQUEST_HIDE_BODY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -321,7 +321,7 @@ EvsCommand D_actor_120500_801380D8[24] = {
 EvsCommand D_actor_120500_80138318[10] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120500_80132920 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120500SkipScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -332,7 +332,7 @@ EvsCommand D_actor_120500_80138318[10] = {
 };
 
 TaskMessageEntry D_actor_120500_80138408[2] = {
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_120500_80132A04 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor120500SetModelDraw },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceInView },
 };
 
@@ -730,69 +730,91 @@ static void _actor120500PostBodyRequest(s16 requestId)
     work->bodyRequestStep = 0;
 }
 
-void func_actor_120500_80132900(s16 arg0)
+/// Posts a fade or movie request for the motel room 6 scene.
+///
+/// Requires the published actor task and initialized work to be live. Stores
+/// requestId's halfword bits and resets the unused screen step. The next update
+/// consumes ACTOR_120500_SCREEN_REQUEST_*; zero cancels a pending request and
+/// unsupported codes are cleared without effect. Performs no screen operation.
+static void _actor120500PostScreenRequest(s16 requestId)
 {
     _Actor120500Work* work = D_actor_120500_80138454->work;
 
-    work->screenRequest     = arg0;
+    work->screenRequest     = requestId;
     work->screenRequestStep = 0;
 }
 
-/// Puts the actor back to rest: plays sound cue `0x521E0007`, sends the actor
-/// its own message 0x7D5 with payload 2, hiding the model, and clears the
-/// three requests the setters above post. The player's task then
-/// gets animation set 2 of `D_actor_120500_8013807C` (message 0x3F4), message
-/// 0x3F3 with payload 1, and the placement record `D_actor_120500_801380A8`
-/// as message 0x3E9, with the ambient RGB override disabled in between.
-void func_actor_120500_80132920(void)
+/// Restores the player's presentation when the motel room 6 scene is skipped.
+///
+/// Requires the published actor and its work to remain live through dispatch.
+/// Stops the movie sound, hides the double and cancels its choreography channels.
+/// With a player task, installs scene animation 2 without blending; then clears
+/// the ambient RGB override and shows and places the player. Player placement
+/// follows animation installation. The enclosing skip script handles scene teardown.
+static void _actor120500SkipScene(void)
 {
-    Task*                actor;
+    /// Reloads the player task and installs a scene animation when present.
+    ///
+    /// Captures task, animWork and writable request storage. Requires live work
+    /// and loaded scene sets. requestedAnimation is evaluated once only when the player
+    /// is present; dispatch borrows the request synchronously. Restarts without
+    /// blending and enables world collision.
+#define ACTOR_120500_INSTALL_PLAYER_ANIMATION(requestedAnimation)                                                 \
+    {                                                                                                             \
+        animWork = task->work;                                                                                    \
+        if (animWork->playerTask != NULL) {                                                                       \
+            request.source.sets          = D_actor_120500_8013807C;                                               \
+            request.animationId          = (requestedAnimation);                                                  \
+            request.blend                = ANIMATION_BLEND_RESET;                                                 \
+            request.blendFrames          = 0;                                                                     \
+            request.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;                                      \
+            TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &request, 0); \
+        }                                                                                                         \
+    }
+
+    enum { ACTOR_120500_SKIP_SOUND_FADE_UPDATES = 10,
+           ACTOR_120500_SKIP_PLAYER_ANIMATION   = 2 };
+
+    Task*                task;
     _Actor120500Work*    work;
     _Actor120500Work*    animWork;
-    AnimationPlayRequest msg;
+    AnimationPlayRequest request;
 
-    actor = D_actor_120500_80138454;
-    work  = actor->work;
-    sndEvtRequestScriptStop(SOUND_MOTEL_ROOM_6_MOVIE_SFX, 0xA);
-    taskMessageDispatch(actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+    task = D_actor_120500_80138454;
+    work = task->work;
+    sndEvtRequestScriptStop(SOUND_MOTEL_ROOM_6_MOVIE_SFX, ACTOR_120500_SKIP_SOUND_FADE_UPDATES);
+    taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
     work->playerRequest = ACTOR_120500_PLAYER_REQUEST_NONE;
     work->bodyRequest   = ACTOR_120500_BODY_REQUEST_NONE;
     work->screenRequest = ACTOR_120500_SCREEN_REQUEST_NONE;
-    animWork            = actor->work;
-    if (animWork->playerTask != NULL) {
-        msg.source.sets          = D_actor_120500_8013807C;
-        msg.animationId          = 2;
-        msg.blend                = ANIMATION_BLEND_RESET;
-        msg.blendFrames          = 0;
-        msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-        TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
-    }
-    work = actor->work;
+    ACTOR_120500_INSTALL_PLAYER_ANIMATION(ACTOR_120500_SKIP_PLAYER_ANIMATION);
+    work = task->work;
     worldCoordSetAmbientColorOverride(NULL);
-    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120500_801380A8, 0);
+#undef ACTOR_120500_INSTALL_PLAYER_ANIMATION
 }
 
-/// Message 0x7D5 handler: shows or hides the task's model. Payload 0 hides it
-/// (sets `TmdObject` flag 0x80), 1 shows it and clears `TMD_OBJECT_SKIP_AUTO_BUFFER`, and 2 hides
-/// it and sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, which keeps `tmdResetAuxHeapAndRestoreBuffers` from giving it
-/// buffers again. Payload 2 sets `TMD_OBJECT_SKIP_AUTO_BUFFER` and falls into payload 0, rather than
-/// setting both bits at once, and the branch layout follows that. `arg1` is
-/// the message id.
-void func_actor_120500_80132A04(Task* task, s32 arg1, s32 arg2, s32 arg3)
+/// Sets the cutscene double's model visibility and automatic-buffer policy.
+///
+/// Requires a live model; the message ID and second payload are ignored.
+/// drawMode is ACTOR_MESSAGE_DRAW_HIDE (0), SHOW (1), or HIDE_SKIP_AUTO_BUFFER
+/// (2). Unsupported values do nothing. Preserves unrelated model flags and
+/// returns no usable message result; callers must ignore the dispatch result.
+static void _actor120500SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedArg)
 {
-    TmdObject* extra;
+    TmdObject* model;
 
-    extra = task->extra.tmd;
-    switch (arg2) {
-        case 2:
-            extra->flags = extra->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
+    model = task->extra.tmd;
+    switch (drawMode) {
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags = model->flags | TMD_OBJECT_SKIP_AUTO_BUFFER;
             /* fallthrough */
-        case 0:
-            extra->flags = extra->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
-        case 1:
-            extra->flags = extra->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags = model->flags & (u16) ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             return;
     }
 }

@@ -244,13 +244,13 @@ static void      _actor121300FadeOutTask(Task* task);
 static void      _actor121300BlackoutTask(Task* task);
 static void      _actor121300SelectSceneStep(s16 step);
 static void      _actor121300RestoreStreamImageMode(void);
-void             func_actor_121300_8013427C(void);
+static void      _actor121300SkipScene(void);
 static void      _actor121300StartFadeIn(s32 intensityStep);
 static void      _actor121300StartFadeOut(s32 intensityStep);
 static void      _actor121300SetDoubleDrawMode(s32 drawMode);
 static void      _actor121300StageSceneAudioStart(void);
 static void      _actor121300QueueScenePlayback(void);
-void             func_actor_121300_801343A4(void);
+static void      _actor121300FinishScene(void);
 
 static TmdBone _gActor121300AyaBreaBodySkeleton[19] = {
 #include "assets/aya_brea_body_skeleton.inc"
@@ -675,7 +675,7 @@ EvsCommand D_actor_121300_8013CE08[52] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor121300StartFadeOut }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300RestoreStreamImageMode }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_121300_801343A4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -685,7 +685,7 @@ EvsCommand D_actor_121300_8013D2E8[7] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor121300SelectSceneStep }, { .value = ACTOR_121300_STEP_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_121300_8013427C }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor121300SkipScene }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1723,14 +1723,21 @@ static void _actor121300RestoreStreamImageMode(void)
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
 }
 
-void func_actor_121300_8013427C(void)
+/// Ends the shattering scene's effects and restores the player when skipped.
+///
+/// Requires the published double task, its work and a previously selected stream.
+/// Clears the debris lifetime gate, finishes the screen-wave ramp, restores
+/// unmasked RGB16 image decoding and shows the player before requesting CD
+/// cancellation. Effect tasks release themselves on later updates; this call
+/// releases no work or model storage.
+static void _actor121300SkipScene(void)
 {
     _Actor121300AyaBreaWork* work = D_actor_121300_8013D418->work;
 
     D_actor_121300_8013D41C   = 0;
     work->wave.state          = SCREEN_WAVE_RAMP_FINISHED;
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16;
-    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
     cdCmdCancelScene();
 }
 
@@ -1788,7 +1795,12 @@ static void _actor121300QueueScenePlayback(void)
     cdCmdEnqueueScenePlayback();
 }
 
-void func_actor_121300_801343A4(void)
+/// Completes the scene stream and requests CD cancellation at the script's end.
+///
+/// Requires a successfully selected scene. Restores streaming flags and saved
+/// random state immediately; CD cancellation completes on subsequent dispatches.
+/// The scene and task owners retain responsibility for their buffers and teardown.
+static void _actor121300FinishScene(void)
 {
     streamFinishScene();
     cdCmdCancelScene();

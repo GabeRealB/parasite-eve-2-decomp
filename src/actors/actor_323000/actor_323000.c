@@ -91,7 +91,7 @@ static const DesertChaserTaskStates gDesertChaserTaskStates = {
 
 static TmdSource _gActor323000DesertChaserBody;
 s32              func_actor_323000_80164A54(Task* task, s32 msgId, ActorCommand* msg, s32);
-s32              func_actor_323000_8016483C(Task*, s32, s32, s32);
+static void      _actor323000IgnoreMessage2015(Task* unusedTask, s32 unusedMessageId, s32 unusedArg, s32 unusedSecondArg);
 
 DamageAttack D_actor_323000_80164D40[5] = {
     { 30, 0 },
@@ -1007,8 +1007,10 @@ u8 gRigAnimSource[340] = {
     0,
 };
 
+enum { ACTOR_323000_MESSAGE_NO_OP = 2015 };
+
 TaskMessageEntry gRigMessages[7] = {
-    { 2015, func_actor_323000_8016483C },
+    { ACTOR_323000_MESSAGE_NO_OP, _actor323000IgnoreMessage2015 },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _desertChaserSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawFirst },
@@ -1429,8 +1431,11 @@ static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
 
 #include "../../shared/desert_chaser_frame.inc.c"
 
-/// Handler for message 0x7DF: does nothing.
-s32 func_actor_323000_8016483C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the cutscene actor's message 2015 without changing any state.
+///
+/// All arguments are unused. The retail stub leaves the result register intact;
+/// callers must ignore the dispatch result. The command's intended role is unproven.
+static void _actor323000IgnoreMessage2015(Task* unusedTask, s32 unusedMessageId, s32 unusedArg, s32 unusedSecondArg)
 {
 }
 

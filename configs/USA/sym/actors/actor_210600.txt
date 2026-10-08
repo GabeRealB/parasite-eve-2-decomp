@@ -68,3 +68,6 @@ _actorContactApplyGridPushback = 0x8014C638; // type:func allow_duplicated:True
 ActorContact_Push = 0x8014C7DC; // type:func allow_duplicated:True
 _actorRenderSetYawScale = 0x8014B7B0; // type:func
 actorMsgPlace = 0x8014B6A0; // type:func
+_actor210600DriveAnimation = 0x8014b2c0; // type:func
+_actor210600SetModelDraw = 0x8014b5f4; // type:func
+_actor210600ApplyCommand = 0x8014b770; // type:func

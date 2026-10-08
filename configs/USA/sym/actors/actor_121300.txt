@@ -103,3 +103,5 @@ _actor121300SpawnLampDebrisTask = 0x80133064; // type:func
 _actor121300SetTextureSequence = 0x80134224; // type:func
 _actor121300StartFadeIn = 0x801342d4; // type:func
 _actor121300StartFadeOut = 0x80134304; // type:func
+_actor121300SkipScene = 0x8013427c; // type:func
+_actor121300FinishScene = 0x801343a4; // type:func
