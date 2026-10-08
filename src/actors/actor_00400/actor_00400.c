@@ -457,20 +457,30 @@ enum {
 /// Entry of the two-step despawn table that releases the room's surface-spot claim.
 enum { ACTOR_00400_DESPAWN_STATE_RELEASE_SPOT = 0 };
 
+/// Placement-tagged sound scripts for the surface cycle and discharge.
+enum {
+    ACTOR_00400_SOUND_SURFACE_CUE  = 0x40040004,
+    ACTOR_00400_SOUND_NECK_RELEASE = 0x40040007,
+    ACTOR_00400_SOUND_DIVE         = 0x40040008,
+    ACTOR_00400_SOUND_DISCHARGE    = 0x4004000B
+};
+
+/// Normal living limb-shadow intensity, before a stranded death fades it.
+enum { ACTOR_00400_LIVING_SHADOW_SHADE = 128 };
+
 static void _actor00400TurnTowardPointMaskedRange(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband);
 static void _actor00400RequestClipBlend(Task* task, s16 clipIndex, s16 rate, s16 blendFrames);
 static void _actor00400UpdateNeckRetraction(Task* task, s32 unusedNeckRetracted);
-static void Actor00400_Fn0237C(Task* arg0);
 static void _actor00400ClaimNearestSurfaceSpot(Task* task);
 static void _actor00400LaunchShot(Task* task);
 static void _actor00400Despawn(Task* task);
 static void Actor00400_Fn03920(Task* arg0);
-static void Actor00400_Fn04580(Task* arg0);
-static void Actor00400_Fn04B48(Task* arg0);
-static void Actor00400_Fn04E18(Task* arg0);
-static void Actor00400_Fn040DC(Task* arg0);
-static void Actor00400_Fn06B7C(Task* arg0);
-static void Actor00400_Fn070C0(Task* arg0);
+static void _actor00400StrandedTask(Task* task);
+static void _actor00400StrandedDeathTask(Task* task);
+static void _actor00400SwimTask(Task* task);
+static void _actor00400SwimDeathTask(Task* task);
+static void _actor00400WoundedGroundTask(Task* task);
+static void _actor00400WoundedFloatTask(Task* task);
 static void _actor00400BlendRequestedClip(Task* task);
 static s16  _actor00400ScaleFramesForAnimRate(Task* task, s16 frames);
 static void _actor00400TickAnimation(Task* task);
@@ -536,16 +546,16 @@ static void _actor00400SwimDeathDarken(Task* task);
 static void _actor00400SwimDeathHide(Task* task);
 static void _actor00400SwimDeathBlastHide(Task* task);
 static void _actor00400SwimDeathBlastWait(Task* task);
-static void Actor00400_Fn07F88(Task* arg0);
+static void _actor00400SwimDeathBlastBurst(Task* task);
 static void _actor00400SwimDeathBlastEnd(Task* task);
 static void _actor00400StrandedDeathFallWait(Task* task);
 static void _actor00400StrandedDeathWeigh(Task* task);
 static void _actor00400StrandedDeathFadeWait(Task* task);
-static void Actor00400_Fn08E50(Task* arg0);
+static void _actor00400StrandedDeathShrink(Task* task);
 static void _actor00400StrandedDeathEnd(Task* task);
 static void _actor00400StrandedDeathBlastHide(Task* task);
 static void _actor00400StrandedDeathBlastWait(Task* task);
-static void Actor00400_Fn09038(Task* arg0);
+static void _actor00400StrandedDeathBlastBurst(Task* task);
 static void _actor00400StrandedDeathBlastEnd(Task* task);
 static void _actor00400StrandedStart(Task* task);
 static void _actor00400StrandedIdleWait(Task* task);
@@ -1349,13 +1359,11 @@ static void _actor00400SwimEmergeEnter(Task* task);
 
 static void Actor00400_Fn058C4(Task* arg0);
 
-static void            Actor00400_Fn00A14(Task* arg0);
 static void            _actor00400InitModelAndEnemy(Task* task);
 static void            _actor00400CrawlStride(Task* task);
 static void            _actor00400DrawLimbShadows(Task* actor, s16 worldY, u8 shade);
 static void            _actor00400UpdatePartyTarget(Task* task);
 static void            _actor00400UpdateStrandedLook(Task* task, s32 lookDisabled);
-static void            Actor00400_Fn01B90(Task* arg0);
 static void            _actor00400FlyShot(Task* task);
 static void            _actor00400FindNearestSurfaceSpot(Task* task, SVECTOR* nearestPosition);
 static void            _actor00400DrawGroundStain(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 intensity);
@@ -1365,9 +1373,6 @@ static __inline__ void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
 static __inline__ void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleCoord,
                                                    const _Actor00400Work* work, const TmdObject* model);
 static inline void     _actor00400TurnTowardPoint(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband);
-static inline void     Actor00400_SpawnRing(Task* arg0, _Actor00400Work* work, GfxCoord* coord);
-static void            Actor00400_Fn05320(Task* arg0);
-static void            Actor00400_Fn05D00(Task* arg0);
 static void            _actor00400DiveSwimToSurfaceSpot(Task* task);
 static void            Actor00400_Fn061E8(Task* arg0);
 static void            _actor00400SwimAttackWindup(Task* task);
@@ -1386,21 +1391,33 @@ static inline s32      _actor00400ConsumeSwimHeavyRecoilHitReaction(Task* task);
 
 #include "../../shared/diver_draw_spark.inc.c"
 
-static void Actor00400_Fn00A14(Task* arg0)
+/// Advances the spark discharge and its stranded attack-sphere window.
+///
+/// Requires live work, enemy and model with trunk part 1. The signed halfword
+/// counts remaining running frames: sound every eight, sparks at 48 and 24,
+/// stranded pair testing enabled at 22 and disabled when the countdown ends.
+/// A zero countdown leaves both effects and collision flags unchanged.
+static void _actor00400TickDischarge(Task* task)
 {
+    enum {
+        ACTOR_00400_DISCHARGE_SOUND_PERIOD  = 8,
+        ACTOR_00400_DISCHARGE_SPARK_FIRST   = 24,
+        ACTOR_00400_DISCHARGE_SPARK_SECOND  = 48,
+        ACTOR_00400_DISCHARGE_CONTACT_START = 22
+    };
     _Actor00400Work* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->attackFrames != 0) {
-        if (!(work->attackFrames & 7)) {
-            s32 id  = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4004000B;
-            s32 pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        if (!(work->attackFrames & (ACTOR_00400_DISCHARGE_SOUND_PERIOD - 1))) {
+            s32 soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_DISCHARGE;
+            s32 pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
         }
-        if (work->attackFrames == 0x18 || work->attackFrames == 0x30) {
-            effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, &arg0->extra.tmd->coords[1], NULL, &work->effectArg);
+        if (work->attackFrames == ACTOR_00400_DISCHARGE_SPARK_FIRST || work->attackFrames == ACTOR_00400_DISCHARGE_SPARK_SECOND) {
+            effectSpawnHit(EFFECT_HIT_KIND_SPARK_BURST, &task->extra.tmd->coords[1], NULL, &work->effectArg);
         }
-        if (work->attackFrames == 0x16 && work->inWater == 0) {
+        if (work->attackFrames == ACTOR_00400_DISCHARGE_CONTACT_START && work->inWater == 0) {
             work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
         }
         if (--work->attackFrames == 0) {
@@ -1825,97 +1842,154 @@ static void _actor00400InitCollisionBodies(Task* task)
 #undef ACTOR_00400_LINK_SPHERE
 }
 
-/* Damage / knock-back tick: walks the six contact records, applies the hit
-   the first one carries, then folds the accumulated push-back into the work
-   position and the actor's coordinate. */
-static void Actor00400_Fn01B90(Task* arg0)
+/// Steps a root translation in a fractional correction's sign after its integer floor.
+///
+/// correctionWord is signed 16.16; translation is one writable root component.
+/// Call after adding the signed high half. Negative fractions step one unit
+/// below that floor; addition must fit the word. No pointer is retained.
+static inline void _actor00400ApplyRootFractionalPush(s32 correctionWord, long* translation)
 {
-    _Actor00400Work*    work;
-    Enemy*              obj;
-    GfxCoord*           coord;
-    WorldCollisionDelta delta;
-    s32                 kind;
-    s16                 amount;
-    s32                 dmg;
-    s32                 tmp;
-    s32                 tick;
-    s32                 i;
+    if ((correctionWord & 0xFFFF) != 0) {
+        if (correctionWord > 0) {
+            (*translation)++;
+        } else {
+            (*translation)--;
+        }
+    }
+}
 
-    kind           = 0;
-    coord          = arg0->extra.tmd->coords;
-    work           = arg0->work;
-    obj            = arg0->spawnArg2.pointer;
+/// Steps an arm anchor in a fractional correction's sign, retaining halfword narrowing.
+///
+/// correctionWord is signed 16.16; translation is one writable anchor component.
+/// Call after adding the signed high half. Negative fractions step below the
+/// floor, and the update narrows to the low signed halfword. No pointer is retained.
+static inline void _actor00400ApplyAnchorFractionalPush(s32 correctionWord, short* translation)
+{
+    if ((correctionWord & 0xFFFF) != 0) {
+        if (correctionWord > 0) {
+            (*translation)++;
+        } else {
+            (*translation)--;
+        }
+    }
+}
+
+/// Applies attack contacts, status damage and room-grid correction to the diver.
+///
+/// Requires live enemy/root and the six initialized hit and grid records.
+/// Scans category-2 contacts until a hit remains pending. Cooldown blocks HP
+/// damage while still permitting Life Drain motes. Damage narrows to a signed
+/// halfword before reaction and HP/readout updates.
+/// Status damage retains its full HP subtraction but uses its signed low half
+/// for the readout and hit test. Grid XZ corrections move the arm anchor and
+/// root by the integer floor plus one unit in the fractional sign; opposed
+/// corrections restore the previous root XZ. Clears both contact lists and
+/// decrements or clamps the cooldown. Reaction consumption occurs next frame.
+static void _actor00400ApplyContacts(Task* task)
+{
+    enum {
+        ACTOR_00400_ATTACK_CATEGORY_MASK         = 0xFFFF0000,
+        ACTOR_00400_ATTACK_CATEGORY_PLAYER       = 0x20000,
+        ACTOR_00400_ATTACK_ROW_MASK              = 0x7F,
+        ACTOR_00400_ATTACK_ATTACHMENT_BIT        = 0x8000,
+        ACTOR_00400_WEAPON_ROW_FLINCH_ONLY       = 28,
+        ACTOR_00400_HEAVY_HIT_MIN_DAMAGE         = 60,
+        ACTOR_00400_ATTACK_REACTION_BLAST        = 4,
+        ACTOR_00400_ATTACK_REACTION_HEAVY        = 5,
+        ACTOR_00400_ATTACK_REACTION_SUPPRESS_HIT = 8,
+        ACTOR_00400_ATTACK_REACTION_LIGHT        = 9,
+        ACTOR_00400_HIT_EFFECT_NONE              = 0,
+        ACTOR_00400_HIT_EFFECT_CRITICAL          = 1,
+        ACTOR_00400_HIT_EFFECT_INCENDIARY        = 2,
+        ACTOR_00400_CRITICAL_STYLE_YELLOW        = 0,
+        ACTOR_00400_INCENDIARY_STYLE_CYAN        = 2
+    };
+    _Actor00400Work*    work;
+    Enemy*              enemy;
+    GfxCoord*           rootCoord;
+    WorldCollisionDelta pushback;
+    s32                 hitEffectKind;
+    s16                 damageAmount;
+    s32                 computedDamage;
+    s32                 scratchValue;
+    s32                 dotReadout;
+    s32                 contactIndex;
+
+    hitEffectKind  = ACTOR_00400_HIT_EFFECT_NONE;
+    rootCoord      = task->extra.tmd->coords;
+    work           = task->work;
+    enemy          = task->spawnArg2.pointer;
     work->hitTaken = 0;
-    for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
-        if ((work->hitContacts[i].key.value & 0xFFFF0000) == 0x20000) {
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->hitContacts); contactIndex++) {
+        if ((work->hitContacts[contactIndex].key.value & ACTOR_00400_ATTACK_CATEGORY_MASK) == ACTOR_00400_ATTACK_CATEGORY_PLAYER) {
             if (work->hitCooldown == 0) {
                 work->hitTaken    = 1;
                 work->wasHit      = 1;
-                dmg               = damageComputePlayerAttack(work->hitContacts[i].key.value, work->targetDistance, 0, 0);
-                amount            = dmg;
-                work->hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
-                if (damageRollCriticalHit(obj, work->hitContacts[i].key.value, work->critChanceScale) != 0) {
-                    amount = ((u32)dmg << 16) >> 14;
-                    kind   = 1;
+                computedDamage    = damageComputePlayerAttack(work->hitContacts[contactIndex].key.value, work->targetDistance, 0, 0);
+                damageAmount      = computedDamage;
+                work->hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[contactIndex].key.value);
+                if (damageRollCriticalHit(enemy, work->hitContacts[contactIndex].key.value, work->critChanceScale) != 0) {
+                    damageAmount  = ((u32)computedDamage << 16) >> 14;
+                    hitEffectKind = ACTOR_00400_HIT_EFFECT_CRITICAL;
                 }
-                effectSpawnHit(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value),
-                               &arg0->extra.tmd->coords[work->targetPart], 0, &work->effectArg);
-                work->hitReaction = (amount < 0x3C) ? ACTOR_00400_HIT_REACTION_FLINCH : ACTOR_00400_HIT_REACTION_HEAVY;
-                switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                effectSpawnHit(damageGetPlayerAttackEffectId(work->hitContacts[contactIndex].key.value),
+                               &task->extra.tmd->coords[work->targetPart], 0, &work->effectArg);
+                work->hitReaction = (damageAmount < ACTOR_00400_HEAVY_HIT_MIN_DAMAGE) ? ACTOR_00400_HIT_REACTION_FLINCH : ACTOR_00400_HIT_REACTION_HEAVY;
+                switch (damageGetPlayerAttackReaction(work->hitContacts[contactIndex].key.value) & 0xFFFF) {
                     case DAMAGE_PLAYER_REACTION_NONE:
                         break;
                     case DAMAGE_PLAYER_REACTION_STAGGER:
-                        damageStartEnemyStagger(obj);
+                        damageStartEnemyStagger(enemy);
                         break;
                     case DAMAGE_PLAYER_REACTION_BUILDUP:
-                        damageStartEnemyBuildup(obj, work->hitContacts[i].key.value, 0);
+                        damageStartEnemyBuildup(enemy, work->hitContacts[contactIndex].key.value, 0);
                         break;
                     case DAMAGE_PLAYER_REACTION_POISON:
-                        damageTryStartEnemyDamageOverTime(obj, work->hitContacts[i].key.value, 0);
+                        damageTryStartEnemyDamageOverTime(enemy, work->hitContacts[contactIndex].key.value, 0);
                         break;
-                    case 4:
+                    case ACTOR_00400_ATTACK_REACTION_BLAST:
                         work->hitReaction = ACTOR_00400_HIT_REACTION_BLAST;
                         break;
-                    case 5:
+                    case ACTOR_00400_ATTACK_REACTION_HEAVY:
                         work->hitReaction = ACTOR_00400_HIT_REACTION_HEAVY;
                         break;
                     case DAMAGE_PLAYER_REACTION_EXPLOSION:
                         work->hitReaction = ACTOR_00400_HIT_REACTION_BLAST;
                         break;
                     case DAMAGE_PLAYER_REACTION_INCENDIARY:
-                        kind              = 2;
+                        hitEffectKind     = ACTOR_00400_HIT_EFFECT_INCENDIARY;
                         work->hitReaction = ACTOR_00400_HIT_REACTION_HEAVY;
-                        amount           += amount;
+                        damageAmount     += damageAmount;
                         break;
-                    case 8:
+                    case ACTOR_00400_ATTACK_REACTION_SUPPRESS_HIT:
                         work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
                         work->hitTaken    = 0;
                         break;
-                    case 9:
+                    case ACTOR_00400_ATTACK_REACTION_LIGHT:
                         work->hitReaction = ACTOR_00400_HIT_REACTION_LIGHT;
                         break;
                 }
-                if ((work->hitContacts[i].key.value & 0x7F) == 0x1C && (work->hitContacts[i].key.value & 0x8000) == 0) {
-                    obj->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
-                    work->hitReaction   = ACTOR_00400_HIT_REACTION_FLINCH;
+                if ((work->hitContacts[contactIndex].key.value & ACTOR_00400_ATTACK_ROW_MASK) == ACTOR_00400_WEAPON_ROW_FLINCH_ONLY && (work->hitContacts[contactIndex].key.value & ACTOR_00400_ATTACK_ATTACHMENT_BIT) == 0) {
+                    enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
+                    work->hitReaction     = ACTOR_00400_HIT_REACTION_FLINCH;
                 }
-                tmp = kind;
-                switch (tmp) {
-                    case 1:
-                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[work->targetPart], 0, 0);
+                scratchValue = hitEffectKind;
+                switch (scratchValue) {
+                    case ACTOR_00400_HIT_EFFECT_CRITICAL:
+                        effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->targetPart], ACTOR_00400_CRITICAL_STYLE_YELLOW, 0);
                         break;
-                    case 2:
-                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[work->targetPart], 2, 0);
+                    case ACTOR_00400_HIT_EFFECT_INCENDIARY:
+                        effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->targetPart], ACTOR_00400_INCENDIARY_STYLE_CYAN, 0);
                         break;
                 }
-                damageAccumulateLifeDrainHp(obj, work->hitContacts[i].key.value, amount, 0);
-                worldTargetAddReadoutAmount(&obj->node, amount, 0);
-                obj->hp -= amount;
-                if ((s16)obj->hp < 0) {
-                    obj->hp = 0;
+                damageAccumulateLifeDrainHp(enemy, work->hitContacts[contactIndex].key.value, damageAmount, 0);
+                worldTargetAddReadoutAmount(&enemy->node, damageAmount, 0);
+                enemy->hp -= damageAmount;
+                if ((s16)enemy->hp < 0) {
+                    enemy->hp = 0;
                 }
-            } else if ((damageGetPlayerAttackEffectId(work->hitContacts[i].key.value)) == 0xD) {
-                effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &arg0->extra.tmd->coords[1], 0, &work->effectArg);
+            } else if ((damageGetPlayerAttackEffectId(work->hitContacts[contactIndex].key.value)) == EFFECT_HIT_KIND_LIFE_DRAIN_MOTES) {
+                effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &task->extra.tmd->coords[1], 0, &work->effectArg);
             }
         }
         if (work->hitTaken != 0) {
@@ -1923,79 +1997,57 @@ static void Actor00400_Fn01B90(Task* arg0)
         }
     }
 
-    if (obj->reactionFlags & ENEMY_REACTION_STAGGER) {
-        obj->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
-        work->hitReaction   = ACTOR_00400_HIT_REACTION_HEAVY;
+    // Status flags can replace the contact reaction before the next state tick.
+    if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
+        enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
+        work->hitReaction     = ACTOR_00400_HIT_REACTION_HEAVY;
     }
-    if (obj->reactionFlags & ENEMY_REACTION_BUILDUP) {
-        obj->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
-        work->hitReaction   = ACTOR_00400_HIT_REACTION_STATUS;
+    if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
+        enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
+        work->hitReaction     = ACTOR_00400_HIT_REACTION_STATUS;
     }
-    if (obj->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        tmp  = damageTickEnemyDamageOverTime(obj);
-        tick = (s16)tmp;
-        if (tick != 0) {
-            obj->hp -= tmp;
-            if ((s16)obj->hp < 0) {
-                obj->hp = 0;
+    if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+        scratchValue = damageTickEnemyDamageOverTime(enemy);
+        dotReadout   = (s16)scratchValue;
+        if (dotReadout != 0) {
+            enemy->hp -= scratchValue;
+            if ((s16)enemy->hp < 0) {
+                enemy->hp = 0;
             }
-            worldTargetAddReadoutAmount(&obj->node, tick, 0);
-            if ((s16)obj->hp < 0) {
-                obj->hp = 0;
+            worldTargetAddReadoutAmount(&enemy->node, dotReadout, 0);
+            if ((s16)enemy->hp < 0) {
+                enemy->hp = 0;
             }
             work->hitTaken    = 1;
             work->hitReaction = ACTOR_00400_HIT_REACTION_NONE;
         }
-        if (damageIsEnemyDamageOverTimeExpired(obj) != 0) {
-            obj->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
+        if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
+            enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
         }
     }
 
-    switch (worldCollisionResolvePushback(work->gridContacts, &delta, ARRAY_SIZE(work->gridContacts), 0)) {
+    // Move the arm anchor and root together; negative fractions step below the floor.
+    switch (worldCollisionResolvePushback(work->gridContacts, &pushback, ARRAY_SIZE(work->gridContacts), 0)) {
         case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
         case WORLD_COLLISION_PUSHBACK_GRID_HIT:
-            tmp                 = delta.fixed.vx.halves.integer;
-            work->armAnchor.vx += tmp;
-            tmp                 = delta.fixed.vz.halves.integer;
-            work->armAnchor.vz += tmp;
-            if ((delta.fixed.vx.word & 0xFFFF) != 0) {
-                if (delta.fixed.vx.word > 0) {
-                    work->armAnchor.vx++;
-                } else {
-                    work->armAnchor.vx--;
-                }
-            }
-            if ((delta.fixed.vz.word & 0xFFFF) != 0) {
-                if (delta.fixed.vz.word > 0) {
-                    work->armAnchor.vz++;
-                } else {
-                    work->armAnchor.vz--;
-                }
-            }
-            tmp                = delta.fixed.vx.halves.integer;
-            coord->coord.t[0] += tmp;
-            tmp                = delta.fixed.vz.halves.integer;
-            coord->coord.t[2] += tmp;
-            if ((delta.fixed.vx.word & 0xFFFF) != 0) {
-                if (delta.fixed.vx.word > 0) {
-                    coord->coord.t[0]++;
-                } else {
-                    coord->coord.t[0]--;
-                }
-            }
-            if ((delta.fixed.vz.word & 0xFFFF) != 0) {
-                if (delta.fixed.vz.word > 0) {
-                    coord->coord.t[2]++;
-                } else {
-                    coord->coord.t[2]--;
-                }
-            }
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            scratchValue        = pushback.fixed.vx.halves.integer;
+            work->armAnchor.vx += scratchValue;
+            scratchValue        = pushback.fixed.vz.halves.integer;
+            work->armAnchor.vz += scratchValue;
+            _actor00400ApplyAnchorFractionalPush(pushback.fixed.vx.word, &work->armAnchor.vx);
+            _actor00400ApplyAnchorFractionalPush(pushback.fixed.vz.word, &work->armAnchor.vz);
+            scratchValue           = pushback.fixed.vx.halves.integer;
+            rootCoord->coord.t[0] += scratchValue;
+            scratchValue           = pushback.fixed.vz.halves.integer;
+            rootCoord->coord.t[2] += scratchValue;
+            _actor00400ApplyRootFractionalPush(pushback.fixed.vx.word, &rootCoord->coord.t[0]);
+            _actor00400ApplyRootFractionalPush(pushback.fixed.vz.word, &rootCoord->coord.t[2]);
+            rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
             break;
         case WORLD_COLLISION_PUSHBACK_OPPOSED:
-            coord->coord.t[0] = work->prevRootPos.vx;
-            coord->coord.t[2] = work->prevRootPos.vz;
+            rootCoord->coord.t[0] = work->prevRootPos.vx;
+            rootCoord->coord.t[2] = work->prevRootPos.vz;
             break;
     }
 
@@ -2093,94 +2145,74 @@ static s32 _actor00400SwimToNextWaypoint(Task* task)
     }
 }
 
-/* The random pick spawns in both arms rather than after the `if`: jump2
-   cross-jumps the identical tails, which is what leaves the 0x20010 argument
-   load ahead of the `D_800678F0` store in each arm. */
-static void Actor00400_Fn0237C(Task* arg0)
+/// Gives a detached chunk the body's texture placement and rebuilds both buffers.
+///
+/// Requires a successful model-effect spawn. Models borrow their chunk sources;
+/// this copies only texture-page and CLUT-row offsets. An absent buffer stays absent.
+static inline void _actor00400BindChunkTexture(Task* task, EffectWork* chunkEffect)
 {
-    EffectWork* eff1;
-    TmdObject*  src1;
-    TmdObject*  dst1;
-    EffectWork* eff2;
-    TmdObject*  src2;
-    TmdObject*  dst2;
-    EffectWork* eff3;
-    TmdObject*  src3;
-    TmdObject*  dst3;
-    EffectWork* eff4;
-    TmdObject*  src4;
-    TmdObject*  dst4;
-    EffectWork* eff5;
-    TmdObject*  src5;
-    TmdObject*  dst5;
+    TmdObject* bodyModel  = task->extra.tmd;
+    TmdObject* chunkModel = chunkEffect->task->extra.tmd;
+
+    chunkModel->texturePageOffset = bodyModel->texturePageOffset;
+    chunkModel->clutRowOffset     = bodyModel->clutRowOffset;
+    if (chunkModel->buffer != NULL) {
+        tmdBuildBufferHalf(chunkModel);
+        tmdBuildBufferHalf(chunkModel);
+    }
+}
+
+/// Spawns the blast death's head, arm, random limb and core chunks with a trunk burst.
+///
+/// Requires the live model's parts 1, 4, 8, 11 and 14 and loaded chunk sources.
+/// Publishes each source before its synchronous spawn. One LCG advance picks
+/// the part-8 source. Successful chunks inherit the body's texture placement
+/// and rebuild both primitive-buffer halves; allocation failures skip only
+/// that chunk's texture update. Effects own their tasks; the sources must stay
+/// loaded through their release. The trunk particle spawns independently.
+static void _actor00400SpawnBodyChunks(Task* task)
+{
+    enum {
+        ACTOR_00400_CHUNK_PARTICLE_SIZE = 512
+    };
+    EffectWork* headEffect;
+    EffectWork* rightArmEffect;
+    EffectWork* leftArmEffect;
+    EffectWork* randomLimbEffect;
+    EffectWork* coreEffect;
 
     D_800678F0[0] = &_gActor00400DiverBurstHead;
-    eff1          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[4], 0x200, NULL);
-    if (eff1 != NULL) {
-        src1                    = arg0->extra.tmd;
-        dst1                    = eff1->task->extra.tmd;
-        dst1->texturePageOffset = src1->texturePageOffset;
-        dst1->clutRowOffset     = src1->clutRowOffset;
-        if (dst1->buffer != NULL) {
-            tmdBuildBufferHalf(dst1);
-            tmdBuildBufferHalf(dst1);
-        }
+    headEffect    = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[4], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+    if (headEffect != NULL) {
+        _actor00400BindChunkTexture(task, headEffect);
     }
-    D_800678F0[0] = &_gActor00400DiverBurstArmRight;
-    eff2          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[11], 0x200, NULL);
-    if (eff2 != NULL) {
-        src2                    = arg0->extra.tmd;
-        dst2                    = eff2->task->extra.tmd;
-        dst2->texturePageOffset = src2->texturePageOffset;
-        dst2->clutRowOffset     = src2->clutRowOffset;
-        if (dst2->buffer != NULL) {
-            tmdBuildBufferHalf(dst2);
-            tmdBuildBufferHalf(dst2);
-        }
+    D_800678F0[0]  = &_gActor00400DiverBurstArmRight;
+    rightArmEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[11], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+    if (rightArmEffect != NULL) {
+        _actor00400BindChunkTexture(task, rightArmEffect);
     }
     D_800678F0[0] = &_gActor00400DiverBurstArmLeft1;
-    eff3          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[14], 0x200, NULL);
-    if (eff3 != NULL) {
-        src3                    = arg0->extra.tmd;
-        dst3                    = eff3->task->extra.tmd;
-        dst3->texturePageOffset = src3->texturePageOffset;
-        dst3->clutRowOffset     = src3->clutRowOffset;
-        if (dst3->buffer != NULL) {
-            tmdBuildBufferHalf(dst3);
-            tmdBuildBufferHalf(dst3);
-        }
+    leftArmEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[14], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+    if (leftArmEffect != NULL) {
+        _actor00400BindChunkTexture(task, leftArmEffect);
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
-        D_800678F0[0] = &_gActor00400DiverBurstLegRight;
-        eff4          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[8], 0x200, NULL);
+        D_800678F0[0]    = &_gActor00400DiverBurstLegRight;
+        randomLimbEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[8], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
     } else {
-        D_800678F0[0] = &_gActor00400DiverBurstArmLeft2;
-        eff4          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[8], 0x200, NULL);
+        D_800678F0[0]    = &_gActor00400DiverBurstArmLeft2;
+        randomLimbEffect = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[8], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
     }
-    if (eff4 != NULL) {
-        src4                    = arg0->extra.tmd;
-        dst4                    = eff4->task->extra.tmd;
-        dst4->texturePageOffset = src4->texturePageOffset;
-        dst4->clutRowOffset     = src4->clutRowOffset;
-        if (dst4->buffer != NULL) {
-            tmdBuildBufferHalf(dst4);
-            tmdBuildBufferHalf(dst4);
-        }
+    if (randomLimbEffect != NULL) {
+        _actor00400BindChunkTexture(task, randomLimbEffect);
     }
     D_800678F0[0] = &_gActor00400DiverEnergyBall;
-    eff5          = effectSpawn(EFFECT_BODY_CHUNK, &arg0->extra.tmd->coords[1], 0x200, NULL);
-    if (eff5 != NULL) {
-        src5                    = arg0->extra.tmd;
-        dst5                    = eff5->task->extra.tmd;
-        dst5->texturePageOffset = src5->texturePageOffset;
-        dst5->clutRowOffset     = src5->clutRowOffset;
-        if (dst5->buffer != NULL) {
-            tmdBuildBufferHalf(dst5);
-            tmdBuildBufferHalf(dst5);
-        }
+    coreEffect    = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[1], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
+    if (coreEffect != NULL) {
+        _actor00400BindChunkTexture(task, coreEffect);
     }
-    effectSpawn(EFFECT_030, &arg0->extra.tmd->coords[1], 0x200, NULL);
+    effectSpawn(EFFECT_030, &task->extra.tmd->coords[1], ACTOR_00400_CHUNK_PARTICLE_SIZE, NULL);
 }
 
 /// Straightens and retracts the neck, or eases it back into the animated pose.
@@ -2342,11 +2374,11 @@ static void _actor00400UpdateNeckRetraction(Task* task, s32 unusedNeckRetracted)
 #undef ACTOR_00400_APPLY_NECK_SCALE
 }
 
-/// Advances a shot by one running tick in its root's parent-coordinate frame.
+/// Advances the flying shot's lifetime, gravity and parent-space translation.
 ///
-/// Adds gravity before movement; vertical speed narrows back to a signed
-/// halfword. Requires live shot work and root, without changing composition
-/// state, collision contacts or the task's lifetime counter.
+/// Requires live shot work/root. Counts one running frame, adds gravity to the
+/// signed halfword vertical velocity, then moves XYZ by the updated velocity.
+/// The caller owns composition invalidation, contact tests and lifetime expiry.
 static inline void _actor00400AdvanceShotFlight(_Actor00400ShotWork* work, GfxCoord* rootCoord)
 {
     work->frames          += 1;
@@ -2631,13 +2663,13 @@ static const TaskFuncTable3 Actor00400_D0002C = { {
 /// `Actor00400_Fn03920`'s jump table, not a terminator.
 static const TaskFuncTable8 Actor00400_D00038 = { {
     Actor00400_Fn03920,
-    Actor00400_Fn04580,
-    Actor00400_Fn04B48,
-    Actor00400_Fn04E18,
-    Actor00400_Fn040DC,
+    _actor00400StrandedTask,
+    _actor00400StrandedDeathTask,
+    _actor00400SwimTask,
+    _actor00400SwimDeathTask,
     _actor00400Despawn,
-    Actor00400_Fn06B7C,
-    Actor00400_Fn070C0,
+    _actor00400WoundedGroundTask,
+    _actor00400WoundedFloatTask,
 } };
 
 /// Applies the current room's diver configuration and reports spawn rejection.
@@ -2995,7 +3027,7 @@ static __inline__ void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleC
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// States `Actor00400_Fn040DC` dispatches on `_Actor00400Work::state`:
+/// States `_actor00400SwimDeathTask` dispatches on `_Actor00400Work::state`:
 /// `ACTOR_00400_SWIM_DEATH_*`.
 static const TaskFuncTable11 Actor00400_D0007C = { {
     _actor00400SwimDeathEnter,
@@ -3007,49 +3039,52 @@ static const TaskFuncTable11 Actor00400_D0007C = { {
     _actor00400SwimDeathHide,
     _actor00400SwimDeathBlastHide,
     _actor00400SwimDeathBlastWait,
-    Actor00400_Fn07F88,
+    _actor00400SwimDeathBlastBurst,
     _actor00400SwimDeathBlastEnd,
 } };
 
-/// Per-frame callback for the text actor's second task. Same frame gate as
-/// `Actor00400_Fn04B48`: `gSceneCombatState.actorControl` 2 only flags the model hidden, 0 runs
-/// this frame's state handler before falling through to the draw half, and 1
-/// is the draw half on its own.
-static void Actor00400_Fn040DC(Task* arg0)
+/// Drives the Bog Diver's swimming death task state.
+///
+/// Requires live work, enemy and model; state indexes 11 handlers without a
+/// bounds check. Hidden control only disables active drawing.
+/// A running, unsuspended tick publishes slot-1 status after death dispatch,
+/// retracts the neck except on blast deaths, and eases Y toward goalY plus
+/// the signed low half of floatOffset. Paused frames only update model lighting.
+static void _actor00400SwimDeathTask(Task* task)
 {
-    TaskFuncTable11  fns;
+    TaskFuncTable11  states;
     _Actor00400Work* work;
-    TmdObject*       ctx;
-    TmdObject*       ctx2;
-    _Actor00400Work* work2;
-    GfxCoord*        coord;
-    s32              y;
+    TmdObject*       model;
+    TmdObject*       lightingModel;
+    _Actor00400Work* lightingWork;
+    GfxCoord*        rootCoord;
+    s32              rootY;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    ctx   = arg0->extra.tmd;
-    fns   = Actor00400_D0007C;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
+    model     = task->extra.tmd;
+    states    = Actor00400_D0007C;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->suspended != 0) {
                 break;
             }
-            fns.funcs[work->state](arg0);
+            states.funcs[work->state](task);
             work->animStatus = work->rig.slots[1].status.fields.flags;
-            if (work->hitReaction != 4) {
+            if (work->hitReaction != ACTOR_00400_HIT_REACTION_BLAST) {
                 work->neckRetracted = 1;
-                _actor00400UpdateNeckRetraction(arg0, 1);
+                _actor00400UpdateNeckRetraction(task, 1);
             }
-            y                 = coord->coord.t[1];
-            coord->coord.t[1] = y + ((work->goalY + (s16)work->floatOffset - y) >> 4);
+            rootY                 = rootCoord->coord.t[1];
+            rootCoord->coord.t[1] = rootY + ((work->goalY + (s16)work->floatOffset - rootY) >> 4);
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            ctx2  = arg0->extra.tmd;
-            work2 = arg0->work;
-            _actor00400UpdateModelColor(arg0, &ctx2->coords[1], work2, ctx2);
+            lightingModel = task->extra.tmd;
+            lightingWork  = task->work;
+            _actor00400UpdateModelColor(task, &lightingModel->coords[1], lightingWork, lightingModel);
             break;
     }
 }
@@ -3135,7 +3170,7 @@ static void _actor00400SwimDeathFallWait(Task* task)
     work->state++;
 }
 
-/// States `Actor00400_Fn04580` dispatches on `_Actor00400Work::state`:
+/// States `_actor00400StrandedTask` dispatches on `_Actor00400Work::state`:
 /// `ACTOR_00400_STRANDED_STATE_*` and the three recoil states.
 static const TaskFuncTable10 Actor00400_D000A8 = { {
     _actor00400StrandedStart,
@@ -3150,26 +3185,59 @@ static const TaskFuncTable10 Actor00400_D000A8 = { {
     _actor00400StrandedStatusHold,
 } };
 
-static void Actor00400_Fn04580(Task* arg0)
+/// Replaces the diver root's basis with its stored roll followed by heading.
+///
+/// Requires live work and root. Angles use 4096 units per turn; pitch is
+/// ignored. Starts from Q12 identity and applies Z then Y rotation, discarding
+/// prior scale and pitch while preserving translation and alignment bytes.
+/// Marks composition dirty without recomposing the coordinate.
+static inline void _actor00400ApplyRootRotation(Task* task)
 {
-    _Actor00400Work* work = arg0->work;
-    Enemy*           obj  = arg0->spawnArg2.pointer;
-    TmdObject*       ctx  = arg0->extra.tmd;
-    TaskFuncTable10  fns;
-    MATRIX           m;
-    _Actor00400Work* w;
-    _Actor00400Work* w2;
-    _Actor00400Work* w3;
-    _Actor00400Work* work2;
-    TmdObject*       ctx2;
-    GfxCoord*        coord;
-    MATRIX*          dst;
-    s32              i;
+    _Actor00400Work* work;
+    GfxCoord*        rootCoord;
+    MATRIX           rotationMatrix;
+    MATRIX*          rootBasis;
 
-    fns = Actor00400_D000A8;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    gfxSetRotIdentity(&rotationMatrix);
+    RotMatrixZ(work->rotation.vz, &rotationMatrix);
+    RotMatrixY(work->rotation.vy, &rotationMatrix);
+    rootBasis               = &rootCoord->coord;
+    rootBasis->m[0][0]      = rotationMatrix.m[0][0];
+    rootBasis->m[0][1]      = rotationMatrix.m[0][1];
+    rootBasis->m[0][2]      = rotationMatrix.m[0][2];
+    rootBasis->m[1][0]      = rotationMatrix.m[1][0];
+    rootBasis->m[1][1]      = rotationMatrix.m[1][1];
+    rootBasis->m[1][2]      = rotationMatrix.m[1][2];
+    rootBasis->m[2][0]      = rotationMatrix.m[2][0];
+    rootBasis->m[2][1]      = rotationMatrix.m[2][1];
+    rootBasis->m[2][2]      = rotationMatrix.m[2][2];
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Drives the Bog Diver's living stranded task state.
+///
+/// Requires live work, enemy and model; state indexes 10 handlers without a
+/// bounds check. Hidden control only disables active drawing.
+/// Running, unsuspended ticks select targets, dispatch behavior, step discharge
+/// and animation, then publish slot-1 status. Look, root rotation and contacts
+/// follow; nonpositive signed HP selects stranded death at state/substate zero.
+/// Running or paused frames update lighting and draw full-strength limb shadows.
+static void _actor00400StrandedTask(Task* task)
+{
+    _Actor00400Work* work  = task->work;
+    Enemy*           enemy = task->spawnArg2.pointer;
+    TmdObject*       model = task->extra.tmd;
+    TaskFuncTable10  states;
+    _Actor00400Work* deathWork;
+    _Actor00400Work* lightingWork;
+    TmdObject*       lightingModel;
+
+    states = Actor00400_D000A8;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->suspended != 0) {
@@ -3177,62 +3245,27 @@ static void Actor00400_Fn04580(Task* arg0)
             }
             work->bobPhase++;
             work->frameCount++;
-            _actor00400UpdatePartyTarget(arg0);
-            fns.funcs[work->state](arg0);
-            Actor00400_Fn00A14(arg0);
-            w = arg0->work;
-            if (w->animRequest == DIVER_ANIM_REQUEST_BLEND) {
-                if (w->animPlaying != w->animClip) {
-                    w->animFrames = 0;
-                } else {
-                    w->animFrames = _actor00400ScaleFramesForAnimRate(arg0, w->animFrames);
-                }
-                _actor00400BlendRequestedClip(arg0);
-                w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-            } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-                _diverRestartClip(arg0);
-                w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-                w->animFrames  = 0;
-            } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
-                w->animFrames++;
-            }
-            i = 1;
-            do {
-                animationTickSlot(&w->rig.anim, i);
-                i++;
-            } while (i < ARRAY_SIZE(w->rig.slots));
+            _actor00400UpdatePartyTarget(task);
+            states.funcs[work->state](task);
+            _actor00400TickDischarge(task);
+            _actor00400AdvanceAnimation(task);
             work->animStatus = work->rig.slots[1].status.fields.flags;
-            _actor00400UpdateStrandedLook(arg0, work->lookDisabled);
-            w2    = arg0->work;
-            coord = arg0->extra.tmd->coords;
-            gfxSetRotIdentity(&m);
-            RotMatrixZ(w2->rotation.vz, &m);
-            RotMatrixY(w2->rotation.vy, &m);
-            dst                 = &coord->coord;
-            dst->m[0][0]        = m.m[0][0];
-            dst->m[0][1]        = m.m[0][1];
-            dst->m[0][2]        = m.m[0][2];
-            dst->m[1][0]        = m.m[1][0];
-            dst->m[1][1]        = m.m[1][1];
-            dst->m[1][2]        = m.m[1][2];
-            dst->m[2][0]        = m.m[2][0];
-            dst->m[2][1]        = m.m[2][1];
-            dst->m[2][2]        = m.m[2][2];
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Actor00400_Fn01B90(arg0);
-            if ((s16)obj->hp <= 0) {
-                w3           = arg0->work;
-                arg0->state  = 2;
-                w3->state    = 0;
-                w3->subState = 0;
+            _actor00400UpdateStrandedLook(task, work->lookDisabled);
+            _actor00400ApplyRootRotation(task);
+            _actor00400ApplyContacts(task);
+            if ((s16)enemy->hp <= 0) {
+                deathWork           = task->work;
+                task->state         = ACTOR_00400_TASK_STRANDED_DEATH;
+                deathWork->state    = ACTOR_00400_STRANDED_DEATH_START;
+                deathWork->subState = 0;
             }
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            ctx2  = arg0->extra.tmd;
-            work2 = arg0->work;
-            _actor00400UpdateModelColor(arg0, &ctx2->coords[1], work2, ctx2);
-            _actor00400DrawLimbShadows(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
-            ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            lightingModel = task->extra.tmd;
+            lightingWork  = task->work;
+            _actor00400UpdateModelColor(task, &lightingModel->coords[1], lightingWork, lightingModel);
+            _actor00400DrawLimbShadows(task, task->extra.tmd->coords->coord.t[1], ACTOR_00400_LIVING_SHADOW_SHADE);
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
@@ -3299,53 +3332,56 @@ static void _actor00400StrandedHeavyRecoilWait(Task* task)
     }
 }
 
-/// States `Actor00400_Fn04B48` dispatches on `_Actor00400Work::state`:
+/// States `_actor00400StrandedDeathTask` dispatches on `_Actor00400Work::state`:
 /// `ACTOR_00400_STRANDED_DEATH_*`.
 static const TaskFuncTable10 Actor00400_D000D0 = { {
     _actor00400StrandedDeathEnter,
     _actor00400StrandedDeathFallWait,
     _actor00400StrandedDeathWeigh,
     _actor00400StrandedDeathFadeWait,
-    Actor00400_Fn08E50,
+    _actor00400StrandedDeathShrink,
     _actor00400StrandedDeathEnd,
     _actor00400StrandedDeathBlastHide,
     _actor00400StrandedDeathBlastWait,
-    Actor00400_Fn09038,
+    _actor00400StrandedDeathBlastBurst,
     _actor00400StrandedDeathBlastEnd,
 } };
 
-/// Per-frame callback for the main actor task. `gSceneCombatState.actorControl` gates the frame:
-/// 2 only flags the model hidden, 0 runs this frame's state handler before
-/// falling through to the draw half, and 1 is the draw half on its own.
-static void Actor00400_Fn04B48(Task* arg0)
+/// Drives the Bog Diver's stranded death task state.
+///
+/// Requires live work, enemy and model; state indexes 10 handlers without a
+/// bounds check. Hidden control only disables active drawing.
+/// Running, unsuspended ticks publish slot-1 status after death dispatch.
+/// Running or paused frames update model lighting and draw fading limb shadows.
+static void _actor00400StrandedDeathTask(Task* task)
 {
-    TaskFuncTable10  fns;
+    TaskFuncTable10  states;
     _Actor00400Work* work;
-    TmdObject*       ctx;
-    TmdObject*       ctx2;
-    _Actor00400Work* work2;
-    GfxCoord*        coord;
+    TmdObject*       model;
+    TmdObject*       lightingModel;
+    _Actor00400Work* lightingWork;
+    GfxCoord*        trunkCoord;
 
-    work = arg0->work;
-    ctx  = arg0->extra.tmd;
-    fns  = Actor00400_D000D0;
+    work   = task->work;
+    model  = task->extra.tmd;
+    states = Actor00400_D000D0;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->suspended != 0) {
                 break;
             }
-            fns.funcs[work->state](arg0);
+            states.funcs[work->state](task);
             work->animStatus = work->rig.slots[1].status.fields.flags;
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            ctx2  = arg0->extra.tmd;
-            work2 = arg0->work;
-            coord = &ctx2->coords[1];
-            _actor00400UpdateModelColor(arg0, coord, work2, ctx2);
-            _actor00400DrawLimbShadows(arg0, arg0->extra.tmd->coords->coord.t[1], work->shadowShade);
+            lightingModel = task->extra.tmd;
+            lightingWork  = task->work;
+            trunkCoord    = &lightingModel->coords[1];
+            _actor00400UpdateModelColor(task, trunkCoord, lightingWork, lightingModel);
+            _actor00400DrawLimbShadows(task, task->extra.tmd->coords->coord.t[1], work->shadowShade);
             break;
     }
 }
@@ -3387,7 +3423,7 @@ static void _actor00400StrandedDeathEnter(Task* task)
     work->state++;
 }
 
-/// States `Actor00400_Fn04E18` dispatches on `_Actor00400Work::state`:
+/// States `_actor00400SwimTask` dispatches on `_Actor00400Work::state`:
 /// `ACTOR_00400_SWIM_STATE_*` and the three `ACTOR_00400_STATE_*`.
 static const _Actor00400SwimStateTable Actor00400_D000F8 = { {
     _actor00400SwimStart,
@@ -3406,37 +3442,6 @@ static const _Actor00400SwimStateTable Actor00400_D000F8 = { {
     _actor00400RoomIntro,
     _actor00400AwaitFight,
 } };
-
-/// Replaces the diver root's basis with its stored roll followed by heading.
-///
-/// Requires live work and root. Angles use 4096 units per turn; pitch is
-/// ignored. Starts from Q12 identity and applies Z then Y rotation, discarding
-/// prior scale and pitch while preserving translation and alignment bytes.
-/// Marks composition dirty without recomposing the coordinate.
-static inline void _actor00400ApplyRootRotation(Task* task)
-{
-    _Actor00400Work* work;
-    GfxCoord*        rootCoord;
-    MATRIX           rotationMatrix;
-    MATRIX*          rootBasis;
-
-    work      = task->work;
-    rootCoord = task->extra.tmd->coords;
-    gfxSetRotIdentity(&rotationMatrix);
-    RotMatrixZ(work->rotation.vz, &rotationMatrix);
-    RotMatrixY(work->rotation.vy, &rotationMatrix);
-    rootBasis               = &rootCoord->coord;
-    rootBasis->m[0][0]      = rotationMatrix.m[0][0];
-    rootBasis->m[0][1]      = rotationMatrix.m[0][1];
-    rootBasis->m[0][2]      = rotationMatrix.m[0][2];
-    rootBasis->m[1][0]      = rotationMatrix.m[1][0];
-    rootBasis->m[1][1]      = rotationMatrix.m[1][1];
-    rootBasis->m[1][2]      = rotationMatrix.m[1][2];
-    rootBasis->m[2][0]      = rotationMatrix.m[2][0];
-    rootBasis->m[2][1]      = rotationMatrix.m[2][1];
-    rootBasis->m[2][2]      = rotationMatrix.m[2][2];
-    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-}
 
 /// Sets the swimming diver's lock eligibility from its target part's depth.
 ///
@@ -3469,31 +3474,41 @@ static inline void _actor00400UpdateLockable(Task* task)
     }
 }
 
-/// Per-frame callback for the boss task. Same `gSceneCombatState.actorControl` frame gate as
-/// `Actor00400_Fn04580`, with the model's Y bobbed by two `rsin` terms and the
-/// display object re-pointed at the part coordinate `targetPart` selects; the
-/// tail hides the model again while the session sits in the two area-0xA/0xB
-/// rooms of area 0x21.
-static void Actor00400_Fn04E18(Task* arg0)
+/// Drives the Bog Diver's living swimming task state.
+///
+/// Requires live work, enemy and model; state indexes 15 handlers without a
+/// bounds check. Hidden control only disables active drawing.
+/// Running, unsuspended ticks dispatch behavior, discharge and animation before
+/// publishing slot-1 status; neck/root pose and contacts follow. Signed HP <= 0
+/// selects swimming death. Goal Y eases by 1/16, with patrol bob and hit shake;
+/// target placement and lock eligibility follow the pose. Paused frames relight.
+/// Two corridor views hide the model after either gate; suspension returns early.
+static void _actor00400SwimTask(Task* task)
 {
-    _Actor00400Work*          work   = arg0->work;
-    GfxCoord*                 coord0 = arg0->extra.tmd->coords;
-    Enemy*                    obj    = arg0->spawnArg2.pointer;
-    TmdObject*                ctx    = arg0->extra.tmd;
-    _Actor00400SwimStateTable fns;
-    _Actor00400Work*          w;
-    _Actor00400Work*          wA;
-    _Actor00400Work*          w3;
-    _Actor00400Work*          work2;
-    TmdObject*                ctx2;
-    TmdObject*                ctx3;
-    GameLocationKey*          sess;
-    s32                       i;
+    enum {
+        ACTOR_00400_SWIM_BOB_PHASE_SHIFT     = 6,
+        ACTOR_00400_SWIM_BOB_AMPLITUDE       = 16,
+        ACTOR_00400_SWIM_SHAKE_PHASE_SHIFT   = 10,
+        ACTOR_00400_SWIM_SHAKE_SCALE         = 16,
+        ACTOR_00400_CORRIDOR_HIDE_FIRST_VIEW = 10,
+        ACTOR_00400_CORRIDOR_HIDE_VIEW_COUNT = 2U
+    };
+    _Actor00400Work*          work      = task->work;
+    GfxCoord*                 rootCoord = task->extra.tmd->coords;
+    Enemy*                    enemy     = task->spawnArg2.pointer;
+    TmdObject*                model     = task->extra.tmd;
+    _Actor00400SwimStateTable states;
+    _Actor00400Work*          cooldownWork;
+    _Actor00400Work*          deathWork;
+    _Actor00400Work*          lightingWork;
+    TmdObject*                lightingModel;
+    TmdObject*                visibilityModel;
+    GameLocationKey*          location;
 
-    fns = Actor00400_D000F8;
+    states = Actor00400_D000F8;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->suspended != 0) {
@@ -3501,68 +3516,48 @@ static void Actor00400_Fn04E18(Task* arg0)
             }
             work->bobPhase++;
             work->frameCount++;
-            _actor00400UpdatePartyTarget(arg0);
-            fns.funcs[work->state](arg0);
-            Actor00400_Fn00A14(arg0);
-            wA = arg0->work;
-            if (wA->emergeCooldown != 0) {
-                wA->emergeCooldown--;
+            _actor00400UpdatePartyTarget(task);
+            states.funcs[work->state](task);
+            _actor00400TickDischarge(task);
+            cooldownWork = task->work;
+            if (cooldownWork->emergeCooldown != 0) {
+                cooldownWork->emergeCooldown--;
             }
-            w = arg0->work;
-            if (w->animRequest == DIVER_ANIM_REQUEST_BLEND) {
-                if (w->animPlaying != w->animClip) {
-                    w->animFrames = 0;
-                } else {
-                    w->animFrames = _actor00400ScaleFramesForAnimRate(arg0, w->animFrames);
-                }
-                _actor00400BlendRequestedClip(arg0);
-                w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-            } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-                _diverRestartClip(arg0);
-                w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-                w->animFrames  = 0;
-            } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
-                w->animFrames++;
-            }
-            i = 1;
-            do {
-                animationTickSlot(&w->rig.anim, i);
-                i++;
-            } while (i < ARRAY_SIZE(w->rig.slots));
+            _actor00400AdvanceAnimation(task);
             work->animStatus = work->rig.slots[1].status.fields.flags;
-            _actor00400UpdateNeckRetraction(arg0, work->neckRetracted);
-            _actor00400ApplyRootRotation(arg0);
-            Actor00400_Fn01B90(arg0);
-            if ((s16)obj->hp <= 0) {
-                w3           = arg0->work;
-                arg0->state  = 4;
-                w3->state    = 0;
-                w3->subState = 0;
+            _actor00400UpdateNeckRetraction(task, work->neckRetracted);
+            _actor00400ApplyRootRotation(task);
+            _actor00400ApplyContacts(task);
+            if ((s16)enemy->hp <= 0) {
+                deathWork           = task->work;
+                task->state         = ACTOR_00400_TASK_SWIM_DEATH;
+                deathWork->state    = ACTOR_00400_SWIM_DEATH_START;
+                deathWork->subState = 0;
             }
-            coord0->coord.t[1] += (work->goalY - coord0->coord.t[1]) >> 4;
+            rootCoord->coord.t[1] += (work->goalY - rootCoord->coord.t[1]) >> 4;
             if (work->state < ACTOR_00400_SWIM_STATE_TUNNEL_PATROL) {
-                coord0->coord.t[1] += (rsin(work->bobPhase << 6) * 0x10) >> 12;
+                rootCoord->coord.t[1] += (rsin(work->bobPhase << ACTOR_00400_SWIM_BOB_PHASE_SHIFT) * ACTOR_00400_SWIM_BOB_AMPLITUDE) >> 12;
             }
             if (work->shakeFrames != 0) {
                 work->shakeFrames--;
-                coord0->coord.t[1] += (rsin(work->frameCount << 0xA) * 0x10) >> 0xA;
+                rootCoord->coord.t[1] += (rsin(work->frameCount << ACTOR_00400_SWIM_SHAKE_PHASE_SHIFT) * ACTOR_00400_SWIM_SHAKE_SCALE) >> ACTOR_00400_SWIM_SHAKE_PHASE_SHIFT;
             }
-            obj->coord = &arg0->extra.tmd->coords[work->targetPart];
+            enemy->coord = &task->extra.tmd->coords[work->targetPart];
             if (work->state < ACTOR_00400_SWIM_STATE_TUNNEL_PATROL) {
-                _actor00400UpdateLockable(arg0);
+                _actor00400UpdateLockable(task);
             }
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            ctx2  = arg0->extra.tmd;
-            work2 = arg0->work;
-            _actor00400UpdateModelColor(arg0, &ctx2->coords[1], work2, ctx2);
-            ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            lightingModel = task->extra.tmd;
+            lightingWork  = task->work;
+            _actor00400UpdateModelColor(task, &lightingModel->coords[1], lightingWork, lightingModel);
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
-    sess = &gGameSession->location.loc;
-    ctx3 = arg0->extra.tmd;
-    if (sess->stage == GAME_STAGE_MINE_SHELTER && sess->area == 0x21 && (u32)(gGameSession->location.loc.view - 0xA) < 2U) {
-        ctx3->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    location        = &gGameSession->location.loc;
+    visibilityModel = task->extra.tmd;
+    if (location->stage == GAME_STAGE_MINE_SHELTER && location->area == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR && (u32)(gGameSession->location.loc.view - ACTOR_00400_CORRIDOR_HIDE_FIRST_VIEW) < ACTOR_00400_CORRIDOR_HIDE_VIEW_COUNT) {
+        visibilityModel->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 
@@ -3598,87 +3593,116 @@ static inline void _actor00400TurnTowardPoint(Task* task, const SVECTOR* target,
     }
 }
 
-/// Spawns the 16-way ring of `0x01202148` effects the boss uses when it lands
-/// and when it is knocked down: one per 1/16 turn, at the height `waterLevel`
-/// gives above the root coordinate.
-static inline void Actor00400_SpawnRing(Task* arg0, _Actor00400Work* work, GfxCoord* coord)
+/// Emits sixteen water-spray particles around the diver's surface crossing.
+///
+/// Borrows live work and root; both use the view-parent coordinate frame.
+/// Offsets form a 512-unit XZ ring with signed-halfword Y at waterLevel minus
+/// root Y plus 250. The root's current basis transforms these offsets.
+/// The room selects the particle task; its recipe requests size 328, two
+/// running ticks per cell, speed 32 and upward-burst velocity. Effects snapshot
+/// XYZ during the spawn; the temporary vector is reused for each particle.
+static inline void _actor00400SpawnSurfaceSprayRing(Task* task, const _Actor00400Work* work, const GfxCoord* rootCoord)
 {
-    GfxCoord* coord2;
-    SVECTOR   vec;
-    s32       i;
-    s16       y;
+    enum {
+        ACTOR_00400_SURFACE_SPRAY_COUNT      = 16,
+        ACTOR_00400_SURFACE_SPRAY_ANGLE_STEP = 256,
+        ACTOR_00400_SURFACE_SPRAY_Y_OFFSET   = 250,
+        // Size 328, two ticks/cell, speed 32, upward-burst velocity kind.
+        ACTOR_00400_SURFACE_SPRAY_RECIPE = 0x01202148
+    };
+    GfxCoord* spawnCoord;
+    SVECTOR   offset;
+    s32       particleIndex;
+    s16       surfaceOffsetY;
 
-    i      = 0;
-    y      = work->waterLevel - coord->coord.t[1] + 0xFA;
-    coord2 = arg0->extra.tmd->coords;
+    particleIndex  = 0;
+    surfaceOffsetY = work->waterLevel - rootCoord->coord.t[1] + ACTOR_00400_SURFACE_SPRAY_Y_OFFSET;
+    spawnCoord     = task->extra.tmd->coords;
     do {
-        vec.vx = (u32)rsin(i << 8) >> 3;
-        vec.vy = y;
-        vec.vz = (u32)rcos(i << 8) >> 3;
-        effectSpawn(gRoomEffectWaterSprayId, coord2, 0x01202148, &vec);
-        i++;
-    } while (i < 16);
+        offset.vx = (u32)rsin(particleIndex * ACTOR_00400_SURFACE_SPRAY_ANGLE_STEP) >> 3;
+        offset.vy = surfaceOffsetY;
+        offset.vz = (u32)rcos(particleIndex * ACTOR_00400_SURFACE_SPRAY_ANGLE_STEP) >> 3;
+        effectSpawn(gRoomEffectWaterSprayId, spawnCoord, ACTOR_00400_SURFACE_SPRAY_RECIPE, &offset);
+        particleIndex++;
+    } while (particleIndex < ACTOR_00400_SURFACE_SPRAY_COUNT);
 }
 
-static void Actor00400_Fn05320(Task* arg0)
+/// Finishes the patrol's surface cycle, or dives early when a nearby target alerts it.
+///
+/// Requires live work/root, an eight-point patrol ring and waypointIndex 0..7.
+/// Starting at tick 20, a target within 3500 units outside the rear 1024-unit
+/// bearing arc engages battle and returns before surface cues or clip handling.
+/// Otherwise releases the neck at 8, emits spray at 12 and plays the surface
+/// cue at 20. A published clip boundary/jump emits another ring, restores the
+/// unsigned waypoint depth plus water level, requests normal-rate surfaced
+/// clip 1 with four-frame blending and advances to the clip-wait substate.
+static void _actor00400SwimPatrolSurface(Task* task)
 {
+    enum {
+        ACTOR_00400_PATROL_SURFACE_NECK_FRAME  = 8,
+        ACTOR_00400_PATROL_SURFACE_SPRAY_FRAME = 12,
+        ACTOR_00400_PATROL_SURFACE_ALERT_FRAME = 20,
+        ACTOR_00400_PATROL_ALERT_DISTANCE      = 3500,
+        ACTOR_00400_PATROL_REAR_ARC_START      = 1536,
+        ACTOR_00400_PATROL_REAR_ARC_WIDTH      = 1024U,
+        ACTOR_00400_PATROL_YAW_STEP            = 32,
+        ACTOR_00400_PATROL_YAW_DEADBAND        = 48,
+        ACTOR_00400_PATROL_WAYPOINT_MASK       = 7
+    };
     _Actor00400Work* work;
-    _Actor00400Work* w1;
-    _Actor00400Work* w2;
-    _Actor00400Work* w5;
-    GfxCoord*        coord;
-    s8               armed;
-    s32              sound;
-    s32              pan;
-    s32              sound2;
-    s32              pan2;
-    s32              sound3;
-    s32              pan3;
+    _Actor00400Work* targetWork;
+    _Actor00400Work* diveWork;
+    _Actor00400Work* requestWork;
+    GfxCoord*        rootCoord;
+    s8               battleStarted;
+    s32              neckSoundId;
+    s32              neckPan;
+    s32              surfaceSoundId;
+    s32              surfacePan;
+    s32              diveSoundId;
+    s32              divePan;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     work->stateFrames++;
-    if (work->stateFrames >= 0x14) {
-        w1    = arg0->work;
-        armed = 0;
-        if (w1->targetDistance < 0xDAC && (u32)(w1->targetBearing - 0x600) >= 0x400U) {
+    if (work->stateFrames >= ACTOR_00400_PATROL_SURFACE_ALERT_FRAME) {
+        targetWork    = task->work;
+        battleStarted = 0;
+        if (targetWork->targetDistance < ACTOR_00400_PATROL_ALERT_DISTANCE && (u32)(targetWork->targetBearing - ACTOR_00400_PATROL_REAR_ARC_START) >= ACTOR_00400_PATROL_REAR_ARC_WIDTH) {
             gSceneCombatState.signals.bytes.enemyAlert = 1;
             sceneEngageBattle(1);
-            armed        = 1;
-            w2           = arg0->work;
-            w2->state    = ACTOR_00400_SWIM_STATE_DIVE;
-            w2->subState = 0;
+            battleStarted      = 1;
+            diveWork           = task->work;
+            diveWork->state    = ACTOR_00400_SWIM_STATE_DIVE;
+            diveWork->subState = 0;
         }
-        if (armed) {
+        if (battleStarted) {
             return;
         }
-        _actor00400TurnTowardPoint(arg0, &work->waypoints[work->waypointIndex & 7], 0x20, 0x30);
+        _actor00400TurnTowardPoint(task, &work->waypoints[work->waypointIndex & ACTOR_00400_PATROL_WAYPOINT_MASK], ACTOR_00400_PATROL_YAW_STEP, ACTOR_00400_PATROL_YAW_DEADBAND);
     }
-    if (work->stateFrames == 8) {
+    if (work->stateFrames == ACTOR_00400_PATROL_SURFACE_NECK_FRAME) {
         work->neckRetracted = 0;
-        sound               = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040007;
-        pan                 = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        neckSoundId         = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_NECK_RELEASE;
+        neckPan             = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(neckSoundId, neckPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if (work->stateFrames == 0xC) {
-        Actor00400_SpawnRing(arg0, work, coord);
+    if (work->stateFrames == ACTOR_00400_PATROL_SURFACE_SPRAY_FRAME) {
+        _actor00400SpawnSurfaceSprayRing(task, work, rootCoord);
     }
-    if (work->stateFrames == 0x14) {
-        sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040004;
-        pan2   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound2, pan2, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    if (work->stateFrames == ACTOR_00400_PATROL_SURFACE_ALERT_FRAME) {
+        surfaceSoundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_SURFACE_CUE;
+        surfacePan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(surfaceSoundId, surfacePan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    if (_diverClipHasBoundaryOrJump(arg0)) {
-        Actor00400_SpawnRing(arg0, work, coord);
-        sound3 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040008;
-        pan3   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound3, pan3, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        work->goalY     = (u16)work->waypoints[work->waypointIndex].vy + work->waterLevel;
-        w5              = arg0->work;
-        w5->animBlend   = 4;
-        w5->animStep    = ANIMATION_RATE_ONE;
-        w5->animClip    = 1;
-        w5->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    if (_diverClipHasBoundaryOrJump(task)) {
+        _actor00400SpawnSurfaceSprayRing(task, work, rootCoord);
+        diveSoundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_DIVE;
+        divePan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(diveSoundId, divePan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        work->goalY = (u16)work->waypoints[work->waypointIndex].vy + work->waterLevel;
+        requestWork = task->work;
+        _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_SURFACED, ANIMATION_RATE_ONE, 4);
         work->subState++;
     }
 }
@@ -3788,7 +3812,7 @@ static void Actor00400_Fn058C4(Task* arg0)
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
     }
     if (work->stateFrames == 0xC) {
-        Actor00400_SpawnRing(arg0, work, coord);
+        _actor00400SpawnSurfaceSprayRing(arg0, work, coord);
     }
     if (work->stateFrames == 0x14) {
         sound2 = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040004;
@@ -3842,42 +3866,33 @@ static void Actor00400_Fn058C4(Task* arg0)
     }
 }
 
-static void Actor00400_Fn05D00(Task* arg0)
+/// Starts a dive by retracting the neck and selecting the waypoint's submerged height.
+///
+/// Requires live work/root and waypointIndex 0..7. Uses the waypoint's unsigned
+/// low-halfword depth plus water level and selects black colour. If clip 3 is
+/// already requested, advances twice to skip the clip wait. Otherwise emits a
+/// surface spray ring and dive sound, requests clip 1 at normal rate with a
+/// four-frame blend, and advances once into that wait.
+static void _actor00400DiveEnter(Task* task)
 {
     _Actor00400Work* work;
-    _Actor00400Work* w;
-    GfxCoord*        coord;
-    GfxCoord*        coord2;
-    SVECTOR          vec;
-    s32              sound;
+    _Actor00400Work* requestWork;
+    GfxCoord*        rootCoord;
+    s32              soundId;
     s32              pan;
-    s32              i;
-    s16              y;
 
-    coord               = arg0->extra.tmd->coords;
-    work                = arg0->work;
+    rootCoord           = task->extra.tmd->coords;
+    work                = task->work;
     work->neckRetracted = 1;
     work->goalY         = (u16)work->waypoints[work->waypointIndex].vy + work->waterLevel;
-    worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
-    if (work->animClip != 3) {
-        i      = 0;
-        y      = work->waterLevel - coord->coord.t[1] + 0xFA;
-        coord2 = arg0->extra.tmd->coords;
-        do {
-            vec.vx = (u32)rsin(i << 8) >> 3;
-            vec.vy = y;
-            vec.vz = (u32)rcos(i << 8) >> 3;
-            effectSpawn(gRoomEffectWaterSprayId, coord2, 0x01202148, &vec);
-            i++;
-        } while (i < 16);
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040008;
-        pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        w              = arg0->work;
-        w->animBlend   = 4;
-        w->animStep    = ANIMATION_RATE_ONE;
-        w->animClip    = 1;
-        w->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    if (work->animClip != ACTOR_00400_ANIM_SWIM) {
+        _actor00400SpawnSurfaceSprayRing(task, work, rootCoord);
+        soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_DIVE;
+        pan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        requestWork = task->work;
+        _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_SURFACED, ANIMATION_RATE_ONE, 4);
     } else {
         work->subState++;
     }
@@ -4214,87 +4229,49 @@ static void _actor00400RoomIntroBeginDischarge(Task* task)
     }
 }
 
-/// Per-frame callback for the text actor's third task, with the same
-/// `gSceneCombatState.actorControl` frame gate as `Actor00400_Fn04B48`: 2 only flags the model
-/// hidden, 0 runs this frame's state handler and rebuilds the root rotation
-/// before falling through to the draw half, and 1 is the draw half on its own.
-static void Actor00400_Fn06B7C(Task* arg0)
+/// Drives the Bog Diver's wounded lying task state.
+///
+/// Requires live work, enemy and model; state indexes 2 handlers without a
+/// bounds check. Hidden control only disables active drawing.
+/// Running ticks select targets and dispatch wounded idle/flinch, then tick
+/// animation and publish slot-1 status. Root rotation and contacts follow;
+/// signed HP <= 0 selects stranded death. Paused frames relight and draw shadows.
+static void _actor00400WoundedGroundTask(Task* task)
 {
-    _Actor00400Work* work             = arg0->work;
-    Enemy*           obj              = arg0->spawnArg2.pointer;
-    TmdObject*       ctx              = arg0->extra.tmd;
-    void             (*fns[2])(Task*) = { _actor00400WoundedGroundIdle, _actor00400WoundedGroundFlinch };
-    MATRIX           m;
-    _Actor00400Work* w;
-    _Actor00400Work* w2;
-    _Actor00400Work* w3;
-    _Actor00400Work* work2;
-    TmdObject*       ctx2;
-    GfxCoord*        coord;
-    MATRIX*          dst;
-    s32              i;
+    _Actor00400Work* work      = task->work;
+    Enemy*           enemy     = task->spawnArg2.pointer;
+    TmdObject*       model     = task->extra.tmd;
+    TaskFunc         states[2] = { _actor00400WoundedGroundIdle, _actor00400WoundedGroundFlinch };
+    _Actor00400Work* deathWork;
+    _Actor00400Work* lightingWork;
+    TmdObject*       lightingModel;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->bobPhase++;
             work->frameCount++;
-            _actor00400UpdatePartyTarget(arg0);
-            fns[work->state](arg0);
-            w = arg0->work;
-            if (w->animRequest == DIVER_ANIM_REQUEST_BLEND) {
-                if (w->animPlaying != w->animClip) {
-                    w->animFrames = 0;
-                } else {
-                    w->animFrames = _actor00400ScaleFramesForAnimRate(arg0, w->animFrames);
-                }
-                _actor00400BlendRequestedClip(arg0);
-                w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-            } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-                _diverRestartClip(arg0);
-                w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-                w->animFrames  = 0;
-            } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
-                w->animFrames++;
-            }
-            i = 1;
-            do {
-                animationTickSlot(&w->rig.anim, i);
-                i++;
-            } while (i < ARRAY_SIZE(w->rig.slots));
+            _actor00400UpdatePartyTarget(task);
+            states[work->state](task);
+            _actor00400AdvanceAnimation(task);
             work->animStatus = work->rig.slots[1].status.fields.flags;
-            w2               = arg0->work;
-            coord            = arg0->extra.tmd->coords;
-            gfxSetRotIdentity(&m);
-            RotMatrixZ(w2->rotation.vz, &m);
-            RotMatrixY(w2->rotation.vy, &m);
-            dst                 = &coord->coord;
-            dst->m[0][0]        = m.m[0][0];
-            dst->m[0][1]        = m.m[0][1];
-            dst->m[0][2]        = m.m[0][2];
-            dst->m[1][0]        = m.m[1][0];
-            dst->m[1][1]        = m.m[1][1];
-            dst->m[1][2]        = m.m[1][2];
-            dst->m[2][0]        = m.m[2][0];
-            dst->m[2][1]        = m.m[2][1];
-            dst->m[2][2]        = m.m[2][2];
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Actor00400_Fn01B90(arg0);
-            if ((s16)obj->hp <= 0) {
-                w3           = arg0->work;
-                arg0->state  = 2;
-                w3->state    = 0;
-                w3->subState = 0;
+            _actor00400ApplyRootRotation(task);
+            _actor00400ApplyContacts(task);
+            if ((s16)enemy->hp <= 0) {
+                deathWork           = task->work;
+                task->state         = ACTOR_00400_TASK_STRANDED_DEATH;
+                deathWork->state    = ACTOR_00400_STRANDED_DEATH_START;
+                deathWork->subState = 0;
             }
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            ctx2  = arg0->extra.tmd;
-            work2 = arg0->work;
-            _actor00400UpdateModelColor(arg0, &ctx2->coords[1], work2, ctx2);
-            _actor00400DrawLimbShadows(arg0, arg0->extra.tmd->coords->coord.t[1], 0x80);
-            ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            lightingModel = task->extra.tmd;
+            lightingWork  = task->work;
+            _actor00400UpdateModelColor(task, &lightingModel->coords[1], lightingWork, lightingModel);
+            _actor00400DrawLimbShadows(task, task->extra.tmd->coords->coord.t[1], ACTOR_00400_LIVING_SHADOW_SHADE);
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
@@ -4377,88 +4354,51 @@ static void _actor00400WoundedGroundFlinchWait(Task* task)
     }
 }
 
-/// Per-frame callback for the text actor's fourth task. Same frame gate as
-/// `Actor00400_Fn06B7C`, but the draw half only recolours the actor: case 0
-/// runs this frame's state handler, lerps the root coordinate's height a
-/// sixteenth of the way towards `goalY` and falls through.
-static void Actor00400_Fn070C0(Task* arg0)
+/// Drives the Bog Diver's wounded floating task state.
+///
+/// Requires live work, enemy and model; state indexes 2 handlers without a
+/// bounds check. Hidden control only disables active drawing.
+/// Running ticks select targets and dispatch wounded idle/flinch, then tick
+/// animation and publish slot-1 status. Root rotation and contacts follow;
+/// signed HP <= 0 selects swimming death, then Y eases by 1/16 toward goalY.
+/// Paused frames update model lighting without advancing the height.
+static void _actor00400WoundedFloatTask(Task* task)
 {
-    _Actor00400Work* work             = arg0->work;
-    TmdObject*       ctx              = arg0->extra.tmd;
-    Enemy*           obj              = arg0->spawnArg2.pointer;
-    GfxCoord*        coord0           = ctx->coords;
-    void             (*fns[2])(Task*) = { _actor00400WoundedFloatIdle, _actor00400WoundedFloatFlinch };
-    MATRIX           m;
-    _Actor00400Work* w;
-    _Actor00400Work* w2;
-    _Actor00400Work* w3;
-    _Actor00400Work* work2;
-    TmdObject*       ctx2;
-    GfxCoord*        coord;
-    MATRIX*          dst;
-    s32              i;
+    _Actor00400Work* work      = task->work;
+    TmdObject*       model     = task->extra.tmd;
+    Enemy*           enemy     = task->spawnArg2.pointer;
+    GfxCoord*        rootCoord = model->coords;
+    TaskFunc         states[2] = { _actor00400WoundedFloatIdle, _actor00400WoundedFloatFlinch };
+    _Actor00400Work* deathWork;
+    _Actor00400Work* lightingWork;
+    TmdObject*       lightingModel;
 
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
             work->bobPhase++;
             work->frameCount++;
-            _actor00400UpdatePartyTarget(arg0);
-            fns[work->state](arg0);
-            w = arg0->work;
-            if (w->animRequest == DIVER_ANIM_REQUEST_BLEND) {
-                if (w->animPlaying != w->animClip) {
-                    w->animFrames = 0;
-                } else {
-                    w->animFrames = _actor00400ScaleFramesForAnimRate(arg0, w->animFrames);
-                }
-                _actor00400BlendRequestedClip(arg0);
-                w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-            } else if (w->animRequest == DIVER_ANIM_REQUEST_RESET) {
-                _diverRestartClip(arg0);
-                w->animRequest = DIVER_ANIM_REQUEST_PLAYING;
-                w->animFrames  = 0;
-            } else if (w->animRequest == DIVER_ANIM_REQUEST_PLAYING) {
-                w->animFrames++;
-            }
-            i = 1;
-            do {
-                animationTickSlot(&w->rig.anim, i);
-                i++;
-            } while (i < ARRAY_SIZE(w->rig.slots));
+            _actor00400UpdatePartyTarget(task);
+            states[work->state](task);
+            _actor00400AdvanceAnimation(task);
             work->animStatus = work->rig.slots[1].status.fields.flags;
-            w2               = arg0->work;
-            coord            = arg0->extra.tmd->coords;
-            gfxSetRotIdentity(&m);
-            RotMatrixZ(w2->rotation.vz, &m);
-            RotMatrixY(w2->rotation.vy, &m);
-            dst                 = &coord->coord;
-            dst->m[0][0]        = m.m[0][0];
-            dst->m[0][1]        = m.m[0][1];
-            dst->m[0][2]        = m.m[0][2];
-            dst->m[1][0]        = m.m[1][0];
-            dst->m[1][1]        = m.m[1][1];
-            dst->m[1][2]        = m.m[1][2];
-            dst->m[2][0]        = m.m[2][0];
-            dst->m[2][1]        = m.m[2][1];
-            dst->m[2][2]        = m.m[2][2];
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            Actor00400_Fn01B90(arg0);
-            if ((s16)obj->hp <= 0) {
-                w3           = arg0->work;
-                arg0->state  = 4;
-                w3->state    = 0;
-                w3->subState = 0;
+            _actor00400ApplyRootRotation(task);
+            _actor00400ApplyContacts(task);
+            if ((s16)enemy->hp <= 0) {
+                deathWork           = task->work;
+                task->state         = ACTOR_00400_TASK_SWIM_DEATH;
+                deathWork->state    = ACTOR_00400_SWIM_DEATH_START;
+                deathWork->subState = 0;
             }
-            coord0->coord.t[1] += (work->goalY - coord0->coord.t[1]) >> 4;
+            rootCoord->coord.t[1] += (work->goalY - rootCoord->coord.t[1]) >> 4;
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            ctx2  = arg0->extra.tmd;
-            work2 = arg0->work;
-            _actor00400UpdateModelColor(arg0, &ctx2->coords[1], work2, ctx2);
-            ctx->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            lightingModel = task->extra.tmd;
+            lightingWork  = task->work;
+            _actor00400UpdateModelColor(task, &lightingModel->coords[1], lightingWork, lightingModel);
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
 }
@@ -4571,7 +4511,7 @@ static void _actor00400SwimStart(Task* task)
 static const TaskFuncTable4 Actor00400_D00134 = { {
     _actor00400SwimPatrolEnter,
     _actor00400SwimPatrolTravel,
-    Actor00400_Fn05320,
+    _actor00400SwimPatrolSurface,
     _actor00400SwimPatrolWaitForClip,
 } };
 
@@ -4617,7 +4557,7 @@ static void Actor00400_Fn078C8(Task* arg0)
 
 /// States `_actor00400Dive` dispatches on `_Actor00400Work.subState`.
 static const TaskFuncTable3 Actor00400_D00144 = { {
-    Actor00400_Fn05D00,
+    _actor00400DiveEnter,
     _actor00400DiveWaitForClip,
     _actor00400DiveSwimToSurfaceSpot,
 } };
@@ -4925,16 +4865,22 @@ static void _actor00400SwimDeathBlastWait(Task* task)
     }
 }
 
-static void Actor00400_Fn07F88(Task* arg0)
+/// Bursts the hidden swimming corpse into independently owned model chunks.
+///
+/// Requires live work and model after the two-tick blast delay. Releases the
+/// body's primitive buffer and disables automatic recreation before spawning
+/// the chunks. Retains the model coordinates through emission, then increments
+/// the state with low-halfword wrap into the blast exit.
+static void _actor00400SwimDeathBlastBurst(Task* task)
 {
     TmdObject*       model;
     _Actor00400Work* work;
 
-    model = arg0->extra.tmd;
-    work  = arg0->work;
+    model = task->extra.tmd;
+    work  = task->work;
     tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    Actor00400_Fn0237C(arg0);
+    _actor00400SpawnBodyChunks(task);
     work->state = (u16)work->state + 1;
 }
 
@@ -5486,42 +5432,66 @@ static void _actor00400StrandedDeathFadeWait(Task* task)
     }
 }
 
-static void Actor00400_Fn08E50(Task* arg0)
+/// Flattens and burns the stranded corpse while fading its limb shadows.
+///
+/// Requires the root matrix saved at death weigh-in and the current signed
+/// halfword Q12 Y scale (ONE is unity). Each tick subtracts 64 from that scale,
+/// restores the saved matrix before scaling, and fades shadow shade by seven
+/// to zero. Starts the burn at 4, selects black at 16, and hides at 33 or later,
+/// advancing to the exit. The burn requests four three-flame cycles and size 4.
+static void _actor00400StrandedDeathShrink(Task* task)
 {
-    TmdObject*       ctx;
+    enum {
+        ACTOR_00400_DEATH_SHADOW_FADE_STEP  = 7,
+        ACTOR_00400_DEATH_SHRINK_SCALE_STEP = 64,
+        ACTOR_00400_DEATH_BURN_FRAME        = 4,
+        ACTOR_00400_DEATH_BLACK_FRAME       = 16,
+        ACTOR_00400_DEATH_HIDE_FRAME        = 33,
+        ACTOR_00400_DEATH_BURN_RECIPE       = 4
+    };
+    TmdObject*       model;
     _Actor00400Work* work;
-    GfxCoord*        coord;
-    VECTOR           scale;
-    SVECTOR          pos;
+    GfxCoord*        rootCoord;
+    VECTOR           axisScale;
+    SVECTOR          burnOffset;
 
-    work  = arg0->work;
-    ctx   = arg0->extra.tmd;
-    coord = ctx->coords;
+    /// Restores the death snapshot before applying the current Q12 Y scale.
+    ///
+    /// Call inside a braced block with side-effect-free live work/root pointers
+    /// and a writable VECTOR scratch lvalue. Arguments recur; translation and
+    /// alignment bytes come from the snapshot, and composition becomes dirty.
+#define ACTOR_00400_RESTORE_SHRUNK_ROOT(work, rootCoord, axisScale) \
+    (axisScale).vx     = ONE;                                       \
+    (axisScale).vy     = (work)->shrinkScaleY;                      \
+    (axisScale).vz     = ONE;                                       \
+    (rootCoord)->coord = (work)->savedRootMtx;                      \
+    ScaleMatrix(&(rootCoord)->coord, &(axisScale));                 \
+    (rootCoord)->composeStamp = GRAPHICS_COORD_DIRTY
 
-    work->shadowShade -= 7;
+    work      = task->work;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+
+    work->shadowShade -= ACTOR_00400_DEATH_SHADOW_FADE_STEP;
     if (work->shadowShade < 0) {
         work->shadowShade = 0;
     }
-    work->shrinkScaleY -= 0x40;
-    scale.vx            = 0x1000;
-    scale.vy            = work->shrinkScaleY;
-    scale.vz            = 0x1000;
-    coord->coord        = work->savedRootMtx;
-    ScaleMatrix(&coord->coord, &scale);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (++work->stateFrames == 4) {
-        pos.vx = 0;
-        pos.vy = 0;
-        pos.vz = 0;
-        effectSpawn(EFFECT_CORPSE_BURN, coord, 4, &pos);
+    work->shrinkScaleY -= ACTOR_00400_DEATH_SHRINK_SCALE_STEP;
+    ACTOR_00400_RESTORE_SHRUNK_ROOT(work, rootCoord, axisScale);
+    if (++work->stateFrames == ACTOR_00400_DEATH_BURN_FRAME) {
+        burnOffset.vx = 0;
+        burnOffset.vy = 0;
+        burnOffset.vz = 0;
+        effectSpawn(EFFECT_CORPSE_BURN, rootCoord, ACTOR_00400_DEATH_BURN_RECIPE, &burnOffset);
     }
-    if (work->stateFrames == 0x10) {
-        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+    if (work->stateFrames == ACTOR_00400_DEATH_BLACK_FRAME) {
+        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
     }
-    if (work->stateFrames >= 0x21) {
-        ctx->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (work->stateFrames >= ACTOR_00400_DEATH_HIDE_FRAME) {
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
         work->state++;
     }
+#undef ACTOR_00400_RESTORE_SHRUNK_ROOT
 }
 
 /// Enters surface-spot release and delayed despawn after the stranded corpse shrinks.
@@ -5569,16 +5539,22 @@ static void _actor00400StrandedDeathBlastWait(Task* task)
     }
 }
 
-static void Actor00400_Fn09038(Task* arg0)
+/// Bursts the hidden stranded corpse into independently owned model chunks.
+///
+/// Requires live work and model after the two-tick blast delay. Releases the
+/// body's primitive buffer and disables automatic recreation before spawning
+/// the chunks. Retains the model coordinates through emission, then increments
+/// the state with low-halfword wrap into the blast exit.
+static void _actor00400StrandedDeathBlastBurst(Task* task)
 {
     TmdObject*       model;
     _Actor00400Work* work;
 
-    model = arg0->extra.tmd;
-    work  = arg0->work;
+    model = task->extra.tmd;
+    work  = task->work;
     tmdFreePrimitiveBuffer(model);
     model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-    Actor00400_Fn0237C(arg0);
+    _actor00400SpawnBodyChunks(task);
     work->state = (u16)work->state + 1;
 }
 

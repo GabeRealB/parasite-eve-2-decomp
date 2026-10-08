@@ -1730,7 +1730,7 @@ follows it, so place it before the load the comparison reads, not after.
 
 ## A CSE copy names the *second* read: the variable that stays live is the one assigned last
 
-`Actor00400_Fn040DC` loads `index->field_2C` once and then copies it:
+`_actor00400SwimDeathTask` loads `task->extra.tmd` once and then copies it:
 
 ```
 lw    v0,0x2c(s1)
@@ -1741,7 +1741,7 @@ lw    s2,8(a1)
 lhu   v0,0xc(a1)     /* case 2 */
 ```
 
-Writing the obvious source — one `ctx` variable, `coord = ctx->field_8;` —
+Writing the obvious source — one `model` variable, `rootCoord = model->coords;` —
 gives 97.49% with the copy missing: the single pseudo is loaded straight into
 its home. The copy only appears when the member is read **twice** and cse
 collapses the second read, as the `index->work` entry above describes. The new
@@ -1750,18 +1750,18 @@ lever here is direction. `$v0` in that dump is dead after the `move`, so the
 *second*. Assigning the long-lived variable first,
 
 ```c
-ctx   = arg0->field_2C;
-work  = arg0->field_1C;
-coord = arg0->field_2C->field_8;   /* 97.49%: the copy feeds a dead temp */
+model   = task->extra.tmd;
+work  = task->work;
+rootCoord = task->extra.tmd->coords;   /* 97.49%: the copy feeds a dead temp */
 ```
 
 still scores 97.49%, because the copy lands on the pseudo that dies. Swapping
 the two reads so the surviving variable is the second one matches:
 
 ```c
-coord = arg0->field_2C->field_8;   /* first read: its base is dead after */
-work  = arg0->field_1C;
-ctx   = arg0->field_2C;            /* cse -> move a1,v0 ; 100% */
+rootCoord = task->extra.tmd->coords;   /* first read: its base is dead after */
+work  = task->work;
+model   = task->extra.tmd;            /* cse -> move a1,v0 ; 100% */
 ```
 
 The same swap also re-ordered the whole prologue's allocation — the block copy
@@ -45500,7 +45500,7 @@ beq  v1, v0, ...
 (`s32 sel = kind; switch (sel)` changes nothing); reusing a scratch local that
 already has other definitions elsewhere in the function keeps the copy, and puts
 it in the register that scratch already uses. Pick the reused local by which
-register the target wants: in `Actor00400_Fn01B90` the `$v1` scratch holds the
+register the target wants: in `_actor00400ApplyContacts` the `$v1` scratch holds the
 `damageTickEnemyDamageOverTime` result, the `worldCollisionResolvePushback` switch index *and* the switch
 index copy, while a second scratch in `$a1` holds only the sign-extended tick
 count — using the wrong one of the two moved four `lh` loads to `$a1`.
@@ -73882,7 +73882,7 @@ move the accesses into a `static __inline__`.
 Declaring an `extern` variable at the address instead is a third shape, not a
 fix: with split addresses on, GCC emits `lui $s3,%hi(sym)` once and reuses
 `%lo(sym)($s3)` at every access, so a callee-saved register is still burned and
-the `lui` is no longer rematerialised per access. `Actor00400_Fn04B48` walked
+the `lui` is no longer rematerialised per access. `_actor00400StrandedDeathTask` walked
 all three - 88.4% open-coded (`lui`/`ori` pseudo), 90.1% through an
 `extern u8* D_1F8003FC` (`%hi`/`%lo` split), 100% with the same statements moved
 verbatim into a `static __inline__` helper.
@@ -91064,7 +91064,7 @@ Writing `0x100 < diff` does not work, because fold canonicalizes it back to
 
 ## A constant argument load stranded inside both arms of an `if` means the source duplicated the call
 
-**Problem.** `Actor00400_Fn0237C` picks one of two model streams at random and
+**Problem.** `_actor00400SpawnBodyChunks` picks one of two model streams at random and
 then spawns an effect. Written the obvious way - the `if/else` stores the
 pointer, the `effectSpawn` call follows the join - the object was 97%: the
 target loads the call's first argument (`li $a0, 0x20010`) *inside each arm*,
@@ -93657,9 +93657,9 @@ Read a re-load right after a loop, of something the loop top had in a register,
 as this note being present — and reach for `goto` out of `for (;;)` rather than
 trying to lengthen or shorten a live range.
 
-## A stack function-pointer table must be a declaration initializer: its `CLOBBER` is what pins the preceding loads (Actor00400_Fn06B7C, 2026-09-16)
+## A stack function-pointer table must be a declaration initializer: its `CLOBBER` is what pins the preceding loads (_actor00400WoundedGroundTask, 2026-09-16)
 
-`Actor00400_Fn06B7C` caches three pointers out of its argument and then builds a
+`_actor00400WoundedGroundTask` caches three pointers out of its argument and then builds a
 two-entry dispatch table in its own frame:
 
 ```
@@ -93719,9 +93719,9 @@ pairs (rather than copied from a global, as `TaskFuncTable11 fns = D_…;` does)
 as a brace initializer, and keep everything that must stay above it in
 declarations of its own.
 
-## Repeated inline expansions share one stack temp, and a one-slot frame is evidence of several helpers (Actor00400_Fn05320, 2026-09-16)
+## Repeated inline expansions share one stack temp, and a one-slot frame is evidence of several helpers (_actor00400SwimPatrolSurface, 2026-09-16)
 
-`Actor00400_Fn05320` needs a scratch `SVECTOR` in three separate places — the
+`_actor00400SwimPatrolSurface` needs a scratch `SVECTOR` in three separate places — the
 turn toward the current waypoint, and two identical 16-way effect rings — and
 retail's frame is 0x40 with a single 8-byte slot at `sp + 0x10`. The obvious
 reading, one function-scope `SVECTOR vec` reused by all three, is wrong, and
@@ -93734,10 +93734,10 @@ Putting all three in `static inline` helpers, each declaring its own `SVECTOR`,
 gives the target exactly — one slot for all three expansions:
 
 ```c
-static inline void Actor00400_SpawnRing(Actor100400* arg0, _Actor00400Work* work,
-                                        GfxCoord* coord)
+static inline void _actor00400SpawnSurfaceSprayRing(Task* task, const _Actor00400Work* work,
+                                                  const GfxCoord* rootCoord)
 {
-    SVECTOR vec;    /* shares sp+0x10 with _actor00400TurnTowardPoint's direction */
+    SVECTOR offset; /* shares sp+0x10 with _actor00400TurnTowardPoint's direction */
     ...
 }
 ```
@@ -93758,7 +93758,7 @@ smaller frame taking the front of the freed larger one
 16-byte one cannot reuse its slot and the two stack, which is the frame two
 function-scope locals give as well.
 
-## A lone `move` before a join-point `bnez` is a *signed* char flag (Actor00400_Fn05320, 2026-09-16)
+## A lone `move` before a join-point `bnez` is a *signed* char flag (_actor00400SwimPatrolSurface, 2026-09-16)
 
 The same function sets a 0/1 flag in one branch and tests it after the join:
 
@@ -94165,7 +94165,7 @@ scans free and takes `$v0` for its two steps: `sll $v0,$v1,2; addu $v0,$v0,$v1;
 addu $a2,$v0,$s0`, `regs=8`, 99.633%. One declaration per roll - same
 expression, same order - fixed it.
 
-## A stray `move sX, vY` after a pointer load means the derived field was read first (Actor00400_Fn04E18, 2026-09-16)
+## A stray `move sX, vY` after a pointer load means the derived field was read first (_actor00400SwimTask, 2026-09-16)
 
 **Problem.** The target opened with an extra copy that no obvious C could produce:
 
@@ -94631,7 +94631,7 @@ the tell is the `delete`, with a `branch` count equal to the number of branches
 after the missing instruction, since every later offset shifts by 4.
 
 `src/actors/actor_503500/actor_503500_5.c` (`_actor503500CollapseTentacle`)
-documents exactly this shape, and `Actor00400_Fn04E18` in
+documents exactly this shape, and `_actor00400SwimTask` in
 `src/actors/lib/actor_100400_text.c` is a second instance. To find a sibling
 when the natural C sits at ~98% with `regs=1 delete=1`, scan the family's asm
 for `lw $v0, off(reg)` followed within a couple of instructions by
@@ -118124,7 +118124,7 @@ SHA256 `f63a7f529a23b690c6bfcb69215f72b9332d21c3e1a118f85a86e4441675477a`.
 
 ## A value stored from several blocks needs a local, not a literal (_actor206100TakeHits, 2026-09-17)
 
-With the record-walk structure of the sibling `Actor00400_Fn01B90` in place the
+With the record-walk structure of the sibling `_actor00400ApplyContacts` in place the
 function sat at 99.85%, and the whole remaining diff was two lines of prologue:
 
 ```
