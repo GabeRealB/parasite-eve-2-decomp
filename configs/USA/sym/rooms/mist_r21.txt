@@ -7,3 +7,6 @@ _mistR21ResolveRoomTransition = 0x8017d5e4; // type:func
 _mistR21IgnoreRoomCommand = 0x8017d60c; // type:func
 _mistR21IgnoreRoomAction = 0x8017d614; // type:func
 _mistR21IdleAuxiliaryTask = 0x8017d760; // type:func
+_mistR21InitializeRoomTask = 0x8017d61c; // type:func
+_mistR21CheckPlazaReloadShortcut = 0x8017d678; // type:func
+mistR21RoomTask = 0x8017d708; // type:func

@@ -140,7 +140,7 @@ static void _mistR18SpawnPlacedProp(void);
 static void _mistR18KillPlacedProp(void);
 void        func_mist_r18_8017EB48(void);
 static void _mistR18PrepareBriefingScene(void);
-void        func_mist_r18_8017EBF8(void);
+static void _mistR18StartSceneScriptPause(void);
 static void _mistR18EnqueueScenePlayback(void);
 static void _mistR18FinishSceneStream(void);
 static void _mistR18CancelScene(void);
@@ -614,7 +614,7 @@ ActorCommand D_mist_r18_80185228 = { { .loc = { 0, 0 } }, 3 };
 EvsCommand D_mist_r18_8018522C[56] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18PrepareBriefingScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EBF8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18StartSceneScriptPause }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB, { .value = 100 }, { .value = 100 }, { .value = 100 }, { .value = 0 }, { .value = 0 } },
@@ -1812,9 +1812,17 @@ static void _mistR18PrepareBriefingScene(void)
     cdCmdStageSceneAudioStart();
 }
 
-void func_mist_r18_8017EBF8(void)
+/// Pauses the briefing script after starting its scene-view monitor.
+///
+/// The pause latch is set only if the bodyless monitor task is allocated.
+/// The monitor releases the latch when the scene view is no longer ready;
+/// it stays alive until task-list teardown. Requires loaded room descriptors
+/// and a live event interpreter; allocation failure leaves the latch unchanged.
+static void _mistR18StartSceneScriptPause(void)
 {
-    if (taskSpawnFromTable(D_mist_r18_80184F04, 7, 0, 0) != NULL) {
+    enum { MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX = 7 };
+
+    if (taskSpawnFromTable(D_mist_r18_80184F04, MIST_R18_SCENE_SCRIPT_PAUSE_TASK_INDEX, 0, NULL) != NULL) {
         D_801156F9 = 1;
     }
 }

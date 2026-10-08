@@ -180,3 +180,4 @@ neoArkShrineSlidePuzzleTile = 0x8017db10; // type:func
 _neoArkShrineResolvePuzzleExamine = 0x8017ee44; // type:func
 _neoArkShrineWaitToSpawnFirstFallingProp = 0x8017f0f0; // type:func
 _neoArkShrineWaitToSpawnSecondFallingProp = 0x8017f178; // type:func
+_neoArkShrineInitializePuzzle = 0x8017ecc4; // type:func

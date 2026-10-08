@@ -888,10 +888,13 @@ void acropolisFireEscapeRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-/// Places a flare from the emitter's reusable local-offset storage.
+/// Spawns one view-selected flare at an offset from the light emitter.
 ///
-/// Spawning copies XYZ into the new coordinate before this storage is reused;
-/// the new work also retains the pointer. The one-frame flare never reads it.
+/// XYZ are signed-halfword units in `emitterCoord`'s local frame; `options`
+/// packs pulse rate, radius and the fire-escape flare flags. Requires live
+/// emitter work and coordinates. Spawning snapshots XYZ before the reusable
+/// vector changes; retained effect work also borrows its address, but this
+/// one-frame drawer never reads it. Allocation failure is left to `effectSpawn`.
 static inline void _acropolisFireEscapeSpawnFlare(EffectWork* emitterWork, GfxCoord* emitterCoord,
                                                   s16 offsetX, s16 offsetY, s16 offsetZ, s32 options)
 {

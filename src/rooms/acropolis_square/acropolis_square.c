@@ -1498,6 +1498,7 @@ static inline void _acropolisSquareStartRoomCutscene(void)
         ACROPOLIS_SQUARE_CUTSCENE_VIEW         = 9,
         ACROPOLIS_SQUARE_CUTSCENE_CAP_SLOT     = 1,
         ACROPOLIS_SQUARE_CUTSCENE_CAP_FILE     = 1,
+        ACROPOLIS_SQUARE_CUTSCENE_TASK_ENTRY   = 0,
         ACROPOLIS_SQUARE_CUTSCENE_FOLLOWUP     = 2,
     };
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP) {
@@ -1512,7 +1513,7 @@ static inline void _acropolisSquareStartRoomCutscene(void)
     D_acropolis_square_801888AC.rec.afterSceneSound = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_SQUARE, 11);
     D_acropolis_square_801888AC.rec.skipScene       = D_acropolis_square_8018382C;
     D_acropolis_square_8018382C                     = 0;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, ACROPOLIS_SQUARE_CUTSCENE_FOLLOWUP, &D_acropolis_square_801888AC.rec);
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, ACROPOLIS_SQUARE_CUTSCENE_TASK_ENTRY, ACROPOLIS_SQUARE_CUTSCENE_FOLLOWUP, &D_acropolis_square_801888AC.rec);
 }
 
 /// Starts the square cutscene or a one-time CAP hint from an integer room command.

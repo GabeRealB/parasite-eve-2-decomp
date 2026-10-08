@@ -4647,6 +4647,9 @@ static void _shelterB3DumpingHoleEncounterRun(Task* controllerTask)
 ///
 /// Requires task-owned single-slot work, a live borrowed enemy and packed row
 /// 0..15 in the task's high spawn halfword. Does not adopt or own the enemy task.
+/// The unsigned halfword place counter increments with wraparound. Packing
+/// into the 16-bit enemy key retains its low four bits as the high nibble;
+/// stage and area bits are cleared. The room allocates sixteen encounter rows.
 static inline void _shelterB3DumpingHoleRegisterSingleEncounter(Task* waveTask, OverlayEncounterSingleWork* work, Enemy* enemy)
 {
     u16 placeIndex;

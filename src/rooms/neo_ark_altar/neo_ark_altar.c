@@ -114,7 +114,7 @@ void func_neo_ark_altar_8017D668(Task* task)
             task->state++;
             break;
         case 6:
-            func_neo_ark_altar_8017DC40(gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
+            neoArkAltarStepSwitchSprites(gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
             task->killCountdown--;
             if (task->killCountdown <= 0) {
                 task->state++;
@@ -200,13 +200,13 @@ s32 func_neo_ark_altar_8017D910(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEven
 /// State 0 of the altar's message task: park the room's message table in
 /// `Task::msgTable`, publish the task in pointer slot 7, bring the altar's
 /// switch sprites one step towards the choice recorded in game flag 0xD9
-/// (`func_neo_ark_altar_8017DC40`), then start the altar task from
+/// (`neoArkAltarStepSwitchSprites`), then start the altar task from
 /// `D_neo_ark_altar_8017F088` and advance to state 1.
 static void func_neo_ark_altar_8017D974(Task* task)
 {
     task->msgTable = D_neo_ark_altar_8017EF98;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    func_neo_ark_altar_8017DC40(gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
+    neoArkAltarStepSwitchSprites(gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SWITCH_STATE) & 0xFF);
     taskSpawnFromTable(D_neo_ark_altar_8017F088, 0, 0, 0);
     task->state = (s32)(task->state + 1);
 }

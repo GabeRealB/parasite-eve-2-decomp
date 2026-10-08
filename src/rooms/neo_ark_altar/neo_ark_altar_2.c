@@ -485,7 +485,7 @@ s16 D_neo_ark_altar_801800AC = 0;
 
 s16 D_neo_ark_altar_801800B0[16];
 
-static void func_neo_ark_altar_8017ED60(Task* task);
+static void _neoArkAltarInitializeTileSequence(Task* task);
 
 static void _neoArkAltarWaitForTileSequence(Task* task);
 
@@ -615,158 +615,111 @@ static void _neoArkAltarLaunchMovieTask(Task* task)
     taskKill(task);
 }
 
-/// Steps the altar's switch state `D_neo_ark_altar_801800AE` by one per call,
-/// in the direction `arg0` (the 0xD9 game-flag nibble) selects: 0 sets
-/// `field_4` of the second command in `rec[3]` and `rec[6]` and counts up
-/// towards 6, 1 clears them and counts down towards 0; any other value, or a
-/// state already at the end of its range, changes nothing. Each step rewrites
-/// the six commands after the first in `rec[4]` so exactly one holds 0: index
-/// `6 - s`, where `s` is the lower of the old and new states.
-void func_neo_ark_altar_8017DC40(s32 arg0)
+/// Shows one switch-animation batch while hiding the other five.
+///
+/// `batches` must be a stable writable pointer with entries 1..6, evaluated
+/// six times; entry 0 is untouched. `visibleBatch` is a stable index 1..6,
+/// evaluated six times. Captures no identifiers and expands to a braced block.
+#define NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, visibleBatch) \
+    {                                                            \
+        (batches)[1].hidden = (visibleBatch) != 1;               \
+        (batches)[2].hidden = (visibleBatch) != 2;               \
+        (batches)[3].hidden = (visibleBatch) != 3;               \
+        (batches)[4].hidden = (visibleBatch) != 4;               \
+        (batches)[5].hidden = (visibleBatch) != 5;               \
+        (batches)[6].hidden = (visibleBatch) != 6;               \
+    }
+
+void neoArkAltarStepSwitchSprites(s32 switchChoice)
 {
-    GameLocationKey* sess;
-    SpriteView*      rec;
+    enum { NEO_ARK_ALTAR_SWITCH_CHOICE_CLEAR = 0,
+           NEO_ARK_ALTAR_SWITCH_CHOICE_SET   = 1 };
+    GameLocationKey* location;
+    SpriteView*      areaViews;
     SpriteBatch*     batches;
 
-    sess  = &gGameSession->location.loc;
-    rec   = gSpriteAreaTables[sess->stage - 1][0].areaViews[sess->area - 1];
-    arg0 &= 0xFF;
-    if (arg0 == 0) {
-        batches           = rec[3].batches;
+    location      = &gGameSession->location.loc;
+    areaViews     = gSpriteAreaTables[location->stage - 1][0].areaViews[location->area - 1];
+    switchChoice &= 0xFF;
+    // Each direction changes the endpoint scenery even when no animation step remains.
+    if (switchChoice == NEO_ARK_ALTAR_SWITCH_CHOICE_CLEAR) {
+        batches           = areaViews[3].batches;
         batches[1].hidden = 1;
-        batches           = rec[6].batches;
+        batches           = areaViews[6].batches;
         batches[1].hidden = 1;
         switch (D_neo_ark_altar_801800AE) {
             case 0:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 0;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 6);
                 D_neo_ark_altar_801800AE = 1;
                 break;
             case 1:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 0;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 5);
                 D_neo_ark_altar_801800AE = 2;
                 break;
             case 2:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 0;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 4);
                 D_neo_ark_altar_801800AE = 3;
                 break;
             case 3:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 0;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 3);
                 D_neo_ark_altar_801800AE = 4;
                 break;
             case 4:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 0;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 2);
                 D_neo_ark_altar_801800AE = 5;
                 break;
             case 5:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 0;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 1);
                 D_neo_ark_altar_801800AE = 6;
                 break;
         }
-    } else if (arg0 == 1) {
-        batches           = rec[3].batches;
+    } else if (switchChoice == NEO_ARK_ALTAR_SWITCH_CHOICE_SET) {
+        batches           = areaViews[3].batches;
         batches[1].hidden = 0;
-        batches           = rec[6].batches;
+        batches           = areaViews[6].batches;
         batches[1].hidden = 0;
         switch (D_neo_ark_altar_801800AE) {
             case 6:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 0;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 1);
                 D_neo_ark_altar_801800AE = 5;
                 break;
             case 5:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 0;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 2);
                 D_neo_ark_altar_801800AE = 4;
                 break;
             case 4:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 0;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 3);
                 D_neo_ark_altar_801800AE = 3;
                 break;
             case 3:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 0;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 4);
                 D_neo_ark_altar_801800AE = 2;
                 break;
             case 2:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 0;
-                batches[6].hidden        = 1;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 5);
                 D_neo_ark_altar_801800AE = 1;
                 break;
             case 1:
-                batches                  = rec[4].batches;
-                batches[1].hidden        = 1;
-                batches[2].hidden        = 1;
-                batches[3].hidden        = 1;
-                batches[4].hidden        = 1;
-                batches[5].hidden        = 1;
-                batches[6].hidden        = 0;
+                batches = areaViews[4].batches;
+                NEO_ARK_ALTAR_SELECT_SWITCH_FRAME(batches, 6);
                 D_neo_ark_altar_801800AE = 0;
                 break;
         }
     }
 }
+
+#undef NEO_ARK_ALTAR_SELECT_SWITCH_FRAME
 
 /// Altar state 2: records the tile the player walks onto and, while
 /// `func_neo_ark_altar_8017E260` reports the altar sequence has matched, raises
@@ -1200,7 +1153,7 @@ static s16 _neoArkAltarFindTile(const _NeoArkAltarTile* table, s16 x, s16 z)
 /// the sequence completes, a fade-out, a spawn from `D_neo_ark_altar_8017EFC0`
 /// and a view change before control returns to the tile sequence.
 static const TaskFuncTable8 D_neo_ark_altar_8017D648 = {
-    func_neo_ark_altar_8017ED60,
+    _neoArkAltarInitializeTileSequence,
     _neoArkAltarWaitForTileSequence,
     func_neo_ark_altar_8017DF0C,
     _neoArkAltarBeginSequenceMovieFade,
@@ -1224,19 +1177,25 @@ static void _neoArkAltarTileSequenceTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-static void func_neo_ark_altar_8017ED60(Task* arg0)
+/// Allocates and resets the altar's tile-sequence controller.
+///
+/// Entry is state 0. Owns zeroed primary-heap work through task teardown;
+/// failure kills the controller. Success resets the shared switch scenery
+/// and tile history, clears the elapsed-frame counter, and enters the wait state.
+/// Requires loaded altar sprites, live saved flags and the shared tile history.
+static void _neoArkAltarInitializeTileSequence(Task* task)
 {
     _NeoArkAltarTileSequenceWork* work;
 
-    work       = memCalloc(sizeof(*work), 0);
-    arg0->work = work;
+    work       = memCalloc(sizeof(*work), false);
+    task->work = work;
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
     _neoArkAltarResetTileSequence();
-    arg0->killCountdown = 0;
-    arg0->state         = (s32)(arg0->state + 1);
+    task->killCountdown = 0;
+    task->state         = task->state + 1;
 }
 
 /// Waits three callback frames before entering the altar's tile-sequence state.

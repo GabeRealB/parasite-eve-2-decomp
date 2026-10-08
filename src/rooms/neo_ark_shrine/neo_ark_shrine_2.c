@@ -167,7 +167,7 @@ extern SVECTOR D_neo_ark_shrine_80182704[];
 
 /// Offset of the beam's far end from the effect's parent coordinate.
 
-static void func_neo_ark_shrine_8017ECC4(Task* task);
+static void _neoArkShrineInitializePuzzle(Task* task);
 static void _neoArkShrinePreparePuzzleCursor(Task* task);
 static void _neoArkShrineOpenPuzzleCommands(Task* task);
 static void _neoArkShrineResolvePuzzleExamine(Task* task);
@@ -190,7 +190,7 @@ static void _neoArkShrineDropSecondProp(Task* task);
 /// State table of the shrine's cap script task, indexed by `Task::state`.
 static const TaskFuncTable16 D_neo_ark_shrine_8017D5D0 = {
     {
-        func_neo_ark_shrine_8017ECC4,
+        _neoArkShrineInitializePuzzle,
         _neoArkShrinePreparePuzzleCursor,
         neoArkShrinePuzzleIdle,
         _neoArkShrineOpenPuzzleCommands,
@@ -1160,35 +1160,46 @@ void neoArkShrineSecondFallingPropTask(Task* task)
 
 #include "../../shared/action_prompt_hit_test.inc.c"
 
-/// Task callback of the descriptor at `D_neo_ark_shrine_80182404`: allocates
-/// the puzzle's work block, sets the global mode byte, steps the task on one
-/// state and clears the shrine's hotspot list.
-static void func_neo_ark_shrine_8017ECC4(Task* task)
+/// Binds the puzzle's work and cursor, selects its view and acquires presentation.
+///
+/// The controller adopts the zeroed primary-heap allocation. The independent
+/// port-0 cursor is retained for explicit teardown; its spawn failure is unchecked.
+static inline void _neoArkShrineBeginPuzzleSession(Task* task, NeoArkShrinePuzzleWork* work)
+{
+    enum { NEO_ARK_SHRINE_PUZZLE_VIEW          = 11,
+           NEO_ARK_SHRINE_PUZZLE_CURSOR_ENTRY  = 0,
+           NEO_ARK_SHRINE_PUZZLE_CURSOR_PORT_0 = 1 };
+
+    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_neo_ark_shrine_80182404, NEO_ARK_SHRINE_PUZZLE_CURSOR_ENTRY, NEO_ARK_SHRINE_PUZZLE_CURSOR_PORT_0, NULL);
+    task->work                                                 = work;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_SHRINE_PUZZLE_VIEW;
+    task->state++;
+    displayAcquireMenuHold();
+}
+
+/// Initializes the shrine's sliding-tile puzzle controller and cursor session.
+///
+/// Entry is state 0. Owns zeroed puzzle work until task teardown and retains
+/// a separate cursor child until closing. Work-allocation failure kills the
+/// controller. Success selects saved view 11, clears all live hotspot hits,
+/// holds player/menu presentation and hides the HUD, then enters cursor setup.
+/// Requires the loaded cursor descriptor and hotspot run through its end marker.
+static void _neoArkShrineInitializePuzzle(Task* task)
 {
     NeoArkShrinePuzzleWork* work;
-    ActionPromptHotspot*    hs;
+    ActionPromptHotspot*    hotspot;
 
-    work = memCalloc(sizeof(NeoArkShrinePuzzleWork), 0);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    task->spawnArg2.pointer                                    = taskSpawnFromTable(D_neo_ark_shrine_80182404, 0, 1, 0);
-    task->work                                                 = work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xB;
-    /* The once-loop folds away, but flow counts its references at loop depth
-       2: without it the parameter's priority (6*2/42) loses to the state
-       pointer's (3*1/10) and the two swap callee-saved homes. Keeping the
-       state load below the mode store is the same loop's scheduling edge. */
-    do {
-        task->state++;
-    } while (0);
-    displayAcquireMenuHold();
-    for (hs = D_neo_ark_shrine_80182430; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
-        hs->hit = 0;
+    _neoArkShrineBeginPuzzleSession(task, work);
+    for (hotspot = D_neo_ark_shrine_80182430; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+        hotspot->hit = 0;
     }
-    gGameSession->cutsceneHold = 1;
-    gGameSession->hideHud      = 1;
+    gGameSession->cutsceneHold = true;
+    gGameSession->hideHud      = true;
     gGameSession->eventState   = 1;
 }
 

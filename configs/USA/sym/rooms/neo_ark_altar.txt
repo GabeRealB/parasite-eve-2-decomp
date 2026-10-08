@@ -66,3 +66,5 @@ _neoArkAltarRejectKeyItemUse = 0x8017d8bc; // type:func
 _neoArkAltarResolveRoomVariant = 0x8017d8c4; // type:func
 _neoArkAltarIgnoreRoomCommand = 0x8017d908; // type:func
 _neoArkAltarResetTileSequence = 0x8017e148; // type:func
+neoArkAltarStepSwitchSprites = 0x8017dc40; // type:func
+_neoArkAltarInitializeTileSequence = 0x8017ed60; // type:func

@@ -38,8 +38,8 @@ TaskDesc D_mist_r21_8017D798[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, _mistR21IdleAuxiliaryTask, { .value = 0 } },
 };
 
-static void func_mist_r21_8017D61C(Task* task);
-static void func_mist_r21_8017D678(Task* task);
+static void _mistR21InitializeRoomTask(Task* task);
+static void _mistR21CheckPlazaReloadShortcut(Task* task);
 
 /// Refuses key-item use in this M.I.S.T. room without consuming the item.
 ///
@@ -79,26 +79,36 @@ static s32 _mistR21IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const
     return 0;
 }
 
-/// First state of the room task: publishes the room's message table, claims
-/// pointer slot 7, spawns the task `D_mist_r21_8017D798` describes and
-/// advances to the next state.
-static void func_mist_r21_8017D61C(Task* task)
+/// Registers the M.I.S.T. room's message receiver and starts its idle auxiliary task.
+///
+/// Entry is room-task state 0. Publishes the borrowed task in the room slot
+/// and installs the overlay's message table before entering shortcut polling.
+/// Auxiliary-task allocation failure is unchecked; the room task still advances.
+static void _mistR21InitializeRoomTask(Task* task)
 {
+    enum { MIST_R21_AUXILIARY_TASK_INDEX = 0 };
+
     task->msgTable = D_mist_r21_8017D770;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_mist_r21_8017D798, 0, 0, 0);
-    task->state = (s32)(task->state + 1);
+    taskSpawnFromTable(D_mist_r21_8017D798, MIST_R21_AUXILIARY_TASK_INDEX, 0, NULL);
+    task->state = task->state + 1;
 }
 
-/// Second state of the room task: waits for pad 0 to report button 0x200 in
-/// mode 0 and button 0x40 in mode 1, then sets the saved location to area 5,
-/// warp 1, view 2, starts loading from it, spawns task 0x11 and ends itself.
-static void func_mist_r21_8017D678(Task* task)
+/// Reloads the Acropolis plaza when port 0 holds L3 and newly presses Cross.
+///
+/// Runs in room-task state 1. Changes the live save's area, warp and view
+/// to plaza/1/2, preserving its stage and room, then begins the load screen
+/// and requests a reload with a blank display. Kills only this room task;
+/// the reload owns subsequent task-list and resource teardown.
+static void _mistR21CheckPlazaReloadShortcut(Task* task)
 {
+    enum { MIST_R21_PLAZA_SHORTCUT_WARP = 1,
+           MIST_R21_PLAZA_SHORTCUT_VIEW = 2 };
+
     if ((padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_L3) != 0) && (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_CROSS) != 0)) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_PLAZA;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = MIST_R21_PLAZA_SHORTCUT_WARP;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = MIST_R21_PLAZA_SHORTCUT_VIEW;
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_BLANK_DISPLAY, 0);
         taskKill(task);
@@ -107,20 +117,18 @@ static void func_mist_r21_8017D678(Task* task)
 
 /// The room task's three states.
 static const TaskFuncTable3 D_mist_r21_8017D5C4 = {
-    { func_mist_r21_8017D61C, func_mist_r21_8017D678, taskKill },
+    { _mistR21InitializeRoomTask, _mistR21CheckPlazaReloadShortcut, taskKill },
 };
 
 /// `"target set\n"`: no code in the room reads it.
 static const char D_mist_r21_8017D5D0[] = "target set\n";
 
-/// The room task's callback: runs the state `Task::state` selects from a
-/// stack copy of `D_mist_r21_8017D5C4`.
-void func_mist_r21_8017D708(Task* task)
+void mistR21RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_mist_r21_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_mist_r21_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Keeps the auxiliary task spawned on room entry alive without per-frame work.

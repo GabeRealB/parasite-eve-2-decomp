@@ -661,7 +661,10 @@ static void _dryfieldBreezewayStageFirstEventSkip(void)
     _dryfieldBreezewayStartFirstEventPursuit();
 }
 
-/// Clears hit latches in a writable hotspot run terminated by ACTION_PROMPT_HOTSPOT_END.
+/// Clears prior cursor hits from the key-item event's hotspots.
+///
+/// Borrows a writable, contiguous run ending at `ACTION_PROMPT_HOTSPOT_END`.
+/// Leaves the sentinel and each hotspot's geometry, ID and prompt kind intact.
 static inline void _dryfieldBreezewayClearKeyItemHotspotHits(ActionPromptHotspot* hotspot)
 {
     while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
@@ -670,7 +673,13 @@ static inline void _dryfieldBreezewayClearKeyItemHotspotHits(ActionPromptHotspot
     }
 }
 
-/// Installs the model event's task-owned Q12 lighting and half-strength ambient colour.
+/// Installs fixed lighting for the key-item interaction's model.
+///
+/// Requires a live TMD body and its owned key-item event work. Both matrices
+/// use Q12 coefficients (ONE is unity); the colour rows are white, the light
+/// rows are (1,1,1), (0,1,1), (1,1,0), and ambient RGB is half unity.
+/// The model borrows the work's matrices through teardown. Translation in
+/// the light matrix stays intact; ambient RGB is stored in the colour matrix.
 static inline void _dryfieldBreezewayInitializeKeyItemLighting(Task* task)
 {
     _DryfieldBreezewayKeyItemEventWork* eventWork  = task->work;

@@ -1820,15 +1820,15 @@ static inline void _acropolisSanctuaryDisableWeaponTriggers(void)
     WorldCollisionTrigger* trigger16;
 
     disabledTriggerMask = ~WORLD_COLLISION_TRIGGER_ENABLED;
-    trigger6            = &(D_acropolis_sanctuary_80183AE4 + 6)[0];
-    trigger9            = &(D_acropolis_sanctuary_80183AE4 + 6)[3];
-    trigger10           = &(D_acropolis_sanctuary_80183AE4 + 6)[4];
-    trigger11           = &(D_acropolis_sanctuary_80183AE4 + 6)[5];
-    trigger12           = &(D_acropolis_sanctuary_80183AE4 + 6)[6];
-    trigger13           = &(D_acropolis_sanctuary_80183AE4 + 6)[7];
-    trigger14           = &(D_acropolis_sanctuary_80183AE4 + 6)[8];
-    trigger15           = &(D_acropolis_sanctuary_80183AE4 + 6)[9];
-    trigger16           = &(D_acropolis_sanctuary_80183AE4 + 6)[10];
+    trigger6            = &D_acropolis_sanctuary_80183AE4[6];
+    trigger9            = &D_acropolis_sanctuary_80183AE4[9];
+    trigger10           = &D_acropolis_sanctuary_80183AE4[10];
+    trigger11           = &D_acropolis_sanctuary_80183AE4[11];
+    trigger12           = &D_acropolis_sanctuary_80183AE4[12];
+    trigger13           = &D_acropolis_sanctuary_80183AE4[13];
+    trigger14           = &D_acropolis_sanctuary_80183AE4[14];
+    trigger15           = &D_acropolis_sanctuary_80183AE4[15];
+    trigger16           = &D_acropolis_sanctuary_80183AE4[16];
 
     trigger6->flags  &= disabledTriggerMask;
     trigger9->flags  &= disabledTriggerMask;

@@ -201,7 +201,7 @@ D_mist_shooting_gallery_801853C8 = 0x801853C8; // absolute:True owner=mist_shoot
 D_mist_shooting_gallery_8018998C = 0x8018998C; // absolute:True owner=mist_shooting_gallery shared=rooms
 D_mist_shooting_gallery_8018BD10 = 0x8018BD10; // absolute:True owner=mist_shooting_gallery
 D_mist_shooting_gallery_8018E09C = 0x8018E09C; // absolute:True owner=mist_shooting_gallery
-func_mist_r21_8017D708 = 0x8017D708; // type:func absolute:True owner=mist_r21 shared=rooms
+mistR21RoomTask = 0x8017D708; // type:func absolute:True owner=mist_r21 shared=rooms
 D_mappic_s1_00_8012EFD8 = 0x8012EFD8; // absolute:True owner=mappic_s1_00 shared=mappic
 D_mappic_s1_00_8012F128 = 0x8012F128; // absolute:True owner=mappic_s1_00
 D_mappic_s1_00_8012F224 = 0x8012F224; // absolute:True owner=mappic_s1_00 shared=mappic

@@ -890,8 +890,9 @@ static void _dryfieldNightMotelLobbyCashRegisterTask(Task* task)
 
 /// Clears keypad hit latches and fills every cash-register digit with the empty marker.
 ///
-/// Requires the writable room hotspot run, including its end marker, and all
-/// seven digit slots. Retains the byte fill value and signed descending cursor.
+/// Requires the writable room hotspot run through `ACTION_PROMPT_HOTSPOT_END`
+/// and all seven digit slots. The sentinel is untouched; every digit becomes
+/// `DRYFIELD_NIGHT_MOTEL_LOBBY_CASH_REGISTER_DIGIT_EMPTY` (10).
 static inline void _dryfieldNightMotelLobbyResetCashRegisterInput(void)
 {
     ActionPromptHotspot* hotspot;

@@ -49412,9 +49412,9 @@ check `$a0` at the `jal` before reading the scheduler dumps. These room
 `INCLUDE_ASM` seeds are the same body copied across a family, so a matched
 sibling in another overlay usually already shows the right call — here
 `_dryfieldBackStreetInitializeRoomTask` / `func_dryfield_water_hole_8017D7DC` /
-`func_mist_r21_8017D61C` all carry `gameSetTaskSlot(index, 7)` verbatim. Compare
+`_mistR21InitializeRoomTask` all carry `gameSetTaskSlot(index, 7)` verbatim. Compare
 `func_dryfield_back_street_8017D8B4` / `func_dryfield_water_hole_8017D7DC` /
-`func_mist_r21_8017D61C` all carry `gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM)` verbatim. Compare
+`_mistR21InitializeRoomTask` all carry `gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM)` verbatim. Compare
 against one of those before reading the dumps.
 
 The `regs` count under-states the damage, so do not read it as a measure of how
@@ -96948,7 +96948,7 @@ model above does not yet account for. When a `%hi` temp's register is the
 sticking point, compare against that function before assuming the C shape is
 wrong.
 
-## A folded `do{}while(0)` reweights *and* orders a near-tie allocno pair (func_neo_ark_shrine_8017ECC4, 2026-09-16)
+## A folded `do{}while(0)` reweights *and* orders a near-tie allocno pair (_neoArkShrineInitializePuzzle, 2026-09-16)
 
 **Problem.** 98.879% with `regs=13`, `branch=0`, `reorder=0`, `delete=0`: every
 instruction present and in order, and the whole diff was `$s0`/`$s1` swapped

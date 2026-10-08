@@ -1209,15 +1209,17 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
 static inline void _acropolisCafeteriaCommitFollowUpDeparture(Task* task)
 {
     enum {
-        ACROPOLIS_CAFETERIA_FOLLOW_UP_DIALOGUE    = 4,
-        ACROPOLIS_CAFETERIA_FOLLOW_UP_SCENE_EVENT = 4,
-        ACROPOLIS_CAFETERIA_FOLLOW_UP_OBJECTIVE   = 4,
-        ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_WARP  = 3,
-        ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_ROOM  = 3,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_DIALOGUE       = 4,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_SCENE_EVENT    = 4,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_OBJECTIVE      = 4,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_WARP     = 3,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_ROOM     = 3,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_RESET          = 0,
+        ACROPOLIS_CAFETERIA_FOLLOW_UP_SPRITE_VARIANT = 1,
     };
     // Commit the completed scene before handing the saved destination to the reload task.
     gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PROGRESS, ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE);
-    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, ACROPOLIS_CAFETERIA_FOLLOW_UP_RESET);
     gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_CAFETERIA_FOLLOW_UP_DIALOGUE);
     gameFlagSetNibble(GAME_FLAG_00E, 1);
     areaApplySavedUpdates(D_acropolis_cafeteria_8018C9D4);
@@ -1230,7 +1232,7 @@ static inline void _acropolisCafeteriaCommitFollowUpDeparture(Task* task)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PATIO;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_WARP;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_CAFETERIA_FOLLOW_UP_PATIO_ROOM;
-    gDisplayState.spriteVariant                                 = 1;
+    gDisplayState.spriteVariant                                 = ACROPOLIS_CAFETERIA_FOLLOW_UP_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }

@@ -621,7 +621,7 @@ TaskDesc D_map_akropolis_8017A8AC[] = {
     { { { TASK_BODY_NONE, 0x20 } }, mistR18BriefingTask, { .value = GP_TASK_LOC_KEY(1, 18, 1) } },
     { { { TASK_BODY_NONE, 0x20 } }, mistParkingRoomTask, { .value = GP_TASK_LOC_KEY(1, 19, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, mistShootingGalleryRoomTask, { .value = GP_TASK_LOC_KEY(1, 20, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_mist_r21_8017D708, { .value = GP_TASK_LOC_KEY(1, 21, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, mistR21RoomTask, { .value = GP_TASK_LOC_KEY(1, 21, 0) } },
     { { { TASK_DESC_END, 0x20 } }, NULL, { 0 } },
 };
 
