@@ -108156,11 +108156,11 @@ per-overlay struct names change; `(u8)(work->animRate - 3)` on an `s16` member s
 (`func_actor_401000_80132A84`) is an unmatched, leased duplicate, so this stayed an overlay-local
 body rather than a `promote`.
 
-## m2c's shared result temp loses `$v0` to the arm's own test scratch (func_actor_401800_80139870, 2026-09-16)
+## m2c's shared result temp loses `$v0` to the arm's own test scratch (_actor401800RefallFront, 2026-09-16)
 
 The previous entry's rule — transcribe a matched twin instead of editing m2c toward it —
-had a second, sharper instance in the same TU. `func_actor_401800_80139870` is
-`func_actor_401800_8013971C` with one constant changed (`work->animId = 0x19`, not `0xB`);
+had a second, sharper instance in the same TU. `_actor401800RefallFront` is
+`_actor401800RefallBack` with one constant changed (`work->animId = 0x19`, not `0xB`);
 the m2c seed still scored 90.75% because of two *spellings*, not two behaviours:
 
 ```c
@@ -108187,7 +108187,7 @@ pointer, so GCC scales it, and the constant is `N * sizeof(struct)` (`0x6BD960 =
 which also hands you the struct size). Any `lui`/`ori` + `addu` where the target has a plain
 `addiu` is this, never a real symbol address — `0x6B/0xD960` does not look like one, and the
 wrong instinct is to hunt for the symbol it names. (Third instance of this rule in the TU:
-`func_actor_401800_801399C4` is `func_actor_401800_80139870` with `animRequest = 1`,
+`_actor401800FallFront` is `_actor401800RefallFront` with `animRequest = 1`,
 `animId = 0xC` and the `field_68` test on bit 0; transcribing the twin and fixing the two
 `+ 0x8E8` / `+ 0xA28` spellings was also 100.000% on the first build.)
 
@@ -108210,7 +108210,7 @@ lhu v0,0x6(s2)      /* candidate */
 build 100.000%, and the overlay's own checksum still passed with no change to the other
 matched reader of that field.
 
-That other reader is the trap. `func_actor_401800_8013E4F0` (matched, same overlay) reads the
+That other reader is the trap. `_actor401800RiseFront` (matched, same overlay) reads the
 field with `lhu`:
 
 ```c
@@ -108307,7 +108307,7 @@ written, and why the helper's `amount` is a plain `s16` parameter rather than a 
 site: the same inlined helper compiled from another 401300-family TU shows the identical
 `lh`/`lhu` pair.
 
-## A `SCRATCH_STACK_CURSOR_SLOT` access only keeps its `lui %hi` / `lw %lo(reg)` form when it lives inside an inline helper (`func_actor_401800_8013945C`, 2026-09-16)
+## A `SCRATCH_STACK_CURSOR_SLOT` access only keeps its `lui %hi` / `lw %lo(reg)` form when it lives inside an inline helper (`_actor401800FallBack`, 2026-09-16)
 
 `*(SVECTOR**)SCRATCH_STACK_CURSOR_SLOT` - i.e. `*(T*)((u8*)((void*)0x1F800000) + 0x3FC)` - compiles two
 different ways depending on whether the statement is written in the body of a
@@ -108341,9 +108341,9 @@ body broke `80139118` instead, which is the mirror image. The zero-distance guar
 of that difference: dropping `if (stepDistance != 0)` from the helper still matches 100%, because a
 constant `stepDistance` folds the branch away either way.
 
-## A chain whose arms all end in the same statement: m2c's reversed test is the polarity to write (func_actor_401800_8013B784, 2026-09-16)
+## A chain whose arms all end in the same statement: m2c's reversed test is the polarity to write (_actor401800Ambush, 2026-09-16)
 
-`func_actor_401800_8013B784` turns its stored yaw toward the target yaw by at most
+`_actor401800Ambush` turns its stored yaw toward the target yaw by at most
 `0x28` a frame, and both arms of the step write the same `work->lookYawTarget = aim->turn`
 when the gap is under `0x29`. The target branches *both* arms forward to one shared
 store, each arm carrying its own step store in the delay slot of its `j`:
@@ -108392,7 +108392,7 @@ easy to do and expensive to believe.
 
 `oddStrangerHoldAim`'s brief carried "turning the stored yaw toward the
 target by at most 0x28 a frame instead of the hard clamp
-`oddStrangerFacePlayer` uses" - which is `func_actor_401800_8013B784`, the
+`oddStrangerFacePlayer` uses" - which is `_actor401800Ambush`, the
 function that begins at the line below the snippet. The target itself does the
 opposite of what that sentence implies: both of its yaw tests write zero
 (`lh`/`blez`/`sh $zero`/`lh`/`bgez`/`sh $zero`), so the turn is dropped, not
@@ -108488,7 +108488,7 @@ if (a >= K) { T } else { E }     slti v0,a,K ; bnez v0,Lelse ; T ; j Ljoin ; Lel
 ```
 
 So `bnez v0,L` does **not** mean "L begins the then-block" — read the `slti`'s
-operand order first. `func_actor_401800_80139D60` opens with
+operand order first. `_actor401800Dormant` opens with
 
 ```
 lh   v0,0x6(s1)
@@ -108810,7 +108810,7 @@ a single register rename that knocks a line out of the `equal` opcodes costs
 200, not 5, and the following lines stay misaligned until the mnemonic
 sequences resync.
 
-`func_actor_401800_801381E4` sat at 95.4 % with 11 insertions + 13 deletions
+`_actor401800Grab` sat at 95.4 % with 11 insertions + 13 deletions
 (2400 of its 2991 distance) from **five register renames inside two inlined
 helper bodies** — `head` `$a0`→`$v0`, `outp` `$a2`→`$a1`, `p` `$a1`→`$a2`,
 `svp` `$s1`→`$s2`, `dir` `$s0`→`$s1` — every instruction, block, predicate and
@@ -108841,7 +108841,7 @@ flag.
 
 ### An inlined helper fixes the allocation of its arguments; a twice-assigned local does not
 
-Two changes on `func_actor_401800_801381E4` (95.4 % final, input `base_27.i`
+Two changes on `_actor401800Grab` (95.4 % final, input `base_27.i`
 `8b972b74f9e60ca0956e4d23a0ede99faf2afe633ec45f0b0a71abdf713b233b`) are the
 same mechanism read in both directions, and both are pure source shape — no
 statement moved.
@@ -136039,9 +136039,9 @@ base_13.i `43ae34aec5adf4dab8531c8017aaf61adb1cb088333aac8be718c1a439c8baf4`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 
-## A shared pointer allocno can join four disjoint ranges; a scratch-store temporary supplies the missing copy (`func_actor_401800_80136560`, 2026-09-20)
+## A shared pointer allocno can join four disjoint ranges; a scratch-store temporary supplies the missing copy (`_actor401800Chase`, 2026-09-20)
 
-The archived 98.866% seed used one `coord` for two call-free position-delta
+The archived 98.866% seed used one root pointer for two call-free position-delta
 blocks, a two-ratan2 turn expression, and the final facing read. `.lreg` observed
 14 references, four deaths and one crossed call; `.greg` put the entire pseudo
 in s0. Splitting **both** the turn expression and final facing read into separate
@@ -136051,8 +136051,8 @@ This preserved the required call-crossing range while resolving all eleven
 coordinate sites. Splitting only the tail would leave the delta pointer sharing
 the call-crossing turn range.
 
-The push also needed an intermediate value: `block = head - 1; *scratch =
-block; chase = block;`. Base_5 `.cse` retains the temporary,
+The archived push also needed an intermediate reservation before publishing
+the scratch cursor and copying it into `chase`. Base_5 `.cse` retains the temporary,
 its store, then the copy into the long-lived `chase`. The temporary gets v0 and
 `chase` gets s2, supplying the target's copy and allowing removal of the seed's redundant
 saved actor alias. This resolved every remaining register site, distance 300→240.
@@ -136068,7 +136068,7 @@ or register pins and reuses the matched MoveForwardNonzero helper. This supports
 the explicit dependency boundary here, not a universal hazard-priority rule;
 individual ready-list choices were not traced.
 
-Evidence is retained under `tools/permuter_findings/func_actor_401800_80136560/`.
+Evidence is retained under `tools/permuter_findings/_actor401800Chase/`.
 Base_6 preprocessed SHA256: `9709ec03263638af90548da2f8b0c0f915a4001159eb8fa75b54320ce16ed5cc`.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 See PERMUTER_ANALYSIS.md, base_4.i.lreg/.greg, base_5.i.cse, base_6.i.sched/.sched2
@@ -136088,21 +136088,22 @@ The successful prediction is visible in `base_3.i.sched2`: store 481 -> basic as
 This supports the dependency intervention for this function, not a universal need for two fences. The exact unfenced hazard-selection decision and individual necessity of each fence remain untested. Candidate hashes, penalties, observed UIDs and scope are retained in `tools/compiler_evidence/2026-09-20-actor401800-d64c.json`; matching preprocessed SHA256 is `6f5046c79ed0a885a498c0fc0cf1ca13164d97e1e8ff4fa34d63f50f2a61d8a6` (bundled compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`). Full dumps and conclusions remain in the session scratch.
 
 
-### Keep-live placement must preserve the scheduler region as well as allocation (func_actor_401800_801381E4, 2026-09-20)
+### Keep-live placement must preserve the scheduler region as well as allocation (_actor401800Grab, 2026-09-20)
 
 This retry matched 100% and passed the unscoped integration build. The two
-coordinate walks needed cursor/outp in a1/a2 and dir/svp/coord in s0/s1/s2.
+coordinate walks needed currentCoord/playerOrigin in a1/a2 and
+offset/transformedPoint/reference in s0/s1/s2.
 A multi-input empty asm reproduced those register homes but moved the address
 calculations and several independent loads: the deciding inputs improved while
 the complete function regressed from distance 514 to 2838.
 
 The final source makes the temporary SVECTOR caller-owned and passes its
-address before dir in the inline helper argument list. A loop-tail
-SOFT_TOUCH_REG(p) adds cursor references without changing the emitted walk.
-SOFT_USE_REG(svp) adds one reference on the successful view-hit exit, immediately
-before copying the transformed vector to outp. Keeping that use in the entry
+address before offset in the inline helper argument list. A loop-tail
+SOFT_TOUCH_REG(currentCoord) adds cursor references without changing the emitted walk.
+SOFT_USE_REG(transformedPoint) adds one reference on the successful view-hit exit, immediately
+before copying the transformed vector to playerOrigin. Keeping that use in the entry
 instead creates an implicitly volatile asm whose scheduler dependencies capture
-the dir address, forcing it before gameGetTaskSlot. Moving the use to the exit
+the offset address, forcing it before gameGetTaskSlot. Moving the use to the exit
 avoids those entry dependencies. The base_9 plan predicted both the remaining
 priority advantage and the restored entry schedule; both were observed.
 
@@ -136110,21 +136111,21 @@ Final compiler trace (ordinary and observed assembly identical):
 
 | Value | Refs / span | Priority | Home |
 |---|---:|---:|---|
-| cursor r147 | 8 / 20 | 12000 | a1 |
-| outp r137 | 11 / 48 | 6875 | a2 |
-| dir r131 | 4 / 57 | 1403 | s0 |
-| svp r130 | 3 / 46 | 652 | s1 |
-| coord r129 | 3 / 56 | 535 | s2 |
+| currentCoord r147 | 8 / 20 | 12000 | a1 |
+| playerOrigin r137 | 11 / 48 | 6875 | a2 |
+| offset r131 | 4 / 57 | 1403 | s0 |
+| transformedPoint r130 | 3 / 46 | 652 | s1 |
+| reference r129 | 3 / 56 | 535 | s2 |
 
-Sched1 selects dir-address UID201 at backward cycle 20, head load UID211 at
-21, call UID207 at 22, and svp-address UID199 at 27. Sched2 preserves that
-order. Thus svp precedes the call and dir fills the head load's delay slot.
+Sched1 selects offset-address UID201 at backward cycle 20, savedCursor load UID211 at
+21, call UID207 at 22, and transformedPoint-address UID199 at 27. Sched2 preserves that
+order. Thus transformedPoint precedes the call and offset fills the savedCursor load's delay slot.
 This is a controlled placement result, not a claim that an input-only asm is a
 soft barrier or that adding references alone suffices.
 
-Other useful source constraints: publishing head-8 before deriving outp keeps
+Other useful source constraints: publishing savedCursor - 1 before deriving playerOrigin keeps
 the target pointer copy; writing scratch zeros before loading the player model
-reverses the observed memory dependency. A first version moved outp to a2 by
+reverses the observed memory dependency. A first version moved playerOrigin to a2 by
 adding a local a1 conflict, not by reversing its global priority. Explicit
 if/else animation stores match where a ternary materializes an extra full
 address. The permuter's single-assignment do/while gain was reproduced but its
@@ -136135,7 +136136,7 @@ base_9.i `0fdc4c47292fe4cfc65ed869fed9f3475d1ba82ea7ce0b9e0107c711d1ce3acd`. Com
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Evidence: scratch LEARNINGS.md, base_9 plan and dumps, and
 PERMUTER_EVIDENCE/6039bf3ba6464942/analysis/final/REPORT.txt and manifest.json;
-retained under tools/permuter_findings/func_actor_401800_801381E4/.
+retained under tools/permuter_findings/_actor401800Grab/.
 
 ## Splitting a shared coordinate temporary changes local eligibility and a neighboring saved-register tie
 

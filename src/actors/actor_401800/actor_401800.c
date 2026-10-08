@@ -122,9 +122,8 @@ extern TmdSource gOddStrangerBurstModelC;
 #include "../../shared/actor_contacts.h"
 
 static void func_actor_401800_8013423C(Enemy* enemy, Task* actor);
-static void func_actor_401800_8013E138(Task* arg0);
-static void func_actor_401800_8013E4F0(Task* arg0);
-static void func_actor_401800_801381E4(Task* arg0);
+static void _actor401800Hidden(Task* task);
+static void _actor401800RiseFront(Task* task);
 
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
@@ -146,8 +145,8 @@ static AnimationSet _gActor401800Animation1FDEC;
 static AnimationSet _gActor401800Animation2074C;
 
 static TmdSource _gActor401800OddStrangerBody;
-s32              func_actor_401800_8013DCB4(Task*, s32, s32, s32);
-void             func_actor_401800_8013E68C(Task*);
+static s32       _actor401800IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unusedExtra);
+static void      _actor401800Task(Task* task);
 
 static AnimationSet _gActor401800Animation15118;
 static AnimationSet _gActor401800Animation156F8;
@@ -1075,8 +1074,10 @@ SVECTOR gOddStrangerHitOffsets[12] = {
     { -25, 0, 0, 2 },
 };
 
+enum { ACTOR_401800_MESSAGE_IGNORE = 2015 };
+
 TaskMessageEntry D_actor_401800_80155A80[8] = {
-    { 2015, func_actor_401800_8013DCB4 },
+    { ACTOR_401800_MESSAGE_IGNORE, _actor401800IgnoreMessage2015 },
     { ACTOR_MESSAGE_PLAY_ANIMATION, _oddStrangerPlayMessage },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, actorMsgSetVisibility },
     { ACTOR_MESSAGE_IS_PRESENT, actorMsgIsPresent },
@@ -1088,7 +1089,7 @@ TaskMessageEntry D_actor_401800_80155A80[8] = {
 
 u16 gOddStrangerChaseDistance = 0;
 
-TaskDesc D_actor_401800_80155AC4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_401800_8013E68C, { .model = &_gActor401800OddStrangerBody } };
+TaskDesc D_actor_401800_80155AC4 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor401800Task, { .model = &_gActor401800OddStrangerBody } };
 
 static SVECTOR ActorContact_ScratchPosition;
 
@@ -1108,18 +1109,7 @@ OddStrangerTransformStorage gOddStrangerGrabTransform;
 
 GameActorButtonPressHold D_actor_401800_80155AF8;
 
-static __inline__ void Actor401800_BindMatrices(Task* actor);
-static __inline__ s32  Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r);
-static void            func_actor_401800_80136560(Task* arg0);
-static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECTOR* dir);
-static __inline__ void Actor401800_SetGrabAnim(void);
-static void            func_actor_401800_8013945C(Task* arg0);
-static void            func_actor_401800_8013971C(Task* arg0);
-static void            func_actor_401800_80139870(Task* arg0);
-static void            func_actor_401800_801399C4(Task* arg0);
-static void            func_actor_401800_80139D60(Task* arg0);
-static void            func_actor_401800_8013B784(Task* arg0);
-static void            func_actor_401800_8013BB10(Task* arg0);
+static void func_actor_401800_8013BB10(Task* arg0);
 
 #include "../../shared/actor_contacts.h"
 
@@ -1135,17 +1125,19 @@ static void            func_actor_401800_8013BB10(Task* arg0);
 
 #include "../../shared/odd_stranger_drive.inc.c"
 
-/// Binds the work block's light and color matrices onto the model object.
-/// Same body as `_actor01900BindLightingMatrices` / `_actor401300BindLightingMatrices`.
-static __inline__ void Actor401800_BindMatrices(Task* actor)
+/// Binds the model's lighting pointers to its Odd Stranger work storage.
+///
+/// Requires a live TMD task with initialized work. The work matrices must remain
+/// live until the model stops using them; this does not initialize their values.
+static __inline__ void _actor401800BindLightingMatrices(const Task* actor)
 {
     OddStrangerWork* work;
-    TmdObject*       obj;
+    TmdObject*       model;
 
-    work          = actor->work;
-    obj           = actor->extra.tmd;
-    obj->lightMtx = &work->lightMtx;
-    obj->colorMtx = &work->colorMtx;
+    work            = actor->work;
+    model           = actor->extra.tmd;
+    model->lightMtx = &work->lightMtx;
+    model->colorMtx = &work->colorMtx;
 }
 
 /// Enemy init: allocates the work block, binds the model matrices, sets up both
@@ -1174,7 +1166,7 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
     }
     (sceneAcquireBattleRef)(0);
     actor->exitCallback = _oddStrangerExit;
-    Actor401800_BindMatrices(actor);
+    _actor401800BindLightingMatrices(actor);
     enemy->field_4    = &actor->extra.tmd->coords->coord;
     enemy->field_48   = 0;
     enemy->bodyPos.vx = 0;
@@ -1324,130 +1316,129 @@ static void func_actor_401800_8013423C(Enemy* enemy, Task* actor)
 
 #include "../../shared/odd_stranger_push_body.inc.c"
 
-static __inline__ s32 Actor401800_ChaseOutOfRange(SVECTOR* d, s16 r)
+/// Refreshes player heading, the offset to the player and its reverse bearing.
+///
+/// Both model roots must use the same parent frame. Offsets narrow to signed
+/// halfwords; angles use 4096 units per turn and retain both half-turn endpoints.
+static __inline__ void _actor401800ReadPlayerBearings(const Task* task, ActorChaseScratch* chase)
 {
-    OverlayRangeScratch* head;
-    OverlayRangeScratch* blk;
-    s32                  ret;
-
-    head                                      = SCRATCH_STACK_CURSOR(OverlayRangeScratch);
-    head[-1].dx                               = d->vx;
-    blk                                       = head - 1;
-    blk->dz                                   = d->vz;
-    blk->radius                               = r;
-    head[-1].dx                              *= head[-1].dx;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = blk;
-    blk->dz                                  *= blk->dz;
-    blk->radius                              *= blk->radius;
-    SCRATCH_STACK_CURSOR(OverlayRangeScratch) = head;
-    ret                                       = head[-1].dx + blk->dz >= blk->radius;
-    return ret;
+    chase->playerYaw = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
+                              gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &chase->delta);
+    chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+    chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
 }
 
-static void func_actor_401800_80136560(Task* arg0)
+/// Pursues the player in `ODD_STRANGER_STATE_CHASE`, sidestepping or grabbing.
+///
+/// A stalking spawn switches to STALK immediately. Entry enables drawing,
+/// lock-on and grid response and starts the run clip. Later ticks resolve
+/// contacts, turn by at most 48 units (4096 per turn) and advance with the clip
+/// rate. Clear sight permits grabs within 1100 units and sidesteps outside
+/// 1800 units; the grab's signed, one-sided turn test is retained.
+/// Requires live actor/player roots in the same parent frame, initialized work
+/// and enough scratch space for one chase block plus the nested contact tests.
+static void _actor401800Chase(Task* task)
 {
+    enum {
+        ACTOR_401800_CHASE_SPAWN_MODE_MASK     = 0xF0,
+        ACTOR_401800_CHASE_STALK_SPAWN         = 0x10,
+        ACTOR_401800_CHASE_PLAYER_FACING_LIMIT = 68,
+        ACTOR_401800_CHASE_SIDESTEP_TURN_LIMIT = 128,
+        ACTOR_401800_CHASE_SIDESTEP_RANGE      = 1800,
+        ACTOR_401800_CHASE_GRAB_RANGE          = 1100,
+        ACTOR_401800_CHASE_GRAB_TURN_LIMIT     = ACTOR_TRANSFORM_ANGLE_TURN / 8,
+        ACTOR_401800_CHASE_TURN_STEP           = 48
+    };
     OddStrangerWork*   work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    GfxCoord*          turnCoord;
-    GfxCoord*          facing;
-    void**             scratch;
-    ActorChaseScratch* head;
-    ActorChaseScratch* block;
+    TmdObject*         model;
+    GfxCoord*          headingRoot;
+    GfxCoord*          facingRoot;
+    ActorChaseScratch* savedCursor;
     ActorChaseScratch* chase;
-    s32                kind;
+    s32                spawnMode;
 
-    kind = (arg0->spawnArg1.value >> 16);
-    work = arg0->work;
-    if ((kind & 0xF0) == 0x10) {
+    spawnMode = (task->spawnArg1.value >> 16);
+    work      = task->work;
+    if ((spawnMode & ACTOR_401800_CHASE_SPAWN_MODE_MASK) == ACTOR_401800_CHASE_STALK_SPAWN) {
         work->state = ODD_STRANGER_STATE_STALK;
         return;
     }
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius    = 0x12C;
+        model                                                     = task->extra.tmd;
+        ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = 0;
+        model->flags                                              = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius    = ODD_STRANGER_BODY_RADIUS;
         work->animRequest       = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->blendActive       = 0;
-        work->animId            = 3;
+        work->animId            = ODD_STRANGER_ANIM_RUN;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
         work->animRate          = work->chaseRate;
-        _oddStrangerDriveAnimation(arg0);
+        _oddStrangerDriveAnimation(task);
         work->dashCount   = 0;
         work->stateTimer  = 0;
         work->exitCounter = 0;
         return;
     }
     work->stateTimer++;
-    scratch                                     = SCRATCH_HEAD_ADDR;
-    head                                        = SCRATCH_HEAD_AT(scratch, ActorChaseScratch);
-    block                                       = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorChaseScratch) = block;
-    chase                                       = block;
-    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-        _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    savedCursor = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    chase       = (SCRATCH_STACK_CURSOR(ActorChaseScratch) = savedCursor - 1);
+    // Separate body overlap only when the room grid did not push the root.
+    if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+        _oddStrangerApplyBodyPushback(task, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
-    coord                                 = arg0->extra.tmd->coords;
-    head[-1].delta.vx                     = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    chase->delta.vy                       = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    chase->delta.vz                       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _oddStrangerDriveAnimation(arg0);
-    chase->playerYaw     = ratan2(-gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][0],
-                                  gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords->coord.m[2][2]);
-    coord                = arg0->extra.tmd->coords;
-    head[-1].delta.vx    = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    chase->delta.vy      = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    chase->delta.vz      = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    chase->yawFromPlayer = ratan2(chase->delta.vx, chase->delta.vz) + 0x800;
-    chase->yawFromPlayer = _actorAngleNormalizeYaw(chase->yawFromPlayer);
-    turnCoord            = arg0->extra.tmd->coords;
-    chase->turn          = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-turnCoord->coord.m[2][0], turnCoord->coord.m[2][2]));
-    work->lookYawTarget  = chase->turn;
-    if (abs(chase->yawFromPlayer - chase->playerYaw) < 0x44) {
+    _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &chase->delta);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _oddStrangerDriveAnimation(task);
+    // Refresh player heading and reverse bearing after advancing the animation.
+    _actor401800ReadPlayerBearings(task, chase);
+    headingRoot         = task->extra.tmd->coords;
+    chase->turn         = _actorAngleNormalizeYaw(ratan2(chase->delta.vx, chase->delta.vz) - ratan2(-headingRoot->coord.m[2][0], headingRoot->coord.m[2][2]));
+    work->lookYawTarget = chase->turn;
+    if (abs(chase->yawFromPlayer - chase->playerYaw) < ACTOR_401800_CHASE_PLAYER_FACING_LIMIT) {
         if (((s16)work->sidestepDelay + work->sidestepCount / 2) < work->stateTimer) {
-            if (abs(chase->turn) < 0x80) {
-                if (Actor401800_ChaseOutOfRange(&chase->delta, 0x708) && _playerDetectionSightBlocked(arg0) != 1) {
+            if (abs(chase->turn) < ACTOR_401800_CHASE_SIDESTEP_TURN_LIMIT) {
+                if (_actorRangeOutsideRadiusXZ(&chase->delta, ACTOR_401800_CHASE_SIDESTEP_RANGE) && _playerDetectionSightBlocked(task) != 1) {
                     work->state = ODD_STRANGER_STATE_SIDESTEP;
                 }
             }
         }
     }
-    if (chase->turn < 0x200) {
-        if (!Actor401800_ChaseOutOfRange(&chase->delta, 0x44C) && _playerDetectionSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
+    // This signed comparison allows every turn below the positive limit.
+    if (chase->turn < ACTOR_401800_CHASE_GRAB_TURN_LIMIT) {
+        if (!_actorRangeOutsideRadiusXZ(&chase->delta, ACTOR_401800_CHASE_GRAB_RANGE) && _playerDetectionSightBlocked(task) != 1 && work->grabCooldown == 0) {
             work->state = ODD_STRANGER_STATE_GRAB;
         }
     }
-    if (chase->turn > 0x30) {
-        chase->turn = 0x30;
+    if (chase->turn > ACTOR_401800_CHASE_TURN_STEP) {
+        chase->turn = ACTOR_401800_CHASE_TURN_STEP;
     }
-    if (chase->turn < -0x30) {
-        chase->turn = -0x30;
+    if (chase->turn < -ACTOR_401800_CHASE_TURN_STEP) {
+        chase->turn = -ACTOR_401800_CHASE_TURN_STEP;
     }
-    facing       = arg0->extra.tmd->coords;
-    chase->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, chase->turn, 1);
-    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->animId == 3) {
+    facingRoot   = task->extra.tmd->coords;
+    chase->turn += ratan2(-facingRoot->coord.m[2][0], facingRoot->coord.m[2][2]);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, chase->turn, GRAPHICS_ROTATION_REPLACE);
+    _actorRenderRescaleYaw(task->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->animId == ODD_STRANGER_ANIM_RUN) {
         if (work->blendActive == 0) {
-            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, ((work->chaseRate + 2) * 0x42) / 18) != 0) {
-                _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, ((work->chaseRate + 2) * 0x42) / 18);
+            if ((s16)_playerDetectionOutOfReach(task->extra.tmd->coords, ODD_STRANGER_BODY_RADIUS, ((work->chaseRate + 2) * 0x42) / 18) != 0) {
+                _actorMovementTranslateForwardNonzero(task->extra.tmd->coords, ((work->chaseRate + 2) * 0x42) / 18);
             }
-        } else if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, (((work->chaseRate + 2) * 0x42) / 18) >> 2) != 0) {
-            _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, (((work->chaseRate + 2) * 0x42) / 18) >> 2);
+        } else if ((s16)_playerDetectionOutOfReach(task->extra.tmd->coords, ODD_STRANGER_BODY_RADIUS, (((work->chaseRate + 2) * 0x42) / 18) >> 2) != 0) {
+            _actorMovementTranslateForwardNonzero(task->extra.tmd->coords, (((work->chaseRate + 2) * 0x42) / 18) >> 2);
         }
-    } else if (work->rig.slots[1].status.fields.flags & 1) {
-        work->animId      = 3;
+    } else if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        work->animId      = ODD_STRANGER_ANIM_RUN;
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
     }
     if (work->grabCooldown != 0) {
         work->grabCooldown--;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 #include "../../shared/odd_stranger_chase.inc.c"
@@ -1456,166 +1447,224 @@ static void func_actor_401800_80136560(Task* arg0)
 
 #include "../../shared/odd_stranger_sidestep.inc.c"
 
-static __inline__ void Actor401800_ViewWalk(GfxCoord* coord, SVECTOR* svp, SVECTOR* dir)
+/// Computes the horizontal offset from a reference origin to player joint 1.
+///
+/// Walks the live player's acyclic local-matrix chain to `gGfxViewCoord`,
+/// excluding that view matrix and narrowing XYZ to signed halfwords after
+/// each transform. The view must have a parent to commit the target origin;
+/// an incomplete chain uses a zero target origin. `reference` must use that
+/// same pre-view frame. Output X/Z use game units; output Y is zero.
+/// Word-aligned `transformedPoint` receives the intermediate point even on an
+/// incomplete chain; `offset` must be halfword-aligned. Both writable vectors
+/// must be disjoint from each other and the hierarchy; their fourth halfwords
+/// are untouched. Requires one free word-aligned SVECTOR on the initialized
+/// scratch stack, restored before returning.
+/// Overwrites GTE transform state; captured overflow flags are discarded.
+static __inline__ void _actor401800PlayerJointOffsetXZ(const GfxCoord* reference, SVECTOR* transformedPoint, SVECTOR* offset)
 {
-    VECTOR    vec;
-    SVECTOR*  outp;
-    u8*       head;
-    VECTOR*   vecp;
-    GfxCoord* p;
-    GfxCoord* view;
-    s32       flag;
-    s32*      flagp;
-    Task*     player;
+    VECTOR          longPoint;
+    SVECTOR*        playerOrigin;
+    SVECTOR*        savedCursor;
+    VECTOR*         longPointOutput;
+    const GfxCoord* currentCoord;
+    const GfxCoord* viewCoord;
+    s32             gteFlags;
+    s32*            gteFlagsOutput;
+    Task*           player;
 
-    player                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - 8;
-    outp                     = (SVECTOR*)(head - 8);
-    view                     = &gGfxViewCoord;
-    vecp                     = &vec;
-    flagp                    = &flag;
-    outp->vx                 = 0;
-    outp->vy                 = 0;
-    outp->vz                 = 0;
-    p                        = &player->extra.tmd->coords[1];
-    svp->vx                  = outp->vx;
-    svp->vy                  = outp->vy;
-    svp->vz                  = outp->vz;
+    player                        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    savedCursor                   = SCRATCH_STACK_CURSOR(SVECTOR);
+    SCRATCH_STACK_CURSOR(SVECTOR) = savedCursor - 1;
+    playerOrigin                  = savedCursor - 1;
+    viewCoord                     = &gGfxViewCoord;
+    longPointOutput               = &longPoint;
+    gteFlagsOutput                = &gteFlags;
+    playerOrigin->vx              = 0;
+    playerOrigin->vy              = 0;
+    playerOrigin->vz              = 0;
+    currentCoord                  = &player->extra.tmd->coords[1];
+    transformedPoint->vx          = playerOrigin->vx;
+    transformedPoint->vy          = playerOrigin->vy;
+    transformedPoint->vz          = playerOrigin->vz;
+
+/// Transforms a joint point and narrows XYZ before walking to the next parent.
+///
+/// `localMatrix` is a stable, readable, word-aligned Q12 matrix pointer,
+/// evaluated twice. `point` is a stable writable word-aligned SVECTOR pointer,
+/// evaluated four times, disjoint from the matrix; its pad stays intact.
+/// Captures this helper's `longPoint`, `longPointOutput` (its address) and
+/// `gteFlagsOutput` (the discarded FLAG output). These staging outputs must
+/// remain live throughout the parent walk; overflow flags do not affect XYZ.
+/// Changes GTE state and expands to one compound statement inside braces.
+#define ACTOR_401800_TRANSFORM_JOINT_POINT(localMatrix, point)  \
+    {                                                           \
+        gte_SetTransMatrix((localMatrix));                      \
+        gte_SetRotMatrix((localMatrix));                        \
+        gte_RotTrans((point), longPointOutput, gteFlagsOutput); \
+        (point)->vx = longPoint.vx;                             \
+        (point)->vy = longPoint.vy;                             \
+        (point)->vz = longPoint.vz;                             \
+    }
+
+    // Commit the origin only after reaching the excluded view node.
     for (;;) {
-        if (p->parent != NULL) {
-            if (p != view) {
-                gte_SetTransMatrix(&p->coord);
-                gte_SetRotMatrix(&p->coord);
-                gte_ldv0(svp);
-                gte_rtv0tr();
-                gte_stlvnl(vecp);
-                gte_stflg(flagp);
-                svp->vx = vec.vx;
-                svp->vy = vec.vy;
-                svp->vz = vec.vz;
-                p       = p->parent;
+        if (currentCoord->parent != NULL) {
+            if (currentCoord != viewCoord) {
+                ACTOR_401800_TRANSFORM_JOINT_POINT(&currentCoord->coord, transformedPoint);
+                currentCoord = currentCoord->parent;
                 continue;
             }
-            outp->vx = svp->vx;
-            outp->vy = svp->vy;
-            outp->vz = svp->vz;
+            playerOrigin->vx = transformedPoint->vx;
+            playerOrigin->vy = transformedPoint->vy;
+            playerOrigin->vz = transformedPoint->vz;
         }
         break;
     }
-    dir->vx = outp->vx - coord->coord.t[0];
-    dir->vy = 0;
-    dir->vz = outp->vz - coord->coord.t[2];
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    offset->vx = playerOrigin->vx - reference->coord.t[0];
+    offset->vy = 0;
+    offset->vz = playerOrigin->vz - reference->coord.t[2];
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
+#undef ACTOR_401800_TRANSFORM_JOINT_POINT
 
-static __inline__ void Actor401800_SetGrabAnim(void)
+/// Selects the held player's animation bank for the saved character.
+///
+/// Character 1 uses the populated grab bank; every other value selects the
+/// alternate bank. The persistent request borrows the selected overlay table.
+static __inline__ void _actor401800SelectPlayerGrabAnimations(void)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
+    enum { ACTOR_401800_PRIMARY_CHARACTER_ID = 1 };
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_401800_PRIMARY_CHARACTER_ID) {
         gOddStrangerPlayerAnim.source.sets = D_actor_401800_801559F8;
     } else {
         gOddStrangerPlayerAnim.source.sets = D_actor_401800_801559F0;
     }
 }
 
-static void func_actor_401800_801381E4(Task* arg0)
+/// Saves the root origin to restore when this grab or its strike ends.
+///
+/// The live task's parent-space translation narrows to signed halfwords.
+static __inline__ void _actor401800SaveGrabOrigin(const Task* task, OddStrangerWork* work)
 {
+    work->grabStartPos.vx = task->extra.tmd->coords->coord.t[0];
+    work->grabStartPos.vy = task->extra.tmd->coords->coord.t[1];
+    work->grabStartPos.vz = task->extra.tmd->coords->coord.t[2];
+}
+
+/// Reaches for the player in `ODD_STRANGER_STATE_GRAB` and starts a hold.
+///
+/// At cue record 16, a non-scripted player within 1500 units and 32 angle
+/// units can accept an eight-press escape hold, selecting GRAB_PULL and the
+/// player's grab clip. From record 17, steps ten units away while within
+/// 1400 units. An unsuccessful reach returns to CHASE at the clip boundary.
+/// Requires live actor/player work and models, common pre-view coordinates,
+/// initialized animation/collision state and scratch space for the nested tests.
+/// Static hold and animation requests are borrowed during synchronous dispatch.
+static void _actor401800Grab(Task* task)
+{
+    enum {
+        ACTOR_401800_GRAB_COOLDOWN_TICKS   = 10,
+        ACTOR_401800_GRAB_HOLD_RECORD      = 16,
+        ACTOR_401800_GRAB_RETREAT_RECORD   = 17,
+        ACTOR_401800_GRAB_TURN_LIMIT       = 32,
+        ACTOR_401800_GRAB_HOLD_RANGE       = 1500,
+        ACTOR_401800_GRAB_RETREAT_RANGE    = 1400,
+        ACTOR_401800_GRAB_RETREAT_STEP     = 10,
+        ACTOR_401800_GRAB_ESCAPE_PRESSES   = 8,
+        ACTOR_401800_PLAYER_GRAB_ANIMATION = 1
+    };
     Enemy*           enemy;
     Task*            player;
-    GameActor*       gactor;
-    PlayerStatus*    config;
+    GameActor*       playerWork;
+    PlayerStatus*    playerStatus;
     OddStrangerWork* work;
-    SVECTOR          dir;
-    SVECTOR          sv;
-    s32              ang;
-    u16              step;
+    SVECTOR          separation;
+    SVECTOR          transformedPoint;
+    s32              turnError;
+    u16              elapsedTicks;
 
-    enemy  = arg0->spawnArg2.pointer;
-    work   = arg0->work;
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    gactor = (GameActor*)player->work;
-    config = &gPlayerStatus;
+    enemy        = task->spawnArg2.pointer;
+    work         = task->work;
+    player       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerWork   = player->work;
+    playerStatus = &gPlayerStatus;
     if (work->stateEntered != 0) {
-        work->grabCooldown            = 0xA;
-        work->hitBody.radius          = 0x12C;
+        work->grabCooldown            = ACTOR_401800_GRAB_COOLDOWN_TICKS;
+        work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->sidestepCount           = 0;
         work->playerHeld              = 0;
-        work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->attackBody.flags        = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags          = work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
-        work->animRate                = 0x10;
-        work->animId                  = 4;
-        _oddStrangerDriveAnimation(arg0);
-        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-        work->grabStartPos.vx = arg0->extra.tmd->coords->coord.t[0];
-        work->grabStartPos.vy = arg0->extra.tmd->coords->coord.t[1];
-        work->grabStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
-        work->stateTimer      = 0;
+        work->animRate                = ANIMATION_RATE_ONE;
+        work->animId                  = ODD_STRANGER_ANIM_GRAB_REACH;
+        _oddStrangerDriveAnimation(task);
+        _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        _actor401800SaveGrabOrigin(task, work);
+        work->stateTimer = 0;
         return;
     }
-    step             = (u16)work->stateTimer + 1;
-    work->stateTimer = step;
-    if ((s16)step == 1) {
-        _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-        work->grabStartPos.vx = arg0->extra.tmd->coords->coord.t[0];
-        work->grabStartPos.vy = arg0->extra.tmd->coords->coord.t[1];
-        work->grabStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
-        Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
-        ang = _actorAngleTurnToDirection(arg0->extra.tmd->coords, &dir);
-        gfxRotMatrixY(&arg0->extra.tmd->coords[0].coord, ang, 0);
-        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
-        dir.vx                                = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
-        dir.vy                                = 0;
-        dir.vz                                = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
+    elapsedTicks     = (u16)work->stateTimer + 1;
+    work->stateTimer = elapsedTicks;
+    if ((s16)elapsedTicks == 1) {
+        _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+        _actor401800SaveGrabOrigin(task, work);
+        _actor401800PlayerJointOffsetXZ(task->extra.tmd->coords, &transformedPoint, &separation);
+        turnError = _actorAngleTurnToDirection(task->extra.tmd->coords, &separation);
+        gfxRotMatrixY(&task->extra.tmd->coords[0].coord, turnError, GRAPHICS_ROTATION_COMPOSE);
+        _actorRenderRescaleYaw(task->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
+        separation.vx                         = task->extra.tmd->coords->coord.t[0] - playerStatus->coordMtx->t[0];
+        separation.vy                         = 0;
+        separation.vz                         = task->extra.tmd->coords->coord.t[2] - playerStatus->coordMtx->t[2];
         work->lookYawTarget                   = 0;
         work->lookYaw                         = 0;
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->sidestepCount                   = 0;
         work->playerHeld                      = 0;
-        work->grabCooldown                    = 0xA;
+        work->grabCooldown                    = ACTOR_401800_GRAB_COOLDOWN_TICKS;
     }
-    _oddStrangerDriveAnimation(arg0);
-    if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && gactor->mode != GAME_ACTOR_MODE_SCRIPTED) {
-        Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
-        ang = _actorAngleTurnToDirection(arg0->extra.tmd->coords, &dir);
-        if (ang < 0) {
-            ang = -ang;
+    _oddStrangerDriveAnimation(task);
+    // The reach cue tests the animated joint origin before requesting the hold.
+    if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == ACTOR_401800_GRAB_HOLD_RECORD && playerWork->mode != GAME_ACTOR_MODE_SCRIPTED) {
+        _actor401800PlayerJointOffsetXZ(task->extra.tmd->coords, &transformedPoint, &separation);
+        turnError = _actorAngleTurnToDirection(task->extra.tmd->coords, &separation);
+        if (turnError < 0) {
+            turnError = -turnError;
         }
-        if (ang < 0x20) {
-            if (!_oddStrangerOutOfRange(&dir, 0x5DC)) {
-                Actor401800_SetGrabAnim();
-                D_actor_401800_80155AF8.pressCount = 8;
-                do {
-                    if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401800_80155AF8, 0) == 0) {
-                        work->state                        = ODD_STRANGER_STATE_GRAB_PULL;
-                        work->playerHeld                   = 1;
-                        gOddStrangerPlayerAnim.animationId = 1;
-                        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gOddStrangerPlayerAnim, 0);
-                    }
-                } while (0);
+        if (turnError < ACTOR_401800_GRAB_TURN_LIMIT) {
+            if (!_oddStrangerOutOfRange(&separation, ACTOR_401800_GRAB_HOLD_RANGE)) {
+                _actor401800SelectPlayerGrabAnimations();
+                D_actor_401800_80155AF8.pressCount = ACTOR_401800_GRAB_ESCAPE_PRESSES;
+                if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_401800_80155AF8, 0) == 0) {
+                    work->state                        = ODD_STRANGER_STATE_GRAB_PULL;
+                    work->playerHeld                   = 1;
+                    gOddStrangerPlayerAnim.animationId = ACTOR_401800_PLAYER_GRAB_ANIMATION;
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &gOddStrangerPlayerAnim, 0);
+                }
             }
         }
     }
-    if (work->animId == 4 && (work->rig.slots[1].status.fields.flags & 1)) {
+    if (work->animId == ODD_STRANGER_ANIM_GRAB_REACH && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         work->state = ODD_STRANGER_STATE_CHASE;
     }
-    if ((u32)(work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) >= 0x11U) {
-        dir.vx = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
-        dir.vy = 0;
-        dir.vz = arg0->extra.tmd->coords->coord.t[2] - config->coordMtx->t[2];
-        if (!_oddStrangerOutOfRange(&dir, 0x578)) {
-            VectorNormalSS(&dir, &dir);
-            gte_lddp(0xA);
-            gte_ldsv(&dir);
+    // After the reach, step away along the separation and resolve contacts.
+    if ((u32)(work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) >= (u32)ACTOR_401800_GRAB_RETREAT_RECORD) {
+        separation.vx = task->extra.tmd->coords->coord.t[0] - playerStatus->coordMtx->t[0];
+        separation.vy = 0;
+        separation.vz = task->extra.tmd->coords->coord.t[2] - playerStatus->coordMtx->t[2];
+        if (!_oddStrangerOutOfRange(&separation, ACTOR_401800_GRAB_RETREAT_RANGE)) {
+            VectorNormalSS(&separation, &separation);
+            gte_lddp(ACTOR_401800_GRAB_RETREAT_STEP);
+            gte_ldsv(&separation);
             gte_gpf12();
-            gte_stsv(&dir);
-            arg0->extra.tmd->coords->coord.t[0]  += dir.vx;
-            arg0->extra.tmd->coords->coord.t[2]  += dir.vz;
-            arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+            gte_stsv(&separation);
+            task->extra.tmd->coords->coord.t[0]  += separation.vx;
+            task->extra.tmd->coords->coord.t[2]  += separation.vz;
+            task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         }
-        if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
-            _oddStrangerApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        if (_actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts)) != 1) {
+            _oddStrangerApplyBodyPushback(task, work->hitContacts, ARRAY_SIZE(work->hitContacts));
         }
     }
 }
@@ -1626,32 +1675,48 @@ static void func_actor_401800_801381E4(Task* arg0)
 
 #include "../../shared/odd_stranger_grab_release.inc.c"
 
-/// Per-frame body of the live actor armed into state 1: raises the same
-/// animation slots as `func_actor_401800_8013971C` but leaves `animId = 0xA`
-/// (with `animRequest = 1` and `blendActive` cleared), then, while that slot is
-/// still `0xA`, advances the actor along its own local Z by a fixed `-0x57`
-/// when `_playerDetectionOutOfReach` permits the step by facing and distance.
-/// The `0xA` branch
-/// then flips the slots to `0xB`/2 and ticks the animation a second time before
-/// the two contact records are rebuilt, after which work bit 0 picks `state`
-/// from the enemy's HP sign and its buildup bit (`reactionFlags`).
-static void func_actor_401800_8013945C(Task* arg0)
+/// Ends hit-body grid response and selects the rest or death after a knockdown.
+///
+/// Call at the state's animation boundary with live work and enemy records.
+static __inline__ void _actor401800CompleteKnockdown(OddStrangerWork* work, const Enemy* enemy)
 {
+    work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+    if (enemy->hp <= 0) {
+        work->state = ODD_STRANGER_STATE_DEATH_BURN;
+    } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
+        work->state = ODD_STRANGER_STATE_STATUS_HOLD;
+    } else {
+        work->state = ODD_STRANGER_STATE_DOWN;
+    }
+}
+
+/// Staggers backward and falls in `ODD_STRANGER_STATE_FALL_BACK`.
+///
+/// Steps -87 game units while the recoil clip permits, then restarts the
+/// back-lying clip. Grid contacts displace the root throughout the fall.
+/// At its boundary, nonpositive HP selects DEATH_BURN, status buildup selects
+/// STATUS_HOLD, and otherwise DOWN. Requires live work, enemy and model.
+static void _actor401800FallBack(Task* task)
+{
+    enum {
+        ACTOR_401800_ANIM_FALL_BACK = 10,
+        ACTOR_401800_FALL_BACK_STEP = -87
+    };
     OddStrangerWork* work;
     Enemy*           enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitBody.radius          = 0x12C;
+        task->extra.tmd->flags        = 0;
+        work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
-        work->animId                  = 0xA;
+        work->animId                  = ACTOR_401800_ANIM_FALL_BACK;
         work->blendActive             = 0;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
@@ -1659,50 +1724,45 @@ static void func_actor_401800_8013945C(Task* arg0)
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    if ((work->animId == 0xA) && ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x12C, -0x57) != 0)) {
-        _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, -0x57);
+    if ((work->animId == ACTOR_401800_ANIM_FALL_BACK) && ((s16)_playerDetectionOutOfReach(task->extra.tmd->coords, ODD_STRANGER_BODY_RADIUS, ACTOR_401800_FALL_BACK_STEP) != 0)) {
+        _actorMovementTranslateForwardNonzero(task->extra.tmd->coords, ACTOR_401800_FALL_BACK_STEP);
     }
-    _oddStrangerDriveAnimation(arg0);
-    if ((work->rig.slots[1].status.fields.flags & 1) && (work->animId == 0xA)) {
-        work->animId      = 0xB;
+    _oddStrangerDriveAnimation(task);
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && (work->animId == ACTOR_401800_ANIM_FALL_BACK)) {
+        work->animId      = ODD_STRANGER_ANIM_DOWN_BACK;
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
-        _oddStrangerDriveAnimation(arg0);
+        _oddStrangerDriveAnimation(task);
     }
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if ((work->rig.slots[1].status.fields.flags & 1) && (work->animId == 0xB)) {
-        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        if (enemy->hp <= 0) {
-            work->state = ODD_STRANGER_STATE_DEATH_BURN;
-        } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->state = ODD_STRANGER_STATE_STATUS_HOLD;
-        } else {
-            work->state = ODD_STRANGER_STATE_DOWN;
-        }
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) && (work->animId == ODD_STRANGER_ANIM_DOWN_BACK)) {
+        _actor401800CompleteKnockdown(work, enemy);
     }
 }
 
-/// Per-frame body of the live actor: arms the animation slots and the two
-/// `hitBody` / `gridBody` nodes, re-seeds the 0x8E8 and 0xA28 contact
-/// records, then — while work bit 0x100 is set — picks `state` from the
-/// enemy's HP sign and its buildup bit (`reactionFlags`). Same body as `_actor01900StateRefall`.
-static void func_actor_401800_8013971C(Task* arg0)
+/// Restarts a back knockdown in `ODD_STRANGER_STATE_REFALL_BACK`.
+///
+/// Holds the back-lying clip while resolving both contact sets. Its settled
+/// boundary disables hit-body grid response and selects DEATH_BURN for
+/// nonpositive HP, STATUS_HOLD for buildup, or DOWN. Requires live work,
+/// enemy, model and scratch space for contact correction.
+static void _actor401800RefallBack(Task* task)
 {
     OddStrangerWork* work;
     Enemy*           enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitBody.radius          = 0x12C;
+        task->extra.tmd->flags        = 0;
+        work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ODD_STRANGER_ANIM_REQUEST_RESET;
-        work->animId                  = 0xB;
-        work->animRate                = 0x10;
+        work->animId                  = ODD_STRANGER_ANIM_DOWN_BACK;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
@@ -1710,41 +1770,37 @@ static void func_actor_401800_8013971C(Task* arg0)
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    _oddStrangerDriveAnimation(arg0);
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        if (enemy->hp <= 0) {
-            work->state = ODD_STRANGER_STATE_DEATH_BURN;
-        } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->state = ODD_STRANGER_STATE_STATUS_HOLD;
-        } else {
-            work->state = ODD_STRANGER_STATE_DOWN;
-        }
+    _oddStrangerDriveAnimation(task);
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        _actor401800CompleteKnockdown(work, enemy);
     }
 }
 
-/// Second per-frame body of the live actor: as `func_actor_401800_8013971C`,
-/// but it arms the animation slots with `animId = 0x19` and skips the
-/// `field_5A` clip rebuild.
-static void func_actor_401800_80139870(Task* arg0)
+/// Restarts a front knockdown in `ODD_STRANGER_STATE_REFALL_FRONT`.
+///
+/// Plays the front refall clip and resolves both contact sets. Its settled
+/// boundary disables hit-body grid response and selects DEATH_BURN for
+/// nonpositive HP, STATUS_HOLD for buildup, or DOWN. Requires live work,
+/// enemy, model and scratch space for contact correction.
+static void _actor401800RefallFront(Task* task)
 {
     OddStrangerWork* work;
     Enemy*           enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitBody.radius          = 0x12C;
+        task->extra.tmd->flags        = 0;
+        work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ODD_STRANGER_ANIM_REQUEST_RESET;
-        work->animId                  = 0x19;
-        work->animRate                = 0x10;
+        work->animId                  = ODD_STRANGER_ANIM_REFALL_FRONT;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
@@ -1752,42 +1808,37 @@ static void func_actor_401800_80139870(Task* arg0)
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    _oddStrangerDriveAnimation(arg0);
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        if (enemy->hp <= 0) {
-            work->state = ODD_STRANGER_STATE_DEATH_BURN;
-        } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->state = ODD_STRANGER_STATE_STATUS_HOLD;
-        } else {
-            work->state = ODD_STRANGER_STATE_DOWN;
-        }
+    _oddStrangerDriveAnimation(task);
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        _actor401800CompleteKnockdown(work, enemy);
     }
 }
 
-/// Third per-frame body of the live actor: `func_actor_401800_8013971C` with
-/// the animation slots armed at 1 / 0xC, and its `state` selector driven by
-/// work bit 0 instead of bit 8. Same body as `func_actor_401800_8013971C`
-/// apart from those three constants.
-static void func_actor_401800_801399C4(Task* arg0)
+/// Falls forward in `ODD_STRANGER_STATE_FALL_FRONT`.
+///
+/// Blends into the front-lying clip and resolves both contact sets. The
+/// reported clip boundary disables hit-body grid response and selects
+/// DEATH_BURN for nonpositive HP, STATUS_HOLD for buildup, or DOWN.
+/// Requires live work, enemy, model and scratch space for contact correction.
+static void _actor401800FallFront(Task* task)
 {
     OddStrangerWork* work;
     Enemy*           enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitBody.radius          = 0x12C;
+        task->extra.tmd->flags        = 0;
+        work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
-        work->animId                  = 0xC;
-        work->animRate                = 0x10;
+        work->animId                  = ODD_STRANGER_ANIM_DOWN_FRONT;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp < 0) {
@@ -1795,97 +1846,90 @@ static void func_actor_401800_801399C4(Task* arg0)
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    _oddStrangerDriveAnimation(arg0);
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->rig.slots[1].status.fields.flags & 1) {
-        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        if (enemy->hp <= 0) {
-            work->state = ODD_STRANGER_STATE_DEATH_BURN;
-        } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->state = ODD_STRANGER_STATE_STATUS_HOLD;
-        } else {
-            work->state = ODD_STRANGER_STATE_DOWN;
-        }
+    _oddStrangerDriveAnimation(task);
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    _actorContactApplyGridPushback(task->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
+        _actor401800CompleteKnockdown(work, enemy);
     }
 }
 
 #include "../../shared/odd_stranger_die.inc.c"
 
-/// Countdown body: on the live-actor flag re-allocates the model's buffers,
-/// keeps a copy of `colorMtx` in `savedColorMtx` and restarts the step
-/// counter in state 0xE. The counter then runs to 0x961, rerolling the LCG each
-/// frame past it and bailing for that frame on every 0xF-th draw; the surviving
-/// frames re-test the squared XZ offset to the player against
-/// `noticeRadius` and arm `gSceneCombatState` state 6 on a miss — bit 0x50000 there arms
-/// it the same way. After the shared per-frame tick the body flips between
-/// states 0xE and 0xF, one LCG draw per attempt, on the two `rig.slots[1].status` mask
-/// bits. Same shape as `_oddStrangerDormantScripted`.
-static void func_actor_401800_80139D60(Task* arg0)
+/// Waits for a nearby player or combat noise in `ODD_STRANGER_STATE_DORMANT`.
+///
+/// Entry enables drawing and lock-on, disables root grid response and saves
+/// the color matrix. Alternates two idle clips at their jump/boundary cues.
+/// After 2401 ticks, one random draw in sixteen skips the whole handler tick.
+/// Proximity uses the signed-halfword XZ offset and notice radius; noise also
+/// selects ALERT. Requires live actor/player transforms in the same parent
+/// frame, initialized work and scratch space for the range test.
+static void _actor401800Dormant(Task* task)
 {
+    enum {
+        ACTOR_401800_ANIM_DORMANT           = 14,
+        ACTOR_401800_ANIM_DORMANT_VARIATION = 15,
+        ACTOR_401800_DORMANT_RECHECK_TICKS  = 2401,
+        ACTOR_401800_DORMANT_SKIP_MASK      = 15
+    };
     OddStrangerWork* work;
     Enemy*           enemy;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    SVECTOR          delta;
-    SVECTOR*         d;
-    u16              step;
-    u32              lcg;
+    TmdObject*       model;
+    SVECTOR          toPlayer;
+    u16              elapsedTicks;
+    u32              randomState;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj        = arg0->extra.tmd;
-        enemy      = arg0->spawnArg2.pointer;
-        obj->flags = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius          = 0x12C;
+        model        = task->extra.tmd;
+        enemy        = task->spawnArg2.pointer;
+        model->flags = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = 0;
         work->stateTimer              = 0;
         work->savedColorMtx           = work->colorMtx;
-        work->animId                  = 0xE;
+        work->animId                  = ACTOR_401800_ANIM_DORMANT;
         work->animRequest             = ODD_STRANGER_ANIM_REQUEST_BLEND;
         work->animRate                = work->chaseRate;
     }
-    step = (u16)work->stateTimer;
-    if (work->stateTimer >= 0x961) {
-        lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState = lcg;
-        if (!((lcg >> 16) & 0xF)) {
+    elapsedTicks = (u16)work->stateTimer;
+    // The late random skip also skips awareness and animation advancement.
+    if (work->stateTimer >= ACTOR_401800_DORMANT_RECHECK_TICKS) {
+        randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState = randomState;
+        if (!((randomState >> 16) & ACTOR_401800_DORMANT_SKIP_MASK)) {
             return;
         }
     } else {
-        work->stateTimer = (s16)(step + 1);
+        work->stateTimer = (s16)(elapsedTicks + 1);
     }
-    coord    = arg0->extra.tmd->coords;
-    d        = &delta;
-    delta.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    d->vy    = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    d->vz    = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    if (!_oddStrangerOutOfRange(d, work->noticeRadius)) {
+    _actorPositionDeltaToPlayer(&gPlayerStatus, task->extra.tmd->coords, &toPlayer);
+    if (!_oddStrangerOutOfRange(&toPlayer, work->noticeRadius)) {
         work->state = ODD_STRANGER_STATE_ALERT;
     }
     if (gSceneCombatState.signals.packed & SCENE_COMBAT_SIGNAL_NOISE_OR_OTHER_CAST) {
         work->state = ODD_STRANGER_STATE_ALERT;
     }
-    _oddStrangerDriveAnimation(arg0);
-    if (work->animId == 0xE) {
-        if (work->rig.slots[1].status.fields.flags & 2) {
-            lcg             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = lcg;
-            if ((lcg >> 16) & 1) {
-                work->animId      = 0xF;
+    _oddStrangerDriveAnimation(task);
+    if (work->animId == ACTOR_401800_ANIM_DORMANT) {
+        if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
+            randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = randomState;
+            if ((randomState >> 16) & 1) {
+                work->animId      = ACTOR_401800_ANIM_DORMANT_VARIATION;
                 work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
-                _oddStrangerDriveAnimation(arg0);
+                _oddStrangerDriveAnimation(task);
             }
         }
     }
-    if (work->animId == 0xF && (work->rig.slots[1].status.fields.flags & 1)) {
-        work->animId      = 0xE;
+    if (work->animId == ACTOR_401800_ANIM_DORMANT_VARIATION && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+        work->animId      = ACTOR_401800_ANIM_DORMANT;
         work->animRequest = ODD_STRANGER_ANIM_REQUEST_BLEND;
-        _oddStrangerDriveAnimation(arg0);
+        _oddStrangerDriveAnimation(task);
     }
 }
 
@@ -1899,61 +1943,67 @@ static void func_actor_401800_80139D60(Task* arg0)
 
 #include "../../shared/odd_stranger_hold_aim.inc.c"
 
-/// Aim the actor at the player and rescale its root coordinate, turning the
-/// stored yaw toward the target by at most 0x28 a frame instead of the hard
-/// clamp `oddStrangerFacePlayer` uses. On the live flag it resets the
-/// model buffers and re-arms the step countdown; otherwise it hands the
-/// player offset and the new yaw to the actor's state body and rebuilds the
-/// matrix at scale 0x1194.
-static void func_actor_401800_8013B784(Task* arg0)
+/// Waits unlockable and aims its look in `ODD_STRANGER_STATE_AMBUSH`.
+///
+/// Keeps its root heading while moving the look target toward the player's
+/// bearing by up to 40 angle units per tick (4096 per turn). Once equal, clear
+/// sight and an expired grab cooldown select GRAB, without a range check.
+/// Restarts the ambush clip each tick. Requires live actor/player roots in
+/// the same parent frame, initialized work and one chase scratch block.
+static void _actor401800Ambush(Task* task)
 {
+    enum {
+        ACTOR_401800_ANIM_AMBUSH      = 19,
+        ACTOR_401800_AMBUSH_LOOK_STEP = 40
+    };
     OddStrangerWork*   work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    ActorChaseScratch* aim;
+    TmdObject*         model;
+    GfxCoord*          root;
+    ActorChaseScratch* lookScratch;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius    = 0x12C;
+        model                                                     = task->extra.tmd;
+        ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                                              = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius    = ODD_STRANGER_BODY_RADIUS;
         work->animRequest       = ODD_STRANGER_ANIM_REQUEST_RESET;
-        work->animRate          = 0x10;
-        work->animId            = 0x13;
+        work->animRate          = ANIMATION_RATE_ONE;
+        work->animId            = ACTOR_401800_ANIM_AMBUSH;
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        _oddStrangerDriveAnimation(arg0);
-        _oddStrangerDriveAnimation(arg0);
+        _oddStrangerDriveAnimation(task);
+        _oddStrangerDriveAnimation(task);
         work->stateTimer = 0;
         work->lookYaw    = 0;
         return;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
-    aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
-    if (work->lookYawTarget < aim->turn) {
-        if (aim->turn - work->lookYawTarget >= 0x29) {
-            work->lookYawTarget = (u16)work->lookYawTarget + 0x28;
+    lookScratch       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    lookScratch->turn = _actorAngleTurnToPlayer(task, &lookScratch->delta, &gPlayerStatus);
+    if (work->lookYawTarget < lookScratch->turn) {
+        if (lookScratch->turn - work->lookYawTarget >= (ACTOR_401800_AMBUSH_LOOK_STEP + 1)) {
+            work->lookYawTarget = (u16)work->lookYawTarget + ACTOR_401800_AMBUSH_LOOK_STEP;
         } else {
-            work->lookYawTarget = aim->turn;
+            work->lookYawTarget = lookScratch->turn;
         }
-    } else if (work->lookYawTarget - aim->turn >= 0x29) {
-        work->lookYawTarget = (u16)work->lookYawTarget - 0x28;
+    } else if (work->lookYawTarget - lookScratch->turn >= (ACTOR_401800_AMBUSH_LOOK_STEP + 1)) {
+        work->lookYawTarget = (u16)work->lookYawTarget - ACTOR_401800_AMBUSH_LOOK_STEP;
     } else {
-        work->lookYawTarget = aim->turn;
+        work->lookYawTarget = lookScratch->turn;
     }
-    if (work->lookYawTarget == aim->turn && _playerDetectionSightBlocked(arg0) != 1 && work->grabCooldown == 0) {
+    // Settled look, clear sight and cooldown are sufficient; there is no range test.
+    if (work->lookYawTarget == lookScratch->turn && _playerDetectionSightBlocked(task) != 1 && work->grabCooldown == 0) {
         work->state = ODD_STRANGER_STATE_GRAB;
     }
-    coord     = arg0->extra.tmd->coords;
-    aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
+    root              = task->extra.tmd->coords;
+    lookScratch->turn = ratan2(-root->coord.m[2][0], root->coord.m[2][2]);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, lookScratch->turn, GRAPHICS_ROTATION_REPLACE);
+    _actorRenderRescaleYaw(task->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
     work->animRequest = ODD_STRANGER_ANIM_REQUEST_RESET;
-    _oddStrangerDriveAnimation(arg0);
+    _oddStrangerDriveAnimation(task);
     if (work->grabCooldown != 0) {
         work->grabCooldown--;
     }
@@ -2021,45 +2071,49 @@ static void func_actor_401800_8013BB10(Task* arg0)
 #include "../../shared/odd_stranger_stalk.inc.c"
 
 static const OddStrangerStateTable gOddStrangerStates = { {
-    func_actor_401800_8013E138,
+    _actor401800Hidden,
     _oddStrangerPlayWalk,
     _oddStrangerPlayRun,
     _oddStrangerPlayDown,
     _oddStrangerStatusHold,
     _oddStrangerFlinch,
     oddStrangerFacePlayer,
-    func_actor_401800_80136560,
+    _actor401800Chase,
     oddStrangerChase,
     oddStrangerTurnAround,
     oddStrangerSidestep,
-    func_actor_401800_801381E4,
+    _actor401800Grab,
     _oddStrangerGrabPull,
     _oddStrangerGrabStrike,
     oddStrangerGrabRelease,
     _oddStrangerRiseBack,
-    func_actor_401800_8013E4F0,
+    _actor401800RiseFront,
     _oddStrangerDown,
     NULL,
-    func_actor_401800_8013945C,
-    func_actor_401800_801399C4,
+    _actor401800FallBack,
+    _actor401800FallFront,
     oddStrangerDie,
-    func_actor_401800_80139D60,
+    _actor401800Dormant,
     _oddStrangerDormantScripted,
     oddStrangerPatrol,
     oddStrangerBackOff,
     oddStrangerAdvance,
     oddStrangerHoldAim,
-    func_actor_401800_8013B784,
+    _actor401800Ambush,
     func_actor_401800_8013BB10,
     oddStrangerStalk,
-    func_actor_401800_8013971C,
-    func_actor_401800_80139870,
+    _actor401800RefallBack,
+    _actor401800RefallFront,
     oddStrangerWalkingDeath,
 } };
 
 #include "../../shared/odd_stranger_tick.inc.c"
 
-s32 func_actor_401800_8013DCB4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores message 2015 without accessing the receiver or either payload.
+///
+/// The binary leaves the reply register unspecified, so callers must ignore
+/// the result. The signed callback signature retains that fall-through.
+static s32 _actor401800IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPayload, s32 unusedExtra)
 {
 }
 
@@ -2086,18 +2140,22 @@ static const EnemyTaskFuncTable3 D_actor_401800_80132064 = { {
 
 #include "../../shared/odd_stranger_exit.inc.c"
 
-static void func_actor_401800_8013E138(Task* arg0)
+/// Hides and disables lock-on on entry to `ODD_STRANGER_STATE_HIDDEN`.
+///
+/// Also disables attack-body pairing and root grid response. Requires a live
+/// TMD task, Odd Stranger work and enemy; later ticks do nothing.
+static void _actor401800Hidden(Task* task)
 {
-    TmdObject*       obj;
+    TmdObject*       model;
     OddStrangerWork* work;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                                                = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        work->attackBody.flags                                    = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->gridBody.flags                                      = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        model                                                     = task->extra.tmd;
+        ((Enemy*)task->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                                              = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        work->attackBody.flags                                    = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags                                      = work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     }
 }
 
@@ -2111,41 +2169,50 @@ static void func_actor_401800_8013E138(Task* arg0)
 
 #include "../../shared/odd_stranger_script_pose_8.inc.c"
 
-static void func_actor_401800_8013E4F0(Task* arg0)
+/// Gets up from a front knockdown in `ODD_STRANGER_STATE_RISE_FRONT`.
+///
+/// Restarts the front-rise clip at the pursuit rate, clears look angles and
+/// counts ticks for hit reactions to interrupt the recovery. The reported
+/// clip boundary selects CHASE. Requires live work, enemy and model.
+static void _actor401800RiseFront(Task* task)
 {
+    enum { ACTOR_401800_ANIM_RISE_FRONT = 22 };
     OddStrangerWork* work;
     Enemy*           enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitBody.radius          = 0x12C;
+        task->extra.tmd->flags        = 0;
+        work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ODD_STRANGER_ANIM_REQUEST_RESET;
-        work->animId                  = 0x16;
+        work->animId                  = ACTOR_401800_ANIM_RISE_FRONT;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         work->stateTimer              = 0;
         work->animRate                = work->chaseRate;
     }
     work->stateTimer = (u16)(work->stateTimer + 1);
-    _oddStrangerDriveAnimation(arg0);
-    if (work->rig.slots[1].status.fields.flags & 1) {
+    _oddStrangerDriveAnimation(task);
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ODD_STRANGER_STATE_CHASE;
     }
 }
 
 #include "../../shared/odd_stranger_idle.inc.c"
 
-/// Runs the actor's handler for the task's current state, copying the
-/// three-entry table onto the stack first.
-void func_actor_401800_8013E68C(Task* task)
+/// Dispatches this enemy task's initialize, tick or destroy handler.
+///
+/// `task->state` must be 0..2 and `spawnArg2.pointer` must borrow the live
+/// Enemy associated with this task. Copies the three handlers before dispatch;
+/// the initialization handler establishes the task work used by later ticks.
+static void _actor401800Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = D_actor_401800_80132064;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    handlers = D_actor_401800_80132064;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
