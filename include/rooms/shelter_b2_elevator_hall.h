@@ -64,7 +64,16 @@ void shelterB2ElevatorHallRoomVisualEffectsFlashTask(Task* task);
 /// Completion or external teardown releases the histories, effect work and task.
 void shelterB2ElevatorHallRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b2_elevator_hall_80182B48(Task* task);
+/// Runs an impact flash followed by smoke or orange rings and bouncing sparks.
+///
+/// Start in state 0 with the coordinate body and zeroed, counted `EffectWork`
+/// in `spawnArg2.pointer` supplied by `effectSpawn`. Nonzero `spawnArg1.value`
+/// selects smoke; zero selects two sparks and fading rings. Active age seven
+/// enters release; the next active tick frees work and kills the task.
+/// Nonzero room effect control pauses it; four or above cancels it. Child effects
+/// live independently. Keep the coordinate ancestors, effect controller, room
+/// overlay and current graphics workspace live through teardown.
+void shelterB2ElevatorHallRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs the elevator hall's animated, vertically drifting mote until its brightness fades.
 ///
@@ -97,7 +106,17 @@ void shelterB2ElevatorHallRoomVisualEffectsHaloTask(Task* task);
 /// four or above cancels it. Completion or cancellation releases work and task.
 void shelterB2ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_shelter_b2_elevator_hall_801816C8(Task* arg0);
+/// Emits twenty descending motes around its spawn coordinate.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` in
+/// `spawnArg2.pointer` from `effectSpawn`; `spawnArg1` is unused. Active ages
+/// 1..20 emit at turning radial offsets with local Y = -128 times age in
+/// coordinate units. Motes descend eight units per active motion tick and
+/// live independently after age 21 releases the emitter's work and task.
+/// Nonzero room effect control pauses it; four or above cancels it. Requires
+/// the installed mote effect; keep coordinate ancestors, controller and room
+/// overlay live through the emitted effects' lifetimes.
+void shelterB2ElevatorHallRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Selects the hall's effect task IDs and draws lamp and door-indicator glows for the current view.
 ///

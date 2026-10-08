@@ -25,8 +25,8 @@
 
 #include "rooms/room.h"
 
-/// Task table spawned by `func_shelter_b2_breeding_room_8017D6A4` once the
-/// breeding-room script has run.
+/// Completion task requested by `_shelterB2BreedingRoomCommandMessage`
+/// immediately after it starts the first-entry scene.
 extern TaskDesc D_shelter_b2_breeding_room_80180444[];
 
 /// Message table `_shelterB2BreedingRoomInitializeRoomTask` installs on its task.
@@ -34,7 +34,7 @@ extern TaskMessageEntry D_shelter_b2_breeding_room_80180414[];
 
 static s32  _shelterB2BreedingRoomRefuseKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
 static s32  _shelterB2BreedingRoomResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
-s32         func_shelter_b2_breeding_room_8017D6A4(Task*, s32, s32, s32);
+static s32  _shelterB2BreedingRoomCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
 static s32  _shelterB2BreedingRoomIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32  _shelterB2BreedingRoomSoundMsg(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
 static void _shelterB2BreedingRoomFinishFirstSceneTask(Task* task);
@@ -66,7 +66,7 @@ TaskMessageEntry D_shelter_b2_breeding_room_80180414[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2BreedingRoomResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2BreedingRoomRefuseKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2BreedingRoomIgnoreAction },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_breeding_room_8017D6A4 },
+    { ROOM_MESSAGE_COMMAND, _shelterB2BreedingRoomCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelterB2BreedingRoomSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -112,24 +112,45 @@ static s32 _shelterB2BreedingRoomResolveRoomTransition(Task* task, s32 messageId
     return SHELTER_B2_BREEDING_ROOM_TRANSITION_ACCEPTED;
 }
 
-/// Handler for msg `0x16`: the first entry into the breeding room. Runs the
-/// scripted scene once, then replays cap script `0x16` on later visits.
-s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Starts the breeding room's first-entry scene or its return-visit dialogue.
+///
+/// Handles `ROOM_MESSAGE_COMMAND` with command 0x16 in the first payload;
+/// other commands do nothing. The receiver and second payload are unused.
+/// Commits the first-visit flag and advances objective 0x1E to 0x1F before
+/// selecting loaded CAP file 1 and holding player control. Requests playback
+/// before spawning the completion task; spawn failure does not undo the flags
+/// or restore control. Keep the room and CAP resources loaded through completion.
+/// Always returns zero.
+static s32 _shelterB2BreedingRoomCommandMessage(Task* task, s32 messageId, s32 commandId, s32 unusedArg)
 {
-    if (arg2 == 0x16) {
+    enum {
+        SHELTER_B2_BREEDING_ROOM_COMMAND_FIRST_SCENE     = 0x16,
+        SHELTER_B2_BREEDING_ROOM_CAP_REVISIT             = 0x16,
+        SHELTER_B2_BREEDING_ROOM_CAP_FIRST_SCENE         = 1,
+        SHELTER_B2_BREEDING_ROOM_CAP_FILE                = 1,
+        SHELTER_B2_BREEDING_ROOM_CAP_TEXTURE_X           = 320,
+        SHELTER_B2_BREEDING_ROOM_CAP_TEXTURE_Y           = 256,
+        SHELTER_B2_BREEDING_ROOM_OBJECTIVE_BEFORE_SCENE  = 0x1E,
+        SHELTER_B2_BREEDING_ROOM_OBJECTIVE_AFTER_SCENE   = 0x1F,
+        SHELTER_B2_BREEDING_ROOM_FIRST_SCENE_SEEN        = 1,
+        SHELTER_B2_BREEDING_ROOM_TASK_FINISH_FIRST_SCENE = 0,
+    };
+
+    if (commandId == SHELTER_B2_BREEDING_ROOM_COMMAND_FIRST_SCENE) {
         if (gameFlagGetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN) != 0) {
-            capRunCommandWithTransition(0x16);
+            capRunCommandWithTransition(SHELTER_B2_BREEDING_ROOM_CAP_REVISIT);
         } else {
-            gameFlagSetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN, 1);
-            if (gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE) == 0x1E) {
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x1F);
+            // Bookkeeping precedes playback and is retained if the completion spawn fails.
+            gameFlagSetNibble(GAME_FLAG_BREEDING_ROOM_FIRST_SCENE_SEEN, SHELTER_B2_BREEDING_ROOM_FIRST_SCENE_SEEN);
+            if (gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE) == SHELTER_B2_BREEDING_ROOM_OBJECTIVE_BEFORE_SCENE) {
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_BREEDING_ROOM_OBJECTIVE_AFTER_SCENE);
             }
-            Gp_CapFile = 0;
-            capSelectLoadedFile(1);
-            capSetTexturePage(0x140, 0x100);
+            Gp_CapFile = NULL;
+            capSelectLoadedFile(SHELTER_B2_BREEDING_ROOM_CAP_FILE);
+            capSetTexturePage(SHELTER_B2_BREEDING_ROOM_CAP_TEXTURE_X, SHELTER_B2_BREEDING_ROOM_CAP_TEXTURE_Y);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommandWithTransition(1);
-            taskSpawnFromTable(D_shelter_b2_breeding_room_80180444, 0, 0, 0);
+            capRunCommandWithTransition(SHELTER_B2_BREEDING_ROOM_CAP_FIRST_SCENE);
+            taskSpawnFromTable(D_shelter_b2_breeding_room_80180444, SHELTER_B2_BREEDING_ROOM_TASK_FINISH_FIRST_SCENE, 0, 0);
         }
     }
     return 0;

@@ -84,7 +84,8 @@ static s32  _shelterB2ElevatorIgnoreActionMessage(Task* task, s32 messageId, con
 static s32  _shelterB2ElevatorOpenDoorMessage(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2);
 static s32  _shelterB2ElevatorCloseDoorMessage(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2);
 static void _shelterB2ElevatorDoorLeafTask(Task* task);
-void        func_shelter_b2_elevator_8017D888(Task*);
+static void _shelterB2ElevatorRoomInitState(Task* task);
+static void _shelterB2ElevatorExitTask(Task* task);
 
 /// Key-item use request from the inventory menu; this room always refuses it.
 enum { SHELTER_B2_ELEVATOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -162,7 +163,7 @@ static TmdSource _gShelterB2ElevatorModel00884 = {
 TaskDesc D_shelter_b2_elevator_8017DF70[4] = {
     { { { TASK_BODY_TMD, 192 } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00688 } },
     { { { TASK_BODY_TMD, 192 } }, _shelterB2ElevatorDoorLeafTask, { .model = &_gShelterB2ElevatorModel00884 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_elevator_8017D888, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB2ElevatorExitTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -379,8 +380,6 @@ AreaApplyRec D_shelter_b2_elevator_8017E9F8[2] = {
 
 Task* D_shelter_b2_elevator_8017EA00[2];
 
-static void func_shelter_b2_elevator_8017D5E8(Task* task);
-
 /// Spawns a door leaf at rest or the room's exit task on the selected task list.
 ///
 /// `descriptorIndex` is 0 or 1 for a leaf, or 2 for the exit task; it is unchecked.
@@ -392,27 +391,39 @@ static __inline__ Task* _shelterB2ElevatorSpawnTask(s32 descriptorIndex, s32 doo
     return taskSpawnFromTable(D_shelter_b2_elevator_8017DF70, descriptorIndex, SHELTER_B2_ELEVATOR_DOOR_REST, doorSide);
 }
 
-/// The room entry task's first state: installs the room's message table, takes
-/// pointer slot 7 and spawns the two door leaves. Unless the byte
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is 9, it then either runs the first-visit sequence, setting
-/// event nibble 0xCF, or on a later visit hides the HUD, spawns the exit task
-/// and runs CAP command 3.
-static void func_shelter_b2_elevator_8017D5E8(Task* task)
+/// Initializes the elevator's room receiver, door leaves and entry sequence.
+///
+/// Runs in state 0 and advances to idle. Publishes the receiver in
+/// `GAME_TASK_SLOT_ROOM` and retains both leaf spawn results without checking
+/// failure. Demo 9 skips story playback; other entries run the first-visit
+/// script when the elevator-access flag is clear, otherwise hold the HUD/event
+/// state and request an exit task with CAP command 3. Keep this room and its
+/// actor scripts loaded while their tasks run. The task body and payloads are unused.
+static void _shelterB2ElevatorRoomInitState(Task* task)
 {
+    enum {
+        SHELTER_B2_ELEVATOR_SETUP_ONLY_DEMO        = 9,
+        SHELTER_B2_ELEVATOR_FIRST_VISIT_RECORDED   = 1,
+        SHELTER_B2_ELEVATOR_OBJECTIVE_AFTER_ENTRY  = 0x24,
+        SHELTER_B2_ELEVATOR_CAP_SELECT_DESTINATION = 3,
+        SHELTER_B2_ELEVATOR_HUD_HIDDEN             = 1,
+        SHELTER_B2_ELEVATOR_EVENT_ACTIVE           = 1,
+    };
+
     task->msgTable = D_shelter_b2_elevator_8017DFA0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     D_shelter_b2_elevator_8017EA00[0] = _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_NEGATIVE_Z_LEAF, -1);
     D_shelter_b2_elevator_8017EA00[1] = _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_POSITIVE_Z_LEAF, 1);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_B2_ELEVATOR_SETUP_ONLY_DEMO) {
         if (gameFlagGetNibble(GAME_FLAG_0CF) == 0) {
-            gameFlagSetNibble(GAME_FLAG_0CF, 1);
+            gameFlagSetNibble(GAME_FLAG_0CF, SHELTER_B2_ELEVATOR_FIRST_VISIT_RECORDED);
             evsStartScriptWithSkip(D_actor_142900_801378D0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_142900_801380F8);
-            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x24);
+            gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_ELEVATOR_OBJECTIVE_AFTER_ENTRY);
         } else {
-            gGameSession->hideHud    = 1;
-            gGameSession->eventState = 1;
+            gGameSession->hideHud    = SHELTER_B2_ELEVATOR_HUD_HIDDEN;
+            gGameSession->eventState = SHELTER_B2_ELEVATOR_EVENT_ACTIVE;
             _shelterB2ElevatorSpawnTask(SHELTER_B2_ELEVATOR_TASK_EXIT, 0);
-            capRunCommand(3, CAP_PLAYBACK_IN_PLACE);
+            capRunCommand(SHELTER_B2_ELEVATOR_CAP_SELECT_DESTINATION, CAP_PLAYBACK_IN_PLACE);
         }
     }
     task->state++;
@@ -502,63 +513,95 @@ static void _shelterB2ElevatorDoorLeafTask(Task* task)
 
 /// The room entry task's three states: set the room up, idle, end.
 static const TaskFuncTable3 D_shelter_b2_elevator_8017D5C4 = {
-    { func_shelter_b2_elevator_8017D5E8, _shelterB2ElevatorRoomIdleState, taskKill },
+    { _shelterB2ElevatorRoomInitState, _shelterB2ElevatorRoomIdleState, taskKill },
 };
 
-/// The exit task. After 21 frames and once the CAP script is idle, it sets the
-/// destination area and warp from the event key the script chose (0xB, 0xC or
-/// 0xD), then resolves the destination through `mapShelterRoomVariantResolve`, spawns task
-/// 0x11 and ends.
-void func_shelter_b2_elevator_8017D888(Task* task)
+/// Resolves the saved elevator destination and requests a captured-frame reload.
+///
+/// Requires the Shelter map overlay and saved destination selectors to be live.
+/// Stops nonambient scripts, resolves warp/room and selects sprite variant 1.
+/// Only destination and query fields of the local request are initialized;
+/// the resolver ignores the others. The reload request does not wait for completion.
+static inline void _shelterB2ElevatorRequestExitReload(void)
 {
-    RoomEventMsg msg;
-    RoomEventMsg msg2;
+    enum { SHELTER_B2_ELEVATOR_EXIT_SPRITE_VARIANT = 1 };
+    RoomEventMsg transitionRequest;
+    RoomEventMsg resolvedDestination;
+
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
+    transitionRequest.queryOnly = ROOM_EVENT_EXECUTE;
+    transitionRequest.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
+    transitionRequest.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp;
+    transitionRequest.room      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room;
+    resolvedDestination         = transitionRequest;
+    mapShelterRoomVariantResolve(&transitionRequest, &resolvedDestination);
+    gDisplayState.spriteVariant                                = SHELTER_B2_ELEVATOR_EXIT_SPRITE_VARIANT;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = resolvedDestination.warp;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = resolvedDestination.room;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+}
+
+/// Transfers from the elevator to the floor chosen by its CAP dialogue.
+///
+/// Start in state 0 with a zero countdown. Holds player control until the
+/// pre-increment countdown reaches 21, then waits for CAP to become idle.
+/// Keys 0xB/0xC/0xD select B1/B2/B3; other keys retain the saved destination.
+/// After two further state advances, resolves the saved room variant and
+/// requests a captured-frame reload before killing this task. Body and payloads
+/// are unused; the room and map overlay must remain loaded until the request.
+static void _shelterB2ElevatorExitTask(Task* task)
+{
+    enum {
+        SHELTER_B2_ELEVATOR_EXIT_HOLD          = 0,
+        SHELTER_B2_ELEVATOR_EXIT_WAIT_CAP      = 1,
+        SHELTER_B2_ELEVATOR_EXIT_SELECT_FLOOR  = 2,
+        SHELTER_B2_ELEVATOR_EXIT_DELAY         = 3,
+        SHELTER_B2_ELEVATOR_EXIT_RELOAD        = 4,
+        SHELTER_B2_ELEVATOR_EXIT_HOLD_TICKS    = 21,
+        SHELTER_B2_ELEVATOR_CAP_DESTINATION_B1 = 0xB,
+        SHELTER_B2_ELEVATOR_CAP_DESTINATION_B2 = 0xC,
+        SHELTER_B2_ELEVATOR_CAP_DESTINATION_B3 = 0xD,
+        SHELTER_B2_ELEVATOR_B1_ARRIVAL_WARP    = 3,
+        SHELTER_B2_ELEVATOR_B2_ARRIVAL_WARP    = 2,
+        SHELTER_B2_ELEVATOR_B3_ARRIVAL_WARP    = 3,
+    };
 
     switch (task->state) {
-        case 0:
+        case SHELTER_B2_ELEVATOR_EXIT_HOLD:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            if (task->killCountdown >= 0x15) {
+            if (task->killCountdown >= SHELTER_B2_ELEVATOR_EXIT_HOLD_TICKS) {
                 task->state++;
             }
             task->killCountdown = task->killCountdown + 1;
             break;
-        case 1:
+        case SHELTER_B2_ELEVATOR_EXIT_WAIT_CAP:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 2:
+        case SHELTER_B2_ELEVATOR_EXIT_SELECT_FLOOR:
             switch (capGetVariantKey()) {
-                case 0xB:
+                case SHELTER_B2_ELEVATOR_CAP_DESTINATION_B1:
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B1_ELEVATOR_HALL;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B2_ELEVATOR_B1_ARRIVAL_WARP;
                     break;
-                case 0xC:
+                case SHELTER_B2_ELEVATOR_CAP_DESTINATION_B2:
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B2_ELEVATOR_B2_ARRIVAL_WARP;
                     break;
-                case 0xD:
+                case SHELTER_B2_ELEVATOR_CAP_DESTINATION_B3:
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B3_ELEVATOR_HALL;
-                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 3;
+                    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = SHELTER_B2_ELEVATOR_B3_ARRIVAL_WARP;
                     break;
             }
             task->state++;
             break;
-        case 3:
+        case SHELTER_B2_ELEVATOR_EXIT_DELAY:
             task->state++;
             break;
-        case 4:
-            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            msg.queryOnly = ROOM_EVENT_EXECUTE;
-            msg.areaId    = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area;
-            msg.warp      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp;
-            msg.room      = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room;
-            msg2          = msg;
-            mapShelterRoomVariantResolve(&msg, &msg2);
-            gDisplayState.spriteVariant                                = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = msg2.warp;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = msg2.room;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+        case SHELTER_B2_ELEVATOR_EXIT_RELOAD:
+            // Only the destination selectors are used; retain the partial message initialization.
+            _shelterB2ElevatorRequestExitReload();
             taskKill(task);
             break;
     }

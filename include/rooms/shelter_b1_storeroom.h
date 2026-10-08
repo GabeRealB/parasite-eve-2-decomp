@@ -56,9 +56,29 @@ void shelterB1StoreroomRoomVisualEffectsFlashTask(Task* task);
 /// frees both work allocations. The parent, controller and overlay must remain live.
 void shelterB1StoreroomRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b1_storeroom_80182118(Task* task);
+/// Runs an impact flash followed by smoke or orange rings and bouncing sparks.
+///
+/// Start in state 0 with the coordinate body and zeroed, counted `EffectWork`
+/// in `spawnArg2.pointer` supplied by `effectSpawn`. Nonzero `spawnArg1.value`
+/// selects smoke; zero selects two sparks and fading rings. Active age seven
+/// enters release; the next active tick frees work and kills the task.
+/// Nonzero room effect control pauses it; four or above cancels it. Child effects
+/// live independently. Keep the coordinate ancestors, effect controller, room
+/// overlay and current graphics workspace live through teardown.
+void shelterB1StoreroomRoomVisualEffectsSparkBurstTask(Task* task);
 
-void func_shelter_b1_storeroom_80182D60(Task* arg0);
+/// Runs an attached charge disc with player-joint sparks and a fading release ring.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` in
+/// `spawnArg2.pointer` from `effectSpawn`; `spawnArg1.value` selects tint 0 or 1.
+/// The initial state attaches at the work's copied offset in its borrowed
+/// parent's axes. The owner may request flicker, release or cancellation with
+/// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Growth emits sparks from player parts 3..18
+/// every fourth active age and adopts them for teardown with the disc. Requires
+/// the installed flying-spark effect, live player model and coordinate ancestors.
+/// Nonzero room effect control pauses it; four or above cancels it. Completion
+/// frees work, children and task; keep the controller and room overlay loaded.
+void shelterB1StoreroomRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Flies an animated spark toward its target's initial position with a fixed step.
 ///

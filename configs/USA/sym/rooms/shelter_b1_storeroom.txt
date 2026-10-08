@@ -62,9 +62,9 @@ shelterB1StoreroomRoomVisualEffectsFlashTask = 0x80180DCC; // type:func
 
 shelterB1StoreroomRoomVisualEffectsTwinTrailTask = 0x80181830; // type:func
 
-func_shelter_b1_storeroom_80182118 = 0x80182118; // type:func
+shelterB1StoreroomRoomVisualEffectsSparkBurstTask = 0x80182118; // type:func
 
-func_shelter_b1_storeroom_80182D60 = 0x80182D60; // type:func
+shelterB1StoreroomRoomVisualEffectsGlowDiscTask = 0x80182D60; // type:func
 
 shelterB1StoreroomRoomVisualEffectsFlyingSparkTask = 0x801832B8; // type:func
 

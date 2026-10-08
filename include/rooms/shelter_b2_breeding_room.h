@@ -59,7 +59,18 @@ void shelterB2BreedingRoomAreaObjectTask(Task* task);
 /// handling.
 void shelterB2BreedingRoomRoomTask(Task* task);
 
-void func_shelter_b2_breeding_room_8017E774(Task* arg0);
+/// Runs an attached charge disc with player-joint sparks and a fading release ring.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` in
+/// `spawnArg2.pointer` from `effectSpawn`; `spawnArg1.value` selects tint 0 or 1.
+/// The initial state attaches at the work's copied offset in its borrowed
+/// parent's axes. The owner may request flicker, release or cancellation with
+/// `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`. Growth emits sparks from player parts 3..18
+/// every fourth active age and adopts them for teardown with the disc. Requires
+/// the installed flying-spark effect, live player model and coordinate ancestors.
+/// Nonzero room effect control pauses it; four or above cancels it. Completion
+/// frees work, children and task; keep the controller and room overlay loaded.
+void shelterB2BreedingRoomRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs the Breeding Room's animated spark along its initial target displacement.
 ///

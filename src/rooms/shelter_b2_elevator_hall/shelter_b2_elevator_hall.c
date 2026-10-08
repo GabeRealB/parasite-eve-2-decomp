@@ -101,7 +101,7 @@ extern SVECTOR  D_shelter_b2_elevator_hall_801838B0[];
 static void _shelterB2ElevatorHallInitRoomTask(Task* task);
 static void _shelterB2ElevatorHallIdleRoomTask(Task* task);
 
-s32        func_shelter_b2_elevator_hall_8017DAD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB2ElevatorHallResolveRoomTransition(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB2ElevatorHallRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32 _shelterB2ElevatorHallIgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32 _shelterB2ElevatorHallIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
@@ -115,7 +115,7 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 TaskDesc D_shelter_b2_elevator_hall_8018379C = { { { TASK_BODY_NONE, 32 } }, shelterElevatorTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_b2_elevator_hall_801837A8[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_hall_8017DAD4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2ElevatorHallResolveRoomTransition },
     { SHELTER_B2_ELEVATOR_HALL_MESSAGE_USE_KEY_ITEM, _shelterB2ElevatorHallRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2ElevatorHallIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB2ElevatorHallIgnoreRoomCommand },
@@ -498,59 +498,81 @@ RoomEventReq gRoomEventReq;
 
 #include "../../shared/shelter_elevator_task.inc.c"
 
-/// Message handler: copies the incoming message to `out` and forwards both to
-/// `mapShelterRoomVariantResolve`. Messages 0x21 and 0x1C build a request for the gate
-/// `_roomEventGate` (nibble 0xAB with no collected bit, and
-/// nibble 0xA9 with collected bit 0x21, which also sets item-seen bit 0x121 when the
-/// gate reports the event fired). Message 0x1A
-/// answers 0 and, unless `in->queryOnly` asks for a dry run, either sets the
-/// message's nibble and runs CAP command 4 while nibble 0xBA is clear, or runs
-/// CAP command 5 and spawns the room's task once it is set. Anything else
-/// answers 1.
-s32 func_shelter_b2_elevator_hall_8017DAD4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves an elevator-hall departure and gates its door or elevator event.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows a complete eight-byte request and
+/// writable reply, which may alias. Copies the record before selecting its
+/// Shelter room variant. Corridor and south-walkway departures return the
+/// door gate's 0 refused, 1 bypassed or 2 eligible result; the latter requires
+/// Bowman's Card and identifies it when an event is requested. Elevator
+/// departures return 0 and, on execution, either play the disabled notice or
+/// start the ride. Other destinations return 1. Queries suppress playback and
+/// flag writes, while the gate still clears its event-start latch. Keep the
+/// room, map overlay and event resources loaded through deferred execution.
+static s32 _shelterB2ElevatorHallResolveRoomTransition(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq req;
-    s32          ret;
+    enum {
+        SHELTER_B2_ELEVATOR_HALL_TRANSITION_INTERCEPTED   = 0,
+        SHELTER_B2_ELEVATOR_HALL_TRANSITION_ACCEPTED      = 1,
+        SHELTER_B2_ELEVATOR_HALL_CAP_CORRIDOR_DOOR        = 1,
+        SHELTER_B2_ELEVATOR_HALL_CAP_WALKWAY_DOOR         = 3,
+        SHELTER_B2_ELEVATOR_HALL_CAP_WALKWAY_CARD_MISSING = 2,
+        SHELTER_B2_ELEVATOR_HALL_CAP_ELEVATOR_DISABLED    = 4,
+        SHELTER_B2_ELEVATOR_HALL_CAP_ELEVATOR_RIDE        = 5,
+        SHELTER_B2_ELEVATOR_HALL_EVENT_FLAG_REFUSED       = 2,
+        SHELTER_B2_ELEVATOR_HALL_CARD_IDENTIFIED          = 1,
+        SHELTER_B2_ELEVATOR_HALL_NO_COLLECTION_REQUIRED   = 0,
+        SHELTER_B2_ELEVATOR_HALL_COLLECTION_BIT_MASK      = 0x7F,
+        SHELTER_B2_ELEVATOR_HALL_CORRIDOR_FIRST_SOUND     = 7,
+        SHELTER_B2_ELEVATOR_HALL_CORRIDOR_SECOND_SOUND    = 5,
+        SHELTER_B2_ELEVATOR_HALL_WALKWAY_FIRST_SOUND      = 9,
+        SHELTER_B2_ELEVATOR_HALL_WALKWAY_SECOND_SOUND     = 3,
+        SHELTER_B2_ELEVATOR_HALL_RIDE_SOUND               = 1,
+    };
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
-        req.capCmd        = 1;
-        req.missingCapCmd = 1;
-        req.firstSnd      = 0x541B0007;
-        req.secondSnd     = 0x541B0005;
-        req.flagId        = GAME_FLAG_B2_CORRIDOR_ELEVATOR_HALL_UNLOCKED;
-        req.collectedBit  = 0;
-        return _roomEventGate(&req, out);
+    RoomEventReq doorEvent;
+    s32          gateResult;
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
+        doorEvent.capCmd        = SHELTER_B2_ELEVATOR_HALL_CAP_CORRIDOR_DOOR;
+        doorEvent.missingCapCmd = SHELTER_B2_ELEVATOR_HALL_CAP_CORRIDOR_DOOR;
+        doorEvent.firstSnd      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, SHELTER_B2_ELEVATOR_HALL_CORRIDOR_FIRST_SOUND);
+        doorEvent.secondSnd     = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, SHELTER_B2_ELEVATOR_HALL_CORRIDOR_SECOND_SOUND);
+        doorEvent.flagId        = GAME_FLAG_B2_CORRIDOR_ELEVATOR_HALL_UNLOCKED;
+        doorEvent.collectedBit  = SHELTER_B2_ELEVATOR_HALL_NO_COLLECTION_REQUIRED;
+        return _roomEventGate(&doorEvent, reply);
     }
-    if (in->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY) {
-        req.capCmd        = 3;
-        req.missingCapCmd = 2;
-        req.firstSnd      = 0x541B0009;
-        req.secondSnd     = 0x541B0003;
-        req.flagId        = GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED;
-        req.collectedBit  = 0x21;
-        ret               = _roomEventGate(&req, out);
+    if (request->areaId == GAME_AREA_SHELTER_B2_SOUTH_MAINTENANCE_WALKWAY) {
+        doorEvent.capCmd        = SHELTER_B2_ELEVATOR_HALL_CAP_WALKWAY_DOOR;
+        doorEvent.missingCapCmd = SHELTER_B2_ELEVATOR_HALL_CAP_WALKWAY_CARD_MISSING;
+        doorEvent.firstSnd      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, SHELTER_B2_ELEVATOR_HALL_WALKWAY_FIRST_SOUND);
+        doorEvent.secondSnd     = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, SHELTER_B2_ELEVATOR_HALL_WALKWAY_SECOND_SOUND);
+        doorEvent.flagId        = GAME_FLAG_B2_HALL_SOUTH_WALKWAY_DOOR_UNLOCKED;
+        doorEvent.collectedBit  = INVENTORY_COLLECTION_ID_BOWMANS_CARD & SHELTER_B2_ELEVATOR_HALL_COLLECTION_BIT_MASK;
+        gateResult              = _roomEventGate(&doorEvent, reply);
         if (gRoomEventActive.eventStarted != 0) {
-            itemSetIdentified(0x121, 1);
+            itemSetIdentified(INVENTORY_COLLECTION_ID_BOWMANS_CARD, SHELTER_B2_ELEVATOR_HALL_CARD_IDENTIFIED);
         }
-        return ret;
+        return gateResult;
     }
-    if (in->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
+    // Elevator travel is handled by its ride task rather than a door transition.
+    if (request->areaId == GAME_AREA_SHELTER_B2_ELEVATOR) {
         if (gameFlagGetNibble(GAME_FLAG_SHELTER_ELEVATOR_ENABLED) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                gameFlagSetNibbleIfPresent(in->flagId, 2);
-                capRunCommandWithTransition(4);
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                gameFlagSetNibbleIfPresent(request->flagId, SHELTER_B2_ELEVATOR_HALL_EVENT_FLAG_REFUSED);
+                capRunCommandWithTransition(SHELTER_B2_ELEVATOR_HALL_CAP_ELEVATOR_DISABLED);
             }
-            return 0;
+            return SHELTER_B2_ELEVATOR_HALL_TRANSITION_INTERCEPTED;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            capRunCommand(5, CAP_PLAYBACK_IN_PLACE);
-            taskSpawnFromTable(&D_shelter_b2_elevator_hall_8018379C, 0, 0x541B0001, 0);
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            capRunCommand(SHELTER_B2_ELEVATOR_HALL_CAP_ELEVATOR_RIDE, CAP_PLAYBACK_IN_PLACE);
+            taskSpawnFromTable(&D_shelter_b2_elevator_hall_8018379C, 0, SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_ELEVATOR_HALL, SHELTER_B2_ELEVATOR_HALL_RIDE_SOUND), 0);
         }
-        return 0;
+        return SHELTER_B2_ELEVATOR_HALL_TRANSITION_INTERCEPTED;
     }
-    return 1;
+    return SHELTER_B2_ELEVATOR_HALL_TRANSITION_ACCEPTED;
 }
 
 /// Refuses every key-item use request (message 0x13F1), returning zero.
@@ -736,9 +758,9 @@ void shelterB2ElevatorHallRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_shelter_b2_elevator_hall_801816C8(Task* arg0)
+void shelterB2ElevatorHallRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -757,7 +779,7 @@ void shelterB2ElevatorHallRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b2_elevator_hall_80182B48(Task* task)
+void shelterB2ElevatorHallRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

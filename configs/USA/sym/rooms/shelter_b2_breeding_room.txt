@@ -77,7 +77,7 @@ _gShelterB2BreedingRoomModel02E04PartVerts = 0x801803A0; // size:0x4 defined:Tru
 _gShelterB2BreedingRoomModel02E04Verts = 0x801803A4; // size:0x20 defined:True
 _gShelterB2BreedingRoomModel02E04Stream = 0x801803C4; // size:0x2C defined:True
 
-func_shelter_b2_breeding_room_8017E774 = 0x8017E774; // type:func
+shelterB2BreedingRoomRoomVisualEffectsGlowDiscTask = 0x8017E774; // type:func
 
 shelterB2BreedingRoomRoomVisualEffectsFlyingSparkTask = 0x8017ECCC; // type:func
 
@@ -100,3 +100,4 @@ _shelterB2BreedingRoomFinishFirstSceneTask = 0x8017d7a8; // type:func
 _shelterB2BreedingRoomInitializeRoomTask = 0x8017d7ec; // type:func
 _shelterB2BreedingRoomIdleRoomTask = 0x8017d838; // type:func
 shelterB2BreedingRoomRoomTask = 0x8017d840; // type:func
+_shelterB2BreedingRoomCommandMessage = 0x8017d6a4; // type:func

@@ -762,7 +762,7 @@ void shelterB1StoreroomRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b1_storeroom_80182118(Task* task)
+void shelterB1StoreroomRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
@@ -770,9 +770,9 @@ void func_shelter_b1_storeroom_80182118(Task* task)
 #include "../../shared/room_visual_effects_glow.inc.c"
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_shelter_b1_storeroom_80182D60(Task* arg0)
+void shelterB1StoreroomRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB1StoreroomRoomVisualEffectsFlyingSparkTask(Task* task)

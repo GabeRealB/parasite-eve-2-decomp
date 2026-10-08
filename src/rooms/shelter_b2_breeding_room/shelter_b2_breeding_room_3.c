@@ -866,9 +866,9 @@ WorldCollisionSurfaceProperties* D_shelter_b2_breeding_room_801847F4[8] = {
     D_shelter_b2_breeding_room_801847CC,
 };
 
-void func_shelter_b2_breeding_room_8017E774(Task* arg0)
+void shelterB2BreedingRoomRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void shelterB2BreedingRoomRoomVisualEffectsFlyingSparkTask(Task* task)

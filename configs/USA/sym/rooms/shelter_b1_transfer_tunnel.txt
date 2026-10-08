@@ -41,7 +41,7 @@ shelterB1TransferTunnelRoomVisualEffectsFlashTask = 0x8018092C; // type:func
 
 shelterB1TransferTunnelRoomVisualEffectsTwinTrailTask = 0x80181390; // type:func
 
-func_shelter_b1_transfer_tunnel_80181C78 = 0x80181C78; // type:func
+shelterB1TransferTunnelRoomVisualEffectsSparkBurstTask = 0x80181C78; // type:func
 
 shelterB1TransferTunnelRoomVisualEffectsMoteTask = 0x8017E308; // type:func
 
@@ -49,7 +49,7 @@ shelterB1TransferTunnelRoomVisualEffectsHaloTask = 0x8017F050; // type:func
 
 shelterB1TransferTunnelRoomVisualEffectsHaloOrangeBurstTask = 0x8017F3E8; // type:func
 
-func_shelter_b1_transfer_tunnel_801807F8 = 0x801807F8; // type:func
+shelterB1TransferTunnelRoomVisualEffectsSparkEmitterTask = 0x801807F8; // type:func
 
 shelterB1TransferTunnelDrawGlowsTask = 0x8017D6D0; // type:func
 _roomVisualEffectsDrawMote = 0x8017E5D4; // type:func

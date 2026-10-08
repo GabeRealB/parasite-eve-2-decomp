@@ -162,7 +162,7 @@ extern TaskDesc D_shelter_b2_laboratory_80182A6C[];
 /// Message table of the room's message task.
 extern TaskMessageEntry D_shelter_b2_laboratory_80182A38[];
 
-/// Task spawned by `func_shelter_b2_laboratory_80180290` and polled until it
+/// Task spawned by `_shelterB2LaboratoryConsoleKeypadTask` and polled until it
 /// dies.
 extern Task* D_shelter_b2_laboratory_80182A68;
 
@@ -192,7 +192,7 @@ extern u8 gRoomEventActive;
 /// should keep playing; set by `func_shelter_b2_laboratory_801804FC`.
 extern s32 D_shelter_b2_laboratory_801864B8;
 
-/// Parameters of the cutscene `func_shelter_b2_laboratory_8017FD18` starts.
+/// Parameters of the cutscene `_shelterB2LaboratoryCommandMessage` starts.
 extern RoomCutsceneRecStorage D_shelter_b2_laboratory_801864BC;
 
 /// World position the looping sound is panned and attenuated from.
@@ -218,13 +218,13 @@ enum {
     SHELTER_B2_LABORATORY_GLOW_PULSE_FAST = 1,
 };
 
-s32         func_shelter_b2_laboratory_8017FD18(Task*, s32, s32, s32);
-s32         func_shelter_b2_laboratory_801800FC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32         func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* firstArg, s32);
+static s32  _shelterB2LaboratoryCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
+static s32  _shelterB2LaboratoryResolveRoomTransition(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _shelterB2LaboratoryConsoleActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32  _shelterB2LaboratoryCueSoundMsg(Task* unusedTask, s32 unusedMessageId, s32 cueId, s32 unusedSecondArg);
 static void _shelterB2LaboratoryAmbienceTask(Task* task);
-void        func_shelter_b2_laboratory_80180290(Task*);
-void        func_shelter_b2_laboratory_80180350(Task*);
+static void _shelterB2LaboratoryConsoleKeypadTask(Task* task);
+static void _shelterB2LaboratoryFinishConsoleSceneTask(Task* task);
 
 extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186450[1];
 extern WorldCollisionSurfaceProperties D_shelter_b2_laboratory_80186458[1];
@@ -276,10 +276,10 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 enum { SHELTER_B2_LABORATORY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 TaskMessageEntry D_shelter_b2_laboratory_80182A38[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_laboratory_801800FC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2LaboratoryResolveRoomTransition },
     { SHELTER_B2_LABORATORY_MESSAGE_USE_KEY_ITEM, _shelterB2LaboratoryRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_laboratory_801801D0 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_laboratory_8017FD18 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2LaboratoryConsoleActionMessage },
+    { ROOM_MESSAGE_COMMAND, _shelterB2LaboratoryCommandMessage },
     { ROOM_MESSAGE_SOUND, _shelterB2LaboratoryCueSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -287,9 +287,9 @@ TaskMessageEntry D_shelter_b2_laboratory_80182A38[6] = {
 Task* D_shelter_b2_laboratory_80182A68 = NULL;
 
 TaskDesc D_shelter_b2_laboratory_80182A6C[3] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_laboratory_80180290, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB2LaboratoryConsoleKeypadTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _shelterB2LaboratoryAmbienceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_laboratory_80180350, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB2LaboratoryFinishConsoleSceneTask, { .value = 0 } },
 };
 
 s8 D_shelter_b2_laboratory_80182A90[16] = {
@@ -1086,45 +1086,93 @@ void shelterB2LaboratoryTelephoneMenuTask(Task* task)
 
 #include "../../shared/room_event_task.inc.c"
 
-s32 func_shelter_b2_laboratory_8017FD18(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Sets the four sound scripts accompanying the laboratory console scene.
+///
+/// Borrows a writable scene record for this call; changes only its sound IDs.
+/// The laboratory sound bank must remain loaded through the runner's playback.
+static inline void _shelterB2LaboratorySetConsoleSceneSounds(RoomCutsceneRec* scene)
 {
-    if (arg2 == 4) {
+    enum {
+        SHELTER_B2_LABORATORY_SCENE_START_SOUND = 5,
+        SHELTER_B2_LABORATORY_SCENE_END_SOUND   = 8,
+        SHELTER_B2_LABORATORY_SCENE_SOUND       = 6,
+        SHELTER_B2_LABORATORY_AFTER_SCENE_SOUND = 7,
+    };
+
+    scene->startSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_SCENE_START_SOUND);
+    scene->endSound        = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_SCENE_END_SOUND);
+    scene->sceneSound      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_SCENE_SOUND);
+    scene->afterSceneSound = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_AFTER_SCENE_SOUND);
+}
+
+/// Starts the laboratory console's scene and commits its completed progress.
+///
+/// Handles `ROOM_MESSAGE_COMMAND` with first payload 4; other commands do
+/// nothing, and the receiver and second payload are unused. Stops ambience.
+/// Progress 2 advances to 3, unlocks the pod-tunnel door and updates the map,
+/// route flags and objective before requesting the skipped scene and its
+/// follow-up task. Other progress values request the full scene instead.
+/// The cutscene runner borrows the singleton record; do not replace it or unload
+/// its room, CAP and sound resources while playback runs. Spawn failure leaves
+/// committed flags intact. Returns zero regardless of admission.
+static s32 _shelterB2LaboratoryCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg)
+{
+    enum {
+        SHELTER_B2_LABORATORY_COMMAND_CONSOLE_SCENE     = 4,
+        SHELTER_B2_LABORATORY_CONSOLE_SCENE_COMPLETE    = 2,
+        SHELTER_B2_LABORATORY_CONSOLE_PROGRESS_SETTLED  = 3,
+        SHELTER_B2_LABORATORY_SCENE_VIEW                = 13,
+        SHELTER_B2_LABORATORY_SKIP_CONSOLE_SCENE        = 1,
+        SHELTER_B2_LABORATORY_PLAY_CONSOLE_SCENE        = 0,
+        SHELTER_B2_LABORATORY_CAP_COMPLETED_SCENE_SLOT  = 4,
+        SHELTER_B2_LABORATORY_CAP_FULL_SCENE_SLOT       = 1,
+        SHELTER_B2_LABORATORY_CAP_COMPLETED_SCENE_FILE  = 3,
+        SHELTER_B2_LABORATORY_CAP_FULL_SCENE_FILE       = 2,
+        SHELTER_B2_LABORATORY_CAP_COMPLETED_TEXTURE_X   = 384,
+        SHELTER_B2_LABORATORY_CAP_COMPLETED_TEXTURE_Y   = 256,
+        SHELTER_B2_LABORATORY_CAP_DEFAULT_TEXTURE_PAGE  = 0,
+        SHELTER_B2_LABORATORY_CAP_AFTER_COMPLETED_SCENE = 1,
+        SHELTER_B2_LABORATORY_CAP_AFTER_FULL_SCENE      = 8,
+        SHELTER_B2_LABORATORY_OBJECTIVE_ROUTE_SET       = 0x28,
+        SHELTER_B2_LABORATORY_OBJECTIVE_ROUTE_CLEAR     = 0x29,
+        SHELTER_B2_LABORATORY_TASK_FINISH_CONSOLE_SCENE = 2,
+        SHELTER_B2_LABORATORY_MAP_MARK_CLEAR            = 0,
+        SHELTER_B2_LABORATORY_PROGRESS_FLAG_SET         = 1,
+    };
+
+    if (commandId == SHELTER_B2_LABORATORY_COMMAND_CONSOLE_SCENE) {
         D_shelter_b2_laboratory_801864B8 = 0;
-        if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
+        if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == SHELTER_B2_LABORATORY_CONSOLE_SCENE_COMPLETE) {
+            // Commit progression before either deferred task can run.
             _shelterB2LaboratorySetFastGlowPulse(SHELTER_B2_LABORATORY_GLOW_PULSE_SLOW);
-            gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 3);
-            gameFlagSetNibble(GAME_FLAG_B1_POD_TUNNEL_R47_DOOR_UNLOCKED, 1);
-            gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_LABORATORY, 0);
-            gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_017, 1);
-            gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_018, 1);
+            gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, SHELTER_B2_LABORATORY_CONSOLE_PROGRESS_SETTLED);
+            gameFlagSetNibble(GAME_FLAG_B1_POD_TUNNEL_R47_DOOR_UNLOCKED, SHELTER_B2_LABORATORY_PROGRESS_FLAG_SET);
+            gameFlagSetNibble(GAME_FLAG_MAP_MARK_B2_LABORATORY, SHELTER_B2_LABORATORY_MAP_MARK_CLEAR);
+            gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_017, SHELTER_B2_LABORATORY_PROGRESS_FLAG_SET);
+            gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_018, SHELTER_B2_LABORATORY_PROGRESS_FLAG_SET);
             if (gameFlagGetNibble(GAME_FLAG_083) != 0) {
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x28);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_LABORATORY_OBJECTIVE_ROUTE_SET);
             } else {
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x29);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_B2_LABORATORY_OBJECTIVE_ROUTE_CLEAR);
             }
-            D_shelter_b2_laboratory_801864BC.rec.view            = 0xD;
-            D_shelter_b2_laboratory_801864BC.rec.capSlot         = 4;
-            D_shelter_b2_laboratory_801864BC.rec.capFile         = 3;
-            D_shelter_b2_laboratory_801864BC.rec.skipScene       = 1;
-            D_shelter_b2_laboratory_801864BC.rec.capTPageX       = 0x180;
-            D_shelter_b2_laboratory_801864BC.rec.capTPageY       = 0x100;
-            D_shelter_b2_laboratory_801864BC.rec.startSound      = 0x541F0005;
-            D_shelter_b2_laboratory_801864BC.rec.endSound        = 0x541F0008;
-            D_shelter_b2_laboratory_801864BC.rec.sceneSound      = 0x541F0006;
-            D_shelter_b2_laboratory_801864BC.rec.afterSceneSound = 0x541F0007;
-            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 1, &D_shelter_b2_laboratory_801864BC.rec);
-            taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, 2, 0, 0);
+            D_shelter_b2_laboratory_801864BC.rec.view      = SHELTER_B2_LABORATORY_SCENE_VIEW;
+            D_shelter_b2_laboratory_801864BC.rec.capSlot   = SHELTER_B2_LABORATORY_CAP_COMPLETED_SCENE_SLOT;
+            D_shelter_b2_laboratory_801864BC.rec.capFile   = SHELTER_B2_LABORATORY_CAP_COMPLETED_SCENE_FILE;
+            D_shelter_b2_laboratory_801864BC.rec.skipScene = SHELTER_B2_LABORATORY_SKIP_CONSOLE_SCENE;
+            D_shelter_b2_laboratory_801864BC.rec.capTPageX = SHELTER_B2_LABORATORY_CAP_COMPLETED_TEXTURE_X;
+            D_shelter_b2_laboratory_801864BC.rec.capTPageY = SHELTER_B2_LABORATORY_CAP_COMPLETED_TEXTURE_Y;
+            _shelterB2LaboratorySetConsoleSceneSounds(&D_shelter_b2_laboratory_801864BC.rec);
+            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_B2_LABORATORY_CAP_AFTER_COMPLETED_SCENE, &D_shelter_b2_laboratory_801864BC.rec);
+            taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, SHELTER_B2_LABORATORY_TASK_FINISH_CONSOLE_SCENE, 0, 0);
         } else {
-            D_shelter_b2_laboratory_801864BC.rec.view            = 0xD;
-            D_shelter_b2_laboratory_801864BC.rec.capSlot         = 1;
-            D_shelter_b2_laboratory_801864BC.rec.capFile         = 2;
-            D_shelter_b2_laboratory_801864BC.rec.skipScene       = 0;
-            D_shelter_b2_laboratory_801864BC.rec.capTPageX       = 0;
-            D_shelter_b2_laboratory_801864BC.rec.startSound      = 0x541F0005;
-            D_shelter_b2_laboratory_801864BC.rec.endSound        = 0x541F0008;
-            D_shelter_b2_laboratory_801864BC.rec.sceneSound      = 0x541F0006;
-            D_shelter_b2_laboratory_801864BC.rec.afterSceneSound = 0x541F0007;
-            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 8, &D_shelter_b2_laboratory_801864BC.rec);
+            // A zero texture X selects the default page; the runner ignores retained Y.
+            D_shelter_b2_laboratory_801864BC.rec.view      = SHELTER_B2_LABORATORY_SCENE_VIEW;
+            D_shelter_b2_laboratory_801864BC.rec.capSlot   = SHELTER_B2_LABORATORY_CAP_FULL_SCENE_SLOT;
+            D_shelter_b2_laboratory_801864BC.rec.capFile   = SHELTER_B2_LABORATORY_CAP_FULL_SCENE_FILE;
+            D_shelter_b2_laboratory_801864BC.rec.skipScene = SHELTER_B2_LABORATORY_PLAY_CONSOLE_SCENE;
+            D_shelter_b2_laboratory_801864BC.rec.capTPageX = SHELTER_B2_LABORATORY_CAP_DEFAULT_TEXTURE_PAGE;
+            _shelterB2LaboratorySetConsoleSceneSounds(&D_shelter_b2_laboratory_801864BC.rec);
+            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, SHELTER_B2_LABORATORY_CAP_AFTER_FULL_SCENE, &D_shelter_b2_laboratory_801864BC.rec);
         }
     }
     return 0;
@@ -1233,47 +1281,80 @@ static s32 _shelterB2LaboratoryRejectKeyItemUse(Task* task, s32 messageId, s32 k
     return SHELTER_B2_LABORATORY_KEY_ITEM_REFUSED;
 }
 
-s32 func_shelter_b2_laboratory_801800FC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a laboratory departure and gates its corridor-door event.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows a complete request and writable
+/// eight-byte reply; they may alias and neither pointer is retained. Copies
+/// the record and resolves the Shelter room variant. Progress 2 returns 2,
+/// playing CAP command 5 only on execution, for any destination. Otherwise
+/// the corridor door returns the gate's 0 refused, 1 bypassed or 2 eligible
+/// result, and other destinations return 1. Queries suppress playback and
+/// flag writes; door queries still clear the event-start latch. Keep the room,
+/// map overlay and event resources loaded through any deferred transition.
+static s32 _shelterB2LaboratoryResolveRoomTransition(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq req;
+    enum {
+        SHELTER_B2_LABORATORY_TRANSITION_ACCEPTED    = 1,
+        SHELTER_B2_LABORATORY_TRANSITION_SCENE       = 2,
+        SHELTER_B2_LABORATORY_CONSOLE_SCENE_COMPLETE = 2,
+        SHELTER_B2_LABORATORY_CAP_PROGRESS_BLOCK     = 5,
+        SHELTER_B2_LABORATORY_CAP_CORRIDOR_DOOR      = 1,
+        SHELTER_B2_LABORATORY_NO_COLLECTION_REQUIRED = 0,
+        SHELTER_B2_LABORATORY_DOOR_FIRST_SOUND       = 20,
+        SHELTER_B2_LABORATORY_DOOR_SECOND_SOUND      = 3,
+    };
 
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == 2) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            capRunCommandWithTransition(5);
+    RoomEventReq doorEvent;
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) == SHELTER_B2_LABORATORY_CONSOLE_SCENE_COMPLETE) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            capRunCommandWithTransition(SHELTER_B2_LABORATORY_CAP_PROGRESS_BLOCK);
         }
-        return 2;
+        return SHELTER_B2_LABORATORY_TRANSITION_SCENE;
     }
-    if (in->areaId != GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
-        return 1;
+    if (request->areaId != GAME_AREA_SHELTER_B2_MAIN_CORRIDOR) {
+        return SHELTER_B2_LABORATORY_TRANSITION_ACCEPTED;
     }
-    req.capCmd        = 1;
-    req.missingCapCmd = 1;
-    req.firstSnd      = 0x541F0014;
-    req.secondSnd     = 0x541F0003;
-    req.flagId        = GAME_FLAG_B2_LABORATORY_DOOR_UNLOCKED;
-    req.collectedBit  = 0;
-    return _roomEventGate(&req, out);
+    doorEvent.capCmd        = SHELTER_B2_LABORATORY_CAP_CORRIDOR_DOOR;
+    doorEvent.missingCapCmd = SHELTER_B2_LABORATORY_CAP_CORRIDOR_DOOR;
+    doorEvent.firstSnd      = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_DOOR_FIRST_SOUND);
+    doorEvent.secondSnd     = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_LABORATORY, SHELTER_B2_LABORATORY_DOOR_SECOND_SOUND);
+    doorEvent.flagId        = GAME_FLAG_B2_LABORATORY_DOOR_UNLOCKED;
+    doorEvent.collectedBit  = SHELTER_B2_LABORATORY_NO_COLLECTION_REQUIRED;
+    return _roomEventGate(&doorEvent, reply);
 }
 
-/// Handler for slot-7 msg `0x13EF` in `D_shelter_b2_laboratory_80182A38`: the
-/// directed action on the laboratory console (`actionId` 1). Runs the scripted
-/// scene once, then replays cap script `6` on later visits.
-s32 func_shelter_b2_laboratory_801801D0(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Handles the directed action on the laboratory console.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a readable request through this
+/// dispatch; only action 1 is handled. Its first use plays the introductory
+/// CAP command and commits the first-use flag. Later uses request the keypad
+/// task while progress is below 2, otherwise replay CAP command 6. The
+/// receiver and second payload are unused. Keep the room and actor_143000
+/// resources loaded while their tasks run. Always returns zero.
+static s32 _shelterB2LaboratoryConsoleActionMessage(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum {
+        SHELTER_B2_LABORATORY_ACTION_CONSOLE             = 1,
+        SHELTER_B2_LABORATORY_CONSOLE_SCENE_COMPLETE     = 2,
+        SHELTER_B2_LABORATORY_CAP_CONSOLE_INTRO          = 0x1E,
+        SHELTER_B2_LABORATORY_CAP_CONSOLE_REVISIT        = 6,
+        SHELTER_B2_LABORATORY_CONSOLE_FIRST_USE_RECORDED = 1,
+        SHELTER_B2_LABORATORY_TASK_CONSOLE_KEYPAD        = 0,
+    };
 
-    if (request->actionId == 1) {
+    if (request->actionId == SHELTER_B2_LABORATORY_ACTION_CONSOLE) {
         if (gameFlagGetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE) != 0) {
-            if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) < 2) {
-                taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, 0, 0, 0);
+            if (gameFlagGetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS) < SHELTER_B2_LABORATORY_CONSOLE_SCENE_COMPLETE) {
+                taskSpawnFromTable(D_shelter_b2_laboratory_80182A6C, SHELTER_B2_LABORATORY_TASK_CONSOLE_KEYPAD, 0, 0);
             } else {
-                capRunCommandWithTransition(6);
+                capRunCommandWithTransition(SHELTER_B2_LABORATORY_CAP_CONSOLE_REVISIT);
             }
         } else {
-            capRunCommandWithTransition(0x1E);
-            gameFlagSetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE, 1);
+            capRunCommandWithTransition(SHELTER_B2_LABORATORY_CAP_CONSOLE_INTRO);
+            gameFlagSetNibble(GAME_FLAG_LABORATORY_CONSOLE_FIRST_USE, SHELTER_B2_LABORATORY_CONSOLE_FIRST_USE_RECORDED);
         }
     }
     return 0;
@@ -1297,20 +1378,35 @@ static s32 _shelterB2LaboratoryCueSoundMsg(Task* unusedTask, s32 unusedMessageId
     return 0;
 }
 
-void func_shelter_b2_laboratory_80180290(Task* task)
+/// Runs the console keypad and commits its accepted-code result.
+///
+/// Start in state 0 with actor_143000 loaded. Retains the spawned keypad handle
+/// in the room's singleton slot, then polls its requested exit on later ticks.
+/// A nonzero result sets laboratory progress to 1; zero resumes player control.
+/// Clears the handle and kills this task after collecting the result. Body and
+/// payloads are unused. The spawn is unchecked: the keypad must have spawned,
+/// and this singleton task must not overlap another keypad waiter.
+static void _shelterB2LaboratoryConsoleKeypadTask(Task* task)
 {
-    s32 result;
+    enum {
+        SHELTER_B2_LABORATORY_KEYPAD_START          = 0,
+        SHELTER_B2_LABORATORY_KEYPAD_WAIT           = 1,
+        SHELTER_B2_LABORATORY_CONSOLE_CODE_ACCEPTED = 1,
+    };
+
+    s32 codeAccepted;
 
     switch (task->state) {
-        case 0:
+        case SHELTER_B2_LABORATORY_KEYPAD_START:
             D_shelter_b2_laboratory_80182A68 = taskSpawnFromTable(&D_actor_143000_80134564, 0, 0, 0);
             task->state                     += 1;
             return;
-        case 1:
-            if (taskPollKill(D_shelter_b2_laboratory_80182A68, &result) != 0) {
+        case SHELTER_B2_LABORATORY_KEYPAD_WAIT:
+            // Polling dispatches the keypad exit; stop using its handle after success.
+            if (taskPollKill(D_shelter_b2_laboratory_80182A68, &codeAccepted) != 0) {
                 D_shelter_b2_laboratory_80182A68 = NULL;
-                if (result != 0) {
-                    gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, 1);
+                if (codeAccepted != 0) {
+                    gameFlagSetNibble(GAME_FLAG_SHELTER_B2_LABORATORY_PROGRESS, SHELTER_B2_LABORATORY_CONSOLE_CODE_ACCEPTED);
                 } else {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 }
@@ -1320,24 +1416,43 @@ void func_shelter_b2_laboratory_80180290(Task* task)
     }
 }
 
-void func_shelter_b2_laboratory_80180350(Task* task)
+/// Selects post-console music and dialogue after the scripted scene releases control.
+///
+/// Start in state 0. Waits for active view 13, then writes sceneEvent 14 and
+/// requests ordinary stage music with no fade. On a later tick with eventState
+/// zero, chooses CAP command 0x24 or 0x23 from the route flag and kills itself.
+/// Body and payloads are unused. Keep the room's CAP data and the stage's map
+/// music table loaded; music and CAP request admission are not checked.
+static void _shelterB2LaboratoryFinishConsoleSceneTask(Task* task)
 {
+    enum {
+        SHELTER_B2_LABORATORY_FINISH_WAIT_VIEW              = 0,
+        SHELTER_B2_LABORATORY_FINISH_REQUEST_MUSIC          = 1,
+        SHELTER_B2_LABORATORY_FINISH_WAIT_SCENE             = 2,
+        SHELTER_B2_LABORATORY_FINISH_SCENE_VIEW             = 13,
+        SHELTER_B2_LABORATORY_FINISH_MUSIC_SCENE            = 14,
+        SHELTER_B2_LABORATORY_FINISH_MUSIC_REQUEST_ORDINARY = 0,
+        SHELTER_B2_LABORATORY_CAP_FINISH_ROUTE_SET          = 0x24,
+        SHELTER_B2_LABORATORY_CAP_FINISH_ROUTE_CLEAR        = 0x23,
+    };
+
     switch (task->state) {
-        case 0:
-            if (gGameSession->location.loc.view == 0xD) {
-                task->state = 1;
+        case SHELTER_B2_LABORATORY_FINISH_WAIT_VIEW:
+            if (gGameSession->location.loc.view == SHELTER_B2_LABORATORY_FINISH_SCENE_VIEW) {
+                task->state = SHELTER_B2_LABORATORY_FINISH_REQUEST_MUSIC;
             }
             return;
-        case 1:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0xE;
+        case SHELTER_B2_LABORATORY_FINISH_REQUEST_MUSIC:
+            // Select music after the scripted view arrives, then await scene release.
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = SHELTER_B2_LABORATORY_FINISH_MUSIC_SCENE;
             gStageMusicParams.fadeOutTicks                      = 0;
             gStageMusicParams.field_2                           = 0;
-            taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
+            taskSpawnFromTable(&Stage_MusicTaskDesc, 0, SHELTER_B2_LABORATORY_FINISH_MUSIC_REQUEST_ORDINARY, 0);
             task->state++;
             return;
-        case 2:
+        case SHELTER_B2_LABORATORY_FINISH_WAIT_SCENE:
             if (gGameSession->eventState == 0) {
-                capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_083) != 0 ? 0x24 : 0x23);
+                capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_083) != 0 ? SHELTER_B2_LABORATORY_CAP_FINISH_ROUTE_SET : SHELTER_B2_LABORATORY_CAP_FINISH_ROUTE_CLEAR);
                 taskKill(task);
             }
             return;

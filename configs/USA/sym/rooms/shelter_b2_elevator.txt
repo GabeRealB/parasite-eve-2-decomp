@@ -52,3 +52,5 @@ _shelterB2ElevatorCloseDoorMessage = 0x8017dae0; // type:func
 _shelterB2ElevatorRoomIdleState = 0x8017db08; // type:func
 shelterB2ElevatorRoomTask = 0x8017db18; // type:func
 _shelterB2ElevatorResolveRoomEventMessage = 0x8017da64; // type:func
+_shelterB2ElevatorRoomInitState = 0x8017d5e8; // type:func
+_shelterB2ElevatorExitTask = 0x8017d888; // type:func

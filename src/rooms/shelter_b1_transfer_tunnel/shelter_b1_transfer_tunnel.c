@@ -440,9 +440,9 @@ void shelterB1TransferTunnelRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0)
+void shelterB1TransferTunnelRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
 #include "../../shared/room_visual_effects_flash_task.inc.c"
@@ -461,7 +461,7 @@ void shelterB1TransferTunnelRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_shelter_b1_transfer_tunnel_80181C78(Task* task)
+void shelterB1TransferTunnelRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }

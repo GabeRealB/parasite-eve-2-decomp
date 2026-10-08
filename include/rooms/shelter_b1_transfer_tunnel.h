@@ -67,7 +67,16 @@ void shelterB1TransferTunnelRoomVisualEffectsFlashTask(Task* task);
 /// The room overlay and effect controller must remain live while it runs.
 void shelterB1TransferTunnelRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_shelter_b1_transfer_tunnel_80181C78(Task* task);
+/// Runs an impact flash followed by smoke or orange rings and bouncing sparks.
+///
+/// Start in state 0 with the coordinate body and zeroed, counted `EffectWork`
+/// in `spawnArg2.pointer` supplied by `effectSpawn`. Nonzero `spawnArg1.value`
+/// selects smoke; zero selects two sparks and fading rings. Active age seven
+/// enters release; the next active tick frees work and kills the task.
+/// Nonzero room effect control pauses it; four or above cancels it. Child effects
+/// live independently. Keep the coordinate ancestors, effect controller, room
+/// overlay and current graphics workspace live through teardown.
+void shelterB1TransferTunnelRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs an animated vertical mote that brightens or starts steady, then fades.
 ///
@@ -107,7 +116,17 @@ void shelterB1TransferTunnelRoomVisualEffectsHaloTask(Task* task);
 /// work and task. The room overlay and effect controller must remain live.
 void shelterB1TransferTunnelRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_shelter_b1_transfer_tunnel_801807F8(Task* arg0);
+/// Emits twenty descending motes around its spawn coordinate.
+///
+/// Requires a coordinate body and zeroed, counted `EffectWork` in
+/// `spawnArg2.pointer` from `effectSpawn`; `spawnArg1` is unused. Active ages
+/// 1..20 emit at turning radial offsets with local Y = -128 times age in
+/// coordinate units. Motes descend eight units per active motion tick and
+/// live independently after age 21 releases the emitter's work and task.
+/// Nonzero room effect control pauses it; four or above cancels it. Requires
+/// the installed mote effect; keep coordinate ancestors, controller and room
+/// overlay live through the emitted effects' lifetimes.
+void shelterB1TransferTunnelRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Registers the room's actor effects once and draws glows for the mapped view.
 ///
