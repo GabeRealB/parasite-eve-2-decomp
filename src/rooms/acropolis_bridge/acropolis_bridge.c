@@ -414,7 +414,7 @@ static void _acropolisBridgeKeypadCheckCode(Task* task);
 static void _acropolisBridgeKeypadClose(Task* task);
 static void _acropolisBridgeDrawWaterRipple(const GfxCoord* coord, s32 halfSize, s16 brightness);
 static void _acropolisBridgeEnemySetup(Enemy* enemy, Task* task);
-static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task);
+static void _acropolisBridgeEnemyFrame(Enemy* enemy, Task* task);
 
 /// Work block of the enemy that lurks below the bridge, allocated into `Task::work`.
 ///
@@ -4748,7 +4748,7 @@ static const char _gPatrolNoPairMsg[] = "s->root_cnt == 0xff about \n";
 
 /// The bridge enemy's three state handlers: setup, per-frame tick and teardown.
 static const EnemyTaskFuncTable3 D_acropolis_bridge_8017D6E8 = {
-    { _acropolisBridgeEnemySetup, func_acropolis_bridge_80187850, enemyDestroy }
+    { _acropolisBridgeEnemySetup, _acropolisBridgeEnemyFrame, enemyDestroy }
 };
 
 #include "../../shared/glow_draw_tinted_disc_no_bias.inc.c"
@@ -5999,65 +5999,75 @@ static inline s32 _acropolisBridgeFindAttackContact(SVECTOR* hitPoint, const Wor
     return 0;
 }
 
-/// Ticks the bridge enemy once per frame. It refreshes the model's root
-/// coordinate and relights it, then branches on the global pause mode
-/// `gSceneCombatState.actorControl`: mode 1 only releases the collision records, mode 2 also hides
-/// the mesh, and mode 0 keeps the model's visibility in step with the camera
-/// -- re-allocating or releasing the TMD's aux buffers when the view changes,
-/// and remembering the view it last synced to in `syncedView`. Outside the
-/// death and cleanup states it then borrows an `_AcropolisBridgeHitScratch`, scans
-/// the body's three collision records for a hit (high halfword 0x2), applies
-/// it through `_acropolisBridgeEnemyApplyHit`, raises `stateEntered` on the frame
-/// the behaviour state changes, runs the state's handler from
-/// `D_acropolis_bridge_8019175C`, clears both record tables and -- while no
-/// `gSceneCombatState` request is pending -- resets any state other than 5 or 6 back
-/// to 0.
-static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
+/// Marks whether this update enters a different bridge-enemy behavior state.
+///
+/// Runs after hit processing, which can change the live work's state.
+static inline void _acropolisBridgeTrackEnemyStateEntry(_AcropolisBridgeEnemyWork* work)
+{
+    if (work->prevState != work->state) {
+        work->stateEntered = 1;
+    } else {
+        work->stateEntered = 0;
+    }
+    work->prevState = work->state;
+}
+
+/// Updates the bridge enemy's lighting, visibility, contacts and behavior.
+///
+/// Requires the live enemy, its model and `_AcropolisBridgeEnemyWork` in
+/// `task->work`, with behavior state 0..8. Paused actors only clear active
+/// contacts; hidden actors also suppress drawing. Running actors synchronize
+/// primitive-buffer ownership with views 8/22, take the first attack contact,
+/// mark state entry and dispatch behavior. With no battle references, only
+/// defeated-bobbing/collapse states survive; other states become inactive.
+/// Borrows one `_AcropolisBridgeHitScratch` and releases it after dispatch.
+static void _acropolisBridgeEnemyFrame(Enemy* enemy, Task* task)
 {
     _AcropolisBridgeEnemyWork*  work;
-    _AcropolisBridgeEnemyWork*  cur;
-    _AcropolisBridgeHitScratch* block;
-    TmdObject*                  extra;
-    VECTOR                      pos;
-    s32                         view;
-    s32                         hit;
+    _AcropolisBridgeEnemyWork*  currentWork;
+    _AcropolisBridgeHitScratch* hitScratch;
+    TmdObject*                  model;
+    VECTOR                      worldPosition;
+    s32                         mappedView;
+    s32                         attackKey;
     u16                         state;
 
-    work                                  = (_AcropolisBridgeEnemyWork*)task->work;
+    // Refresh lighting even while actor behavior is paused.
+    work                                  = task->work;
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(task->extra.tmd->coords);
-    pos.vx = task->extra.tmd->coords->workm.t[0];
-    pos.vy = task->extra.tmd->coords->workm.t[1];
-    pos.vz = task->extra.tmd->coords->workm.t[2];
-    worldCoordUpdateActorColor(enemy, &pos, 0, 0);
+    worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+    worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+    worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordUpdateActorColor(enemy, &worldPosition, 0, 0);
 
     switch (gSceneCombatState.actorControl) {
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             state = (u16)work->state;
-            if ((u32)(state - 6) >= 2U) {
-                if (state != 0) {
-                    view = viewGetMappedIndex() & 0xFF;
-                    switch (view) {
+            if ((u32)(state - ACROPOLIS_BRIDGE_ENEMY_STATE_COLLAPSE) >= 2U) {
+                if (state != ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE) {
+                    mappedView = viewGetMappedIndex() & 0xFF;
+                    switch (mappedView) {
                         case 8:
-                            if ((s32)work->syncedView != view) {
+                            if ((s32)work->syncedView != mappedView) {
                                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                                 break;
                             }
                             task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                            extra                   = task->extra.tmd;
-                            if (extra->buffer != NULL) {
-                                tmdFreePrimitiveBuffer(extra);
+                            model                   = task->extra.tmd;
+                            if (model->buffer != NULL) {
+                                tmdFreePrimitiveBuffer(model);
                             }
                             break;
                         case 22:
-                            if (work->state == 4) {
+                            if (work->state == ACROPOLIS_BRIDGE_ENEMY_STATE_FOLLOW_MOVIE) {
                                 task->extra.tmd->flags = 0;
                                 break;
                             }
                             task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
-                            extra                   = task->extra.tmd;
-                            if (extra->buffer != NULL) {
-                                tmdFreePrimitiveBuffer(extra);
+                            model                   = task->extra.tmd;
+                            if (model->buffer != NULL) {
+                                tmdFreePrimitiveBuffer(model);
                             }
                             break;
                         default:
@@ -6069,40 +6079,36 @@ static void func_acropolis_bridge_80187850(Enemy* enemy, Task* task)
                 }
             }
             break;
-        case 1:
+        case SCENE_COMBAT_ACTORS_PAUSED:
             state = (u16)work->state;
-            if ((u32)(state - 6) >= 2U && state != 0) {
+            if ((u32)(state - ACROPOLIS_BRIDGE_ENEMY_STATE_COLLAPSE) >= 2U && state != ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE) {
                 worldCollisionClearContacts(&work->bodyContacts[0]);
                 worldCollisionClearContacts(&work->attackContacts[0]);
             }
             return;
-        case 2:
+        case SCENE_COMBAT_ACTORS_HIDDEN:
             task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             worldCollisionClearContacts(&work->bodyContacts[0]);
             worldCollisionClearContacts(&work->attackContacts[0]);
             return;
     }
 
-    block      = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisBridgeHitScratch);
-    hit        = _acropolisBridgeFindAttackContact(&block->point, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
-    block->key = hit;
-    if (hit != 0) {
-        _acropolisBridgeEnemyApplyHit(task, hit);
+    // Consume the first attack contact before dispatching the behavior state.
+    hitScratch      = SCRATCH_STACK_RESERVE_BLOCK(_AcropolisBridgeHitScratch);
+    attackKey       = _acropolisBridgeFindAttackContact(&hitScratch->point, work->bodyContacts, ARRAY_SIZE(work->bodyContacts));
+    hitScratch->key = attackKey;
+    if (attackKey != 0) {
+        _acropolisBridgeEnemyApplyHit(task, attackKey);
     }
 
-    cur = (_AcropolisBridgeEnemyWork*)task->work;
-    if (cur->prevState != cur->state) {
-        cur->stateEntered = 1;
-    } else {
-        cur->stateEntered = 0;
-    }
-    cur->prevState = cur->state;
+    currentWork = task->work;
+    _acropolisBridgeTrackEnemyStateEntry(currentWork);
     D_acropolis_bridge_8019175C[work->state](task);
     worldCollisionClearContacts(&work->bodyContacts[0]);
     worldCollisionClearContacts(&work->attackContacts[0]);
     if (gSceneCombatState.battleRefs == 0) {
-        if ((u32)((u16)work->state - 5) >= 2U) {
-            work->state = 0;
+        if ((u32)((u16)work->state - ACROPOLIS_BRIDGE_ENEMY_STATE_DEFEATED_BOB) >= 2U) {
+            work->state = ACROPOLIS_BRIDGE_ENEMY_STATE_INACTIVE;
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_AcropolisBridgeHitScratch);

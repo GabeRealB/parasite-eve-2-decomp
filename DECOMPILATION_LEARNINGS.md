@@ -10461,7 +10461,7 @@ dryfield_motel_room_1 = { text = [0x2C, 0xAE8], ... }
 ```
 
 `0x2C` is the offset the sibling rooms reach by accident, because their first
-handler has a frame (`acropolis_patio`'s `func_acropolis_patio_8017D5EC` is the
+handler has a frame (`acropolis_patio`'s `_acropolisPatioInitializeRoomTask` is the
 first function at `0x2C`). Pinning the start there splits the three stubs as
 functions, so the message table's handler words resolve to them rather than to
 a `D_...` rodata symbol - and the function is 8 bytes longer than before, which
@@ -49208,7 +49208,7 @@ keeps each one's *positional* name. A function whose first two arguments are
 unused comes out as
 
 ```c
-void func_acropolis_patio_8017DBAC(void *arg2) { ... }
+void _acropolisPatioHandleActionMessage(void *arg2) { ... }
 ```
 
 That single `arg2` is not the first argument — the name says it lives in `$a2`.
@@ -49224,12 +49224,12 @@ The fix is to restore the dropped leading parameters rather than to chase the
 register through pins or the permuter:
 
 ```c
-s32 func_acropolis_patio_8017DBAC(Task* arg0, s32 arg1, TaskMessageArg arg2, TaskMessageArg arg3)
+s32 _acropolisPatioHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg)
 ```
 
 Whenever the *only* diff is the argument register a parameter is moved out of,
 count the gap in m2c's `argN` names first — the matched siblings in the same TU
-usually show the real arity (here `func_acropolis_patio_8017DCE4(Task*, s32, s32, TaskMessageArg)`
+usually show the real arity (here `_acropolisPatioHandleCommandMessage(Task*, s32, s32, s32)`
 and the other four-argument message handlers).
 
 The drop need not be leading, so a gap can sit in the middle of an emitted
@@ -53061,7 +53061,7 @@ m2c gives up on the pair with `M2C_ERROR(/* Unable to handle lwr; missing a
 corresponding lwl */)` and invents `M2C_UNALIGNED32` field writes, which cannot
 be written in C. The source is much simpler: a struct assignment `*out = *in`
 where the struct's alignment is smaller than its size, so `expand_block_move`
-cannot use `lw`/`sw`. `func_acropolis_hallway_8017D5D0` copies an 8-byte
+cannot use `lw`/`sw`. `_acropolisHallwayResolveRoomTransition` copies an 8-byte
 `RoomEventMsg` (alignment 2, because its widest member is `u16`) and compiles to
 exactly the ROM's
 
@@ -53848,7 +53848,7 @@ the target has them. `_acropolisObservatoryScriptedBattleTask` is the example.
 
 ## Cross-jumping only merges tails that already agree on registers, so a scalar-global store shows up as a `branch`/`insert`/`delete` miss
 
-`func_acropolis_observatory_8017DD3C` is a five-case `switch` in which four
+`_acropolisObservatoryPromenadeArrivalMoviePathTask` is a five-case `switch` in which four
 arms end with the same `task->state = task->state + 1;`. The target emits that
 tail once, at the end of the last arm that uses it, with the other three
 arms doing `j` to it. A first attempt sat at 96.3% with
@@ -55178,7 +55178,7 @@ than for the body:
 grep -rn "movieFrame\|movieReady" src/     # -> acropolis_observatory_2.c
 ```
 
-`func_acropolis_observatory_8017D9A8` turned out to be the same task with a
+`_acropolisObservatoryForkedRoadArrivalMoviePathTask` turned out to be the same task with a
 different path table and one fewer state, already matched and already carrying
 the `RoomMoviePathWork` struct, the `AnimationPlayRequest` 0x3E8 record and the `ActorTransform`
 0x3E9 payload. Porting its C shape scored 99.837% on the first attempt, with
@@ -58336,7 +58336,7 @@ mode, which is where a stray `move $v0, $s1` before two `sh`s comes from.
 
 ## Factor a store to the join so its value stays in a register
 
-`func_acropolis_bridge_80187850` scans three `WorldCollisionContact` records for a hit and
+`_acropolisBridgeEnemyFrame` scans three `WorldCollisionContact` records for a hit and
 stages the result in a scratch block. The target emits, on the miss path,
 
 ```
@@ -61543,7 +61543,7 @@ taskMessageDispatch(sceneFindPlacedActor(3), 0x7DB, (s32)&msg, 0);
 The aggregation, not the store count, is what stops the CSE: an attempt that
 kept the struct but assigned only `field_0` still had the frame, the register
 choice and both `addiu a2,sp,0x10` right, and differed only by the two dropped
-stores. `func_acropolis_patio_8017D5EC` went from 90.96%
+stores. `_acropolisPatioInitializeRoomTask` went from 90.96%
 (`branch=9 regs=17 insert=5 delete=5`) to 100% on that one edit, so read a
 `&sp<N>` in an m2c seed whose neighbouring slots are written but never read as
 "this was one struct".
@@ -74179,7 +74179,7 @@ spelling and the reverse for the other. Nothing later swaps two pseudos.
 This is what was left when a loop body was otherwise exact: 99.77% (regs=10,
 reorder=2, all from that one insn) with `*flareViewMasks & viewMask`, 100% after swapping the
 two terms. `dryfieldUnderpassDrawFlaresTask` is the worked example; its sibling
-`func_acropolis_observatory_8017E6F8` reads the same shape as `*flags & mask`
+`acropolisObservatoryLensFlareEmitterTask` reads the same shape as `*anchorViewMask & viewMask`
 and matched that way, so the two are genuinely different sources, not two
 spellings of one.
 
@@ -88012,7 +88012,7 @@ Isolating it: rebuilding m2c's own structure with only the *arity* corrected
 
 Writing each path as an early `return` is the whole fix, and it is what the
 matched family members already do (`_neoArkShrineResolveRoomEvent`,
-`func_acropolis_cafeteria_8017D700`, `_shelterB3IncineratorControlRoomResolveRoomEvent`):
+`_acropolisCafeteriaResolveRoomTransition`, `_shelterB3IncineratorControlRoomResolveRoomEvent`):
 
 ```c
     if (in->msgId == 9) {
@@ -91891,10 +91891,10 @@ if (msgId == 0xF) {
 }
 ```
 
-The sibling room gates use the same `msgId = in->msgId` local for their later
-compares (`RoomsShared8017d8bc`, `func_acropolis_hallway_8017D5D0`), which is
-what makes `in->msgId == msgId` recognisable rather than a re-read invented to
-fit the assembly.
+The sibling room gates cache the destination area for their later compares
+(`RoomsShared8017d8bc`, `_acropolisHallwayResolveRoomTransition`; the latter now
+spells it `destinationArea = request->areaId`), which is what makes the fresh
+area comparison recognisable rather than a re-read invented to fit the assembly.
 
 Both copies of this body are promotable: `overlay_dup_index.py find` reports the
 day Saloon G & R's `func_dryfield_saloon_g_r_8017D8BC`, and while the function
@@ -145741,16 +145741,16 @@ only as one statement, `otIdx = panel->depth + 1`: split into a load and `+= 1`
 it is set twice and its load loses the birthing boost, pushing the stack-argument
 load behind it. The remaining `sb` order was the request fields in struct order.
 
-## A barrier keeping duplicated answer stores apart is an inline helper whose result the caller returns (func_acropolis_cafeteria_8017D700, 2026-09-26)
+## A barrier keeping duplicated answer stores apart is an inline helper whose result the caller returns (_acropolisCafeteriaResolveRoomTransition, 2026-09-26)
 
-A message handler answers message 3 twice with the same `if/else` block
-(`out->field_3 = 1` / `= 2` / `= msgId`), and the target keeps the first copy's
+A room-transition handler selects patio area 3 twice with the same `if/else` block
+(`reply->room = 1` / `= 2` / `= destinationArea`), and the target keeps the first copy's
 `li v0,K; sb v0,3(s2)` stores separate from the second copy's while sharing the
 `sb s1` store. The seed forced that with `asm("")` between each constant and its
 store. A `static inline void` helper followed by `return 1` at both sites lets
 jump2 cross-jump the first copy's stores into the second (95.9%). Making the
 helper return the handler result (`return 1` inside it) and calling it as
-`return helper(in, out);` changes the jumps' targets, so jump2 picks the
+`return helper(request, reply);` changes the jumps' targets, so jump2 picks the
 partners the target shows and it matches with no barrier.
 ### A pin on a copy of a parameter usually means the original used the parameter itself (_acropolisBridgeDrawWaterRipple, 2026-09-26)
 
@@ -149721,7 +149721,7 @@ attempts; left as it was.
   copies, including the one whose three arms each stored `result = 0xA`
   before `goto children`).
 - **A view dispatch with `goto drop` from one case into the next and `goto
-  draw` into the default** (`func_acropolis_bridge_80187850`) is each tail
+  draw` into the default** (`_acropolisBridgeEnemyFrame`) is each tail
   written in each case; with the mode ladder as `switch` (cases 1 and 2
   return, the scan follows the switch) and the contact scan as the counted
   find-hit inline, 13 gotos went on the first build.

@@ -522,7 +522,7 @@ static AreaObjectSpawn D_map_akropolis_8017A6AC[2] = {
 };
 
 static AreaObjectSpawn D_map_akropolis_8017A6CC[2] = {
-    { 0x104, { { { TASK_BODY_TMD, 0x62 } }, func_acropolis_hallway_8017E120, { &gAcropolisHallwayModel01AE0 } } },
+    { 0x104, { { { TASK_BODY_TMD, 0x62 } }, acropolisHallwayBlueKeyPickupTask, { &gAcropolisHallwayModel01AE0 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 

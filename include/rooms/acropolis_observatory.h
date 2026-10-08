@@ -30,7 +30,15 @@ extern ViewCamera D_acropolis_observatory_80183360[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_observatory_801834DC[];
 
-void func_acropolis_observatory_8017E6F8(Task* task);
+/// Emits the observatory's lens flares at anchors enabled for the mapped view.
+///
+/// Requires a live coordinate body, loaded room anchor/mask arrays and mapped
+/// view below 31 for the signed shift. Masks select views 0..15. Each tick
+/// spawns one counted effect per enabled anchor, until
+/// room-effect control reaches `ROOM_EFFECT_CONTROL_CANCEL_MIN`. The emitter
+/// borrows its coordinate and anchor data, changes no state and remains live;
+/// keep this room overlay loaded while gameplay's effect-bank callback runs.
+void acropolisObservatoryLensFlareEmitterTask(Task* task);
 
 /// Draws one frame of the observatory's additive ambient glow, then retires its effect.
 ///

@@ -89,7 +89,7 @@ D_acropolis_observatory_801834CC = 0x801834CC; // size:0x8 defined:True
 D_acropolis_observatory_801834D4 = 0x801834D4; // size:0x8 defined:True
 D_acropolis_observatory_801834DC = 0x801834DC; // size:0x20 defined:True
 
-func_acropolis_observatory_8017E6F8 = 0x8017E6F8; // type:func
+acropolisObservatoryLensFlareEmitterTask = 0x8017E6F8; // type:func
 
 acropolisObservatoryAmbientGlowTask = 0x8017E424; // type:func
 _acropolisObservatorySkipFadeOutTask = 0x8017e0d4; // type:func
@@ -100,3 +100,6 @@ _acropolisObservatoryScriptedBattleTask = 0x8017e19c; // type:func
 _acropolisObservatoryInitializeRoomTask = 0x8017d834; // type:func
 acropolisObservatoryRoomTask = 0x8017d950; // type:func
 _acropolisObservatoryHandleRoomAction = 0x8017d7c4; // type:func
+_acropolisObservatoryStartArrivalScene = 0x8017d8ac; // type:func
+_acropolisObservatoryForkedRoadArrivalMoviePathTask = 0x8017d9a8; // type:func
+_acropolisObservatoryPromenadeArrivalMoviePathTask = 0x8017dd3c; // type:func

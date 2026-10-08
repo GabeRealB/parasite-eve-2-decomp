@@ -60,3 +60,6 @@ _acropolisHallwayIdleRoomTask = 0x8017d7c8; // type:func
 _acropolisHallwayHandleSoundCue = 0x8017d734; // type:func
 _acropolisHallwayInitializeRoomTask = 0x8017d784; // type:func
 acropolisHallwayRoomTask = 0x8017d7d0; // type:func
+_acropolisHallwayResolveRoomTransition = 0x8017d5d0; // type:func
+acropolisHallwayBlueKeyPickupTask = 0x8017e120; // type:func
+_acropolisHallwayUnusedObjectVisibilityTask = 0x8017e1c0; // type:func

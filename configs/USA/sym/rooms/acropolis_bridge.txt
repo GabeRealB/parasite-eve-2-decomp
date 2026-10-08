@@ -246,3 +246,4 @@ _acropolisBridgeModelTask = 0x8017d878; // type:func
 _acropolisBridgeRoomSetup = 0x8017d98c; // type:func
 _acropolisBridgeHandleKeypadCommand = 0x8017d7f8; // type:func
 _acropolisBridgeEnemyApplyHit = 0x801876a8; // type:func
+_acropolisBridgeEnemyFrame = 0x80187850; // type:func

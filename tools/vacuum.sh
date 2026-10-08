@@ -908,7 +908,7 @@ commit_match_if_needed() {
   # routinely followed by a `learnings: ...` commit - and with only `git log -1`
   # the match underneath went unseen. The function was then treated as
   # unmatched, nothing was left to stage, and it was filed as a give-up at
-  # 100.000%: func_acropolis_patio_8017DBAC landed and was marked difficult in
+  # 100.000%: _acropolisPatioHandleActionMessage landed and was marked difficult in
   # the same run.
   local range="HEAD"
   if [[ -n "${ITER_BASE_SHA:-}" ]]; then

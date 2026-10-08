@@ -591,7 +591,7 @@ acropolisHelicopterLandingPadPerimeterLightsTask = 0x801818F0; // type:func abso
 
 acropolisObservatoryAmbientGlowTask = 0x8017E424; // type:func absolute:True owner=acropolis_observatory shared=rooms
 
-func_acropolis_observatory_8017E6F8 = 0x8017E6F8; // type:func absolute:True owner=acropolis_observatory
+acropolisObservatoryLensFlareEmitterTask = 0x8017E6F8; // type:func absolute:True owner=acropolis_observatory
 
 func_acropolis_patio_8017E100 = 0x8017E100; // type:func absolute:True owner=acropolis_patio
 
@@ -1779,7 +1779,7 @@ dryfieldMotelRoom1NoOpEffectTask = 0x8017E0A0; // type:func absolute:True owner=
 
 dryfieldMotelRoom2EffectNoopTaskCA = 0x8017D6B4; // type:func absolute:True owner=dryfield_motel_room_2
 
-dryfieldParkingLotUpdateViewEffectGateTask = 0x8017DBAC; // type:func absolute:True owner=dryfield_parking_lot shared=rooms
+dryfieldParkingLotUpdateViewEffectGateTask = 0x8017DBAC; // type:func absolute:True owner=dryfield_parking_lot
 
 dryfieldWaterTowerUpdateViewEffectGateTask = 0x80180348; // type:func absolute:True owner=dryfield_water_tower
 

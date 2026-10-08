@@ -1205,30 +1205,27 @@ void acropolisObservatoryAmbientGlowTask(Task* task)
     effectKillTask(effectWork, task);
 }
 
-/// Re-spawns the observatory's ambient effects for the current camera view,
-/// one per entry whose view mask contains the active view. Skipped entirely
-/// once `gRoomEffectState->effectControl` reaches the cancellation threshold of 4.
-void func_acropolis_observatory_8017E6F8(Task* task)
+void acropolisObservatoryLensFlareEmitterTask(Task* task)
 {
     GfxCoord* coord;
-    s32       mask;
-    s32       i;
-    SVECTOR*  vec;
-    u16*      flags;
+    s32       viewMask;
+    s32       anchorIndex;
+    SVECTOR*  anchor;
+    u16*      anchorViewMask;
 
-    coord = task->extra.coordBody->coord;
-    mask  = 1 << viewGetMappedIndex();
+    coord    = task->extra.coordBody->coord;
+    viewMask = 1 << viewGetMappedIndex();
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        i     = 0;
-        vec   = D_acropolis_observatory_8017FE78;
-        flags = D_acropolis_observatory_8017FEB8;
+        anchorIndex    = 0;
+        anchor         = D_acropolis_observatory_8017FE78;
+        anchorViewMask = D_acropolis_observatory_8017FEB8;
         do {
-            if (*flags & mask) {
-                effectSpawn(EFFECT_ACROPOLIS_OBSERVATORY_LENS_FLARE, coord, 0, vec);
+            if (*anchorViewMask & viewMask) {
+                effectSpawn(EFFECT_ACROPOLIS_OBSERVATORY_LENS_FLARE, coord, 0, anchor);
             }
-            vec++;
-            i++;
-            flags++;
-        } while (i < 8);
+            anchor++;
+            anchorIndex++;
+            anchorViewMask++;
+        } while (anchorIndex < ARRAY_SIZE(D_acropolis_observatory_8017FE78));
     }
 }

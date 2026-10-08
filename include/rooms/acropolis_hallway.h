@@ -48,6 +48,13 @@ void acropolisHallwayEffectControlTask84(Task* unusedTask);
 /// resources loaded through the selected handler, which may release the task.
 void acropolisHallwayRoomTask(Task* task);
 
-void func_acropolis_hallway_8017E120(Task* task);
+/// Shows the hallway Blue Key pickup only in mapped view 5 until collected.
+///
+/// Requires the placement spawner's live `Enemy` in `spawnArg2.pointer` and a
+/// TMD body. Initializes the flagged draw pass and zero ordering-table offset
+/// on state 0, then advances the state. Object state 2 always hides the model.
+/// Borrows the enemy/model without changing their lifetime or freeing buffers;
+/// keep the hallway overlay loaded while this map callback can execute.
+void acropolisHallwayBlueKeyPickupTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_HALLWAY_H

@@ -85,7 +85,22 @@ extern SVECTOR D_acropolis_patio_80182DDC[14];
 /// mask names.
 extern u16 D_acropolis_patio_80182E4C[14];
 
-static void func_acropolis_patio_8017D5EC(Task* arg0);
+/// Story thresholds, opening phases and one-shot latches used by the patio receiver.
+enum {
+    ACROPOLIS_PATIO_STORY_BATTLE_FINISHED    = 2,
+    ACROPOLIS_PATIO_STORY_FOLLOW_UP_STARTED  = 3,
+    ACROPOLIS_PATIO_STORY_FOUNTAIN_READY     = 5,
+    ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD  = 2,
+    ACROPOLIS_PATIO_OPENING_SCENE_STARTED    = 3,
+    ACROPOLIS_PATIO_OPENING_SCENE_FINISHED   = 4,
+    ACROPOLIS_PATIO_SCENE_UNSEEN             = 0,
+    ACROPOLIS_PATIO_SCENE_SEEN               = 1,
+    ACROPOLIS_PATIO_SECOND_SECURITY_LOCK_BIT = 2,
+    ACROPOLIS_PATIO_DOOR_UNLOCKED            = 2,
+    ACROPOLIS_PATIO_DOOR_ATTEMPTED           = 1
+};
+
+static void _acropolisPatioInitializeRoomTask(Task* task);
 static void _acropolisPatioRoomIdleState(Task* task);
 
 /// Key-item use message handled by the patio's room task.
@@ -110,7 +125,7 @@ enum {
 /// (`acropolisPatioRoomTask`): the entry tick, an idle state, then
 /// `taskKill`.
 static const TaskFuncTable3 D_acropolis_patio_8017D5C4 = {
-    { func_acropolis_patio_8017D5EC, _acropolisPatioRoomIdleState, taskKill },
+    { _acropolisPatioInitializeRoomTask, _acropolisPatioRoomIdleState, taskKill },
 };
 
 extern WorldCollisionGrid     D_acropolis_patio_80183DF8[1];
@@ -168,13 +183,13 @@ static void                 _acropolisPatioSetPlayerHeadAimState(s32 headAimStat
 static void                 _acropolisPatioActivateRoom2(void);
 static void                 _acropolisPatioSetActorControl(u8 actorControl);
 
-s32         func_acropolis_patio_8017D7D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32         func_acropolis_patio_8017DCE4(Task*, s32, s32, s32);
+static s32  _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _acropolisPatioHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
 static s32  _acropolisPatioRefuseKeyItemUse(Task* roomTask, s32 messageId, s32 itemId, s32 unusedArg);
 static s32  _acropolisPatioHandleSoundMessage(Task* roomTask, s32 messageId, s32 soundCue, s32 unusedArg);
-void        func_acropolis_patio_8017DA5C(Task*);
-s32         func_acropolis_patio_8017DBAC(Task*, s32, const void*, s32);
-void        func_acropolis_patio_8017DD80(Task*);
+static void _acropolisPatioCafeteriaDoorSceneTask(Task* task);
+static s32  _acropolisPatioHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg);
+static void _acropolisPatioRecordSceneChoiceTask(Task* task);
 static void _acropolisPatioPlayerHeadAimTask(Task* task);
 
 /// States selected by the opening scene's player-head-aim callbacks.
@@ -317,17 +332,17 @@ static AnimationSet _gAcropolisPatioAnimation02CA4 = {
 };
 
 TaskMessageEntry D_acropolis_patio_8018028C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_patio_8017D7D0 },
-    { ROOM_MESSAGE_COMMAND, func_acropolis_patio_8017DCE4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisPatioResolveRoomTransition },
+    { ROOM_MESSAGE_COMMAND, _acropolisPatioHandleCommandMessage },
     { ACROPOLIS_PATIO_MESSAGE_USE_KEY_ITEM, _acropolisPatioRefuseKeyItemUse },
     { ROOM_MESSAGE_SOUND, _acropolisPatioHandleSoundMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_patio_8017DBAC },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisPatioHandleActionMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_acropolis_patio_801802BC[4] = {
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_patio_8017DD80, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_patio_8017DA5C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisPatioRecordSceneChoiceTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisPatioCafeteriaDoorSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 97 } }, _acropolisPatioPlayerHeadAimTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
@@ -1727,202 +1742,287 @@ u8 D_acropolis_patio_80187064;
 
 u8 D_acropolis_patio_80187065;
 
-/// Room entry task tick. Publishes the room's own record at
-/// `Task::msgTable` / pointer slot 7, then re-issues the messages the room's
-/// actors need for the current point in the story: the first visit
-/// (`gameFlagGetNibble(0) < 2`) arms the two hotspots and spawns the arrival
-/// cutscene, and the second-visit branches replace them according to
-/// `gGameSession::location.loc.variant`.
-static void func_acropolis_patio_8017D5EC(Task* arg0)
+/// Registers the patio room receiver and restores its story-dependent actor setup.
+///
+/// Requires a live state-0 task and loaded room resources. Before story progress
+/// 2, room 1 restores actor 0 and starts the player's head-aim controller; actor 1
+/// is restored when present. Placement variants select additional actor commands.
+/// Publishes `GAME_TASK_SLOT_ROOM` and advances to idle. The repeated opening-
+/// progress reads are retained; command storage is borrowed through dispatch.
+static void _acropolisPatioInitializeRoomTask(Task* task)
 {
-    ActorCommand msg;
-    Task*        temp;
+    enum {
+        ACROPOLIS_PATIO_PLAYER_HEAD_AIM_TASK = 2,
+    };
 
-    arg0->msgTable = D_acropolis_patio_8018028C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(0) < 2) {
+    ActorCommand actorCommand;
+    Task*        placedActor;
+
+    task->msgTable = D_acropolis_patio_8018028C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room == 1) {
-            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), 0x7D4, &D_acropolis_patio_80180428, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_MESSAGE_PLACE, &D_acropolis_patio_80180428, 0);
             TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_8018044C, 0);
             taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-            D_acropolis_patio_80187060 = taskSpawnFromTable(D_acropolis_patio_801802BC, 2, 0, 0);
+            D_acropolis_patio_80187060 = taskSpawnFromTable(D_acropolis_patio_801802BC, ACROPOLIS_PATIO_PLAYER_HEAD_AIM_TASK, 0, 0);
         }
-        temp = sceneFindPlacedActor(1);
-        if (temp != 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(temp, 0x7D4, &D_acropolis_patio_8018046C, 0);
-        }
-    }
-    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
-        temp = sceneFindPlacedActor(1);
-        if (temp != 0) {
-            TASK_MESSAGE_DISPATCH_POINTER(temp, ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_80180440, 0);
+        placedActor = sceneFindPlacedActor(1);
+        if (placedActor != 0) {
+            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_MESSAGE_PLACE, &D_acropolis_patio_8018046C, 0);
         }
     }
-    if ((gGameSession->location.loc.variant == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0)) {
-        msg.context.loc.stage = 1;
-        msg.context.loc.area  = 3;
-        msg.command           = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(2), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
-        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(3), ACTOR_COMMAND_MESSAGE_APPLY, &msg, 0);
+    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
+        placedActor = sceneFindPlacedActor(1);
+        if (placedActor != 0) {
+            TASK_MESSAGE_DISPATCH_POINTER(placedActor, ACTOR_COMMAND_MESSAGE_APPLY, &D_acropolis_patio_80180440, 0);
+        }
     }
-    arg0->state = arg0->state + 1;
+    // Commands are borrowed only through these synchronous dispatches.
+    if ((gGameSession->location.loc.variant == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN)) {
+        actorCommand.context.loc.stage = GAME_STAGE_ACROPOLIS;
+        actorCommand.context.loc.area  = GAME_AREA_ACROPOLIS_PATIO;
+        actorCommand.command           = 0;
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(2), ACTOR_COMMAND_MESSAGE_APPLY, &actorCommand, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(3), ACTOR_COMMAND_MESSAGE_APPLY, &actorCommand, 0);
+    }
+    task->state = task->state + 1;
 }
 
-s32 func_acropolis_patio_8017D7D0(Task* arg0, s32 arg1, RoomEventMsg* arg2, RoomEventMsg* arg3)
+/// Starts the door sequence and retains only its requested arrival selectors.
+///
+/// Borrows the request for this call. Marks the Parthenon Key identified and
+/// records warp/room after the spawn; task-spawn failure is not inspected.
+static inline void _acropolisPatioStartCafeteriaDoorSequence(const RoomEventMsg* request)
 {
-    s32 var_v0;
-    u16 temp_s1;
+    enum {
+        ACROPOLIS_PATIO_CAFETERIA_DOOR_TASK = 1,
+    };
 
-    *arg3 = *arg2;
-    if (arg2->areaId == 8) {
-        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && (arg2->queryOnly == 0)) {
-            arg3->room = 2;
+    taskSpawnFromTable(D_acropolis_patio_801802BC, ACROPOLIS_PATIO_CAFETERIA_DOOR_TASK, 0, 0);
+    itemSetIdentified(INVENTORY_COLLECTION_ID_PARTHENON_KEY, 1);
+    D_acropolis_patio_80187064 = request->warp;
+    D_acropolis_patio_80187065 = request->room;
+}
+
+/// Resolves patio exits, including the scripted cafeteria-door departure.
+///
+/// Copies complete borrowed request/reply records, which may alias. Returns
+/// 0 for a blocked exit, 1 for an immediate transition or 2 for a deferred CAP/
+/// event/door sequence. Queries suppress effects and leave destination selectors
+/// copied. Execution gates cafeteria/fountain exits on story flags, identifies
+/// the Parthenon Key before the door sequence and saves its arrival for reload.
+/// Allowed cafeteria rooms follow progress; receiver and message ID are unused.
+static s32 _acropolisPatioResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum {
+        ACROPOLIS_PATIO_TRANSITION_BLOCKED  = 0,
+        ACROPOLIS_PATIO_TRANSITION_ALLOWED  = 1,
+        ACROPOLIS_PATIO_TRANSITION_DEFERRED = 2,
+    };
+
+    s32 transitionResult;
+    u16 destinationArea;
+
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
+        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_PATIO_SECOND_SECURITY_LOCK_BIT) && (request->queryOnly == ROOM_EVENT_EXECUTE)) {
+            reply->room = 2;
         }
     }
-    if (arg2->areaId == 4) {
-        if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) < 2) {
-            var_v0 = 0;
-            if (arg2->queryOnly == 0) {
+    if (request->areaId == GAME_AREA_ACROPOLIS_CAFETERIA) {
+        if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) < ACROPOLIS_PATIO_DOOR_UNLOCKED) {
+            transitionResult = ACROPOLIS_PATIO_TRANSITION_BLOCKED;
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 capRunCommandWithTransition(3);
-                gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 1);
-                gameFlagSetNibbleIfPresent(arg2->flagId, 2);
-                return 0;
+                gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_PATIO_DOOR_ATTEMPTED);
+                gameFlagSetNibbleIfPresent(request->flagId, 2);
+                return ACROPOLIS_PATIO_TRANSITION_BLOCKED;
             }
-            return var_v0;
+            return transitionResult;
         }
-        if (gameFlagGetNibble(0) == 2) {
-            var_v0 = 2;
-            if (arg2->queryOnly == 0) {
-                if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == 0) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
+            transitionResult = ACROPOLIS_PATIO_TRANSITION_DEFERRED;
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN) == ACROPOLIS_PATIO_SCENE_UNSEEN) {
                     evsStartScriptWithSkip(D_acropolis_patio_80180DEC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_80180EDC);
-                    gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN, 1);
-                    return 2;
+                    gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_SCENE_SEEN, ACROPOLIS_PATIO_SCENE_SEEN);
+                    return ACROPOLIS_PATIO_TRANSITION_DEFERRED;
                 }
                 capRunCommandWithTransition(8);
-                return 2;
+                return ACROPOLIS_PATIO_TRANSITION_DEFERRED;
             }
-            return var_v0;
+            return transitionResult;
         }
-        if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) == 2) {
-            var_v0 = 2;
-            if (arg2->queryOnly == 0) {
-                taskSpawnFromTable(D_acropolis_patio_801802BC, 1, 0, 0);
-                itemSetIdentified(0x101, 1);
-                D_acropolis_patio_80187064 = arg2->warp;
-                D_acropolis_patio_80187065 = arg2->room;
-                return 2;
+        if (gameFlagGetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE) == ACROPOLIS_PATIO_DOOR_UNLOCKED) {
+            transitionResult = ACROPOLIS_PATIO_TRANSITION_DEFERRED;
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                // Save the requested arrival for the deferred cafeteria reload.
+                _acropolisPatioStartCafeteriaDoorSequence(request);
+                return ACROPOLIS_PATIO_TRANSITION_DEFERRED;
             }
-            return var_v0;
+            return transitionResult;
         }
     }
-    if ((arg2->areaId == 8) && (gameFlagGetNibble(0) < 5)) {
-        var_v0 = 0;
-        if (arg2->queryOnly == 0) {
-            gameFlagSetNibbleIfPresent(arg2->flagId, 2);
+    if ((request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_FOUNTAIN_READY)) {
+        transitionResult = ACROPOLIS_PATIO_TRANSITION_BLOCKED;
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            gameFlagSetNibbleIfPresent(request->flagId, 2);
             capRunCommandWithTransition(4);
-            return 0;
+            return ACROPOLIS_PATIO_TRANSITION_BLOCKED;
         }
-        return var_v0;
+        return transitionResult;
     }
-    if ((arg2->queryOnly == 0) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
+    if ((request->queryOnly == ROOM_EVENT_EXECUTE) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED)) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
     }
-    temp_s1 = arg2->areaId;
-    var_v0  = 1;
-    if (temp_s1 == 4) {
-        var_v0 = 1;
-        if (arg2->queryOnly == 0) {
-            if (gameFlagGetNibble(0) >= 3) {
-                arg3->room = (s8)temp_s1;
+    destinationArea  = request->areaId;
+    transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
+    if (destinationArea == GAME_AREA_ACROPOLIS_CAFETERIA) {
+        transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_PATIO_STORY_FOLLOW_UP_STARTED) {
+                reply->room = destinationArea;
             }
-            var_v0 = 1;
-            if (gameFlagGetNibble(0) == 2) {
-                arg3->room = 3;
-                var_v0     = 1;
+            transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
+            if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_PATIO_STORY_BATTLE_FINISHED) {
+                reply->room      = 3;
+                transitionResult = ACROPOLIS_PATIO_TRANSITION_ALLOWED;
             }
         }
     }
-    return var_v0;
+    return transitionResult;
 }
 
-void func_acropolis_patio_8017DA5C(Task* task)
+/// Transfers the accepted door arrival to captured-frame reload and releases its task.
+///
+/// Requires the saved warp/room recorded by the door sequence and live reload
+/// resources. Stops nonambient sound before committing the cafeteria destination.
+static inline void _acropolisPatioCommitCafeteriaDeparture(Task* task)
 {
+    sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_CAFETERIA;
+    gDisplayState.spriteVariant                                = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_patio_80187064;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_patio_80187065;
+    taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
+    taskKill(task);
+}
+
+/// Resolves the cafeteria-door choice and reloads the saved destination on acceptance.
+///
+/// Starts bodyless in state 0 after the transition resolver records warp/room.
+/// Holds player control for CAP command 3. Choice key 2 marks the door open and
+/// plays patio sound 4; another choice restores control and kills the task.
+/// After the sound ends, stops nonambient sound and starts captured-frame reload
+/// into the cafeteria, transferring the saved arrival before releasing this task.
+static void _acropolisPatioCafeteriaDoorSceneTask(Task* task)
+{
+    enum {
+        ACROPOLIS_PATIO_DOOR_SOUND_CUE = 4,
+        ACROPOLIS_PATIO_DOOR_OPEN      = 3,
+    };
+
+    enum {
+        ACROPOLIS_PATIO_DOOR_START          = 0,
+        ACROPOLIS_PATIO_DOOR_WAIT_CHOICE    = 1,
+        ACROPOLIS_PATIO_DOOR_RESOLVE_CHOICE = 2,
+        ACROPOLIS_PATIO_DOOR_WAIT_SOUND     = 3,
+        ACROPOLIS_PATIO_DOOR_CAP_COMMAND    = 3,
+    };
+
     s32 state;
 
     state = task->state;
     switch (state) {
-        case 0:
+        case ACROPOLIS_PATIO_DOOR_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capRunCommandWithTransition(3);
+            capRunCommandWithTransition(ACROPOLIS_PATIO_DOOR_CAP_COMMAND);
             task->state = task->state + 1;
             return;
-        case 1:
-            task->state = 2;
+        case ACROPOLIS_PATIO_DOOR_WAIT_CHOICE:
+            task->state = ACROPOLIS_PATIO_DOOR_RESOLVE_CHOICE;
             return;
-        case 2:
+        case ACROPOLIS_PATIO_DOOR_RESOLVE_CHOICE:
             if (capGetVariantKey() == state) {
-                gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, 3);
-                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4), 0, 0);
+                gameFlagSetNibble(GAME_FLAG_PATIO_CAFETERIA_DOOR_STATE, ACROPOLIS_PATIO_DOOR_OPEN);
+                sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, ACROPOLIS_PATIO_DOOR_SOUND_CUE), 0, 0);
                 task->state = task->state + 1;
                 return;
             }
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             taskKill(task);
             return;
-        case 3:
-            if (sndScriptHasActiveId(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, 4)) != 0) {
+        case ACROPOLIS_PATIO_DOOR_WAIT_SOUND:
+            if (sndScriptHasActiveId(SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PATIO, ACROPOLIS_PATIO_DOOR_SOUND_CUE)) != 0) {
                 return;
             }
-            sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_ACROPOLIS_CAFETERIA;
-            gDisplayState.spriteVariant                                = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_patio_80187064;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_patio_80187065;
-            taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            taskKill(task);
+            _acropolisPatioCommitCafeteriaDeparture(task);
             return;
     }
 }
 
-s32 func_acropolis_patio_8017DBAC(Task* arg0, s32 arg1, const void* arg2, s32 arg3)
+/// Starts the patio's opening, follow-up or second-visit action script once eligible.
+///
+/// Borrows a complete read-only `DirectionActionRequest` through synchronous
+/// dispatch and retains no pointer. Actions 0/1 advance opening progress; action
+/// 1 also waits for placed actor 1 to leave. Action 2 latches the second-visit
+/// event. The receiver, ID and second word are unused. The binary leaves the
+/// return word unset; the room-action sender ignores it.
+static s32 _acropolisPatioHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg)
 {
-    const DirectionActionRequest* request = arg2;
-    u8                            state;
+    enum {
+        ACROPOLIS_PATIO_ACTION_OPENING      = 0,
+        ACROPOLIS_PATIO_ACTION_FOLLOW_UP    = 1,
+        ACROPOLIS_PATIO_ACTION_SECOND_VISIT = 2,
+    };
 
-    if ((request->actionId == 0) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < 2)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 3);
+    u8 actionId;
+
+    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_OPENING) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) < ACROPOLIS_PATIO_OPENING_SCENE_THRESHOLD)) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_STARTED);
         evsStartScriptWithSkip(D_acropolis_patio_80180484, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_801806AC);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 3;
         gGameSession->flowFlags                             = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON | GAME_SESSION_FLOW_REEQUIP_WEAPON);
     }
-    if ((request->actionId == 1) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == 3) &&
+    if ((actionRequest->actionId == ACROPOLIS_PATIO_ACTION_FOLLOW_UP) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS) == ACROPOLIS_PATIO_OPENING_SCENE_STARTED) &&
         (taskMessageDispatch(sceneFindPlacedActor(1), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, 4);
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_OPENING_PROGRESS, ACROPOLIS_PATIO_OPENING_SCENE_FINISHED);
         evsStartScriptWithSkip(D_acropolis_patio_8018082C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_80180C64);
     }
-    state = request->actionId;
-    if ((state == 2) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == 0) && (gameFlagGetNibble(0) == state)) {
-        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PATIO_026, 1);
+    actionId = actionRequest->actionId;
+    if ((actionId == ACROPOLIS_PATIO_ACTION_SECOND_VISIT) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PATIO_026) == ACROPOLIS_PATIO_SCENE_UNSEEN) && (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == actionId)) {
+        gameFlagSetNibble(GAME_FLAG_ACROPOLIS_PATIO_026, ACROPOLIS_PATIO_SCENE_SEEN);
         evsStartScriptWithSkip(D_acropolis_patio_8018280C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_patio_80182BE4);
     }
     // No result is set; the sender of a room action ignores it.
 }
-s32 func_acropolis_patio_8017DCE4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles patio CAP event commands 1 and 2.
+///
+/// Command 1 tries event 1 and returns 2. Command 2 tries event 2 only before
+/// story progress 2 and returns 0 either way; other commands return 2. Event
+/// admission failures are ignored. Receiver, ID and second word are unused.
+static s32 _acropolisPatioHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg)
 {
-    s32 var_v0;
+    enum {
+        ACROPOLIS_PATIO_COMMAND_EVENT_1 = 1,
+        ACROPOLIS_PATIO_COMMAND_EVENT_2 = 2,
+    };
 
-    if (arg2 == 1) {
-        capSpawnEventIfIdle(1, CAP_EVENT_NO_FLAGS);
+    s32 reply;
+
+    if (commandId == ACROPOLIS_PATIO_COMMAND_EVENT_1) {
+        capSpawnEventIfIdle(ACROPOLIS_PATIO_COMMAND_EVENT_1, CAP_EVENT_NO_FLAGS);
     }
-    var_v0 = 2;
-    if (arg2 == 2) {
-        var_v0 = gameFlagGetNibble(0) < 2;
-        if (var_v0 != 0) {
-            capSpawnEventIfIdle(2, CAP_EVENT_NO_FLAGS);
-            var_v0 = 0;
+    reply = 2;
+    if (commandId == ACROPOLIS_PATIO_COMMAND_EVENT_2) {
+        reply = gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_PATIO_STORY_BATTLE_FINISHED;
+        if (reply != 0) {
+            capSpawnEventIfIdle(ACROPOLIS_PATIO_COMMAND_EVENT_2, CAP_EVENT_NO_FLAGS);
+            reply = 0;
         }
     }
-    return var_v0;
+    return reply;
 }
 
 /// Refuses every key-item-use request (message 0x13F1), returning zero to the inventory.
@@ -1947,20 +2047,32 @@ static s32 _acropolisPatioHandleSoundMessage(Task* roomTask, s32 messageId, s32 
     }
     return 0;
 }
-void func_acropolis_patio_8017DD80(Task* task)
+/// Runs patio CAP command 6 and records choice key 1 in the shared scene flag.
+///
+/// Starts bodyless in state 0. Advances through one waiting tick, then tests
+/// the CAP variant key, conditionally sets `GAME_FLAG_015` and kills the task.
+/// The flag's wider story meaning is unproven; other choice keys leave it alone.
+static void _acropolisPatioRecordSceneChoiceTask(Task* task)
 {
+    enum {
+        ACROPOLIS_PATIO_CAP6_START         = 0,
+        ACROPOLIS_PATIO_CAP6_WAIT_CHOICE   = 1,
+        ACROPOLIS_PATIO_CAP6_RECORD_CHOICE = 2,
+        ACROPOLIS_PATIO_CAP6_COMMAND       = 6,
+    };
+
     s32 state;
 
     state = task->state;
     switch (state) {
-        case 0:
-            capRunCommandWithTransition(6);
+        case ACROPOLIS_PATIO_CAP6_START:
+            capRunCommandWithTransition(ACROPOLIS_PATIO_CAP6_COMMAND);
             task->state = task->state + 1;
             return;
-        case 1:
-            task->state = 2;
+        case ACROPOLIS_PATIO_CAP6_WAIT_CHOICE:
+            task->state = ACROPOLIS_PATIO_CAP6_RECORD_CHOICE;
             return;
-        case 2:
+        case ACROPOLIS_PATIO_CAP6_RECORD_CHOICE:
             if (capGetVariantKey() == 1) {
                 gameFlagSetNibble(GAME_FLAG_015, 1);
             }

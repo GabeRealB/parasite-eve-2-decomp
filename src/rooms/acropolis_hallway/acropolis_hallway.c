@@ -77,12 +77,12 @@ extern WorldCollisionGrid    D_acropolis_hallway_8017E5D0[1];
 extern WorldCollisionTrigger D_acropolis_hallway_8017E5F4[4];
 extern WorldCollisionTrigger D_acropolis_hallway_8017E724[9];
 extern WorldCoordRoomLights  D_acropolis_hallway_8017EBC4[1];
-s32                          func_acropolis_hallway_8017D5D0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32                   _acropolisHallwayResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32                   _acropolisHallwayRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32                   _acropolisHallwayHandleSoundCue(Task* unusedTask, s32 messageId, s32 soundCue, s32 unusedArg);
 
 TaskMessageEntry D_acropolis_hallway_8017E238[4] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_hallway_8017D5D0 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisHallwayResolveRoomTransition },
     { ACROPOLIS_HALLWAY_MESSAGE_USE_KEY_ITEM, _acropolisHallwayRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, _acropolisHallwayHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -380,38 +380,49 @@ static TmdSource _gAcropolisHallwayModel023C0 = {
 
 SVECTOR ActorContact_ScratchPosition = { 0 };
 
-static void func_acropolis_hallway_8017E1C0(Task* task);
+static void _acropolisHallwayUnusedObjectVisibilityTask(Task* task);
 
-/// Message gate for the hallway's first hotspot: copies the incoming record to
-/// the outgoing one, then edits the copy's `room` (the answer the caller
-/// acts on) according to the message id and the room's progress nibbles.
-/// Returning 0 means the message was consumed.
-s32 func_acropolis_hallway_8017D5D0(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves hallway exits and blocks the early cafeteria warp-3 departure.
+///
+/// Copies complete borrowed request/reply records, which may alias. Returns
+/// 0 for the blocked exit, starting CAP command 1 only on execution; other
+/// exits return 1. Executed fountain exits select room 2 after the second
+/// security lock, and cafeteria exits select rooms 3/4 from story progress.
+/// Queries only copy the request. The receiver and message ID are unused.
+static s32 _acropolisHallwayResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    u16 msgId;
+    enum {
+        ACROPOLIS_HALLWAY_SECOND_LOCK_BIT          = 2,
+        ACROPOLIS_HALLWAY_CAFETERIA_GATED_WARP     = 3,
+        ACROPOLIS_HALLWAY_CAFETERIA_EXIT_COMMAND   = 1,
+        ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS  = 3,
+        ACROPOLIS_HALLWAY_CAFETERIA_SCENE_PROGRESS = 2,
+    };
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
-        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & 2) && in->queryOnly == ROOM_EVENT_EXECUTE) {
-            out->room = 2;
+    u16 destinationArea;
+
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN) {
+        if ((gameFlagGetNibble(GAME_FLAG_SECURITY_ROOM_LOCKS_RELEASED) & ACROPOLIS_HALLWAY_SECOND_LOCK_BIT) && request->queryOnly == ROOM_EVENT_EXECUTE) {
+            reply->room = 2;
         }
     }
-    if (in->areaId == GAME_AREA_ACROPOLIS_CAFETERIA && in->warp == 3 && gameFlagGetNibble(0) < 3) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            capRunCommandWithTransition(1);
+    if (request->areaId == GAME_AREA_ACROPOLIS_CAFETERIA && request->warp == ACROPOLIS_HALLWAY_CAFETERIA_GATED_WARP && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            capRunCommandWithTransition(ACROPOLIS_HALLWAY_CAFETERIA_EXIT_COMMAND);
         }
         return 0;
     }
-    if (in->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN && gameFlagGetNibble(0) == 3) {
+    if (request->areaId == GAME_AREA_ACROPOLIS_FOUNTAIN && gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS) {
         return 1;
     }
-    msgId = in->areaId;
-    if (msgId == 4 && in->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(0) >= 3) {
-            out->room = msgId;
+    destinationArea = request->areaId;
+    if (destinationArea == GAME_AREA_ACROPOLIS_CAFETERIA && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_HALLWAY_CAFETERIA_EXIT_PROGRESS) {
+            reply->room = destinationArea;
         }
-        if (gameFlagGetNibble(0) == 2) {
-            out->room = 3;
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) == ACROPOLIS_HALLWAY_CAFETERIA_SCENE_PROGRESS) {
+            reply->room = 3;
         }
     }
     return 1;
@@ -480,53 +491,60 @@ void acropolisHallwayEffectControlTask84(Task* unusedTask)
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-/// Item-pickup model task step: on the first run resets the mesh flags and
-/// arms the task, then hides the mesh with flag 0x80 unless the room is being
-/// drawn from view 5, and always hides it once the item's 2-bit flag reads 2
-/// (already taken).
-void func_acropolis_hallway_8017E120(Task* task)
+void acropolisHallwayBlueKeyPickupTask(Task* task)
 {
-    Enemy*     enemy;
-    TmdObject* tmd;
-    s32        flag;
+    enum {
+        ACROPOLIS_HALLWAY_BLUE_KEY_VIEW      = 5,
+        ACROPOLIS_HALLWAY_BLUE_KEY_COLLECTED = 2,
+    };
 
-    enemy = task->spawnArg2.pointer;
-    tmd   = task->extra.tmd;
-    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
+    Enemy*     enemy;
+    TmdObject* model;
+    s32        placementState;
+
+    enemy          = task->spawnArg2.pointer;
+    model          = task->extra.tmd;
+    placementState = areaGetCurrentObjectState((u8)enemy->placeKey);
     if (task->state == 0) {
-        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
-        tmd->otOffset = 0;
+        model->flags    = TMD_OBJECT_FLAGGED_PASS;
+        model->otOffset = 0;
         task->state++;
     }
-    if (viewGetMappedIndex() == 5) {
-        tmd->flags = TMD_OBJECT_FLAGGED_PASS;
+    if (viewGetMappedIndex() == ACROPOLIS_HALLWAY_BLUE_KEY_VIEW) {
+        model->flags = TMD_OBJECT_FLAGGED_PASS;
     } else {
-        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    if (flag == 2) {
-        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (placementState == ACROPOLIS_HALLWAY_BLUE_KEY_COLLECTED) {
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 
-/// Model task step for a pickup's mesh: when the pickup's 2-bit flag reads 2
-/// it sets `TMD_OBJECT_SKIP_AUTO_BUFFER`, otherwise it selects the flagged draw
-/// pass, clears the draw offset and allocates the mesh's buffers. The view
-/// index is fetched but unused.
-static void func_acropolis_hallway_8017E1C0(Task* task)
+/// Retains an unreferenced placed-model visibility callback in the room image.
+///
+/// No placement, call or relocation selects it. With an Enemy-compatible
+/// placement argument it would disable automatic buffers for object state 2,
+/// otherwise select the flagged draw pass and allocate a primitive buffer.
+/// The discarded view query is retained. Its intended object is unproven.
+static void _acropolisHallwayUnusedObjectVisibilityTask(Task* task)
 {
-    Enemy*     enemy;
-    TmdObject* tmd;
-    s32        flag;
+    enum {
+        ACROPOLIS_HALLWAY_OBJECT_COLLECTED = 2,
+    };
 
-    enemy = task->spawnArg2.pointer;
-    tmd   = task->extra.tmd;
-    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
+    Enemy*     enemy;
+    TmdObject* model;
+    s32        placementState;
+
+    enemy          = task->spawnArg2.pointer;
+    model          = task->extra.tmd;
+    placementState = areaGetCurrentObjectState((u8)enemy->placeKey);
     viewGetMappedIndex();
-    if (flag == 2) {
-        tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+    if (placementState == ACROPOLIS_HALLWAY_OBJECT_COLLECTED) {
+        model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
     } else {
-        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
-        tmd->otOffset = 0;
-        tmdAllocPrimitiveBuffer(tmd);
+        model->flags    = TMD_OBJECT_FLAGGED_PASS;
+        model->otOffset = 0;
+        tmdAllocPrimitiveBuffer(model);
     }
 }

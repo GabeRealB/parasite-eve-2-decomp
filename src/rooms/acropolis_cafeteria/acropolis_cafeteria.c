@@ -106,12 +106,12 @@ extern WorldCollisionTrigger  D_acropolis_cafeteria_801891E4[16];
 extern WorldCollisionTrigger  D_acropolis_cafeteria_801896A4[20];
 
 static AnimationSet _gAcropolisCafeteriaAnimation07704;
-s32                 func_acropolis_cafeteria_8017D700(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32          _acropolisCafeteriaResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32          _acropolisCafeteriaRefuseKeyItemMsg(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 static s32          _acropolisCafeteriaHandleCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 unusedArg);
 static s32          _acropolisCafeteriaHandleActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* actionRequest, s32 unusedArg);
 static s32          _acropolisCafeteriaPlaySoundMsg(Task* task, s32 messageId, s32 soundCue, s32 unusedArg);
-void                func_acropolis_cafeteria_8017D8F8(Task*);
+static void         _acropolisCafeteriaBattleSceneTask(Task* task);
 static void         _acropolisCafeteriaFollowUpSceneTask(Task* task);
 static void         _acropolisCafeteriaSettleStrangerTask(Task* task);
 static void         _acropolisCafeteriaSetPlayerSurface(s32 surfaceClass);
@@ -120,7 +120,7 @@ static void         _acropolisCafeteriaCopyPostBattleVram(void);
 static void         _acropolisCafeteriaPreparePostBattleScene(void);
 
 TaskMessageEntry D_acropolis_cafeteria_80182AA8[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_cafeteria_8017D700 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _acropolisCafeteriaResolveRoomTransition },
     { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisCafeteriaHandleActionMessage },
     { ROOM_MESSAGE_COMMAND, _acropolisCafeteriaHandleCommandMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, _acropolisCafeteriaRefuseKeyItemMsg },
@@ -129,7 +129,7 @@ TaskMessageEntry D_acropolis_cafeteria_80182AA8[6] = {
 };
 
 TaskDesc D_acropolis_cafeteria_80182AD8[4] = {
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_cafeteria_8017D8F8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisCafeteriaBattleSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, _acropolisCafeteriaFollowUpSceneTask, { .value = 0 } },
 
     { { { TASK_BODY_NONE, 32 } }, _acropolisCafeteriaSettleStrangerTask, { .value = 0 } },
@@ -1024,161 +1024,229 @@ static inline s32 _acropolisCafeteriaResolvePatioRoom(const RoomEventMsg* reques
     return 1;
 }
 
-/// Copies the room message, selects its response, and starts capture slots 5
-/// or 6 when the room's progress permits. queryOnly suppresses side effects.
-s32 func_acropolis_cafeteria_8017D700(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves cafeteria departures, gating the hallway and patio on scene progress.
+///
+/// Copies complete borrowed request/reply records, which may alias. Returns
+/// 1 to allow departure or 0 to hold it. Execution of a blocked hallway warp-4
+/// exit starts CAP sequence 5; a completed early battle gates patio departure
+/// through sequence 6. Queries suppress those effects. Allowed patio exits
+/// select their destination room from story progress. Receiver and ID are unused.
+static s32 _acropolisCafeteriaResolveRoomTransition(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    s32 msgId;
+    enum {
+        ACROPOLIS_CAFETERIA_HALLWAY_EXIT_WARP     = 4,
+        ACROPOLIS_CAFETERIA_HALLWAY_EXIT_PROGRESS = 3,
+        ACROPOLIS_CAFETERIA_SCENE_NOT_STARTED     = 0,
+        ACROPOLIS_CAFETERIA_SCENE_RELEASED        = 2,
+    };
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_ACROPOLIS_HALLWAY && in->warp == 4) {
-        if (gameFlagGetNibble(0) >= 3) {
+    enum {
+        ACROPOLIS_CAFETERIA_HALLWAY_EXIT_SEQUENCE = 5,
+        ACROPOLIS_CAFETERIA_PATIO_EXIT_SEQUENCE   = 6,
+    };
+
+    s32 destinationArea;
+
+    *reply = *request;
+    if (request->areaId == GAME_AREA_ACROPOLIS_HALLWAY && request->warp == ACROPOLIS_CAFETERIA_HALLWAY_EXIT_WARP) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) >= ACROPOLIS_CAFETERIA_HALLWAY_EXIT_PROGRESS) {
             return 1;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            gameFlagSetNibbleIfPresent(in->flagId, 2);
-            capStartSequenceSlot(5, 1, 0);
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            gameFlagSetNibbleIfPresent(request->flagId, 2);
+            capStartSequenceSlot(ACROPOLIS_CAFETERIA_HALLWAY_EXIT_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
         }
         return 0;
     }
-    msgId = in->areaId;
-    if (msgId == 3) {
-        if (gameFlagGetNibble(0) < 2) {
-            if (D_acropolis_cafeteria_80184164 == 0) {
-                return _acropolisCafeteriaResolvePatioRoom(in, out);
+    destinationArea = request->areaId;
+    if (destinationArea == GAME_AREA_ACROPOLIS_PATIO) {
+        if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_PROGRESS) < ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE) {
+            if (D_acropolis_cafeteria_80184164 == ACROPOLIS_CAFETERIA_SCENE_NOT_STARTED) {
+                return _acropolisCafeteriaResolvePatioRoom(request, reply);
             }
-            if (D_acropolis_cafeteria_80184164 == 2) {
-                if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                    capStartSequenceSlot(6, 1, 0);
+            if (D_acropolis_cafeteria_80184164 == ACROPOLIS_CAFETERIA_SCENE_RELEASED) {
+                if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                    capStartSequenceSlot(ACROPOLIS_CAFETERIA_PATIO_EXIT_SEQUENCE, CAP_PLAYBACK_DISPLAY_TRANSITION, 0);
                 }
             }
             return 0;
         }
-        if (gameFlagGetNibble(GAME_FLAG_00E) == msgId && in->queryOnly == ROOM_EVENT_EXECUTE) {
+        if (gameFlagGetNibble(GAME_FLAG_00E) == destinationArea && request->queryOnly == ROOM_EVENT_EXECUTE) {
             gameFlagSetNibble(GAME_FLAG_00E, 2);
         }
-        return _acropolisCafeteriaResolvePatioRoom(in, out);
+        return _acropolisCafeteriaResolvePatioRoom(request, reply);
     }
     return 1;
 }
 
-/// Scripted-event task for this room, one step per `task->state`. Most states
-/// advance by one; state 8 jumps to 14, states 9-13 are never reached that way
-/// and idle. States 2-8 and 14 raise `blackout`, which covers the whole frame
-/// with a black `TILE` linked into ordering-table slot 10. State 27 ends the
-/// sequence by killing the task once the slot-3 object accepts message 0x3ED.
-void func_acropolis_cafeteria_8017D8F8(Task* task)
+/// Covers the centered 320-by-256 frame while the battle layout is replaced.
+///
+/// Borrows one `TILE` from the frame primitive arena and links it at depth 10.
+static inline void _acropolisCafeteriaDrawBattleBlackout(void)
 {
-    u8    param1[4];
-    u8    param2[4];
     TILE* tile;
-    u8    blackout;
 
-    blackout = 0;
+    tile           = gGpuPrimCursor;
+    gGpuPrimCursor = tile + 1;
+    SetTile(tile);
+    tile->x0 = -160;
+    tile->y0 = -128;
+    tile->w  = 320;
+    tile->h  = 256;
+    tile->r0 = 0;
+    tile->g0 = 0;
+    tile->b0 = 0;
+    addPrim(&gGpuCurrentOt[10], tile);
+}
+
+/// Runs the cafeteria introduction, hidden layout swap, battle and aftermath.
+///
+/// Starts bodyless in state 0 with loaded room/gameplay resources. Keeps the
+/// frame black while rebuilding room 2, waits for the enemy to leave while the
+/// player is alive and outside the wheel/display transition, then releases battle
+/// rewards and player control. States 9..13 have no handler; normal sequencing
+/// jumps from 8 to 14. The final state waits for the player's animation to end
+/// before killing the task. CD queue admission and script-spawn results are ignored.
+static void _acropolisCafeteriaBattleSceneTask(Task* task)
+{
+    enum {
+        ACROPOLIS_CAFETERIA_BATTLE_START_INTRO              = 0,
+        ACROPOLIS_CAFETERIA_BATTLE_WAIT_INTRO               = 1,
+        ACROPOLIS_CAFETERIA_BATTLE_SELECT_BATTLE_ROOM       = 2,
+        ACROPOLIS_CAFETERIA_BATTLE_EXIT_PLACED_ACTORS       = 3,
+        ACROPOLIS_CAFETERIA_BATTLE_WAIT_ACTOR_EXIT          = 4,
+        ACROPOLIS_CAFETERIA_BATTLE_RESTORE_VIEW             = 5,
+        ACROPOLIS_CAFETERIA_BATTLE_LOAD_ACTOR_FILE          = 6,
+        ACROPOLIS_CAFETERIA_BATTLE_SPAWN_BATTLE_LAYOUT      = 7,
+        ACROPOLIS_CAFETERIA_BATTLE_START_BATTLE_CONTROLLER  = 8,
+        ACROPOLIS_CAFETERIA_BATTLE_WAIT_BATTLE_SETUP        = 14,
+        ACROPOLIS_CAFETERIA_BATTLE_START_BATTLE_SCRIPT      = 15,
+        ACROPOLIS_CAFETERIA_BATTLE_WAIT_BATTLE_SCRIPT       = 16,
+        ACROPOLIS_CAFETERIA_BATTLE_DELAY_BATTLE_CHECK       = 17,
+        ACROPOLIS_CAFETERIA_BATTLE_WAIT_ENEMY_DEFEAT        = 18,
+        ACROPOLIS_CAFETERIA_BATTLE_START_POST_BATTLE_SCRIPT = 19,
+        ACROPOLIS_CAFETERIA_BATTLE_WAIT_POST_BATTLE_SCRIPT  = 20,
+        ACROPOLIS_CAFETERIA_BATTLE_RELEASE_BATTLE           = 21,
+        ACROPOLIS_CAFETERIA_BATTLE_DELAY_1                  = 22,
+        ACROPOLIS_CAFETERIA_BATTLE_DELAY_2                  = 23,
+        ACROPOLIS_CAFETERIA_BATTLE_DELAY_3                  = 24,
+        ACROPOLIS_CAFETERIA_BATTLE_DELAY_4                  = 25,
+        ACROPOLIS_CAFETERIA_BATTLE_DELAY_5                  = 26,
+        ACROPOLIS_CAFETERIA_BATTLE_WAIT_PLAYER_ANIMATION    = 27,
+        ACROPOLIS_CAFETERIA_CAP_CUE_WAIT_BIT                = 0x40,
+    };
+
+    u8 fileKeyBytes[4];
+    u8 loadArgsBytes[4];
+    u8 drawBlackout;
+
+    drawBlackout = 0;
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_CAFETERIA_BATTLE_START_INTRO:
             gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             evsStartScriptWithSkip(D_acropolis_cafeteria_80182E74, EVENT_SCRIPT_HUD_KEEP, D_acropolis_cafeteria_801831BC);
             task->state += 1;
             break;
-        case 1:
+        case ACROPOLIS_CAFETERIA_BATTLE_WAIT_INTRO:
             if (gGameSession->eventState != 1) {
                 task->state += 1;
             }
             break;
-        case 2:
-            blackout                        = 1;
+        case ACROPOLIS_CAFETERIA_BATTLE_SELECT_BATTLE_ROOM:
+            drawBlackout                    = 1;
             gGameSession->location.loc.room = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
             gGameSession->roomObjsDirty                                                                  = 1;
             task->state                                                                                 += 1;
             break;
-        case 3:
-            blackout = 1;
+        case ACROPOLIS_CAFETERIA_BATTLE_EXIT_PLACED_ACTORS:
+            drawBlackout = 1;
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_EXIT_PLACED_ACTORS, 0, 0);
             task->state += 1;
             break;
-        case 4:
-            blackout     = 1;
+        case ACROPOLIS_CAFETERIA_BATTLE_WAIT_ACTOR_EXIT:
+            drawBlackout = 1;
             task->state += 1;
             break;
-        case 5:
-            blackout = 1;
+        case ACROPOLIS_CAFETERIA_BATTLE_RESTORE_VIEW:
+            drawBlackout = 1;
             loadingRequestViewGraphicsRestore();
             task->state += 1;
             break;
-        case 6:
-            blackout  = 1;
-            param1[2] = 0x15;
-            param1[3] = 0;
-            param1[0] = 0;
-            param2[0] = 6;
-            param2[1] = 0;
-            param2[2] = 4;
-            param2[3] = 6;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        case ACROPOLIS_CAFETERIA_BATTLE_LOAD_ACTOR_FILE:
+            drawBlackout = 1;
+            // Stage-zero file 210600; byte 1 of the key is ignored by the CD API.
+            fileKeyBytes[2]  = 0x15;
+            fileKeyBytes[3]  = 0;
+            fileKeyBytes[0]  = 0;
+            loadArgsBytes[0] = 6;
+            loadArgsBytes[1] = CD_COMMAND_LOAD_DEFAULT;
+            loadArgsBytes[2] = 4;
+            loadArgsBytes[3] = 6;
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKeyBytes, loadArgsBytes);
             task->state += 1;
             break;
-        case 7:
-            blackout = 1;
+        case ACROPOLIS_CAFETERIA_BATTLE_SPAWN_BATTLE_LAYOUT:
+            drawBlackout = 1;
             if (cdCmdIsIdle()) {
                 areaSetPlacementVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, 2, AREA_VARIANT_RESET_ALWAYS);
                 areaSyncLocationVariant(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
                 areaSpawnPlacements(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc);
-                D_801156A4  &= ~0x40;
+                D_801156A4  &= ~ACROPOLIS_CAFETERIA_CAP_CUE_WAIT_BIT;
                 task->state += 1;
             }
             break;
-        case 8:
-            blackout = 1;
+        case ACROPOLIS_CAFETERIA_BATTLE_START_BATTLE_CONTROLLER:
+            drawBlackout = 1;
             if (gDisplayState.debugMode != -1) {
                 taskSpawnFromTable(D_acropolis_cafeteria_80184178, 0, 0, 0);
             }
-            task->state = 14;
+            task->state = ACROPOLIS_CAFETERIA_BATTLE_WAIT_BATTLE_SETUP;
             break;
-        case 14:
-            blackout = 1;
+        case ACROPOLIS_CAFETERIA_BATTLE_WAIT_BATTLE_SETUP:
+            drawBlackout = 1;
             if (gGameSession->eventState == 0) {
                 task->state += 1;
             }
             break;
-        case 15:
+        case ACROPOLIS_CAFETERIA_BATTLE_START_BATTLE_SCRIPT:
             evsStartScript(D_acropolis_cafeteria_80183F3C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             task->state += 1;
             break;
-        case 16:
-        case 20:
+        case ACROPOLIS_CAFETERIA_BATTLE_WAIT_BATTLE_SCRIPT:
+        case ACROPOLIS_CAFETERIA_BATTLE_WAIT_POST_BATTLE_SCRIPT:
             if (gGameSession->eventState == 0) {
                 task->state += 1;
             }
             break;
-        case 18:
-            if (taskMessageDispatch(sceneFindPlacedActor(0), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL &&
+        case ACROPOLIS_CAFETERIA_BATTLE_WAIT_ENEMY_DEFEAT:
+            if (taskMessageDispatch(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), ACTOR_MESSAGE_IS_PRESENT, 0, 0) == 0 && gPlayerStatus.hp > 0 && Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL &&
                 gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 task->state += 1;
             }
             break;
-        case 19:
+        case ACROPOLIS_CAFETERIA_BATTLE_START_POST_BATTLE_SCRIPT:
             displaySetShakeY(0);
             evsStartScriptWithSkip(D_acropolis_cafeteria_8018330C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_cafeteria_801834D4);
             task->state += 1;
             break;
-        case 21:
-            sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0xA);
+        case ACROPOLIS_CAFETERIA_BATTLE_RELEASE_BATTLE:
+            // Release combat before returning control and the next objective.
+            sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(ACROPOLIS_CAFETERIA_PLACED_STRANGER), 0xA);
             gGameSession->flowFlags                       |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
             gSceneCombatState.signals.bytes.endDelayFrames = 3;
-            D_acropolis_cafeteria_80184164                 = 2;
+            D_acropolis_cafeteria_80184164                 = ACROPOLIS_CAFETERIA_PROGRESS_AFTER_SCENE;
             task->state                                   += 1;
             break;
-        case 17:
-        case 22:
-        case 23:
-        case 24:
-        case 25:
-        case 26:
+        case ACROPOLIS_CAFETERIA_BATTLE_DELAY_BATTLE_CHECK:
+        case ACROPOLIS_CAFETERIA_BATTLE_DELAY_1:
+        case ACROPOLIS_CAFETERIA_BATTLE_DELAY_2:
+        case ACROPOLIS_CAFETERIA_BATTLE_DELAY_3:
+        case ACROPOLIS_CAFETERIA_BATTLE_DELAY_4:
+        case ACROPOLIS_CAFETERIA_BATTLE_DELAY_5:
             task->state += 1;
             break;
-        case 27:
+        case ACROPOLIS_CAFETERIA_BATTLE_WAIT_PLAYER_ANIMATION:
             if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_IS_PLAYING, 0, 0) == 0) {
                 gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 3);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -1186,18 +1254,8 @@ void func_acropolis_cafeteria_8017D8F8(Task* task)
             }
             break;
     }
-    if (blackout != 0) {
-        tile           = gGpuPrimCursor;
-        gGpuPrimCursor = tile + 1;
-        SetTile(tile);
-        tile->x0 = -0xA0;
-        tile->y0 = -0x80;
-        tile->w  = 0x140;
-        tile->h  = 0x100;
-        tile->r0 = 0;
-        tile->g0 = 0;
-        tile->b0 = 0;
-        addPrim(&gGpuCurrentOt[10], tile);
+    if (drawBlackout != 0) {
+        _acropolisCafeteriaDrawBattleBlackout();
     }
 }
 
