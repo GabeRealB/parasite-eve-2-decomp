@@ -1,27 +1,34 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Death-state handler of the first enemy, under the `gSceneCombatState.actorControl` mode byte:
-/// mode 2 hides the model and mode 1 does nothing. Otherwise `deathPhase` steps
-/// the death through three phases. Phase 0 shrinks the model and counts the
-/// kill countdown down; when it runs out the death sound plays, state 0xF0 is
-/// released, an optional final effect is spawned, the root transform is saved
-/// and the enemy's node and four bodies are unlinked. Phase 1 folds the saved
-/// transform back with a decaying Y scale for up to 0x3D frames, and phase 2
-/// destroys the enemy once that count is spent. Outside reaction states 5 and 6
-/// the first two phases also tick the animation, scale and recompute the
-/// second part and re-colour the enemy.
-void sucklercephDeathState(Enemy* enemy, Task* task)
+/// Finishes the death countdown, detaches combat records and expires the corpse.
+///
+/// Borrows the owning Enemy and live model task. PAUSED does nothing; HIDDEN
+/// sets draw suppression and unlockability without progressing death. Running
+/// countdown disables the blast sphere and reduces swelling; expiry plays its
+/// cue, credits rewards, saves the root and unlinks the target and four bodies.
+/// Puffing/slump deaths flatten before lingering; other deaths linger after one
+/// flatten tick. The shared counter's expiry threshold is 61; a flatten phase
+/// reaching that threshold is destroyed on the next LINGER call. That call
+/// destroys task/model/work through `enemyDestroy` and returns.
+/// Other running phases refresh part 1 before sampling its cached matrix for
+/// lighting, except puffing/slump deaths. No separate shadow draw occurs here.
+static void _sucklercephDeathState(Enemy* enemy, Task* task)
 {
     TmdObject*       model;
     SucklercephWork* work;
-    TmdObject*       obj;
-    GfxCoord*        coord;
+    GfxCoord*        rootCoord;
     s32              soundId;
+    enum {
+        SUCKLERCEPH_DEATH_SCALE_DECAY_Q12 = 300,
+        SUCKLERCEPH_DEATH_HIDE_COUNTDOWN  = 3,
+        SUCKLERCEPH_DEATH_LIFETIME_FRAMES = 61,
+        SUCKLERCEPH_DEATH_FADE_FRAME      = 10,
+        SUCKLERCEPH_DEATH_REWARD_ARG      = 0x2E // Unused compatibility argument; rewards come from enemy parameters.
+    };
 
-    obj   = task->extra.tmd;
-    work  = task->work;
-    coord = obj->coords;
-    model = obj;
+    rootCoord = task->extra.tmd->coords;
+    work      = task->work;
+    model     = task->extra.tmd;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             break;
@@ -33,10 +40,11 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
         default:
             switch (work->deathPhase) {
                 case SUCKLERCEPH_DEATH_PHASE_COUNTDOWN:
+                    // Stop further blast contacts while the visible death reaction settles.
                     work->blastBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    work->swellScale      -= 0x12C;
+                    work->swellScale      -= SUCKLERCEPH_DEATH_SCALE_DECAY_Q12;
                     task->killCountdown--;
-                    if (work->state != SUCKLERCEPH_STATE_PUFFING_DEATH && work->state != SUCKLERCEPH_STATE_SLUMP_DEATH && task->killCountdown == 3) {
+                    if (work->state != SUCKLERCEPH_STATE_PUFFING_DEATH && work->state != SUCKLERCEPH_STATE_SLUMP_DEATH && task->killCountdown == SUCKLERCEPH_DEATH_HIDE_COUNTDOWN) {
                         model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     }
                     if (work->state == SUCKLERCEPH_STATE_SLUMP_DEATH) {
@@ -45,22 +53,21 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                     }
                     if (task->killCountdown <= 0) {
                         if (work->variant != 0) {
-                            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000D;
-                            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                            SUCKLERCEPH_REQUEST_POSITIONED_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SUCKLERCEPH_SOUND_BANK_VARIANT, 13), soundId);
                         } else {
-                            soundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0005;
-                            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                            SUCKLERCEPH_REQUEST_POSITIONED_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SUCKLERCEPH_SOUND_BANK_DEFAULT, 5), soundId);
                         }
                         task->killCountdown = 0;
-                        sceneReleaseBattleRefWithRewards(task, 0x2E);
+                        sceneReleaseBattleRefWithRewards(task, SUCKLERCEPH_DEATH_REWARD_ARG);
                         if (work->hasBurst != 0) {
                             effectSpawn(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, NULL);
                         }
                         work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_FLATTEN;
                         work->deathFrames   = 0;
                         work->flattenScaleY = ONE;
-                        work->savedRootMtx  = coord->coord;
-                        enemy->recs         = NULL;
+                        work->savedRootMtx  = rootCoord->coord;
+                        // The corpse retains its model; combat registration ends now.
+                        enemy->recs = NULL;
                         worldTargetUnlinkNode(&enemy->node);
                         worldCollisionUnlinkBody(&work->senseBody);
                         worldCollisionUnlinkBody(&work->body);
@@ -73,17 +80,17 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
                         work->deathPhase = SUCKLERCEPH_DEATH_PHASE_LINGER;
                     }
                     work->deathFrames++;
-                    if (work->deathFrames >= 0x3D) {
+                    if (work->deathFrames >= SUCKLERCEPH_DEATH_LIFETIME_FRAMES) {
                         work->deathPhase = SUCKLERCEPH_DEATH_PHASE_LINGER;
                     }
                     _sucklercephFlatten(task);
-                    if (work->deathFrames == 0xA) {
+                    if (work->deathFrames == SUCKLERCEPH_DEATH_FADE_FRAME) {
                         task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     }
                     break;
                 case SUCKLERCEPH_DEATH_PHASE_LINGER:
                     work->deathFrames++;
-                    if (work->deathFrames >= 0x3D) {
+                    if (work->deathFrames >= SUCKLERCEPH_DEATH_LIFETIME_FRAMES) {
                         enemyDestroy(enemy, task);
                     }
                     return;
@@ -99,3 +106,5 @@ void sucklercephDeathState(Enemy* enemy, Task* task)
             break;
     }
 }
+
+#undef SUCKLERCEPH_REQUEST_POSITIONED_SOUND

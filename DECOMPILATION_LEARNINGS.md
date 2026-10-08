@@ -958,7 +958,7 @@ ours, and changing it costs nothing when the callers ignore the value.
 
 `_actorRenderRescaleYaw(coord, 1)` and `_actorRenderCollapseYawRotation(coord)` compute the
 same thing, but only the second compiles to the target's tail in
-`oddStrangerWalkingDeath`. Inlining the *scaled* body nine times gave
+`_oddStrangerWalkingDeath`. Inlining the *scaled* body nine times gave
 98.166% (`regs=56 reorder=10 delete=8`); the 1/4096-scale body gave 100.000%.
 
 Both bodies push `0x34` bytes of `ActorScaleRotScratch`, rebuild the yaw with
@@ -109828,9 +109828,9 @@ Retained inputs, dumps, instruction walks and prediction/results:
 `PERMUTER_EVIDENCE/68f51493f5024fb1/analysis/observations.json`.
 The router itself produced no discovery; this is an independent controlled fix.
 
-## One block's locals swap hard registers on a re-spelling that emits the same instructions: `s32` intermediate + `(s32)(s16)` at the use, and a dedicated `u8* head` (oddStrangerWalkingDeath, 2026-09-16)
+## One block's locals swap hard registers on a re-spelling that emits the same instructions: `s32` intermediate + `(s32)(s16)` at the use, and a dedicated `u8* head` (_oddStrangerWalkingDeath, 2026-09-16)
 
-`oddStrangerWalkingDeath` reached 99.543% with the structure already matching
+`_oddStrangerWalkingDeath` reached 99.543% with the structure already matching
 (37/37 blocks, `916/917` instructions, `branch=4 regs=23 insert=2 delete=1`).
 Every penalty sat in the single block that rebuilds the root coordinate from the
 model yaw -- `ratan2` -> `gfxRotMatrixY` -> `ScaleMatrix` over the 0x34-byte
@@ -150520,7 +150520,7 @@ attempts; left as it was.
 ### Goto removal, batch 27: a mode ladder whose case 0 joins the default, the companion's arrival jump (2026-10-06)
 
 - **A mode ladder where mode 0 does something and then runs the default body,
-  with mode 2's block between them in the image** (`sucklercephUpdateState`,
+  with mode 2's block between them in the image** (`_sucklercephUpdateState`,
   seven gotos and `one = 1`). Neither `case 0: ...; /* fallthrough */ default:`
   (case 0 lands next to the default, after case 2) nor a `static inline` for the
   body called under `case 0:` and `default:` matches. The inline's two copies

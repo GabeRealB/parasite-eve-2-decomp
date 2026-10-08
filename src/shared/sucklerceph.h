@@ -30,6 +30,16 @@
 #include "gameplay/animation.h"
 #include "gameplay/effects.h"
 
+/// Death task slot and timing shared by damage, swelling and puffing reactions.
+///
+/// Scale increments use Q12 (4096 = 1.0); counters advance once per running tick.
+enum {
+    SUCKLERCEPH_TASK_DEATH             = 2,
+    SUCKLERCEPH_DEATH_COUNTDOWN_FRAMES = 5,
+    SUCKLERCEPH_SWELL_DURATION_FRAMES  = 5,
+    SUCKLERCEPH_SWELL_SCALE_STEP_Q12   = 200
+};
+
 /// Values of `SucklercephWork::state`, the behaviour the per-frame dispatch runs.
 enum {
     SUCKLERCEPH_STATE_DORMANT       = 0, // rocks in place until the player comes near or a hit lands
@@ -146,19 +156,19 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(SucklercephContactsScratch, 0x4C);
 
 static void _sucklercephSpawnState(Enemy* enemy, Task* task);
-void        sucklercephReactionDispatch(Task* arg0);
+static void _sucklercephReactionDispatch(Task* task);
 static void _sucklercephDormantTick(Task* task);
-void        sucklercephAwakeTick(Task* arg0);
-void        sucklercephContacts(Task* arg0);
-void        sucklercephTakeDamage(Task* arg0, s32 arg1);
+static void _sucklercephAwakeTick(Task* task);
+static void _sucklercephContacts(Task* task);
+static void _sucklercephTakeDamage(Task* task, s32 damage);
 static void _sucklercephTurnToPlayer(Task* task);
-void        sucklercephDeathState(Enemy* enemy, Task* task);
+static void _sucklercephDeathState(Enemy* enemy, Task* task);
 static void _sucklercephKill(Task* task, u8 forceBurst);
 void        sucklercephDropSpawnState(Enemy* arg0, Task* arg1);
 static void _sucklercephDropCollide(Task* task);
 s32         sucklercephMessage(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3);
-void        sucklercephUpdateState(Enemy* arg0, Task* arg1);
-void        sucklercephReactionFlags(Task* arg0);
+static void _sucklercephUpdateState(Enemy* enemy, Task* task);
+static void _sucklercephReactionFlags(Task* task);
 static void _sucklercephStep(Task* task);
 static void _sucklercephScalePart(Task* task, GfxCoord* coord);
 static void _sucklercephFlatten(Task* task);

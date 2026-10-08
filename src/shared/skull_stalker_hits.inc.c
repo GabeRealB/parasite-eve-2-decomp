@@ -5,7 +5,7 @@
 /// The particle argument seeds the size of secondary effects. Requires a live
 /// root for placement and the carrier's loaded effect resources. Each spawn
 /// may fail independently; offsets remain in the carrier's static storage.
-static __inline__ void _skullStalkerSpawnHitEffects(Task* task)
+static __inline__ void _skullStalkerSpawnDeathEffects(const Task* task)
 {
     enum { SKULL_STALKER_PARTICLE_SECONDARY_SIZE = 0x200 };
     effectSpawn(EFFECT_030, task->extra.tmd->coords, SKULL_STALKER_PARTICLE_SECONDARY_SIZE, &gSkullStalkerSparkOffset);
@@ -89,7 +89,7 @@ static void _skullStalkerProcessContacts(Task* task)
                 } else {
                     SKULL_STALKER_PLAY_CONTACT_SOUND(defaultHitScript);
                 }
-                _skullStalkerSpawnHitEffects(task);
+                _skullStalkerSpawnDeathEffects(task);
                 padScriptSpawnVariableMotorRamp(SKULL_STALKER_TOUCH_VIBRATION_TICKS, SKULL_STALKER_TOUCH_VIBRATION_INTENSITY, SKULL_STALKER_TOUCH_VIBRATION_INTENSITY);
                 model->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 work->flattenScaleY = SKULL_STALKER_TOUCH_SCALE_Y_Q12;
@@ -119,7 +119,7 @@ static void _skullStalkerProcessContacts(Task* task)
                     } else {
                         SKULL_STALKER_PLAY_CONTACT_SOUND(defaultHitScript);
                     }
-                    _skullStalkerSpawnHitEffects(task);
+                    _skullStalkerSpawnDeathEffects(task);
                     model->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                     work->flattenScaleY = ONE;
                     work->hiding        = 1;

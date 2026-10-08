@@ -14,12 +14,16 @@ STATIC_ASSERT_SIZEOF(_GeneratorBodyHitScratch, 0x18);
 ///
 /// Requires the initialized body task and its work and Enemy. Retains the
 /// original positive-HP reaction even for zero damage. No resource is released.
+/// A protected lethal hit restores one HP without starting the hit animation;
+/// an unprotected lethal hit leaves battle rewards and teardown held for messages.
 static inline void _generatorApplyBodyDamage(Task* task, GeneratorWork* work, Enemy* enemy, s32 damage)
 {
+    enum { GENERATOR_PROTECTED_HP_FLOOR = 1 };
+
     enemy->hp -= damage;
     if (enemy->hp <= 0) {
         if (work->lifeSupportDestroyed == 0) {
-            enemy->hp = 1;
+            enemy->hp = GENERATOR_PROTECTED_HP_FLOOR;
         } else {
             task->state           = GENERATOR_TASK_TEARDOWN;
             work->deathState      = GENERATOR_DEATH_WAIT;

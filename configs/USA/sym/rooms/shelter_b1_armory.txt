@@ -149,7 +149,7 @@ D_shelter_b1_armory_80182500 = 0x80182500; // size:0x28 defined:True
 
 shelterB1ArmoryDrawGlowsTask = 0x801807E4; // type:func
 _shopSelectStockList = 0x8017D768; // type:func
-Shop_ItemRow = 0x8017DDD8; // type:func
+_shopDrawItemRow = 0x8017DDD8; // type:func
 _shopAppendItemRow = 0x8017E264; // type:func
 _shopBuildItemList = 0x8017E3B0; // type:func
 _shopItemListTask = 0x8017E77C; // type:func

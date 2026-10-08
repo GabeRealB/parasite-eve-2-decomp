@@ -368,7 +368,7 @@ static __inline__ s32 _oddStrangerOutOfRange(const SVECTOR* offset, s16 radius)
 static void _oddStrangerStalk(Task* task);
 void        oddStrangerTick(Enemy* enemy, Task* actor);
 
-void oddStrangerWalkingDeath(Task* arg0);
+static void _oddStrangerWalkingDeath(Task* task);
 
 void oddStrangerTakeHit(Task* arg0);
 

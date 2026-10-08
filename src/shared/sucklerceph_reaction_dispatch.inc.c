@@ -1,46 +1,46 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Per-frame dispatch of the first enemy on its reaction state `state`:
-/// 0 is the dormant arm `_sucklercephDormantTick` and 1 the live handler
-/// `sucklercephAwakeTick`. State 3 suppresses the rebind until
-/// `damageTickEnemyBuildup` reports the reaction over, then returns the enemy to the
-/// live stage, and ends with a step of the root. States 4 and 5 collapse the
-/// enemy: both scale its second part at the base factor, count frames and
-/// spawn the 0x60080 effect every 0x10; state 5 also counts those spawns and,
-/// on the third, arms the death - a five-frame countdown, the death phase
-/// reset and task state 2, with the enemy's HP cleared. Both collapse states
-/// end by suppressing the rebind.
-void sucklercephReactionDispatch(Task* arg0)
+/// Advances the specimen's dormant, awake, status-hold or puffing behaviour.
+///
+/// Borrows the live task and work. Status hold freezes animation until buildup
+/// finishes, then restores crawl with zero speed. Puffing holds part 1 at unit
+/// Q12 scale, freezes animation and emits a puff every 16 calls. Puffing death
+/// arms the death task on its third puff without invoking the burst/slump roll;
+/// no current state writer selects that arm. Other states leave work untouched.
+static void _sucklercephReactionDispatch(Task* task)
 {
+    enum { SUCKLERCEPH_PUFF_INTERVAL_FRAMES = 16,
+           SUCKLERCEPH_PUFF_SIZE            = 0x400,
+           SUCKLERCEPH_DEATH_PUFF_COUNT     = 3 };
     SucklercephWork* work;
     Enemy*           enemy;
-    u16              frames;
+    u16              nextPuffFrame;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->state) {
         case SUCKLERCEPH_STATE_DORMANT:
-            _sucklercephDormantTick(arg0);
+            _sucklercephDormantTick(task);
             return;
         case SUCKLERCEPH_STATE_AWAKE:
-            sucklercephAwakeTick(arg0);
+            _sucklercephAwakeTick(task);
             return;
         case SUCKLERCEPH_STATE_STATUS_HOLD:
             work->animFrozen = 1;
-            if (damageTickEnemyBuildup(arg0->spawnArg2.pointer) != 0) {
+            if (damageTickEnemyBuildup(task->spawnArg2.pointer) != 0) {
                 work->animFrozen   = 0;
                 work->state        = SUCKLERCEPH_STATE_AWAKE;
                 work->awakeStage   = SUCKLERCEPH_AWAKE_STAGE_CRAWL;
                 work->forwardSpeed = 0;
             }
-            _sucklercephStep(arg0);
+            _sucklercephStep(task);
             return;
         case SUCKLERCEPH_STATE_PUFFING:
             work->swellScale = ONE;
-            _sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
-            frames           = work->animFrames + 1;
-            work->animFrames = frames;
-            if ((s16)frames >= 0x10) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
+            _sucklercephScalePart(task, &task->extra.tmd->coords[1]);
+            nextPuffFrame    = work->animFrames + 1;
+            work->animFrames = nextPuffFrame;
+            if ((s16)nextPuffFrame >= SUCKLERCEPH_PUFF_INTERVAL_FRAMES) {
+                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, SUCKLERCEPH_PUFF_SIZE, &gSucklercephCollapseFxOffset);
                 work->animFrames = 0;
             }
             work->animFrozen = 1;
@@ -49,18 +49,18 @@ void sucklercephReactionDispatch(Task* arg0)
             return;
         case SUCKLERCEPH_STATE_PUFFING_DEATH:
             work->swellScale = ONE;
-            _sucklercephScalePart(arg0, &arg0->extra.tmd->coords[1]);
-            frames           = work->animFrames + 1;
-            work->animFrames = frames;
-            if ((s16)frames >= 0x10) {
-                effectSpawn(EFFECT_ADDITIVE_PUFF, arg0->extra.tmd->coords, 0x400, &gSucklercephCollapseFxOffset);
+            _sucklercephScalePart(task, &task->extra.tmd->coords[1]);
+            nextPuffFrame    = work->animFrames + 1;
+            work->animFrames = nextPuffFrame;
+            if ((s16)nextPuffFrame >= SUCKLERCEPH_PUFF_INTERVAL_FRAMES) {
+                effectSpawn(EFFECT_ADDITIVE_PUFF, task->extra.tmd->coords, SUCKLERCEPH_PUFF_SIZE, &gSucklercephCollapseFxOffset);
                 work->animFrames = 0;
                 work->swellFrames++;
-                if (work->swellFrames >= 3) {
-                    enemy               = arg0->spawnArg2.pointer;
-                    arg0->killCountdown = 5;
+                if (work->swellFrames >= SUCKLERCEPH_DEATH_PUFF_COUNT) {
+                    enemy               = task->spawnArg2.pointer;
+                    task->killCountdown = SUCKLERCEPH_DEATH_COUNTDOWN_FRAMES;
                     work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
-                    arg0->state         = 2;
+                    task->state         = SUCKLERCEPH_TASK_DEATH;
                     enemy->hp           = 0;
                 }
             }

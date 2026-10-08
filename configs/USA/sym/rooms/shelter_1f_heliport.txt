@@ -165,7 +165,7 @@ gRoomEventLatched = 0x80182CB4; // size:0xC defined:True
 
 shelter1fHeliportNoOpEffectTask = 0x80180B4C; // type:func
 _shopSelectStockList = 0x8017D730; // type:func
-Shop_ItemRow = 0x8017DDA0; // type:func
+_shopDrawItemRow = 0x8017DDA0; // type:func
 _shopAppendItemRow = 0x8017E22C; // type:func
 _shopBuildItemList = 0x8017E378; // type:func
 _shopItemListTask = 0x8017E744; // type:func

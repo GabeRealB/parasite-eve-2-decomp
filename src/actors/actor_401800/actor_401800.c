@@ -2192,7 +2192,7 @@ static const OddStrangerStateTable gOddStrangerStates = { {
     _oddStrangerStalk,
     _actor401800RefallBack,
     _actor401800RefallFront,
-    oddStrangerWalkingDeath,
+    _oddStrangerWalkingDeath,
 } };
 
 #include "../../shared/odd_stranger_tick.inc.c"

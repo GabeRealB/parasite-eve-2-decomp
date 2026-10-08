@@ -328,14 +328,14 @@ SVECTOR gSkullStalkerHitFxOffset = { 0, 0, 100, 0 };
 /// Task states of the first enemy as `_sucklercephTask` dispatches them:
 /// spawn, per-frame update and death.
 static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
-    { _sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
+    { _sucklercephSpawnState, _sucklercephUpdateState, _sucklercephDeathState },
 };
 
 /// Task states of the dropping first enemy as `sucklercephDropTask` dispatches
 /// them: the same update and death after a spawn that parks the enemy hidden,
 /// and a fourth state for its drop into place.
 static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
-    { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, _sucklercephDropState },
+    { sucklercephDropSpawnState, _sucklercephUpdateState, _sucklercephDeathState, _sucklercephDropState },
 };
 
 #include "../../shared/sucklerceph_reaction_dispatch.inc.c"

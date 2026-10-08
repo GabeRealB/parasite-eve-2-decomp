@@ -869,14 +869,14 @@ static __inline__ void _actor07000SlouchTwistPart(MATRIX* partMatrix, SVECTOR* t
 /// Task states of the caged specimen as `_sucklercephTask` dispatches
 /// them: spawn, per-frame update and teardown.
 static const EnemyTaskFuncTable3 gSucklercephTaskStates = {
-    { _sucklercephSpawnState, sucklercephUpdateState, sucklercephDeathState },
+    { _sucklercephSpawnState, _sucklercephUpdateState, _sucklercephDeathState },
 };
 
 /// Task states of the caged specimen as `sucklercephDropTask` dispatches them:
 /// the same update and teardown after a spawn that parks the specimen hidden,
 /// and a fourth state for its drop into place.
 static const EnemyTaskFuncTable4 gSucklercephDropTaskStates = {
-    { sucklercephDropSpawnState, sucklercephUpdateState, sucklercephDeathState, _sucklercephDropState },
+    { sucklercephDropSpawnState, _sucklercephUpdateState, _sucklercephDeathState, _sucklercephDropState },
 };
 
 #include "../../shared/sucklerceph_reaction_dispatch.inc.c"
@@ -1052,7 +1052,7 @@ static void _actor07000SlouchSpawn(Enemy* enemy, Task* task)
 }
 
 /// Per-frame mode handler of the specimen. The `gSceneCombatState.actorControl` switch is the same
-/// one `sucklercephUpdateState` runs: mode 1 skips to the tail, mode 2 puts
+/// one `_sucklercephUpdateState` runs: mode 1 skips to the tail, mode 2 puts
 /// the model in its hidden pose and returns, mode 0 clears both flags and falls
 /// into the body. The body first dispatches the behaviour `state` - idle and
 /// engaged hand the frame to their own handler, the status hold counts

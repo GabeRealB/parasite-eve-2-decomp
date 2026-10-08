@@ -241,7 +241,7 @@ func_dryfield_night_garage_801807E4 = 0x801807E4; // type:func
 
 dryfieldNightGarageDrawGlowsTask = 0x80181518; // type:func
 _shopSelectStockList = 0x8017D754; // type:func
-Shop_ItemRow = 0x8017DDC4; // type:func
+_shopDrawItemRow = 0x8017DDC4; // type:func
 _shopAppendItemRow = 0x8017E250; // type:func
 _shopBuildItemList = 0x8017E39C; // type:func
 _shopItemListTask = 0x8017E768; // type:func

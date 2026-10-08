@@ -1,42 +1,53 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Damage reaction of the first enemy: `arg1` comes off its HP and goes
-/// through `worldTargetAddReadoutAmount`. A depleted enemy is killed through
-/// `_sucklercephKill` and put into its death state with a five-frame
-/// countdown. A live one plays the hurt sound from the set `variant` picks,
-/// re-arms `field_2CC`, and while animation 1 plays latches `wakeRequested`.
-void sucklercephTakeDamage(Task* arg0, s32 arg1)
+/// Requests a positioned character script with its placement instance tag.
+///
+/// Two statements for a braced branch. Supply a live Enemy pointer in enemyArg,
+/// a composed root and a modifiable s32 idLocal. enemyArg/baseSoundId evaluate
+/// once; rootCoord twice, so use a stable pointer. Pan/depth narrow to s8 and
+/// failure is ignored. Requires the sound-bank constants from the earlier awake
+/// fragment; shared with the later death fragment and undefined there.
+#define SUCKLERCEPH_REQUEST_POSITIONED_SOUND(enemyArg, rootCoord, baseSoundId, idLocal)             \
+    (idLocal) = ((((Enemy*)(enemyArg))->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | (baseSoundId); \
+    sndEvtRequestScriptStart((idLocal), (s8)worldCoordGetOriginAudioPan((rootCoord)), (s8)worldCoordGetOriginAudioDepth((rootCoord)));
+
+/// Subtracts HP and adds its readout, starting death only when HP becomes negative.
+///
+/// Requires a live task, Enemy, model root and work; damage is an HP amount.
+/// Zero remaining HP still plays the hurt cue and can request waking from idle.
+/// A lethal call chooses burst/slump and arms the five-tick death countdown.
+/// Surviving calls also store 15 in an unread work halfword whose role is unproven.
+static void _sucklercephTakeDamage(Task* task, s32 damage)
 {
     SucklercephWork* work;
     Enemy*           enemy;
-    TmdObject*       obj;
-    GfxCoord*        coord;
-    s32              anim;
+    TmdObject*       model;
+    GfxCoord*        rootCoord;
+    s32              animId;
     s32              soundId;
+    enum { SUCKLERCEPH_SURVIVED_HIT_VALUE = 15 };
 
-    enemy      = arg0->spawnArg2.pointer;
-    obj        = arg0->extra.tmd;
-    coord      = obj->coords;
-    work       = arg0->work;
-    enemy->hp -= arg1;
-    worldTargetAddReadoutAmount(&enemy->node, arg1, 0);
+    enemy      = task->spawnArg2.pointer;
+    model      = task->extra.tmd;
+    rootCoord  = model->coords;
+    work       = task->work;
+    enemy->hp -= damage;
+    worldTargetAddReadoutAmount(&enemy->node, damage, 0);
     if (enemy->hp < 0) {
-        _sucklercephKill(arg0, 0);
-        arg0->state         = 2;
-        arg0->killCountdown = 5;
+        _sucklercephKill(task, 0);
+        task->state         = SUCKLERCEPH_TASK_DEATH;
+        task->killCountdown = SUCKLERCEPH_DEATH_COUNTDOWN_FRAMES;
         work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
         return;
     }
     if (work->variant != 0) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4046000A;
-        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        SUCKLERCEPH_REQUEST_POSITIONED_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SUCKLERCEPH_SOUND_BANK_VARIANT, 10), soundId);
     } else {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0002;
-        sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+        SUCKLERCEPH_REQUEST_POSITIONED_SOUND(task->spawnArg2.pointer, rootCoord, SOUND_CHARACTER(SUCKLERCEPH_SOUND_BANK_DEFAULT, 2), soundId);
     }
-    anim            = work->animId;
-    work->field_2CC = 0xF;
-    if (anim == 1) {
-        work->wakeRequested = anim;
+    animId          = work->animId;
+    work->field_2CC = SUCKLERCEPH_SURVIVED_HIT_VALUE;
+    if (animId == SUCKLERCEPH_ANIM_IDLE) {
+        work->wakeRequested = animId;
     }
 }

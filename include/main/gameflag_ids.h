@@ -1196,7 +1196,7 @@ enum {
     /// after a battle the pending slots minus survivors are added. Added to battlesWon
     /// for the play-data completion percentage (of 326).
     GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B = 0x167,
-    /// Count of roaming enemies killed in roamer pool A (roamerTickPoolA, Neo Ark
+    /// Count of roaming enemies killed in roamer pool A (_roamerTickPoolA, Neo Ark
     /// rooms); added to battlesWon for the play-data completion percentage.
     GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A = 0x168,
     /// One-shot: request 1 in the Shelter 1F tent runs CAP 0x18 the first time and sets

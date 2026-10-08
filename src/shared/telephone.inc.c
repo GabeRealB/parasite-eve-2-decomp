@@ -303,8 +303,9 @@ static const u8 Telephone_Data_8017D61C[] = "100.0%";
 
 /// Formats a sub-100-percent usage share in hundredths of a percent.
 ///
-/// Borrows a writable buffer of at least eight bytes and a share in 0..9999.
-/// Pads to three digits before opening the decimal slot and appending percent.
+/// Borrows a writable buffer of at least seven bytes and a share in 0..9999.
+/// Writes two fractional digits (0 becomes `0.00%`, 9999 becomes `99.99%`).
+/// The text is NUL-terminated; no pointer is retained.
 static inline void _telephoneFormatUsageShare(u8* formatBuffer, s32 usageShare)
 {
     s32 wholePercentThreshold;
@@ -334,6 +335,8 @@ static inline void _telephoneFormatUsageShare(u8* formatBuffer, s32 usageShare)
 /// Borrows a panel and pixel offsets/width; widths below two reserve nothing.
 /// Requires room for one POLY_G4 and a live OT. Retains low 16 coordinate bits,
 /// including an unsigned read of the left edge; the caller draws the bevel.
+/// Starts one pixel inside each origin offset; the fill is nine pixels tall,
+/// from RGB (176,0,1) at the left to (0,0,1) at the right, at panel OT depth + 1.
 static inline void _telephoneDrawUsageGaugeFill(const UiPanel* panel, s32 gaugeX, s32 gaugeY, s32 gaugeWidth)
 {
     enum { TELEPHONE_USAGE_GAUGE_PACKET_CODE = 0x38 };

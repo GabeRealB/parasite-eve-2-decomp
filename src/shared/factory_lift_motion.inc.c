@@ -81,7 +81,8 @@ static __inline__ void _factoryLiftFinishVertical(const Task* liftTask, const Gf
 ///
 /// Preserves translation, discards pitch/roll/scale, and reads yaw after the
 /// identity stores. Work holds a 16.16 angle; the SDK receives its signed high half.
-static __inline__ void _factoryLiftRebuildYaw(FactoryLiftWork* work, GfxCoord* coord)
+/// Both objects are borrowed; the caller's motion state and fractional yaw remain intact.
+static __inline__ void _factoryLiftRebuildYaw(const FactoryLiftWork* work, GfxCoord* coord)
 {
     gfxSetRotIdentity(&coord->coord);
     RotMatrixY(work->yaw.halves.integer, &coord->coord);

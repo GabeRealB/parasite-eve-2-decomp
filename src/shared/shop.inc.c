@@ -122,7 +122,7 @@ typedef struct {
 } _ShopItemListWork;
 STATIC_ASSERT_SIZEOF(_ShopItemListWork, 0xA4);
 
-static void Shop_ItemRow(UiList* prompt, UiObject* obj);
+static void _shopDrawItemRow(UiList* list, UiObject* object);
 
 /// Borrows a consumable's pack quantity and per-stack capacity from the catalogue.
 ///
@@ -338,126 +338,130 @@ static const u16* _shopSelectStockList(s32 stockSelector)
     return Shop_Data_80181AD4;
 }
 
-/// Draws one row of the shop list and handles its input, recording the row's
-/// id as the cursor item while the row is selected. Row 0xFFFE is greyed out
-/// and unselectable unless `equipmentHasCarriedWeaponSupply` answers non-zero, and opens its
-/// own panel; row 0xFFFC is greyed out while the scan holds item 0x8F. Any
-/// other row is an item with its price, greyed out when `inventoryIsItemLimitReached`
-/// reports its ownership limit reached; confirm opens the buy panel and button
-/// 0x10 the item's detail panel.
-static void Shop_ItemRow(UiList* prompt, UiObject* obj)
+/// Draws an offered item or recharge-service row and opens its purchase/detail panel.
+///
+/// Borrows the owner's live item-list work and the current row in 0..itemCount-1;
+/// current stock/unlock combinations offer at most 33 of its 64 row slots.
+/// An active row publishes its row id for purchase. Recharge is unavailable
+/// without carried weapon supply; catalogue items are dimmed at their ownership
+/// limit. Confirm opens the appropriate purchase panel; Triangle opens details.
+/// Requires loaded item text/catalogue and frame GPU storage. Dialog tasks own
+/// their storage; allocation failure leaves catalogue-row input active.
+static void _shopDrawItemRow(UiList* list, UiObject* object)
 {
-    TextDrawReq         req;
-    u8                  buf[0x20];
+    enum {
+        SHOP_ROW_SUSPENDED_CONTROL_SHIFT = 16,
+        SHOP_ROW_DIALOG_DELAY_TICKS      = 1,
+        SHOP_ROW_DETAIL_TEMPLATE         = 45,
+        SHOP_UNREACHED_ROW_BLOCKING_ITEM = 0x8F
+    };
+    TextDrawReq         textRequest;
+    u8                  priceText[0x20];
     _ShopItemListWork*  work;
-    InventoryItemRange* scan;
-    s32                 y;
-    s32                 scaled;
-    UiObject*           child;
-    UiObject*           child2;
-    s32                 blocked;
-    s32                 status;
-    s32                 itemId;
-    s32                 price;
+    InventoryItemRange* carriedItems;
+    s32                 captionBaseY;
+    UiObject*           specialRowDialog;
+    UiObject*           purchaseDialog;
+    s32                 purchaseBlocked;
+    s32                 panelControl;
+    s32                 rowId;
+    s32                 unitPrice;
 
-    work    = obj->owner->work;
-    blocked = 0;
-    itemId  = work->rowIds[prompt->currentItemIndex];
-    /* &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems hoisted into a saved register here, as the original does,
-       instead of being rematerialised at the inventoryGetItemQuantity call. */
-    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        Shop_Data_801819EC = itemId;
+    work            = object->owner->work;
+    purchaseBlocked = 0;
+    rowId           = work->rowIds[list->currentItemIndex];
+    carriedItems    = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        Shop_Data_801819EC = rowId;
     }
 
-    if (itemId == 0xFFFE) {
-        status = obj->panel.control.word;
-        if (((status >> 16) == 1) || (status == 1)) {
-            if (prompt->selectedItemIndex == prompt->currentItemIndex) {
+    if (rowId == SHOP_ROW_RECHARGE_SERVICE) {
+        panelControl = object->panel.control.word;
+        if (((panelControl >> SHOP_ROW_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+            if (list->selectedItemIndex == list->currentItemIndex) {
                 uiSetPromptText(Shop_Data_80181A20, 0, 0);
             }
         }
         if (equipmentHasCarriedWeaponSupply() == 0) {
-            prompt->colorRgb        = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
-            prompt->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
+            list->colorRgb        = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
+            list->rowInputEnabled = USER_INTERFACE_LIST_ROW_INACTIVE;
         }
-        req.x          = obj->panel.contentOriginX.unsignedValue + prompt->rowTextX.signedValue;
-        y              = obj->panel.contentOriginY.unsignedValue - 4;
-        req.y          = prompt->rowTextY.signedValue + y;
-        req.otIndex    = obj->panel.otIndex.signedValue + 1;
-        req.colorRgb   = prompt->colorRgb;
-        req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-        req.alignment  = TEXT_ALIGNMENT_LEFT;
-        req.drawMode   = TEXT_DRAW_OUTLINED;
-        textDrawString(&req, Shop_Data_80181A0C);
-        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        textRequest.x          = object->panel.contentOriginX.unsignedValue + list->rowTextX.signedValue;
+        captionBaseY           = object->panel.contentOriginY.unsignedValue - 4;
+        textRequest.y          = list->rowTextY.signedValue + captionBaseY;
+        textRequest.otIndex    = object->panel.otIndex.signedValue + 1;
+        textRequest.colorRgb   = list->colorRgb;
+        textRequest.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
+        textRequest.alignment  = TEXT_ALIGNMENT_LEFT;
+        textRequest.drawMode   = TEXT_DRAW_OUTLINED;
+        textDrawString(&textRequest, Shop_Data_80181A0C);
+        if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-            uiSpawnObject(&Shop_Data_80181BD8, 0, 1, 1, obj);
-            obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&Shop_Data_80181BD8, 0, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
         return;
     }
 
-    if (itemId == 0xFFFC) {
-        status = obj->panel.control.word;
-        if (((status >> 16) == 1) || (status == 1)) {
-            if (prompt->selectedItemIndex == prompt->currentItemIndex) {
-                uiSetPromptText(Gp_StrEmpty, 0, 0);
+    // No current stock, tier or PE unlock produces 0xFFFC; its role is unproven.
+    // Retain the dormant purchase path, including its out-of-catalogue payload.
+    if (rowId == 0xFFFC) {
+        panelControl = object->panel.control.word;
+        if (((panelControl >> SHOP_ROW_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+            if (list->selectedItemIndex == list->currentItemIndex) {
+                uiSetPromptText((const u8*)Gp_StrEmpty, 0, 0);
             }
         }
-        if (inventoryGetItemQuantity(scan, 0x8F) != 0) {
-            blocked          = 1;
-            prompt->colorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
+        if (inventoryGetItemQuantity(carriedItems, SHOP_UNREACHED_ROW_BLOCKING_ITEM) != 0) {
+            purchaseBlocked = 1;
+            list->colorRgb  = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
         }
-        textDrawUiLine(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, Shop_Data_80181A1C, prompt->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
-        if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && blocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+        textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue, Shop_Data_80181A1C, list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+        if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE && purchaseBlocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-            child = uiSpawnObject(&Shop_Data_80181B84, itemId, 1, 1, obj);
-            if (child != NULL) {
-                uiPositionRowDialog(&(child)->panel, prompt, &(obj)->panel);
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            specialRowDialog = uiSpawnObject(&Shop_Data_80181B84, rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
+            if (specialRowDialog != NULL) {
+                uiPositionRowDialog(&(specialRowDialog)->panel, list, &(object)->panel);
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         }
         return;
     }
 
-    price = Gp_ItemDescs[itemId].price;
-    if (inventoryIsItemLimitReached(itemId) != 0) {
-        blocked          = 1;
-        prompt->colorRgb = uiGetTextColor(obj, USER_INTERFACE_TEXT_COLOR_DIMMED);
+    unitPrice = Gp_ItemDescs[rowId].price;
+    if (inventoryIsItemLimitReached(rowId) != 0) {
+        purchaseBlocked = 1;
+        list->colorRgb  = uiGetTextColor(object, USER_INTERFACE_TEXT_COLOR_DIMMED);
     }
-    if (prompt->actionResult != USER_INTERFACE_LIST_ACTION_SKIP_ROW) {
-        status = obj->panel.control.word;
-        if (((status >> 16) == 1) || (status == 1)) {
-            if (prompt->selectedItemIndex == prompt->currentItemIndex) {
-                itemMenuSetItemDescriptionPrompt(itemId);
-                itemMenuSetPreviewItem(itemId, CD_COMMAND_DISPLAY_LOAD_MENU);
+    if (list->actionResult != USER_INTERFACE_LIST_ACTION_SKIP_ROW) {
+        panelControl = object->panel.control.word;
+        if (((panelControl >> SHOP_ROW_SUSPENDED_CONTROL_SHIFT) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+            if (list->selectedItemIndex == list->currentItemIndex) {
+                itemMenuSetItemDescriptionPrompt(rowId);
+                itemMenuSetPreviewItem(rowId, CD_COMMAND_DISPLAY_LOAD_MENU);
             }
         }
     }
-    if (prompt->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
-        if (blocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            child2 = uiSpawnObject(&Shop_Data_80181B84, itemId, 1, 1, obj);
-            if (child2 != NULL) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        if (purchaseBlocked == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
+            purchaseDialog = uiSpawnObject(&Shop_Data_80181B84, rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
+            if (purchaseDialog != NULL) {
                 sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
-                uiPositionRowDialog(&(child2)->panel, prompt, &(obj)->panel);
-                obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                uiPositionRowDialog(&(purchaseDialog)->panel, list, &(object)->panel);
+                object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[45], itemId, 1, 1, obj);
-            obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&D_8010EAB4[SHOP_ROW_DETAIL_TEMPLATE], rowId, USER_INTERFACE_PANEL_ACTIVE, SHOP_ROW_DIALOG_DELAY_TICKS, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
-    itemMenuDrawItemRow(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, itemId, prompt->colorRgb, 0);
-    if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
-        /* Dead: emits the scaled index before the table base so the
-           `addu` is index-first, matching the original. */
-        scaled = itemId * 4;
-        itemMenuDrawQuantity(obj, prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, _inventoryGetConsumableStackInfo(itemId)->packQty, prompt->colorRgb);
+    itemMenuDrawItemRow(object, list->rowTextX.signedValue, list->rowTextY.signedValue, rowId, list->colorRgb, 0);
+    if ((u32)(rowId - INVENTORY_CONSUMABLE_ITEM_FIRST) < INVENTORY_CONSUMABLE_ITEM_COUNT) {
+        itemMenuDrawQuantity(object, list->rowTextX.signedValue, list->rowTextY.signedValue, _inventoryGetConsumableStackInfo(rowId)->packQty, list->colorRgb);
     }
-    textItoaUnsigned(buf, price);
-    textDrawUiLine(obj, -prompt->rowTextX.signedValue, prompt->rowTextY.signedValue, buf, prompt->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    textItoaUnsigned(priceText, unitPrice);
+    textDrawUiLine(object, -list->rowTextX.signedValue, list->rowTextY.signedValue, priceText, list->colorRgb, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 }
 
 /// Appends an offered row or upgrades the first lower PE level of its ability.

@@ -81,7 +81,7 @@ static void func_neo_ark_forest_zone_8018141C(Task* arg0);
 /// State table of the first arming task, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_forest_zone_8017D5E8 = { {
     _roamerArmPoolA,
-    roamerTickPoolA,
+    _roamerTickPoolA,
     func_neo_ark_forest_zone_8018141C,
     taskKill,
 } };

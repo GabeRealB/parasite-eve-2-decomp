@@ -7,6 +7,7 @@
 /// `pushYaw` uses 4096 units per turn and `stepDistance` uses parent-frame units.
 /// Normalization and GTE scaling retain signed-halfword saturation; all storage
 /// is borrowed and must not overlap the nested yaw workspace. GTE state changes.
+/// The caller must invalidate composition after this translation change.
 static inline void _desertChaserAccumulateAvoidanceStep(GfxCoord* coord, DesertChaserAvoidScratch* scratch, s16 pushYaw, s16 stepDistance, SVECTOR* displacement)
 {
     gfxRotMatrixY(&scratch->rot, pushYaw, GRAPHICS_ROTATION_REPLACE);

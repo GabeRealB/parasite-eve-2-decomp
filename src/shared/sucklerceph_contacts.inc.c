@@ -2,53 +2,60 @@
 
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Contact handler of the first enemy, with 0x4C bytes of scratch. The
-/// `worldCollisionResolvePushback` push-back from its contact table moves the root (response
-/// 1) or restores the position the last step started from (response 2), and
-/// the hit cooldown ticks down. Coming within 0x320 of the player moves a live
-/// enemy to its dying stage. Each of the four contacts is then handled by
-/// class: 0x10000 does the same, 0x20000 (outside the cooldown) either kills
-/// the enemy outright on a critical roll or applies the damage, the id's side
-/// effect, the hit effect and the id's cooldown, and 0x30000 pushes the root
-/// out of the wall along the contact normal while the enemy walks. The table
-/// is released, and a flagged hit on the third body's record clears that
-/// body's 0x8000 bit.
-void sucklercephContacts(Task* arg0)
+/// Resolves grid/body separation, player proximity and attacks, then consumes contacts.
+///
+/// Requires live task/work/Enemy storage, composed root and grid-view matrices,
+/// and one free `SucklercephContactsScratch` block (76 bytes), plus callee scratch.
+/// Grid correction adds Q16.16 integer halves or restores the previous step's
+/// position. Player contact or XZ range below 800 starts swelling while crawling.
+/// All four contacts are examined: critical attacks force a burst, ordinary
+/// attacks apply HP/status/effects/cooldown, and enemy bodies separate the root
+/// by their overlap in the grid's parent frame. Only negative Y body corrections apply.
+/// Attack-body contact disables its pair tests once awake. No pointer is retained.
+static void _sucklercephContacts(Task* task)
 {
+    enum {
+        SUCKLERCEPH_SWELL_PLAYER_RANGE           = 800,
+        SUCKLERCEPH_REACTION_LOW_MASK            = 0xFFFF,
+        SUCKLERCEPH_REACTION_BUILDUP_ALTERNATE   = 9,
+        SUCKLERCEPH_CONTACT_NORMAL_FRACTION_BITS = 12,
+        SUCKLERCEPH_CRITICAL_DEATH_HP            = -1
+    };
     Enemy*                      enemy;
-    WorldCollisionContact*      effectRec;
-    s32                         effect;
-    s32                         pushY;
-    s32                         movement;
-    s32                         dx;
-    s32                         dz;
-    s32                         wallDx;
-    s32                         wallDz;
-    s16                         hitCooldown;
-    s32                         distance;
-    u32                         damage;
+    WorldCollisionContact*      attackContact;
+    s32                         attackReaction;
+    s32                         verticalPushQ12;
+    s32                         gridResponse;
+    s32                         playerDx;
+    s32                         playerDz;
+    s32                         bodyDx;
+    s32                         bodyDz;
+    s16                         attackCooldownFrames;
+    s32                         rangeOrOverlap;
+    u32                         attackDamage;
     SucklercephWork*            work;
-    GfxCoord*                   coord;
+    GfxCoord*                   rootCoord;
     SucklercephContactsScratch* scratch;
-    s32                         i;
+    s32                         contactIndex;
 
-    work     = arg0->work;
-    scratch  = SCRATCH_STACK_RESERVE_BLOCK(SucklercephContactsScratch);
-    coord    = arg0->extra.tmd->coords;
-    enemy    = arg0->spawnArg2.pointer;
-    movement = worldCollisionResolvePushback(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), &scratch->gridKeyMask);
-    switch (movement) {
-        case 0:
+    work         = task->work;
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(SucklercephContactsScratch);
+    rootCoord    = task->extra.tmd->coords;
+    enemy        = task->spawnArg2.pointer;
+    gridResponse = worldCollisionResolvePushback(work->contacts, &scratch->delta, ARRAY_SIZE(work->contacts), &scratch->gridKeyMask);
+    // Correct the last root step before measuring proximity and hit range.
+    switch (gridResponse) {
+        case WORLD_COLLISION_PUSHBACK_NO_GRID_HIT:
             break;
-        case 1:
-            coord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
-            coord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
-            coord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
+        case WORLD_COLLISION_PUSHBACK_GRID_HIT:
+            rootCoord->coord.t[0] += scratch->delta.fixed.vx.halves.integer;
+            rootCoord->coord.t[1] += scratch->delta.fixed.vy.halves.integer;
+            rootCoord->coord.t[2] += scratch->delta.fixed.vz.halves.integer;
             break;
-        case 2:
-            coord->coord.t[0] = work->prevRootPos.vx;
-            coord->coord.t[1] = work->prevRootPos.vy;
-            coord->coord.t[2] = work->prevRootPos.vz;
+        case WORLD_COLLISION_PUSHBACK_OPPOSED:
+            rootCoord->coord.t[0] = work->prevRootPos.vx;
+            rootCoord->coord.t[1] = work->prevRootPos.vy;
+            rootCoord->coord.t[2] = work->prevRootPos.vz;
             break;
     }
     if (work->hitCooldown != 0) {
@@ -57,90 +64,92 @@ void sucklercephContacts(Task* arg0)
             work->hitCooldown = 0;
         }
     }
-    dx                       = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    scratch->delta.vector.vx = dx;
-    scratch->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    dz                       = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    scratch->delta.vector.vz = dz;
-    distance                 = SquareRoot0((dx * dx) + (dz * dz));
-    if (distance < 0x320 && work->awakeStage == SUCKLERCEPH_AWAKE_STAGE_CRAWL) {
+    playerDx                 = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+    scratch->delta.vector.vx = playerDx;
+    scratch->delta.vector.vy = gPlayerStatus.coordMtx->t[1] - rootCoord->coord.t[1];
+    playerDz                 = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+    scratch->delta.vector.vz = playerDz;
+    rangeOrOverlap           = SquareRoot0((playerDx * playerDx) + (playerDz * playerDz));
+    if (rangeOrOverlap < SUCKLERCEPH_SWELL_PLAYER_RANGE && work->awakeStage == SUCKLERCEPH_AWAKE_STAGE_CRAWL) {
         work->animFrozen = 1;
         work->awakeStage = SUCKLERCEPH_AWAKE_STAGE_SWELL;
     }
-    for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
-        switch (work->contacts[i].key.value & 0xFFFF0000) {
-            case 0x10000:
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->contacts); contactIndex++) {
+        switch (work->contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) {
+            case WORLD_COLLISION_CONTACT_PLAYER_BODY:
                 if (work->awakeStage == SUCKLERCEPH_AWAKE_STAGE_CRAWL) {
                     work->animFrozen = 1;
                     work->awakeStage = SUCKLERCEPH_AWAKE_STAGE_SWELL;
                 }
                 break;
-            case 0x20000:
+            case WORLD_COLLISION_CONTACT_ATTACK:
                 if (work->hitCooldown == 0) {
-                    damage = damageComputePlayerAttack(work->contacts[i].key.value, distance, 0, 0);
-                    if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
-                        _sucklercephKill(arg0, 1);
-                        arg0->killCountdown = 5;
-                        arg0->state         = 2;
+                    attackDamage = damageComputePlayerAttack(work->contacts[contactIndex].key.value, rangeOrOverlap, 0, 0);
+                    if (damageRollCriticalHit(task->spawnArg2.pointer, work->contacts[contactIndex].key.value, 0) != 0) {
+                        _sucklercephKill(task, 1);
+                        task->killCountdown = SUCKLERCEPH_DEATH_COUNTDOWN_FRAMES;
+                        task->state         = SUCKLERCEPH_TASK_DEATH;
                         work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
-                        enemy->hp           = -1;
+                        enemy->hp           = SUCKLERCEPH_CRITICAL_DEATH_HP;
                     } else {
-                        damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, damage, 0);
-                        sucklercephTakeDamage(arg0, damage);
-                        effect = damageGetPlayerAttackReaction(work->contacts[i].key.value) & 0xFFFF;
-                        switch (effect) {
+                        damageAccumulateLifeDrainHp(enemy, work->contacts[contactIndex].key.value, attackDamage, 0);
+                        _sucklercephTakeDamage(task, attackDamage);
+                        attackReaction = damageGetPlayerAttackReaction(work->contacts[contactIndex].key.value) & SUCKLERCEPH_REACTION_LOW_MASK;
+                        switch (attackReaction) {
                             case DAMAGE_PLAYER_REACTION_STAGGER:
                                 work->animFrozen = 1;
                                 work->awakeStage = SUCKLERCEPH_AWAKE_STAGE_SWELL;
                                 break;
                             case DAMAGE_PLAYER_REACTION_POISON:
-                                damageTryStartEnemyDamageOverTime(enemy, work->contacts[i].key.value, 0);
+                                damageTryStartEnemyDamageOverTime(enemy, work->contacts[contactIndex].key.value, 0);
                                 break;
                             case DAMAGE_PLAYER_REACTION_BUILDUP:
-                            case 9:
-                                damageStartEnemyBuildup(enemy, work->contacts[i].key.value, 0);
+                            case SUCKLERCEPH_REACTION_BUILDUP_ALTERNATE:
+                                damageStartEnemyBuildup(enemy, work->contacts[contactIndex].key.value, 0);
                                 break;
                         }
                         if (enemy->hp > 0) {
-                            effectSpawnHit(damageGetPlayerAttackEffectId(work->contacts[i].key.value), arg0->extra.tmd->coords + 1, NULL, &work->hitEffectArg);
+                            effectSpawnHit(damageGetPlayerAttackEffectId(work->contacts[contactIndex].key.value), task->extra.tmd->coords + 1, NULL, &work->hitEffectArg);
                         }
-                        hitCooldown = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
-                        if (hitCooldown > 0) {
-                            work->hitCooldown = hitCooldown;
+                        attackCooldownFrames = damageGetPlayerAttackHitCooldown(work->contacts[contactIndex].key.value);
+                        if (attackCooldownFrames > 0) {
+                            work->hitCooldown = attackCooldownFrames;
                         }
                     }
                 }
                 break;
-            case 0x30000:
-                wallDx                   = coord->workm.t[0] - work->contacts[i].point.vx;
+            case WORLD_COLLISION_CONTACT_ENEMY_BODY:
+                // Contact points are view-space body centres, not wall normals.
+                // Keep the overwritten range for any later attack in this table.
+                bodyDx                   = rootCoord->workm.t[0] - work->contacts[contactIndex].point.vx;
                 scratch->delta.vector.vy = 0;
-                scratch->delta.vector.vx = wallDx;
-                wallDz                   = coord->workm.t[2] - work->contacts[i].point.vz;
-                scratch->delta.vector.vz = wallDz;
-                distance                 = SquareRoot0((wallDx * wallDx) + (wallDz * wallDz));
-                distance                 = work->contacts[i].distance - distance;
-                distance                 = (distance <= 0) ? 0 : distance;
-                scratch->delta.vector.vx = coord->workm.t[0] - work->contacts[i].point.vx;
-                scratch->delta.vector.vy = coord->workm.t[1] - work->contacts[i].point.vy;
-                scratch->delta.vector.vz = coord->workm.t[2] - work->contacts[i].point.vz;
+                scratch->delta.vector.vx = bodyDx;
+                bodyDz                   = rootCoord->workm.t[2] - work->contacts[contactIndex].point.vz;
+                scratch->delta.vector.vz = bodyDz;
+                rangeOrOverlap           = SquareRoot0((bodyDx * bodyDx) + (bodyDz * bodyDz));
+                rangeOrOverlap           = work->contacts[contactIndex].distance - rangeOrOverlap;
+                rangeOrOverlap           = (rangeOrOverlap <= 0) ? 0 : rangeOrOverlap;
+                scratch->delta.vector.vx = rootCoord->workm.t[0] - work->contacts[contactIndex].point.vx;
+                scratch->delta.vector.vy = rootCoord->workm.t[1] - work->contacts[contactIndex].point.vy;
+                scratch->delta.vector.vz = rootCoord->workm.t[2] - work->contacts[contactIndex].point.vz;
                 VectorNormal(&scratch->delta.vector, &scratch->normal);
                 ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &scratch->normal, &scratch->delta.vector);
                 if (work->animId == SUCKLERCEPH_ANIM_IDLE || work->animId == SUCKLERCEPH_ANIM_CRAWL) {
-                    coord->coord.t[0] += (distance * scratch->delta.vector.vx) >> 12;
-                    pushY              = distance * scratch->delta.vector.vy;
-                    if (pushY < 0) {
-                        coord->coord.t[1] += pushY >> 12;
+                    rootCoord->coord.t[0] += (rangeOrOverlap * scratch->delta.vector.vx) >> SUCKLERCEPH_CONTACT_NORMAL_FRACTION_BITS;
+                    verticalPushQ12        = rangeOrOverlap * scratch->delta.vector.vy;
+                    if (verticalPushQ12 < 0) {
+                        rootCoord->coord.t[1] += verticalPushQ12 >> SUCKLERCEPH_CONTACT_NORMAL_FRACTION_BITS;
                     }
-                    coord->coord.t[2] += (distance * scratch->delta.vector.vz) >> 12;
+                    rootCoord->coord.t[2] += (rangeOrOverlap * scratch->delta.vector.vz) >> SUCKLERCEPH_CONTACT_NORMAL_FRACTION_BITS;
                 }
                 break;
         }
     }
     worldCollisionClearContacts(work->contacts);
-    effectRec = &work->attackContact;
-    if ((work->awakeStage != SUCKLERCEPH_AWAKE_STAGE_NONE) && (worldCollisionFindContactIndex(effectRec, WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
+    attackContact = &work->attackContact;
+    if ((work->awakeStage != SUCKLERCEPH_AWAKE_STAGE_NONE) && (worldCollisionFindContactIndex(attackContact, WORLD_COLLISION_FIND_ANY_KEY) != 0)) {
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        worldCollisionClearContacts(effectRec);
+        worldCollisionClearContacts(attackContact);
     }
     SCRATCH_STACK_RELEASE_BLOCK(SucklercephContactsScratch);
 }

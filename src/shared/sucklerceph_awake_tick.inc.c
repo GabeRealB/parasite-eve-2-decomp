@@ -1,59 +1,51 @@
 #include "main/random.h"
+#include "main/sound.h"
 
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Live handler of the first enemy, dispatched on its stage `awakeStage`.
-/// Stage 1 counts `idleSoundFrames` down to an idle sound, re-rolled to 0x50..0xB3
-/// frames with `variant` picking the sound set, then walks: step length 0x14,
-/// animation 2, a turn toward the player and a step of the root, with the
-/// animation's frame count restarting at 0x1D. Stage 2 counts `swellFrames` up
-/// and grows the scale factor by 0xC8 a frame; on the fifth frame the enemy is
-/// killed through `_sucklercephKill`, with a five-frame countdown, the death
-/// phase reset, the task put into the stage's state and the HP cleared.
-void sucklercephAwakeTick(Task* arg0)
+/// Sound banks of the default specimen and its nonzero spawn-argument variant.
+enum { SUCKLERCEPH_SOUND_BANK_DEFAULT = 0x2E,
+       SUCKLERCEPH_SOUND_BANK_VARIANT = 0x46 };
+
+/// Advances crawling or the five-tick swelling that starts the specimen's death.
+///
+/// Requires the live task, work, Enemy and composed root. Crawling turns toward
+/// the player, steps 20 parent-frame units and wraps its animation counter at 29.
+/// Idle sounds redraw an 80..179-frame delay from the shared LCG. Swelling adds
+/// 200 Q12 scale units per call, then chooses burst/slump death and clears HP.
+/// Contact correction and animation playback follow in the update handler.
+static void _sucklercephAwakeTick(Task* task)
 {
     SucklercephWork* work;
     Enemy*           enemy;
-    GfxCoord*        coord;
-    s16              mode;
-    s32              soundId;
-    u32              rng;
+    GfxCoord*        rootCoord;
+    s16              awakeStage;
+    enum { SUCKLERCEPH_CRAWL_SPEED        = 20,
+           SUCKLERCEPH_CRAWL_CYCLE_FRAMES = 29 };
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    mode  = work->awakeStage;
-    switch (mode) {
+    rootCoord  = task->extra.tmd->coords;
+    work       = task->work;
+    enemy      = task->spawnArg2.pointer;
+    awakeStage = work->awakeStage;
+    switch (awakeStage) {
         case SUCKLERCEPH_AWAKE_STAGE_CRAWL:
-            work->idleSoundFrames--;
-            if (work->idleSoundFrames <= 0) {
-                rng                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState       = rng;
-                work->idleSoundFrames = (rng >> 16) % 100 + 0x50;
-                if (work->variant != 0) {
-                    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40460009;
-                    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                } else {
-                    soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402E0001;
-                    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                }
-            }
-            work->forwardSpeed = 0x14;
+            _sucklercephTickIdleSound(task, rootCoord, work);
+            work->forwardSpeed = SUCKLERCEPH_CRAWL_SPEED;
             work->animId       = SUCKLERCEPH_ANIM_CRAWL;
-            _sucklercephTurnToPlayer(arg0);
-            _sucklercephStep(arg0);
-            if ((s16)work->animFrames >= 0x1D) {
+            _sucklercephTurnToPlayer(task);
+            _sucklercephStep(task);
+            if ((s16)work->animFrames >= SUCKLERCEPH_CRAWL_CYCLE_FRAMES) {
                 work->animFrames = 0;
             }
             break;
         case SUCKLERCEPH_AWAKE_STAGE_SWELL:
             work->swellFrames++;
-            work->swellScale += 0xC8;
-            if (work->swellFrames >= 5) {
-                _sucklercephKill(arg0, 0);
-                arg0->killCountdown = 5;
+            work->swellScale += SUCKLERCEPH_SWELL_SCALE_STEP_Q12;
+            if (work->swellFrames >= SUCKLERCEPH_SWELL_DURATION_FRAMES) {
+                _sucklercephKill(task, 0);
+                task->killCountdown = SUCKLERCEPH_DEATH_COUNTDOWN_FRAMES;
                 work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
-                arg0->state         = mode;
+                task->state         = awakeStage;
                 enemy->hp           = 0;
             }
             break;

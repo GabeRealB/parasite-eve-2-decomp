@@ -17,7 +17,7 @@ static void _shopCategoryListTask(Task* task);
 
 static void _shopDrawCategoryRow(UiList* list, UiObject* object);
 
-static void Shop_ItemRow(UiList* prompt, UiObject* obj);
+static void _shopDrawItemRow(UiList* list, UiObject* object);
 
 static u16 Shop_Data_801815F8[4] = {
     140,
@@ -928,7 +928,7 @@ static u16 Shop_Data_80181AD4[2] = {
 };
 
 static UiListRowCallback Shop_Data_80181AD8[1] = {
-    Shop_ItemRow,
+    _shopDrawItemRow,
 };
 
 static UiListRowCallback Shop_Data_80181ADC[1] = {

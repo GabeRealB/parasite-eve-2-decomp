@@ -369,7 +369,7 @@ void neoArkWoodlandPathWaterDriftTaskU16(Task* task)
 /// State handlers of the first arming sequence's entry task
 /// `func_neo_ark_woodland_path_801814E8`: arm, run, advance, then kill.
 static const TaskFuncTable4 D_neo_ark_woodland_path_8017D638 = {
-    { _roamerArmPoolA, roamerTickPoolA,
+    { _roamerArmPoolA, _roamerTickPoolA,
       _neoArkWoodlandPathAdvanceRoamerPoolAState, taskKill }
 };
 

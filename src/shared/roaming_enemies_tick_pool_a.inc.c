@@ -1,20 +1,60 @@
 /* Part of the roaming enemies library; see roaming_enemies.h. */
 
-/// Per-frame state after `_roamerArmPoolA`: counts the
-/// countdown down, releases a pending `gSceneCombatState` reference, and once that
-/// reference has dropped folds the still-pending spawn slots back into game
-/// flags 0x168 and 0x10C. On a placement request it hands the first pending
-/// slot to a waiting placed actor (one whose enemy `hp` still reads -999), sends it
-/// message 0x7DB and places it at the requested point.
-void roamerTickPoolA(Task* task)
+/// Counts signed-positive reserve HP without changing the five banked slots.
+static __inline__ s16 _roamerCountReserveSlots(void)
 {
-    s16    i;
-    s16    count;
-    s32    a;
-    s32    b;
-    Enemy* obj;
-    s16    j;
-    s16    k;
+    s16 count;
+    s16 slot;
+
+    count = 0;
+    for (slot = 0; slot < ARRAY_SIZE(gRoamerReserveHp); slot++) {
+        if (((s16*)gRoamerReserveHp)[slot] > 0) {
+            count++;
+        }
+    }
+    return count;
+}
+
+/// Places a revived actor at the pending pool-A point, retaining each task lookup.
+///
+/// actorIndex is 0..1 and its placed actor/model must remain live. The selector
+/// is one-based (forest 1..5, woodland 1..6). Position is in the root's parent
+/// frame and yaw uses 4096 units per turn. Marks dirty before replacing rotation.
+static __inline__ void _roamerPlacePoolAActor(s16 actorIndex)
+{
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[0]   = gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].x;
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[1]   = 0;
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].z;
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    gfxRotMatrixY(&sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord,
+                  gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].yaw, GRAPHICS_ROTATION_REPLACE);
+}
+
+/// Advances pool A's battle bookkeeping and revives at most one waiting placed actor.
+///
+/// Requires initialized reserve storage (count 0..5), live room/session state
+/// and location variant 0..13; an unarmed variant returns without consuming its
+/// pending request. On the last battle release, remaining signed-positive slots
+/// update the saved kill/reserve nibbles and impose a 150-tick cooldown.
+/// A pending one-based point revives the first hp=-999 actor among slots 0..1,
+/// takes the first positive reserve, acquires a battle hold, requests its leap-in
+/// and places it. Forest triggers supply 1..5, woodland triggers 1..6;
+/// no clamp is applied. A processed request is cleared even if no actor is found.
+/// Placed tasks, models and enemies keep their existing ownership.
+static void _roamerTickPoolA(Task* task)
+{
+    enum {
+        ROAMER_POOL_A_PLACED_ACTORS   = 2,
+        ROAMER_WAITING_ACTOR_HP       = -999,
+        ROAMER_POOL_A_LEAP_IN_COMMAND = 11,
+        ROAMER_POOL_A_RELEASE_ARG     = 13
+    };
+    s16    actorIndex;
+    s16    remainingSlots;
+    s32    killedCount;
+    s32    previousReserveCount;
+    Enemy* enemy;
+    s16    reserveSlot;
 
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gRoamerArmCountsA[gGameSession->location.loc.variant] == 0) {
@@ -25,26 +65,17 @@ void roamerTickPoolA(Task* task)
     }
     if (gRoamerReleasePending == 1 && gSceneCombatState.battleRefs >= 2) {
         gRoamerReleasePending = 0;
-        sceneReleaseBattleRef(task, 0xD);
+        sceneReleaseBattleRef(task, ROAMER_POOL_A_RELEASE_ARG);
     }
+    // Persist losses only when the previous frame still held a battle reference.
     if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
         _gRoamerCooldownFrames = ROAMER_POST_BATTLE_COOLDOWN_FRAMES;
-        a                      = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A);
-        b                      = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE);
-        count                  = 0;
-        for (k = 0; k < 5; k++) {
-            if (((s16*)gRoamerReserveHp)[k] > 0) {
-                count++;
-            }
-        }
-        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A, a + (b - count));
-        count = 0;
-        for (k = 0; k < 5; k++) {
-            if (((s16*)gRoamerReserveHp)[k] > 0) {
-                count++;
-            }
-        }
-        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE, count);
+        killedCount            = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A);
+        previousReserveCount   = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE);
+        remainingSlots         = _roamerCountReserveSlots();
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_A, killedCount + (previousReserveCount - remainingSlots));
+        remainingSlots = _roamerCountReserveSlots();
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_A_RESERVE, remainingSlots);
         areaSyncLocationVariant(&gGameSession->location.loc);
     }
     gRoamerPrevBattleRefs = gSceneCombatState.battleRefs;
@@ -58,36 +89,31 @@ void roamerTickPoolA(Task* task)
         gGameSession->battleResetPending            = 0;
     }
     if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && _gRoamerPendingSpawnPoint != ROAMER_SPAWN_POINT_NONE) {
-        gRoamerCommand.context.loc.stage = 5;
-        gRoamerCommand.context.loc.area  = 0x1D;
-        gRoamerCommand.command           = 0xB;
-        for (i = 0; i < 2; i++) {
-            if (sceneFindPlacedActor(i) == 0) {
+        gRoamerCommand.context.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
+        gRoamerCommand.context.loc.area  = GAME_AREA_NEO_ARK_WOODLAND_PATH;
+        gRoamerCommand.command           = ROAMER_POOL_A_LEAP_IN_COMMAND;
+        for (actorIndex = 0; actorIndex < ROAMER_POOL_A_PLACED_ACTORS; actorIndex++) {
+            if (sceneFindPlacedActor(actorIndex) == 0) {
                 break;
             }
-            obj = sceneFindPlacedActor(i)->spawnArg2.pointer;
-            if (obj == NULL) {
+            enemy = sceneFindPlacedActor(actorIndex)->spawnArg2.pointer;
+            if (enemy == NULL) {
                 break;
             }
-            if (obj->hp == -999) {
-                for (j = 0; j < gRoamerReserveCount; j++) {
-                    if (((s16*)gRoamerReserveHp)[j] > 0) {
-                        obj->hp             = gRoamerReserveHp[j];
-                        obj->reactionFlags  = 0;
-                        gRoamerReserveHp[j] = 0;
+            if (enemy->hp == ROAMER_WAITING_ACTOR_HP) {
+                for (reserveSlot = 0; reserveSlot < gRoamerReserveCount; reserveSlot++) {
+                    if (((s16*)gRoamerReserveHp)[reserveSlot] > 0) {
+                        enemy->hp                     = gRoamerReserveHp[reserveSlot];
+                        enemy->reactionFlags          = 0;
+                        gRoamerReserveHp[reserveSlot] = 0;
                         break;
                     }
                 }
-                if (obj->hp > 0) {
+                if (enemy->hp > 0) {
                     sceneAcquireBattleRef(0);
                     _gRoamerCooldownFrames += ROAMER_ACTION_COOLDOWN_FRAMES;
-                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
-                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].x;
-                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
-                    sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].z;
-                    sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                    gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
-                                  gRoamerSpawnPointsA[_gRoamerPendingSpawnPoint - 1].yaw, 1);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(actorIndex), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    _roamerPlacePoolAActor(actorIndex);
                 }
                 break;
             }

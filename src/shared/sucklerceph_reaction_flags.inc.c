@@ -1,44 +1,45 @@
 /* Part of the Sucklerceph library; see sucklerceph.h. */
 
-/// Per-frame reaction dispatch of the first enemy, on its `reactionFlags`:
-/// bit 0x1 counts the death frames and grows the scale factor, killing the
-/// enemy on the fifth; bit 0x2 is consumed and moves the reaction state to 3
-/// with the step and the rebind stopped; bits 0xC tick the flag-4 helper,
-/// feed the damage it reports to `sucklercephTakeDamage` and are cleared once it
-/// expires.
-void sucklercephReactionFlags(Task* arg0)
+/// Advances swelling, buildup hold and damage-over-time requests on the Enemy.
+///
+/// Requires the live task/work/Enemy. STAGGER grows Q12 scale by 200 per call and
+/// starts death on the fifth; its bit remains set. BUILDUP is consumed, stops
+/// movement and freezes animation until the behaviour dispatch releases it.
+/// Damage-over-time ticks feed their HP amount to `_sucklercephTakeDamage` and
+/// clear both status bits on expiry. Later tests reload flags after earlier calls.
+static void _sucklercephReactionFlags(Task* task)
 {
     SucklercephWork* work;
     Enemy*           enemy;
-    s32              tick;
-    u8               flags;
+    s32              damageOverTime;
+    u8               initialReactionFlags;
 
-    enemy = arg0->spawnArg2.pointer;
-    flags = enemy->reactionFlags;
-    work  = arg0->work;
-    if (flags != 0) {
-        if (flags & 1) {
+    enemy                = task->spawnArg2.pointer;
+    initialReactionFlags = enemy->reactionFlags;
+    work                 = task->work;
+    if (initialReactionFlags != 0) {
+        if (initialReactionFlags & ENEMY_REACTION_STAGGER) {
             work->swellFrames += 1;
-            work->swellScale  += 0xC8;
-            if (work->swellFrames >= 5) {
-                _sucklercephKill(arg0, 0);
-                arg0->killCountdown = 5;
+            work->swellScale  += SUCKLERCEPH_SWELL_SCALE_STEP_Q12;
+            if (work->swellFrames >= SUCKLERCEPH_SWELL_DURATION_FRAMES) {
+                _sucklercephKill(task, 0);
+                task->killCountdown = SUCKLERCEPH_DEATH_COUNTDOWN_FRAMES;
                 work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
-                arg0->state         = 2;
+                task->state         = SUCKLERCEPH_TASK_DEATH;
                 enemy->hp           = 0;
             }
         }
         if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            enemy->reactionFlags &= 0xFD;
+            enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
             work->state           = SUCKLERCEPH_STATE_STATUS_HOLD;
             work->deathFrames     = 0;
             work->forwardSpeed    = 0;
             work->animFrozen      = 1;
         }
         if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-            tick = damageTickEnemyDamageOverTime(enemy);
-            if (tick != 0) {
-                sucklercephTakeDamage(arg0, tick);
+            damageOverTime = damageTickEnemyDamageOverTime(enemy);
+            if (damageOverTime != 0) {
+                _sucklercephTakeDamage(task, damageOverTime);
             }
             if (damageIsEnemyDamageOverTimeExpired(enemy) != 0) {
                 enemy->reactionFlags &= ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
