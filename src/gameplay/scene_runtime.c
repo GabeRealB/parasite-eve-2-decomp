@@ -2187,7 +2187,7 @@ void func_800B25B0(void)
             taskSpawnFromTable(&D_shelter_r48_80182FAC, 0, 0, 0);
             break;
         case GAME_LOCATION_KEY(1, 20, 0, 0):
-            func_mist_shooting_gallery_8017FBD8();
+            mistShootingGalleryOpenCarryoverModeMenu();
             break;
     }
 }

@@ -277,21 +277,21 @@ D_mist_shooting_gallery_80184F70 = 0x80184F70; // size:0x1C defined:True
 D_mist_shooting_gallery_80184F8C = 0x80184F8C; // size:0xC defined:True
 D_mist_shooting_gallery_80184F98 = 0x80184F98; // size:0x68 defined:True
 
-func_mist_shooting_gallery_80180390 = 0x80180390; // type:func
+mistShootingGallerySetTrainingBarrierLowered = 0x80180390; // type:func
 
-func_mist_shooting_gallery_80180B34 = 0x80180B34; // type:func
+mistShootingGalleryOpenJukebox = 0x80180B34; // type:func
 
-func_mist_shooting_gallery_801811C0 = 0x801811C0; // type:func
+mistShootingGallerySelectRoomLights = 0x801811C0; // type:func
 
 func_mist_shooting_gallery_801848B4 = 0x801848B4; // type:func
 
 func_mist_shooting_gallery_80184954 = 0x80184954; // type:func
 
-func_mist_shooting_gallery_8017DCAC = 0x8017DCAC; // type:func
+mistShootingGalleryPrepareTrainingLoadout = 0x8017DCAC; // type:func
 
-func_mist_shooting_gallery_8017F95C = 0x8017F95C; // type:func
+mistShootingGalleryOpenWeaponMenu = 0x8017F95C; // type:func
 
-func_mist_shooting_gallery_8017FBD8 = 0x8017FBD8; // type:func
+mistShootingGalleryOpenCarryoverModeMenu = 0x8017FBD8; // type:func
 
 mistShootingGalleryDrawLightGlowsTask = 0x801811EC; // type:func
 
@@ -309,3 +309,13 @@ _mistShootingGalleryDrawCountdownClock = 0x8018458c; // type:func
 _mistShootingGalleryDrawRedFlash = 0x801847d4; // type:func
 _mistShootingGalleryTickCourseClock = 0x80184ae0; // type:func
 _mistShootingGalleryRedFlashTask = 0x80184b10; // type:func
+_mistShootingGalleryModeRow = 0x8017f98c; // type:func
+_mistShootingGalleryModeHelpPanelTask = 0x8017fae8; // type:func
+_mistShootingGalleryModeStatusPanelTask = 0x8017ec58; // type:func
+_mistShootingGalleryModeDataPanelTask = 0x8017f128; // type:func
+_mistShootingGalleryWeaponSelectPanelTask = 0x8017e090; // type:func
+_mistShootingGallerySetStoryBarrierLowered = 0x801801e4; // type:func
+mistShootingGalleryRoomTask = 0x8018018c; // type:func
+_mistShootingGalleryJukeboxPanelTask = 0x80180728; // type:func
+_mistShootingGalleryModeSplashTask = 0x80180b64; // type:func
+_mistShootingGalleryClearMovieTask = 0x80180f2c; // type:func

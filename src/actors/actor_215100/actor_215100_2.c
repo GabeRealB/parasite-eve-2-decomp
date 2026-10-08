@@ -1824,8 +1824,9 @@ static void func_actor_215100_8014C660(Enemy* enemy, Task* task);
 
 /// Arms the weapon pickup at this actor's spot while the event flag
 /// `D_actor_215100_8014D038` is up and the story step has reached 3. A session
-/// leave (`gGameSession->location.loc.view == 0x12`) drops the `func_mist_shooting_gallery_80180390` hold and
-/// `D_actor_215100_8014D03C` with it, sub-states 2 and 3 of
+/// leave (`gGameSession->location.loc.view == 0x12`) restores the training barrier with
+/// `mistShootingGallerySetTrainingBarrierLowered(0)` and clears
+/// `D_actor_215100_8014D03C`; sub-states 2 and 3 of
 /// `Gp_StateC08.mode` start the 0x3C-frame cooldown in
 /// `D_actor_215100_8014D044`, and while that cooldown runs the function only
 /// ticks it down.
@@ -1851,7 +1852,7 @@ void func_actor_215100_8014A398(void)
     if (D_actor_215100_8014D038 != 0) {
         if (D_actor_215100_8015E670 >= 3) {
             if (gGameSession->location.loc.view == 0x12) {
-                func_mist_shooting_gallery_80180390(0);
+                mistShootingGallerySetTrainingBarrierLowered(0);
                 D_actor_215100_8014D03C = 0;
             }
             if ((u32)((u8)Gp_StateC08.mode - ATTACHMENT_MODE_ARMED) < 2U) {
@@ -1937,7 +1938,7 @@ void func_actor_215100_8014A5C0(Task* arg0)
                 Gp_StateC08.flags &= ATTACHMENT_FLAG_CLEAR_SWAP_LOCK;
             }
             D_actor_215100_8014D038 = 0;
-            func_mist_shooting_gallery_80180390(1);
+            mistShootingGallerySetTrainingBarrierLowered(1);
             D_actor_215100_8014D03C = 1;
             taskCallExit(D_mist_shooting_gallery_8018E0C4);
             gGameSession->battleResetPending = 1;
@@ -1992,7 +1993,7 @@ void func_actor_215100_8014A7C4(Task* arg0)
         case 1:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
-            func_mist_shooting_gallery_801811C0(0);
+            mistShootingGallerySelectRoomLights(0);
             arg0->state++;
             break;
         case 2:
@@ -2016,9 +2017,9 @@ void func_actor_215100_8014A908(void)
     D_actor_215100_8014D038 = 0;
     if (D_actor_215100_8015E670 < 3) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 8;
-        func_mist_shooting_gallery_801811C0(0);
+        mistShootingGallerySelectRoomLights(0);
     } else {
-        func_mist_shooting_gallery_80180390(1);
+        mistShootingGallerySetTrainingBarrierLowered(1);
         D_actor_215100_8014D03C = 1;
     }
     if (D_actor_215100_8015E670 < 4) {
@@ -2031,7 +2032,7 @@ void func_actor_215100_8014A9A0(void)
 {
     if (D_actor_215100_8015E670 == 5) {
         D_actor_215100_8014D038 = 0;
-        func_mist_shooting_gallery_80180390(1);
+        mistShootingGallerySetTrainingBarrierLowered(1);
         D_actor_215100_8014D03C          = 1;
         gGameSession->battleResetPending = 1;
         sndEvtRequestMidiStop(0, 0x1E);
@@ -2216,7 +2217,7 @@ static void _actor215100SetGalleryRedFlashLoop(s32 enabled)
 
 void func_actor_215100_8014AE90(s16 arg0)
 {
-    func_mist_shooting_gallery_801811C0(arg0);
+    mistShootingGallerySelectRoomLights(arg0);
 }
 
 /// Sets the deferred view-respawn request when the introduction is skipped.

@@ -81,21 +81,51 @@ extern SpriteView D_mist_shooting_gallery_8018BD10[];
 
 extern WorldCollisionSurfaceProperties* D_mist_shooting_gallery_8018E09C[];
 
-void func_mist_shooting_gallery_80180390(s32 arg0);
+/// Restores the training barrier and optionally lowers it out of the firing lane.
+///
+/// Zero restores its original position; nonzero adds 4000 to Y in room units.
+/// Requires the loaded, writable room collision grid. The face uses normal 3
+/// and vertices 8..11; the retained offset pass also adds Y to vertices 12..15.
+void mistShootingGallerySetTrainingBarrierLowered(s32 lowered);
 
-s32 func_mist_shooting_gallery_80180B34(s32 unused);
+/// Queues the gallery jukebox display session and returns 1.
+///
+/// `unused` is ignored. Requires the gallery overlay and serialized display-mode
+/// requests; the queued session retains its descriptor while the overlay is loaded.
+s32 mistShootingGalleryOpenJukebox(s32 unused);
 
-void func_mist_shooting_gallery_801811C0(s16 arg0);
+/// Selects the gallery's default or alternate room-light collection.
+///
+/// Zero selects the default collection; every nonzero signed halfword selects
+/// the alternate collection. Requires the loaded gallery overlay. The shared
+/// per-view ambient table stays selected independently.
+void mistShootingGallerySelectRoomLights(s16 useAlternate);
 
 void func_mist_shooting_gallery_801848B4(void);
 
 void func_mist_shooting_gallery_80184954(void);
 
-void func_mist_shooting_gallery_8017DCAC(s32 mode);
+/// Issues the chosen training course's items and level-one Parasite Energy spells.
+///
+/// `courseLevel` is 1..5. All courses start with Pyrokinesis; 1..2 add no items,
+/// 3 adds a GPS, 4 adds a GPS and two attached Colas plus Combustion/Energy Shot,
+/// and 5 adds a GPS, three Recovery1s and two MP Boost1s plus those spells.
+/// The caller prepares the carried inventory; this routine adds to it and resets
+/// only the twelve spell levels. It then restores HP/MP and all weapon supplies.
+void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel);
 
-s32 func_mist_shooting_gallery_8017F95C(s32 unused);
+/// Queues the gallery weapon picker through the inventory menu and returns 1.
+///
+/// `unused` is ignored. Requires the gallery overlay and serialized display-mode
+/// requests. The picker offers the owned entries of the gallery's weapon table.
+s32 mistShootingGalleryOpenWeaponMenu(s32 unused);
 
-void func_mist_shooting_gallery_8017FBD8(void);
+/// Opens run-mode selection with scaled EXP/BP carryover after a cleared run.
+///
+/// Called on gallery entry; queues the session only when the live save has a
+/// clear and the entry warp is 7. Requires the gallery overlay to remain loaded
+/// through the display session.
+void mistShootingGalleryOpenCarryoverModeMenu(void);
 
 /// Draws the gallery's fixed light glows for the mapped view each frame.
 ///
@@ -118,7 +148,12 @@ void mistShootingGalleryDrawLightGlowsTask(Task* unused);
 /// Completion releases the counted effect work and kills the task.
 void mistShootingGalleryTracerTask(Task* task);
 
-void func_mist_shooting_gallery_8018018C(Task* task);
+/// Dispatches the gallery room task's initialization, running and exit states.
+///
+/// `task->state` must be 0..2. The room descriptor in the Acropolis map package
+/// starts at state 0; room state handlers and their actor dependencies require
+/// both gallery and actor 215100 overlays to remain loaded for the task's lifetime.
+void mistShootingGalleryRoomTask(Task* task);
 
 extern TmdSource gMistShootingGalleryModel093FC;
 

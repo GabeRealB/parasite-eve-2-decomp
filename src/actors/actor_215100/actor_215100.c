@@ -272,7 +272,7 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0xB:
             if (capIsBusy() == 0) {
-                func_mist_shooting_gallery_80180B34(0);
+                mistShootingGalleryOpenJukebox(0);
                 task->state++;
             }
             break;
@@ -285,7 +285,7 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x15:
             if (capIsBusy() == 0) {
-                func_mist_shooting_gallery_8017F95C(0);
+                mistShootingGalleryOpenWeaponMenu(0);
                 task->state++;
             }
             break;
@@ -316,7 +316,7 @@ void func_actor_215100_80149F2C(Task* task)
             break;
         case 0x20:
             D_actor_215100_8015E670 = capGetVariantKey();
-            func_mist_shooting_gallery_8017DCAC(D_actor_215100_8015E670);
+            mistShootingGalleryPrepareTrainingLoadout(D_actor_215100_8015E670);
             task->state = 0x28;
             break;
         case 0x28:

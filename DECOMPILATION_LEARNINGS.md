@@ -49921,7 +49921,7 @@ if (sent == 1) { ... }                        if (sent == 1) { ... }
 
 The join block also resets CSE's table, so the later `sent == 1` gets a fresh
 `li v0,1` rather than reusing a register cse knows holds 1 — which is the other
-half of the diff. `func_mist_shooting_gallery_80180728` needed this twice, once
+half of the diff. `_mistShootingGalleryJukeboxPanelTask` needed this twice, once
 per flag.
 
 ## Store a `u8` field in both if/else arms to keep a later `lbu` reload
@@ -49946,8 +49946,8 @@ if (attachmentIsTrainingMode() == 0) { list->itemCount = 4; } else { list->itemC
 if (list->itemCount >= 0xB) { list->visibleRowCount.unsignedValue = 0xA; } else { list->visibleRowCount.unsignedValue = list->itemCount; }
 ```
 
-`func_mist_shooting_gallery_80180728` is the example; the neighbouring
-`func_mist_shooting_gallery_8017E090` is the *other* form, where the clamp
+`_mistShootingGalleryJukeboxPanelTask` is the example; the neighbouring
+`_mistShootingGalleryWeaponSelectPanelTask` is the *other* form, where the clamp
 compares `(u8)count` and no reload is emitted.
 
 ## A tail block two switch cases share belongs to the *later* case
@@ -50121,27 +50121,27 @@ pointer *inside* the run of `sw`/`sh`/`sb` is not a scheduling artifact — it
 says which source statement the load belongs to, and everything between two
 such loads was written between the same two statements.
 
-`func_mist_shooting_gallery_8017F128` fills eight `TextDrawReq` blocks. The
+`_mistShootingGalleryModeDataPanelTask` fills eight `TextDrawReq` blocks. The
 target reads `lh 0x14(s0)` (the `otIndex` source) and `lb 0xf(s4)` before the
 `sw 0xc0` / `sb 0xc4` / `sb 0xc5` / `sb 0xc6` run, so both statements precede
 the `colorRgb` assignment:
 
 ```c
 /* 82.9% - loads land after the four stores */
-label0.colorRgb    = 0x606060;
-label0.glyphTable = 5;
-label0.alignment = TEXT_ALIGNMENT_LEFT;
-label0.drawMode    = TEXT_DRAW_OUTLINED;
-rating            = &missionLevels.entries[gMcSaveData.gameMode];
-label0.otIndex    = (s16)obj->drawOrder + 1;
+missionCaption.colorRgb    = 0x606060;
+missionCaption.glyphTable = 5;
+missionCaption.alignment = TEXT_ALIGNMENT_LEFT;
+missionCaption.drawMode    = TEXT_DRAW_OUTLINED;
+rating            = &missionLevels[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
+missionCaption.otIndex    = object->panel.otIndex.signedValue + 1;
 
 /* 100% - struct declaration order, with the pointer read in between */
-label0.otIndex    = (s16)obj->drawOrder + 1;
-rating            = &missionLevels.entries[gMcSaveData.gameMode];
-label0.colorRgb    = 0x606060;
-label0.glyphTable = 5;
-label0.alignment = TEXT_ALIGNMENT_LEFT;
-label0.drawMode    = TEXT_DRAW_OUTLINED;
+missionCaption.otIndex    = object->panel.otIndex.signedValue + 1;
+rating            = &missionLevels[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
+missionCaption.colorRgb    = 0x606060;
+missionCaption.glyphTable = 5;
+missionCaption.alignment = TEXT_ALIGNMENT_LEFT;
+missionCaption.drawMode    = TEXT_DRAW_OUTLINED;
 ```
 
 The store of `otIndex` itself still sinks to the jal's delay slot, which is why
@@ -50208,7 +50208,7 @@ of the function at once.
 
 ## A `4 x 3` clear loop: keep the row offset a plain biv and pin its per-row copy
 
-`func_mist_shooting_gallery_8017DCAC` zeroes `Gp_DebugAttachLevels` with a
+`mistShootingGalleryPrepareTrainingLoadout` zeroes `Gp_DebugAttachLevels` with a
 nested loop whose target shape has three loop registers — a count-up row
 counter, an offset that steps by 3, and a *copy* of that offset made once per
 row:
@@ -50684,7 +50684,7 @@ touches the struct with an unscoped `build-and-verify.sh` after the change.
 
 ## Clamped switch result: a short-lived quotient plus one long-lived destination
 
-`func_mist_shooting_gallery_8017EC58` draws four stat rows and clamps two of
+`_mistShootingGalleryModeStatusPanelTask` draws four stat rows and clamps two of
 them to 999999. The obvious C keeps one variable:
 
 ```c
@@ -50845,7 +50845,7 @@ case 2: {
 }
 ```
 
-This took `func_mist_shooting_gallery_80180B64` from 94.7% (regs=96, every
+This took `_mistShootingGalleryModeSplashTask` from 94.7% (regs=96, every
 other penalty zero) to 100% with no other change. Check the `.lreg` header for
 "dies in N places" before assuming a register diff needs a pin: a pseudo that
 spans blocks is a scoping problem in the C, not a colouring problem.
@@ -50855,26 +50855,26 @@ spans blocks is a scoping problem in the C, not a colouring problem.
 The inverse of "Reassign `ptr = base + i` instead of `ptr++` to avoid mid-struct
 IV": sometimes the target has the extra IV and indexed C cannot produce it.
 
-`func_mist_shooting_gallery_80180390` copies one `WorldCollisionGridFace`
+`mistShootingGallerySetTrainingBarrierLowered` copies one `WorldCollisionGridFace`
 (`u16 vertexIndices[4]; u16 normalIndex; s16 surfaceClass;`) per outer iteration — an inner
 loop over `vertexIndices`, then `normalIndex` and `surfaceClass`. The target carries four
 outer IVs per iteration: a pointer at each struct base (copied into the inner
 loop's walking pointer) *and* a pointer at `base + 0xA`, with `normalIndex` read as
 `-0x2(t2)` and `surfaceClass` as `0(t2)`.
 
-Written as `destFace[i].normalIndex = sourceFace[i].normalIndex + 3;` GCC 2.8.1 combines all
+Written as `liveFace[i].normalIndex = templateFace[i].normalIndex + 3;` GCC 2.8.1 combines all
 of the givs into the single const-0 IV the inner loop already materialises, and
 addresses the tail fields as `8(t1)` / `0xa(t1)` — 94.2%, `regs` only.
 Incrementing the pointers instead:
 
 ```c
-for (j = 0; j < 4; j++) {
-    destFace->vertexIndices[j] = sourceFace->vertexIndices[j] + 8;
+for (corner = 0; corner < ARRAY_SIZE(liveFace->vertexIndices); corner++) {
+    liveFace->vertexIndices[corner] = templateFace->vertexIndices[corner] + 8;
 }
-destFace->normalIndex = sourceFace->normalIndex + 3;
-destFace->surfaceClass = sourceFace->surfaceClass;
-destFace++;
-sourceFace++;
+liveFace->normalIndex = templateFace->normalIndex + 3;
+liveFace->surfaceClass = templateFace->surfaceClass;
+liveFace++;
+templateFace++;
 ```
 
 makes each pointer an explicit biv, so the two tail accesses become DEST_ADDR
@@ -95453,7 +95453,7 @@ expects them. Prefer it over padding the object past the threshold, which is not
 a property the layout is free to choose.
 
 `mist_shooting_gallery` solves the same problem one level up
-(`func_mist_shooting_gallery_8017E090`): the whole run is one C literal with
+(`_mistShootingGalleryWeaponSelectPanelTask`): the whole run is one C literal with
 explicit `\0` padding. That works when the code references only the run's start
 and a `.data` table reaches the later names; when the matched function itself
 references two addresses inside the run, each needs its own named object.
@@ -149469,7 +149469,7 @@ attempts; left as it was.
 
 - **The same inline was spelled with two different goto shapes.**
   `func_mist_shooting_gallery_8017F6C8` had `case 3: bp = 0; goto store;` past
-  a clamp after the switch; `func_mist_shooting_gallery_8017EC58` had
+  a clamp after the switch; `_mistShootingGalleryModeStatusPanelTask` had
   `case 2: q = raw / 100; goto clamp;` into the default case with `val = 0;
   break;` for case 3. Both are `_mistShootingGalleryScaleReward(unscaledTotal)`: a
   `static inline` with `case 3: return 0;`, the three divisions with `break`,

@@ -369,11 +369,11 @@ D_actor_215100_80152F24 = 0x80152F24; // size:0x14 defined:True
 D_actor_215100_8015E678 = 0x8015E678; // size:0x8 defined:True
 D_actor_215100_8014CF6C = 0x8014CF6C; // size:0x18 defined:True
 
-func_mist_shooting_gallery_80180390 = 0x80180390; // type:func absolute:True owner=mist_shooting_gallery
+mistShootingGallerySetTrainingBarrierLowered = 0x80180390; // type:func absolute:True owner=mist_shooting_gallery
 
-func_mist_shooting_gallery_80180B34 = 0x80180B34; // type:func absolute:True owner=mist_shooting_gallery
+mistShootingGalleryOpenJukebox = 0x80180B34; // type:func absolute:True owner=mist_shooting_gallery
 
-func_mist_shooting_gallery_801811C0 = 0x801811C0; // type:func absolute:True owner=mist_shooting_gallery
+mistShootingGallerySelectRoomLights = 0x801811C0; // type:func absolute:True owner=mist_shooting_gallery
 
 func_mist_shooting_gallery_801848B4 = 0x801848B4; // type:func absolute:True owner=mist_shooting_gallery
 
@@ -385,9 +385,9 @@ D_mist_shooting_gallery_801856B8 = 0x801856B8; // absolute:True owner=mist_shoot
 
 D_mist_shooting_gallery_8018E0C4 = 0x8018E0C4; // absolute:True owner=mist_shooting_gallery
 
-func_mist_shooting_gallery_8017DCAC = 0x8017DCAC; // type:func absolute:True owner=mist_shooting_gallery
+mistShootingGalleryPrepareTrainingLoadout = 0x8017DCAC; // type:func absolute:True owner=mist_shooting_gallery
 
-func_mist_shooting_gallery_8017F95C = 0x8017F95C; // type:func absolute:True owner=mist_shooting_gallery
+mistShootingGalleryOpenWeaponMenu = 0x8017F95C; // type:func absolute:True owner=mist_shooting_gallery
 CapCaption_RunSchedule = 0x8014AFAC; // type:func
 actor215100CapCaptionDrawCurrent = 0x8014B0D4; // type:func
 _capCaptionRelocateFile = 0x8014B1B0; // type:func

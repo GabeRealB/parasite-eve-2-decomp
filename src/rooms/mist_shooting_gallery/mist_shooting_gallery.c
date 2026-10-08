@@ -81,6 +81,12 @@ enum {
 // Key-item use requests carry an item ID and an unused second argument word.
 enum { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
+// Colours of the mode-selection panels, packed with red in the low byte.
+enum {
+    MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR         = 0x606060,
+    MIST_SHOOTING_GALLERY_MODE_WARNING_TEXT_COLOR = 0x0D287F
+};
+
 /// One string for each run mode, in the order of the save's `gameMode`
 /// (0 Replay, 1 Bounty, 2 Scavenger, 3 Nightmare).
 ///
@@ -154,13 +160,6 @@ extern TaskDesc   D_actor_215100_8014E13C[];
 extern EvsCommand D_actor_215100_80153274[];
 extern EvsCommand D_actor_215100_80153D6C[];
 
-/// Screen-fade "overlay owns the display" flag, first byte of the flag block
-/// at 0x80071068. Declared as an array on purpose: GCC 2.8.1 exempts a
-/// *fixed-address scalar* store from aliasing with a varying-address struct
-/// load, so a plain `extern s8` here lets the scheduler hoist the following
-/// `arg0->state` load above the store. Indexing an array makes the store a
-/// struct reference and keeps the two in order.
-
 /// The ten weapons the gallery's weapon picker offers, in row order. Rows whose
 /// weapon family is not owned (`inventoryIsItemLimitReached` returns 0) are skipped, so
 /// `UiList::currentItemIndex` indexes the drawn rows rather than table slots.
@@ -200,19 +199,19 @@ static const char D_mist_shooting_gallery_8017DB04[];
 extern UiList D_mist_shooting_gallery_80185338;
 
 /// The jukebox panel's descriptor; its update routine is the menu task
-/// `func_mist_shooting_gallery_80180728`.
+/// `_mistShootingGalleryJukeboxPanelTask`.
 extern UiObjectDesc gJukeboxPanelDesc;
 
 extern TaskDesc D_mist_shooting_gallery_80185378;
 
-static void func_mist_shooting_gallery_801801E4(s32 arg0);
+static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered);
 
 static const char D_mist_shooting_gallery_8017D65C[];
 
-void func_mist_shooting_gallery_80180728(Task*);
-void func_mist_shooting_gallery_80180B64(Task*);
-void func_mist_shooting_gallery_80180F2C(Task*);
-void func_mist_shooting_gallery_801810D8(Task*);
+static void _mistShootingGalleryJukeboxPanelTask(Task* task);
+static void _mistShootingGalleryModeSplashTask(Task* task);
+static void _mistShootingGalleryClearMovieTask(Task* task);
+void        func_mist_shooting_gallery_801810D8(Task*);
 
 extern const char D_mist_shooting_gallery_8017D86C[22];
 extern const char D_mist_shooting_gallery_8017D884[19];
@@ -253,11 +252,11 @@ s32               func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, con
 void              func_mist_shooting_gallery_8017E234(Task*);
 void              func_mist_shooting_gallery_8017E854(Task*);
 void              func_mist_shooting_gallery_8017EAE0(Task*);
-void              func_mist_shooting_gallery_8017EC58(Task*);
-void              func_mist_shooting_gallery_8017F128(Task*);
+static void       _mistShootingGalleryModeStatusPanelTask(Task* task);
+static void       _mistShootingGalleryModeDataPanelTask(Task* task);
 void              func_mist_shooting_gallery_8017F6C8(Task*);
-void              func_mist_shooting_gallery_8017F98C(UiList*, UiObject*);
-void              func_mist_shooting_gallery_8017FAE8(Task*);
+static void       _mistShootingGalleryModeRow(UiList* list, UiObject* object);
+static void       _mistShootingGalleryModeHelpPanelTask(Task* task);
 void              func_mist_shooting_gallery_8017FDD0(Task* task);
 
 static const char D_mist_shooting_gallery_8017D5E0[12];
@@ -274,7 +273,7 @@ static const char D_mist_shooting_gallery_8017D640[8];
 static const char D_mist_shooting_gallery_8017D648[8];
 static const char D_mist_shooting_gallery_8017D650[12];
 void              func_mist_shooting_gallery_8017DE7C(UiList*, UiObject*);
-void              func_mist_shooting_gallery_8017E090(Task*);
+static void       _mistShootingGalleryWeaponSelectPanelTask(Task* task);
 
 char D_mist_shooting_gallery_80184DD4[80] = {
     82,
@@ -674,7 +673,7 @@ UiListRowCallback D_mist_shooting_gallery_80184F48[1] = {
 
 UiList D_mist_shooting_gallery_80184F4C = { D_mist_shooting_gallery_80184F48, 1, { .unsignedValue = 1 }, 0, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc D_mist_shooting_gallery_80184F70 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 64 }, 32, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017E090, 0 };
+UiObjectDesc D_mist_shooting_gallery_80184F70 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -8, 0, 144, 64 }, 32, 0, TASK_BODY_NONE, 192, _mistShootingGalleryWeaponSelectPanelTask, 0 };
 
 TaskDesc D_mist_shooting_gallery_80184F8C = { { { TASK_BODY_NONE, 192 } }, Gp_MenuRootTask, { .value = 0 } };
 
@@ -699,7 +698,7 @@ UiObjectDesc D_mist_shooting_gallery_80185000 = { USER_INTERFACE_PANEL_TITLE_STY
 UiObjectDesc D_mist_shooting_gallery_8018501C = { USER_INTERFACE_PANEL_TITLE_STYLE, { -72, -48, 144, 56 }, 24, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017E854, 0 };
 
 UiListRowCallback D_mist_shooting_gallery_80185038[1] = {
-    func_mist_shooting_gallery_8017F98C,
+    _mistShootingGalleryModeRow,
 };
 
 UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4, { .unsignedValue = 4 }, 1, 15, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
@@ -707,9 +706,9 @@ UiList D_mist_shooting_gallery_8018503C = { D_mist_shooting_gallery_80185038, 4,
 UiObjectDesc D_mist_shooting_gallery_80185060 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -96, 176, 64 }, 32, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017EAE0, 0 };
 
 UiObjectDesc D_mist_shooting_gallery_8018507C[3] = {
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { 32, -96, 112, 128 }, 28, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017EC58, 0 },
-    { 3, { -144, 32, 288, 48 }, 24, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017FAE8, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -22, 288, 73 }, 20, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_8017F128, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { 32, -96, 112, 128 }, 28, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeStatusPanelTask, 0 },
+    { 3, { -144, 32, 288, 48 }, 24, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeHelpPanelTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -22, 288, 73 }, 20, 0, TASK_BODY_NONE, 192, _mistShootingGalleryModeDataPanelTask, 0 },
 };
 
 TaskDesc D_mist_shooting_gallery_801850D0 = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_8017F6C8, { .value = 0 } };
@@ -843,14 +842,14 @@ UiListRowCallback D_mist_shooting_gallery_80185334[1] = {
 
 UiList D_mist_shooting_gallery_80185338 = { D_mist_shooting_gallery_80185334, 1, { .unsignedValue = 1 }, 0, 17, 0, { .unsignedValue = 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { .unsignedValue = 0 }, 0 };
 
-UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, func_mist_shooting_gallery_80180728, 0 };
+UiObjectDesc gJukeboxPanelDesc = { USER_INTERFACE_PANEL_TITLE_STYLE, { -112, -64, 224, 128 }, 48, 0, TASK_BODY_NONE, 192, _mistShootingGalleryJukeboxPanelTask, 0 };
 
 TaskDesc D_mist_shooting_gallery_80185378 = { { { TASK_BODY_NONE, 192 } }, jukeboxHostTask, { .value = 0 } };
 
 TaskDesc D_mist_shooting_gallery_80185384[3] = {
     { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_801810D8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80180F2C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80180B64, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryClearMovieTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryModeSplashTask, { .value = 0 } },
 };
 
 WorldCollisionRoomResources D_mist_shooting_gallery_801853A8[1] = {
@@ -933,49 +932,60 @@ static void func_mist_shooting_gallery_8017FD40(Task* task);
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
-void func_mist_shooting_gallery_8017DCAC(s32 mode)
+void mistShootingGalleryPrepareTrainingLoadout(s32 courseLevel)
 {
-    InventoryItemRange* scan;
-    s32                 row;
-    s32                 col;
+    enum {
+        MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM              = 0x40,
+        MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM        = 1,
+        MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM             = 5,
+        MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM        = 6,
+        MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX      = 1,
+        MIST_SHOOTING_GALLERY_TRAINING_GPS_ATTACHMENT_SLOT   = 2,
+        MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT1 = 3,
+        MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT2 = 4
+    };
+    InventoryItemRange* carriedInventory;
+    s32                 spellRow;
+    s32                 spellColumn;
 
-    scan = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
-    for (row = 0; row < 4; row++) {
-        for (col = 0; col < 3; col++) {
-            Gp_DebugAttachLevels[col + row * 3] = 0;
+    carriedInventory = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems;
+    // Reset the twelve spell entries; the other six debug entries remain untouched.
+    for (spellRow = 0; spellRow < ATTACHMENT_SPELL_COUNT / 3; spellRow++) {
+        for (spellColumn = 0; spellColumn < 3; spellColumn++) {
+            Gp_DebugAttachLevels[spellColumn + spellRow * 3] = 0;
         }
     }
-    Gp_DebugAttachLevels[0] = 1;
+    Gp_DebugAttachLevels[ATTACHMENT_INDEX_PYROKINESIS] = 1;
 
-    switch (mode) {
+    switch (courseLevel) {
         case 1:
         case 2:
             break;
         case 3:
-            itemSetIdentified(0x40, 1);
-            inventoryGiveItem(scan, 0x40, 1);
+            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
             break;
         case 4:
-            itemSetIdentified(0x40, 1);
-            itemSetIdentified(5, 1);
-            inventoryGiveItem(scan, 0x40, 1)->attachSlot = 2;
-            inventoryGiveItem(scan, 5, 1)->attachSlot    = 3;
-            inventoryGiveItem(scan, 5, 1)->attachSlot    = 4;
-            Gp_DebugAttachLevels[0xA]                    = 1;
-            Gp_DebugAttachLevels[1]                      = 1;
+            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
+            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1)->attachSlot  = MIST_SHOOTING_GALLERY_TRAINING_GPS_ATTACHMENT_SLOT;
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM, 1)->attachSlot = MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT1;
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_COLA_ITEM, 1)->attachSlot = MIST_SHOOTING_GALLERY_TRAINING_COLA_ATTACHMENT_SLOT2;
+            Gp_DebugAttachLevels[ATTACHMENT_INDEX_ENERGY_SHOT]                                           = 1;
+            Gp_DebugAttachLevels[MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX]                        = 1;
             break;
         case 5:
-            itemSetIdentified(0x40, 1);
-            itemSetIdentified(1, 1);
-            itemSetIdentified(6, 1);
-            inventoryGiveItem(scan, 0x40, 1);
-            inventoryGiveItem(scan, 1, 1);
-            inventoryGiveItem(scan, 1, 1);
-            inventoryGiveItem(scan, 1, 1);
-            inventoryGiveItem(scan, 6, 1);
-            inventoryGiveItem(scan, 6, 1);
-            Gp_DebugAttachLevels[0xA] = 1;
-            Gp_DebugAttachLevels[1]   = 1;
+            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
+            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM, 1);
+            itemSetIdentified(MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_GPS_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_RECOVERY1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM, 1);
+            inventoryGiveItem(carriedInventory, MIST_SHOOTING_GALLERY_TRAINING_MP_BOOST1_ITEM, 1);
+            Gp_DebugAttachLevels[ATTACHMENT_INDEX_ENERGY_SHOT]                    = 1;
+            Gp_DebugAttachLevels[MIST_SHOOTING_GALLERY_TRAINING_COMBUSTION_INDEX] = 1;
             break;
     }
     equipmentRestoreHpMp();
@@ -1054,55 +1064,61 @@ static const char D_mist_shooting_gallery_8017D640[8]  = "Monkey";
 static const char D_mist_shooting_gallery_8017D648[8]  = "Bear";
 static const char D_mist_shooting_gallery_8017D650[12] = "Bacterium";
 
-void func_mist_shooting_gallery_8017E090(Task* task)
+/// Updates the centered weapon picker and returns input from its item-help child.
+///
+/// Borrows the task-owned UI object and singleton list. Initialization identifies
+/// and counts owned weapons; the row callback maps displayed rows to that same
+/// filtered table. Completed child panels close before input returns to the picker.
+static void _mistShootingGalleryWeaponSelectPanelTask(Task* task)
 {
-    UiObject* obj;
+    enum { MIST_SHOOTING_GALLERY_WEAPON_MAX_VISIBLE_ROWS = 10 };
+    UiObject* object;
     UiList*   list;
     Task*     child;
-    UiObject* childObj;
-    s16*      weapon;
-    s32       i;
-    s32       count;
+    UiObject* childObject;
+    s16*      weaponItem;
+    s32       weaponIndex;
+    s32       ownedWeaponCount;
 
-    obj         = task->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    list        = &D_mist_shooting_gallery_80184F4C;
-    uiDrawPanelLabel(&obj->panel, D_mist_shooting_gallery_8017D5D8);
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    list           = &D_mist_shooting_gallery_80184F4C;
+    uiDrawPanelLabel(&object->panel, D_mist_shooting_gallery_8017D5D8);
     if (task->state == 0) {
-        count  = 0;
-        i      = count;
-        weapon = D_mist_shooting_gallery_80184F34;
+        ownedWeaponCount = 0;
+        weaponIndex      = ownedWeaponCount;
+        weaponItem       = D_mist_shooting_gallery_80184F34;
         do {
-            if (inventoryIsItemLimitReached(*weapon) != 0) {
-                itemSetIdentified(*weapon, 1);
-                count += 1;
+            if (inventoryIsItemLimitReached(*weaponItem) != 0) {
+                itemSetIdentified(*weaponItem, 1);
+                ownedWeaponCount += 1;
             }
-            i++;
-            weapon++;
-        } while (i < 10);
+            weaponIndex++;
+            weaponItem++;
+        } while (weaponIndex < (s32)ARRAY_SIZE(D_mist_shooting_gallery_80184F34));
 
-        list->itemCount = count;
-        if ((u8)count >= 0xB) {
-            list->visibleRowCount.unsignedValue = 0xA;
+        list->itemCount = ownedWeaponCount;
+        if ((u8)ownedWeaponCount > MIST_SHOOTING_GALLERY_WEAPON_MAX_VISIBLE_ROWS) {
+            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_WEAPON_MAX_VISIBLE_ROWS;
         } else {
-            list->visibleRowCount.unsignedValue = count;
+            list->visibleRowCount.unsignedValue = ownedWeaponCount;
         }
         list->selectedItemIndex                   = 0;
         list->firstVisibleItemIndex.unsignedValue = 0;
-        uiFitPanelToList(list, &(obj)->panel);
+        uiFitPanelToList(list, &(object)->panel);
         list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
         uiSetListSystemCursorSound(list, 1);
-        obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
-        obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
-        task->state                     += 1;
+        object->panel.bounds.unsignedRect.x = -((s16)object->panel.bounds.unsignedRect.w / 2);
+        object->panel.bounds.unsignedRect.y = -((s16)object->panel.bounds.unsignedRect.h / 2);
+        task->state                        += 1;
     }
-    uiUpdateList(list, &obj->panel);
+    uiUpdateList(list, &object->panel);
     child = task->firstChild;
     if (child != NULL) {
-        childObj = child->spawnArg2.pointer;
-        if (childObj->result == USER_INTERFACE_RESULT_CANCEL || childObj->result == USER_INTERFACE_RESULT_CONFIRM) {
-            uiStartTreeClosing(childObj, childObj->owner);
-            obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+        childObject = child->spawnArg2.pointer;
+        if (childObject->result == USER_INTERFACE_RESULT_CANCEL || childObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+            uiStartTreeClosing(childObject, childObject->owner);
+            object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
         }
     }
 }
@@ -1472,95 +1488,93 @@ static inline s32 _mistShootingGalleryScaleReward(s32 unscaledTotal)
     return reward;
 }
 
-void func_mist_shooting_gallery_8017EC58(Task* task)
+/// Draws the selected run mode's starting HP/MP and scaled EXP/BP carryover.
+///
+/// Borrows the task-owned UI object. The live mode must be 0..3; HP below the
+/// normal starting 100 or MP below 30 uses the warning colour. EXP/BP use the
+/// captured totals, rather than the player totals being changed by the session.
+static void _mistShootingGalleryModeStatusPanelTask(Task* task)
 {
-    u8          buf[0x20];
-    TextDrawReq req1;
-    TextDrawReq req2;
-    TextDrawReq req3;
-    TextDrawReq req4;
-    UiObject*   obj;
-    s32         val;
-    s32         color;
-    s32         xOff;
-    s16         top;
-    s32         y;
+    enum { MIST_SHOOTING_GALLERY_BASE_HP_WARNING_THRESHOLD = 100,
+           MIST_SHOOTING_GALLERY_BASE_MP_WARNING_THRESHOLD = 30 };
+    u8          numberText[0x20];
+    TextDrawReq hpCaption;
+    TextDrawReq mpCaption;
+    TextDrawReq expCaption;
+    TextDrawReq bpCaption;
+    UiObject*   object;
+    s32         displayedValue;
+    s32         valueColor;
+    s32         captionX;
+    s16         contentTop;
+    s32         rowY;
 
-    obj = task->spawnArg2.pointer;
-    uiDrawTitle(&(obj)->panel, "STATUS");
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    // Draws a STATUS caption, capturing object, captionX and rowY. The request
+    // must be a plain local lvalue; the text argument is evaluated once.
+#define MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(caption, captionText)                      \
+    {                                                                                        \
+        (caption).x          = object->panel.contentOriginX.unsignedValue + captionX;        \
+        (caption).y          = (s16)(object->panel.contentOriginY.unsignedValue - 8) + rowY; \
+        (caption).otIndex    = object->panel.otIndex.signedValue + 1;                        \
+        (caption).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                        \
+        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                       \
+        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                          \
+        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                           \
+        textDrawString(&(caption), captionText);                                             \
+    }
+
+    object = task->spawnArg2.pointer;
+    uiDrawTitle(&(object)->panel, "STATUS");
+    object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(4));
+        uiSetPanelContentSize(&(object)->panel, 0, uiGetTextRowsHeight(4));
         task->state = task->state + 1;
     }
 
-    color = 0x606060;
-    top   = obj->panel.contentTop.signedValue;
-    y     = top + 0xF;
-    val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseHp.hpWord;
-    xOff  = obj->panel.contentLeft.signedValue + 6;
-    if (val < 100) {
-        color = 0xD287F;
+    valueColor     = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;
+    contentTop     = object->panel.contentTop.signedValue;
+    rowY           = contentTop + 0xF;
+    displayedValue = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseHp.hpWord;
+    captionX       = object->panel.contentLeft.signedValue + 6;
+    if (displayedValue < MIST_SHOOTING_GALLERY_BASE_HP_WARNING_THRESHOLD) {
+        valueColor = MIST_SHOOTING_GALLERY_MODE_WARNING_TEXT_COLOR;
     }
 
-    req1.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
-    req1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req1.colorRgb   = 0x606060;
-    req1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req1.alignment  = TEXT_ALIGNMENT_LEFT;
-    req1.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req1, "HP");
-    textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(hpCaption, "HP");
+    textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), valueColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-    y     = top + 0x1E;
-    val   = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseMp;
-    color = 0x606060;
-    if (val < 30) {
-        color = 0xD287F;
+    rowY           = contentTop + 0x1E;
+    displayedValue = Gp_StatRows[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode].baseMp;
+    valueColor     = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;
+    if (displayedValue < MIST_SHOOTING_GALLERY_BASE_MP_WARNING_THRESHOLD) {
+        valueColor = MIST_SHOOTING_GALLERY_MODE_WARNING_TEXT_COLOR;
     }
 
-    req2.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
-    req2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req2.colorRgb   = 0x606060;
-    req2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req2.alignment  = TEXT_ALIGNMENT_LEFT;
-    req2.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req2, "MP");
-    textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(mpCaption, "MP");
+    textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), valueColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-    y   = top + 0x2D;
-    val = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
+    rowY           = contentTop + 0x2D;
+    displayedValue = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0BC);
 
-    req3.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
-    req3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req3.colorRgb   = 0x606060;
-    req3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req3.alignment  = TEXT_ALIGNMENT_LEFT;
-    req3.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req3, "EXP");
-    textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(expCaption, "EXP");
+    textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-    y  += 0xF;
-    val = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);
+    rowY          += 0xF;
+    displayedValue = _mistShootingGalleryScaleReward(D_mist_shooting_gallery_8018E0C0);
 
-    req4.x          = obj->panel.contentOriginX.unsignedValue + xOff;
-    req4.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 8) + y;
-    req4.otIndex    = obj->panel.otIndex.signedValue + 1;
-    req4.colorRgb   = 0x606060;
-    req4.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req4.alignment  = TEXT_ALIGNMENT_LEFT;
-    req4.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req4, "BP");
-    textDrawUiLine(obj, -xOff, y, textItoaSigned(buf, val), 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+    MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION(bpCaption, "BP");
+    textDrawUiLine(object, -captionX, rowY, textItoaSigned(numberText, displayedValue), MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+#undef MIST_SHOOTING_GALLERY_DRAW_STATUS_CAPTION
 }
 static const _MistShootingGalleryModeTexts D_mist_shooting_gallery_8017D708 = { { D_mist_shooting_gallery_80184DD4, D_mist_shooting_gallery_80184E24, D_mist_shooting_gallery_80184E70, D_mist_shooting_gallery_80184EC4 } };
 
-void func_mist_shooting_gallery_8017F128(Task* task)
+/// Draws the selected run mode's mission, condition, enemy and supply ratings.
+///
+/// Borrows the task-owned UI object and reads the live mode in 0..3. The local
+/// tables supply levels 1..5 and their names; each gauge contains that many marks.
+static void _mistShootingGalleryModeDataPanelTask(Task* task)
 {
-    UiObject* obj = task->spawnArg2.pointer;
+    UiObject* object = task->spawnArg2.pointer;
     // Each DATA row's rating for every run mode, indexed by the save's gameMode.
     _MistShootingGalleryRating missionLevels[4] = {
         { 2, "EASY" },
@@ -1596,110 +1610,72 @@ void func_mist_shooting_gallery_8017F128(Task* task)
         D_mist_shooting_gallery_80184F24,
         D_mist_shooting_gallery_80184F2C,
     };
-    TextDrawReq                 label0;
-    TextDrawReq                 value0;
-    TextDrawReq                 label1;
-    TextDrawReq                 value1;
-    TextDrawReq                 label2;
-    TextDrawReq                 value2;
-    TextDrawReq                 label3;
-    TextDrawReq                 value3;
-    _MistShootingGalleryRating* rating;
-    s32                         col;
-    s32                         row;
-    s32                         x;
-    s32                         y;
+    TextDrawReq                       missionCaption;
+    TextDrawReq                       missionRatingText;
+    TextDrawReq                       conditionCaption;
+    TextDrawReq                       conditionRatingText;
+    TextDrawReq                       enemyCaption;
+    TextDrawReq                       enemyRatingText;
+    TextDrawReq                       supplyCaption;
+    TextDrawReq                       supplyRatingText;
+    const _MistShootingGalleryRating* rating;
+    s32                               contentLeft;
+    s32                               contentTop;
+    s32                               captionX;
+    s32                               rowY;
 
-    uiDrawTitle(&(obj)->panel, D_mist_shooting_gallery_8017D820);
+    // Finishes a positioned caption and draws its rating word and gauge.
+    // Captures object, rowY, rating and gaugeByLevel. Requests must be plain
+    // local lvalues, ratings a four-entry array and captionText readable text.
+    // The table and text are evaluated once; request lvalues occur repeatedly.
+#define MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(caption, ratingText, ratings, captionText)                                                                                       \
+    {                                                                                                                                                                           \
+        (caption).otIndex    = object->panel.otIndex.signedValue + 1;                                                                                                           \
+        rating               = &(ratings)[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];                                                                                   \
+        (caption).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                                                           \
+        (caption).glyphTable = TEXT_GLYPH_TABLE_SMALL;                                                                                                                          \
+        (caption).alignment  = TEXT_ALIGNMENT_LEFT;                                                                                                                             \
+        (caption).drawMode   = TEXT_DRAW_OUTLINED;                                                                                                                              \
+        textDrawString(&(caption), captionText);                                                                                                                                \
+                                                                                                                                                                                \
+        (ratingText).x          = object->panel.contentOriginX.unsignedValue + 0x41;                                                                                            \
+        (ratingText).y          = (s16)(object->panel.contentOriginY.unsignedValue - 3) + rowY;                                                                                 \
+        (ratingText).otIndex    = object->panel.otIndex.signedValue + 1;                                                                                                        \
+        (ratingText).colorRgb   = MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR;                                                                                                        \
+        (ratingText).glyphTable = TEXT_GLYPH_TABLE_MEDIUM;                                                                                                                      \
+        (ratingText).alignment  = TEXT_ALIGNMENT_RIGHT;                                                                                                                         \
+        (ratingText).drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;                                                                                                               \
+        textDrawString(&(ratingText), rating->name);                                                                                                                            \
+        textDrawUiLine(object, 0x46, rowY, (const u8*)gaugeByLevel[rating->level], MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT); \
+    }
 
-    col               = obj->panel.contentLeft.signedValue;
-    obj->result       = USER_INTERFACE_RESULT_NONE;
-    x                 = col + 0xB;
-    row               = obj->panel.contentTop.signedValue;
-    label0.x          = obj->panel.contentOriginX.unsignedValue + x;
-    y                 = row + 0xB;
-    label0.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
-    label0.otIndex    = obj->panel.otIndex.signedValue + 1;
-    rating            = &missionLevels[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
-    label0.colorRgb   = 0x606060;
-    label0.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    label0.alignment  = TEXT_ALIGNMENT_LEFT;
-    label0.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&label0, D_mist_shooting_gallery_8017D828);
+    uiDrawTitle(&(object)->panel, D_mist_shooting_gallery_8017D820);
 
-    value0.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
-    value0.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
-    value0.otIndex    = obj->panel.otIndex.signedValue + 1;
-    value0.colorRgb   = 0x606060;
-    value0.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    value0.alignment  = TEXT_ALIGNMENT_RIGHT;
-    value0.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&value0, rating->name);
-    textDrawUiLine(obj, 0x46, y, (const u8*)gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
-    uiDrawHorizontalSeparator(&(obj)->panel, col + 6, -x + 5, row + 0xD);
+    contentLeft      = object->panel.contentLeft.signedValue;
+    object->result   = USER_INTERFACE_RESULT_NONE;
+    captionX         = contentLeft + 0xB;
+    contentTop       = object->panel.contentTop.signedValue;
+    missionCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
+    rowY             = contentTop + 0xB;
+    missionCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
+    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(missionCaption, missionRatingText, missionLevels, D_mist_shooting_gallery_8017D828);
+    uiDrawHorizontalSeparator(&(object)->panel, contentLeft + 6, -captionX + 5, contentTop + 0xD);
 
-    y                 = row + 0x1E;
-    label1.x          = obj->panel.contentOriginX.unsignedValue + x;
-    label1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
-    label1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    rating            = &conditions[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
-    label1.colorRgb   = 0x606060;
-    label1.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    label1.alignment  = TEXT_ALIGNMENT_LEFT;
-    label1.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&label1, D_mist_shooting_gallery_8017D838);
+    rowY               = contentTop + 0x1E;
+    conditionCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
+    conditionCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
+    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(conditionCaption, conditionRatingText, conditions, D_mist_shooting_gallery_8017D838);
 
-    value1.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
-    value1.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
-    value1.otIndex    = obj->panel.otIndex.signedValue + 1;
-    value1.colorRgb   = 0x606060;
-    value1.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    value1.alignment  = TEXT_ALIGNMENT_RIGHT;
-    value1.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&value1, rating->name);
-    textDrawUiLine(obj, 0x46, y, (const u8*)gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    rowY           = contentTop + 0x2D;
+    enemyCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
+    enemyCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
+    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(enemyCaption, enemyRatingText, enemyLevels, D_mist_shooting_gallery_8017D844);
 
-    y                 = row + 0x2D;
-    label2.x          = obj->panel.contentOriginX.unsignedValue + x;
-    label2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
-    label2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    rating            = &enemyLevels[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
-    label2.colorRgb   = 0x606060;
-    label2.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    label2.alignment  = TEXT_ALIGNMENT_LEFT;
-    label2.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&label2, D_mist_shooting_gallery_8017D844);
-
-    value2.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
-    value2.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
-    value2.otIndex    = obj->panel.otIndex.signedValue + 1;
-    value2.colorRgb   = 0x606060;
-    value2.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    value2.alignment  = TEXT_ALIGNMENT_RIGHT;
-    value2.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&value2, rating->name);
-    textDrawUiLine(obj, 0x46, y, (const u8*)gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
-
-    y                 = row + 0x3C;
-    label3.x          = obj->panel.contentOriginX.unsignedValue + x;
-    label3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 6) + y;
-    label3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    rating            = &supplyLevels[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode];
-    label3.colorRgb   = 0x606060;
-    label3.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    label3.alignment  = TEXT_ALIGNMENT_LEFT;
-    label3.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&label3, D_mist_shooting_gallery_8017D850);
-
-    value3.x          = obj->panel.contentOriginX.unsignedValue + 0x41;
-    value3.y          = (s16)(obj->panel.contentOriginY.unsignedValue - 3) + y;
-    value3.otIndex    = obj->panel.otIndex.signedValue + 1;
-    value3.colorRgb   = 0x606060;
-    value3.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    value3.alignment  = TEXT_ALIGNMENT_RIGHT;
-    value3.drawMode   = TEXT_DRAW_TRANSLUCENT_OUTLINED;
-    textDrawString(&value3, rating->name);
-    textDrawUiLine(obj, 0x46, y, (const u8*)gaugeByLevel[rating->level], 0x606060, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    rowY            = contentTop + 0x3C;
+    supplyCaption.x = object->panel.contentOriginX.unsignedValue + captionX;
+    supplyCaption.y = (s16)(object->panel.contentOriginY.unsignedValue - 6) + rowY;
+    MIST_SHOOTING_GALLERY_DRAW_MODE_RATING(supplyCaption, supplyRatingText, supplyLevels, D_mist_shooting_gallery_8017D850);
+#undef MIST_SHOOTING_GALLERY_DRAW_MODE_RATING
 }
 /// Task handler for the gallery's closing sequence. State 0 spawns the results
 /// panel and stashes `gPlayerStatus.exp` / `gPlayerStatus.bp` in
@@ -1745,23 +1721,27 @@ void func_mist_shooting_gallery_8017F6C8(Task* task)
         }
     }
 }
-s32 func_mist_shooting_gallery_8017F95C(s32 unused)
+s32 mistShootingGalleryOpenWeaponMenu(s32 unused)
 {
-    displayQueueModeTask(&D_mist_shooting_gallery_80184F8C, 0x44, 0, STAGE_ENTRY_RELOAD);
+    enum { MIST_SHOOTING_GALLERY_WEAPON_MENU_REQUEST = 0x44 };
+
+    displayQueueModeTask(&D_mist_shooting_gallery_80184F8C, MIST_SHOOTING_GALLERY_WEAPON_MENU_REQUEST, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
-void func_mist_shooting_gallery_8017F98C(UiList* arg0, UiObject* arg1)
+/// Draws a run-mode row and selects its mode whenever the row has input.
+///
+/// The borrowed list's current row must be 0..3. Selection writes the live save
+/// immediately as the cursor moves; the enclosing panel handles confirmation.
+static void _mistShootingGalleryModeRow(UiList* list, UiObject* object)
 {
     _MistShootingGalleryModeTexts modeNames;
-    s32                           one;
 
     modeNames = D_mist_shooting_gallery_8017D6D8;
-    one       = 1;
     // The list has one row per run mode, so the row index is the mode.
-    textDrawUiLine(arg1, arg0->rowTextX.signedValue, arg0->rowTextY.signedValue - 1, (const u8*)modeNames.byMode[arg0->currentItemIndex], arg0->colorRgb, one, TEXT_ALIGNMENT_LEFT);
-    if (arg0->rowInputEnabled == one) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode = (u8)arg0->currentItemIndex;
+    textDrawUiLine(object, list->rowTextX.signedValue, list->rowTextY.signedValue - 1, (const u8*)modeNames.byMode[list->currentItemIndex], list->colorRgb, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode = list->currentItemIndex;
     }
 }
 /// Retained out-of-line copy of the EXP/BP carryover conversion.
@@ -1772,22 +1752,28 @@ static s32 _mistShootingGalleryScaleRewardOutOfLine(s32 unscaledTotal)
 {
     return _mistShootingGalleryScaleReward(unscaledTotal);
 }
-void func_mist_shooting_gallery_8017FAE8(Task* task)
+/// Draws the three-line description of the selected run mode below its menu.
+///
+/// Borrows the task-owned UI object. The live mode must be 0..3; initialization
+/// sizes and anchors the panel, and every tick reflects the mode row's selection.
+static void _mistShootingGalleryModeHelpPanelTask(Task* task)
 {
-    UiObject*                     obj              = task->spawnArg2.pointer;
+    UiObject*                     object           = task->spawnArg2.pointer;
     _MistShootingGalleryModeTexts modeDescriptions = D_mist_shooting_gallery_8017D708;
 
-    obj->result = USER_INTERFACE_RESULT_NONE;
+    object->result = USER_INTERFACE_RESULT_NONE;
     if (task->state == 0) {
-        uiSetPanelContentSize(&(obj)->panel, 0, uiGetTextRowsHeight(3) + 1);
-        obj->panel.bounds.unsignedRect.y = 0x68 - obj->panel.bounds.unsignedRect.h;
-        task->state                      = task->state + 1;
+        uiSetPanelContentSize(&(object)->panel, 0, uiGetTextRowsHeight(3) + 1);
+        object->panel.bounds.unsignedRect.y = 0x68 - object->panel.bounds.unsignedRect.h;
+        task->state                         = task->state + 1;
     }
-    textDrawUiLines(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, (const u8*)modeDescriptions.byMode[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode], 0x606060, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
+    textDrawUiLines(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + 0xF, (const u8*)modeDescriptions.byMode[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode], MIST_SHOOTING_GALLERY_MODE_TEXT_COLOR, TEXT_DRAW_OUTLINED, TEXT_ALIGNMENT_LEFT);
 }
-void func_mist_shooting_gallery_8017FBD8(void)
+void mistShootingGalleryOpenCarryoverModeMenu(void)
 {
-    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) && (gGameSession->location.loc.warp == 7)) {
+    enum { MIST_SHOOTING_GALLERY_CARRYOVER_ENTRY_WARP = 7 };
+
+    if ((gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.clearCount > 0) && (gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_CARRYOVER_ENTRY_WARP)) {
         displayQueueModeTask(&D_mist_shooting_gallery_801850D0, 0, 0, STAGE_ENTRY_RELOAD);
     }
 }
@@ -1804,7 +1790,7 @@ static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
     } else {
         var_a0 = 0;
     }
-    func_mist_shooting_gallery_801801E4(var_a0);
+    _mistShootingGallerySetStoryBarrierLowered(var_a0);
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 7) {
         taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, 0, 0);
     } else if (gGameSession->location.loc.warp == 7) {
@@ -1959,7 +1945,7 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
 }
 
 /// The room task's three-state table, run from a stack copy by
-/// `func_mist_shooting_gallery_8018018C`: the entry tick
+/// `mistShootingGalleryRoomTask`: the entry tick
 /// `func_mist_shooting_gallery_8017FC2C`, the per-frame state
 /// `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
 static const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
@@ -2003,90 +1989,100 @@ const char D_mist_shooting_gallery_8017DAA4[] = "3. Out Of Phase 2";
 const char D_mist_shooting_gallery_8017DAB8[] = "2. The Vagrants";
 const char D_mist_shooting_gallery_8017DAC8[] = "1. Tower Rendezvous";
 
-/// The room task: copies the three-state table
-/// `D_mist_shooting_gallery_8017D860` onto the stack and runs the entry for the
-/// task's current state - the entry tick `func_mist_shooting_gallery_8017FC2C`,
-/// the per-frame state `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
-void func_mist_shooting_gallery_8018018C(Task* task)
+void mistShootingGalleryRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_mist_shooting_gallery_8017D860;
-    sp.funcs[task->state](task);
+    states = D_mist_shooting_gallery_8017D860;
+    states.funcs[task->state](task);
 }
 
-static void func_mist_shooting_gallery_801801E4(s32 arg0)
+/// Restores the story-controlled barrier, then lowers it by 3000 room Y units.
+///
+/// Zero leaves the template position; nonzero lowers it below the floor.
+/// Borrows the loaded collision grid's first three normals/faces and eight
+/// vertices. The entry handler chooses the lowered position after the story flag.
+static void _mistShootingGallerySetStoryBarrierLowered(s32 lowered)
 {
-    WorldCollisionGrid* dst = &D_mist_shooting_gallery_80189968;
-    WorldCollisionGrid* src = &D_mist_shooting_gallery_80185198;
-    SVECTOR             ofs;
-    s32                 i;
+    enum { MIST_SHOOTING_GALLERY_STORY_BARRIER_FACE_COUNT   = 3,
+           MIST_SHOOTING_GALLERY_STORY_BARRIER_VERTEX_COUNT = 8,
+           MIST_SHOOTING_GALLERY_STORY_BARRIER_LOWER_Y      = 3000 };
+    WorldCollisionGrid* liveGrid     = &D_mist_shooting_gallery_80189968;
+    WorldCollisionGrid* templateGrid = &D_mist_shooting_gallery_80185198;
+    SVECTOR             offset;
+    s32                 index;
 
-    for (i = 0; i < 3; i++) {
-        dst->normals[i].vx = src->normals[i].vx;
-        dst->normals[i].vy = src->normals[i].vy;
-        dst->normals[i].vz = src->normals[i].vz;
-        dst->faces[i]      = src->faces[i];
+    for (index = 0; index < MIST_SHOOTING_GALLERY_STORY_BARRIER_FACE_COUNT; index++) {
+        liveGrid->normals[index].vx = templateGrid->normals[index].vx;
+        liveGrid->normals[index].vy = templateGrid->normals[index].vy;
+        liveGrid->normals[index].vz = templateGrid->normals[index].vz;
+        liveGrid->faces[index]      = templateGrid->faces[index];
     }
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i].vx = src->vertices[i].vx;
-        dst->vertices[i].vy = src->vertices[i].vy;
-        dst->vertices[i].vz = src->vertices[i].vz;
+    for (index = 0; index < MIST_SHOOTING_GALLERY_STORY_BARRIER_VERTEX_COUNT; index++) {
+        liveGrid->vertices[index].vx = templateGrid->vertices[index].vx;
+        liveGrid->vertices[index].vy = templateGrid->vertices[index].vy;
+        liveGrid->vertices[index].vz = templateGrid->vertices[index].vz;
     }
-    if (arg0 == 0) {
-        ofs.vx = 0;
-        ofs.vy = 0;
+    if (lowered == 0) {
+        offset.vx = 0;
+        offset.vy = 0;
     } else {
-        ofs.vx = 0;
-        ofs.vy = 0xBB8;
+        offset.vx = 0;
+        offset.vy = MIST_SHOOTING_GALLERY_STORY_BARRIER_LOWER_Y;
     }
-    ofs.vz = 0;
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i].vx += ofs.vx;
-        dst->vertices[i].vy += ofs.vy;
-        dst->vertices[i].vz += ofs.vz;
+    offset.vz = 0;
+    for (index = 0; index < MIST_SHOOTING_GALLERY_STORY_BARRIER_VERTEX_COUNT; index++) {
+        liveGrid->vertices[index].vx += offset.vx;
+        liveGrid->vertices[index].vy += offset.vy;
+        liveGrid->vertices[index].vz += offset.vz;
     }
 }
 
-void func_mist_shooting_gallery_80180390(s32 arg0)
+void mistShootingGallerySetTrainingBarrierLowered(s32 lowered)
 {
-    WorldCollisionGrid*     dst        = &D_mist_shooting_gallery_80189968;
-    WorldCollisionGrid*     src        = &D_mist_shooting_gallery_801851F8;
-    WorldCollisionGridFace* destFace   = &D_mist_shooting_gallery_80189968.faces[3];
-    WorldCollisionGridFace* sourceFace = D_mist_shooting_gallery_801851F8.faces;
-    SVECTOR                 ofs;
-    s32                     i;
-    s32                     j;
+    enum { MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET = 3,
+           MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET = 8,
+           MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_COUNT  = 4,
+           MIST_SHOOTING_GALLERY_TRAINING_BARRIER_OFFSET_COUNT  = 8,
+           MIST_SHOOTING_GALLERY_TRAINING_BARRIER_LOWER_Y       = 4000 };
+    WorldCollisionGrid*     liveGrid     = &D_mist_shooting_gallery_80189968;
+    WorldCollisionGrid*     templateGrid = &D_mist_shooting_gallery_801851F8;
+    WorldCollisionGridFace* liveFace     = &D_mist_shooting_gallery_80189968.faces[MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET];
+    WorldCollisionGridFace* templateFace = D_mist_shooting_gallery_801851F8.faces;
+    SVECTOR                 offset;
+    s32                     index;
+    s32                     corner;
 
-    for (i = 0; i < 1; i++) {
-        dst->normals[i + 3].vx = src->normals[i].vx;
-        dst->normals[i + 3].vy = src->normals[i].vy;
-        dst->normals[i + 3].vz = src->normals[i].vz;
-        for (j = 0; j < ARRAY_SIZE(destFace->vertexIndices); j++) {
-            destFace->vertexIndices[j] = sourceFace->vertexIndices[j] + 8;
+    for (index = 0; index < 1; index++) {
+        liveGrid->normals[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET].vx = templateGrid->normals[index].vx;
+        liveGrid->normals[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET].vy = templateGrid->normals[index].vy;
+        liveGrid->normals[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET].vz = templateGrid->normals[index].vz;
+        for (corner = 0; corner < ARRAY_SIZE(liveFace->vertexIndices); corner++) {
+            liveFace->vertexIndices[corner] = templateFace->vertexIndices[corner] + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET;
         }
-        destFace->normalIndex  = sourceFace->normalIndex + 3;
-        destFace->surfaceClass = sourceFace->surfaceClass;
-        destFace++;
-        sourceFace++;
+        liveFace->normalIndex  = templateFace->normalIndex + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_NORMAL_OFFSET;
+        liveFace->surfaceClass = templateFace->surfaceClass;
+        liveFace++;
+        templateFace++;
     }
-    for (i = 0; i < 4; i++) {
-        dst->vertices[i + 8].vx = src->vertices[i].vx;
-        dst->vertices[i + 8].vy = src->vertices[i].vy;
-        dst->vertices[i + 8].vz = src->vertices[i].vz;
+    for (index = 0; index < MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_COUNT; index++) {
+        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vx = templateGrid->vertices[index].vx;
+        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vy = templateGrid->vertices[index].vy;
+        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vz = templateGrid->vertices[index].vz;
     }
-    if (arg0 == 0) {
-        ofs.vx = 0;
-        ofs.vy = 0;
+    if (lowered == 0) {
+        offset.vx = 0;
+        offset.vy = 0;
     } else {
-        ofs.vx = 0;
-        ofs.vy = 0xFA0;
+        offset.vx = 0;
+        offset.vy = MIST_SHOOTING_GALLERY_TRAINING_BARRIER_LOWER_Y;
     }
-    ofs.vz = 0;
-    for (i = 0; i < 8; i++) {
-        dst->vertices[i + 8].vx += ofs.vx;
-        dst->vertices[i + 8].vy += ofs.vy;
-        dst->vertices[i + 8].vz += ofs.vz;
+    offset.vz = 0;
+    // Preserve the eight-vertex offset pass: only the first four were restored.
+    for (index = 0; index < MIST_SHOOTING_GALLERY_TRAINING_BARRIER_OFFSET_COUNT; index++) {
+        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vx += offset.vx;
+        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vy += offset.vy;
+        liveGrid->vertices[index + MIST_SHOOTING_GALLERY_TRAINING_BARRIER_VERTEX_OFFSET].vz += offset.vz;
     }
 }
 
@@ -2113,106 +2109,118 @@ static const char D_mist_shooting_gallery_8017DB04[8] = "SELECT\0\xE1";
 
 #include "../../shared/jukebox_row.inc.c"
 
-/// The jukebox menu task, the update routine of the panel
-/// `gJukeboxPanelDesc` builds. Draws the title and, on its first
-/// tick, lays out the track list (four rows, three in the debug attach room).
-/// While a chosen track is pending it waits for the MIDI player to go idle,
-/// queues the track's CD load, then starts it once the CD is idle and records
-/// it as the current track. The menu or cancel button plays the back sound and
-/// closes the panel.
-void func_mist_shooting_gallery_80180728(Task* task)
+/// Updates the gallery jukebox's track picker and asynchronous music change.
+///
+/// Borrows the task-owned UI object and singleton track list (three training
+/// rows, four regular rows). The row callback supplies a pending sequence ID;
+/// phase 1 waits for MIDI to stop, phase 2 waits for its file load, then starts it.
+/// A cancel during loading hides the panel until playback starts. The initial
+/// training sentinel keeps the panel open until a track has been selected.
+static void _mistShootingGalleryJukeboxPanelTask(Task* task)
 {
-    u8        param1[8];
-    u8        param2[8];
-    UiObject* obj;
-    UiList*   menu;
-    u8        flags;
-    s32       sent;
-    s32       state;
-    u8        ready;
+    enum {
+        MIST_SHOOTING_GALLERY_JUKEBOX_INITIALIZE          = 0,
+        MIST_SHOOTING_GALLERY_JUKEBOX_WAIT_MIDI           = 1,
+        MIST_SHOOTING_GALLERY_JUKEBOX_TRACK_ID_LIMIT      = 0xF1,
+        MIST_SHOOTING_GALLERY_JUKEBOX_TRAINING_UNSELECTED = 0xFE,
+        MIST_SHOOTING_GALLERY_JUKEBOX_IDLE                = 0xFF,
+        MIST_SHOOTING_GALLERY_JUKEBOX_NO_ROW              = -1,
+        MIST_SHOOTING_GALLERY_JUKEBOX_MAX_VISIBLE_ROWS    = 10,
+        MIST_SHOOTING_GALLERY_JUKEBOX_FILE_GROUP          = 4,
+        MIST_SHOOTING_GALLERY_JUKEBOX_FILE_ID_HUNDREDS    = 1
+    };
+    u8        fileKey[4];
+    u8        loadArgs[4];
+    UiObject* object;
+    UiList*   list;
+    u8        sequenceId;
+    s32       loadQueued;
+    s32       phase;
+    u8        sequenceStarted;
 
-    obj  = task->spawnArg2.pointer;
-    menu = &D_mist_shooting_gallery_80185338;
+    object = task->spawnArg2.pointer;
+    list   = &D_mist_shooting_gallery_80185338;
 
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    uiDrawPanelLabel(&(obj)->panel, D_mist_shooting_gallery_8017DB04);
-    if (task->state == 0) {
-        task->spawnArg1.value = -1;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    uiDrawPanelLabel(&(object)->panel, D_mist_shooting_gallery_8017DB04);
+    if (task->state == MIST_SHOOTING_GALLERY_JUKEBOX_INITIALIZE) {
+        task->spawnArg1.value = MIST_SHOOTING_GALLERY_JUKEBOX_NO_ROW;
         if (attachmentIsTrainingMode() == 0) {
-            menu->itemCount = 4;
+            list->itemCount = ARRAY_SIZE(gJukeboxTracks0);
         } else {
-            menu->itemCount = 3;
+            list->itemCount = ARRAY_SIZE(gJukeboxTracksAttach0);
         }
-        if (menu->itemCount >= 0xB) {
-            menu->visibleRowCount.unsignedValue = 0xA;
+        if (list->itemCount > MIST_SHOOTING_GALLERY_JUKEBOX_MAX_VISIBLE_ROWS) {
+            list->visibleRowCount.unsignedValue = MIST_SHOOTING_GALLERY_JUKEBOX_MAX_VISIBLE_ROWS;
         } else {
-            menu->visibleRowCount.unsignedValue = menu->itemCount;
+            list->visibleRowCount.unsignedValue = list->itemCount;
         }
-        menu->selectedItemIndex                   = 0;
-        menu->firstVisibleItemIndex.unsignedValue = 0;
-        uiFitPanelToList(menu, &(obj)->panel);
-        menu->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
-        uiSetListSystemCursorSound(menu, 1);
-        obj->panel.bounds.unsignedRect.x = -((s16)obj->panel.bounds.unsignedRect.w / 2);
-        obj->panel.bounds.unsignedRect.y = -((s16)obj->panel.bounds.unsignedRect.h / 2);
+        list->selectedItemIndex                   = 0;
+        list->firstVisibleItemIndex.unsignedValue = 0;
+        uiFitPanelToList(list, &(object)->panel);
+        list->flags = USER_INTERFACE_LIST_SHARED_ROW_CALLBACK;
+        uiSetListSystemCursorSound(list, 1);
+        object->panel.bounds.unsignedRect.x = -((s16)object->panel.bounds.unsignedRect.w / 2);
+        object->panel.bounds.unsignedRect.y = -((s16)object->panel.bounds.unsignedRect.h / 2);
         if (attachmentIsTrainingMode() == 0) {
-            task->status = 0xFF;
+            task->status = MIST_SHOOTING_GALLERY_JUKEBOX_IDLE;
         } else {
-            task->status = 0xFE;
+            task->status = MIST_SHOOTING_GALLERY_JUKEBOX_TRAINING_UNSELECTED;
         }
         task->state += 1;
     }
-    uiUpdateList(menu, &obj->panel);
-    flags = task->status;
-    if (flags < 0xF1) {
-        state = task->state;
-        if (state == 1) {
+    uiUpdateList(list, &object->panel);
+    sequenceId = task->status;
+    if (sequenceId < MIST_SHOOTING_GALLERY_JUKEBOX_TRACK_ID_LIMIT) {
+        // Stop the old sequence before loading its replacement; start after CD idle.
+        phase = task->state;
+        if (phase == MIST_SHOOTING_GALLERY_JUKEBOX_WAIT_MIDI) {
             if (midiIsSequenceBusy(0) == 0) {
-                param1[3] = 0;
-                param1[2] = 4;
-                param1[0] = flags;
-                param2[0] = state;
-                param2[3] = 0;
-                param2[2] = 0;
-                param2[1] = 0;
-                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-                sent = 1;
+                fileKey[3]  = 0;
+                fileKey[2]  = MIST_SHOOTING_GALLERY_JUKEBOX_FILE_GROUP;
+                fileKey[0]  = sequenceId;
+                loadArgs[0] = MIST_SHOOTING_GALLERY_JUKEBOX_FILE_ID_HUNDREDS;
+                loadArgs[3] = 0;
+                loadArgs[2] = 0;
+                loadArgs[1] = 0;
+                cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadArgs);
+                loadQueued = 1;
             } else {
-                sent = 0;
+                loadQueued = 0;
             }
-            if (sent == 1) {
+            if (loadQueued == 1) {
                 task->state += 1;
             }
         } else {
             if (cdCmdIsIdle() & 0xFFFF) {
-                sndEvtRequestMidiStart(flags, 0);
-                sndEvtRequestMidiVolume(flags, (u8)D_8007A396);
-                ready          = 1;
-                gStageRoomSong = flags;
+                sndEvtRequestMidiStart(sequenceId, 0);
+                sndEvtRequestMidiVolume(sequenceId, (u8)D_8007A396);
+                sequenceStarted = 1;
+                gStageRoomSong  = sequenceId;
             } else {
-                ready = 0;
+                sequenceStarted = 0;
             }
-            if (ready == 1) {
-                task->state  = 1;
-                task->status = 0xFF;
+            if (sequenceStarted == 1) {
+                task->state  = MIST_SHOOTING_GALLERY_JUKEBOX_WAIT_MIDI;
+                task->status = MIST_SHOOTING_GALLERY_JUKEBOX_IDLE;
                 if (attachmentIsTrainingMode() == 0) {
                     gGameSession->flowFlags |= (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
                 }
-                if (obj->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
-                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                if (object->panel.control.word != USER_INTERFACE_PANEL_ACTIVE) {
+                    object->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
             }
         }
     }
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu | Pad_MaskCancel) != 0) {
             sndEvtRequestScriptStart(SOUND_SYSTEM_CANCEL, 0, 0);
-            if (task->status != 0xFE) {
-                if (task->status == 0xFF) {
-                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
+            if (task->status != MIST_SHOOTING_GALLERY_JUKEBOX_TRAINING_UNSELECTED) {
+                if (task->status == MIST_SHOOTING_GALLERY_JUKEBOX_IDLE) {
+                    object->result = USER_INTERFACE_RESULT_CONFIRM;
                 } else {
-                    uiStartPanelHiding(obj, obj->owner);
-                    obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+                    uiStartPanelHiding(object, object->owner);
+                    object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             }
         }
@@ -2221,136 +2229,148 @@ void func_mist_shooting_gallery_80180728(Task* task)
 
 #include "../../shared/jukebox_host.inc.c"
 
-s32 func_mist_shooting_gallery_80180B34(s32 unused)
+s32 mistShootingGalleryOpenJukebox(s32 unused)
 {
     displayQueueModeTask(&D_mist_shooting_gallery_80185378, 0, 0, STAGE_ENTRY_RELOAD);
     return 1;
 }
 
-void func_mist_shooting_gallery_80180B64(Task* arg0)
+/// Queues a 320x240 subtractive tile for the mode splash's current ramp tick.
+///
+/// Nonzero `fadeIn` complements the low countdown byte; zero uses it directly
+/// for all RGB channels. Requires a live frame packet arena with room for a TILE
+/// and DR_TPAGE at ordering-table entry 0. The current draw origin is retained,
+/// including shake; packets live until GPU completion. Prepending the mode
+/// after the tile makes subtractive blending and dithering active before drawing.
+static inline void _mistShootingGalleryDrawSplashFade(const Task* task, s32 fadeIn)
 {
-    u8 param1[8];
-    u8 param2[8];
+    TILE*     tile;
+    DR_TPAGE* drawMode;
+    u8        intensity;
 
-    switch (arg0->state) {
-        case 0:
-            param1[3] = 0;
-            param1[2] = 0;
-            param2[0] = 0;
-            param2[1] = 0;
-            param2[2] = 0;
-            param2[3] = 0;
+    tile           = gGpuPrimCursor;
+    intensity      = fadeIn ? ~(u8)task->killCountdown : (u8)task->killCountdown;
+    gGpuPrimCursor = tile + 1;
+    setTile(tile);
+    setSemiTrans(tile, true);
+    tile->r0 = intensity;
+    tile->g0 = intensity;
+    tile->b0 = intensity;
+    tile->x0 = -160;
+    tile->y0 = -120;
+    tile->w  = 320;
+    tile->h  = 240;
+
+    addPrim(gGpuCurrentOt, tile);
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setDrawTPage(drawMode, false, true, getTPage(0, GPU_BLEND_SUBTRACT, 0, 0));
+    addPrim(gGpuCurrentOt, drawMode);
+}
+
+/// Displays the cleared run's mode splash with a fade in, hold and fade out.
+///
+/// The live mode must be 0..3, selecting stage-zero image file 41..44. Borrows
+/// the serialized CD/display session and frame arena. Ramp steps are 8 per tick;
+/// the hold ends after 151 ticks or Start. Completion blanks the display, clears
+/// the complete image buffer and resumes the game loop after killing this task.
+static void _mistShootingGalleryModeSplashTask(Task* task)
+{
+    enum {
+        MIST_SHOOTING_GALLERY_SPLASH_QUEUE_FILE               = 0,
+        MIST_SHOOTING_GALLERY_SPLASH_WAIT_FILE                = 1,
+        MIST_SHOOTING_GALLERY_SPLASH_FADE_IN                  = 2,
+        MIST_SHOOTING_GALLERY_SPLASH_HOLD                     = 3,
+        MIST_SHOOTING_GALLERY_SPLASH_FADE_OUT                 = 4,
+        MIST_SHOOTING_GALLERY_SPLASH_FINISH                   = 5,
+        MIST_SHOOTING_GALLERY_SPLASH_REPLAY_FILE              = 41,
+        MIST_SHOOTING_GALLERY_SPLASH_BOUNTY_FILE              = 42,
+        MIST_SHOOTING_GALLERY_SPLASH_SCAVENGER_FILE           = 43,
+        MIST_SHOOTING_GALLERY_SPLASH_NIGHTMARE_FILE           = 44,
+        MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_STEP           = 8,
+        MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_END            = 256,
+        MIST_SHOOTING_GALLERY_SPLASH_DISPLAY_ENABLE_THRESHOLD = 17,
+        MIST_SHOOTING_GALLERY_SPLASH_HOLD_TICKS               = 151
+    };
+    u8 fileKey[4];
+    u8 loadArgs[4];
+
+    switch (task->state) {
+        case MIST_SHOOTING_GALLERY_SPLASH_QUEUE_FILE:
+            fileKey[3]  = 0;
+            fileKey[2]  = 0;
+            loadArgs[0] = 0;
+            loadArgs[1] = 0;
+            loadArgs[2] = 0;
+            loadArgs[3] = 0;
             switch (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.gameMode) {
                 case 0:
-                    param1[0] = 0x29;
+                    fileKey[0] = MIST_SHOOTING_GALLERY_SPLASH_REPLAY_FILE;
                     break;
                 case 1:
-                    param1[0] = 0x2A;
+                    fileKey[0] = MIST_SHOOTING_GALLERY_SPLASH_BOUNTY_FILE;
                     break;
                 case 2:
-                    param1[0] = 0x2B;
+                    fileKey[0] = MIST_SHOOTING_GALLERY_SPLASH_SCAVENGER_FILE;
                     break;
                 case 3:
-                    param1[0] = 0x2C;
+                    fileKey[0] = MIST_SHOOTING_GALLERY_SPLASH_NIGHTMARE_FILE;
                     break;
             }
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-            arg0->state++;
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadArgs);
+            task->state++;
             return;
 
-        case 1:
+        case MIST_SHOOTING_GALLERY_SPLASH_WAIT_FILE:
             if (cdCmdIsIdle() & 0xFFFF) {
                 gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-                arg0->killCountdown                     = 0;
-                arg0->state++;
+                task->killCountdown                     = 0;
+                task->state++;
                 return;
             }
             return;
 
-        case 2: {
-            TILE*     p;
-            DR_TPAGE* dr;
-            u8        color;
+        case MIST_SHOOTING_GALLERY_SPLASH_FADE_IN: {
+            // Keep display blank until the initial black overlay has started fading.
+            _mistShootingGalleryDrawSplashFade(task, true);
 
-            p              = gGpuPrimCursor;
-            color          = ~(u8)arg0->killCountdown;
-            gGpuPrimCursor = p + 1;
-            setlen(p, 3);
-            setcode(p, 0x62);
-            p->r0 = color;
-            p->g0 = color;
-            p->b0 = color;
-            p->x0 = -0xA0;
-            p->y0 = -0x78;
-            p->w  = 0x140;
-            p->h  = 0xF0;
-
-            addPrim(gGpuCurrentOt, p);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000240;
-            addPrim(gGpuCurrentOt, dr);
-
-            arg0->killCountdown += 8;
-            if (arg0->killCountdown >= 0x11) {
+            task->killCountdown += MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_STEP;
+            if (task->killCountdown >= MIST_SHOOTING_GALLERY_SPLASH_DISPLAY_ENABLE_THRESHOLD) {
                 SetDispMask(1);
             }
-            if (arg0->killCountdown < 0x100) {
+            if (task->killCountdown < MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_END) {
                 return;
             }
-            arg0->killCountdown = 0;
-            arg0->state++;
+            task->killCountdown = 0;
+            task->state++;
             return;
         }
 
-        case 3:
-            arg0->killCountdown += 1;
-            if (arg0->killCountdown < 0x97 && padIsStartPressed() == 0) {
+        case MIST_SHOOTING_GALLERY_SPLASH_HOLD:
+            task->killCountdown += 1;
+            if (task->killCountdown < MIST_SHOOTING_GALLERY_SPLASH_HOLD_TICKS && padIsStartPressed() == 0) {
                 return;
             }
-            arg0->killCountdown = 0;
-            arg0->state++;
+            task->killCountdown = 0;
+            task->state++;
             return;
 
-        case 4: {
-            TILE*     p;
-            DR_TPAGE* dr;
-            u8        color;
+        case MIST_SHOOTING_GALLERY_SPLASH_FADE_OUT: {
+            _mistShootingGalleryDrawSplashFade(task, false);
 
-            p              = gGpuPrimCursor;
-            color          = (u8)arg0->killCountdown;
-            gGpuPrimCursor = p + 1;
-            setlen(p, 3);
-            setcode(p, 0x62);
-            p->r0 = color;
-            p->g0 = color;
-            p->b0 = color;
-            p->x0 = -0xA0;
-            p->y0 = -0x78;
-            p->w  = 0x140;
-            p->h  = 0xF0;
-
-            addPrim(gGpuCurrentOt, p);
-            dr             = gGpuPrimCursor;
-            gGpuPrimCursor = dr + 1;
-            setlen(dr, 1);
-            dr->code[0] = 0xE1000240;
-            addPrim(gGpuCurrentOt, dr);
-
-            arg0->killCountdown += 8;
-            if (arg0->killCountdown < 0x100) {
+            task->killCountdown += MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_STEP;
+            if (task->killCountdown < MIST_SHOOTING_GALLERY_SPLASH_INTENSITY_END) {
                 return;
             }
             memFillBytes(Fs_ImgBuffers, 0, sizeof(*Fs_ImgBuffers));
             SetDispMask(0);
-            arg0->state++;
+            task->state++;
             return;
         }
 
-        case 5:
+        case MIST_SHOOTING_GALLERY_SPLASH_FINISH:
             gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_NONE;
-            taskKill(arg0);
+            taskKill(task);
             displayResumeGameLoop();
             return;
 
@@ -2359,38 +2379,52 @@ void func_mist_shooting_gallery_80180B64(Task* arg0)
     }
 }
 
-void func_mist_shooting_gallery_80180F2C(Task* arg0)
+/// Plays the gallery's post-clear movie and restores game graphics afterwards.
+///
+/// The current room must have a loaded view-100, sub-ID-zero movie slot. The
+/// display/CD session must be serialized; this task reserves movie workspace,
+/// waits for startup, accepts Start to cancel, then waits for CD idle and game
+/// restoration. Completion clears the full image buffer and resumes the loop.
+static void _mistShootingGalleryClearMovieTask(Task* task)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    s16         slot;
-    CdCmdQueue* queue;
-    Task*       task;
+    enum {
+        MIST_SHOOTING_GALLERY_MOVIE_PREPARE    = 0,
+        MIST_SHOOTING_GALLERY_MOVIE_QUEUE      = 1,
+        MIST_SHOOTING_GALLERY_MOVIE_WAIT_READY = 2,
+        MIST_SHOOTING_GALLERY_MOVIE_PLAY       = 3,
+        MIST_SHOOTING_GALLERY_MOVIE_WAIT_STOP  = 4,
+        MIST_SHOOTING_GALLERY_MOVIE_RESTORE    = 5,
+        MIST_SHOOTING_GALLERY_CLEAR_MOVIE_VIEW = 100
+    };
+    u8          streamArgs[4];
+    GameLoc     movieLocation;
+    s16         movieSlot;
+    CdCmdQueue* cdQueue;
 
-    task  = arg0;
-    queue = &gCdCmdQueue;
+    cdQueue = &gCdCmdQueue;
     switch (task->state) {
-        case 0:
+        case MIST_SHOOTING_GALLERY_MOVIE_PREPARE:
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
             task->state = task->state + 1;
             break;
-        case 1:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slot         = streamFindMovieSlot(&key.loc, 0, 0);
-            slotParam[0] = slot;
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
+        case MIST_SHOOTING_GALLERY_MOVIE_QUEUE:
+            movieLocation          = gGameSession->location;
+            movieLocation.loc.view = MIST_SHOOTING_GALLERY_CLEAR_MOVIE_VIEW;
+            movieSlot              = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            streamArgs[0]          = movieSlot;
+            // This opcode consumes only the slot byte; its other bytes are retained.
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, streamArgs);
             task->state = task->state + 1;
             break;
-        case 2:
-            if (queue->movieReady == 0) {
+        case MIST_SHOOTING_GALLERY_MOVIE_WAIT_READY:
+            if (cdQueue->movieReady == 0) {
                 break;
             }
             SetDispMask(1);
             task->state = task->state + 1;
             break;
-        case 3:
+        case MIST_SHOOTING_GALLERY_MOVIE_PLAY:
             if (cdCmdIsIdle() & 0xFFFF) {
                 SetDispMask(0);
                 task->state = task->state + 1;
@@ -2403,14 +2437,15 @@ void func_mist_shooting_gallery_80180F2C(Task* arg0)
             cdCmdRequestCancel();
             task->state = task->state + 1;
             break;
-        case 4:
+        case MIST_SHOOTING_GALLERY_MOVIE_WAIT_STOP:
+            // Do not release the decoder workspace until playback/cancellation ends.
             if ((cdCmdIsIdle() & 0xFFFF) == 0) {
                 break;
             }
             streamResetGameRestore();
             task->state = task->state + 1;
             break;
-        case 5:
+        case MIST_SHOOTING_GALLERY_MOVIE_RESTORE:
             if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
                 break;
             }
@@ -2446,11 +2481,9 @@ void func_mist_shooting_gallery_801810D8(Task* task)
     }
 }
 
-/// Publishes one of the room's two data banks as the active one: bank 0 for a
-/// zero argument, bank 1 otherwise.
-void func_mist_shooting_gallery_801811C0(s16 arg0)
+void mistShootingGallerySelectRoomLights(s16 useAlternate)
 {
-    if (arg0 == 0) {
+    if (useAlternate == 0) {
         gMistShootingGalleryRoomLightingTable[0].lights = &gMistShootingGalleryDefaultRoomLights;
         return;
     }

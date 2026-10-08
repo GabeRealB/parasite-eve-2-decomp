@@ -192,7 +192,7 @@ D_mist_parking_801915E8 = 0x801915E8; // absolute:True owner=mist_parking
 D_mist_parking_80192228 = 0x80192228; // absolute:True owner=mist_parking
 D_mist_parking_8019399C = 0x8019399C; // absolute:True owner=mist_parking
 D_mist_parking_801952F0 = 0x801952F0; // absolute:True owner=mist_parking
-func_mist_shooting_gallery_8018018C = 0x8018018C; // type:func absolute:True owner=mist_shooting_gallery
+mistShootingGalleryRoomTask = 0x8018018C; // type:func absolute:True owner=mist_shooting_gallery
 D_mist_shooting_gallery_801853A8 = 0x801853A8; // absolute:True owner=mist_shooting_gallery
 D_mist_shooting_gallery_801853B8 = 0x801853B8; // absolute:True owner=mist_shooting_gallery shared=rooms
 D_mist_shooting_gallery_801853BC = 0x801853BC; // absolute:True owner=mist_shooting_gallery
