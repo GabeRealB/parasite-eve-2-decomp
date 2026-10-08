@@ -94,8 +94,8 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
             equipmentConsumeWeaponLoad(WEAPON_ITEM(GRENADE_WEAPON), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
             /* The projectile's kind and its row of the muzzle-offset and speed tables
                (bits 16-19 of its spawn argument) both follow the variant. */
-            func_80104490(arg0, 0, 1 + GRENADE_VARIANT,
-                          gPlayerStatus.weaponSlotItem | (GRENADE_VARIANT << 16) | (GRENADE_WEAPON << 8));
+            playerActorSpawnGrenadeProjectile(arg0, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_PISTOL + GRENADE_VARIANT,
+                                              gPlayerStatus.weaponSlotItem | (GRENADE_VARIANT << PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT) | (GRENADE_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));
             playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 3);
             break;
         case 3:

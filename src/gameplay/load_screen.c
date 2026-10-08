@@ -172,14 +172,14 @@ void func_800AA548(s32 arg0)
         D_80114CB0.z                    = savedPos->z;
         spawnOptions.initialAnimationId = 0x23;
         spawnOptions.startScripted      = 0;
-        Gp_SpawnPlayer(&D_80114CB0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &spawnOptions);
+        playerActorSpawn(&D_80114CB0, gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId & 0xFFFF, 0, &spawnOptions);
         Gp_SetupCompanionActor(&warpEntry.companion, &spawnOptions);
         gDisplayState.control.flags.pendingPlayerPos = 0;
     } else {
         playerId                        = (u8)gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId;
         spawnOptions.initialAnimationId = 1;
         spawnOptions.startScripted      = warpEntry.flags & DIRECTION_WARP_FLAG_SCRIPTED_PLAYER;
-        Gp_SpawnPlayer(&warpEntry.player, (s8)playerId & 0xFFFF, 0, &spawnOptions);
+        playerActorSpawn(&warpEntry.player, (s8)playerId & 0xFFFF, 0, &spawnOptions);
         spawnOptions.startScripted = 0;
         Gp_SetupCompanionActor(&warpEntry.companion, &spawnOptions);
     }

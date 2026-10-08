@@ -316,8 +316,8 @@ extern u16 D_80112B28[];
 /// `TaskSpawnArg::halves.high & 3` and stores the halfword in `EffectWork.period`.
 extern u16 D_80112C6C[];
 
-/// u8 taskSpawn type bases. `func_80104258` indexes
-/// `D_80112DFC[arg2 + gPlayerStatus.resourceVariant - 2]`.
+/// u8 taskSpawn type bases. `playerActorSpawnAttachment` indexes
+/// `D_80112DFC[rigIndex + gPlayerStatus.resourceVariant - 2]`.
 extern u8 D_80112DFC[];
 
 /// The one variable-motor vibration preset. The poster indexes it with the
@@ -1579,15 +1579,23 @@ static void _effectDrawGroundDecal(const GfxCoord* coord, s32 halfSize, s16 brig
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
 }
 
-/// Spawns a burst particle on one running frame in three, sized by the work's scale.
-static inline void _effSprTask81SpawnBurstParticle(EffectWork* mem, GfxCoord* coord)
+/// Makes one random burst-particle trial while room effects are running.
+///
+/// Advances the shared LCG once and spawns when its upper halfword is divisible
+/// by three. Requires an unflagged size in work->scale (0..4095); the burst
+/// callers use the reduced projectile size. Borrows work and coord for this
+/// call. The particle copies the coordinate pose and flies independently; its
+/// retained parent pointer is not followed with these unflagged size arguments.
+static inline void _effectSpawnProjectileBurstParticle(const EffectWork* work, GfxCoord* coord)
 {
+    enum { EFFECT_PROJECTILE_BURST_RANDOM_CHOICES = 3 };
+
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    if ((u16)((gRandomLcgState >> 16) % 3U) == 0) {
-        effectSpawn(EFFECT_PROJECTILE_BURST_PARTICLE, coord, (s32)(mem->scale), 0);
+    if ((u16)((gRandomLcgState >> 16) % (u32)EFFECT_PROJECTILE_BURST_RANDOM_CHOICES) == 0) {
+        effectSpawn(EFFECT_PROJECTILE_BURST_PARTICLE, coord, (s32)work->scale, NULL);
     }
 }
 
@@ -1658,7 +1666,7 @@ void Gp_EffSprTask81(Task* arg0)
                 arg0->spawnArg1.value = 4;
                 break;
             }
-            _effSprTask81SpawnBurstParticle(mem, coord);
+            _effectSpawnProjectileBurstParticle(mem, coord);
             break;
         case 3:
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING && mem->index == 0) {
@@ -1672,7 +1680,7 @@ void Gp_EffSprTask81(Task* arg0)
                 arg0->spawnArg1.value = 4;
                 break;
             }
-            _effSprTask81SpawnBurstParticle(mem, coord);
+            _effectSpawnProjectileBurstParticle(mem, coord);
             break;
         case 4:
             effectKillTask(mem, arg0);
@@ -4922,8 +4930,8 @@ static void Gp_InitPlayerWork(Task* arg0)
 
     kind                      = actor->mode;
     anim                      = actor->actionArgument;
-    actor->attachmentTasks[0] = func_80104258(arg0, 0, 1, 1);
-    task                      = func_80104258(arg0, 1, 1, 1);
+    actor->attachmentTasks[0] = playerActorSpawnAttachment(arg0, 0, PLAYER_ACTOR_ATTACHMENT_PLAYER_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
+    task                      = playerActorSpawnAttachment(arg0, 1, PLAYER_ACTOR_ATTACHMENT_PLAYER_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
     actor->attachmentTasks[1] = task;
     if (task != NULL) {
         equipmentSyncPrimaryAttackSelector();
@@ -5217,11 +5225,13 @@ static inline void _playerActorCapturePad(Task* task)
     actor->runButtonHeld         = (actor->padHeld >> PLAYER_ACTOR_RUN_BUTTON_SHIFT) & 1;
 }
 
-/// Stages the three spheres' Q12 heading from push-back or the composed forward axis.
+/// Selects the player's collision heading in composed view space.
 ///
-/// Borrows initialized actor/root state and writable SVECTOR scratch; writes XYZ
-/// only, narrowing each result to its low signed halfword. The composed root
-/// and push-back direction must use the same frame.
+/// A nonzero override selects the normalized push-back vector; otherwise uses
+/// the root's Q12 Z column times movementSign (-1 backward, 0 stopped, 1 forward).
+/// Does not normalize the matrix column. Borrows live actor/root state and
+/// writable scratch; writes XYZ only, narrowing each result to its signed low
+/// halfword. The root cache and push-back vector must use the same view frame.
 static inline void _playerActorStageCollisionHeading(SVECTOR* motionDirection, const GameActor* actor, const GfxCoord* coord)
 {
     if (actor->usesPushbackDirection != 0) {
@@ -5235,20 +5245,21 @@ static inline void _playerActorStageCollisionHeading(SVECTOR* motionDirection, c
     }
 }
 
-/// Publishes the staged Q12 XYZ heading to the player's three motion contexts.
+/// Copies one view-space Q12 heading to the player's three motion-sphere contexts.
 ///
-/// Borrows readable XYZ and live actor work; each SVECTOR pad is untouched.
+/// Requires live actor work and readable XYZ. Copies the root, part-4 and part-1
+/// headings without normalization; each SVECTOR pad and contact pointer is intact.
 static inline void _playerActorPublishCollisionHeading(GameActor* actor, const SVECTOR* motionDirection)
 {
-    actor->collisionMotionContexts[0].motionDirection.vx = motionDirection->vx;
-    actor->collisionMotionContexts[0].motionDirection.vy = motionDirection->vy;
-    actor->collisionMotionContexts[0].motionDirection.vz = motionDirection->vz;
-    actor->collisionMotionContexts[1].motionDirection.vx = motionDirection->vx;
-    actor->collisionMotionContexts[1].motionDirection.vy = motionDirection->vy;
-    actor->collisionMotionContexts[1].motionDirection.vz = motionDirection->vz;
-    actor->collisionMotionContexts[2].motionDirection.vx = motionDirection->vx;
-    actor->collisionMotionContexts[2].motionDirection.vy = motionDirection->vy;
-    actor->collisionMotionContexts[2].motionDirection.vz = motionDirection->vz;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].motionDirection.vx  = motionDirection->vx;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].motionDirection.vy  = motionDirection->vy;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_ROOT].motionDirection.vz  = motionDirection->vz;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].motionDirection.vx = motionDirection->vx;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].motionDirection.vy = motionDirection->vy;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART4].motionDirection.vz = motionDirection->vz;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].motionDirection.vx = motionDirection->vx;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].motionDirection.vy = motionDirection->vy;
+    actor->collisionMotionContexts[GAME_ACTOR_BODY_PART1].motionDirection.vz = motionDirection->vz;
 }
 
 void playerActorUpdateMove(void)
@@ -6145,13 +6156,17 @@ restorePlayback:
     return actor->equipmentTasks[1];
 }
 
-Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options)
+Task* playerActorSpawn(const ActorSpawnTransform* spawnTransform, u16 unusedCharacterId, s32 spawnArg, ActorSpawnOptions* options)
 {
+    enum {
+        PLAYER_ACTOR_SPAWN_BANK            = 7,
+        PLAYER_ACTOR_SPAWN_DESCRIPTOR_BIAS = 3,
+    };
     Task*      task;
     GameActor* actor;
     GfxCoord*  coord;
 
-    task = taskSpawn(7, gPlayerStatus.resourceVariant + 3, arg2, options);
+    task = taskSpawn(PLAYER_ACTOR_SPAWN_BANK, gPlayerStatus.resourceVariant + PLAYER_ACTOR_SPAWN_DESCRIPTOR_BIAS, spawnArg, options);
     if (task == NULL) {
         return NULL;
     }
@@ -6162,6 +6177,7 @@ Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 ar
         return NULL;
     }
 
+    // Publish the allocated actor before initializing its deferred first task state.
     gameSetTaskSlot(task, GAME_TASK_SLOT_PLAYER);
     task->work = actor;
     memFillBytes(actor, 0, sizeof(*actor));
@@ -6534,65 +6550,88 @@ static void _playerActorPostVibrationPreset(Task* task, s32 presetIndex)
     }
 }
 
-Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Applies the actor's attachment texture bank and refreshes both primitive halves.
+///
+/// Borrows live actor and model storage with an allocated primitive buffer.
+/// Two builds restore the original half selector while replacing both halves.
+static inline void _playerActorBindAttachmentTextures(TmdObject* attachmentModel, const GameActor* actor)
 {
-    Task*      task;
-    GameActor* actor;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    TmdObject* obj;
-    GfxCoord*  saved;
-    u8*        table;
-    s32        type;
+    enum {
+        PLAYER_ACTOR_ATTACHMENT_TEXTURE_PAGE_OFFSET           = 6,
+        PLAYER_ACTOR_ATTACHMENT_CLUT_ROW_OFFSET               = 0,
+        PLAYER_ACTOR_COMPANION_ATTACHMENT_TEXTURE_PAGE_OFFSET = 4,
+        PLAYER_ACTOR_COMPANION_ATTACHMENT_CLUT_ROW_OFFSET     = 6,
+    };
 
-    extra = arg0->extra.tmd;
-    actor = arg0->work;
-    saved = &extra->coords[D_80112E04[arg2][arg1]];
-    table = D_80112DFC;
-    type  = gPlayerStatus.resourceVariant - 2;
-    task  = taskSpawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
+    if (actor->companionWork != NULL) {
+        attachmentModel->texturePageOffset = PLAYER_ACTOR_COMPANION_ATTACHMENT_TEXTURE_PAGE_OFFSET;
+        attachmentModel->clutRowOffset     = PLAYER_ACTOR_COMPANION_ATTACHMENT_CLUT_ROW_OFFSET;
+    } else {
+        attachmentModel->texturePageOffset = PLAYER_ACTOR_ATTACHMENT_TEXTURE_PAGE_OFFSET;
+        attachmentModel->clutRowOffset     = PLAYER_ACTOR_ATTACHMENT_CLUT_ROW_OFFSET;
+    }
+    tmdBuildBufferHalf(attachmentModel);
+    tmdBuildBufferHalf(attachmentModel);
+}
+
+Task* playerActorSpawnAttachment(Task* actorTask, s32 attachmentIndex, s32 rigIndex, s32 pairVariant)
+{
+    enum {
+        PLAYER_ACTOR_ATTACHMENT_BANK          = 7,
+        PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS = 2,
+        PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE     = 2,
+    };
+    Task*            task;
+    const GameActor* actor;
+    TmdObject*       actorModel;
+    GfxCoord*        attachmentCoord;
+    TmdObject*       attachmentModel;
+    GfxCoord*        parentCoord;
+    const u8*        descriptorBases;
+    s32              resourceOffset;
+
+    actorModel      = actorTask->extra.tmd;
+    actor           = actorTask->work;
+    parentCoord     = &actorModel->coords[D_80112E04[rigIndex][attachmentIndex]];
+    descriptorBases = D_80112DFC;
+    resourceOffset  = gPlayerStatus.resourceVariant - PLAYER_ACTOR_ATTACHMENT_RESOURCE_BIAS;
+    task            = taskSpawn(PLAYER_ACTOR_ATTACHMENT_BANK, descriptorBases[rigIndex + resourceOffset] + pairVariant * PLAYER_ACTOR_ATTACHMENT_PAIR_SIZE + attachmentIndex, 0, 0);
     if (task == NULL) {
         return NULL;
     }
-    task->parent            = arg0;
-    coord                   = task->extra.tmd->coords;
-    coord->parent           = saved;
-    coord->param.clearFlags = false;
-    obj                     = task->extra.tmd;
-    if (actor->companionWork != NULL) {
-        obj->texturePageOffset = 4;
-        obj->clutRowOffset     = 6;
-    } else {
-        obj->texturePageOffset = 6;
-        obj->clutRowOffset     = 0;
-    }
-    tmdBuildBufferHalf(obj);
-    tmdBuildBufferHalf(obj);
+    // Attach beneath the rig joint; the first update keeps spawn-time draw flags.
+    task->parent                      = actorTask;
+    attachmentCoord                   = task->extra.tmd->coords;
+    attachmentCoord->parent           = parentCoord;
+    attachmentCoord->param.clearFlags = false;
+    attachmentModel                   = task->extra.tmd;
+    _playerActorBindAttachmentTextures(attachmentModel, actor);
     return task;
 }
 
-Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* playerActorSpawnWeaponModel(Task* parentTask, s32 characterId, s32 weaponId, s32 spawnArg)
 {
+    enum { PLAYER_ACTOR_WEAPON_MODEL_BANK = 7 };
     Task*      task;
-    GfxCoord*  saved;
-    TmdObject* extra;
-    GfxCoord*  coord;
-    s32        type;
+    GfxCoord*  parentCoord;
+    TmdObject* weaponModel;
+    GfxCoord*  weaponCoord;
+    s32        descriptorBase;
 
-    saved = arg0->extra.tmd->coords;
-    if (arg2 == 0) {
+    parentCoord = parentTask->extra.tmd->coords;
+    if (weaponId == PLAYER_STATUS_EQUIPMENT_NONE) {
         return NULL;
     }
-    type = D_80112DF4[arg1] - 1;
-    task = taskSpawn(7, type + arg2, arg3, 0);
+    descriptorBase = D_80112DF4[characterId] - 1;
+    task           = taskSpawn(PLAYER_ACTOR_WEAPON_MODEL_BANK, descriptorBase + weaponId, spawnArg, 0);
     if (task == NULL) {
         return NULL;
     }
-    extra                   = task->extra.tmd;
-    task->parent            = arg0;
-    coord                   = extra->coords;
-    coord->parent           = saved;
-    coord->param.clearFlags = true;
+    weaponModel                   = task->extra.tmd;
+    task->parent                  = parentTask;
+    weaponCoord                   = weaponModel->coords;
+    weaponCoord->parent           = parentCoord;
+    weaponCoord->param.clearFlags = true;
     return task;
 }
 
@@ -6630,22 +6669,30 @@ s32 playerActorRemoveEquipment(void)
     return 1;
 }
 
-Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* playerActorSpawnGrenadeProjectile(Task* actorTask, s32 actorVariant, s32 launcherIndex, s32 spawnArg)
 {
-    Task*      task;
-    GfxCoord*  saved;
-    TmdObject* extra;
+    enum {
+        PLAYER_ACTOR_GRENADE_PROJECTILE_BANK = 7,
+        PLAYER_ACTOR_GRENADE_PROJECTILE_BASE = 0x60,
+        PLAYER_ACTOR_GRENADE_LAUNCHER_SHIFT  = 2,
+    };
+    Task*            task;
+    const GameActor* actor;
+    GfxCoord*        muzzleCoord;
+    TmdObject*       projectileModel;
+    s32              launcherOffset;
 
-    saved  = ((GameActor*)arg0->work)->equipmentTasks[1]->extra.tmd->coords;
-    arg2 <<= 2;
-    arg1  += 0x60;
-    task   = taskSpawn(7, arg2 + arg1, arg3, 0);
+    actor          = actorTask->work;
+    muzzleCoord    = actor->equipmentTasks[1]->extra.tmd->coords;
+    launcherOffset = launcherIndex << PLAYER_ACTOR_GRENADE_LAUNCHER_SHIFT;
+    actorVariant  += PLAYER_ACTOR_GRENADE_PROJECTILE_BASE;
+    task           = taskSpawn(PLAYER_ACTOR_GRENADE_PROJECTILE_BANK, launcherOffset + actorVariant, spawnArg, 0);
     if (task == NULL) {
         return NULL;
     }
-    extra                   = task->extra.tmd;
-    task->parent            = arg0;
-    (extra->coords)->parent = saved;
+    projectileModel                 = task->extra.tmd;
+    task->parent                    = actorTask;
+    projectileModel->coords->parent = muzzleCoord;
     return task;
 }
 
@@ -8736,73 +8783,107 @@ static void Gp_PlayerMode2State3(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorStairClimbScratch);
 }
 
-void Gp_PlayerMode2State4(Task* arg0)
+/// Turns the actor toward its parent-frame destination and stages the yaw step.
+///
+/// Borrows live root/actor state and writable scratch. Angles use 4096 units per
+/// turn; XYZ deltas use game-coordinate units. Reaching the final turn interval
+/// advances a newly started move to its turning phase.
+static inline void _playerActorStepMoveToYaw(GameActor* actor, const GfxCoord* rootCoord, PlayerActorApproachScratch* scratch)
 {
-    PlayerActorApproachScratch* block;
-    GfxCoord*                   coord;
-    GameActor*                  actor;
-    s32                         val;
-    s32                         mode;
+    enum {
+        PLAYER_ACTOR_MOVE_TO_TURN_STEP   = 64,
+        PLAYER_ACTOR_MOVE_TO_START_PHASE = 0,
+        PLAYER_ACTOR_MOVE_TO_TURN_PHASE  = 1,
+    };
+    s32 turnDelta;
 
-    actor                         = arg0->work;
-    coord                         = arg0->extra.tmd->coords;
-    block                         = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
-    block->targetDelta.vx         = actor->destination.vx - coord->coord.t[0];
-    block->targetDelta.vy         = actor->destination.vy - coord->coord.t[1];
-    block->targetDelta.vz         = actor->destination.vz - coord->coord.t[2];
-    actor->scriptMotion.targetYaw = ratan2(block->targetDelta.vx, block->targetDelta.vz);
-    val                           = playerActorShortestTurn(actor->rotation.vy, actor->scriptMotion.targetYaw);
-    block->turnStep               = val;
-    if (val > 0x40) {
-        block->turnStep = 0x40;
-    } else if (val < -0x40) {
-        block->turnStep = -0x40;
-    } else if (actor->statePhase == 0) {
-        actor->statePhase = 1;
+    scratch->targetDelta.vx       = actor->destination.vx - rootCoord->coord.t[0];
+    scratch->targetDelta.vy       = actor->destination.vy - rootCoord->coord.t[1];
+    scratch->targetDelta.vz       = actor->destination.vz - rootCoord->coord.t[2];
+    actor->scriptMotion.targetYaw = ratan2(scratch->targetDelta.vx, scratch->targetDelta.vz);
+    turnDelta                     = playerActorShortestTurn(actor->rotation.vy, actor->scriptMotion.targetYaw);
+    scratch->turnStep             = turnDelta;
+    if (turnDelta > PLAYER_ACTOR_MOVE_TO_TURN_STEP) {
+        scratch->turnStep = PLAYER_ACTOR_MOVE_TO_TURN_STEP;
+    } else if (turnDelta < -PLAYER_ACTOR_MOVE_TO_TURN_STEP) {
+        scratch->turnStep = -PLAYER_ACTOR_MOVE_TO_TURN_STEP;
+    } else if (actor->statePhase == PLAYER_ACTOR_MOVE_TO_START_PHASE) {
+        actor->statePhase = PLAYER_ACTOR_MOVE_TO_TURN_PHASE;
     }
-    actor->rotation.vy = (actor->rotation.vy + block->turnStep) & 0xFFF;
+    actor->rotation.vy = (actor->rotation.vy + scratch->turnStep) & ACTOR_TRANSFORM_ANGLE_MASK;
+}
+
+void playerActorTickScriptedMoveTo(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_MOVE_TO_START_PHASE      = 0,
+        PLAYER_ACTOR_MOVE_TO_TURN_PHASE       = 1,
+        PLAYER_ACTOR_MOVE_TO_TRAVEL_PHASE     = 2,
+        PLAYER_ACTOR_MOVE_TO_WALK_MODE        = 1,
+        PLAYER_ACTOR_MOVE_TO_FORWARD          = 1,
+        PLAYER_ACTOR_MOVE_TO_IDLE_SET         = 1,
+        PLAYER_ACTOR_MOVE_TO_WALK_SET         = 2,
+        PLAYER_ACTOR_MOVE_TO_UNARMED_WALK_SET = 19,
+        PLAYER_ACTOR_MOVE_TO_TURN_LEFT_SET    = 5,
+        PLAYER_ACTOR_MOVE_TO_TURN_RIGHT_SET   = 6,
+        PLAYER_ACTOR_MOVE_TO_BLEND_FRAMES     = 5,
+        PLAYER_ACTOR_MOVE_TO_ARRIVAL_LIMIT    = 105,
+    };
+    PlayerActorApproachScratch* scratch;
+    GfxCoord*                   rootCoord;
+    GameActor*                  actor;
+    s32                         animationId;
+
+    actor     = task->work;
+    rootCoord = task->extra.tmd->coords;
+    scratch   = SCRATCH_STACK_RESERVE_BLOCK(PlayerActorApproachScratch);
+    _playerActorStepMoveToYaw(actor, rootCoord, scratch);
+
+    // Finish the initial turn before selecting the approach clip and speed.
     switch (actor->statePhase) {
-        case 0:
-            actor->statePhase = 1;
-            mode              = 6;
-            if (block->turnStep < 0) {
-                mode = 5;
+        case PLAYER_ACTOR_MOVE_TO_START_PHASE:
+            actor->statePhase = PLAYER_ACTOR_MOVE_TO_TURN_PHASE;
+            animationId       = PLAYER_ACTOR_MOVE_TO_TURN_RIGHT_SET;
+            if (scratch->turnStep < 0) {
+                animationId = PLAYER_ACTOR_MOVE_TO_TURN_LEFT_SET;
             }
-            playerActorPlayChildSlots(arg0, mode, 1);
-        case 1:
-            if (block->turnStep == 0) {
-                actor->movementMode = 1;
+            playerActorPlayChildSlots(task, animationId, 1);
+            // Continue turning on the same tick that starts the turn clip.
+        case PLAYER_ACTOR_MOVE_TO_TURN_PHASE:
+            if (scratch->turnStep == 0) {
+                actor->movementMode = PLAYER_ACTOR_MOVE_TO_WALK_MODE;
                 actor->statePhase++;
                 if (actor->actionArgument == 0) {
-                    mode = 2;
+                    animationId = PLAYER_ACTOR_MOVE_TO_WALK_SET;
                     if (actor->equipmentTasks[1] == NULL) {
-                        mode = 0x13;
+                        animationId = PLAYER_ACTOR_MOVE_TO_UNARMED_WALK_SET;
                     }
                 } else {
-                    mode = actor->actionArgument;
+                    animationId = actor->actionArgument;
                 }
-                playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+                playerActorPlayChildSlotsWithBlend(task, animationId, 0, PLAYER_ACTOR_MOVE_TO_BLEND_FRAMES);
             }
             break;
-        case 2:
-            if (abs(coord->coord.t[0] - actor->destination.vx) < 0x69) {
-                if (abs(coord->coord.t[2] - actor->destination.vz) < 0x69) {
+        case PLAYER_ACTOR_MOVE_TO_TRAVEL_PHASE:
+            // Arrival is an open XZ square; destination Y does not gate it.
+            if (abs(rootCoord->coord.t[0] - actor->destination.vx) < PLAYER_ACTOR_MOVE_TO_ARRIVAL_LIMIT) {
+                if (abs(rootCoord->coord.t[2] - actor->destination.vz) < PLAYER_ACTOR_MOVE_TO_ARRIVAL_LIMIT) {
                     actor->scriptedMotionPending = 0;
-                    actor->state                 = 1;
-                    mode                         = 1;
+                    actor->state                 = PLAYER_ACTOR_SCRIPTED_ANIMATION_STATE;
+                    animationId                  = PLAYER_ACTOR_MOVE_TO_IDLE_SET;
                     if (actor->actionValue != 0) {
-                        mode = actor->actionValue;
+                        animationId = actor->actionValue;
                     }
-                    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 5);
+                    playerActorPlayChildSlotsWithBlend(task, animationId, 0, PLAYER_ACTOR_MOVE_TO_BLEND_FRAMES);
                     break;
                 }
             }
-            actor->movementSign = 1;
-            playerActorStepMovement(arg0);
-            playerActorPlayFootstepCue(arg0);
+            actor->movementSign = PLAYER_ACTOR_MOVE_TO_FORWARD;
+            playerActorStepMovement(task);
+            playerActorPlayFootstepCue(task);
             break;
     }
-    playerActorTickChildSlots(arg0);
+    playerActorTickChildSlots(task);
     SCRATCH_STACK_RELEASE_BLOCK(PlayerActorApproachScratch);
 }
 
@@ -9372,7 +9453,7 @@ static void Gp_PlayerMode2State8(Task* arg0)
     switch (inner->statePhase) {
         case 0:
         case 1:
-            Gp_PlayerMode2State4(arg0);
+            playerActorTickScriptedMoveTo(arg0);
             if (inner->statePhase == 2) {
                 inner->movementMode = 3;
                 mode                = 4;
@@ -9383,7 +9464,7 @@ static void Gp_PlayerMode2State8(Task* arg0)
             }
             break;
         case 2:
-            Gp_PlayerMode2State4(arg0);
+            playerActorTickScriptedMoveTo(arg0);
             break;
     }
 }
@@ -9464,7 +9545,7 @@ static const TaskFuncTable12 Gp_PlayerMode2States = { {
     Gp_PlayerMode2State1,
     playerActorMode2State2,
     Gp_PlayerMode2State3,
-    Gp_PlayerMode2State4,
+    playerActorTickScriptedMoveTo,
     Gp_PlayerMode2State5,
     playerActorMode2State6,
     Gp_PlayerMode2State7,

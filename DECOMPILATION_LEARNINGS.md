@@ -7688,12 +7688,12 @@ lbu    v0,0(a2)
 Assign the table to a local, then the subtract, then index:
 
 ```c
-table = D_80112DFC;
-type  = gPlayerStatus.resourceVariant - 2;
-task  = taskSpawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
+descriptorBases = D_80112DFC;
+resourceOffset  = gPlayerStatus.resourceVariant - 2;
+task = taskSpawn(7, descriptorBases[rigIndex + resourceOffset] + pairVariant * 2 + attachmentIndex, 0, 0);
 ```
 
-`func_80104258` is the example. Inlining the table stuck at 96.8%
+`playerActorSpawnAttachment` is the example. Inlining the table stuck at 96.8%
 (`lbu -2`) or 97.4% (`%lo(D_80112DFC-2)`).
 
 ## Split two `index->actor` reloads so they take `$a3` then `$v0`
@@ -8048,13 +8048,13 @@ A *new* `s32` (not the index variable) lets the load overwrite `$a1` after
 the address is computed:
 
 ```c
-s32 type;
+s32 descriptorBase;
 
-type = D_80112DF4[arg1] - 1; /* lhu a1; addiu a1, -1 */
-task = taskSpawn(7, type + arg2, arg3, 0);
+descriptorBase = D_80112DF4[characterId] - 1; /* lhu a1; addiu a1, -1 */
+task = taskSpawn(7, descriptorBase + weaponId, spawnArg, 0);
 ```
 
-`func_80104364` is the example. Reusing `value` stuck at 99.7% with only
+`playerActorSpawnWeaponModel` is the example. Reusing `value` stuck at 99.7% with only
 `lhu v0` / `addiu a1, v0, -1` different.
 
 ## Constant CSE across differently-sized stores
@@ -27078,6 +27078,8 @@ memFillBytes(actor, 0, 0x998);
 
 `Gp_SpawnPlayer` is the example. The same `memFillBytes` then assign order used by
 `companionSpawnActor` stuck at 99.1% with only that delay-slot swap.
+`playerActorSpawn` is the example. The same `memFillBytes` then assign order used by
+`Gp_SpawnAlly` stuck at 99.1% with only that delay-slot swap.
 
 ## Overlay: still-asm dispatcher tables after expanding `.rodata`
 
@@ -32453,17 +32455,17 @@ emit a fresh `lhu a1`:
 
 ```c
 if (actor->actionArgument == 0) {
-    mode = 2;
+    animationId = 2;
     if (actor->equipmentTasks[1] == NULL) {
-        mode = 0x13;
+        animationId = 0x13;
     }
 } else {
-    mode = actor->actionArgument;
+    animationId = actor->actionArgument;
 }
 ```
 
 `if (field != 0) { mode = field; } else { … }` stuck at 91% with only
-that `move a1, v1`. `Gp_PlayerMode2State4` is the example.
+that `move a1, v1`. `playerActorTickScriptedMoveTo` is the example.
 
 ## `dx = 1; dest = dx` after an ABS in `$v0`
 
@@ -32491,7 +32493,7 @@ if (dx < 0x69) {
 ```
 
 Split `dx = t[n]; dx -= other` so `t[n]` lands in `$v0` first.
-`Gp_PlayerMode2State4` is the example.
+`playerActorTickScriptedMoveTo` is the example.
 
 ## Inlined `return NULL` after `taskSpawn` keeps `bnez` / `j` / `move a0, 0`
 
@@ -106866,12 +106868,12 @@ merges the constants too, but the scheduler does not reorder two stores, so the
 `sh` / `sb` come out in the wrong order (99.55%, `reorder=1`). The same function
 also needs the scratch allocator's intermediate pointer pinned
 (`register u8* tmp asm("a0")`, as in its matched gameplay twin
-`Gp_PlayerMode2State4`): unpinned, local-alloc coalesces `tmp` into the
+`playerActorTickScriptedMoveTo`): unpinned, local-alloc coalesces `tmp` into the
 call-saved `block` it feeds, losing the `move $s1,$a0` the target has.
 
 ## A sibling whose *assembly* is instruction-identical can still hide the answer in its C: the `register asm()` pin (_actor800200TickScriptedRunToDestination, 2026-09-16)
 
-`_actor800200TickScriptedRunToDestination` is `Gp_PlayerMode2State4` with three constants
+`_actor800200TickScriptedRunToDestination` is `playerActorTickScriptedMoveTo` with three constants
 changed, and the clean-room rewrite of it reached 95.49% on the first build --
 `regs=19` plus a `branch=4` that traced back to a single register. In the
 `case 2` distance test the target reads
@@ -106895,7 +106897,7 @@ symptom, a bare-constant store coming out `sb $4,0x973($s0)` where the target
 has `li $v0,1; sb $v0,0x973($s0)`, is the same cause: CSE had substituted the
 `li a0,1` constant pseudo for the `1`, so the store no longer needed `$v0` at all.
 
-The sibling `Gp_PlayerMode2State4` in `src/gameplay/3FB8.c` is matched, and its
+The sibling `playerActorTickScriptedMoveTo` in `src/gameplay/3FB8.c` is matched, and its
 emitted `case 2` is instruction-identical to this target -- so its **source** is
 the reference, not its assembly. Its declaration list carries
 
@@ -106918,7 +106920,7 @@ and control flow were already exact and the register was the sole leftover.
 
 The next copy of the family in the same unit, `_actor800200TickScriptedWalkToDestination`,
 confirms both halves. Its target is an instruction-for-instruction twin of
-`Gp_PlayerMode2State4` -- 154 instructions, every register the same, 153 of them
+`playerActorTickScriptedMoveTo` -- 154 instructions, every register the same, 153 of them
 identical -- differing only in `addiu $v0,$zero,0x5` against `0x1`
 (`actor->movementMode = 5` against `= 1`). The copies are variants of one body that
 differ in *data constants*: State4 stores 1, `_actor800200TickScriptedWalkToDestination` stores 5, the already

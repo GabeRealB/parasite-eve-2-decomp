@@ -104,7 +104,28 @@ void playerActorInitWeaponCollision(Task* actorTask, s32 weaponId, s32 attackRow
 /// of `animationTickSlotPose`.
 void playerActorPlayChildSlotsWithBlend(Task* task, s32 setIndex, s32 unusedArgument, s32 blendFrames);
 
-Task* func_80104258(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Rig joint rows and the second model pair used at player/companion initialization.
+enum {
+    PLAYER_ACTOR_ATTACHMENT_PLAYER_RIG    = 1,
+    PLAYER_ACTOR_ATTACHMENT_COMPANION_RIG = 5,
+    PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR   = 1,
+};
+
+/// Spawns one model of a player or companion's paired rig attachments.
+///
+/// attachmentIndex is 0 or 1; pairVariant is 0 or 1 within a four-descriptor
+/// group. rigIndex selects a joint row in 0..5 and rigIndex + resourceVariant - 2
+/// must be in 0..7. Current callers use rig 1 for the player and rig 5 for the
+/// armed companion, with resource variants 1..4 and pair variant 1. The selected
+/// joint must exist in the live actor model and the bank-7 descriptor/model
+/// must be loaded. Companion callers temporarily supply their variant through
+/// `gPlayerStatus.resourceVariant`.
+///
+/// Returns NULL on spawn failure. The new task records actorTask as its parent
+/// and borrows the rig joint; both must remain live until attachment teardown.
+/// Preserves draw flags on the child's first update, selects the actor's texture
+/// bank and rebuilds both primitive halves. Does not replace an existing slot.
+Task* playerActorSpawnAttachment(Task* actorTask, s32 attachmentIndex, s32 rigIndex, s32 pairVariant);
 
 /// Rebuilds the player's equipped weapon model and restores native playback.
 ///
@@ -360,7 +381,33 @@ void playerActorTickAnimationState(Task* task);
 /// nothing and does not select a replacement target.
 void playerActorTrackLockTarget(Task* task);
 
-Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Launcher groups, actor variants and packed payload fields for grenade spawning.
+enum {
+    PLAYER_ACTOR_GRENADE_PLAYER           = 0,
+    PLAYER_ACTOR_GRENADE_COMPANION        = 1,
+    PLAYER_ACTOR_GRENADE_M4A1             = 0,
+    PLAYER_ACTOR_GRENADE_PISTOL           = 1,
+    PLAYER_ACTOR_GRENADE_MM1              = 2,
+    PLAYER_ACTOR_GRENADE_WEAPON_SHIFT     = 8,
+    PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT = 16,
+    PLAYER_ACTOR_GRENADE_COMPANION_SHOT   = 1 << 20,
+};
+
+/// Spawns a grenade projectile at the actor's equipped weapon muzzle.
+///
+/// launcherIndex is 0 M4A1 grenade, 1 Grenade Pistol, or 2 MM1; actorVariant is
+/// 0 player, or 1 for the armed companion with launcher 2. These select bank-7
+/// descriptors 96, 100, 104 or 105. Requires live GameActor work, equipment slot
+/// 1 and the selected projectile package/model. spawnArg is forwarded unchanged:
+/// the low byte is the ammunition index, the next byte the weapon identity, and
+/// bits 16..19 select that package's muzzle-offset/speed row.
+/// Bit 20 marks a companion shot in the shared Grenade Pistol/MM1 shell code;
+/// the M4A1 initializer uses a fixed muzzle offset and ignores the row selector.
+///
+/// Returns NULL on spawn failure. Records actorTask as the task parent and
+/// borrows its weapon root for initial placement; the projectile's first state
+/// converts that muzzle pose into its own view-parented flight coordinate.
+Task* playerActorSpawnGrenadeProjectile(Task* actorTask, s32 actorVariant, s32 launcherIndex, s32 spawnArg);
 
 /// Records one weapon use in the live save when its counter is below 99,999.
 ///
@@ -370,7 +417,19 @@ Task* func_80104490(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// entry point. This call retains no arguments.
 void weaponRecordUse(s32 weaponId);
 
-Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Spawns a selected weapon model beneath an attachment task's root.
+///
+/// characterId indexes the four descriptor bases in 0..3; current callers use
+/// 2 for the armed companion and weaponId 1..4 for its loadout. The selected
+/// bank-7 descriptor at base + weaponId - 1 and its model must be loaded.
+/// weaponId 0 or spawn failure returns NULL. Requires a live parent model even
+/// for weaponId 0; the parent root is read before testing that sentinel.
+///
+/// Forwards spawnArg unchanged as the first task argument. Records parentTask
+/// as the task parent, borrows its root coordinate and requests draw-flag
+/// clearing on the child's first update. Keep the parent/model and descriptor
+/// code loaded while the child uses them. Does not replace an equipment slot.
+Task* playerActorSpawnWeaponModel(Task* parentTask, s32 characterId, s32 weaponId, s32 spawnArg);
 
 /// Returns 1 for any non-floor grid contact in the actor's complete contact array.
 ///
@@ -379,7 +438,21 @@ Task* func_80104364(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// its contact array initialized. Floor and non-grid contacts return 0 alone.
 s32 playerActorHasWallContact(Task* task);
 
-void Gp_PlayerMode2State4(Task* arg0);
+/// Turns toward the scripted destination, travels to it and plays the arrival clip.
+///
+/// Requires live GameActor/model/playback state and initialized scratch storage.
+/// Destination XYZ uses game-coordinate units in the root's parent frame; yaw
+/// uses 4096 units per turn and changes by at most 64 per tick. Phases 0/1 turn
+/// before phase 2 travels. Starts walk mode 1; the run-state wrapper replaces
+/// the speed and approach clip once turning finishes. Zero actionArgument selects
+/// walk clip 2 (19 without equipment slot 1); zero actionValue selects idle 1.
+/// Both clips blend over five normal-rate frames and must fit the loaded bank.
+///
+/// Arrives when both absolute X/Z errors are below 105, ignoring Y. Clears the
+/// pending-motion latch and returns to scripted animation state 1 without
+/// snapping position or resetting movementMode/movementSign. Child slots tick
+/// on every call, including arrival; scratch is released before return.
+void playerActorTickScriptedMoveTo(Task* task);
 
 /// Resume choices for `playerActorEndScripted`.
 enum {

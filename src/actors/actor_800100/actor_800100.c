@@ -36,6 +36,8 @@
 #include "gameplay/world_coords.h"
 #include "gameplay/world_targets.h"
 
+#include "weapons/weapon.h"
+
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/display_types.h"
@@ -857,11 +859,11 @@ static void func_actor_800100_80163214(Task* arg0)
     actor->collisionEnableMask    = GAME_ACTOR_COLLISION_REQUEST_MASK;
     savedResourceVariant          = gPlayerStatus.resourceVariant;
     gPlayerStatus.resourceVariant = save->state.companionVariant;
-    actor->attachmentTasks[0]     = func_80104258(arg0, 0, 5, 1);
-    actor->attachmentTasks[1]     = func_80104258(arg0, 1, 5, 1);
+    actor->attachmentTasks[0]     = playerActorSpawnAttachment(arg0, 0, PLAYER_ACTOR_ATTACHMENT_COMPANION_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
+    actor->attachmentTasks[1]     = playerActorSpawnAttachment(arg0, 1, PLAYER_ACTOR_ATTACHMENT_COMPANION_RIG, PLAYER_ACTOR_ATTACHMENT_SECOND_PAIR);
     gPlayerStatus.resourceVariant = savedResourceVariant;
     if (actor->attachmentTasks[1] != NULL) {
-        task                     = func_80104364(actor->attachmentTasks[1], save->state.companionType + 1, save->state.companionVariant, 0);
+        task                     = playerActorSpawnWeaponModel(actor->attachmentTasks[1], save->state.companionType + 1, save->state.companionVariant, 0);
         actor->equipmentTasks[1] = task;
         if (task != NULL) {
             companion = actor->companionWork;
@@ -2522,7 +2524,7 @@ static const TaskFuncTable7 D_actor_800100_80161E98 = { {
     Gp_PlayerMode2State1,
     playerActorMode2State2,
     Gp_PlayerMode2State1,
-    Gp_PlayerMode2State4,
+    playerActorTickScriptedMoveTo,
     Gp_PlayerMode2State1,
     playerActorMode2State6,
 } };
@@ -2736,9 +2738,16 @@ static void func_actor_800100_80165DE8(Task* arg0)
             playerActorPlayChildSlotsWithBlend(arg0, 0xA, 1, 3);
             worldCoordPlaySound(coord, 0x40660001, 1);
             if (coord != NULL) {
+                enum {
+                    ACTOR_800100_MM1_WEAPON            = 12,
+                    ACTOR_800100_MM1_MUZZLE_ROW        = 1,
+                    ACTOR_800100_MM1_FRAGMENTATION_ARG = PLAYER_ACTOR_GRENADE_COMPANION_SHOT |
+                                                         (ACTOR_800100_MM1_MUZZLE_ROW << PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT) |
+                                                         (ACTOR_800100_MM1_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT) | GRENADE_ROUND_FRAGMENTATION,
+                };
                 actor->attackControl.cooldownTicks = 0x28;
                 effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH, coord, D_actor_800100_80167218[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant] | 0x10000, NULL);
-                func_80104490(arg0, 1, 2, 0x110C0A);
+                playerActorSpawnGrenadeProjectile(arg0, PLAYER_ACTOR_GRENADE_COMPANION, PLAYER_ACTOR_GRENADE_MM1, ACTOR_800100_MM1_FRAGMENTATION_ARG);
                 return;
             }
             return;

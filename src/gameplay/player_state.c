@@ -1468,7 +1468,7 @@ Task* Gp_SetupAllyWeapon(void)
 
     if (actor->attachmentTasks[1] != NULL) {
         save                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-        task                     = func_80104364(actor->attachmentTasks[1], save->state.companionType + 1, save->state.companionVariant, 0);
+        task                     = playerActorSpawnWeaponModel(actor->attachmentTasks[1], save->state.companionType + 1, save->state.companionVariant, 0);
         actor->equipmentTasks[1] = task;
         if (task != NULL) {
             companion = actor->companionWork;

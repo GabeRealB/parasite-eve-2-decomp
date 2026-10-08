@@ -138,6 +138,7 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                 actor->actionValue       = 3;
                 playerActorSetWeaponAttackFlags(arg0, 0, 1);
             } else if (actor->attackButton & 2) {
+                enum { M4A1_GRENADE_PROJECTILE_WEAPON = 27 };
                 actor->statePhase                  = 4;
                 actor->attackControl.cooldownTicks = 0x28;
                 actor->attackCancelTicks           = 0x22;
@@ -147,7 +148,8 @@ void func_m4a1_grenade_8011D1EC(Task* arg0)
                 effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
                             actor->equipmentTasks[1]->extra.tmd->coords, 0x1B,
                             NULL);
-                func_80104490(arg0, 0, 0, sfx | 0x1B00);
+                playerActorSpawnGrenadeProjectile(arg0, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_M4A1,
+                                                  sfx | (M4A1_GRENADE_PROJECTILE_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));
                 playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
                 break;
             }

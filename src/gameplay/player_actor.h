@@ -130,7 +130,22 @@ s32 playerActorMoveTo(Task* task, s32 unusedMessageId, const ActorTransform* tra
 /// request pointer; message ID and second argument are unused.
 s32 playerActorMoveBy(Task* task, s32 unusedMessageId, const GameActorMoveBy* move, s32 unusedSecondArg);
 
-Task* Gp_SpawnPlayer(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options);
+/// Spawns and places the controlled player, with work initialized for its first tick.
+///
+/// Requires resourceVariant 1..4 and its loaded bank-7 player descriptor/model,
+/// initialized heaps/session, and readable transform/options. Copies XYZ in
+/// integer game-coordinate units and the signed-halfword yaw (4096 per turn).
+/// Selects the model from resourceVariant; unusedCharacterId is ignored.
+/// Forwards spawnArg as the task's first payload (current callers pass zero).
+///
+/// Copies the initial animation and scripted-start choice synchronously. The
+/// task retains the options address as its second payload, but the player
+/// dispatch, message and weapon-action paths do not read it after this call;
+/// neither input record needs to remain live. Registers the task in the player
+/// session slot and clears the actor-tick gate. The first tick installs playback,
+/// collision and teardown state. Returns NULL on allocation failure, killing a
+/// newly spawned task if its work allocation fails; returns the live task otherwise.
+Task* playerActorSpawn(const ActorSpawnTransform* spawnTransform, u16 unusedCharacterId, s32 spawnArg, ActorSpawnOptions* options);
 
 /// Refreshes the live player's weapon collision identity from its equipment.
 ///

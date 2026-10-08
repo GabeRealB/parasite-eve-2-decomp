@@ -1325,7 +1325,7 @@ static const TaskFuncTable7 D_actor_800300_80161E64 = { {
     Gp_PlayerMode2State1,
     playerActorMode2State2,
     Gp_PlayerMode2State1,
-    Gp_PlayerMode2State4,
+    playerActorTickScriptedMoveTo,
     Gp_PlayerMode2State1,
     playerActorMode2State6,
 } };

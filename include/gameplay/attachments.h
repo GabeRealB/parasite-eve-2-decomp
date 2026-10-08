@@ -21,7 +21,7 @@ extern u8 Gp_DebugAttachLevels[18];
 
 extern AttachmentState Gp_StateC08;
 
-/// Flag byte cleared by `attachmentCancel` / `Gp_SpawnPlayer`.
+/// Flag byte cleared by `attachmentCancel` / `playerActorSpawn`.
 extern u8 D_80115768;
 
 extern AttachmentAreaRow Gp_AttachParams[ATTACHMENT_AREA_ABILITY_COUNT][ATTACHMENT_AREA_LEVEL_COUNT];
