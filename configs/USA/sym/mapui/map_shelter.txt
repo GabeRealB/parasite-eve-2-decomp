@@ -208,7 +208,7 @@ D_shelter_b1_underground_parking_8018794C = 0x8018794C; // absolute:True owner=s
 D_shelter_b1_underground_parking_80189778 = 0x80189778; // absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_8018AB9C = 0x8018AB9C; // absolute:True owner=shelter_b1_underground_parking
 D_shelter_b1_underground_parking_8018D724 = 0x8018D724; // absolute:True owner=shelter_b1_underground_parking
-func_shelter_b1_golem_freezer_1_8017D6EC = 0x8017D6EC; // type:func absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
+shelterB1GolemFreezer1RoomTask = 0x8017D6EC; // type:func absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 D_shelter_b1_golem_freezer_1_8017E790 = 0x8017E790; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 D_shelter_b1_golem_freezer_1_8017E794 = 0x8017E794; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms
 D_shelter_b1_golem_freezer_1_8017E798 = 0x8017E798; // absolute:True owner=shelter_b1_golem_freezer_1 shared=rooms

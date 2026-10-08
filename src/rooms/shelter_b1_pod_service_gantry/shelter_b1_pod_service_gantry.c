@@ -71,11 +71,11 @@ extern TaskDesc D_actor_560800_801718F0[];
 extern TaskMessageEntry D_shelter_b1_pod_service_gantry_8017FAF4[];
 
 static void func_shelter_b1_pod_service_gantry_8017D628(Task* task);
-static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0);
+static void _shelterB1PodServiceGantryInitRoomState(Task* task);
 
 /// The room task's three states: set-up, the step sequence below, and exit.
 static const TaskFuncTable3 D_shelter_b1_pod_service_gantry_8017D5C4 = {
-    { func_shelter_b1_pod_service_gantry_8017D81C, func_shelter_b1_pod_service_gantry_8017D628, taskKill },
+    { _shelterB1PodServiceGantryInitRoomState, func_shelter_b1_pod_service_gantry_8017D628, taskKill },
 };
 
 static s32 _shelterB1PodServiceGantryRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
@@ -1629,21 +1629,27 @@ static s32 _shelterB1PodServiceGantryIgnoreRoomAction(Task* task, s32 messageId,
     return SHELTER_B1_POD_SERVICE_GANTRY_ROOM_ACTION_IGNORED;
 }
 
-static void func_shelter_b1_pod_service_gantry_8017D81C(Task* arg0)
+/// Publishes the gantry room receiver and allocates its zeroed scene-sequence work.
+///
+/// Requires state zero. The task owns the primary-heap allocation until teardown.
+/// Allocation failure kills the receiver; success hides the display and advances
+/// to the running state, whose step zero starts the first scene.
+static void _shelterB1PodServiceGantryInitRoomState(Task* task)
 {
     _ShelterB1PodServiceGantryWork* work;
 
-    arg0->msgTable = D_shelter_b1_pod_service_gantry_8017FAF4;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    task->msgTable = D_shelter_b1_pod_service_gantry_8017FAF4;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     work       = memMalloc(sizeof(*work), false);
-    arg0->work = work;
+    task->work = work;
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(task);
         return;
     }
     memFillBytes(work, 0U, sizeof(*work));
+    // Keep the display hidden until the opening scene takes control.
     SetDispMask(0);
-    arg0->state += 1;
+    task->state += 1;
 }
 
 /// The room task: copies its three-state table

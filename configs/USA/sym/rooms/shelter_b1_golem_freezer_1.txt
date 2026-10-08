@@ -46,9 +46,15 @@ D_shelter_b1_golem_freezer_1_8017E6D0 = 0x8017E6D0; // size:0x6 defined:True
 
 shelterB1GolemFreezer1FloorMistTask = 0x8017DFFC; // type:func
 
-func_shelter_b1_golem_freezer_1_8017DA7C = 0x8017DA7C; // type:func
+shelterB1GolemFreezer1AmbientEffectsTask = 0x8017DA7C; // type:func
 glowDrawDisc = 0x8017DC5C; // type:func
 _shelterB1GolemFreezer1DrawFloorMist = 0x8017e254; // type:func
 _shelterB1GolemFreezer1RejectKeyItemUse = 0x8017d5d0; // type:func
 _shelterB1GolemFreezer1IgnoreRoomCommand = 0x8017d61c; // type:func
 _shelterB1GolemFreezer1IdleRoomState = 0x8017d6dc; // type:func
+_shelterB1GolemFreezer1RebuildMeetingObstacle = 0x8017d7cc; // type:func
+_shelterB1GolemFreezer1InitMeetingObstacle = 0x8017d744; // type:func
+_shelterB1GolemFreezer1ResolveRoomVariant = 0x8017d5d8; // type:func
+_shelterB1GolemFreezer1HandleRoomAction = 0x8017d624; // type:func
+_shelterB1GolemFreezer1InitRoomState = 0x8017d66c; // type:func
+shelterB1GolemFreezer1RoomTask = 0x8017d6ec; // type:func

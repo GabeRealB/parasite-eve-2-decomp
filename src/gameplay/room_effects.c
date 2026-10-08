@@ -843,7 +843,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ControlRoomDrawGlowsTask, { NULL } },                                      // 0x131
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1AccessTunnelDrawGlowsTask, { NULL } },                                     // 0x132
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1UndergroundParkingDrawGlowsTask, { NULL } },                               // 0x133
-    { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_golem_freezer_1_8017DA7C, { NULL } },                               // 0x134
+    { { { TASK_BODY_COORD, 0x70 } }, shelterB1GolemFreezer1AmbientEffectsTask, { NULL } },                               // 0x134
     { { { TASK_BODY_COORD, 0x70 } }, shelterB2PodBottomShadowTask, { NULL } },                                           // 0x135
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1PodServiceGantryInitEffectsTask, { NULL } },                               // 0x136
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1TransferTunnelDrawGlowsTask, { NULL } },                                   // 0x137

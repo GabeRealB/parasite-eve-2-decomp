@@ -29,10 +29,10 @@ extern TaskDesc D_shelter_b1_sleeping_quarters_80180540;
 /// The room's message table, which its cap scripts index.
 extern TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[];
 
-s32 func_shelter_b1_sleeping_quarters_8017D668(Task*, s32, s32, s32);
-s32 func_shelter_b1_sleeping_quarters_8017D670(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task*, s32, s32, s32);
-s32 func_shelter_b1_sleeping_quarters_8017D770(Task*, s32, s32, s32);
+static s32 _shelterB1SleepingQuartersRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
+s32        func_shelter_b1_sleeping_quarters_8017D670(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_shelter_b1_sleeping_quarters_8017D6FC(Task*, s32, s32, s32);
+static s32 _shelterB1SleepingQuartersIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 static u32     _gShelterB1SleepingQuartersModel02DFCPartVerts[1];
 static SVECTOR _gShelterB1SleepingQuartersModel02DFCVerts[22];
@@ -70,8 +70,8 @@ TmdSource gShelterB1SleepingQuartersModel02DFC = {
 
 TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_sleeping_quarters_8017D670 },
-    { 5105, func_shelter_b1_sleeping_quarters_8017D668 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_sleeping_quarters_8017D770 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB1SleepingQuartersRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1SleepingQuartersIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_b1_sleeping_quarters_8017D6FC },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -79,7 +79,7 @@ TaskMessageEntry D_shelter_b1_sleeping_quarters_80180518[5] = {
 TaskDesc D_shelter_b1_sleeping_quarters_80180540 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b1_sleeping_quarters_8017D778, { .value = 0 } };
 
 static void func_shelter_b1_sleeping_quarters_8017D83C(Task* task);
-static void func_shelter_b1_sleeping_quarters_8017D880(Task* task);
+static void _shelterB1SleepingQuartersIdleRoomState(Task* task);
 
 /// Hides the task's model while the 2-bit game flag its spawn argument names
 /// reads 2, and shows it otherwise.
@@ -94,9 +94,13 @@ void func_shelter_b1_sleeping_quarters_8017D608(Task* task)
     }
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D668(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use without consuming the item or changing room state.
+///
+/// `ROOM_MESSAGE_USE_KEY_ITEM` carries the collected-item ID and a zero second
+/// payload. All parameters are unused; the reply selects the menu's refusal notice.
+static s32 _shelterB1SleepingQuartersRejectKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_shelter_b1_sleeping_quarters_8017D670(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -128,9 +132,15 @@ s32 func_shelter_b1_sleeping_quarters_8017D6FC(Task* arg0, s32 arg1, s32 arg2, s
     return 0;
 }
 
-s32 func_shelter_b1_sleeping_quarters_8017D770(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores direction-trigger actions without changing room state.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a four-byte request and supplies a
+/// zero second payload. Neither is read or retained; the sender ignores the result.
+static s32 _shelterB1SleepingQuartersIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    return 0;
+    enum { SHELTER_B1_SLEEPING_QUARTERS_ROOM_ACTION_IGNORED = 0 };
+
+    return SHELTER_B1_SLEEPING_QUARTERS_ROOM_ACTION_IGNORED;
 }
 
 void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
@@ -165,8 +175,8 @@ static void func_shelter_b1_sleeping_quarters_8017D83C(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// Idle state of the room task.
-static void func_shelter_b1_sleeping_quarters_8017D880(Task* task)
+/// Leaves the initialized room receiver waiting for messages in state one.
+static void _shelterB1SleepingQuartersIdleRoomState(Task* task)
 {
 }
 
@@ -174,7 +184,7 @@ static void func_shelter_b1_sleeping_quarters_8017D880(Task* task)
 /// `func_shelter_b1_sleeping_quarters_8017D888`: the entry tick, the idle
 /// state, then `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_sleeping_quarters_8017D5C4 = {
-    { func_shelter_b1_sleeping_quarters_8017D83C, func_shelter_b1_sleeping_quarters_8017D880, taskKill },
+    { func_shelter_b1_sleeping_quarters_8017D83C, _shelterB1SleepingQuartersIdleRoomState, taskKill },
 };
 
 /// Runs the room task's current state from a stack copy of its state table.

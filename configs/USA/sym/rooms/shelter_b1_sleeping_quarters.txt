@@ -90,3 +90,6 @@ _roomVisualEffectsDrawFlyingBurstGlow = 0x8017FA40; // type:func
 _roomVisualEffectsDrawFlyingBurstGroundQuad = 0x8017FF6C; // type:func
 _glowDrawBeam = 0x8017DB50; // type:func
 _glowDrawBitDisc = 0x8017E338; // type:func
+_shelterB1SleepingQuartersRejectKeyItemUse = 0x8017d668; // type:func
+_shelterB1SleepingQuartersIgnoreRoomAction = 0x8017d770; // type:func
+_shelterB1SleepingQuartersIdleRoomState = 0x8017d880; // type:func

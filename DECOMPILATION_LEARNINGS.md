@@ -90479,11 +90479,11 @@ So a zero argument at a call site is only removable if the target has no
 instruction setting that register before the `jal`. Here the callee's own
 matched body is what misleads - an unused parameter compiles identically to no
 parameter at all, so the definition cannot say whether retail's prototype had
-one, and the caller is the only witness. The repo already carries this shape:
-`func_shelter_b1_golem_freezer_1_8017D744` is defined `(void)` in its `_2.c` and
-declared `(s32 index)` where `_1.c` calls it with `0`. A local prototype with the
-parameter is the established way to keep the call while the definition stays as
-it was matched.
+one, and the caller is the only witness. The repo previously carried this shape:
+`_shelterB1GolemFreezer1InitMeetingObstacle` was defined `(void)` in its `_2.c` and
+declared `(s32 index)` where `_1.c` called it with `0`. The merged translation
+unit now keeps the unused argument in both declarations. A local prototype with
+the parameter preserves the call while the definition stays as it was matched.
 
 Inputs: `base_1.i` (100.000%)
 `a9baaa56bffc8294bb4e7ebbbb6f40d39cd02eb93f54f63ea683524b65ceefae`,

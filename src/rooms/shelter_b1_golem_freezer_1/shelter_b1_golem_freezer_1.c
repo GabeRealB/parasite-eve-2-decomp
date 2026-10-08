@@ -55,15 +55,23 @@ extern WorldCollisionGrid D_shelter_b1_golem_freezer_1_8017E714;
 extern SVECTOR            D_shelter_b1_golem_freezer_1_8017E738[];
 extern SVECTOR            D_shelter_b1_golem_freezer_1_8017E740[];
 
-static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0);
-static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* arg0, s16* arg1);
+static void _shelterB1GolemFreezer1InitMeetingObstacle(s32 unusedArg);
+static void _shelterB1GolemFreezer1RebuildMeetingObstacle(const GfxCoord* modelRoot, const s16* roomOffset);
+static void _shelterB1GolemFreezer1InitRoomState(Task* task);
 static void _shelterB1GolemFreezer1DrawFloorMist(const GfxCoord* coord, u16 frame, s16 sizeFactor, s16 angle);
 static void _shelterB1GolemFreezer1IdleRoomState(Task* task);
 
 static s32 _shelterB1GolemFreezer1RejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
-s32        func_shelter_b1_golem_freezer_1_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _shelterB1GolemFreezer1ResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _shelterB1GolemFreezer1IgnoreRoomCommand(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-s32        func_shelter_b1_golem_freezer_1_8017D624(Task*, s32, RoomEventMsg*, s32);
+static s32 _shelterB1GolemFreezer1HandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+
+/// The placed meeting actor is present in room variant 21; its obstacle uses one quad.
+enum {
+    SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT       = 21,
+    SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_FACE_COUNT   = 1,
+    SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_VERTEX_COUNT = 4,
+};
 
 /// Room message used by the key-item menu to request use of an item.
 enum { SHELTER_B1_GOLEM_FREEZER_1_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -82,9 +90,9 @@ enum {
 };
 
 TaskMessageEntry D_shelter_b1_golem_freezer_1_8017E6A8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_golem_freezer_1_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB1GolemFreezer1ResolveRoomVariant },
     { SHELTER_B1_GOLEM_FREEZER_1_MESSAGE_USE_KEY_ITEM, _shelterB1GolemFreezer1RejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_golem_freezer_1_8017D624 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1GolemFreezer1HandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _shelterB1GolemFreezer1IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -360,8 +368,6 @@ WorldCollisionSurfaceProperties* D_shelter_b1_golem_freezer_1_8017F290[8] = {
     D_shelter_b1_golem_freezer_1_8017F280,
 };
 
-static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0);
-
 /// Rejects every key-item use request in this room with a zero reply.
 ///
 /// Keeps the task-message ABI; neither the receiver nor either payload is read.
@@ -370,13 +376,18 @@ static s32 _shelterB1GolemFreezer1RejectKeyItemUse(Task* task, s32 messageId, s3
     return 0;
 }
 
-/// Message-table handler for message 0x13EE: copies the incoming record onto
-/// the outgoing one and passes both on to `mapShelterRoomVariantResolve`. Always answers 1.
-s32 func_shelter_b1_golem_freezer_1_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Accepts room transitions and resolves their Mine/Shelter destination from progress.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows a complete eight-byte request and a writable
+/// reply, which may alias. The map overlay must be loaded. Neither pointer is
+/// retained; query requests preserve the copied destination. Always returns 1.
+static s32 _shelterB1GolemFreezer1ResolveRoomVariant(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    enum { SHELTER_B1_GOLEM_FREEZER_1_ROOM_EVENT_ACCEPTED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_B1_GOLEM_FREEZER_1_ROOM_EVENT_ACCEPTED;
 }
 
 /// Ignores room commands and returns zero without changing room state.
@@ -387,29 +398,38 @@ static s32 _shelterB1GolemFreezer1IgnoreRoomCommand(Task* task, s32 messageId, s
     return 0;
 }
 
-/// Message-table handler for message 0x13EF: when the message's `field_2` is 1
-/// and the session's place is 0x15, calls `actor160700StartMeetingScript`. Always answers 0.
-s32 func_shelter_b1_golem_freezer_1_8017D624(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
+/// Starts the meeting conversation for the room's talk trigger in the meeting variant.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a four-byte request for this call;
+/// action 1 selects the conversation. The argument byte and zero second payload
+/// are ignored. The actor package must be loaded in variant 21. Returns zero;
+/// the direction dispatcher ignores that result. Retains no request pointer.
+static s32 _shelterB1GolemFreezer1HandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    if (msg->warp == 1 && gGameSession->location.loc.variant == 0x15) {
+    enum {
+        SHELTER_B1_GOLEM_FREEZER_1_ACTION_TALK   = 1,
+        SHELTER_B1_GOLEM_FREEZER_1_ACTION_RESULT = 0,
+    };
+
+    if (request->actionId == SHELTER_B1_GOLEM_FREEZER_1_ACTION_TALK && gGameSession->location.loc.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
         actor160700StartMeetingScript();
     }
-    return 0;
+    return SHELTER_B1_GOLEM_FREEZER_1_ACTION_RESULT;
 }
 
-/// The room task's first state: installs the room's message table, takes game
-/// pointer slot 7, calls `actor160700RestoreMeetingAnimation` while the session's place is 0x15,
-/// runs `func_shelter_b1_golem_freezer_1_8017D744` and moves on to the next
-/// state.
-static void func_shelter_b1_golem_freezer_1_8017D66C(Task* arg0)
+/// Publishes the room task, restores the meeting actor and prepares its obstacle.
+///
+/// Requires state zero and loaded room resources; the meeting variant additionally
+/// requires the meeting actor package. Advances to the message-waiting state.
+static void _shelterB1GolemFreezer1InitRoomState(Task* task)
 {
-    arg0->msgTable = D_shelter_b1_golem_freezer_1_8017E6A8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 0x15) {
+    task->msgTable = D_shelter_b1_golem_freezer_1_8017E6A8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gGameSession->location.loc.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
         actor160700RestoreMeetingAnimation();
     }
-    func_shelter_b1_golem_freezer_1_8017D744(0);
-    arg0->state = arg0->state + 1;
+    _shelterB1GolemFreezer1InitMeetingObstacle(0);
+    task->state = task->state + 1;
 }
 
 /// Leaves the initialized room task waiting for messages without advancing its state.
@@ -419,126 +439,163 @@ static void _shelterB1GolemFreezer1IdleRoomState(Task* task)
     char unusedStackFrame[0x10];
 }
 
-/// State handlers of the room task `func_shelter_b1_golem_freezer_1_8017D6EC`
+/// State handlers of the room task `shelterB1GolemFreezer1RoomTask`
 /// runs: its setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_golem_freezer_1_8017D5C4 = {
-    { func_shelter_b1_golem_freezer_1_8017D66C, _shelterB1GolemFreezer1IdleRoomState, taskKill }
+    { _shelterB1GolemFreezer1InitRoomState, _shelterB1GolemFreezer1IdleRoomState, taskKill }
 };
 
-/// Runs one tick of the room task through the three-state table
-/// `D_shelter_b1_golem_freezer_1_8017D5C4`, copying the table onto the stack
-/// and calling the entry for the task's current state.
-void func_shelter_b1_golem_freezer_1_8017D6EC(Task* task)
+void shelterB1GolemFreezer1RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b1_golem_freezer_1_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_shelter_b1_golem_freezer_1_8017D5C4;
+    states.funcs[task->state](task);
 }
 
-static void func_shelter_b1_golem_freezer_1_8017D744(s32 arg0)
+/// Places the meeting actor's obstacle, or moves it below the room when absent.
+///
+/// Borrows placement zero's live model root, falling back to the player model.
+/// Only variant 21 with a present placement keeps the obstacle at its root.
+/// The unused argument preserves the setup caller's argument word.
+static void _shelterB1GolemFreezer1InitMeetingObstacle(s32 unusedArg)
 {
-    Task* slot   = sceneFindPlacedActor(0);
-    Task* task   = slot;
-    s32   isNull = (slot == NULL);
+    enum {
+        SHELTER_B1_GOLEM_FREEZER_1_MEETING_PLACEMENT = 0,
+        SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_HIDDEN_Y = 10000,
+    };
+    Task* placedActor    = sceneFindPlacedActor(SHELTER_B1_GOLEM_FREEZER_1_MEETING_PLACEMENT);
+    Task* obstacleAnchor = placedActor;
+    s32   actorAbsent    = (placedActor == NULL);
 
-    if (isNull) {
-        task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (actorAbsent) {
+        obstacleAnchor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
-    if (slot != NULL) {
-        if (gGameSession->location.loc.variant == 0x15) {
+    if (placedActor != NULL) {
+        if (gGameSession->location.loc.variant == SHELTER_B1_GOLEM_FREEZER_1_MEETING_VARIANT) {
             D_shelter_b1_golem_freezer_1_8017E6D0[1] = 0;
         } else {
-            D_shelter_b1_golem_freezer_1_8017E6D0[1] = 0x2710;
+            D_shelter_b1_golem_freezer_1_8017E6D0[1] = SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_HIDDEN_Y;
         }
     } else {
-        D_shelter_b1_golem_freezer_1_8017E6D0[1] = 0x2710;
+        D_shelter_b1_golem_freezer_1_8017E6D0[1] = SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_HIDDEN_Y;
     }
-    func_shelter_b1_golem_freezer_1_8017D7CC(task->extra.tmd->coords, D_shelter_b1_golem_freezer_1_8017E6D0);
+    _shelterB1GolemFreezer1RebuildMeetingObstacle(obstacleAnchor->extra.tmd->coords, D_shelter_b1_golem_freezer_1_8017E6D0);
 }
 
-static void func_shelter_b1_golem_freezer_1_8017D7CC(GfxCoord* coord, s16* arg1)
+/// Rebuilds the meeting quad at the start of the room grid from a model's local matrix.
+///
+/// `modelRoot->coord` must map the source quad into room space. An optional three-
+/// halfword XYZ `roomOffset` is added to its full-width translation before GTE
+/// transformation. Coordinates use game units and rotations/normals use Q12.
+/// The source and room pools are disjoint and contain at least one normal, one
+/// face and four word-aligned vertices. Remaining geometry and cell lists stay
+/// intact. Normal pads are preserved; vertex pads receive the GTE Z high halfword.
+/// Borrows both inputs, changes GTE state and discards transform flags.
+static void _shelterB1GolemFreezer1RebuildMeetingObstacle(const GfxCoord* modelRoot, const s16* roomOffset)
 {
-    MATRIX              m;
-    long                flag;
-    s32                 i;
-    SVECTOR*            d;
-    SVECTOR*            s;
-    WorldCollisionGrid* dst = &D_shelter_b1_golem_freezer_1_8017E9C0;
-    WorldCollisionGrid* src = &D_shelter_b1_golem_freezer_1_8017E714;
+    MATRIX                    modelToRoom;
+    long                      transformFlags;
+    s32                       elementIndex;
+    SVECTOR*                  destinationVector;
+    SVECTOR*                  sourceVector;
+    WorldCollisionGrid*       roomGrid       = &D_shelter_b1_golem_freezer_1_8017E9C0;
+    const WorldCollisionGrid* obstacleSource = &D_shelter_b1_golem_freezer_1_8017E714;
 
-    i = 0;
-    do {
-        dst->normals[i].vx = src->normals[i].vx;
-        dst->normals[i].vy = src->normals[i].vy;
-        dst->normals[i].vz = src->normals[i].vz;
-        dst->faces[i]      = src->faces[i];
-        i++;
-    } while (i <= 0);
-
-    for (i = 0; i < 4; i++) {
-        dst->vertices[i].vx = src->vertices[i].vx;
-        dst->vertices[i].vy = src->vertices[i].vy;
-        dst->vertices[i].vz = src->vertices[i].vz;
+    /// Restores the meeting quad's complete face and XYZ components, preserving pads.
+    ///
+    /// Captures the two grid pointers, elementIndex and the obstacle counts.
+    /// No arguments; leaves elementIndex at the vertex count and is undefined below.
+#define SHELTER_B1_GOLEM_FREEZER_1_RESTORE_MEETING_OBSTACLE_GEOMETRY()                                            \
+    {                                                                                                             \
+        for (elementIndex = 0; elementIndex < SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_FACE_COUNT; elementIndex++) {   \
+            roomGrid->normals[elementIndex].vx = obstacleSource->normals[elementIndex].vx;                        \
+            roomGrid->normals[elementIndex].vy = obstacleSource->normals[elementIndex].vy;                        \
+            roomGrid->normals[elementIndex].vz = obstacleSource->normals[elementIndex].vz;                        \
+            roomGrid->faces[elementIndex]      = obstacleSource->faces[elementIndex];                             \
+        }                                                                                                         \
+        for (elementIndex = 0; elementIndex < SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_VERTEX_COUNT; elementIndex++) { \
+            roomGrid->vertices[elementIndex].vx = obstacleSource->vertices[elementIndex].vx;                      \
+            roomGrid->vertices[elementIndex].vy = obstacleSource->vertices[elementIndex].vy;                      \
+            roomGrid->vertices[elementIndex].vz = obstacleSource->vertices[elementIndex].vz;                      \
+        }                                                                                                         \
     }
 
-    m = coord->coord;
+    SHELTER_B1_GOLEM_FREEZER_1_RESTORE_MEETING_OBSTACLE_GEOMETRY();
+#undef SHELTER_B1_GOLEM_FREEZER_1_RESTORE_MEETING_OBSTACLE_GEOMETRY
 
-    if (arg1 != NULL) {
-        m.t[0] += arg1[0];
-        m.t[1] += arg1[1];
-        m.t[2] += arg1[2];
+    modelToRoom = modelRoot->coord;
+
+    // Add the room-axis offset before the GTE narrows transformed vertices.
+    if (roomOffset != NULL) {
+        modelToRoom.t[0] += roomOffset[0];
+        modelToRoom.t[1] += roomOffset[1];
+        modelToRoom.t[2] += roomOffset[2];
     }
 
-    d = dst->normals;
-    s = src->normals;
-    i = 0;
-    do {
-        gte_SetRotMatrix(&m);
-        gte_ldv0(s);
-        s++;
+    // Normals use rotation only; vertices also take the adjusted translation.
+    destinationVector = roomGrid->normals;
+    sourceVector      = obstacleSource->normals;
+    for (elementIndex = 0; elementIndex < SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_FACE_COUNT; elementIndex++) {
+        gte_SetRotMatrix(&modelToRoom);
+        gte_ldv0(sourceVector);
+        sourceVector++;
         gte_rtv0();
-        gte_stsv(d);
-        d++;
-        i++;
-    } while (i <= 0);
+        gte_stsv(destinationVector);
+        destinationVector++;
+    }
 
-    gte_SetRotMatrix(&m);
-    gte_SetTransMatrix(&m);
-    d = dst->vertices;
-    s = src->vertices;
-    for (i = 0; i < 4; i++) {
-        RotTransSV(s++, d++, &flag);
+    gte_SetRotMatrix(&modelToRoom);
+    gte_SetTransMatrix(&modelToRoom);
+    destinationVector = roomGrid->vertices;
+    sourceVector      = obstacleSource->vertices;
+    for (elementIndex = 0; elementIndex < SHELTER_B1_GOLEM_FREEZER_1_OBSTACLE_VERTEX_COUNT; elementIndex++) {
+        RotTransSV(sourceVector++, destinationVector++, &transformFlags);
     }
 }
 
-void func_shelter_b1_golem_freezer_1_8017DA7C(Task* unused)
+void shelterB1GolemFreezer1AmbientEffectsTask(Task* task)
 {
-    SVECTOR pos;
-    s32     i;
-    s32     ang;
-    s32     r;
+    enum {
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_EMISSION_FRAME_MASK = 3,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_IMAGE_ORIGIN_FIRST  = 2,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_ORIGIN_COUNT        = ARRAY_SIZE(D_shelter_b1_golem_freezer_1_8017E740) - 1,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_RADIUS_RANDOM_MASK  = 0x3C0,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_RADIUS_MIN          = 64,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_HEIGHT_RANDOM_MASK  = 0xFF,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_SPAWN_RANDOM_MASK   = (1 << 12) | 0xFF,
+        SHELTER_B1_GOLEM_FREEZER_1_MIST_SPAWN_BASE          = (8 << 16) | (5 << 12) | 1024,
+        SHELTER_B1_GOLEM_FREEZER_1_GLOW_RADIUS_SCALE        = 512,
+        SHELTER_B1_GOLEM_FREEZER_1_GLOW_COLOR               = 0x421, // RGB nibbles 4/2/1
+        SHELTER_B1_GOLEM_FREEZER_1_GLOW_DIM_COLOR           = 0x210, // RGB nibbles 2/1/0
+    };
+    SVECTOR position;
+    s32     originIndex;
+    s32     angle;
+    s32     radius;
 
-    if (!(gDisplayState.animFrame & 3)) {
-        for (i = 0; i < 9; i++) {
-            ang    = GOLEM_RAND() & 0xFFF;
-            r      = (GOLEM_RAND() & 0x3C0) + 0x40;
-            pos.vx = D_shelter_b1_golem_freezer_1_8017E738[i + 2].vx + ((r * rcos(ang)) >> 12);
-            pos.vy = -(GOLEM_RAND() & 0xFF);
-            pos.vz = D_shelter_b1_golem_freezer_1_8017E738[i + 2].vz + ((r * rsin(ang)) >> 12);
-            effectSpawn(EFFECT_GOLEM_FREEZER_FLOOR_MIST, NULL, (GOLEM_RAND() & 0x10FF) + 0x85400, &pos);
+    // Every fourth animation frame emits around the nine floor origins following the two glow points.
+    if (!(gDisplayState.animFrame & SHELTER_B1_GOLEM_FREEZER_1_MIST_EMISSION_FRAME_MASK)) {
+        for (originIndex = 0; originIndex < SHELTER_B1_GOLEM_FREEZER_1_MIST_ORIGIN_COUNT; originIndex++) {
+            angle       = GOLEM_RAND() & ACTOR_TRANSFORM_ANGLE_MASK;
+            radius      = (GOLEM_RAND() & SHELTER_B1_GOLEM_FREEZER_1_MIST_RADIUS_RANDOM_MASK) + SHELTER_B1_GOLEM_FREEZER_1_MIST_RADIUS_MIN;
+            position.vx = D_shelter_b1_golem_freezer_1_8017E738[originIndex + SHELTER_B1_GOLEM_FREEZER_1_MIST_IMAGE_ORIGIN_FIRST].vx + ((radius * rcos(angle)) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS);
+            position.vy = -(GOLEM_RAND() & SHELTER_B1_GOLEM_FREEZER_1_MIST_HEIGHT_RANDOM_MASK);
+            position.vz = D_shelter_b1_golem_freezer_1_8017E738[originIndex + SHELTER_B1_GOLEM_FREEZER_1_MIST_IMAGE_ORIGIN_FIRST].vz + ((radius * rsin(angle)) >> SHELTER_B1_GOLEM_FREEZER_1_MIST_TRIG_FRACTION_BITS);
+            // Size 1024..1279, five or six ticks per cell, drift speed eight.
+            effectSpawn(EFFECT_GOLEM_FREEZER_FLOOR_MIST, NULL, (GOLEM_RAND() & SHELTER_B1_GOLEM_FREEZER_1_MIST_SPAWN_RANDOM_MASK) + SHELTER_B1_GOLEM_FREEZER_1_MIST_SPAWN_BASE, &position);
         }
     }
     switch (viewGetMappedIndex() & 0xFF) {
         case 3:
-            glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x421);
+            glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E738, SHELTER_B1_GOLEM_FREEZER_1_GLOW_RADIUS_SCALE, SHELTER_B1_GOLEM_FREEZER_1_GLOW_COLOR);
             break;
         case 4:
-            glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E738, 0x200, 0x210);
+            glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E738, SHELTER_B1_GOLEM_FREEZER_1_GLOW_RADIUS_SCALE, SHELTER_B1_GOLEM_FREEZER_1_GLOW_DIM_COLOR);
             break;
         case 2:
         case 5:
-            glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E740, 0x200, 0x421);
+            glowDrawDisc(D_shelter_b1_golem_freezer_1_8017E740, SHELTER_B1_GOLEM_FREEZER_1_GLOW_RADIUS_SCALE, SHELTER_B1_GOLEM_FREEZER_1_GLOW_COLOR);
             break;
     }
 }
