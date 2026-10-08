@@ -111933,8 +111933,6 @@ discriminator between the two spellings when the dump is ambiguous.
 
 **Duplicate every tail, do not share it after the `if/else`.** Two cases that both end
 `if (!viewChoice) { nextView = 4; } return nextView;` are cross-jumped by jump2 *after reload* (matching backwards
-from each jump, as the `func_actor_403000_80134F44` entry describes). Writing the tail once per case
-`if (!flag) { value = 4; } return value;` are cross-jumped by jump2 *after reload* (matching backwards
 from each jump, as the `_actor403000ApplyDamage` entry describes). Writing the tail once per case
 branch instead of once after the `if/else` took this function from 78.9% to 92.0% (regs 10 -> 1,
 insert 15 -> 4). Which copy anchors the merge is still unexplained here: the surviving copy sits at
