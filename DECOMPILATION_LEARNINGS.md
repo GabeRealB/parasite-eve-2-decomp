@@ -68927,8 +68927,6 @@ The assignment is a real `int` variable, so there is no conversion for `fold`
 to narrow and the compare stays `slti`; the `lbu` still feeds it directly. This
 is the house idiom across the actor overlays (`actors_shared_801342a4`,
 `_actor503500BallisticShotUpdate`), and it is why so many of them open with
-`state = D_801153F4;` rather than testing the global in place.
-`func_actor_503500_801446E4`), and it is why so many of them open with
 `actorControl = gSceneCombatState.actorControl;` rather than testing the global in place.
 
 The nested `if`s are the separate-statement trick from "Two bounds on one
