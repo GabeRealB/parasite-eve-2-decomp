@@ -4157,7 +4157,7 @@ coord->parent = parts;
 sched1 sinks both addius past the `jal` (they do not feed the call), so the
 base crosses it instead. The delay slot becomes `move a3,a1`, `parts[10]`
 never gets its own callee-saved home, and every later `$s` assignment
-slides. `func_actor_400500_8013226C` scored 85.5% that way.
+slides. `_actor400500SpawnArmModels` scored 85.5% that way.
 
 Two destination pseudos assigned before the call keep both addius live
 across it. One fills the delay slot (`addiu s0,s0,0x320`) and the results
@@ -72053,7 +72053,7 @@ coord->parent = parts;
 sched1 sinks both addius past the `jal` (they do not feed the call), so the
 base crosses it instead. The delay slot becomes `move a3,a1`, `parts[10]`
 never gets its own callee-saved home, and every later `$s` assignment
-slides. `func_actor_400500_8013226C` scored 85.5% that way.
+slides. `_actor400500SpawnArmModels` scored 85.5% that way.
 
 Two destination pseudos assigned before the call keep both addius live
 across it. One fills the delay slot (`addiu s0,s0,0x320`) and the results
@@ -133745,7 +133745,7 @@ Evidence, source variants, plans, hashes and selected dump observations: `tools/
 
 ## Constant lifetime and load-delay order need separate constraints (actor_400500 beam, 2026-09-19)
 
-`func_actor_400500_80132628` reached 100% without register pins after its
+`_actor400500DrawLimbShadow` reached 100% without register pins after its
 99.052% retry seed. The permuter hoisted `0xCF` into an `s32` temporary before
 a memory barrier: a controlled normal-header replay reproduced distance
 275 → 120. This extended the constant's local interval and changed its home
@@ -133775,10 +133775,10 @@ versus `Gfx_ViewWorldMtx`, known aliases in actors.imports.txt. Using the alread
 matched sibling's matrix/containing-coordinate spelling reached all-zero
 penalties. The normal source port passed unscoped `build-and-verify.sh`.
 
-Evidence: scratch `nonmatchings/func_actor_400500_80132628-vacuum`, controlled
+Evidence: scratch `nonmatchings/_actor400500DrawLimbShadow-vacuum`, controlled
 sources base_1 through base_5, PERMUTER_ANALYSIS.md, and retained run
 `a6a9cc859a5841b8` with `analysis/base_2` and `analysis/base_3`. Immutable local
-snapshots live under `tools/permuter_findings/func_actor_400500_80132628/`.
+snapshots live under `tools/permuter_findings/_actor400500DrawLimbShadow/`.
 Both traces verified identical ordinary/traced assembly. Compiler SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Preprocessed input hashes: base_2
