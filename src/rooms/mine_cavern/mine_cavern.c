@@ -214,10 +214,8 @@ s32 D_mine_cavern_8018EB58;
 
 u16 D_mine_cavern_8018EB5C;
 
-/// One byte of gameplay state. Read back with `lb` elsewhere, so it is signed.
-
-static void func_mine_cavern_8017DDFC(Task* arg0);
-static void func_mine_cavern_8017DEE4(Task* task);
+static void _mineCavernInitRoom(Task* task);
+static void _mineCavernStartPendingEvent(Task* unusedTask);
 
 // Persistent stages shared by the event message and its battle-release callback.
 enum {
@@ -226,84 +224,134 @@ enum {
     MINE_CAVERN_EVENT_SECOND_STAGE = 2
 };
 
-s32 func_mine_cavern_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+// Layouts used by the introductory and final scripted battles.
+enum {
+    MINE_CAVERN_VARIANT_INITIAL     = 1,
+    MINE_CAVERN_VARIANT_FINAL_EVENT = 4
+};
+
+// Passage states shared by departure resolution and progress commits.
+enum {
+    MINE_CAVERN_PASSAGE_STATE_OPEN       = 1,
+    MINE_CAVERN_PASSAGE_PROGRESS_ENTERED = 2
+};
+
+/// Records the first open-passage departure and resets its subsequent dialogue.
+static inline void _mineCavernCommitPassageEntry(void)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-
-    if (in->areaId == GAME_AREA_MINE_SECRET_PASSAGE) {
-        if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != 1) {
-            if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-                return 0;
-            }
-            gameFlagSetNibbleIfPresent(in->flagId, 2);
-            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && gGameSession->location.loc.variant == gSceneCombatState.signals.bytes.battlePhase) {
-                capRunCommandWithTransition(9);
-                return 0;
-            }
-            capRunCommandWithTransition(0xD);
-            if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) != 0) {
-                return 0;
-            }
-            gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, 1);
-            return 0;
-        }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) != 2) {
-            gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, 2);
-            gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-            gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
-        }
-    }
-
-    if (in->areaId == GAME_AREA_MINE_GORGE) {
-        if (gGameSession->location.loc.variant == 1 || gGameSession->location.loc.variant == 4) {
-            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-                    capRunCommandWithTransition(0xB);
-                }
-                return 0;
-            }
-        }
-    }
-    return 1;
+    gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, MINE_CAVERN_PASSAGE_PROGRESS_ENTERED);
+    gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
+    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 0);
 }
 
-s32 func_mine_cavern_8017DAA0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 mineCavernResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    u8 temp;
+    enum {
+        MINE_CAVERN_TRANSITION_BLOCKED         = 0,
+        MINE_CAVERN_TRANSITION_ALLOWED         = 1,
+        MINE_CAVERN_PASSAGE_PROGRESS_UNTRIED   = 0,
+        MINE_CAVERN_PASSAGE_PROGRESS_ATTEMPTED = 1,
+        MINE_CAVERN_BLOCKED_DEPARTURE_FLAG     = 2,
+        MINE_CAVERN_CAP_PASSAGE_BATTLE_BLOCKED = 9,
+        MINE_CAVERN_CAP_GORGE_BATTLE_BLOCKED   = 11,
+        MINE_CAVERN_CAP_PASSAGE_CLOSED         = 13
+    };
 
-    if (arg2 == 1) {
+    // Prepare the complete reply before resolving progress-dependent destination rooms.
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+
+    if (request->areaId == GAME_AREA_MINE_SECRET_PASSAGE) {
+        if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) != MINE_CAVERN_PASSAGE_STATE_OPEN) {
+            if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+                return MINE_CAVERN_TRANSITION_BLOCKED;
+            }
+            gameFlagSetNibbleIfPresent(request->flagId, MINE_CAVERN_BLOCKED_DEPARTURE_FLAG);
+            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && gGameSession->location.loc.variant == gSceneCombatState.signals.bytes.battlePhase) {
+                capRunCommandWithTransition(MINE_CAVERN_CAP_PASSAGE_BATTLE_BLOCKED);
+                return MINE_CAVERN_TRANSITION_BLOCKED;
+            }
+            capRunCommandWithTransition(MINE_CAVERN_CAP_PASSAGE_CLOSED);
+            if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) != MINE_CAVERN_PASSAGE_PROGRESS_UNTRIED) {
+                return MINE_CAVERN_TRANSITION_BLOCKED;
+            }
+            gameFlagSetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS, MINE_CAVERN_PASSAGE_PROGRESS_ATTEMPTED);
+            return MINE_CAVERN_TRANSITION_BLOCKED;
+        }
+        if (request->queryOnly == ROOM_EVENT_EXECUTE && gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) != MINE_CAVERN_PASSAGE_PROGRESS_ENTERED) {
+            _mineCavernCommitPassageEntry();
+        }
+    }
+
+    if (request->areaId == GAME_AREA_MINE_GORGE) {
+        if (gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_INITIAL || gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_FINAL_EVENT) {
+            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+                if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                    capRunCommandWithTransition(MINE_CAVERN_CAP_GORGE_BATTLE_BLOCKED);
+                }
+                return MINE_CAVERN_TRANSITION_BLOCKED;
+            }
+        }
+    }
+    return MINE_CAVERN_TRANSITION_ALLOWED;
+}
+
+/// Runs a passage caption and spawns the task that commits its final choice.
+static inline void _mineCavernRunCaptionAndWatchProgress(s32 commandIndex)
+{
+    capRunCommandWithTransition(commandIndex);
+    taskSpawnFromTable(D_mine_cavern_80183CA4, 0, 0, 0);
+}
+
+s32 mineCavernHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedArg)
+{
+    enum {
+        MINE_CAVERN_COMMAND_PASSAGE_STATUS             = 1,
+        MINE_CAVERN_CAP_POWER_PANEL                    = 5,
+        MINE_CAVERN_CAP_TARGET_0                       = 8,
+        MINE_CAVERN_CAP_PASSAGE_STATUS_BATTLE          = 10,
+        MINE_CAVERN_CAP_TARGET_1                       = 14,
+        MINE_CAVERN_CAP_TARGET_2                       = 15,
+        MINE_CAVERN_CAP_TARGET_3                       = 16,
+        MINE_CAVERN_CAP_PASSAGE_OPEN                   = 17,
+        MINE_CAVERN_CAP_PASSAGE_POWERED                = 18,
+        MINE_CAVERN_PASSAGE_STATE_POWERED_SECOND_STAGE = 3,
+        MINE_CAVERN_POWER_PANEL_COMPLETE               = 2
+    };
+    u8 variant;
+
+    // Passage-status captions may queue a watcher that commits the final CAP choice.
+    if (commandIndex == MINE_CAVERN_COMMAND_PASSAGE_STATUS) {
         if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
             return 0;
         }
-        if (gSceneCombatState.signals.bytes.battlePhase == arg2 && (gGameSession->location.loc.variant == arg2 || gGameSession->location.loc.variant == 4)) {
-            capRunCommandWithTransition(0xA);
-        } else if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) == 1) {
-            capRunCommandWithTransition(0x11);
-        } else if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) == 3) {
-            capRunCommandWithTransition(0x12);
-            taskSpawnFromTable(D_mine_cavern_80183CA4, 0, 0, 0);
-        } else if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) != 2) {
-            capRunCommandWithTransition(5);
-            taskSpawnFromTable(D_mine_cavern_80183CA4, 0, 0, 0);
+        if (gSceneCombatState.signals.bytes.battlePhase == commandIndex && (gGameSession->location.loc.variant == commandIndex || gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_FINAL_EVENT)) {
+            capRunCommandWithTransition(MINE_CAVERN_CAP_PASSAGE_STATUS_BATTLE);
+        } else if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) == MINE_CAVERN_PASSAGE_STATE_OPEN) {
+            capRunCommandWithTransition(MINE_CAVERN_CAP_PASSAGE_OPEN);
+        } else if (gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_STATE) == MINE_CAVERN_PASSAGE_STATE_POWERED_SECOND_STAGE) {
+            _mineCavernRunCaptionAndWatchProgress(MINE_CAVERN_CAP_PASSAGE_POWERED);
+        } else if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) != MINE_CAVERN_POWER_PANEL_COMPLETE) {
+            _mineCavernRunCaptionAndWatchProgress(MINE_CAVERN_CAP_POWER_PANEL);
         } else {
-            capRunCommandWithTransition(5);
+            capRunCommandWithTransition(MINE_CAVERN_CAP_POWER_PANEL);
         }
     }
-    temp = gGameSession->location.loc.variant;
-    if (temp == 1 || temp == 4) {
-        switch (arg2) {
-            case 8:
-                capStartSequenceSlot(8, 1, gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) & 1);
+    // Each target's saved destruction bit selects its intact/destroyed caption variant.
+    variant = gGameSession->location.loc.variant;
+    if (variant == MINE_CAVERN_VARIANT_INITIAL || variant == MINE_CAVERN_VARIANT_FINAL_EVENT) {
+        switch (commandIndex) {
+            case MINE_CAVERN_CAP_TARGET_0:
+                capStartSequenceSlot(MINE_CAVERN_CAP_TARGET_0, CAP_PLAYBACK_DISPLAY_TRANSITION, gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) & 1);
                 break;
-            case 14:
-                capStartSequenceSlot(0xE, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 1) & 1);
+            case MINE_CAVERN_CAP_TARGET_1:
+                capStartSequenceSlot(MINE_CAVERN_CAP_TARGET_1, CAP_PLAYBACK_DISPLAY_TRANSITION, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 1) & 1);
                 break;
-            case 15:
-                capStartSequenceSlot(0xF, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 2) & 1);
+            case MINE_CAVERN_CAP_TARGET_2:
+                capStartSequenceSlot(MINE_CAVERN_CAP_TARGET_2, CAP_PLAYBACK_DISPLAY_TRANSITION, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 2) & 1);
                 break;
-            case 16:
-                capStartSequenceSlot(0x10, 1, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 3) & 1);
+            case MINE_CAVERN_CAP_TARGET_3:
+                capStartSequenceSlot(MINE_CAVERN_CAP_TARGET_3, CAP_PLAYBACK_DISPLAY_TRANSITION, ((u32)gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED) >> 3) & 1);
                 break;
         }
     }
@@ -315,10 +363,13 @@ s32 mineCavernRefuseKeyItem(Task* task, s32 msgId, s32 itemId, s32 unusedArg)
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3)
+s32 mineCavernHandleActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    if ((request->actionId == 6) && (gameFlagGetNibble(GAME_FLAG_0C4) == 1)) {
-        capRunCommandWithTransition(6);
+    enum { MINE_CAVERN_ACTION_PROGRESS_CAPTION  = 6,
+           MINE_CAVERN_PROGRESS_CAPTION_ENABLED = 1 };
+
+    if ((request->actionId == MINE_CAVERN_ACTION_PROGRESS_CAPTION) && (gameFlagGetNibble(GAME_FLAG_0C4) == MINE_CAVERN_PROGRESS_CAPTION_ENABLED)) {
+        capRunCommandWithTransition(MINE_CAVERN_ACTION_PROGRESS_CAPTION);
     }
     return 0;
 }
@@ -375,41 +426,69 @@ void mineCavernCommitCaptionProgressTask(Task* task)
     }
 }
 
-static void func_mine_cavern_8017DDFC(Task* arg0)
+/// Requests the one-time intro and resets its scripted battle-release credit.
+///
+/// Marks the intro seen even if allocating the event task fails.
+static inline void _mineCavernStartIntroEvent(void)
 {
-    arg0->msgTable = D_mine_cavern_80183C6C;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
-        evsStartScriptWithSkip(D_mine_cavern_80187C74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_8018804C);
-        mineCavernResetEventBattleReleaseCount();
-        gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN, 1);
+    enum { MINE_CAVERN_INTRO_SEEN = 1 };
+
+    evsStartScriptWithSkip(D_mine_cavern_80187C74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_8018804C);
+    mineCavernResetEventBattleReleaseCount();
+    gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN, MINE_CAVERN_INTRO_SEEN);
+}
+
+/// Initializes the room message interface, intro scene and target-effects controller.
+///
+/// Requires a live state-0 task and loaded cavern/map resources. The first
+/// variant-1 entry requests the intro with its skip path and resets battle-release
+/// credit; other entries select scene-music entry 1. Nursery progress hides
+/// the progress sprites. Advances the task and clears the pending event latch.
+static void _mineCavernInitRoom(Task* task)
+{
+    enum { MINE_CAVERN_SCENE_MUSIC_DEFAULT_ENTRY = 1,
+           MINE_CAVERN_PROGRESS_SPRITES_SHOWN    = 0,
+           MINE_CAVERN_PROGRESS_SPRITES_HIDDEN   = 1 };
+
+    // Publish the controller before any intro script can send room messages.
+    task->msgTable = D_mine_cavern_80183C6C;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if ((gGameSession->location.loc.variant == MINE_CAVERN_VARIANT_INITIAL) && (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
+        _mineCavernStartIntroEvent();
     } else {
-        gStageSceneMusicEntry = 1;
+        gStageSceneMusicEntry = MINE_CAVERN_SCENE_MUSIC_DEFAULT_ENTRY;
     }
     taskSpawnFromTable(&D_mine_cavern_8018E3F4, 0, 0, 0);
     if (gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0) {
-        mineCavernSetProgressSpritesHidden(1);
+        mineCavernSetProgressSpritesHidden(MINE_CAVERN_PROGRESS_SPRITES_HIDDEN);
     } else {
-        mineCavernSetProgressSpritesHidden(0);
+        mineCavernSetProgressSpritesHidden(MINE_CAVERN_PROGRESS_SPRITES_SHOWN);
     }
-    arg0->state            = arg0->state + 1;
-    D_mine_cavern_8018EB50 = 0;
+    task->state            = task->state + 1;
+    D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_NOT_STARTED;
 }
 
-static void func_mine_cavern_8017DEE4(Task* task)
+/// Starts the armed first event scene once the attachment wheel has closed.
+///
+/// Starts only when persistent progress and the pending latch are both at stage 1.
+/// Issuing the start request consumes the latch by moving it to stage 2;
+/// it is not retried if event-task allocation fails. Requires loaded event
+/// scripts and live session/attachment state. The task is unused.
+static void _mineCavernStartPendingEvent(Task* unusedTask)
 {
-    s32 flag;
+    s32 eventProgress;
 
-    flag = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS);
-    if ((flag == 1) && (D_mine_cavern_8018EB50 == flag) && (Gp_StateC08.mode != D_mine_cavern_8018EB50)) {
+    eventProgress = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_EVENT_PROGRESS);
+    // Compare against the armed latch: its stage-1 value is also wheel-open mode.
+    if ((eventProgress == MINE_CAVERN_EVENT_FIRST_STAGE) && (D_mine_cavern_8018EB50 == eventProgress) && (Gp_StateC08.mode != D_mine_cavern_8018EB50)) {
         evsStartScriptWithSkip(D_mine_cavern_80188214, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_801887B4);
-        D_mine_cavern_8018EB50 = 2;
+        D_mine_cavern_8018EB50 = MINE_CAVERN_EVENT_SECOND_STAGE;
     }
 }
 
 /// The room task's state handlers, run by `mineCavernRoomTask`.
 static const TaskFuncTable3 D_mine_cavern_8017D5C4 = {
-    { func_mine_cavern_8017DDFC, func_mine_cavern_8017DEE4, taskKill },
+    { _mineCavernInitRoom, _mineCavernStartPendingEvent, taskKill },
 };
 
 void mineCavernRoomTask(Task* task)
@@ -451,9 +530,11 @@ void mineCavernReleaseEventBattleHold(s32 endDelayFrames)
     }
 }
 
-void func_mine_cavern_8017E088(s16 arg0)
+void mineCavernStartCaptionVariantOne(s16 commandIndex)
 {
-    capStartSequenceSlot(arg0, 1, 1);
+    enum { MINE_CAVERN_SCRIPT_CAP_VARIANT = 1 };
+
+    capStartSequenceSlot(commandIndex, CAP_PLAYBACK_DISPLAY_TRANSITION, MINE_CAVERN_SCRIPT_CAP_VARIANT);
 }
 
 void mineCavernEngageScriptedBattle(void)

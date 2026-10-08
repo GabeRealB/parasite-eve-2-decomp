@@ -113,12 +113,15 @@ enum {
     MINE_CAVERN_GLOW_PROJECTION_SCALE = 352
 };
 
+// CAP command selected by the first event scene's skip callback.
+enum { MINE_CAVERN_EVENT_SKIP_CAP_SLOT = 2 };
+
 static void _mineCavernDrawFixedGlows(void);
 static void _mineCavernUpdateTargetEffects(void);
-static void func_mine_cavern_80182454(void);
+static void _mineCavernDrawDarknessAndEffects(void);
 static void _mineCavernUpdateTargetSound(s16 targetIndex);
 static void _mineCavernSpawnTargets(Task* task);
-static void func_mine_cavern_80182DA8(Task* task);
+static void _mineCavernTickTargetEffects(Task* unusedTask);
 static void _mineCavernTargetExplode(Enemy* enemy, Task* task);
 static void _mineCavernTargetRemainsTick(Enemy* enemy, Task* task);
 
@@ -209,10 +212,10 @@ static void _mineCavernScriptNoop(void);
 static void _mineCavernPrepareFinalEventBattle(void);
 
 TaskMessageEntry D_mine_cavern_80183C6C[7] = {
-    { 5102, func_mine_cavern_8017D908 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, mineCavernResolveTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, mineCavernRefuseKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_cavern_8017DC58 },
-    { ROOM_MESSAGE_COMMAND, func_mine_cavern_8017DAA0 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, mineCavernHandleActionMessage },
+    { ROOM_MESSAGE_COMMAND, mineCavernHandleCommandMessage },
     { ROOM_MESSAGE_ACTOR_EVENT, mineCavernAdvanceEvent },
     { ROOM_MESSAGE_SOUND, mineCavernHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -829,7 +832,7 @@ EvsCommand D_mine_cavern_801887B4[27] = {
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_mine_cavern_8017E088 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = mineCavernStartCaptionVariantOne }, { .value = MINE_CAVERN_EVENT_SKIP_CAP_SLOT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = mineCavernSetSceneMusicEvent }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2669,52 +2672,53 @@ static void _mineCavernUpdateTargetEffects(void)
     D_mine_cavern_8018EB58 = destroyedMask;
 }
 
-/// Queues the cavern's darkness overlay: a semi-transparent flat quad filling
-/// the screen with the tint `D_mine_cavern_8018E3E0` holds for the number of
-/// `gameFlagGetNibble(0xE2)` bits set, followed by the drawing-mode packet
-/// that restores the room's texture page (`0xE100004A`). Both go into the head
-/// of the current OT, and the cavern's own two passes are run afterwards.
-static void func_mine_cavern_80182454(void)
+/// Queues the cavern's subtractive darkness, fixed glows and target glow/smoke passes.
+///
+/// The four destroyed-target bits select tint row 0..4. A centred 320x240 quad
+/// and its subtractive drawing-mode command are pushed onto OT bucket zero;
+/// the command executes before the quad. Reserves one `POLY_F4` and a full
+/// `DR_MODE` although only its first command word is submitted. Requires live
+/// cavern point/tint tables, session, scratch stack and enough frame packet/OT
+/// storage for this pair and the two subsequent passes. Retains no packets
+/// beyond the frame and does not restore the previous drawing mode.
+static void _mineCavernDrawDarknessAndEffects(void)
 {
-    POLY_F4* poly;
-    DR_MODE* dr;
-    s32      flags;
-    s16      i;
-    s16      count;
+    enum { MINE_CAVERN_DARKNESS_HALF_WIDTH  = 160,
+           MINE_CAVERN_DARKNESS_HALF_HEIGHT = 120 };
+    POLY_F4* darknessQuad;
+    DR_MODE* subtractMode;
+    s32      destroyedMask;
+    s16      targetIndex;
+    s16      destroyedCount;
 
-    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    count = 0;
+    destroyedMask  = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    destroyedCount = 0;
 
-    poly           = gGpuPrimCursor;
-    gGpuPrimCursor = poly + 1;
-    setlen(poly, 5);
-    setcode(poly, 0x2A);
+    darknessQuad   = gGpuPrimCursor;
+    gGpuPrimCursor = darknessQuad + 1;
+    setPolyF4(darknessQuad);
+    setSemiTrans(darknessQuad, 1);
 
-    for (i = 0; i < 4; i++) {
-        if ((flags >> i) & 1) {
-            count++;
-        }
-    }
+    MINE_CAVERN_COUNT_DESTROYED_TARGETS(destroyedMask, destroyedCount, targetIndex);
+    darknessQuad->r0 = D_mine_cavern_8018E3E0[destroyedCount].r;
+    darknessQuad->g0 = D_mine_cavern_8018E3E0[destroyedCount].g;
+    darknessQuad->b0 = D_mine_cavern_8018E3E0[destroyedCount].b;
 
-    poly->r0 = D_mine_cavern_8018E3E0[count].r;
-    poly->g0 = D_mine_cavern_8018E3E0[count].g;
-    poly->b0 = D_mine_cavern_8018E3E0[count].b;
+    darknessQuad->x0 = -MINE_CAVERN_DARKNESS_HALF_WIDTH;
+    darknessQuad->y0 = -MINE_CAVERN_DARKNESS_HALF_HEIGHT;
+    darknessQuad->x1 = MINE_CAVERN_DARKNESS_HALF_WIDTH;
+    darknessQuad->y1 = -MINE_CAVERN_DARKNESS_HALF_HEIGHT;
+    darknessQuad->x2 = -MINE_CAVERN_DARKNESS_HALF_WIDTH;
+    darknessQuad->y2 = MINE_CAVERN_DARKNESS_HALF_HEIGHT;
+    darknessQuad->x3 = MINE_CAVERN_DARKNESS_HALF_WIDTH;
+    darknessQuad->y3 = MINE_CAVERN_DARKNESS_HALF_HEIGHT;
+    addPrim(gGpuCurrentOt, darknessQuad);
 
-    poly->x0 = -0xA0;
-    poly->y0 = -0x78;
-    poly->x1 = 0xA0;
-    poly->y1 = -0x78;
-    poly->x2 = -0xA0;
-    poly->y2 = 0x78;
-    poly->x3 = 0xA0;
-    poly->y3 = 0x78;
-    addPrim(gGpuCurrentOt, poly);
-
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setlen(dr, 1);
-    dr->code[0] = 0xE100004A;
-    addPrim(gGpuCurrentOt, dr);
+    // Head insertion puts the blend selection before the quad in GPU execution order.
+    subtractMode   = gGpuPrimCursor;
+    gGpuPrimCursor = subtractMode + 1;
+    setDrawTPage(subtractMode, 0, 0, getTPage(0, GPU_BLEND_SUBTRACT, 640, 0));
+    addPrim(gGpuCurrentOt, subtractMode);
 
     _mineCavernDrawFixedGlows();
     _mineCavernUpdateTargetEffects();
@@ -2722,7 +2726,7 @@ static void func_mine_cavern_80182454(void)
 
 /// The mine task's state handlers, run by `mineCavernTargetEffectsTask`.
 static const TaskFuncTable3 D_mine_cavern_8017D65C = {
-    { _mineCavernSpawnTargets, func_mine_cavern_80182DA8, taskKill },
+    { _mineCavernSpawnTargets, _mineCavernTickTargetEffects, taskKill },
 };
 
 /// Starts and mixes or stops one destroyed target's sound for the mapped view.
@@ -2945,9 +2949,13 @@ static void _mineCavernSpawnTargets(Task* task)
     task->state++;
 }
 
-static void func_mine_cavern_80182DA8(Task* task)
+/// Draws one frame of cavern darkness and target effects for controller state 1.
+///
+/// Borrows the live frame arena and cavern resources; the task argument is
+/// unused. Does not advance the state or release the controller.
+static void _mineCavernTickTargetEffects(Task* unusedTask)
 {
-    func_mine_cavern_80182454();
+    _mineCavernDrawDarknessAndEffects();
 }
 
 void mineCavernTargetEffectsTask(Task* task)

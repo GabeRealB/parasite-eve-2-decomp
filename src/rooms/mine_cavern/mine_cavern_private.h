@@ -105,7 +105,14 @@ void mineCavernCommitCaptionProgressTask(Task* task);
 /// actor 0 with enemy work. The release count must have been reset for this event.
 void mineCavernReleaseEventBattleHold(s32 endDelayFrames);
 
-void func_mine_cavern_8017E088(s16);
+/// Starts CAP variant 1 from a command slot with a queued display transition.
+///
+/// `commandIndex` is a nonnegative signed halfword within the live relocated
+/// command table. Bypasses the command opcode; the table, caption and text
+/// resources must stay loaded through playback. Busy playback or a missing
+/// variant leaves it unchanged; the start result is discarded. Used by the
+/// first event scene's skip path with command slot 2.
+void mineCavernStartCaptionVariantOne(s16 commandIndex);
 
 /// Engages the cavern's scripted battle, acquiring a hold only if none exists.
 ///
@@ -183,16 +190,40 @@ void mineCavernTargetTask(Task* task);
 void mineCavernTargetRemainsTask(Task* task);
 
 // Callbacks referenced by the overlay's shared data tables.
-s32 func_mine_cavern_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Resolves a departure from the cavern and returns 1 to allow it or 0 to block it.
+///
+/// Borrows a complete request and writable eight-byte reply through synchronous
+/// dispatch; they may alias. Copies the request and resolves the destination
+/// room before testing passage progress or a gorge departure during combat.
+/// Queries make no persistent changes. Execute requests can start a blocking
+/// caption, set the optional flag to 2, or commit the first open-passage entry
+/// and reset its follow-up dialogue. Requires the Mine/Shelter map resolver,
+/// live session and loaded CAP resources; neither payload is retained.
+s32 mineCavernResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 
-s32 func_mine_cavern_8017DAA0(Task*, s32, s32, s32);
+/// Selects the cavern's passage-status and target captions on a room command.
+///
+/// Command 1 is ignored after nursery progress begins; otherwise passage/panel
+/// state and battle state choose its caption, sometimes spawning a final-choice
+/// watcher. In layouts 1 and 4, commands 8/14/15/16 select target spots 0..3
+/// and use that spot's destroyed bit as CAP variant 0/1. Other commands do
+/// nothing. Requires live session and loaded cavern/CAP resources; returns
+/// zero regardless of playback or task-allocation success. Other arguments
+/// are ignored.
+s32 mineCavernHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandIndex, s32 unusedArg);
 
 /// Refuses every key-item use at the cavern's room task.
 ///
 /// All arguments are ignored and the reply is `ROOM_KEY_ITEM_USE_REFUSED`.
 s32 mineCavernRefuseKeyItem(Task* task, s32 msgId, s32 itemId, s32 unusedArg);
 
-s32 func_mine_cavern_8017DC58(Task* task, s32 msgId, DirectionActionRequest* request, s32 arg3);
+/// Starts caption command 6 for room action 6 while progress flag 0xC4 is 1.
+///
+/// Borrows a live `DirectionActionRequest` through dispatch; only its action
+/// ID is read and no pointer is retained. Other actions do nothing. Requires
+/// loaded CAP resources, ignores the other arguments and always returns zero.
+/// The wider story role of flag 0xC4 is unproven.
+s32 mineCavernHandleActionMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedArg);
 
 /// Advances the cavern's two-stage event on an actor-event message and returns zero.
 ///

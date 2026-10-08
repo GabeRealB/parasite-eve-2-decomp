@@ -42863,7 +42863,7 @@ rest:
 
 `cmd = 5` before `if (flag == 2)` is the same hoist as "default lands in
 `$a0`": both the taken `goto cap_only` and the fall-through spawn see one
-`li a0, 5` in the `beq` delay slot. `func_mine_cavern_8017DAA0` is the
+`li a0, 5` in the `beq` delay slot. `mineCavernHandleCommandMessage` is the
 example.
 
 ## Guard polarity decides whether cross-jumping eats the branch too
@@ -84351,7 +84351,7 @@ and the struct typing is otherwise settled, look for a `*(T*)((u8*)p + n)` cast
 on the load. The typed member access does not just set an alias set — it sets
 the in-struct bit that decides this heuristic.
 
-**Second instance, different symptom: a wrong tail register.** `func_mine_cavern_8017DDFC`
+**Second instance, different symptom: a wrong tail register.** `_mineCavernInitRoom`
 matched at 99.828% with the state field written m2c's way,
 `M2C_FIELD(index, s32 *, 0x30) = (s32)(M2C_FIELD(index, s32 *, 0x30) + 1);`, and at
 100% with `index->state = index->state + 1;` on a `Task*`. The instruction order was
@@ -87338,7 +87338,7 @@ merge happens late and lands exactly on the ROM's `beqz` + delay-slot constant.
 The idiom is everywhere in this project (`menuMapNavigateTask`,
 `_acropolisSecurityRoomRegisterRoomMessages`, `_acropolisRoofGardenAmbienceTask`),
 so a branchy 0/1 argument is a signal to look for the two-call form rather than
-to fight the scheduler. `func_mine_cavern_8017DDFC`. Inputs: `base_1.i`
+to fight the scheduler. `_mineCavernInitRoom`. Inputs: `base_1.i`
 `d071dc9b40e5ce0f52dfd28e943d210037645ba7843fc647d81c70fc0493f526` (else-form,
 91.2%), `base_2.i`
 `ac93762280d36b4b90feac3c58c9539259752988e10bca28f4740e15ec38f830` (two calls,
@@ -119766,7 +119766,7 @@ Inputs: base.i `3e3dc04cf769dd87192a1e778d5f1fbbf420462fc2c8df09dc2729cbb25afc6f
 Evidence: scratch `nonmatchings/dryfieldWarehouseAmbienceTask-vacuum/`,
 `base_2_diff` vs `base_3_diff`, and the two object dumps' leaf order. No pins,
 no permuter. `overlay_dup_index.py find` reports the body as its own only copy.
-## A room overlay's leading unaligned 8-byte copy is `*out = *in` on `RoomEventMsg` (func_mine_cavern_8017D908, 2026-09-17)
+## A room overlay's leading unaligned 8-byte copy is `*out = *in` on `RoomEventMsg` (mineCavernResolveTransition, 2026-09-17)
 
 A room function that opens like this
 
@@ -119777,8 +119777,8 @@ swl  t0,3(a1) / swr t0,0(a1) / swl t1,7(a1) / swr t1,4(a1)
 jal  func_80179A04
 ```
 
-is a room event handler of type `(s32 index, s32 value, RoomEventMsg* in, RoomEventMsg* out)`
-whose first two statements are `*out = *in; func_80179A04(in, out);`. m2c reads the
+is a room event handler of type `(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)`
+whose first two statements are `*reply = *request; mapShelterRoomVariantResolve(request, reply);`. m2c reads the
 lwl/lwr pairs as two unaligned 32-bit *stores of unknown values* and emits
 `M2C_FIELD(arg3, ..., 3) = M2C_UNALIGNED32(M2C_ERROR(...))`, which compiles to
 `sw zero,3(a1); sw zero,7(a1)` - two stores where the target has an 8-byte copy, the
@@ -119803,7 +119803,7 @@ and the single rewrite that fixed the copy and the returns scored 100.000% with 
 penalties zero - so check `tools/overlay_dup_index.py find <fn>` too, since these
 handlers repeat across rooms.
 
-## m2c types the carved packet off the pointer it was loaded from, so the cursor bump scales by that type's size - retype it to the psyq packet (func_mine_cavern_80182454, 2026-09-17)
+## m2c types the carved packet off the pointer it was loaded from, so the cursor bump scales by that type's size - retype it to the psyq packet (_mineCavernDrawDarknessAndEffects, 2026-09-17)
 
 A function that carves a primitive out of `gGpuPrimCursor` comes back from m2c
 with the seed's pointer typed `DR_TPAGE*` - the 8-byte psyq drawing-TPage
@@ -149541,7 +149541,7 @@ attempts; left as it was.
   into the last identical call before the epilogue, wherever that is (the
   `break` path after the switch, or the last case's own kill).
 - **A chain of `cmd = K; goto cap_only / goto spawn;`** with the two tails
-  `run(cmd)` and `run(cmd); spawn();` (`func_mine_cavern_8017DAA0`, 5 gotos)
+  `run(cmd)` and `run(cmd); spawn();` (`mineCavernHandleCommandMessage`, 5 gotos)
   is an `if / else if` chain with the calls written in each arm. Put the arm
   whose tail the image places *last* in the final `else`: the image had the
   spawn tail before the cap-only one, so the last test is `!= 2` with the
