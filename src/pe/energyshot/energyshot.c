@@ -62,11 +62,11 @@ static _EnergyshotLevelTuning D_energyshot_801300E4[] = {
 /// The `sndEvtRequestScriptStart` id for each `D_energyshot_801300E4` row.
 static s32 D_energyshot_801300FC[] = { 0xE02A0001, 0xE02D0001, 0xE0300001 };
 
-static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg3);
+static void _energyshotDrawBeamBand(const GfxCoord* coord, s16 radiusGrowth, s16 height, const u8* rgb);
 
 /// Sixteen per-vertex texture-frame offsets, refilled once per cast by
 /// `func_energyshot_8012EF34` and consumed by the GTE pass in
-/// `func_energyshot_8012FA50`, where each is added to `gDisplayState.animFrame`
+/// `_energyshotDrawBeamBand`, where each is added to `gDisplayState.animFrame`
 /// and reduced mod 6 to pick one of the six 0x28-wide frames of the beam
 /// texture.
 static s16 D_energyshot_80130108[16];
@@ -196,14 +196,14 @@ void func_energyshot_8012EF34(Task* arg0)
                 actorRenderComposeCoord(coord);
                 if (mem->index != 0) {
                     if (mem->index == 2) {
-                        func_energyshot_8012FA50(coord, (s16)(mem->scale * 8),
-                                                 (s16)D_energyshot_801300E4[2].ringHeight >> 1, rgb);
+                        _energyshotDrawBeamBand(coord, (s16)(mem->scale * 8),
+                                                (s16)D_energyshot_801300E4[2].ringHeight >> 1, rgb);
                     }
-                    func_energyshot_8012FA50(
+                    _energyshotDrawBeamBand(
                         coord, (s16)(mem->scale * 4),
                         D_energyshot_801300E4[mem->index].ringHeight * 2, rgb);
                 }
-                func_energyshot_8012FA50(
+                _energyshotDrawBeamBand(
                     coord, (s16)(mem->scale * 6),
                     D_energyshot_801300E4[mem->index].ringHeight - 0x100, rgb);
                 rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -260,16 +260,16 @@ void func_energyshot_8012EF34(Task* arg0)
                     if (mem->index == 2) {
                         mem->period =
                             mem->period + D_energyshot_801300E4[2].scaleStep;
-                        func_energyshot_8012FA50(
+                        _energyshotDrawBeamBand(
                             coord, (s16)(mem->period * 8),
                             (s16)D_energyshot_801300E4[mem->index].ringHeight >> 1,
                             rgb);
                     }
-                    func_energyshot_8012FA50(
+                    _energyshotDrawBeamBand(
                         coord, (s16)(mem->period * 4),
                         D_energyshot_801300E4[mem->index].ringHeight * 2, rgb);
                 }
-                func_energyshot_8012FA50(
+                _energyshotDrawBeamBand(
                     coord, (s16)(mem->period * 6),
                     D_energyshot_801300E4[mem->index].ringHeight - 0x100, rgb);
                 return;
@@ -282,92 +282,126 @@ void func_energyshot_8012EF34(Task* arg0)
 
 #include "../../shared/glow_draw_wedge.inc.c"
 
-/// Draws the energy shot's beam: an inner ring of radius `arg1 + 0x400` sunk
-/// `arg2` along local Y and an outer ring of radius `arg1 / 2 + 0x100` in the
-/// local XY plane are built by `rsin` / `rcos`, rotated by `arg0`'s `workm`
-/// and offset by its translation, then each of the 16 segments is projected
-/// through `GsWSMATRIX` as one semi-transparent `POLY_FT4`. The texture cell
-/// is one of six 0x28-wide frames picked per vertex by `D_energyshot_80130108`
-/// plus the frame counter, the quad is tinted by the three bytes at `arg3`,
-/// and a negative `gte_stflg` drops the segment.
-static void func_energyshot_8012FA50(GfxCoord* arg0, s16 arg1, s16 arg2, u8* arg3)
-{
-    EffectBandScratch* block;
-    SVECTOR*           op;
-    POLY_FT4*          prim;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                u;
-    s16                idx;
-    s16                r0;
-    s16                r1;
-
-    r1    = arg1 / 2 + 0x100;
-    r0    = arg1 + 0x400;
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i << 8;
-        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
-        block->topRing[i].vy = -arg2;
-        block->topRing[i].vz = (rcos(ang) * r0) >> 12;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->topRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)arg0->workm.t[0];
-        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)arg0->workm.t[1];
-        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)arg0->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
-        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
-        op->vy                  = 0;
-        op->vz                  = (rcos(ang) * r1) >> 12;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->bottomRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)arg0->workm.t[0];
-        op->vy                  = (u16)op->vy + (u16)arg0->workm.t[1];
-        op->vz                  = (u16)op->vz + (u16)arg0->workm.t[2];
+/// Projects one band quad and selects its six-frame texture cell.
+///
+/// Borrows complete live scratch storage with both rings initialized and
+/// segmentIndex in 0..15. The caller has installed the projection matrices.
+/// Saves corner zero before RTPT advances the screen FIFO; only the final
+/// RTPT FLAG is retained, and the last corner's SZ3 remains for the caller.
+/// Texture phase lookup stays between RTPS and saving the first corner.
+/// All input arguments are side-effect-free locals, used repeatedly; textureFrame
+/// is a writable s16 lvalue. Captures display animation frame and the package phase table.
+/// The scoped next-segment temporary is private to the expansion.
+#define ENERGYSHOT_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame)                                                               \
+    {                                                                                                                                      \
+        enum { ENERGYSHOT_BAND_FRAME_COUNT = 6 };                                                                                          \
+        s32 nextSegmentIndex;                                                                                                              \
+                                                                                                                                           \
+        gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                     \
+        gte_rtps();                                                                                                                        \
+        (textureFrame) = (u32)(D_energyshot_80130108[(segmentIndex)] + gDisplayState.animFrame) % ENERGYSHOT_BAND_FRAME_COUNT;             \
+        gte_stsxy(&(scratch)->sxy0);                                                                                                       \
+        nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                         \
+        gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]); \
+        gte_rtpt();                                                                                                                        \
+        gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                  \
+        gte_stflg(&(scratch)->projectionFlags);                                                                                            \
     }
+
+/// Draws one textured tapered Energy Shot beam band between local-XZ rims.
+///
+/// Borrows the composed `coord` and three RGB bytes. Signed `radiusGrowth`
+/// and `height` are coordinate units: the top rim has radius growth + 1024
+/// at Y = -height, and the bottom rim has radius growth / 2 + 256 at Y = 0.
+/// Radii narrow to signed halfwords before Q12 sine/cosine products; rotated
+/// and translated vertices also retain their low halfwords. Six 40-texel
+/// frames use per-segment jitter plus the display frame. The final RTPT FLAG
+/// rejects a segment; sorting uses its last corner's SZ3 / 4 + 1.
+/// Reserves/releases one complete scratch block and appends at most sixteen
+/// additive modulated `POLY_FT4` packets. Inputs must stay clear of scratch
+/// and the unchecked primitive arena; queued packets live through drawing.
+static void _energyshotDrawBeamBand(const GfxCoord* coord, s16 radiusGrowth, s16 height, const u8* rgb)
+{
+    enum {
+        ENERGYSHOT_BAND_ANGLE_STEP         = 256,
+        ENERGYSHOT_BAND_TRIG_FRACTION_BITS = 12,
+        ENERGYSHOT_BAND_CELL_WIDTH         = 40,
+        ENERGYSHOT_BAND_TOP_V              = 0x60,
+        ENERGYSHOT_BAND_UV_SPAN            = 39,
+        ENERGYSHOT_BAND_TOP_RADIUS_BASE    = 1024,
+        ENERGYSHOT_BAND_BOTTOM_RADIUS_BASE = 256,
+    };
+    EffectBandScratch* scratch;
+    SVECTOR*           bottomVertex;
+    POLY_FT4*          quad;
+    s32                segmentIndex;
+    s32                rimAngle;
+    s32                textureU;
+    s16                textureFrame;
+    s16                topRadius;
+    s16                bottomRadius;
+
+    bottomRadius = radiusGrowth / 2 + ENERGYSHOT_BAND_BOTTOM_RADIUS_BASE;
+    topRadius    = radiusGrowth + ENERGYSHOT_BAND_TOP_RADIUS_BASE;
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    // Build both rims in local XZ, then transform their narrowed vertices.
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        rimAngle                          = segmentIndex * ENERGYSHOT_BAND_ANGLE_STEP;
+        scratch->topRing[segmentIndex].vx = (rsin(rimAngle) * topRadius) >> ENERGYSHOT_BAND_TRIG_FRACTION_BITS;
+        scratch->topRing[segmentIndex].vy = -height;
+        scratch->topRing[segmentIndex].vz = (rcos(rimAngle) * topRadius) >> ENERGYSHOT_BAND_TRIG_FRACTION_BITS;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->topRing[segmentIndex]);
+        gte_rtv0();
+        gte_stsv(&scratch->topRing[segmentIndex]);
+        scratch->topRing[segmentIndex].vx    = (u16)scratch->topRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        scratch->topRing[segmentIndex].vy    = (u16)scratch->topRing[segmentIndex].vy + (u16)coord->workm.t[1];
+        scratch->topRing[segmentIndex].vz    = (u16)scratch->topRing[segmentIndex].vz + (u16)coord->workm.t[2];
+        scratch->bottomRing[segmentIndex].vx = (rsin(rimAngle) * bottomRadius) >> ENERGYSHOT_BAND_TRIG_FRACTION_BITS;
+        // Address the lower rim through the complete scratch block's byte view.
+        bottomVertex     = (SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing));
+        bottomVertex->vy = 0;
+        bottomVertex->vz = (rcos(rimAngle) * bottomRadius) >> ENERGYSHOT_BAND_TRIG_FRACTION_BITS;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->bottomRing[segmentIndex]);
+        gte_rtv0();
+        gte_stsv(&scratch->bottomRing[segmentIndex]);
+        scratch->bottomRing[segmentIndex].vx = (u16)scratch->bottomRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        bottomVertex->vy                     = (u16)bottomVertex->vy + (u16)coord->workm.t[1];
+        bottomVertex->vz                     = (u16)bottomVertex->vz + (u16)coord->workm.t[2];
+    }
+    // Project sixteen wrapped segments; only accepted quads consume packets.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
-        gte_rtps();
-        idx = (u32)(D_energyshot_80130108[i] + gDisplayState.animFrame) % 6;
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            setRGB0(prim, arg3[0], arg3[1], arg3[2]);
-            setSemiTrans(prim, 1);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x42C1;
-            u           = idx * 0x28;
-            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        ENERGYSHOT_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            scratch->otz++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setRGB0(quad, rgb[0], rgb[1], rgb[2]);
+            setSemiTrans(quad, true);
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
+            quad->clut  = getClut(16, 267);
+            textureU    = textureFrame * ENERGYSHOT_BAND_CELL_WIDTH;
+            setUV4(quad, textureU, ENERGYSHOT_BAND_TOP_V, textureU + ENERGYSHOT_BAND_UV_SPAN, ENERGYSHOT_BAND_TOP_V, textureU, ENERGYSHOT_BAND_TOP_V + ENERGYSHOT_BAND_UV_SPAN, textureU + ENERGYSHOT_BAND_UV_SPAN, ENERGYSHOT_BAND_TOP_V + ENERGYSHOT_BAND_UV_SPAN);
+            quad->x0 = (u16)scratch->sxy0.vx;
+            quad->y0 = (u16)scratch->sxy0.vy;
+            quad->x1 = (u16)scratch->sxy1.vx;
+            quad->y1 = (u16)scratch->sxy1.vy;
+            quad->x2 = (u16)scratch->sxy2.vx;
+            quad->y2 = (u16)scratch->sxy2.vy;
+            quad->x3 = (u16)scratch->sxy3.vx;
+            quad->y3 = (u16)scratch->sxy3.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
+#undef ENERGYSHOT_PROJECT_BAND_SEGMENT
 
 /// Initializes an Energy Shot billboard's fixed upward velocity and screen rotation.
 ///

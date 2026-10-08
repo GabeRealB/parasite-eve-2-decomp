@@ -176,38 +176,72 @@ static inline void _necrosisSetLargeMistPuffCorners(EffectShapeScratch* scratch,
     quad->y2                 = scratch->screenY + scratch->extent.corner.y;
 }
 
-/// Runs one frame of the necrosis cast. State 0 copies the player rotation onto
-/// the effect coordinate, rotates a (0, 0, 0x90) offset into that frame, and
-/// links a `_NecrosisWork` collision pair (list 1 + list 7) whose packed id is
-/// the combo digits plus `0x28000`. State 1 GPF-scales that offset by 0x1100
-/// each frame, walks the coordinate, and spawns `0x80060019`; a `0x100000` hit
-/// on `gridBody` zeros the offset and unlinks the list-7 object. State 2 waits
-/// `travelFrames + 0x10` ticks. Any state releases if the player is dying
-/// (`Gp_StateC08.effectPhase` / `Gp_StateC08.effectPhase`) or parasite-energy effects are
-/// cancelled (`gRoomEffectState->peEffectControl`).
-void func_necrosis_8012EF34(Task* arg0)
+/// Copies the player's nine Q12 coefficients without changing translation.
+///
+/// Both matrices are live and word-aligned; destination is writable. Copies
+/// four words and the final halfword, preserving the two alignment bytes.
+/// Caller invalidates and composes the coordinate afterward. No GTE changes.
+static inline void _necrosisCopyCastRotation(MATRIX* destination, const MATRIX* source)
 {
-    _NecrosisWork*         work;
-    EffectWork*            mem;
+    GfxRotationWords*       destinationRotation = (GfxRotationWords*)destination;
+    const GfxRotationWords* sourceRotation      = (const GfxRotationWords*)source;
+
+    destinationRotation->m00M01 = sourceRotation->m00M01;
+    destinationRotation->m02M10 = sourceRotation->m02M10;
+    destinationRotation->m11M12 = sourceRotation->m11M12;
+    destinationRotation->m20M21 = sourceRotation->m20M21;
+    destinationRotation->m22    = sourceRotation->m22;
+}
+
+/// Applies one velocity step in the parent frame and refreshes the composed coordinate.
+///
+/// Borrows live writable coord and read-only effect; additions must fit s32.
+/// Parent coordinates must stay live through composition. Clobbers GTE state.
+static inline void _necrosisAdvanceCastCoord(GfxCoord* coord, const EffectWork* effect)
+{
+    coord->coord.t[0]  += effect->move.vx;
+    coord->coord.t[1]  += effect->move.vy;
+    coord->coord.t[2]  += effect->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
+
+void necrosisCastTask(Task* task)
+{
+    enum {
+        NECROSIS_MOTOR_START_INTENSITY = 0xFF,
+        NECROSIS_MOTOR_END_INTENSITY   = 8,
+        NECROSIS_CAST_INITIALIZE       = 0,
+        NECROSIS_CAST_TRAVELLING       = 1,
+        NECROSIS_CAST_WAIT_FOR_TRAIL   = 2,
+        NECROSIS_LAUNCH_SPEED          = 0x90,
+        NECROSIS_SPELL_DAMAGE_KEY_BASE = WORLD_COLLISION_CONTACT_ATTACK | 0x8000,
+        NECROSIS_GRID_PROBE_RADIUS     = 0x80,
+        NECROSIS_VELOCITY_SCALE_Q12    = 0x1100,
+        NECROSIS_TRAIL_SIZE_STEP       = 0x60,
+        NECROSIS_DAMAGE_RADIUS_STEP    = 0x20,
+        NECROSIS_MOTOR_TAIL_FRAMES     = 0xC,
+        NECROSIS_TRAIL_WAIT_FRAMES     = 0x10,
+    };
+    _NecrosisWork*         collision;
+    EffectWork*            effect;
     GfxCoord*              coord;
-    GfxCoord*              player;
-    GfxRotationWords*      destinationRotation;
-    GfxRotationWords*      sourceRotation;
+    GfxCoord*              playerCoord;
     WorldCollisionContact* contacts;
     EffectWork*            spawned;
     s32                    pan;
-    u16                    old;
-    s32                    tick;
+    u16                    previousAge;
+    s32                    nextAge;
     s16                    peEffectControl;
 
-    work     = arg0->work;
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    old      = mem->age;
-    tick     = old + 1;
-    mem->age = tick;
-    switch (arg0->state) {
-        case 0:
+    collision   = task->work;
+    effect      = task->spawnArg2.pointer;
+    coord       = task->extra.coordBody->coord;
+    previousAge = effect->age;
+    nextAge     = previousAge + 1;
+    effect->age = nextAge;
+    switch (task->state) {
+        case NECROSIS_CAST_INITIALIZE:
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
                 break;
             }
@@ -216,146 +250,149 @@ void func_necrosis_8012EF34(Task* arg0)
                 break;
             }
             if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
-                mem->age = old;
+                effect->age = previousAge;
                 return;
             }
-            work = memCalloc(sizeof(_NecrosisWork), 0);
-            if (work == NULL) {
-                mem->age = 0;
+            collision = memCalloc(sizeof(_NecrosisWork), 0);
+            if (collision == NULL) {
+                effect->age = 0;
                 return;
             }
-            player                      = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            destinationRotation         = (GfxRotationWords*)&coord->coord;
-            sourceRotation              = (GfxRotationWords*)&player->coord;
-            destinationRotation->m00M01 = sourceRotation->m00M01;
-            destinationRotation->m02M10 = sourceRotation->m02M10;
-            destinationRotation->m11M12 = sourceRotation->m11M12;
-            destinationRotation->m20M21 = sourceRotation->m20M21;
-            destinationRotation->m22    = sourceRotation->m22;
-            coord->composeStamp         = GRAPHICS_COORD_DIRTY;
+            playerCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+            // Borrow only the player's rotation; this cloud retains its own translation.
+            _necrosisCopyCastRotation(&coord->coord, &playerCoord->coord);
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            mem->move.vx = 0;
-            mem->move.vy = 0;
-            mem->move.vz = 0x90;
-            gte_SetRotMatrix(&player->coord);
-            gte_ldv0(&mem->move);
+            effect->move.vx = 0;
+            effect->move.vy = 0;
+            effect->move.vz = NECROSIS_LAUNCH_SPEED;
+            gte_SetRotMatrix(&playerCoord->coord);
+            gte_ldv0(&effect->move);
             gte_rtv0();
-            gte_stsv(&mem->move);
-            contacts                          = work->contacts;
-            mem->index                        = (Gp_StateC08.attachId % 10) - 1;
-            arg0->work                        = work;
-            work->damageBody.coord            = coord;
-            work->damageBody.context.contacts = contacts;
-            work->damageBody.key =
-                ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.attachId % 10) + 0x28000;
-            work->damageBody.radius = D_necrosis_801306BC[mem->index].startRadius;
-            work->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
-            worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->damageBody);
-            contacts->flags                 = WORLD_COLLISION_CONTACT_LAST;
-            work->gridBody.coord            = coord;
-            work->gridBody.context.contacts = contacts;
-            work->gridBody.key              = 0;
-            work->gridBody.radius           = 0x80;
-            work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            work->damageBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            worldCollisionLinkBody(WORLD_COLLISION_LIST_GRID_ONLY, &work->gridBody);
-            work->gridBody.flags = (work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
-            pan                  = (s8)worldCoordGetOriginAudioPan(coord);
+            gte_stsv(&effect->move);
+            contacts                               = collision->contacts;
+            effect->index                          = (Gp_StateC08.attachId % 10) - 1;
+            task->work                             = collision;
+            collision->damageBody.coord            = coord;
+            collision->damageBody.context.contacts = contacts;
+            collision->damageBody.key =
+                ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 + ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 + (u16)(Gp_StateC08.attachId % 10) + NECROSIS_SPELL_DAMAGE_KEY_BASE;
+            collision->damageBody.radius = D_necrosis_801306BC[effect->index].startRadius;
+            collision->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &collision->damageBody);
+            contacts->flags                      = WORLD_COLLISION_CONTACT_LAST;
+            collision->gridBody.coord            = coord;
+            collision->gridBody.context.contacts = contacts;
+            collision->gridBody.key              = 0;
+            collision->gridBody.radius           = NECROSIS_GRID_PROBE_RADIUS;
+            collision->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            collision->damageBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_GRID_ONLY, &collision->gridBody);
+            collision->gridBody.flags = (collision->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
+            pan                       = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_necrosis_801306C8[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
-            padScriptSpawnVariableMotorRamp(D_necrosis_801306BC[mem->index].travelFrames + 0xC, 0xFF, 8);
-            arg0->state = 1;
+            padScriptSpawnVariableMotorRamp(D_necrosis_801306BC[effect->index].travelFrames + NECROSIS_MOTOR_TAIL_FRAMES, NECROSIS_MOTOR_START_INTENSITY, NECROSIS_MOTOR_END_INTENSITY);
+            task->state = NECROSIS_CAST_TRAVELLING;
             /* fallthrough */
-        case 1:
+        case NECROSIS_CAST_TRAVELLING:
             if (gRoomEffectState->peEffectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                gte_lddp(0x1100);
-                gte_ldsv(&mem->move);
+                // Accelerate before moving and emitting the growing trail, including launch.
+                gte_lddp(NECROSIS_VELOCITY_SCALE_Q12);
+                gte_ldsv(&effect->move);
                 gte_gpf12();
-                gte_stsv(&mem->move);
-                coord->coord.t[0]  += mem->move.vx;
-                coord->coord.t[1]  += mem->move.vy;
-                coord->coord.t[2]  += mem->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
+                gte_stsv(&effect->move);
+                _necrosisAdvanceCastCoord(coord, effect);
                 spawned = effectSpawn((EFFECT_NECROSIS_TRAIL_PUFF | EFFECT_SPAWN_UNLIMITED), coord,
-                                      D_necrosis_801306BC[mem->index].startRadius + (mem->age * 0x60),
+                                      D_necrosis_801306BC[effect->index].startRadius + (effect->age * NECROSIS_TRAIL_SIZE_STEP),
                                       NULL);
                 if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
+                    taskReparent(task, spawned->task);
                 }
-                work->damageBody.radius = work->damageBody.radius + 0x20;
+                collision->damageBody.radius = collision->damageBody.radius + NECROSIS_DAMAGE_RADIUS_STEP;
             } else {
-                mem->age = mem->age - 1;
+                effect->age = effect->age - 1;
             }
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                worldCollisionUnlinkBody(&work->damageBody);
-                worldCollisionUnlinkBody(&work->gridBody);
+                worldCollisionUnlinkBody(&collision->damageBody);
+                worldCollisionUnlinkBody(&collision->gridBody);
                 break;
             }
-            if (mem->age > D_necrosis_801306BC[mem->index].travelFrames) {
-                worldCollisionUnlinkBody(&work->damageBody);
-                worldCollisionUnlinkBody(&work->gridBody);
-                arg0->state = 2;
+            if (effect->age > D_necrosis_801306BC[effect->index].travelFrames) {
+                worldCollisionUnlinkBody(&collision->damageBody);
+                worldCollisionUnlinkBody(&collision->gridBody);
+                task->state = NECROSIS_CAST_WAIT_FOR_TRAIL;
                 return;
             }
-            if (worldCollisionFindContactIndex(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-                mem->move.vx = 0;
-                mem->move.vy = 0;
-                mem->move.vz = 0;
-                worldCollisionUnlinkBody(&work->gridBody);
+            if (worldCollisionFindContactIndex(collision->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+                effect->move.vx = 0;
+                effect->move.vy = 0;
+                effect->move.vz = 0;
+                worldCollisionUnlinkBody(&collision->gridBody);
             }
-            worldCollisionClearContacts(work->contacts);
+            worldCollisionClearContacts(collision->contacts);
             return;
-        case 2:
+        case NECROSIS_CAST_WAIT_FOR_TRAIL:
+            // Bodies are unlinked; the final wait continues aging even while PE is paused.
             if (Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) {
                 break;
             }
             if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
                 break;
             }
-            tick = (s16)tick;
-            if ((D_necrosis_801306BC[mem->index].travelFrames + 0x10) < tick) {
+            nextAge = (s16)nextAge;
+            if ((D_necrosis_801306BC[effect->index].travelFrames + NECROSIS_TRAIL_WAIT_FRAMES) < nextAge) {
                 break;
             }
             return;
         default:
             return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(effect, task);
 }
 
-void func_necrosis_8012F52C(Task* arg0)
+void necrosisTrailPuffTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        NECROSIS_TRAIL_INITIALIZE           = 0,
+        NECROSIS_TRAIL_SHRINKING            = 1,
+        NECROSIS_TRAIL_SIZE_ANGLE_MASK      = 0xFFF,
+        NECROSIS_TRAIL_MIST_SIZE_OFFSET     = 0x100,
+        NECROSIS_TRAIL_SHRINK_FRACTION_BITS = 4,
+        NECROSIS_TRAIL_TEXTURE_FRAMES       = 6,
+        NECROSIS_TRAIL_MIST_INTERVAL        = 3,
+    };
+    EffectWork* effect;
     GfxCoord*   coord;
     EffectWork* spawned;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    effect = task->spawnArg2.pointer;
+    coord  = task->extra.coordBody->coord;
     if (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
 
-    mem->age = mem->age + 1;
-    if (arg0->state == 0) {
-        mem->scale      = arg0->spawnArg1.value & 0xFFF;
+    effect->age = effect->age + 1;
+    if (task->state == NECROSIS_TRAIL_INITIALIZE) {
+        effect->scale   = task->spawnArg1.value & NECROSIS_TRAIL_SIZE_ANGLE_MASK;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        mem->angle      = (gRandomLcgState >> 16) & 0xFFF;
-        mem->period     = mem->scale - 0x100;
-        mem->step       = mem->scale >> 4;
-        arg0->state     = 1;
+        effect->angle   = (gRandomLcgState >> 16) & NECROSIS_TRAIL_SIZE_ANGLE_MASK;
+        effect->period  = effect->scale - NECROSIS_TRAIL_MIST_SIZE_OFFSET;
+        effect->step    = effect->scale >> NECROSIS_TRAIL_SHRINK_FRACTION_BITS;
+        task->state     = NECROSIS_TRAIL_SHRINKING;
     }
     actorRenderComposeCoord(coord);
-    spriteQuadDraw(coord, mem->age % 6, mem->scale, mem->angle);
-    mem->scale = mem->scale - mem->step;
-    if (mem->scale < mem->step) {
-        effectKillTask(mem, arg0);
+    spriteQuadDraw(coord, effect->age % NECROSIS_TRAIL_TEXTURE_FRAMES, effect->scale, effect->angle);
+    // Retire before the every-third-age child emission when the final shrink expires.
+    effect->scale -= effect->step;
+    if (effect->scale < effect->step) {
+        effectKillTask(effect, task);
         return;
     }
-    if (mem->age % 3 == 0) {
-        spawned = effectSpawn(EFFECT_NECROSIS_MIST_PUFF, coord, (s32)(mem->period), 0);
+    if (effect->age % NECROSIS_TRAIL_MIST_INTERVAL == 0) {
+        spawned = effectSpawn(EFFECT_NECROSIS_MIST_PUFF, coord, (s32)(effect->period), 0);
         if (spawned != NULL) {
-            taskReparent(arg0, spawned->task);
+            taskReparent(task, spawned->task);
         }
     }
 }

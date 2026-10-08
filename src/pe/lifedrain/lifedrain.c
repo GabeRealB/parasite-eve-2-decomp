@@ -478,23 +478,23 @@ void func_lifedrain_8012FAF8(Task* arg0)
 /// Sets a mote billboard's corners around its projected centre.
 ///
 /// Borrows a live scratch block and writable quad. Centre and extent are
-/// reduced to their low 16-bit encodings before corner arithmetic; packet
-/// stores retain the low 16 bits. Only the eight XY halfwords change.
+/// used in signed word edge arithmetic, which must fit s32; packet stores
+/// retain the low 16 bits. Only the eight XY halfwords change.
 static inline void _lifedrainSetMoteBillboardBounds(POLY_FT4* quad, const EffectCentreScratch* scratch)
 {
     s16 edgeX;
     s16 edgeY;
 
-    edgeX    = scratch->screenX - (u16)scratch->screenExtent;
+    edgeX    = scratch->screenX - scratch->screenExtent;
     quad->x2 = edgeX;
     quad->x0 = edgeX;
-    edgeX    = scratch->screenX + (u16)scratch->screenExtent;
+    edgeX    = scratch->screenX + scratch->screenExtent;
     quad->x3 = edgeX;
     quad->x1 = edgeX;
-    edgeY    = scratch->screenY - (u16)scratch->screenExtent;
+    edgeY    = scratch->screenY - scratch->screenExtent;
     quad->y1 = edgeY;
     quad->y0 = edgeY;
-    edgeY    = scratch->screenY + (u16)scratch->screenExtent;
+    edgeY    = scratch->screenY + scratch->screenExtent;
     quad->y3 = edgeY;
     quad->y2 = edgeY;
 }

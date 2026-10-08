@@ -1971,7 +1971,7 @@ func_hypervelocity_8011D830 = 0x8011D830; // type:func absolute:True owner=hyper
 
 hypervelocityShockRingTask = 0x8011F168; // type:func absolute:True owner=hypervelocity
 
-func_pyrokinesis_8012EF48 = 0x8012EF48; // type:func absolute:True owner=pyrokinesis shared=pe
+pyrokinesisCastTask = 0x8012EF48; // type:func absolute:True owner=pyrokinesis shared=pe
 
 pyrokinesisLaunchConeTask = 0x80131CE4; // type:func absolute:True owner=pyrokinesis
 
@@ -1981,7 +1981,7 @@ healingRisingSparkTask = 0x8012F494; // type:func absolute:True owner=healing
 
 func_healing_8012F5E4 = 0x8012F5E4; // type:func absolute:True owner=healing
 
-func_necrosis_8012F52C = 0x8012F52C; // type:func absolute:True owner=necrosis
+necrosisTrailPuffTask = 0x8012F52C; // type:func absolute:True owner=necrosis
 
 necrosisMistPuffTask = 0x8012FAF8; // type:func absolute:True owner=necrosis shared=pe
 
@@ -2039,11 +2039,11 @@ pyrokinesisFlameRingTask = 0x801311B8; // type:func absolute:True owner=pyrokine
 
 apobiosisShardTask = 0x8012FE10; // type:func absolute:True owner=apobiosis
 
-func_energyball_8012F180 = 0x8012F180; // type:func absolute:True owner=energyball
+energyballProjectileTask = 0x8012F180; // type:func absolute:True owner=energyball
 
 energyballImpactRingTask = 0x8013107C; // type:func absolute:True owner=energyball
 
-func_pyrokinesis_8012FAC8 = 0x8012FAC8; // type:func absolute:True owner=pyrokinesis
+pyrokinesisVolleyTask = 0x8012FAC8; // type:func absolute:True owner=pyrokinesis
 
 m4a1PykeFlameTask = 0x8011D7D4; // type:func absolute:True owner=m4a1_pyke
 
@@ -2067,13 +2067,13 @@ func_combustion_801308E0 = 0x801308E0; // type:func absolute:True owner=combusti
 
 func_gunblade_8011DAA4 = 0x8011DAA4; // type:func absolute:True owner=gunblade
 
-func_metabolism_8012EF34 = 0x8012EF34; // type:func absolute:True owner=metabolism shared=pe
+metabolismCastTask = 0x8012EF34; // type:func absolute:True owner=metabolism shared=pe
 
-func_plasma_8012EF34 = 0x8012EF34; // type:func absolute:True owner=plasma shared=pe
+plasmaCastTask = 0x8012EF34; // type:func absolute:True owner=plasma shared=pe
 
 func_healing_8012EF34 = 0x8012EF34; // type:func absolute:True owner=healing shared=pe
 
-func_necrosis_8012EF34 = 0x8012EF34; // type:func absolute:True owner=necrosis shared=pe
+necrosisCastTask = 0x8012EF34; // type:func absolute:True owner=necrosis shared=pe
 
 func_lifedrain_8012EF48 = 0x8012EF48; // type:func absolute:True owner=lifedrain shared=pe
 
@@ -2081,7 +2081,7 @@ func_antibody_8012EF34 = 0x8012EF34; // type:func absolute:True owner=antibody s
 
 func_energyshot_8012EF34 = 0x8012EF34; // type:func absolute:True owner=energyshot shared=pe
 
-func_energyball_8012EF48 = 0x8012EF48; // type:func absolute:True owner=energyball shared=pe
+energyballCastTask = 0x8012EF48; // type:func absolute:True owner=energyball shared=pe
 
 pepperSprayEffectTask = 0x8012EF34; // type:func absolute:True owner=pepper_spray shared=pe
 

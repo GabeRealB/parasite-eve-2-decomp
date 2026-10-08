@@ -86,367 +86,414 @@ static s32 D_pyrokinesis_80131DD8[] = {
 /// when the cast starts.
 static s16 D_pyrokinesis_80131DFC[16] = { 0 };
 
-/// Runs one frame of the pyrokinesis cast: a five-state machine driven by
-/// `Task::state`. State 0 copies the player rotation onto the effect
-/// coordinate, rotates the combo-scaled launch offset into that frame, rolls
-/// the 16 per-flame jitters, plays the roar picked by combo level and cast
-/// variant, and links the two spheres of a `_PyrokinesisWork` (list 1 + list
-/// 7), the damage sphere keyed with the combo digits plus `0x28000`. State 1
-/// walks the coordinate by that offset each frame, redraws the cone and ring,
-/// parks the room light slot on it and burns until the `Gp_AttachParams` extent
-/// for the combo level runs out. A `0x30000` hit on `damageBody` bursts into
-/// three `0x600F6` flames and moves to state 3 (or 4 for cast variant 2); a
-/// `WORLD_COLLISION_CONTACT_GRID` contact on `gridBody` means a wall, which
-/// drops to state 2 and fades the cone out. States 3 and 4 grow
-/// the two rings until they pass the combo radius, state 4 first stepping the
-/// brightness down by 8 a frame. Any state releases if the player is dying
-/// (`Gp_StateC08.effectPhase` / `Gp_StateC08.effectPhase`) or parasite-energy effects are
-/// cancelled (`gRoomEffectState->peEffectControl`).
-void func_pyrokinesis_8012EF48(Task* arg0)
+/// Copies the player's nine Q12 coefficients without changing translation.
+///
+/// Both matrices are live and word-aligned; destination is writable. Copies
+/// four words and the final halfword, preserving the two alignment bytes.
+/// Caller invalidates and composes the coordinate afterward. No GTE changes.
+static inline void _pyrokinesisCopyCastRotation(MATRIX* destination, const MATRIX* source)
 {
-    EffectWork*                    mem;
+    GfxRotationWords*       destinationRotation = (GfxRotationWords*)destination;
+    const GfxRotationWords* sourceRotation      = (const GfxRotationWords*)source;
+
+    destinationRotation->m00M01 = sourceRotation->m00M01;
+    destinationRotation->m02M10 = sourceRotation->m02M10;
+    destinationRotation->m11M12 = sourceRotation->m11M12;
+    destinationRotation->m20M21 = sourceRotation->m20M21;
+    destinationRotation->m22    = sourceRotation->m22;
+}
+
+/// Applies one velocity step in the parent frame and refreshes the composed coordinate.
+///
+/// Borrows live writable coord and read-only effect; additions must fit s32.
+/// Parent coordinates must stay live through composition. Clobbers GTE state.
+static inline void _pyrokinesisAdvanceCastCoord(GfxCoord* coord, const EffectWork* effect)
+{
+    coord->coord.t[0]  += effect->move.vx;
+    coord->coord.t[1]  += effect->move.vy;
+    coord->coord.t[2]  += effect->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
+
+void pyrokinesisCastTask(Task* task)
+{
+    // Packed shift expressions retain the target's unsigned halfword loads.
+    enum {
+        PYROKINESIS_SPEED_PER_LEVEL         = 64,
+        PYROKINESIS_SPEED_BASE              = 0x1C0,
+        PYROKINESIS_PHASE_JITTER_MASK       = 0xFF,
+        PYROKINESIS_LIGHT_RADIUS_BASE       = 0x200,
+        PYROKINESIS_LIGHT_HOLD_FRAMES       = 4,
+        PYROKINESIS_LIGHT_INTENSITY_BASE    = 0x800,
+        PYROKINESIS_LIGHT_JITTER_MASK       = 0x700,
+        PYROKINESIS_TRAVEL_EXTENT_PER_FRAME = 6,
+        PYROKINESIS_MOTOR_START_INTENSITY   = 0xFF,
+        PYROKINESIS_MOTOR_END_INTENSITY     = 8,
+        PYROKINESIS_STATE_INITIALIZE        = 0,
+        PYROKINESIS_STATE_TRAVELLING        = 1,
+        PYROKINESIS_STATE_SHRINKING         = 2,
+        PYROKINESIS_STATE_BURSTING          = 3,
+        PYROKINESIS_STATE_BURST_THEN_FADE   = 4,
+        PYROKINESIS_SPELL_DAMAGE_KEY_BASE   = WORLD_COLLISION_CONTACT_ATTACK | 0x8000,
+        PYROKINESIS_INITIAL_BRIGHTNESS      = 0xC0,
+        PYROKINESIS_LAUNCH_RADIUS           = 0x500,
+        PYROKINESIS_ANGLE_MASK              = 0xFFF,
+        PYROKINESIS_RADIUS_STEP             = 0x40,
+        PYROKINESIS_TRAVEL_RADIUS_BASE      = 0x380,
+        PYROKINESIS_BURST_RADIUS_BASE       = 0x580,
+        PYROKINESIS_IMPACT_BEARING_LIMIT    = 0x556,
+        PYROKINESIS_IMPACT_BEARING_STEP     = 0x2AA,
+        PYROKINESIS_TRAIL_AGE_LIMIT         = 0x1E,
+        PYROKINESIS_TRAVEL_AGE_LIMIT        = 0x1F,
+        PYROKINESIS_MIN_PUFF_RADIUS         = 0x81,
+        PYROKINESIS_SHRINK_END_RADIUS       = 0x80,
+        PYROKINESIS_FADE_END_BRIGHTNESS     = 9,
+        PYROKINESIS_BRIGHTNESS_STEP         = 8,
+    };
+    EffectWork*                    effect;
     GfxCoord*                      coord;
-    _PyrokinesisWork*              work;
-    ModelObjectCoordBody*          body;
-    GfxCoord*                      player;
+    _PyrokinesisWork*              collision;
+    ModelObjectCoordBody*          coordBody;
+    GfxCoord*                      playerCoord;
     WorldCoordTransientPointLight* lightSlot;
     GfxCoord*                      lightCoord;
-    WorldCoordPointLight*          slot;
-    GfxRotationWords*              destinationRotation;
-    GfxRotationWords*              sourceRotation;
+    WorldCoordPointLight*          pointLight;
     EffectWork*                    spawned;
-    GfxCoord                       ground;
+    GfxCoord                       groundCoord;
     u8                             rgb[3];
-    s32                            i;
+    s32                            rimIndex;
     s32                            pan;
     s16                            peEffectControl;
-    s32                            tick;
+    s32                            age;
     s32                            radius;
-    s32                            next;
-    s16                            amp;
+    s32                            nextState;
+    s16                            lightIntensity;
 
-    work       = arg0->work;
-    mem        = arg0->spawnArg2.pointer;
-    body       = arg0->extra.coordBody;
-    coord      = body->coord;
-    mem->age   = mem->age + 1;
-    lightSlot  = gWorldCoordTransientPointLights;
-    lightCoord = &lightSlot->light.head.transform.coord;
-    slot       = &lightSlot->light;
-    switch (arg0->state) {
-        case 0:
+    collision   = task->work;
+    effect      = task->spawnArg2.pointer;
+    coordBody   = task->extra.coordBody;
+    coord       = coordBody->coord;
+    effect->age = effect->age + 1;
+    lightSlot   = gWorldCoordTransientPointLights;
+    lightCoord  = &lightSlot->light.head.transform.coord;
+    pointLight  = &lightSlot->light;
+    switch (task->state) {
+        case PYROKINESIS_STATE_INITIALIZE:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                effectKillTask(mem, arg0);
+                effectKillTask(effect, task);
                 return;
             }
-            if (peEffectControl != 0) {
-                mem->age = mem->age - 1;
+            if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                effect->age = effect->age - 1;
                 return;
             }
-            work = memCalloc(sizeof(_PyrokinesisWork), 0);
-            if (work == NULL) {
-                mem->age = 0;
+            collision = memCalloc(sizeof(_PyrokinesisWork), 0);
+            if (collision == NULL) {
+                effect->age = 0;
                 return;
             }
-            player                      = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-            destinationRotation         = (GfxRotationWords*)&coord->coord;
-            sourceRotation              = (GfxRotationWords*)&player->coord;
-            destinationRotation->m00M01 = sourceRotation->m00M01;
-            destinationRotation->m02M10 = sourceRotation->m02M10;
-            destinationRotation->m11M12 = sourceRotation->m11M12;
-            destinationRotation->m20M21 = sourceRotation->m20M21;
-            destinationRotation->m22    = sourceRotation->m22;
-            coord->composeStamp         = GRAPHICS_COORD_DIRTY;
+            playerCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+            // Borrow only the player's rotation; launch in that forward frame.
+            _pyrokinesisCopyCastRotation(&coord->coord, &playerCoord->coord);
+            coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            mem->move.vx = 0;
-            mem->move.vy = 0;
-            mem->move.vz = (Gp_StateC08.attachId % 10) * 64 + 0x1C0;
-            gte_SetRotMatrix(&player->coord);
-            gte_ldv0(&mem->move);
+            effect->move.vx = 0;
+            effect->move.vy = 0;
+            effect->move.vz = (Gp_StateC08.attachId % 10) * PYROKINESIS_SPEED_PER_LEVEL + PYROKINESIS_SPEED_BASE;
+            gte_SetRotMatrix(&playerCoord->coord);
+            gte_ldv0(&effect->move);
             gte_rtv0();
-            gte_stsv(&mem->move);
-            for (i = 0; i < 16; i++) {
-                gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                D_pyrokinesis_80131DFC[i] = (gRandomLcgState >> 16) & 0xFF;
+            gte_stsv(&effect->move);
+            for (rimIndex = 0; rimIndex < ARRAY_SIZE(D_pyrokinesis_80131DFC); rimIndex++) {
+                gRandomLcgState                  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                D_pyrokinesis_80131DFC[rimIndex] = (gRandomLcgState >> 16) & PYROKINESIS_PHASE_JITTER_MASK;
             }
-            mem->scale      = 0xC0;
-            mem->angle      = 0x500;
+            effect->scale   = PYROKINESIS_INITIAL_BRIGHTNESS;
+            effect->angle   = PYROKINESIS_LAUNCH_RADIUS;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->period     = (gRandomLcgState >> 16) & 0xFFF;
-            mem->index      = (Gp_StateC08.attachId % 10) - 1;
+            effect->period  = (gRandomLcgState >> 16) & PYROKINESIS_ANGLE_MASK;
+            effect->index   = (Gp_StateC08.attachId % 10) - 1;
             pan             = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_pyrokinesis_80131DD8[mem->index * 3 + arg0->spawnArg1.value], pan,
+            sndEvtRequestScriptStart(D_pyrokinesis_80131DD8[effect->index * 3 + task->spawnArg1.value], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
-            padScriptSpawnVariableMotorRamp((s16)(mem->index * 2 + 8), 0xFF, 8);
-            if (mem->index == 1) {
-                arg0->spawnArg1.value = 1;
-            } else if (arg0->spawnArg1.value == 1) {
-                arg0->spawnArg1.value = 0;
+            padScriptSpawnVariableMotorRamp((s16)(effect->index * 2 + 8), PYROKINESIS_MOTOR_START_INTENSITY, PYROKINESIS_MOTOR_END_INTENSITY);
+            // Choose the sound with the requested variant before normalizing cone behavior.
+            if (effect->index == 1) {
+                task->spawnArg1.value = 1;
+            } else if (task->spawnArg1.value == 1) {
+                task->spawnArg1.value = 0;
             }
-            arg0->work                        = work;
-            work->damageBody.coord            = coord;
-            work->damageBody.context.contacts = work->contacts;
-            work->damageBody.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
-                                   ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
-                                   (u16)(Gp_StateC08.attachId % 10) + 0x28000;
-            work->damageBody.radius = mem->angle;
-            work->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
-            worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->damageBody);
-            work->contacts[0].flags         = WORLD_COLLISION_CONTACT_LAST;
-            work->gridBody.coord            = coord;
-            work->gridBody.context.contacts = work->contacts;
-            work->gridBody.key              = 0;
-            work->damageBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            work->gridBody.radius           = (s16)((u16)mem->angle << 16 >> 19);
-            work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-            worldCollisionLinkBody(WORLD_COLLISION_LIST_GRID_ONLY, &work->gridBody);
-            work->gridBody.flags = (work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
+            task->work                             = collision;
+            collision->damageBody.coord            = coord;
+            collision->damageBody.context.contacts = collision->contacts;
+            collision->damageBody.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
+                                        ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
+                                        (u16)(Gp_StateC08.attachId % 10) + PYROKINESIS_SPELL_DAMAGE_KEY_BASE;
+            collision->damageBody.radius = effect->angle;
+            collision->damageBody.flags  = WORLD_COLLISION_BODY_SPHERE;
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &collision->damageBody);
+            collision->contacts[0].flags         = WORLD_COLLISION_CONTACT_LAST;
+            collision->gridBody.coord            = coord;
+            collision->gridBody.context.contacts = collision->contacts;
+            collision->gridBody.key              = 0;
+            collision->damageBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            collision->gridBody.radius           = (s16)((u16)effect->angle << 16 >> 19);
+            collision->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
+            worldCollisionLinkBody(WORLD_COLLISION_LIST_GRID_ONLY, &collision->gridBody);
+            collision->gridBody.flags = (collision->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED)) | (WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_GRID_ENABLED);
             effectSpawn(EFFECT_PYROKINESIS_LAUNCH_CONE, coord, 0, NULL);
             rgb[0] = 0xFF;
             rgb[1] = 0x7F;
             rgb[2] = 0x3F;
             effectDrawScreenTint(rgb, GPU_BLEND_ADD);
-            arg0->state = 1;
-            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            if (worldCollisionCountContactsByKind(work->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-                worldCollisionUnlinkBody(&work->damageBody);
-                radius     = (mem->index << 9) + 0x380;
-                mem->angle = radius;
-                for (i = 0; i < 0x556; i += 0x2AA) {
-                    spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
+            task->state = PYROKINESIS_STATE_TRAVELLING;
+            spriteQuadDraw(coord, effect->age, effect->angle, effect->period);
+            glowDrawFlameDisc(coord, effect->angle, (s16)((u16)effect->scale << 16 >> 17));
+            if (worldCollisionCountContactsByKind(collision->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+                worldCollisionUnlinkBody(&collision->damageBody);
+                radius        = (effect->index << 9) + PYROKINESIS_TRAVEL_RADIUS_BASE;
+                effect->angle = radius;
+                for (rimIndex = 0; rimIndex < PYROKINESIS_IMPACT_BEARING_LIMIT; rimIndex += PYROKINESIS_IMPACT_BEARING_STEP) {
+                    spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_RING, coord, rimIndex, NULL);
                     if (spawned != NULL) {
-                        taskReparent(arg0, spawned->task);
+                        taskReparent(task, spawned->task);
                     }
                 }
-                next = 3;
-                if (arg0->spawnArg1.value == 2) {
-                    next = 4;
+                nextState = PYROKINESIS_STATE_BURSTING;
+                if (task->spawnArg1.value == 2) {
+                    nextState = PYROKINESIS_STATE_BURST_THEN_FADE;
                 }
-                arg0->state = next;
+                task->state = nextState;
                 return;
             }
-            if (worldCollisionFindContactIndex(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-                worldCollisionUnlinkBody(&work->gridBody);
-                arg0->state = 2;
+            if (worldCollisionFindContactIndex(collision->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+                worldCollisionUnlinkBody(&collision->gridBody);
+                task->state = PYROKINESIS_STATE_SHRINKING;
                 return;
             }
-            worldCollisionClearContacts(work->contacts);
+            worldCollisionClearContacts(collision->contacts);
             return;
-        case 1:
+        case PYROKINESIS_STATE_TRAVELLING:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                worldCollisionUnlinkBody(&work->damageBody);
-                worldCollisionUnlinkBody(&work->gridBody);
-                effectKillTask(mem, arg0);
+                worldCollisionUnlinkBody(&collision->damageBody);
+                worldCollisionUnlinkBody(&collision->gridBody);
+                effectKillTask(effect, task);
                 return;
             }
-            if (peEffectControl != 0) {
-                mem->age = mem->age - 1;
+            if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                effect->age = effect->age - 1;
                 return;
             }
-            radius                  = (mem->index << 9) + 0x380;
-            mem->angle              = radius;
-            work->damageBody.radius = radius;
-            coord->coord.t[0]      += mem->move.vx;
-            coord->coord.t[1]      += mem->move.vy;
-            coord->coord.t[2]      += mem->move.vz;
-            coord->composeStamp     = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            if (arg0->spawnArg1.value != 0) {
-                _jetConeDraw(coord, mem->age, mem->angle, 0);
-                _jetConeDraw(coord, mem->age, mem->angle, 1);
+            radius                       = (effect->index << 9) + PYROKINESIS_TRAVEL_RADIUS_BASE;
+            effect->angle                = radius;
+            collision->damageBody.radius = radius;
+            _pyrokinesisAdvanceCastCoord(coord, effect);
+            spriteQuadDraw(coord, effect->age, effect->angle, effect->period);
+            glowDrawFlameDisc(coord, effect->angle, (s16)((u16)effect->scale << 16 >> 17));
+            if (task->spawnArg1.value != 0) {
+                _jetConeDraw(coord, effect->age, effect->angle, 0);
+                _jetConeDraw(coord, effect->age, effect->angle, 1);
             }
-            if (mem->age < 0x1E) {
+            if (effect->age < PYROKINESIS_TRAIL_AGE_LIMIT) {
                 spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);
                 if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
+                    taskReparent(task, spawned->task);
                 }
             }
             if (gRoomEffectState->groundTraceEnabled != 0) {
-                if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
-                    _pyrokinesisDrawGroundGlow(&ground, mem->angle);
+                if (worldCollisionProjectGroundCoord(coord, &groundCoord) == 1) {
+                    _pyrokinesisDrawGroundGlow(&groundCoord, effect->angle);
                 }
             }
-            lightSlot->framesLeft    = 4;
-            slot->inner              = (mem->index << 9) + 0x200;
-            slot->outer              = slot->inner * 16;
+            lightSlot->framesLeft    = PYROKINESIS_LIGHT_HOLD_FRAMES;
+            pointLight->inner        = (effect->index << 9) + PYROKINESIS_LIGHT_RADIUS_BASE;
+            pointLight->outer        = pointLight->inner * 16;
             gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            amp                      = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            slot->head.color.r       = amp;
-            slot->head.color.g       = (u16)slot->head.color.r >> 1;
-            slot->head.color.b       = slot->head.color.r >> 2;
+            lightIntensity           = ((gRandomLcgState >> 16) & PYROKINESIS_LIGHT_JITTER_MASK) + PYROKINESIS_LIGHT_INTENSITY_BASE;
+            pointLight->head.color.r = lightIntensity;
+            pointLight->head.color.g = (u16)pointLight->head.color.r >> 1;
+            pointLight->head.color.b = pointLight->head.color.r >> 2;
             lightCoord->coord.t[0]   = coord->coord.t[0];
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            if (worldCollisionCountContactsByKind(work->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-                worldCollisionUnlinkBody(&work->damageBody);
-                for (i = 0; i < 0x556; i += 0x2AA) {
-                    spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
+            if (worldCollisionCountContactsByKind(collision->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+                worldCollisionUnlinkBody(&collision->damageBody);
+                for (rimIndex = 0; rimIndex < PYROKINESIS_IMPACT_BEARING_LIMIT; rimIndex += PYROKINESIS_IMPACT_BEARING_STEP) {
+                    spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_RING, coord, rimIndex, NULL);
                     if (spawned != NULL) {
-                        taskReparent(arg0, spawned->task);
+                        taskReparent(task, spawned->task);
                     }
                 }
-                next = 3;
-                if (arg0->spawnArg1.value == 2) {
-                    next = 4;
+                nextState = PYROKINESIS_STATE_BURSTING;
+                if (task->spawnArg1.value == 2) {
+                    nextState = PYROKINESIS_STATE_BURST_THEN_FADE;
                 }
-                arg0->state = next;
+                task->state = nextState;
                 return;
             }
-            if (worldCollisionFindContactIndex(work->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-                worldCollisionUnlinkBody(&work->gridBody);
-                arg0->state = 2;
+            if (worldCollisionFindContactIndex(collision->gridBody.context.contacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+                worldCollisionUnlinkBody(&collision->gridBody);
+                task->state = PYROKINESIS_STATE_SHRINKING;
                 return;
             }
-            tick = mem->age;
-            if (tick * 6 > Gp_AttachParams[ATTACHMENT_INDEX_PYROKINESIS][mem->index].area.extent) {
-                worldCollisionUnlinkBody(&work->damageBody);
-                worldCollisionUnlinkBody(&work->gridBody);
-                arg0->state = 2;
+            age = effect->age;
+            if (age * PYROKINESIS_TRAVEL_EXTENT_PER_FRAME > Gp_AttachParams[ATTACHMENT_INDEX_PYROKINESIS][effect->index].area.extent) {
+                worldCollisionUnlinkBody(&collision->damageBody);
+                worldCollisionUnlinkBody(&collision->gridBody);
+                task->state = PYROKINESIS_STATE_SHRINKING;
                 return;
             }
-            if (tick < 0x1F) {
-                worldCollisionClearContacts(work->contacts);
+            if (age < PYROKINESIS_TRAVEL_AGE_LIMIT) {
+                worldCollisionClearContacts(collision->contacts);
                 return;
             }
-            worldCollisionUnlinkBody(&work->damageBody);
-            worldCollisionUnlinkBody(&work->gridBody);
-            effectKillTask(mem, arg0);
+            worldCollisionUnlinkBody(&collision->damageBody);
+            worldCollisionUnlinkBody(&collision->gridBody);
+            effectKillTask(effect, task);
             return;
-        case 2:
+        case PYROKINESIS_STATE_SHRINKING:
+            // The grid probe is gone; the remaining damage sphere shrinks in place.
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                worldCollisionUnlinkBody(&work->damageBody);
-                effectKillTask(mem, arg0);
+                worldCollisionUnlinkBody(&collision->damageBody);
+                effectKillTask(effect, task);
                 return;
             }
-            if (peEffectControl != 0) {
-                mem->age = mem->age - 1;
+            if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                effect->age = effect->age - 1;
                 return;
             }
             actorRenderComposeCoord(coord);
-            radius                  = (u16)mem->angle - 0x40;
-            mem->angle              = radius;
-            work->damageBody.radius = radius;
-            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            if (mem->angle >= 0x81) {
+            radius                       = (u16)effect->angle - PYROKINESIS_RADIUS_STEP;
+            effect->angle                = radius;
+            collision->damageBody.radius = radius;
+            spriteQuadDraw(coord, effect->age, effect->angle, effect->period);
+            glowDrawFlameDisc(coord, effect->angle, (s16)((u16)effect->scale << 16 >> 17));
+            if (effect->angle >= PYROKINESIS_MIN_PUFF_RADIUS) {
                 spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_PUFF, coord, 0, NULL);
                 if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
+                    taskReparent(task, spawned->task);
                 }
             }
-            if (worldCollisionCountContactsByKind(work->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-                worldCollisionUnlinkBody(&work->damageBody);
-                for (i = 0; i < 0x556; i += 0x2AA) {
-                    spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_RING, coord, i, NULL);
+            if (worldCollisionCountContactsByKind(collision->damageBody.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+                worldCollisionUnlinkBody(&collision->damageBody);
+                for (rimIndex = 0; rimIndex < PYROKINESIS_IMPACT_BEARING_LIMIT; rimIndex += PYROKINESIS_IMPACT_BEARING_STEP) {
+                    spawned = effectSpawn(EFFECT_PYROKINESIS_FLAME_RING, coord, rimIndex, NULL);
                     if (spawned != NULL) {
-                        taskReparent(arg0, spawned->task);
+                        taskReparent(task, spawned->task);
                     }
                 }
-                next = 3;
-                if (arg0->spawnArg1.value == 2) {
-                    next = 4;
+                nextState = PYROKINESIS_STATE_BURSTING;
+                if (task->spawnArg1.value == 2) {
+                    nextState = PYROKINESIS_STATE_BURST_THEN_FADE;
                 }
-                arg0->state = next;
+                task->state = nextState;
                 return;
             }
-            if (mem->angle < 0x80) {
-                worldCollisionUnlinkBody(&work->damageBody);
-                effectKillTask(mem, arg0);
+            if (effect->angle < PYROKINESIS_SHRINK_END_RADIUS) {
+                worldCollisionUnlinkBody(&collision->damageBody);
+                effectKillTask(effect, task);
                 return;
             }
-            worldCollisionClearContacts(work->contacts);
+            worldCollisionClearContacts(collision->contacts);
             return;
-        case 3:
+        case PYROKINESIS_STATE_BURSTING:
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                worldCollisionUnlinkBody(&work->gridBody);
-                effectKillTask(mem, arg0);
+                worldCollisionUnlinkBody(&collision->gridBody);
+                effectKillTask(effect, task);
                 return;
             }
-            if (peEffectControl != 0) {
-                mem->age = mem->age - 1;
+            if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                effect->age = effect->age - 1;
                 return;
             }
             actorRenderComposeCoord(coord);
-            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            glowDrawFlameDisc(coord, (s16)((u16)mem->angle * 2),
-                              (s16)((u16)mem->scale << 16 >> 17));
-            mem->angle = mem->angle + 0x40;
-            if (mem->angle > ((mem->index << 9) + 0x580)) {
-                worldCollisionUnlinkBody(&work->gridBody);
-                effectKillTask(mem, arg0);
+            spriteQuadDraw(coord, effect->age, effect->angle, effect->period);
+            glowDrawFlameDisc(coord, effect->angle, (s16)((u16)effect->scale << 16 >> 17));
+            glowDrawFlameDisc(coord, (s16)((u16)effect->angle * 2),
+                              (s16)((u16)effect->scale << 16 >> 17));
+            effect->angle = effect->angle + PYROKINESIS_RADIUS_STEP;
+            if (effect->angle > ((effect->index << 9) + PYROKINESIS_BURST_RADIUS_BASE)) {
+                worldCollisionUnlinkBody(&collision->gridBody);
+                effectKillTask(effect, task);
                 return;
             }
             return;
-        case 4:
+        case PYROKINESIS_STATE_BURST_THEN_FADE:
+            // Radius keeps expanding after its limit while this variant fades intensity.
             if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || ((peEffectControl = gRoomEffectState->peEffectControl), peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-                worldCollisionUnlinkBody(&work->gridBody);
-                effectKillTask(mem, arg0);
+                worldCollisionUnlinkBody(&collision->gridBody);
+                effectKillTask(effect, task);
                 return;
             }
-            if (peEffectControl != 0) {
-                mem->age = mem->age - 1;
+            if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+                effect->age = effect->age - 1;
                 return;
             }
             actorRenderComposeCoord(coord);
-            spriteQuadDraw(coord, mem->age, mem->angle, mem->period);
-            glowDrawFlameDisc(coord, mem->angle, (s16)((u16)mem->scale << 16 >> 17));
-            glowDrawFlameDisc(coord, (s16)((u16)mem->angle * 2),
-                              (s16)((u16)mem->scale << 16 >> 17));
-            mem->angle = mem->angle + 0x40;
-            if (mem->angle > ((mem->index << 9) + 0x580)) {
-                if (mem->scale >= 9) {
-                    mem->scale = mem->scale - 8;
+            spriteQuadDraw(coord, effect->age, effect->angle, effect->period);
+            glowDrawFlameDisc(coord, effect->angle, (s16)((u16)effect->scale << 16 >> 17));
+            glowDrawFlameDisc(coord, (s16)((u16)effect->angle * 2),
+                              (s16)((u16)effect->scale << 16 >> 17));
+            effect->angle = effect->angle + PYROKINESIS_RADIUS_STEP;
+            if (effect->angle > ((effect->index << 9) + PYROKINESIS_BURST_RADIUS_BASE)) {
+                if (effect->scale >= PYROKINESIS_FADE_END_BRIGHTNESS) {
+                    effect->scale = effect->scale - PYROKINESIS_BRIGHTNESS_STEP;
                     return;
                 }
-                worldCollisionUnlinkBody(&work->gridBody);
-                effectKillTask(mem, arg0);
+                worldCollisionUnlinkBody(&collision->gridBody);
+                effectKillTask(effect, task);
             }
             return;
     }
 }
 
-void func_pyrokinesis_8012FAC8(Task* arg0)
+void pyrokinesisVolleyTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        PYROKINESIS_VOLLEY_FIRST      = 0,
+        PYROKINESIS_VOLLEY_SECOND     = 1,
+        PYROKINESIS_VOLLEY_THIRD      = 2,
+        PYROKINESIS_VOLLEY_RELEASE    = 3,
+        PYROKINESIS_VOLLEY_SECOND_AGE = 8,
+        PYROKINESIS_VOLLEY_THIRD_AGE  = 16,
+    };
+    EffectWork* effect;
     GfxCoord*   coord;
-    s16         scene;
-    s16         flag;
+    s16         battleState;
+    s16         peEffectControl;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    effect = task->spawnArg2.pointer;
+    coord  = task->extra.coordBody->coord;
     if (Gp_StateC08.effectPhase != ATTACHMENT_EFFECT_HELD) {
-        scene = gRoomEffectState->battleState;
-        if (scene == ROOM_EFFECT_BATTLE_ENGAGED) {
-            flag = gRoomEffectState->peEffectControl;
-            if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-                if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
+        battleState = gRoomEffectState->battleState;
+        if (battleState == ROOM_EFFECT_BATTLE_ENGAGED) {
+            peEffectControl = gRoomEffectState->peEffectControl;
+            if (peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+                if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
                     return;
                 }
-                mem->age = mem->age + 1;
+                effect->age = effect->age + 1;
                 actorRenderComposeCoord(coord);
-                switch (arg0->state) {
-                    case 0:
+                switch (task->state) {
+                    case PYROKINESIS_VOLLEY_FIRST:
                         effectSpawn((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
-                        arg0->state = scene;
+                        task->state = PYROKINESIS_VOLLEY_SECOND;
                         return;
-                    case 1:
-                        if (mem->age == 8) {
+                    case PYROKINESIS_VOLLEY_SECOND:
+                        if (effect->age == PYROKINESIS_VOLLEY_SECOND_AGE) {
                             effectSpawn((EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED), coord, 1, 0);
-                            arg0->state = 2;
+                            task->state = PYROKINESIS_VOLLEY_THIRD;
                         }
                         return;
-                    case 2:
-                        if (mem->age == 0x10) {
-                            effectSpawn(0x80060000 | 0x10, coord, 2, 0);
-                            arg0->state = 3;
+                    case PYROKINESIS_VOLLEY_THIRD:
+                        if (effect->age == PYROKINESIS_VOLLEY_THIRD_AGE) {
+                            effectSpawn(EFFECT_PYROKINESIS_CAST | EFFECT_SPAWN_UNLIMITED, coord, 2, 0);
+                            task->state = PYROKINESIS_VOLLEY_RELEASE;
                         }
                         return;
-                    case 3:
+                    case PYROKINESIS_VOLLEY_RELEASE:
                         break;
                     default:
                         return;
@@ -454,7 +501,7 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
             }
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(effect, task);
 }
 
 #include "../../shared/glow_draw_flame_band.inc.c"
@@ -463,9 +510,10 @@ void func_pyrokinesis_8012FAC8(Task* arg0)
 
 /// Projects the ground glow's four staged corners, retaining the final GTE FLAG.
 ///
-/// Borrows a live `EffectQuadScratch`; the caller has set the translation
-/// matrix. Saves corner 0 before RTPT replaces the screen FIFO, then leaves
+/// Borrows a live `EffectQuadScratch` with all four vertices initialized;
+/// the caller has set the translation matrix. Saves corner 0 before RTPT replaces the screen FIFO, then leaves
 /// corner 3's depth in SZ3 for the caller to capture before another transform.
+/// Only RTPT's FLAG is saved; the first corner's RTPS FLAG is discarded.
 static inline void _pyrokinesisProjectGroundGlow(EffectQuadScratch* quadScratch)
 {
     gte_SetRotMatrix(&GsWSMATRIX);

@@ -551,16 +551,16 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, hypervelocityShockRingTask, { NULL } },                                             // 0x00D
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTask0E, { NULL } },                                                    // 0x00E
     { { { TASK_BODY_COORD, 0x70 } }, _effectStatusScreenTintTaskF, { NULL } },                                           // 0x00F
-    { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012EF48, { NULL } },                                              // 0x010
+    { { { TASK_BODY_COORD, 0x70 } }, pyrokinesisCastTask, { NULL } },                                                    // 0x010
     { { { TASK_BODY_COORD, 0x70 } }, pyrokinesisLaunchConeTask, { NULL } },                                              // 0x011
-    { { { TASK_BODY_COORD, 0x70 } }, func_metabolism_8012EF34, { NULL } },                                               // 0x012
+    { { { TASK_BODY_COORD, 0x70 } }, metabolismCastTask, { NULL } },                                                     // 0x012
     { { { TASK_BODY_COORD, 0x70 } }, metabolismSparkleTask, { NULL } },                                                  // 0x013
-    { { { TASK_BODY_COORD, 0x70 } }, func_plasma_8012EF34, { NULL } },                                                   // 0x014
+    { { { TASK_BODY_COORD, 0x70 } }, plasmaCastTask, { NULL } },                                                         // 0x014
     { { { TASK_BODY_COORD, 0x70 } }, func_healing_8012EF34, { NULL } },                                                  // 0x015
     { { { TASK_BODY_COORD, 0x70 } }, healingRisingSparkTask, { NULL } },                                                 // 0x016
     { { { TASK_BODY_COORD, 0x70 } }, func_healing_8012F5E4, { NULL } },                                                  // 0x017
-    { { { TASK_BODY_COORD, 0x70 } }, func_necrosis_8012EF34, { NULL } },                                                 // 0x018
-    { { { TASK_BODY_COORD, 0x70 } }, func_necrosis_8012F52C, { NULL } },                                                 // 0x019
+    { { { TASK_BODY_COORD, 0x70 } }, necrosisCastTask, { NULL } },                                                       // 0x018
+    { { { TASK_BODY_COORD, 0x70 } }, necrosisTrailPuffTask, { NULL } },                                                  // 0x019
     { { { TASK_BODY_COORD, 0x70 } }, necrosisMistPuffTask, { NULL } },                                                   // 0x01A
     { { { TASK_BODY_COORD, 0x70 } }, func_combustion_8012EF34, { NULL } },                                               // 0x01B
     { { { TASK_BODY_COORD, 0x70 } }, func_combustion_8012F2BC, { NULL } },                                               // 0x01C
@@ -742,7 +742,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_energyshot_8012EF34, { NULL } },                                               // 0x0CC
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldParkingLotUpdateViewEffectGateTask, { NULL } },                             // 0x0CD
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletConfigureEffectsTask, { NULL } },                                     // 0x0CE
-    { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8012EF48, { NULL } },                                               // 0x0CF
+    { { { TASK_BODY_COORD, 0x70 } }, energyballCastTask, { NULL } },                                                     // 0x0CF
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldSaloonGRDrawLightEffectsTask, { NULL } },                                   // 0x0D0
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGRKitchenDrawLightBeamsTask, { NULL } },                                    // 0x0D1
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterTowerUpdateViewEffectGateTask, { NULL } },                             // 0x0D2
@@ -783,11 +783,11 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, antibodyMoteTask, { NULL } },                                                       // 0x0F5
     { { { TASK_BODY_COORD, 0x70 } }, pyrokinesisFlameRingTask, { NULL } },                                               // 0x0F6
     { { { TASK_BODY_COORD, 0x70 } }, apobiosisShardTask, { NULL } },                                                     // 0x0F7
-    { { { TASK_BODY_COORD, 0x70 } }, func_energyball_8012F180, { NULL } },                                               // 0x0F8
+    { { { TASK_BODY_COORD, 0x70 } }, energyballProjectileTask, { NULL } },                                               // 0x0F8
     { { { TASK_BODY_COORD, 0x70 } }, energyballImpactRingTask, { NULL } },                                               // 0x0F9
     { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneConfigureEffectsTask, { NULL } },                                   // 0x0FA
     { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneLeafFallTask, { NULL } },                                           // 0x0FB
-    { { { TASK_BODY_COORD, 0x70 } }, func_pyrokinesis_8012FAC8, { NULL } },                                              // 0x0FC
+    { { { TASK_BODY_COORD, 0x70 } }, pyrokinesisVolleyTask, { NULL } },                                                  // 0x0FC
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterHoleWaterRippleTask, { NULL } },                                       // 0x0FD
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldWaterHoleWaterDriftTaskU16, { NULL } },                                     // 0x0FE
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleWaterRippleTask, { NULL } },                                  // 0x0FF

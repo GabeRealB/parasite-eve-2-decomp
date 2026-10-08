@@ -3,7 +3,26 @@
 
 #include "main/task_types.h"
 
-void func_pyrokinesis_8012EF48(Task* arg0);
+/// Advances the collision-bearing Pyrokinesis flame through travel, stop and burst.
+///
+/// Bank-6 slot 0x10 requires cleared owned `EffectWork` in `spawnArg2.pointer`,
+/// a coordinate body, attachment level digit 1..3, and spawn variant 0..2.
+/// Initialization borrows the player rotation, chooses forward speed from the
+/// level, seeds sixteen cone phases, and allocates task-owned damage/grid
+/// spheres. The sound uses the original spawn variant; level 2 then forces
+/// variant 1, while other levels change variant 1 to 0. `angle` holds radius,
+/// `scale` RGB intensity, `period` sprite bearing and `move` flight velocity.
+///
+/// Travel draws the flame, optional cones and ground glow, emits trail puffs
+/// and refreshes transient light slot zero. Enemy contact unlinks the damage
+/// sphere and emits three tilted rings. A class-zero grid contact or the
+/// level's travel extent ends motion and enters radius shrinkage. Age 31 ends
+/// travel outright. Burst radius grows by 64 until the level limit; variant 2
+/// then fades brightness by eight, with radius continuing to grow.
+/// A held attachment or cancellation unlinks remaining bodies and releases
+/// the work and task. Other non-running PE control values pause updates,
+/// drawing and age; all coordinate parents and borrowed contacts must remain live.
+void pyrokinesisCastTask(Task* task);
 
 /// Expands and fades the flame cone at the Pyrokinesis launch point.
 ///
@@ -40,6 +59,14 @@ void pyrokinesisFlamePuffTask(Task* task);
 /// a held attachment releases the work and task immediately.
 void pyrokinesisFlameRingTask(Task* task);
 
-void func_pyrokinesis_8012FAC8(Task* arg0);
+/// Schedules three Pyrokinesis cast variants at running ages 1, 8 and 16.
+///
+/// Bank-6 slot 0xFC requires a coordinate body and cleared owned `EffectWork`
+/// in `spawnArg2.pointer`. Spawns variants 0, 1 and 2 using unlimited effect
+/// allocation; these casts keep their own task lifetimes. The controller
+/// releases on its next running callback after the third spawn, or when the
+/// attachment is held, battle ends or PE control cancels. Other non-running
+/// PE control values pause age and scheduling.
+void pyrokinesisVolleyTask(Task* task);
 
 #endif // INCLUDE_PE_PYROKINESIS_H

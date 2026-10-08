@@ -81,7 +81,7 @@ enum {
 };
 
 static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16 brightness);
-static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2);
+static void _energyballDrawChargeBand(const GfxCoord* coord, s16 halfHeight, s16 brightness);
 
 /// The energy ball's sound-script ids. Only the first three are read, indexed by
 /// the cast's level: the cast starts its entry with `sndEvtRequestScriptStart` and
@@ -104,268 +104,299 @@ static _EnergyballLevelTuning D_energyball_80131194[] = {
 };
 
 /// Sixteen 8-bit draws from `gRandomLcgState`, refilled once per cast by
-/// `func_energyball_8012EF48` and consumed by the GTE pass in
-/// `func_energyball_80130B54` as the per-vertex jitter of the ball's surface.
+/// `energyballCastTask` and consumed by the GTE pass in
+/// `_energyballDrawChargeBand` as the per-vertex jitter of the ball's surface.
 static s16 D_energyball_801311A0[16];
 
-/// Fires the energy ball: on the first frame it picks the charge level from the
-/// combo counter, plays the matching loop sound, refills the surface-jitter
-/// table and spawns one ball per charge level, fanning them out by 0x555 of
-/// yaw each while `gEnergyBallInFlightCount` (the number of balls already in flight) allows
-/// it. Every later frame just releases the work block.
+/// Seeds all sixteen charge-band phases in LCG order.
+///
+/// segmentIndex and phaseRoll are writable scalar locals, evaluated repeatedly.
+/// Captures the shared LCG and the complete charge-band phase table; no validation.
+#define ENERGYBALL_SEED_CHARGE_BAND_PHASES(segmentIndex, phaseRoll)                                                 \
+    {                                                                                                               \
+        enum { ENERGYBALL_PHASE_JITTER_MASK = 0xFF };                                                               \
+        for ((segmentIndex) = 0; (segmentIndex) < ARRAY_SIZE(D_energyball_801311A0); (segmentIndex)++) {            \
+            (phaseRoll)                           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT; \
+            D_energyball_801311A0[(segmentIndex)] = ((u32)(phaseRoll) >> 16) & ENERGYBALL_PHASE_JITTER_MASK;        \
+            gRandomLcgState                       = (phaseRoll);                                                    \
+        }                                                                                                           \
+    }
 
-void func_energyball_8012EF48(Task* arg0)
+void energyballCastTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        ENERGYBALL_CAST_INITIALIZE     = 0,
+        ENERGYBALL_CAST_RELEASE        = 1,
+        ENERGYBALL_MAX_ACTIVE_BALLS    = 3,
+        ENERGYBALL_SPAWN_RADIUS_BASE   = 0x300,
+        ENERGYBALL_SPAWN_RADIUS_STEP   = 256,
+        ENERGYBALL_SPAWN_BEARING_STEP  = 0x555,
+        ENERGYBALL_SPAWN_CENTRING_STEP = 0x2AA,
+    };
+    EffectWork* effect;
     GfxCoord*   coord;
-    s32         i;
-    s32         level;
-    s32         rng;
+    s32         ballIndex;
+    s32         levelIndex;
+    s32         jitterRoll;
 
-    mem      = arg0->spawnArg2.pointer;
-    coord    = arg0->extra.coordBody->coord;
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
-            mem->index = Gp_StateC08.attachId % 10 - 1;
-            level      = mem->index;
-            mem->angle = (level << 8) + 0x300;
+    effect      = task->spawnArg2.pointer;
+    coord       = task->extra.coordBody->coord;
+    effect->age = effect->age + 1;
+    switch (task->state) {
+        case ENERGYBALL_CAST_INITIALIZE:
+            effect->index = Gp_StateC08.attachId % 10 - 1;
+            levelIndex    = effect->index;
+            effect->angle = (levelIndex * ENERGYBALL_SPAWN_RADIUS_STEP) + ENERGYBALL_SPAWN_RADIUS_BASE;
             if (gEnergyBallInFlightCount < 0) {
                 gEnergyBallInFlightCount = 0;
             }
             if (gEnergyBallInFlightCount == 0) {
-                sndEvtRequestScriptStart(D_energyball_8013117C[mem->index], 0, 0);
+                sndEvtRequestScriptStart(D_energyball_8013117C[effect->index], 0, 0);
             }
-            for (i = 0; i < 0x10; i++) {
-                rng                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                D_energyball_801311A0[i] = ((u32)rng >> 16) & 0xFF;
-                gRandomLcgState          = rng;
-            }
-            for (i = 0; i < mem->index + 1; i++) {
-                if (gEnergyBallInFlightCount + i >= 3) {
+            ENERGYBALL_SEED_CHARGE_BAND_PHASES(ballIndex, jitterRoll);
+            for (ballIndex = 0; ballIndex < effect->index + 1; ballIndex++) {
+                if (gEnergyBallInFlightCount + ballIndex >= ENERGYBALL_MAX_ACTIVE_BALLS) {
                     break;
                 }
-                mem->scale   = i * 0x555 - mem->index * 0x2AA;
-                mem->move.vx = (mem->angle * rsin(mem->scale)) >> 12;
-                mem->move.vz = (mem->angle * rcos(mem->scale)) >> 12;
-                effectSpawn((EFFECT_ENERGY_BALL | EFFECT_SPAWN_UNLIMITED), coord, i, &mem->move);
+                effect->scale   = ballIndex * ENERGYBALL_SPAWN_BEARING_STEP - effect->index * ENERGYBALL_SPAWN_CENTRING_STEP;
+                effect->move.vx = (effect->angle * rsin(effect->scale)) >> ENERGYBALL_GLOW_TRIG_FRACTION_BITS;
+                effect->move.vz = (effect->angle * rcos(effect->scale)) >> ENERGYBALL_GLOW_TRIG_FRACTION_BITS;
+                effectSpawn((EFFECT_ENERGY_BALL | EFFECT_SPAWN_UNLIMITED), coord, ballIndex, &effect->move);
             }
-            arg0->state = 1;
+            task->state = ENERGYBALL_CAST_RELEASE;
             return;
-        case 1:
-            effectKillTask(mem, arg0);
+        case ENERGYBALL_CAST_RELEASE:
+            effectKillTask(effect, task);
             return;
     }
 }
+#undef ENERGYBALL_SEED_CHARGE_BAND_PHASES
 
-/// One ball of the energy ball cast; `spawnArg1` (0-2) selects shared transient
-/// light slot `4 + spawnArg1` in `gWorldCoordTransientPointLights`, and
-/// `spawnArg2` selects the `EffectWork` block. With nonzero
-/// `gRoomEffectState->peEffectControl` it only redraws; cancellation at 4 or more
-/// drops the ball. Otherwise it walks `Task::state`: 0 allocates the
-/// `_EnergyballBody` collision block, picks the row of
-/// `D_energyball_80131194` from the spell's level digit and seeds a random spin
-/// `period`; 1 grows the ball by the row's `sizeStep` per frame until it
-/// reaches `fullSize`, then links it on list 1 with a random direction; 2
-/// flies it, re-aiming at the player every eighth frame and nudging each
-/// velocity component by 0x10 on odd frames, bursting into three 0x600F9
-/// effects on a hit (`worldCollisionCountContactsByKind`) or unlinking when the room's
-/// `field_16` drops; 3 and 4 fade the burst out, growing to twice the row's
-/// size or shrinking below one step. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD` or
-/// PE effect control at 4 or more) anywhere but combo 0x2B lets the ball go: the last
-/// ball in flight (`gEnergyBallInFlightCount`) queues the row's stop sound.
-void func_energyball_8012F180(Task* arg0)
+/// Applies one velocity step in the parent frame and refreshes the composed coordinate.
+///
+/// Borrows live writable coord and read-only effect; additions must fit s32.
+/// Parent coordinates must stay live through composition. Clobbers GTE state.
+static inline void _energyballAdvanceProjectileCoord(GfxCoord* coord, const EffectWork* effect)
 {
-    EffectWork*                    mem;
+    coord->coord.t[0]  += effect->move.vx;
+    coord->coord.t[1]  += effect->move.vy;
+    coord->coord.t[2]  += effect->move.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
+
+void energyballProjectileTask(Task* task)
+{
+    enum {
+        ENERGYBALL_LIGHT_INTENSITY_BASE    = 0x800,
+        ENERGYBALL_IMPACT_MIDDLE_BEARING   = 0x2AA,
+        ENERGYBALL_IMPACT_LAST_BEARING     = 0x555,
+        ENERGYBALL_STATE_INITIALIZE        = 0,
+        ENERGYBALL_STATE_CHARGING          = 1,
+        ENERGYBALL_STATE_FLYING            = 2,
+        ENERGYBALL_STATE_BURSTING          = 3,
+        ENERGYBALL_STATE_FADING            = 4,
+        ENERGYBALL_FIRST_LIGHT_SLOT        = 4,
+        ENERGYBALL_SPELL_DAMAGE_KEY_BASE   = WORLD_COLLISION_CONTACT_ATTACK | 0x8000,
+        ENERGYBALL_RANDOM_DIRECTION_MASK   = 0xFFF,
+        ENERGYBALL_RANDOM_DIRECTION_CENTRE = 0x800,
+        ENERGYBALL_BRIGHTNESS              = 0xC0,
+        ENERGYBALL_INITIAL_SPEED           = 0x20,
+        ENERGYBALL_AIM_PERIOD              = 8,
+        ENERGYBALL_STEERING_STEP           = 0x10,
+        ENERGYBALL_LIGHT_HOLD_FRAMES       = 2,
+        ENERGYBALL_LIGHT_INNER_RADIUS      = 0x100,
+        ENERGYBALL_LIGHT_OUTER_RADIUS      = 0x1000,
+        ENERGYBALL_LIGHT_JITTER_MASK       = 0x700,
+        ENERGYBALL_VELOCITY_SCALE_STEP     = 0x180,
+        ENERGYBALL_VELOCITY_SCALE_BASE     = 0xA00,
+        ENERGYBALL_IMPACT_SOUND_OFFSET     = 3,
+    };
+    EffectWork*                    effect;
     GfxCoord*                      coord;
-    _EnergyballBody*               work;
-    WorldCoordTransientPointLight* slot;
+    _EnergyballBody*               collision;
+    WorldCoordTransientPointLight* lightSlot;
     GfxCoord*                      lightCoord;
     WorldCoordPointLight*          pointLight;
-    GfxCoord                       ground;
-    VECTOR                         vec;
-    GfxCoord*                      player;
+    GfxCoord                       groundCoord;
+    VECTOR                         playerOffset;
+    GfxCoord*                      playerCoord;
     EffectWork*                    spawned;
-    SVECTOR*                       dir;
-    u16                            r;
-    s32*                           snd;
+    SVECTOR*                       flightVelocity;
+    u16                            lightIntensity;
+    s32*                           soundScripts;
     s16                            peEffectControl;
-    s32                            cur;
+    s32                            velocityComponent;
 
-    slot            = &gWorldCoordTransientPointLights[arg0->spawnArg1.value + 4];
-    lightCoord      = &slot->light.head.transform.coord;
-    pointLight      = &slot->light;
-    coord           = arg0->extra.coordBody->coord;
+    lightSlot       = &gWorldCoordTransientPointLights[task->spawnArg1.value + ENERGYBALL_FIRST_LIGHT_SLOT];
+    lightCoord      = &lightSlot->light.head.transform.coord;
+    pointLight      = &lightSlot->light;
+    coord           = task->extra.coordBody->coord;
     peEffectControl = gRoomEffectState->peEffectControl;
-    work            = arg0->work;
-    mem             = arg0->spawnArg2.pointer;
+    collision       = task->work;
+    effect          = task->spawnArg2.pointer;
     if (peEffectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         if (peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             if (gEnergyBallInFlightCount > 0) {
                 gEnergyBallInFlightCount -= 1;
                 if (gEnergyBallInFlightCount == 0) {
-                    sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                    sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 }
             }
-            if (arg0->state != 0) {
-                worldCollisionUnlinkBody(&work->body);
+            if (task->state != ENERGYBALL_STATE_INITIALIZE) {
+                worldCollisionUnlinkBody(&collision->body);
             }
-            effectKillTask(mem, arg0);
+            effectKillTask(effect, task);
             return;
         }
         actorRenderComposeCoord(coord);
-        _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-        _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
-        if ((arg0->state < 3) && (gRoomEffectState->groundTraceEnabled != 0) &&
-            (worldCollisionProjectGroundCoord(coord, &ground) == 1)) {
-            _groundGlowDraw(&ground, mem->angle);
+        _spriteQuadDrawFlicker(coord, effect->age, effect->angle, effect->period);
+        _energyballDrawGlowDisc(coord, effect->angle, effect->scale >> 2);
+        if ((task->state < ENERGYBALL_STATE_BURSTING) && (gRoomEffectState->groundTraceEnabled != 0) &&
+            (worldCollisionProjectGroundCoord(coord, &groundCoord) == 1)) {
+            _groundGlowDraw(&groundCoord, effect->angle);
         }
         return;
     }
 
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
-            work = memCalloc(sizeof(_EnergyballBody), 0);
-            if (work == NULL) {
-                mem->age = 0;
+    effect->age = effect->age + 1;
+    switch (task->state) {
+        case ENERGYBALL_STATE_INITIALIZE:
+            collision = memCalloc(sizeof(_EnergyballBody), 0);
+            if (collision == NULL) {
+                effect->age = 0;
                 return;
             }
-            arg0->work                = work;
-            mem->index                = (Gp_StateC08.attachId % 10) - 1;
-            mem->move.vx              = 0;
+            task->work                = collision;
+            effect->index             = (Gp_StateC08.attachId % 10) - 1;
+            effect->move.vx           = 0;
             gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->move.vy              = -D_energyball_80131194[mem->index].sizeStep;
-            mem->move.vz              = 0;
-            mem->angle                = 0;
-            mem->period               = (gRandomLcgState >> 16) & 0xFFF;
+            effect->move.vy           = -D_energyball_80131194[effect->index].sizeStep;
+            effect->move.vz           = 0;
+            effect->angle             = 0;
+            effect->period            = (gRandomLcgState >> 16) & ENERGYBALL_RANDOM_DIRECTION_MASK;
             gEnergyBallInFlightCount += 1;
-            mem->scale                = 0xC0;
-            mem->step                 = 0x20;
-            arg0->state               = 1;
+            effect->scale             = ENERGYBALL_BRIGHTNESS;
+            effect->step              = ENERGYBALL_INITIAL_SPEED;
+            task->state               = ENERGYBALL_STATE_CHARGING;
             /* fallthrough */
-        case 1:
-            if (mem->angle < D_energyball_80131194[mem->index].fullSize) {
-                mem->angle          = mem->angle + D_energyball_80131194[mem->index].sizeStep;
-                coord->coord.t[0]  += mem->move.vx;
-                coord->coord.t[1]  += mem->move.vy;
-                coord->coord.t[2]  += mem->move.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
+        case ENERGYBALL_STATE_CHARGING:
+            // Charge upward before arming the pair-test sphere at full size.
+            if (effect->angle < D_energyball_80131194[effect->index].fullSize) {
+                effect->angle = effect->angle + D_energyball_80131194[effect->index].sizeStep;
+                _energyballAdvanceProjectileCoord(coord, effect);
             } else {
                 actorRenderComposeCoord(coord);
-                arg0->work                  = work;
-                work->body.context.contacts = work->contacts;
-                work->body.coord            = coord;
-                work->body.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
-                                 ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
-                                 (u16)(Gp_StateC08.attachId % 10) + 0x28000;
-                work->body.radius = mem->angle >> 1;
-                work->body.flags  = WORLD_COLLISION_BODY_SPHERE;
-                worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &work->body);
-                dir                     = &mem->move;
-                work->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
-                work->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                arg0->state             = 2;
-                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx            = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
-                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy            = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
-                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz            = 0x800 - ((gRandomLcgState >> 16) & 0xFFF);
-                VectorNormalSS(dir, dir);
-                gte_lddp(mem->step);
-                gte_ldsv(dir);
+                task->work                       = collision;
+                collision->body.context.contacts = collision->contacts;
+                collision->body.coord            = coord;
+                collision->body.key              = ((u16)(Gp_StateC08.attachId / 100) - 1) * 9 +
+                                      ((u16)((u16)(Gp_StateC08.attachId % 100) / 10) - 1) * 3 +
+                                      (u16)(Gp_StateC08.attachId % 10) + ENERGYBALL_SPELL_DAMAGE_KEY_BASE;
+                collision->body.radius = effect->angle >> 1;
+                collision->body.flags  = WORLD_COLLISION_BODY_SPHERE;
+                worldCollisionLinkBody(WORLD_COLLISION_LIST_PLAYER_ATTACKS, &collision->body);
+                flightVelocity               = &effect->move;
+                collision->contacts[0].flags = WORLD_COLLISION_CONTACT_LAST;
+                collision->body.flags       |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+                task->state                  = ENERGYBALL_STATE_FLYING;
+                gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                effect->move.vx              = ENERGYBALL_RANDOM_DIRECTION_CENTRE - ((gRandomLcgState >> 16) & ENERGYBALL_RANDOM_DIRECTION_MASK);
+                gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                effect->move.vy              = ENERGYBALL_RANDOM_DIRECTION_CENTRE - ((gRandomLcgState >> 16) & ENERGYBALL_RANDOM_DIRECTION_MASK);
+                gRandomLcgState              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                effect->move.vz              = ENERGYBALL_RANDOM_DIRECTION_CENTRE - ((gRandomLcgState >> 16) & ENERGYBALL_RANDOM_DIRECTION_MASK);
+                VectorNormalSS(flightVelocity, flightVelocity);
+                gte_lddp(effect->step);
+                gte_ldsv(flightVelocity);
                 gte_gpf12();
-                gte_stsv(dir);
-                mem->pos.vx = 0;
-                mem->pos.vy = -D_energyball_80131194[mem->index].sizeStep;
-                mem->pos.vz = 0;
+                gte_stsv(flightVelocity);
+                effect->pos.vx = 0;
+                effect->pos.vy = -D_energyball_80131194[effect->index].sizeStep;
+                effect->pos.vz = 0;
             }
-            slot->framesLeft         = 2;
-            pointLight->inner        = 0x100;
-            pointLight->outer        = 0x1000;
+            lightSlot->framesLeft    = ENERGYBALL_LIGHT_HOLD_FRAMES;
+            pointLight->inner        = ENERGYBALL_LIGHT_INNER_RADIUS;
+            pointLight->outer        = ENERGYBALL_LIGHT_OUTER_RADIUS;
             gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            r                        = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            pointLight->head.color.g = r;
+            lightIntensity           = ((gRandomLcgState >> 16) & ENERGYBALL_LIGHT_JITTER_MASK) + ENERGYBALL_LIGHT_INTENSITY_BASE;
+            pointLight->head.color.g = lightIntensity;
             pointLight->head.color.r = (u16)pointLight->head.color.g >> 1;
             pointLight->head.color.b = pointLight->head.color.g >> 1;
             lightCoord->coord.t[0]   = coord->coord.t[0];
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-            _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
-            if ((gRoomEffectState->groundTraceEnabled != 0) && (worldCollisionProjectGroundCoord(coord, &ground) == 1)) {
-                _groundGlowDraw(&ground, mem->angle);
+            _spriteQuadDrawFlicker(coord, effect->age, effect->angle, effect->period);
+            _energyballDrawGlowDisc(coord, effect->angle, effect->scale >> 2);
+            if ((gRoomEffectState->groundTraceEnabled != 0) && (worldCollisionProjectGroundCoord(coord, &groundCoord) == 1)) {
+                _groundGlowDraw(&groundCoord, effect->angle);
             }
-            coord->workm.t[1] += D_energyball_80131194[mem->index].sizeStep * mem->age;
-            func_energyball_80130B54(coord, mem->angle,
-                                     (D_energyball_80131194[mem->index].fullSize - mem->angle) / 5);
-            coord->workm.t[1] -= D_energyball_80131194[mem->index].sizeStep * mem->age;
+            // Keep the charging cylinder at its launch height while the ball rises.
+            coord->workm.t[1] += D_energyball_80131194[effect->index].sizeStep * effect->age;
+            _energyballDrawChargeBand(coord, effect->angle,
+                                      (D_energyball_80131194[effect->index].fullSize - effect->angle) / 5);
+            coord->workm.t[1] -= D_energyball_80131194[effect->index].sizeStep * effect->age;
             if ((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
                 if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
-                            sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                            sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         }
                     }
-                    worldCollisionUnlinkBody(&work->body);
-                    effectKillTask(mem, arg0);
+                    worldCollisionUnlinkBody(&collision->body);
+                    effectKillTask(effect, task);
                     return;
                 }
             }
             return;
-        case 2:
-            if ((mem->age & 7) == 0) {
-                player = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
-                vec.vx = player->workm.t[0] - coord->workm.t[0];
-                vec.vy = player->workm.t[1] - coord->workm.t[1];
-                vec.vz = player->workm.t[2] - coord->workm.t[2];
-                ApplyTransposeMatrixLV(&coord->workm, &vec, &vec);
-                mem->pos.vx = vec.vx;
-                mem->pos.vy = vec.vy;
-                mem->pos.vz = vec.vz;
+        case ENERGYBALL_STATE_FLYING:
+            // Re-aim in the player's composed frame, then steer in parent-coordinate units.
+            if ((effect->age & (ENERGYBALL_AIM_PERIOD - 1)) == 0) {
+                playerCoord     = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[1];
+                playerOffset.vx = playerCoord->workm.t[0] - coord->workm.t[0];
+                playerOffset.vy = playerCoord->workm.t[1] - coord->workm.t[1];
+                playerOffset.vz = playerCoord->workm.t[2] - coord->workm.t[2];
+                ApplyTransposeMatrixLV(&coord->workm, &playerOffset, &playerOffset);
+                effect->pos.vx = playerOffset.vx;
+                effect->pos.vy = playerOffset.vy;
+                effect->pos.vz = playerOffset.vz;
                 gte_SetRotMatrix(&coord->coord);
-                gte_ldv0(&mem->pos);
+                gte_ldv0(&effect->pos);
                 gte_rtv0();
-                gte_stsv(&mem->pos);
-                gte_lddp(mem->index * 0x180 + 0xA00);
-                gte_ldsv(&mem->move);
+                gte_stsv(&effect->pos);
+                gte_lddp(effect->index * ENERGYBALL_VELOCITY_SCALE_STEP + ENERGYBALL_VELOCITY_SCALE_BASE);
+                gte_ldsv(&effect->move);
                 gte_gpf12();
-                gte_stsv(&mem->move);
+                gte_stsv(&effect->move);
             }
-            if (mem->age & 1) {
-                cur          = mem->move.vx;
-                mem->move.vx = (cur < mem->pos.vx) ? cur + 0x10 : cur - 0x10;
-                cur          = mem->move.vy;
-                mem->move.vy = (cur < mem->pos.vy) ? cur + 0x10 : cur - 0x10;
-                cur          = mem->move.vz;
-                mem->move.vz = (cur < mem->pos.vz) ? cur + 0x10 : cur - 0x10;
+            if (effect->age & 1) {
+                velocityComponent = effect->move.vx;
+                effect->move.vx   = (velocityComponent < effect->pos.vx) ? velocityComponent + ENERGYBALL_STEERING_STEP : velocityComponent - ENERGYBALL_STEERING_STEP;
+                velocityComponent = effect->move.vy;
+                effect->move.vy   = (velocityComponent < effect->pos.vy) ? velocityComponent + ENERGYBALL_STEERING_STEP : velocityComponent - ENERGYBALL_STEERING_STEP;
+                velocityComponent = effect->move.vz;
+                effect->move.vz   = (velocityComponent < effect->pos.vz) ? velocityComponent + ENERGYBALL_STEERING_STEP : velocityComponent - ENERGYBALL_STEERING_STEP;
             }
-            coord->coord.t[0]  += mem->move.vx;
-            coord->coord.t[1]  += mem->move.vy;
-            coord->coord.t[2]  += mem->move.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(coord);
-            slot->framesLeft         = 2;
-            pointLight->inner        = 0x100;
-            pointLight->outer        = 0x1000;
+            _energyballAdvanceProjectileCoord(coord, effect);
+            lightSlot->framesLeft    = ENERGYBALL_LIGHT_HOLD_FRAMES;
+            pointLight->inner        = ENERGYBALL_LIGHT_INNER_RADIUS;
+            pointLight->outer        = ENERGYBALL_LIGHT_OUTER_RADIUS;
             gRandomLcgState          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            r                        = ((gRandomLcgState >> 16) & 0x700) + 0x800;
-            pointLight->head.color.g = r;
+            lightIntensity           = ((gRandomLcgState >> 16) & ENERGYBALL_LIGHT_JITTER_MASK) + ENERGYBALL_LIGHT_INTENSITY_BASE;
+            pointLight->head.color.g = lightIntensity;
             pointLight->head.color.r = (u16)pointLight->head.color.g >> 1;
             pointLight->head.color.b = pointLight->head.color.g >> 1;
             lightCoord->coord.t[0]   = coord->coord.t[0];
             lightCoord->coord.t[1]   = coord->coord.t[1];
             lightCoord->coord.t[2]   = coord->coord.t[2];
             lightCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-            _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-            _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
+            _spriteQuadDrawFlicker(coord, effect->age, effect->angle, effect->period);
+            _energyballDrawGlowDisc(coord, effect->angle, effect->scale >> 2);
             if (gRoomEffectState->groundTraceEnabled != 0) {
-                if (worldCollisionProjectGroundCoord(coord, &ground) == 1) {
-                    _groundGlowDraw(&ground, mem->angle);
+                if (worldCollisionProjectGroundCoord(coord, &groundCoord) == 1) {
+                    _groundGlowDraw(&groundCoord, effect->angle);
                 }
             }
             if ((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) {
@@ -373,94 +404,95 @@ void func_energyball_8012F180(Task* arg0)
                     if (gEnergyBallInFlightCount > 0) {
                         gEnergyBallInFlightCount -= 1;
                         if (gEnergyBallInFlightCount == 0) {
-                            sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                            sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         }
                     }
-                    worldCollisionUnlinkBody(&work->body);
-                    effectKillTask(mem, arg0);
+                    worldCollisionUnlinkBody(&collision->body);
+                    effectKillTask(effect, task);
                     return;
                 }
             }
-            if (worldCollisionCountContactsByKind(work->body.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+            if (worldCollisionCountContactsByKind(collision->body.context.contacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
                 spawned = effectSpawn(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0, NULL);
                 if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
+                    taskReparent(task, spawned->task);
                 }
-                spawned = effectSpawn(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0x2AA, NULL);
+                spawned = effectSpawn(EFFECT_ENERGYBALL_IMPACT_RING, coord, ENERGYBALL_IMPACT_MIDDLE_BEARING, NULL);
                 if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
+                    taskReparent(task, spawned->task);
                 }
-                spawned = effectSpawn(EFFECT_ENERGYBALL_IMPACT_RING, coord, 0x555, NULL);
+                spawned = effectSpawn(EFFECT_ENERGYBALL_IMPACT_RING, coord, ENERGYBALL_IMPACT_LAST_BEARING, NULL);
                 if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
+                    taskReparent(task, spawned->task);
                 }
-                snd = D_energyball_8013117C;
-                sndEvtRequestScriptStart(snd[mem->index + 3], 0, 0);
-                worldCollisionUnlinkBody(&work->body);
-                mem->angle  = D_energyball_80131194[mem->index].fullSize;
-                arg0->state = 3;
+                soundScripts = D_energyball_8013117C;
+                sndEvtRequestScriptStart(soundScripts[effect->index + ENERGYBALL_IMPACT_SOUND_OFFSET], 0, 0);
+                worldCollisionUnlinkBody(&collision->body);
+                effect->angle = D_energyball_80131194[effect->index].fullSize;
+                task->state   = ENERGYBALL_STATE_BURSTING;
                 return;
             }
             if (gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-                worldCollisionUnlinkBody(&work->body);
-                arg0->state = 4;
+                worldCollisionUnlinkBody(&collision->body);
+                task->state = ENERGYBALL_STATE_FADING;
                 return;
             }
-            worldCollisionClearContacts(work->contacts);
+            worldCollisionClearContacts(collision->contacts);
             return;
-        case 3:
+        case ENERGYBALL_STATE_BURSTING:
+            // Collision is already unlinked; only size and the shared loop lifetime remain.
             actorRenderComposeCoord(coord);
-            _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-            _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
-            _energyballDrawGlowDisc(coord, (u16)mem->angle * 2, mem->scale >> 2);
-            mem->angle = mem->angle + D_energyball_80131194[mem->index].sizeStep;
+            _spriteQuadDrawFlicker(coord, effect->age, effect->angle, effect->period);
+            _energyballDrawGlowDisc(coord, effect->angle, effect->scale >> 2);
+            _energyballDrawGlowDisc(coord, (u16)effect->angle * 2, effect->scale >> 2);
+            effect->angle += D_energyball_80131194[effect->index].sizeStep;
             if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
                 ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                        sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
-                effectKillTask(mem, arg0);
+                effectKillTask(effect, task);
                 return;
             }
-            if (D_energyball_80131194[mem->index].fullSize * 2 < mem->angle) {
+            if (D_energyball_80131194[effect->index].fullSize * 2 < effect->angle) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                        sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
-                effectKillTask(mem, arg0);
+                effectKillTask(effect, task);
                 return;
             }
             return;
-        case 4:
+        case ENERGYBALL_STATE_FADING:
             actorRenderComposeCoord(coord);
-            _spriteQuadDrawFlicker(coord, mem->age, mem->angle, mem->period);
-            _energyballDrawGlowDisc(coord, mem->angle, mem->scale >> 2);
-            _energyballDrawGlowDisc(coord, (u16)mem->angle * 2, mem->scale >> 2);
-            mem->angle = mem->angle - D_energyball_80131194[mem->index].sizeStep;
+            _spriteQuadDrawFlicker(coord, effect->age, effect->angle, effect->period);
+            _energyballDrawGlowDisc(coord, effect->angle, effect->scale >> 2);
+            _energyballDrawGlowDisc(coord, (u16)effect->angle * 2, effect->scale >> 2);
+            effect->angle -= D_energyball_80131194[effect->index].sizeStep;
             if (((u16)(Gp_StateC08.attachId / 10) != ATTACHMENT_ID_ENERGY_BALL_FAMILY) &&
                 ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN))) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                        sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
-                effectKillTask(mem, arg0);
+                effectKillTask(effect, task);
                 return;
             }
-            if (mem->angle < D_energyball_80131194[mem->index].sizeStep) {
+            if (effect->angle < D_energyball_80131194[effect->index].sizeStep) {
                 if (gEnergyBallInFlightCount > 0) {
                     gEnergyBallInFlightCount -= 1;
                     if (gEnergyBallInFlightCount == 0) {
-                        sndEvtRequestScriptStop(D_energyball_8013117C[mem->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                        sndEvtRequestScriptStop(D_energyball_8013117C[effect->index], SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     }
                 }
-                effectKillTask(mem, arg0);
+                effectKillTask(effect, task);
                 return;
             }
             return;
@@ -474,7 +506,8 @@ void func_energyball_8012F180(Task* arg0)
 /// `scratch` supplies pixel coordinates and a signed pixel radius. `rimAngle`
 /// uses 4096 units per turn; the three rim vertices are one sixteenth-turn
 /// apart, with the centre at vertex 2. Writes only the quad's XY fields, which
-/// narrow to signed 16 bits. Borrows both objects and retains no pointers.
+/// narrow to signed 16 bits. Q12 products and coordinate sums must fit s32.
+/// Borrows both objects and retains no pointers.
 static inline void _energyballSetGlowFanVertices(POLY_G4* quad, const EffectCentreScratch* scratch, s32 rimAngle)
 {
     quad->x0 = scratch->screenX + ((scratch->screenExtent * rsin(rimAngle)) >> ENERGYBALL_GLOW_TRIG_FRACTION_BITS);
@@ -554,88 +587,120 @@ static void _energyballDrawGlowDisc(const GfxCoord* centreCoord, s16 radius, s16
 #define GROUND_GLOW_CLUT 0x428C
 #include "../../shared/ground_glow_draw.inc.c"
 
-/// Draws the energy ball's surface: two 16-vertex rings of the same radius
-/// sit `arg1 * 2` apart in `arg0`'s local Y, are rotated by its `workm` and
-/// offset by its translation, then each of the 16 segments is projected
-/// through `GsWSMATRIX` as one semi-transparent `POLY_FT4`. The texture cell
-/// is one of six 0x28-wide frames picked per vertex by the jitter table
-/// `D_energyball_801311A0` plus the frame counter, the quad is tinted
-/// `(arg2 >> 1, arg2, arg2 >> 1)`, and a negative `gte_stflg` drops the
-/// segment.
-static void func_energyball_80130B54(GfxCoord* arg0, s16 arg1, s16 arg2)
-{
-    EffectBandScratch* block;
-    SVECTOR*           op;
-    POLY_FT4*          prim;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                u;
-    s16                idx;
-
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i << 8;
-        block->topRing[i].vx = (u32)(rsin(ang) * 3) >> 5;
-        block->topRing[i].vy = -(arg1 * 2);
-        block->topRing[i].vz = (u32)(rcos(ang) * 3) >> 5;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->topRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx   += arg0->workm.t[0];
-        block->topRing[i].vy   += arg0->workm.t[1];
-        block->topRing[i].vz   += arg0->workm.t[2];
-        block->bottomRing[i].vx = (u32)(rsin(ang) * 3) >> 5;
-        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
-        op->vy                  = 0;
-        op->vz                  = (u32)(rcos(ang) * 3) >> 5;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&block->bottomRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx += arg0->workm.t[0];
-        op->vy                  += arg0->workm.t[1];
-        op->vz                  += arg0->workm.t[2];
+/// Projects one band quad and selects its six-frame texture cell.
+///
+/// Borrows complete live scratch storage with both rings initialized and
+/// segmentIndex in 0..15. The caller has installed the projection matrices.
+/// Saves corner zero before RTPT advances the screen FIFO; only the final
+/// RTPT FLAG is retained, and the last corner's SZ3 remains for the caller.
+/// Texture phase lookup stays between RTPS and saving the first corner.
+/// All input arguments are side-effect-free locals, used repeatedly; textureFrame
+/// is a writable s16 lvalue. Captures display animation frame and the package phase table.
+/// The scoped next-segment temporary is private to the expansion.
+#define ENERGYBALL_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame)                                                               \
+    {                                                                                                                                      \
+        enum { ENERGYBALL_BAND_FRAME_COUNT = 6 };                                                                                          \
+        s32 nextSegmentIndex;                                                                                                              \
+                                                                                                                                           \
+        gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                     \
+        gte_rtps();                                                                                                                        \
+        (textureFrame) = (u32)(D_energyball_801311A0[(segmentIndex)] + gDisplayState.animFrame) % ENERGYBALL_BAND_FRAME_COUNT;             \
+        gte_stsxy(&(scratch)->sxy0);                                                                                                       \
+        nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                         \
+        gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]); \
+        gte_rtpt();                                                                                                                        \
+        gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                  \
+        gte_stflg(&(scratch)->projectionFlags);                                                                                            \
     }
+
+/// Draws the charging ball's textured cylinder between two local-XZ rims.
+///
+/// Borrows a composed `coord`; the rims have fixed radius 384 coordinate
+/// units, at local Y = -2 * `halfHeight` and zero. The caller supplies size
+/// 0..1280 and brightness 0..256; RGB takes the low bytes of
+/// (brightness / 2, brightness, brightness / 2). Angles use 4096 per turn.
+/// Rotated/transformed vertices narrow to signed halfwords. Six 40-texel
+/// frames use per-segment jitter plus the display frame. The final RTPT FLAG
+/// rejects a segment; sorting uses its last corner's SZ3 / 4 + 1.
+/// Reserves/releases one complete scratch block and appends at most sixteen
+/// additive modulated `POLY_FT4` packets; caller inputs must stay clear of
+/// that storage and the unchecked primitive arena. Packets live through drawing.
+static void _energyballDrawChargeBand(const GfxCoord* coord, s16 halfHeight, s16 brightness)
+{
+    enum {
+        ENERGYBALL_BAND_ANGLE_STEP         = 256,
+        ENERGYBALL_BAND_TRIG_FRACTION_BITS = 12,
+        ENERGYBALL_BAND_CELL_WIDTH         = 40,
+        ENERGYBALL_BAND_TOP_V              = 0x60,
+        ENERGYBALL_BAND_UV_SPAN            = 39,
+    };
+    EffectBandScratch* scratch;
+    SVECTOR*           bottomVertex;
+    POLY_FT4*          quad;
+    s32                segmentIndex;
+    s32                rimAngle;
+    s32                textureU;
+    s16                textureFrame;
+
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    // Build both rims in local XZ, then transform their narrowed vertices.
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        rimAngle                          = segmentIndex * ENERGYBALL_BAND_ANGLE_STEP;
+        scratch->topRing[segmentIndex].vx = (u32)(rsin(rimAngle) * 3) >> 5;
+        scratch->topRing[segmentIndex].vy = -(halfHeight * 2);
+        scratch->topRing[segmentIndex].vz = (u32)(rcos(rimAngle) * 3) >> 5;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->topRing[segmentIndex]);
+        gte_rtv0();
+        gte_stsv(&scratch->topRing[segmentIndex]);
+        scratch->topRing[segmentIndex].vx   += coord->workm.t[0];
+        scratch->topRing[segmentIndex].vy   += coord->workm.t[1];
+        scratch->topRing[segmentIndex].vz   += coord->workm.t[2];
+        scratch->bottomRing[segmentIndex].vx = (u32)(rsin(rimAngle) * 3) >> 5;
+        // Address the lower rim through the complete scratch block's byte view.
+        bottomVertex     = (SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing));
+        bottomVertex->vy = 0;
+        bottomVertex->vz = (u32)(rcos(rimAngle) * 3) >> 5;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->bottomRing[segmentIndex]);
+        gte_rtv0();
+        gte_stsv(&scratch->bottomRing[segmentIndex]);
+        scratch->bottomRing[segmentIndex].vx += coord->workm.t[0];
+        bottomVertex->vy                     += coord->workm.t[1];
+        bottomVertex->vz                     += coord->workm.t[2];
+    }
+    // Project sixteen wrapped segments; only accepted quads consume packets.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
-        gte_rtps();
-        idx = (u32)(D_energyball_801311A0[i] + gDisplayState.animFrame) % 6;
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x42C1;
-            u           = idx * 0x28;
-            setRGB0(prim, arg2 >> 1, arg2, arg2 >> 1);
-            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            setSemiTrans(prim, 1);
-            prim->x0 = block->sxy0.vx;
-            prim->y0 = block->sxy0.vy;
-            prim->x1 = block->sxy1.vx;
-            prim->y1 = block->sxy1.vy;
-            prim->x2 = block->sxy2.vx;
-            prim->y2 = block->sxy2.vy;
-            prim->x3 = block->sxy3.vx;
-            prim->y3 = block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        ENERGYBALL_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            scratch->otz++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
+            quad->clut  = getClut(16, 267);
+            textureU    = textureFrame * ENERGYBALL_BAND_CELL_WIDTH;
+            setRGB0(quad, brightness >> 1, brightness, brightness >> 1);
+            setUV4(quad, textureU, ENERGYBALL_BAND_TOP_V, textureU + ENERGYBALL_BAND_UV_SPAN, ENERGYBALL_BAND_TOP_V, textureU, ENERGYBALL_BAND_TOP_V + ENERGYBALL_BAND_UV_SPAN, textureU + ENERGYBALL_BAND_UV_SPAN, ENERGYBALL_BAND_TOP_V + ENERGYBALL_BAND_UV_SPAN);
+            setSemiTrans(quad, true);
+            quad->x0 = scratch->sxy0.vx;
+            quad->y0 = scratch->sxy0.vy;
+            quad->x1 = scratch->sxy1.vx;
+            quad->y1 = scratch->sxy1.vy;
+            quad->x2 = scratch->sxy2.vx;
+            quad->y2 = scratch->sxy2.vy;
+            quad->x3 = scratch->sxy3.vx;
+            quad->y3 = scratch->sxy3.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
+#undef ENERGYBALL_PROJECT_BAND_SEGMENT
 
 void energyballImpactRingTask(Task* task)
 {

@@ -5595,7 +5595,7 @@ cross-jump. Do not reach for a barrier here.
 Ofuda / healing force an independent call arg (`span = 0xC0; TOUCH_REG(span)`)
 immediately after `COPY_REG_EC(c, coord)`, which emits `move a0, s0` then
 `li a2, 0xC0` and leaves the RGB-half's `srl` to fill `lbu 0x11`'s delay.
-`func_plasma_8012EF34` has no constant span on that path: the 4th arg is
+`plasmaCastTask` has no constant span on that path: the 4th arg is
 `&rgb` (`addiu a3, sp, 0x10`). Without an early use, `-fschedule-insns`
 parks that `addiu` in the RGB chain (after `lbu 0x11` / `srl v1`) and the
 leftover is pure `reorder=2`.
@@ -5629,39 +5629,39 @@ this hoist.
 ## Independent `flags = 1` is hoisted into a long mul; put it after the jal-delay store
 
 `worldCollisionLinkBody` wants `sh flags, 0x1E` immediately before the `jal` and the
-`field_1C` store in the delay. Written as
+`radius` store in the delay. Written as
 
 ```c
-obj->field_18 = long_div_expr;
-obj->flags    = 1;
-obj->field_1C = table[i].field_0;
-worldCollisionLinkBody(1, obj);
+collision->damageBody.key    = long_div_expr;
+collision->damageBody.flags  = 1;
+collision->damageBody.radius = D_necrosis_801306BC[effect->index].startRadius;
+worldCollisionLinkBody(1, &collision->damageBody);
 ```
 
 the constant `flags = 1` is independent of the `% 100` / `% 10` muls, so
-`-fschedule-insns` plants `sh $fp, 0x1E` in a `multu` delay. `field_1C`
+`-fschedule-insns` plants `sh $fp, 0x1E` in a `multu` delay. `radius`
 still owns the jal delay, and the leftover is pure `reorder` (often with
 `mfhi` / `li a0, 1` swapped around that stolen slot). Barriers after
-`field_18` spill a mul temp and reopen `branch`.
+`key` spill a mul temp and reopen `branch`.
 
 Move the independent store *after* the load that should fill the jal
 delay:
 
 ```c
-obj->field_18 = long_div_expr;
-obj->field_1C = table[i].field_0;
-obj->flags    = 1;
-worldCollisionLinkBody(1, obj);
+collision->damageBody.key    = long_div_expr;
+collision->damageBody.radius = D_necrosis_801306BC[effect->index].startRadius;
+collision->damageBody.flags  = 1;
+worldCollisionLinkBody(1, &collision->damageBody);
 ```
 
-`field_1C` still lands in the `jal` delay; `flags` stays next to the call.
-`func_necrosis_8012EF34` is the example.
+`radius` still lands in the `jal` delay; `flags` stays next to the call.
+`necrosisCastTask` is the example.
 
 A related tick-register swap on the same function: `lhu a1` (old) /
 `addiu a0, a1, 1` (new) needs the incremented value to outrank the
 pre-increment copy. Both at 3 refs, the shorter live range (restore
-path) wins `$a0`. `SOFT_USE_REG(tick)` after the store is a fourth ref
-with no extra insn, so `tick` takes `$a0` and the restore keeps `$a1`.
+path) wins `$a0`. `SOFT_USE_REG(nextAge)` after the store is a fourth ref
+with no extra insn, so `nextAge` takes `$a0` and the restore keeps `$a1`.
 
 ## Split each LCG roll; divide the stored `s16` not the `andi` temp
 
@@ -62141,16 +62141,16 @@ reading two different compilations. Check the filenames before the codegen.
 
 ## `s16 field = (s16_field << 8) + K` loses the load's sign extension
 
-`func_energyball_8012EF48` derives the ball radius from the charge level it
+`energyballCastTask` derives the ball radius from the PE level it
 just stored:
 
 ```c
-mem->field_20 = Gp_StateC08.attachId % 10 - 1;
-mem->field_26 = (mem->field_20 << 8) + 0x300;   /* sll 8 */
+effect->index = Gp_StateC08.attachId % 10 - 1;
+effect->angle = (effect->index << 8) + 0x300;   /* sll 8 */
 ```
 
 The ROM has `sll v1,v1,0x10; sra v1,v1,0x8` — the sign extension of the
-`field_20` load, merged with the `<< 8`. The one-liner above emits a bare
+`index` load, merged with the `<< 8`. The one-liner above emits a bare
 `sll 8` instead, and so does a version through an `s16` local. The C front end
 narrows an arithmetic expression to the mode of the object it is assigned to
 (`convert_to_integer` shortens `PLUS` / `MULT` / `LSHIFT` when the shift count
@@ -62162,21 +62162,21 @@ away for the same reason and does not bring the extension back.
 Route the value through an `s32` local so the shift has to happen in `SImode`:
 
 ```c
-level         = mem->field_20;                  /* sll 16 / sra 8 */
-mem->field_26 = (level << 8) + 0x300;
+levelIndex    = effect->index;                  /* sll 16 / sra 8 */
+effect->angle = (levelIndex << 8) + 0x300;
 ```
 
 Assign the plain field to it, not the shifted expression: `s32 t = field << 8;`
 also extends, but the extension no longer depends on the `sh` that stores
-`field_20`, so the scheduler hoists it above the store and it lands in a second
+`index`, so the scheduler hoists it above the store and it lands in a second
 register instead of overwriting `$v1`.
 
 ## Let strength reduction build the fan angle: `i * K`, not an accumulator
 
-The same function spawns one ball per charge level, each `0x555` further round:
+The same function spawns one ball per PE level, each `0x555` further round:
 
 ```c
-mem->field_24 = i * 0x555 - (s16)(u16)mem->field_20 * 0x2AA;
+effect->scale = ballIndex * 0x555 - (s16)(u16)effect->index * 0x2AA;
 ```
 
 Written with a hand-rolled accumulator (`angle` initialised to 0 before the
@@ -62185,7 +62185,7 @@ preheader is wrong: the ROM zeroes the counter first and copies it into the
 angle (`move s0,zero` in the `blez` delay slot, then `move s2,s0` after the
 guard), while the accumulator version zeroes the angle first and copies it into
 the counter. The ROM's copy is a *giv initialisation*: `loop` strength-reduces
-`i * 0x555` into exactly the `addiu s2,s2,0x555` accumulator, and seeds it from
+`ballIndex * 0x555` into exactly the `addiu s2,s2,0x555` accumulator, and seeds it from
 the biv's own register. Two zeroed locals in the source cannot produce that
 ordering, because neither one is derived from the other.
 
@@ -62542,7 +62542,7 @@ GCC keep two of them in `$s5` / `$s1` across the loop and spill only the
 
 ## A `&Global` pointer local pins the whole address; plain member access shares only the `%hi`
 
-`func_metabolism_8012EF34` touches `Gp_StateC08` three times: `effectPhase` in the
+`metabolismCastTask` touches `Gp_StateC08` three times: `effectPhase` in the
 cancel test, `attachId` in `case 0`, and `flags` a few statements later.
 Copying its sibling `func_healing_8012EF34` and opening with
 
@@ -63184,7 +63184,7 @@ liveness but is a read of an uninitialised value and made GCC emit a stray
 
 ## Two pointer locals swap `$sN`: add one *reference*, not a pin
 
-`func_pyrokinesis_8012EF48` reached 99.395% with `branch=insert=delete=reorder=0`
+`pyrokinesisCastTask` reached 99.395% with `branch=insert=delete=reorder=0`
 and every single diff line being `s2`/`s3` interchanged: the coordinate pointer
 wanted `$s2` and the work-block pointer `$s3`, and GCC gave them the other way
 round. The instruction stream was already byte-identical, so no statement
@@ -63202,10 +63202,10 @@ of the two to be allocated takes the lower-numbered free callee-saved register.
 
 ```
 Register 82 used 47 times across 518 insns;   <- coord, pri 4536
-Register 83 used 49 times across 535 insns;   <- work,  pri 4579
+Register 83 used 49 times across 535 insns;   <- collision, pri 4579
 ```
 
-4536 < 4579, so `work` went first. One extra reference on the loser flips it
+4536 < 4579, so `collision` went first. One extra reference on the loser flips it
 (5*48/518 = 4633), and `SOFT_USE_REG(coord)` is exactly one reference that
 emits no instruction. Placed next to an existing use of the variable it costs
 nothing else; 99.395% -> 100.00%.
@@ -63232,18 +63232,18 @@ Target:
 addiu  v0, v0, 0x800
 sh     v0, 0x50(s0)
 move   v1, v0
-srl    v0, v0, 0x1     <- field_52
+srl    v0, v0, 0x1     <- head.color.g
 sll    v1, v1, 0x10
-sra    v1, v1, 0x12    <- field_54
+sra    v1, v1, 0x12    <- head.color.b
 ```
 
 Written against a local, the sign extension disappears:
 
 ```c
-s16 amp = (((u32)gRandomLcgState >> 16) & 0x700) + 0x800;
-slot->field_50 = amp;
-slot->field_52 = (u16)amp >> 1;   /* srl 1  - correct */
-slot->field_54 = amp >> 2;        /* srl 2  - WRONG, wanted sll 16 / sra 18 */
+s16 lightIntensity = (((u32)gRandomLcgState >> 16) & 0x700) + 0x800;
+pointLight->head.color.r = lightIntensity;
+pointLight->head.color.g = (u16)lightIntensity >> 1;   /* srl 1  - correct */
+pointLight->head.color.b = lightIntensity >> 2;        /* srl 2  - WRONG, wanted sll 16 / sra 18 */
 ```
 
 `nonzero_bits` on `(x & 0x700) + 0x800` proves the sign bit is clear, so
@@ -63251,9 +63251,9 @@ combine folds `(sign_extend (subreg:HI x))` away and an arithmetic shift
 becomes a logical one. Store the value and read the `s16` field back instead:
 
 ```c
-slot->field_50 = amp;
-slot->field_52 = (u16)slot->field_50 >> 1;
-slot->field_54 = slot->field_50 >> 2;
+pointLight->head.color.r = lightIntensity;
+pointLight->head.color.g = (u16)pointLight->head.color.r >> 1;
+pointLight->head.color.b = pointLight->head.color.r >> 2;
 ```
 
 CSE substitutes the register for the load but has to re-materialise the
@@ -63791,25 +63791,25 @@ pair re-extends an argument the prologue also copied.
 
 ## `(p + i)[col * 16]` puts the row term first; `arr[col][i]` puts it second
 
-`func_plasma_8012F568` reads jitter column `arg2`, entry `i`, of a
+`_plasmaDrawRingBand` reads jitter column `bandIndex`, entry `segmentIndex`, of a
 `s16 [3][16]` table. The target forms the address as
 
 ```
 sll  v0, s4, 1        # i * 2 first
-sll  v1, t8, 5        # arg2 * 32 second
+sll  v1, t8, 5        # bandIndex * 32 second
 addu v0, v0, v1
 addu v0, v0, t7       # + table
 ```
 
-`((s16(*)[16])&table)[arg2][i]` scored 99.8% with the two `sll`s swapped, and
-`((s16*)&table)[i + arg2 * 16]` was worse (it folds to one `(arg2*16 + i) << 1`
+`((s16(*)[16])&table)[bandIndex][i]` scored 99.8% with the two `sll`s swapped, and
+`((s16*)&table)[i + bandIndex * 16]` was worse (it folds to one `(bandIndex*16 + i) << 1`
 chain). GCC's `fold` splits a sum into its variable and constant parts and
 re-emits it as `vars + const`, so the `SYMBOL_REF` base always lands last and the
 variable terms keep their *source* order. `arr[col][i]` is `base + col*32 + i*2`;
 to get `i*2` first, add `i` to the base first and index the result by the row:
 
 ```c
-idx = ((&D_plasma_8012FF54.a + i)[arg2 * 16] + arg0->field_22) % 6;
+textureFrame = (D_plasma_8012FF54[bandIndex][segmentIndex] + effect->age) % 6;
 ```
 
 Same instructions, same `addu` operands, 100%. This is the array-index cousin
@@ -63817,9 +63817,9 @@ of "`addu` load order and operand order are coupled": both terms are computed,
 not loaded, so only the fold order can be steered.
 
 The same function's prologue was then off by one local-alloc colouring
-(`head` in `$v0`/`r1` in `$a0` instead of `$a0`/`$a1`) that no reshaping of the
+(`head` in `$v0`/`bottomRadius` in `$a0` instead of `$a0`/`$a1`) that no reshaping of the
 three statements involved would move. What fixed it was hoisting the *unrelated*
-radius arithmetic (`r1 += row->baseRadius; r0 = r1 + …`) above the
+radius arithmetic (`bottomRadius += shape->baseRadius; topRadius = bottomRadius + …`) above the
 `SCRATCH_STACK_CURSOR_SLOT` load/store block. The instructions still schedule identically,
 but sched1 breaks its ties by source position, the `baseRadius` temp is born
 earlier relative to `head`, and local-alloc's priority order flips so `baseRadius`
@@ -63846,12 +63846,12 @@ instead: at cse time the block after it has two incoming jumps (`X == K` and
 folds the inline copy into the shared tail and `jump_optimize` turns the
 leftover `if (B) goto next; j dec` back into `beqz ..., dec`, so the final
 layout is identical to the `goto` version except for the unshared `lui` and
-the reload. `func_energyball_8012F180` cases 3 and 4 are the example (99.19% →
+the reload. `energyballProjectileTask` cases 3 and 4 are the example (99.19% →
 100% by this change alone). A `COMPILER_BARRIER()` gets the reload but not the
 `lui`; a `tbl = D_x; SOFT_TOUCH_REG(tbl)` guards the pointer, not its `high`
 pseudo, so neither reproduces it.
 
-Also from the same function: `&gWorldCoordTransientPointLights[index->spawnArg1 + 4]` assembles
+Also from the same function: `&gWorldCoordTransientPointLights[task->spawnArg1.value + 4]` assembles
 to the same bytes as the splat name `D_801150C0` (`%lo(gWorldCoordTransientPointLights+0x190)`),
 so a "slot base four entries in" needs no separate extern.
 
@@ -142524,9 +142524,9 @@ that needs a mutable count (`n = arg2;` at the top of the `else`). The `li` is
 then born inside that arm, and the compare still stays a register test because
 CSE loses the value at the loop's exit label.
 
-## `(s16)(x << 6)` narrows an `s16` field's load to `lhu`; `(s16)(x * 64)` keeps `lh` (func_plasma_8012EF34)
+## `(s16)(x << 6)` narrows an `s16` field's load to `lhu`; `(s16)(x * 64)` keeps `lh` (plasmaCastTask)
 
-**Symptom.** A call argument `(s16)(mem->age << 6)`, where `age` is `s16`,
+**Symptom.** A call argument `(s16)(effect->age << 6)`, where `age` is `s16`,
 loads the field with `lhu` before the `sll 22; sra 16`; the target has `lh`.
 A per-block `s32` local copied from the field fixed it, and needed barriers to
 hold the rest of the block in place.
@@ -142537,11 +142537,11 @@ load is emitted unsigned. It does not narrow a `MULT_EXPR` the same way, so the
 multiply keeps the operand promoted to `int` and the load stays signed - which
 is also why a `* 0xC0` argument in the same function matched from the start.
 
-**Fix.** Write the scale as a multiply (`mem->age * 64`, `mem->index * 128 +
+**Fix.** Write the scale as a multiply (`effect->age * 64`, `effect->index * 128 +
 0x100`); the code is identical apart from the load. The same function's
-`index` / `&Gp_StateC08` `$s` swap, pinned with two `USE_REG(index)`, was the
+`task` / `&Gp_StateC08` `$s` swap, pinned with two `USE_REG(task)`, was the
 release path written once behind a `goto`: each state that releases calling
-`effectKillTask(mem, index)` itself adds the references that rank `index`
+`effectKillTask(effect, task)` itself adds the references that rank `task`
 first, and cross-jumping merges the calls back into one tail.
 ## The OT slot spelling moves loop.c's hoisting threshold: `&ot[(z << shift) >> 4 & 0x3FF]` is one RTL insn longer than `((z << shift) >> 2 & 0xFFC) + ot` (acropolisSecurityRoomMonitorGlowTask, 2026-09-26)
 
@@ -143424,7 +143424,7 @@ original was an asm block hand-emitting the four stores.
 at its use, declare it once before the loop: `len = 9;` beside the other
 function-scope initialisers, `setlen(&poly[0], len)` in the body.
 
-## Halving a stack `u8 rgb[3]` in place is three `rgb[i] >>= 1`, not a helper taking `rgb` (func_metabolism_8012EF34, 2026-09-26)
+## Halving a stack `u8 rgb[3]` in place is three `rgb[i] >>= 1`, not a helper taking `rgb` (metabolismCastTask, 2026-09-26)
 
 The pe arcs (`metabolism`, `healing`, `ofuda`) dim their colour between
 `effectDrawOuterGlowBand` calls with `lbu 0x10(sp)`/`lbu 0x12(sp)`/`sb 0x10`/`lbu 0x11`/
@@ -143432,7 +143432,7 @@ The pe arcs (`metabolism`, `healing`, `ofuda`) dim their colour between
 separating them with `COPY_REG_EC`/`TOUCH_REG`/`SOFT_COMPILER_BARRIER` was
 steering; plain `rgb[0] >>= 1; rgb[1] >>= 1; rgb[2] >>= 1;` in index order
 matches, with the call's arguments written directly (`effectDrawOuterGlowBand(coord,
-mem->angle, 0x80, rgb)`). Other orders land 40-60 differences off. An
+effect->angle, 0x80, rgb)`). Other orders land 40-60 differences off. An
 `static inline` helper taking `u8* rgb` does *not* match (95%): the parameter
 is a pseudo holding `sp+0x10`, CSE keeps it in `$s0` and every channel is
 addressed `n($s0)`.
@@ -146907,7 +146907,7 @@ not conflict, so sched1 is free to sink `sh 0x22` below the grow step's stores.
 When a store order looks shuffled against the sibling pattern, write the
 sibling's order first before hoisting a load into a temp.
 
-## `goto` to a shared cleanup lets two identical blocks cross-jump; a written-out tail keeps them apart (func_energyball_8012F180, 2026-09-27)
+## `goto` to a shared cleanup lets two identical blocks cross-jump; a written-out tail keeps them apart (energyballProjectileTask, 2026-09-27)
 
 Two switch arms end with the same `if (n > 0) { if (--n == 0) sound(tbl[i], 1); }`
 followed by the same cleanup. The target keeps both sound blocks, and each ends
@@ -146951,15 +146951,15 @@ the coordinate stores, and `(u16)` casts on the half-extent and on the stored
 coordinates all came out without changing a byte. Scaffolding of this kind
 accreted around a block type is worth stripping in one pass and checking with
 the full build before assuming any piece of it is load-bearing.
-## Duplicated early-exit bodies count as references until jump2 merges them (func_pyrokinesis_8012EF48, 2026-09-27)
+## Duplicated early-exit bodies count as references until jump2 merges them (pyrokinesisCastTask, 2026-09-27)
 
 A state machine's cases each start with "release if the player is dying or the
 room is fading". Two of five cases were written as two separate `if` blocks,
-each repeating `worldCollisionUnlinkBody(&work->obj2); release; return;`, the others as one
+each repeating `worldCollisionUnlinkBody(&collision->gridBody); release; return;`, the others as one
 `a || (fade = ..., fade >= 4)` guard. jump2 folds the repeated bodies, so the
 object code is identical either way, but global allocation runs before jump2:
-each written-out copy adds a reference to `work`, and two extra references
-were enough to lift `work` above `coord` in `floor_log2(refs)*refs/live_length`
+each written-out copy adds a reference to `collision`, and two extra references
+were enough to lift `collision` above `coord` in `floor_log2(refs)*refs/live_length`
 and swap their callee-saved registers. A `SOFT_USE_REG(coord)` was compensating
 by adding a reference to the other side. When two long-lived pointers have
 swapped registers, and a guard's body is repeated, write the guard the way its
@@ -149463,7 +149463,7 @@ attempts; left as it was.
   `static inline` with `case 3: return 0;`, the three divisions with `break`,
   and the clamp after the switch. Four sites, first try. Differing goto
   layouts of one computation in two functions point to an inline.
-- **A `release:` label on the kill in the last case** (`func_necrosis_8012EF34`,
+- **A `release:` label on the kill in the last case** (`necrosisCastTask`,
   five gotos from three cases) is the kill written once *after* the switch:
   killing paths `break`, every other path `return`s, `default: return;`.
   Writing `effectKillTask(mem, arg0); return;` at each site kept the length but
@@ -149528,14 +149528,14 @@ attempts; left as it was.
 ### Goto forms from the PE casts, weapons and dryfield rooms (batch of 16, 2026-10-06)
 
 - **`goto draw` from one switch case into the next case's draw tail, where
-  the tail owns a stack array** (`rgb[3]` in `func_metabolism_8012EF34`,
+  the tail owns a stack array** (`rgb[3]` in `metabolismCastTask`,
   `func_healing_8012EF34`) is a `static inline` with the array as *its* local,
   called in both cases. The two inlined copies share one stack slot
   (`sp+16`), so cross-jumping still merges them into the later case; the frame
   does not grow. First try both times.
 - **`if (cancel) goto release;` at the top, `release:` after a switch whose
   cases all return** (`func_inferno_8012EF88`, `infernoFlameFanTask`,
-  `func_energyball_8012F180`, `func_combustion_8012EF34`) is
+  `energyballProjectileTask`, `func_combustion_8012EF34`) is
   `effectKillTask(mem, arg0); return;` written at the site. The copy merges
   into the last identical call before the epilogue, wherever that is (the
   `break` path after the switch, or the last case's own kill).
@@ -149816,7 +149816,7 @@ attempts; left as it was.
   signed tests. The y pair of the same chain is not folded either way: it is
   never the two operands of one node.
 - **Where the kill is written decides who gets `$s3`.**
-  `func_plasma_8012EF34` had `goto release` from the cancel guard and
+  `plasmaCastTask` had `goto release` from the cancel guard and
   `effectKillTask(mem, arg0); return;` in cases 1 and 2. The kill at all three
   sites keeps case 2's copy (every copy ends in a jump to the epilogue; the
   image has the kill last, after case 2's draw). Both cases as `break` to one

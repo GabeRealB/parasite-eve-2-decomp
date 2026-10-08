@@ -5,3 +5,4 @@ energyshotRisingBillboardTask = 0x8012FFB8; // type:func
 
 func_energyshot_8012EF34 = 0x8012EF34; // type:func
 glowDrawWedge = 0x8012F750; // type:func
+_energyshotDrawBeamBand = 0x8012fa50; // type:func

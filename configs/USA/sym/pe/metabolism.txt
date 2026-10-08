@@ -1,5 +1,5 @@
 
 metabolismSparkleTask = 0x8012F5A0; // type:func
 
-func_metabolism_8012EF34 = 0x8012EF34; // type:func
+metabolismCastTask = 0x8012EF34; // type:func
 _metabolismDrawFanWedge = 0x8012f840; // type:func

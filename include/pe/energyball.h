@@ -3,7 +3,25 @@
 
 #include "main/task_types.h"
 
-void func_energyball_8012F180(Task* arg0);
+/// Charges, steers and retires one collision-bearing Energy Ball.
+///
+/// Bank-6 slot 0xF8 requires cleared owned `EffectWork` in `spawnArg2.pointer`
+/// and a coordinate body. `spawnArg1.value` is the ball ordinal 0..2, selecting
+/// transient light slot 4..6. Initialization selects PE level 1..3 from the
+/// current attachment and allocates task-owned collision storage. The work
+/// keeps size in `angle`, brightness in `scale`, sprite rotation in `period`,
+/// flight velocity in `move`, and its steering target velocity in `pos`.
+///
+/// Charging raises the ball as size grows to the level limit. Flight links a
+/// damage sphere of half that size, aims at the player every eighth running
+/// update and steers on odd ages. Enemy contact spawns three impact rings and
+/// starts a burst growing past twice full size; leaving battle starts shrinkage
+/// below one size step. The last retiring ball stops the shared loop sound.
+/// Non-running PE control below cancellation redraws without advancing.
+/// Cancellation releases immediately; a held attachment also releases during
+/// running updates once the attachment leaves the Energy Ball family.
+/// Collision bodies are unlinked before their task-owned storage is released.
+void energyballProjectileTask(Task* task);
 
 /// Expands and fades one green ring from an energy ball impact.
 ///
@@ -17,6 +35,15 @@ void func_energyball_8012F180(Task* arg0);
 /// Nonzero PE effect control skips both drawing and updates, including cleanup.
 void energyballImpactRingTask(Task* task);
 
-void func_energyball_8012EF48(Task* arg0);
+/// Starts a level-dependent group of charging Energy Balls.
+///
+/// Bank-6 slot 0xCF requires a coordinate body, cleared owned `EffectWork` in
+/// `spawnArg2.pointer`, and an Energy Ball attachment id (431..433). The level
+/// digit selects one to three spawn offsets and the loop sound. Initializes
+/// sixteen texture-phase jitters, then spawns balls at 1365-angle-unit intervals
+/// (4096 units per turn), stopping when the existing flight count plus the
+/// spawn ordinal reaches three. Negative flight counts are reset to zero.
+/// The following callback releases this controller; it has no pause gate.
+void energyballCastTask(Task* task);
 
 #endif // INCLUDE_PE_ENERGYBALL_H

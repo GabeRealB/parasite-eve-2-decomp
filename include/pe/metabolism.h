@@ -20,6 +20,23 @@
 /// may end them sooner; the coordinate's parent chain must stay live meanwhile.
 void metabolismSparkleTask(Task* task);
 
-void func_metabolism_8012EF34(Task* arg0);
+/// Grows and fades the Metabolism cast around the player while emitting sparkles.
+///
+/// Bank-6 slot 0x12 requires a coordinate body and cleared owned `EffectWork`
+/// in `spawnArg2.pointer`. The current attachment level digit must be 1..3.
+/// Initialization parents the coordinate to the player, lifts it 1024 local
+/// units, seeds fixed fan bearings and applies the attachment stats. The work
+/// keeps brightness in `scale`, radius in `angle`, and the level row in `index`.
+/// Growth adds the row radius step and up to 16 brightness units per callback,
+/// emitting three parented sparkles after the retained transform/RNG sequence.
+/// At the row radius limit it fades by 16 per callback while radius still grows;
+/// a brightness below 17 selects release on the next callback.
+///
+/// Both drawing phases render fan wedges, two coincident filled discs and
+/// concentric complete bands; levels 2 and 3 add the outer band. A held
+/// attachment or cancellation releases the work and task immediately.
+/// Other PE-control values do not pause this task. The player parent must
+/// stay live until task teardown.
+void metabolismCastTask(Task* task);
 
 #endif // INCLUDE_PE_METABOLISM_H

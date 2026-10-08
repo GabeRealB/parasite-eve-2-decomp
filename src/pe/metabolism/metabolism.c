@@ -105,125 +105,136 @@ static inline void _metabolismDrawGlow(const GfxCoord* coord, const EffectWork* 
     }
 }
 
-/// Runs one frame of the metabolism cast. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD`
-/// or `gRoomEffectState->peEffectControl >= 4`) releases the work block. State 0 parents the
-/// coordinate to the player with an identity rotation lifted 0x400 above it,
-/// picks the intensity row from the combo counter, seeds one random angle per
-/// fan wedge into `D_metabolism_8012FB78`, and plays the combo-indexed cue.
-/// State 1 grows brightness and radius, and each frame spins the coordinate to
-/// three random yaws, rotating `EffectWork.move` through the new frame and
-/// then overwriting it with the `angle` circle at `step`, to parent
-/// three `0x60013` sparks; it hands over to state 2 once the radius reaches
-/// the row's `radiusLimit`. State 2 shrinks brightness by 0x10 a frame and drops
-/// to state 3 - release - below 0x11. States 1 and 2 both draw the fan wedges,
-/// two rings and two or three arcs, each arc on a colour halved again from the
-/// last.
-void func_metabolism_8012EF34(Task* arg0)
+/// Seeds the selected level's 8, 12 or 16 fixed fan bearings.
+///
+/// levelIndex is a side-effect-free 0..2 expression and wedgeIndex a writable
+/// scalar local; both are evaluated repeatedly. Captures the level tuning,
+/// complete sixteen-angle table and shared LCG; 4096 angle units form a turn.
+#define METABOLISM_SEED_FAN_BEARINGS(levelIndex, wedgeIndex)                                                                        \
+    {                                                                                                                               \
+        enum { METABOLISM_WEDGE_JITTER_MASK = 0x3FF };                                                                              \
+        s32 bearingRoll;                                                                                                            \
+                                                                                                                                    \
+        for ((wedgeIndex) = 0; (wedgeIndex) < D_metabolism_8012FB54[((levelIndex))].wedgeCount; (wedgeIndex)++) {                   \
+            bearingRoll                         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                   \
+            D_metabolism_8012FB78[(wedgeIndex)] = ((wedgeIndex) << 10) + (((u32)bearingRoll >> 16) & METABOLISM_WEDGE_JITTER_MASK); \
+            gRandomLcgState                     = bearingRoll;                                                                      \
+        }                                                                                                                           \
+    }
+
+void metabolismCastTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        METABOLISM_STATE_INITIALIZE    = 0,
+        METABOLISM_STATE_GROWING       = 1,
+        METABOLISM_STATE_FADING        = 2,
+        METABOLISM_STATE_RELEASE       = 3,
+        METABOLISM_CENTRE_LIFT         = 0x400,
+        METABOLISM_INITIAL_RADIUS      = 0x80,
+        METABOLISM_BRIGHTNESS_STEP     = 0x10,
+        METABOLISM_FADE_END_BRIGHTNESS = 0x11,
+        METABOLISM_SPARKLES_PER_TICK   = 3,
+        METABOLISM_ANGLE_MASK          = 0xFFF,
+        METABOLISM_TRIG_FRACTION_BITS  = 12,
+    };
+    EffectWork* effect;
     GfxCoord*   coord;
     EffectWork* spawned;
     s32         pan;
-    s32         bright;
-    s32         i;
-    s32         temp_lo;
+    s32         brightness;
+    s32         particleIndex;
+    s32         verticalProduct;
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    effect = task->spawnArg2.pointer;
+    coord  = task->extra.coordBody->coord;
     if ((Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        effectKillTask(mem, arg0);
+        effectKillTask(effect, task);
         return;
     }
 
-    mem->age = mem->age + 1;
-    switch (arg0->state) {
-        case 0:
+    effect->age = effect->age + 1;
+    switch (task->state) {
+        case METABOLISM_STATE_INITIALIZE:
             coord->parent = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
             gfxSetRotIdentity(&coord->coord);
             coord->coord.t[0]   = 0;
-            coord->coord.t[1]   = -0x400;
+            coord->coord.t[1]   = -METABOLISM_CENTRE_LIFT;
             coord->coord.t[2]   = 0;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            arg0->state = 1;
-            mem->index  = (Gp_StateC08.attachId % 10) - 1;
-            mem->angle  = 0x80;
-            {
-                s32 rng;
-
-                for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
-                    rng                      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    D_metabolism_8012FB78[i] = (i << 10) + (((u32)rng >> 16) & 0x3FF);
-                    gRandomLcgState          = rng;
-                }
-            }
+            task->state   = METABOLISM_STATE_GROWING;
+            effect->index = (Gp_StateC08.attachId % 10) - 1;
+            effect->angle = METABOLISM_INITIAL_RADIUS;
+            METABOLISM_SEED_FAN_BEARINGS(effect->index, particleIndex);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_APPLY_STATS;
             pan                = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(D_metabolism_8012FB6C[mem->index], pan,
+            sndEvtRequestScriptStart(D_metabolism_8012FB6C[effect->index], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
             /* fallthrough */
-        case 1:
+        case METABOLISM_STATE_GROWING:
             actorRenderComposeCoord(coord);
-            bright = mem->scale;
-            if (bright < D_metabolism_8012FB54[mem->index].brightnessLimit) {
-                bright += 0x10;
+            brightness = effect->scale;
+            if (brightness < D_metabolism_8012FB54[effect->index].brightnessLimit) {
+                brightness += METABOLISM_BRIGHTNESS_STEP;
             }
-            mem->scale = bright;
-            mem->angle = mem->angle + D_metabolism_8012FB54[mem->index].radiusStep;
+            effect->scale = brightness;
+            effect->angle = effect->angle + D_metabolism_8012FB54[effect->index].radiusStep;
             {
-                s32 rng;
-                s32 rng2;
+                s32 bearingRoll;
+                s32 yawRoll;
 
-                for (i = 0; i < 3; i++) {
-                    rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    rng2            = rng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    gRandomLcgState = rng;
-                    mem->step       = ((u32)rng >> 16) & 0xFFF;
-                    gRandomLcgState = rng2;
-                    gfxRotMatrixY(&coord->coord, ((u32)rng2 >> 16) & 0xFFF, 0);
+                for (particleIndex = 0; particleIndex < METABOLISM_SPARKLES_PER_TICK; particleIndex++) {
+                    bearingRoll     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    yawRoll         = bearingRoll * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                    gRandomLcgState = bearingRoll;
+                    effect->step    = ((u32)bearingRoll >> 16) & METABOLISM_ANGLE_MASK;
+                    gRandomLcgState = yawRoll;
+                    gfxRotMatrixY(&coord->coord, ((u32)yawRoll >> 16) & METABOLISM_ANGLE_MASK, GRAPHICS_ROTATION_COMPOSE);
+                    // Retain the transform before overwriting the sparkle offset.
                     gte_SetRotMatrix(&coord->coord);
-                    gte_ldv0(&mem->move);
+                    gte_ldv0(&effect->move);
                     gte_rtv0();
-                    gte_stsv(&mem->move);
-                    mem->move.vx = (rcos(mem->step) * mem->angle) >> 12;
-                    temp_lo      = rsin(mem->step) * mem->angle;
-                    mem->move.vz = 0;
-                    mem->move.vy = temp_lo >> 12;
-                    spawned      = effectSpawn(EFFECT_METABOLISM_SPARKLE, coord,
-                                               (s32)D_metabolism_8012FB54[mem->index].radiusLimit,
-                                               &mem->move);
+                    gte_stsv(&effect->move);
+                    effect->move.vx = (rcos(effect->step) * effect->angle) >> METABOLISM_TRIG_FRACTION_BITS;
+                    verticalProduct = rsin(effect->step) * effect->angle;
+                    effect->move.vz = 0;
+                    effect->move.vy = verticalProduct >> METABOLISM_TRIG_FRACTION_BITS;
+                    spawned         = effectSpawn(EFFECT_METABOLISM_SPARKLE, coord,
+                                                  (s32)D_metabolism_8012FB54[effect->index].radiusLimit,
+                                                  &effect->move);
                     if (spawned != NULL) {
-                        taskReparent(arg0, spawned->task);
+                        taskReparent(task, spawned->task);
                     }
                 }
             }
-            if (mem->angle >= D_metabolism_8012FB54[mem->index].radiusLimit) {
-                arg0->state = 2;
+            if (effect->angle >= D_metabolism_8012FB54[effect->index].radiusLimit) {
+                task->state = METABOLISM_STATE_FADING;
             }
-            for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
-                _metabolismDrawFanWedge(coord, mem->angle, D_metabolism_8012FB78[i],
-                                        mem->scale);
+            for (particleIndex = 0; particleIndex < D_metabolism_8012FB54[effect->index].wedgeCount; particleIndex++) {
+                _metabolismDrawFanWedge(coord, effect->angle, D_metabolism_8012FB78[particleIndex],
+                                        effect->scale);
             }
-            _metabolismDrawGlow(coord, mem);
+            _metabolismDrawGlow(coord, effect);
             return;
-        case 2:
+        case METABOLISM_STATE_FADING:
             actorRenderComposeCoord(coord);
-            for (i = 0; i < D_metabolism_8012FB54[mem->index].wedgeCount; i++) {
-                _metabolismDrawFanWedge(coord, mem->angle, D_metabolism_8012FB78[i],
-                                        mem->scale);
+            for (particleIndex = 0; particleIndex < D_metabolism_8012FB54[effect->index].wedgeCount; particleIndex++) {
+                _metabolismDrawFanWedge(coord, effect->angle, D_metabolism_8012FB78[particleIndex],
+                                        effect->scale);
             }
-            mem->scale = mem->scale - 0x10;
-            mem->angle = mem->angle + D_metabolism_8012FB54[mem->index].radiusStep;
-            if (mem->scale < 0x11) {
-                arg0->state = 3;
+            effect->scale = effect->scale - METABOLISM_BRIGHTNESS_STEP;
+            effect->angle = effect->angle + D_metabolism_8012FB54[effect->index].radiusStep;
+            if (effect->scale < METABOLISM_FADE_END_BRIGHTNESS) {
+                task->state = METABOLISM_STATE_RELEASE;
             }
-            _metabolismDrawGlow(coord, mem);
+            _metabolismDrawGlow(coord, effect);
             return;
-        case 3:
-            effectKillTask(mem, arg0);
+        case METABOLISM_STATE_RELEASE:
+            effectKillTask(effect, task);
             return;
     }
 }
+#undef METABOLISM_SEED_FAN_BEARINGS
 
 /// Advances the sparkle's parent-space Y position and composes it for drawing.
 ///
@@ -327,6 +338,8 @@ void metabolismSparkleTask(Task* task)
 /// `cursorSlot` points at the initialized scratch-stack cursor. Returns one
 /// live complete block; the caller releases it through the same cursor slot.
 /// Borrows the composed coordinate and `GsWSMATRIX`, and clobbers GTE registers.
+/// The returned FLAG is from RTPS; SZ3 remains available for the caller to
+/// capture before another transform. Negative FLAG values are rejected by the caller.
 static inline EffectCentreScratch* _metabolismProjectFanCentre(const GfxCoord* coord, void** cursorSlot)
 {
     EffectCentreScratch* scratch;

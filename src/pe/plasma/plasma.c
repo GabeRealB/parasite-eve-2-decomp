@@ -32,7 +32,7 @@
 /// This overlay's id. Every package opens with one: a u16 in a u32
 /// slot, distinct across all 448, with the families in contiguous blocks.
 
-static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2);
+static void _plasmaDrawRingBand(const EffectWork* effect, const GfxCoord* coord, s32 bandIndex);
 
 /// Per-level geometry for the plasma ring: rows are PE levels 1-3.
 /// `baseRadius` is the inner radius, `lift` the height above the caster,
@@ -46,246 +46,300 @@ static EffectBandShape D_plasma_8012FF34[] = {
 /// The `sndEvtRequestScriptStart` id for each `D_plasma_8012FF34` row.
 static s32 D_plasma_8012FF48[] = { 0xE0160001, 0xE0190001, 0xE01C0001 };
 
-/// Three 16-entry columns of per-wedge jitter. `func_plasma_8012EF34` fills
-/// them with LCG bytes when the ring spawns; `func_plasma_8012F568` reads
-/// column `arg2` to pick each wedge's texture.
+/// Three 16-entry columns of per-wedge jitter. `plasmaCastTask` fills
+/// them with LCG bytes when the ring spawns; `_plasmaDrawRingBand` reads
+/// column `bandIndex` to pick each wedge's texture.
 static s16 D_plasma_8012FF54[3][16] = { 0 };
 
-/// Plasma PE ring. `Task::spawnArg2` is the `EffectWork` block (`scale`
-/// brightness, `index` combo index, `age` tick / inner radius);
-/// `Task::extra` reaches the coordinate. Cancel (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD`
-/// or `gRoomEffectState->peEffectControl >= 4`) releases the pool block.
+/// Seeds the three Plasma texture-phase columns in per-segment LCG order.
 ///
-/// State 0 seeds brightness, the combo index, and three 16-entry LCG columns
-/// in `D_plasma_8012FF54`, plays the combo-indexed cue, and starts a pad
-/// lerp. States 1 and 2 decay brightness and draw three rings via
-/// `_glowDrawHalo` (the third only when `index != 0`) after
-/// `func_plasma_8012F568` has applied each jitter column. State 1 is the
-/// weaker combo (`index < 2`). Either state releases once brightness
-/// drops below 9.
-void func_plasma_8012EF34(Task* arg0)
+/// Advances the shared generator in column order 0, 1, 2 for all sixteen
+/// segments; the cast's phase table is the only output.
+static inline void _plasmaSeedBandPhases(void)
 {
-    EffectWork*      mem;
-    GfxCoord*        coord;
-    AttachmentState* state;
-    s32              pan;
-    s32              i;
-    s32              st;
-    u16              prev;
-    u16              next;
-    u8               rgb[3];
-    s16              span;
+    s32 segmentIndex;
+    enum { PLASMA_PHASE_JITTER_MASK = 0xFF };
+    segmentIndex = 0;
+    do {
+        gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        D_plasma_8012FF54[0][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
+        gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        D_plasma_8012FF54[1][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
+        gRandomLcgState                    = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        D_plasma_8012FF54[2][segmentIndex] = (gRandomLcgState >> 16) & PLASMA_PHASE_JITTER_MASK;
+        segmentIndex++;
+    } while (segmentIndex < ARRAY_SIZE(D_plasma_8012FF54[0]));
+}
 
-    state = &Gp_StateC08;
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    if ((state->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        effectKillTask(mem, arg0);
+void plasmaCastTask(Task* task)
+{
+    enum {
+        PLASMA_RADIUS_STEP_BASE           = 0x60,
+        PLASMA_RADIUS_STEP_PER_LEVEL      = 0x30,
+        PLASMA_LEVEL_THREE_RADIUS_STEP    = 0xC0,
+        PLASMA_HALO_RADIUS_STEP           = 64,
+        PLASMA_HALO_WIDTH_BASE            = 0x100,
+        PLASMA_HALO_WIDTH_PER_LEVEL       = 128,
+        PLASMA_LEVEL_THREE_HALO_LIFT_STEP = 128,
+        PLASMA_MOTOR_BASE_FRAMES          = 16,
+        PLASMA_MOTOR_FRAMES_PER_LEVEL     = 4,
+        PLASMA_MOTOR_START_INTENSITY      = 0xFF,
+        PLASMA_MOTOR_END_INTENSITY        = 8,
+        PLASMA_STATE_INITIALIZE           = 0,
+        PLASMA_STATE_LEVEL_ONE_OR_TWO     = 1,
+        PLASMA_STATE_LEVEL_THREE          = 2,
+        PLASMA_INITIAL_BRIGHTNESS         = 0xA0,
+        PLASMA_FADE_END_BRIGHTNESS        = 9,
+        PLASMA_APPLY_STATS_AGE            = 8,
+        PLASMA_BRIGHTNESS_STEP            = 8,
+        PLASMA_HEIGHT_STEP                = 0x20,
+        PLASMA_SPREAD_STEP                = 0x20,
+    };
+    EffectWork*      effect;
+    GfxCoord*        coord;
+    AttachmentState* attachment;
+    s32              pan;
+    s32              nextState;
+    u16              previousAge;
+    u16              nextAge;
+    u8               rgb[3];
+    s16              haloRadius;
+
+    attachment = &Gp_StateC08;
+    effect     = task->spawnArg2.pointer;
+    coord      = task->extra.coordBody->coord;
+    if ((attachment->effectPhase == ATTACHMENT_EFFECT_HELD) || (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+        effectKillTask(effect, task);
         return;
     }
 
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
-    prev     = mem->age;
-    next     = prev + 1;
-    mem->age = next;
-    switch (arg0->state) {
-        case 0:
-            mem->scale = 0xA0;
-            mem->index = (Gp_StateC08.attachId % 10) - 1;
-            i          = 0;
-            do {
-                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                D_plasma_8012FF54[0][i] = (gRandomLcgState >> 16) & 0xFF;
-                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                D_plasma_8012FF54[1][i] = (gRandomLcgState >> 16) & 0xFF;
-                gRandomLcgState         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                D_plasma_8012FF54[2][i] = (gRandomLcgState >> 16) & 0xFF;
-                i++;
-            } while (i < 0x10);
-            st = 2;
-            if (mem->index < 2) {
-                st = 1;
+    previousAge = effect->age;
+    nextAge     = previousAge + 1;
+    effect->age = nextAge;
+    switch (task->state) {
+        case PLASMA_STATE_INITIALIZE:
+            effect->scale = PLASMA_INITIAL_BRIGHTNESS;
+            effect->index = (Gp_StateC08.attachId % 10) - 1;
+            _plasmaSeedBandPhases();
+            nextState = PLASMA_STATE_LEVEL_THREE;
+            if (effect->index < 2) {
+                nextState = PLASMA_STATE_LEVEL_ONE_OR_TWO;
             }
-            arg0->state = st;
+            task->state = nextState;
             pan         = (s8)worldCoordGetOriginAudioPan(coord);
             sndEvtRequestScriptStart(D_plasma_8012FF48[(u16)(Gp_StateC08.attachId % 10) - 1], pan,
                                      (s8)worldCoordGetOriginAudioDepth(coord));
-            padScriptSpawnVariableMotorRamp((s16)(mem->index * 4 + 0x10), 0xFF, 8);
+            padScriptSpawnVariableMotorRamp((s16)(effect->index * PLASMA_MOTOR_FRAMES_PER_LEVEL + PLASMA_MOTOR_BASE_FRAMES), PLASMA_MOTOR_START_INTENSITY, PLASMA_MOTOR_END_INTENSITY);
             return;
-        case 1:
-            if (mem->scale < 9) {
-                effectKillTask(mem, arg0);
+        case PLASMA_STATE_LEVEL_ONE_OR_TWO:
+            if (effect->scale < PLASMA_FADE_END_BRIGHTNESS) {
+                effectKillTask(effect, task);
                 return;
             }
             if (gRoomEffectState->peEffectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                if ((s16)next == 8) {
-                    state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
+                if ((s16)nextAge == PLASMA_APPLY_STATS_AGE) {
+                    attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 }
-                mem->scale  -= 8;
-                mem->angle  += 0x60 + mem->index * 0x30;
-                mem->period -= 0x20;
-                mem->step   += 0x20;
+                effect->scale  -= PLASMA_BRIGHTNESS_STEP;
+                effect->angle  += PLASMA_RADIUS_STEP_BASE + effect->index * PLASMA_RADIUS_STEP_PER_LEVEL;
+                effect->period -= PLASMA_HEIGHT_STEP;
+                effect->step   += PLASMA_SPREAD_STEP;
             } else {
-                mem->age = prev;
+                effect->age = previousAge;
             }
-            func_plasma_8012F568(mem, coord, 0);
-            func_plasma_8012F568(mem, coord, 1);
-            func_plasma_8012F568(mem, coord, 2);
-            rgb[0] = rgb[1]    = mem->scale;
-            rgb[2]             = mem->scale * 3 / 2;
-            coord->workm.t[1] -= mem->age * 64;
-            _glowDrawHalo(coord, (s16)(mem->age * 64), (s16)(mem->index * 128 + 0x100), rgb);
+            // Shape rows are bands, so all three draw independently of the PE level.
+            _plasmaDrawRingBand(effect, coord, 0);
+            _plasmaDrawRingBand(effect, coord, 1);
+            _plasmaDrawRingBand(effect, coord, 2);
+            rgb[0] = rgb[1]    = effect->scale;
+            rgb[2]             = effect->scale * 3 / 2;
+            coord->workm.t[1] -= effect->age * PLASMA_HALO_RADIUS_STEP;
+            _glowDrawHalo(coord, (s16)(effect->age * PLASMA_HALO_RADIUS_STEP), (s16)(effect->index * PLASMA_HALO_WIDTH_PER_LEVEL + PLASMA_HALO_WIDTH_BASE), rgb);
             rgb[0]           >>= 1;
             rgb[1]           >>= 1;
             rgb[2]           >>= 1;
-            coord->workm.t[1] -= mem->age * 64;
-            _glowDrawHalo(coord, (s16)(mem->age * 128), (s16)(mem->index * 128 + 0x100), rgb);
-            if (mem->index != 0) {
+            coord->workm.t[1] -= effect->age * PLASMA_HALO_RADIUS_STEP;
+            _glowDrawHalo(coord, (s16)(effect->age * (2 * PLASMA_HALO_RADIUS_STEP)), (s16)(effect->index * PLASMA_HALO_WIDTH_PER_LEVEL + PLASMA_HALO_WIDTH_BASE), rgb);
+            if (effect->index != 0) {
                 rgb[0]           >>= 1;
                 rgb[1]           >>= 1;
                 rgb[2]           >>= 1;
-                coord->workm.t[1] -= mem->age * 64;
-                _glowDrawHalo(coord, (s16)(mem->age * 192), (s16)(mem->index * 128 + 0x100), rgb);
+                coord->workm.t[1] -= effect->age * PLASMA_HALO_RADIUS_STEP;
+                _glowDrawHalo(coord, (s16)(effect->age * (3 * PLASMA_HALO_RADIUS_STEP)), (s16)(effect->index * PLASMA_HALO_WIDTH_PER_LEVEL + PLASMA_HALO_WIDTH_BASE), rgb);
             }
             return;
-        case 2:
-            if (mem->scale < 9) {
+        case PLASMA_STATE_LEVEL_THREE:
+            if (effect->scale < PLASMA_FADE_END_BRIGHTNESS) {
                 break;
             }
             if (gRoomEffectState->peEffectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                if ((s16)next == 8) {
-                    state->flags |= ATTACHMENT_FLAG_APPLY_STATS;
+                if ((s16)nextAge == PLASMA_APPLY_STATS_AGE) {
+                    attachment->flags |= ATTACHMENT_FLAG_APPLY_STATS;
                 }
-                mem->scale  -= 8;
-                mem->angle  += 0xC0;
-                mem->period -= 0x20;
-                mem->step   += 0x20;
+                effect->scale  -= PLASMA_BRIGHTNESS_STEP;
+                effect->angle  += PLASMA_LEVEL_THREE_RADIUS_STEP;
+                effect->period -= PLASMA_HEIGHT_STEP;
+                effect->step   += PLASMA_SPREAD_STEP;
             } else {
-                mem->age = prev;
+                effect->age = previousAge;
             }
-            func_plasma_8012F568(mem, coord, 0);
-            func_plasma_8012F568(mem, coord, 1);
-            func_plasma_8012F568(mem, coord, 2);
-            rgb[0] = rgb[1]    = mem->scale;
-            rgb[2]             = mem->scale * 3 / 2;
-            coord->workm.t[1] -= mem->age * 128;
-            span               = mem->age * 64;
-            _glowDrawHalo(coord, span, span, rgb);
+            // Shape rows are bands, so all three draw independently of the PE level.
+            _plasmaDrawRingBand(effect, coord, 0);
+            _plasmaDrawRingBand(effect, coord, 1);
+            _plasmaDrawRingBand(effect, coord, 2);
+            rgb[0] = rgb[1]    = effect->scale;
+            rgb[2]             = effect->scale * 3 / 2;
+            coord->workm.t[1] -= effect->age * PLASMA_LEVEL_THREE_HALO_LIFT_STEP;
+            haloRadius         = effect->age * PLASMA_HALO_RADIUS_STEP;
+            _glowDrawHalo(coord, haloRadius, haloRadius, rgb);
             rgb[0]           >>= 1;
             rgb[1]           >>= 1;
             rgb[2]           >>= 1;
-            coord->workm.t[1] -= mem->age * 128;
-            span               = mem->age * 128;
-            _glowDrawHalo(coord, span, span, rgb);
-            if (mem->index != 0) {
+            coord->workm.t[1] -= effect->age * PLASMA_LEVEL_THREE_HALO_LIFT_STEP;
+            haloRadius         = effect->age * (2 * PLASMA_HALO_RADIUS_STEP);
+            _glowDrawHalo(coord, haloRadius, haloRadius, rgb);
+            if (effect->index != 0) {
                 rgb[0]           >>= 1;
                 rgb[1]           >>= 1;
                 rgb[2]           >>= 1;
-                coord->workm.t[1] -= mem->age * 128;
-                span               = mem->age * 192;
-                _glowDrawHalo(coord, span, span, rgb);
+                coord->workm.t[1] -= effect->age * PLASMA_LEVEL_THREE_HALO_LIFT_STEP;
+                haloRadius         = effect->age * (3 * PLASMA_HALO_RADIUS_STEP);
+                _glowDrawHalo(coord, haloRadius, haloRadius, rgb);
             }
             return;
         default:
             return;
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(effect, task);
 }
 
-/// Draws textured band `arg2` (0..2) of the plasma ring around `arg1`: sixteen
-/// `POLY_FT4` wedges between an outer circle of radius
-/// `field_26 + baseRadius + field_2A + spread` and an inner one of radius
-/// `field_26 + baseRadius`, the outer ring lifted by `-(field_28 + lift)`. Both
-/// circles are rotated by the coordinate's `workm`, translated by its `t[]`
-/// and projected through `GsWSMATRIX`; wedge `i` picks its texture column
-/// from `(D_plasma_8012FF54[arg2][i] + field_22) % 6`, and `field_24` sets the
-/// brightness. A negative `gte_stflg` on the wedge's first vertex drops it.
-/// Works out of an `EffectBandScratch` taken from the scratch stack.
-static void func_plasma_8012F568(EffectWork* arg0, GfxCoord* arg1, s32 arg2)
-{
-    EffectBandScratch* block;
-    SVECTOR*           op;
-    POLY_FT4*          prim;
-    EffectBandShape*   row;
-    s32                i;
-    s32                next;
-    s32                ang;
-    s32                u;
-    s16                idx;
-    s16                r0;
-    s16                r1;
-    u16                y;
-    u16                f28;
-
-    row   = &D_plasma_8012FF34[arg2];
-    f28   = arg0->period;
-    r1    = arg0->angle;
-    y     = f28 + row->lift;
-    r1   += row->baseRadius;
-    r0    = r1 + arg0->step + row->spread;
-    block = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
-    gte_SetTransMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        ang                  = i << 8;
-        block->topRing[i].vx = (rsin(ang) * r0) >> 12;
-        block->topRing[i].vy = -y;
-        block->topRing[i].vz = (rcos(ang) * r0) >> 12;
-        gte_SetRotMatrix(&arg1->workm);
-        gte_ldv0(&block->topRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->topRing[i]);
-        block->topRing[i].vx    = (u16)block->topRing[i].vx + (u16)arg1->workm.t[0];
-        block->topRing[i].vy    = (u16)block->topRing[i].vy + (u16)arg1->workm.t[1];
-        block->topRing[i].vz    = (u16)block->topRing[i].vz + (u16)arg1->workm.t[2];
-        block->bottomRing[i].vx = (rsin(ang) * r1) >> 12;
-        op                      = &block->topRing[i] + EFFECT_BAND_SEGMENT_COUNT;
-        op->vy                  = 0;
-        op->vz                  = (rcos(ang) * r1) >> 12;
-        gte_SetRotMatrix(&arg1->workm);
-        gte_ldv0(&block->bottomRing[i]);
-        gte_rtv0();
-        gte_stsv(&block->bottomRing[i]);
-        block->bottomRing[i].vx = (u16)block->bottomRing[i].vx + (u16)arg1->workm.t[0];
-        op->vy                  = (u16)op->vy + (u16)arg1->workm.t[1];
-        op->vz                  = (u16)op->vz + (u16)arg1->workm.t[2];
+/// Projects one band quad and selects its six-frame texture cell.
+///
+/// Borrows complete live scratch storage with both rings initialized and
+/// segmentIndex in 0..15. The caller has installed the projection matrices.
+/// Saves corner zero before RTPT advances the screen FIFO; only the final
+/// RTPT FLAG is retained, and the last corner's SZ3 remains for the caller.
+/// Texture phase lookup stays between RTPS and saving the first corner.
+/// All input arguments are side-effect-free locals, used repeatedly; textureFrame
+/// is a writable s16 lvalue. Captures the selected package phase column and effect age.
+/// The scoped next-segment temporary is private to the expansion.
+#define PLASMA_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame, effect, bandIndex)                                                \
+    {                                                                                                                                      \
+        enum { PLASMA_BAND_FRAME_COUNT = 6 };                                                                                              \
+        s32 nextSegmentIndex;                                                                                                              \
+                                                                                                                                           \
+        gte_ldv0(&(scratch)->topRing[(segmentIndex)]);                                                                                     \
+        gte_rtps();                                                                                                                        \
+        (textureFrame) = (D_plasma_8012FF54[(bandIndex)][(segmentIndex)] + (effect)->age) % PLASMA_BAND_FRAME_COUNT;                       \
+        gte_stsxy(&(scratch)->sxy0);                                                                                                       \
+        nextSegmentIndex = ((segmentIndex) + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);                                                         \
+        gte_ldv3(&(scratch)->topRing[nextSegmentIndex], &(scratch)->bottomRing[(segmentIndex)], &(scratch)->bottomRing[nextSegmentIndex]); \
+        gte_rtpt();                                                                                                                        \
+        gte_stsxy3(&(scratch)->sxy1, &(scratch)->sxy2, &(scratch)->sxy3);                                                                  \
+        gte_stflg(&(scratch)->projectionFlags);                                                                                            \
     }
+
+/// Draws one of the Plasma cast's three rising textured ring bands.
+///
+/// Borrows composed `coord` and cast `effect`; `bandIndex` is 0..2 and
+/// selects both the shape row and texture-phase column, independently of PE
+/// level. In coordinate units, the bottom radius is angle + baseRadius, the
+/// top radius adds step + spread, and top Y is -(period + lift). Radius
+/// sums narrow to signed halfwords; height and translations retain low
+/// halfwords. Six 40-texel frames use column jitter plus signed effect age.
+/// RGB reads the little-endian low byte of scale. The final RTPT FLAG rejects
+/// a segment; sorting uses its last corner's SZ3 / 4 + 1.
+/// Reserves/releases one complete scratch block and appends at most sixteen
+/// additive modulated `POLY_FT4` packets. Inputs must stay clear of scratch
+/// and the unchecked primitive arena; queued packets live through drawing.
+static void _plasmaDrawRingBand(const EffectWork* effect, const GfxCoord* coord, s32 bandIndex)
+{
+    enum {
+        PLASMA_BAND_ANGLE_STEP         = 256,
+        PLASMA_BAND_TRIG_FRACTION_BITS = 12,
+        PLASMA_BAND_CELL_WIDTH         = 40,
+        PLASMA_BAND_TOP_V              = 0x60,
+        PLASMA_BAND_UV_SPAN            = 39,
+    };
+    EffectBandScratch* scratch;
+    SVECTOR*           bottomVertex;
+    POLY_FT4*          quad;
+    EffectBandShape*   shape;
+    s32                segmentIndex;
+    s32                rimAngle;
+    s32                textureU;
+    s16                textureFrame;
+    s16                topRadius;
+    s16                bottomRadius;
+    u16                heightBits;
+    u16                heightOffsetBits;
+
+    shape            = &D_plasma_8012FF34[bandIndex];
+    heightOffsetBits = effect->period;
+    bottomRadius     = effect->angle;
+    heightBits       = heightOffsetBits + shape->lift;
+    bottomRadius    += shape->baseRadius;
+    topRadius        = bottomRadius + effect->step + shape->spread;
+    scratch          = SCRATCH_STACK_RESERVE_BLOCK(EffectBandScratch);
+    gte_SetTransMatrix(&GsWSMATRIX);
+    // Build both rims in local XZ, then transform their narrowed vertices.
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        rimAngle                          = segmentIndex * PLASMA_BAND_ANGLE_STEP;
+        scratch->topRing[segmentIndex].vx = (rsin(rimAngle) * topRadius) >> PLASMA_BAND_TRIG_FRACTION_BITS;
+        scratch->topRing[segmentIndex].vy = -heightBits;
+        scratch->topRing[segmentIndex].vz = (rcos(rimAngle) * topRadius) >> PLASMA_BAND_TRIG_FRACTION_BITS;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->topRing[segmentIndex]);
+        gte_rtv0();
+        gte_stsv(&scratch->topRing[segmentIndex]);
+        scratch->topRing[segmentIndex].vx    = (u16)scratch->topRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        scratch->topRing[segmentIndex].vy    = (u16)scratch->topRing[segmentIndex].vy + (u16)coord->workm.t[1];
+        scratch->topRing[segmentIndex].vz    = (u16)scratch->topRing[segmentIndex].vz + (u16)coord->workm.t[2];
+        scratch->bottomRing[segmentIndex].vx = (rsin(rimAngle) * bottomRadius) >> PLASMA_BAND_TRIG_FRACTION_BITS;
+        // Address the lower rim through the complete scratch block's byte view.
+        bottomVertex     = (SVECTOR*)((u8*)scratch + segmentIndex * sizeof(SVECTOR) + sizeof(scratch->topRing));
+        bottomVertex->vy = 0;
+        bottomVertex->vz = (rcos(rimAngle) * bottomRadius) >> PLASMA_BAND_TRIG_FRACTION_BITS;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&scratch->bottomRing[segmentIndex]);
+        gte_rtv0();
+        gte_stsv(&scratch->bottomRing[segmentIndex]);
+        scratch->bottomRing[segmentIndex].vx = (u16)scratch->bottomRing[segmentIndex].vx + (u16)coord->workm.t[0];
+        bottomVertex->vy                     = (u16)bottomVertex->vy + (u16)coord->workm.t[1];
+        bottomVertex->vz                     = (u16)bottomVertex->vz + (u16)coord->workm.t[2];
+    }
+    // Project sixteen wrapped segments; only accepted quads consume packets.
     gte_SetRotMatrix(&GsWSMATRIX);
-    for (i = 0; i < EFFECT_BAND_SEGMENT_COUNT; i++) {
-        gte_ldv0(&block->topRing[i]);
-        gte_rtps();
-        idx = (D_plasma_8012FF54[arg2][i] + arg0->age) % 6;
-        gte_stsxy(&block->sxy0);
-        next = (i + 1) & (EFFECT_BAND_SEGMENT_COUNT - 1);
-        gte_ldv3(&block->topRing[next], &block->bottomRing[i], &block->bottomRing[next]);
-        gte_rtpt();
-        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
-        gte_stflg(&block->projectionFlags);
-        if (block->projectionFlags >= 0) {
-            gte_stszotz(&block->otz);
-            block->otz++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setPolyFT4(prim);
-            setRGB0(prim, *(u8*)&arg0->scale, *(u8*)&arg0->scale, *(u8*)&arg0->scale);
-            setSemiTrans(prim, 1);
-            prim->tpage = 0x2A;
-            prim->clut  = 0x42C1;
-            u           = idx * 0x28;
-            setUV4(prim, u, 0x60, u + 0x27, 0x60, u, 0x87, u + 0x27, 0x87);
-            prim->x0 = (u16)block->sxy0.vx;
-            prim->y0 = (u16)block->sxy0.vy;
-            prim->x1 = (u16)block->sxy1.vx;
-            prim->y1 = (u16)block->sxy1.vy;
-            prim->x2 = (u16)block->sxy2.vx;
-            prim->y2 = (u16)block->sxy2.vy;
-            prim->x3 = (u16)block->sxy3.vx;
-            prim->y3 = (u16)block->sxy3.vy;
-            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)block->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+    for (segmentIndex = 0; segmentIndex < EFFECT_BAND_SEGMENT_COUNT; segmentIndex++) {
+        PLASMA_PROJECT_BAND_SEGMENT(scratch, segmentIndex, textureFrame, effect, bandIndex);
+        if (scratch->projectionFlags >= 0) {
+            gte_stszotz(&scratch->otz);
+            scratch->otz++;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setRGB0(quad, *(const u8*)&effect->scale, *(const u8*)&effect->scale, *(const u8*)&effect->scale);
+            setSemiTrans(quad, true);
+            quad->tpage = getTPage(0, GPU_BLEND_ADD, 640, 0);
+            quad->clut  = getClut(16, 267);
+            textureU    = textureFrame * PLASMA_BAND_CELL_WIDTH;
+            setUV4(quad, textureU, PLASMA_BAND_TOP_V, textureU + PLASMA_BAND_UV_SPAN, PLASMA_BAND_TOP_V, textureU, PLASMA_BAND_TOP_V + PLASMA_BAND_UV_SPAN, textureU + PLASMA_BAND_UV_SPAN, PLASMA_BAND_TOP_V + PLASMA_BAND_UV_SPAN);
+            quad->x0 = (u16)scratch->sxy0.vx;
+            quad->y0 = (u16)scratch->sxy0.vy;
+            quad->x1 = (u16)scratch->sxy1.vx;
+            quad->y1 = (u16)scratch->sxy1.vy;
+            quad->x2 = (u16)scratch->sxy2.vx;
+            quad->y2 = (u16)scratch->sxy2.vy;
+            quad->x3 = (u16)scratch->sxy3.vx;
+            quad->y3 = (u16)scratch->sxy3.vy;
+            addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)scratch->otz << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectBandScratch);
 }
+#undef PLASMA_PROJECT_BAND_SEGMENT
 
 #include "../../shared/glow_draw_halo.inc.c"
