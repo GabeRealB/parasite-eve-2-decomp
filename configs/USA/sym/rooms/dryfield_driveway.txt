@@ -83,3 +83,7 @@ _dryfieldDrivewaySetEncounterWave = 0x8017dc48; // type:func
 _dryfieldDrivewayIgnoreRoomCommand = 0x8017ddb0; // type:func
 _dryfieldDrivewayIgnoreRoomAction = 0x8017ddb8; // type:func
 _dryfieldDrivewayIdleRoomTask = 0x8017de04; // type:func
+_dryfieldDrivewaySetPlayerUpdateHold = 0x8017dc64; // type:func
+_dryfieldDrivewayUseKeyItem = 0x8017dcc0; // type:func
+_dryfieldDrivewayInitRoomTask = 0x8017ddc0; // type:func
+dryfieldDrivewayRoomTask = 0x8017de14; // type:func

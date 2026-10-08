@@ -67,3 +67,7 @@ D_map_dryfield_8017B054 = 0x8017B054; // absolute:True owner=map_dryfield
 
 dryfieldMotelRoom1NoOpEffectTask = 0x8017E0A0; // type:func
 _dryfieldMotelRoom1FinishOpeningScene = 0x8017df08; // type:func
+_dryfieldMotelRoom1RejectKeyItemUse = 0x8017d5ec; // type:func
+_dryfieldMotelRoom1ResolveTransition = 0x8017d5f4; // type:func
+_dryfieldMotelRoom1IgnoreRoomCommand = 0x8017d61c; // type:func
+_dryfieldMotelRoom1IdleRoomTask = 0x8017d74c; // type:func

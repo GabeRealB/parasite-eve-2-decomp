@@ -153,3 +153,7 @@ _glowDrawStarLocal = 0x80180B4C; // type:func
 _roomVariantGasStationMsg = 0x8017FA20; // type:func
 _gasStationCueSoundMsg = 0x8017FB94; // type:func
 _glowDrawRayStar = 0x80181058; // type:func
+_dryfieldGasStationRejectKeyItemUse = 0x8017fd4c; // type:func
+_dryfieldGasStationIdleRoomTask = 0x8017ff84; // type:func
+_dryfieldGasStationSuppressPlayerEquipment = 0x80180944; // type:func
+_dryfieldGasStationSetCutsceneCommand = 0x80180b2c; // type:func

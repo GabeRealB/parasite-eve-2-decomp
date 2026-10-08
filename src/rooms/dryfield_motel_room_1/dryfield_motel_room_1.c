@@ -15,37 +15,50 @@
 
 extern TaskMessageEntry D_dryfield_motel_room_1_8017E0A8[];
 
-s32 func_dryfield_motel_room_1_8017D5EC(Task*, s32, s32, s32);
-s32 func_dryfield_motel_room_1_8017D5F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_dryfield_motel_room_1_8017D61C(Task*, s32, s32, s32);
-s32 func_dryfield_motel_room_1_8017D624(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _dryfieldMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32 _dryfieldMotelRoom1ResolveTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _dryfieldMotelRoom1IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedCommandArg);
+s32        func_dryfield_motel_room_1_8017D624(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 
 TaskMessageEntry D_dryfield_motel_room_1_8017E0A8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_motel_room_1_8017D5F4 },
-    { 5105, func_dryfield_motel_room_1_8017D5EC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldMotelRoom1ResolveTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldMotelRoom1RejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_motel_room_1_8017D624 },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_motel_room_1_8017D61C },
+    { ROOM_MESSAGE_COMMAND, _dryfieldMotelRoom1IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_dryfield_motel_room_1_8017D69C(Task* arg0);
-static void func_dryfield_motel_room_1_8017D74C(Task* task);
+static void _dryfieldMotelRoom1IdleRoomTask(Task* unusedTask);
 
-s32 func_dryfield_motel_room_1_8017D5EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every request to use a collected key item in motel room 1.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`. Ignores both integer payload words
+/// and the receiver; returns `ROOM_KEY_ITEM_USE_REFUSED` without consuming an item.
+static s32 _dryfieldMotelRoom1RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Fallback entry of the room's message table: copies the incoming location
-/// record onto the outgoing one and answers 1, leaving the decision to whoever
-/// reads the reply.
-s32 func_dryfield_motel_room_1_8017D5F4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Allows a room transition without changing its requested destination.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Borrows an eight-byte readable request
+/// and writable reply for synchronous dispatch; both may be the same record.
+/// Copies the complete request and returns 1 to permit the ordinary transition.
+/// Queries and execution requests have the same result and no room side effects.
+static s32 _dryfieldMotelRoom1ResolveTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    return 1;
+    enum { DRYFIELD_MOTEL_ROOM_1_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    return DRYFIELD_MOTEL_ROOM_1_TRANSITION_ALLOWED;
 }
 
-s32 func_dryfield_motel_room_1_8017D61C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores every CAP room command and returns zero.
+///
+/// Handles `ROOM_MESSAGE_COMMAND`; neither integer payload word nor the receiver
+/// is accessed, and no command is deferred.
+static s32 _dryfieldMotelRoom1IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommand, s32 unusedCommandArg)
 {
     return 0;
 }
@@ -87,8 +100,10 @@ static void func_dryfield_motel_room_1_8017D69C(Task* arg0)
     }
     arg0->state = arg0->state + 1;
 }
-/// Second state of the room entry task: nothing left to do but idle.
-static void func_dryfield_motel_room_1_8017D74C(Task* task)
+/// Keeps the initialized motel room 1 task idle in state 1.
+///
+/// Ignores its argument; messages continue through the installed room table.
+static void _dryfieldMotelRoom1IdleRoomTask(Task* unusedTask)
 {
 }
 
@@ -96,7 +111,7 @@ static void func_dryfield_motel_room_1_8017D74C(Task* task)
 /// indexed by `Task::state`: the set-up tick, which advances the state, the
 /// idle tick, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_motel_room_1_8017D5C4 = {
-    { func_dryfield_motel_room_1_8017D69C, func_dryfield_motel_room_1_8017D74C, taskKill },
+    { func_dryfield_motel_room_1_8017D69C, _dryfieldMotelRoom1IdleRoomTask, taskKill },
 };
 
 /// Room entry task: runs the state handler `D_dryfield_motel_room_1_8017D5C4`

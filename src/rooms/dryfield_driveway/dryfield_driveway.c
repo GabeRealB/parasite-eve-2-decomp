@@ -79,12 +79,13 @@ extern WorldCollisionTrigger    D_dryfield_driveway_8017FC98[6];
 extern WorldCollisionTrigger    D_dryfield_driveway_801802F8[11];
 extern WorldCoordRoomLights     D_dryfield_driveway_801802E0[1];
 extern TaskDesc                 Actor00100_D1BA84;
-s32                             func_dryfield_driveway_8017DCC0(Task*, s32, s32, s32);
+static s32                      _dryfieldDrivewayUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32                      _dryfieldDrivewayIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 unusedCommandId, s32 unusedCommandArg);
 static s32                      _dryfieldDrivewayIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, s32 unusedRequestWord, s32 unusedSecondArg);
 static void                     _dryfieldDrivewaySetEncounterWave(s32 waveStage);
 static void                     _dryfieldDrivewayIdleRoomTask(Task* unusedTask);
-void                            func_dryfield_driveway_8017DC64(u8);
+static void                     _dryfieldDrivewaySetPlayerUpdateHold(u8 holdPlayerUpdate);
+static void                     _dryfieldDrivewayInitRoomTask(Task* task);
 
 /// The script releases actor 03700's staged entrance before combat waves advance.
 enum { DRYFIELD_DRIVEWAY_ENCOUNTER_WAVE_BEGIN = 1 };
@@ -159,7 +160,7 @@ EvsCommand gDrivewayBlackoutScript[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 3 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = func_dryfield_driveway_8017DC64 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = _dryfieldDrivewaySetPlayerUpdateHold }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = SetDispMask }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_dryfield_driveway_8017E4D4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -188,7 +189,7 @@ EvsCommand gDrivewayBlackoutTail[9] = {
 
 TaskMessageEntry D_dryfield_driveway_8017E754[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, drivewayResolveEvent },
-    { 5105, func_dryfield_driveway_8017DCC0 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldDrivewayUseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldDrivewayIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _dryfieldDrivewayIgnoreRoomCommand },
     { ROOM_MESSAGE_SOUND, _drivewayScriptSound },
@@ -625,8 +626,6 @@ u8 D_dryfield_driveway_80180693 = 207;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-static void func_dryfield_driveway_8017DDC0(Task* task);
-
 #include "../../shared/room_event_staged_task.inc.c"
 
 #include "../../shared/dryfield_driveway_resolve.inc.c"
@@ -647,47 +646,65 @@ static void _dryfieldDrivewaySetEncounterWave(s32 waveStage)
 
 #include "../../shared/dryfield_driveway_set_view_dirty.inc.c"
 
-/// Script callback: stores its argument in the gameplay byte `D_80115768`.
-void func_dryfield_driveway_8017DC64(u8 arg0)
+/// Sets the player tick hold during the driveway blackout scene.
+///
+/// The script supplies the low unsigned byte of its argument: 0 runs the
+/// player tick, nonzero holds it. Movement and collision processing still run.
+static void _dryfieldDrivewaySetPlayerUpdateHold(u8 holdPlayerUpdate)
 {
-    D_80115768 = arg0;
+    D_80115768 = holdPlayerUpdate;
 }
 
 #include "../../shared/dryfield_driveway_script_sound.inc.c"
 
-/// Answers 1 when a pending room-action trigger with `parameter0` 0xFF was hit.
+/// Tests whether the live action list has a hit room-event region.
+///
+/// Returns 1 for an unflagged ROOM action with the room-event sentinel, else 0.
+/// Borrows the linked trigger records and leaves their hit latches unchanged.
 static inline s32 _dryfieldDrivewayRoomTriggerHit(void)
 {
-    WorldCollisionTrigger* node;
+    WorldCollisionTrigger* trigger;
 
-    for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
-        if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
+    for (trigger = Gp_PendingObj4C; trigger != NULL; trigger = trigger->next) {
+        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
             return 1;
         }
     }
     return 0;
 }
 
-/// Message handler for message 0x114: while flag nibble 0x3A is 1, looks for a
-/// room-action trigger with `parameter0` 0xFF and a non-zero `hit`;
-/// when one exists it advances the nibble to 2, spawns the first cutscene task
-/// of `gDrivewayCutsceneTasks`, moves the session to room 2 with the HUD
-/// hidden and an event running, and reports the message handled.
-s32 func_dryfield_driveway_8017DCC0(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Uses the wire rope at the driveway's room-event region to start the blackout.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`; itemId is a collected-item ID and the
+/// second payload word is unused. Requires progress 1 and a hit room-event
+/// region. Advances progress to 2, selects room 2 in session and live save,
+/// hides the HUD and blocks other events. Returns the used-notice reply on
+/// success, or the refused reply without side effects. The blackout task
+/// clears the rope's collected bit on its later update.
+static s32 _dryfieldDrivewayUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    if (arg2 == 0x114) {
-        if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) == 1) {
+    enum {
+        DRYFIELD_DRIVEWAY_PROGRESS_ROPE_READY = 1,
+        DRYFIELD_DRIVEWAY_PROGRESS_ROPE_USED  = 2,
+        DRYFIELD_DRIVEWAY_ROOM_AFTER_ROPE     = 2,
+        DRYFIELD_DRIVEWAY_BLACKOUT_TASK       = 0,
+        DRYFIELD_DRIVEWAY_HIDE_HUD            = 1,
+        DRYFIELD_DRIVEWAY_EVENT_ACTIVE        = 1,
+    };
+
+    if (itemId == INVENTORY_COLLECTION_ID_WIRE_ROPE) {
+        if (gameFlagGetNibble(GAME_FLAG_DRIVEWAY_PROGRESS) == DRYFIELD_DRIVEWAY_PROGRESS_ROPE_READY) {
             if (_dryfieldDrivewayRoomTriggerHit() != 0) {
-                gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 2);
-                taskSpawnFromTableOnDefaultList(gDrivewayCutsceneTasks, 0, 0, 0);
-                gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2);
-                gGameSession->hideHud           = 1;
-                gGameSession->eventState        = 1;
-                return 1;
+                gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, DRYFIELD_DRIVEWAY_PROGRESS_ROPE_USED);
+                taskSpawnFromTableOnDefaultList(gDrivewayCutsceneTasks, DRYFIELD_DRIVEWAY_BLACKOUT_TASK, 0, 0);
+                gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = DRYFIELD_DRIVEWAY_ROOM_AFTER_ROPE);
+                gGameSession->hideHud           = DRYFIELD_DRIVEWAY_HIDE_HUD;
+                gGameSession->eventState        = DRYFIELD_DRIVEWAY_EVENT_ACTIVE;
+                return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
             }
         }
     }
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Answers `ROOM_MESSAGE_COMMAND` with zero without executing a room command.
@@ -707,13 +724,14 @@ static s32 _dryfieldDrivewayIgnoreRoomAction(Task* unusedTask, s32 unusedMessage
     return 0;
 }
 
-/// State 0 of the room task: attach the room's message table, publish the task
-/// in pointer slot 7 and advance to the next state.
-static void func_dryfield_driveway_8017DDC0(Task* task)
+/// Installs the driveway's message handlers and registers its live room task.
+///
+/// Requires state 0; advances to idle state 1 without allocating work.
+static void _dryfieldDrivewayInitRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_driveway_8017E754;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the room task idle after its message table and room slot are installed.
@@ -726,24 +744,22 @@ static void _dryfieldDrivewayIdleRoomTask(Task* unusedTask)
     char stackReservation[0x10];
 }
 
-/// The room task's state table, dispatched by `func_dryfield_driveway_8017DE14`
+/// The room task's state table, dispatched by `dryfieldDrivewayRoomTask`
 /// from a stack copy.
 static const TaskFuncTable3 D_dryfield_driveway_8017D5D8 = {
     {
-        func_dryfield_driveway_8017DDC0,
+        _dryfieldDrivewayInitRoomTask,
         _dryfieldDrivewayIdleRoomTask,
         taskKill,
     },
 };
 
-/// The room task: dispatches through its three-state table, copied onto the
-/// stack first.
-void func_dryfield_driveway_8017DE14(Task* task)
+void dryfieldDrivewayRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_driveway_8017D5D8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_driveway_8017D5D8;
+    stateHandlers.funcs[task->state](task);
 }
 
 void dryfieldDrivewayEnableAmbientEffectsTask(Task* unusedTask)

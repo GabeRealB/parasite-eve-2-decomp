@@ -72,12 +72,12 @@ extern EvsCommand           D_dryfield_junk_yard_8017E658[];
 
 static void _dryfieldJunkYardDrawModelGroundShadow(Task* task);
 static void func_dryfield_junk_yard_8017D708(Task* arg0);
-static void func_dryfield_junk_yard_8017DC60(Task* task);
+static void _dryfieldJunkYardIdleRoomTask(Task* unusedTask);
 
-/// The room task's states: set up, start the named sequence once the stream
-/// is ready, then `taskKill`.
+/// The room task's states: set up, idle with a conditional companion
+/// debug hook, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_junk_yard_8017D5C4 = {
-    { func_dryfield_junk_yard_8017D708, func_dryfield_junk_yard_8017DC60, taskKill },
+    { func_dryfield_junk_yard_8017D708, _dryfieldJunkYardIdleRoomTask, taskKill },
 };
 
 /// Name the room task's second state hands to `func_80724608`.
@@ -1852,10 +1852,13 @@ static void _dryfieldJunkYardSetSceneEvent(s8 sceneEvent)
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = sceneEvent;
 }
 
-/// State 1 of the room task: once `gDisplayState.debugMode` is non-zero and a slot-0xA
-/// task exists, calls `func_80724608` on that task with the `"DOG"` name. The
-/// state never advances, so it repeats every frame.
-static void func_dryfield_junk_yard_8017DC60(Task* task)
+/// Keeps the junk-yard room task idle, with an optional companion debug hook.
+///
+/// With debug mode enabled and a live companion, calls the external routine
+/// with that task, -140, 10 and the "DOG" string. The routine's effect and the
+/// integer arguments' units are unproven. Leaves the room state unchanged and
+/// repeats the hook each update; the callback's own task argument is unused.
+static void _dryfieldJunkYardIdleRoomTask(Task* unusedTask)
 {
     if ((gDisplayState.debugMode != 0) && (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0)) {
         func_80724608(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), -0x8C, 0xA, D_dryfield_junk_yard_8017D5D0);

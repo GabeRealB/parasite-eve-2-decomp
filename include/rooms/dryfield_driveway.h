@@ -36,6 +36,11 @@ extern WorldCollisionSurfaceProperties* D_dryfield_driveway_80180660[];
 /// The task argument is ignored; the callback neither advances nor ends it.
 void dryfieldDrivewayEnableAmbientEffectsTask(Task* unusedTask);
 
-void func_dryfield_driveway_8017DE14(Task* task);
+/// Runs the driveway room task's initialization, idle or teardown state.
+///
+/// Requires a live task with state 0 initialize, 1 idle, or 2 destroy. State 0
+/// installs the room messages, registers `GAME_TASK_SLOT_ROOM` and enters 1.
+/// Dispatch uses a by-value copy of the three handlers; no work is allocated.
+void dryfieldDrivewayRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_DRIVEWAY_H

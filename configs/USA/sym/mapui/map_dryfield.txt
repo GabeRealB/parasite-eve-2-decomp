@@ -207,7 +207,7 @@ D_dryfield_garage_8017DCFC = 0x8017DCFC; // absolute:True owner=dryfield_garage
 D_dryfield_garage_8017E670 = 0x8017E670; // absolute:True owner=dryfield_garage shared=rooms
 D_dryfield_garage_8017F5E8 = 0x8017F5E8; // absolute:True owner=dryfield_garage
 D_dryfield_garage_801801E4 = 0x801801E4; // absolute:True owner=dryfield_garage
-func_dryfield_driveway_8017DE14 = 0x8017DE14; // type:func absolute:True owner=dryfield_driveway shared=rooms
+dryfieldDrivewayRoomTask = 0x8017DE14; // type:func absolute:True owner=dryfield_driveway shared=rooms
 D_dryfield_driveway_8017E784 = 0x8017E784; // absolute:True owner=dryfield_driveway
 D_dryfield_driveway_8017E7AC = 0x8017E7AC; // absolute:True owner=dryfield_driveway shared=rooms
 D_dryfield_driveway_8017E7B4 = 0x8017E7B4; // absolute:True owner=dryfield_driveway shared=rooms

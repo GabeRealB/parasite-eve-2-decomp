@@ -93,7 +93,7 @@ extern GameActorMoveAnim        D_dryfield_general_store_8017E554;
 extern ActorTransform           D_dryfield_general_store_8017E524;
 extern ActorTransform           D_dryfield_general_store_8017E53C;
 extern s32                      D_dryfield_general_store_8017E560;
-void                            func_dryfield_general_store_8017E130(s32);
+static void                     _dryfieldGeneralStoreEngageBattle(s32 unusedArg);
 
 extern WorldCollisionGrid         D_dryfield_general_store_8017F238[1];
 extern WorldCollisionOccluder     D_dryfield_general_store_80184F78[4];
@@ -102,10 +102,10 @@ extern WorldCollisionTrigger      D_dryfield_general_store_8018493C[21];
 extern WorldCoordRoomAmbientEntry D_dryfield_general_store_80185500[17];
 extern WorldCoordRoomLights       D_dryfield_general_store_801854E8[1];
 
-static s32 _dryfieldGeneralStoreRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
-s32        func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, s32);
-void       func_dryfield_general_store_8017DFB4(Task*);
-void       func_dryfield_general_store_8017E064(Task*);
+static s32  _dryfieldGeneralStoreRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
+s32         func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, s32);
+static void _dryfieldGeneralStorePlaySceneCueTask(Task* task);
+void        func_dryfield_general_store_8017E064(Task*);
 
 /// Inventory's room request and the reply refusing key-item use.
 enum {
@@ -154,7 +154,7 @@ static AnimationSet _gDryfieldGeneralStoreAnimation00ED8 = {
     { NULL, _gDryfieldGeneralStoreAnimation00ED8Bank1, NULL, NULL, _gDryfieldGeneralStoreAnimation00ED8Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_dryfield_general_store_8017E4C0 = { { { TASK_BODY_NONE, 192 } }, func_dryfield_general_store_8017DFB4, { .value = 0 } };
+TaskDesc D_dryfield_general_store_8017E4C0 = { { { TASK_BODY_NONE, 192 } }, _dryfieldGeneralStorePlaySceneCueTask, { .value = 0 } };
 
 TaskDesc D_dryfield_general_store_8017E4CC = { { { TASK_BODY_NONE, 192 } }, func_dryfield_general_store_8017E064, { .value = 0 } };
 
@@ -192,7 +192,7 @@ EvsCommand D_dryfield_general_store_8017E568[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = GAME_ACTOR_MESSAGE_RUN_TO }, { .message = { .pointer = &D_dryfield_general_store_8017E53C } }, { .message = { .pointer = &D_dryfield_general_store_8017E554 } } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER }, { .value = SCENE_MESSAGE_BROADCAST_TO_ACTORS }, { .message = { .pointer = &D_dryfield_general_store_8017E560 } }, { .value = ACTOR_COMMAND_MESSAGE_APPLY } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_general_store_8017E130 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldGeneralStoreEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1650,23 +1650,44 @@ void func_dryfield_general_store_8017DF5C(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_dryfield_general_store_8017DFB4(Task* arg0)
+/// Advances the scene-cue lifetime and destroys its task once the counter is negative.
+static inline void _dryfieldGeneralStoreExpireSceneCue(Task* task)
 {
-    s16 temp_v0;
+    s16 framesLeft;
 
-    switch (arg0->state) {
-        case 0:
+    // Preserve the unsigned load and signed halfword result of the decrement.
+    framesLeft          = (u16)task->killCountdown - 1;
+    task->killCountdown = framesLeft;
+    if (framesLeft < 0) {
+        taskKill(task);
+    }
+}
+
+/// Starts the General Store encounter cue and waits before releasing its task.
+///
+/// Requires state 0 start or 1 wait. Start broadcasts the area's command 0,
+/// which arms the Desert Chaser's wait for battle, starts area sound 0x0F and
+/// sets a 90-tick counter. Wait decrements to a signed halfword and releases
+/// the task on the 91st wait update, when the result first becomes negative.
+/// Other states do nothing. No work or spawn arguments are accessed.
+static void _dryfieldGeneralStorePlaySceneCueTask(Task* task)
+{
+    enum {
+        DRYFIELD_GENERAL_STORE_SCENE_CUE_START = 0,
+        DRYFIELD_GENERAL_STORE_SCENE_CUE_WAIT  = 1,
+        DRYFIELD_GENERAL_STORE_SCENE_CUE_TICKS = 90,
+        DRYFIELD_GENERAL_STORE_SCENE_CUE_SOUND = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 0x0F),
+    };
+
+    switch (task->state) {
+        case DRYFIELD_GENERAL_STORE_SCENE_CUE_START:
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E55C, ACTOR_COMMAND_MESSAGE_APPLY);
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GENERAL_STORE, 0x0F), 0, 0);
-            arg0->killCountdown = 0x5A;
-            arg0->state++;
+            sndEvtRequestScriptStart(DRYFIELD_GENERAL_STORE_SCENE_CUE_SOUND, 0, 0);
+            task->killCountdown = DRYFIELD_GENERAL_STORE_SCENE_CUE_TICKS;
+            task->state++;
             return;
-        case 1:
-            temp_v0             = (u16)arg0->killCountdown - 1;
-            arg0->killCountdown = temp_v0;
-            if (temp_v0 < 0) {
-                taskKill(arg0);
-            }
+        case DRYFIELD_GENERAL_STORE_SCENE_CUE_WAIT:
+            _dryfieldGeneralStoreExpireSceneCue(task);
             return;
     }
 }
@@ -1694,10 +1715,13 @@ void func_dryfield_general_store_8017E064(Task* arg0)
     }
 }
 
-/// Arms `gSceneCombatState` with `arg0`.
-void func_dryfield_general_store_8017E130(s32 arg0)
+/// Engages an idle battle from the General Store encounter script.
+///
+/// The script supplies a full signed word; its value is ignored by the scene
+/// routine. An already engaged or otherwise non-idle battle remains unchanged.
+static void _dryfieldGeneralStoreEngageBattle(s32 unusedArg)
 {
-    sceneEngageBattle(arg0);
+    sceneEngageBattle(unusedArg);
 }
 
 void dryfieldGeneralStoreNoOpEffectTask(Task* unusedTask)

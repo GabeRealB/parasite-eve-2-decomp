@@ -130,12 +130,12 @@ TaskDesc D_dryfield_gas_station_80181E3C[2] = {
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
-s32 func_dryfield_gas_station_8017FD4C(Task*, s32, s32, s32);
-s32 func_dryfield_gas_station_8017FD54(Task*, s32, s32, s32);
+static s32 _dryfieldGasStationRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+s32        func_dryfield_gas_station_8017FD54(Task*, s32, s32, s32);
 
 TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGasStationMsg },
-    { 5105, func_dryfield_gas_station_8017FD4C },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldGasStationRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_dryfield_gas_station_8017FD54 },
     { ROOM_MESSAGE_SOUND, _gasStationCueSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -145,7 +145,7 @@ TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
 static const char Telephone_Data_8017D638[];
 
 static void func_dryfield_gas_station_8017FEDC(Task* arg0);
-static void func_dryfield_gas_station_8017FF84(Task* task);
+static void _dryfieldGasStationIdleRoomTask(Task* unusedTask);
 
 #include "../../shared/telephone.inc.c"
 
@@ -166,10 +166,13 @@ void func_dryfield_gas_station_8017EA90(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-/// Always returns 0.
-s32 func_dryfield_gas_station_8017FD4C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Refuses every request to use a collected key item at the gas station.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`. Ignores both integer payload words
+/// and the receiver; returns `ROOM_KEY_ITEM_USE_REFUSED` without consuming an item.
+static s32 _dryfieldGasStationRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 /// Cutscene trigger for the gas station. On request 1, if the `0x16B` flag is
@@ -244,8 +247,10 @@ static void func_dryfield_gas_station_8017FEDC(Task* arg0)
     D_80115598  = 1;
 }
 
-/// State 1 of the room's main task: does nothing.
-static void func_dryfield_gas_station_8017FF84(Task* task)
+/// Keeps the initialized gas-station room task idle in state 1.
+///
+/// Ignores its argument; messages continue through the installed room table.
+static void _dryfieldGasStationIdleRoomTask(Task* unusedTask)
 {
 }
 
@@ -253,7 +258,7 @@ static void func_dryfield_gas_station_8017FF84(Task* task)
 /// `func_dryfield_gas_station_8017FF8C`: set-up, the per-frame handler and the
 /// kill.
 static const TaskFuncTable3 D_dryfield_gas_station_8017D6A4 = {
-    { func_dryfield_gas_station_8017FEDC, func_dryfield_gas_station_8017FF84, taskKill },
+    { func_dryfield_gas_station_8017FEDC, _dryfieldGasStationIdleRoomTask, taskKill },
 };
 
 /// Dispatches the task through the room's three-state table, copied onto the

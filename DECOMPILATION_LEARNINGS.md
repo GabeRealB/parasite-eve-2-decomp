@@ -3792,7 +3792,7 @@ The sibling `_actor341900RemovePlayerEquipment` reads the same field with `lhu` 
 `bnez`, which corroborates `u16` rather than being a second coincidence.
 
 The rule is not an actor-overlay artifact: the room script work blocks keep the
-same 0/1 latch, and `func_dryfield_gas_station_80180944` reads `_DryfieldGasStationCutsceneWork`'s flag
+same 0/1 latch, and `_dryfieldGasStationSuppressPlayerEquipment` reads `_DryfieldGasStationCutsceneWork`'s flag
 at 0xC with `lhu` / `bnez` exactly as `_actor341900RemovePlayerEquipment` does. Run as a
 controlled pair - the same body twice, differing only in the flag's declared
 type, the header untouched in one arm because the struct was copied locally -
@@ -92039,13 +92039,13 @@ and let the assignment truncate; the subtraction still reads the field through
 `(u16)` so the `lhu` (not `lh`) survives:
 
 ```c
-s16 temp_v0;
-temp_v0 = (u16)arg0->killCountdown - 1;
-arg0->killCountdown = temp_v0;
-if (temp_v0 < 0) { taskKill(arg0); }        /* sll v0,v0,0x10; bgez */
+s16 framesLeft;
+framesLeft = (u16)task->killCountdown - 1;
+task->killCountdown = framesLeft;
+if (framesLeft < 0) { taskKill(task); }        /* sll v0,v0,0x10; bgez */
 ```
 
-`func_dryfield_general_store_8017DFB4` is the example: 90.909% with
+`_dryfieldGeneralStorePlaySceneCueTask` is the example: 90.909% with
 `insert=2 delete=2` and every other penalty zero - the diff is exactly the
 `andi`/`beqz` pair against `sll`/`bgez` - and 100% on the next build. Choose the
 temp's signedness before touching control flow; the block and instruction counts

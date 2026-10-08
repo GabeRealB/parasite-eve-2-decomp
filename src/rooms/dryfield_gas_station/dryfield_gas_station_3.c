@@ -118,8 +118,8 @@ extern EvsCommand    D_dryfield_gas_station_8018303C[];
 extern SVECTOR D_dryfield_gas_station_80183144;
 
 // Indexed views below share one contiguous table.
-void func_dryfield_gas_station_80180944(void);
-void func_dryfield_gas_station_80180B2C(s16);
+static void _dryfieldGasStationSuppressPlayerEquipment(void);
+static void _dryfieldGasStationSetCutsceneCommand(s16 command);
 
 extern WorldCollisionGrid    D_dryfield_gas_station_80183EA4[1];
 extern WorldCollisionTrigger D_dryfield_gas_station_80184350[11];
@@ -244,19 +244,19 @@ ActorTransform D_dryfield_gas_station_80182E44[3] = {
 
 EvsCommand D_dryfield_gas_station_80182E8C[18] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 12 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_gas_station_80180944 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldGasStationSuppressPlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldGasStationSetCutsceneCommand }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldGasStationSetCutsceneCommand }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_WALK_PLACEMENTS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldGasStationSetCutsceneCommand }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_WALK_PLACEMENTS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLAY_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldGasStationSetCutsceneCommand }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLAY_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_BLEND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldGasStationSetCutsceneCommand }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_BLEND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_gas_station_80180B2C }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldGasStationSetCutsceneCommand }, { .value = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
@@ -810,13 +810,21 @@ void func_dryfield_gas_station_801807E0(Task* task)
     }
 }
 
-/// Kills the player's effects once. The latch is stored before the call, which
-/// leaves that store in the call's delay slot.
-void func_dryfield_gas_station_80180944(void)
+/// Removes the player's equipment models and persistent weapon effect once per scene.
+///
+/// Requires the published gas-station cutscene task and its live work. Sets
+/// the restoration latch before removal, even if the removal finds no actor work.
+/// The scene's restore command or skip callback rebuilds the equipment later.
+static void _dryfieldGasStationSuppressPlayerEquipment(void)
 {
+    enum {
+        DRYFIELD_GAS_STATION_EQUIPMENT_RESTORE_NOT_PENDING = 0,
+        DRYFIELD_GAS_STATION_EQUIPMENT_RESTORE_PENDING     = 1,
+    };
+
     _DryfieldGasStationCutsceneWork* work = D_dryfield_gas_station_80184BD4->work;
-    if (work->playerEffectsSuppressed == 0) {
-        work->playerEffectsSuppressed = 1;
+    if (work->playerEffectsSuppressed == DRYFIELD_GAS_STATION_EQUIPMENT_RESTORE_NOT_PENDING) {
+        work->playerEffectsSuppressed = DRYFIELD_GAS_STATION_EQUIPMENT_RESTORE_PENDING;
         playerActorRemoveEquipment();
     }
 }
@@ -861,13 +869,18 @@ void func_dryfield_gas_station_80180A60(void)
     SetDispMask(1);
 }
 
-/// Stores `arg0` as the cutscene command and restarts its step. The block is
-/// the work of the task published in `D_dryfield_gas_station_80184BD4`.
-void func_dryfield_gas_station_80180B2C(s16 arg0)
+/// Replaces the pending gas-station cutscene command and restarts its first step.
+///
+/// Requires the published cutscene task and live work. The script supplies the
+/// low signed halfword; storage preserves its bits as u16. Use the local
+/// `DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_*` values (0 none, 1..6 scene actions).
+/// Execution is deferred to a later task update; a new command replaces any
+/// unfinished one. Other counters and the captured player stay unchanged.
+static void _dryfieldGasStationSetCutsceneCommand(s16 command)
 {
     _DryfieldGasStationCutsceneWork* work = D_dryfield_gas_station_80184BD4->work;
 
-    work->command     = arg0;
+    work->command     = command;
     work->commandStep = 0;
 }
 
