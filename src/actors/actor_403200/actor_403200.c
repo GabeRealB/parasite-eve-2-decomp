@@ -60,6 +60,9 @@
 #include "overlay.h"
 #include "../../shared/actor_messages.h"
 #include "../../shared/actor_contacts.h"
+
+static void _gluttonSetShakeLevel(s8 level);
+
 /// Selects dumping-hole behavior for this compiled Glutton instance.
 ///
 /// Define before `glutton.h` and retain through every shared fragment. The

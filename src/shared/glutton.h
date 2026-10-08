@@ -416,15 +416,15 @@ void        gluttonPropTask(Task* arg0);
 
 /// Selects the function identifier of this carrier's screen-shake request setter.
 ///
-/// The identifier must have signature `void(s8 level)`. An override must be
-/// declared by the carrier's interface before this header and retained through
-/// `glutton_shake_level.inc.c`, with `GLUTTON_HOST_TASK` bound to the same host.
-/// The default defines actor_403200's existing `gluttonSetShakeLevel` instance;
-/// actor_444000 supplies its cross-image export. This binding has no arguments
-/// or runtime evaluation and does not determine the function's linkage.
+/// The identifier must have signature `void(s8 level)`, declared by the carrier
+/// before this header to establish its linkage. The default selects
+/// actor_403200's static `_gluttonSetShakeLevel`; actor_444000 binds its public
+/// export, declared in its interface. Retain the binding through
+/// `glutton_shake_level.inc.c`, with `GLUTTON_HOST_TASK` selecting the same live
+/// host. The replacement is one identifier with no arguments, captured values,
+/// runtime evaluation, stringification or token pasting.
 #ifndef GLUTTON_SET_SHAKE_LEVEL
-#define GLUTTON_SET_SHAKE_LEVEL gluttonSetShakeLevel
-void GLUTTON_SET_SHAKE_LEVEL(s8 level);
+#define GLUTTON_SET_SHAKE_LEVEL _gluttonSetShakeLevel
 #endif
 
 #endif /* SRC_SHARED_GLUTTON_H */
