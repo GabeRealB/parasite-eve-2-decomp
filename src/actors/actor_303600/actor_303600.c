@@ -164,14 +164,14 @@ static void _actor303600InitShaftSegmentLighting(Task* task);
 static TmdSource _gActor303600Model0814C;
 static s32       _actor303600HandleShaftCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static void      _actor303600ShaftSegmentTask(Task* task);
-void             func_actor_303600_80162A7C(Task*);
+static void      _actor303600ShaftTask(Task* task);
 
 static void _actor303600DrawBlackCoverTask(Task* task);
 void        func_actor_303600_8016216C(Task*);
 static void _actor303600FadeFromWhiteTask(Task* task);
 static void _actor303600FadeToWhiteTask(Task* task);
 static void _actor303600SendCutsceneEndCommand(void);
-void        func_actor_303600_8016253C(void);
+static void _actor303600FinishSkippedCutscene(void);
 static void _actor303600PostCutsceneCue(s16 cue);
 static void _actor303600LockCutsceneControls(void);
 static void _actor303600StageCutsceneAudio(void);
@@ -217,7 +217,7 @@ EvsCommand D_actor_303600_80162AF0[31] = {
 EvsCommand D_actor_303600_80162DD8[8] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_303600_8016253C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor303600FinishSkippedCutscene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -392,7 +392,7 @@ Actor303600ViewKey D_actor_303600_8016AEF8[ACTOR_303600_VIEW_KEY_COUNT] = {
 };
 
 TaskDesc D_actor_303600_8016E468[2] = {
-    { { { TASK_BODY_COORD, 192 } }, func_actor_303600_80162A7C, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _actor303600ShaftTask, { .value = 0 } },
     { { { TASK_BODY_TMD, 192 } }, _actor303600ShaftSegmentTask, { .model = &_gActor303600Model0814C } },
 };
 
@@ -412,7 +412,7 @@ Task* D_actor_303600_8016E4C0;
 Task* D_actor_303600_8016E4C4;
 
 static void func_actor_303600_80161F40(Task* arg0);
-static void func_actor_303600_801626C0(Task* task);
+static void _actor303600InitShaft(Task* task);
 static void _actor303600ScrollShaft(Task* task);
 
 /// Covers the centred 320x240 frame in opaque black for this callback tick.
@@ -692,16 +692,38 @@ static void _actor303600SendCutsceneEndCommand(void)
     }
 }
 
-/// Cutscene teardown: kill the task a previous cutscene left in
-/// `D_actor_303600_8016E4C4`, then, while the work block's `endCommandSent`
-/// latch is still clear, send the same 0x7DA announcement
-/// `_actor303600SendCutsceneEndCommand` sends and latch selector 9.  Finishes by
-/// spawning the overlay's own continuation task -- `D_actor_303600_80162E98`
-/// entry 3 -- so this runs exactly once per cutscene.
-void func_actor_303600_8016253C(void)
+/// Broadcasts the skipped scene's final command through the shared once-only latch.
+///
+/// Invoke as a statement in a braced block. work is a side-effect-free live
+/// controller-work pointer, endCommand a writable ActorCommand lvalue; both
+/// arguments occur repeatedly. Requires ACTOR_303600_SKIP_END_ACTOR_COMMAND
+/// in scope and the live session/scene task. Initializes only stage, area and
+/// command, dispatches synchronously, then records and latches the command.
+#define ACTOR_303600_SEND_SKIPPED_END_COMMAND(work, endCommand)                                                                                              \
+    if ((work)->endCommandSent == false) {                                                                                                                   \
+        (endCommand).context.loc.stage = gGameSession->location.loc.stage;                                                                                   \
+        (endCommand).context.loc.area  = gGameSession->location.loc.area;                                                                                    \
+        (endCommand).command           = ACTOR_303600_SKIP_END_ACTOR_COMMAND;                                                                                \
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &(endCommand), ACTOR_COMMAND_MESSAGE_APPLY); \
+        (work)->lastActorCommand = ACTOR_303600_SKIP_END_ACTOR_COMMAND;                                                                                      \
+        (work)->endCommandSent   = true;                                                                                                                     \
+    }
+
+/// Finishes the skipped cutscene by sending its final command and covering the screen.
+///
+/// Requires the live cutscene controller and scene task. Kills and clears the
+/// optional saved fade handle, then synchronously broadcasts command 9 in the
+/// current stage/area only if the shared end latch is clear. Eve interprets it
+/// as battle completion with rewards. Starts a black-cover task even when the
+/// command was already sent; repeated calls can spawn further covers. Fade and
+/// cover storage remain owned by their tasks; spawn failure is ignored.
+static void _actor303600FinishSkippedCutscene(void)
 {
+    enum { ACTOR_303600_SKIP_END_ACTOR_COMMAND = 9,
+           ACTOR_303600_SKIP_BLACK_COVER_TASK  = 3 };
+
     _Actor303600CutsceneWork* work;
-    ActorCommand              msg;
+    ActorCommand              endCommand;
 
     if (D_actor_303600_8016E4C4 != NULL) {
         taskKill(D_actor_303600_8016E4C4);
@@ -709,17 +731,12 @@ void func_actor_303600_8016253C(void)
     }
 
     work = D_actor_303600_8016E4C0->work;
-    if (work->endCommandSent == 0) {
-        msg.context.loc.stage = gGameSession->location.loc.stage;
-        msg.context.loc.area  = gGameSession->location.loc.area;
-        msg.command           = 9;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        work->lastActorCommand = 9;
-        work->endCommandSent   = 1;
-    }
+    ACTOR_303600_SEND_SKIPPED_END_COMMAND(work, endCommand);
 
-    taskSpawnFromTable(D_actor_303600_80162E98, 3, 0, 0);
+    taskSpawnFromTable(D_actor_303600_80162E98, ACTOR_303600_SKIP_BLACK_COVER_TASK, 0, NULL);
 }
+
+#undef ACTOR_303600_SEND_SKIPPED_END_COMMAND
 
 /// Replaces the cutscene controller's pending cue for its next update.
 ///
@@ -775,45 +792,45 @@ static void _actor303600CancelCutscenePlayback(void)
     cdCmdCancelScene();
 }
 
-/// Spawn state of the package's scrolling shaft: allocates the work block the
-/// later states read through `Task::work`, clears the task's own root
-/// coordinate, then spawns the five segment models -- one `taskSpawnFromTable`
-/// of `D_actor_303600_8016E468` entry 1 each, parked in `segments` and stacked
-/// one segment height apart in Y, centred on the task's coordinate.  The spread
-/// reaches the coordinate through the strength-reduced `i * 8000 - 16000`
-/// loop.c folds into an accumulator, so its initialiser is scheduled at the
-/// loop head beside the hoisted `%hi` of the spawn table.  A failed spawn stops the loop early, a
-/// failed allocation kills the task instead of leaving a half-built controller,
-/// and the last three statements install the 0x7DB handler table at
-/// `Task::msgTable`, the shared kill callback and the next state.
-static void func_actor_303600_801626C0(Task* task)
+/// Initializes the coordinate-body shaft and its five scrolling model segments.
+///
+/// Requires a coordinate body in state 0. Owns a zeroed work block for the
+/// task lifetime and resets root XYZ in parent-coordinate units. Segment roots
+/// are placed at -16000, -8000, 0, 8000 and 16000 along Y; their initializer
+/// parents them to this root and joins the teardown tree. Allocation failure
+/// kills the shaft; a segment spawn failure retains the already-created prefix.
+/// Installs actor-command handling and teardown, then advances to motion state.
+static void _actor303600InitShaft(Task* task)
 {
+    enum { ACTOR_303600_SHAFT_SEGMENT_TASK_INDEX = 1 };
+
     _Actor303600ShaftWork* work;
-    GfxCoord*              coord;
-    GfxCoord*              childCoord;
-    Task*                  child;
-    s32                    i;
+    GfxCoord*              shaftCoord;
+    GfxCoord*              segmentCoord;
+    Task*                  segmentTask;
+    s32                    segmentIndex;
 
     work = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
-    task->work        = work;
-    coord             = task->extra.tmd->coords;
-    coord->coord.t[0] = 0;
-    coord->coord.t[1] = 0;
-    coord->coord.t[2] = 0;
-    for (i = 0; i < (s32)ARRAY_SIZE(work->segments); i++) {
-        child = taskSpawnFromTable(D_actor_303600_8016E468, 1, 0, task);
-        if (child == NULL) {
+    task->work             = work;
+    shaftCoord             = task->extra.coordBody->coord;
+    shaftCoord->coord.t[0] = 0;
+    shaftCoord->coord.t[1] = 0;
+    shaftCoord->coord.t[2] = 0;
+    // Identical TMD segments follow the coordinate body, centred two pitches below it.
+    for (segmentIndex = 0; segmentIndex < (s32)ARRAY_SIZE(work->segments); segmentIndex++) {
+        segmentTask = taskSpawnFromTable(D_actor_303600_8016E468, ACTOR_303600_SHAFT_SEGMENT_TASK_INDEX, 0, task);
+        if (segmentTask == NULL) {
             break;
         }
-        work->segments[i]      = child;
-        childCoord             = child->extra.tmd->coords;
-        childCoord->coord.t[1] = i * ACTOR_303600_SHAFT_SEGMENT_HEIGHT - 2 * ACTOR_303600_SHAFT_SEGMENT_HEIGHT;
-        childCoord->coord.t[0] = 0;
-        childCoord->coord.t[2] = 0;
+        work->segments[segmentIndex] = segmentTask;
+        segmentCoord                 = segmentTask->extra.tmd->coords;
+        segmentCoord->coord.t[1]     = segmentIndex * ACTOR_303600_SHAFT_SEGMENT_HEIGHT - 2 * ACTOR_303600_SHAFT_SEGMENT_HEIGHT;
+        segmentCoord->coord.t[0]     = 0;
+        segmentCoord->coord.t[2]     = 0;
     }
     task->msgTable     = D_actor_303600_8016E480;
     task->exitCallback = _actor303600KillShaft;
@@ -898,9 +915,9 @@ static s32 _actor303600HandleShaftCommand(Task* task, s32 messageId, const Actor
 }
 
 /// State table of the scrolling shaft: spawn, per-frame motion and the kill
-/// callback. Dispatched by `func_actor_303600_80162A7C`.
+/// callback. Dispatched by `_actor303600ShaftTask`.
 static const TaskFuncTable3 D_actor_303600_80161E48 = { {
-    func_actor_303600_801626C0,
+    _actor303600InitShaft,
     _actor303600ScrollShaft,
     _actor303600KillShaft,
 } };
@@ -985,15 +1002,17 @@ static void _actor303600InitShaftSegmentLighting(Task* task)
     }
 }
 
-/// Per-frame dispatcher of the scrolling shaft: runs its spawn, motion or exit
-/// state from `D_actor_303600_80161E48`, skipping the frame while
-/// `gSceneCombatState.actorControl` is set.
-void func_actor_303600_80162A7C(Task* task)
+/// Dispatches shaft initialization, scrolling or teardown while actors run.
+///
+/// Requires a live coordinate body and state 0..2. Any other actor-control value
+/// holds every state, including initialization and teardown. The copied table
+/// is indexed without a bounds check; the selected callback may release the task.
+static void _actor303600ShaftTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_303600_80161E48;
+    stateHandlers = D_actor_303600_80161E48;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }

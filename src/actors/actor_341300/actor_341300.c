@@ -137,7 +137,7 @@ static void                     _actor341300RequestTexturedQuadsExit(void);
 static void                     _actor341300StartPlayerFacingTask(void);
 static void                     _actor341300StartDebrisEmitterCallback(s16 emitterIndex);
 static void                     _actor341300StopDebrisEmitterCallback(s16 emitterIndex);
-void                            func_actor_341300_801625AC(void);
+static void                     _actor341300SpawnPlayerHitPuffs(void);
 static void                     _actor341300SetSceneEvent(s8 sceneEvent);
 
 static void _actor341300TurnPlayerTowardScenePlacementTask(Task* task);
@@ -323,7 +323,7 @@ EvsCommand D_actor_341300_80165354[52] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300EnqueueScenePlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_341300_801625AC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor341300SpawnPlayerHitPuffs }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_actor_341300_8016531C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor341300StartDebrisEmitterCallback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -694,19 +694,36 @@ static void _actor341300StopDebrisEmitterCallback(s16 emitterIndex)
     _actor341300StopDebrisEmitter(emitterIndex);
 }
 
-/// Offset from the player's third coordinate that `func_actor_341300_801625AC`
+/// Offset from the player's third coordinate that `_actor341300SpawnPlayerHitPuffs`
 /// spawns its four effects at.
 static const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
 
-void func_actor_341300_801625AC(void)
+/// Emits the scene's four hit puffs from the player's model part 2.
+///
+/// Requires a live player TMD task and part 2's initialized coordinate chain.
+/// All four sample offset (100, -200, -100) in part-local units during spawn.
+/// The first uses size 768 and a three-tick texture period; the other three
+/// use size 640, a two-tick period and random initial velocity. All select the
+/// alternate palette and additive blend. The puff callback does not follow the
+/// retained stack offset; allocation failures are ignored and no handle is saved.
+static void _actor341300SpawnPlayerHitPuffs(void)
 {
-    SVECTOR   vec   = D_actor_341300_80161E64;
-    GfxCoord* coord = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[2];
+    enum { ACTOR_341300_HIT_PART            = 2,
+           ACTOR_341300_HIT_PALETTE         = 0x10000000,
+           ACTOR_341300_HIT_RANDOM_VELOCITY = 0x100000,
+           ACTOR_341300_HIT_PERIOD_SHIFT    = 12,
+           ACTOR_341300_HIT_BLEND_SHIFT     = 16 };
+    enum {
+        ACTOR_341300_MAIN_HIT_PUFF_ARG  = (ACTOR_341300_HIT_PALETTE | (GPU_BLEND_ADD << ACTOR_341300_HIT_BLEND_SHIFT) | (3 << ACTOR_341300_HIT_PERIOD_SHIFT) | 768),
+        ACTOR_341300_SMALL_HIT_PUFF_ARG = (ACTOR_341300_HIT_PALETTE | ACTOR_341300_HIT_RANDOM_VELOCITY | (GPU_BLEND_ADD << ACTOR_341300_HIT_BLEND_SHIFT) | (2 << ACTOR_341300_HIT_PERIOD_SHIFT) | 640)
+    };
+    SVECTOR   hitOffset       = D_actor_341300_80161E64;
+    GfxCoord* playerPartCoord = &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[ACTOR_341300_HIT_PART];
 
-    effectSpawn(EFFECT_HIT_PUFF, coord, 0x10013300, &vec);
-    effectSpawn(EFFECT_HIT_PUFF, coord, 0x10112280, &vec);
-    effectSpawn(EFFECT_HIT_PUFF, coord, 0x10112280, &vec);
-    effectSpawn(EFFECT_HIT_PUFF, coord, 0x10112280, &vec);
+    effectSpawn(EFFECT_HIT_PUFF, playerPartCoord, ACTOR_341300_MAIN_HIT_PUFF_ARG, &hitOffset);
+    effectSpawn(EFFECT_HIT_PUFF, playerPartCoord, ACTOR_341300_SMALL_HIT_PUFF_ARG, &hitOffset);
+    effectSpawn(EFFECT_HIT_PUFF, playerPartCoord, ACTOR_341300_SMALL_HIT_PUFF_ARG, &hitOffset);
+    effectSpawn(EFFECT_HIT_PUFF, playerPartCoord, ACTOR_341300_SMALL_HIT_PUFF_ARG, &hitOffset);
 }
 
 /// Stores the event script's signed-byte scene event in the live save's music-selection state.

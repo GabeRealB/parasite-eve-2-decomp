@@ -174,3 +174,7 @@ _actor335800GaryDouglasRunWalkStep = 0x80162ffc; // type:func
 _actor335800GaryDouglasBeginApproach = 0x80163124; // type:func
 _actor335800GaryDouglasSetDrawMode = 0x8016343c; // type:func
 _actor335800GaryDouglasRequestDim = 0x8016354c; // type:func
+_actor335800StartBalconyMovies = 0x801623d8; // type:func
+_actor335800GaryDouglasInit = 0x80162640; // type:func
+_actor335800GaryDouglasUpdate = 0x80162844; // type:func
+_actor335800GaryDouglasTask = 0x80162f10; // type:func

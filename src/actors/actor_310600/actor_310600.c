@@ -126,7 +126,7 @@ extern s8             D_actor_310600_80179644[];  // extra ticks owed to the ani
 static void _modelPlacementAttachPartTask(Task* childTask);
 static void _modelPlacementMirrorParentDrawFlags(Task* childTask);
 static void _actor310600InitBody(Task* task);
-static void func_actor_310600_80161FA0(Task* task);
+static void _actor310600UpdateBody(Task* task);
 static void _actor310600CheckWalkArrival(Task* task);
 static s32  _actor310600PlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32  _actor310600SetModelDraw(Task* task, s32 messageId, s32 mode, s32 unusedArg);
@@ -158,7 +158,7 @@ static const TaskFuncTable3 D_actor_310600_80161E30 = { {
 /// `Task::state`: spawn/setup, per-frame tick and teardown.
 static const TaskFuncTable3 D_actor_310600_80161E3C = { {
     _actor310600InitBody,
-    func_actor_310600_80161FA0,
+    _actor310600UpdateBody,
     _actor310600ExitBody,
 } };
 
@@ -485,99 +485,114 @@ static void _actor310600InitBody(Task* task)
     task->state++;
 }
 
-/// The actor's per-frame handler. Runs the entry of its second state table that
-/// `walkMotion` selects, then advances the root part by `walkVelocity`: each
-/// axis of `walkCarry` carries a 16.16 offset whose whole part is added to the world
-/// translation and whose fraction is kept, and clearing `composeStamp` makes
-/// `actorRenderComposeCoordChain` rebuild the composed matrix from it.
+/// Applies signed 16.16 root-parent velocity, retaining unsigned XYZ fractions.
 ///
-/// Once the slots have been started (`ticking`) every animation slot is
-/// ticked, and the frame counter `cueFrame` is walked against the cue list
-/// `D_actor_310600_80179660[animId]` -- a zero-terminated list of frames at
-/// which the animation currently playing fires an effect. The effect is chosen
-/// by the animation id: ids 1 and 2 spawn 0x6006A and ask slot 4 for the
-/// follow-up message, but only for the first five of them (`shotCueCount`), after which the
-/// other payload is sent and `D_acropolis_cafeteria_80182AD8` is spawned instead; id 3 spawns
-/// 0x6006D. The remaining ids have no cue.
-///
-/// While the model is visible its ground shadow is drawn at the root part's
-/// world position and the occupancy table is cleared, and while the session
-/// flag at `field_4D` is set the second part is re-derived and re-lit.
-/// `freeCountdown` is the teardown countdown: it frees the model buffers on the
-/// tick it reaches zero and then stops at -1.
-static void func_actor_310600_80161FA0(Task* task)
+/// Requires initialized work and a live root; marks composition dirty even at rest.
+static inline void _actor310600IntegrateWalkVelocity(_Actor310600RupertBroderickWork* work, GfxCoord* rootCoord)
 {
-    TmdObject*                       ext      = task->extra.tmd;
-    _Actor310600RupertBroderickWork* work     = (_Actor310600RupertBroderickWork*)task->work;
-    TaskFunc                         funcs[2] = { _actor310600IdleMotion, _actor310600TickWalk };
-    VECTOR3                          pos;
-    GfxCoord*                        coord;
-    s16*                             cues;
-    s16*                             cue;
-    s32                              i;
-
-    funcs[work->walkMotion](task);
-    coord                    = task->extra.tmd->coords;
     work->walkCarry[0].word += work->walkVelocity.vx;
     work->walkCarry[1].word += work->walkVelocity.vy;
     work->walkCarry[2].word += work->walkVelocity.vz;
-    coord->coord.t[0]       += work->walkCarry[0].halves.integer;
-    coord->coord.t[1]       += work->walkCarry[1].halves.integer;
-    coord->coord.t[2]       += work->walkCarry[2].halves.integer;
-    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
+    rootCoord->coord.t[0]   += work->walkCarry[0].halves.integer;
+    rootCoord->coord.t[1]   += work->walkCarry[1].halves.integer;
+    rootCoord->coord.t[2]   += work->walkCarry[2].halves.integer;
+    rootCoord->composeStamp  = GRAPHICS_COORD_DIRTY;
     work->walkCarry[0].word  = work->walkCarry[0].halves.fraction;
     work->walkCarry[1].word  = work->walkCarry[1].halves.fraction;
     work->walkCarry[2].word  = work->walkCarry[2].halves.fraction;
+}
+
+/// Updates Rupert Broderick's walk, animation cues, shadow and model resources.
+///
+/// Requires initialized twenty-part body work, walkMotion 0/1 and loaded
+/// clip/cue tables for the selected signed-byte animId. Motion uses signed
+/// 16.16 root-parent units and retains unsigned fractions. Driven slots 1..19
+/// advance even when hidden. Clip 1's first five cues fire the Mongoose and send
+/// actor commands; its sixth starts the room follow-up. The retained clip-2
+/// shooting branch has no cue list here. Clip 3 drops reload casings; its spawn
+/// argument is unused by that effect. Cue frames and shot counts wrap as s16.
+/// Visible ticks draw a ground shadow and clear contacts. A ready view refreshes
+/// part 1 lighting. A nonnegative countdown frees buffers on the tick reading
+/// zero and then settles at -1; work and collision storage remain live.
+static void _actor310600UpdateBody(Task* task)
+{
+    enum {
+        ACTOR_310600_SHOOTING_CLIP           = 1,
+        ACTOR_310600_ALTERNATE_SHOOTING_CLIP = 2,
+        ACTOR_310600_RELOAD_CLIP             = 3,
+        ACTOR_310600_SHOT_CUE_COUNT          = 5,
+        ACTOR_310600_MONGOOSE_PART           = 8,
+        ACTOR_310600_MONGOOSE_FLASH_PROFILE  = 9,
+        ACTOR_310600_ROOM_FOLLOWUP_TASK      = 2,
+        ACTOR_310600_RETAINED_RELOAD_ARG     = 6,
+        ACTOR_310600_SHADOW_HALF_SIZE        = 768,
+        ACTOR_310600_LIGHT_COUNT             = 3,
+    };
+    TmdObject*                       model             = task->extra.tmd;
+    _Actor310600RupertBroderickWork* work              = task->work;
+    TaskFunc                         motionHandlers[2] = { _actor310600IdleMotion, _actor310600TickWalk };
+    VECTOR3                          groundPoint;
+    GfxCoord*                        activeCoord;
+    s16*                             cueFrames;
+    s16*                             cueCursor;
+    s32                              slotIndex;
+
+    motionHandlers[work->walkMotion](task);
+    activeCoord = task->extra.tmd->coords;
+    _actor310600IntegrateWalkVelocity(work, activeCoord);
     if (work->ticking != 0) {
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
+    // Cue time advances only for clips with a non-NULL, zero-terminated frame list.
     if (work->animId > 0) {
-        cues = D_actor_310600_80179660[work->animId];
-        if (cues != NULL) {
-            if (*cues != 0) {
-                cue = cues;
+        cueFrames = D_actor_310600_80179660[work->animId];
+        if (cueFrames != NULL) {
+            if (*cueFrames != 0) {
+                cueCursor = cueFrames;
                 do {
-                    if (*cue == work->cueFrame) {
-                        coord = &task->extra.tmd->coords[8];
+                    if (*cueCursor == work->cueFrame) {
+                        activeCoord = &task->extra.tmd->coords[ACTOR_310600_MONGOOSE_PART];
                         switch (work->animId) {
-                            case 1:
-                            case 2:
-                                if (work->shotCueCount++ < 5) {
-                                    effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, coord, 9, NULL);
+                            case ACTOR_310600_SHOOTING_CLIP:
+                            case ACTOR_310600_ALTERNATE_SHOOTING_CLIP:
+                                if (work->shotCueCount++ < ACTOR_310600_SHOT_CUE_COUNT) {
+                                    effectSpawn(EFFECT_ACTOR_MUZZLE_FLASH, activeCoord, ACTOR_310600_MONGOOSE_FLASH_PROFILE, NULL);
                                     TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_8017969C, 0);
                                 } else {
                                     TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(0), ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_310600_801796A0, 0);
-                                    taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, 2, 0, 0);
+                                    taskSpawnFromTable(D_acropolis_cafeteria_80182AD8, ACTOR_310600_ROOM_FOLLOWUP_TASK, 0, NULL);
                                 }
                                 break;
-                            case 3:
-                                effectSpawn(EFFECT_RELOAD_CASINGS_DROP, coord, 6, &D_actor_310600_80179694);
+                            case ACTOR_310600_RELOAD_CLIP:
+                                effectSpawn(EFFECT_RELOAD_CASINGS_DROP, activeCoord, ACTOR_310600_RETAINED_RELOAD_ARG, &D_actor_310600_80179694);
                                 break;
                         }
                         break;
                     }
-                    cue++;
-                } while (*cue != 0);
+                    cueCursor++;
+                } while (*cueCursor != 0);
             }
             work->cueFrame++;
         }
     }
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
+    // Visibility gates the ground shadow and contact clearing, not motion or playback.
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+            effectDrawGroundShadow(&groundPoint, ACTOR_310600_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
         worldCollisionClearContacts(work->contacts);
     }
+    // A ready view refreshes part 1 and its room lighting before delayed buffer release.
     if (gGameSession->viewReady != 0) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, ACTOR_310600_LIGHT_COUNT);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }

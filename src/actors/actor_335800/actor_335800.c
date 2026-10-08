@@ -163,8 +163,8 @@ extern TaskMessageEntry D_actor_335800_8016EB00[];
 extern TaskMessageEntry D_actor_335800_80172EA8[];
 
 static void _modelPlacementAttachPartTask(Task* childTask);
-static void func_actor_335800_80162640(Task* arg0);
-static void func_actor_335800_80162844(Task* task);
+static void _actor335800GaryDouglasInit(Task* task);
+static void _actor335800GaryDouglasUpdate(Task* task);
 static void _actor335800GaryDouglasPartIdle(Task* task);
 static void _actor335800GaryDouglasExit(Task* task);
 static void _actor335800GaryDouglasBindLighting(Task* task);
@@ -190,10 +190,10 @@ static const TaskFuncTable3 D_actor_335800_80161E24 = { {
 } };
 
 /// Spawn, tick and teardown handlers of the parent block, dispatched by
-/// `func_actor_335800_80162F10`.
+/// `_actor335800GaryDouglasTask`.
 static const TaskFuncTable3 D_actor_335800_80161E30 = { {
-    func_actor_335800_80162640,
-    func_actor_335800_80162844,
+    _actor335800GaryDouglasInit,
+    _actor335800GaryDouglasUpdate,
     _actor335800GaryDouglasExit,
 } };
 
@@ -252,7 +252,7 @@ static void                     _actor335800StageSceneAudioStart(void);
 static void                     _actor335800StartScenePlayback(void);
 static void                     _actor335800FinishStreamedScene(void);
 static void                     _actor335800SpawnSceneGroundShadow(void);
-void                            func_actor_335800_801623D8(void);
+static void                     _actor335800StartBalconyMovies(void);
 static void                     _actor335800EnableDisplay(void);
 static void                     _actor335800SetStageAmbientMuted(s32 muted);
 static void                     _actor335800SpawnSceneScreenShake(void);
@@ -287,7 +287,7 @@ static void                     _actor335800StopStageMusic(s32 fadeTicks);
 static void                     _actor335800SetPostSceneObjective(void);
 static void                     _actor335800LockAttachmentsAndCancelEffects(void);
 static void                     _actor335800GaryDouglasPartTask(Task* task);
-void                            func_actor_335800_80162F10(Task*);
+static void                     _actor335800GaryDouglasTask(Task* task);
 static void                     _actor335800FlintTask(Task* task);
 
 static AnimationPackedPose _gActor335800Animation0255CBank1[6] = {
@@ -473,7 +473,7 @@ EvsSceneKey D_actor_335800_80165058 = { 3, 60, 11 };
 
 EvsCommand D_actor_335800_80165060[72] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor335800SetStageAmbientMuted }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_335800_801623D8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800StartBalconyMovies }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor335800EnableDisplay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SELECT_SCENE, { .sceneKey = &D_actor_335800_80165048 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -875,7 +875,7 @@ AnimationSet** gActorMotionAnimBanks[1] = {
 };
 
 TaskDesc D_actor_335800_8016EADC[3] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_335800_80162F10, { .model = &_gActor335800GaryDouglasBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor335800GaryDouglasTask, { .model = &_gActor335800GaryDouglasBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800GaryDouglasHeadHat } },
     { { { TASK_BODY_TMD, 192 } }, _actor335800GaryDouglasPartTask, { .model = &_gActor335800Actor120300Model082F8 } },
 };
@@ -1254,9 +1254,15 @@ static void _actor335800StartSceneVariantTask(Task* task)
     taskKill(task);
 }
 
-void func_actor_335800_801623D8(void)
+/// Queues the night-balcony room's two-movie sequence from the scene script.
+///
+/// Requires that room overlay and its movie/display resources to remain loaded.
+/// Spawns the bodyless startup task without waiting or saving its handle; it
+/// hands presentation to the room's movie controller. Allocation failure is ignored.
+static void _actor335800StartBalconyMovies(void)
 {
-    taskSpawnFromTable(D_dryfield_night_motel_balcony_80182834, 0, 0, 0);
+    enum { ACTOR_335800_BALCONY_MOVIES_START_TASK = 0 };
+    taskSpawnFromTable(D_dryfield_night_motel_balcony_80182834, ACTOR_335800_BALCONY_MOVIES_START_TASK, 0, NULL);
 }
 
 /// Enables display output at the scene's presentation or skip-recovery boundary.
@@ -1381,147 +1387,203 @@ static void _actor335800SceneScreenShakeTask(Task* task)
     taskKill(task);
 }
 
-static void func_actor_335800_80162640(Task* arg0)
+/// Applies an attached model's placement texture offsets and rebuilds both buffer halves.
+///
+/// Borrows a live model and placement for the call; offsets are stored even
+/// without a primitive buffer. Existing buffer ownership and active half are retained.
+static inline void _actor335800GaryDouglasApplyPartTextures(TmdObject* partModel, const AreaPlacement* placement)
 {
-    _Actor335800GaryDouglasWork* work;
-    GameLocationKey              key;
-    GameLocationKey*             sessionKey;
-    GameLocationKey*             keyAddr;
-    Task*                        spawned;
+    partModel->texturePageOffset = placement->texturePageOffset;
+    partModel->clutRowOffset     = placement->clutRowOffset;
+    if (partModel->buffer != NULL) {
+        tmdBuildBufferHalf(partModel);
+        tmdBuildBufferHalf(partModel);
+    }
+}
 
-    work = memCalloc(sizeof(_Actor335800GaryDouglasWork), false);
+/// Initializes Gary Douglas's body work, attached head/gun and script interface.
+///
+/// Requires a twenty-part TMD task in state 0 with its live Enemy in spawnArg2.
+/// Owns zeroed work for the task lifetime; allocation failure exits the enemy.
+/// Successful children attach at body parts 4 and 8 and receive texture-page
+/// and CLUT-row offsets from the enemy's current area placement; both existing
+/// primitive-buffer halves are rebuilt. Failed child spawns leave NULL handles,
+/// which the draw-mode handler does not check. Binds work-owned lighting, installs
+/// messages/exit and advances state. The model and children borrow the matrices.
+static void _actor335800GaryDouglasInit(Task* task)
+{
+    enum { ACTOR_335800_DOUGLAS_HEAD_TASK         = 1,
+           ACTOR_335800_DOUGLAS_HEAD_PART         = 4,
+           ACTOR_335800_DOUGLAS_GUN_TASK          = 2,
+           ACTOR_335800_DOUGLAS_GUN_PART          = 8,
+           ACTOR_335800_DOUGLAS_NO_BUFFER_RELEASE = -1 };
+
+    _Actor335800GaryDouglasWork* work;
+    GameLocationKey              location;
+    GameLocationKey*             sessionLocation;
+    GameLocationKey*             secondSessionLocation;
+    Task*                        partTask;
+
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        enemyTaskExit(arg0);
+        enemyTaskExit(task);
         return;
     }
-    arg0->work               = work;
+    task->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown      = -1;
+    work->freeCountdown      = ACTOR_335800_DOUGLAS_NO_BUFFER_RELEASE;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
-    spawned                  = taskSpawnFromTable(D_actor_335800_8016EADC, 1, 4, arg0);
-    if (spawned != NULL) {
-        TmdObject*     model;
-        AreaVariant*   layout;
-        AreaPlacement* place;
-        s32            idx;
+    // Attached head and gun inherit this enemy placement's texture offsets.
+    // Resolve each attached model's texture offsets from this enemy's area placement.
+    partTask = taskSpawnFromTable(D_actor_335800_8016EADC, ACTOR_335800_DOUGLAS_HEAD_TASK, ACTOR_335800_DOUGLAS_HEAD_PART, task);
+    if (partTask != NULL) {
+        TmdObject*     partModel;
+        AreaVariant*   areaVariant;
+        AreaPlacement* placement;
+        s32            placementIndex;
 
-        work->headTask = spawned;
-        model          = spawned->extra.tmd;
-        idx            = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionKey     = &gGameSession->location.loc;
-        key.stage      = sessionKey->stage;
-        key.area       = sessionKey->area;
-        key.room       = sessionKey->room;
-        key.view       = sessionKey->view;
-        areaSyncLocationVariant(&key);
-        layout                   = areaGetVariant(&key);
-        place                    = gpAreaPlaceAt(layout->placements, idx);
-        model->texturePageOffset = place->texturePageOffset;
-        model->clutRowOffset     = place->clutRowOffset;
-        if (model->buffer != NULL) {
-            tmdBuildBufferHalf(model);
-            tmdBuildBufferHalf(model);
-        }
+        work->headTask  = partTask;
+        partModel       = partTask->extra.tmd;
+        placementIndex  = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        sessionLocation = &gGameSession->location.loc;
+        location.stage  = sessionLocation->stage;
+        location.area   = sessionLocation->area;
+        location.room   = sessionLocation->room;
+        location.view   = sessionLocation->view;
+        areaSyncLocationVariant(&location);
+        areaVariant = areaGetVariant(&location);
+        placement   = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+        _actor335800GaryDouglasApplyPartTextures(partModel, placement);
     }
-    spawned = taskSpawnFromTable(D_actor_335800_8016EADC, 2, 8, arg0);
-    if (spawned != NULL) {
-        TmdObject*     model;
-        AreaVariant*   layout;
-        AreaPlacement* place;
-        s32            idx;
+    partTask = taskSpawnFromTable(D_actor_335800_8016EADC, ACTOR_335800_DOUGLAS_GUN_TASK, ACTOR_335800_DOUGLAS_GUN_PART, task);
+    if (partTask != NULL) {
+        TmdObject*     partModel;
+        AreaVariant*   areaVariant;
+        AreaPlacement* placement;
+        s32            placementIndex;
 
-        work->gunTask = spawned;
-        model         = spawned->extra.tmd;
-        idx           = ((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionKey    = (keyAddr = &gGameSession->location.loc);
-        key.stage     = sessionKey->stage;
-        key.area      = sessionKey->area;
-        key.room      = keyAddr->room;
-        key.view      = gGameSession->location.loc.view;
-        areaSyncLocationVariant(&key);
-        layout                   = areaGetVariant(&key);
-        place                    = gpAreaPlaceAt(layout->placements, idx);
-        model->texturePageOffset = place->texturePageOffset;
-        model->clutRowOffset     = place->clutRowOffset;
-        if (model->buffer != NULL) {
-            tmdBuildBufferHalf(model);
-            tmdBuildBufferHalf(model);
-        }
+        work->gunTask   = partTask;
+        partModel       = partTask->extra.tmd;
+        placementIndex  = ((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        sessionLocation = (secondSessionLocation = &gGameSession->location.loc);
+        location.stage  = sessionLocation->stage;
+        location.area   = sessionLocation->area;
+        location.room   = secondSessionLocation->room;
+        location.view   = gGameSession->location.loc.view;
+        areaSyncLocationVariant(&location);
+        areaVariant = areaGetVariant(&location);
+        placement   = gpAreaPlaceAt(areaVariant->placements, placementIndex);
+        _actor335800GaryDouglasApplyPartTextures(partModel, placement);
     }
-    _actor335800GaryDouglasBindLighting(arg0);
-    arg0->msgTable     = D_actor_335800_8016EB00;
-    arg0->exitCallback = _actor335800GaryDouglasExit;
-    arg0->state       += 1;
+    _actor335800GaryDouglasBindLighting(task);
+    task->msgTable     = D_actor_335800_8016EB00;
+    task->exitCallback = _actor335800GaryDouglasExit;
+    task->state       += 1;
 }
 
-static void func_actor_335800_80162844(Task* task)
+/// Applies signed 16.16 root-parent velocity, retaining unsigned XYZ fractions.
+///
+/// Requires initialized work and a live root; marks composition dirty even at rest.
+static inline void _actor335800GaryDouglasIntegrateVelocity(_Actor335800GaryDouglasWork* work, GfxCoord* rootCoord)
 {
-    TmdObject*                   ext      = task->extra.tmd;
-    _Actor335800GaryDouglasWork* work     = (_Actor335800GaryDouglasWork*)task->work;
-    TaskFunc                     funcs[2] = { _actor335800GaryDouglasIdle, _actor335800GaryDouglasRunWalkStep };
-    VECTOR3                      pos;
-    GfxCoord*                    coord;
-    const AnimationRecord*       rec;
-    s32                          i;
-    s32                          j;
-
-    funcs[work->walk.motion](task);
-    coord                     = task->extra.tmd->coords;
     work->walk.carry[0].word += work->walk.velocity.vx;
     work->walk.carry[1].word += work->walk.velocity.vy;
     work->walk.carry[2].word += work->walk.velocity.vz;
-    coord->coord.t[0]        += work->walk.carry[0].halves.integer;
-    coord->coord.t[1]        += work->walk.carry[1].halves.integer;
-    coord->coord.t[2]        += work->walk.carry[2].halves.integer;
-    coord->composeStamp       = GRAPHICS_COORD_DIRTY;
+    rootCoord->coord.t[0]    += work->walk.carry[0].halves.integer;
+    rootCoord->coord.t[1]    += work->walk.carry[1].halves.integer;
+    rootCoord->coord.t[2]    += work->walk.carry[2].halves.integer;
+    rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
     work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
     work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
     work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+}
+
+/// Halves both Douglas lighting matrices and records the completed dim request.
+///
+/// Invoke as a statement inside a braced block in dim-requested state. dimWork
+/// is a side-effect-free live work pointer; matrixRow/matrixColumn are writable
+/// integer locals used repeatedly and left at 3. Signed coefficients and
+/// translations use arithmetic shifts. Captures the package's dimmed-state constant.
+#define ACTOR_335800_DOUGLAS_DIM_LIGHTING(dimWork, matrixRow, matrixColumn)                                         \
+    for ((matrixRow) = 0; (matrixRow) < (s32)ARRAY_SIZE((dimWork)->model.color.m); (matrixRow)++) {                 \
+        for ((matrixColumn) = 0; (matrixColumn) < (s32)ARRAY_SIZE((dimWork)->model.color.m[0]); (matrixColumn)++) { \
+            (dimWork)->model.color.m[(matrixRow)][(matrixColumn)] >>= 1;                                            \
+            (dimWork)->model.light.m[(matrixRow)][(matrixColumn)] >>= 1;                                            \
+        }                                                                                                           \
+        (dimWork)->model.color.t[(matrixRow)] >>= 1;                                                                \
+        (dimWork)->model.light.t[(matrixRow)] >>= 1;                                                                \
+    }                                                                                                               \
+    (dimWork)->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_DIMMED;
+
+/// Updates Douglas's scripted walk, visible animation, lighting and buffer release.
+///
+/// Requires initialized body work, walk.motion 0/1 and a live twenty-part model.
+/// XYZ velocity uses signed 16.16 root-parent units with unsigned fractions kept.
+/// Visibility gates slots 1..19, cue history, dim requests and ground shadows;
+/// the muzzle flash fires once on cue 2's falling edge at gun part 8 with buckshot
+/// argument 13. A visible dim request halves both 3x3 light/color matrices and
+/// translations once and suppresses the shadow. viewReady restores full lighting
+/// after that phase. A nonnegative countdown frees buffers on the tick reading
+/// zero and then settles at -1. Hidden motion and delayed frees continue.
+static void _actor335800GaryDouglasUpdate(Task* task)
+{
+    enum { ACTOR_335800_DOUGLAS_GUN_PART         = 8,
+           ACTOR_335800_DOUGLAS_BUCKSHOT_ARG     = 13,
+           ACTOR_335800_DOUGLAS_SHADOW_HALF_SIZE = 768,
+           ACTOR_335800_DOUGLAS_LIGHT_COUNT      = 3 };
+    TmdObject*                   model             = task->extra.tmd;
+    _Actor335800GaryDouglasWork* work              = task->work;
+    TaskFunc                     motionHandlers[2] = { _actor335800GaryDouglasIdle, _actor335800GaryDouglasRunWalkStep };
+    VECTOR3                      groundPoint;
+    GfxCoord*                    rootCoord;
+    const AnimationRecord*       record;
+    s32                          loopIndex;
+    s32                          columnIndex;
+
+    motionHandlers[work->walk.motion](task);
+    rootCoord = task->extra.tmd->coords;
+    _actor335800GaryDouglasIntegrateVelocity(work, rootCoord);
+    // Hidden bodies still move; visible bodies tick poses and detect cue-2's falling edge.
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (work->model.ticking != 0) {
-            for (i = 1; i < 0x14; i++) {
-                animationTickSlot(&work->rig.anim, i);
+            for (loopIndex = 1; loopIndex < (s32)ARRAY_SIZE(work->rig.slots); loopIndex++) {
+                animationTickSlot(&work->rig.anim, loopIndex);
             }
-            rec = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
-            if (rec != NULL) {
-                if (!(rec->flags & ANIMATION_RECORD_CUE_2) && (work->prevCueFlags & ANIMATION_RECORD_CUE_2)) {
-                    effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH, &task->extra.tmd->coords[8], 0xD, NULL);
+            record = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
+            if (record != NULL) {
+                if (!(record->flags & ANIMATION_RECORD_CUE_2) && (work->prevCueFlags & ANIMATION_RECORD_CUE_2)) {
+                    effectSpawn(EFFECT_SHOTGUN_MUZZLE_FLASH, &task->extra.tmd->coords[ACTOR_335800_DOUGLAS_GUN_PART], ACTOR_335800_DOUGLAS_BUCKSHOT_ARG, NULL);
                 }
-                work->prevCueFlags = rec->flags & ANIMATION_RECORD_CUE_MASK;
+                work->prevCueFlags = record->flags & ANIMATION_RECORD_CUE_MASK;
             }
         }
         if (work->lightState == ACTOR_335800_GARY_DOUGLAS_LIGHT_DIM_REQUESTED) {
-            for (i = 0; i < 3; i++) {
-                for (j = 0; j < 3; j++) {
-                    work->model.color.m[i][j] >>= 1;
-                    work->model.light.m[i][j] >>= 1;
-                }
-                work->model.color.t[i] >>= 1;
-                work->model.light.t[i] >>= 1;
-            }
-            work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_DIMMED;
+            ACTOR_335800_DOUGLAS_DIM_LIGHTING(work, loopIndex, columnIndex);
         }
         if (work->lightState >= ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL) {
-            if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-                effectDrawGroundShadow(&pos, 0x300, gRoomEffectState->groundShadowShade);
+            if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPoint) != 0) {
+                effectDrawGroundShadow(&groundPoint, ACTOR_335800_DOUGLAS_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
             }
         }
     }
+    // New view lighting restores full strength after any visible-frame dim request.
     if (gGameSession->viewReady != 0) {
         work->lightState = ACTOR_335800_GARY_DOUGLAS_LIGHT_FULL;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        worldCoordSetModelLighting(ext, task->extra.tmd->coords[1].workm.t, 0, 3);
+        worldCoordSetModelLighting(model, task->extra.tmd->coords[1].workm.t, 0, ACTOR_335800_DOUGLAS_LIGHT_COUNT);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
 }
+
+#undef ACTOR_335800_DOUGLAS_DIM_LIGHTING
 
 #include "../../shared/actor_motion_arrive.inc.c"
 
@@ -1547,16 +1609,18 @@ static void _actor335800GaryDouglasPartIdle(Task* task)
 {
 }
 
-/// State dispatcher of the parent block: copies its three-handler table onto
-/// the stack and, unless the game is frozen, runs the entry `Task::state`
-/// selects.
-void func_actor_335800_80162F10(Task* task)
+/// Dispatches Gary Douglas's body initialization, update or enemy teardown.
+///
+/// Requires a live TMD task and state 0..2. Only the running actor-control value
+/// dispatches; other values hold all three states. The copied table is indexed
+/// without checking bounds, and teardown may release the body and its children.
+static void _actor335800GaryDouglasTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_335800_80161E30;
+    stateHandlers = D_actor_335800_80161E30;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[task->state](task);
     }
 }
 

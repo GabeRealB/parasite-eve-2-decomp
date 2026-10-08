@@ -57,3 +57,6 @@ _actor303600LockCutsceneControls = 0x80162620; // type:func
 _actor303600StageCutsceneAudio = 0x80162658; // type:func
 _actor303600StartCutscenePlayback = 0x80162678; // type:func
 _actor303600CancelCutscenePlayback = 0x80162698; // type:func
+_actor303600FinishSkippedCutscene = 0x8016253c; // type:func
+_actor303600InitShaft = 0x801626c0; // type:func
+_actor303600ShaftTask = 0x80162a7c; // type:func

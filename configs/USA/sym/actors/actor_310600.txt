@@ -68,3 +68,4 @@ _actor310600FaceWalkTarget = 0x80162ad8; // type:func
 _actor310600StartWalkVelocity = 0x80162b98; // type:func
 _actor310600TickWalk = 0x80162a7c; // type:func
 _actor310600WalkTo = 0x80162c94; // type:func
+_actor310600UpdateBody = 0x80161fa0; // type:func

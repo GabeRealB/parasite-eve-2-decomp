@@ -67,18 +67,18 @@ extern s8 gDesertChaserClipStartFrames[45][45];
 
 /// Psy-Q `RotMatrixY`.
 
-static void func_actor_323000_8016409C(Enemy* enemy, Task* task);
-static void func_actor_323000_8016420C(Enemy* enemy, Task* task);
-static void func_actor_323000_80164C58(Enemy* enemy, Task* task);
+static void _actor323000PlaySceneAnimation(Enemy* enemy, Task* task);
+static void _actor323000PlayClip14State(Enemy* enemy, Task* task);
+static void _actor323000PlayClip13State(Enemy* enemy, Task* task);
 
 /// State handlers `_desertChaserFrameState` runs by `DesertChaserWork::state`.
 #include "../../shared/actor_contacts.h"
 
 static const EnemyTaskFuncTable4 gDesertChaserStates = {
     _desertChaserHideState,
-    func_actor_323000_8016409C,
-    func_actor_323000_80164C58,
-    func_actor_323000_8016420C,
+    _actor323000PlaySceneAnimation,
+    _actor323000PlayClip13State,
+    _actor323000PlayClip14State,
 };
 
 /// Task states `_desertChaserTask` runs by `Task::state`: the spawn
@@ -1037,7 +1037,7 @@ static inline SVECTOR* _actorContactGetLastPushStep(void)
 
 DesertChaserEffectArgStorage gRigEffectRec = { { 0 }, { 0 } };
 
-static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2);
+static void _actor323000SpawnPartDust(Task* task, s16 partIndex, s16 dustOptions);
 
 #include "../../shared/actor_contacts.h"
 
@@ -1290,24 +1290,32 @@ static s32 _desertChaserAnimCues(Task* task, DesertChaserWork* work)
 
 #include "../../shared/desert_chaser_spawn.inc.c"
 
-/// State 1: on entry clears the enemy's link flag and the model's flags,
-/// rebuilds its buffers and asks the tick to reset the slots. Each frame it
-/// ticks; when slot 1 sets flag bit 0 during clip 0xF it moves on to clip
-/// 0x10, and during clip 0xE it spawns effect 0x60054 at coordinate 7 with
-/// spawn argument 0x80002300 while slot 1 plays clip 7 or 9, 0x80003400 for 8.
-static void func_actor_323000_8016409C(Enemy* enemy, Task* task)
+/// Runs the Main Street chaser's selected scene animation and clip-14 dust cues.
+///
+/// Requires live cutscene work, enemy and an eighteen-part model. On state-1
+/// entry clears target/model flags, allocates primitive buffers and resets the
+/// selected clip at normal rate with zero turn targets. Later ticks transition
+/// clip 15 to 16 at slot 1's boundary and perform the retained extra animation
+/// tick at every boundary. Clip 14 record indices 7/9 and 8 emit recursive dust
+/// at part 7 with two- and three-tick texture periods. These extra cues repeat
+/// while their record is current; offsets use part-local coordinate units.
+static void _actor323000PlaySceneAnimation(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_323000_SCENE_CLIP_14 = 14,
+           ACTOR_323000_SCENE_CLIP_15 = 15,
+           ACTOR_323000_SCENE_CLIP_16 = 16 };
+
     DesertChaserWork* work;
-    TmdObject*        obj;
-    SVECTOR           sp10;
+    TmdObject*        model;
+    SVECTOR           dustOffset;
 
     work = task->work;
     if (work->stateEntered != 0) {
-        obj                           = task->extra.tmd;
+        model                         = task->extra.tmd;
         enemy->node.state.parts.flags = 0;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRate       = 0x10;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRate       = ANIMATION_RATE_ONE;
         work->animRequest    = DESERT_CHASER_ANIM_REQUEST_RESET;
         work->waistYawTarget = 0;
         work->lookYawTarget  = 0;
@@ -1315,51 +1323,130 @@ static void func_actor_323000_8016409C(Enemy* enemy, Task* task)
         return;
     }
     _desertChaserAnimTick(task);
+    // A boundary advances animation again, even when no clip changes.
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        if (work->animId == 0xF) {
+        if (work->animId == ACTOR_323000_SCENE_CLIP_15) {
             work->animRequest = DESERT_CHASER_ANIM_REQUEST_RESET;
-            work->animId      = 0x10;
+            work->animId      = ACTOR_323000_SCENE_CLIP_16;
         }
         _desertChaserAnimTick(task);
     }
-    if (work->animId == 0xE) {
+    if (work->animId == ACTOR_323000_SCENE_CLIP_14) {
         if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 7 || (work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 9) {
-            sp10.vx = -0x3E8;
-            sp10.vz = 0xC8;
-            sp10.vy = 0x28A;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80002300, &sp10);
+            dustOffset.vx = -0x3E8;
+            dustOffset.vz = 0xC8;
+            dustOffset.vy = 0x28A;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (2 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 768), &dustOffset);
         }
         if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 8) {
-            sp10.vx = -0x3E8;
-            sp10.vz = 0xC8;
-            sp10.vy = 0x28A;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80003400, &sp10);
+            dustOffset.vx = -0x3E8;
+            dustOffset.vz = 0xC8;
+            dustOffset.vy = 0x28A;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 1024), &dustOffset);
         }
     }
 }
 
-/// State 3: on entry flags the enemy's link node, clears the model's flags,
-/// rebuilds its buffers and starts clip 0xE with the frame counter at 0. Each
-/// frame it ticks and, on frames 29, 32 and 33, spawns effect 0x60054 at the
-/// limb coordinates; frame 32 also plays a sound chosen by the enemy's
-/// `placeKey`.
-static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
+/// Emits the scene clip's counter-driven dust and placement-channel sound cues.
+///
+/// Requires matching live enemy/model/work; increments the wrapping s16 timer
+/// before emitting. Effect offsets are sampled synchronously in part-local units.
+static inline void _actor323000EmitClip14TimedCues(Enemy* enemy, Task* task, DesertChaserWork* work)
 {
+    enum {
+        ACTOR_323000_SCENE_FIRST_DUST_TICK = 29,
+        ACTOR_323000_SCENE_SOUND_TICK      = 32,
+        ACTOR_323000_SCENE_LAST_DUST_TICK  = 33
+    };
+    enum { ACTOR_323000_CLIP_14_SOUND_SCRIPT = 0x4001000D };
+
+    s32     soundScript;
+    s32     soundPan;
+    SVECTOR bodyDustOffset;
+    SVECTOR limbDustOffset;
+    switch (++work->stateTimer) {
+        case ACTOR_323000_SCENE_FIRST_DUST_TICK: {
+            SVECTOR* dustOffset = &limbDustOffset;
+            dustOffset->vx      = -0x1F4;
+            dustOffset->vz      = 0xC8;
+            dustOffset->vy      = 0x28A;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], (DESERT_CHASER_CUE_DUST_RECURSIVE | (5 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 1536), dustOffset);
+            dustOffset->vx = -0x3E8;
+            dustOffset->vz = 0xC8;
+            dustOffset->vy = 0x28A;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (5 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2560), dustOffset);
+        } break;
+        case ACTOR_323000_SCENE_SOUND_TICK: {
+            SVECTOR* dustOffset = &limbDustOffset;
+            dustOffset->vx      = -0x3E8;
+            dustOffset->vz      = 0xC8;
+            dustOffset->vy      = 0x28A;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (5 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2688), dustOffset);
+            dustOffset->vx = -0x1F4;
+            dustOffset->vz = 0xC8;
+            dustOffset->vy = 0x28A;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], (DESERT_CHASER_CUE_DUST_RECURSIVE | (6 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2048), dustOffset);
+            soundScript = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_323000_CLIP_14_SOUND_SCRIPT;
+            soundPan    = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundScript, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+            bodyDustOffset.vy = -0x258;
+            bodyDustOffset.vx = 0;
+            bodyDustOffset.vz = -0x384;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[1], (DESERT_CHASER_CUE_DUST_RECURSIVE | (5 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2560), &bodyDustOffset);
+        } break;
+        case ACTOR_323000_SCENE_LAST_DUST_TICK: {
+            SVECTOR* dustOffset = &limbDustOffset;
+            dustOffset->vx      = -0x1F4;
+            dustOffset->vz      = 0xC8;
+            dustOffset->vy      = 0x28A;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], (DESERT_CHASER_CUE_DUST_RECURSIVE | (6 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2048), dustOffset);
+            dustOffset->vx = -0x3E8;
+            dustOffset->vz = 0xC8;
+            dustOffset->vy = 0x28A;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (6 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2816), dustOffset);
+            dustOffset->vx = -0x3E8;
+            dustOffset->vz = 0xC8;
+            dustOffset->vy = 0x28A;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 1024), dustOffset);
+            limbDustOffset.vz = 0;
+            dustOffset->vx    = 0;
+            dustOffset->vy    = 0x258;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], (DESERT_CHASER_CUE_DUST_RECURSIVE | (3 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2048), dustOffset);
+            limbDustOffset.vz = 0;
+            dustOffset->vx    = 0;
+            dustOffset->vy    = 0x258;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], (DESERT_CHASER_CUE_DUST_RECURSIVE | (4 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2304), dustOffset);
+            bodyDustOffset.vy = -0x2BC;
+            bodyDustOffset.vx = 0;
+            bodyDustOffset.vz = -0x258;
+            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[1], (DESERT_CHASER_CUE_DUST_RECURSIVE | (5 << DESERT_CHASER_CUE_DUST_PERIOD_SHIFT) | 2560), &bodyDustOffset);
+        } break;
+    }
+}
+
+/// Plays scene clip 14 with timed limb dust and a placement-selected sound.
+///
+/// Requires live cutscene work, matching enemy and model parts 0..17. State-3
+/// entry disables locking, enables drawing and resets the clip at normal rate.
+/// Subsequent callbacks tick animation before incrementing the signed-halfword
+/// state timer: counts 29/32/33 emit dust, and 32 requests sound script 13 in
+/// the enemy's placement channel. Dust arguments pack a twelve-bit size and
+/// four-bit texture period; offsets use part-local units. Marks the root dirty.
+static void _actor323000PlayClip14State(Enemy* enemy, Task* task)
+{
+    enum { ACTOR_323000_SCENE_CLIP_14 = 14 };
+
     DesertChaserWork* work;
-    TmdObject*        obj;
-    s32               id;
-    s32               pan;
-    SVECTOR           ofs2;
-    SVECTOR           ofs;
+    TmdObject*        model;
 
     work = task->work;
     if (work->stateEntered != 0) {
-        obj                           = task->extra.tmd;
+        model                         = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRate       = 0x10;
-        work->animId         = 0xE;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRate       = ANIMATION_RATE_ONE;
+        work->animId         = ACTOR_323000_SCENE_CLIP_14;
         work->animRequest    = DESERT_CHASER_ANIM_REQUEST_RESET;
         work->waistYawTarget = 0;
         work->lookYawTarget  = 0;
@@ -1368,64 +1455,8 @@ static void func_actor_323000_8016420C(Enemy* enemy, Task* task)
         return;
     }
     _desertChaserAnimTick(task);
-    switch (++work->stateTimer) {
-        case 29: {
-            SVECTOR* p = &ofs;
-            p->vx      = -0x1F4;
-            p->vz      = 0xC8;
-            p->vy      = 0x28A;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80005600, p);
-            p->vx = -0x3E8;
-            p->vz = 0xC8;
-            p->vy = 0x28A;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80005A00, p);
-        } break;
-        case 32: {
-            SVECTOR* p = &ofs;
-            p->vx      = -0x3E8;
-            p->vz      = 0xC8;
-            p->vy      = 0x28A;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80005A80, p);
-            p->vx = -0x1F4;
-            p->vz = 0xC8;
-            p->vy = 0x28A;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80006800, p);
-            id  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4001000D;
-            pan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
-            ofs2.vy = -0x258;
-            ofs2.vx = 0;
-            ofs2.vz = -0x384;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[1], 0x80005A00, &ofs2);
-        } break;
-        case 33: {
-            SVECTOR* p = &ofs;
-            p->vx      = -0x1F4;
-            p->vz      = 0xC8;
-            p->vy      = 0x28A;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[9], 0x80006800, p);
-            p->vx = -0x3E8;
-            p->vz = 0xC8;
-            p->vy = 0x28A;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80006B00, p);
-            p->vx = -0x3E8;
-            p->vz = 0xC8;
-            p->vy = 0x28A;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[7], 0x80004400, p);
-            ofs.vz = 0;
-            p->vx  = 0;
-            p->vy  = 0x258;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[14], 0x80003800, p);
-            ofs.vz = 0;
-            p->vx  = 0;
-            p->vy  = 0x258;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[17], 0x80004900, p);
-            ofs2.vy = -0x2BC;
-            ofs2.vx = 0;
-            ofs2.vz = -0x258;
-            effectSpawn(EFFECT_DUST_PUFF, &task->extra.tmd->coords[1], 0x80005A00, &ofs2);
-        } break;
-    }
+    // Animation advances before these effects sample the model's part transforms.
+    _actor323000EmitClip14TimedCues(enemy, task, work);
     task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
@@ -1492,63 +1523,72 @@ static s32 _actor323000ApplyCommand(Task* task, s32 unusedMessageId, const Actor
 
 #include "../../shared/desert_chaser_exit.inc.c"
 
-/// Spawns effect 0x60054 at coordinate `arg1` with the offset that limb
-/// uses; the spawn argument is `arg2` with bit 31 set. Coordinates the
-/// switch does not list use whatever the offset holds. Nothing in this
-/// package calls it.
-static void func_actor_323000_80164B40(Task* task, s16 arg1, s16 arg2)
+/// Emits recursive dust using the Main Street chaser's part-local anchor.
+///
+/// Requires a live eighteen-part model and partIndex 0, 1, 7, 9, 14 or 17.
+/// Other indices leave the offset uninitialized; this retained helper has no
+/// caller here. dustOptions is a signed halfword containing twelve-bit size
+/// and four-bit texture-frame period, sign-extended before setting bit 31.
+/// The effect samples the local offset during spawn and does not follow its
+/// retained stack address. No room-effect gate or spawn-result check is applied.
+static void _actor323000SpawnPartDust(Task* task, s16 partIndex, s16 dustOptions)
 {
-    SVECTOR    sp10;
-    TmdObject* obj;
+    SVECTOR    dustOffset;
+    TmdObject* model;
 
-    switch (arg1) {
+    switch (partIndex) {
         case 0:
         case 1:
-            sp10.vz = 0;
-            sp10.vx = 0;
-            sp10.vy = 0;
+            dustOffset.vz = 0;
+            dustOffset.vx = 0;
+            dustOffset.vy = 0;
             break;
         case 9:
-            sp10.vx = -0x1F4;
-            sp10.vz = 0xC8;
-            sp10.vy = 0x28A;
+            dustOffset.vx = -0x1F4;
+            dustOffset.vz = 0xC8;
+            dustOffset.vy = 0x28A;
             break;
         case 7:
-            sp10.vx = -0x3E8;
-            sp10.vz = 0xC8;
-            sp10.vy = 0x28A;
+            dustOffset.vx = -0x3E8;
+            dustOffset.vz = 0xC8;
+            dustOffset.vy = 0x28A;
             break;
         case 14:
         case 17:
-            sp10.vz = 0;
-            sp10.vx = 0;
-            sp10.vy = 0x258;
+            dustOffset.vz = 0;
+            dustOffset.vx = 0;
+            dustOffset.vy = 0x258;
             break;
     }
 
-    obj = task->extra.tmd;
-    effectSpawn(EFFECT_DUST_PUFF, &obj->coords[arg1], arg2 | 0x80000000, &sp10);
+    model = task->extra.tmd;
+    effectSpawn(EFFECT_DUST_PUFF, &model->coords[partIndex], dustOptions | DESERT_CHASER_CUE_DUST_RECURSIVE, &dustOffset);
 }
 
 #include "../../shared/desert_chaser_hide.inc.c"
 
-/// State 2: on entry flags the enemy's link node, clears the model's flags,
-/// rebuilds its buffers and starts clip 0xD with the frame counter at 0; the
-/// tick runs every frame.
-static void func_actor_323000_80164C58(Enemy* enemy, Task* task)
+/// Resets and plays scene clip 13 without additional timer-driven effects.
+///
+/// Requires live cutscene work, matching enemy and an eighteen-part model.
+/// State-2 entry disables locking, enables drawing and primitive buffers, sets
+/// normal playback and zero turn targets/timer, then ticks. Later calls only
+/// tick animation; animation data and work must remain live.
+static void _actor323000PlayClip13State(Enemy* enemy, Task* task)
 {
+    enum { ACTOR_323000_SCENE_CLIP_13 = 13 };
+
     DesertChaserWork* work;
-    TmdObject*        obj;
-    SVECTOR           unused; // never referenced; only reserves the frame slot the ROM has
+    TmdObject*        model;
+    SVECTOR           unusedFrameVector; // Retained local: removing it changes the retail stack frame.
 
     work = task->work;
     if (work->stateEntered != 0) {
-        obj                           = task->extra.tmd;
+        model                         = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRate       = 0x10;
-        work->animId         = 0xD;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRate       = ANIMATION_RATE_ONE;
+        work->animId         = ACTOR_323000_SCENE_CLIP_13;
         work->animRequest    = DESERT_CHASER_ANIM_REQUEST_RESET;
         work->waistYawTarget = 0;
         work->lookYawTarget  = 0;

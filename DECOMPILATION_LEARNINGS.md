@@ -1568,7 +1568,7 @@ from RTL generation, not from scheduling.
 
 ## An `if` whose body ends in `j` over an else block holding only the arg setup is two literal call sites
 
-`func_actor_323400_80164BD0` (actors/actor_323400) is an `if` whose body ends
+`_actor323400PlaySceneAnimation` (actors/actor_323400) is an `if` whose body ends
 with `j` to the join, an else block containing nothing but `move a0,s1`, and the
 shared `jal` after it:
 
@@ -1600,7 +1600,7 @@ The two entries above give the mechanism (jump.c cross-jump / reorg.c); the
 point here is the diagnosis, and that it reaches an ordinary `if`/`else`. An arm
 that would be exactly the other arm's argument move is not redundant setup to
 fold away — it is the second call site. The sibling handler tables in the actor
-family are written the same way (`func_actor_323000_80164C58`), so read the
+family are written the same way (`_actor323000PlayClip13State`), so read the
 matched twin before restructuring one.
 
 The same diagnosis applies to the form where the arms assign a *local* and one
@@ -46507,7 +46507,7 @@ Here the handler and the allocator are in different units of the overlay, so the
 the handler's own address: it is a `.word` in the overlay's data, paired with an
 id in a `TaskMessageEntry` table (`D_actor_303600_8016E480`, id 0x7DB, in
 `actor_303600_data_2.data.s`). Read the function that stores *that* table into
-`Task::msgTable` (`func_actor_303600_801626C0`) — that is the handler's task, and
+`Task::msgTable` (`_actor303600InitShaft`) — that is the handler's task, and
 it is also where its `memCalloc(0x3C, 0)` names the block the handler sees.
 
 So follow the `(id, handler)` table to the function that installs it whenever the
@@ -85138,7 +85138,7 @@ build/USA/src/actors/actor_341300/actor_341300_2.i:(.text+0x194):
 ```
 
 `migrate_rodata_to_functions` had folded that constant into the reader's own
-`.s` (`D_actor_341300_80161E64` and `func_actor_341300_801625AC` shared one
+`.s` (`D_actor_341300_80161E64` and `_actor341300SpawnPlayerHitPuffs` shared one
 file). Promoting the reader retires that `.s` - splat stops regenerating it, and
 the copy left on disk is stale and no longer assembled - so nothing carries the
 bytes any more. The symbol is not gone from the config; it is gone from the
@@ -85164,7 +85164,7 @@ overlay's first rodata byte, with `diff.py` reporting every function matching.
 ```c
 const SVECTOR D_actor_341300_80161E64 = { 100, -200, -100, 0 };
 
-void func_actor_341300_801625AC(void) { ... }
+static void _actor341300SpawnPlayerHitPuffs(void) { ... }
 ```
 
 `splat migrates this table into that function's own .s, so there is no
@@ -85177,10 +85177,10 @@ The promoted body itself is ordinary: m2c had dropped the copy entirely (a
 `lwr` it could not pair) and typed the coordinate chain as raw pointer
 arithmetic, which is `delete=10 reorder=2` and 78.868%. `extern SVECTOR` plus a
 wholesale struct assignment restores the 8-byte `lwl/lwr` + `swl/swr` move, and
-the coordinate is `&((TmdObject*)slot->extra)->coords[2]` - `GfxCoord` is
+the coordinate is `&slot->extra.tmd->coords[2]` - `GfxCoord` is
 0x50, so the target's `+0xA0` is the array index, not a field.
 
-Example: `func_actor_341300_801625AC` (78.868% -> 100.000%, one build).
+Example: `_actor341300SpawnPlayerHitPuffs` (78.868% -> 100.000%, one build).
 
 Inputs: `base.i` (m2c seed, 78.868%)
 `96842493310a46589e818081186f7683de020c8d803a2a81b7b5bf1def6b7e15`.
@@ -86167,9 +86167,9 @@ tree for the function's address finds
 
 ```
 /* 4 80161E24 204C1680 */ .word ActorsShared80164c20
-/* 8 80161E28 9C401680 */ .word func_actor_323000_8016409C
-/* C 80161E2C 584C1680 */ .word func_actor_323000_80164C58
-/* 10 80161E30 0C421680 */ .word func_actor_323000_8016420C
+/* 8 80161E28 9C401680 */ .word _actor323000PlaySceneAnimation
+/* C 80161E2C 584C1680 */ .word _actor323000PlayClip13State
+/* 10 80161E30 0C421680 */ .word _actor323000PlayClip14State
 ```
 
 a state table whose entry 0 is the function and whose entry 2 is the *other*
@@ -87743,10 +87743,10 @@ those gave the whole source shape, which is the fast path for a `calls`-class
 Inputs: `base.i` `3b85f84be47bccc4d77de3f1b295cfb21ee418038f0d8bda6459c7a151b7ba16`,
 `base_1.i` `f0e9c92e15799d13cd3a249b72ddf3e4e16730bbd28174741adb546045ee4dcd`.
 
-## The same pile of scalars without a frame change: the missing-store count is the tell, and the sibling's field order is the store order (func_actor_323000_8016409C, 2026-09-17)
+## The same pile of scalars without a frame change: the missing-store count is the tell, and the sibling's field order is the store order (_actor323000PlaySceneAnimation, 2026-09-17)
 
 The case above is one instance of m2c splitting an address-taken aggregate into
-scalars; `func_actor_323000_8016409C` is the same trap with two differences
+scalars; `_actor323000PlaySceneAnimation` is the same trap with two differences
 worth knowing, since the frame check would have missed it.
 
 Here the three fields are `s16`s of an `SVECTOR` handed to
@@ -87764,18 +87764,18 @@ The second difference is that the *field order inside the aggregate* is
 observable, so it cannot be invented. The target emits
 `li/sh` pairs for `vx` (0x10), then `vz` (0x14), then `vy` (0x12) - SVECTOR
 declaration order is `vx, vy, vz`, so source order here was `vx, vz, vy`. The
-already-matched sibling `func_actor_323000_80164B40` in the same overlay, doing
+already-matched sibling `_actor323000SpawnPartDust` in the same overlay, doing
 the same spawn for the same actor, is written in exactly that order:
 
 ```c
         case 7:
-            sp10.vx = -0x3E8;
-            sp10.vz = 0xC8;
-            sp10.vy = 0x28A;
+            dustOffset.vx = -0x3E8;
+            dustOffset.vz = 0xC8;
+            dustOffset.vy = 0x28A;
             break;
 ```
 
-Fix: declare `SVECTOR sp10;` and assign `vx`, `vz`, `vy` - 99.946% on that
+Fix: declare `SVECTOR dustOffset;` and assign `vx`, `vz`, `vy` - 99.946% on that
 change alone (`regs=1`, one wrong `lhu` displacement), 100% once the two reads
 m2c kept separate are kept separate (below).
 
@@ -98017,7 +98017,7 @@ static __inline__ void _actor110600RescaleRootYaw(Task* task, s16 uniformScale)
     m22 = *(u16*)&blk->rotation.m[2][2];
     coord->composeStamp = 0;
     coord->coord.m[2][2] = m22;
-    ((TmdObject*)task->extra)->coords->composeStamp = 0;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     *(u8**)SCRATCH_STACK_CURSOR_SLOT = *(u8**)SCRATCH_STACK_CURSOR_SLOT + 0x34;
 }
 ```
@@ -99575,7 +99575,7 @@ Example: `func_actor_103700_80133C1C`. Inputs: `base_2.i`
 `1fb2a8663f5685781ec83106331a88da6507694350f2ad21ccdfd63aed12d5e0`.
 ## A tail call the source wrote in *both* arms survives as a `j` over one copy
 
-`func_actor_323000_80164C58` (35 insns) reproduced every instruction but three:
+`_actor323000PlayClip13State` (35 insns) reproduced every instruction but three:
 the target's if-body ended `j .L<join>` with the last store in its delay slot,
 the else path held a lone `addu $a0,$s1,$zero`, and the shared `jal` followed.
 m2c's seed - one call after the `if`/`else` - has no `j`, keeps a single copy,
@@ -100544,7 +100544,7 @@ and had to be named, here both uses are plain stores of a literal and two
 literal `9`s are enough. So before introducing that variable, check whether the
 target's shared register is just a constant cse1 unified.
 
-The sibling `func_actor_303600_8016253C` in the same unit repeats the block byte
+The sibling `_actor303600FinishSkippedCutscene` in the same unit repeats the block byte
 for byte (`addiu $s0,$zero,0x9` / `sh $s0,0xC($s1)` included, with `$s0` reused
 from an earlier global load), so this body is the template to port it from.
 
@@ -102917,7 +102917,7 @@ with blocks, predicates and counts all matching.
 ```
 
 A C variable is one RTL pseudo, and one pseudo defined in two basic blocks is
-allocated once by `global.c` — in `func_actor_323400_80164C4C` that is
+allocated once by `global.c` — in `_actor323400BlendClip2State` that is
 `reg/v:SI 83`, listed in `.greg` as `83 in 4`, so *both* arms load `task->extra`
 into `$a0` and the difference cannot be fixed in either arm alone. Deriving the
 expression inline instead gives a fresh compiler temp (`reg:SI 91`) that
@@ -102929,17 +102929,17 @@ re-derive it there:
 ```c
     } else {
         tick(task);
-        ((TmdObject*)task->extra)->coords->composeStamp = 0;
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 ```
 
 This is the value-temp twin of "Declare that pointer per block, not per
 function": same rule, but the fix cannot be a second declaration when the type
-is identical, so the second arm writes the cast expression directly. Check
+is identical, so the second arm writes the member expression directly. Check
 `.greg` first — a pseudo named in the dispositions list is one `global.c`
 decided, and no amount of rewriting inside a single arm will move it.
 
-Example: `func_actor_323400_80164C4C` (`base_1.c` 99.75% → `base_2.c` 100%).
+Example: `_actor323400BlendClip2State` (`base_1.c` 99.75% → `base_2.c` 100%).
 ## `lw` then `lhu` from one offset is a truncating store, not two field types
 
 An actor `if (preset->animationId < K)` guard that then copies the same field into
@@ -115357,13 +115357,13 @@ target.o SHA256
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_bossStrangerPlanToward-vacuum`.
-## A pointer C assigns in two blocks stays one cross-block pseudo, and that pseudo takes the register the block-local values needed (func_actor_335800_80162640, 2026-09-17)
+## A pointer C assigns in two blocks stays one cross-block pseudo, and that pseudo takes the register the block-local values needed (_actor335800GaryDouglasInit, 2026-09-17)
 
 Two sibling `if` bodies that each build the same `GameLocationKey` from the session
-(`sessionKey = &gGameSession->location.loc;` then four byte loads) sat at
+(`sessionLocation = &gGameSession->location.loc;` then four byte loads) sat at
 97.504% with `regs=16 stack=2 reorder=4`, the whole delta in *both* bodies a
 rotation of three registers - the `gGameSession` load, the `session+4` pointer
-and the first key byte. `sessionKey` was a function-scope variable assigned in
+and the first location byte. `sessionLocation` was a function-scope variable assigned in
 each body, so its value was one pseudo live in two blocks: `.lreg` reports it
 as `8 refs / 18 insns; dies in 2 places` and `.greg` counts it as an allocno,
 allocated second behind the spawn result.
@@ -115373,11 +115373,11 @@ variable and re-reading the address expression for two of the four bytes
 (behaviour-preserving: same reads, same order, no writes between) goes to 100%:
 
 ```c
-        sessionKey  = (keyAddr = &gGameSession->location.loc);
-        key.stage = sessionKey->stage;
-        key.area = sessionKey->area;
-        key.room = keyAddr->room;
-        key.view = gGameSession->location.loc.view;
+        sessionLocation  = (secondSessionLocation = &gGameSession->location.loc);
+        location.stage = sessionLocation->stage;
+        location.area = sessionLocation->area;
+        location.room = secondSessionLocation->room;
+        location.view = gGameSession->location.loc.view;
 ```
 
 `.greg` then reads `;; 5 regs to allocate:` where the parent had 6, and the
@@ -115389,7 +115389,7 @@ target keeps in the first callee-saved registers must not be a pseudo spanning
 two blocks. Unlike the loop case there is no redeclaration involved - the
 variable is still function-scope - so read `.lreg`'s `N refs / M insns; dies in
 2 places` and check whether that pseudo is in the `.greg` allocation list.
-`base_4.c` (only the direct `key.view = gGameSession->location.loc.view;`) stays at
+`base_4.c` (only the direct `location.view = gGameSession->location.loc.view;`) stays at
 97.5%, so the extra name is load-bearing, not incidental.
 
 Two things stay open: which pass splits the value (the expander emits one
@@ -123583,15 +123583,15 @@ is only live up to its first use in each block — is pushed to the register the
 next pass left it, `$a2`. The whole function is then off by one register.
 
 The fix is to stop the two blocks sharing a value. The near-twin
-`func_actor_335800_80162640` in `USA/actors/actor_335800` does exactly this in its
+`_actor335800GaryDouglasInit` in `USA/actors/actor_335800` does exactly this in its
 *second* block, and its source is the match:
 
 ```c
-sessionKey  = (keyAddr = &gGameSession->location.loc);
-key.stage = sessionKey->stage;
-key.area = sessionKey->area;
-key.room = keyAddr->room;
-key.view = gGameSession->location.loc.view;
+sessionLocation = (secondSessionLocation = &gGameSession->location.loc);
+location.stage = sessionLocation->stage;
+location.area = sessionLocation->area;
+location.room = secondSessionLocation->room;
+location.view = gGameSession->location.loc.view;
 ```
 
 With that, `.lreg` shows the address as two entries — `Register 82 used 4 times
@@ -124193,23 +124193,23 @@ m2c seed's scalar declarations whenever the candidate is short whole load/store
 pairs and the topology still matches, whatever the penalty mix says -- the two
 seed statements that then had to move (to the source order the target implies)
 were separate, and are the subject of the two entries below.
-## A ramp stored from the loop index is a giv, not an accumulator: its init lands after the hoisted `lui` (func_actor_303600_801626C0, 2026-09-17)
+## A ramp stored from the loop index is a giv, not an accumulator: its init lands after the hoisted `lui` (_actor303600InitShaft, 2026-09-17)
 
 The rig controller spawns five child models and spreads them 8000 apart in Y,
-`-16000 + 8000 * i` into the child coordinate. Keeping that value in a source
-accumulator (`y = -0x3E80;` … `childCoord->coord.t[1] = y;` … `y += 0x1F40;`)
+`-16000 + 8000 * segmentIndex` into the child coordinate. Keeping that value in a source
+accumulator (`y = -0x3E80;` … `segmentCoord->coord.t[1] = y;` … `y += 0x1F40;`)
 reproduces every instruction but leaves the preheader's first three rotated:
 `li s1,-0x3e80` / `lw v0,0x2c(s3)` / `lui s4,%hi(tbl)` against the target's
 `lui` / `lw` / `li`, `reorder=2` and every other penalty zero.
 
 A biv *found in the source* keeps its initialiser where the statement sits, and
-loop-invariant motion appends the hoisted `%hi` before `loop_start`, i.e. after
+loop-invariant motion appends the hoisted `%hi` before `loop_start`, segmentIndex.e. after
 it — so the accumulator's init carries the lower LUID and, in sched2's
 descending-LUID tie-break among equal-priority constants, launches last and so
 lands first in the block. Written as the giv it is —
 
 ```c
-childCoord->coord.t[1] = i * 0x1F40 - 0x3E80;
+segmentCoord->coord.t[1] = segmentIndex * 0x1F40 - 0x3E80;
 ```
 
 — strength reduction creates the accumulator during the loop pass and emits its
@@ -124219,17 +124219,17 @@ but *after* an explicit pointer" above, reached from the store side rather than
 the address side: when the only misplaced insn is a constant the loop already
 computes from its own index, stop writing the accumulator out longhand.
 
-Two turns that did not move it, for the record: the order of `i = 0;` and the
+Two turns that did not move it, for the record: the order of `segmentIndex = 0;` and the
 accumulator's init relative to the coord stores (`.rtl` follows the source
 order, but both orders schedule to the identical block), and an explicit
-`Task**` walk instead of `children[i]` (binds the walker's init at its source
+`Task**` walk instead of `segments[segmentIndex]` (binds the walker's init at its source
 position, merges `work` into the walker's register and costs the work store —
 92.4%). The init-order experiment was not wasted: it is what fixed the
-callee-saved pair (`i` in `$s2`, the ramp in `$s1`) before the giv version made
+callee-saved pair (`segmentIndex` in `$s2`, the ramp in `$s1`) before the giv version made
 the question moot, so a future reader hitting the same swap should still reach
 for "born first, allocated second".
 
-Inputs: scratch `nonmatchings/func_actor_303600_801626C0-vacuum`, `base_2.c`
+Inputs: scratch `nonmatchings/_actor303600InitShaft-vacuum`, `base_2.c`
 98.065% (`reorder=2`), `base_3.c` 98.065% (same penalties), `base_4.c` 92.419%
 (`regs=2 insert=2 delete=2`), `base_5.c` 100%. Compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -125279,15 +125279,15 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. No
 pins, no empty asm, no permuter run (matched on the first candidate). Scratch
 `nonmatchings/func_actor_161500_8013252C-vacuum`.
 
-## A constant-zero store through a pointer local does not collapse to `sp` form (func_actor_323000_8016420C, 2026-09-17)
+## A constant-zero store through a pointer local does not collapse to `sp` form (_actor323000PlayClip14State, 2026-09-17)
 
-With `SVECTOR* p = &ofs;` the target stored nonzero `vz`/`vy` as `sh $s2, 4($s0)`
+With `SVECTOR* dustOffset = &limbDustOffset;` the target stored nonzero `vz`/`vy` as `sh $s2, 4($s0)`
 but zero `vz` as `sh $zero, 0x1C($sp)`, while `vx` (offset 0) was always
-`0x18($sp)`. Writing every field through `p` gave `sh $zero, 4($s0)` for the
-zero stores (99.9%, regs=4); writing the zero stores by name (`ofs.vz = 0;`)
-and the rest through `p` matched. So mixed `sp`/pointer bases in one run of
+`0x18($sp)`. Writing every field through `dustOffset` gave `sh $zero, 4($s0)` for the
+zero stores (99.9%, regs=4); writing the zero stores by name (`limbDustOffset.vz = 0;`)
+and the rest through `dustOffset` matched. So mixed `sp`/pointer bases in one run of
 stores mean mixed spellings in the source, not a CSE choice. The pointer had to
-be declared per `case` block (`case 29: { SVECTOR* p = &ofs; ...`) so it stays
+be declared per `case` block (`case 29: { SVECTOR* dustOffset = &limbDustOffset; ...`) so it stays
 block-local and takes `$s0` from local-alloc; see the entry on pointers assigned
 in two blocks.
 
@@ -129774,7 +129774,7 @@ Three separate symptoms, each from a different source choice:
   v1, u2, v2, u3, v3)` *before* `setRGB0`, then clut, then tpage (94% -> 100%);
   `setRGB0` first scores 99.05%.
 
-## All the dispatch tests adjacent, case bodies after them: that is a `switch`, not an if/else chain (func_actor_310600_80161FA0, 2026-09-17)
+## All the dispatch tests adjacent, case bodies after them: that is a `switch`, not an if/else chain (_actor310600UpdateBody, 2026-09-17)
 
 **Symptom.** An animation-id dispatch compiled to three adjacent tests followed
 by an unconditional jump, with the bodies laid out after all of them:
@@ -129816,14 +129816,14 @@ end (`blez`), a range test closing the first group (`slti 3`), an equality test
 for the singleton, then the fallthrough jump. Contiguous cases sharing a label
 come out as the `slti` range rather than two `beq`s.
 
-## An aggregate initializer's `(clobber (mem:BLK))` pins a local table's address loads below the register saves (func_actor_310600_80161FA0, 2026-09-17)
+## An aggregate initializer's `(clobber (mem:BLK))` pins a local table's address loads below the register saves (_actor310600UpdateBody, 2026-09-17)
 
 **Symptom.** A two-entry function-pointer table built on the stack and called
-through, `funcs[work->walkMotion]()`. Writing it as element assignments
+through, `motionHandlers[work->walkMotion](task)`. Writing it as element assignments
 
 ```c
-funcs[0] = func_A;
-funcs[1] = func_B;
+motionHandlers[0] = func_A;
+motionHandlers[1] = func_B;
 ```
 
 let sched1 hoist the first `lui %hi(func_A)` up into the prologue, ahead of
@@ -129833,7 +129833,7 @@ let sched1 hoist the first `lui %hi(func_A)` up into the prologue, ahead of
 **Fix.** Use the aggregate initializer, as the declaration in the original did:
 
 ```c
-void (*funcs[2])(void) = { func_A, func_B };
+TaskFunc motionHandlers[2] = { func_A, func_B };
 ```
 
 That form emits `(clobber (mem/s:BLK (reg 77)))` for the whole array before the
@@ -129842,9 +129842,9 @@ is a `BLK` memory write, so sched1 orders it against the prologue stores and the
 `task->extra` / `task->work` loads, and the address materialisation that depends
 on it can no longer float above them. 100%.
 
-The call itself takes no argument here (`jalr` with `$a0` never set), so the
-array's type has to be `void (*[2])(void)` even though entry 1 is really a
-`Task*` handler reached through the incoming `$a0`.
+The table call forwards the incoming `Task*`: `$a0` already holds the task,
+so no extra argument setup is needed. `TaskFunc motionHandlers[2]` preserves
+the aggregate initializer while declaring the handlers' actual signature.
 
 ## Where a loop-exit value is initialized decides its live range -- and with it every register in the function (_actor311500ApplyHit, 2026-09-17)
 

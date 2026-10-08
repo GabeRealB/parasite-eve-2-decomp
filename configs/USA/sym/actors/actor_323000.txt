@@ -138,3 +138,7 @@ _desertChaserHideState = 0x80164C20; // type:func
 _desertChaserMsgPlayAnim = 0x80164AF0; // type:func
 _actor323000IgnoreMessage2015 = 0x8016483c; // type:func
 _actor323000ApplyCommand = 0x80164a54; // type:func
+_actor323000PlaySceneAnimation = 0x8016409c; // type:func
+_actor323000PlayClip14State = 0x8016420c; // type:func
+_actor323000SpawnPartDust = 0x80164b40; // type:func
+_actor323000PlayClip13State = 0x80164c58; // type:func
