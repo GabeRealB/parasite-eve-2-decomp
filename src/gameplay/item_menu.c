@@ -625,18 +625,22 @@ static inline InventoryItemRange* _itemMenuGetPaneRange(const Task* task)
     return &Gp_MoveScanSrc + task->spawnArg1.value;
 }
 
-/// Visits pane dialogs, allowing the callback to detach the current child.
+/// Visits each task-owned child dialog of an inventory transfer pane.
 ///
-/// Saves the successor before the call and compares it to the current head
-/// afterwards; the saved successor and pane owner must remain live.
-static inline void _itemMenuVisitPaneChildren(const UiObject* object, UiObjectTaskFunc visitChild)
+/// The live pane's owner supplies a circular ring of live tasks, each borrowing
+/// its UiObject through spawnArg2. Calls visitChild(object, task), saving the
+/// successor first. The callback may detach the current child, including the
+/// last child, but must keep the pane owner and any saved successor live.
+/// Stops when the ring becomes empty or reaches its current head; an initially
+/// empty ring makes no calls. No task or object is freed by this visitor.
+static inline void _itemMenuVisitPaneChildren(const UiObject* pane, UiObjectTaskFunc visitChild)
 {
     Task* owningTask;
     Task* childTask;
     Task* nextSibling;
     Task* childHead;
 
-    owningTask = object->owner;
+    owningTask = pane->owner;
     childTask  = owningTask->firstChild;
     if (childTask != NULL) {
         do {

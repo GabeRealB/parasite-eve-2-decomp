@@ -101,7 +101,22 @@ void Gp_CommitWarp(void);
 /// including release, rather than testing only currently sounding voices.
 void directionAwaitWarpSound(void);
 
-void func_800AD6BC(void);
+/// Accepts a world-trigger request or advances the currently latched direction action.
+///
+/// Called once per direction-task update with live session, player and collision
+/// state. While no action is active and attachments are idle, decrements the
+/// manual rearm delay and reads a trigger hit. Automatic actions bypass that
+/// delay but require no pending display mode; manual actions require an
+/// interaction press and zero delay. Both reject a triangle press and combat's
+/// end delay, and OUTSIDE_BATTLE rejects the engaged phase. View/display changes
+/// and accepted manual actions seed ten eligible updates of rearm delay.
+///
+/// A latched selector must be 0..DIRECTION_ACTION_COUNT-1 or CANCEL; dispatch
+/// has no other range check. Active handlers run through a stack copy of the
+/// action table even while attachment or activation gates are closed. Cancellation
+/// releases activity, and inactive updates discard primary/secondary parameters.
+/// Records the trigger control and battle phase for the next update.
+void directionUpdateAction(void);
 
 /// Consumes a CAP interaction request, dispatching it only while events and CAP are idle.
 ///

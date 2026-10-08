@@ -96,7 +96,27 @@ s32 worldCollisionIntersectGridFace(s32 faceIndex, const VECTOR endpoints[2], SV
 
 extern WorldCollisionTrigger* Gp_Obj4CList;
 
-void func_800DD940(WorldCollisionBody* arg0);
+/// Records crossed floor faces in contact zero of a motion sphere.
+///
+/// Requires a kind-4 body's live motion context and at least one writable,
+/// initialized contact. The active grid must have at most 256 faces, valid
+/// cells/mesh indices and unit room normals using 4096 per unit. Body and view
+/// transforms must already be composed; candidate-footprint and floor-segment
+/// placement contracts apply. Tests normals strictly below
+/// WORLD_COLLISION_FLOOR_NORMAL_Y, roughly within 30 degrees of -Y.
+///
+/// An empty contact receives OCCUPIED and a GRID_FLOOR/surface key. An occupied
+/// key is replaced only by a greater unsigned surface class; its other flags
+/// survive. Point, original grid normal and distance in game units are replaced
+/// for each hit, independently of that key. Surface classes must be in 0..7.
+/// Distance is from the initially placed endpoint 0; each hit clips that end
+/// for subsequent tests. No hit leaves the contact untouched; LAST is preserved.
+/// Hit-distance squared sums must fit a nonnegative signed word for SquareRoot0.
+/// Direct calls bypass GRID_ENABLED and FLOOR_QUERY. Clears the shared face
+/// mask, changes GTE state and retains no pointers. Borrowed inputs and contact
+/// storage must stay clear of the initialized scratch stack's 200-byte peak
+/// reservation, including nested queries; releases its block before return.
+void worldCollisionQueryMotionSphereFloor(const WorldCollisionBody* body);
 
 void func_800DDDF8(WorldCollisionBody* obj);
 

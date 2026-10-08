@@ -66035,13 +66035,13 @@ byte load out of the inner search, but assigned `$a1/$a0/$a2`, matching.
 Check `.loop`, `.lreg`, and `.greg` before using this pattern; the dead
 initialization matters to optimization even though it emits no instructions.
 
-## func_800DD940: typed scratch vectors and ordinary loops remove m2c register pressure
+## worldCollisionQueryMotionSphereFloor: typed scratch vectors and ordinary loops remove m2c register pressure
 
 The minimally repaired m2c baseline scored 71.837% (branch=6, regs=101,
 reorder=9, insert=23, delete=20). Its `.lreg` kept the old scratch head live
 across four calls, while the separately tracked face offset and second loop
 index competed for saved registers. Keeping one typed 0x50-byte scratch block,
-using one `s32 i` in two ordinary `for` loops, and indexing `field_C[i]` lets
+using one `s32 faceIndex` in two ordinary `for` loops, and indexing `Gp_GridParams->faces[faceIndex]` lets
 GCC derive the 12-byte face stride and removes the old head's long lifetime.
 Two ordinary flag-update arms also reproduce the target's shared store without
 m2c's explicit goto and reused constant temporaries.
@@ -66288,17 +66288,17 @@ try to fix register assignments while this repeated-load difference remains.
 
 ## Precompute a flag mask before an outer guard to fill its delay slot
 
-`func_800AD6BC` reached 97.638% with a cached `u32 flags`, but testing
-`flags & 0x8000` only inside the `gSceneCombatState.signals.bytes.endDelayFrames == 0` arm left
+`directionUpdateAction` reached 97.638% with a cached `u32 triggerControl`, but testing
+`triggerControl & WORLD_COLLISION_TRIGGER_AUTOMATIC` only inside the `gSceneCombatState.signals.bytes.endDelayFrames == 0` arm left
 `branch=1 regs=7 reorder=1 insert=2 delete=2`. The `.jump` / `.jump2`
 dumps placed the AND in the successor block; `.lreg` / `.greg` assigned
-flags to `$v1` and the state address to `$a0`. Compute
-`mask = flags & 0x8000` before the outer guard and test `mask` inside.
-The AND then fills that guard's branch delay slot, flags moves to `$a0`,
+triggerControl to `$v1` and the state address to `$a0`. Compute
+`automaticFlag = triggerControl & WORLD_COLLISION_TRIGGER_AUTOMATIC` before the outer guard and test `automaticFlag` inside.
+The AND then fills that guard's branch delay slot, triggerControl moves to `$a0`,
 and the state address moves to `$a1`. This alone produced 100% without
 pins or empty asm.
 
-The same function's byte dispatch needs a `u32 action` loaded before
+The same function's byte dispatch needs a `u32 actionIndex` loaded before
 the `0xFF` comparison and reused as the table index. Two direct byte
 expressions retained an extra move before the shift. Its seven-entry
 stack table has `void (*)(void)` handlers: m2c's apparent extra call
@@ -73913,7 +73913,7 @@ if (cfg->hp > 0) { ... }
 A single-use pointer like this usually loses global allocation and is
 rematerialised by reload into a caller-saved temp (`$t0` here), which is what
 puts the `lui`/`addiu` right at the use site. `func_actor_444000_80138490` and
-`func_800AD6BC` in `src/gameplay/D4.c` are the worked examples.
+`directionUpdateAction` in `src/gameplay/D4.c` are the worked examples.
 
 ## An inline that returns a comparison branches through `slt`/`xori`
 
@@ -143606,11 +143606,11 @@ allocation the pins were imitating.
 it, and call it with `1` from the other function. Before pinning an odd
 constant sequence, run `overlay_dup_index.py similar` and look for a sibling
 whose body is a prefix of yours.
-## cse2 ignores loop notes, so a global's base pointer set after a loop reaches every later `sym+k` (func_800B8014, 2026-09-26)
+## cse2 ignores loop notes, so a global's base pointer set after a loop reaches every later `sym+k` (inventoryInitializeNewGame, 2026-09-26)
 
-`func_800B8014` sets `save = &gMcSaveData` after the attach-level loop and uses
-it three times. At the end of the function it reads `gMcSaveData.location` and
-passes `&gMcSaveData.carriedItems`. The target builds that tail from a new
+`inventoryInitializeNewGame` sets `save = &gMcSaveData` after the attach-level loop and uses
+it three times. At the end of the function it reads `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location` and
+passes `&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems`. The target builds that tail from a new
 `lui a0,%hi(gMcSaveData+4)` pointer, with the second address at `s0+0x5b8`.
 Written plainly, `save` stays live in `$s3` to the end instead, and the tail
 reads `lw 4(s3)` / `addiu a0,s3,0x5bc`.
@@ -143633,13 +143633,13 @@ addresses the set is `lo_sum` and does not `rtx_equal_p` its `REG_EQUIV`
 symbol. This spelling still needed one `SOFT_TOUCH_REG(save)`; the follow-up
 below removes it.
 
-The `SCHED_BARRIER` between `inventoryGiveItem(scan, 0xA0, 0x64)->attachSlot = 2`
+The `SCHED_BARRIER` between `inventoryGiveItem(itemRange, 0xA0, 0x64)->attachSlot = 2`
 and the next give/equip pair did have a natural source: a `do { } while (0)`
 macro around the pair. Its loop notes fence sched1, so the store stays ahead
 of the next call's argument setup.
 
 **Follow-up (2026-09-27): a shared initialization tail removes the last barrier.**
-Calling `inventoryClearItems(scan)` in both arms of the clear-count test creates a
+Calling `inventoryClearItems(itemRange)` in both arms of the clear-count test creates a
 join that stops cse2 from reusing the save base at the final location check.
 In the controlled scratch comparison, removing the barrier alone made `save`
 live across 244 instructions and 28 calls (96.170%); duplicating the clear call

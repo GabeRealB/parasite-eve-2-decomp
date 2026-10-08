@@ -582,7 +582,7 @@ static void _directionInitTask(Task* task)
 static void Gp_DirTaskState1(Task* task)
 {
     worldCollisionConsumeViewBoundaryHits();
-    func_800AD6BC();
+    directionUpdateAction();
 }
 
 s32 actorAngleTaskYawTowardPoint(const Task* modelTask, const SVECTOR* targetPoint)

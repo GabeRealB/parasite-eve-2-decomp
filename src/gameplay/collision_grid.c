@@ -286,48 +286,61 @@ static __inline__ void Gp_ObjWorldPosInline(const WorldCollisionBody* obj, VECTO
     SCRATCH_STACK_RELEASE_BYTES(0x30);
 }
 
-void func_800DD940(WorldCollisionBody* arg0)
+/// Stores an accepted floor hit and clips the segment for the remaining face scan.
+///
+/// Borrows contact zero and initialized query scratch. Occupied keys change only
+/// for a greater unsigned surface class; hit geometry and distance always update.
+static inline void _worldCollisionRecordMotionSphereFloorHit(const WorldCollisionBody* body, _WorldCollisionFloorQueryScratch* scratch, s32 faceIndex)
 {
     enum { WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK = 0xF };
-    _WorldCollisionFloorQueryScratch* scratch;
-    WorldCollisionContact*            slot;
-    s32                               i;
-    u16                               flags;
+    WorldCollisionContact* floorContact;
+    u16                    contactFlags;
 
-    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionFloorQueryScratch);
-    for (i = 0; i < Gp_GridParams->faceCount; i++) {
-        D_80115450[i] = 0;
+    floorContact = body->context.motion->contacts;
+    contactFlags = floorContact->flags;
+    if (contactFlags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+        // Overlapping floors retain the higher class using unsigned comparison.
+        if ((u32)(floorContact->key.value & WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK) < (u32)Gp_GridParams->faces[faceIndex].surfaceClass) {
+            floorContact->key.value = Gp_GridParams->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
+        }
+    } else {
+        floorContact->flags     = contactFlags | WORLD_COLLISION_CONTACT_OCCUPIED;
+        floorContact->key.value = Gp_GridParams->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
     }
-    _worldCollisionMarkMotionSphereGridCandidates(arg0);
-    worldCollisionPlaceFloorSegment(arg0, scratch->endpoints, scratch->ray);
+    // Keep the latest hit geometry, even when an earlier class wins.
+    floorContact->point              = scratch->ray[1];
+    floorContact->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[faceIndex].normalIndex];
+    scratch->hitOffset.vx            = scratch->placedEndpoint.vx - scratch->ray[1].vx;
+    scratch->hitOffset.vy            = scratch->placedEndpoint.vy - scratch->ray[1].vy;
+    scratch->hitOffset.vz            = scratch->placedEndpoint.vz - scratch->ray[1].vz;
+    floorContact->distance           = SquareRoot0(scratch->hitOffset.vx * scratch->hitOffset.vx +
+                                                   scratch->hitOffset.vy * scratch->hitOffset.vy + scratch->hitOffset.vz * scratch->hitOffset.vz);
+    scratch->endpoints[0].vx         = scratch->ray[1].vx;
+    scratch->endpoints[0].vy         = scratch->ray[1].vy;
+    scratch->endpoints[0].vz         = scratch->ray[1].vz;
+}
+
+void worldCollisionQueryMotionSphereFloor(const WorldCollisionBody* body)
+{
+    _WorldCollisionFloorQueryScratch* scratch;
+    s32                               faceIndex;
+
+    // Mark only faces reached by the motion sphere's projected XZ footprint.
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionFloorQueryScratch);
+    for (faceIndex = 0; faceIndex < Gp_GridParams->faceCount; faceIndex++) {
+        D_80115450[faceIndex] = 0;
+    }
+    _worldCollisionMarkMotionSphereGridCandidates(body);
+    // Preserve the placed start for distances while later hits shorten the segment.
+    worldCollisionPlaceFloorSegment(body, scratch->endpoints, scratch->ray);
     scratch->placedEndpoint.vx = scratch->endpoints[0].vx;
     scratch->placedEndpoint.vy = scratch->endpoints[0].vy;
     scratch->placedEndpoint.vz = scratch->endpoints[0].vz;
-    for (i = 0; i < Gp_GridParams->faceCount; i++) {
-        if (D_80115450[i] &&
-            Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex].vy < -0xDDA &&
-            worldCollisionIntersectGridFace(i, scratch->endpoints, scratch->ray, arg0)) {
-            slot  = arg0->context.motion->contacts;
-            flags = slot->flags;
-            if (flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
-                // Overlapping floors retain the higher class using unsigned comparison.
-                if ((u32)(slot->key.value & WORLD_COLLISION_FLOOR_SURFACE_CLASS_MASK) < (u32)Gp_GridParams->faces[i].surfaceClass) {
-                    slot->key.value = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
-                }
-            } else {
-                slot->flags     = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                slot->key.value = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID_FLOOR;
-            }
-            slot->point              = scratch->ray[1];
-            slot->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
-            scratch->hitOffset.vx    = scratch->placedEndpoint.vx - scratch->ray[1].vx;
-            scratch->hitOffset.vy    = scratch->placedEndpoint.vy - scratch->ray[1].vy;
-            scratch->hitOffset.vz    = scratch->placedEndpoint.vz - scratch->ray[1].vz;
-            slot->distance           = SquareRoot0(scratch->hitOffset.vx * scratch->hitOffset.vx +
-                                                   scratch->hitOffset.vy * scratch->hitOffset.vy + scratch->hitOffset.vz * scratch->hitOffset.vz);
-            scratch->endpoints[0].vx = scratch->ray[1].vx;
-            scratch->endpoints[0].vy = scratch->ray[1].vy;
-            scratch->endpoints[0].vz = scratch->ray[1].vz;
+    for (faceIndex = 0; faceIndex < Gp_GridParams->faceCount; faceIndex++) {
+        if (D_80115450[faceIndex] &&
+            Gp_GridParams->normals[Gp_GridParams->faces[faceIndex].normalIndex].vy < WORLD_COLLISION_FLOOR_NORMAL_Y &&
+            worldCollisionIntersectGridFace(faceIndex, scratch->endpoints, scratch->ray, body)) {
+            _worldCollisionRecordMotionSphereFloorHit(body, scratch, faceIndex);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionFloorQueryScratch);

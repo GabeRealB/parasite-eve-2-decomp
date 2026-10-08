@@ -305,7 +305,24 @@ s16 inventoryFindStackQuantity(const InventoryItemRow* table, const InventoryIte
 /// comparison as `inventoryMeltIceBagIfExpired`; the marker is retained.
 void inventoryUpdateIceBag(void);
 
-void func_800B8014(void);
+/// Initializes saved items, weapon loads and starting supplies for a new playthrough.
+///
+/// Called on the first stage visit with live save/player state, loaded item
+/// catalogues and writable container ranges 1..6 and 8. Clears all saved row ids
+/// and quantities, identification storage and collection flags, initializes all
+/// weapon loads/supplies, and selects twenty saved rows as carried inventory.
+/// Resets only the first twelve energy levels and enables the first at level 1.
+/// First playthroughs start at 200 BP; replay BP survives. Restores HP/MP,
+/// equips Leather Jacket, and grants GPS, Tonfa Baton, 100 9mm rounds, a loaded
+/// M93R and Recovery2, with GPS/ammunition/recovery attachments 1/2/3.
+///
+/// Seeds medicine/ammunition in the container ranges and records the MIST Badge;
+/// shooting-gallery starts additionally apply the training loadout and equip
+/// M93R. Returned grant rows must exist: attachment writes do not check failure.
+/// Identification scans raw ids 0..383 through three terminated text fields;
+/// ordinary ids 192..255 retain the physical alias into the key catalogue,
+/// whose containing declaration remains unproven. Frees no inventory storage.
+void inventoryInitializeNewGame(void);
 
 /// Moves a complete inventory row to a range-relative slot, preserving occupied-row order.
 ///

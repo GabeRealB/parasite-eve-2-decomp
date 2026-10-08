@@ -16,6 +16,12 @@ struct Task;
 
 // Collision lists, contact records, room grids and collision updates.
 
+/// Grid-normal Y below which queries and pushback classify a face as floor.
+///
+/// Normals use 4096 per unit; -3546 places the boundary about 30 degrees from -Y.
+/// Equality is not floor. The comparison uses the grid's original room normal.
+enum { WORLD_COLLISION_FLOOR_NORMAL_Y = -0xDDA };
+
 void Gp_TickWorldCollision(struct Task* unused);
 
 extern s32 Gp_RoomParams[8];

@@ -127,7 +127,7 @@ segments:
       - [0x16D48, c, load_screen] # func_800AA548
       - [0x1824C, c, companion_load] # companionSelectForArea
       - [0x18E88, c, sprite_link] # spriteLinkViewCachedPackets
-      - [0x19EBC, c, direction_input] # func_800AD6BC
+      - [0x19EBC, c, direction_input] # directionUpdateAction
       - [0x1A9F0, c, direction_facing] # directionAwaitStairClimb
       - [0x1AFAC, c, area_transitions] # area flags and transition tasks
       - [0x1BD90, c, scene_runtime] # streamReadSceneImageSector
@@ -155,7 +155,7 @@ segments:
       - [0x43320, c, world_coords] # worldCoordUpdateRoomLightsTask
       - [0x465FC, c, world_targets] # worldTargetDrawOverlay
       - [0x47F2C, c, world_collision] # Gp_TickWorldCollision
-      - [0x4A140, c, collision_grid] # func_800DD940
+      - [0x4A140, c, collision_grid] # worldCollisionQueryMotionSphereFloor
       - [0x4CA94, c, object_lists] # worldCollisionResetListsAndGrid
       - [0x4E7EC, c, damage] # damageComputePlayerAttack
       - [0x4F4D4, c, object_fields] # damageGetHazardDamage

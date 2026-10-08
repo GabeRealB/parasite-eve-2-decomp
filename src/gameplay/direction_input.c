@@ -19,6 +19,7 @@
 #include "main/display.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/wipsys.h"
@@ -132,26 +133,42 @@ u8 gViewIdentityMap[VIEW_IDENTITY_MAP_LENGTH] = {
     50,
 };
 
-void func_800AD6BC(void)
+/// Discards both trigger parameter tuples after an inactive or cancelled update.
+///
+/// Retains activity, phase, control-change history and session busy state;
+/// the cancelling branch releases activity separately.
+static inline void _directionDiscardUpdateParameters(void)
 {
-    Task*                slot;
-    PlayerStatus*        cfg;
-    u32                  flags;
-    u32                  action;
-    u32                  mask;
-    DirectionActionTable funcs;
+    Gp_DirNibble    = 0;
+    Gp_DirByte      = 0;
+    Gp_DirAltNibble = 0;
+    Gp_DirAlt       = 0;
+    Gp_DirFlags     = 0;
+    D_80114CD4      = 0;
+}
 
-    funcs = Gp_DirActionFns;
-    cfg   = &gPlayerStatus;
-    slot  = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
-    if (slot != NULL) {
-        if (slot->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
+void directionUpdateAction(void)
+{
+    enum { DIRECTION_INTERACTION_REARM_UPDATES = 10 };
+    const Task*          viewGateTask;
+    const PlayerStatus*  playerStatus;
+    u32                  triggerControl;
+    u32                  actionIndex;
+    u32                  automaticFlag;
+    DirectionActionTable actions;
+
+    actions      = Gp_DirActionFns;
+    playerStatus = &gPlayerStatus;
+    viewGateTask = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
+    // View changes rearm manual interaction before this eligible update is counted.
+    if (viewGateTask != NULL) {
+        if (viewGateTask->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
             viewChangeStub();
-            D_80114D08 = 0xA;
+            D_80114D08 = DIRECTION_INTERACTION_REARM_UPDATES;
         }
     }
     if (gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
-        D_80114D08 = 0xA;
+        D_80114D08 = DIRECTION_INTERACTION_REARM_UPDATES;
     }
     if (D_80114CF8 == 0) {
         if (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE) {
@@ -165,27 +182,27 @@ void func_800AD6BC(void)
                 } else {
                     D_80114CDC = 0;
                 }
-                Gp_DirPhase = 0;
-                flags       = Gp_DirFlags;
-                mask        = flags & WORLD_COLLISION_TRIGGER_AUTOMATIC;
+                Gp_DirPhase    = 0;
+                triggerControl = Gp_DirFlags;
+                automaticFlag  = triggerControl & WORLD_COLLISION_TRIGGER_AUTOMATIC;
                 if (gSceneCombatState.signals.bytes.endDelayFrames == 0) {
-                    if (mask && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && !(gGameSession->padPressed & 0x10)) {
-                        if (!(flags & WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE)) {
+                    if (automaticFlag && (gDisplayState.pendingMode == DISPLAY_MODE_NONE) && !(gGameSession->padPressed & PAD_BUTTON_TRIANGLE)) {
+                        if (!(triggerControl & WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE)) {
                             D_80114CF8 = 1;
                         } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                             D_80114CF8 = 1;
                         }
-                    } else if (cfg->interactionPressed != 0) {
-                        if (!(gGameSession->padPressed & 0x10)) {
+                    } else if (playerStatus->interactionPressed != 0) {
+                        if (!(gGameSession->padPressed & PAD_BUTTON_TRIANGLE)) {
                             if (!(Gp_DirFlags & WORLD_COLLISION_TRIGGER_OUTSIDE_BATTLE)) {
                                 if (D_80114D08 == 0) {
                                     D_80114CF8 = 1;
-                                    D_80114D08 = 0xA;
+                                    D_80114D08 = DIRECTION_INTERACTION_REARM_UPDATES;
                                 }
                             } else if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
                                 if (D_80114D08 == 0) {
                                     D_80114CF8 = 1;
-                                    D_80114D08 = 0xA;
+                                    D_80114D08 = DIRECTION_INTERACTION_REARM_UPDATES;
                                 }
                             }
                         }
@@ -194,28 +211,19 @@ void func_800AD6BC(void)
             }
         }
     }
+    // Once latched, actions advance regardless of the gates for new requests.
     D_80114CD0 = (s16)Gp_DirFlags;
     if (D_80114CF8 != 0) {
         gGameSession->dirActionBusy = 1;
-        action                      = (u8)Gp_DirFlags;
-        if (action != WORLD_COLLISION_TRIGGER_ACTION_CANCEL) {
-            funcs.handlers[action]();
+        actionIndex                 = (u8)Gp_DirFlags;
+        if (actionIndex != WORLD_COLLISION_TRIGGER_ACTION_CANCEL) {
+            actions.handlers[actionIndex]();
         } else {
-            Gp_DirNibble    = 0;
-            Gp_DirByte      = 0;
-            Gp_DirAltNibble = 0;
-            Gp_DirAlt       = 0;
-            Gp_DirFlags     = 0;
-            D_80114CD4      = 0;
-            D_80114CF8      = 0;
+            _directionDiscardUpdateParameters();
+            D_80114CF8 = 0;
         }
     } else {
-        Gp_DirNibble    = 0;
-        Gp_DirByte      = 0;
-        Gp_DirAltNibble = 0;
-        Gp_DirAlt       = 0;
-        Gp_DirFlags     = 0;
-        D_80114CD4      = 0;
+        _directionDiscardUpdateParameters();
     }
     D_80114CDE = gSceneCombatState.signals.bytes.battlePhase;
 }

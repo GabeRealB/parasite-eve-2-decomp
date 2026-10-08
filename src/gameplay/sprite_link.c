@@ -56,10 +56,13 @@ SpriteDrawModePacket* Gp_SprtLists[2] = {
     NULL,
 };
 
-/// Binds and enables a borrowed trigger array, including its LAST-marked record.
+/// Links a room's contiguous trigger records to the current view and enables them.
 ///
-/// The non-NULL array must be writable and terminated; `listIndex` selects the
-/// action or view-boundary list. Records remain live until the list is cleared.
+/// The non-NULL writable array includes a LAST-marked final record; every record,
+/// including that final one, is linked in order. listIndex selects ACTION or
+/// VIEW_BOUNDARIES. Records must be unlinked or already in that same list and
+/// remain live until unlinking or clearing. Geometry and hit latches survive;
+/// each coordinate is replaced by the live view coordinate before linking.
 static inline void _worldCollisionBindViewTriggerArray(WorldCollisionTrigger* triggers, s32 listIndex)
 {
     s32 triggerIndex;

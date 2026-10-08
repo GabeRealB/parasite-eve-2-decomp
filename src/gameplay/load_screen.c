@@ -636,7 +636,7 @@ static void Gp_InitStageVisit(GameLocationKey* arg0)
         Gp_ApplyNewGameAreaFlags();
         save->state.companionHpMax = 0x64;
         save->state.companionHp    = 0x64;
-        func_800B8014();
+        inventoryInitializeNewGame();
     }
     if ((((s8)save->state.visitFlags >> arg0->stage) & 1) == 0) {
         bank                  = banks[arg0->stage];

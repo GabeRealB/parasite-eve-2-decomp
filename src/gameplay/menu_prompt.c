@@ -93,8 +93,6 @@ static inline InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryI
 
 static __inline__ void _itemMenuSetReorderableRows(UiList* list);
 
-static inline void _itemMenuHandleMainPanelChild(UiObject* object, UiObject* childObject, s32 childResult);
-
 static inline void _itemMenuDrawPlayerSummaryContents(const UiPanel* panel);
 
 static inline void _itemMenuAcceptPanelChild(UiObject* object, UiObject* childObject, s32 beginDestinationSelection);
@@ -471,20 +469,26 @@ static void _itemMenuDrawRowSprite(const UiList* list, const UiObject* object, u
     uiQueueTexturePage(object->panel.otIndex.signedValue + 1, 0);
 }
 
-/// Applies one child result to the main command panel without owning its traversal.
-static inline void _itemMenuHandleMainPanelChild(UiObject* object, UiObject* childObject, s32 childResult)
+/// Applies a child dialog's result to the main item-command panel.
+///
+/// DISMISS forwards the child's value as CONFIRM; CONFIRM resumes panel input
+/// and starts closing the child; CANCEL forwards cancellation. Other results
+/// leave both objects intact. The panel, child and child's owner must be live.
+/// Closing detaches the child but does not immediately free it; the caller
+/// saves its successor before this call when traversing the child ring.
+static inline void _itemMenuHandleMainPanelChild(UiObject* mainPanel, UiObject* child, s32 childResult)
 {
     switch (childResult) {
         case USER_INTERFACE_RESULT_DISMISS:
-            object->resultValue = childObject->resultValue;
-            object->result      = USER_INTERFACE_RESULT_CONFIRM;
+            mainPanel->resultValue = child->resultValue;
+            mainPanel->result      = USER_INTERFACE_RESULT_CONFIRM;
             break;
         case USER_INTERFACE_RESULT_CONFIRM:
-            object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-            uiStartTreeClosing(childObject, childObject->owner);
+            mainPanel->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            uiStartTreeClosing(child, child->owner);
             break;
         case USER_INTERFACE_RESULT_CANCEL:
-            object->result = childResult;
+            mainPanel->result = childResult;
             break;
     }
 }

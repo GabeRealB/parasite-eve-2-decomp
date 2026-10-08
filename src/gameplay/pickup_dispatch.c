@@ -137,11 +137,15 @@ void itemPickupTask(Task* task)
     states.funcs[task->state](task);
 }
 
-/// Starts a pending primary/secondary consumable reload, or discards it outside battle.
+/// Consumes a menu reload notification after world resources are restored.
 ///
-/// The signed item id remains for the reload cue to consume in battle, including
-/// when scripted player control declines the request. Only the notification flag
-/// is cleared here. playerTask must be the live player with loaded actor resources.
+/// A positive pending item id selects primary ammunition; a negative id selects
+/// secondary, with INVENTORY_ITEM_NONE excluded before that sign test. Without
+/// an active battle or battle-end delay, discards the item id. Otherwise requests
+/// the player's menu reload and retains the signed id for its loading cue, even
+/// if scripted control declines the request. Clears only an eligible notification;
+/// absent ids or zero notifications remain unchanged. playerTask must be the
+/// live player with loaded actor resources whenever the reload is requested.
 static inline void _menuApplyPendingConsumableReload(Task* playerTask)
 {
     if ((Gp_PendingRelatedId != INVENTORY_ITEM_NONE) && (Gp_RelatedPending != 0)) {

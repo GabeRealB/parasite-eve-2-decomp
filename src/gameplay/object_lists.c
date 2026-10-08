@@ -44,14 +44,6 @@ typedef struct {
 } _WorldCollisionNearestContactScratch;
 STATIC_ASSERT_SIZEOF(_WorldCollisionNearestContactScratch, 0x28);
 
-/// Grid-normal Y below which a face counts as a floor.
-///
-/// Components use 4096 for one unit. The floor query records a face only when
-/// its normal Y is below this value, and pushback splits contacts on the same
-/// boundary. 3546 is about the cosine of 30 degrees at this scale, so the
-/// boundary sits about 30 degrees off -Y.
-enum { WORLD_COLLISION_FLOOR_NORMAL_Y = -0xDDA };
-
 /// X or Z product of two 4096-unit normals below which they count as opposed.
 ///
 /// The value is minus half of one squared unit. A more negative product on
@@ -361,7 +353,7 @@ void Gp_CollideListGrid(WorldCollisionBody* node)
                         break;
                     case WORLD_COLLISION_BODY_MOTION_SPHERE:
                         if (node->flags & WORLD_COLLISION_BODY_FLOOR_QUERY) {
-                            func_800DD940(node);
+                            worldCollisionQueryMotionSphereFloor(node);
                         }
                         worldCollisionCollideMotionSphereGrid(node);
                         break;
@@ -992,17 +984,18 @@ void worldCollisionLinkOccluder(s32 listIndex, WorldCollisionOccluder* occluder)
 
 /// Repairs a live occluder's incoming slot and successor, then clears its links.
 ///
-/// `next` equals occluder->next and prevLink points to the slot containing it.
+/// successor must equal occluder->next; the live acyclic list's prevLink points
+/// to the writable slot containing occluder. A successor inherits that slot.
 /// Flags and geometry are untouched; storage remains owned by the caller.
-static inline void _worldCollisionSpliceOutOccluder(WorldCollisionOccluder* occluder, WorldCollisionOccluder* next)
+static inline void _worldCollisionSpliceOutOccluder(WorldCollisionOccluder* occluder, WorldCollisionOccluder* successor)
 {
     WorldCollisionOccluder** previousLink;
 
     previousLink = occluder->prevLink;
-    if (next != NULL) {
-        *previousLink  = next;
-        next->prevLink = occluder->prevLink;
-        occluder->next = NULL;
+    if (successor != NULL) {
+        *previousLink       = successor;
+        successor->prevLink = occluder->prevLink;
+        occluder->next      = NULL;
     } else {
         *previousLink = NULL;
     }
