@@ -125812,14 +125812,14 @@ Inputs: scratch `nonmatchings/_actor311900UpdateAnimation-vacuum`, `base.c`
 81.920% (`branch=6 regs=38 reorder=1 insert=3 delete=8`), `base_1.c` 99.867%
 (`regs=2`), `base_2.c` 99.867%, `base_3.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-## A load chain sched2 will not interleave: move its store statement to the front (func_actor_113100_80131E58, 2026-09-17)
+## A load chain sched2 will not interleave: move its store statement to the front (_actor113100SpawnPierceCarradine, 2026-09-17)
 
-`func_actor_113100_80131E58` sat at 97.690% with `regs=3 reorder=3 insert=1
+`_actor113100SpawnPierceCarradine` sat at 97.690% with `regs=3 reorder=3 insert=1
 delete=1` while everything structural was already exact: same instruction count,
 same opcode histogram, same block edges, same predicates, same calls, same
 condition registers, `stack=0`. The whole diff was one tail block, where the ROM
-interleaves the `lw`/`lw`/`addiu` chain behind `obj->field_8 =
-&((TmdObject*)task->extra)->coords[1]` with the seven independent stores that
+interleaves the `lw`/`lw`/`addiu` chain behind `body->coord =
+&task->extra.tmd->coords[1]` with the seven independent stores that
 precede it, and the candidate ran the chain after all of them:
 
 ```
@@ -125837,7 +125837,7 @@ precede it, and the candidate ran the chain after all of them:
 The chain's result pseudo and the `0x30000` / `0x100` / `1` constants all lived
 in `$v0` with disjoint live ranges, so sched2 saw a false register dependency: it
 cannot place a load between two stores that both write `$v0`, and queued the
-whole chain behind them. Writing the `field_8` store *first* in the tail -- the
+whole chain behind them. Writing the `body->coord` store *first* in the tail -- the
 order the matched sibling `func_actor_323300_80161F08` gives the same seven-store
 block -- keeps the pseudo alive across the constants, so local-alloc cannot reuse
 `$v0`, hands it `$v1`, and the chain schedules around the stores. 100%.
@@ -125850,7 +125850,7 @@ displaces a *whole dependent chain* past independent stores rather than swapping
 a pair, with `regs` non-zero beside it: check whether the chain and the stores
 share a scratch register before permuting anything.
 
-Inputs: scratch `nonmatchings/func_actor_113100_80131E58-vacuum`, `base_1.c`
+Inputs: scratch `nonmatchings/_actor113100SpawnPierceCarradine-vacuum`, `base_1.c`
 97.690% (`regs=3 reorder=3 insert=1 delete=1`, preprocessed SHA256
 `73d1de416306f08f1b99eaf7bb20f6864c410cf69bc1bfcab86ff0cde19525b2`), `base_2.c`
 100.000% (`86d80f5a56e94d4ee159e577b8d015cf84377b9fc4711f4c234d8703962d624e`).
@@ -131029,7 +131029,7 @@ mid-`.rodata` and GCC padded it with `.align 3`, making the object's `.rodata`
 
 ## "Default then override" vs `if`/`else`: a later constant store merges with the compare constant
 
-**Problem.** `func_actor_120500_80132028` picks an animation index from a byte
+**Problem.** `_actor120500RunPlayerRequest` picks an animation index from a byte
 and then fills an `AnimationPlayRequest` whose `animationId` is `1`:
 
 ```
@@ -131086,7 +131086,7 @@ CSE's block now ends at the `else` label, the two constants stay distinct, and
 examples of the two-variable form; `func_actor_120500_8013241C` is a matched
 example of the one-variable form and does emit the `j`.
 
-**Confirmed by controlled variation (func_actor_120500_80132028, permuter
+**Confirmed by controlled variation (_actor120500RunPlayerRequest, permuter
 follow-up, 2026-09-18).** Rebuilding the four corners of the shape in one
 scratch separates the two requirements, which look like one:
 
@@ -131111,7 +131111,7 @@ reports `used 2 times across 8 insns in block 17` and `base` `dies in 2 places`.
 A ternary is the same RTL as the `if`/`else` and matches identically — the
 deciding property is that both adds are emitted *inside the arms*, not the
 statement syntax. Evidence:
-`tools/permuter_findings/func_actor_120500_80132028/`.
+`tools/permuter_findings/_actor120500RunPlayerRequest/`.
 
 ## Duplicated `switch` arms want their *own* locals: a shared pointer temp loses the callee-saved register (_actor03800ApplyPlacementMode, 2026-09-18)
 
@@ -149163,7 +149163,7 @@ top-tested exits also leave the whole project matching.
 
 ### A `goto` loop is not a loop to loop.c, and that leaks into its callers
 
-Symptom: `Actor04000_Fn03FB4` scans its contacts with an inline
+Symptom: `_actor04000ApplyAttackHit` scans its contacts with an inline
 `FindHit` (`for` + `break` + `return key` from inside the loop). As a `for`
 the found-and-return block was moved out of the loop, to the middle of the
 inlined `_actorAngleNormalizeYaw` thirty insns later; the image keeps it in place.

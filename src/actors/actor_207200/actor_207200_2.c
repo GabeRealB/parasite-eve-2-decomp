@@ -702,7 +702,7 @@ s16 D_actor_207200_80153F20[20] = {
 };
 
 static void            func_actor_207200_8014BEF4(Task* arg0);
-static __inline__ void Actor207200_UpdateColor(Enemy* enemy, Task* actor);
+static __inline__ void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Task* task);
 
 /// Creates the Creeping Stranger's seven-part rig and five collision spheres.
 ///
@@ -1465,25 +1465,29 @@ static __inline__ void _actor207200CreepingStrangerTickAnimation(Task* task)
     }
 }
 
-/// `func_actor_207200_8014D70C`'s body, inlined: push the model's second coordinate's
-/// world position onto the scratch stack and hand it to `worldCoordUpdateActorColor`.
-static __inline__ void Actor207200_UpdateColor(Enemy* enemy, Task* actor)
+/// Updates the Creeping Stranger's actor colour from its composed body position.
+///
+/// Requires the live enemy and model part 1's current world matrix. Borrows a
+/// full VECTOR-sized scratch block, writes XYZ in world units and leaves its
+/// unused pad word untouched. The colour call consumes the position before
+/// the saved cursor slot releases the block.
+static __inline__ void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Task* task)
 {
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
+    GfxCoord* bodyCoord;
+    void**    cursorSlot;
+    u8*       cursorBytes;
+    VECTOR*   worldPosition;
 
-    coord                          = &actor->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    worldCoordUpdateActorColor(enemy, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
+    bodyCoord                         = &task->extra.tmd->coords[1];
+    cursorSlot                        = SCRATCH_HEAD_ADDR;
+    cursorBytes                       = SCRATCH_HEAD_AT(cursorSlot, void);
+    worldPosition                     = (VECTOR*)(cursorBytes - sizeof(*worldPosition));
+    worldPosition->vx                 = bodyCoord->workm.t[0];
+    worldPosition->vy                 = bodyCoord->workm.t[1];
+    worldPosition->vz                 = bodyCoord->workm.t[2];
+    SCRATCH_HEAD_AT(cursorSlot, void) = worldPosition;
+    worldCoordUpdateActorColor(enemy, worldPosition, 0, 0);
+    SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }
 
 /// Teardown tick. Mode 2 of `gSceneCombatState.actorControl` hides the model, mode 1 does nothing;
@@ -1568,7 +1572,7 @@ static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
             arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
             arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
-            Actor207200_UpdateColor(arg0, arg1);
+            _actor207200CreepingStrangerUpdateColor(arg0, arg1);
             break;
     }
 }

@@ -80,7 +80,7 @@ static TmdSource    _gActor07000SucklercephBody;
 static s32          _actor07000SlouchApplyCommand(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
 static void         _actor07000SlouchTask(Task* task);
 static void         _actor07000SlouchProjectileTask(Task* task);
-void                Actor07000_Fn067B4(Task*);
+static void         _actor07000SlouchHiddenTask(Task* task);
 
 DamageAttack gSucklercephAttack = { 30, 7 };
 
@@ -645,7 +645,7 @@ TaskDesc Actor07000_D0D7D0[2] = {
     { { { TASK_BODY_COORD, 96 } }, _actor07000SlouchProjectileTask, { .value = 0 } },
 };
 
-TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, Actor07000_Fn067B4, { .model = &_gActor07000Actor107000Model08BB4 } };
+TaskDesc Actor07000_D0D7E8 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor07000SlouchHiddenTask, { .model = &_gActor07000Actor107000Model08BB4 } };
 
 /// Values of `_Actor07000SlouchWork::state`, the behaviour the per-frame update runs.
 enum {
@@ -907,7 +907,7 @@ static const EnemyTaskFuncTable4 Actor07000_D0003C = {
     { _actor07000SlouchSpawn, Actor07000_Fn03164, _actor07000SlouchDeathState, enemyDestroy },
 };
 
-/// Task states of the specimen's second form as `Actor07000_Fn067B4`
+/// Task states of the hidden Slouch as `_actor07000SlouchHiddenTask`
 /// dispatches them: the same update, death and destruction after a spawn that
 /// parks the model hidden, and a fifth state for its drop into place.
 static const EnemyTaskFuncTable5 Actor07000_D0004C = {
@@ -2733,15 +2733,17 @@ static void _actor07000SlouchExit(Task* task)
     enemyTaskExit(task);
 }
 
-/// Task handler of the specimen's second form: runs the entry of
-/// `Actor07000_D0004C` for the task's state with the enemy and the task. The
-/// table is copied onto the stack before the call.
-void Actor07000_Fn067B4(Task* task)
+/// Dispatches the Slouch that starts hidden and drops into the encounter.
+///
+/// `spawnArg2.pointer` borrows its live owning enemy. State must be 0..4:
+/// hidden spawn, update, death, destruction or drop. The copied five-entry
+/// table keeps the task state's dispatch order; destruction ends both owners.
+static void _actor07000SlouchHiddenTask(Task* task)
 {
-    EnemyTaskFuncTable5 sp;
+    EnemyTaskFuncTable5 stateHandlers;
 
-    sp = Actor07000_D0004C;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    stateHandlers = Actor07000_D0004C;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Saves the Slouch's root position and takes one forward/downward drop step.

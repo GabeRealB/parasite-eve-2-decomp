@@ -982,7 +982,9 @@ static const TaskFuncTable11 D_actor_548100_80131E6C = { {
 
 /// Holds scripted player control and hides player/HUD for the open panel.
 ///
-/// The panel exit restores presentation and releases the menu hold separately.
+/// Requires a live session and player model. Hide mode requests the parent's
+/// primitive buffer and propagates its draw flags to attachments. The panel
+/// exit restores player/HUD/control and releases the separate menu-display hold.
 static __inline__ void _actor548100HoldPanelPresentation(void)
 {
     gGameSession->cutsceneHold = 1;

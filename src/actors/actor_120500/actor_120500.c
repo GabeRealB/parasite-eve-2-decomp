@@ -348,7 +348,7 @@ TaskDesc D_actor_120500_80138448 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MO
 
 Task* D_actor_120500_80138454 = NULL;
 
-static void func_actor_120500_80132028(Task* arg0);
+static void _actor120500RunPlayerRequest(Task* task);
 static void _actor120500InitBody(Task* task);
 
 /// Entry 0 of the task table: plays a streamed sequence, then restores the
@@ -420,116 +420,154 @@ void func_actor_120500_80131E58(Task* arg0)
     }
 }
 
-/// Performs the request posted in `_Actor120500Work::playerRequest`, stepped by
-/// the tick body and posted by `_actor120500PostPlayerRequest`. Every tick first
-/// sends `ANIMATION_MESSAGE_IS_PLAYING` to `playerTask`, then dispatches on the
-/// request. `ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION` is the only one that
-/// does not clear itself: after its first tick it keeps sending the placement
-/// record `D_actor_120500_80138090`. The weapon animation is picked the same
-/// way `func_actor_120500_8013241C` picks it. Every code without a handler, 1
-/// included, just clears the request.
-static void func_actor_120500_80132028(Task* arg0)
+/// Consumes the motel scene's player-animation and placement request channel.
+///
+/// Requires initialized live scene work, the loaded three scene sets and a
+/// player task for placement and weapon requests. Animation installs alone
+/// tolerate an absent player. Dispatch borrows stack requests synchronously.
+/// Queries player playback every tick, then handles the posted halfword code.
+/// The first-animation request sets ambient RGB to 2400, starts clip 0 once,
+/// and keeps applying the first placement until replaced. Other handled codes
+/// fade/show/place and start clip 1, blend clip 2 for eight frames, hide the
+/// scene body or restore the equipped-weapon clip with collision disabled.
+/// Weapon requests require saved character 1 and weapon 0..32 for the loaded
+/// player bank table; the retained alternate-character offset is unproven.
+/// All codes except the first-animation request clear after this tick.
+static void _actor120500RunPlayerRequest(Task* task)
 {
+    /// Restores equipped-weapon playback with world collision disabled.
+    ///
+    /// Captures work, request, weaponId, animationBank and the local bank/clip
+    /// constants. Uses the current weapon and saved character at dispatch time;
+    /// primary character 1 requires weapon 0..32. Retains the alternate +34
+    /// selector, whose runtime reachability is unproven. Borrows request only
+    /// through synchronous message dispatch. Undefined after this function.
+#define ACTOR_120500_PLAY_PLAYER_WEAPON_ANIMATION()                                                   \
+    {                                                                                                 \
+        weaponId = gPlayerStatus.weapon;                                                              \
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_120500_PRIMARY_CHARACTER) { \
+            animationBank = weaponId + ACTOR_120500_PRIMARY_WEAPON_BANK_BASE;                         \
+        } else {                                                                                      \
+            animationBank = weaponId + ACTOR_120500_ALTERNATE_WEAPON_BANK_BASE;                       \
+        }                                                                                             \
+        request.source.index         = animationBank;                                                 \
+        request.animationId          = ACTOR_120500_WEAPON_ANIMATION;                                 \
+        request.blend                = ANIMATION_BLEND_RESET;                                         \
+        request.blendFrames          = 0;                                                             \
+        request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                             \
+        TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &request, 0);         \
+    }
+    enum {
+        ACTOR_120500_FIRST_ANIMATION              = 0,
+        ACTOR_120500_SECOND_ANIMATION             = 1,
+        ACTOR_120500_THIRD_ANIMATION              = 2,
+        ACTOR_120500_THIRD_ANIMATION_BLEND_FRAMES = 8,
+        ACTOR_120500_FIRST_AMBIENT_CHANNEL        = 2400,
+        ACTOR_120500_FADE_IN_TASK                 = 1,
+        ACTOR_120500_FADE_INTENSITY_STEP          = 8,
+        ACTOR_120500_PRIMARY_CHARACTER            = 1,
+        ACTOR_120500_PRIMARY_WEAPON_BANK_BASE     = 1,
+        ACTOR_120500_ALTERNATE_WEAPON_BANK_BASE   = 34,
+        ACTOR_120500_WEAPON_ANIMATION             = 1,
+        ACTOR_120500_FIRST_REQUEST_START          = 0,
+        ACTOR_120500_FIRST_REQUEST_HOLD_PLACEMENT = 1,
+    };
     _Actor120500Work*     work;
     _Actor120500Work*     reloadedWork;
     _Actor120500Work*     animWork;
     _Actor120500Work*     firstAnimWork;
-    SVECTOR               vec;
-    AnimationPlayRequest  msg;
-    AnimationPlayRequest* p;
-    s32                   anim;
-    s32                   base;
+    SVECTOR               ambientColor;
+    AnimationPlayRequest  request;
+    AnimationPlayRequest* requestPointer;
+    s32                   animationBank;
+    s32                   weaponId;
 
-    work = arg0->work;
+    work = task->work;
     if (work->playerTask != NULL) {
         taskMessageDispatch(work->playerTask, ANIMATION_MESSAGE_IS_PLAYING, 0, 0);
     }
     switch (work->playerRequest) {
         case ACTOR_120500_PLAYER_REQUEST_NONE:
-        case 1:
             break;
         case ACTOR_120500_PLAYER_REQUEST_FIRST_ANIMATION:
             switch (work->playerRequestStep) {
-                case 0:
-                    vec.vx = 0x960;
-                    vec.vy = 0x960;
-                    vec.vz = 0x960;
-                    worldCoordSetAmbientColorOverride(&vec);
-                    firstAnimWork = arg0->work;
-                    p             = &msg;
+                case ACTOR_120500_FIRST_REQUEST_START:
+                    ambientColor.vx = ACTOR_120500_FIRST_AMBIENT_CHANNEL;
+                    ambientColor.vy = ACTOR_120500_FIRST_AMBIENT_CHANNEL;
+                    ambientColor.vz = ACTOR_120500_FIRST_AMBIENT_CHANNEL;
+                    worldCoordSetAmbientColorOverride(&ambientColor);
+                    // Start the clip once; later ticks keep applying its placement.
+                    firstAnimWork  = task->work;
+                    requestPointer = &request;
                     if (firstAnimWork->playerTask != NULL) {
-                        msg.source.sets         = D_actor_120500_8013807C;
-                        msg.animationId         = 0;
-                        msg.blend               = ANIMATION_BLEND_RESET;
-                        msg.blendFrames         = 0;
-                        p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(firstAnimWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+                        request.source.sets                  = D_actor_120500_8013807C;
+                        request.animationId                  = ACTOR_120500_FIRST_ANIMATION;
+                        request.blend                        = ANIMATION_BLEND_RESET;
+                        request.blendFrames                  = 0;
+                        requestPointer->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                        TASK_MESSAGE_DISPATCH_POINTER(firstAnimWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, requestPointer, 0);
                     }
                     work->playerRequestStep = work->playerRequestStep + 1;
                     /* fallthrough */
-                case 1:
-                    TASK_MESSAGE_DISPATCH_POINTER(((_Actor120500Work*)arg0->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE,
+                case ACTOR_120500_FIRST_REQUEST_HOLD_PLACEMENT:
+                    TASK_MESSAGE_DISPATCH_POINTER(((_Actor120500Work*)task->work)->playerTask, GAME_ACTOR_MESSAGE_PLACE,
                                                   &D_actor_120500_80138090, 0);
                     return;
             }
             return;
         case ACTOR_120500_PLAYER_REQUEST_SECOND_ANIMATION:
-            taskSpawnFromTable(D_actor_120500_80138418, 1, 8, 0);
-            reloadedWork = arg0->work;
+            taskSpawnFromTable(D_actor_120500_80138418, ACTOR_120500_FADE_IN_TASK, ACTOR_120500_FADE_INTENSITY_STEP, 0);
+            reloadedWork = task->work;
             worldCoordSetAmbientColorOverride(NULL);
-            taskMessageDispatch(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+            taskMessageDispatch(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_SHOW, 0);
             TASK_MESSAGE_DISPATCH_POINTER(reloadedWork->playerTask, GAME_ACTOR_MESSAGE_PLACE, &D_actor_120500_801380A8, 0);
-            animWork = arg0->work;
-            p        = &msg;
+            animWork       = task->work;
+            requestPointer = &request;
             if (animWork->playerTask != NULL) {
-                msg.source.sets         = D_actor_120500_8013807C;
-                p->animationId          = 1;
-                msg.blend               = ANIMATION_BLEND_RESET;
-                msg.blendFrames         = 0;
-                p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+                request.source.sets                  = D_actor_120500_8013807C;
+                requestPointer->animationId          = ACTOR_120500_SECOND_ANIMATION;
+                request.blend                        = ANIMATION_BLEND_RESET;
+                request.blendFrames                  = 0;
+                requestPointer->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, requestPointer, 0);
             }
             break;
         case ACTOR_120500_PLAYER_REQUEST_THIRD_ANIMATION:
-            animWork = arg0->work;
-            p        = &msg;
+            animWork       = task->work;
+            requestPointer = &request;
             if (animWork->playerTask != NULL) {
-                msg.source.sets         = D_actor_120500_8013807C;
-                p->animationId          = 2;
-                p->blend                = ANIMATION_BLEND_INTERPOLATE;
-                p->blendFrames          = 8;
-                p->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, p, 0);
+                request.source.sets                  = D_actor_120500_8013807C;
+                requestPointer->animationId          = ACTOR_120500_THIRD_ANIMATION;
+                requestPointer->blend                = ANIMATION_BLEND_INTERPOLATE;
+                requestPointer->blendFrames          = ACTOR_120500_THIRD_ANIMATION_BLEND_FRAMES;
+                requestPointer->enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(animWork->playerTask, ANIMATION_MESSAGE_INSTALL_AND_PLAY, requestPointer, 0);
             }
             break;
         case ACTOR_120500_PLAYER_REQUEST_HIDE_BODY:
-            taskMessageDispatch(arg0, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
+            taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER, 0);
             break;
         case ACTOR_120500_PLAYER_REQUEST_WEAPON_ANIMATION:
-            base = gPlayerStatus.weapon;
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                anim = base + 1;
-            } else {
-                anim = base + 0x22;
-            }
-            msg.source.index         = anim;
-            msg.animationId          = 1;
-            msg.blend                = ANIMATION_BLEND_RESET;
-            msg.blendFrames          = 0;
-            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->playerTask, ANIMATION_MESSAGE_PLAY, &msg, 0);
+            ACTOR_120500_PLAY_PLAYER_WEAPON_ANIMATION();
             break;
     }
     work->playerRequest = ACTOR_120500_PLAYER_REQUEST_NONE;
+#undef ACTOR_120500_PLAY_PLAYER_WEAPON_ANIMATION
 }
 
-/// Resets the nineteen animated body tracks to clip 1 at normal playback rate.
+/// Resets body slots 1..19 to clip 1 at normal playback rate.
+///
+/// Requires a rig bound to the loaded two-entry body clip table, with live
+/// pose/slot/model storage. Slot 0 is retained; this resets cursors and rates
+/// without ticking a pose or changing the enclosing scene request channels.
 static __inline__ void _actor120500ResetBodyTracks(_Actor120500Work* work)
 {
-    s32 slotIndex = 1;
+    enum { ACTOR_120500_FIRST_BODY_SLOT   = 1,
+           ACTOR_120500_INITIAL_BODY_CLIP = 1 };
+    s32 slotIndex = ACTOR_120500_FIRST_BODY_SLOT;
     do {
         work->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&work->rig.anim, (u16)slotIndex, 1);
+        animationResetSlot(&work->rig.anim, (u16)slotIndex, ACTOR_120500_INITIAL_BODY_CLIP);
         slotIndex++;
     } while ((u16)slotIndex < ARRAY_SIZE(work->rig.slots));
 }
@@ -645,7 +683,7 @@ void func_actor_120500_8013241C(Task* arg0)
             break;
     }
 
-    func_actor_120500_80132028(arg0);
+    _actor120500RunPlayerRequest(arg0);
     work      = arg0->work;
     slotsWork = work;
 

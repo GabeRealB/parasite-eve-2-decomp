@@ -4125,20 +4125,6 @@ static s32 _actor400600TakeArmedHitReaction(Task* task)
 
 #include "../../shared/stalker_zebra_ivory_apply_pending_reaction.inc.c"
 
-/// Copies the body's texture placement into a newly spawned chunk model.
-///
-/// Requires live model tasks and a successful chunkEffect. Both model pointers
-/// are read at binding time. Copies signed texture-page and CLUT-row offsets;
-/// a present buffer has both halves rebuilt, preserving its next-half selector.
-/// Sources, buffer capacity and GPU lifetime must satisfy tmdBuildBufferHalf.
-static inline void _actor400600BindChunkTexture(Task* task, EffectWork* chunkEffect)
-{
-    TmdObject* bodyModel  = task->extra.tmd;
-    TmdObject* chunkModel = chunkEffect->task->extra.tmd;
-
-    _actor400600CopyModelTextureOffsets(bodyModel, chunkModel);
-}
-
 /// Emits four detached body models and three death particles.
 ///
 /// Requires the live body model with at least seventeen coordinates and the
@@ -4159,22 +4145,22 @@ static void _actor400600SpawnBodyChunks(Task* task)
     D_800678F0[0] = &_gActor400600ZebraStalkerBurstHead;
     chunkAtPart4  = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[4], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
     if (chunkAtPart4 != NULL) {
-        _actor400600BindChunkTexture(task, chunkAtPart4);
+        _actor400600CopyModelTextureOffsets(task->extra.tmd, chunkAtPart4->task->extra.tmd);
     }
     D_800678F0[0] = &_gActor400600StalkerEffect;
     chunkAtPart2  = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[2], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
     if (chunkAtPart2 != NULL) {
-        _actor400600BindChunkTexture(task, chunkAtPart2);
+        _actor400600CopyModelTextureOffsets(task->extra.tmd, chunkAtPart2->task->extra.tmd);
     }
     D_800678F0[0] = &_gActor400600StalkerBurstHandLeft;
     chunkAtPart16 = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[16], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
     if (chunkAtPart16 != NULL) {
-        _actor400600BindChunkTexture(task, chunkAtPart16);
+        _actor400600CopyModelTextureOffsets(task->extra.tmd, chunkAtPart16->task->extra.tmd);
     }
     D_800678F0[0] = &_gActor400600StalkerBurstFootRight;
     chunkAtPart10 = effectSpawn(EFFECT_BODY_CHUNK, &task->extra.tmd->coords[10], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
     if (chunkAtPart10 != NULL) {
-        _actor400600BindChunkTexture(task, chunkAtPart10);
+        _actor400600CopyModelTextureOffsets(task->extra.tmd, chunkAtPart10->task->extra.tmd);
     }
     effectSpawn(EFFECT_030, &task->extra.tmd->coords[1], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);
     effectSpawn(EFFECT_030, &task->extra.tmd->coords[2], ACTOR_400600_CHUNK_PARTICLE_SIZE, NULL);

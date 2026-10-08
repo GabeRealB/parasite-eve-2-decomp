@@ -3220,12 +3220,13 @@ static __inline__ void _actor444000StepForward(GfxCoord* coord)
 /// bits in the Glutton script key. Pointers are borrowed only for this call.
 static __inline__ void _actor444000RunFootstep(Task* task, Enemy* enemy, GluttonWork* work)
 {
+    enum { ACTOR_444000_RUN_FOOTSTEP_SOUND = SOUND_CHARACTER(SOUND_BANK_GLUTTON, 1) };
     s32 soundId;
     s32 soundPan;
 
     work->shakeLevel = GLUTTON_SHAKE_LONG;
     padScriptSpawn(D_actor_444000_80144A74, D_actor_444000_80144A7C);
-    soundId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x01);
+    soundId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_444000_RUN_FOOTSTEP_SOUND;
     soundPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
     sndEvtRequestScriptStart(soundId, soundPan, (s8)(worldCoordGetOriginAudioDepth(task->extra.tmd->coords) / 2));
 }

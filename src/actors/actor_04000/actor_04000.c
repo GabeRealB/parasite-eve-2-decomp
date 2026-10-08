@@ -1259,7 +1259,7 @@ static void _actor04000StateChase(Enemy* enemy, Task* task);
 static void _actor04000StateSelfBurst(Enemy* enemy, Task* task);
 static void _actor04000StateDeathBurst(Enemy* enemy, Task* task);
 static void _actor04000SpawnHitEffect(Task* task, s16 hitYaw, u32 attackKey);
-static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1);
+static void _actor04000ApplyAttackHit(Enemy* enemy, Task* task);
 static void _actor04000StatePatrol(Enemy* enemy, Task* task);
 static void _actor04000StateReturn(Enemy* enemy, Task* task);
 static void _actor04000StateDrop(Enemy* enemy, Task* task);
@@ -2460,43 +2460,63 @@ static __inline__ s32 _actor04000FindAttackContactKey(SVECTOR* hitPos, const Wor
     return 0;
 }
 
-/// Applies the first type-2 hit in `work->hitContacts`: computes its damage, turns the
-/// model toward the hit, plays the impact sound and subtracts the damage from
-/// `arg0->field_40`, switching to `DEATH_BURST` once it runs out.
-static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1)
+/// Composes the root and records the attack contact's relative hit-effect bearing.
+///
+/// Requires live model/scratch and a populated hitPos. Coordinate and offset
+/// components narrow to signed halfwords; yaw uses 4096 units per turn and is
+/// wrapped to [-2048, 2048], retaining both half-turn endpoints.
+static inline void _actor04000ComputeHitBearing(Task* task, ActorHitTakenScratch* hitScratch)
 {
-    ActorHitTakenScratch* sc;
+    s16 hitYaw;
+
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(task->extra.tmd->coords);
+    hitScratch->hitOffset.vx = task->extra.tmd->coords->workm.t[0];
+    hitScratch->hitOffset.vy = task->extra.tmd->coords->workm.t[1];
+    hitScratch->hitOffset.vz = task->extra.tmd->coords->workm.t[2];
+    // Orient the hit effect from the contact bearing in the composed root frame.
+    hitScratch->hitOffset.vx = hitScratch->hitPos.vx - task->extra.tmd->coords->workm.t[0];
+    hitScratch->hitOffset.vy = hitScratch->hitPos.vy - task->extra.tmd->coords->workm.t[1];
+    hitScratch->hitOffset.vz = hitScratch->hitPos.vz - task->extra.tmd->coords->workm.t[2];
+    hitYaw                   = ratan2(hitScratch->hitOffset.vx, hitScratch->hitOffset.vz) -
+             ratan2(-task->extra.tmd->coords->workm.m[2][0], task->extra.tmd->coords->workm.m[2][2]);
+    hitScratch->hitYaw = hitYaw;
+    hitScratch->hitYaw = _actorAngleNormalizeYaw(hitYaw);
+}
+
+/// Applies the first attack contact and releases any player held by the Blood Suckler.
+///
+/// Requires live enemy/model/work and available hit scratch storage. Processes
+/// at most one attack in the eight-entry hit table, stopping at its first empty
+/// key. Uses zero attack distance with reaction scaling disabled. Damage narrows
+/// to an unsigned halfword before Life Drain/readout credit and HP subtraction;
+/// nonpositive remaining HP selects death burst.
+/// The effect uses a signed relative bearing in 4096-unit yaw; the model's
+/// rotation is preserved. A held scripted player is released after any hit.
+static void _actor04000ApplyAttackHit(Enemy* enemy, Task* task)
+{
+    enum { ACTOR_04000_HIT_SOUND             = SOUND_CHARACTER(0x28, 3),
+           ACTOR_04000_UNUSED_REACTION_SCALE = 0x1000 };
+    ActorHitTakenScratch* hitScratch;
     _Actor04000Work*      work;
-    s16                   angle;
-    s32                   snd;
-    s32                   pan;
+    s32                   soundId;
+    s32                   soundPan;
 
-    work       = arg1->work;
-    sc         = SCRATCH_STACK_RESERVE_BLOCK(ActorHitTakenScratch);
-    sc->hitKey = _actor04000FindAttackContactKey(&sc->hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    work               = task->work;
+    hitScratch         = SCRATCH_STACK_RESERVE_BLOCK(ActorHitTakenScratch);
+    hitScratch->hitKey = _actor04000FindAttackContactKey(&hitScratch->hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
 
-    if (sc->hitKey != 0) {
-        sc->damage                            = damageComputePlayerAttack(sc->hitKey, 0, 0, 0x1000);
-        arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(arg1->extra.tmd->coords);
-        sc->hitOffset.vx = arg1->extra.tmd->coords->workm.t[0];
-        sc->hitOffset.vy = arg1->extra.tmd->coords->workm.t[1];
-        sc->hitOffset.vz = arg1->extra.tmd->coords->workm.t[2];
-        sc->hitOffset.vx = sc->hitPos.vx - arg1->extra.tmd->coords->workm.t[0];
-        sc->hitOffset.vy = sc->hitPos.vy - arg1->extra.tmd->coords->workm.t[1];
-        sc->hitOffset.vz = sc->hitPos.vz - arg1->extra.tmd->coords->workm.t[2];
-        angle            = ratan2(sc->hitOffset.vx, sc->hitOffset.vz) -
-                ratan2(-arg1->extra.tmd->coords->workm.m[2][0], arg1->extra.tmd->coords->workm.m[2][2]);
-        sc->hitYaw = angle;
-        sc->hitYaw = _actorAngleNormalizeYaw(angle);
-        _actor04000SpawnHitEffect(arg1, sc->hitYaw, sc->hitKey);
-        snd = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280003;
-        pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
-        damageAccumulateLifeDrainHp(arg0, sc->hitKey, sc->damage, 0);
-        worldTargetAddReadoutAmount(&arg0->node, sc->damage, 0);
-        arg0->hp -= sc->damage;
-        if (arg0->hp <= 0) {
+    if (hitScratch->hitKey != 0) {
+        hitScratch->damage = damageComputePlayerAttack(hitScratch->hitKey, 0, 0, ACTOR_04000_UNUSED_REACTION_SCALE);
+        _actor04000ComputeHitBearing(task, hitScratch);
+        _actor04000SpawnHitEffect(task, hitScratch->hitYaw, hitScratch->hitKey);
+        soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_04000_HIT_SOUND;
+        soundPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        damageAccumulateLifeDrainHp(enemy, hitScratch->hitKey, hitScratch->damage, 0);
+        worldTargetAddReadoutAmount(&enemy->node, hitScratch->damage, 0);
+        enemy->hp -= hitScratch->damage;
+        if (enemy->hp <= 0) {
             work->state = ACTOR_04000_STATE_DEATH_BURST;
         }
         if (work->holdingPlayer == 1) {
@@ -3076,7 +3096,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
         }
     }
     if (arg0->hp > 0) {
-        Actor04000_Fn03FB4(arg0, arg1);
+        _actor04000ApplyAttackHit(arg0, arg1);
         if (arg0->hp <= 0) {
             work->state = ACTOR_04000_STATE_DEATH_BURST;
         }

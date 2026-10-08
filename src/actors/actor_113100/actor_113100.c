@@ -90,7 +90,7 @@ typedef struct {
 } _Actor113100PierceCarradineWork;
 STATIC_ASSERT_SIZEOF(_Actor113100PierceCarradineWork, 0x540);
 
-/// Child task table the setup handler `func_actor_113100_80131E58` spawns
+/// Child task table the setup handler `_actor113100SpawnPierceCarradine` spawns
 /// from, four `TaskDesc` entries. Index 1 is spawned only when
 /// `gGameSession->location.loc.variant == 2` and its task lands in
 /// `_Actor113100PierceCarradineWork::billboardTask`; indices 2 and 3 are the two
@@ -117,8 +117,8 @@ extern AnimationSet** D_actor_113100_801442E0[1];
 /// `AnimationPlayRequest::animationId`.
 extern u8 D_actor_113100_801442E4[];
 
-static void func_actor_113100_80131E58(Task* task);
-static void func_actor_113100_80132104(Task* task);
+static void _actor113100SpawnPierceCarradine(Task* task);
+static void _actor113100UpdatePierceCarradine(Task* task);
 static void _actor113100TurnAndBeginWalk(Task* task);
 static void _actor113100CheckWalkArrival(Task* task);
 static s32  _actor113100SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
@@ -157,8 +157,8 @@ static const TaskFuncTable3 D_actor_113100_80131E30 = { {
 /// The actor's own three states - setup, per-frame tick and exit -
 /// dispatched by `_actor113100PierceCarradineTask`.
 static const TaskFuncTable3 D_actor_113100_80131E3C = { {
-    func_actor_113100_80131E58,
-    func_actor_113100_80132104,
+    _actor113100SpawnPierceCarradine,
+    _actor113100UpdatePierceCarradine,
     _actor113100Exit,
 } };
 
@@ -1170,34 +1170,67 @@ TaskMessageEntry D_actor_113100_80144338[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-/// Setup handler (state 0): allocates the work block, clears the
-/// three "no id yet" sentinels and spawns the actor's children from
-/// `D_actor_113100_80144308` -- index 1 only in arena mode
-/// (`gGameSession->location.loc.variant == 2`), then indices 2 and 3, whose models get the
-/// texture page and CLUT of the area record the actor's own location key
-/// resolves to. It then builds the work block's collision sphere `body`: it
-/// borrows the one-entry `contacts` table that follows it, sits on model part 1
-/// with a zero offset and a radius of 0x100, and is linked with its pair pass
-/// enabled. Finally it publishes the message
-/// table, installs the exit callback and steps to the next state.
-static void func_actor_113100_80131E58(Task* task)
+/// Applies the parent's area-placement textures to one attached model.
+///
+/// Borrows live parent/child tasks and the parent's Enemy spawn argument.
+/// The placement index comes from the owning enemy's high place-key bits;
+/// the current scene location supplies the area and its synchronized variant.
+/// A present primitive buffer has both halves rebuilt before the child runs.
+static inline void _actor113100BindChildPlacementTextures(Task* task, Task* childTask)
 {
+    GameLocationKey  placementLocation;
+    GameLocationKey* sessionLocation;
+    TmdObject*       attachedModel;
+    AreaPlacement*   placement;
+    u8               viewId;
+    u32              placementKey;
+    u32              placementIndex;
+
+    sessionLocation         = &gGameSession->location.loc;
+    placementKey            = ((Enemy*)task->spawnArg2.pointer)->placeKey;
+    attachedModel           = childTask->extra.tmd;
+    placementLocation.stage = sessionLocation->stage;
+    placementLocation.area  = sessionLocation->area;
+    placementLocation.room  = sessionLocation->room;
+    viewId                  = gGameSession->location.loc.view;
+    placementIndex          = placementKey >> ENEMY_PLACE_INDEX_SHIFT;
+    placementLocation.view  = viewId;
+    areaSyncLocationVariant(&placementLocation);
+    placement                        = gpAreaPlaceAt(areaGetVariant(&placementLocation)->placements, placementIndex);
+    attachedModel->texturePageOffset = placement->texturePageOffset;
+    attachedModel->clutRowOffset     = placement->clutRowOffset;
+    if (attachedModel->buffer != NULL) {
+        tmdBuildBufferHalf(attachedModel);
+        tmdBuildBufferHalf(attachedModel);
+    }
+}
+
+/// Creates Pierce Carradine's scripted body, attached models and collision sphere.
+///
+/// Requires a live twenty-part TMD and owning Enemy in `spawnArg2.pointer`.
+/// Owns zeroed work until exit; allocation failure exits the enemy task.
+/// Children borrow the parent task and model, and use its placement's textures.
+/// Child failures are independent. Variant 2 also creates the camera-facing
+/// model. Links an enemy-body sphere of radius 256 on part 1 with one contact
+/// slot, then hides the body and disables its sphere pair pass.
+/// Installs messages and teardown and advances from spawn state to update.
+static void _actor113100SpawnPierceCarradine(Task* task)
+{
+    enum {
+        ACTOR_113100_BILLBOARD_VARIANT     = 2,
+        ACTOR_113100_BILLBOARD_CHILD       = 1,
+        ACTOR_113100_ATTACHED_CHILD_2      = 2,
+        ACTOR_113100_ATTACHED_CHILD_3      = 3,
+        ACTOR_113100_BILLBOARD_PARENT_PART = 8,
+        ACTOR_113100_CHILD_2_PARENT_PART   = 4,
+        ACTOR_113100_CHILD_3_PARENT_PART   = 2,
+        ACTOR_113100_BODY_RADIUS           = 256,
+        ACTOR_113100_BUFFER_FREE_DISABLED  = -1,
+    };
     _Actor113100PierceCarradineWork* work;
-    Task*                            child2;
-    Task*                            child3;
-    GameLocationKey                  key;
-    GameLocationKey*                 sessionKey2;
-    GameLocationKey*                 sessionKey3;
-    TmdObject*                       model2;
-    TmdObject*                       model3;
-    AreaPlacement*                   entry2;
-    AreaPlacement*                   entry3;
-    WorldCollisionBody*              obj;
-    u8                               areaByte0;
-    u32                              raw2;
-    u32                              raw3;
-    u32                              index2;
-    u32                              index3;
+    Task*                            attachedTask2;
+    Task*                            attachedTask3;
+    WorldCollisionBody*              body;
 
     work = memCalloc(sizeof(_Actor113100PierceCarradineWork), false);
     if (work == NULL) {
@@ -1207,70 +1240,39 @@ static void func_actor_113100_80131E58(Task* task)
     task->work               = work;
     work->model.animId       = ACTOR_MODEL_STATE_NONE;
     work->model.bank         = ACTOR_MODEL_STATE_NONE;
-    work->freeCountdown      = -1;
+    work->freeCountdown      = ACTOR_113100_BUFFER_FREE_DISABLED;
     work->walk.carry[0].word = 0;
     work->walk.carry[1].word = 0;
     work->walk.carry[2].word = 0;
-    if (gGameSession->location.loc.variant == 2) {
-        work->billboardTask = taskSpawnFromTable(D_actor_113100_80144308, 1, 8, task);
+    if (gGameSession->location.loc.variant == ACTOR_113100_BILLBOARD_VARIANT) {
+        work->billboardTask = taskSpawnFromTable(D_actor_113100_80144308, ACTOR_113100_BILLBOARD_CHILD, ACTOR_113100_BILLBOARD_PARENT_PART, task);
     }
 
-    child2 = taskSpawnFromTable(D_actor_113100_80144308, 2, 4, task);
-    if (child2 != NULL) {
-        sessionKey2 = &gGameSession->location.loc;
-        raw2        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
-        model2      = child2->extra.tmd;
-        key.stage   = sessionKey2->stage;
-        key.area    = sessionKey2->area;
-        key.room    = sessionKey2->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index2      = raw2 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry2                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index2);
-        model2->texturePageOffset = entry2->texturePageOffset;
-        model2->clutRowOffset     = entry2->clutRowOffset;
-        if (model2->buffer != NULL) {
-            tmdBuildBufferHalf(model2);
-            tmdBuildBufferHalf(model2);
-        }
+    attachedTask2 = taskSpawnFromTable(D_actor_113100_80144308, ACTOR_113100_ATTACHED_CHILD_2, ACTOR_113100_CHILD_2_PARENT_PART, task);
+    if (attachedTask2 != NULL) {
+        _actor113100BindChildPlacementTextures(task, attachedTask2);
     }
 
-    child3 = taskSpawnFromTable(D_actor_113100_80144308, 3, 2, task);
-    if (child3 != NULL) {
-        sessionKey3 = &gGameSession->location.loc;
-        raw3        = ((Enemy*)task->spawnArg2.pointer)->placeKey;
-        model3      = child3->extra.tmd;
-        key.stage   = sessionKey3->stage;
-        key.area    = sessionKey3->area;
-        key.room    = sessionKey3->room;
-        areaByte0   = gGameSession->location.loc.view;
-        index3      = raw3 >> 12;
-        key.view    = areaByte0;
-        areaSyncLocationVariant(&key);
-        entry3                    = gpAreaPlaceAt(areaGetVariant(&key)->placements, index3);
-        model3->texturePageOffset = entry3->texturePageOffset;
-        model3->clutRowOffset     = entry3->clutRowOffset;
-        if (model3->buffer != NULL) {
-            tmdBuildBufferHalf(model3);
-            tmdBuildBufferHalf(model3);
-        }
+    attachedTask3 = taskSpawnFromTable(D_actor_113100_80144308, ACTOR_113100_ATTACHED_CHILD_3, ACTOR_113100_CHILD_3_PARENT_PART, task);
+    if (attachedTask3 != NULL) {
+        _actor113100BindChildPlacementTextures(task, attachedTask3);
     }
 
     _actor113100BindLighting(task);
 
-    obj                   = &work->body;
-    obj->coord            = &task->extra.tmd->coords[1];
-    obj->context.contacts = work->contacts;
-    obj->key              = 0x30000;
-    obj->radius           = 0x100;
-    obj->pos.vx           = 0;
-    obj->pos.vy           = 0;
-    obj->pos.vz           = 0;
-    obj->flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, obj);
-    obj->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldCollisionInitContacts(obj->context.contacts, ARRAY_SIZE(work->contacts), 0);
+    // Keep the body linked for the work lifetime; visibility controls its pair pass.
+    body                   = &work->body;
+    body->coord            = &task->extra.tmd->coords[1];
+    body->context.contacts = work->contacts;
+    body->key              = WORLD_COLLISION_CONTACT_ENEMY_BODY;
+    body->radius           = ACTOR_113100_BODY_RADIUS;
+    body->pos.vx           = 0;
+    body->pos.vy           = 0;
+    body->pos.vz           = 0;
+    body->flags            = WORLD_COLLISION_BODY_SPHERE;
+    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, body);
+    body->flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    worldCollisionInitContacts(body->context.contacts, ARRAY_SIZE(work->contacts), 0);
 
     task->msgTable = D_actor_113100_80144338;
     mistParkingSetPierceCollisionPatchLowered(MIST_PARKING_PIERCE_PATCH_LOWERED);
@@ -1279,99 +1281,132 @@ static void func_actor_113100_80131E58(Task* task)
     task->state       += 1;
 }
 
-/// Per-frame tick of the actor's live state. While the model is not deferred
-/// (bit 0x80 of `TmdObject::flags`) it rebuilds part 1's world matrix and
-/// draws the ground shadow under that part. `gSceneCombatState.actorControl` gates the rest: a
-/// nonzero value skips it. The live path dispatches `_actor113100CheckPierceAppearance`
-/// or `_actor113100StepWalk` from a two-entry stack table indexed by
-/// `walk.motion`, integrates the 16.16 step at `walk.velocity` into `walk.carry[0].word` /
-/// `walk.carry[1].word` / `walk.carry[2].word` and the root translation, ticks slots 1..0x13
-/// once `model.ticking` has latched, and plays ids 0x5113000F / 0x51130013 /
-/// 0x51130010 from the slot-1 cue flags. While the model is visible it clears
-/// the occupied entry of `contacts`, ramps `turnWeight` toward 0 or 0x1000
-/// according to `turnUp`, and turns the head toward the player by that weight.
-/// `viewReady` rebuilds part 1's lighting, and `freeCountdown` counts the buffer
-/// free down to zero.
-static void func_actor_113100_80132104(Task* task)
+/// Applies one frame of Pierce's signed 16.16 walk velocity to the root.
+///
+/// Borrows live writable work/root in the same parent frame. Signed integer
+/// carries move XYZ before composition is invalidated; unsigned fractional
+/// halves remain for the next tick. Preserves the target's 32-bit additions.
+static inline void _actor113100IntegrateWalkVelocity(_Actor113100PierceCarradineWork* work, GfxCoord* rootCoord)
 {
-    TmdObject*                       extra    = task->extra.tmd;
-    _Actor113100PierceCarradineWork* work     = task->work;
-    TaskFunc                         funcs[2] = { _actor113100CheckPierceAppearance, _actor113100StepWalk };
-    VECTOR3                          pos;
-    GfxCoord*                        coord;
-    const AnimationRecord*           rec;
-    s32                              i;
-    s32                              snd;
-    s8                               mode;
-    u16                              rate;
+    work->walk.carry[0].word += work->walk.velocity.vx;
+    work->walk.carry[1].word += work->walk.velocity.vy;
+    work->walk.carry[2].word += work->walk.velocity.vz;
+    rootCoord->coord.t[0]    += work->walk.carry[0].halves.integer;
+    rootCoord->coord.t[1]    += work->walk.carry[1].halves.integer;
+    rootCoord->coord.t[2]    += work->walk.carry[2].halves.integer;
+    rootCoord->composeStamp   = GRAPHICS_COORD_DIRTY;
+    work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
+    work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
+    work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
+}
 
-    if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+/// Steps Pierce's head-aim weight toward zero or full aim.
+///
+/// Borrows work with a weight in 0..ONE. Selector 0 releases, 1 aims, and all
+/// other signed-byte selectors hold. Each add/subtract narrows to a signed
+/// halfword before saturation; the caller controls visibility and freeze gates.
+static inline void _actor113100StepHeadAimWeight(_Actor113100PierceCarradineWork* work)
+{
+    enum { ACTOR_113100_HEAD_WEIGHT_STEP  = ONE / 16,
+           ACTOR_113100_HEAD_WEIGHT_FULL  = ONE,
+           ACTOR_113100_HEAD_RAMP_RELEASE = 0,
+           ACTOR_113100_HEAD_RAMP_AIM     = 1 };
+    s8  turnDirection;
+    s16 steppedWeight;
+
+    turnDirection = (s8)work->turnUp;
+    switch (turnDirection) {
+        case ACTOR_113100_HEAD_RAMP_RELEASE:
+            steppedWeight    = work->turnWeight - ACTOR_113100_HEAD_WEIGHT_STEP;
+            work->turnWeight = steppedWeight;
+            if (steppedWeight < 0) {
+                work->turnWeight = 0;
+            }
+            break;
+        case ACTOR_113100_HEAD_RAMP_AIM:
+            steppedWeight    = work->turnWeight + ACTOR_113100_HEAD_WEIGHT_STEP;
+            work->turnWeight = steppedWeight;
+            if (steppedWeight >= ACTOR_113100_HEAD_WEIGHT_FULL + 1) {
+                work->turnWeight = ACTOR_113100_HEAD_WEIGHT_FULL;
+            }
+            break;
+    }
+}
+
+/// Updates Pierce's scripted walk, animation cues, head aim and model presentation.
+///
+/// Requires initialized live body/work; walk.motion is 0 (idle) or 1 (walking).
+/// A drawn body casts its shadow even while scene actors are paused. Motion,
+/// slots 1..19, lighting and delayed buffer release advance only while actors
+/// run. Velocity is signed 16.16 parent-space units per update; its signed
+/// integer part moves the root and its unsigned low halfword stays as carry.
+/// Drawn bodies clear their one contact and ramp head weight by 1/16 per tick
+/// toward zero or full aim. View 16 selects the alternate first footstep cue
+/// and suppresses the second. The tick finding freeCountdown == 0 frees the
+/// primitive buffer and decrements the counter to its disabled value of -1.
+static void _actor113100UpdatePierceCarradine(Task* task)
+{
+    enum {
+        ACTOR_113100_SHADOW_HALF_SIZE    = 512,
+        ACTOR_113100_HEAD_MAX_YAW        = 512,
+        ACTOR_113100_HEAD_MAX_PITCH      = 256,
+        ACTOR_113100_ALTERNATE_STEP_VIEW = 16,
+        ACTOR_113100_STEP_FIRST          = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0x0F),
+        ACTOR_113100_STEP_ALTERNATE      = SOUND_AREA(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_PARKING, 0x13),
+        ACTOR_113100_LIGHT_COUNT         = 3,
+    };
+    TmdObject*                       bodyModel         = task->extra.tmd;
+    _Actor113100PierceCarradineWork* work              = task->work;
+    TaskFunc                         motionHandlers[2] = { _actor113100CheckPierceAppearance, _actor113100StepWalk };
+    VECTOR3                          groundPosition;
+    GfxCoord*                        rootCoord;
+    const AnimationRecord*           soundCue;
+    s32                              slotIndex;
+    s32                              soundId;
+
+    // Project a visible body's shadow even when scene motion is frozen.
+    if (!(bodyModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &pos) != 0) {
-            effectDrawGroundShadow(&pos, 0x200, gRoomEffectState->groundShadowShade);
+        if (worldCollisionProjectGroundPoint(MATRIX_TRANS(&task->extra.tmd->coords[1].workm), &groundPosition) != 0) {
+            effectDrawGroundShadow(&groundPosition, ACTOR_113100_SHADOW_HALF_SIZE, gRoomEffectState->groundShadowShade);
         }
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        funcs[work->walk.motion](task);
-        coord                     = task->extra.tmd->coords;
-        work->walk.carry[0].word += work->walk.velocity.vx;
-        work->walk.carry[1].word += work->walk.velocity.vy;
-        work->walk.carry[2].word += work->walk.velocity.vz;
-        coord->coord.t[0]        += work->walk.carry[0].halves.integer;
-        coord->coord.t[1]        += work->walk.carry[1].halves.integer;
-        coord->coord.t[2]        += work->walk.carry[2].halves.integer;
-        coord->composeStamp       = GRAPHICS_COORD_DIRTY;
-        work->walk.carry[0].word  = work->walk.carry[0].halves.fraction;
-        work->walk.carry[1].word  = work->walk.carry[1].halves.fraction;
-        work->walk.carry[2].word  = work->walk.carry[2].halves.fraction;
+        motionHandlers[work->walk.motion](task);
+        rootCoord = task->extra.tmd->coords;
+        _actor113100IntegrateWalkVelocity(work, rootCoord);
         if (work->model.ticking != 0) {
-            for (i = 1; i < 0x14; i++) {
-                animationTickSlot(&work->rig.anim, i);
+            for (slotIndex = 1; slotIndex < (s32)ARRAY_SIZE(work->rig.slots); slotIndex++) {
+                animationTickSlot(&work->rig.anim, slotIndex);
             }
-            rec = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
-            if (rec != NULL) {
-                if (rec->flags & ANIMATION_RECORD_CUE_2) {
-                    snd = 0x5113000F;
-                    if (gGameSession->location.loc.view == 0x10) {
-                        snd = 0x51130013;
+            soundCue = animationGetCurrentRecord(&work->rig.anim, &work->rig.slots[1]);
+            if (soundCue != NULL) {
+                if (soundCue->flags & ANIMATION_RECORD_CUE_2) {
+                    soundId = ACTOR_113100_STEP_FIRST;
+                    if (gGameSession->location.loc.view == ACTOR_113100_ALTERNATE_STEP_VIEW) {
+                        soundId = ACTOR_113100_STEP_ALTERNATE;
                     }
-                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 }
-                if ((rec->flags & ANIMATION_RECORD_CUE_1) && (gGameSession->location.loc.view != 0x10)) {
-                    sndEvtRequestScriptStart(SOUND_MIST_PARKING_PIERCE_STEP_2, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                if ((soundCue->flags & ANIMATION_RECORD_CUE_1) && (gGameSession->location.loc.view != ACTOR_113100_ALTERNATE_STEP_VIEW)) {
+                    sndEvtRequestScriptStart(SOUND_MIST_PARKING_PIERCE_STEP_2, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
                 }
             }
         }
-        if (!(extra->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        if (!(bodyModel->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
             worldCollisionClearContacts(work->contacts);
-            mode = work->turnUp;
-            switch (mode) {
-                case 0:
-                    rate             = work->turnWeight - 0x100;
-                    work->turnWeight = rate;
-                    if ((s16)rate < 0) {
-                        work->turnWeight = 0;
-                    }
-                    break;
-                case 1:
-                    rate             = work->turnWeight + 0x100;
-                    work->turnWeight = rate;
-                    if ((s16)rate >= 0x1001) {
-                        work->turnWeight = 0x1000;
-                    }
-                    break;
-            }
-            animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), 0x200, 0x100, work->turnWeight);
+            _actor113100StepHeadAimWeight(work);
+            animationAimHeadAtTask(task, gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ACTOR_113100_HEAD_MAX_YAW, ACTOR_113100_HEAD_MAX_PITCH, work->turnWeight);
         }
         if (gGameSession->viewReady != 0) {
             task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&task->extra.tmd->coords[1]);
-            worldCoordSetModelLighting(extra, task->extra.tmd->coords[1].workm.t, 0, 3);
+            worldCoordSetModelLighting(bodyModel, task->extra.tmd->coords[1].workm.t, 0, ACTOR_113100_LIGHT_COUNT);
         }
         if (work->freeCountdown >= 0) {
             if (work->freeCountdown == 0) {
-                tmdFreePrimitiveBuffer(extra);
+                tmdFreePrimitiveBuffer(bodyModel);
             }
             work->freeCountdown--;
         }
