@@ -312,8 +312,8 @@ void factoryWhiteoutScene(Task* task);
 /// Runtime stage selects the day grid for daytime Dryfield and the night grid
 /// otherwise. Cell lists are retained, so both positions must use their existing
 /// reserved memberships. No work block or collision records are owned here.
-void factoryBarrierCollision(Task* task);
-void factoryLiftUpdate(Task* task);
+void        factoryBarrierCollision(Task* task);
+void        factoryLiftUpdate(Task* task);
 static void _factoryLiftBindLighting(Task* task);
 /// Runs the factory lamp scene and records CAP choice 3 before restoring the actors.
 ///
