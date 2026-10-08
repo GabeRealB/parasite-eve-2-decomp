@@ -849,7 +849,7 @@ void func_800B92CC(Task* task)
 {
     switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(1, 1, 0, 0):
-            func_acropolis_square_80180804(task);
+            acropolisSquareTelephoneMenuTask(task);
             break;
         case GAME_LOCATION_KEY(1, 15, 0, 0):
             func_acropolis_fire_escape_8017EA68(task);

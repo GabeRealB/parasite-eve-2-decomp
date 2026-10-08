@@ -54992,7 +54992,7 @@ which no pin would have found, because nothing was wrong with the arms.
 
 ## A shared switch tail belongs where the target puts it, not on its lowest case
 
-`func_acropolis_square_80181AEC` dispatches on `task->state` through a 6-entry
+`_acropolisSquareSirenSequenceTask` dispatches on `task->state` through a 6-entry
 jump table. Entries 1 and 2 point at a two-line tail (`task->state += 1;
 return;`) that cases 0 and 3 also `j` to, and case 4 falls into. In the target
 that tail sits *physically* between case 4's last instruction and case 5:
@@ -149687,7 +149687,7 @@ attempts; left as it was.
   (`_actor105100BeamSeekPlayer`): a `?:` of two comparisons in a condition
   branches from each arm straight to the `then`/`else` code.
 - **`if (a && b) goto handOff; if (c == 0) { handOff: ... }`** is
-  `if ((a && b) || c == 0)` (`func_acropolis_square_80181AEC`).
+  `if ((a && b) || c == 0)` (`_acropolisSquareSirenSequenceTask`).
 - Not converted: `func_actor_342000_80161EA4` / `func_actor_341900_80161E58`
   (the `done = 0` block of the settle scan sitting between `first = n == 8`
   and `i = first`). The block is where loop.c found a `BARRIER`, so the

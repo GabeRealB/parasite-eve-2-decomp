@@ -111,7 +111,7 @@ func_acropolis_square_801823DC = 0x801823DC; // type:func
 
 acropolisSquareBeaconGlowTask = 0x801825DC; // type:func
 
-func_acropolis_square_80180804 = 0x80180804; // type:func
+acropolisSquareTelephoneMenuTask = 0x80180804; // type:func
 
 acropolisSquarePlayerReflectionTask = 0x8017F41C; // type:func
 _telephoneDrawPlayDataRow = 0x8017F46C; // type:func
@@ -141,3 +141,11 @@ roomCutsceneTask = 0x80181228; // type:func
 _roomCutsceneSoundTask = 0x80182048; // type:func
 _acropolisSquareRejectKeyItemUse = 0x80182108; // type:func
 _acropolisSquareNoOp = 0x8018345c; // type:func
+_acropolisSquareSetBeaconGlowMode = 0x8018344c; // type:func
+_acropolisSquareSirenSequenceTask = 0x80181aec; // type:func
+_acropolisSquareScrollingBackdropTask = 0x80181dd0; // type:func
+_acropolisSquareHandleRoomAction = 0x801820d8; // type:func
+_acropolisSquareHandleSoundCue = 0x80182110; // type:func
+_acropolisSquareInitializeRoomTask = 0x80182260; // type:func
+_acropolisSquareIdleRoomTask = 0x801822a4; // type:func
+acropolisSquareRoomTask = 0x80182308; // type:func

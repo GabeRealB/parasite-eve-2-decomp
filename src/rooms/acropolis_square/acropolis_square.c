@@ -181,18 +181,19 @@ extern GfxCoord D_acropolis_square_801888CC;
 #define TELEPHONE_TITLE_BYTES "Telephone\0\xDC\xDD"
 #include "../../shared/telephone.h"
 
-static void func_acropolis_square_80182260(Task* task);
-static void func_acropolis_square_801822A4(Task* task);
+static void _acropolisSquareInitializeRoomTask(Task* task);
+static void _acropolisSquareIdleRoomTask(Task* unusedTask);
 
-s32        func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32        func_acropolis_square_801819BC(Task*, s32, s32, s32);
-s32        func_acropolis_square_801820D8(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-static s32 _acropolisSquareRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
-s32        func_acropolis_square_80182110(Task*, s32, s32, s32);
-void       func_acropolis_square_80181AEC(Task*);
-void       func_acropolis_square_80181DD0(Task*);
-void       func_acropolis_square_80182148(Task*);
-void       func_acropolis_square_80182200(s32);
+s32         func_acropolis_square_80181794(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32         func_acropolis_square_801819BC(Task*, s32, s32, s32);
+static s32  _acropolisSquareHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static s32  _acropolisSquareRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
+static s32  _acropolisSquareHandleSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueIndex, s32 unusedSecondArg);
+static s32  _acropolisSquareSetBeaconGlowMode(Task* unusedTask, s32 unusedMessageId, s32 glowMode, s32 unusedSecondArg);
+static void _acropolisSquareSirenSequenceTask(Task* task);
+static void _acropolisSquareScrollingBackdropTask(Task* task);
+void        func_acropolis_square_80182148(Task*);
+void        func_acropolis_square_80182200(s32);
 
 extern WorldCollisionGrid         D_acropolis_square_8018519C[1];
 extern WorldCollisionTrigger      D_acropolis_square_801851C0[16];
@@ -227,21 +228,24 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 
 enum { ACROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM = 5105 };
 
+/// Selects the room effect's beacon-glow mode with an integer first payload.
+enum { ACROPOLIS_SQUARE_MESSAGE_SET_BEACON_GLOW_MODE = 3103 };
+
 TaskMessageEntry D_acropolis_square_801837C4[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_acropolis_square_80181794 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_acropolis_square_801820D8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _acropolisSquareHandleRoomAction },
     { ACROPOLIS_SQUARE_MESSAGE_USE_KEY_ITEM, _acropolisSquareRejectKeyItemUse },
     { ROOM_MESSAGE_COMMAND, func_acropolis_square_801819BC },
-    { ROOM_MESSAGE_SOUND, func_acropolis_square_80182110 },
+    { ROOM_MESSAGE_SOUND, _acropolisSquareHandleSoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 AnimationPlayRequest D_acropolis_square_801837F4 = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
 TaskDesc D_acropolis_square_80183808[3] = {
-    { { { TASK_BODY_NONE, 32 } }, func_acropolis_square_80181AEC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _acropolisSquareSirenSequenceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, func_acropolis_square_80182148, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_square_80181DD0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisSquareScrollingBackdropTask, { .value = 0 } },
 };
 
 s32 D_acropolis_square_8018382C = 0;
@@ -249,7 +253,7 @@ s32 D_acropolis_square_8018382C = 0;
 s32 D_acropolis_square_80183830 = 0;
 
 EvsCommand D_acropolis_square_80183834[7] = {
-    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = 3103 }, { .value = 1 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_ROOM_EFFECT }, { .value = 0 }, { .value = ACROPOLIS_SQUARE_MESSAGE_SET_BEACON_GLOW_MODE }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x5101000A }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -304,10 +308,8 @@ s32 D_acropolis_square_80183B34[9] = {
     0x51010008,
 };
 
-s32 func_acropolis_square_8018344C(Task*, s32, s32, s32);
-
 TaskMessageEntry D_acropolis_square_80183B58[2] = {
-    { 3103, func_acropolis_square_8018344C },
+    { ACROPOLIS_SQUARE_MESSAGE_SET_BEACON_GLOW_MODE, _acropolisSquareSetBeaconGlowMode },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1378,7 +1380,7 @@ void acropolisSquarePlayerReflectionTask(Task* reflectionTask)
 
 #include "../../shared/telephone.inc.c"
 
-void func_acropolis_square_80180804(Task* task)
+void acropolisSquareTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }
@@ -1389,12 +1391,12 @@ void func_acropolis_square_80180804(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// State handlers of the room entry task `func_acropolis_square_80182308`,
+/// State handlers of the room entry task `acropolisSquareRoomTask`,
 /// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_acropolis_square_8017D6B4 = {
     {
-        func_acropolis_square_80182260,
-        func_acropolis_square_801822A4,
+        _acropolisSquareInitializeRoomTask,
+        _acropolisSquareIdleRoomTask,
         taskKill,
     },
 };
@@ -1501,22 +1503,56 @@ s32 func_acropolis_square_801819BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
     }
     return 0;
 }
-/// Siren task for the square. States 0-2 arm the scene and tick, 3 fires the
-/// first siren blast, 4 repeats it every 0x79 frames until the player answers,
-/// and 5 waits for the scripted phase to advance before handing the scene off
-/// to the slot-5 task and killing itself.
-void func_acropolis_square_80181AEC(Task* task)
+/// Positions and starts one siren blast, optionally restarting its repeat timer.
+///
+/// The origin uses whole world-coordinate units; audio pan and depth narrow
+/// to signed bytes for the sound request. Requires the square's live coordinate
+/// storage and a composed view hierarchy.
+static inline void _acropolisSquareStartSiren(s32 resetRepeatFrames)
 {
-    s32 pan;
-    s32 pan2;
-    s32 pan3;
-    s32 count;
-    s32 count2;
-    u32 state;
+    s32 soundPan;
 
-    state = task->state;
-    switch (state) {
-        case 0:
+    D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
+    D_acropolis_square_801888CC.coord.t[1] = -0xF96;
+    D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
+    if (resetRepeatFrames) {
+        D_acropolis_square_80188898 = 0;
+    }
+    D_acropolis_square_801888CC.parent = &gGfxViewCoord;
+    actorRenderComposeCoord(&D_acropolis_square_801888CC);
+    soundPan = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
+    sndEvtRequestScriptStart(SOUND_ACROPOLIS_SQUARE_SIREN, (s8)soundPan,
+                             (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
+}
+
+/// Runs the opening siren event, then repeats the alarm until its follow-up ends.
+///
+/// State 0 starts the event with a skip script and holds the player; states
+/// 1 and 2 advance one tick each, and state 3 sounds the first blast. State 4
+/// repeats every 121 ticks until EVS becomes idle, then releases the player.
+/// State 5 continues the alarm while the saved view is 5..7 or 9 and the
+/// follow-up remains armed; otherwise it restores normal beacon mode, stops
+/// the siren and kills this task. Requires the square overlay and resources.
+static void _acropolisSquareSirenSequenceTask(Task* task)
+{
+    enum {
+        ACROPOLIS_SQUARE_SIREN_START               = 0,
+        ACROPOLIS_SQUARE_SIREN_STARTUP_TICK_1      = 1,
+        ACROPOLIS_SQUARE_SIREN_STARTUP_TICK_2      = 2,
+        ACROPOLIS_SQUARE_SIREN_FIRST_BLAST         = 3,
+        ACROPOLIS_SQUARE_SIREN_WAIT_EVENT          = 4,
+        ACROPOLIS_SQUARE_SIREN_WAIT_HANDOFF        = 5,
+        ACROPOLIS_SQUARE_SIREN_REPEAT_FRAMES       = 121,
+        ACROPOLIS_SQUARE_SIREN_FIRST_FOLLOWUP_VIEW = 5,
+        ACROPOLIS_SQUARE_SIREN_FOLLOWUP_VIEW_COUNT = 3,
+        ACROPOLIS_SQUARE_SIREN_SCENE_VIEW          = 9,
+        ACROPOLIS_SQUARE_POST_SIREN_DIALOGUE       = 2
+    };
+    s32 repeatFrames;
+
+    switch (task->state) {
+        case ACROPOLIS_SQUARE_SIREN_START:
+            // Hold the player while the opening camera and siren script runs.
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             D_acropolis_square_8018382C = 1;
             D_acropolis_square_80188898 = 0;
@@ -1524,31 +1560,16 @@ void func_acropolis_square_80181AEC(Task* task)
             task->state += 1;
             return;
 
-        case 3:
-            D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
-            D_acropolis_square_801888CC.coord.t[1] = -0xF96;
-            D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
-            D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
-            actorRenderComposeCoord(&D_acropolis_square_801888CC);
-            pan = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
-            sndEvtRequestScriptStart(
-                SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan, (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
+        case ACROPOLIS_SQUARE_SIREN_FIRST_BLAST:
+            _acropolisSquareStartSiren(0);
             task->state += 1;
             return;
 
-        case 4:
-            count                       = D_acropolis_square_80188898 + 1;
-            D_acropolis_square_80188898 = count;
-            if (count >= 0x79) {
-                D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
-                D_acropolis_square_801888CC.coord.t[1] = -0xF96;
-                D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
-                D_acropolis_square_80188898            = 0;
-                D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
-                actorRenderComposeCoord(&D_acropolis_square_801888CC);
-                pan2 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
-                sndEvtRequestScriptStart(SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan2,
-                                         (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
+        case ACROPOLIS_SQUARE_SIREN_WAIT_EVENT:
+            repeatFrames                = D_acropolis_square_80188898 + 1;
+            D_acropolis_square_80188898 = repeatFrames;
+            if (repeatFrames >= ACROPOLIS_SQUARE_SIREN_REPEAT_FRAMES) {
+                _acropolisSquareStartSiren(1);
             }
             if (gGameSession->eventState != 0) {
                 return;
@@ -1556,132 +1577,149 @@ void func_acropolis_square_80181AEC(Task* task)
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             /* fallthrough */
 
-        case 1:
-        case 2:
+        case ACROPOLIS_SQUARE_SIREN_STARTUP_TICK_1:
+        case ACROPOLIS_SQUARE_SIREN_STARTUP_TICK_2:
             task->state += 1;
             return;
 
-        case 5:
-            if (((u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view - 5) >= 3U &&
-                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != 9) ||
+        case ACROPOLIS_SQUARE_SIREN_WAIT_HANDOFF:
+            // End the alarm after leaving views 5..7/9 or consuming its follow-up.
+            if (((u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view - ACROPOLIS_SQUARE_SIREN_FIRST_FOLLOWUP_VIEW) >= (u32)ACROPOLIS_SQUARE_SIREN_FOLLOWUP_VIEW_COUNT &&
+                 gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view != ACROPOLIS_SQUARE_SIREN_SCENE_VIEW) ||
                 D_acropolis_square_8018382C == 0) {
                 if (D_acropolis_square_8018382C != 0) {
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 2);
+                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, ACROPOLIS_SQUARE_POST_SIREN_DIALOGUE);
                     D_acropolis_square_8018382C = 0;
                 }
-                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xC1F, 0, 0);
+                taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), ACROPOLIS_SQUARE_MESSAGE_SET_BEACON_GLOW_MODE, 0, 0);
                 sndEvtRequestScriptStop(SOUND_ACROPOLIS_SQUARE_SIREN, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 taskKill(task);
                 return;
             }
-            count2                      = D_acropolis_square_80188898 + 1;
-            D_acropolis_square_80188898 = count2;
-            if (count2 >= 0x79) {
-                D_acropolis_square_801888CC.coord.t[0] = 0x19AA;
-                D_acropolis_square_801888CC.coord.t[1] = -0xF96;
-                D_acropolis_square_801888CC.coord.t[2] = 0x8DE;
-                D_acropolis_square_80188898            = 0;
-                D_acropolis_square_801888CC.parent     = &gGfxViewCoord;
-                actorRenderComposeCoord(&D_acropolis_square_801888CC);
-                pan3 = worldCoordGetOriginAudioPan(&D_acropolis_square_801888CC);
-                sndEvtRequestScriptStart(SOUND_ACROPOLIS_SQUARE_SIREN, (s8)pan3,
-                                         (s8)worldCoordGetOriginAudioDepth(&D_acropolis_square_801888CC));
+            repeatFrames                = D_acropolis_square_80188898 + 1;
+            D_acropolis_square_80188898 = repeatFrames;
+            if (repeatFrames >= ACROPOLIS_SQUARE_SIREN_REPEAT_FRAMES) {
+                _acropolisSquareStartSiren(1);
             }
             break;
     }
 }
-/// Scrolling backdrop task: three 256x240 sprite strips (the last one half
-/// width) tiled across the screen from `D_acropolis_square_801888A0`, each with
-/// its own texture page. States 0-3 slide the strip in and hold it for a while,
-/// state 4 kills the task; every state still draws.
-void func_acropolis_square_80181DD0(Task* task)
+/// Pans a 640-by-240 backdrop right by 320 pixels, then selects view 13.
+///
+/// States 0..4 initialize, delay 46 ticks, scroll one pixel per tick, hold 31
+/// ticks and finish. Every tick draws, including the one that kills the task.
+/// The image is three raw-color 8-bit sprite strips of widths 256, 256 and
+/// 128, using VRAM X 448/576/704, Y 256 and the CLUT at (0, 255).
+/// Requires an initialized frame arena with room for three `SPRT` and three
+/// `DR_TPAGE` packets; queued packets must survive GPU drawing. Position and
+/// timing are room singletons, so only one such task may run at a time.
+static void _acropolisSquareScrollingBackdropTask(Task* task)
 {
-    SPRT*     p;
-    DR_TPAGE* dr;
-    s32       x;
-    s32       i;
-    s32       tpageX;
-    s32       count;
-    s32       count2;
-    s32       pos;
+    enum {
+        ACROPOLIS_SQUARE_BACKDROP_START          = 0,
+        ACROPOLIS_SQUARE_BACKDROP_DELAY          = 1,
+        ACROPOLIS_SQUARE_BACKDROP_SCROLL         = 2,
+        ACROPOLIS_SQUARE_BACKDROP_HOLD           = 3,
+        ACROPOLIS_SQUARE_BACKDROP_FINISH         = 4,
+        ACROPOLIS_SQUARE_BACKDROP_DELAY_FRAMES   = 46,
+        ACROPOLIS_SQUARE_BACKDROP_HOLD_FRAMES    = 31,
+        ACROPOLIS_SQUARE_BACKDROP_STRIP_COUNT    = 3,
+        ACROPOLIS_SQUARE_BACKDROP_FINISH_VIEW    = 13,
+        ACROPOLIS_SQUARE_BACKDROP_ORDERING_DEPTH = 4,
+        ACROPOLIS_SQUARE_BACKDROP_TEXTURE_8_BIT  = 1
+    };
+    SPRT*     sprite;
+    DR_TPAGE* drawMode;
+    s32       screenX;
+    s32       stripIndex;
+    s32       texturePageX;
+    s32       delayFrames;
+    s32       holdFrames;
+    s32       scrollX;
 
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_SQUARE_BACKDROP_START:
             D_acropolis_square_801888A0 = -0x140;
             D_acropolis_square_801888A4 = 0;
             task->state                += 1;
             break;
 
-        case 1:
-            count                       = D_acropolis_square_801888A4 + 1;
-            D_acropolis_square_801888A4 = count;
-            if (count >= 0x2E) {
+        case ACROPOLIS_SQUARE_BACKDROP_DELAY:
+            delayFrames                 = D_acropolis_square_801888A4 + 1;
+            D_acropolis_square_801888A4 = delayFrames;
+            if (delayFrames >= ACROPOLIS_SQUARE_BACKDROP_DELAY_FRAMES) {
                 task->state += 1;
             }
             break;
 
-        case 2:
-            pos                         = D_acropolis_square_801888A0 + 1;
-            D_acropolis_square_801888A0 = pos;
-            if (pos >= 0) {
+        case ACROPOLIS_SQUARE_BACKDROP_SCROLL:
+            scrollX                     = D_acropolis_square_801888A0 + 1;
+            D_acropolis_square_801888A0 = scrollX;
+            if (scrollX >= 0) {
                 D_acropolis_square_801888A4 = 0;
                 task->state                += 1;
             }
             break;
 
-        case 3:
-            count2                      = D_acropolis_square_801888A4 + 1;
-            D_acropolis_square_801888A4 = count2;
-            if (count2 >= 0x1F) {
+        case ACROPOLIS_SQUARE_BACKDROP_HOLD:
+            holdFrames                  = D_acropolis_square_801888A4 + 1;
+            D_acropolis_square_801888A4 = holdFrames;
+            if (holdFrames >= ACROPOLIS_SQUARE_BACKDROP_HOLD_FRAMES) {
                 task->state += 1;
             }
             break;
 
-        case 4:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 0xD;
+        case ACROPOLIS_SQUARE_BACKDROP_FINISH:
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACROPOLIS_SQUARE_BACKDROP_FINISH_VIEW;
             taskKill(task);
             break;
     }
 
-    x = D_acropolis_square_801888A0;
-    for (i = 0; i < 3; i++) {
-        tpageX         = 0x1C0 + i * 0x80;
-        p              = gGpuPrimCursor;
-        gGpuPrimCursor = p + 1;
-        setlen(p, 4);
-        setcode(p, 0x65);
-        p->x0 = x - 0xA0;
-        p->y0 = -0x78;
-        p->u0 = 0;
-        p->v0 = 0;
-        if (i == 2) {
-            p->w = 0x80;
-            p->h = 0xF0;
+    // Draw even on the final tick; prepend each texture page before its sprite.
+    screenX = D_acropolis_square_801888A0;
+    for (stripIndex = 0; stripIndex < ACROPOLIS_SQUARE_BACKDROP_STRIP_COUNT; stripIndex++) {
+        texturePageX   = 0x1C0 + stripIndex * 0x80;
+        sprite         = gGpuPrimCursor;
+        gGpuPrimCursor = sprite + 1;
+        setSprt(sprite);
+        setShadeTex(sprite, 1);
+        sprite->x0 = screenX - 0xA0;
+        sprite->y0 = -0x78;
+        sprite->u0 = 0;
+        sprite->v0 = 0;
+        if (stripIndex == ACROPOLIS_SQUARE_BACKDROP_STRIP_COUNT - 1) {
+            sprite->w = 0x80;
+            sprite->h = 0xF0;
         } else {
-            p->w = 0x100;
-            p->h = 0xF0;
+            sprite->w = 0x100;
+            sprite->h = 0xF0;
         }
-        p->clut = GetClut(0, 0xFF);
-        addPrim(&gGpuCurrentOt[4], p);
+        sprite->clut = GetClut(0, 0xFF);
+        addPrim(&gGpuCurrentOt[ACROPOLIS_SQUARE_BACKDROP_ORDERING_DEPTH], sprite);
 
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        setDrawTPage(dr, 0, 1, GetTPage(1, 0, tpageX, 0x100));
-        addPrim(&gGpuCurrentOt[4], dr);
+        drawMode       = gGpuPrimCursor;
+        gGpuPrimCursor = drawMode + 1;
+        setDrawTPage(drawMode, 0, 1, GetTPage(ACROPOLIS_SQUARE_BACKDROP_TEXTURE_8_BIT, GPU_BLEND_AVERAGE, texturePageX, 0x100));
+        addPrim(&gGpuCurrentOt[ACROPOLIS_SQUARE_BACKDROP_ORDERING_DEPTH], drawMode);
 
-        x += 0x100;
+        screenX += 0x100;
     }
 }
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_acropolis_square_801820D8(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Starts CAP event 5 for room action 0, returning 0 for every action.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a live request through dispatch;
+/// only its action ID is read. Other IDs are ignored, as are the other arguments.
+static s32 _acropolisSquareHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { ACROPOLIS_SQUARE_ACTION_START_EVENT = 0,
+           ACROPOLIS_SQUARE_ACTION_CAP_EVENT   = 5 };
 
-    if (request->actionId == 0) {
-        capSpawnEventIfIdle(5, CAP_EVENT_NO_FLAGS);
+    if (request->actionId == ACROPOLIS_SQUARE_ACTION_START_EVENT) {
+        capSpawnEventIfIdle(ACROPOLIS_SQUARE_ACTION_CAP_EVENT, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -1695,9 +1733,14 @@ static s32 _acropolisSquareRejectKeyItemUse(Task* unusedTask, s32 unusedMessageI
     return 0;
 }
 
-s32 func_acropolis_square_80182110(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Starts the square's sound script selected by a zero-based cue index.
+///
+/// Handles `ROOM_MESSAGE_SOUND`. `cueIndex` must be in 0..8; no bounds check
+/// is performed. Entries 0, 2, 3 and 4 pass a zero script ID through unchanged.
+/// Playback is centered with neutral depth; returns 0 and ignores other arguments.
+static s32 _acropolisSquareHandleSoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueIndex, s32 unusedSecondArg)
 {
-    sndEvtRequestScriptStart(D_acropolis_square_80183B34[arg2], 0, 0);
+    sndEvtRequestScriptStart(D_acropolis_square_80183B34[cueIndex], 0, 0);
     return 0;
 }
 
@@ -1745,34 +1788,42 @@ void func_acropolis_square_80182200(s32 arg0)
     }
 }
 
-/// First state of the room entry task: installs the room's message table,
-/// publishes the task in pointer slot 7 and advances the state.
-static void func_acropolis_square_80182260(Task* task)
+/// Installs the square's room message handlers and registers the live room task.
+///
+/// Called in state 0; the table is borrowed from this loaded overlay. Advances
+/// to the idle state without creating a body or work block.
+static void _acropolisSquareInitializeRoomTask(Task* task)
 {
     task->msgTable = D_acropolis_square_801837C4;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state += 1;
 }
 
-static void func_acropolis_square_801822A4(Task* task)
+/// Starts the warp-7 arrival event once per overlay load.
+///
+/// Called in the room task's idle state; leaves the state unchanged. Arms scene
+/// music event 2 and starts the event/skip scripts with HUD hiding and restoration.
+/// The task itself is unused; room save state and overlay resources must be live.
+static void _acropolisSquareIdleRoomTask(Task* unusedTask)
 {
-    char pad[0x10];
+    // Removing this unused reservation changes the original 40-byte call frame.
+    char retainedStackSpace[0x10];
+    enum { ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP = 7,
+           ACROPOLIS_SQUARE_ARRIVAL_SCENE_EVENT   = 2 };
 
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 7 && D_acropolis_square_80183830 == 0) {
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ACROPOLIS_SQUARE_CUTSCENE_ARRIVAL_WARP && D_acropolis_square_80183830 == 0) {
         D_acropolis_square_80183830                         = 1;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACROPOLIS_SQUARE_ARRIVAL_SCENE_EVENT;
         evsStartScriptWithSkip(D_acropolis_square_8018399C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_acropolis_square_80183A5C);
     }
 }
 
-/// Room entry task: runs the state handler `D_acropolis_square_8017D6B4`
-/// names for `Task::state`, through a copy of the table taken onto the stack.
-void func_acropolis_square_80182308(Task* task)
+void acropolisSquareRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_acropolis_square_8017D6B4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_acropolis_square_8017D6B4;
+    stateHandlers.funcs[task->state](task);
 }
 
 s32 func_acropolis_square_80182360(s32 unused)
@@ -2031,9 +2082,15 @@ void acropolisSquareBeaconGlowTask(Task* task)
     effectKillTask(effectWork, task);
 }
 
-s32 func_acropolis_square_8018344C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects the variant used to construct subsequent beacon-glow spawn parameters.
+///
+/// Handles `ACROPOLIS_SQUARE_MESSAGE_SET_BEACON_GLOW_MODE`. Scripts send 1
+/// during the siren and 0 afterwards; any word is stored unchanged. Requires
+/// the square overlay and its live room effect. Returns 0; other arguments
+/// are ignored, and the payload is an integer rather than an object address.
+static s32 _acropolisSquareSetBeaconGlowMode(Task* unusedTask, s32 unusedMessageId, s32 glowMode, s32 unusedSecondArg)
 {
-    D_acropolis_square_80183B98 = arg2;
+    D_acropolis_square_80183B98 = glowMode;
     return 0;
 }
 

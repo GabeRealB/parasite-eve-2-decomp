@@ -602,7 +602,7 @@ AreaObjectRoom D_map_akropolis_8017A7FC[22] = {
 };
 
 TaskDesc D_map_akropolis_8017A8AC[] = {
-    { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_square_80182308, { .value = GP_TASK_LOC_KEY(1, 1, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, acropolisSquareRoomTask, { .value = GP_TASK_LOC_KEY(1, 1, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_east_elevator_hall_8017F55C, { .value = GP_TASK_LOC_KEY(1, 2, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_patio_8017DF8C, { .value = GP_TASK_LOC_KEY(1, 3, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_acropolis_cafeteria_8017E424, { .value = GP_TASK_LOC_KEY(1, 4, 0) } },

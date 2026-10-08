@@ -6,7 +6,7 @@ D_map_akropolis_8017997C = 0x8017997C; // force_not_migration:True
 // room records, task entries and models in the Akropolis and MIST room
 // packages, and marker models in the map pictures. Each lives in a package
 // loaded at a slot of its own, so each is absolute.
-func_acropolis_square_80182308 = 0x80182308; // type:func absolute:True owner=acropolis_square
+acropolisSquareRoomTask = 0x80182308; // type:func absolute:True owner=acropolis_square
 D_acropolis_square_80183B9C = 0x80183B9C; // absolute:True owner=acropolis_square shared=rooms
 D_acropolis_square_80183BAC = 0x80183BAC; // absolute:True owner=acropolis_square
 D_acropolis_square_80183BB0 = 0x80183BB0; // absolute:True owner=acropolis_square shared=rooms

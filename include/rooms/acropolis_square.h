@@ -58,7 +58,12 @@ void func_acropolis_square_801823DC(Task* task);
 /// Keep this overlay loaded through the callback.
 void acropolisSquareBeaconGlowTask(Task* task);
 
-void func_acropolis_square_80180804(Task* task);
+/// Updates the square telephone's save menu and optional play statistics.
+///
+/// `spawnArg2.pointer` borrows the live UI object owned by this task. Save,
+/// notice and statistics children must stay linked until their answers are
+/// consumed. Requires this overlay and its telephone UI resources to stay loaded.
+void acropolisSquareTelephoneMenuTask(Task* task);
 
 /// Initializes and updates the player's floor or mirror-plane reflection in the square.
 ///
@@ -70,8 +75,13 @@ void func_acropolis_square_80180804(Task* task);
 /// attachment reflections run.
 void acropolisSquarePlayerReflectionTask(Task* reflectionTask);
 
-/// Task entries the Akropolis map UI overlay's stage tables name: each room's
-/// entry task, started for its location, and the enemy descriptors' tasks.
-void func_acropolis_square_80182308(Task* task);
+/// Registers the square's room task and checks its arrival cutscene each tick.
+///
+/// State 0 installs message handling and publishes `GAME_TASK_SLOT_ROOM`;
+/// state 1 starts the warp-7 event once per overlay load; state 2 kills the task.
+/// Only states 0..2 are valid. The task has no body or work requirements.
+/// The Akropolis map UI spawns it for the square. Keep this overlay loaded
+/// while the task, its message handlers and its event scripts can run.
+void acropolisSquareRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_SQUARE_H
