@@ -1656,14 +1656,23 @@ static __inline__ s16 _actorAngleTurnToOffset(const GfxCoord* headingCoord, s16 
     return _actorAngleNormalizeYaw(offsetBearing - ratan2(-headingCoord->coord.m[2][0], headingCoord->coord.m[2][2]));
 }
 
-/// The turn from `coord`'s heading to the bearing of the offset `dir`,
-/// wrapped.
-static __inline__ s16 actorViewYaw(GfxCoord* coord, SVECTOR* dir)
+/// Returns the signed horizontal turn from a coordinate's heading to a direction.
+///
+/// `headingCoord` must supply a live local rotation. `direction` supplies signed
+/// 16-bit X/Z components in that coordinate's parent frame, using the same scale
+/// for both components; Y and the fourth halfword are ignored. Both pointers
+/// must be non-NULL and readable for this call. Neither input is changed or
+/// retained, and no storage is reserved.
+///
+/// Bearing uses +Z as zero and +X as the positive quarter-turn direction.
+/// Bearing minus local heading narrows to signed 16 bits before wrapping into
+/// [-2048, 2048], in 4096 units per turn; both half-turn endpoints are retained.
+/// A zero X/Z direction uses bearing zero and returns the wrapped negative
+/// heading. Translation, parent links and the composition cache are not read.
+/// Callers apply any turn limit and rotation themselves.
+static __inline__ s16 _actorAngleTurnToDirection(const GfxCoord* headingCoord, const SVECTOR* direction)
 {
-    s32 angle;
-
-    angle = ratan2(dir->vx, dir->vz);
-    return _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
+    return _actorAngleTurnToOffset(headingCoord, direction->vx, direction->vz);
 }
 
 /// Combines a movement step with a push along the same axis: the push when

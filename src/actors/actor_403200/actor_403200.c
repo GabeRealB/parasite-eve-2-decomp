@@ -4737,7 +4737,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
         sc->offset.vx       = (u16)task->extra.tmd->coords->coord.t[0] - (u16)sc->pullCentre.vx;
         sc->offset.vy       = 0;
         sc->offset.vz       = (u16)task->extra.tmd->coords->coord.t[2] - (u16)sc->pullCentre.vz;
-        ang                 = actorViewYaw(arg0->extra.tmd->coords, &sc->offset);
+        ang                 = _actorAngleTurnToDirection(arg0->extra.tmd->coords, &sc->offset);
         dirp                = &sc->offset;
         work->neckYawTarget = ang;
         VectorNormalSS(dirp, dirp);
@@ -4764,7 +4764,7 @@ static void func_actor_403200_8013B8C4(Task* arg0)
             sc->offset.vx = px - mx;
         }
         sc->offset.vz = (u16)sc->pullCentre.vz - (u16)D_actor_403200_8015F9C0.placement.pos.vz;
-        ang           = actorViewYaw(task->extra.tmd->coords, dirp);
+        ang           = _actorAngleTurnToDirection(task->extra.tmd->coords, dirp);
         {
             s32 ext = ang;
 

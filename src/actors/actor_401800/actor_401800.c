@@ -1562,7 +1562,7 @@ static void func_actor_401800_801381E4(Task* arg0)
         work->grabStartPos.vy = arg0->extra.tmd->coords->coord.t[1];
         work->grabStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
         Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
-        ang = actorViewYaw(arg0->extra.tmd->coords, &dir);
+        ang = _actorAngleTurnToDirection(arg0->extra.tmd->coords, &dir);
         gfxRotMatrixY(&arg0->extra.tmd->coords[0].coord, ang, 0);
         _actorRenderRescaleYaw(arg0->extra.tmd->coords, ODD_STRANGER_ROOT_SCALE);
         dir.vx                                = arg0->extra.tmd->coords->coord.t[0] - config->coordMtx->t[0];
@@ -1578,7 +1578,7 @@ static void func_actor_401800_801381E4(Task* arg0)
     _oddStrangerDriveAnimation(arg0);
     if ((work->rig.slots[1].currentPose.indices.recordIndex & 0x3FF) == 0x10 && gactor->mode != GAME_ACTOR_MODE_SCRIPTED) {
         Actor401800_ViewWalk(arg0->extra.tmd->coords, &sv, &dir);
-        ang = actorViewYaw(arg0->extra.tmd->coords, &dir);
+        ang = _actorAngleTurnToDirection(arg0->extra.tmd->coords, &dir);
         if (ang < 0) {
             ang = -ang;
         }
