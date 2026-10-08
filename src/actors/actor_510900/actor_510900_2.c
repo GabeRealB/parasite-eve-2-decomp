@@ -18,6 +18,7 @@
 #include "gameplay/attachments.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effect_tasks.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -70,6 +71,7 @@ enum {
     ACTOR_510900_ANIM_WALK_FIRE              = 4,
     ACTOR_510900_ANIM_BACKSTEP               = 5,
     ACTOR_510900_ANIM_CATCH_UP               = 6,
+    ACTOR_510900_ANIM_LETHAL_STRIKE          = 7,
     ACTOR_510900_ANIM_SLASH_FIRST            = 8,
     ACTOR_510900_ANIM_SLASH_SECOND           = 9,
     ACTOR_510900_ANIM_SLASH_WINDUP           = 10,
@@ -140,6 +142,7 @@ enum {
     ACTOR_510900_ATTACK_DASH        = 0,
     ACTOR_510900_ATTACK_FLAME_LUNGE = 1,
     ACTOR_510900_ATTACK_SLASH       = 2,
+    ACTOR_510900_ATTACK_LETHAL      = 3,
     ACTOR_510900_ATTACK_GRENADE     = 4,
     ACTOR_510900_ATTACK_IGNITION    = 5,
 };
@@ -216,6 +219,34 @@ enum { ACTOR_510900_MESSAGE_SET_ACTIVATION = 2007 };
 enum {
     ACTOR_510900_CHILD_TASK_RUNNING = 1,
     ACTOR_510900_GRENADE_TASK_BURST = 2,
+};
+
+/// Progress of the lethal attack; once struck, incoming damage cannot kill the golem.
+enum {
+    ACTOR_510900_LETHAL_PHASE_NONE   = 0,
+    ACTOR_510900_LETHAL_PHASE_WINDUP = 1,
+    ACTOR_510900_LETHAL_PHASE_STRUCK = 2,
+};
+
+/// Hazard rows whose blast contacts this golem consumes.
+enum {
+    ACTOR_510900_HAZARD_LIGHT_BLAST   = 2,
+    ACTOR_510900_HAZARD_SOURCE_RECOIL = 3,
+    ACTOR_510900_HAZARD_SOURCE_STUN   = 4,
+};
+
+/// States sent to the helipad light's adopted spark controller.
+enum {
+    ACTOR_510900_LIGHT_SPARKS_BURSTS_ONLY = 1,
+    ACTOR_510900_LIGHT_SPARKS_RELEASE     = 2,
+};
+
+/// States sent to the blast source's adopted flare controller.
+enum {
+    ACTOR_510900_SOURCE_FLARE_FLICKERING = 0,
+    ACTOR_510900_SOURCE_FLARE_RAW_COLOR  = 1,
+    ACTOR_510900_SOURCE_FLARE_EMBERS     = 2,
+    ACTOR_510900_SOURCE_FLARE_RELEASE    = 3,
 };
 
 static s32 _actor510900SetActivation(Task* task, s32 messageId, s32 command, s32 unusedArg);
@@ -486,13 +517,13 @@ static void _actor510900AdvanceAlongLap(Task* task);
 static void _actor510900PlayStepSounds(Task* task);
 static void _actor510900ApplyHitTwist(Task* task);
 static void _actor510900UpdateGridFaces(Task* task);
-static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1);
+static void _actor510900TickCombat(Enemy* enemy, Task* task);
 static void _actor510900ConsumeReactionFlags(Task* task);
-static void func_actor_510900_8013B870(Task* arg0);
+static void _actor510900TickCombatState(Task* task);
 static void _actor510900TickBuildupStun(Task* task);
 static void _actor510900TickFlinch(Task* task);
 static void _actor510900UpdateBodyAnimation(Task* task);
-static void func_actor_510900_8013BC80(Task* arg0);
+static void _actor510900UpdateFlameJet(Task* task);
 
 static void _actor510900ExitHelipadLight(Task* task);
 static void _actor510900ExitBlastSource(Task* task);
@@ -505,9 +536,9 @@ void        func_actor_510900_8013B3D0(Task*);
 static void _actor510900PropTask(Task* task);
 static void _actor510900WeaponTask(Task* task);
 static void _actor510900ChestModelTask(Task* task);
-void        func_actor_510900_8013C190(Task*);
+static void _actor510900GrenadeTask(Task* task);
 void        func_actor_510900_8013C1EC(Task*);
-void        func_actor_510900_8013C3DC(Task*);
+static void _actor510900BlastSourceTask(Task* task);
 
 DamageAttack D_actor_510900_8016796C[5] = {
     { 24, 6 },
@@ -607,9 +638,9 @@ TaskDesc D_actor_510900_80167A18[7] = {
     { { { TASK_BODY_TMD, 96 } }, _actor510900PropTask, { .model = &gActor510900No9GolemAkropolisProp } },
     { { { TASK_BODY_TMD, 96 } }, _actor510900WeaponTask, { .model = &gActor510900Model0FE60 } },
     { { { TASK_BODY_TMD, 96 } }, _actor510900ChestModelTask, { .model = &gActor510900Model10468 } },
-    { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C190, { .model = &gActor510900GolemGrenade } },
+    { { { TASK_BODY_TMD, 96 } }, _actor510900GrenadeTask, { .model = &gActor510900GolemGrenade } },
     { { { TASK_BODY_TMD, 96 } }, func_actor_510900_8013C1EC, { .model = &gActor510900Model10C8C } },
-    { { { TASK_BODY_COORD, 96 } }, func_actor_510900_8013C3DC, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, _actor510900BlastSourceTask, { .value = 0 } },
 };
 
 TaskMessageEntry D_actor_510900_80167A6C[7] = {
@@ -916,13 +947,13 @@ u16 D_actor_510900_80167CEC[7][4] = {
 
 static void _actor510900TickGrenadeHold(Task* task);
 
-static void func_actor_510900_8013A9BC(Task* task);
+static void _actor510900TickHelipadLightBreak(Task* task);
 
-static s32 func_actor_510900_8013C240(Task* task);
+static s32 _actor510900CheckHelipadLightView(Task* task);
 
 static void func_actor_510900_8013C338(Task* arg0, GfxCoord* arg1);
 
-static void func_actor_510900_8013B0D8(Task* arg0);
+static void _actor510900TickBlastSourcePhases(Task* task);
 
 /// View index the child keeps running in; any other view parks it.
 /// Game-flag nibble 0xD values, indexed by the blast source's
@@ -945,26 +976,26 @@ static void _actor510900UpdateChestModel(Enemy* enemy, Task* task);
 /// `_Actor510900HelipadLightWork::lightIndex`.
 extern u16 D_actor_510900_80167CD8[][3];
 
-static void func_actor_510900_80135744(Task* arg0);
+static void _actor510900ResolveBodyContacts(Task* task);
 static void _actor510900TickOpening(Task* task);
 static void _actor510900TickPatrol(Task* task);
 static void _actor510900TickSlash(Task* task);
 static void _actor510900TickFlameLunge(Task* task);
-static void func_actor_510900_801373B8(Task* arg0);
+static void _actor510900TickGrenadeThrow(Task* task);
 static void _actor510900TickDash(Task* task);
-static void func_actor_510900_80137868(Task* arg0);
+static void _actor510900TickLethalAttack(Task* task);
 static void _actor510900TickRecoil(Task* task);
 static void _actor510900TickSparkRecoil(Task* task);
 static void _actor510900TickSparkStun(Task* task);
 static void _actor510900TickDeath(Task* task);
 static void _actor510900UpdateProp(Enemy* enemy, Task* task);
 static void _actor510900InitGrenade(Enemy* enemy, Task* task);
-static void func_actor_510900_80139C10(Enemy* enemy, Task* task);
+static void _actor510900TickGrenadeFlight(Enemy* enemy, Task* task);
 static void _actor510900TickGrenadeBurst(Enemy* enemy, Task* task);
 static void _actor510900InitHelipadLight(Enemy* enemy, Task* task);
 static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1);
 static void _actor510900InitBlastSource(Enemy* enemy, Task* task);
-static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1);
+static void _actor510900TickBlastSource(Enemy* enemy, Task* task);
 
 /// Enables the weapon and forearm attack spheres with the same damage-table key.
 ///
@@ -1013,10 +1044,12 @@ static __inline__ void _actor510900SpawnReactionSpark(GfxCoord* bodyCoord, SVECT
     effectSpawn(EFFECT_FLASH_BURST, bodyCoord, ACTOR_510900_SPARK_BASE_SIZE, offset);
 }
 
-/// Stops grenade catching when the parent body is no longer present.
+/// Ends grenade catching when the golem parent disappears.
 ///
-/// The task and its owned work must remain live for the ending-frame countdown.
-/// Grid unlink is retained even though normal flight already unlinked the probe.
+/// Requires the live grenade model and its owned work. Disables its attack,
+/// unlinks the grid probe and resets the ending-frame counter while keeping the
+/// grenade task alive for delayed teardown. Grid unlink is safe after flight
+/// already removed the probe.
 static inline void _actor510900CancelGrenadeCatch(Task* task, _Actor510900GrenadeWork* work)
 {
     work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -1077,83 +1110,149 @@ static __inline__ void _actor510900ComposeHitRotation(MATRIX* chestRotation, con
     gte_MulMatrix0(chestRotation, hitRotation, chestRotation);
 }
 
-/// Applies this frame's hits from the three `bodyContacts` collision records. A
-/// type-2 id lands only while the `hitCooldown` cooldown is clear: its damage
-/// is halved for 0x8000 ids, otherwise scaled by the player's distance and
-/// doubled/quadrupled by the id's class and `damageRollCriticalHit`, and may pick
-/// a flinch (`reaction`) that sets the next handler. Type-5 ids apply the
-/// `damageGetHazardDamage` table damage directly.
-static void func_actor_510900_80135744(Task* arg0)
+/// Starts a random two-axis chest twist for a hit without a full-body reaction.
+///
+/// Requires live body work. One LCG draw chooses signed pitch and yaw magnitudes
+/// of 64..191 angle units (4096 per turn); the yaw uses the draw's signed upper byte.
+static __inline__ void _actor510900StartHitTwist(Actor510900Work* work)
 {
-    s32              lastId;
-    VECTOR*          d;
+    enum {
+        ACTOR_510900_HIT_TWIST_MIN_ANGLE  = 64,
+        ACTOR_510900_HIT_TWIST_ANGLE_MASK = 127,
+    };
+    u32 randomState;
+    u32 randomBits;
+    s32 pitchTwist;
+    s32 yawBits;
+    s32 yawTwist;
+
+    randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomBits      = randomState >> 16;
+    pitchTwist      = (randomBits & ACTOR_510900_HIT_TWIST_ANGLE_MASK) + ACTOR_510900_HIT_TWIST_MIN_ANGLE;
+    gRandomLcgState = randomState;
+    if (!(randomBits & 1)) {
+        pitchTwist = -pitchTwist;
+    }
+    work->hitTwist.vx = pitchTwist;
+    yawBits           = (s16)randomBits >> 8;
+    yawTwist          = (yawBits & ACTOR_510900_HIT_TWIST_ANGLE_MASK) + ACTOR_510900_HIT_TWIST_MIN_ANGLE;
+    if (!(yawBits & 1)) {
+        yawTwist = -yawTwist;
+    }
+    work->hitTwist.vy    = yawTwist;
+    work->hitTwistActive = 1;
+}
+
+/// Selects the lethal strike's forward and retreat movement from its frame windows.
+///
+/// `frame` uses the caller's signed word temporary; the second window wraps its
+/// subtraction to sixteen bits. Speeds are lap units per update.
+static __inline__ void _actor510900SetLethalLapSpeed(Actor510900Work* work, s32 frame, s32 retreatSpeed)
+{
+    enum {
+        ACTOR_510900_LETHAL_FORWARD_FIRST_FRAME = 75,
+        ACTOR_510900_LETHAL_FORWARD_FRAME_COUNT = 16,
+        ACTOR_510900_LETHAL_RETREAT_FIRST_FRAME = 143,
+        ACTOR_510900_LETHAL_RETREAT_FRAME_COUNT = 15,
+        ACTOR_510900_LETHAL_FORWARD_SPEED       = 60,
+    };
+    if (frame - ACTOR_510900_LETHAL_FORWARD_FIRST_FRAME < (u32)ACTOR_510900_LETHAL_FORWARD_FRAME_COUNT) {
+        work->lapSpeed = ACTOR_510900_LETHAL_FORWARD_SPEED;
+    } else if (((frame - ACTOR_510900_LETHAL_RETREAT_FIRST_FRAME) & 0xFFFF) < (u32)ACTOR_510900_LETHAL_RETREAT_FRAME_COUNT) {
+        work->lapSpeed = retreatSpeed;
+    } else {
+        work->lapSpeed = 0;
+    }
+}
+
+/// Applies incoming attack and helipad-hazard contacts and latches outgoing hits.
+///
+/// Requires the live body model, owned work and enemy. Weapon attacks respect the
+/// hit cooldown; hazard rows 2..4 apply fixed damage without that gate. Damage and
+/// cooldown results narrow to signed halfwords. Once the lethal strike starts,
+/// damage leaves at least one HP. Clears body contacts and occupied attack contacts;
+/// hit effects use the chest, with consecutive equal attack keys sharing one effect.
+static void _actor510900ResolveBodyContacts(Task* task)
+{
+    enum {
+        ACTOR_510900_HIT_TWIST                       = 0,
+        ACTOR_510900_HIT_FLINCH                      = 1,
+        ACTOR_510900_HIT_RECOIL                      = 2,
+        ACTOR_510900_ATTACK_ATTRIBUTE_REDUCED_DAMAGE = 4,
+        ACTOR_510900_ATTACK_ATTRIBUTE_DOUBLE_DAMAGE  = 5,
+        ACTOR_510900_SOUND_HIT_FLINCH                = 0x40780004,
+        ACTOR_510900_ATTACHMENT_KEY_BIT              = 0x8000,
+    };
+    s32              lastEffectKey;
+    VECTOR*          playerOffset;
     Actor510900Work* work;
     Enemy*           enemy;
-    GfxCoord*        coord;
-    s32              reaction;
-    s32              param;
-    s32              i;
-    s16              dmg;
-    s16              hit;
-    s32              full;
-    s16              loss;
-    s32              sound;
-    s32              pan;
-    s16              wait;
+    GfxCoord*        bodyCoord;
+    s32              hitReaction;
+    s32              attackAttribute;
+    s32              contactIndex;
+    s16              damage;
+    s16              hazardApplies;
+    s32              unscaledDamage;
+    s16              hazardDamage;
+    s32              soundKey;
+    s32              audioPan;
+    s16              cooldownFrames;
 
     SCRATCH_STACK_RESERVE_BYTES(sizeof(VECTOR));
-    d        = SCRATCH_STACK_CURSOR(VECTOR);
-    coord    = arg0->extra.tmd->coords;
-    work     = arg0->work;
-    enemy    = arg0->spawnArg2.pointer;
-    reaction = 0;
-    lastId   = 0;
+    playerOffset  = SCRATCH_STACK_CURSOR(VECTOR);
+    bodyCoord     = task->extra.tmd->coords;
+    work          = task->work;
+    enemy         = task->spawnArg2.pointer;
+    hitReaction   = ACTOR_510900_HIT_TWIST;
+    lastEffectKey = 0;
     if (work->hitCooldown != 0) {
         if (--work->hitCooldown <= 0) {
             work->hitCooldown = 0;
         }
     }
-    for (i = 0; i < ARRAY_SIZE(work->bodyContacts); i++) {
-        switch ((u16)(work->bodyContacts[i].key.value >> 16)) {
+    // Apply receiving contacts before consuming the weapon/forearm contact.
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->bodyContacts); contactIndex++) {
+        switch ((u16)(work->bodyContacts[contactIndex].key.value >> 16)) {
             case 0:
-            case 1:
-            case 3:
-            case 4:
+            case WORLD_COLLISION_CONTACT_PLAYER_BODY >> 16:
+            case WORLD_COLLISION_CONTACT_ENEMY_BODY >> 16:
+            case DAMAGE_ATTACK_CATEGORY >> 16:
                 break;
-            case 2:
+            case WORLD_COLLISION_CONTACT_ATTACK >> 16:
                 if (work->hitCooldown != 0) {
                     break;
                 }
-                param = damageGetPlayerAttackReaction(work->bodyContacts[i].key.value);
-                if (work->bodyContacts[i].key.value & 0x8000) {
-                    if ((u8)work->bodyContacts[i].key.value - 1 < 6U) {
-                        reaction = 2;
+                attackAttribute = damageGetPlayerAttackReaction(work->bodyContacts[contactIndex].key.value);
+                if (work->bodyContacts[contactIndex].key.value & ACTOR_510900_ATTACHMENT_KEY_BIT) {
+                    if ((u8)work->bodyContacts[contactIndex].key.value - 1 < 6U) {
+                        hitReaction = ACTOR_510900_HIT_RECOIL;
                     }
-                    dmg = (s16)damageComputePlayerAttack(work->bodyContacts[i].key.value, 0, 0, 0) >> 1;
-                    damageAccumulateLifeDrainHp(arg0->spawnArg2.pointer, work->bodyContacts[i].key.value, dmg, 0);
+                    damage = (s16)damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, 0, 0, 0) >> 1;
+                    damageAccumulateLifeDrainHp(task->spawnArg2.pointer, work->bodyContacts[contactIndex].key.value, damage, 0);
                 } else {
-                    d->vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-                    d->vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-                    d->vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-                    full  = damageComputePlayerAttack(work->bodyContacts[i].key.value, SquareRoot0(d->vx * d->vx + d->vy * d->vy + d->vz * d->vz), 0, 0);
-                    dmg   = full;
-                    if ((u16)param == 5) {
-                        dmg = full * 2;
-                        effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 2, NULL);
+                    playerOffset->vx = gPlayerStatus.coordMtx->t[0] - bodyCoord->coord.t[0];
+                    playerOffset->vy = gPlayerStatus.coordMtx->t[1] - bodyCoord->coord.t[1];
+                    playerOffset->vz = gPlayerStatus.coordMtx->t[2] - bodyCoord->coord.t[2];
+                    unscaledDamage   = damageComputePlayerAttack(work->bodyContacts[contactIndex].key.value, SquareRoot0(playerOffset->vx * playerOffset->vx + playerOffset->vy * playerOffset->vy + playerOffset->vz * playerOffset->vz), 0, 0);
+                    damage           = unscaledDamage;
+                    if ((u16)attackAttribute == ACTOR_510900_ATTACK_ATTRIBUTE_DOUBLE_DAMAGE) {
+                        damage = unscaledDamage * 2;
+                        effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[3], 2, NULL);
                     }
-                    if (damageRollCriticalHit(enemy, work->bodyContacts[i].key.value, 0) != 0) {
-                        dmg *= 4;
-                        if ((u16)param != 5) {
-                            effectSpawn(EFFECT_CRITICAL_HIT, &arg0->extra.tmd->coords[3], 0, NULL);
+                    if (damageRollCriticalHit(enemy, work->bodyContacts[contactIndex].key.value, 0) != 0) {
+                        damage *= 4;
+                        if ((u16)attackAttribute != ACTOR_510900_ATTACK_ATTRIBUTE_DOUBLE_DAMAGE) {
+                            effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[3], 0, NULL);
                         }
                         if (work->buildupStunned == 0) {
-                            reaction = 1;
+                            hitReaction = ACTOR_510900_HIT_FLINCH;
                         }
                     }
                 }
-                switch ((u16)param) {
+                switch ((u16)attackAttribute) {
                     case DAMAGE_PLAYER_REACTION_NONE:
-                    case 5:
+                    case ACTOR_510900_ATTACK_ATTRIBUTE_DOUBLE_DAMAGE:
                     case DAMAGE_PLAYER_REACTION_EXPLOSION:
                     case DAMAGE_PLAYER_REACTION_INCENDIARY:
                     case 8:
@@ -1163,93 +1262,73 @@ static void func_actor_510900_80135744(Task* arg0)
                         if (work->buildupStunned == 0) {
                             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                             if ((gRandomLcgState >> 16) & 1) {
-                                reaction = 1;
+                                hitReaction = ACTOR_510900_HIT_FLINCH;
                             }
                         }
                         break;
                     case DAMAGE_PLAYER_REACTION_BUILDUP:
-                        if (work->lethalAttackPhase == 0) {
-                            damageStartEnemyBuildup(enemy, work->bodyContacts[i].key.value, 0);
+                        if (work->lethalAttackPhase == ACTOR_510900_LETHAL_PHASE_NONE) {
+                            damageStartEnemyBuildup(enemy, work->bodyContacts[contactIndex].key.value, 0);
                         }
                         break;
                     case DAMAGE_PLAYER_REACTION_POISON:
                         if (work->buildupStunned == 0) {
-                            reaction = 2;
+                            hitReaction = ACTOR_510900_HIT_RECOIL;
                         }
                         break;
-                    case 4:
-                        dmg = dmg * 75 / 100;
+                    case ACTOR_510900_ATTACK_ATTRIBUTE_REDUCED_DAMAGE:
+                        damage = damage * 75 / 100;
                         break;
                 }
-                enemy->hp -= dmg;
-                worldTargetAddReadoutAmount(&enemy->node, dmg, 0);
+                enemy->hp -= damage;
+                worldTargetAddReadoutAmount(&enemy->node, damage, 0);
                 if (enemy->hp <= 0) {
-                    if (work->lethalAttackPhase < 2) {
-                        work->lethalAttackPhase = 0;
+                    if (work->lethalAttackPhase < ACTOR_510900_LETHAL_PHASE_STRUCK) {
+                        work->lethalAttackPhase = ACTOR_510900_LETHAL_PHASE_NONE;
                     } else {
                         enemy->hp = 1;
                     }
                 }
-                if (reaction != 0) {
+                if (hitReaction != ACTOR_510900_HIT_TWIST) {
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780004;
+                        soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_HIT_FLINCH;
                     } else {
-                        sound = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780005;
+                        soundKey = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_RECOIL;
                     }
-                    pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                    audioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
+                    sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
                 }
                 if (work->sparkSound != 0) {
                     sndEvtRequestScriptStop(work->sparkSound, SOUND_SCRIPT_STOP_NO_FADE);
                     work->sparkSound = 0;
                 }
-                if (work->lethalAttackPhase == 1) {
-                    reaction = 0;
+                if (work->lethalAttackPhase == ACTOR_510900_LETHAL_PHASE_WINDUP) {
+                    hitReaction = ACTOR_510900_HIT_TWIST;
                 }
-                switch (reaction) {
-                    case 0: {
-                        u32 rng;
-                        u32 r;
-                        s32 v;
-                        s32 r2;
-                        s32 v2;
-
-                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        r               = rng >> 16;
-                        v               = (r & 0x7F) + 0x40;
-                        gRandomLcgState = rng;
-                        if (!(r & 1)) {
-                            v = -v;
-                        }
-                        work->hitTwist.vx = v;
-                        r2                = (s16)r >> 8;
-                        v2                = (r2 & 0x7F) + 0x40;
-                        if (!(r2 & 1)) {
-                            v2 = -v2;
-                        }
-                        work->hitTwist.vy    = v2;
-                        work->hitTwistActive = 1;
+                switch (hitReaction) {
+                    case ACTOR_510900_HIT_TWIST: {
+                        _actor510900StartHitTwist(work);
                         if (enemy->hp <= 0) {
                             work->state       = ACTOR_510900_STATE_DEATH;
-                            work->subState    = 0;
-                            work->animationId = 0x18;
+                            work->subState    = ACTOR_510900_DEATH_ENTER;
+                            work->animationId = ACTOR_510900_ANIM_DEATH;
                             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         }
                         break;
                     }
-                    case 1:
+                    case ACTOR_510900_HIT_FLINCH:
                         work->state                = ACTOR_510900_STATE_FLINCH;
-                        work->subState             = 0;
+                        work->subState             = ACTOR_510900_FLINCH_ENTER;
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         if (enemy->hp <= 0) {
                             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         }
                         break;
-                    case 2:
+                    case ACTOR_510900_HIT_RECOIL:
                         work->state                = ACTOR_510900_STATE_RECOIL;
-                        work->subState             = 0;
+                        work->subState             = ACTOR_510900_RECOIL_ENTER;
                         work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         if (enemy->hp <= 0) {
@@ -1257,43 +1336,43 @@ static void func_actor_510900_80135744(Task* arg0)
                         }
                         break;
                 }
-                if (lastId != work->bodyContacts[i].key.value) {
-                    lastId = work->bodyContacts[i].key.value;
-                    effectSpawnHit(damageGetPlayerAttackEffectId(lastId), &arg0->extra.tmd->coords[3], NULL, &work->hitEffectArg);
+                if (lastEffectKey != work->bodyContacts[contactIndex].key.value) {
+                    lastEffectKey = work->bodyContacts[contactIndex].key.value;
+                    effectSpawnHit(damageGetPlayerAttackEffectId(lastEffectKey), &task->extra.tmd->coords[3], NULL, &work->hitEffectArg);
                 }
-                wait = damageGetPlayerAttackHitCooldown(work->bodyContacts[i].key.value);
-                if (wait > 0) {
-                    work->hitCooldown = wait;
+                cooldownFrames = damageGetPlayerAttackHitCooldown(work->bodyContacts[contactIndex].key.value);
+                if (cooldownFrames > 0) {
+                    work->hitCooldown = cooldownFrames;
                 }
                 break;
-            case 5:
-                hit = 0;
-                switch ((u32)(u16)work->bodyContacts[i].key.value) {
-                    case 2:
-                        hit            = 1;
+            case DAMAGE_HAZARD_CATEGORY >> 16:
+                hazardApplies = 0;
+                switch ((u32)(u16)work->bodyContacts[contactIndex].key.value) {
+                    case ACTOR_510900_HAZARD_LIGHT_BLAST:
+                        hazardApplies  = 1;
                         work->state    = ACTOR_510900_STATE_SPARK_RECOIL;
-                        work->subState = 0;
+                        work->subState = ACTOR_510900_SPARK_RECOIL_ENTER;
                         break;
-                    case 3:
-                        hit            = 1;
+                    case ACTOR_510900_HAZARD_SOURCE_RECOIL:
+                        hazardApplies  = 1;
                         work->state    = ACTOR_510900_STATE_RECOIL;
-                        work->subState = 0;
+                        work->subState = ACTOR_510900_RECOIL_ENTER;
                         break;
-                    case 4:
-                        hit            = 1;
+                    case ACTOR_510900_HAZARD_SOURCE_STUN:
+                        hazardApplies  = 1;
                         work->state    = ACTOR_510900_STATE_SPARK_STUN;
-                        work->subState = 0;
+                        work->subState = ACTOR_510900_SPARK_STUN_ENTER;
                         break;
                 }
-                if (hit) {
+                if (hazardApplies) {
                     work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    loss                       = damageGetHazardDamage((u16)work->bodyContacts[i].key.value, DAMAGE_HAZARD_VICTIM_ENEMY);
-                    enemy->hp                 -= loss;
-                    worldTargetAddReadoutAmount(&enemy->node, loss, 0);
+                    hazardDamage               = damageGetHazardDamage((u16)work->bodyContacts[contactIndex].key.value, DAMAGE_HAZARD_VICTIM_ENEMY);
+                    enemy->hp                 -= hazardDamage;
+                    worldTargetAddReadoutAmount(&enemy->node, hazardDamage, 0);
                     if (enemy->hp <= 0) {
-                        if (work->lethalAttackPhase < 2) {
-                            work->lethalAttackPhase = 0;
+                        if (work->lethalAttackPhase < ACTOR_510900_LETHAL_PHASE_STRUCK) {
+                            work->lethalAttackPhase = ACTOR_510900_LETHAL_PHASE_NONE;
                             work->body.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         } else {
                             enemy->hp = 1;
@@ -1304,15 +1383,15 @@ static void func_actor_510900_80135744(Task* arg0)
         }
     }
     worldCollisionClearContacts(work->bodyContacts);
-    if (work->attackContacts[0].flags & 1) {
-        if ((work->attackContacts[0].key.value & 0xFFFF0000) == 0x10000) {
+    if (work->attackContacts[0].flags & WORLD_COLLISION_CONTACT_OCCUPIED) {
+        if ((work->attackContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
             work->attackLanded         = 1;
             work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
         worldCollisionClearContacts(work->attackContacts);
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(VECTOR));
 }
 
 /// Runs the fight's opening slash pair and hands off to the flame charge.
@@ -1900,79 +1979,82 @@ static void _actor510900TickFlameLunge(Task* task)
     }
 }
 
-/// Handler that spawns the actor's companion enemy at frame 0x14 of its
-/// animation (`animationFrame` == 0x14): the spawned task's model takes its texture
-/// page and CLUT row from the current area record, indexed by the enemy's own
-/// bank nibble, and a sound is queued from the actor's attach coordinate. Past
-/// frame 0x46 the handler leaves for either state 5 (animation 0xB) or, on a
-/// failed `gRandomLcgState` roll, state 1 with a fresh `stateCounter`.
-static void func_actor_510900_801373B8(Task* arg0)
+/// Throws the stun grenade, then chooses a dash or a return to patrol.
+///
+/// Requires the live body and enemy with an existing area placement. Frame 20
+/// spawns descriptor 4 and lends it the body's placement textures; frame 70
+/// chooses a dash with 12/16 probability when the player is at least 3751 units
+/// away. The grenade joins the body's task tree and clears its live latch on exit.
+static void _actor510900TickGrenadeThrow(Task* task)
 {
+    enum {
+        ACTOR_510900_GRENADE_THROW_FRAME       = 20,
+        ACTOR_510900_GRENADE_THROW_END_FRAME   = 70,
+        ACTOR_510900_GRENADE_DESCRIPTOR        = 4,
+        ACTOR_510900_GRENADE_DASH_MIN_DISTANCE = 3751,
+        ACTOR_510900_GRENADE_DASH_ROLL_LIMIT   = 12,
+        ACTOR_510900_SOUND_GRENADE_THROW       = 0x40780012,
+    };
     Actor510900Work* work;
     Enemy*           enemy;
-    GfxCoord*        coord;
-    GameLocationKey* sessionKey;
-    TmdObject*       model;
-    AreaVariant*     layout;
-    AreaPlacement*   entry;
-    GameLocationKey  key;
-    s32              idx;
-    s32              snd;
-    s32              pan;
-    s32              roll;
-    u32              rng;
+    GfxCoord*        bodyCoord;
+    GameLocationKey* liveLocation;
+    TmdObject*       grenadeModel;
+    AreaVariant*     areaVariant;
+    AreaPlacement*   placement;
+    GameLocationKey  location;
+    s32              placeIndex;
+    s32              soundKey;
+    s32              audioPan;
+    s32              dashNext;
+    u32              randomState;
 
-    roll  = 0;
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    dashNext  = 0;
+    bodyCoord = task->extra.tmd->coords;
+    work      = task->work;
+    enemy     = task->spawnArg2.pointer;
 
     work->lapSpeed = 0;
-    if (work->animationFrame == 0x14) {
+    if (work->animationFrame == ACTOR_510900_GRENADE_THROW_FRAME) {
         work->grenadeLive = 1;
-        model             = enemySpawnFromTable(D_actor_510900_80167A18, 4, roll, enemy)->task->extra.tmd;
-        idx               = (u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
-        sessionKey        = &gGameSession->location.loc;
-        key.stage         = sessionKey->stage;
-        key.area          = sessionKey->area;
-        key.room          = sessionKey->room;
-        key.view          = gGameSession->location.loc.view;
-        areaSyncLocationVariant(&key);
-        layout = areaGetVariant(&key);
-        /* offset + base, not `&layout->placements[idx]`: the ROM adds the scaled
-           index onto the table (`addu s0, s0, v0`). */
-        entry                    = gpAreaPlaceAt(layout->placements, idx);
-        model->texturePageOffset = entry->texturePageOffset;
-        model->clutRowOffset     = entry->clutRowOffset;
-        if (model->buffer != NULL) {
-            tmdBuildBufferHalf(model);
-            tmdBuildBufferHalf(model);
+        grenadeModel      = enemySpawnFromTable(D_actor_510900_80167A18, ACTOR_510900_GRENADE_DESCRIPTOR, dashNext, enemy)->task->extra.tmd;
+        placeIndex        = (u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT;
+        liveLocation      = &gGameSession->location.loc;
+        location.stage    = liveLocation->stage;
+        location.area     = liveLocation->area;
+        location.room     = liveLocation->room;
+        location.view     = gGameSession->location.loc.view;
+        areaSyncLocationVariant(&location);
+        areaVariant                     = areaGetVariant(&location);
+        placement                       = gpAreaPlaceAt(areaVariant->placements, placeIndex);
+        grenadeModel->texturePageOffset = placement->texturePageOffset;
+        grenadeModel->clutRowOffset     = placement->clutRowOffset;
+        if (grenadeModel->buffer != NULL) {
+            tmdBuildBufferHalf(grenadeModel);
+            tmdBuildBufferHalf(grenadeModel);
         }
-        snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780012;
-        pan = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+        soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_GRENADE_THROW;
+        audioPan = (s8)worldCoordGetOriginAudioPan(bodyCoord);
+        sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(bodyCoord));
     }
-    if (work->animationFrame >= 0x46) {
-        if (work->playerDistance >= 0xEA7) {
-            /* Reading the global back is what keeps the store ahead of the
-               shift: written as a local, the store sinks into the branch
-               delay slot and the draw lands in a different register. */
+    if (work->animationFrame >= ACTOR_510900_GRENADE_THROW_END_FRAME) {
+        if (work->playerDistance >= ACTOR_510900_GRENADE_DASH_MIN_DISTANCE) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            if (((gRandomLcgState >> 0x10) & 0xF) < 0xCU) {
-                roll = 1;
+            if (((gRandomLcgState >> 0x10) & 0xF) < (u32)ACTOR_510900_GRENADE_DASH_ROLL_LIMIT) {
+                dashNext = 1;
             }
         }
-        if (roll == 0) {
+        if (dashNext == 0) {
             work->state        = ACTOR_510900_STATE_PATROL;
-            work->animationId  = 1;
-            work->subState     = 0;
-            work->stateCounter = D_actor_510900_801679D0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
-            gRandomLcgState    = rng;
+            work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
+            work->subState     = ACTOR_510900_PATROL_WAIT;
+            work->stateCounter = D_actor_510900_801679D0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+            gRandomLcgState    = randomState;
             return;
         }
         work->state       = ACTOR_510900_STATE_DASH;
-        work->subState    = 0;
-        work->animationId = 0xB;
+        work->subState    = ACTOR_510900_DASH_START;
+        work->animationId = ACTOR_510900_ANIM_DASH_START;
     }
 }
 
@@ -2042,161 +2124,159 @@ static void _actor510900TickDash(Task* task)
     }
 }
 
-/// Handler for the scripted sequence the actor plays out through `subState`:
-/// state 0 opens with the two 0x4078 cues at animation frame 0x39 and hands over at 0x5A,
-/// state 1 plays one more cue at frame 0xA and hands over at 0x64, state 2 runs
-/// the long beat - a pair swap and a screen fade at 0x50, a cue at 0x53 whose id
-/// depends on `flameMode`, a script spawn at 0x58, the pair blanked at 0x60 -
-/// and either enters state 3 when `attackLanded` is latched or, past frame 0xB3,
-/// drops back to `state` state 1 with a fresh `stateCounter`. State 3 keeps the
-/// walk speed inside its two frame windows and, every sixth frame, restarts the
-/// effect on the player's model; its `deathSoundLoadStep` sub-state queues file 0x1E and
-/// plays the arrival cue once the drive goes idle.
+/// Runs the lap-ending ignition, lethal strike and player-death sequence.
 ///
-/// `blend` is one temp on purpose: the `lh` of `animationId` leaves its high bits
-/// unknown to combine, which is what keeps the `andi 0xFFFF` on the second
-/// window test of each chain.
-static void func_actor_510900_80137868(Task* arg0)
+/// Requires the live body, player and landing-pad resources. The strike holds the
+/// death sound and restart timers, kills the player on a latched contact, then
+/// spawns splatter every six updates and loads the death sound. A missed strike
+/// returns to patrol; angle, frame and damage storage keep their halfword widths.
+static void _actor510900TickLethalAttack(Task* task)
 {
+    enum {
+        ACTOR_510900_LETHAL_IGNITE              = 0,
+        ACTOR_510900_LETHAL_WINDUP              = 1,
+        ACTOR_510900_LETHAL_STRIKE              = 2,
+        ACTOR_510900_LETHAL_PLAYER_DEAD         = 3,
+        ACTOR_510900_DEATH_SOUND_IDLE           = 0,
+        ACTOR_510900_DEATH_SOUND_REQUEST        = 1,
+        ACTOR_510900_DEATH_SOUND_WAIT           = 2,
+        ACTOR_510900_LETHAL_IGNITION_FRAME      = 57,
+        ACTOR_510900_LETHAL_IGNITION_END_FRAME  = 90,
+        ACTOR_510900_LETHAL_WINDUP_SOUND_FRAME  = 10,
+        ACTOR_510900_LETHAL_WINDUP_END_FRAME    = 100,
+        ACTOR_510900_LETHAL_ATTACK_ON_FRAME     = 80,
+        ACTOR_510900_LETHAL_ATTACK_SOUND_FRAME  = 83,
+        ACTOR_510900_LETHAL_VIBRATION_FRAME     = 88,
+        ACTOR_510900_LETHAL_ATTACK_OFF_FRAME    = 96,
+        ACTOR_510900_LETHAL_CONTACT_FIRST_FRAME = 81,
+        ACTOR_510900_LETHAL_MISS_END_FRAME      = 179,
+        ACTOR_510900_LETHAL_RECOVER_FRAME       = 170,
+        ACTOR_510900_LETHAL_FLAME_FRAMES        = 270,
+        ACTOR_510900_LETHAL_RESTART_DELAY       = 128,
+        ACTOR_510900_LETHAL_HIT_EFFECT_INTERVAL = 6,
+        ACTOR_510900_PLAYER_DEATH_SOUND_FILE    = 30,
+        ACTOR_510900_SOUND_LETHAL_FLAME_STRIKE  = 0x40780010,
+    };
     Actor510900Work* work;
-    GfxCoord*        coord;
-    s32              snd;
-    s32              pair;
-    s32              blend;
-    u32              rng;
+    GfxCoord*        bodyCoord;
+    s32              soundKey;
+    s32              animationValue; // Holds either the signed animation ID or the unsigned frame
+    u32              randomState;
 
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
+    bodyCoord = task->extra.tmd->coords;
+    work      = task->work;
 
+    // Keep the balanced scratch reservation used by this sequence.
     SCRATCH_STACK_RESERVE_BYTES(0x10);
 
     switch (work->subState) {
-        case 0:
-            work->lethalAttackPhase = 1;
+        case ACTOR_510900_LETHAL_IGNITE:
+            work->lethalAttackPhase = ACTOR_510900_LETHAL_PHASE_WINDUP;
             work->lapSpeed          = 0;
-            if (work->animationFrame == 0x39) {
+            if (work->animationFrame == ACTOR_510900_LETHAL_IGNITION_FRAME) {
                 work->flameMode   = ACTOR_510900_FLAME_BURNING;
-                work->flameFrames = 0x10E;
-                snd               = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000E;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
-                work->flameSound = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000D;
-                sndEvtRequestScriptStart(work->flameSound, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
-                work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 5);
-                work->weaponAttack.key     = pair;
-                work->forearmAttack.key    = pair;
+                work->flameFrames = ACTOR_510900_LETHAL_FLAME_FRAMES;
+                soundKey          = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_FIRE;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
+                work->flameSound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_FLAME_LOOP;
+                sndEvtRequestScriptStart(work->flameSound, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
+                _actor510900ArmAttack(work, ACTOR_510900_ATTACK_IGNITION);
             }
-            if (work->animationFrame >= 0x5A) {
-                work->animationId = 0x1A;
-                work->subState    = 1;
+            if (work->animationFrame >= ACTOR_510900_LETHAL_IGNITION_END_FRAME) {
+                work->animationId = ACTOR_510900_ANIM_FIGHT_START;
+                work->subState    = ACTOR_510900_LETHAL_WINDUP;
             }
             break;
-        case 1:
-            if (work->animationFrame == 0xA) {
-                snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780006;
-                sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                         (s8)worldCoordGetOriginAudioDepth(coord));
+        case ACTOR_510900_LETHAL_WINDUP:
+            if (work->animationFrame == ACTOR_510900_LETHAL_WINDUP_SOUND_FRAME) {
+                soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_WINDUP;
+                sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                         (s8)worldCoordGetOriginAudioDepth(bodyCoord));
             }
-            if (work->animationFrame >= 0x64) {
-                work->animationId = 7;
-                work->subState    = 2;
+            if (work->animationFrame >= ACTOR_510900_LETHAL_WINDUP_END_FRAME) {
+                work->animationId = ACTOR_510900_ANIM_LETHAL_STRIKE;
+                work->subState    = ACTOR_510900_LETHAL_STRIKE;
             }
             break;
-        case 2:
-            if (work->animationFrame == 0x50) {
-                work->lethalAttackPhase    = 2;
-                work->weaponAttack.flags  |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->forearmAttack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                pair                       = damagePackAttackKey(&D_actor_510900_80167968, 3);
-                work->weaponAttack.key     = pair;
-                work->forearmAttack.key    = pair;
+        case ACTOR_510900_LETHAL_STRIKE:
+            if (work->animationFrame == ACTOR_510900_LETHAL_ATTACK_ON_FRAME) {
+                // Arm the fatal hit before the death-delay and sound holds.
+                work->lethalAttackPhase = ACTOR_510900_LETHAL_PHASE_STRUCK;
+                _actor510900ArmAttack(work, ACTOR_510900_ATTACK_LETHAL);
 
-                gGameSession->deathRestartDelay   = 0x80;
+                gGameSession->deathRestartDelay   = ACTOR_510900_LETHAL_RESTART_DELAY;
                 gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
             }
-            if (work->animationFrame == 0x53) {
+            if (work->animationFrame == ACTOR_510900_LETHAL_ATTACK_SOUND_FRAME) {
                 if (work->flameMode == ACTOR_510900_FLAME_BURNING) {
-                    snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40780010;
-                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                             (s8)worldCoordGetOriginAudioDepth(coord));
+                    soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_LETHAL_FLAME_STRIKE;
+                    sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                             (s8)worldCoordGetOriginAudioDepth(bodyCoord));
                 } else {
-                    snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x4078000C;
-                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord),
-                                             (s8)worldCoordGetOriginAudioDepth(coord));
+                    soundKey = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_DASH_STRIKE;
+                    sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                             (s8)worldCoordGetOriginAudioDepth(bodyCoord));
                 }
             }
-            if (work->animationFrame == 0x58) {
+            if (work->animationFrame == ACTOR_510900_LETHAL_VIBRATION_FRAME) {
                 padScriptSpawn(D_acropolis_helicopter_landing_pad_80187D34, &D_acropolis_helicopter_landing_pad_80187D3C);
             }
-            if (work->animationFrame == 0x60) {
+            if (work->animationFrame == ACTOR_510900_LETHAL_ATTACK_OFF_FRAME) {
                 work->weaponAttack.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
-            blend = (u16)work->animationFrame;
-            if (blend - 0x4B < 0x10U) {
-                work->lapSpeed = 0x3C;
-            } else if (((blend - 0x8F) & 0xFFFF) < 0xFU) {
-                work->lapSpeed = -0x40;
-            } else {
-                work->lapSpeed = 0;
-            }
-            if (work->animationFrame >= 0x51) {
+            animationValue = (u16)work->animationFrame;
+            _actor510900SetLethalLapSpeed(work, animationValue, -0x40);
+            if (work->animationFrame >= ACTOR_510900_LETHAL_CONTACT_FIRST_FRAME) {
                 if (work->attackLanded == 1) {
-                    work->subState           = 3;
+                    work->subState           = ACTOR_510900_LETHAL_PLAYER_DEAD;
                     work->attackLanded       = 0;
-                    work->deathSoundLoadStep = 1;
+                    work->deathSoundLoadStep = ACTOR_510900_DEATH_SOUND_REQUEST;
                     gPlayerStatus.hp         = 0;
                     roomEffectRequestCancelPe();
                 }
             } else {
                 work->attackLanded = 0;
             }
-            if (work->animationFrame >= 0xB3) {
+            if (work->animationFrame >= ACTOR_510900_LETHAL_MISS_END_FRAME) {
                 work->state        = ACTOR_510900_STATE_PATROL;
-                work->animationId  = 1;
-                work->subState     = 0;
-                work->stateCounter = D_actor_510900_801679D0[((u32)(rng = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
-                gRandomLcgState    = rng;
+                work->animationId  = ACTOR_510900_ANIM_PATROL_IDLE;
+                work->subState     = ACTOR_510900_PATROL_WAIT;
+                work->stateCounter = D_actor_510900_801679D0[((u32)(randomState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 0x10) & 0xF];
+                gRandomLcgState    = randomState;
             }
             break;
-        case 3:
-            blend = work->animationId;
-            if (blend == 7) {
-                blend = (u16)work->animationFrame;
-                if (blend - 0x4B < 0x10U) {
-                    work->lapSpeed = 0x3C;
-                } else if (((blend - 0x8F) & 0xFFFF) < 0xFU) {
-                    work->lapSpeed = -0x10;
-                } else {
-                    work->lapSpeed = 0;
-                }
-                if (work->animationFrame >= 0xAA) {
-                    work->animationId = 0x19;
+        case ACTOR_510900_LETHAL_PLAYER_DEAD:
+            animationValue = work->animationId;
+            if (animationValue == ACTOR_510900_ANIM_LETHAL_STRIKE) {
+                animationValue = (u16)work->animationFrame;
+                _actor510900SetLethalLapSpeed(work, animationValue, -0x10);
+                if (work->animationFrame >= ACTOR_510900_LETHAL_RECOVER_FRAME) {
+                    work->animationId = ACTOR_510900_ANIM_SLASH_RECOVER;
                 }
             }
             work->stateCounter++;
-            if (work->stateCounter >= 6) {
+            if (work->stateCounter >= ACTOR_510900_LETHAL_HIT_EFFECT_INTERVAL) {
                 work->stateCounter            = 0;
                 D_actor_510900_80167B7C.coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
                 effectSpawnHit(EFFECT_HIT_KIND_SPLATTER, &(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords[4], NULL,
                                &D_actor_510900_80167B7C);
             }
             switch (work->deathSoundLoadStep) {
-                case 0:
+                case ACTOR_510900_DEATH_SOUND_IDLE:
                     break;
-                case 1:
-                    cdCmdEnqueueDisplayResource(9, 0x1E, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
-                    work->deathSoundLoadStep = 2;
+                case ACTOR_510900_DEATH_SOUND_REQUEST:
+                    cdCmdEnqueueDisplayResource(9, ACTOR_510900_PLAYER_DEATH_SOUND_FILE, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
+                    work->deathSoundLoadStep = ACTOR_510900_DEATH_SOUND_WAIT;
                     break;
-                case 2:
+                case ACTOR_510900_DEATH_SOUND_WAIT:
                     if (cdCmdIsIdle() == 1) {
-                        coord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
-                        sndEvtRequestScriptStart(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(coord),
-                                                 (s8)worldCoordGetOriginAudioDepth(coord));
-                        work->deathSoundLoadStep = 0;
+                        bodyCoord = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+                        sndEvtRequestScriptStart(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(bodyCoord),
+                                                 (s8)worldCoordGetOriginAudioDepth(bodyCoord));
+                        work->deathSoundLoadStep = ACTOR_510900_DEATH_SOUND_IDLE;
                     }
                     break;
             }
@@ -3067,92 +3147,97 @@ static void _actor510900InitGrenade(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorChildPlaceScratch);
 }
 
-/// Per-frame handler of the effect child while it is alive: spins the object by
-/// `phaseCounter` about X, drags it 150 units down its own Y axis and drips a trail
-/// effect every third frame. Once it has fallen past -0x514 and come back up,
-/// or either `WorldCollisionContact` table reports a hit, it fires the impact effects,
-/// reparents the task under the spawned one and hands the actor to state 2.
-/// A parent that has stopped (`present` == 0) tears the object down the same
-/// way. `gSceneCombatState.actorControl` 1 only refreshes the colour and 2 only hides the model.
-static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
+/// Flies the grenade along its pitching launch axis until it bursts.
+///
+/// Requires the live grenade model, owned work and body parent; the enemy argument
+/// is unused. Moves 150 coordinate units per update, emitting smoke every third
+/// update. Descending through the height threshold, a player contact or a grid
+/// contact hides the model and starts spreading or holding. The impact effect is
+/// adopted beneath the grenade. Parent disappearance starts delayed teardown;
+/// paused combat refreshes colour and hidden combat only hides the model.
+static void _actor510900TickGrenadeFlight(Enemy* enemy, Task* task)
 {
-    VECTOR                   pos;
-    EffectWork*              eff;
-    GfxCoord*                coord;
-    ActorEulerTurnScratch*   scratch;
-    TmdObject*               tmd;
+    enum {
+        ACTOR_510900_GRENADE_FLIGHT_STEP            = 150,
+        ACTOR_510900_GRENADE_ROTATION_FRACTION_BITS = 12,
+        ACTOR_510900_GRENADE_BURST_HEIGHT           = 1300,
+        ACTOR_510900_GRENADE_TRAIL_INTERVAL         = 3,
+        ACTOR_510900_GRENADE_TRAIL_OFFSET_Y         = 100,
+        ACTOR_510900_GRENADE_TRAIL_OPTIONS          = 0x01001600,
+        ACTOR_510900_GRENADE_EXPLOSION_OPTIONS      = 0x10002200,
+        ACTOR_510900_GRENADE_BURST_SMOKE_OPTIONS    = 0xC1001200,
+        ACTOR_510900_SOUND_GRENADE_BURST            = 0x51100009,
+    };
+    VECTOR                   samplePosition;
+    EffectWork*              burstEffect;
+    GfxCoord*                grenadeCoord;
+    ActorEulerTurnScratch*   pitchScratch;
+    TmdObject*               grenadeModel;
     _Actor510900GrenadeWork* work;
-    Actor510900Work*         parent;
-    s32                      angle;
-    s32                      snd;
-    s32                      done;
-    u16                      tick;
+    Actor510900Work*         parentWork;
+    s32                      pitchStep;
+    s32                      soundKey;
+    s32                      crossedBurstHeight;
+    u16                      trailFrames;
 
-    tmd    = task->extra.tmd;
-    work   = task->work;
-    coord  = tmd->coords;
-    parent = task->parent->work;
-    done   = 0;
+    grenadeModel       = task->extra.tmd;
+    work               = task->work;
+    grenadeCoord       = grenadeModel->coords;
+    parentWork         = task->parent->work;
+    crossedBurstHeight = 0;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            tmd->flags = 0;
+            grenadeModel->flags = 0;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
-            pos.vx = coord->workm.t[0];
-            pos.vy = coord->workm.t[1];
-            pos.vz = coord->workm.t[2];
-            worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+            samplePosition.vx = grenadeCoord->workm.t[0];
+            samplePosition.vy = grenadeCoord->workm.t[1];
+            samplePosition.vz = grenadeCoord->workm.t[2];
+            worldCoordUpdateActorColor(task->spawnArg2.pointer, &samplePosition, 0, 0);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            grenadeModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 
-    scratch            = SCRATCH_STACK_RESERVE_BLOCK(ActorEulerTurnScratch);
-    angle              = -work->phaseCounter;
-    scratch->angles.vx = angle;
-    scratch->angles.vy = 0;
-    scratch->angles.vz = 0;
-    RotMatrix(&scratch->angles, &scratch->rotation);
-    gte_SetRotMatrix(&coord->coord);
-    gte_ldclmv(&scratch->rotation);
-    gte_rtir();
-    gte_stclmv(&coord->coord);
-    gte_ldclmv(&scratch->rotation.m[0][1]);
-    gte_rtir();
-    gte_stclmv(&coord->coord.m[0][1]);
-    gte_ldclmv(&scratch->rotation.m[0][2]);
-    gte_rtir();
-    gte_stclmv(&coord->coord.m[0][2]);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    coord->coord.t[0]  += -(coord->coord.m[0][1] * 0x96) >> 12;
-    coord->coord.t[1]  += -(coord->coord.m[1][1] * 0x96) >> 12;
-    coord->coord.t[2]  += -(coord->coord.m[2][1] * 0x96) >> 12;
-    tick                = work->frames + 1;
-    work->frames        = tick;
-    if (tick >= 3) {
-        scratch->angles.vx = 0;
-        scratch->angles.vy = 0x64;
-        scratch->angles.vz = 0;
-        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0x01001600, &scratch->angles);
+    // Pitch the launch basis and travel along its negative Y axis.
+    pitchScratch            = SCRATCH_STACK_RESERVE_BLOCK(ActorEulerTurnScratch);
+    pitchStep               = -work->phaseCounter;
+    pitchScratch->angles.vx = pitchStep;
+    pitchScratch->angles.vy = 0;
+    pitchScratch->angles.vz = 0;
+    RotMatrix(&pitchScratch->angles, &pitchScratch->rotation);
+    gte_MulMatrix0(&grenadeCoord->coord, &pitchScratch->rotation, &grenadeCoord->coord);
+    grenadeCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    grenadeCoord->coord.t[0]  += -(grenadeCoord->coord.m[0][1] * ACTOR_510900_GRENADE_FLIGHT_STEP) >> ACTOR_510900_GRENADE_ROTATION_FRACTION_BITS;
+    grenadeCoord->coord.t[1]  += -(grenadeCoord->coord.m[1][1] * ACTOR_510900_GRENADE_FLIGHT_STEP) >> ACTOR_510900_GRENADE_ROTATION_FRACTION_BITS;
+    grenadeCoord->coord.t[2]  += -(grenadeCoord->coord.m[2][1] * ACTOR_510900_GRENADE_FLIGHT_STEP) >> ACTOR_510900_GRENADE_ROTATION_FRACTION_BITS;
+    trailFrames                = work->frames + 1;
+    work->frames               = trailFrames;
+    if (trailFrames >= ACTOR_510900_GRENADE_TRAIL_INTERVAL) {
+        pitchScratch->angles.vx = 0;
+        pitchScratch->angles.vy = ACTOR_510900_GRENADE_TRAIL_OFFSET_Y;
+        pitchScratch->angles.vz = 0;
+        effectSpawn(EFFECT_SMOKE_PUFF, grenadeCoord, ACTOR_510900_GRENADE_TRAIL_OPTIONS, &pitchScratch->angles);
         work->frames = 0;
     }
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
-    if (coord->coord.t[1] < -0x514) {
+    samplePosition.vx = grenadeCoord->workm.t[0];
+    samplePosition.vy = grenadeCoord->workm.t[1];
+    samplePosition.vz = grenadeCoord->workm.t[2];
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &samplePosition, 0, 0);
+    if (grenadeCoord->coord.t[1] < -ACTOR_510900_GRENADE_BURST_HEIGHT) {
         work->phase = ACTOR_510900_GRENADE_FLIGHT_PEAKED;
     }
-    if (work->phase != ACTOR_510900_GRENADE_FLIGHT_BELOW_PEAK && coord->coord.t[1] >= -0x513) {
-        done = 1;
+    if (work->phase != ACTOR_510900_GRENADE_FLIGHT_BELOW_PEAK && grenadeCoord->coord.t[1] >= -ACTOR_510900_GRENADE_BURST_HEIGHT + 1) {
+        crossedBurstHeight = 1;
     }
-    if (done != 0 || (work->attackContacts[0].key.value & 0xFFFF0000) == 0x10000 || work->gridProbeContacts[0].key.value != 0) {
-        effectSpawn(EFFECT_EXPLOSION, coord, 0x10002200, NULL);
-        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0xC1001200, NULL);
-        eff = effectSpawn((EFFECT_ACTOR_510900_IMPACT_BURST | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
-        if (eff != NULL) {
-            taskReparent(task, eff->task);
+    // Hide the model, adopt the impact effect, and retain the spreading/hold task.
+    if (crossedBurstHeight != 0 || (work->attackContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY || work->gridProbeContacts[0].key.value != 0) {
+        effectSpawn(EFFECT_EXPLOSION, grenadeCoord, ACTOR_510900_GRENADE_EXPLOSION_OPTIONS, NULL);
+        effectSpawn(EFFECT_SMOKE_PUFF, grenadeCoord, ACTOR_510900_GRENADE_BURST_SMOKE_OPTIONS, NULL);
+        burstEffect = effectSpawn((EFFECT_ACTOR_510900_IMPACT_BURST | EFFECT_SPAWN_UNLIMITED), grenadeCoord, 0, NULL);
+        if (burstEffect != NULL) {
+            taskReparent(task, burstEffect->task);
         }
         if (work->attackContacts[0].key.value != 0) {
             work->phase = ACTOR_510900_GRENADE_BURST_HOLDING;
@@ -3164,18 +3249,13 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
         worldCollisionUnlinkBody(&work->gridProbe);
         work->frames           = 0;
         task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        snd                    = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100009;
-        sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-        task->state = 2;
+        soundKey               = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_GRENADE_BURST;
+        sndEvtRequestScriptStart(soundKey, (s8)worldCoordGetOriginAudioPan(grenadeCoord), (s8)worldCoordGetOriginAudioDepth(grenadeCoord));
+        task->state = ACTOR_510900_GRENADE_TASK_BURST;
     }
     worldCollisionClearContacts(work->attackContacts);
-    if (parent->present == 0) {
-        work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        worldCollisionUnlinkBody(&work->gridProbe);
-        work->frames           = 0;
-        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        task->state            = 2;
-        work->phase            = ACTOR_510900_GRENADE_BURST_ENDING;
+    if (parentWork->present == 0) {
+        _actor510900CancelGrenadeCatch(task, work);
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorEulerTurnScratch);
 }
@@ -3428,8 +3508,8 @@ static void _actor510900InitHelipadLight(Enemy* enemy, Task* task)
 
 /// Frame handler (state 1) of the child task. Mode 1 of `gSceneCombatState.actorControl` only
 /// redraws, mode 2 hides the model and flags the context, and mode 0 ticks the
-/// animation until `func_actor_510900_8013C240` reports ready before falling
-/// into the normal body.
+/// animation alone when `_actor510900CheckHelipadLightView` returns zero; an in-view
+/// light also runs its break state machine.
 static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
 {
     TmdObject*                    obj;
@@ -3444,7 +3524,7 @@ static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
     parent = arg1->parent->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
-            if (func_actor_510900_8013C240(arg1) == 0) {
+            if (_actor510900CheckHelipadLightView(arg1) == 0) {
                 i = 1;
                 do {
                     animationTickSlot(&work->anim, i);
@@ -3463,7 +3543,7 @@ static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
             arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    func_actor_510900_8013A9BC(arg1);
+    _actor510900TickHelipadLightBreak(arg1);
     if (work->lightIndex < 2) {
         gameFlagSetNibble(work->lightIndex + 0xB, work->status);
     } else {
@@ -3479,88 +3559,94 @@ static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1)
     func_actor_510900_8013C338(arg1, coord);
 }
 
-/// Grab state machine of the child task, run from the frame handler above.
-/// State 0 waits for the grab: the player has to be inside the `bodyContacts` node
-/// (and survive `damageComputePlayerAttack`) or the parent has to request this child by
-/// number through `slashedLight`; on a hit it resets the animation slots, spawns
-/// the grab effect and its sound and starts the `sparkFrames` countdown. State 1
-/// runs that countdown, keeping the four trailing part coordinates updated, and
-/// hands the held effect task its exit state once the timer runs out or the
-/// camera cuts away. State 2 only releases the held task. `lightIndex` 2 mirrors
-/// the state back to the parent's `light2State`.
-static void func_actor_510900_8013A9BC(Task* task)
+/// Breaks a shot or slashed helipad light and runs its sparks and one-hit blast.
+///
+/// Requires the live light model, enemy and body parent. A targeted damaging shot
+/// or the parent's slash latch starts animation 2 and 120 frames of sparks. Blast
+/// contacts disable further hits. Expiry leaves intermittent bursts; loss of the
+/// parent releases the adopted spark controller. Light 2 publishes its phase to
+/// the parent for the blast source beside it.
+static void _actor510900TickHelipadLightBreak(Task* task)
 {
+    enum {
+        ACTOR_510900_LIGHT_BREAK_ANIMATION = 2,
+        ACTOR_510900_LIGHT_SPARK_FRAMES    = 120,
+        ACTOR_510900_LIGHT_SPARK_OFFSET_Y  = 128,
+        ACTOR_510900_LIGHT_EXPLOSION_SIZE  = 512,
+        ACTOR_510900_LIGHT_SHOT_DISTANCE   = 1000,
+        ACTOR_510900_SOUND_LIGHT_BREAK     = 0x51100004,
+    };
     _Actor510900HelipadLightWork* work;
     Actor510900Work*              parent;
-    Enemy*                        ctx;
-    ActorFaceScratch*             scratch;
-    ActorFaceScratch*             head;
-    GfxCoord*                     coord;
-    EffectWork*                   eff;
-    Task*                         spawned;
-    s16                           next;
-    s32                           grabbed;
-    s32                           i;
-    s32                           snd;
-    s32                           pan;
-    s32                           dmg;
-    s16                           state;
+    Enemy*                        enemy;
+    ActorFaceScratch*             sparkScratch;
+    ActorFaceScratch*             scratchEnd;
+    GfxCoord*                     contactCoord;
+    EffectWork*                   sparksEffect;
+    Task*                         sparksTask;
+    s16                           doneState;
+    s32                           breakRequested;
+    s32                           slotIndex;
+    s32                           soundKey;
+    s32                           audioPan;
+    s32                           attackKey;
+    s16                           lightState;
 
-    grabbed                                = 0;
-    head                                   = SCRATCH_STACK_CURSOR(ActorFaceScratch);
-    coord                                  = &task->extra.tmd->coords[10];
-    SCRATCH_STACK_CURSOR(ActorFaceScratch) = head - 1;
-    scratch                                = head - 1;
+    breakRequested                         = 0;
+    scratchEnd                             = SCRATCH_STACK_CURSOR(ActorFaceScratch);
+    contactCoord                           = &task->extra.tmd->coords[10];
+    SCRATCH_STACK_CURSOR(ActorFaceScratch) = scratchEnd - 1;
+    sparkScratch                           = scratchEnd - 1;
     work                                   = task->work;
-    ctx                                    = task->spawnArg2.pointer;
-    state                                  = work->state;
+    enemy                                  = task->spawnArg2.pointer;
+    lightState                             = work->state;
     parent                                 = task->parent->work;
-    switch (state) {
-        case 0:
+    switch (lightState) {
+        case ACTOR_510900_HELIPAD_LIGHT_INTACT:
             if (parent->present == 0) {
                 work->status = ACTOR_510900_HELIPAD_LIGHT_STATUS_STOPPED;
                 work->state  = ACTOR_510900_HELIPAD_LIGHT_DONE;
                 break;
             }
-            ctx->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
-            dmg                         = work->bodyContacts[0].key.value;
-            work->body.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            if ((dmg & 0xFFFF8000) == 0x20000 && ctx->node.state.parts.targeted == 1 &&
-                damageComputePlayerAttack(dmg, 0x3E8, 0, 0) != 0) {
-                grabbed = 1;
+            enemy->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
+            attackKey                     = work->bodyContacts[0].key.value;
+            work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            if ((attackKey & (WORLD_COLLISION_CONTACT_KIND_MASK | 0x8000)) == WORLD_COLLISION_CONTACT_ATTACK && enemy->node.state.parts.targeted == 1 &&
+                damageComputePlayerAttack(attackKey, ACTOR_510900_LIGHT_SHOT_DISTANCE, 0, 0) != 0) {
+                breakRequested = 1;
             }
             if (parent->slashedLight == work->lightIndex + 1 && parent->lightSlashStruck == 1) {
-                grabbed              = 1;
+                breakRequested       = 1;
                 parent->slashedLight = -1;
             }
-            if (grabbed == 1) {
-                work->status = grabbed;
-                work->state  = grabbed;
-                i            = 1;
+            if (breakRequested == 1) {
+                work->status = ACTOR_510900_HELIPAD_LIGHT_STATUS_SPARKING;
+                work->state  = ACTOR_510900_HELIPAD_LIGHT_SPARKING;
+                slotIndex    = 1;
                 do {
-                    animationSeekSlotWithBlend(&work->anim, i, 2, 0, 0);
-                    i++;
-                } while (i < 0xB);
-                scratch->rot.vx = 0;
-                scratch->rot.vy = 0x80;
-                scratch->rot.vz = 0;
-                eff             = effectSpawn((EFFECT_HELIPAD_LIGHT_SPARKS | EFFECT_SPAWN_UNLIMITED), coord, 0, &scratch->rot);
-                if (eff != NULL) {
-                    spawned          = eff->task;
-                    work->sparksTask = spawned;
-                    taskReparent(task, spawned);
+                    animationSeekSlotWithBlend(&work->anim, slotIndex, ACTOR_510900_LIGHT_BREAK_ANIMATION, 0, 0);
+                    slotIndex++;
+                } while (slotIndex < ARRAY_SIZE(work->slots));
+                sparkScratch->rot.vx = 0;
+                sparkScratch->rot.vy = ACTOR_510900_LIGHT_SPARK_OFFSET_Y;
+                sparkScratch->rot.vz = 0;
+                sparksEffect         = effectSpawn((EFFECT_HELIPAD_LIGHT_SPARKS | EFFECT_SPAWN_UNLIMITED), contactCoord, 0, &sparkScratch->rot);
+                if (sparksEffect != NULL) {
+                    sparksTask       = sparksEffect->task;
+                    work->sparksTask = sparksTask;
+                    taskReparent(task, sparksTask);
                 }
-                effectSpawn(EFFECT_EXPLOSION, coord, 0x200, &scratch->rot);
-                work->sparkFrames  = 0x78;
+                effectSpawn(EFFECT_EXPLOSION, contactCoord, ACTOR_510900_LIGHT_EXPLOSION_SIZE, &sparkScratch->rot);
+                work->sparkFrames  = ACTOR_510900_LIGHT_SPARK_FRAMES;
                 work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                snd                = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100004;
-                pan                = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                soundKey           = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_LIGHT_BREAK;
+                audioPan           = (s8)worldCoordGetOriginAudioPan(contactCoord);
+                sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(contactCoord));
             }
             worldCollisionClearContacts(work->bodyContacts);
             break;
-        case 1:
+        case ACTOR_510900_HELIPAD_LIGHT_SPARKING:
             if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
@@ -3570,40 +3656,40 @@ static void func_actor_510900_8013A9BC(Task* task)
             acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[7]);
             acropolisHelicopterLandingPadDrawLowerSparkLine(&task->extra.tmd->coords[6]);
             work->sparkFrames--;
-            next = 2;
+            doneState = ACTOR_510900_HELIPAD_LIGHT_DONE;
             if (work->sparkFrames <= 0) {
-                Task* held;
+                Task* sparksTask;
 
-                work->status       = next;
+                work->status       = ACTOR_510900_HELIPAD_LIGHT_STATUS_SPENT;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                held               = work->sparksTask;
-                if (held != NULL) {
-                    held->state = state;
+                sparksTask         = work->sparksTask;
+                if (sparksTask != NULL) {
+                    sparksTask->state = ACTOR_510900_LIGHT_SPARKS_BURSTS_ONLY;
                 }
             } else {
-                Task* held;
+                Task* sparksTask;
 
                 if (parent->present != 0) {
                     break;
                 }
-                work->status       = next;
+                work->status       = ACTOR_510900_HELIPAD_LIGHT_STATUS_SPENT;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                held               = work->sparksTask;
-                if (held != NULL) {
-                    held->state      = 2;
-                    work->sparksTask = NULL;
+                sparksTask         = work->sparksTask;
+                if (sparksTask != NULL) {
+                    sparksTask->state = ACTOR_510900_LIGHT_SPARKS_RELEASE;
+                    work->sparksTask  = NULL;
                 }
             }
-            work->state = next;
+            work->state = doneState;
             break;
-        case 2:
+        case ACTOR_510900_HELIPAD_LIGHT_DONE:
             if (parent->present == 0) {
-                Task* held;
+                Task* sparksTask;
 
-                held = work->sparksTask;
-                if (held != NULL) {
-                    held->state      = state;
-                    work->sparksTask = NULL;
+                sparksTask = work->sparksTask;
+                if (sparksTask != NULL) {
+                    sparksTask->state = ACTOR_510900_LIGHT_SPARKS_RELEASE;
+                    work->sparksTask  = NULL;
                 }
             }
             break;
@@ -3672,126 +3758,138 @@ static void _actor510900InitBlastSource(Enemy* enemy, Task* task)
     task->state        = ACTOR_510900_CHILD_TASK_RUNNING;
 }
 
-static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1)
+/// Updates the helipad blast source only while its view and combat are active.
+///
+/// Requires the initialized coordinate-body task and its live body parent. Leaving
+/// the source's mapped view disables both collision spheres and releases its flare,
+/// while taking one frame from its burn timer. In view, steps the shot phases,
+/// publishes the source/light status flag and emits an ember with 1/3 probability.
+/// Paused or hidden combat does not advance the source.
+static void _actor510900TickBlastSource(Enemy* enemy, Task* task)
 {
     _Actor510900BlastSourceWork* work;
-    Actor510900Work*             parent;
-    u32                          random;
-    Task*                        child;
+    Actor510900Work*             parentWork;
+    u32                          randomState;
+    Task*                        flareTask;
 
-    work   = arg1->work;
-    parent = arg1->parent->work;
+    work       = task->work;
+    parentWork = task->parent->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_RUNNING:
             if ((viewGetMappedIndex() & 0xFF) != D_actor_510900_80167CE4[0]) {
-                arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-                work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->blast.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+                work->blast.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 if (work->flareFrames != 0) {
                     work->flareFrames--;
                 }
-                child = work->flareTask;
-                if (child != NULL) {
-                    child->state    = 3;
-                    work->flareTask = NULL;
+                flareTask = work->flareTask;
+                if (flareTask != NULL) {
+                    flareTask->state = ACTOR_510900_SOURCE_FLARE_RELEASE;
+                    work->flareTask  = NULL;
                 }
                 return;
             }
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
         case SCENE_COMBAT_ACTORS_PAUSED:
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    func_actor_510900_8013B0D8(arg1);
-    gameFlagSetNibble(GAME_FLAG_00D, D_actor_510900_80167CEC[work->state][parent->light2Status]);
-    random          = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    gRandomLcgState = random;
-    if ((u16)((random >> 16) % 3) == 0) {
-        effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, arg1->extra.tmd->coords, 0, NULL);
+    // Publish the new phase before drawing this frame's ambient ember.
+    _actor510900TickBlastSourcePhases(task);
+    gameFlagSetNibble(GAME_FLAG_00D, D_actor_510900_80167CEC[work->state][parentWork->light2Status]);
+    randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = randomState;
+    if ((u16)((randomState >> 16) % 3) == 0) {
+        effectSpawn(EFFECT_ACROPOLIS_HELIPAD_EMBER, task->extra.coordBody->coord, 0, NULL);
     }
 }
 
-/// The enemy's three state handlers - spawn/setup, per-frame tick and
-/// teardown - indexed by `Task::state`.
+/// The grenade's initialization, flight and hidden burst handlers, indexed by `Task::state`.
 static const EnemyTaskFuncTable3 D_actor_510900_80131ECC = {
-    { _actor510900InitGrenade, func_actor_510900_80139C10, _actor510900TickGrenadeBurst },
+    { _actor510900InitGrenade, _actor510900TickGrenadeFlight, _actor510900TickGrenadeBurst },
 };
 
-/// `func_actor_510900_8013AF38`.
-/// State 1 watches the parent's `light2State` phase and its own collision record
-/// for a 0x20000 hit; landing one spawns the grab effects, reparents this task
-/// under the effect's task and hands the victim the state in `flareTaskState`. The
-/// timer in `flareFrames` then runs the hold out (state 3), and states 4 and 5
-/// finish or release the victim.
-static void func_actor_510900_8013B0D8(Task* arg0)
+/// Arms the helipad blast source after light 2 breaks, then runs its shot flare.
+///
+/// Requires the live coordinate body, owned enemy/work and golem parent. A targeted
+/// damaging shot starts a 60-frame flare and one-hit hazard blast: row 4 while the
+/// light sparks, row 3 once it is done. The flare is adopted beneath the source;
+/// expiry switches it to embers and parent disappearance releases it.
+static void _actor510900TickBlastSourcePhases(Task* task)
 {
+    enum {
+        ACTOR_510900_SOURCE_FLARE_FRAMES  = 60,
+        ACTOR_510900_SOURCE_SHOT_DISTANCE = 1000,
+        ACTOR_510900_SOUND_SOURCE_SHOT    = 0x51100002,
+    };
     _Actor510900BlastSourceWork* work;
-    GfxCoord*                    coord;
-    Actor510900Work*             parent;
-    Enemy*                       ctx;
-    EffectWork*                  eff;
-    Task*                        held;
-    Task*                        ending;
-    Task*                        dropped;
-    Task*                        released;
-    Task*                        spawned;
-    s32                          hit;
-    s32                          tag;
-    s32                          snd;
-    s32                          pan;
-    u16                          left;
+    GfxCoord*                    sourceCoord;
+    Actor510900Work*             parentWork;
+    Enemy*                       enemy;
+    EffectWork*                  flareEffect;
+    Task*                        flareAfterShot;
+    Task*                        endingFlare;
+    Task*                        stoppedFlare;
+    Task*                        releasedFlare;
+    Task*                        spawnedFlare;
+    s32                          attackKey;
+    s32                          targeted;
+    s32                          soundKey;
+    s32                          audioPan;
+    u16                          flareFrames;
 
-    work   = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    parent = arg0->parent->work;
-    ctx    = arg0->spawnArg2.pointer;
+    work        = task->work;
+    sourceCoord = task->extra.coordBody->coord;
+    parentWork  = task->parent->work;
+    enemy       = task->spawnArg2.pointer;
 
     switch (work->state) {
         case ACTOR_510900_BLAST_SOURCE_DORMANT:
-            if (parent->light2State == ACTOR_510900_HELIPAD_LIGHT_SPARKING) {
+            if (parentWork->light2State == ACTOR_510900_HELIPAD_LIGHT_SPARKING) {
                 work->state = ACTOR_510900_BLAST_SOURCE_ARMED;
             }
             break;
         case ACTOR_510900_BLAST_SOURCE_ARMED:
-            ctx->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
-            hit                         = work->bodyContacts[0].key.value;
-            work->body.flags           |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            if ((hit & ~0x7FFF) == 0x20000) {
-                tag = ctx->node.state.parts.targeted;
-                if (tag == 1 && damageComputePlayerAttack(hit, 0x3E8, 0, 0) != 0) {
+            enemy->node.state.parts.flags = gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED;
+            attackKey                     = work->bodyContacts[0].key.value;
+            work->body.flags             |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            if ((attackKey & ~0x7FFF) == WORLD_COLLISION_CONTACT_ATTACK) {
+                targeted = enemy->node.state.parts.targeted;
+                if (targeted == 1 && damageComputePlayerAttack(attackKey, ACTOR_510900_SOURCE_SHOT_DISTANCE, 0, 0) != 0) {
                     work->state       = ACTOR_510900_BLAST_SOURCE_SHOT;
-                    work->flareFrames = 0x3C;
-                    effectSpawn(EFFECT_IMPACT_SPARK, coord, 0, NULL);
-                    eff = effectSpawn((EFFECT_05F | EFFECT_SPAWN_UNLIMITED), coord, 0, NULL);
-                    if (eff != NULL) {
-                        spawned         = eff->task;
-                        work->flareTask = spawned;
-                        taskReparent(arg0, spawned);
+                    work->flareFrames = ACTOR_510900_SOURCE_FLARE_FRAMES;
+                    effectSpawn(EFFECT_IMPACT_SPARK, sourceCoord, 0, NULL);
+                    flareEffect = effectSpawn((EFFECT_05F | EFFECT_SPAWN_UNLIMITED), sourceCoord, 0, NULL);
+                    if (flareEffect != NULL) {
+                        spawnedFlare    = flareEffect->task;
+                        work->flareTask = spawnedFlare;
+                        taskReparent(task, spawnedFlare);
                     }
                     work->body.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                     work->blast.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    if (parent->light2State == ACTOR_510900_HELIPAD_LIGHT_DONE) {
-                        work->flareTaskState = tag;
-                        work->blast.key      = 0x50003;
+                    if (parentWork->light2State == ACTOR_510900_HELIPAD_LIGHT_DONE) {
+                        work->flareTaskState = ACTOR_510900_SOURCE_FLARE_RAW_COLOR;
+                        work->blast.key      = DAMAGE_HAZARD_CATEGORY | ACTOR_510900_HAZARD_SOURCE_RECOIL;
                     } else {
-                        work->flareTaskState = 0;
-                        work->blast.key      = 0x50004;
+                        work->flareTaskState = ACTOR_510900_SOURCE_FLARE_FLICKERING;
+                        work->blast.key      = DAMAGE_HAZARD_CATEGORY | ACTOR_510900_HAZARD_SOURCE_STUN;
                     }
-                    snd = (((u16)ctx->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x51100002;
-                    pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                    soundKey = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_510900_SOUND_SOURCE_SHOT;
+                    audioPan = (s8)worldCoordGetOriginAudioPan(sourceCoord);
+                    sndEvtRequestScriptStart(soundKey, audioPan, (s8)worldCoordGetOriginAudioDepth(sourceCoord));
                 }
             }
             worldCollisionClearContacts(work->bodyContacts);
             break;
         case ACTOR_510900_BLAST_SOURCE_SHOT:
-            held        = work->flareTask;
-            work->state = ACTOR_510900_BLAST_SOURCE_FLARING;
-            if (held != NULL) {
-                held->state = work->flareTaskState;
+            flareAfterShot = work->flareTask;
+            work->state    = ACTOR_510900_BLAST_SOURCE_FLARING;
+            if (flareAfterShot != NULL) {
+                flareAfterShot->state = work->flareTaskState;
             }
             if (worldCollisionFindContactIndex(work->blastContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -3803,34 +3901,34 @@ static void func_actor_510900_8013B0D8(Task* arg0)
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             }
             worldCollisionClearContacts(work->blastContacts);
-            left              = work->flareFrames - 1;
-            work->flareFrames = left;
-            if ((s16)left <= 0) {
+            flareFrames       = work->flareFrames - 1;
+            work->flareFrames = flareFrames;
+            if ((s16)flareFrames <= 0) {
                 work->state        = ACTOR_510900_BLAST_SOURCE_SPENT;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                ending             = work->flareTask;
-                if (ending != NULL) {
-                    ending->state = 2;
+                endingFlare        = work->flareTask;
+                if (endingFlare != NULL) {
+                    endingFlare->state = ACTOR_510900_SOURCE_FLARE_EMBERS;
                 }
                 break;
             }
-            if (parent->present == 0) {
+            if (parentWork->present == 0) {
                 work->state        = ACTOR_510900_BLAST_SOURCE_STOPPED;
                 work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                dropped            = work->flareTask;
-                if (dropped != NULL) {
-                    dropped->state  = 3;
-                    work->flareTask = NULL;
+                stoppedFlare       = work->flareTask;
+                if (stoppedFlare != NULL) {
+                    stoppedFlare->state = ACTOR_510900_SOURCE_FLARE_RELEASE;
+                    work->flareTask     = NULL;
                 }
             }
             break;
         case ACTOR_510900_BLAST_SOURCE_SPENT:
-            if (parent->present == 0) {
-                work->state = ACTOR_510900_BLAST_SOURCE_STOPPED;
-                released    = work->flareTask;
-                if (released != NULL) {
-                    released->state = 3;
-                    work->flareTask = NULL;
+            if (parentWork->present == 0) {
+                work->state   = ACTOR_510900_BLAST_SOURCE_STOPPED;
+                releasedFlare = work->flareTask;
+                if (releasedFlare != NULL) {
+                    releasedFlare->state = ACTOR_510900_SOURCE_FLARE_RELEASE;
+                    work->flareTask      = NULL;
                 }
             }
             break;
@@ -3904,54 +4002,61 @@ static void func_actor_510900_8013B658(Enemy* arg0, Task* arg1)
         func_actor_510900_801355B4(arg0, arg1);
         return;
     }
-    func_actor_510900_8013B6A0(arg0, arg1);
+    _actor510900TickCombat(arg0, arg1);
 }
 
-static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
+/// Runs the active golem's combat, motion, animation and presentation update.
+///
+/// Requires the initialized body model, owned work and enemy. Activation zero
+/// skips the update; paused combat updates shadow and lighting, hidden combat
+/// hides the model and target. Running combat consumes reactions and contacts
+/// before selecting movement, then composes the rig and refreshes shadow,
+/// lighting, collision-grid faces and flame state.
+static void _actor510900TickCombat(Enemy* enemy, Task* task)
 {
-    GfxCoord*        temp_s1;
-    TmdObject*       temp_a1;
-    Actor510900Work* temp_s2;
+    GfxCoord*        bodyCoord;
+    TmdObject*       bodyModel;
+    Actor510900Work* work;
 
-    temp_s2 = arg1->work;
-    temp_a1 = arg1->extra.tmd;
-    temp_s1 = temp_a1->coords;
-    if (temp_s2->activation != 0) {
+    work      = task->work;
+    bodyModel = task->extra.tmd;
+    bodyCoord = bodyModel->coords;
+    if (work->activation != 0) {
         switch (gSceneCombatState.actorControl) {
             case SCENE_COMBAT_ACTORS_RUNNING:
-                temp_a1->flags               = 0;
-                arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+                bodyModel->flags              = 0;
+                enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
                 break;
             case SCENE_COMBAT_ACTORS_PAUSED:
-                _no9GolemDrawShadow(arg1);
-                actor510900UpdateLighting(arg1, temp_s1);
+                _no9GolemDrawShadow(task);
+                actor510900UpdateLighting(task, bodyCoord);
                 return;
             case SCENE_COMBAT_ACTORS_HIDDEN:
-                temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+                bodyModel->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
                 return;
         }
-        if (arg0->reactionFlags != 0) {
-            _actor510900ConsumeReactionFlags(arg1);
+        if (enemy->reactionFlags != 0) {
+            _actor510900ConsumeReactionFlags(task);
         }
-        func_actor_510900_80135744(arg1);
-        _actor510900UpdatePlayerRange(arg1);
-        func_actor_510900_8013B870(arg1);
-        _actor510900TurnAlongLap(arg1);
-        _actor510900AdvanceAlongLap(arg1);
-        _actor510900PlayStepSounds(arg1);
-        _actor510900UpdateBodyAnimation(arg1);
-        _no9GolemAimHead(arg1);
-        if (temp_s2->hitTwistActive != 0) {
-            _actor510900ApplyHitTwist(arg1);
+        _actor510900ResolveBodyContacts(task);
+        _actor510900UpdatePlayerRange(task);
+        _actor510900TickCombatState(task);
+        _actor510900TurnAlongLap(task);
+        _actor510900AdvanceAlongLap(task);
+        _actor510900PlayStepSounds(task);
+        _actor510900UpdateBodyAnimation(task);
+        _no9GolemAimHead(task);
+        if (work->hitTwistActive != 0) {
+            _actor510900ApplyHitTwist(task);
         }
-        temp_s1->composeStamp                   = GRAPHICS_COORD_DIRTY;
-        arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(temp_s1);
-        _no9GolemDrawShadow(arg1);
-        actor510900UpdateLighting(arg1, temp_s1);
-        _actor510900UpdateGridFaces(arg1);
-        func_actor_510900_8013BC80(arg1);
+        bodyCoord->composeStamp                 = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
+        actorRenderComposeCoord(bodyCoord);
+        _no9GolemDrawShadow(task);
+        actor510900UpdateLighting(task, bodyCoord);
+        _actor510900UpdateGridFaces(task);
+        _actor510900UpdateFlameJet(task);
     }
 }
 
@@ -3984,50 +4089,55 @@ static void _actor510900ConsumeReactionFlags(Task* task)
     }
 }
 
-static void func_actor_510900_8013B870(Task* arg0)
+/// Dispatches the golem's thirteen combat states to their per-frame handlers.
+///
+/// Requires live body work with a state in OPENING..DEATH; other values do nothing.
+/// Each handler owns its substate and selects this frame's movement and animation.
+static void _actor510900TickCombatState(Task* task)
 {
-    s16 temp_v1;
+    Actor510900Work* work = task->work;
+    s16              state;
 
-    temp_v1 = ((Actor510900Work*)arg0->work)->state;
-    switch (temp_v1) {
+    state = work->state;
+    switch (state) {
         case ACTOR_510900_STATE_OPENING:
-            _actor510900TickOpening(arg0);
+            _actor510900TickOpening(task);
             return;
         case ACTOR_510900_STATE_PATROL:
-            _actor510900TickPatrol(arg0);
+            _actor510900TickPatrol(task);
             return;
         case ACTOR_510900_STATE_SLASH:
-            _actor510900TickSlash(arg0);
+            _actor510900TickSlash(task);
             return;
         case ACTOR_510900_STATE_FLAME_LUNGE:
-            _actor510900TickFlameLunge(arg0);
+            _actor510900TickFlameLunge(task);
             return;
         case ACTOR_510900_STATE_GRENADE:
-            func_actor_510900_801373B8(arg0);
+            _actor510900TickGrenadeThrow(task);
             return;
         case ACTOR_510900_STATE_DASH:
-            _actor510900TickDash(arg0);
+            _actor510900TickDash(task);
             return;
         case ACTOR_510900_STATE_LETHAL_ATTACK:
-            func_actor_510900_80137868(arg0);
+            _actor510900TickLethalAttack(task);
             return;
         case ACTOR_510900_STATE_BUILDUP_STUN:
-            _actor510900TickBuildupStun(arg0);
+            _actor510900TickBuildupStun(task);
             return;
         case ACTOR_510900_STATE_FLINCH:
-            _actor510900TickFlinch(arg0);
+            _actor510900TickFlinch(task);
             return;
         case ACTOR_510900_STATE_RECOIL:
-            _actor510900TickRecoil(arg0);
+            _actor510900TickRecoil(task);
             return;
         case ACTOR_510900_STATE_SPARK_RECOIL:
-            _actor510900TickSparkRecoil(arg0);
+            _actor510900TickSparkRecoil(task);
             return;
         case ACTOR_510900_STATE_SPARK_STUN:
-            _actor510900TickSparkStun(arg0);
+            _actor510900TickSparkStun(task);
             return;
         case ACTOR_510900_STATE_DEATH:
-            _actor510900TickDeath(arg0);
+            _actor510900TickDeath(task);
         default:
             return;
     }
@@ -4150,10 +4260,17 @@ void actor510900UpdateLighting(Task* task, const GfxCoord* coord)
     worldCoordUpdateActorColor(task->spawnArg2.pointer, &samplePosition, 0, 0);
 }
 
-static void func_actor_510900_8013BC80(Task* arg0)
+/// Expires the golem's flame attack and forwards mode changes to its flame jet.
+///
+/// Requires live body work. Burning and blast modes count down frames; expiry
+/// stops both flame sounds and disables the paired attack spheres. Sends each
+/// changed mode through the borrowed effect task's first payload when it exists;
+/// a missing effect still updates the last-sent mode.
+static void _actor510900UpdateFlameJet(Task* task)
 {
-    Actor510900Work* work = arg0->work;
+    Actor510900Work* work = task->work;
 
+    // Only the two active flame modes consume burn time.
     if ((u16)(work->flameMode - ACTOR_510900_FLAME_BURNING) < 2) {
         if (--work->flameFrames <= 0) {
             work->flameMode = ACTOR_510900_FLAME_DYING;
@@ -4366,14 +4483,17 @@ static void _actor510900UpdateChestModel(Enemy* enemy, Task* task)
     actorRenderComposeCoord(task->extra.tmd->coords);
 }
 
-/// Runs the enemy's current state handler, copying the table onto the stack
-/// before the call.
-void func_actor_510900_8013C190(Task* task)
+/// Dispatches the grenade's initialization, flight and hidden burst phases.
+///
+/// Requires task state 0..2 and the live enemy in the second spawn argument.
+/// Copies the three callback pointers before dispatch; burst/ending may destroy
+/// the grenade and its adopted effects.
+static void _actor510900GrenadeTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 states;
 
-    sp = D_actor_510900_80131ECC;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    states = D_actor_510900_80131ECC;
+    states.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 void func_actor_510900_8013C1EC(Task* task)
@@ -4386,40 +4506,43 @@ void func_actor_510900_8013C1EC(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Reports whether the camera has cut away from every view this child runs in.
-/// Until then it returns 1 and the caller keeps ticking the animation; on the
-/// frame all three views miss it hides the model, releases the task it holds
-/// and returns 0.
-static s32 func_actor_510900_8013C240(Task* task)
+/// Returns one when a helipad light runs in the current mapped camera view.
+///
+/// Requires the light model, work and enemy with light index 0..2. Checks its three
+/// view IDs. Outside those views, hides it, disables both collision spheres,
+/// releases the adopted sparks, decrements a nonzero spark timer and returns zero.
+/// The caller then advances animation without running the break state machine.
+static s32 _actor510900CheckHelipadLightView(Task* task)
 {
-    TmdObject*                    obj;
+    enum { ACTOR_510900_LIGHT_VIEW_COUNT = 3 };
+    TmdObject*                    model;
     _Actor510900HelipadLightWork* work;
-    Enemy*                        ctx;
-    s32                           i;
-    u8                            misses;
-    u8                            view;
+    Enemy*                        enemy;
+    s32                           viewIndex;
+    u8                            viewMisses;
+    u8                            mappedView;
 
-    obj    = task->extra.tmd;
-    work   = task->work;
-    ctx    = task->spawnArg2.pointer;
-    misses = 0;
-    view   = viewGetMappedIndex();
-    for (i = 0; i < 3; i++) {
-        if (view != D_actor_510900_80167CD8[work->lightIndex][i]) {
-            misses++;
+    model      = task->extra.tmd;
+    work       = task->work;
+    enemy      = task->spawnArg2.pointer;
+    viewMisses = 0;
+    mappedView = viewGetMappedIndex();
+    for (viewIndex = 0; viewIndex < ACTOR_510900_LIGHT_VIEW_COUNT; viewIndex++) {
+        if (mappedView != D_actor_510900_80167CD8[work->lightIndex][viewIndex]) {
+            viewMisses++;
         }
     }
 
-    if (misses != 3) {
+    if (viewMisses != ACTOR_510900_LIGHT_VIEW_COUNT) {
         return 1;
     }
 
-    obj->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    work->body.flags           &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->blast.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    ctx->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    work->body.flags             &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->blast.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     if (work->sparksTask != NULL) {
-        work->sparksTask->state = 2;
+        work->sparksTask->state = ACTOR_510900_LIGHT_SPARKS_RELEASE;
         work->sparksTask        = NULL;
     }
     if (work->sparkFrames != 0) {
@@ -4454,14 +4577,18 @@ static void _actor510900ExitHelipadLight(Task* task)
     enemyDestroy(enemy, task);
 }
 
-void func_actor_510900_8013C3DC(Task* task)
+/// Dispatches the coordinate-only helipad blast source's initialization and update.
+///
+/// Requires task state 0..1 and the live enemy in the second spawn argument.
+/// Initialization allocates the source work; the update runs its view-gated phases.
+static void _actor510900BlastSourceTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = {
+    EnemyTaskFunc states[2] = {
         _actor510900InitBlastSource,
-        func_actor_510900_8013AF38,
+        _actor510900TickBlastSource,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    states[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Unregisters the blast source's target and collision bodies, then destroys it.

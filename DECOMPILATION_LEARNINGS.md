@@ -2993,8 +2993,8 @@ Same symptom as the entry above — a shared work/child pointer sits in `$a0`
 where the target has `$v1` — but a different cause, and the `.greg` conflicts
 line tells them apart.
 
-`func_actor_510900_8013B0D8` is a switch whose arms 2, 3 and 4 each reload
-`work->field_70` and write `child->state`. One `child` across all three is a
+`_actor510900TickBlastSourcePhases` is a switch whose arms 2, 3 and 4 each reload
+`work->flareTask` and write `child->state`. One `child` across all three is a
 multi-death global allocno:
 
 ```
@@ -3036,7 +3036,7 @@ same way — but the alias claimed a callee-saved register, reshuffling the
 prologue. An extra pseudo that happens to relieve the conflict is the accidental
 form of this fix; splitting the offending local is the free one.
 
-Example: `func_actor_510900_8013B0D8`. Inputs: `base_5.i`
+Example: `_actor510900TickBlastSourcePhases`. Inputs: `base_5.i`
 `0f85c97c5b542f1c32508d1e6b3211d82836372b831e08bf1768f0374c4c08c8` (shared,
 96.9%), `base_11.i` `b6752347472058bd2581f14e5889997d039377e5adb15246310077e3af7d7146`
 (four-way, 100%), `base_12.i` `0ed003682fd63bf7763dd4c8c89eece1d621e1a346b5ac74990606c29d5f7d99`
@@ -9970,7 +9970,7 @@ When the table is the last object in the leading rodata (it ends at the first
 `.text` address), skip that remainder cut: there is nothing after the table for
 a later unit's `.rodata` to own. Still cut `.text` at the *next* function so
 later `INCLUDE_ASM` bodies do not share the switch object's `.rodata`.
-`func_actor_510900_8013B870` is a 13-entry table at overlay `0xD0` ending at
+`_actor510900TickCombatState` is a 13-entry table at overlay `0xD0` ending at
 `0x104` (= start of `.text`):
 
 ```toml
@@ -95839,7 +95839,7 @@ Input: `base_1.i`
 `c8221e0783cefa316b541c72c2e2da159d233b4618966f9a014c38fedc9e50cf`.
 ## m2c hoists a loop counter's init above the call, and that costs a callee-saved register
 
-`func_actor_510900_8013C240` loads three `Task` fields, calls `viewGetMappedIndex`,
+`_actor510900CheckHelipadLightView` loads three `Task` fields, calls `viewGetMappedIndex`,
 then runs a fixed three-iteration loop. m2c rendered the loop as a `do/while`
 with both inits above the call:
 
@@ -95861,9 +95861,9 @@ The target keeps the counter in `$a0`, set *after* the call returns, and saves
 only `$s0`-`$s3`. The fix is purely where the initialization sits:
 
 ```c
-misses = 0;                       /* accumulated across the call: stays in $s1 */
-view   = viewGetMappedIndex();
-for (i = 0; i < 3; i++) { ... }   /* i initialized after the call: gets $a0 */
+viewMisses = 0;                    /* accumulated across the call: stays in $s1 */
+mappedView = viewGetMappedIndex();
+for (viewIndex = 0; viewIndex < 3; viewIndex++) { ... }   /* viewIndex initialized after the call: gets $a0 */
 ```
 
 That alone went 91.4% -> 100%. The accumulator genuinely is live across the
@@ -95990,7 +95990,7 @@ work->stateCounter = val;
 ```
 
 93.6% -> 100%. Reading the global back instead of keeping the product in a
-local (the trick `func_actor_510900_801373B8` needs) made no difference here.
+local (the trick `_actor510900TickGrenadeThrow` needs) made no difference here.
 
 Inputs: `base_2.i` (85.6%), `base_4.i` (93.6%), `base_5.i` (100%).
 
@@ -96171,7 +96171,7 @@ the reference point.
 much earlier than its only use, suspect a merged block rather than
 rematerialization.
 
-## A `Task*` reused across switch cases is multi-set, so every case's load starves (func_actor_510900_8013B0D8, 2026-09-16)
+## A `Task*` reused across switch cases is multi-set, so every case's load starves (_actor510900TickBlastSourcePhases, 2026-09-16)
 
 A sharper corollary of "sched1 starves an insn whose destination pseudo is
 assigned more than once" above: mutually exclusive branches still share one
@@ -96194,7 +96194,7 @@ the flags took `$v0` and `child` was pushed out to `$a0` — a `regs=12` penalty
 on four blocks, with only `reorder=2`. Reading it as an allocation problem
 leads nowhere; the allocation is downstream of the schedule.
 
-Splitting into one variable per case (`held`, `ending`, `dropped`, `released`)
+Splitting into one variable per case (`flareAfterShot`, `endingFlare`, `stoppedFlare`, `releasedFlare`)
 made each load single-set and birthing. In the `.i.sched` trace the decision is
 visible as the T-4 tie disappearing:
 
@@ -96255,7 +96255,7 @@ instead.
 
 ## A local shared with a call argument drags that argument register into every other branch
 
-`func_actor_510900_8013A9BC` reads `work->field_32C` (a `Task*`) in four
+`_actor510900TickHelipadLightBreak` reads `work->sparksTask` (a `Task*`) in four
 different places: once to store the task `effectSpawn` just created and hand it
 to `taskReparent`, and once in each arm of the later state machine, where it is
 only tested and written through. Using one `Task* child` local for all of them
@@ -96271,7 +96271,7 @@ it; the copy preference for `$5` — earned by the *other* use, where the local 
 copied into `$a1` as `taskReparent`'s second argument — overrides it
 (`CODEGEN_MODEL.md` §10.4 step 3). A preference is a property of the allocno,
 so it applies to every reference of the shared local, including branches that
-never see the call. Giving the argument its own local (`spawned`) dropped the
+never see the call. Giving the argument its own local (`sparksTask`) dropped the
 preference and the remaining arms took `$v1`, as the target has them: 99.06% →
 99.76% with `regs=0`.
 
@@ -96281,7 +96281,7 @@ conflicts or lifetimes, and look for the *other* end of the local.
 
 ## Cross-jump merges an arm's tail into a sibling's; a constant in a local keeps them apart
 
-The same function ends three blocks with `field_330 = 2; goto end`. Writing the
+The same function ends three blocks with `work->state = 2; goto end`. Writing the
 `2` as a literal everywhere produced one instruction too few: the early-exit
 arm's `li $v0,2; j end; sh $v0,0x330($s2)` was identical, register for register,
 to the tail the two state-1 arms converge on, so the post-reload
@@ -96293,22 +96293,22 @@ the `2` is already in `$a0` there, materialised before the branch that picks the
 arm and live through both arms and the join. That is what a *local* assigned
 before the `if` compiles to:
 
-    next = 2;
-    if (work->field_332 <= 0) {
-        work->field_336 = next;   /* sh $a0 */
+    doneState = 2;
+    if (work->sparkFrames <= 0) {
+        work->status = doneState;   /* sh $a0 */
         ...
     } else {
         ...
-        work->field_336 = next;   /* sh $a0 */
-        held->state     = 2;      /* separate li $v0,2 — see below */
+        work->status = doneState;   /* sh $a0 */
+        sparksTask->state     = 2;      /* separate li $v0,2 — see below */
     }
-    work->field_330 = next;       /* sh $a0, and no li in this block */
+    work->state = doneState;       /* sh $a0, and no li in this block */
 
 Two details make this reproducible. The `li $a0,2` lands in the delay slot of
 the arm-selecting branch, which is where a value computed before a branch goes.
 And the literal `2` stored inside the second arm still gets its own `li $v0,2`
 rather than reusing `$a0`: CSE clears its table at the start of a basic block
-reached by a conditional branch, so `next`'s constant value is not known there —
+reached by a conditional branch, so `doneState`'s constant value is not known there —
 only its register is.
 
 So the earlier entry's "cross-jumping runs after register allocation and cannot
@@ -96468,20 +96468,20 @@ hoists a plain `li` above stores in the same block" for the other half of this).
 
 ## `-shortfield` stored into another `short` loads with `lhu`; an `s32` temp restores `lh`
 
-`func_actor_510900_80139C10` negates an `s16` into an `SVECTOR` member. Written
+`_actor510900TickGrenadeFlight` negates an `s16` into an `SVECTOR` member. Written
 directly,
 `store_expr` sees a HImode destination and expands the load unextended —
 `lhu` plus `(neg:SI (subreg:SI (reg:HI 95) 0))` — because the high half is
 about to be thrown away:
 
-    scratch->angles.vx = -work->phaseCounter;   /* lhu */
+    pitchScratch->angles.vx = -work->phaseCounter;   /* lhu */
 
 The target loads `lh`. Routing the value through an `s32` local makes the
 negation a genuine SImode operation on a `sign_extend`, and combine cannot
 narrow it back because MIPS has no `neghi2`:
 
-    angle              = -work->phaseCounter;   /* lh */
-    scratch->angles.vx = angle;
+    pitchStep              = -work->phaseCounter;   /* lh */
+    pitchScratch->angles.vx = pitchStep;
 
 So `lhu` where the target has `lh` on a signed field is not a struct-type
 mistake; it is the destination's mode reaching back into the load. Note this is
@@ -96499,7 +96499,7 @@ MIPS defines `LOAD_EXTEND_OP` as `ZERO_EXTEND`, so a HImode move (`lhu`) or a
 `zero_extendhisi2` pins the pseudo at `0xFFFF` and every mask folds away — but
 `extendhisi2` is a `sign_extend`, whose `nonzero_bits` are unknown.
 
-`func_actor_510900_80137868` tests the same animation blend in two switch arms:
+`_actor510900TickLethalAttack` uses `animationValue` for its animation ID and frame windows in two switch arms:
 
 ```
 lhu   v1, 0x58A(s1)
@@ -96511,29 +96511,29 @@ andi  v0, v0, 0xFFFF        ; later block - mask survives
 sltiu v0, v0, 0xF
 ```
 
-Both arms only ever load the blend with `lhu`, so nothing in them can make the
+Both arms only ever load the animationValue with `lhu`, so nothing in them can make the
 pseudo wide. What does it is the *other* case of the switch, which reads a
 signed field into the same local first:
 
 ```c
-s32 blend;
+s32 animationValue;
 ...
 case 2:
-    blend = (u16)work->animationFrame;            /* lhu */
-    if (blend - 0x4B < 0x10U) { ... }
-    else if (((blend - 0x8F) & 0xFFFF) < 0xFU) { ... }
+    animationValue = (u16)work->animationFrame;            /* lhu */
+    if (animationValue - 0x4B < 0x10U) { ... }
+    else if (((animationValue - 0x8F) & 0xFFFF) < 0xFU) { ... }
     ...
 case 3:
-    blend = work->animationId;                 /* lh - this is the wide set */
-    if (blend == 7) {
-        blend = (u16)work->animationFrame;
+    animationValue = work->animationId;                 /* lh - this is the wide set */
+    if (animationValue == 7) {
+        animationValue = (u16)work->animationFrame;
         ...
 ```
 
 `reg_nonzero_bits` is per pseudo and per function, so one `lh` anywhere in the
 function covers every masked test in it. Typing the temp `s16` does not work:
 the set is then a HImode move and MIPS loads it with `lhu`. Neither does an
-`&&` window (`blend >= 0x8F && blend <= 0x9D`), which folds to the same masked
+`&&` window (`animationValue >= 0x8F && animationValue <= 0x9D`), which folds to the same masked
 compare and loses the mask the same way.
 
 ## Duplicating a whole statement into both arms is a cross-jumping lever
@@ -96544,7 +96544,7 @@ runs *after* `sched1`. It merges identical insns from the end of each arm
 backwards and stops at the first difference, so the scheduled order inside an
 arm decides where the merge stops.
 
-In `func_actor_510900_80137868` the target keeps `lw` in both arms but hoists
+In `_actor510900TickLethalAttack` the target keeps `lw` in both arms but hoists
 the `lui` out and puts everything from the `lhu` down in the join:
 
 ```
@@ -96770,7 +96770,7 @@ reaching for a soft use or a pin. The neighbouring
 "A loop entry test that reads a *copy* of the count" entry is the harder version
 of the same fold, where the guard has to be steered onto a different register.
 
-### `sra aN` + `move s0,aN`, or `move s0,v0` + `sll s0,v0,1`: the long-lived value is an `s16` local (func_actor_510900_80135744, 2026-09-16)
+### `sra aN` + `move s0,aN`, or `move s0,v0` + `sll s0,v0,1`: the long-lived value is an `s16` local (_actor510900ResolveBodyContacts, 2026-09-16)
 
 Symptom: a damage value kept in `$s0` across calls is built in a scratch
 register and *copied* in (`sll a2,v0,16; sra a2,a2,17; move s0,a2`, with `a2`
@@ -96787,21 +96787,21 @@ uses carry the explicit extension. Keep an `s32` local for the untruncated call
 result when a derived value is computed from it:
 
 ```c
-s16 dmg;
-s32 full;
-dmg = (s16)damageComputePlayerAttack(id, 0, 0, 0) >> 1;   /* sra a2; move s0,a2 */
-damageAccumulateLifeDrainHp(enemy, id, dmg, 0);
+s16 damage;
+s32 unscaledDamage;
+damage = (s16)damageComputePlayerAttack(id, 0, 0, 0) >> 1;   /* sra a2; move s0,a2 */
+damageAccumulateLifeDrainHp(enemy, id, damage, 0);
 ...
-full = damageComputePlayerAttack(id, dist, 0, 0);
-dmg  = full;                                     /* move s0,v0 */
-if (kind == 5) dmg = full * 2;                   /* sll s0,v0,1 */
-dmg *= 4;                                        /* sll 16; srl 14 */
+unscaledDamage = damageComputePlayerAttack(id, dist, 0, 0);
+damage  = unscaledDamage;                                     /* move s0,v0 */
+if (attackAttribute == 5) damage = unscaledDamage * 2;                   /* sll s0,v0,1 */
+damage *= 4;                                        /* sll 16; srl 14 */
 ```
 
-The `s16` type also turns `dmg *= 4` into the `sll 16 / srl 14` pair that
-needed `(u32)(dmg << 16) >> 14` on an `s32`. The sign-extension trick alone
-(`dmg = (s16)half` on an `s32`) does keep two pseudos, but the copy is
-scheduled before the argument load, so `optimize_reg_copy_1` still passes `dmg`.
+The `s16` type also turns `damage *= 4` into the `sll 16 / srl 14` pair that
+needed `(u32)(damage << 16) >> 14` on an `s32`. The sign-extension trick alone
+(`damage = (s16)half` on an `s32`) does keep two pseudos, but the copy is
+scheduled before the argument load, so `optimize_reg_copy_1` still passes `damage`.
 
 Integration note: the function's two jump tables followed an already-compiled
 table in the first unit's `.rodata`, and GCC's `.align 3` padded them by 4
@@ -100011,7 +100011,7 @@ the position sched2 gave the arm-specific `ori` sets the boundary:
 ```
 
 The form that reaches retail's boundary is the one already recorded for
-`func_actor_510900_80137868` ("Duplicating a whole statement into both arms is a
+`_actor510900TickLethalAttack` ("Duplicating a whole statement into both arms is a
 cross-jumping lever"), taken all the way: duplicate the **whole**
 `sndEvtRequestScriptStart(...)` statement - `worldCoordGetOriginAudioPan` and `worldCoordGetOriginAudioDepth`
 included - in both arms. Cross-jumping then folds the identical trailing call
@@ -149960,9 +149960,9 @@ attempts; left as it was.
   `switch { case 0: ...; break; case 1: ...; return; case 2: ...; return; }`
   with the cases in image order; a mode 1 that jumped to the function's last
   call is that call and a `return`. The `one = 1` local goes each time.
-  `func_actor_510900_8013A9BC` keeps `next = 2`, `held->state = state` and
-  `status = grabbed`: with the constants written in place more tails merge
-  (1 insn shorter). `Actor00100_Fn0A288` keeps `excludedState = 21` (`$a1`
+  `_actor510900TickHelipadLightBreak` keeps `doneState = ACTOR_510900_HELIPAD_LIGHT_DONE`
+  through the final state store: writing that state constant in place merges
+  more tails (1 insn shorter). `Actor00100_Fn0A288` keeps `excludedState = 21` (`$a1`
   becomes `$v0`).
 ### Goto forms from the caption task, the HUD task and the pod tunnel (batch 14, 2026-10-06)
 
