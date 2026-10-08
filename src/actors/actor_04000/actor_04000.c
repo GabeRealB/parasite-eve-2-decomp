@@ -103,8 +103,14 @@ enum {
 /// The hanging encounter uses six candidates from the eight-entry placement table.
 enum { ACTOR_04000_HANGING_POOL_COUNT = 6 };
 
-/// Set-table indices selected by the movement states.
+/// Set-table indices selected by this actor's behavior states.
 enum {
+    ACTOR_04000_ANIMATION_HOLD           = 1,
+    ACTOR_04000_ANIMATION_SETTLE         = 4,
+    ACTOR_04000_ANIMATION_ROUSE          = 6,
+    ACTOR_04000_ANIMATION_DEATH_BURST    = 10,
+    ACTOR_04000_ANIMATION_RELEASE_BURST  = 14,
+    ACTOR_04000_ANIMATION_LUNGE_RECOVER  = 15,
     ACTOR_04000_ANIMATION_WALK           = 2,
     ACTOR_04000_ANIMATION_RUN            = 3,
     ACTOR_04000_ANIMATION_IDLE           = 5,
@@ -113,6 +119,25 @@ enum {
     ACTOR_04000_ANIMATION_LUNGE          = 13,
     ACTOR_04000_ANIMATION_SCRIPTED_PAUSE = 16,
     ACTOR_04000_ANIMATION_SCRIPTED_SLIDE = 17,
+};
+
+/// Contact identity and geometric limits shared by the three burst states.
+///
+/// Radii and the wave's upward offset use game-coordinate units. The wave is
+/// an attack-category contact in the blast list, separate from enemy attack 1.
+/// Sound keys leave bits 8..15 free for the placement's script instance.
+enum {
+    ACTOR_04000_BURST_WAVE_CONTACT_KEY      = WORLD_COLLISION_CONTACT_ATTACK | 0x2222,
+    ACTOR_04000_BURST_ATTACK_INDEX          = 1,
+    ACTOR_04000_BURST_ATTACK_RADIUS         = 1000,
+    ACTOR_04000_BURST_WAVE_START_RADIUS     = 250,
+    ACTOR_04000_BURST_WAVE_MIDDLE_RADIUS    = 500,
+    ACTOR_04000_BURST_WAVE_END_RADIUS       = 1000,
+    ACTOR_04000_BURST_WAVE_HEIGHT           = 500,
+    ACTOR_04000_SOUND_BURST                 = 0x40280004,
+    ACTOR_04000_BURST_TIMER_LIMIT           = 1024,
+    ACTOR_04000_BURST_COLOR_START_Q12       = 3000,
+    ACTOR_04000_BURST_COLOR_ZERO_CUTOFF_Q12 = 1200,
 };
 
 /// Initial scripted playback rate in sixteenths of a frame per tick.
@@ -241,20 +266,20 @@ extern Task* Actor04000_D0C718[8];
 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
-static void Actor04000_Fn06A5C(Enemy* enemy, Task* task);
-static void Actor04000_Fn06878(Enemy* arg0, Task* arg1);
-static void Actor04000_Fn06994(Enemy* arg0, Task* arg1);
-static void Actor04000_Fn06AC4(Enemy* arg0, Task* arg1);
-static void Actor04000_Fn06BC8(Enemy* arg0, Task* arg1);
-static void Actor04000_Fn06C80(Enemy* arg0, Task* arg1);
-static void Actor04000_Fn06D38(Enemy* arg0, Task* arg1);
+static void _actor04000StateHidden(Enemy* enemy, Task* task);
+static void _actor04000StateLatched(Enemy* enemy, Task* task);
+static void _actor04000StateLungeRecover(Enemy* unusedEnemy, Task* task);
+static void _actor04000StateAwaitBattle(Enemy* enemy, Task* task);
+static void _actor04000StateSettle(Enemy* enemy, Task* task);
+static void _actor04000StateRouse(Enemy* enemy, Task* task);
+static void _actor04000StateHang(Enemy* enemy, Task* task);
 
 static TmdSource _gActor04000BloodSucklerBody;
 static void      _actor04000RefillDropSlots(Task* task);
-void             Actor04000_Fn06E4C(Task*);
+static void      _actor04000Task(Task* task);
 static void      _actor04000InitHangingPool(Task* task);
 static void      _actor04000AwaitPoolBattle(Task* task);
-void             Actor04000_Fn0703C(Task*);
+static void      _actor04000HangingPoolTask(Task* task);
 
 static s32 _actor04000ApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg);
 static s32 _actor04000SetModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArg);
@@ -1189,7 +1214,7 @@ TaskMessageEntry Actor04000_D0C6B0[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc Actor04000_D0C6E0 = { { { TASK_BODY_TMD, 96 } }, Actor04000_Fn06E4C, { .model = &_gActor04000BloodSucklerBody } };
+TaskDesc Actor04000_D0C6E0 = { { { TASK_BODY_TMD, 96 } }, _actor04000Task, { .model = &_gActor04000BloodSucklerBody } };
 
 TaskFunc Actor04000_D0C6EC[4] = {
     _actor04000InitHangingPool,
@@ -1198,7 +1223,7 @@ TaskFunc Actor04000_D0C6EC[4] = {
     taskKill,
 };
 
-TaskDesc Actor04000_D0C6FC = { { { TASK_BODY_NONE, 96 } }, Actor04000_Fn0703C, { .value = 0 } };
+TaskDesc Actor04000_D0C6FC = { { { TASK_BODY_NONE, 96 } }, _actor04000HangingPoolTask, { .value = 0 } };
 
 SVECTOR ActorContact_ScratchPosition;
 
@@ -1225,20 +1250,20 @@ extern AnimationSet* Actor04000_D0C520[4];
 /// The controller task's state handlers, indexed by its `state`.
 extern TaskFunc Actor04000_D0C6EC[];
 
-static s32  Actor04000_Fn00FDC(_Actor04000Work* arg0);
+static s32  _actor04000PollAnimationSound(_Actor04000Work* work);
 static void Actor04000_Fn010B8(Enemy* arg0, Task* arg1);
 static void _actor04000StateLunge(Enemy* enemy, Task* task);
-static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1);
+static void _actor04000StateReleaseBurst(Enemy* enemy, Task* task);
 static void _actor04000StateIdle(Enemy* enemy, Task* task);
 static void _actor04000StateChase(Enemy* enemy, Task* task);
-static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1);
-static void Actor04000_Fn03798(Enemy* arg0, Task* arg1);
+static void _actor04000StateSelfBurst(Enemy* enemy, Task* task);
+static void _actor04000StateDeathBurst(Enemy* enemy, Task* task);
 static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2);
 static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1);
 static void _actor04000StatePatrol(Enemy* enemy, Task* task);
 static void _actor04000StateReturn(Enemy* enemy, Task* task);
 static void _actor04000StateDrop(Enemy* enemy, Task* task);
-static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1);
+static void _actor04000StateScriptedThrash(Enemy* enemy, Task* task);
 static void _actor04000StateScriptedFall(Enemy* enemy, Task* task);
 static void _actor04000StateScriptedLeap(Enemy* enemy, Task* task);
 static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1);
@@ -1396,49 +1421,59 @@ static s32 _actor04000ApplyCommand(Task* task, s32 messageId, const ActorCommand
 
 #include "../../shared/anim_driver_tick.inc.c"
 
-/// Sound cue check keyed on the requested animation `driver.requestedSet`: for
-/// 2 and 3, answers 0x40280001 the first time slot 1's cue index reaches one
-/// of that animation's trigger indices (latched in `lastSoundCueIndex`, which
-/// clears on any other index); for 5, answers 0x400C0005 on a tick slot 1
-/// followed a control jump. Answers 0 otherwise.
-static s32 Actor04000_Fn00FDC(_Actor04000Work* arg0)
+/// Polls the requested walk, run or idle animation for a sound script key.
+///
+/// Walk/run cue indices are latched so a held cue fires once; any other movement
+/// cue clears the latch. Idle emits on each slot-1 control-jump tick. Returns 0
+/// for no sound. The caller adds the placement index in bits 8..15 and spatial
+/// audio parameters; this function only updates `lastSoundCueIndex`.
+static s32 _actor04000PollAnimationSound(_Actor04000Work* work)
 {
-    u16 id;
-    s32 v;
+    enum {
+        ACTOR_04000_WALK_CUE_A      = 0x15,
+        ACTOR_04000_WALK_CUE_B      = 0x11,
+        ACTOR_04000_RUN_CUE_A       = 0xD,
+        ACTOR_04000_RUN_CUE_B       = 0x12,
+        ACTOR_04000_SOUND_MOVEMENT  = 0x40280001,
+        ACTOR_04000_SOUND_IDLE_LOOP = 0x400C0005,
+    };
+    u16 cueIndex;
+    s32 cueValue;
 
-    switch (arg0->driver.requestedSet) {
-        case 2:
-            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            v  = id;
-            if (v != 0x15) {
-                goto not15;
+    // Retain the halfword cue separately across the shared trigger and latch paths.
+    switch (work->driver.requestedSet) {
+        case ACTOR_04000_ANIMATION_WALK:
+            cueIndex = work->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            cueValue = cueIndex;
+            if (cueValue != ACTOR_04000_WALK_CUE_A) {
+                goto otherWalkCue;
             }
-        check:
-            if (arg0->lastSoundCueIndex == v) {
-                goto same;
+        emitMovementSound:
+            if (work->lastSoundCueIndex == cueValue) {
+                goto retainMovementCue;
             }
-            arg0->lastSoundCueIndex = id;
-            return 0x40280001;
-        not15:
-            if (v == 0x11) {
-                goto check;
+            work->lastSoundCueIndex = cueIndex;
+            return ACTOR_04000_SOUND_MOVEMENT;
+        otherWalkCue:
+            if (cueValue == ACTOR_04000_WALK_CUE_B) {
+                goto emitMovementSound;
             }
-        clear:
-            arg0->lastSoundCueIndex = 0;
+        clearMovementCue:
+            work->lastSoundCueIndex = 0;
             break;
-        case 3:
-            id = arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-            v  = id;
-            if (v != 0xD && v != 0x12) {
-                goto clear;
+        case ACTOR_04000_ANIMATION_RUN:
+            cueIndex = work->rig.slots[ANIM_DRIVER_FIRST_SLOT].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+            cueValue = cueIndex;
+            if (cueValue != ACTOR_04000_RUN_CUE_A && cueValue != ACTOR_04000_RUN_CUE_B) {
+                goto clearMovementCue;
             }
-            goto check;
-        same:
-            arg0->lastSoundCueIndex = id;
+            goto emitMovementSound;
+        retainMovementCue:
+            work->lastSoundCueIndex = cueIndex;
             break;
-        case 5:
-            if (arg0->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
-                return 0x400C0005;
+        case ACTOR_04000_ANIMATION_IDLE:
+            if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
+                return ACTOR_04000_SOUND_IDLE_LOOP;
             }
             break;
     }
@@ -1726,135 +1761,169 @@ static void _actor04000StateLunge(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor04000LungeScratch);
 }
 
-/// Frames 0x5B onward of the collapse: drifts the model along its facing for the
-/// first 0x13 frames, steps the effects keyed on `stateFrame`, then fades the colour
-/// matrix out and grows the model over frames 0x5C-0x64.
-static void Actor04000_Fn01E1C(Enemy* arg0, Task* arg1)
+/// Releases the latched player through a delayed burst and hides the actor.
+///
+/// Selects the held player's animation 2, drifts 21 units along the root's
+/// flattened local X axis for 19 ticks, then releases the scripted hold on tick
+/// 91. The attack and blast pulse begins on tick 92; the model reddens, fades
+/// and swells before the state becomes `HIDDEN` on tick 119. Burst centres are
+/// sampled on entry and remain fixed while the visible root drifts.
+static void _actor04000StateReleaseBurst(Enemy* enemy, Task* task)
 {
-    SVECTOR          dir;
-    SVECTOR*         d;
+    enum {
+        ACTOR_04000_RELEASE_DRIFT_TICKS      = 0x13,
+        ACTOR_04000_RELEASE_PLAYER_TICK      = 0x5B,
+        ACTOR_04000_RELEASE_PULSE_TICK       = 0x5C,
+        ACTOR_04000_RELEASE_WAVE_MIDDLE_TICK = 0x5D,
+        ACTOR_04000_RELEASE_ATTACK_END_TICK  = 0x5E,
+        ACTOR_04000_RELEASE_REWARDS_TICK     = 0x60,
+        ACTOR_04000_RELEASE_HIDE_MODEL_TICK  = 0x62,
+        ACTOR_04000_RELEASE_HIDDEN_TICK      = 0x77,
+        ACTOR_04000_RELEASE_RED_START_TICK   = 0x17,
+        ACTOR_04000_RELEASE_RED_BASE_TICK    = 0x16,
+        ACTOR_04000_RELEASE_SCALE_END_TICK   = 0x65,
+        ACTOR_04000_RELEASE_GROWTH_BASE_TICK = 0x5A,
+        ACTOR_04000_RELEASE_DRIFT_STEP_UNITS = 21,
+        ACTOR_04000_PLAYER_RELEASE_ANIMATION = 2,
+    };
+    SVECTOR          driftStep;
+    SVECTOR*         driftStepPtr;
     VECTOR           scale;
     _Actor04000Work* work;
-    TmdObject*       obj;
-    s16              s;
-    s32              pan;
-    s32              id;
+    TmdObject*       model;
+    s16              scaleQ12;
+    s32              audioPan;
+    s32              soundId;
 
-    work = arg1->work;
-    obj  = arg1->extra.tmd;
+    work  = task->work;
+    model = task->extra.tmd;
     if (work->stateEntered != 0) {
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                   = 0;
-        work->hitBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.key    = damagePackEnemyAttackKey(arg0, 1);
-        work->burstWaveBody.key      = 0x22222;
-        work->stateFrame             = 0;
-        work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->savedColorMtx          = work->colorMtx;
-        work->driver.requestedSet    = 0xE;
-        work->driver.state           = ANIM_DRIVER_STATE_RESTART_1;
-        work->driver.rateBias        = 0;
-        _animDriverTick(arg1);
-        work->burstWaveBody.pos.vx    = arg1->extra.tmd->coords->coord.t[0];
-        work->burstWaveBody.pos.vy    = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
-        work->burstWaveBody.pos.vz    = arg1->extra.tmd->coords->coord.t[2];
-        work->burstAttackBody.pos.vx  = arg1->extra.tmd->coords->coord.t[0];
-        work->burstAttackBody.pos.vy  = arg1->extra.tmd->coords->coord.t[1];
-        work->burstAttackBody.pos.vz  = arg1->extra.tmd->coords->coord.t[2];
-        Actor04000_D0C530.animationId = 2;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = 0;
+        work->hitBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstWaveBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstAttackBody.key     = damagePackEnemyAttackKey(enemy, ACTOR_04000_BURST_ATTACK_INDEX);
+        work->burstWaveBody.key       = ACTOR_04000_BURST_WAVE_CONTACT_KEY;
+        work->stateFrame              = 0;
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->savedColorMtx           = work->colorMtx;
+        work->driver.requestedSet     = ACTOR_04000_ANIMATION_RELEASE_BURST;
+        work->driver.state            = ANIM_DRIVER_STATE_RESTART_1;
+        work->driver.rateBias         = 0;
+        _animDriverTick(task);
+        work->burstWaveBody.pos.vx    = task->extra.tmd->coords->coord.t[0];
+        work->burstWaveBody.pos.vy    = task->extra.tmd->coords->coord.t[1] - ACTOR_04000_BURST_WAVE_HEIGHT;
+        work->burstWaveBody.pos.vz    = task->extra.tmd->coords->coord.t[2];
+        work->burstAttackBody.pos.vx  = task->extra.tmd->coords->coord.t[0];
+        work->burstAttackBody.pos.vy  = task->extra.tmd->coords->coord.t[1];
+        work->burstAttackBody.pos.vz  = task->extra.tmd->coords->coord.t[2];
+        Actor04000_D0C530.animationId = ACTOR_04000_PLAYER_RELEASE_ANIMATION;
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &Actor04000_D0C530, 0);
         work->stateFrame = 0;
     }
-    if (work->stateFrame < 0x13) {
-        gfxReadMatrixXAxis(&arg1->extra.tmd->coords->coord, &dir);
-        d      = &dir;
-        dir.vy = 0;
-        VectorNormalSS(d, d);
-        gte_lddp(0x15);
-        gte_ldsv(d);
-        gte_gpf12();
-        gte_stsv(d);
-        arg1->extra.tmd->coords->coord.t[0]  += dir.vx;
-        arg1->extra.tmd->coords->coord.t[2]  += dir.vz;
-        arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    /// Steps the release drift along the root's flattened local X axis.
+    ///
+    /// Captures stable locals `task`, `driftStep` and `driftStepPtr`, borrowing
+    /// the root and vector only for this tick. Normalizes in Q12 and narrows
+    /// the scaled step to halfwords; applies X/Z and marks the root dirty.
+    /// Expands to a compound statement with no walking freeze gate; use only
+    /// as a standalone statement inside this handler.
+#define ACTOR_04000_STEP_RELEASE_DRIFT()                                 \
+    {                                                                    \
+        gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, &driftStep); \
+        driftStepPtr = &driftStep;                                       \
+        driftStep.vy = 0;                                                \
+        VectorNormalSS(driftStepPtr, driftStepPtr);                      \
+        gte_lddp(ACTOR_04000_RELEASE_DRIFT_STEP_UNITS);                  \
+        gte_ldsv(driftStepPtr);                                          \
+        gte_gpf12();                                                     \
+        gte_stsv(driftStepPtr);                                          \
+        task->extra.tmd->coords->coord.t[0]  += driftStep.vx;            \
+        task->extra.tmd->coords->coord.t[2]  += driftStep.vz;            \
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;    \
     }
-    _animDriverTick(arg1);
+    if (work->stateFrame < ACTOR_04000_RELEASE_DRIFT_TICKS) {
+        ACTOR_04000_STEP_RELEASE_DRIFT();
+    }
+#undef ACTOR_04000_STEP_RELEASE_DRIFT
+    _animDriverTick(task);
+    // Stage collision pulses, rewards and visual disappearance on fixed ticks.
     switch (work->stateFrame) {
-        case 0x5B:
+        case ACTOR_04000_RELEASE_PLAYER_TICK:
             if (work->holdingPlayer == 1) {
                 if (((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 }
                 work->holdingPlayer = 0;
             }
-            arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+            task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
-        case 0x5C:
+        case ACTOR_04000_RELEASE_PULSE_TICK:
             padScriptSpawnDepthScaled(Actor04000_D07094, Actor04000_D070A0,
-                                      (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
-            work->burstAttackBody.radius = 0x3E8;
-            work->burstWaveBody.radius   = 0xFA;
+                                      (s16)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+            work->burstAttackBody.radius = ACTOR_04000_BURST_ATTACK_RADIUS;
+            work->burstWaveBody.radius   = ACTOR_04000_BURST_WAVE_START_RADIUS;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->burstWaveBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[2], 1, NULL);
             break;
-        case 0x5D:
-            work->burstWaveBody.radius = 0x1F4;
+        case ACTOR_04000_RELEASE_WAVE_MIDDLE_TICK:
+            work->burstWaveBody.radius = ACTOR_04000_BURST_WAVE_MIDDLE_RADIUS;
             break;
-        case 0x5E:
-            work->burstWaveBody.radius   = 0x3E8;
+        case ACTOR_04000_RELEASE_ATTACK_END_TICK:
+            work->burstWaveBody.radius   = ACTOR_04000_BURST_WAVE_END_RADIUS;
             work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
-        case 0x60:
-            sceneReleaseBattleRefWithRewards(arg1, 0xC);
+        case ACTOR_04000_RELEASE_REWARDS_TICK:
+            sceneReleaseBattleRefWithRewards(task, 0xC);
             work->burstWaveBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
-        case 0x62:
+        case ACTOR_04000_RELEASE_HIDE_MODEL_TICK:
             if (work->airborne == 0) {
-                effectSpawn(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
+                effectSpawn(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, NULL);
             }
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            id         = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
-            pan        = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            soundId      = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_04000_SOUND_BURST;
+            audioPan     = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             break;
-        case 0x77:
+        case ACTOR_04000_RELEASE_HIDDEN_TICK:
             work->state = ACTOR_04000_STATE_HIDDEN;
             break;
         default:
             work->colorMtx = work->savedColorMtx;
             break;
     }
+    // Rebuild this tick's colour from the saved lighting so fading does not accumulate.
     work->colorMtx = work->savedColorMtx;
-    if (work->stateFrame >= 0x17 && work->stateFrame < 0x5B) {
-        work->colorMtx.t[0] += (work->stateFrame - 0x16) * 0x60;
+    if (work->stateFrame >= ACTOR_04000_RELEASE_RED_START_TICK && work->stateFrame < ACTOR_04000_RELEASE_PLAYER_TICK) {
+        work->colorMtx.t[0] += (work->stateFrame - ACTOR_04000_RELEASE_RED_BASE_TICK) * 96;
     }
-    if (work->stateFrame >= 0x5C && work->stateFrame < 0x65) {
-        s = 0xBB8 - (work->stateFrame - 0x5C) * 600;
-        if (s < 0x4B0) {
+    if (work->stateFrame >= ACTOR_04000_RELEASE_PULSE_TICK && work->stateFrame < ACTOR_04000_RELEASE_SCALE_END_TICK) {
+        scaleQ12 = ACTOR_04000_BURST_COLOR_START_Q12 - (work->stateFrame - ACTOR_04000_RELEASE_PULSE_TICK) * 600;
+        if (scaleQ12 < ACTOR_04000_BURST_COLOR_ZERO_CUTOFF_Q12) {
             scale.vx = scale.vy = scale.vz = 0;
-            _actorRenderRescaleYaw(arg1->extra.tmd->coords, ONE);
+            _actorRenderRescaleYaw(task->extra.tmd->coords, ONE);
             ScaleMatrix(&work->colorMtx, &scale);
             work->colorMtx.t[0] = work->colorMtx.t[1] = work->colorMtx.t[2] = 0;
-            _actorRenderRescaleYaw(arg1->extra.tmd->coords, ONE);
+            _actorRenderRescaleYaw(task->extra.tmd->coords, ONE);
         } else {
-            scale.vx = scale.vy = scale.vz = s;
+            scale.vx = scale.vy = scale.vz = scaleQ12;
             work->colorMtx                 = work->savedColorMtx;
             ScaleMatrix(&work->colorMtx, &scale);
-            gte_lddp(s);
+            gte_lddp(scaleQ12);
             gte_ldlvl(work->colorMtx.t);
             gte_gpf12();
             gte_stlvl(work->colorMtx.t);
-            s = (work->stateFrame - 0x5A) * 0x400 + 0x1000;
-            if (s > 0x2000) {
-                s = 0x2000;
+            scaleQ12 = (work->stateFrame - ACTOR_04000_RELEASE_GROWTH_BASE_TICK) * (ONE / 4) + ONE;
+            if (scaleQ12 > (2 * ONE)) {
+                scaleQ12 = (2 * ONE);
             }
-            _actorRenderRescaleYaw(arg1->extra.tmd->coords, s);
+            _actorRenderRescaleYaw(task->extra.tmd->coords, scaleQ12);
         }
     }
-    if (work->stateFrame < 0x400) {
+    if (work->stateFrame < ACTOR_04000_BURST_TIMER_LIMIT) {
         work->stateFrame++;
     } else {
         work->state = ACTOR_04000_STATE_HIDDEN;
@@ -1985,235 +2054,278 @@ static void _actor04000StateChase(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorTurnScratch);
 }
 
-/// Frames 0x28 onward of the collapse: steps the effects keyed on `stateFrame`,
-/// then fades the colour matrix out and grows the model over frames 0x2A-0x32.
-static void Actor04000_Fn02F48(Enemy* arg0, Task* arg1)
+/// Runs the voluntary burst, releases a held player and finishes with zero HP.
+///
+/// Keeps taking hits until tick 40, ends its player hold on tick 41, and pulses
+/// its entry-position attack and blast bodies from tick 42. It broadcasts a
+/// hold-release request to all placed actors, credits rewards on tick 46, and
+/// becomes `HIDDEN` with zero HP on tick 69. Airborne bursts omit the ground glow.
+static void _actor04000StateSelfBurst(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_04000_SELF_HITS_END_TICK       = 0x28,
+        ACTOR_04000_SELF_RELEASE_PLAYER_TICK = 0x29,
+        ACTOR_04000_SELF_PULSE_TICK          = 0x2A,
+        ACTOR_04000_SELF_WAVE_MIDDLE_TICK    = 0x2B,
+        ACTOR_04000_SELF_WAVE_FULL_TICK      = 0x2C,
+        ACTOR_04000_SELF_REWARDS_TICK        = 0x2E,
+        ACTOR_04000_SELF_GLOW_TICK           = 0x30,
+        ACTOR_04000_SELF_HIDE_MODEL_TICK     = 0x32,
+        ACTOR_04000_SELF_SKIP_BUFFER_TICK    = 0x34,
+        ACTOR_04000_SELF_HIDDEN_TICK         = 0x45,
+        ACTOR_04000_SELF_RED_START_TICK      = 0x17,
+        ACTOR_04000_SELF_RED_BASE_TICK       = 0x16,
+        ACTOR_04000_SELF_SCALE_END_TICK      = 0x33,
+        ACTOR_04000_SELF_GROWTH_BASE_TICK    = 0x28,
+    };
     VECTOR           scale;
     _Actor04000Work* work;
-    TmdObject*       obj;
-    s16              s;
-    s32              pan;
-    s32              id;
+    TmdObject*       model;
+    s16              scaleQ12;
+    s32              audioPan;
+    s32              soundId;
 
-    work = arg1->work;
-    obj  = arg1->extra.tmd;
+    work  = task->work;
+    model = task->extra.tmd;
     if (work->stateEntered != 0) {
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                   = 0;
-        work->hitBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.key    = damagePackEnemyAttackKey(arg0, 1);
-        work->burstWaveBody.key      = 0x22222;
-        work->stateFrame             = 0;
-        work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->savedColorMtx          = work->colorMtx;
-        work->driver.rateBias        = 0;
-        _animDriverTick(arg1);
-        work->burstWaveBody.pos.vx   = arg1->extra.tmd->coords->coord.t[0];
-        work->burstWaveBody.pos.vy   = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
-        work->burstWaveBody.pos.vz   = arg1->extra.tmd->coords->coord.t[2];
-        work->burstAttackBody.pos.vx = arg1->extra.tmd->coords->coord.t[0];
-        work->burstAttackBody.pos.vy = arg1->extra.tmd->coords->coord.t[1];
-        work->burstAttackBody.pos.vz = arg1->extra.tmd->coords->coord.t[2];
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = 0;
+        work->hitBody.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->burstAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstWaveBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstAttackBody.key     = damagePackEnemyAttackKey(enemy, ACTOR_04000_BURST_ATTACK_INDEX);
+        work->burstWaveBody.key       = ACTOR_04000_BURST_WAVE_CONTACT_KEY;
+        work->stateFrame              = 0;
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->savedColorMtx           = work->colorMtx;
+        work->driver.rateBias         = 0;
+        _animDriverTick(task);
+        work->burstWaveBody.pos.vx   = task->extra.tmd->coords->coord.t[0];
+        work->burstWaveBody.pos.vy   = task->extra.tmd->coords->coord.t[1] - ACTOR_04000_BURST_WAVE_HEIGHT;
+        work->burstWaveBody.pos.vz   = task->extra.tmd->coords->coord.t[2];
+        work->burstAttackBody.pos.vx = task->extra.tmd->coords->coord.t[0];
+        work->burstAttackBody.pos.vy = task->extra.tmd->coords->coord.t[1];
+        work->burstAttackBody.pos.vz = task->extra.tmd->coords->coord.t[2];
         if (work->lastCommandContext == ACTOR_04000_COMMAND_CONTEXT_HANGING_POOL) {
-            Actor04000_D0C718[arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
+            Actor04000_D0C718[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
         }
         return;
     }
-    _animDriverTick(arg1);
+    _animDriverTick(task);
+    // Stage collision pulses, rewards and visual disappearance on fixed ticks.
     switch (work->stateFrame) {
-        case 0x28:
+        case ACTOR_04000_SELF_HITS_END_TICK:
             work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
-        case 0x29:
+        case ACTOR_04000_SELF_RELEASE_PLAYER_TICK:
             if (work->holdingPlayer == 1) {
                 if (((GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work)->mode == GAME_ACTOR_MODE_SCRIPTED) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_END_SCRIPTED, 0, 0);
                 }
                 work->holdingPlayer = 0;
             }
-            arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+            task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
-        case 0x2A:
+        case ACTOR_04000_SELF_PULSE_TICK:
             padScriptSpawnDepthScaled(Actor04000_D07094, Actor04000_D070A0,
-                                      (s16)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
-            work->burstAttackBody.radius = 0x3E8;
-            work->burstWaveBody.radius   = 0xFA;
-            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), 0x7DA, 0, 0x7DE);
+                                      (s16)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+            work->burstAttackBody.radius = ACTOR_04000_BURST_ATTACK_RADIUS;
+            work->burstWaveBody.radius   = ACTOR_04000_BURST_WAVE_START_RADIUS;
+            taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, 0, ACTOR_MESSAGE_RELEASE_HOLD);
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             work->burstWaveBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[2], 1, NULL);
             break;
-        case 0x2B:
-            work->burstWaveBody.radius = 0x1F4;
+        case ACTOR_04000_SELF_WAVE_MIDDLE_TICK:
+            work->burstWaveBody.radius = ACTOR_04000_BURST_WAVE_MIDDLE_RADIUS;
             break;
-        case 0x2C:
-            work->burstWaveBody.radius = 0x3E8;
+        case ACTOR_04000_SELF_WAVE_FULL_TICK:
+            work->burstWaveBody.radius = ACTOR_04000_BURST_WAVE_END_RADIUS;
             break;
-        case 0x2E:
-            sceneReleaseBattleRefWithRewards(arg1, 0xC);
+        case ACTOR_04000_SELF_REWARDS_TICK:
+            sceneReleaseBattleRefWithRewards(task, 0xC);
             work->burstWaveBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
-        case 0x30:
+        case ACTOR_04000_SELF_GLOW_TICK:
             if (work->airborne == 0) {
-                effectSpawn(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
+                effectSpawn(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, NULL);
             }
-            id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
-            pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
+            soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_04000_SOUND_BURST;
+            audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
             break;
-        case 0x32:
+        case ACTOR_04000_SELF_HIDE_MODEL_TICK:
             work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0x34:
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_04000_SELF_SKIP_BUFFER_TICK:
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 0x45:
+        case ACTOR_04000_SELF_HIDDEN_TICK:
             work->state = ACTOR_04000_STATE_HIDDEN;
-            arg0->hp    = 0;
+            enemy->hp   = 0;
             break;
         default:
             work->colorMtx = work->savedColorMtx;
             break;
     }
+    // Rebuild this tick's colour from the saved lighting so fading does not accumulate.
     work->colorMtx = work->savedColorMtx;
-    if (work->stateFrame >= 0x17 && work->stateFrame < 0x29) {
-        work->colorMtx.t[0] += (work->stateFrame - 0x16) * 0x60;
+    if (work->stateFrame >= ACTOR_04000_SELF_RED_START_TICK && work->stateFrame < ACTOR_04000_SELF_RELEASE_PLAYER_TICK) {
+        work->colorMtx.t[0] += (work->stateFrame - ACTOR_04000_SELF_RED_BASE_TICK) * 0x60;
     }
-    if (work->stateFrame >= 0x2A && work->stateFrame < 0x33) {
-        s = 0xBB8 - (work->stateFrame - 0x2A) * 600;
-        if (s < 0x4B0) {
+    if (work->stateFrame >= ACTOR_04000_SELF_PULSE_TICK && work->stateFrame < ACTOR_04000_SELF_SCALE_END_TICK) {
+        scaleQ12 = ACTOR_04000_BURST_COLOR_START_Q12 - (work->stateFrame - ACTOR_04000_SELF_PULSE_TICK) * 600;
+        if (scaleQ12 < ACTOR_04000_BURST_COLOR_ZERO_CUTOFF_Q12) {
             scale.vx = scale.vy = scale.vz = 0;
-            _actorRenderRescaleYaw(arg1->extra.tmd->coords, ONE);
+            _actorRenderRescaleYaw(task->extra.tmd->coords, ONE);
             ScaleMatrix(&work->colorMtx, &scale);
             work->colorMtx.t[0] = work->colorMtx.t[1] = work->colorMtx.t[2] = 0;
-            _actorRenderRescaleYaw(arg1->extra.tmd->coords, ONE);
+            _actorRenderRescaleYaw(task->extra.tmd->coords, ONE);
         } else {
-            scale.vx = scale.vy = scale.vz = s;
+            scale.vx = scale.vy = scale.vz = scaleQ12;
             work->colorMtx                 = work->savedColorMtx;
             ScaleMatrix(&work->colorMtx, &scale);
-            gte_lddp(s);
+            gte_lddp(scaleQ12);
             gte_ldlvl(work->colorMtx.t);
             gte_gpf12();
             gte_stlvl(work->colorMtx.t);
-            s = (work->stateFrame - 0x28) * 0x400 + 0x1000;
-            if (s > 0x2000) {
-                s = 0x2000;
+            scaleQ12 = (work->stateFrame - ACTOR_04000_SELF_GROWTH_BASE_TICK) * (ONE / 4) + ONE;
+            if (scaleQ12 > (2 * ONE)) {
+                scaleQ12 = (2 * ONE);
             }
-            _actorRenderRescaleYaw(arg1->extra.tmd->coords, s);
+            _actorRenderRescaleYaw(task->extra.tmd->coords, scaleQ12);
         }
     }
-    if (work->stateFrame < 0x400) {
+    if (work->stateFrame < ACTOR_04000_BURST_TIMER_LIMIT) {
         work->stateFrame++;
     } else {
         work->state = ACTOR_04000_STATE_HIDDEN;
     }
 }
 
-/// Death state: saves the colour matrix, then fades it and grows the model
-/// over frames 13-21 while stepping through the collapse effects.
-static void Actor04000_Fn03798(Enemy* arg0, Task* arg1)
+/// Bursts after lethal damage, credits rewards and hides the actor.
+///
+/// Disables hit and grid collision, restarts animation 10 at 44 sixteenths of
+/// a frame per tick, and samples the two burst centres on entry. The attack
+/// pulses on tick 14; the blast grows from ticks 15 to 17 and ends on tick 19.
+/// The colour fades and model swells before `HIDDEN` on tick 38. This handler
+/// does not release a held player; the per-frame tick handles that separately.
+static void _actor04000StateDeathBurst(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_04000_DEATH_FADE_TICK        = 0xD,
+        ACTOR_04000_DEATH_ATTACK_TICK      = 0xE,
+        ACTOR_04000_DEATH_WAVE_TICK        = 0xF,
+        ACTOR_04000_DEATH_WAVE_MIDDLE_TICK = 0x10,
+        ACTOR_04000_DEATH_WAVE_FULL_TICK   = 0x11,
+        ACTOR_04000_DEATH_WAVE_END_TICK    = 0x13,
+        ACTOR_04000_DEATH_HIDE_MODEL_TICK  = 0x15,
+        ACTOR_04000_DEATH_SKIP_BUFFER_TICK = 0x17,
+        ACTOR_04000_DEATH_HIDDEN_TICK      = 0x26,
+        ACTOR_04000_DEATH_SCALE_END_TICK   = 0x16,
+        ACTOR_04000_DEATH_FADE_BASE_TICK   = 0xB,
+        ACTOR_04000_DEATH_ANIMATION_RATE   = 44,  // Sixteenths of a frame per driver tick
+        ACTOR_04000_DEATH_MODEL_GROWTH_Q12 = 180, // Model scale increment per timer tick
+    };
     VECTOR           scale;
     _Actor04000Work* work;
-    TmdObject*       obj;
-    s16              s;
-    s32              pan;
-    s32              id;
+    TmdObject*       model;
+    s16              scaleQ12;
+    s32              audioPan;
+    s32              soundId;
 
-    work = arg1->work;
-    obj  = arg1->extra.tmd;
+    work  = task->work;
+    model = task->extra.tmd;
     if (work->stateEntered != 0) {
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                   = 0;
-        work->hitBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.key    = damagePackEnemyAttackKey(arg0, 1);
-        work->burstWaveBody.key      = 0x22222;
-        work->stateFrame             = 0;
-        work->gridBody.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        work->savedColorMtx          = work->colorMtx;
-        work->driver.requestedSet    = 0xA;
-        work->driver.state           = ANIM_DRIVER_STATE_RESTART_1;
-        work->driver.rateBias        = 0;
-        work->driver.rate            = 0x2C;
-        _animDriverTick(arg1);
-        work->burstWaveBody.pos.vx   = arg1->extra.tmd->coords->coord.t[0];
-        work->burstWaveBody.pos.vy   = arg1->extra.tmd->coords->coord.t[1] - 0x1F4;
-        work->burstWaveBody.pos.vz   = arg1->extra.tmd->coords->coord.t[2];
-        work->burstAttackBody.pos.vx = arg1->extra.tmd->coords->coord.t[0];
-        work->burstAttackBody.pos.vy = arg1->extra.tmd->coords->coord.t[1];
-        work->burstAttackBody.pos.vz = arg1->extra.tmd->coords->coord.t[2];
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = 0;
+        work->hitBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstWaveBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstAttackBody.key     = damagePackEnemyAttackKey(enemy, ACTOR_04000_BURST_ATTACK_INDEX);
+        work->burstWaveBody.key       = ACTOR_04000_BURST_WAVE_CONTACT_KEY;
+        work->stateFrame              = 0;
+        work->gridBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->savedColorMtx           = work->colorMtx;
+        work->driver.requestedSet     = ACTOR_04000_ANIMATION_DEATH_BURST;
+        work->driver.state            = ANIM_DRIVER_STATE_RESTART_1;
+        work->driver.rateBias         = 0;
+        work->driver.rate             = ACTOR_04000_DEATH_ANIMATION_RATE;
+        _animDriverTick(task);
+        work->burstWaveBody.pos.vx   = task->extra.tmd->coords->coord.t[0];
+        work->burstWaveBody.pos.vy   = task->extra.tmd->coords->coord.t[1] - ACTOR_04000_BURST_WAVE_HEIGHT;
+        work->burstWaveBody.pos.vz   = task->extra.tmd->coords->coord.t[2];
+        work->burstAttackBody.pos.vx = task->extra.tmd->coords->coord.t[0];
+        work->burstAttackBody.pos.vy = task->extra.tmd->coords->coord.t[1];
+        work->burstAttackBody.pos.vz = task->extra.tmd->coords->coord.t[2];
         sceneEngageBattle(1);
         if (work->lastCommandContext == ACTOR_04000_COMMAND_CONTEXT_HANGING_POOL) {
-            Actor04000_D0C718[arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
+            Actor04000_D0C718[enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT] = NULL;
         }
     }
-    _animDriverTick(arg1);
+    _animDriverTick(task);
+    // Stage collision pulses, rewards and visual disappearance on fixed ticks.
     switch (work->stateFrame) {
-        case 0xD:
-            id  = ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40280004;
-            pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
-            sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg1->extra.tmd->coords));
-            arg1->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+        case ACTOR_04000_DEATH_FADE_TICK:
+            soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_04000_SOUND_BURST;
+            audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+            sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+            task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             break;
-        case 0xE:
-            work->burstAttackBody.radius = 0x3E8;
+        case ACTOR_04000_DEATH_ATTACK_TICK:
+            work->burstAttackBody.radius = ACTOR_04000_BURST_ATTACK_RADIUS;
             work->burstAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            effectSpawn(EFFECT_CRITICAL_HIT, &arg1->extra.tmd->coords[2], 1, NULL);
+            effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[2], 1, NULL);
             padScriptSpawn(Actor04000_D07094, Actor04000_D070A0);
             break;
-        case 0xF:
-            sceneReleaseBattleRefWithRewards(arg1, 0xC);
-            work->burstWaveBody.radius   = 0xFA;
+        case ACTOR_04000_DEATH_WAVE_TICK:
+            sceneReleaseBattleRefWithRewards(task, 0xC);
+            work->burstWaveBody.radius   = ACTOR_04000_BURST_WAVE_START_RADIUS;
             work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             work->burstWaveBody.flags   |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             break;
-        case 0x10:
-            work->burstWaveBody.radius = 0x1F4;
+        case ACTOR_04000_DEATH_WAVE_MIDDLE_TICK:
+            work->burstWaveBody.radius = ACTOR_04000_BURST_WAVE_MIDDLE_RADIUS;
             break;
-        case 0x11:
-            work->burstWaveBody.radius = 0x3E8;
+        case ACTOR_04000_DEATH_WAVE_FULL_TICK:
+            work->burstWaveBody.radius = ACTOR_04000_BURST_WAVE_END_RADIUS;
             break;
-        case 0x13:
+        case ACTOR_04000_DEATH_WAVE_END_TICK:
             work->burstWaveBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             if (work->airborne == 0) {
-                effectSpawn(EFFECT_RED_GROUND_GLOW, arg1->extra.tmd->coords, 0, NULL);
+                effectSpawn(EFFECT_RED_GROUND_GLOW, task->extra.tmd->coords, 0, NULL);
             }
             break;
-        case 0x15:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case ACTOR_04000_DEATH_HIDE_MODEL_TICK:
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 0x17:
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_04000_DEATH_SKIP_BUFFER_TICK:
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 0x26:
+        case ACTOR_04000_DEATH_HIDDEN_TICK:
             work->state = ACTOR_04000_STATE_HIDDEN;
             break;
     }
-    if (work->stateFrame >= 0xD && work->stateFrame < 0x16) {
-        s = 0xBB8 - (work->stateFrame - 0xB) * 0x320;
-        if (s < 0) {
-            s = 0;
+    if (work->stateFrame >= ACTOR_04000_DEATH_FADE_TICK && work->stateFrame < ACTOR_04000_DEATH_SCALE_END_TICK) {
+        scaleQ12 = ACTOR_04000_BURST_COLOR_START_Q12 - (work->stateFrame - ACTOR_04000_DEATH_FADE_BASE_TICK) * 0x320;
+        if (scaleQ12 < 0) {
+            scaleQ12 = 0;
         }
-        scale.vx = scale.vy = scale.vz = s;
+        scale.vx = scale.vy = scale.vz = scaleQ12;
         work->colorMtx                 = work->savedColorMtx;
         ScaleMatrix(&work->colorMtx, &scale);
-        gte_lddp(s);
+        gte_lddp(scaleQ12);
         gte_ldlvl(work->colorMtx.t);
         gte_gpf12();
         gte_stlvl(work->colorMtx.t);
-        s = work->stateFrame * 0xB4 + 0x1000;
-        if (s > 0x2000) {
-            s = 0x2000;
+        scaleQ12 = work->stateFrame * ACTOR_04000_DEATH_MODEL_GROWTH_Q12 + ONE;
+        if (scaleQ12 > (2 * ONE)) {
+            scaleQ12 = (2 * ONE);
         }
-        _actorRenderRescaleYaw(arg1->extra.tmd->coords, s);
+        _actorRenderRescaleYaw(task->extra.tmd->coords, scaleQ12);
     }
-    if (work->stateFrame < 0x400) {
+    if (work->stateFrame < ACTOR_04000_BURST_TIMER_LIMIT) {
         work->stateFrame++;
     } else {
         work->state = ACTOR_04000_STATE_HIDDEN;
@@ -2295,20 +2407,23 @@ static void Actor04000_Fn03D30(Task* arg0, s16 arg1, u32 arg2)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
 }
 
-/// First `WorldCollisionContact` among the `count` at `records` whose id has high word 2,
-/// copying its position to `pos`; 0 at the first empty record.
-static __inline__ s32 Actor04000_FindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
+/// Returns the first attack contact key and copies its world position.
+///
+/// Borrows at most `contactCount` elements (a nonnegative signed-halfword count),
+/// stopping at the first zero key. Returns 0 if no attack is found, leaving
+/// `hitPos` untouched; a hit copies XYZ only, preserving its unused pad halfword.
+static __inline__ s32 _actor04000FindAttackContactKey(SVECTOR* hitPos, const WorldCollisionContact* contacts, s16 contactCount)
 {
-    s16 i;
+    s16 contactIndex;
 
-    for (i = 0; i < count; i++) {
-        if (!records[i].key.value)
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        if (!contacts[contactIndex].key.value)
             break;
-        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key.value;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            hitPos->vx = contacts[contactIndex].point.vx;
+            hitPos->vy = contacts[contactIndex].point.vy;
+            hitPos->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
         }
     }
     return 0;
@@ -2327,7 +2442,7 @@ static void Actor04000_Fn03FB4(Enemy* arg0, Task* arg1)
 
     work       = arg1->work;
     sc         = SCRATCH_STACK_RESERVE_BLOCK(ActorHitTakenScratch);
-    sc->hitKey = Actor04000_FindHit(&sc->hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    sc->hitKey = _actor04000FindAttackContactKey(&sc->hitPos, work->hitContacts, ARRAY_SIZE(work->hitContacts));
 
     if (sc->hitKey != 0) {
         sc->damage                            = damageComputePlayerAttack(sc->hitKey, 0, 0, 0x1000);
@@ -2580,41 +2695,50 @@ static void _actor04000StateDrop(Enemy* enemy, Task* task)
     _animDriverTick(task);
 }
 
-/// Restarts the actor when `stateEntered` is set; otherwise cycles `stateFrame` through
-/// a 32-frame loop that resets the model position, steps it back and forth
-/// and changes `driver.rate`, then spins it and raises `field_14` in view 5.
-static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
+/// Thrashes around the saloon entry point with fixed hit collision.
+///
+/// Repeats a 32-tick translation and playback-rate pattern while rebuilding yaw
+/// and adding pitch. The hit sphere remains at (-940, -240, 5740) in the common
+/// view frame. Mapped view 5 makes the enemy not lockable and clears its current
+/// lock-on; other views restore its target flags. The actor remains airborne.
+static void _actor04000StateScriptedThrash(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_04000_THRASH_PERIOD_TICKS      = 32,
+        ACTOR_04000_THRASH_NOT_LOCKABLE_VIEW = 5,
+    };
     _Actor04000Work* work;
 
-    work = arg1->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        arg1->extra.tmd->flags       = 0;
-        work->hitBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        arg0->node.state.parts.flags = 0;
-        work->driver.requestedSet    = 3;
-        work->driver.state           = ANIM_DRIVER_STATE_RESTART_2;
-        work->driver.rateBias        = 0;
-        _animDriverTick(arg1);
-        gfxRotMatrixX(&arg1->extra.tmd->coords->coord, 0x400, GRAPHICS_ROTATION_COMPOSE);
-        arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->flags        = 0;
+        work->hitBody.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->burstAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstWaveBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        enemy->node.state.parts.flags = 0;
+        work->driver.requestedSet     = ACTOR_04000_ANIMATION_RUN;
+        work->driver.state            = ANIM_DRIVER_STATE_RESTART_2;
+        work->driver.rateBias         = 0;
+        _animDriverTick(task);
+        gfxRotMatrixX(&task->extra.tmd->coords->coord, ACTOR_TRANSFORM_ANGLE_TURN / 4, GRAPHICS_ROTATION_COMPOSE);
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         work->airborne                        = 1;
-        work->hitBody.coord                   = &gGfxViewCoord;
-        work->hitBody.pos.vx                  = -0x3AC;
-        work->hitBody.pos.vy                  = -0xF0;
-        work->stateFrame                      = 0;
-        work->hitBody.pos.vz                  = 0x166C;
+        // Anchor hit collision at the scripted point while the root thrashes.
+        work->hitBody.coord  = &gGfxViewCoord;
+        work->hitBody.pos.vx = -0x3AC;
+        work->hitBody.pos.vy = -0xF0;
+        work->stateFrame     = 0;
+        work->hitBody.pos.vz = 0x166C;
         return;
     }
-    switch (++work->stateFrame % 32) {
+    // Signed halfword wrap and signed remainder are part of the repeated motion.
+    switch (++work->stateFrame % ACTOR_04000_THRASH_PERIOD_TICKS) {
         case 0:
-            work->driver.rate                   = 0x40;
-            arg1->extra.tmd->coords->coord.t[0] = -0x3AC;
-            arg1->extra.tmd->coords->coord.t[1] = -0xF0;
-            arg1->extra.tmd->coords->coord.t[2] = 0x166C;
+            work->driver.rate                   = 4 * ANIMATION_RATE_ONE;
+            task->extra.tmd->coords->coord.t[0] = -0x3AC;
+            task->extra.tmd->coords->coord.t[1] = -0xF0;
+            task->extra.tmd->coords->coord.t[2] = 0x166C;
             break;
         case 1:
         case 2:
@@ -2622,41 +2746,44 @@ static void Actor04000_Fn0522C(Enemy* arg0, Task* arg1)
         case 5:
         case 7:
         case 8:
-            _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, -0x78);
+            _actorMovementTranslateForwardNonzero(task->extra.tmd->coords, -0x78);
             break;
         case 11:
         case 12:
         case 14:
-            _actorMovementTranslateForwardNonzero(arg1->extra.tmd->coords, 0xC8);
+            _actorMovementTranslateForwardNonzero(task->extra.tmd->coords, 0xC8);
             break;
         case 17:
             work->driver.rate = ANIMATION_RATE_ONE;
             break;
         case 25:
-            work->driver.rate = 8;
+            work->driver.rate = ANIMATION_RATE_ONE / 2;
             break;
     }
-    gfxRotMatrixY(&arg1->extra.tmd->coords->coord, 0x44C, 1);
-    gfxRotMatrixX(&arg1->extra.tmd->coords->coord, 0x190, GRAPHICS_ROTATION_COMPOSE);
-    arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _animDriverTick(arg1);
-    if ((u8)viewGetMappedIndex() == 5) {
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        worldTargetDisableNodeLockOn(&(arg0)->node);
+    gfxRotMatrixY(&task->extra.tmd->coords->coord, 0x44C, GRAPHICS_ROTATION_REPLACE);
+    gfxRotMatrixX(&task->extra.tmd->coords->coord, 0x190, GRAPHICS_ROTATION_COMPOSE);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _animDriverTick(task);
+    if ((u8)viewGetMappedIndex() == ACTOR_04000_THRASH_NOT_LOCKABLE_VIEW) {
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        worldTargetDisableNodeLockOn(&enemy->node);
         return;
     }
-    arg0->node.state.parts.flags = 0;
+    enemy->node.state.parts.flags = 0;
 }
 
-/// Initializes the airborne timer and downward motion of a scripted entry.
+/// Starts a scripted airborne entry with zero speed and timer.
 ///
-/// The acceleration starts at ten coordinate units per tick squared, the speed
-/// and timer start at zero. Also clears the entry's unread work word, whose
-/// role is unproven; the caller chooses and primes the animation separately.
+/// Borrows the live enemy work, sets downward acceleration to ten coordinate
+/// units per tick squared and marks it airborne. Also clears the entry's unread
+/// work word, whose role is unproven. The caller chooses and primes animation
+/// and controls later integration; this helper does not move the model.
 static __inline__ void _actor04000InitScriptedAirborneMotion(_Actor04000Work* work)
 {
+    enum { ACTOR_04000_SCRIPTED_INITIAL_FALL_ACCEL = 10 };
+
     work->airborne   = 1;
-    work->fallAccel  = 10;
+    work->fallAccel  = ACTOR_04000_SCRIPTED_INITIAL_FALL_ACCEL;
     work->fallSpeed  = 0;
     work->stateFrame = 0;
     work->field_8    = 0;
@@ -2823,23 +2950,23 @@ static void _actor04000StateScriptedLeap(Enemy* enemy, Task* task)
 
 static const _Actor04000StateTable Actor04000_D001F4 = {
     {
-        Actor04000_Fn06A5C,
-        Actor04000_Fn06BC8,
+        _actor04000StateHidden,
+        _actor04000StateSettle,
         _actor04000StateIdle,
-        Actor04000_Fn06C80,
+        _actor04000StateRouse,
         _actor04000StateChase,
-        Actor04000_Fn02F48,
-        Actor04000_Fn03798,
+        _actor04000StateSelfBurst,
+        _actor04000StateDeathBurst,
         _actor04000StatePatrol,
         _actor04000StateReturn,
-        Actor04000_Fn06AC4,
+        _actor04000StateAwaitBattle,
         _actor04000StateLunge,
-        Actor04000_Fn06878,
-        Actor04000_Fn06994,
-        Actor04000_Fn01E1C,
-        Actor04000_Fn06D38,
+        _actor04000StateLatched,
+        _actor04000StateLungeRecover,
+        _actor04000StateReleaseBurst,
+        _actor04000StateHang,
         _actor04000StateDrop,
-        Actor04000_Fn0522C,
+        _actor04000StateScriptedThrash,
         _actor04000StateScriptedFall,
         _actor04000StateScriptedLeap,
     }
@@ -2926,7 +3053,7 @@ static void Actor04000_Fn05F0C(Enemy* arg0, Task* arg1)
     worldCollisionClearContacts(work->gridContacts);
     worldCollisionClearContacts(work->hitContacts);
     worldCollisionClearContacts(work->burstAttackContacts);
-    id = Actor04000_Fn00FDC(work);
+    id = _actor04000PollAnimationSound(work);
     if (id != 0) {
         snd = id | ((arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
         pan = (s8)worldCoordGetOriginAudioPan(arg1->extra.tmd->coords);
@@ -3082,31 +3209,42 @@ static s32 _actor04000RequestAnimation(Task* task, s32 messageId, const Animatio
 
 #include "../../shared/coord_math_yaw_scale.inc.c"
 
-static void Actor04000_Fn06878(Enemy* arg0, Task* arg1)
+/// Maintains the player latch, dealing attack-0 damage every eight ticks.
+///
+/// Entry resets the timer and advances animation once. Subsequent ticks damage
+/// at timer multiples of eight, then increment it. After tick 40, a 9999-press
+/// hold request selects `SELF_BURST` on acceptance (reply 0), otherwise
+/// `RELEASE_BURST`. The player hold was established by the lunge state.
+static void _actor04000StateLatched(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_04000_LATCH_DAMAGE_INTERVAL_TICKS = 8,
+        ACTOR_04000_LATCH_HOLD_CHECK_TICK       = 40,
+        ACTOR_04000_LATCH_CONTINUED_PRESS_COUNT = 9999,
+    };
     _Actor04000Work* work;
-    TmdObject*       obj;
+    TmdObject*       model;
 
-    work = arg1->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = 0;
-        obj->flags                   = 0;
-        work->driver.rate            = ANIMATION_RATE_ONE;
-        work->driver.rateBias        = 0;
-        work->gridBody.flags         = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        _animDriverTick(arg1);
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        work->driver.rate             = ANIMATION_RATE_ONE;
+        work->driver.rateBias         = 0;
+        work->gridBody.flags          = work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED;
+        _animDriverTick(task);
         work->stateFrame = 0;
         return;
     }
-    _animDriverTick(arg1);
-    if (!(work->stateFrame & 7)) {
+    _animDriverTick(task);
+    if (!(work->stateFrame & (ACTOR_04000_LATCH_DAMAGE_INTERVAL_TICKS - 1))) {
         padScriptSpawnVariableMotorRamp(3, 0xFF, 8);
-        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(arg0, 0), 0);
+        taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 0), 0);
     }
     work->stateFrame++;
-    if (work->stateFrame > 0x28) {
-        work->playerButtonHold.pressCount = 9999;
+    if (work->stateFrame > ACTOR_04000_LATCH_HOLD_CHECK_TICK) {
+        work->playerButtonHold.pressCount = ACTOR_04000_LATCH_CONTINUED_PRESS_COUNT;
         if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
             work->state = ACTOR_04000_STATE_SELF_BURST;
         } else {
@@ -3115,86 +3253,101 @@ static void Actor04000_Fn06878(Enemy* arg0, Task* arg1)
     }
 }
 
-static void Actor04000_Fn06994(Enemy* arg0, Task* arg1)
+/// Recovers from a missed lunge, chasing again or bursting after four misses.
+///
+/// Restarts animation 15 and increments the signed-byte miss count on entry.
+/// The animation boundary selects `CHASE`; the fourth miss overrides that
+/// selection with `SELF_BURST`. Target flags are restored through the task's
+/// borrowed enemy pointer, which must remain live; the callback enemy is unused.
+static void _actor04000StateLungeRecover(Enemy* unusedEnemy, Task* task)
 {
+    enum { ACTOR_04000_MISSED_LUNGE_LIMIT = 4 };
     _Actor04000Work* work;
-    TmdObject*       obj;
+    TmdObject*       model;
+    Enemy*           enemy;
 
-    work = arg1->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg1->extra.tmd;
-        ((Enemy*)arg1->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        work->driver.state                                        = ANIM_DRIVER_STATE_RESTART_2;
-        work->driver.rate                                         = ANIMATION_RATE_ONE;
-        work->driver.rateBias                                     = 0;
-        work->driver.requestedSet                                 = 0xF;
-        work->gridBody.flags                                      = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        _animDriverTick(arg1);
+        model                         = task->extra.tmd;
+        enemy                         = task->spawnArg2.pointer;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        work->driver.state            = ANIM_DRIVER_STATE_RESTART_2;
+        work->driver.rate             = ANIMATION_RATE_ONE;
+        work->driver.rateBias         = 0;
+        work->driver.requestedSet     = ACTOR_04000_ANIMATION_LUNGE_RECOVER;
+        work->gridBody.flags          = work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED;
+        _animDriverTick(task);
         work->stateFrame = 0;
         work->missedLunges++;
     }
-    _animDriverTick(arg1);
+    _animDriverTick(task);
     if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_04000_STATE_CHASE;
     }
-    if (work->missedLunges >= 4) {
+    if (work->missedLunges >= ACTOR_04000_MISSED_LUNGE_LIMIT) {
         work->state = ACTOR_04000_STATE_SELF_BURST;
     }
 }
 
-/// `HIDDEN` of the actor's per-frame dispatch: on the frame the state is
-/// entered (`stateEntered` latch) it marks the enemy not lockable, raises the
-/// display object's 0x80 bit, and clears the gate bits of the work block's
-/// four collision objects (the high bit on three, 0x4000 on `gridBody`).
-static void Actor04000_Fn06A5C(Enemy* enemy, Task* task)
+/// Hides the actor and disables targeting and all four collision bodies on entry.
+static void _actor04000StateHidden(Enemy* enemy, Task* task)
 {
     _Actor04000Work* work;
-    TmdObject*       obj;
+    TmdObject*       model;
 
     work = task->work;
     if (work->stateEntered != 0) {
-        obj                           = task->extra.tmd;
+        model                         = task->extra.tmd;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                    = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        work->hitBody.flags           = (u16)(work->hitBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->burstAttackBody.flags   = (u16)(work->burstAttackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->burstWaveBody.flags     = (u16)(work->burstWaveBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->gridBody.flags          = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        model->flags                  = model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        work->hitBody.flags           = work->hitBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstAttackBody.flags   = work->burstAttackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstWaveBody.flags     = work->burstWaveBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags          = work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
     }
 }
 
-static void Actor04000_Fn06AC4(Enemy* arg0, Task* arg1)
+/// Waits for engaged battle with collision disabled, then selects patrol.
+///
+/// Entry hides the model and queues animation 1. Later ticks show and permit
+/// lock-on only for placement indices 6 and 7; all other placements stay hidden.
+/// The battle transition changes the state for the next per-frame dispatch.
+static void _actor04000StateAwaitBattle(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_04000_AWAIT_VISIBLE_PLACEMENT_A = 6,
+        ACTOR_04000_AWAIT_VISIBLE_PLACEMENT_B = 7,
+    };
     _Actor04000Work* work;
-    TmdObject*       obj;
+    TmdObject*       model;
 
-    work = arg1->work;
-    obj  = arg1->extra.tmd;
+    work  = task->work;
+    model = task->extra.tmd;
     if (work->stateEntered != 0) {
-        arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->driver.requestedSet    = 1;
-        work->driver.state           = ANIM_DRIVER_STATE_RESTART_2;
-        work->hitBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->gridBody.flags        &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        work->driver.requestedSet     = ACTOR_04000_ANIMATION_HOLD;
+        work->driver.state            = ANIM_DRIVER_STATE_RESTART_2;
+        work->hitBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstWaveBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
         return;
     }
-    _animDriverTick(arg1);
-    switch (arg0->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
-        case 6:
-        case 7:
-            arg0->node.state.parts.flags = 0;
-            obj->flags                   = 0;
+    _animDriverTick(task);
+    switch (enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) {
+        case ACTOR_04000_AWAIT_VISIBLE_PLACEMENT_A:
+        case ACTOR_04000_AWAIT_VISIBLE_PLACEMENT_B:
+            enemy->node.state.parts.flags = 0;
+            model->flags                  = 0;
             break;
         case 3:
         case 4:
         case 5:
         default:
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            model->flags                  = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
@@ -3202,82 +3355,96 @@ static void Actor04000_Fn06AC4(Enemy* arg0, Task* arg1)
     }
 }
 
-static void Actor04000_Fn06BC8(Enemy* arg0, Task* arg1)
+/// Plays the settling animation, then idles at its first boundary.
+///
+/// Entry restores visibility, targeting and hit/grid collision, disables burst
+/// bodies and restarts animation 4. Later ticks advance it until the boundary.
+static void _actor04000StateSettle(Enemy* enemy, Task* task)
 {
     _Actor04000Work* work;
-    TmdObject*       obj;
+    TmdObject*       model;
 
-    work = arg1->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = 0;
-        obj->flags                   = 0;
-        work->driver.requestedSet    = 4;
-        work->driver.state           = ANIM_DRIVER_STATE_RESTART_1;
-        work->driver.rateBias        = 0;
-        work->hitBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _animDriverTick(arg1);
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        work->driver.requestedSet     = ACTOR_04000_ANIMATION_SETTLE;
+        work->driver.state            = ANIM_DRIVER_STATE_RESTART_1;
+        work->driver.rateBias         = 0;
+        work->hitBody.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->burstAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstWaveBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        _animDriverTick(task);
         return;
     }
-    _animDriverTick(arg1);
+    _animDriverTick(task);
     if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_04000_STATE_IDLE;
     }
 }
 
-static void Actor04000_Fn06C80(Enemy* arg0, Task* arg1)
+/// Plays the rousing animation, then patrols at its first boundary.
+///
+/// Entry restores visibility, targeting and hit/grid collision, disables burst
+/// bodies and restarts animation 6. Later ticks advance it until the boundary.
+static void _actor04000StateRouse(Enemy* enemy, Task* task)
 {
     _Actor04000Work* work;
-    TmdObject*       obj;
+    TmdObject*       model;
 
-    work = arg1->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                          = arg1->extra.tmd;
-        arg0->node.state.parts.flags = 0;
-        obj->flags                   = 0;
-        work->driver.requestedSet    = 6;
-        work->driver.state           = ANIM_DRIVER_STATE_RESTART_1;
-        work->driver.rateBias        = 0;
-        work->hitBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _animDriverTick(arg1);
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        work->driver.requestedSet     = ACTOR_04000_ANIMATION_ROUSE;
+        work->driver.state            = ANIM_DRIVER_STATE_RESTART_1;
+        work->driver.rateBias         = 0;
+        work->hitBody.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->burstAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstWaveBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        _animDriverTick(task);
         return;
     }
-    _animDriverTick(arg1);
+    _animDriverTick(task);
     if (work->rig.slots[ANIM_DRIVER_FIRST_SLOT].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_04000_STATE_PATROL;
     }
 }
 
-static void Actor04000_Fn06D38(Enemy* arg0, Task* arg1)
+/// Holds the actor upside down until the pool controller selects it to drop.
+///
+/// Entry preserves its yaw while replacing roll with a half turn. Hit/grid
+/// collision remain enabled, burst bodies are disabled and animation 1 plays.
+/// The target stays scanned but not lockable; the controller enables targeting
+/// when battle begins and later changes the state to `DROP`.
+static void _actor04000StateHang(Enemy* enemy, Task* task)
 {
     _Actor04000Work* work;
-    s16              angle;
+    s16              hangingYaw;
 
-    work = arg1->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        arg1->extra.tmd->flags       = 0;
-        arg0->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
-        work->driver.requestedSet    = 1;
-        work->driver.state           = ANIM_DRIVER_STATE_RESTART_2;
-        work->driver.rateBias        = 0;
-        work->hitBody.flags         |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        work->burstAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->burstWaveBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->gridBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _animDriverTick(arg1);
-        angle = ratan2(-arg1->extra.tmd->coords->coord.m[2][0], arg1->extra.tmd->coords->coord.m[2][2]);
-        gfxRotMatrixZ(&arg1->extra.tmd->coords->coord, 0x800, GRAPHICS_ROTATION_REPLACE);
-        gfxRotMatrixY(&arg1->extra.tmd->coords->coord, angle, 0);
-        arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        task->extra.tmd->flags        = 0;
+        enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
+        work->driver.requestedSet     = ACTOR_04000_ANIMATION_HOLD;
+        work->driver.state            = ANIM_DRIVER_STATE_RESTART_2;
+        work->driver.rateBias         = 0;
+        work->hitBody.flags          |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+        work->burstAttackBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->burstWaveBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        _animDriverTick(task);
+        hangingYaw = ratan2(-task->extra.tmd->coords->coord.m[2][0], task->extra.tmd->coords->coord.m[2][2]);
+        gfxRotMatrixZ(&task->extra.tmd->coords->coord, ACTOR_TRANSFORM_ANGLE_HALF_TURN, GRAPHICS_ROTATION_REPLACE);
+        gfxRotMatrixY(&task->extra.tmd->coords->coord, hangingYaw, GRAPHICS_ROTATION_COMPOSE);
+        task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
         return;
     }
-    _animDriverTick(arg1);
+    _animDriverTick(task);
 }
 
 /// The enemy's spawn, per-frame and teardown handlers, indexed by the task's
@@ -3288,14 +3455,17 @@ static const EnemyTaskFuncTable3 Actor04000_D00240 = {
     enemyDestroy,
 };
 
-/// The enemy task's callback: runs the handler for the task's current state,
-/// copying the table onto the stack before the call.
-void Actor04000_Fn06E4C(Task* task)
+/// Dispatches the enemy task's spawn, update or teardown phase.
+///
+/// `task->state` must be 0 (spawn), 1 (update) or 2 (destroy). The descriptor
+/// provides a live TMD model and `spawnArg2.pointer` borrows the live `Enemy`.
+/// Copies the three callbacks to the stack before dispatch; no index is checked.
+static void _actor04000Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = Actor04000_D00240;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    handlers = Actor04000_D00240;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Clears the encounter slots and broadcasts the nighttime toilet hanging command.
@@ -3348,7 +3518,12 @@ static void _actor04000AwaitPoolBattle(Task* task)
     }
 }
 
-void Actor04000_Fn0703C(Task* arg0)
+/// Dispatches the hanging-pool controller's encounter phase.
+///
+/// `task->state` must be 0 (initialize), 1 (await battle), 2 (refill drop slots)
+/// or 3 (kill). The descriptor supplies a bodyless task; the table and borrowed
+/// actor handles belong to this overlay. Dispatch performs no index check.
+static void _actor04000HangingPoolTask(Task* task)
 {
-    Actor04000_D0C6EC[arg0->state](arg0);
+    Actor04000_D0C6EC[task->state](task);
 }

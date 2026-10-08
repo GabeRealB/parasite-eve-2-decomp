@@ -150824,13 +150824,13 @@ constant).
   return once the block stays put.
 - **A narrow local whose uses all sit in the extended basic block of its
   definition is replaced by the temporary it was computed from**
-  (`Actor04000_Fn00FDC`). `id = rec & 0x3FF` (`u16`) followed by `v = id` is
+  (`_actor04000PollAnimationSound`). `cueIndex = rec & 0x3FF` (`u16`) followed by `cueValue = cueIndex` is
   `andi a1,v0,0x3ff; andi v1,a1,0xffff` in the image. The if / else-if form
   with the check written in each arm reproduces the block order exactly, but
-  the stores of `id` are then reachable without crossing a label, cse
-  rewrites them to the mask temporary, the set of `id` dies and combine folds
+  the stores of `cueIndex` are then reachable without crossing a label, cse
+  rewrites them to the mask temporary, the set of `cueIndex` dies and combine folds
   the zero-extension to `move v1,a1`. In the `goto` form the stores sit behind
-  the `check:` label. Not converted.
+  the `emitMovementSound:` label. Not converted.
 - **Three hand-expanded copies of a poll with `temp = K; goto join` are the
   inline that already existed for the sibling** (`cdSyncPollLogicalSeek` and
   `_cdSyncPollPendingCommand`, 29 gotos, plus the `one`, `p`, `temp`, `status` locals).
