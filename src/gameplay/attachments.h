@@ -64,11 +64,22 @@ extern u16* Gp_ReplayCursor;
 /// Learned levels must be 0..3; no bounds checks or table writes occur.
 u16 attachmentGetActiveLevelValue(s32 column);
 
-/// Word cleared by `_worldCoordInitPlayerLighting`. Also written by `Gp_UpdateAttachCombo` and
+/// Word cleared by `_worldCoordInitPlayerLighting`. Also written by `attachmentApplySelfEffect` and
 /// read/cleared by `_worldCoordUpdatePlayerLighting`.
 extern s32 D_80114F28;
 
-void Gp_UpdateAttachCombo(s32 arg0);
+/// Preview/release selector shared by the attachment area and self-effect dispatchers.
+enum { ATTACHMENT_TARGET_PREVIEW = 0,
+       ATTACHMENT_TARGET_RELEASE = 1 };
+
+/// Previews or applies the active attachment's timed combo or Healing effect.
+///
+/// Preview requests a player-light pulse without changing combos or HP.
+/// Release uses `Gp_StateC08.attachId`: Antibody/Energy Shot stack up to two,
+/// Metabolism starts one stack and clears statuses, and Healing adds capped HP.
+/// Other ids do nothing on release. Timers count active frames; levels are 1..3.
+/// Healing outside battle uses the row minimum; battle rolls a 1/256 blend.
+void attachmentApplySelfEffect(s32 releaseEffects);
 
 /// Percentages `damageIsEnemyDamageOverTimeExpired` scales an enemy's `param->damageOverTimeTicks` by,
 /// one per `Enemy.damageOverTimeGrade`: how long the damage-over-time reaction lasts.
@@ -105,7 +116,17 @@ extern const char D_800938AC[8];
 
 void Gp_HudTask(HudState* hud);
 
-void Gp_ApplyAttachStats(s32 arg0, HudState* hud);
+/// Previews an attachment's target area or releases its targeting/self effect.
+///
+/// `releaseEffects` is ATTACHMENT_TARGET_PREVIEW or ATTACHMENT_TARGET_RELEASE;
+/// selects wheelIndex or activeIndex respectively, each in 0..17. Spell learned
+/// levels must be 0..3; unlearned spells use level one, training and Berserker
+/// adjust the effective level, and item slots use level one. Area dimensions
+/// convert from hundreds to whole world units. Clears the cast target count and
+/// life-drain total on every call. Outside battle only Healing is dispatched.
+/// `hud` may be NULL; otherwise updates its range overlay during active battle.
+/// Borrows live player/combat/attachment state and targeting resources.
+void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud);
 
 /// Pending flags written by `_itemUseAttachedItem` and consumed by `menuApplyPendingItemUseTask`.
 /// `Gp_HealPending == 1` requests `taskMessageDispatch(..., 0x402, ...)`.

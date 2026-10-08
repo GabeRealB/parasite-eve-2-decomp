@@ -1566,33 +1566,40 @@ void companionEnterDamageReaction(Task* task)
     playerActorPlayChildSlotsWithBlend(task, animationSet, 0, COMPANION_DAMAGE_BLEND_FRAMES);
 }
 
-Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options)
+Task* companionSpawnActor(const ActorSpawnTransform* spawnTransform, u16 companionType, s32 scheduleIndex, ActorSpawnOptions* options)
 {
+    enum {
+        COMPANION_SPAWN_TASK_BANK             = 7,
+        COMPANION_SPAWN_ARMED_FAMILY          = 1,
+        COMPANION_SPAWN_ARMED_DESCRIPTOR_BASE = 0x7F,
+        COMPANION_SPAWN_OTHER_DESCRIPTOR_BASE = 0x82
+    };
     Task*          task;
     GameActor*     actor;
     CompanionWork* companion;
-    GfxCoord*      coord;
-    s32            type;
+    GfxCoord*      rootCoord;
+    s32            descriptorIndex;
 
-    if (arg1 == 1) {
-        type = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant + 0x7F;
+    if (companionType == COMPANION_SPAWN_ARMED_FAMILY) {
+        descriptorIndex = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionVariant + COMPANION_SPAWN_ARMED_DESCRIPTOR_BASE;
     } else {
-        type = arg1 + 0x82;
+        descriptorIndex = companionType + COMPANION_SPAWN_OTHER_DESCRIPTOR_BASE;
     }
-    task = taskSpawn(7, type, arg2, options);
+    task = taskSpawn(COMPANION_SPAWN_TASK_BANK, descriptorIndex, scheduleIndex, options);
     if (task == NULL) {
         return NULL;
     }
     actor = memCalloc(sizeof(*actor), 0);
     if (actor == NULL) {
-    fail:
+    workAllocationFailed:
         taskKill(task);
         return NULL;
     }
     companion = memCalloc(sizeof(*companion), 0);
     if (companion == NULL) {
-        goto fail;
+        goto workAllocationFailed;
     }
+    // Publish the companion only after both separate work allocations succeed.
     gameSetTaskSlot(task, GAME_TASK_SLOT_COMPANION);
     memFillBytes(actor, 0, sizeof(*actor));
     memFillBytes(companion, 0, sizeof(*companion));
@@ -1601,10 +1608,10 @@ Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2
     companionRelocateModelTextures(task);
     actor->actionArgument = options->initialAnimationId;
     actor->rotation.vy    = spawnTransform->yaw.angle;
-    coord                 = task->extra.tmd->coords;
-    coord->coord.t[0]     = spawnTransform->x;
-    coord->coord.t[1]     = spawnTransform->y;
-    coord->coord.t[2]     = spawnTransform->z;
+    rootCoord             = task->extra.tmd->coords;
+    rootCoord->coord.t[0] = spawnTransform->x;
+    rootCoord->coord.t[1] = spawnTransform->y;
+    rootCoord->coord.t[2] = spawnTransform->z;
     return task;
 }
 

@@ -367,7 +367,7 @@ UiObjectDesc D_8010EAB4[50] = {
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
-    { 0, { 0, 0, 48, 1 }, 16, 0, TASK_BODY_NONE, 192, Gp_ItemCmdMenuTask, 0 },
+    { 0, { 0, 0, 48, 1 }, 16, 0, TASK_BODY_NONE, 192, itemMenuCommandTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -100, -80, 198, 158 }, 8, 0, TASK_BODY_NONE, 192, itemMenuUseItemTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -104, 288, 144 }, 56, 0, TASK_BODY_NONE, 192, uiUpdateOptionsAfterLoadTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
@@ -385,10 +385,12 @@ UiObjectDesc D_8010EAB4[50] = {
     { (s32)USER_INTERFACE_PANEL_NO_FRAME, { -150, -80, 120, 70 }, 60, 0, TASK_BODY_NONE, 192, itemPickupPanelTask, 0 },
 };
 
-/// Clears and synchronizes the framebuffer opposite the currently presented image.
+/// Clears and synchronizes the 320x240 VRAM region opposite the task framebuffer selector.
 ///
-/// Requires a stable display-buffer index 0/1 and no pending draw into that image.
-static inline void _menuClearUnpresentedFrameBuffer(const DisplayState* display)
+/// Requires frameBuffer 0/1, the standard regions at Y=0/272 and held flipping.
+/// Menu entry waits for frameBuffer to equal drawBuffer before this clear.
+/// Framebuffer and environment indices do not identify the same VRAM region.
+static inline void _menuClearAlternateFrameBuffer(const DisplayState* display)
 {
     enum {
         ITEM_MENU_ROOT_CLEAR_WIDTH_PIXELS         = 320,
@@ -493,8 +495,8 @@ void menuRootTask(Task* task)
             if (display->frameBuffer != display->drawBuffer) {
                 return;
             }
-            // Clear the non-presented image before reusing the auxiliary heap.
-            _menuClearUnpresentedFrameBuffer(display);
+            // Clear the alternate VRAM region before reusing the auxiliary heap.
+            _menuClearAlternateFrameBuffer(display);
             memInitAuxHeap();
             if (display->demoScene != DISPLAY_DEMO_NONE) {
                 display->gameMode = DISPLAY_GAME_RESTART;

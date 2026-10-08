@@ -10,7 +10,6 @@
 #include "gameplay/scene_combat.h"
 
 #include "main/wipsys.h"
-#include <psyq/rand.h>
 
 s32 D_80114F28;
 
@@ -29,105 +28,114 @@ static __inline__ s32 isStateF0Active_(void)
     return 0;
 }
 
-void Gp_UpdateAttachCombo(s32 arg0)
+/// Refreshes a signed combo byte's duration and adds a stack, retaining its cast level.
+///
+/// Inputs borrow live combo/timer storage and a readable duration row; duration
+/// narrows to the timer's signed halfword. The low nibble is preserved above the
+/// ordinary two-stack cap. level must be 1..3; its high nibble replaces the old one.
+static inline void _attachmentRefreshStackedCombo(s8* combo, s16* ticks, const AttachmentComboParam* comboParam, s32 level)
 {
-    PlayerStatus* cfg;
+    s32 stackCount;
+    s32 durationFrames;
 
-    if (arg0 == 0) {
-        D_80114F28 = 1;
+    stackCount     = *combo & ATTACHMENT_COMBO_STACK_MASK;
+    durationFrames = comboParam->ticks;
+    *combo         = stackCount;
+    *ticks         = durationFrames;
+    if (*combo < ATTACHMENT_COMBO_STACK_CAP) {
+        (*combo)++;
+    }
+    *combo |= level << ATTACHMENT_COMBO_LEVEL_SHIFT;
+}
+
+void attachmentApplySelfEffect(s32 releaseEffects)
+{
+    enum { ATTACHMENT_SELF_LIGHT_PULSE_REQUESTED = 1,
+           ATTACHMENT_SELF_CLEAR_STATUSES        = 1 };
+    PlayerStatus* player;
+
+    if (releaseEffects == ATTACHMENT_TARGET_PREVIEW) {
+        D_80114F28 = ATTACHMENT_SELF_LIGHT_PULSE_REQUESTED;
         return;
     }
 
-    cfg = &gPlayerStatus;
+    // The packed id selects the release effect; previews never alter these timers.
+    player = &gPlayerStatus;
     switch (Gp_StateC08.attachId) {
         case ATTACHMENT_ID_ANTIBODY_1:
         case ATTACHMENT_ID_ANTIBODY_2:
         case ATTACHMENT_ID_ANTIBODY_3: {
-            AttachmentComboParam* param;
-            s32                   lvl;
-            s32                   count;
-            s32                   time;
+            const AttachmentComboParam* comboParam;
+            s32                         level;
 
-            lvl                       = Gp_StateC08.attachId % 10;
-            param                     = &Gp_AttachParams[ATTACHMENT_INDEX_ANTIBODY][lvl - 1].combo;
-            count                     = Gp_StateC08.antibodyCombo & ATTACHMENT_COMBO_STACK_MASK;
-            time                      = param->ticks;
-            Gp_StateC08.antibodyCombo = count;
-            Gp_StateC08.antibodyTicks = time;
-            if (Gp_StateC08.antibodyCombo < ATTACHMENT_COMBO_STACK_CAP) {
-                Gp_StateC08.antibodyCombo++;
-            }
-            Gp_StateC08.antibodyCombo |= lvl << ATTACHMENT_COMBO_LEVEL_SHIFT;
+            level      = Gp_StateC08.attachId % 10;
+            comboParam = &Gp_AttachParams[ATTACHMENT_INDEX_ANTIBODY][level - 1].combo;
+            _attachmentRefreshStackedCombo(&Gp_StateC08.antibodyCombo, &Gp_StateC08.antibodyTicks, comboParam, level);
             break;
         }
         case ATTACHMENT_ID_ENERGY_SHOT_1:
         case ATTACHMENT_ID_ENERGY_SHOT_2:
         case ATTACHMENT_ID_ENERGY_SHOT_3: {
-            AttachmentComboParam* param;
-            s32                   lvl;
-            s32                   count;
-            s32                   time;
+            const AttachmentComboParam* comboParam;
+            s32                         level;
 
-            lvl                         = Gp_StateC08.attachId % 10;
-            param                       = &Gp_AttachParams[ATTACHMENT_INDEX_ENERGY_SHOT][lvl - 1].combo;
-            count                       = Gp_StateC08.energyShotCombo & ATTACHMENT_COMBO_STACK_MASK;
-            time                        = param->ticks;
-            Gp_StateC08.energyShotCombo = count;
-            Gp_StateC08.energyShotTicks = time;
-            if (Gp_StateC08.energyShotCombo < ATTACHMENT_COMBO_STACK_CAP) {
-                Gp_StateC08.energyShotCombo++;
-            }
-            Gp_StateC08.energyShotCombo |= lvl << ATTACHMENT_COMBO_LEVEL_SHIFT;
+            level      = Gp_StateC08.attachId % 10;
+            comboParam = &Gp_AttachParams[ATTACHMENT_INDEX_ENERGY_SHOT][level - 1].combo;
+            _attachmentRefreshStackedCombo(&Gp_StateC08.energyShotCombo, &Gp_StateC08.energyShotTicks, comboParam, level);
             break;
         }
         case ATTACHMENT_ID_METABOLISM_1:
         case ATTACHMENT_ID_METABOLISM_2:
         case ATTACHMENT_ID_METABOLISM_3: {
-            AttachmentComboParam* param;
-            s32                   lvl;
-            s32                   count;
-            s32                   time;
+            const AttachmentComboParam* comboParam;
+            s32                         level;
+            s32                         stackCount;
+            s32                         durationFrames;
 
-            lvl                         = Gp_StateC08.attachId % 10;
-            param                       = &Gp_AttachParams[ATTACHMENT_INDEX_METABOLISM][lvl - 1].combo;
-            count                       = Gp_StateC08.metabolismCombo & ATTACHMENT_COMBO_STACK_MASK;
-            time                        = param->ticks;
-            Gp_StateC08.metabolismCombo = count;
-            Gp_StateC08.metabolismTicks = time;
+            level                       = Gp_StateC08.attachId % 10;
+            comboParam                  = &Gp_AttachParams[ATTACHMENT_INDEX_METABOLISM][level - 1].combo;
+            stackCount                  = Gp_StateC08.metabolismCombo & ATTACHMENT_COMBO_STACK_MASK;
+            durationFrames              = comboParam->ticks;
+            Gp_StateC08.metabolismCombo = stackCount;
+            Gp_StateC08.metabolismTicks = durationFrames;
             if (Gp_StateC08.metabolismCombo == 0) {
                 Gp_StateC08.metabolismCombo++;
             }
-            Gp_StateC08.metabolismCombo |= lvl << ATTACHMENT_COMBO_LEVEL_SHIFT;
-            playerStateSetStatusEffects(1, PLAYER_STATUS_ALL_EFFECTS);
+            Gp_StateC08.metabolismCombo |= level << ATTACHMENT_COMBO_LEVEL_SHIFT;
+            playerStateSetStatusEffects(ATTACHMENT_SELF_CLEAR_STATUSES, PLAYER_STATUS_ALL_EFFECTS);
             break;
         }
         case ATTACHMENT_ID_HEALING_1:
         case ATTACHMENT_ID_HEALING_2:
         case ATTACHMENT_ID_HEALING_3: {
-            AttachmentLevelRow* params;
-            s32                 row;
-            s32                 min;
-            s32                 max;
-            s32                 heal;
+            const AttachmentLevelRow* levelRows;
+            s32                       rowIndex;
+            s32                       minimumHp;
+            s32                       maximumHp;
+            s32                       restoredHp;
 
-            /* Healing, levels 1 to 3. */
-            params = Gp_IdParamHi.rows;
-            row    = ATTACHMENT_INDEX_HEALING * 3 + 1 + Gp_StateC08.attachId % 3;
-            max    = params[row].column.outcome.healMax;
-            min    = params[row].column.amount;
-            if (min >= max || !isStateF0Active_()) {
-                heal = min;
+            // Outside combat use minimum HP; battle blends toward the maximum.
+            enum { ATTACHMENT_HEAL_BLEND_SCALE = 256,
+                   ATTACHMENT_HEAL_RANDOM_MASK = 255,
+                   ATTACHMENT_HEAL_BLEND_SHIFT = 8 };
+
+            levelRows = Gp_IdParamHi.rows;
+            rowIndex  = ATTACHMENT_INDEX_HEALING * ATTACHMENT_AREA_LEVEL_COUNT + 1 + Gp_StateC08.attachId % ATTACHMENT_AREA_LEVEL_COUNT;
+            maximumHp = levelRows[rowIndex].column.outcome.healMax;
+            minimumHp = levelRows[rowIndex].column.amount;
+            if (minimumHp >= maximumHp || !isStateF0Active_()) {
+                restoredHp = minimumHp;
             } else {
-                /* A random blend between the row's two amounts. */
-                heal = (rand() & 0xFF) + 1;
-                heal = (max * heal + min * (0x100 - heal)) >> 8;
-                if (heal <= 0) {
-                    heal = 1;
+                // Sample 1..256; fixed-point rounding can still yield the minimum HP.
+                restoredHp = (rand() & ATTACHMENT_HEAL_RANDOM_MASK) + 1;
+                restoredHp = (maximumHp * restoredHp + minimumHp * (ATTACHMENT_HEAL_BLEND_SCALE - restoredHp)) >> ATTACHMENT_HEAL_BLEND_SHIFT;
+                if (restoredHp <= 0) {
+                    restoredHp = 1;
                 }
             }
-            cfg->hp += heal;
-            if (cfg->hpMax < cfg->hp) {
-                cfg->hp = cfg->hpMax;
+            player->hp += restoredHp;
+            if (player->hpMax < player->hp) {
+                player->hp = player->hpMax;
             }
             break;
         }

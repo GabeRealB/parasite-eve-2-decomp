@@ -80,7 +80,7 @@ segments:
       - [0x4, .rodata, model_objects] # model allocation diagnostic and colours
       - [0x28, .rodata, model_lighting] # play-clock punctuation
       - [0x30, .rodata, ending] # play-clock state table and battle-result labels
-      - [0x78, .rodata, attachment_stats] # jtbl from Gp_ApplyAttachStats, then the prompt labels
+      - [0x78, .rodata, attachment_stats] # jtbl from attachmentDispatchTargetArea, then the prompt labels
       - [0x9C, .rodata, linked_actors] # status-icon mask initializer of hudDrawStatusBlock
       - [0xAC, .rodata, hud_sprites] # hidden-amount label
       - [0xB4, .rodata, cd_loading] # Gp_LoadWaitFns and Gp_ConfigCdTable, the jtbl from _loadingEnqueueWeaponAmmoResources, then the session, load and room-object tables
@@ -92,7 +92,7 @@ segments:
       - [0x364C, .rodata, attachment_menu]
       - [0x3670, .rodata, pickup_dispatch]
       - [0x3684, pad] # end of pickup dispatcher before the menu TU
-      - [0x3688, .rodata, menu_root] # jtbl from menuRootTask, the menu labels, then the jtbl from Gp_BuildItemCmdList
+      - [0x3688, .rodata, menu_root] # jtbl from menuRootTask, the menu labels, then the jtbl from _itemMenuBuildCommandList
       - [0x37A0, .rodata, menu_prompt] # itemMenuDrawItemIcon jump tables
       - [0x37D8, .rodata, menu_armor] # menu labels
       - [0x3964, pad] # original 8-byte jump-table alignment
@@ -116,8 +116,8 @@ segments:
       - [0xCF18, c, ending] # Gp_EndingTask
       - [0xD90C, c, area_entry] # Gp_AreaEnterTask
       - [0xDD58, c, attachments] # attachmentGetActiveLevelValue
-      - [0xDE34, c, attachment_stats] # Gp_ApplyAttachStats
-      - [0x10DF0, c, attach_combo] # Gp_UpdateAttachCombo
+      - [0xDE34, c, attachment_stats] # attachmentDispatchTargetArea
+      - [0x10DF0, c, attach_combo] # attachmentApplySelfEffect
       - [0x11104, c, linked_actors] # attachmentTargetAll
       - [0x12C80, c, hud_sprites] # hudDrawRadar
       - [0x15810, c, view_load] # Gp_ViewBeginLoad

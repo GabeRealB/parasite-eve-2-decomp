@@ -288,9 +288,9 @@ void Gp_SetupCompanionActor(const ActorSpawnTransform* spawnTransform, ActorSpaw
     field = save->state.companionType;
     if (field != 0) {
         if (field == 2) {
-            Gp_SpawnAlly(spawnTransform, save->state.companionType, gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE), options);
+            companionSpawnActor(spawnTransform, save->state.companionType, gameFlagGetNibble(GAME_FLAG_COMPANION_2_SCHEDULE), options);
         } else {
-            Gp_SpawnAlly(spawnTransform, field, 0, options);
+            companionSpawnActor(spawnTransform, field, 0, options);
         }
     }
 }

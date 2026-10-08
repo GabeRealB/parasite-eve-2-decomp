@@ -236,7 +236,12 @@ void itemMenuApplyWeaponAddonPanel(UiObject* object, Task* task);
 /// is independent of panel visibility. unused is ignored; colorRgb is 24-bit RGB.
 void itemMenuDrawUnloadedConsumableQuantity(const UiObject* object, s32 x, s32 y, const InventoryItemRow* row, s32 colorRgb, s32 unused);
 
-void Gp_CheckItemInfoButton(UiObject* arg0);
+/// Opens the selected nonempty item's information child on a Triangle press.
+///
+/// Borrows the current selected inventory row and live parent object. Plays the
+/// confirm sound and disables parent input even if child allocation fails.
+/// The child receives the item id by value and starts active after one tick.
+void itemMenuOpenInfoOnTriangle(UiObject* parentObject);
 
 /// Draws an item row with a recessed icon slot, including an empty slot for id 0.
 ///
@@ -255,7 +260,15 @@ void itemMenuDrawItemSlotRow(const UiObject* object, s32 x, s32 y, s32 itemId, s
 /// is ignored; object and the preview resources are borrowed for this update.
 void itemMenuUpdateSelectionPreview(UiList* unusedList, const UiObject* object, s32 itemId, s32 loadProfile);
 
-void Gp_ItemCmdMenuTask(Task* arg0);
+/// Builds and updates the selected inventory item's command popup.
+///
+/// State zero builds the shared command list from the selected row (NULL means
+/// empty), fits the panel and clips its lower edge to screen Y=70. Later states
+/// process list input and child results, restoring focus when a child confirms.
+/// spawnArg2 must hold the task's live UiObject; spawnArg1 selects commands:
+/// 0 inventory, 1 weapon exchange, 2 consumable exchange, 3 armor exchange,
+/// 4 armor attachment. The shared list/selection permit one popup at a time.
+void itemMenuCommandTask(Task* task);
 
 /// Applies an inventory recovery item or Healing P.E., then shows restored stats.
 ///

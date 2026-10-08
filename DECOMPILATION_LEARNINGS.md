@@ -6432,7 +6432,7 @@ if (arg2 != 0) {
 }
 ```
 
-`Gp_BuildItemCmdList` cases 1 and 3 are the example.
+`_itemMenuBuildCommandList` cases 1 and 3 are the example.
 
 ## Pin only the swapped local so its pair stays a copy source
 
@@ -7118,7 +7118,7 @@ val2   = scaled << 2;
 ```
 
 The same `$v0` pin also forces `ret * 8` as `sll v0, a0, 3` rather than
-clobbering `$a0` in place. `Gp_ApplyAttachStats` is the example.
+clobbering `$a0` in place. `attachmentDispatchTargetArea` is the example.
 
 ## Pin the next object pointer to `$a2` after a 3-arg call
 
@@ -24982,7 +24982,7 @@ forward over the kill on the first success, jump back on the second
 fail. Nested `if (p != NULL)` without those gotos parks the kill after
 the success path and uses `beqz`.
 
-`Gp_SpawnAlly` is the example.
+`companionSpawnActor` is the example.
 
 ## Keep `$a0` live so `li v1,K` fills the load-delay of `lw v0,0(v1)`
 
@@ -27076,7 +27076,7 @@ memFillBytes(actor, 0, 0x998);
 ```
 
 `Gp_SpawnPlayer` is the example. The same `memFillBytes` then assign order used by
-`Gp_SpawnAlly` stuck at 99.1% with only that delay-slot swap.
+`companionSpawnActor` stuck at 99.1% with only that delay-slot swap.
 
 ## Overlay: still-asm dispatcher tables after expanding `.rodata`
 
@@ -27775,7 +27775,7 @@ case 9:
 }
 ```
 
-`Gp_ItemCmdMenuTask` is the example. Reusing `flag` for both loads stuck at
+`itemMenuCommandTask` is the example. Reusing `flag` for both loads stuck at
 97.8% with only the switch registers (and one extra `nop`/`move`) wrong.
 
 ## Overlay the mid-byte of a little-endian `s32` so the load is `lbu`
@@ -31736,7 +31736,7 @@ if (actionResult == USER_INTERFACE_RESULT_CONFIRM) {
 }
 ```
 
-`itemMenuDialogTask` is the example. `Gp_ItemCmdMenuTask` already uses this
+`itemMenuDialogTask` is the example. `itemMenuCommandTask` already uses this
 `sel = menu->actionResult` form.
 
 ## s32 copies of s16 fields keep `lh` for compare-and-step
@@ -36040,7 +36040,7 @@ p = &Gp_StateC08;
 asm volatile("" : "+r"(p) : : "v0");
 ```
 
-`Gp_UpdateAttachCombo` is the example. Same split-address `lui v1` / `addiu dest,
+`attachmentApplySelfEffect` is the example. Same split-address `lui v1` / `addiu dest,
 v1, %lo` as a rematerialize of an existing `$a2` pointer; the clobber is
 what forces that form when the dest is `$a1`.
 
@@ -36057,7 +36057,7 @@ c08->field_D = c08->field_D | (packed = temp << 4);
 ```
 
 A separate `packed = temp << 4` statement schedules the `sll` above the
-`lbu`. `Gp_UpdateAttachCombo` is the example.
+`lbu`. `attachmentApplySelfEffect` is the example.
 
 ## Switch-case label for a 2-insn empty-path trampoline
 
@@ -36132,7 +36132,7 @@ table. A C `switch` inverts the leaf polarity (`beqz` to the body instead
 of `bnez` to the epilogue plus `j` with a rematerialize in the delay).
 Write the tree as nested `if (val < K)` with `goto` to each handler so
 the fall-through leaf is `bnez epilogue` / `lui` / `j body` / `addiu`.
-`Gp_UpdateAttachCombo` is the example.
+`attachmentApplySelfEffect` is the example.
 
 ## Two-case `switch` on 0/1 keeps the default `j`
 
@@ -142880,7 +142880,7 @@ the global directly (`T[slot]`, `T[i] = ...`) and call it with the variable. A
 macro or an `s32` parameter with `(u8)` casts keeps the indexed load
 (`sll`/`addu`), and a `p++` walk loses the preheader copy.
 
-### A switch value kept out of `$a0` by another case's early local pseudo (Gp_UpdateAttachCombo, 2026-09-26)
+### A switch value kept out of `$a0` by another case's early local pseudo (attachmentApplySelfEffect, 2026-09-26)
 
 **Symptom.** A `switch` on a loaded `u16` sits in `$a1` with its base pointer in
 `$a2`, although `$a0` is free across the compare tree. The seed held `index` live
@@ -150812,7 +150812,7 @@ constant).
   `phase += 1`, the other arm calls a function first and reloads. Written out
   or as an inline the two copies differ (7 insns longer); the `goto` stays.
 - **`if (p == NULL) { cleanup; return NULL; }` twice does not give a cleanup
-  block in the middle with a backward branch** (`Gp_SpawnAlly`). With one
+  block in the middle with a backward branch** (`companionSpawnActor`). With one
   predecessor each, jump.c moves the blocks in front of the function's end
   label, merges them there, and the first plain `return NULL` then merges
   with their `v0 = 0` as well. Seven nestings gave the block at the end or

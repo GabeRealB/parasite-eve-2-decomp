@@ -216,9 +216,12 @@ enum {
 
 /// Queues the camera preceding a mapped cursor and optional cached sprite packets.
 ///
-/// cursor is one record past the selected camera in a live area array.
-/// Camera dispatch borrows it; packet dispatch instead resolves the live view.
-/// Both task allocations may fail independently, and neither result is retained.
+/// `cursor` is one record past the selected camera in a live area array, possibly
+/// the array's one-past-end pointer. Camera dispatch borrows the preceding record
+/// until its task runs. SELECTED queues packets on the currently selected task
+/// list, DEFAULT on the default list; NONE or any other value queues no packets.
+/// Packet dispatch resolves the live view when it runs. Allocations may fail
+/// independently; the camera request always precedes the optional packet request.
 static inline void _viewQueueCameraCursorAndPackets(const ViewCamera* cursor, s32 packetListMode)
 {
     taskSpawn(VIEW_CAMERA_TASK_BANK, VIEW_CAMERA_TASK_TYPE, 0, cursor - 1);
@@ -948,7 +951,7 @@ s32 sceneIsBattleActive(void)
 
 s32 func_800A7550(void)
 {
-    Gp_ApplyAttachStats(1, NULL);
+    attachmentDispatchTargetArea(ATTACHMENT_TARGET_RELEASE, NULL);
     return 0;
 }
 

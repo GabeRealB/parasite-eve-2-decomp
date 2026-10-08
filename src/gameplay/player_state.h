@@ -10,7 +10,19 @@
 
 Task* Gp_SetupAllyWeapon(void);
 
-Task* Gp_SpawnAlly(const ActorSpawnTransform* spawnTransform, u16 arg1, s32 arg2, ActorSpawnOptions* options);
+/// Spawns the selected companion model and initializes its actor and probe work.
+///
+/// companionType is family 1..3. Family 1 uses the live save's resource variant
+/// 1..4; other families select their fixed descriptor. scheduleIndex is the
+/// family-2 schedule (0..10), or zero for other families. Requires that family's
+/// loaded model/texture resources and primary heap. Position uses whole world
+/// units and yaw copies the low 16 bits unchanged (4096 units per turn).
+/// Both input records need live storage only during this call: animation id is
+/// copied and companion callbacks do not read the retained options payload.
+/// Returns the registered companion task, or NULL after spawn/allocation failure.
+/// GameActor owns a separate CompanionWork allocation; its eventual reclamation
+/// and the partial-allocation failure lifetime are unproven.
+Task* companionSpawnActor(const ActorSpawnTransform* spawnTransform, u16 companionType, s32 scheduleIndex, ActorSpawnOptions* options);
 
 /// Advances the live player's timed status effects by one normal-mode update.
 ///

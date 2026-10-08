@@ -1353,7 +1353,7 @@ void Gp_DrawItemOrderRow(UiList* arg0, UiObject* arg1)
                     arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             } else {
-                Gp_CheckItemInfoButton(arg1);
+                itemMenuOpenInfoOnTriangle(arg1);
             }
         } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             InventoryItemRange* scan2;
@@ -1721,7 +1721,7 @@ void Gp_DrawWeaponSlotRow(UiList* prompt, UiObject* obj)
                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                 }
             } else {
-                Gp_CheckItemInfoButton(obj);
+                itemMenuOpenInfoOnTriangle(obj);
             }
         } else if (mode == status) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
@@ -1904,7 +1904,7 @@ void Gp_DrawWeaponSlotRow2(UiList* prompt, UiObject* obj)
                 }
                 obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
             } else {
-                Gp_CheckItemInfoButton(obj);
+                itemMenuOpenInfoOnTriangle(obj);
             }
         } else if (mode == rowState) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
@@ -2265,7 +2265,7 @@ void func_800C41A4(UiList* prompt, UiObject* obj)
                         obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                     }
                 } else {
-                    Gp_CheckItemInfoButton(obj);
+                    itemMenuOpenInfoOnTriangle(obj);
                 }
             }
         }
@@ -2437,7 +2437,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                                     obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
                                 }
                             } else {
-                                Gp_CheckItemInfoButton(obj);
+                                itemMenuOpenInfoOnTriangle(obj);
                             }
                             break;
                         }

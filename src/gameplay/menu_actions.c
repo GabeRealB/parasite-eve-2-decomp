@@ -552,7 +552,7 @@ static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemR
             arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     } else {
-        Gp_CheckItemInfoButton(arg1);
+        itemMenuOpenInfoOnTriangle(arg1);
     }
     return obj;
 }

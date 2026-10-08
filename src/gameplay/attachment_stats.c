@@ -297,108 +297,124 @@ u16 D_80113F90[6] = {
     0,
 };
 
-void Gp_ApplyAttachStats(s32 arg0, HudState* hud)
+void attachmentDispatchTargetArea(s32 releaseEffects, HudState* hud)
 {
-    PlayerStatus*        p;
-    SceneCombatState*    state;
-    AttachmentAreaParam* area;
-    s32                  cond;
-    s32                  ret;
-    u8*                  table;
-    s32                  idx;
-    s32                  radiusWorld;
-    s32                  extentWorld;
-    s32                  flag;
-    s32                  radius;
-    s32                  extent;
-    u8                   ahead;
+    enum { ATTACHMENT_AREA_WORLD_UNITS_PER_TABLE_UNIT  = 100,
+           ATTACHMENT_ALL_TARGET_RADAR_RANGE_WORLD     = 0x3FFF,
+           ATTACHMENT_TARGET_MIN_LEVEL                 = 1,
+           ATTACHMENT_TARGET_TRAINING_RESOURCE_VARIANT = 4 };
+    const PlayerStatus*        player;
+    SceneCombatState*          combat;
+    const AttachmentAreaParam* area;
+    s32                        usesTrainingLevels;
+    s32                        level;
+    const u8*                  learnedLevels;
+    s32                        abilityIndex;
+    s32                        radiusWorld;
+    s32                        extentWorld;
+    s32                        battleActive;
+    s32                        radiusHundreds;
+    s32                        extentHundreds;
+    u8                         aheadOffset;
 
-    idx = Gp_StateC08.wheelIndex;
-    if (arg0 == 1) {
-        idx = Gp_StateC08.activeIndex;
+    abilityIndex = Gp_StateC08.wheelIndex;
+    if (releaseEffects == ATTACHMENT_TARGET_RELEASE) {
+        abilityIndex = Gp_StateC08.activeIndex;
     }
-    if (idx >= 0xC) {
-        ret = 1;
+/// Resolves the target area's level with the same training/Berserker rules as cast arming.
+///
+/// Inputs are simple s32 locals: abilityIndex is read repeatedly, level is a
+/// writable output. Captures player, usesTrainingLevels and learnedLevels scratch
+/// locals, the live save/player/session and training table. Changes no game state.
+#define ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level)                                                                                                                          \
+    {                                                                                                                                                                                 \
+        if ((abilityIndex) >= ATTACHMENT_SPELL_COUNT) {                                                                                                                               \
+            (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                                    \
+        } else {                                                                                                                                                                      \
+            player = &gPlayerStatus;                                                                                                                                                  \
+            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) { \
+                usesTrainingLevels = 0;                                                                                                                                               \
+            } else {                                                                                                                                                                  \
+                usesTrainingLevels = player->resourceVariant == ATTACHMENT_TARGET_TRAINING_RESOURCE_VARIANT;                                                                          \
+            }                                                                                                                                                                         \
+            if (usesTrainingLevels == 0) {                                                                                                                                            \
+                learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;                                                                                                \
+            } else {                                                                                                                                                                  \
+                learnedLevels = Gp_DebugAttachLevels;                                                                                                                                 \
+            }                                                                                                                                                                         \
+            (level) = learnedLevels[(abilityIndex)];                                                                                                                                  \
+            if ((level) == 0) {                                                                                                                                                       \
+                (level) = ATTACHMENT_TARGET_MIN_LEVEL;                                                                                                                                \
+            }                                                                                                                                                                         \
+            if (player->statusFlags & PLAYER_STATUS_BERSERKER) {                                                                                                                      \
+                if ((level) < ATTACHMENT_AREA_LEVEL_COUNT) {                                                                                                                          \
+                    (level)++;                                                                                                                                                        \
+                }                                                                                                                                                                     \
+            }                                                                                                                                                                         \
+        }                                                                                                                                                                             \
+    }
+    ATTACHMENT_RESOLVE_TARGET_LEVEL(abilityIndex, level);
+    // Reset cast totals and convert the selected region to whole world units.
+    area                  = &Gp_AttachParams[abilityIndex][level - 1].area;
+    combat                = &gSceneCombatState;
+    radiusHundreds        = area->radius;
+    extentHundreds        = area->extent;
+    combat->peTargetCount = 0;
+    combat->lifeDrainHp   = 0;
+    radiusWorld           = radiusHundreds * ATTACHMENT_AREA_WORLD_UNITS_PER_TABLE_UNIT;
+    extentWorld           = extentHundreds * ATTACHMENT_AREA_WORLD_UNITS_PER_TABLE_UNIT;
+    if ((gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
+        battleActive = 1;
     } else {
-        p = &gPlayerStatus;
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-            cond = 0;
-        } else {
-            cond = p->resourceVariant == 4;
-        }
-        if (cond == 0) {
-            table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-        } else {
-            table = Gp_DebugAttachLevels;
-        }
-        ret = table[idx];
-        if (ret == 0) {
-            ret = 1;
-        }
-        if (p->statusFlags & PLAYER_STATUS_BERSERKER) {
-            if (ret < 3) {
-                ret++;
-            }
-        }
+        battleActive = 0;
     }
-    area                 = &Gp_AttachParams[idx][ret - 1].area;
-    state                = &gSceneCombatState;
-    radius               = area->radius;
-    extent               = area->extent;
-    state->peTargetCount = 0;
-    state->lifeDrainHp   = 0;
-    radiusWorld          = radius * 100;
-    extentWorld          = extent * 100;
-    if ((gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && state->battleRefs != 0) || state->signals.bytes.endDelayFrames != 0) {
-        flag = 1;
-    } else {
-        flag = 0;
-    }
-    if (flag != 0) {
+    if (battleActive != 0) {
         switch (area->shape) {
             case ATTACHMENT_AREA_SELF:
-                Gp_UpdateAttachCombo(arg0);
+                attachmentApplySelfEffect(releaseEffects);
                 break;
             case ATTACHMENT_AREA_PROJECTILE:
-                attachmentPreviewProjectile(arg0, radiusWorld, extentWorld);
+                attachmentPreviewProjectile(releaseEffects, radiusWorld, extentWorld);
                 if (hud != NULL) {
                     hud->radarRangeIcon = HUD_RADAR_RANGE_PROJECTILE;
                     hud->radarRange     = extentWorld;
                 }
                 break;
             case ATTACHMENT_AREA_ELLIPSOID:
-                attachmentTargetEllipsoid(arg0, radiusWorld, extentWorld, area->ahead);
+                attachmentTargetEllipsoid(releaseEffects, radiusWorld, extentWorld, area->ahead);
                 if (hud != NULL) {
-                    ahead               = area->ahead;
+                    aheadOffset         = area->ahead;
                     hud->radarRange     = radiusWorld;
-                    hud->radarRangeIcon = ahead + HUD_RADAR_RANGE_AROUND;
+                    hud->radarRangeIcon = aheadOffset + HUD_RADAR_RANGE_AROUND;
                 }
                 break;
             case ATTACHMENT_AREA_CYLINDER:
-                attachmentTargetCylinder(arg0, radiusWorld, extentWorld, area->ahead);
+                attachmentTargetCylinder(releaseEffects, radiusWorld, extentWorld, area->ahead);
                 if (hud != NULL) {
-                    ahead               = area->ahead;
+                    aheadOffset         = area->ahead;
                     hud->radarRange     = radiusWorld;
-                    hud->radarRangeIcon = ahead + HUD_RADAR_RANGE_AROUND;
+                    hud->radarRangeIcon = aheadOffset + HUD_RADAR_RANGE_AROUND;
                 }
                 break;
             case ATTACHMENT_AREA_ALL:
-                attachmentTargetAll(arg0);
+                attachmentTargetAll(releaseEffects);
                 if (hud != NULL) {
                     hud->radarRangeIcon = HUD_RADAR_RANGE_AROUND;
-                    hud->radarRange     = 0x3FFF;
+                    hud->radarRange     = ATTACHMENT_ALL_TARGET_RADAR_RANGE_WORLD;
                 }
                 break;
         }
         if (hud != NULL) {
-            if (idx >= 0xC) {
+            if (abilityIndex >= ATTACHMENT_SPELL_COUNT) {
                 hud->radarRangeIcon = HUD_RADAR_RANGE_NONE;
             }
         }
-    } else if (idx == 7) {
-        Gp_UpdateAttachCombo(arg0);
+    } else if (abilityIndex == ATTACHMENT_INDEX_HEALING) {
+        attachmentApplySelfEffect(releaseEffects);
     }
 }
+
+#undef ATTACHMENT_RESOLVE_TARGET_LEVEL
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
@@ -1448,7 +1464,7 @@ static void Gp_UseItemTask(HudState* hud)
     }
 
     if (Gp_StateC08.mode != ATTACHMENT_MODE_IDLE) {
-        Gp_ApplyAttachStats(0, hud);
+        attachmentDispatchTargetArea(ATTACHMENT_TARGET_PREVIEW, hud);
     }
     if (flag) {
         idx                      = _attachmentGetEffectiveLevel(Gp_StateC08.wheelIndex);

@@ -235,8 +235,6 @@ extern const char Gp_StrWarning[];
 
 static void _itemPickupPreviewTask(Task* task);
 
-void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRow* arg3);
-
 static void _itemPickupTitleTask(Task* task);
 
 static void _itemPickupAskTask(Task* task);
@@ -247,82 +245,103 @@ static void _itemPickupObtainedNoticeTask(Task* task);
 
 static inline void _itemMenuSetPreviewItem(s32 itemId, u8 loadProfile);
 
-void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRow* arg3)
+/// Builds the shared popup callbacks for one selected inventory or attachment row.
+///
+/// The list uses `Gp_ItemCmdFns` (at least three slots); writes 0..3 callbacks and
+/// matching item/visible-row counts, leaving unused slots unchanged. The object
+/// owner selects modes 0 inventory, 1 weapon, 2 consumable, 3 armor, 4 attachment.
+/// `itemId` is an unsigned inventory byte promoted to s32. A consumable id needs
+/// a live selectedRow with that id; other ids do not dereference the row.
+/// Loaded consumables remain in qty, so Load needs a positive unloaded remainder.
+/// Reserved ids outside the equipment ranges retain the ordinary Use branch.
+static void _itemMenuBuildCommandList(UiList* list, UiObject* object, s32 itemId, const InventoryItemRow* selectedRow)
 {
-    s32 n;
-    s32 mode;
+    enum {
+        ITEM_MENU_COMMAND_MODE_INVENTORY       = 0,
+        ITEM_MENU_COMMAND_MODE_WEAPON          = 1,
+        ITEM_MENU_COMMAND_MODE_CONSUMABLE      = 2,
+        ITEM_MENU_COMMAND_MODE_ARMOR           = 3,
+        ITEM_MENU_COMMAND_MODE_ATTACHMENT      = 4,
+        ITEM_MENU_COMMAND_WIDTH_PIXELS         = 96,
+        ITEM_MENU_COMMAND_ARMOR_ITEM_FIRST     = 0x60,
+        ITEM_MENU_COMMAND_EQUIPMENT_ITEM_COUNT = 0x20U,
+        ITEM_MENU_COMMAND_TONFA_ITEM           = 0x92,
+        ITEM_MENU_COMMAND_HYPERVELOCITY_ITEM   = 0x95
+    };
+    s32 commandCount;
+    s32 commandMode;
 
-    n                                 = 0;
-    mode                              = arg1->owner->spawnArg1.value;
-    arg1->panel.bounds.unsignedRect.w = 0x60;
-    switch (mode) {
-        case 0:
-            if (arg2 == 0) {
-                Gp_ItemCmdFns[n++] = itemMenuDrawMoveRow;
-            } else if ((u32)(arg2 - 0x80) < 0x20U) {
-                Gp_ItemCmdFns[n++] = itemMenuDrawMoveRow;
-                Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
-            } else if ((u32)(arg2 - 0x60) < 0x20U) {
-                Gp_ItemCmdFns[n++] = itemMenuDrawMoveRow;
-                Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
-            } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                if ((arg3->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
-                    Gp_ItemCmdFns[n++] = itemMenuDrawLoadRow;
+    commandCount                        = 0;
+    commandMode                         = object->owner->spawnArg1.value;
+    object->panel.bounds.unsignedRect.w = ITEM_MENU_COMMAND_WIDTH_PIXELS;
+    switch (commandMode) {
+        case ITEM_MENU_COMMAND_MODE_INVENTORY:
+            if (itemId == INVENTORY_ITEM_NONE) {
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawMoveRow;
+            } else if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_COMMAND_EQUIPMENT_ITEM_COUNT) {
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawMoveRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawDiscardRow;
+            } else if ((u32)(itemId - ITEM_MENU_COMMAND_ARMOR_ITEM_FIRST) < ITEM_MENU_COMMAND_EQUIPMENT_ITEM_COUNT) {
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawMoveRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawDiscardRow;
+            } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+                if ((selectedRow->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId)) > 0) {
+                    Gp_ItemCmdFns[commandCount++] = itemMenuDrawLoadRow;
                 }
-                Gp_ItemCmdFns[n++] = itemMenuDrawMoveRow;
-                Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawMoveRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawDiscardRow;
             } else {
-                Gp_ItemCmdFns[n++] = itemMenuDrawUseRow;
-                Gp_ItemCmdFns[n++] = itemMenuDrawMoveRow;
-                Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawUseRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawMoveRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawDiscardRow;
             }
             break;
-        case 1:
-            if (arg2 != 0) {
-                if ((u32)(arg2 - 0x80) < 0x20U) {
-                    Gp_ItemCmdFns[n++] = itemMenuDrawExchangeRow;
+        case ITEM_MENU_COMMAND_MODE_WEAPON:
+            if (itemId != INVENTORY_ITEM_NONE) {
+                if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_COMMAND_EQUIPMENT_ITEM_COUNT) {
+                    Gp_ItemCmdFns[commandCount++] = itemMenuDrawExchangeRow;
                 }
             }
             break;
-        case 2:
-            if (arg2 == 0) {
-                Gp_ItemCmdFns[n++] = itemMenuDrawExchangeRow;
-            } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                Gp_ItemCmdFns[n++] = itemMenuDrawExchangeRow;
+        case ITEM_MENU_COMMAND_MODE_CONSUMABLE:
+            if (itemId == INVENTORY_ITEM_NONE) {
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawExchangeRow;
+            } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawExchangeRow;
             }
             break;
-        case 3:
-            if (arg2 != 0) {
-                if ((u32)(arg2 - 0x60) < 0x20U) {
-                    Gp_ItemCmdFns[n++] = itemMenuDrawExchangeRow;
+        case ITEM_MENU_COMMAND_MODE_ARMOR:
+            if (itemId != INVENTORY_ITEM_NONE) {
+                if ((u32)(itemId - ITEM_MENU_COMMAND_ARMOR_ITEM_FIRST) < ITEM_MENU_COMMAND_EQUIPMENT_ITEM_COUNT) {
+                    Gp_ItemCmdFns[commandCount++] = itemMenuDrawExchangeRow;
                 }
             }
             break;
-        case 4:
-            if (arg2 == 0) {
-                Gp_ItemCmdFns[n++] = itemMenuDrawAttachmentExchangeRow;
-            } else if ((u32)(arg2 - 0x80) < 0x20U) {
-                Gp_ItemCmdFns[n++] = itemMenuDrawAttachmentExchangeRow;
-                if ((arg2 != 0x92) && (arg2 != 0x95)) {
-                    Gp_ItemCmdFns[n++] = itemMenuDrawLoadRow;
+        case ITEM_MENU_COMMAND_MODE_ATTACHMENT:
+            if (itemId == INVENTORY_ITEM_NONE) {
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawAttachmentExchangeRow;
+            } else if ((u32)(itemId - EQUIPMENT_WEAPON_ITEM_FIRST) < ITEM_MENU_COMMAND_EQUIPMENT_ITEM_COUNT) {
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawAttachmentExchangeRow;
+                if ((itemId != ITEM_MENU_COMMAND_TONFA_ITEM) && (itemId != ITEM_MENU_COMMAND_HYPERVELOCITY_ITEM)) {
+                    Gp_ItemCmdFns[commandCount++] = itemMenuDrawLoadRow;
                 }
-                Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
-            } else if ((u32)(arg2 - 0x60) < 0x20U) {
-            } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                Gp_ItemCmdFns[n++] = itemMenuDrawAttachmentExchangeRow;
-                if ((arg3->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
-                    Gp_ItemCmdFns[n++] = itemMenuDrawLoadRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawDiscardRow;
+            } else if ((u32)(itemId - ITEM_MENU_COMMAND_ARMOR_ITEM_FIRST) < ITEM_MENU_COMMAND_EQUIPMENT_ITEM_COUNT) {
+            } else if ((u32)(itemId - INVENTORY_CONSUMABLE_ITEM_FIRST) < (u32)INVENTORY_CONSUMABLE_ITEM_COUNT) {
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawAttachmentExchangeRow;
+                if ((selectedRow->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, itemId)) > 0) {
+                    Gp_ItemCmdFns[commandCount++] = itemMenuDrawLoadRow;
                 }
-                Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawDiscardRow;
             } else {
-                Gp_ItemCmdFns[n++] = itemMenuDrawAttachmentExchangeRow;
-                Gp_ItemCmdFns[n++] = itemMenuDrawUseRow;
-                Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawAttachmentExchangeRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawUseRow;
+                Gp_ItemCmdFns[commandCount++] = itemMenuDrawDiscardRow;
             }
             break;
     }
-    arg0->itemCount                     = n;
-    arg0->visibleRowCount.unsignedValue = n;
+    list->itemCount                     = commandCount;
+    list->visibleRowCount.unsignedValue = commandCount;
 }
 
 UiObjectDesc D_8010F02C[3] = {
@@ -542,63 +561,66 @@ const char Gp_StrSpecs2[];
 const _ItemMenuM4a1VariantTable D_80097184;
 const TaskFuncTable4            Gp_MapTaskStates;
 
-void Gp_ItemCmdMenuTask(Task* arg0)
+void itemMenuCommandTask(Task* task)
 {
-    Task*             childTask;
-    UiObject*         obj;
-    UiList*           menu;
-    UiObject*         child;
-    s32               flag;
-    s32               y;
-    InventoryItemRow* ptr;
-    s32               val;
-    s32               sel;
+    enum { ITEM_MENU_COMMAND_INITIAL              = 0,
+           ITEM_MENU_COMMAND_SCREEN_BOTTOM_PIXELS = 70 };
+    Task*                   childTask;
+    UiObject*               object;
+    UiList*                 list;
+    UiObject*               childObject;
+    s32                     childResult;
+    s32                     bottomAdjustment;
+    const InventoryItemRow* selectedRow;
+    s32                     itemId;
+    s32                     listAction;
 
-    obj         = arg0->spawnArg2.pointer;
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    menu        = &D_8010EA30;
-    if (arg0->state == 0) {
-        ptr = Gp_SelItemRec;
-        val = 0;
-        if (ptr != NULL) {
-            val = ptr->itemId;
+    object         = task->spawnArg2.pointer;
+    object->result = USER_INTERFACE_RESULT_NONE;
+    list           = &D_8010EA30;
+    if (task->state == ITEM_MENU_COMMAND_INITIAL) {
+        selectedRow = Gp_SelItemRec;
+        itemId      = INVENTORY_ITEM_NONE;
+        if (selectedRow != NULL) {
+            itemId = selectedRow->itemId;
         }
-        Gp_BuildItemCmdList(menu, obj, val, ptr);
-        uiFitPanelToList(menu, &(obj)->panel);
-        y = 0x46 - ((s16)obj->panel.bounds.unsignedRect.y + (s16)obj->panel.bounds.unsignedRect.h);
-        if (y < 0) {
-            obj->panel.bounds.unsignedRect.y += y;
+        _itemMenuBuildCommandList(list, object, itemId, selectedRow);
+        uiFitPanelToList(list, &object->panel);
+        bottomAdjustment = ITEM_MENU_COMMAND_SCREEN_BOTTOM_PIXELS - ((s16)object->panel.bounds.unsignedRect.y + (s16)object->panel.bounds.unsignedRect.h);
+        if (bottomAdjustment < 0) {
+            object->panel.bounds.unsignedRect.y += bottomAdjustment;
         }
-        arg0->state = arg0->state + 1;
+        task->state = task->state + 1;
     } else {
-        uiUpdateList(menu, &obj->panel);
-        if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
-            sel = menu->actionResult;
-            if (sel != USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED) {
-                if (sel == USER_INTERFACE_LIST_ACTION_MOVE) {
-                    obj->result = sel;
+        // Row callbacks may open a child; its result controls popup focus and closure.
+        uiUpdateList(list, &object->panel);
+        if (object->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+            listAction = list->actionResult;
+            if (listAction != USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED) {
+                if (listAction == USER_INTERFACE_LIST_ACTION_MOVE) {
+                    object->result = listAction;
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-                    obj->result = USER_INTERFACE_RESULT_CANCEL;
+                    object->result = USER_INTERFACE_RESULT_CANCEL;
                 } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel) != 0) {
                     sndEvtRequestScriptStart(SOUND_MENU_CANCEL, 0, 0);
-                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                    object->result = USER_INTERFACE_RESULT_CONFIRM;
                 }
             }
         }
-        childTask = arg0->firstChild;
+        childTask = task->firstChild;
         if (childTask != NULL) {
-            child = childTask->spawnArg2.pointer;
-            flag  = child->result;
-            switch (flag) {
+            childObject = childTask->spawnArg2.pointer;
+            childResult = childObject->result;
+            switch (childResult) {
                 case USER_INTERFACE_RESULT_CANCEL:
-                    obj->result = flag;
+                    object->result = childResult;
                     break;
                 case USER_INTERFACE_RESULT_CONFIRM:
-                    uiStartTreeClosing(child, child->owner);
-                    obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+                    uiStartTreeClosing(childObject, childObject->owner);
+                    object->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
                     break;
                 case USER_INTERFACE_RESULT_DISMISS:
-                    obj->result = USER_INTERFACE_RESULT_CONFIRM;
+                    object->result = USER_INTERFACE_RESULT_CONFIRM;
                     break;
             }
         }
@@ -1876,15 +1898,25 @@ void itemMenuClearPreviewItems(void)
     previewItemIds[4] = emptyItemId;
 }
 
-void Gp_CheckItemInfoButton(UiObject* arg0)
+/// Opens the selected item's information child and consumes the parent's input focus.
+///
+/// Reads the selected row after requesting sound. Parent and selection must be
+/// live; allocation failure still consumes input. Copies only the item id.
+static inline void _itemMenuOpenSelectedInfoChild(UiObject* parentObject)
 {
-    s32 one;
+    enum { ITEM_MENU_INFO_PANEL_DESCRIPTOR = 45,
+           ITEM_MENU_INFO_OPEN_DELAY_TICKS = 1 };
 
+    sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
+    uiSpawnObject(&D_8010EAB4[ITEM_MENU_INFO_PANEL_DESCRIPTOR], (s32)Gp_SelItemRec->itemId,
+                  USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_INFO_OPEN_DELAY_TICKS, parentObject);
+    parentObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+}
+
+void itemMenuOpenInfoOnTriangle(UiObject* parentObject)
+{
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) && (Gp_SelItemRec != NULL) && (Gp_SelItemRec->itemId != INVENTORY_ITEM_NONE)) {
-        one = 1;
-        sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        uiSpawnObject(&D_8010EAB4[45], (s32)Gp_SelItemRec->itemId, one, one, arg0);
-        arg0->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        _itemMenuOpenSelectedInfoChild(parentObject);
     }
 }
 
