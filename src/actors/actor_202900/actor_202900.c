@@ -74,7 +74,7 @@ static u8   _actor202900LatchSoundCue(void);
 
 static TmdSource _gActor202900AnmcWomanCafeteriaBody;
 static TmdSource _gActor202900Model0BC44;
-void             func_actor_202900_8014A02C(Task*);
+static void      _actor202900BodyTask(Task* task);
 static void      _actor202900CarriedModelTask(Task* task);
 
 static s32 _actor202900PlayAnimation(Task* unusedTask, s32 messageId,
@@ -217,7 +217,7 @@ TaskMessageEntry D_actor_202900_80156E0C[3] = {
 };
 
 TaskDesc D_actor_202900_80156E24[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_202900_8014A02C, { .model = &_gActor202900AnmcWomanCafeteriaBody } },
+    { { { TASK_BODY_TMD, 192 } }, _actor202900BodyTask, { .model = &_gActor202900AnmcWomanCafeteriaBody } },
     { { { TASK_BODY_TMD, 192 } }, _actor202900CarriedModelTask, { .model = &_gActor202900Model0BC44 } },
 };
 
@@ -299,21 +299,24 @@ static void _actor202900SpawnBody(Enemy* enemy, Task* task)
 #undef ACTOR_202900_RELIGHT_SPAWN_MODEL
 }
 
-/// Update of the actor's task: publishes the task's work block in
-/// `D_actor_202900_80156E54`, so the overlay's other functions can reach it
-/// without the task in hand, then dispatches on the task's state to the setup
-/// handler `_actor202900SpawnBody` (state 0) or the per-frame handler
-/// `_actor202900UpdateState` (state 1), passing the task's enemy record
-/// along with the task.
-void func_actor_202900_8014A02C(Task* task)
+/// Dispatches the cafeteria ANMC woman's initialization or body animation update.
+///
+/// Descriptor 0 requires a live Enemy in `spawnArg2.pointer`, a nineteen-part
+/// TMD body and state 0..1. Publishes the task-owned work for singleton message
+/// and animation handlers before dispatch. State 0 allocates it and starts the
+/// carried model; state 1 relights and animates the stationary body and sounds
+/// its one-shot animation cue.
+/// Initialization may destroy the enemy and task on allocation failure.
+/// The handler array has no bounds check; keep this overlay and clips loaded.
+static void _actor202900BodyTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[] = {
         _actor202900SpawnBody,
         _actor202900UpdateState,
     };
 
     D_actor_202900_80156E54 = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Keeps the carried model visible and attached to body part 4.

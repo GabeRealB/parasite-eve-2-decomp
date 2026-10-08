@@ -256,3 +256,4 @@ _actor146300BeginWaterTankEvent = 0x801323e0; // type:func
 actor146300RestoreHandoverPose = 0x8013224c; // type:func
 _actor146300IceBagHandoverTask = 0x80131ecc; // type:func
 _actor146300SpawnScriptedWalker = 0x801324ac; // type:func
+_actor146300ScriptedFigureTask = 0x801326cc; // type:func

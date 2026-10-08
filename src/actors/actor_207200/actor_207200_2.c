@@ -236,8 +236,8 @@ static void            _actor207200CreepingStrangerActiveTick(Task* task);
 static __inline__ void _actor207200CreepingStrangerTickAnimation(Task* task);
 static void            _actor207200CreepingStrangerApplyHeadDamage(Task* task, s32 damage);
 static s32             _actor207200CreepingStrangerMeasurePlayer(GfxCoord* reference, u32* rangeOut);
-static void            func_actor_207200_8014CA84(Enemy* arg0, Task* arg1);
-static void            func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1);
+static void            _actor207200CreepingStrangerDeathState(Enemy* enemy, Task* task);
+static void            _actor207200CreepingStrangerLiveState(Enemy* enemy, Task* task);
 static void            _actor207200CreepingStrangerBurstHead(Task* task);
 static void            _actor207200CreepingStrangerBurstRandomPart(Task* task);
 static void            _actor207200CreepingStrangerConsumeReactions(Task* task);
@@ -255,7 +255,7 @@ static void            _actor207200CreepingStrangerExit(Task* task);
 /// The large enemy's state handlers - spawn, live tick and teardown tick -
 /// which `_actor207200CreepingStrangerTask` dispatches through by task state.
 static const EnemyTaskFuncTable3 D_actor_207200_80149E30 = {
-    { _actor207200CreepingStrangerSpawnState, func_actor_207200_8014D2DC, func_actor_207200_8014CA84 }
+    { _actor207200CreepingStrangerSpawnState, _actor207200CreepingStrangerLiveState, _actor207200CreepingStrangerDeathState }
 };
 
 static void _actor207200CreepingStrangerTask(Task* task);
@@ -1510,89 +1510,120 @@ static __inline__ void _actor207200CreepingStrangerUpdateColor(Enemy* enemy, Tas
     SCRATCH_POP_BYTES_AT(cursorSlot, sizeof(*worldPosition));
 }
 
-/// Teardown tick. Mode 2 of `gSceneCombatState.actorControl` hides the model, mode 1 does nothing;
-/// otherwise the teardown stage in `deathPhase` advances: 0 releases the actor's
-/// state reference, snapshots the model transform in `savedRootMtx` and unlinks
-/// its node and five collision bodies; 1 moves on once the recoil animation has
-/// run 100 frames (or at once for any other animation or once `hasBurst` is
-/// set); 2 counts 61 frames in `phaseFrames`, flattening the model and spawning
-/// an effect on frame 15; 3 destroys the enemy. Every stage
-/// but the last then ticks the animation, the attach coordinates and the colour.
-static void func_actor_207200_8014CA84(Enemy* arg0, Task* arg1)
+/// Detaches the dying enemy from targeting and all five collision lists.
+///
+/// Requires the live enemy and its initialized work. Ends the borrowed hit-table
+/// access before unlinking; retains the task, work and model for the death pose.
+static inline void _actor207200CreepingStrangerUnlinkDeathBodies(Enemy* enemy, _Actor207200CreepingStrangerWork* work)
 {
-    _Actor207200CreepingStrangerWork* work;
-    TmdObject*                        obj;
-    GfxCoord*                         coord;
-    s16                               state;
+    enemy->recs = NULL;
+    worldTargetUnlinkNode(&enemy->node);
+    worldCollisionUnlinkBody(&work->senseBody);
+    worldCollisionUnlinkBody(&work->body);
+    worldCollisionUnlinkBody(&work->headBody);
+    worldCollisionUnlinkBody(&work->frontAttackBody);
+    worldCollisionUnlinkBody(&work->sideAttackBody);
+}
 
-    obj   = arg1->extra.tmd;
-    work  = arg1->work;
-    coord = obj->coords;
+/// Applies head-loss part transforms and refreshes the body's composed coordinate.
+///
+/// Requires initialized work and the live seven-part model. Part transforms are
+/// updated before invalidating the root and body caches; lighting and shadows
+/// consume the refreshed body cache. Borrows all storage without retaining it.
+static inline void _actor207200CreepingStrangerComposeBody(Task* task)
+{
+    enum { ACTOR_207200_CREEPING_STRANGER_BODY_PART = 1 };
+
+    _actor207200CreepingStrangerCollapseHeadPart(task, &task->extra.tmd->coords[ACTOR_207200_CREEPING_STRANGER_LEG_PART]);
+    _actor207200CreepingStrangerCollapseHeadPart(task, &task->extra.tmd->coords[ACTOR_207200_CREEPING_STRANGER_HEAD_PART]);
+    task->extra.tmd->coords[0].composeStamp                                        = GRAPHICS_COORD_DIRTY;
+    task->extra.tmd->coords[ACTOR_207200_CREEPING_STRANGER_BODY_PART].composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&task->extra.tmd->coords[ACTOR_207200_CREEPING_STRANGER_BODY_PART]);
+}
+
+/// Advances the Creeping Stranger's recoil settle, corpse burn and destruction.
+///
+/// State 2 requires a live enemy, initialized work and seven-part TMD body.
+/// Paused actors do nothing; hidden actors become untargetable without aging.
+/// Death begins by releasing rewards, snapshotting the root and unlinking all
+/// collision. Recoil waits for frame 100; other poses and burst bodies advance
+/// immediately. Flattening lasts 61 running ticks, becomes translucent on tick
+/// 10 and starts two burn bursts on tick 15. The following destroy phase frees
+/// enemy and task. Earlier phases still animate, compose and relight the body.
+static void _actor207200CreepingStrangerDeathState(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_207200_CREEPING_STRANGER_DEATH_ACTOR_ID      = 0x2B,
+        ACTOR_207200_CREEPING_STRANGER_DEATH_RECOIL_FRAMES = 100,
+        ACTOR_207200_CREEPING_STRANGER_FLATTEN_TICKS       = 61,
+        ACTOR_207200_CREEPING_STRANGER_TRANSLUCENT_TICK    = 10,
+        ACTOR_207200_CREEPING_STRANGER_BURN_TICK           = 15,
+        ACTOR_207200_CREEPING_STRANGER_BURN_BURSTS         = 2,
+    };
+    _Actor207200CreepingStrangerWork* work;
+    TmdObject*                        model;
+    GfxCoord*                         rootCoord;
+    s16                               deathPhase;
+
+    model     = task->extra.tmd;
+    work      = task->work;
+    rootCoord = model->coords;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
             break;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags                  |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+            model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
-            state = work->deathPhase;
-            switch (state) {
+            deathPhase = work->deathPhase;
+            switch (deathPhase) {
                 case ACTOR_207200_DEATH_PHASE_BEGIN:
-                    sceneReleaseBattleRefWithRewards(arg1, 0x2B);
+                    // Retire combat participation while keeping the death model alive.
+                    sceneReleaseBattleRefWithRewards(task, ACTOR_207200_CREEPING_STRANGER_DEATH_ACTOR_ID);
                     work->deathPhase    = ACTOR_207200_DEATH_PHASE_SETTLE;
                     work->phaseFrames   = 0;
-                    work->flattenScaleY = 0x1000;
-                    work->savedRootMtx  = coord->coord;
-                    arg0->recs          = 0;
-                    worldTargetUnlinkNode(&arg0->node);
-                    worldCollisionUnlinkBody(&work->senseBody);
-                    worldCollisionUnlinkBody(&work->body);
-                    worldCollisionUnlinkBody(&work->headBody);
-                    worldCollisionUnlinkBody(&work->frontAttackBody);
-                    worldCollisionUnlinkBody(&work->sideAttackBody);
+                    work->flattenScaleY = ONE;
+                    work->savedRootMtx  = rootCoord->coord;
+                    _actor207200CreepingStrangerUnlinkDeathBodies(enemy, work);
                     break;
                 case ACTOR_207200_DEATH_PHASE_SETTLE:
                     if (work->hasBurst == 0) {
                         if (work->animId == ACTOR_207200_ANIM_RECOIL) {
-                            if (work->animFrames >= 100) {
+                            if (work->animFrames >= ACTOR_207200_CREEPING_STRANGER_DEATH_RECOIL_FRAMES) {
                                 work->deathPhase = ACTOR_207200_DEATH_PHASE_FLATTEN;
                             }
                         } else {
                             work->deathPhase = ACTOR_207200_DEATH_PHASE_FLATTEN;
                         }
                     } else {
-                        obj->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                        model->flags     = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                         work->deathPhase = ACTOR_207200_DEATH_PHASE_FLATTEN;
                     }
                     break;
                 case ACTOR_207200_DEATH_PHASE_FLATTEN:
                     work->phaseFrames++;
-                    if (work->phaseFrames >= 0x3D) {
+                    if (work->phaseFrames >= ACTOR_207200_CREEPING_STRANGER_FLATTEN_TICKS) {
                         work->deathPhase = ACTOR_207200_DEATH_PHASE_DESTROY;
                     }
                     if (work->hasBurst == 0) {
-                        _actor207200CreepingStrangerFlatten(arg1);
-                        if (work->phaseFrames == 0xA) {
-                            obj->flags = TMD_OBJECT_SEMI_TRANS;
+                        _actor207200CreepingStrangerFlatten(task);
+                        if (work->phaseFrames == ACTOR_207200_CREEPING_STRANGER_TRANSLUCENT_TICK) {
+                            model->flags = TMD_OBJECT_SEMI_TRANS;
                         }
-                        if (work->phaseFrames == 0xF) {
-                            effectSpawn(EFFECT_CORPSE_BURN, coord, 2, NULL);
+                        if (work->phaseFrames == ACTOR_207200_CREEPING_STRANGER_BURN_TICK) {
+                            effectSpawn(EFFECT_CORPSE_BURN, rootCoord, ACTOR_207200_CREEPING_STRANGER_BURN_BURSTS, NULL);
                         }
                     }
                     break;
                 case ACTOR_207200_DEATH_PHASE_DESTROY:
-                    enemyDestroy(arg0, arg1);
+                    enemyDestroy(enemy, task);
                     return;
             }
-            _actor207200CreepingStrangerTickAnimation(arg1);
-            _actor207200CreepingStrangerCollapseHeadPart(arg1, &arg1->extra.tmd->coords[2]);
-            _actor207200CreepingStrangerCollapseHeadPart(arg1, &arg1->extra.tmd->coords[3]);
-            arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-            arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
-            _actor207200CreepingStrangerUpdateColor(arg0, arg1);
+            _actor207200CreepingStrangerTickAnimation(task);
+            _actor207200CreepingStrangerComposeBody(task);
+            _actor207200CreepingStrangerUpdateColor(enemy, task);
             break;
     }
 }
@@ -1719,43 +1750,41 @@ static void _actor207200CreepingStrangerTask(Task* task)
     handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Per-frame tick of the actor's live state. `gSceneCombatState.actorControl` gates it: mode 1
-/// skips the update and runs only the tail, mode 2 puts the model in its
-/// hidden pose (part flag 0x80, node not lockable) and returns without updating,
-/// mode 0 clears both flags before falling into the update, and any other mode
-/// updates directly. The update drives the model's two attach coordinates,
-/// clears the display flags of the first two parts and recomputes the second
-/// part's world matrix; the tail then colours the actor from that part and
-/// draws its ground shadow.
-static void func_actor_207200_8014D2DC(Enemy* arg0, Task* arg1)
+/// Updates the Creeping Stranger's live combat behavior and body presentation.
+///
+/// State 1 requires a live enemy, initialized work and seven-part TMD body.
+/// Paused actors only relight and draw the shadow; hidden actors become
+/// untargetable and return. Running control restores model and targeting flags;
+/// other control values also run the update without restoring those flags.
+/// Reactions and target/contact scans precede behavior, forward motion and
+/// animation. Head-loss transforms and body composition precede lighting and
+/// the shadow. A contact can request death for the next task dispatch.
+static void _actor207200CreepingStrangerLiveState(Enemy* enemy, Task* task)
 {
     switch (gSceneCombatState.actorControl) {
-        case 1:
-            _actor207200CreepingStrangerUpdateLiveColor(arg0, arg1);
-            _actor207200CreepingStrangerDrawGroundShadow(arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor207200CreepingStrangerUpdateLiveColor(enemy, task);
+            _actor207200CreepingStrangerDrawGroundShadow(task);
             return;
-        case 0:
-            arg1->extra.tmd->flags       = 0;
-            arg0->node.state.parts.flags = 0;
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            task->extra.tmd->flags        = 0;
+            enemy->node.state.parts.flags = 0;
             break;
-        case 2:
-            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = 1;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            task->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
     }
-    _actor207200CreepingStrangerConsumeReactions(arg1);
-    _actor207200CreepingStrangerUpdateTarget(arg1);
-    _actor207200CreepingStrangerScanContacts(arg1);
-    _actor207200CreepingStrangerUpdateBehavior(arg1);
-    _actor207200CreepingStrangerStepForward(arg1);
-    _actor207200CreepingStrangerAnimate(arg1);
-    _actor207200CreepingStrangerCollapseHeadPart(arg1, &arg1->extra.tmd->coords[2]);
-    _actor207200CreepingStrangerCollapseHeadPart(arg1, &arg1->extra.tmd->coords[3]);
-    arg1->extra.tmd->coords[0].composeStamp = GRAPHICS_COORD_DIRTY;
-    arg1->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&arg1->extra.tmd->coords[1]);
-    _actor207200CreepingStrangerUpdateLiveColor(arg0, arg1);
-    _actor207200CreepingStrangerDrawGroundShadow(arg1);
+    // Resolve requests and contacts before advancing movement and the pose.
+    _actor207200CreepingStrangerConsumeReactions(task);
+    _actor207200CreepingStrangerUpdateTarget(task);
+    _actor207200CreepingStrangerScanContacts(task);
+    _actor207200CreepingStrangerUpdateBehavior(task);
+    _actor207200CreepingStrangerStepForward(task);
+    _actor207200CreepingStrangerAnimate(task);
+    _actor207200CreepingStrangerComposeBody(task);
+    _actor207200CreepingStrangerUpdateLiveColor(enemy, task);
+    _actor207200CreepingStrangerDrawGroundShadow(task);
 }
 
 /// Consumes hit-reaction requests and starts the buildup hold when requested.

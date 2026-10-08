@@ -84,7 +84,7 @@ static TmdSource _gActor160700Actor113100Model07960;
 static s32       _pacedWalkPlayAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32       _pacedWalkSetPairModelDraw(Task* task, s32 messageId, s32 flags, s32 unusedArg);
 static s32       _actor160700IgnoreCommand(Task* task, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArg);
-void             func_actor_160700_8013233C(Task*);
+static void      _actor160700PacedWalkerTask(Task* task);
 static void      _pacedWalkSubModelTask(Task* task);
 
 static AnimationPackedPose _gActor160700Animation00C90Bank1[2] = {
@@ -1376,7 +1376,7 @@ TaskMessageEntry D_actor_160700_80141678[6] = {
 };
 
 TaskDesc D_actor_160700_801416A8[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_160700_8013233C, { .model = &_gActor160700PierceCarradineBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor160700PacedWalkerTask, { .model = &_gActor160700PierceCarradineBody } },
     { { { TASK_BODY_TMD, 192 } }, _pacedWalkSubModelTask, { .model = &_gActor160700Actor113100Model07960 } },
 };
 
@@ -1600,17 +1600,21 @@ static void _actor160700PacedWalkSpawn(Enemy* enemy, Task* task)
 
 #include "../../shared/paced_walk_update.inc.c"
 
-/// Two-state dispatcher, its handler table built on the stack: state 0 spawns
-/// the actor, state 1 runs it. Both handlers take the task's `Enemy` as
-/// well as the task.
-void func_actor_160700_8013233C(Task* task)
+/// Dispatches Pierce's paced walker initialization or frame update.
+///
+/// Descriptor 0 requires a live Enemy in `spawnArg2.pointer`, a twenty-part
+/// TMD body and state 0..1. State 0 allocates the paced-walk work and attachment;
+/// state 1 composes, lights, moves and animates the model and draws its shadow.
+/// Initialization may destroy the enemy and task on allocation failure.
+/// The handler array has no bounds check; keep this overlay and clips loaded.
+static void _actor160700PacedWalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[] = {
         _actor160700PacedWalkSpawn,
         _actorRenderWalkerFrame,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.

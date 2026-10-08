@@ -226,3 +226,4 @@ _actor143900SetSecondScriptedWalkerModelDraw = 0x80133254; // type:func
 _actor143900SelectSecondScriptedWalkerAttachment = 0x80133360; // type:func
 _actor143900SpawnSecondScriptedWalker = 0x801328d4; // type:func
 _actor143900SecondScriptedWalkerTask = 0x80132dec; // type:func
+_actor143900StartObservatoryTransition = 0x80131e24; // type:func

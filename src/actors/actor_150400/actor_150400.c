@@ -62,16 +62,10 @@ static void _actorRenderDrawWalkerGroundShadow(Task* task);
 
 static TmdSource _gActor150400No9GolemDryfieldBody;
 static TmdSource _gActor150400GolemBeamSword;
-void             func_actor_150400_801323E0(Task*);
+static void      _actor150400PairWalkerTask(Task* task);
 
 static s32 _actor150400IgnorePairWalkCommand(Task* unusedTask, s32 messageId, const ActorCommand* unusedCommand, s32 unusedArgument);
 static s32 _actor150400PairWalkSetWalkTarget(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
-
-void func_actor_150400_80131ECC(void);
-void func_actor_150400_80131F6C(void);
-
-void func_actor_150400_80131ECC(void);
-void func_actor_150400_80131F6C(void);
 
 /// Sliding-model states posted by the scene event script.
 enum {
@@ -80,8 +74,8 @@ enum {
 };
 
 static void _actor150400SlidingModelTask(Task* task);
-void        func_actor_150400_80131ECC(void);
-void        func_actor_150400_80131F6C(void);
+static void _actor150400ReloadMainCorridor(void);
+static void _actor150400StartControlRoomMovie(void);
 static void _actor150400SetSlidingModelState(s32 state);
 
 static TmdBone _gActor150400Model00C44Skeleton[1] = {
@@ -153,9 +147,9 @@ EvsCommand D_actor_150400_80132D70[33] = {
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_150400_80131F6C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor150400StartControlRoomMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_150400_80131ECC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor150400ReloadMainCorridor }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -166,9 +160,9 @@ EvsCommand D_actor_150400_80133088[14] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_150400_80131F6C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor150400StartControlRoomMovie }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_150400_80131ECC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor150400ReloadMainCorridor }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -341,7 +335,7 @@ TaskMessageEntry D_actor_150400_8013C8C4[6] = {
 };
 
 TaskDesc D_actor_150400_8013C8F4[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_150400_801323E0, { .model = &_gActor150400No9GolemDryfieldBody } },
+    { { { TASK_BODY_TMD, 96 } }, _actor150400PairWalkerTask, { .model = &_gActor150400No9GolemDryfieldBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor150400GolemBeamSword } },
 };
 
@@ -430,26 +424,50 @@ static void _actor150400SlidingModelTask(Task* task)
     }
 }
 
-void func_actor_150400_80131ECC(void)
+/// Completes the freezer scene and queues arrival in the B2 main corridor.
+///
+/// Demo scene 9 suppresses every side effect. Otherwise enables display, records
+/// the freezer unlock, requests character images and applies the control room's
+/// saved-area update before selecting warp 4 in room 1 with sprite variant 1.
+/// Queues a captured-frame reload, then finishes scene streaming to restore its
+/// saved RNG state. Requires the loaded room update list, reload bank and a
+/// previously selected scene. Neither resource loading nor task spawning is waited on.
+static void _actor150400ReloadMainCorridor(void)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        SetDispMask(1);
-        gameFlagSetNibble(GAME_FLAG_GOLEM_FREEZER_UNLOCKED, 1);
-        loadingEnqueueCharacterResources(1);
+    enum {
+        ACTOR_150400_DEMO_SCENE                   = 9,
+        ACTOR_150400_FREEZER_UNLOCKED             = 1,
+        ACTOR_150400_MAIN_CORRIDOR_ARRIVAL_WARP   = 4,
+        ACTOR_150400_MAIN_CORRIDOR_ROOM           = 1,
+        ACTOR_150400_MAIN_CORRIDOR_SPRITE_VARIANT = 1,
+    };
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_150400_DEMO_SCENE) {
+        SetDispMask(true);
+        gameFlagSetNibble(GAME_FLAG_GOLEM_FREEZER_UNLOCKED, ACTOR_150400_FREEZER_UNLOCKED);
+        loadingEnqueueCharacterResources(true);
         areaApplySavedUpdates(D_shelter_b1_control_room_80183BE0);
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_MINE_SHELTER;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_SHELTER_B2_MAIN_CORRIDOR;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 4;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-        gDisplayState.spriteVariant                                 = 1;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACTOR_150400_MAIN_CORRIDOR_ARRIVAL_WARP;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACTOR_150400_MAIN_CORRIDOR_ROOM;
+        gDisplayState.spriteVariant                                 = ACTOR_150400_MAIN_CORRIDOR_SPRITE_VARIANT;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
         streamFinishScene();
     }
 }
 
-void func_actor_150400_80131F6C(void)
+/// Queues the control room's movie-start task for either event-script ending.
+///
+/// Requires the loaded room descriptors and movie resources to outlive playback.
+/// The bodyless trigger transfers display ownership on its next tick; this call
+/// does not wait or check spawn failure. The scripts wait three ticks before
+/// requesting their destination reload.
+static void _actor150400StartControlRoomMovie(void)
 {
-    taskSpawnFromTable(D_shelter_b1_control_room_80181BBC, 0, 0, 0);
+    enum { ACTOR_150400_CONTROL_ROOM_MOVIE_TASK_INDEX = 0 };
+
+    taskSpawnFromTable(D_shelter_b1_control_room_80181BBC, ACTOR_150400_CONTROL_ROOM_MOVIE_TASK_INDEX, 0, 0);
 }
 
 /// Applies one state word to both scene sliding-model tasks.
@@ -544,17 +562,21 @@ static void _actor150400PairWalkSpawn(Enemy* enemy, Task* task)
 
 #include "../../shared/pair_walk_update.inc.c"
 
-/// Per-frame callback of the actor's task: runs the state's handler, the spawn
-/// handler `_actor150400PairWalkSpawn` in state 0 and the per-frame update
-/// `_actorRenderWalkerFrame` after it, passing the task's `Enemy`.
-void func_actor_150400_801323E0(Task* task)
+/// Dispatches the freezer scene's No. 9 pair walker initialization or frame update.
+///
+/// Descriptor 0 requires a live Enemy in `spawnArg2.pointer`, a nineteen-part
+/// TMD body and state 0..1. State 0 allocates the pair-walk work and attachment;
+/// state 1 composes, lights, moves and animates the model and draws its shadow.
+/// Initialization may destroy the enemy and task on allocation failure.
+/// The handler array has no bounds check; keep this overlay and clips loaded.
+static void _actor150400PairWalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[] = {
         _actor150400PairWalkSpawn,
         _actorRenderWalkerFrame,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.

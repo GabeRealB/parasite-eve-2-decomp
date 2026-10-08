@@ -107,3 +107,5 @@ _actor205200PartTask = 0x8014b978; // type:func
 _actor205200TickPulse = 0x8014ab98; // type:func
 _actor205200TickController = 0x8014a958; // type:func
 _actor205200TickBodyAction = 0x8014c67c; // type:func
+_actor205200ControllerTask = 0x8014b8c0; // type:func
+_actor205200BodyLiveState = 0x8014c59c; // type:func

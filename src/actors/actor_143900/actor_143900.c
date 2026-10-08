@@ -142,9 +142,7 @@ static s32  _actor143900ApplyScriptedWalkerCommand(Task* unusedTask, s32 message
 static void _actor143900ScriptedWalkerTask(Task* task);
 static void _actor143900SpawnScriptedWalker(Enemy* enemy, Task* task);
 
-void func_actor_143900_80131E24(void);
-
-void func_actor_143900_80131E24(void);
+static void _actor143900StartObservatoryTransition(void);
 
 AnimationPlayRequest D_actor_143900_801334FC = { { .index = 1 }, 1, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
@@ -185,7 +183,7 @@ EvsCommand D_actor_143900_80133560[32] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143900_80131E24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143900StartObservatoryTransition }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -198,7 +196,7 @@ EvsCommand D_actor_143900_80133860[12] = {
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143900_80131E24 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143900StartObservatoryTransition }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1195,14 +1193,24 @@ static ScriptedWalkAttachmentsWork* _gScriptedWalkSecondWork = NULL;
 
 Task* D_actor_143900_801496C8;
 
-/// Arms `sceneEvent` and starts the room's spawn-table task, unless
-/// `demoScene` is 9, so this story trigger is skipped while the attract demo
-/// plays.
-void func_actor_143900_80131E24(void)
+/// Starts the room movie and transition to Neo Ark's observatory.
+///
+/// Both event-script endings call this while Shelter R49 is loaded. Demo scene
+/// 9 suppresses the request. Otherwise stores scene event 20, which selects
+/// music column 0 in the destination stage, and spawns the room transition
+/// task. The room overlay and its movie resources must remain live until that
+/// task reloads the destination. Spawn failure still leaves the event stored.
+static void _actor143900StartObservatoryTransition(void)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 0x14;
-        taskSpawnFromTable(D_shelter_r49_8017DA00, 0, 0, 0);
+    enum {
+        ACTOR_143900_DEMO_SCENE                        = 9,
+        ACTOR_143900_OBSERVATORY_SCENE_EVENT           = 20,
+        ACTOR_143900_OBSERVATORY_TRANSITION_TASK_INDEX = 0,
+    };
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_143900_DEMO_SCENE) {
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = ACTOR_143900_OBSERVATORY_SCENE_EVENT;
+        taskSpawnFromTable(D_shelter_r49_8017DA00, ACTOR_143900_OBSERVATORY_TRANSITION_TASK_INDEX, 0, 0);
     }
 }
 

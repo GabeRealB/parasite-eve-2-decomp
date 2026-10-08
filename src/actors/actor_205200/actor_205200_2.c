@@ -155,7 +155,7 @@ static void _actor205200SpawnBody(Enemy* enemy, Task* task);
 static void _actor205200ScanContacts(Task* task);
 static void _actor205200TickIdle(Task* task);
 static void _actor205200TickPlayerKnockback(Task* task);
-static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1);
+static void _actor205200BodyLiveState(Enemy* unusedEnemy, Task* task);
 static void _actor205200TickBodyAction(Task* task);
 static void _actor205200TickHitReaction(Task* task);
 static void _actor205200UpdateAnimation(Task* task);
@@ -167,7 +167,7 @@ static void _actor205200DestroyBody(Enemy* enemy, Task* task);
 /// `_actor205200BodyTask` dispatches through by state.
 static const EnemyTaskFuncTable3 D_actor_205200_80149E30 = {
     _actor205200SpawnBody,
-    func_actor_205200_8014C59C,
+    _actor205200BodyLiveState,
     _actor205200DestroyBody,
 };
 
@@ -791,41 +791,50 @@ static void _actor205200BodyTask(Task* task)
     stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_205200_8014C59C(Enemy* arg0, Task* arg1)
+/// Updates the stationary body while events and scene actor control permit it.
+///
+/// Requires initialized task-owned work and a nineteen-part TMD body in state 1;
+/// `unusedEnemy` is ignored. Event playback suspends even teardown requests.
+/// A latched destroy request selects state 2 for the next dispatch. Paused actors
+/// only relight and draw the shadow; hidden actors skip all updates. Running
+/// control restores drawing before contacts, behavior, animation and composition.
+/// Keep work, model and room resources live throughout the call.
+static void _actor205200BodyLiveState(Enemy* unusedEnemy, Task* task)
 {
-    GfxCoord*         coord;
-    TmdObject*        obj;
+    GfxCoord*         rootCoord;
+    TmdObject*        model;
     _Actor205200Work* work;
 
-    work  = arg1->work;
-    obj   = arg1->extra.tmd;
-    coord = obj->coords;
+    work      = task->work;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
     if (gGameSession->eventState != 0) {
         return;
     }
     if (work->destroyRequested != 0) {
-        arg1->state = 2;
+        task->state = ACTOR_205200_BODY_TASK_DESTROY;
         return;
     }
     switch (gSceneCombatState.actorControl) {
-        case 0:
-            obj->flags = 0;
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            model->flags = 0;
             break;
-        case 1:
-            _actor205200UpdateLighting(arg1);
-            _actor205200DrawShadow(arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor205200UpdateLighting(task);
+            _actor205200DrawShadow(task);
             return;
-        case 2:
-            obj->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
-    _actor205200ScanContacts(arg1);
-    _actor205200TickBodyAction(arg1);
-    _actor205200UpdateAnimation(arg1);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    _actor205200UpdateLighting(arg1);
-    _actor205200DrawShadow(arg1);
+    // Contacts can start a player knockback before the action and pose advance.
+    _actor205200ScanContacts(task);
+    _actor205200TickBodyAction(task);
+    _actor205200UpdateAnimation(task);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _actor205200UpdateLighting(task);
+    _actor205200DrawShadow(task);
 }
 /// Advances the paired body's idle or hit reaction, room glow and player knockback.
 ///

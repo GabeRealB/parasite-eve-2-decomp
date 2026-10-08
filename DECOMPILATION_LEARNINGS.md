@@ -81575,7 +81575,7 @@ Evidence: tools/permuter_findings/_actor01900TickBlendedAnimSlots/, PERMUTER_ANA
 
 ## `build.sh` can print 100% for a candidate whose `.text` differs: compare `readelf -x .text`
 
-`func_actor_207200_8014D2DC` scored `100.000% (0 differences)` with an empty
+`_actor207200CreepingStrangerLiveState` scored `100.000% (0 differences)` with an empty
 `base_N_diff` while one instruction was still wrong: the target's `case 0` block
 ends `j .Lactor_207200_8014D358` (the default body), the candidate's `j` went to
 the switch exit instead. The scorer compares object-dump text with local branch
@@ -82047,19 +82047,19 @@ controller block distinct from `_Actor141000AyaBreaWork`: allocation and task
 dispatch establish their different owners. A typed port must preserve each
 matched handler's access widths and expression shape.
 
-`func_actor_141000_80132C7C 2 attempts` - the seed scored 100% in the first
+`_actor141000SpawnFlightController 2 attempts` - the seed scored 100% in the first
 build and the typed port `base_1.c` reproduces it instruction for instruction.
 Input `base_1.i`
 `c2d57ad641bfa70893c2bc309bda211056623b43a70fa9d23b9f95fe321623ac`.
 
 ## A load that must precede a store needs the source to emit it before the store
 
-`func_actor_141000_80132EF4` opened at 96.98% with `branch=3 insert=1 reorder=1`:
+`_actor141000AdvanceFlightPath` opened at 96.98% with `branch=3 insert=1 reorder=1`:
 one instruction out of place. The target holds
 
 ```
 lhu   a1,8(s0)          /* work->frames */
-lw    v0,0x2c(s1)       /* arg0->extra - sits in the lhu's load-delay slot */
+lw    v0,0x2c(s1)       /* task->extra.tmd - sits in the lhu's load-delay slot */
 addiu a1,a1,1
 sh    a1,8(s0)
 ```
@@ -82074,24 +82074,24 @@ constraint directly, `(insn 24 ... (insn_list 21 (nil)))`: with the store first
 in the RTL the load can never be hoisted above it, at any priority. The
 leftover is a **source-order** property, not a ranking one.
 
-Moving the read up fixes it: `obj = index->extra;` **before** the counter update
+Moving the read up fixes it: `model = task->extra.tmd;` **before** the counter update
 generates `lw 0x2c(s1)` first, the link disappears, and sched1 spends the
 independent load in the `lhu` delay slot. 100% on that one edit.
 
 Two boundaries worth checking before concluding "scheduler":
 
 - **The hoisted load must die at the call.** The copy block here re-reads
-  `((TmdObject*)index->extra)->coords`, so nothing lives across the `jal` - the
+  `task->extra.tmd->coords`, so nothing lives across the `jal` - the
   frame is `sp-0x20` saving `$ra`/`$s0`/`$s1` and has no spill slot. A local
   kept live across the call is the opposite move (see the
   `_actor141000UnfoldFlightModel` entry above, where a `tmd` local broke the
   match) and does not reproduce this shape.
 - **Hoist the pointer, not the load through it.** Reading
-  `coord = obj->field_8` early puts `lw 8(v0)` on the pending-read list first,
+  `sourceCoord = model->coords` early puts `lw 8(v0)` on the pending-read list first,
   so the store then depends on *it* and the copy's own `lw a0,8(v0)` could not
   stay below the `sh`.
 
-Example: `func_actor_141000_80132EF4` (scratch `base_2.c`, one edit off
+Example: `_actor141000AdvanceFlightPath` (scratch `base_2.c`, one edit off
 `base_1.c`). Input `base_2.i`
 `fa6277c80f6fa46964be9a9644a7882077475d57b473ce14c8f93d6354a30c57`.
 
@@ -85092,7 +85092,7 @@ Inputs: `base.i` (m2c seed, 46.833%)
 
 ## An actor overlay's bare `D_8xxxxxxx` may be room-overlay data — declare it, do not attribute it
 
-`func_actor_143900_80131E24` hands `&D_8017DA00` to `taskSpawnFromTable`.
+`_actor143900StartObservatoryTransition` hands `&D_8017DA00` to `taskSpawnFromTable`.
 splat left that address unnamed, and it belongs to neither main nor gameplay: it
 is offset 0x440 into the room-overlay region (rooms load at 0x8017D5C0), which
 is why `configs/USA/sym/actors.imports.txt` carries it in its *third* bucket,
@@ -98555,7 +98555,7 @@ Controlled check: changing only that call's argument back to the literal `1`
 reproduces the 88.5% shape above exactly (49 insns, `li a1,1` in the delay slot,
 the `a0` setup pushed out and duplicated), so the variable, not the dispatch
 rewrite, is what removes the `li`. The same shape is already matched next door
-in `func_actor_207200_8014D2DC`, which is where the `one` name and the
+in `_actor207200CreepingStrangerLiveState`, which is where the `one` name and the
 goto-shaped dispatch come from - the dispatch itself is written that way because
 mode 0 shares the *default* body, which sits after the last case body, so its
 `break` is a jump into it (see "A switch's shared tail belongs after the
@@ -99867,7 +99867,7 @@ the first divergence misaligned.
 
 Write the labels in the target's order and use gotos for the falls-throughs, as
 the already-matched siblings do (`src/actors/lib/actors_shared_80134c2c.c`,
-`func_actor_207200_8014D2DC`): a `case0:` arm ending `goto default_body;`, then
+`_actor207200CreepingStrangerLiveState`): a `case0:` arm ending `goto default_body;`, then
 `case2:` with its `return`, then `default_body:`, then `case1:` last with no
 return -- 100.000% on the first try. The `s32 one = 1` local for both the
 comparison and the later `field = one` store is entry [goto case body order].
@@ -149109,7 +149109,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
 - **A hand-written dispatch tree (`if (s == 1) goto case1; if (s >= 2) goto
   ge2; ...`) is a `switch`.** When one case jumps into the code after the
   switch, write that tail in the case with a `return` and again after the
-  switch (`func_actor_205200_8014C59C`). The order of the blocks in the image
+  switch (`_actor205200BodyLiveState`). The order of the blocks in the image
   is the order of the cases in the source.
 - **`temp = K; goto join; ... join: status = temp; switch (status)`, twice in
   one function, was a `static inline` returning `s16`** (`cdSyncPollPause`, 21

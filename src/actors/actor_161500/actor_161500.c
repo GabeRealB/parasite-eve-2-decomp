@@ -137,7 +137,7 @@ extern AnimationBankCopyRequest D_actor_161500_80136E08;
 static s32                      _strideWalkSetTurnMode(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 static void                     _actor161500PreparePlayerFacingCompanion(void);
 static void                     _actor161500SetPlayerUpdateHold(u8 holdPlayerUpdate);
-void                            func_actor_161500_801326E8(Task*);
+static void                     _actor161500StrideWalkerTask(Task* task);
 
 static AnimationPackedPose _gActor161500Animation010D0Bank1[3] = {
 #include "assets/actor_161500_animation_010D0_bank1.inc"
@@ -1398,7 +1398,7 @@ TaskMessageEntry gStrideWalkMessages[6] = {
 };
 
 TaskDesc gStrideWalkTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_161500_801326E8, { .model = &_gActor161500SoldierBBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor161500StrideWalkerTask, { .model = &_gActor161500SoldierBBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _strideWalkSubModelTask, { .model = &_gActor161500SoldierBRifle } },
 };
 
@@ -1639,17 +1639,22 @@ void actor161500RestoreCompanionRequestScene(void)
 
 #include "../../shared/stride_walk_update.inc.c"
 
-/// The actor's task body: dispatches on `Task::state` to the spawn routine
-/// (state 0) or the per-frame body (state 1), handing each the task's
-/// `Enemy` from `Task::spawnArg2`. The handler table is built on the stack.
-void func_actor_161500_801326E8(Task* task)
+/// Dispatches the soldier's stride walker initialization or frame update.
+///
+/// Descriptor 0 requires a live Enemy in `spawnArg2.pointer`, a twenty-part
+/// TMD body and state 0..1. State 0 allocates the rig and stride-walk work;
+/// state 1 composes, lights, moves and animates the model and draws its shadow.
+/// State 1 also requires a live player model for the soldier's head aim.
+/// Initialization may destroy the enemy and task on allocation failure.
+/// The handler array has no bounds check; keep this overlay and clips loaded.
+static void _actor161500StrideWalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[] = {
         _strideWalkSpawn,
         _strideWalkFrame,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 #define ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW _actorRenderDrawFixedWalkerGroundShadow

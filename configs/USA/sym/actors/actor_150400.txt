@@ -71,3 +71,6 @@ _actor150400SetSlidingModelState = 0x80131f9c; // type:func
 _actor150400DestroyPairWalker = 0x801324b8; // type:func
 actor150400SpawnSlidingModels = 0x80131fb8; // type:func
 _actor150400PairWalkSpawn = 0x80132014; // type:func
+_actor150400ReloadMainCorridor = 0x80131ecc; // type:func
+_actor150400StartControlRoomMovie = 0x80131f6c; // type:func
+_actor150400PairWalkerTask = 0x801323e0; // type:func

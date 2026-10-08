@@ -114,3 +114,5 @@ _actor141000SmokeTrailTask = 0x801330c0; // type:func
 _actor141000AttachRingBeam = 0x80133204; // type:func
 _actor141000DrawCappedBeam = 0x80133260; // type:func
 _actor141000CappedBeamTask = 0x801331ac; // type:func
+_actor141000SpawnFlightController = 0x80132c7c; // type:func
+_actor141000AdvanceFlightPath = 0x80132ef4; // type:func

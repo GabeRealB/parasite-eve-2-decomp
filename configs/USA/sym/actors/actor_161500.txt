@@ -223,3 +223,4 @@ actor161500StartSoldierBShopConversation = 0x80132110; // type:func
 actor161500StartCompanionRequestReminder = 0x801322a0; // type:func
 actor161500RestoreCompanionRequestScene = 0x8013230c; // type:func
 _strideWalkSetTurnMode = 0x80132b88; // type:func
+_actor161500StrideWalkerTask = 0x801326e8; // type:func

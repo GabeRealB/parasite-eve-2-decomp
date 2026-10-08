@@ -138,9 +138,9 @@ extern SVECTOR D_actor_141000_80134868[2];
 extern SVECTOR D_actor_141000_80134878[];
 extern SVECTOR D_actor_141000_801348A8[];
 
-/// The descriptor table the controller spawns from: index 1 is the task its
-/// spawn state starts and index 2 the model actor `func_actor_141000_80132EF4`
-/// spawns later, every eighth frame.
+/// The descriptor table the controller spawns from: index 1 is its attached
+/// ring beam and index 2 the coordinate-body smoke emitter that
+/// `_actor141000AdvanceFlightPath` leaves every eighth path frame.
 extern TaskDesc D_actor_141000_801348D8[];
 
 /// The texture uploads `_actor141000TickAyaBreaBlink` walks, one per value of
@@ -160,12 +160,12 @@ extern AnimationSet** gActorMotionAnimBanks19[1];
 
 extern TaskMessageEntry D_actor_141000_8013D788[];
 
-static void func_actor_141000_80132C7C(Task* task);
+static void _actor141000SpawnFlightController(Task* task);
 static void _actor141000UpdateFlightController(Task* task);
 static void _actor141000ExitFlightController(Task* task);
 static void _actor141000UnfoldFlightModel(Task* task);
 static void _actor141000HoldFlightModel(Task* task);
-static void func_actor_141000_80132EF4(Task* arg0);
+static void _actor141000AdvanceFlightPath(Task* task);
 static void _actor141000IdleFlightModel(Task* task);
 static s32  _actor141000ApplyFlightPathFrame(GfxCoord* rootCoord, s32 pathFrame);
 static void _actor141000ScaleFlightModelZ(GfxCoord* rootCoord, s32 zScale);
@@ -194,7 +194,7 @@ static const TaskFuncTable3 D_actor_141000_80131E24 = { {
 /// The controller's three states - spawn, per-frame tick and `taskKill` -
 /// dispatched by `_actor141000FlightControllerTask`.
 static const TaskFuncTable3 D_actor_141000_80131E30 = { {
-    func_actor_141000_80132C7C,
+    _actor141000SpawnFlightController,
     _actor141000UpdateFlightController,
     taskKill,
 } };
@@ -205,7 +205,7 @@ static const TaskFuncTable3 D_actor_141000_80131E30 = { {
 static const TaskFuncTable4 D_actor_141000_80131E3C = { {
     _actor141000UnfoldFlightModel,
     _actor141000HoldFlightModel,
-    func_actor_141000_80132EF4,
+    _actor141000AdvanceFlightPath,
     _actor141000IdleFlightModel,
 } };
 
@@ -842,33 +842,36 @@ static void _actor141000FlightControllerTask(Task* task)
     handlers.funcs[task->state](task);
 }
 
-/// Spawn state of the overlay's controller task: takes the display object's
-/// root coordinate, allocates the work block the later states read through
-/// `Task::work` and sets its ring-beam level to full, un-parks the model (`field_C` bit
-/// 0x80 is the flag that keeps a `TmdObject` out of the coordinate update),
-/// republishes that coordinate onto the two scale helpers, spawns the attach
-/// task from `D_actor_141000_801348D8` and installs `_actor141000ExitFlightController`
-/// as the exit callback before advancing to the per-frame state. A failed allocation kills
-/// the task instead of leaving a half-built controller behind.
-static void func_actor_141000_80132C7C(Task* task)
+/// Initializes the flying model and attaches its full-strength ring beam.
+///
+/// State 0 requires the descriptor-created one-part TMD body and loaded path
+/// and beam resources. Allocates zeroed task-owned work, enables active drawing,
+/// installs path frame 0 at zero Z scale, then advances to state 1. The beam
+/// child borrows this task and its work until teardown. Allocation failure kills
+/// the controller; beam-spawn failure is ignored.
+static void _actor141000SpawnFlightController(Task* task)
 {
+    enum {
+        ACTOR_141000_BEAM_FULL_LEVEL      = ONE - 1,
+        ACTOR_141000_RING_BEAM_TASK_INDEX = 1,
+    };
     Actor141000CtrlWork* work;
-    TmdObject*           obj;
-    GfxCoord*            coord;
+    TmdObject*           model;
+    GfxCoord*            rootCoord;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    work  = memCalloc(sizeof(*work), 0);
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    work      = memCalloc(sizeof(*work), 0);
     if (work == NULL) {
         taskKill(task);
         return;
     }
     task->work      = work;
-    work->beamLevel = 0xFFF;
-    obj->flags     &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    _actor141000ApplyFlightPathFrame(coord, 0);
-    _actor141000ScaleFlightModelZ(coord, 0);
-    taskSpawnFromTable(D_actor_141000_801348D8, 1, 0, task);
+    work->beamLevel = ACTOR_141000_BEAM_FULL_LEVEL;
+    model->flags   &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    _actor141000ApplyFlightPathFrame(rootCoord, 0);
+    _actor141000ScaleFlightModelZ(rootCoord, 0);
+    taskSpawnFromTable(D_actor_141000_801348D8, ACTOR_141000_RING_BEAM_TASK_INDEX, 0, task);
     task->exitCallback = _actor141000ExitFlightController;
     task->state       += 1;
 }
@@ -949,39 +952,46 @@ static void _actor141000HoldFlightModel(Task* task)
     }
 }
 
-/// State 2 of the handler table at 0x80131E3C: drives the model's rotation
-/// through `_actor141000ApplyFlightPathFrame` and, on the frame that runs the ramp's
-/// 0x5A entries out, advances the state index `state` the dispatcher at
-/// 0x80132D3C walks. Every eighth frame it spawns another actor from index 2
-/// of `D_actor_141000_801348D8` and copies this actor's world position onto
-/// the new one.
-static void func_actor_141000_80132EF4(Task* arg0)
+/// Advances the recorded flight and leaves smoke emitters every eight path frames.
+///
+/// Requires phase 2, initialized controller work and a live TMD root. The
+/// increment narrows to u16, then the signed low halfword selects the path
+/// frame. Frame 90 holds the final transform and advances to idle without an
+/// emission. Successful emitters receive XYZ in the root's parent frame;
+/// they run independently and are not adopted by the controller. Spawn failure
+/// is ignored. The enclosing update supplies the view-ready teardown check.
+static void _actor141000AdvanceFlightPath(Task* task)
 {
+    enum {
+        ACTOR_141000_TRAIL_EMITTER_INTERVAL   = 8,
+        ACTOR_141000_TRAIL_EMITTER_TASK_INDEX = 2,
+    };
     Actor141000CtrlWork* work;
-    TmdObject*           obj;
-    Task*                spawned;
-    GfxCoord*            src;
-    GfxCoord*            dst;
-    u16                  frames;
+    TmdObject*           model;
+    Task*                emitterTask;
+    GfxCoord*            sourceCoord;
+    GfxCoord*            emitterCoord;
+    u16                  pathFrame;
 
-    work         = arg0->work;
-    obj          = arg0->extra.tmd;
-    frames       = work->frames + 1;
-    work->frames = frames;
+    work         = task->work;
+    model        = task->extra.tmd;
+    pathFrame    = work->frames + 1;
+    work->frames = pathFrame;
 
-    if (_actor141000ApplyFlightPathFrame(obj->coords, (s16)frames) != 0) {
+    if (_actor141000ApplyFlightPathFrame(model->coords, (s16)pathFrame) != 0) {
         work->state = work->state + 1;
         return;
     }
 
-    if (!(work->frames & 7)) {
-        spawned = taskSpawnFromTable(D_actor_141000_801348D8, 2, 0, 0);
-        if (spawned != NULL) {
-            src             = arg0->extra.tmd->coords;
-            dst             = spawned->extra.tmd->coords;
-            dst->coord.t[0] = src->coord.t[0];
-            dst->coord.t[1] = src->coord.t[1];
-            dst->coord.t[2] = src->coord.t[2];
+    if (!(work->frames & (ACTOR_141000_TRAIL_EMITTER_INTERVAL - 1))) {
+        emitterTask = taskSpawnFromTable(D_actor_141000_801348D8, ACTOR_141000_TRAIL_EMITTER_TASK_INDEX, 0, 0);
+        if (emitterTask != NULL) {
+            // Snapshot local translation; the emitter initializes its own rotation.
+            sourceCoord              = task->extra.tmd->coords;
+            emitterCoord             = emitterTask->extra.coordBody->coord;
+            emitterCoord->coord.t[0] = sourceCoord->coord.t[0];
+            emitterCoord->coord.t[1] = sourceCoord->coord.t[1];
+            emitterCoord->coord.t[2] = sourceCoord->coord.t[2];
         }
     }
 }

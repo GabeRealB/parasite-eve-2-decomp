@@ -181,7 +181,7 @@ static s32  _actor205200GetDistanceAttenuation(s32 distance);
 static void _actor205200TickLivePart(Enemy* enemy, Task* task);
 static void _actor205200TickPartSparks(Task* task);
 
-void        func_actor_205200_8014B8C0(Task*);
+static void _actor205200ControllerTask(Task* task);
 static void _actor205200PartTask(Task* task);
 
 static s32 _actor205200RequestControllerStopMsg(Task* task, s32 messageId, const ActorCommand* request, s32 unusedArg);
@@ -271,7 +271,7 @@ TaskDesc D_actor_205200_8014CA44[2] = {
 s32 gScreenWaveRamp = 256;
 
 TaskDesc D_actor_205200_8014CA60[2] = {
-    { { { TASK_BODY_COORD, 96 } }, func_actor_205200_8014B8C0, { .value = 0 } },
+    { { { TASK_BODY_COORD, 96 } }, _actor205200ControllerTask, { .value = 0 } },
     { { { TASK_BODY_COORD, 96 } }, _actor205200PartTask, { .value = 0 } },
 };
 
@@ -854,18 +854,21 @@ static void _actor205200TickDownPart(Enemy* enemy, Task* task)
     }
 }
 
-/// Update of the actor's controller task: dispatches on its state to the
-/// setup handler `_actor205200SpawnController` (state 0) or the per-frame
-/// handler `_actor205200TickController` (state 1), passing the task's enemy
-/// record along with the task.
-void func_actor_205200_8014B8C0(Task* task)
+/// Dispatches the destructible-part controller's initialization or pulse update.
+///
+/// Descriptor 0 requires a live Enemy in `spawnArg2.pointer`, a coordinate
+/// body and state 0..1. State 0 allocates controller work and creates the site's
+/// child parts; state 1 maintains their attenuated sound and MP-draining waves
+/// until stopped. Initialization may destroy the enemy and task on failure.
+/// The handler array has no bounds check; keep this overlay and room resources live.
+static void _actor205200ControllerTask(Task* task)
 {
-    EnemyTaskFunc fns[2] = {
+    EnemyTaskFunc stateHandlers[] = {
         _actor205200SpawnController,
         _actor205200TickController,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Converts camera distance to a signed sound attenuation offset in -128..127.

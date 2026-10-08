@@ -59,7 +59,7 @@ extern s32      D_actor_142900_801382A8;
 extern s32      D_actor_142900_801382AC;
 
 extern ActorTransform D_actor_142900_801378A0;
-void                  func_actor_142900_80131F5C(void);
+static void           _actor142900ReloadElevatorHall(void);
 static void           _actor142900SetScreenShakePhase(s32 phase);
 
 static AnimationSet _gActor142900Animation0161C;
@@ -759,7 +759,7 @@ EvsCommand D_actor_142900_801378D0[87] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_actor_142900_8013787C }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_142900_80131F5C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor142900ReloadElevatorHall }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -781,7 +781,7 @@ EvsCommand D_actor_142900_801380F8[18] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_142900_80131F5C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor142900ReloadElevatorHall }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -864,15 +864,31 @@ static void _actor142900ScreenShakeTask(Task* task)
     }
 }
 
-void func_actor_142900_80131F5C(void)
+/// Completes the elevator scene and queues arrival in the B2 elevator hall.
+///
+/// Both the full and skipped scripts call this with the Mine/Shelter stage
+/// active. Demo scene 9 leaves saved state unchanged. Otherwise applies the
+/// elevator's saved-area update, selects companion schedule 0 and arrival warp
+/// 2 in room 1, then queues a captured-frame reload with sprite variant 1.
+/// Requires the room update list and gameplay reload bank to remain loaded;
+/// the reload runs later and its spawn result is ignored.
+static void _actor142900ReloadElevatorHall(void)
 {
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+    enum {
+        ACTOR_142900_DEMO_SCENE                   = 9,
+        ACTOR_142900_COMPANION_SCHEDULE           = 0,
+        ACTOR_142900_ELEVATOR_HALL_ARRIVAL_WARP   = 2,
+        ACTOR_142900_ELEVATOR_HALL_ROOM           = 1,
+        ACTOR_142900_ELEVATOR_HALL_SPRITE_VARIANT = 1,
+    };
+
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != ACTOR_142900_DEMO_SCENE) {
         areaApplySavedUpdates(D_shelter_b2_elevator_8017E9F8);
-        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 0);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x1B;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
-        gDisplayState.spriteVariant                                = 1;
+        gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, ACTOR_142900_COMPANION_SCHEDULE);
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_ELEVATOR_HALL;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_142900_ELEVATOR_HALL_ARRIVAL_WARP;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_142900_ELEVATOR_HALL_ROOM;
+        gDisplayState.spriteVariant                                = ACTOR_142900_ELEVATOR_HALL_SPRITE_VARIANT;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     }
 }

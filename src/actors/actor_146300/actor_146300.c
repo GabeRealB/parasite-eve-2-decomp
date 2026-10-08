@@ -72,7 +72,7 @@ extern Task* gActorSelfTask;
 extern Task* gActorHelperTask;
 
 /// Spawn table of the actor's two tasks: index 0 runs
-/// `func_actor_146300_801326CC`, index 1 the companion's
+/// `_actor146300ScriptedFigureTask`, index 1 the companion's
 /// `_actor146300AttachmentTask`, which the spawn routine starts.
 extern TaskDesc D_actor_146300_801427C8[];
 
@@ -104,7 +104,7 @@ static void _actor146300UpdateAnimation(Task* unusedTask);
 
 static TmdSource _gActor146300Model0895C;
 static TmdSource _gActor146300Actor113100Model07960;
-void             func_actor_146300_801326CC(Task*);
+static void      _actor146300ScriptedFigureTask(Task* task);
 static void      _actor146300AttachmentTask(Task* task);
 
 static s32 _actor146300PlayAnimation(Task* unusedTask, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
@@ -1283,7 +1283,7 @@ TaskMessageEntry D_actor_146300_801427A0[5] = {
 };
 
 TaskDesc D_actor_146300_801427C8[2] = {
-    { { { TASK_BODY_TMD, 192 } }, func_actor_146300_801326CC, { .model = &_gActor146300Model0895C } },
+    { { { TASK_BODY_TMD, 192 } }, _actor146300ScriptedFigureTask, { .model = &_gActor146300Model0895C } },
     { { { TASK_BODY_TMD, 192 } }, _actor146300AttachmentTask, { .model = &_gActor146300Actor113100Model07960 } },
 };
 
@@ -1647,19 +1647,22 @@ static void _actor146300SpawnScriptedWalker(Enemy* enemy, Task* task)
 }
 #undef ACTOR_146300_RELIGHT_SPAWN
 
-/// The actor's task handler: publishes the task's work block in
-/// `_gScriptedWalkWork` on the way through, then runs the handler its
-/// state selects from a table built on the stack - the spawn routine for state
-/// 0, the per-frame update after it.
-void func_actor_146300_801326CC(Task* task)
+/// Dispatches the scripted figure's initialization or model update.
+///
+/// Descriptor 0 requires a live Enemy in `spawnArg2.pointer`, a twenty-part
+/// TMD body and state 0..1. Publishes the task-owned work for the singleton
+/// animation/placement handlers before dispatch; state 0 allocates it, while
+/// state 1 composes, relights and animates the stationary figure. Initialization
+/// may destroy the enemy and task on allocation failure. There is no bounds check.
+static void _actor146300ScriptedFigureTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[] = {
         _actor146300SpawnScriptedWalker,
         _actor146300UpdateModel,
     };
 
     _gScriptedWalkWork = task->work;
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Relights an actor or its attachment from an offset of the actor's cached origin.

@@ -13,7 +13,7 @@
 #include "rooms/shelter_r47.h"
 
 static void _actor143400SelectSceneCaptions(s32 enable);
-void        func_actor_143400_80131E6C(void);
+static void _actor143400ApplySceneAreaUpdates(void);
 static void _actor143400SetSceneEvent(s8 sceneEvent);
 
 static AnimationPackedPose _gActor143400Animation00358Bank1[6] = {
@@ -582,7 +582,7 @@ EvsCommand D_actor_143400_801350BC[97] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_COMPANION }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor143400SelectSceneCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143400_80131E6C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143400ApplySceneAreaUpdates }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542F0007 }, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_VIEW, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -606,7 +606,7 @@ EvsCommand D_actor_143400_801359D4[20] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _actor143400SetSceneEvent }, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor143400SelectSceneCaptions }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_143400_80131E6C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor143400ApplySceneAreaUpdates }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_SOUND, { .value = 0x542F0007 }, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -633,10 +633,12 @@ static void _actor143400SelectSceneCaptions(s32 enable)
     capReset();
 }
 
-/// Applies the 0xFF-terminated area record list at `D_shelter_r47_8018A638` through
-/// `areaApplySavedUpdates`. Reached only through the function pointers in the
-/// actor's data.
-void func_actor_143400_80131E6C(void)
+/// Commits the R47 scene's saved layouts and map marks across the Shelter.
+///
+/// Both the full and skipped event scripts apply the same room-owned update
+/// list. Requires the R47 overlay and saved-area tables to be live. Applies
+/// records synchronously, clearing affected saved enemy poses; queues no reload.
+static void _actor143400ApplySceneAreaUpdates(void)
 {
     areaApplySavedUpdates(D_shelter_r47_8018A638);
 }
