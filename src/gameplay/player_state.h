@@ -52,9 +52,25 @@ void playerActorApplyConfusionInput(Task* task);
 /// and a live player model when the resistance burst is emitted.
 s32 playerStateApplyHpDamage(s16 damagePoints);
 
-void func_8010AC54(Task* arg0);
+/// Advances a pending hit's flashes on player model parts 3, 2, then 1.
+///
+/// Reaction 5 emits flashes of size 800 game units six callback ticks apart,
+/// starting on the first call. Phase 0 initializes the timer and count. Before
+/// the third flash, clears the hit and resumes normal aim/locomotion with 18
+/// recovery ticks. Requires live GameActor/model parts 1..3, native playback and
+/// effect resources; the damage-mode dispatcher stops calling after recovery.
+void playerActorTickHitFlashes(Task* task);
 
-void func_8010AD64(Task* arg0);
+/// Presents a poison hit at its receiving motion body and waits for clip completion.
+///
+/// Phase 0 emits tinted puffs and enters phase 1; phase 2 returns to normal
+/// aim/locomotion with 18 recovery ticks. The clip controller supplies that
+/// final phase. Body indices 0..2 select their live collision coordinates;
+/// body 0 uses a local Y offset of -400 game units. Requires live player/model,
+/// native playback, GTE and an initialized scratch stack with 56 free bytes
+/// (8 for its vector and 48 for relative placement). Releases its vector before
+/// return; status duration and HP loss were applied when the hit began.
+void playerActorTickPoisonHit(Task* task);
 
 /// Resolves player body contacts and presents a pending collision hit.
 ///
@@ -73,8 +89,23 @@ void playerActorCheckContactDamage(Task* task);
 /// the saved hit-body index is meaningful only while a hit region is pending.
 void playerActorClearPendingHit(Task* task);
 
-void func_8010B3F8(Task* arg0);
+/// Emits three blast recipes on the live player at seven-callback intervals.
+///
+/// A bodyless task at state 0 initializes its packed counter and emits at once;
+/// state 1 continues it. The low two bits of spawnArg1 choose size 192..480
+/// game units in steps of 96 and recipe variant 1..4. Bits 8..11 of the counter
+/// select the part; its low nibble counts delay ticks. Parts are 2, 3, then 1: teardown on
+/// the last call clears the counter before placement is read again. Requires
+/// deferred task collection, a live player/model through its spawned effects,
+/// and initialized effect/GTE/scratch resources. Does not change player damage.
+void effectPlayerBodyBlastTask(Task* task);
 
-void func_8010B520(Task* arg0);
+/// Emits a tinted-puff recipe on player model part 3 and removes its bodyless task.
+///
+/// Low16 of spawnArg1 plus one narrows to the recipe's signed-halfword extra
+/// puff count. Use 0..32766 for nonnegative counts; recipe 2 always emits its
+/// three base puffs. Requires a live player/model through the spawned effects
+/// and initialized effect/GTE/scratch resources. Player damage is unchanged.
+void effectPlayerBodyPuffTask(Task* task);
 
 #endif // GAMEPLAY_PRIVATE_PLAYER_STATE_H

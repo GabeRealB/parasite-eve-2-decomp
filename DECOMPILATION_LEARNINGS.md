@@ -24341,21 +24341,22 @@ stays as `%hi` rather than being completed to the full address (`addiu s0, s0, %
 / `sw val, 0(s0)`):
 
 ```c
-s32*           raw;
-GfxCoord* coords;
-EffectSpawnArg*      params;
+GfxCoord*       playerCoords;
+GfxCoord*       puffCoord;
+EffectSpawnArg* spawnRecord;
 
-params          = &D_80113358;          /* before the call — pins $s0 */
-slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-raw             = extra->coords;       /* extra local is required */
-params->spawnArgLo = 0xC0;
-coords             = &((GfxCoord*)raw)[3];
-params->coord      = coords;            /* sw %lo(Global)(s0) */
-effectSpawnHit(2, coords, 0, params);
+spawnRecord            = &D_80113358;          /* before the call — keeps $s0 live */
+playerTask             = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+playerModel            = playerTask->extra.tmd;
+playerCoords           = playerModel->coords; /* model local is required */
+spawnRecord->spawnArgLo = EFFECT_PLAYER_BODY_PUFF_LOW_ARG;
+puffCoord              = &playerCoords[EFFECT_PLAYER_BODY_PUFF_PART];
+spawnRecord->coord      = puffCoord;          /* sw %lo(Global)(s0) */
+effectSpawnHit(EFFECT_HIT_KIND_TINTED_PUFF, puffCoord, NULL, spawnRecord);
 ```
 
-Dropping `raw` and writing `coords = &((GfxCoord*)extra->coords)[3]` in
-one go completes `$s0` to the full address and mismatches. `func_8010B520` is
+Dropping `playerCoords` and writing `puffCoord = &playerModel->coords[3]` in
+one go completes `$s0` to the full address and mismatches. `effectPlayerBodyPuffTask` is
 the pure example.
 
 ## Bitwise `|` of two pointer-null tests for `sltiu`/`or`
@@ -28130,7 +28131,7 @@ Declare the pins *inside* the `if`. Function-scope `asm("v0")` /
 `extra` to `$a3`). `Gp_WaitItemFlag2` is the example. The unpinned
 one-expression form stuck at 98% with only those two registers swapped.
 
-## Scratch-head `+r` barrier so `&global` lui fills the load delay
+## Typed scratch reservation keeps the global address in the load delay
 
 A function that allocates from `SCRATCH_STACK_CURSOR_SLOT` and also takes
 `&D_global` wants:
@@ -28153,32 +28154,26 @@ before `sw ra` and stuff `lw a0` in the scratch-head delay (losing the
 `lui` in place but materializes `addiu a3` immediately instead of in the
 `beq` delay.
 
-Take the scratch pointer first, then an empty `+r` on that pointer so
-the later `&D_global` cannot hoist past the load. Pin the loaded head to
-`$t1` so `$a1` stays free for the switch's `li 1`:
+Load the actor first, reserve the typed block, then take the global address.
+This source order keeps the scratch head in `$t1` and `$a1` free for the
+switch's `li 1`, without a pinned register or a barrier:
 
 ```c
-register u8* head asm("t1");
-
-scratch = SCRATCH_STACK_CURSOR_SLOT;
-__asm__ volatile("" : "+r"(scratch));
-head   = *scratch;
-params = &D_global;
-vec    = (SVECTOR*)(head - 8);
-*scratch = vec;
+actor       = task->work;
+localOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+spawnRecord = &D_80113358;
 ```
 
-`func_8010AD64` is the example.
+`playerActorTickPoisonHit` is the example. The reservation and release cover
+one complete `SVECTOR`; all three components use `localOffset` directly.
 
-The same function also reloads `index->actor` in `case 2` after the
-switch already loaded it into `$a0`. Without a barrier GCC emits
-`move s0, a0`. A memory clobber forces `lw s0, 0x1C(s1)`:
+The same function also reloads `task->work` in its recovery phase after the
+switch already loaded it into `$a0`. Inlining the existing recovery helper
+keeps the reload (`lw s0, 0x1C(s1)`) rather than copying `$a0`:
 
 ```c
-case 2:
-    asm("" ::: "memory");
-    inner2 = arg0->actor;
-    playerActorClearPendingHit(arg0);
+case PLAYER_ACTOR_POISON_HIT_FINISHED_PHASE:
+    _playerActorResumeAfterHit(task);
 ```
 
 ## Assign `one = 1` before `n = count` so `li` precedes the copy
@@ -29255,8 +29250,8 @@ with the case-9 `sh` after the teardown `jal`.
 
 ## Start the dest-arg local at `extra` and reload between the two loads
 
-`extra = slot->extra; raw = extra->coords; f(..., &((T*)raw)[i], ...)`
-puts extra in `$v1` and `field_8` in `$a1`:
+`playerModel = playerTask->extra.tmd; playerCoords = playerModel->coords; f(..., &playerCoords[i], ...)`
+puts the model in `$v1` and its coordinates in `$a1`:
 
 ```
 lw    v1,0x2C(s3)
@@ -29274,20 +29269,18 @@ lhu   v1,0x2A(s0)
 lw    a1,8(a1)
 ```
 
-Assign `slot->extra` to the pointer that becomes the call argument,
-reload a live field (here `killCountdown`) between the two assigns,
-then overwrite that same local with `field_8`:
+Keep the later-stored size calculation live before loading the model's
+coordinates, and reread `killCountdown` inside the coordinate index. The
+properly typed pointer chain then uses the call's argument register:
 
 ```c
-coords = (GfxCoord*)slot->extra;
-count  = arg0->killCountdown;
-coords = (GfxCoord*)((GameActorExt*)coords)->field_8;
-coords = &coords[index + 1];
-effectSpawnHit(3, coords, 0, params);
+burstSize = (effectLevel * EFFECT_PLAYER_BODY_BLAST_SIZE_STEP) + EFFECT_PLAYER_BODY_BLAST_BASE_SIZE;
+burstCoord = &playerTask->extra.tmd->coords[((task->killCountdown & EFFECT_PLAYER_BODY_BLAST_STAGE_MASK) >> EFFECT_PLAYER_BODY_BLAST_STAGE_SHIFT) + 1];
+_effectSpawnPlayerBodyBlast(spawnRecord, burstCoord, burstSize, effectLevel);
 ```
 
-`func_8010B3F8` is the example. A separate `extra`/`raw` pair stuck at
-97.4% with only those three loads (and the `field_6` store) reordered.
+`effectPlayerBodyBlastTask` is the example. A separate model/coordinates pair stuck at
+97.4% with only those three loads (and the `spawnArgHi` store) reordered.
 
 ## Assign loop-invariant constants before the hoisted global load
 
@@ -142077,12 +142070,11 @@ target order byte for byte; casting the field instead (`(s16)msg.command | …`)
 does not. The cast carries the original operand's signedness, which is the
 thing the unification removed.
 
-## A body pointer lands in the argument register only while `$v0`/`$v1` are busy (func_8010B3F8, 2026-09-25)
+## A body pointer lands in the argument register only while `$v0`/`$v1` are busy (effectPlayerBodyBlastTask, 2026-09-25)
 
 A chain `lw a1, 0x2C(s3); lw a1, 8(a1)` (a task's body, then its `coords`,
-passed as the call's `$a1`) looks as if one local held both values, and it was
-matched that way: `coords = (GfxCoord*)slot->extra.tmd; coords =
-((TmdObject*)coords)->coords;`. Written naturally, the body pointer is its own
+passed as the call's `$a1`) looks as if one local held both values. Written
+naturally, the body pointer is its own
 short-lived pseudo that local-alloc gives the first free register, `$v0`. It
 takes `$a1` only when `$v0` and `$v1` are both live across it. Computing a
 value that is stored afterwards into a local *before* the loads keeps `$v0`
@@ -142091,9 +142083,9 @@ base, so the value would otherwise be computed next to its store), and an
 inline re-read of the halfword takes `$v1`:
 
 ```c
-argLo              = (idx * 0x60) + 0xC0;
-coords             = &slot->extra.tmd->coords[((arg0->killCountdown & 0xF00) >> 8) + 1];
-params->spawnArgLo = argLo;
+burstSize = (effectLevel * EFFECT_PLAYER_BODY_BLAST_SIZE_STEP) + EFFECT_PLAYER_BODY_BLAST_BASE_SIZE;
+burstCoord = &playerTask->extra.tmd->coords[((task->killCountdown & EFFECT_PLAYER_BODY_BLAST_STAGE_MASK) >> EFFECT_PLAYER_BODY_BLAST_STAGE_SHIFT) + 1];
+_effectSpawnPlayerBodyBlast(spawnRecord, burstCoord, burstSize, effectLevel);
 ```
 
 Before accepting a reused local of the wrong type, try moving the computation

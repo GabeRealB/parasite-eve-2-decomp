@@ -138,7 +138,15 @@ void companionTrackLockTarget(Task* task, s32 trackingAxes);
 /// live GameActor/model/native bank resources; keeps the companion task alive.
 void companionRemoveEquipment(Task* task);
 
-void func_8010A9D0(Task* arg0);
+/// Enters the player's damage reaction using an already recorded hit.
+///
+/// Requires live player GameActor/native weapon and model resources. Stops the
+/// weapon and, when starting HP is positive, applies pending HP/status damage,
+/// stops motion, disables weapon contacts and decays tracked aim. Blends native
+/// set 16 for hit region 1 or 17 otherwise over three normal-rate frames, even
+/// at zero HP. Paralysis clears the pending hit while applying its status;
+/// other hits remain for recovery. No contact scan is run.
+void playerActorEnterPendingHit(Task* task);
 
 /// Applies an attack-key damage message to the live save's companion HP.
 ///

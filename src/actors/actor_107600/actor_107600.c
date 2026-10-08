@@ -1638,7 +1638,7 @@ static void func_actor_107600_801332D4(Task* arg0)
                     }
                     actor->hitRegion      = 1;
                     actor->damageReaction = 5;
-                    func_8010A9D0(player);
+                    playerActorEnterPendingHit(player);
                     pan = (s8)worldCoordGetOriginAudioPan(c);
                     sndEvtRequestScriptStart(SOUND_PLAYER_STRUCK, pan, (s8)worldCoordGetOriginAudioDepth(c));
                 }

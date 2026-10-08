@@ -129,7 +129,7 @@ static void _playerActorEnterDamageReaction(Task* task);
 
 static void _playerActorRecoverFromHit(Task* task);
 
-static void func_8010AE98(Task* arg0);
+static void _playerStateApplyDarkness(Task* task);
 
 static void func_8010AF04(Task* arg0);
 
@@ -143,7 +143,7 @@ static void func_8010B060(Task* arg0);
 
 static void func_8010B0C8(Task* arg0);
 
-static s32 Gp_TestHpDamage(s32 arg0);
+static s32 _playerStateTestFatalAttack(s32 attackKey);
 
 static void _playerActorRecordAttackContact(Task* task, const WorldCollisionContact* contact, s32 bodyIndex);
 
@@ -176,6 +176,41 @@ static inline void _playerActorResumeAfterHit(Task* task)
     } else {
         playerActorEnterLocomotion(task, 0);
     }
+}
+
+/// Blends a pending hit's native clip without changing the recorded hit.
+///
+/// Borrows the task and its live actor work; region 1 selects set 16 and other
+/// values select set 17, with controller 0 over three normal-rate frames.
+static inline void _playerActorBlendPendingHitClip(Task* task, const GameActor* actor)
+{
+    enum {
+        PLAYER_ACTOR_PENDING_HIT_PART4_SET      = 16,
+        PLAYER_ACTOR_PENDING_HIT_OTHER_BODY_SET = 17,
+        PLAYER_ACTOR_PENDING_HIT_CONTROLLER     = 0,
+        PLAYER_ACTOR_PENDING_HIT_BLEND_FRAMES   = 3
+    };
+    s32 animationSet;
+
+    if ((u16)actor->hitRegion == PLAYER_ACTOR_HIT_REGION_PART4) {
+        animationSet = PLAYER_ACTOR_PENDING_HIT_PART4_SET;
+    } else {
+        animationSet = PLAYER_ACTOR_PENDING_HIT_OTHER_BODY_SET;
+    }
+    playerActorPlayChildSlotsWithBlend(task, animationSet, PLAYER_ACTOR_PENDING_HIT_CONTROLLER, PLAYER_ACTOR_PENDING_HIT_BLEND_FRAMES);
+}
+
+/// Configures the shared spawn record and emits one player-body blast recipe.
+///
+/// Size and level narrow into signed halves; callers supply size 192..480 and
+/// level 0..3. The record is consumed synchronously and retains the coordinate
+/// for the spawned effects, whose player model must stay live.
+static inline void _effectSpawnPlayerBodyBlast(EffectSpawnArg* spawnRecord, GfxCoord* burstCoord, s32 burstSize, s32 effectLevel)
+{
+    spawnRecord->spawnArgLo = burstSize;
+    spawnRecord->spawnArgHi = effectLevel + 1;
+    spawnRecord->coord      = burstCoord;
+    effectSpawnHit(EFFECT_HIT_KIND_BLAST, burstCoord, NULL, spawnRecord);
 }
 
 u16 D_80113F9C[70] = {
@@ -747,19 +782,13 @@ s32 playerStateApplyHpDamage(s16 damagePoints)
     return fatal;
 }
 
-void func_8010A9D0(Task* arg0)
+void playerActorEnterPendingHit(Task* task)
 {
-    GameActor* inner;
-    s32        mode;
+    GameActor* actor;
 
-    inner = arg0->work;
-    _playerActorEnterDamageReaction(arg0);
-    if ((u16)inner->hitRegion == 1) {
-        mode = 0x10;
-    } else {
-        mode = 0x11;
-    }
-    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
+    actor = task->work;
+    _playerActorEnterDamageReaction(task);
+    _playerActorBlendPendingHitClip(task, actor);
 }
 
 void playerActorEnterStoppedPose(Task* task, s32 blendFrames)
@@ -788,19 +817,26 @@ void playerActorEnterStoppedPose(Task* task, s32 blendFrames)
     actor->pendingCollisionUpdates |= (GAME_ACTOR_COLLISION_FIRST_TWO_REQUESTS << GAME_ACTOR_COLLISION_DISABLE_REQUEST_SHIFT);
 }
 
-/// Stops player movement and selects the damage clip's completion controller.
+/// Stops player displacement and turning while a damage clip advances its phase.
 ///
-/// Borrows live GameActor work; retains its normal state for later recovery.
+/// Requires live GameActor work. Enters damage mode at phase 0; the clip-end
+/// controller advances that phase. Keeps the normal-state selector for recovery
+/// and leaves the turn sign intact while disabling its rate. Retains no pointer.
 static inline void _playerActorStopForDamageClip(GameActor* actor)
 {
-    enum { PLAYER_ACTOR_DAMAGE_ANIMATION_CONTROLLER = 7 };
+    enum {
+        PLAYER_ACTOR_DAMAGE_ANIMATION_CONTROLLER = 7,
+        PLAYER_ACTOR_DAMAGE_MOVEMENT_STOPPED     = 0,
+        PLAYER_ACTOR_DAMAGE_TURN_DISABLED        = 0,
+        PLAYER_ACTOR_DAMAGE_CLIP_INITIAL_PHASE   = 0
+    };
 
     actor->mode           = GAME_ACTOR_MODE_DAMAGE;
-    actor->movementMode   = 0;
-    actor->turnRateIndex  = 0;
+    actor->movementMode   = PLAYER_ACTOR_DAMAGE_MOVEMENT_STOPPED;
+    actor->turnRateIndex  = PLAYER_ACTOR_DAMAGE_TURN_DISABLED;
     actor->animationState = PLAYER_ACTOR_DAMAGE_ANIMATION_CONTROLLER;
-    actor->statePhase     = 0;
-    actor->movementSign   = 0;
+    actor->statePhase     = PLAYER_ACTOR_DAMAGE_CLIP_INITIAL_PHASE;
+    actor->movementSign   = PLAYER_ACTOR_DAMAGE_MOVEMENT_STOPPED;
 }
 
 /// Stops the player's weapon and enters damage mode for its pending contact hit.
@@ -855,93 +891,100 @@ void playerActorFinishDamageReaction(Task* task)
     }
 }
 
-void func_8010AC54(Task* arg0)
+void playerActorTickHitFlashes(Task* task)
 {
-    GameActor* inner;
-    GameActor* inner2;
+    enum {
+        PLAYER_ACTOR_HIT_FLASH_INITIAL_PHASE = 0,
+        PLAYER_ACTOR_HIT_FLASH_ACTIVE_PHASE  = 1,
+        PLAYER_ACTOR_HIT_FLASH_COUNT         = 3,
+        PLAYER_ACTOR_HIT_FLASH_DELAY_TICKS   = 5,
+        PLAYER_ACTOR_HIT_FLASH_PART_BASE     = 4,
+        PLAYER_ACTOR_HIT_FLASH_SIZE          = 800
+    };
+    GameActor* actor;
 
-    inner = arg0->work;
-    if (inner->statePhase == 0) {
-        inner->statePhase  = 1;
-        inner->stateTimer  = 0;
-        inner->actionValue = 0;
+    actor = task->work;
+    if (actor->statePhase == PLAYER_ACTOR_HIT_FLASH_INITIAL_PHASE) {
+        actor->statePhase  = PLAYER_ACTOR_HIT_FLASH_ACTIVE_PHASE;
+        actor->stateTimer  = 0;
+        actor->actionValue = 0;
     }
-    if (inner->stateTimer == 0) {
-        inner->actionValue++;
-        if (inner->actionValue == 3) {
-            inner2 = arg0->work;
-            playerActorClearPendingHit(arg0);
-            inner2->recoveryTicks = 0x12;
-            if (inner2->state != 0) {
-                playerActorEnterAim(arg0, 0xC);
-            } else {
-                playerActorEnterLocomotion(arg0, 0);
-            }
+    if (actor->stateTimer == 0) {
+        actor->actionValue++;
+        // Restore normal behavior before emitting the last flash on part 1.
+        if (actor->actionValue == PLAYER_ACTOR_HIT_FLASH_COUNT) {
+            _playerActorResumeAfterHit(task);
         } else {
-            inner->stateTimer = 5;
+            actor->stateTimer = PLAYER_ACTOR_HIT_FLASH_DELAY_TICKS;
         }
-        effectSpawn(
-            EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[4 - inner->actionValue], 0x320, 0);
+        effectSpawn(EFFECT_FLASH_BURST, &task->extra.tmd->coords[PLAYER_ACTOR_HIT_FLASH_PART_BASE - actor->actionValue], PLAYER_ACTOR_HIT_FLASH_SIZE, NULL);
     } else {
-        inner->stateTimer--;
+        actor->stateTimer--;
     }
 }
 
-void func_8010AD64(Task* arg0)
+void playerActorTickPoisonHit(Task* task)
 {
-    void**          scratch;
-    u8*             head;
-    SVECTOR*        vec;
-    GameActor*      inner;
-    EffectSpawnArg* params;
-    GfxCoord*       coord;
-    s32             val;
-    s32             idx;
+    enum {
+        PLAYER_ACTOR_POISON_HIT_INITIAL_PHASE  = 0,
+        PLAYER_ACTOR_POISON_HIT_WAIT_PHASE     = 1,
+        PLAYER_ACTOR_POISON_HIT_FINISHED_PHASE = 2,
+        PLAYER_ACTOR_POISON_HIT_PUFF_LOW_ARG   = 192,
+        PLAYER_ACTOR_POISON_HIT_EXTRA_PUFFS    = 2,
+        PLAYER_ACTOR_POISON_HIT_ROOT_OFFSET_Y  = -400
+    };
+    SVECTOR*        localOffset;
+    GameActor*      actor;
+    EffectSpawnArg* spawnRecord;
+    GfxCoord*       hitCoord;
+    s32             offsetY;
+    s32             bodyIndex;
 
-    inner                             = arg0->work;
-    scratch                           = SCRATCH_HEAD_ADDR;
-    head                              = SCRATCH_HEAD_AT(scratch, u8);
-    params                            = &D_80113358;
-    vec                               = (SVECTOR*)(head - 8);
-    SCRATCH_HEAD_AT(scratch, SVECTOR) = vec;
-    switch (inner->statePhase) {
-        case 0:
-            idx                     = (s8)inner->hitBodyIndex;
-            inner->statePhase       = 1;
-            coord                   = (idx + inner->collisionBodies)->coord;
-            params->spawnArgLo      = 0xC0;
-            params->spawnArgHi      = 2;
-            D_80113358.coord        = coord;
-            ((SVECTOR*)head)[-1].vx = 0;
-            val                     = 0;
-            if ((s8)inner->hitBodyIndex == 0) {
-                val = -0x190;
+    actor       = task->work;
+    localOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    spawnRecord = &D_80113358;
+    switch (actor->statePhase) {
+        case PLAYER_ACTOR_POISON_HIT_INITIAL_PHASE:
+            bodyIndex               = (s8)actor->hitBodyIndex;
+            actor->statePhase       = PLAYER_ACTOR_POISON_HIT_WAIT_PHASE;
+            hitCoord                = (bodyIndex + actor->collisionBodies)->coord;
+            spawnRecord->spawnArgLo = PLAYER_ACTOR_POISON_HIT_PUFF_LOW_ARG;
+            spawnRecord->spawnArgHi = PLAYER_ACTOR_POISON_HIT_EXTRA_PUFFS;
+            D_80113358.coord        = hitCoord;
+            localOffset->vx         = 0;
+            offsetY                 = 0;
+            if ((s8)actor->hitBodyIndex == GAME_ACTOR_BODY_ROOT) {
+                offsetY = PLAYER_ACTOR_POISON_HIT_ROOT_OFFSET_Y;
             }
-            vec->vy = val;
-            vec->vz = 0;
-            effectSpawnHit(EFFECT_HIT_KIND_TINTED_PUFF, D_80113358.coord, vec, params);
+            localOffset->vy = offsetY;
+            localOffset->vz = 0;
+            effectSpawnHit(EFFECT_HIT_KIND_TINTED_PUFF, D_80113358.coord, localOffset, spawnRecord);
             break;
-        case 1:
+        case PLAYER_ACTOR_POISON_HIT_WAIT_PHASE:
             break;
-        case 2:
-            _playerActorResumeAfterHit(arg0);
+        case PLAYER_ACTOR_POISON_HIT_FINISHED_PHASE:
+            _playerActorResumeAfterHit(task);
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
-static void func_8010AE98(Task* arg0)
+/// Applies darkness for 600 active player-status ticks unless equipment resists it.
+///
+/// Refreshes the duration, starts screen dimming and tint, and clears lock-on.
+/// Requires live player GameActor and presentation resources; retains no pointer.
+static void _playerStateApplyDarkness(Task* task)
 {
-    GameActor* inner;
+    GameActor* actor;
 
-    inner = arg0->work;
+    actor = task->work;
     if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_DARKNESS) != 0) {
         return;
     }
     gPlayerStatus.statusFlags       |= PLAYER_STATUS_DARKNESS;
-    inner->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
+    actor->effectTimer.darknessTicks = PLAYER_STATE_STATUS_DURATION_TICKS;
     roomEffectStartDarknessDim();
-    playerActorClearLockTarget(arg0);
+    playerActorClearLockTarget(task);
     roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
 }
 
@@ -1086,24 +1129,31 @@ void playerActorClearPendingHit(Task* task)
     actor->pendingDamage  = 0;
 }
 
-static s32 Gp_TestHpDamage(s32 arg0)
+/// Tests whether an attack would be fatal while restoring the player's HP and MP.
+///
+/// Uses the player HP/difficulty/key contract of `damageComputeReceived` and
+/// the equipment/event handling of `playerStateApplyHpDamage`; the damage
+/// narrows to s16. Returns 1 only for a fatal outcome, balancing its acquired
+/// menu hold. Impact-resistance effects can still be spawned by the test.
+static s32 _playerStateTestFatalAttack(s32 attackKey)
 {
-    PlayerStatus* p;
-    u16           saved18;
-    u16           saved1c;
-    s32           out;
-    s32           ret;
+    PlayerStatus* playerStatus;
+    u16           savedHp;
+    u16           savedMp;
+    s32           unusedReaction;
+    s32           fatal;
 
-    p       = &gPlayerStatus;
-    saved18 = p->hp;
-    saved1c = p->mp;
-    ret     = playerStateApplyHpDamage(damageComputeReceived(arg0, 0, &out, 0));
-    p->hp   = saved18;
-    p->mp   = saved1c;
-    if (ret != 0) {
+    playerStatus = &gPlayerStatus;
+    savedHp      = playerStatus->hp;
+    savedMp      = playerStatus->mp;
+    fatal        = playerStateApplyHpDamage(damageComputeReceived(attackKey, 0, &unusedReaction, 0));
+    // Restore both point counts; only a fatal trial acquired a menu hold.
+    playerStatus->hp = savedHp;
+    playerStatus->mp = savedMp;
+    if (fatal != 0) {
         displayReleaseMenuHold();
     }
-    return ret;
+    return fatal;
 }
 
 void func_8010B2A0(s32 arg0, s32 arg1)
@@ -1186,65 +1236,80 @@ static void _playerActorRecordHazardContact(Task* task, const WorldCollisionCont
     }
 }
 
-void func_8010B3F8(Task* arg0)
+void effectPlayerBodyBlastTask(Task* task)
 {
-    Task*           slot;
-    EffectSpawnArg* params;
-    GfxCoord*       coords;
-    s32             argLo;
-    s32             idx;
-    u16             count;
-    s16             next;
+    enum {
+        EFFECT_PLAYER_BODY_BLAST_INITIAL_STATE = 0,
+        EFFECT_PLAYER_BODY_BLAST_ACTIVE_STATE  = 1,
+        EFFECT_PLAYER_BODY_BLAST_LEVEL_MASK    = 3,
+        EFFECT_PLAYER_BODY_BLAST_DELAY_MASK    = 0xF,
+        EFFECT_PLAYER_BODY_BLAST_STAGE_SHIFT   = 8,
+        EFFECT_PLAYER_BODY_BLAST_STAGE_MASK    = 0xF00,
+        EFFECT_PLAYER_BODY_BLAST_STAGE_STEP    = 0x100,
+        EFFECT_PLAYER_BODY_BLAST_LAST_STAGE    = 0x300,
+        EFFECT_PLAYER_BODY_BLAST_DELAY_TICKS   = 6,
+        EFFECT_PLAYER_BODY_BLAST_BASE_SIZE     = 192,
+        EFFECT_PLAYER_BODY_BLAST_SIZE_STEP     = 96
+    };
+    Task*           playerTask;
+    EffectSpawnArg* spawnRecord;
+    GfxCoord*       burstCoord;
+    s32             burstSize;
+    s32             effectLevel;
+    u16             stageAndDelay;
+    s16             nextStage;
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    switch (arg0->state) {
-        case 0:
-            arg0->state         = 1;
-            arg0->killCountdown = 0;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    switch (task->state) {
+        case EFFECT_PLAYER_BODY_BLAST_INITIAL_STATE:
+            task->state         = EFFECT_PLAYER_BODY_BLAST_ACTIVE_STATE;
+            task->killCountdown = 0;
             /* fallthrough */
-        case 1:
-            count = arg0->killCountdown;
-            if ((count & 0xF) == 0) {
-                next                = count + 0x100;
-                params              = &D_80113358;
-                arg0->killCountdown = next;
-                idx                 = arg0->spawnArg1.value & 3;
-                if (next >= 0x300) {
-                    taskKill(arg0);
+        case EFFECT_PLAYER_BODY_BLAST_ACTIVE_STATE:
+            stageAndDelay = task->killCountdown;
+            if ((stageAndDelay & EFFECT_PLAYER_BODY_BLAST_DELAY_MASK) == 0) {
+                nextStage           = stageAndDelay + EFFECT_PLAYER_BODY_BLAST_STAGE_STEP;
+                spawnRecord         = &D_80113358;
+                task->killCountdown = nextStage;
+                effectLevel         = task->spawnArg1.value & EFFECT_PLAYER_BODY_BLAST_LEVEL_MASK;
+                if (nextStage >= EFFECT_PLAYER_BODY_BLAST_LAST_STAGE) {
+                    taskKill(task);
                 } else {
-                    arg0->killCountdown = next | 6;
+                    task->killCountdown = nextStage | EFFECT_PLAYER_BODY_BLAST_DELAY_TICKS;
                 }
-                argLo              = (idx * 0x60) + 0xC0;
-                coords             = &slot->extra.tmd->coords[((arg0->killCountdown & 0xF00) >> 8) + 1];
-                params->spawnArgLo = argLo;
-                params->spawnArgHi = idx + 1;
-                params->coord      = coords;
-                effectSpawnHit(EFFECT_HIT_KIND_BLAST, coords, 0, params);
+                // Bodyless teardown clears the packed stage, placing the last burst on part 1.
+                burstSize  = (effectLevel * EFFECT_PLAYER_BODY_BLAST_SIZE_STEP) + EFFECT_PLAYER_BODY_BLAST_BASE_SIZE;
+                burstCoord = &playerTask->extra.tmd->coords[((task->killCountdown & EFFECT_PLAYER_BODY_BLAST_STAGE_MASK) >> EFFECT_PLAYER_BODY_BLAST_STAGE_SHIFT) + 1];
+                _effectSpawnPlayerBodyBlast(spawnRecord, burstCoord, burstSize, effectLevel);
             } else {
-                arg0->killCountdown = count - 1;
+                task->killCountdown = stageAndDelay - 1;
             }
             break;
     }
 }
 
-void func_8010B520(Task* arg0)
+void effectPlayerBodyPuffTask(Task* task)
 {
-    GfxCoord*       raw;
-    Task*           slot;
-    TmdObject*      extra;
-    EffectSpawnArg* params;
-    GfxCoord*       coords;
+    enum {
+        EFFECT_PLAYER_BODY_PUFF_PART    = 3,
+        EFFECT_PLAYER_BODY_PUFF_LOW_ARG = 192
+    };
+    GfxCoord*       playerCoords;
+    Task*           playerTask;
+    TmdObject*      playerModel;
+    EffectSpawnArg* spawnRecord;
+    GfxCoord*       puffCoord;
 
-    params             = &D_80113358;
-    slot               = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    extra              = slot->extra.tmd;
-    raw                = extra->coords;
-    params->spawnArgLo = 0xC0;
-    coords             = &raw[3];
-    params->coord      = coords;
-    params->spawnArgHi = (u16)arg0->spawnArg1.value + 1;
-    effectSpawnHit(EFFECT_HIT_KIND_TINTED_PUFF, coords, 0, params);
-    taskKill(arg0);
+    spawnRecord             = &D_80113358;
+    playerTask              = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerModel             = playerTask->extra.tmd;
+    playerCoords            = playerModel->coords;
+    spawnRecord->spawnArgLo = EFFECT_PLAYER_BODY_PUFF_LOW_ARG;
+    puffCoord               = &playerCoords[EFFECT_PLAYER_BODY_PUFF_PART];
+    spawnRecord->coord      = puffCoord;
+    spawnRecord->spawnArgHi = (u16)task->spawnArg1.value + 1;
+    effectSpawnHit(EFFECT_HIT_KIND_TINTED_PUFF, puffCoord, NULL, spawnRecord);
+    taskKill(task);
 }
 
 /// Initializes an attached child model and advances its task from state 0 to state 1.

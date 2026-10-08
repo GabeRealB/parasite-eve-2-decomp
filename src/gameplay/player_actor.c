@@ -1305,8 +1305,8 @@ u16 D_801132BC[33][2] = {
     { 43, 6 }
 };
 TaskDesc D_80113340[2] = {
-    { { { TASK_BODY_NONE, 192 } }, func_8010B3F8, { NULL } },
-    { { { TASK_BODY_NONE, 192 } }, func_8010B520, { NULL } },
+    { { { TASK_BODY_NONE, 192 } }, effectPlayerBodyBlastTask, { NULL } },
+    { { { TASK_BODY_NONE, 192 } }, effectPlayerBodyPuffTask, { NULL } },
 };
 EffectSpawnArg D_80113358       = { NULL, 512, 3 };
 u16            Gp_AllyIdBase[4] = {
@@ -9406,13 +9406,13 @@ static void Gp_PlayerMode1State0(Task* arg0)
             playerActorFinishDamageReaction(arg0);
             break;
         case 5:
-            func_8010AC54(arg0);
+            playerActorTickHitFlashes(arg0);
             break;
         case 6:
             func_80109A1C(arg0);
             break;
         case 3:
-            func_8010AD64(arg0);
+            playerActorTickPoisonHit(arg0);
             break;
         case 7:
             func_80109844(arg0);
