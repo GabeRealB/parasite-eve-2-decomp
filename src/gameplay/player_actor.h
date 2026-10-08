@@ -59,14 +59,6 @@ void Gp_EffSprTask81(Task* arg0);
 
 void func_800F91AC(Task* arg0);
 
-void Gp_EffCtlTask9B(Task* arg0);
-
-void Gp_EffSprTask30(Task* arg0);
-
-void Gp_EffCtlTaskF3(Task* arg0);
-
-void Gp_EffCtlTaskAC(Task* arg0);
-
 /// Runs the Berserker shot-burst controller, gameplay effect bank 6 slot 0x0E.
 ///
 /// Uses the task's owned `EffectWork` spawn argument and coordinate body. First
@@ -77,12 +69,6 @@ void Gp_EffCtlTaskAC(Task* arg0);
 /// burst guard and releases its work/task. Effect control can pause it or cancel
 /// it directly; direct cancellation does not clear that guard.
 void effectControlTask0E(Task* task);
-
-void Gp_EffCtlTaskA5(Task* arg0);
-
-void Gp_EffCtlTaskA6(Task* arg0);
-
-void Gp_EffCtlTaskE3(Task* arg0);
 
 void func_800FF710(Task* arg0);
 

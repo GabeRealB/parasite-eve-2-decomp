@@ -129,7 +129,7 @@ enum {
     /// of tracers, then the beam to the impact point; spawned when the javelin is
     /// fired.
     EFFECT_JAVELIN_GUIDE_BEAM = EFFECT_ID(EFFECT_TASK_BANK, 0x02F),
-    /// Unidentified. Shared gravity particle (Gp_EffSprTask30): an animated textured
+    /// Unidentified. Shared gravity particle (effectGravityParticleTask): an animated textured
     /// sprite that flies with gravity, bounces off geometry spawning
     /// 0x60055/0x60070, then lies spreading an additive ground quad and shedding
     /// 0x600A7; spawned from enemy bodies on bursts and deaths (Mad Chaser gibs,
@@ -516,8 +516,8 @@ enum {
     /// when a dying enemy turns semi-transparent.
     EFFECT_DEATH_FLAME = EFFECT_ID(EFFECT_TASK_BANK, 0x0A6),
     /// Additive 32px animated sprite that accelerates upward for eight cells; shed one
-    /// time in three by Gp_EffSprTask30 (enemy death effect 0x60030) and by
-    /// Gp_EffCtlTaskA6.
+    /// time in three by effectGravityParticleTask (enemy death effect 0x60030) and by
+    /// effectDeathFlameTask.
     EFFECT_RISING_WISP = EFFECT_ID(EFFECT_TASK_BANK, 0x0A7),
     /// Combustion ember: a rising flame/ember sprite shed by a Combustion flame, drawn
     /// with `_pyroFlameDrawSprite` or smaller variants.
@@ -577,7 +577,7 @@ enum {
     EFFECT_ACROPOLIS_BRIDGE_DUST_MOTE = EFFECT_ID(EFFECT_TASK_BANK, 0x0BC),
     /// An expanding, fading coloured band (effectDrawInnerGlowBand) at a Z angle from the spawn
     /// argument, with colour from D_80112C6C; spawned three at a time 120 degrees apart
-    /// by Gp_EffCtlTaskAC and the gunblade.
+    /// by effectAntibodyAuraTask and the gunblade.
     EFFECT_EXPANDING_COLOR_BAND = EFFECT_ID(EFFECT_TASK_BANK, 0x0C1),
     /// Companion task of the Inferno PE cast: spins and fades a drawn shape through two
     /// draw kinds (`_infernoDrawRisingFanBand`/`_infernoDrawConstantLiftFanBand`),

@@ -30518,7 +30518,7 @@ if (flag >= 2) {
 
 `if (flag < 2) { work } else if (flag < 4) return; cleanup;` inlines the
 work (`beqz` over it). `flag >= 2` as the first test is what emits
-`bnez` to the work block. `Gp_EffCtlTaskE3` is the example.
+`bnez` to the work block. `effectHitSmokeEmitterTask` is the example.
 
 ## 0x10-stride 1-based record: `idx * sizeof + base`, then `rec-1` / `rec[-1]`
 
@@ -34856,7 +34856,7 @@ spawn:
     spawn();
 ```
 
-`Gp_EffCtlTask9B` is the example.
+`effectHitSplatterSprayTask` is the example.
 
 ## Unsigned `* 3u >> 4` reuses `state = 1` as `sllv` then `srl`
 
@@ -34873,7 +34873,7 @@ addu   v0, v0, v1      # * 3
 srl    v0, v0, 4
 ```
 
-`Gp_EffCtlTask9B` is the example.
+`effectHitSplatterSprayTask` is the example.
 
 ## `"+m"` clobber after an s16 store so later field reads stay `lh`
 
@@ -34887,19 +34887,19 @@ Clobber the field memory, then snapshot it into two block-scoped s32
 locals around the neighboring store:
 
 ```c
-mem->field_20 = (Gp_StateC08.attachId % 10U) - 1;
-__asm__ volatile("" : "+m"(mem->field_20));
-x             = mem->field_20; /* lh */
-mem->field_26 = 0x20;
-y             = mem->field_20; /* lh */
-mem->field_28 = (x << 7) + 0x180;
-mem->field_2A = (y << 8) + 0x400;
+work->index = (Gp_StateC08.attachId % 10U) - 1;
+__asm__ volatile("" : "+m"(work->index));
+x             = work->index; /* lh */
+work->angle = 0x20;
+y             = work->index; /* lh */
+work->period = (x << 7) + 0x180;
+work->step = (y << 8) + 0x400;
 ```
 
 Keep the s32 temps inside the init block so they do not steal `s0`/`s1`
-from `mem`/`coord`.
+from `work`/`coord`.
 
-`Gp_EffCtlTaskF3` is the example.
+`effectEnergyShotAuraTask` is the example.
 
 ## Copy `MATRIX.t` longs into an `SVECTOR` with `*(u16*)&t[i]`
 
@@ -35749,19 +35749,19 @@ between `t[1]` and `t[2]` lets it sink into the `lh vy` delay.
 
 ## s32 temp so `-(x << 4)` of an s32 stored as s16 keeps `lw`
 
-`mem->field_28 = -(index->spawnArg1 << 4) - (rng & 0x7F)` with
-`spawnArg1` an s32 and `field_28` an s16 lets GCC 2.8.1 see that only
+`work->period = -(task->spawnArg1.value << 4) - (rng & 0x7F)` with
+`spawnArg1` an s32 and `period` an s16 lets GCC 2.8.1 see that only
 the low 16 bits matter and emit `lhu v1, 0x34(s2)`. The target is `lw`.
-Copy into an s32 first so the load stays 32-bit; a later `arg0->spawnArg1
+Copy into an s32 first so the load stays 32-bit; a later `task->spawnArg1.value
 * 24` still does its own `lw`:
 
 ```c
-temp          = arg0->spawnArg1;
-mem->field_28 = -(temp << 4) - (((u32)gRandomLcgState >> 16) & 0x7F);
-mem->field_2A = arg0->spawnArg1 * 24 + 0xC0;
+temp          = task->spawnArg1.value;
+work->period = -(temp << 4) - (((u32)gRandomLcgState >> 16) & 0x7F);
+work->step = task->spawnArg1.value * 24 + 0xC0;
 ```
 
-`Gp_EffCtlTaskA6` is the example.
+`effectDeathFlameTask` is the example.
 
 ## `goto cont` on `b < 0` so kill is fall-through of `blez` / `bltz`
 
@@ -35786,18 +35786,18 @@ and places the continue call first. Jump *to* continue on `b < 0` so
 kill stays the fall-through (and can share the `flag >= 4` kill):
 
 ```c
-if (mem->field_26 <= 0) {
+if (work->angle <= 0) {
     goto kill;
 }
-if (mem->field_28 < 0) {
-    goto do_fcd00;
+if (work->period < 0) {
+    goto drawFlame;
 }
 goto kill;
 ```
 
-Take `SVECTOR*` addresses of `field_10` / `field_18` *before* the
-`(field_22 & 3) / 3` so those `addiu` fill the `mult` 0x55555556 delay.
-`Gp_EffCtlTaskA6` is the example.
+Take `SVECTOR*` addresses of `move` / `pos` *before* the
+`(age & 3) / 3` so those `addiu` fill the `mult` 0x55555556 delay.
+`effectDeathFlameTask` is the example.
 
 ## Force `$a1 = 0` with `addu` from `$zero` when a proven-zero local would copy-prop
 
@@ -36621,7 +36621,7 @@ jal    worldCoordGetOriginAudioDepth
 sra    s0, s0, 24
 ```
 
-Assigning that `(s8)` back into the loop index (`i = (s8)worldCoordGetOriginAudioPan(...)`) after `for (i = 0; i < 0x555; i += 0x2AA)` completes the cast in `$v0` first (`sll v0, v0, 24` / `sra s0, v0, 24`) so `move a0, coord` sinks into the `jal` delay. Use a separate `temp` (function-level is fine; it still reuses `$s0` once the loop is dead). `Gp_EffCtlTaskAC` / `Gp_EffCtlTaskA5` are the example.
+Assigning that `(s8)` back into the loop index (`i = (s8)worldCoordGetOriginAudioPan(...)`) after `for (i = 0; i < 0x555; i += 0x2AA)` completes the cast in `$v0` first (`sll v0, v0, 24` / `sra s0, v0, 24`) so `move a0, coord` sinks into the `jal` delay. Use a separate `temp` (function-level is fine; it still reuses `$s0` once the loop is dead). `effectAntibodyAuraTask` / `effectCorpseBurnTask` are the example.
 
 Sharing one `coord` / `pan` pair across two `if` arms that each do this sequence
 gives the same symptom, even with no loop involved: `pan` lands in the next free
@@ -41510,7 +41510,7 @@ example.
 
 ## A newly matched `switch` can swallow the raw `rodata` split in front of the C unit
 
-`Gp_EffSprTask30` is the first `switch` in `src/gameplay/3FB8.c`, and its
+`effectGravityParticleTask` is the first `switch` in `src/gameplay/3FB8.c`, and its
 `jtbl_800977E8` sits at 0x3FE8 — *before* the unit's existing
 `- [0x4058, .rodata, 3FB8]` split and inside the raw
 `- [0x3FE8, rodata, rodata_3FB8]` split. A single object's `.rodata` is linked
@@ -41532,7 +41532,7 @@ file, in address order:
   `#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)`,
   placed at the source position matching its address.
 
-For 3FB8 that meant `Gp_EffTask07States` right after `Gp_EffSprTask30` and `Gp_PlayerWorkStates`
+For 3FB8 that meant `Gp_EffTask07States` right after `effectGravityParticleTask` and `Gp_PlayerWorkStates`
 right after `INCLUDE_ASM(…, effectSpawnHit)` (whose `.s` now carries
 `jtbl_80097808`). Check the result in `build/USA/out/<ovl>.elf.map`: the unit's
 `.rodata` should start at the jtbl VMA and every named symbol should keep its
@@ -41541,11 +41541,11 @@ gameplay's explicit dotted subsegments determine the order directly.
 
 ## Write the `if` arm that the target falls through into, not the one you'd write by hand
 
-Two `case`s of `Gp_EffSprTask30` share `mem->field_24++; if (… < 8) … else
+Two `case`s of `effectGravityParticleTask` share `work->scale++; if (… < 8) … else
 effectKillTask(…)`. Written the natural way —
 
 ```c
-if (mem->field_26 >= 0x10) { big_block(); } else { small_block(); }
+if (work->angle >= 0x10) { big_block(); } else { small_block(); }
 ```
 
 — GCC lays `big_block` out inline and jumps to `small_block`, so cross-jumping
@@ -41555,7 +41555,7 @@ keeps the *later* copy of the shared tail and the whole block order shifts
 condition fixes it:
 
 ```c
-if (mem->field_26 < 0x10) { small_block(); } else { big_block(); }
+if (work->angle < 0x10) { small_block(); } else { big_block(); }
 ```
 
 Rule of thumb: the arm that the target reaches by falling through belongs in
@@ -41563,8 +41563,8 @@ the `if` body; the arm the target jumps to belongs in the `else`.
 
 ## Block-scope a temp that appears in two cross-jumped copies
 
-`u16 rnd = ((u32)gRandomLcgState >> 16) % 3;` appeared in two `case` blocks of
-`Gp_EffSprTask30` that cross-jumping later merges. Declared once at function
+`u16 wispRoll = ((u32)gRandomLcgState >> 16) % 3;` appeared in two `case` blocks of
+`effectGravityParticleTask` that cross-jumping later merges. Declared once at function
 scope it becomes a *global* allocno (assigned in `.greg`) and lands in `$v0`,
 giving `subu v0, a1, v0`; the target reuses the dividend's register,
 `subu a1, a1, v0`. Declaring it at the top of each block instead makes it a
@@ -149252,8 +149252,8 @@ put the last copy where the image has the block:
 - **Guard at the top and the same kill later** (`if (flag < MIN) { ...; if
   (age < period) goto spawn; } kill(); return; spawn:`) is an early
   `if (flag >= MIN) { kill(); return; }` plus `if (age >= period) { kill();
-  return; }` at the later site (`func_800F91AC`, `Gp_EffCtlTask9B`,
-  `effectControlTask7F`, `Gp_EffCtlTaskA6`, `effectSpriteTaskF4`, first try each).
+  return; }` at the later site (`func_800F91AC`, `effectHitSplatterSprayTask`,
+  `effectControlTask7F`, `effectDeathFlameTask`, `effectSpriteTaskF4`, first try each).
 - **A tail with its own branches merges too** when it is a `static inline`
   called in both arms (`Gp_EffSprTask81`: guard, LCG step, conditional spawn).
 - **`if (a) goto body; <statements>; if (b) { body: ... }`** where the
@@ -153299,10 +153299,10 @@ on the first build, with the constant and the pointer locals deleted and the
 neighbouring statements untouched (`effectSpriteTaskE2` and
 `effectControlTask0E` through their init inlines, `effectControlTask7F`,
 `effectSpriteTaskA7`, `effectControlTaskAE`, `effectSpriteTask32`,
-`Gp_EffSprTask81`, `func_800F91AC`, `Gp_EffSprTask30`; `func_800FF710` the day
+`Gp_EffSprTask81`, `func_800F91AC`, `effectGravityParticleTask`; `func_800FF710` the day
 before). The first store through the coordinate and the rest through
 `coord + 4`, the parent store landing after the first `ONE` store, and the
-`ONE, ONE, ONE, 0, 0` store order `Gp_EffSprTask30` spelled by hand are all
+`ONE, ONE, ONE, 0, 0` store order `effectGravityParticleTask` spelled by hand are all
 what cse and the schedulers make of the inline.
 
 **Use.**

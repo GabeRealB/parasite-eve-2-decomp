@@ -506,4 +506,122 @@ void effectSpriteTaskE1(Task* task);
 /// frame-arena resources; queued packets remain live until GPU use ends.
 void effectSpriteTaskE2(Task* task);
 
+/// Emits a slowing directional spray of falling hit puffs, bank 6 slot 0x9B.
+///
+/// Requires the counted `EffectWork` and coordinate body from `effectSpawn`.
+/// The unsigned low spawn half sets initial speed to size * 3 / 16, narrowed
+/// to s16; the signed high half sets duration to four ticks per unit, narrowed
+/// to s16. Positive unwrapped durations require 1..8191 units. The copied
+/// spawn offset becomes both local placement under the borrowed parent and
+/// the normalized Q12 spray heading; a zero offset chooses a random heading.
+/// The parent must remain live until this task ends. Spawn rotation is retained.
+/// work->scale is initial speed, angle duration units, period total ticks and
+/// move the Q12 heading. Each running tick emits an independent size-512 puff
+/// whose velocity is heading * (speed - age * (duration + 5)) / 4096, retaining
+/// GTE saturation and signed-halfword stores. Negative speed is retained.
+/// Visible pause freezes emission/age; cancellation releases work and task.
+void effectHitSplatterSprayTask(Task* task);
+
+/// Flies, bounces and settles an animated gravity particle, bank 6 slot 0x30.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body. Spawn bits 0..11
+/// give sprite/ground-spread/wisp size in game-coordinate units; high-half
+/// bits 0..1 retain a variant: 0 raw, 1 dark/subtractive, 2 neutral/additive.
+/// Variant 3 settles into state 5, which has no handler; its intended role is
+/// unproven. It then only ages until cancellation.
+/// Spawn copies the position offset immediately. A nonzero work->move written
+/// before the first tick supplies the heading; otherwise a random heading is
+/// chosen. It is normalized to Q12. The particle keeps the spawn's view-parent
+/// placement, replaces local rotation with identity and does not follow actors.
+/// work->pos becomes size, random frame period (0..7, zero holds the frame) and
+/// spin angle (4096 units per turn); index is the eight-cell animation cursor.
+/// During flight scale is speed, period spin increment and step last impact age.
+/// Grid hits halve speed/spin and may emit an independent puff; two close slow
+/// hits settle into a fade. Settled angle is brightness, period ground extent
+/// and scale the final ground-animation cursor. Variants 0/2 also shed wisps.
+/// Running ticks age before dispatch: flight ends at age 81, settled fade starts
+/// at age 51. Pause/hidden control suppresses all work; cancellation frees it.
+/// Requires the active grid probe's coordinate/normal bounds and drawing state.
+void effectGravityParticleTask(Task* task);
+
+/// Maintains the player's Energy Shot burst and hand sparks, bank 6 slot 0xF3.
+///
+/// Requires counted effect work, a coordinate body and a live player model with
+/// parts through 18. First running tick parents zero local translation to part
+/// 8, retaining spawn rotation, and snapshots attachId's decimal level 1..3.
+/// The player's coordinates must outlive the aura. work->index is level minus
+/// one, period burst radius and step spark size.
+/// A burst request draws 6..8 rays and two discs, then clears the shared request.
+/// One running tick in four emits an independent spark at player part 15 or 18.
+/// The aura ends when Energy Shot ticks, its PE flag or engaged battle state
+/// cease. PE pause/hidden control or a hidden player freezes it; cancellation
+/// releases counted work/task. Spawned hand sparks are not teardown children.
+void effectEnergyShotAuraTask(Task* task);
+
+/// Maintains the player's Antibody aura and damage pulses, bank 6 slot 0xAC.
+///
+/// Requires counted effect work, a coordinate body and a live player model with
+/// parts through 18. First running tick parents zero local translation to part
+/// 1, retaining spawn rotation, and snapshots attachId's decimal level 1..3.
+/// The player coordinates must outlive the aura. work->index is level minus
+/// one, period radius, angle pulse brightness, scale alternating draw brightness
+/// and step the previous HP stored/read as a signed halfword.
+/// Falling HP outside Berserker/poison may draw rays, parent three expanding
+/// bands to the aura and play the positional hit sound. Other hit paths still
+/// raise brightness; healing simply updates the HP snapshot. Ambient flashes
+/// at random player parts 3..18 are independent tasks; bands share teardown.
+/// The aura persists while Antibody ticks, its flag and battle engagement hold.
+/// PE pause/hidden control or a hidden player freezes updates. Cancellation or
+/// normal expiry stops the aura loop and releases counted work/task.
+void effectAntibodyAuraTask(Task* task);
+
+/// Creeps an orange death flame over the ground and lets it die down, slot 0xA6.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body. spawnArg1 is a
+/// positive tuning value: it controls top Y, base radius and random creep speed;
+/// signed-halfword stores retain their truncation.
+/// Placement is the spawner's snapshot under the view parent, not an actor
+/// attachment. The first tick seeds heading/flicker and draws even while paused,
+/// then emits one independent rising wisp. work->scale is the random seed,
+/// angle brightness, period negative local top Y, step base radius, move local
+/// velocity and pos its rotated parent-space displacement.
+/// Subsequent actor-paused ticks draw frozen. Creeping loses one speed unit
+/// every fourth age tick; at age 129 it enters die-down, reducing brightness
+/// every other tick while widening and shortening the flame. Reaching
+/// zero brightness or top Y, or room-effect cancellation, frees work/task.
+void effectDeathFlameTask(Task* task);
+
+/// Emits timed death-flame bursts and shares their loop sound, bank 6 slot 0xA5.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body. spawnArg1 zero
+/// emits one flame with tuning 1; a positive value is both burst count and each
+/// flame's tuning. Each burst emits three independent flames, then waits nine
+/// running ticks. work->scale marks that wait, angle
+/// counts its ticks, index completed bursts and age the final 101-tick linger.
+/// Uses the spawner's view-parent placement snapshot; it does not follow actors.
+/// The first active controller starts common sound 0x0D and increments
+/// `gRoomEffectState->rumbleCount`; the last normal release stops all instances.
+/// Room-effect pause/hidden control freezes the controller. Cancellation stops
+/// all shared sound instances, zeroes the count and releases this work/task.
+/// Failed child allocations still consume bursts. Children have independent
+/// lifetimes; releasing the controller does not cancel its flames.
+void effectCorpseBurnTask(Task* task);
+
+/// Emits additive drifting smoke at a hit placement, bank 6 slot 0xE3.
+///
+/// Requires `effectSpawn`'s counted work and coordinate body. The low unsigned
+/// spawn half narrows into signed work->scale (source size); the signed high
+/// half sets four ticks per duration unit, narrowed into period. Unwrapped
+/// positive duration units are 1..8191. angle retains the original units.
+/// Reparents at the copied local offset under the borrowed spawn parent,
+/// retaining spawn rotation; that parent must outlive the emitter. Each running
+/// tick ages before spawning, so positive period emits period - 1 independent
+/// smoke puffs. The child argument adds source size >> 2 to 0x80021400. For
+/// source sizes 0..12287 this gives size 1024 + (source size >> 2), one tick per
+/// cell, additive blending and view-space drift/rise; larger/negative sizes
+/// retain packed-word carries and truncation. work->move supplies the offset.
+/// Visible pause freezes age/emission; hidden control waits before placement.
+/// Normal expiry or cancellation frees counted work/task, leaving puffs alive.
+void effectHitSmokeEmitterTask(Task* task);
+
 #endif // GAMEPLAY_PRIVATE_EFFECT_TASKS_H

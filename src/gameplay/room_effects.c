@@ -583,7 +583,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_square_801823DC, { NULL } },                                         // 0x02D
     { { { TASK_BODY_COORD, 0x70 } }, mistParkingContinueDepartureChoiceTask, { NULL } },                                 // 0x02E
     { { { TASK_BODY_COORD, 0x70 } }, m4a1JavelinGuideBeamTask, { NULL } },                                               // 0x02F
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffSprTask30, { NULL } },                                                        // 0x030
+    { { { TASK_BODY_COORD, 0x70 } }, effectGravityParticleTask, { NULL } },                                              // 0x030
     { { { TASK_BODY_NONE, 0xC0 } }, taskKill, { NULL } },                                                                // 0x031
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask32, { NULL } },                                                     // 0x032
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallBayLightingTask, { NULL } },                               // 0x033
@@ -690,7 +690,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPlazaSirenLightTask, { NULL } },                                           // 0x098
     { { { TASK_BODY_COORD, 0x70 } }, acropolisPlazaLightFlareTask, { NULL } },                                           // 0x099
     { { { TASK_BODY_COORD, 0x70 } }, func_800F91AC, { NULL } },                                                          // 0x09A
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTask9B, { NULL } },                                                        // 0x09B
+    { { { TASK_BODY_COORD, 0x70 } }, effectHitSplatterSprayTask, { NULL } },                                             // 0x09B
     { { { TASK_BODY_COORD, 0x70 } }, effectPolyTask9C, { NULL } },                                                       // 0x09C
     { { { TASK_BODY_COORD, 0x70 } }, acropolisCafeteriaPuffEmitterTask, { NULL } },                                      // 0x09D
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTask9E, { NULL } },                                                     // 0x09E
@@ -700,14 +700,14 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017DCF0, { NULL } },                                          // 0x0A2
     { { { TASK_BODY_COORD, 0x70 } }, effectLineTaskA3, { NULL } },                                                       // 0x0A3
     { { { TASK_BODY_COORD, 0x70 } }, effectTileTaskA4, { NULL } },                                                       // 0x0A4
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskA5, { NULL } },                                                        // 0x0A5
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskA6, { NULL } },                                                        // 0x0A6
+    { { { TASK_BODY_COORD, 0x70 } }, effectCorpseBurnTask, { NULL } },                                                   // 0x0A5
+    { { { TASK_BODY_COORD, 0x70 } }, effectDeathFlameTask, { NULL } },                                                   // 0x0A6
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskA7, { NULL } },                                                     // 0x0A7
     { { { TASK_BODY_COORD, 0x70 } }, func_800FAA14, { NULL } },                                                          // 0x0A8
     { { { TASK_BODY_COORD, 0x70 } }, combustionEmberTask, { NULL } },                                                    // 0x0A9
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirBurstSpriteTask, { NULL } },                                      // 0x0AA
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainCastTask, { NULL } },                                                      // 0x0AB
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskAC, { NULL } },                                                        // 0x0AC
+    { { { TASK_BODY_COORD, 0x70 } }, effectAntibodyAuraTask, { NULL } },                                                 // 0x0AC
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainRisingSparkTask, { NULL } },                                               // 0x0AD
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTaskAE, { NULL } },                                                    // 0x0AE
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainMoteTask, { NULL } },                                                      // 0x0AF
@@ -762,7 +762,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskE0, { NULL } },                                                     // 0x0E0
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskE1, { NULL } },                                                     // 0x0E1
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskE2, { NULL } },                                                     // 0x0E2
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskE3, { NULL } },                                                        // 0x0E3
+    { { { TASK_BODY_COORD, 0x70 } }, effectHitSmokeEmitterTask, { NULL } },                                              // 0x0E3
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightBackStreetRoomVisualEffectsSparkBurstTask, { NULL } },                 // 0x0E4
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardRoomVisualEffectsFlashTask, { NULL } },                        // 0x0E5
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask, { NULL } },                    // 0x0E6
@@ -778,7 +778,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4UpperSewerRoomVisualEffectsFlashTask, { NULL } },                          // 0x0F0
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4UpperSewerRoomVisualEffectsTwinTrailTask, { NULL } },                      // 0x0F1
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4UpperSewerRoomVisualEffectsSparkBurstTask, { NULL } },                     // 0x0F2
-    { { { TASK_BODY_COORD, 0x70 } }, Gp_EffCtlTaskF3, { NULL } },                                                        // 0x0F3
+    { { { TASK_BODY_COORD, 0x70 } }, effectEnergyShotAuraTask, { NULL } },                                               // 0x0F3
     { { { TASK_BODY_COORD, 0x70 } }, effectSpriteTaskF4, { NULL } },                                                     // 0x0F4
     { { { TASK_BODY_COORD, 0x70 } }, antibodyMoteTask, { NULL } },                                                       // 0x0F5
     { { { TASK_BODY_COORD, 0x70 } }, pyrokinesisFlameRingTask, { NULL } },                                               // 0x0F6

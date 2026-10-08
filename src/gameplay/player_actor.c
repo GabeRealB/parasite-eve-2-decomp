@@ -2041,266 +2041,308 @@ void func_800F91AC(Task* arg0)
     mem->age++;
 }
 
-void Gp_EffCtlTask9B(Task* arg0)
+void effectHitSplatterSprayTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        EFFECT_SPLATTER_SPEED_NUMERATOR = 3,
+        EFFECT_SPLATTER_SPEED_SHIFT     = 4,
+        EFFECT_SPLATTER_DURATION_SHIFT  = 2,
+        EFFECT_SPLATTER_DECAY_BIAS      = 5,
+        // Additive puff: size 512, two ticks per animation cell.
+        EFFECT_SPLATTER_PUFF_ARGUMENT = 0x12200,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
-    EffectWork* spawned;
-    s32         temp;
+    s16         effectControl;
+    EffectWork* puffWork;
+    s32         durationUnits;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        effectKillTask(mem, arg0);
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        effectKillTask(work, task);
         return;
     }
-    if (arg0->state == 0) {
-        coord->parent       = mem->parent;
-        coord->coord.t[0]   = mem->pos.vx;
-        coord->coord.t[1]   = mem->pos.vy;
-        coord->coord.t[2]   = mem->pos.vz;
+    // The copied placement offset also supplies the emission direction.
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
+        coord->parent       = work->parent;
+        coord->coord.t[0]   = work->pos.vx;
+        coord->coord.t[1]   = work->pos.vy;
+        coord->coord.t[2]   = work->pos.vz;
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        arg0->state         = 1;
-        mem->scale          = ((u16)arg0->spawnArg1.value * 3u) >> 4;
-        temp                = arg0->spawnArg1.halves.high;
-        mem->angle          = temp;
-        mem->period         = temp << 2;
-        if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
+        task->state         = EFFECT_DRAW_TASK_ACTIVE;
+        work->scale         = ((u16)task->spawnArg1.value * (u32)EFFECT_SPLATTER_SPEED_NUMERATOR) >> EFFECT_SPLATTER_SPEED_SHIFT;
+        durationUnits       = task->spawnArg1.halves.high;
+        work->angle         = durationUnits;
+        work->period        = durationUnits << EFFECT_SPLATTER_DURATION_SHIFT;
+        if ((work->pos.vx | work->pos.vy | work->pos.vz) == 0) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->pos.vx     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
+            work->pos.vx    = ((gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK) - EFFECT_DRAW_FULL_TURN / 2;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->pos.vy     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
+            work->pos.vy    = ((gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK) - EFFECT_DRAW_FULL_TURN / 2;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->pos.vz     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
+            work->pos.vz    = ((gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK) - EFFECT_DRAW_FULL_TURN / 2;
         }
-        VectorNormalSS(&mem->pos, &mem->move);
+        VectorNormalSS(&work->pos, &work->move);
     }
     actorRenderComposeCoord(coord);
     if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
         return;
     }
-    if (mem->age >= mem->period) {
-        effectKillTask(mem, arg0);
+    if (work->age >= work->period) {
+        effectKillTask(work, task);
         return;
     }
-    spawned = effectSpawn(EFFECT_HIT_PUFF, coord, 0x12200, 0);
-    if (spawned != NULL) {
-        gte_lddp(mem->scale - mem->age * (mem->angle + 5));
-        gte_ldsv(&mem->move);
+    // Seed each independent puff with a Q12 direction scaled by the declining speed.
+    puffWork = effectSpawn(EFFECT_HIT_PUFF, coord, EFFECT_SPLATTER_PUFF_ARGUMENT, NULL);
+    if (puffWork != NULL) {
+        gte_lddp(work->scale - work->age * (work->angle + EFFECT_SPLATTER_DECAY_BIAS));
+        gte_ldsv(&work->move);
         gte_gpf12();
-        gte_stsv(&spawned->move);
+        gte_stsv(&puffWork->move);
     }
-    mem->age++;
+    work->age++;
 }
 
-void Gp_EffSprTask30(Task* arg0)
+void effectGravityParticleTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        EFFECT_GRAVITY_PARTICLE_SETTLED_RAW           = 2,
+        EFFECT_GRAVITY_PARTICLE_SETTLED_SUBTRACT      = 3,
+        EFFECT_GRAVITY_PARTICLE_SETTLED_TINTED        = 4,
+        EFFECT_GRAVITY_PARTICLE_SUBTRACT_VARIANT      = 1,
+        EFFECT_GRAVITY_PARTICLE_TINTED_VARIANT        = 2,
+        EFFECT_GRAVITY_PARTICLE_VARIANT_MASK          = 3,
+        EFFECT_GRAVITY_PARTICLE_FRAME_COUNT           = 8,
+        EFFECT_GRAVITY_PARTICLE_INITIAL_SPEED         = 256,
+        EFFECT_GRAVITY_PARTICLE_SPIN_BIAS             = 512,
+        EFFECT_GRAVITY_PARTICLE_SPIN_MASK             = 1023,
+        EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK = 255,
+        EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS = 128,
+        EFFECT_GRAVITY_PARTICLE_FLIGHT_TICKS          = 81,
+        EFFECT_GRAVITY_PARTICLE_FADE_START_TICK       = 51,
+        EFFECT_GRAVITY_PARTICLE_SETTLE_INTERVAL       = 8,
+        EFFECT_GRAVITY_PARTICLE_SETTLE_SPEED          = 32,
+        EFFECT_GRAVITY_PARTICLE_BRIGHTNESS            = 128,
+        EFFECT_GRAVITY_PARTICLE_FADE_STEP             = 16,
+        EFFECT_GRAVITY_PARTICLE_GRAVITY_NUMERATOR     = 0x10000,
+        EFFECT_GRAVITY_PARTICLE_GRID_HIT              = 1,
+        // Size is added to these packed period/blend encodings.
+        EFFECT_GRAVITY_PARTICLE_SMOKE_ARGUMENT = 0xC0001100,
+        EFFECT_GRAVITY_PARTICLE_PUFF_ARGUMENT  = 0x12100,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
-    s32         sub;
-    s32         ret;
-    s32         id;
-    s32         base;
-    SVECTOR     vec;
-    SVECTOR     dir;
-    SVECTOR     wpos;
-    u8          color[3];
+    s16         effectControl;
+    s32         variantBits;
+    s32         hit;
+    s32         childEffectId;
+    s32         childArgumentBase;
+    SVECTOR     displacement;
+    SVECTOR     probeEndOrHit;
+    SVECTOR     probeStartOrNormal;
+    u8          tintRgb[3];
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+/// Advances the particle once by its speed-scaled Q12 heading.
+///
+/// Captures the live work/coord pointers and writable displacement vector.
+/// GTE saturation and signed-halfword stores are retained; translation advances
+/// in the coordinate's parent frame and is marked dirty. Use as a standalone
+/// statement in a braced block; the caller composes or rolls back the step.
+#define EFFECT_GRAVITY_PARTICLE_ADVANCE()  \
+    gte_lddp(work->scale);                 \
+    gte_ldsv(&work->move);                 \
+    gte_gpf12();                           \
+    gte_stsv(&displacement);               \
+    coord->coord.t[0]  += displacement.vx; \
+    coord->coord.t[1]  += displacement.vy; \
+    coord->coord.t[2]  += displacement.vz; \
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            effectKillTask(work, task);
         }
         return;
     }
     actorRenderComposeCoord(coord);
-    mem->age++;
-    switch (arg0->state) {
-        case 0:
+    work->age++;
+    switch (task->state) {
+        case EFFECT_DRAW_TASK_NEW:
+            // Reuse pos as size/frame-period/spin; keep the supplied or random Q12 heading in move.
             gfxSetRotIdentity(&coord->coord);
-            mem->pos.vx     = arg0->spawnArg1.halves.low & 0xFFF;
-            mem->scale      = 0x100;
+            work->pos.vx    = task->spawnArg1.halves.low & EFFECT_DRAW_SIZE_MASK;
+            work->scale     = EFFECT_GRAVITY_PARTICLE_INITIAL_SPEED;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->pos.vy     = (gRandomLcgState >> 16) & 7;
+            work->pos.vy    = (gRandomLcgState >> 16) & (EFFECT_GRAVITY_PARTICLE_FRAME_COUNT - 1);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->index      = (gRandomLcgState >> 16) & 7;
+            work->index     = (gRandomLcgState >> 16) & (EFFECT_GRAVITY_PARTICLE_FRAME_COUNT - 1);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->pos.vz     = (gRandomLcgState >> 16) & 0xFFF;
+            work->pos.vz    = (gRandomLcgState >> 16) & EFFECT_DRAW_ANGLE_MASK;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->period     = 0x200 - ((gRandomLcgState >> 16) & 0x3FF);
-            if ((mem->move.vx | mem->move.vy | mem->move.vz) == 0) {
+            work->period    = EFFECT_GRAVITY_PARTICLE_SPIN_BIAS - ((gRandomLcgState >> 16) & EFFECT_GRAVITY_PARTICLE_SPIN_MASK);
+            if ((work->move.vx | work->move.vy | work->move.vz) == 0) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vx    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                work->move.vx   = EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS - ((gRandomLcgState >> 16) & EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vy    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                work->move.vy   = EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS - ((gRandomLcgState >> 16) & EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->move.vz    = 0x80 - ((gRandomLcgState >> 16) & 0xFF);
+                work->move.vz   = EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_BIAS - ((gRandomLcgState >> 16) & EFFECT_GRAVITY_PARTICLE_RANDOM_COMPONENT_MASK);
                 gte_SetRotMatrix(&coord->coord);
-                gte_ldv0(&mem->move);
+                gte_ldv0(&work->move);
                 gte_rtv0();
-                gte_stsv(&mem->move);
+                gte_stsv(&work->move);
             }
-            VectorNormalSS(&mem->move, &mem->move);
+            VectorNormalSS(&work->move, &work->move);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            sub                   = arg0->spawnArg1.halves.high;
-            arg0->state           = 1;
-            arg0->spawnArg1.value = sub & 3;
+            variantBits           = task->spawnArg1.halves.high;
+            task->state           = EFFECT_DRAW_TASK_ACTIVE;
+            task->spawnArg1.value = variantBits & EFFECT_GRAVITY_PARTICLE_VARIANT_MASK;
             return;
-        case 1:
-            if (mem->age >= 0x51) {
-                effectKillTask(mem, arg0);
+        case EFFECT_DRAW_TASK_ACTIVE:
+            if (work->age >= EFFECT_GRAVITY_PARTICLE_FLIGHT_TICKS) {
+                effectKillTask(work, task);
                 return;
             }
-            mem->pos.vz += mem->period;
-            if (mem->pos.vy != 0 && mem->age % mem->pos.vy == 0) {
-                mem->index++;
+            work->pos.vz += work->period;
+            if (work->pos.vy != 0 && work->age % work->pos.vy == 0) {
+                work->index++;
             }
-            gte_lddp(mem->scale);
-            gte_ldsv(&mem->move);
-            gte_gpf12();
-            gte_stsv(&vec);
-            coord->coord.t[0]  += vec.vx;
-            coord->coord.t[1]  += vec.vy;
-            coord->coord.t[2]  += vec.vz;
-            coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            EFFECT_GRAVITY_PARTICLE_ADVANCE();
             gte_SetRotMatrix(&gGfxViewCoord.workm);
-            gte_ldv0(&vec);
+            gte_ldv0(&displacement);
             gte_rtv0();
-            gte_stsv(&dir);
-            wpos.vx = (u16)coord->workm.t[0];
-            wpos.vy = (u16)coord->workm.t[1];
-            wpos.vz = (u16)coord->workm.t[2];
-            dir.vx += wpos.vx;
-            dir.vy += wpos.vy;
-            dir.vz += wpos.vz;
-            ret     = worldCollisionProbeGridSegment(&dir, &wpos, &dir, &wpos);
-            if (ret == 1) {
-                coord->coord.t[0] -= vec.vx;
-                coord->coord.t[1] -= vec.vy;
-                coord->coord.t[2] -= vec.vz;
-                mem->move.vx       = ((s16)(u16)wpos.vx >> 1) + (mem->move.vx >> 1);
-                mem->move.vy       = wpos.vy + (mem->move.vy >> 1);
-                mem->move.vz       = ((s16)(u16)wpos.vz >> 1) + (mem->move.vz >> 1);
-                VectorNormalSS(&mem->move, &mem->move);
-                mem->scale  = mem->scale >> 1;
-                mem->period = mem->period >> 1;
-                gte_lddp(mem->scale);
-                gte_ldsv(&mem->move);
-                gte_gpf12();
-                gte_stsv(&vec);
-                coord->coord.t[0]  += vec.vx;
-                coord->coord.t[1]  += vec.vy;
-                coord->coord.t[2]  += vec.vz;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
+            gte_stsv(&probeEndOrHit);
+            probeStartOrNormal.vx = coord->workm.t[0];
+            probeStartOrNormal.vy = coord->workm.t[1];
+            probeStartOrNormal.vz = coord->workm.t[2];
+            probeEndOrHit.vx     += probeStartOrNormal.vx;
+            probeEndOrHit.vy     += probeStartOrNormal.vy;
+            probeEndOrHit.vz     += probeStartOrNormal.vz;
+            // The aliased outputs replace the view-space endpoints with a hit point and room-space normal.
+            hit = worldCollisionProbeGridSegment(&probeEndOrHit, &probeStartOrNormal, &probeEndOrHit, &probeStartOrNormal);
+            if (hit == EFFECT_GRAVITY_PARTICLE_GRID_HIT) {
+                coord->coord.t[0] -= displacement.vx;
+                coord->coord.t[1] -= displacement.vy;
+                coord->coord.t[2] -= displacement.vz;
+                work->move.vx      = (probeStartOrNormal.vx >> 1) + (work->move.vx >> 1);
+                work->move.vy      = probeStartOrNormal.vy + (work->move.vy >> 1);
+                work->move.vz      = (probeStartOrNormal.vz >> 1) + (work->move.vz >> 1);
+                VectorNormalSS(&work->move, &work->move);
+                work->scale  = work->scale >> 1;
+                work->period = work->period >> 1;
+                EFFECT_GRAVITY_PARTICLE_ADVANCE();
                 actorRenderComposeCoord(coord);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if (((gRandomLcgState >> 16) & 1) != 0) {
-                    if (arg0->spawnArg1.value == 1) {
-                        base = 0xC0001100;
-                        id   = 0x60070;
+                    if (task->spawnArg1.value == EFFECT_GRAVITY_PARTICLE_SUBTRACT_VARIANT) {
+                        childArgumentBase = EFFECT_GRAVITY_PARTICLE_SMOKE_ARGUMENT;
+                        childEffectId     = EFFECT_SMOKE_PUFF;
                     } else {
-                        base = 0x12100;
-                        id   = 0x60055;
+                        childArgumentBase = EFFECT_GRAVITY_PARTICLE_PUFF_ARGUMENT;
+                        childEffectId     = EFFECT_HIT_PUFF;
                     }
-                    effectSpawn(id, coord, mem->pos.vx + base, NULL);
+                    effectSpawn(childEffectId, coord, work->pos.vx + childArgumentBase, NULL);
                 }
-                if (mem->age - mem->step < 8 && mem->scale < 0x20) {
-                    arg0->state = arg0->spawnArg1.value + 2;
-                    mem->scale  = 0;
-                    mem->period = 0;
-                    mem->angle  = 0x80;
+                // Two close, slow impacts settle the particle into its variant-specific fade.
+                if (work->age - work->step < EFFECT_GRAVITY_PARTICLE_SETTLE_INTERVAL && work->scale < EFFECT_GRAVITY_PARTICLE_SETTLE_SPEED) {
+                    task->state  = task->spawnArg1.value + EFFECT_GRAVITY_PARTICLE_SETTLED_RAW;
+                    work->scale  = 0;
+                    work->period = 0;
+                    work->angle  = EFFECT_GRAVITY_PARTICLE_BRIGHTNESS;
                 } else {
-                    mem->step = mem->age;
+                    work->step = work->age;
                 }
-            } else if (mem->scale != 0) {
+            } else if (work->scale != 0) {
                 actorRenderComposeCoord(coord);
-                mem->move.vy += 0x10000 / mem->scale;
+                work->move.vy += EFFECT_GRAVITY_PARTICLE_GRAVITY_NUMERATOR / work->scale;
             }
-            if (arg0->spawnArg1.value == 2) {
-                color[0] = color[1] = color[2] = 0x80;
-                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
+            if (task->spawnArg1.value == EFFECT_GRAVITY_PARTICLE_TINTED_VARIANT) {
+                tintRgb[0] = tintRgb[1] = tintRgb[2] = EFFECT_GRAVITY_PARTICLE_BRIGHTNESS;
+                _effectDrawGravityParticle(task, task->spawnArg1.value, tintRgb);
             } else {
-                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, NULL);
+                _effectDrawGravityParticle(task, task->spawnArg1.value, NULL);
             }
             return;
-        case 2:
+        // Raw and tinted variants spread a ground quad and occasionally shed a wisp.
+        case EFFECT_GRAVITY_PARTICLE_SETTLED_RAW:
             actorRenderComposeCoord(coord);
-            if (mem->age >= 0x33) {
-                if (mem->angle < 0x10) {
-                    mem->scale++;
-                    if (mem->scale < 8) {
-                        _effectDrawAnimatedGroundQuad(coord, mem->period, mem->scale, 0);
+            if (work->age >= EFFECT_GRAVITY_PARTICLE_FADE_START_TICK) {
+                if (work->angle < EFFECT_GRAVITY_PARTICLE_FADE_STEP) {
+                    work->scale++;
+                    if (work->scale < EFFECT_GRAVITY_PARTICLE_FRAME_COUNT) {
+                        _effectDrawAnimatedGroundQuad(coord, work->period, work->scale, 0);
                     } else {
-                        effectKillTask(mem, arg0);
+                        effectKillTask(work, task);
                     }
                 } else {
-                    u16 rnd;
+                    u16 wispRoll;
 
-                    color[0] = color[1] = color[2] = mem->angle;
-                    _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
-                    mem->period    += mem->pos.vx >> 4;
+                    tintRgb[0] = tintRgb[1] = tintRgb[2] = work->angle;
+                    _effectDrawGravityParticle(task, task->spawnArg1.value, tintRgb);
+                    work->period   += work->pos.vx >> 4;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    rnd             = (gRandomLcgState >> 16) % 3;
-                    if (rnd == 0) {
-                        effectSpawn(EFFECT_RISING_WISP, coord, (s32)(mem->pos.vx), NULL);
+                    wispRoll        = (gRandomLcgState >> 16) % 3;
+                    if (wispRoll == 0) {
+                        effectSpawn(EFFECT_RISING_WISP, coord, (s32)work->pos.vx, NULL);
                     }
-                    _effectDrawAnimatedGroundQuad(coord, mem->period, 0, 0);
-                    mem->angle -= 0x10;
+                    _effectDrawAnimatedGroundQuad(coord, work->period, 0, 0);
+                    work->angle -= EFFECT_GRAVITY_PARTICLE_FADE_STEP;
                 }
             } else {
-                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, NULL);
+                _effectDrawGravityParticle(task, task->spawnArg1.value, NULL);
             }
             return;
-        case 3:
+        case EFFECT_GRAVITY_PARTICLE_SETTLED_SUBTRACT:
             actorRenderComposeCoord(coord);
-            if (mem->age >= 0x33) {
-                if (mem->angle < 0x10) {
-                    effectKillTask(mem, arg0);
+            if (work->age >= EFFECT_GRAVITY_PARTICLE_FADE_START_TICK) {
+                if (work->angle < EFFECT_GRAVITY_PARTICLE_FADE_STEP) {
+                    effectKillTask(work, task);
                     return;
                 }
-                color[0] = color[1] = color[2] = mem->angle;
-                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
-                mem->angle -= 0x10;
+                tintRgb[0] = tintRgb[1] = tintRgb[2] = work->angle;
+                _effectDrawGravityParticle(task, task->spawnArg1.value, tintRgb);
+                work->angle -= EFFECT_GRAVITY_PARTICLE_FADE_STEP;
             } else {
-                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, NULL);
+                _effectDrawGravityParticle(task, task->spawnArg1.value, NULL);
             }
             return;
-        case 4:
+        case EFFECT_GRAVITY_PARTICLE_SETTLED_TINTED:
             actorRenderComposeCoord(coord);
-            if (mem->age >= 0x33) {
-                if (mem->angle < 0x10) {
-                    mem->scale++;
-                    if (mem->scale < 8) {
-                        _effectDrawAnimatedGroundQuad(coord, mem->period, mem->scale, 0);
+            if (work->age >= EFFECT_GRAVITY_PARTICLE_FADE_START_TICK) {
+                if (work->angle < EFFECT_GRAVITY_PARTICLE_FADE_STEP) {
+                    work->scale++;
+                    if (work->scale < EFFECT_GRAVITY_PARTICLE_FRAME_COUNT) {
+                        _effectDrawAnimatedGroundQuad(coord, work->period, work->scale, 0);
                     } else {
-                        effectKillTask(mem, arg0);
+                        effectKillTask(work, task);
                     }
                 } else {
-                    u16 rnd;
+                    u16 wispRoll;
 
-                    color[0] = color[1] = color[2] = mem->angle;
-                    _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
-                    mem->period    += mem->pos.vx >> 4;
+                    tintRgb[0] = tintRgb[1] = tintRgb[2] = work->angle;
+                    _effectDrawGravityParticle(task, task->spawnArg1.value, tintRgb);
+                    work->period   += work->pos.vx >> 4;
                     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    rnd             = (gRandomLcgState >> 16) % 3;
-                    if (rnd == 0) {
-                        effectSpawn(EFFECT_RISING_WISP, coord, (s32)(mem->pos.vx), NULL);
+                    wispRoll        = (gRandomLcgState >> 16) % 3;
+                    if (wispRoll == 0) {
+                        effectSpawn(EFFECT_RISING_WISP, coord, (s32)work->pos.vx, NULL);
                     }
-                    _effectDrawAnimatedGroundQuad(coord, mem->period, 0, 0);
-                    mem->angle -= 0x10;
+                    _effectDrawAnimatedGroundQuad(coord, work->period, 0, 0);
+                    work->angle -= EFFECT_GRAVITY_PARTICLE_FADE_STEP;
                 }
             } else {
-                color[0] = color[1] = color[2] = mem->angle;
-                _effectDrawGravityParticle(arg0, arg0->spawnArg1.value, color);
+                tintRgb[0] = tintRgb[1] = tintRgb[2] = work->angle;
+                _effectDrawGravityParticle(task, task->spawnArg1.value, tintRgb);
             }
             return;
     }
+#undef EFFECT_GRAVITY_PARTICLE_ADVANCE
 }
 
 static const TaskFuncTable3 Gp_EffTask07States = { {
@@ -2934,55 +2976,80 @@ void effectPolyTaskC1(Task* task)
     }
 }
 
-void Gp_EffCtlTaskF3(Task* arg0)
+/// Parents an Energy Shot aura at player part 8, preserving its spawn rotation.
+///
+/// Both pointers are borrowed; playerCoords must contain nine live coordinates
+/// and remain live while coord retains that parent. Clears local translation
+/// and requests recomposition. No rotation or cached world matrix is changed.
+static inline void _effectInitEnergyShotAuraCoord(GfxCoord* coord, GfxCoord* playerCoords)
 {
-    EffectWork* mem;
+    enum { EFFECT_ENERGY_SHOT_PARENT_PART = 8 };
+    coord->coord.t[0]   = 0;
+    coord->coord.t[1]   = 0;
+    coord->coord.t[2]   = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->parent       = playerCoords + EFFECT_ENERGY_SHOT_PARENT_PART;
+}
+
+void effectEnergyShotAuraTask(Task* task)
+{
+    enum {
+        EFFECT_ENERGY_SHOT_LEVEL_RADIX          = 10,
+        EFFECT_ENERGY_SHOT_BASE_RADIUS          = 384,
+        EFFECT_ENERGY_SHOT_RADIUS_PER_LEVEL     = 128,
+        EFFECT_ENERGY_SHOT_BASE_SPARK_SIZE      = 1024,
+        EFFECT_ENERGY_SHOT_SPARK_SIZE_PER_LEVEL = 256,
+        EFFECT_ENERGY_SHOT_BASE_RAY_COUNT       = 6,
+        EFFECT_ENERGY_SHOT_BURST_RED_BLUE       = 192,
+        EFFECT_ENERGY_SHOT_BURST_GREEN          = 96,
+        EFFECT_ENERGY_SHOT_FIRST_SPARK_PART     = 15,
+        EFFECT_ENERGY_SHOT_SPARK_PART_STRIDE    = 3,
+        EFFECT_ENERGY_SHOT_SPARK_RANDOM_PALETTE = 0x8000,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    GfxCoord*   parent;
-    Task*       slot;
+    GfxCoord*   playerCoords;
+    Task*       playerTask;
     u8          rgb[3];
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING ||
         ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (gRoomEffectState->peEffectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
         return;
     }
 
-    mem->age++;
-    if (arg0->state == 0) {
+    work->age++;
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
         gRoomEffectState->peFxFlags |= ROOM_EFFECT_PE_ENERGY_SHOT_AURA;
-        slot                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        parent                       = slot->extra.tmd->coords;
-        coord->coord.t[0]            = 0;
-        coord->coord.t[1]            = 0;
-        coord->coord.t[2]            = 0;
-        coord->composeStamp          = GRAPHICS_COORD_DIRTY;
-        coord->parent                = parent + 8;
-        arg0->state                  = 1;
-        mem->index                   = (Gp_StateC08.attachId % 10U) - 1;
-        mem->angle                   = 0x20;
-        mem->period                  = mem->index * 128 + 0x180;
-        mem->step                    = mem->index * 256 + 0x400;
+        playerTask                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        playerCoords                 = playerTask->extra.tmd->coords;
+        _effectInitEnergyShotAuraCoord(coord, playerCoords);
+        task->state  = EFFECT_DRAW_TASK_ACTIVE;
+        work->index  = (Gp_StateC08.attachId % (u32)EFFECT_ENERGY_SHOT_LEVEL_RADIX) - 1;
+        work->angle  = 0x20; // Retained initialization; this controller never reads it.
+        work->period = work->index * EFFECT_ENERGY_SHOT_RADIUS_PER_LEVEL + EFFECT_ENERGY_SHOT_BASE_RADIUS;
+        work->step   = work->index * EFFECT_ENERGY_SHOT_SPARK_SIZE_PER_LEVEL + EFFECT_ENERGY_SHOT_BASE_SPARK_SIZE;
     }
 
     actorRenderComposeCoord(coord);
+    // A weapon shot consumes the shared burst request; ambient hand sparks continue independently.
     if (gRoomEffectState->burstRequest != 0) {
-        rgb[2] = 0xC0;
-        rgb[0] = 0xC0;
-        rgb[1] = 0x60;
-        _effectDrawRadialTriangles(coord, (s16)(mem->period + 0x80), (s16)(mem->index + 6), rgb);
-        effectDrawGouraudDisc(coord, mem->period, rgb);
-        effectDrawGouraudDisc(coord, (s16)(mem->period << 1), rgb);
+        rgb[2] = EFFECT_ENERGY_SHOT_BURST_RED_BLUE;
+        rgb[0] = EFFECT_ENERGY_SHOT_BURST_RED_BLUE;
+        rgb[1] = EFFECT_ENERGY_SHOT_BURST_GREEN;
+        _effectDrawRadialTriangles(coord, (s16)(work->period + EFFECT_ENERGY_SHOT_RADIUS_PER_LEVEL), (s16)(work->index + EFFECT_ENERGY_SHOT_BASE_RAY_COUNT), rgb);
+        effectDrawGouraudDisc(coord, work->period, rgb);
+        effectDrawGouraudDisc(coord, (s16)(work->period << 1), rgb);
         gRoomEffectState->burstRequest = false;
     }
 
     if (Gp_StateC08.energyShotTicks == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ENERGY_SHOT_AURA) ||
         gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
 
@@ -2990,11 +3057,11 @@ void Gp_EffCtlTaskF3(Task* arg0)
     if ((gRandomLcgState >> 16) & 3) {
         return;
     }
-    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     effectSpawn(EFFECT_RISING_ENERGY_SPARK,
-                &slot->extra.tmd->coords[((gRandomLcgState >> 16) & 1) * 3 + 15],
-                mem->step | 0x8000, 0);
+                &playerTask->extra.tmd->coords[((gRandomLcgState >> 16) & 1) * EFFECT_ENERGY_SHOT_SPARK_PART_STRIDE + EFFECT_ENERGY_SHOT_FIRST_SPARK_PART],
+                work->step | EFFECT_ENERGY_SHOT_SPARK_RANDOM_PALETTE, NULL);
 }
 
 /// Fills one Gouraud ray triangle within an angular sector.
@@ -3148,105 +3215,138 @@ void effectSpriteTaskF4(Task* task)
     effectKillTask(work, task);
 }
 
-void Gp_EffCtlTaskAC(Task* arg0)
+/// Parents an Antibody aura at player part 1, preserving its spawn rotation.
+///
+/// Both pointers are borrowed; playerCoords must contain two live coordinates
+/// and remain live while coord retains that parent. Clears local translation
+/// and requests recomposition. No rotation or cached world matrix is changed.
+static inline void _effectInitAntibodyAuraCoord(GfxCoord* coord, GfxCoord* playerCoords)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    GfxCoord*   parent;
-    EffectWork* spawned;
-    Task*       slot;
-    u8          rgb[3];
-    u8          col;
-    s32         saved;
-    s32         temp;
+    enum { EFFECT_ANTIBODY_PARENT_PART = 1 };
+    coord->coord.t[0]   = 0;
+    coord->coord.t[1]   = 0;
+    coord->coord.t[2]   = 0;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    coord->parent       = playerCoords + EFFECT_ANTIBODY_PARENT_PART;
+}
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+void effectAntibodyAuraTask(Task* task)
+{
+    enum {
+        EFFECT_ANTIBODY_LEVEL_RADIX               = 10,
+        EFFECT_ANTIBODY_BASE_BRIGHTNESS           = 32,
+        EFFECT_ANTIBODY_FLICKER_SHIFT             = 4,
+        EFFECT_ANTIBODY_RADIUS_MULTIPLIER         = 3,
+        EFFECT_ANTIBODY_RADIUS_SHIFT              = 7,
+        EFFECT_ANTIBODY_HIT_PULSE_LIMIT           = 160,
+        EFFECT_ANTIBODY_HIT_BRIGHTNESS            = 192,
+        EFFECT_ANTIBODY_SUPPRESSED_HIT_BRIGHTNESS = 128,
+        EFFECT_ANTIBODY_HIT_RAY_RADIUS            = 512,
+        EFFECT_ANTIBODY_HIT_RAY_COUNT             = 6,
+        EFFECT_ANTIBODY_HIT_BAND_ANGLE_LIMIT      = EFFECT_DRAW_FULL_TURN / 3,
+        EFFECT_ANTIBODY_HIT_BAND_ANGLE_STEP       = EFFECT_DRAW_FULL_TURN / 6,
+        EFFECT_ANTIBODY_FIRST_FLASH_PART          = 3,
+        EFFECT_ANTIBODY_FLASH_PART_MASK           = 15,
+        EFFECT_ANTIBODY_FADE_STEP                 = 8,
+        // Flash size 128 or 512, with the same high-half variant bit.
+        EFFECT_ANTIBODY_AMBIENT_FLASH_ARGUMENT = 0x10080,
+        EFFECT_ANTIBODY_HIT_FLASH_ARGUMENT     = 0x10200,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    GfxCoord*   playerCoords;
+    EffectWork* bandWork;
+    Task*       playerTask;
+    u8          rgb[3];
+    u8          brightness;
+    s32         previousHp;
+    s32         audioPan;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->peEffectControl != ROOM_EFFECT_CONTROL_RUNNING ||
         ((gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         if (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
         sndEvtRequestScriptStop(SOUND_ANTIBODY_AURA_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
 
-    mem->age++;
-    if (arg0->state == 0) {
+    work->age++;
+    if (task->state == EFFECT_DRAW_TASK_NEW) {
         gRoomEffectState->peFxFlags |= ROOM_EFFECT_PE_ANTIBODY_AURA;
-        slot                         = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-        parent                       = slot->extra.tmd->coords;
-        coord->coord.t[0]            = 0;
-        coord->coord.t[1]            = 0;
-        coord->coord.t[2]            = 0;
-        coord->composeStamp          = GRAPHICS_COORD_DIRTY;
-        coord->parent                = parent + 1;
-        arg0->state                  = 1;
-        mem->index                   = (Gp_StateC08.attachId % 10U) - 1;
-        mem->angle                   = 0x20;
-        mem->period                  = ((mem->index + 1) * 3) << 7;
-        mem->step                    = gPlayerStatus.hp;
+        playerTask                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+        playerCoords                 = playerTask->extra.tmd->coords;
+        _effectInitAntibodyAuraCoord(coord, playerCoords);
+        task->state  = EFFECT_DRAW_TASK_ACTIVE;
+        work->index  = (Gp_StateC08.attachId % (u32)EFFECT_ANTIBODY_LEVEL_RADIX) - 1;
+        work->angle  = EFFECT_ANTIBODY_BASE_BRIGHTNESS;
+        work->period = ((work->index + 1) * EFFECT_ANTIBODY_RADIUS_MULTIPLIER) << EFFECT_ANTIBODY_RADIUS_SHIFT;
+        work->step   = gPlayerStatus.hp;
     }
 
     actorRenderComposeCoord(coord);
-    mem->scale = mem->angle + ((mem->age & 1) << 4);
-    col        = mem->scale;
-    rgb[1]     = col;
-    rgb[0]     = col;
-    rgb[2]     = mem->scale >> 1;
-    effectDrawGouraudDisc(coord, mem->period, rgb);
-    effectDrawGouraudDisc(coord, (s16)(mem->period << 1), rgb);
+    work->scale = work->angle + ((work->age & 1) << EFFECT_ANTIBODY_FLICKER_SHIFT);
+    brightness  = work->scale;
+    rgb[1]      = brightness;
+    rgb[0]      = brightness;
+    rgb[2]      = work->scale >> 1;
+    effectDrawGouraudDisc(coord, work->period, rgb);
+    effectDrawGouraudDisc(coord, (s16)(work->period << 1), rgb);
 
     if (Gp_StateC08.antibodyTicks == 0 || !(gRoomEffectState->peFxFlags & ROOM_EFFECT_PE_ANTIBODY_AURA) ||
         gRoomEffectState->battleState != ROOM_EFFECT_BATTLE_ENGAGED) {
         sndEvtRequestScriptStop(SOUND_ANTIBODY_AURA_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
         return;
     }
-    saved = mem->step;
-    if (gPlayerStatus.hp < saved) {
-        if (!(gPlayerStatus.statusFlags & (PLAYER_STATUS_BERSERKER | PLAYER_STATUS_POISON)) && (mem->angle < 0xA0)) {
-            s32 i;
+    // Damage raises brightness and parents three response bands to this aura.
+    previousHp = work->step;
+    if (gPlayerStatus.hp < previousHp) {
+        if (!(gPlayerStatus.statusFlags & (PLAYER_STATUS_BERSERKER | PLAYER_STATUS_POISON)) && (work->angle < EFFECT_ANTIBODY_HIT_PULSE_LIMIT)) {
+            s32 bandAngle;
 
-            _effectDrawRadialTriangles(coord, 0x200, 6, rgb);
-            mem->angle = 0xC0;
-            for (i = 0; i < 0x555; i += 0x2AA) {
-                spawned = effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, i, 0);
-                if (spawned != NULL) {
-                    taskReparent(arg0, spawned->task);
+            _effectDrawRadialTriangles(coord, EFFECT_ANTIBODY_HIT_RAY_RADIUS, EFFECT_ANTIBODY_HIT_RAY_COUNT, rgb);
+            work->angle = EFFECT_ANTIBODY_HIT_BRIGHTNESS;
+            for (bandAngle = 0; bandAngle < EFFECT_ANTIBODY_HIT_BAND_ANGLE_LIMIT; bandAngle += EFFECT_ANTIBODY_HIT_BAND_ANGLE_STEP) {
+                bandWork = effectSpawn(EFFECT_EXPANDING_COLOR_BAND, coord, bandAngle, NULL);
+                if (bandWork != NULL) {
+                    taskReparent(task, bandWork->task);
                 }
             }
-            temp = (s8)worldCoordGetOriginAudioPan(coord);
-            sndEvtRequestScriptStart(SOUND_ANTIBODY_AURA_HIT, temp, (s8)worldCoordGetOriginAudioDepth(coord));
-        } else if (mem->angle < 0x80) {
-            mem->angle = 0x80;
+            audioPan = (s8)worldCoordGetOriginAudioPan(coord);
+            sndEvtRequestScriptStart(SOUND_ANTIBODY_AURA_HIT, audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
+        } else if (work->angle < EFFECT_ANTIBODY_SUPPRESSED_HIT_BRIGHTNESS) {
+            work->angle = EFFECT_ANTIBODY_SUPPRESSED_HIT_BRIGHTNESS;
         }
     } else {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 3) == 0) {
-            slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             effectSpawn(EFFECT_FLASH_BURST,
-                        &slot->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3],
-                        0x10080, 0);
+                        &playerTask->extra.tmd->coords[((gRandomLcgState >> 16) & EFFECT_ANTIBODY_FLASH_PART_MASK) + EFFECT_ANTIBODY_FIRST_FLASH_PART],
+                        EFFECT_ANTIBODY_AMBIENT_FLASH_ARGUMENT, NULL);
         }
     }
 
-    mem->step = (u16)gPlayerStatus.hp;
-    if (mem->angle < 0x21) {
+    // Retain the signed halfword HP snapshot, then relax the pulse toward its base brightness.
+    work->step = (u16)gPlayerStatus.hp;
+    if (work->angle < EFFECT_ANTIBODY_BASE_BRIGHTNESS + 1) {
         return;
     }
-    mem->angle      = mem->angle - 8;
+    work->angle     = work->angle - EFFECT_ANTIBODY_FADE_STEP;
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     if ((gRandomLcgState >> 16) & 1) {
         return;
     }
-    slot            = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    playerTask      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
     effectSpawn(EFFECT_FLASH_BURST,
-                &slot->extra.tmd->coords[((gRandomLcgState >> 16) & 0xF) + 3],
-                0x10200, 0);
+                &playerTask->extra.tmd->coords[((gRandomLcgState >> 16) & EFFECT_ANTIBODY_FLASH_PART_MASK) + EFFECT_ANTIBODY_FIRST_FLASH_PART],
+                EFFECT_ANTIBODY_HIT_FLASH_ARGUMENT, NULL);
 }
 
 /// Parents the Berserker shot burst at player part 8 with an identity local transform.
@@ -3334,137 +3434,183 @@ void effectControlTask07(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-void Gp_EffCtlTaskA5(Task* arg0)
+void effectCorpseBurnTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        EFFECT_CORPSE_BURN_SINGLE_FLAME_ARGUMENT = 0,
+        EFFECT_CORPSE_BURN_NEW                   = 0,
+        EFFECT_CORPSE_BURN_EMITTING              = 1,
+        EFFECT_CORPSE_BURN_LINGERING             = 2,
+        EFFECT_CORPSE_BURN_SOUND                 = SOUND_COMMON(0x0D),
+        EFFECT_CORPSE_BURN_FLAMES_PER_BURST      = 3,
+        EFFECT_CORPSE_BURN_BURST_WAIT_TICKS      = 9,
+        EFFECT_CORPSE_BURN_LINGER_TICKS          = 101,
+        EFFECT_CORPSE_BURN_SINGLE_FLAME_TUNING   = 1,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
-    s32         i;
-    s32         temp;
+    s16         effectControl;
+    s32         flameIndex;
+    s32         audioPan;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag != ROOM_EFFECT_CONTROL_RUNNING) {
-        if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-            sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
+        if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+            sndEvtRequestScriptStop(EFFECT_CORPSE_BURN_SOUND | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             gRoomEffectState->rumbleCount = 0;
-            effectKillTask(mem, arg0);
+            effectKillTask(work, task);
         }
         return;
     }
 
     actorRenderComposeCoord(coord);
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        // Share one loop across burn controllers; cancellation stops every instance.
+        case EFFECT_CORPSE_BURN_NEW:
             if (gRoomEffectState->rumbleCount == 0) {
-                temp = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(SOUND_COMMON(0x0D), temp, (s8)worldCoordGetOriginAudioDepth(coord));
+                audioPan = (s8)worldCoordGetOriginAudioPan(coord);
+                sndEvtRequestScriptStart(EFFECT_CORPSE_BURN_SOUND, audioPan, (s8)worldCoordGetOriginAudioDepth(coord));
             }
             gRoomEffectState->rumbleCount++;
-            arg0->state = 1;
+            task->state = EFFECT_CORPSE_BURN_EMITTING;
             /* fallthrough */
-        case 1:
-            if (arg0->spawnArg1.value == 0) {
-                effectSpawn(EFFECT_DEATH_FLAME, coord, 1, 0);
-                arg0->state = 2;
-            } else if (mem->scale == 0) {
-                for (i = 0; i < 3; i++) {
-                    effectSpawn(EFFECT_DEATH_FLAME, coord, arg0->spawnArg1.value, 0);
+        case EFFECT_CORPSE_BURN_EMITTING:
+            // scale marks a pending burst wait, angle counts that wait, index counts completed bursts.
+            if (task->spawnArg1.value == EFFECT_CORPSE_BURN_SINGLE_FLAME_ARGUMENT) {
+                effectSpawn(EFFECT_DEATH_FLAME, coord, EFFECT_CORPSE_BURN_SINGLE_FLAME_TUNING, NULL);
+                task->state = EFFECT_CORPSE_BURN_LINGERING;
+            } else if (work->scale == 0) {
+                for (flameIndex = 0; flameIndex < EFFECT_CORPSE_BURN_FLAMES_PER_BURST; flameIndex++) {
+                    effectSpawn(EFFECT_DEATH_FLAME, coord, task->spawnArg1.value, NULL);
                 }
-                mem->scale++;
+                work->scale++;
             } else {
-                mem->angle++;
-                if (mem->angle >= 9) {
-                    mem->scale = 0;
-                    mem->angle = 0;
-                    mem->index++;
-                    if (mem->index >= arg0->spawnArg1.value) {
-                        arg0->state = 2;
+                work->angle++;
+                if (work->angle >= EFFECT_CORPSE_BURN_BURST_WAIT_TICKS) {
+                    work->scale = 0;
+                    work->angle = 0;
+                    work->index++;
+                    if (work->index >= task->spawnArg1.value) {
+                        task->state = EFFECT_CORPSE_BURN_LINGERING;
                     }
                 }
             }
             break;
-        case 2:
-            mem->age++;
-            if (mem->age >= 0x65) {
+        case EFFECT_CORPSE_BURN_LINGERING:
+            work->age++;
+            if (work->age >= EFFECT_CORPSE_BURN_LINGER_TICKS) {
                 gRoomEffectState->rumbleCount--;
                 if (gRoomEffectState->rumbleCount <= 0) {
-                    sndEvtRequestScriptStop(SOUND_COMMON(0x0D) | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+                    sndEvtRequestScriptStop(EFFECT_CORPSE_BURN_SOUND | SOUND_SCRIPT_STOP_ALL_INSTANCES, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     gRoomEffectState->rumbleCount = 0;
                 }
-                effectKillTask(mem, arg0);
+                effectKillTask(work, task);
             }
             break;
     }
 }
 
-void Gp_EffCtlTaskA6(Task* arg0)
+/// Steps a death flame's local creep into its coordinate's parent frame.
+///
+/// Requires live writable coord/work. work->move is local velocity, age the
+/// controller tick; every fourth age loses one forward-speed unit. Rotates
+/// that velocity into work->pos with signed-halfword GTE stores, advances local
+/// translation and marks it dirty. The caller owns transform composition.
+static inline void _effectStepDeathFlameCreep(GfxCoord* coord, EffectWork* work)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    SVECTOR*    in;
-    SVECTOR*    out;
-    s16         flag;
-    s32         temp;
+    enum { EFFECT_DEATH_FLAME_CREEP_INTERVAL_MASK = 3 };
+    SVECTOR* localVelocity;
+    SVECTOR* parentDisplacement;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
-        effectKillTask(mem, arg0);
+    localVelocity      = &work->move;
+    parentDisplacement = &work->pos;
+    work->move.vz     -= (work->age & EFFECT_DEATH_FLAME_CREEP_INTERVAL_MASK) / EFFECT_DEATH_FLAME_CREEP_INTERVAL_MASK;
+    gte_SetRotMatrix(&coord->coord);
+    gte_ldv0(localVelocity);
+    gte_rtv0();
+    gte_stsv(parentDisplacement);
+    coord->coord.t[0]  += work->pos.vx;
+    coord->coord.t[1]  += work->pos.vy;
+    coord->coord.t[2]  += work->pos.vz;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+void effectDeathFlameTask(Task* task)
+{
+    enum {
+        EFFECT_DEATH_FLAME_CREEPING               = 1,
+        EFFECT_DEATH_FLAME_DYING                  = 2,
+        EFFECT_DEATH_FLAME_BRIGHTNESS_MASK        = 15,
+        EFFECT_DEATH_FLAME_BRIGHTNESS_BASE        = 8,
+        EFFECT_DEATH_FLAME_HEIGHT_TUNING_SHIFT    = 4,
+        EFFECT_DEATH_FLAME_HEIGHT_JITTER_MASK     = 127,
+        EFFECT_DEATH_FLAME_RADIUS_BASE            = 192,
+        EFFECT_DEATH_FLAME_RADIUS_PER_TUNING      = 24,
+        EFFECT_DEATH_FLAME_HEADING_MASK           = 0xFF0,
+        EFFECT_DEATH_FLAME_CREEP_SEED_MASK        = 31,
+        EFFECT_DEATH_FLAME_CREEP_RANGE_PER_TUNING = 3,
+        EFFECT_DEATH_FLAME_CREEP_BASE             = 7,
+        EFFECT_DEATH_FLAME_DIE_START_TICK         = 129,
+        EFFECT_DEATH_FLAME_HEIGHT_STEP            = 2,
+        EFFECT_DEATH_FLAME_RADIUS_STEP            = 2,
+        EFFECT_DEATH_FLAME_WISP_PERIOD_BITS       = 0x3000,
+    };
+    EffectWork* work;
+    GfxCoord*   coord;
+    s16         effectControl;
+    s32         flameTuning;
+
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+        effectKillTask(work, task);
         return;
     }
-    switch (arg0->state) {
-        case 0:
-            mem->age++;
+    switch (task->state) {
+        case EFFECT_DRAW_TASK_NEW:
+            // scale seeds heading/flicker; angle is brightness, period top Y, step base radius.
+            work->age++;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            mem->scale      = gRandomLcgState >> 16;
-            mem->angle      = (mem->scale & 0xF) + 8;
+            work->scale     = gRandomLcgState >> 16;
+            work->angle     = (work->scale & EFFECT_DEATH_FLAME_BRIGHTNESS_MASK) + EFFECT_DEATH_FLAME_BRIGHTNESS_BASE;
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            temp            = arg0->spawnArg1.value;
-            mem->period     = -(temp << 4) - ((gRandomLcgState >> 16) & 0x7F);
-            mem->step       = arg0->spawnArg1.value * 24 + 0xC0;
-            gfxRotMatrixY(&coord->coord, mem->scale & 0xFF0, 1);
+            flameTuning     = task->spawnArg1.value;
+            work->period    = -(flameTuning << EFFECT_DEATH_FLAME_HEIGHT_TUNING_SHIFT) - ((gRandomLcgState >> 16) & EFFECT_DEATH_FLAME_HEIGHT_JITTER_MASK);
+            work->step      = task->spawnArg1.value * EFFECT_DEATH_FLAME_RADIUS_PER_TUNING + EFFECT_DEATH_FLAME_RADIUS_BASE;
+            gfxRotMatrixY(&coord->coord, work->scale & EFFECT_DEATH_FLAME_HEADING_MASK, GRAPHICS_ROTATION_REPLACE);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(coord);
-            arg0->state = 1;
-            mem->move.vz =
-                (mem->scale & 0x1F) % (arg0->spawnArg1.value * 3) + 7;
-            _effectDrawDeathFlame(arg0);
-            effectSpawn(EFFECT_RISING_WISP, coord, mem->step * 3 + 0x3000, 0);
+            task->state = EFFECT_DEATH_FLAME_CREEPING;
+            work->move.vz =
+                (work->scale & EFFECT_DEATH_FLAME_CREEP_SEED_MASK) % (task->spawnArg1.value * EFFECT_DEATH_FLAME_CREEP_RANGE_PER_TUNING) + EFFECT_DEATH_FLAME_CREEP_BASE;
+            _effectDrawDeathFlame(task);
+            effectSpawn(EFFECT_RISING_WISP, coord, work->step * 3 + EFFECT_DEATH_FLAME_WISP_PERIOD_BITS, NULL);
             return;
-        case 1:
+        case EFFECT_DEATH_FLAME_CREEPING:
+            // Actor pause freezes movement and age while preserving the visible flame.
             if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
                 actorRenderComposeCoord(coord);
-                mem->age++;
-                if (mem->move.vz != 0) {
-                    in            = &mem->move;
-                    out           = &mem->pos;
-                    mem->move.vz -= (mem->age & 3) / 3;
-                    gte_SetRotMatrix(&coord->coord);
-                    gte_ldv0(in);
-                    gte_rtv0();
-                    gte_stsv(out);
-                    coord->coord.t[0]  += mem->pos.vx;
-                    coord->coord.t[1]  += mem->pos.vy;
-                    coord->coord.t[2]  += mem->pos.vz;
-                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+                work->age++;
+                if (work->move.vz != 0) {
+                    _effectStepDeathFlameCreep(coord, work);
                 }
-                if (mem->age >= 0x81) {
-                    arg0->state = 2;
+                if (work->age >= EFFECT_DEATH_FLAME_DIE_START_TICK) {
+                    task->state = EFFECT_DEATH_FLAME_DYING;
                 }
             }
             break;
-        case 2:
+        case EFFECT_DEATH_FLAME_DYING:
             if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_PAUSED) {
                 actorRenderComposeCoord(coord);
-                mem->age++;
-                mem->angle  -= mem->age & 1;
-                mem->period += 2;
-                mem->step   += 2;
-                if (mem->angle <= 0 || mem->period >= 0) {
-                    effectKillTask(mem, arg0);
+                work->age++;
+                work->angle  -= work->age & 1;
+                work->period += EFFECT_DEATH_FLAME_HEIGHT_STEP;
+                work->step   += EFFECT_DEATH_FLAME_RADIUS_STEP;
+                if (work->angle <= 0 || work->period >= 0) {
+                    effectKillTask(work, task);
                     return;
                 }
             }
@@ -3472,7 +3618,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
         default:
             return;
     }
-    _effectDrawDeathFlame(arg0);
+    _effectDrawDeathFlame(task);
 }
 
 /// Draws the death flame as six additive side quads and two top quads.
@@ -3876,9 +4022,11 @@ static const TaskFuncTable4 Gp_PlayerWorkStates = { {
 
 /// Chooses one hit-blast offset, consuming three successive shared random draws.
 ///
-/// Requires writable work and a positive signed-halfword range. X/Z are centred
-/// by offsetHalfRange; Y remains in 0..range-1, in parent-coordinate units.
-/// Only XYZ are written, each narrowed to s16; vector metadata stays intact.
+/// Requires writable work and offsetRange in 1..32767. Before s16 narrowing,
+/// X/Z span -offsetHalfRange..offsetRange-1-offsetHalfRange; Y is 0..offsetRange-1,
+/// in parent-coordinate units. Advances the shared LCG once per component;
+/// each draw uses its unsigned upper halfword before signed remainder.
+/// Writes only work->move XYZ, each narrowed to s16; vector metadata stays intact.
 static inline void _effectChooseHitBlastOffset(EffectWork* work, s16 offsetRange, s16 offsetHalfRange)
 {
     gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -3982,43 +4130,50 @@ void effectControlTask7F(Task* task)
     work->age++;
 }
 
-void Gp_EffCtlTaskE3(Task* arg0)
+void effectHitSmokeEmitterTask(Task* task)
 {
-    EffectWork* mem;
+    enum {
+        EFFECT_HIT_SMOKE_DURATION_SHIFT = 2,
+        // Smoke: size 1024 plus a quarter of the source size, one tick per cell,
+        // view-space drift/rise mode 2 and additive blending.
+        EFFECT_HIT_SMOKE_ARGUMENT_BASE = 0x80021400,
+    };
+    EffectWork* work;
     GfxCoord*   coord;
-    s16         flag;
-    s32         temp;
+    s16         effectControl;
+    s32         durationUnits;
 
-    mem   = arg0->spawnArg2.pointer;
-    flag  = gRoomEffectState->effectControl;
-    coord = arg0->extra.coordBody->coord;
-    if (flag >= ROOM_EFFECT_CONTROL_HIDDEN) {
-        if (flag < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
+    work          = task->spawnArg2.pointer;
+    effectControl = gRoomEffectState->effectControl;
+    coord         = task->extra.coordBody->coord;
+    if (effectControl >= ROOM_EFFECT_CONTROL_HIDDEN) {
+        if (effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
             return;
         }
-        effectKillTask(mem, arg0);
+        effectKillTask(work, task);
     } else {
-        if (arg0->state == 0) {
-            coord->parent       = mem->parent;
-            coord->coord.t[0]   = mem->pos.vx;
-            coord->coord.t[1]   = mem->pos.vy;
-            coord->coord.t[2]   = mem->pos.vz;
+        if (task->state == EFFECT_DRAW_TASK_NEW) {
+            coord->parent       = work->parent;
+            coord->coord.t[0]   = work->pos.vx;
+            coord->coord.t[1]   = work->pos.vy;
+            coord->coord.t[2]   = work->pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            arg0->state         = 1;
-            mem->scale          = arg0->spawnArg1.halves.low;
-            temp                = arg0->spawnArg1.halves.high;
-            mem->angle          = temp;
-            mem->period         = temp << 2;
+            task->state         = EFFECT_DRAW_TASK_ACTIVE;
+            work->scale         = task->spawnArg1.halves.low;
+            durationUnits       = task->spawnArg1.halves.high;
+            work->angle         = durationUnits;
+            work->period        = durationUnits << EFFECT_HIT_SMOKE_DURATION_SHIFT;
         }
         actorRenderComposeCoord(coord);
         if (gRoomEffectState->effectControl != ROOM_EFFECT_CONTROL_RUNNING) {
             return;
         }
-        mem->age++;
-        if (mem->age >= mem->period) {
-            effectKillTask(mem, arg0);
+        // Age advances before emission, so a positive duration emits one fewer puff than its tick count.
+        work->age++;
+        if (work->age >= work->period) {
+            effectKillTask(work, task);
         } else {
-            effectSpawn(EFFECT_SMOKE_PUFF, coord, (mem->scale >> 2) + 0x80021400, &mem->move);
+            effectSpawn(EFFECT_SMOKE_PUFF, coord, (work->scale >> 2) + EFFECT_HIT_SMOKE_ARGUMENT_BASE, &work->move);
         }
     }
 }
