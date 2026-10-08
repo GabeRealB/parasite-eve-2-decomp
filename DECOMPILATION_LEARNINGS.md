@@ -70109,7 +70109,7 @@ source order fixes the `sw 0x54` position).
 
 ### A three-term `|` with a constant: the written order decides which term the constant joins
 
-`func_actor_503500_80132778` packs `effectSpawn`'s third argument from two
+`_actor503500DriftSpriteEmitterTask` packs `effectSpawn`'s third argument from two
 masked fields and a constant. The target computes `(f0 & 0xFFF) | 0x3800000`
 into `$a2`, `f4 & 0xF000` into `$v0`, then `or $a2, $v0, $a2`. The three
 spellings of the same value allocate differently:
@@ -70140,7 +70140,7 @@ and N in `$v1`, which is 100%. The non-inline sibling `actor503500EnterPartLostS
 
 ## `&local` in a callee-saved register, set *after* the other call args: assign the pointer after the call
 
-`func_actor_503500_80138C08` wants `addiu a0,s3,0x280` (in the `beqz` delay
+`_actor503500LargeChainStepShoot` wants `addiu a0,s3,0x280` (in the `beqz` delay
 slot), then `addiu s0,sp,0x20; move a1,s0; jal`, with `s0` later walking the
 matrix in a copy loop. Writing `p = &m; f(&coord[8], p, &pos);` gets the
 register right but puts `addiu s0` first: combine folds `coord+0x280` into the
@@ -70149,10 +70149,11 @@ original order (`rank_for_schedule` falls back to `INSN_LUID`). Passing the
 address directly and assigning the pointer afterwards matches:
 
 ```c
-gfxComposeNodeWorldTransform(&coord[8], &m, &pos);
-src = (s32*)&m;          /* CSE reuses the a1 temp, now set after a0 */
+gfxComposeNodeWorldTransform(&chainCoords[ACTOR_503500_LARGE_CHAIN_TIP_PART], &worldMatrix, &position);
+sourceWords = (const s32*)worldMatrix.m; /* CSE reuses the a1 temp, now set after a0 */
 ...
-for (i = 0; i < 4; i++) *out++ = *src++;
+for (wordIndex = 0; wordIndex < (s32)(sizeof(worldMatrix.m) / sizeof(*sourceWords)); wordIndex++)
+    *destinationWords++ = *sourceWords++;
 ```
 
 The same function also shows why that pointer won `s0` over the work pointer:

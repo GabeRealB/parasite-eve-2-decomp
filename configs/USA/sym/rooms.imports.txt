@@ -504,7 +504,7 @@ actor460200TalkToSoldierA = 0x80132390; // type:func absolute:True owner=actor_4
 func_actor_450900_801327A8 = 0x801327A8; // type:func absolute:True owner=actor_450900
 actor450900HandleDepartureTrigger = 0x80132834; // type:func absolute:True owner=actor_450900
 D_actor_150400_80132D70 = 0x80132D70; // absolute:True owner=actor_150400
-func_actor_503500_80132F58 = 0x80132F58; // type:func absolute:True owner=actor_503500
+actor503500ClearFadeFromBlackHandle = 0x80132F58; // type:func absolute:True owner=actor_503500
 D_actor_150400_80133088 = 0x80133088; // absolute:True owner=actor_150400
 D_actor_151000_801334EC = 0x801334EC; // absolute:True owner=actor_151000
 D_actor_143900_80133560 = 0x80133560; // absolute:True owner=actor_143900

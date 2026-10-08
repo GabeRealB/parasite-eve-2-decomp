@@ -20,6 +20,7 @@
 #include "gameplay/attachment_state.h"
 #include "gameplay/attachments.h"
 #include "gameplay/collision.h"
+#include "gameplay/display.h"
 #include "gameplay/damage.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
@@ -58,6 +59,23 @@
 #include "../../shared/bezier_curve.h"
 
 /// Scratchpad stack pointer, initialised by GameMain (see src/main/gamemain.c).
+
+/// Boss animation presets and the attachment shared by its orange-flash sequences.
+///
+/// Presets are table indices; the flash delay uses actor-updating ticks.
+enum {
+    ACTOR_503500_ORANGE_FLASH_TASK                = 4,
+    ACTOR_503500_ORANGE_FLASH_PARENT_PART         = 3,
+    ACTOR_503500_ORANGE_FLASH_ANIMATION_WINDUP    = 4,
+    ACTOR_503500_ORANGE_FLASH_ANIMATION_CHARGE    = 5,
+    ACTOR_503500_ORANGE_FLASH_ANIMATION_STRIKE    = 6,
+    ACTOR_503500_ORANGE_FLASH_ANIMATION_RECOVER   = 7,
+    ACTOR_503500_ORANGE_FLASH_ANIMATION_FINISH    = 8,
+    ACTOR_503500_ORANGE_FLASH_CHARGE_FRAMES       = 90,
+    ACTOR_503500_ORANGE_FLASH_STRIKE_FRAMES       = 51,
+    ACTOR_503500_ORANGE_FLASH_TARGET_REMOVE_DELAY = 14,
+    ACTOR_503500_BOSS_IDLE_ANIMATION              = 0,
+};
 
 /// Phases and bearing limits used by the boss's slot attack callbacks.
 ///
@@ -259,15 +277,15 @@ extern u16 D_actor_503500_80176D64[];
 /// `Gp_StateC08.mode` is 1 while the attachment wheel is open.
 /// Main-executable flag byte cleared when the boss enters `ACTOR_503500_STATE_PART_LOST`; also written
 /// by `mist_r18`, which has no module header for it either. Declared as an
-/// array: `func_actor_503500_801345F4` needs the in-struct store, which keeps
+/// array: `_actor503500StepPhaseTransitionState` needs the in-struct store, which keeps
 /// the preceding `scriptedEffectTask` store ordered before it.
 static s32  _actor503500CheckPartLossProgress(Task* task);
 static void _actor503500ScheduleTargetable(Task* task, s8 targetable, s16 delayFrames);
 static void _actor503500StepAttackState(Task* task);
 static void _actor503500StepDefeatedState(Task* task);
-static void func_actor_503500_801345F4(Task* arg0);
+static void _actor503500StepPhaseTransitionState(Task* task);
 static void _actor503500StepCollapseState(Task* task);
-static void func_actor_503500_80134C68(Task* arg0);
+static void _actor503500StepOrangeFlashAttack(Task* task);
 static s32  _actor503500IsSlotAtRest(Actor503500Work* work, s32 slot);
 static s32  _actor503500AttackPositiveSideChain(Task* task, Actor503500Work* work);
 static s32  _actor503500AttackNegativeSideChain(Task* task, Actor503500Work* work);
@@ -279,7 +297,7 @@ static void _actor503500StepPartLostState(Task* task);
 static void _actor503500StepHeldState(Task* unusedTask);
 static void _actor503500UpdateBodyCollisionGrid(Task* task, s32 initializeFaces, s32 moveAway);
 static void _actor503500EnterCombatState(Task* task, s32 state);
-static void func_actor_503500_801374BC(Task* arg0);
+static void _actor503500PinkFlashEmitterStepAttack(Task* task);
 static void _actor503500LargeChainHandleReactions(Task* task);
 static void _actor503500LargeChainLayoutLinks(Task* task);
 static void func_actor_503500_8013A96C(Task* arg0);
@@ -317,7 +335,7 @@ static void _actor503500PinkFlashEmitterClearReactions(Task* task);
 static void func_actor_503500_801383D0(Task* arg0);
 static void _actor503500LargeChainEnterState(Task* task, s32 state);
 static void _actor503500LargeChainStepIdle(Task* task);
-static void func_actor_503500_80138C08(Task* arg0);
+static void _actor503500LargeChainStepShoot(Task* task);
 static void _actor503500LargeChainStepSplitting(Task* task);
 static void _actor503500LargeChainPlaceLinks(const SVECTOR* points, GfxCoord* coordinates, s32 pulsePhase);
 static void _actor503500SetBossTrackRates(Task* task, s32 rate);
@@ -1199,102 +1217,126 @@ static void _actor503500StepDefeatedState(Task* task)
     }
 }
 
-/// Seven-step state of the boss block. Step 0 applies preset 0x13 and clears
-/// `scriptedEffectTask`; step 1 sprays 0x60055 effects for 0x78 frames (one from the
-/// frame count, one from `gRandomLcgState`), plays 0x40230012, and at frame 0x97
-/// spawns the attached effect task into `scriptedEffectTask`. Step 2 waits for
-/// `rootCoordRestored`, kills that task and spawns a fresh one; steps 3..6 walk
-/// presets 6, 7 and 8 and finally return the boss to `ACTOR_503500_STATE_IDLE`.
-static void func_actor_503500_801345F4(Task* arg0)
+/// Spawns and attaches an orange flash to the boss's emitting part.
+///
+/// Requires a live boss model with part 3; chargeFrames is evaluated once and
+/// counts updating ticks. Captures task, flashTask and flashCoord; leaves NULL
+/// in flashTask on failure. The coordinate borrows its parent without joining
+/// the boss's task tree. Expands to multiple statements; use in a braced block.
+#define ACTOR_503500_SPAWN_ATTACHED_ORANGE_FLASH(chargeFrames)                                                     \
+    flashTask = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_ORANGE_FLASH_TASK, (chargeFrames), task); \
+    if (flashTask != NULL) {                                                                                       \
+        flashCoord             = flashTask->extra.coordBody->coord;                                                \
+        flashCoord->parent     = &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART];                  \
+        flashCoord->coord.t[0] = D_actor_503500_8016EC50.vx;                                                       \
+        flashCoord->coord.t[1] = D_actor_503500_8016EC50.vy;                                                       \
+        flashCoord->coord.t[2] = D_actor_503500_8016EC50.vz;                                                       \
+    }
+
+/// Runs the boss's phase-transition spray, held flash and return to combat.
+///
+/// Requires initialized boss work, model part 3 and the room's phase-transition
+/// script. The script saves/repositions the root and restores it with command 5;
+/// this handler waits for that restoration before replacing its first orange
+/// flash with a 90-tick charge. Spawn failures still advance the sequence.
+/// The first flash is borrowed through `scriptedEffectTask`; its exit callback
+/// must be installed before restoration. Animation completion returns to idle
+/// and restores the ordinary ordering-table depth scale.
+static void _actor503500StepPhaseTransitionState(Task* task)
 {
+    enum {
+        ACTOR_503500_PHASE_STEP_BEGIN                = 0,
+        ACTOR_503500_PHASE_STEP_SPRAY                = 1,
+        ACTOR_503500_PHASE_STEP_WAIT_ROOT            = 2,
+        ACTOR_503500_PHASE_STEP_CHARGE               = 3,
+        ACTOR_503500_PHASE_STEP_STRIKE               = 4,
+        ACTOR_503500_PHASE_STEP_RECOVER              = 5,
+        ACTOR_503500_PHASE_STEP_FINISH               = 6,
+        ACTOR_503500_PHASE_ANIMATION_BEGIN           = 19,
+        ACTOR_503500_PHASE_PUFF_FRAMES               = 120,
+        ACTOR_503500_PHASE_SOUND                     = 0x12,
+        ACTOR_503500_PHASE_SOUND_START_FRAME         = 2,
+        ACTOR_503500_PHASE_SOUND_FADE_FRAMES         = 60,
+        ACTOR_503500_PHASE_FLASH_SPAWN_FRAME         = 151,
+        ACTOR_503500_PHASE_FIRST_FLASH_CHARGE_FRAMES = 100,
+        ACTOR_503500_PHASE_PUFF_SPAWN_ARG            = (0x01000000 | 0x1000 | 0x800), // Scaled direction, size 2048, one tick per cell
+    };
     Actor503500Work* work;
-    GfxCoord*        coord;
-    Task*            task;
+    GfxCoord*        flashCoord;
+    Task*            flashTask;
     s32              pan;
 
-    work = arg0->work;
+    work = task->work;
     switch ((s8)work->stateStep) {
-        case 0:
-            actor503500PlayAnimationPreset(arg0, 0x13, 0x10);
-            actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
+        case ACTOR_503500_PHASE_STEP_BEGIN:
+            actor503500PlayAnimationPreset(task, ACTOR_503500_PHASE_ANIMATION_BEGIN, ANIMATION_RATE_ONE);
+            actor503500ReleaseSlotEffects(task->spawnArg1.value);
             work->scriptedEffectTask = NULL;
             work->stateStep          = work->stateStep + 1;
             break;
-        case 1:
-            if (work->stateFrames < 0x78) {
-                effectSpawn(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
-                            &D_actor_503500_8016EF58[(s16)(work->stateFrames % 7)]);
+        case ACTOR_503500_PHASE_STEP_SPRAY:
+            // Spray cyclic and random directions while the room scene repositions the boss.
+            if (work->stateFrames < ACTOR_503500_PHASE_PUFF_FRAMES) {
+                effectSpawn(EFFECT_HIT_PUFF, &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART], ACTOR_503500_PHASE_PUFF_SPAWN_ARG,
+                            &D_actor_503500_8016EF58[(s16)(work->stateFrames % (s32)ARRAY_SIZE(D_actor_503500_8016EF58))]);
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                effectSpawn(EFFECT_HIT_PUFF, &arg0->extra.tmd->coords[3], 0x01001800,
-                            &D_actor_503500_8016EF58[(u16)((gRandomLcgState >> 16) % 7)]);
+                effectSpawn(EFFECT_HIT_PUFF, &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART], ACTOR_503500_PHASE_PUFF_SPAWN_ARG,
+                            &D_actor_503500_8016EF58[(u16)((gRandomLcgState >> 16) % ARRAY_SIZE(D_actor_503500_8016EF58))]);
             }
-            if (work->stateFrames == 0x78) {
-                sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x12), 0x3C);
+            if (work->stateFrames == ACTOR_503500_PHASE_PUFF_FRAMES) {
+                sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_PHASE_SOUND), ACTOR_503500_PHASE_SOUND_FADE_FRAMES);
             }
-            if (work->stateFrames == 2) {
-                coord = &arg0->extra.tmd->coords[3];
-                pan   = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x12), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+            if (work->stateFrames == ACTOR_503500_PHASE_SOUND_START_FRAME) {
+                flashCoord = &task->extra.tmd->coords[ACTOR_503500_ORANGE_FLASH_PARENT_PART];
+                pan        = (s8)worldCoordGetOriginAudioPan(flashCoord);
+                sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_PHASE_SOUND), pan, (s8)(worldCoordGetOriginAudioDepth(flashCoord) / 2));
             }
-            if (++work->stateFrames >= 0x97) {
-                task = taskSpawnFromTable(D_actor_503500_8016E9F0, 4, 0x64, arg0);
-                if (task != NULL) {
-                    coord             = task->extra.tmd->coords;
-                    coord->parent     = &arg0->extra.tmd->coords[3];
-                    coord->coord.t[0] = D_actor_503500_8016EC50.vx;
-                    coord->coord.t[1] = D_actor_503500_8016EC50.vy;
-                    coord->coord.t[2] = D_actor_503500_8016EC50.vz;
-                }
-                work->scriptedEffectTask   = task;
+            if (++work->stateFrames >= ACTOR_503500_PHASE_FLASH_SPAWN_FRAME) {
+                ACTOR_503500_SPAWN_ATTACHED_ORANGE_FLASH(ACTOR_503500_PHASE_FIRST_FLASH_CHARGE_FRAMES);
+                work->scriptedEffectTask   = flashTask;
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_2X;
                 work->stateStep            = work->stateStep + 1;
             }
             break;
-        case 2:
+        case ACTOR_503500_PHASE_STEP_WAIT_ROOT:
+            // The restore-root command releases the held flash and resumes the attack sequence.
             if (work->rootCoordRestored != 0) {
-                task = work->scriptedEffectTask;
-                if (task != NULL) {
-                    task->exitCallback(task);
+                flashTask = work->scriptedEffectTask;
+                if (flashTask != NULL) {
+                    flashTask->exitCallback(flashTask);
                 }
-                actor503500PlayAnimationPreset(arg0, 5, 0x10);
-                task = taskSpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
-                if (task != NULL) {
-                    coord             = task->extra.tmd->coords;
-                    coord->parent     = &arg0->extra.tmd->coords[3];
-                    coord->coord.t[0] = D_actor_503500_8016EC50.vx;
-                    coord->coord.t[1] = D_actor_503500_8016EC50.vy;
-                    coord->coord.t[2] = D_actor_503500_8016EC50.vz;
-                }
-                _actor503500ScheduleTargetable(arg0, 1, 1);
+                actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_CHARGE, ANIMATION_RATE_ONE);
+                ACTOR_503500_SPAWN_ATTACHED_ORANGE_FLASH(ACTOR_503500_ORANGE_FLASH_CHARGE_FRAMES);
+                _actor503500ScheduleTargetable(task, 1, 1);
                 work->stateStep = work->stateStep + 1;
             }
             break;
-        case 3:
-            if (actor503500HasAnimationFinished(arg0, 5) != 0) {
-                actor503500PlayAnimationPreset(arg0, 6, 0x10);
+        case ACTOR_503500_PHASE_STEP_CHARGE:
+            if (actor503500HasAnimationFinished(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_CHARGE) != 0) {
+                actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_STRIKE, ANIMATION_RATE_ONE);
                 work->stateFrames = 0;
                 work->stateStep   = work->stateStep + 1;
             }
             break;
-        case 4:
-            if (++work->stateFrames >= 0x33) {
-                actor503500PlayAnimationPreset(arg0, 7, 0);
+        case ACTOR_503500_PHASE_STEP_STRIKE:
+            if (++work->stateFrames >= ACTOR_503500_ORANGE_FLASH_STRIKE_FRAMES) {
+                actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_RECOVER, 0);
                 work->stateStep = work->stateStep + 1;
             }
             break;
-        case 5:
-            if (actor503500HasAnimationFinished(arg0, 7) != 0) {
-                actor503500PlayAnimationPreset(arg0, 8, 0);
-                _actor503500ScheduleTargetable(arg0, 0, 0xE);
+        case ACTOR_503500_PHASE_STEP_RECOVER:
+            if (actor503500HasAnimationFinished(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_RECOVER) != 0) {
+                actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_FINISH, 0);
+                _actor503500ScheduleTargetable(task, 0, ACTOR_503500_ORANGE_FLASH_TARGET_REMOVE_DELAY);
                 work->stateStep = work->stateStep + 1;
             }
             break;
-        case 6:
-            if (actor503500HasAnimationFinished(arg0, 8) != 0) {
+        case ACTOR_503500_PHASE_STEP_FINISH:
+            if (actor503500HasAnimationFinished(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_FINISH) != 0) {
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
-                actor503500PlayAnimationPreset(arg0, 0, 0);
+                actor503500PlayAnimationPreset(task, ACTOR_503500_BOSS_IDLE_ANIMATION, 0);
                 work->targetYawOffset = 0;
-                _actor503500EnterCombatState(arg0, ACTOR_503500_STATE_IDLE);
+                _actor503500EnterCombatState(task, ACTOR_503500_STATE_IDLE);
             }
             break;
     }
@@ -1392,69 +1434,82 @@ static void _actor503500StepCollapseState(Task* task)
 #undef ACTOR_503500_BOSS_COPY_ROTATION
 }
 
-static void func_actor_503500_80134C68(Task* arg0)
+/// Advances the boss's slot-0 orange-flash attack alongside its main state.
+///
+/// Requires initialized boss work and model part 3. Part loss, stun or defeat
+/// clears the slot command immediately. Windup enables targeting after 75 ticks;
+/// a 90-tick orange flash is followed by strike and recovery animations.
+/// Spawn failure still advances. Completion clears the command and busy latch
+/// and restores idle animation and ordinary ordering-table depth.
+static void _actor503500StepOrangeFlashAttack(Task* task)
 {
+    enum {
+        ACTOR_503500_SELF_ATTACK_STEP_WINDUP        = 0,
+        ACTOR_503500_SELF_ATTACK_STEP_CHARGE        = 1,
+        ACTOR_503500_SELF_ATTACK_STEP_WAIT_CHARGE   = 2,
+        ACTOR_503500_SELF_ATTACK_STEP_STRIKE        = 3,
+        ACTOR_503500_SELF_ATTACK_STEP_RECOVER       = 4,
+        ACTOR_503500_SELF_ATTACK_STEP_FINISH        = 5,
+        ACTOR_503500_SELF_ATTACK_TARGET_DELAY       = 75,
+        ACTOR_503500_SELF_ATTACK_CHARGE_WAIT_FRAMES = 91,
+    };
     Actor503500Work* work;
-    Task*            task;
-    GfxCoord*        coord;
+    Task*            flashTask;
+    GfxCoord*        flashCoord;
 
-    work = arg0->work;
-    if ((u16)(work->state - ACTOR_503500_STATE_PART_LOST) < 3U) {
-        _actor503500CommandSlot(work, 0, ACTOR_503500_SLOT_COMMAND_NONE, 0);
+    work = task->work;
+    if ((u16)(work->state - ACTOR_503500_STATE_PART_LOST) < (u32)(ACTOR_503500_STATE_DEFEATED - ACTOR_503500_STATE_PART_LOST + 1)) {
+        _actor503500CommandSlot(work, ACTOR_503500_SLOT_BODY, ACTOR_503500_SLOT_COMMAND_NONE, 0);
         return;
     }
     switch (work->selfAttackPhase) {
-        case 0:
-            actor503500PlayAnimationPreset(arg0, 4, 0x10);
-            _actor503500ScheduleTargetable(arg0, 1, 0x4B);
+        case ACTOR_503500_SELF_ATTACK_STEP_WINDUP:
+            actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_WINDUP, ANIMATION_RATE_ONE);
+            _actor503500ScheduleTargetable(task, 1, ACTOR_503500_SELF_ATTACK_TARGET_DELAY);
             work->selfAttackPhase++;
             break;
-        case 1:
-            if (actor503500HasAnimationFinished(arg0, 4) != 0) {
-                actor503500PlayAnimationPreset(arg0, 5, 0x10);
-                task = taskSpawnFromTable(D_actor_503500_8016E9F0, 4, 0x5A, arg0);
-                if (task != NULL) {
-                    coord             = task->extra.tmd->coords;
-                    coord->parent     = &arg0->extra.tmd->coords[3];
-                    coord->coord.t[0] = D_actor_503500_8016EC50.vx;
-                    coord->coord.t[1] = D_actor_503500_8016EC50.vy;
-                    coord->coord.t[2] = D_actor_503500_8016EC50.vz;
-                }
+        case ACTOR_503500_SELF_ATTACK_STEP_CHARGE:
+            // Attach the orange flash to the boss and expand OT depth for its charge.
+            if (actor503500HasAnimationFinished(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_WINDUP) != 0) {
+                actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_CHARGE, ANIMATION_RATE_ONE);
+                ACTOR_503500_SPAWN_ATTACHED_ORANGE_FLASH(ACTOR_503500_ORANGE_FLASH_CHARGE_FRAMES);
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_2X;
                 work->selfAttackFrames     = 0;
                 work->selfAttackPhase++;
             }
             break;
-        case 2:
-            if (++work->selfAttackFrames >= 0x5B) {
-                actor503500PlayAnimationPreset(arg0, 6, 0x10);
+        case ACTOR_503500_SELF_ATTACK_STEP_WAIT_CHARGE:
+            if (++work->selfAttackFrames >= ACTOR_503500_SELF_ATTACK_CHARGE_WAIT_FRAMES) {
+                actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_STRIKE, ANIMATION_RATE_ONE);
                 work->selfAttackFrames = 0;
                 work->selfAttackPhase++;
             }
             break;
-        case 3:
-            if (++work->selfAttackFrames >= 0x33) {
-                actor503500PlayAnimationPreset(arg0, 7, 0);
+        case ACTOR_503500_SELF_ATTACK_STEP_STRIKE:
+            if (++work->selfAttackFrames >= ACTOR_503500_ORANGE_FLASH_STRIKE_FRAMES) {
+                actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_RECOVER, 0);
                 work->selfAttackPhase++;
             }
             break;
-        case 4:
-            if (actor503500HasAnimationFinished(arg0, 7) != 0) {
-                actor503500PlayAnimationPreset(arg0, 8, 0);
-                _actor503500ScheduleTargetable(arg0, 0, 0xE);
+        case ACTOR_503500_SELF_ATTACK_STEP_RECOVER:
+            if (actor503500HasAnimationFinished(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_RECOVER) != 0) {
+                actor503500PlayAnimationPreset(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_FINISH, 0);
+                _actor503500ScheduleTargetable(task, 0, ACTOR_503500_ORANGE_FLASH_TARGET_REMOVE_DELAY);
                 work->selfAttackPhase++;
             }
             break;
-        case 5:
-            if (actor503500HasAnimationFinished(arg0, 8) != 0) {
+        case ACTOR_503500_SELF_ATTACK_STEP_FINISH:
+            if (actor503500HasAnimationFinished(task, ACTOR_503500_ORANGE_FLASH_ANIMATION_FINISH) != 0) {
                 work->selfAttackCommand    = ACTOR_503500_SLOT_COMMAND_NONE;
                 gDisplayState.otDepthShift = DISPLAY_DEPTH_SHIFT_1X;
-                actor503500SetSlotBusy(arg0, 0, 0);
-                actor503500PlayAnimationPreset(arg0, 0, 0);
+                actor503500SetSlotBusy(task, ACTOR_503500_SLOT_BODY, 0);
+                actor503500PlayAnimationPreset(task, ACTOR_503500_BOSS_IDLE_ANIMATION, 0);
             }
             break;
     }
 }
+
+#undef ACTOR_503500_SPAWN_ATTACHED_ORANGE_FLASH
 
 /// Applies one unique player/companion attack contact to the boss while hits are enabled.
 ///
@@ -2307,14 +2362,14 @@ static void func_actor_503500_80136304(Task* arg0)
             _actor503500StepHeldState(arg0);
             break;
         case ACTOR_503500_STATE_SCRIPTED:
-            func_actor_503500_801345F4(arg0);
+            _actor503500StepPhaseTransitionState(arg0);
             break;
         case ACTOR_503500_STATE_COLLAPSE:
             _actor503500StepCollapseState(arg0);
             break;
     }
     if (work->selfAttackCommand != 0) {
-        func_actor_503500_80134C68(arg0);
+        _actor503500StepOrangeFlashAttack(arg0);
     }
 }
 
@@ -2997,56 +3052,69 @@ static void _actor503500PinkFlashEmitterInit(Task* task)
     task->state       += 1;
 }
 
-/// `ACTOR_503500_PINK_FLASH_EMITTER_STATE_ATTACK` step of the pink-flash
-/// emitter: step 0 starts animation 0xF on the parent, step 1 spawns the two
-/// pink-flash attack tasks hung off this task's coordinate, step 2 waits on
-/// the parent's animation 0xF and starts 0x10, step 3 counts
-/// `ACTOR_503500_PINK_FLASH_EMITTER_ATTACK_RECOVERY_FRAMES`. Leaves early once
-/// `_8013608C` reports the parent recoiling, stunned or defeated.
-static void func_actor_503500_801374BC(Task* arg0)
+/// Starts both sides of the pink-flash sweep, then waits through the boss's recovery.
+///
+/// Requires initialized emitter work, a live boss parent and emitter root.
+/// Child spawn argument 1 selects side 0 (negative sweep, owns the charge effect)
+/// or side 1 (positive sweep, collision enabled 21 ticks later). Both roots
+/// borrow the emitter coordinate; task parenting keeps it live until they exit.
+/// Failed sides are skipped independently. Boss interruption returns to idle
+/// and releases the slot reservation; normal recovery takes 71 updating ticks.
+static void _actor503500PinkFlashEmitterStepAttack(Task* task)
 {
+    enum {
+        ACTOR_503500_PINK_EMITTER_STEP_BEGIN          = 0,
+        ACTOR_503500_PINK_EMITTER_STEP_SPAWN          = 1,
+        ACTOR_503500_PINK_EMITTER_STEP_WAIT_ANIMATION = 2,
+        ACTOR_503500_PINK_EMITTER_STEP_RECOVER        = 3,
+        ACTOR_503500_PINK_EMITTER_ANIMATION_ATTACK    = 15,
+        ACTOR_503500_PINK_EMITTER_ANIMATION_RECOVER   = 16,
+        ACTOR_503500_PINK_FLASH_TASK                  = 2,
+        ACTOR_503500_PINK_FLASH_SIDE_COUNT            = 2,
+    };
     _Actor503500PinkFlashEmitterWork* work;
-    Task*                             task;
-    GfxCoord*                         coord;
-    s32                               i;
+    Task*                             attackTask;
+    GfxCoord*                         attackCoord;
+    s32                               side;
 
-    work = arg0->work;
-    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        _actor503500PinkFlashEmitterEnterState(arg0, ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE);
-        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
+    work = task->work;
+    if (actor503500ShouldInterruptAttack(task->parent) != 0) {
+        _actor503500PinkFlashEmitterEnterState(task, ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE);
+        actor503500ReleaseSlotEffects(task->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
-        case 0:
-            actor503500PlayAnimationPreset(arg0->parent, 0xF, 0x10);
+        case ACTOR_503500_PINK_EMITTER_STEP_BEGIN:
+            actor503500PlayAnimationPreset(task->parent, ACTOR_503500_PINK_EMITTER_ANIMATION_ATTACK, ANIMATION_RATE_ONE);
             work->stateStep++;
             break;
-        case 1:
+        case ACTOR_503500_PINK_EMITTER_STEP_SPAWN:
             if (++work->stateFrames > 0) {
-                for (i = 0; i < 2; i++) {
-                    task = taskSpawnFromTable(D_actor_503500_8016E9F0, 2, i, 0);
-                    if (task != NULL) {
-                        coord             = task->extra.tmd->coords;
-                        coord->parent     = arg0->extra.tmd->coords;
-                        coord->coord.t[0] = D_actor_503500_8016F070.vx;
-                        coord->coord.t[1] = D_actor_503500_8016F070.vy;
-                        coord->coord.t[2] = D_actor_503500_8016F070.vz;
-                        taskReparent(arg0, task);
+                // Each side owns its capsule; side zero also owns the shared charge effect.
+                for (side = 0; side < ACTOR_503500_PINK_FLASH_SIDE_COUNT; side++) {
+                    attackTask = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_PINK_FLASH_TASK, side, 0);
+                    if (attackTask != NULL) {
+                        attackCoord             = attackTask->extra.coordBody->coord;
+                        attackCoord->parent     = task->extra.tmd->coords;
+                        attackCoord->coord.t[0] = D_actor_503500_8016F070.vx;
+                        attackCoord->coord.t[1] = D_actor_503500_8016F070.vy;
+                        attackCoord->coord.t[2] = D_actor_503500_8016F070.vz;
+                        taskReparent(task, attackTask);
                     }
                 }
                 work->stateFrames = 0;
                 work->stateStep++;
             }
             break;
-        case 2:
-            if (actor503500HasAnimationFinished(arg0->parent, 0xF) != 0) {
-                actor503500PlayAnimationPreset(arg0->parent, 0x10, 0x10);
+        case ACTOR_503500_PINK_EMITTER_STEP_WAIT_ANIMATION:
+            if (actor503500HasAnimationFinished(task->parent, ACTOR_503500_PINK_EMITTER_ANIMATION_ATTACK) != 0) {
+                actor503500PlayAnimationPreset(task->parent, ACTOR_503500_PINK_EMITTER_ANIMATION_RECOVER, ANIMATION_RATE_ONE);
                 work->stateStep++;
             }
             break;
-        case 3:
+        case ACTOR_503500_PINK_EMITTER_STEP_RECOVER:
             if (++work->stateFrames >= ACTOR_503500_PINK_FLASH_EMITTER_ATTACK_RECOVERY_FRAMES) {
-                _actor503500PinkFlashEmitterEnterState(arg0, ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE);
+                _actor503500PinkFlashEmitterEnterState(task, ACTOR_503500_PINK_FLASH_EMITTER_STATE_IDLE);
             }
             break;
     }
@@ -3466,7 +3534,7 @@ static void func_actor_503500_801383D0(Task* arg0)
             _actor503500PinkFlashEmitterStepIdle(arg0);
             break;
         case ACTOR_503500_PINK_FLASH_EMITTER_STATE_ATTACK:
-            func_actor_503500_801374BC(arg0);
+            _actor503500PinkFlashEmitterStepAttack(arg0);
             break;
         case ACTOR_503500_PINK_FLASH_EMITTER_STATE_DYING:
             _actor503500PinkFlashEmitterStepDying(arg0);
@@ -3719,101 +3787,130 @@ static void _actor503500LargeChainStepIdle(Task* task)
     work->tipOrbitAngles.vz += ACTOR_503500_LARGE_CHAIN_ORBIT_STEP_Z;
 }
 
-/// Shot step of a large chain. It asks the boss for animation preset 0x11,
-/// then keeps `tipTarget` 1000 units above the player, in the frame of the
-/// boss part the root hangs from, until `tipArrived`; ninety frames without
-/// arriving end the shot. Once `stateFrames`, which that wait has been
-/// counting, passes ten, and if the tip's `linkPoints` entry is within 3000 of
-/// the player on the ground plane, it spawns entry 0 of
-/// `D_actor_503500_8016E9F0` 0x640 along the tip's Z axis, launched at 3000
-/// times that distance in 16.16. Eleven frames later the chain idles again. A
-/// boss that has lost a part, is stunned or is defeated ends the shot at once.
-static void func_actor_503500_80138C08(Task* arg0)
+/// Aims the large-chain tip above the player and fires a ballistic shot from it.
+///
+/// Requires initialized chain work, nine model coordinates, a live boss parent
+/// and player world matrix. Target Y is 1000 game units above the player, in
+/// the root attachment frame. Arrival advances to firing; 91 aim ticks abort.
+/// The firing gate uses the accumulated aim count, then adds a tick: it is not
+/// a fresh 11-tick wait. A ground-plane distance below 3000 spawns an independent
+/// shot 1600 units along tip Z with signed 16.16 speed `distance * 3000`.
+/// Spawn failure still enters the 11-tick recovery. Boss interruption returns
+/// to idle and releases the slot reservation. Halfword coordinate narrowing is retained.
+static void _actor503500LargeChainStepShoot(Task* task)
 {
-    SVECTOR                     pos;
-    SVECTOR                     ofs;
-    MATRIX                      m;
-    MATRIX                      rot;
-    MATRIX*                     mat;
+    enum {
+        ACTOR_503500_CHAIN_SHOOT_STEP_BEGIN         = 0,
+        ACTOR_503500_CHAIN_SHOOT_STEP_AIM           = 1,
+        ACTOR_503500_CHAIN_SHOOT_STEP_FIRE          = 2,
+        ACTOR_503500_CHAIN_SHOOT_STEP_RECOVER       = 3,
+        ACTOR_503500_CHAIN_SHOOT_ANIMATION          = 17,
+        ACTOR_503500_CHAIN_SHOOT_TIMEOUT_FRAMES     = 91,
+        ACTOR_503500_CHAIN_SHOOT_FIRE_MIN_FRAME     = 11,
+        ACTOR_503500_CHAIN_SHOOT_RECOVERY_FRAMES    = 11,
+        ACTOR_503500_CHAIN_SHOOT_TARGET_HEIGHT      = 1000,
+        ACTOR_503500_CHAIN_SHOOT_RANGE              = 3000,
+        ACTOR_503500_CHAIN_SHOOT_SPEED_PER_DISTANCE = 3000, // Signed 16.16 velocity per integer distance unit
+        ACTOR_503500_CHAIN_SHOOT_MUZZLE_OFFSET      = 1600,
+        ACTOR_503500_CHAIN_SHOOT_BALLISTIC_TASK     = 0,
+    };
+    SVECTOR                     position;
+    SVECTOR                     offset;
+    MATRIX                      worldMatrix;
+    MATRIX                      attachmentInverse;
+    MATRIX*                     attachmentMatrix;
     _Actor503500LargeChainWork* work;
-    GfxCoord*                   coord;
-    GfxCoord*                   dst;
-    Task*                       task;
-    s32*                        src;
-    s32*                        out;
-    s32                         dist;
-    s32                         i;
+    GfxCoord*                   chainCoords;
+    GfxCoord*                   shotCoord;
+    Task*                       shotTask;
+    const s32*                  sourceWords;
+    s32*                        destinationWords;
+    s32                         playerDistance;
+    s32                         wordIndex;
 
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        _actor503500LargeChainEnterState(arg0, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
-        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
+    /// Places the ballistic shot beyond the chain tip and copies its Q12 rotation.
+    ///
+    /// Requires the live chain tip and spawned coordinate-body shot. Captures
+    /// chainCoords, shotTask, shotCoord, worldMatrix, position, offset, sourceWords,
+    /// destinationWords and wordIndex. Reuses the aim scratch; the word view
+    /// transfers exactly 18 rotation bytes and preserves alignment and translation.
+    /// Expands to multiple statements; invoke once inside a braced block.
+#define ACTOR_503500_LARGE_CHAIN_PLACE_SHOT()                                                               \
+    gfxComposeNodeWorldTransform(&chainCoords[ACTOR_503500_LARGE_CHAIN_TIP_PART], &worldMatrix, &position); \
+    sourceWords = (const s32*)worldMatrix.m;                                                                \
+    shotCoord   = shotTask->extra.coordBody->coord;                                                         \
+    offset.vx   = 0;                                                                                        \
+    offset.vy   = 0;                                                                                        \
+    offset.vz   = ACTOR_503500_CHAIN_SHOOT_MUZZLE_OFFSET;                                                   \
+    gte_SetRotMatrix(sourceWords);                                                                          \
+    gte_ldv0(&offset);                                                                                      \
+    gte_rtv0();                                                                                             \
+    gte_stsv(&offset);                                                                                      \
+    shotCoord->coord.t[0] = position.vx + offset.vx;                                                        \
+    shotCoord->coord.t[1] = position.vy + offset.vy;                                                        \
+    shotCoord->coord.t[2] = position.vz + offset.vz;                                                        \
+    destinationWords      = (s32*)shotCoord->coord.m;                                                       \
+    for (wordIndex = 0; wordIndex < (s32)(sizeof(worldMatrix.m) / sizeof(*sourceWords)); wordIndex++) {     \
+        *destinationWords++ = *sourceWords++;                                                               \
+    }                                                                                                       \
+    shotCoord->coord.m[2][2] = worldMatrix.m[2][2];
+
+    work        = task->work;
+    chainCoords = task->extra.tmd->coords;
+    if (actor503500ShouldInterruptAttack(task->parent) != 0) {
+        _actor503500LargeChainEnterState(task, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
+        actor503500ReleaseSlotEffects(task->spawnArg1.value);
         return;
     }
     switch (work->stateStep) {
-        case 0:
+        case ACTOR_503500_CHAIN_SHOOT_STEP_BEGIN:
             work->tipArrived = 0;
-            actor503500PlayAnimationPreset(arg0->parent, 0x11, 0x10);
+            actor503500PlayAnimationPreset(task->parent, ACTOR_503500_CHAIN_SHOOT_ANIMATION, ANIMATION_RATE_ONE);
             work->stateStep++;
-        case 1:
+            // Fall through to track the player on the first shot tick.
+        case ACTOR_503500_CHAIN_SHOOT_STEP_AIM:
             if (work->tipArrived != 0) {
                 work->stateStep++;
                 return;
             }
-            if (++work->stateFrames >= 0x5B) {
-                _actor503500LargeChainEnterState(arg0, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
+            if (++work->stateFrames >= ACTOR_503500_CHAIN_SHOOT_TIMEOUT_FRAMES) {
+                _actor503500LargeChainEnterState(task, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
                 return;
             }
-            mat = &m;
-            gfxComposeNodeWorldTransform(coord->parent, mat, &ofs);
-            pos.vx = gPlayerStatus.coordMtx->t[0] - ofs.vx;
-            pos.vy = gPlayerStatus.coordMtx->t[1] - ofs.vy - 1000;
-            pos.vz = gPlayerStatus.coordMtx->t[2] - ofs.vz;
-            gte_TransposeMatrix(mat, &rot);
-            gte_SetRotMatrix(&rot);
-            gte_ldv0(&pos);
+            // Convert the elevated player position from world into the attachment frame.
+            attachmentMatrix = &worldMatrix;
+            gfxComposeNodeWorldTransform(chainCoords->parent, attachmentMatrix, &offset);
+            position.vx = gPlayerStatus.coordMtx->t[0] - offset.vx;
+            position.vy = gPlayerStatus.coordMtx->t[1] - offset.vy - ACTOR_503500_CHAIN_SHOOT_TARGET_HEIGHT;
+            position.vz = gPlayerStatus.coordMtx->t[2] - offset.vz;
+            gte_TransposeMatrix(attachmentMatrix, &attachmentInverse);
+            gte_SetRotMatrix(&attachmentInverse);
+            gte_ldv0(&position);
             gte_rtv0();
             gte_stsv(&work->tipTarget);
             break;
-        case 2:
-            if (++work->stateFrames >= 0xB) {
-                pos.vx = gPlayerStatus.coordMtx->t[0] - work->linkPoints[ACTOR_503500_LARGE_CHAIN_TIP_PART].vx;
-                pos.vz = gPlayerStatus.coordMtx->t[2] - work->linkPoints[ACTOR_503500_LARGE_CHAIN_TIP_PART].vz;
-                dist   = SquareRoot0(pos.vx * pos.vx + pos.vz * pos.vz);
-                if (dist < 3000) {
-                    task = taskSpawnFromTable(D_actor_503500_8016E9F0, 0, 0, dist * 3000);
-                    if (task != NULL) {
-                        gfxComposeNodeWorldTransform(&coord[ACTOR_503500_LARGE_CHAIN_TIP_PART], &m, &pos);
-                        src    = (s32*)&m;
-                        dst    = task->extra.tmd->coords;
-                        ofs.vx = 0;
-                        ofs.vy = 0;
-                        ofs.vz = 0x640;
-                        gte_SetRotMatrix(src);
-                        gte_ldv0(&ofs);
-                        gte_rtv0();
-                        gte_stsv(&ofs);
-                        dst->coord.t[0] = pos.vx + ofs.vx;
-                        dst->coord.t[1] = pos.vy + ofs.vy;
-                        dst->coord.t[2] = pos.vz + ofs.vz;
-                        out             = (s32*)&dst->coord;
-                        for (i = 0; i < 4; i++) {
-                            *out++ = *src++;
-                        }
-                        dst->coord.m[2][2] = m.m[2][2];
+        case ACTOR_503500_CHAIN_SHOOT_STEP_FIRE:
+            if (++work->stateFrames >= ACTOR_503500_CHAIN_SHOOT_FIRE_MIN_FRAME) {
+                position.vx    = gPlayerStatus.coordMtx->t[0] - work->linkPoints[ACTOR_503500_LARGE_CHAIN_TIP_PART].vx;
+                position.vz    = gPlayerStatus.coordMtx->t[2] - work->linkPoints[ACTOR_503500_LARGE_CHAIN_TIP_PART].vz;
+                playerDistance = SquareRoot0(position.vx * position.vx + position.vz * position.vz);
+                if (playerDistance < ACTOR_503500_CHAIN_SHOOT_RANGE) {
+                    shotTask = taskSpawnFromTable(D_actor_503500_8016E9F0, ACTOR_503500_CHAIN_SHOOT_BALLISTIC_TASK, 0, playerDistance * ACTOR_503500_CHAIN_SHOOT_SPEED_PER_DISTANCE);
+                    if (shotTask != NULL) {
+                        ACTOR_503500_LARGE_CHAIN_PLACE_SHOT();
                     }
                 }
                 work->stateFrames = 0;
                 work->stateStep++;
             }
             break;
-        case 3:
-            if (++work->stateFrames >= 0xB) {
-                _actor503500LargeChainEnterState(arg0, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
+        case ACTOR_503500_CHAIN_SHOOT_STEP_RECOVER:
+            if (++work->stateFrames >= ACTOR_503500_CHAIN_SHOOT_RECOVERY_FRAMES) {
+                _actor503500LargeChainEnterState(task, ACTOR_503500_LARGE_CHAIN_STATE_IDLE);
             }
             break;
     }
+#undef ACTOR_503500_LARGE_CHAIN_PLACE_SHOT
 }
 
 /// Drops, detaches and collapses a dying large chain before task teardown.
@@ -4523,7 +4620,7 @@ static void func_actor_503500_8013A96C(Task* arg0)
             _actor503500LargeChainStepIdle(arg0);
             break;
         case ACTOR_503500_LARGE_CHAIN_STATE_SHOOT:
-            func_actor_503500_80138C08(arg0);
+            _actor503500LargeChainStepShoot(arg0);
             break;
         case ACTOR_503500_LARGE_CHAIN_STATE_HOLD:
             timer            = (u16)work->holdFrames - 1;

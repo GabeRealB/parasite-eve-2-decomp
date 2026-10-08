@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+#include "actors/actor_503500.h"
+
 #include "gameplay/companion_load.h"
 #include "gameplay/display.h"
 #include "gameplay/animation.h"
@@ -22,6 +24,7 @@
 #include "gameplay/scene_combat.h"
 #include "gameplay/scene_runtime.h"
 
+#include "main/areas.h"
 #include "main/coord.h"
 #include "main/display.h"
 #include "main/fs.h"
@@ -57,7 +60,7 @@ typedef struct {
 } _Actor503500DriftSpriteEmitterWork;
 STATIC_ASSERT_SIZEOF(_Actor503500DriftSpriteEmitterWork, 0xC);
 
-/// Spawn positions `func_actor_503500_80132778` indexes by `Task::spawnArg1`.
+/// Spawn positions `_actor503500DriftSpriteEmitterTask` indexes by `Task::spawnArg1`.
 extern SVECTOR D_actor_503500_8014B97C[];
 
 extern TaskDesc D_actor_503500_8014B964[];
@@ -66,9 +69,9 @@ extern TaskDesc D_actor_503500_8014B964[];
 extern EvsCommand D_actor_503500_8014CD98[];
 extern EvsCommand D_actor_503500_8014D098[];
 
-void        func_actor_503500_80132778(Task*);
+static void _actor503500DriftSpriteEmitterTask(Task* task);
 static void _actor503500FadeFromBlackTask(Task* task);
-void        func_actor_503500_80132D20(Task*);
+static void _actor503500StaffCardSceneTask(Task* task);
 
 static AnimationSet _gActor503500Animation16D8C;
 static AnimationSet _gActor503500Animation16F18;
@@ -107,16 +110,16 @@ static void                      _actor503500StageSceneAudioStart(void);
 static void                      _actor503500EnqueueScenePlayback(void);
 static void                      _actor503500FinishScene(void);
 static void                      _actor503500CancelScene(void);
-void                             func_actor_503500_80132BF8(void);
-void                             func_actor_503500_80132C40(s32);
-void                             func_actor_503500_80132C70(s32);
+static void                      _actor503500ReloadPodBottom(void);
+static void                      _actor503500SpawnDriftSpriteEmitter(s32 positionIndex);
+static void                      _actor503500SpawnFadeFromBlack(s32 holdFrames);
 static void                      _actor503500CancelRoomEffects(void);
 static void                      _actor503500ReleaseBossBattle(s8 endDelayFrames);
 static void                      _actor503500AddSessionFlowFlags(s32 flowFlags);
 static void                      _actor503500LockAttachmentsForEvent(void);
 static void                      _actor503500RequestViewRespawn(void);
 static void                      _actor503500SetStaffCardUseState(s32 cardUseState);
-void                             func_actor_503500_80132DB4(s32);
+static void                      _actor503500SetRoomBackgroundSpritesVisible(s32 visible);
 static void                      _actor503500ClearSavedPlayerTransform(void);
 static void                      _actor503500SavePlayerTransform(void);
 static void                      _actor503500RestorePlayerTransform(void);
@@ -380,10 +383,10 @@ static AnimationSet _gActor503500Animation19B10 = {
     { NULL, _gActor503500Animation19B10Bank1, NULL, NULL, _gActor503500Animation19B10Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_actor_503500_8014B958 = { { { TASK_BODY_NONE, 192 } }, func_actor_503500_80132D20, { .value = 0 } };
+TaskDesc D_actor_503500_8014B958 = { { { TASK_BODY_NONE, 192 } }, _actor503500StaffCardSceneTask, { .value = 0 } };
 
 TaskDesc D_actor_503500_8014B964[2] = {
-    { { { TASK_BODY_COORD, 192 } }, func_actor_503500_80132778, { .value = 0 } },
+    { { { TASK_BODY_COORD, 192 } }, _actor503500DriftSpriteEmitterTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _actor503500FadeFromBlackTask, { .value = 0 } },
 };
 
@@ -522,11 +525,11 @@ EvsCommand D_actor_503500_8014BD48[56] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2004 }, { .message = { .pointer = D_actor_503500_8014BBB4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .pointer = D_actor_503500_8014BC18 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132C40 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132C40 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132C40 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132C70 }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132DB4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SpawnDriftSpriteEmitter }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SpawnDriftSpriteEmitter }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SpawnDriftSpriteEmitter }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SpawnFadeFromBlack }, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SetRoomBackgroundSpritesVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500ClearSavedPlayerTransform }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -585,7 +588,7 @@ EvsCommand D_actor_503500_8014C288[29] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500HaltPadScript }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132DB4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SetRoomBackgroundSpritesVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500ClearSavedPlayerTransform }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -657,7 +660,7 @@ EvsCommand D_actor_503500_8014C540[61] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BC20 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_actor_503500_8014BCBC } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132DB4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SetRoomBackgroundSpritesVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -686,7 +689,7 @@ EvsCommand D_actor_503500_8014CAF8[28] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelRoomEffects }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SetStaffCardUseState }, { .value = ACTOR_503500_STAFF_CARD_USE_READY }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_actor_503500_80132DB4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor503500SetRoomBackgroundSpritesVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -730,7 +733,7 @@ EvsCommand D_actor_503500_8014CD98[32] = {
     { EVENT_SCRIPT_OPCODE_START_VIBRATION, { .padCommands = D_actor_503500_8014D300 }, { .vibrationSegments = D_actor_503500_8014D30C }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500FinishScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BF8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500ReloadPodBottom }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -741,7 +744,7 @@ EvsCommand D_actor_503500_8014D098[8] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500CancelScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_503500_80132BF8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor503500ReloadPodBottom }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1668,13 +1671,24 @@ TaskDesc D_actor_503500_8016E9F0[5] = {
     { { { TASK_BODY_COORD, 192 } }, actor503500OrangeFlashAttackTask, { .value = 0 } },
 };
 
-/// Player-facing flag byte in the main executable; no module header owns it yet.
-
-void func_actor_503500_80132F58(s32 unused);
-
-void func_actor_503500_80132778(Task* task)
+/// Emits drift sprites from a fixed Shelter R48 position until its scene winds down.
+///
+/// Requires a coordinate body and spawn argument 1 in 0..3. Task teardown owns
+/// the allocated work; spawned sprites have independent lifetimes. Only actor-running
+/// ticks advance the spawn counter; scene-state wind-down runs on every call.
+/// Scene values 0/1 require a running, unskipped event; 2/3 wait for the event
+/// to end before shrinking sprites and increasing the interval; 4 only increases
+/// the interval. Other values end the task. Initialization also runs the emitter.
+static void _actor503500DriftSpriteEmitterTask(Task* task)
 {
     enum {
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_INITIALIZE          = 0,
+        ACTOR_503500_DRIFT_SPRITE_EMITTER_EMITTING            = 1,
+        ACTOR_503500_DRIFT_SCENE_INACTIVE                     = 0,
+        ACTOR_503500_DRIFT_SCENE_ENTRY                        = 1,
+        ACTOR_503500_DRIFT_SCENE_PHASE_TRANSITION             = 2,
+        ACTOR_503500_DRIFT_SCENE_DEFEAT                       = 3,
+        ACTOR_503500_DRIFT_SCENE_STAFF_CARD                   = 4,
         ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE         = 0xC00,      // Sprite size until the emitter winds down
         ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE_STEP    = 0x10,       // Size lost per winding-down frame
         ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE_MIN     = 0x100,      // Floor of the shrinking size
@@ -1690,15 +1704,15 @@ void func_actor_503500_80132778(Task* task)
     };
     GfxCoord*                           coord;
     _Actor503500DriftSpriteEmitterWork* work;
-    SVECTOR*                            pos;
-    u8                                  done;
+    SVECTOR*                            spawnPosition;
+    u8                                  finished;
 
     coord = task->extra.coordBody->coord;
-    if (task->state == 0) {
-        pos               = &D_actor_503500_8014B97C[task->spawnArg1.value];
-        coord->coord.t[0] = pos->vx;
-        coord->coord.t[1] = pos->vy;
-        coord->coord.t[2] = pos->vz;
+    if (task->state == ACTOR_503500_DRIFT_SPRITE_EMITTER_INITIALIZE) {
+        spawnPosition     = &D_actor_503500_8014B97C[task->spawnArg1.value];
+        coord->coord.t[0] = spawnPosition->vx;
+        coord->coord.t[1] = spawnPosition->vy;
+        coord->coord.t[2] = spawnPosition->vz;
         gfxSetRotIdentity(&coord->coord);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         work                = memCalloc(sizeof(*work), false);
@@ -1710,7 +1724,7 @@ void func_actor_503500_80132778(Task* task)
         work->spriteSize         = ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE;
         work->cellPeriod         = ACTOR_503500_DRIFT_SPRITE_EMITTER_CELL_PERIOD;
         work->spawnInterval.word = ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL;
-        task->state++;
+        task->state++; // Enters ACTOR_503500_DRIFT_SPRITE_EMITTER_EMITTING; emission runs this tick too.
     }
     work = task->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
@@ -1721,16 +1735,16 @@ void func_actor_503500_80132778(Task* task)
         }
     }
     switch (gameFlagGetNibble(GAME_FLAG_SHELTER_R48_SCENE_STATE)) {
-        case 0:
-        case 1:
+        case ACTOR_503500_DRIFT_SCENE_INACTIVE:
+        case ACTOR_503500_DRIFT_SCENE_ENTRY:
             if (gGameSession->eventState == 0) {
                 taskKill(task);
                 return;
             }
-            done = gGameSession->evtSkipped;
+            finished = gGameSession->evtSkipped;
             break;
-        case 2:
-        case 3:
+        case ACTOR_503500_DRIFT_SCENE_PHASE_TRANSITION:
+        case ACTOR_503500_DRIFT_SCENE_DEFEAT:
             if (gGameSession->eventState != 0) {
                 return;
             }
@@ -1743,15 +1757,16 @@ void func_actor_503500_80132778(Task* task)
             if (work->spriteSize < ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE_MIN) {
                 work->spriteSize = ACTOR_503500_DRIFT_SPRITE_EMITTER_SPRITE_SIZE_MIN;
             }
-        case 4:
+            // Fall through: both wind-down modes also stretch the spawn interval.
+        case ACTOR_503500_DRIFT_SCENE_STAFF_CARD:
             work->spawnInterval.word += ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL_STEP;
-            done                      = work->spawnInterval.word > ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL_MAX;
+            finished                  = work->spawnInterval.word > ACTOR_503500_DRIFT_SPRITE_EMITTER_SPAWN_INTERVAL_MAX;
             break;
         default:
             taskKill(task);
             return;
     }
-    if (done) {
+    if (finished) {
         taskKill(task);
     }
 }
@@ -1869,22 +1884,45 @@ static void _actor503500CancelScene(void)
     cdCmdCancelScene();
 }
 
-void func_actor_503500_80132BF8(void)
+/// Returns to Shelter B2's pod bottom after normal or skipped staff-card playback.
+///
+/// Replaces the live save's area, warp and room selectors, retaining stage and view.
+/// The resident reload task captures the frame and applies the saved location later.
+static void _actor503500ReloadPodBottom(void)
 {
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = 0x16;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 1;
+    enum {
+        ACTOR_503500_POD_BOTTOM_WARP = 1,
+        ACTOR_503500_POD_BOTTOM_ROOM = 1,
+    };
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = GAME_AREA_SHELTER_B2_POD_BOTTOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ACTOR_503500_POD_BOTTOM_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ACTOR_503500_POD_BOTTOM_ROOM;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
-void func_actor_503500_80132C40(s32 arg0)
+/// Starts a drift-sprite emitter at room position `positionIndex` (0..3).
+///
+/// Requires this overlay and Shelter R48 resources loaded. Spawn failure is ignored;
+/// successful tasks own their work and follow the room's scene-state lifetime.
+static void _actor503500SpawnDriftSpriteEmitter(s32 positionIndex)
 {
-    taskSpawnFromTable(D_actor_503500_8014B964, 0, arg0, 0);
+    enum {
+        ACTOR_503500_SCENE_TASK_DRIFT_EMITTER = 0,
+    };
+    taskSpawnFromTable(D_actor_503500_8014B964, ACTOR_503500_SCENE_TASK_DRIFT_EMITTER, positionIndex, 0);
 }
 
-void func_actor_503500_80132C70(s32 arg0)
+/// Starts the entry scene's fade from black and publishes its borrowed task handle.
+///
+/// `holdFrames` counts actor-running ticks; the hold ends on the first decrement
+/// below zero or on event skip. A negative value reveals on the first hold tick.
+/// Failure publishes NULL; task teardown owns the fade, whose handle may become stale.
+static void _actor503500SpawnFadeFromBlack(s32 holdFrames)
 {
-    D_actor_503500_80176558 = taskSpawnFromTable(D_actor_503500_8014B964, 1, arg0, 0);
+    enum {
+        ACTOR_503500_SCENE_TASK_FADE_FROM_BLACK = 1,
+    };
+    D_actor_503500_80176558 = taskSpawnFromTable(D_actor_503500_8014B964, ACTOR_503500_SCENE_TASK_FADE_FROM_BLACK, holdFrames, 0);
 }
 
 /// Requests cancellation of all room effects at an entry-script transition.
@@ -1917,10 +1955,14 @@ static void _actor503500AddSessionFlowFlags(s32 flowFlags)
     gGameSession->flowFlags |= flowFlags;
 }
 
-void func_actor_503500_80132D20(Task* arg0)
+/// Queues normal and skip scripts for accepted staff-card use, then releases this launcher.
+///
+/// Requires the room and actor overlays loaded and event control already held.
+/// The event runner retains the static script tables; it outlives this bodyless task.
+static void _actor503500StaffCardSceneTask(Task* task)
 {
     evsStartScriptWithSkip(D_actor_503500_8014CD98, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_503500_8014D098);
-    taskKill(arg0);
+    taskKill(task);
 }
 
 /// Locks attachment activation and cancels an active attachment for the event.
@@ -1946,9 +1988,16 @@ static void _actor503500SetStaffCardUseState(s32 cardUseState)
     gameFlagSetNibble(GAME_FLAG_100, cardUseState);
 }
 
-void func_actor_503500_80132DB4(s32 arg0)
+/// Adapts an event-script operand to Shelter R48's background-sprite visibility.
+///
+/// Only the low byte is passed: 0 hides, 1 shows, other byte values leave the
+/// sprites unchanged. Requires the current room's mutable sprite resources.
+static void _actor503500SetRoomBackgroundSpritesVisible(s32 visible)
 {
-    shelterR48SetBackgroundSpritesVisible(arg0 & 0xFF);
+    enum {
+        ACTOR_503500_EVENT_OPERAND_BYTE_MASK = 0xFF,
+    };
+    shelterR48SetBackgroundSpritesVisible(visible & ACTOR_503500_EVENT_OPERAND_BYTE_MASK);
 }
 
 /// Invalidates the saved player placement by clearing its position sentinel.
@@ -2032,7 +2081,7 @@ static void _actor503500HaltPadScript(void)
     gGameSession->padScriptFlags = 0;
 }
 
-void func_actor_503500_80132F58(s32 unused)
+void actor503500ClearFadeFromBlackHandle(s32 unused)
 {
     D_actor_503500_80176558 = NULL;
 }
