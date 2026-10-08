@@ -75444,7 +75444,7 @@ the full three-parameter signature — middle one unused — moves the tested va
 into `$a2` and matches.
 
 ```c
-s32 func_actor_510900_8013BE64(Actor510900* arg0, s32 msgId, s32 arg2)
+static s32 _actor510900SetModelDraw(Task* task, s32 messageId, s32 drawEnabled, s32 unusedSecondArg)
 ```
 
 The convention is visible in the matched siblings: `_actor444000SetModelDraw(
@@ -75454,7 +75454,7 @@ of the same table our function is the 0x7D5 entry of. A handler that branches on
 an argument register one slot early is this, not an allocation problem — do not
 reach for a pin.
 
-Example: `func_actor_510900_8013BE64`. Inputs: `base_1.i`
+Example: `_actor510900SetModelDraw`. Inputs: `base_1.i`
 `c5309e47f02608dd5a8bd1c3ae77fdb0fdef5b0570025d587843f9540c182505`, `base_3.i`
 `4b5617da6f4c1cc82f16fe7c2f1020ab726d7d1cfd582ed9d6842d99940322b9`.
 
@@ -75486,20 +75486,20 @@ passed straight to the call — collapses both into `move a1,s0` and matches
 exactly:
 
 ```c
-s32 func_actor_510900_8013BD84(Actor510900* arg0, s32 arg1, AnimationPlayRequest* arg2)
+static s32 _actor510900PlayEventAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
-    blend           = (arg2->blend != 0) * 8;
-    work            = arg0->field_1C;
-    work->animationId = arg2->animationId + 0x1B;
-    for (i = 1; i < 0x13; i++) {
-        animationSeekSlotWithBlend((AnimationContext*)work, i, work->animationId, 0, blend);
+    blendFrames       = (request->blend != ANIMATION_BLEND_RESET) * ACTOR_510900_EVENT_BLEND_FRAMES;
+    work              = task->work;
+    work->animationId = request->animationId + ACTOR_510900_EVENT_ANIMATION_BASE;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animationId, 0, blendFrames);
     }
 ```
 
 Recognise the family from the call rather than from the score: all of these
 handlers are the `(task, opcodeId, args)` shape and several end in the same
 slots-reseed loop `for (i = 1; i < 0x13; i++) animationSeekSlotWithBlend(ctx, i, animId, 0,
-blend)`. Example: `func_actor_510900_8013BD84`, the 0x7D3 entry of the
+blend)`. Example: `_actor510900PlayEventAnimation`, the 0x7D3 entry of the
 `D_actor_510900_80167A6C` table the section above is about. Matched first try;
 input `base_1.i`
 `e79c7d071e85b9876a009ba260d18c10616e87483c0ed056511d3b42c1f06a8c`.
@@ -75556,7 +75556,7 @@ promotion renumbers an overlay depends on where the body sat", and the
 The split only emits `.s` files for functions inside a unit's own range, so a
 stale line points at a `nonmatchings/<unit>/` folder that no longer contains it.
 
-Worked example: promoting `func_actor_510900_8013BE64` to
+Worked example: promoting `_actor510900SetModelDraw` to
 `ActorsShared8013be64` for `actor_510900` + `actor_205200`.
 
 ## One promotion, two sharers, opposite renumbering — derive each from its own runs
@@ -75807,7 +75807,7 @@ admits a register. `ashlsi3` is `(match_operand:SI 2 "arith_operand" "dI")`, and
 splits alternatives on commas, not on letters), so there is nothing to veto the
 swap and no `alternative_nregs` comparison to lose.
 
-`func_actor_510900_8013BB20` shows both halves of this, and the dumps pin the
+`_actor510900UpdateBodyAnimation` shows both halves of this, and the dumps pin the
 pass: insn 44 in `.greg` is `(ashift:SI (reg:SI 2 v0) (const_int 1))`, and in
 `.sched2` it is `(ashift:SI (reg:SI 2 v0) (reg:SI 16 s0))`. `li s0,1` (from
 `i = 1`) is still in `reg_values` in that block because nothing between clears
@@ -91331,17 +91331,17 @@ the one-at-a-time 2x2 before porting a multi-site permutation.
 Worked example: `_actor00400SwimDecide`, evidence in the scratch archive
 (`base_6.c` `56ef70cdde8a…`, `base_7.c` `96a300410b7f…`, parent
 `8c86cfac9f83…`, permuter candidate `4bcd89c96728…`).
-## An address expression used after several calls comes out re-materialized unless the source names it *before* the early-return branch (func_actor_510900_8013A5B8, 2026-09-16)
+## An address expression used after several calls comes out re-materialized unless the source names it *before* the early-return branch (_actor510900InitHelipadLight, 2026-09-16)
 
-`func_actor_510900_8013A5B8` hands the same `&coords[10]` to three sinks that are
-separated by calls: `enemy->coord`, and the `field_8` of each of the two
+`_actor510900InitHelipadLight` hands the same `&partCoords[ACTOR_510900_HELIPAD_LIGHT_CONTACT_PART]` to three sinks that are
+separated by calls: `enemy->coord`, and the `coord` of each of the two
 `WorldCollisionBody`s it links. Written inline at all three sites, GCC 2.8.1 emits the
 `addiu` three times, in three different call-clobbered registers:
 
 ```c
-enemy->coord      = &coords[10];   /* addiu v0,s5,0x320 */
-work->obj2BC.field_8 = &coords[10];   /* addiu s1,s5,0x320 */
-work->obj2F4.field_8 = &coords[10];   /* reuses s1          */
+enemy->coord      = &partCoords[ACTOR_510900_HELIPAD_LIGHT_CONTACT_PART];   /* addiu v0,s5,0x320 */
+work->body.coord = &partCoords[ACTOR_510900_HELIPAD_LIGHT_CONTACT_PART];   /* addiu s1,s5,0x320 */
+work->blast.coord = &partCoords[ACTOR_510900_HELIPAD_LIGHT_CONTACT_PART];   /* reuses s1          */
 ```
 
 CSE does not unify them, because each use is in a different basic block run and
@@ -91354,7 +91354,7 @@ function can possibly need it was computed by a source statement ahead of the
 
 ```c
 work  = memCalloc(sizeof(*work), 0);
-coord = &coords[10];          /* before the null test */
+contactCoord = &partCoords[ACTOR_510900_HELIPAD_LIGHT_CONTACT_PART];          /* before the null test */
 if (work == NULL) { ... return; }
 ```
 
@@ -91364,8 +91364,8 @@ the extra `sw $fp,0x38(sp)` in the target's prologue is. Read a hoisted address
 in a delay slot as a statement-placement fact about the source, not as an
 allocation tie to fight with pins.
 
-The residue after that was pure statement order: the three `coord.t[i]` stores
-followed by `coords->parent = &gGfxViewCoord;` matched, while putting the `sub`
+The residue after that was pure statement order: the three `partCoords->coord.t[i]` stores
+followed by `partCoords->parent = &gGfxViewCoord;` matched, while putting the `sub`
 store between `t[1]` and `t[2]` - where the *emitted* order suggests it belongs -
 did not. Sched1 is free to sink an independent store past the ones after it, so
 the emitted position of a store between two others is not evidence for its
@@ -96057,12 +96057,12 @@ worth taking as the default shape for a repeated sequence.
 
 ## One callee-saved register too few: an argument address that must be born before the previous call
 
-`func_actor_510900_801397F0` sat at 96.7% with every block, predicate and call
+`_actor510900InitGrenade` sat at 96.7% with every block, predicate and call
 matching. The whole difference was that the target saves `$s0`..`$s8` while the
 attempt saved `$s0`..`$s7`: one extra callee-saved register, which shifted the
 frame slots and pushed the `Task*` argument from `$s7` into `$s8`.
 
-The register in question held a single address, `&parentCoords[3]`, whose only
+The register in question held a single address, `&bodyCoords[ACTOR_510900_CHEST_PART]`, whose only
 consumer is the second of two consecutive calls:
 
 ```
@@ -96091,16 +96091,16 @@ failure — so it crosses two calls, global-alloc has to give it a saved registe
 and the copy `move a0,s6` survives.
 
 Writing the address into a named local does **not** move it: assigning
-`parentCoord = &parentCoords[3]` anywhere inside the success path still leaves
+`chestCoord = &bodyCoords[ACTOR_510900_CHEST_PART]` anywhere inside the success path still leaves
 insn 51 in block 2, and sched1 sinks it next to its use because
 `priority()` ranks it only one above the `move` it feeds. Three source forms
-(`&parentCoords[3]` inline at the call, a local assigned after the NULL check,
+(`&bodyCoords[ACTOR_510900_CHEST_PART]` inline at the call, a local assigned after the NULL check,
 and that local used for every access) all produced byte-identical assembly.
 Hoisting the assignment *above* the allocation it is unrelated to is what works:
 
 ```c
-parentCoords = ((TmdObject*)arg1->parent->extra)->coords;
-parentCoord  = &parentCoords[3];          /* block 1 */
+bodyCoords = task->parent->extra.tmd->coords;
+chestCoord  = &bodyCoords[ACTOR_510900_CHEST_PART];          /* block 1 */
 work         = memCalloc(sizeof(_Actor510900GrenadeWork), false);
 if (work == NULL) { ... return; }
 ```

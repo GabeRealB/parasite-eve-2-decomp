@@ -24,6 +24,7 @@
 #include "gameplay/hud_sprites.h"
 #include "gameplay/loading.h"
 #include "gameplay/message.h"
+#include "gameplay/model_objects.h"
 #include "gameplay/pad_script.h"
 #include "gameplay/enemy_params.h"
 #include "gameplay/player_actor.h"
@@ -211,15 +212,21 @@ enum {
 /// Script message selecting this golem's show, fight-start or hide command.
 enum { ACTOR_510900_MESSAGE_SET_ACTIVATION = 2007 };
 
+/// Task states of the grenade and the two stationary child hazards.
+enum {
+    ACTOR_510900_CHILD_TASK_RUNNING = 1,
+    ACTOR_510900_GRENADE_TASK_BURST = 2,
+};
+
 static s32 _actor510900SetActivation(Task* task, s32 messageId, s32 command, s32 unusedArg);
 
-s32 func_actor_510900_8013BD5C(Task*, s32, s32, s32);
+static s32 _actor510900ReleaseGrenadeHold(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-s32 func_actor_510900_8013BD84(Task*, s32, AnimationPlayRequest*, s32);
+static s32 _actor510900PlayEventAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg);
 
-s32 func_actor_510900_8013BE64(Task*, s32, s32, s32);
+static s32 _actor510900SetModelDraw(Task* task, s32 messageId, s32 drawEnabled, s32 unusedSecondArg);
 
-s32 func_actor_510900_8013BE84(Task*, s32, s32, s32);
+static s32 _actor510900IsPresent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 // Only the leading view ID is read; retain the following halfwords.
 extern u16 D_actor_510900_80167CE4[4];
@@ -395,7 +402,7 @@ extern u16 D_actor_510900_801679D0[];
 /// a draw above the entry ends the walk.
 extern s16 D_actor_510900_80167A10[];
 
-/// Per-animation-id value `func_actor_510900_8013BB20` hands `animationSeekSlotWithBlend`
+/// Per-animation-id value `_actor510900UpdateBodyAnimation` hands `animationSeekSlotWithBlend`
 /// as its fifth argument when it restarts animation slots 1..18.
 extern s16 D_actor_510900_80167B38[];
 
@@ -448,19 +455,19 @@ STATIC_ASSERT_SIZEOF(_Actor510900LapStrip, 0x8);
 /// The strip along each side of the lap, in the same order as the corners.
 extern _Actor510900LapStrip D_actor_510900_80167BA4[4];
 
-/// The three face normals `func_actor_510900_8013B524` copies into
+/// The three face normals `actor510900RestoreGridFaces` copies into
 /// `Gp_GridParams->normals`, restoring the collision grid this actor edited.
 static SVECTOR _gActor510900Collision35DA4[3];
 
-/// The twelve face corners `func_actor_510900_8013B524` copies into
+/// The twelve face corners `actor510900RestoreGridFaces` copies into
 /// `Gp_GridParams->vertices`.
 static SVECTOR _gActor510900Collision35DBC[12];
 
-/// The three `WorldCollisionGridFace` records `func_actor_510900_8013B524` copies into
+/// The three `WorldCollisionGridFace` records `actor510900RestoreGridFaces` copies into
 /// `Gp_GridParams->faces`.
 static WorldCollisionGridFace _gActor510900Collision35E1C[3];
 
-/// The extra face normal `func_actor_510900_8013B424` installs as
+/// The extra face normal `actor510900SetExtraGridFace` installs as
 /// `Gp_GridParams->normals[3]` while the actor's own face is in the grid.
 extern SVECTOR D_actor_510900_80167C60[1];
 
@@ -480,15 +487,15 @@ static void _actor510900PlayStepSounds(Task* task);
 static void _actor510900ApplyHitTwist(Task* task);
 static void _actor510900UpdateGridFaces(Task* task);
 static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1);
-static void func_actor_510900_8013B804(Task* arg0);
+static void _actor510900ConsumeReactionFlags(Task* task);
 static void func_actor_510900_8013B870(Task* arg0);
 static void _actor510900TickBuildupStun(Task* task);
 static void _actor510900TickFlinch(Task* task);
-static void func_actor_510900_8013BB20(Task* arg0);
+static void _actor510900UpdateBodyAnimation(Task* task);
 static void func_actor_510900_8013BC80(Task* arg0);
 
-static void func_actor_510900_8013C380(Task* arg0);
-static void func_actor_510900_8013C430(Task* arg0);
+static void _actor510900ExitHelipadLight(Task* task);
+static void _actor510900ExitBlastSource(Task* task);
 
 /// `stateCounter` reload tables, indexed by four bits of `gRandomLcgState`.
 extern s16 D_actor_510900_80167990[];
@@ -606,12 +613,12 @@ TaskDesc D_actor_510900_80167A18[7] = {
 };
 
 TaskMessageEntry D_actor_510900_80167A6C[7] = {
-    { 2014, func_actor_510900_8013BD5C },
-    { ACTOR_MESSAGE_PLAY_ANIMATION, func_actor_510900_8013BD84 },
+    { ACTOR_MESSAGE_RELEASE_HOLD, _actor510900ReleaseGrenadeHold },
+    { ACTOR_MESSAGE_PLAY_ANIMATION, _actor510900PlayEventAnimation },
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceRotMatrix },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_510900_8013BE64 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor510900SetModelDraw },
     { ACTOR_510900_MESSAGE_SET_ACTIVATION, _actor510900SetActivation },
-    { ACTOR_MESSAGE_IS_PRESENT, func_actor_510900_8013BE84 },
+    { ACTOR_MESSAGE_IS_PRESENT, _actor510900IsPresent },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -951,12 +958,12 @@ static void _actor510900TickSparkRecoil(Task* task);
 static void _actor510900TickSparkStun(Task* task);
 static void _actor510900TickDeath(Task* task);
 static void _actor510900UpdateProp(Enemy* enemy, Task* task);
-static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1);
+static void _actor510900InitGrenade(Enemy* enemy, Task* task);
 static void func_actor_510900_80139C10(Enemy* enemy, Task* task);
-static void func_actor_510900_8013A100(Enemy* enemy, Task* task);
-static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task);
+static void _actor510900TickGrenadeBurst(Enemy* enemy, Task* task);
+static void _actor510900InitHelipadLight(Enemy* enemy, Task* task);
 static void func_actor_510900_8013A85C(Enemy* arg0, Task* arg1);
-static void func_actor_510900_8013AD90(Enemy* enemy, Task* task);
+static void _actor510900InitBlastSource(Enemy* enemy, Task* task);
 static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1);
 
 /// Enables the weapon and forearm attack spheres with the same damage-table key.
@@ -1006,22 +1013,68 @@ static __inline__ void _actor510900SpawnReactionSpark(GfxCoord* bodyCoord, SVECT
     effectSpawn(EFFECT_FLASH_BURST, bodyCoord, ACTOR_510900_SPARK_BASE_SIZE, offset);
 }
 
-/// Post-multiplies the chest rotation by the residual hit rotation.
+/// Stops grenade catching when the parent body is no longer present.
 ///
-/// Both matrices must be word-aligned and separate. Reads both rotations and
-/// writes the chest's nine coefficients, preserving translation; changes GTE state.
+/// The task and its owned work must remain live for the ending-frame countdown.
+/// Grid unlink is retained even though normal flight already unlinked the probe.
+static inline void _actor510900CancelGrenadeCatch(Task* task, _Actor510900GrenadeWork* work)
+{
+    work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    worldCollisionUnlinkBody(&work->gridProbe);
+    work->frames           = 0;
+    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    task->state            = ACTOR_510900_GRENADE_TASK_BURST;
+    work->phase            = ACTOR_510900_GRENADE_BURST_ENDING;
+}
+
+/// Places a grenade at the chest's launch offset in the view coordinate's frame.
+///
+/// Both coordinates must be live and distinct; `placement` is caller-owned scratch.
+/// Uses (-165, -565, 160) chest-axis units and pitch -352 (4096 units per turn).
+/// Refreshes both source caches and borrows the view coordinate as the new parent.
+static inline void _actor510900PlaceGrenade(GfxCoord* grenadeCoord, GfxCoord* launchCoord, ActorChildPlaceScratch* placement)
+{
+    enum {
+        ACTOR_510900_GRENADE_LAUNCH_X     = -165,
+        ACTOR_510900_GRENADE_LAUNCH_Y     = -565,
+        ACTOR_510900_GRENADE_LAUNCH_Z     = 160,
+        ACTOR_510900_GRENADE_LAUNCH_PITCH = -352,
+    };
+
+    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&gGfxViewCoord);
+    launchCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(launchCoord);
+    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &launchCoord->workm, &grenadeCoord->coord);
+
+    placement->operand.vx = ACTOR_510900_GRENADE_LAUNCH_X;
+    placement->operand.vy = ACTOR_510900_GRENADE_LAUNCH_Y;
+    placement->operand.vz = ACTOR_510900_GRENADE_LAUNCH_Z;
+    gte_SetRotMatrix(&grenadeCoord->coord);
+    gte_ldv0(&placement->operand);
+    gte_rtv0();
+    gte_stlvnl(&placement->offset);
+    grenadeCoord->parent      = &gGfxViewCoord;
+    grenadeCoord->coord.t[0] += placement->offset.vx;
+    grenadeCoord->coord.t[1] += placement->offset.vy;
+    grenadeCoord->coord.t[2] += placement->offset.vz;
+
+    placement->operand.vx = ACTOR_510900_GRENADE_LAUNCH_PITCH;
+    placement->operand.vy = 0;
+    placement->operand.vz = 0;
+    RotMatrix(&placement->operand, &placement->rotation);
+    // Store product columns while the GTE retains the original launch basis.
+    gte_MulMatrix0(&grenadeCoord->coord, &placement->rotation, &grenadeCoord->coord);
+}
+
+/// Post-multiplies the chest's local rotation by its residual hit twist.
+///
+/// Both matrices must be word-aligned and distinct, with 12 fractional bits
+/// per coefficient. Preserves translation and changes the GTE rotation state;
+/// the enclosing animation update owns coordinate-cache validity.
 static __inline__ void _actor510900ComposeHitRotation(MATRIX* chestRotation, const MATRIX* hitRotation)
 {
-    gte_SetRotMatrix(chestRotation);
-    gte_ldclmv(hitRotation);
-    gte_rtir();
-    gte_stclmv(chestRotation);
-    gte_ldclmv(&hitRotation->m[0][1]);
-    gte_rtir();
-    gte_stclmv(&chestRotation->m[0][1]);
-    gte_ldclmv(&hitRotation->m[0][2]);
-    gte_rtir();
-    gte_stclmv(&chestRotation->m[0][2]);
+    gte_MulMatrix0(chestRotation, hitRotation, chestRotation);
 }
 
 /// Applies this frame's hits from the three `bodyContacts` collision records. A
@@ -2923,90 +2976,67 @@ static void _actor510900UpdateProp(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BYTES(ACTOR_510900_PROP_SCRATCH_BYTES);
 }
 
-/// Spawn state of the child effect task: allocates its `_Actor510900GrenadeWork`
-/// work block, places the child on the parent's fourth coordinate offset by a
-/// fixed local vector and yawed -0x160, and links its two collision objects.
-/// `phaseCounter`, the pitch step of the flight, comes from
-/// `D_actor_510900_80167C94` indexed by the horizontal distance to the player
-/// in units of 1000, clamped to the last entry.
-static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
+/// Initializes the golem's chest-launched stun grenade and its collision bodies.
+///
+/// Requires a live parent body and player. Allocates cleared grenade-owned work
+/// and lighting, then selects its pitch step from horizontal player distance in
+/// 1000-unit buckets, clamped to the final table entry. Failure destroys the
+/// grenade enemy and task. Successful initialization starts flight. The body
+/// remains its task parent; burst effects are adopted as grenade children.
+static void _actor510900InitGrenade(Enemy* enemy, Task* task)
 {
-    _Actor510900GrenadeWork* work;
-    ActorChildPlaceScratch*  scratch;
-    TmdObject*               tmd;
-    GfxCoord*                coord;
-    GfxCoord*                parentCoords;
-    GfxCoord*                parentCoord;
-    s32                      dx;
-    s32                      dz;
-    s32                      idx;
+    enum {
+        ACTOR_510900_GRENADE_PITCH_BUCKET_DISTANCE = 1000,
+        ACTOR_510900_GRENADE_FLIGHT_RADIUS         = 200,
+        ACTOR_510900_GRENADE_GRID_PROBE_LENGTH     = 500,
+    };
 
-    tmd          = arg1->extra.tmd;
-    coord        = tmd->coords;
-    parentCoords = arg1->parent->extra.tmd->coords;
-    parentCoord  = &parentCoords[3];
+    _Actor510900GrenadeWork* work;
+    ActorChildPlaceScratch*  placement;
+    TmdObject*               grenadeModel;
+    GfxCoord*                grenadeCoord;
+    GfxCoord*                bodyCoords;
+    GfxCoord*                chestCoord;
+    s32                      playerDeltaX;
+    s32                      playerDeltaZ;
+    s32                      pitchBucket;
+
+    grenadeModel = task->extra.tmd;
+    grenadeCoord = grenadeModel->coords;
+    bodyCoords   = task->parent->extra.tmd->coords;
+    chestCoord   = &bodyCoords[ACTOR_510900_CHEST_PART];
     work         = memCalloc(sizeof(_Actor510900GrenadeWork), false);
     if (work == NULL) {
-        enemyDestroy(arg0, arg1);
+        enemyDestroy(enemy, task);
         return;
     }
-    arg1->work    = work;
-    tmd->flags    = 0;
-    scratch       = SCRATCH_STACK_RESERVE_BLOCK(ActorChildPlaceScratch);
-    tmd->lightMtx = &work->lightMtx;
-    tmd->colorMtx = &work->colorMtx;
+    task->work             = work;
+    grenadeModel->flags    = 0;
+    placement              = SCRATCH_STACK_RESERVE_BLOCK(ActorChildPlaceScratch);
+    grenadeModel->lightMtx = &work->lightMtx;
+    grenadeModel->colorMtx = &work->colorMtx;
 
-    gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&gGfxViewCoord);
-    parentCoord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(parentCoord);
-    gfxMakeRelativeTransform(&gGfxViewCoord.workm, &parentCoord->workm, &coord->coord);
+    _actor510900PlaceGrenade(grenadeCoord, chestCoord, placement);
 
-    scratch->operand.vx = -0xA5;
-    scratch->operand.vy = -0x235;
-    scratch->operand.vz = 0xA0;
-    gte_SetRotMatrix(&coord->coord);
-    gte_ldv0(&scratch->operand);
-    gte_rtv0();
-    gte_stlvnl(&scratch->offset);
-    coord->parent      = &gGfxViewCoord;
-    coord->coord.t[0] += scratch->offset.vx;
-    coord->coord.t[1] += scratch->offset.vy;
-    coord->coord.t[2] += scratch->offset.vz;
-
-    scratch->operand.vx = -0x160;
-    scratch->operand.vy = 0;
-    scratch->operand.vz = 0;
-    RotMatrix(&scratch->operand, &scratch->rotation);
-    gte_SetRotMatrix(&coord->coord);
-    gte_ldclmv(&scratch->rotation);
-    gte_rtir();
-    gte_stclmv(&coord->coord);
-    gte_ldclmv(&scratch->rotation.m[0][1]);
-    gte_rtir();
-    gte_stclmv(&coord->coord.m[0][1]);
-    gte_ldclmv(&scratch->rotation.m[0][2]);
-    gte_rtir();
-    gte_stclmv(&coord->coord.m[0][2]);
-
-    dx                 = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    scratch->offset.vy = 0;
-    scratch->offset.vx = dx;
-    dz                 = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    scratch->offset.vz = dz;
-    idx                = SquareRoot0((dx * dx) + (dz * dz)) / 1000;
-    if (idx >= 0xC) {
-        idx = 0xB;
+    playerDeltaX         = gPlayerStatus.coordMtx->t[0] - grenadeCoord->coord.t[0];
+    placement->offset.vy = 0;
+    placement->offset.vx = playerDeltaX;
+    playerDeltaZ         = gPlayerStatus.coordMtx->t[2] - grenadeCoord->coord.t[2];
+    placement->offset.vz = playerDeltaZ;
+    pitchBucket          = SquareRoot0((playerDeltaX * playerDeltaX) + (playerDeltaZ * playerDeltaZ)) / ACTOR_510900_GRENADE_PITCH_BUCKET_DISTANCE;
+    if (pitchBucket >= ARRAY_SIZE(D_actor_510900_80167C94)) {
+        pitchBucket = ARRAY_SIZE(D_actor_510900_80167C94) - 1;
     }
 
-    work->phaseCounter            = D_actor_510900_80167C94[idx];
-    work->attack.coord            = coord;
+    work->phaseCounter = D_actor_510900_80167C94[pitchBucket];
+    // A sphere catches the player; the capsule tests the room grid only.
+    work->attack.coord            = grenadeCoord;
     work->attack.context.contacts = work->attackContacts;
     work->attack.pos.vx           = 0;
     work->attack.pos.vy           = 0;
     work->attack.pos.vz           = 0;
     work->attack.key              = 0;
-    work->attack.radius           = 0xC8;
+    work->attack.radius           = ACTOR_510900_GRENADE_FLIGHT_RADIUS;
     work->attack.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attack);
     worldCollisionInitContacts(work->attackContacts, ARRAY_SIZE(work->attackContacts), 0);
@@ -3015,13 +3045,13 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     work->gridProbeCapsule.ends[0].vy = 0;
     work->gridProbeCapsule.ends[0].vz = 0;
     work->gridProbeCapsule.ends[1].vx = 0;
-    work->gridProbeCapsule.ends[1].vy = 0x1F4;
+    work->gridProbeCapsule.ends[1].vy = ACTOR_510900_GRENADE_GRID_PROBE_LENGTH;
     work->gridProbeCapsule.ends[1].vz = 0;
     work->gridProbeCapsule.end0Radius = 1;
     work->gridProbeCapsule.end1Radius = 1;
     work->gridProbeCapsule.contacts   = work->gridProbeContacts;
     work->gridProbe.context.capsule   = &work->gridProbeCapsule;
-    work->gridProbe.coord             = coord;
+    work->gridProbe.coord             = grenadeCoord;
     work->gridProbe.pos.vx            = 0;
     work->gridProbe.pos.vy            = 0;
     work->gridProbe.pos.vz            = 0;
@@ -3033,7 +3063,7 @@ static void func_actor_510900_801397F0(Enemy* arg0, Task* arg1)
     worldCollisionInitContacts(work->gridProbeContacts, ARRAY_SIZE(work->gridProbeContacts), 0);
     work->gridProbe.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
 
-    arg1->state = 1;
+    task->state = ACTOR_510900_CHILD_TASK_RUNNING;
     SCRATCH_STACK_RELEASE_BLOCK(ActorChildPlaceScratch);
 }
 
@@ -3150,58 +3180,59 @@ static void func_actor_510900_80139C10(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorEulerTurnScratch);
 }
 
-/// Frame handler of the effect child task: state 0 fades the object in over
-/// 0x10 frames, state 1 holds it until its `WorldCollisionContact` reports a hit or 0x1F
-/// frames pass, state 2 runs the hit handler, and state 3 unlinks the object
-/// and destroys the enemy.
-static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
+/// Steps the hidden grenade's spreading blast, player hold and delayed teardown.
+///
+/// Runs only while scene actors are running. After sixteen frames the sphere
+/// widens to radius 600, then gets 31 frames to catch the player. A player contact
+/// starts the button-press hold; the ending phase waits 31 frames before unlinking
+/// the attack and destroying the grenade. Requires the body parent and its
+/// work to remain live through teardown; the burst effects are grenade children.
+static void _actor510900TickGrenadeBurst(Enemy* enemy, Task* task)
 {
+    enum {
+        ACTOR_510900_GRENADE_SPREAD_FRAMES = 16,
+        ACTOR_510900_GRENADE_CATCH_FRAMES  = 31,
+        ACTOR_510900_GRENADE_END_FRAMES    = 31,
+        ACTOR_510900_GRENADE_BURST_RADIUS  = 600,
+    };
+
     _Actor510900GrenadeWork* work;
     Actor510900Work*         parent;
-    u16                      tick;
+    u16                      phaseFrames;
 
     work   = task->work;
     parent = task->parent->work;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         switch (work->phase) {
             case ACTOR_510900_GRENADE_BURST_SPREADING:
-                tick         = work->frames + 1;
-                work->frames = tick;
-                if (tick >= 0x10) {
-                    work->attack.radius = 0x258;
+                phaseFrames  = work->frames + 1;
+                work->frames = phaseFrames;
+                if (phaseFrames >= ACTOR_510900_GRENADE_SPREAD_FRAMES) {
+                    work->attack.radius = ACTOR_510900_GRENADE_BURST_RADIUS;
                     work->phase         = ACTOR_510900_GRENADE_BURST_CATCHING;
                     work->frames        = 0;
                     work->attack.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
                     return;
                 }
                 if (parent->present == 0) {
-                    work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    worldCollisionUnlinkBody(&work->gridProbe);
-                    work->frames           = 0;
-                    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                    task->state            = 2;
-                    work->phase            = ACTOR_510900_GRENADE_BURST_ENDING;
+                    _actor510900CancelGrenadeCatch(task, work);
                     return;
                 }
                 break;
             case ACTOR_510900_GRENADE_BURST_CATCHING:
-                if ((work->attackContacts[0].key.value & 0xFFFF0000) == 0x10000) {
+                if ((work->attackContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
                     work->phase         = ACTOR_510900_GRENADE_BURST_HOLDING;
                     work->holdStep      = ACTOR_510900_GRENADE_HOLD_REQUEST;
                     work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 } else {
-                    tick         = work->frames + 1;
-                    work->frames = tick;
-                    if (tick >= 0x1F) {
+                    phaseFrames  = work->frames + 1;
+                    work->frames = phaseFrames;
+                    // A timed-out catch keeps pair tests enabled during the ending delay.
+                    if (phaseFrames >= ACTOR_510900_GRENADE_CATCH_FRAMES) {
                         work->phase  = ACTOR_510900_GRENADE_BURST_ENDING;
                         work->frames = 0;
                     } else if (parent->present == 0) {
-                        work->attack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                        worldCollisionUnlinkBody(&work->gridProbe);
-                        work->frames           = 0;
-                        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                        task->state            = 2;
-                        work->phase            = ACTOR_510900_GRENADE_BURST_ENDING;
+                        _actor510900CancelGrenadeCatch(task, work);
                     }
                 }
                 worldCollisionClearContacts(work->attackContacts);
@@ -3210,9 +3241,9 @@ static void func_actor_510900_8013A100(Enemy* enemy, Task* task)
                 _actor510900TickGrenadeHold(task);
                 return;
             case ACTOR_510900_GRENADE_BURST_ENDING:
-                tick         = work->frames + 1;
-                work->frames = tick;
-                if (tick >= 0x1F) {
+                phaseFrames  = work->frames + 1;
+                work->frames = phaseFrames;
+                if (phaseFrames >= ACTOR_510900_GRENADE_END_FRAMES) {
                     parent->grenadeLive = 0;
                     worldCollisionUnlinkBody(&work->attack);
                     enemyDestroy(enemy, task);
@@ -3307,83 +3338,92 @@ static void _actor510900TickGrenadeHold(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorPlayerHoldScratch);
 }
 
-/// Spawn handler of the child task: allocates the animation work block, seeds
-/// the model's root coordinate from the spawn-index tables, resets animation
-/// slots 1..10 and links the two render objects.
-static void func_actor_510900_8013A5B8(Enemy* enemy, Task* task)
+/// Initializes one of the three destructible helipad lights and its blast sphere.
+///
+/// `task->spawnArg1.value` must be a light index 0..2. Allocates cleared owned
+/// animation and lighting storage, places the model from the index tables, and
+/// registers a target and two collision bodies at part 10. Both bodies start
+/// with pair tests disabled; the frame handler enables them in the appropriate
+/// phase and view. Allocation failure destroys the light enemy and task.
+static void _actor510900InitHelipadLight(Enemy* enemy, Task* task)
 {
-    TmdObject*                    tmd;
-    GfxCoord*                     coords;
-    _Actor510900HelipadLightWork* work;
-    GfxCoord*                     coord;
-    SVECTOR*                      rot;
-    void*                         head;
-    s32                           i;
+    enum {
+        ACTOR_510900_HELIPAD_LIGHT_ANIM_INTACT  = 1,
+        ACTOR_510900_HELIPAD_LIGHT_CONTACT_PART = 10,
+        ACTOR_510900_HELIPAD_LIGHT_BODY_RADIUS  = 200,
+        ACTOR_510900_HELIPAD_LIGHT_BLAST_RADIUS = 350,
+        ACTOR_510900_HELIPAD_LIGHT_HAZARD_ID    = 2,
+    };
 
-    tmd    = task->extra.tmd;
-    coords = tmd->coords;
-    work   = memCalloc(sizeof(_Actor510900HelipadLightWork), 0);
-    coord  = &coords[10];
+    TmdObject*                    model;
+    GfxCoord*                     partCoords;
+    _Actor510900HelipadLightWork* work;
+    GfxCoord*                     contactCoord;
+    SVECTOR*                      spawnRotation;
+    s32                           slotIndex;
+
+    model        = task->extra.tmd;
+    partCoords   = model->coords;
+    work         = memCalloc(sizeof(_Actor510900HelipadLightWork), false);
+    contactCoord = &partCoords[ACTOR_510900_HELIPAD_LIGHT_CONTACT_PART];
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    task->work                 = work;
-    tmd->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    coords->composeStamp       = GRAPHICS_COORD_DIRTY;
-    tmd->lightMtx              = &work->lightMtx;
-    tmd->colorMtx              = &work->colorMtx;
-    head                       = SCRATCH_STACK_CURSOR(void);
-    enemy->field_4             = &coords->coord;
-    rot                        = (SVECTOR*)(head - 8);
-    SCRATCH_STACK_CURSOR(void) = head - 8;
-    enemy->field_48            = 0;
+    task->work               = work;
+    model->flags             = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    partCoords->composeStamp = GRAPHICS_COORD_DIRTY;
+    model->lightMtx          = &work->lightMtx;
+    model->colorMtx          = &work->colorMtx;
+    enemy->field_4           = &partCoords->coord;
+    spawnRotation            = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    enemy->field_48          = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    enemy->coord                  = coord;
-    enemy->bodyPos.vx             = -0xC8;
+    enemy->coord                  = contactCoord;
+    enemy->bodyPos.vx             = -ACTOR_510900_HELIPAD_LIGHT_BODY_RADIUS;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
     work->lightIndex              = task->spawnArg1.value;
-    ((SVECTOR*)(head - 8))->vx    = 0;
-    rot->vy                       = D_actor_510900_80167CD0[work->lightIndex];
-    rot->vz                       = 0;
-    RotMatrix(rot, &coords->coord);
-    i                  = 1;
-    coords->coord.t[0] = D_actor_510900_80167CB8[work->lightIndex].vx;
-    coords->coord.t[1] = D_actor_510900_80167CB8[work->lightIndex].vy;
-    coords->coord.t[2] = D_actor_510900_80167CB8[work->lightIndex].vz;
-    coords->parent     = &gGfxViewCoord;
-    animationInitContext(&work->anim, D_actor_510900_80167CAC, tmd, work->poses, work->slots);
+    spawnRotation->vx             = 0;
+    spawnRotation->vy             = D_actor_510900_80167CD0[work->lightIndex];
+    spawnRotation->vz             = 0;
+    RotMatrix(spawnRotation, &partCoords->coord);
+    slotIndex              = 1;
+    partCoords->coord.t[0] = D_actor_510900_80167CB8[work->lightIndex].vx;
+    partCoords->coord.t[1] = D_actor_510900_80167CB8[work->lightIndex].vy;
+    partCoords->coord.t[2] = D_actor_510900_80167CB8[work->lightIndex].vz;
+    partCoords->parent     = &gGfxViewCoord;
+    animationInitContext(&work->anim, D_actor_510900_80167CAC, model, work->poses, work->slots);
     do {
-        animationResetSlot(&work->anim, i, 1);
-        i++;
-    } while (i < 0xB);
-    work->body.pos.vx           = -0xC8;
-    work->body.coord            = coord;
+        animationResetSlot(&work->anim, slotIndex, ACTOR_510900_HELIPAD_LIGHT_ANIM_INTACT);
+        slotIndex++;
+    } while (slotIndex < ARRAY_SIZE(work->slots));
+    work->body.pos.vx           = -ACTOR_510900_HELIPAD_LIGHT_BODY_RADIUS;
+    work->body.coord            = contactCoord;
     work->body.pos.vy           = 0;
     work->body.pos.vz           = 0;
     work->body.context.contacts = work->bodyContacts;
     work->body.key              = 0;
-    work->body.radius           = 0xC8;
+    work->body.radius           = ACTOR_510900_HELIPAD_LIGHT_BODY_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
-    work->blast.key              = 0x50002;
-    work->blast.coord            = coord;
+    work->blast.key              = DAMAGE_HAZARD_CATEGORY | ACTOR_510900_HELIPAD_LIGHT_HAZARD_ID;
+    work->blast.coord            = contactCoord;
     work->blast.pos.vx           = 0;
     work->blast.pos.vy           = 0;
     work->blast.pos.vz           = 0;
     work->blast.context.contacts = work->blastContacts;
-    work->blast.radius           = 0x15E;
+    work->blast.radius           = ACTOR_510900_HELIPAD_LIGHT_BLAST_RADIUS;
     work->blast.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->body.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, &work->blast);
     worldCollisionInitContacts(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    task->exitCallback = func_actor_510900_8013C380;
-    task->state        = 1;
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    task->exitCallback = _actor510900ExitHelipadLight;
+    task->state        = ACTOR_510900_CHILD_TASK_RUNNING;
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// Frame handler (state 1) of the child task. Mode 1 of `gSceneCombatState.actorControl` only
@@ -3574,33 +3614,39 @@ static void func_actor_510900_8013A9BC(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(ActorFaceScratch);
 }
 
-static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
+/// Initializes the coordinate-only blast source beside helipad light 2.
+///
+/// Requires a live parent body. Allocates cleared owned work, places the source
+/// at (-6100, -1110, 380) in the view coordinate's frame, and registers a target,
+/// a radius-300 receiving sphere and a radius-512 blast raised 512 units above it.
+/// Pair tests start disabled; allocation failure destroys the enemy and task.
+static void _actor510900InitBlastSource(Enemy* enemy, Task* task)
 {
-    GfxCoord*                    coord;
+    GfxCoord*                    sourceCoord;
     _Actor510900BlastSourceWork* work;
 
-    coord = task->extra.tmd->coords;
-    work  = memCalloc(sizeof(_Actor510900BlastSourceWork), false);
+    sourceCoord = task->extra.coordBody->coord;
+    work        = memCalloc(sizeof(_Actor510900BlastSourceWork), false);
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
     task->work = work;
-    gfxSetRotIdentity(&coord->coord);
-    coord->coord.t[0]   = -0x17D4;
-    coord->coord.t[1]   = -0x456;
-    coord->coord.t[2]   = 0x17C;
-    coord->parent       = &gGfxViewCoord;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    enemy->field_4      = &coord->coord;
-    enemy->field_48     = 0;
+    gfxSetRotIdentity(&sourceCoord->coord);
+    sourceCoord->coord.t[0]   = -0x17D4;
+    sourceCoord->coord.t[1]   = -0x456;
+    sourceCoord->coord.t[2]   = 0x17C;
+    sourceCoord->parent       = &gGfxViewCoord;
+    sourceCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    enemy->field_4            = &sourceCoord->coord;
+    enemy->field_48           = 0;
     worldTargetLinkNode(&enemy->node);
-    enemy->coord                  = coord;
+    enemy->coord                  = sourceCoord;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vy             = 0;
     enemy->bodyPos.vz             = 0;
-    work->body.coord              = coord;
+    work->body.coord              = sourceCoord;
     work->body.pos.vx             = 0;
     work->body.pos.vy             = 0;
     work->body.pos.vz             = 0;
@@ -3611,7 +3657,7 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
     work->blast.pos.vy           = -0x200;
-    work->blast.coord            = coord;
+    work->blast.coord            = sourceCoord;
     work->blast.pos.vx           = 0;
     work->blast.pos.vz           = 0;
     work->blast.context.contacts = work->blastContacts;
@@ -3622,8 +3668,8 @@ static void func_actor_510900_8013AD90(Enemy* enemy, Task* task)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_BLASTS, &work->blast);
     worldCollisionInitContacts(work->blastContacts, ARRAY_SIZE(work->blastContacts), 0);
     work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    task->exitCallback = func_actor_510900_8013C430;
-    task->state        = 1;
+    task->exitCallback = _actor510900ExitBlastSource;
+    task->state        = ACTOR_510900_CHILD_TASK_RUNNING;
 }
 
 static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1)
@@ -3671,7 +3717,7 @@ static void func_actor_510900_8013AF38(Enemy* arg0, Task* arg1)
 /// The enemy's three state handlers - spawn/setup, per-frame tick and
 /// teardown - indexed by `Task::state`.
 static const EnemyTaskFuncTable3 D_actor_510900_80131ECC = {
-    { func_actor_510900_801397F0, func_actor_510900_80139C10, func_actor_510900_8013A100 },
+    { _actor510900InitGrenade, func_actor_510900_80139C10, _actor510900TickGrenadeBurst },
 };
 
 /// `func_actor_510900_8013AF38`.
@@ -3800,62 +3846,56 @@ void func_actor_510900_8013B3D0(Task* task)
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Adds (arg0 == 1) or clears the extra collision-grid face this actor edits
-/// in, extending the three faces `func_actor_510900_8013B524` restores with a
-/// fourth. Clearing zeroes only the vertices and normal; the face record stays.
-void func_actor_510900_8013B424(s32 arg0)
+void actor510900SetExtraGridFace(s32 enabled)
 {
-    s32                     i;
-    SVECTOR*                normals = Gp_GridParams->normals;
-    SVECTOR*                verts   = Gp_GridParams->vertices;
-    WorldCollisionGridFace* faces   = Gp_GridParams->faces;
+    s32                     vertexIndex;
+    SVECTOR*                normals  = Gp_GridParams->normals;
+    SVECTOR*                vertices = Gp_GridParams->vertices;
+    WorldCollisionGridFace* faces    = Gp_GridParams->faces;
 
-    if (arg0 == 1) {
-        for (i = 0; i < 4; i++) {
-            verts[12 + i] = D_actor_510900_80167C68[i];
+    if (enabled == true) {
+        for (vertexIndex = 0; vertexIndex < ARRAY_SIZE(D_actor_510900_80167C68); vertexIndex++) {
+            vertices[ARRAY_SIZE(_gActor510900Collision35DBC) + vertexIndex] = D_actor_510900_80167C68[vertexIndex];
         }
-        normals[3] = D_actor_510900_80167C60[0];
-        faces[3]   = D_actor_510900_80167C88[0];
+        normals[ARRAY_SIZE(_gActor510900Collision35DA4)] = D_actor_510900_80167C60[0];
+        faces[ARRAY_SIZE(_gActor510900Collision35E1C)]   = D_actor_510900_80167C88[0];
     } else {
-        normals[3].vx = 0;
-        normals[3].vy = 0;
-        normals[3].vz = 0;
-        for (i = 0; i < 4; i++) {
-            verts[12 + i].vx = 0;
-            verts[12 + i].vy = 0;
-            verts[12 + i].vz = 0;
+        normals[ARRAY_SIZE(_gActor510900Collision35DA4)].vx = 0;
+        normals[ARRAY_SIZE(_gActor510900Collision35DA4)].vy = 0;
+        normals[ARRAY_SIZE(_gActor510900Collision35DA4)].vz = 0;
+        for (vertexIndex = 0; vertexIndex < ARRAY_SIZE(D_actor_510900_80167C68); vertexIndex++) {
+            vertices[ARRAY_SIZE(_gActor510900Collision35DBC) + vertexIndex].vx = 0;
+            vertices[ARRAY_SIZE(_gActor510900Collision35DBC) + vertexIndex].vy = 0;
+            vertices[ARRAY_SIZE(_gActor510900Collision35DBC) + vertexIndex].vz = 0;
         }
     }
 }
 
-/// Restores the collision-grid faces this actor edited. The spawn handler
-/// passes its task, which this never reads; the parameter is kept because the
-/// call site materialises it.
-void func_actor_510900_8013B524(Task* arg0)
+void actor510900RestoreGridFaces(Task* unusedTask)
 {
-    s32                     i;
-    SVECTOR*                normals = Gp_GridParams->normals;
-    SVECTOR*                verts   = Gp_GridParams->vertices;
-    WorldCollisionGridFace* faces   = Gp_GridParams->faces;
+    s32                     elementIndex;
+    SVECTOR*                normals  = Gp_GridParams->normals;
+    SVECTOR*                vertices = Gp_GridParams->vertices;
+    WorldCollisionGridFace* faces    = Gp_GridParams->faces;
 
-    for (i = 0; i < 12; i++) {
-        verts[i] = _gActor510900Collision35DBC[i];
+    for (elementIndex = 0; elementIndex < ARRAY_SIZE(_gActor510900Collision35DBC); elementIndex++) {
+        vertices[elementIndex] = _gActor510900Collision35DBC[elementIndex];
     }
 
-    for (i = 0; i < 3; i++) {
-        normals[i] = _gActor510900Collision35DA4[i];
-        faces[i]   = _gActor510900Collision35E1C[i];
+    for (elementIndex = 0; elementIndex < ARRAY_SIZE(_gActor510900Collision35DA4); elementIndex++) {
+        normals[elementIndex] = _gActor510900Collision35DA4[elementIndex];
+        faces[elementIndex]   = _gActor510900Collision35E1C[elementIndex];
     }
 }
 
-void func_actor_510900_8013B608(Task* arg0)
+void actor510900ExitBody(Task* task)
 {
-    Actor510900Work* work = arg0->work;
+    Actor510900Work* work = task->work;
 
     worldCollisionUnlinkBody(&work->body);
     worldCollisionUnlinkBody(&work->weaponAttack);
     worldCollisionUnlinkBody(&work->forearmAttack);
-    enemyDestroy(arg0->spawnArg2.pointer, arg0);
+    enemyDestroy(task->spawnArg2.pointer, task);
 }
 
 static void func_actor_510900_8013B658(Enemy* arg0, Task* arg1)
@@ -3892,7 +3932,7 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
                 return;
         }
         if (arg0->reactionFlags != 0) {
-            func_actor_510900_8013B804(arg1);
+            _actor510900ConsumeReactionFlags(arg1);
         }
         func_actor_510900_80135744(arg1);
         _actor510900UpdatePlayerRange(arg1);
@@ -3900,7 +3940,7 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
         _actor510900TurnAlongLap(arg1);
         _actor510900AdvanceAlongLap(arg1);
         _actor510900PlayStepSounds(arg1);
-        func_actor_510900_8013BB20(arg1);
+        _actor510900UpdateBodyAnimation(arg1);
         no9GolemAimHead(arg1);
         if (temp_s2->hitTwistActive != 0) {
             _actor510900ApplyHitTwist(arg1);
@@ -3915,27 +3955,32 @@ static void func_actor_510900_8013B6A0(Enemy* arg0, Task* arg1)
     }
 }
 
-static void func_actor_510900_8013B804(Task* arg0)
+/// Consumes enemy reaction requests and enters the golem's buildup stun.
+///
+/// Requires the live body task and enemy. Clears stagger and damage-over-time
+/// requests without starting those reactions; buildup sets the stun state and
+/// its latch. Other reaction bits remain intact.
+static void _actor510900ConsumeReactionFlags(Task* task)
 {
     Actor510900Work* work;
     Enemy*           enemy;
-    u8               flags;
+    u8               reactionFlags;
 
-    enemy = arg0->spawnArg2.pointer;
-    flags = enemy->reactionFlags;
-    work  = arg0->work;
-    if (flags & ENEMY_REACTION_STAGGER) {
-        enemy->reactionFlags = flags & ENEMY_REACTION_STAGGER_CLEAR;
+    enemy         = task->spawnArg2.pointer;
+    reactionFlags = enemy->reactionFlags;
+    work          = task->work;
+    if (reactionFlags & ENEMY_REACTION_STAGGER) {
+        enemy->reactionFlags = reactionFlags & ENEMY_REACTION_STAGGER_CLEAR;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state           = ACTOR_510900_STATE_BUILDUP_STUN;
-        work->subState        = 0;
+        work->subState        = ACTOR_510900_BUILDUP_STUN_WAIT;
         work->buildupStunned  = 1;
     }
-    flags = enemy->reactionFlags;
-    if (flags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        enemy->reactionFlags = flags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
+    reactionFlags = enemy->reactionFlags;
+    if (reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
+        enemy->reactionFlags = reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_CLEAR;
     }
 }
 
@@ -4065,24 +4110,30 @@ static void _actor510900TickFlinch(Task* task)
     }
 }
 
-static void func_actor_510900_8013BB20(Task* arg0)
+/// Restarts the body slots on an animation change, otherwise advances their poses.
+///
+/// Requires the initialized body rig and an animation ID present in both its
+/// set table and the per-animation blend-duration table. Drives slots 1..18;
+/// the root slot is skipped. A restart resets the frame counter, while an
+/// unchanged animation advances the stored signed-halfword counter by one.
+static void _actor510900UpdateBodyAnimation(Task* task)
 {
     Actor510900Work* work;
-    s32              i;
-    s32              value;
+    s32              slotIndex;
+    s32              blendFrames;
 
-    work = arg0->work;
+    work = task->work;
     if (work->animationId != work->seededAnimationId) {
         work->seededAnimationId = work->animationId;
         work->animationFrame    = 0;
-        value                   = D_actor_510900_80167B38[work->animationId];
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->animationId, 0, value);
+        blendFrames             = D_actor_510900_80167B38[work->animationId];
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animationId, 0, blendFrames);
         }
     } else {
         work->animationFrame++;
-        for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }
@@ -4126,25 +4177,44 @@ static void func_actor_510900_8013BC80(Task* arg0)
     }
 }
 
-s32 func_actor_510900_8013BD5C(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
+/// Latches an early release of the grenade hold while the player is alive.
+///
+/// Handles `ACTOR_MESSAGE_RELEASE_HOLD` on the live body task. Both payloads
+/// are unused. The grenade hold consumes the latch later; returns zero.
+static s32 _actor510900ReleaseGrenadeHold(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
+    Actor510900Work* work;
+
     if (gPlayerStatus.hp > 0) {
-        ((Actor510900Work*)arg0->work)->playerEscaped = 1;
+        work                = task->work;
+        work->playerEscaped = 1;
     }
     return 0;
 }
 
-s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2, s32 arg3)
+/// Starts the golem's event animation selected by a borrowed playback request.
+///
+/// Handles `ACTOR_MESSAGE_PLAY_ANIMATION`; script IDs 1..6 select body sets
+/// 28..33 by adding 27. The resulting ID must select a loaded body set. Resets slots 1..18 at record zero, using zero
+/// blend frames for RESET and eight for any other choice. Ignores the request's
+/// source, blend duration and collision choice, and leaves the seeded animation
+/// ID unchanged. Borrows the request through dispatch; returns zero.
+static s32 _actor510900PlayEventAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedSecondArg)
 {
-    Actor510900Work* work;
-    s32              blend;
-    s32              i;
+    enum {
+        ACTOR_510900_EVENT_BLEND_FRAMES   = 8,
+        ACTOR_510900_EVENT_ANIMATION_BASE = 27,
+    };
 
-    blend             = (arg2->blend != ANIMATION_BLEND_RESET) * 8;
-    work              = arg0->work;
-    work->animationId = arg2->animationId + 0x1B;
-    for (i = 1; i < ARRAY_SIZE(work->rig.slots); i++) {
-        animationSeekSlotWithBlend(&work->rig.anim, i, work->animationId, 0, blend);
+    Actor510900Work* work;
+    s32              blendFrames;
+    s32              slotIndex;
+
+    blendFrames       = (request->blend != ANIMATION_BLEND_RESET) * ACTOR_510900_EVENT_BLEND_FRAMES;
+    work              = task->work;
+    work->animationId = request->animationId + ACTOR_510900_EVENT_ANIMATION_BASE;
+    for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+        animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->animationId, 0, blendFrames);
     }
     work->animationFrame = 0;
     return 0;
@@ -4152,24 +4222,33 @@ s32 func_actor_510900_8013BD84(Task* arg0, s32 arg1, AnimationPlayRequest* arg2,
 
 #include "../../shared/actor_messages_place_rot_matrix.inc.c"
 
-/// Message 0x7D5 handler: switches the model's 0x80 flag: set when `arg2` is 0,
-/// cleared for any other value. The message id itself is unused.
-s32 func_actor_510900_8013BE64(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Sets whether the body model participates in active drawing.
+///
+/// Handles `ACTOR_MESSAGE_SET_MODEL_DRAW` on a live TMD body task. A zero
+/// first payload replaces all model flags with SKIP_ACTIVE_DRAW; any nonzero
+/// payload replaces them with zero. The second payload is unused; returns zero.
+static s32 _actor510900SetModelDraw(Task* task, s32 messageId, s32 drawEnabled, s32 unusedSecondArg)
 {
-    TmdObject* tmd;
+    TmdObject* bodyModel;
 
-    tmd = task->extra.tmd;
-    if (arg2 == 0) {
-        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    bodyModel = task->extra.tmd;
+    if (drawEnabled == 0) {
+        bodyModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        tmd->flags = 0;
+        bodyModel->flags = 0;
     }
     return 0;
 }
 
-s32 func_actor_510900_8013BE84(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
+/// Returns the body work's presence latch for `ACTOR_MESSAGE_IS_PRESENT`.
+///
+/// Requires the live body task and work. Both payloads are unused. Presence
+/// lasts from initialization until death and is independent of model drawing.
+static s32 _actor510900IsPresent(Task* task, s32 messageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
-    return ((Actor510900Work*)arg0->work)->present;
+    const Actor510900Work* work = task->work;
+
+    return work->present;
 }
 
 /// Dispatches initialization or update of the golem's off-hand prop model.
@@ -4300,7 +4379,7 @@ void func_actor_510900_8013C190(Task* task)
 void func_actor_510900_8013C1EC(Task* task)
 {
     EnemyTaskFunc fns[2] = {
-        func_actor_510900_8013A5B8,
+        _actor510900InitHelipadLight,
         func_actor_510900_8013A85C,
     };
 
@@ -4359,34 +4438,44 @@ static void func_actor_510900_8013C338(Task* arg0, GfxCoord* arg1)
     worldCoordSetModelLighting(arg0->extra.tmd, &pos, 0, 3);
 }
 
-static void func_actor_510900_8013C380(Task* arg0)
+/// Unregisters the helipad light's target and collision bodies, then destroys it.
+///
+/// Requires the successfully initialized light task and its live enemy and work.
+/// Target unlink precedes body unlink and enemy-owned work/task destruction;
+/// adopted spark effects follow the task tree's teardown.
+static void _actor510900ExitHelipadLight(Task* task)
 {
-    Enemy*                        enemy = arg0->spawnArg2.pointer;
-    _Actor510900HelipadLightWork* work  = arg0->work;
+    Enemy*                        enemy = task->spawnArg2.pointer;
+    _Actor510900HelipadLightWork* work  = task->work;
 
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->body);
     worldCollisionUnlinkBody(&work->blast);
-    enemyDestroy(enemy, arg0);
+    enemyDestroy(enemy, task);
 }
 
 void func_actor_510900_8013C3DC(Task* task)
 {
     EnemyTaskFunc fns[2] = {
-        func_actor_510900_8013AD90,
+        _actor510900InitBlastSource,
         func_actor_510900_8013AF38,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);
 }
 
-static void func_actor_510900_8013C430(Task* arg0)
+/// Unregisters the blast source's target and collision bodies, then destroys it.
+///
+/// Requires the successfully initialized source task and its live enemy and work.
+/// Target unlink precedes body unlink and enemy-owned work/task destruction;
+/// adopted flare effects follow the task tree's teardown.
+static void _actor510900ExitBlastSource(Task* task)
 {
-    Enemy*                       enemy = arg0->spawnArg2.pointer;
-    _Actor510900BlastSourceWork* work  = arg0->work;
+    Enemy*                       enemy = task->spawnArg2.pointer;
+    _Actor510900BlastSourceWork* work  = task->work;
 
     worldTargetUnlinkNode(&enemy->node);
     worldCollisionUnlinkBody(&work->body);
     worldCollisionUnlinkBody(&work->blast);
-    enemyDestroy(enemy, arg0);
+    enemyDestroy(enemy, task);
 }

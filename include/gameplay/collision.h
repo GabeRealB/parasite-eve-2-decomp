@@ -40,6 +40,9 @@ STATIC_ASSERT_SIZEOF(DamageAttack, 0x4);
 /// Packed attack identity's contact category: 4 in the high halfword.
 #define DAMAGE_ATTACK_CATEGORY 0x40000
 
+/// Fixed-damage hazard contact category, with its damage-table row in the low halfword.
+#define DAMAGE_HAZARD_CATEGORY 0x50000
+
 /// Geometry kinds and list state in `WorldCollisionTrigger::flags`.
 ///
 /// View boundaries require movement against the face normal. Action quads

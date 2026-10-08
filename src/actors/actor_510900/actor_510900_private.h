@@ -168,11 +168,26 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1);
 
 void func_actor_510900_801355B4(Enemy* arg0, Task* arg1);
 
-void func_actor_510900_8013B424(s32 arg0);
+/// Installs or collapses the landing pad's extra collision-grid face.
+///
+/// Requires the active landing-pad grid with at least four normals/faces and
+/// sixteen vertices. `enabled == 1` copies the fourth face and vertices 12..15;
+/// every other value zeroes only their XYZ and the fourth normal's XYZ, leaving
+/// the face record and vector fourth halfwords unchanged.
+void actor510900SetExtraGridFace(s32 enabled);
 
-void func_actor_510900_8013B524(Task* arg0);
+/// Restores the three landing-pad wall faces carried with the moving golem.
+///
+/// Requires the active grid with at least three normals/faces and twelve vertices.
+/// Copies complete vectors and face records from the rest-pose arrays. The task
+/// argument is unused; this function retains the spawn call's original interface.
+void actor510900RestoreGridFaces(Task* unusedTask);
 
-void func_actor_510900_8013B608(Task* arg0);
+/// Unlinks the body's receiving sphere and both attack spheres, then destroys it.
+///
+/// Requires the successfully initialized body task and its live enemy/work.
+/// Enemy destruction handles the target record, owned work and task tree.
+void actor510900ExitBody(Task* task);
 
 /// Samples room lighting at the body's cached translation and applies its colour state.
 ///

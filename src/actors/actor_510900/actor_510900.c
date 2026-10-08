@@ -2365,9 +2365,9 @@ void func_actor_510900_801350F8(Enemy* arg0, Task* arg1)
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->forearmAttack);
     work->forearmAttack.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     arg1->msgTable             = D_actor_510900_80167A6C;
-    arg1->exitCallback         = func_actor_510900_8013B608;
-    func_actor_510900_8013B524(arg1);
-    func_actor_510900_8013B424(1);
+    arg1->exitCallback         = actor510900ExitBody;
+    actor510900RestoreGridFaces(arg1);
+    actor510900SetExtraGridFace(true);
     arg1->state = 1;
 }
 
