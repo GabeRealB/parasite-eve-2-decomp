@@ -50528,14 +50528,14 @@ the source. Computing the decrement into a temp up front loses it:
 
 ```c
 /* BAD — lhu wins, the compare becomes sll 16 + bgtz, 2 insns over */
-timer = (u16)work->field_0A - 1;
-if (work->field_0A > 0) { work->field_0A = timer; }
+timer = (u16)work->timer - 1;
+if (work->timer > 0) { work->timer = timer; }
 
 /* GOOD — lh for the compare, lhu for the arithmetic, both loads kept */
-if (work->field_0A <= 0) {
+if (work->timer <= 0) {
     /* timeout body */
 } else {
-    work->field_0A = (u16)work->field_0A - 1;
+    work->timer = (u16)work->timer - 1;
 }
 ```
 
@@ -50544,7 +50544,7 @@ one-instruction decrement block *after* the timeout body, which is what lets
 cross-jumping merge the identical decrement tails of two neighbouring switch
 cases into a single out-of-line block both `bgtz` into. Written as
 `if (field > 0) { dec; break; } timeout;` the decrement is inline in each case
-and the merged block lands too early. `func_mist_shooting_gallery_80183E78`
+and the merged block lands too early. `_mistShootingGalleryRunCourse4`
 states 1 and 2 are the worked example (84% → 98% on those two edits).
 
 ## Permute the order of independent struct stores to place a shared `li`
@@ -50553,16 +50553,16 @@ GCC 2.8.1 reorders stores to distinct constant offsets of one struct — it
 proves they cannot alias — so the store order in the target says nothing about
 the source order. What the source order *does* fix is where a constant shared
 by two stores gets materialised. In the tail of
-`func_mist_shooting_gallery_80183E78` the value 1 is stored to both a struct
+`_mistShootingGalleryRunCourse4` the value 1 is stored to both a struct
 byte and a global byte, and the target loads it immediately after the first
 constant of the block:
 
 ```c
 /* li v0,8 / li v1,1 / sh 4 / li v0,3 / sh 0xa / li v0,0x11 / sb 0x20 / sb 0x1e */
-work->field_04 = 8;
-work->field_1E = 1;      /* second in source, fourth in the emitted stores */
-work->field_0A = 3;
-work->field_20 = 0x11;
+work->phase = 8;
+work->interrupted = 1;      /* second in source, fourth in the emitted stores */
+work->timer = 3;
+work->captionStep = 0x11;
 D_80115768     = 1;
 ```
 
@@ -50864,14 +50864,14 @@ that drifts. It bites just as hard when the fixed-address scalar is the
 **load** of a global table pointer, and there the damage is not a stray
 instruction but which tail GCC cross-jumps.
 
-`func_mist_shooting_gallery_80182C58` has two `switch` arms that advance the
+`_mistShootingGalleryRunCourse0` has two `switch` arms that advance the
 state and then spawn a record:
 
 ```c
-work->field_04++;                                  /* mem/s store, varying base */
-spawn = &D_mist_shooting_gallery_80186900[work->field_08];
-_mistShootingGallerySpawnTarget(arg0, spawn);
-work->field_08++;
+work->phase++;                                  /* mem/s store, varying base */
+spawn = &D_mist_shooting_gallery_80186900[work->spawnIndex];
+_mistShootingGallerySpawnTarget(controller, spawn);
+work->spawnIndex++;
 ```
 
 With `extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900;` the
@@ -50890,13 +50890,13 @@ order, and 100% follows with no other change:
 
 ```c
 extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
-spawn = &D_mist_shooting_gallery_80186900[0][work->field_08];
+spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
 ```
 
 Two things this measurement adds to the store-side entry:
 
 * **The barrier is not an alternative here.** `SOFT_BARRIER()` / `SCHED_BARRIER()`
-  after `work->field_04++` also puts the field_04 chain first (97.9%), but an
+  after `work->phase++` also puts the phase chain first (97.9%), but an
   `asm` with no output is implicitly volatile and splits the block, so the call's
   `move a0, s2` can no longer be hoisted out of the second region and the branch
   delay slot takes `li 0x3c` instead. An `asm` *with* an output and a `"memory"`
@@ -50913,7 +50913,7 @@ Two things this measurement adds to the store-side entry:
 The register-allocation half of the same function is the mirror of "Early
 `return ret;` inflates `ret`'s ref count": `work` (105 refs / 330 insns) beat
 `spawn` for `$s0` and the target wanted the reverse. Writing `spawn = &tbl[i];
-f(arg0, spawn);` in *every* arm that spawns — rather than passing `&tbl[i]`
+f(controller, spawn);` in *every* arm that spawns — rather than passing `&tbl[i]`
 inline in some of them — raised `spawn`'s `floor_log2(n_refs) * n_refs /
 live_length` above `work`'s, and the whole `$s0`/`$s1` assignment fell into
 place (`regs` 107 -> 7) with identical instructions. Reusing one local across
@@ -92223,7 +92223,7 @@ truncates at the call site (`andi a0,v0,0xFF`), which is what settles it as
 
 Inputs: `base.c` (89.09%, `regs=10 delete=2 branch=1`), `base_1.c` (100%),
 `base_2.c` / `base_3.c` (same object, parameter-type variants). Compiler SHA256
-## The "similar matched bodies" list is cross-overlay, so an empty "same TU" section is not a dead end (func_mine_gorge_8017D6E8, 2026-09-16)
+## The "similar matched bodies" list is cross-overlay, so an empty "same TU" section is not a dead end (_mineGorgeResolveRoomEvent, 2026-09-16)
 
 The twin entry above scopes itself to "when the twin is in the same TU". That is
 narrower than the brief's data: the list comes from `overlay_dup_index.py
@@ -92231,14 +92231,14 @@ similar`, which ranks *already-matched* bodies across every overlay, so a room
 function can print `Nearby matched functions in this TU: (none)` and still be
 handed its answer.
 
-`func_mine_gorge_8017D6E8` is `1.00 shape` / `1.00 fields` / `1.00 calls`
+`_mineGorgeResolveRoomEvent` is `1.00 shape` / `1.00 fields` / `1.00 calls`
 against `_shelterB3IncineratorControlRoomResolveRoomEvent` - a different
 overlay, a different link address, sharing no data symbol. Only two constants
-differ (`msgId != 2` vs `!= 0x2A`, nibble `0xB5` vs `0xA7`); `capRunCommandWithTransition(3)`
+differ (`request->areaId != 2` vs `!= 0x2A`, nibble `0xB5` vs `0xA7`); `capRunCommandWithTransition(3)`
 is identical in both. The `.s` diff that made `dryfieldWaterTankMovePlayerSecondLegTask`
 provable does not transfer, because two overlays' disassembly texts differ in
 every address; what transfers is the sibling's *C source shape*. Porting it
-verbatim - `RoomEventMsg*` params, `*out = *in;` first, then the `func_80179A04`
+verbatim - `RoomEventMsg*` params, `*reply = *request;` first, then the `func_80179A04`
 forward, then the two return-1 guards and the `return 0` tail - gave 100.000%
 with zero penalties on `base_1.c`, against an m2c seed at 55.32% whose penalty
 line was `branch=3 regs=10 insert=5 delete=11`.
@@ -92253,7 +92253,7 @@ registers, which survived here despite the differing data constants.
 The diagnostic to read off the m2c seed: `sw zero,3(a1)` where the target has
 `swl $t0,3($a1)` / `swr $t0,0($a1)` means m2c dropped a whole-record struct
 copy, i.e. the parameter is an untyped `void*` and the source had
-`*out = *in;`.
+`*reply = *request;`.
 
 Input: `base_1.i`, 100.000%, zero penalties, first build. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
@@ -92328,9 +92328,9 @@ call argument. `gameSetTaskSlot(task, 7)` was 100.000% on the next build, with
 no other source change. Inputs: `base.c` 94.737% (`insert=1 delete=1`),
 `base_1.c` 100.000%.
 
-## An m2c seed needing only declarations is already the answer, and two literal `1`s across a call share one `$s0` (func_mine_gorge_8017D828, 2026-09-16)
+## An m2c seed needing only declarations is already the answer, and two literal `1`s across a call share one `$s0` (_mineGorgeOakBoardCutsceneTask, 2026-09-16)
 
-`func_mine_gorge_8017D828` matched 100.000% with zero penalties on the *first
+`_mineGorgeOakBoardCutsceneTask` matched 100.000% with zero penalties on the *first
 scoring build* of its m2c seed. The only edits were filling in m2c's `?`
 placeholders - `void inventoryClearCollectedBit(s32 index);` and plain `extern s32`
 data declarations - so the branch shape m2c recovered was already exact and the
@@ -94133,18 +94133,18 @@ target shows a value in a different register per arm; reach for the shared
 function-scope form only when the target shows one register across them.
 
 **A tied chain inherits its destination's range, so a long-lived destination
-lifts the whole chain to a higher register.** `func_neo_ark_bridge_8017E954`
+lifts the whole chain to a higher register.** `neoArkBridgeAmbientEffectsTask`
 (rooms, 2026-09-17) rolls the LCG twice in one arm:
 
 ```c
-    rndSpawn    = gRandomLcgState * 5 + 0x71357911;
-    gRandomLcgState = rndSpawn;
-    effectSpawn(0x60070, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200, &D_...F60);
+    firstSmokeOptionsState = gRandomLcgState * 5 + 0x71357911;
+    gRandomLcgState = firstSmokeOptionsState;
+    effectSpawn(0x60070, 0, ((firstSmokeOptionsState >> 16) & 0x11FF) | 0x22200, &D_...F60);
 ```
 
 `block_alloc` tries to tie operand 0 of each insn to a later operand that dies
-there, so the `sll`/`addu` chain and `rndSpawn` become one quantity whose range
-runs to the *last* use of `rndSpawn` - past the `lui`/`ori` pairs that
+there, so the `sll`/`addu` chain and `firstSmokeOptionsState` become one quantity whose range
+runs to the *last* use of `firstSmokeOptionsState` - past the `lui`/`ori` pairs that
 materialise the call arguments into `$v0`, `$a0` and `$a1`. `find_free_reg`
 scans `$v0` upward excluding every register live anywhere inside that range, so
 the whole chain lands in `$a2` (retail: `sll $a2,$v1,2; addu $a2,$a2,$v1;
@@ -119796,9 +119796,9 @@ exit's delay slot. Real `return 1;` statements reproduce the target (see the
 `move $v0,$sN` entry above for the inverse tell).
 
 Read the two matched templates before the seed: `Room_Util02`
-(`src/rooms/lib/room_util02.c`) is the bare copy-and-forward, `func_mine_gorge_8017D6E8`
-(`src/rooms/mine_gorge/mine_gorge.c`) is the "check `msgId`, act, `return 1`/`0`" tail
-with the same `gameFlagSetNibbleIfPresent(in->flagId, 2)` / `capRunCommandWithTransition` shape. Between them the
+(`src/rooms/lib/room_util02.c`) is the bare copy-and-forward, `_mineGorgeResolveRoomEvent`
+(`src/rooms/mine_gorge/mine_gorge.c`) is the "check `request->areaId`, act, `return 1`/`0`" tail
+with the same `gameFlagSetNibbleIfPresent(request->flagId, 2)` / `capRunCommandWithTransition` shape. Between them the
 whole prologue and the tail's constant materialisation are pinned. Here the m2c seed
 already had the block topology right (score 81.049%, `branch=13 insert=6 delete=13`),
 and the single rewrite that fixed the copy and the returns scored 100.000% with all
@@ -140589,7 +140589,7 @@ permutation had moved the pair.
 Fix: when the target materialises an address into its final callee-saved
 register directly, give each block its own variable instead of reusing one.
 
-## A flag cleared before a list scan leaves a reorg `(use insn)` marker that blocks an earlier branch from stealing `move v0,zero`; clear it on the loop-exit path (func_mine_gorge_8017D5F8, 2026-09-23)
+## A flag cleared before a list scan leaves a reorg `(use insn)` marker that blocks an earlier branch from stealing `move v0,zero`; clear it on the loop-exit path (_mineGorgeUseOakBoardMessage, 2026-09-23)
 
 Target shape: an early `bnez v0,<epilogue>` whose delay slot is a copy of the
 shared return-0 `move v0,zero` (dbr took it from the target thread), followed

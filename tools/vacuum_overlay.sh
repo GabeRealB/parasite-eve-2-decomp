@@ -139,7 +139,7 @@ log "leased $OVERLAY, worktree $WT"
 # An archive trunk already has is updated, not skipped. The worktree's copy was
 # seeded from trunk's (seed_giveups) and archive_giveup.py only ever adds
 # sessions to it, so it is the newer superset. Skipping it is how
-# func_mine_gorge_8017D5F8's second give-up (97.4%, 9 attempts) was lost: the
+# _mineGorgeUseOakBoardMessage's second give-up (97.4%, 9 attempts) was lost: the
 # first run had already created the directory on trunk.
 migrate_giveups() {
     [[ -d "$WT/tools/giveups" ]] || return 0
@@ -509,7 +509,7 @@ if [[ "$DRY_RUN" == true || "$NO_LAND" == true || ${#ALL_MATCHED[@]} -eq 0 ]]; t
     # keeping: the give-up line in tools/difficult_functions and any learnings
     # sections. Deleting the branch threw both away, so the function was never
     # marked difficult and the next pass of the list claimed it again -
-    # func_mine_gorge_8017D5F8 gave up at 98.8% and 97.4% and was started a
+    # _mineGorgeUseOakBoardMessage gave up at 98.8% and 97.4% and was started a
     # third time. Merge those two files onto trunk the same way a landing does;
     # nothing else a failed run changed is carried.
     carry_bookkeeping

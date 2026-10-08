@@ -830,7 +830,7 @@ mineSecretPassageRoomVisualEffectsHaloOrangeBurstTask = 0x8017F948; // type:func
 mineSecretPassageRoomVisualEffectsSparkEmitterTask = 0x80180D58; // type:func absolute:True owner=mine_secret_passage
 
 
-func_neo_ark_bridge_8017E954 = 0x8017E954; // type:func absolute:True owner=neo_ark_bridge
+neoArkBridgeAmbientEffectsTask = 0x8017E954; // type:func absolute:True owner=neo_ark_bridge
 
 neoArkBridgeWaterRippleTask = 0x8017EF70; // type:func absolute:True owner=neo_ark_bridge
 
@@ -954,7 +954,7 @@ neoArkWoodlandPathWaterRippleTask = 0x8017F4A0; // type:func absolute:True owner
 
 neoArkWoodlandPathWaterDriftTaskU16 = 0x8017F928; // type:func absolute:True owner=neo_ark_woodland_path
 
-shelter1fBulwarkRoomVisualEffectsFlashTask = 0x8017E38C; // type:func absolute:True owner=shelter_1f_bulwark shared=rooms
+shelter1fBulwarkRoomVisualEffectsFlashTask = 0x8017E38C; // type:func absolute:True owner=shelter_1f_bulwark
 
 shelter1fBulwarkRoomVisualEffectsTwinTrailTask = 0x8017EDF0; // type:func absolute:True owner=shelter_1f_bulwark
 
@@ -1761,7 +1761,7 @@ acropolisFireEscapeLightEmitterTask = 0x8017FF7C; // type:func absolute:True own
 
 acropolisCafeteriaPuffTask = 0x8017EA90; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
 
-acropolisHallwayEffectControlTask84 = 0x8017D828; // type:func absolute:True owner=acropolis_hallway shared=rooms
+acropolisHallwayEffectControlTask84 = 0x8017D828; // type:func absolute:True owner=acropolis_hallway
 
 dryfieldToiletSprayEmitterTask = 0x8017DCF0; // type:func absolute:True owner=dryfield_toilet
 

@@ -241,9 +241,9 @@ extern const char D_mist_shooting_gallery_8017DAA4[18];
 extern const char D_mist_shooting_gallery_8017DAB8[16];
 extern const char D_mist_shooting_gallery_8017DAC8[20];
 static s32        _mistShootingGalleryRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32               func_mist_shooting_gallery_8017FEB8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32        _mistShootingGalleryResolveRoomEvent(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32        _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedSecondArg);
-s32               func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32        _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static void       _mistShootingGalleryResultPanelTask(Task* task);
 static void       _mistShootingGalleryBonusPanelTask(Task* task);
 static void       _mistShootingGalleryModeSelectPanelTask(Task* task);
@@ -711,9 +711,9 @@ TaskDesc D_mist_shooting_gallery_801850D0 = { { { TASK_BODY_NONE, 192 } }, _mist
 TaskDesc D_mist_shooting_gallery_801850DC = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCapPlaybackTask, { .value = 0 } };
 
 TaskMessageEntry D_mist_shooting_gallery_801850E8[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_shooting_gallery_8017FEB8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mistShootingGalleryResolveRoomEvent },
     { MIST_SHOOTING_GALLERY_MESSAGE_USE_KEY_ITEM, _mistShootingGalleryRejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_shooting_gallery_8018008C },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _mistShootingGalleryHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, _mistShootingGalleryHandleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -922,8 +922,8 @@ SVECTOR D_mist_shooting_gallery_80185550[45] = {
     { -390, -2770, 6800, 0 },
 };
 
-static void func_mist_shooting_gallery_8017FC2C(Task* arg0);
-static void func_mist_shooting_gallery_8017FD40(Task* task);
+static void _mistShootingGalleryInitRoomTask(Task* task);
+static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask);
 
 static void _glowDrawCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 packedColor);
 
@@ -1818,39 +1818,67 @@ void mistShootingGalleryOpenCarryoverModeMenu(void)
         displayQueueModeTask(&D_mist_shooting_gallery_801850D0, 0, 0, STAGE_ENTRY_RELOAD);
     }
 }
-static void func_mist_shooting_gallery_8017FC2C(Task* arg0)
+/// Registers the gallery room task and prepares captions, barriers and entry events.
+///
+/// Initial state of the room controller: installs its borrowed message table,
+/// selects loaded caption resource 2 at VRAM word X 832 and sets story-barrier
+/// visibility. Demo scene 7 starts course 0; otherwise arrival 7 starts the
+/// carryover actor task. Arrival 6 with the story flag set queues its CAP entry
+/// command. Replaces flow flags with the area-music skip flag and advances state.
+/// Requires both the gallery and actor-215100 overlays and caption resources live.
+static void _mistShootingGalleryInitRoomTask(Task* task)
 {
-    s32 var_a0;
+    enum {
+        MIST_SHOOTING_GALLERY_CAPTION_TEXTURE_X      = 832,
+        MIST_SHOOTING_GALLERY_CAPTION_RESOURCE_INDEX = 2,
+        MIST_SHOOTING_GALLERY_DEMO_SCENE             = 7,
+        MIST_SHOOTING_GALLERY_CARRYOVER_WARP         = 7,
+        MIST_SHOOTING_GALLERY_TRAINING_WARP          = 6,
+        MIST_SHOOTING_GALLERY_STORY_ENTRY_COMMAND    = 22,
+    };
+    s32 storyBarrierLowered;
 
-    arg0->msgTable = D_mist_shooting_gallery_801850E8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    actor215100SelectCaptionResource(0x340, 0, 2);
+    task->msgTable = D_mist_shooting_gallery_801850E8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    actor215100SelectCaptionResource(MIST_SHOOTING_GALLERY_CAPTION_TEXTURE_X, 0, MIST_SHOOTING_GALLERY_CAPTION_RESOURCE_INDEX);
     if (gameFlagGetNibble(GAME_FLAG_0ED) != 0) {
         sceneSetPlacedActorDrawMode(1, 0);
-        var_a0 = 1;
+        storyBarrierLowered = 1;
     } else {
-        var_a0 = 0;
+        storyBarrierLowered = 0;
     }
-    _mistShootingGallerySetStoryBarrierLowered(var_a0);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 7) {
+    _mistShootingGallerySetStoryBarrierLowered(storyBarrierLowered);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == MIST_SHOOTING_GALLERY_DEMO_SCENE) {
         taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 0, 0, 0);
-    } else if (gGameSession->location.loc.warp == 7) {
+    } else if (gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_CARRYOVER_WARP) {
         taskSpawnFromTable(D_actor_215100_8014E13C, 0, 0, 0);
     }
-    if ((gGameSession->location.loc.warp == 6) && (gameFlagGetNibble(GAME_FLAG_0ED) != 0)) {
-        capRunCommandWithTransition(0x16);
+    if ((gGameSession->location.loc.warp == MIST_SHOOTING_GALLERY_TRAINING_WARP) && (gameFlagGetNibble(GAME_FLAG_0ED) != 0)) {
+        capRunCommandWithTransition(MIST_SHOOTING_GALLERY_STORY_ENTRY_COMMAND);
     }
     gGameSession->flowFlags = GAME_SESSION_FLOW_SKIP_AREA_MUSIC;
-    arg0->state             = arg0->state + 1;
+    task->state             = task->state + 1;
 }
 
-static void func_mist_shooting_gallery_8017FD40(Task* task)
+/// Updates the gallery story actor visibility and checks training-exit input.
+///
+/// In variant 1 outside a session event, hides placed actor 1 in views 3, 9 and
+/// 18; other views show it only while the story flag is clear. Checks exit input
+/// every tick regardless of that visibility gate. The task argument is unused;
+/// requires the live gallery, actor-215100 and player resources.
+static void _mistShootingGalleryUpdateRoomTask(Task* unusedTask)
 {
-    u8 temp_v1;
+    enum {
+        MIST_SHOOTING_GALLERY_STORY_VARIANT      = 1,
+        MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_3  = 3,
+        MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_9  = 9,
+        MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_18 = 18,
+    };
+    u8 viewIndex;
 
-    if ((gGameSession->location.loc.variant == 1) && (gGameSession->eventState == 0)) {
-        temp_v1 = gGameSession->location.loc.view;
-        if ((temp_v1 == 3) || (temp_v1 == 9) || (temp_v1 == 0x12)) {
+    if ((gGameSession->location.loc.variant == MIST_SHOOTING_GALLERY_STORY_VARIANT) && (gGameSession->eventState == 0)) {
+        viewIndex = gGameSession->location.loc.view;
+        if ((viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_3) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_9) || (viewIndex == MIST_SHOOTING_GALLERY_HIDE_ACTOR_VIEW_18)) {
             sceneSetPlacedActorDrawMode(1, 0);
         } else if (gameFlagGetNibble(GAME_FLAG_0ED) == 0) {
             sceneSetPlacedActorDrawMode(1, 1);
@@ -1925,34 +1953,52 @@ static s32 _mistShootingGalleryRejectKeyItemMessage(Task* task, s32 messageId, s
     return MIST_SHOOTING_GALLERY_KEY_ITEM_UNUSABLE;
 }
 
-s32 func_mist_shooting_gallery_8017FEB8(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Resolves gallery transitions and selects the training or carried loadout.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with borrowed eight-byte request and
+/// writable reply records, which may alias. Copies the request; executing a
+/// parking destination after chapter 0 adds two to its room. Gallery warp 5 can
+/// return 2 through actor-owned confirmation, before any loadout change. Other
+/// requests return 1. Executing gallery warp 6 initializes training equipment;
+/// warp 5 restores carried equipment. Both select scene/player resources and
+/// hide the HUD. Queries suppress those changes, and no payload is retained here.
+static s32 _mistShootingGalleryResolveRoomEvent(Task* unusedTask, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    if (src->areaId == GAME_AREA_MIST_PARKING && src->queryOnly == ROOM_EVENT_EXECUTE) {
+    enum {
+        MIST_SHOOTING_GALLERY_CARRIED_LOADOUT_WARP      = 5,
+        MIST_SHOOTING_GALLERY_TRAINING_LOADOUT_WARP     = 6,
+        MIST_SHOOTING_GALLERY_SCENE_CARRIED_LOADOUT     = 1,
+        MIST_SHOOTING_GALLERY_SCENE_TRAINING_LOADOUT    = 2,
+        MIST_SHOOTING_GALLERY_CARRIED_RESOURCE_VARIANT  = 3,
+        MIST_SHOOTING_GALLERY_TRAINING_RESOURCE_VARIANT = 4,
+        MIST_SHOOTING_GALLERY_PARKING_STORY_ROOM_OFFSET = 2,
+    };
+    *reply = *request;
+    if (request->areaId == GAME_AREA_MIST_PARKING && request->queryOnly == ROOM_EVENT_EXECUTE) {
         if (gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) != 0) {
-            dst->room += 2;
+            reply->room += MIST_SHOOTING_GALLERY_PARKING_STORY_ROOM_OFFSET;
         }
     }
-    if (src->areaId == GAME_AREA_MIST_SHOOTING_GALLERY) {
-        if (dst->warp == 5 && actor215100ResolveGalleryExit(src) == ACTOR_215100_GALLERY_EXIT_DEFER) {
-            return 2;
+    if (request->areaId == GAME_AREA_MIST_SHOOTING_GALLERY) {
+        if (reply->warp == MIST_SHOOTING_GALLERY_CARRIED_LOADOUT_WARP && actor215100ResolveGalleryExit(request) == ACTOR_215100_GALLERY_EXIT_DEFER) {
+            return ACTOR_215100_GALLERY_EXIT_DEFER;
         }
-        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            if (dst->warp == 6) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
-                gPlayerStatus.resourceVariant                       = 4;
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (reply->warp == MIST_SHOOTING_GALLERY_TRAINING_LOADOUT_WARP) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = MIST_SHOOTING_GALLERY_SCENE_TRAINING_LOADOUT;
+                gPlayerStatus.resourceVariant                       = MIST_SHOOTING_GALLERY_TRAINING_RESOURCE_VARIANT;
                 gGameSession->hideHud                               = 1;
                 inventoryInitializeShootingGalleryLoadout();
             }
-            if (dst->warp == 5) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 1;
-                gPlayerStatus.resourceVariant                       = 3;
+            if (reply->warp == MIST_SHOOTING_GALLERY_CARRIED_LOADOUT_WARP) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = MIST_SHOOTING_GALLERY_SCENE_CARRIED_LOADOUT;
+                gPlayerStatus.resourceVariant                       = MIST_SHOOTING_GALLERY_CARRIED_RESOURCE_VARIANT;
                 gGameSession->hideHud                               = 1;
                 inventoryRestoreCarriedLoadout();
             }
         }
     }
-    return 1;
+    return ACTOR_215100_GALLERY_EXIT_ALLOW;
 }
 
 /// Handles room command requests for CAP commands 5..8 and 33..34.
@@ -1987,23 +2033,37 @@ static s32 _mistShootingGalleryHandleCommand(Task* task, s32 messageId, s32 comm
     return 0;
 }
 
-s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Dispatches the gallery course-menu, Pierce-talk, training and story action points.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` with a borrowed typed request. Action
+/// 1 holds player control and queues the course menu while training is inactive;
+/// 2 starts Pierce talk before the story flag; 3 signals the training interaction;
+/// 4 starts its story event once and sets objective 59. Menu action rearms input
+/// for ten ticks. Ignores the other payload fields and arguments, retains no
+/// request and returns zero. Requires both loaded gallery and actor overlays.
+static s32 _mistShootingGalleryHandleRoomAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    const DirectionActionRequest* request = firstArg;
-
-    if ((request->actionId == 1) && (D_actor_215100_8014D038 == 0)) {
+    enum {
+        MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU = 1,
+        MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE   = 2,
+        MIST_SHOOTING_GALLERY_ACTION_TRAINING_POINT   = 3,
+        MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT      = 4,
+        MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS      = 10,
+        MIST_SHOOTING_GALLERY_STORY_OBJECTIVE         = 59,
+    };
+    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_OPEN_COURSE_MENU) && (D_actor_215100_8014D038 == 0)) {
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         taskSpawnFromTable(D_actor_215100_8014E13C, 1, 1, 0);
-        D_80114D08 = 0xA;
+        D_80114D08 = MIST_SHOOTING_GALLERY_ACTION_REARM_TICKS;
     }
-    if ((request->actionId == 2) && (gameFlagGetNibble(GAME_FLAG_0ED) == 0)) {
+    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_TALK_TO_PIERCE) && (gameFlagGetNibble(GAME_FLAG_0ED) == 0)) {
         actor215100StartPierceConversation();
     }
-    if (request->actionId == 3) {
+    if (request->actionId == MIST_SHOOTING_GALLERY_ACTION_TRAINING_POINT) {
         actor215100HandleGalleryAction();
     }
-    if ((request->actionId == 4) && (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x3B);
+    if ((request->actionId == MIST_SHOOTING_GALLERY_ACTION_STORY_EVENT) && (gameFlagGetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN) == 0)) {
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, MIST_SHOOTING_GALLERY_STORY_OBJECTIVE);
         gameFlagSetNibble(GAME_FLAG_SHOOTING_GALLERY_ACTION_4_SEEN, 1);
         evsStartScriptWithSkip(D_actor_215100_80153274, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_215100_80153D6C);
     }
@@ -2012,10 +2072,10 @@ s32 func_mist_shooting_gallery_8018008C(Task* task, s32 msgId, const void* first
 
 /// The room task's three-state table, run from a stack copy by
 /// `mistShootingGalleryRoomTask`: the entry tick
-/// `func_mist_shooting_gallery_8017FC2C`, the per-frame state
-/// `func_mist_shooting_gallery_8017FD40`, then `taskKill`.
+/// `_mistShootingGalleryInitRoomTask`, the per-frame state
+/// `_mistShootingGalleryUpdateRoomTask`, then `taskKill`.
 static const TaskFuncTable3 D_mist_shooting_gallery_8017D860 = {
-    { func_mist_shooting_gallery_8017FC2C, func_mist_shooting_gallery_8017FD40, taskKill },
+    { _mistShootingGalleryInitRoomTask, _mistShootingGalleryUpdateRoomTask, taskKill },
 };
 
 /// The jukebox's track names ("1. Crazy King", ...), reached only through the

@@ -125,48 +125,43 @@ extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186908;
 /// The five course wave scripts as the one array they are: element 0 is the
 /// bonus course's script, and elements 1..4 are the same pointers the round
 /// scripts above reach by their own addresses (`0x80186904` .. `0x80186910`).
-/// The array type is what `func_mist_shooting_gallery_80182C58` needs - an
+/// The array type is what `_mistShootingGalleryRunCourse0` needs - an
 /// array element counts as a struct reference to GCC 2.8.1's alias analysis,
-/// so the load is ordered against the `work->field_04` store that precedes it.
+/// so the load is ordered against the `work->phase` store that precedes it.
 extern _MistShootingGallerySpawn* D_mist_shooting_gallery_80186900[];
-/// Main-executable flag gating the countdown steps: while it is set the
-/// gallery holds its current step instead of advancing the digit sprite.
-/// Bonus-course variant selected before the round starts. It picks both the
-/// banner sprite (`variant + 0xB`) and the colour it is drawn in (variant 2
-/// uses 2 instead of 0x10).
-static void   _mistShootingGalleryExitCourse(Task* task);
-static void   _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
-static u16    _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
-static void   _mistShootingGalleryShowCaption(s16 commandIndex, s16 captionKey, s16 dismissButtons);
-static Enemy* _mistShootingGallerySpawnTarget(Task* controller, const _MistShootingGallerySpawn* spawn);
-static void   _mistShootingGalleryDrawClockGlyph(s32 screenX, s16 screenY, s32 glyph);
-static void   _mistShootingGalleryDrawRedFlash(u8 redIntensity);
-static void   _mistShootingGalleryInitCourse(Task* controller);
-static void   func_mist_shooting_gallery_80182C58(Task* arg0);
-static void   func_mist_shooting_gallery_801831B0(Task* arg0);
-static void   _mistShootingGalleryRunCourse2(Task* controller);
-static void   _mistShootingGalleryRunCourse3(Task* controller);
-static void   func_mist_shooting_gallery_80183E78(Task* arg0);
-static void   func_mist_shooting_gallery_801842D0(Task* arg0);
-static void   _mistShootingGalleryRunCourse(Task* controller);
+static void                       _mistShootingGalleryExitCourse(Task* task);
+static void                       _mistShootingGalleryDrawCountdownClock(MistShootingGalleryWork* work);
+static u16                        _mistShootingGalleryTickCourseClock(MistShootingGalleryWork* work);
+static void                       _mistShootingGalleryShowCaption(s16 commandIndex, s16 captionKey, s16 dismissButtons);
+static Enemy*                     _mistShootingGallerySpawnTarget(Task* controller, const _MistShootingGallerySpawn* spawn);
+static void                       _mistShootingGalleryDrawClockGlyph(s32 screenX, s16 screenY, s32 glyph);
+static void                       _mistShootingGalleryDrawRedFlash(u8 redIntensity);
+static void                       _mistShootingGalleryInitCourse(Task* controller);
+static void                       _mistShootingGalleryRunCourse0(Task* controller);
+static void                       _mistShootingGalleryRunCourse1(Task* controller);
+static void                       _mistShootingGalleryRunCourse2(Task* controller);
+static void                       _mistShootingGalleryRunCourse3(Task* controller);
+static void                       _mistShootingGalleryRunCourse4(Task* controller);
+static void                       _mistShootingGalleryFinishCourse(Task* controller);
+static void                       _mistShootingGalleryRunCourse(Task* controller);
 
 /// The gallery controller task's three-state table, run from a stack copy by
 /// `_mistShootingGalleryCourseTask`: the setup tick
 /// `_mistShootingGalleryInitCourse`, the round runner
 /// `_mistShootingGalleryRunCourse`, then
-/// `func_mist_shooting_gallery_801842D0`.
+/// `_mistShootingGalleryFinishCourse`.
 static const TaskFuncTable3 D_mist_shooting_gallery_8017DB80 = {
-    { _mistShootingGalleryInitCourse, _mistShootingGalleryRunCourse, func_mist_shooting_gallery_801842D0 },
+    { _mistShootingGalleryInitCourse, _mistShootingGalleryRunCourse, _mistShootingGalleryFinishCourse },
 };
 
 /// The five round scripts, indexed by `MistShootingGalleryWork::course`.
 static const TaskFuncTable5 D_mist_shooting_gallery_8017DB8C = {
     {
-        func_mist_shooting_gallery_80182C58,
-        func_mist_shooting_gallery_801831B0,
+        _mistShootingGalleryRunCourse0,
+        _mistShootingGalleryRunCourse1,
         _mistShootingGalleryRunCourse2,
         _mistShootingGalleryRunCourse3,
-        func_mist_shooting_gallery_80183E78,
+        _mistShootingGalleryRunCourse4,
     },
 };
 
@@ -2371,182 +2366,224 @@ static void _mistShootingGalleryInitCourse(Task* controller)
     (sceneAcquireBattleRef)(0);
 }
 
-/// Per-frame update for the gallery's bonus course. START (`0x100`) aborts the
-/// whole mini-game; otherwise the seventeen states run the banner countdown
-/// (`captionStep` steps the sprite, `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout` picks which variant), seed the
-/// course by spawning individual records of `D_mist_shooting_gallery_80186900[0]`
-/// on a timer, and finally enter the wave loop of state 15. State 16 is the
-/// out-of-ammo banner: it is entered from anywhere the moment the equipped
-/// weapon's stock drops below the round's minimum, remembers the interrupted
-/// state in `resumePhase` and returns to it once the banner has played out.
-static void func_mist_shooting_gallery_80182C58(Task* arg0)
+/// Runs zero-based course 0's lock-on tutorial and one-minute target sequence.
+///
+/// Borrows initialized controller work and course-0 script storage. Keyed CAP
+/// text uses the saved button layout (0..2). Seeds records 0..11 through timed
+/// and target-clear gates, observes target lock, then runs the finite script
+/// from record 12. SELECT requests abort; low primary ammunition interrupts once
+/// with caption keys 17..21 and resumes the interrupted phase. The 1800-frame
+/// clock counts at 30 Hz only in the wave phase while combat actors run. Timeout
+/// advances to the controller's closing state; all gallery resources stay loaded.
+static void _mistShootingGalleryRunCourse0(Task* controller)
 {
+    enum {
+        MIST_SHOOTING_GALLERY_COURSE_0_INITIALIZE                    = 0,
+        MIST_SHOOTING_GALLERY_COURSE_0_INTRO_CAPTION                 = 1,
+        MIST_SHOOTING_GALLERY_COURSE_0_LAYOUT_CAPTION                = 2,
+        MIST_SHOOTING_GALLERY_COURSE_0_INSTRUCTIONS_CAPTION          = 3,
+        MIST_SHOOTING_GALLERY_COURSE_0_LAYOUT_INSTRUCTIONS           = 4,
+        MIST_SHOOTING_GALLERY_COURSE_0_READY_DELAY                   = 5,
+        MIST_SHOOTING_GALLERY_COURSE_0_FIRST_TARGET                  = 6,
+        MIST_SHOOTING_GALLERY_COURSE_0_WAIT_FOR_LOCK                 = 7,
+        MIST_SHOOTING_GALLERY_COURSE_0_SECOND_TARGET                 = 8,
+        MIST_SHOOTING_GALLERY_COURSE_0_TARGET_INSTRUCTIONS           = 9,
+        MIST_SHOOTING_GALLERY_COURSE_0_SINGLE_TARGETS                = 10,
+        MIST_SHOOTING_GALLERY_COURSE_0_WAIT_FOR_SINGLE_TARGETS       = 11,
+        MIST_SHOOTING_GALLERY_COURSE_0_SEED_TARGETS                  = 12,
+        MIST_SHOOTING_GALLERY_COURSE_0_WAVE_INSTRUCTIONS             = 13,
+        MIST_SHOOTING_GALLERY_COURSE_0_WAIT_FOR_SEED_TARGETS         = 14,
+        MIST_SHOOTING_GALLERY_COURSE_0_WAVES                         = 15,
+        MIST_SHOOTING_GALLERY_COURSE_0_AMMO_CAPTIONS                 = 16,
+        MIST_SHOOTING_GALLERY_COURSE_0_DURATION_FRAMES               = 1800,
+        MIST_SHOOTING_GALLERY_COURSE_0_LONG_DELAY_TICKS              = 60,
+        MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_DELAY_TICKS           = 30,
+        MIST_SHOOTING_GALLERY_COURSE_0_TARGET_DELAY_TICKS            = 15,
+        MIST_SHOOTING_GALLERY_COURSE_0_RAPID_SPAWN_DELAY_TICKS       = 10,
+        MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_COMMAND               = 17,
+        MIST_SHOOTING_GALLERY_COURSE_0_INTRO_KEY                     = 0,
+        MIST_SHOOTING_GALLERY_COURSE_0_LAYOUT_FIRST_KEY              = 1,
+        MIST_SHOOTING_GALLERY_COURSE_0_INSTRUCTIONS_KEY              = 4,
+        MIST_SHOOTING_GALLERY_COURSE_0_LAYOUT_INSTRUCTIONS_FIRST_KEY = 5,
+        MIST_SHOOTING_GALLERY_COURSE_0_LOCK_INSTRUCTIONS_FIRST_KEY   = 8,
+        MIST_SHOOTING_GALLERY_COURSE_0_TARGET_INSTRUCTIONS_FIRST_KEY = 11,
+        MIST_SHOOTING_GALLERY_COURSE_0_WAVE_INSTRUCTIONS_FIRST_KEY   = 14,
+        MIST_SHOOTING_GALLERY_COURSE_0_AMMO_FIRST_KEY                = 17,
+        MIST_SHOOTING_GALLERY_COURSE_0_AMMO_LAST_KEY                 = 21,
+        MIST_SHOOTING_GALLERY_COURSE_0_SINGLE_TARGET_END_INDEX       = 7,
+        MIST_SHOOTING_GALLERY_COURSE_0_SEED_TARGET_END_INDEX         = 12,
+        MIST_SHOOTING_GALLERY_COURSE_0_MIN_PRIMARY_LOAD              = 2,
+        MIST_SHOOTING_GALLERY_COURSE_0_M93R_SELECTION                = 2,
+        MIST_SHOOTING_GALLERY_COURSE_0_M93R_MIN_PRIMARY_LOAD         = 4,
+    };
     MistShootingGalleryWork*   work;
     _MistShootingGallerySpawn* spawn;
-    s32                        limit;
-    s32                        bonus;
-    u16                        t1;
-    u16                        t2;
-    u16                        t5;
-    u16                        t6;
-    u16                        t8;
-    u16                        t9;
-    u16                        t12;
-    u16                        t13;
-    u16                        key;
-    u16                        wave;
-    u16                        prev;
-    u8                         step;
+    s32                        minimumPrimaryLoad;
+    s32                        buttonLayout;
+    u16                        introFramesLeft;
+    u16                        layoutFramesLeft;
+    u16                        readyFramesBeforeDecrement;
+    u16                        firstTargetFramesLeft;
+    u16                        secondTargetFramesLeft;
+    u16                        instructionsFramesLeft;
+    u16                        seedFramesLeft;
+    u16                        waveInstructionsFramesLeft;
+    u16                        spawnFrame;
+    u16                        scriptFrame;
+    u16                        resumePhase;
+    u8                         captionKey;
 
-    work  = arg0->work;
-    bonus = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
+    work         = controller->work;
+    buttonLayout = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
         actor215100RequestGalleryAbort();
         return;
     }
 
     switch (work->phase) {
-        case 0:
-            work->timeLeft = 0x708;
-            work->timer    = 0x3C;
+        case MIST_SHOOTING_GALLERY_COURSE_0_INITIALIZE:
+            work->timeLeft = MIST_SHOOTING_GALLERY_COURSE_0_DURATION_FRAMES;
+            work->timer    = MIST_SHOOTING_GALLERY_COURSE_0_LONG_DELAY_TICKS;
             work->phase++;
-        case 1:
-            t1          = work->timer - 1;
-            work->timer = t1;
-            if ((s32)(t1 << 16) <= 0) {
-                work->timer = 0x1E;
+        case MIST_SHOOTING_GALLERY_COURSE_0_INTRO_CAPTION:
+            introFramesLeft = work->timer - 1;
+            work->timer     = introFramesLeft;
+            if ((s32)(introFramesLeft << 16) <= 0) {
+                work->timer = MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_DELAY_TICKS;
                 work->phase++;
-                _mistShootingGalleryShowCaption(0x11, 0, 0x8E0);
+                _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_COMMAND, MIST_SHOOTING_GALLERY_COURSE_0_INTRO_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
             }
             break;
-        case 2:
-            t2          = work->timer - 1;
-            work->timer = t2;
-            if ((s32)(t2 << 16) <= 0) {
+        case MIST_SHOOTING_GALLERY_COURSE_0_LAYOUT_CAPTION:
+            layoutFramesLeft = work->timer - 1;
+            work->timer      = layoutFramesLeft;
+            if ((s32)(layoutFramesLeft << 16) <= 0) {
                 work->phase++;
-                _mistShootingGalleryShowCaption(0x11, bonus + 1, 0x8E0);
+                _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_COMMAND, buttonLayout + MIST_SHOOTING_GALLERY_COURSE_0_LAYOUT_FIRST_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
             }
             break;
-        case 3:
+        case MIST_SHOOTING_GALLERY_COURSE_0_INSTRUCTIONS_CAPTION:
             work->phase++;
-            _mistShootingGalleryShowCaption(0x11, 4, 0x8E0);
+            _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_COMMAND, MIST_SHOOTING_GALLERY_COURSE_0_INSTRUCTIONS_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
             break;
-        case 4:
-            work->timer = 0x1E;
+        case MIST_SHOOTING_GALLERY_COURSE_0_LAYOUT_INSTRUCTIONS:
+            work->timer = MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_DELAY_TICKS;
             work->phase++;
-            _mistShootingGalleryShowCaption(0x11, bonus + 5, 0x8E0);
+            _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_COMMAND, buttonLayout + MIST_SHOOTING_GALLERY_COURSE_0_LAYOUT_INSTRUCTIONS_FIRST_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
             break;
-        case 5:
-            t5          = work->timer;
-            work->timer = t5 - 1;
-            if ((s32)(t5 << 16) <= 0) {
-                work->timer = 0xF;
+        case MIST_SHOOTING_GALLERY_COURSE_0_READY_DELAY:
+            readyFramesBeforeDecrement = work->timer;
+            work->timer                = readyFramesBeforeDecrement - 1;
+            if ((s32)(readyFramesBeforeDecrement << 16) <= 0) {
+                work->timer = MIST_SHOOTING_GALLERY_COURSE_0_TARGET_DELAY_TICKS;
                 work->phase++;
                 taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             }
             break;
-        case 6:
-            t6          = work->timer - 1;
-            work->timer = t6;
-            if ((s32)(t6 << 16) <= 0) {
+        // Seed tutorial targets before starting the timed wave script.
+        case MIST_SHOOTING_GALLERY_COURSE_0_FIRST_TARGET:
+            firstTargetFramesLeft = work->timer - 1;
+            work->timer           = firstTargetFramesLeft;
+            if ((s32)(firstTargetFramesLeft << 16) <= 0) {
                 work->phase++;
                 spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
-                _mistShootingGallerySpawnTarget(arg0, spawn);
+                _mistShootingGallerySpawnTarget(controller, spawn);
                 work->spawnIndex++;
             }
             break;
-        case 7:
+        case MIST_SHOOTING_GALLERY_COURSE_0_WAIT_FOR_LOCK:
             if (work->targetLockMask != 0) {
-                work->timer = 0xF;
+                work->timer = MIST_SHOOTING_GALLERY_COURSE_0_TARGET_DELAY_TICKS;
                 work->phase++;
-                _mistShootingGalleryShowCaption(0x11, bonus + 8, 0x8E0);
+                _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_COMMAND, buttonLayout + MIST_SHOOTING_GALLERY_COURSE_0_LOCK_INSTRUCTIONS_FIRST_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
             } else if (work->liveTargets == 0) {
-                work->timer = 0xF;
+                work->timer = MIST_SHOOTING_GALLERY_COURSE_0_TARGET_DELAY_TICKS;
                 work->phase++;
             }
             break;
-        case 8:
+        case MIST_SHOOTING_GALLERY_COURSE_0_SECOND_TARGET:
             if (work->liveTargets == 0) {
-                t8          = work->timer - 1;
-                work->timer = t8;
-                if ((s32)(t8 << 16) <= 0) {
-                    work->timer = 0x3C;
+                secondTargetFramesLeft = work->timer - 1;
+                work->timer            = secondTargetFramesLeft;
+                if ((s32)(secondTargetFramesLeft << 16) <= 0) {
+                    work->timer = MIST_SHOOTING_GALLERY_COURSE_0_LONG_DELAY_TICKS;
                     work->phase++;
                     spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
-                    _mistShootingGallerySpawnTarget(arg0, spawn);
+                    _mistShootingGallerySpawnTarget(controller, spawn);
                     work->spawnIndex++;
                 }
             }
             break;
-        case 9:
-            t9          = work->timer - 1;
-            work->timer = t9;
-            if ((s32)(t9 << 16) <= 0) {
+        case MIST_SHOOTING_GALLERY_COURSE_0_TARGET_INSTRUCTIONS:
+            instructionsFramesLeft = work->timer - 1;
+            work->timer            = instructionsFramesLeft;
+            if ((s32)(instructionsFramesLeft << 16) <= 0) {
                 work->phase++;
-                _mistShootingGalleryShowCaption(0x11, bonus + 0xB, 0x8E0);
+                _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_COMMAND, buttonLayout + MIST_SHOOTING_GALLERY_COURSE_0_TARGET_INSTRUCTIONS_FIRST_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
             }
             break;
-        case 10:
+        case MIST_SHOOTING_GALLERY_COURSE_0_SINGLE_TARGETS:
             if (work->liveTargets == 0) {
                 spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
-                _mistShootingGallerySpawnTarget(arg0, spawn);
+                _mistShootingGallerySpawnTarget(controller, spawn);
                 work->spawnIndex++;
-                if (work->spawnIndex == 7) {
+                if (work->spawnIndex == MIST_SHOOTING_GALLERY_COURSE_0_SINGLE_TARGET_END_INDEX) {
                     work->phase++;
                 }
             }
             break;
-        case 11:
+        case MIST_SHOOTING_GALLERY_COURSE_0_WAIT_FOR_SINGLE_TARGETS:
             if (work->liveTargets == 0) {
-                work->timer = 0x1E;
+                work->timer = MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_DELAY_TICKS;
                 work->phase++;
             }
             break;
-        case 12:
-            t12         = work->timer - 1;
-            work->timer = t12;
-            if ((s32)(t12 << 16) <= 0) {
+        case MIST_SHOOTING_GALLERY_COURSE_0_SEED_TARGETS:
+            seedFramesLeft = work->timer - 1;
+            work->timer    = seedFramesLeft;
+            if ((s32)(seedFramesLeft << 16) <= 0) {
                 spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
-                _mistShootingGallerySpawnTarget(arg0, spawn);
+                _mistShootingGallerySpawnTarget(controller, spawn);
                 work->spawnIndex++;
-                if (work->spawnIndex == 0xC) {
-                    work->timer = 0x3C;
+                if (work->spawnIndex == MIST_SHOOTING_GALLERY_COURSE_0_SEED_TARGET_END_INDEX) {
+                    work->timer = MIST_SHOOTING_GALLERY_COURSE_0_LONG_DELAY_TICKS;
                     work->phase++;
                 } else {
-                    work->timer = 0xA;
+                    work->timer = MIST_SHOOTING_GALLERY_COURSE_0_RAPID_SPAWN_DELAY_TICKS;
                 }
             }
             break;
-        case 13:
-            t13         = work->timer - 1;
-            work->timer = t13;
-            if ((s32)(t13 << 16) <= 0) {
+        case MIST_SHOOTING_GALLERY_COURSE_0_WAVE_INSTRUCTIONS:
+            waveInstructionsFramesLeft = work->timer - 1;
+            work->timer                = waveInstructionsFramesLeft;
+            if ((s32)(waveInstructionsFramesLeft << 16) <= 0) {
                 work->phase++;
-                _mistShootingGalleryShowCaption(0x11, bonus + 0xE, 0x8E0);
+                _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_COMMAND, buttonLayout + MIST_SHOOTING_GALLERY_COURSE_0_WAVE_INSTRUCTIONS_FIRST_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
             }
             break;
-        case 14:
+        case MIST_SHOOTING_GALLERY_COURSE_0_WAIT_FOR_SEED_TARGETS:
             if (work->liveTargets != 0) {
                 break;
             }
             work->phase++;
             displayReleaseMenuHold();
-        case 15:
-            spawn = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
-            key   = spawn->frame;
-            if (key != MIST_SHOOTING_GALLERY_SPAWN_END) {
-                if (key != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
-                    if (work->scriptFrame == key) {
+        // Hold at clear markers and at the finite script end until timeout.
+        case MIST_SHOOTING_GALLERY_COURSE_0_WAVES:
+            spawn      = &D_mist_shooting_gallery_80186900[0][work->spawnIndex];
+            spawnFrame = spawn->frame;
+            if (spawnFrame != MIST_SHOOTING_GALLERY_SPAWN_END) {
+                if (spawnFrame != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
+                    if (work->scriptFrame == spawnFrame) {
                         do {
-                            _mistShootingGallerySpawnTarget(arg0, spawn);
+                            _mistShootingGallerySpawnTarget(controller, spawn);
                             spawn++;
                             work->spawnIndex++;
                         } while (work->scriptFrame == spawn->frame);
                     }
-                    wave = work->scriptFrame;
-                    if (wave < MIST_SHOOTING_GALLERY_SPAWN_FRAME_LIMIT) {
-                        work->scriptFrame = wave + 1;
+                    scriptFrame = work->scriptFrame;
+                    if (scriptFrame < MIST_SHOOTING_GALLERY_SPAWN_FRAME_LIMIT) {
+                        work->scriptFrame = scriptFrame + 1;
                     }
                 } else if (work->liveTargets == 0) {
                     work->spawnIndex++;
@@ -2554,87 +2591,132 @@ static void func_mist_shooting_gallery_80182C58(Task* arg0)
             }
             _mistShootingGalleryDrawCountdownClock(work);
             if (_mistShootingGalleryTickCourseClock(work) == 0) {
-                work->phase = 0;
-                arg0->state++;
+                work->phase = MIST_SHOOTING_GALLERY_COURSE_0_INITIALIZE;
+                controller->state++;
             }
             break;
-        case 16:
-            _mistShootingGalleryShowCaption(0x11, work->captionStep, 0x8E0);
-            step = work->captionStep;
-            if (step == 0x15) {
+        case MIST_SHOOTING_GALLERY_COURSE_0_AMMO_CAPTIONS:
+            _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_0_CAPTION_COMMAND, work->captionStep, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
+            captionKey = work->captionStep;
+            if (captionKey == MIST_SHOOTING_GALLERY_COURSE_0_AMMO_LAST_KEY) {
                 work->phase = work->resumePhase;
                 displayReleaseMenuHold();
             } else {
-                work->captionStep = step + 1;
+                work->captionStep = captionKey + 1;
             }
             break;
     }
 
+    // The ammunition warning is one-shot and retains the interrupted phase.
     if (work->interrupted == 0) {
-        limit = 2;
-        if (gPlayerStatus.weapon == 2) {
-            limit = 4;
+        minimumPrimaryLoad = MIST_SHOOTING_GALLERY_COURSE_0_MIN_PRIMARY_LOAD;
+        if (gPlayerStatus.weapon == MIST_SHOOTING_GALLERY_COURSE_0_M93R_SELECTION) {
+            minimumPrimaryLoad = MIST_SHOOTING_GALLERY_COURSE_0_M93R_MIN_PRIMARY_LOAD;
         }
-        if (equipmentConsumeWeaponLoad(gPlayerStatus.weapon + 0x7F, EQUIPMENT_WEAPON_LOAD_QUERY_PRIMARY) < limit) {
-            prev              = work->phase;
-            work->phase       = 0x10;
+        if (equipmentConsumeWeaponLoad(gPlayerStatus.weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1), EQUIPMENT_WEAPON_LOAD_QUERY_PRIMARY) < minimumPrimaryLoad) {
+            resumePhase       = work->phase;
+            work->phase       = MIST_SHOOTING_GALLERY_COURSE_0_AMMO_CAPTIONS;
             work->interrupted = 1;
-            work->captionStep = 0x11;
-            work->resumePhase = prev;
+            work->captionStep = MIST_SHOOTING_GALLERY_COURSE_0_AMMO_FIRST_KEY;
+            work->resumePhase = resumePhase;
         }
     }
 }
 
-/// Per-frame update for the gallery course itself. START (`0x100`) aborts the
-/// whole mini-game; otherwise the state runs a "3, 2, 1, GO" countdown
-/// (`captionStep` steps the digit sprite once a second) before releasing the
-/// menu hold and entering the wave loop. The loop spawns every record
-/// of `D_mist_shooting_gallery_80186904` that carries the current script frame,
-/// draws the remaining time, and restarts the state machine once the clock
-/// runs out.
-static void func_mist_shooting_gallery_801831B0(Task* arg0)
+/// Advances one tick of a finite course script, holding at its end marker.
+///
+/// Borrows initialized controller/work and script storage. Equal frame keys
+/// spawn together, WAIT_CLEAR advances only with no live targets and END holds
+/// the cursor. Every equal-frame run must have a following record in the script;
+/// the cursor must start in bounds and the script must end before that extent.
+/// Indices count records; script frames saturate below every marker value.
+static inline void _mistShootingGalleryStepFiniteWaves(Task* controller, MistShootingGalleryWork* work, const _MistShootingGallerySpawn* script)
 {
-    MistShootingGalleryWork*   work;
-    _MistShootingGallerySpawn* spawn;
-    u16                        intro;
-    u16                        ready;
-    u16                        start;
-    u16                        key;
-    u16                        wave;
-    u8                         step;
+    const _MistShootingGallerySpawn* spawn;
+    u16                              spawnFrame;
+    u16                              scriptFrame;
 
-    work = arg0->work;
+    spawn      = &script[work->spawnIndex];
+    spawnFrame = spawn->frame;
+    if (spawnFrame != MIST_SHOOTING_GALLERY_SPAWN_END) {
+        if (spawnFrame != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
+            if (work->scriptFrame == spawnFrame) {
+                do {
+                    _mistShootingGallerySpawnTarget(controller, spawn);
+                    spawn++;
+                    work->spawnIndex++;
+                } while (work->scriptFrame == spawn->frame);
+            }
+            scriptFrame = work->scriptFrame;
+            if (scriptFrame < MIST_SHOOTING_GALLERY_SPAWN_FRAME_LIMIT) {
+                work->scriptFrame = scriptFrame + 1;
+            }
+        } else if (work->liveTargets == 0) {
+            work->spawnIndex++;
+        }
+    }
+}
+
+/// Runs zero-based course 1's introduction and two-minute finite target script.
+///
+/// Requires initialized controller work, script records and loaded CAP resources.
+/// Shows command-18 caption keys 0..4, waits before engaging battle, then releases
+/// the menu hold and starts timed waves. SELECT requests abort. Equal-frame
+/// records spawn together and clear markers wait for live targets to reach zero.
+/// The clock counts 3600 active combat frames at 30 Hz; timeout advances to the
+/// controller's closing state.
+static void _mistShootingGalleryRunCourse1(Task* controller)
+{
+    enum {
+        MIST_SHOOTING_GALLERY_COURSE_1_INITIALIZE        = 0,
+        MIST_SHOOTING_GALLERY_COURSE_1_INTRO_CAPTIONS    = 1,
+        MIST_SHOOTING_GALLERY_COURSE_1_READY_DELAY       = 2,
+        MIST_SHOOTING_GALLERY_COURSE_1_START_DELAY       = 3,
+        MIST_SHOOTING_GALLERY_COURSE_1_WAVES             = 4,
+        MIST_SHOOTING_GALLERY_COURSE_1_DURATION_FRAMES   = 3600,
+        MIST_SHOOTING_GALLERY_COURSE_1_READY_DELAY_TICKS = 60,
+        MIST_SHOOTING_GALLERY_COURSE_1_START_DELAY_TICKS = 10,
+        MIST_SHOOTING_GALLERY_COURSE_1_CAPTION_COMMAND   = 18,
+        MIST_SHOOTING_GALLERY_COURSE_1_INTRO_LAST_KEY    = 4,
+    };
+    MistShootingGalleryWork* work;
+    u16                      introFramesLeft;
+    u16                      readyFramesBeforeDecrement;
+    u16                      startFramesBeforeDecrement;
+    u8                       captionKey;
+
+    work = controller->work;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
         actor215100RequestGalleryAbort();
         return;
     }
 
     switch (work->phase) {
-        case 0:
-            work->timeLeft = 0xE10;
-            work->timer    = 0x3C;
+        case MIST_SHOOTING_GALLERY_COURSE_1_INITIALIZE:
+            work->timeLeft = MIST_SHOOTING_GALLERY_COURSE_1_DURATION_FRAMES;
+            work->timer    = MIST_SHOOTING_GALLERY_COURSE_1_READY_DELAY_TICKS;
             work->phase++;
-        case 1:
-            intro       = work->timer - 1;
-            work->timer = intro;
-            if ((s32)(intro << 16) <= 0) {
-                _mistShootingGalleryShowCaption(0x12, work->captionStep, 0x8E0);
-                step = work->captionStep;
-                if (step == 4) {
-                    work->timer = 0x3C;
+        case MIST_SHOOTING_GALLERY_COURSE_1_INTRO_CAPTIONS:
+            introFramesLeft = work->timer - 1;
+            work->timer     = introFramesLeft;
+            if ((s32)(introFramesLeft << 16) <= 0) {
+                _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_1_CAPTION_COMMAND, work->captionStep, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
+                captionKey = work->captionStep;
+                if (captionKey == MIST_SHOOTING_GALLERY_COURSE_1_INTRO_LAST_KEY) {
+                    work->timer = MIST_SHOOTING_GALLERY_COURSE_1_READY_DELAY_TICKS;
                     work->phase++;
                     return;
                 }
-                work->captionStep = step + 1;
+                work->captionStep = captionKey + 1;
                 return;
             }
         default:
             return;
-        case 2:
-            ready       = work->timer;
-            work->timer = ready - 1;
-            if ((s32)(ready << 16) <= 0) {
-                work->timer = 0xA;
+        case MIST_SHOOTING_GALLERY_COURSE_1_READY_DELAY:
+            readyFramesBeforeDecrement = work->timer;
+            work->timer                = readyFramesBeforeDecrement - 1;
+            if ((s32)(readyFramesBeforeDecrement << 16) <= 0) {
+                work->timer = MIST_SHOOTING_GALLERY_COURSE_1_START_DELAY_TICKS;
                 work->phase++;
                 taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
@@ -2642,37 +2724,21 @@ static void func_mist_shooting_gallery_801831B0(Task* arg0)
                 return;
             }
             break;
-        case 3:
-            start       = work->timer;
-            work->timer = start - 1;
-            if ((s32)(start << 16) <= 0) {
-                work->phase++;
-                displayReleaseMenuHold();
-                case 4:
-                    spawn = &D_mist_shooting_gallery_80186904[work->spawnIndex];
-                    key   = spawn->frame;
-                    if (key != MIST_SHOOTING_GALLERY_SPAWN_END) {
-                        if (key != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
-                            if (work->scriptFrame == key) {
-                                do {
-                                    _mistShootingGallerySpawnTarget(arg0, spawn);
-                                    spawn++;
-                                    work->spawnIndex++;
-                                } while (work->scriptFrame == spawn->frame);
-                            }
-                            wave = work->scriptFrame;
-                            if (wave < MIST_SHOOTING_GALLERY_SPAWN_FRAME_LIMIT) {
-                                work->scriptFrame = wave + 1;
-                            }
-                        } else if (work->liveTargets == 0) {
-                            work->spawnIndex++;
-                        }
-                    }
-                    _mistShootingGalleryDrawCountdownClock(work);
-                    if (_mistShootingGalleryTickCourseClock(work) == 0) {
-                        work->phase = 0;
-                        arg0->state++;
-                    }
+        case MIST_SHOOTING_GALLERY_COURSE_1_START_DELAY:
+            startFramesBeforeDecrement = work->timer;
+            work->timer                = startFramesBeforeDecrement - 1;
+            if ((s32)(startFramesBeforeDecrement << 16) > 0) {
+                break;
+            }
+            work->phase++;
+            displayReleaseMenuHold();
+            /* fallthrough */
+        case MIST_SHOOTING_GALLERY_COURSE_1_WAVES:
+            _mistShootingGalleryStepFiniteWaves(controller, work, D_mist_shooting_gallery_80186904);
+            _mistShootingGalleryDrawCountdownClock(work);
+            if (_mistShootingGalleryTickCourseClock(work) == 0) {
+                work->phase = MIST_SHOOTING_GALLERY_COURSE_1_INITIALIZE;
+                controller->state++;
             }
             break;
     }
@@ -3106,35 +3172,63 @@ static void _mistShootingGalleryRunCourse3(Task* controller)
     }
 }
 
-/// Per-frame update for the gallery's second course. Same shape as
-/// `func_mist_shooting_gallery_801831B0`: a countdown that steps the digit
-/// sprite through `captionStep` (gated on `gDisplayState.pendingMode`), a hand-off wait on
-/// `gGameSession::location.loc.view`, then the wave loop over
-/// `D_mist_shooting_gallery_80186910`. `lethalHit` is the abort request - once
-/// it is raised the state machine jumps to the 8 -> 9 shutdown, which releases
-/// the `gSceneCombatState` reference and kills the task.
-static void func_mist_shooting_gallery_80183E78(Task* arg0)
+/// Runs zero-based course 4's action tutorial and three-minute repeating target waves.
+///
+/// Requires initialized controller work and loaded gallery/CAP resources. Waits
+/// for modal display completion and view 18, then advances keyed captions through
+/// two action-point gates. Releases swap locking and engages battle before the
+/// 5400-frame, 30 Hz clock starts. Clear markers restart script records 11..78.
+/// A lethal hit interrupts once: pauses player state, shows keys 17..18, requests
+/// abort and releases battle/controller ownership after four more callback ticks.
+/// Normal timeout instead advances to the controller's closing state.
+static void _mistShootingGalleryRunCourse4(Task* controller)
 {
-    MistShootingGalleryWork*   work;
-    _MistShootingGallerySpawn* spawn;
-    u16                        timer;
-    u16                        wave;
-    u16                        key;
-    u8                         step;
+    enum {
+        MIST_SHOOTING_GALLERY_COURSE_4_INITIALIZE                 = 0,
+        MIST_SHOOTING_GALLERY_COURSE_4_INTRO_CAPTION              = 1,
+        MIST_SHOOTING_GALLERY_COURSE_4_WAIT_FOR_VIEW              = 2,
+        MIST_SHOOTING_GALLERY_COURSE_4_FIRST_ACTION_CAPTIONS      = 3,
+        MIST_SHOOTING_GALLERY_COURSE_4_SECOND_ACTION_CAPTIONS     = 4,
+        MIST_SHOOTING_GALLERY_COURSE_4_READY_DELAY                = 5,
+        MIST_SHOOTING_GALLERY_COURSE_4_START_DELAY                = 6,
+        MIST_SHOOTING_GALLERY_COURSE_4_WAVES                      = 7,
+        MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_HIT_CAPTIONS        = 8,
+        MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_HIT_RELEASE         = 9,
+        MIST_SHOOTING_GALLERY_COURSE_4_DURATION_FRAMES            = 5400,
+        MIST_SHOOTING_GALLERY_COURSE_4_READY_DELAY_TICKS          = 30,
+        MIST_SHOOTING_GALLERY_COURSE_4_START_DELAY_TICKS          = 15,
+        MIST_SHOOTING_GALLERY_COURSE_4_HANDOFF_VIEW               = 18,
+        MIST_SHOOTING_GALLERY_COURSE_4_CAPTION_COMMAND            = 21,
+        MIST_SHOOTING_GALLERY_COURSE_4_INTRO_KEY                  = 0,
+        MIST_SHOOTING_GALLERY_COURSE_4_ACTION_PROMPT_KEY          = 7,
+        MIST_SHOOTING_GALLERY_COURSE_4_ACTION_FIRST_KEY           = 8,
+        MIST_SHOOTING_GALLERY_COURSE_4_FIRST_ACTION_LAST_KEY      = 10,
+        MIST_SHOOTING_GALLERY_COURSE_4_SECOND_ACTION_LAST_KEY     = 16,
+        MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_FIRST_KEY           = 17,
+        MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_LAST_KEY            = 18,
+        MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_CAPTION_DELAY_TICKS = 3,
+        MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_RELEASE_DELAY_TICKS = 4,
+        MIST_SHOOTING_GALLERY_COURSE_4_LOOP_RESTART_THRESHOLD     = 78,
+        MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_INDEX           = 11,
+        MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_FRAME           = 688,
+    };
+    MistShootingGalleryWork* work;
+    u16                      framesLeft;
+    u8                       captionKey;
 
-    work = arg0->work;
+    work = controller->work;
 
     switch (work->phase) {
-        case 0:
-            work->timeLeft = 0x1518;
-            work->timer    = 0x1E;
+        case MIST_SHOOTING_GALLERY_COURSE_4_INITIALIZE:
+            work->timeLeft = MIST_SHOOTING_GALLERY_COURSE_4_DURATION_FRAMES;
+            work->timer    = MIST_SHOOTING_GALLERY_COURSE_4_READY_DELAY_TICKS;
             D_80115768     = 1;
             work->phase++;
-        case 1:
+        case MIST_SHOOTING_GALLERY_COURSE_4_INTRO_CAPTION:
             if (work->timer <= 0) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
-                    _mistShootingGalleryShowCaption(0x15, 0, 0x8E0);
-                    work->timer = 0xF;
+                    _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_4_CAPTION_COMMAND, MIST_SHOOTING_GALLERY_COURSE_4_INTRO_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
+                    work->timer = MIST_SHOOTING_GALLERY_COURSE_4_START_DELAY_TICKS;
                     D_80115768  = 0;
                     work->phase++;
                 }
@@ -3142,48 +3236,48 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                 work->timer = (u16)work->timer - 1;
             }
             break;
-        case 2:
-            if (gGameSession->location.loc.view != 0x12) {
+        case MIST_SHOOTING_GALLERY_COURSE_4_WAIT_FOR_VIEW:
+            if (gGameSession->location.loc.view != MIST_SHOOTING_GALLERY_COURSE_4_HANDOFF_VIEW) {
                 break;
             }
             if (work->timer <= 0) {
                 if (gDisplayState.pendingMode == DISPLAY_MODE_NONE) {
                     work->timer = 1;
                     work->phase++;
-                    _mistShootingGalleryShowCaption(0x15, 7, 0x8E0);
-                    work->captionStep = 8;
+                    _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_4_CAPTION_COMMAND, MIST_SHOOTING_GALLERY_COURSE_4_ACTION_PROMPT_KEY, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
+                    work->captionStep = MIST_SHOOTING_GALLERY_COURSE_4_ACTION_FIRST_KEY;
                 }
             } else {
                 work->timer = (u16)work->timer - 1;
             }
             break;
-        case 3:
+        case MIST_SHOOTING_GALLERY_COURSE_4_FIRST_ACTION_CAPTIONS:
             if (work->actionTriggered == 0) {
                 break;
             }
-            _mistShootingGalleryShowCaption(0x15, work->captionStep, 0x8E0);
-            if (work->captionStep == 0xA) {
+            _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_4_CAPTION_COMMAND, work->captionStep, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
+            if (work->captionStep == MIST_SHOOTING_GALLERY_COURSE_4_FIRST_ACTION_LAST_KEY) {
                 work->actionTriggered = 0;
                 work->phase++;
             }
             work->captionStep++;
             break;
-        case 4:
+        case MIST_SHOOTING_GALLERY_COURSE_4_SECOND_ACTION_CAPTIONS:
             if (work->actionTriggered == 0) {
                 break;
             }
-            _mistShootingGalleryShowCaption(0x15, work->captionStep, 0x8E0);
-            if (work->captionStep == 0x10) {
-                work->timer = 0x1E;
+            _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_4_CAPTION_COMMAND, work->captionStep, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
+            if (work->captionStep == MIST_SHOOTING_GALLERY_COURSE_4_SECOND_ACTION_LAST_KEY) {
+                work->timer = MIST_SHOOTING_GALLERY_COURSE_4_READY_DELAY_TICKS;
                 work->phase++;
             }
             work->captionStep++;
             break;
-        case 5:
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if ((s32)(timer << 16) <= 0) {
-                work->timer = 0xF;
+        case MIST_SHOOTING_GALLERY_COURSE_4_READY_DELAY:
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if ((s32)(framesLeft << 16) <= 0) {
+                work->timer = MIST_SHOOTING_GALLERY_COURSE_4_START_DELAY_TICKS;
                 work->phase++;
                 taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
                 sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
@@ -3191,124 +3285,132 @@ static void func_mist_shooting_gallery_80183E78(Task* arg0)
                 sceneEngageBattle(1);
             }
             break;
-        case 6:
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if ((s32)(timer << 16) <= 0) {
+        case MIST_SHOOTING_GALLERY_COURSE_4_START_DELAY:
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if ((s32)(framesLeft << 16) <= 0) {
                 work->phase++;
             }
             break;
-        case 7:
-            spawn = &D_mist_shooting_gallery_80186910[work->spawnIndex];
-            key   = spawn->frame;
-            if (key != MIST_SHOOTING_GALLERY_SPAWN_END) {
-                if (key != MIST_SHOOTING_GALLERY_SPAWN_WAIT_CLEAR) {
-                    if (work->scriptFrame == key) {
-                        do {
-                            _mistShootingGallerySpawnTarget(arg0, spawn);
-                            spawn++;
-                            work->spawnIndex++;
-                        } while (work->scriptFrame == spawn->frame);
-                    }
-                    wave = work->scriptFrame;
-                    if (wave < MIST_SHOOTING_GALLERY_SPAWN_FRAME_LIMIT) {
-                        work->scriptFrame = wave + 1;
-                    }
-                } else if (work->liveTargets == 0) {
-                    work->spawnIndex++;
-                    if (work->spawnIndex >= 0x4E) {
-                        work->spawnIndex  = 0xB;
-                        work->scriptFrame = 0x2B0;
-                    }
-                }
-            }
+        case MIST_SHOOTING_GALLERY_COURSE_4_WAVES:
+            // Advance the script before drawing and ticking the combat clock.
+            _mistShootingGalleryStepRepeatingWaves(controller, work, D_mist_shooting_gallery_80186910, MIST_SHOOTING_GALLERY_COURSE_4_LOOP_RESTART_THRESHOLD, MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_INDEX, MIST_SHOOTING_GALLERY_COURSE_4_LOOP_START_FRAME);
             _mistShootingGalleryDrawCountdownClock(work);
             if (_mistShootingGalleryTickCourseClock(work) == 0) {
-                work->phase = 0;
-                arg0->state++;
+                work->phase = MIST_SHOOTING_GALLERY_COURSE_4_INITIALIZE;
+                controller->state++;
             }
             break;
-        case 8:
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if ((s32)(timer << 16) <= 0) {
-                _mistShootingGalleryShowCaption(0x15, work->captionStep, 0x8E0);
-                step = work->captionStep;
-                if (step == 0x12) {
-                    work->timer = 4;
+        case MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_HIT_CAPTIONS:
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if ((s32)(framesLeft << 16) <= 0) {
+                _mistShootingGalleryShowCaption(MIST_SHOOTING_GALLERY_COURSE_4_CAPTION_COMMAND, work->captionStep, MIST_SHOOTING_GALLERY_CAPTION_DISMISS_BUTTONS);
+                captionKey = work->captionStep;
+                if (captionKey == MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_LAST_KEY) {
+                    work->timer = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_RELEASE_DELAY_TICKS;
                     D_80115768  = 0;
                     work->phase++;
                     actor215100RequestGalleryAbort();
                 } else {
-                    work->captionStep = step + 1;
+                    work->captionStep = captionKey + 1;
                 }
             }
             break;
-        case 9:
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if ((s32)(timer << 16) <= 0) {
-                sceneReleaseBattleRefAndClearRewards(arg0, 0);
-                taskKill(arg0);
+        case MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_HIT_RELEASE:
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if ((s32)(framesLeft << 16) <= 0) {
+                sceneReleaseBattleRefAndClearRewards(controller, 0);
+                taskKill(controller);
                 return;
             }
             break;
     }
 
+    // A lethal hit diverts both the tutorial and active waves into shutdown.
     if (work->interrupted == 0 && work->lethalHit != 0) {
-        work->phase       = 8;
+        work->phase       = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_HIT_CAPTIONS;
         work->interrupted = 1;
-        work->timer       = 3;
-        work->captionStep = 0x11;
+        work->timer       = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_CAPTION_DELAY_TICKS;
+        work->captionStep = MIST_SHOOTING_GALLERY_COURSE_4_LETHAL_FIRST_KEY;
         D_80115768        = 1;
     }
 }
 
-static void func_mist_shooting_gallery_801842D0(Task* arg0)
+/// Restores movement and queues the player's collision passes and view triggers.
+///
+/// Borrows live player work. Queues the standard collision-enable request and
+/// enables root view triggers. The player update applies root and part-1 grid
+/// enables before consuming the request.
+static inline void _mistShootingGalleryRestorePlayerControl(GameActor* player)
 {
-    MistShootingGalleryWork* work;
-    GameActor*               actor;
+    player->movementInputDisabled                        = 0;
+    player->pendingCollisionUpdates                      = GAME_ACTOR_COLLISION_REQUEST_MASK;
+    player->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
+}
 
-    work  = arg0->work;
-    actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+/// Closes a completed gallery course after the remaining targets leave play.
+///
+/// Runs in controller state 2 with live player and course work. Acquires a menu
+/// hold, waits 30 callback ticks, starts the red flash/sound and waits 90 more.
+/// Restores player movement/collision, releases one battle reference and asks the
+/// actor overlay to finish the course. Waits for battle-reset state to be observed
+/// clear and then set before releasing the hold and task. Task teardown also runs
+/// its exit callback, retaining the original second release ordering.
+static void _mistShootingGalleryFinishCourse(Task* controller)
+{
+    enum {
+        MIST_SHOOTING_GALLERY_FINISH_WAIT_FOR_TARGETS     = 0,
+        MIST_SHOOTING_GALLERY_FINISH_PAUSE                = 1,
+        MIST_SHOOTING_GALLERY_FINISH_FLASH                = 2,
+        MIST_SHOOTING_GALLERY_FINISH_WAIT_FOR_RESET_CLEAR = 3,
+        MIST_SHOOTING_GALLERY_FINISH_WAIT_FOR_RESET_SET   = 4,
+        MIST_SHOOTING_GALLERY_FINISH_PAUSE_TICKS          = 30,
+        MIST_SHOOTING_GALLERY_FINISH_FLASH_TICKS          = 90,
+    };
+    MistShootingGalleryWork* work;
+    GameActor*               player;
+
+    work   = controller->work;
+    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
 
     switch (work->phase) {
-        case 0:
+        case MIST_SHOOTING_GALLERY_FINISH_WAIT_FOR_TARGETS:
             if (work->liveTargets != 0) {
                 return;
             }
-            work->timer = 0x1E;
+            work->timer = MIST_SHOOTING_GALLERY_FINISH_PAUSE_TICKS;
             work->phase++;
             displayAcquireMenuHold();
-        case 1:
+        case MIST_SHOOTING_GALLERY_FINISH_PAUSE:
             if ((s16)work->timer-- > 0) {
                 return;
             }
-            work->timer = 0x5A;
+            work->timer = MIST_SHOOTING_GALLERY_FINISH_FLASH_TICKS;
             work->phase++;
             taskSpawnFromTable(D_mist_shooting_gallery_801856B8, 1, 0, 0);
             sndEvtRequestScriptStart(SOUND_MIST_SHOOTING_GALLERY_ROUND_START, 0, 0);
             return;
-        case 2:
+        case MIST_SHOOTING_GALLERY_FINISH_FLASH:
             if ((s16)--work->timer > 0) {
                 return;
             }
             work->phase++;
-            actor->movementInputDisabled                        = 0;
-            actor->pendingCollisionUpdates                      = 7;
-            actor->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
-            sceneReleaseBattleRefAndClearRewards(arg0, 0);
+            // Restore control before releasing combat ownership and actor course state.
+            _mistShootingGalleryRestorePlayerControl(player);
+            sceneReleaseBattleRefAndClearRewards(controller, 0);
             actor215100FinishGalleryCourse();
             return;
-        case 3:
+        case MIST_SHOOTING_GALLERY_FINISH_WAIT_FOR_RESET_CLEAR:
             if (gGameSession->battleResetPending == 0) {
                 work->phase++;
             }
             return;
-        case 4:
+        case MIST_SHOOTING_GALLERY_FINISH_WAIT_FOR_RESET_SET:
             if (gGameSession->battleResetPending == 1) {
                 displayReleaseMenuHold();
-                taskKill(arg0);
+                taskKill(controller);
             }
             return;
     }
@@ -3566,18 +3668,6 @@ static void _mistShootingGalleryRunCourse(Task* controller)
     TaskFuncTable5           rounds = D_mist_shooting_gallery_8017DB8C;
 
     rounds.funcs[work->course](controller);
-}
-
-/// Restores movement and queues the player's collision passes and view triggers.
-///
-/// Borrows live player work. Queues the standard collision-enable request and
-/// enables root view triggers. The player update applies root and part-1 grid
-/// enables before consuming the request.
-static inline void _mistShootingGalleryRestorePlayerControl(GameActor* player)
-{
-    player->movementInputDisabled                        = 0;
-    player->pendingCollisionUpdates                      = GAME_ACTOR_COLLISION_REQUEST_MASK;
-    player->collisionBodies[GAME_ACTOR_BODY_ROOT].flags |= WORLD_COLLISION_BODY_VIEW_TRIGGER_ENABLED;
 }
 
 /// Restores player control and tears down the gallery controller.

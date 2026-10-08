@@ -706,57 +706,69 @@ WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[8] = {
     D_neo_ark_bridge_80184BB4,
 };
 
-/// Bridge effect task tick. State 0 installs the five bridge effect ids
-/// (0x601E1, then 0x601FD / 0x60219 / 0x6017A / 0x6017B) and advances. State 1
-/// only acts while `viewGetMappedIndex()` reports the two side views 5 or 6 and no
-/// state-1C flag is set: two LCG rolls each spawn effect 0x60070 at
-/// `D_neo_ark_bridge_80181F60` / `D_neo_ark_bridge_80181F68` on a 1-in-4, then
-/// the red star at `D_neo_ark_bridge_80181F58` is drawn with pulse step 0x600
-/// angle units per animation frame and radius scale 0xC0.
-void func_neo_ark_bridge_8017E954(Task* arg0)
+void neoArkBridgeAmbientEffectsTask(Task* task)
 {
-    s32 view;
-    u32 rnd;
-    u32 rndSpawn;
-    u32 rndSpawn2;
+    enum {
+        NEO_ARK_BRIDGE_AMBIENT_INITIALIZE      = 0,
+        NEO_ARK_BRIDGE_AMBIENT_UPDATE          = 1,
+        NEO_ARK_BRIDGE_FIRST_AMBIENT_VIEW      = 5,
+        NEO_ARK_BRIDGE_AMBIENT_VIEW_END        = 7,
+        NEO_ARK_BRIDGE_MARKER_PULSE_ANGLE_STEP = 1536,
+        NEO_ARK_BRIDGE_MARKER_RADIUS_SCALE     = 192,
+        NEO_ARK_BRIDGE_SMOKE_CHANCE_MASK       = 3,
+        NEO_ARK_BRIDGE_SMOKE_JITTER_MASK       = 0x11FF,
+        NEO_ARK_BRIDGE_SMOKE_BASE_ARGUMENT     = (2 << 16) | (2 << 12) | 512,
+    };
+    s32 mappedViewIndex;
+    u32 spawnRollState;
+    u32 firstSmokeOptionsState;
+    u32 secondSmokeOptionsState;
 
-    switch (arg0->state) {
-        case 0:
+    /// Tries one smoke site, consuming its parameter roll only on success.
+    ///
+    /// Captures spawnRollState and the live global random state. optionsState
+    /// must be a side-effect-free u32 lvalue, assigned only after a successful
+    /// one-in-four roll. Use as a standalone block statement inside braces;
+    /// evaluates worldPoint once only on success. The parameter
+    /// roll selects size 512..1023 and a two/three-tick texture period; the base
+    /// selects rising drift. Room-owned point storage stays live for the spawn.
+#define NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(worldPoint, optionsState)                                                                                       \
+    {                                                                                                                                                          \
+        spawnRollState  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                      \
+        gRandomLcgState = spawnRollState;                                                                                                                      \
+        if (((spawnRollState >> 16) & NEO_ARK_BRIDGE_SMOKE_CHANCE_MASK) == 0) {                                                                                \
+            (optionsState)  = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;                                                                  \
+            gRandomLcgState = (optionsState);                                                                                                                  \
+            effectSpawn(EFFECT_SMOKE_PUFF, 0, (((optionsState) >> 16) & NEO_ARK_BRIDGE_SMOKE_JITTER_MASK) | NEO_ARK_BRIDGE_SMOKE_BASE_ARGUMENT, (worldPoint)); \
+        }                                                                                                                                                      \
+    }
+
+    switch (task->state) {
+        case NEO_ARK_BRIDGE_AMBIENT_INITIALIZE:
             gRoomEffectFlashId       = EFFECT_NEO_ARK_BRIDGE_FLASH;
             gRoomEffectTwinTrailId   = EFFECT_NEO_ARK_BRIDGE_TWIN_TRAIL;
             gRoomEffectSparkBurstId  = EFFECT_NEO_ARK_BRIDGE_SPARK_BURST;
             gRoomEffectWaterRippleId = EFFECT_NEO_ARK_BRIDGE_WATER_RIPPLE;
             gRoomEffectWaterSprayId  = EFFECT_NEO_ARK_BRIDGE_WATER_SPRAY;
-            arg0->state              = 1;
+            task->state              = NEO_ARK_BRIDGE_AMBIENT_UPDATE;
             /* fallthrough */
-        case 1:
-            view = viewGetMappedIndex() & 0xFF;
-            if (view < 7) {
-                if (view >= 5) {
+        case NEO_ARK_BRIDGE_AMBIENT_UPDATE:
+            mappedViewIndex = viewGetMappedIndex() & 0xFF;
+            if (mappedViewIndex < NEO_ARK_BRIDGE_AMBIENT_VIEW_END) {
+                if (mappedViewIndex >= NEO_ARK_BRIDGE_FIRST_AMBIENT_VIEW) {
                     if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        gRandomLcgState = rnd;
-                        if (((rnd >> 16) & 3) == 0) {
-                            rndSpawn        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            gRandomLcgState = rndSpawn;
-                            effectSpawn(EFFECT_SMOKE_PUFF, 0, ((rndSpawn >> 16) & 0x11FF) | 0x22200,
-                                        &D_neo_ark_bridge_80181F60);
-                        }
-                        rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        gRandomLcgState = rnd;
-                        if (((rnd >> 16) & 3) == 0) {
-                            rndSpawn2       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            gRandomLcgState = rndSpawn2;
-                            effectSpawn(EFFECT_SMOKE_PUFF, 0, ((rndSpawn2 >> 16) & 0x11FF) | 0x22200,
-                                        &D_neo_ark_bridge_80181F68);
-                        }
+                        // Each site consumes its own roll and optional smoke-parameter roll.
+                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&D_neo_ark_bridge_80181F60, firstSmokeOptionsState);
+                        NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE(&D_neo_ark_bridge_80181F68, secondSmokeOptionsState);
                     }
-                    _neoArkBridgeDrawPulsingRedStar(&D_neo_ark_bridge_80181F58, 0x600, 0xC0);
+                    _neoArkBridgeDrawPulsingRedStar(&D_neo_ark_bridge_80181F58, NEO_ARK_BRIDGE_MARKER_PULSE_ANGLE_STEP, NEO_ARK_BRIDGE_MARKER_RADIUS_SCALE);
                 }
             }
             break;
     }
 }
+
+#undef NEO_ARK_BRIDGE_TRY_SPAWN_AMBIENT_SMOKE
 
 /// Reserves a red-centred, black-rimmed half of the marker's diamond.
 ///

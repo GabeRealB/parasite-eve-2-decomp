@@ -47,7 +47,16 @@ extern WorldCollisionTrigger D_neo_ark_bridge_80184AB8[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_bridge_80184BD4[];
 
-void func_neo_ark_bridge_8017E954(Task* arg0);
+/// Installs bridge effect variants and updates its side-view smoke and red marker.
+///
+/// State 0 selects the room's five effect IDs, then state 1 updates mapped views
+/// 5 and 6. Running effects independently try each smoke site with probability
+/// 1/4 per tick; other controls suppress smoke. The red marker still draws in
+/// both views, pulsing by 1536 angle units per animation frame (4096 per turn)
+/// with radius scale 192. The task stays alive and uses no body or spawn payload.
+/// Requires this overlay, room-effect state, view matrices, initialized scratch
+/// stack and frame primitive space. Exported to gameplay's room-effect table.
+void neoArkBridgeAmbientEffectsTask(Task* task);
 
 /// Advances and draws an expanding, fading water-surface ripple for the bridge.
 ///

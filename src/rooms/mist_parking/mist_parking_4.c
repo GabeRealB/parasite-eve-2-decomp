@@ -61,7 +61,7 @@ static void _mistParkingRunShopDialogueCommand(s32 commandIndex);
 static void _mistParkingStartShopDepartureMovie(s32 movieSelector);
 static void _mistParkingReloadShopAcropolisArea(s32 areaId);
 static void _mistParkingQueueAcropolisDeparture(void);
-void        func_mist_parking_8018459C(void);
+static void _mistParkingStartShopPlayerHeadAim(void);
 static void _mistParkingControlShopPlayerHeadAim(s32 mode);
 static void _mistParkingQueueDelayedShopDisplayModeExit(s32 delayTicks);
 
@@ -307,7 +307,7 @@ AnimationPlayRequest D_mist_parking_80190C4C = { { .index = 0 }, 8, ANIMATION_BL
 AnimationPlayRequest D_mist_parking_80190C60 = { { .index = 0 }, 9, ANIMATION_BLEND_INTERPOLATE, 15, ANIMATION_WORLD_COLLISION_ENABLE };
 
 EvsCommand D_mist_parking_80190C74[10] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_parking_8018459C }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingStartShopPlayerHeadAim }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80190870 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_mist_parking_80190BA4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 1 }, { .value = 0 } },
@@ -811,11 +811,19 @@ static void _mistParkingDepartForAcropolisTask(Task* unusedTask)
     gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
 }
 
-/// Spawns entry 1 of `D_mist_parking_80190824` and keeps its handle in
-/// `D_mist_parking_8019532C.task`.
-void func_mist_parking_8018459C(void)
+/// Starts animation-driven player head aiming for the variant-1 shop talk.
+///
+/// Stores the spawned task handle, including NULL on allocation failure. The
+/// script must start it once per talk and keep the room loaded until it is stopped;
+/// starting again overwrites the handle without releasing an earlier task. The
+/// head-aim task requires live player and talk-partner models and the extension
+/// animation bank installed by the next script instruction.
+static void _mistParkingStartShopPlayerHeadAim(void)
 {
-    D_mist_parking_8019532C.task = taskSpawnFromTable(D_mist_parking_80190824, 1, 0, 0);
+    enum {
+        MIST_PARKING_SHOP_HEAD_AIM_DESCRIPTOR = 1,
+    };
+    D_mist_parking_8019532C.task = taskSpawnFromTable(D_mist_parking_80190824, MIST_PARKING_SHOP_HEAD_AIM_DESCRIPTOR, MIST_PARKING_HEAD_AIM_FOLLOW_ANIMATION, 0);
 }
 
 /// Controls the existing head-aim task used by the variant-1 conversations.

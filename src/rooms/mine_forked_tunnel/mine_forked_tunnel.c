@@ -218,8 +218,8 @@ static s32 _mineForkedTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId
 static s32 _mineForkedTunnelResolveRoomVariant(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 s32        func_mine_forked_tunnel_8017E134(Task*, s32, s32, s32);
 
-void func_mine_forked_tunnel_8017E2E0(Task*);
-void func_mine_forked_tunnel_8017E38C(Task*);
+void        func_mine_forked_tunnel_8017E2E0(Task*);
+static void _mineForkedTunnelOakBoardPromptTask(Task* task);
 
 extern AnimationBankCopyRequest   D_mine_forked_tunnel_8018312C;
 extern WorldCollisionGrid         D_mine_forked_tunnel_80183D70;
@@ -419,7 +419,7 @@ static AnimationSet _gMineForkedTunnelAnimation05B1C = {
 
 TaskDesc D_mine_forked_tunnel_80183104[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_mine_forked_tunnel_8017E2E0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mine_forked_tunnel_8017E38C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mineForkedTunnelOakBoardPromptTask, { .value = 0 } },
 };
 
 AnimationSet* D_mine_forked_tunnel_8018311C[4] = {
@@ -1463,33 +1463,49 @@ void func_mine_forked_tunnel_8017E2E0(Task* arg0)
     }
 }
 
-void func_mine_forked_tunnel_8017E38C(Task* arg0)
+/// Runs the oak-board pickup prompt and hides its room sprites after acceptance.
+///
+/// Starts at state 0 with a zeroed signed-halfword `killCountdown`. Holds player
+/// control through CAP playback and eleven subsequent callback ticks. Reply key
+/// 2 starts the acknowledgement and hides the board; every reply resumes control
+/// and releases the task. Requires loaded room CAP and sprite resources.
+static void _mineForkedTunnelOakBoardPromptTask(Task* task)
 {
+    enum {
+        MINE_FORKED_TUNNEL_BOARD_PROMPT_START        = 0,
+        MINE_FORKED_TUNNEL_BOARD_PROMPT_WAIT         = 1,
+        MINE_FORKED_TUNNEL_BOARD_PROMPT_REPLY        = 2,
+        MINE_FORKED_TUNNEL_BOARD_CAP_COMMAND         = 2,
+        MINE_FORKED_TUNNEL_BOARD_PROMPT_KEY          = 0,
+        MINE_FORKED_TUNNEL_BOARD_ACKNOWLEDGEMENT_KEY = 1,
+        MINE_FORKED_TUNNEL_BOARD_REPLY_DELAY_TICKS   = 11,
+    };
     s32 state;
-    s16 temp;
+    s16 replyDelayTicks;
 
-    state = arg0->state;
+    state = task->state;
     switch (state) {
-        case 0:
+        case MINE_FORKED_TUNNEL_BOARD_PROMPT_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            capStartSequenceSlot(2, 0, 0);
-            arg0->state = arg0->state + 1;
+            capStartSequenceSlot(MINE_FORKED_TUNNEL_BOARD_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE, MINE_FORKED_TUNNEL_BOARD_PROMPT_KEY);
+            task->state = task->state + 1;
             break;
-        case 1:
+        case MINE_FORKED_TUNNEL_BOARD_PROMPT_WAIT:
             if (capIsBusy() == 0) {
-                arg0->state = arg0->state + 1;
+                task->state = task->state + 1;
             }
             break;
-        case 2:
-            temp                = arg0->killCountdown + 1;
-            arg0->killCountdown = temp;
-            if (temp >= 0xB) {
+        case MINE_FORKED_TUNNEL_BOARD_PROMPT_REPLY:
+            replyDelayTicks     = task->killCountdown + 1;
+            task->killCountdown = replyDelayTicks;
+            if (replyDelayTicks >= MINE_FORKED_TUNNEL_BOARD_REPLY_DELAY_TICKS) {
+                // The reply phase and the accepted CAP key both have value 2.
                 if (capGetVariantKey() == state) {
-                    capStartSequenceSlot(2, 0, 1);
+                    capStartSequenceSlot(MINE_FORKED_TUNNEL_BOARD_CAP_COMMAND, CAP_PLAYBACK_IN_PLACE, MINE_FORKED_TUNNEL_BOARD_ACKNOWLEDGEMENT_KEY);
                     _mineForkedTunnelSetSpriteBatchesHidden(true);
                 }
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }

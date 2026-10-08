@@ -602,3 +602,4 @@ _mistParkingReloadShopAcropolisArea = 0x80184468; // type:func
 _mistParkingDepartForAcropolisTask = 0x8018451c; // type:func
 _mistParkingQueueAcropolisDeparture = 0x801844ec; // type:func
 _mistParkingJodieShopTalkTask = 0x80183eac; // type:func
+_mistParkingStartShopPlayerHeadAim = 0x8018459c; // type:func

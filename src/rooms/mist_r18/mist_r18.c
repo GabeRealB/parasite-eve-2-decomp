@@ -138,7 +138,7 @@ static void _mistR18SpawnBriefingCaption(void);
 static void _mistR18StartBackdropCrossfade(void);
 static void _mistR18SpawnPlacedProp(void);
 static void _mistR18KillPlacedProp(void);
-void        func_mist_r18_8017EB48(void);
+static void _mistR18ReloadParkingWithStarterLoadout(void);
 static void _mistR18PrepareBriefingScene(void);
 static void _mistR18StartSceneScriptPause(void);
 static void _mistR18EnqueueScenePlayback(void);
@@ -750,7 +750,7 @@ EvsCommand D_mist_r18_80185AE4[41] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_r18_80185150 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _mistR18SetOrderingDepthShift }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EB48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18ReloadParkingWithStarterLoadout }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -839,7 +839,7 @@ EvsCommand D_mist_r18_8018645C[8] = {
 
 EvsCommand D_mist_r18_8018651C[3] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = _mistR18SetOrderingDepthShift }, { .value = DISPLAY_DEPTH_SHIFT_1X }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_r18_8017EB48 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistR18ReloadParkingWithStarterLoadout }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -1784,14 +1784,25 @@ static void _mistR18PlacePropTask(Task* task)
     }
 }
 
-void func_mist_r18_8017EB48(void)
+/// Reloads the M.I.S.T. parking area with the starter inventory after the briefing.
+///
+/// Resets the carried loadout and queues the resident reload task for Acropolis,
+/// parking room 3 and arrival 3 with sprite variant 1. Stops non-ambient sound
+/// scripts without fading. Used by both briefing completion paths; the saved
+/// destination is consumed by the reload task after this callback returns.
+static void _mistR18ReloadParkingWithStarterLoadout(void)
 {
+    enum {
+        MIST_R18_PARKING_ENTRY_WARP     = 3,
+        MIST_R18_PARKING_ENTRY_ROOM     = 3,
+        MIST_R18_PARKING_SPRITE_VARIANT = 1,
+    };
     inventoryInitializeStarterLoadout();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_MIST_PARKING;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 3;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 3;
-    gDisplayState.spriteVariant                                 = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = MIST_R18_PARKING_ENTRY_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = MIST_R18_PARKING_ENTRY_ROOM;
+    gDisplayState.spriteVariant                                 = MIST_R18_PARKING_SPRITE_VARIANT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }

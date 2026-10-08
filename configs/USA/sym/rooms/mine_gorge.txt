@@ -87,7 +87,7 @@ _gMineGorgeAnimation00C98Records = 0x8017E004; // size:0x22C defined:True
 _gMineGorgeAnimation00C98Indices = 0x8017E230; // size:0x28 defined:True
 _gMineGorgeAnimation00C98 = 0x8017E258; // size:0x28 defined:True
 
-func_mine_gorge_8017D828 = 0x8017D828; // type:func
+_mineGorgeOakBoardCutsceneTask = 0x8017D828; // type:func
 
 mineGorgeDrawViewFlaresTask = 0x8017D9F8; // type:func
 _glowDrawFlare = 0x8017DB88; // type:func
@@ -98,3 +98,6 @@ _mineGorgeSetEnemyWave = 0x8017d8c8; // type:func
 _mineGorgeIdleRoomTask = 0x8017d998; // type:func
 _mineGorgeInitializeRoomTask = 0x8017d8d4; // type:func
 mineGorgeRoomTask = 0x8017d9a0; // type:func
+_mineGorgeUseOakBoardMessage = 0x8017d5f8; // type:func
+_mineGorgeResolveRoomEvent = 0x8017d6e8; // type:func
+_mineGorgeHandleEncounterAction = 0x8017d784; // type:func

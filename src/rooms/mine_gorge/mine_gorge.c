@@ -32,12 +32,12 @@
 
 #include "mapui/map_shelter.h"
 
-void func_mine_gorge_8017D828(Task* arg0);
+static void _mineGorgeOakBoardCutsceneTask(Task* task);
 
 /// The room's message table, installed by the room task's first state.
 extern TaskMessageEntry D_mine_gorge_8017E280[];
 
-/// The cutscene task `func_mine_gorge_8017D5F8` spawns: one descriptor and a
+/// The cutscene task `_mineGorgeUseOakBoardMessage` spawns: one descriptor and a
 /// terminator.
 extern TaskDesc D_mine_gorge_8017E2B0[];
 
@@ -48,10 +48,10 @@ extern EvsCommand D_mine_gorge_8017E610[];
 static void _mineGorgeInitializeRoomTask(Task* task);
 static void _mineGorgeIdleRoomTask(Task* task);
 
-s32        func_mine_gorge_8017D5F8(Task*, s32, s32, s32);
-s32        func_mine_gorge_8017D6E8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _mineGorgeUseOakBoardMessage(Task* unusedTask, s32 messageId, s32 collectedItemId, s32 unusedArg);
+static s32 _mineGorgeResolveRoomEvent(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _mineGorgeCommandMsg(Task* task, s32 messageId, s32 commandId, s32 commandArg);
-s32        func_mine_gorge_8017D784(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+static s32 _mineGorgeHandleEncounterAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 static s32 _mineGorgeSoundMsg(Task* task, s32 messageId, s32 cueId, s32 secondArg);
 
 static void _mineGorgeSetPlayerStatePaused(u8 paused);
@@ -87,16 +87,16 @@ static AnimationSet _gMineGorgeAnimation00C98 = {
 };
 
 TaskMessageEntry D_mine_gorge_8017E280[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_gorge_8017D6E8 },
-    { 5105, func_mine_gorge_8017D5F8 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_gorge_8017D784 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mineGorgeResolveRoomEvent },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _mineGorgeUseOakBoardMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _mineGorgeHandleEncounterAction },
     { ROOM_MESSAGE_COMMAND, _mineGorgeCommandMsg },
     { ROOM_MESSAGE_SOUND, _mineGorgeSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_mine_gorge_8017E2B0[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_mine_gorge_8017D828, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _mineGorgeOakBoardCutsceneTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -187,50 +187,64 @@ static inline s32 _mineGorgeRoomTriggerHit(void)
     return 0;
 }
 
-/// Answers message `0x13F1` with argument `0x11F`: while flag nibble `0xA4` is
-/// clear and a room-action `WorldCollisionTrigger` with `parameter0 == 0xFF` and a
-/// non-zero `hit` is queued, raises the nibble, spawns the cutscene task
-/// `D_mine_gorge_8017E2B0`, moves the session to room 2 with the HUD hidden and
-/// the room objects dirty, and starts the session event. Returns 1 when it
-/// did so, 0 otherwise.
-s32 func_mine_gorge_8017D5F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles oak-board use at the latched gorge action trigger.
+///
+/// For `ROOM_MESSAGE_USE_KEY_ITEM`, accepts only the oak-board collection ID
+/// while its event flag is clear and a room-event trigger is hit. Starts the
+/// board cutscene, selects room 2 in live and saved state and hides the HUD.
+/// Returns the used-notice reply on acceptance, otherwise the refused reply.
+/// The task, message ID and second payload are unused; allocation failure does
+/// not undo the event flag or location changes.
+static s32 _mineGorgeUseOakBoardMessage(Task* unusedTask, s32 messageId, s32 collectedItemId, s32 unusedArg)
 {
-    if (arg2 == 0x11F) {
+    enum {
+        MINE_GORGE_OAK_BOARD_EVENT_ROOM = 2,
+    };
+    if (collectedItemId == INVENTORY_COLLECTION_ID_OAK_BOARD) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE) == 0) {
             if (_mineGorgeRoomTriggerHit() != 0) {
                 gameFlagSetNibble(GAME_FLAG_MINE_GORGE_TRIGGER_EVENT_DONE, 1);
                 taskSpawnFromTableOnDefaultList(D_mine_gorge_8017E2B0, 0, 0, 0);
-                gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2);
+                gGameSession->location.loc.room = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = MINE_GORGE_OAK_BOARD_EVENT_ROOM);
                 gGameSession->hideHud           = (gGameSession->roomObjsDirty = 1);
                 gGameSession->eventState        = 1;
-                return 1;
+                return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
             }
         }
     }
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Answers message `0x13EE`: copies the event message to `out` and passes both
-/// to `mapShelterRoomVariantResolve`. A message of id 2 arriving while flag nibble `0xB5` is
-/// clear and `queryOnly` is zero sets nibble `flagId` to 2, runs cap command 3
-/// and returns 0; every other case returns 1, except that a set `queryOnly`
-/// returns 0 without acting.
-s32 func_mine_gorge_8017D6E8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves Mine/Shelter room variants and blocks the unpowered cavern entrance.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE` with borrowed eight-byte request and
+/// writable reply records, which may alias. Copies the request and resolves
+/// the destination room first. An unpowered cavern request returns 0; executing
+/// it also writes the optional flag nibble to 2 and queues the blocked-door CAP
+/// command. Other destinations and the powered cavern return 1. Retains neither
+/// pointer; requires the map overlay and room CAP resources to stay loaded.
+static s32 _mineGorgeResolveRoomEvent(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    if (in->areaId != GAME_AREA_MINE_CAVERN) {
-        return 1;
+    enum {
+        MINE_GORGE_TRANSITION_BLOCKED       = 0,
+        MINE_GORGE_TRANSITION_ALLOWED       = 1,
+        MINE_GORGE_BLOCKED_EVENT_FLAG_VALUE = 2,
+        MINE_GORGE_UNPOWERED_CAVERN_COMMAND = 3,
+    };
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    if (request->areaId != GAME_AREA_MINE_CAVERN) {
+        return MINE_GORGE_TRANSITION_ALLOWED;
     }
     if (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED) != 0) {
-        return 1;
+        return MINE_GORGE_TRANSITION_ALLOWED;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 0;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return MINE_GORGE_TRANSITION_BLOCKED;
     }
-    gameFlagSetNibbleIfPresent(in->flagId, 2);
-    capRunCommandWithTransition(3);
-    return 0;
+    gameFlagSetNibbleIfPresent(request->flagId, MINE_GORGE_BLOCKED_EVENT_FLAG_VALUE);
+    capRunCommandWithTransition(MINE_GORGE_UNPOWERED_CAVERN_COMMAND);
+    return MINE_GORGE_TRANSITION_BLOCKED;
 }
 
 /// Ignores every `ROOM_MESSAGE_COMMAND` request and returns zero.
@@ -239,17 +253,20 @@ static s32 _mineGorgeCommandMsg(Task* task, s32 messageId, s32 commandId, s32 co
     return 0;
 }
 
-/// Cutscene gate on the `0x13EF` direction message: when the payload's
-/// action ID is 1, flag nibble `0xC5` is still clear and the session is in
-/// place 1, raises the nibble and starts the script blob at
-/// `D_mine_gorge_8017E610`.
-s32 func_mine_gorge_8017D784(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+/// Starts the gorge encounter script once from its direction-action point.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION`; borrows the request only during
+/// dispatch. Action 1 in room variant 1 raises the encounter-seen flag and starts
+/// the event script when that flag is clear. Other requests do nothing. Ignores
+/// the remaining arguments and returns zero; requires loaded script resources.
+static s32 _mineGorgeHandleEncounterAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    const DirectionActionRequest* request = firstArg;
-
+    enum {
+        MINE_GORGE_ACTION_START_ENCOUNTER = 1,
+    };
     u8 actionId = request->actionId;
 
-    if (actionId == 1 && gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
+    if (actionId == MINE_GORGE_ACTION_START_ENCOUNTER && gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) == 0 && gGameSession->location.loc.variant == actionId) {
         gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN, 1);
         evsStartScript(D_mine_gorge_8017E610, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
@@ -270,22 +287,28 @@ static s32 _mineGorgeSoundMsg(Task* task, s32 messageId, s32 cueId, s32 secondAr
     return 0;
 }
 
-/// The cutscene task: the first pass raises `D_80115768` and the session's
-/// `hideHud`, hides the display and starts the script blob pair
-/// `D_mine_gorge_8017E2F0` / `D_mine_gorge_8017E500`; the next pass kills the
-/// task and clears collection bit `0x11F`.
-void func_mine_gorge_8017D828(Task* arg0)
+/// Starts the oak-board event script and consumes its collection bit on the next tick.
+///
+/// State 0 pauses the player state tick, hides the display and queues the normal
+/// and skip scripts. Every later state releases this task and clears the oak-board
+/// collection bit. No body or spawn payload is used. Requires the room scripts
+/// loaded; the scripts resume player state and own the display transition.
+/// The final state increment remains after task release as in the original.
+static void _mineGorgeOakBoardCutsceneTask(Task* task)
 {
-    if (arg0->state == 0) {
+    enum {
+        MINE_GORGE_OAK_BOARD_CUTSCENE_START = 0,
+    };
+    if (task->state == MINE_GORGE_OAK_BOARD_CUTSCENE_START) {
         D_80115768 = 1;
         SetDispMask(0);
         gGameSession->hideHud = 1;
         evsStartScriptWithSkip(D_mine_gorge_8017E2F0, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_gorge_8017E500);
     } else {
-        taskKill(arg0);
+        taskKill(task);
         inventoryClearCollectedBit(INVENTORY_COLLECTION_ID_OAK_BOARD);
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// Sets the player control-mode/timer hold used during the room's scripted scene.

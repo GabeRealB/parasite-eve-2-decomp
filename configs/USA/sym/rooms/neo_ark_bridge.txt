@@ -65,7 +65,7 @@ D_map_neo_ark_8017C2E0 = 0x8017C2E0; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C320 = 0x8017C320; // absolute:True owner=map_neo_ark
 D_map_neo_ark_8017C350 = 0x8017C350; // absolute:True owner=map_neo_ark
 
-func_neo_ark_bridge_8017E954 = 0x8017E954; // type:func
+neoArkBridgeAmbientEffectsTask = 0x8017E954; // type:func
 
 neoArkBridgeWaterRippleTask = 0x8017EF70; // type:func
 

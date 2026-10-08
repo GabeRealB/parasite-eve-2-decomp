@@ -188,3 +188,4 @@ _mistR18SpawnAttachedModel = 0x8017e6d8; // type:func
 _mistR18SpawnBriefingCaption = 0x8017e7f0; // type:func
 _mistR18StartBackdropCrossfade = 0x8017e824; // type:func
 _mistR18StartSceneScriptPause = 0x8017ebf8; // type:func
+_mistR18ReloadParkingWithStarterLoadout = 0x8017eb48; // type:func
