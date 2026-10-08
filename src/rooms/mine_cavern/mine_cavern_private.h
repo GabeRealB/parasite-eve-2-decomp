@@ -23,7 +23,7 @@
 extern CVECTOR D_mine_cavern_8018E3E0[5];
 
 /// How many of the two steps of game flag nibble 0xE6 (values 1 and 2)
-/// `mineCavernReleaseEventBattleHold` has already acted on; `func_mine_cavern_8017E394`
+/// `mineCavernReleaseEventBattleHold` has already acted on; `mineCavernResetEventBattleReleaseCount`
 /// resets it.
 extern s32 D_mine_cavern_8018EB54;
 
@@ -75,7 +75,11 @@ extern AreaApplyRec D_mine_cavern_8018E32C[9];
 
 extern TaskMessageEntry D_mine_cavern_80183C6C[7];
 
-void func_mine_cavern_8017E394(void);
+/// Resets the two-stage cavern event's credited battle-release count.
+///
+/// Call before a new cavern intro event; later stage releases increase the
+/// count once per stage. This does not release holds or alter battle rewards.
+void mineCavernResetEventBattleReleaseCount(void);
 
 /// Hides or shows the cavern's sprite batches controlled by nursery progress.
 ///
@@ -153,11 +157,30 @@ void mineCavernFadeOutMusic(void);
 /// processed by effect tasks rather than releasing their storage synchronously.
 void mineCavernLockAttachmentsAndCancelEffects(void);
 
-void func_mine_cavern_80182DC8(Task*);
+/// Runs target spawning, per-frame cavern effects and controller teardown.
+///
+/// Requires a live task with state 0..2, initially 0, and loaded cavern resources.
+/// State 0 spawns intact/remains tasks; state 1 draws the darkness and effects;
+/// state 2 releases this controller. Attract demo scene 3 suspends all dispatch.
+/// The handler table is copied by value and the state is not bounds checked.
+void mineCavernTargetEffectsTask(Task* task);
 
-void func_mine_cavern_80183A68(Task*);
+/// Dispatches one intact cavern target's spawn, hit, retirement and explosion states.
+///
+/// `task` is live with state 0..4 and spot index 0..3 in `spawnArg1`; its
+/// `spawnArg2.pointer` borrows the enemy work. The model and cavern resources
+/// must stay loaded. State 4 destroys the enemy after its bodies are retired;
+/// the copied five-handler table is indexed without a bounds check.
+void mineCavernTargetTask(Task* task);
 
-void func_mine_cavern_80183C10(Task*);
+/// Dispatches the target-remains model's spawn, visible tick and teardown.
+///
+/// `task` is live with state 0..2 and spot index 0..3 in `spawnArg1`; its
+/// `spawnArg2.pointer` borrows enemy work. The model stays hidden until that
+/// spot's destroyed bit is set. State 2 destroys the enemy; the copied
+/// three-handler table is indexed without a bounds check. Cavern resources
+/// and model coordinates must remain loaded until teardown.
+void mineCavernTargetRemainsTask(Task* task);
 
 // Callbacks referenced by the overlay's shared data tables.
 s32 func_mine_cavern_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);

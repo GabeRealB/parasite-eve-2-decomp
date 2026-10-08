@@ -272,13 +272,13 @@ D_mine_cavern_8018E35E = 0x8018E35E; // type:u16 size:0x2 defined:True
 
 mineCavernRoomVisualEffectsHaloOrangeBurstTask = 0x80180320; // type:func
 
-func_mine_cavern_8017E474 = 0x8017E474; // type:func
+mineCavernDrawRoomLightGlowsTask = 0x8017E474; // type:func
 
 mineCavernRoomVisualEffectsMoteTask = 0x8017F240; // type:func
 
 mineCavernRoomVisualEffectsHaloTask = 0x8017FF88; // type:func
 
-func_mine_cavern_80181730 = 0x80181730; // type:func
+mineCavernRoomVisualEffectsSparkEmitterTask = 0x80181730; // type:func
 _roomVisualEffectsDrawMote = 0x8017F50C; // type:func
 _roomVisualEffectsDrawHaloRing = 0x8017F7D0; // type:func
 _roomVisualEffectsDrawHaloDisc = 0x8017FBF4; // type:func
@@ -306,3 +306,15 @@ mineCavernSelectCountdownMusicEntry = 0x8017e180; // type:func
 mineCavernTimedSoundTask = 0x8017e18c; // type:func
 mineCavernFadeOutMusic = 0x8017e2d8; // type:func
 mineCavernLockAttachmentsAndCancelEffects = 0x8017e2fc; // type:func
+_mineCavernPrepareFinalEventBattle = 0x8017e360; // type:func
+mineCavernResetEventBattleReleaseCount = 0x8017e394; // type:func
+_mineCavernDrawFixedGlows = 0x80181864; // type:func
+_mineCavernRefreshTargetLight = 0x80181cac; // type:func
+_mineCavernDrawTargetGlow = 0x80181d80; // type:func
+_mineCavernUpdateTargetSound = 0x801825c8; // type:func
+_mineCavernUpdateTargetEffects = 0x80182184; // type:func
+_mineCavernSpawnTargets = 0x80182cec; // type:func
+mineCavernTargetEffectsTask = 0x80182dc8; // type:func
+_mineCavernTargetExplode = 0x801838f4; // type:func
+mineCavernTargetTask = 0x80183a68; // type:func
+mineCavernTargetRemainsTask = 0x80183c10; // type:func

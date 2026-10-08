@@ -40777,7 +40777,7 @@ loop-back delay slot — worth 1.5% on `_effectDrawCriticalHitBurst`.
 
 ### Straight-line form: no reordering of a split step can recover it
 
-`func_mine_cavern_80181CAC` fills a light record in one block and folds
+`_mineCavernRefreshTargetLight` fills a light record in one block and folds
 `((gRandomLcgState = gRandomLcgState * 5 + 0x71357911) >> 16) & 0x7FF` into one field's
 value. A previous session tried ~35 statement orders, all with a split
 `rng = …; gRandomLcgState = rng;`, and plateaued at 75%. A hill-climb over every
@@ -45297,7 +45297,7 @@ rooms / actors:    .Lshelter_b6_nursery_8018008C:   .Lactor_301500_801637F0:
 
 `shelter`, `actor`, `nursery` are not hex, so the pattern fails silently — no
 error, just a count of 0. That is how `score_functions.py` came to call
-`func_mine_cavern_801825C8` (457 instructions, 114 calls) the easiest unmatched
+`_mineCavernUpdateTargetSound` (457 instructions, 114 calls) the easiest unmatched
 function in the project: one of its four features was structurally absent in
 12,381 overlay functions, and the model's negative jump coefficient did the
 rest. Match the label as `\.L\w+:`.
@@ -87361,10 +87361,10 @@ to fight the scheduler. `func_mine_cavern_8017DDFC`. Inputs: `base_1.i`
 `ac93762280d36b4b90feac3c58c9539259752988e10bca28f4740e15ec38f830` (two calls,
 99.83%).
 
-## A split `sll`/`sra` sign extension is the loop-carried half CSE'd across the loop, not a variable (func_mine_cavern_80182CEC, 2026-09-15)
+## A split `sll`/`sra` sign extension is the loop-carried half CSE'd across the loop, not a variable (_mineCavernSpawnTargets, 2026-09-15)
 
 An `s16` loop index used as a shift amount, as a call argument and in the
-`i < 4` test reads like a hand-written loop-carried value:
+`targetIndex < 4` test reads like a hand-written loop-carried value:
 
 ```asm
         sll   $v0,$s1,16          ; before the loop
@@ -87388,15 +87388,15 @@ so cse's table still holds the 0 and folds it again (byte-identical object).
 The natural source has no `var_v0` at all:
 
 ```c
-s16 i;
+s16 targetIndex;
 s32 flags;
 
 flags = gameFlagGetNibble(0xE2);
-for (i = 0; i < 4; i++) {
-    if (!((flags >> i) & 1)) {
-        enemySpawnFromTable(&D_mine_cavern_8018EB38, 0, i, NULL);
+for (targetIndex = 0; targetIndex < 4; targetIndex++) {
+    if (!((flags >> targetIndex) & 1)) {
+        enemySpawnFromTable(&D_mine_cavern_8018EB38, 0, targetIndex, NULL);
     }
-    enemySpawnFromTable(&D_mine_cavern_8018EB38, 1, i, NULL);
+    enemySpawnFromTable(&D_mine_cavern_8018EB38, 1, targetIndex, NULL);
 }
 ```
 
@@ -119923,7 +119923,7 @@ in at 100.000% on the first build that way.
 
 Two independent things go wrong when a matched function's `.s` carried the
 unit's rodata — its literals *and* its jump table — and the unit has further
-rodata as `INCLUDE_RODATA` blobs. `func_mine_cavern_801838F4` shows both.
+rodata as `INCLUDE_RODATA` blobs. `_mineCavernTargetExplode` shows both.
 
 **The last 4 `regs` penalties are reloc names, not codegen.** With
 `printf("BOMB1\n")` the compiled listing is instruction-for-instruction
@@ -139429,7 +139429,7 @@ local-alloc, `sched.c` (schedule_insns, `reload_completed == 0`) overwrites
 across a block boundary or change the reference count. Rearranging statements within a
 block only moves sched1's input order, which it re-derives.
 
-## Stopping a marginal `%hi` hoist: an earlier constant local used only as a shift amount spends the threshold invisibly (func_mine_cavern_80181864, 2026-09-23)
+## Stopping a marginal `%hi` hoist: an earlier constant local used only as a shift amount spends the threshold invisibly (_mineCavernDrawFixedGlows, 2026-09-23)
 
 The inverse of the "threshold decays by 3 per hoist" entry. Here the target kept
 `lui a1,%hi(gRandomLcgState)` local to the outer loop's block (one `lui` for both the
@@ -139438,12 +139438,12 @@ The inverse of the "threshold decays by 3 per hoist" entry. Here the target kept
 `170 real insns`, i.e. 29 × 6 = 174 >= 170 (29 = 1 + 28 non-fixed regs under
 `-msoft-float`, loop has calls). Hoisted, it lost allocation and reload
 rematerialised it in the function's only spill register `a3` twice, since the
-spilled `size` reload in between clobbered it.
+spilled `radiusScale` reload in between clobbered it.
 
-Nested `if`s vs `continue`, `do/while` vs `for` and `&a[j]` vs `a + j` all left
+Nested `if`s vs `continue`, `do/while` vs `for` and `&a[pointIndex]` vs `a + pointIndex` all left
 the count at 170. What worked was a movable *earlier* in the loop body that gets
-moved and then vanishes: `shift = 12;` at the top of the outer loop, used as
-the `>> shift` of the inner loop's `rsin`/`rcos` products. Its lifetime spans
+moved and then vanishes: `trigShift = 12;` at the top of the outer loop, used as
+the `>> trigShift` of the inner loop's `rsin`/`rcos` products. Its lifetime spans
 the inner loop, so it is moved first (threshold 29 → 26, and 26 × 6 = 156 < 170
 declines the `%hi`); the hoisted pseudo has a `REG_EQUIV` constant, loses
 allocation, and reload substitutes `12` straight back into the `sra` immediate,
@@ -139469,14 +139469,14 @@ matched. The explicit `(ot & mask) | (tag & 0xFF000000)` spelling still
 swapped `v0`/`v1`, because the `ior` ties to its first dying operand, and
 `store_fixed_bit_field` puts the masked tag first.
 
-### A store in a `j` delay slot that repeats the insn just before the jump's target is one store at the join (func_mine_cavern_801830F0, 2026-09-23)
+### A store in a `pointIndex` delay slot that repeats the insn just before the jump's target is one store at the join (func_mine_cavern_801830F0, 2026-09-23)
 
-A search loop's "found" arm ended `lw v0,4(v1)` / `j L+4` / `sw v0,0x1C(s1)`,
+A search loop's "found" arm ended `lw v0,4(v1)` / `pointIndex L+4` / `sw v0,0x1C(s1)`,
 and the fall-out path ended `move v0,zero` / `L: sw v0,0x1C(s1)`. Writing the
 store in both arms (`key = rec->key.value; blk->hitKey = key; goto found;` and
 `key = 0; blk->hitKey = key;`) let CSE turn the second into `sw zero`, and the
 `move v0,zero` survived only for the later `andi`. The target has a single
-store after the label: reorg filled the `j`'s delay slot with the insn at its
+store after the label: reorg filled the `pointIndex`'s delay slot with the insn at its
 target and retargeted the jump one insn on, which is what makes it look
 duplicated.
 
@@ -140401,26 +140401,26 @@ that jump2 cross-jumps into the single retail store, and the wrapper lifts
 their weight from 2 to 3. Wrapping the whole `if`/`else` instead also weights
 the multiply and the phases and loses (94.7%).
 
-## A masked call result's local type decides whether it rides the next call's delay slot; a cast at the compare keeps cse from swapping a paired register (func_mine_cavern_80182184, 2026-09-23)
+## A masked call result's local type decides whether it rides the next call's delay slot; a cast at the compare keeps cse from swapping a paired register (_mineCavernUpdateTargetEffects, 2026-09-23)
 
-**Symptom.** `view = viewGetMappedIndex() & 0xFF;` followed by
-`flags = gameFlagGetNibble(0xE2);`: retail has `li a0,0xe2; jal; andi s8,v0,0xff`,
-an `s16 view` gives `andi; jal; li a0` (`reorder`).
+**Symptom.** `viewId = viewGetMappedIndex() & 0xFF;` followed by
+`destroyedMask = gameFlagGetNibble(0xE2);`: retail has `li a0,0xe2; jal; andi s8,v0,0xff`,
+an `s16 viewId` gives `andi; jal; li a0` (`reorder`).
 
 **Observed.** With `s16`, combine leaves `(set (subreg:SI (reg/v:HI)) (and v0 255))`
 and sched1 ranks it against the `li a0` by luid alone. With `s32` the insn is
 `(set (reg/v:SI) (zero_extend (subreg:QI v0)))`, it receives `LAUNCH_PRIORITY`
 when the call is scheduled, and dbr puts it in the call's delay slot.
 
-**Knock-on.** An SImode `view` makes `k == view` (with `k` a table byte) a
-plain register pair, and cse then rewrites a later `D_prev == k` to use `view`,
+**Knock-on.** An SImode `viewId` makes `visibleView == viewId` (with `visibleView` a table byte) a
+plain register pair, and cse then rewrites a later `D_prev == visibleView` to use `viewId`,
 which lives longer (see the entry on cse rewriting a compared pair). That frees
 a callee-saved register, so loop's hoisted table base gets one instead of being
-rematerialised with `lui/addiu` each iteration. `if (k != (u8)view)` keeps the
+rematerialised with `lui/addiu` each iteration. `if (visibleView != (u8)viewId)` keeps the
 masked value in a short-lived temp, so the equivalence goes to the temp and the
-later compare keeps `k`; combine's `nonzero_bits` then drops the redundant
-`andi`. Declaring `k` as `s16` and reading the table twice
-(`for (j = 0; j < 8 && tbl[i][j] != 0; j++) { k = tbl[i][j]; ...`) gave
+later compare keeps `visibleView`; combine's `nonzero_bits` then drops the redundant
+`andi`. Declaring `visibleView` as `s16` and reading the table twice
+(`for (viewIndex = 0; viewIndex < 8 && tbl[targetIndex][viewIndex] != 0; viewIndex++) { visibleView = tbl[targetIndex][viewIndex]; ...`) gave
 retail's `lbu v0; beqz v0; move s0,v0` copy.
 
 ## A reload for a block's first insn is emitted outside the block, so sched2 cannot fill its load delay; a dead constant set at the head fixes it (func_neo_ark_woodland_path_8017D694, 2026-09-23)

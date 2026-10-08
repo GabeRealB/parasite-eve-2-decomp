@@ -824,7 +824,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightUnderpassDrawFlaresTask, { NULL } },                                   // 0x11E
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightWaterHoleWaterDriftTaskU16, { NULL } },                                // 0x11F
     { { { TASK_BODY_COORD, 0x70 } }, mineMesaDrawViewFlaresTask, { NULL } },                                             // 0x120
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_cavern_8017E474, { NULL } },                                              // 0x121
+    { { { TASK_BODY_COORD, 0x70 } }, mineCavernDrawRoomLightGlowsTask, { NULL } },                                       // 0x121
     { { { TASK_BODY_COORD, 0x70 } }, mineTunnelEntranceDrawFlaresTask, { NULL } },                                       // 0x122
     { { { TASK_BODY_COORD, 0x70 } }, mineTunnelDrawViewFlaresTask, { NULL } },                                           // 0x123
     { { { TASK_BODY_COORD, 0x70 } }, mineGorgeDrawViewFlaresTask, { NULL } },                                            // 0x124
@@ -1150,7 +1150,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB3ElevatorHallRoomVisualEffectsHaloOrangeBurstTask, { NULL } },              // 0x264
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4UpperSewerRoomVisualEffectsHaloOrangeBurstTask, { NULL } },                // 0x265
     { { { TASK_BODY_COORD, 0x70 } }, neoArkNorthPromenadeRoomVisualEffectsHaloOrangeBurstTask, { NULL } },               // 0x266
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_cavern_80181730, { NULL } },                                              // 0x267
+    { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsSparkEmitterTask, { NULL } },                            // 0x267
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_elevator_hall_80180BE4, { NULL } },                                 // 0x268
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_storeroom_80180C98, { NULL } },                                     // 0x269
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b1_north_maintenance_walkway_80180DA8, { NULL } },                     // 0x26A

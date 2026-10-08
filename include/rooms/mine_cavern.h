@@ -38,7 +38,14 @@ extern WorldCollisionSurfaceProperties* D_mine_cavern_8018E30C[];
 /// releases the effect work and task; its coordinate ancestors must stay live.
 void mineCavernRoomVisualEffectsHaloOrangeBurstTask(Task* task);
 
-void func_mine_cavern_8017E474(Task* arg0);
+/// Registers the cavern's room effects and draws its view-dependent light glows.
+///
+/// A live state-0 task registers four effect IDs and enables room-view effects;
+/// later ticks draw flares/capsules and, while progress flag 0xC4 is 1, may emit
+/// a localized flash. Requires the loaded cavern's point tables,
+/// view, scratch stack and frame packet arena. This task retains no effect
+/// work and does not free its coordinate body or task itself.
+void mineCavernDrawRoomLightGlowsTask(Task* task);
 
 /// Runs the cavern's vertically drifting animated mote effect.
 ///
@@ -62,7 +69,17 @@ void mineCavernRoomVisualEffectsMoteTask(Task* task);
 /// the parent and its ancestors must stay live until then.
 void mineCavernRoomVisualEffectsHaloTask(Task* task);
 
-void func_mine_cavern_80181730(Task* arg0);
+/// Emits twenty motes from rotating offsets along the cavern effect's parent.
+///
+/// Requires a coordinate-body task and zeroed owned `EffectWork` in
+/// `spawnArg2.pointer`, with a live borrowed parent. Each active tick emits a
+/// mote that fades to zero at active age 48 and retires at 49, moving downward
+/// eight local units per motion tick.
+/// Its emission offset decreases local Y by 128 world units each active tick.
+/// Control 1..3 pauses emission; 4 or above cancels it. At active age 21 or on
+/// cancellation the emitter releases its work and task. Spawned motes copy
+/// their placement, so they can finish after the emitter retires.
+void mineCavernRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Runs the cavern's room controller: initialization, event polling, then teardown.
 ///

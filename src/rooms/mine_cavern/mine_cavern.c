@@ -85,7 +85,7 @@ CVECTOR D_mine_cavern_8018E3E0[5] = {
     { 0, 9, 11, 0 },
 };
 
-TaskDesc D_mine_cavern_8018E3F4 = { { { TASK_BODY_NONE, 96 } }, func_mine_cavern_80182DC8, { .value = 0 } };
+TaskDesc D_mine_cavern_8018E3F4 = { { { TASK_BODY_NONE, 96 } }, mineCavernTargetEffectsTask, { .value = 0 } };
 
 static TmdBone _gMineCavernModel10F60Skeleton[1] = {
 #include "assets/mine_cavern_model_10F60_skeleton.inc"
@@ -204,8 +204,8 @@ SVECTOR D_mine_cavern_8018EB18[4] = {
 };
 
 TaskDesc D_mine_cavern_8018EB38[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_mine_cavern_80183A68, { .model = &_gMineCavernModel10F60 } },
-    { { { TASK_BODY_TMD, 96 } }, func_mine_cavern_80183C10, { .model = &_gMineCavernModel11244 } },
+    { { { TASK_BODY_TMD, 96 } }, mineCavernTargetTask, { .model = &_gMineCavernModel10F60 } },
+    { { { TASK_BODY_TMD, 96 } }, mineCavernTargetRemainsTask, { .model = &_gMineCavernModel11244 } },
 };
 
 s32 D_mine_cavern_8018EB54;
@@ -381,7 +381,7 @@ static void func_mine_cavern_8017DDFC(Task* arg0)
     gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
     if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN) == 0)) {
         evsStartScriptWithSkip(D_mine_cavern_80187C74, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_mine_cavern_8018804C);
-        func_mine_cavern_8017E394();
+        mineCavernResetEventBattleReleaseCount();
         gameFlagSetNibble(GAME_FLAG_MINE_CAVERN_INTRO_SEEN, 1);
     } else {
         gStageSceneMusicEntry = 1;

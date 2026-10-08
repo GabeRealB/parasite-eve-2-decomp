@@ -107,13 +107,19 @@ extern SVECTOR D_mine_cavern_80188FB4[];
 extern SVECTOR D_mine_cavern_80188FBC;
 extern SVECTOR D_mine_cavern_80188FC4[];
 
-static void func_mine_cavern_80181864(void);
-static void func_mine_cavern_80182184(void);
+// Wedge count and perspective numerator of the cavern's glow fans.
+enum {
+    MINE_CAVERN_GLOW_WEDGES           = 8,
+    MINE_CAVERN_GLOW_PROJECTION_SCALE = 352
+};
+
+static void _mineCavernDrawFixedGlows(void);
+static void _mineCavernUpdateTargetEffects(void);
 static void func_mine_cavern_80182454(void);
-static void func_mine_cavern_801825C8(s16 arg0);
-static void func_mine_cavern_80182CEC(Task* arg0);
+static void _mineCavernUpdateTargetSound(s16 targetIndex);
+static void _mineCavernSpawnTargets(Task* task);
 static void func_mine_cavern_80182DA8(Task* task);
-static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1);
+static void _mineCavernTargetExplode(Enemy* enemy, Task* task);
 static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task);
 
 static void _mineCavernTargetExitCallback(Task* task);
@@ -185,7 +191,7 @@ extern SpriteSource D_mine_cavern_8018C910[48];
 
 static void _mineCavernActivateRoom2(void);
 static void _mineCavernScriptNoop(void);
-void        func_mine_cavern_8017E360(void);
+static void _mineCavernPrepareFinalEventBattle(void);
 
 TaskMessageEntry D_mine_cavern_80183C6C[7] = {
     { 5102, func_mine_cavern_8017D908 },
@@ -779,7 +785,7 @@ EvsCommand D_mine_cavern_80188214[60] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = mineCavernSetSceneMusicEvent }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = mineCavernSelectCountdownMusicEntry }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E360 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineCavernPrepareFinalEventBattle }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernEngageScriptedBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -813,7 +819,7 @@ EvsCommand D_mine_cavern_801887B4[27] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS8 = mineCavernSetSceneMusicEvent }, { .value = 11 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackU8 = mineCavernSelectCountdownMusicEntry }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mine_cavern_8017E360 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mineCavernPrepareFinalEventBattle }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = mineCavernEngageScriptedBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_AREA_MUSIC, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -2136,12 +2142,43 @@ static u8 _gMineCavernTargetGlowRimBlue     = 0;
 /// reads it, so its role is unproven.
 u16 D_mine_cavern_8018E35E = 1960;
 
-static void func_mine_cavern_80181CAC(s16 point);
-static void func_mine_cavern_80181D80(s16 point);
+static void _mineCavernRefreshTargetLight(s16 targetIndex);
+static void _mineCavernDrawTargetGlow(s16 targetIndex);
 static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1);
 static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1);
 static void func_mine_cavern_801836D0(Enemy* arg0, Task* arg1);
 static void _mineCavernTargetRetireBody(Enemy* enemy, Task* task);
+
+/// Registers the four cavern implementations used by the resident room-effect spawners.
+static inline void _mineCavernRegisterRoomEffects(void)
+{
+    gRoomEffectMoteId         = EFFECT_MINE_CAVERN_MOTE;
+    gRoomEffectHaloId         = EFFECT_MINE_CAVERN_HALO;
+    gRoomEffectOrangeBurstId  = EFFECT_MINE_CAVERN_ORANGE_BURST;
+    gRoomEffectSparkEmitterId = EFFECT_MINE_CAVERN_SPARK_EMITTER;
+}
+
+/// Starts and mixes a target sound with separately sampled signed-byte pans.
+///
+/// Arguments are stable expressions: each is evaluated once per sound request.
+/// `soundCoord` borrows a composed coordinate; `attenuation` is 0..127 in script attenuation units.
+#define MINE_CAVERN_START_AND_MIX_TARGET_SOUND(scriptId, soundCoord, attenuation)                           \
+    do {                                                                                                    \
+        sndEvtRequestScriptStart((scriptId), (s8)worldCoordGetOriginAudioPan((soundCoord)), (attenuation)); \
+        sndEvtRequestScriptMix((scriptId), (s8)worldCoordGetOriginAudioPan((soundCoord)), (attenuation));   \
+    } while (0)
+
+/// Adds the saved nibble's destroyed-target bits to a caller's byte count.
+///
+/// `destroyedCount` starts at zero; `bitIndex` is a writable signed word,
+/// overwritten by the loop. `destroyedMask` is a stable signed word.
+/// Arguments are evaluated repeatedly and must have no access side effects.
+#define MINE_CAVERN_COUNT_DESTROYED_TARGETS(destroyedMask, destroyedCount, bitIndex)      \
+    for ((bitIndex) = 0; (bitIndex) < ARRAY_SIZE(D_mine_cavern_8018E39C); (bitIndex)++) { \
+        if (((destroyedMask) >> (bitIndex)) & 1) {                                        \
+            (destroyedCount)++;                                                           \
+        }                                                                                 \
+    }
 
 /// Selects room 2 in the live save and session, requesting room-object relinking.
 static void _mineCavernActivateRoom2(void)
@@ -2158,9 +2195,15 @@ static void _mineCavernScriptNoop(void)
 {
 }
 
-void func_mine_cavern_8017E360(void)
+/// Prepares the final scripted battle in cavern variant 4.
+///
+/// Clears battle phase, holds, PE target count and pending rewards before the
+/// script engages combat. Requires the live cavern session and combat state.
+static void _mineCavernPrepareFinalEventBattle(void)
 {
-    gGameSession->location.loc.variant          = 4;
+    enum { MINE_CAVERN_FINAL_EVENT_VARIANT = 4 };
+
+    gGameSession->location.loc.variant          = MINE_CAVERN_FINAL_EVENT_VARIANT;
     gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
     gSceneCombatState.peTargetCount             = 0;
     gSceneCombatState.battleRefs                = 0;
@@ -2169,14 +2212,15 @@ void func_mine_cavern_8017E360(void)
     gSceneCombatState.mpReward                  = 0;
 }
 
-void func_mine_cavern_8017E394(void)
+void mineCavernResetEventBattleReleaseCount(void)
 {
     D_mine_cavern_8018EB54 = 0;
 }
 
-/// Applies visibility to the five cavern sprite batches controlled by nursery progress.
+/// Sets visibility of the five cavern sprite batches tied to nursery progress.
 ///
-/// `views` is the loaded cavern's 25-entry view array; `hidden` is 0 or 1.
+/// `views` borrows the loaded 25-view cavern directory with mutable batch arrays.
+/// `hidden` is 0 to show or 1 to hide; the selected batches must remain live.
 static inline void _mineCavernSetProgressSpriteBatchesHidden(const SpriteView* views, s32 hidden)
 {
     views[3].batches[5].hidden  = hidden;
@@ -2205,20 +2249,19 @@ void mineCavernSetProgressSpritesHidden(s32 hiddenValue)
     }
 }
 
-void func_mine_cavern_8017E474(Task* arg0)
+void mineCavernDrawRoomLightGlowsTask(Task* task)
 {
-    u32 rnd;
+    enum { MINE_CAVERN_GLOWS_INIT    = 0,
+           MINE_CAVERN_GLOWS_ACTIVE  = 1,
+           MINE_CAVERN_FLASH_ENABLED = 1 };
 
-    if (arg0->state == 0) {
-        gRoomEffectMoteId                = EFFECT_MINE_CAVERN_MOTE;
-        gRoomEffectHaloId                = EFFECT_MINE_CAVERN_HALO;
-        gRoomEffectOrangeBurstId         = EFFECT_MINE_CAVERN_ORANGE_BURST;
-        gRoomEffectSparkEmitterId        = EFFECT_MINE_CAVERN_SPARK_EMITTER;
+    if (task->state == MINE_CAVERN_GLOWS_INIT) {
+        _mineCavernRegisterRoomEffects();
         gRoomEffectState->roomEffectMode = ROOM_EFFECT_VIEW_ENABLED;
-        arg0->state                      = 1;
+        task->state                      = MINE_CAVERN_GLOWS_ACTIVE;
     }
 
-    if (gameFlagGetNibble(GAME_FLAG_0C4) == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_0C4) == MINE_CAVERN_FLASH_ENABLED) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         if (((gRandomLcgState >> 16) & 7) == 0) {
             gRandomLcgState           = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
@@ -2231,42 +2274,43 @@ void func_mine_cavern_8017E474(Task* arg0)
         }
     }
 
+    // Mapped views select light points; three cases deliberately fall through.
     switch (viewGetMappedIndex() & 0xFF) {
         case 2:
         case 3:
         case 9: {
-            SVECTOR* p = D_mine_cavern_80188F84;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[2], 1, 0x300);
+            const SVECTOR* lightPoints = D_mine_cavern_80188F84;
+            _glowDrawFlare(&lightPoints[0], 1, 0x300);
+            _glowDrawFlare(&lightPoints[2], 1, 0x300);
             break;
         }
         case 4: {
-            SVECTOR* p = D_mine_cavern_80188F7C;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[5], 1, 0x300);
+            const SVECTOR* lightPoints = D_mine_cavern_80188F7C;
+            _glowDrawFlare(&lightPoints[0], 1, 0x300);
+            _glowDrawFlare(&lightPoints[5], 1, 0x300);
             break;
         }
         case 5:
             _glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
         case 23: {
-            SVECTOR* p = D_mine_cavern_80188F64;
-            _glowDrawCapsule(&p[0], 0x180, 0x222);
-            _glowDrawCapsule(&p[1], 0x180, 0x222);
-            _glowDrawFlare(&p[3], 1, 0x300);
+            const SVECTOR* lightPoints = D_mine_cavern_80188F64;
+            _glowDrawCapsule(&lightPoints[0], 0x180, 0x222);
+            _glowDrawCapsule(&lightPoints[1], 0x180, 0x222);
+            _glowDrawFlare(&lightPoints[3], 1, 0x300);
             break;
         }
         case 6: {
-            SVECTOR* p = D_mine_cavern_80188F8C;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[2], 1, 0x300);
-            _glowDrawFlare(&p[4], 1, 0x300);
+            const SVECTOR* lightPoints = D_mine_cavern_80188F8C;
+            _glowDrawFlare(&lightPoints[0], 1, 0x300);
+            _glowDrawFlare(&lightPoints[2], 1, 0x300);
+            _glowDrawFlare(&lightPoints[4], 1, 0x300);
             break;
         }
         case 7: {
-            SVECTOR* p = D_mine_cavern_80188F84;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[2], 1, 0x300);
-            _glowDrawFlare(&p[3], 1, 0x300);
+            const SVECTOR* lightPoints = D_mine_cavern_80188F84;
+            _glowDrawFlare(&lightPoints[0], 1, 0x300);
+            _glowDrawFlare(&lightPoints[2], 1, 0x300);
+            _glowDrawFlare(&lightPoints[3], 1, 0x300);
             break;
         }
         case 8:
@@ -2279,10 +2323,10 @@ void func_mine_cavern_8017E474(Task* arg0)
         case 11:
             _glowDrawFlare(D_mine_cavern_80188F8C, 1, 0x300);
         case 13: {
-            SVECTOR* p = D_mine_cavern_80188F7C;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[5], 1, 0x300);
-            _glowDrawFlare(&p[6], 1, 0x300);
+            const SVECTOR* lightPoints = D_mine_cavern_80188F7C;
+            _glowDrawFlare(&lightPoints[0], 1, 0x300);
+            _glowDrawFlare(&lightPoints[5], 1, 0x300);
+            _glowDrawFlare(&lightPoints[6], 1, 0x300);
             break;
         }
         case 14:
@@ -2299,9 +2343,9 @@ void func_mine_cavern_8017E474(Task* arg0)
             _glowDrawFlare(D_mine_cavern_80188F7C, 1, 0x300);
             break;
         case 25: {
-            SVECTOR* p = D_mine_cavern_80188F7C;
-            _glowDrawFlare(&p[0], 1, 0x300);
-            _glowDrawFlare(&p[2], 1, 0x300);
+            const SVECTOR* lightPoints = D_mine_cavern_80188F7C;
+            _glowDrawFlare(&lightPoints[0], 1, 0x300);
+            _glowDrawFlare(&lightPoints[2], 1, 0x300);
             break;
         }
     }
@@ -2333,287 +2377,277 @@ void mineCavernRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_mine_cavern_80181730(Task* arg0)
+void mineCavernRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }
 
-/// Draws a glow at each of the six points of `D_mine_cavern_8018E36C`, the
-/// fourth skipped while view 4 is active: per point, a fan of eight
-/// semi-transparent Gouraud triangles around its projected position, each
-/// followed by a drawing-mode packet, both linked at the point's depth. The
-/// radius is scaled by depth and jittered by the shared LCG, and its base
-/// shrinks as more `gameFlagGetNibble(0xE2)` bits are set. A point whose
-/// projection flags an error is skipped.
-static void func_mine_cavern_80181864(void)
-{
-    s32       sxy;
-    s32       flag;
-    s32       otz;
-    POLY_G3*  prim;
-    DR_TPAGE* dr;
-    s32       radius;
-    s32       i;
-    s32       flags;
-    u8        count;
-    s32       j;
-    s32       base;
-    u16       view;
-    s32       size;
-    s32       shift;
-    u16       x;
-    u16       y;
-
-    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    view  = viewGetMappedIndex() & 0xFF;
-    count = 0;
-    for (j = 0; j < 4; j++) {
-        if ((flags >> j) & 1) {
-            count++;
-        }
+/// Queues eight additive wedges at a pixel centre and camera Z / 4 depth.
+///
+/// Requires caller locals `triangle` (POLY_G3*), `blendMode` (DR_TPAGE*) and
+/// `wedgeIndex` (s32), and live frame packet/OT storage. Positions preserve
+/// unsigned halfword wrapping, radius is pixels, RGB expressions are bytes,
+/// and `trigShift` is the Q12 trigonometric scale. Arguments are evaluated
+/// repeatedly, including rim colours twice per wedge, and must be stable.
+/// Reservations retain POLY_GT3/DR_MODE extents. Each blend command is linked
+/// after its triangle and therefore executes first in the GPU's linked list.
+#define MINE_CAVERN_DRAW_GLOW_FAN(screenX, screenY, pixelRadius, depthQuarterZ, trigShift, centerRed, centerGreen, centerBlue, rimRed, rimGreen, rimBlue) \
+    for (wedgeIndex = 0; wedgeIndex < MINE_CAVERN_GLOW_WEDGES; wedgeIndex++) {                                                                            \
+        triangle       = gGpuPrimCursor;                                                                                                                  \
+        gGpuPrimCursor = (u8*)triangle + sizeof(POLY_GT3);                                                                                                \
+        setPolyG3(triangle);                                                                                                                              \
+        triangle->r0 = (centerRed);                                                                                                                       \
+        triangle->g0 = (centerGreen);                                                                                                                     \
+        triangle->b0 = (centerBlue);                                                                                                                      \
+        triangle->x0 = (screenX);                                                                                                                         \
+        triangle->y0 = (screenY);                                                                                                                         \
+        triangle->r1 = (rimRed);                                                                                                                          \
+        triangle->g1 = (rimGreen);                                                                                                                        \
+        triangle->b1 = (rimBlue);                                                                                                                         \
+        triangle->r2 = (rimRed);                                                                                                                          \
+        triangle->g2 = (rimGreen);                                                                                                                        \
+        triangle->b2 = (rimBlue);                                                                                                                         \
+        setSemiTrans(triangle, 1);                                                                                                                        \
+        triangle->x1 = (screenX) + ((rsin(wedgeIndex * GLOW_EIGHTH_TURN) * (pixelRadius)) >> (trigShift));                                                \
+        triangle->y1 = (screenY) + ((rcos(wedgeIndex * GLOW_EIGHTH_TURN) * (pixelRadius)) >> (trigShift));                                                \
+        triangle->x2 = (screenX) + ((rsin(wedgeIndex * GLOW_EIGHTH_TURN + GLOW_EIGHTH_TURN) * (pixelRadius)) >> (trigShift));                             \
+        triangle->y2 = (screenY) + ((rcos(wedgeIndex * GLOW_EIGHTH_TURN + GLOW_EIGHTH_TURN) * (pixelRadius)) >> (trigShift));                             \
+        addPrim(&gGpuCurrentOt[(depthQuarterZ) >> 4], triangle);                                                                                          \
+        blendMode      = gGpuPrimCursor;                                                                                                                  \
+        gGpuPrimCursor = (u8*)blendMode + sizeof(DR_MODE);                                                                                                \
+        setDrawTPage(blendMode, 0, 0, getTPage(0, GPU_BLEND_ADD, 640, 0));                                                                                \
+        addPrim(&gGpuCurrentOt[(depthQuarterZ) >> 4], blendMode);                                                                                         \
     }
-    switch (count) {
+
+/// Queues additive eight-wedge glows at the cavern's six fixed light points.
+///
+/// Skips point 3 in mapped view 4 and rejects negative projection flags. The
+/// radius shrinks with the destroyed-target count and flickers with the LCG.
+/// Depth is camera Z / 4 and must be positive and in the current OT's range;
+/// pixel radius is the jittered scale times 352 divided by camera Z.
+/// Requires a live view transform and frame packet arena; packets live until
+/// GPU completion. Each wedge reserves 52 bytes, including its blend command.
+static void _mineCavernDrawFixedGlows(void)
+{
+    s32       packedScreenPosition;
+    s32       projectionFlags;
+    s32       depthQuarterZ;
+    POLY_G3*  triangle;
+    DR_TPAGE* blendMode;
+    s32       pixelRadius;
+    s32       wedgeIndex;
+    s32       destroyedMask;
+    u8        destroyedCount;
+    s32       pointIndex;
+    s32       baseRadiusScale;
+    u16       viewId;
+    s32       radiusScale;
+    s32       trigShift;
+    u16       screenX;
+    u16       screenY;
+
+    destroyedMask  = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    viewId         = viewGetMappedIndex() & 0xFF;
+    destroyedCount = 0;
+    MINE_CAVERN_COUNT_DESTROYED_TARGETS(destroyedMask, destroyedCount, pointIndex);
+    switch (destroyedCount) {
         case 0:
         case 1:
-            base = 0x428;
+            baseRadiusScale = 0x428;
             break;
         case 2:
-            base = 0x3C0;
+            baseRadiusScale = 0x3C0;
             break;
         case 3:
-            base = 0xC8;
+            baseRadiusScale = 0xC8;
             break;
         case 4:
         default:
-            base = 0x80;
+            baseRadiusScale = 0x80;
             break;
     }
+    // Project world points through the view; reject negative GTE flags.
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    size = base;
-    for (j = 0; j < 6; j++) {
-        shift = 12; // fraction bits of rsin/rcos
-        if (j == 3 && view == 4) {
+    radiusScale = baseRadiusScale;
+    for (pointIndex = 0; pointIndex < ARRAY_SIZE(D_mine_cavern_8018E36C); pointIndex++) {
+        trigShift = GLOW_TRIG_SHIFT;
+        if (pointIndex == 3 && viewId == 4) {
             continue;
         }
-        gte_ldv0(&D_mine_cavern_8018E36C[j]);
+        gte_ldv0(&D_mine_cavern_8018E36C[pointIndex]);
         gte_rtps();
-        gte_stsxy(&sxy);
-        gte_stflg(&flag);
-        gte_stszotz(&otz);
-        if (flag < 0) {
+        gte_stsxy(&packedScreenPosition);
+        gte_stflg(&projectionFlags);
+        gte_stszotz(&depthQuarterZ);
+        if (projectionFlags < 0) {
             continue;
         }
-        x               = sxy;
-        y               = sxy >> 16;
+        screenX         = packedScreenPosition;
+        screenY         = packedScreenPosition >> 16;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        radius          = (s32)(size + ((gRandomLcgState >> 16) & 0xF)) * 0x160 / (otz * 4);
-        /* Each packet is written as a POLY_G3 and a DR_TPAGE, but the original
-           reserves a POLY_GT3 and a DR_MODE for them, so the cursor steps by
-           the larger types. */
-        for (i = 0; i < 8; i++) {
-            prim = gGpuPrimCursor;
-            // Preserve the textured-triangle-sized reservation for this gouraud packet.
-            gGpuPrimCursor = (u8*)prim + sizeof(POLY_GT3);
-            setPolyG3(prim);
-            prim->r0 = _gMineCavernFixedGlowCenterRed;
-            prim->g0 = _gMineCavernFixedGlowCenterGreen;
-            prim->b0 = _gMineCavernFixedGlowCenterBlue;
-            prim->x0 = x;
-            prim->y0 = y;
-            prim->r1 = _gMineCavernFixedGlowRimRed;
-            prim->g1 = _gMineCavernFixedGlowRimGreen;
-            prim->b1 = _gMineCavernFixedGlowRimBlue;
-            prim->r2 = _gMineCavernFixedGlowRimRed;
-            prim->g2 = _gMineCavernFixedGlowRimGreen;
-            prim->b2 = _gMineCavernFixedGlowRimBlue;
-            setSemiTrans(prim, 1);
-            prim->x1 = x + ((rsin(i << 9) * radius) >> shift);
-            prim->y1 = y + ((rcos(i << 9) * radius) >> shift);
-            prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> shift);
-            prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> shift);
-            addPrim(&gGpuCurrentOt[otz >> 4], prim);
-            dr = gGpuPrimCursor;
-            // Preserve the draw-mode-sized reservation for this texture-page packet.
-            gGpuPrimCursor = (u8*)dr + sizeof(DR_MODE);
-            setDrawTPage(dr, 0, 0, 0x2A);
-            addPrim(&gGpuCurrentOt[otz >> 4], dr);
-        }
+        pixelRadius     = (s32)(radiusScale + ((gRandomLcgState >> 16) & 0xF)) * MINE_CAVERN_GLOW_PROJECTION_SCALE / (depthQuarterZ * 4);
+        MINE_CAVERN_DRAW_GLOW_FAN(screenX, screenY, pixelRadius, depthQuarterZ, trigShift,
+                                  _gMineCavernFixedGlowCenterRed, _gMineCavernFixedGlowCenterGreen, _gMineCavernFixedGlowCenterBlue,
+                                  _gMineCavernFixedGlowRimRed, _gMineCavernFixedGlowRimGreen, _gMineCavernFixedGlowRimBlue);
     }
 }
 
-/// Switches on transient light slot `4 + point` for cavern point `point`: fills
-/// it from the cavern's light parameters and the point's position in
-/// `D_mine_cavern_8018E39C`, with the outer radius jittered by a draw from the
-/// shared LCG.
-static void func_mine_cavern_80181CAC(s16 point)
+/// Refreshes the transient light at one destroyed target's position.
+///
+/// `targetIndex` is 0..3 and selects transient slot 4..7 for two light updates.
+/// The loaded room supplies Q12 RGB and world-unit radii; the outer radius
+/// receives 0..2047 units of jitter. The slot retains its view-coordinate parent.
+static void _mineCavernRefreshTargetLight(s16 targetIndex)
 {
-    WorldCoordTransientPointLight* lightSlot  = &gWorldCoordTransientPointLights[4 + point];
+    enum { MINE_CAVERN_TARGET_LIGHT_FIRST_SLOT = 4,
+           MINE_CAVERN_TARGET_LIGHT_TICKS      = 2 };
+
+    WorldCoordTransientPointLight* lightSlot  = &gWorldCoordTransientPointLights[MINE_CAVERN_TARGET_LIGHT_FIRST_SLOT + targetIndex];
     WorldCoordPointLight*          pointLight = &lightSlot->light;
 
-    lightSlot->framesLeft                              = 2;
+    lightSlot->framesLeft                              = MINE_CAVERN_TARGET_LIGHT_TICKS;
     pointLight->inner                                  = D_mine_cavern_8018E366;
     pointLight->outer                                  = D_mine_cavern_8018E368 + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0x7FF);
     pointLight->head.color.r                           = D_mine_cavern_8018E360;
     pointLight->head.color.g                           = D_mine_cavern_8018E362;
     pointLight->head.color.b                           = D_mine_cavern_8018E364;
-    pointLight->head.transform.lighting.local.t[0]     = D_mine_cavern_8018E39C[point].vx;
-    pointLight->head.transform.lighting.local.t[1]     = D_mine_cavern_8018E39C[point].vy;
-    pointLight->head.transform.lighting.local.t[2]     = D_mine_cavern_8018E39C[point].vz;
+    pointLight->head.transform.lighting.local.t[0]     = D_mine_cavern_8018E39C[targetIndex].vx;
+    pointLight->head.transform.lighting.local.t[1]     = D_mine_cavern_8018E39C[targetIndex].vy;
+    pointLight->head.transform.lighting.local.t[2]     = D_mine_cavern_8018E39C[targetIndex].vz;
     lightSlot->light.head.transform.coord.composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Draws a glow at cavern point `point` of `D_mine_cavern_8018E39C`: a fan of
-/// eight semi-transparent Gouraud triangles around the point's projected
-/// position, each followed by a drawing-mode packet, both linked at the point's
-/// depth. The radius is scaled by depth and jittered by the shared LCG, and its
-/// base shrinks as more `gameFlagGetNibble(0xE2)` bits are set. Nothing is
-/// drawn when the projection flags an error.
-static void func_mine_cavern_80181D80(s16 point)
+/// Queues an additive eight-wedge glow at one destroyed target's position.
+///
+/// `targetIndex` is 0..3. Radius shrinks with the destroyed-target count; its
+/// low seven bits flicker with the LCG. Negative projection flags emit nothing.
+/// Depth is camera Z / 4 and must be positive and in the current OT's range;
+/// pixel radius is the jittered scale times 352 divided by camera Z.
+/// Requires live room/view data and frame packet storage through GPU completion.
+/// Each wedge reserves 52 bytes, including its blend command.
+static void _mineCavernDrawTargetGlow(s16 targetIndex)
 {
-    s32       sxy;
-    s32       flag;
-    s32       otz;
-    POLY_G3*  prim;
-    DR_TPAGE* dr;
-    s32       radius;
-    s32       i;
-    s32       flags;
-    u8        count;
-    s32       j;
-    s32       base;
-    u16       x;
-    u16       y;
+    s32       packedScreenPosition;
+    s32       projectionFlags;
+    s32       depthQuarterZ;
+    POLY_G3*  triangle;
+    DR_TPAGE* blendMode;
+    s32       pixelRadius;
+    s32       wedgeIndex;
+    s32       destroyedMask;
+    u8        destroyedCount;
+    s32       bitIndex;
+    s32       baseRadiusScale;
+    u16       screenX;
+    u16       screenY;
 
-    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    count = 0;
-    for (j = 0; j < 4; j++) {
-        if ((flags >> j) & 1) {
-            count++;
-        }
-    }
-    switch (count) {
+    destroyedMask  = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    destroyedCount = 0;
+    MINE_CAVERN_COUNT_DESTROYED_TARGETS(destroyedMask, destroyedCount, bitIndex);
+    switch (destroyedCount) {
         case 0:
         case 1:
-            base = 0x780;
+            baseRadiusScale = 0x780;
             break;
         case 2:
-            base = 0x500;
+            baseRadiusScale = 0x500;
             break;
         case 3:
-            base = 0x280;
+            baseRadiusScale = 0x280;
             break;
         case 4:
         default:
-            base = 0x200;
+            baseRadiusScale = 0x200;
             break;
     }
+    // Project world points through the view; reject negative GTE flags.
     gGfxViewCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&gGfxViewCoord);
     gte_SetRotMatrix(&gGfxViewCoord.workm);
     gte_SetTransMatrix(&gGfxViewCoord.workm);
-    gte_ldv0(&D_mine_cavern_8018E39C[point]);
+    gte_ldv0(&D_mine_cavern_8018E39C[targetIndex]);
     gte_rtps();
-    gte_stsxy(&sxy);
-    gte_stflg(&flag);
-    gte_stszotz(&otz);
-    if (flag >= 0) {
-        x               = sxy;
-        y               = sxy >> 16;
+    gte_stsxy(&packedScreenPosition);
+    gte_stflg(&projectionFlags);
+    gte_stszotz(&depthQuarterZ);
+    if (projectionFlags >= 0) {
+        screenX         = packedScreenPosition;
+        screenY         = packedScreenPosition >> 16;
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        radius          = (s32)(base | ((gRandomLcgState >> 16) & 0x7F)) * 0x160 / (otz * 4);
-        /* Each packet is written as a POLY_G3 and a DR_TPAGE, but the original
-           reserves a POLY_GT3 and a DR_MODE for them, so the cursor steps by
-           the larger types. */
-        for (i = 0; i < 8; i++) {
-            prim = gGpuPrimCursor;
-            // Preserve the textured-triangle-sized reservation for this gouraud packet.
-            gGpuPrimCursor = (u8*)prim + sizeof(POLY_GT3);
-            setPolyG3(prim);
-            prim->r0 = _gMineCavernTargetGlowCenterRed;
-            prim->g0 = _gMineCavernTargetGlowCenterGreen;
-            prim->b0 = _gMineCavernTargetGlowCenterBlue;
-            prim->x0 = x;
-            prim->y0 = y;
-            prim->r1 = _gMineCavernTargetGlowRimRed;
-            prim->g1 = _gMineCavernTargetGlowRimGreen;
-            prim->b1 = _gMineCavernTargetGlowRimBlue;
-            prim->r2 = _gMineCavernTargetGlowRimRed;
-            prim->g2 = _gMineCavernTargetGlowRimGreen;
-            prim->b2 = _gMineCavernTargetGlowRimBlue;
-            setSemiTrans(prim, 1);
-            prim->x1 = x + ((rsin(i << 9) * radius) >> 12);
-            prim->y1 = y + ((rcos(i << 9) * radius) >> 12);
-            prim->x2 = x + ((rsin(i * 0x200 + 0x200) * radius) >> 12);
-            prim->y2 = y + ((rcos(i * 0x200 + 0x200) * radius) >> 12);
-            addPrim(&gGpuCurrentOt[otz >> 4], prim);
-            dr = gGpuPrimCursor;
-            // Preserve the draw-mode-sized reservation for this texture-page packet.
-            gGpuPrimCursor = (u8*)dr + sizeof(DR_MODE);
-            setDrawTPage(dr, 0, 0, 0x2A);
-            addPrim(&gGpuCurrentOt[otz >> 4], dr);
-        }
+        pixelRadius     = (s32)(baseRadiusScale | ((gRandomLcgState >> 16) & 0x7F)) * MINE_CAVERN_GLOW_PROJECTION_SCALE / (depthQuarterZ * 4);
+        MINE_CAVERN_DRAW_GLOW_FAN(screenX, screenY, pixelRadius, depthQuarterZ, GLOW_TRIG_SHIFT,
+                                  _gMineCavernTargetGlowCenterRed, _gMineCavernTargetGlowCenterGreen, _gMineCavernTargetGlowCenterBlue,
+                                  _gMineCavernTargetGlowRimRed, _gMineCavernTargetGlowRimGreen, _gMineCavernTargetGlowRimBlue);
     }
 }
 
-/// Runs the cavern's four emitter points while `gameFlagGetNibble(0x7A)` is
-/// below 5. Each point whose bit is set in `gameFlagGetNibble(0xE2)` has its
-/// light refreshed, and its sound restarted when the view has just been set up
-/// or the enabled set changed since the last run. A point listed for the
-/// current view in `D_mine_cavern_8018E3BC` also runs
-/// `func_mine_cavern_80181D80`, and on every ninth tick or on entering the view
-/// spawns effect `0x60080` within 64 units of the point on each axis, unless
-/// `gSceneCombatState.actorControl` is set.
-static void func_mine_cavern_80182184(void)
-{
-    VECTOR   unused;
-    GfxCoord coord;
-    SVECTOR* pos;
-    s32      view;
-    s32      flags;
-    s16      i;
-    s16      j;
-    s16      k;
+#undef MINE_CAVERN_DRAW_GLOW_FAN
 
-    view  = viewGetMappedIndex() & 0xFF;
-    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    for (i = 0; i < 4 && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < 5; i++) {
-        if (!((flags >> i) & 1)) {
+/// Updates destroyed targets' lights, view-dependent sounds, glows and puffs.
+///
+/// Targets 0..3 run before story chapter 5. Light and sound updates are independent
+/// of the visibility lists; sounds refresh when a view becomes ready or the mask
+/// changes. Visible targets emit puffs every ninth running tick or on a view
+/// change, with world offsets -64..63 on each axis. Actor pause/hide stops puff
+/// emission and cadence advancement, while glow and light updates continue.
+/// Cadence uses the shared tick counter's signed low halfword.
+/// Requires the loaded cavern's target tables, view, sound bank and frame arena.
+static void _mineCavernUpdateTargetEffects(void)
+{
+    enum { MINE_CAVERN_TARGET_PUFF_INTERVAL        = 9,
+           MINE_CAVERN_TARGET_EFFECTS_STOP_CHAPTER = 5 };
+
+    // The binary retains this unused vector in the stack frame.
+    VECTOR         unused;
+    GfxCoord       puffCoord;
+    const SVECTOR* targetPoint;
+    s32            viewId;
+    s32            destroyedMask;
+    s16            targetIndex;
+    s16            viewIndex;
+    s16            visibleView;
+
+    viewId        = viewGetMappedIndex() & 0xFF;
+    destroyedMask = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    for (targetIndex = 0; targetIndex < ARRAY_SIZE(D_mine_cavern_8018E39C) && gameFlagGetNibble(GAME_FLAG_STORY_CHAPTER) < MINE_CAVERN_TARGET_EFFECTS_STOP_CHAPTER; targetIndex++) {
+        if (!((destroyedMask >> targetIndex) & 1)) {
             continue;
         }
-        func_mine_cavern_80181CAC(i);
-        if (gGameSession->viewReady == 1 || D_mine_cavern_8018EB58 != flags) {
-            func_mine_cavern_801825C8(i);
+        _mineCavernRefreshTargetLight(targetIndex);
+        if (gGameSession->viewReady == true || D_mine_cavern_8018EB58 != destroyedMask) {
+            _mineCavernUpdateTargetSound(targetIndex);
         }
-        for (j = 0; j < 8 && D_mine_cavern_8018E3BC[i][j] != 0; j++) {
-            k = D_mine_cavern_8018E3BC[i][j];
-            if (k != (u8)view) {
+        for (viewIndex = 0; viewIndex < ARRAY_SIZE(D_mine_cavern_8018E3BC[targetIndex]) && D_mine_cavern_8018E3BC[targetIndex][viewIndex] != 0; viewIndex++) {
+            visibleView = D_mine_cavern_8018E3BC[targetIndex][viewIndex];
+            if (visibleView != (u8)viewId) {
                 continue;
             }
-            func_mine_cavern_80181D80(i);
-            if ((s16)((s16)D_mine_cavern_8018EB5C % 9) != 0 && D_mine_cavern_8018E3DC == k) {
+            _mineCavernDrawTargetGlow(targetIndex);
+            if ((s16)((s16)D_mine_cavern_8018EB5C % MINE_CAVERN_TARGET_PUFF_INTERVAL) != 0 && D_mine_cavern_8018E3DC == visibleView) {
                 continue;
             }
             if (gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
                 continue;
             }
-            gfxSetRotIdentity(&coord.coord);
-            coord.parent       = &gGfxViewCoord;
-            pos                = &D_mine_cavern_8018E39C[i];
-            coord.coord.t[0]   = pos->vx + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
-            coord.coord.t[1]   = pos->vy + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
-            coord.coord.t[2]   = pos->vz + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
-            coord.composeStamp = GRAPHICS_COORD_DIRTY;
-            effectSpawn(EFFECT_ADDITIVE_PUFF, &coord, 0x800004FF, NULL);
+            // This puff uses the placement snapshot and never follows its retained parent pointer.
+            gfxSetRotIdentity(&puffCoord.coord);
+            puffCoord.parent       = &gGfxViewCoord;
+            targetPoint            = &D_mine_cavern_8018E39C[targetIndex];
+            puffCoord.coord.t[0]   = targetPoint->vx + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
+            puffCoord.coord.t[1]   = targetPoint->vy + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
+            puffCoord.coord.t[2]   = targetPoint->vz + ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16 & 0x7F) - 0x40;
+            puffCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+            effectSpawn(EFFECT_ADDITIVE_PUFF, &puffCoord, 0x800004FF, NULL);
         }
     }
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
         D_mine_cavern_8018EB5C++;
     }
-    D_mine_cavern_8018E3DC = view;
-    D_mine_cavern_8018EB58 = flags;
+    D_mine_cavern_8018E3DC = viewId;
+    D_mine_cavern_8018EB58 = destroyedMask;
 }
 
 /// Queues the cavern's darkness overlay: a semi-transparent flat quad filling
@@ -2663,31 +2697,38 @@ static void func_mine_cavern_80182454(void)
     dr->code[0] = 0xE100004A;
     addPrim(gGpuCurrentOt, dr);
 
-    func_mine_cavern_80181864();
-    func_mine_cavern_80182184();
+    _mineCavernDrawFixedGlows();
+    _mineCavernUpdateTargetEffects();
 }
 
-/// The mine task's state handlers, run by `func_mine_cavern_80182DC8`.
+/// The mine task's state handlers, run by `mineCavernTargetEffectsTask`.
 static const TaskFuncTable3 D_mine_cavern_8017D65C = {
-    { func_mine_cavern_80182CEC, func_mine_cavern_80182DA8, taskKill },
+    { _mineCavernSpawnTargets, func_mine_cavern_80182DA8, taskKill },
 };
 
-static void func_mine_cavern_801825C8(s16 arg0)
+/// Starts and mixes or stops one destroyed target's sound for the mapped view.
+///
+/// `targetIndex` is 0..3. Each sound uses the target's composed world position for
+/// signed-byte pan and a view-selected attenuation. Start and mix each query pan;
+/// unlisted views leave targets 0 and 1 unchanged and stop targets 2 and 3.
+/// Only translation is initialized in the temporary coordinate, and only its
+/// composed origin is consumed. Requires the cavern's live view and sound bank.
+static void _mineCavernUpdateTargetSound(s16 targetIndex)
 {
-    GfxCoord coord;
-    s32      view;
+    GfxCoord soundCoord;
+    s32      viewId;
 
-    view               = viewGetMappedIndex() & 0xFF;
-    coord.parent       = &gGfxViewCoord;
-    coord.coord.t[0]   = D_mine_cavern_8018E39C[arg0].vx;
-    coord.coord.t[1]   = D_mine_cavern_8018E39C[arg0].vy;
-    coord.coord.t[2]   = D_mine_cavern_8018E39C[arg0].vz;
-    coord.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(&coord);
+    viewId                  = viewGetMappedIndex() & 0xFF;
+    soundCoord.parent       = &gGfxViewCoord;
+    soundCoord.coord.t[0]   = D_mine_cavern_8018E39C[targetIndex].vx;
+    soundCoord.coord.t[1]   = D_mine_cavern_8018E39C[targetIndex].vy;
+    soundCoord.coord.t[2]   = D_mine_cavern_8018E39C[targetIndex].vz;
+    soundCoord.composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(&soundCoord);
 
-    switch (arg0) {
+    switch (targetIndex) {
         case 0:
-            switch (view) {
+            switch (viewId) {
                 case 2:
                 case 6:
                 case 7:
@@ -2705,62 +2746,49 @@ static void func_mine_cavern_801825C8(s16 arg0)
                     sndEvtRequestScriptStop(SOUND_MINE_CAVERN_GLOW_POINT_0, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                     break;
                 case 3:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_0, &soundCoord, 0x59);
                     break;
                 case 4:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_0, &soundCoord, 0x59);
                     break;
                 case 5:
                 case 25:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_0, &soundCoord, 0x59);
                     break;
                 case 18:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_0, &soundCoord, 0x20);
                     break;
                 case 19:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0xD);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0xD);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_0, &soundCoord, 0xD);
                     break;
                 case 21:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_0, &soundCoord, 0x33);
                     break;
                 case 22:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_0, &soundCoord, 0x33);
                     break;
                 case 23:
                 case 24:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_0, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_0, &soundCoord, 0x40);
                     break;
             }
             break;
         case 1:
-            switch (view) {
+            switch (viewId) {
                 case 2:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_1, &soundCoord, 0x40);
                     break;
                 case 3:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_1, &soundCoord, 0x33);
                     break;
                 case 4:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_1, &soundCoord, 0x20);
                     break;
                 case 20:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_1, &soundCoord, 0x33);
                     break;
                 case 22:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_1, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_1, &soundCoord, 0x59);
                     break;
                 case 5:
                 case 6:
@@ -2786,42 +2814,34 @@ static void func_mine_cavern_801825C8(s16 arg0)
             }
             break;
         case 2:
-            switch (view) {
+            switch (viewId) {
                 case 5:
                 case 25:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_2, &soundCoord, 0x33);
                     break;
                 case 6:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_2, &soundCoord, 0x33);
                     break;
                 case 7:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_2, &soundCoord, 0x46);
                     break;
                 case 14:
                 case 15:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_2, &soundCoord, 0x20);
                     break;
                 case 16:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_2, &soundCoord, 0x46);
                     break;
                 case 17:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_2, &soundCoord, 0x20);
                     break;
                 case 8:
                 case 21:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x59);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_2, &soundCoord, 0x59);
                     break;
                 case 23:
                 case 24:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_2, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_2, &soundCoord, 0x40);
                     break;
                 case 2:
                 case 3:
@@ -2841,23 +2861,19 @@ static void func_mine_cavern_801825C8(s16 arg0)
             }
             break;
         case 3:
-            switch (view) {
+            switch (viewId) {
                 case 2:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x40);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_3, &soundCoord, 0x40);
                     break;
                 case 7:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x33);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_3, &soundCoord, 0x33);
                     break;
                 case 8:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x20);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_3, &soundCoord, 0x20);
                     break;
                 case 6:
                 case 20:
-                    sndEvtRequestScriptStart(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
-                    sndEvtRequestScriptMix(SOUND_MINE_CAVERN_GLOW_POINT_3, (s8)worldCoordGetOriginAudioPan(&coord), 0x46);
+                    MINE_CAVERN_START_AND_MIX_TARGET_SOUND(SOUND_MINE_CAVERN_GLOW_POINT_3, &soundCoord, 0x46);
                     break;
                 case 3:
                 case 4:
@@ -2886,19 +2902,28 @@ static void func_mine_cavern_801825C8(s16 arg0)
     }
 }
 
-static void func_mine_cavern_80182CEC(Task* arg0)
+/// Spawns the cavern's four target spots and enters the effects state.
+///
+/// Creates an intact enemy only for an unset destroyed bit, and a remains task
+/// for every spot. Descriptor indices 0 and 1 select those two models; the spot
+/// index 0..3 is their spawn argument. Spawn failure is not retried here.
+/// Requires a live state-0 controller and loaded cavern target resources.
+static void _mineCavernSpawnTargets(Task* task)
 {
-    s16 i;
-    s32 flags;
+    enum { MINE_CAVERN_TARGET_DESC_INTACT  = 0,
+           MINE_CAVERN_TARGET_DESC_REMAINS = 1 };
 
-    flags = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
-    for (i = 0; i < 4; i++) {
-        if (!((flags >> i) & 1)) {
-            enemySpawnFromTable(D_mine_cavern_8018EB38, 0, i, NULL);
+    s16 targetIndex;
+    s32 destroyedMask;
+
+    destroyedMask = gameFlagGetNibble(GAME_FLAG_MINE_CAVERN_TARGETS_DESTROYED);
+    for (targetIndex = 0; targetIndex < ARRAY_SIZE(D_mine_cavern_8018EB18); targetIndex++) {
+        if (!((destroyedMask >> targetIndex) & 1)) {
+            enemySpawnFromTable(D_mine_cavern_8018EB38, MINE_CAVERN_TARGET_DESC_INTACT, targetIndex, NULL);
         }
-        enemySpawnFromTable(D_mine_cavern_8018EB38, 1, i, NULL);
+        enemySpawnFromTable(D_mine_cavern_8018EB38, MINE_CAVERN_TARGET_DESC_REMAINS, targetIndex, NULL);
     }
-    arg0->state++;
+    task->state++;
 }
 
 static void func_mine_cavern_80182DA8(Task* task)
@@ -2906,15 +2931,15 @@ static void func_mine_cavern_80182DA8(Task* task)
     func_mine_cavern_80182454();
 }
 
-/// Mine task dispatcher: runs the state handler this task's `state` selects,
-/// unless the screen id says the room is being left.
-void func_mine_cavern_80182DC8(Task* arg0)
+void mineCavernTargetEffectsTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    enum { MINE_CAVERN_TARGETS_DISABLED_DEMO = 3 };
 
-    sp = D_mine_cavern_8017D65C;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 3) {
-        sp.funcs[arg0->state](arg0);
+    TaskFuncTable3 handlers;
+
+    handlers = D_mine_cavern_8017D65C;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != MINE_CAVERN_TARGETS_DISABLED_DEMO) {
+        handlers.funcs[task->state](task);
     }
 }
 
@@ -3000,22 +3025,26 @@ static void func_mine_cavern_80182E34(Enemy* arg0, Task* arg1)
     arg1->state++;
 }
 
-/// The first of the leading `count` contact records whose kind is 0x20000:
-/// copies its point to `pos` and returns its key, or returns 0 when none is
-/// found before an empty record or the end.
-static inline s32 _mineCavernTargetFindHit(SVECTOR* pos, WorldCollisionContact* records, s16 count)
+/// Copies the first attack contact's world point and returns its packed key.
+///
+/// Scans at most `contactCount` elements, stopping at the first zero key.
+/// The count is a nonnegative signed halfword bounded by the readable table;
+/// `hitPoint` needs writable XYZ halfwords and its pad is left intact. Returns
+/// zero with the output untouched when no attack contact precedes the end.
+/// Borrows both arguments for this call and leaves contacts unchanged.
+static inline s32 _mineCavernTargetFindHit(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount)
 {
-    s16 i;
+    s16 contactIndex;
 
-    for (i = 0; i < count; i++) {
-        if (records[i].key.value == 0) {
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             break;
         }
-        if ((records[i].key.value & 0xFFFF0000) == 0x20000) {
-            pos->vx = records[i].point.vx;
-            pos->vy = records[i].point.vy;
-            pos->vz = records[i].point.vz;
-            return records[i].key.value;
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
+            hitPoint->vx = contacts[contactIndex].point.vx;
+            hitPoint->vy = contacts[contactIndex].point.vy;
+            hitPoint->vz = contacts[contactIndex].point.vz;
+            return contacts[contactIndex].key.value;
         }
     }
     return 0;
@@ -3123,7 +3152,7 @@ static void func_mine_cavern_801830F0(Enemy* arg0, Task* arg1)
     SCRATCH_STACK_RELEASE_BLOCK(_MineCavernTargetHitScratch);
 }
 
-/// Second state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
+/// Second state handler of `D_mine_cavern_8017D7F8` (`mineCavernTargetTask`
 /// dispatches it). It allocates the work block, parks it at `Task::work` and
 /// hands its two matrices to the model, then seats the model on the spawn spot
 /// `Task::spawnArg1` names: the block's own coordinate adopts that spot with the
@@ -3193,69 +3222,75 @@ static void _mineCavernTargetRetireBody(Enemy* enemy, Task* task)
     task->state++;
 }
 
-/// The two cue lines `func_mine_cavern_801838F4` prints on its first two ticks.
+/// The two cue lines `_mineCavernTargetExplode` prints on its first two ticks.
 static const char D_mine_cavern_8017D7E8[] = "BOMB1\n";
 static const char D_mine_cavern_8017D7F0[] = "BOMB2\n";
 
-/// The cavern enemy's state handlers, run by `func_mine_cavern_80183A68`.
+/// The cavern enemy's state handlers, run by `mineCavernTargetTask`.
 static const EnemyTaskFuncTable5 D_mine_cavern_8017D7F8 = {
     {
         func_mine_cavern_80182E34,
         func_mine_cavern_801830F0,
         _mineCavernTargetRetireBody,
-        func_mine_cavern_801838F4,
+        _mineCavernTargetExplode,
         enemyDestroy,
     },
 };
 
-/// The second enemy's state handlers, run by `func_mine_cavern_80183C10`.
+/// The second enemy's state handlers, run by `mineCavernTargetRemainsTask`.
 static const EnemyTaskFuncTable3 D_mine_cavern_8017D80C = {
     { func_mine_cavern_801836D0, func_mine_cavern_80183AD4, enemyDestroy },
 };
 
-/// Fourth state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
-/// dispatches it). It parks the model hidden (`field_C = 0x80`) and walks
-/// `work->frame` up through its 0x3C steps, one case per tick: 0 prints
-/// "BOMB1", drops the model to y = -0x258 and spawns effect 0x01001200; 1
-/// prints "BOMB2" and spawns 0x01000580, parking that effect's own first three
-/// halfwords; 2 and 4 spawn 0x01002500; 3 and 5 clear the pair enable of the
-/// work block's `blast` body; 9 hands `blast` to `worldCollisionUnlinkBody`; 0x3B advances
-/// `Task::state`.
-static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
+/// Runs the destroyed target's 60-tick explosion, then advances to teardown.
+///
+/// State 3 of the intact target. Hides the model, emits blasts on ticks 0, 1,
+/// 2 and 4, clears blast pairing on 3 and 5, and unlinks the blast body on 9.
+/// The second blast decreases local Y by ten units per tick. Target work and
+/// model coordinates must remain live; `enemy` is an unused dispatch argument.
+/// The blast is already unlinked when state 4 releases the enemy.
+static void _mineCavernTargetExplode(Enemy* enemy, Task* task)
 {
+    // Low 12 bits set size; bits 12..15 set period; the high byte selects random drift.
+    enum { MINE_CAVERN_TARGET_INITIAL_BLAST       = 0x01001200,
+           MINE_CAVERN_TARGET_SECOND_BLAST        = 0x01000580,
+           MINE_CAVERN_TARGET_REPEAT_BLAST        = 0x01002500,
+           MINE_CAVERN_TARGET_BLAST_UNLINK_TICK   = 9,
+           MINE_CAVERN_TARGET_EXPLOSION_LAST_TICK = 59 };
+
     _MineCavernTargetWork* work;
-    EffectWork*            eff;
-    u16                    state;
+    EffectWork*            explosion;
+    u16                    tick;
 
-    work = arg1->work;
+    work = task->work;
 
-    arg1->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
-    state       = work->frame;
-    work->frame = state + 1;
+    tick        = work->frame;
+    work->frame = tick + 1;
 
-    switch ((s16)state) {
+    switch ((s16)tick) {
         case 0:
             printf(D_mine_cavern_8017D7E8);
-            arg1->extra.tmd->coords->coord.t[1]   = -0x258;
-            arg1->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-            actorRenderComposeCoord(arg1->extra.tmd->coords);
-            effectSpawn(EFFECT_EXPLOSION, arg1->extra.tmd->coords, 0x01001200, NULL);
+            task->extra.tmd->coords->coord.t[1]   = -0x258;
+            task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+            actorRenderComposeCoord(task->extra.tmd->coords);
+            effectSpawn(EFFECT_EXPLOSION, task->extra.tmd->coords, MINE_CAVERN_TARGET_INITIAL_BLAST, NULL);
             return;
 
         case 1:
             printf(D_mine_cavern_8017D7F0);
-            eff = effectSpawn(EFFECT_EXPLOSION, arg1->extra.tmd->coords, 0x01000580, NULL);
-            if (eff != NULL) {
-                eff->move.vx = 0;
-                eff->move.vy = -0xA;
-                eff->move.vz = 0;
+            explosion = effectSpawn(EFFECT_EXPLOSION, task->extra.tmd->coords, MINE_CAVERN_TARGET_SECOND_BLAST, NULL);
+            if (explosion != NULL) {
+                explosion->move.vx = 0;
+                explosion->move.vy = -0xA;
+                explosion->move.vz = 0;
             }
             return;
 
         case 2:
         case 4:
-            effectSpawn(EFFECT_EXPLOSION, arg1->extra.tmd->coords, 0x01002500, NULL);
+            effectSpawn(EFFECT_EXPLOSION, task->extra.tmd->coords, MINE_CAVERN_TARGET_REPEAT_BLAST, NULL);
             return;
 
         case 3:
@@ -3263,12 +3298,12 @@ static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
             work->blast.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             return;
 
-        case 9:
+        case MINE_CAVERN_TARGET_BLAST_UNLINK_TICK:
             worldCollisionUnlinkBody(&work->blast);
             return;
 
-        case 0x3B:
-            arg1->state++;
+        case MINE_CAVERN_TARGET_EXPLOSION_LAST_TICK:
+            task->state++;
             break;
 
         default:
@@ -3276,15 +3311,15 @@ static void func_mine_cavern_801838F4(Enemy* arg0, Task* arg1)
     }
 }
 
-void func_mine_cavern_80183A68(Task* arg0)
+void mineCavernTargetTask(Task* task)
 {
-    EnemyTaskFuncTable5 sp;
+    EnemyTaskFuncTable5 handlers;
 
-    sp = D_mine_cavern_8017D7F8;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    handlers = D_mine_cavern_8017D7F8;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
 
-/// Third state handler of `D_mine_cavern_8017D7F8` (`func_mine_cavern_80183A68`
+/// Third state handler of `D_mine_cavern_8017D7F8` (`mineCavernTargetTask`
 /// dispatches it). It rebuilds the model's lighting at its world position through
 /// `worldCoordSetModelLighting`, then settles the work block's `centerCoord`: when the
 /// `gameFlagGetNibble(0xE2)` bit selected by `Task::spawnArg1` is set the
@@ -3325,14 +3360,10 @@ static void func_mine_cavern_80183AD4(Enemy* enemy, Task* task)
     }
 }
 
-/// Runs the current state handler of one of the room's enemies from its
-/// three-entry table - setup (`func_mine_cavern_801836D0`), per-frame tick
-/// (`func_mine_cavern_80183AD4`) or teardown (`enemyDestroy`) - copying the
-/// table onto the stack before the call.
-void func_mine_cavern_80183C10(Task* task)
+void mineCavernTargetRemainsTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = D_mine_cavern_8017D80C;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    handlers = D_mine_cavern_8017D80C;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
