@@ -243,6 +243,17 @@ enum {
     ACTOR_400500_FALLEN_TARGET_GAP         = 4000
 };
 
+/// Arm extension angles in 4096ths of a turn and animation-set indices.
+enum {
+    ACTOR_400500_ARM_EXTEND_ANGLE_STEP  = 128,
+    ACTOR_400500_ARM_STRIKE_SWING_ANGLE = ACTOR_TRANSFORM_ANGLE_TURN / 8,
+    ACTOR_400500_ANIM_FLOOR_STRIKE      = 7,
+    ACTOR_400500_ANIM_CEILING_STRIKE    = 8,
+    ACTOR_400500_ANIM_UPRIGHT_RECOVERY  = 16,
+    ACTOR_400500_ANIM_ON_BACK_RECOVERY  = 18,
+    ACTOR_400500_ANIM_FALL_RECOVERY     = 20
+};
+
 /// Steps of crawling on the back, indexed by the fallen crawl's `subState`.
 enum {
     ACTOR_400500_FALLEN_CRAWL_STEP_SELECT          = 0,
@@ -445,21 +456,21 @@ static void _actor400500TickCrawlDeathFall(Task* task);
 static void _actor400500FinishCrawlDeathLanding(Task* task);
 static void _actor400500StartCeilingStrikeDeathFall(Task* task);
 static void _actor400500TickCeilingStrikeDeathFall(Task* task);
-static void func_actor_400500_8013BD64(Task* arg0);
-static void func_actor_400500_8013BE50(Task* arg0);
-static void func_actor_400500_8013BEC4(Task* arg0);
-static void func_actor_400500_8013BFB0(Task* arg0);
-static void func_actor_400500_8013C018(Task* arg0);
-static void func_actor_400500_8013C108(Task* arg0);
-static void func_actor_400500_8013C174(Task* arg0);
-static void func_actor_400500_8013C218(Task* arg0);
-static void func_actor_400500_8013C348(Task* arg0);
-static void func_actor_400500_8013C3C4(Task* arg0);
-static void func_actor_400500_8013C474(Task* arg0);
-static void func_actor_400500_8013C508(Task* arg0);
-static void func_actor_400500_8013C578(Task* arg0);
-static void func_actor_400500_8013C61C(Task* arg0);
-static void func_actor_400500_8013C750(Task* arg0);
+static void _actor400500FinishCeilingStrikeDeathLanding(Task* task);
+static void _actor400500StartCeilingArmStrike(Task* task);
+static void _actor400500ExtendCeilingStrikeArm(Task* task);
+static void _actor400500StartFloorArmStrike(Task* task);
+static void _actor400500ExtendFloorStrikeArm(Task* task);
+static void _actor400500StartCeilingFall(Task* task);
+static void _actor400500TickCeilingFall(Task* task);
+static void _actor400500FinishCeilingFallLanding(Task* task);
+static void _actor400500FinishCeilingFallRecovery(Task* task);
+static void _actor400500FinishFloorKnockdownRecoil(Task* task);
+static void _actor400500FinishFloorKnockdownRecovery(Task* task);
+static void _actor400500FinishCeilingKnockdownRecoil(Task* task);
+static void _actor400500TickKnockdownCeilingFall(Task* task);
+static void _actor400500FinishKnockdownCeilingLanding(Task* task);
+static void _actor400500FinishKnockdownCeilingRecovery(Task* task);
 static void func_actor_400500_8013C7A4(Task* arg0);
 static void func_actor_400500_8013C818(Task* task);
 static void func_actor_400500_8013C908(Task* arg0);
@@ -4489,8 +4500,8 @@ static const TaskFuncTable3 D_actor_400500_80131EE4 = { {
 /// Sub-state handlers `func_actor_400500_801385D0` copies onto the stack and runs
 /// by `subState` while the enemy is alive.
 static const TaskFuncTable3 D_actor_400500_80131EF0 = { {
-    func_actor_400500_8013BE50,
-    func_actor_400500_8013BEC4,
+    _actor400500StartCeilingArmStrike,
+    _actor400500ExtendCeilingStrikeArm,
     _actor400500TickCeilingArmStrike,
 } };
 
@@ -4499,7 +4510,7 @@ static const TaskFuncTable3 D_actor_400500_80131EF0 = { {
 static const TaskFuncTable3 D_actor_400500_80131EFC = { {
     _actor400500StartCeilingStrikeDeathFall,
     _actor400500TickCeilingStrikeDeathFall,
-    func_actor_400500_8013BD64,
+    _actor400500FinishCeilingStrikeDeathLanding,
 } };
 
 static void func_actor_400500_801385D0(Task* arg0)
@@ -4579,8 +4590,8 @@ static void _actor400500TickCeilingArmStrike(Task* task)
 
 /// Sub-state handlers `func_actor_400500_8013899C` copies onto the stack and runs by `subState`.
 static const TaskFuncTable5 D_actor_400500_80131F08 = { {
-    func_actor_400500_8013BFB0,
-    func_actor_400500_8013C018,
+    _actor400500StartFloorArmStrike,
+    _actor400500ExtendFloorStrikeArm,
     _actor400500TickFloorArmStrike,
     _actor400500RetractFloorStrikeArm,
     _actor400500FinishFloorArmStrike,
@@ -4713,10 +4724,10 @@ static void _actor400500FinishFloorArmStrike(Task* task)
 
 /// Sub-state handlers `func_actor_400500_80138EA0` copies onto the stack and runs by `subState`.
 static const TaskFuncTable4 D_actor_400500_80131F1C = { {
-    func_actor_400500_8013C108,
-    func_actor_400500_8013C174,
-    func_actor_400500_8013C218,
-    func_actor_400500_8013C348,
+    _actor400500StartCeilingFall,
+    _actor400500TickCeilingFall,
+    _actor400500FinishCeilingFallLanding,
+    _actor400500FinishCeilingFallRecovery,
 } };
 
 static void func_actor_400500_80138EA0(Task* arg0)
@@ -4772,12 +4783,12 @@ static void func_actor_400500_80138EA0(Task* arg0)
 /// Sub-state handlers `func_actor_400500_8013905C` copies onto the stack and runs by `subState`.
 static const TaskFuncTable7 D_actor_400500_80131F2C = { {
     _actor400500StartKnockdownRecoil,
-    func_actor_400500_8013C3C4,
-    func_actor_400500_8013C474,
-    func_actor_400500_8013C508,
-    func_actor_400500_8013C578,
-    func_actor_400500_8013C61C,
-    func_actor_400500_8013C750,
+    _actor400500FinishFloorKnockdownRecoil,
+    _actor400500FinishFloorKnockdownRecovery,
+    _actor400500FinishCeilingKnockdownRecoil,
+    _actor400500TickKnockdownCeilingFall,
+    _actor400500FinishKnockdownCeilingLanding,
+    _actor400500FinishKnockdownCeilingRecovery,
 } };
 
 static void func_actor_400500_8013905C(Task* arg0)
@@ -6243,146 +6254,159 @@ static void _actor400500TickCeilingStrikeDeathFall(Task* task)
     }
 }
 
-static void func_actor_400500_8013BD64(Task* arg0)
+/// Sounds the lethal ceiling strike's landing and releases its death hold at a boundary.
+///
+/// Requires live Stalker work/enemy, a composed root and latest slot results.
+/// Sounds once while the signed-halfword state counter is zero, then advances
+/// that counter. A slot boundary, control jump or held boundary pose releases
+/// the hold so the task can enter its ordinary death sequence.
+static void _actor400500FinishCeilingStrikeDeathLanding(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* hit;
-    s32                          soundId;
-    s32                          pan;
-    s32                          cond;
+    s32                          placedSoundId;
+    s32                          animationEnded;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
+    work = task->work;
     if ((s16)work->stateFrames == 0) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050006;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        placedSoundId = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_FALL_LANDING;
+        _actor400500EnqueueRootSound(task, placedSoundId);
         work->stateFrames = work->stateFrames + 1;
     }
-    hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    animationEnded = _actor400500HasAnimBoundary(task);
+    if (animationEnded) {
         work->deathHeld = 0;
     }
 }
 
-static void func_actor_400500_8013BE50(Task* arg0)
+/// Shows the body and initializes the ceiling strike's right-arm extension.
+///
+/// Requires live Stalker work with ceiling-strike sub-state zero. Requests the
+/// ceiling hold clip at normal rate, clears the tick/catch/swing counters, and
+/// advances to extension. A running show fade keeps its progress; a new show
+/// bypasses the hide cooldown. The calling state advances animation.
+static void _actor400500StartCeilingArmStrike(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    _Actor400500GrayStalkerWork* work3;
-    s32                          flag;
+    _Actor400500GrayStalkerWork* cloakWork;
+    s32                          cloakRequest;
 
-    work           = (_Actor400500GrayStalkerWork*)arg0->work;
+    work           = task->work;
     work->animRate = ANIMATION_RATE_ONE;
-    work2          = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((work2->cloakRequest >= 0) || (((u8)work2->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != ACTOR_400500_CLOAK_SHOW)) {
-        flag                = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
-        work2->cloakRequest = flag;
-        work2->cloakPhase   = 0;
+    cloakWork      = task->work;
+    if ((cloakWork->cloakRequest >= 0) || (((u8)cloakWork->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != ACTOR_400500_CLOAK_SHOW)) {
+        cloakRequest            = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
+        cloakWork->cloakRequest = cloakRequest;
+        cloakWork->cloakPhase   = ACTOR_400500_CLOAK_PHASE_FIRST_RAMP;
     }
-    work3               = (_Actor400500GrayStalkerWork*)arg0->work;
-    work3->animRate     = ANIMATION_RATE_ONE;
-    work3->animId       = 1;
-    work3->animRequest  = ACTOR_400500_ANIM_REQUEST_RESET;
+    _actor400500SetAnim(task, ACTOR_400500_ANIM_CEILING_HOLD, ANIMATION_RATE_ONE);
     work->stateFrames   = 0;
     work->playerCaught  = 0;
     work->armSwingAngle = 0;
     work->subState      = work->subState + 1;
 }
 
-static void func_actor_400500_8013BEC4(Task* arg0)
+/// Swings the right-arm model out and starts the ceiling strike clip at its limit.
+///
+/// Requires live Stalker work and its right-arm TMD child. Adds 128 angle units
+/// per tick to the wrapping halfword and displays the arm at positive local yaw.
+/// A signed-halfword test at 512 units (one eighth turn) advances to the timed
+/// strike and clears its tick/catch counters. Playback and composition happen
+/// in the calling state/model update; the child remains borrowed.
+static void _actor400500ExtendCeilingStrikeArm(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    Task*                        child;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          angle;
+    _Actor400500GrayStalkerWork* armWork;
+    Task*                        rightArmTask;
+    s32                          swingAngle;
 
-    work                    = (_Actor400500GrayStalkerWork*)arg0->work;
-    work->armSwingAngle     = work->armSwingAngle + 0x80;
-    work->stateFrames       = work->stateFrames + 1;
-    child                   = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[1];
-    angle                   = work->armSwingAngle;
-    child->extra.tmd->flags = 0;
-    _actor400500SetCoordYaw(child->extra.tmd->coords, angle);
-    if ((s16)work->armSwingAngle >= 0x200) {
-        work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-        work2->animRate    = ANIMATION_RATE_ONE;
-        work2->animId      = 8;
-        work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+    work                           = task->work;
+    work->armSwingAngle            = work->armSwingAngle + ACTOR_400500_ARM_EXTEND_ANGLE_STEP;
+    work->stateFrames              = work->stateFrames + 1;
+    armWork                        = task->work;
+    rightArmTask                   = armWork->armTasks[ACTOR_400500_ARM_RIGHT];
+    swingAngle                     = work->armSwingAngle;
+    rightArmTask->extra.tmd->flags = 0;
+    _actor400500SetCoordYaw(rightArmTask->extra.tmd->coords, swingAngle);
+    if ((s16)work->armSwingAngle >= ACTOR_400500_ARM_STRIKE_SWING_ANGLE) {
+        _actor400500SetAnim(task, ACTOR_400500_ANIM_CEILING_STRIKE, ANIMATION_RATE_ONE);
         work->playerCaught = 0;
         work->stateFrames  = 0;
         work->subState     = work->subState + 1;
     }
 }
 
-static void func_actor_400500_8013BFB0(Task* arg0)
+/// Shows the body and initializes the floor strike's left-arm extension.
+///
+/// Requires live Stalker work with floor-strike sub-state zero. Requests the
+/// hold clip at normal rate, clears the tick/catch/swing counters, and advances
+/// to extension. A running show fade keeps its progress; a new show bypasses
+/// the hide cooldown. The calling state advances animation.
+static void _actor400500StartFloorArmStrike(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          flag;
+    s32                          cloakRequest;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
+    work = task->work;
     if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != ACTOR_400500_CLOAK_SHOW)) {
-        flag               = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
-        work->cloakRequest = flag;
-        work->cloakPhase   = 0;
+        cloakRequest       = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
+        work->cloakRequest = cloakRequest;
+        work->cloakPhase   = ACTOR_400500_CLOAK_PHASE_FIRST_RAMP;
     }
-    work2               = (_Actor400500GrayStalkerWork*)arg0->work;
-    work2->animRate     = ANIMATION_RATE_ONE;
-    work2->animId       = 1;
-    work2->animRequest  = ACTOR_400500_ANIM_REQUEST_RESET;
+    _actor400500SetAnim(task, ACTOR_400500_ANIM_CEILING_HOLD, ANIMATION_RATE_ONE);
     work->stateFrames   = 0;
     work->playerCaught  = 0;
     work->armSwingAngle = 0;
     work->subState      = work->subState + 1;
 }
 
-static void func_actor_400500_8013C018(Task* arg0)
+/// Swings the left-arm model out and starts the floor strike clip at its limit.
+///
+/// Requires live Stalker work and its left-arm TMD child. Adds 128 angle units
+/// per tick to the wrapping halfword and displays the arm at negative local yaw.
+/// A signed-halfword test at 512 units (one eighth turn) advances to the timed
+/// strike and clears its tick/catch counters. Playback and composition happen
+/// in the calling state/model update; the child remains borrowed.
+static void _actor400500ExtendFloorStrikeArm(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    Task*                        child;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          angle;
+    _Actor400500GrayStalkerWork* armWork;
+    Task*                        leftArmTask;
+    s32                          swingAngle;
 
-    work                    = (_Actor400500GrayStalkerWork*)arg0->work;
-    work->armSwingAngle     = work->armSwingAngle + 0x80;
-    work->stateFrames       = work->stateFrames + 1;
-    child                   = ((_Actor400500GrayStalkerWork*)arg0->work)->armTasks[0];
-    angle                   = work->armSwingAngle;
-    child->extra.tmd->flags = 0;
-    _actor400500SetCoordYaw(child->extra.tmd->coords, -angle);
-    if ((s16)work->armSwingAngle >= 0x200) {
-        work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-        work2->animRate    = ANIMATION_RATE_ONE;
-        work2->animId      = 7;
-        work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+    work                          = task->work;
+    work->armSwingAngle           = work->armSwingAngle + ACTOR_400500_ARM_EXTEND_ANGLE_STEP;
+    work->stateFrames             = work->stateFrames + 1;
+    armWork                       = task->work;
+    leftArmTask                   = armWork->armTasks[ACTOR_400500_ARM_LEFT];
+    swingAngle                    = work->armSwingAngle;
+    leftArmTask->extra.tmd->flags = 0;
+    _actor400500SetCoordYaw(leftArmTask->extra.tmd->coords, -swingAngle);
+    if ((s16)work->armSwingAngle >= ACTOR_400500_ARM_STRIKE_SWING_ANGLE) {
+        _actor400500SetAnim(task, ACTOR_400500_ANIM_FLOOR_STRIKE, ANIMATION_RATE_ONE);
         work->playerCaught = 0;
         work->stateFrames  = 0;
         work->subState     = work->subState + 1;
     }
 }
 
-static void func_actor_400500_8013C108(Task* arg0)
+/// Shows the body and starts the ordinary ceiling fall with zero vertical motion.
+///
+/// Requires live Stalker work with fall sub-state zero. Requests the hold clip
+/// at normal rate, clears tick/catch and signed-halfword motion, then advances
+/// to falling. A running show fade keeps its progress; a new show bypasses the
+/// hide cooldown. The calling state advances animation.
+static void _actor400500StartCeilingFall(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          flag;
+    s32                          cloakRequest;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
+    work = task->work;
     if ((work->cloakRequest >= 0) || (((u8)work->cloakRequest & ACTOR_400500_CLOAK_KIND_MASK) != ACTOR_400500_CLOAK_SHOW)) {
-        flag               = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
-        work->cloakRequest = flag;
-        work->cloakPhase   = 0;
+        cloakRequest       = ACTOR_400500_CLOAK_RUNNING | ACTOR_400500_CLOAK_SHOW;
+        work->cloakRequest = cloakRequest;
+        work->cloakPhase   = ACTOR_400500_CLOAK_PHASE_FIRST_RAMP;
     }
-    work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-    work2->animRate    = ANIMATION_RATE_ONE;
-    work2->animId      = 1;
-    work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+    _actor400500SetAnim(task, ACTOR_400500_ANIM_CEILING_HOLD, ANIMATION_RATE_ONE);
     work->stateFrames  = 0;
     work->playerCaught = 0;
     work->moveAccel    = 0;
@@ -6390,155 +6414,141 @@ static void func_actor_400500_8013C108(Task* arg0)
     work->subState     = work->subState + 1;
 }
 
-static void func_actor_400500_8013C174(Task* arg0)
+/// Integrates the ordinary ceiling fall and starts its landing pose.
+///
+/// Requires live Stalker work/root with the fall sub-state active. Acceleration
+/// and speed wrap as signed halfwords. Passing root Y -2200 advances the step,
+/// requests landing, reverses roll and places the root at Y -1000 in its parent
+/// frame. Sets the on-back bit; the floor bit is set only after recovery.
+/// The caller advances animation and rebuilds the root basis.
+static void _actor400500TickCeilingFall(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    GfxCoord*                    coord;
+    GfxCoord*                    rootCoord;
 
-    work               = (_Actor400500GrayStalkerWork*)arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    work->moveAccel   += 2;
-    work->moveSpeed   += work->moveAccel;
-    coord->coord.t[1] += work->moveSpeed;
-    if (coord->coord.t[1] >= -0x897) {
-        coord->coord.t[1] = -0x898;
+    work                   = task->work;
+    rootCoord              = task->extra.tmd->coords;
+    work->moveAccel       += 2;
+    work->moveSpeed       += work->moveAccel;
+    rootCoord->coord.t[1] += work->moveSpeed;
+    if (rootCoord->coord.t[1] >= ACTOR_400500_FALL_PIVOT_Y + 1) {
+        // Switch from the ceiling pivot to the floor pose after crossing it.
+        rootCoord->coord.t[1] = ACTOR_400500_FALL_PIVOT_Y;
         work->subState++;
-        _actor400500SetAnim(arg0, 0x13, ANIMATION_RATE_ONE);
-        work->roll       += 0x800;
-        coord->coord.t[1] = -0x3E8;
-        work->stateFrames = 0;
-        work->posture    |= ACTOR_400500_POSTURE_ON_BACK;
+        _actor400500SetAnim(task, ACTOR_400500_ANIM_FALL_LANDING, ANIMATION_RATE_ONE);
+        work->roll           += ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+        rootCoord->coord.t[1] = ACTOR_400500_FLOOR_Y;
+        work->stateFrames     = 0;
+        work->posture        |= ACTOR_400500_POSTURE_ON_BACK;
     }
 }
 
-static void func_actor_400500_8013C218(Task* arg0)
+/// Sounds the ordinary fall's landing and starts recovery at an animation boundary.
+///
+/// Requires live Stalker work/enemy, composed root and latest slot results.
+/// Sounds once at signed-halfword counter zero, then advances that counter.
+/// A living enemy requests recovery and advances the sub-state; a dead enemy
+/// releases the death hold at the same boundary without requesting recovery.
+static void _actor400500FinishCeilingFallLanding(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* hit;
-    _Actor400500GrayStalkerWork* work2;
     Enemy*                       enemy;
-    s32                          soundId;
-    s32                          pan;
-    s32                          cond;
+    s32                          placedSoundId;
+    s32                          animationEnded;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if ((s16)work->stateFrames == 0) {
-        soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050006;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        placedSoundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_FALL_LANDING;
+        _actor400500EnqueueRootSound(task, placedSoundId);
         work->stateFrames = work->stateFrames + 1;
     }
-    hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    animationEnded = _actor400500HasAnimBoundary(task);
+    if (animationEnded) {
         if (enemy->hp > 0) {
-            work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->animRate    = ANIMATION_RATE_ONE;
-            work2->animId      = 0x14;
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-            work->subState     = work->subState + 1;
+            _actor400500SetAnim(task, ACTOR_400500_ANIM_FALL_RECOVERY, ANIMATION_RATE_ONE);
+            work->subState = work->subState + 1;
         } else {
             work->deathHeld = 0;
         }
     }
 }
 
-static void func_actor_400500_8013C348(Task* arg0)
+/// Ends ordinary fall recovery by entering fallen crawling and setting floor posture.
+///
+/// Requires live Stalker work/enemy and latest slot results. At a boundary, a
+/// living enemy enters fallen crawl at route selection, preserving the on-back
+/// bit. A dead enemy instead releases the death hold without changing state.
+static void _actor400500FinishCeilingFallRecovery(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
     Enemy*                       enemy;
-    s32                          cond;
+    s32                          animationEnded;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    work           = task->work;
+    enemy          = task->spawnArg2.pointer;
+    animationEnded = _actor400500HasAnimBoundary(task);
+    if (animationEnded) {
         if (enemy->hp > 0) {
-            work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->state    = ACTOR_400500_STATE_CRAWL_FALLEN;
-            work2->subState = 0;
-            work->posture   = work->posture | ACTOR_400500_POSTURE_ON_FLOOR;
+            _actor400500SetState(task, ACTOR_400500_STATE_CRAWL_FALLEN, ACTOR_400500_FALLEN_CRAWL_STEP_SELECT);
+            work->posture = work->posture | ACTOR_400500_POSTURE_ON_FLOOR;
             return;
         }
         work->deathHeld = 0;
     }
 }
 
-static void func_actor_400500_8013C3C4(Task* arg0)
+/// Ends floor knockdown recoil and requests recovery for the current posture.
+///
+/// Requires live Stalker work/enemy and latest slot results. A living enemy
+/// waits for a boundary, requests upright or on-back recovery at normal rate,
+/// and selects the floor-recovery step. Death releases the hold immediately.
+static void _actor400500FinishFloorKnockdownRecoil(Task* task)
 {
+    enum { ACTOR_400500_KNOCKDOWN_STEP_FLOOR_RECOVERY = 2 };
     Enemy*                       enemy;
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    _Actor400500GrayStalkerWork* work3;
-    s32                          cond;
+    s32                          animationEnded;
 
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
     if (enemy->hp > 0) {
-        if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        animationEnded = _actor400500HasAnimBoundary(task);
+        if (animationEnded) {
             if (!(work->posture & ACTOR_400500_POSTURE_ON_BACK)) {
-                work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->animRate    = ANIMATION_RATE_ONE;
-                work2->animId      = 0x10;
-                work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+                _actor400500SetAnim(task, ACTOR_400500_ANIM_UPRIGHT_RECOVERY, ANIMATION_RATE_ONE);
             } else {
-                work3              = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->animRate    = ANIMATION_RATE_ONE;
-                work3->animId      = 0x12;
-                work3->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
+                _actor400500SetAnim(task, ACTOR_400500_ANIM_ON_BACK_RECOVERY, ANIMATION_RATE_ONE);
             }
-            work->subState = 2;
+            work->subState = ACTOR_400500_KNOCKDOWN_STEP_FLOOR_RECOVERY;
         }
     } else {
         work->deathHeld = 0;
     }
 }
 
-static void func_actor_400500_8013C474(Task* arg0)
+/// Ends floor knockdown recovery and resumes crawling for the current posture.
+///
+/// Requires live Stalker work/enemy and latest slot results. A living enemy
+/// clears pending knockdown at a boundary and enters ordinary or fallen crawl
+/// at route selection. Death releases the hold immediately, keeping the pending
+/// flag and the living state unchanged.
+static void _actor400500FinishFloorKnockdownRecovery(Task* task)
 {
     Enemy*                       enemy;
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    _Actor400500GrayStalkerWork* work3;
-    s32                          cond;
+    s32                          animationEnded;
 
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
+    enemy = task->spawnArg2.pointer;
+    work  = task->work;
     if (enemy->hp > 0) {
-        if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-            (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-            cond = 1;
-        } else {
-            cond = 0;
-        }
-        if (cond) {
+        animationEnded = _actor400500HasAnimBoundary(task);
+        if (animationEnded) {
             work->knockdownPending = 0;
             if (!(work->posture & ACTOR_400500_POSTURE_ON_BACK)) {
-                work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-                work2->state    = ACTOR_400500_STATE_CRAWL;
-                work2->subState = 0;
+                _actor400500SetState(task, ACTOR_400500_STATE_CRAWL, ACTOR_400500_CRAWL_STEP_SELECT);
             } else {
-                work3           = (_Actor400500GrayStalkerWork*)arg0->work;
-                work3->state    = ACTOR_400500_STATE_CRAWL_FALLEN;
-                work3->subState = 0;
+                _actor400500SetState(task, ACTOR_400500_STATE_CRAWL_FALLEN, ACTOR_400500_FALLEN_CRAWL_STEP_SELECT);
             }
         }
     } else {
@@ -6546,23 +6556,22 @@ static void func_actor_400500_8013C474(Task* arg0)
     }
 }
 
-static void func_actor_400500_8013C508(Task* arg0)
+/// Ends ceiling knockdown recoil and initializes the fall motion.
+///
+/// Requires live Stalker work/enemy and latest slot results. A living enemy
+/// waits for a boundary; death also starts the fall. Clears tick/catch and
+/// signed-halfword vertical motion before advancing the sub-state. It keeps
+/// the death hold set until landing completes.
+static void _actor400500FinishCeilingKnockdownRecoil(Task* task)
 {
-    _Actor400500GrayStalkerWork* hit;
     _Actor400500GrayStalkerWork* work;
     Enemy*                       enemy;
-    s32                          cond;
+    s32                          animationEnded;
 
-    hit   = (_Actor400500GrayStalkerWork*)arg0->work;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond || (enemy->hp <= 0)) {
-        work               = hit;
+    work           = task->work;
+    enemy          = task->spawnArg2.pointer;
+    animationEnded = _actor400500HasAnimBoundary(task);
+    if (animationEnded || (enemy->hp <= 0)) {
         work->stateFrames  = 0;
         work->playerCaught = 0;
         work->moveAccel    = 0;
@@ -6571,83 +6580,89 @@ static void func_actor_400500_8013C508(Task* arg0)
     }
 }
 
-static void func_actor_400500_8013C578(Task* arg0)
+/// Advances knockdown fall acceleration, speed and root height by one tick.
+///
+/// Both pointers borrow live callback storage. Motion narrows after each
+/// addition to a signed halfword; height uses the resulting signed speed in
+/// root-parent game coordinates. Retains neither pointer.
+static inline void _actor400500StepKnockdownFallMotion(_Actor400500GrayStalkerWork* work, GfxCoord* rootCoord)
+{
+    work->moveAccel       += 2;
+    work->moveSpeed       += work->moveAccel;
+    rootCoord->coord.t[1] += work->moveSpeed;
+}
+
+/// Integrates the knockdown ceiling fall and starts its landing pose.
+///
+/// Requires live Stalker work/root with the knockdown fall sub-state active.
+/// Acceleration and speed wrap as signed halfwords. Passing root Y -2200
+/// advances the step, requests landing, reverses roll and places the root at
+/// Y -1000 in its parent frame. Sets only the floor posture bit, preserving
+/// the on-back bit. The caller advances animation and rebuilds the root basis.
+static void _actor400500TickKnockdownCeilingFall(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    GfxCoord*                    coord;
+    GfxCoord*                    rootCoord;
 
-    work               = (_Actor400500GrayStalkerWork*)arg0->work;
-    coord              = arg0->extra.tmd->coords;
-    work->moveAccel   += 2;
-    work->moveSpeed   += work->moveAccel;
-    coord->coord.t[1] += work->moveSpeed;
-    if (coord->coord.t[1] >= -0x897) {
-        coord->coord.t[1] = -0x898;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
+    _actor400500StepKnockdownFallMotion(work, rootCoord);
+    if (rootCoord->coord.t[1] >= ACTOR_400500_FALL_PIVOT_Y + 1) {
+        // Switch from the ceiling pivot to the floor pose after crossing it.
+        rootCoord->coord.t[1] = ACTOR_400500_FALL_PIVOT_Y;
         work->subState++;
-        _actor400500SetAnim(arg0, 0x13, ANIMATION_RATE_ONE);
-        work->roll       += 0x800;
-        coord->coord.t[1] = -0x3E8;
-        work->stateFrames = 0;
-        work->posture    |= ACTOR_400500_POSTURE_ON_FLOOR;
+        _actor400500SetAnim(task, ACTOR_400500_ANIM_FALL_LANDING, ANIMATION_RATE_ONE);
+        work->roll           += ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+        rootCoord->coord.t[1] = ACTOR_400500_FLOOR_Y;
+        work->stateFrames     = 0;
+        work->posture        |= ACTOR_400500_POSTURE_ON_FLOOR;
     }
 }
 
-static void func_actor_400500_8013C61C(Task* arg0)
+/// Sounds the knockdown fall's landing and clears pending knockdown at a boundary.
+///
+/// Requires live Stalker work/enemy, composed root and latest slot results.
+/// Sounds once at signed-halfword counter zero, then advances that counter.
+/// At a boundary, a living enemy requests recovery and advances the sub-state;
+/// a dead enemy releases the death hold. Both clear pending knockdown.
+static void _actor400500FinishKnockdownCeilingLanding(Task* task)
 {
     _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* hit;
-    _Actor400500GrayStalkerWork* work2;
     Enemy*                       enemy;
-    s32                          soundId;
-    s32                          pan;
-    s32                          cond;
+    s32                          placedSoundId;
+    s32                          animationEnded;
 
-    work  = (_Actor400500GrayStalkerWork*)arg0->work;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if ((s16)work->stateFrames == 0) {
-        soundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40050006;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        placedSoundId = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | ACTOR_400500_SOUND_FALL_LANDING;
+        _actor400500EnqueueRootSound(task, placedSoundId);
         work->stateFrames = work->stateFrames + 1;
     }
-    hit = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((hit->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (hit->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    animationEnded = _actor400500HasAnimBoundary(task);
+    if (animationEnded) {
         work->knockdownPending = 0;
         if (enemy->hp > 0) {
-            work2              = (_Actor400500GrayStalkerWork*)arg0->work;
-            work2->animRate    = ANIMATION_RATE_ONE;
-            work2->animId      = 0x14;
-            work2->animRequest = ACTOR_400500_ANIM_REQUEST_RESET;
-            work->subState     = work->subState + 1;
+            _actor400500SetAnim(task, ACTOR_400500_ANIM_FALL_RECOVERY, ANIMATION_RATE_ONE);
+            work->subState = work->subState + 1;
         } else {
             work->deathHeld = 0;
         }
     }
 }
 
-static void func_actor_400500_8013C750(Task* arg0)
+/// Ends knockdown ceiling-fall recovery by entering fallen crawling.
+///
+/// Requires live Stalker work and latest slot results. At a boundary, enters
+/// fallen crawl at route selection regardless of health, keeping posture and
+/// the death hold unchanged. The landing step already established floor posture.
+static void _actor400500FinishKnockdownCeilingRecovery(Task* task)
 {
-    _Actor400500GrayStalkerWork* work;
-    _Actor400500GrayStalkerWork* work2;
-    s32                          cond;
+    s32 animationEnded;
 
-    work = (_Actor400500GrayStalkerWork*)arg0->work;
-    if ((work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work->rig.slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
-        work2           = (_Actor400500GrayStalkerWork*)arg0->work;
-        work2->state    = ACTOR_400500_STATE_CRAWL_FALLEN;
-        work2->subState = 0;
+    animationEnded = _actor400500HasAnimBoundary(task);
+    if (animationEnded) {
+        _actor400500SetState(task, ACTOR_400500_STATE_CRAWL_FALLEN, ACTOR_400500_FALLEN_CRAWL_STEP_SELECT);
     }
 }
 

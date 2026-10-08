@@ -3723,7 +3723,7 @@ work->cloakRequest = flag; /* addiu $v0, $zero, 0x80; sb */
 
 Do not change the field to `u8` to get this: the same address is also read
 with `lb` for `>= 0` and `lbu` for `(u8)field & 0x7F`. Direct `field = 0x81`
-on `s8` is the QImode fold (`func_actor_400500_8013BFB0` `base.c` 99.62%,
+on `s8` is the QImode fold (`_actor400500StartFloorArmStrike` `base.c` 99.62%,
 `base_1.c` 100%; preprocessed
 `ced6e55d5c05bf83bbe86b1cd9a6e9ca9ea91ac63696d3c16a5ddc1bfa8783a4`).
 `func_actor_400500_8013C7A4` is the `0x80` case (`base.c` 99.83% `regs=1`,
@@ -4182,17 +4182,17 @@ target that reloads with `lhu` and sign-extends in the delay slots of a
 pointer chase needs an `s32` temporary:
 
 ```c
-child = work->child;
-angle = work->heading; /* lhu, before any store through child */
-((TmdObject*)child->extra)->flags = 0;
-RotMatrixY(angle, &src->mat); /* sll/sra of the s32 */
+rightArmTask = armWork->armTasks[ACTOR_400500_ARM_RIGHT];
+swingAngle = work->armSwingAngle; /* lhu, before any store through the child */
+rightArmTask->extra.tmd->flags = 0;
+_actor400500SetCoordYaw(rightArmTask->extra.tmd->coords, swingAngle); /* sll/sra of the s32 */
 ```
 
-`func_actor_400500_8013BEC4` with `RotMatrixY(work->armSwingAngle, …)` is `lh`
-at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
+`_actor400500ExtendCeilingStrikeArm` with `RotMatrixY(work->armSwingAngle, …)` is `lh`
+at the `jal` (83.9%). Assigning `s32 swingAngle` *after* the `flags` store makes
 that store a true alias dep of the reload: `lhu` cannot fill the child-load
 delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
-(92.8%). Moving the assignment before `field_C` (after the child load, so
+(92.8%). Moving the assignment before `flags` (after the child load, so
 CSE cannot reuse the increment) is 100%. Compare `_actor400500RetractFloorStrikeArm`,
 which keeps the increment in `swingAngle` and never reloads.
 
@@ -71925,7 +71925,7 @@ work->cloakRequest = flag; /* addiu $v0, $zero, 0x80; sb */
 
 Do not change the field to `u8` to get this: the same address is also read
 with `lb` for `>= 0` and `lbu` for `(u8)field & 0x7F`. Direct `field = 0x81`
-on `s8` is the QImode fold (`func_actor_400500_8013BFB0` `base.c` 99.62%,
+on `s8` is the QImode fold (`_actor400500StartFloorArmStrike` `base.c` 99.62%,
 `base_1.c` 100%; preprocessed
 `ced6e55d5c05bf83bbe86b1cd9a6e9ca9ea91ac63696d3c16a5ddc1bfa8783a4`).
 `func_actor_400500_8013C7A4` is the `0x80` case (`base.c` 99.83% `regs=1`,
@@ -72076,17 +72076,17 @@ target that reloads with `lhu` and sign-extends in the delay slots of a
 pointer chase needs an `s32` temporary:
 
 ```c
-child = work->child;
-angle = work->heading; /* lhu, before any store through child */
-((TmdObject*)child->extra)->flags = 0;
-RotMatrixY(angle, &src->mat); /* sll/sra of the s32 */
+rightArmTask = armWork->armTasks[ACTOR_400500_ARM_RIGHT];
+swingAngle = work->armSwingAngle; /* lhu, before any store through the child */
+rightArmTask->extra.tmd->flags = 0;
+_actor400500SetCoordYaw(rightArmTask->extra.tmd->coords, swingAngle); /* sll/sra of the s32 */
 ```
 
-`func_actor_400500_8013BEC4` with `RotMatrixY(work->armSwingAngle, …)` is `lh`
-at the `jal` (83.9%). Assigning `s32 angle` *after* the `field_C` store makes
+`_actor400500ExtendCeilingStrikeArm` with `RotMatrixY(work->armSwingAngle, …)` is `lh`
+at the `jal` (83.9%). Assigning `s32 swingAngle` *after* the `flags` store makes
 that store a true alias dep of the reload: `lhu` cannot fill the child-load
 delay, `&rot` is born next to `a1 = src`, and two load-delay nops remain
-(92.8%). Moving the assignment before `field_C` (after the child load, so
+(92.8%). Moving the assignment before `flags` (after the child load, so
 CSE cannot reuse the increment) is 100%. Compare `_actor400500RetractFloorStrikeArm`,
 which keeps the increment in `swingAngle` and never reloads.
 
