@@ -10825,7 +10825,7 @@ beq   v1,v0,case3
 ```
 
 is *not* `switch (v) { case 1: case 2: case 3: }` - that is three nodes, roots at
-`2`, and scored 82% with `branch=6` on `func_actor_444000_80132054`. It is four
+`2`, and scored 82% with `branch=6` on `_actor444000EventPerformPlayerAction`. It is four
 nodes `{0,1,2,3}` with the root at `1`. Adding
 
 ```c
@@ -12209,7 +12209,7 @@ s32 temp = (*(s8 *)((u8 *)p + 0x7B3));   /* lb  $v1,... */
 
 A one-token change of the temp's type took the raw m2c seed of
 `func_actor_403200_8013E9C0` from 91.07% to 95.06%, and the rest of the match was
-matching the sibling body `func_actor_444000_8014105C`, which already uses `s32`
+matching the sibling body `_actor444000RetractLimbState`, which already uses `s32`
 for exactly this value. When an m2c seed emits `lbu` plus a `sll`/`sra` pair
 where the target has a bare `lb`, suspect the seed's `s8` locals before the field
 declaration.
@@ -54212,7 +54212,7 @@ has the same type and lands in the same register.
 ## Two loops in mutually exclusive branches need their *own* counter and pointer
 
 The sharper version of the entry above, when the two loops are the arms of one
-`if`/`else` rather than sequential. `func_actor_444000_8013D810` walks the same
+`if`/`else` rather than sequential. `_actor444000DormantState` walks the same
 seven-escort array twice: the reset arm only stores a halfword, the teardown arm
 calls `tmdFreePrimitiveBuffer` on each escort. Writing it with one `escorts` pointer and
 one `i` shared by both arms merges each into a single pseudo whose live range
@@ -72488,7 +72488,7 @@ testing against it first.
 
 ## The declared width of a `(s8)`-cast call result decides *where* the `sll`/`sra` lands
 
-`func_actor_444000_801435CC` reads a pan value from `worldCoordGetOriginAudioPan` (which
+`_actor444000ReturnToAdvanceState` reads a pan value from `worldCoordGetOriginAudioPan` (which
 returns `s32`), narrows it to a byte and hands it to `sndEvtRequestScriptStart`.
 The target sign-extends immediately after the call, in the *next* call's delay
 slot:
@@ -72813,7 +72813,7 @@ if (tick % 60 == 0) {
 }
 ```
 
-`func_actor_444000_801434C4` is the example; the two literal stores rather than
+`_actor444000LiftIdleState` is the example; the two literal stores rather than
 a shared `s16 value` local are the same requirement as "Two literal stores
 cross-jump" — a shared temp is global-allocated to `$a1` and pushes the three
 division pseudos one register up (`regs=11`, 99.17%).
@@ -73013,7 +73013,7 @@ s32 state = work->animId;
 
 Now the load is SImode, `lb` sign-extends it in one instruction, the compare
 reads that register directly, and `sb` of the same register stores the low byte
-back. `func_actor_444000_8014105C`: 87.99% to 100% together with `(s8)` casts
+back. `_actor444000RetractLimbState`: 87.99% to 100% together with `(s8)` casts
 on the two `worldCoordGetOriginAudioPan`/`worldCoordGetOriginAudioDepth` returns, which likewise move the
 `sll 24; sra 24` up to the call site instead of leaving it at the use.
 
@@ -73180,7 +73180,7 @@ copy. Spelling the stores `coord->coord.m[i][j] = ...` keeps one base register
 and the copy matches.
 
 **The release half needs its own inline when it lives in the caller.**
-`func_actor_444000_8013D96C` runs that dance six times over, and the natural
+`_actor444000CollapsedState` runs that dance six times over, and the natural
 split puts the allocate-rotate-copy body in one `static __inline__` and leaves
 `*(u8**)SCRATCH_STACK_CURSOR_SLOT = *(u8**)SCRATCH_STACK_CURSOR_SLOT + sizeof(Scratch);` in the
 caller, between the two coordinate flag clears. That costs more than the two
@@ -73259,7 +73259,7 @@ duplicate tails, so several arms collapse into a single block that two or more
 branches jump to. Reading the asm as "one comparison per branch target" then
 produces the wrong ladder.
 
-In `func_actor_444000_80142254` the first two tests both land on the same block:
+In `_actor444000ClampPlayerToArena` the first two tests both land on the same block:
 
 ```
 blez  $v1, .L2B4         /* z > 0  -> clear and return */
@@ -74341,7 +74341,7 @@ reload.
 
 Folding the same ladder into one `if (a || (b && c) || d || ...)` keeps the CFG
 identical but hands cse one expression tree, and every load after the first
-disappears: `func_actor_444000_801411C8` came out 2 instructions short with the
+disappears: `_actor444000ChooseAttackState` came out 2 instructions short with the
 `||` form and matched exactly with six separate `if` statements. The identical
 `work->state = 9; return;` bodies are not a problem - jump.c cross-jumps them
 into the last copy, which is where the original has it, with the `li v0,9` left
@@ -74937,7 +74937,7 @@ the guarded call needs:
     GfxCoord* c      = ((TmdObject*)task->extra)->coords; /* then lw/lw   */
 
     if (paused != 1) {
-        Actor444000_StepForward(c);
+        _actor444000StepForward(c);
     }
 }
 ```
@@ -75197,8 +75197,8 @@ argument reached 99.875% with `reorder=1`.
 The corollary is that two helpers differing only in a parameter's width are two
 different helpers. `actor_444000_5.c` keeps both: `Actor444000_ScaleRotation`
 takes `s32 y`, because `func_actor_444000_80138490` passes it an `s32` local and
-has no sign extension at the store, while `Actor444000_SquashRotation` takes
-`s16 y`. Folding them together breaks whichever caller wants the other form.
+has no sign extension at the store, while `_actorRenderRescaleYawY` takes
+`s16 verticalScale`. Folding them together breaks whichever caller wants the other form.
 
 ### Actor02500_Fn01144: shared sound ID separates three local load chains
 
@@ -134107,7 +134107,7 @@ Session evidence is retained under
 alternate's partial gain remains unresolved. The shared body passed the
 unscoped build for five overlays, with all prior C definitions preserved.
 
-## Aggregate initializers can keep adjacent stack records from interleaving in sched2 (func_actor_444000_801371E8, 2026-09-19)
+## Aggregate initializers can keep adjacent stack records from interleaving in sched2 (_actor444000BuildCornerWalls, 2026-09-19)
 
 The retry seed reached 98.596% with three stores from the first local
 `WorldCollisionGridFace` interleaved among the second face's index arithmetic. Both records
@@ -134120,32 +134120,32 @@ arithmetic, placing them too late in the final forward code.
 Use an aggregate initializer when constructing the complete local record:
 
 ```c
-SVECTOR dir;
-SVECTOR* norms = Gp_GridParams->normals;
-SVECTOR* corners = Gp_GridParams->vertices;
+SVECTOR forwardOffset;
+SVECTOR* normals = Gp_GridParams->normals;
+SVECTOR* vertices = Gp_GridParams->vertices;
 WorldCollisionGridFace* faces = Gp_GridParams->faces;
-WorldCollisionGridFace quad0 = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
-WorldCollisionGridFace quad1 = {
-    { (face + 1) * 4, (face + 1) * 4 + 1, (face + 1) * 4 + 2, (face + 1) * 4 + 3 }, face + 1, 2
+WorldCollisionGridFace anchorWall = { { faceIndex * 4, faceIndex * 4 + 1, faceIndex * 4 + 2, faceIndex * 4 + 3 }, faceIndex, 2 };
+WorldCollisionGridFace returnWall = {
+    { (faceIndex + 1) * 4, (faceIndex + 1) * 4 + 1, (faceIndex + 1) * 4 + 2, (faceIndex + 1) * 4 + 3 }, faceIndex + 1, 2
 };
 ```
 
 The constructor emits BLK memory clobbers that survive into scheduling and
-emit no machine instructions. In `base_2.i.greg`, quad1's clobbers UID86/87 have
-output dependencies on all six quad0 stores. In `.sched2`, quad1 arithmetic
+emit no machine instructions. In `base_2.i.greg`, returnWall's clobbers UID86/87 have
+output dependencies on all six anchorWall stores. In `.sched2`, returnWall arithmetic
 107/94/91 is selected at T-175/176/177, then the clobbers at T-178/179; only
-then do the remaining quad0 stores become ready at T-180. Baseline instead
+then do the remaining anchorWall stores become ready at T-180. Baseline instead
 selects the three misplaced stores at T-170/172/178. This changes dependency
 release, not merely equal-priority ranking.
 
 Ordering the pointer initializers before the records matters independently:
 `base_1.c` put them afterward and fixed store grouping but changed the prologue,
-swapped scale/corners registers, and scored 93.665%. A recorded prediction to
+swapped distance/vertices registers, and scored 93.665%. A recorded prediction to
 restore the pointer-load order while retaining constructor dependencies produced
 `base_2.c`, 100%, all penalties zero. The normal-style port `base_3.c` also
 matched and passed the unscoped build. No register pins or empty asm were added.
 
-Evidence is in `nonmatchings/func_actor_444000_801371E8-vacuum/LEARNINGS.md`,
+Evidence is in `nonmatchings/_actor444000BuildCornerWalls-vacuum/LEARNINGS.md`,
 `experiments.jsonl`, and the paired RTL dumps. Preprocessed SHA256:
 base `9bc5d70565bb51e56e15d39b823683991fcebfbefdbf8d42ac8962bcd22b6e95`;
 base_2 `3d02165ab47d23c8d510b8547afa86d5979312e008bc96af77b61fc560a0e520`.

@@ -102,6 +102,13 @@ enum {
     ACTOR_444000_STATE_COLLAPSED         = 19,
 };
 
+/// Incinerator handler slots used by root setup and attack selection.
+enum {
+    ACTOR_444000_STATE_IDLE          = 1,
+    ACTOR_444000_STATE_THROW_DEBRIS  = 7,
+    ACTOR_444000_STATE_CHOOSE_ATTACK = 10,
+};
+
 /// Commands in the Mine/Shelter garbage-incinerator namespace.
 enum {
     ACTOR_444000_COMMAND_STOP          = 0,
@@ -423,11 +430,11 @@ MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 
 static void func_actor_444000_8013482C(Task* task);
 static void func_actor_444000_80135448(Task* arg0);
-static void func_actor_444000_801371E8(Task* task, s32 scale, s16 face);
+static void _actor444000BuildCornerWalls(Task* task, s32 distance, s16 faceIndex);
 static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task);
 static void func_actor_444000_801423C4(Enemy* enemy, Task* task);
-static void func_actor_444000_801434C4(Task* arg0);
-static void func_actor_444000_801435CC(Task* arg0);
+static void _actor444000LiftIdleState(Task* task);
+static void _actor444000ReturnToAdvanceState(Task* task);
 static void func_actor_444000_80143F4C(Task* arg0);
 
 static AnimationSet _gActor444000Animation21904;
@@ -2735,90 +2742,123 @@ _Actor444000DebrisCoordStorage D_actor_444000_80161948 = { { { 0, { { { 0, 0, 0 
 
 TmdSource D_actor_444000_80161B50 = { 0, 0, 0, 0, NULL, NULL, NULL, NULL, NULL };
 
-static void            func_actor_444000_80132054(Task* task);
-static __inline__ void Actor444000_StepForward(GfxCoord* coord);
-static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y);
+static void            _actor444000EventPerformPlayerAction(Task* task);
+static __inline__ void _actor444000StepForward(GfxCoord* coord);
 static __inline__ void _actor444000FlattenRoot(Task* task);
-static __inline__ void Actor444000_SeedRootCoord(Task* task, GluttonWork* work);
+static __inline__ void _actor444000InitializeRootPose(Task* task, GluttonWork* work);
 static void            func_actor_444000_8013CA60(Task* task);
-static void            func_actor_444000_8013D810(Task* arg0);
-static __inline__ void _actorRenderReleaseYawScratch(void);
-static __inline__ void _actorRenderRescaleYawYReserve(GfxCoord* coord, s32 verticalScale);
-static void            func_actor_444000_8013D96C(Task* arg0);
+static void            _actor444000DormantState(Task* task);
+static void            _actor444000CollapsedState(Task* task);
 static void            func_actor_444000_8013E058(Task* task);
-static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* work,
-                                                    Task* player, _Actor444000CatchScratch* sc,
-                                                    PlayerStatus* cfg);
+static __inline__ void _actor444000PlaceCaughtPlayer(Task* task, GluttonWork* work,
+                                                     Task* player, _Actor444000CatchScratch* catchScratch,
+                                                     const PlayerStatus* playerStatus);
 static void            func_actor_444000_8013EC84(Task* arg0);
 static void            func_actor_444000_8013FB74(Task* arg0);
 static void            func_actor_444000_801404C0(Task* arg0);
 static void            func_actor_444000_80140BBC(Task* arg0);
 static void            func_actor_444000_80140E28(Task* arg0);
-static void            func_actor_444000_8014105C(Task* arg0);
-static void            func_actor_444000_801411C8(Task* arg0);
+static void            _actor444000RetractLimbState(Task* task);
+static void            _actor444000ChooseAttackState(Task* task);
 static void            func_actor_444000_80141618(Task* task);
-static void            func_actor_444000_80142254(void);
+static void            _actor444000ClampPlayerToArena(void);
 
-/// Run one step of the event task: perform the request pending in
-/// `_Actor444000EventWork::playerAction`, then clear it so it fires once.
-static void func_actor_444000_80132054(Task* task)
+/// Sounds the post-boss alert once through the published event work latch.
+///
+/// Requires the published event task and live work. Shares the latch with
+/// the script callback; no pointer is retained.
+static __inline__ void _actor444000EventEnsureAlert(void)
 {
+    _Actor444000EventWork* published = D_actor_444000_80161860->work;
+
+    if (published->alertPlayed == 0) {
+        sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
+        published->alertPlayed = 1;
+    }
+}
+
+/// Performs and consumes the event task's pending player-animation action.
+///
+/// Requires live event work and loaded character/weapon or event animation
+/// resources. Weapon clip 1 blends for ten frames; event clip 3 resets and
+/// sounds the shared alert once; event clip 0 cancels room effects, locks
+/// attachments and blends for ten frames. All requests disable world collision.
+/// Requests are consumed synchronously; their resources remain borrowed by
+/// playback. Unknown actions are also cleared.
+static void _actor444000EventPerformPlayerAction(Task* task)
+{
+    enum {
+        ACTOR_444000_EVENT_PRIMARY_CHARACTER   = 1,
+        ACTOR_444000_EVENT_PRIMARY_BANK_BASE   = 1,
+        ACTOR_444000_EVENT_ALTERNATE_BANK_BASE = 34,
+        ACTOR_444000_EVENT_WEAPON_CLIP         = 1,
+        ACTOR_444000_EVENT_ALERT_CLIP          = 3,
+        ACTOR_444000_EVENT_LOCK_CLIP           = 0,
+        ACTOR_444000_EVENT_BLEND_FRAMES        = 10,
+    };
     _Actor444000EventWork* work = task->work;
-    _Actor444000EventWork* published;
     _Actor444000EventWork* reloaded;
-    AnimationPlayRequest   msg;
-    s32                    anim;
+    AnimationPlayRequest   animationRequest;
+    s32                    bankIndex;
+
+    /// Cancels room effects, locks attachments and starts the event player's clip zero.
+    ///
+    /// Requires Task* `task`, writable AnimationPlayRequest `animationRequest`,
+    /// and _Actor444000EventWork* `reloaded` locals, plus this function's clip
+    /// and blend constants. Re-reads work after cancellation; a NULL player
+    /// sends nothing. Expands to one block and retains no request pointer.
+#define ACTOR_444000_EVENT_START_LOCKED_PLAYER_CLIP()                                                                  \
+    {                                                                                                                  \
+        roomEffectRequestCancelAll();                                                                                  \
+        Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;                                                               \
+        reloaded           = task->work;                                                                               \
+        if (reloaded->player != NULL) {                                                                                \
+            animationRequest.source.sets          = D_actor_444000_8014430C;                                           \
+            animationRequest.animationId          = ACTOR_444000_EVENT_LOCK_CLIP;                                      \
+            animationRequest.blend                = ANIMATION_BLEND_INTERPOLATE;                                       \
+            animationRequest.blendFrames          = ACTOR_444000_EVENT_BLEND_FRAMES;                                   \
+            animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                 \
+            TASK_MESSAGE_DISPATCH_POINTER(reloaded->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &animationRequest, 0); \
+        }                                                                                                              \
+    }
 
     switch (work->playerAction) {
         case ACTOR_444000_PLAYER_ACTION_NONE:
             break;
         case ACTOR_444000_PLAYER_ACTION_WEAPON_CLIP_BLENDED:
             // The equipped weapon selects the bank; each character has its own run of banks.
-            anim = gPlayerStatus.weapon;
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                anim += 1;
+            bankIndex = gPlayerStatus.weapon;
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_444000_EVENT_PRIMARY_CHARACTER) {
+                bankIndex += ACTOR_444000_EVENT_PRIMARY_BANK_BASE;
             } else {
-                anim += 0x22;
+                bankIndex += ACTOR_444000_EVENT_ALTERNATE_BANK_BASE;
             }
-            msg.source.index         = anim;
-            msg.animationId          = 1;
-            msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-            msg.blendFrames          = 0xA;
-            msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &msg, 0);
+            animationRequest.source.index         = bankIndex;
+            animationRequest.animationId          = ACTOR_444000_EVENT_WEAPON_CLIP;
+            animationRequest.blend                = ANIMATION_BLEND_INTERPOLATE;
+            animationRequest.blendFrames          = ACTOR_444000_EVENT_BLEND_FRAMES;
+            animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+            TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &animationRequest, 0);
             break;
         case ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_3:
             if (work->player != NULL) {
-                msg.source.sets          = D_actor_444000_8014430C;
-                msg.animationId          = 3;
-                msg.blend                = ANIMATION_BLEND_RESET;
-                msg.blendFrames          = 0;
-                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
+                animationRequest.source.sets          = D_actor_444000_8014430C;
+                animationRequest.animationId          = ACTOR_444000_EVENT_ALERT_CLIP;
+                animationRequest.blend                = ANIMATION_BLEND_RESET;
+                animationRequest.blendFrames          = 0;
+                animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &animationRequest, 0);
             }
             // The alert sounds once, whether this request or the script's own callback reaches it first.
-            published = D_actor_444000_80161860->work;
-            if (published->alertPlayed == 0) {
-                sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
-                published->alertPlayed = 1;
-            }
+            _actor444000EventEnsureAlert();
             break;
         case ACTOR_444000_PLAYER_ACTION_EVENT_CLIP_0:
-            roomEffectRequestCancelAll();
-            Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
-            reloaded           = task->work;
-            if (reloaded->player != NULL) {
-                msg.source.sets          = D_actor_444000_8014430C;
-                msg.animationId          = 0;
-                msg.blend                = ANIMATION_BLEND_INTERPOLATE;
-                msg.blendFrames          = 0xA;
-                msg.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(reloaded->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg, 0);
-            }
+            ACTOR_444000_EVENT_START_LOCKED_PLAYER_CLIP();
             break;
     }
     work->playerAction = ACTOR_444000_PLAYER_ACTION_NONE;
 }
+#undef ACTOR_444000_EVENT_START_LOCKED_PLAYER_CLIP
 
 /// Bring the room's presentation up to date for an enter (0), a first entry
 /// (1) or a re-entry (2): pick the view set from the current disc/scenario
@@ -2962,7 +3002,7 @@ void func_actor_444000_80132358(Task* task)
             }
             break;
     }
-    func_actor_444000_80132054(task);
+    _actor444000EventPerformPlayerAction(task);
 }
 
 /// Plays the incinerator alert once during the post-boss event.
@@ -3100,33 +3140,31 @@ static void _actor444000EventRequestPlayerAction(s16 action)
 
 #include "../../shared/glutton_hit_effect.inc.c"
 
-/// Walk `coord` a fixed 0x32/0x1000 of its own forward axis (column 2 of its
-/// rotation, normalised and GPF-scaled) and flag it for rebuild. The direction
-/// vector lives in an `SVECTOR` carved off the scratch stack and handed straight
-/// back; written as an inline so those scratch-head accesses stay absolute, the
-/// same reason as `_actorRenderRescaleYawHalf` above.
-static __inline__ void Actor444000_StepForward(GfxCoord* coord)
+/// Moves the boss 50 parent-coordinate units along its normalized local Z axis.
+///
+/// Requires a live writable coordinate and an initialized scratch stack with
+/// eight aligned bytes free. Includes vertical movement; normalization removes
+/// the old scale. SDK/GTE quantization narrows displacement to signed halfwords.
+/// Marks composition dirty and releases scratch before returning. The caller
+/// handles freezing and collision correction.
+static __inline__ void _actor444000StepForward(GfxCoord* coord)
 {
-    u8*      head;
-    SVECTOR* dir;
+    enum {
+        ACTOR_444000_ADVANCE_STEP_DISTANCE = 50,
+    };
+    SVECTOR* displacement;
 
-    head                          = SCRATCH_STACK_CURSOR(u8);
-    dir                           = (SVECTOR*)(head - sizeof(SVECTOR));
-    SCRATCH_STACK_CURSOR(SVECTOR) = dir;
+    displacement = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
 
-    gfxReadMatrixZAxis(&coord->coord, dir);
-    VectorNormalSS(dir, dir);
-    gte_lddp(0x32);
-    gte_ldsv(dir);
-    gte_gpf12();
-    gte_stsv(dir);
+    gfxReadMatrixZAxis(&coord->coord, displacement);
+    _actorMovementBuildDisplacement(displacement, ACTOR_444000_ADVANCE_STEP_DISTANCE);
 
-    coord->coord.t[0]  += dir->vx;
-    coord->coord.t[1]  += dir->vy;
-    coord->coord.t[2]  += dir->vz;
+    coord->coord.t[0]  += displacement->vx;
+    coord->coord.t[1]  += displacement->vy;
+    coord->coord.t[2]  += displacement->vz;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }
 
 /// The run-out / turn / run-back pass, stepped by `GluttonWork::phase`.
@@ -3213,7 +3251,7 @@ static void func_actor_444000_8013482C(Task* task)
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
-                Actor444000_StepForward(c);
+                _actor444000StepForward(c);
             }
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3227,7 +3265,7 @@ static void func_actor_444000_8013482C(Task* task)
             coord = task->extra.tmd->coords;
             if (coord->coord.t[0] < 0x2134) {
                 if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-                    Actor444000_StepForward(coord);
+                    _actor444000StepForward(coord);
                 }
             } else {
                 sc->yaw        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]) + 0xD;
@@ -3272,7 +3310,7 @@ static void func_actor_444000_8013482C(Task* task)
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
-                Actor444000_StepForward(c);
+                _actor444000StepForward(c);
             }
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3287,7 +3325,7 @@ static void func_actor_444000_8013482C(Task* task)
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
-                Actor444000_StepForward(c);
+                _actor444000StepForward(c);
             }
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3302,7 +3340,7 @@ static void func_actor_444000_8013482C(Task* task)
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
-                Actor444000_StepForward(c);
+                _actor444000StepForward(c);
             }
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3317,7 +3355,7 @@ static void func_actor_444000_8013482C(Task* task)
             GfxCoord* c      = task->extra.tmd->coords;
 
             if (paused != 1) {
-                Actor444000_StepForward(c);
+                _actor444000StepForward(c);
             }
         }
             task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
@@ -3330,43 +3368,6 @@ static void func_actor_444000_8013482C(Task* task)
     }
 
     SCRATCH_STACK_RELEASE_BYTES(sizeof(_Actor444000RunScratch));
-}
-
-/// Rebuild `coord`'s rotation around the yaw it already faces, left at full
-/// width but scaled by `y` vertically -- the squash the death sequence retracts
-/// each body with. The same shape as `_actorRenderRescaleYawXZ` below, except
-/// the vertical scale arrives as an `s16`, which is what puts its sign
-/// extension at the `scale.vy` store rather than at the call site. The working
-/// matrix lives in a frame carved off the scratch stack, handed back once the
-/// rotation has been copied onto the coordinate.
-static __inline__ void Actor444000_SquashRotation(GfxCoord* coord, s16 y)
-{
-    ActorScaleRotScratch* sc;
-    s16                   ang;
-
-    sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
-
-    ang     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->yaw = ang;
-    gfxRotMatrixY(&sc->rotation, ang, 1);
-    sc->scale.vx = 0x1000;
-    sc->scale.vy = y;
-    sc->scale.vz = 0x1000;
-    ScaleMatrix(&sc->rotation, &sc->scale);
-
-    coord->coord.m[0][0] = sc->rotation.m[0][0];
-    coord->coord.m[0][1] = sc->rotation.m[0][1];
-    coord->coord.m[0][2] = sc->rotation.m[0][2];
-    coord->coord.m[1][0] = sc->rotation.m[1][0];
-    coord->coord.m[1][1] = sc->rotation.m[1][1];
-    coord->coord.m[1][2] = sc->rotation.m[1][2];
-    coord->coord.m[2][0] = sc->rotation.m[2][0];
-    coord->coord.m[2][1] = sc->rotation.m[2][1];
-    coord->coord.m[2][2] = sc->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// State 0x12, the death sequence: the boss collapses, each of its escort
@@ -3562,8 +3563,8 @@ static void func_actor_444000_80135448(Task* task)
 
             step = work->stateTicks - 0x82;
             if (step < 0x28) {
-                Actor444000_SquashRotation(work->escorts[2]->task->extra.tmd->coords,
-                                           (s16)(0x1000 - ((step * 0x1000) / 40)));
+                _actorRenderRescaleYawY(work->escorts[2]->task->extra.tmd->coords, ONE,
+                                        (s16)(0x1000 - ((step * 0x1000) / 40)));
                 work->escorts[2]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
 
                 if ((s16)((s16)(u16)work->stateTicks % 5) == 0) {
@@ -3613,8 +3614,8 @@ static void func_actor_444000_80135448(Task* task)
 
             step = work->stateTicks - 0x14A;
             if (step < 0x28) {
-                Actor444000_SquashRotation(work->escorts[4]->task->extra.tmd->coords,
-                                           (s16)(0x1000 - ((step * 0x1000) / 40)));
+                _actorRenderRescaleYawY(work->escorts[4]->task->extra.tmd->coords, ONE,
+                                        (s16)(0x1000 - ((step * 0x1000) / 40)));
                 work->escorts[4]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
 
                 if ((s16)((s16)(u16)work->stateTicks % 5) == 0) {
@@ -3662,8 +3663,8 @@ static void func_actor_444000_80135448(Task* task)
 
             step = work->stateTicks - 0x1DC;
             if (step < 0x28) {
-                Actor444000_SquashRotation(work->escorts[3]->task->extra.tmd->coords,
-                                           (s16)(0x1000 - ((step * 0x1000) / 40)));
+                _actorRenderRescaleYawY(work->escorts[3]->task->extra.tmd->coords, ONE,
+                                        (s16)(0x1000 - ((step * 0x1000) / 40)));
                 work->escorts[3]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
 
                 if ((s16)((s16)(u16)work->stateTicks % 5) == 0) {
@@ -3706,8 +3707,8 @@ static void func_actor_444000_80135448(Task* task)
 
         if (work->stateTicks > 0) {
             if (work->stateTicks < 0x28) {
-                Actor444000_SquashRotation(work->escorts[0]->task->extra.tmd->coords,
-                                           (s16)(0x1000 - ((work->stateTicks * 0x1000) / 40)));
+                _actorRenderRescaleYawY(work->escorts[0]->task->extra.tmd->coords, ONE,
+                                        (s16)(0x1000 - ((work->stateTicks * 0x1000) / 40)));
                 work->escorts[0]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             } else if (work->stateTicks == 0x28) {
                 work->escorts[0]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3717,8 +3718,8 @@ static void func_actor_444000_80135448(Task* task)
         if (work->stateTicks >= 0x15) {
             step = work->stateTicks - 0x14;
             if (step < 0x28) {
-                Actor444000_SquashRotation(work->escorts[1]->task->extra.tmd->coords,
-                                           (s16)(0x1000 - ((step * 0x1000) / 40)));
+                _actorRenderRescaleYawY(work->escorts[1]->task->extra.tmd->coords, ONE,
+                                        (s16)(0x1000 - ((step * 0x1000) / 40)));
                 work->escorts[1]->task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             } else if (step == 0x28) {
                 work->escorts[1]->task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3728,8 +3729,8 @@ static void func_actor_444000_80135448(Task* task)
         if (work->stateTicks >= 0xE) {
             step = work->stateTicks - 0xD;
             if (step < 0x78) {
-                Actor444000_SquashRotation(task->extra.tmd->coords,
-                                           (s16)(0x1000 - ((step * 0x1000) / 120)));
+                _actorRenderRescaleYawY(task->extra.tmd->coords, ONE,
+                                        (s16)(0x1000 - ((step * 0x1000) / 120)));
                 task->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
             } else if (step == 0x78) {
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
@@ -3774,8 +3775,8 @@ static void func_actor_444000_80135448(Task* task)
         if (work->stateTicks >= 0xA1) {
             step = work->stateTicks - 0xA0;
             if (step < 0x5A) {
-                Actor444000_SquashRotation(work->escorts[3]->task->extra.tmd->coords,
-                                           (s16)(0x800 - ((step * 0x800) / 90)));
+                _actorRenderRescaleYawY(work->escorts[3]->task->extra.tmd->coords, ONE,
+                                        (s16)(0x800 - ((step * 0x800) / 90)));
             } else if (step == 0x5A) {
                 task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
 
@@ -3797,63 +3798,81 @@ static void func_actor_444000_80135448(Task* task)
     }
 }
 
-static void func_actor_444000_801371E8(Task* task, s32 scale, s16 face)
+/// Rebuilds the two connected collision walls used while the boss turns.
+///
+/// `distance` uses parent-coordinate units along the normalized host Z axis.
+/// Requires a live model and the writable incinerator grid: two faces/normals
+/// starting at `faceIndex`, and eight vertices starting at `4 * faceIndex`.
+/// The caller uses face 6. The first wall joins (11500, -7000) in X/Z to
+/// the projected host point; the second extends 7000 units along +X.
+/// Both span 400 units in Y and use room surface class 2. Coordinates retain
+/// low-halfword wrapping; normals are Q12. Cell lists are left intact.
+static void _actor444000BuildCornerWalls(Task* task, s32 distance, s16 faceIndex)
 {
-    SVECTOR                 dir;
-    SVECTOR*                norms   = Gp_GridParams->normals;
-    SVECTOR*                corners = Gp_GridParams->vertices;
-    WorldCollisionGridFace* faces   = Gp_GridParams->faces;
-    WorldCollisionGridFace  quad0   = { { face * 4, face * 4 + 1, face * 4 + 2, face * 4 + 3 }, face, 2 };
-    WorldCollisionGridFace  quad1   = {
-        { (face + 1) * 4, (face + 1) * 4 + 1, (face + 1) * 4 + 2, (face + 1) * 4 + 3 }, face + 1, 2
+    enum {
+        ACTOR_444000_CORNER_WALL_ANCHOR_X      = 11500,
+        ACTOR_444000_CORNER_WALL_ANCHOR_Z      = -7000,
+        ACTOR_444000_CORNER_WALL_RETURN_LENGTH = 7000,
+        ACTOR_444000_CORNER_WALL_HEIGHT        = 400,
+        ACTOR_444000_CORNER_WALL_SURFACE_CLASS = 2,
     };
-    SVECTOR* d;
+    SVECTOR                 forwardOffset;
+    SVECTOR*                normals    = Gp_GridParams->normals;
+    SVECTOR*                vertices   = Gp_GridParams->vertices;
+    WorldCollisionGridFace* faces      = Gp_GridParams->faces;
+    WorldCollisionGridFace  anchorWall = { { faceIndex * 4, faceIndex * 4 + 1, faceIndex * 4 + 2, faceIndex * 4 + 3 }, faceIndex, ACTOR_444000_CORNER_WALL_SURFACE_CLASS };
+    WorldCollisionGridFace  returnWall = {
+        { (faceIndex + 1) * 4, (faceIndex + 1) * 4 + 1, (faceIndex + 1) * 4 + 2, (faceIndex + 1) * 4 + 3 }, faceIndex + 1, ACTOR_444000_CORNER_WALL_SURFACE_CLASS
+    };
+    SVECTOR* forwardOffsetPointer;
 
-    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &dir);
-    d = &dir;
-    VectorNormalSS(d, d);
-    gte_lddp(scale);
-    gte_ldsv(d);
+    // Project the host's forward point, then join the fixed corner to it.
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &forwardOffset);
+    forwardOffsetPointer = &forwardOffset;
+    VectorNormalSS(forwardOffsetPointer, forwardOffsetPointer);
+    gte_lddp(distance);
+    gte_ldsv(forwardOffsetPointer);
     gte_gpf12();
-    gte_stsv(d);
+    gte_stsv(forwardOffsetPointer);
 
-    corners[face * 4].vx = corners[face * 4 + 2].vx = 0x2CEC;
-    corners[face * 4].vy = corners[face * 4 + 2].vy = (u16)task->extra.tmd->coords->coord.t[1];
-    corners[face * 4].vz = corners[face * 4 + 2].vz = -0x1B58;
-    corners[face * 4 + 1].vx                        = corners[face * 4 + 3].vx =
-        (u16)task->extra.tmd->coords->coord.t[0] + (u16)dir.vx;
-    corners[face * 4 + 1].vy = corners[face * 4 + 3].vy =
-        (u16)task->extra.tmd->coords->coord.t[1] + (u16)dir.vy;
-    corners[face * 4 + 1].vz = corners[face * 4 + 3].vz =
-        (u16)task->extra.tmd->coords->coord.t[2] + (u16)dir.vz;
-    corners[face * 4].vy     = (u16)corners[face * 4].vy - 0x190;
-    corners[face * 4 + 1].vy = (u16)corners[face * 4 + 1].vy - 0x190;
-    faces[face]              = quad0;
+    vertices[faceIndex * 4].vx = vertices[faceIndex * 4 + 2].vx = ACTOR_444000_CORNER_WALL_ANCHOR_X;
+    vertices[faceIndex * 4].vy = vertices[faceIndex * 4 + 2].vy = (u16)task->extra.tmd->coords->coord.t[1];
+    vertices[faceIndex * 4].vz = vertices[faceIndex * 4 + 2].vz = ACTOR_444000_CORNER_WALL_ANCHOR_Z;
+    vertices[faceIndex * 4 + 1].vx                              = vertices[faceIndex * 4 + 3].vx =
+        (u16)task->extra.tmd->coords->coord.t[0] + (u16)forwardOffset.vx;
+    vertices[faceIndex * 4 + 1].vy = vertices[faceIndex * 4 + 3].vy =
+        (u16)task->extra.tmd->coords->coord.t[1] + (u16)forwardOffset.vy;
+    vertices[faceIndex * 4 + 1].vz = vertices[faceIndex * 4 + 3].vz =
+        (u16)task->extra.tmd->coords->coord.t[2] + (u16)forwardOffset.vz;
+    vertices[faceIndex * 4].vy     = (u16)vertices[faceIndex * 4].vy - ACTOR_444000_CORNER_WALL_HEIGHT;
+    vertices[faceIndex * 4 + 1].vy = (u16)vertices[faceIndex * 4 + 1].vy - ACTOR_444000_CORNER_WALL_HEIGHT;
+    faces[faceIndex]               = anchorWall;
 
-    norms[face].vz = (u16)corners[face * 4].vx - (u16)corners[face * 4 + 1].vx;
-    norms[face].vy = (u16)corners[face * 4 + 1].vy - (u16)corners[face * 4].vy;
-    norms[face].vx = (u16)corners[face * 4 + 1].vz - (u16)corners[face * 4].vz;
-    VectorNormalSS(&norms[face], &norms[face]);
+    normals[faceIndex].vz = (u16)vertices[faceIndex * 4].vx - (u16)vertices[faceIndex * 4 + 1].vx;
+    normals[faceIndex].vy = (u16)vertices[faceIndex * 4 + 1].vy - (u16)vertices[faceIndex * 4].vy;
+    normals[faceIndex].vx = (u16)vertices[faceIndex * 4 + 1].vz - (u16)vertices[faceIndex * 4].vz;
+    VectorNormalSS(&normals[faceIndex], &normals[faceIndex]);
 
-    corners[face * 4 + 4].vx = corners[face * 4 + 6].vx =
-        (u16)task->extra.tmd->coords->coord.t[0] + (u16)dir.vx;
-    corners[face * 4 + 4].vy = corners[face * 4 + 6].vy =
-        (u16)task->extra.tmd->coords->coord.t[1] + (u16)dir.vy;
-    corners[face * 4 + 4].vz = corners[face * 4 + 6].vz =
-        (u16)task->extra.tmd->coords->coord.t[2] + (u16)dir.vz;
-    corners[face * 4 + 5].vx = corners[face * 4 + 7].vx =
-        (u16)task->extra.tmd->coords->coord.t[0] + (u16)dir.vx + 0x1B58;
-    corners[face * 4 + 5].vy = corners[face * 4 + 7].vy =
-        (u16)task->extra.tmd->coords->coord.t[1] + (u16)dir.vy;
-    corners[face * 4 + 5].vz = corners[face * 4 + 7].vz =
-        (u16)task->extra.tmd->coords->coord.t[2] + (u16)dir.vz;
-    corners[face * 4 + 4].vy = (u16)corners[face * 4 + 4].vy - 0x190;
-    corners[face * 4 + 5].vy = (u16)corners[face * 4 + 5].vy - 0x190;
-    faces[face + 1]          = quad1;
+    // Return along the room X axis from the shared endpoint.
+    vertices[faceIndex * 4 + 4].vx = vertices[faceIndex * 4 + 6].vx =
+        (u16)task->extra.tmd->coords->coord.t[0] + (u16)forwardOffset.vx;
+    vertices[faceIndex * 4 + 4].vy = vertices[faceIndex * 4 + 6].vy =
+        (u16)task->extra.tmd->coords->coord.t[1] + (u16)forwardOffset.vy;
+    vertices[faceIndex * 4 + 4].vz = vertices[faceIndex * 4 + 6].vz =
+        (u16)task->extra.tmd->coords->coord.t[2] + (u16)forwardOffset.vz;
+    vertices[faceIndex * 4 + 5].vx = vertices[faceIndex * 4 + 7].vx =
+        (u16)task->extra.tmd->coords->coord.t[0] + (u16)forwardOffset.vx + ACTOR_444000_CORNER_WALL_RETURN_LENGTH;
+    vertices[faceIndex * 4 + 5].vy = vertices[faceIndex * 4 + 7].vy =
+        (u16)task->extra.tmd->coords->coord.t[1] + (u16)forwardOffset.vy;
+    vertices[faceIndex * 4 + 5].vz = vertices[faceIndex * 4 + 7].vz =
+        (u16)task->extra.tmd->coords->coord.t[2] + (u16)forwardOffset.vz;
+    vertices[faceIndex * 4 + 4].vy = (u16)vertices[faceIndex * 4 + 4].vy - ACTOR_444000_CORNER_WALL_HEIGHT;
+    vertices[faceIndex * 4 + 5].vy = (u16)vertices[faceIndex * 4 + 5].vy - ACTOR_444000_CORNER_WALL_HEIGHT;
+    faces[faceIndex + 1]           = returnWall;
 
-    norms[face + 1].vx = 0;
-    norms[face + 1].vy = 0;
-    norms[face + 1].vz = -0x1000;
+    normals[faceIndex + 1].vx = 0;
+    normals[faceIndex + 1].vy = 0;
+    normals[faceIndex + 1].vz = -ONE;
 }
 
 #include "../../shared/glutton_throw_spawn.inc.c"
@@ -3956,8 +3975,9 @@ static const EnemyTaskFuncTable4 gGluttonSpinnerStates = {
 
 /// Copies the host's complete draw flags to every live escort model.
 ///
-/// Requires live models for each non-NULL escort. Reads the host flags for
-/// every write so allocation/lifetime ordering in the caller is preserved.
+/// Requires live host work/model and a live model for each non-NULL escort.
+/// Traverses all seven slots, borrowing every pointer only for the call. Each
+/// write reads the current host flags; no flags are merged or cleared.
 static __inline__ void _actor444000CopyEscortModelFlags(Task* task, GluttonWork* work)
 {
     s16 escortIndex;
@@ -4163,40 +4183,19 @@ static s32 _actor444000ApplyCommand(Task* task, s32 messageId, const ActorComman
     return 1;
 }
 
-/// Rebuilds the host's root coordinate from its own facing yaw with a uniform
-/// 1.0 scale, marks the model for a rebuild and arms the first state. The
-/// matrix lives in a frame taken off the scratch stack, which is handed back
-/// once the rotation has been copied out; inlined so each scratch-head access
-/// keeps its own `lui` instead of sharing a CSE'd register.
-static __inline__ void Actor444000_SeedRootCoord(Task* task, GluttonWork* work)
+/// Resets the host root to its current yaw at unity scale and enters idle.
+///
+/// Requires the live host work/model and 0x58 aligned scratch bytes including
+/// nested rotation work. Discards pitch, roll and previous scale, preserves
+/// translation/hierarchy, dirties composition and clears model draw flags.
+/// All reservations are released before return.
+static __inline__ void _actor444000InitializeRootPose(Task* task, GluttonWork* work)
 {
-    GfxCoord*             coord = task->extra.tmd->coords;
-    ActorScaleRotScratch* sc;
-    s16                   ang;
+    GfxCoord* rootCoord = task->extra.tmd->coords;
 
-    sc                                         = (ActorScaleRotScratch*)(SCRATCH_STACK_CURSOR(u8) - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = sc;
-
-    ang     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    sc->yaw = ang;
-    gfxRotMatrixY(&sc->rotation, ang, 1);
-    sc->scale.vx = sc->scale.vy = sc->scale.vz = 0x1000;
-    ScaleMatrix(&sc->rotation, &sc->scale);
-
-    coord->coord.m[0][0] = sc->rotation.m[0][0];
-    coord->coord.m[0][1] = sc->rotation.m[0][1];
-    coord->coord.m[0][2] = sc->rotation.m[0][2];
-    coord->coord.m[1][0] = sc->rotation.m[1][0];
-    coord->coord.m[1][1] = sc->rotation.m[1][1];
-    coord->coord.m[1][2] = sc->rotation.m[1][2];
-    coord->coord.m[2][0] = sc->rotation.m[2][0];
-    coord->coord.m[2][1] = sc->rotation.m[2][1];
-    coord->coord.m[2][2] = sc->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-
-    work->state            = 1;
+    _actorRenderRescaleYaw(rootCoord, ONE);
+    work->state            = ACTOR_444000_STATE_IDLE;
     task->extra.tmd->flags = 0;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
 }
 
 /// Spawn state of the arena boss: allocate its `GluttonWork`, wire the host
@@ -4212,7 +4211,7 @@ static __inline__ void Actor444000_SeedRootCoord(Task* task, GluttonWork* work)
 /// the host's twin, so it shares the host's group-1 record table.
 ///
 /// The root coordinate is flattened to its own yaw with a uniform 1.0 scale
-/// (`Actor444000_SeedRootCoord`), the swipe capsule `swipeBody` is linked
+/// (`_actor444000InitializeRootPose`), the swipe capsule `swipeBody` is linked
 /// by hand around the free coordinate `swipeCoord`, and both the host and every
 /// escort model are pointed at the work block's light and colour matrices
 /// before the fight announces itself with message 0x7DA.
@@ -4320,7 +4319,7 @@ static void func_actor_444000_8013AFF8(Enemy* enemy, Task* task)
         }
     }
 
-    Actor444000_SeedRootCoord(task, work);
+    _actor444000InitializeRootPose(task, work);
 
     esc                                                   = enemySpawnFromTable(D_actor_444000_801616B0, 0, 0, task->spawnArg2.pointer);
     work->escorts[0]                                      = esc;
@@ -4712,46 +4711,57 @@ out:
 
 #include "../../shared/glutton_hit_groups6to8.inc.c"
 
-/// Reset/teardown handler: when the work block is asking for a reset, arm the
-/// re-spawn sequence and push the host's model flag word onto each of the seven
-/// escorts' models. Otherwise run the ordinary re-arm while the sub-state
-/// counter is still below 0xA, and once it reaches 2 release the host's and
-/// every escort's model buffers.
-static void func_actor_444000_8013D810(Task* arg0)
+/// Releases the host and every non-NULL escort's primitive buffer.
+///
+/// Requires live host work/model and live models for the seven escort slots
+/// that are occupied. Models remain alive; buffer ownership returns to TMD.
+static __inline__ void _actor444000ReleaseModelBuffers(Task* task)
 {
-    GluttonWork* work;
-    GluttonWork* escorts;
-    GluttonWork* dying;
-    s16          i;
-    s16          j;
+    GluttonWork* bufferWork = task->work;
+    s16          bufferIndex;
 
-    work = arg0->work;
-    if (work->stateChanged != 0) {
-        escorts                = arg0->work;
-        work->freeCountdown    = 3;
-        arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-            if (escorts->escorts[i] != NULL) {
-                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
-            }
+    tmdFreePrimitiveBuffer(task->extra.tmd);
+    for (bufferIndex = 0; bufferIndex < ARRAY_SIZE(bufferWork->escorts); bufferIndex++) {
+        if (bufferWork->escorts[bufferIndex] != NULL) {
+            tmdFreePrimitiveBuffer(bufferWork->escorts[bufferIndex]->task->extra.tmd);
         }
-        work->animId     = 0xA;
+    }
+}
+
+/// Hides the host and escorts and releases their primitive buffers.
+///
+/// Requires live host work/model and a live model for each non-NULL escort.
+/// Entry requests clip 10 at normal rate and a three-update release countdown.
+/// Later ticks advance animation while the state counter is below ten and
+/// release buffers at tick two. The outer boss tick also services the countdown.
+static void _actor444000DormantState(Task* task)
+{
+    enum {
+        ACTOR_444000_DORMANT_CLIP                = 10,
+        ACTOR_444000_DORMANT_RELEASE_DELAY_TICKS = 3,
+        ACTOR_444000_DORMANT_RELEASE_TICK        = 2,
+        ACTOR_444000_DORMANT_ANIMATION_TICKS     = 10,
+    };
+    GluttonWork* work;
+    GluttonWork* flagWork;
+
+    work = task->work;
+    if (work->stateChanged != 0) {
+        flagWork               = task->work;
+        work->freeCountdown    = ACTOR_444000_DORMANT_RELEASE_DELAY_TICKS;
+        task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        _actor444000CopyEscortModelFlags(task, flagWork);
+        work->animId     = ACTOR_444000_DORMANT_CLIP;
         work->animStep   = GLUTTON_ANIM_STEP_RESTART;
         work->stateTicks = 0;
-        work->animRate   = 0x10;
-        _gluttonTickAnim(arg0);
+        work->animRate   = ANIMATION_RATE_ONE;
+        _gluttonTickAnim(task);
     } else {
-        if (work->stateTicks < 0xA) {
-            _gluttonTickAnim(arg0);
+        if (work->stateTicks < ACTOR_444000_DORMANT_ANIMATION_TICKS) {
+            _gluttonTickAnim(task);
         }
-        if (work->stateTicks == 2) {
-            dying = arg0->work;
-            tmdFreePrimitiveBuffer(arg0->extra.tmd);
-            for (j = 0; j < ARRAY_SIZE(dying->escorts); j++) {
-                if (dying->escorts[j] != NULL) {
-                    tmdFreePrimitiveBuffer(dying->escorts[j]->task->extra.tmd);
-                }
-            }
+        if (work->stateTicks == ACTOR_444000_DORMANT_RELEASE_TICK) {
+            _actor444000ReleaseModelBuffers(task);
         }
     }
 }
@@ -4796,59 +4806,49 @@ static __inline__ void _actorRenderRescaleYawYReserve(GfxCoord* coord, s32 verti
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
-/// Re-arm handler run once the block asks for a reset: clear the host's model
-/// flag word onto itself and every escort, clear `neckPitchEnabled` and `neckYawEnabled`, then
-/// step the animation on and flatten six of the models -- escorts 2, 4, 3, 0 and
-/// 1 plus the host itself -- onto the ground plane. Escort 3 keeps a little
-/// height (`verticalScale` ONE/4) where the rest are flattened outright. The last release
-/// clears escort 2's coordinate flag again rather than escort 1's, which looks
-/// like a copy-paste slip in the original but is what the ROM does.
-static void func_actor_444000_8013D96C(Task* arg0)
+/// Keeps the defeated host and its attached body models in their collapsed pose.
+///
+/// Requires live host work and escorts 0..4 with models, initialized animation
+/// rigs and scratch capacity for a yaw rebuild. Entry enables drawing and
+/// disables neck overrides. Each tick advances animation and rebuilds six
+/// model roots with zero Y scale except escort 3, which retains quarter height.
+/// The final dirty write targets escort 2 again, as the original does.
+static void _actor444000CollapsedState(Task* task)
 {
     GluttonWork* work;
-    GluttonWork* escorts;
-    s16          i;
+    GluttonWork* flagWork;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateChanged != 0) {
-        arg0->extra.tmd->flags = 0;
-        escorts                = arg0->work;
-        escorts->freeCountdown = 0;
-        arg0->extra.tmd->flags = 0;
-        for (i = 0; i < ARRAY_SIZE(escorts->escorts); i++) {
-            if (escorts->escorts[i] != NULL) {
-                escorts->escorts[i]->task->extra.tmd->flags = arg0->extra.tmd->flags;
-            }
-        }
+        task->extra.tmd->flags  = 0;
+        flagWork                = task->work;
+        flagWork->freeCountdown = 0;
+        task->extra.tmd->flags  = 0;
+        _actor444000CopyEscortModelFlags(task, flagWork);
         work->neckPitchEnabled = 0;
         work->neckYawEnabled   = 0;
     }
 
-    _gluttonTickAnim(arg0);
+    _gluttonTickAnim(task);
 
-    _actorRenderRescaleYawYReserve(work->escorts[2]->task->extra.tmd->coords, 0);
+    // Rebuild each yaw at its collapse scale, preserving the final dirty target.
+    _actorRenderRescaleYawY(work->escorts[2]->task->extra.tmd->coords, ONE, 0);
     work->escorts[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorRenderReleaseYawScratch();
 
-    _actorRenderRescaleYawYReserve(arg0->extra.tmd->coords, 0);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorRenderReleaseYawScratch();
+    _actorRenderRescaleYawY(task->extra.tmd->coords, ONE, 0);
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
-    _actorRenderRescaleYawYReserve(work->escorts[4]->task->extra.tmd->coords, 0);
+    _actorRenderRescaleYawY(work->escorts[4]->task->extra.tmd->coords, ONE, 0);
     work->escorts[4]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorRenderReleaseYawScratch();
 
-    _actorRenderRescaleYawYReserve(work->escorts[3]->task->extra.tmd->coords, ONE / 4);
+    _actorRenderRescaleYawY(work->escorts[3]->task->extra.tmd->coords, ONE, ONE / 4);
     work->escorts[3]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorRenderReleaseYawScratch();
 
-    _actorRenderRescaleYawYReserve(work->escorts[0]->task->extra.tmd->coords, 0);
+    _actorRenderRescaleYawY(work->escorts[0]->task->extra.tmd->coords, ONE, 0);
     work->escorts[0]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorRenderReleaseYawScratch();
 
-    _actorRenderRescaleYawYReserve(work->escorts[1]->task->extra.tmd->coords, 0);
+    _actorRenderRescaleYawY(work->escorts[1]->task->extra.tmd->coords, ONE, 0);
     work->escorts[2]->task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actorRenderReleaseYawScratch();
 }
 
 /// Drag tick of the arena fight: the state the boss runs while it is hauling the
@@ -5138,6 +5138,73 @@ static void func_actor_444000_8013E058(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor444000DragScratch);
 }
 
+/// Places a living caught player 900 units from the host's fifth-part origin.
+///
+/// Requires live host/player models, a writable catch scratch block, a complete
+/// coordinate chain to world space and initialized scratch for nested calls.
+/// The player is placed in the common root frame at their existing height.
+/// The nearer facing toward or away from the host selects the animation-set
+/// half and placement yaw (4096 units per turn); the host neck aims back at
+/// the player. Scratch and player status are borrowed, and the shared placement
+/// payload is consumed synchronously. A dead player still updates scratch and
+/// animation selection but receives no placement message.
+static __inline__ void _actor444000PlaceCaughtPlayer(Task* task, GluttonWork* work,
+                                                     Task* player, _Actor444000CatchScratch* catchScratch,
+                                                     const PlayerStatus* playerStatus)
+{
+    enum {
+        ACTOR_444000_CAUGHT_PLAYER_DISTANCE = 900,
+    };
+    GfxCoord* playerCoord;
+    s32       playerTurn;
+
+    // Choose the nearer facing while retaining the catch's animation side.
+    catchScratch->anchor.vz = 0;
+    catchScratch->anchor.vy = 0;
+    catchScratch->anchor.vx = 0;
+    _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[4], &catchScratch->anchor);
+
+    catchScratch->offset.vx = catchScratch->anchor.vx - player->extra.tmd->coords->coord.t[0];
+    catchScratch->offset.vy = 0;
+    catchScratch->offset.vz = catchScratch->anchor.vz - player->extra.tmd->coords->coord.t[2];
+    playerTurn              = _actorAngleTurnToOffset(player->extra.tmd->coords, catchScratch->offset.vx, catchScratch->offset.vz);
+    catchScratch->playerYaw = playerTurn;
+    if (abs(catchScratch->playerYaw) > ACTOR_TRANSFORM_ANGLE_HALF_TURN / 2) {
+        if (catchScratch->playerYaw > 0) {
+            catchScratch->playerYaw = playerTurn - ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+        } else {
+            catchScratch->playerYaw = playerTurn + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+        }
+        work->playerAnim.source.sets = (D_actor_444000_80161670 + 4);
+    } else {
+        work->playerAnim.source.sets = D_actor_444000_80161670;
+    }
+    playerCoord              = player->extra.tmd->coords;
+    catchScratch->playerYaw += ratan2(-playerCoord->coord.m[2][0], playerCoord->coord.m[2][2]);
+
+    catchScratch->offset.vx = player->extra.tmd->coords->coord.t[0] - catchScratch->anchor.vx;
+    catchScratch->offset.vy = 0;
+    catchScratch->offset.vz = player->extra.tmd->coords->coord.t[2] - catchScratch->anchor.vz;
+    work->neckYawTarget     = _actorAngleTurnToOffset(task->extra.tmd->coords, catchScratch->offset.vx, catchScratch->offset.vz);
+
+    // Hold the player at a fixed ground-plane radius from the host part.
+    VectorNormalSS(&catchScratch->offset, &catchScratch->offset);
+    gte_lddp(ACTOR_444000_CAUGHT_PLAYER_DISTANCE);
+    gte_ldsv(&catchScratch->offset);
+    gte_gpf12();
+    gte_stsv(&catchScratch->offset);
+
+    D_actor_444000_80161908.placement.pos.vx = catchScratch->anchor.vx + catchScratch->offset.vx;
+    D_actor_444000_80161908.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
+    D_actor_444000_80161908.placement.pos.vz = catchScratch->anchor.vz + catchScratch->offset.vz;
+    D_actor_444000_80161908.placement.rot.vx = 0;
+    D_actor_444000_80161908.placement.rot.vy = catchScratch->playerYaw;
+    D_actor_444000_80161908.placement.rot.vz = 0;
+    if (playerStatus->hp > 0) {
+        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_444000_80161908.placement, 0);
+    }
+}
+
 /// Escort-order tick of the arena fight: the state the boss runs while it has
 /// the player pinned in front of it.
 ///
@@ -5147,7 +5214,7 @@ static void func_actor_444000_8013E058(Task* task)
 /// host and every escort has its model buffers allocated, and -- if the player
 /// has drifted inside 0xB54 -- drags them back out to that range along the
 /// line between the two. It then places the player with
-/// `Actor444000_PlacePlayerAhead`, hands the fight the battle flag, drops the
+/// `_actor444000PlaceCaughtPlayer`, hands the fight the battle flag, drops the
 /// host and three of its escorts out of the actor slots and orders escort 3
 /// through a 0x7DA message.
 ///
@@ -5158,64 +5225,6 @@ static void func_actor_444000_8013E058(Task* task)
 /// frame so none repeats while it is held. While message 0x3ED reports the
 /// player free they are put back on the host's own position, and sub-state 0x17
 /// re-places them and re-sends the 0x3FF animation.
-/// Places the player in front of the host and points the pair at each other:
-/// the host's fifth part is carried into world space, the yaw from there to the
-/// player picks which of the two message-0x3FF animation tables the tick will
-/// send (`..._80161680` past a quarter turn, `..._80161670` within it), and the
-/// opposite yaw is stowed in `neckYawTarget` for the drive step. The normalised
-/// direction scaled to 0x384 is where the player is asked to stand.
-static __inline__ void Actor444000_PlacePlayerAhead(Task* task, GluttonWork* work,
-                                                    Task* player, _Actor444000CatchScratch* sc,
-                                                    PlayerStatus* cfg)
-{
-    GfxCoord* coord;
-    s32       yaw;
-
-    sc->anchor.vz = 0;
-    sc->anchor.vy = 0;
-    sc->anchor.vx = 0;
-    _actorRenderTransformLocalPointToWorld(&task->extra.tmd->coords[4], &sc->anchor);
-
-    sc->offset.vx = sc->anchor.vx - player->extra.tmd->coords->coord.t[0];
-    sc->offset.vy = 0;
-    sc->offset.vz = sc->anchor.vz - player->extra.tmd->coords->coord.t[2];
-    yaw           = _actorAngleTurnToOffset(player->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
-    sc->playerYaw = yaw;
-    if (abs(sc->playerYaw) > 0x400) {
-        if (sc->playerYaw > 0) {
-            sc->playerYaw = yaw - 0x800;
-        } else {
-            sc->playerYaw = yaw + 0x800;
-        }
-        work->playerAnim.source.sets = (D_actor_444000_80161670 + 4);
-    } else {
-        work->playerAnim.source.sets = D_actor_444000_80161670;
-    }
-    coord          = player->extra.tmd->coords;
-    sc->playerYaw += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-
-    sc->offset.vx       = player->extra.tmd->coords->coord.t[0] - sc->anchor.vx;
-    sc->offset.vy       = 0;
-    sc->offset.vz       = player->extra.tmd->coords->coord.t[2] - sc->anchor.vz;
-    work->neckYawTarget = _actorAngleTurnToOffset(task->extra.tmd->coords, sc->offset.vx, sc->offset.vz);
-
-    VectorNormalSS(&sc->offset, &sc->offset);
-    gte_lddp(0x384);
-    gte_ldsv(&sc->offset);
-    gte_gpf12();
-    gte_stsv(&sc->offset);
-
-    D_actor_444000_80161908.placement.pos.vx = sc->anchor.vx + sc->offset.vx;
-    D_actor_444000_80161908.placement.pos.vy = player->extra.tmd->coords->coord.t[1];
-    D_actor_444000_80161908.placement.pos.vz = sc->anchor.vz + sc->offset.vz;
-    D_actor_444000_80161908.placement.rot.vx = 0;
-    D_actor_444000_80161908.placement.rot.vy = sc->playerYaw;
-    D_actor_444000_80161908.placement.rot.vz = 0;
-    if (cfg->hp > 0) {
-        TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &D_actor_444000_80161908.placement, 0);
-    }
-}
-
 static void func_actor_444000_8013EC84(Task* arg0)
 {
     _Actor444000CatchScratch* sc;
@@ -5310,7 +5319,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
             actorRenderComposeCoord(player->extra.tmd->coords);
         }
 
-        Actor444000_PlacePlayerAhead(arg0, work, player, sc, cfg);
+        _actor444000PlaceCaughtPlayer(arg0, work, player, sc, cfg);
 
         D_actor_444000_80161868.playerAtHost = 0;
         Gp_StateC08.flags                   |= ATTACHMENT_FLAG_EVENT_LOCK;
@@ -5392,7 +5401,7 @@ static void func_actor_444000_8013EC84(Task* arg0)
 
         if (work->stateTicks == 0x17) {
             sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0A), SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            Actor444000_PlacePlayerAhead(arg0, work, player, sc, cfg);
+            _actor444000PlaceCaughtPlayer(arg0, work, player, sc, cfg);
             work->playerAnim.animationId = 1;
             work->playerAnim.blend       = ANIMATION_BLEND_RESET;
             work->playerAnim.blendFrames = 0;
@@ -5404,17 +5413,21 @@ static void func_actor_444000_8013EC84(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor444000CatchScratch);
 }
 
-/// Whether any of the leading `count` contact records is a kind 0x10000
-/// (player) contact, stopping at the first empty record.
-static inline s32 _actor444000HasPlayerContact(WorldCollisionContact* records, s16 count)
+/// Reports whether the contact prefix contains a player or companion body.
+///
+/// `contactCount` counts readable elements, from 0 to 32767. A zero key stops
+/// the scan even if later records are occupied; other keys are classified by
+/// their high halfword. Returns 0 or 1 and retains no pointer.
+static inline s32 _actor444000HasPlayerBodyContact(const WorldCollisionContact* contacts, s16 contactCount)
 {
-    s16 i;
+    enum { ACTOR_444000_EMPTY_CONTACT_KEY = 0 };
+    s16 contactIndex;
 
-    for (i = 0; i < count; i++) {
-        if (records[i].key.value == 0) {
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        if (contacts[contactIndex].key.value == ACTOR_444000_EMPTY_CONTACT_KEY) {
             break;
         }
-        if ((records[i].key.value & 0xFFFF0000) == 0x10000) {
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
             return 1;
         }
     }
@@ -5606,7 +5619,7 @@ static void func_actor_444000_8013FB74(Task* arg0)
 
     _gluttonTickAnim(arg0);
 
-    if (_actor444000HasPlayerContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.hold, 0) == 0) {
+    if (_actor444000HasPlayerBodyContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) && TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_444000_80161928.hold, 0) == 0) {
         target                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         work->swipeDamageReply = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 4), 0);
         if (work->swipeDamageReply == 1) {
@@ -5962,180 +5975,203 @@ static void func_actor_444000_80140E28(Task* arg0)
     work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 }
 
-static void func_actor_444000_8014105C(Task* arg0)
+/// Plays the hit reaction that retracts the limb before another attack choice.
+///
+/// Requires live enemy/model/work, initialized animation rigs and scratch.
+/// Entry exposes the host, hides its HP display, selects clip 13, starts the
+/// reaction sound and stops the limb sound. Subsequent ticks retract reach by
+/// 200 while it is at least 401, clear the limb blend weight in that case and
+/// return to attack selection when host animation slot 1 reaches a boundary.
+static void _actor444000RetractLimbState(Task* task)
 {
+    enum {
+        ACTOR_444000_RETRACT_LIMB_CLIP         = 13,
+        ACTOR_444000_LIMB_RETRACTION_MIN_REACH = 401,
+        ACTOR_444000_LIMB_RETRACTION_STEP      = 200,
+        ACTOR_444000_RETRACT_SCRATCH_BYTES     = 12,
+    };
     GluttonWork* work;
-    Enemy*       obj;
-    TmdObject*   tmd;
-    s32          state;
-    s32          id;
-    s32          pan;
+    Enemy*       enemy;
+    TmdObject*   hostModel;
+    s32          previousClip;
+    s32          soundId;
+    s32          soundPan;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateChanged != 0) {
-        tmd                         = arg0->extra.tmd;
-        obj                         = arg0->spawnArg2.pointer;
-        obj->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        tmd->flags                  = 0;
-        state                       = work->animId;
-        work->neckPitchEnabled      = 0;
-        work->neckYawEnabled        = 0;
-        work->hostExposed           = 1;
-        if (state != 0xD) {
+        hostModel                     = task->extra.tmd;
+        enemy                         = task->spawnArg2.pointer;
+        enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        hostModel->flags              = 0;
+        previousClip                  = work->animId;
+        work->neckPitchEnabled        = 0;
+        work->neckYawEnabled          = 0;
+        work->hostExposed             = 1;
+        if (previousClip != ACTOR_444000_RETRACT_LIMB_CLIP) {
             work->animStep = GLUTTON_ANIM_STEP_BLEND;
-            work->animId   = 0xD;
+            work->animId   = ACTOR_444000_RETRACT_LIMB_CLIP;
         } else {
             work->animStep = GLUTTON_ANIM_STEP_RESTART;
-            work->animId   = state;
+            work->animId   = previousClip;
         }
-        id  = (((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200004;
-        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        sndEvtRequestScriptStop((((u16)obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        soundId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 4);
+        soundPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        sndEvtRequestScriptStop((((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x0D), SOUND_SCRIPT_STOP_KEEP_RELEASE);
         return;
     }
-    SCRATCH_STACK_RESERVE_BYTES(0xC);
-    if (gGluttonLimbReach >= 0x191) {
+    // This twelve-byte reservation is unused by the recovered body.
+    SCRATCH_STACK_RESERVE_BYTES(ACTOR_444000_RETRACT_SCRATCH_BYTES);
+    if (gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACTION_MIN_REACH) {
         work->limbPose    = 0;
-        gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
+        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_LIMB_RETRACTION_STEP;
     }
-    _gluttonTickAnim(arg0);
+    _gluttonTickAnim(task);
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        work->state = 0xA;
+        work->state = ACTOR_444000_STATE_CHOOSE_ATTACK;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_444000_RETRACT_SCRATCH_BYTES);
 }
 
-/// Idle/approach tick of the arena fight: re-arms the block on request, keeps
-/// the boss yawed at `gPlayerStatus.coordMtx` (the player's coordinate matrix)
-/// and then picks the state to run next.
+/// Aims the neck at the player and chooses the next attack or arena advance.
 ///
-/// `neckYawTarget` is that yaw, relative to the host part's own facing and wrapped
-/// into +/-0x800. `attackDelay` is a stagger countdown -- while it is positive the
-/// tick only spins it down, and the reset arms it to 0x28 if it is not already
-/// running.
-///
-/// The choice is a ladder: `summonsAlive` picks state 3 outright, then each attack
-/// pattern in `phase` has a depth the player has to be past before the
-/// fight advances to state 9, the last two only while the boss still has HP in
-/// hand. Failing all of those, `pendingHeals` picks 0xF and pattern 6 picks 7, and
-/// otherwise the distance from the player to a point just in front of the host
-/// picks between 3, 7 and 0xB on a coin flip off `gRandomLcgState`.
-///
-/// `coord` and `facing` are the same coordinate read twice on purpose: the
-/// stores into `vec` cut the first read's value, and the second read has to
-/// outlive the first `ratan2` call.
-static void func_actor_444000_801411C8(Task* arg0)
+/// Requires live host/player models and enemy work, initialized rigs and scratch.
+/// Entry blends to idle and arms a 40-tick delay only when none is pending.
+/// Summons take priority over phase/depth/HP advances, then healing and final
+/// phase debris throws take priority over range-based random attack choices.
+/// Range is a 3D distance from root + (1311, 250, -607), with signed-halfword
+/// components; 3801 and 9001 divide its attack bands. Neck yaw uses 4096 units
+/// per turn. The player and host translations must share a parent frame.
+static void _actor444000ChooseAttackState(Task* task)
 {
-    GluttonHitScratch* sc;
+    enum {
+        ACTOR_444000_ATTACK_DELAY_TICKS             = 40,
+        ACTOR_444000_IDLE_CLIP                      = 1,
+        ACTOR_444000_LIMB_RETRACTION_MIN_REACH      = 401,
+        ACTOR_444000_LIMB_RETRACTION_STEP           = 200,
+        ACTOR_444000_PHASE1_ADVANCE_Z               = -7500,
+        ACTOR_444000_PHASE3_ADVANCE_Z               = -12500,
+        ACTOR_444000_PHASE4_ADVANCE_Z               = -15800,
+        ACTOR_444000_PHASE5_ADVANCE_Z               = -17000,
+        ACTOR_444000_PHASE4_ADVANCE_HP              = 2500,
+        ACTOR_444000_PHASE5_ADVANCE_HP              = 2000,
+        ACTOR_444000_ATTACK_RANGE_ORIGIN_X          = 1311,
+        ACTOR_444000_ATTACK_RANGE_ORIGIN_Y          = 250,
+        ACTOR_444000_ATTACK_RANGE_ORIGIN_NEGATIVE_Z = 607,
+        ACTOR_444000_NEAR_ATTACK_DISTANCE           = 3801,
+        ACTOR_444000_FAR_ATTACK_DISTANCE            = 9001,
+    };
+    GluttonHitScratch* rangeScratch;
     GluttonWork*       work;
     Enemy*             enemy;
     Task*              player;
-    GfxCoord*          coord;
-    SVECTOR            vec;
-    SVECTOR*           d;
+    GfxCoord*          hostCoord;
+    SVECTOR            playerOffset;
+    SVECTOR*           playerOffsetPointer;
 
-    work   = arg0->work;
+    work   = task->work;
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    enemy  = arg0->spawnArg2.pointer;
+    enemy  = task->spawnArg2.pointer;
 
     if (work->stateChanged != 0) {
         work->neckYawEnabled   = 1;
         work->neckPitchEnabled = 1;
         work->neckPitchTarget  = 0;
         if (work->attackDelay == 0) {
-            work->attackDelay = 0x28;
+            work->attackDelay = ACTOR_444000_ATTACK_DELAY_TICKS;
         }
-        work->animId      = 1;
+        work->animId      = ACTOR_444000_IDLE_CLIP;
         work->animStep    = GLUTTON_ANIM_STEP_BLEND;
         work->hostExposed = 0;
     }
 
-    d                   = &vec;
-    coord               = arg0->extra.tmd->coords;
-    d->vx               = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-    d->vy               = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-    d->vz               = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-    work->neckYawTarget = _actorAngleTurnToOffset(arg0->extra.tmd->coords, d->vx, d->vz);
+    playerOffsetPointer     = &playerOffset;
+    hostCoord               = task->extra.tmd->coords;
+    playerOffsetPointer->vx = gPlayerStatus.coordMtx->t[0] - hostCoord->coord.t[0];
+    playerOffsetPointer->vy = gPlayerStatus.coordMtx->t[1] - hostCoord->coord.t[1];
+    playerOffsetPointer->vz = gPlayerStatus.coordMtx->t[2] - hostCoord->coord.t[2];
+    work->neckYawTarget     = _actorAngleTurnToOffset(task->extra.tmd->coords, playerOffsetPointer->vx, playerOffsetPointer->vz);
 
-    if (gGluttonLimbReach >= 0x191) {
-        gGluttonLimbReach = (u16)gGluttonLimbReach - 0xC8;
+    if (gGluttonLimbReach >= ACTOR_444000_LIMB_RETRACTION_MIN_REACH) {
+        gGluttonLimbReach = (u16)gGluttonLimbReach - ACTOR_444000_LIMB_RETRACTION_STEP;
         work->limbPose    = 0;
     }
-    _gluttonTickAnim(arg0);
+    _gluttonTickAnim(task);
 
+    // Advance and healing triggers precede range-based attack selection.
     if (work->attackDelay > 0) {
         work->attackDelay = work->attackDelay - 1;
         return;
     }
     if (work->summonsAlive > 0) {
-        work->state = 3;
+        work->state = GLUTTON_STATE_INHALE;
         return;
     }
 
     if (work->phase == 0) {
-        work->state = 9;
+        work->state = GLUTTON_STATE_ADVANCE;
         return;
     }
-    if (work->phase == 1 && player->extra.tmd->coords->coord.t[2] < -0x1D4C) {
-        work->state = 9;
+    if (work->phase == 1 && player->extra.tmd->coords->coord.t[2] < ACTOR_444000_PHASE1_ADVANCE_Z) {
+        work->state = GLUTTON_STATE_ADVANCE;
         return;
     }
     if (work->phase == 2) {
-        work->state = 9;
+        work->state = GLUTTON_STATE_ADVANCE;
         return;
     }
-    if (work->phase == 3 && player->extra.tmd->coords->coord.t[2] < -0x30D4) {
-        work->state = 9;
+    if (work->phase == 3 && player->extra.tmd->coords->coord.t[2] < ACTOR_444000_PHASE3_ADVANCE_Z) {
+        work->state = GLUTTON_STATE_ADVANCE;
         return;
     }
-    if (work->phase == 4 && player->extra.tmd->coords->coord.t[2] < -0x3DB8 &&
-        enemy->hp < 0x9C4) {
-        work->state = 9;
+    if (work->phase == 4 && player->extra.tmd->coords->coord.t[2] < ACTOR_444000_PHASE4_ADVANCE_Z &&
+        enemy->hp < ACTOR_444000_PHASE4_ADVANCE_HP) {
+        work->state = GLUTTON_STATE_ADVANCE;
         return;
     }
-    if (work->phase == 5 && player->extra.tmd->coords->coord.t[2] < -0x4268 &&
-        enemy->hp < 0x7D0) {
-        work->state = 9;
+    if (work->phase == 5 && player->extra.tmd->coords->coord.t[2] < ACTOR_444000_PHASE5_ADVANCE_Z &&
+        enemy->hp < ACTOR_444000_PHASE5_ADVANCE_HP) {
+        work->state = GLUTTON_STATE_ADVANCE;
         return;
     }
 
     if ((s8)work->pendingHeals > 0) {
-        work->state = 0xF;
+        work->state = GLUTTON_STATE_HEAL;
         return;
     }
     if (work->phase == 6) {
-        work->state = 7;
+        work->state = ACTOR_444000_STATE_THROW_DEBRIS;
         return;
     }
 
-    sc              = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
-    sc->toPlayer.vx = player->extra.tmd->coords->coord.t[0] -
-                      arg0->extra.tmd->coords->coord.t[0] - 0x51F;
-    sc->toPlayer.vy = player->extra.tmd->coords->coord.t[1] -
-                      arg0->extra.tmd->coords->coord.t[1] - 0xFA;
-    sc->toPlayer.vz = player->extra.tmd->coords->coord.t[2] -
-                      arg0->extra.tmd->coords->coord.t[2] + 0x25F;
-    sc->playerDistance = SquareRoot0(sc->toPlayer.vx * sc->toPlayer.vx + sc->toPlayer.vy * sc->toPlayer.vy +
-                                     sc->toPlayer.vz * sc->toPlayer.vz);
-    if (sc->playerDistance < 0x2329) {
-        if (sc->playerDistance >= 0xED9) {
+    // Quantize the offset before measuring the three-dimensional attack range.
+    rangeScratch              = SCRATCH_STACK_RESERVE_BLOCK(GluttonHitScratch);
+    rangeScratch->toPlayer.vx = player->extra.tmd->coords->coord.t[0] -
+                                task->extra.tmd->coords->coord.t[0] - ACTOR_444000_ATTACK_RANGE_ORIGIN_X;
+    rangeScratch->toPlayer.vy = player->extra.tmd->coords->coord.t[1] -
+                                task->extra.tmd->coords->coord.t[1] - ACTOR_444000_ATTACK_RANGE_ORIGIN_Y;
+    rangeScratch->toPlayer.vz = player->extra.tmd->coords->coord.t[2] -
+                                task->extra.tmd->coords->coord.t[2] + ACTOR_444000_ATTACK_RANGE_ORIGIN_NEGATIVE_Z;
+    rangeScratch->playerDistance = SquareRoot0(rangeScratch->toPlayer.vx * rangeScratch->toPlayer.vx + rangeScratch->toPlayer.vy * rangeScratch->toPlayer.vy +
+                                               rangeScratch->toPlayer.vz * rangeScratch->toPlayer.vz);
+    if (rangeScratch->playerDistance < ACTOR_444000_FAR_ATTACK_DISTANCE) {
+        if (rangeScratch->playerDistance >= ACTOR_444000_NEAR_ATTACK_DISTANCE) {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
-                work->state = 7;
+                work->state = ACTOR_444000_STATE_THROW_DEBRIS;
             } else {
-                work->state = 3;
+                work->state = GLUTTON_STATE_INHALE;
             }
         } else {
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
             if ((gRandomLcgState >> 16) & 1) {
-                work->state = 3;
+                work->state = GLUTTON_STATE_INHALE;
             } else {
-                work->state = 0xB;
+                work->state = GLUTTON_STATE_SWIPE;
             }
         }
     } else {
-        work->state = 3;
+        work->state = GLUTTON_STATE_INHALE;
     }
     SCRATCH_STACK_RELEASE_BLOCK(GluttonHitScratch);
 }
@@ -6324,15 +6360,46 @@ static void func_actor_444000_80141618(Task* task)
 
 #include "../../shared/glutton_escort_state.inc.c"
 
-/// Keeps the player inside the arena: clamps the player model's root
-/// translation every tick. `t[1]` (height) is never allowed above 0, and `t[2]`
-/// (depth) is capped at 0 in front and -26000 at the back. The `t[2]` ladder
-/// then picks the `t[0]` (lateral) corridor for that depth band, so the walls
-/// narrow and widen as the player moves through the room.
-static void func_actor_444000_80142254(void)
+/// Clamps the live player root to the incinerator arena's depth-banded corridor.
+///
+/// Coordinates use root-parent world units. Positive Y is clamped to zero;
+/// Z is bounded by 0 and -26000, and interior depth bands select X limits.
+/// The end-cap branches only clamp Z, so X is not clamped on those calls.
+/// Requires a live player model. Writes translation without dirtying composition.
+static void _actor444000ClampPlayerToArena(void)
 {
+    enum {
+        ACTOR_444000_ARENA_FRONT_BAND_BACK_Z       = -1000,
+        ACTOR_444000_ARENA_WIDE_APPROACH_BACK_Z    = -5000,
+        ACTOR_444000_ARENA_TURN_BACK_Z             = -7000,
+        ACTOR_444000_ARENA_FIRST_WIDENING_FRONT_Z  = -13200,
+        ACTOR_444000_ARENA_FIRST_WIDENING_BACK_Z   = -14750,
+        ACTOR_444000_ARENA_SECOND_WIDENING_FRONT_Z = -21250,
+        ACTOR_444000_ARENA_SECOND_WIDENING_BACK_Z  = -22800,
+        ACTOR_444000_ARENA_BACK_Z                  = -26000,
+        ACTOR_444000_ARENA_CORRIDOR_RIGHT_X        = 16500,
+        ACTOR_444000_ARENA_WIDENING_RIGHT_X        = 17500,
+        ACTOR_444000_ARENA_CORRIDOR_LEFT_X         = 11500,
+        ACTOR_444000_ARENA_TURN_LEFT_X             = 9500,
+    };
     Task* player;
-    s32   z;
+    s32   playerZ;
+
+    /// Clamps the live player's X translation to an inclusive interval.
+    ///
+    /// Captures the live Task* local `player`; both bounds must be ordered,
+    /// side-effect-free expressions in parent-coordinate units. Expands to
+    /// one block; each bound occurs twice and the player is read up to four
+    /// times. Leaves composition stamps untouched and retains no pointer.
+#define ACTOR_444000_CLAMP_PLAYER_X(minimumX, maximumX)           \
+    {                                                             \
+        if (player->extra.tmd->coords->coord.t[0] < (minimumX)) { \
+            player->extra.tmd->coords->coord.t[0] = (minimumX);   \
+        }                                                         \
+        if (player->extra.tmd->coords->coord.t[0] > (maximumX)) { \
+            player->extra.tmd->coords->coord.t[0] = (maximumX);   \
+        }                                                         \
+    }
 
     player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
 
@@ -6340,69 +6407,30 @@ static void func_actor_444000_80142254(void)
         player->extra.tmd->coords->coord.t[1] = 0;
     }
 
-    z = player->extra.tmd->coords->coord.t[2];
-    if (z > 0) {
+    playerZ = player->extra.tmd->coords->coord.t[2];
+    if (playerZ > 0) {
         player->extra.tmd->coords->coord.t[2] = 0;
-    } else if (z > -1000) {
-        if (player->extra.tmd->coords->coord.t[0] < 0) {
-            player->extra.tmd->coords->coord.t[0] = 0;
-        }
-        if (player->extra.tmd->coords->coord.t[0] > 16500) {
-            player->extra.tmd->coords->coord.t[0] = 16500;
-        }
-    } else if (z > -5000) {
-        if (player->extra.tmd->coords->coord.t[0] < 0) {
-            player->extra.tmd->coords->coord.t[0] = 0;
-        }
-        if (player->extra.tmd->coords->coord.t[0] > 16500) {
-            player->extra.tmd->coords->coord.t[0] = 16500;
-        }
-    } else if (z > -7000) {
-        if (player->extra.tmd->coords->coord.t[0] < 9500) {
-            player->extra.tmd->coords->coord.t[0] = 9500;
-        }
-        if (player->extra.tmd->coords->coord.t[0] > 16500) {
-            player->extra.tmd->coords->coord.t[0] = 16500;
-        }
-    } else if (z > -13200) {
-        if (player->extra.tmd->coords->coord.t[0] < 11500) {
-            player->extra.tmd->coords->coord.t[0] = 11500;
-        }
-        if (player->extra.tmd->coords->coord.t[0] > 16500) {
-            player->extra.tmd->coords->coord.t[0] = 16500;
-        }
-    } else if (z > -14750) {
-        if (player->extra.tmd->coords->coord.t[0] < 11500) {
-            player->extra.tmd->coords->coord.t[0] = 11500;
-        }
-        if (player->extra.tmd->coords->coord.t[0] > 17500) {
-            player->extra.tmd->coords->coord.t[0] = 17500;
-        }
-    } else if (z > -21250) {
-        if (player->extra.tmd->coords->coord.t[0] < 11500) {
-            player->extra.tmd->coords->coord.t[0] = 11500;
-        }
-        if (player->extra.tmd->coords->coord.t[0] > 16500) {
-            player->extra.tmd->coords->coord.t[0] = 16500;
-        }
-    } else if (z > -22800) {
-        if (player->extra.tmd->coords->coord.t[0] < 11500) {
-            player->extra.tmd->coords->coord.t[0] = 11500;
-        }
-        if (player->extra.tmd->coords->coord.t[0] > 17500) {
-            player->extra.tmd->coords->coord.t[0] = 17500;
-        }
-    } else if (z > -26000) {
-        if (player->extra.tmd->coords->coord.t[0] < 11500) {
-            player->extra.tmd->coords->coord.t[0] = 11500;
-        }
-        if (player->extra.tmd->coords->coord.t[0] > 16500) {
-            player->extra.tmd->coords->coord.t[0] = 16500;
-        }
+    } else if (playerZ > ACTOR_444000_ARENA_FRONT_BAND_BACK_Z) {
+        ACTOR_444000_CLAMP_PLAYER_X(0, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+    } else if (playerZ > ACTOR_444000_ARENA_WIDE_APPROACH_BACK_Z) {
+        ACTOR_444000_CLAMP_PLAYER_X(0, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+    } else if (playerZ > ACTOR_444000_ARENA_TURN_BACK_Z) {
+        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_TURN_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+    } else if (playerZ > ACTOR_444000_ARENA_FIRST_WIDENING_FRONT_Z) {
+        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+    } else if (playerZ > ACTOR_444000_ARENA_FIRST_WIDENING_BACK_Z) {
+        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_WIDENING_RIGHT_X);
+    } else if (playerZ > ACTOR_444000_ARENA_SECOND_WIDENING_FRONT_Z) {
+        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
+    } else if (playerZ > ACTOR_444000_ARENA_SECOND_WIDENING_BACK_Z) {
+        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_WIDENING_RIGHT_X);
+    } else if (playerZ > ACTOR_444000_ARENA_BACK_Z) {
+        ACTOR_444000_CLAMP_PLAYER_X(ACTOR_444000_ARENA_CORRIDOR_LEFT_X, ACTOR_444000_ARENA_CORRIDOR_RIGHT_X);
     } else {
-        player->extra.tmd->coords->coord.t[2] = -26000;
+        player->extra.tmd->coords->coord.t[2] = ACTOR_444000_ARENA_BACK_Z;
     }
 }
+#undef ACTOR_444000_CLAMP_PLAYER_X
 
 /// Per-frame body of the boss task: refreshes the host model's coordinate,
 /// times out the "model buffers freed" countdown, re-lights the host and its
@@ -6438,7 +6466,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     GluttonWork*  work = task->work;
     VECTOR        pos;
     TaskFunc      handlers[0x15] = {
-        func_actor_444000_8013D810,
+        _actor444000DormantState,
         func_actor_444000_80143F4C,
         NULL,
         func_actor_444000_8013E058,
@@ -6446,18 +6474,18 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         func_actor_444000_80140BBC,
         NULL,
         func_actor_444000_801404C0,
-        func_actor_444000_8014105C,
+        _actor444000RetractLimbState,
         func_actor_444000_8013482C,
-        func_actor_444000_801411C8,
+        _actor444000ChooseAttackState,
         func_actor_444000_8013FB74,
         func_actor_444000_80140E28,
         func_actor_444000_8013EC84,
         func_actor_444000_80141618,
         gluttonEscortState,
-        func_actor_444000_801434C4,
-        func_actor_444000_801435CC,
+        _actor444000LiftIdleState,
+        _actor444000ReturnToAdvanceState,
         func_actor_444000_80135448,
-        func_actor_444000_8013D96C,
+        _actor444000CollapsedState,
         NULL,
     };
     GluttonWork* escorts;
@@ -6485,7 +6513,7 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
         }
     }
 
-    func_actor_444000_80142254();
+    _actor444000ClampPlayerToArena();
 
     pos.vx = task->extra.tmd->coords[3].workm.t[0];
     pos.vy = task->extra.tmd->coords[3].workm.t[1];
@@ -6742,22 +6770,28 @@ static void func_actor_444000_801423C4(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BYTES(0x1C);
 }
 
-/// Puts the two floor quads `Gp_GridParams` keeps at vertices 24..31 back at
-/// their default heights: 500 for each quad's first two vertices, 800 for the
-/// other two.
-static inline void _actor444000ResetFloorQuads(void)
+/// Restores the elevated Y endpoints of the boss's two collision-wall quads.
+///
+/// Requires the writable incinerator grid with vertices 24..31. For each quad,
+/// the first two endpoints become Y=500 and the last two Y=800, in grid units.
+/// X/Z, normals, face descriptors and cell lists are left intact.
+static inline void _actor444000ResetWallHeights(void)
 {
-    SVECTOR* verts;
+    enum {
+        ACTOR_444000_RESET_WALL_TOP_Y    = 500,
+        ACTOR_444000_RESET_WALL_BOTTOM_Y = 800,
+    };
+    SVECTOR* vertices;
 
-    verts        = Gp_GridParams->vertices;
-    verts[24].vy = 0x1F4;
-    verts[25].vy = 0x1F4;
-    verts[26].vy = 0x320;
-    verts[27].vy = 0x320;
-    verts[28].vy = 0x1F4;
-    verts[29].vy = 0x1F4;
-    verts[30].vy = 0x320;
-    verts[31].vy = 0x320;
+    vertices        = Gp_GridParams->vertices;
+    vertices[24].vy = ACTOR_444000_RESET_WALL_TOP_Y;
+    vertices[25].vy = ACTOR_444000_RESET_WALL_TOP_Y;
+    vertices[26].vy = ACTOR_444000_RESET_WALL_BOTTOM_Y;
+    vertices[27].vy = ACTOR_444000_RESET_WALL_BOTTOM_Y;
+    vertices[28].vy = ACTOR_444000_RESET_WALL_TOP_Y;
+    vertices[29].vy = ACTOR_444000_RESET_WALL_TOP_Y;
+    vertices[30].vy = ACTOR_444000_RESET_WALL_BOTTOM_Y;
+    vertices[31].vy = ACTOR_444000_RESET_WALL_BOTTOM_Y;
 }
 
 /// Per-frame tail of the arena fight: keeps the camera pulled back far enough
@@ -6771,7 +6805,7 @@ static inline void _actor444000ResetFloorQuads(void)
 ///
 /// Most states hand that pair to `_gluttonBuildWall`, which rebuilds
 /// grid quad 6 as a wall in front of the boss. The exception is pattern 1 in state 9: it uses
-/// `func_actor_444000_801371E8` instead, floors the player's own x at 0x2CEC,
+/// `_actor444000BuildCornerWalls` instead, floors the player's own x at 0x2CEC,
 /// and pushes the player back by the boss part's world-space Z less 0x7D0 --
 /// part 4 of the boss model carried up the coordinate chain by
 /// `_actorRenderTransformLocalPointToWorld`. Whether the camera distance is
@@ -6850,7 +6884,7 @@ void func_actor_444000_80142F28(Task* arg0)
             if (state != 0x12) {
                 if (state != 0x13 && state != 5 && state != 0xC) {
                     if (work->phase == 1 && state == 9) {
-                        func_actor_444000_801371E8(arg0, work->wallDistance, 6);
+                        _actor444000BuildCornerWalls(arg0, work->wallDistance, 6);
                         {
                             GfxCoord* playerCoord = player->extra.tmd->coords;
 
@@ -6901,10 +6935,10 @@ void func_actor_444000_80142F28(Task* arg0)
             }
             /* Re-read: the calls above can drop the fight back to state 0. */
             if (work->state == 0) {
-                _actor444000ResetFloorQuads();
+                _actor444000ResetWallHeights();
             }
         } else {
-            _actor444000ResetFloorQuads();
+            _actor444000ResetWallHeights();
         }
 
         state = work->state;
@@ -6926,70 +6960,91 @@ void func_actor_444000_80142F28(Task* arg0)
 
 #include "../../shared/glutton_get_spinners_released.inc.c"
 
-/// The re-arm's counterpart: on a reset request it sets the two neck flags
-/// and requests clip 1 rather than clearing them, and pushes `field_E = 2` onto
-/// the first two escorts' model objects. Every tick it also parks one of two
-/// yaw presets in `neckYawTarget`, alternating every 60 counts.
-static void func_actor_444000_801434C4(Task* arg0)
+/// Idles on the moving lift while alternating the neck between two yaw targets.
+///
+/// Requires live host work, escorts 0/1, initialized rigs and the writable room
+/// grid. Entry blends to clip 1, enables neck overrides, clears pending heals,
+/// biases those escorts two OT buckets and installs the low lift walls.
+/// After animation updates, every 60 state ticks selects +690 or -418 yaw
+/// units on a 120-tick cycle; angles use 4096 units per turn.
+static void _actor444000LiftIdleState(Task* task)
 {
+    enum {
+        ACTOR_444000_LIFT_IDLE_CLIP           = 1,
+        ACTOR_444000_LIFT_ESCORT_OT_OFFSET    = 2,
+        ACTOR_444000_LIFT_LOOK_INTERVAL_TICKS = 60,
+        ACTOR_444000_LIFT_LOOK_PERIOD_TICKS   = 120,
+        ACTOR_444000_LIFT_LOOK_YAW_FIRST      = 690,
+        ACTOR_444000_LIFT_LOOK_YAW_SECOND     = -418,
+    };
     GluttonWork* work;
-    s16          tick;
+    s16          stateTicks;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateChanged != 0) {
         work->neckPitchEnabled                      = 1;
         work->neckYawEnabled                        = 1;
         work->hostExposed                           = 0;
-        work->animId                                = 1;
+        work->animId                                = ACTOR_444000_LIFT_IDLE_CLIP;
         work->animStep                              = GLUTTON_ANIM_STEP_BLEND;
         work->neckPitchTarget                       = 0;
         work->pendingHeals                          = 0;
-        work->escorts[0]->task->extra.tmd->otOffset = 2;
-        work->escorts[1]->task->extra.tmd->otOffset = 2;
+        work->escorts[0]->task->extra.tmd->otOffset = ACTOR_444000_LIFT_ESCORT_OT_OFFSET;
+        work->escorts[1]->task->extra.tmd->otOffset = ACTOR_444000_LIFT_ESCORT_OT_OFFSET;
         shelterB3GarbageIncineratorSetLiftCollisionWalls();
     }
-    _gluttonTickAnim(arg0);
-    tick = work->stateTicks;
-    if (tick % 60 == 0) {
-        if (tick % 120 == 0) {
-            work->neckYawTarget = 0x2B2;
+    _gluttonTickAnim(task);
+    stateTicks = work->stateTicks;
+    if (stateTicks % ACTOR_444000_LIFT_LOOK_INTERVAL_TICKS == 0) {
+        if (stateTicks % ACTOR_444000_LIFT_LOOK_PERIOD_TICKS == 0) {
+            work->neckYawTarget = ACTOR_444000_LIFT_LOOK_YAW_FIRST;
         } else {
-            work->neckYawTarget = -0x1A2;
+            work->neckYawTarget = ACTOR_444000_LIFT_LOOK_YAW_SECOND;
         }
     }
 }
 
-static void func_actor_444000_801435CC(Task* arg0)
+/// Plays the repositioning clip before returning the boss to its advance state.
+///
+/// Requires live host enemy/model/work and initialized animation rigs. Entry
+/// restarts clip 12 at normal rate, disables neck overrides and exposes the
+/// escort body. Tick ten starts a spatial Glutton cue. Host slot 1 reaching
+/// an animation boundary selects advance; sound pan/depth narrow to s8.
+static void _actor444000ReturnToAdvanceState(Task* task)
 {
+    enum {
+        ACTOR_444000_RETURN_TO_ADVANCE_CLIP = 12,
+        ACTOR_444000_RETURN_SOUND_TICK      = 10,
+    };
     GluttonWork* work;
-    Enemy*       obj;
-    TmdObject*   tmd;
-    s32          id;
-    s32          pan;
+    Enemy*       enemy;
+    TmdObject*   hostModel;
+    s32          soundId;
+    s32          soundPan;
 
-    work = arg0->work;
-    obj  = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateChanged != 0) {
-        tmd                         = arg0->extra.tmd;
-        obj->node.state.parts.flags = 0;
-        tmd->flags                  = 0;
-        work->animId                = 0xC;
-        work->animStep              = GLUTTON_ANIM_STEP_RESTART;
-        work->neckPitchEnabled      = 0;
-        work->neckYawEnabled        = 0;
-        work->hostExposed           = 0;
-        work->animRate              = 0x10;
-        work->neckPitchTarget       = 0;
-        work->stateTicks            = 0;
+        hostModel                     = task->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        hostModel->flags              = 0;
+        work->animId                  = ACTOR_444000_RETURN_TO_ADVANCE_CLIP;
+        work->animStep                = GLUTTON_ANIM_STEP_RESTART;
+        work->neckPitchEnabled        = 0;
+        work->neckYawEnabled          = 0;
+        work->hostExposed             = 0;
+        work->animRate                = ANIMATION_RATE_ONE;
+        work->neckPitchTarget         = 0;
+        work->stateTicks              = 0;
     }
-    if (work->stateTicks == 0xA) {
-        id  = ((obj->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200017;
-        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    if (work->stateTicks == ACTOR_444000_RETURN_SOUND_TICK) {
+        soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 0x17);
+        soundPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, soundPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    _gluttonTickAnim(arg0);
+    _gluttonTickAnim(task);
     if (work->hostRig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-        work->state = 9;
+        work->state = GLUTTON_STATE_ADVANCE;
     }
 }
 
