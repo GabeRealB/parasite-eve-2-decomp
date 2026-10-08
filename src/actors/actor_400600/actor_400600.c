@@ -387,9 +387,9 @@ enum {
     ACTOR_400600_LEAP_BLEND_FRAMES = 4
 };
 
-static void func_actor_400600_8013203C(Task* arg0);
+static void _actor400600InitCollisionBodies(Task* task);
 static void _actor400600DrawWallLimbShadow(Task* task, s16 firstPartIndex, s16 secondPartIndex, s16 halfWidth, s16 wallZ, u8 shade);
-static void func_actor_400600_80132704(Task* arg0, s16 arg1, u8 arg2);
+static void _actor400600DrawWallShadows(Task* task, s16 wallZ, u8 shade);
 static void func_actor_400600_801328A8(Task* arg0);
 static void _actor400600FinishJunkYardLanding(Task* task);
 static void func_actor_400600_80132B3C(Task* arg0);
@@ -421,8 +421,8 @@ static void func_actor_400600_80136968(Task* arg0);
 static s32  _actor400600TakeArmedHitReaction(Task* task);
 static void func_actor_400600_80137240(Task* arg0);
 static void _actor400600StartWallProbe(Task* task, s16 probeMode);
-static void func_actor_400600_80137840(Task* arg0);
-static s32  func_actor_400600_80137AF0(Task* arg0);
+static void _actor400600UpdateArmSwing(Task* task);
+static s32  _actor400600TryEnterHiddenIdle(Task* task);
 static s32  _actor400600TrySelectAttack(Task* task);
 static void _actor400600UpdateGroupEntrance(Task* task);
 static void _actor400600DrawFloorShadows(Task* task, s16 height, u8 shade);
@@ -431,8 +431,8 @@ static void _actor400600SyncArmModelFlags(Task* task, s32 colorMode);
 static s32  _actor400600FindRouteZone(Task* task);
 static s32  _actor400600ClipWasDone(Task* task);
 static void func_actor_400600_8013896C(Task* arg0, s16 arg1);
-static void func_actor_400600_80138A24(Task* arg0, s16 arg1);
-static void func_actor_400600_80138AB8(Task* arg0);
+static void _actor400600SnapCloaked(Task* task, s16 cloakRequest);
+static void _actor400600TickAttackCooldowns(Task* task);
 static void _actor400600StartCloakFade(Task* task, u8 cloak);
 static void func_actor_400600_80138C34(Task* arg0);
 static void func_actor_400600_80138D78(Task* arg0);
@@ -445,8 +445,8 @@ static void _actor400600RunHeavyRecoil(Task* task);
 static void _actor400600RunStatusHold(Task* task);
 static void _actor400600RunLeftStrike(Task* task);
 static void _actor400600RunRightStrike(Task* task);
-static void func_actor_400600_80139444(Task* arg0);
-static void func_actor_400600_801394E0(Task* arg0);
+static void _actor400600RunGrab(Task* task);
+static void _actor400600RunBackwardLeap(Task* task);
 static void _actor400600TickOnBackBehavior(Task* task);
 static void _actor400600RunRighting(Task* task);
 static void _actor400600RunCeilingLeap(Task* task);
@@ -457,7 +457,7 @@ static void _actor400600RunHiddenIdle(Task* task);
 static void _actor400600RequestClipBlend(Task* task, s16 clipIndex, s16 rate, s16 blendFrames);
 static void _actor400600ReadPartWorldXY(Task* task, s16 partIndex, SVECTOR3* anchorPosition);
 static void _actor400600PinPartXY(Task* task, s16 partIndex, const SVECTOR3* anchorPosition);
-void        func_actor_400600_8013A0F0(Task* arg0);
+static void _actor400600Task(Task* task);
 static void func_actor_400600_8013A170(Task* arg0);
 static void _actor400600RunCorpseRelease(Task* task);
 static void _actor400600HandleHoldReleaseMessage(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
@@ -466,7 +466,7 @@ static void _actor400600InitRightArmTask(Task* task);
 static void _actor400600SelectDeathSequence(Task* task);
 static void _actor400600StartCorpseBurn(Task* task);
 static void _actor400600WaitCorpseBurn(Task* task);
-static void func_actor_400600_8013A6C4(Task* arg0);
+static void _actor400600TickCorpseBurn(Task* task);
 static void _actor400600EnterCorpseRelease(Task* task);
 static void _actor400600WaitDeathBurst(Task* task);
 static void func_actor_400600_8013A864(Task* arg0);
@@ -478,7 +478,7 @@ static void _actor400600WaitCorpseRelease(Task* task);
 static void _actor400600HideForJunkYardEntrance(Task* task);
 static void func_actor_400600_8013AC14(Task* arg0);
 static void _actor400600StartJunkYardFloorDrop(Task* task);
-static void func_actor_400600_8013ADA4(Task* arg0);
+static void _actor400600TickJunkYardFloorDrop(Task* task);
 static void _actor400600HideForFloorDropEntrance(Task* task);
 static void _actor400600WaitFloorDropEntranceCommand(Task* task);
 static void _actor400600FinishFloorDropLanding(Task* task);
@@ -489,7 +489,7 @@ static void _actor400600FinishSecondWaterLanding(Task* task);
 static void _actor400600HideForGroupDropEntrance(Task* task);
 static void _actor400600TickGroupEntranceDrop(Task* task);
 static void func_actor_400600_8013B520(Task* arg0);
-static void func_actor_400600_8013B640(void);
+static void _actor400600QueueSoundBank(void);
 static void func_actor_400600_8013B6F4(Task* arg0);
 static void func_actor_400600_8013B740(Task* arg0);
 static void _actor400600StartLightRecoil(Task* task);
@@ -505,7 +505,7 @@ static void _actor400600StartGrabWindup(Task* task);
 static void _actor400600StartGrabLeapWindup(Task* task);
 static void _actor400600WaitGrabLeapWindup(Task* task);
 static void _actor400600StartGrabTargetProbe(Task* task);
-static void func_actor_400600_8013BF48(Task* arg0);
+static void _actor400600StartBackwardLeapProbe(Task* task);
 static void _actor400600StartRighting(Task* task);
 static void _actor400600StartCeilingLeap(Task* task);
 static void _actor400600FinishCeilingLeapLanding(Task* task);
@@ -519,8 +519,8 @@ static void _actor400600FinishKnockdownRest(Task* task);
 static void _actor400600StartCeilingExit(Task* task);
 static void _actor400600StartHiddenIdle(Task* task);
 static void _actor400600TickHiddenIdle(Task* task);
-static void func_actor_400600_8013C6B0(SVECTOR* pos, WorldCollisionContact* rec, SVECTOR* out);
-static s32  func_actor_400600_8013C7E8(s16 arg0, s16 arg1);
+static void _actorContactCalcHorizontalPushback(const SVECTOR* position, const WorldCollisionContact* contact, SVECTOR* pushDelta);
+static s16  _actor400600SelectCollisionStep(s16 gridStep, s16 bodyPush);
 static void _actor400600HideForGroupEntrance(Task* task);
 static void _actor400600WaitGroupEntrance(Task* task);
 static void _actor400600TickGroupEntranceDelay(Task* task);
@@ -529,7 +529,6 @@ static void _actor400600RequestPositionalSound(Task* task, s32 cueId);
 static void _actor400600SelectState(Task* task, s16 state);
 
 static TmdSource _gActor400600ZebraStalkerBody;
-void             func_actor_400600_8013A0F0(Task*);
 
 static TmdSource _gActor400600ZebraStalkerBurstArmLeft;
 static TmdSource _gActor400600ZebraStalkerBurstArmLeft13064;
@@ -1664,7 +1663,7 @@ TaskDesc D_actor_400600_80151AF8[2] = {
     { { { TASK_BODY_TMD, 96 } }, _actor400600InitRightArmTask, { .model = &_gActor400600ZebraStalkerBurstArmLeft } },
 };
 
-TaskDesc D_actor_400600_80151B10 = { { { TASK_BODY_TMD, 96 } }, func_actor_400600_8013A0F0, { .model = &_gActor400600ZebraStalkerBody } };
+TaskDesc D_actor_400600_80151B10 = { { { TASK_BODY_TMD, 96 } }, _actor400600Task, { .model = &_gActor400600ZebraStalkerBody } };
 
 u8 gStalkerZebraIvoryResumeClips[36] = {
     26,
@@ -1734,18 +1733,49 @@ static inline void _actor400600SetCoordYaw(GfxCoord* coord, s16 yaw);
 
 #include "../../shared/stalker_zebra_ivory_inlines.inc.c"
 
-static void func_actor_400600_8013203C(Task* arg0)
+/// Links the hit sphere, wall-probe capsule and two arm attack spheres.
+///
+/// Requires zeroed live work, all eighteen model coordinates and the attack
+/// table. Initializes the embedded contact arrays (8 body, 8 probe, 1 per arm).
+/// Only the receiving sphere starts pair-enabled; grid tests start disabled.
+/// Its radius is 608 in the night motel loft/balcony, otherwise 512 world units.
+/// Capsule endpoint Y values rely on the zeroed work. The task owns every shape
+/// and contact array until unlinking during death; nothing is allocated here.
+static void _actor400600InitCollisionBodies(Task* task)
 {
+    enum { ACTOR_400600_BODY_ID = 6 };
     _Actor400600ZebraStalkerWork* work;
 
-    work                        = (_Actor400600ZebraStalkerWork*)arg0->work;
-    work->body.coord            = &arg0->extra.tmd->coords[3];
+/// Links and initializes one inactive arm attack sphere and its contacts.
+///
+/// Captures this function's live `task` and `work`. `body` and `contactArray`
+/// must be member tokens selecting an unlinked sphere and its whole contact
+/// array. Part and local-X expressions are evaluated once. Uses attack entry 0
+/// and radius 400 in part-local game units. Expands to a compound statement;
+/// use only as a standalone statement here. Undefined after the two calls.
+#define ACTOR_400600_INIT_ARM_ATTACK_SPHERE(body, contactArray, partIndex, centerX)                \
+    {                                                                                              \
+        work->body.key              = damagePackAttackKey(D_actor_400600_80144EA8, 0);             \
+        work->body.coord            = &task->extra.tmd->coords[(partIndex)];                       \
+        work->body.context.contacts = work->contactArray;                                          \
+        work->body.pos.vx           = (centerX);                                                   \
+        work->body.pos.vy           = 0;                                                           \
+        work->body.pos.vz           = 0;                                                           \
+        work->body.radius           = 400;                                                         \
+        work->body.flags            = WORLD_COLLISION_BODY_SPHERE;                                 \
+        worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);                   \
+        worldCollisionInitContacts(work->contactArray, ARRAY_SIZE(work->contactArray), 0);         \
+        work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED); \
+    }
+
+    work                        = task->work;
+    work->body.coord            = &task->extra.tmd->coords[3];
     work->body.context.contacts = work->bodyContacts;
     work->body.pos.vx           = 0;
     work->body.pos.vy           = 0x96;
     work->body.pos.vz           = 0x110;
-    work->body.key              = 0x30006;
-    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && (gGameSession->location.loc.area == 0x1F || gGameSession->location.loc.area == 0x1D)) {
+    work->body.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_400600_BODY_ID;
+    if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT && (gGameSession->location.loc.area == GAME_AREA_DRYFIELD_NIGHT_MOTEL_LOFT || gGameSession->location.loc.area == GAME_AREA_DRYFIELD_NIGHT_MOTEL_BALCONY)) {
         work->body.radius = 0x260;
     } else {
         work->body.radius = 0x200;
@@ -1753,47 +1783,30 @@ static void func_actor_400600_8013203C(Task* arg0)
     work->body.flags = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->body);
     worldCollisionInitContacts(work->bodyContacts, ARRAY_SIZE(work->bodyContacts), 0);
-    work->capsule.ends[0].vz          = 0xBB8;
-    work->capsule.end0Radius          = 0xA;
-    work->capsule.end1Radius          = 0xA;
+    // Keep the root probe linked but inactive until a move asks for a wall test.
+    work->capsule.ends[0].vz          = ACTOR_400600_PROBE_LENGTH;
+    work->capsule.end0Radius          = ACTOR_400600_THIN_PROBE_RADIUS;
+    work->capsule.end1Radius          = ACTOR_400600_THIN_PROBE_RADIUS;
     work->capsule.ends[0].vx          = 0;
     work->capsule.ends[1].vz          = 0;
     work->capsule.ends[1].vx          = 0;
     work->capsule.contacts            = work->capsuleContacts;
     work->body.flags                 |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    work->capsuleBody.coord           = arg0->extra.tmd->coords;
+    work->capsuleBody.coord           = task->extra.tmd->coords;
     work->capsuleBody.context.capsule = &work->capsule;
     work->capsuleBody.pos.vx          = 0;
     work->capsuleBody.pos.vy          = -0x190;
     work->capsuleBody.pos.vz          = 0;
-    work->capsuleBody.key             = 0x30006;
+    work->capsuleBody.key             = WORLD_COLLISION_CONTACT_ENEMY_BODY | ACTOR_400600_BODY_ID;
     work->capsuleBody.radius          = 0;
     work->capsuleBody.flags           = WORLD_COLLISION_BODY_CAPSULE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->capsuleBody);
     worldCollisionInitContacts(work->capsuleContacts, ARRAY_SIZE(work->capsuleContacts), 0);
-    work->capsuleBody.flags            &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    work->rightArmBody.key              = damagePackAttackKey(D_actor_400600_80144EA8, 0);
-    work->rightArmBody.coord            = &arg0->extra.tmd->coords[7];
-    work->rightArmBody.context.contacts = work->rightArmContacts;
-    work->rightArmBody.pos.vx           = -0x200;
-    work->rightArmBody.pos.vy           = 0;
-    work->rightArmBody.pos.vz           = 0;
-    work->rightArmBody.radius           = 0x190;
-    work->rightArmBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->rightArmBody);
-    worldCollisionInitContacts(work->rightArmContacts, ARRAY_SIZE(work->rightArmContacts), 0);
-    work->rightArmBody.flags          &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-    work->leftArmBody.key              = damagePackAttackKey(D_actor_400600_80144EA8, 0);
-    work->leftArmBody.coord            = &arg0->extra.tmd->coords[10];
-    work->leftArmBody.context.contacts = work->leftArmContacts;
-    work->leftArmBody.pos.vx           = 0x200;
-    work->leftArmBody.pos.vy           = 0;
-    work->leftArmBody.pos.vz           = 0;
-    work->leftArmBody.radius           = 0x190;
-    work->leftArmBody.flags            = WORLD_COLLISION_BODY_SPHERE;
-    worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->leftArmBody);
-    worldCollisionInitContacts(work->leftArmContacts, ARRAY_SIZE(work->leftArmContacts), 0);
-    work->leftArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    work->capsuleBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
+    // Both arm spheres use the first attack entry and stay inactive until a strike.
+    ACTOR_400600_INIT_ARM_ATTACK_SPHERE(rightArmBody, rightArmContacts, 7, -512);
+    ACTOR_400600_INIT_ARM_ATTACK_SPHERE(leftArmBody, leftArmContacts, 10, 512);
+#undef ACTOR_400600_INIT_ARM_ATTACK_SPHERE
 }
 
 /// Copies a projected wall limb shadow into one subtractive textured GPU quad.
@@ -1896,21 +1909,31 @@ static void _actor400600DrawWallLimbShadow(Task* task, s16 firstPartIndex, s16 s
     }
 }
 
-static void func_actor_400600_80132704(Task* arg0, s16 arg1, u8 arg2)
+/// Draws the Zebra Stalker's thirteen limb-shadow segments on a world-Z wall.
+///
+/// Requires the live eighteen-part model, current ancestor/view matrices,
+/// initialized scratch stack and GPU space for up to thirteen textured quads.
+/// `wallZ` is a signed-halfword world coordinate and `shade` an eight-bit grey
+/// modulation level. Segment endpoints lie in parts 1, 3 and 5..17; every
+/// segment has a perpendicular half-width of 128 world units. Failed projections
+/// are skipped by the segment drawer. No work or scratch pointer is retained.
+static void _actor400600DrawWallShadows(Task* task, s16 wallZ, u8 shade)
 {
-    _actor400600DrawWallLimbShadow(arg0, 3, 9, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 9, 0xA, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 0xA, 0xB, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 3, 6, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 6, 7, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 7, 8, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 1, 5, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 1, 0xC, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 0xC, 0xD, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 0xD, 0xE, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 1, 0xF, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 0xF, 0x10, 0x80, arg1, arg2);
-    _actor400600DrawWallLimbShadow(arg0, 0x10, 0x11, 0x80, arg1, arg2);
+    enum { ACTOR_400600_WALL_SHADOW_HALF_WIDTH = 128 };
+
+    _actor400600DrawWallLimbShadow(task, 3, 9, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 9, 0xA, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 0xA, 0xB, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 3, 6, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 6, 7, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 7, 8, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 1, 5, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 1, 0xC, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 0xC, 0xD, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 0xD, 0xE, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 1, 0xF, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 0xF, 0x10, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
+    _actor400600DrawWallLimbShadow(task, 0x10, 0x11, ACTOR_400600_WALL_SHADOW_HALF_WIDTH, wallZ, shade);
 }
 
 static void func_actor_400600_801328A8(Task* arg0)
@@ -2269,7 +2292,7 @@ static const TaskFuncTable12 D_actor_400600_80131E24 = { {
     _stalkerZebraIvoryTickDeathClip,
     _actor400600StartCorpseBurn,
     _actor400600WaitCorpseBurn,
-    func_actor_400600_8013A6C4,
+    _actor400600TickCorpseBurn,
     _actor400600EnterCorpseRelease,
     _actor400600WaitDeathBurst,
     func_actor_400600_8013A864,
@@ -2283,7 +2306,7 @@ static const TaskFuncTable6 D_actor_400600_80131E54 = { {
     func_actor_400600_8013AC14,
     func_actor_400600_801328A8,
     _actor400600StartJunkYardFloorDrop,
-    func_actor_400600_8013ADA4,
+    _actor400600TickJunkYardFloorDrop,
     _actor400600FinishJunkYardLanding,
 } };
 
@@ -2344,7 +2367,7 @@ static void func_actor_400600_80133434(Task* arg0)
         enemyDestroy(enemy, arg0);
         return;
     }
-    func_actor_400600_8013B640();
+    _actor400600QueueSoundBank();
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 20, 0, 0)) {
         work->routesByZone = 1;
     }
@@ -2377,11 +2400,11 @@ static void func_actor_400600_80133434(Task* arg0)
 
     coord->parent = &gGfxViewCoord;
     work->yaw     = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    func_actor_400600_8013203C(arg0);
+    _actor400600InitCollisionBodies(arg0);
     work->body.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     func_actor_400600_801356E0(arg0);
     (sceneAcquireBattleRef)(0);
-    func_actor_400600_80138A24(arg0, 1);
+    _actor400600SnapCloaked(arg0, ACTOR_400600_CLOAK);
     w3                 = (_Actor400600ZebraStalkerWork*)arg0->work;
     w3->state          = 0;
     w3->subState       = 0;
@@ -2442,8 +2465,8 @@ static const TaskFuncTable18 D_actor_400600_80131EEC = { {
     _actor400600RunStatusHold,
     _actor400600RunLeftStrike,
     _actor400600RunRightStrike,
-    func_actor_400600_80139444,
-    func_actor_400600_801394E0,
+    _actor400600RunGrab,
+    _actor400600RunBackwardLeap,
     _actor400600TickOnBackBehavior,
     _actor400600RunRighting,
     _actor400600RunCeilingLeap,
@@ -2470,8 +2493,8 @@ static void func_actor_400600_801337A8(Task* arg0)
             work->frameCount++;
             _actor400600UpdateTarget(arg0);
             fns.funcs[work->state](arg0);
-            func_actor_400600_80138AB8(arg0);
-            func_actor_400600_80137840(arg0);
+            _actor400600TickAttackCooldowns(arg0);
+            _actor400600UpdateArmSwing(arg0);
             _actor400600TickCloakFade(arg0);
             _stalkerZebraIvoryTickAnimInline(arg0);
             work->previousAnimationFlags = work->rig.slots[1].status.fields.flags;
@@ -3612,7 +3635,7 @@ static const TaskFuncTable8 D_actor_400600_80131F40 = { {
 } };
 
 static const TaskFuncTable4 D_actor_400600_80131F60 = { {
-    func_actor_400600_8013BF48,
+    _actor400600StartBackwardLeapProbe,
     _actor400600ResolveBackwardLeapProbe,
     func_actor_400600_80134970,
     _stalkerZebraIvoryWaitClip,
@@ -3682,7 +3705,7 @@ static void func_actor_400600_80136968(Task* arg0)
                 pos.vx = coord->workm.t[0];
                 pos.vy = coord->workm.t[1];
                 pos.vz = coord->workm.t[2];
-                func_actor_400600_8013C6B0(&pos, &work->bodyContacts[i], &push);
+                _actorContactCalcHorizontalPushback(&pos, &work->bodyContacts[i], &push);
                 if (ABS(maxX) < ABS(push.vx)) {
                     maxX = push.vx;
                 }
@@ -3819,10 +3842,10 @@ static void func_actor_400600_80136968(Task* arg0)
         work->hitCooldown = 0;
     }
     if (blocked == 0) {
-        work->anchorPos.vx += (s16)func_actor_400600_8013C7E8(stepX, maxX);
-        work->anchorPos.vz += (s16)func_actor_400600_8013C7E8(stepZ, maxZ);
-        coord->coord.t[0]  += (s16)func_actor_400600_8013C7E8(stepX, maxX);
-        coord->coord.t[2]  += (s16)func_actor_400600_8013C7E8(stepZ, maxZ);
+        work->anchorPos.vx += _actor400600SelectCollisionStep(stepX, maxX);
+        work->anchorPos.vz += _actor400600SelectCollisionStep(stepZ, maxZ);
+        coord->coord.t[0]  += _actor400600SelectCollisionStep(stepX, maxX);
+        coord->coord.t[2]  += _actor400600SelectCollisionStep(stepZ, maxZ);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     if (work->markedFrames != 0) {
@@ -4088,78 +4111,118 @@ static inline void _actor400600SetCoordYaw(GfxCoord* coord, s16 yaw)
         }                                                                    \
     } while (0)
 
-static void func_actor_400600_80137840(Task* arg0)
+/// Eases both arm models outward during strikes and back toward their rest yaw.
+///
+/// Requires live work and initialized attack spheres; missing arm tasks are
+/// allowed. Swing angles use 4096 units per turn, approach 896 when extended
+/// and approach zero when folded. Left-arm yaw has the opposite sign. Folding
+/// disables that arm's pair tests, and every behavior except left/right strike
+/// disables both attacks. Only child rotation coefficients are rewritten.
+static void _actor400600UpdateArmSwing(Task* task)
 {
+    enum { ACTOR_400600_ARM_EXTENDED_YAW = 896 };
     _Actor400600ZebraStalkerWork* work;
-    s32                           angle;
+    s32                           rightArmYaw;
 
-    work = (_Actor400600ZebraStalkerWork*)arg0->work;
+    work = task->work;
     if (work->rightArmOut != 0) {
-        work->armSwingAngles[1] += (0x380 - work->armSwingAngles[1]) >> 2;
-        _ACTOR400600_ROTATE_CHILD(arg0, armTasks[1], work->armSwingAngles[1]);
+        work->armSwingAngles[1] += (ACTOR_400600_ARM_EXTENDED_YAW - work->armSwingAngles[1]) >> 2;
+        _ACTOR400600_ROTATE_CHILD(task, armTasks[1], work->armSwingAngles[1]);
     } else {
         work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->armSwingAngles[1]  += -work->armSwingAngles[1] >> 3;
-        angle                     = work->armSwingAngles[1];
-        _ACTOR400600_ROTATE_CHILD(arg0, armTasks[1], angle);
+        rightArmYaw               = work->armSwingAngles[1];
+        _ACTOR400600_ROTATE_CHILD(task, armTasks[1], rightArmYaw);
     }
     if (work->leftArmOut != 0) {
-        work->armSwingAngles[0] += (0x380 - work->armSwingAngles[0]) >> 2;
-        _ACTOR400600_ROTATE_CHILD(arg0, armTasks[0], -work->armSwingAngles[0]);
+        work->armSwingAngles[0] += (ACTOR_400600_ARM_EXTENDED_YAW - work->armSwingAngles[0]) >> 2;
+        _ACTOR400600_ROTATE_CHILD(task, armTasks[0], -work->armSwingAngles[0]);
     } else {
         work->leftArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->armSwingAngles[0] += -work->armSwingAngles[0] >> 3;
-        _ACTOR400600_ROTATE_CHILD(arg0, armTasks[0], -work->armSwingAngles[0]);
+        _ACTOR400600_ROTATE_CHILD(task, armTasks[0], -work->armSwingAngles[0]);
     }
-    if (work->state != 6 && work->state != 7) {
+    if (work->state != ACTOR_400600_STATE_LEFT_STRIKE && work->state != ACTOR_400600_STATE_RIGHT_STRIKE) {
         work->rightArmBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->leftArmBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 }
 
-static s32 func_actor_400600_80137AF0(Task* arg0)
+/// Starts the hide branch of the cloak fade for a live actor and its arm models.
+///
+/// Leaves an existing hide request alone, including a fade in progress.
+/// Otherwise resets fade progress and selects semitransparent rendering with
+/// black lighting for the body and existing arms. Drawing and target-scanning
+/// flags are preserved here; the fade tick applies the final hidden state.
+/// Requires the live work, body model and its enemy record.
+static inline void _actor400600StartHideFadeInline(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work;
-    _Actor400600ZebraStalkerWork* work2;
-    TmdObject*                    model;
-    TmdObject*                    model2;
-    Enemy*                        enemy;
+    _Actor400600ZebraStalkerWork* work  = task->work;
+    TmdObject*                    model = task->extra.tmd;
 
-    work = (_Actor400600ZebraStalkerWork*)arg0->work;
+    if (work->cloaked != ACTOR_400600_CLOAK) {
+        work->cloaked         = ACTOR_400600_CLOAK;
+        work->cloakFading     = 1;
+        work->cloakFadeFrames = 0;
+        model->flags         |= TMD_OBJECT_SEMI_TRANS;
+        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        _actor400600SyncArmModelFlags(task, ENEMY_COLOR_BLACK);
+    }
+}
+
+/// Starts revealing the live body and arms while restoring drawing and scanning.
+///
+/// `work` is the task's borrowed live work. An existing reveal request is left
+/// alone; otherwise resets fade progress and selects default body/arm lighting.
+static inline void _actor400600StartRevealFadeInline(Task* task, _Actor400600ZebraStalkerWork* work)
+{
+    TmdObject* model = task->extra.tmd;
+    Enemy*     enemy = task->spawnArg2.pointer;
+
+    if (work->cloaked != ACTOR_400600_REVEAL) {
+        work->cloaked         = ACTOR_400600_REVEAL;
+        work->cloakFading     = 1;
+        work->cloakFadeFrames = 0;
+        model->flags          = (model->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+        enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
+        _actor400600SyncArmModelFlags(task, ENEMY_COLOR_DEFAULT);
+    }
+}
+
+/// Starts hidden idle when actor and player face one another at close range.
+///
+/// Returns 1 after selecting running behavior 17, otherwise 0. A positive hide
+/// cooldown is decremented and leaves the cloak target alone. Once it expires,
+/// hiding requires target distance below 3000 root-parent units, target bearing
+/// within 1023 of forward and player-relative bearing within 767 of forward,
+/// both modulo 4096. Otherwise starts revealing. The target may be a route
+/// waypoint. Requires live work, body model, Enemy and any existing arm models.
+static s32 _actor400600TryEnterHiddenIdle(Task* task)
+{
+    enum { ACTOR_400600_HIDE_DISTANCE         = 3000,
+           ACTOR_400600_TARGET_HIDE_ARC_START = 0x400,
+           ACTOR_400600_TARGET_HIDE_ARC_COUNT = 0x801U,
+           ACTOR_400600_PLAYER_HIDE_ARC_START = 0x300,
+           ACTOR_400600_PLAYER_HIDE_ARC_COUNT = 0xA01U,
+           ACTOR_400600_STATE_HIDDEN_IDLE     = 17 };
+    _Actor400600ZebraStalkerWork* work;
+
+    work = task->work;
     if (work->hideCooldown > 0) {
         work->hideCooldown--;
         return 0;
     }
-    if ((u32)(work->targetBearing - 0x400) >= 0x801U && (u32)(work->bearingFromPlayer - 0x300) >= 0xA01U) {
-        if (work->playerDistance < 0xBB8) {
-            model = arg0->extra.tmd;
-            if (work->cloaked != 1) {
-                work->cloaked         = 1;
-                work->cloakFading     = 1;
-                work->cloakFadeFrames = 0;
-                model->flags         |= TMD_OBJECT_SEMI_TRANS;
-                worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
-                _actor400600SyncArmModelFlags(arg0, ENEMY_COLOR_BLACK);
-            }
-            work2           = (_Actor400600ZebraStalkerWork*)arg0->work;
-            work2->state    = 0x11;
-            work2->subState = 0;
+    if ((u32)(work->targetBearing - ACTOR_400600_TARGET_HIDE_ARC_START) >= (u32)ACTOR_400600_TARGET_HIDE_ARC_COUNT && (u32)(work->bearingFromPlayer - ACTOR_400600_PLAYER_HIDE_ARC_START) >= (u32)ACTOR_400600_PLAYER_HIDE_ARC_COUNT) {
+        if (work->playerDistance < ACTOR_400600_HIDE_DISTANCE) {
+            _actor400600StartHideFadeInline(task);
+            _actor400600SelectBehavior(task, ACTOR_400600_STATE_HIDDEN_IDLE);
             return 1;
         }
     } else {
-        work = (_Actor400600ZebraStalkerWork*)arg0->work;
+        work = task->work;
     }
-    model2 = arg0->extra.tmd;
-    enemy  = (Enemy*)arg0->spawnArg2.pointer;
-    if (work->cloaked != 0) {
-        work->cloaked         = 0;
-        work->cloakFading     = 1;
-        work->cloakFadeFrames = 0;
-        model2->flags         = (model2->flags | TMD_OBJECT_SEMI_TRANS) & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
-        enemy->node.state.parts.flags = WORLD_TARGET_KEEP_SCANNED;
-        _actor400600SyncArmModelFlags(arg0, ENEMY_COLOR_DEFAULT);
-    }
+    _actor400600StartRevealFadeInline(task, work);
     return 0;
 }
 
@@ -4480,21 +4543,27 @@ static void func_actor_400600_8013896C(Task* arg0, s16 arg1)
     }
 }
 
-static void func_actor_400600_80138A24(Task* arg0, s16 arg1)
+/// Immediately hides the body and arms without running a cloak fade.
+///
+/// A nonzero `cloakRequest` suppresses drawing, selects black lighting, leaves
+/// the target scanned but un-lockable, and clears fade progress and shadow shade.
+/// Zero does nothing. Requires live work, body model and Enemy; missing arm
+/// tasks are allowed. Collision links and enables are preserved.
+static void _actor400600SnapCloaked(Task* task, s16 cloakRequest)
 {
     _Actor400600ZebraStalkerWork* work;
     TmdObject*                    model;
     Enemy*                        enemy;
 
-    work  = (_Actor400600ZebraStalkerWork*)arg0->work;
-    model = arg0->extra.tmd;
-    enemy = (Enemy*)arg0->spawnArg2.pointer;
-    if (arg1 != 0) {
+    work  = task->work;
+    model = task->extra.tmd;
+    enemy = task->spawnArg2.pointer;
+    if (cloakRequest != 0) {
         enemy->node.state.parts.flags = (WORLD_TARGET_NOT_LOCKABLE | WORLD_TARGET_KEEP_SCANNED);
         model->flags                 |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_BLACK);
-        _actor400600SyncArmModelFlags(arg0, ENEMY_COLOR_BLACK);
-        work->cloaked         = 1;
+        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
+        _actor400600SyncArmModelFlags(task, ENEMY_COLOR_BLACK);
+        work->cloaked         = ACTOR_400600_CLOAK;
         work->cloakFadeFrames = 0;
         work->cloakFading     = 0;
         work->shadowShade     = 0;
@@ -4503,9 +4572,13 @@ static void func_actor_400600_80138A24(Task* arg0, s16 arg1)
 
 #include "../../shared/stalker_zebra_ivory_fold_arms.inc.c"
 
-static void func_actor_400600_80138AB8(Task* arg0)
+/// Counts down positive attack-selection and ceiling-move cooldowns by one update.
+///
+/// Requires live work. Zero and negative signed-halfword timers stay unchanged;
+/// hide and hit cooldowns are advanced by their own behavior/contact updates.
+static void _actor400600TickAttackCooldowns(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
+    _Actor400600ZebraStalkerWork* work = task->work;
 
     if (work->timer > 0) {
         work->timer--;
@@ -4575,7 +4648,7 @@ static void func_actor_400600_80138C34(Task* arg0)
             worldCollisionClearContacts(work->bodyContacts);
             worldCollisionClearContacts(work->capsuleContacts);
             _stalkerZebraIvoryUpdateColor(arg0);
-            func_actor_400600_80132704(arg0, work->shadowWallZ, work->shadowShade);
+            _actor400600DrawWallShadows(arg0, work->shadowWallZ, work->shadowShade);
             break;
     }
 }
@@ -4677,7 +4750,7 @@ static void func_actor_400600_80139110(Task* arg0)
     _stalkerZebraIvoryFoldArms(arg0);
     if ((s16)_actor400600TakeArmedHitReaction(arg0) == 0) {
         fns[work->subState](arg0);
-        if ((s16)_actor400600TrySelectAttack(arg0) == 0 && (s16)func_actor_400600_80137AF0(arg0) == 0 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 8, 0, 0) && work->onCeiling != 0 && arg0->extra.tmd->coords->coord.t[0] > 10000) {
+        if ((s16)_actor400600TrySelectAttack(arg0) == 0 && (s16)_actor400600TryEnterHiddenIdle(arg0) == 0 && (GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 8, 0, 0) && work->onCeiling != 0 && arg0->extra.tmd->coords->coord.t[0] > 10000) {
             _Actor400600ZebraStalkerWork* cur = (_Actor400600ZebraStalkerWork*)arg0->work;
 
             cur->state    = 0xD;
@@ -4758,22 +4831,34 @@ static void _actor400600RunRightStrike(Task* task)
     }
 }
 
-static void func_actor_400600_80139444(Task* arg0)
+/// Folds both arms and dispatches the current phase of the player grab.
+///
+/// Running behavior 8, requiring sub-state 0..7 and live work/model/Enemy.
+/// Phases wind up, probe the target, approach, hold/bite and release the player.
+/// The selected phase owns hit-reaction handling and transitions; this wrapper
+/// always dispatches one phase and allocates nothing.
+static void _actor400600RunGrab(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
-    TaskFuncTable8                fns  = D_actor_400600_80131F40;
+    _Actor400600ZebraStalkerWork* work   = task->work;
+    TaskFuncTable8                phases = D_actor_400600_80131F40;
 
-    _stalkerZebraIvoryFoldArms(arg0);
-    fns.funcs[work->subState](arg0);
+    _stalkerZebraIvoryFoldArms(task);
+    phases.funcs[work->subState](task);
 }
 
-static void func_actor_400600_801394E0(Task* arg0)
+/// Folds both arms and dispatches the current phase of the backward leap.
+///
+/// Running behavior 9, requiring sub-state 0..3 and live work/model/Enemy.
+/// The four phases start a rear wall probe, choose the available leap distance,
+/// move backward and wait for clip completion. Collision must populate probe
+/// contacts between its start and resolution; this wrapper changes no cursor.
+static void _actor400600RunBackwardLeap(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work     = (_Actor400600ZebraStalkerWork*)arg0->work;
-    TaskFuncTable4                handlers = D_actor_400600_80131F60;
+    _Actor400600ZebraStalkerWork* work   = task->work;
+    TaskFuncTable4                phases = D_actor_400600_80131F60;
 
-    _stalkerZebraIvoryFoldArms(arg0);
-    handlers.funcs[work->subState](arg0);
+    _stalkerZebraIvoryFoldArms(task);
+    phases.funcs[work->subState](task);
 }
 
 /// Crawls toward the target on the back until recovery time expires or a hit intervenes.
@@ -4984,11 +5069,19 @@ static void _actor400600PinPartXY(Task* task, s16 partIndex, const SVECTOR3* anc
 
 #include "../../shared/stalker_zebra_ivory_clip_done.inc.c"
 
-void func_actor_400600_8013A0F0(Task* arg0)
+/// Dispatches the Zebra Stalker task's spawn, running, death or entrance handler.
+///
+/// `Task::state` must be 0..8: 0 spawn, 1 running, 2 death, 3 corpse release,
+/// 4 water entrance, 5 floor-drop entrance, 6 Junk Yard entrance, 7 group drop,
+/// 8 delayed group entrance. Spawn needs the model and Enemy argument; later
+/// states require live work. A selected handler may destroy the task, so no
+/// task storage is read after dispatch. Rooms reach this callback through the
+/// package's task descriptor rather than importing its symbol.
+static void _actor400600Task(Task* task)
 {
     TaskFuncTable9 states = D_actor_400600_80131EAC;
 
-    states.funcs[arg0->state](arg0);
+    states.funcs[task->state](task);
 }
 
 static void func_actor_400600_8013A170(Task* arg0)
@@ -5157,35 +5250,46 @@ static void _actor400600WaitCorpseBurn(Task* task)
     }
 }
 
-static void func_actor_400600_8013A6C4(Task* arg0)
+/// Shrinks the corpse in Y, fades its shadows and starts the burn effect.
+///
+/// Death entry 5, after collision has been unlinked and the root matrix saved.
+/// Rebuilds from that snapshot each update with unit Q12 X/Z scale and a Y
+/// scale reduced by 48. Counter 8 spawns the burn; counter 17 or later hides
+/// body/arms and advances toward release. Work and model remain task-owned.
+static void _actor400600TickCorpseBurn(Task* task)
 {
+    enum { ACTOR_400600_CORPSE_SCALE_STEP        = 48,
+           ACTOR_400600_CORPSE_BURN_EFFECT_FRAME = 8,
+           ACTOR_400600_CORPSE_HIDE_FRAME        = 17,
+           ACTOR_400600_CORPSE_BURN_VARIANT      = 4 };
     _Actor400600ZebraStalkerWork* work;
     TmdObject*                    model;
-    GfxCoord*                     coord;
+    GfxCoord*                     rootCoord;
     VECTOR                        scale;
-    SVECTOR                       rot;
+    SVECTOR                       effectRotation;
 
-    work                = (_Actor400600ZebraStalkerWork*)arg0->work;
-    model               = arg0->extra.tmd;
-    coord               = model->coords;
+    work                = task->work;
+    model               = task->extra.tmd;
+    rootCoord           = model->coords;
     work->shadowShade   = (u16)work->shadowShade + (-work->shadowShade >> 2);
-    work->corpseScaleY -= 0x30;
-    scale.vx            = 0x1000;
+    work->corpseScaleY -= ACTOR_400600_CORPSE_SCALE_STEP;
+    scale.vx            = ONE;
     scale.vy            = work->corpseScaleY;
-    scale.vz            = 0x1000;
-    coord->coord        = work->savedRootMtx;
-    ScaleMatrix(&coord->coord, &scale);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    scale.vz            = ONE;
+    // Rescale the saved pose instead of compounding the previous update's scale.
+    rootCoord->coord = work->savedRootMtx;
+    ScaleMatrix(&rootCoord->coord, &scale);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
     work->stateFrames++;
-    if (work->stateFrames == 8) {
-        rot.vx = 0;
-        rot.vy = 0;
-        rot.vz = 0;
-        effectSpawn(EFFECT_CORPSE_BURN, coord, 4, &rot);
+    if (work->stateFrames == ACTOR_400600_CORPSE_BURN_EFFECT_FRAME) {
+        effectRotation.vx = 0;
+        effectRotation.vy = 0;
+        effectRotation.vz = 0;
+        effectSpawn(EFFECT_CORPSE_BURN, rootCoord, ACTOR_400600_CORPSE_BURN_VARIANT, &effectRotation);
     }
-    if (work->stateFrames >= 0x11) {
+    if (work->stateFrames >= ACTOR_400600_CORPSE_HIDE_FRAME) {
         model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        _actor400600SyncArmModelFlags(arg0, ACTOR_400600_KEEP_ARM_COLOR);
+        _actor400600SyncArmModelFlags(task, ACTOR_400600_KEEP_ARM_COLOR);
         work->state++;
     }
 }
@@ -5464,33 +5568,41 @@ static void _actor400600StartJunkYardFloorDrop(Task* task)
     }
 }
 
-static void func_actor_400600_8013ADA4(Task* arg0)
+/// Advances the final Junk Yard drop and starts the floor landing at world Y zero.
+///
+/// Entry 4 of scripted task state 6, with counter and vertical motion reset.
+/// Waits through four updates, then eases X toward 16565, adds 120 to Z and
+/// accelerates downward by two per update. Acceleration/speed wrap through u16
+/// before speed is read as s16. Landing resets the counter, starts clip 25,
+/// clamps Y to zero, vibrates the pad and advances; it does not enable hits.
+static void _actor400600TickJunkYardFloorDrop(Task* task)
 {
+    enum { ACTOR_400600_JUNK_YARD_DROP_FIRST_FRAME = 5 };
     _Actor400600ZebraStalkerWork* work;
-    GfxCoord*                     coord;
-    s32                           x;
-    s32                           y;
-    u16                           step;
-    u16                           accum;
+    GfxCoord*                     rootCoord;
+    s32                           rootX;
+    s32                           landingY;
+    u16                           nextAccelBits;
+    u16                           nextSpeedBits;
 
-    work  = (_Actor400600ZebraStalkerWork*)arg0->work;
-    coord = arg0->extra.tmd->coords;
+    work      = task->work;
+    rootCoord = task->extra.tmd->coords;
     work->stateFrames++;
-    if (work->stateFrames >= 5) {
-        x                 = coord->coord.t[0];
-        coord->coord.t[0] = x + ((0x40B5 - x) >> 3);
-        coord->coord.t[2] = coord->coord.t[2] + 0x78;
-        step              = (u16)work->moveAccel + 2;
-        accum             = (u16)work->moveSpeed + step;
-        work->moveSpeed   = accum;
-        work->moveAccel   = step;
-        y                 = coord->coord.t[1] + (s16)accum;
-        coord->coord.t[1] = y;
-        if (y >= 0) {
+    if (work->stateFrames >= ACTOR_400600_JUNK_YARD_DROP_FIRST_FRAME) {
+        rootX                 = rootCoord->coord.t[0];
+        rootCoord->coord.t[0] = rootX + ((0x40B5 - rootX) >> 3);
+        rootCoord->coord.t[2] = rootCoord->coord.t[2] + 0x78;
+        nextAccelBits         = (u16)work->moveAccel + 2;
+        nextSpeedBits         = (u16)work->moveSpeed + nextAccelBits;
+        work->moveSpeed       = nextSpeedBits;
+        work->moveAccel       = nextAccelBits;
+        landingY              = rootCoord->coord.t[1] + (s16)nextSpeedBits;
+        rootCoord->coord.t[1] = landingY;
+        if (landingY >= 0) {
             padScriptSpawnVariableMotorRamp(0x10, 0x80, 0x20);
             work->stateFrames = 0;
-            _stalkerZebraIvoryRequestClipRestart(arg0, 0x19, ANIMATION_RATE_ONE);
-            coord->coord.t[1] = 0;
+            _stalkerZebraIvoryRequestClipRestart(task, ACTOR_400600_CLIP_LANDING, ANIMATION_RATE_ONE);
+            rootCoord->coord.t[1] = 0;
             work->state++;
         }
     }
@@ -5774,32 +5886,41 @@ static void func_actor_400600_8013B520(Task* arg0)
     }
 }
 
-static void func_actor_400600_8013B640(void)
+/// Queues the Zebra Stalker sound bundle once for the scene's enemy-bank latch.
+///
+/// Loads global-CDF group 40, suffix 6, file 1; night Water Hole variant 1
+/// selects file 2. Sets the shared latch after enqueueing, before completion.
+/// Requires live session state and free CD-ring capacity. The queue immediately
+/// copies key bytes 3/2/0 and four load-option bytes, retaining neither pointer.
+/// File-key byte 1 is unused and is left unwritten.
+static void _actor400600QueueSoundBank(void)
 {
-    u8 param1[8];
-    u8 param2[8];
+    enum { ACTOR_400600_SOUND_FILE_GROUP      = 40,
+           ACTOR_400600_SOUND_FILE_SUFFIX     = 6,
+           ACTOR_400600_SOUND_FILE_DEFAULT    = 1,
+           ACTOR_400600_SOUND_FILE_WATER_HOLE = 2 };
+    u8 fileKeyBytes[4];
+    u8 loadArgs[sizeof(((CdCmdEntry*)0)->args.bytes)];
 
     if (gSceneCombatState.enemySoundBankQueued == 0) {
-        /* Same shape as ActorsShared801692e8: each branch makes its own call
-         * and jump2's cross-jumping merges the identical tails. */
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(3, 32, 0, 0) && gGameSession->location.loc.variant == 1) {
-            param1[2] = 0x28;
-            param1[0] = 2;
-            param1[3] = 0;
-            param2[0] = 6;
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_DRYFIELD_NIGHT, GAME_AREA_DRYFIELD_NIGHT_WATER_HOLE, 0, 0) && gGameSession->location.loc.variant == 1) {
+            fileKeyBytes[2] = ACTOR_400600_SOUND_FILE_GROUP;
+            fileKeyBytes[0] = ACTOR_400600_SOUND_FILE_WATER_HOLE;
+            fileKeyBytes[3] = 0;
+            loadArgs[0]     = ACTOR_400600_SOUND_FILE_SUFFIX;
+            loadArgs[3]     = 0;
+            loadArgs[2]     = 0;
+            loadArgs[1]     = CD_COMMAND_LOAD_DEFAULT;
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKeyBytes, loadArgs);
         } else {
-            param1[2] = 0x28;
-            param1[0] = 1;
-            param1[3] = 0;
-            param2[0] = 6;
-            param2[3] = 0;
-            param2[2] = 0;
-            param2[1] = 0;
-            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            fileKeyBytes[2] = ACTOR_400600_SOUND_FILE_GROUP;
+            fileKeyBytes[0] = ACTOR_400600_SOUND_FILE_DEFAULT;
+            fileKeyBytes[3] = 0;
+            loadArgs[0]     = ACTOR_400600_SOUND_FILE_SUFFIX;
+            loadArgs[3]     = 0;
+            loadArgs[2]     = 0;
+            loadArgs[1]     = CD_COMMAND_LOAD_DEFAULT;
+            cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKeyBytes, loadArgs);
         }
         gSceneCombatState.enemySoundBankQueued = 1;
     }
@@ -6133,11 +6254,17 @@ static void _actor400600StartGrabTargetProbe(Task* task)
 
 #include "../../shared/stalker_zebra_ivory_release_hold.inc.c"
 
-static void func_actor_400600_8013BF48(Task* arg0)
+/// Starts the backward leap's rear wall probe before advancing to its resolution.
+///
+/// Entry 0 of running behavior 9. Requires the linked capsule and live model.
+/// Clears contacts and enables its grid test for a 3000-unit rear probe; the
+/// collision pass must fill contacts before sub-state 1 consumes the distance.
+/// Leaves the frame counter, animation and receiving sphere unchanged.
+static void _actor400600StartBackwardLeapProbe(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
+    _Actor400600ZebraStalkerWork* work = task->work;
 
-    _actor400600StartWallProbe(arg0, ACTOR_400600_PROBE_BACK);
+    _actor400600StartWallProbe(task, ACTOR_400600_PROBE_BACK);
     work->subState++;
 }
 
@@ -6407,79 +6534,71 @@ static void _actor400600TickHiddenIdle(Task* task)
     }
 }
 
-static void func_actor_400600_8013C6B0(SVECTOR* pos, WorldCollisionContact* rec, SVECTOR* out)
+/// Computes a room-axis horizontal push away from a body contact's centre.
+///
+/// Inputs share the composed view frame and use signed integer game units;
+/// `contact->distance` is the summed sphere radii. Depth is X/Z overlap clamped
+/// to zero, while direction uses full XYZ separation normalized to Q12 and
+/// transformed by the active grid view basis's transpose. Writes s16 X/Z and
+/// zero Y; `pad` is untouched. Inputs are borrowed only during this call.
+/// Requires the active grid/view cache, SDK normalization range and s32-safe
+/// squared differences/products. GTE state changes even for zero overlap.
+static void _actorContactCalcHorizontalPushback(const SVECTOR* position, const WorldCollisionContact* contact, SVECTOR* pushDelta)
 {
-    VECTOR v;
-    VECTOR n;
+    enum { ACTOR_CONTACT_DIRECTION_FRACTION_BITS = 12 };
+    VECTOR delta;
+    VECTOR normalizedDirection;
     s32    dx;
     s32    dz;
-    s32    dist;
-    s32    t;
+    s32    penetrationDepth;
 
-    dx   = pos->vx - rec->point.vx;
-    v.vy = 0;
-    v.vx = dx;
-    dz   = pos->vz - rec->point.vz;
-    v.vz = dz;
-    dist = rec->distance - SquareRoot0(dx * dx + dz * dz);
-    t    = dist;
-    if (dist <= 0) {
-        t = 0;
-    }
-    dist = t;
-    v.vx = pos->vx - rec->point.vx;
-    v.vy = pos->vy - rec->point.vy;
-    v.vz = pos->vz - rec->point.vz;
-    VectorNormal(&v, &n);
-    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &n, &v);
-    out->vx = (dist * v.vx) >> 12;
-    out->vy = 0;
-    out->vz = (dist * v.vz) >> 12;
+    // Measure horizontal depth, then remove the view rotation from XYZ direction.
+    dx               = position->vx - contact->point.vx;
+    delta.vy         = 0;
+    delta.vx         = dx;
+    dz               = position->vz - contact->point.vz;
+    delta.vz         = dz;
+    penetrationDepth = contact->distance - SquareRoot0(dx * dx + dz * dz);
+    penetrationDepth = (penetrationDepth <= 0) ? 0 : penetrationDepth;
+    delta.vx         = position->vx - contact->point.vx;
+    delta.vy         = position->vy - contact->point.vy;
+    delta.vz         = position->vz - contact->point.vz;
+    VectorNormal(&delta, &normalizedDirection);
+    ApplyTransposeMatrixLV(&Gp_GridParams->viewCoord->workm, &normalizedDirection, &delta);
+    pushDelta->vx = (penetrationDepth * delta.vx) >> ACTOR_CONTACT_DIRECTION_FRACTION_BITS;
+    pushDelta->vy = 0;
+    pushDelta->vz = (penetrationDepth * delta.vz) >> ACTOR_CONTACT_DIRECTION_FRACTION_BITS;
 }
 
-static s32 func_actor_400600_8013C7E8(s16 arg0, s16 arg1)
-{
-    s16 v;
-
-    v = arg1 >> 3;
-    if (arg0 == 0) {
-        return v;
-    }
-    if ((arg0 > 0 && v < 0) || (arg0 < 0 && v > 0)) {
-        return arg0;
-    }
-    if (arg0 > 0) {
-        if (v < arg0) {
-            return arg0;
-        }
-        return v;
-    }
-    if (v < arg0) {
-        return v;
-    }
-    return arg0;
-}
-
-/// Starts the hide branch of the cloak fade for a live actor and its arm models.
+/// Chooses one horizontal correction from a grid step and an eased body push.
 ///
-/// Leaves an existing hide request alone, including a fade in progress.
-/// Otherwise resets fade progress and selects semitransparent rendering with
-/// black lighting for the body and existing arms. Drawing and target-scanning
-/// flags are preserved here; the fade tick applies the final hidden state.
-/// Requires the live work, body model and its enemy record.
-static inline void _actor400600StartHideFadeInline(Task* task)
+/// Both inputs and the returned step are signed-halfword game units. Arithmetic
+/// right-shift by three eases the body push (negative values round downward).
+/// With a zero grid step returns that push; opposite directions keep the grid
+/// step; matching directions take whichever has greater magnitude. No state or
+/// pointers are retained and no saturation is performed.
+static s16 _actor400600SelectCollisionStep(s16 gridStep, s16 bodyPush)
 {
-    _Actor400600ZebraStalkerWork* work  = task->work;
-    TmdObject*                    model = task->extra.tmd;
+    enum { ACTOR_400600_BODY_PUSH_EASING_SHIFT = 3 };
+    s16 easedBodyPush;
 
-    if (work->cloaked != ACTOR_400600_CLOAK) {
-        work->cloaked         = ACTOR_400600_CLOAK;
-        work->cloakFading     = 1;
-        work->cloakFadeFrames = 0;
-        model->flags         |= TMD_OBJECT_SEMI_TRANS;
-        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_BLACK);
-        _actor400600SyncArmModelFlags(task, ENEMY_COLOR_BLACK);
+    easedBodyPush = bodyPush >> ACTOR_400600_BODY_PUSH_EASING_SHIFT;
+    if (gridStep == 0) {
+        return easedBodyPush;
     }
+    if ((gridStep > 0 && easedBodyPush < 0) || (gridStep < 0 && easedBodyPush > 0)) {
+        return gridStep;
+    }
+    if (gridStep > 0) {
+        if (easedBodyPush < gridStep) {
+            return gridStep;
+        }
+        return easedBodyPush;
+    }
+    if (easedBodyPush < gridStep) {
+        return easedBodyPush;
+    }
+    return gridStep;
 }
 
 /// Enters the running task at behavior zero with a reset sub-state cursor.

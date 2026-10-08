@@ -511,7 +511,7 @@ Evidence: `tools/permuter_findings/func_actor_403600_80132A18/`, session
 These were manual controlled predictions. The required router selected stale
 archived callee names and skipped all three seeds; it produced no new discovery.
 
-## A soft register dependency can preserve load order while losing store order (func_actor_400600_80137840, 2026-09-19)
+## A soft register dependency can preserve load order while losing store order (_actor400600UpdateArmSwing, 2026-09-19)
 
 The target stores a raw halfword sum, sign-extends it to a0, then reloads the
 task's work and child pointers in v0. Storing the converted value retained
@@ -534,7 +534,7 @@ the explicit register dependency alone did not preserve the earlier stores.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Preprocessed inputs: base_4 `765f97c95bebf292fc1b4f2f268708a57abf8dab01165b35e837eb9cbbdeeb0c`;
 base_5 `50b9ef86ae0c7e2419e9d8f46b776f7c0e2018c0e53a87ede3a5acccd39684ec`.
-Evidence: `tools/permuter_findings/func_actor_400600_80137840/`, session
+Evidence: `tools/permuter_findings/_actor400600UpdateArmSwing/`, session
 `8b65875338ca42d5b7466268333f6fdb`, `PERMUTER_EVIDENCE/manual-base_5/`.
 This was a manual prediction; the bounded permuter found no improvement.
 
@@ -3610,7 +3610,7 @@ is copied out (`move a2, a0`) and coord reuses `$a0` for the rest of the
 function (regs + an extra `addu`).
 
 `func_actor_400500_8013D210` in the same TU keeps `$a0` without a barrier
-because it has no halfword math to interleave. `func_actor_400600_8013ADA4`
+because it has no halfword math to interleave. `_actor400600TickJunkYardFloorDrop`
 uses coord for other `t[]` stores *before* the step/accum, which is a real
 dependence the scheduler cannot sink past the coord load.
 
@@ -9631,7 +9631,7 @@ their earlier definitions supplied.** When `actor_400600` gained
 (the jump table for `_actor400600TakeArmedHitReaction` sat at 4 mod 8 from the
 unit's `0x0` base), the tail of `actor_400600.c` became `actor_400600_2.c` and
 the later units renumbered `_2..._6` -> `_3..._7`. Every body compiled the same,
-except one call: `func_actor_400600_80132704(Task*, s16, u8)` had been
+except one call: `_actor400600DrawWallShadows(Task*, s16, u8)` had been
 *defined* higher up the old file, so its callers in the tail saw a prototype.
 In the new file the call was implicit, the `u8` argument was passed as an `int`,
 and `lbu` became `lh` - a one-byte checksum failure (`cmp -l` found it). Fix:
@@ -13175,13 +13175,13 @@ diff shows as a two-line `regs` penalty on an otherwise perfect body:
 ```c
 extern const TaskFuncTable4 D_actor_400600_80131F60;
 
-void func_actor_400600_801394E0(Task* arg0)
+static void _actor400600RunBackwardLeap(Task* task)
 {
-    _Actor400600ZebraStalkerWork* work = (_Actor400600ZebraStalkerWork*)arg0->work;
-    TaskFuncTable4   handlers  = D_actor_400600_80131F60;
+    _Actor400600ZebraStalkerWork* work = task->work;
+    TaskFuncTable4 phases = D_actor_400600_80131F60;
 
-    func_actor_400600_80138AA4(arg0);
-    handlers.funcs[work->subState](arg0);
+    _stalkerZebraIvoryFoldArms(task);
+    phases.funcs[work->subState](task);
 }
 ```
 
@@ -70930,11 +70930,11 @@ arm's `li` (`$s0` is dead at the taken label) and drops the duplicate.
 
 ### Some predecessors of a join branch to a reload, others past it: the reload is in an `else` arm
 
-`func_actor_400600_80137AF0` tests `A && B && C` and falls into a shared tail.
+`_actor400600TryEnterHiddenIdle` tests `A && B && C` and falls into a shared tail.
 In the target the `A` and `B` failures branch to `lw $v1, 0x1C($s0)` (reload
 `index->work`), while the `C` failure branches one instruction later, keeping
 the `$v1` it already has. Reloading `work` at the join (`if (A && B && C) {...
-return 1; } work = arg0->work;`) scored 99.99%: every failure targets the
+return 1; } work = task->work;`) scored 99.99%: every failure targets the
 reload. reorg cannot skip it for `C` alone, since `redundant_insn` stops at the
 first `CODE_LABEL` while scanning back from the branch. Nesting the test puts
 the reload only on the paths that need it, and matches:
@@ -70943,7 +70943,7 @@ the reload only on the paths that need it, and matches:
 if (A && B) {
     if (C) { ...; return 1; }
 } else {
-    work = (_Actor400600ZebraStalkerWork*)arg0->work;
+    work = task->work;
 }
 /* shared tail uses work */
 ```
@@ -71828,7 +71828,7 @@ is copied out (`move a2, a0`) and coord reuses `$a0` for the rest of the
 function (regs + an extra `addu`).
 
 `func_actor_400500_8013D210` in the same TU keeps `$a0` without a barrier
-because it has no halfword math to interleave. `func_actor_400600_8013ADA4`
+because it has no halfword math to interleave. `_actor400600TickJunkYardFloorDrop`
 uses coord for other `t[]` stores *before* the step/accum, which is a real
 dependence the scheduler cannot sink past the coord load.
 
@@ -146186,7 +146186,7 @@ emits the constant's parameter copy in the block before the helper's first
 branch, and that extra insn lets sched1 hoist the preceding
 `gStageSceneMusicEntry = 2;` store to the top of the block. An explicit
 `flag = 0x80;` hoisted to the same place reproduces the failure exactly.
-## A barrier ordering one arm's sign extension before a reload is a statement macro's loop note (func_actor_400600_80137840, 2026-09-27)
+## A barrier ordering one arm's sign extension before a reload is a statement macro's loop note (_actor400600UpdateArmSwing, 2026-09-27)
 
 Four copies of "reload the child from `task->work`, null-check it, rotate it by an
 `s16` angle" matched only with `TOUCH_REG_USE(index, angle)` in one arm, which put
