@@ -97,7 +97,12 @@ static const TaskFuncTable3 D_neo_ark_submarine_gallery_8017D614 = {
     { _neoArkSubmarineGalleryInitializeRoom, _neoArkSubmarineGalleryMessageTaskIdle, taskKill }
 };
 
-/// Commits the staged destination and replaces the departure task with a reload request.
+/// Commits the staged island destination and replaces the departure task with a reload request.
+///
+/// Requires the room's persistent destination storage and completed departure
+/// sound. The stored bytes are room, area and warp selectors; stage stays in
+/// the live save. Selects sprite variant 1 and skips a second battle-escape
+/// result before releasing this task. Allocation failure leaves the save committed.
 static inline void _neoArkSubmarineGalleryCommitIslandDeparture(Task* task)
 {
     enum { STAGED_ROOM_BYTE      = 1,

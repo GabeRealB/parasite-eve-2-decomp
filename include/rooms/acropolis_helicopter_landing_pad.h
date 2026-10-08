@@ -107,7 +107,12 @@ void acropolisHelicopterLandingPadLensFlareTask(Task* task);
 /// effect; emitted effects keep their own lifetimes. Keep the room overlay loaded.
 void acropolisHelicopterLandingPadFlareEmitterTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_8017EF60(s32 unused0, s32 unused1);
+/// Queues the landing pad's fire-escape exit from a direction action.
+///
+/// Both action words are ignored. Requires the player, room and its overlay
+/// to remain live through the asynchronous turn, descent and saved-location reload.
+/// Allocation failure leaves the current room unchanged.
+void acropolisHelicopterLandingPadStartExit(s32 unusedArgument, s32 unusedActionId);
 
 /// Follows a damaged helipad light and drives its spark lines, bursts and transient lights.
 ///
@@ -122,7 +127,14 @@ void func_acropolis_helicopter_landing_pad_8017EF60(s32 unused0, s32 unused1);
 /// The parent chain and room overlay must remain live until teardown.
 void acropolisHelicopterLandingPadDamagedLightSparksTask(Task* task);
 
-void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0);
+/// Turns the player, descends three steps and reloads the resolved fire-escape room.
+///
+/// Bank-2 slot 15 is bodyless and requires state 0..4: resolve the destination,
+/// start the turn, wait for the turn, start descent, then wait and commit.
+/// Every tick selects surface 2, the landing pad's stair footstep entry; collision
+/// response does not select the surface during scripted stair motion. Requires
+/// a live player and room receiver and this overlay throughout the sequence.
+void acropolisHelicopterLandingPadExitTask(Task* task);
 
 /// Runs the landing pad lift's initialization, travel and teardown states.
 ///

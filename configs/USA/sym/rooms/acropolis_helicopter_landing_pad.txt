@@ -184,7 +184,7 @@ acropolisHelicopterLandingPadLensFlareTask = 0x80181064; // type:func
 
 acropolisHelicopterLandingPadFlareEmitterTask = 0x80180E40; // type:func
 
-func_acropolis_helicopter_landing_pad_8017EF60 = 0x8017EF60; // type:func
+acropolisHelicopterLandingPadStartExit = 0x8017EF60; // type:func
 
 acropolisHelicopterLandingPadDamagedLightSparksTask = 0x801802E0; // type:func
 _actorContactApplyGridPushback = 0x801819C0; // type:func
@@ -228,3 +228,5 @@ acropolisHelicopterLandingPadConfirmDepartureTask = 0x8017e974; // type:func
 acropolisHelicopterLandingPadHandleCommand = 0x8017e570; // type:func
 acropolisHelicopterLandingPadResolveDeparture = 0x8017e3f0; // type:func
 _acropolisHelicopterLandingPadInitRoom = 0x8017ea6c; // type:func
+_acropolisHelicopterLandingPadCommitExitTask = 0x8017eedc; // type:func
+acropolisHelicopterLandingPadExitTask = 0x8017ef8c; // type:func

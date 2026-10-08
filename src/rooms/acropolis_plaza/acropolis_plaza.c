@@ -386,7 +386,7 @@ STATIC_ASSERT_SIZEOF(_AcropolisPlazaEventWork, 0x8);
 
 extern s16 D_acropolis_plaza_801987E0[];
 
-/// Gate `func_acropolis_plaza_8017FB50` applies to a pending `WorldCollisionTrigger` event
+/// Gate `_acropolisPlazaUpdateSequenceEvent` applies to a pending `WorldCollisionTrigger` event
 /// whose id has the sign bit clear; a main-executable global with no module
 /// header yet.
 
@@ -2210,7 +2210,6 @@ static void            _acropolisPlazaApplyStreamCamera(s32 subId);
 static __inline__ void _acropolisPlazaUpdateSceneEdgeFlags(_AcropolisPlazaSceneWork* work);
 static void            _acropolisPlazaUpdateAmbienceVoice(u16 firstFrame, u16 lastFrame, u16 peakFrame, u16* startRequested, s32 soundId, u16 envelope);
 static void            _acropolisPlazaUpdateSceneAmbience(Task* task);
-static u16             func_acropolis_plaza_8017FB50(Task* task);
 
 void acropolisPlazaPollStreamCommands(void)
 {
@@ -3496,108 +3495,128 @@ static void _acropolisPlazaUpdateSceneAmbience(Task* task)
     }
 }
 
-/// Steps the plaza's streamed scene, returning zero while it is still running.
+/// Restarts the plaza scene watcher at the sequence's saved frame without resetting the stream.
 ///
-/// Seven steps driven by the pending `WorldCollisionTrigger` event `worldCollisionReadActionHit`
-/// reports. `ready` is that event's "take it" flag, qualified by `gPlayerStatus.interactionPressed`
-/// so an event that arrives with the id's sign bit clear is only acted on when
-/// that global is set. Steps 0 and 2 latch the event into the work block and
-/// pick a table entry from its kind byte; steps 1, 3 and 4..6 wait on the task
-/// the previous step spawned (`taskPollKill`) and respawn the entry-1 stream
-/// watcher over `sceneArg`. Step 3 is the only exit: it unlinks the scene's
-/// `WorldCollisionTrigger` and returns 1 when the latched kind is 2.
-static u16 func_acropolis_plaza_8017FB50(Task* task)
+/// Borrows live sequence work; the spawned watcher retains its scene argument.
+/// Keep the work and room resources intact until that watcher finishes.
+static inline void _acropolisPlazaResumeSequenceStream(_AcropolisPlazaSequenceWork* work)
 {
-    CdCmdQueue*                  q    = &gCdCmdQueue;
-    _AcropolisPlazaSequenceWork* work = (_AcropolisPlazaSequenceWork*)task->work;
-    u16                          evtId;
-    u8                           evtKind;
-    u8                           evtSub;
-    s32                          killed0;
-    s32                          killed1;
-    s32                          killed2;
-    s16                          ready;
-    u16                          step;
-    s32                          kind;
+    enum { ACROPOLIS_PLAZA_RESUME_STREAM_TASK = 1 };
+
+    work->sceneArg.skipStreamReset = 1;
+    work->sceneArg.startFrame      = work->resumeFrame;
+    work->sceneTask                = taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_RESUME_STREAM_TASK, 0, &work->sceneArg);
+}
+
+/// Advances the plaza's trigger-driven streamed sequence and reports final-scene completion.
+///
+/// Borrows the sequence task's live work and retains it in spawned event tasks.
+/// Automatic triggers bypass the interaction-button gate. First-scene and
+/// ordinary-event waits latch the trigger control and parameters; completion
+/// unlinks one-shot triggers and resumes the scene at the saved frame. Repeat
+/// events saturate at variant 2; caption events return to their prior wait.
+/// Returns 1 only after the final event task ends, otherwise 0. The room,
+/// stream resources, trigger storage and sequence work must outlive all children.
+static u16 _acropolisPlazaUpdateSequenceEvent(Task* task)
+{
+    enum { ACROPOLIS_PLAZA_EVENT_TASK_STREAM_SCENE = 2,
+           ACROPOLIS_PLAZA_EVENT_TASK_FINAL_SCENE  = 3,
+           ACROPOLIS_PLAZA_EVENT_TASK_FIRST_SCENE  = 4,
+           ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE = 6,
+           ACROPOLIS_PLAZA_EVENT_TASK_CAPTION      = 9,
+           ACROPOLIS_PLAZA_REPEAT_FIRST_VARIANT    = 0,
+           ACROPOLIS_PLAZA_REPEAT_SECOND_VARIANT   = 1,
+           ACROPOLIS_PLAZA_REPEAT_LAST_VARIANT     = 2,
+           ACROPOLIS_PLAZA_SCENE_RUNNING           = 0,
+           ACROPOLIS_PLAZA_SCENE_COMPLETE          = 1 };
+
+    CdCmdQueue*                  queue = &gCdCmdQueue;
+    _AcropolisPlazaSequenceWork* work  = task->work;
+    u16                          eventControl;
+    u8                           eventKind;
+    u8                           eventParameter1;
+    s32                          firstSceneResult;
+    s32                          sceneResult;
+    s32                          repeatOrCaptionResult;
+    s16                          eventReady;
+    u16                          completedStep;
+    s32                          signedEventKind;
     u32                          latchedKind;
     u16                          latchedKind16;
 
-    ready = worldCollisionReadActionHit(&evtId, &evtKind, &evtSub);
-    if (!((s16)evtId & WORLD_COLLISION_TRIGGER_AUTOMATIC) && (ready != 0)) {
-        ready = gPlayerStatus.interactionPressed != 0;
+    // Manual triggers require a fresh interaction press.
+    // The target reads control even on a failed query; readiness still gates actions.
+    eventReady = worldCollisionReadActionHit(&eventControl, &eventKind, &eventParameter1);
+    if (!((s16)eventControl & WORLD_COLLISION_TRIGGER_AUTOMATIC) && (eventReady != 0)) {
+        eventReady = gPlayerStatus.interactionPressed != 0;
     }
 
     switch (work->step) {
         case ACROPOLIS_PLAZA_STEP_AWAIT_FIRST_SCENE:
-            if (ready != 0) {
-                work->eventControl    = evtId;
-                work->eventKind       = evtKind;
-                work->eventParameter1 = evtSub;
-                if ((s8)evtKind == ACROPOLIS_PLAZA_EVENT_FIRST_SCENE) {
+            if (eventReady != 0) {
+                work->eventControl    = eventControl;
+                work->eventKind       = eventKind;
+                work->eventParameter1 = eventParameter1;
+                if ((s8)eventKind == ACROPOLIS_PLAZA_EVENT_FIRST_SCENE) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, 4, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_FIRST_SCENE, 0, work);
                     work->step = work->step + 1;
                     break;
-                } else if ((s8)evtKind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
+                } else if ((s8)eventKind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_CAPTION, 0, work);
                     work->step = ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION;
                 }
             }
             break;
         case ACROPOLIS_PLAZA_STEP_RUN_FIRST_SCENE:
-            if (taskPollKill(work->eventTask, &killed0) != 0) {
-                work->sceneArg.skipStreamReset = 1;
-                work->sceneArg.startFrame      = work->resumeFrame;
-                work->sceneTask =
-                    taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
+            if (taskPollKill(work->eventTask, &firstSceneResult) != 0) {
+                _acropolisPlazaResumeSequenceStream(work);
                 worldCollisionUnlinkTrigger(0, &D_acropolis_plaza_801991F0);
                 work->step = work->step + 1;
             }
             break;
         case ACROPOLIS_PLAZA_STEP_AWAIT_EVENT:
-            if (ready != 0) {
-                work->eventControl    = evtId;
-                work->eventKind       = evtKind;
-                work->eventParameter1 = evtSub;
-                work->resumeFrame     = q->sceneFrame;
-                kind                  = (s8)evtKind;
-                if (kind == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
+            if (eventReady != 0) {
+                work->eventControl    = eventControl;
+                work->eventKind       = eventKind;
+                work->eventParameter1 = eventParameter1;
+                work->resumeFrame     = queue->sceneFrame;
+                signedEventKind       = (s8)eventKind;
+                if (signedEventKind == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, 2, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_STREAM_SCENE, 0, work);
                     work->step = work->step + 1;
                     break;
-                } else if (kind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
+                } else if (signedEventKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, 3, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_FINAL_SCENE, 0, work);
                     work->step = work->step + 1;
                     break;
-                } else if (kind == ACROPOLIS_PLAZA_EVENT_REPEAT_SCENE) {
-                    if (work->repeatVariant == 0) {
+                } else if (signedEventKind == ACROPOLIS_PLAZA_EVENT_REPEAT_SCENE) {
+                    if (work->repeatVariant == ACROPOLIS_PLAZA_REPEAT_FIRST_VARIANT) {
                         work->eventTask =
-                            taskSpawnFromTable(D_acropolis_plaza_80183824, 6, 0, work);
+                            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE, ACROPOLIS_PLAZA_REPEAT_FIRST_VARIANT, work);
                         work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
-                    } else if (work->repeatVariant == 1) {
+                    } else if (work->repeatVariant == ACROPOLIS_PLAZA_REPEAT_SECOND_VARIANT) {
                         work->eventTask =
-                            taskSpawnFromTable(D_acropolis_plaza_80183824, 6, 1, work);
+                            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE, ACROPOLIS_PLAZA_REPEAT_SECOND_VARIANT, work);
                         work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     } else {
                         work->eventTask =
-                            taskSpawnFromTable(D_acropolis_plaza_80183824, 6, 2, work);
+                            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_REPEAT_SCENE, ACROPOLIS_PLAZA_REPEAT_LAST_VARIANT, work);
                         work->step = ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE;
                     }
-                } else if (kind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
+                } else if (signedEventKind >= ACROPOLIS_PLAZA_EVENT_FIRST_CAPTION) {
                     work->eventTask =
-                        taskSpawnFromTable(D_acropolis_plaza_80183824, 9, 0, work);
+                        taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_EVENT_TASK_CAPTION, 0, work);
                     work->step = ACROPOLIS_PLAZA_STEP_RUN_CAPTION;
                 }
             }
             break;
         case ACROPOLIS_PLAZA_STEP_RUN_SCENE:
-            if (taskPollKill(work->eventTask, &killed1) != 0) {
-                /* The kind byte is tested as an unsigned short, so it is
-                   sign-extended and narrowed again at each comparison; routing
-                   both tests through one variable folds the pair away. */
+            if (taskPollKill(work->eventTask, &sceneResult) != 0) {
+                // Keep the signed-byte extension and unsigned-halfword comparison widths.
                 latchedKind   = work->eventKind;
                 latchedKind16 = (s8)latchedKind;
                 if (latchedKind16 == ACROPOLIS_PLAZA_EVENT_STREAM_SCENE) {
@@ -3607,28 +3626,22 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
                 }
                 work->step = work->step - 1;
                 if ((s8)work->eventKind == ACROPOLIS_PLAZA_EVENT_FINAL_SCENE) {
-                    return 1;
+                    return ACROPOLIS_PLAZA_SCENE_COMPLETE;
                 }
-                work->sceneArg.skipStreamReset = 1;
-                work->sceneArg.startFrame      = work->resumeFrame;
-                work->sceneTask =
-                    taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
+                _acropolisPlazaResumeSequenceStream(work);
             }
             break;
         case ACROPOLIS_PLAZA_STEP_RUN_REPEAT_SCENE:
         case ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION:
         case ACROPOLIS_PLAZA_STEP_RUN_CAPTION:
-            if (taskPollKill(work->eventTask, &killed2) != 0) {
-                work->sceneArg.skipStreamReset = 1;
-                work->sceneArg.startFrame      = work->resumeFrame;
-                work->sceneTask =
-                    taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
-                step = work->step;
-                if (step == ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION) {
+            if (taskPollKill(work->eventTask, &repeatOrCaptionResult) != 0) {
+                _acropolisPlazaResumeSequenceStream(work);
+                completedStep = work->step;
+                if (completedStep == ACROPOLIS_PLAZA_STEP_RUN_FIRST_CAPTION) {
                     work->step = ACROPOLIS_PLAZA_STEP_AWAIT_FIRST_SCENE;
                 } else {
-                    if (step != ACROPOLIS_PLAZA_STEP_RUN_CAPTION) {
-                        if (work->repeatVariant < 2) {
+                    if (completedStep != ACROPOLIS_PLAZA_STEP_RUN_CAPTION) {
+                        if (work->repeatVariant < ACROPOLIS_PLAZA_REPEAT_LAST_VARIANT) {
                             work->repeatVariant = work->repeatVariant + 1;
                         }
                     }
@@ -3637,7 +3650,7 @@ static u16 func_acropolis_plaza_8017FB50(Task* task)
             }
             break;
     }
-    return 0;
+    return ACROPOLIS_PLAZA_SCENE_RUNNING;
 }
 
 /// Draws black bars over the top and bottom 24 pixels of the cinematic view.
@@ -3679,7 +3692,7 @@ static void _acropolisPlazaLetterboxTask(Task* task)
 /// to (0x370, 0x370, 0x370), tells slot 6 to start (msg 0xFA4), spawns the
 /// stream watcher (entry 1) and the entry-8 actor, and arms
 /// `gCdCmdQueue.blockGamePause`. State 4 runs the ambience driver until
-/// `func_acropolis_plaza_8017FB50` reports the scene is over; state 5 records
+/// `_acropolisPlazaUpdateSequenceEvent` reports the scene is over; state 5 records
 /// the next stage in the save block, disarms `blockGamePause` and hands off to the
 /// stage-load task.
 void func_acropolis_plaza_80180054(Task* task)
@@ -3727,7 +3740,7 @@ void func_acropolis_plaza_80180054(Task* task)
             return;
         case 4:
             _acropolisPlazaUpdateSceneAmbience(task);
-            if (func_acropolis_plaza_8017FB50(task) == 0) {
+            if (_acropolisPlazaUpdateSequenceEvent(task) == 0) {
                 return;
             }
             task->state = task->state + 1;

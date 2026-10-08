@@ -629,8 +629,6 @@ WorldCollisionTrigger D_acropolis_helicopter_landing_pad_801859BC[16] = {
     { NULL, NULL, NULL, { -5856, 0, 4064, 0 }, { { 1437, 6080, -1741, 0 }, { -1437, 6080, 1740, 0 }, { 1437, -6080, -1741, 0 }, { -1437, -6080, 1740, 0 } }, { -3161, 0, -2610, 0 }, { 0, 0, 4096, 0 }, 6476, 0, 10, 9, WORLD_COLLISION_TRIGGER_VIEW_BOUNDARY | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0);
-
 /// Plays the room's view-100 movie, permits Start cancellation and restores gameplay.
 ///
 /// Runs as the display-owned task with state 0..5. Requires the current location's
@@ -796,37 +794,46 @@ static void _acropolisHelicopterLandingPadDescendExitStairs(Task* task)
     task->state = task->state + 1;
 }
 
-static void func_acropolis_helicopter_landing_pad_8017EEDC(Task* arg0)
+/// Commits the resolved fire-escape destination once the player's descent finishes.
+///
+/// Requires the live player and the room's resolved destination record. Copies
+/// its area, warp and room into the live save, queues a captured-frame reload,
+/// then kills this task. A failed reload allocation still leaves the save changed.
+static void _acropolisHelicopterLandingPadCommitExitTask(Task* task)
 {
     if (taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_IS_SCRIPTED_MOTION_PENDING, 0, 0) == 0) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)D_acropolis_helicopter_landing_pad_80187F90.areaId;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_acropolis_helicopter_landing_pad_80187F90.warp;
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = D_acropolis_helicopter_landing_pad_80187F90.room;
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 
-void func_acropolis_helicopter_landing_pad_8017EF60(s32 unused0, s32 unused1)
+void acropolisHelicopterLandingPadStartExit(s32 unusedArgument, s32 unusedActionId)
 {
-    taskSpawn(2, 0xF, 0, 0);
+    enum { ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_TASK_BANK = 2,
+           ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_TASK_SLOT = 15 };
+
+    taskSpawn(ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_TASK_BANK, ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_TASK_SLOT, 0, 0);
 }
 
-/// Five-state dispatcher of the room's intro task; the handler table is built
-/// on the stack. Marks the player actor's `field_930` as 2 before every step.
-void func_acropolis_helicopter_landing_pad_8017EF8C(Task* arg0)
+void acropolisHelicopterLandingPadExitTask(Task* task)
 {
-    GameActor* actor     = (GameActor*)(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->work;
-    TaskFunc   states[5] = {
+    enum { ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_STAIR_SURFACE = 2 };
+
+    GameActor* playerActor     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
+    TaskFunc   stateHandlers[] = {
         _acropolisHelicopterLandingPadResolveExit,
         _acropolisHelicopterLandingPadTurnPlayerToExit,
         _acropolisHelicopterLandingPadWaitForPlayerTurn,
         _acropolisHelicopterLandingPadDescendExitStairs,
-        func_acropolis_helicopter_landing_pad_8017EEDC,
+        _acropolisHelicopterLandingPadCommitExitTask,
     };
 
-    actor->surfaceClass = 2;
-    states[arg0->state](arg0);
+    // Scripted stairs bypass collision-based surface selection.
+    playerActor->surfaceClass = ACROPOLIS_HELICOPTER_LANDING_PAD_EXIT_STAIR_SURFACE;
+    stateHandlers[task->state](task);
 }
 
 /// Sets a Gouraud glow wedge's packet header and red-to-black vertex colors.

@@ -105,7 +105,7 @@ static UiObjectDesc Telephone_Data_80181C90;
 static UiObjectDesc Telephone_Data_80181CAC;
 static UiObjectDesc Telephone_Data_80181CC8;
 
-/// The list shown by `func_dryfield_gas_station_8017EA90`.
+/// The list shown by `dryfieldGasStationTelephoneMenuTask`.
 static UiList Telephone_Data_80181CF4;
 
 extern TaskDesc         gRoomCutsceneTaskDescs[];
@@ -149,7 +149,7 @@ static void _dryfieldGasStationIdleRoomTask(Task* unusedTask);
 
 #include "../../shared/telephone.inc.c"
 
-void func_dryfield_gas_station_8017EA90(Task* task)
+void dryfieldGasStationTelephoneMenuTask(Task* task)
 {
     _telephoneMenuTask(task);
 }

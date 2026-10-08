@@ -34,7 +34,13 @@ extern ViewCamera D_acropolis_square_80188630[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_square_80188868[];
 
-s32 func_acropolis_square_80182360(s32 unused);
+/// Starts the square's one-time siren scene and applies placement variant 2.
+///
+/// Returns 0 when newly armed, 1 if the saved scene flag was already set.
+/// The argument is ignored. Commits the flag and session event state before
+/// spawning; allocation failure does not undo them. Requires the square overlay
+/// and its event resources to remain loaded through the asynchronous sequence.
+s32 acropolisSquareStartSirenSequence(s32 unused);
 
 /// Registers the square's room effects and emits view-dependent beacon glows.
 ///

@@ -75,3 +75,4 @@ _dryfieldMotelRoom1RequestEventAction = 0x8017dfb0; // type:func
 _dryfieldMotelRoom1RestorePlayerAfterSkip = 0x8017dfd0; // type:func
 _dryfieldMotelRoom1InitRoomTask = 0x8017d69c; // type:func
 dryfieldMotelRoom1Task = 0x8017d754; // type:func
+_dryfieldMotelRoom1ExecuteEventAction = 0x8017d7ac; // type:func

@@ -87,7 +87,7 @@ extern AnimationSet* D_actor_111800_8013A448[8];
 /// Psy-Q `RotMatrixY` (it sits right after `RotMatrixX`).
 
 /// Main-executable globals with no module header yet: `Gp_StateC08.mode` is 1 while the attachment wheel is open and
-/// `gDisplayState.pendingMode` is a pending display mode. `func_acropolis_square_80182360` is
+/// `gDisplayState.pendingMode` is a pending display mode. `acropolisSquareStartSirenSequence` is
 /// the room overlay's handler the view-matrix test calls with `t[0]`.
 
 static TmdSource _gActor111800GrinningStrangerBody;
@@ -427,7 +427,7 @@ static void func_actor_111800_80132390(Task* task)
 
 /// Per-frame state machine. State 0 waits until no cutscene is up, then runs
 /// the spawn handler and advances. State 1 ticks slots 1..0x12, latches
-/// `slot1RecordIndex`, and advances after `func_acropolis_square_80182360` when the player is in
+/// `slot1RecordIndex`, and advances after `acropolisSquareStartSirenSequence` when the player is in
 /// range. State 2 runs the sequence handler and kills the task once the
 /// session is idle. Every path but the state-0 wait then pitches part 5 by
 /// `part5Pitch`, writes it back, yaws it by `part5Yaw` through `_actorRenderYawJointInWorld`, and
@@ -470,7 +470,7 @@ void func_actor_111800_8013251C(Task* task)
             x                     = playerMtx->t[0];
             if ((x >= 0x5DD && playerMtx->t[2] >= -0x513) || (x >= 0xC81 && playerMtx->t[2] < -0x514)) {
                 work->sequenceStep = ACTOR_111800_STEP_START;
-                func_acropolis_square_80182360(x);
+                acropolisSquareStartSirenSequence(x);
                 task->state += 1;
             }
             break;

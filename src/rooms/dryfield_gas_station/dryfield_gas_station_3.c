@@ -619,100 +619,115 @@ Task* D_dryfield_gas_station_80184BCC = NULL;
 
 RoomCutsceneRec D_dryfield_gas_station_80184BD8;
 
-static void func_dryfield_gas_station_801803C0(Task* task);
-
-/// Carries out `_DryfieldGasStationCutsceneWork::command`, then clears it.
-/// A command that takes several updates advances `commandStep` and returns
-/// until its last step.
-static void func_dryfield_gas_station_801803C0(Task* task)
+/// Executes a pending gas-station scene command, retaining multi-update commands until completion.
+///
+/// Requires initialized work, its live player and the published scene task for
+/// restoration. Placement and animation records are borrowed synchronously;
+/// installed animation banks must remain loaded. The walk sends 31 room-space
+/// X/Z displacements, each one thirtieth of the first-to-third placement delta,
+/// with collision requests clear. Ordinary commands clear after one update;
+/// walking and fade setup advance `commandStep` and return until completion.
+static void _dryfieldGasStationExecuteCutsceneCommand(Task* task)
 {
+    enum { DRYFIELD_GAS_STATION_COMMAND_STEP_BEGIN     = 0,
+           DRYFIELD_GAS_STATION_COMMAND_STEP_WALK      = 1,
+           DRYFIELD_GAS_STATION_FADE_STEP_WAIT         = 1,
+           DRYFIELD_GAS_STATION_FADE_STEP_SHOW         = 2,
+           DRYFIELD_GAS_STATION_PLACEMENT_START        = 0,
+           DRYFIELD_GAS_STATION_PLACEMENT_BLEND        = 1,
+           DRYFIELD_GAS_STATION_PLACEMENT_END          = 2,
+           DRYFIELD_GAS_STATION_CLIP_INITIAL           = 0,
+           DRYFIELD_GAS_STATION_CLIP_FIRST_CUE         = 1,
+           DRYFIELD_GAS_STATION_CLIP_SECOND_CUE        = 2,
+           DRYFIELD_GAS_STATION_CLIP_WALK              = 3,
+           DRYFIELD_GAS_STATION_CUTSCENE_RATE          = ANIMATION_RATE_ONE / 2,
+           DRYFIELD_GAS_STATION_WALK_DELTA_DIVISOR     = 30,
+           DRYFIELD_GAS_STATION_WALK_UPDATE_COUNT      = 31,
+           DRYFIELD_GAS_STATION_PLACEMENT_BLEND_FRAMES = 30,
+           DRYFIELD_GAS_STATION_WALK_END_BLEND_FRAMES  = 15,
+           DRYFIELD_GAS_STATION_FADE_IN_FRAMES         = 30,
+           DRYFIELD_GAS_STATION_LOOP_FADE_TICKS        = 60 };
+
     _DryfieldGasStationCutsceneWork* work;
-    _DryfieldGasStationCutsceneWork* cur;
-    _DryfieldGasStationCutsceneWork* sharedWork;
-    Task*                            shared;
+    _DryfieldGasStationCutsceneWork* animationWork;
+    _DryfieldGasStationCutsceneWork* publishedWork;
+    Task*                            publishedTask;
     union {
-        AnimationPlayRequest rec;
+        AnimationPlayRequest animation;
         GameActorMoveBy      move;
-    } msg;
-    AnimationPlayRequest  script;
-    AnimationPlayRequest* rec;
-    u16                   step;
+    } payload;
+    AnimationPlayRequest  blendAnimation;
+    AnimationPlayRequest* blendRequest;
+    u16                   commandStep;
+
+    /// Installs a loaded scene clip after reloading the source task's player.
+    ///
+    /// Evaluates sourceTask once; clip, blendMode and duration once only when
+    /// the player exists. Captures this function's animationWork local and
+    /// writable payload.animation; invoke only in a braced block.
+    /// Dispatch borrows the request synchronously and playback retains the bank.
+    /// Blend duration is in normal-rate frames; world collision is disabled.
+#define DRYFIELD_GAS_STATION_INSTALL_COMMAND_ANIMATION(sourceTask, clip, blendMode, duration)                            \
+    animationWork = (sourceTask)->work;                                                                                  \
+    if (animationWork->player != NULL) {                                                                                 \
+        payload.animation.source.sets          = D_dryfield_gas_station_80182E30;                                        \
+        payload.animation.animationId          = (clip);                                                                 \
+        payload.animation.blend                = (blendMode);                                                            \
+        payload.animation.blendFrames          = (duration);                                                             \
+        payload.animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                      \
+        TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &payload.animation, 0); \
+    }
 
     work = task->work;
     switch (work->command) {
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_NONE:
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_START_AUDIO:
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[0], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_START], 0);
             sndEvtRequestScriptStart(SOUND_GAS_STATION_CUTSCENE_LOOP, 0, 0);
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x12), 0, 0);
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLAY_ANIMATION:
-            cur = task->work;
-            if (cur->player != NULL) {
-                msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
-                msg.rec.animationId          = 1;
-                msg.rec.blend                = ANIMATION_BLEND_RESET;
-                msg.rec.blendFrames          = 0;
-                msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
-            }
-            taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            DRYFIELD_GAS_STATION_INSTALL_COMMAND_ANIMATION(task, DRYFIELD_GAS_STATION_CLIP_FIRST_CUE, ANIMATION_BLEND_RESET, 0);
+            taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, DRYFIELD_GAS_STATION_CUTSCENE_RATE, 0);
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_PLACE_AND_BLEND:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x13), 0, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[1], 0);
-            cur = task->work;
-            if (cur->player != NULL) {
-                msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
-                msg.rec.animationId          = 2;
-                msg.rec.blend                = ANIMATION_BLEND_INTERPOLATE;
-                msg.rec.blendFrames          = 0x1E;
-                msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
-            }
+            TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_BLEND], 0);
+            DRYFIELD_GAS_STATION_INSTALL_COMMAND_ANIMATION(task, DRYFIELD_GAS_STATION_CLIP_SECOND_CUE, ANIMATION_BLEND_INTERPOLATE, DRYFIELD_GAS_STATION_PLACEMENT_BLEND_FRAMES);
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_WALK_PLACEMENTS:
-            step = work->commandStep;
-            switch (step) {
-                case 0:
-                    cur = task->work;
-                    if (cur->player != NULL) {
-                        msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
-                        msg.rec.animationId          = 3;
-                        msg.rec.blend                = ANIMATION_BLEND_RESET;
-                        msg.rec.blendFrames          = 0;
-                        msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
-                    }
-                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, 8, 0);
+            commandStep = work->commandStep;
+            switch (commandStep) {
+                case DRYFIELD_GAS_STATION_COMMAND_STEP_BEGIN:
+                    DRYFIELD_GAS_STATION_INSTALL_COMMAND_ANIMATION(task, DRYFIELD_GAS_STATION_CLIP_WALK, ANIMATION_BLEND_RESET, 0);
+                    taskMessageDispatch(work->player, ANIMATION_MESSAGE_SET_RATE, DRYFIELD_GAS_STATION_CUTSCENE_RATE, 0);
                     // Use walking speed with the scripted walk clip.
-                    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT, 0, 0);
+                    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_RUN_MOVEMENT, false, 0);
                     work->walkFrames = 0;
                     work->commandStep++;
                     return;
-                case 1:
-                    msg.move.displacement.vx   = (D_dryfield_gas_station_80182E44[2].pos.vx - D_dryfield_gas_station_80182E44[0].pos.vx) / 30;
-                    msg.move.displacement.vy   = 0;
-                    msg.move.displacement.vz   = (D_dryfield_gas_station_80182E44[2].pos.vz - D_dryfield_gas_station_80182E44[0].pos.vz) / 30;
-                    msg.move.collisionRequests = 0;
-                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_MOVE_BY, &msg.move, 0);
+                case DRYFIELD_GAS_STATION_COMMAND_STEP_WALK:
+                    // The original leaves move.keepControl unwritten in this reused payload.
+                    payload.move.displacement.vx   = (D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_END].pos.vx - D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_START].pos.vx) / DRYFIELD_GAS_STATION_WALK_DELTA_DIVISOR;
+                    payload.move.displacement.vy   = 0;
+                    payload.move.displacement.vz   = (D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_END].pos.vz - D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_START].pos.vz) / DRYFIELD_GAS_STATION_WALK_DELTA_DIVISOR;
+                    payload.move.collisionRequests = 0;
+                    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_MOVE_BY, &payload.move, 0);
                     work->walkFrames++;
-                    if (work->walkFrames < 31) {
+                    if (work->walkFrames < DRYFIELD_GAS_STATION_WALK_UPDATE_COUNT) {
                         return;
                     }
-                    // Taken before the player check, the record's address is in
-                    // $a2 early enough that the two register-valued fields are
-                    // stored through it; the constant ones still go off $sp.
-                    rec = &script;
-                    cur = task->work;
-                    if (cur->player != NULL) {
-                        script.source.sets          = D_dryfield_gas_station_80182E30;
-                        script.animationId          = 0;
-                        rec->blend                  = step;
-                        rec->blendFrames            = 0xF;
-                        script.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, rec, 0);
+                    // Take the blend request's address before reloading the player.
+                    blendRequest  = &blendAnimation;
+                    animationWork = task->work;
+                    if (animationWork->player != NULL) {
+                        blendAnimation.source.sets          = D_dryfield_gas_station_80182E30;
+                        blendAnimation.animationId          = DRYFIELD_GAS_STATION_CLIP_INITIAL;
+                        blendRequest->blend                 = commandStep;
+                        blendRequest->blendFrames           = DRYFIELD_GAS_STATION_WALK_END_BLEND_FRAMES;
+                        blendAnimation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                        TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, blendRequest, 0);
                     }
                     break;
                 default:
@@ -720,40 +735,33 @@ static void func_dryfield_gas_station_801803C0(Task* task)
             }
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_RESTORE_AND_SHOW:
-            shared     = D_dryfield_gas_station_80184BD4;
-            sharedWork = shared->work;
-            if (sharedWork->playerEffectsSuppressed != 0) {
+            publishedTask = D_dryfield_gas_station_80184BD4;
+            publishedWork = publishedTask->work;
+            if (publishedWork->playerEffectsSuppressed != 0) {
                 playerActorRestoreEquipment();
-                sharedWork->playerEffectsSuppressed = 0;
+                publishedWork->playerEffectsSuppressed = 0;
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             }
-            TASK_MESSAGE_DISPATCH_POINTER(sharedWork->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[2], 0);
-            cur = shared->work;
-            if (cur->player != NULL) {
-                msg.rec.source.sets          = D_dryfield_gas_station_80182E30;
-                msg.rec.animationId          = 0;
-                msg.rec.blend                = ANIMATION_BLEND_RESET;
-                msg.rec.blendFrames          = 0;
-                msg.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(cur->player, ANIMATION_MESSAGE_INSTALL_AND_PLAY, &msg.rec, 0);
-            }
-            sndEvtRequestScriptStop(SOUND_GAS_STATION_CUTSCENE_LOOP, 0x3C);
+            TASK_MESSAGE_DISPATCH_POINTER(publishedWork->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_gas_station_80182E44[DRYFIELD_GAS_STATION_PLACEMENT_END], 0);
+            DRYFIELD_GAS_STATION_INSTALL_COMMAND_ANIMATION(publishedTask, DRYFIELD_GAS_STATION_CLIP_INITIAL, ANIMATION_BLEND_RESET, 0);
+            sndEvtRequestScriptStop(SOUND_GAS_STATION_CUTSCENE_LOOP, DRYFIELD_GAS_STATION_LOOP_FADE_TICKS);
             SetDispMask(1);
             break;
         case DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_SPAWN_FADE_IN:
             switch (work->commandStep) {
-                case 0:
-                    taskSpawnFromTable(D_dryfield_gas_station_8018312C, DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN, 0x1E, 0);
+                case DRYFIELD_GAS_STATION_COMMAND_STEP_BEGIN:
+                    taskSpawnFromTable(D_dryfield_gas_station_8018312C, DRYFIELD_GAS_STATION_CUTSCENE_TASK_FADE_IN, DRYFIELD_GAS_STATION_FADE_IN_FRAMES, 0);
                     // The spawn and the one-frame wait share this update.
-                case 1:
+                case DRYFIELD_GAS_STATION_FADE_STEP_WAIT:
                     work->commandStep++;
                     return;
-                case 2:
+                case DRYFIELD_GAS_STATION_FADE_STEP_SHOW:
                     SetDispMask(1);
                     break;
             }
             break;
     }
+#undef DRYFIELD_GAS_STATION_INSTALL_COMMAND_ANIMATION
     work->command = DRYFIELD_GAS_STATION_CUTSCENE_COMMAND_NONE;
 }
 
@@ -805,7 +813,7 @@ void func_dryfield_gas_station_801807E0(Task* task)
                 taskRequestKill(task, 0);
                 return;
             }
-            func_dryfield_gas_station_801803C0(task);
+            _dryfieldGasStationExecuteCutsceneCommand(task);
             break;
     }
 }

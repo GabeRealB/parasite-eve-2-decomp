@@ -250,6 +250,7 @@ static s32 _shelter1fTentResolveRoomEvent(Task* task, s32 messageId, RoomEventMs
 static inline void _shelter1fTentStartReplayCutscene(s32 capSlot)
 {
     enum {
+        CUTSCENE_RUNNER_TASK       = 0,
         CUTSCENE_VIEW              = 5,
         CUTSCENE_PLAY              = 0,
         CUTSCENE_FOLLOWUP_COMMAND  = 12,
@@ -266,7 +267,7 @@ static inline void _shelter1fTentStartReplayCutscene(s32 capSlot)
     D_shelter_1f_tent_801843C4.endSound        = CUTSCENE_END_SOUND;
     D_shelter_1f_tent_801843C4.sceneSound      = CUTSCENE_SCENE_SOUND;
     D_shelter_1f_tent_801843C4.afterSceneSound = CUTSCENE_AFTER_SCENE_SOUND;
-    taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, CUTSCENE_FOLLOWUP_COMMAND, &D_shelter_1f_tent_801843C4);
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, CUTSCENE_RUNNER_TASK, CUTSCENE_FOLLOWUP_COMMAND, &D_shelter_1f_tent_801843C4);
 }
 
 /// Handles the tent's scene command, choosing the first scene or its replay.

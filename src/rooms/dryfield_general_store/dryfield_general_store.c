@@ -111,7 +111,7 @@ extern WorldCoordRoomLights       D_dryfield_general_store_801854E8[1];
 static s32  _dryfieldGeneralStoreRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 s32         func_dryfield_general_store_8017DDFC(Task*, s32, RoomEventMsg*, s32);
 static void _dryfieldGeneralStorePlaySceneCueTask(Task* task);
-void        func_dryfield_general_store_8017E064(Task*);
+static void _dryfieldGeneralStoreDropInActorsTask(Task* task);
 
 /// Inventory's room request and the reply refusing key-item use.
 enum {
@@ -162,7 +162,7 @@ static AnimationSet _gDryfieldGeneralStoreAnimation00ED8 = {
 
 TaskDesc D_dryfield_general_store_8017E4C0 = { { { TASK_BODY_NONE, 192 } }, _dryfieldGeneralStorePlaySceneCueTask, { .value = 0 } };
 
-TaskDesc D_dryfield_general_store_8017E4CC = { { { TASK_BODY_NONE, 192 } }, func_dryfield_general_store_8017E064, { .value = 0 } };
+TaskDesc D_dryfield_general_store_8017E4CC = { { { TASK_BODY_NONE, 192 } }, _dryfieldGeneralStoreDropInActorsTask, { .value = 0 } };
 
 AnimationSet* D_dryfield_general_store_8017E4D8[2] = {
     NULL,
@@ -1713,24 +1713,41 @@ static void _dryfieldGeneralStorePlaySceneCueTask(Task* task)
     }
 }
 
-void func_dryfield_general_store_8017E064(Task* arg0)
+/// Decrements the drop-in counter modulo 65536 and reports signed-halfword expiry.
+static inline s32 _dryfieldGeneralStoreDropInExpired(Task* task)
 {
-    s16 temp_v0;
+    s16 framesLeft;
 
-    switch (arg0->state) {
-        case 0:
+    framesLeft          = (u16)task->killCountdown - 1;
+    task->killCountdown = framesLeft;
+    return framesLeft < 0;
+}
+
+/// Holds the player while the staged enemies drop in, then hides them and releases control.
+///
+/// State 0 broadcasts room command 1 and starts a 90-tick counter. State 1
+/// decrements modulo 65536, interpreting the result as a signed halfword;
+/// zero survives, so command 2, player release and task teardown occur on the
+/// 91st wait update, in that order. Other states do nothing. Requires live
+/// scene actors and player; owns no work or payload storage.
+static void _dryfieldGeneralStoreDropInActorsTask(Task* task)
+{
+    enum { DRYFIELD_GENERAL_STORE_DROP_IN_START = 0,
+           DRYFIELD_GENERAL_STORE_DROP_IN_WAIT  = 1,
+           DRYFIELD_GENERAL_STORE_DROP_IN_TICKS = 90 };
+
+    switch (task->state) {
+        case DRYFIELD_GENERAL_STORE_DROP_IN_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E560, ACTOR_COMMAND_MESSAGE_APPLY);
-            arg0->killCountdown = 0x5A;
-            arg0->state++;
+            task->killCountdown = DRYFIELD_GENERAL_STORE_DROP_IN_TICKS;
+            task->state++;
             return;
-        case 1:
-            temp_v0             = (u16)arg0->killCountdown - 1;
-            arg0->killCountdown = temp_v0;
-            if (temp_v0 < 0) {
+        case DRYFIELD_GENERAL_STORE_DROP_IN_WAIT:
+            if (_dryfieldGeneralStoreDropInExpired(task)) {
                 TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_general_store_8017E564, ACTOR_COMMAND_MESSAGE_APPLY);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-                taskKill(arg0);
+                taskKill(task);
             }
             return;
     }

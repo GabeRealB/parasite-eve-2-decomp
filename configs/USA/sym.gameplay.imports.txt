@@ -1693,7 +1693,7 @@ acropolisFireEscapeTelephoneMenuTask = 0x8017EA68; // type:func absolute:True ow
 
 mistParkingTelephoneMenuTask = 0x80181468; // type:func absolute:True owner=mist_parking
 
-func_dryfield_gas_station_8017EA90 = 0x8017EA90; // type:func absolute:True owner=dryfield_gas_station shared=rooms
+dryfieldGasStationTelephoneMenuTask = 0x8017EA90; // type:func absolute:True owner=dryfield_gas_station shared=rooms
 
 dryfieldMotelLobbyTelephoneMenuTask = 0x8017E9E8; // type:func absolute:True owner=dryfield_motel_lobby
 
@@ -1739,7 +1739,7 @@ dryfieldNightMotelRoom6PlayerReflectionTask = 0x801811A0; // type:func absolute:
 
 acropolisFountainStartClimb = 0x8017DA78; // type:func absolute:True owner=acropolis_fountain
 
-func_acropolis_helicopter_landing_pad_8017EF60 = 0x8017EF60; // type:func absolute:True owner=acropolis_helicopter_landing_pad
+acropolisHelicopterLandingPadStartExit = 0x8017EF60; // type:func absolute:True owner=acropolis_helicopter_landing_pad
 
 D_mist_shooting_gallery_80184F70 = 0x80184F70; // absolute:True owner=mist_shooting_gallery
 

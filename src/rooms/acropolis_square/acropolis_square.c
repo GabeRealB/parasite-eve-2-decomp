@@ -1907,20 +1907,25 @@ void acropolisSquareRoomTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-s32 func_acropolis_square_80182360(s32 unused)
+s32 acropolisSquareStartSirenSequence(s32 unused)
 {
+    enum { ACROPOLIS_SQUARE_SIREN_PLACEMENT_VARIANT = 2,
+           ACROPOLIS_SQUARE_SIREN_TASK_INDEX        = 0,
+           ACROPOLIS_SQUARE_SIREN_NEWLY_ARMED       = 0,
+           ACROPOLIS_SQUARE_SIREN_ALREADY_ARMED     = 1 };
+
     GameLocationKey key;
 
     if (gameFlagGetNibble(GAME_FLAG_ACROPOLIS_SQUARE_01F) == 0) {
         gameFlagSetNibble(GAME_FLAG_ACROPOLIS_SQUARE_01F, 1);
         key.stage = GAME_STAGE_ACROPOLIS;
         key.area  = GAME_AREA_ACROPOLIS_SQUARE;
-        areaSetPlacementVariant(&key, 2, AREA_VARIANT_RESET_ALWAYS);
+        areaSetPlacementVariant(&key, ACROPOLIS_SQUARE_SIREN_PLACEMENT_VARIANT, AREA_VARIANT_RESET_ALWAYS);
         gGameSession->eventState = 1;
-        taskSpawnFromTable(D_acropolis_square_80183808, 0, 0, 0);
-        return 0;
+        taskSpawnFromTable(D_acropolis_square_80183808, ACROPOLIS_SQUARE_SIREN_TASK_INDEX, 0, 0);
+        return ACROPOLIS_SQUARE_SIREN_NEWLY_ARMED;
     }
-    return 1;
+    return ACROPOLIS_SQUARE_SIREN_ALREADY_ARMED;
 }
 
 void acropolisSquareRoomEffectTask(Task* task)

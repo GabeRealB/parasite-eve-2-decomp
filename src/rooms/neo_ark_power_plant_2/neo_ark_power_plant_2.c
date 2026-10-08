@@ -936,6 +936,11 @@ void neoArkPowerPlant2RoomTask(Task* task)
 }
 
 /// Emits a random generator flash while effects run and the plant remains uncleared.
+///
+/// Advances the unsigned 32-bit LCG once per eligible call and emits when the
+/// upper-word low three bits are zero. The caller gates the damaged generator
+/// and active view. The flash retains the room's emitter-position storage;
+/// keep that storage and the room resources loaded through the effect's lifetime.
 static inline void _neoArkPowerPlant2EmitGeneratorFlash(void)
 {
     enum { GENERATOR_FLASH_MASK      = 7,

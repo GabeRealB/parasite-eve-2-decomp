@@ -45,7 +45,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_gas_station_80184BAC[];
 /// the call; the drawers update its composed transform. Allocates no task work.
 void dryfieldGasStationCyanGlowTask(Task* task);
 
-void func_dryfield_gas_station_8017EA90(Task* task);
+/// Updates the gas-station telephone's save menu and optional statistics panels.
+///
+/// `spawnArg2.pointer` borrows the UI object owned by the menu task. Its save,
+/// notice and statistics children must stay linked until their answers are
+/// consumed. Requires this overlay and its telephone resources throughout use.
+void dryfieldGasStationTelephoneMenuTask(Task* task);
 
 /// Runs the gas station's room receiver through entry setup, idle and teardown.
 ///

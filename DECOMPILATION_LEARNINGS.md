@@ -46609,14 +46609,14 @@ back, as a task's underflowing countdown - cast the read instead and keep the
 `lhu`:
 
 ```c
-s16 temp_v0 = (u16)arg0->killCountdown - 1;
+s16 framesLeft = (u16)task->killCountdown - 1;
 
-arg0->killCountdown = temp_v0;
-if (temp_v0 < 0) { ... }
+task->killCountdown = framesLeft;
+if (framesLeft < 0) { ... }
 ```
 
 The `(u16)` makes the read a zero-extending one, so only the comparison is
-signed. `func_dryfield_general_store_8017E064` matches this form; the same
+signed. `_dryfieldGeneralStoreDropInActorsTask` matches this form; the same
 shape was the cooldown decrement in `_actor503500ChainBaseUpdateHits`
 (`if (--work->hitCooldown < 0) { work->hitCooldown = 0; }` in the current source).
 
@@ -54701,7 +54701,7 @@ the slot from before the branch, with no `j` to the epilogue.
 A single `ret` variable (`ret = 1; if (...) { body; ret = 0; } return ret;`)
 also fills the slot, but CSE then hands every literal `1` in the body that same
 pseudo, which is live across the calls and so lands in `$s0` (`move a1,s0`,
-`move a2,s0` instead of `li a1,1`, `li a2,1`). `func_acropolis_square_80182360`
+`move a2,s0` instead of `li a1,1`, `li a2,1`). `acropolisSquareStartSirenSequence`
 is the example.
 
 ## `do {} while (0)` around a duplicated block flips two callee-saved regs
@@ -60673,7 +60673,7 @@ helper's frame base compiles to (next entry), and the plaza now gets it from
 `_acropolisPlazaPlayPlayerAnimation` with no pointer local at all. Reach for
 the hand-written mix only after the helper form has failed.
 
-## A stack record shifted 8 bytes inside a shared buffer is a `static inline` helper's frame (func_dryfield_motel_room_1_8017D7AC, 2026-10-03)
+## A stack record shifted 8 bytes inside a shared buffer is a `static inline` helper's frame (_dryfieldMotelRoom1ExecuteEventAction, 2026-10-03)
 
 **Symptom.** Several arms of a `switch` build message payloads in one
 overlapping frame region: an `ActorCommand` at `sp+0x10` twice, then one
@@ -60869,7 +60869,7 @@ the first only. (Measured; why the offset-0 address folds was not traced.)
 
 "Duplicate a switch's shared tail" above says each duplicated copy merges with
 the *last* one. That holds when the copies live in the same case, and it is
-what `func_acropolis_plaza_8017FB50` does for its two `case 2` arms — but not
+what `_acropolisPlazaUpdateSequenceEvent` does for its two `case 2` arms — but not
 when a copy sits in an *earlier* case. That function spawns from the same
 table in three places (`case 0` kind 1, `case 2` kind 0, `case 2` kind 2) and
 all three tails are identical from `move a2,zero` on. Written as three plain
@@ -60932,16 +60932,16 @@ call instead.
 
 ## The emitted order of stores at distinct constant offsets is not the source order
 
-`func_acropolis_plaza_8017FB50` copies three fields out of one event into the
+`_acropolisPlazaUpdateSequenceEvent` copies three fields out of one event into the
 work block, and the target emits `sb 0x18 / sh 0x16 / sb 0x19` with the second
 load hoisted into the first load's delay slot. Writing the assignments in that
 order compiles to `sb 0x18 / sh 0x16 / sb 0x19` too, but with a `nop`; the
 match wanted source order **`0x16`, `0x18`, `0x19`**:
 
 ```c
-    work->eventControl    = evtId;    /* 0x16 */
-    work->eventKind       = evtKind;  /* 0x18 */
-    work->eventParameter1 = evtSub;   /* 0x19 */
+    work->eventControl    = eventControl;    /* 0x16 */
+    work->eventKind       = eventKind;  /* 0x18 */
+    work->eventParameter1 = eventParameter1;   /* 0x19 */
 ```
 
 Stores through the same base at different constant offsets are provably
@@ -140149,7 +140149,7 @@ brightness = (rsin(...) >> 12) + 0x10;   /* stays in a register */
 red = brightness * 3 / 4; green = brightness; blue = brightness;
 ```
 
-## A call-argument load placed first in its case means the case has no store of its own: `break` to the shared reset (func_dryfield_gas_station_801803C0, 2026-09-23)
+## A call-argument load placed first in its case means the case has no store of its own: `break` to the shared reset (_dryfieldGasStationExecuteCutsceneCommand, 2026-09-23)
 
 **Symptom.** One reorder left in a switch arm that begins with a call:
 the target has `lw a0,0(s1); li a1; lui a2; addiu a2; jal`, ours
@@ -140280,7 +140280,7 @@ then-arm first, and the `beq` was threaded to it, which leaves nothing to invert
 **Fix.** The arm order in each source `if` sets which arm falls into the tail,
 and so the order of the merges. Here every combination of `==`/`!=` forms was
 tried, and the only match was **both** cases written the same way, as
-`if (flag == 1) { v += 1; } else { v += K; }` (`func_dryfield_motel_room_1_8017D7AC`,
+`if (flag == 1) { v += 1; } else { v += K; }` (`_dryfieldMotelRoom1ExecuteEventAction`,
 97.7% → 100%). A ternary for the first case, or `!=` in either one, kept one of
 the two wrong shapes. When a sibling block is swallowed whole or not at all,
 permute the arm order of the `if`s before trying anything else.
@@ -149303,7 +149303,7 @@ nest normally, and `kind = 0x16` was not needed (10 gotos -> 5).
   `move v0,zero` is local to the arm and reorg puts it in the jump's delay
   slot (`sh; j epilogue; move v0,zero`); with `break` the jump goes to the
   shared `move v0,zero` and the store fills the slot (`j; sh`), which is what
-  the image has (`func_acropolis_plaza_8017FB50`; every `return 0;` at a case
+  the image has (`_acropolisPlazaUpdateSequenceEvent`; every `return 0;` at a case
   end could then be `break` as well).
 - **Which copy of a duplicated tail survives depends on how the copies end.**
   When one copy falls through into the join, that copy (the later one) is
