@@ -131,18 +131,6 @@ static void _playerActorRecoverFromHit(Task* task);
 
 static void _playerStateApplyDarkness(Task* task);
 
-static void func_8010AF04(Task* arg0);
-
-static void func_8010AF6C(Task* arg0);
-
-static void func_8010AFC0(Task* arg0);
-
-static void func_8010B010(Task* arg0);
-
-static void func_8010B060(Task* arg0);
-
-static void func_8010B0C8(Task* arg0);
-
 static s32 _playerStateTestFatalAttack(s32 attackKey);
 
 static void _playerActorRecordAttackContact(Task* task, const WorldCollisionContact* contact, s32 bodyIndex);
@@ -180,31 +168,36 @@ static inline void _playerActorResumeAfterHit(Task* task)
 
 /// Blends a pending hit's native clip without changing the recorded hit.
 ///
-/// Borrows the task and its live actor work; region 1 selects set 16 and other
-/// values select set 17, with controller 0 over three normal-rate frames.
-static inline void _playerActorBlendPendingHitClip(Task* task, const GameActor* actor)
+/// The unsigned low half of the recorded region selects set 16 for part 4
+/// (region 1), set 17 otherwise. Blends child slots 1 through the active count
+/// minus one over three normal-rate frames; the root slot is unchanged.
+/// Requires live actor/model, native playback and both sets through playback.
+static inline void _playerActorBlendPendingHitClip(Task* task, u16 hitRegion)
 {
     enum {
         PLAYER_ACTOR_PENDING_HIT_PART4_SET      = 16,
         PLAYER_ACTOR_PENDING_HIT_OTHER_BODY_SET = 17,
-        PLAYER_ACTOR_PENDING_HIT_CONTROLLER     = 0,
         PLAYER_ACTOR_PENDING_HIT_BLEND_FRAMES   = 3
     };
     s32 animationSet;
 
-    if ((u16)actor->hitRegion == PLAYER_ACTOR_HIT_REGION_PART4) {
+    if (hitRegion == PLAYER_ACTOR_HIT_REGION_PART4) {
         animationSet = PLAYER_ACTOR_PENDING_HIT_PART4_SET;
     } else {
         animationSet = PLAYER_ACTOR_PENDING_HIT_OTHER_BODY_SET;
     }
-    playerActorPlayChildSlotsWithBlend(task, animationSet, PLAYER_ACTOR_PENDING_HIT_CONTROLLER, PLAYER_ACTOR_PENDING_HIT_BLEND_FRAMES);
+    playerActorPlayChildSlotsWithBlend(task, animationSet, 0, PLAYER_ACTOR_PENDING_HIT_BLEND_FRAMES);
 }
 
-/// Configures the shared spawn record and emits one player-body blast recipe.
+/// Emits a blast centred on one player-model coordinate.
 ///
-/// Size and level narrow into signed halves; callers supply size 192..480 and
-/// level 0..3. The record is consumed synchronously and retains the coordinate
-/// for the spawned effects, whose player model must stay live.
+/// Writes size in game-coordinate units and level plus one to the signed
+/// spawn halves; the body-blast task supplies size 192..480 and level 0..3.
+/// The high half controls the emitter's lifetime and emission-phase lengths.
+/// Borrows a writable record for this call; its address is not retained and
+/// it may be reused immediately. The record and spawned effect retain the
+/// coordinate, which must stay live through the effect. Requires the live
+/// player, effect controller, GTE and scratch resources of `effectSpawnHit`.
 static inline void _effectSpawnPlayerBodyBlast(EffectSpawnArg* spawnRecord, GfxCoord* burstCoord, s32 burstSize, s32 effectLevel)
 {
     spawnRecord->spawnArgLo = burstSize;
@@ -788,7 +781,7 @@ void playerActorEnterPendingHit(Task* task)
 
     actor = task->work;
     _playerActorEnterDamageReaction(task);
-    _playerActorBlendPendingHitClip(task, actor);
+    _playerActorBlendPendingHitClip(task, (u16)actor->hitRegion);
 }
 
 void playerActorEnterStoppedPose(Task* task, s32 blendFrames)
@@ -988,86 +981,116 @@ static void _playerStateApplyDarkness(Task* task)
     roomEffectStartStatusTint(PLAYER_STATUS_DARKNESS);
 }
 
-static void func_8010AF04(Task* arg0)
+/// Applies paralysis for 600 active status updates unless equipment resists it.
+///
+/// Refreshes its duration and resets progress toward a paralysis episode.
+/// Clears the pending hit region, reaction and damage, then starts the tint.
+/// Requires live player GameActor work and effect resources; retains no pointer.
+static void _playerStateApplyParalysis(Task* task)
 {
-    GameActor* inner;
+    GameActor* actor;
 
-    inner = arg0->work;
+    actor = task->work;
     if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_PARALYSIS) != 0) {
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_PARALYSIS;
-    inner->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
-    inner->paralysisProgress   = 0;
-    playerActorClearPendingHit(arg0);
+    actor->paralysisTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
+    actor->paralysisProgress   = 0;
+    playerActorClearPendingHit(task);
     roomEffectStartStatusTint(PLAYER_STATUS_PARALYSIS);
 }
 
-static void func_8010AF6C(Task* arg0)
+/// Applies poison for 600 active status updates unless equipment resists it.
+///
+/// Refreshes its duration and makes poison damage due on the next status
+/// update, then starts the tint; this call does not subtract HP.
+/// Requires live player GameActor work and effect resources; retains no pointer.
+static void _playerStateApplyPoison(Task* task)
 {
-    GameActor* inner;
+    GameActor* actor;
 
-    inner = arg0->work;
+    actor = task->work;
     if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_POISON) != 0) {
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_POISON;
-    inner->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
-    inner->poisonDamageTicks   = 0;
+    actor->poisonTicks         = PLAYER_STATE_STATUS_DURATION_TICKS;
+    actor->poisonDamageTicks   = 0;
     roomEffectStartStatusTint(PLAYER_STATUS_POISON);
 }
 
-static void func_8010AFC0(Task* arg0)
+/// Applies silence for 600 active status updates unless equipment resists it.
+///
+/// Refreshes the duration of the PE-use restriction and starts its tint.
+/// Requires live player GameActor work and effect resources; retains no pointer.
+static void _playerStateApplySilence(Task* task)
 {
-    GameActor* inner;
+    GameActor* actor;
 
-    inner = arg0->work;
+    actor = task->work;
     if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_SILENCE) != 0) {
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_SILENCE;
-    inner->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
+    actor->silenceTicks        = PLAYER_STATE_STATUS_DURATION_TICKS;
     roomEffectStartStatusTint(PLAYER_STATUS_SILENCE);
 }
 
-static void func_8010B010(Task* arg0)
+/// Sets unidentified timed status bit 0x20 for 600 active status updates.
+///
+/// Refreshes its duration and starts its tint. The corresponding resistance
+/// query currently returns zero; the gameplay condition remains unproven.
+/// Requires live player GameActor work and effect resources; retains no pointer.
+static void _playerStateApplyTimedStatus20(Task* task)
 {
-    GameActor* inner;
+    GameActor* actor;
 
-    inner = arg0->work;
+    actor = task->work;
     if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_TIMED_STATUS_20) != 0) {
         return;
     }
-    gPlayerStatus.statusFlags |= 0x20;
-    inner->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
+    gPlayerStatus.statusFlags |= PLAYER_STATE_TIMED_EFFECT_20;
+    actor->status20Ticks       = PLAYER_STATE_STATUS_DURATION_TICKS;
     roomEffectStartStatusTint(ROOM_EFFECT_STATUS_TINT_STATUS_20);
 }
 
-static void func_8010B060(Task* arg0)
+/// Applies confusion for 600 active status updates unless equipment resists it.
+///
+/// Clears synthetic directions and delays their first selection by 10..41
+/// confusion-input updates, consuming one random value after acceptance.
+/// Refreshes the duration and starts the tint. Requires live player GameActor
+/// work and effect resources; retains no pointer.
+static void _playerStateApplyConfusion(Task* task)
 {
-    GameActor* inner;
+    GameActor* actor;
 
-    inner = arg0->work;
+    actor = task->work;
     if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_CONFUSION) != 0) {
         return;
     }
     gPlayerStatus.statusFlags     |= PLAYER_STATUS_CONFUSION;
-    inner->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
-    inner->confusionDirectionTicks = (rand() & 0x1F) + 0xA;
-    inner->confusionDirections     = 0;
+    actor->confusionTicks          = PLAYER_STATE_STATUS_DURATION_TICKS;
+    actor->confusionDirectionTicks = (rand() & PLAYER_ACTOR_CONFUSION_DIRECTION_RANDOM_MASK) + PLAYER_ACTOR_CONFUSION_DIRECTION_BASE_TICKS;
+    actor->confusionDirections     = 0;
     roomEffectStartStatusTint(PLAYER_STATUS_CONFUSION);
 }
 
-static void func_8010B0C8(Task* arg0)
+/// Applies Berserker for 600 eligible status updates unless equipment resists it.
+///
+/// Refreshes the duration and starts the tint and guarded glow. Duration
+/// updates pause while either active attachment mode is selected.
+/// Requires live player GameActor work and effect resources; retains no pointer.
+static void _playerStateApplyBerserker(Task* task)
 {
-    GameActor* inner;
+    GameActor* actor;
 
-    inner = arg0->work;
+    actor = task->work;
     if (equipmentHasEffect(EQUIPMENT_EFFECT_RESIST_BERSERKER) != 0) {
         return;
     }
     gPlayerStatus.statusFlags |= PLAYER_STATUS_BERSERKER;
-    inner->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
+    actor->berserkerTicks      = PLAYER_STATE_STATUS_DURATION_TICKS;
     roomEffectStartStatusTint(PLAYER_STATUS_BERSERKER);
     roomEffectStartBerserkerGlow();
 }
