@@ -42,9 +42,22 @@ extern WorldCollisionSurfaceProperties* D_shelter_b2_breeding_room_801847F4[];
 
 extern AreaVariant D_shelter_b2_breeding_room_80183EEC[22];
 
-void func_shelter_b2_breeding_room_8017D5F8(Task* task);
+/// Updates the placed breeding-room model's visibility from its object state.
+///
+/// Requires a live `TASK_BODY_TMD` body and borrowed `Enemy` work in
+/// `spawnArg2.pointer`. The low byte of its placement key must be an object-state
+/// index in 0..63 for the current stage. State 2 suppresses active drawing;
+/// states 0, 1 and 3 allow it. No model or work ownership changes.
+void shelterB2BreedingRoomAreaObjectTask(Task* task);
 
-void func_shelter_b2_breeding_room_8017D840(Task* task);
+/// Runs the breeding-room controller's setup, idle or teardown state.
+///
+/// Requires a live bodyless task with state 0..2; dispatch is unchecked.
+/// State 0 publishes the message table and enables CAP-completion sound cues,
+/// then advances to state 1. State 1 waits for messages; state 2 kills the task.
+/// The room and `map_shelter` overlays must remain loaded through message
+/// handling.
+void shelterB2BreedingRoomRoomTask(Task* task);
 
 void func_shelter_b2_breeding_room_8017E774(Task* arg0);
 

@@ -29,15 +29,15 @@
 /// breeding-room script has run.
 extern TaskDesc D_shelter_b2_breeding_room_80180444[];
 
-/// Message table `func_shelter_b2_breeding_room_8017D7EC` installs on its task.
+/// Message table `_shelterB2BreedingRoomInitializeRoomTask` installs on its task.
 extern TaskMessageEntry D_shelter_b2_breeding_room_80180414[];
 
-s32  func_shelter_b2_breeding_room_8017D658(Task*, s32, s32, s32);
-s32  func_shelter_b2_breeding_room_8017D660(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32  func_shelter_b2_breeding_room_8017D6A4(Task*, s32, s32, s32);
-s32  func_shelter_b2_breeding_room_8017D750(Task*, s32, s32, s32);
-s32  func_shelter_b2_breeding_room_8017D758(Task*, s32, s32, s32);
-void func_shelter_b2_breeding_room_8017D7A8(Task*);
+static s32  _shelterB2BreedingRoomRefuseKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg);
+static s32  _shelterB2BreedingRoomResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+s32         func_shelter_b2_breeding_room_8017D6A4(Task*, s32, s32, s32);
+static s32  _shelterB2BreedingRoomIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
+static s32  _shelterB2BreedingRoomSoundMsg(Task* task, s32 messageId, s32 cueId, s32 unusedArg);
+static void _shelterB2BreedingRoomFinishFirstSceneTask(Task* task);
 
 static SVECTOR _gShelterB2BreedingRoomModel02E04Verts[4];
 static TmdBone _gShelterB2BreedingRoomModel02E04Skeleton[1];
@@ -63,46 +63,53 @@ static u32 _gShelterB2BreedingRoomModel02E04Stream[11] = {
 TmdSource gShelterB2BreedingRoomModel02E04 = { 0, 40, 0, 1, _gShelterB2BreedingRoomModel02E04PartVerts, _gShelterB2BreedingRoomModel02E04Verts, &_gShelterB2BreedingRoomModel02E04Verts[4], _gShelterB2BreedingRoomModel02E04Skeleton, _gShelterB2BreedingRoomModel02E04Stream };
 
 TaskMessageEntry D_shelter_b2_breeding_room_80180414[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_breeding_room_8017D660 },
-    { 5105, func_shelter_b2_breeding_room_8017D658 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_breeding_room_8017D750 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2BreedingRoomResolveRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2BreedingRoomRefuseKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2BreedingRoomIgnoreAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_b2_breeding_room_8017D6A4 },
-    { ROOM_MESSAGE_SOUND, func_shelter_b2_breeding_room_8017D758 },
+    { ROOM_MESSAGE_SOUND, _shelterB2BreedingRoomSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_shelter_b2_breeding_room_80180444[1] = {
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_breeding_room_8017D7A8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB2BreedingRoomFinishFirstSceneTask, { .value = 0 } },
 };
 
-static void func_shelter_b2_breeding_room_8017D7EC(Task* arg0);
-static void func_shelter_b2_breeding_room_8017D838(Task* task);
-
-/// Hides the task's model while the 2-bit game flag its spawn argument names
-/// reads 2, and shows it otherwise.
-void func_shelter_b2_breeding_room_8017D5F8(Task* task)
+void shelterB2BreedingRoomAreaObjectTask(Task* task)
 {
-    TmdObject* obj = task->extra.tmd;
+    enum { SHELTER_B2_BREEDING_ROOM_OBJECT_STATE_HIDDEN = 2 };
 
-    if (areaGetCurrentObjectState((u8)((Enemy*)task->spawnArg2.pointer)->placeKey) == 2) {
-        obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    TmdObject*   modelObject = task->extra.tmd;
+    const Enemy* enemy       = task->spawnArg2.pointer;
+
+    if (areaGetCurrentObjectState((u8)enemy->placeKey) == SHELTER_B2_BREEDING_ROOM_OBJECT_STATE_HIDDEN) {
+        modelObject->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        modelObject->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
 }
 
-s32 func_shelter_b2_breeding_room_8017D658(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use without consuming the item or changing room state.
+///
+/// Returns `ROOM_KEY_ITEM_USE_REFUSED`; all message inputs are ignored.
+static s32 _shelterB2BreedingRoomRefuseKeyItemUse(Task* task, s32 messageId, s32 keyItemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Message handler that copies the incoming record onto the outgoing one and
-/// passes both to `mapShelterRoomVariantResolve`, returning 1.
-s32 func_shelter_b2_breeding_room_8017D660(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Accepts a room transition after resolving its Mine/Shelter destination variant.
+///
+/// Borrows a readable request and writable eight-byte reply for this dispatch;
+/// they may alias and neither is retained. Queries echo the complete request.
+/// Execution may change only the copied room selector according to game progress.
+/// The `map_shelter` overlay must be loaded. Always returns 1 (accepted).
+static s32 _shelterB2BreedingRoomResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    enum { SHELTER_B2_BREEDING_ROOM_TRANSITION_ACCEPTED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_B2_BREEDING_ROOM_TRANSITION_ACCEPTED;
 }
 
 /// Handler for msg `0x16`: the first entry into the breeding room. Runs the
@@ -128,60 +135,83 @@ s32 func_shelter_b2_breeding_room_8017D6A4(Task* task, s32 msgId, s32 arg2, s32 
     return 0;
 }
 
-s32 func_shelter_b2_breeding_room_8017D750(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores trigger actions and returns zero without reading the borrowed request.
+static s32 _shelterB2BreedingRoomIgnoreAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b2_breeding_room_8017D758(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Maps room sound cues 7 and 104 to this room's sound scripts 7 and 8.
+///
+/// Event completion sends the event's second payload plus 100 as a cue;
+/// this handler recognizes 104. Other cues do nothing.
+/// Uses the base pan and gain; the room sound bank must be loaded. Returns zero
+/// regardless of whether the sound request was queued.
+static s32 _shelterB2BreedingRoomSoundMsg(Task* task, s32 messageId, s32 cueId, s32 unusedArg)
 {
-    switch (arg2) {
-        case 7:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 7), 0, 0);
+    enum {
+        SHELTER_B2_BREEDING_ROOM_SOUND_CUE_7    = 7,
+        SHELTER_B2_BREEDING_ROOM_SOUND_CUE_104  = 104,
+        SHELTER_B2_BREEDING_ROOM_SOUND_SCRIPT_7 = 7,
+        SHELTER_B2_BREEDING_ROOM_SOUND_SCRIPT_8 = 8
+    };
+
+    switch (cueId) {
+        case SHELTER_B2_BREEDING_ROOM_SOUND_CUE_7:
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, SHELTER_B2_BREEDING_ROOM_SOUND_SCRIPT_7), 0, 0);
             break;
-        case 0x68:
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, 8), 0, 0);
+        case SHELTER_B2_BREEDING_ROOM_SOUND_CUE_104:
+            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_BREEDING_ROOM, SHELTER_B2_BREEDING_ROOM_SOUND_SCRIPT_8), 0, 0);
             break;
     }
     return 0;
 }
 
-void func_shelter_b2_breeding_room_8017D7A8(Task* arg0)
+/// Waits for the first room scene to finish, then restores dialogue and player control.
+///
+/// Spawned after the room command selects the scene's CAP resource and holds
+/// the player. Requires the live player and the room's default CAP resource.
+/// Resets CAP only after its selected sequence is released, then kills this
+/// bodyless task; do not access the task after completion.
+static void _shelterB2BreedingRoomFinishFirstSceneTask(Task* task)
 {
     if (capIsBusy() == 0) {
         capReset();
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 
-/// Installs the room's message table on `task`, registers the task in pointer
-/// slot 7, sets `D_80115598` and advances to the next state.
-static void func_shelter_b2_breeding_room_8017D7EC(Task* arg0)
+/// Publishes the room's message handlers and enables CAP-completion sound cues.
+///
+/// Runs at state 0 and advances to idle state 1. The task and this overlay's
+/// message table must remain live while `GAME_TASK_SLOT_ROOM` receives messages.
+static void _shelterB2BreedingRoomInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_b2_breeding_room_80180414;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    arg0->state = (s32)(arg0->state + 1);
-    D_80115598  = 1;
+    enum { SHELTER_B2_BREEDING_ROOM_CAP_COMPLETION_SOUNDS_ENABLED = 1 };
+
+    task->msgTable = D_shelter_b2_breeding_room_80180414;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    task->state++;
+    D_80115598 = SHELTER_B2_BREEDING_ROOM_CAP_COMPLETION_SOUNDS_ENABLED;
 }
 
-static void func_shelter_b2_breeding_room_8017D838(Task* task)
+/// Keeps the room task available for messages without per-frame work.
+static void _shelterB2BreedingRoomIdleRoomTask(Task* task)
 {
 }
 
 /// The room task's three states, dispatched by
-/// `func_shelter_b2_breeding_room_8017D840`: install the message table, idle,
+/// `shelterB2BreedingRoomRoomTask`: install the message table, idle,
 /// end.
 static const TaskFuncTable3 D_shelter_b2_breeding_room_8017D5C4 = {
-    { func_shelter_b2_breeding_room_8017D7EC, func_shelter_b2_breeding_room_8017D838, taskKill }
+    { _shelterB2BreedingRoomInitializeRoomTask, _shelterB2BreedingRoomIdleRoomTask, taskKill }
 };
 
-/// Runs the handler for the task's state from the room's three-entry state
-/// table, copied onto the stack first.
-void func_shelter_b2_breeding_room_8017D840(Task* task)
+void shelterB2BreedingRoomRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_shelter_b2_breeding_room_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_shelter_b2_breeding_room_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

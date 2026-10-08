@@ -451,7 +451,7 @@ static AreaObjectSpawn D_map_shelter_8017A8D8[2] = {
 };
 
 static AreaObjectSpawn D_map_shelter_8017A8F8[2] = {
-    { 0x129, { { { TASK_BODY_TMD, 0x62 } }, func_shelter_b2_breeding_room_8017D5F8, { &gShelterB2BreedingRoomModel02E04 } } },
+    { 0x129, { { { TASK_BODY_TMD, 0x62 } }, shelterB2BreedingRoomAreaObjectTask, { &gShelterB2BreedingRoomModel02E04 } } },
     { AREA_OBJECT_SPAWN_END },
 };
 
@@ -558,7 +558,7 @@ TaskDesc D_map_shelter_8017AB30[] = {
     { { { TASK_BODY_NONE, 0x20 } }, shelterB2OperatingRoomTask, { .value = GP_TASK_LOC_KEY(4, 29, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_north_maintenance_walkway_8017DD90, { .value = GP_TASK_LOC_KEY(4, 30, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB2LaboratoryTask, { .value = GP_TASK_LOC_KEY(4, 31, 0) } },
-    { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_breeding_room_8017D840, { .value = GP_TASK_LOC_KEY(4, 32, 0) } },
+    { { { TASK_BODY_NONE, 0x20 } }, shelterB2BreedingRoomRoomTask, { .value = GP_TASK_LOC_KEY(4, 32, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB2MainCorridorRoomTask, { .value = GP_TASK_LOC_KEY(4, 33, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, shelterB2SepticTankRoomTask, { .value = GP_TASK_LOC_KEY(4, 34, 0) } },
     { { { TASK_BODY_NONE, 0x20 } }, func_shelter_b2_pod_access_tunnel_8017DC14, { .value = GP_TASK_LOC_KEY(4, 35, 0) } },
