@@ -70167,26 +70167,26 @@ copy left `p` with few refs and dropped it behind `work` in global priority
 
 ## A stack buffer's base kept in a register for one field store: write that field through a pointer alias
 
-`func_shelter_b3_dumping_hole_80181430` fills a `s32 desc[5]` then passes
-`(s32)desc` to `taskMessageDispatch`. Retail materialises `addiu a1,sp,0x18`
-(`&desc`) in the ternary's `bne` delay slot and stores `desc[1]` via
+`_shelterB3DumpingHoleCollapseEventSkip` fills an `AnimationPlayRequest animation` then passes
+`&animation` through `TASK_MESSAGE_DISPATCH_POINTER`. Retail materialises `addiu a1,sp,0x18`
+(`&animation`) in the ternary's `bne` delay slot and stores `animation.animationId` via
 `sw v0,0x4(a1)`, keeping the other elements `sp`-relative — so the ternary is a
 full `bne / j` diamond (the delay slot is consumed by the address, not the
-value). Writing every element as `desc[i]=` collapses it: GCC addresses all
+value). Writing every field as `animation.field =` collapses it: GCC addresses all
 five off `sp`, never needs a base register, and folds the ternary into
 `bne`+fall-through (no `j`). Force the base into a register by writing the one
-element through an aliased pointer:
+field through an aliased pointer:
 
 ```c
-s32  desc[5];
-s32* p = desc;
-desc[0] = base + (flag == 1 ? 1 : 0x22);
-p[1]    = 1;              /* &desc kept in a reg, used once, then reused for the call arg */
-desc[2] = desc[3] = desc[4] = 0;
-taskMessageDispatch(slot, 0x3E8, (s32)desc, 0);
+AnimationPlayRequest  animation;
+AnimationPlayRequest* animationRequest = &animation;
+animation.source.index = base + (flag == 1 ? 1 : 0x22);
+animationRequest->animationId = 1; /* &animation kept in a reg, used once, then reused for the call arg */
+animation.blend = animation.blendFrames = animation.enableWorldCollision = 0;
+TASK_MESSAGE_DISPATCH_POINTER(slot, ANIMATION_MESSAGE_PLAY, &animation, 0);
 ```
 
-The single pointer-based store gives `&desc` enough of a reason to live in a
+The single pointer-based store gives `&animation` enough of a reason to live in a
 register across the ternary; the address computation then claims the `bne`
 delay slot and the `j` reappears.
 

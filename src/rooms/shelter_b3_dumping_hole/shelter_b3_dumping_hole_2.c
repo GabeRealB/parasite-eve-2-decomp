@@ -507,27 +507,51 @@ enum { SHELTER_B3_DUMPING_HOLE_PLAYER_SPRITES_SELECT = 0 };
 static void func_shelter_b3_dumping_hole_8017EDB8(Task* arg0);
 
 static void func_shelter_b3_dumping_hole_8017F1B0(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183218(u8 arg0);
+/// Visibility operations on the collapse event's view-14 sprite batches.
+/// Showing one batch retains the other batch's current visibility.
+enum {
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_HIDE_BOTH   = 0,
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH2 = 1,
+    SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH1 = 2,
+};
+
+/// Character test and bank offsets used by the event's equipped-weapon requests.
+/// The nonprimary branch's loaded bank domain is unproven.
+enum {
+    SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER                = 1,
+    SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET    = 1,
+    SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET = 34,
+};
+
+/// Palette and synthetic actor-command context of an encounter Sucklerceph pair.
+enum {
+    OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET = 3,
+    OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET     = 5,
+    OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE       = 0,
+    OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA        = 0x2E,
+};
+
+static void _shelterB3DumpingHoleCollapseEventSetViewSprites(u8 spriteMode);
 static void _shelterB3DumpingHoleSpawnPlayerSpriteBurst(GfxCoord* sourceCoord, s16 selector);
 
 static void func_shelter_b3_dumping_hole_801833EC(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183E6C(s16 arg0, s16 arg1, s16 arg2);
 
 static void func_shelter_b3_dumping_hole_80183298(Task* arg0);
-static void func_shelter_b3_dumping_hole_801836E0(Task* arg0);
+static void _shelterB3DumpingHoleEncounterInitialize(Task* controllerTask);
 static void func_shelter_b3_dumping_hole_8018378C(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183824(Task* arg0);
+static void _shelterB3DumpingHoleEncounterArmBattle(Task* controllerTask);
 static void func_shelter_b3_dumping_hole_801838A0(Task* arg0);
 static void func_shelter_b3_dumping_hole_80183950(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183A00(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183A98(Task* arg0);
+static void _shelterB3DumpingHoleEncounterRevealMadChaser(Task* waveTask);
+static void _shelterB3DumpingHoleEncounterWatchMadChaser(Task* waveTask);
 static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183C38(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183C8C(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183D34(Task* arg0);
-static void func_shelter_b3_dumping_hole_80183E08(Task* arg0);
+static void _overlayEncounterRevealSlouch(Task* waveTask);
+static void _shelterB3DumpingHoleEncounterWatchSlouch(Task* waveTask);
+static void _shelterB3DumpingHoleEncounterPairWaitFrame(Task* waveTask);
+static void _overlayEncounterPairRevealFirst(Task* waveTask);
+static void _shelterB3DumpingHoleEncounterPairRevealSecond(Task* waveTask);
+static void _shelterB3DumpingHoleEncounterPairWatch(Task* waveTask);
 static void _madChaserWavePairDropDead(Task* task);
 
 static void _shelterB3DumpingHoleDebrisSpriteTask(Task* task);
@@ -542,20 +566,20 @@ static void _shelterB3DumpingHoleDebrisEventSetActor0DrawMode(s32 drawMode);
 static void _shelterB3DumpingHoleDebrisEventSetActor1DrawMode(s32 drawMode);
 static void _shelterB3DumpingHoleDebrisEventPostPlayerCommand(s16 command);
 static void _shelterB3DumpingHoleDebrisEventPostSceneCommand(s16 command);
-void        func_shelter_b3_dumping_hole_8017FF14(void);
+static void _shelterB3DumpingHoleDebrisEventSkip(void);
 static void _shelterB3DumpingHoleDebrisEventStageAudioStart(void);
 static void _shelterB3DumpingHoleDebrisEventEnqueuePlayback(void);
-void        func_shelter_b3_dumping_hole_80180034(void);
+static void _shelterB3DumpingHoleDebrisEventFinishPlayback(void);
 
 static void _shelterB3DumpingHoleShardTask(Task* task);
-void        func_shelter_b3_dumping_hole_80181430(void);
+static void _shelterB3DumpingHoleCollapseEventSkip(void);
 void        func_shelter_b3_dumping_hole_80181560(Task*);
-void        func_shelter_b3_dumping_hole_801818E0(void);
+static void _shelterB3DumpingHoleCollapseEventReleaseBattleOnce(void);
 static void _shelterB3DumpingHoleCollapseEventSetPlayerDrawMode(s32 drawMode);
 static void _shelterB3DumpingHoleCollapseEventPostCommand(s16 command);
 static void _shelterB3DumpingHoleCollapseEventStageAudioStart(void);
 static void _shelterB3DumpingHoleCollapseEventEnqueuePlayback(void);
-void        func_shelter_b3_dumping_hole_801819F0(void);
+static void _shelterB3DumpingHoleCollapseEventFinishPlayback(void);
 
 static void _shelterB3DumpingHoleShakeTask(Task* task);
 
@@ -762,7 +786,7 @@ EvsCommand D_shelter_b3_dumping_hole_80188640[45] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESTORE_ACTOR0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_80180034 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleDebrisEventFinishPlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_RESUME_BATTLE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -777,7 +801,7 @@ EvsCommand D_shelter_b3_dumping_hole_80188A78[14] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostPlayerCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleDebrisEventPostSceneCommand }, { .value = SHELTER_B3_DUMPING_HOLE_DEBRIS_SCENE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_8017FF14 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleDebrisEventSkip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -868,14 +892,14 @@ EvsCommand D_shelter_b3_dumping_hole_8018968C[33] = {
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FLICKER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801819F0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleCollapseEventFinishPlayback }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_FINISH }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3DumpingHoleCollapseEventSetPlayerDrawMode }, { .value = PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801818E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleCollapseEventReleaseBattleOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -885,13 +909,13 @@ EvsCommand D_shelter_b3_dumping_hole_801899A4[13] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _shelterB3DumpingHoleCollapseEventPostCommand }, { .value = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_80181430 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleCollapseEventSkip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_STOP_AREA_MUSIC, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_dumping_hole_801818E0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3DumpingHoleCollapseEventReleaseBattleOnce }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -3437,28 +3461,53 @@ static void _shelterB3DumpingHoleDebrisEventPostSceneCommand(s16 command)
     eventWork->sceneStep                            = 0;
 }
 
-void func_shelter_b3_dumping_hole_8017FF14(void)
+/// Restores the debris event's player pose and requests removal of its effects on skip.
+///
+/// Requires the live debris director, player and placement-1 prop. Plays equipped-bank
+/// clip 9 without blending or world collision, then signals rubble, sprites and fade
+/// tasks to stop on their next updates and cancels the selected scene. Dispatch borrows
+/// the stack animation request only for the call; the weapon bank must remain loaded.
+static void _shelterB3DumpingHoleDebrisEventSkip(void)
 {
-    Task*                                 st  = D_shelter_b3_dumping_hole_8018F4A8;
-    _ShelterB3DumpingHoleDebrisEventWork* ent = st->work;
-    _ShelterB3DumpingHoleDebrisEventWork* ent2;
-    s32                                   desc[5];
+    enum { SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_RESTORE_CLIP = 9 };
+    Task*                                 directorTask = D_shelter_b3_dumping_hole_8018F4A8;
+    _ShelterB3DumpingHoleDebrisEventWork* work         = directorTask->work;
+    _ShelterB3DumpingHoleDebrisEventWork* animationWork;
+    AnimationPlayRequest                  animation;
 
-    taskMessageDispatch(ent->placement1Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 2, 0);
-    taskMessageDispatch(ent->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    TASK_MESSAGE_DISPATCH_POINTER(ent->player, 0x3E9, &D_shelter_b3_dumping_hole_801881CC, 0);
-    ent2    = st->work;
-    desc[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
-    desc[1] = 9;
-    desc[2] = 0;
-    desc[3] = 0;
-    desc[4] = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(ent2->player, ANIMATION_MESSAGE_PLAY, desc, 0);
-    ent->debrisModelSignal  = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_REMOVE;
-    ent->field_46           = 1;
-    ent->debrisSpriteSignal = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE;
-    ent->fadeStop           = 1;
-    ent->actorSpritesStop   = 1;
+    // Restore the player independently of the script's canceled pending commands.
+    taskMessageDispatch(work->placement1Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, ACTOR_MESSAGE_VISIBILITY_KEEP_FLAGS_SKIP_AUTO_BUFFER, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_shelter_b3_dumping_hole_801881CC, 0);
+    animationWork = directorTask->work;
+    /// Builds a reset-animation request with world collision disabled.
+    ///
+    /// `request` must be a side-effect-free pointer to writable `AnimationPlayRequest`
+    /// storage: it is evaluated for each of the five fields. `clipId` is evaluated
+    /// once. Reads the live player weapon and saved character; expands to a compound
+    /// statement without retaining a pointer or changing control flow. Undefined
+    /// immediately after the debris skip callback's use.
+#define SHELTER_B3_DUMPING_HOLE_BUILD_PLAYER_RESET_ANIMATION_REQUEST(request, clipId)                                                \
+    {                                                                                                                                \
+        (request)->source.index = gPlayerStatus.weapon +                                                                             \
+                                  (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER \
+                                       ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET                                       \
+                                       : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);                                  \
+        (request)->animationId          = (clipId);                                                                                  \
+        (request)->blend                = ANIMATION_BLEND_RESET;                                                                     \
+        (request)->blendFrames          = 0;                                                                                         \
+        (request)->enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;                                                         \
+    }
+    SHELTER_B3_DUMPING_HOLE_BUILD_PLAYER_RESET_ANIMATION_REQUEST(&animation, SHELTER_B3_DUMPING_HOLE_DEBRIS_PLAYER_RESTORE_CLIP);
+#undef SHELTER_B3_DUMPING_HOLE_BUILD_PLAYER_RESET_ANIMATION_REQUEST
+    TASK_MESSAGE_DISPATCH_POINTER(animationWork->player, ANIMATION_MESSAGE_PLAY, &animation, 0);
+
+    // Effect tasks own their teardown and observe these signals on a later tick.
+    work->debrisModelSignal  = SHELTER_B3_DUMPING_HOLE_DEBRIS_MODELS_REMOVE;
+    work->field_46           = 1;
+    work->debrisSpriteSignal = SHELTER_B3_DUMPING_HOLE_DEBRIS_SPRITES_REMOVE;
+    work->fadeStop           = true;
+    work->actorSpritesStop   = true;
     cdCmdCancelScene();
 }
 
@@ -3480,7 +3529,12 @@ static void _shelterB3DumpingHoleDebrisEventEnqueuePlayback(void)
     cdCmdEnqueueScenePlayback();
 }
 
-void func_shelter_b3_dumping_hole_80180034(void)
+/// Finishes the debris event's selected scene stream and requests CD cancellation.
+///
+/// Requires a successfully selected scene. Restores the saved random state immediately;
+/// CD cancellation completes through later dispatches. Buffer and task ownership stays
+/// with the scene and event tasks.
+static void _shelterB3DumpingHoleDebrisEventFinishPlayback(void)
 {
     streamFinishScene();
     cdCmdCancelScene();
@@ -3652,7 +3706,7 @@ static void _shelterB3DumpingHoleShardTask(Task* task)
 ///   the slot-3 animation and ends the framebuffer-blend task.
 /// - `HIDE_ACTOR` sends the placement-0 actor message 0x7D5.
 /// - `FLICKER` is a second sequence that alternates
-///   `func_shelter_b3_dumping_hole_80183218` calls, then spawns the
+///   `_shelterB3DumpingHoleCollapseEventSetViewSprites` calls, then spawns the
 ///   framebuffer-blend task.
 ///
 /// The message buffers are unions because the cases share their stack slots.
@@ -3854,14 +3908,14 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                 case 1:
                 case 3:
                 case 5:
-                    func_shelter_b3_dumping_hole_80183218(0);
+                    _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_HIDE_BOTH);
                     work->timer = 0;
                     work->step++;
                     return;
                 case 0:
                 case 2:
                 case 4:
-                    func_shelter_b3_dumping_hole_80183218(1);
+                    _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH2);
                     work->timer = 0;
                     work->step++;
                     return;
@@ -3874,8 +3928,8 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
                     return;
                 case 7:
                     if (++work->timer >= 6) {
-                        func_shelter_b3_dumping_hole_80183218(1);
-                        func_shelter_b3_dumping_hole_80183218(2);
+                        _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH2);
+                        _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH1);
                         break;
                     }
                     return;
@@ -3887,14 +3941,27 @@ static void func_shelter_b3_dumping_hole_8018098C(Task* task)
     work->command = SHELTER_B3_DUMPING_HOLE_COLLAPSE_COMMAND_NONE;
 }
 
-void func_shelter_b3_dumping_hole_80181430(void)
+/// Stops the collapse presentation and fast-forwards the boss when the event is skipped.
+///
+/// Requires the live collapse director, player and placement-0 actor. Releases the
+/// framebuffer blend, ambient override and shake, stops shards and room effects, and
+/// broadcasts the long collapse-skip command in the current stage/area. Shows both
+/// actors and resets the player's equipped-bank clip 1 with world collision disabled.
+/// Dispatch consumes the stack requests synchronously; the weapon bank stays borrowed.
+static void _shelterB3DumpingHoleCollapseEventSkip(void)
 {
+    enum {
+        SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_COLLAPSE_SKIP_LONG = 19,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_PLAYER_IDLE_CLIP        = 1,
+        SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_SHOW_ALLOCATE        = 1,
+    };
     _ShelterB3DumpingHoleCollapseEventWork* work;
     ActorCommand                            request;
-    s32                                     desc3[5];
-    s32*                                    p3;
+    AnimationPlayRequest                    animation;
+    AnimationPlayRequest*                   animationRequest;
 
     work = D_shelter_b3_dumping_hole_8018F4AC->work;
+    // End room-owned presentation before advancing the boss's own collapse.
     worldCoordSetAmbientColorOverride(NULL);
     if (work->framebufferBlend != NULL) {
         taskCallExit(work->framebufferBlend);
@@ -3902,24 +3969,23 @@ void func_shelter_b3_dumping_hole_80181430(void)
     }
     work->field_96 = 1;
     roomEffectRequestCancelAll();
-
-    D_shelter_b3_dumping_hole_8018F4B0 = 0;
+    D_shelter_b3_dumping_hole_8018F4B0 = false;
     request.context.loc.stage          = gGameSession->location.loc.stage;
     request.context.loc.area           = gGameSession->location.loc.area;
-    request.command                    = 0x13;
+    request.command                    = SHELTER_B3_DUMPING_HOLE_ACTOR_COMMAND_COLLAPSE_SKIP_LONG;
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 
     displaySetShakeY(0);
-    taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
-    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    taskMessageDispatch(work->placement0Actor, ACTOR_MESSAGE_SET_MODEL_DRAW, SHELTER_B3_DUMPING_HOLE_ACTOR0_DRAW_SHOW_ALLOCATE, 0);
+    taskMessageDispatch(work->player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO, 0);
 
-    p3       = desc3;
-    desc3[0] = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1 ? 1 : 0x22);
-    p3[1]    = 1;
-    desc3[2] = 0;
-    desc3[3] = 0;
-    desc3[4] = 0;
-    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, desc3, 0);
+    animationRequest               = &animation;
+    animation.source.index         = gPlayerStatus.weapon + (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == SHELTER_B3_DUMPING_HOLE_PRIMARY_CHARACTER ? SHELTER_B3_DUMPING_HOLE_PRIMARY_ANIMATION_BANK_OFFSET : SHELTER_B3_DUMPING_HOLE_NONPRIMARY_ANIMATION_BANK_OFFSET);
+    animationRequest->animationId  = SHELTER_B3_DUMPING_HOLE_COLLAPSE_PLAYER_IDLE_CLIP;
+    animation.blend                = ANIMATION_BLEND_RESET;
+    animation.blendFrames          = 0;
+    animation.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &animation, 0);
     cdCmdCancelScene();
 }
 
@@ -3949,7 +4015,7 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
                 obj->lightMtx                      = &work->lightMtx;
                 obj->colorMtx                      = &work->colorMtx;
                 task->msgTable                     = D_shelter_b3_dumping_hole_8018965C;
-                func_shelter_b3_dumping_hole_80183218(0);
+                _shelterB3DumpingHoleCollapseEventSetViewSprites(SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_HIDE_BOTH);
             }
             D_shelter_b3_dumping_hole_8018F4D8                               = 0;
             ((_ShelterB3DumpingHoleCollapseEventWork*)task->work)->savedView = gGameSession->location.loc.view;
@@ -3987,14 +4053,21 @@ void func_shelter_b3_dumping_hole_80181560(Task* task)
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
 
-void func_shelter_b3_dumping_hole_801818E0(void)
+/// Releases the collapse event's battle hold and requests weapon re-equipping once.
+///
+/// Requires the live collapse director and placement-0 enemy task. The first call
+/// credits that enemy's rewards if a hold remains, then forcibly clears every battle
+/// reference and sets the deferred re-equip flow flag. Later calls do nothing. It
+/// leaves the player's hidden-weapon flag intact and does not destroy the enemy.
+static void _shelterB3DumpingHoleCollapseEventReleaseBattleOnce(void)
 {
     _ShelterB3DumpingHoleCollapseEventWork* work = D_shelter_b3_dumping_hole_8018F4AC->work;
-    if (work->battleReleased == 0) {
+    if (!work->battleReleased) {
         sceneReleaseBattleRefWithRewards(sceneFindPlacedActor(0), 0x20);
+        // The scripted end retires all remaining holds after the reward-bearing release.
         gSceneCombatState.battleRefs = 0;
         gGameSession->flowFlags     |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-        work->battleReleased         = 1;
+        work->battleReleased         = true;
     }
 }
 
@@ -4038,7 +4111,12 @@ static void _shelterB3DumpingHoleCollapseEventEnqueuePlayback(void)
     cdCmdEnqueueScenePlayback();
 }
 
-void func_shelter_b3_dumping_hole_801819F0(void)
+/// Finishes the collapse event's selected scene stream and requests CD cancellation.
+///
+/// Requires a successfully selected scene. Restores the saved random state immediately;
+/// CD cancellation completes through later dispatches. Buffer and task ownership stays
+/// with the scene and event tasks.
+static void _shelterB3DumpingHoleCollapseEventFinishPlayback(void)
 {
     streamFinishScene();
     cdCmdCancelScene();
@@ -4117,20 +4195,29 @@ void func_shelter_b3_dumping_hole_80183198(s16 arg0, s16 arg1, s16 arg2)
     _capCaptionLoadResource(arg0, arg1, arg2);
 }
 
-/// Hides or shows sprite commands 1 and 2 of the area's view 13 through their
-/// `SpriteBatch::hidden`: 0 hides both, 1 shows command 2 and 2 shows command 1.
-static void func_shelter_b3_dumping_hole_80183218(u8 arg0)
+/// Hides both collapse sprite batches or shows one while retaining the other's visibility.
+///
+/// Requires the current stage/area's loaded sprite table with view index 13 (view 14)
+/// and batches 1 and 2. `spriteMode` is a `SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_*`
+/// operation; other byte values do nothing. The event alternates hide/show operations
+/// for flicker, then shows both batches by calling each show operation.
+static void _shelterB3DumpingHoleCollapseEventSetViewSprites(u8 spriteMode)
 {
-    GameLocationKey* g4      = &gGameSession->location.loc;
-    SpriteBatch*     batches = gSpriteAreaTables[g4->stage - 1]->areaViews[g4->area - 1][13].batches;
+    enum {
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_VIEW_INDEX = 13,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_BATCH1     = 1,
+        SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_BATCH2     = 2,
+    };
+    GameLocationKey* location = &gGameSession->location.loc;
+    SpriteBatch*     batches  = gSpriteAreaTables[location->stage - 1]->areaViews[location->area - 1][SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_VIEW_INDEX].batches;
 
-    if (arg0 == 0) {
-        batches[1].hidden = 1;
-        batches[2].hidden = 1;
-    } else if (arg0 == 1) {
-        batches[2].hidden = 0;
-    } else if (arg0 == 2) {
-        batches[1].hidden = 0;
+    if (spriteMode == SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_HIDE_BOTH) {
+        batches[SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_BATCH1].hidden = true;
+        batches[SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_BATCH2].hidden = true;
+    } else if (spriteMode == SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH2) {
+        batches[SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_BATCH2].hidden = false;
+    } else if (spriteMode == SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITES_SHOW_BATCH1) {
+        batches[SHELTER_B3_DUMPING_HOLE_COLLAPSE_SPRITE_BATCH1].hidden = false;
     }
 }
 
@@ -4238,9 +4325,9 @@ static s32 _shelterB3DumpingHoleEncounterStopMessage(Task* task, s32 messageId, 
 /// loop that starts the next slot while fewer than three are live and ends
 /// once all 16 have been cleared.
 static const TaskFuncTable4 D_shelter_b3_dumping_hole_8017D654 = { {
-    func_shelter_b3_dumping_hole_801836E0,
+    _shelterB3DumpingHoleEncounterInitialize,
     func_shelter_b3_dumping_hole_8018378C,
-    func_shelter_b3_dumping_hole_80183824,
+    _shelterB3DumpingHoleEncounterArmBattle,
     func_shelter_b3_dumping_hole_801838A0,
 } };
 
@@ -4249,8 +4336,8 @@ static const TaskFuncTable4 D_shelter_b3_dumping_hole_8017D654 = { {
 /// points to run out.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
     func_shelter_b3_dumping_hole_80183950,
-    func_shelter_b3_dumping_hole_80183A00,
-    func_shelter_b3_dumping_hole_80183A98,
+    _shelterB3DumpingHoleEncounterRevealMadChaser,
+    _shelterB3DumpingHoleEncounterWatchMadChaser,
 } };
 
 /// States of a slot task holding one enemy from `D_actor_207000_801575F0`: spawn it, after
@@ -4258,8 +4345,8 @@ static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D664 = { {
 /// points to run out.
 static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
     func_shelter_b3_dumping_hole_80183AEC,
-    func_shelter_b3_dumping_hole_80183B9C,
-    func_shelter_b3_dumping_hole_80183C38,
+    _overlayEncounterRevealSlouch,
+    _shelterB3DumpingHoleEncounterWatchSlouch,
 } };
 
 /// States of a slot task holding a pair of enemies from `D_actor_207000_80151E60`: spawn
@@ -4267,10 +4354,10 @@ static const TaskFuncTable3 D_shelter_b3_dumping_hole_8017D670 = { {
 /// same after a delay, then wait until both are gone.
 static const TaskFuncTable5 D_shelter_b3_dumping_hole_8017D67C = { {
     func_shelter_b3_dumping_hole_80183298,
-    func_shelter_b3_dumping_hole_80183C8C,
-    func_shelter_b3_dumping_hole_80183CA0,
-    func_shelter_b3_dumping_hole_80183D34,
-    func_shelter_b3_dumping_hole_80183E08,
+    _shelterB3DumpingHoleEncounterPairWaitFrame,
+    _overlayEncounterPairRevealFirst,
+    _shelterB3DumpingHoleEncounterPairRevealSecond,
+    _shelterB3DumpingHoleEncounterPairWatch,
 } };
 
 void func_shelter_b3_dumping_hole_80183550(Task* task)
@@ -4307,27 +4394,33 @@ void func_shelter_b3_dumping_hole_80183678(Task* task)
     sp.funcs[task->state](task);
 }
 
-static void func_shelter_b3_dumping_hole_801836E0(Task* arg0)
+/// Initializes the dumping-hole encounter's sixteen slots or kills a completed encounter.
+///
+/// Entry is controller state 0. A completed spawnPhase[0] kills the task without work;
+/// otherwise allocates zeroed task-owned controller work on the primary heap, resets
+/// every slot to waiting and the enemy numbering counter to zero, installs the stop
+/// message table and advances. Allocation failure kills the controller.
+static void _shelterB3DumpingHoleEncounterInitialize(Task* controllerTask)
 {
     OverlayEncounterControllerWork* work;
-    s32                             i;
+    s32                             slotIndex;
 
     if (gGameSession->spawnPhase[0] == GAME_SESSION_SPAWN_COMPLETE) {
-        taskKill(arg0);
+        taskKill(controllerTask);
         return;
     }
-    work = memCalloc(sizeof(*work), 0);
+    work = memCalloc(sizeof(*work), false);
     if (work == NULL) {
-        taskKill(arg0);
+        taskKill(controllerTask);
         return;
     }
-    for (i = 15; i >= 0; i--) {
-        D_shelter_b3_dumping_hole_8018B7BC[i].status = OVERLAY_ENCOUNTER_SLOT_WAITING;
+    for (slotIndex = (s32)ARRAY_SIZE(D_shelter_b3_dumping_hole_8018B7BC) - 1; slotIndex >= 0; slotIndex--) {
+        D_shelter_b3_dumping_hole_8018B7BC[slotIndex].status = OVERLAY_ENCOUNTER_SLOT_WAITING;
     }
     D_shelter_b3_dumping_hole_8018F4D4 = 0;
-    arg0->work                         = work;
-    arg0->msgTable                     = D_shelter_b3_dumping_hole_8018B7AC;
-    arg0->state                       += 1;
+    controllerTask->work               = work;
+    controllerTask->msgTable           = D_shelter_b3_dumping_hole_8018B7AC;
+    controllerTask->state             += 1;
 }
 
 static void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
@@ -4344,15 +4437,21 @@ static void func_shelter_b3_dumping_hole_8018378C(Task* arg0)
     arg0->state += 1;
 }
 
-static void func_shelter_b3_dumping_hole_80183824(Task* arg0)
+/// Arms the encounter on the fifteenth controller update after the opening spawns.
+///
+/// Requires live controller work with frames initially zero; increments the signed
+/// halfword once per call. On equality with 15, acquires one battle hold, records
+/// spawnPhase[0] as armed, engages an idle battle and advances to the feed state.
+static void _shelterB3DumpingHoleEncounterArmBattle(Task* controllerTask)
 {
-    OverlayEncounterControllerWork* work = arg0->work;
+    enum { SHELTER_B3_DUMPING_HOLE_ENCOUNTER_ARM_DELAY_UPDATES = 15 };
+    OverlayEncounterControllerWork* work = controllerTask->work;
 
-    if (++work->frames == 15) {
-        (sceneAcquireBattleRef)(0);
+    if (++work->frames == SHELTER_B3_DUMPING_HOLE_ENCOUNTER_ARM_DELAY_UPDATES) {
+        sceneAcquireBattleRef(0);
         gGameSession->spawnPhase[0] = GAME_SESSION_SPAWN_ARMED;
         sceneEngageBattle(1);
-        arg0->state += 1;
+        controllerTask->state += 1;
     }
 }
 
@@ -4399,33 +4498,52 @@ static void func_shelter_b3_dumping_hole_80183950(Task* arg0)
     taskKill(arg0);
 }
 
-static void func_shelter_b3_dumping_hole_80183A00(Task* arg0)
+/// Reveals the slot's Mad Chaser on its forty-sixth delay update.
+///
+/// Requires zeroed single-enemy work and its live borrowed enemy/model. Selects the
+/// encounter palette and ordinary enemy work before sending the low spawn halfword
+/// as the emerge command in synthetic stage 0/area 44. Its spot bits select 0..11
+/// in this room. Dispatch consumes the stack request synchronously, then the slot
+/// advances to its HP watcher; the spawner does not own the enemy task.
+static void _shelterB3DumpingHoleEncounterRevealMadChaser(Task* waveTask)
 {
+    enum {
+        SHELTER_B3_DUMPING_HOLE_MAD_CHASER_REVEAL_DELAY_UPDATES = 45,
+        SHELTER_B3_DUMPING_HOLE_MAD_CHASER_CLUT_ROW_OFFSET      = 2,
+        SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TEXTURE_PAGE_OFFSET  = 0,
+        SHELTER_B3_DUMPING_HOLE_MAD_CHASER_COMMAND_STAGE        = 0,
+        SHELTER_B3_DUMPING_HOLE_MAD_CHASER_COMMAND_AREA         = 0x2C,
+    };
     ActorCommand                request;
-    OverlayEncounterSingleWork* work = arg0->work;
-    Enemy*                      t0   = work->enemy;
-    Task*                       t00  = t0->task;
+    OverlayEncounterSingleWork* work      = waveTask->work;
+    Enemy*                      enemy     = work->enemy;
+    Task*                       enemyTask = enemy->task;
 
-    if (++work->frames > 45) {
-        TmdObject* p              = t00->extra.tmd;
-        p->clutRowOffset          = 2;
-        p->texturePageOffset      = 0;
-        t0->workType              = ENEMY_WORK_PLAIN;
-        request.context.loc.stage = 0;
-        request.context.loc.area  = 0x2C;
-        request.command           = arg0->spawnArg1.value;
-        TASK_MESSAGE_DISPATCH_POINTER(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
-        arg0->state += 1;
+    if (++work->frames > SHELTER_B3_DUMPING_HOLE_MAD_CHASER_REVEAL_DELAY_UPDATES) {
+        TmdObject* model          = enemyTask->extra.tmd;
+        model->clutRowOffset      = SHELTER_B3_DUMPING_HOLE_MAD_CHASER_CLUT_ROW_OFFSET;
+        model->texturePageOffset  = SHELTER_B3_DUMPING_HOLE_MAD_CHASER_TEXTURE_PAGE_OFFSET;
+        enemy->workType           = ENEMY_WORK_PLAIN;
+        request.context.loc.stage = SHELTER_B3_DUMPING_HOLE_MAD_CHASER_COMMAND_STAGE;
+        request.context.loc.area  = SHELTER_B3_DUMPING_HOLE_MAD_CHASER_COMMAND_AREA;
+        request.command           = waveTask->spawnArg1.halves.low;
+        TASK_MESSAGE_DISPATCH_POINTER(enemyTask, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
+        waveTask->state += 1;
     }
 }
 
-static void func_shelter_b3_dumping_hole_80183A98(Task* arg0)
+/// Completes this Mad Chaser encounter slot once its enemy has no hit points.
+///
+/// Requires live single-enemy work and a borrowed enemy through the HP check. The high
+/// spawn halfword selects row 0..15 of the room's slot table. Marks that row done and
+/// kills only the spawner, releasing its owned work; enemy teardown is separate.
+static void _shelterB3DumpingHoleEncounterWatchMadChaser(Task* waveTask)
 {
-    OverlayEncounterSingleWork* work = arg0->work;
+    OverlayEncounterSingleWork* work = waveTask->work;
 
     if (work->enemy->hp <= 0) {
-        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
-        taskKill(arg0);
+        D_shelter_b3_dumping_hole_8018B7BC[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        taskKill(waveTask);
     }
 }
 
@@ -4450,98 +4568,82 @@ static void func_shelter_b3_dumping_hole_80183AEC(Task* arg0)
     taskKill(arg0);
 }
 
-static void func_shelter_b3_dumping_hole_80183B9C(Task* arg0)
-{
-    ActorCommand                request;
-    OverlayEncounterSingleWork* work = arg0->work;
-    Enemy*                      t0   = work->enemy;
-    Task*                       t00  = t0->task;
+#include "../../shared/mad_chaser_waves_reveal_second.inc.c"
 
-    if (++work->frames > 60) {
-        TmdObject* p              = t00->extra.tmd;
-        p->texturePageOffset      = 2;
-        p->clutRowOffset          = 4;
-        t0->workType              = ENEMY_WORK_PLAIN;
-        request.context.loc.stage = 0;
-        request.context.loc.area  = 0x2A;
-        request.command           = arg0->spawnArg1.value;
-        TASK_MESSAGE_DISPATCH_POINTER(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
-        arg0->state += 1;
-    }
-}
-
-static void func_shelter_b3_dumping_hole_80183C38(Task* arg0)
+/// Completes this Slouch encounter slot once its enemy has no hit points.
+///
+/// Requires live single-enemy work and a borrowed enemy through the HP check. The high
+/// spawn halfword selects row 0..15 of the room's slot table. Marks that row done and
+/// kills only the spawner, releasing its owned work; enemy teardown is separate.
+static void _shelterB3DumpingHoleEncounterWatchSlouch(Task* waveTask)
 {
-    OverlayEncounterSingleWork* work = arg0->work;
+    OverlayEncounterSingleWork* work = waveTask->work;
 
     if (work->enemy->hp <= 0) {
-        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
-        taskKill(arg0);
+        D_shelter_b3_dumping_hole_8018B7BC[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        taskKill(waveTask);
     }
 }
 
-/// Advances the task to its next state.
-static void func_shelter_b3_dumping_hole_80183C8C(Task* arg0)
+/// Leaves one update between spawning the Sucklerceph pair and revealing its first member.
+///
+/// Entry is pair state 1; advances to state 2, whose reveal runs on the next dispatch.
+static void _shelterB3DumpingHoleEncounterPairWaitFrame(Task* waveTask)
 {
-    arg0->state = arg0->state + 1;
+    waveTask->state++;
 }
 
-static void func_shelter_b3_dumping_hole_80183CA0(Task* arg0)
+#include "../../shared/mad_chaser_waves_pair_reveal_first.inc.c"
+
+/// Forgets dead pair members and reveals the second Sucklerceph on delay update 61.
+///
+/// Requires pair work with frames reset by the first reveal and live borrowed enemies
+/// until the HP check forgets them. A missing second enemy skips the delay. A surviving
+/// one receives the low spawn halfword as its emerge command in synthetic stage 0/area
+/// 46 with spot 0..11. Dispatch borrows the stack request synchronously; completion
+/// resets the timer and advances to watching. This room's death check uses HP only.
+static void _shelterB3DumpingHoleEncounterPairRevealSecond(Task* waveTask)
 {
-    ActorCommand              request;
-    OverlayEncounterPairWork* work = arg0->work;
-    Enemy*                    t0   = work->enemy0;
+    enum { SHELTER_B3_DUMPING_HOLE_PAIR_REVEAL_DELAY_UPDATES = 60 };
+    OverlayEncounterPairWork* work  = waveTask->work;
+    Enemy*                    enemy = work->enemy1;
 
-    if (t0 != NULL) {
-        Task*      t00            = t0->task;
-        TmdObject* p              = t00->extra.tmd;
-        p->texturePageOffset      = 3;
-        p->clutRowOffset          = 5;
-        t0->workType              = ENEMY_WORK_PLAIN;
-        request.context.loc.stage = 0;
-        request.context.loc.area  = 0x2E;
-        request.command           = arg0->spawnArg1.value;
-        TASK_MESSAGE_DISPATCH_POINTER(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
-    }
-    work->frames = 0;
-    arg0->state += 1;
-}
-
-static void func_shelter_b3_dumping_hole_80183D34(Task* arg0)
-{
-    OverlayEncounterPairWork* work = arg0->work;
-    Enemy*                    t    = work->enemy1;
-
-    _madChaserWavePairDropDead(arg0);
+    _madChaserWavePairDropDead(waveTask);
     if (work->enemy1 != NULL) {
-        if (++work->frames <= 60) {
+        if (++work->frames <= SHELTER_B3_DUMPING_HOLE_PAIR_REVEAL_DELAY_UPDATES) {
             return;
         }
         {
-            Task*        t00 = work->enemy1->task;
-            TmdObject*   p   = t00->extra.tmd;
+            Task*        enemyTask = work->enemy1->task;
+            TmdObject*   model     = enemyTask->extra.tmd;
             ActorCommand request;
-            p->texturePageOffset      = 3;
-            p->clutRowOffset          = 5;
-            t->workType               = ENEMY_WORK_PLAIN;
-            request.context.loc.stage = 0;
-            request.context.loc.area  = 0x2E;
-            request.command           = arg0->spawnArg1.value;
-            TASK_MESSAGE_DISPATCH_POINTER(t00, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
+            model->texturePageOffset  = OVERLAY_ENCOUNTER_PAIR_TEXTURE_PAGE_OFFSET;
+            model->clutRowOffset      = OVERLAY_ENCOUNTER_PAIR_CLUT_ROW_OFFSET;
+            enemy->workType           = ENEMY_WORK_PLAIN;
+            request.context.loc.stage = OVERLAY_ENCOUNTER_PAIR_COMMAND_STAGE;
+            request.context.loc.area  = OVERLAY_ENCOUNTER_PAIR_COMMAND_AREA;
+            request.command           = waveTask->spawnArg1.halves.low;
+            TASK_MESSAGE_DISPATCH_POINTER(enemyTask, ACTOR_COMMAND_MESSAGE_APPLY, &request, 0);
         }
     }
     work->frames = 0;
-    arg0->state += 1;
+    waveTask->state++;
 }
 
-static void func_shelter_b3_dumping_hole_80183E08(Task* arg0)
+/// Completes the room's pair slot once the HP check has recorded both members gone.
+///
+/// Requires live pair work and borrowed enemies until forgotten. The high spawn
+/// halfword selects row 0..15 of the room's slot table. Pointer clearing and gone-bit
+/// marking happen on successive checks, so completion follows the final death by one
+/// check. Marks the row done and kills the spawner, leaving enemy teardown separate.
+static void _shelterB3DumpingHoleEncounterPairWatch(Task* waveTask)
 {
-    OverlayEncounterPairWork* work = arg0->work;
+    OverlayEncounterPairWork* work = waveTask->work;
 
-    _madChaserWavePairDropDead(arg0);
+    _madChaserWavePairDropDead(waveTask);
     if (work->goneMask == OVERLAY_ENCOUNTER_PAIR_GONE_BOTH) {
-        D_shelter_b3_dumping_hole_8018B7BC[(s16)(arg0->spawnArg1.value >> 16)].status = OVERLAY_ENCOUNTER_SLOT_DONE;
-        taskKill(arg0);
+        D_shelter_b3_dumping_hole_8018B7BC[waveTask->spawnArg1.halves.high].status = OVERLAY_ENCOUNTER_SLOT_DONE;
+        taskKill(waveTask);
     }
 }
 
