@@ -69556,9 +69556,9 @@ remains unresolved.
 
 ## Actor 403100 region effects: independent counter initialization and member-array address order (2026-09-10)
 
-`func_actor_403100_801342B4`: permuter moved only `i = 3` from function entry to between vector component initializations. Normalized paired distance 270 -> 100; controlled `base_2.c` port reproduced the gain. `base_1.i` SHA256 `f856ae394020255fdaf71b8c99cf2781a62ee70e4e24ba9cfb45517f5774633a`; `base_2.i` SHA256 `9a0d3075c5552d7c02a6148b1c39640ccf96f775b0d4a52631858a271a9c8d59`.
+`_actor403100BreakBalconyAtArm`: permuter moved only `sectionIndex = 3` from function entry to between vector component initializations. Normalized paired distance 270 -> 100; controlled `base_2.c` port reproduced the gain. `base_1.i` SHA256 `f856ae394020255fdaf71b8c99cf2781a62ee70e4e24ba9cfb45517f5774633a`; `base_2.i` SHA256 `9a0d3075c5552d7c02a6148b1c39640ccf96f775b0d4a52631858a271a9c8d59`.
 
-Observed sched2 block 0: old counter UID11 selected at backward T-39; moved counter UID57 at T-31, preceding argument setup UID23 at T-32. Forward initialization therefore follows argument setup and saved-register stores return to the desired prologue. Counter remains global r84 in s1 (26 references, live length 164 -> 161); allocation dispositions remain unchanged. This is a supported case-specific scheduling intervention, not a general rule about source order. See retained PERMUTER_ANALYSIS and controlled prediction in `tools/permuter_findings/func_actor_403100_801342B4/`.
+Observed sched2 block 0: old counter UID11 selected at backward T-39; moved counter UID57 at T-31, preceding argument setup UID23 at T-32. Forward initialization therefore follows argument setup and saved-register stores return to the desired prologue. Counter remains global r84 in s1 (26 references, live length 164 -> 161); allocation dispositions remain unchanged. This is a supported case-specific scheduling intervention, not a general rule about source order. See retained PERMUTER_ANALYSIS and controlled prediction in `tools/permuter_findings/_actor403100BreakBalconyAtArm/`.
 
 Separately, reversing chained vector assignment destinations corrects the six store pairs. Real work-struct array access replaces scalar-address indexing: RTL plus(index,base) becomes plus(base,index), preserving the 0x63C displacement and fixing four commuted addu operands. A named union preserves existing scalar views; this GCC does not support anonymous member promotion. Final unpinned `base_6.c` scores 100% with all-zero penalties.
 
@@ -117994,7 +117994,7 @@ whenever the address is a frame, hard-frame or argument pointer:
 So no amount of reuse turns `0x18($sp)` into `0($s0)` — but the *same* address
 reached through a pointer local is `(plus (reg mtx) (const 8))`, rooted at a
 pseudo, and survives with a register of its own. Two locals in this overlay
-(`_actor206100ApplyPart5Recoil`, `func_actor_403100_801339EC`) and
+(`_actor206100ApplyPart5Recoil`, `_actor403100StepDefeat`) and
 `Actor444000_80139C80` already carry the `mtx` form for that reason; the split
 is the tell, not the aliasing.
 
@@ -118024,7 +118024,7 @@ overlay) builds the same identity splat for its `RotMatrixZ` and shows the same
 `include/main/gfx_types.h`) is named for the three words it can pair and the two
 diagonal ones go through a `MATRIX* mtx = &matw.mat` instead. Reading all five
 off the union gives all five frame-relative (98.756%); the split is the tell
-here too, and `func_actor_403100_801339EC` is the matched sibling to copy the
+here too, and `_actor403100StepDefeat` is the matched sibling to copy the
 spelling from. *Why* the original wrote two of the five through a pointer is not
 recoverable from the bytes -- the union names all five words, so the pairing
 argument does not explain it -- which is the useful part: the mix is evidence
@@ -134680,7 +134680,7 @@ does not cover this case. Compare instruction *words* (`mips-linux-gnu-objdump
 build the linked overlay and byte-compare it before concluding that a residual
 penalty is codegen.
 
-## Pointer-plus-offset operand order follows front-end rewriting, not the source (func_actor_403100_8013480C, 2026-09-20)
+## Pointer-plus-offset operand order follows front-end rewriting, not the source (_actor403100UpdateFlames, 2026-09-20)
 
 A `(u8*)base + offset` address whose RTL prints as `addu dst,base,offset` in the
 seed prints as `addu dst,offset,base` in the target. Three separate rules decide
@@ -134706,7 +134706,7 @@ reachable from a single C expression, and neither is the address-of spelling
 `&base[1] + offset`: `&base[1]` folds to a `PLUS_EXPR` before the outer add is
 built, and the same reassociation applies.
 
-Evidence: scratch `nonmatchings/func_actor_403100_8013480C-vacuum`, base_1
+Evidence: scratch `nonmatchings/_actor403100UpdateFlames-vacuum`, base_1
 (symbol bases, correct order, 95.757% — the address is rematerialised per site),
 base_2 (integer adds, 97.804 → 98.635 with the recursion above), base_3
 (`&objects[1] + offset` for the one remaining site, same shape as base_2).
@@ -135848,7 +135848,7 @@ sites (the tool prints them) and fix them first, or rename through a name that
 appears nowhere else.
 
 
-## A separately assigned constant preserves base-plus-displacement until RTL (func_actor_403100_8013480C, 2026-09-20)
+## A separately assigned constant preserves base-plus-displacement until RTL (_actor403100UpdateFlames, 2026-09-20)
 
 The target clears records using `addiu a0,s7,32; addu a0,s2,a0`.
 The literal C expression `offset + ((u32)objects + 32)` instead expands
@@ -135868,25 +135868,25 @@ unreachable from C. A separate assignment reaches it without another helper.
 
 Input base_1.i SHA256:
 `7d56b05e44104b24acd53b8cf2fa5c31a73caa57522183167895435d115d5a2e`.
-Retained evidence: tools/permuter_findings/func_actor_403100_8013480C/,
+Retained evidence: tools/permuter_findings/_actor403100UpdateFlames/,
 run d9d7904202b04e77 and the session's PERMUTER_ANALYSIS.md.
 The final normal-style port is base_6.c, exact scratch match and unscoped
 BUILD SUCCEEDED. This observation concerns this two-add shape and compiler;
 it does not claim arbitrary local constants prevent all reassociation.
 
-## Preserve the parameter equivalence while adding references to adjust only the last saved-register pair (func_actor_403100_8013480C, 2026-09-20)
+## Preserve the parameter equivalence while adding references to adjust only the last saved-register pair (_actor403100UpdateFlames, 2026-09-20)
 
-The last two saved values were reversed: arg1=s7 and objects=s6, whereas the
-target wants arg1=s6 and objects=s7. The observed global inputs were arg1
+The last two saved values were reversed: sizeBias=s7 and objects=s6, whereas the
+target wants sizeBias=s6 and objects=s7. The observed global inputs were sizeBias
 2 refs / 470 insns, objects 3/442, table 6/446. The parameter's arrival equivalence
 doubles its span. An earlier narrowing attempt removed that equivalence,
 overshot the table's priority and emitted unwanted shifts.
 
-The controlled base_2 edit adds two input mentions of arg1 to the existing
-size touch: TOUCH_REG_USE2(size,arg1,arg1). .lreg observes exactly 4 refs / 470
-for arg1, with its value definitions and span unchanged. .greg allocation
-order changes only the last pair from table,objects,arg1 to table,arg1,objects;
-final homes are arg1=s6, objects=s7 while table=s5 and size=s3 remain. The object
+The controlled base_2 edit adds two input mentions of sizeBias to the existing
+size touch: TOUCH_REG_USE2(size,sizeBias,sizeBias). .lreg observes exactly 4 refs / 470
+for sizeBias, with its value definitions and span unchanged. .greg allocation
+order changes only the last pair from table,objects,sizeBias to table,sizeBias,objects;
+final homes are sizeBias=s6, objects=s7 while table=s5 and size=s3 remain. The object
 changes only that register pair's uses and saves, distance 352 to 307. No pin,
 new emitted instruction, or speculative per-pseudo local-quantity ranking is
 involved. One additional reference would not cross objects' observed rank.
@@ -135894,7 +135894,7 @@ involved. One additional reference would not cross objects' observed rank.
 Input base_2.i SHA256:
 `f9da75fae95ccf74c8f499b3edd882b55808546946a10b0fa31f7443a23541dd`.
 See the retained base_1/base_2 .lreg/.greg files and PERMUTER_ANALYSIS.md under
-tools/permuter_findings/func_actor_403100_8013480C/.
+tools/permuter_findings/_actor403100UpdateFlames/.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 This is a bounded reference-count experiment; read/write modification of the
 parameter itself changes a different set of allocation inputs.
@@ -142312,16 +142312,16 @@ longer equals the `SImode` constant. The store-then-barrier-then-loop shape
 itself was an inline "set animation" helper whose slot walk was a
 `do { for (...) } while (0)` macro.
 
-## `addiu v0,%lo(tbl); lh 4(v0)` instead of `lh %lo(tbl+4)(v0)`: the row index was an inline helper's parameter (func_actor_403100_80133E88, 2026-09-26)
+## `addiu v0,%lo(tbl); lh 4(v0)` instead of `lh %lo(tbl+4)(v0)`: the row index was an inline helper's parameter (_actor403100StepDefeatBurn, 2026-09-26)
 
 Symptom: a constant row of `s16 tbl[N][2]` is read through the table's base
 address with the row offset in the load, and the reads stay after an unrelated
 pointer load that sched1 would otherwise hoist them above; the seed pinned both
 with `USE_REG`. Writing `tbl[1][0]` directly folds to `%lo(tbl+4)`, and passing
-the row as a pointer (`helper(coord, tbl[1])`) folds the same way. What the
-target needs is `helper(coord, 1)` with `tbl[i][0]` / `tbl[i][1]` inside the
+the row as a pointer (`helper(puffCoord, tbl[1])`) folds the same way. What the
+target needs is `helper(puffCoord, 1)` with `tbl[i][0]` / `tbl[i][1]` inside the
 `static inline` body: the offset stays in the load and the helper's statements
-keep their place after the caller's `coord = ...`.
+keep their place after the caller's `puffCoord = ...`.
 
 ## A handler's inlined steps may already exist as functions later in the unit; that tells you which helpers to write, but not that they can share a body (func_actor_403600_8013FC2C, 2026-09-26)
 
@@ -142576,17 +142576,17 @@ its extension in combine. Before padding or pinning a loop to stop a hoist,
 count the loop's insns in the `.loop` dump and check the types and the array
 spelling of the addresses in it.
 
-### Pass an inline helper a named local, not the expression, when `lui %hi(table)` must follow the pointer load (func_actor_403100_801345E0, 2026-09-26)
+### Pass an inline helper a named local, not the expression, when `lui %hi(table)` must follow the pointer load (_actor403100SpawnDefeatFloorPuffs, 2026-09-26)
 
-A spawn-and-place block `coord = task->extra.tmd->coords; helper(coord, i);`
+A spawn-and-place block `puffCoord = spawnedPuff->extra.coordBody->coord; helper(puffCoord, i);`
 emits `lw 0x2C; lw 0x8; lui %hi(table); lh %lo(table)(...)`. Writing the call
-as `helper(task->extra.tmd->coords, i)` instead lets sched1 hoist the `lui`
+as `helper(spawnedPuff->extra.coordBody->coord, i)` instead lets sched1 hoist the `lui`
 above the second `lw` (its chain through `addiu`/`lh`/`sw` outranks the load
 chain), so it lands in another register and reorg steals it into the
 preceding `beqz` delay slot - 83%. Through the named local, the inline's
 parameter is a copy of a user variable, and that extra link lengthens the
 pointer chain enough that the `lui` stays after it. The old body pinned the
-same order with `USE_REG(coord)` / `USE_REG(x)`; check whether a sibling in
+same order with `USE_REG(puffCoord)` / `USE_REG(x)`; check whether a sibling in
 the TU already calls the helper through a local before steering.
 
 ## An inline helper's pointer argument keeps `base + i*size + off` in the target's order (func_actor_403600_80132E40, 2026-09-26)
@@ -143999,7 +143999,7 @@ exit and the `age >= 0x1F` exit, with the early path jumping into the second
 one's call. Two calls cross-jumped by jump2 give the same layout but count both
 in flow's live lengths; one call reached by `goto release;` from the early exit,
 with the label inside the `age` block, gives the layout and the allocation.
-## An inline helper's parameter width moves the argument load: declare it as wide as the field passed (func_actor_403100_801339EC, 2026-09-26)
+## An inline helper's parameter width moves the argument load: declare it as wide as the field passed (_actor403100StepDefeat, 2026-09-26)
 
 A `static inline` helper that scales a coordinate by `factor` was called with
 an `s16` work field. Declared `s32 factor`, the field's `lh` was scheduled
@@ -144062,27 +144062,27 @@ invariant and wins `a0`. A block-scoped macro with the same body does not help,
 and passing the vector by value changes the frame. When two loop invariants of
 equal use count swap registers, look for the sequence being repeated and make it
 a helper.
-## A hand-reduced goto loop over a global array is usually a plain `for` over `arr[i]`; `arr[i].m.f` and a `WorldCollisionBody*` taken from `&arr[i].m` are different addresses (func_actor_403100_8013480C, 2026-09-26)
+## A hand-reduced goto loop over a global array is usually a plain `for` over `arr[i]`; `arr[i].m.f` and a `WorldCollisionBody*` taken from `&arr[i].m` are different addresses (_actor403100UpdateFlames, 2026-09-26)
 
 **Shape.** Target: after the loop's top test, `addiu s5,D; addiu s1,s5,0x70; move s7,s1;
 move s2,s4; move s0,s5`, a `%hi` of the count pointer held in `v1` across the loop head,
 and fields reached as `s0` (entry), `s1` (member), `s2+s5` and `s2+s7`. The tree
 rebuilt that by hand - a `goto` loop with `entry`, `walker`, `objects` and `offset`
 locals, which keeps `loop.c` out, plus `lui`/`lw` asm for the shared `%hi`. A plain
-`for (i = 0; i < work->count; i++)` with `entry = &D[i]` and `D[i]` accesses gives all
+`for (flameIndex = 0; flameIndex < D_actor_403100_80155808->flameLifetime; flameIndex++)` with `entry = &D[flameIndex]` and `D[flameIndex]` accesses gives all
 of it: those are `loop.c`'s giv inits and hoisted invariant, and the shared `%hi` is
 `duplicate_loop_exit_test` keeping the exit test's `high` pseudo.
 
-**Member address.** `D[i].obj.flags` folds the member offset into the displacement
-(`addu v1,s2,s5; lhu 0x8e(v1)`). Passing `&D[i].obj` to a helper taking `WorldCollisionBody*`
-computes the member's address first - `(D+0x70) + i*0xF0` - so the invariant `D+0x70`
-is hoisted and the access is `addu v1,s2,s7; lhu 0x1e(v1)`. A single `obj = &D[i].obj`
+**Member address.** `D_actor_403100_80155814[flameIndex].body.flags` folds the member offset into the displacement
+(`addu v1,s2,s5; lhu 0x8e(v1)`). Passing `&D_actor_403100_80155814[flameIndex].body` to a helper taking `WorldCollisionBody*`
+computes the member's address first - `(D+0x70) + flameIndex*0xF0` - so the invariant `D+0x70`
+is hoisted and the access is `addu v1,s2,s7; lhu 0x1e(v1)`. A single `obj = &D_actor_403100_80155814[flameIndex].body`
 local at the top of the body makes one reduced giv instead, which changes how many
 movables `loop.c` hoists (and here let `0xFFFF0000` escape to an `$s` register).
-Writing each use through the helper matched; `(&D[i].obj)->f` does too but is a `*&`.
+Writing each use through the helper matched; `(&D_actor_403100_80155814[flameIndex].body)->f` does too but is a `*&`.
 
-**Arm tails.** `size = base + (age*K + 0x90)` in each arm lets `fold` pull `0x90` out
-next to `base`; a `growth` temp per arm keeps `addiu 0x90; addu size,base,growth`,
+**Arm tails.** `flameSize = base + (age*K + 0x90)` in each arm lets `fold` pull `0x90` out
+next to `base`; an `ageGrowth` temp per arm keeps `addiu 0x90; addu flameSize,base,ageGrowth`,
 and jump2 cross-jumps the identical tails into the join the target shows.
 
 ## Three pins in one draw routine that were an inline parameter, an argument expression and an early constant (_attachmentUpdateAndDrawWheel, 2026-09-26)
@@ -148654,7 +148654,7 @@ Not found: the natural second set. Tried: `s16 hp`, the difference
   `$v0`; only a pseudo that is global - the tree reuses the `switch` variable -
   is allocated after the `%hi` and gets `$v1`. With (a) solved by the loop the
   remaining diff is exactly that register swap, so the barrier was left.
-- `func_actor_403100_80136610` (`TOUCH_REG(kind)` on a `9`). The `li v0,9` must
+- `_actor403100Initialize` (`TOUCH_REG(kind)` on a `9`). The `li v0,9` must
   not be a birth: it sits at the top of the block, above the next call's
   `lui/addiu a1`, instead of beside its `sb`. A second set of the same variable
   does it (`i = 9; flags = i;` with the loop counter places it correctly) but
@@ -151170,7 +151170,7 @@ name.
 - An asm with an output is not implicitly volatile, including a memory output;
   `"+m"(obj) : "r"(x)` orders `x`'s computation against the reads of `obj`
   without fencing the block.
-### Unresolved, with the mechanism corrected: the `9` barrier is about `$a1`, not about the `9` (func_actor_403100_80136610, 2026-10-06)
+### Unresolved, with the mechanism corrected: the `9` barrier is about `$a1`, not about the `9` (_actor403100Initialize, 2026-10-06)
 
 Dated note on "Unresolved, with the mechanism measured: three actor barriers":
 its reading of this function ("the `li v0,9` must not be a birth") describes
@@ -151187,7 +151187,7 @@ only requirement is `LUID(li) < LUID(lui a1)`.
 
 **Why plain C fails.** The whole body from the allocation check to the loop is
 one basic block (calls do not end blocks). `$a1` is set three times in the
-function (`memCalloc(size, false)`, `enemyDestroy(enemy, task)`,
+function (`memCalloc(size, false)`, `enemyDestroy(spawnedEnemy, task)`,
 `animationInitContext`), so its `lo_sum` is not a birth: priority 6, and every
 store below it is 7 or more because each follows a pointer load. It is taken
 last and lands directly after `worldTargetLinkNode`, above the `lw`/`li`/`sb`
@@ -153142,7 +153142,7 @@ local), 2 after (equal arms, reused local).
 moves is a deleted block boundary, not a scheduling choice; do not look for a
 statement order.
 
-## A constant set twice and a pointer set twice: both left to global-alloc, which fills `$v1` before `$v0` (func_actor_403100_80136610, 2026-10-07)
+## A constant set twice and a pointer set twice: both left to global-alloc, which fills `$v1` before `$v0` (_actor403100Initialize, 2026-10-07)
 
 Dated note on "Unresolved, with the mechanism corrected: the `9` barrier is
 about `$a1`" (2026-10-06). `TOUCH_REG(kind)` is gone; two reused locals stand
@@ -153161,7 +153161,7 @@ sched2 lifts it. Both were measured:
   function, so priority 6, the lowest in the block) to be taken before the
   `sb` in the backward pass. That only happens in a load stall with nothing
   better ready. Below the `sb` the block has one such stall (between the two
-  loads of `arg0->extra.tmd->coords`), and the `$a0` argument set, priority 8
+  loads of `task->extra.tmd->coords`), and the `$a0` argument set, priority 8
   because it is formed from a load that follows the `sb`, always takes it. All
   720 orders of the six statements between the call and `animationInitContext`
   were built: with the flags store first, the `a1` pair is at the top of the
@@ -153181,18 +153181,18 @@ has `$v0` (`li v0,0x300`, the `&param` address), so global-alloc gives it
 `$v1`, and the constant, allocated after it (`.greg`: `86 85`), gets `$v0`:
 
 ```c
-value           = gGameSession->location.loc.view;   /* first set: lbu v0 */
-work->savedView = value;
+savedViewOrTargetFlags           = gGameSession->location.loc.view;   /* first set: lbu v0 */
+work->savedView = savedViewOrTargetFlags;
 ...
-self = D_actor_403100_8015580C;
-self->bodyPos.vx = 0; ... self->coord = &arg0->extra.tmd->coords[3];
-worldTargetLinkNode(&self->node);
-value = WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE;   /* second set */
-self  = D_actor_403100_8015580C;
-self->node.state.parts.flags = value;
-self  = D_actor_403100_8015580C;
-self->param = &D_actor_403100_8014762C;
-self->recs  = D_actor_403100_80155808->hitContacts;
+linkedEnemy = D_actor_403100_8015580C;
+linkedEnemy->bodyPos.vx = 0; ... linkedEnemy->coord = &task->extra.tmd->coords[3];
+worldTargetLinkNode(&linkedEnemy->node);
+savedViewOrTargetFlags = WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE;   /* second set */
+linkedEnemy  = D_actor_403100_8015580C;
+linkedEnemy->node.state.parts.flags = savedViewOrTargetFlags;
+linkedEnemy  = D_actor_403100_8015580C;
+linkedEnemy->param = &D_actor_403100_8014762C;
+linkedEnemy->recs  = D_actor_403100_80155808->hitContacts;
 ```
 
 sched1 then orders the block `li`, `lw`, `lui a1`, `addiu a1`, `sb`
@@ -153205,12 +153205,12 @@ and is taken first, the `li` last).
 |---|---|---|
 | global named at each store | literal | 2 (`li` below the `lw`) |
 | local set at flags and at `param` | literal | 2, same |
-| global named | `value` shared with the view | 10: pointer `$v0`, constant `$a0` |
-| local set at flags and `param`; or at `bodyPos` and flags; or at all three | `value` shared with the view, `s32`/`u32`/`s16`/`u16` | **0** |
+| global named | `savedViewOrTargetFlags` shared with the view | 10: pointer `$v0`, constant `$a0` |
+| local set at flags and `param`; or at `bodyPos` and flags; or at all three | `savedViewOrTargetFlags` shared with the view, `s32`/`u32`/`s16`/`u16` | **0** |
 | same | `u8`/`s8` local | 2 (`li` below the `lw` again; cause not traced) |
 | same | second set `0x300`, `-1`, `0x10`, `1`, `2` instead of the view | 4 to 16: the *other* constant is then not launched either and floats out of its own stall |
-| same | `if (obj != NULL) value = 9; else value = 9;` | 2: jump1 folds equal-armed constant sets before flow |
-| `enemy` (the spawn argument) reassigned from the global | shared | 16: one pseudo, one register, and the first range needs `$a1` |
+| same | `if (model != NULL) savedViewOrTargetFlags = 9; else savedViewOrTargetFlags = 9;` | 2: jump1 folds equal-armed constant sets before flow |
+| `spawnedEnemy` (the spawn argument) reassigned from the global | shared | 16: one pseudo, one register, and the first range needs `$a1` |
 
 The view is the only other value in the function that is loaded into `$v0`
 and can share the variable without moving its own site (a load is placed by
@@ -153222,8 +153222,8 @@ which values shared the scalar or that the pointer was a refreshed local.
 Count: 2 before (asm, constant-valued local), 2 after (shared scalar,
 refreshed pointer local), no asm.
 
-**Not used, but true.** The `enemy` local for the spawn argument is not needed
-either: `D = arg0->spawnArg2.pointer; ... D->field_4 = &coord->coord;
+**Not used, but true.** The `spawnedEnemy` local for the spawn argument is not needed
+either: `D = task->spawnArg2.pointer; ... D->field_4 = &rootCoord->coord;
 D->field_48 = 0;` gives the same `$a1` accesses, because cse carries the stored
 value until the first byte store. The two stores have the same base and
 different offsets, so sched1 is free to swap them and the image does not show
