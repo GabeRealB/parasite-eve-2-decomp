@@ -134213,7 +134213,7 @@ Evidence is retained in the facing experiment archive under `tools/permuter_find
 (session `72d715c95a2b429297d0244fb646a310`), including PERMUTER_ANALYSIS.md,
 planned experiments, inputs, and relevant dumps.
 
-## Early call arguments can be a consequence of fixing load/store order (func_actor_403600_8013F7B8, 2026-09-19)
+## Early call arguments can be a consequence of fixing load/store order (_actor403600SpawnDouble, 2026-09-19)
 
 The archived initializer was stuck at 96.456% with `regs=18 reorder=2 insert=4 delete=4`, despite matching blocks, predicates, calls and all 285 instruction counts. The prior hypothesis sought early a0/a1 call-argument lifetimes to force a packed key into a2 and a coordinate chain into v1. Named locals disappeared; asm touches disturbed scheduling.
 
@@ -134221,7 +134221,7 @@ The actual obstruction was visible in `.sched`: the two reads for `task->extra->
 
 The matching `.sched` reads UID291/293 depend only on the first three stores and the previous call. Following stores instead carry anti-dependencies on the reads. `.lreg/.greg` give the coordinate load/add r131/r132 v1 and the packed key r135 a2; all saved-register homes remain unchanged. `.sched` now sets a0 earlier and a1 between the reads, and `.sched2/.dbr` reproduce the target store order and final call delay store. Early call arguments were downstream of the memory dependency graph, not an independent lifetime requirement. Actual allocator priority/hazard tie decisions were not traced.
 
-Prediction and both schedule/allocation outcomes are retained in scratch `nonmatchings/func_actor_403600_8013F7B8-vacuum/LEARNINGS.md`, `experiments.jsonl`, `base_1.insn.txt`, `base_2.insn.txt` and the corresponding RTL dumps. Input SHA-256: base_1.i `c037aa537b38e344c75545f8cb1cf2d871f6a4774853c48953edf702e1d53349`, base_2.i `4c7327de57967e3e801adae9140e3bcfa6607811cfccf50da365a54298a7a678`; compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Final typed base_4 also scored 100%, and the integrated host passed unscoped build verification. The required router produced no discovery.
+Prediction and both schedule/allocation outcomes are retained in scratch `nonmatchings/_actor403600SpawnDouble-vacuum/LEARNINGS.md`, `experiments.jsonl`, `base_1.insn.txt`, `base_2.insn.txt` and the corresponding RTL dumps. Input SHA-256: base_1.i `c037aa537b38e344c75545f8cb1cf2d871f6a4774853c48953edf702e1d53349`, base_2.i `4c7327de57967e3e801adae9140e3bcfa6607811cfccf50da365a54298a7a678`; compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Final typed base_4 also scored 100%, and the integrated host passed unscoped build verification. The required router produced no discovery.
 
 
 ## Explicit address definitions and tied asm operands preserve setup dependencies (func_actor_403600_801406A4, 2026-09-19)
@@ -134360,7 +134360,7 @@ Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5f
 Baseline input: bf7300060a1d07e0a79ddf00037665c9ddadf1cc374f0018bc59d8bf422a8a5a; controlled base_2 input: 852997d1104b4cd83c27869a996ff1212472455b56d1fc2c29523500b8fb1547.
 
 
-## Sharing a loop index removes sched1 birth promotion while preserving its register (func_actor_403600_801396F8)
+## Sharing a loop index removes sched1 birth promotion while preserving its register (_actor403600UpdateMode)
 
 The unpinned base_5 was 99.859%, with only two reorder penalties: each effect loop emitted stack-base addiu before andi, where the target needs andi first. Its pointer read/write asm and call-argument staging were already needed for the remaining schedule.
 
@@ -134373,7 +134373,7 @@ Earlier in the same session, sharing one sound-ID destination across two blocks 
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Inputs: base_5.i 83efd51f53f42d97575cc31163b7c75c841c13bb865764229f6e89d1a214371d;
 base_6.i c1532b40ae6c55c22205f08010597772795886f8bbfd47b725472d1809df71a0.
-Retained source, plans/conclusions and compressed dumps: tools/permuter_findings/func_actor_403600_801396F8/, session 6bc02bb7568c41a5ac3cb6c4d2db9cf1, PERMUTER_EVIDENCE/0ffbdfd9ab0345f5/analysis/manual_match/. The router found no discovery; these gains came from independent manual experiments.
+Retained source, plans/conclusions and compressed dumps: tools/permuter_findings/_actor403600UpdateMode/, session 6bc02bb7568c41a5ac3cb6c4d2db9cf1, PERMUTER_EVIDENCE/0ffbdfd9ab0345f5/analysis/manual_match/. The router found no discovery; these gains came from independent manual experiments.
 
 
 ## A mask dependency can lower a local quantity priority despite adding references (actor403600DrawRipple)
@@ -147032,7 +147032,7 @@ RTL, CSE and combine dumps. Input SHA256s respectively:
 `afac79f9a53e428ac8cba7a1cac59141dc78cbcf7a717bc75d039f77983d45d7`.
 
 
-## Indexed call arguments can replace barriers before an effect loop (func_actor_403600_801396F8, 2026-09-27)
+## Indexed call arguments can replace barriers before an effect loop (_actor403600UpdateMode, 2026-09-27)
 
 Two `SOFT_TOUCH_REG3` sites kept constant spawn arguments ahead of an
 explicitly computed pattern-entry pointer. Removing only the macros moved
@@ -147769,7 +147769,7 @@ byte offset to match, try the plain multi-dimensional global first; when only
 the constant loads around an LCG draw are out of order, try the draw as an
 assignment expression at its point of use before reaching for a struct view.
 
-## A packed-struct copy of one `static const` table at two sites is two block-local array initializers (func_actor_403600_801396F8, 2026-10-04)
+## A packed-struct copy of one `static const` table at two sites is two block-local array initializers (_actor403600UpdateMode, 2026-10-04)
 
 The seed copied a nine-byte list onto the stack in two `case` arms and later
 wrote a CD parameter block through the same slot, so it carried three pieces of
@@ -149911,13 +149911,13 @@ attempts; left as it was.
   its `return` and again at the end. The ladder there has an empty mode 1:
   `case 0: ...; break; case 2: ...; break; case 1: break;`.
 - **`var = x < K; goto test;` into another case's `if (var == 0) { stores }`**
-  (`func_actor_403600_801396F8`, `_8013A444`) is `if (x >= K) { stores }` in
+  (`_actor403600UpdateMode`, `_8013A444`) is `if (x >= K) { stores }` in
   each case; the merged run includes the conditional branch, so the image's
   `j test; slti` appears on its own.
 - **Written-out copies of a reset block that differ in store order can still
   be one inline.** `actor_403600_2.c` had twelve 17-store blocks through a
   re-read `arg0->work`, in three different statement orders. Eleven of them,
-  and the whole body of `func_actor_403600_8014174C`, are
+  and the whole body of `_actor403600ResetCombatState`, are
   `_actor403600ResetState(arg0)` once its definition sits above the callers
   (the order differences were sched filling load delays). One is not
   (`_actor403600ApplyDamage`: `animRate` is stored three insns later than
