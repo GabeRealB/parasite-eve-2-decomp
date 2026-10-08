@@ -5225,18 +5225,18 @@ That leaves a load-use `nop` after `lhu` and parks `move a0, s1` in the
 the `lhu` and `move a0, s1` fills the `bne`:
 
 ```c
-if (work->field_85A == 4) {
-    work->field_842 = 0;
-    model->field_C |= 0x80;
-    func(arg0, 7);
-} else if (work->field_890 == 0) {
-    work->field_846 = work->field_846 + 1;
+if (work->pendingAction == 4) {
+    work->stateFrames = 0;
+    model->flags |= 0x80;
+    _actor405800SelectDeathState(task, ACTOR_405800_DEATH_BLAST);
+} else if (work->onCeiling == 0) {
+    work->state = work->state + 1;
 } else {
-    func(arg0, 9);
+    _actor405800SelectDeathState(task, ACTOR_405800_DEATH_CEILING_DROP);
 }
 ```
 
-`func_actor_405800_801388E4` is the example.
+`_actor405800ChooseDeathSequence` is the example.
 ## Handwritten-GTE `mvmva`/`gpf` need the full COP2 word, not the psyq macro
 
 The psyq `gte_mvmva(sf,mx,v,cv,lm)` and `gte_gpf12()` macros emit the *short*
@@ -134048,15 +134048,15 @@ Compiler SHA256:
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 
-### A separate matrix-pointer local changes launch priority and stops an unwanted tail merge (func_actor_405800_801375C4, 2026-09-19)
+### A separate matrix-pointer local changes launch priority and stops an unwanted tail merge (_actor405800TickArmSwing, 2026-09-19)
 
 A shared identity-matrix pointer assigned in four arms held its address initialization at priority 1 in sched1. Both negative-angle arms then scheduled identically, so jump2 merged their child flags store and extra reload (14 blocks instead of 15). Splitting only the final arm to `GfxMatrix* m2` creates a set-once pseudo: `birthing_insn_p` in patched GCC 2.8.1 `sched.c:2499` checks `REG_N_SETS == 1`, and `adjust_priority` promotes its definition. This is a scheduler change even though both pointers ultimately occupy a1.
 
 Controlled base_1 -> base_2: at backward T-37, UID501 changes from priority 1 (UID495 selected) to `0x7f000001` (UID501 selected). Its address initialization therefore moves later in forward order, after the extra reload. Local allocation gives m2/r85 a1 and preserves raw angle/r189 in a0. sched2 interleaves negu/sll/sra in three pointer-load delays; jump2 keeps distinct predecessors. Score 94.459% -> 100.000%, all penalties zero. A plan before the controlled change predicted both late pointer initialization and preservation of angle/store placement.
 
-The prerequisite was `(s16)-angle` at the final call, not `-angle`: truncating after negation retains the raw decay sum through its signed compare. The compare can use v0 while the raw sum stays a0, removing the hard-register overwrite that had forced the angle store before the comparison. dbr can then use that store in the branch slot. The cast alone reproduces the unwanted tail merge; it needs the pointer split. No pins or asm helpers.
+The prerequisite was `(s16)-swingAngle` at the final call, not `-swingAngle`: truncating after negation retains the raw decay sum through its signed compare. The compare can use v0 while the raw sum stays a0, removing the hard-register overwrite that had forced the angle store before the comparison. dbr can then use that store in the branch slot. The cast alone reproduces the unwanted tail merge; it needs the pointer split. No pins or asm helpers.
 
-Evidence in func_actor_405800_801375C4 scratch/archive LEARNINGS.md and base_1/base_2 `.sched`, `.lreg`, `.greg`, `.sched2`, `.jump2`, `.dbr`. Input SHA256: base_1.i `9dc7fa53ff44b1fe14180f7eeaaf1ff66ff3623ee6c4482376a78b07dd6b9d8c`; base_2.i `5d80286ab0879a0548b4444fa8e57a4cee163542e85a7306b6f2565d62717b45`. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Router found no discovery; these were manual controlled experiments. This case confirms the existing launch-priority rule; splitting alone does not override arbitrary dependencies or hazards.
+Evidence in _actor405800TickArmSwing scratch/archive LEARNINGS.md and base_1/base_2 `.sched`, `.lreg`, `.greg`, `.sched2`, `.jump2`, `.dbr`. Input SHA256: base_1.i `9dc7fa53ff44b1fe14180f7eeaaf1ff66ff3623ee6c4482376a78b07dd6b9d8c`; base_2.i `5d80286ab0879a0548b4444fa8e57a4cee163542e85a7306b6f2565d62717b45`. Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Router found no discovery; these were manual controlled experiments. This case confirms the existing launch-priority rule; splitting alone does not override arbitrary dependencies or hazards.
 
 ## A scalar alias for a struct byte can lose its load/store dependency
 
@@ -135879,20 +135879,20 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 This is a bounded reference-count experiment; read/write modification of the
 parameter itself changes a different set of allocation inputs.
 
-## Orphan shift USEs, global priority thresholds, and spill order (func_actor_405800_80136388, 2026-09-20)
+## Orphan shift USEs, global priority thresholds, and spill order (_actor405800ResolveContacts, 2026-09-20)
 
 Three separate decisions closed a 98.033% archived seed. Evidence, full candidate
 sources, input hashes, selected lreg statistics and greg dispositions are in
 `tools/compiler_evidence/2026-09-20-actor405800-6388.json`.
 
-The seed's final `(maxX >> 2) >> 1` helper argument becomes SI zero in combine,
+The seed's final `(objectPushX >> 2) >> 1` helper argument becomes SI zero in combine,
 retaining the desired HI argument copy. However, recursive death-note relocation
 leaves a USE of a deleted shift intermediate. Four such USE-only allocnos across
 the helper calls occupy four stack slots. Changing only the final arguments to
-`(u16)maxX >> 3` and `(u16)maxZ >> 3` removes two orphan intermediates while
+`(u16)objectPushX >> 3` and `(u16)objectPushZ >> 3` removes two orphan intermediates while
 preserving the first helpers' HI-source lifetime and final SI-zero/HI-copy code.
 Frame 0x60 becomes 0x58 (base -> base_3). This cast is equivalent here because
-maxX/maxZ are always zero; it is not valid for arbitrary negative signed inputs.
+objectPushX/objectPushZ are always zero; it is not valid for arbitrary negative signed inputs.
 `combine.c:11400` explains the USE insertion when a displaced REG_DEAD cannot
 find an earlier definition before a label. Distinguish these artificial slots
 from the real HI zero pseudos, which have constant equivalences and need no slot.
@@ -153461,7 +153461,7 @@ static inline void _actor405800SetCoordYaw(GfxCoord* coord, s16 yaw)
 }
 ```
 
-Called four times this is `func_actor_405800_801375C4` exactly, and
+Called four times this is `_actor405800TickArmSwing` exactly, and
 `_actor400500SetCoordYaw(child->extra.tmd->coords, -angle)` (identity,
 `RotMatrixY`, `_actor400500CopyRotation`) is three `actor_400500` arm-swing
 functions. The hand-written sources carried the signs of it: a `(s16)` cast on
