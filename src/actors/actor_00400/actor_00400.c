@@ -508,8 +508,8 @@ static void _actor00400StrandedCrawlTick(Task* task);
 static void _actor00400StrandedDischargeEnter(Task* task);
 static void _actor00400StrandedDischargeWait(Task* task);
 static void _actor00400AwaitFightCue(Task* task);
-static void Actor00400_Fn0A510(Task* arg0);
-static void Actor00400_Fn0A57C(Task* arg0);
+static void _actor00400WoundedFloatIdleEnter(Task* task);
+static void _actor00400WoundedFloatFlinchEnter(Task* task);
 
 /* States the dispatch tables name before their definitions. */
 static void _actor00400SwimDeathEnter(Task* task);
@@ -554,21 +554,21 @@ static void _actor00400StrandedCrawl(Task* task);
 static void _actor00400StrandedDischarge(Task* task);
 static void _actor00400StrandedUnusedState6(Task* task);
 static void _actor00400StrandedLightRecoil(Task* task);
-static void Actor00400_Fn09418(Task* arg0);
-static void Actor00400_Fn0946C(Task* arg0);
-static void Actor00400_Fn094C0(Task* arg0);
-static void Actor00400_Fn094DC(Task* arg0);
-static void Actor00400_Fn095D8(Task* arg0);
-static void Actor00400_Fn096C0(Task* arg0);
-static void Actor00400_Fn09A1C(Task* arg0);
+static void _actor00400StrandedHeavyRecoil(Task* task);
+static void _actor00400StrandedStatusHold(Task* task);
+static void _actor00400SwimPatrolEnter(Task* task);
+static void _actor00400SwimPatrolTravel(Task* task);
+static void _actor00400SwimPatrolWaitForClip(Task* task);
+static void _actor00400DiveWaitForClip(Task* task);
+static void _actor00400SwimAttackEnter(Task* task);
 static void _actor00400TunnelPatrolEnter(Task* task);
 static void _actor00400TunnelPatrolWaitForCue(Task* task);
 static void _actor00400TunnelIntroEnter(Task* task);
 static void _actor00400TunnelIntroWaitForSwim(Task* task);
 static void _actor00400TunnelIntroSwim(Task* task);
 static void _actor00400TunnelIntroWaitForPatrol(Task* task);
-static void Actor00400_Fn09C04(Task* arg0);
-static void Actor00400_Fn09C84(Task* arg0);
+static void _actor00400RoomIntro(Task* task);
+static void _actor00400AwaitFight(Task* task);
 static void _actor00400RoomIntroEnter(Task* task);
 static void _actor00400RoomIntroWaitForSwim(Task* task);
 static void _actor00400RoomIntroSwim(Task* task);
@@ -1349,18 +1349,18 @@ static void Actor00400_Fn0962C(Task* arg0);
 static void Actor00400_Fn058C4(Task* arg0);
 
 static void            Actor00400_Fn00A14(Task* arg0);
-static void            Actor00400_Fn00B48(Task* arg0);
+static void            _actor00400InitModelAndEnemy(Task* task);
 static void            _actor00400CrawlStride(Task* task);
 static void            _actor00400DrawLimbShadows(Task* actor, s16 worldY, u8 shade);
 static void            _actor00400UpdatePartyTarget(Task* task);
-static void            Actor00400_Fn016A4(Task* arg0, s32 arg1);
+static void            _actor00400UpdateStrandedLook(Task* task, s32 lookDisabled);
 static void            Actor00400_Fn01B90(Task* arg0);
 static void            Actor00400_Fn02D48(Task* arg0);
-static void            Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1);
+static void            _actor00400FindNearestSurfaceSpot(Task* task, SVECTOR* nearestPosition);
 static void            _actor00400DrawGroundStain(SVECTOR* corner0, SVECTOR* corner1, SVECTOR* corner2, SVECTOR* corner3, u8 intensity);
-static __inline__ s32  Actor00400_ApplyAreaConfig(Task* arg0);
-static __inline__ void Actor00400_AttachHead(Task* arg0, Enemy* obj,
-                                             _Actor00400Work* work, s32 hide);
+static __inline__ s32  _actor00400ApplyAreaConfig(Task* task);
+static __inline__ void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
+                                                    _Actor00400Work* work, s32 gridCollisionEnabled);
 static __inline__ void _actor00400UpdateModelColor(Task* task, GfxCoord* sampleCoord,
                                                    const _Actor00400Work* work, const TmdObject* model);
 static inline void     _actor00400TurnTowardPoint(Task* task, const SVECTOR* target, s32 yawStep, s32 deadband);
@@ -1408,46 +1408,60 @@ static void Actor00400_Fn00A14(Task* arg0)
     }
 }
 
-static void Actor00400_Fn00B48(Task* arg0)
+/// Initializes the diver's model, tracked enemy and animation/collision storage.
+///
+/// Requires an allocated zeroed work block, live enemy and model with parts
+/// 0..14, and an unlinked target node and collision bodies. Borrows the model
+/// and enemy, pointing them into work storage until teardown. Starts at the
+/// head target with lock-on disabled and full parameter-table HP. Parents the
+/// root to the view and records its heading in 4096ths of a turn.
+static void _actor00400InitModelAndEnemy(Task* task)
 {
-    TmdObject*       ctx;
+    enum {
+        ACTOR_00400_INITIAL_TARGET_PART     = 4,
+        ACTOR_00400_HIT_EFFECT_PART         = 1,
+        ACTOR_00400_HIT_EFFECT_SIZE         = 1536,
+        ACTOR_00400_HIT_EFFECT_REPEAT_COUNT = 3
+    };
+    TmdObject*       model;
     _Actor00400Work* work;
-    Enemy*           obj;
-    GfxCoord*        coord;
-    GfxCoord*        coords;
-    u16              hp;
-    u8               slot;
+    Enemy*           enemy;
+    GfxCoord*        rootCoord;
+    GfxCoord*        partCoords;
+    u16              maxHp;
+    u8               targetPartIndex;
 
-    ctx                        = arg0->extra.tmd;
-    work                       = arg0->work;
-    obj                        = arg0->spawnArg2.pointer;
-    ctx->lightMtx              = &work->lightMtx;
-    ctx->flags                 = 0;
-    ctx->colorMtx              = &work->colorMtx;
-    coords                     = arg0->extra.tmd->coords;
-    coord                      = ctx->coords;
-    work->effectArg.spawnArgLo = 0x600;
-    work->effectArg.spawnArgHi = 3;
-    work->targetPart           = 4;
-    work->effectArg.coord      = &coords[1];
-    obj->field_4               = &coord->coord;
-    obj->field_48              = 0;
-    obj->bodyPos.vx            = 0;
-    obj->bodyPos.vy            = 0;
-    obj->bodyPos.vz            = 0;
-    slot                       = work->targetPart;
-    obj->coord                 = &arg0->extra.tmd->coords[slot];
-    worldTargetLinkNode(&obj->node);
-    obj->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    obj->recs                   = work->hitContacts;
-    obj->param                  = &Actor00400_D0FDC8;
-    hp                          = Actor00400_D0FDC8.hpMax;
-    obj->hpMax                  = hp;
-    obj->hp                     = hp;
-    coord->parent               = &gGfxViewCoord;
-    animationInitContext(&work->rig.anim, Actor00400_D1604C, ctx, work->rig.poses, work->rig.slots);
-    _actor00400InitCollisionBodies(arg0);
-    work->rotation.vy = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    model                      = task->extra.tmd;
+    work                       = task->work;
+    enemy                      = task->spawnArg2.pointer;
+    model->lightMtx            = &work->lightMtx;
+    model->flags               = 0;
+    model->colorMtx            = &work->colorMtx;
+    partCoords                 = task->extra.tmd->coords;
+    rootCoord                  = model->coords;
+    work->effectArg.spawnArgLo = ACTOR_00400_HIT_EFFECT_SIZE;
+    work->effectArg.spawnArgHi = ACTOR_00400_HIT_EFFECT_REPEAT_COUNT;
+    work->targetPart           = ACTOR_00400_INITIAL_TARGET_PART;
+    work->effectArg.coord      = &partCoords[ACTOR_00400_HIT_EFFECT_PART];
+    enemy->field_4             = &rootCoord->coord;
+    enemy->field_48            = 0;
+    enemy->bodyPos.vx          = 0;
+    enemy->bodyPos.vy          = 0;
+    enemy->bodyPos.vz          = 0;
+    targetPartIndex            = work->targetPart;
+    enemy->coord               = &task->extra.tmd->coords[targetPartIndex];
+    worldTargetLinkNode(&enemy->node);
+    enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+    enemy->recs                   = work->hitContacts;
+    enemy->param                  = &Actor00400_D0FDC8;
+    maxHp                         = Actor00400_D0FDC8.hpMax;
+    enemy->hpMax                  = maxHp;
+    enemy->hp                     = maxHp;
+    // The enemy and its spheres borrow model parts and work-owned contacts.
+    rootCoord->parent = &gGfxViewCoord;
+    animationInitContext(&work->rig.anim, Actor00400_D1604C, model, work->rig.poses, work->rig.slots);
+    _actor00400InitCollisionBodies(task);
+    work->rotation.vy = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
 }
 
 /// Consumes a pending clip request and ticks body slots 1..14.
@@ -1635,87 +1649,116 @@ static void _actor00400UpdatePartyTarget(Task* task)
     }
 }
 
-/* Re-aims the two upper body coordinates at the target yaw held in
-   `lookYaw` and folds the result back into the model root.
-
-   With `arg1 == 0` the yaw chases the heading `_actor00400GetTargetAnglesFromPart` reports:
-   it steps 0x18 per frame while the error is more than 0x20, and decays
-   toward zero once the heading leaves +/-0x5FF. A non-zero `arg1` only
-   decays, twice as fast. Each of the two coordinates then gets its pitch
-   re-applied about X and a third of the yaw about Y, and the composed
-   inverse of all three lands in `c4`. */
-static void Actor00400_Fn016A4(Task* arg0, s32 arg1)
+/// Turns the stranded diver's neck and head toward its cached party target.
+///
+/// Requires live model parts 1..4 and the current animation pose. Angles use
+/// 4096 units per turn. A zero low byte of `lookDisabled` chases target yaw
+/// within +/-1535 by 24 units outside a 32-unit deadband; otherwise yaw eases
+/// to zero, twice as fast when disabled. The decay narrows its scaled yaw to
+/// a signed halfword before negation and shifting. Keeps each neck joint's
+/// animated pitch, distributes look yaw across the neck/head, and compensates
+/// the head for the trunk and neck rotations. Changes GTE state.
+static void _actor00400UpdateStrandedLook(Task* task, s32 lookDisabled)
 {
-    SVECTOR          euler;
-    SVECTOR          rot1;
-    SVECTOR          rot2;
-    MATRIX           t1;
-    MATRIX           t2;
-    MATRIX           t3;
-    MATRIX           ma;
-    MATRIX           mb;
-    MATRIX           mc;
-    GfxCoord*        base;
-    GfxCoord*        c1;
-    GfxCoord*        c2;
-    GfxCoord*        c3;
-    GfxCoord*        c4;
+    enum {
+        ACTOR_00400_LOOK_PART_TRUNK           = 1,
+        ACTOR_00400_LOOK_PART_LOWER_NECK      = 2,
+        ACTOR_00400_LOOK_PART_UPPER_NECK      = 3,
+        ACTOR_00400_LOOK_PART_HEAD            = 4,
+        ACTOR_00400_LOOK_TARGET_HEIGHT        = 1536,
+        ACTOR_00400_LOOK_MAX_YAW              = 1535,
+        ACTOR_00400_LOOK_DEADBAND             = 32,
+        ACTOR_00400_LOOK_YAW_STEP             = 24,
+        ACTOR_00400_LOOK_DECAY_SCALE          = 16,
+        ACTOR_00400_LOOK_DECAY_SHIFT          = 8,
+        ACTOR_00400_LOOK_DISABLED_DECAY_SHIFT = 7,
+        ACTOR_00400_LOOK_JOINT_COUNT          = 3
+    };
+    SVECTOR          targetAngles;
+    SVECTOR          lowerNeckAngles;
+    SVECTOR          upperNeckAngles;
+    MATRIX           inverseTrunkRotation;
+    MATRIX           inverseLowerNeckRotation;
+    MATRIX           inverseUpperNeckRotation;
+    MATRIX           lowerNeckPitch;
+    MATRIX           upperNeckPitch;
+    MATRIX           headYawRotation;
+    GfxCoord*        partCoords;
+    GfxCoord*        trunkCoord;
+    GfxCoord*        lowerNeckCoord;
+    GfxCoord*        upperNeckCoord;
+    GfxCoord*        headCoord;
     _Actor00400Work* work;
-    MATRIX*          m2;
-    MATRIX*          m3;
+    MATRIX*          lowerNeckRotation;
+    MATRIX*          upperNeckRotation;
 
-    base = arg0->extra.tmd->coords;
-    c1   = &base[1];
-    c2   = &base[2];
-    c3   = &base[3];
-    c4   = &base[4];
-    work = arg0->work;
-    _actor00400GetTargetAnglesFromPart(arg0, 4, &euler, 0x600);
-    if ((arg1 & 0xFF) == 0) {
-        if ((u16)(euler.vy + 0x5FF) < 0xBFF) {
-            if ((u32)((euler.vy - (s16)work->lookYaw) + 0x20) >= 0x41) {
-                if ((s16)work->lookYaw < euler.vy) {
-                    work->lookYaw = work->lookYaw + 0x18;
+    partCoords     = task->extra.tmd->coords;
+    trunkCoord     = &partCoords[ACTOR_00400_LOOK_PART_TRUNK];
+    lowerNeckCoord = &partCoords[ACTOR_00400_LOOK_PART_LOWER_NECK];
+    upperNeckCoord = &partCoords[ACTOR_00400_LOOK_PART_UPPER_NECK];
+    headCoord      = &partCoords[ACTOR_00400_LOOK_PART_HEAD];
+    work           = task->work;
+    _actor00400GetTargetAnglesFromPart(task, ACTOR_00400_LOOK_PART_HEAD, &targetAngles, ACTOR_00400_LOOK_TARGET_HEIGHT);
+    if ((u8)lookDisabled == 0) {
+        if ((u16)(targetAngles.vy + ACTOR_00400_LOOK_MAX_YAW) < (2 * ACTOR_00400_LOOK_MAX_YAW + 1)) {
+            if ((u32)((targetAngles.vy - (s16)work->lookYaw) + ACTOR_00400_LOOK_DEADBAND) >= (2 * ACTOR_00400_LOOK_DEADBAND + 1)) {
+                if ((s16)work->lookYaw < targetAngles.vy) {
+                    work->lookYaw = work->lookYaw + ACTOR_00400_LOOK_YAW_STEP;
                 } else {
-                    work->lookYaw = work->lookYaw - 0x18;
+                    work->lookYaw = work->lookYaw - ACTOR_00400_LOOK_YAW_STEP;
                 }
             }
         } else {
-            work->lookYaw = work->lookYaw + ((s32) - (s16)(work->lookYaw * 0x10) >> 8);
+            work->lookYaw = work->lookYaw + ((s32) - (s16)(work->lookYaw * ACTOR_00400_LOOK_DECAY_SCALE) >> ACTOR_00400_LOOK_DECAY_SHIFT);
         }
     } else {
-        work->lookYaw = work->lookYaw + ((s32) - (s16)(work->lookYaw * 0x10) >> 7);
+        work->lookYaw = work->lookYaw + ((s32) - (s16)(work->lookYaw * ACTOR_00400_LOOK_DECAY_SCALE) >> ACTOR_00400_LOOK_DISABLED_DECAY_SHIFT);
     }
 
-    m2 = &c2->coord;
+    // Rebuild neck pitch before distributing the look yaw.
+    lowerNeckRotation = &lowerNeckCoord->coord;
 
-    gfxSetRotIdentity(&ma);
-    gfxSetRotIdentity(&mb);
-    gfxSetRotIdentity(&mc);
+    gfxSetRotIdentity(&lowerNeckPitch);
+    gfxSetRotIdentity(&upperNeckPitch);
+    gfxSetRotIdentity(&headYawRotation);
 
-    gfxExtractEulerAngles(m2, &rot1);
-    m3 = &c3->coord;
-    gfxExtractEulerAngles(m3, &rot2);
-    RotMatrixX(rot1.vx, &ma);
-    RotMatrixX(rot2.vx, &mb);
-    _actor00400CopyRotation(&ma, m2);
-    _actor00400CopyRotation(&mb, m3);
-    actorRenderComposeCoord(c1);
-    actorRenderComposeCoord(c2);
-    actorRenderComposeCoord(c3);
-    _diverTurnJoint(c2, (s16)work->lookYaw / 3);
-    _diverTurnJoint(c3, (s16)work->lookYaw / 3);
+    gfxExtractEulerAngles(lowerNeckRotation, &lowerNeckAngles);
+    upperNeckRotation = &upperNeckCoord->coord;
+    gfxExtractEulerAngles(upperNeckRotation, &upperNeckAngles);
+    RotMatrixX(lowerNeckAngles.vx, &lowerNeckPitch);
+    RotMatrixX(upperNeckAngles.vx, &upperNeckPitch);
+    _actor00400CopyRotation(&lowerNeckPitch, lowerNeckRotation);
+    _actor00400CopyRotation(&upperNeckPitch, upperNeckRotation);
+    actorRenderComposeCoord(trunkCoord);
+    actorRenderComposeCoord(lowerNeckCoord);
+    actorRenderComposeCoord(upperNeckCoord);
+    _diverTurnJoint(lowerNeckCoord, (s16)work->lookYaw / ACTOR_00400_LOOK_JOINT_COUNT);
+    _diverTurnJoint(upperNeckCoord, (s16)work->lookYaw / ACTOR_00400_LOOK_JOINT_COUNT);
 
-    gfxSetRotIdentity(&mc);
+    // Undo the trunk and both neck rotations in the head's local frame.
+    gfxSetRotIdentity(&headYawRotation);
 
-    RotMatrixY((s16)work->lookYaw / 3, &mc);
-    TransposeMatrix(&c1->coord, &t1);
-    TransposeMatrix(m2, &t2);
-    TransposeMatrix(m3, &t3);
-    MulMatrix(&t1, &t2);
-    MulMatrix(&t1, &t3);
-    MulMatrix(&t1, &mc);
-    _actor00400CopyRotation(&t1, &c4->coord);
+    RotMatrixY((s16)work->lookYaw / ACTOR_00400_LOOK_JOINT_COUNT, &headYawRotation);
+    /// Converts a desired head basis into the trunk and neck's local frame.
+    ///
+    /// Each argument is a live MATRIX pointer evaluated once in statement order.
+    /// Captures the three separate writable inverse*Rotation matrices declared
+    /// above; they must not alias any argument. Transposes the Q12 trunk and
+    /// neck bases, then multiplies them in that order and copies nine resulting
+    /// coefficients, preserving head translation. An inverse requires
+    /// orthonormal inputs. Expands as statements in this block; changes GTE state.
+#define ACTOR_00400_LOCALIZE_HEAD_YAW(trunkRotation, lowerRotation, upperRotation, desiredRotation, headRotation) \
+    TransposeMatrix((trunkRotation), &inverseTrunkRotation);                                                      \
+    TransposeMatrix((lowerRotation), &inverseLowerNeckRotation);                                                  \
+    TransposeMatrix((upperRotation), &inverseUpperNeckRotation);                                                  \
+    MulMatrix(&inverseTrunkRotation, &inverseLowerNeckRotation);                                                  \
+    MulMatrix(&inverseTrunkRotation, &inverseUpperNeckRotation);                                                  \
+    MulMatrix(&inverseTrunkRotation, (desiredRotation));                                                          \
+    _actor00400CopyRotation(&inverseTrunkRotation, (headRotation));
+
+    ACTOR_00400_LOCALIZE_HEAD_YAW(&trunkCoord->coord, lowerNeckRotation, upperNeckRotation,
+                                  &headYawRotation, &headCoord->coord);
+#undef ACTOR_00400_LOCALIZE_HEAD_YAW
 }
 
 /// Initializes and links the diver's four collision spheres and contact tables.
@@ -2423,6 +2466,7 @@ static void _actor00400ClaimNearestSurfaceSpot(Task* task)
     scratch->nearestIndex = 0;
     scratch->bestDistance = ACTOR_00400_SURFACE_SPOT_DISTANCE_NONE;
     // Search from entry 1, admitting our own claim and keeping the first tie.
+    // Start after the reserved entry and admit only free spots or our own claim.
     for (;;) {
         spotIndex = scratch->spotIndex;
         claimMark = work->surfaceSpots[spotIndex].pad;
@@ -2454,38 +2498,48 @@ static void _actor00400ClaimNearestSurfaceSpot(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor00400NearestSurfaceSpotScratch);
 }
 
-/// Finds the nearest eligible entry of `surfaceSpots` and returns its XZ in
-/// `arg1`. Entries whose `pad` is 1 are only considered when they are the one
-/// `surfaceSpotIndex` points at, and the walk ends at the `-1` terminator.
-static void Actor00400_Fn031A4(Task* arg0, SVECTOR* arg1)
+/// Writes the XZ of the eligible surface spot nearest the cached party target.
+///
+/// Borrows a room-owned list with entry 0 reserved and a `pad == -1`
+/// terminator reachable from entry 1 before the signed-halfword index wraps.
+/// Claimed entries (`pad == 1`) are eligible only at this diver's claim index.
+/// Keeps the first strict minimum of integer XZ distance; with no eligible
+/// entry, leaves `nearestPosition` unchanged. The writable output must be
+/// separate from the list and cached target. Preserves its Y and pad and all
+/// claims. Requires one scratch-stack block; no pointer is retained.
+static void _actor00400FindNearestSurfaceSpot(Task* task, SVECTOR* nearestPosition)
 {
+    enum {
+        ACTOR_00400_SURFACE_SPOT_CLAIMED = 1,
+        ACTOR_00400_SURFACE_SPOT_END     = -1
+    };
     _Actor00400NearestSurfaceSpotScratch* scratch;
-    _Actor00400Work*                      work;
-    SVECTOR*                              record;
-    s16                                   index;
-    s16                                   kind;
-    s32                                   dx;
-    s32                                   dz;
-    s32                                   distance;
+    const _Actor00400Work*                work;
+    SVECTOR*                              spot;
+    s16                                   spotIndex;
+    s16                                   claimMark;
+    s32                                   deltaX;
+    s32                                   deltaZ;
+    s32                                   distanceXZ;
 
     scratch               = SCRATCH_STACK_RESERVE_BLOCK(_Actor00400NearestSurfaceSpotScratch);
-    work                  = arg0->work;
+    work                  = task->work;
     scratch->spotIndex    = 1;
     scratch->nearestIndex = 0;
     scratch->bestDistance = ACTOR_00400_SURFACE_SPOT_DISTANCE_NONE;
     for (;;) {
-        index  = scratch->spotIndex;
-        kind   = work->surfaceSpots[index].pad;
-        record = &work->surfaceSpots[index];
-        if (kind != -1) {
-            if ((kind != 1) || (index == work->surfaceSpotIndex)) {
-                scratch->delta.vx = dx = work->targetPos.vx - record->vx;
-                scratch->delta.vz = dz = work->targetPos.vz - work->surfaceSpots[scratch->spotIndex].vz;
-                distance               = SquareRoot0((dx * dx) + (dz * dz));
-                scratch->distance      = distance;
-                if (distance < scratch->bestDistance) {
-                    arg1->vx              = work->surfaceSpots[scratch->spotIndex].vx;
-                    arg1->vz              = work->surfaceSpots[scratch->spotIndex].vz;
+        spotIndex = scratch->spotIndex;
+        claimMark = work->surfaceSpots[spotIndex].pad;
+        spot      = &work->surfaceSpots[spotIndex];
+        if (claimMark != ACTOR_00400_SURFACE_SPOT_END) {
+            if ((claimMark != ACTOR_00400_SURFACE_SPOT_CLAIMED) || (spotIndex == work->surfaceSpotIndex)) {
+                scratch->delta.vx = deltaX = work->targetPos.vx - spot->vx;
+                scratch->delta.vz = deltaZ = work->targetPos.vz - work->surfaceSpots[scratch->spotIndex].vz;
+                distanceXZ                 = SquareRoot0((deltaX * deltaX) + (deltaZ * deltaZ));
+                scratch->distance          = distanceXZ;
+                if (distanceXZ < scratch->bestDistance) {
+                    nearestPosition->vx   = work->surfaceSpots[scratch->spotIndex].vx;
+                    nearestPosition->vz   = work->surfaceSpots[scratch->spotIndex].vz;
                     scratch->bestDistance = scratch->distance;
                     scratch->nearestIndex = scratch->spotIndex;
                 }
@@ -2577,61 +2631,66 @@ static const TaskFuncTable8 Actor00400_D00038 = { {
     Actor00400_Fn070C0,
 } };
 
-/// Applies the row of `Actor00400_D15F20` that matches the session's current
-/// stage and area to the freshly allocated work block: the row can turn on the
-/// grid collision, pick the patrol ring the spawn argument selects, hand the
-/// actor the room's surface spots and seed its water level. Returns non-zero
-/// when the actor does not belong in this room - no row matched, or the
-/// matching row has `ACTOR_00400_AREA_CONFIG_NO_DIVER` - which makes the entry
-/// state destroy the enemy instead.
-static __inline__ s32 Actor00400_ApplyAreaConfig(Task* arg0)
+/// Applies the current room's diver configuration and reports spawn rejection.
+///
+/// Requires the freshly allocated work and current session location. Returns
+/// 1 for an absent or disabled row, 0 for an admitted spawn. Non-NULL room
+/// pointers lend the surface-spot list and one of four waypoint rings (spawn
+/// bits 4..5); the pointed-to water height is sampled once in coordinate units.
+/// NULL fields and an absent grid flag preserve existing work values. Room
+/// storage must outlive its divers.
+static __inline__ s32 _actor00400ApplyAreaConfig(Task* task)
 {
-    _Actor00400AreaConfig* cfg;
-    _Actor00400Work*       work;
-    GameLocationKey*       ses;
-    u16                    flags;
+    enum {
+        ACTOR_00400_WAYPOINT_SET_SHIFT = 4,
+        ACTOR_00400_WAYPOINT_SET_MASK  = 3
+    };
+    const _Actor00400AreaConfig* config;
+    _Actor00400Work*             work;
+    const GameLocationKey*       location;
+    u16                          flags;
 
-    work = arg0->work;
-    ses  = &gGameSession->location.loc;
-    cfg  = Actor00400_D15F20;
-    while (cfg->stage != ACTOR_00400_AREA_CONFIG_END) {
-        if ((ses->stage == cfg->stage) && (ses->area == cfg->area)) {
-            flags = cfg->flags;
+    work     = task->work;
+    location = &gGameSession->location.loc;
+    config   = Actor00400_D15F20;
+    while (config->stage != ACTOR_00400_AREA_CONFIG_END) {
+        if ((location->stage == config->stage) && (location->area == config->area)) {
+            flags = config->flags;
             if (flags & ACTOR_00400_AREA_CONFIG_NO_DIVER) {
                 return 1;
             }
             if (flags & ACTOR_00400_AREA_CONFIG_GRID_COLLISION) {
                 work->gridCollision = 1;
             }
-            if (cfg->waypointSets != NULL) {
-                work->waypoints = cfg->waypointSets[(arg0->spawnArg1.value >> 4) & 3];
+            if (config->waypointSets != NULL) {
+                work->waypoints = config->waypointSets[(task->spawnArg1.value >> ACTOR_00400_WAYPOINT_SET_SHIFT) & ACTOR_00400_WAYPOINT_SET_MASK];
             }
-            if (cfg->surfaceSpots != NULL) {
-                work->surfaceSpots = cfg->surfaceSpots;
+            if (config->surfaceSpots != NULL) {
+                work->surfaceSpots = config->surfaceSpots;
             }
-            if (cfg->waterLevel != NULL) {
-                work->waterLevel = (u16)*cfg->waterLevel;
+            if (config->waterLevel != NULL) {
+                work->waterLevel = (u16)*config->waterLevel;
             }
             return 0;
         }
-        cfg++;
+        config++;
     }
     return 1;
 }
 
-/// Points the object at the second part coordinate of the model and clears its
-/// pending-hit byte, then stores `hide` in `gridCollision`. Shared
-/// by the two spawn states that attach the actor to its head.
+/// Selects the wounded diver's trunk as its tracked target and enables lock-on.
 ///
-/// `hide` is `s32` rather than `u8` so its literal lands in a different CSE mode
-/// class from the `1` the callers store into `targetPart`, which is what makes
-/// state 6 materialise the constant twice the way retail does.
-static __inline__ void Actor00400_AttachHead(Task* arg0, Enemy* obj,
-                                             _Actor00400Work* work, s32 hide)
+/// Borrows the live enemy, work and model part 1; clears all target flags.
+/// Stores the low byte of `gridCollisionEnabled` as the work's grid setting.
+/// Both spawn paths call this after linking the bodies, so this store does
+/// not change the already-applied grid-body flags.
+static __inline__ void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
+                                                    _Actor00400Work* work, s32 gridCollisionEnabled)
 {
-    obj->coord                  = &arg0->extra.tmd->coords[1];
-    obj->node.state.parts.flags = 0;
-    work->gridCollision         = hide;
+    enum { ACTOR_00400_WOUNDED_TARGET_PART = 1 };
+    enemy->coord                  = &task->extra.tmd->coords[ACTOR_00400_WOUNDED_TARGET_PART];
+    enemy->node.state.parts.flags = 0;
+    work->gridCollision           = gridCollisionEnabled;
 }
 
 static void Actor00400_Fn03920(Task* arg0)
@@ -2645,7 +2704,7 @@ static void Actor00400_Fn03920(Task* arg0)
     GfxCoord*                   pos;
     GfxCoord*                   coord;
     Task*                       task;
-    s32                         failed;
+    s32                         spawnRejected;
     s32                         nibble;
     s32                         index;
     u16                         y;
@@ -2666,8 +2725,8 @@ static void Actor00400_Fn03920(Task* arg0)
         return;
     }
 
-    failed = Actor00400_ApplyAreaConfig(arg0);
-    if (failed) {
+    spawnRejected = _actor00400ApplyAreaConfig(arg0);
+    if (spawnRejected) {
         enemyDestroy(obj, arg0);
         return;
     }
@@ -2675,7 +2734,7 @@ static void Actor00400_Fn03920(Task* arg0)
     if ((arg0->spawnArg1.value & 0xF) == 0) {
         work->gridCollision = 1;
     }
-    Actor00400_Fn00B48(arg0);
+    _actor00400InitModelAndEnemy(arg0);
     arg0->msgTable = Actor00400_D16010;
     switch (arg0->spawnArg1.value & 0xF) {
         case 7:
@@ -2683,7 +2742,7 @@ static void Actor00400_Fn03920(Task* arg0)
             work->inWater     = 1;
             work->targetPart  = 1;
             work->goalY       = (u16)work->waterLevel;
-            Actor00400_AttachHead(arg0, obj, work, 0);
+            _actor00400SelectTrunkTarget(arg0, obj, work, 0);
             w              = arg0->work;
             w->animStep    = ANIMATION_RATE_ONE;
             w->animClip    = 0x10;
@@ -2698,7 +2757,7 @@ static void Actor00400_Fn03920(Task* arg0)
         case 6:
             work->inWater    = 0;
             work->targetPart = 1;
-            Actor00400_AttachHead(arg0, obj, work, 1);
+            _actor00400SelectTrunkTarget(arg0, obj, work, 1);
             w              = arg0->work;
             w->animStep    = ANIMATION_RATE_ONE;
             w->animClip    = 0xF;
@@ -3078,8 +3137,8 @@ static const TaskFuncTable10 Actor00400_D000A8 = { {
     _actor00400StrandedDischarge,
     _actor00400StrandedUnusedState6,
     _actor00400StrandedLightRecoil,
-    Actor00400_Fn09418,
-    Actor00400_Fn0946C,
+    _actor00400StrandedHeavyRecoil,
+    _actor00400StrandedStatusHold,
 } };
 
 static void Actor00400_Fn04580(Task* arg0)
@@ -3134,7 +3193,7 @@ static void Actor00400_Fn04580(Task* arg0)
                 i++;
             } while (i < ARRAY_SIZE(w->rig.slots));
             work->animStatus = work->rig.slots[1].status.fields.flags;
-            Actor00400_Fn016A4(arg0, work->lookDisabled);
+            _actor00400UpdateStrandedLook(arg0, work->lookDisabled);
             w2    = arg0->work;
             coord = arg0->extra.tmd->coords;
             gfxSetRotIdentity(&m);
@@ -3335,8 +3394,8 @@ static const _Actor00400SwimStateTable Actor00400_D000F8 = { {
     Actor00400_Fn07B10,
     _actor00400TunnelPatrol,
     _actor00400TunnelIntro,
-    Actor00400_Fn09C04,
-    Actor00400_Fn09C84,
+    _actor00400RoomIntro,
+    _actor00400AwaitFight,
 } };
 
 /// Rebuilds the root coordinate's rotation from `_Actor00400Work::rotation`:
@@ -3688,8 +3747,8 @@ static void Actor00400_Fn058C4(Task* arg0)
     _Actor00400Work* w;
     _Actor00400Work* w2;
     GfxCoord*        coord;
-    SVECTOR          delta;
-    SVECTOR          vec2;
+    SVECTOR          nearestSpotOffset;
+    SVECTOR          nearestSurfaceSpot;
     s32              sound;
     s32              pan;
     s32              sound2;
@@ -3744,12 +3803,12 @@ static void Actor00400_Fn058C4(Task* arg0)
             work2->stateHistoryIndex = 0;
         }
     } else {
-        vec2.vx = vec2.vy = vec2.vz = 0;
-        Actor00400_Fn031A4(arg0, &vec2);
-        delta.vx = vec2.vx - coord->coord.t[0];
-        delta.vy = 0;
-        delta.vz = vec2.vz - coord->coord.t[2];
-        if ((s16)SquareRoot0(delta.vx * delta.vx + delta.vz * delta.vz) >= 0xDAC) {
+        nearestSurfaceSpot.vx = nearestSurfaceSpot.vy = nearestSurfaceSpot.vz = 0;
+        _actor00400FindNearestSurfaceSpot(arg0, &nearestSurfaceSpot);
+        nearestSpotOffset.vx = nearestSurfaceSpot.vx - coord->coord.t[0];
+        nearestSpotOffset.vy = 0;
+        nearestSpotOffset.vz = nearestSurfaceSpot.vz - coord->coord.t[2];
+        if ((s16)SquareRoot0(nearestSpotOffset.vx * nearestSpotOffset.vx + nearestSpotOffset.vz * nearestSpotOffset.vz) >= 0xDAC) {
             _actor00400ClaimNearestSurfaceSpot(arg0);
             w2           = arg0->work;
             w2->state    = ACTOR_00400_SWIM_STATE_DIVE;
@@ -4491,10 +4550,10 @@ static void _actor00400SwimStart(Task* task)
 
 /// States `Actor00400_Fn077F4` dispatches on `_Actor00400Work.subState`.
 static const TaskFuncTable4 Actor00400_D00134 = { {
-    Actor00400_Fn094C0,
-    Actor00400_Fn094DC,
+    _actor00400SwimPatrolEnter,
+    _actor00400SwimPatrolTravel,
     Actor00400_Fn05320,
-    Actor00400_Fn095D8,
+    _actor00400SwimPatrolWaitForClip,
 } };
 
 static void Actor00400_Fn077F4(Task* arg0)
@@ -4530,10 +4589,10 @@ static void Actor00400_Fn078C8(Task* arg0)
     }
 }
 
-/// States `Actor00400_Fn0793C` and `Actor00400_Fn09C04` dispatch on `_Actor00400Work.subState`.
+/// States `Actor00400_Fn0793C` dispatches on `_Actor00400Work.subState`.
 static const TaskFuncTable3 Actor00400_D00144 = { {
     Actor00400_Fn05D00,
-    Actor00400_Fn096C0,
+    _actor00400DiveWaitForClip,
     _actor00400DiveSwimToSurfaceSpot,
 } };
 
@@ -4635,7 +4694,7 @@ static void _actor00400SwimStatusHold(Task* task)
 
 /// States `Actor00400_Fn07B10` dispatches on `_Actor00400Work.subState`.
 static const TaskFuncTable3 Actor00400_D00150 = { {
-    Actor00400_Fn09A1C,
+    _actor00400SwimAttackEnter,
     _actor00400SwimAttackWindup,
     Actor00400_Fn064B0,
 } };
@@ -4858,7 +4917,7 @@ void Actor00400_Fn08004(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-/// States `Actor00400_Fn09C04` dispatches on `_Actor00400Work.subState`.
+/// States `_actor00400RoomIntro` dispatches on `_Actor00400Work.subState`.
 static const TaskFuncTable7 Actor00400_D00178 = { {
     _actor00400RoomIntroEnter,
     _actor00400RoomIntroWaitForSwim,
@@ -5654,75 +5713,103 @@ static void _actor00400StrandedLightRecoil(Task* task)
     states[work->subState](task);
 }
 
-static void Actor00400_Fn09418(Task* arg0)
+/// Dispatches the stranded heavy recoil's clip entry or hit-aware wait.
+///
+/// Requires live work and subState 0 (enter) or 1 (wait); no bounds check.
+/// The two stack callbacks request the recoil and then return to decision
+/// on a clip boundary, jump or settled pose, unless a hit changes state.
+static void _actor00400StrandedHeavyRecoil(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[2] = {
         _actor00400StrandedHeavyRecoilEnter,
         _actor00400StrandedHeavyRecoilWait,
     };
 
-    states[work->subState](arg0);
+    states[work->subState](task);
 }
 
-static void Actor00400_Fn0946C(Task* arg0)
+/// Dispatches entry and ticking of the stranded status hold.
+///
+/// Requires live work and subState 0 (enter) or 1 (tick); no bounds check.
+/// The callbacks suppress looking and boost critical chance until enemy
+/// buildup expires, then restore looking and enter the decision state.
+static void _actor00400StrandedStatusHold(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[2])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[2] = {
         _actor00400StrandedStatusHoldEnter,
         _actor00400StrandedStatusHoldTick,
     };
 
-    states[work->subState](arg0);
+    states[work->subState](task);
 }
 
-static void Actor00400_Fn094C0(Task* arg0)
+/// Starts the swimming patrol at waypoint zero and advances to travel.
+///
+/// Requires live work and a borrowed eight-point waypoint ring. Leaves the
+/// animation and counters intact; later travel sets the height and clip.
+static void _actor00400SwimPatrolEnter(Task* task)
 {
     _Actor00400Work* work;
 
-    work                = arg0->work;
+    work                = task->work;
     work->waypointIndex = 0;
     work->subState      = work->subState + 1;
 }
 
-static void Actor00400_Fn094DC(Task* arg0)
+/// Swims the patrol ring, starting a surface cycle on waypoint arrival.
+///
+/// Requires live work, enemy, root, rig and an eight-point waypoint ring with
+/// index 0..7. Arrival advances the waypoint, requests clip 5 with a 16-frame
+/// normal-rate blend when needed, restores colour, targets water-surface Y,
+/// clears elapsed frames and enters the surface step. Travel retracts the
+/// neck and queues the placement-tagged swim sound once per sixteen ticks.
+static void _actor00400SwimPatrolTravel(Task* task)
 {
+    enum {
+        ACTOR_00400_PATROL_SURFACE_CLIP = 5,
+        ACTOR_00400_PATROL_SOUND_PERIOD = 16
+    };
     _Actor00400Work* work;
-    _Actor00400Work* work2;
-    s32              pan;
-    s32              sound;
+    _Actor00400Work* requestWork;
+    s32              panOffset;
+    s32              soundId;
 
-    work = arg0->work;
-    if ((_actor00400SwimToNextWaypoint(arg0) << 0x10) != 0) {
-        if (work->animClip != 5) {
-            work2              = arg0->work;
-            work2->animBlend   = 0x10;
-            work2->animStep    = ANIMATION_RATE_ONE;
-            work2->animClip    = 5;
-            work2->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    work = task->work;
+    if ((s16)_actor00400SwimToNextWaypoint(task) != 0) {
+        if (work->animClip != ACTOR_00400_PATROL_SURFACE_CLIP) {
+            requestWork = task->work;
+            _diverRequestClipBlend(requestWork, ACTOR_00400_PATROL_SURFACE_CLIP, ANIMATION_RATE_ONE, 16);
         }
         work->goalY = work->waterLevel;
-        worldCoordSetActorColorMode(arg0->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
+        worldCoordSetActorColorMode(task->spawnArg2.pointer, ENEMY_COLOR_DEFAULT);
         work->stateFrames = 0;
         work->subState    = work->subState + 1;
         return;
     }
     work->neckRetracted = 1;
-    if (!(work->frameCount & 0xF)) {
-        sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040001;
-        pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+    if (!(work->frameCount & (ACTOR_00400_PATROL_SOUND_PERIOD - 1))) {
+        soundId   = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_00400_SOUND_INSTANCE_SHIFT) | ACTOR_00400_SOUND_SWIM;
+        panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
 }
 
-static void Actor00400_Fn095D8(Task* arg0)
+/// Retracts the neck and resumes patrol travel on the published clip status.
+///
+/// Requires live work and an initialized rig. A boundary, jump or settled
+/// pose selects patrol substate 1; otherwise stays in this wait. This reads
+/// the preceding tick's status without advancing playback.
+static void _actor00400SwimPatrolWaitForClip(Task* task)
 {
+    enum { ACTOR_00400_PATROL_STEP_TRAVEL = 1 };
     _Actor00400Work* work;
 
-    work                = arg0->work;
+    work                = task->work;
     work->neckRetracted = 1;
-    if (_diverClipHasBoundaryOrJump(arg0)) {
-        work->subState = 1;
+    if (_diverClipHasBoundaryOrJump(task)) {
+        work->subState = ACTOR_00400_PATROL_STEP_TRAVEL;
     }
 }
 
@@ -5748,12 +5835,17 @@ static void Actor00400_Fn0962C(Task* arg0)
     work->subState     = work->subState + 1;
 }
 
-static void Actor00400_Fn096C0(Task* arg0)
+/// Advances from the dive's transition-clip wait to swimming toward a surface spot.
+///
+/// Requires live work and an initialized rig at dive substate 1. Advances one
+/// substate on a published boundary, jump or settled pose, without ticking
+/// playback or changing the room-owned surface claim.
+static void _actor00400DiveWaitForClip(Task* task)
 {
     _Actor00400Work* work;
 
-    work = arg0->work;
-    if (_diverClipHasBoundaryOrJump(arg0)) {
+    work = task->work;
+    if (_diverClipHasBoundaryOrJump(task)) {
         work->subState = work->subState + 1;
     }
 }
@@ -5846,14 +5938,20 @@ static void _actor00400SwimStatusHoldTick(Task* task)
     }
 }
 
-static void Actor00400_Fn09A1C(Task* arg0)
+/// Releases neck retraction and enters the swimming attack's windup.
+///
+/// Requires live work at attack substate 0. Clears elapsed frames and sets
+/// goal Y 100 coordinate units below the water surface before advancing.
+/// Height motion and the windup's discharge are handled by later ticks.
+static void _actor00400SwimAttackEnter(Task* task)
 {
+    enum { ACTOR_00400_ATTACK_DEPTH = 100 };
     _Actor00400Work* work;
 
-    work                = arg0->work;
+    work                = task->work;
     work->neckRetracted = 0;
     work->stateFrames   = 0;
-    work->goalY         = (u16)work->waterLevel + 0x64;
+    work->goalY         = (u16)work->waterLevel + ACTOR_00400_ATTACK_DEPTH;
     work->subState      = work->subState + 1;
 }
 
@@ -5967,24 +6065,34 @@ static void _actor00400TunnelIntroWaitForPatrol(Task* task)
     }
 }
 
-static void Actor00400_Fn09C04(Task* arg0)
+/// Dispatches the room introduction's seven scripted steps.
+///
+/// Requires live work and subState 0..6; no bounds check. Copies the callback
+/// table to the stack, then runs placement, cued swimming/surfacing, discharge
+/// and the fight-cue handoff. Room commands remain latched between steps.
+static void _actor00400RoomIntro(Task* task)
 {
     _Actor00400Work* work;
-    TaskFuncTable7   fns;
+    TaskFuncTable7   stateHandlers;
 
-    work = arg0->work;
-    fns  = Actor00400_D00178;
-    fns.funcs[work->subState](arg0);
+    work          = task->work;
+    stateHandlers = Actor00400_D00178;
+    stateHandlers.funcs[work->subState](task);
 }
 
-static void Actor00400_Fn09C84(Task* arg0)
+/// Dispatches the waiting diver's single fight-cue handler.
+///
+/// Requires live work with subState 0; no bounds check. The callback keeps
+/// waiting on the latched command, then enables targeting, claims a surface
+/// spot, acquires a battle reference and selects the combat dive entry.
+static void _actor00400AwaitFight(Task* task)
 {
-    _Actor00400Work* work                = arg0->work;
-    void             (*states[1])(Task*) = {
+    _Actor00400Work* work      = task->work;
+    TaskFunc         states[1] = {
         _actor00400AwaitFightCue,
     };
 
-    states[work->subState](arg0);
+    states[work->subState](task);
 }
 
 /// Places the room-introduction diver at its submerged swim start.
@@ -6325,7 +6433,7 @@ static void Actor00400_Fn0A468(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn0A510,
+        _actor00400WoundedFloatIdleEnter,
         _actor00400WoundedFloatIdleTick,
     };
 
@@ -6336,41 +6444,53 @@ static void Actor00400_Fn0A4BC(Task* arg0)
 {
     _Actor00400Work* work                = arg0->work;
     void             (*states[2])(Task*) = {
-        Actor00400_Fn0A57C,
+        _actor00400WoundedFloatFlinchEnter,
         _actor00400WoundedFloatFlinchTick,
     };
 
     states[work->subState](arg0);
 }
 
-static void Actor00400_Fn0A510(Task* arg0)
+/// Starts the wounded float's idle clip with a newly drawn slow playback rate.
+///
+/// Requires live work and an initialized rig at substate 0. Targets the water
+/// surface, advances the shared LCG once, and blends clip 16 over eight frames
+/// at a rate of 3..6 sixteenths of a frame per tick. Clears elapsed frames and
+/// enters the idle tick. The animation request precedes publication of the
+/// new random state.
+static void _actor00400WoundedFloatIdleEnter(Task* task)
 {
-    _Actor00400Work* w;
+    enum {
+        ACTOR_00400_WOUNDED_IDLE_RANDOM_SHIFT = 16,
+        ACTOR_00400_WOUNDED_IDLE_RATE_MASK    = 3,
+        ACTOR_00400_WOUNDED_IDLE_RATE_MIN     = 3
+    };
+    _Actor00400Work* requestWork;
     _Actor00400Work* work;
-    u32              random;
+    u32              randomValue;
 
-    work              = arg0->work;
-    random            = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-    work->goalY       = work->waterLevel;
-    w                 = arg0->work;
-    w->animBlend      = 8;
-    w->animStep       = ((random >> 16) & 3) + 3;
-    w->animClip       = 0x10;
-    w->animRequest    = DIVER_ANIM_REQUEST_BLEND;
-    gRandomLcgState   = random;
+    work        = task->work;
+    randomValue = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    work->goalY = work->waterLevel;
+    requestWork = task->work;
+    _diverRequestClipBlend(requestWork, ACTOR_00400_ANIM_SWIM_STATUS_HOLD_LOOP,
+                           ((randomValue >> ACTOR_00400_WOUNDED_IDLE_RANDOM_SHIFT) & ACTOR_00400_WOUNDED_IDLE_RATE_MASK) + ACTOR_00400_WOUNDED_IDLE_RATE_MIN, 8);
+    gRandomLcgState   = randomValue;
     work->stateFrames = 0;
     work->subState++;
 }
 
-static void Actor00400_Fn0A57C(Task* arg0)
+/// Starts the wounded float's flinch clip and advances to its timed tick.
+///
+/// Requires live work and an initialized rig at substate 0. Requests clip 18
+/// at normal rate with a two-frame blend, then clears elapsed frames.
+/// Leaves the floating height goal and shared random state intact.
+static void _actor00400WoundedFloatFlinchEnter(Task* task)
 {
     _Actor00400Work* work;
 
-    work              = arg0->work;
-    work->animBlend   = 2;
-    work->animStep    = ANIMATION_RATE_ONE;
-    work->animClip    = 0x12;
-    work->animRequest = DIVER_ANIM_REQUEST_BLEND;
+    work = task->work;
+    _diverRequestClipBlend(work, ACTOR_00400_ANIM_SWIM_STATUS_HOLD_HIT, ANIMATION_RATE_ONE, 2);
     work->stateFrames = 0;
     work->subState++;
 }

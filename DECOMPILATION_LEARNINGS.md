@@ -51867,7 +51867,7 @@ GCC's emission order right — the same trick `PowerSupplyMsg` uses in that file
 ### m2c reads the frame-table dispatch as a ten-argument call through `sp`
 
 The actor state dispatcher is the plain case of the copy above, and its m2c
-output shares nothing with it. `Actor00400_Fn09C04` is seven words of
+output shares nothing with it. `_actor00400RoomIntro` is seven words of
 `lw`/`sw`, then the indexed call; m2c takes every store to the frame for an
 outgoing argument and prints a *ten*-argument call through a pointer at
 `sp + field_63A*4 + 0x10`, with `sp` itself undeclared — so the seed does not
@@ -51889,7 +51889,7 @@ table, declared as a `TaskFuncTableN` extern beside the other table externs
 (`_actor00400TunnelPatrol` in `actor_100400_text.c` is the matched precedent) and
 assigned to a local of that type. Beware the one-entry sibling: a `states[1]`
 local initializer never reaches `.rodata` — GCC stores the single address
-straight into the frame slot (`lui`/`addiu`/`sw`, `Actor00400_Fn09C84`) — so it
+straight into the frame slot (`lui`/`addiu`/`sw`, `_actor00400AwaitFight`) — so it
 is no evidence against the copy form.
 
 ### Statement order that changes nothing means the leftover is sched1's block scope
@@ -93402,14 +93402,14 @@ The same function needed two unrelated fixes first, both worth recognising:
 Inputs: `base_1.i` (98.99%), `base_2.i` (99.20%), `base_5.i` (100%). Compiler
 SHA256 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
-## `base[i]` and `i * sizeof(T) + (u32)base` build the `addu` operands in opposite orders (Actor00400_Fn031A4, 2026-09-16)
+## `base[i]` and `i * sizeof(T) + (u32)base` build the `addu` operands in opposite orders (_actor00400FindNearestSurfaceSpot, 2026-09-16)
 
 Both spellings of an array element address are the same arithmetic, but expand
 emits the `plus` with its operands in the order the source evaluates them, and
 `addsi3_internal` prints them in that order - so the choice is visible in the
 object and, worse, it moves the allocation.
 
-`record = &work->surfaceSpots[index];` evaluated the base load first:
+`spot = &work->surfaceSpots[spotIndex];` evaluated the base load first:
 
 ```
 (insn 55 (set (reg 101) (mem/s:SI (plus (reg 83) (const_int 1544)))))   ; base
@@ -93421,7 +93421,7 @@ field it then loads in `$v1`. Target had `addu v1,v1,v0`, the pointer in `$v1`
 and the load in `$a0`. Writing the element address the other way round -
 
 ```c
-record = (Actor100400Record*)(index * sizeof(Actor100400Record) + (u32)work->surfaceSpots);
+spot = (SVECTOR*)(spotIndex * sizeof(SVECTOR) + (u32)work->surfaceSpots);
 ```
 
 - put the shift first, `(plus scaled base)`, and the whole allocation fell out
@@ -93444,7 +93444,7 @@ needed the store-then-re-read shape
 (`head = *(u8**)SCRATCH_STACK_CURSOR_SLOT; *(u8**)SCRATCH_STACK_CURSOR_SLOT = head - 0x1C;
 scratch = *(u8**)SCRATCH_STACK_CURSOR_SLOT;`) to keep `addiu v0 / move s0,v0 / sw v0`
 rather than fusing into `addiu s0,v0,-0x1c`, and rewriting its `goto` loop as
-`for (;;) { ... if (kind == -1) break; ... }` rotated the loop and duplicated
+`for (;;) { ... if (claimMark == -1) break; ... }` rotated the loop and duplicated
 the exit test, dropping 100% to 75.1% (`insert=15 delete=7`).
 
 Inputs: `base.i` (98.344%), `base_1.i` (99.570%), `base_2.i` (100%). Compiler
@@ -93915,7 +93915,7 @@ opposite order:
 -addiu  a1,sp,0x18     +addiu  a1,sp,0x10
 -sh     zero,0x1c(sp)  +sh     zero,0x10(sp)
 -sh     zero,0x1a(sp)  +sh     zero,0x12(sp)
- jal    Actor00400_Fn031A4
+ jal    _actor00400FindNearestSurfaceSpot
 -sh     zero,0x18(sp)  +sh     zero,0x14(sp)
 ```
 
@@ -93923,7 +93923,7 @@ Two independent facts produced that, and both are free to control from C.
 
 **Slot order is declaration order, ascending.** Locals whose address is taken
 get frame slots in the order they are *declared*, lowest address first. The
-function needed the vector passed to `Actor00400_Fn031A4` at `0x18` and the
+function needed the vector passed to `_actor00400FindNearestSurfaceSpot` at `0x18` and the
 scratch delta at `0x10`, so the delta has to be declared first - even though
 the other one is used first. Do not reason from use order.
 
@@ -94264,11 +94264,11 @@ lifetime >= insn_count` is true for anything in a small loop).
 
 ```c
 /* hoists the 0 into the preheader */
-if (Actor00400_ApplyAreaConfig(arg0)) { ... }
+if (_actor00400ApplyAreaConfig(arg0)) { ... }
 
 /* keeps it at the success point */
-failed = Actor00400_ApplyAreaConfig(arg0);
-if (failed) { ... }
+spawnRejected = _actor00400ApplyAreaConfig(arg0);
+if (spawnRejected) { ... }
 ```
 
 The local carries `REG_USERVAR_P`, all three `scan_loop` conditions fail, and
@@ -94336,12 +94336,12 @@ store into an inline helper whose parameter is `s32` rather than `u8` puts its
 literal in an `SImode` quantity, which hashes separately from the `QImode` one:
 
 ```c
-static __inline__ void Actor00400_AttachHead(Actor100400* arg0, Actor100400Obj* obj,
-                                             _Actor00400Work* work, s32 hide)
+static __inline__ void _actor00400SelectTrunkTarget(Task* task, Enemy* enemy,
+                                                    _Actor00400Work* work, s32 gridCollisionEnabled)
 {
-    obj->field_18   = &arg0->field_2C->field_8[1];
-    obj->field_14   = 0;
-    work->gridCollision = hide;   /* SImode 1, stored through a QImode subreg */
+    enemy->coord                  = &task->extra.tmd->coords[1];
+    enemy->node.state.parts.flags = 0;
+    work->gridCollision           = gridCollisionEnabled; /* SImode 1, stored through a QImode subreg */
 }
 ```
 
@@ -104316,8 +104316,8 @@ Scratch `nonmatchings/Actor00400_Fn08948-vacuum`.
 
 ## An `||` inside an `if` branches straight to the body; assigning it to a variable materializes 1/0 through a phi
 
-`Actor00400_Fn095D8` (actors, `actor_100400_fn0805c`) tests one halfword twice -
-bit 0, then bits 1 and 8 - and stores a flag when either test hits. The target
+`_actor00400SwimPatrolWaitForClip` (actors, `actor_100400_fn0805c`) tests one halfword twice -
+bit 0, then bits 1 and 8 - and selects patrol travel when either test hits. The target
 materializes the disjunction instead of branching on it:
 
 ```
@@ -104347,10 +104347,10 @@ return 0;
 ```
 
 ```c
-/* Actor00400_Fn095D8: the phi form, condition sequence byte-identical
+/* _actor00400SwimPatrolWaitForClip: the phi form, condition sequence byte-identical
    to the already-matched _actor00400SwimDeathFallWait */
-w2 = arg0->field_1C;
-if ((w2->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (w2->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (w2->animStatus & ANIMATION_SLOT_SETTLED)) {
+work = task->work;
+if ((work->animStatus & ANIMATION_SLOT_REACHED_BOUNDARY) || (work->animStatus & ANIMATION_SLOT_FOLLOWED_JUMP) || (work->animStatus & ANIMATION_SLOT_SETTLED)) {
 ## A naming pass makes twins invisible to `overlay_dup_index.py find` — the wildcard is name-shaped
 
 `Actor04400_Fn06C70` (USA/actors/lib) came back as `same body: 1 copies` — itself
@@ -104574,7 +104574,7 @@ Inputs: `base_1.i` (100.000%, first distinct build) SHA256
 `c829f79cda60cada56b622073a889d0cfc929506f7658586c97b7ba7ff6e9a47`; target SHA256
 `ed37df1b6c699eb4a3f1a0bd9622b6be5800b25cb8d22be77dd26f0195fdaa06`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/Actor00400_Fn095D8-vacuum`.
+Scratch `nonmatchings/_actor00400SwimPatrolWaitForClip-vacuum`.
 
 ## An m2c temp and the natural `+=` create a compound assignment's loads in opposite order, and that alone places the store's reload
 
@@ -147556,7 +147556,7 @@ the other half of the evidence that it was a routine in the original.
 Two sites did not match on the mechanical substitution, and both failures are
 about the caller's pointer, not the helper:
 
-- `Actor00400_Fn096C0` uses its own `work` *after* the test. The hand-expanded
+- `_actor00400DiveWaitForClip` uses its own `work` *after* the test. The hand-expanded
   form had lent that variable to the test, so dropping the assignment left it
   unset; the caller keeps `work = arg0->work;` and the helper makes its own
   load beside it.
@@ -149090,8 +149090,8 @@ none needed a hack. The forms, by what the `goto` was standing for:
   The exit is then not the loop's first jump, so the test is not duplicated.
   18 of 18 such loops converted this way (`_actor421600WatchRunPlayerState`,
   `_8013BA70`, `func_actor_444000_8013E058`, `func_actor_403000_8013C2D4`), and
-  the same shape with a larger body in `Actor00400_Fn031A4`
-  (`if (kind != -1) { ...; index++; continue; } break;`).
+  the same shape with a larger body in `_actor00400FindNearestSurfaceSpot`
+  (`if (claimMark != ACTOR_00400_SURFACE_SPOT_END) { ...; spotIndex++; continue; } break;`).
 - **`goto advance` into another case's `task->state++; break;`.** Write the
   increment in each case; jump2's cross-jumping merges them
   (`factoryPowerScene`, `storeToggleTask`, `_shelterR47PlayCapCommandTask`, first
