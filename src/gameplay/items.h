@@ -463,8 +463,6 @@ enum { INVENTORY_ADD_FULL_STACK = -2 };
 /// row borrows that table and may change item identity after sorting/transfers.
 InventoryItemRow* inventoryAddItem(const InventoryItemRange* range, s32 itemId, s32 quantity);
 
-void func_800B92CC(Task* task);
-
 extern InventoryItemRange Gp_DefaultScan;
 
 #endif // GAMEPLAY_PRIVATE_ITEMS_H

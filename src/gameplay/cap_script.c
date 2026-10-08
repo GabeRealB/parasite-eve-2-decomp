@@ -11,13 +11,18 @@
 #include "main/stage.h"
 #include "main/task.h"
 
-void func_800E70AC(Task* task)
+void capPlaybackTask(Task* task)
 {
+    enum { CAP_PLAYBACK_INITIAL_STATE             = 0,
+           CAP_ACTION_CAPTURE_ROOM_EFFECT_MESSAGE = 3000,
+           CAP_ACTION_CAPTURE_ENTER               = 1 };
+
     if (D_801156F9 == 0) {
         switch (task->state) {
-            case 0:
-                if (D_80115666 == 2) {
-                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), 0xBB8, 1, 0);
+            case CAP_PLAYBACK_INITIAL_STATE:
+                // Notify the room receiver before the first action-capture playback update.
+                if (D_80115666 == CAP_PLAYBACK_ACTION_CAPTURE) {
+                    taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_ROOM_EFFECT), CAP_ACTION_CAPTURE_ROOM_EFFECT_MESSAGE, CAP_ACTION_CAPTURE_ENTER, 0);
                 }
                 task->state++;
                 break;

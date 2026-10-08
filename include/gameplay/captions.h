@@ -132,7 +132,18 @@ enum {
 /// allocation failure leaves the wait pending. Does not release the request.
 void capActionPromptExitTask(Task* task);
 
-void func_800E70AC(Task* task);
+/// Updates active CAP playback while the event-script pause latch is clear.
+///
+/// Bank 2 type 7 requires playback globals/resources initialized by
+/// `capStartSequence` and live until playback teardown. A nonzero EVS pause
+/// latch leaves both task state and playback untouched. State 0 sends room-effect
+/// message 3000 with payload (1,0) for CAP_PLAYBACK_ACTION_CAPTURE, then advances
+/// to state 1 and calls `capUpdatePlaybackTask` in the same update. This enables
+/// the cafeteria's puff emitter; other current room receivers omit the cue.
+/// Action capture requires a live GAME_TASK_SLOT_ROOM_EFFECT receiver. Later
+/// updates delegate directly; playback teardown may kill the task. Spawn
+/// arguments are unused here.
+void capPlaybackTask(Task* task);
 
 extern CapFile* Gp_CapFile;
 

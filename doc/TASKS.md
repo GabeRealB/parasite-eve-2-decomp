@@ -383,7 +383,7 @@ The other payload structs live with their sole consumers: `_EvsMusicVolumeFade` 
 
 | Type | Callback | Notes |
 |------|----------|-------|
-| `07` | `func_800E70AC` | **Caption / dialogue.** `Gp_CapTask = taskSpawn(2, 7, …)` or `displayQueueModeTask(taskGetDesc(2, 7), …)` |
+| `07` | `capPlaybackTask` | **Caption / dialogue.** `Gp_CapTask = taskSpawn(2, 7, …)` or `displayQueueModeTask(taskGetDesc(2, 7), …)` |
 | `0B` | `padScriptBinaryMotorHoldTask` | `_padScriptSpawnBinaryMotorHold` — port 0 binary-motor vibration, remaining script frames in `spawnArg1.value` |
 | `0C` | `padScriptVariableMotorRampTask` | `padScriptSpawnVariableMotorRamp` — port 0 variable-motor Q8 intensity ramp, owned work block in `work` |
 | `0D` | `padScriptTask` | Two-lane controller-vibration interpreter; borrowed command and segment arrays in owned work |

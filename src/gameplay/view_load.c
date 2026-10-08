@@ -15,11 +15,14 @@
 
 s16 D_80114C40;
 
-/// Queues a view file key after assigning its mapped index and default load options.
+/// Queues the current mapped view's image file with default placement and load policy.
 ///
-/// The borrowed four-byte key must already hold stage/area; byte 1 is ignored.
-/// Requires loaded view mapping, valid destinations and one free CD-ring slot.
-/// Enqueue copies both records immediately; no request pointers are retained.
+/// `fileKey` and `loadArgs` borrow distinct writable four-byte records for this call.
+/// The key must hold the session's stage (1..5) and area; byte 1 is ignored.
+/// Selects folder area * 100 + 1 within the stage CDF and the mapped view byte as its
+/// file index. Requires valid loaded view maps, writable load destinations and
+/// one free CD-ring slot. Enqueue copies the records before returning; neither
+/// pointer is retained and queueing does not wait for completion.
 static inline void _loadingEnqueueViewFile(_LoadingFileKey* fileKey, _LoadingFileArgs* loadArgs)
 {
     enum { LOADING_VIEW_FOLDER_SUFFIX = 1 };

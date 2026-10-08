@@ -98,7 +98,7 @@ s32 Gp_CapCaretGrey = 8;
 s32 Gp_CapCaretDir = 0;
 
 static const TaskFuncTable3 D_800974C8 = { {
-    func_800E31E8,
+    objectTaskInitializeRoomState,
     _objectTaskRoomIdleState,
     taskKill,
 } };

@@ -48,7 +48,7 @@ extern WorldCollisionSurfaceProperties* D_shelter_b3_incinerator_control_room_80
 /// and scene resources must remain loaded while their tasks use them.
 void shelterB3IncineratorControlRoomTask(Task* task);
 
-/// Runs the incinerator control room's telephone menu for the inventory dispatcher.
+/// Runs the incinerator control room's telephone menu for `telephoneDispatchMenuTask`.
 ///
 /// `spawnArg2.pointer` borrows a live UiObject; start its task in state 0.
 /// Updates save/statistics child panels and reports completion through that

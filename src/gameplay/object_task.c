@@ -3,6 +3,7 @@
 #include "types.h"
 
 #include "gameplay/captions.h"
+#include "gameplay/collision.h"
 #include "gameplay/actor_presentation.h"
 #include "gameplay/player_actor.h"
 #include "gameplay/direction.h"
@@ -27,7 +28,7 @@
 
 u8 D_80115598;
 
-/// Per-stage task descriptor tables searched by `func_800E31E8`.
+/// Per-stage task descriptor tables searched by `objectTaskInitializeRoomState`.
 extern TaskDesc* D_8010FABC[];
 
 /// Message table of the stand-in room task, used where the stage's table has
@@ -50,57 +51,78 @@ TaskMessageEntry D_8010FAD4[3] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-void func_800E31E8(Task* arg0)
+/// Releases room event presentation holds and applies the persistent music override.
+///
+/// Requires a live session and resident music selector. Submarine progress uses
+/// entry 1 at Dryfield night and suppresses area/ending music elsewhere;
+/// parking progress uses entry 9. Other flag values leave the selector intact.
+static inline void _objectTaskResetRoomPresentation(void)
 {
-    enum { TASK_DESC_LOCATION_TASK_HEADER = (0x20 << 16) | TASK_BODY_NONE };
+    enum {
+        OBJECT_TASK_MUSIC_OVERRIDE_SUBMARINE   = 1,
+        OBJECT_TASK_MUSIC_OVERRIDE_PARKING     = 2,
+        OBJECT_TASK_DRYFIELD_NIGHT_MUSIC_ENTRY = 1,
+        OBJECT_TASK_PARKING_MUSIC_ENTRY        = 9
+    };
 
-    s32       flag;
-    s32       index;
-    s32       area;
-    s32       room;
-    s32       base;
-    s32       kind;
-    TaskDesc* table;
-    TaskDesc* desc;
+    s32 musicOverride;
 
     gGameSession->eventState = 0;
     gGameSession->hideHud    = 0;
     D_80115598               = 0;
     gGameSession->flowFlags  = 0;
-    flag                     = gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE);
-    switch (flag) {
-        case 1:
+    musicOverride            = gameFlagGetNibble(GAME_FLAG_SCENE_MUSIC_OVERRIDE);
+    switch (musicOverride) {
+        case OBJECT_TASK_MUSIC_OVERRIDE_SUBMARINE:
             if (gGameSession->location.loc.stage == GAME_STAGE_DRYFIELD_NIGHT) {
-                gStageSceneMusicEntry = 1;
+                gStageSceneMusicEntry = OBJECT_TASK_DRYFIELD_NIGHT_MUSIC_ENTRY;
             } else {
                 gGameSession->flowFlags = (GAME_SESSION_FLOW_SKIP_ENDING_MUSIC | GAME_SESSION_FLOW_SKIP_AREA_MUSIC);
             }
             break;
-        case 2:
-            gStageSceneMusicEntry = 9;
+        case OBJECT_TASK_MUSIC_OVERRIDE_PARKING:
+            gStageSceneMusicEntry = OBJECT_TASK_PARKING_MUSIC_ENTRY;
             break;
     }
-    index = 0;
-    base  = gGameSession->location.loc.stage * 10000 + gGameSession->location.loc.area * 100;
-    room  = base + gGameSession->location.loc.room;
-    table = D_8010FABC[gGameSession->location.loc.stage];
-    area  = base;
-    desc  = table;
-    kind  = TASK_DESC_LOCATION_TASK_HEADER;
-loop:
-    if (desc->header.word == kind &&
-        (desc->data.value == room || desc->data.value == area)) {
-        taskSpawnFromTable(table, index, 0, 0);
-        arg0->state++;
+}
+
+void objectTaskInitializeRoomState(Task* task)
+{
+    enum {
+        OBJECT_TASK_ROOM_DESCRIPTOR_HEADER = (0x20 << 16) | TASK_BODY_NONE
+    };
+    s32       descriptorIndex;
+    s32       areaKey;
+    s32       roomKey;
+    s32       locationKeyBase;
+    s32       roomTaskHeader;
+    TaskDesc* stageRoomTable;
+    TaskDesc* descriptor;
+
+    _objectTaskResetRoomPresentation();
+    // Table order decides between a room-specific descriptor and its area default.
+    descriptorIndex = 0;
+    locationKeyBase = GP_TASK_LOC_KEY(gGameSession->location.loc.stage, gGameSession->location.loc.area, 0);
+    roomKey         = locationKeyBase + gGameSession->location.loc.room;
+    stageRoomTable  = D_8010FABC[gGameSession->location.loc.stage];
+    areaKey         = locationKeyBase;
+    descriptor      = stageRoomTable;
+    roomTaskHeader  = OBJECT_TASK_ROOM_DESCRIPTOR_HEADER;
+searchDescriptor:
+    if (descriptor->header.word == roomTaskHeader &&
+        (descriptor->data.value == roomKey || descriptor->data.value == areaKey)) {
+        taskSpawnFromTable(stageRoomTable, descriptorIndex, 0, 0);
+        task->state++;
         return;
     }
-    if ((u16)(desc++)->header.word != TASK_DESC_END) {
-        index++;
-        goto loop;
+    if ((descriptor++)->header.fields.flags != TASK_DESC_END) {
+        descriptorIndex++;
+        goto searchDescriptor;
     }
-    arg0->msgTable = D_8010FAD4;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    arg0->state++;
+    // Keep the selector itself as the fallback room receiver when no descriptor matches.
+    task->msgTable = D_8010FAD4;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    task->state++;
 }
 
 void capEventTask(Task* task)

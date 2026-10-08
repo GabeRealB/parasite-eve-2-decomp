@@ -159,12 +159,12 @@ segments:
       - [0x4CA94, c, object_lists] # worldCollisionResetListsAndGrid
       - [0x4E7EC, c, damage] # damageComputePlayerAttack
       - [0x4F4D4, c, object_fields] # damageGetHazardDamage
-      - [0x4F9E8, c, object_task] # func_800E31E8
+      - [0x4F9E8, c, object_task] # objectTaskInitializeRoomState
       - [0x4FCD8, c, cap_commands] # capRunCommand and gameplay caption commands
       - [0x508EC, c, cap_reloc] # capRelocateFile
       - [0x509F4, c, cap_start] # capStartSequence
       - [0x50CA0, c, captions] # caption interpreter, layout, events and file loading
-      - [0x538AC, c, cap_script] # func_800E70AC
+      - [0x538AC, c, cap_script] # capPlaybackTask
       - [0x539B0, c, cap_control] # capInitializeControlTask
       - [0x53DC8, c, evs_scripts] # _evsExecuteInterpreterTask
       - [0x55290, c, pad_scripts] # _padScriptStepBinaryLane; separate script-halt work

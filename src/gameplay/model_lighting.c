@@ -2909,8 +2909,12 @@ void playClockInitializeTask(Task* task)
 
 /// Advances the saved minute count and its display from one elapsed game-tick sample.
 ///
-/// Borrows initialized task work and the resident save/remainder. At most one
-/// minute is consumed; saturation retains any remaining ticks for later calls.
+/// Borrows live, initialized clock work and the resident save/remainder.
+/// `currentGameTick` is the signed 60-Hz display tick sample; the elapsed
+/// difference and its accumulation must fit s32. A sample reaching 3600 ticks
+/// consumes exactly one minute, retaining any excess ticks for later calls.
+/// Saved/displayed time saturates at 59999 minutes (999:59), but a whole minute
+/// is still removed from the remainder at saturation. The sample is always saved.
 static inline void _playClockAdvanceSavedTime(_PlayClockWork* work, s32 currentGameTick)
 {
     D_8005ED68        += currentGameTick - work->lastGameTick;
@@ -2934,7 +2938,14 @@ static inline void _playClockAdvanceSavedTime(_PlayClockWork* work, s32 currentG
     }
 }
 
-/// Cancels active attachment and room PE effects before death presentation.
+/// Ends attachment control and requests PE-effect cancellation before death presentation.
+///
+/// Requires live attachment, room-effect and scene state and space in the CD
+/// ring for the attachment teardown's current-view seek. Clears the attachment
+/// phase first; teardown may replace it with CANCELLED when previously armed.
+/// Teardown resumes actor updates and clears pending attachment/sound state.
+/// Room PE cancellation is deferred to the next controller update; this call
+/// does not wait for effects to release their tasks or resources.
 static inline void _playClockCancelDeathEffects(void)
 {
     Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_IDLE;

@@ -80,8 +80,6 @@ static __inline__ void _actorRenderRefreshCoord(GfxCoord* coord, s32 stamp, s32 
 
 static u32* _tmdXformStreamVertsGreyEnvLayerReduced(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
-static u32* func_8009AA5C(TmdStreamWorkspace* ws, s32 arg1, u32* arg2);
-
 static u32* _tmdXformStreamVertsEnvMapLit(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements);
 
 /// Stores the signed screen-space area used to test a flat triangle's winding.
@@ -470,7 +468,11 @@ void modelObjectFreeCoordBody(ModelObjectCoordBody* body)
     memFree(body);
 }
 
-/// Initializes both render lists as empty chains ending at their live sentinels.
+/// Resets both render-list sentinels to their empty state.
+///
+/// Overwrites only the sentinel endpoints; existing nodes are neither unlinked
+/// nor freed. Any previous chains must already be saved or retired. Saved first
+/// nodes retain their back-links to these sentinels until their endpoints return.
 static inline void _modelObjectResetRenderLists(void)
 {
     gTmdList.next                  = NULL;
@@ -1407,13 +1409,22 @@ static u32* _tmdXformStreamVertsGreyEnvLayerReduced(TmdStreamWorkspace* workspac
     return elements;
 }
 
-static u32* func_8009AA5C(TmdStreamWorkspace* ws, s32 arg1, u32* arg2)
+/// Projects and lights reduced environment-map corners with orange material.
+///
+/// Loads RGB/code (255,160,96,0) even for an empty stream, then follows
+/// `_tmdXformStreamVertsEnvMapLitReduced`'s element, geometry, packet and GTE
+/// requirements. `objectFlags` is unused in this stream-callback signature.
+/// Returns the advanced u32-word cursor, consumes positive counts to -1 and
+/// leaves packet cursors fixed. GTE state and workspace scratch are overwritten;
+/// borrowed geometry, stream and packet storage are retained only for this call.
+/// No current stream resolver selects this retained private callback.
+static u32* _tmdXformStreamVertsOrangeEnvMapLitReduced(TmdStreamWorkspace* workspace, s32 objectFlags, u32* elements)
 {
-    CVECTOR col;
+    CVECTOR material;
 
-    col = Gp_ColorOrange;
-    gte_ldrgb(&col);
-    return _tmdXformStreamVertsEnvMapLitReduced(ws, arg2);
+    material = Gp_ColorOrange;
+    gte_ldrgb(&material);
+    return _tmdXformStreamVertsEnvMapLitReduced(workspace, elements);
 }
 
 /// Projects and lights corners with a blend-scaled, full-screen environment map.

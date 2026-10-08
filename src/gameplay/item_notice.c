@@ -9,6 +9,7 @@
 #include "item_menu.h"
 #include "items.h"
 #include "scene_runtime.h"
+#include "telephone.h"
 
 #include "main/display.h"
 #include "main/mc.h"
@@ -18,7 +19,7 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-UiObjectDesc D_8010D348 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -64, -32, 128, 64 }, 60, 0, TASK_BODY_NONE, 192, func_800B92CC, 0 };
+UiObjectDesc D_8010D348 = { USER_INTERFACE_PANEL_TITLE_STYLE, { -64, -32, 128, 64 }, 60, 0, TASK_BODY_NONE, 192, telephoneDispatchMenuTask, 0 };
 
 /// Captures the player model root's local XYZ and signed-turn yaw for saving.
 ///

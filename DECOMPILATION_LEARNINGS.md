@@ -6566,7 +6566,7 @@ col = Gp_ColorOrange;
 gte_ldrgb(&col);
 ```
 
-`func_8009AA5C` is the example. Same `+r` pin as `tmdXformStreamVertsUnlit`'s
+`_tmdXformStreamVertsOrangeEnvMapLitReduced` is the example. Same `+r` pin as `tmdXformStreamVertsUnlit`'s
 `previousVertexRef = TMD_PREVIOUS_VERTEX_REF_NONE`.
 
 ## An m2c `ws = index` needs no pin when another variable wants `$a0`
@@ -6582,7 +6582,7 @@ declaration and the assignment left the body byte-identical in
 whose `sz` is pinned to `$a0`.
 
 So the shape is load-bearing only where something pins *it* — `TOUCH_REG(ws)` or
-`asm volatile("" : "+r"(ws))`, as `func_8009AA5C` above — and m2c residue where
+`asm volatile("" : "+r"(ws))`, as `_tmdXformStreamVertsOrangeEnvMapLitReduced` above — and m2c residue where
 the pinned register belongs to another variable: `tmdXformStreamVertsUnlit` pins
 its `previousVertexRef` with `+r` (so `previousVertexRef` takes `$a0`), and naming the parameter and
 deleting the local declaration and the assignment left the body byte-identical
@@ -23863,7 +23863,7 @@ then inserts the `nop` delay on the `bne`. `_playerActorSetRunMovement` is the p
 ## `mc.h` exports `D_8007216C` as `u8`; 268.c needs a word load of that symbol
 
 `D_8007216C` is `gMcSaveData.location.loc.view`. `mc.h` declares it `u8` because `stage.c`
-stores a byte (`sb`). `func_800B92CC` needs `lw` of the same symbol so
+stores a byte (`sb`). `telephoneDispatchMenuTask` needs `lw` of the same symbol so
 `& 0xFFFF0000` sees `field_6`/`field_7`. Including `mc.h` and also writing
 `extern u32 D_8007216C` is a conflicting-types error.
 
@@ -31074,7 +31074,7 @@ GCC 2.8.1 hoists the terminator into the freed `$a1` instead
 
 `register s32 key asm("a1")` reserves `$a1` for the earlier `stage << 2`
 multiply and wrecks the prefix. An early `term = 0xFFFF` takes `$s2`.
-`func_800E31E8` stuck at 94.1% on this allocation.
+`objectTaskInitializeRoomState` stuck at 94.1% on this allocation.
 
 ## Overlay callback tables bundled with a function stay as inline asm
 
@@ -35497,7 +35497,7 @@ asm volatile("move %0, %2" : "=r"(prompt), "+r"(obj) : "r"(arg0), "r"(spawnArg))
 
 `%0` is the `s5` dest, `%1` is the `+r` `obj` operand, `%2` is `index`.
 `itemMenuDrawWeaponChoiceRow` is the example. Same “pin the copy so `lui` cannot float
-above it” idea as `func_8009AA5C`.
+above it” idea as `_tmdXformStreamVertsOrangeEnvMapLitReduced`.
 
 ## Pin `5` to `$v1` so `mode != 5` is `lw v0` / `beq v0, v1`
 
@@ -36192,7 +36192,7 @@ __asm__ volatile("" : "+r"(az), "+r"(ax));
 sin0 = ax + az;
 ```
 
-Same `+r` pin as `func_8009AA5C`. `gfxExtractSmallestEuler` is the example.
+Same `+r` pin as `_tmdXformStreamVertsOrangeEnvMapLitReduced`. `gfxExtractSmallestEuler` is the example.
 
 ## Memory clobber so `gte_lddp` reloads a just-stored weight
 
@@ -37977,7 +37977,7 @@ poly = (POLY_GT3*)arg0->primWrite;
 ```
 
 This is the mirror image of the `ws = index` + `__asm__ volatile("" : "+r"(ws))`
-pin used by `func_8009AA5C`: adding the local raises the parameter's rank,
+pin used by `_tmdXformStreamVertsOrangeEnvMapLitReduced`: adding the local raises the parameter's rank,
 removing it lowers it. Try both before reaching for `register … asm("")`.
 
 ## Loop-invariant constants used once are not hoisted — declare them as locals
@@ -41315,7 +41315,7 @@ use of `v`. That does three useful things:
 
 In `tmdDrawStreamPrimGt4EnvLayer` one barrier on `poly` and one on `dest` (just before the
 `*dest = x` store) were what finally lined up `t0/t1/t3/t7` and `a1/a3` with
-the target. `tmdXformStreamVertsEnvLayer` / `func_8009AA5C` already use the same idiom.
+the target. `tmdXformStreamVertsEnvLayer` / `_tmdXformStreamVertsOrangeEnvMapLitReduced` already use the same idiom.
 
 ## Re-read a field instead of caching it when a "memory" clobber sits between
 
@@ -65686,7 +65686,7 @@ can therefore accompany a register-dependent delay-slot difference even when
 the branch topology already agrees; inspect `.jump2` and `.dbr` together.
 
 
-## func_800E31E8: split a computed key from the loop invariant
+## objectTaskInitializeRoomState: split a computed key from the loop invariant
 
 For this task-table search, `area = stage * 10000 + zone * 100; room = area + view;`
 kept the sum in the loop's global pseudo and scheduled the table load too early.
@@ -145348,7 +145348,7 @@ object) are loop.c's own reductions of `for (i = 1; i < N; i++)` loops over
 way, and with the scratch block as a struct, the body matched outright. The
 preceding function in the unit ran the same quad test hack-free, and its body
 was the template: check neighbours for the same algorithm before steering loops.
-## A store in the `jal` delay slot with the argument setup above it: the call did not end its block (func_800E31E8, 2026-09-26)
+## A store in the `jal` delay slot with the argument setup above it: the call did not end its block (objectTaskInitializeRoomState, 2026-09-26)
 
 Target: `move a0,s1; li a1,7; lui/addiu v0,X; jal f; sw v0,0x24(s1)` and then
 the shared `state++` tail. Written as `t->msgTable = X; f(t, 7);` falling into
@@ -146644,7 +146644,7 @@ gives the short-lived `lbu` result `$v1` ahead of the object pointer.
 reuses the load for the outer test, and the inner tests read the global the
 code goes on to overwrite. The permuter found the outer-field form.
 
-## `TOUCH_REG` on the argument copy at entry, ahead of a prologue struct copy: the rest is an inline helper taking the pointer (func_8009AA5C, 2026-09-27)
+## `TOUCH_REG` on the argument copy at entry, ahead of a prologue struct copy: the rest is an inline helper taking the pointer (_tmdXformStreamVertsOrangeEnvMapLitReduced, 2026-09-27)
 
 **Symptom.** A function that copies a `const CVECTOR` to the stack and
 `gte_ldrgb`s it before a loop over `ws` emits `lui %hi(colour)` before the
@@ -149805,7 +149805,7 @@ attempts; left as it was.
   in both arms does not merge either (252), and a `found` inline with two
   `return 1` is not folded (229, frame 8 bytes larger). Scratch compiles of
   the unit, not full builds.
-- `func_800E31E8` is the `src/main/task.c` case: a real loop hoists the
+- `objectTaskInitializeRoomState` is the `src/main/task.c` case: a real loop hoists the
   `0xFFFF` of the end test next to the hand-hoisted `kind`; the image reloads
   it every iteration.
 - A mode ladder whose image loads `actorControl` between two other loads

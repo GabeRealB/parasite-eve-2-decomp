@@ -6,6 +6,7 @@
 #include "gameplay/inventory.h"
 #include "inventory.h"
 #include "items.h"
+#include "telephone.h"
 
 #include "debug/nmc_names.h"
 
@@ -845,7 +846,7 @@ void inventoryDetachItem(InventoryItemRow* row)
     _equipmentClearRemovableLoads(weaponItemId);
 }
 
-void func_800B92CC(Task* task)
+void telephoneDispatchMenuTask(Task* task)
 {
     switch (GAME_LOCATION_WORD(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc) & GAME_LOCATION_STAGE_AREA_MASK) {
         case GAME_LOCATION_KEY(1, 1, 0, 0):
