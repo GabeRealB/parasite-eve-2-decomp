@@ -2842,7 +2842,7 @@ objects = [
 ]
 
 [rooms.overlays.neo_ark_eve_access_tunnel]
-label = "the head hands the id word to _hdr so the first unit's .rodata starts at 0x4; its last table, func_neo_ark_eve_access_tunnel_8017DB18's switch table, is at 0xEC, which only its .align 3 pads to when the object's rodata starts 4 mod 8"
+label = "the head hands the id word to _hdr so the first unit's .rodata starts at 0x4; its last table, neoArkEveAccessTunnelElevatorDepartureTask's switch table, is at 0xEC, which only its .align 3 pads to when the object's rodata starts 4 mod 8"
 id = 427
 objects = [
   { kind = "packageId" },

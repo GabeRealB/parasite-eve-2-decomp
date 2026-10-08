@@ -6,6 +6,7 @@
 
 #include "types.h"
 
+#include "gameplay/direction.h"
 #include "gameplay/evs.h"
 #include "gameplay/message.h"
 
@@ -40,7 +41,15 @@ enum { NEO_ARK_FOREST_ZONE_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 /// are ignored; no item is consumed and no message payload is retained.
 s32 neoArkForestZoneRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 
-s32 func_neo_ark_forest_zone_8017D7E4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Resolves room selection and gates the first departure scene to the woodland path.
+///
+/// Copies the complete borrowed request to the writable reply, which may alias it.
+/// Execute requests queue a forest-ambience stop with control 60, for every area.
+/// For the woodland destination, returns 1 if its scene flag is already set or 2
+/// when eligible, including queries. Execution latches the resolved transition and
+/// CAP 2/sound event, sets the scene flag and starts the deferred event controller.
+/// Other destinations return 1. Deferred copies and resources need the room loaded.
+s32 neoArkForestZoneResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 
 /// Ignores forest-zone room commands and returns zero.
 ///
@@ -48,7 +57,15 @@ s32 func_neo_ark_forest_zone_8017D7E4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
 /// are ignored and no room state changes.
 s32 neoArkForestZoneIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 secondArg);
 
-s32 func_neo_ark_forest_zone_8017D958(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Starts the forest's first-visit action scene and forwards the action to pool B.
+///
+/// Borrows the four-byte `DirectionActionRequest` until dispatch returns.
+/// Action 1 in variant 1 starts the HUD-managed script once and latches its flag.
+/// Every action then forwards the same request and second argument word to the
+/// pool-B task. Returns -1 before that task exists, otherwise its result; the
+/// receiver is unused. Forest trigger selectors are 1..5, with zero clearing
+/// pending spawns in the child latch. No payload pointer is retained here.
+s32 neoArkForestZoneHandleAction(Task* unusedTask, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
 /// Forwards forest actor events to the room's roaming-enemy pool B.
 ///

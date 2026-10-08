@@ -39,6 +39,8 @@
 
 #include "mapui/map_neo_ark.h"
 
+#include "../../shared/room_variants.h"
+
 #include "overlay.h"
 
 s32     rcos(s32);
@@ -123,7 +125,7 @@ AreaApplyRec D_neo_ark_garden_80182BF8[3] = {
     { 255, 0, 0, 0 },
 };
 
-static void func_neo_ark_garden_8017E9B4(Task* arg0);
+static void _neoArkGardenInitializeRoom(Task* task);
 static void _neoArkGardenRoomIdleState(Task* unusedTask);
 
 #include "../../shared/water_refraction_task.inc.c"
@@ -135,38 +137,53 @@ s32 neoArkGardenRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_neo_ark_garden_8017E848(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 neoArkGardenResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    if (in->areaId != GAME_AREA_NEO_ARK_SUBSTATION) {
-        return 1;
+    enum {
+        NEO_ARK_GARDEN_CAP_SUBSTATION_BLOCKED = 1,
+        NEO_ARK_GARDEN_MAP_FLAG_VISIBLE       = 2,
+    };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId != GAME_AREA_NEO_ARK_SUBSTATION) {
+        return ROOM_VARIANT_TRANSITION_DIRECT;
     }
     if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) != 0) {
-        return 1;
+        return ROOM_VARIANT_TRANSITION_DIRECT;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 0;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return ROOM_VARIANT_TRANSITION_REFUSED;
     }
-    gameFlagSetNibbleIfPresent(in->flagId, 2);
-    capRunCommandWithTransition(1);
-    return 0;
+    gameFlagSetNibbleIfPresent(request->flagId, NEO_ARK_GARDEN_MAP_FLAG_VISIBLE);
+    capRunCommandWithTransition(NEO_ARK_GARDEN_CAP_SUBSTATION_BLOCKED);
+    return ROOM_VARIANT_TRANSITION_REFUSED;
 }
 
-s32 func_neo_ark_garden_8017E8DC(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 neoArkGardenHandleCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (arg2 == 4) {
-        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_141) != 0 ? 6 : 4);
+    enum {
+        NEO_ARK_GARDEN_COMMAND_AREA_UPDATE       = 4,
+        NEO_ARK_GARDEN_COMMAND_5                 = 5,
+        NEO_ARK_GARDEN_COMMAND_7                 = 7,
+        NEO_ARK_GARDEN_CAP_AREA_UPDATE_ALTERNATE = 6,
+        NEO_ARK_GARDEN_CAP_7_NURSERY_PROGRESS    = 9,
+        NEO_ARK_GARDEN_CAP_5_NURSERY_PROGRESS    = 10,
+        NEO_ARK_GARDEN_AREA_UPDATES_APPLIED      = 1,
+    };
+
+    if (commandId == NEO_ARK_GARDEN_COMMAND_AREA_UPDATE) {
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_141) != 0 ? NEO_ARK_GARDEN_CAP_AREA_UPDATE_ALTERNATE : NEO_ARK_GARDEN_COMMAND_AREA_UPDATE);
         if ((gameFlagGetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA) == 0) && (gameFlagGetNibble(GAME_FLAG_NEO_ARK_ALTAR_SEQUENCE_1_SOLVED) == 0)) {
-            gameFlagSetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA, 1);
+            gameFlagSetNibble(GAME_FLAG_NEO_ARK_GARDEN_0FA, NEO_ARK_GARDEN_AREA_UPDATES_APPLIED);
             areaApplySavedUpdates(D_neo_ark_garden_80182BF8);
         }
     }
-    if (arg2 == 7) {
-        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 9 : 7, CAP_EVENT_NO_FLAGS);
+    if (commandId == NEO_ARK_GARDEN_COMMAND_7) {
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? NEO_ARK_GARDEN_CAP_7_NURSERY_PROGRESS : NEO_ARK_GARDEN_COMMAND_7, CAP_EVENT_NO_FLAGS);
     }
-    if (arg2 == 5) {
-        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? 0xA : 5, CAP_EVENT_NO_FLAGS);
+    if (commandId == NEO_ARK_GARDEN_COMMAND_5) {
+        capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_B6_NURSERY_PROGRESS) != 0 ? NEO_ARK_GARDEN_CAP_5_NURSERY_PROGRESS : NEO_ARK_GARDEN_COMMAND_5, CAP_EVENT_NO_FLAGS);
     }
     return 0;
 }
@@ -176,16 +193,26 @@ s32 neoArkGardenIgnoreActionMessage(Task* unusedTask, s32 unusedMessageId, const
     return 0;
 }
 
-static void func_neo_ark_garden_8017E9B4(Task* arg0)
+/// Installs the garden receiver and starts the warp-3, variant-2 arrival scene.
+///
+/// The normal and skip scripts restore player control and the garden view.
+/// The packed objective selector is advanced when the scene starts. The room
+/// and the actor package supplying both borrowed scripts must remain loaded.
+static void _neoArkGardenInitializeRoom(Task* task)
 {
-    arg0->msgTable = D_neo_ark_garden_801813B0;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
+    enum {
+        NEO_ARK_GARDEN_ARRIVAL_KEY       = (2 << 8) | 3, // Variant in the high byte, warp in the low byte.
+        NEO_ARK_GARDEN_ARRIVAL_OBJECTIVE = 0x34,
+    };
+
+    task->msgTable = D_neo_ark_garden_801813B0;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     // Match arrival warp 3 and placement variant 2 as one halfword.
-    if (*(u16*)&gGameSession->location.loc.warp == ((2 << 8) | 3)) {
+    if (*(u16*)&gGameSession->location.loc.warp == NEO_ARK_GARDEN_ARRIVAL_KEY) {
         evsStartScriptWithSkip(D_actor_151000_801334EC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_151000_80133954);
-        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x34);
+        gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, NEO_ARK_GARDEN_ARRIVAL_OBJECTIVE);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 /// Keeps the garden room task available for messages after initialization.
@@ -199,7 +226,7 @@ static void _neoArkGardenRoomIdleState(Task* unusedTask)
 
 /// State handlers of the room's entry task: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_garden_8017D614 = {
-    { func_neo_ark_garden_8017E9B4, _neoArkGardenRoomIdleState, taskKill }
+    { _neoArkGardenInitializeRoom, _neoArkGardenRoomIdleState, taskKill }
 };
 
 void neoArkGardenRoomTask(Task* task)

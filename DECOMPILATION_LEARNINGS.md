@@ -26109,7 +26109,7 @@ costs one rename per use site. On a shared, heavily-used struct that is not a
 trade worth making: `gGameSession->location.loc` declares `u8 warp; u8 variant;`
 at session offsets 0x8 and 0x9, and 63 + 29 sites read them as bytes
 (`warp == 4`, `variant == 1`, …), while
-`func_neo_ark_garden_8017E9B4` compares the halfword to `0x203`. A union there
+`_neoArkGardenInitializeRoom` compares the halfword to `0x203`. A union there
 renames 92 matched use sites to gain one function.
 
 If a single site needs a wider unit and the field can stay as declared, type-pun
@@ -67509,7 +67509,7 @@ the `.s` of the function in the cut's own unit that reads it, and vanishes the
 same way when that function is matched - `neo_ark_forest_zone`'s
 `D_neo_ark_forest_zone_8017D634` is at `0x74`, behind the
 `jtbl_neo_ark_forest_zone_8017D620` at `0x60` that
-`func_neo_ark_forest_zone_80180D24`'s `INCLUDE_ASM` carries. Its `const` sits
+`_roamerTickPoolB`'s `INCLUDE_ASM` carries. Its `const` sits
 above the dispatcher, after that `INCLUDE_ASM`, and the unit checksums. What
 makes the symbol migratable is the reader being in the same unit as the cut, so
 the pairing has nothing to do with where the subsegment falls.
@@ -86935,11 +86935,11 @@ restructuring the returns. Check `.rtl` first: the expansion already shows the
 final order, so if it is wrong there the fix is source polarity, not a later
 pass.
 
-`func_neo_ark_forest_zone_8017D958` (`base.c` 88.02%, `base_1.c` 88.33%,
+`neoArkForestZoneHandleAction` (`base.c` 88.02%, `base_1.c` 88.33%,
 `base_2.c` 100%; preprocessed
 `46eac1e710f793926a79e9219e67e2bed8bb61fabece35fd50115e46693a6d28`). Its
 `base.c` was off by one argument before that - the handler takes four
-(`index`/`$a0` unused) and the m2c seed had dropped the leading one, which alone
+(`unusedTask`/`$a0` unused) and the m2c seed had dropped the leading one, which alone
 cost `regs=3` and shifted every `move sN,aN`.
 ## m2c's lone parameter lands in `$a0` even when the body reads `$a2` (factorySoundCommand, 2026-09-15)
 
@@ -90742,24 +90742,24 @@ Inputs: `base_1.i`
 typed `DirectionActionRequest*` form), target
 `8c6abc7e385f4c6eec866e9bc6fbad76ec691362761f1ee34970c665515336a9`.
 
-## The same handler as a `switch` instead of an if/else chain is what hands the second delay slot to the fall-through (func_neo_ark_eve_access_tunnel_8017DC6C, 2026-09-16)
+## The same handler as a `switch` instead of an if/else chain is what hands the second delay slot to the fall-through (neoArkEveAccessTunnelResolveTransition, 2026-09-16)
 
 The tunnel's message handler is the family shape its neighbours use - copy the incoming
-record, `mapNeoArkResolveRoomVariant`, then answer message 9 off flag nibble 0xB9, with `field_5`
+record, `mapNeoArkResolveRoomVariant`, then answer destination area 9 off flag nibble 0xB9, with `queryOnly`
 suppressing the side effects. Written as an if/else chain:
 
 ```c
-    *dst = *src;
-    mapNeoArkResolveRoomVariant(src, dst);
-    if (*(u16*)src != 9) {
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId != 9) {
         return 1;
     }
     if (gameFlagGetNibble(0xB9) == 0) {
-        if (src->field_5 == 0) {
-            gameFlagSetNibbleIfPresent(src->field_6, 2);
+        if (request->queryOnly == 0) {
+            gameFlagSetNibbleIfPresent(request->flagId, 2);
             capRunCommandWithTransition(1);
         }
-    } else if (src->field_5 == 0) {
+    } else if (request->queryOnly == 0) {
         ...
     }
     return 0;
@@ -90771,7 +90771,7 @@ with the arms swapped - all compile to the **same object at 98.439%**, one instr
 (A ninth, a `s32 result` assigned in both arms, splits the CFG differently and parks the
 result in a callee-saved register: 91.971%, `regs=30`.)
 
-The leftover is one delay slot. The target's second `field_5` branch (`bnez v0,0xEC`) keeps
+The leftover is one delay slot. The target's second `queryOnly` branch (`bnez v0,0xEC`) keeps
 the return block as its target and takes the fall-through's `lui` into the slot; every
 if/else build instead copies the return block's `move v0,zero` into the slot and redirects
 the branch past the block (reorg's `fill_slots_from_thread` winner path, then the
@@ -90781,14 +90781,14 @@ in the block - are the extra instruction, and they also shift the epilogue by 4.
 Writing the same logic as a `switch` scores 100.000%:
 
 ```c
-    switch (*(u16*)src) {
+    switch (request->areaId) {
         case 9:
             switch (gameFlagGetNibble(0xB9)) {
                 case 0:
-                    if (src->field_5 == 0) { gameFlagSetNibbleIfPresent(src->field_6, 2); capRunCommandWithTransition(1); }
+                    if (request->queryOnly == 0) { gameFlagSetNibbleIfPresent(request->flagId, 2); capRunCommandWithTransition(1); }
                     break;
                 default:
-                    if (src->field_5 == 0) { ... }
+                    if (request->queryOnly == 0) { ... }
                     break;
             }
             return 0;
@@ -91664,8 +91664,8 @@ because the copy is untyped it leaves the parameters as `void *`. The seed score
 Writing the copy as `*dst = *src;` against the family's `RoomEventMsg *` (an 8-byte
 struct carrying `STATIC_ASSERT_SIZEOF`) produces exactly those eight
 instructions, and the rest of the function then follows the sibling
-`func_neo_ark_eve_access_tunnel_8017DC6C` field for field: `mapNeoArkResolveRoomVariant(src,
-dst)`, a dispatch on `src->areaId`, the same three `(u8)dst->areaId`, `dst->warp`, and `dst->room` stores into
+`neoArkEveAccessTunnelResolveTransition` field for field: `mapNeoArkResolveRoomVariant(request,
+reply)`, a dispatch on `request->areaId`, the same three `(u8)reply->areaId`, `reply->warp`, and `reply->room` stores into
 the overlay's staging `RoomEventMsg`, `playerActorSetScriptedControl(0)`, then
 `taskSpawnFromTable`. That port scored 100.00% with every penalty zero on the
 first build.
@@ -92552,7 +92552,7 @@ needs. Transplant the sibling, change the constants, done.
 
 The gate itself varies too, so read the family as the `*out = *in` plus
 `RoomEventMsg` skeleton rather than the nibble specifically:
-`func_neo_ark_eve_elevator_8017D5D8` keeps the `msgId` and `queryOnly` tests but
+`_neoArkEveElevatorResolveTransition` keeps the `areaId` and `queryOnly` tests but
 gates on `cdCmdIsIdle()` and answers with `capSpawnEventIfIdle(1, 1)`, where the
 siblings latch a nibble and run a cap command. `mapNeoArkResolveRoomVariant` is the shared
 room-variant resolver the shrine, garden, observatory and elevator forms all call with
@@ -120997,7 +120997,7 @@ The same rule in this function's shape is why the source task's matrix needs a
 pointer, `attachmentMtx->t[0]` is `0x14($v1)` off the materialised `$v1 = $v1 + 0xC` the
 `gte_SetRotMatrix` operand already needs (96.680% -> 97.868%).
 
-## A shared `switch` tail's *source position* is its layout: 2.8.1 has no block-reordering pass, so m2c's `block_N` placement is a choice, not a constraint (func_neo_ark_eve_access_tunnel_8017DB18, 2026-09-17)
+## A shared `switch` tail's *source position* is its layout: 2.8.1 has no block-reordering pass, so m2c's `block_N` placement is a choice, not a constraint (neoArkEveAccessTunnelElevatorDepartureTask, 2026-09-17)
 
 `toplev.c` never calls a block reorderer (the `reorder_blocks` in `function.c`
 is the lexical-block note fixup), and `jump.c`'s cross-jumping only *redirects a
@@ -121037,12 +121037,12 @@ which is exactly where moving the two labels puts them:
 That one move took the score to 94.52% with `branch=0 reorder=0`, leaving only
 `insert=2 delete=2` — case 4's `gMcSaveData` stores, which were still
 `M2C_FIELD(&gMcSaveData, u8 *, 6)` pointer arithmetic. Reading the 100% sibling
-idiom (`src/gameplay/1A8.c`'s `gMcSaveData.field_6 = (u8)Gp_WarpLoc.areaId;`) and
+idiom (`src/gameplay/1A8.c`'s `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = (u8)Gp_WarpLoc.areaId;`) and
 using the `RoomEventMsg`/`McSaveData` struct fields instead fixed those and the
 function:
 
 ```c
-        gMcSaveData.field_6 = D_neo_ark_eve_access_tunnel_801807A0.warp;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
 ```
 
 Diagnostic to reuse: the `.jump` dump prints `;; Start of basic block N` in
@@ -121062,7 +121062,7 @@ target.o SHA256
 `c7e36c0888313c886c3eca8491483a355017f8341ffd779accec0b21813f63a0`;
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_neo_ark_eve_access_tunnel_8017DB18-vacuum`.
+Scratch `nonmatchings/neoArkEveAccessTunnelElevatorDepartureTask-vacuum`.
 
 ## Merging per-block pointer temps into one variable puts *that* value first in `allocno_order`, and it takes the register the tallies had (neoArkEveAccessTunnelSetPartDestroyedSprites, 2026-09-17)
 

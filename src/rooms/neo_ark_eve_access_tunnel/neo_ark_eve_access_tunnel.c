@@ -50,7 +50,7 @@ static s32 _roomVariantResolveShelter(RoomEventMsg* request, RoomEventMsg* reply
 /// Set when the tunnel's save is written to the memory card.
 
 /// Staging save location the room commits when the tunnel's save is taken:
-/// `field_2` / `field_4` / `field_1` hold what `func_neo_ark_eve_access_tunnel_8017DB18`
+/// `field_2` / `field_4` / `field_1` hold what `neoArkEveAccessTunnelElevatorDepartureTask`
 /// later copies into `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area` / `warp` / `room`.
 extern RoomEventMsg D_neo_ark_eve_access_tunnel_801807A0;
 
@@ -63,6 +63,19 @@ static void _neoArkEveAccessTunnelUpdateRoom(Task* unusedTask);
 enum {
     NEO_ARK_EVE_ACCESS_TUNNEL_INTACT_PART_VARIANT_LIMIT = 4,
     NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT   = 11,
+};
+
+enum {
+    NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_START,
+    NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_WAIT_CAP,
+    NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_CHECK_REPLY,
+    NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_WAIT,
+    NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_COMMIT,
+    NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DECLINED              = 12,
+    NEO_ARK_EVE_ACCESS_TUNNEL_INTERACTION_REARM_UPDATES = 10,
+    NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_TASK              = 0,
+    NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_TASK             = 1,
+    NEO_ARK_EVE_ACCESS_TUNNEL_CAP_COMPLETION_TASK       = 2,
 };
 
 extern AreaResource D_neo_ark_eve_access_tunnel_8018067C[2];
@@ -426,64 +439,70 @@ static const TaskFuncTable3 D_neo_ark_eve_access_tunnel_8017D688 = {
     taskKill,
 };
 
-/// Tunnel departure sequence, advanced one step per call: step 0 raises CAP
-/// command 3, step 1 waits for the CAP system to go idle, step 2 arms the CAP
-/// countdown at 0xA and waits for the event key it answers with - 0xC kills the
-/// sequence and messages the player weapon - and step 3 falls through to the
-/// shared advance. Step 4 stages `gRoomDeparture` (stage 4, area from the
-/// task's `spawnArg1`, room 1, warp 2, facing 0x800 and no sound), runs area,
-/// warp and room through the room's resolver, and spawns the tunnel's outgoing
-/// task, whose callback is `roomDepartureTask`.
-void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
+/// Resolves a departure's destination selectors in place for an executed transition.
+///
+/// Only area, warp and room are passed through the borrowed stage resolver.
+/// The resolver must accept one request as both input and output.
+static __inline__ void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
 {
+    RoomEventMsg request;
+
+    request.areaId    = departure->area;
+    request.warp      = departure->warp;
+    request.room      = departure->room;
+    request.queryOnly = ROOM_EVENT_EXECUTE;
+    resolve(&request, &request);
+    departure->area = request.areaId;
+    departure->warp = request.warp;
+    departure->room = request.room;
+}
+
+void neoArkEveAccessTunnelShelterDepartureTask(Task* task)
+{
+    enum {
+        NEO_ARK_EVE_ACCESS_TUNNEL_CAP_SHELTER_DEPARTURE = 3,
+        NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_DEFAULT_ROOM  = 1,
+        NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_ARRIVAL       = 2,
+        NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_FACING        = 0x800, // Half a turn, 4096 units per turn.
+    };
+
     switch (task->state) {
-        case 0:
-            capRunCommandWithTransition(3);
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_START:
+            capRunCommandWithTransition(NEO_ARK_EVE_ACCESS_TUNNEL_CAP_SHELTER_DEPARTURE);
             task->state++;
             return;
-        case 1:
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_WAIT_CAP:
             if (capIsBusy() != 0) {
                 return;
             }
             task->state++;
             return;
-        case 2:
-            D_80114D08 = 0xA;
-            if (capGetVariantKey() == 0xC) {
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_CHECK_REPLY:
+            D_80114D08 = NEO_ARK_EVE_ACCESS_TUNNEL_INTERACTION_REARM_UPDATES;
+            if (capGetVariantKey() == NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DECLINED) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 return;
             }
             task->state++;
             return;
-        case 3:
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_WAIT:
             task->state++;
             return;
-        case 4: {
-            RoomDeparture       work;
-            RoomEventMsg        msg;
-            RoomDeparture*      wp;
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_COMMIT: {
+            RoomDeparture       departure;
             RoomVariantResolver resolve = _roomVariantResolveShelter;
 
-            work.stage    = GAME_STAGE_MINE_SHELTER;
-            work.area     = (u8)task->spawnArg1.value;
-            work.room     = 1;
-            work.warp     = 2;
-            work.sndEvent = 0;
-            work.facing   = 0x800;
+            departure.stage    = GAME_STAGE_MINE_SHELTER;
+            departure.area     = (u8)task->spawnArg1.value;
+            departure.room     = NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_DEFAULT_ROOM;
+            departure.warp     = NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_ARRIVAL;
+            departure.sndEvent = 0;
+            departure.facing   = NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_FACING;
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            // The destination room depends on game progress: run the departure's
-            // selectors through the stage's resolver, request and reply in one record.
-            wp            = &work;
-            msg.areaId    = wp->area;
-            msg.warp      = wp->warp;
-            msg.room      = wp->room;
-            msg.queryOnly = ROOM_EVENT_EXECUTE;
-            resolve(&msg, &msg);
-            wp->area       = msg.areaId;
-            wp->warp       = msg.warp;
-            wp->room       = msg.room;
-            gRoomDeparture = work;
+            // Commit the resolved selectors before the departure task borrows them.
+            _roomVariantResolveDeparture(&departure, resolve);
+            gRoomDeparture = departure;
             taskSpawnFromTable(&D_neo_ark_eve_access_tunnel_8017EA88, 0, 0, 0);
             taskKill(task);
             break;
@@ -491,27 +510,24 @@ void func_neo_ark_eve_access_tunnel_8017D980(Task* task)
     }
 }
 
-/// Tunnel save sequence, advanced one step per call: step 0 raises CAP command
-/// 2, step 1 waits for the CAP system to go idle, step 2 latches the save flag
-/// into CAP and waits for the event key it answers with, step 3 waits for the
-/// queued sound to finish, and step 4 commits the staged save location to
-/// `gMcSaveData` and spawns the outgoing task.
-void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
+void neoArkEveAccessTunnelElevatorDepartureTask(Task* task)
 {
+    enum { NEO_ARK_EVE_ACCESS_TUNNEL_CAP_ELEVATOR_DEPARTURE = 2 };
+
     switch (task->state) {
-        case 0:
-            capRunCommandWithTransition(2);
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_START:
+            capRunCommandWithTransition(NEO_ARK_EVE_ACCESS_TUNNEL_CAP_ELEVATOR_DEPARTURE);
             task->state++;
             return;
-        case 1:
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_WAIT_CAP:
             if (capIsBusy() != 0) {
                 return;
             }
             task->state++;
             return;
-        case 2:
-            D_80114D08 = 0xA;
-            if (capGetVariantKey() == 0xC) {
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_CHECK_REPLY:
+            D_80114D08 = NEO_ARK_EVE_ACCESS_TUNNEL_INTERACTION_REARM_UPDATES;
+            if (capGetVariantKey() == NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DECLINED) {
                 taskKill(task);
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
                 return;
@@ -520,13 +536,14 @@ void func_neo_ark_eve_access_tunnel_8017DB18(Task* task)
             task->state++;
             sndEvtRequestScriptStart(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR, 0, 0);
             return;
-        case 3:
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_WAIT:
             if (sndScriptHasActiveId(SOUND_NEO_ARK_EVE_TUNNEL_TO_ELEVATOR) != 0) {
                 return;
             }
             task->state++;
             return;
-        case 4:
+        case NEO_ARK_EVE_ACCESS_TUNNEL_DEPARTURE_COMMIT:
+            // Commit only area, warp and room; the remaining saved location bytes stay live.
             gDisplayState.spriteVariant                                = 1;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area = D_neo_ark_eve_access_tunnel_801807A0.warp;
             gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = D_neo_ark_eve_access_tunnel_801807A0.field_4;
@@ -542,61 +559,69 @@ s32 neoArkEveAccessTunnelRejectKeyItemMessage(Task* unusedTask, s32 unusedMessag
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Tunnel message handler. Message 9 either raises the CAP command that opens
-/// the tunnel (nibble 0xB9 still clear) or, once that nibble is set, latches the
-/// save location the outgoing message carries and starts the cutscene that
-/// leads to the EVE encounter. The two `switch`es are load-bearing: the
-/// equivalent `if` / `else` chain makes reorg fill the second queryOnly branch's
-/// delay slot from the return block instead of the fall-through.
-s32 func_neo_ark_eve_access_tunnel_8017DC6C(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+s32 neoArkEveAccessTunnelResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
-    mapNeoArkResolveRoomVariant(src, dst);
-    switch (src->areaId) {
+    enum {
+        NEO_ARK_EVE_ACCESS_TUNNEL_CAP_LOCKED_ELEVATOR  = 1,
+        NEO_ARK_EVE_ACCESS_TUNNEL_MAP_FLAG_VISIBLE     = 2,
+        NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_SCENE_EVENT = 24,
+    };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    switch (request->areaId) {
         case GAME_AREA_NEO_ARK_EVE_ELEVATOR:
             switch (gameFlagGetNibble(GAME_FLAG_NEO_ARK_EVE_ELEVATOR_UNLOCKED)) {
                 case 0:
-                    if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                        gameFlagSetNibbleIfPresent(src->flagId, 2);
-                        capRunCommandWithTransition(1);
+                    if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                        gameFlagSetNibbleIfPresent(request->flagId, NEO_ARK_EVE_ACCESS_TUNNEL_MAP_FLAG_VISIBLE);
+                        capRunCommandWithTransition(NEO_ARK_EVE_ACCESS_TUNNEL_CAP_LOCKED_ELEVATOR);
                     }
                     break;
                 default:
-                    if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent    = 0x18;
-                        D_neo_ark_eve_access_tunnel_801807A0.warp              = (u8)dst->areaId;
-                        D_neo_ark_eve_access_tunnel_801807A0.field_4           = dst->warp;
-                        ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1] = dst->room;
+                    if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                        // Preserve the three resolved selectors for the deferred reload.
+                        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent    = NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_SCENE_EVENT;
+                        D_neo_ark_eve_access_tunnel_801807A0.warp              = (u8)reply->areaId;
+                        D_neo_ark_eve_access_tunnel_801807A0.field_4           = reply->warp;
+                        ((u8*)&D_neo_ark_eve_access_tunnel_801807A0.areaId)[1] = reply->room;
                         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                        taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 1, 0, 0);
+                        taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, NEO_ARK_EVE_ACCESS_TUNNEL_ELEVATOR_TASK, 0, 0);
                     }
                     break;
             }
-            return 0;
+            return ROOM_VARIANT_TRANSITION_REFUSED;
     }
-    return 1;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
-s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 neoArkEveAccessTunnelHandleCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    if (gGameSession->location.loc.variant == 0xB) {
-        switch (arg2) {
-            case 6:
+    enum {
+        NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_0  = 6,
+        NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_1  = 7,
+        NEO_ARK_EVE_ACCESS_TUNNEL_CAP_PART_0_DOWN = 8,
+        NEO_ARK_EVE_ACCESS_TUNNEL_CAP_PART_1_DOWN = 9,
+    };
+
+    if (gGameSession->location.loc.variant == NEO_ARK_EVE_ACCESS_TUNNEL_MASKED_BACKDROP_VARIANT) {
+        switch (commandId) {
+            case NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_0:
                 if (gameFlagGetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_0_DOWN) == 0) {
                     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                        capRunCommandWithTransition(6);
+                        capRunCommandWithTransition(NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_0);
                     }
                 } else {
-                    capRunCommandWithTransition(8);
+                    capRunCommandWithTransition(NEO_ARK_EVE_ACCESS_TUNNEL_CAP_PART_0_DOWN);
                 }
                 break;
-            case 7:
+            case NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_1:
                 if (gameFlagGetNibble(GAME_FLAG_EVE_ACCESS_TUNNEL_PART_1_DOWN) == 0) {
                     if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                        capRunCommandWithTransition(7);
+                        capRunCommandWithTransition(NEO_ARK_EVE_ACCESS_TUNNEL_COMMAND_PART_1);
                     }
                 } else {
-                    capRunCommandWithTransition(9);
+                    capRunCommandWithTransition(NEO_ARK_EVE_ACCESS_TUNNEL_CAP_PART_1_DOWN);
                 }
                 break;
         }
@@ -604,18 +629,21 @@ s32 func_neo_ark_eve_access_tunnel_8017DD70(Task* arg0, s32 arg1, s32 arg2, s32 
     return 0;
 }
 
-s32 func_neo_ark_eve_access_tunnel_8017DE1C(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+s32 neoArkEveAccessTunnelHandleAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* request = firstArg;
-
-    if (request->actionId == 0xA) {
+    enum {
+        NEO_ARK_EVE_ACCESS_TUNNEL_ACTION_SHELTER_DEPARTURE = 10,
+        NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DEPARTURE_BLOCKED    = 5,
+        NEO_ARK_EVE_ACCESS_TUNNEL_BLOCKED_DEPARTURE_FLAG   = 0x1AF,
+    };
+    if (request->actionId == NEO_ARK_EVE_ACCESS_TUNNEL_ACTION_SHELTER_DEPARTURE) {
         if (gameFlagGetNibble(GAME_FLAG_0F8) != 0) {
-            capRunCommandWithTransition(5);
-            taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 2, 0x1AF, 0);
+            capRunCommandWithTransition(NEO_ARK_EVE_ACCESS_TUNNEL_CAP_DEPARTURE_BLOCKED);
+            taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, NEO_ARK_EVE_ACCESS_TUNNEL_CAP_COMPLETION_TASK, NEO_ARK_EVE_ACCESS_TUNNEL_BLOCKED_DEPARTURE_FLAG, 0);
         } else {
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             // Widen the action byte to the task argument's ABI word.
-            taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, 0, (s32)request->argument, 0);
+            taskSpawnFromTable(D_neo_ark_eve_access_tunnel_8017EAC4, NEO_ARK_EVE_ACCESS_TUNNEL_SHELTER_TASK, (s32)request->argument, 0);
         }
         return 0;
     }

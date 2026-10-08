@@ -876,7 +876,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSubmarineTunnelConfigureEffectsTask, { NULL } },                              // 0x152
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPavilionInstallRoomEffectsTask, { NULL } },                                   // 0x153
     { { { TASK_BODY_COORD, 0x70 } }, neoArkIslandInstallRoomEffectIdsTask, { NULL } },                                   // 0x154
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_8017EA9C, { NULL } },                                           // 0x155
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkGardenAmbienceTask, { NULL } },                                               // 0x155
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017D8AC, { NULL } },                                    // 0x156
     { { { TASK_BODY_COORD, 0x70 } }, neoArkPowerPlant1DrawLightGlowsTask, { NULL } },                                    // 0x157
     { { { TASK_BODY_COORD, 0x70 } }, neoArkSavannaZoneConfigureEffectsTask, { NULL } },                                  // 0x158
@@ -1064,7 +1064,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_parking_garage_8017FF58, { NULL } },                                // 0x20E
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_1f_vehicular_airlock_80180008, { NULL } },                             // 0x20F
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_north_promenade_80181120, { NULL } },                                  // 0x210
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_forest_zone_8017F76C, { NULL } },                                      // 0x211
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkForestZoneRoomVisualEffectsSparkBurstTask, { NULL } },                        // 0x211
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80180FFC, { NULL } },                                         // 0x212
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_island_80180EE8, { NULL } },                                           // 0x213
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_power_plant_2_8017F140, { NULL } },                                    // 0x214
@@ -1087,7 +1087,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB4ReservoirRoomVisualEffectsGlowDiscTask, { NULL } },                        // 0x225
     { { { TASK_BODY_COORD, 0x70 } }, func_shelter_b4_water_supply_801809DC, { NULL } },                                  // 0x226
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_pavilion_80181C44, { NULL } },                                         // 0x227
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_garden_8017F790, { NULL } },                                           // 0x228
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkGardenRoomVisualEffectsGlowDiscTask, { NULL } },                              // 0x228
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1StoreroomRoomVisualEffectsFlyingSparkTask, { NULL } },                     // 0x229
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1NorthMaintenanceWalkwayRoomVisualEffectsFlyingSparkTask, { NULL } },       // 0x22A
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1SleepingQuartersRoomVisualEffectsFlyingSparkTask, { NULL } },              // 0x22B

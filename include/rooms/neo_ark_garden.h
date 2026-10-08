@@ -32,7 +32,19 @@ extern SpriteView D_neo_ark_garden_80182540[];
 
 extern WorldCollisionSurfaceProperties* D_neo_ark_garden_80182BD8[];
 
-void func_neo_ark_garden_8017EA9C(Task* task);
+/// Updates the garden's view-dependent ambience and fixed-point visual effects.
+///
+/// Requires a coordinate-body effect task with cleared, counted `EffectWork` in
+/// `spawnArg2.pointer` and initial state zero. Installs this room's glow-disc,
+/// flying-spark and orange-burst IDs. `spawnArg1.value` stores the previous mapped
+/// view byte; a change rearms a four-update sound delay in `EffectWork::scale`,
+/// counted down only in views 2..7. After that delay, those views queue pan and
+/// attenuation updates for `SOUND_NEO_ARK_GARDEN_AMBIENCE_1` and
+/// `SOUND_NEO_ARK_GARDEN_AMBIENCE_2`; views 2, 4 and 5 also start the pair once.
+/// Views 2 and 4 roll smoke only at `ROOM_EFFECT_CONTROL_RUNNING`; view 3 draws
+/// the star and view 4 draws two rotating squares regardless of that control.
+/// Runs until external teardown; the effect work and room resources must stay live.
+void neoArkGardenAmbienceTask(Task* task);
 
 /// Runs the garden's animated spark along a fixed step toward its initial target.
 ///
@@ -47,7 +59,17 @@ void func_neo_ark_garden_8017EA9C(Task* task);
 /// cancellation releases the effect. The target is not sampled again.
 void neoArkGardenRoomVisualEffectsFlyingSparkTask(Task* task);
 
-void func_neo_ark_garden_8017F790(Task* arg0);
+/// Runs the garden's attached charge disc, player-joint sparks and fading release ring.
+///
+/// Requires a counted coordinate-body effect with cleared, owned `EffectWork`
+/// in `spawnArg2.pointer`; `spawnArg1.value` selects tint 0 or 1. The borrowed
+/// parent coordinate and its ancestors must remain live. Growth emits and adopts
+/// flying sparks from player model parts 3..18 every fourth active age, requiring
+/// the live player model and installed flying-spark callback. The owner requests
+/// flicker, release or cancellation with `ROOM_VISUAL_EFFECTS_GLOW_DISC_*` states.
+/// Nonzero room control below 4 pauses; control 4 or above cancels. Completed
+/// release or cancellation frees the work, disc task and adopted children.
+void neoArkGardenRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs the garden's orange burst with a growing disc, glow and fading ring.
 ///

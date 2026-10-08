@@ -23,6 +23,8 @@
 
 #include "mapui/map_neo_ark.h"
 
+#include "../../shared/room_variants.h"
+
 /// The room's message table, which state 0 of its event task installs.
 extern TaskMessageEntry D_neo_ark_eve_elevator_8017D724[];
 
@@ -42,7 +44,7 @@ static const TaskFuncTable3 D_neo_ark_eve_elevator_8017D5C4 = {
 enum { NEO_ARK_EVE_ELEVATOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
 
 static s32 _neoArkEveElevatorRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
-s32        func_neo_ark_eve_elevator_8017D5D8(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32 _neoArkEveElevatorResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32 _neoArkEveElevatorIgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 commandArgument);
 static s32 _neoArkEveElevatorIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
@@ -51,7 +53,7 @@ extern WorldCollisionTrigger D_neo_ark_eve_elevator_8017DBC8[1];
 extern WorldCoordRoomLights  D_neo_ark_eve_elevator_8017DBB0[1];
 
 TaskMessageEntry D_neo_ark_eve_elevator_8017D724[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_eve_elevator_8017D5D8 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _neoArkEveElevatorResolveTransition },
     { NEO_ARK_EVE_ELEVATOR_MESSAGE_USE_KEY_ITEM, _neoArkEveElevatorRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _neoArkEveElevatorIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, _neoArkEveElevatorIgnoreRoomCommand },
@@ -185,26 +187,30 @@ static s32 _neoArkEveElevatorRejectKeyItemUse(Task* unusedTask, s32 unusedMessag
     return NEO_ARK_EVE_ELEVATOR_KEY_ITEM_REFUSED;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming record onto the
-/// outgoing one and passes both to `mapNeoArkResolveRoomVariant`. It returns 1 unless the
-/// record's `msgId` is 0x18 and `cdCmdIsIdle` returns 0; in that case it
-/// returns 0, first starting cap event 1 through `capSpawnEventIfIdle` when the
-/// record's `queryOnly` is 0.
-s32 func_neo_ark_eve_elevator_8017D5D8(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a transition and gates the Shelter B6 corridor departure on CD dispatch readiness.
+///
+/// Copies the complete request to the reply, which may alias it, before resolving
+/// its room. Returns 1 for other areas or an idle CD queue; otherwise returns 0.
+/// Only an execute request in that latter case attempts CAP event 1 with actors paused.
+/// An empty ring outside normal dispatch also takes that handled path.
+/// Both records are borrowed during dispatch and must provide a complete `RoomEventMsg`.
+static s32 _neoArkEveElevatorResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    if (in->areaId != GAME_AREA_SHELTER_B6_CORRIDOR) {
-        return 1;
+    enum { NEO_ARK_EVE_ELEVATOR_CAP_CORRIDOR_DEPARTURE = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId != GAME_AREA_SHELTER_B6_CORRIDOR) {
+        return ROOM_VARIANT_TRANSITION_DIRECT;
     }
     if (cdCmdIsIdle() != 0) {
-        return 1;
+        return ROOM_VARIANT_TRANSITION_DIRECT;
     }
-    if (in->queryOnly != ROOM_EVENT_EXECUTE) {
-        return 0;
+    if (request->queryOnly != ROOM_EVENT_EXECUTE) {
+        return ROOM_VARIANT_TRANSITION_REFUSED;
     }
-    capSpawnEventIfIdle(1, CAP_EVENT_PAUSE_ACTORS);
-    return 0;
+    capSpawnEventIfIdle(NEO_ARK_EVE_ELEVATOR_CAP_CORRIDOR_DEPARTURE, CAP_EVENT_PAUSE_ACTORS);
+    return ROOM_VARIANT_TRANSITION_REFUSED;
 }
 
 /// Ignores room commands sent to the EVE elevator and returns 0.

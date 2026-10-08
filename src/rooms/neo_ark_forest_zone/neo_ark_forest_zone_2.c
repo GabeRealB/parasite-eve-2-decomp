@@ -76,6 +76,7 @@ extern RoamerSpawnPoint D_neo_ark_forest_zone_80182DE8[5];
 /// `gSceneCombatState.battleRefs` as seen on the previous frame.
 extern s16 gRoamerPrevBattleRefs;
 
+static void _roamerTickPoolB(Task* unusedTask);
 static void func_neo_ark_forest_zone_8018141C(Task* arg0);
 
 /// State table of the first arming task, indexed by `Task::state`.
@@ -146,9 +147,9 @@ static AnimationSet _gNeoArkForestZoneAnimation047D4 = {
 TaskDesc D_neo_ark_forest_zone_80181DBC = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_forest_zone_80181DC8[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_forest_zone_8017D7E4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, neoArkForestZoneResolveTransition },
     { NEO_ARK_FOREST_ZONE_MESSAGE_USE_KEY_ITEM, neoArkForestZoneRejectKeyItemMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_neo_ark_forest_zone_8017D958 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, neoArkForestZoneHandleAction },
     { ROOM_MESSAGE_COMMAND, neoArkForestZoneIgnoreCommandMessage },
     { ROOM_MESSAGE_ACTOR_EVENT, neoArkForestZoneForwardActorEvent },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -576,8 +577,6 @@ TaskDesc D_neo_ark_forest_zone_80182E18 = { { { TASK_BODY_NONE, 32 } }, _neoArkF
 
 TaskDesc D_neo_ark_forest_zone_80182E24 = { { { TASK_BODY_NONE, 32 } }, func_neo_ark_forest_zone_80181430, { .value = 0 } };
 
-static void func_neo_ark_forest_zone_80180D24(Task* arg0);
-
 static void _neoArkForestZoneFinishRoamerPoolBState(Task* task);
 
 #include "../../shared/roaming_enemies_bank_retreat.inc.c"
@@ -592,15 +591,51 @@ static void _neoArkForestZoneFinishRoamerPoolBState(Task* task);
 
 #include "../../shared/roaming_enemies_arm_pool_b.inc.c"
 
-static void func_neo_ark_forest_zone_80180D24(Task* arg0)
+/// Updates the shared roaming-enemy pool feeding the forest zone.
+///
+/// Requires initialized reserve count 0..5, a location variant in 0..15 and live
+/// placed-actor/model storage. An unarmed variant returns without clearing its
+/// request. Active updates persist reserve losses when battle references fall to
+/// zero, count down the shared cooldown and service a deferred battle reset.
+/// A nonzero one-based selector revives at most one dormant actor among slots 0..1.
+/// Selectors 1..4 choose their rows; every other nonzero selector chooses row 5.
+/// HP is tested as signed 16-bit data; zero and negative slots are unavailable.
+/// Placement uses parent-coordinate units at Y=0 and 4096 yaw units per turn.
+/// Each active update clears the request even when no enemy can be revived.
+static void _roamerTickPoolB(Task* unusedTask)
 {
-    s16    i;
-    s16    count;
-    s32    a;
-    s32    b;
-    Enemy* obj;
-    s16    j;
-    s16    k;
+    enum {
+        ROAMER_POOL_B_RESERVE_SLOTS   = ARRAY_SIZE(gRoamerReserveHp),
+        ROAMER_POOL_B_PLACED_ACTORS   = 2,
+        ROAMER_POOL_B_HP_DORMANT      = -999,
+        ROAMER_POOL_B_COMMAND_LEAP_IN = 11,
+    };
+    s16    actorIndex;
+    s16    bankedCount;
+    s32    previousKills;
+    s32    persistedReserve;
+    Enemy* enemy;
+    s16    reserveIndex;
+    s16    reserveSlot;
+
+/// Places a revived actor without caching or reordering the placed-actor lookups.
+///
+/// actorIndex and pointIndex are side-effect-free indices in 0..1 and 0..4,
+/// evaluated repeatedly. dirtyBeforeTurn is a constant 0 or 1 preserving the
+/// row's dirty-stamp ordering. Uses the borrowed forest spawn-point table and
+/// expands to complete statements in a switch arm.
+#define ROAMER_PLACE_POOL_B_ENEMY(actorIndex, pointIndex, dirtyBeforeTurn)                                          \
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[pointIndex].x; \
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[1] = 0;                                            \
+    sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[pointIndex].z; \
+    if (dirtyBeforeTurn) {                                                                                          \
+        sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                   \
+    }                                                                                                               \
+    gfxRotMatrixY(&sceneFindPlacedActor(actorIndex)->extra.tmd->coords->coord,                                      \
+                  D_neo_ark_forest_zone_80182DE8[pointIndex].yaw, GRAPHICS_ROTATION_REPLACE);                       \
+    if (!(dirtyBeforeTurn)) {                                                                                       \
+        sceneFindPlacedActor(actorIndex)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;                   \
+    }
 
     gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     if (gRoamerArmCountsB[gGameSession->location.loc.variant] == 0) {
@@ -609,35 +644,37 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
     if (_gRoamerCooldownFrames > ROAMER_COOLDOWN_READY) {
         _gRoamerCooldownFrames--;
     }
+    // Persist losses only on the transition out of a live battle.
     if (gSceneCombatState.battleRefs == 0 && gRoamerPrevBattleRefs > 0) {
-        b     = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
-        count = 0;
-        for (k = 0; k < 5; k++) {
-            if (((s16*)gRoamerReserveHp)[k] > 0) {
-                count++;
+        persistedReserve = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
+        bankedCount      = 0;
+        for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
+            if ((s16)gRoamerReserveHp[reserveSlot] > 0) {
+                bankedCount++;
             }
         }
-        printf("(get_flag(266)-get_total()) = %d\n", b - count);
-        a     = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B);
-        b     = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
-        count = 0;
-        for (k = 0; k < 5; k++) {
-            if (((s16*)gRoamerReserveHp)[k] > 0) {
-                count++;
+        printf("(get_flag(266)-get_total()) = %d\n", persistedReserve - bankedCount);
+        previousKills    = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B);
+        persistedReserve = gameFlagGetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE);
+        bankedCount      = 0;
+        for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
+            if ((s16)gRoamerReserveHp[reserveSlot] > 0) {
+                bankedCount++;
             }
         }
-        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B, a + (b - count));
-        count = 0;
-        for (k = 0; k < 5; k++) {
-            if (((s16*)gRoamerReserveHp)[k] > 0) {
-                count++;
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_KILLS_POOL_B, previousKills + (persistedReserve - bankedCount));
+        bankedCount = 0;
+        for (reserveSlot = 0; reserveSlot < ROAMER_POOL_B_RESERVE_SLOTS; reserveSlot++) {
+            if ((s16)gRoamerReserveHp[reserveSlot] > 0) {
+                bankedCount++;
             }
         }
-        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE, count);
+        gameFlagSetNibble(GAME_FLAG_NEO_ARK_ROAMER_POOL_B_RESERVE, bankedCount);
         areaSyncLocationVariant(&gGameSession->location.loc);
         _gRoamerCooldownFrames = ROAMER_POST_BATTLE_COOLDOWN_FRAMES;
     }
     gRoamerPrevBattleRefs = gSceneCombatState.battleRefs;
+    // Defer reward/reset cleanup until the post-battle cooldown expires.
     if (gGameSession->battleResetPending == 1 && _gRoamerCooldownFrames == ROAMER_COOLDOWN_READY) {
         gSceneCombatState.signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
         gSceneCombatState.peTargetCount             = 0;
@@ -647,72 +684,48 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
         gSceneCombatState.mpReward                  = 0;
         gGameSession->battleResetPending            = 0;
     }
+    // Consume one reserve slot and request the revived actor's leap-in.
     if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_FINISHED && _gRoamerPendingSpawnPoint != ROAMER_SPAWN_POINT_NONE) {
-        gRoamerCommand.context.loc.stage = 5;
-        gRoamerCommand.context.loc.area  = 0xB;
-        gRoamerCommand.command           = 0xB;
-        for (i = 0; i < 2; i++) {
-            if (sceneFindPlacedActor(i) == 0) {
+        gRoamerCommand.context.loc.stage = GAME_STAGE_SHELTER_NEO_ARK;
+        gRoamerCommand.context.loc.area  = GAME_AREA_NEO_ARK_FOREST_ZONE;
+        gRoamerCommand.command           = ROAMER_POOL_B_COMMAND_LEAP_IN;
+        for (actorIndex = 0; actorIndex < ROAMER_POOL_B_PLACED_ACTORS; actorIndex++) {
+            if (sceneFindPlacedActor(actorIndex) == 0) {
                 break;
             }
-            obj = sceneFindPlacedActor(i)->spawnArg2.pointer;
-            if (obj == NULL) {
+            enemy = sceneFindPlacedActor(actorIndex)->spawnArg2.pointer;
+            if (enemy == NULL) {
                 break;
             }
-            if (obj->hp == -999) {
-                for (j = 0; j < gRoamerReserveCount; j++) {
-                    if (((s16*)gRoamerReserveHp)[j] > 0) {
-                        obj->hp             = gRoamerReserveHp[j];
-                        obj->reactionFlags  = 0;
-                        gRoamerReserveHp[j] = 0;
+            if (enemy->hp == ROAMER_POOL_B_HP_DORMANT) {
+                for (reserveIndex = 0; reserveIndex < gRoamerReserveCount; reserveIndex++) {
+                    if ((s16)gRoamerReserveHp[reserveIndex] > 0) {
+                        enemy->hp                      = gRoamerReserveHp[reserveIndex];
+                        enemy->reactionFlags           = 0;
+                        gRoamerReserveHp[reserveIndex] = 0;
                         break;
                     }
                 }
-                if (obj->hp > 0) {
+                if (enemy->hp > 0) {
                     sceneAcquireBattleRef(0);
                     _gRoamerCooldownFrames += ROAMER_ACTION_COOLDOWN_FRAMES;
-                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(i), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(actorIndex), ACTOR_COMMAND_MESSAGE_APPLY, &gRoamerCommand, 0);
                     switch ((s16)(_gRoamerPendingSpawnPoint - 1)) {
                         case 0:
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[0].x;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[0].z;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_forest_zone_80182DE8[0].yaw, 1);
+                            ROAMER_PLACE_POOL_B_ENEMY(actorIndex, 0, 1);
                             break;
                         case 1:
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0]   = D_neo_ark_forest_zone_80182DE8[1].x;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1]   = 0;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2]   = D_neo_ark_forest_zone_80182DE8[1].z;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_forest_zone_80182DE8[1].yaw, 1);
+                            ROAMER_PLACE_POOL_B_ENEMY(actorIndex, 1, 1);
                             break;
                         case 2:
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[2].x;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1] = 0;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[2].z;
-                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_forest_zone_80182DE8[2].yaw, 1);
-                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            ROAMER_PLACE_POOL_B_ENEMY(actorIndex, 2, 0);
                             break;
                         case 3:
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[3].x;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1] = 0;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[3].z;
-                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_forest_zone_80182DE8[3].yaw, 1);
-                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            ROAMER_PLACE_POOL_B_ENEMY(actorIndex, 3, 0);
                             break;
                         case 4:
                         default:
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[0] = D_neo_ark_forest_zone_80182DE8[4].x;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[1] = 0;
-                            sceneFindPlacedActor(i)->extra.tmd->coords->coord.t[2] = D_neo_ark_forest_zone_80182DE8[4].z;
-                            gfxRotMatrixY(&sceneFindPlacedActor(i)->extra.tmd->coords->coord,
-                                          D_neo_ark_forest_zone_80182DE8[4].yaw, 1);
-                            sceneFindPlacedActor(i)->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+                            ROAMER_PLACE_POOL_B_ENEMY(actorIndex, 4, 0);
                             break;
                     }
                 }
@@ -721,6 +734,7 @@ static void func_neo_ark_forest_zone_80180D24(Task* arg0)
         }
     }
     _gRoamerPendingSpawnPoint = ROAMER_SPAWN_POINT_NONE;
+#undef ROAMER_PLACE_POOL_B_ENEMY
 }
 
 /// Ignores actor commands sent to the forest's first reserve-enemy pool.
@@ -774,7 +788,7 @@ static void _neoArkForestZoneFinishRoamerPoolBState(Task* task)
 /// State table of the second arming task, indexed by `Task::state`.
 static const TaskFuncTable4 D_neo_ark_forest_zone_8017D634 = { {
     _roamerArmPoolB,
-    func_neo_ark_forest_zone_80180D24,
+    _roamerTickPoolB,
     _neoArkForestZoneFinishRoamerPoolBState,
     taskKill,
 } };

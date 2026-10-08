@@ -18,9 +18,22 @@ extern TaskMessageEntry D_neo_ark_garden_801813B0[5];
 /// returns `ROOM_KEY_ITEM_USE_REFUSED` so the item menu shows its refusal.
 s32 neoArkGardenRejectKeyItemMessage(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
 
-s32 func_neo_ark_garden_8017E848(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Resolves room selection and blocks the substation departure until altar sequence 1 is solved.
+///
+/// Copies the complete borrowed request to the writable reply, which may alias it.
+/// Returns 1 for other areas or a solved altar, otherwise 0, including queries.
+/// Only an execute request on that blocked path marks the optional map flag with
+/// 2 and runs CAP 1. Neither record is retained; the receiver and message ID are unused.
+s32 neoArkGardenResolveTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
 
-s32 func_neo_ark_garden_8017E8DC(Task*, s32, s32, s32);
+/// Handles the garden's room commands and progress-dependent CAP requests.
+///
+/// Command 4 selects CAP 4 or 6 and applies the saved-area updates once while
+/// altar sequence 1 remains unsolved. Commands 7 and 5 attempt CAP 7/9 and 5/10
+/// respectively, selecting the latter after nursery progress and spawning only
+/// when CAP is idle. Other commands do nothing. Always returns zero; unused
+/// arguments carry no payload ownership.
+s32 neoArkGardenHandleCommand(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
 
 /// Ignores the garden's direction-trigger action requests and returns zero.
 ///

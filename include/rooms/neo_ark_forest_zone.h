@@ -56,7 +56,14 @@ void neoArkForestZoneRoomVisualEffectsFlashTask(Task* task);
 /// completion. Teardown releases both the history and effect allocations.
 void neoArkForestZoneRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_neo_ark_forest_zone_8017F76C(Task* task);
+/// Runs the forest zone's impact flash with smoke or fading rings and bouncing sparks.
+///
+/// Requires a counted coordinate-body effect with zero-aged, owned `EffectWork`
+/// in `spawnArg2.pointer` and initial state zero. Nonzero `spawnArg1.value` selects
+/// smoke; zero selects rings and sparks. Active age 7 enters release and the next
+/// active tick frees work and task. Nonzero room control below 4 pauses; control
+/// 4 or above cancels. Spawned effects have independent task lifetimes.
+void neoArkForestZoneRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Runs one tumbling forest leaf through falling, a stationary hold and fading.
 ///

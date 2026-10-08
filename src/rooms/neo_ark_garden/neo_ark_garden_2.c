@@ -59,10 +59,10 @@ TaskDesc D_neo_ark_garden_80181398 = { { { TASK_BODY_NONE, 192 } }, waterRefract
 TaskDesc D_neo_ark_garden_801813A4 = { { { TASK_BODY_NONE, 192 } }, waterDistortBandTask, { .value = 0 } };
 
 TaskMessageEntry D_neo_ark_garden_801813B0[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_neo_ark_garden_8017E848 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, neoArkGardenResolveTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, neoArkGardenRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, neoArkGardenIgnoreActionMessage },
-    { ROOM_MESSAGE_COMMAND, func_neo_ark_garden_8017E8DC },
+    { ROOM_MESSAGE_COMMAND, neoArkGardenHandleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -390,136 +390,159 @@ WorldCollisionTrigger D_neo_ark_garden_801828D4[7] = {
     { NULL, NULL, NULL, { -4896, -64, -0x4920, 0 }, { { 1008, 0, -592, 0 }, { 1008, 0, 592, 0 }, { -1008, 0, -592, 0 }, { -1008, 0, 592, 0 } }, { 0, 4112, 0, 0 }, { 0, 0, 4096, 0 }, 1166, WORLD_COLLISION_TRIGGER_ACTION_CAP, 7, WORLD_COLLISION_TRIGGER_CAP_ROOM_MESSAGE, WORLD_COLLISION_TRIGGER_FACING_QUAD | WORLD_COLLISION_TRIGGER_LAST, 0 },
 };
 
-/// Garden ambience task tick. On its first tick it installs three effect ids
-/// and moves `state` to 1. `spawnArg1` holds the view seen on the previous
-/// tick; whenever `viewGetMappedIndex()` differs from it, the sound delay held in
-/// `EffectWork::scale` restarts at 4, and once it has run down the current
-/// view's pair of 0x550F0003 / 0x550F0004 loops is enqueued every tick. In
-/// views 2, 4 and 5 the first such tick with `state` still 1 also plays them
-/// once through `sndEvtRequestScriptStart` and moves `state` to 2. Views 2 and 4
-/// additionally roll two 1-in-4 chances per tick, while no event is running,
-/// to spawn effect 0x60070 at the first two points of
-/// `D_neo_ark_garden_801813E0`; view 4 also draws rotating squares at the last
-/// two points, and view 3 draws the marker at `D_neo_ark_garden_801813D8`.
-void func_neo_ark_garden_8017EA9C(Task* task)
+/// Rolls independent one-in-four smoke spawns at the garden's two fixed emitters.
+///
+/// Each successful roll consumes one extra LCG step for size 512..1023 and
+/// atlas period 2 or 3 ticks. The packed options select view-space drifting
+/// rise, motion mode 2. The effect spawner copies each world-space offset.
+static __inline__ void _neoArkGardenSpawnAmbientSmoke(void)
 {
-    EffectWork* work;
-    u32         rnd;
+    enum {
+        NEO_ARK_GARDEN_SMOKE_CHANCE_MASK = 3,
+        NEO_ARK_GARDEN_SMOKE_JITTER_MASK = (1 << 12) | 0x1FF,
+        NEO_ARK_GARDEN_SMOKE_BASE_ARG    = (2 << 16) | (2 << 12) | 512,
+    };
+    u32 randomState;
 
-    // The room task animates nothing with its own effect block and reuses one
-    // member as storage: `scale` counts down the frames left before the
-    // current view's ambience loops are enqueued again. Spawn leaves it zero.
-    work = task->spawnArg2.pointer;
-    if (task->state == 0) {
-        task->state               = 1;
+    randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = randomState;
+    if (((randomState >> 16) & NEO_ARK_GARDEN_SMOKE_CHANCE_MASK) == 0) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & NEO_ARK_GARDEN_SMOKE_JITTER_MASK) | NEO_ARK_GARDEN_SMOKE_BASE_ARG,
+                    &D_neo_ark_garden_801813E0[0]);
+    }
+    randomState     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    gRandomLcgState = randomState;
+    if (((randomState >> 16) & NEO_ARK_GARDEN_SMOKE_CHANCE_MASK) == 0) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & NEO_ARK_GARDEN_SMOKE_JITTER_MASK) | NEO_ARK_GARDEN_SMOKE_BASE_ARG,
+                    &D_neo_ark_garden_801813E0[1]);
+    }
+}
+
+void neoArkGardenAmbienceTask(Task* task)
+{
+    enum {
+        NEO_ARK_GARDEN_AMBIENCE_INITIALIZE,
+        NEO_ARK_GARDEN_AMBIENCE_IDS_INSTALLED,
+        NEO_ARK_GARDEN_AMBIENCE_STARTED,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_DELAY_TICKS   = 4,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_MASK          = 0xFF,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_2             = 2,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_3             = 3,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_4             = 4,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_5             = 5,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_6             = 6,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_7             = 7,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_2_PAN_1       = -8,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_2_PAN_2       = 0,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_2_ATTENUATION = 50,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_3_PAN_1       = -15,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_3_PAN_2       = -14,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_3_ATTENUATION = 76,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_4_PAN_1       = -12,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_4_PAN_2       = 12,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_4_ATTENUATION = 0,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_5_PAN_1       = -14,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_5_PAN_2       = -13,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_5_ATTENUATION = 64,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_6_PAN_1       = 13,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_6_PAN_2       = 15,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_6_ATTENUATION = 76,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_7_PAN         = -12,
+        NEO_ARK_GARDEN_AMBIENCE_VIEW_7_ATTENUATION = 0,
+        NEO_ARK_GARDEN_MARKER_PULSE_RATE           = 0x600,
+        NEO_ARK_GARDEN_MARKER_RADIUS_SCALE         = 0xC0,
+    };
+    EffectWork* ambienceWork;
+
+    // This task reuses scale for the view's sound-delay ticks; spawn clears it.
+    ambienceWork = task->spawnArg2.pointer;
+    if (task->state == NEO_ARK_GARDEN_AMBIENCE_INITIALIZE) {
+        task->state               = NEO_ARK_GARDEN_AMBIENCE_IDS_INSTALLED;
         gRoomEffectGlowDiscId     = EFFECT_NEO_ARK_GARDEN_GLOW_DISC;
         gRoomEffectFlyingSparkId  = EFFECT_NEO_ARK_GARDEN_FLYING_SPARK;
         gRoomEffectOrangeBurst2Id = EFFECT_NEO_ARK_GARDEN_ORANGE_BURST_2;
     }
-    if (task->spawnArg1.value != (viewGetMappedIndex() & 0xFF)) {
-        work->scale = 4;
+    // Delay sound repositioning when the mapped view changes.
+    if (task->spawnArg1.value != (viewGetMappedIndex() & NEO_ARK_GARDEN_AMBIENCE_VIEW_MASK)) {
+        ambienceWork->scale = NEO_ARK_GARDEN_AMBIENCE_VIEW_DELAY_TICKS;
     }
-    switch (viewGetMappedIndex() & 0xFF) {
-        case 2:
-            if (work->scale == 0) {
-                if (task->state == 1) {
-                    task->state = 2;
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
+    switch (viewGetMappedIndex() & NEO_ARK_GARDEN_AMBIENCE_VIEW_MASK) {
+        case NEO_ARK_GARDEN_AMBIENCE_VIEW_2:
+            if (ambienceWork->scale == 0) {
+                if (task->state == NEO_ARK_GARDEN_AMBIENCE_IDS_INSTALLED) {
+                    task->state = NEO_ARK_GARDEN_AMBIENCE_STARTED;
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_2_PAN_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_2_ATTENUATION);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_2_PAN_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_2_ATTENUATION);
                 }
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -8, 0x32);
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0, 0x32);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_2_PAN_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_2_ATTENUATION);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_2_PAN_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_2_ATTENUATION);
             } else {
-                work->scale--;
+                ambienceWork->scale--;
             }
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rnd;
-                if (((rnd >> 16) & 3) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
-                                &D_neo_ark_garden_801813E0[0]);
-                }
-                rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rnd;
-                if (((rnd >> 16) & 3) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
-                                &D_neo_ark_garden_801813E0[1]);
-                }
+                _neoArkGardenSpawnAmbientSmoke();
             }
             break;
-        case 3:
-            if (work->scale == 0) {
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xF, 0x4C);
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xE, 0x4C);
+        case NEO_ARK_GARDEN_AMBIENCE_VIEW_3:
+            if (ambienceWork->scale == 0) {
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_3_PAN_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_3_ATTENUATION);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_3_PAN_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_3_ATTENUATION);
             } else {
-                work->scale--;
+                ambienceWork->scale--;
             }
-            glowDrawPulsingStar(&D_neo_ark_garden_801813D8, 0x600, 0xC0);
+            glowDrawPulsingStar(&D_neo_ark_garden_801813D8, NEO_ARK_GARDEN_MARKER_PULSE_RATE, NEO_ARK_GARDEN_MARKER_RADIUS_SCALE);
             break;
-        case 4:
-            if (work->scale == 0) {
-                if (task->state == 1) {
-                    task->state = 2;
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
+        case NEO_ARK_GARDEN_AMBIENCE_VIEW_4:
+            if (ambienceWork->scale == 0) {
+                if (task->state == NEO_ARK_GARDEN_AMBIENCE_IDS_INSTALLED) {
+                    task->state = NEO_ARK_GARDEN_AMBIENCE_STARTED;
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_4_PAN_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_4_ATTENUATION);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_4_PAN_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_4_ATTENUATION);
                 }
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xC, 0);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_4_PAN_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_4_ATTENUATION);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_4_PAN_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_4_ATTENUATION);
             } else {
-                work->scale--;
+                ambienceWork->scale--;
             }
             _neoArkGardenDrawRotatingSquare(&D_neo_ark_garden_801813E0[2]);
             _neoArkGardenDrawRotatingSquare(&D_neo_ark_garden_801813E0[3]);
             if (gRoomEffectState->effectControl == ROOM_EFFECT_CONTROL_RUNNING) {
-                rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rnd;
-                if (((rnd >> 16) & 3) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
-                                &D_neo_ark_garden_801813E0[0]);
-                }
-                rnd             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                gRandomLcgState = rnd;
-                if (((rnd >> 16) & 3) == 0) {
-                    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                    effectSpawn(EFFECT_SMOKE_PUFF, 0, ((gRandomLcgState >> 16) & 0x11FF) | 0x22200,
-                                &D_neo_ark_garden_801813E0[1]);
-                }
+                _neoArkGardenSpawnAmbientSmoke();
             }
             break;
-        case 5:
-            if (work->scale == 0) {
-                if (task->state == 1) {
-                    task->state = 2;
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
-                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
+        case NEO_ARK_GARDEN_AMBIENCE_VIEW_5:
+            if (ambienceWork->scale == 0) {
+                if (task->state == NEO_ARK_GARDEN_AMBIENCE_IDS_INSTALLED) {
+                    task->state = NEO_ARK_GARDEN_AMBIENCE_STARTED;
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_5_PAN_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_5_ATTENUATION);
+                    sndEvtRequestScriptStart(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_5_PAN_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_5_ATTENUATION);
                 }
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xE, 0x40);
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xD, 0x40);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_5_PAN_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_5_ATTENUATION);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_5_PAN_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_5_ATTENUATION);
             } else {
-                work->scale--;
+                ambienceWork->scale--;
             }
             break;
-        case 6:
-            if (work->scale == 0) {
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, 0xD, 0x4C);
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, 0xF, 0x4C);
+        case NEO_ARK_GARDEN_AMBIENCE_VIEW_6:
+            if (ambienceWork->scale == 0) {
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_6_PAN_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_6_ATTENUATION);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_6_PAN_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_6_ATTENUATION);
             } else {
-                work->scale--;
+                ambienceWork->scale--;
             }
             break;
-        case 7:
-            if (work->scale == 0) {
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, -0xC, 0);
-                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, -0xC, 0);
+        case NEO_ARK_GARDEN_AMBIENCE_VIEW_7:
+            if (ambienceWork->scale == 0) {
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_1, NEO_ARK_GARDEN_AMBIENCE_VIEW_7_PAN, NEO_ARK_GARDEN_AMBIENCE_VIEW_7_ATTENUATION);
+                sndEvtRequestScriptMix(SOUND_NEO_ARK_GARDEN_AMBIENCE_2, NEO_ARK_GARDEN_AMBIENCE_VIEW_7_PAN, NEO_ARK_GARDEN_AMBIENCE_VIEW_7_ATTENUATION);
             } else {
-                work->scale--;
+                ambienceWork->scale--;
             }
             break;
     }
-    task->spawnArg1.value = viewGetMappedIndex() & 0xFF;
+    task->spawnArg1.value = viewGetMappedIndex() & NEO_ARK_GARDEN_AMBIENCE_VIEW_MASK;
 }
 
 #include "../../shared/glow_draw_pulsing_star.inc.c"
@@ -612,9 +635,9 @@ static void _neoArkGardenDrawRotatingSquare(const SVECTOR* centre)
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_neo_ark_garden_8017F790(Task* arg0)
+void neoArkGardenRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void neoArkGardenRoomVisualEffectsFlyingSparkTask(Task* task)

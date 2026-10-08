@@ -32,3 +32,4 @@ _neoArkEveElevatorIgnoreRoomAction = 0x8017d670; // type:func
 _neoArkEveElevatorIdleRoomTask = 0x8017d6bc; // type:func
 _neoArkEveElevatorInitializeRoom = 0x8017d678; // type:func
 neoArkEveElevatorRoomTask = 0x8017d6c4; // type:func
+_neoArkEveElevatorResolveTransition = 0x8017d5d8; // type:func

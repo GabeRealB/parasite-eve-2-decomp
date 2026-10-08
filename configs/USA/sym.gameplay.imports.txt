@@ -848,11 +848,11 @@ neoArkForestZoneRoomVisualEffectsFlashTask = 0x8017E420; // type:func absolute:T
 
 neoArkForestZoneRoomVisualEffectsTwinTrailTask = 0x8017EE84; // type:func absolute:True owner=neo_ark_forest_zone
 
-func_neo_ark_forest_zone_8017F76C = 0x8017F76C; // type:func absolute:True owner=neo_ark_forest_zone
+neoArkForestZoneRoomVisualEffectsSparkBurstTask = 0x8017F76C; // type:func absolute:True owner=neo_ark_forest_zone
 
-func_neo_ark_garden_8017EA9C = 0x8017EA9C; // type:func absolute:True owner=neo_ark_garden
+neoArkGardenAmbienceTask = 0x8017EA9C; // type:func absolute:True owner=neo_ark_garden
 
-func_neo_ark_garden_8017F790 = 0x8017F790; // type:func absolute:True owner=neo_ark_garden
+neoArkGardenRoomVisualEffectsGlowDiscTask = 0x8017F790; // type:func absolute:True owner=neo_ark_garden
 
 neoArkGardenRoomVisualEffectsFlyingSparkTask = 0x8017FCE8; // type:func absolute:True owner=neo_ark_garden shared=rooms
 

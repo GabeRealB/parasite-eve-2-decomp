@@ -110,7 +110,7 @@ neoArkForestZoneRoomVisualEffectsFlashTask = 0x8017E420; // type:func
 
 neoArkForestZoneRoomVisualEffectsTwinTrailTask = 0x8017EE84; // type:func
 
-func_neo_ark_forest_zone_8017F76C = 0x8017F76C; // type:func
+neoArkForestZoneRoomVisualEffectsSparkBurstTask = 0x8017F76C; // type:func
 
 neoArkForestZoneLeafFallTask = 0x8017DC20; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017E6C4; // type:func
@@ -137,3 +137,7 @@ _neoArkForestZonePauseRoamersState = 0x8017db40; // type:func
 _neoArkForestZoneFinishRoamerPoolBState = 0x80181508; // type:func
 neoArkForestZoneRoomTask = 0x8017dbbc; // type:func
 _neoArkForestZoneRoamerPoolBTask = 0x8018151c; // type:func
+neoArkForestZoneResolveTransition = 0x8017d7e4; // type:func
+neoArkForestZoneHandleAction = 0x8017d958; // type:func
+_neoArkForestZoneInitializeRoom = 0x8017da80; // type:func
+_roamerTickPoolB = 0x80180d24; // type:func
