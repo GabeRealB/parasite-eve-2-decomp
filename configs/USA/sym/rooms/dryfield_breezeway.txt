@@ -74,7 +74,7 @@ D_dryfield_breezeway_80181E10 = 0x80181E10; // size:0x18 defined:True
 
 dryfieldBreezewayBouncingParticleTask = 0x80181264; // type:func
 
-func_dryfield_breezeway_8017DC3C = 0x8017DC3C; // type:func
+dryfieldBreezewayKeyItemSessionTask = 0x8017DC3C; // type:func
 
 dryfieldBreezewayAmbientEffectsTask = 0x8017FF7C; // type:func
 _actionPromptOutlineRectDefault = 0x8017E948; // type:func
@@ -111,3 +111,10 @@ _dryfieldBreezewayOpenKeyItemCommands = 0x8017fd9c; // type:func
 _dryfieldBreezewayDrawRedDiamondGlow = 0x8018034c; // type:func
 _dryfieldBreezewayDrawBouncingParticle = 0x80181938; // type:func
 _dryfieldBreezewayInitializeKeyItemEvent = 0x8017e464; // type:func
+dryfieldBreezewayResolveRoomEventMessage = 0x8017d940; // type:func
+dryfieldBreezewayHandleRoomCommand = 0x8017da48; // type:func
+dryfieldBreezewayHandleRoomAction = 0x8017dbd8; // type:func
+dryfieldBreezewayFactoryDoorDialogueTask = 0x8017dce4; // type:func
+_dryfieldBreezewayInitMessageTask = 0x8017ddb0; // type:func
+_dryfieldBreezewayLeadKeyItemLine = 0x8017e81c; // type:func
+_dryfieldBreezewayFinishKeyItemCommand = 0x8017fe08; // type:func

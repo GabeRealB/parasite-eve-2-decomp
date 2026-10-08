@@ -138,11 +138,11 @@ static const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5E0 = {
     { _acropolisWestElevatorHallInitializeDoorLeaf, _acropolisWestElevatorHallUpdateDoorLeaf, taskKill },
 };
 
-/// Position of the first effect `func_acropolis_west_elevator_hall_8017F7D4`
+/// Position of the first effect `acropolisWestElevatorHallViewEffectsTask`
 /// spawns in view 2.
 static const SVECTOR D_acropolis_west_elevator_hall_8017D5EC = { -0x1518, -0x720, 0xAC, 0 };
 
-/// Position of the effect `func_acropolis_west_elevator_hall_8017F7D4` spawns
+/// Position of the effect `acropolisWestElevatorHallViewEffectsTask` spawns
 /// in view 5.
 static const SVECTOR D_acropolis_west_elevator_hall_8017D5F4 = { -0x79, -0x876, 0x703, 0 };
 
@@ -1217,42 +1217,56 @@ static void _acropolisWestElevatorHallUpdateDoorLeaf(Task* task)
     worldCoordSetModelLighting(doorModel, &worldPosition, 0, 3);
 }
 
-/// Third state of the elevator task: on the two session phases that use it,
-/// spawns the lift's ambient effects around the room's coordinate system.
-void func_acropolis_west_elevator_hall_8017F7D4(Task* task)
+void acropolisWestElevatorHallViewEffectsTask(Task* task)
 {
-    SVECTOR   pos;
-    SVECTOR   altPos;
-    GfxCoord* coord;
+    enum {
+        ACROPOLIS_WEST_ELEVATOR_HALL_EFFECTS_INITIALIZE    = 0,
+        ACROPOLIS_WEST_ELEVATOR_HALL_EFFECTS_UPDATE        = 1,
+        ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_VIEW           = 2,
+        ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_VIEW             = 5,
+        ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_BANK       = 1,
+        ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_TASK_INDEX = 0x25,
+    };
+    SVECTOR   beaconPosition;
+    SVECTOR   lightPosition;
+    GfxCoord* parentCoord;
 
-    coord = task->extra.coordBody->coord;
+    /// Emits all three view-2 beacons, snapshotting each position before reuse.
+    ///
+    /// Captures the writable SVECTOR `beaconPosition` and live GfxCoord pointer
+    /// `parentCoord`. Expands to statements; invoke in an explicit braced block.
+#define ACROPOLIS_WEST_ELEVATOR_HALL_SPAWN_VIEW_BEACONS()                                                               \
+    beaconPosition = D_acropolis_west_elevator_hall_8017D5EC;                                                           \
+    effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(4, 0x18), &beaconPosition); \
+    beaconPosition.vx = -0x1800;                                                                                        \
+    beaconPosition.vy = -0x4F0;                                                                                         \
+    beaconPosition.vz = -0x600;                                                                                         \
+    effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(3, 0x8), &beaconPosition);  \
+    beaconPosition.vx = -0x1800;                                                                                        \
+    beaconPosition.vy = -0x4F0;                                                                                         \
+    beaconPosition.vz = -0x2C0;                                                                                         \
+    effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, parentCoord, RED_BEACON_ARG(3, 0x8), &beaconPosition);
+
+    parentCoord = task->extra.coordBody->coord;
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_WEST_ELEVATOR_HALL_EFFECTS_INITIALIZE:
             task->msgTable = D_acropolis_west_elevator_hall_801849F4;
             gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
-            taskSpawn(1, 0x25, 0, 0);
-            taskSpawn(1, 0x25, 1, 0);
+            taskSpawn(ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_BANK, ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_TASK_INDEX, 0, 0);
+            taskSpawn(ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_BANK, ACROPOLIS_WEST_ELEVATOR_HALL_REFLECTION_TASK_INDEX, 1, 0);
             task->state = task->state + 1;
             return;
-        case 1:
-            if (gGameSession->location.loc.view == 2) {
-                pos = D_acropolis_west_elevator_hall_8017D5EC;
-                effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(4, 0x18), &pos);
-                pos.vx = -0x1800;
-                pos.vy = -0x4F0;
-                pos.vz = -0x600;
-                effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0x8), &pos);
-                pos.vx = -0x1800;
-                pos.vy = -0x4F0;
-                pos.vz = -0x2C0;
-                effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_RED_BEACON, coord, RED_BEACON_ARG(3, 0x8), &pos);
+        case ACROPOLIS_WEST_ELEVATOR_HALL_EFFECTS_UPDATE:
+            if (gGameSession->location.loc.view == ACROPOLIS_WEST_ELEVATOR_HALL_BEACON_VIEW) {
+                ACROPOLIS_WEST_ELEVATOR_HALL_SPAWN_VIEW_BEACONS();
             }
-            if (gGameSession->location.loc.view == 5) {
-                altPos = D_acropolis_west_elevator_hall_8017D5F4;
-                effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT, coord, 0, &altPos);
+            if (gGameSession->location.loc.view == ACROPOLIS_WEST_ELEVATOR_HALL_GLOW_VIEW) {
+                lightPosition = D_acropolis_west_elevator_hall_8017D5F4;
+                effectSpawn(EFFECT_ACROPOLIS_WEST_ELEVATOR_HALL_LIGHT, parentCoord, 0, &lightPosition);
             }
             return;
     }
+#undef ACROPOLIS_WEST_ELEVATOR_HALL_SPAWN_VIEW_BEACONS
 }
 
 void acropolisWestElevatorHallBayLightingTask(Task* task)

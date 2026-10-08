@@ -84,7 +84,14 @@ void acropolisWestElevatorHallBayLightingTask(Task* task);
 /// accepts only states 0 and 1 and does not check bounds.
 void acropolisWestElevatorHallPlayerReflectionTask(Task* reflectionTask);
 
-void func_acropolis_west_elevator_hall_8017F7D4(Task* task);
+/// Registers the hall's room effects and emits lights for the current view.
+///
+/// Starts with a coordinate body in state 0, registers the room-effect message
+/// table and spawns two reflection tasks. State 1 emits three red beacons each
+/// frame in view 2 or a light glow in view 5. Positions use the parent coordinate
+/// frame and are copied by the spawner. Keep the hall overlay, coordinate and
+/// resources live while this task and its effects run; only states 0/1 act.
+void acropolisWestElevatorHallViewEffectsTask(Task* task);
 
 /// Runs the west elevator hall's room messages, door leaves and arrival event.
 ///

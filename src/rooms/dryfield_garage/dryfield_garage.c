@@ -59,8 +59,7 @@ extern TaskDesc gRoomEventTaskDesc;
 /// The room's message table, installed on the room task by its entry state.
 extern TaskMessageEntry D_dryfield_garage_8017DC7C[];
 
-/// Spawn table of the task `func_dryfield_garage_8017DAA0`, ended by a 0xFFFF
-/// entry.
+/// Spawn table of `_dryfieldGarageJunkYardRefusalTask`, ended by `TASK_DESC_END`.
 extern TaskDesc D_dryfield_garage_8017DCAC[];
 
 extern ActorTransform        D_dryfield_garage_8017DCC4;
@@ -96,24 +95,24 @@ extern WorldCollisionTrigger      D_dryfield_garage_8017F69C[14];
 extern WorldCollisionTrigger      D_dryfield_garage_8017FD1C[11];
 extern WorldCoordRoomAmbientEntry D_dryfield_garage_80180148[16];
 extern WorldCoordRoomLights       D_dryfield_garage_8017FD04[1];
-s32                               func_dryfield_garage_8017D91C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_dryfield_garage_8017DA18(Task*, s32, s32, s32);
-s32                               func_dryfield_garage_8017DA54(Task*, s32, RoomEventMsg*, s32);
-void                              func_dryfield_garage_8017DAA0(Task*);
+static s32                        _dryfieldGarageResolveRoomEventMessage(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32                        _dryfieldGarageHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
+static s32                        _dryfieldGarageHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void                       _dryfieldGarageJunkYardRefusalTask(Task* task);
 
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_garage_8017DC7C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_garage_8017D91C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldGarageResolveRoomEventMessage },
     { DRYFIELD_GARAGE_MESSAGE_USE_KEY_ITEM, _dryfieldGarageRejectKeyItemUse },
     { ROOM_MESSAGE_SOUND, _garageSoundMsg },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_garage_8017DA18 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_garage_8017DA54 },
+    { ROOM_MESSAGE_COMMAND, _dryfieldGarageHandleRoomCommand },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldGarageHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_garage_8017DCAC[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_garage_8017DAA0, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldGarageJunkYardRefusalTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
@@ -635,86 +634,111 @@ static s32 _dryfieldGarageRejectKeyItemUse(Task* task, s32 messageId, s32 itemId
     return DRYFIELD_GARAGE_KEY_ITEM_REFUSED;
 }
 
-/// Handler for message 0x13EE in the room's message table, which filters a
-/// warp request: copies `in` to `out`. For area 0x1A it answers 2 while nibble
-/// 0x33 is clear, spawning the task of `D_dryfield_garage_8017DCAC` outside a
-/// dry run; once 0x33 is set it sets nibble 0x2F (and 0x4B to 3) the first
-/// time. For area 0x17 it reports nibble 0x47 in `out->room`, 1 when clear
-/// and 2 when set. Otherwise it answers 1.
-s32 func_dryfield_garage_8017D91C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves factory rooms and gates junk-yard departure on the water-tank scene.
+///
+/// Borrows a complete eight-byte request and writable reply for
+/// `ROOM_EVENT_MESSAGE_RESOLVE`; copies the request before resolving it.
+/// Before the water-tank scene, junk-yard requests return 2 and executing requests
+/// spawn the refusal scene. Once seen, the first request latches door/companion
+/// progress even during a query. Factory execution selects room 1 or 2 from the
+/// barrier flag. Other paths return 1; request and reply may alias.
+static s32 _dryfieldGarageResolveRoomEventMessage(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    // Never touched, but its stack slot is load-bearing: `expand_decl` gives
-    // every BLKmode local a frame slot whether or not anything reads it, and
-    // MIPS_STACK_ALIGN(0x14) is what puts the saves at 0x28 and the frame at
-    // 0x38. Dropping it shrinks the frame to 0x20 and the overlay stops
-    // matching. See DECOMPILATION_LEARNINGS.md, "A frame 24 bytes too small is
-    // a dead aggregate local".
-    RoomEventReq req;
-    s32          nib;
+    enum {
+        DRYFIELD_GARAGE_EVENT_ALLOW                    = 1,
+        DRYFIELD_GARAGE_EVENT_REFUSE_WITH_SCENE        = 2,
+        DRYFIELD_GARAGE_COMPANION_AFTER_JUNK_YARD_DOOR = 3,
+        DRYFIELD_GARAGE_FACTORY_ROOM_DEFAULT           = 1,
+        DRYFIELD_GARAGE_FACTORY_ROOM_BARRIER_CLEARED   = 2,
+    };
+    // This unused event-request local preserves the binary's stack frame.
+    RoomEventReq unusedEventRequest;
+    s32          factoryRoom;
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_DRYFIELD_JUNK_YARD) {
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_JUNK_YARD) {
         if (gameFlagGetNibble(GAME_FLAG_WATER_TANK_SCENE_SEEN) == 0) {
-            if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
                 taskSpawnFromTable(D_dryfield_garage_8017DCAC, 0, 0, 0);
             }
-            return 2;
+            return DRYFIELD_GARAGE_EVENT_REFUSE_WITH_SCENE;
         }
         if (gameFlagGetNibble(GAME_FLAG_GARAGE_JUNK_YARD_DOOR_PASSED) == 0) {
             gameFlagSetNibble(GAME_FLAG_GARAGE_JUNK_YARD_DOOR_PASSED, 1);
-            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 3);
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, DRYFIELD_GARAGE_COMPANION_AFTER_JUNK_YARD_DOOR);
         }
     }
-    if (in->areaId == GAME_AREA_DRYFIELD_FACTORY) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            nib = gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED);
-            if (nib == 0) {
-                nib = 1;
+    if (request->areaId == GAME_AREA_DRYFIELD_FACTORY) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            factoryRoom = gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED);
+            if (factoryRoom == 0) {
+                factoryRoom = DRYFIELD_GARAGE_FACTORY_ROOM_DEFAULT;
             } else {
-                nib = 2;
+                factoryRoom = DRYFIELD_GARAGE_FACTORY_ROOM_BARRIER_CLEARED;
             }
-            out->room = nib;
+            reply->room = factoryRoom;
         }
     }
-    return 1;
+    return DRYFIELD_GARAGE_EVENT_ALLOW;
 }
 
-/// Handler for message 0x13F0 in the room's message table: on event 0x10 it
-/// runs cap command 0x16 if nibble 0xFD is set, else 0x10. Always answers 0.
-s32 func_dryfield_garage_8017DA18(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Selects one of two CAP commands for room command 16.
+///
+/// The live flag 0xFD selects command 22 when set, otherwise command 16.
+/// Its story meaning is unproven. Other room commands do nothing; all return zero.
+static s32 _dryfieldGarageHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
-    if (arg2 == 0x10) {
-        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_0FD) != 0 ? 0x16 : 0x10);
+    enum {
+        DRYFIELD_GARAGE_COMMAND_16         = 0x10,
+        DRYFIELD_GARAGE_CAP_FLAG_0FD_CLEAR = 0x10,
+        DRYFIELD_GARAGE_CAP_FLAG_0FD_SET   = 0x16,
+    };
+    if (command == DRYFIELD_GARAGE_COMMAND_16) {
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_0FD) != 0 ? DRYFIELD_GARAGE_CAP_FLAG_0FD_SET : DRYFIELD_GARAGE_CAP_FLAG_0FD_CLEAR);
     }
     return 0;
 }
 
-/// Handler for message 0x13EF in the room's message table: for warp point 2
-/// outside place 1 it calls `capSpawnEventIfIdle(0x13, 0)`. It returns no
-/// value.
-s32 func_dryfield_garage_8017DA54(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
+/// Starts CAP command 19 for directed room action 2 outside area variant 1.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows the four-byte request through dispatch;
+/// only its unsigned action byte is read. The zero second word is ignored.
+/// The result is unspecified and must not be consumed by a sender.
+static s32 _dryfieldGarageHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if ((msg->warp == 2) && (gGameSession->location.loc.variant != 1)) {
-        capSpawnEventIfIdle(0x13, CAP_EVENT_NO_FLAGS);
+    enum {
+        DRYFIELD_GARAGE_ACTION_2                  = 2,
+        DRYFIELD_GARAGE_ACTION_SUPPRESSED_VARIANT = 1,
+        DRYFIELD_GARAGE_CAP_ACTION_2              = 0x13,
+    };
+    if ((request->actionId == DRYFIELD_GARAGE_ACTION_2) && (gGameSession->location.loc.variant != DRYFIELD_GARAGE_ACTION_SUPPRESSED_VARIANT)) {
+        capSpawnEventIfIdle(DRYFIELD_GARAGE_CAP_ACTION_2, CAP_EVENT_NO_FLAGS);
     }
+    // The binary leaves the result unspecified; this message's sender ignores it.
 }
 
-/// Task spawned from `D_dryfield_garage_8017DCAC`: spawns the second entry of
-/// gameplay's `D_actor_120300_80141B6C`, keeping the task in `D_dryfield_garage_8018021C.task`,
-/// then ends itself.
-void func_dryfield_garage_8017DAA0(Task* arg0)
+/// Spawns Gary Douglas's scene for a refused junk-yard departure, then ends.
+///
+/// Requires the loaded actor_120300 task table. Records the borrowed scene handle
+/// for the room without polling it; the scene runs independently of this wrapper.
+static void _dryfieldGarageJunkYardRefusalTask(Task* task)
 {
-    Task* spawned;
-    s32   state;
-    switch (arg0->state) {
-        case 0:
-            spawned                         = taskSpawnFromTable(D_actor_120300_80141B6C, 1, 0, 0);
-            state                           = arg0->state;
-            D_dryfield_garage_8018021C.task = spawned;
-            arg0->state                     = state + 1;
+    enum {
+        DRYFIELD_GARAGE_REFUSAL_SPAWN                      = 0,
+        DRYFIELD_GARAGE_REFUSAL_EXIT                       = 1,
+        DRYFIELD_GARAGE_ACTOR_JUNK_YARD_REFUSAL_TASK_INDEX = 1,
+    };
+    Task* sceneTask;
+    s32   currentState;
+    switch (task->state) {
+        case DRYFIELD_GARAGE_REFUSAL_SPAWN:
+            sceneTask                       = taskSpawnFromTable(D_actor_120300_80141B6C, DRYFIELD_GARAGE_ACTOR_JUNK_YARD_REFUSAL_TASK_INDEX, 0, 0);
+            currentState                    = task->state;
+            D_dryfield_garage_8018021C.task = sceneTask;
+            task->state                     = currentState + 1;
             break;
-        case 1:
-            taskKill(arg0);
+        case DRYFIELD_GARAGE_REFUSAL_EXIT:
+            taskKill(task);
             break;
     }
 }

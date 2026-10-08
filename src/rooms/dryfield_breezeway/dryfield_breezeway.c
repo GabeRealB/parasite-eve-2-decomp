@@ -53,9 +53,9 @@ extern RoomEventMsg gRoomEventMsg;
 extern RoomEventReq gRoomEventReq;
 
 /// Handle of the room's key-item event task, which
-/// `func_dryfield_breezeway_8017DC3C` spawns from
+/// `dryfieldBreezewayKeyItemSessionTask` spawns from
 /// `D_dryfield_breezeway_80182E18` in its state 0 and drops again once
-/// `taskPollKill` reaps it; `func_dryfield_breezeway_8017DDB0` clears it when
+/// `taskPollKill` reaps it; `_dryfieldBreezewayInitMessageTask` clears it when
 /// the message task starts. `dryfieldBreezewayForwardKeyItemUse` forwards message
 /// 0x13F1 to it through `taskMessageDispatch`, answering 0 while there is none.
 extern Task* D_dryfield_breezeway_801843A8;
@@ -372,7 +372,16 @@ RoomEventReq gRoomEventReq = { 0 };
 
 Task* D_dryfield_breezeway_801843C0;
 
-static void func_dryfield_breezeway_8017DDB0(Task* task);
+/// Progress values shared by this room's factory-door handlers.
+enum {
+    DRYFIELD_BREEZEWAY_DOOR_MAGNET_READY                = 2,
+    DRYFIELD_BREEZEWAY_DOOR_FACTORY_KEY_HELD            = 3,
+    DRYFIELD_BREEZEWAY_DOOR_UNLOCKED                    = 4,
+    DRYFIELD_BREEZEWAY_DOOR_MAGNET_MISSING              = 5,
+    DRYFIELD_BREEZEWAY_DOOR_MAGNET_MISSING_ACKNOWLEDGED = 6,
+};
+
+static void _dryfieldBreezewayInitMessageTask(Task* task);
 static void _dryfieldBreezewayMessageTaskIdle(Task* unusedTask);
 
 #include "../../shared/room_event_gate.inc.c"
@@ -391,79 +400,95 @@ s32 dryfieldBreezewayForwardKeyItemUse(Task* unusedTask, s32 messageId, s32 item
     return reply;
 }
 
-/// `TaskMessageEntry` handler for message 0x13EE, the room's own progress gate. It
-/// answers message 0x17 by writing 1 or 2 into the outgoing record's `room`
-/// from the room's progress nibble 0x47, and - when the message id still reads
-/// 0x17 on a second look - hands the room's event request (flag nibble 0x37,
-/// collected bit 0x15) to the room's event gate `_roomEventGate`,
-/// returning its answer.
-/// A gate that latched the request is followed by the room's own follow-up:
-/// progress nibble 0x56 set to 4 and effect 0xA2. Everything else answers 1.
-s32 func_dryfield_breezeway_8017D940(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 dryfieldBreezewayResolveRoomEventMessage(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    RoomEventReq req;
-    s32          ret;
+    enum {
+        DRYFIELD_BREEZEWAY_FACTORY_ROOM_DEFAULT           = 1,
+        DRYFIELD_BREEZEWAY_FACTORY_ROOM_BARRIER_CLEARED   = 2,
+        DRYFIELD_BREEZEWAY_CAP_UNLOCK_FACTORY_DOOR        = 4,
+        DRYFIELD_BREEZEWAY_CAP_FACTORY_KEY_MISSING        = 2,
+        DRYFIELD_BREEZEWAY_OBJECTIVE_AFTER_FACTORY_UNLOCK = 0x38,
+    };
+    RoomEventReq eventRequest;
+    s32          result;
 
-    *out = *in;
-    if (in->areaId == GAME_AREA_DRYFIELD_FACTORY) {
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_FACTORY) {
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
             if (gameFlagGetNibble(GAME_FLAG_FACTORY_BARRIER_CLEARED) == 0) {
-                out->room = 1;
+                reply->room = DRYFIELD_BREEZEWAY_FACTORY_ROOM_DEFAULT;
             } else {
-                out->room = 2;
+                reply->room = DRYFIELD_BREEZEWAY_FACTORY_ROOM_BARRIER_CLEARED;
             }
         }
-        if (in->areaId == GAME_AREA_DRYFIELD_FACTORY) {
-            req.capCmd        = 4;
-            req.missingCapCmd = 2;
-            req.firstSnd      = 0x52160006;
-            req.secondSnd     = 0x52160003;
-            req.flagId        = GAME_FLAG_BREEZEWAY_FACTORY_DOOR_UNLOCKED;
-            req.collectedBit  = 0x15;
-            ret               = _roomEventGate(&req, out);
+        if (request->areaId == GAME_AREA_DRYFIELD_FACTORY) {
+            eventRequest.capCmd        = DRYFIELD_BREEZEWAY_CAP_UNLOCK_FACTORY_DOOR;
+            eventRequest.missingCapCmd = DRYFIELD_BREEZEWAY_CAP_FACTORY_KEY_MISSING;
+            eventRequest.firstSnd      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BREEZEWAY, 6);
+            eventRequest.secondSnd     = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_BREEZEWAY, 3);
+            eventRequest.flagId        = GAME_FLAG_BREEZEWAY_FACTORY_DOOR_UNLOCKED;
+            eventRequest.collectedBit  = INVENTORY_COLLECTION_ID_FACTORY_KEY & 0x7F;
+            result                     = _roomEventGate(&eventRequest, reply);
             if (gRoomEventActive != 0) {
-                gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 4);
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x38);
+                gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, DRYFIELD_BREEZEWAY_DOOR_UNLOCKED);
+                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, DRYFIELD_BREEZEWAY_OBJECTIVE_AFTER_FACTORY_UNLOCK);
             }
-            return ret;
+            return result;
         }
     }
     return 1;
 }
 
-s32 func_dryfield_breezeway_8017DA48(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Selects locked-door progress from the collected factory key and magnet.
+///
+/// Leaves unlocked progress and an acknowledged missing-magnet notice intact.
+static inline void _dryfieldBreezewayUpdateFactoryDoorProgress(void)
 {
-    switch (arg2) {
-        case 1:
-            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
-                capRunCommandWithTransition(5);
-            } else {
-                if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != 4) {
-                    if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_FACTORY_KEY) != 0) {
-                        gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 3);
-                    } else if (gameFlagGetNibble(GAME_FLAG_DRYFIELD_BREEZEWAY_0FE) != 0) {
-                        if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BOTTLECAP_MAGNET) == 0) {
-                            if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != 6) {
-                                gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 5);
-                            }
-                        } else {
-                            gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 2);
-                        }
-                    }
+    if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != DRYFIELD_BREEZEWAY_DOOR_UNLOCKED) {
+        if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_FACTORY_KEY) != 0) {
+            gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, DRYFIELD_BREEZEWAY_DOOR_FACTORY_KEY_HELD);
+        } else if (gameFlagGetNibble(GAME_FLAG_DRYFIELD_BREEZEWAY_0FE) != 0) {
+            if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_BOTTLECAP_MAGNET) == 0) {
+                if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != DRYFIELD_BREEZEWAY_DOOR_MAGNET_MISSING_ACKNOWLEDGED) {
+                    gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, DRYFIELD_BREEZEWAY_DOOR_MAGNET_MISSING);
                 }
+            } else {
+                gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, DRYFIELD_BREEZEWAY_DOOR_MAGNET_READY);
+            }
+        }
+    }
+}
+
+s32 dryfieldBreezewayHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
+{
+    enum {
+        DRYFIELD_BREEZEWAY_COMMAND_FACTORY_DOOR     = 1,
+        DRYFIELD_BREEZEWAY_COMMAND_KEY_ITEM         = 3,
+        DRYFIELD_BREEZEWAY_CAP_BATTLE_REFUSAL       = 5,
+        DRYFIELD_BREEZEWAY_KEY_ITEM_OBJECT          = 6,
+        DRYFIELD_BREEZEWAY_OBJECT_AVAILABLE         = 1,
+        DRYFIELD_BREEZEWAY_KEY_ITEM_TASK_INDEX      = 0,
+        DRYFIELD_BREEZEWAY_DOOR_DIALOGUE_TASK_INDEX = 1,
+    };
+    switch (command) {
+        case DRYFIELD_BREEZEWAY_COMMAND_FACTORY_DOOR:
+            if (gSceneCombatState.signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
+                capRunCommandWithTransition(DRYFIELD_BREEZEWAY_CAP_BATTLE_REFUSAL);
+            } else {
+                _dryfieldBreezewayUpdateFactoryDoorProgress();
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(D_dryfield_breezeway_80181E10, 1, arg2, 0);
+                taskSpawnFromTable(D_dryfield_breezeway_80181E10, DRYFIELD_BREEZEWAY_DOOR_DIALOGUE_TASK_INDEX, command, 0);
             }
             break;
-        case 3:
-            if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) >= 2) {
+        case DRYFIELD_BREEZEWAY_COMMAND_KEY_ITEM:
+            if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) >= DRYFIELD_BREEZEWAY_DOOR_MAGNET_READY) {
                 if (gSceneCombatState.signals.bytes.battlePhase != SCENE_COMBAT_BATTLE_ENGAGED) {
-                    if (areaGetCurrentObjectState(6) == 1) {
-                        taskSpawnFromTable(D_dryfield_breezeway_80181E10, 0, 0, 0);
+                    if (areaGetCurrentObjectState(DRYFIELD_BREEZEWAY_KEY_ITEM_OBJECT) == DRYFIELD_BREEZEWAY_OBJECT_AVAILABLE) {
+                        taskSpawnFromTable(D_dryfield_breezeway_80181E10, DRYFIELD_BREEZEWAY_KEY_ITEM_TASK_INDEX, 0, 0);
                         gameFlagSetNibble(GAME_FLAG_DRYFIELD_BREEZEWAY_0FE, 1);
                     }
                 } else {
-                    capRunCommandWithTransition(5);
+                    capRunCommandWithTransition(DRYFIELD_BREEZEWAY_CAP_BATTLE_REFUSAL);
                 }
             }
             break;
@@ -481,61 +506,63 @@ s32 dryfieldBreezewayHandleSoundMessage(Task* unusedTask, s32 unusedMessageId, s
     return 0;
 }
 
-/// `TaskMessageEntry` handler for message 0x13EF, the room's hotspot gate: sub-id 1
-/// arms the room's own task the first time it is seen, latching nibble 0x5D so
-/// a repeat visit does nothing. Only the incoming record is read - the handler
-/// answers 0 and never edits the outgoing copy.
-s32 func_dryfield_breezeway_8017DBD8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+s32 dryfieldBreezewayHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0 && in->warp == 1) {
+    enum {
+        DRYFIELD_BREEZEWAY_ACTION_FIRST_ENCOUNTER     = 1,
+        DRYFIELD_BREEZEWAY_FIRST_ENCOUNTER_TASK_INDEX = 1,
+    };
+    if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0 && request->actionId == DRYFIELD_BREEZEWAY_ACTION_FIRST_ENCOUNTER) {
         gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN, 1);
-        taskSpawnFromTable(D_dryfield_breezeway_801820B0, 1, 0, 0);
+        taskSpawnFromTable(D_dryfield_breezeway_801820B0, DRYFIELD_BREEZEWAY_FIRST_ENCOUNTER_TASK_INDEX, 0, 0);
     }
     return 0;
 }
 
-/// The breezeway's room task, spawned from the room data table. State 0 arms
-/// the room: it silences the two weapon displays and spawns the secondary task
-/// `D_dryfield_breezeway_80182E18` describes, keeping the handle so state 1 can
-/// reap it. State 1 polls that child and, once it is gone, drops the handle and
-/// kills the room task with it.
-void func_dryfield_breezeway_8017DC3C(Task* arg0)
+void dryfieldBreezewayKeyItemSessionTask(Task* task)
 {
-    s32 sp10;
-    s32 temp_v1;
+    enum {
+        DRYFIELD_BREEZEWAY_KEY_ITEM_SESSION_START = 0,
+        DRYFIELD_BREEZEWAY_KEY_ITEM_SESSION_WAIT  = 1,
+    };
+    s32 childResult;
 
-    temp_v1 = arg0->state;
-    switch (temp_v1) {
-        case 0:
+    switch (task->state) {
+        case DRYFIELD_BREEZEWAY_KEY_ITEM_SESSION_START:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
             D_dryfield_breezeway_801843A8 = taskSpawnFromTable(&D_dryfield_breezeway_80182E18, 0, 0, 0);
-            arg0->state                  += 1;
+            task->state                  += 1;
             return;
-        case 1:
-            if (taskPollKill(D_dryfield_breezeway_801843A8, &sp10) != 0) {
+        case DRYFIELD_BREEZEWAY_KEY_ITEM_SESSION_WAIT:
+            if (taskPollKill(D_dryfield_breezeway_801843A8, &childResult) != 0) {
                 D_dryfield_breezeway_801843A8 = NULL;
-                taskKill(arg0);
+                taskKill(task);
             }
             return;
     }
 }
 
-void func_dryfield_breezeway_8017DCE4(Task* task)
+void dryfieldBreezewayFactoryDoorDialogueTask(Task* task)
 {
+    enum {
+        DRYFIELD_BREEZEWAY_DOOR_DIALOGUE_START       = 0,
+        DRYFIELD_BREEZEWAY_DOOR_DIALOGUE_WAIT        = 1,
+        DRYFIELD_BREEZEWAY_DOOR_MAGNET_READY_VARIANT = 0xB,
+    };
     switch (task->state) {
-        case 0:
+        case DRYFIELD_BREEZEWAY_DOOR_DIALOGUE_START:
             capRunCommand(task->spawnArg1.value, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
-        case 1:
+        case DRYFIELD_BREEZEWAY_DOOR_DIALOGUE_WAIT:
             if (capIsBusy() == 0) {
-                if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != 4) {
-                    if (capGetVariantKey() == 0xB) {
-                        gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 2);
+                if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) != DRYFIELD_BREEZEWAY_DOOR_UNLOCKED) {
+                    if (capGetVariantKey() == DRYFIELD_BREEZEWAY_DOOR_MAGNET_READY_VARIANT) {
+                        gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, DRYFIELD_BREEZEWAY_DOOR_MAGNET_READY);
                     }
-                    if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) == 5) {
-                        gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, 6);
+                    if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS) == DRYFIELD_BREEZEWAY_DOOR_MAGNET_MISSING) {
+                        gameFlagSetNibble(GAME_FLAG_BREEZEWAY_FACTORY_DOOR_PROGRESS, DRYFIELD_BREEZEWAY_DOOR_MAGNET_MISSING_ACKNOWLEDGED);
                     }
                 }
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
@@ -545,18 +572,27 @@ void func_dryfield_breezeway_8017DCE4(Task* task)
     }
 }
 
-static void func_dryfield_breezeway_8017DDB0(Task* task)
+/// Registers room messages and stages the unseen first encounter.
+///
+/// Requires the live scene task for a synchronous actor-command broadcast.
+/// Installs the setup task only while the encounter is unseen, advances to idle,
+/// and clears the borrowed key-item event handle.
+static void _dryfieldBreezewayInitMessageTask(Task* task)
 {
-    ActorCommand msg;
+    enum {
+        DRYFIELD_BREEZEWAY_ACTOR_COMMAND_INITIALIZE     = 0,
+        DRYFIELD_BREEZEWAY_FIRST_EVENT_SETUP_TASK_INDEX = 0,
+    };
+    ActorCommand actorCommand;
 
     task->msgTable = D_dryfield_breezeway_80181DE0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     if (gameFlagGetNibble(GAME_FLAG_BREEZEWAY_FIRST_EVENT_SEEN) == 0) {
-        msg.context.loc.stage = gGameSession->location.loc.stage;
-        msg.context.loc.area  = gGameSession->location.loc.area;
-        msg.command           = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
-        taskSpawnFromTable(D_dryfield_breezeway_801820B0, 0, 0, 0);
+        actorCommand.context.loc.stage = gGameSession->location.loc.stage;
+        actorCommand.context.loc.area  = gGameSession->location.loc.area;
+        actorCommand.command           = DRYFIELD_BREEZEWAY_ACTOR_COMMAND_INITIALIZE;
+        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &actorCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+        taskSpawnFromTable(D_dryfield_breezeway_801820B0, DRYFIELD_BREEZEWAY_FIRST_EVENT_SETUP_TASK_INDEX, 0, 0);
     }
     task->state++;
     D_dryfield_breezeway_801843A8 = NULL;
@@ -571,7 +607,7 @@ static void _dryfieldBreezewayMessageTaskIdle(Task* unusedTask)
 /// `dryfieldBreezewayMessageTask`: publish the message table, idle, then
 /// kill.
 static const TaskFuncTable3 D_dryfield_breezeway_8017D5DC = {
-    { func_dryfield_breezeway_8017DDB0, _dryfieldBreezewayMessageTaskIdle, taskKill }
+    { _dryfieldBreezewayInitMessageTask, _dryfieldBreezewayMessageTaskIdle, taskKill }
 };
 
 void dryfieldBreezewayMessageTask(Task* task)

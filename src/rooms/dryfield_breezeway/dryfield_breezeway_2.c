@@ -250,7 +250,7 @@ extern ActorTransform D_dryfield_breezeway_80181E40[];
 /// `ActionPromptHotspot` run, ended by `ACTION_PROMPT_HOTSPOT_END`, that
 /// `_dryfieldBreezewayScanKeyItemHotspot` hit-tests at the
 /// prompt's own screen position and walks for the entry the cursor landed on,
-/// where the prop table below is hit-tested at the cursor itself. Its `id` is
+/// where the prop table below is hit-tested at the drawn line tip. Its `id` is
 /// the script variant the prompt confirms, which the scan parks in the event
 /// work block (`_DryfieldBreezewayKeyItemEventWork::hotspotId`, with `promptKind`) before state
 /// 3. `_dryfieldBreezewayInitializeKeyItemEvent` clears its `hit` along with the other
@@ -258,19 +258,17 @@ extern ActorTransform D_dryfield_breezeway_80181E40[];
 extern ActionPromptHotspot D_dryfield_breezeway_80182E00[];
 
 /// This room's prop hotspot table: an `ActionPromptHotspot` run ended by
-/// `ACTION_PROMPT_HOTSPOT_END`. `_actionPromptHitTestDefault` hit-tests the action
-/// cursor against it. Its entries are the room's interactive props:
+/// `ACTION_PROMPT_HOTSPOT_END`. Its entries are the room's interactive props:
 /// `_dryfieldBreezewayInitializeKeyItemEvent` clears every entry's `hit` through it
 /// before the first frame -- both tables', so the key-item prompt above starts
-/// clean too -- and the scan in
-/// `func_dryfield_breezeway_8017E81C` walks it for the entry the cursor landed
-/// on.
+/// clean too. `_dryfieldBreezewayLeadKeyItemLine` hit-tests the drawn line tip and walks
+/// the entries to find the prop it reached.
 extern ActionPromptHotspot D_dryfield_breezeway_80182DDC[];
 
 static void _actionPromptResetDefault(Task* task);
 static void _dryfieldBreezewayInitializeKeyItemEvent(Task* task);
 static void _dryfieldBreezewayScanKeyItemHotspot(Task* task);
-static void func_dryfield_breezeway_8017E81C(Task* task);
+static void _dryfieldBreezewayLeadKeyItemLine(Task* task);
 static void _dryfieldBreezewayUpdateKeyItemLine(Task* task, s16 leadX, s16 leadY);
 static void _dryfieldBreezewayDrawKeyItemLineSegment(s16 angle, s16 length, const SVECTOR* start, SVECTOR* tipOut, _DryfieldBreezewayLineEdge* edge);
 static s16  _dryfieldBreezewayIsLinePointNearTarget(const SVECTOR* target, const SVECTOR* point);
@@ -278,7 +276,7 @@ static void _dryfieldBreezewayPlaceKeyItemModelAtLineTip(Task* task, s16 tipX, s
 static s16  _dryfieldBreezewayGetLineBearing(s16 fromX, s16 fromY, s16 toX, s16 toY);
 static void _dryfieldBreezewayArmKeyItemPrompt(Task* task);
 static void _dryfieldBreezewayOpenKeyItemCommands(Task* task);
-static void func_dryfield_breezeway_8017FE08(Task* task);
+static void _dryfieldBreezewayFinishKeyItemCommand(Task* task);
 static void _actionPromptEventEnd(Task* eventTask);
 static void _dryfieldBreezewayDrawRedDiamondGlow(GfxCoord* coord, const SVECTOR* localPoint, s16 pulseRate, s16 radiusScale);
 static void _dryfieldBreezewayDrawBouncingParticle(Task* task, const u8 rgb[3]);
@@ -293,9 +291,9 @@ static const TaskFuncTable7 D_dryfield_breezeway_8017D5E8 = {
         _dryfieldBreezewayArmKeyItemPrompt,
         _dryfieldBreezewayScanKeyItemHotspot,
         _dryfieldBreezewayOpenKeyItemCommands,
-        func_dryfield_breezeway_8017FE08,
+        _dryfieldBreezewayFinishKeyItemCommand,
         _actionPromptEventEnd,
-        func_dryfield_breezeway_8017E81C,
+        _dryfieldBreezewayLeadKeyItemLine,
     }
 };
 
@@ -314,17 +312,17 @@ static void _dryfieldBreezewayKeyItemEventTask(Task* task);
 TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .value = 0 } };
 
 TaskMessageEntry D_dryfield_breezeway_80181DE0[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_breezeway_8017D940 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldBreezewayResolveRoomEventMessage },
     { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldBreezewayForwardKeyItemUse },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_breezeway_8017DA48 },
+    { ROOM_MESSAGE_COMMAND, dryfieldBreezewayHandleRoomCommand },
     { ROOM_MESSAGE_SOUND, dryfieldBreezewayHandleSoundMessage },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_breezeway_8017DBD8 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, dryfieldBreezewayHandleRoomAction },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_breezeway_80181E10[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_breezeway_8017DC3C, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_breezeway_8017DCE4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, dryfieldBreezewayKeyItemSessionTask, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, dryfieldBreezewayFactoryDoorDialogueTask, { .value = 0 } },
 };
 
 ActorTransform D_dryfield_breezeway_80181E28 = { { 0x4268, 0, 3000, 0 }, { 0, 2560, 0, 0 } };
@@ -829,46 +827,44 @@ static void _dryfieldBreezewayScanKeyItemHotspot(Task* task)
     }
 }
 
-/// Breathes the room's hanging prop: rebuilds the display object's coordinate
-/// matrix as a pure Y rotation of `rsin(gDisplayState.animFrame * 16)` -- one full turn
-/// every 256 frames -- off an identity built the same word-at-a-time way
-/// `_dryfieldBreezewayInitializeKeyItemEvent` builds the event work's two matrices, then
-/// updates the hanging line with `_dryfieldBreezewayUpdateKeyItemLine` using the
-/// prompt's own screen position and hit-tests it against the room's table.
+/// Lets the accepted bottlecap magnet lead the hanging line toward a prop hotspot.
 ///
-/// The idle cursor is the state the scan runs in; landing on
-/// an entry shows the hotspot cursor and walks `D_dryfield_breezeway_80182DDC`
-/// for the entry that was hit, which is the prop the player is looking at --
-/// pressing confirm against it runs cap slot 3 and ends the script in state 5.
-/// A cancel press (`buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED`) ends it in state 5 as well.
-static void func_dryfield_breezeway_8017E81C(Task* task)
+/// Requires initialized event work, a live TMD and the action-prompt slot.
+/// Yaw oscillates in 4096-unit angles with a 256-frame sine phase; the hit test
+/// uses the drawn line tip in screen-centred pixels. A hit starts CAP command 3
+/// and exits immediately; cancel also selects the exit state.
+static void _dryfieldBreezewayLeadKeyItemLine(Task* task)
 {
-    ActionPrompt*                       prompt = D_80114D28;
-    GfxCoord*                           coord  = task->extra.tmd->coords;
-    _DryfieldBreezewayKeyItemEventWork* work   = task->work;
-    ActionPromptHotspot*                hs     = D_dryfield_breezeway_80182DDC;
+    enum {
+        DRYFIELD_BREEZEWAY_KEY_ITEM_SWAY_PHASE_STEP = 16,
+        DRYFIELD_BREEZEWAY_CAP_LINE_TARGET_REACHED  = 3,
+    };
+    ActionPrompt*                       prompt  = D_80114D28;
+    GfxCoord*                           coord   = task->extra.tmd->coords;
+    _DryfieldBreezewayKeyItemEventWork* work    = task->work;
+    ActionPromptHotspot*                hotspot = D_dryfield_breezeway_80182DDC;
 
     prompt->mode        = ACTION_PROMPT_MODE_IDLE;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
 
     gfxSetRotIdentity(&coord->coord);
-    RotMatrixY(rsin(gDisplayState.animFrame * 0x10), &coord->coord);
+    RotMatrixY(rsin(gDisplayState.animFrame * DRYFIELD_BREEZEWAY_KEY_ITEM_SWAY_PHASE_STEP), &coord->coord);
     _dryfieldBreezewayUpdateKeyItemLine(task, prompt->screen.xy.x, prompt->screen.xy.y);
 
-    if (_actionPromptHitTestDefault(hs, work->lineEndX, work->lineEndY) != 0) {
+    if (_actionPromptHitTestDefault(hotspot, work->lineEndX, work->lineEndY) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
-        while (hs->id != ACTION_PROMPT_HOTSPOT_END) {
-            if (hs->hit != 0) {
-                capRunCommandWithTransition(3);
-                task->state = 5;
+        while (hotspot->id != ACTION_PROMPT_HOTSPOT_END) {
+            if (hotspot->hit != 0) {
+                capRunCommandWithTransition(DRYFIELD_BREEZEWAY_CAP_LINE_TARGET_REACHED);
+                task->state = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_EXIT;
                 return;
             }
-            hs++;
+            hotspot++;
         }
     }
 
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
-        task->state = 5;
+        task->state = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_EXIT;
     }
 }
 
@@ -1267,37 +1263,30 @@ static void _dryfieldBreezewayOpenKeyItemCommands(Task* task)
     task->state = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_WAIT_FOR_ITEM;
 }
 
-/// Closes whatever the hotspot scan left up and picks the room's next state:
-/// updates the line through `_dryfieldBreezewayUpdateKeyItemLine` using the rest point and clears the
-/// prompt's highlight state as the arm above does, then interrogates the
-/// gameplay side. If `itemMenuIsHotspotActionConfirmed` reports that the
-/// Examine/Push row was accepted, it starts cap slot 7 and returns to state 2.
-/// Otherwise `_DryfieldBreezewayKeyItemEventWork::keyItemAccepted`, written by
-/// `_dryfieldBreezewayUseBottlecapMagnet`, selects state 6 for an accepted key item
-/// or state 2 to resume scanning.
-static void func_dryfield_breezeway_8017FE08(Task* task)
+/// Selects the key-item interaction state after the item-command menu answers.
+///
+/// Keeps the line at rest and the cursor hidden/stopped. An Examine/Push answer
+/// starts CAP slot 7 and resumes model selection. Otherwise an accepted magnet
+/// selects line leading, and a refused item resumes model selection.
+static void _dryfieldBreezewayFinishKeyItemCommand(Task* task)
 {
+    enum {
+        DRYFIELD_BREEZEWAY_CAP_EXAMINE_KEY_ITEM = 7,
+    };
     ActionPrompt*                       prompt = D_80114D28;
     _DryfieldBreezewayKeyItemEventWork* work   = task->work;
-    s32                                 state;
 
     _dryfieldBreezewayUpdateKeyItemLine(task, 0, DRYFIELD_BREEZEWAY_LINE_REST_Y);
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
-        capStartSequenceSlot(7, 0, 0);
-        state = 2;
-    } else if (work->keyItemAccepted == 1) {
-        state = 6;
+        capStartSequenceSlot(DRYFIELD_BREEZEWAY_CAP_EXAMINE_KEY_ITEM, CAP_PLAYBACK_IN_PLACE, 0);
+        task->state = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_SELECT_MODEL;
+    } else if (work->keyItemAccepted == true) {
+        task->state = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_LEAD_LINE;
     } else {
-        state = 2;
+        task->state = DRYFIELD_BREEZEWAY_KEY_ITEM_STATE_SELECT_MODEL;
     }
-    /* `*&state`: taking the address keeps `state` in a stack slot, so the arms
-       above are memory stores rather than the register assignments jump.c's
-       `if (c) x = a; else x = b;` fold needs to hoist the else arm over the
-       `keyItemAccepted` test. Keeping that arm in its own block is what puts the value
-       in $v0. */
-    task->state = *&state;
 }
 
 #include "../../shared/action_prompt_event_end.inc.c"

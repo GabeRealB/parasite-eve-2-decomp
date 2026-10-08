@@ -73,3 +73,7 @@ _dryfieldGarageRejectKeyItemUse = 0x8017d914; // type:func
 _dryfieldGarageIdleRoomTask = 0x8017dc08; // type:func
 _dryfieldGarageInitRoomTask = 0x8017db18; // type:func
 dryfieldGarageRoomTask = 0x8017dc10; // type:func
+_dryfieldGarageResolveRoomEventMessage = 0x8017d91c; // type:func
+_dryfieldGarageHandleRoomCommand = 0x8017da18; // type:func
+_dryfieldGarageHandleRoomAction = 0x8017da54; // type:func
+_dryfieldGarageJunkYardRefusalTask = 0x8017daa0; // type:func

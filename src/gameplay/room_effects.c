@@ -565,7 +565,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, combustionFlameEmitterTask, { NULL } },                                             // 0x01B
     { { { TASK_BODY_COORD, 0x70 } }, combustionFlameTask, { NULL } },                                                    // 0x01C
     { { { TASK_BODY_COORD, 0x70 } }, acropolisHelicopterLandingPadPerimeterLightsTask, { NULL } },                       // 0x01D
-    { { { TASK_BODY_COORD, 0x70 } }, func_acropolis_west_elevator_hall_8017F7D4, { NULL } },                             // 0x01E
+    { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallViewEffectsTask, { NULL } },                               // 0x01E
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallRedBeaconTask, { NULL } },                                 // 0x01F
     { { { TASK_BODY_COORD, 0x70 } }, acropolisWestElevatorHallScanlineDistortionTask, { NULL } },                        // 0x020
     { { { TASK_BODY_COORD, 0x70 } }, acropolisEastElevatorHallReflectionsAndBeaconsTask, { NULL } },                     // 0x021

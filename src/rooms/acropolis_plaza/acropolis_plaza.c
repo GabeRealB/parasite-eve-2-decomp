@@ -447,7 +447,7 @@ void        func_acropolis_plaza_8017ECF8(Task*);
 static void _acropolisPlazaRepeatSceneTask(Task* task);
 void        func_acropolis_plaza_8017F620(Task*);
 static void _acropolisPlazaLetterboxTask(Task* task);
-void        func_acropolis_plaza_80180054(Task*);
+static void _acropolisPlazaSequenceTask(Task* task);
 static void _acropolisPlazaStartMovieDisplayTask(Task* task);
 
 extern WorldCollisionGrid   D_acropolis_plaza_80199180[1];
@@ -729,7 +729,7 @@ EvsCommand D_acropolis_plaza_80183764[8] = {
 };
 
 TaskDesc D_acropolis_plaza_80183824[12] = {
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_80180054, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaSequenceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaStreamedSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _acropolisPlazaStreamSceneTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, func_acropolis_plaza_8017ECF8, { .value = 0 } },
@@ -3688,76 +3688,109 @@ static void _acropolisPlazaLetterboxTask(Task* task)
 #undef ACROPOLIS_PLAZA_DRAW_LETTERBOX_BAR
 }
 
-/// Six-state opening sequence for the plaza. State 0 suppresses action/menu input
-/// except interaction (`padInputChangeSuppression`), applies the plaza view, allocates the sequence work block
-/// and spawns entries 5 and 0xB of the room's table around
-/// `playerActorRemoveEquipment`; states 1 and 2 idle. State 3 pins the camera override
-/// to (0x370, 0x370, 0x370), tells slot 6 to start (msg 0xFA4), spawns the
-/// stream watcher (entry 1) and the entry-8 actor, and arms
-/// `gCdCmdQueue.blockGamePause`. State 4 runs the ambience driver until
-/// `_acropolisPlazaUpdateSequenceEvent` reports the scene is over; state 5 records
-/// the next stage in the save block, disarms `blockGamePause` and hands off to the
-/// stage-load task.
-void func_acropolis_plaza_80180054(Task* task)
+/// Records the elevator arrival selectors and the destination's sprite variant.
+///
+/// Requires the live save block and display state; the reload consumes them.
+static inline void _acropolisPlazaCommitElevatorDestination(void)
 {
-    CdCmdQueue*                  q    = &gCdCmdQueue;
-    _AcropolisPlazaSequenceWork* work = (_AcropolisPlazaSequenceWork*)task->work;
-    _AcropolisPlazaSequenceWork* newWork;
-    SVECTOR                      vec;
+    enum {
+        ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_WARP   = 1,
+        ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM   = 1,
+        ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT = 1,
+    };
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = ACROPOLIS_PLAZA_ELEVATOR_ARRIVAL_ROOM;
+    gDisplayState.spriteVariant                                 = ACROPOLIS_PLAZA_ELEVATOR_SPRITE_VARIANT;
+}
+
+/// Runs the plaza's streamed traversal and triggered scenes before leaving for the elevator hall.
+///
+/// Starts bodyless in state 0, allocates and clears owned sequence work, and
+/// ends immediately on allocation failure. Two frame delays precede stream setup.
+/// The stream and event children borrow the embedded scene arguments/work;
+/// keep room resources loaded until they finish. The running state updates ambience
+/// and events, then commits west-elevator-hall warp/room 1 and queues a reload.
+/// Game pausing is blocked only from stream setup through the departure handoff.
+static void _acropolisPlazaSequenceTask(Task* task)
+{
+    enum {
+        ACROPOLIS_PLAZA_SEQUENCE_INITIALIZE               = 0,
+        ACROPOLIS_PLAZA_SEQUENCE_WAIT_FIRST_FRAME         = 1,
+        ACROPOLIS_PLAZA_SEQUENCE_WAIT_SECOND_FRAME        = 2,
+        ACROPOLIS_PLAZA_SEQUENCE_START_STREAM             = 3,
+        ACROPOLIS_PLAZA_SEQUENCE_RUN                      = 4,
+        ACROPOLIS_PLAZA_SEQUENCE_LEAVE                    = 5,
+        ACROPOLIS_PLAZA_SEQUENCE_STREAM_TASK_INDEX        = 1,
+        ACROPOLIS_PLAZA_SEQUENCE_DISPLAY_SETUP_TASK_INDEX = 5,
+        ACROPOLIS_PLAZA_SEQUENCE_FADE_TASK_INDEX          = 8,
+        ACROPOLIS_PLAZA_SEQUENCE_LETTERBOX_TASK_INDEX     = 11,
+        ACROPOLIS_PLAZA_SEQUENCE_AMBIENT_LEVEL            = 0x370,
+        ACROPOLIS_PLAZA_SEQUENCE_FADE_MODE                = 6,
+    };
+    CdCmdQueue*                  queue = &gCdCmdQueue;
+    _AcropolisPlazaSequenceWork* work  = task->work;
+    _AcropolisPlazaSequenceWork* allocatedWork;
+    _AcropolisPlazaSequenceWork* initializedWork;
+    Task*                        childTask;
+    SVECTOR                      ambientColor;
 
     switch (task->state) {
-        case 0:
+        case ACROPOLIS_PLAZA_SEQUENCE_INITIALIZE:
+            // Hold input while presentation and the owned work block are prepared.
             padInputChangeSuppression(PAD_INPUT_SUPPRESSION_SET_AND_HOLD, PAD_INPUT_SUPPRESS_ACTIONS_AND_MENU & ~PAD_BUTTON_CIRCLE);
             viewApplyCamera(D_acropolis_plaza_801838B8[0]);
-            newWork    = memMalloc(sizeof(*newWork), false);
-            task->work = newWork;
-            if (newWork == NULL) {
+            allocatedWork = memMalloc(sizeof(*allocatedWork), false);
+            task->work    = allocatedWork;
+            if (allocatedWork == NULL) {
                 taskKill(task);
                 return;
             }
-            memFillBytes(newWork, 0, sizeof(*newWork));
-            ((_AcropolisPlazaSequenceWork*)task->work)->playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-            ((_AcropolisPlazaSequenceWork*)task->work)->eventTask =
-                taskSpawnFromTable(D_acropolis_plaza_80183824, 5, 0, 0);
+            memFillBytes(allocatedWork, 0, sizeof(*allocatedWork));
+            childTask                   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+            initializedWork             = task->work;
+            initializedWork->playerTask = childTask;
+            childTask                   = taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_SEQUENCE_DISPLAY_SETUP_TASK_INDEX, 0, 0);
+            initializedWork             = task->work;
+            initializedWork->eventTask  = childTask;
             playerActorRemoveEquipment();
-            taskSpawnFromTable(D_acropolis_plaza_80183824, 0xB, 0, 0);
+            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_SEQUENCE_LETTERBOX_TASK_INDEX, 0, 0);
             task->state = task->state + 1;
             return;
-        case 1:
-        case 2:
+        case ACROPOLIS_PLAZA_SEQUENCE_WAIT_FIRST_FRAME:
+        case ACROPOLIS_PLAZA_SEQUENCE_WAIT_SECOND_FRAME:
             task->state = task->state + 1;
             return;
-        case 3:
-            vec.vx = 0x370;
-            vec.vy = 0x370;
-            vec.vz = 0x370;
-            worldCoordSetAmbientColorOverride(&vec);
+        case ACROPOLIS_PLAZA_SEQUENCE_START_STREAM:
+            // Children borrow sceneArg from this work until the sequence finishes.
+            ambientColor.vx = ACROPOLIS_PLAZA_SEQUENCE_AMBIENT_LEVEL;
+            ambientColor.vy = ACROPOLIS_PLAZA_SEQUENCE_AMBIENT_LEVEL;
+            ambientColor.vz = ACROPOLIS_PLAZA_SEQUENCE_AMBIENT_LEVEL;
+            worldCoordSetAmbientColorOverride(&ambientColor);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
             work->sceneArg.skipStreamReset = 0;
             work->sceneArg.startFrame      = 0;
-            work->sceneTask                = taskSpawnFromTable(D_acropolis_plaza_80183824, 1, 0, &work->sceneArg);
+            work->sceneTask                = taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_SEQUENCE_STREAM_TASK_INDEX, 0, &work->sceneArg);
             stageMusicRequestAreaStart(0);
-            taskSpawnFromTable(D_acropolis_plaza_80183824, 8, 6, 0);
-            q->blockGamePause = 1;
-            task->state       = task->state + 1;
+            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_SEQUENCE_FADE_TASK_INDEX, ACROPOLIS_PLAZA_SEQUENCE_FADE_MODE, 0);
+            queue->blockGamePause = 1;
+            task->state           = task->state + 1;
             return;
-        case 4:
+        case ACROPOLIS_PLAZA_SEQUENCE_RUN:
             _acropolisPlazaUpdateSceneAmbience(task);
             if (_acropolisPlazaUpdateSequenceEvent(task) == 0) {
                 return;
             }
             task->state = task->state + 1;
             return;
-        case 5:
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_WEST_ELEVATOR_HALL;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-            gDisplayState.spriteVariant                                 = 1;
+        case ACROPOLIS_PLAZA_SEQUENCE_LEAVE:
+            // Commit the elevator destination before queuing the gameplay reload.
+            _acropolisPlazaCommitElevatorDestination();
             loadingEnqueueEquippedWeaponResources();
             sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
             taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-            q->blockGamePause = 0;
+            queue->blockGamePause = 0;
             taskKill(task);
             return;
     }

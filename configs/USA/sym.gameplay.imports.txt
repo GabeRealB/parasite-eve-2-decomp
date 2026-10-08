@@ -1749,7 +1749,7 @@ D_shelter_1f_parking_garage_801818D8 = 0x801818D8; // absolute:True owner=shelte
 
 D_shelter_b1_underground_parking_801871F0 = 0x801871F0; // absolute:True owner=shelter_b1_underground_parking shared=rooms
 
-func_acropolis_west_elevator_hall_8017F7D4 = 0x8017F7D4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
+acropolisWestElevatorHallViewEffectsTask = 0x8017F7D4; // type:func absolute:True owner=acropolis_west_elevator_hall shared=rooms
 
 acropolisFountainViewEffectsTask = 0x8017E014; // type:func absolute:True owner=acropolis_fountain
 

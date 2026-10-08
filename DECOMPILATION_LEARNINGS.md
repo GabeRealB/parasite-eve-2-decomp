@@ -11065,7 +11065,7 @@ Write one, sized to the gap, in a type that already exists in the family:
 RoomEventReq req; /* untouched; 0x14 rounds up to a 0x18 slot */
 ```
 
-`func_dryfield_garage_8017D91C`, whose unwritten sibling handler
+`_dryfieldGarageResolveRoomEventMessage`, whose unwritten sibling handler
 (`rooms_shared_8017d8bc`) uses the same local for real. This is the mechanism
 behind the empty-body stub above, one step further on: there the entire function
 is the frame, here the frame is the only leftover, and the symptom reads like a
@@ -60556,20 +60556,20 @@ from the register choice, so fix the reads first and the branch shape follows.
 ## Brute-force the permutation of a small constant-store group
 
 When a basic block ends in a run of stores to adjacent byte fields of one
-global — the `gMcSaveData.field_5/6/7/8` block that every room's stage-handoff
+global — the live save's `state.location.loc` block that every room's stage-handoff
 writes — the offsets in the object dump are **not** the source order, for the
 reason "Primitive field store order: interleave vertices, do not group by
 constant" gives: `sched1` may reorder stores that provably do not alias. What
 the source order does decide is *which constant pseudo is born first*, and that
 is what the register allocation falls out of.
 
-`func_acropolis_plaza_80180054` state 5 stores `0x11` to `field_6` and `1` to
-`field_7`, `field_8` and `field_5`. Writing them in dump order (6, 7, 8, 5)
+`_acropolisPlazaSequenceTask` state 5 stores `0x11` to `area` and `1` to
+`stage`, `warp` and `room`. Writing them in dump order (area, stage, warp, room)
 scores 97.6% with `regs=13`: the `0x11` pseudo dies before the `1` pseudo is
 born, so both get `$v0` and the base address is pushed to `$v1`. The target has
 three live registers there — base `$v0`, `0x11` `$v1`, `1` `$a0` — which only
 happens if the `1` is created *before* the `0x11` store. Source order
-`7, 8, 6, 5` gives exactly that and matches; so does `7, 6, 8, 5`.
+`stage, warp, area, room` gives exactly that and matches; so does `stage, area, warp, room`.
 
 A group of four stores is 24 permutations and each `./build.sh` is about two
 seconds, so scripting the sweep is faster than reasoning about the scheduler:
@@ -87188,7 +87188,7 @@ taken-path branch and the jump table's empty slots all target that block, and
 the constant is scheduled after the restores. Match the exit-block shape before
 touching scheduling.
 
-## A trailing `return N` reuses the `if (x == N)` constant, so its block disappears (func_dryfield_gas_station_8017FD54, 2026-09-16)
+## A trailing `return N` reuses the `if (x == N)` constant, so its block disappears (_dryfieldGasStationHandleRoomCommand, 2026-09-16)
 
 A room cutscene trigger guards on `arg2 == 1`, and the fall-through return is a
 constant. Whether that constant gets *its own* exit block or shares the
@@ -89843,15 +89843,15 @@ Inputs: `base.i` (74.630%)
 `base_1.i` (100.000%)
 `3213b2994bf62d1aabad7ff1cc107821d7319633200f3dd0fe77636cefa147ef`.
 
-## m2c names a parameter by its register, not its position - a handler that only reads `$a2` comes out with the payload in `$a0` (func_dryfield_breezeway_8017DBD8, 2026-09-15)
+## m2c names a parameter by its register, not its position - a handler that only reads `$a2` comes out with the payload in `$a0` (dryfieldBreezewayHandleRoomAction, 2026-09-15)
 
-`func_dryfield_breezeway_8017DBD8` is the room's `TaskMessageEntry` handler for message
-0x13EF. It reads one byte of its payload (`lbu $v1, 0x2($s0)`) and m2c, seeing
+`dryfieldBreezewayHandleRoomAction` is the room's `TaskMessageEntry` handler for message
+`DIRECTION_MESSAGE_ROOM_ACTION`. It reads one byte of its payload (`lbu $v1, 0x2($s0)`) and m2c, seeing
 only `$a2` touched and nothing upstream setting it, emitted the pointer as the
 function's *first* parameter:
 
 ```c
-s32 func_dryfield_breezeway_8017DBD8(void *arg2) {   /* arg2 lands in $a0 */
+s32 dryfieldBreezewayHandleRoomAction(void *arg2) {   /* arg2 lands in $a0 */
     if (gameFlagGetNibble(0x5D) == 0 && M2C_FIELD(arg2, u8 *, 2) == 1) { ... }
 ```
 
@@ -89867,21 +89867,22 @@ handlers are `TaskMessageEntry[]` records - `{ s32 messageId; TaskMessageHandler
 bytes, `TASK_MESSAGE_TABLE_END`-terminated - and they live in the overlay's trailing data
 blob, so the built overlay image still holds them verbatim. Searching the image
 for the handler's address little-endian prints the id in the word just before it,
-which here named the message (`0x13EF`) and so pointed at the two already-matched
-twins in `acropolis_sanctuary` and `acropolis_observatory`: both are
-`(s32 index, s32 value, RoomEventMsg* in, RoomEventMsg* out)` and both read
-`in->warp == 1` with the same `lbu`. That settles the third parameter's type
-too - `RoomEventMsg.warp` is the `u8` at offset 2, which is why the load is
-`lbu`; the room's own 4-byte `DbwMsg7DA` payload has an `s16` there and would
+which here named the message (`DIRECTION_MESSAGE_ROOM_ACTION`). The sender
+`_directionDispatchRoomAction` borrows a four-byte `DirectionActionRequest`
+in the third ABI position and sends a zero fourth word. Its unsigned
+`actionId` at offset 2 accounts for the `lbu`. Matching handlers in
+`acropolis_sanctuary` and `acropolis_observatory` corroborate the parameter
+position and load width; their historical room-warp interpretation did not
+establish payload identity. A signed halfword at that offset would instead
 have compiled to `lh`.
 
 So the fix is the padded parameter list, kept to the room's declared handler
 shape:
 
 ```c
-s32 func_dryfield_breezeway_8017DBD8(Task* task, s32 msgId, RoomEventMsg* in, RoomEventMsg* out)
+s32 dryfieldBreezewayHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if (gameFlagGetNibble(0x5D) == 0 && in->warp == 1) { ... }
+    if (gameFlagGetNibble(0x5D) == 0 && request->actionId == 1) { ... }
 ```
 
 100.000% on the first build, all penalties zero. The tell to watch for is a
@@ -89893,13 +89894,13 @@ Inputs: `base.i` (99.800%)
 `base_1.i` (100.000%)
 `c02fbfeb50bf6d70a57e97957eab11a11fefbc947a5ce59dcb6701fa3fa3c212`.
 
-## A MEM_IN_STRUCT_P schedule difference can surface as a pure `regs` penalty (func_dryfield_breezeway_8017DDB0, 2026-09-15)
+## A MEM_IN_STRUCT_P schedule difference can surface as a pure `regs` penalty (_dryfieldBreezewayInitMessageTask, 2026-09-15)
 
 The mirror of the `_neoArkAltarSelectPostSequenceRoom` entry above, where the struct
 form *was* the fix: here its effect reaches all the way through the scheduler
 into the allocator, so the only symptom is a swapped `$v0`/`$v1`.
 
-This room's `func_dryfield_breezeway_8017DDB0` ends with `task->state++;` and a
+This room's `_dryfieldBreezewayInitMessageTask` ends with `task->state++;` and a
 store of zero to a global. m2c renders the bump as
 `*(s32*)((s8*)index + 0x30) = ... + 1`, whose MEM is unflagged, so the symbol
 store keeps its output/anti dependence on the `lw`/`sw` of `0x30(s0)`; block 2
@@ -89930,7 +89931,7 @@ Inputs: `base_2.i` (99.773%)
 `base_3.i` (100.000%)
 `bd864666ba34c5a87d5e1f2920e687d7271a595d8c1cf51dcae959257b896ca8`.
 
-## An addressable local is what blocks jump.c's `if (c) x = a; else x = b;` fold - and that fold is what a swapped `$v0`/`$a0` arm needs (func_dryfield_breezeway_8017FE08, 2026-09-15)
+## An addressable local is what blocks jump.c's `if (c) x = a; else x = b;` fold - and that fold is what a swapped `$v0`/`$a0` arm needs (_dryfieldBreezewayFinishKeyItemCommand, 2026-09-15)
 
 A two-armed state select over one local,
 
@@ -93032,10 +93033,10 @@ the run the new unit owns.
 Inputs: `base_1.c` (100%). Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
-## A conditional constant handed to a call is a ternary, not an if/else (func_dryfield_garage_8017DA18, 2026-09-16)
+## A conditional constant handed to a call is a ternary, not an if/else (_dryfieldGarageHandleRoomCommand, 2026-09-16)
 
 The room opcode callbacks that pick between two command ids passed to
-`capRunCommandWithTransition` are a recurring family: `func_dryfield_garage_8017DA18`
+`capRunCommandWithTransition` are a recurring family: `_dryfieldGarageHandleRoomCommand`
 (`gameFlagGetNibble(0xFD) != 0 ? 0x16 : 0x10`), `_mineMesaRoomCommandMsg`
 (`>= 2 ? 0xD : 0xC`), `_shelterB3DumpingHoleHandleRoomCommand` (`!= 0 ? 0x12 :
 0x17`). Written as the ternary **in the call argument**, GCC 2.8.1 materialises
@@ -93071,14 +93072,14 @@ Inputs: `base.c` (m2c shape, 67.667%)
 `base_1.c` (ternary, 100.000%)
 `bb0bc77d58bd7bc0294f5f68850dd8fba0a8fcd3feb7ee8fdc5ccca3a73665ce`.
 
-## A non-void return type alone keeps `$v0` live at the exit, so it blocks a delay-slot `lui` (func_dryfield_garage_8017DA54, 2026-09-16)
+## A non-void return type alone keeps `$v0` live at the exit, so it blocks a delay-slot `lui` (_dryfieldGarageHandleRoomAction, 2026-09-16)
 
 A room handler whose body never returns anything:
 
 ```c
-s32 func_dryfield_garage_8017DA54(s32 arg0, s32 arg1, RoomEventMsg* msg)
+static s32 _dryfieldGarageHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    if ((msg->warp == 2) && (gGameSession->location.loc.variant != 1)) {
+    if ((request->actionId == 2) && (gGameSession->location.loc.variant != 1)) {
         capSpawnEventIfIdle(0x13, 0);
     }
 }
@@ -93126,7 +93127,7 @@ inside the taken arm keeps `$v0` live so the next `beq` delay is nop"): those ke
 visible in the
 instruction stream - only in the declaration or the source's tail.
 
-Fix the arity first, as in the neighbouring `func_dryfield_garage_8017DA18` entry:
+Fix the arity first, as in the neighbouring `_dryfieldGarageHandleRoomCommand` entry:
 m2c named the pointer `arg2` and put it in `$a0` (94.5%); the family arity
 `s32 f(s32 index, s32 value, RoomEventMsg* msg)` puts it back in `$a2` and is worth
 0.1% on its own. Only then is the return type the whole remaining difference.
@@ -93138,7 +93139,7 @@ Inputs: `base.i` (m2c, void, 94.526%)
 `3998bcbfd8fb090b9e3c5145cc9b2abdd5b116c2bd57c45a50849594d40d9877`, target
 `cc8a6560d7a50f65e6a7ac7113a3f809be66fd73bc948bf9195327c903ffc9ff`.
 
-## Data an overlay's code references but its sym `.txt` does not list is named by splat (`D_<overlay>_<vram>`), and C must spell it that way (func_dryfield_garage_8017DAA0, 2026-09-16)
+## Data an overlay's code references but its sym `.txt` does not list is named by splat (`D_<overlay>_<vram>`), and C must spell it that way (_dryfieldGarageJunkYardRefusalTask, 2026-09-16)
 
 Writing an `extern` for an overlay-local datum, the natural instinct is to invent a
 descriptive name, or to look the symbol up in `configs/USA/sym/rooms/<overlay>.txt`
@@ -94851,7 +94852,7 @@ move the struct store ahead of the load; here the target keeps the store *among*
 the loads and the fix is the opposite — make the store visible to the alias
 tracker again.
 
-`func_dryfield_breezeway_8017E81C` rebuilds its prop's coordinate matrix as five
+`_dryfieldBreezewayLeadKeyItemLine` rebuilds its prop's coordinate matrix as five
 stores into `coord->coord`, then loads the frame counter. The target's order is
 
 ```
@@ -120415,7 +120416,7 @@ and the empty case's `break` is what the range test jumps to. Writing
 case bodies in source order - which is the target's `[dispatch][default]
 [case1][case2][tail]` layout.
 
-## The 99.8% near-miss of the two-valued `if`/`else`: only the value's register is wrong, and the ternary is a *flipped* branch (func_dryfield_breezeway_8017D940, 2026-09-17)
+## The 99.8% near-miss of the two-valued `if`/`else`: only the value's register is wrong, and the ternary is a *flipped* branch (dryfieldBreezewayResolveRoomEventMessage, 2026-09-17)
 
 The rooms-family instance of "A two-valued `if`/`else` needs its store *inside*
 each arm" above, with a signature worth recognising on its own: the shared-local
@@ -120423,11 +120424,11 @@ and ternary writings both land at 99.773%, differing from the target by exactly
 the value's register and nothing else.
 
 ```c
-out->field_3 = gameFlagGetNibble(0x47) == 0 ? 1 : 2;   /* 99.773%, li $v1 */
+reply->room = gameFlagGetNibble(0x47) == 0 ? 1 : 2;   /* 99.773%, li $v1 */
 if (gameFlagGetNibble(0x47) == 0) {
-    out->field_3 = 1;
+    reply->room = 1;
 } else {
-    out->field_3 = 2;
+    reply->room = 2;
 }                                                        /* 100.000%, li $v0 */
 ```
 

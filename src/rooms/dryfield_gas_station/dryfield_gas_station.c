@@ -115,7 +115,7 @@ extern TaskMessageEntry D_dryfield_gas_station_80181E54[5];
 #define TELEPHONE_TITLE_BYTES "Telephone\0\0\x12"
 #include "../../shared/telephone.h"
 
-void func_dryfield_gas_station_8017FE20(Task*);
+static void _dryfieldGasStationArrivalSupervisorTask(Task* task);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -126,17 +126,17 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 TaskDesc D_dryfield_gas_station_80181E3C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_gas_station_8017FE20, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldGasStationArrivalSupervisorTask, { .value = 0 } },
     { { { TASK_DESC_END, 0 } }, NULL, { .model = NULL } },
 };
 
 static s32 _dryfieldGasStationRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
-s32        func_dryfield_gas_station_8017FD54(Task*, s32, s32, s32);
+static s32 _dryfieldGasStationHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
 
 TaskMessageEntry D_dryfield_gas_station_80181E54[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantGasStationMsg },
     { ROOM_MESSAGE_USE_KEY_ITEM, _dryfieldGasStationRejectKeyItemUse },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_gas_station_8017FD54 },
+    { ROOM_MESSAGE_COMMAND, _dryfieldGasStationHandleRoomCommand },
     { ROOM_MESSAGE_SOUND, _gasStationCueSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -175,54 +175,70 @@ static s32 _dryfieldGasStationRejectKeyItemUse(Task* unusedTask, s32 unusedMessa
     return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Cutscene trigger for the gas station. On request 1, if the `0x16B` flag is
-/// clear it raises it and asks the cap system to run command 0xB; otherwise it
-/// fills in the room's cap script (area 8, this request as the slot and file)
-/// and spawns `gRoomCutsceneTaskDescs`. Returns 1 when the request is
-/// not 1, otherwise the spawned task.
-s32 func_dryfield_gas_station_8017FD54(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles room command 1 by selecting the first scene or a later cutscene.
+///
+/// The first request latches the first-scene flag, starts CAP command 11 and
+/// returns zero. Later requests stage view 8, CAP slot/file 1 and their sounds,
+/// change saved warp 1 to 2, and return the spawned cutscene handle as an s32
+/// message word. The shared parameters must outlive the child; another request
+/// replaces them. Other command IDs return 1.
+static s32 _dryfieldGasStationHandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
-    if (arg2 == 1) {
+    enum {
+        DRYFIELD_GAS_STATION_COMMAND_CUTSCENE           = 1,
+        DRYFIELD_GAS_STATION_CAP_FIRST_SCENE            = 0xB,
+        DRYFIELD_GAS_STATION_RETURN_WARP                = 2,
+        DRYFIELD_GAS_STATION_CUTSCENE_VIEW              = 8,
+        DRYFIELD_GAS_STATION_CUTSCENE_FOLLOW_UP_COMMAND = 2,
+    };
+    if (command == DRYFIELD_GAS_STATION_COMMAND_CUTSCENE) {
         if (gameFlagGetNibble(GAME_FLAG_GAS_STATION_FIRST_SCENE) == 0) {
             gameFlagSetNibble(GAME_FLAG_GAS_STATION_FIRST_SCENE, 1);
-            capRunCommandWithTransition(0xB);
+            capRunCommandWithTransition(DRYFIELD_GAS_STATION_CAP_FIRST_SCENE);
             return 0;
         }
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == arg2) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == command) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = DRYFIELD_GAS_STATION_RETURN_WARP;
         }
-        D_dryfield_gas_station_80184BD8.view            = 8;
-        D_dryfield_gas_station_80184BD8.capSlot         = arg2;
-        D_dryfield_gas_station_80184BD8.capFile         = arg2;
+        D_dryfield_gas_station_80184BD8.view            = DRYFIELD_GAS_STATION_CUTSCENE_VIEW;
+        D_dryfield_gas_station_80184BD8.capSlot         = command;
+        D_dryfield_gas_station_80184BD8.capFile         = command;
         D_dryfield_gas_station_80184BD8.skipScene       = 0;
-        D_dryfield_gas_station_80184BD8.startSound      = 0x52010005;
-        D_dryfield_gas_station_80184BD8.endSound        = 0x52010007;
-        D_dryfield_gas_station_80184BD8.sceneSound      = 0x52010008;
-        D_dryfield_gas_station_80184BD8.afterSceneSound = 0x52010010;
-        return (s32)taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 2, &D_dryfield_gas_station_80184BD8);
+        D_dryfield_gas_station_80184BD8.startSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x05);
+        D_dryfield_gas_station_80184BD8.endSound        = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x07);
+        D_dryfield_gas_station_80184BD8.sceneSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x08);
+        D_dryfield_gas_station_80184BD8.afterSceneSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_GAS_STATION, 0x10);
+        return (s32)taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, DRYFIELD_GAS_STATION_CUTSCENE_FOLLOW_UP_COMMAND, &D_dryfield_gas_station_80184BD8);
     }
     return 1;
 }
 
-/// Spawns the room's event task and stores it in `D_dryfield_gas_station_80184BCC`,
-/// waits for it to be killed, then kills this task.
-void func_dryfield_gas_station_8017FE20(Task* arg0)
+/// Supervises the movie-and-cutscene arrival sequence started at warp 1.
+///
+/// Stores the child handle, polls its requested exit, and ends on the next frame.
+/// Requires a successful spawn and the room/arrival resources to remain loaded.
+/// The child's result is collected but unused; the stored handle is not cleared.
+static void _dryfieldGasStationArrivalSupervisorTask(Task* task)
 {
-    s32 state = arg0->state;
-    s32 out;
+    enum {
+        DRYFIELD_GAS_STATION_ARRIVAL_SPAWN = 0,
+        DRYFIELD_GAS_STATION_ARRIVAL_WAIT  = 1,
+        DRYFIELD_GAS_STATION_ARRIVAL_EXIT  = 2,
+    };
+    s32 arrivalResult;
 
-    switch (state) {
-        case 0:
+    switch (task->state) {
+        case DRYFIELD_GAS_STATION_ARRIVAL_SPAWN:
             D_dryfield_gas_station_80184BCC = taskSpawnFromTable(D_dryfield_gas_station_80181E7C, 0, 0, 0);
-            arg0->state++;
+            task->state++;
             break;
-        case 1:
-            if (taskPollKill(D_dryfield_gas_station_80184BCC, &out) != 0) {
-                arg0->state++;
+        case DRYFIELD_GAS_STATION_ARRIVAL_WAIT:
+            if (taskPollKill(D_dryfield_gas_station_80184BCC, &arrivalResult) != 0) {
+                task->state++;
             }
             break;
-        case 2:
-            taskKill(arg0);
+        case DRYFIELD_GAS_STATION_ARRIVAL_EXIT:
+            taskKill(task);
             break;
     }
 }
