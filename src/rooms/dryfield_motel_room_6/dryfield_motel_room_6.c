@@ -2074,8 +2074,8 @@ s32 func_dryfield_motel_room_6_80181920(Task* arg0, s32 arg1, RoomEventMsg* in, 
 /// Handler for a slot-7 msg `0x13EF` request (`DirectionActionRequest`) whose sub-id
 /// (`actionId`) is clear: the first time it runs it latches nibble 0x31 and
 /// arms the room's script task from `D_dryfield_motel_room_6_80182D78`.
-/// Where the sibling gates of this shape (`func_acropolis_security_room_8017D740`,
-/// `func_acropolis_sanctuary_8017D848`) answer 0, this one answers 1.
+/// This gate answers 1. The sibling `_acropolisSecurityRoomHandleAction` leaves
+/// its reply unspecified; `func_acropolis_sanctuary_8017D848` answers 0.
 s32 func_dryfield_motel_room_6_801819A8(Task* arg0, s32 arg1, const void* firstArg, s32 arg3)
 {
     const DirectionActionRequest* request = firstArg;

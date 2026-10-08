@@ -43670,7 +43670,7 @@ callee-saved register. That costs an extra saved register (`$s2` appears,
 (`li v0,2; sw v0` vs `sw s0`), so cross-jumping merges three of four arms
 instead of all four.
 
-`func_acropolis_security_room_8017F1BC` is the example. Duplicating the call
+`_acropolisSecurityRoomPowerSupplyUseLeftLock` is the example. Duplicating the call
 *and* the store scored 89%:
 
 ```c
@@ -44118,7 +44118,7 @@ The target instead forms the address directly in `$a0`
 in each arm compiles to — cross-jumping then merges the two `jal`s back into
 one, so the instruction count is unchanged and only the register differs.
 Writing `areaApplySavedUpdates(...)` inside both arms took
-`func_acropolis_security_room_8017F300` from 99.79% (`regs=4`) to 100%.
+`_acropolisSecurityRoomPowerSupplyUseRightLock` from 99.79% (`regs=4`) to 100%.
 
 That `lui`-into-a-scratch-register pair is the diagnostic: it is the same rule
 as "duplicate the call in each branch when only one argument differs" above, but
@@ -44435,7 +44435,7 @@ preceding function's own literal pool, so placing the declaration where the
 function sits in the file keeps the `.rodata` order. `INCLUDE_RODATA` plus an
 `extern` reference also matches, but loses the readable string.
 
-`func_acropolis_security_room_8017D834` is the example.
+`_acropolisSecurityRoomOpenPowerSupplyTask` is the example.
 
 ## Extra `&&label` use blocks jump.c's then/else swap
 
@@ -51907,7 +51907,7 @@ to byte-identical code, reordering is not the lever: GCC 2.8.1 has already
 rebuilt the block from the dependence graph, and the leftover is a list-scheduler
 decision inside one basic block.
 
-In `func_acropolis_security_room_8017FA18` the target fills the load-delay slot
+In `_acropolisSecurityRoomPowerSupplyInit` the target fills the load-delay slot
 of `lw $v0, 0x30($s1)` (`task->state`) with the `li $a0, 9` argument of the
 following `gameFlagGetNibble(9)`; GCC instead hoists that `li` ten instructions
 earlier, right behind the previous `jal`, which then costs `$a1` for a `%hi` and
@@ -51933,7 +51933,7 @@ barrier instead.)
 
 ### An `sb` whose `%hi` and immediate registers are swapped is a qty-set problem in the *other* arm
 
-`func_acropolis_security_room_8017D9DC` sat at 99.765% (`regs=4`, everything
+`_acropolisSecurityRoomMonitorInit` sat at 99.765% (`regs=4`, everything
 else zero) with a diff confined to the `else` arm of one `if`:
 
 ```
