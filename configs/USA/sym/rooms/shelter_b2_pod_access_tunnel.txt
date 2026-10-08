@@ -108,3 +108,7 @@ glowDrawDimGreyCapsule = 0x8017DF64; // type:func
 roomEventStagedTask = 0x8017D62C; // type:func
 _effectSpriteDrawRotated = 0x8017F1BC; // type:func
 _effectSpriteDrawBanked = 0x8017ED5C; // type:func
+shelterB2PodAccessTunnelRejectKeyItemMessage = 0x8017db28; // type:func
+shelterB2PodAccessTunnelIgnoreActionMessage = 0x8017db70; // type:func
+shelterB2PodAccessTunnelHandleSoundMessage = 0x8017db78; // type:func
+_shelterB2PodAccessTunnelIdleRoomTask = 0x8017dc0c; // type:func

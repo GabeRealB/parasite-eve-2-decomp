@@ -179,7 +179,7 @@ static s32  _shelterB2MainCorridorRejectKeyItemMessage(Task* task, s32 messageId
 static s32  _shelterB2MainCorridorIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32  _shelterB2MainCorridorHandleSoundMessage(Task* task, s32 messageId, s32 soundCommandId, s32 unusedArg);
 void        func_shelter_b2_main_corridor_8017DEB0(Task*);
-void        func_shelter_b2_main_corridor_8017E210(Task*);
+static void _shelterB2MainCorridorRecordCapCompletionTask(Task* task);
 static void _shelterB2MainCorridorWaterTask(Task* task);
 
 enum { SHELTER_B2_MAIN_CORRIDOR_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -231,7 +231,7 @@ TaskMessageEntry D_shelter_b2_main_corridor_80182C14[6] = {
 
 TaskDesc D_shelter_b2_main_corridor_80182C44[2] = {
     { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_main_corridor_8017DEB0, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_shelter_b2_main_corridor_8017E210, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _shelterB2MainCorridorRecordCapCompletionTask, { .value = 0 } },
 };
 
 AnimationSet* D_shelter_b2_main_corridor_80182C5C[1] = {
@@ -1873,16 +1873,24 @@ static s32 _shelterB2MainCorridorHandleSoundMessage(Task* task, s32 messageId, s
     return 0;
 }
 
-/// Waits for the capture command the message handler started to finish, then
-/// sets the game-flag nibble named by the task's spawn argument to 2 unless
-/// the capture ended on event key 0xC, and ends the task.
-void func_shelter_b2_main_corridor_8017E210(Task* arg0)
+/// Records the CAP outcome in a caller-selected flag once playback is idle.
+///
+/// `spawnArg1.value` is a game-flag nibble index in 0..GAME_FLAG_NIBBLE_COUNT-1.
+/// The final CAP key 12 preserves the flag; any other key writes 2. Both paths
+/// destroy this bodyless task. The caller starts the CAP command before spawning
+/// the observer; keep this overlay loaded until it finishes.
+static void _shelterB2MainCorridorRecordCapCompletionTask(Task* task)
 {
+    enum {
+        SHELTER_B2_MAIN_CORRIDOR_CAP_SKIP_FLAG_KEY         = 12,
+        SHELTER_B2_MAIN_CORRIDOR_CAP_COMPLETION_FLAG_VALUE = 2,
+    };
+
     if (capIsBusy() == 0) {
-        if (capGetVariantKey() != 0xC) {
-            gameFlagSetNibble(arg0->spawnArg1.value, 2);
+        if (capGetVariantKey() != SHELTER_B2_MAIN_CORRIDOR_CAP_SKIP_FLAG_KEY) {
+            gameFlagSetNibble(task->spawnArg1.value, SHELTER_B2_MAIN_CORRIDOR_CAP_COMPLETION_FLAG_VALUE);
         }
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 

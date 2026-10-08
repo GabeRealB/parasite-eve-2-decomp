@@ -78,7 +78,7 @@ extern Task* D_shelter_b2_elevator_8017EA00[];
 static void _shelterB2ElevatorRoomIdleState(Task* unusedTask);
 
 static s32  _shelterB2ElevatorRejectKeyItemMessage(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
-s32         func_shelter_b2_elevator_8017DA64(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _shelterB2ElevatorResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _shelterB2ElevatorIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandArg);
 static s32  _shelterB2ElevatorIgnoreActionMessage(Task* task, s32 messageId, const DirectionActionRequest* unusedRequest, s32 unusedArg);
 static s32  _shelterB2ElevatorOpenDoorMessage(Task* task, s32 messageId, s32 unusedArg1, s32 unusedArg2);
@@ -167,7 +167,7 @@ TaskDesc D_shelter_b2_elevator_8017DF70[4] = {
 };
 
 TaskMessageEntry D_shelter_b2_elevator_8017DFA0[7] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_elevator_8017DA64 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2ElevatorResolveRoomEventMessage },
     { SHELTER_B2_ELEVATOR_MESSAGE_USE_KEY_ITEM, _shelterB2ElevatorRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2ElevatorIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, _shelterB2ElevatorIgnoreCommandMessage },
@@ -419,6 +419,12 @@ static void func_shelter_b2_elevator_8017D5E8(Task* task)
 }
 
 /// Steps a leaf's bounded travel and places it on its signed side of the doorway.
+///
+/// Borrows the live leaf task, its travel storage and its model's root coordinate.
+/// `travel` is 0..500 world units; `spawnArg1.value` requests closing (-1), rest
+/// (0) or opening (1) at 10 units per tick, and `spawnArg2.value` is the Z side
+/// (-1 or 1). Clamping leaves the request intact at either end of the travel.
+/// Only travel and root Z change; the caller must dirty the coordinate cache.
 static __inline__ void _shelterB2ElevatorSlideDoorLeaf(Task* task, _ShelterB2ElevatorDoorLeafWork* leafWork, GfxCoord* modelCoord)
 {
     leafWork->travel += task->spawnArg1.value * SHELTER_B2_ELEVATOR_DOOR_LEAF_SPEED;
@@ -566,13 +572,19 @@ static s32 _shelterB2ElevatorRejectKeyItemMessage(Task* task, s32 messageId, s32
     return SHELTER_B2_ELEVATOR_KEY_ITEM_REFUSED;
 }
 
-/// Message-table handler for message 0x13EE: copies the incoming record onto
-/// the outgoing one and passes both to `mapShelterRoomVariantResolve`. Always returns 1.
-s32 func_shelter_b2_elevator_8017DA64(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Accepts a room transition after resolving its destination from Shelter progress.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows a complete request and writable reply;
+/// they may alias. Copies all eight bytes before resolving the reply's room.
+/// Query requests preserve that copy. The map overlay must be loaded; neither
+/// pointer is retained. Returns 1 even when the destination is unchanged.
+static s32 _shelterB2ElevatorResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    enum { SHELTER_B2_ELEVATOR_ROOM_EVENT_ACCEPTED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_B2_ELEVATOR_ROOM_EVENT_ACCEPTED;
 }
 
 /// Ignores `ROOM_MESSAGE_COMMAND` and returns 0 without changing room state.

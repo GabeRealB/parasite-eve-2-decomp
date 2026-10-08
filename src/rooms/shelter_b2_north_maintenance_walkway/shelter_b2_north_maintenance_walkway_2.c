@@ -66,10 +66,10 @@ TaskDesc gRoomEventTaskDesc = { { { TASK_BODY_NONE, 32 } }, roomEventTask, { .va
 
 TaskMessageEntry D_shelter_b2_north_maintenance_walkway_80183B60[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_north_maintenance_walkway_8017DA88 },
-    { 5105, func_shelter_b2_north_maintenance_walkway_8017DC44 },
+    { ROOM_MESSAGE_USE_KEY_ITEM, shelterB2NorthMaintenanceWalkwayRejectKeyItemMessage },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_north_maintenance_walkway_8017DC54 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_north_maintenance_walkway_8017DC4C },
-    { ROOM_MESSAGE_SOUND, func_shelter_b2_north_maintenance_walkway_8017DCE4 },
+    { ROOM_MESSAGE_COMMAND, shelterB2NorthMaintenanceWalkwayIgnoreCommandMessage },
+    { ROOM_MESSAGE_SOUND, shelterB2NorthMaintenanceWalkwayHandleSoundMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

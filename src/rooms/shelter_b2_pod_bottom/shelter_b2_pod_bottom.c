@@ -37,17 +37,17 @@ extern EvsCommand       D_actor_361100_80166848[];
 extern TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[];
 
 static void func_shelter_b2_pod_bottom_8017D648(Task* arg0);
-static void func_shelter_b2_pod_bottom_8017D6F8(Task* task);
+static void _shelterB2PodBottomIdleRoomTask(Task* unusedTask);
 
 /// The room task's states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_shelter_b2_pod_bottom_8017D5C4 = {
-    { func_shelter_b2_pod_bottom_8017D648, func_shelter_b2_pod_bottom_8017D6F8, taskKill },
+    { func_shelter_b2_pod_bottom_8017D648, _shelterB2PodBottomIdleRoomTask, taskKill },
 };
 
-s32 func_shelter_b2_pod_bottom_8017D5EC(Task*, s32, s32, s32);
-s32 func_shelter_b2_pod_bottom_8017D5F4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b2_pod_bottom_8017D638(Task*, s32, s32, s32);
-s32 func_shelter_b2_pod_bottom_8017D640(Task*, s32, s32, s32);
+static s32 _shelterB2PodBottomRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg);
+static s32 _shelterB2PodBottomResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32 _shelterB2PodBottomIgnoreCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 commandArg);
+static s32 _shelterB2PodBottomIgnoreActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* unusedRequest, s32 unusedArg);
 
 extern WorldCollisionGrid    D_shelter_b2_pod_bottom_80182B5C[1];
 extern WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20];
@@ -55,10 +55,10 @@ extern WorldCollisionTrigger D_shelter_b2_pod_bottom_80186FA8[20];
 extern WorldCoordRoomLights D_shelter_b2_pod_bottom_80186F90[1];
 
 TaskMessageEntry D_shelter_b2_pod_bottom_80181C6C[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b2_pod_bottom_8017D5F4 },
-    { 5105, func_shelter_b2_pod_bottom_8017D5EC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b2_pod_bottom_8017D640 },
-    { ROOM_MESSAGE_COMMAND, func_shelter_b2_pod_bottom_8017D638 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelterB2PodBottomResolveRoomEventMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelterB2PodBottomRejectKeyItemMessage },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB2PodBottomIgnoreActionMessage },
+    { ROOM_MESSAGE_COMMAND, _shelterB2PodBottomIgnoreCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -991,29 +991,41 @@ AreaVariant D_shelter_b2_pod_bottom_80187678[11] = {
     { NULL, NULL },
 };
 
-/// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_shelter_b2_pod_bottom_8017D5EC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use without consuming the item or changing room state.
+///
+/// `ROOM_MESSAGE_USE_KEY_ITEM` supplies the collected-item ID and zero second
+/// payload. Both are ignored; the result selects the menu's refusal presentation.
+static s32 _shelterB2PodBottomRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Accepts a room transition after resolving its destination from Shelter progress.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows a complete request and writable reply;
+/// they may alias. Copies all eight bytes before resolving the reply's room.
+/// Query requests preserve that copy. The map overlay must be loaded; neither
+/// pointer is retained. Returns 1 even when the destination is unchanged.
+static s32 _shelterB2PodBottomResolveRoomEventMessage(Task* unusedTask, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { SHELTER_B2_POD_BOTTOM_ROOM_EVENT_ACCEPTED = 1 };
+
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return SHELTER_B2_POD_BOTTOM_ROOM_EVENT_ACCEPTED;
+}
+
+/// Ignores `ROOM_MESSAGE_COMMAND` and both integer payloads, returning zero.
+static s32 _shelterB2PodBottomIgnoreCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming record onto the
-/// outgoing one, passes both to `mapShelterRoomVariantResolve` and returns 1.
-s32 func_shelter_b2_pod_bottom_8017D5F4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
-{
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
-}
-
-/// The room's handler for message 0x13F0: does nothing and returns 0.
-s32 func_shelter_b2_pod_bottom_8017D638(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// The room's handler for message 0x13EF: does nothing and returns 0.
-s32 func_shelter_b2_pod_bottom_8017D640(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores `DIRECTION_MESSAGE_ROOM_ACTION` and returns zero without room changes.
+///
+/// The direction system supplies a borrowed four-byte request and zero second
+/// payload. Neither is read or retained.
+static s32 _shelterB2PodBottomIgnoreActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* unusedRequest, s32 unusedArg)
 {
     return 0;
 }
@@ -1039,11 +1051,12 @@ static void func_shelter_b2_pod_bottom_8017D648(Task* arg0)
     arg0->state++;
 }
 
-/// The room task's idle state: does nothing. The unused local reproduces the
-/// original's stack frame.
-static void func_shelter_b2_pod_bottom_8017D6F8(Task* task)
+/// Keeps the initialized room task live to receive messages without per-frame work.
+///
+/// The binary reserves 16 stack bytes without accessing them.
+static void _shelterB2PodBottomIdleRoomTask(Task* unusedTask)
 {
-    char pad[0x10];
+    char unusedStackSpace[0x10];
 }
 
 /// The room task: copies its three-state table to the stack and runs the

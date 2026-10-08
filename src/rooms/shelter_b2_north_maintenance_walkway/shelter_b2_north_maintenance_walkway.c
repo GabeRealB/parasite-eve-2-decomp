@@ -698,7 +698,7 @@ RoomEventReq gRoomEventReq = { 0, 0, 0, 0, 0, 0 };
 
 static __inline__ s32 _walkwayStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 static void           func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task);
-static void           func_shelter_b2_north_maintenance_walkway_8017DD80(Task* task);
+static void           _shelterB2NorthMaintenanceWalkwayIdleRoomTask(Task* unusedTask);
 
 #include "../../shared/room_event_staged_task.inc.c"
 
@@ -767,12 +767,12 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DA88(Task* arg0, s32 arg1, Roo
     return _walkwayStartEvent(out, &event);
 }
 
-s32 func_shelter_b2_north_maintenance_walkway_8017DC44(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB2NorthMaintenanceWalkwayRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_shelter_b2_north_maintenance_walkway_8017DC4C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB2NorthMaintenanceWalkwayIgnoreCommandMessage(Task* unusedTask, s32 messageId, s32 commandId, s32 commandArg)
 {
     return 0;
 }
@@ -794,10 +794,15 @@ s32 func_shelter_b2_north_maintenance_walkway_8017DC54(Task* arg0, s32 arg1, Roo
     return 0;
 }
 
-s32 func_shelter_b2_north_maintenance_walkway_8017DCE4(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 shelterB2NorthMaintenanceWalkwayHandleSoundMessage(Task* unusedTask, s32 messageId, s32 cueKey, s32 unusedArg)
 {
-    if (arg2 == 7) {
-        sndEvtRequestScriptStart(0x541E0000 | 7, 0, 0);
+    enum {
+        SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SOUND_CUE_7  = 7,
+        SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SOUND_SCRIPT = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B2_NORTH_MAINTENANCE_WALKWAY, 7),
+    };
+
+    if (cueKey == SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SOUND_CUE_7) {
+        sndEvtRequestScriptStart(SHELTER_B2_NORTH_MAINTENANCE_WALKWAY_SOUND_SCRIPT, 0, 0);
     }
     return 0;
 }
@@ -812,16 +817,17 @@ static void func_shelter_b2_north_maintenance_walkway_8017DD18(Task* task)
     task->state = task->state + 1;
 }
 
-/// The room task's idle state: does nothing, though it still reserves a
-/// 0x10-byte frame.
-static void func_shelter_b2_north_maintenance_walkway_8017DD80(Task* task)
+/// Keeps the initialized room task live to receive messages without per-frame work.
+///
+/// The binary reserves 16 stack bytes without accessing them.
+static void _shelterB2NorthMaintenanceWalkwayIdleRoomTask(Task* unusedTask)
 {
-    char pad[0x10];
+    char unusedStackSpace[0x10];
 }
 
 /// The room task's three states: setup, idle and exit.
 static const TaskFuncTable3 D_shelter_b2_north_maintenance_walkway_8017D5F4 = {
-    { func_shelter_b2_north_maintenance_walkway_8017DD18, func_shelter_b2_north_maintenance_walkway_8017DD80, taskKill },
+    { func_shelter_b2_north_maintenance_walkway_8017DD18, _shelterB2NorthMaintenanceWalkwayIdleRoomTask, taskKill },
 };
 
 /// Runs the room task's current state from its state table, dispatching

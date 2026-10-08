@@ -7,6 +7,7 @@
 #include "gameplay/companion_load.h"
 #include "gameplay/captions.h"
 #include "gameplay/actor_presentation.h"
+#include "gameplay/direction.h"
 #include "gameplay/gameflag.h"
 #include "gameplay/sound.h"
 #include "gameplay/display.h"
@@ -94,7 +95,7 @@ RoomLatchedEvent gRoomEventLatched = { 0 };
 
 static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0);
 
-static void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task);
+static void _shelterB2PodAccessTunnelIdleRoomTask(Task* unusedTask);
 
 static __inline__ s32 _shelterB2PodAccessTunnelStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
 
@@ -152,7 +153,7 @@ s32 func_shelter_b2_pod_access_tunnel_8017D7C4(Task* task, s32 msgId, RoomEventM
 /// The three states `func_shelter_b2_pod_access_tunnel_8017DC14` dispatches
 /// the room task through: set-up, an idle tick, and removal.
 static const TaskFuncTable3 D_shelter_b2_pod_access_tunnel_8017D5D8 = {
-    { func_shelter_b2_pod_access_tunnel_8017DBA8, func_shelter_b2_pod_access_tunnel_8017DC0C, taskKill },
+    { func_shelter_b2_pod_access_tunnel_8017DBA8, _shelterB2PodAccessTunnelIdleRoomTask, taskKill },
 };
 
 void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
@@ -199,9 +200,9 @@ void func_shelter_b2_pod_access_tunnel_8017D9A8(Task* task)
     }
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB28(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB2PodAccessTunnelRejectKeyItemMessage(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_shelter_b2_pod_access_tunnel_8017DB30(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -213,14 +214,16 @@ s32 func_shelter_b2_pod_access_tunnel_8017DB30(Task* arg0, s32 arg1, s32 arg2, s
     return 0;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB70(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB2PodAccessTunnelIgnoreActionMessage(Task* unusedTask, s32 messageId, const DirectionActionRequest* unusedRequest, s32 unusedArg)
 {
     return 0;
 }
 
-s32 func_shelter_b2_pod_access_tunnel_8017DB78(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 shelterB2PodAccessTunnelHandleSoundMessage(Task* unusedTask, s32 messageId, s32 cueKey, s32 unusedArg)
 {
-    if (arg2 == 4) {
+    enum { SHELTER_B2_POD_ACCESS_TUNNEL_SOUND_CUE_CONFIRM = 4 };
+
+    if (cueKey == SHELTER_B2_POD_ACCESS_TUNNEL_SOUND_CUE_CONFIRM) {
         sndEvtRequestScriptStart(SOUND_SYSTEM_CONFIRM, 0, 0);
     }
     return 0;
@@ -236,7 +239,8 @@ static void func_shelter_b2_pod_access_tunnel_8017DBA8(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-static void func_shelter_b2_pod_access_tunnel_8017DC0C(Task* task)
+/// Keeps the initialized room task live to receive messages without per-frame work.
+static void _shelterB2PodAccessTunnelIdleRoomTask(Task* unusedTask)
 {
 }
 
