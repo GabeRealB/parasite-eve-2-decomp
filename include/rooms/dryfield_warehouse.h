@@ -43,6 +43,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_warehouse_80182194[];
 /// every update, including views with no lights, to permit view-gated effects.
 void dryfieldWarehouseDrawGlowsTask(Task* task);
 
-void func_dryfield_warehouse_8017DA00(Task* task);
+/// Runs the warehouse room's registration, idle or teardown state.
+///
+/// The stage map spawns this receiver for area 7. `task->state` must be 0..2:
+/// registration installs the message table and starts ambience, idle retains
+/// the receiver, and state 2 releases the task. Keep this overlay loaded while
+/// it can receive messages. No work allocation or spawn payload is read here.
+void dryfieldWarehouseRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_WAREHOUSE_H

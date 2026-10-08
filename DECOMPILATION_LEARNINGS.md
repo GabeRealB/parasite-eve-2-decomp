@@ -1904,7 +1904,7 @@ byte-for-byte, so the statement shape, not the types, decides the layout.
 is the sibling to read first; `dryfieldBreezewayForwardKeyItemUse` is a third copy.
 
 The same lever works when the guard is not the whole function. In
-`func_dryfield_warehouse_8017D764` the guard arm is a search loop rather than a
+`dryfieldWarehouseUseKeyItem` the guard arm is a search loop rather than a
 value, and m2c wrote the tail as an early return:
 
 ```c
@@ -1917,10 +1917,8 @@ return 0;                                   /* 93.2%, nonzero regs already gone 
 That leaves two return-0 blocks, so the entry test becomes `beq a2,v0,body` plus
 a `j` to the first one. Nesting the body under `if (arg2 == 0x111)` and leaving
 one trailing `return 0` merges them into the block the target branches *to* —
-`bne a2,v0,ret` with the body falling through (`found = 0` at the bottom of the
-loop body is not redundant: it is what puts `move v0,zero` in the back-edge
-delay slot). The nesting, not the parameter typing, is what moved it from 93.2%
-to 100%; adding the two unused leading parameters to put the message id in `$a2`
+`bne a2,v0,ret` with the body falling through (the false search result puts `move v0,zero` in the back-edge delay slot). The nesting, not the parameter typing, is what moved it from 93.2%
+to 100%; adding the two unused leading parameters to put the item payload in `$a2`
 was a separate, earlier fix (85.4% → 93.2%).
 ## Box two address-materializing stores in one `do-while(0)`; leave the next load outside
 
@@ -42451,7 +42449,7 @@ global `volatile` only stops the delay-slot fill, costing an extra `nop`.
 `SOFT_BARRIER()` between the two statements is the fix — it keeps the `la`
 below the store, and being non-volatile it still lets the delay slot take
 `addiu a0`. `SCHED_BARRIER()` and `SOFT_COMPILER_BARRIER()` also match here;
-prefer the softest one that works. `func_dryfield_trailer_coach_801822F4` is
+prefer the softest one that works. `_dryfieldTrailerCoachConversationTask` is
 the example.
 
 Note the shape is sensitive to what follows the call: with nothing after it
@@ -47656,7 +47654,7 @@ capStartSequenceSlot(3, 0, cond);
 
 `cond = (... >= 2) + 1;` in one statement is still folded — the split has to
 be into two statements, not just into a local. `!(x < K) + 1` and
-`(x > K-1) + 1` fold the same way. `func_dryfield_trailer_coach_80182850` is
+`(x > K-1) + 1` fold the same way. `_dryfieldTrailerCoachStartConversationCaption` is
 the example.
 
 ## `s16` local read by a compare *and* a store loads the field twice
@@ -49370,8 +49368,8 @@ longer one.
 
 The mirror of the entry above, and the harder one to spot. m2c is handed only
 this function's `.s`, so a callee it has no prototype for is typed with the
-arity that call site implies. `func_dryfield_warehouse_8017D99C` really calls
-`gameSetTaskSlot(index, 7)`, but m2c emitted a one-argument version:
+arity that call site implies. `_dryfieldWarehouseInitializeRoomTask` really calls
+`gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM)`, but m2c emitted a one-argument version:
 
 ```c
 M2C_UNK gameSetTaskSlot(M2C_UNK);   /* extern */
@@ -49382,17 +49380,17 @@ gameSetTaskSlot(7);
 which puts the constant in `$a0` and still scores 99.78% on a single `regs`
 penalty — the entire diff is `li a1,7` against our `li a0,7`.
 
-The tell is that **nothing writes `$a0` before the `jal`**. `index` is copied to
+The tell is that **nothing writes `$a0` before the `jal`**. `task` is copied to
 a callee-saved register at the function head because it is live across the call,
-and that copy leaves `$a0` untouched, so a call whose first argument *is* `index`
+and that copy leaves `$a0` untouched, so a call whose first argument *is* `task`
 needs no argument setup at all: GCC reuses the incoming register. Restore the
 prototype from the shared header (`main/session.h` here) and pass the pointer:
 
 ```c
-void func_dryfield_warehouse_8017D99C(Task* arg0)
+static void _dryfieldWarehouseInitializeRoomTask(Task* task)
 {
-    arg0->field_24 = D_dryfield_warehouse_8017F554;
-    gameSetTaskSlot(arg0, 7);
+    task->msgTable = D_dryfield_warehouse_8017F554;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     ...
 }
 ```
@@ -49404,7 +49402,7 @@ untouched `$a0` is a missing leading argument, not a scheduling or allocation
 quirk, and the penalty label (`regs`) says nothing about it.
 
 That label is not even stable. `_dryfieldNightParkingLotInitializeRoom` is the
-same seed — `gameSetTaskSlot(7)` against a real `gameSetTaskSlot(index, 7)` — and
+same seed — `gameSetTaskSlot(7)` against a real `gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM)` — and
 scores 93.33% on `insert=1 delete=1` at 0 penalty otherwise, because the constant
 also *moves*: `li $a0,7` sits ahead of the `lui`/`addiu` pair in the seed and
 `li $a1,7` behind it in the target, so a scorer aligning on opcode and operands
@@ -49415,6 +49413,8 @@ check `$a0` at the `jal` before reading the scheduler dumps. These room
 sibling in another overlay usually already shows the right call — here
 `_dryfieldBackStreetInitializeRoomTask` / `func_dryfield_water_hole_8017D7DC` /
 `func_mist_r21_8017D61C` all carry `gameSetTaskSlot(index, 7)` verbatim. Compare
+`func_dryfield_back_street_8017D8B4` / `func_dryfield_water_hole_8017D7DC` /
+`func_mist_r21_8017D61C` all carry `gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM)` verbatim. Compare
 against one of those before reading the dumps.
 
 The `regs` count under-states the damage, so do not read it as a measure of how
@@ -87973,7 +87973,7 @@ address is a conversion at the narrow use, not a second symbol.
 Inputs: `base.i` `79b53b4e9ea881de336c2b7fa0c0dfdca62ee1ec42199a344c482b6fcb8c659b`,
 `base_1.i` `9f16fe3b1b6843c315a9c3200e76bdba98c630be27050b15f535d607ce1be9f8`.
 
-## A shared return temporary is live across the calls, so it takes a callee-saved register (func_dryfield_warehouse_8017D824, 2026-09-15)
+## A shared return temporary is live across the calls, so it takes a callee-saved register (dryfieldWarehouseResolveRoomEvent, 2026-09-15)
 
 The room message handlers are a family, and m2c renders this one's return as a
 single `var_v0` written on each path and read once at the join:
@@ -91653,10 +91653,10 @@ shape in both is just that the return value is preset once and every exit shares
 the epilogue.
 ## An m2c seed drops the parameters it cannot see used, so the message lands in `$a0`
 
-Every room event handler in this port has the shape
-`s32 f(s32 index, s32 value, RoomEventMsg* in, RoomEventMsg* out)`. When the body
-touches only `$a2` — the common case, since a handler that just latches a flag
-reads `in->warp` and never writes `out` — m2c emits a *single* parameter and
+A task-message handler has four arguments: the receiving `Task*`, the message
+id, and two receiver-specific payloads. When the body touches only `$a2` — as
+the underpass direction handler does when it reads `request->actionId` and
+ignores the zero second payload — m2c emits a *single* parameter and
 names it after the register it saw: `s32 func(void *arg2)`. Naming it `arg2`
 makes the seed read correctly and compile cleanly, so nothing in the source
 looks wrong, but the parameter is the function's first and the compiler puts it
@@ -91683,14 +91683,14 @@ it. Take the signature from a matched sibling in the same room family
 declares the four parameters even when it also ignores `out`); the extra
 parameters cost no code, and unused ones cannot affect allocation.
 
-`func_dryfield_underpass_8017D908` (`base_1.c` 100%, one build after the 99.923%
+`_dryfieldUnderpassHandleRoomAction` (`base_1.c` 100%, one build after the 99.923%
 baseline; `base.c` is the raw m2c seed). `overlay_dup_index.py find` reports
 this body as its own only copy, so nothing needed promoting.
 
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Inputs: base.i `37a2a067ece339296551877a47e3af55fbb6a3a792465ef607b9dc13871e28b9`,
 base_1.i `0dd655fdcac8e6c6febf4a01f82faa9fa754d262f32fc2e0369057fbc692ef5c`.
-Evidence: scratch `nonmatchings/func_dryfield_underpass_8017D908-vacuum/`,
+Evidence: scratch `nonmatchings/_dryfieldUnderpassHandleRoomAction-vacuum/`,
 `base_diff`; no pins, no permuter, no tracer.
 
 ## m2c emits only the parameters it sees used, so a single wrong `$aN` in a compare is an arity problem
@@ -119551,7 +119551,7 @@ target.o SHA256
 compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_mineRefugeCircuitPanelTask-vacuum`.
-## A `lui` in a branch delay slot is not a call argument: m2c invents the parameter from a split address (func_dryfield_warehouse_8017DA58, 2026-09-17)
+## A `lui` in a branch delay slot is not a call argument: m2c invents the parameter from a split address (_dryfieldWarehouseSkipCutscene, 2026-09-17)
 
 The seed for this room message handler declared `M2C_UNK playerActorRestoreEquipment(u8 *)`
 and called it as `playerActorRestoreEquipment(&D_80073BA9)`. The callee takes no arguments
@@ -119595,7 +119595,7 @@ Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5
 Inputs: base.i `147320d11de672b465a674f6a414d5572490735c244350d18ee813a8eea4c122`,
 base_1.i `e3af7ab9c9ea935327e769ae46d7369ee13bb59d04a98a82172ba851c2c41120`,
 base_2.i `fb1332303792ee8c20a477f4729eece9817d8be49b3c2751334437d4886a28fb`.
-Evidence: scratch `nonmatchings/func_dryfield_warehouse_8017DA58-vacuum/`,
+Evidence: scratch `nonmatchings/_dryfieldWarehouseSkipCutscene-vacuum/`,
 `base_1_diff` (the lone `lh`/`lhu` line) and `base_2.score.json`; no pins, no
 permuter, no tracer. The record-payload and ternary halves of this function are
 sections 25 and 28 above, and were already documented. `overlay_dup_index.py
@@ -119604,7 +119604,7 @@ find` reports the body as its own only copy.
 ## The ternary's `j` over the else arm is also a cse1 EBB boundary: two `force_reg` constants stay in two registers (func_dryfield_warehouse_8017E090, 2026-09-17)
 
 `func_dryfield_warehouse_8017E090` builds the same 0x3E8 `AnimationPlayRequest` payload as its
-sibling `func_dryfield_warehouse_8017DA58` (section 29 above), and retail keeps
+sibling `_dryfieldWarehouseSkipCutscene` (section 29 above), and retail keeps
 the conditional's `1` and the record's `1` in *different* registers:
 
 ```

@@ -95,13 +95,13 @@ dryfieldToiletJetPuffTask = 0x8017DEF4; // type:func
 
 dryfieldToiletConfigureEffectsTask = 0x8017E64C; // type:func
 
-func_dryfield_toilet_8017E69C = 0x8017E69C; // type:func
+dryfieldToiletRoomVisualEffectsGlowDiscTask = 0x8017E69C; // type:func
 
 dryfieldToiletFlyingSparkTask = 0x8017EBF4; // type:func
 
 dryfieldToiletFlyingOrangeBurstTask = 0x8017F854; // type:func
 
-func_dryfield_toilet_8017DCF0 = 0x8017DCF0; // type:func
+dryfieldToiletSprayEmitterTask = 0x8017DCF0; // type:func
 _roomVisualEffectsDrawFlyingSpark = 0x8017EE18; // type:func
 _roomVisualEffectsDrawFlyingRing = 0x8017F09C; // type:func
 _roomVisualEffectsDrawFlyingDisc = 0x8017F4C0; // type:func

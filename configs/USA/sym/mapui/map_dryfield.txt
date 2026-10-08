@@ -55,7 +55,7 @@ D_dryfield_souvenir_shop_8017E0DC = 0x8017E0DC; // absolute:True owner=dryfield_
 D_dryfield_souvenir_shop_8017E600 = 0x8017E600; // absolute:True owner=dryfield_souvenir_shop
 D_dryfield_souvenir_shop_8017EED0 = 0x8017EED0; // absolute:True owner=dryfield_souvenir_shop
 D_dryfield_souvenir_shop_8017F640 = 0x8017F640; // absolute:True owner=dryfield_souvenir_shop
-func_dryfield_warehouse_8017DA00 = 0x8017DA00; // type:func absolute:True owner=dryfield_warehouse
+dryfieldWarehouseRoomTask = 0x8017DA00; // type:func absolute:True owner=dryfield_warehouse
 D_dryfield_warehouse_8017FBBC = 0x8017FBBC; // absolute:True owner=dryfield_warehouse shared=rooms
 D_dryfield_warehouse_8017FC04 = 0x8017FC04; // absolute:True owner=dryfield_warehouse shared=rooms
 D_dryfield_warehouse_8017FC10 = 0x8017FC10; // absolute:True owner=dryfield_warehouse
@@ -227,7 +227,7 @@ D_dryfield_junk_yard_8017ED24 = 0x8017ED24; // absolute:True owner=dryfield_junk
 D_dryfield_junk_yard_8017F5C0 = 0x8017F5C0; // absolute:True owner=dryfield_junk_yard
 D_dryfield_junk_yard_80180C28 = 0x80180C28; // absolute:True owner=dryfield_junk_yard shared=rooms
 D_dryfield_junk_yard_80181C28 = 0x80181C28; // absolute:True owner=dryfield_junk_yard shared=rooms
-func_dryfield_trailer_coach_80182950 = 0x80182950; // type:func absolute:True owner=dryfield_trailer_coach
+dryfieldTrailerCoachRoomTask = 0x80182950; // type:func absolute:True owner=dryfield_trailer_coach
 gDryfieldTrailerCoachAcropolisSanctuaryModel090F0 = 0x80184554; // absolute:True owner=dryfield_trailer_coach shared=rooms
 D_dryfield_trailer_coach_801871CC = 0x801871CC; // absolute:True owner=dryfield_trailer_coach shared=rooms
 D_dryfield_trailer_coach_801871DC = 0x801871DC; // absolute:True owner=dryfield_trailer_coach
@@ -291,7 +291,7 @@ D_dryfield_cellar_8017DC20 = 0x8017DC20; // absolute:True owner=dryfield_cellar 
 D_dryfield_cellar_8017DF78 = 0x8017DF78; // absolute:True owner=dryfield_cellar
 D_dryfield_cellar_8017FE40 = 0x8017FE40; // absolute:True owner=dryfield_cellar
 D_dryfield_cellar_80180B40 = 0x80180B40; // absolute:True owner=dryfield_cellar
-func_dryfield_underpass_8017DAC8 = 0x8017DAC8; // type:func absolute:True owner=dryfield_underpass shared=rooms
+dryfieldUnderpassRoomTask = 0x8017DAC8; // type:func absolute:True owner=dryfield_underpass shared=rooms
 D_dryfield_underpass_8017EB20 = 0x8017EB20; // absolute:True owner=dryfield_underpass
 D_dryfield_underpass_8017EBBC = 0x8017EBBC; // absolute:True owner=dryfield_underpass shared=rooms
 D_dryfield_underpass_8017EBD4 = 0x8017EBD4; // absolute:True owner=dryfield_underpass

@@ -785,7 +785,7 @@ dryfieldToiletJetPuffTask = 0x8017DEF4; // type:func absolute:True owner=dryfiel
 
 dryfieldToiletConfigureEffectsTask = 0x8017E64C; // type:func absolute:True owner=dryfield_toilet shared=rooms
 
-func_dryfield_toilet_8017E69C = 0x8017E69C; // type:func absolute:True owner=dryfield_toilet
+dryfieldToiletRoomVisualEffectsGlowDiscTask = 0x8017E69C; // type:func absolute:True owner=dryfield_toilet
 
 dryfieldToiletFlyingSparkTask = 0x8017EBF4; // type:func absolute:True owner=dryfield_toilet shared=rooms
 
@@ -1763,7 +1763,7 @@ acropolisCafeteriaPuffTask = 0x8017EA90; // type:func absolute:True owner=acropo
 
 acropolisHallwayEffectControlTask84 = 0x8017D828; // type:func absolute:True owner=acropolis_hallway shared=rooms
 
-func_dryfield_toilet_8017DCF0 = 0x8017DCF0; // type:func absolute:True owner=dryfield_toilet
+dryfieldToiletSprayEmitterTask = 0x8017DCF0; // type:func absolute:True owner=dryfield_toilet
 
 dryfieldUnderpassDrawFlaresTask = 0x8017DE30; // type:func absolute:True owner=dryfield_underpass shared=rooms
 

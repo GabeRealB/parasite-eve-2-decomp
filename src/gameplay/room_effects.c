@@ -697,7 +697,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletJetPuffTask, { NULL } },                                              // 0x09F
     { { { TASK_BODY_COORD, 0x70 } }, acropolisSecurityRoomMonitorGlowTask, { NULL } },                                   // 0x0A0
     { { { TASK_BODY_COORD, 0x70 } }, effectControlTaskA1, { NULL } },                                                    // 0x0A1
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017DCF0, { NULL } },                                          // 0x0A2
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletSprayEmitterTask, { NULL } },                                         // 0x0A2
     { { { TASK_BODY_COORD, 0x70 } }, effectLineTaskA3, { NULL } },                                                       // 0x0A3
     { { { TASK_BODY_COORD, 0x70 } }, effectTileTaskA4, { NULL } },                                                       // 0x0A4
     { { { TASK_BODY_COORD, 0x70 } }, effectCorpseBurnTask, { NULL } },                                                   // 0x0A5
@@ -1185,7 +1185,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetRoomVisualEffectsHaloTask, { NULL } },                       // 0x287
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightMainStreetRoomVisualEffectsHaloOrangeBurstTask, { NULL } },            // 0x288
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_main_street_80181F58, { NULL } },                               // 0x289
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_toilet_8017E69C, { NULL } },                                          // 0x28A
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletRoomVisualEffectsGlowDiscTask, { NULL } },                            // 0x28A
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletFlyingSparkTask, { NULL } },                                          // 0x28B
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletFlyingOrangeBurstTask, { NULL } },                                    // 0x28C
     { { { TASK_BODY_COORD, 0x70 } }, acropolisCafeteriaRoomVisualEffectsFlashTask, { NULL } },                           // 0x28D

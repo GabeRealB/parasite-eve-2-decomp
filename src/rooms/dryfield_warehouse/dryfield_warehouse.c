@@ -20,6 +20,7 @@ s32 D_dryfield_warehouse_801821B8;
 #include "gameplay/collision.h"
 #include "gameplay/light.h"
 #include "gameplay/message.h"
+#include "gameplay/items.h"
 #include "gameplay/room.h"
 #include "gameplay/sprites.h"
 #include "gameplay/world_collision.h"
@@ -160,7 +161,7 @@ Task* D_dryfield_warehouse_801821C0;
 
 s16 D_dryfield_warehouse_801821C4;
 
-static void func_dryfield_warehouse_8017D99C(Task* arg0);
+static void _dryfieldWarehouseInitializeRoomTask(Task* task);
 static void _dryfieldWarehouseIdleRoomTask(Task* unusedTask);
 
 void dryfieldWarehouseAmbienceTask(Task* task)
@@ -225,94 +226,102 @@ void dryfieldWarehouseAmbienceTask(Task* task)
     D_dryfield_warehouse_801821B8 = targetVolumePercent;
 }
 
-/// Message handler: on msg 0x111, walks the `Gp_PendingObj4C` list looking for
-/// a room-action trigger whose `parameter0` is 0xFF and whose `hit` is set, and
-/// on a hit sets event nibble 0x3C, flips `gGameSession->eventState` and spawns the
-/// warehouse cutscene task. Answers 1 only when it found one.
-s32 func_dryfield_warehouse_8017D764(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Tests whether the live action list contains a hit warehouse event region.
+///
+/// Borrows the linked trigger list without clearing hit latches or retaining
+/// pointers. Only unflagged room actions with the room-event sentinel qualify.
+static inline bool _dryfieldWarehouseHasHitEventTrigger(void)
 {
-    WorldCollisionTrigger* node;
-    s32                    found;
+    WorldCollisionTrigger* trigger;
 
-    if (arg2 == 0x111) {
-        found = 0;
-        node  = Gp_PendingObj4C;
-        while (node != NULL) {
-            if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
-                found = 1;
-                break;
-            }
-            node  = node->next;
-            found = 0;
+    trigger = Gp_PendingObj4C;
+    while (trigger != NULL) {
+        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
+            return true;
         }
-
-        if (found != 0) {
-            gameFlagSetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN, 1);
-            gGameSession->eventState = 1;
-            taskSpawnFromTableOnDefaultList(D_dryfield_warehouse_8017F56C, 0, 0, 0);
-            return 1;
-        }
+        trigger = trigger->next;
     }
-    return 0;
+    return false;
 }
 
-/// Copies the room message, then answers msg 9 by running CAP command 3 and
-/// setting the event's nibble. queryOnly suppresses the side effects (the
-/// handler only reports what *would* happen); any other message plays the
-/// "refused" sound instead.
-s32 func_dryfield_warehouse_8017D824(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 dryfieldWarehouseUseKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg)
 {
-    *out = *in;
-    if (in->areaId == GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE) {
+    enum { WAREHOUSE_EVENT_TASK = 0 };
+
+    if (itemId == INVENTORY_COLLECTION_ID_MONKEY_WRENCH) {
+        if (_dryfieldWarehouseHasHitEventTrigger() != 0) {
+            gameFlagSetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN, 1);
+            gGameSession->eventState = 1;
+            taskSpawnFromTableOnDefaultList(D_dryfield_warehouse_8017F56C, WAREHOUSE_EVENT_TASK, 0, 0);
+            return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
+        }
+    }
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+s32 dryfieldWarehouseResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { WAREHOUSE_EXIT_BLOCKED_CAP    = 3,
+           WAREHOUSE_EXIT_MAP_MARK       = 2,
+           WAREHOUSE_AMBIENCE_STOP_TICKS = 15 };
+
+    *reply = *request;
+    if (request->areaId == GAME_AREA_DRYFIELD_DILAPIDATED_HOUSE) {
         if (gameFlagGetNibble(GAME_FLAG_WAREHOUSE_EVENT_SEEN) != 0) {
             return 1;
         }
-        if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-            capRunCommandWithTransition(3);
-            gameFlagSetNibbleIfPresent(in->flagId, 2);
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            capRunCommandWithTransition(WAREHOUSE_EXIT_BLOCKED_CAP);
+            gameFlagSetNibbleIfPresent(request->flagId, WAREHOUSE_EXIT_MAP_MARK);
         }
         return 0;
     }
-    if (in->queryOnly == ROOM_EVENT_EXECUTE) {
-        sndEvtRequestScriptStop(SOUND_WAREHOUSE_AMBIENCE, 0xF);
+    if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+        sndEvtRequestScriptStop(SOUND_WAREHOUSE_AMBIENCE, WAREHOUSE_AMBIENCE_STOP_TICKS);
     }
     return 1;
 }
 
-/// Warehouse cutscene state machine: state 0 blanks the display and spawns the
-/// cutscene task, state 1 waits for it to finish, and state 2 kills this task
-/// once it has.
-void func_dryfield_warehouse_8017D8D4(Task* arg0)
+void dryfieldWarehouseEventTask(Task* task)
 {
-    s32 sp10;
+    enum { EVENT_START,
+           EVENT_WAIT,
+           EVENT_EXIT,
+           CUTSCENE_TASK = 0 };
+    s32 cutsceneResult;
 
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case EVENT_START:
             SetDispMask(0);
-            D_dryfield_warehouse_801821B4 = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, 0, 0, 0);
-            arg0->state                  += 1;
+            D_dryfield_warehouse_801821B4 = taskSpawnFromTable(D_dryfield_warehouse_8017FB08, CUTSCENE_TASK, 0, 0);
+            task->state                  += 1;
             return;
-        case 1:
-            if (taskPollKill(D_dryfield_warehouse_801821B4, &sp10) != 0) {
-                arg0->state += 1;
+        case EVENT_WAIT:
+            if (taskPollKill(D_dryfield_warehouse_801821B4, &cutsceneResult) != 0) {
+                task->state += 1;
                 return;
             }
             return;
-        case 2:
-            taskKill(arg0);
+        case EVENT_EXIT:
+            taskKill(task);
             break;
     }
 }
 
-/// State 0 of the room's main task: installs the room's message table,
-/// publishes the task in game pointer slot 7, spawns the ambience task (entry 1
-/// of the room's task table) and advances.
-static void func_dryfield_warehouse_8017D99C(Task* arg0)
+/// Registers the warehouse room receiver and starts its view-dependent ambience.
+///
+/// Installs the room message table, claims `GAME_TASK_SLOT_ROOM`, queues the
+/// independent ambience task and advances to idle state 1. Keep this overlay's
+/// message table, callbacks and sound resources loaded while those tasks run.
+/// A failed ambience spawn does not prevent registration or state advancement.
+static void _dryfieldWarehouseInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_warehouse_8017F554;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    taskSpawnFromTable(D_dryfield_warehouse_8017F56C, 1, 0, 0);
-    arg0->state = (s32)(arg0->state + 1);
+    enum { WAREHOUSE_AMBIENCE_TASK = 1 };
+
+    task->msgTable = D_dryfield_warehouse_8017F554;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    taskSpawnFromTable(D_dryfield_warehouse_8017F56C, WAREHOUSE_AMBIENCE_TASK, 0, 0);
+    task->state = task->state + 1;
 }
 
 /// Keeps the warehouse room task alive in state 1 to receive messages.
@@ -321,18 +330,16 @@ static void _dryfieldWarehouseIdleRoomTask(Task* unusedTask)
 }
 
 /// The three states of the room's main task, run by
-/// `func_dryfield_warehouse_8017DA00`: set-up, the idle per-frame step and the
+/// `dryfieldWarehouseRoomTask`: set-up, the idle per-frame step and the
 /// kill.
 static const TaskFuncTable3 D_dryfield_warehouse_8017D5C4 = {
-    { func_dryfield_warehouse_8017D99C, _dryfieldWarehouseIdleRoomTask, taskKill },
+    { _dryfieldWarehouseInitializeRoomTask, _dryfieldWarehouseIdleRoomTask, taskKill },
 };
 
-/// Dispatches the room's main task through its three-state table, copied onto
-/// the stack first.
-void func_dryfield_warehouse_8017DA00(Task* task)
+void dryfieldWarehouseRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_warehouse_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_warehouse_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

@@ -575,51 +575,73 @@ SVECTOR D_dryfield_toilet_8018662C[326] = { 0 };
 
 SVECTOR D_dryfield_toilet_8018705C[1604] = { 0 };
 
-void func_dryfield_toilet_8017DCF0(Task* arg0)
+/// Normalizes a spray offset to Q12, choosing a random direction for a zero offset.
+///
+/// Borrows writable effect work; changes only `pos` for the zero case and
+/// writes `move`. Three LCG advances produce signed components in [-2048, 2047].
+static inline void _dryfieldToiletNormalizeSprayDirection(EffectWork* work)
 {
-    EffectWork* mem;
-    GfxCoord*   coord;
-    EffectWork* spawned;
+    enum { SPRAY_RANDOM_DIRECTION_MASK = 0xFFF,
+           SPRAY_RANDOM_DIRECTION_BIAS = 0x800 };
 
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
+    if ((work->pos.vx | work->pos.vy | work->pos.vz) == 0) {
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->pos.vx    = ((gRandomLcgState >> 16) & SPRAY_RANDOM_DIRECTION_MASK) - SPRAY_RANDOM_DIRECTION_BIAS;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->pos.vy    = ((gRandomLcgState >> 16) & SPRAY_RANDOM_DIRECTION_MASK) - SPRAY_RANDOM_DIRECTION_BIAS;
+        gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        work->pos.vz    = ((gRandomLcgState >> 16) & SPRAY_RANDOM_DIRECTION_MASK) - SPRAY_RANDOM_DIRECTION_BIAS;
+    }
+    // The offset also supplies the spray direction, normalized to Q12.
+    VectorNormalSS(&work->pos, &work->move);
+}
+
+void dryfieldToiletSprayEmitterTask(Task* task)
+{
+    enum { SPRAY_ATTACH                 = 0,
+           SPRAY_EMIT                   = 1,
+           SPRAY_INITIAL_SPEED          = 48,
+           SPRAY_PUFF_SIZE              = 0x180,
+           SPRAY_PUFF_FRAME_PERIOD      = 1 << 12,
+           SPRAY_PUFF_UNINTERPRETED_BIT = 1 << 16,
+           SPRAY_PUFF_PARAMETERS        = SPRAY_PUFF_SIZE | SPRAY_PUFF_FRAME_PERIOD | SPRAY_PUFF_UNINTERPRETED_BIT };
+
+    EffectWork* work;
+    GfxCoord*   coord;
+    EffectWork* puffWork;
+
+    work  = task->spawnArg2.pointer;
+    coord = task->extra.coordBody->coord;
     if (gRoomEffectState->effectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN) {
         if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_PAUSED) {
             return;
         }
-        if (arg0->state == 0) {
-            coord->parent       = mem->parent;
-            coord->coord.t[0]   = mem->pos.vx;
-            coord->coord.t[1]   = mem->pos.vy;
-            coord->coord.t[2]   = mem->pos.vz;
+        if (task->state == SPRAY_ATTACH) {
+            coord->parent       = work->parent;
+            coord->coord.t[0]   = work->pos.vx;
+            coord->coord.t[1]   = work->pos.vy;
+            coord->coord.t[2]   = work->pos.vz;
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
-            arg0->state         = 1;
-            mem->scale          = 0x30;
-            mem->angle          = arg0->spawnArg1.value;
-            if ((mem->pos.vx | mem->pos.vy | mem->pos.vz) == 0) {
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vx     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vy     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
-                gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                mem->pos.vz     = ((gRandomLcgState >> 16) & 0xFFF) - 0x800;
-            }
-            VectorNormalSS(&mem->pos, &mem->move);
+            task->state         = SPRAY_EMIT;
+            work->scale         = SPRAY_INITIAL_SPEED;
+            work->angle         = task->spawnArg1.value;
+            _dryfieldToiletNormalizeSprayDirection(work);
         }
+        // Children inherit the live attachment; their velocity decreases by age.
         actorRenderComposeCoord(coord);
-        spawned = effectSpawn(EFFECT_DRYFIELD_TOILET_JET_PUFF, coord, 0x11180, 0);
-        if (spawned != NULL) {
-            gte_lddp(mem->scale - mem->age);
-            gte_ldsv(&mem->move);
+        puffWork = effectSpawn(EFFECT_DRYFIELD_TOILET_JET_PUFF, coord, SPRAY_PUFF_PARAMETERS, 0);
+        if (puffWork != NULL) {
+            gte_lddp(work->scale - work->age);
+            gte_ldsv(&work->move);
             gte_gpf12();
-            gte_stsv(&spawned->move);
+            gte_stsv(&puffWork->move);
         }
-        mem->age++;
-        if (mem->age < mem->angle) {
+        work->age++;
+        if (work->age < work->angle) {
             return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 /// Sets the screen corners of a jet puff's rotated square around its projected centre.
@@ -786,9 +808,9 @@ void dryfieldToiletConfigureEffectsTask(Task* task)
 
 #include "../../shared/room_visual_effects_flying_tasks.inc.c"
 
-void func_dryfield_toilet_8017E69C(Task* arg0)
+void dryfieldToiletRoomVisualEffectsGlowDiscTask(Task* task)
 {
-    _roomVisualEffectsGlowDiscTask(arg0);
+    _roomVisualEffectsGlowDiscTask(task);
 }
 
 void dryfieldToiletFlyingSparkTask(Task* task)

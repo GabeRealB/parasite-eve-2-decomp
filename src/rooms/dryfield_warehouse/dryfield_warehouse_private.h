@@ -59,10 +59,34 @@ extern SpriteBatch D_dryfield_warehouse_801815E8[2];
 /// Requires a live task and loaded warehouse sound resources while playback runs.
 void dryfieldWarehouseAmbienceTask(Task* task);
 
-s32 func_dryfield_warehouse_8017D764(Task*, s32, s32, s32);
+/// Starts the warehouse event when the Monkey Wrench is used at its active trigger.
+///
+/// `itemId` is a collected-item ID from `ROOM_MESSAGE_USE_KEY_ITEM`; the second
+/// payload and other callback arguments are ignored. Scans the live trigger
+/// list for a hit room-action trigger with the room-event sentinel. A match
+/// sets the seen flag and session event state, queues the event task and returns
+/// `ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE`, even if spawning fails. Other requests
+/// return `ROOM_KEY_ITEM_USE_REFUSED`. No inventory item is removed here.
+s32 dryfieldWarehouseUseKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 
-s32 func_dryfield_warehouse_8017D824(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Resolves warehouse departures, blocking the house route until the event is seen.
+///
+/// Borrows a readable eight-byte `request` and writable eight-byte `reply` for
+/// synchronous `ROOM_EVENT_MESSAGE_RESOLVE`; they may alias. Copies the whole
+/// record before checking it. The dilapidated-house route returns 1 once the
+/// event is seen; before that it returns 0, and execution additionally starts
+/// CAP command 3 and sets the optional map flag to 2. Other destinations return
+/// 1 and execution requests a 15-audio-update ambience stop. Queries suppress
+/// these effects. Neither pointer is retained and no destination is changed.
+s32 dryfieldWarehouseResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 
-void func_dryfield_warehouse_8017D8D4(Task*);
+/// Starts the warehouse event cutscene and waits for its requested exit.
+///
+/// States 0..2 start, wait and exit. State 0 disables display and publishes the
+/// new cutscene task; state 1 polls its requested exit and ignores its result;
+/// state 2 releases this gate. The cutscene owns display restoration and its
+/// work. Requires a successful child spawn before polling and the room overlay
+/// to remain loaded. This gate does not allocate work or adopt the child task.
+void dryfieldWarehouseEventTask(Task* task);
 
 #endif // SRC_ROOMS_DRYFIELD_WAREHOUSE_DRYFIELD_WAREHOUSE_PRIVATE_H

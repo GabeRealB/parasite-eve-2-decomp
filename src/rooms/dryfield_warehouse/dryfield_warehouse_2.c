@@ -128,17 +128,21 @@ extern WorldCollisionGrid D_dryfield_warehouse_80181038[1];
 void        func_dryfield_warehouse_8017E090(Task*);
 static void _dryfieldWarehouseFadeOutTask(Task* task);
 
-void        func_dryfield_warehouse_8017DA58(s32);
+/// Phases called under the skip script's fade, separated by one script tick.
+enum { DRYFIELD_WAREHOUSE_SKIP_RESTORE = 0,
+       DRYFIELD_WAREHOUSE_SKIP_REFRESH = 1 };
+
+static void _dryfieldWarehouseSkipCutscene(s32 phase);
 static void _dryfieldWarehouseSetCutsceneCommand(s16 command);
 
 TaskMessageEntry D_dryfield_warehouse_8017F554[3] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_warehouse_8017D824 },
-    { 5105, func_dryfield_warehouse_8017D764 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldWarehouseResolveRoomEvent },
+    { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldWarehouseUseKeyItem },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_warehouse_8017F56C[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_warehouse_8017D8D4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, dryfieldWarehouseEventTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, dryfieldWarehouseAmbienceTask, { .value = 0 } },
 };
 
@@ -195,9 +199,9 @@ EvsCommand D_dryfield_warehouse_8017F880[16] = {
 EvsCommand D_dryfield_warehouse_8017FA00[11] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_warehouse_8017DA58 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldWarehouseSkipCutscene }, { .value = DRYFIELD_WAREHOUSE_SKIP_RESTORE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_dryfield_warehouse_8017DA58 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _dryfieldWarehouseSkipCutscene }, { .value = DRYFIELD_WAREHOUSE_SKIP_REFRESH }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -481,58 +485,78 @@ SpriteBatch D_dryfield_warehouse_801815E8[2] = {
 static void func_dryfield_warehouse_8017DBB0(Task* arg0);
 static void _dryfieldWarehouseDrawLightBeam(const GfxCoord* coord, s16 firstRing, s16 segmentCount);
 
-/// Message handler of the warehouse's cutscene task. Message 0 re-opens the
-/// room: it kills the screen-fade task still on `D_dryfield_warehouse_801821C0`,
-/// turns the display back on and, while
-/// `_DryfieldWarehouseCutsceneWork::playerEffectsSuppressed` is set, spawns the
-/// weapon effect back, clears the latch and re-sends the player-weapon record.
-/// The player is then handed an equipped-weapon bank request with animation 1, blending disabled
-/// and world collision enabled, followed by the room's placement message.
+/// Restores equipment, weapon animation and final placement for the skipped warehouse scene.
 ///
-/// The session's weapon id is synced to 2 once, and `D_dryfield_warehouse_801821C4`
-/// records whether this handler did that: message 1 mirrors the session's view
-/// and object tables back onto that flag. The 1 shared by the record and the
-/// flag is one callee-saved value because both outlive the dispatches.
-void func_dryfield_warehouse_8017DA58(s32 arg0)
+/// Borrows live cutscene work and its player. A suppressed-equipment latch is
+/// cleared only after restoration. The animation request is stack-owned and
+/// borrowed by the player only during synchronous dispatch; no pointer is kept.
+/// Requires character 1, weapon index 0..32 and the selected bank 1..33 loaded.
+/// The retained other-character base is 34; its safe reachability is unproven.
+static inline void _dryfieldWarehouseRestoreSkippedPlayer(_DryfieldWarehouseCutsceneWork* work)
 {
-    _DryfieldWarehouseCutsceneWork* work;
-    AnimationPlayRequest            rec;
-    s32                             weaponId;
-    s32                             anim;
+    enum { CHARACTER_WITH_FIRST_WEAPON_BANKS = 1,
+           FIRST_WEAPON_BANK_BASE            = 1,
+           OTHER_WEAPON_BANK_BASE            = 0x22,
+           WEAPON_RESTORE_ANIMATION          = 1 };
+    AnimationPlayRequest animationRequest;
+    s32                  weaponId;
+    s32                  animationBankIndex;
 
-    switch (arg0) {
-        case 0:
-            if (D_dryfield_warehouse_801821C0 != 0) {
+    if (work->playerEffectsSuppressed != 0) {
+        playerActorRestoreEquipment();
+        work->playerEffectsSuppressed = 0;
+        playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    }
+    weaponId                              = gPlayerStatus.weapon;
+    animationBankIndex                    = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == CHARACTER_WITH_FIRST_WEAPON_BANKS) ? weaponId + FIRST_WEAPON_BANK_BASE : weaponId + OTHER_WEAPON_BANK_BASE;
+    animationRequest.source.index         = animationBankIndex;
+    animationRequest.animationId          = WEAPON_RESTORE_ANIMATION;
+    animationRequest.blend                = ANIMATION_BLEND_RESET;
+    animationRequest.blendFrames          = 0;
+    animationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_PLAY, &animationRequest, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(work->player, GAME_ACTOR_MESSAGE_PLACE, &D_dryfield_warehouse_8017F868, 0);
+}
+
+/// Restores the warehouse cutscene's final player and room state when it is skipped.
+///
+/// The skip script calls phase 0 under the primary fade, then phase 1 one script
+/// tick later. Phase 0 kills the outstanding fade task, enables display, restores
+/// suppressed equipment/control, plays the equipped weapon's animation 1 with
+/// world collision, and places the player at the closing transform. It selects
+/// room 2 in the live save and session only if the saved room differs, remembering
+/// whether it changed. Phase 1 marks view and room objects dirty only on that
+/// change. Other phases do nothing. Requires the published cutscene task/work,
+/// player and room resources to remain live; animation payload storage is borrowed
+/// only for synchronous dispatch.
+static void _dryfieldWarehouseSkipCutscene(s32 phase)
+{
+    enum { ROOM_AFTER_CUTSCENE = 2 };
+
+    _DryfieldWarehouseCutsceneWork* work;
+
+    switch (phase) {
+        case DRYFIELD_WAREHOUSE_SKIP_RESTORE:
+            // Restore the player's equipment and placement before switching room objects.
+            if (D_dryfield_warehouse_801821C0 != NULL) {
                 taskKill(D_dryfield_warehouse_801821C0);
             }
             SetDispMask(1);
             work = D_dryfield_warehouse_801821BC->work;
-            if (work->playerEffectsSuppressed != 0) {
-                playerActorRestoreEquipment();
-                work->playerEffectsSuppressed = 0;
-                playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            }
-            weaponId                 = gPlayerStatus.weapon;
-            anim                     = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weaponId + 1 : weaponId + 0x22;
-            rec.source.index         = anim;
-            rec.animationId          = 1;
-            rec.blend                = ANIMATION_BLEND_RESET;
-            rec.blendFrames          = 0;
-            rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, ANIMATION_MESSAGE_PLAY, &rec, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->player, 0x3E9, &D_dryfield_warehouse_8017F868, 0);
-            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room != 2) {
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = 2;
-                gGameSession->location.loc.room                            = 2;
+            _dryfieldWarehouseRestoreSkippedPlayer(work);
+            if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room != ROOM_AFTER_CUTSCENE) {
+                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = ROOM_AFTER_CUTSCENE;
+                gGameSession->location.loc.room                            = ROOM_AFTER_CUTSCENE;
                 D_dryfield_warehouse_801821C4                              = 1;
                 return;
             }
             D_dryfield_warehouse_801821C4 = 0;
             return;
-        case 1:
+        case DRYFIELD_WAREHOUSE_SKIP_REFRESH:
+            // The script separates the room commit and its deferred redraw by one tick.
             if (D_dryfield_warehouse_801821C4 != 0) {
-                gGameSession->viewDirty     = arg0;
-                gGameSession->roomObjsDirty = arg0;
+                gGameSession->viewDirty     = phase;
+                gGameSession->roomObjsDirty = phase;
             }
             return;
     }

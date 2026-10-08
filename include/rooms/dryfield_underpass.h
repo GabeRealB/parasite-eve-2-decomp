@@ -45,6 +45,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_underpass_80181164[];
 /// it; queued packets borrow the arena until GPU completion.
 void dryfieldUnderpassDrawFlaresTask(Task* task);
 
-void func_dryfield_underpass_8017DAC8(Task* task);
+/// Runs the underpass room's entry, idle or teardown state.
+///
+/// The stage map spawns this receiver for area 38. `task->state` must be 0..2:
+/// entry installs the message table and prepares the event, idle keeps the
+/// receiver alive, and state 2 releases the task. Keep this room overlay loaded
+/// while it can receive messages. No additional work or spawn payload is read.
+void dryfieldUnderpassRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_UNDERPASS_H

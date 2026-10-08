@@ -56,7 +56,17 @@ void dryfieldToiletJetPuffTask(Task* task);
 /// alone. The callback leaves the task alive after registration.
 void dryfieldToiletConfigureEffectsTask(Task* task);
 
-void func_dryfield_toilet_8017E69C(Task* arg0);
+/// Runs this room's attached charge disc, incoming sparks and fading release ring.
+///
+/// `spawnArg1.value` selects tint 0 or 1; `spawnArg2.pointer` owns a zeroed
+/// `EffectWork`. The coordinate body attaches to its copied local offset; keep
+/// the borrowed parent and its ancestors live. Growth adopts flying sparks
+/// from player model parts 3..18, so the player and registered spark callback
+/// must be available. The owner may request `ROOM_VISUAL_EFFECTS_GLOW_DISC_*`
+/// flicker, release or cancel states. Nonzero room control pauses below four and cancels
+/// at four or above; cancellation and completed release free the work and task,
+/// including adopted sparks. The overlay must stay loaded throughout.
+void dryfieldToiletRoomVisualEffectsGlowDiscTask(Task* task);
 
 /// Runs the room's spark toward a target's initial position for twenty active ticks.
 ///
@@ -76,7 +86,22 @@ void dryfieldToiletFlyingSparkTask(Task* task);
 /// Room effect control pauses at nonzero and cancels at four or above.
 void dryfieldToiletFlyingOrangeBurstTask(Task* task);
 
-void func_dryfield_toilet_8017DCF0(Task* arg0);
+/// Emits one falling jet puff per active tick from an attached coordinate.
+///
+/// The low signed halfword of `spawnArg1.value` is the lifetime in active ticks
+/// (the actor supplies 10); nonpositive lifetimes still emit once before expiry.
+/// `spawnArg2.pointer` owns a zeroed `EffectWork`. The coordinate
+/// body attaches to the work's borrowed parent and copied local offset on the
+/// first active tick. The offset also gives the Q12-normalized direction; a
+/// zero offset chooses random components in [-2048, 2047] for that direction.
+/// Each puff starts at size 384 with a one-tick texture period,
+/// then receives velocity `(48 - age) * direction / 4096` if spawning succeeds.
+/// The puff applies those components in view-parent axes without rotating them.
+/// The packed puff argument also carries bit 16, which this puff never reads.
+/// Actor pause freezes attachment, emission and age; room cancellation or expiry
+/// releases this task and work. Emitted puffs remain independent. Keep the
+/// parent coordinate and its ancestors live until this emitter is released.
+void dryfieldToiletSprayEmitterTask(Task* task);
 
 /// Runs the Dryfield toilet room task's entry, idle or teardown state.
 ///

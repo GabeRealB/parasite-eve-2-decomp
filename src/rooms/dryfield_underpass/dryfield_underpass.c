@@ -75,7 +75,7 @@ static void                     _dryfieldUnderpassRefreshRoomVariant(void);
 
 static s32  _dryfieldUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static void _dryfieldUnderpassIdleTask(Task* unusedTask);
-s32         func_dryfield_underpass_8017D908(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32  _dryfieldUnderpassHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 /// Inventory's request to use a key item in this room.
 enum { DRYFIELD_UNDERPASS_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -132,7 +132,7 @@ TaskDesc gUnderpassSwitchTaskDesc[2] = {
 TaskMessageEntry D_dryfield_underpass_8017E830[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _roomVariantUnderpassMsg },
     { DRYFIELD_UNDERPASS_MESSAGE_USE_KEY_ITEM, _dryfieldUnderpassRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_underpass_8017D908 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldUnderpassHandleRoomAction },
     { ROOM_MESSAGE_COMMAND, underpassSwitchMsg },
     { ROOM_MESSAGE_SOUND, _underpassSoundMsg },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -793,7 +793,7 @@ WorldCollisionSurfaceProperties* D_dryfield_underpass_80181164[8] = {
     D_dryfield_underpass_80181144,
 };
 
-static void func_dryfield_underpass_8017D970(Task* arg0);
+static void _dryfieldUnderpassInitializeRoomTask(Task* task);
 
 #include "../../shared/underpass_switches_task.inc.c"
 
@@ -816,33 +816,43 @@ static s32 _dryfieldUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, s
     return DRYFIELD_UNDERPASS_KEY_ITEM_USE_REJECTED;
 }
 
-/// Handler for message 0x13EF: the first time record `field_2` 1 arrives while
-/// the session's place is 1 and nibble 0xC9 is clear, sets that nibble and
-/// runs the room's script `D_dryfield_underpass_8017E8D8`. Always returns 0.
-s32 func_dryfield_underpass_8017D908(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Starts the underpass's one-shot event for direction action 1 in placement variant 1.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows the four-byte request until dispatch
+/// returns and supplies an ignored zero second word. Only `actionId` is read;
+/// other actions, other variants and a seen event do nothing. Sets the seen flag
+/// before starting the event script with temporary HUD hiding. Always returns
+/// zero and retains no payload pointer. Requires live session state and loaded
+/// room event scripts.
+static s32 _dryfieldUnderpassHandleRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    u8 temp_v1;
+    enum { UNDERPASS_EVENT_ACTION = 1 };
+    u8 actionId;
 
-    temp_v1 = in->warp;
-    if ((temp_v1 == 1) && (gGameSession->location.loc.variant == temp_v1) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
+    actionId = request->actionId;
+    if ((actionId == UNDERPASS_EVENT_ACTION) && (gGameSession->location.loc.variant == actionId) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
         gameFlagSetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN, 1);
         evsStartScript(D_dryfield_underpass_8017E8D8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
     }
     return 0;
 }
 
-/// First state of the room task: parks the room's message table in
-/// `Task::msgTable` and publishes the task in pointer slot 7. While the
-/// session's place is 1 and nibble 0xC9 is clear it also sends message 0x7DA,
-/// with `D_dryfield_underpass_8017E89C`, to the task in slot 4. Then advances.
-static void func_dryfield_underpass_8017D970(Task* arg0)
+/// Registers the underpass room receiver and prepares its unseen variant-1 event.
+///
+/// Installs the room message table, claims `GAME_TASK_SLOT_ROOM` and advances to
+/// state 1. Before the event has been seen, placement variant 1 broadcasts the
+/// room's actor-command key through the scene task. Both room and scene resources
+/// must remain loaded for message delivery; no work allocation is acquired.
+static void _dryfieldUnderpassInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_underpass_8017E830;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
+    enum { UNDERPASS_EVENT_VARIANT = 1 };
+
+    task->msgTable = D_dryfield_underpass_8017E830;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if ((gGameSession->location.loc.variant == UNDERPASS_EVENT_VARIANT) && (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) == 0)) {
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &D_dryfield_underpass_8017E89C, ACTOR_COMMAND_MESSAGE_APPLY);
     }
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// Keeps the initialized underpass room task alive and idle.
@@ -914,20 +924,18 @@ static void _dryfieldUnderpassRefreshRoomVariant(void)
     gGameSession->roomObjsDirty                                = true;
 }
 
-/// State handlers of the room task `func_dryfield_underpass_8017DAC8`, indexed
+/// State handlers of the room task `dryfieldUnderpassRoomTask`, indexed
 /// by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_underpass_8017D5C4 = {
-    { func_dryfield_underpass_8017D970, _dryfieldUnderpassIdleTask, taskKill },
+    { _dryfieldUnderpassInitializeRoomTask, _dryfieldUnderpassIdleTask, taskKill },
 };
 
-/// Room task: runs the state handler `D_dryfield_underpass_8017D5C4` names for
-/// `Task::state`, through a copy of the table taken onto the stack.
-void func_dryfield_underpass_8017DAC8(Task* task)
+void dryfieldUnderpassRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_underpass_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_underpass_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_flare_local.inc.c"

@@ -52,6 +52,13 @@ void dryfieldTrailerCoachDrawGlowsTask(Task* task);
 
 void func_dryfield_trailer_coach_80181364(Task* task);
 
-void func_dryfield_trailer_coach_80182950(Task* task);
+/// Runs the trailer-coach room's entry, depth-scale update or teardown state.
+///
+/// The stage map spawns this receiver for area 27. `task->state` must be 0..2:
+/// entry installs the room table and starts the arrival presentation; state 1
+/// keeps the receiver alive and selects the current view's ordering-table
+/// depth scale; state 2 releases the task. Keep this overlay loaded while the
+/// task is active. No additional work or spawn payload is consumed here.
+void dryfieldTrailerCoachRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_TRAILER_COACH_H

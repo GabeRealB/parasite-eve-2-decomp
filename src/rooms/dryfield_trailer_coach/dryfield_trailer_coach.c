@@ -175,9 +175,13 @@ static u16 Shop_Data_80181AD4[];
 static s32  _dryfieldTrailerCoachRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static s32  _dryfieldTrailerCoachResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static void _dryfieldTrailerCoachWaitForTopicChoice(Task* task);
-s32         func_dryfield_trailer_coach_801825A8(Task*, s32, s32, s32);
-void        func_dryfield_trailer_coach_801822F4(Task*);
+static s32  _dryfieldTrailerCoachHandleCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedSecondArg);
+static void _dryfieldTrailerCoachConversationTask(Task* task);
 static void _dryfieldTrailerCoachTopicChoiceTask(Task* task);
+
+/// Story milestones selecting this room's conversation and caption variants.
+enum { DRYFIELD_TRAILER_COACH_FIRST_CONVERSATION_COMPLETE  = 2,
+       DRYFIELD_TRAILER_COACH_SECOND_CONVERSATION_COMPLETE = 3 };
 
 /// Inventory request to use a key item in this room.
 enum { DRYFIELD_TRAILER_COACH_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -228,7 +232,7 @@ extern WorldCoordRoomLights       D_dryfield_trailer_coach_80189B94[1];
 extern ActorTransform             D_dryfield_trailer_coach_80184FD8;
 extern ActorTransform             D_dryfield_trailer_coach_80184FF0;
 extern ActorTransform             D_dryfield_trailer_coach_80185008;
-void                              func_dryfield_trailer_coach_80182850(void);
+static void                       _dryfieldTrailerCoachStartConversationCaption(void);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -323,13 +327,13 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 TaskMessageEntry D_dryfield_trailer_coach_80184FA0[4] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _dryfieldTrailerCoachResolveRoomEvent },
     { DRYFIELD_TRAILER_COACH_MESSAGE_USE_KEY_ITEM, _dryfieldTrailerCoachRejectKeyItemUse },
-    { ROOM_MESSAGE_COMMAND, func_dryfield_trailer_coach_801825A8 },
+    { ROOM_MESSAGE_COMMAND, _dryfieldTrailerCoachHandleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 TaskDesc D_dryfield_trailer_coach_80184FC0[2] = {
     { { { TASK_BODY_NONE, 32 } }, _dryfieldTrailerCoachTopicChoiceTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_trailer_coach_801822F4, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldTrailerCoachConversationTask, { .value = 0 } },
 };
 
 ActorTransform D_dryfield_trailer_coach_80184FD8 = { { 4870, 0, -900, 0 }, { 0, -2560, 0, 0 } };
@@ -564,7 +568,7 @@ EvsCommand D_dryfield_trailer_coach_80185AFC[14] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_dryfield_trailer_coach_8018523C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_trailer_coach_80182850 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldTrailerCoachStartConversationCaption }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
@@ -1579,7 +1583,7 @@ extern EvsCommand D_dryfield_trailer_coach_801853F4[];
 
 extern EvsCommand D_dryfield_trailer_coach_80185964[];
 
-static void func_dryfield_trailer_coach_80182888(Task* arg0);
+static void _dryfieldTrailerCoachInitializeRoomTask(Task* task);
 
 extern SVECTOR D_dryfield_trailer_coach_801871C4;
 
@@ -1605,33 +1609,59 @@ void func_dryfield_trailer_coach_80181364(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-/// Byte at 0x8007272D, written when the trailer-coach scene ends.
-
-void func_dryfield_trailer_coach_801822F4(Task* task)
+/// Starts the first story conversation and commits the progress it establishes.
+///
+/// Event and skip scripts remain room-owned. Flags, objective 15, scene event 6
+/// and the saved-area changes are committed as soon as playback is requested.
+static inline void _dryfieldTrailerCoachStartFirstStoryConversation(void)
 {
+    enum { CONVERSATION_OBJECTIVE   = 15,
+           CONVERSATION_SCENE_EVENT = 6 };
+
+    evsStartScriptWithSkip(D_dryfield_trailer_coach_80185D54, EVENT_SCRIPT_HUD_HIDE_RESTORE,
+                           D_dryfield_trailer_coach_80186684);
+    gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, DRYFIELD_TRAILER_COACH_FIRST_CONVERSATION_COMPLETE);
+    gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 1);
+    gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 1);
+    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, CONVERSATION_OBJECTIVE);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = CONVERSATION_SCENE_EVENT;
+    areaApplySavedUpdates(D_dryfield_trailer_coach_80189C50);
+}
+
+/// Selects the trailer-coach conversation from CAP choice, progress and wrench collection.
+///
+/// State 0 holds player control and starts the preparation script; state 1 waits
+/// for the session event to end. State 2 starts the shop on CAP key 11, otherwise
+/// selects a first/repeat story scene or the gated Monkey Wrench conversation.
+/// The first story scene commits progress 2, objective 15, scene event 6 and
+/// saved area updates immediately; the next commits progress 3. State 3 releases
+/// this selector without waiting for the selected script. Requires loaded room
+/// scripts and a live save/session; it owns no separate work allocation.
+static void _dryfieldTrailerCoachConversationTask(Task* task)
+{
+    enum { CONVERSATION_PREPARE,
+           CONVERSATION_WAIT,
+           CONVERSATION_SELECT,
+           CONVERSATION_EXIT,
+           CONVERSATION_SHOP_KEY = 11 };
+
     switch (task->state) {
-        case 0:
+        case CONVERSATION_PREPARE:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             evsStartScript(D_dryfield_trailer_coach_80185AFC, EVENT_SCRIPT_HUD_KEEP);
             task->state++;
             break;
-        case 1:
+        case CONVERSATION_WAIT:
             if (gGameSession->eventState == 0) {
-                task->state = 2;
+                task->state = CONVERSATION_SELECT;
             }
             break;
-        case 2:
-            if (capGetVariantKey() == 0xB) {
+        case CONVERSATION_SELECT:
+            // Select the shop, story progression or wrench conversation after preparation.
+            if (capGetVariantKey() == CONVERSATION_SHOP_KEY) {
                 evsStartScript(D_dryfield_trailer_coach_80185C4C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            } else if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) < 2) {
-                evsStartScriptWithSkip(D_dryfield_trailer_coach_80185D54, EVENT_SCRIPT_HUD_HIDE_RESTORE,
-                                       D_dryfield_trailer_coach_80186684);
-                gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, 2);
-                gameFlagSetNibble(GAME_FLAG_DRIVEWAY_PROGRESS, 1);
-                gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 1);
-                gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xF);
-                gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 6;
-                areaApplySavedUpdates(D_dryfield_trailer_coach_80189C50);
+            } else if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) < DRYFIELD_TRAILER_COACH_FIRST_CONVERSATION_COMPLETE) {
+                _dryfieldTrailerCoachStartFirstStoryConversation();
             } else if (inventoryHasCollectedBit(INVENTORY_COLLECTION_ID_MONKEY_WRENCH) == 0 && gameFlagGetNibble(GAME_FLAG_DRYFIELD_TRAILER_COACH_04F) != 0) {
                 if (gameFlagGetNibble(GAME_FLAG_0FD) == 0) {
                     gameFlagSetNibble(GAME_FLAG_0FD, 1);
@@ -1639,16 +1669,16 @@ void func_dryfield_trailer_coach_801822F4(Task* task)
                 } else {
                     evsStartScript(D_dryfield_trailer_coach_80187074, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
-            } else if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) == 2) {
+            } else if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) == DRYFIELD_TRAILER_COACH_FIRST_CONVERSATION_COMPLETE) {
                 evsStartScriptWithSkip(D_dryfield_trailer_coach_8018681C, EVENT_SCRIPT_HUD_HIDE_RESTORE,
                                        D_dryfield_trailer_coach_80186A74);
-                gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, 3);
+                gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS, DRYFIELD_TRAILER_COACH_SECOND_CONVERSATION_COMPLETE);
             } else {
                 evsStartScript(D_dryfield_trailer_coach_80186BDC, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             }
             task->state++;
             break;
-        case 3:
+        case CONVERSATION_EXIT:
             taskKill(task);
             break;
     }
@@ -1682,34 +1712,59 @@ static s32 _dryfieldTrailerCoachResolveRoomEvent(Task* task, s32 messageId, cons
     return DRYFIELD_TRAILER_COACH_TRANSITION_ALLOWED;
 }
 
-/// Runs the trailer coach's day-2 hand-off. Request 3 spawns entry 1 of the
-/// room's task table; request 0xE drops the save view back to 1 when it is on
-/// 2, then either raises the `0x16C` flag and asks the cap system to run
-/// command 0x1D, or fills in the room's cutscene record (view 0xA, slots 1,
-/// files 3/4/5/6) and hands it to `gRoomCutsceneTaskDescs`. Always returns 0.
-s32 func_dryfield_trailer_coach_801825A8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues the repeat trailer-coach story scene with its persistent room record.
+///
+/// The cutscene borrows this record through playback; CAP slot/file 1, view 10
+/// and room sound scripts 3/4/5/6 must remain loaded. Its later CAP command is 3.
+static inline void _dryfieldTrailerCoachStartRepeatStoryScene(void)
 {
-    if (arg2 == 3) {
-        taskSpawnFromTable(D_dryfield_trailer_coach_80184FC0, 1, 0, 0);
+    enum { REPEAT_SCENE_VIEW          = 10,
+           REPEAT_SCENE_CAP           = 1,
+           REPEAT_SCENE_TASK          = 0,
+           REPEAT_SCENE_FOLLOW_UP_CAP = 3 };
+
+    // The cutscene task borrows this persistent record after dispatch returns.
+    D_dryfield_trailer_coach_80189C9C.view            = REPEAT_SCENE_VIEW;
+    D_dryfield_trailer_coach_80189C9C.capSlot         = REPEAT_SCENE_CAP;
+    D_dryfield_trailer_coach_80189C9C.capFile         = REPEAT_SCENE_CAP;
+    D_dryfield_trailer_coach_80189C9C.skipScene       = 0;
+    D_dryfield_trailer_coach_80189C9C.startSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 3);
+    D_dryfield_trailer_coach_80189C9C.endSound        = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 5);
+    D_dryfield_trailer_coach_80189C9C.sceneSound      = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 4);
+    D_dryfield_trailer_coach_80189C9C.afterSceneSound = SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_TRAILER_COACH, 6);
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, REPEAT_SCENE_TASK, REPEAT_SCENE_FOLLOW_UP_CAP, &D_dryfield_trailer_coach_80189C9C);
+}
+
+/// Handles CAP command indices that start trailer-coach conversations and story scenes.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies an integer `commandIndex`: 3 queues the
+/// conversation selector; 14 replaces arrival 2 with arrival 1 in the live save,
+/// then runs CAP command 29 once or spawns the repeat scene from a persistent
+/// room-owned record (view 10, CAP slot/file 1). The other arguments are ignored.
+/// Always returns zero, including unhandled commands and failed task spawns.
+/// Keep this overlay and its scripts/scene record loaded while spawned tasks run.
+static s32 _dryfieldTrailerCoachHandleCommand(Task* task, s32 messageId, s32 commandIndex, s32 unusedSecondArg)
+{
+    enum { COMMAND_CONVERSATION = 3,
+           COMMAND_STORY_SCENE  = 14,
+           TASK_CONVERSATION    = 1,
+           ARRIVAL_STORY_SCENE  = 2,
+           ARRIVAL_DEFAULT      = 1,
+           CAP_FIRST_SCENE      = 29 };
+
+    if (commandIndex == COMMAND_CONVERSATION) {
+        taskSpawnFromTable(D_dryfield_trailer_coach_80184FC0, TASK_CONVERSATION, 0, 0);
     }
-    if (arg2 == 0xE) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 1U;
+    if (commandIndex == COMMAND_STORY_SCENE) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ARRIVAL_STORY_SCENE) {
+            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = ARRIVAL_DEFAULT;
         }
         if (gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_FIRST_SCENE) == 0) {
             gameFlagSetNibble(GAME_FLAG_TRAILER_COACH_FIRST_SCENE, 1);
-            capRunCommandWithTransition(0x1D);
+            capRunCommandWithTransition(CAP_FIRST_SCENE);
             return 0;
         }
-        D_dryfield_trailer_coach_80189C9C.view            = 0xA;
-        D_dryfield_trailer_coach_80189C9C.capSlot         = 1;
-        D_dryfield_trailer_coach_80189C9C.capFile         = 1;
-        D_dryfield_trailer_coach_80189C9C.skipScene       = 0;
-        D_dryfield_trailer_coach_80189C9C.startSound      = 0x521B0003;
-        D_dryfield_trailer_coach_80189C9C.endSound        = 0x521B0005;
-        D_dryfield_trailer_coach_80189C9C.sceneSound      = 0x521B0004;
-        D_dryfield_trailer_coach_80189C9C.afterSceneSound = 0x521B0006;
-        taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 3, &D_dryfield_trailer_coach_80189C9C);
+        _dryfieldTrailerCoachStartRepeatStoryScene();
         return 0;
     }
     return 0;
@@ -1804,11 +1859,11 @@ static void _dryfieldTrailerCoachExitTopicChoice(Task* task)
     stageRequestModeTaskExit();
 }
 
-/// State table of the room's cutscene task, run by
-/// `func_dryfield_trailer_coach_80182950`.
+/// State table used by the room receiver
+/// `dryfieldTrailerCoachRoomTask`.
 static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
     {
-        func_dryfield_trailer_coach_80182888,
+        _dryfieldTrailerCoachInitializeRoomTask,
         _trailerCoachSetDepthShift,
         taskKill,
     },
@@ -1840,42 +1895,53 @@ static void _dryfieldTrailerCoachTopicChoiceTask(Task* task)
     stateHandlers.funcs[task->state](task);
 }
 
-void func_dryfield_trailer_coach_80182850(void)
+/// Starts conversation CAP slot 3 with its progress-dependent variant.
+///
+/// The preparation script calls this without arguments. Progress below 2 selects
+/// variant 1; progress 2 or above selects variant 2, using in-place playback.
+/// Requires the room's relocated CAP command table to remain loaded.
+static void _dryfieldTrailerCoachStartConversationCaption(void)
 {
-    s32 cond;
+    enum { CAP_CONVERSATION = 3 };
+    s32 variantKey;
 
-    cond  = gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= 2;
-    cond += 1;
-    capStartSequenceSlot(3, 0, cond);
+    variantKey  = gameFlagGetNibble(GAME_FLAG_TRAILER_COACH_PROGRESS) >= DRYFIELD_TRAILER_COACH_FIRST_CONVERSATION_COMPLETE;
+    variantKey += 1;
+    capStartSequenceSlot(CAP_CONVERSATION, CAP_PLAYBACK_IN_PLACE, variantKey);
 }
 
-/// State 0 of the trailer-coach cutscene task. It parks the room's message
-/// table in the task, then either starts the scene (day 2) or asks the stage
-/// for area 1, and advances to state 1.
-static void func_dryfield_trailer_coach_80182888(Task* arg0)
+/// Registers the trailer-coach room receiver and starts its arrival presentation.
+///
+/// Installs the room message table, claims `GAME_TASK_SLOT_ROOM` and advances to
+/// state 1. Live-save arrival 2 starts the skippable entry scene and resets its
+/// follow-up/dialogue state; other arrivals start area music. Requires this room's
+/// scripts to remain loaded while playback and message reception are active.
+static void _dryfieldTrailerCoachInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_dryfield_trailer_coach_80184FA0;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == 2) {
+    enum { ARRIVAL_STORY_SCENE  = 2,
+           STORY_DIALOGUE_START = 4,
+           AREA_MUSIC_START     = 1 };
+
+    task->msgTable = D_dryfield_trailer_coach_80184FA0;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp == ARRIVAL_STORY_SCENE) {
         evsStartScriptWithSkip(D_dryfield_trailer_coach_801853F4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_dryfield_trailer_coach_80185964);
         gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
+        gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, STORY_DIALOGUE_START);
     } else {
-        stageMusicRequestAreaStart(1);
+        stageMusicRequestAreaStart(AREA_MUSIC_START);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state = task->state + 1;
 }
 
 #include "../../shared/trailer_coach_set_depth_shift.inc.c"
 
-/// Runs the cutscene task's current state through a stack copy of its state
-/// table.
-void func_dryfield_trailer_coach_80182950(Task* task)
+void dryfieldTrailerCoachRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_trailer_coach_8017D7DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_trailer_coach_8017D7DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_star_local.inc.c"
