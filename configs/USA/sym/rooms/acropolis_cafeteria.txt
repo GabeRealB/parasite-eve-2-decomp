@@ -221,17 +221,17 @@ _gAcropolisCafeteriaAnimation07704 = 0x80184CC4; // size:0x28 defined:True
 D_acropolis_cafeteria_80184CEC = 0x80184CEC; // size:0x10 defined:True
 RoomFx_TrailOffsets = 0x80184E80; // size:0x10 defined:True
 
-func_acropolis_cafeteria_8017E708 = 0x8017E708; // type:func
+acropolisCafeteriaInitRoomEffectsTask = 0x8017E708; // type:func
 
 acropolisCafeteriaModelWanderTask = 0x8017F390; // type:func
 
-func_acropolis_cafeteria_8017E89C = 0x8017E89C; // type:func
+acropolisCafeteriaPuffEmitterTask = 0x8017E89C; // type:func
 
 acropolisCafeteriaRoomVisualEffectsFlashTask = 0x8017F948; // type:func
 
 acropolisCafeteriaRoomVisualEffectsTwinTrailTask = 0x801803AC; // type:func
 
-func_acropolis_cafeteria_80180C94 = 0x80180C94; // type:func
+acropolisCafeteriaRoomVisualEffectsSparkBurstTask = 0x80180C94; // type:func
 
 acropolisCafeteriaPuffTask = 0x8017EA90; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017FBEC; // type:func
@@ -256,3 +256,10 @@ _acropolisCafeteriaCopyPostBattleVram = 0x8017e2d0; // type:func
 _acropolisCafeteriaPreparePostBattleScene = 0x8017e310; // type:func
 _acropolisCafeteriaInitRoom = 0x8017e348; // type:func
 acropolisCafeteriaRoomTask = 0x8017e424; // type:func
+acropolisCafeteriaPlayMovieTask = 0x8017e47c; // type:func
+acropolisCafeteriaStartMovieTask = 0x8017e6b8; // type:func
+acropolisCafeteriaSetPuffEnabled = 0x8017f908; // type:func
+acropolisCafeteriaMendelPickupTask = 0x801827c4; // type:func
+acropolisCafeteriaStimPickupTask = 0x8018286c; // type:func
+_acropolisCafeteriaObject10DrawTask = 0x80182954; // type:func
+_acropolisCafeteriaObject11DrawTask = 0x80182a08; // type:func

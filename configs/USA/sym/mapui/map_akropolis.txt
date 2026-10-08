@@ -34,8 +34,8 @@ D_acropolis_patio_80186360 = 0x80186360; // absolute:True owner=acropolis_patio 
 D_acropolis_patio_80186D5C = 0x80186D5C; // absolute:True owner=acropolis_patio
 D_acropolis_patio_8018703C = 0x8018703C; // absolute:True owner=acropolis_patio shared=rooms
 acropolisCafeteriaRoomTask = 0x8017E424; // type:func absolute:True owner=acropolis_cafeteria shared=rooms
-func_acropolis_cafeteria_801827C4 = 0x801827C4; // type:func absolute:True owner=acropolis_cafeteria
-func_acropolis_cafeteria_8018286C = 0x8018286C; // type:func absolute:True owner=acropolis_cafeteria
+acropolisCafeteriaMendelPickupTask = 0x801827C4; // type:func absolute:True owner=acropolis_cafeteria
+acropolisCafeteriaStimPickupTask = 0x8018286C; // type:func absolute:True owner=acropolis_cafeteria
 D_acropolis_cafeteria_8018753C = 0x8018753C; // absolute:True owner=acropolis_cafeteria
 D_acropolis_cafeteria_801875AC = 0x801875AC; // absolute:True owner=acropolis_cafeteria
 D_acropolis_cafeteria_801875BC = 0x801875BC; // absolute:True owner=acropolis_cafeteria

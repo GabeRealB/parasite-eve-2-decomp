@@ -49,7 +49,15 @@ extern ViewCamera D_acropolis_cafeteria_8018C5AC[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_cafeteria_8018CA2C[];
 
-void func_acropolis_cafeteria_8017E708(Task* task);
+/// Installs the cafeteria's room-effect messages and five wandering model effects.
+///
+/// Requires the coordinate body and counted `EffectWork` from `effectSpawn`.
+/// On state zero, registers the room-effect task slot, clears the puff gate,
+/// spawns three timed and two ambient wanderers at local game-coordinate offsets,
+/// and selects the cafeteria flash, twin-trail and spark-burst IDs. Spawn failure
+/// is ignored; later callbacks do nothing. Work and the registered receiver must
+/// remain live while messages are dispatched and are released by effect teardown.
+void acropolisCafeteriaInitRoomEffectsTask(Task* task);
 
 /// Moves the cafeteria's model effect through random turns, short runs and departure.
 ///
@@ -66,7 +74,17 @@ void func_acropolis_cafeteria_8017E708(Task* task);
 /// 1 played). Rotation columns use twelve fractional bits.
 void acropolisCafeteriaModelWanderTask(Task* task);
 
-void func_acropolis_cafeteria_8017E89C(Task* task);
+/// Emits drifting cafeteria puffs while the puff gate is enabled in session view 9.
+///
+/// Requires the coordinate body and counted `EffectWork` from `effectSpawn`.
+/// `EffectWork::scale` caches the previous session view: entry to view 9 emits
+/// forty puffs with spawn bit 12 set to skip fade-in; later ticks emit two.
+/// Offsets in the emitter's local frame span X 560..3179, Y -1900..-300 in
+/// 400-unit steps, and Z 2816..3839. Spawn bits 0..11 hold a perspective size
+/// factor of 384..639. Each attempt consumes four shared LCG draws, including
+/// failed spawns. Other views retain the emitter; clearing the gate releases
+/// its work and task. Independently spawned puffs manage their own lifetimes.
+void acropolisCafeteriaPuffEmitterTask(Task* task);
 
 /// Runs the cafeteria's charging pink flash, peak screen tint and fading star.
 ///
@@ -85,7 +103,14 @@ void acropolisCafeteriaRoomVisualEffectsFlashTask(Task* task);
 /// reset to zero. Room effect control at two or above holds both age and drawing.
 void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_acropolis_cafeteria_80180C94(Task* task);
+/// Runs the cafeteria's impact flash followed by smoke or orange rings and sparks.
+///
+/// Requires the coordinate body and zero-aged counted `EffectWork` from
+/// `effectSpawn`. Nonzero `spawnArg1.value` selects smoke; zero selects rings
+/// and two bouncing sparks. Both enter release at active age seven and free
+/// work on the next active tick. Nonzero room effect control pauses below four
+/// and cancels at four or above. Child effects have independent lifetimes.
+void acropolisCafeteriaRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Animates the cafeteria's ten-cell drifting puff billboard.
 ///
@@ -120,8 +145,26 @@ void acropolisCafeteriaLoosePropTask(Task* task);
 /// `taskKill`, which may release the task before this callback returns.
 void acropolisCafeteriaRoomTask(Task* task);
 
-void func_acropolis_cafeteria_801827C4(Task* task);
+/// Lights and depth-orders the placed Mendel journal until it is collected.
+///
+/// Requires a TMD body and borrowed `Enemy` placement in `spawnArg2.pointer`;
+/// its place-key low byte selects a valid current-stage object flag (4 in the
+/// cafeteria table). State 2 hides active drawing; other states clear model
+/// flags and select fixed lighting. Mapped views 12 and 24 add 7 and 4 OT entries
+/// respectively, with -2 elsewhere. Model, buffer and overlay lighting storage
+/// must remain live; this hook neither allocates nor retires the task.
+void acropolisCafeteriaMendelPickupTask(Task* task);
 
-void func_acropolis_cafeteria_8018286C(Task* task);
+/// Draws the placed Stim pickup in mapped view 9 and retires it after collection.
+///
+/// Requires a TMD body, borrowed `Enemy` placement in `spawnArg2.pointer`, and a
+/// live auxiliary heap. The place-key low byte selects a valid current-stage
+/// object flag (9 in the cafeteria table). Other views replace the draw flags
+/// with active-pass exclusion and postpone teardown. In view 9, state 2 clears
+/// flagged drawing and calls the task exit; other states select fixed lighting,
+/// the flagged pass and zero depth bias, retrying primitive-buffer allocation.
+/// Placement flag 10 additionally replaces X rotation with 1024 angular units
+/// (a quarter turn); the current spawn table does not select that branch.
+void acropolisCafeteriaStimPickupTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_CAFETERIA_H

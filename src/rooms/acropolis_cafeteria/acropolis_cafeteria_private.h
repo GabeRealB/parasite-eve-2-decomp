@@ -63,7 +63,16 @@ extern s32 D_acropolis_cafeteria_8018D6A8;
 extern AcropolisCafeteriaSpotLightStorage gAcropolisCafeteriaSpotLightStorage;
 
 // Callbacks referenced by the overlay's shared data tables.
-void func_acropolis_cafeteria_8017E47C(Task*);
+/// Plays the cafeteria movie with its area-music cue, then restores game presentation.
+///
+/// Requires a fresh bodyless display task and loaded stream ID 100, sub-ID zero,
+/// matching the current room. Saved image-memory and VRAM regions must survive
+/// restoration. Start cancels playback; both exits wait for CD idle before
+/// restoring models and sprite images. `killCountdown` counts playing callbacks
+/// with 16-bit wrap; tick 1091 starts area music. `spawnArg1.value` latches that
+/// request (0 pending, 1 requested), so an earlier exit starts music after restore.
+/// Frees the task and resumes the game loop when restoration completes.
+void acropolisCafeteriaPlayMovieTask(Task* movieTask);
 
 /// Holds the frame black during the cafeteria's movie transition.
 ///
@@ -72,8 +81,24 @@ void func_acropolis_cafeteria_8017E47C(Task*);
 /// A fresh bodyless task starts at zero and lasts 64 callback ticks.
 void acropolisCafeteriaBlackoutTask(Task* task);
 
-void func_acropolis_cafeteria_8017E6B8(Task*);
+/// Hands frame presentation to cafeteria movie playback and releases the launcher.
+///
+/// Requires the movie descriptor and current camera resources to remain live.
+/// Selects task-only flipping and queues the current camera/packets after the
+/// spawn attempt, including when it fails; no retry is made.
+void acropolisCafeteriaStartMovieTask(Task* task);
 
-s32 func_acropolis_cafeteria_8017F908(Task*, s32, s32, s32);
+/// Room-effect message whose first integer payload controls cafeteria puff emission.
+enum { ACROPOLIS_CAFETERIA_MESSAGE_SET_PUFF_ENABLED = 3000 };
+
+/// Sets the cafeteria puff gate and creates an emitter for each nonzero request.
+///
+/// Handles `ACROPOLIS_CAFETERIA_MESSAGE_SET_PUFF_ENABLED`; `enabled` is stored
+/// verbatim (zero disables, any other value enables). The receiver must have a
+/// coordinate body; its coordinate supplies the new emitter's placement frame.
+/// Repeated nonzero messages can create independent emitters. Clearing the gate
+/// leaves existing emitters and puffs to release themselves on their next ticks.
+/// `messageId` and `unused` are ignored. Returns zero even if spawning fails.
+s32 acropolisCafeteriaSetPuffEnabled(Task* task, s32 messageId, s32 enabled, s32 unused);
 
 #endif // SRC_ROOMS_ACROPOLIS_CAFETERIA_ACROPOLIS_CAFETERIA_PRIVATE_H

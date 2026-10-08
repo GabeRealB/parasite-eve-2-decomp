@@ -149223,7 +149223,7 @@ computes `pos` first).
 `goto shared;` into another arm is usually the tail written twice:
 cross-jumping (jump.c) merges two identical insn runs that end at the same
 label, and deletes the *earlier* copy. It matched in `effectThrownModelTask`,
-`func_acropolis_cafeteria_8017E47C`, `func_dryfield_dilapidated_house_8017E2B0`.
+`acropolisCafeteriaPlayMovieTask`, `func_dryfield_dilapidated_house_8017E2B0`.
 It fails in two ways:
 
 - the image keeps the *earlier* copy and jumps backward to it

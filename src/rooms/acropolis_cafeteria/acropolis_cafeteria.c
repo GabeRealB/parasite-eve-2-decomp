@@ -481,9 +481,9 @@ RECT D_acropolis_cafeteria_80184168 = { 704, 0, 64, 256 };
 RECT D_acropolis_cafeteria_80184170 = { 0, 271, 256, 1 };
 
 TaskDesc D_acropolis_cafeteria_80184178[3] = {
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_cafeteria_8017E6B8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, acropolisCafeteriaStartMovieTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, acropolisCafeteriaBlackoutTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_acropolis_cafeteria_8017E47C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, acropolisCafeteriaPlayMovieTask, { .value = 0 } },
 };
 
 static AnimationPackedPose _gAcropolisCafeteriaAnimation07704Bank1[23] = {
@@ -509,7 +509,7 @@ static AnimationSet _gAcropolisCafeteriaAnimation07704 = {
 };
 
 TaskMessageEntry D_acropolis_cafeteria_80184CEC[2] = {
-    { 3000, func_acropolis_cafeteria_8017F908 },
+    { ACROPOLIS_CAFETERIA_MESSAGE_SET_PUFF_ENABLED, acropolisCafeteriaSetPuffEnabled },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 

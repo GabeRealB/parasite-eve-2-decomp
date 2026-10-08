@@ -511,8 +511,8 @@ static AreaObjectSpawn D_map_akropolis_8017A66C[1] = {
 };
 
 static AreaObjectSpawn D_map_akropolis_8017A67C[3] = {
-    { 4, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_8018286C, { &gAcropolisCafeteriaModel0F7A4 } } },
-    { 0x107, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, func_acropolis_cafeteria_801827C4, { &gAcropolisCafeteriaModel0FDFC } } },
+    { 4, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, acropolisCafeteriaStimPickupTask, { &gAcropolisCafeteriaModel0F7A4 } } },
+    { 0x107, { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 0x62 } }, acropolisCafeteriaMendelPickupTask, { &gAcropolisCafeteriaModel0FDFC } } },
     { AREA_OBJECT_SPAWN_END },
 };
 

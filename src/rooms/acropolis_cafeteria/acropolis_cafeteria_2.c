@@ -58,6 +58,10 @@
 #include "rooms/room_common.h"
 #include "../../shared/room_visual_effects.h"
 #include "../../shared/actor_contacts.h"
+#include "../../shared/streamed_scene.h"
+
+/// Placed pickup state after collection, shared by this room's model hooks.
+enum { ACROPOLIS_CAFETERIA_PICKUP_COLLECTED = 2 };
 
 /// Phases of the loose-prop task, held in `_AcropolisCafeteriaLoosePropWork::phase`.
 enum {
@@ -891,51 +895,82 @@ SVECTOR ActorContact_ScratchPosition = { 0 };
 static void _acropolisCafeteriaLoosePropInit(Task* task);
 static void _acropolisCafeteriaLoosePropUpdate(Task* task);
 static void _acropolisCafeteriaLoosePropRequestExit(Task* task);
-static void func_acropolis_cafeteria_80182954(Task* task);
-static void func_acropolis_cafeteria_80182A08(Task* task);
+static void _acropolisCafeteriaObject10DrawTask(Task* task);
+static void _acropolisCafeteriaObject11DrawTask(Task* task);
 
-void func_acropolis_cafeteria_8017E47C(Task* arg0)
+/// Chooses a puff's local XYZ offset using three successive shared LCG draws.
+///
+/// Borrows writable effect work and preserves `move.pad`. Writes integer
+/// game-coordinate units: X 560..3179, five Y levels -1900..-300, Z 2816..3839.
+static inline void _acropolisCafeteriaChoosePuffSpawnOffset(EffectWork* work)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    CdCmdQueue* queue;
-    Task*       task;
+    enum { PUFF_OFFSET_X_MIN         = 560,
+           PUFF_OFFSET_X_SPAN        = 2620,
+           PUFF_OFFSET_Y_TOP         = -300,
+           PUFF_OFFSET_Y_LEVELS      = 5,
+           PUFF_OFFSET_Y_STEP        = 400,
+           PUFF_OFFSET_Z_MIN         = 2816,
+           PUFF_OFFSET_Z_RANDOM_MASK = 0x3FF };
+    u16 randomWord;
 
-    task  = arg0;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomWord      = gRandomLcgState >> 16;
+    work->move.vx   = (u32)randomWord % PUFF_OFFSET_X_SPAN + PUFF_OFFSET_X_MIN;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomWord      = gRandomLcgState >> 16;
+    work->move.vy   = PUFF_OFFSET_Y_TOP - (u16)((u32)randomWord % PUFF_OFFSET_Y_LEVELS) * PUFF_OFFSET_Y_STEP;
+    gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+    randomWord      = gRandomLcgState >> 16;
+    work->move.vz   = (randomWord & PUFF_OFFSET_Z_RANDOM_MASK) + PUFF_OFFSET_Z_MIN;
+}
+
+void acropolisCafeteriaPlayMovieTask(Task* movieTask)
+{
+    enum {
+        MOVIE_MUSIC_START_TICK = 1091,
+        MOVIE_MUSIC_PENDING    = 0,
+        MOVIE_MUSIC_REQUESTED  = 1
+    };
+    u8          commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLoc     movieLocation;
+    CdCmdQueue* queue;
+
     queue = &gCdCmdQueue;
-    switch (task->state) {
-        case 0:
+    switch (movieTask->state) {
+        case STREAMED_SCENE_PREPARE:
             SetDispMask(0);
             streamPrepareMovieWorkspace(1);
-            task->state = task->state + 1;
+            movieTask->state = movieTask->state + 1;
             break;
 
-        case 1:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            task->state = task->state + 1;
+        case STREAMED_SCENE_QUEUE_MOVIE:
+            movieLocation          = gGameSession->location;
+            movieLocation.loc.view = STREAMED_SCENE_MOVIE_ID;
+            // The queue copies all four bytes; this opcode interprets only the slot byte.
+            commandArgs[0] = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
+            movieTask->state = movieTask->state + 1;
             break;
 
-        case 2:
+        case STREAMED_SCENE_WAIT_READY:
             if (queue->movieReady == 0) {
                 return;
             }
             SetDispMask(1);
-            task->killCountdown   = 0;
-            task->spawnArg1.value = 0;
-            task->state           = task->state + 1;
+            movieTask->killCountdown   = 0;
+            movieTask->spawnArg1.value = MOVIE_MUSIC_PENDING;
+            movieTask->state           = movieTask->state + 1;
             break;
 
-        case 3:
-            if (++task->killCountdown == 0x443) {
+        case STREAMED_SCENE_PLAYING:
+            // Start area music at the movie cue, or defer it until restoration on an early skip.
+            if (++movieTask->killCountdown == MOVIE_MUSIC_START_TICK) {
                 stageMusicRequestAreaStart(0);
-                task->spawnArg1.value = 1;
+                movieTask->spawnArg1.value = MOVIE_MUSIC_REQUESTED;
             }
-            if (cdCmdIsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle()) {
                 SetDispMask(0);
-                task->state = task->state + 1;
+                movieTask->state = movieTask->state + 1;
                 break;
             }
             if (padIsStartPressed() == 0) {
@@ -943,25 +978,26 @@ void func_acropolis_cafeteria_8017E47C(Task* arg0)
             }
             SetDispMask(0);
             cdCmdRequestCancel();
-            task->state = task->state + 1;
+            movieTask->state = movieTask->state + 1;
             break;
 
-        case 4:
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+        // Restore resources only after playback or cancellation has drained the queue.
+        case STREAMED_SCENE_WAIT_IDLE:
+            if (cdCmdIsIdle() == 0) {
                 return;
             }
             streamResetGameRestore();
-            task->state = task->state + 1;
+            movieTask->state = movieTask->state + 1;
             break;
 
-        case 5:
-            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
+        case STREAMED_SCENE_RESTORE_GAME:
+            if (streamPollGameRestore(0, 1) == 0) {
                 return;
             }
-            if (task->spawnArg1.value == 0) {
+            if (movieTask->spawnArg1.value == MOVIE_MUSIC_PENDING) {
                 stageMusicRequestAreaStart(0);
             }
-            taskKill(task);
+            taskKill(movieTask);
             displayResumeGameLoop();
             break;
     }
@@ -984,96 +1020,102 @@ void acropolisCafeteriaBlackoutTask(Task* task)
     }
 }
 
-void func_acropolis_cafeteria_8017E6B8(Task* arg0)
+void acropolisCafeteriaStartMovieTask(Task* task)
 {
-    displaySpawnTaskFromTable(D_acropolis_cafeteria_80184178, 2, 0, 0);
+    enum { MOVIE_PLAYBACK_DESCRIPTOR = 2 };
+
+    displaySpawnTaskFromTable(D_acropolis_cafeteria_80184178, MOVIE_PLAYBACK_DESCRIPTOR, 0, 0);
     gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
     viewQueueCurrentCameraAndPackets();
-    taskKill(arg0);
+    taskKill(task);
 }
 
-void func_acropolis_cafeteria_8017E708(Task* task)
+void acropolisCafeteriaInitRoomEffectsTask(Task* task)
 {
+    enum { ROOM_EFFECTS_INITIALIZE = 0,
+           MODEL_WANDER_TIMED      = 0,
+           MODEL_WANDER_AMBIENT    = 1 };
     EffectWork* work;
     GfxCoord*   coord;
-    SVECTOR*    vec;
+    SVECTOR*    spawnOffset;
 
-    work  = (EffectWork*)task->spawnArg2.pointer;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
-    if (task->state != 0) {
+    if (task->state != ROOM_EFFECTS_INITIALIZE) {
         return;
     }
     task->msgTable = D_acropolis_cafeteria_80184CEC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM_EFFECT);
-    vec                            = &work->move;
+    spawnOffset                    = &work->move;
     D_acropolis_cafeteria_80184CFC = 0;
     work->move.vx                  = 0x220;
     work->move.vy                  = -0x12C;
     work->move.vz                  = -0x6A0;
-    effectSpawn(EFFECT_064, coord, 0, vec);
+    // Seed three timed wanderers, then two ambient wanderers in the parent's local frame.
+    effectSpawn(EFFECT_064, coord, MODEL_WANDER_TIMED, spawnOffset);
     work->move.vx = 0x400;
     work->move.vy = -0x12C;
     work->move.vz = -0x260;
-    effectSpawn(EFFECT_064, coord, 0, vec);
+    effectSpawn(EFFECT_064, coord, MODEL_WANDER_TIMED, spawnOffset);
     work->move.vx = 0x370;
     work->move.vy = -0x12C;
     work->move.vz = -0x860;
-    effectSpawn(EFFECT_064, coord, 0, vec);
+    effectSpawn(EFFECT_064, coord, MODEL_WANDER_TIMED, spawnOffset);
     task->state   = task->state + 1;
     work->move.vx = 0xBB8;
     work->move.vy = -0x834;
     work->move.vz = -0x7D0;
-    effectSpawn(EFFECT_064, coord, 1, vec);
+    effectSpawn(EFFECT_064, coord, MODEL_WANDER_AMBIENT, spawnOffset);
     work->move.vx = 0xB22;
     work->move.vy = -0x834;
     work->move.vz = -0x900;
-    effectSpawn(EFFECT_064, coord, 1, vec);
+    effectSpawn(EFFECT_064, coord, MODEL_WANDER_AMBIENT, spawnOffset);
     gRoomEffectFlashId      = EFFECT_ACROPOLIS_CAFETERIA_FLASH;
     gRoomEffectTwinTrailId  = EFFECT_ACROPOLIS_CAFETERIA_TWIN_TRAIL;
     gRoomEffectSparkBurstId = EFFECT_ACROPOLIS_CAFETERIA_SPARK_BURST;
 }
-/// Spawns 40 effects on entry to session mode 9, then two per tick while it
-/// remains active. Releases the work block when the room effect gate clears.
-void func_acropolis_cafeteria_8017E89C(Task* task)
+void acropolisCafeteriaPuffEmitterTask(Task* task)
 {
+    enum {
+        PUFF_EMITTER_ACTIVE_VIEW      = 9,
+        PUFF_EMITTER_ENTRY_COUNT      = 40,
+        PUFF_EMITTER_TICK_COUNT       = 2,
+        PUFF_EMITTER_SKIP_FADE        = 0x1000,
+        PUFF_EMITTER_SIZE_MIN         = 0x180,
+        PUFF_EMITTER_SIZE_RANDOM_MASK = 0xFF
+    };
     EffectWork* work;
     GfxCoord*   coord;
-    s32         i;
-    u16         count;
-    s32         flags;
-    s32         spawnArg;
-    u8          mode;
-    u16         rnd;
+    s32         puffIndex;
+    u16         puffCount;
+    s32         spawnFlags;
+    s32         spawnSizeBase;
+    u8          view;
+    u16         randomWord;
 
-    work  = (EffectWork*)task->spawnArg2.pointer;
+    work  = task->spawnArg2.pointer;
     coord = task->extra.coordBody->coord;
     if (D_acropolis_cafeteria_80184CFC == 0) {
         effectKillTask(work, task);
         return;
     }
-    mode = gGameSession->location.loc.view;
-    if (mode == 9) {
-        count = 0x28;
-        if (work->scale != mode) {
-            flags = 0x1000;
+    view = gGameSession->location.loc.view;
+    if (view == PUFF_EMITTER_ACTIVE_VIEW) {
+        // The cached previous view distinguishes a pre-aged entry burst from steady emission.
+        puffCount = PUFF_EMITTER_ENTRY_COUNT;
+        if (work->scale != view) {
+            spawnFlags = PUFF_EMITTER_SKIP_FADE;
         } else {
-            count = 2;
-            flags = 0;
+            puffCount  = PUFF_EMITTER_TICK_COUNT;
+            spawnFlags = 0;
         }
-        for (i = 0; i < count; i++) {
+        // Consume four successive LCG draws for X, Y, Z and perspective size, even on spawn failure.
+        for (puffIndex = 0; puffIndex < puffCount; puffIndex++) {
+            _acropolisCafeteriaChoosePuffSpawnOffset(work);
             gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->move.vx   = (u32)rnd % 2620 + 0x230;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->move.vy   = -0x12C - (u16)((u32)rnd % 5) * 0x190;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            work->move.vz   = (rnd & 0x3FF) + 0xB00;
-            gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            rnd             = gRandomLcgState >> 16;
-            spawnArg        = flags + 0x180;
-            effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF, coord, (rnd & 0xFF) + spawnArg, &work->move);
+            randomWord      = gRandomLcgState >> 16;
+            spawnSizeBase   = spawnFlags + PUFF_EMITTER_SIZE_MIN;
+            effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF, coord, (randomWord & PUFF_EMITTER_SIZE_RANDOM_MASK) + spawnSizeBase, &work->move);
         }
     }
     work->scale = gGameSession->location.loc.view;
@@ -1363,13 +1405,13 @@ void acropolisCafeteriaModelWanderTask(Task* task)
     }
 }
 
-s32 func_acropolis_cafeteria_8017F908(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 acropolisCafeteriaSetPuffEnabled(Task* task, s32 messageId, s32 enabled, s32 unused)
 {
     GfxCoord* coord;
 
-    coord                          = task->extra.tmd->coords;
-    D_acropolis_cafeteria_80184CFC = arg2;
-    if (arg2 != 0) {
+    coord                          = task->extra.coordBody->coord;
+    D_acropolis_cafeteria_80184CFC = enabled;
+    if (enabled != 0) {
         effectSpawn(EFFECT_ACROPOLIS_CAFETERIA_PUFF_EMITTER, coord, 0, NULL);
     }
     return 0;
@@ -1393,7 +1435,7 @@ void acropolisCafeteriaRoomVisualEffectsTwinTrailTask(Task* task)
 
 #include "../../shared/room_visual_effects_sparks.inc.c"
 
-void func_acropolis_cafeteria_80180C94(Task* task)
+void acropolisCafeteriaRoomVisualEffectsSparkBurstTask(Task* task)
 {
     _roomVisualEffectsSparkBurstTask(task);
 }
@@ -1582,101 +1624,127 @@ void acropolisCafeteriaLoosePropTask(Task* task)
 
 #include "../../shared/actor_contacts_push.inc.c"
 
-void func_acropolis_cafeteria_801827C4(Task* task)
+void acropolisCafeteriaMendelPickupTask(Task* task)
 {
-    Enemy*     enemy;
-    TmdObject* tmd;
+    enum { MENDEL_VIEW_12            = 12,
+           MENDEL_VIEW_24            = 24,
+           MENDEL_DEPTH_BIAS_VIEW_12 = 7,
+           MENDEL_DEPTH_BIAS_VIEW_24 = 4,
+           MENDEL_DEPTH_DEFAULT      = -2 };
+    const Enemy* placement;
+    TmdObject*   model;
 
-    enemy = task->spawnArg2.pointer;
-    tmd   = task->extra.tmd;
-    if (areaGetCurrentObjectState((u8)enemy->placeKey) != 2) {
-        tmd->lightMtx = &D_acropolis_cafeteria_8018D5C0;
-        tmd->colorMtx = &D_acropolis_cafeteria_8018D5A0;
-        tmd->flags    = 0;
+    placement = task->spawnArg2.pointer;
+    model     = task->extra.tmd;
+    if (areaGetCurrentObjectState((u8)placement->placeKey) != ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        model->lightMtx = &D_acropolis_cafeteria_8018D5C0;
+        model->colorMtx = &D_acropolis_cafeteria_8018D5A0;
+        model->flags    = 0;
     } else {
-        tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
+    // Bias ordering for the mapped camera even while the collected model is hidden.
     switch (viewGetMappedIndex() & 0xFF) {
-        case 0xC:
-            tmd->otOffset = 7;
+        case MENDEL_VIEW_12:
+            model->otOffset = MENDEL_DEPTH_BIAS_VIEW_12;
             break;
-        case 0x18:
-            tmd->otOffset = 4;
+        case MENDEL_VIEW_24:
+            model->otOffset = MENDEL_DEPTH_BIAS_VIEW_24;
             break;
         default:
-            tmd->otOffset = -2;
+            model->otOffset = MENDEL_DEPTH_DEFAULT;
             break;
     }
 }
-void func_acropolis_cafeteria_8018286C(Task* task)
+void acropolisCafeteriaStimPickupTask(Task* task)
 {
-    Enemy*     enemy;
-    TmdObject* tmd;
-    s32        flag;
+    enum { STIM_ACTIVE_VIEW  = 9,
+           STIM_TILTED_PLACE = 10,
+           STIM_QUARTER_TURN = 0x400 };
+    const Enemy* placement;
+    TmdObject*   model;
+    s32          placeState;
 
-    enemy = task->spawnArg2.pointer;
-    tmd   = task->extra.tmd;
-    flag  = areaGetCurrentObjectState((u8)enemy->placeKey);
-    if ((viewGetMappedIndex() & 0xFF) != 9) {
-        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    placement  = task->spawnArg2.pointer;
+    model      = task->extra.tmd;
+    placeState = areaGetCurrentObjectState((u8)placement->placeKey);
+    if ((viewGetMappedIndex() & 0xFF) != STIM_ACTIVE_VIEW) {
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    if ((u8)enemy->placeKey == 0xA) {
-        gfxRotMatrixX(&task->extra.tmd->coords->coord, 0x400, GRAPHICS_ROTATION_REPLACE);
+    if ((u8)placement->placeKey == STIM_TILTED_PLACE) {
+        gfxRotMatrixX(&task->extra.tmd->coords->coord, STIM_QUARTER_TURN, GRAPHICS_ROTATION_REPLACE);
     }
-    tmd->lightMtx = &D_acropolis_cafeteria_8018D600;
-    tmd->colorMtx = &D_acropolis_cafeteria_8018D5E0;
-    if (flag == 2) {
-        tmd->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
+    model->lightMtx = &D_acropolis_cafeteria_8018D600;
+    model->colorMtx = &D_acropolis_cafeteria_8018D5E0;
+    // Retire collected placements only in the active view; buffer allocation retries otherwise.
+    if (placeState == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        model->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
         taskCallExit(task);
     } else {
-        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
-        tmd->otOffset = 0;
-        tmdAllocPrimitiveBuffer(tmd);
+        model->flags    = TMD_OBJECT_FLAGGED_PASS;
+        model->otOffset = 0;
+        tmdAllocPrimitiveBuffer(model);
     }
 }
-static void func_acropolis_cafeteria_80182954(Task* task)
+/// Draws an unreferenced model hook in view 9 until placed-object flag 10 is collected.
+///
+/// Requires a TMD body, a live auxiliary heap and cafeteria lighting storage.
+/// Replaces X rotation with a quarter turn even when collection hides the model.
+/// No spawn row or call references this retained hook; its model identity is unproven.
+static void _acropolisCafeteriaObject10DrawTask(Task* task)
 {
-    TmdObject* tmd;
+    enum { OBJECT_ACTIVE_VIEW  = 9,
+           OBJECT_FLAG_INDEX   = 10,
+           OBJECT_QUARTER_TURN = 0x400 };
+    TmdObject* model;
 
-    tmd = task->extra.tmd;
-    if ((viewGetMappedIndex() & 0xFF) != 9) {
-        tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model = task->extra.tmd;
+    if ((viewGetMappedIndex() & 0xFF) != OBJECT_ACTIVE_VIEW) {
+        model->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    tmd->lightMtx = &D_acropolis_cafeteria_8018D640;
-    tmd->colorMtx = &D_acropolis_cafeteria_8018D620;
-    if (areaGetCurrentObjectState(0xA) == 2) {
-        tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model->lightMtx = &D_acropolis_cafeteria_8018D640;
+    model->colorMtx = &D_acropolis_cafeteria_8018D620;
+    if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
-        tmd->otOffset = 0;
-        tmdAllocPrimitiveBuffer(tmd);
+        model->flags    = TMD_OBJECT_FLAGGED_PASS;
+        model->otOffset = 0;
+        tmdAllocPrimitiveBuffer(model);
     }
-    gfxRotMatrixX(&task->extra.tmd->coords->coord, 0x400, GRAPHICS_ROTATION_REPLACE);
+    gfxRotMatrixX(&task->extra.tmd->coords->coord, OBJECT_QUARTER_TURN, GRAPHICS_ROTATION_REPLACE);
 }
-static void func_acropolis_cafeteria_80182A08(Task* task)
+/// Draws an unreferenced model hook in views 6, 7 and 10 until object flag 11 is collected.
+///
+/// Requires a TMD body, a live auxiliary heap and cafeteria lighting storage.
+/// No spawn row or call references this retained hook; its model identity is unproven.
+static void _acropolisCafeteriaObject11DrawTask(Task* task)
 {
-    TmdObject* tmd;
+    enum { OBJECT_VIEW_FIRST  = 6,
+           OBJECT_VIEW_SECOND = 7,
+           OBJECT_VIEW_THIRD  = 10,
+           OBJECT_FLAG_INDEX  = 11 };
+    TmdObject* model;
 
-    tmd = task->extra.tmd;
+    model = task->extra.tmd;
     switch (viewGetMappedIndex() & 0xFF) {
-        case 6:
-        case 7:
-        case 0xA:
-            tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
-            tmd->lightMtx = &D_acropolis_cafeteria_8018D680;
-            tmd->colorMtx = &D_acropolis_cafeteria_8018D660;
+        case OBJECT_VIEW_FIRST:
+        case OBJECT_VIEW_SECOND:
+        case OBJECT_VIEW_THIRD:
+            model->flags    = TMD_OBJECT_FLAGGED_PASS;
+            model->lightMtx = &D_acropolis_cafeteria_8018D680;
+            model->colorMtx = &D_acropolis_cafeteria_8018D660;
             break;
         default:
-            tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
-    if (areaGetCurrentObjectState(0xB) == 2) {
-        tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    if (areaGetCurrentObjectState(OBJECT_FLAG_INDEX) == ACROPOLIS_CAFETERIA_PICKUP_COLLECTED) {
+        model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     } else {
-        tmd->flags    = TMD_OBJECT_FLAGGED_PASS;
-        tmd->otOffset = 0;
-        tmdAllocPrimitiveBuffer(tmd);
+        model->flags    = TMD_OBJECT_FLAGGED_PASS;
+        model->otOffset = 0;
+        tmdAllocPrimitiveBuffer(model);
     }
 }
