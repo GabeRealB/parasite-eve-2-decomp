@@ -7,6 +7,7 @@
 
 #include "common.h"
 
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/fs.h"
@@ -106,8 +107,6 @@ static const TaskFuncTable5 GameFlow_States5;
 
 static const TaskFuncTable3 GameFlow_States3;
 
-static void GameFlow_InitSystems(void);
-
 static void _gameFlowResetNewSession(Task* task);
 
 static void _gameFlowSpawnLoadDialog(Task* task);
@@ -116,13 +115,13 @@ static void _gameFlowWaitForLoadDialog(Task* task);
 
 static void _gameFlowWaitAfterLoadDialog(Task* task);
 
-static void GameFlow_SpawnMainWhenReady(Task* task);
+static void _gameFlowFinishLoadDialog(Task* loadFlowTask);
 
 static void _gameFlowRestoreSavedLocation(Task* task);
 
-static void GameFlow_EnqueueDefaultLoad(Task* task);
+static void _gameFlowQueueGameplayLoad(Task* sessionStartTask);
 
-static void GameFlow_SpawnWhenIdle(Task* task);
+static void _gameFlowHandOffSessionLoad(Task* sessionStartTask);
 
 static void _padTickVibrationRequests(PadState* pad);
 
@@ -130,6 +129,12 @@ enum {
     PAD_STICK_CENTER_WORD       = 0x80808080,
     PAD_STICK_DEAD_ZONE_RAW     = 24,
     PAD_LEGACY_VIBRATION_PREFIX = 0x40,
+};
+
+/// Resident task-bank selectors used by the session-start and load-dialog handlers.
+enum {
+    GAME_FLOW_RESIDENT_TASK_BANK      = 0,
+    GAME_FLOW_START_SESSION_TASK_SLOT = 9,
 };
 
 GameSession* gGameSession = &_gGameSessionState;
@@ -151,13 +156,13 @@ static const TaskFuncTable5 GameFlow_States5 = { {
     _gameFlowSpawnLoadDialog,
     _gameFlowWaitForLoadDialog,
     _gameFlowWaitAfterLoadDialog,
-    GameFlow_SpawnMainWhenReady,
+    _gameFlowFinishLoadDialog,
 } };
 
 static const TaskFuncTable3 GameFlow_States3 = { {
     _gameFlowRestoreSavedLocation,
-    GameFlow_EnqueueDefaultLoad,
-    GameFlow_SpawnWhenIdle,
+    _gameFlowQueueGameplayLoad,
+    _gameFlowHandOffSessionLoad,
 } };
 
 void GameFlow_StateByField34(Task* task)
@@ -287,12 +292,27 @@ void gameClearSession(void)
     gDisplayState.control.flags.pendingPlayerPos = 0;
 }
 
-static void GameFlow_InitSystems(void)
+/// Discards task/model list links and resets both allocation heaps for a new session.
+///
+/// All old resources must be disposable. This does not run their teardown handlers;
+/// callers inside a task callback must stop the walk before invalidating its cursor.
+static inline void _gameFlowResetSessionResources(void)
 {
     taskResetDefaultList();
     actorRenderResetLists();
     memInitHeaps();
-    taskSpawn(0, 9, 0, 0);
+}
+
+/// Resets disposable session resources and queues startup from the live save.
+///
+/// Retained standalone entry with no callers. Requires initialized resident
+/// state, disposable task/model resources and no active task walk: resetting
+/// the lists and heaps invalidates their allocations without running exits.
+/// The newly spawned startup task begins at state zero; spawn failure is ignored.
+static void _gameFlowResetForSessionStart(void)
+{
+    _gameFlowResetSessionResources();
+    taskSpawn(GAME_FLOW_RESIDENT_TASK_BANK, GAME_FLOW_START_SESSION_TASK_SLOT, 0, 0);
 }
 
 /// Resets live session/save progress for the load-dialog path, preserving vibration.
@@ -384,20 +404,31 @@ static void _gameFlowWaitAfterLoadDialog(Task* task)
     task->state = task->state + 1;
 }
 
-static void GameFlow_SpawnMainWhenReady(Task* task)
+/// Finishes the load dialog by returning to title or starting the restored session.
+///
+/// Receives the live state-4 load-flow task after dialog closure. A cleared
+/// saved-position request returns to the already loaded title; a nonzero request
+/// starts the restored live save after discarding task/model lists and heaps.
+/// Both paths kill this task and ignore spawn failure. Do not use the task or
+/// its old heap allocations after the successful-load path resets the heaps.
+static void _gameFlowFinishLoadDialog(Task* loadFlowTask)
 {
+    enum {
+        GAME_FLOW_TITLE_SCREEN_TASK_SLOT = 2,
+        GAME_FLOW_STOP_TASK_WALK         = 1,
+    };
+
     if (gDisplayState.control.flags.pendingPlayerPos == 0) {
-        taskSpawn(0, 2, 0, 0);
+        taskSpawn(GAME_FLOW_RESIDENT_TASK_BANK, GAME_FLOW_TITLE_SCREEN_TASK_SLOT, 0, 0);
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR);
-        taskKill(task);
+        taskKill(loadFlowTask);
         return;
     }
-    gDisplayState.stopTaskWalk = 1;
-    taskKill(task);
-    taskResetDefaultList();
-    actorRenderResetLists();
-    memInitHeaps();
-    taskSpawn(0, 9, 0, 0);
+    // Stop dispatch before the current task's allocation can be reused by startup.
+    gDisplayState.stopTaskWalk = GAME_FLOW_STOP_TASK_WALK;
+    taskKill(loadFlowTask);
+    _gameFlowResetSessionResources();
+    taskSpawn(GAME_FLOW_RESIDENT_TASK_BANK, GAME_FLOW_START_SESSION_TASK_SLOT, 0, 0);
 }
 
 void gameFlowLoadDialogTask(Task* task)
@@ -421,22 +452,45 @@ static void _gameFlowRestoreSavedLocation(Task* task)
     task->state            = task->state + 1;
 }
 
-static void GameFlow_EnqueueDefaultLoad(Task* task)
+/// Queues the gameplay bootstrap file after the saved location's required disc is ready.
+///
+/// Receives the live state-1 session-start task and requires a valid restored
+/// location, initialized loading-screen state and free CD-ring capacity. A pending
+/// disc check leaves the state unchanged. Completion starts loading presentation,
+/// appends stage-zero file ID 0 and advances to the queue-drain state. Both request
+/// blocks are copied during enqueue and their stack storage is not retained.
+static void _gameFlowQueueGameplayLoad(Task* sessionStartTask)
 {
-    u8 param1[8];
-    u8 param2[8];
+    enum {
+        GAME_FLOW_BOOTSTRAP_FILE_GROUP    = 0,
+        GAME_FLOW_BOOTSTRAP_FILE_INDEX    = 0,
+        GAME_FLOW_BOOTSTRAP_FILE_HUNDREDS = 0,
+    };
+    struct {
+        u8 fileIndex;      // Low component of the stage-zero file ID (0, gameplay bootstrap)
+        u8 ignoredByQueue; // Byte 1 is never read by enqueue and remains untouched
+        u8 fileGroup;      // Stage-zero file category (0)
+        u8 stage;          // CDF selector (0, global library)
+    } fileKey;
+    struct {
+        u8 fileIdHundreds;   // Hundreds component of the stage-zero file ID (0)
+        s8 loadMode;         // CD_COMMAND_LOAD_DEFAULT
+        s8 imageXPageOffset; // Horizontal image relocation in 64-word VRAM pages (0)
+        s8 imageYOffset;     // Vertical image relocation in VRAM rows (0)
+    } loadOptions;
 
     if (loadUiPollDiskSwap() == LOAD_UI_DISK_SWAP_COMPLETE) {
         gameFlowBeginLoadScreen(&gGameSession->location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
-        param1[3] = 0;
-        param1[2] = 0;
-        param1[0] = 0;
-        param2[0] = 0;
-        param2[1] = 0;
-        param2[2] = 0;
-        param2[3] = 0;
-        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
-        task->state = task->state + 1;
+        // File ID 0 supplies the bootstrap sound bank and gameplay overlay.
+        fileKey.stage                = GAME_STAGE_NONE;
+        fileKey.fileGroup            = GAME_FLOW_BOOTSTRAP_FILE_GROUP;
+        fileKey.fileIndex            = GAME_FLOW_BOOTSTRAP_FILE_INDEX;
+        loadOptions.fileIdHundreds   = GAME_FLOW_BOOTSTRAP_FILE_HUNDREDS;
+        loadOptions.loadMode         = CD_COMMAND_LOAD_DEFAULT;
+        loadOptions.imageXPageOffset = 0;
+        loadOptions.imageYOffset     = 0;
+        cdCmdEnqueue(CD_COMMAND_LOAD_FILE, &fileKey, &loadOptions);
+        sessionStartTask->state = sessionStartTask->state + 1;
     }
 }
 
@@ -445,11 +499,19 @@ void playClockResetMinuteTicks(void)
     D_8005ED68 = 0;
 }
 
-static void GameFlow_SpawnWhenIdle(Task* task)
+/// Hands session startup to gameplay's reload task once normal CD dispatch is idle.
+///
+/// Receives the live state-2 session-start task after its gameplay-file request.
+/// The bootstrap request must supply gameplay before the queue drains; the live
+/// save/session state must remain valid for its reload callback.
+/// Queue idleness includes the dispatch phase, not the display-busy latch or drive
+/// status. Selects blank-display reload, then kills this task even if spawning
+/// fails; a non-idle queue leaves it alive for the next callback.
+static void _gameFlowHandOffSessionLoad(Task* sessionStartTask)
 {
     if (cdCmdIsIdle() != 0) {
         taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_BLANK_DISPLAY, 0);
-        taskKill(task);
+        taskKill(sessionStartTask);
     }
 }
 
@@ -696,7 +758,12 @@ void padPollPort0(void)
 
 /// Samples the controller's active-low bytes into the update's active-high word.
 ///
-/// Both borrowed objects must be live; the scratch word preserves Psy-Q bit order.
+/// `rawPort` borrows one readable libpad receive buffer; connection filtering is
+/// the poller's responsibility. `scratch` borrows the update's writable scratch
+/// block. Stores the high and low bytes separately in little-endian word order
+/// before complementing all 16 bits. Returns and seeds `scratch->buttons` with
+/// Psy-Q's active-high masks, leaving `prevButtons` unchanged. Stick directions,
+/// input overrides and edge detection are applied by the caller afterwards.
 static inline u16 _padSampleRawButtons(_PadScratch* scratch, const PadRawPort* rawPort)
 {
     u16 buttons;

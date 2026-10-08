@@ -8494,8 +8494,9 @@ sign that a second expression is needed.
 **Inverse — skip the local pointer when all accesses are pre-call.** If every
 read/write of the global happens *before* any `jal`, a bare `gDisplayState.field`
 name matches fine: GCC loads the address into a temporary (`$v1`) once and
-never needs to reload it. `GameFlow_SpawnMainWhenReady` is an example — it reads
-`field_101`, optionally writes `field_10b`, then only calls other functions.
+never needs to reload it. `_gameFlowFinishLoadDialog` is an example — it reads
+`control.flags.pendingPlayerPos`, optionally writes `stopTaskWalk`, then only
+calls other functions.
 A local `DisplayState*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
 calls.
