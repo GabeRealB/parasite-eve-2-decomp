@@ -185,10 +185,14 @@ void capRunCommand(s32 commandIndex, s16 playbackMode)
 
 #undef CAP_ADVANCE_COMMAND_COUNTER
 
-/// Holds the player in its equipped weapon bank's idle animation for event entry.
+/// Takes scripted player control with the equipped-weapon idle animation for CAP event entry.
 ///
 /// The stack request is consumed synchronously; its selected animation bank
-/// must remain loaded through playback. Requires the live player and equipment.
+/// must remain loaded through playback. Requires a live player, saved character
+/// ID 1..2 and a loaded equipped-weapon bank at index 1..33. Copies the idle
+/// request before replacing its bank index. The synchronous player message
+/// resets scripted motion/aim state, disables weapon collision and requests
+/// grid participation off.
 static inline void _capHoldWeaponEventPlayer(void)
 {
     AnimationPlayRequest idleRequest;

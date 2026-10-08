@@ -80,6 +80,4 @@ void gameFlowPrepareSessionReloadTask(Task* task);
 /// game pause until the later fade completes and resets disk-swap presentation.
 void gameFlowRebuildSessionTask(Task* task);
 
-void Gp_LoadFinishTask(Task* task);
-
 #endif // GAMEPLAY_PRIVATE_COMPANION_LOAD_H

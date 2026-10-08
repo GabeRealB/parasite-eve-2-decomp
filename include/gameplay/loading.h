@@ -12,6 +12,26 @@
 
 // Room-resource loading, view setup and sprite-list construction.
 
+/// Resident task-bank entry for the eight-phase session resource load.
+enum {
+    LOADING_SESSION_TASK_BANK = 0,
+    LOADING_SESSION_TASK_SLOT = 0x1C,
+};
+
+/// Dispatches character, stage and area loading through room startup.
+///
+/// Spawn through `LOADING_SESSION_TASK_BANK` / `LOADING_SESSION_TASK_SLOT`
+/// with gameplay loaded and valid live save/session resource directories.
+/// States 0..7 prepare character resources, queue stage resources, initialize
+/// area memory/audio, queue area/companion resources, prepare saved area state,
+/// poll area resources, release the held boot image, then start the room runtime.
+/// The state index is unchecked; handlers advance it and the final handler
+/// releases the task. The spawn arguments are unused by these phases.
+/// Each update renews port 0's input block. During demo playback, raw Start
+/// requests a restart only when the CD queue is idle.
+/// Resource owners and GPU/heap storage must satisfy the selected phase's lifetime.
+void loadingSessionLoadTask(Task* task);
+
 /// Per-area pointer table. Index is `GameLocationKey.stage`.
 extern AreaRecord* Gp_AreaTables[];
 

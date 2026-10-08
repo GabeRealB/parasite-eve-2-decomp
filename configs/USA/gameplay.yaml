@@ -102,7 +102,7 @@ segments:
       - [0x3CB0, pad] # alignment before the grid-list jump table
       - [0x3CB4, .rodata, object_lists]
       - [0x3CC8, .rodata, cap_commands] # D_800974C8, the jtbls from capRunCommand and _capWeaponEventTask, then the cap strings and tables
-      - [0x3D38, .rodata, evs_scripts] # Gp_ScriptTaskStates and the demo labels, the jtbl from Gp_ScriptTaskState1, then the script state tables
+      - [0x3D38, .rodata, evs_scripts] # Gp_ScriptTaskStates and the demo labels, the jtbl from _evsExecuteInterpreterTask, then the script state tables
       - [0x3E2C, .rodata, pad_scripts] # script dispatch tables
       - [0x3E60, .rodata, pad_input] # jtbl from padInputChangeSuppression
       - [0x3E78, .rodata, room_effects] # D_80097678, then the jtbl from _roomEffectInitController
@@ -166,7 +166,7 @@ segments:
       - [0x50CA0, c, captions] # caption interpreter, layout, events and file loading
       - [0x538AC, c, cap_script] # func_800E70AC
       - [0x539B0, c, cap_control] # capInitializeControlTask
-      - [0x53DC8, c, evs_scripts] # Gp_ScriptTaskState1
+      - [0x53DC8, c, evs_scripts] # _evsExecuteInterpreterTask
       - [0x55290, c, pad_scripts] # _padScriptStepBinaryLane; separate script-halt work
       - [0x55D6C, c, pad_input] # pad input and menu suppression
       - [0x564C8, c, room_effects] # room effect state, presets and spawning

@@ -7,6 +7,7 @@
 #include "companion_load.h"
 #include "gameplay/display.h"
 #include "gameplay/hud_sprites.h"
+#include "gameplay/loading.h"
 #include "loading.h"
 #include "gameplay/message.h"
 #include "player_state.h"
@@ -16,6 +17,7 @@
 #include "gameplay/world_collision.h"
 #include "world_collision.h"
 
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -400,14 +402,20 @@ void gameFlowReloadSessionTask(Task* task)
     states.funcs[((volatile Task*)task)->state](task);
 }
 
-void Gp_LoadFinishTask(Task* task)
+void loadingFinishSessionLoadTask(Task* task)
 {
+    enum {
+        FADE_SESSION_RESUME_TASK_BANK      = 0,
+        FADE_SESSION_RESUME_TASK_SLOT      = 0x21,
+        ACROPOLIS_PLAZA_OPENING_TASK_INDEX = 0,
+    };
     if (gCdCmdQueue.bootLoadActive == 0) {
+        // Retire loading before room startup can reuse its task storage.
         gpuClearFrameOrderingTable(0);
         gpuClearFrameOrderingTable(1);
         Pad_RemapState->loadingActive = GAME_DEBUG_LOADING_IDLE;
         taskKill(task);
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
             areaStartRoomRuntime(AREA_ROOM_START_SKIP_VIEW_GATE);
         } else {
             areaStartRoomRuntime(AREA_ROOM_START_WITH_VIEW_GATE);
@@ -415,33 +423,33 @@ void Gp_LoadFinishTask(Task* task)
         gDisplayState.holdCount  = 0;
         gDisplayState.holdState &= DISPLAY_HOLD_MODE_MASK;
         displayAcquireMenuHold();
-        taskSpawn(0, 0x21, 0, 0);
-        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(1, 5, 0, 0)) {
-            taskSpawnFromTable(D_acropolis_plaza_80183824, 0, 0, 0);
+        taskSpawn(FADE_SESSION_RESUME_TASK_BANK, FADE_SESSION_RESUME_TASK_SLOT, 0, 0);
+        if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_ACROPOLIS_PLAZA, 0, 0)) {
+            taskSpawnFromTable(D_acropolis_plaza_80183824, ACROPOLIS_PLAZA_OPENING_TASK_INDEX, 0, 0);
             cdCmdReservePlaybackBuffers();
             cdCmdSelectMovieWorkspace();
         }
     }
 }
 
-void Gp_LoadStateTask(Task* task)
+void loadingSessionLoadTask(Task* task)
 {
-    TaskFuncTable8 sp;
-    DisplayState*  ds;
+    TaskFuncTable8 states;
+    DisplayState*  displayState;
 
-    sp = Gp_LoadStateFns;
+    states = Gp_LoadStateFns;
     padStartInputBlock(0);
-    ds = &gDisplayState;
-    if (ds->demoScene != DISPLAY_DEMO_NONE) {
+    displayState = &gDisplayState;
+    if (displayState->demoScene != DISPLAY_DEMO_NONE) {
         if (padReadRawButtons(0) & PAD_BUTTON_START) {
-            if (cdCmdIsIdle() & 0xFFFF) {
+            if (cdCmdIsIdle()) {
                 Wip_SysFlags.skipTitleIntro = 1;
-                ds->gameMode                = DISPLAY_GAME_RESTART;
+                displayState->gameMode      = DISPLAY_GAME_RESTART;
                 return;
             }
         }
     }
-    sp.funcs[task->state](task);
+    states.funcs[task->state](task);
 }
 
 void fadeResumeSessionTask(Task* task)
@@ -508,10 +516,14 @@ s32 taskMessageDispatch(Task* receiver, s32 messageId, s32 firstArg, s32 secondA
 
 /// Binds borrowed collision records for initial room setup without clearing lists.
 ///
-/// The loaded stage directory must provide valid one-based area/room indices.
+/// `roomResources` is NULL or a loaded room array containing `location->room - 1`;
+/// the room index is one-based. Both pointers are borrowed for this call.
 /// Each non-NULL trigger/occluder list must contain its LAST-marked entry and
-/// remain writable and loaded until unlinked. Existing registrations must be
-/// empty or disposable; NULL resources retain the existing grid publication.
+/// remain writable and loaded until unlinked. Each record must be unlinked or
+/// already linked in its selected list; existing registrations remain live.
+/// A NULL array or grid retains the published grid.
+/// A non-NULL grid is writable and must stay loaded until replaced or retired.
+/// Triggers borrow the current view coordinate; occluder coordinates are unchanged.
 static inline void _loadingBindInitialRoomCollisionResources(const GameLocationKey* location, const WorldCollisionRoomResources* roomResources)
 {
     enum { WORLD_COLLISION_OCCLUDER_LIST_ACTIVE = 0 };

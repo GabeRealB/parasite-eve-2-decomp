@@ -193,27 +193,19 @@ void directionDispatchCapInteraction(void)
     }
 }
 
-void Gp_RunDirAction(void)
+void directionDispatchCallbackAction(void)
 {
-    void (*fns[2])(s32, s32) = { acropolisFountainStartClimb, acropolisHelicopterLandingPadStartExit };
+    enum {
+        DIRECTION_CALLBACK_INDEX_SHIFT = 8,
+        DIRECTION_CALLBACK_INDEX_MASK  = 0x7F,
+    };
+    void (*callbacks[])(s32 parameter0, s32 parameter1) = { acropolisFountainStartClimb, acropolisHelicopterLandingPadStartExit };
 
     if (gGameSession->eventState != 0) {
-        D_80114CF8      = 0;
-        Gp_DirNibble    = 0;
-        Gp_DirByte      = 0;
-        Gp_DirFlags     = 0;
-        Gp_DirAltNibble = 0;
-        Gp_DirAlt       = 0;
-        D_80114CD4      = 0;
+        _directionClearRequest();
     } else {
-        fns[(Gp_DirFlags >> 8) & 0x7F](Gp_DirByte, Gp_DirNibble);
-        D_80114CF8      = 0;
-        Gp_DirNibble    = 0;
-        Gp_DirByte      = 0;
-        Gp_DirFlags     = 0;
-        Gp_DirAltNibble = 0;
-        Gp_DirAlt       = 0;
-        D_80114CD4      = 0;
+        callbacks[(Gp_DirFlags >> DIRECTION_CALLBACK_INDEX_SHIFT) & DIRECTION_CALLBACK_INDEX_MASK](Gp_DirByte, Gp_DirNibble);
+        _directionClearRequest();
     }
 }
 

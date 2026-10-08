@@ -337,7 +337,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `19` | `C0` | `0x807011D8` | Stage overlay — not in this tree |
 | `1A` | `E0` | `modelObjectDrawTemporaryListsTask` | Compose the temporary live model/coordinate-body lists and draw active models into the selected `gGpuCurrentOt`; task argument is ignored. Spawned as `_gModelObjectTemporaryDrawTask` while the previous lists are stashed |
 | `1B` | `D0` | `spriteViewTask` | Select the view background, then link cached sprites each frame; frozen with room-object dispatch. Parents the room-object task |
-| `1C` | `2F` | `Gp_LoadStateTask` | 8-way dispatcher (pause / menu-ish) |
+| `1C` | `2F` | `loadingSessionLoadTask` | Eight-phase session resource load and room startup |
 | `1D` | `18` | `playClockTask` | Play-time/HUD updates, death presentation and session restart; six states |
 | `1E` | `F8` | `loadingViewLoadTask` | Six-state view-resource/image load; completion resumes the game loop or publishes scene readiness according to spawn mode |
 | `1F` | `10` | `bootColdStartTask` | Cold boot: ISO/HED discovery, INIT.BS decode/fades and a 90-callback minimum hold while stage-zero file 1 loads, then slot 0D. Selected by `_gameMainSpawnStartupTask` on initialization count 1 |

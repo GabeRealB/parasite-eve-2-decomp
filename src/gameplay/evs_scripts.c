@@ -166,7 +166,7 @@ static const char Gp_StrDemoWait[];
 
 static const char Gp_StrDemoPause[];
 
-static void Gp_ScriptTaskState1(Task* arg0);
+static void _evsExecuteInterpreterTask(Task* task);
 
 static void _evsInitializeInterpreterTask(Task* task);
 
@@ -178,7 +178,7 @@ Task* D_8010FBE8 = NULL;
 
 static const TaskFuncTable3 Gp_ScriptTaskStates = { {
     _evsInitializeInterpreterTask,
-    Gp_ScriptTaskState1,
+    _evsExecuteInterpreterTask,
     taskKill,
 } };
 
@@ -202,17 +202,65 @@ static inline void _evsCancelSecondaryFade(_EvsInterpreterWork* work)
     }
 }
 
-static void Gp_ScriptTaskState1(Task* arg0)
-{
-    EvsCommand*          continuation;
-    _EvsInterpreterWork* work;
-    AnimationPlayRequest rec;
-    SVECTOR              vec;
-    TextDrawReq          req;
-    Task*                slot;
-    s32                  mode;
+/// Draws the event interpreter's demo wait or pause label at its fixed screen position.
+///
+/// `request` must be a side-effect-free TextDrawReq lvalue; it is evaluated
+/// eight times and overwritten. `label` is evaluated once and borrows a
+/// zero-terminated byte-encoded string. Requires current frame packet storage.
+#define EVENT_SCRIPT_DRAW_DEMO_STATUS(request, label)   \
+    {                                                   \
+        (request).x          = -0x8C;                   \
+        (request).y          = 0x50;                    \
+        (request).otIndex    = 4;                       \
+        (request).colorRgb   = 0x808008;                \
+        (request).glyphTable = TEXT_GLYPH_TABLE_MEDIUM; \
+        (request).alignment  = TEXT_ALIGNMENT_LEFT;     \
+        (request).drawMode   = TEXT_DRAW_FILL_ONLY;     \
+        textDrawString(&(request), (const u8*)(label)); \
+    }
 
-    work = arg0->work;
+/// Executes an event script until it ends or yields to a later task update.
+///
+/// State 1 requires live interpreter work and borrowed command/resource storage.
+/// The shared pause latch suspends input handling and countdowns as well as dispatch.
+/// Input skip consumes its target, clears frame/CAP waits and yields one update;
+/// it retains the return stack. Frame/CAP waits advance before yielding, whereas
+/// animation/action/music polls retry the same instruction. Calls require at most
+/// eight pending returns and returns require a nonempty stack; targets are unchecked.
+/// End releases the display hold and optional HUD suppression before state 2 kills
+/// the task. Scene cleanup disables a later automatic HUD restore. Effect handles
+/// retain the independent lifetime rules of `_EvsInterpreterWork`.
+static void _evsExecuteInterpreterTask(Task* task)
+{
+    EvsCommand*          skipTarget;
+    _EvsInterpreterWork* work;
+    AnimationPlayRequest animationRequest;
+    SVECTOR              lightColor;
+    TextDrawReq          debugTextRequest;
+    Task*                recipientTask;
+    s32                  equipmentTargets;
+
+    enum {
+        EVENT_SCRIPT_STATUS_DEMO_SCENE           = 9,
+        EVENT_SCRIPT_WAITING_FOR_CAP_CUE         = 0x40,
+        EVENT_SCRIPT_SKIP_SOUND_STOP_CONTROL     = 16,
+        EVENT_SCRIPT_DEFAULT_FADE_FRAMES         = 7,
+        EVENT_SCRIPT_DISPLAY_TASK_BANK           = 1,
+        EVENT_SCRIPT_FLASH_TASK_SLOT             = 0x19,
+        EVENT_SCRIPT_FRAMEBUFFER_BLEND_TASK_SLOT = 0x2D,
+        EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT       = 0x31,
+        EVENT_SCRIPT_TASK_BANK                   = 9,
+        EVENT_SCRIPT_SCREEN_SHAKE_TASK_SLOT      = 0xC,
+        EVENT_SCRIPT_MUSIC_FADE_TASK_SLOT        = 0xD,
+        EVENT_SCRIPT_SOUND_FADE_TASK_SLOT        = 0xE,
+        EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT       = 8,
+        EVENT_SCRIPT_WEAPONS_PLAYER              = 0,
+        EVENT_SCRIPT_WEAPONS_COMPANION           = 1,
+        EVENT_SCRIPT_WEAPONS_BOTH                = 2,
+        STAGE_MUSIC_REQUEST_ORDINARY             = 0,
+    };
+
+    work = task->work;
     if (D_801156F9 != 0) {
         return;
     }
@@ -221,21 +269,22 @@ static void Gp_ScriptTaskState1(Task* arg0)
         gDisplayState.gameMode = DISPLAY_GAME_RESTART;
     }
 
+    // Skipping consumes the target but retains any pending script returns.
     if (padIsStartPressed() != 0 && D_801156D0 != NULL && gDisplayState.pendingMode == DISPLAY_MODE_NONE && D_801156F0 == 0) {
         if (D_801156F4.sceneKey != NULL) {
             cdCmdCancelScene();
         }
         D_801156A4               = 0;
-        continuation             = D_801156D0;
+        skipTarget               = D_801156D0;
         work->waitFrames         = 0;
         D_801156D0               = NULL;
-        work->command            = continuation;
+        work->command            = skipTarget;
         D_80115688               = 1;
         gGameSession->evtSkipped = 1;
         if (D_801156CC != 0) {
             return;
         }
-        sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, 0x10);
+        sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, EVENT_SCRIPT_SKIP_SOUND_STOP_CONTROL);
         return;
     }
     if (D_801156F0 != 0) {
@@ -244,52 +293,39 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
     if (work->waitFrames != 0) {
         work->waitFrames--;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
-            req.x          = -0x8C;
-            req.y          = 0x50;
-            req.otIndex    = 4;
-            req.colorRgb   = 0x808008;
-            req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            req.alignment  = TEXT_ALIGNMENT_LEFT;
-            req.drawMode   = TEXT_DRAW_FILL_ONLY;
-            textDrawString(&req, Gp_StrDemoWait);
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == EVENT_SCRIPT_STATUS_DEMO_SCENE) {
+            EVENT_SCRIPT_DRAW_DEMO_STATUS(debugTextRequest, Gp_StrDemoWait);
         }
         return;
     }
 
-    if (D_801156A4 & 0x40) {
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == 9) {
-            req.x          = -0x8C;
-            req.y          = 0x50;
-            req.otIndex    = 4;
-            req.colorRgb   = 0x808008;
-            req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-            req.alignment  = TEXT_ALIGNMENT_LEFT;
-            req.drawMode   = TEXT_DRAW_FILL_ONLY;
-            textDrawString(&req, Gp_StrDemoPause);
+    if (D_801156A4 & EVENT_SCRIPT_WAITING_FOR_CAP_CUE) {
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene == EVENT_SCRIPT_STATUS_DEMO_SCENE) {
+            EVENT_SCRIPT_DRAW_DEMO_STATUS(debugTextRequest, Gp_StrDemoPause);
         }
         return;
     }
 
+    // Execute consecutive instructions until a wait, poll or end yields.
     while (1) {
         switch (work->command->opcode) {
             case EVENT_SCRIPT_OPCODE_SEND_MESSAGE:
                 // Resolve scene recipients before forwarding the untouched payload words.
                 if (work->command->operand0.value == GAME_TASK_SLOT_SCENE) {
-                    slot = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
+                    recipientTask = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
                     if (work->command->operand1.value != EVENT_SCRIPT_MESSAGE_SELECT_SCENE_MANAGER) {
-                        TASK_MESSAGE_DISPATCH_SECOND_POINTER(slot, SCENE_MESSAGE_FIND_PLACED_ACTOR,
+                        TASK_MESSAGE_DISPATCH_SECOND_POINTER(recipientTask, SCENE_MESSAGE_FIND_PLACED_ACTOR,
                                                              (work->command->operand1.value << ENEMY_PLACE_INDEX_SHIFT) | (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area,
-                                                             &slot);
+                                                             &recipientTask);
                     }
                 } else if (work->command->operand0.value == EVENT_SCRIPT_MESSAGE_TARGET_OTHER_SCENE_CHILD) {
-                    slot = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
-                    TASK_MESSAGE_DISPATCH_SECOND_POINTER(slot, SCENE_MESSAGE_FIND_OTHER_CHILD, work->command->operand1.value, &slot);
+                    recipientTask = gameGetTaskSlot(GAME_TASK_SLOT_SCENE);
+                    TASK_MESSAGE_DISPATCH_SECOND_POINTER(recipientTask, SCENE_MESSAGE_FIND_OTHER_CHILD, work->command->operand1.value, &recipientTask);
                 } else {
-                    slot = gameGetTaskSlot(work->command->operand0.value);
+                    recipientTask = gameGetTaskSlot(work->command->operand0.value);
                 }
-                if (slot != NULL) {
-                    taskMessageDispatch(slot, work->command->operand2.value, work->command->operand3.message.value, work->command->operand4.message.value);
+                if (recipientTask != NULL) {
+                    taskMessageDispatch(recipientTask, work->command->operand2.value, work->command->operand3.message.value, work->command->operand4.message.value);
                 }
                 break;
 
@@ -300,10 +336,10 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 }
                 D_801156F4.sceneKey      = NULL;
                 gGameSession->eventState = 0;
-                if (arg0->spawnArg1.value == 0) {
+                if (task->spawnArg1.value == EVENT_SCRIPT_HUD_HIDE_RESTORE) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 }
-                arg0->state++;
+                task->state++;
                 displayReleaseMenuHold();
                 if (D_801156CA != 0) {
                     streamFinishScene();
@@ -312,7 +348,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 return;
 
             case EVENT_SCRIPT_OPCODE_START_FLASH:
-                work->primaryEffectTask = taskSpawn(1, 0x19, work->command->operand0.value, work->command->operand1.value);
+                work->primaryEffectTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_FLASH_TASK_SLOT, work->command->operand0.value, work->command->operand1.value);
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_DIRTY_VIEW:
@@ -347,7 +383,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE:
                 D_801156CB    = 1;
-                D_801156A4   |= 0x40;
+                D_801156A4   |= EVENT_SCRIPT_WAITING_FOR_CAP_CUE;
                 work->command = work->command + 1;
                 return;
 
@@ -364,16 +400,16 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 return;
 
             case EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION:
-                slot = gameGetTaskSlot(work->command->operand0.value);
+                recipientTask = gameGetTaskSlot(work->command->operand0.value);
                 // Resolve the weapon bank in a copy of the borrowed request.
-                rec = *work->command->operand3.animation;
-                if (work->command->operand0.value == 3) {
-                    playerActorWriteWeaponAnimationBankIndex(&rec.source.index);
+                animationRequest = *work->command->operand3.animation;
+                if (work->command->operand0.value == GAME_TASK_SLOT_PLAYER) {
+                    playerActorWriteWeaponAnimationBankIndex(&animationRequest.source.index);
                 } else {
-                    companionWriteAnimationBankIndex(&rec.source.index);
+                    companionWriteAnimationBankIndex(&animationRequest.source.index);
                 }
-                if (slot != NULL) {
-                    TASK_MESSAGE_DISPATCH_POINTER(slot, work->command->operand2.value, &rec, work->command->operand4.value);
+                if (recipientTask != NULL) {
+                    TASK_MESSAGE_DISPATCH_POINTER(recipientTask, work->command->operand2.value, &animationRequest, work->command->operand4.value);
                 }
                 break;
 
@@ -408,7 +444,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
 
             case EVENT_SCRIPT_OPCODE_SET_FRAMEBUFFER_BLEND:
                 if (work->command->operand0.value != 0) {
-                    D_8010FBE0 = taskSpawn(1, 0x2D, 0, 0);
+                    D_8010FBE0 = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_FRAMEBUFFER_BLEND_TASK_SLOT, 0, 0);
                 } else if (D_8010FBE0 != NULL) {
                     taskCallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
@@ -435,7 +471,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 gStageMusicParams.fadeOutTicks                      = work->command->operand1.value;
                 gStageMusicLoadState                                = 0;
                 gStageMusicParams.field_2                           = work->command->operand2.value;
-                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, 0, 0);
+                taskSpawnFromTable(&Stage_MusicTaskDesc, 0, STAGE_MUSIC_REQUEST_ORDINARY, 0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_WAIT_MUSIC_LOAD:
@@ -445,14 +481,14 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_SHAKE_SCREEN:
-                taskSpawn(9, 0xC, 0, (work->command->operand0.value << 8) | work->command->operand1.value);
+                taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_SCREEN_SHAKE_TASK_SLOT, 0, (work->command->operand0.value << EVENT_SCRIPT_SHAKE_AMPLITUDE_SHIFT) | work->command->operand1.value);
                 break;
 
             case EVENT_SCRIPT_OPCODE_CLEANUP_SCENE:
-                if (arg0->spawnArg1.value == 0) {
+                if (task->spawnArg1.value == EVENT_SCRIPT_HUD_HIDE_RESTORE) {
                     taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_SHOW_HUD, 0, 0);
                 }
-                arg0->spawnArg1.value = 1;
+                task->spawnArg1.value = EVENT_SCRIPT_HUD_KEEP;
                 capAbortPlayback();
                 playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
                 taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_SET_TEXTURE_SEQUENCE, 0, 0);
@@ -460,7 +496,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                     taskCallExit(D_8010FBE0);
                     D_8010FBE0 = NULL;
                 }
-                _evsCancelSecondaryFade(arg0->work);
+                _evsCancelSecondaryFade(task->work);
                 break;
 
             case EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE:
@@ -470,11 +506,11 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 D_801156D4.blend = (u8)work->command->operand0.value;
                 D_801156D4.phase = SCREEN_FADE_RUNNING;
                 if (work->command->operand1.value == 0) {
-                    D_801156D4.rampFrames = 7;
+                    D_801156D4.rampFrames = EVENT_SCRIPT_DEFAULT_FADE_FRAMES;
                 } else {
                     D_801156D4.rampFrames = (u16)work->command->operand1.value;
                 }
-                work->primaryEffectTask = taskSpawn(1, 0x31, 0, &D_801156D4);
+                work->primaryEffectTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT, 0, &D_801156D4);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE:
@@ -487,7 +523,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 }
                 D_801156DC.targetVolume   = work->command->operand0.value;
                 D_801156DC.durationFrames = work->command->operand1.value;
-                D_8010FBE4                = taskSpawn(9, 0xD, 0, &D_801156DC);
+                D_8010FBE4                = taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_MUSIC_FADE_TASK_SLOT, 0, &D_801156DC);
                 break;
 
             case EVENT_SCRIPT_OPCODE_FADE_SOUND_ATTENUATION:
@@ -497,7 +533,7 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 D_801156E0.soundId           = work->command->operand0.value;
                 D_801156E0.targetAttenuation = work->command->operand1.value;
                 D_801156E0.durationFrames    = work->command->operand2.value;
-                D_8010FBE8                   = taskSpawn(9, 0xE, 0, &D_801156E0);
+                D_8010FBE8                   = taskSpawn(EVENT_SCRIPT_TASK_BANK, EVENT_SCRIPT_SOUND_FADE_TASK_SLOT, 0, &D_801156E0);
                 break;
 
             case EVENT_SCRIPT_OPCODE_REBUILD_TMD_BUFFERS:
@@ -514,18 +550,18 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_AMBIENT_RGB:
-                vec.vx = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
-                vec.vy = work->command->operand1.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
-                vec.vz = work->command->operand2.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
-                worldCoordSetAmbientColorOverride(&vec);
+                lightColor.vx = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
+                lightColor.vy = work->command->operand1.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
+                lightColor.vz = work->command->operand2.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
+                worldCoordSetAmbientColorOverride(&lightColor);
                 break;
 
             case EVENT_SCRIPT_OPCODE_SET_LIGHT_SCALE:
                 if (work->command->operand0.value != 0) {
-                    vec.vx = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
-                    vec.vy = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
-                    vec.vz = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
-                    worldCoordSetLightColorScaleOverride(&vec);
+                    lightColor.vx = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
+                    lightColor.vy = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
+                    lightColor.vz = work->command->operand0.value * EVENT_SCRIPT_LIGHT_VALUE_SCALE;
+                    worldCoordSetLightColorScaleOverride(&lightColor);
                 } else {
                     worldCoordSetLightColorScaleOverride(NULL);
                 }
@@ -546,11 +582,11 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 D_801156D8.blend = (u8)work->command->operand0.value;
                 D_801156D8.phase = SCREEN_FADE_RUNNING;
                 if (work->command->operand1.value == 0) {
-                    D_801156D8.rampFrames = 7;
+                    D_801156D8.rampFrames = EVENT_SCRIPT_DEFAULT_FADE_FRAMES;
                 } else {
                     D_801156D8.rampFrames = (u16)work->command->operand1.value;
                 }
-                work->secondaryFadeTask = taskSpawn(1, 0x31, work->command->operand2.value, &D_801156D8);
+                work->secondaryFadeTask = taskSpawn(EVENT_SCRIPT_DISPLAY_TASK_BANK, EVENT_SCRIPT_SCREEN_FADE_TASK_SLOT, work->command->operand2.value, &D_801156D8);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE:
@@ -561,19 +597,19 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_CANCEL_SECONDARY_FADE:
-                _evsCancelSecondaryFade(arg0->work);
+                _evsCancelSecondaryFade(task->work);
                 break;
 
             case EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS:
-                mode = work->command->operand0.value;
-                if (mode == 0 || mode == 2) {
+                equipmentTargets = work->command->operand0.value;
+                if (equipmentTargets == EVENT_SCRIPT_WEAPONS_PLAYER || equipmentTargets == EVENT_SCRIPT_WEAPONS_BOTH) {
                     if (D_801156CD != 0) {
                         gPlayerStatus.weapon = D_801156EC;
                         playerActorRestoreEquipment();
                         D_801156CD = 0;
                     }
                 }
-                if ((u32)(mode - 1) < 2U) {
+                if ((u32)(equipmentTargets - EVENT_SCRIPT_WEAPONS_COMPANION) < 2U) {
                     if (D_801156CE != 0) {
                         companionRestoreEquipment();
                         D_801156CE = 0;
@@ -582,17 +618,17 @@ static void Gp_ScriptTaskState1(Task* arg0)
                 break;
 
             case EVENT_SCRIPT_OPCODE_HIDE_WEAPONS:
-                mode = work->command->operand0.value;
-                if (mode == 0 || mode == 2) {
+                equipmentTargets = work->command->operand0.value;
+                if (equipmentTargets == EVENT_SCRIPT_WEAPONS_PLAYER || equipmentTargets == EVENT_SCRIPT_WEAPONS_BOTH) {
                     D_801156CD = 1;
                     playerActorRemoveEquipment();
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                 }
-                if ((u32)(mode - 1) < 2U) {
-                    D_801156CE = 1;
-                    slot       = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-                    if (slot != NULL) {
-                        companionRemoveEquipment(slot);
+                if ((u32)(equipmentTargets - EVENT_SCRIPT_WEAPONS_COMPANION) < 2U) {
+                    D_801156CE    = 1;
+                    recipientTask = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+                    if (recipientTask != NULL) {
+                        companionRemoveEquipment(recipientTask);
                         companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     }
                 }
@@ -639,6 +675,8 @@ static void Gp_ScriptTaskState1(Task* arg0)
         work->command = work->command + 1;
     }
 }
+
+#undef EVENT_SCRIPT_DRAW_DEMO_STATUS
 
 void evsMusicVolumeFadeTask(Task* task)
 {

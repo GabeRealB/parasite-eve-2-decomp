@@ -30363,19 +30363,19 @@ let the scheduler emit the first `lui`/`addiu`/`sw` of the table *before*
 those saves (96% — only the prologue order differs):
 
 ```c
-void (*fns[2])(s32, s32);
-fns[0] = D_8017DA78;
-fns[1] = D_8017EF60;
+void (*callbacks[2])(s32 parameter0, s32 parameter1);
+callbacks[0] = acropolisFountainStartClimb;
+callbacks[1] = acropolisHelicopterLandingPadStartExit;
 ```
 
 An initializer is a distinct RTL block, so GCC emits the full prologue
 then the two address stores — the same shape as `spriteViewTask`:
 
 ```c
-void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
+void (*callbacks[])(s32 parameter0, s32 parameter1) = { acropolisFountainStartClimb, acropolisHelicopterLandingPadStartExit };
 ```
 
-`Gp_RunDirAction` is the example. Index `(u16 >> 8) & 0x7F` is what produces
+`directionDispatchCallbackAction` is the example. Index `(u16 >> 8) & 0x7F` is what produces
 `srl 6` / `andi 0x1FC` (plain `>> 8` is `andi 0x3FC`).
 
 ## An oversized frame with dead stack slots is an unused local array
@@ -38334,7 +38334,7 @@ vec.vx = cmd->arg0 * 16;   /* lw;  sll 4; sh  */
 ```
 
 Both fold to the same `ashift` tree, but the multiply form keeps the SImode load
-that the ROM has. In `Gp_ScriptTaskState1` the two `worldCoordSetAmbientColorOverride` cases build an
+that the ROM has. In `_evsExecuteInterpreterTask` the two `worldCoordSetAmbientColorOverride` cases build an
 `SVECTOR` from three `s32` command arguments; writing `<< 4` cost six `lw`→`lhu`
 mismatches and, in the case that also *tests* the same field, split one `lw`
 into a `lw` for the branch plus a second `lhu` for the value. Switching to
@@ -38351,7 +38351,7 @@ make combine narrow in places the ROM does not.
 For a dense `switch`, splat's jump table gives you the case *values*, but the
 order the bodies appear in the `.s` gives you the order they were written in the
 original C — GCC lays the bodies out in source order regardless of the table.
-`Gp_ScriptTaskState1`'s 50-case dispatcher has a table that runs `-1, 0, 1, 2, …` while
+`_evsExecuteInterpreterTask`'s 50-case dispatcher has a table that runs `-1, 0, 1, 2, …` while
 the bodies run `1, -1, 2, 3, 4, 5, 6, 7, 8, 10, 9, 30, 11, …`; simply reordering
 the `case` labels to match the body layout took the function from 85.7% to
 95.2% with no other change. Do this before chasing anything else: while the
@@ -38368,7 +38368,7 @@ verbatim in both cases, or place the two cases adjacently and fall through.
 `asm/<ver>/<overlay>/nonmatchings/<unit>/<fn>.s`, where the jump table is an
 undefined external (`jtbl_800975*`). A compiled candidate references its own
 local `.rodata` instead, so every `lui/addiu` pair for the table — and the score
-floor with it — never converges; `Gp_ScriptTaskState1` sat at a base score of ~14500
+floor with it — never converges; `_evsExecuteInterpreterTask` sat at a base score of ~14500
 with the real object only ~4 instructions away. Copy the scratch env's
 `target.o` (the one `build.sh`/`dist.py` compare against) over
 `permuter/<fn>/target.o` before running the permuter; the base score for the
@@ -38380,7 +38380,7 @@ the function name and the run silently permutes a non-existent function.
 ## A one-instruction common tail is not cross-jumped — select into a temp
 
 The cross-jumping note above understates the limit: GCC 2.8.1 will not merge a
-common tail that is a *single* instruction. `Gp_ScriptTaskState1` needs
+common tail that is a *single* instruction. `_evsExecuteInterpreterTask` needs
 
 ```c
 if (cmd->arg1 != 0) { val = (u16)cmd->arg1; } else { val = 7; }
@@ -66641,7 +66641,7 @@ penalties (98.734%). Keep this form when cleaning up the matched body.
 
 ## Put the load arm after the label so the constant arm is not hoisted into a cse2 skip-block path
 
-`Gp_ScriptTaskState1` stores a halfword that is either a script argument or a
+`_evsExecuteInterpreterTask` stores a halfword that is either a script argument or a
 default: `x = value ? (u16)arg1 : 7`. Every orientation with the constant arm
 *after* the label - the ternary, and `if (value != 0) f = arg1; else f = 7;` -
 sat at 98.6-99% with `insert`/`delete` and the address of the struct reused as

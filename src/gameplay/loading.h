@@ -84,6 +84,16 @@ extern const TaskFuncTable3 Gp_SessionStates;
 
 extern const TaskFuncTable8 Gp_LoadStateFns;
 
+/// Waits for boot presentation to finish, then starts the loaded room and reveal fade.
+///
+/// Final state of `loadingSessionLoadTask`. Requires valid loaded room resources
+/// and disposable frame ordering tables. Kills the loading task before room
+/// startup and never accesses it afterwards. The Acropolis plaza omits the
+/// view gate and starts its opening scene with reserved movie workspaces;
+/// other rooms start the ordinary view gate. Takes a menu hold until the
+/// spawned session-resume fade releases it; task-allocation failures are ignored.
+void loadingFinishSessionLoadTask(Task* task);
+
 extern const TaskFuncTable3 Gp_RoomObjStates;
 
 /// Queues the current mapped view's resources once the CD queue is idle.

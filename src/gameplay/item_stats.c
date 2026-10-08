@@ -923,15 +923,18 @@ void itemMenuDrawCollectedItemRow(UiList* list, UiObject* object)
 #undef ITEM_MENU_DRAW_COLLECTED_ROW_CONTENTS
 #undef ITEM_MENU_SET_COLLECTED_ROW_PREVIEW
 
-/// Refreshes the collection count and its initial inclusive selection clamp.
+/// Seeds the collected-items list's item and row counts, clamping selection to the count.
 ///
-/// list borrows writable singleton menu state. The viewport pass applies the
-/// later exclusive clamp; an empty list then retains selectedItemIndex == -1.
-static inline void _itemMenuRefreshCollectedCount(UiList* list)
+/// Borrows a writable list. Counts all 128 saved collection bits, including
+/// unused item IDs, so both byte counts can hold the complete result. Leaves
+/// negative selections intact and permits selection equal to the count; the
+/// caller initializes or refreshes the viewport and then applies its exclusive
+/// selection clamp, including -1 for an empty list on later updates.
+static inline void _itemMenuRefreshCollectedCount(UiList* collectedList)
 {
-    list->visibleRowCount.unsignedValue = list->itemCount = inventoryCountCollectedBits();
-    if (list->itemCount < list->selectedItemIndex) {
-        list->selectedItemIndex = list->itemCount;
+    collectedList->visibleRowCount.unsignedValue = collectedList->itemCount = inventoryCountCollectedBits();
+    if (collectedList->itemCount < collectedList->selectedItemIndex) {
+        collectedList->selectedItemIndex = collectedList->itemCount;
     }
 }
 

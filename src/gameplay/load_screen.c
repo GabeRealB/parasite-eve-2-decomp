@@ -297,8 +297,6 @@ static inline void _gameFlowDiscardSessionTasksAndPackets(DisplayState* displayS
 void gameFlowRebuildSessionTask(Task* task)
 {
     enum {
-        GAME_FLOW_LOADING_TASK_BANK           = 0,
-        GAME_FLOW_LOADING_TASK_SLOT           = 0x1C,
         LOAD_UI_DISK_SWAP_CHECK_REQUIRED_DISC = 0,
     };
     CdCmdQueue*   cdQueue;
@@ -324,7 +322,7 @@ void gameFlowRebuildSessionTask(Task* task)
         displayConfigureFramebuffers(DISPLAY_SETUP_DEFAULT | DISPLAY_SETUP_NO_CLEAR | DISPLAY_SETUP_KEEP_VIEW);
     }
     // This spawn can reuse the discarded task's storage; consume its option first.
-    taskSpawn(GAME_FLOW_LOADING_TASK_BANK, GAME_FLOW_LOADING_TASK_SLOT, task->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK, 0);
+    taskSpawn(LOADING_SESSION_TASK_BANK, LOADING_SESSION_TASK_SLOT, task->spawnArg1.value & GAME_FLOW_RELOAD_DISPLAY_MODE_MASK, 0);
     displayState->skipDraw              = false;
     cdQueue->blockGamePause             = true;
     cdQueue->releasePauseBlockAfterFade = true;

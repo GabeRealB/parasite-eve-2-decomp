@@ -145,6 +145,8 @@ static inline void _capStepMarkerPulse(s32* greyLevel, s32* falling)
 /// restores the old index after all four directions have been checked.
 /// A changed nonempty selection plays the cursor sound. Marker drawing also
 /// advances the confirmation lockout, requiring its GPU packet/OT storage.
+/// Port 0 queries run in left/up/right/down order; simultaneous presses combine.
+/// With no choices the marker draws nothing and the old selection is retained.
 static inline void _capUpdateChoiceSelection(void)
 {
     u16 previousChoiceIndex;

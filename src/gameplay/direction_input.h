@@ -149,7 +149,14 @@ void directionUpdateAction(void);
 /// session's busy flag until the next direction tick.
 void directionDispatchCapInteraction(void);
 
-void Gp_RunDirAction(void);
+/// Consumes a trigger callback request, dispatching it only while event state is idle.
+///
+/// Bits 8..14 of the latched control word must select callback 0 (fountain
+/// climb) or 1 (helipad exit); there is no bounds check. The selected room
+/// overlay and its runtime must be live. Forwards the two trigger bytes as
+/// signed words, then clears action activity and primary/secondary parameters.
+/// An active event discards the request. Phase and session busy state are retained.
+void directionDispatchCallbackAction(void);
 
 /// Updates the stair surface and waits for the climb to finish or encounter a warp.
 ///

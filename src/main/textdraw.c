@@ -207,7 +207,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xC0 } }, func_807011D8 },
     { { { TASK_BODY_NONE, 0xE0 } }, modelObjectDrawTemporaryListsTask },
     { { { TASK_BODY_NONE, 0xD0 } }, spriteViewTask },
-    { { { TASK_BODY_NONE, 0x2F } }, Gp_LoadStateTask },
+    { { { TASK_BODY_NONE, 0x2F } }, loadingSessionLoadTask },
     { { { TASK_BODY_NONE, 0x18 } }, playClockTask },
     { { { TASK_BODY_NONE, 0xF8 } }, loadingViewLoadTask },
     { { { TASK_BODY_NONE, 0x10 } }, bootColdStartTask },

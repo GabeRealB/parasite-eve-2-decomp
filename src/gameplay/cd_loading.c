@@ -1202,7 +1202,7 @@ const TaskFuncTable8 Gp_LoadStateFns  = { {
     loadingPrepareAreaStateTask,
     loadingPollAreaResourcesTask,
     loadingHoldFadeAndReleaseBootImageTask,
-    Gp_LoadFinishTask,
+    loadingFinishSessionLoadTask,
 } };
 const TaskFuncTable3 Gp_RoomObjStates = { {
     loadingInitRoomResourcesTask,

@@ -13,8 +13,6 @@ void func_800ABFF8(void);
 /// Its intended role is unproven.
 void func_800AC000(void);
 
-void Gp_LoadStateTask(Task* task);
-
 /// Resident task-bank entry for the gameplay session-reload dispatcher.
 enum {
     GAME_FLOW_RELOAD_TASK_BANK = 0,
