@@ -150206,7 +150206,7 @@ attempts; left as it was.
   compares against `li a2,1`, but each call reloads it (cse does not carry
   the register through the table jump). The mode ladder is a `switch`, `one`
   stays.
-- Not converted: **`Actor01200_Fn00990`**, whose case 3 jumps back into
+- Not converted: **`_actor01200PollAnimationSound`**, whose case 3 jumps back into
   case 2's `check:` body. Three written-out copies of the body merge only
   their `sh; return` ends (cross-jumping stops at the conditional branch in
   front), and inside an `if (v == 0x15)` arm the zero-extension of the cue
