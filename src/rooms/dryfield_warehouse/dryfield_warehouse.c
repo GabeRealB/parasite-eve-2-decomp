@@ -161,7 +161,7 @@ Task* D_dryfield_warehouse_801821C0;
 s16 D_dryfield_warehouse_801821C4;
 
 static void func_dryfield_warehouse_8017D99C(Task* arg0);
-static void func_dryfield_warehouse_8017D9F8(Task* task);
+static void _dryfieldWarehouseIdleRoomTask(Task* unusedTask);
 
 void dryfieldWarehouseAmbienceTask(Task* task)
 {
@@ -315,8 +315,8 @@ static void func_dryfield_warehouse_8017D99C(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// State 1 of the room's main task: does nothing.
-static void func_dryfield_warehouse_8017D9F8(Task* task)
+/// Keeps the warehouse room task alive in state 1 to receive messages.
+static void _dryfieldWarehouseIdleRoomTask(Task* unusedTask)
 {
 }
 
@@ -324,7 +324,7 @@ static void func_dryfield_warehouse_8017D9F8(Task* task)
 /// `func_dryfield_warehouse_8017DA00`: set-up, the idle per-frame step and the
 /// kill.
 static const TaskFuncTable3 D_dryfield_warehouse_8017D5C4 = {
-    { func_dryfield_warehouse_8017D99C, func_dryfield_warehouse_8017D9F8, taskKill },
+    { func_dryfield_warehouse_8017D99C, _dryfieldWarehouseIdleRoomTask, taskKill },
 };
 
 /// Dispatches the room's main task through its three-state table, copied onto

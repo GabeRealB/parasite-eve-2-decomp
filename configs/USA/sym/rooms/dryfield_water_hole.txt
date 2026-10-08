@@ -90,3 +90,4 @@ _waterHoleDrawSurfaces = 0x8017D898; // type:func
 _dryfieldWaterHoleRejectKeyItemUse = 0x8017d5e8; // type:func
 _dryfieldWaterHoleIgnoreRoomAction = 0x8017d784; // type:func
 _dryfieldWaterHoleRoomIdle = 0x8017d838; // type:func
+_dryfieldWaterHolePlaySoundCue = 0x8017d78c; // type:func

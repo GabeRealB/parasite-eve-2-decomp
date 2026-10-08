@@ -100,7 +100,7 @@ extern WorldCoordRoomLights       D_dryfield_water_hole_8018278C[1];
 static s32 _dryfieldWaterHoleRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unusedSecondArg);
 s32        func_dryfield_water_hole_8017D73C(Task*, s32, s32, s32);
 static s32 _dryfieldWaterHoleIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedSecondArg);
-s32        func_dryfield_water_hole_8017D78C(Task*, s32, s32, s32);
+static s32 _dryfieldWaterHolePlaySoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg);
 
 enum {
     DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM = 0x13F1,
@@ -114,7 +114,7 @@ TaskMessageEntry D_dryfield_water_hole_8017FC5C[6] = {
     { DRYFIELD_WATER_HOLE_MESSAGE_USE_KEY_ITEM, _dryfieldWaterHoleRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _dryfieldWaterHoleIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_dryfield_water_hole_8017D73C },
-    { ROOM_MESSAGE_SOUND, func_dryfield_water_hole_8017D78C },
+    { ROOM_MESSAGE_SOUND, _dryfieldWaterHolePlaySoundCue },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1348,16 +1348,23 @@ static s32 _dryfieldWaterHoleIgnoreRoomAction(Task* task, s32 messageId, const D
     return 0;
 }
 
-/// Handler for message 0x13F2 in the room's message table: plays sound event
-/// 0x52200004 for the command 4 in `arg2` and 0x52200005 for 5. Always
-/// returns 0.
-s32 func_dryfield_water_hole_8017D78C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Plays the water-hole room's sound for CAP cue 4 or 5.
+///
+/// `ROOM_MESSAGE_SOUND` carries an integer cue key and an unused second word.
+/// Cue 4 selects the locked sound and 5 selects area sound 5; other keys do
+/// nothing. Sound requests are queued without per-task state. Always returns 0.
+static s32 _dryfieldWaterHolePlaySoundCue(Task* unusedTask, s32 unusedMessageId, s32 cueKey, s32 unusedSecondArg)
 {
-    switch (arg2) {
-        case 4:
+    enum {
+        DRYFIELD_WATER_HOLE_SOUND_CUE_LOCKED = 4,
+        DRYFIELD_WATER_HOLE_SOUND_CUE_5      = 5,
+    };
+
+    switch (cueKey) {
+        case DRYFIELD_WATER_HOLE_SOUND_CUE_LOCKED:
             sndEvtRequestScriptStart(SOUND_WATER_HOLE_LOCKED, 0, 0);
             break;
-        case 5:
+        case DRYFIELD_WATER_HOLE_SOUND_CUE_5:
             sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_HOLE, 5), 0, 0);
             break;
     }

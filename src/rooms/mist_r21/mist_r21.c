@@ -15,55 +15,66 @@
 #include "main/task.h"
 #include "main/task_types.h"
 
-/// The room's message table, published at `Task::msgTable` by the room task.
-s32  func_mist_r21_8017D5DC(Task* task, s32 msgId, s32 arg2, s32 arg3);
-s32  func_mist_r21_8017D5E4(Task* task, s32 msgId, RoomEventMsg* requestArg, RoomEventMsg* replyArg);
-s32  func_mist_r21_8017D60C(Task* task, s32 msgId, s32 arg2, s32 arg3);
-s32  func_mist_r21_8017D614(Task* task, s32 msgId, s32 arg2, s32 arg3);
-void func_mist_r21_8017D760(Task* task);
+#include "../../shared/room_variants.h"
 
+static s32  _mistR21RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32  _mistR21ResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply);
+static s32  _mistR21IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg);
+static s32  _mistR21IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
+static void _mistR21IdleAuxiliaryTask(Task* unusedTask);
+
+/// The room's message table, published at `Task::msgTable` by the room task.
 TaskMessageEntry D_mist_r21_8017D770[] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_mist_r21_8017D5E4 },
-    { 0x13F1, func_mist_r21_8017D5DC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mist_r21_8017D614 },
-    { ROOM_MESSAGE_COMMAND, func_mist_r21_8017D60C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mistR21ResolveRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _mistR21RejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _mistR21IgnoreRoomAction },
+    { ROOM_MESSAGE_COMMAND, _mistR21IgnoreRoomCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 /// The one task the room task spawns on entry; its callback is the empty
-/// `func_mist_r21_8017D760`.
+/// `_mistR21IdleAuxiliaryTask`.
 TaskDesc D_mist_r21_8017D798[] = {
-    { { { TASK_BODY_NONE, 0xC0 } }, func_mist_r21_8017D760, { .value = 0 } },
+    { { { TASK_BODY_NONE, 0xC0 } }, _mistR21IdleAuxiliaryTask, { .value = 0 } },
 };
 
 static void func_mist_r21_8017D61C(Task* task);
 static void func_mist_r21_8017D678(Task* task);
 
-/// Message-table handler for id 0x13F1: accepts the message and does nothing.
-s32 func_mist_r21_8017D5DC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in this M.I.S.T. room without consuming the item.
+///
+/// `ROOM_MESSAGE_USE_KEY_ITEM` supplies a collected item ID and a zero second
+/// word. All arguments are unused; the reply makes the item menu show refusal.
+static s32 _mistR21RejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
+{
+    return ROOM_KEY_ITEM_USE_REFUSED;
+}
+
+/// Permits departure from this M.I.S.T. room without changing its destination.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows a readable eight-byte request and a
+/// writable reply, which may alias. Copies the complete record in query and
+/// execution modes, retains no pointers and always permits ordinary departure.
+static s32 _mistR21ResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, const RoomEventMsg* request, RoomEventMsg* reply)
+{
+    *reply = *request;
+    return ROOM_VARIANT_TRANSITION_DIRECT;
+}
+
+/// Ignores CAP room commands in this M.I.S.T. room.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies an integer command and a second payload word;
+/// all arguments are unused. Returns 0 without changing room or task state.
+static s32 _mistR21IgnoreRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedSecondArg)
 {
     return 0;
 }
 
-/// Message-table handler for id 0x13EE: copies the location record it is given
-/// onto the reply record unchanged and answers 1.
-s32 func_mist_r21_8017D5E4(Task* task, s32 msgId, RoomEventMsg* requestArg, RoomEventMsg* replyArg)
-{
-    RoomEventMsg* src = requestArg;
-    RoomEventMsg* dst = replyArg;
-
-    *dst = *src;
-    return 1;
-}
-
-/// Message-table handler for id 0x13F0: accepts the message and does nothing.
-s32 func_mist_r21_8017D60C(Task* task, s32 msgId, s32 arg2, s32 arg3)
-{
-    return 0;
-}
-
-/// Message-table handler for id 0x13EF: accepts the message and does nothing.
-s32 func_mist_r21_8017D614(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores trigger requests for a room-specific action in this M.I.S.T. room.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` supplies a borrowed four-byte request and a
+/// zero second word. All arguments are unused; returns 0, ignored by the sender.
+static s32 _mistR21IgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
     return 0;
 }
@@ -112,9 +123,12 @@ void func_mist_r21_8017D708(Task* task)
     sp.funcs[task->state](task);
 }
 
-/// Callback of the task `D_mist_r21_8017D798` spawns: does nothing each frame
-/// but reserve a 16-byte stack frame.
-void func_mist_r21_8017D760(Task* task)
+/// Keeps the auxiliary task spawned on room entry alive without per-frame work.
+///
+/// The task, its work and spawn arguments are unused; this callback does not
+/// advance its state or end it.
+static void _mistR21IdleAuxiliaryTask(Task* unusedTask)
 {
-    char pad[0x10];
+    // Unused in the binary; the original local's purpose is unproven.
+    char unusedStackBytes[16];
 }

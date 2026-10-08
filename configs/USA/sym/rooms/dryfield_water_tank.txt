@@ -263,3 +263,4 @@ _dryfieldWaterTankMovieTask = 0x8017e568; // type:func
 _dryfieldWaterTankRestorePlayerAfterSkip = 0x8017eba0; // type:func
 dryfieldWaterTankMovePlayerFirstLegTask = 0x8017ec6c; // type:func
 dryfieldWaterTankMovePlayerSecondLegTask = 0x8017ed30; // type:func
+_dryfieldWaterTankSetEventCommand = 0x8017eb80; // type:func

@@ -21,18 +21,20 @@
 
 #include "mapui/map_shelter.h"
 
+#include "../../shared/room_variants.h"
+
 /// Event script started with `evsStartScript`.
 extern EvsCommand D_mine_tunnel_8017E024[];
 
-/// The room's message table: 0x13EE is handled by `func_mine_tunnel_8017D5EC`,
-/// 0x13F1 by `func_mine_tunnel_8017D5E4`, 0x13EF by `func_mine_tunnel_8017D670`
+/// The room's message table: 0x13EE is handled by `_mineTunnelResolveRoomTransition`,
+/// 0x13F1 by `_mineTunnelRejectKeyItemUse`, 0x13EF by `func_mine_tunnel_8017D670`
 /// and 0x13F0 by `func_mine_tunnel_8017D630`.
 extern TaskMessageEntry D_mine_tunnel_8017DFC4[];
 
-s32 func_mine_tunnel_8017D5E4(Task*, s32, s32, s32);
-s32 func_mine_tunnel_8017D5EC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_mine_tunnel_8017D630(Task*, s32, s32, s32);
-s32 func_mine_tunnel_8017D670(Task*, s32, RoomEventMsg*, s32);
+static s32 _mineTunnelRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32 _mineTunnelResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+s32        func_mine_tunnel_8017D630(Task*, s32, s32, s32);
+s32        func_mine_tunnel_8017D670(Task*, s32, RoomEventMsg*, s32);
 
 static AnimationSet _gMineTunnelAnimation009DC;
 
@@ -69,8 +71,8 @@ static AnimationSet _gMineTunnelAnimation009DC = {
 };
 
 TaskMessageEntry D_mine_tunnel_8017DFC4[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_tunnel_8017D5EC },
-    { 5105, func_mine_tunnel_8017D5E4 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _mineTunnelResolveRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _mineTunnelRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_tunnel_8017D670 },
     { ROOM_MESSAGE_COMMAND, func_mine_tunnel_8017D630 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -103,21 +105,29 @@ EvsCommand D_mine_tunnel_8017E024[11] = {
 };
 
 static void func_mine_tunnel_8017D6EC(Task* arg0);
-static void func_mine_tunnel_8017D774(Task* task);
+static void _mineTunnelIdleRoomTask(Task* unusedTask);
 
-/// The room's handler for message 0x13F1: does nothing and returns 0.
-s32 func_mine_tunnel_8017D5E4(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses key-item use in the mine tunnel without consuming the selected item.
+///
+/// `ROOM_MESSAGE_USE_KEY_ITEM` carries the collected item ID and a zero second
+/// word. All arguments are unused; the reply makes the item menu show refusal.
+static s32 _mineTunnelRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming record onto the
-/// outgoing one, passes both to `mapShelterRoomVariantResolve` and returns 1.
-s32 func_mine_tunnel_8017D5EC(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Resolves a mine-tunnel departure through the Mine/Shelter room-variant rules.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`, borrowing a readable eight-byte request
+/// and writable reply, which may alias. Copies the complete record before
+/// resolving it; queries preserve the copied destination. The map_shelter
+/// overlay must be loaded, and destination selectors must be valid for that
+/// stage. Neither pointer is retained. Always permits ordinary departure.
+static s32 _mineTunnelResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapShelterRoomVariantResolve(in, out);
-    return 1;
+    *reply = *request;
+    mapShelterRoomVariantResolve(request, reply);
+    return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
 s32 func_mine_tunnel_8017D630(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -166,8 +176,8 @@ static void func_mine_tunnel_8017D6EC(Task* arg0)
     gStageSceneMusicEntry = 1;
 }
 
-/// State 1 of the room's event task: does nothing, so the task idles here.
-static void func_mine_tunnel_8017D774(Task* task)
+/// Keeps the mine tunnel's registered room task alive in state 1 for messages.
+static void _mineTunnelIdleRoomTask(Task* unusedTask)
 {
 }
 
@@ -176,7 +186,7 @@ static void func_mine_tunnel_8017D774(Task* task)
 static const TaskFuncTable3 D_mine_tunnel_8017D5C4 = {
     {
         func_mine_tunnel_8017D6EC,
-        func_mine_tunnel_8017D774,
+        _mineTunnelIdleRoomTask,
         taskKill,
     },
 };

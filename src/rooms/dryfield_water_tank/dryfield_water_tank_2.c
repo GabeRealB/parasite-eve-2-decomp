@@ -119,7 +119,7 @@ void func_dryfield_water_tank_8017E9F8(Task*);
 static TmdSource _gDryfieldWaterTankModel020D4;
 static void      _dryfieldWaterTankFadeOutTileTask(Task* task);
 static void      _dryfieldWaterTankMovieTask(Task* task);
-void             func_dryfield_water_tank_8017EB80(s16);
+static void      _dryfieldWaterTankSetEventCommand(s16 command);
 static void      _dryfieldWaterTankRestorePlayerAfterSkip(void);
 
 ActorTransform D_dryfield_water_tank_8017F0D0 = { { 820, -0x4010, 884, 0 }, { 0, 2560, 0, 0 } };
@@ -309,13 +309,13 @@ EvsCommand D_dryfield_water_tank_8018050C[16] = {
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tank_8017EB80 }, { .value = DRYFIELD_WATER_TANK_EVENT_COMMAND_TURN_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWaterTankSetEventCommand }, { .value = DRYFIELD_WATER_TANK_EVENT_COMMAND_TURN_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tank_8017EB80 }, { .value = DRYFIELD_WATER_TANK_EVENT_COMMAND_PLAY_PLAYER_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWaterTankSetEventCommand }, { .value = DRYFIELD_WATER_TANK_EVENT_COMMAND_PLAY_PLAYER_ANIMATION }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tank_8017EB80 }, { .value = DRYFIELD_WATER_TANK_EVENT_COMMAND_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWaterTankSetEventCommand }, { .value = DRYFIELD_WATER_TANK_EVENT_COMMAND_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tank_8017EB80 }, { .value = DRYFIELD_WATER_TANK_EVENT_COMMAND_PLAY_MOVIE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWaterTankSetEventCommand }, { .value = DRYFIELD_WATER_TANK_EVENT_COMMAND_PLAY_MOVIE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1132,16 +1132,20 @@ void func_dryfield_water_tank_8017E9F8(Task* task)
     }
 }
 
-/// Script command of the room's cutscene: stores `arg0` as the command the
-/// cutscene task carries out next (`_DryfieldWaterTankEventWork::command`)
-/// and restarts its `commandStep`. The block is reached through the cutscene
-/// task parked in `D_dryfield_water_tank_80188D50`.
-void func_dryfield_water_tank_8017EB80(s16 arg0)
+/// Posts a command to the live water-tank event and restarts its command step.
+///
+/// The event script supplies a `DRYFIELD_WATER_TANK_EVENT_COMMAND_*` signed
+/// halfword. Its bits are stored as u16, replacing any pending command; execution
+/// begins on a later task update. The published event task and its allocated
+/// work must remain live while the script can call this callback.
+static void _dryfieldWaterTankSetEventCommand(s16 command)
 {
+    enum { DRYFIELD_WATER_TANK_EVENT_FIRST_COMMAND_STEP = 0 };
+
     _DryfieldWaterTankEventWork* work = D_dryfield_water_tank_80188D50->work;
 
-    work->command     = arg0;
-    work->commandStep = 0;
+    work->command     = command;
+    work->commandStep = DRYFIELD_WATER_TANK_EVENT_FIRST_COMMAND_STEP;
 }
 
 /// Places the player at the event's exit and restores the weapon stance on skip.

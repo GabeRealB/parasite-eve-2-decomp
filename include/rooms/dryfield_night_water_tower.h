@@ -42,6 +42,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_water_tower_80182C30[];
 /// must have nonzero camera-Z / 4 depth. Packets remain live until GPU completion.
 void dryfieldNightWaterTowerDrawGlowsTask(Task* task);
 
-void func_dryfield_night_water_tower_8017DB28(Task* task);
+/// Runs the night water-tower room's registration, idle or teardown state.
+///
+/// `task->state` must be 0..2: 0 installs the message table and registers the
+/// task in `GAME_TASK_SLOT_ROOM`, 1 keeps it alive for messages, and 2 kills it.
+/// The room overlay must remain loaded until the task is torn down. Spawn
+/// arguments and task work are unused.
+void dryfieldNightWaterTowerRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_WATER_TOWER_H

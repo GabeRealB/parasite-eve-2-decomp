@@ -128,8 +128,8 @@ extern WorldCollisionGrid D_dryfield_warehouse_80181038[1];
 void        func_dryfield_warehouse_8017E090(Task*);
 static void _dryfieldWarehouseFadeOutTask(Task* task);
 
-void func_dryfield_warehouse_8017DA58(s32);
-void func_dryfield_warehouse_8017E3F4(s16);
+void        func_dryfield_warehouse_8017DA58(s32);
+static void _dryfieldWarehouseSetCutsceneCommand(s16 command);
 
 TaskMessageEntry D_dryfield_warehouse_8017F554[3] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_warehouse_8017D824 },
@@ -176,15 +176,15 @@ ActorTransform D_dryfield_warehouse_8017F868 = { { 4654, 0, -1968, 0 }, { 0, 512
 EvsCommand D_dryfield_warehouse_8017F880[16] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 5 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_LOOP_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWarehouseSetCutsceneCommand }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_LOOP_SOUND }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_PLACE_AND_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWarehouseSetCutsceneCommand }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_PLACE_AND_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_SPAWN_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWarehouseSetCutsceneCommand }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_SPAWN_FADE_OUT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_SWITCH_ROOM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWarehouseSetCutsceneCommand }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_BLACKOUT_AND_SWITCH_ROOM }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_warehouse_8017E3F4 }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_RESTORE_AND_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _dryfieldWarehouseSetCutsceneCommand }, { .value = DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_RESTORE_AND_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -816,14 +816,20 @@ static void _dryfieldWarehouseFadeOutTask(Task* task)
     }
 }
 
-/// Leaves the `DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_*` value `arg0` for the
-/// warehouse's cutscene task, to be carried out from its first step.
-void func_dryfield_warehouse_8017E3F4(s16 arg0)
+/// Posts a command to the live warehouse cutscene and restarts its command step.
+///
+/// The event script supplies a `DRYFIELD_WAREHOUSE_CUTSCENE_COMMAND_*` signed
+/// halfword. Its bits are stored as u16, replacing any pending command; execution
+/// begins on a later task update. The published cutscene task and its work must
+/// still be live. This callback neither allocates nor retains caller storage.
+static void _dryfieldWarehouseSetCutsceneCommand(s16 command)
 {
+    enum { DRYFIELD_WAREHOUSE_CUTSCENE_FIRST_COMMAND_STEP = 0 };
+
     _DryfieldWarehouseCutsceneWork* work = D_dryfield_warehouse_801821BC->work;
 
-    work->command     = arg0;
-    work->commandStep = 0;
+    work->command     = command;
+    work->commandStep = DRYFIELD_WAREHOUSE_CUTSCENE_FIRST_COMMAND_STEP;
 }
 
 #include "../../shared/glow_draw_grey_prism.inc.c"

@@ -156,7 +156,7 @@ D_dryfield_night_g_r_kitchen_8017E2DC = 0x8017E2DC; // absolute:True owner=dryfi
 D_dryfield_night_g_r_kitchen_8017E578 = 0x8017E578; // absolute:True owner=dryfield_night_g_r_kitchen
 D_dryfield_night_g_r_kitchen_8017E6A8 = 0x8017E6A8; // absolute:True owner=dryfield_night_g_r_kitchen shared=rooms
 D_dryfield_night_g_r_kitchen_8017EC04 = 0x8017EC04; // absolute:True owner=dryfield_night_g_r_kitchen
-func_dryfield_night_water_tower_8017DB28 = 0x8017DB28; // type:func absolute:True owner=dryfield_night_water_tower shared=rooms
+dryfieldNightWaterTowerRoomTask = 0x8017DB28; // type:func absolute:True owner=dryfield_night_water_tower shared=rooms
 D_dryfield_night_water_tower_8017E74C = 0x8017E74C; // absolute:True owner=dryfield_night_water_tower
 D_dryfield_night_water_tower_8017E754 = 0x8017E754; // absolute:True owner=dryfield_night_water_tower shared=rooms
 D_dryfield_night_water_tower_8017E764 = 0x8017E764; // absolute:True owner=dryfield_night_water_tower shared=rooms

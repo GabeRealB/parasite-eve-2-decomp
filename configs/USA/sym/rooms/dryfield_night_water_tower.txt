@@ -71,3 +71,6 @@ waterTowerEventMsg = 0x8017D8E0; // type:func
 waterTowerSoundMsg = 0x8017DA4C; // type:func
 dryfieldNightWaterTowerRejectKeyItemUse = 0x8017da9c; // type:func
 dryfieldNightWaterTowerIgnoreActionMessage = 0x8017dad4; // type:func
+_dryfieldNightWaterTowerInitializeRoomTask = 0x8017dadc; // type:func
+_dryfieldNightWaterTowerIdleRoomTask = 0x8017db20; // type:func
+dryfieldNightWaterTowerRoomTask = 0x8017db28; // type:func

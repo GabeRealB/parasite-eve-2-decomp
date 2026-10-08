@@ -95785,11 +95785,12 @@ Do not "fix" the aliases away. Writing the direct field names on both sides
 folds the condition to a constant, drops the branch and the record's memory
 residency with it, and no later pass restores them.
 
-`func_dryfield_underpass_8017DA08` is `Room_Script01`'s case-2 body without the
+`_dryfieldUnderpassRefreshRoomVariant` is `Room_Script01`'s case-2 body without the
 task wrapper: start from `src/rooms/lib/room_script01.c` (the pointer-parameter
-twin is `room_script09.c`), keep the declarations in their order - `src` before
-`dst`, so the slots land as above - and change only the tail (this one publishes
-`gGameSession->location.loc.room` / `D_8007216D` and sets `field_76`, where the script
+twin is `room_script09.c`), keep the declarations in their order - `request` before
+`destination`, so the slots land as above - and change only the tail (this one publishes
+`gGameSession->location.loc.room` / `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`
+and sets `gGameSession->roomObjsDirty`, where the script
 saves `gMcSaveData.queryOnly` and kills the task). m2c's `? sp18` seed scores
 55.833%; this is 100.000% / zero penalties on the first rewrite.
 

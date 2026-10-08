@@ -71,7 +71,7 @@ extern ActorCommand             D_dryfield_underpass_8017E8A0;
 extern ActorCommand             D_dryfield_underpass_8017E8A4;
 extern ActorCommand             D_dryfield_underpass_8017E8A8;
 extern AnimationBankCopyRequest D_dryfield_underpass_8017E868;
-void                            func_dryfield_underpass_8017DA08(void);
+static void                     _dryfieldUnderpassRefreshRoomVariant(void);
 
 static s32  _dryfieldUnderpassRejectKeyItemUse(Task* unusedTask, s32 messageId, s32 itemId, s32 unusedSecondArg);
 static void _dryfieldUnderpassIdleTask(Task* unusedTask);
@@ -179,7 +179,7 @@ EvsCommand D_dryfield_underpass_8017E8D8[21] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_dryfield_underpass_8017E8C0 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = ACTOR_COMMAND_MESSAGE_APPLY }, { .message = { .command = &D_dryfield_underpass_8017E8A8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = sceneEngageBattle }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_underpass_8017DA08 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _dryfieldUnderpassRefreshRoomVariant }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 2 }, { .value = 0 } },
@@ -850,47 +850,68 @@ static void _dryfieldUnderpassIdleTask(Task* unusedTask)
 {
 }
 
-/// Picks the room variant to load next from nibbles 0xC9, 0x53 and 0x51, the
-/// same choice the switch task `underpassSwitchTask` makes when it
-/// toggles nibble 0x51, and writes it to the session's room and to
-/// `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room`, then flags the room objects dirty. Reached from the room's
-/// script data.
-void func_dryfield_underpass_8017DA08(void)
+/// Commits the underpass's progress-dependent room variant after its event.
+///
+/// The event script invokes this callback after engaging battle. Requires a live
+/// session and live save. Selects room 1..6 from the event flag, flag 0x53 and
+/// switch 1, writes both locations and requests deferred room-object relinking.
+/// Flag 0x53's story meaning is unproven.
+static void _dryfieldUnderpassRefreshRoomVariant(void)
 {
-    RoomEventMsg  src;
-    RoomEventMsg  dst;
-    RoomEventMsg* s;
-    RoomEventMsg* d;
-    GameSession*  session;
-    u8            room;
+    enum {
+        DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT             = 1,
+        DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053    = 2,
+        DRYFIELD_UNDERPASS_SWITCH_OFF_ROOM_OFFSET       = 2,
+        DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON  = 5,
+        DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF = 6,
+    };
 
-    d             = &dst;
-    s             = &src;
-    src.areaId    = GAME_AREA_DRYFIELD_UNDERPASS;
-    src.queryOnly = ROOM_EVENT_EXECUTE;
-    if (s->queryOnly == ROOM_EVENT_EXECUTE) {
-        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {
-            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {
-                d->room = 2;
-            } else {
-                d->room = 1;
-            }
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {
-                dst.room = dst.room + 2;
-            }
-        } else {
-            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {
-                d->room = 5;
-            } else {
-                d->room = 6;
-            }
-        }
+    RoomEventMsg  request;
+    RoomEventMsg  destination;
+    RoomEventMsg* requestPtr;
+    RoomEventMsg* destinationPtr;
+    GameSession*  session;
+    u8            roomId;
+
+    /// Selects the underpass room for an execution request.
+    ///
+    /// Captures requestPtr, destinationPtr and destination, all RoomEventMsg
+    /// views; destinationPtr must equal &destination. Writes only the room byte,
+    /// leaving queries unchanged, and reads flags once in branch order. The
+    /// pointer and direct accesses retain the binary's query and room reloads.
+#define DRYFIELD_UNDERPASS_RESOLVE_ROOM()                                                        \
+    if (requestPtr->queryOnly == ROOM_EVENT_EXECUTE) {                                           \
+        if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_EVENT_SEEN) != 0) {                            \
+            if (gameFlagGetNibble(GAME_FLAG_053) != 0) {                                         \
+                destinationPtr->room = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT_FLAG_053;             \
+            } else {                                                                             \
+                destinationPtr->room = DRYFIELD_UNDERPASS_ROOM_AFTER_EVENT;                      \
+            }                                                                                    \
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) == 0) {                          \
+                destination.room = destination.room + DRYFIELD_UNDERPASS_SWITCH_OFF_ROOM_OFFSET; \
+            }                                                                                    \
+        } else {                                                                                 \
+            if (gameFlagGetNibble(GAME_FLAG_UNDERPASS_SWITCH_1) != 0) {                          \
+                destinationPtr->room = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_ON;           \
+            } else {                                                                             \
+                destinationPtr->room = DRYFIELD_UNDERPASS_ROOM_BEFORE_EVENT_SWITCH_OFF;          \
+            }                                                                                    \
+        }                                                                                        \
     }
+
+    destinationPtr    = &destination;
+    requestPtr        = &request;
+    request.areaId    = GAME_AREA_DRYFIELD_UNDERPASS;
+    request.queryOnly = ROOM_EVENT_EXECUTE;
+    DRYFIELD_UNDERPASS_RESOLVE_ROOM();
+#undef DRYFIELD_UNDERPASS_RESOLVE_ROOM
+
+    // Commit the same selector to the live session and its save before relinking.
     session                                                    = gGameSession;
-    room                                                       = dst.room;
-    session->location.loc.room                                 = room;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = room;
-    gGameSession->roomObjsDirty                                = 1;
+    roomId                                                     = destination.room;
+    session->location.loc.room                                 = roomId;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = roomId;
+    gGameSession->roomObjsDirty                                = true;
 }
 
 /// State handlers of the room task `func_dryfield_underpass_8017DAC8`, indexed

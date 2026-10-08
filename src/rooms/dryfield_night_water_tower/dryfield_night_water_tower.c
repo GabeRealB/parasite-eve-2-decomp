@@ -43,8 +43,8 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 1, 238, 253 } };
 
 RoomEventReq gRoomEventReq = { 0 };
 
-static void func_dryfield_night_water_tower_8017DADC(Task* task);
-static void func_dryfield_night_water_tower_8017DB20(Task* task);
+static void _dryfieldNightWaterTowerInitializeRoomTask(Task* task);
+static void _dryfieldNightWaterTowerIdleRoomTask(Task* unusedTask);
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -74,32 +74,32 @@ s32 dryfieldNightWaterTowerIgnoreActionMessage(Task* unusedTask, s32 unusedMessa
     return 0;
 }
 
-/// State 0 of the room entry task: installs the room's message table,
-/// registers the task in game pointer slot 7 and advances to the idle state.
-static void func_dryfield_night_water_tower_8017DADC(Task* task)
+/// Registers the night water-tower room task and enables its message handlers.
+///
+/// Called in state 0 with a live task; advances to the idle state 1. The room
+/// overlay and its message table must remain loaded for the task's lifetime.
+static void _dryfieldNightWaterTowerInitializeRoomTask(Task* task)
 {
     task->msgTable = D_dryfield_night_water_tower_8017E6EC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state = task->state + 1;
 }
 
-/// State 1 of the room entry task: idles.
-static void func_dryfield_night_water_tower_8017DB20(Task* task)
+/// Keeps the registered room task alive in state 1 to receive messages.
+static void _dryfieldNightWaterTowerIdleRoomTask(Task* unusedTask)
 {
 }
 
 /// The room entry task's three states: install the room's message table,
 /// idle, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_water_tower_8017D5DC = {
-    { func_dryfield_night_water_tower_8017DADC, func_dryfield_night_water_tower_8017DB20, taskKill },
+    { _dryfieldNightWaterTowerInitializeRoomTask, _dryfieldNightWaterTowerIdleRoomTask, taskKill },
 };
 
-/// Runs the room entry task's current state from its three-entry table, which
-/// it copies onto the stack before the call.
-void func_dryfield_night_water_tower_8017DB28(Task* task)
+void dryfieldNightWaterTowerRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_water_tower_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_water_tower_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }
