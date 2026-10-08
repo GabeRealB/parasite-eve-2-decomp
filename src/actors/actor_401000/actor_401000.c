@@ -109,10 +109,10 @@ extern ActorHeightClamp D_actor_401000_80154FD0[];
 // unresolved (see the local actors/rooms data review).
 
 /// Gameplay slot `effectSpawn` effects read their model data from; set before
-/// each spawn in `func_actor_401000_8013B1E4`.
+/// each spawn in `_actor401000DeathBurst`.
 
 /// The records closing four of the overlay's model streams, which
-/// `func_actor_401000_8013B1E4` points `D_80114B34[5].data.model` at before spawning, one per
+/// `_actor401000DeathBurst` points `D_80114B34[5].data.model` at before spawning, one per
 /// animation-latch key frame (`stateTimer` 3, 5, 7, 8).
 extern TmdSource gOddStrangerBurstModelA;
 static TmdSource _gActor401000Model123EC;
@@ -147,7 +147,7 @@ extern GameActorButtonPressHold D_actor_401000_80155038;
 extern s8 gOddStrangerTransitions[45][45];
 
 static TmdSource _gActor401000StrangerBody;
-void             func_actor_401000_8013E038(Task*);
+static void      _actor401000StrangerTask(Task* task);
 
 static AnimationSet _gActor401000Animation20660;
 static AnimationSet _gActor401000Animation21058;
@@ -1068,7 +1068,7 @@ ActorHeightClamp D_actor_401000_80154FD0[3] = {
 
 u16 gOddStrangerChaseDistance = 0;
 
-TaskDesc D_actor_401000_80155004 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_401000_8013E038, { .model = &_gActor401000StrangerBody } };
+TaskDesc D_actor_401000_80155004 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor401000StrangerTask, { .model = &_gActor401000StrangerBody } };
 
 SVECTOR ActorContact_ScratchPosition;
 
@@ -1096,7 +1096,7 @@ static void            _actor401000FallBack(Task* task);
 static void            _actor401000FallFront(Task* task);
 static void            _actor401000Dormant(Task* task);
 static void            _actor401000Ambush(Task* task);
-static void            func_actor_401000_8013B1E4(Task* arg0);
+static void            _actor401000DeathBurst(Task* task);
 static void            _actor401000RefallBack(Task* task);
 static void            _actor401000RefallFront(Task* task);
 
@@ -2138,60 +2138,72 @@ static void _actor401000Ambush(Task* task)
 
 #undef ACTOR_401000_APPLY_AMBUSH_PITCH
 
-/// Clip-0x2D body: on the live-actor flag it resets the effect node and the
-/// spawn offset, then walks the animation latch `stateTimer` from 0 to 0x3D and
-/// spawns one effect per key frame, applying area-placement texture offsets
-/// through `_actorRenderApplyEffectPlacementTextureOffsets`.
-/// At 0x3D the actor returns to state 0. The 401000 twin of
-/// `_actor401300StateDeathBurst`: same five clips, three of them at the same
-/// node offsets (`+1`, `+9`, `+12`, `+1`, `+3` off the root coordinate) and the
-/// same 0x64/0/0 spawn vector, but it reads the offset from the work block
-/// rather than a stack `SVECTOR` and has no `field_D20` guard on the tail.
-static void func_actor_401000_8013B1E4(Task* arg0)
+/// Hides the Odd Stranger and bursts four detached body-part models.
+///
+/// Requires live work, enemy placement, coordinates through part 12 and loaded
+/// effects. Entry emits a size-768 subtractive gravity particle and releases
+/// the battle reference with rewards. Ticks 3/5/7/8
+/// replace bank-10 model slot 5 immediately before spawning its debris; the
+/// effects copy their offsets and inherit placement textures. Tick 5 retains
+/// the +100 Z offset from tick 3. At tick 61 selects the hidden state.
+/// The timer wraps as a halfword and its comparisons use signed values.
+static void _actor401000DeathBurst(Task* task)
 {
+    enum {
+        ACTOR_401000_BURST_PARTICLE_ARG = 0x10300,
+        ACTOR_401000_BURST_PART_SIZE    = 512,
+        ACTOR_401000_BURST_OFFSET       = 100,
+        ACTOR_401000_BURST_MODEL_SLOT   = 5,
+        ACTOR_401000_BURST_FIRST_TICK   = 3,
+        ACTOR_401000_BURST_SECOND_TICK  = 5,
+        ACTOR_401000_BURST_BODY_TICK    = 7,
+        ACTOR_401000_BURST_HEAD_TICK    = 8,
+        ACTOR_401000_BURST_HIDE_TICK    = 61,
+    };
     OddStrangerWork* work;
     Enemy*           enemy;
-    u16              next;
+    u16              nextTick;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->hitBody.radius          = 0x1AE;
+        task->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        work->hitBody.radius          = ODD_STRANGER_BODY_RADIUS;
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->lookYawTarget           = 0;
         work->stateTimer              = 0;
-        work->effectOffset.vx         = 0x64;
+        work->effectOffset.vx         = ACTOR_401000_BURST_OFFSET;
         work->effectOffset.vz         = 0;
         work->effectOffset.vy         = 0;
-        effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &work->effectOffset);
-        sceneReleaseBattleRefWithRewards(arg0, 0xA);
+        effectSpawn(EFFECT_030, task->extra.tmd->coords + 1, ACTOR_401000_BURST_PARTICLE_ARG, &work->effectOffset);
+        sceneReleaseBattleRefWithRewards(task, 0xA);
     }
-    next             = work->stateTimer + 1;
-    work->stateTimer = next;
-    if ((s16)next == 3) {
-        D_80114B34[5].data.model = &gOddStrangerBurstModelA;
-        work->effectOffset.vz    = 0x64;
-        work->effectOffset.vy    = 0;
-        work->effectOffset.vx    = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &work->effectOffset), enemy);
+    // The shared model descriptor must select each part before its spawn.
+    nextTick         = work->stateTimer + 1;
+    work->stateTimer = nextTick;
+    if ((s16)nextTick == ACTOR_401000_BURST_FIRST_TICK) {
+        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &gOddStrangerBurstModelA;
+        work->effectOffset.vz                                = ACTOR_401000_BURST_OFFSET;
+        work->effectOffset.vy                                = 0;
+        work->effectOffset.vx                                = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 9, ACTOR_401000_BURST_PART_SIZE, &work->effectOffset), enemy);
     }
-    if ((s16)work->stateTimer == 5) {
-        D_80114B34[5].data.model = &_gActor401000Model123EC;
-        work->effectOffset.vy    = 0;
-        work->effectOffset.vx    = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(0xA0000 | 5, arg0->extra.tmd->coords + 12, 0x200, &work->effectOffset), enemy);
+    if (work->stateTimer == ACTOR_401000_BURST_SECOND_TICK) {
+        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &_gActor401000Model123EC;
+        work->effectOffset.vy                                = 0;
+        work->effectOffset.vx                                = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 12, ACTOR_401000_BURST_PART_SIZE, &work->effectOffset), enemy);
     }
-    if ((s16)work->stateTimer == 7) {
-        D_80114B34[5].data.model = &gOddStrangerBurstModelB;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+    if (work->stateTimer == ACTOR_401000_BURST_BODY_TICK) {
+        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &gOddStrangerBurstModelB;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 1, ACTOR_401000_BURST_PART_SIZE, NULL), enemy);
     }
-    if ((s16)work->stateTimer == 8) {
-        D_80114B34[5].data.model = &gOddStrangerBurstModelC;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+    if (work->stateTimer == ACTOR_401000_BURST_HEAD_TICK) {
+        D_80114B34[ACTOR_401000_BURST_MODEL_SLOT].data.model = &gOddStrangerBurstModelC;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, task->extra.tmd->coords + 3, ACTOR_401000_BURST_PART_SIZE, NULL), enemy);
     }
-    if ((s16)work->stateTimer >= 0x3D) {
+    if (work->stateTimer >= ACTOR_401000_BURST_HIDE_TICK) {
         work->state = ODD_STRANGER_STATE_HIDDEN;
     }
 }
@@ -2305,7 +2317,7 @@ static const OddStrangerStateTable gOddStrangerStates = { {
     _oddStrangerSlide,
     _oddStrangerWatch,
     _actor401000Ambush,
-    func_actor_401000_8013B1E4,
+    _actor401000DeathBurst,
     _oddStrangerStalk,
     _actor401000RefallBack,
     _actor401000RefallFront,
@@ -2323,7 +2335,7 @@ static s32 _actor401000IgnoreMessage2015(Task* task, s32 messageId, s32 unusedPa
 }
 
 /// The task's handlers, indexed by `Task::state` in
-/// `func_actor_401000_8013E038`: the first allocates and sets up the work
+/// `_actor401000StrangerTask`: the first allocates and sets up the work
 /// block, the second runs the per-state logic every frame, and the third tears
 /// the enemy down.
 static const EnemyTaskFuncTable3 D_actor_401000_8013207C = { {
@@ -2407,12 +2419,15 @@ static void _actor401000RiseFront(Task* task)
 
 #include "../../shared/odd_stranger_idle.inc.c"
 
-/// Runs the actor's handler for the task's current state, copying the
-/// three-entry table onto the stack first.
-void func_actor_401000_8013E038(Task* task)
+/// Dispatches the Odd Stranger's spawn, frame update or enemy destruction.
+///
+/// Task state must be 0, 1 or 2, respectively; dispatch is unchecked. The second
+/// spawn argument borrows a live Enemy. Spawn establishes task-owned work and
+/// subsequent updates require its work, model, placement and clip data to live.
+static void _actor401000StrangerTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = D_actor_401000_8013207C;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    stateHandlers = D_actor_401000_8013207C;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

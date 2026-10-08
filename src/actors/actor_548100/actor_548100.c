@@ -35,10 +35,28 @@
 
 /// Panel dispatch states used by hotspot selection and the switch caption.
 enum {
-    ACTOR_548100_STATE_SCAN_HOTSPOTS = 2,
-    ACTOR_548100_STATE_OPEN_COMMANDS = 3,
-    ACTOR_548100_STATE_EXIT          = 5,
-    ACTOR_548100_STATE_ANIMATE_FLOW  = 9,
+    ACTOR_548100_STATE_SCAN_HOTSPOTS           = 2,
+    ACTOR_548100_STATE_OPEN_COMMANDS           = 3,
+    ACTOR_548100_STATE_EXIT                    = 5,
+    ACTOR_548100_STATE_PLACE_BATTERY           = 6,
+    ACTOR_548100_STATE_WAIT_BATTERY_RETURN     = 7,
+    ACTOR_548100_STATE_WAIT_SWITCH_CAPTION     = 8,
+    ACTOR_548100_STATE_ANIMATE_FLOW            = 9,
+    ACTOR_548100_STATE_WAIT_COMPLETION_CAPTION = 10,
+};
+
+/// Socket contents and CAP command-6 variants used for battery placement/removal.
+enum {
+    ACTOR_548100_SOCKET_EMPTY             = 0,
+    ACTOR_548100_SOCKET_FIRST_BATTERY     = 1,
+    ACTOR_548100_SOCKET_SECOND_BATTERY    = 2,
+    ACTOR_548100_CAP_COMMAND_SOCKET       = 6,
+    ACTOR_548100_CAP_SOCKET_EMPTY         = 0,
+    ACTOR_548100_CAP_SOCKET_POWERED       = 1,
+    ACTOR_548100_CAP_SOCKET_FIRST_PICKUP  = 2,
+    ACTOR_548100_CAP_SOCKET_LOCKED        = 3,
+    ACTOR_548100_CAP_SOCKET_OCCUPIED      = 4,
+    ACTOR_548100_CAP_SOCKET_SECOND_PICKUP = 5,
 };
 
 /// Battery item ids and the switch caption's completion keys.
@@ -288,7 +306,7 @@ extern _Actor548100ColorRow D_actor_548100_801358A8[3];
 static void _actionPromptResetDefault(Task* task);
 static void _actor548100InitPanel(Task* task);
 static void _actor548100ScanHotspots(Task* task);
-static void func_actor_548100_80132684(Task* task);
+static void _actor548100HandleHotspotChoice(Task* task);
 static void _actor548100WaitSwitchCaption(Task* task);
 static void _actor548100SelectCircuit(void);
 static void _actor548100InitWireGraph(void);
@@ -297,9 +315,9 @@ static s32  _actor548100MeasureLeg(s32 routeId, u8 stopNode);
 static void _actor548100ArmCursor(Task* task);
 static void _actor548100OpenHotspotCommands(Task* task);
 static void _actor548100ExitPanel(Task* task);
-static void func_actor_548100_80134E94(Task* arg0);
+static void _actor548100PlaceQueuedBattery(Task* task);
 static void _actor548100WaitBatteryReturn(Task* task);
-static void func_actor_548100_80134FEC(Task* arg0);
+static void _actor548100AnimateCircuitFlow(Task* task);
 static void _actor548100WaitCompletionCaption(Task* task);
 static void _actor548100DrawPanelPiece(const _Actor548100TexRect* rect);
 static void _actor548100DrawOutputIndicator(s32 output);
@@ -969,12 +987,12 @@ static const TaskFuncTable11 D_actor_548100_80131E6C = { {
     _actor548100ArmCursor,
     _actor548100ScanHotspots,
     _actor548100OpenHotspotCommands,
-    func_actor_548100_80132684,
+    _actor548100HandleHotspotChoice,
     _actor548100ExitPanel,
-    func_actor_548100_80134E94,
+    _actor548100PlaceQueuedBattery,
     _actor548100WaitBatteryReturn,
     _actor548100WaitSwitchCaption,
-    func_actor_548100_80134FEC,
+    _actor548100AnimateCircuitFlow,
     _actor548100WaitCompletionCaption,
 } };
 
@@ -1080,59 +1098,99 @@ static void _actor548100ScanHotspots(Task* task)
     }
 }
 
-static void func_actor_548100_80132684(Task* task)
+/// Offers the selected socket's battery through its room pickup caption.
+///
+/// Requires a filled socket 1..4 with panel power off. Sets pickup object 4 or
+/// 5 available and starts the matching caption; the socket remains filled until
+/// the pickup wait observes collection. Other nonzero contents select battery 2.
+static inline void _actor548100OfferSocketBattery(_Actor548100Work* work)
 {
+    enum {
+        ACTOR_548100_FIRST_BATTERY_PICKUP     = 4,
+        ACTOR_548100_SECOND_BATTERY_PICKUP    = 5,
+        ACTOR_548100_BATTERY_PICKUP_AVAILABLE = 1,
+    };
+    s32 captionVariant;
+
+    if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == ACTOR_548100_SOCKET_FIRST_BATTERY) {
+        work->pickupObject = ACTOR_548100_FIRST_BATTERY_PICKUP;
+        captionVariant     = ACTOR_548100_CAP_SOCKET_FIRST_PICKUP;
+    } else {
+        work->pickupObject = ACTOR_548100_SECOND_BATTERY_PICKUP;
+        captionVariant     = ACTOR_548100_CAP_SOCKET_SECOND_PICKUP;
+    }
+    areaSetCurrentObjectState(work->pickupObject, ACTOR_548100_BATTERY_PICKUP_AVAILABLE);
+    capStartSequenceSlot(ACTOR_548100_CAP_COMMAND_SOCKET, CAP_PLAYBACK_IN_PLACE, captionVariant);
+}
+
+/// Handles a confirmed panel hotspot action or a battery queued by the item menu.
+///
+/// State 4 requires initialized work and the first action cursor. Hides/stops
+/// that cursor. Sockets 1..4 offer a removable battery only while power is off;
+/// empty or powered sockets play explanatory captions. Choice 5 starts the
+/// switch caption; 6..9 describe the power light, power lines, ground wire and
+/// gate locks. A queued item is placed on the next state tick after menu closure.
+/// All other paths return to hotspot scanning, whose caption gate keeps input off.
+static void _actor548100HandleHotspotChoice(Task* task)
+{
+    enum {
+        ACTOR_548100_CHOICE_SOCKET_1         = 1,
+        ACTOR_548100_CHOICE_SOCKET_2         = 2,
+        ACTOR_548100_CHOICE_SOCKET_3         = 3,
+        ACTOR_548100_CHOICE_SOCKET_4         = 4,
+        ACTOR_548100_CHOICE_SWITCH           = 5,
+        ACTOR_548100_CHOICE_POWER_LIGHT      = 6,
+        ACTOR_548100_CHOICE_POWER_LINES      = 7,
+        ACTOR_548100_CHOICE_GROUND_WIRE      = 8,
+        ACTOR_548100_CHOICE_GATE_LOCKS       = 9,
+        ACTOR_548100_CAP_COMMAND_POWER_LIGHT = 4,
+        ACTOR_548100_CAP_COMMAND_SWITCH      = 5,
+        ACTOR_548100_CAP_COMMAND_POWER_LINES = 7,
+        ACTOR_548100_CAP_COMMAND_GATE_LOCKS  = 8,
+        ACTOR_548100_CAP_COMMAND_GROUND_WIRE = 9,
+    };
     _Actor548100Work* work = task->work;
-    s32               kind;
 
     D_80114D28[0].mode        = ACTION_PROMPT_MODE_HIDDEN;
     D_80114D28[0].cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
         switch (work->choice) {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-                if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
-                    capStartSequenceSlot(6, 0, 0);
+            case ACTOR_548100_CHOICE_SOCKET_1:
+            case ACTOR_548100_CHOICE_SOCKET_2:
+            case ACTOR_548100_CHOICE_SOCKET_3:
+            case ACTOR_548100_CHOICE_SOCKET_4:
+                if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == ACTOR_548100_SOCKET_EMPTY) {
+                    capStartSequenceSlot(ACTOR_548100_CAP_COMMAND_SOCKET, CAP_PLAYBACK_IN_PLACE, ACTOR_548100_CAP_SOCKET_EMPTY);
                 } else if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
-                    capStartSequenceSlot(6, 1, 3);
+                    capStartSequenceSlot(ACTOR_548100_CAP_COMMAND_SOCKET, CAP_PLAYBACK_DISPLAY_TRANSITION, ACTOR_548100_CAP_SOCKET_LOCKED);
                 } else {
-                    if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 1) {
-                        work->pickupObject = 4;
-                        kind               = 2;
-                    } else {
-                        work->pickupObject = 5;
-                        kind               = 5;
-                    }
-                    areaSetCurrentObjectState(work->pickupObject, 1);
-                    capStartSequenceSlot(6, 0, kind);
-                    task->state = 7;
+                    _actor548100OfferSocketBattery(work);
+                    task->state = ACTOR_548100_STATE_WAIT_BATTERY_RETURN;
                     return;
                 }
                 break;
-            case 5:
-                capRunCommand(5, CAP_PLAYBACK_IN_PLACE);
-                task->state = 8;
+            case ACTOR_548100_CHOICE_SWITCH:
+                capRunCommand(ACTOR_548100_CAP_COMMAND_SWITCH, CAP_PLAYBACK_IN_PLACE);
+                task->state = ACTOR_548100_STATE_WAIT_SWITCH_CAPTION;
                 return;
-            case 6:
-                capRunCommand(4, CAP_PLAYBACK_IN_PLACE);
+            case ACTOR_548100_CHOICE_POWER_LIGHT:
+                capRunCommand(ACTOR_548100_CAP_COMMAND_POWER_LIGHT, CAP_PLAYBACK_IN_PLACE);
                 break;
-            case 7:
-                capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
+            case ACTOR_548100_CHOICE_POWER_LINES:
+                capRunCommand(ACTOR_548100_CAP_COMMAND_POWER_LINES, CAP_PLAYBACK_IN_PLACE);
                 break;
-            case 8:
-                capRunCommand(9, CAP_PLAYBACK_IN_PLACE);
+            case ACTOR_548100_CHOICE_GROUND_WIRE:
+                capRunCommand(ACTOR_548100_CAP_COMMAND_GROUND_WIRE, CAP_PLAYBACK_IN_PLACE);
                 break;
-            case 9:
-                capRunCommand(8, CAP_PLAYBACK_IN_PLACE);
+            case ACTOR_548100_CHOICE_GATE_LOCKS:
+                capRunCommand(ACTOR_548100_CAP_COMMAND_GATE_LOCKS, CAP_PLAYBACK_IN_PLACE);
                 break;
         }
-        task->state = 2;
+        task->state = ACTOR_548100_STATE_SCAN_HOTSPOTS;
     } else if (work->usedItem != 0) {
-        task->state = 6;
+        task->state = ACTOR_548100_STATE_PLACE_BATTERY;
     } else {
-        task->state = 2;
+        task->state = ACTOR_548100_STATE_SCAN_HOTSPOTS;
     }
 }
 
@@ -2317,28 +2375,34 @@ static void _actor548100ExitPanel(Task* task)
     taskRequestKill(task, 0);
 }
 
-static void func_actor_548100_80134E94(Task* arg0)
+/// Places the battery queued by the item menu in the selected unpowered empty socket.
+///
+/// State 6 requires work naming socket 1..4 and usedItem 0x120 or 0x12C. Only
+/// successful placement moves its collected bit from inventory to the socket;
+/// power-on or occupied-socket refusal plays a caption and keeps the item.
+/// Every path clears the pending request and returns to hotspot scanning.
+static void _actor548100PlaceQueuedBattery(Task* task)
 {
-    _Actor548100Work* work = arg0->work;
-    s32               value;
+    _Actor548100Work* work = task->work;
+    s32               socketContents;
 
-    if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == 0) {
+    if (gameFlagGetNibble(ACTOR_548100_SOCKET_FLAG(work->choice)) == ACTOR_548100_SOCKET_EMPTY) {
         if (gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_SWITCHED_ON) != 0) {
-            capStartSequenceSlot(6, 0, 1);
+            capStartSequenceSlot(ACTOR_548100_CAP_COMMAND_SOCKET, CAP_PLAYBACK_IN_PLACE, ACTOR_548100_CAP_SOCKET_POWERED);
         } else {
-            value = 2;
-            if (work->usedItem == 0x120) {
-                value = 1;
+            socketContents = ACTOR_548100_SOCKET_SECOND_BATTERY;
+            if (work->usedItem == ACTOR_548100_BATTERY_FIRST_ITEM) {
+                socketContents = ACTOR_548100_SOCKET_FIRST_BATTERY;
             }
             sndEvtRequestScriptStart(SOUND_MINE_REFUGE_BATTERY_SOCKET, 0, 0);
-            gameFlagSetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), value);
+            gameFlagSetNibble(ACTOR_548100_SOCKET_FLAG(work->choice), socketContents);
             inventoryClearCollectedBit(work->usedItem);
         }
     } else {
-        capStartSequenceSlot(6, 0, 4);
+        capStartSequenceSlot(ACTOR_548100_CAP_COMMAND_SOCKET, CAP_PLAYBACK_IN_PLACE, ACTOR_548100_CAP_SOCKET_OCCUPIED);
     }
     work->usedItem = 0;
-    arg0->state    = 2;
+    task->state    = ACTOR_548100_STATE_SCAN_HOTSPOTS;
 }
 
 /// Waits for a socket battery's pickup caption and empties the socket if taken.
@@ -2364,9 +2428,19 @@ static void _actor548100WaitBatteryReturn(Task* task)
     }
 }
 
-static void func_actor_548100_80134FEC(Task* arg0)
+/// Advances the powered panel's current fronts and finishes the switch-on animation.
+///
+/// State 9 requires measured positive leg lengths and a selected circuit.
+/// Progress is stored in signed halfwords, in diagram pixels, and rises four
+/// per tick. The shorter battery leg follows the longer leg's distance ratio.
+/// Completion waits until longProgress exceeds its length and the third leg
+/// has reached its end; equality alone waits one more tick. Stops the current
+/// loop and either starts the powered-door caption or returns to scanning.
+/// The completion tick retains the previous shortProgress rather than rescaling.
+static void _actor548100AnimateCircuitFlow(Task* task)
 {
-    _Actor548100Work* work = arg0->work;
+    enum { ACTOR_548100_CAP_COMMAND_CIRCUIT_COMPLETE = 12 };
+    _Actor548100Work* work = task->work;
 
     work->thirdProgress += ACTOR_548100_FLOW_SPEED;
     work->longProgress  += ACTOR_548100_FLOW_SPEED;
@@ -2379,10 +2453,10 @@ static void func_actor_548100_80134FEC(Task* arg0)
             sndEvtRequestScriptStop(SOUND_MINE_REFUGE_CIRCUIT_CURRENT_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
             if (D_actor_548100_80135B4C->powersDoor != 0) {
                 sndEvtRequestScriptStart(SOUND_MINE_REFUGE_CIRCUIT_COMPLETE, 0, 0);
-                capRunCommand(0xC, CAP_PLAYBACK_IN_PLACE);
-                arg0->state = 0xA;
+                capRunCommand(ACTOR_548100_CAP_COMMAND_CIRCUIT_COMPLETE, CAP_PLAYBACK_IN_PLACE);
+                task->state = ACTOR_548100_STATE_WAIT_COMPLETION_CAPTION;
             } else {
-                arg0->state = 2;
+                task->state = ACTOR_548100_STATE_SCAN_HOTSPOTS;
             }
             return;
         }

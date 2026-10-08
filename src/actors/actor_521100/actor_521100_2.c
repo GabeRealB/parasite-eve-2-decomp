@@ -132,15 +132,15 @@ extern EffectSpawnArg D_actor_521100_8016A3CC;
 extern u16            D_actor_521100_8016A3D4;
 
 /// The task `_actor521100AnmcWomanTask` runs, stored by its create state
-/// `func_actor_521100_80135DDC`.
+/// `_actor521100AnmcWomanSpawn`.
 extern Task*    D_actor_521100_8016A3DC;
 extern Task*    D_actor_521100_8016A3E0;
 extern Task*    D_actor_521100_8016A3E4;
 extern GfxCoord D_actor_521100_8016A3E8;
 
-static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task);
+static void _actor521100AnmcWomanSpawn(Enemy* enemy, Task* task);
 static void _actor521100AnmcWomanUpdate(Task* task);
-static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task);
+static void _actor521100AnmcWomanFlattenState(Enemy* enemy, Task* task);
 static void _actor521100UpdateAnmcWomanFlattenColor(Enemy* enemy, Task* task);
 static void _actor521100TickAnmcWoman(Enemy* unusedEnemy, Task* task);
 static void _actor521100AnmcWomanExit(Task* task);
@@ -152,7 +152,7 @@ static void _actor521100AnmcWomanFlatten(Task* task);
 static s32  _actor521100AnmcWomanPlayAnim(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArgument);
 static s32  _actor521100AnmcWomanSetModelDrawFlags(Task* task, s32 messageId, s32 flags, s32 unusedArgument);
 static s32  _footstepWalkPlace(Task* task, s32 messageId, const ActorTransform* placement, s32 unusedArgument);
-s32         func_actor_521100_80136AE0(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
+static s32  _actor521100AnmcWomanApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument);
 static s32  _actor521100AnmcWomanWalkTo(Task* task, s32 messageId, const ActorTransform* target, s32 unusedArgument);
 static void _actor521100AnmcWomanEffectTask(Task* task);
 static void _actor521100AnmcWomanTask(Task* task);
@@ -407,7 +407,7 @@ TaskMessageEntry D_actor_521100_8016A358[6] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor521100AnmcWomanPlayAnim },
     { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor521100AnmcWomanSetModelDrawFlags },
     { ACTOR_MESSAGE_PLACE, _footstepWalkPlace },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_521100_80136AE0 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor521100AnmcWomanApplyCommand },
     { ACTOR_MESSAGE_WALK_TO, _actor521100AnmcWomanWalkTo },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
@@ -503,42 +503,63 @@ s32 actor521100IsPresent(Task* task, s32 messageId, s32 unusedFirstArgument, s32
     return work->present;
 }
 
-static void func_actor_521100_80135DDC(Enemy* spawnArg2, Task* task)
+/// Binds the ANMC woman's rig and requests the initial walk clip without ticking it.
+///
+/// Requires her live published work, model and loaded clip table. Playback
+/// borrows model coordinates, pose storage and animation data through teardown.
+static inline void _actor521100AnmcWomanPrepareAnimation(TmdObject* model)
 {
-    VECTOR                     vec;
-    _Actor521100AnmcWomanWork* work;
-    Enemy*                     enemy;
-    TmdObject*                 obj;
-    GfxCoord*                  coord;
+    animationBindModelContext(&_gActor521100AnmcWomanWork->rig.anim, D_actor_521100_8016A3A0, model, _gActor521100AnmcWomanWork->rig.poses);
+    _gActor521100AnmcWomanWork->st.animId = ACTOR_521100_ANMC_WOMAN_ANIM_WALK;
+    _gActor521100AnmcWomanWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
+}
 
-    enemy                      = spawnArg2;
-    obj                        = task->extra.tmd;
-    coord                      = obj->coords;
-    work                       = memCalloc(sizeof(_Actor521100AnmcWomanWork), 0);
+/// Initializes and publishes the scripted ANMC woman's model, work and animation.
+///
+/// Requires a live Enemy and nineteen-part TMD model in task state 0. Allocates
+/// zeroed task-owned work or destroys the enemy on failure. Parents the root to
+/// the view, excludes lock-on, and samples lighting at the cached root XYZ with
+/// Y minus 800 in world units. The model borrows work-owned lighting matrices;
+/// animation borrows the loaded clip table, poses and coordinates. Installs
+/// messages/exit, resets clip 1 without ticking it, then advances to state 1.
+/// Singleton work/task references are valid only until teardown begins.
+static void _actor521100AnmcWomanSpawn(Enemy* enemy, Task* task)
+{
+    enum {
+        ACTOR_521100_ANMC_WOMAN_OT_OFFSET             = 1,
+        ACTOR_521100_ANMC_WOMAN_LIGHT_SAMPLE_Y_OFFSET = 800,
+    };
+    VECTOR3                    lightSamplePosition;
+    _Actor521100AnmcWomanWork* work;
+    TmdObject*                 model;
+    GfxCoord*                  rootCoord;
+
+    model                      = task->extra.tmd;
+    rootCoord                  = model->coords;
+    work                       = memCalloc(sizeof(*work), false);
     _gActor521100AnmcWomanWork = work;
     task->work                 = work;
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
-    task->exitCallback               = _actor521100AnmcWomanExit;
-    coord->parent                    = &gGfxViewCoord;
-    enemy->field_4                   = &coord->coord;
+    task->exitCallback = _actor521100AnmcWomanExit;
+    // Task-owned work backs matrices borrowed by the model and its playback rig.
+    rootCoord->parent                = &gGfxViewCoord;
+    enemy->field_4                   = &rootCoord->coord;
     enemy->field_48                  = 0;
     enemy->node.state.parts.targeted = 0;
     enemy->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-    obj->otOffset                    = 1;
-    obj->lightMtx                    = &_gActor521100AnmcWomanWork->light;
-    obj->colorMtx                    = &_gActor521100AnmcWomanWork->color;
-    vec.vx                           = coord->workm.t[0];
-    vec.vy                           = coord->workm.t[1] - 0x320;
+    model->otOffset                  = ACTOR_521100_ANMC_WOMAN_OT_OFFSET;
+    model->lightMtx                  = &_gActor521100AnmcWomanWork->light;
+    model->colorMtx                  = &_gActor521100AnmcWomanWork->color;
+    lightSamplePosition.vx           = rootCoord->workm.t[0];
+    lightSamplePosition.vy           = rootCoord->workm.t[1] - ACTOR_521100_ANMC_WOMAN_LIGHT_SAMPLE_Y_OFFSET;
     D_actor_521100_8016A3DC          = task;
-    vec.vz                           = coord->workm.t[2];
-    worldCoordSetModelLighting(obj, &vec, 0, 3);
-    animationBindModelContext(&_gActor521100AnmcWomanWork->rig.anim, D_actor_521100_8016A3A0, obj, _gActor521100AnmcWomanWork->rig.poses);
-    _gActor521100AnmcWomanWork->st.animId = ACTOR_521100_ANMC_WOMAN_ANIM_WALK;
-    _gActor521100AnmcWomanWork->st.state  = ACTOR_ENEMY_ANIM_RESET;
-    task->msgTable                        = D_actor_521100_8016A358;
+    lightSamplePosition.vz           = rootCoord->workm.t[2];
+    worldCoordSetModelLighting(model, &lightSamplePosition, 0, ARRAY_SIZE(model->colorMtx->m[0]));
+    _actor521100AnmcWomanPrepareAnimation(model);
+    task->msgTable = D_actor_521100_8016A358;
     _actor521100AnmcWomanUpdate(task);
     task->state += 1;
 }
@@ -578,35 +599,39 @@ static void _actor521100AnmcWomanUpdate(Task* task)
         return;
     }
 }
-/// State-2 body, the actor's last: it snapshots the attach coordinate onto a
-/// stack `GfxCoord` - the copy the flatten's effect is placed off - and
-/// runs the flatten step `st.flattenStep`. `ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN`
-/// seeds the flatten (the shrink body `_actor521100AnmcWomanFlatten` scales by
-/// `st.flattenScaleY`, so the seed stores `ONE` there, turns the root
-/// coordinate to `st.yaw` and snapshots its local matrix into
-/// `st.savedRootMtx`), `ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK` runs that body
-/// and drops the 0x600A5 effect once `st.flattenFrames` reaches 0xF, and
-/// `ACTOR_521100_ANMC_WOMAN_FLATTEN_DONE` returns without animating. The other
-/// two steps fall through to the slot tick and the colour step.
-static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
+/// Shrinks and fades the ANMC woman while advancing her body poses.
+///
+/// State 2 requires live work, rig and model. BEGIN saves the yaw-only root
+/// matrix at Q12 full height; SHRINK scales from that snapshot, enables
+/// semitransparency at frame 10 and starts corpse burn at frame 15. The burn
+/// uses a pre-update root snapshot with X/Z offsets -500/-100 in
+/// parent-coordinate units. DONE leaves the final pose
+/// and lighting untouched. Other steps tick slots 1..18 and refresh tint.
+static void _actor521100AnmcWomanFlattenState(Enemy* enemy, Task* task)
 {
-    GfxCoord                   sp10;
-    TmdObject*                 obj;
-    GfxCoord*                  coord;
+    enum {
+        ACTOR_521100_ANMC_WOMAN_BURN_OFFSET_X = 500,
+        ACTOR_521100_ANMC_WOMAN_BURN_OFFSET_Z = 100,
+        ACTOR_521100_ANMC_WOMAN_BURN_BURSTS   = 5,
+    };
+    GfxCoord                   burnAnchor;
+    TmdObject*                 model;
+    GfxCoord*                  rootCoord;
     _Actor521100AnmcWomanWork* work;
-    s32                        i;
+    s32                        slotIndex;
 
-    obj   = task->extra.tmd;
-    coord = obj->coords;
-    work  = task->work;
-    sp10  = *coord;
+    model     = task->extra.tmd;
+    rootCoord = model->coords;
+    work      = task->work;
+    // Burn placement copies this snapshot; its callbacks never follow the retained address.
+    burnAnchor = *rootCoord;
 
     switch (work->st.flattenStep) {
         case ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN:
             work->st.flattenFrames = 0;
             work->st.flattenScaleY = ONE;
-            gfxRotMatrixY(&coord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);
-            work->st.savedRootMtx = coord->coord;
+            gfxRotMatrixY(&rootCoord->coord, work->st.yaw, GRAPHICS_ROTATION_REPLACE);
+            work->st.savedRootMtx = rootCoord->coord;
             work->st.flattenStep  = ACTOR_521100_ANMC_WOMAN_FLATTEN_SHRINK;
             break;
 
@@ -614,12 +639,13 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
             _actor521100AnmcWomanFlatten(task);
             work->st.flattenFrames++;
             if (work->st.flattenFrames == ACTOR_521100_ANMC_WOMAN_FLATTEN_FADE_FRAMES) {
-                obj->flags = TMD_OBJECT_SEMI_TRANS;
+                model->flags = TMD_OBJECT_SEMI_TRANS;
             }
             if (work->st.flattenFrames == ACTOR_521100_ANMC_WOMAN_FLATTEN_BURN_FRAMES) {
-                sp10.coord.t[0] -= 0x1F4;
-                sp10.coord.t[2] -= 0x64;
-                effectSpawn(EFFECT_CORPSE_BURN, &sp10, 5, NULL);
+                // Preserve the root's parent link in the temporary effect anchor.
+                burnAnchor.coord.t[0] -= ACTOR_521100_ANMC_WOMAN_BURN_OFFSET_X;
+                burnAnchor.coord.t[2] -= ACTOR_521100_ANMC_WOMAN_BURN_OFFSET_Z;
+                effectSpawn(EFFECT_CORPSE_BURN, &burnAnchor, ACTOR_521100_ANMC_WOMAN_BURN_BURSTS, NULL);
             }
             break;
 
@@ -627,13 +653,13 @@ static void func_actor_521100_801360C4(Enemy* spawnArg2, Task* task)
             return;
     }
 
-    i = 1;
+    slotIndex = 1;
     do {
-        animationTickDirectSlot(&_gActor521100AnmcWomanWork->rig.anim, &_gActor521100AnmcWomanWork->rig.slots[i]);
-        i++;
-    } while (i < 0x13);
+        animationTickDirectSlot(&_gActor521100AnmcWomanWork->rig.anim, &_gActor521100AnmcWomanWork->rig.slots[slotIndex]);
+        slotIndex++;
+    } while (slotIndex < (s32)ARRAY_SIZE(_gActor521100AnmcWomanWork->rig.slots));
 
-    _actor521100UpdateAnmcWomanFlattenColor(spawnArg2, task);
+    _actor521100UpdateAnmcWomanFlattenColor(enemy, task);
 }
 /// Relights the flattening ANMC woman and randomizes her colour-basis scale.
 ///
@@ -724,11 +750,11 @@ static void _actor521100AnmcWomanEffectTask(Task* task)
     task->state++;
 }
 /// State table the overlay dispatches through, indexed by `Task::state`:
-/// create, update and teardown.
+/// create, update and flatten.
 static const EnemyTaskFuncTable3 D_actor_521100_80131E68 = { {
-    func_actor_521100_80135DDC,
+    _actor521100AnmcWomanSpawn,
     _actor521100TickAnmcWoman,
-    func_actor_521100_801360C4,
+    _actor521100AnmcWomanFlattenState,
 } };
 
 /// Runs the ANMC woman's create, update or flatten task state.
@@ -943,28 +969,39 @@ static s32 _actor521100AnmcWomanSetModelDrawFlags(Task* task, s32 messageId, s32
 #undef FOOTSTEP_WALK_PLACE_WORK
 #define FOOTSTEP_WALK_PLACE_WORK _gFootstepWalkWork
 
-/// Message 0x7DB handler, listed in `D_actor_521100_8016A358` -- the
-/// `{id, handler}` table the create body `func_actor_521100_80135DDC` installs
-/// at `Task::msgTable`. `msg->field_2` picks the sub-command: 0 puts the task
-/// back on its update state; 1 and 4 spawn one of the two companion tasks out
-/// of the `D_actor_521100_8016A388` desc table into `D_actor_521100_8016A3E0` /
-/// `D_actor_521100_8016A3E4`, leaving the state alone; 2 clears the flatten
-/// step (`_Actor521100AnmcWomanState::flattenStep`) and sends the task to state 2, the
-/// teardown entry `func_actor_521100_801360C4`; 3 kills both companions and
-/// then falls into 0, sharing its state store.
-s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3)
+/// Applies a scene command to the ANMC woman and her two periodic effect emitters.
+///
+/// Requires her live published work and a readable ActorCommand; retains no
+/// payload pointer. Commands 0/3 select ordinary update, with 3 first killing
+/// both emitters. Command 2 restarts flattening. Commands 1/4 spawn an emitter
+/// at the woman/player, overwriting its slot without killing a previous task;
+/// spawn failure is retained as NULL. Other commands do nothing. Ignores the
+/// message ID and second payload. Returns zero.
+static s32 _actor521100AnmcWomanApplyCommand(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArgument)
 {
-    switch (msg->command) {
-        case 1:
-            D_actor_521100_8016A3E0 = taskSpawnFromTable(D_actor_521100_8016A388, 1, 0, task);
+    enum {
+        ACTOR_521100_ANMC_WOMAN_COMMAND_UPDATE        = 0,
+        ACTOR_521100_ANMC_WOMAN_COMMAND_EFFECT_WOMAN  = 1,
+        ACTOR_521100_ANMC_WOMAN_COMMAND_FLATTEN       = 2,
+        ACTOR_521100_ANMC_WOMAN_COMMAND_STOP_EFFECTS  = 3,
+        ACTOR_521100_ANMC_WOMAN_COMMAND_EFFECT_PLAYER = 4,
+        ACTOR_521100_ANMC_WOMAN_TASK_UPDATE           = 1,
+        ACTOR_521100_ANMC_WOMAN_TASK_FLATTEN          = 2,
+        ACTOR_521100_ANMC_WOMAN_EFFECT_TASK_INDEX     = 1,
+        ACTOR_521100_ANMC_WOMAN_EFFECT_WOMAN          = 0,
+        ACTOR_521100_ANMC_WOMAN_EFFECT_PLAYER         = 1,
+    };
+    switch (command->command) {
+        case ACTOR_521100_ANMC_WOMAN_COMMAND_EFFECT_WOMAN:
+            D_actor_521100_8016A3E0 = taskSpawnFromTable(D_actor_521100_8016A388, ACTOR_521100_ANMC_WOMAN_EFFECT_TASK_INDEX, ACTOR_521100_ANMC_WOMAN_EFFECT_WOMAN, task);
             break;
 
-        case 2:
+        case ACTOR_521100_ANMC_WOMAN_COMMAND_FLATTEN:
             _gActor521100AnmcWomanWork->st.flattenStep = ACTOR_521100_ANMC_WOMAN_FLATTEN_BEGIN;
-            task->state                                = 2;
+            task->state                                = ACTOR_521100_ANMC_WOMAN_TASK_FLATTEN;
             break;
 
-        case 3:
+        case ACTOR_521100_ANMC_WOMAN_COMMAND_STOP_EFFECTS:
             if (D_actor_521100_8016A3E0 != NULL) {
                 taskKill(D_actor_521100_8016A3E0);
                 D_actor_521100_8016A3E0 = NULL;
@@ -973,14 +1010,14 @@ s32 func_actor_521100_80136AE0(Task* task, s32 arg1, ActorCommand* msg, s32 arg3
                 taskKill(D_actor_521100_8016A3E4);
                 D_actor_521100_8016A3E4 = NULL;
             }
-            /* fall through -- the jump table's index 0 lands on the same store */
+            // Resume ordinary update after both emitters have been stopped.
 
-        case 0:
-            task->state = 1;
+        case ACTOR_521100_ANMC_WOMAN_COMMAND_UPDATE:
+            task->state = ACTOR_521100_ANMC_WOMAN_TASK_UPDATE;
             break;
 
-        case 4:
-            D_actor_521100_8016A3E4 = taskSpawnFromTable(D_actor_521100_8016A388, 1, 1, task);
+        case ACTOR_521100_ANMC_WOMAN_COMMAND_EFFECT_PLAYER:
+            D_actor_521100_8016A3E4 = taskSpawnFromTable(D_actor_521100_8016A388, ACTOR_521100_ANMC_WOMAN_EFFECT_TASK_INDEX, ACTOR_521100_ANMC_WOMAN_EFFECT_PLAYER, task);
             break;
     }
     return 0;

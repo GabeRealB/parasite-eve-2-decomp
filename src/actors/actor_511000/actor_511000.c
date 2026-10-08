@@ -157,8 +157,8 @@ static void _actor511000InitRupert(Task* task);
 static void _actor511000BindRupertLighting(Task* task);
 static void _actor511000TickHelicopterSearchlight(Task* task);
 static void _actor511000DrawHelicopterSearchlightGlow(Task* task, const CVECTOR* centerColor, const u8* rimRgb);
-static void func_actor_511000_80133034(Task* task);
-static void func_actor_511000_801330F0(Task* task);
+static void _actor511000InitHelicopter(Task* task);
+static void _actor511000TickHelicopter(Task* task);
 static void _actor511000KillHelicopter(Task* task);
 static void _actor511000AttachHelicopterRotor(Task* task);
 static void _actor511000TickHelicopterRotor(Task* task);
@@ -205,8 +205,8 @@ static const TaskFuncTable3 D_actor_511000_80131E3C = {
 /// State table of the task that owns the `_Actor511000HelicopterWork` block: its spawn
 /// state, the per-frame tick and the kill.
 static const TaskFuncTable3 D_actor_511000_80131E48 = {
-    func_actor_511000_80133034,
-    func_actor_511000_801330F0,
+    _actor511000InitHelicopter,
+    _actor511000TickHelicopter,
     _actor511000KillHelicopter,
 };
 
@@ -233,8 +233,8 @@ static const EnemyTaskFuncTable3 D_actor_511000_80131E6C = {
     enemyDestroy,
 };
 
-/// Camera path `func_actor_511000_801330F0` walks once the session reaches
-/// mode 0x18, one 0x24-byte `ViewCamera` per step of the kill countdown: the
+/// Camera path `_actor511000TickHelicopter` walks while the session is in
+/// view 24, one 0x24-byte `ViewCamera` per step of the kill countdown: the
 /// rotation and projection plane repeat down the table while the translation
 /// descends, so the spawn of a view task per index pans the camera as the
 /// actor goes down. Handed straight to `viewQueueCamera`, exactly as
@@ -303,7 +303,7 @@ static AnimationSet _gActor511000Animation14B2C;
 
 static s32  _actor511000RestartHelicopterSequence(Task* task, s32 messageId, s32 unusedRequest, s32 unusedArg);
 static s32  _actor511000PlaceHelicopter(Task* task, s32 messageId, const ActorTransform* transform, s32 unusedArg);
-s32         func_actor_511000_80133554(Task*, s32, s32, s32);
+static s32  _actor511000SetHelicopterModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArgument);
 static s32  _actor511000PlayNo9GolemAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 unusedArg);
 static s32  _actor511000SetNo9GolemModelDraw(Task* task, s32 messageId, s32 drawFlags, s32 unusedArg);
 static void _actor511000No9GolemTask(Task* task);
@@ -862,7 +862,7 @@ ViewCamera D_actor_511000_80147EE4[120] = {
 TaskMessageEntry D_actor_511000_80148FC4[4] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actor511000RestartHelicopterSequence },
     { ACTOR_MESSAGE_PLACE, _actor511000PlaceHelicopter },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_actor_511000_80133554 },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, _actor511000SetHelicopterModelDraw },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -1792,76 +1792,94 @@ static void _actor511000TickHelicopterPaletteFlash(_Actor511000HelicopterWork* w
     gpuUploadImages(&D_actor_511000_80147EA4[0]);
 }
 
-/// Spawn/setup state: allocates the work block, parks it in `work`, leaves
-/// `freeCountdown` with no free pending, hides the model, places it at
-/// rot/trans index 0, binds light/color, installs the message table, and
-/// publishes `work->palette` through `D_actor_511000_80147EA4[0].pixels`
-/// before advancing to the per-frame state.
-static void func_actor_511000_80133034(Task* task)
+/// Initializes the helicopter's owned work, hidden hull and first sequence pose.
+///
+/// State 0 requires a live TMD hull, pose tables and primary heap. Allocation
+/// failure kills the task. The hull and attached models borrow work-owned
+/// lighting matrices; the upload list borrows its 32-byte, sixteen-colour
+/// palette until teardown and pending GPU transfers finish. No primitive-buffer
+/// release is pending initially. Installs messages and advances to state 1.
+static void _actor511000InitHelicopter(Task* task)
 {
+    enum { ACTOR_511000_HELICOPTER_FREE_NONE = -1 };
     _Actor511000HelicopterWork* work;
-    TmdObject*                  extra;
+    TmdObject*                  model;
 
-    extra = task->extra.tmd;
-    work  = memCalloc(sizeof(*work), 0);
+    model = task->extra.tmd;
+    work  = memCalloc(sizeof(*work), false);
     if (work == NULL) {
         taskKill(task);
         return;
     }
     task->work          = work;
-    work->freeCountdown = -1;
-    extra->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    work->freeCountdown = ACTOR_511000_HELICOPTER_FREE_NONE;
+    model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
     _actor511000PoseHelicopterSequenceFrame(task, D_actor_511000_80147344, D_actor_511000_80147704, 0);
     _actor511000BindHelicopterLighting(task);
-    do {
-        task->msgTable                    = D_actor_511000_80148FC4;
-        D_actor_511000_80147EA4[0].pixels = (u_long*)work->palette;
-    } while (0);
-    task->state += 1;
+    // The GPU API consumes words; the fade writes little-endian byte pairs.
+    task->msgTable                    = D_actor_511000_80148FC4;
+    D_actor_511000_80147EA4[0].pixels = (u_long*)work->palette;
+    task->state                      += 1;
 }
 
-/// Per-frame state: while the model is hidden (`field_C` bit 0x80 clear) it
-/// refreshes the root coordinate, rebuilds the colour matrix from that
-/// coordinate's own translation, and runs the work block's follow-up. Once the
-/// session reaches mode 0x18 it walks `killCountdown` up to 0x77, spawning a
-/// view task for the camera record at each index and re-posing the model from
-/// the matching rotations, and finally runs the `tmdFreePrimitiveBuffer` countdown the
-/// spawn state armed at -1, freeing the buffers and latching the field back to
-/// -1 on the frame the countdown reaches zero.
-static void func_actor_511000_801330F0(Task* task)
+/// Advances the helicopter sequence cursor and applies its camera and hull pose.
+///
+/// Requires a cursor in 0..119 and loaded 120-entry camera/pose tables. A signed
+/// halfword increment clamps to the last frame. The queued camera task borrows
+/// its table entry until dispatch. Invalidates root composition after posing;
+/// drawing visibility is ignored.
+static inline void _actor511000AdvanceHelicopterSequence(Task* task, GfxCoord* rootCoord)
 {
+    s16 nextFrame;
+
+    nextFrame           = task->killCountdown + 1;
+    task->killCountdown = nextFrame;
+    if (nextFrame >= (s32)ARRAY_SIZE(D_actor_511000_80147EE4)) {
+        task->killCountdown = ARRAY_SIZE(D_actor_511000_80147EE4) - 1;
+    }
+    viewQueueCamera(&D_actor_511000_80147EE4[task->killCountdown]);
+    _actor511000PoseHelicopterSequenceFrame(task, D_actor_511000_80147344, D_actor_511000_80147704, task->killCountdown);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+}
+
+/// Updates the drawable helicopter's lighting and flash, and advances its scene pose.
+///
+/// Requires initialized hull/work and loaded camera and pose tables. In view 24,
+/// killCountdown is a sequence cursor: normally 0..119, incremented as a signed
+/// halfword and clamped at 119 even while hidden. Each tick queues that camera
+/// and applies its hull pose. Other views retain the cursor and pose. Drawing
+/// enabled refreshes lighting and the palette before any scene-pose change.
+/// Independently, freeCountdown releases primitive buffers when a tick sees
+/// zero, then becomes -1; any negative value means no release is pending.
+static void _actor511000TickHelicopter(Task* task)
+{
+    enum { ACTOR_511000_HELICOPTER_SEQUENCE_VIEW = 24 };
     _Actor511000HelicopterWork* work;
-    TmdObject*                  obj;
-    GfxCoord*                   coord;
-    s32                         countdown;
-    s16                         frame;
+    TmdObject*                  model;
+    GfxCoord*                   rootCoord;
+    s32                         freeCountdown;
 
-    obj   = task->extra.tmd;
-    work  = task->work;
-    coord = obj->coords;
+    model     = task->extra.tmd;
+    work      = task->work;
+    rootCoord = model->coords;
 
-    if (!(obj->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-        actorRenderComposeCoord(coord);
-        worldCoordSetModelLighting(obj, coord->workm.t, 0, 3);
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+        actorRenderComposeCoord(rootCoord);
+        worldCoordSetModelLighting(model, rootCoord->workm.t, 0, ARRAY_SIZE(model->colorMtx->m[0]));
         _actor511000TickHelicopterPaletteFlash(task->work);
     }
-    if (gGameSession->location.loc.view == 0x18) {
-        frame               = task->killCountdown + 1;
-        task->killCountdown = frame;
-        if (frame >= 0x78) {
-            task->killCountdown = 0x77;
-        }
-        viewQueueCamera(&D_actor_511000_80147EE4[task->killCountdown]);
-        _actor511000PoseHelicopterSequenceFrame(task, D_actor_511000_80147344, D_actor_511000_80147704, task->killCountdown);
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    // Scene motion and camera playback continue even when the hull is hidden.
+    if (gGameSession->location.loc.view == ACTOR_511000_HELICOPTER_SEQUENCE_VIEW) {
+        _actor511000AdvanceHelicopterSequence(task, rootCoord);
     }
-    countdown = work->freeCountdown;
-    if (countdown >= 0) {
-        if (countdown == 0) {
-            tmdFreePrimitiveBuffer(obj);
-            countdown = work->freeCountdown;
+    // Reload after freeing, preserving the callback-visible countdown value.
+    freeCountdown = work->freeCountdown;
+    if (freeCountdown >= 0) {
+        if (freeCountdown == 0) {
+            tmdFreePrimitiveBuffer(model);
+            freeCountdown = work->freeCountdown;
         }
-        work->freeCountdown = countdown - 1;
+        work->freeCountdown = freeCountdown - 1;
     }
 }
 
@@ -2032,50 +2050,60 @@ static s32 _actor511000PlaceHelicopter(Task* task, s32 messageId, const ActorTra
     return 0;
 }
 
-s32 func_actor_511000_80133554(Task* task, s32 arg1, s32 msg, s32 arg3)
+/// Selects hull drawing and buffer policy, spawning its three parts on the first show.
+///
+/// Requires a live hull and initialized helicopter work. Modes 0/1 hide/show
+/// with automatic buffers; mode 1 also allocates a primitive buffer. Mode 2
+/// hides, disables automatic buffers and arms release after two full ticks,
+/// on the third tick. Mode 3 shows with automatic buffers disabled. Later modes
+/// do not cancel an armed release. The first mode-1 request attempts each rotor
+/// and searchlight spawn once, latching completion even if a spawn fails.
+/// Ignores messageId and unusedArgument. Returns 0 for modes 0..3, otherwise 1.
+static s32 _actor511000SetHelicopterModelDraw(Task* task, s32 messageId, s32 drawMode, s32 unusedArgument)
 {
-    TmdObject*                  obj;
+    enum { ACTOR_511000_HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER = 3 };
+    TmdObject*                  model;
     _Actor511000HelicopterWork* work;
     Task*                       child;
-    s32                         ret;
-    s32                         i;
+    s32                         result;
+    s32                         partIndex;
 
-    obj  = task->extra.tmd;
-    work = task->work;
-    ret  = 0;
-    switch (msg) {
-        case 0:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+    model  = task->extra.tmd;
+    work   = task->work;
+    result = 0;
+    switch (drawMode) {
+        case ACTOR_MESSAGE_DRAW_HIDE:
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 1:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            tmdAllocPrimitiveBuffer(obj);
-            obj->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_SHOW:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(model);
+            model->flags &= ~TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 2:
-            obj->flags         |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->freeCountdown = msg;
-            obj->flags         |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_MESSAGE_DRAW_HIDE_SKIP_AUTO_BUFFER:
+            model->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->freeCountdown = drawMode;
+            model->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
-        case 3:
-            obj->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            obj->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+        case ACTOR_511000_HELICOPTER_DRAW_SHOW_SKIP_AUTO_BUFFER:
+            model->flags &= ~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             break;
         default:
-            ret = 1;
+            result = 1;
             break;
     }
-    if (msg == 1 && work->partsSpawned == 0) {
-        for (i = 1; i < 4; i++) {
-            child = taskSpawnFromTable(D_actor_511000_80139924, D_actor_511000_80149054[i - 1], i, task);
+    if (drawMode == ACTOR_MESSAGE_DRAW_SHOW && work->partsSpawned == 0) {
+        for (partIndex = 1; partIndex < (s32)ARRAY_SIZE(D_actor_511000_80149054) + 1; partIndex++) {
+            child = taskSpawnFromTable(D_actor_511000_80139924, D_actor_511000_80149054[partIndex - 1], partIndex, task);
             if (child != NULL) {
                 child->extra.tmd->flags &= ~(TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_SKIP_AUTO_BUFFER);
             }
         }
         work->partsSpawned = 1;
     }
-    return ret;
+    return result;
 }
 
 /// Applies a table frame's rotation and translation to the helicopter root.

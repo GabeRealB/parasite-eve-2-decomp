@@ -238,7 +238,7 @@ static void                      _actor361100SpawnShakeTask(s32 durationTicks);
 
 static void _actor361100StreamWaterTask(Task* task);
 static void _actor361100HeadAimTask(Task* task);
-void        func_actor_361100_80162A54(Task*);
+static void _actor361100ShakeTask(Task* task);
 
 TaskDesc D_actor_361100_801637C8 = { { { TASK_BODY_COORD, 192 } }, _actor361100StreamWaterTask, { .value = 0 } };
 
@@ -442,7 +442,7 @@ static AnimationSet _gActor361100Animation03E10 = {
 
 TaskDesc D_actor_361100_80165C58[2] = {
     { { { TASK_BODY_NONE, 192 } }, _actor361100HeadAimTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_361100_80162A54, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _actor361100ShakeTask, { .value = 0 } },
 };
 
 AnimationSet* D_actor_361100_80165C70[10] = {
@@ -1560,19 +1560,28 @@ static void _actor361100SpawnShakeTask(s32 durationTicks)
     taskSpawnFromTable(D_actor_361100_80165C58, ACTOR_361100_SHAKE_TASK_INDEX, durationTicks, 0);
 }
 
-void func_actor_361100_80162A54(Task* arg0)
+/// Alternates the scene's vertical display offset and emits controller vibration.
+///
+/// spawnArg1.value is a signed update countdown, greater than INT_MIN. It is
+/// decremented first: a positive remainder produces one vibration request and
+/// an offset of zero or minus one pixel. Expiry or event skip then restores zero
+/// and kills the task; a skipped positive tick still emits its vibration first.
+/// The pad script and its descriptor must remain loaded through each request.
+static void _actor361100ShakeTask(Task* task)
 {
+    enum { ACTOR_361100_SHAKE_Y_PIXELS = -1 };
     s32 countdown;
 
-    countdown             = arg0->spawnArg1.value - 1;
-    arg0->spawnArg1.value = countdown;
+    countdown             = task->spawnArg1.value - 1;
+    task->spawnArg1.value = countdown;
     if (countdown > 0) {
-        displaySetShakeY((countdown & 1) ? 0 : -1);
+        displaySetShakeY((countdown & 1) ? 0 : ACTOR_361100_SHAKE_Y_PIXELS);
         padScriptSpawn(D_actor_361100_80166AD0, &D_actor_361100_80166AD8);
     }
-    if ((arg0->spawnArg1.value <= 0) || (gGameSession->evtSkipped != 0)) {
+    // Check skip after producing this tick's shake and vibration.
+    if ((task->spawnArg1.value <= 0) || (gGameSession->evtSkipped != 0)) {
         displaySetShakeY(0);
-        taskKill(arg0);
+        taskKill(task);
     }
 }
 

@@ -98,7 +98,7 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 static TmdSource _gActor535700PawnGolemBody;
 static TmdSource _gActor535700GolemBeamSword;
 static s32       _actor535700IgnorePairWalkerCommand(Task* unusedTask, s32 messageId, s32 unusedArgument, s32 unusedSecondArgument);
-void             func_actor_535700_80132F20(Task*);
+static void      _actor535700PairWalkerTask(Task* task);
 
 static void _actor535700SetBlackoutFrames(s32 frames);
 static void _actor535700FinishScene(void);
@@ -1078,7 +1078,7 @@ TaskMessageEntry gPairWalkMessages[6] = {
 };
 
 TaskDesc gPairWalkTasks[2] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_535700_80132F20, { .model = &_gActor535700PawnGolemBody } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor535700PairWalkerTask, { .model = &_gActor535700PawnGolemBody } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _pairWalkSubModelTask, { .model = &_gActor535700GolemBeamSword } },
 };
 
@@ -1365,17 +1365,20 @@ static s32 _actor535700ApplyWalkerCommand(Task* unusedTask, s32 messageId, const
 
 #include "../../shared/pair_walk_update_model.inc.c"
 
-/// The second enemy's task body: runs the handler for the task's state from a
-/// table built on the stack - the spawn handler `_pairWalkSpawn`,
-/// then the per-frame `_actorRenderWalkerFrameSecond`.
-void func_actor_535700_80132F20(Task* task)
+/// Dispatches the scripted Pawn GOLEM's paired-model walker.
+///
+/// Task state must be 0 for spawn or 1 for motion, lighting and shadow drawing;
+/// dispatch is unchecked. The second spawn argument borrows its live Enemy.
+/// Spawn owns the PairWalkWork and carried model child; its exit callback
+/// begins teardown, after which the borrowed model and rig must not be used.
+static void _actor535700PairWalkerTask(Task* task)
 {
-    void (*fns[2])(Enemy*, Task*) = {
+    EnemyTaskFunc stateHandlers[2] = {
         _pairWalkSpawn,
         _actorRenderWalkerFrameSecond,
     };
 
-    fns[task->state](task->spawnArg2.pointer, task);
+    stateHandlers[task->state](task->spawnArg2.pointer, task);
 }
 
 /// Selects this carrier's private walker frame state for one fragment inclusion.

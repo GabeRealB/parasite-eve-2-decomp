@@ -179,3 +179,6 @@ _actor511000BindRupertLighting = 0x801325a4; // type:func
 _actor511000BindHelicopterLighting = 0x801337f0; // type:func
 _actor511000TickRupert = 0x80131e78; // type:func
 _actor511000InitRupert = 0x80132480; // type:func
+_actor511000InitHelicopter = 0x80133034; // type:func
+_actor511000TickHelicopter = 0x801330f0; // type:func
+_actor511000SetHelicopterModelDraw = 0x80133554; // type:func

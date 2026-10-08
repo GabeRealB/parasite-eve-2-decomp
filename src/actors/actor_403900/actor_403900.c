@@ -157,7 +157,7 @@ static AnimationSet _gActor403900Animation20B6C;
 static AnimationSet _gActor403900Animation21DA8;
 extern DamageAttack gGolemKnightBishopAttacks[4];
 static TmdSource    _gActor403900GolemBody;
-static void         func_actor_403900_80138344(Task*);
+static void         _actor403900GolemTask(Task* task);
 
 TaskMessageEntry gGolemKnightBishopMessages[2] = {
     { ACTOR_MESSAGE_RELEASE_HOLD, _actor403900RecordGrabEscape },
@@ -1198,7 +1198,7 @@ s16 gGolemKnightBishopBeamQuadCorners[2][4] = {
     { 0, 1, 4, 5 },
 };
 
-TaskDesc D_actor_403900_801540E0 = { { { TASK_BODY_TMD, 96 } }, func_actor_403900_80138344, { .model = &_gActor403900GolemBody } };
+TaskDesc D_actor_403900_801540E0 = { { { TASK_BODY_TMD, 96 } }, _actor403900GolemTask, { .model = &_gActor403900GolemBody } };
 
 AnimationSet* gGolemKnightBishopAnimSets[22] = {
     NULL,
@@ -1255,7 +1255,7 @@ AnimationSet* gGolemKnightBishopAnimSets[22] = {
 
 #include "../../shared/golem_knight_bishop_kneel_hit.inc.c"
 
-/// The enemy task's three state handlers, which `func_actor_403900_80138344`
+/// The enemy task's three state handlers, which `_actor403900GolemTask`
 /// picks by `Task::state`: the spawn setup, the frame handler that runs the
 /// sequences, and the frame handler that unlinks the enemy and saves its pose
 /// before running its own short sequence.
@@ -1314,12 +1314,15 @@ static s32 _actor403900RecordGrabEscape(Task* task, s32 messageId, s32 unusedFir
 
 #include "../../shared/golem_knight_bishop_frame_capture.inc.c"
 
-/// Runs the enemy task's current state handler from
-/// `D_actor_403900_80131F18`, copying the table onto the stack first.
-static void func_actor_403900_80138344(Task* task)
+/// Dispatches the Bishop GOLEM's spawn, living frame or death frame.
+///
+/// Task state must be 0, 1 or 2, respectively; dispatch is unchecked. The second
+/// spawn argument borrows a live Enemy. Spawn establishes task-owned work;
+/// later frames require its model, animation and enemy storage until teardown.
+static void _actor403900GolemTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = D_actor_403900_80131F18;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    stateHandlers = D_actor_403900_80131F18;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

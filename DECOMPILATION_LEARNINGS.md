@@ -1952,7 +1952,7 @@ before `sw field_24`. The `lw` of `state` stays outside and cannot hoist into
 the `$v0` reuse window, so the load-delay nop survives. The once-loop folds
 away.
 
-`func_actor_511000_80133034`. Inputs: `base_1.i`
+`_actor511000InitHelicopter`. Inputs: `base_1.i`
 `825010bce68b047c0d9670ab6a4c104245f5cd7d86d6863ba918762e08fb68f5`
 (91.4%, `task` in `$s0`), `base_3.i`
 `21a1bc86ffdd4d44a188cbbfb66cf1f2a188e43cf187cf3fb32a15315816c47d`
@@ -1967,7 +1967,7 @@ away.
 `fold-const.c` turns `A ? 1 : 0` into `A` when the COND and the arms share a
 type, so `displaySetShakeY((count & 1) ? 1 : 0)` becomes `count & 1`
 passed in `$a0`. That also keeps `&global` live across the `jal` in a saved
-register. The 0 / -1 sibling (`func_actor_361100_80162A54`) does not fold,
+register. The 0 / -1 sibling (`_actor361100ShakeTask`) does not fold,
 because `-1` is not `integer_onep`.
 
 Write the 0 / 1 choice as two calls and let jump cross-jump the `jal`:
@@ -78453,7 +78453,7 @@ if (gameFlagGetNibble(work->step + 0xBE) == 0) {
 }
 ```
 
-`func_actor_548100_80134E94` went 86.885% → 100% on that single edit
+`_actor548100PlaceQueuedBattery` went 86.885% → 100% on that single edit
 (`branch=2 regs=4 reorder=1 insert=1 delete=5` → all zero). The rule is the same
 one as "Two identical calls, not a pointer temp" above; what makes this case
 worth recognising is that the m2c `goto` shape hides it — the tell is a `li`
@@ -83406,7 +83406,7 @@ still expanded separately; only the conversion disappears. Nothing else in the
 shape changes, so this is a pure win when a diff shows `insert=2 delete=1` on
 an `s8`/`s16` argument that reaches the call through a merge.
 
-`func_actor_361100_80162A54` (`base.c` `s8` and `base_1.c` `s32` both 92.23%,
+`_actor361100ShakeTask` (`base.c` `s8` and `base_1.c` `s32` both 92.23%,
 `insert=2 delete=1`; `base_2.c` 100%; preprocessed
 `7b9d5275e6360359f5afbcb9abca5826494c838f7293606bddc3d6379495e2a7`).
 
@@ -98333,7 +98333,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Session: `nonmatchings/_actor521100TryStartAttack-vacuum` (`base_2.i.greg`,
 `base_3.i.greg`, `base_3_diff`).
 
-## A pointer cached in a local is its own allocno: read the global the target reloads (func_actor_521100_80135DDC, 2026-09-16)
+## A pointer cached in a local is its own allocno: read the global the target reloads (_actor521100AnmcWomanSpawn, 2026-09-16)
 
 The create body calls `memCalloc`, publishes the result as the overlay's
 work-block global `_gActor521100AnmcWomanWork` and in `Task::work`, then fills
@@ -98344,8 +98344,8 @@ calloc local instead:
 mem = memCalloc(0x4B4, 0);
 _gActor521100AnmcWomanWork = mem;
 ...
-obj->field_1C = &mem->light;     /* target: lw v0,%lo(glob)(s4), no register */
-obj->field_20 = &mem->color;     /* holding the work pointer */
+model->lightMtx = &mem->light;     /* target: lw v0,%lo(glob)(s4), no register */
+model->colorMtx = &mem->color;     /* holding the work pointer */
 ```
 
 The target reloads the global at the use, so the original reads the global
@@ -98353,7 +98353,7 @@ too. Keeping the local costs more than one `move`: 93.62%, with `move v1,v0`
 after the `jal` (`delete=2 insert=2`) **and** the two arguments in the wrong
 saved registers — `$s2` = `task`, `$s3` = `enemy`, where the target has
 `$s2` = `enemy`, `$s3` = `task`. Writing the stores as
-`obj->field_1C = (MATRIX*)_gActor521100AnmcWomanWork;` and `... + 1` for the
+`model->lightMtx = (MATRIX*)_gActor521100AnmcWomanWork;` and `... + 1` for the
 second is 100%.
 
 Both arguments are long-lived, so both are global allocnos whose homes come
@@ -98381,7 +98381,7 @@ Preprocessed SHA256: `base_1.i`
 `3ebf77d762eb97dc9fb2dbd4bd5c2142386ee52a3235d533527d1da292e5c9e7`, `base_3.i`
 `e4e3d7e7037fdbeed47a90ca7f8d3ce77f20ffef4495bfdc8ed851b779c79722`. Compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Session: `nonmatchings/func_actor_521100_80135DDC-vacuum` (`base_1.i.greg`,
+Session: `nonmatchings/_actor521100AnmcWomanSpawn-vacuum` (`base_1.i.greg`,
 `base_3.i.greg`, `base_1_diff`, `base_3_diff`).
 
 ## A zero-init's position is part of the match: it picks the branch delay slot and the prologue save order (_actor521100PlayEventAnimation, 2026-09-16)
@@ -106999,7 +106999,7 @@ comparison's own read in the next block survives. The same function also needed
 `edgeIndex = B5C[currentNode + previousNode * 100]; D_1D0[edgeIndex].state = wireState;` instead of the nested
 `D_1D0[B5C[...]]` to hoist `B5C`'s address ahead of `D_1D0`'s in the loop preheader.
 
-### Load the tested field into the result variable when both share `$v0` (func_actor_548100_80132684, 2026-09-16)
+### Load the tested field into the result variable when both share `$v0` (_actor548100HandleHotspotChoice, 2026-09-16)
 
 **Symptom.** Target: `lh v0,4(s0); bnez v0,end; li v0,6` / `li v0,2` / `end: sw v0,0x30(s2)` — the tested
 field and the stored result share `$v0`. `if (w->f != 0) state = 6; else state = 2;` (or `state = 6;
@@ -107130,7 +107130,7 @@ Inputs: `base_1.i`
 `84010c899c66a35df0cdc0585ccc15ddb625128fbddcf78045750ae556ae7fc1`
 (88.415%). Scratch `nonmatchings/_actor521100TickAnimation-vacuum`.
 
-## `archive_giveup.py --permuter-findings` returns before the session snapshot, so the documented pre-cleanup command archives nothing (func_actor_521100_80136AE0, 2026-09-16)
+## `archive_giveup.py --permuter-findings` returns before the session snapshot, so the documented pre-cleanup command archives nothing (_actor521100AnmcWomanApplyCommand, 2026-09-16)
 
 The match-loop brief's last step before scratch cleanup is
 
@@ -107512,8 +107512,8 @@ GCC keeps those four stores independent, so the object comes out as
 `lw $v0,0(a1)` / `nop` / `sw $v0,0(a2)` per word. Only a real struct copy
 groups the loads: `lw $t0..$t3` from the source, then `sw $t0..$t3` to the
 destination, in one 0x10-byte block per iteration. Rewriting the two copies in
-`func_actor_521100_801360C4` as `sp10 = *coord;` and
-`work->st.savedRootMtx = coord->coord;` took the seed from 49.312% to 98.261% in one
+`_actor521100AnmcWomanFlattenState` as `burnAnchor = *rootCoord;` and
+`work->st.savedRootMtx = rootCoord->coord;` took the seed from 49.312% to 98.261% in one
 edit, with the structure diagnostic a full match.
 
 The copy size also names the source type, which is worth checking before
@@ -107528,13 +107528,13 @@ Source `base_1.c`
 preprocessed
 `e1baf5a13dce5c218f0013349ec205695e4e80ac186a38f866711ba5358b61e1`; seed
 `base.c` `802c550e6edb1078bf0fc916a248a073207d537d21534632df4cf3c8fb537fc7`
-(49.312%). Scratch `nonmatchings/func_actor_521100_801360C4-vacuum`.
+(49.312%). Scratch `nonmatchings/_actor521100AnmcWomanFlattenState-vacuum`.
 
 ## `lh` on a `u16` field whose only reader is an `s32` call argument
 
 The halfword-load-width entries above all ask what the *field* is. This case
 asks what the *use* is: the heading at 0x4AE of the block
-`func_actor_521100_801360C4` works on was declared `u16` when this was matched
+`_actor521100AnmcWomanFlattenState` works on was declared `u16` when this was matched
 (the block was then typed `Actor521100Work`, whose `yaw` the matched
 `_actor521100TurnTowardTargetYaw` stores a `u16` `ratan2` result into), and the
 function passes it to `gfxRotMatrixY(MATRIX*, s32, s32)`, where the target
@@ -109160,7 +109160,7 @@ Inputs: `base_1.i` SHA256
 `b32c44adb3dd6102c8bb923bf28f868c1cdc1d97c1a1c83606bd5cea3eeec2e4`; compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## Four copies of one block are four inlined expansions, not one variable used four times (func_actor_401000_8013B1E4, 2026-09-16)
+## Four copies of one block are four inlined expansions, not one variable used four times (_actor401000DeathBurst, 2026-09-16)
 
 A function that repeats the same 20-instruction body in four `if` arms — here
 the area-placement texture binding that follows each `effectSpawn` — compiles to different
@@ -111806,7 +111806,7 @@ source `base_1.c` `7d66465b9e7705a66239407080a379d4e989b558ef6260adc5d9c68c11a37
 (94.286%). Target `d96cb58530a42fdb3157c15cfacfe13d5535c864e11a49af91267bbbdf99f354`.
 Scratch `nonmatchings/_actor511000SetRupertModelDraw-vacuum`.
 
-## A separate temp for `t - 1` is born while `t` is still live, so `global_conflicts` forces two registers; compute it once, on the same variable, after the join (func_actor_511000_801330F0, 2026-09-17)
+## A separate temp for `t - 1` is born while `t` is still live, so `global_conflicts` forces two registers; compute it once, on the same variable, after the join (_actor511000TickHelicopter, 2026-09-17)
 
 The tail of this state handler runs a `tmdFreePrimitiveBuffer` countdown. m2c seeds it
 with the result in its own temp:
@@ -111870,7 +111870,7 @@ source `base_1.c` `fac96ecef6e0d3c08d6dd8d81dafc0096a66cdf1e068c40f2f88eeca3c291
 (99.737%, `regs=4`); `base_2.i`
 `ab11b46de399e8125071faa1b8efec98dd014167bca80f48f27461d5cc0761aa`, source
 `base_2.c` `a15ac4b64fb3d065cabf1f57a91c0cfbfd7b5d152f49822a43e1652328df5d4f`
-(100.000%). Scratch `nonmatchings/func_actor_511000_801330F0-vacuum`.
+(100.000%). Scratch `nonmatchings/_actor511000TickHelicopter-vacuum`.
 
 ### The same function's two address legs: derive them from the types, not the m2c casts
 
@@ -149935,7 +149935,7 @@ attempts; left as it was.
 ### Goto removal, batch 16: stores in the arms instead of a value local, a reset in both arms (2026-10-06)
 
 - **`cmd = K; goto run;` into `run: call(cmd); state = 2; break;`, with a
-  `state` local stored once at the end** (`func_actor_548100_80132684`). The
+  `state` local stored once at the end** (`_actor548100HandleHotspotChoice`). The
   local was standing for `task->state = K` written in the arms. Three forms
   with the local fail: the call and `state = 2` in each case keeps the *first*
   copy of the call (batch 09's case), and in both that form and an inline

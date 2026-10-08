@@ -228,3 +228,5 @@ _actor401000Hidden = 0x8013db10; // type:func
 _actor401000RiseFront = 0x8013dec8; // type:func
 _oddStrangerGrabReach = 0x801378dc; // type:func
 _actor401000Spawn = 0x80133274; // type:func
+_actor401000DeathBurst = 0x8013b1e4; // type:func
+_actor401000StrangerTask = 0x8013e038; // type:func

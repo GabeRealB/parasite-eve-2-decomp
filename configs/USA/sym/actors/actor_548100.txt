@@ -74,3 +74,6 @@ _actor548100WaitBatteryReturn = 0x80134f64; // type:func
 _actor548100WaitCompletionCaption = 0x80135124; // type:func
 _actor548100PanelTask = 0x801347f8; // type:func
 _actor548100InitPanel = 0x80132420; // type:func
+_actor548100HandleHotspotChoice = 0x80132684; // type:func
+_actor548100PlaceQueuedBattery = 0x80134e94; // type:func
+_actor548100AnimateCircuitFlow = 0x80134fec; // type:func
