@@ -159,7 +159,7 @@ static void _hypervelocityReleaseWeapon(Task* task);
 
 static void _hypervelocityDrawDischargeCone(const GfxCoord* coord, s16 ageFrames, s32 halfExtent, const u8* rgb);
 static void _hypervelocityUpdateModelPose(Task* task);
-static void func_hypervelocity_8011F570(Task* arg0);
+static void _hypervelocityInitWeaponModel(Task* task);
 static void _hypervelocityQueueWeaponTeardown(Task* task);
 
 void hypervelocityChargeEffectTask(Task* task)
@@ -913,39 +913,58 @@ static void _hypervelocityUpdateModelPose(Task* task)
     SCRATCH_STACK_RELEASE_BYTES(HYPERVELOCITY_MODEL_SCRATCH_BYTES);
 }
 
-static void func_hypervelocity_8011F570(Task* arg0)
+/// Attaches a newly spawned model component under the weapon root and shares its lighting.
+static inline void _hypervelocityAttachModelComponent(Task* weaponTask, Task* componentTask,
+                                                      GfxCoord* weaponCoord, const TmdObject* weaponModel)
 {
-    Task*      child;
-    TmdObject* childExtra;
-    TmdObject* extra;
-    GfxCoord*  coord;
+    TmdObject* componentModel;
 
-    extra               = arg0->extra.tmd;
-    coord               = extra->coords;
-    arg0->state        += 1;
-    arg0->exitCallback  = _hypervelocityReleaseWeapon;
-    arg0->killCountdown = 0;
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    extra->flags        = 0;
-    if (!(arg0->spawnArg1.value & 0xF)) {
-        child = taskSpawn(7, 0x70, 1, 0);
-        if (child != NULL) {
-            child->extra.tmd->coords->parent = coord;
-            childExtra                       = child->extra.tmd;
-            childExtra->colorMtx             = extra->colorMtx;
-            childExtra->lightMtx             = extra->lightMtx;
-            taskReparent(arg0, child);
+    componentTask->extra.tmd->coords->parent = weaponCoord;
+    componentModel                           = componentTask->extra.tmd;
+    componentModel->colorMtx                 = weaponModel->colorMtx;
+    componentModel->lightMtx                 = weaponModel->lightMtx;
+    taskReparent(weaponTask, componentTask);
+}
+
+/// Initializes a Hypervelocity model and attaches the root's slide and hinge.
+///
+/// Requires state 0 and a live TMD body; spawnArg1's low nibble selects root
+/// (0), slide (1) or hinge (2). Child allocations fail independently. Only a
+/// successful hinge spawn also places the root at (-6, -60, -22) local game
+/// units. Children borrow root lighting/coordinate storage and become owned
+/// tasks through reparenting. Installs the common model release callback and
+/// advances to pose state 1 without allocating a separate work block.
+static void _hypervelocityInitWeaponModel(Task* task)
+{
+    enum {
+        HYPERVELOCITY_MODEL_TASK_BANK        = 7,
+        HYPERVELOCITY_MODEL_SLIDE_DESCRIPTOR = 0x70,
+        HYPERVELOCITY_MODEL_HINGE_DESCRIPTOR = 0x74,
+        HYPERVELOCITY_MODEL_POSE_STATE       = 1,
+    };
+    Task*      componentTask;
+    TmdObject* weaponModel;
+    GfxCoord*  weaponCoord;
+
+    weaponModel               = task->extra.tmd;
+    weaponCoord               = weaponModel->coords;
+    task->state              += HYPERVELOCITY_MODEL_POSE_STATE;
+    task->exitCallback        = _hypervelocityReleaseWeapon;
+    task->killCountdown       = 0;
+    weaponCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    weaponModel->flags        = 0;
+    // Each child has its own transform under the root and shares its lighting.
+    if (!(task->spawnArg1.value & HYPERVELOCITY_MODEL_COMPONENT_MASK)) {
+        componentTask = taskSpawn(HYPERVELOCITY_MODEL_TASK_BANK, HYPERVELOCITY_MODEL_SLIDE_DESCRIPTOR, HYPERVELOCITY_MODEL_SLIDE, 0);
+        if (componentTask != NULL) {
+            _hypervelocityAttachModelComponent(task, componentTask, weaponCoord, weaponModel);
         }
-        child = taskSpawn(7, 0x74, 2, 0);
-        if (child != NULL) {
-            child->extra.tmd->coords->parent = coord;
-            childExtra                       = child->extra.tmd;
-            childExtra->colorMtx             = extra->colorMtx;
-            childExtra->lightMtx             = extra->lightMtx;
-            taskReparent(arg0, child);
-            coord->coord.t[0] = -6;
-            coord->coord.t[1] = -0x3C;
-            coord->coord.t[2] = -0x16;
+        componentTask = taskSpawn(HYPERVELOCITY_MODEL_TASK_BANK, HYPERVELOCITY_MODEL_HINGE_DESCRIPTOR, HYPERVELOCITY_MODEL_HINGE, 0);
+        if (componentTask != NULL) {
+            _hypervelocityAttachModelComponent(task, componentTask, weaponCoord, weaponModel);
+            weaponCoord->coord.t[0] = -6;
+            weaponCoord->coord.t[1] = -0x3C;
+            weaponCoord->coord.t[2] = -0x16;
         }
     }
 }
@@ -967,18 +986,16 @@ static void _hypervelocityReleaseWeapon(Task* task)
     taskKill(task);
 }
 
-/// Per-frame entry point: runs the weapon task's current state. The table is a
-/// local, so GCC copies it from `.rodata` onto the stack every frame.
-void func_hypervelocity_8011F6C0(Task* arg0)
+void hypervelocityWeaponModelTask(Task* task)
 {
-    TaskFunc states[4] = {
-        func_hypervelocity_8011F570,
+    TaskFunc stateHandlers[] = {
+        _hypervelocityInitWeaponModel,
         _hypervelocityUpdateModelPose,
         _hypervelocityQueueWeaponTeardown,
         _hypervelocityReleaseWeapon,
     };
 
-    states[arg0->state](arg0);
+    stateHandlers[task->state](task);
 }
 
 void hypervelocityAttackState(Task* playerTask)

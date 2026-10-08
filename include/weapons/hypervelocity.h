@@ -63,7 +63,16 @@ void hypervelocityShockRingTask(Task* task);
 /// Parent, task and owned work remain live until the player tears them down.
 void hypervelocityChargeEffectTask(Task* task);
 
-void func_hypervelocity_8011F6C0(Task* arg0);
+/// Dispatches the Hypervelocity weapon root or one of its moving model components.
+///
+/// Bank-7 descriptors 0x56, 0x70 and 0x74 supply the root, slide and hinge models.
+/// `Task::state` must be 0..3 (initialize, pose, request teardown, release).
+/// The low nibble of `spawnArg1.value` is 0 root, 1 slide or 2 hinge; only the root
+/// creates child models. Children borrow the root coordinate and lighting and
+/// read its charge-motion flags. Requires live player/root models and the
+/// matching weapon/gameplay overlays throughout dispatch. Release kills the
+/// task and its children and schedules or performs model teardown.
+void hypervelocityWeaponModelTask(Task* task);
 
 /// Runs the Hypervelocity player charge, cancellation and recoil phases.
 ///

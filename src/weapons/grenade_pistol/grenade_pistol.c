@@ -31,6 +31,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -52,55 +53,63 @@ static void _grenadeShellSpawn(Task* task);
 #error "GRENADE_VARIANT is a per-package build parameter"
 #endif
 
-/// The weapon's index. It also keys the firing sound and the shot effect.
-
-void func_grenade_pistol_8011D1D4(Task* arg0);
-
-void func_grenade_pistol_8011D1D4(Task* arg0)
+void grenadePistolAttackState(Task* playerTask)
 {
+    enum {
+        GRENADE_PISTOL_PHASE_PREPARE       = 0,
+        GRENADE_PISTOL_PHASE_WAIT_READY    = 1,
+        GRENADE_PISTOL_PHASE_FIRE          = 2,
+        GRENADE_PISTOL_PHASE_RECOVER       = 3,
+        GRENADE_PISTOL_PLAYER_ATTACK_STATE = 4,
+        GRENADE_PISTOL_ANIMATION_READY     = 9,
+        GRENADE_PISTOL_ANIMATION_FIRE      = 10,
+        GRENADE_PISTOL_READY_BLEND_FRAMES  = 1,
+        GRENADE_PISTOL_MOVING_BLEND_FRAMES = 8,
+        GRENADE_PISTOL_FIRE_BLEND_FRAMES   = 3,
+        GRENADE_PISTOL_SHOT_COOLDOWN_TICKS = 40,
+    };
     GameActor* actor;
-    s32        anim;
+    s32        blendFrames;
 
-    actor = arg0->work;
+    actor = playerTask->work;
     switch (actor->statePhase) {
-        case 0:
-            anim                  = 1;
-            actor->state          = 4;
+        case GRENADE_PISTOL_PHASE_PREPARE:
+            blendFrames           = GRENADE_PISTOL_READY_BLEND_FRAMES;
+            actor->state          = GRENADE_PISTOL_PLAYER_ATTACK_STATE;
             actor->mode           = GAME_ACTOR_MODE_NORMAL;
             actor->turnRateIndex  = 0;
             actor->animationState = 0;
-            actor->statePhase    += anim;
+            actor->statePhase    += blendFrames;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 8;
+                blendFrames = GRENADE_PISTOL_MOVING_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, GRENADE_PISTOL_ANIMATION_READY, 0, blendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case GRENADE_PISTOL_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
-            actor->statePhase                  = 3;
+        case GRENADE_PISTOL_PHASE_FIRE:
+            actor->statePhase                  = GRENADE_PISTOL_PHASE_RECOVER;
             actor->rumblePosted                = 0;
-            actor->attackControl.cooldownTicks = 0x28;
-            worldCoordPlaySound(arg0->extra.tmd->coords,
-                                ((gPlayerStatus.weaponSlotItem - 0xA) << 24) | 0x20000004 | (GRENADE_WEAPON << 16), 1);
+            actor->attackControl.cooldownTicks = GRENADE_PISTOL_SHOT_COOLDOWN_TICKS;
+            worldCoordPlaySound(playerTask->extra.tmd->coords,
+                                ((gPlayerStatus.weaponSlotItem - GRENADE_ROUND_FIRST) << 24) | SOUND_WEAPON(GRENADE_WEAPON, 4), 1);
             effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
                         actor->equipmentTasks[1]->extra.tmd->coords, GRENADE_WEAPON,
                         NULL);
             equipmentConsumeWeaponLoad(WEAPON_ITEM(GRENADE_WEAPON), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
-            /* The projectile's kind and its row of the muzzle-offset and speed tables
-               (bits 16-19 of its spawn argument) both follow the variant. */
-            playerActorSpawnGrenadeProjectile(arg0, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_PISTOL + GRENADE_VARIANT,
+            // Both the projectile package and its launch-tuning row follow this build.
+            playerActorSpawnGrenadeProjectile(playerTask, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_PISTOL + GRENADE_VARIANT,
                                               gPlayerStatus.weaponSlotItem | (GRENADE_VARIANT << PLAYER_ACTOR_GRENADE_MUZZLE_ROW_SHIFT) | (GRENADE_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));
-            playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 3);
+            playerActorPlayChildSlotsWithBlend(playerTask, GRENADE_PISTOL_ANIMATION_FIRE, 0, GRENADE_PISTOL_FIRE_BLEND_FRAMES);
             break;
-        case 3:
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
-                playerActorFinishWeaponAttack(arg0);
+        case GRENADE_PISTOL_PHASE_RECOVER:
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0) {
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }

@@ -31,6 +31,7 @@
 #include "main/scratch.h"
 #include "main/session.h"
 #include "main/session_types.h"
+#include "main/sound_ids.h"
 #include "main/task.h"
 #include "main/task_types.h"
 #include "main/tmd_types.h"
@@ -69,150 +70,169 @@ typedef struct {
 } _M4a1GrenadeFlightScratch;
 STATIC_ASSERT_SIZEOF(_M4a1GrenadeFlightScratch, 0x34);
 
-void        func_m4a1_grenade_8011D1EC(Task* arg0);
 static void _m4a1GrenadeInitProjectile(Task* task);
-static void func_m4a1_grenade_8011D994(Task* arg0);
+static void _m4a1GrenadeFlyProjectile(Task* task);
 
-/// Per-frame firing state machine for the M4A1 grenade launcher. State 0 arms
-/// the shot and raises the weapon (clip 8 instead of 1 when it was already up),
-/// state 1 waits for that clip. State 2 branches on `field_97F`: a held trigger
-/// (bit 0) drops into the three-round burst of state 3, a tap (bit 1) fires the
-/// single 0x101 grenade of state 4, and anything else falls straight into the
-/// burst. State 3 counts `field_934` down to each round, spending one grenade,
-/// playing `0x201B0004` and spawning the muzzle flash, and picks the lock-on
-/// target on the frame after. States 4/5 pick the target once, then state 5
-/// walks the animation, emitting `0x201B0008 + field_93E` on every record whose
-/// `flags` has both 0x10 and 0x20, and hands back to `playerActorFinishWeaponAttack` when the
-/// clip is done or the recoil timer has run out.
-void func_m4a1_grenade_8011D1EC(Task* arg0)
+/// Spawns the selected room impact and plays its sound at the returned position.
+///
+/// The query initializes only the temporary coordinate's cached translation.
+static inline void _m4a1GrenadePlayWeaponImpact(const WorldCollisionContact* contacts,
+                                                const GfxCoord* playerCoord, GfxCoord* impactCoord)
 {
-    GameActor*             actor;
-    GfxCoord*              coord;
-    GfxCoord*              spot;
-    const AnimationRecord* rec;
-    EquipmentWeaponLoad*   slot;
-    s32                    anim;
-    s32                    delay;
-    s32                    sfx;
+    if (playerActorSpawnWeaponImpact(contacts, playerCoord, impactCoord) != 0) {
+        worldCoordPlaySound(impactCoord, SOUND_COMMON(0x17), 1);
+    }
+}
 
-    actor = arg0->work;
-    coord = arg0->extra.tmd->coords;
-    slot  = equipmentGetWeaponLoad(gPlayerStatus.weapon + 0x7F);
-    /* Reloaded rather than reused: the store leaves the block address in a
-       caller-saved register and the copy into `spot` is a second read of
-       `SCRATCH_STACK_CURSOR_SLOT` that CSE folds back onto it, which is what keeps the
-       two uses in separate registers. */
-    SCRATCH_STACK_RESERVE_BYTES(0x50);
-    spot = SCRATCH_STACK_CURSOR(GfxCoord);
-    sfx  = slot->secondaryItemId - 0x9F;
-    if (sfx < 0) {
-        sfx = 0xA;
+void m4a1GrenadeAttackState(Task* playerTask)
+{
+    enum {
+        M4A1_GRENADE_PHASE_PREPARE           = 0,
+        M4A1_GRENADE_PHASE_WAIT_READY        = 1,
+        M4A1_GRENADE_PHASE_SELECT_ATTACK     = 2,
+        M4A1_GRENADE_PHASE_RIFLE_BURST       = 3,
+        M4A1_GRENADE_PHASE_GRENADE_IMPACT    = 4,
+        M4A1_GRENADE_PHASE_RECOVER           = 5,
+        M4A1_GRENADE_PLAYER_ATTACK_STATE     = 4,
+        M4A1_GRENADE_WEAPON_INDEX            = 27,
+        M4A1_GRENADE_ANIMATION_READY         = 9,
+        M4A1_GRENADE_ANIMATION_RIFLE         = 10,
+        M4A1_GRENADE_ANIMATION_GRENADE       = 11,
+        M4A1_GRENADE_READY_BLEND_FRAMES      = 1,
+        M4A1_GRENADE_MOVING_BLEND_FRAMES     = 8,
+        M4A1_GRENADE_RIFLE_BLEND_FRAMES      = 2,
+        M4A1_GRENADE_LAUNCH_BLEND_FRAMES     = 3,
+        M4A1_GRENADE_RIFLE_BURST_ROUNDS      = 3,
+        M4A1_GRENADE_RIFLE_SHOT_TICKS        = 3,
+        M4A1_GRENADE_RIFLE_IMPACT_TICKS      = 2,
+        M4A1_GRENADE_RIFLE_CANCEL_TICKS      = 9,
+        M4A1_GRENADE_LAUNCH_CANCEL_TICKS     = 34,
+        M4A1_GRENADE_LAUNCH_COOLDOWN_TICKS   = 40,
+        M4A1_GRENADE_RECOVERY_COOLDOWN_TICKS = 12,
+        M4A1_GRENADE_RIFLE_SOUND             = SOUND_WEAPON(M4A1_GRENADE_WEAPON_INDEX, 4),
+        M4A1_GRENADE_LAUNCH_SOUND            = SOUND_WEAPON(M4A1_GRENADE_WEAPON_INDEX, 6),
+        M4A1_GRENADE_CUE_SOUND_FIRST         = SOUND_WEAPON(M4A1_GRENADE_WEAPON_INDEX, 8),
+    };
+    GameActor*                 actor;
+    GfxCoord*                  playerCoord;
+    GfxCoord*                  impactCoord;
+    const AnimationRecord*     cueRecord;
+    const EquipmentWeaponLoad* weaponLoad;
+    s32                        blendFrames;
+    s32                        burstTicksLeft;
+    s32                        ammunitionIndex;
+
+    actor       = playerTask->work;
+    playerCoord = playerTask->extra.tmd->coords;
+    weaponLoad  = equipmentGetWeaponLoad(WEAPON_ITEM(gPlayerStatus.weapon));
+    // The impact query supplies only cached translation; the remaining node is untouched.
+    impactCoord     = SCRATCH_STACK_RESERVE_BLOCK(GfxCoord);
+    ammunitionIndex = WEAPON_AMMUNITION_INDEX(weaponLoad->secondaryItemId);
+    if (ammunitionIndex < 0) {
+        ammunitionIndex = GRENADE_ROUND_FRAGMENTATION;
     }
     switch (actor->statePhase) {
-        case 0:
-            anim                                                  = 1;
-            actor->state                                          = 4;
+        case M4A1_GRENADE_PHASE_PREPARE:
+            blendFrames                                           = M4A1_GRENADE_READY_BLEND_FRAMES;
+            actor->state                                          = M4A1_GRENADE_PLAYER_ATTACK_STATE;
             actor->mode                                           = GAME_ACTOR_MODE_NORMAL;
             actor->turnRateIndex                                  = 0;
             actor->animationState                                 = 0;
-            actor->statePhase                                    += anim;
-            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= 0xC00;
+            actor->statePhase                                    += blendFrames;
+            actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT | WORLD_COLLISION_BODY_SINGLE_CONTACT;
             if (((u16)actor->movementMode | actor->turnSign) != 0) {
-                anim = 8;
+                blendFrames = M4A1_GRENADE_MOVING_BLEND_FRAMES;
             }
-            playerActorPlayChildSlotsWithBlend(arg0, 9, 0, anim);
+            playerActorPlayChildSlotsWithBlend(playerTask, M4A1_GRENADE_ANIMATION_READY, 0, blendFrames);
             actor->movementMode = 0;
             break;
-        case 1:
+        case M4A1_GRENADE_PHASE_WAIT_READY:
             if (animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1) !=
                 NULL) {
                 actor->statePhase++;
             }
             break;
-        case 2:
+        case M4A1_GRENADE_PHASE_SELECT_ATTACK:
             actor->rumblePosted = 0;
-            if (actor->attackButton & 1) {
-                actor->statePhase        = 3;
+            if (actor->attackButton & PLAYER_ACTOR_ATTACK_BUTTON_PRIMARY) {
+                actor->statePhase        = M4A1_GRENADE_PHASE_RIFLE_BURST;
                 actor->stateTimer        = 0;
-                actor->attackCancelTicks = 9;
-                actor->actionValue       = 3;
-                playerActorSetWeaponAttackFlags(arg0, 0, 1);
-            } else if (actor->attackButton & 2) {
-                enum { M4A1_GRENADE_PROJECTILE_WEAPON = 27 };
-                actor->statePhase                  = 4;
-                actor->attackControl.cooldownTicks = 0x28;
-                actor->attackCancelTicks           = 0x22;
-                equipmentConsumeWeaponLoad(0x9A, EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
-                worldCoordPlaySound(arg0->extra.tmd->coords,
-                                    ((sfx - 0xA) << 24) | 0x201B0006, 1);
+                actor->attackCancelTicks = M4A1_GRENADE_RIFLE_CANCEL_TICKS;
+                actor->actionValue       = M4A1_GRENADE_RIFLE_BURST_ROUNDS;
+                playerActorSetWeaponAttackFlags(playerTask, 0, 1);
+            } else if (actor->attackButton & PLAYER_ACTOR_ATTACK_BUTTON_SECONDARY) {
+                actor->statePhase                  = M4A1_GRENADE_PHASE_GRENADE_IMPACT;
+                actor->attackControl.cooldownTicks = M4A1_GRENADE_LAUNCH_COOLDOWN_TICKS;
+                actor->attackCancelTicks           = M4A1_GRENADE_LAUNCH_CANCEL_TICKS;
+                equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_GRENADE_WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_SECONDARY);
+                worldCoordPlaySound(playerTask->extra.tmd->coords,
+                                    ((ammunitionIndex - GRENADE_ROUND_FIRST) << 24) | M4A1_GRENADE_LAUNCH_SOUND, 1);
                 effectSpawn(EFFECT_GRENADE_MUZZLE_FLASH,
-                            actor->equipmentTasks[1]->extra.tmd->coords, 0x1B,
+                            actor->equipmentTasks[1]->extra.tmd->coords, M4A1_GRENADE_WEAPON_INDEX,
                             NULL);
-                playerActorSpawnGrenadeProjectile(arg0, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_M4A1,
-                                                  sfx | (M4A1_GRENADE_PROJECTILE_WEAPON << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));
-                playerActorPlayChildSlotsWithBlend(arg0, 0xB, 0, 3);
+                playerActorSpawnGrenadeProjectile(playerTask, PLAYER_ACTOR_GRENADE_PLAYER, PLAYER_ACTOR_GRENADE_M4A1,
+                                                  ammunitionIndex | (M4A1_GRENADE_WEAPON_INDEX << PLAYER_ACTOR_GRENADE_WEAPON_SHIFT));
+                playerActorPlayChildSlotsWithBlend(playerTask, M4A1_GRENADE_ANIMATION_GRENADE, 0, M4A1_GRENADE_LAUNCH_BLEND_FRAMES);
                 break;
             }
             /* fallthrough */
-        case 3:
+        case M4A1_GRENADE_PHASE_RIFLE_BURST:
+            // Enable the rifle capsule for each shot, then resolve its contacts next tick.
             if (actor->actionValue != 0) {
-                delay = actor->stateTimer;
-                if (delay == 0) {
+                burstTicksLeft = actor->stateTimer;
+                if (burstTicksLeft == 0) {
                     actor->actionValue--;
-                    actor->stateTimer                                     = 3;
+                    actor->stateTimer                                     = M4A1_GRENADE_RIFLE_SHOT_TICKS;
                     actor->rumblePosted                                   = 0;
                     actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-                    equipmentConsumeWeaponLoad(0x9A, EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
+                    equipmentConsumeWeaponLoad(WEAPON_ITEM(M4A1_GRENADE_WEAPON_INDEX), EQUIPMENT_WEAPON_LOAD_CONSUME_PRIMARY);
                     if (playerActorQueryWeaponLoads(PLAYER_ACTOR_WEAPON_LOAD_PRIMARY) == 0) {
                         actor->actionValue = 0;
                     }
-                    worldCoordPlaySound(arg0->extra.tmd->coords,
-                                        ((sfx - 0xA) << 24) | 0x201B0004, 1);
+                    worldCoordPlaySound(playerTask->extra.tmd->coords,
+                                        ((ammunitionIndex - GRENADE_ROUND_FIRST) << 24) | M4A1_GRENADE_RIFLE_SOUND, 1);
                     effectSpawn(EFFECT_RIFLE_MUZZLE_FLASH,
                                 actor->equipmentTasks[1]->extra.tmd->coords,
-                                0x1B, NULL);
-                    playerActorPlayChildSlotsWithBlend(arg0, 0xA, 0, 2);
+                                M4A1_GRENADE_WEAPON_INDEX, NULL);
+                    playerActorPlayChildSlotsWithBlend(playerTask, M4A1_GRENADE_ANIMATION_RIFLE, 0, M4A1_GRENADE_RIFLE_BLEND_FRAMES);
                 } else {
-                    actor->stateTimer = delay - 1;
-                    if (delay - 1 == 2) {
+                    actor->stateTimer = burstTicksLeft - 1;
+                    if (burstTicksLeft - 1 == M4A1_GRENADE_RIFLE_IMPACT_TICKS) {
                         actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-                        if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                            worldCoordPlaySound(spot, 0x17, 1);
-                        }
+                        _m4a1GrenadePlayWeaponImpact(actor->weaponContacts, playerCoord, impactCoord);
                     }
                 }
                 break;
             }
             /* fallthrough */
-        case 4:
-            actor->statePhase                                     = 5;
+        case M4A1_GRENADE_PHASE_GRENADE_IMPACT:
+            actor->statePhase                                     = M4A1_GRENADE_PHASE_RECOVER;
             actor->actionValue                                    = 0;
             actor->collisionBodies[GAME_ACTOR_BODY_WEAPON].flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-            if (playerActorSpawnWeaponImpact(actor->weaponContacts, coord, spot) != 0) {
-                worldCoordPlaySound(spot, 0x17, 1);
-            }
+            _m4a1GrenadePlayWeaponImpact(actor->weaponContacts, playerCoord, impactCoord);
             /* fallthrough */
-        case 5:
-            rec = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
-            if (rec != NULL && rec != actor->lastCueRecord) {
-                actor->lastCueRecord = rec;
-                if ((rec->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
-                    worldCoordPlaySound(arg0->extra.tmd->coords,
-                                        (actor->actionValue + 0x201B0008) | ((sfx - 0xA) << 24), 0);
+        case M4A1_GRENADE_PHASE_RECOVER:
+            // Emit each animation cue once and allow cancellation after the attack delay.
+            cueRecord = animationGetCurrentRecord(&actor->animationContext, actor->animationSlots + 1);
+            if (cueRecord != NULL && cueRecord != actor->lastCueRecord) {
+                actor->lastCueRecord = cueRecord;
+                if ((cueRecord->flags & ANIMATION_RECORD_CUE_MASK) == ANIMATION_RECORD_CUE_MASK) {
+                    worldCoordPlaySound(playerTask->extra.tmd->coords,
+                                        (actor->actionValue + M4A1_GRENADE_CUE_SOUND_FIRST) | ((ammunitionIndex - GRENADE_ROUND_FIRST) << 24), 0);
                     actor->actionValue++;
                 }
             }
             if (actor->attackCancelTicks != 0) {
                 actor->attackCancelTicks--;
             }
-            if (playerActorIsSlotAdvancingLinearly(arg0, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
+            if (playerActorIsSlotAdvancingLinearly(playerTask, D_80112E04[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId][1], 0, 0) == 0 ||
                 ((actor->padHeld & actor->actionPadMask) != 0 && actor->attackCancelTicks == 0)) {
-                actor->attackControl.cooldownTicks = 0xC;
-                playerActorFinishWeaponAttack(arg0);
+                actor->attackControl.cooldownTicks = M4A1_GRENADE_RECOVERY_COOLDOWN_TICKS;
+                playerActorFinishWeaponAttack(playerTask);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x50);
+    SCRATCH_STACK_RELEASE_BYTES(sizeof(GfxCoord));
 }
 
 /// Initializes a launched M4A1 grenade and links its owned collision bodies.
@@ -319,119 +339,153 @@ static void _m4a1GrenadeInitProjectile(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeSpawnScratch);
 }
 
-/// Flight state: steps the grenade along `dir`. A category-3 contact in
-/// `sphereContacts` detonates it, as does `flightTimer` passing 0xFFFFF.
-/// Grid contacts on `capsuleContacts` are resolved first, then those on
-/// `sphereContacts`; the chosen table is handed to `worldCollisionResolveResponsePushback` /
-/// `worldCollisionSurfaceClassFromMask` for the surface it crossed. A surface that blocks probes
-/// detonates when it accepts weapon impacts, and otherwise advances the task
-/// to the exit state. Any other surface detonates only for surface index 1
-/// in area 0x14 of stages 2 and 3.
-static void func_m4a1_grenade_8011D994(Task* arg0)
+/// Advances a live M4A1 grenade, resolving contacts or starting its blast.
+///
+/// Requires task state 1 and initialized `WeaponGrenadeWork`. Flight uses a
+/// 16.16 clock whose integer half divides the 4096-scaled direction; each tick
+/// adds `GRENADE_SHELL_FLIGHT_STEP` and detonates above 0xFFFFF. Enemy contacts
+/// detonate immediately. Capsule grid contacts take precedence over sphere
+/// grid contacts; blocking surfaces either detonate or select teardown. Class
+/// 1 in the day/night Dryfield Water Tower also detonates on pass-through.
+/// Detonation samples the current secondary load (fragmentation if empty),
+/// widens the sphere and changes the clock to 8 blast ticks, or 1 for airburst.
+/// Every path releases the frame's scratch block. A teardown surface still
+/// receives this frame's movement before the next dispatch releases the task.
+static void _m4a1GrenadeFlyProjectile(Task* task)
 {
-    _M4a1GrenadeFlightScratch*       scratch;
-    WeaponGrenadeWork*               work;
-    GfxCoord*                        coord;
-    EquipmentWeaponLoad*             slot;
-    WorldCollisionSurfaceProperties* surface;
-    s32                              idx;
-    s32                              clip;
-    s32                              step;
-    s32                              sfxbase;
-    s32                              sfxarg;
+    /// Advances translation, capsule length and the 16.16 flight clock for one tick.
+    ///
+    /// All arguments must be stable live pointers without side effects; they are
+    /// evaluated repeatedly. `grenade` is `WeaponGrenadeWork`, `coordNode` is its
+    /// `GfxCoord`, and `deltaOut` is writable `WorldCollisionDelta`. The clock's
+    /// integer half must be nonzero; direction uses 4096 per unit and the output
+    /// step uses whole game-coordinate units. Uses the enclosing
+    /// `M4A1_GRENADE_CAPSULE_TIMER_SHIFT` and shared `GRENADE_SHELL_FLIGHT_STEP`.
+    /// Expands to a compound statement and is undefined after this function.
+#define M4A1_GRENADE_STEP_PROJECTILE(grenade, coordNode, deltaOut)                                          \
+    {                                                                                                       \
+        (deltaOut)->vector.vx         = (grenade)->dir.vx / (grenade)->flightTimer.halves.integer;          \
+        (deltaOut)->vector.vy         = (grenade)->dir.vy / (grenade)->flightTimer.halves.integer;          \
+        (deltaOut)->vector.vz         = (grenade)->dir.vz / (grenade)->flightTimer.halves.integer;          \
+        (coordNode)->coord.t[0]      += (deltaOut)->vector.vx;                                              \
+        (coordNode)->coord.t[1]      += (deltaOut)->vector.vy;                                              \
+        (coordNode)->coord.t[2]      += (deltaOut)->vector.vz;                                              \
+        (grenade)->capsule.ends[1].vy = -((grenade)->flightTimer.word >> M4A1_GRENADE_CAPSULE_TIMER_SHIFT); \
+        (grenade)->flightTimer.word  += GRENADE_SHELL_FLIGHT_STEP;                                          \
+    }
 
-    work                = (WeaponGrenadeWork*)arg0->work;
-    coord               = arg0->extra.tmd->coords;
-    slot                = equipmentGetWeaponLoad(gPlayerStatus.weapon + 0x7F);
-    scratch             = SCRATCH_STACK_RESERVE_BLOCK(_M4a1GrenadeFlightScratch);
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
-    explode:
+    enum {
+        M4A1_GRENADE_TASK_STATE_BLAST          = 2,
+        M4A1_GRENADE_TASK_STATE_EXIT           = 3,
+        M4A1_GRENADE_BLAST_FRAMES              = 8,
+        M4A1_GRENADE_AIRBURST_BLAST_FRAMES     = 1,
+        M4A1_GRENADE_CAPSULE_TIMER_SHIFT       = 10,
+        M4A1_GRENADE_FLIGHT_TIMER_LIMIT        = 0xFFFFF,
+        M4A1_GRENADE_GRAVITY_STEP              = 0x10,
+        M4A1_GRENADE_SMOKE_INTERVAL_MAX        = 4,
+        M4A1_GRENADE_SMOKE_THINNING_TICKS      = 7,
+        M4A1_GRENADE_WATER_TOWER_SURFACE_CLASS = 1,
+    };
+    _M4a1GrenadeFlightScratch*             scratch;
+    WeaponGrenadeWork*                     grenadeWork;
+    GfxCoord*                              projectileCoord;
+    const EquipmentWeaponLoad*             weaponLoad;
+    const WorldCollisionSurfaceProperties* surface;
+    s32                                    surfaceClass;
+    s32                                    blastFramesLeft;
+    s32                                    flightFrame;
+    s32                                    weaponSoundBankBits;
+    s32                                    explosionSoundBits;
+
+    grenadeWork                   = task->work;
+    projectileCoord               = task->extra.tmd->coords;
+    weaponLoad                    = equipmentGetWeaponLoad(WEAPON_ITEM(gPlayerStatus.weapon));
+    scratch                       = SCRATCH_STACK_RESERVE_BLOCK(_M4a1GrenadeFlightScratch);
+    projectileCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (worldCollisionCountContactsByKind(grenadeWork->sphereContacts, WORLD_COLLISION_CONTACT_ENEMY_BODY) != 0) {
+    detonate:
         // The launcher's load is the rifle's secondary one. With no round
         // loaded the index comes out negative and the grenade detonates as
         // a fragmentation round.
-        scratch->ammunitionIndex = WEAPON_AMMUNITION_INDEX(slot->secondaryItemId);
+        scratch->ammunitionIndex = WEAPON_AMMUNITION_INDEX(weaponLoad->secondaryItemId);
         if (scratch->ammunitionIndex < 0) {
             scratch->ammunitionIndex = GRENADE_ROUND_FRAGMENTATION;
         }
-        arg0->state = 2;
-        effectSpawn(EFFECT_GRENADE_EXPLOSION, coord, scratch->ammunitionIndex, NULL);
-        sfxbase = gPlayerStatus.weapon << 16;
-        sfxarg  = ((scratch->ammunitionIndex - GRENADE_ROUND_FIRST) << 24) | 0x20000007;
-        worldCoordPlaySound(coord, sfxbase | sfxarg, 1);
-        clip = 8;
+        task->state = M4A1_GRENADE_TASK_STATE_BLAST;
+        effectSpawn(EFFECT_GRENADE_EXPLOSION, projectileCoord, scratch->ammunitionIndex, NULL);
+        weaponSoundBankBits = gPlayerStatus.weapon << 16;
+        explosionSoundBits  = ((scratch->ammunitionIndex - GRENADE_ROUND_FIRST) << 24) | SOUND_WEAPON(0, 7);
+        worldCoordPlaySound(projectileCoord, weaponSoundBankBits | explosionSoundBits, 1);
+        blastFramesLeft = M4A1_GRENADE_BLAST_FRAMES;
         if (scratch->ammunitionIndex == GRENADE_ROUND_AIRBURST) {
-            clip = 1;
+            blastFramesLeft = M4A1_GRENADE_AIRBURST_BLAST_FRAMES;
         }
-        work->flightTimer.word  = clip;
-        work->sphereBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        work->sphereBody.radius = D_m4a1_grenade_8012E08C[scratch->ammunitionIndex - GRENADE_ROUND_FIRST];
+        grenadeWork->flightTimer.word  = blastFramesLeft;
+        grenadeWork->sphereBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        grenadeWork->sphereBody.radius = D_m4a1_grenade_8012E08C[scratch->ammunitionIndex - GRENADE_ROUND_FIRST];
         SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeFlightScratch);
         return;
     }
 
-    if (worldCollisionCountContactsByKind(work->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
+    // Classify the capsule first; the low-byte mask is replaced by its surface class.
+    // Each contact path joins after classification so the result is reloaded here.
+    if (worldCollisionCountContactsByKind(grenadeWork->capsuleContacts, WORLD_COLLISION_CONTACT_GRID) == 0) {
         goto trySphereContacts;
     }
-    worldCollisionResolveResponsePushback(work->capsuleContacts, &scratch->delta, 1, &idx);
-    idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
-check:
-    surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][idx];
+    worldCollisionResolveResponsePushback(grenadeWork->capsuleContacts, &scratch->delta, 1, &surfaceClass);
+    surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
+classified:
+    surface = Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1][surfaceClass];
     if (surface->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
         if (surface->weaponImpactEnabled != WORLD_COLLISION_SURFACE_IGNORE_WEAPON_IMPACTS) {
-            goto explode;
+            goto detonate;
         }
-        arg0->state = 3;
-    } else if (idx == 1 && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area == 0x14 && (u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage - 2) < 2U) {
-        goto explode;
+        task->state = M4A1_GRENADE_TASK_STATE_EXIT;
+    } else if (surfaceClass == M4A1_GRENADE_WATER_TOWER_SURFACE_CLASS && gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area == GAME_AREA_DRYFIELD_WATER_TOWER && (u32)(gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage - GAME_STAGE_DRYFIELD) < 2U) {
+        goto detonate;
     }
-    goto move;
+    goto advanceFlight;
 trySphereContacts:
-    if (worldCollisionCountContactsByKind(work->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
-        worldCollisionResolveResponsePushback(work->sphereContacts, &scratch->delta, 1, &idx);
-        idx = worldCollisionSurfaceClassFromMask((const u8*)&idx);
-        goto check;
+    if (worldCollisionCountContactsByKind(grenadeWork->sphereContacts, WORLD_COLLISION_CONTACT_GRID) != 0) {
+        worldCollisionResolveResponsePushback(grenadeWork->sphereContacts, &scratch->delta, 1, &surfaceClass);
+        surfaceClass = worldCollisionSurfaceClassFromMask((const u8*)&surfaceClass);
+        goto classified;
     }
-move:
-    scratch->delta.vector.vx = work->dir.vx / work->flightTimer.halves.integer;
-    scratch->delta.vector.vy = work->dir.vy / work->flightTimer.halves.integer;
-    scratch->delta.vector.vz = work->dir.vz / work->flightTimer.halves.integer;
-    coord->coord.t[0]       += scratch->delta.vector.vx;
-    coord->coord.t[1]       += scratch->delta.vector.vy;
-    coord->coord.t[2]       += scratch->delta.vector.vz;
-    work->capsule.ends[1].vy = -(work->flightTimer.word >> 10);
-    work->flightTimer.word  += GRENADE_SHELL_FLIGHT_STEP;
-    if (work->flightTimer.word > 0xFFFFF) {
-        goto explode;
+advanceFlight:
+    // The growing flight divisor slows translation while gravity lowers the trajectory.
+    M4A1_GRENADE_STEP_PROJECTILE(grenadeWork, projectileCoord, &scratch->delta);
+    if (grenadeWork->flightTimer.word > M4A1_GRENADE_FLIGHT_TIMER_LIMIT) {
+        goto detonate;
     }
-    work->dir.vy      = work->dir.vy + 0x10;
-    step              = work->flightFrame + 1;
-    work->flightFrame = step;
-    if (work->smokeInterval < 4 && step % 7 == 0) {
-        work->smokeInterval = work->smokeInterval + 1;
+    grenadeWork->dir.vy      = grenadeWork->dir.vy + M4A1_GRENADE_GRAVITY_STEP;
+    flightFrame              = grenadeWork->flightFrame + 1;
+    grenadeWork->flightFrame = flightFrame;
+    if (grenadeWork->smokeInterval < M4A1_GRENADE_SMOKE_INTERVAL_MAX && flightFrame % M4A1_GRENADE_SMOKE_THINNING_TICKS == 0) {
+        grenadeWork->smokeInterval = grenadeWork->smokeInterval + 1;
     }
-    if (work->flightFrame % work->smokeInterval == 0) {
-        effectSpawn(EFFECT_SMOKE_PUFF, coord, 0, NULL);
+    if (grenadeWork->flightFrame % grenadeWork->smokeInterval == 0) {
+        effectSpawn(EFFECT_SMOKE_PUFF, projectileCoord, 0, NULL);
     }
-    worldCollisionClearContacts(work->sphereContacts);
-    worldCollisionClearContacts(work->capsuleContacts);
+    worldCollisionClearContacts(grenadeWork->sphereContacts);
+    worldCollisionClearContacts(grenadeWork->capsuleContacts);
     SCRATCH_STACK_RELEASE_BLOCK(_M4a1GrenadeFlightScratch);
+#undef M4A1_GRENADE_STEP_PROJECTILE
 }
 
 #include "../../shared/grenade_shell_blast.inc.c"
 
 #include "../../shared/grenade_shell_exit.inc.c"
 
-void func_m4a1_grenade_8011DE68(Task* task)
+void m4a1GrenadeShellTask(Task* task)
 {
-    TaskFunc states[4] = {
+    TaskFunc stateHandlers[] = {
         _m4a1GrenadeInitProjectile,
-        func_m4a1_grenade_8011D994,
+        _m4a1GrenadeFlyProjectile,
         _grenadeShellBlast,
         _grenadeShellExit,
     };
 
-    states[task->state](task);
+    stateHandlers[task->state](task);
 }
 
 static TmdBone _gM4a1GrenadeModel01134Skeleton[1] = {

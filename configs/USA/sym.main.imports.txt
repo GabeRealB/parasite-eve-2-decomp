@@ -175,7 +175,7 @@ tonfaBatonModelTask = 0x8011DB98; // type:func absolute:True owner=tonfa_baton
 grenadePistolShellTask = 0x8011DBD0; // type:func absolute:True owner=grenade_pistol
 func_mm1_8011DBD0 = 0x8011DBD8; // type:func absolute:True owner=mm1
 D_as12_8011DCF0 = 0x8011DCF0; // absolute:True owner=as12
-func_m4a1_grenade_8011DE68 = 0x8011DE68; // type:func absolute:True owner=m4a1_grenade
+m4a1GrenadeShellTask = 0x8011DE68; // type:func absolute:True owner=m4a1_grenade
 D_m249_8011DE74 = 0x8011DE74; // absolute:True owner=m249
 D_m4a1_8011DEC4 = 0x8011DEC4; // absolute:True owner=m4a1
 D_grenade_pistol_8011E28C = 0x8011E28C; // absolute:True owner=grenade_pistol
@@ -188,7 +188,7 @@ D_m4a1_grenade_8011EA2C = 0x8011EA2C; // absolute:True owner=m4a1_grenade
 D_mp5a5_8011EAFC = 0x8011EAFC; // absolute:True owner=mp5a5
 D_gunblade_8011EEB0 = 0x8011EEB0; // absolute:True owner=gunblade
 D_m4a1_pyke_8011F56C = 0x8011F56C; // absolute:True owner=m4a1_pyke
-func_hypervelocity_8011F6C0 = 0x8011F6C0; // type:func absolute:True owner=hypervelocity
+hypervelocityWeaponModelTask = 0x8011F6C0; // type:func absolute:True owner=hypervelocity
 D_m4a1_hammer_8011F778 = 0x8011F778; // absolute:True owner=m4a1_hammer
 D_hypervelocity_801202F8 = 0x801202F8; // absolute:True owner=hypervelocity
 D_hypervelocity_801205E4 = 0x801205E4; // absolute:True owner=hypervelocity

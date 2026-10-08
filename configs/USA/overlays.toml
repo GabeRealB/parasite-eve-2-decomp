@@ -127,7 +127,7 @@ slots = [
     { kind = "model", at = "0xE27C", in_c = true },
     { kind = "modelSource", at = "0xE3E4", in_c = true },
   ] },
-  { package = "mm1", id = 19, label = "MM1", defines = { GRENADE_VARIANT = 1 }, aliases = { func_grenade_pistol_8011D1D4 = "func_mm1_8011D1D4", grenadePistolShellTask = "func_mm1_8011DBD0" }, objects = [
+  { package = "mm1", id = 19, label = "MM1", defines = { GRENADE_VARIANT = 1 }, aliases = { grenadePistolAttackState = "mm1AttackState", grenadePistolShellTask = "func_mm1_8011DBD0" }, objects = [
     { kind = "packageId" },
     { unit = "grenade_pistol", variant = true, rodata = "0x4", text = "0x14", data = "0xA7C" },
     { kind = "model", at = "0xA7C", in_c = true },

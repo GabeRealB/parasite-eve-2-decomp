@@ -3,6 +3,20 @@
 
 #include "main/task_types.h"
 
+/// Runs the player's Grenade Pistol ready, fire and recovery phases.
+///
+/// Requires live player `GameActor` work, native animation slots, equipment slot
+/// 1 and the equipped weapon overlay. Phase 0 enters normal actor state 4;
+/// phase 2 consumes one primary round and spawns a projectile using the current
+/// ammunition index. The shot sets a 40-tick cooldown; recovery ends with the
+/// selected character's weapon animation. `GameActor::statePhase` must be 0..3.
+void grenadePistolAttackState(Task* playerTask);
+
+/// Runs the same attack phases for the MM1's load, muzzle row and projectile.
+///
+/// Uses the Grenade Pistol attack contract with the MM1 overlay loaded.
+void mm1AttackState(Task* playerTask);
+
 void func_mm1_8011DBD0(Task* arg0);
 
 /// Dispatches the Grenade Pistol projectile's spawn, flight, blast and teardown states.

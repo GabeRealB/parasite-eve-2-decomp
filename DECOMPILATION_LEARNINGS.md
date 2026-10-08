@@ -56514,7 +56514,7 @@ functions in it first; splat regenerates them as `INCLUDE_ASM`.
 
 ## Assign the shared pointer *after* the call, not before it
 
-`func_m4a1_grenade_8011D994` picks one of two `WorldCollisionContact` tables and hands the
+`_m4a1GrenadeFlyProjectile` picks one of two `WorldCollisionContact` tables and hands the
 winner to a common block. Written the obvious way,
 
 ```c
@@ -56561,7 +56561,7 @@ following branch's delay slot.
 
 The `$sN` a local lands in is decided by `floor_log2(n_refs) * n_refs /
 live_length`, and the `floor_log2` step means going from 3 references to 4
-*doubles* the priority. In `func_m4a1_grenade_8011D994` the scratch head had 3
+*doubles* the priority. In `_m4a1GrenadeFlyProjectile` the scratch head had 3
 references (`head`, `head - 0x34`, `head - 0x14`) and lost `$s3` to the block
 pointer; the target clearly ranked it higher. `build.sh`'s RTL summary prints
 the whole table, which is what makes this checkable rather than guesswork:
@@ -56649,7 +56649,7 @@ pseudo sometimes needs one more reference to win the lower `$sN`; the idiom for
 spelling it is naming the same variable in both operands of one empty asm.
 
 `func_grenade_pistol_8011D6FC` is the grenade pistol's copy of
-`func_m4a1_grenade_8011D994`, and it needed the scratch head and the `sphereContacts`
+`_m4a1GrenadeFlyProjectile`, and it needed the scratch head and the `sphereContacts`
 pointer in the opposite order from its sibling: 4 refs across 22 insns
 (2*4/22 = 0.36) lost `$s2` to `sphereContacts` at 4/21 (0.38). Both are already at
 `floor_log2(4) = 2`, so no boundary had to be crossed — one more reference,
@@ -149854,7 +149854,7 @@ attempts; left as it was.
   final `return 1`) is cross-jumped with the final one, the first branch is
   inverted to `beqz a0,<final>` and the function is 2 insns shorter. The same
   body is `_actor342100AdvanceBlazeAnimation` and the one in `actor_136100.c`.
-- Not converted beyond one `goto move`: `func_m4a1_grenade_8011D994`
+- Not converted beyond one `goto move`: `_m4a1GrenadeFlyProjectile`
   (`grenadeShellFly` has the same body). The detonation block as an inline
   called at its four sites does not merge back: with four copies cse gives the
   scratch cursor and `gPlayerStatus` addresses saved registers (52 insns

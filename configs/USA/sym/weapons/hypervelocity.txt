@@ -18,3 +18,5 @@ _hypervelocityQueueWeaponTeardown = 0x8011f694; // type:func
 _hypervelocityReleaseWeapon = 0x8011f6a0; // type:func
 _hypervelocityUpdateModelPose = 0x8011f374; // type:func
 hypervelocityAttackState = 0x8011f724; // type:func
+_hypervelocityInitWeaponModel = 0x8011f570; // type:func
+hypervelocityWeaponModelTask = 0x8011f6c0; // type:func
