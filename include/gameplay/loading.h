@@ -52,7 +52,24 @@ void loadingEnqueueCharacterResources(s32 imagesOnly);
 /// changes only the view bytes, without loading resources or applying a camera.
 void viewCommitIndexTask(Task* task);
 
-void Gp_LoadWaitDispatch(Task* task);
+/// Dispatches the current view's asynchronous resource and image load.
+///
+/// Bank-0 task 0x1E. A live task's state is 0 (begin/select scene image or movie),
+/// 1 (queue view resources after CD idle), 2 (restore retained image and queue
+/// movie/replacement), 3 (wait for movie readiness), 4 (wait for CD idle), or
+/// 5 (wait for scene-image completion). Any negative state finishes instead of
+/// indexing; handlers write -1 for ready completion and -2 for CD idle.
+/// Renews port 0's input block on each dispatch; completion clears it and kills
+/// the task. Nonnegative states must be in 0..5; there is no bounds check.
+///
+/// `spawnArg1.value` selects completion policy: 0 resumes the game loop, 1
+/// resumes task-controlled flips, and 2 preserves stage-controlled flips;
+/// other nonzero values behave like 2. Requires loaded location/view/resource
+/// tables, live CD/decode state, GPU/heap lifetimes valid for the selected phase,
+/// and free CD/task capacity for queued work. Image-upload phases additionally
+/// require the source, timer and scratch contract of `fsUploadImageChunk` and
+/// retry without a timeout. Scene-image completion includes timeout cleanup.
+void loadingViewLoadTask(Task* viewLoadTask);
 
 /// Restores the current view's graphics and returns presentation to the game loop.
 ///

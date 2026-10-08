@@ -58,7 +58,7 @@ void Gp_ViewLoadImage(Task* task)
                 task->state += 2;
             } else {
                 task->state = -1;
-                Gp_FinishLoadWait(task);
+                loadingFinishViewLoad(task);
             }
         }
     }

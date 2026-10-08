@@ -208,7 +208,7 @@ static TaskDesc D_8005EDA0[] = {
     { { { TASK_BODY_NONE, 0xD0 } }, spriteViewTask },
     { { { TASK_BODY_NONE, 0x2F } }, Gp_LoadStateTask },
     { { { TASK_BODY_NONE, 0x18 } }, playClockTask },
-    { { { TASK_BODY_NONE, 0xF8 } }, Gp_LoadWaitDispatch },
+    { { { TASK_BODY_NONE, 0xF8 } }, loadingViewLoadTask },
     { { { TASK_BODY_NONE, 0x10 } }, Boot_LoadInitialFile },
     { { { TASK_BODY_NONE, 0x10 } }, Boot_LoadTask },
     { { { TASK_BODY_NONE, 0x2F } }, fadeResumeSessionTask },

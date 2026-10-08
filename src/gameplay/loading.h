@@ -83,7 +83,20 @@ void loadingEnqueueViewResourcesTask(Task* task);
 /// contract, with no GPU work still reading packets that will be rebuilt.
 void companionRelocateModelTextures(Task* companionTask);
 
-void Gp_FinishLoadWait(Task* task);
+/// Completes a view load and releases its task according to the presentation mode.
+///
+/// Requires a live view-load task and session. `spawnArg1.value` is 0 (update
+/// ambient audio, clear the deferred-view request and resume the game loop),
+/// 1 (enable task-controlled flips and publish scene readiness), or 2 (publish
+/// readiness while leaving flips under the stage transition's control).
+/// Every mode clears port 0's input-block countdown and kills the task; nonzero
+/// modes also select transition image strips and spawn cached-sprite setup.
+/// Other nonzero values behave like 2. The task must not be used after this call.
+/// Mode 0 needs valid stage/area music data and `displayResumeGameLoop`'s
+/// ownership contract. Nonzero modes require task capacity and loaded sprite
+/// resources/auxiliary storage for the later setup callback. Readiness is
+/// published even if that spawn fails, before cached-sprite setup runs.
+void loadingFinishViewLoad(Task* viewLoadTask);
 
 /// Uploads the retained current-view image and queues a reload of its resources.
 ///
@@ -96,7 +109,16 @@ void Gp_FinishLoadWait(Task* task);
 /// completes asynchronously; this function does not rebuild model/sprite packets.
 void loadingRestoreViewImageAndEnqueueResources(u8 skipBackground);
 
-void Gp_LoadViewImages(void);
+/// Uploads the retained image for the current mapped view to VRAM.
+///
+/// Searches all fifty filesystem directory slots for an image at mapped view
+/// minus one. An absent image performs no upload. Requires valid loaded
+/// session/view maps, completed retained payloads and `fsUploadImageChunk`'s
+/// source, scratch, timer and GPU contracts; the borrowed payload must remain
+/// live throughout the call. Retries every non-COMPLETE result, including timer
+/// failure, without a timeout. Disables the uploader's GPU-time cutoff; does
+/// not queue file loads, rebuild packets or change presentation ownership.
+void loadingUploadCachedViewImage(void);
 
 /// Queues the current stage's CDF mount followed by its map and room-name package.
 ///

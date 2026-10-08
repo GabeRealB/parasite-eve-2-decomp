@@ -336,7 +336,7 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `1B` | `D0` | `spriteViewTask` | Select the view background, then link cached sprites each frame; frozen with room-object dispatch. Parents the room-object task |
 | `1C` | `2F` | `Gp_LoadStateTask` | 8-way dispatcher (pause / menu-ish) |
 | `1D` | `18` | `playClockTask` | Play-time/HUD updates, death presentation and session restart; six states |
-| `1E` | `F8` | `Gp_LoadWaitDispatch` | Load-wait. `D4.c` / stage fade spawn this |
+| `1E` | `F8` | `loadingViewLoadTask` | Six-state view-resource/image load; completion resumes the game loop or publishes scene readiness according to spawn mode |
 | `1F` | `10` | `Boot_LoadInitialFile` | Cold boot (`D_8005EC64 == 1`) |
 | `20` | `10` | `Boot_LoadTask` | Cold boot (otherwise). `GameMain_SpawnBootTask` |
 | `21` | `2F` | `fadeResumeSessionTask` | Hold black, reveal the loaded session, then release display/pause holds (`companion_load.c`) |

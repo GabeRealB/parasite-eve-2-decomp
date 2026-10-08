@@ -352,6 +352,22 @@ enum {
     LOADING_VIEW_SEEK_PENDING  = 1,
 };
 
+/// View-load completion markers and the bank-0 task's presentation policies.
+enum {
+    LOADING_VIEW_FINISH_READY      = -1,
+    LOADING_VIEW_FINISH_CD_IDLE    = -2,
+    LOADING_VIEW_MOVIE_READY_TICKS = 3,
+    LOADING_VIEW_INPUT_PORT        = 0,
+    LOADING_VIEW_TASK_BANK         = 0,
+    LOADING_VIEW_TASK_TYPE         = 0x1E,
+    LOADING_VIEW_SPRITE_TASK_TYPE  = 0x17,
+    LOADING_VIEW_RESUME_GAME_LOOP  = 0,
+    LOADING_VIEW_RESUME_TASK_FLIPS = 1,
+    LOADING_VIEW_NOT_READY         = 0,
+    LOADING_VIEW_READY             = 1,
+    LOADING_VIEW_RELOAD_CLEAR      = 0,
+};
+
 extern AreaRecord D_8010CBE4[21];
 
 /// End marker following the stage 1 room table.
@@ -383,15 +399,15 @@ static const _LoadingConfigFileHundreds Gp_ConfigCdTable;
 
 static void _loadingEnqueueWeaponAmmoResources(void);
 
-static void Gp_LoadWaitCdBusy(Task* task);
+static void _loadingWaitForMovieReadyTask(Task* viewLoadTask);
 
-static void Gp_LoadWaitIdle(Task* task);
+static void _loadingWaitForViewCdIdleTask(Task* viewLoadTask);
 
-static void Gp_LoadWaitDone(Task* task);
+static void _loadingWaitForSceneImageTask(Task* viewLoadTask);
 
-static void Gp_ReloadFromSave(void);
+static void _loadingReloadSavedView(void);
 
-static void Gp_ReloadAtLoc(s32 arg0);
+static void _loadingReloadView(s32 logicalViewIndex);
 
 AreaRecord* Gp_AreaTables[6] = { NULL, D_8010CBE4, D_8010CC94, D_8010CDD4, D_8010CF14, D_8010D0AC };
 AreaRecord  D_8010CBE4[21]   = {
@@ -606,9 +622,9 @@ static const TaskFuncTable6 Gp_LoadWaitFns = { {
     Gp_ViewBeginLoad,
     loadingEnqueueViewResourcesTask,
     Gp_ViewLoadImage,
-    Gp_LoadWaitCdBusy,
-    Gp_LoadWaitIdle,
-    Gp_LoadWaitDone,
+    _loadingWaitForMovieReadyTask,
+    _loadingWaitForViewCdIdleTask,
+    _loadingWaitForSceneImageTask,
 } };
 
 static const _LoadingConfigFileHundreds Gp_ConfigCdTable = { { 4, 3, 2, 5, 6 } };
@@ -812,112 +828,156 @@ void loadingEnqueueViewResourcesTask(Task* task)
     }
 }
 
-static void Gp_LoadWaitCdBusy(Task* task)
+/// Finishes a view load after three updates observing a started or skipped movie.
+///
+/// State 3 of `loadingViewLoadTask`. `killCountdown` starts at zero when the
+/// movie is queued and counts ready observations, not encoded movie frames;
+/// updates without readiness leave the count intact. Requires a live task and
+/// the completion resources of `loadingFinishViewLoad`.
+static void _loadingWaitForMovieReadyTask(Task* viewLoadTask)
 {
     if (gCdCmdQueue.movieReady != 0) {
-        task->killCountdown++;
+        viewLoadTask->killCountdown++;
     }
-    if (task->killCountdown >= 3) {
-        task->state = -1;
-        Gp_FinishLoadWait(task);
+    if (viewLoadTask->killCountdown >= LOADING_VIEW_MOVIE_READY_TICKS) {
+        viewLoadTask->state = LOADING_VIEW_FINISH_READY;
+        loadingFinishViewLoad(viewLoadTask);
     }
 }
 
-static void Gp_LoadWaitIdle(Task* task)
+/// Finishes a view load when normal CD dispatch has an empty request ring.
+///
+/// State 4 of `loadingViewLoadTask`, reached when an image reload has queued a
+/// deferred replacement without a movie. Requires a live task and the resources
+/// of `loadingFinishViewLoad`; queue idle does not test drive/display busy state.
+static void _loadingWaitForViewCdIdleTask(Task* viewLoadTask)
 {
-    if (cdCmdIsIdle() & 0xFFFF) {
-        task->state = -2;
-        Gp_FinishLoadWait(task);
+    if (cdCmdIsIdle()) {
+        viewLoadTask->state = LOADING_VIEW_FINISH_CD_IDLE;
+        loadingFinishViewLoad(viewLoadTask);
     }
 }
 
-static void Gp_LoadWaitDone(Task* task)
+/// Finishes a view load when the cached scene-image decoder marks completion.
+///
+/// State 5 of `loadingViewLoadTask`. The completion latch also covers decoder
+/// timeout cleanup; it is not a success status. Requires a live task and the
+/// completion resources of `loadingFinishViewLoad`.
+static void _loadingWaitForSceneImageTask(Task* viewLoadTask)
 {
     if (gCdCmdQueue.imageLoadStatus == CD_COMMAND_IMAGE_COMPLETE) {
-        task->state = -1;
-        Gp_FinishLoadWait(task);
+        viewLoadTask->state = LOADING_VIEW_FINISH_READY;
+        loadingFinishViewLoad(viewLoadTask);
     }
 }
 
-void Gp_LoadViewImages(void)
+void loadingUploadCachedViewImage(void)
 {
-    u8 view;
-    u8 i;
+    enum { LOADING_VIEW_IMAGE_IGNORE_GPU_TIME_LIMIT = 1 };
+    u8 mappedViewIndex;
+    u8 resourceSlotIndex;
 
-    view = viewGetMappedIndex();
-    for (i = 0; i < ARRAY_SIZE(D_8006C338); i++) {
-        if (D_8006C338[i].kind == FILE_SYSTEM_RESOURCE_IMAGE) {
-            if (view - 1 == i) {
-                while (fsUploadImageChunk(D_8006C338[i].data, 1)) {
-                }
-                break;
+    mappedViewIndex = viewGetMappedIndex();
+    for (resourceSlotIndex = 0; resourceSlotIndex < ARRAY_SIZE(D_8006C338); resourceSlotIndex++) {
+        if (D_8006C338[resourceSlotIndex].kind == FILE_SYSTEM_RESOURCE_IMAGE && mappedViewIndex - 1 == resourceSlotIndex) {
+            // Keep retrying the retained chunk, including after timer failure.
+            while (fsUploadImageChunk(D_8006C338[resourceSlotIndex].data, LOADING_VIEW_IMAGE_IGNORE_GPU_TIME_LIMIT) != FILE_SYSTEM_IMAGE_UPLOAD_COMPLETE) {
             }
+            break;
         }
     }
 }
 
-void Gp_FinishLoadWait(Task* task)
+void loadingFinishViewLoad(Task* viewLoadTask)
 {
-    padClearInputBlock(0);
-    if (task->spawnArg1.value == 0) {
+    padClearInputBlock(LOADING_VIEW_INPUT_PORT);
+    if (viewLoadTask->spawnArg1.value == LOADING_VIEW_RESUME_GAME_LOOP) {
         stageMusicUpdateAreaAmbient(1);
-        gGameSession->viewDirty = 0;
-        taskKill(task);
+        gGameSession->viewDirty = LOADING_VIEW_RELOAD_CLEAR;
+        taskKill(viewLoadTask);
         displayResumeGameLoop();
     } else {
-        if (task->spawnArg1.value == 1) {
+        // Scene-owned loads publish readiness without returning presentation.
+        if (viewLoadTask->spawnArg1.value == LOADING_VIEW_RESUME_TASK_FLIPS) {
             gDisplayState.control.flags.flipMode = DISPLAY_FLIP_TASK_ONLY;
         }
         gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_TRANSITION_STRIPS;
-        taskSpawn(0, 0x17, 0, 0);
-        gGameSession->viewReady = 1;
-        taskKill(task);
+        taskSpawn(LOADING_VIEW_TASK_BANK, LOADING_VIEW_SPRITE_TASK_TYPE, 0, 0);
+        gGameSession->viewReady = LOADING_VIEW_READY;
+        taskKill(viewLoadTask);
     }
 }
 
-void Gp_LoadWaitDispatch(Task* task)
+void loadingViewLoadTask(Task* viewLoadTask)
 {
-    TaskFuncTable6 sp;
+    TaskFuncTable6 stateHandlers;
 
-    sp = Gp_LoadWaitFns;
-    padStartInputBlock(0);
-    if (task->state < 0) {
-        Gp_FinishLoadWait(task);
+    stateHandlers = Gp_LoadWaitFns;
+    padStartInputBlock(LOADING_VIEW_INPUT_PORT);
+    // Finish markers must be intercepted before indexing the six handlers.
+    if (viewLoadTask->state < 0) {
+        loadingFinishViewLoad(viewLoadTask);
     } else {
-        sp.funcs[task->state](task);
+        stateHandlers.funcs[viewLoadTask->state](viewLoadTask);
     }
 }
 
-static void Gp_ReloadFromSave(void)
+/// Resets queued GPU drawing and discards both resident frame ordering tables.
+///
+/// Prior GPU users of both tables must have finished. No heap or model storage
+/// is released; subsequent view setup supplies new packets.
+static __inline__ void _loadingResetViewDrawing(void)
 {
-    Task*       slot;
-    McSaveData* save;
-
-    slot                  = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
-    save                  = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    slot->spawnArg1.value = save->state.location.loc.view;
-    ResetGraph(1);
+    enum { LOADING_VIEW_GPU_RESET_QUEUE = 1 };
+    ResetGraph(LOADING_VIEW_GPU_RESET_QUEUE);
     gpuClearFrameOrderingTable(0);
     gpuClearFrameOrderingTable(1);
-    gGameSession->location.loc.view = save->state.location.loc.view;
-    padStartInputBlock(0);
-    viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
-    gGameSession->viewReady = 0;
-    taskSpawn(0, 0x1E, 1, 0);
 }
 
-static void Gp_ReloadAtLoc(s32 arg0)
+/// Starts reloading the live save's logical view under task-owned presentation.
+///
+/// Requires a live view-gate task, session/save, valid loaded view resources,
+/// finished GPU uses of both frame ordering tables, and task allocation capacity.
+/// Camera resources must remain live until the queued camera task runs.
+/// Copies only the saved view byte, clears queued drawing, queues its camera
+/// without cached-sprite setup, clears readiness and spawns a mode-1 view load.
+/// Does not wait for the load or handle task-allocation failure.
+static void _loadingReloadSavedView(void)
 {
-    Task* slot;
+    Task*       viewGateTask;
+    McSaveData* liveSave;
 
-    slot                                                       = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = arg0;
-    gGameSession->location.loc.view                            = arg0;
-    slot->spawnArg1.value                                      = (u8)arg0;
-    padStartInputBlock(0);
+    viewGateTask                  = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
+    liveSave                      = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    viewGateTask->spawnArg1.value = liveSave->state.location.loc.view;
+    _loadingResetViewDrawing();
+    gGameSession->location.loc.view = liveSave->state.location.loc.view;
+    padStartInputBlock(LOADING_VIEW_INPUT_PORT);
+    viewQueueCurrentCamera(VIEW_PACKET_LIST_NONE);
+    gGameSession->viewReady = LOADING_VIEW_NOT_READY;
+    taskSpawn(LOADING_VIEW_TASK_BANK, LOADING_VIEW_TASK_TYPE, LOADING_VIEW_RESUME_TASK_FLIPS, 0);
+}
+
+/// Starts reloading a logical view and returns presentation to the game loop on completion.
+///
+/// Uses the low byte of `logicalViewIndex` as the one-based view in the live
+/// save/session and view-gate cache. Requires that byte to select loaded view
+/// resources, a live gate task and task allocation capacity. Camera resources
+/// must remain live until the queued camera task runs. Queues the camera on the
+/// selected list and cached-sprite setup on the default list, selects image
+/// strips and spawns a mode-0 view load; does not wait or handle allocation failure.
+static void _loadingReloadView(s32 logicalViewIndex)
+{
+    Task* viewGateTask;
+
+    viewGateTask                                               = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = logicalViewIndex;
+    gGameSession->location.loc.view                            = logicalViewIndex;
+    viewGateTask->spawnArg1.value                              = (u8)logicalViewIndex;
+    padStartInputBlock(LOADING_VIEW_INPUT_PORT);
     viewQueueCurrentCamera(VIEW_PACKET_LIST_DEFAULT);
     gDisplayState.control.flags.imageSource = DISPLAY_IMAGE_STRIPS;
-    taskSpawn(0, 0x1E, 0, 0);
+    taskSpawn(LOADING_VIEW_TASK_BANK, LOADING_VIEW_TASK_TYPE, LOADING_VIEW_RESUME_GAME_LOOP, 0);
 }
 
 void viewCommitIndexTask(Task* task)

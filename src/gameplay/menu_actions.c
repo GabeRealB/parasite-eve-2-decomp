@@ -2153,7 +2153,7 @@ void Gp_MapDrawTask(Task* arg0)
             rect.w = 0x80;
             rect.y = 0;
             rect.h = 0x100;
-            Gp_LoadViewImages();
+            loadingUploadCachedViewImage();
             LoadImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
         }
         arg0->spawnArg1.value++;
@@ -2225,7 +2225,7 @@ static void func_800D2020(u8 arg0)
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
         StoreImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
     } else {
-        Gp_LoadViewImages();
+        loadingUploadCachedViewImage();
         LoadImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
     }
 }
