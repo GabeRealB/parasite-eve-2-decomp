@@ -11767,7 +11767,7 @@ A `ctc2` run therefore describes a *matrix*, not vertices: in
 vertex array until the `ctc2` targets were read as control 0-7, which makes
 them `&coord->workm` (workm is at 0x24 of `GfxCoord`) with `index` handed
 straight to `actorRenderComposeCoord`. That one reading turned the body into the
-`actor_403600` project-origin twin (`func_actor_403600_80138DCC`) and matched
+`actor_403600` project-origin twin (`_actor403600QueueBodyFrameCapture`) and matched
 it first try.
 
 The load/`ctc2` *interleaving* is the macro's own and not a scheduling result:
@@ -134228,7 +134228,7 @@ The matching `.sched` reads UID291/293 depend only on the first three stores and
 Prediction and both schedule/allocation outcomes are retained in scratch `nonmatchings/_actor403600SpawnDouble-vacuum/LEARNINGS.md`, `experiments.jsonl`, `base_1.insn.txt`, `base_2.insn.txt` and the corresponding RTL dumps. Input SHA-256: base_1.i `c037aa537b38e344c75545f8cb1cf2d871f6a4774853c48953edf702e1d53349`, base_2.i `4c7327de57967e3e801adae9140e3bcfa6607811cfccf50da365a54298a7a678`; compiler `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Final typed base_4 also scored 100%, and the integrated host passed unscoped build verification. The required router produced no discovery.
 
 
-## Explicit address definitions and tied asm operands preserve setup dependencies (func_actor_403600_801406A4, 2026-09-19)
+## Explicit address definitions and tied asm operands preserve setup dependencies (_actor403600ApplySceneCommand, 2026-09-19)
 
 The archived unpinned seed reproduced 99.732% with two scheduler clusters.
 Both fixes were predicted before compiling and checked in the RTL dumps;
@@ -134261,7 +134261,7 @@ changed together. It does not establish a universal rule about every asm input.
 The zero output uses early-clobber because the next instruction reads a memory
 address; the forwarded inputs themselves are unchanged by the asm.
 
-Evidence is retained under tools/permuter_findings/func_actor_403600_801406A4/
+Evidence is retained under tools/permuter_findings/_actor403600ApplySceneCommand/
 and in the session LEARNINGS.md. The router found no discovery; these were
 independent controlled experiments. A pure-C solution remains unresolved.
 
@@ -142317,7 +142317,7 @@ target needs is `helper(puffCoord, 1)` with `tbl[i][0]` / `tbl[i][1]` inside the
 `static inline` body: the offset stays in the load and the helper's statements
 keep their place after the caller's `puffCoord = ...`.
 
-## A handler's inlined steps may already exist as functions later in the unit; that tells you which helpers to write, but not that they can share a body (func_actor_403600_8013FC2C, 2026-09-26)
+## A handler's inlined steps may already exist as functions later in the unit; that tells you which helpers to write, but not that they can share a body (_actor403600UpdateDouble, 2026-09-26)
 
 The handler's scratch-head colour update, twenty-part animation step and
 coordinate twist were held together by 15 pins and asm macros. The same three
@@ -145198,7 +145198,7 @@ mechanism is sched1's launch boost: a pointer reused for both walks has
 `REG_N_SETS == 2`, so `birthing_insn_p` does not boost its load, and the
 single-set `dst`/`nrm`/count loads claim the slots before the branch instead.
 
-## Two call sites of one inlined helper pin its store order together (func_actor_403600_801406A4, 2026-09-26)
+## Two call sites of one inlined helper pin its store order together (_actor403600ApplySceneCommand, 2026-09-26)
 
 A seventeen-store field reset appeared in two switch cases in different
 orders, and the seed reproduced each with an asm hack. They are one inlined
@@ -149929,7 +149929,7 @@ attempts; left as it was.
 - A counted scan `for (i = 0; i < N; i++, p++) { if (*p != 0) return 0; }
   return 1;` needs the pointer step in the `for` header: with `*p++` in the
   test the two increments trade places around the branch
-  (`func_actor_403600_80138D9C`).
+  (`_actor403600Are32HalfwordsZero`).
 ### Goto removal, batch 16: stores in the arms instead of a value local, a reset in both arms (2026-10-06)
 
 - **`cmd = K; goto run;` into `run: call(cmd); state = 2; break;`, with a

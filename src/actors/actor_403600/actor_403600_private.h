@@ -307,7 +307,11 @@ extern s32 D_actor_403600_80160698;
 /// the selected ripple work and its coordinate parents must remain live.
 extern GfxCoord* gActor403600RipplePlaneCoord;
 
-void func_actor_403600_80138C68(Task* arg0);
+/// Unlinks a projectile's attack body and kills its task.
+///
+/// Installed only after the projectile body has been linked. Requires live
+/// Actor403600ProjectileWork; taskKill releases the task's owned storage.
+void actor403600ProjectileExit(Task* task);
 
 /// Updates the boss's three trailing chain parts and two loose limb tips.
 ///

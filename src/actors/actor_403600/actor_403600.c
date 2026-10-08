@@ -1783,7 +1783,7 @@ void func_actor_403600_80134398(Task* arg0)
             worldCollisionInitContacts(recs, ARRAY_SIZE(newWork->attackContacts), 0);
             worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, obj);
             obj->flags         = obj->flags | (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-            arg0->exitCallback = func_actor_403600_80138C68;
+            arg0->exitCallback = actor403600ProjectileExit;
         }
         newWork->life = 0x12C;
         arg0->state   = arg0->state + 1;

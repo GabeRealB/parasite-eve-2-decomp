@@ -165,10 +165,10 @@ extern SVECTOR              D_actor_403600_80160664;
 
 extern ViewCamera D_actor_403600_80160700;
 
-static void func_actor_403600_80138EF8(struct Enemy* enemy, Task* task);
-static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1);
+static void _actor403600SpawnBoss(struct Enemy* enemy, Task* task);
+static void _actor403600UpdateBoss(Enemy* enemy, Task* task);
 static void _actor403600PlaceRushPass(Task* task);
-static u8*  func_actor_403600_80138DCC(Task* arg0);
+static u8*  _actor403600QueueBodyFrameCapture(Task* task);
 static void _actor403600ChooseFlightTarget(Task* task, s32 useRushReferences);
 static s32  _actor403600CheckRushPass(Task* task);
 static void _actor403600ApplyDamage(Task* task, s32 damage);
@@ -182,9 +182,9 @@ static void _actor403600UpdateDrainPuffs(Task* task);
 static void _actor403600AdvanceRoll(Task* task, s32 rollStep);
 static s32  _actor403600ApproachTarget(Task* task);
 static void _actor403600RaisePlayerMpForDrain(Task* task);
-s32         func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3);
+static s32  _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const ActorCommand* request, s32 unusedSecondArg);
 static void func_actor_403600_80140B4C(struct Enemy* arg0, Task* arg1);
-static void func_actor_403600_80141F58(GfxCoord* arg0, s32 arg1);
+static void _actor403600ScaleSceneFigure(GfxCoord* coord, s32 uniformScale);
 
 extern TaskDesc D_actor_303600_80162E98[];
 /// Models effect 0x80005 spawns, set in `D_800626EC[5].data.model`.
@@ -241,21 +241,20 @@ static void _actor403600UpdateWeakPhase(Task* task);
 static void _actor403600SetWeakTextures(s32 weakAppearance);
 static void _actor403600UpdateFaceTexture(Task* task);
 static void _actor403600CancelDrain(Task* task);
-static void func_actor_403600_80141C3C(Task* arg0);
+static void _actor403600UpdateDoubleMode(Task* task);
 
 static void _actor403600UpdateDoubleAction(Task* task);
-static void func_actor_403600_80141F28(Task* arg0);
+static void _actor403600SceneFigureExit(Task* task);
 static void _actor403600FadeDouble(Enemy* enemy, Task* task);
 static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1);
-static void func_actor_403600_80141E78(Enemy* arg0, Task* arg1);
+static void _actor403600WaitSceneFigure(Enemy* unusedEnemy, Task* task);
 
-s32  func_actor_403600_801406A4(Task* task, s32 msgId, ActorCommand* request, s32 arg3);
 void func_actor_403600_80141180(Task*);
 void func_actor_403600_80141BE0(Task*);
 void func_actor_403600_80141CD4(Task*);
 
 TaskMessageEntry D_actor_403600_80160504[2] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_actor_403600_801406A4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _actor403600ApplySceneCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -481,16 +480,41 @@ enum {
     ACTOR_403600_WEAK_PHASE_RECOVERING = 2
 };
 
-static s32             func_actor_403600_80138D9C(s16* arg0);
-static __inline__ u8*  _actor403600ProjectDepth(GfxCoord* coord);
+/// Scene selectors accepted by this package's actor-command handler.
+///
+/// Only command is inspected here; the request's context tags are ignored.
+enum {
+    ACTOR_403600_COMMAND_POSE_PLAYER_AND_BOSS  = 1,
+    ACTOR_403600_COMMAND_PLAY_SCENE_ANIMATIONS = 2,
+    ACTOR_403600_COMMAND_BRIGHTEN_BOSS         = 3,
+    ACTOR_403600_COMMAND_SPAWN_SCENE_FIGURE    = 4,
+    ACTOR_403600_COMMAND_FADE_SCENE_FIGURE     = 5,
+    ACTOR_403600_COMMAND_ASCEND_TO_ARENA       = 6,
+    ACTOR_403600_COMMAND_START_FIGHT           = 7,
+    ACTOR_403600_COMMAND_HIDE_BOSS             = 8,
+    ACTOR_403600_COMMAND_FINISH_BATTLE         = 9,
+};
+
+/// Clips and timing used by scene commands, distinct from combat animations.
+enum {
+    ACTOR_403600_ANIM_SCENE_PAIRED           = 21,
+    ACTOR_403600_PLAYER_ANIM_SCENE_POSE      = 9,
+    ACTOR_403600_PLAYER_ANIM_SCENE_PAIRED    = 10,
+    ACTOR_403600_PLAYER_ANIM_FIGURE_FADE     = 11,
+    ACTOR_403600_SCENE_ASCENT_BACKWARD_SPEED = -80,
+    ACTOR_403600_BATTLE_END_DELAY_FRAMES     = 5
+};
+
+static s32             _actor403600Are32HalfwordsZero(const s16* values);
+static __inline__ u8*  _actor403600QueueCoordFrameCapture(GfxCoord* coord);
 static inline void     _actor403600InitRushArm(_Actor403600RushPassScratch* scratch);
 static inline void     _actor403600PlaceOnRushCircle(Actor403600Work* work, _Actor403600RushPassScratch* scratch);
 static inline u32      _actor403600Rand(void);
 static __inline__ void _actor403600UpdateAnimation(Task* task, u8 partCount);
 static void            _actor403600SpawnDouble(Enemy* enemy, Task* task);
 static __inline__ void _actor403600UpdateColor(Enemy* enemy, Task* task);
-static __inline__ void _actor403600RotateParts(Task* task);
-static void            func_actor_403600_8013FC2C(Enemy* arg0, Task* arg1);
+static __inline__ void _actor403600ApplyDoubleFlinch(Task* task);
+static void            _actor403600UpdateDouble(Enemy* enemy, Task* task);
 static inline void     _actor403600ResetState(Task* task);
 
 void actor403600LoosePartsTask(Task* task)
@@ -501,10 +525,12 @@ void actor403600LoosePartsTask(Task* task)
     actor403600SwingLooseParts(fxTask, fxTask->parent->work, fxTask->work);
 }
 
-void func_actor_403600_80138C68(Task* arg0)
+void actor403600ProjectileExit(Task* task)
 {
-    worldCollisionUnlinkBody(&((Actor403600ProjectileWork*)arg0->work)->attackBody);
-    taskKill(arg0);
+    Actor403600ProjectileWork* work = task->work;
+
+    worldCollisionUnlinkBody(&work->attackBody);
+    taskKill(task);
 }
 
 void actor403600TickRipple(Actor403600Ripple* state)
@@ -545,21 +571,33 @@ void actor403600TickRipple(Actor403600Ripple* state)
     }
 }
 
-static s32 func_actor_403600_80138D9C(s16* arg0)
+/// Returns 1 when all 32 borrowed halfwords are zero, otherwise 0.
+///
+/// Requires 32 readable s16 elements. Stops at the first nonzero element;
+/// no recovered caller establishes which buffer this standalone scan serves.
+static s32 _actor403600Are32HalfwordsZero(const s16* values)
 {
-    s32 i;
+    enum { ACTOR_403600_ZERO_SCAN_HALFWORDS = 32 };
+    s32 halfwordIndex;
 
-    for (i = 0; i < 0x20; i++, arg0++) {
-        if (*arg0 != 0) {
+    for (halfwordIndex = 0; halfwordIndex < ACTOR_403600_ZERO_SCAN_HALFWORDS; halfwordIndex++, values++) {
+        if (*values != 0) {
             return 0;
         }
     }
     return 1;
 }
 
-/// Projects the origin of coordinate 1 and passes its depth on.
-static __inline__ u8* _actor403600ProjectDepth(GfxCoord* coord)
+/// Queues frame capture 30 ordering-table tags beyond a coordinate's origin.
+///
+/// Composes the borrowed coordinate and projects local (0,0,0). Negative GTE
+/// FLAG uses zero depth before the bias. Requires initialized scratch/GTE state
+/// and a biased slot within the capture ordering table. Releases its scratch
+/// block and returns the restored byte cursor, never the released workspace.
+static __inline__ u8* _actor403600QueueCoordFrameCapture(GfxCoord* coord)
 {
+    enum { ACTOR_403600_CAPTURE_DEPTH_SHIFT = 4,
+           ACTOR_403600_CAPTURE_TAG_BIAS    = 30 };
     ActorOriginDepthScratch* block;
 
     block            = SCRATCH_STACK_RESERVE_BLOCK(ActorOriginDepthScratch);
@@ -578,151 +616,169 @@ static __inline__ u8* _actor403600ProjectDepth(GfxCoord* coord)
     if (block->flag < 0) {
         block->otz = 0;
     }
-    block->otz = (block->otz >> 4) + 0x1E;
+    block->otz = (block->otz >> ACTOR_403600_CAPTURE_DEPTH_SHIFT) + ACTOR_403600_CAPTURE_TAG_BIAS;
     frameCaptureQueue(block->otz);
     return (u8*)SCRATCH_STACK_RELEASE_BLOCK(ActorOriginDepthScratch);
 }
 
-static u8* func_actor_403600_80138DCC(Task* arg0)
+/// Queues capture beyond model coordinate 1 and returns the restored scratch cursor.
+///
+/// Requires a live model with coordinate 1; uses the projection and lifetime
+/// contract of `_actor403600QueueCoordFrameCapture`.
+static u8* _actor403600QueueBodyFrameCapture(Task* task)
 {
-    return _actor403600ProjectDepth(&arg0->extra.tmd->coords[1]);
+    return _actor403600QueueCoordFrameCapture(&task->extra.tmd->coords[1]);
 }
 
-/// Spawns this actor: parks its work block in `task->work`, destroying the
-/// enemy if there is none, hangs the model's root coordinate under the block's
-/// world coordinate, links the enemy and its three collision bodies, sets its
-/// hit points from the kind's `hpMax` raised by the session's
-/// `bossPartsHpSum`, builds the animation rig, turns the actor to the heading
-/// its model already had, and spawns its display task above it.
-static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
+/// Binds the boss rig to its model and seeds body tracks 1..19 with idle.
+///
+/// Work, the twenty-coordinate model and its animation table must stay live
+/// through playback. Slot 0 is the root and is left unseeded.
+static inline void _actor403600InitBossAnimationRig(Actor403600Work* work, TmdObject* object)
 {
-    s32                    state;
-    SVECTOR                rot;
-    s16                    temp_a0_2;
-    s16                    temp_s0_5;
-    GfxCoord*              temp_s5;
-    Task*                  temp_v0_4;
-    s32                    var_s0;
-    GfxCoord*              temp_a0;
-    GfxCoord*              temp_s0;
-    WorldCollisionContact* temp_s0_2;
-    WorldCollisionContact* temp_s0_3;
-    WorldCollisionContact* temp_s0_4;
-    TmdObject*             temp_s2;
-    Actor403600Work*       work;
-    GameSession*           gpSess;
+    s32 slotIndex;
 
-    temp_s2 = task->extra.tmd;
-    temp_s0 = temp_s2->coords;
-    work    = memCalloc(sizeof(Actor403600Work), false);
-    temp_s5 = &temp_s0[1];
+    slotIndex = 1;
+    animationInitContext(&work->rig.anim, D_actor_403600_8016057C, object, work->rig.poses, work->rig.slots);
+    do {
+        animationResetSlot(&work->rig.anim, slotIndex, ACTOR_403600_ANIM_IDLE);
+        slotIndex += 1;
+    } while (slotIndex < (s32)ARRAY_SIZE(work->rig.slots));
+}
+
+/// Creates the singleton boss, its animation rig and its linked collision state.
+///
+/// Requires an enemy/model with twenty coordinates. Owns one zeroed work block;
+/// allocation failure destroys the enemy. Moves the model's existing placement
+/// into a work-owned room coordinate and preserves its heading. Initial HP is
+/// the kind's base plus 75% of the session's boss-parts HP sum, narrowed to s16.
+/// Acquires a battle reference, creates the display child and enters parked mode.
+static void _actor403600SpawnBoss(Enemy* enemy, Task* task)
+{
+    s32                    previousTaskState;
+    SVECTOR                headingAngles;
+    s16                    initialHp;
+    s16                    initialYaw;
+    GfxCoord*              bodyCoord;
+    Task*                  displayTask;
+    GfxCoord*              worldCoord;
+    GfxCoord*              rootCoord;
+    WorldCollisionContact* hitContacts;
+    WorldCollisionContact* attackContacts;
+    WorldCollisionContact* gridContacts;
+    TmdObject*             object;
+    Actor403600Work*       work;
+    GameSession*           session;
+
+    object    = task->extra.tmd;
+    rootCoord = object->coords;
+    work      = memCalloc(sizeof(*work), false);
+    bodyCoord = &rootCoord[1];
     if (work == NULL) {
         enemyDestroy(enemy, task);
         return;
     }
+    // Keep placement in work so animation may replace the model root basis.
     task->work              = work;
     work->worldCoord.parent = &gGfxViewCoord;
     gfxSetRotIdentity(&work->worldCoord.coord);
-    work->worldCoord.coord.t[0] = temp_s0->coord.t[0];
-    work->worldCoord.coord.t[1] = temp_s0->coord.t[1];
-    temp_a0                     = &work->worldCoord;
-    work->worldCoord.coord.t[2] = temp_s0->coord.t[2];
-    temp_s0->parent             = temp_a0;
-    gfxSetRotIdentity(&temp_s0->coord);
-    temp_s0->coord.t[0]           = 0;
-    temp_s0->coord.t[1]           = 0x744;
-    temp_s0->coord.t[2]           = 0;
+    work->worldCoord.coord.t[0] = rootCoord->coord.t[0];
+    work->worldCoord.coord.t[1] = rootCoord->coord.t[1];
+    worldCoord                  = &work->worldCoord;
+    work->worldCoord.coord.t[2] = rootCoord->coord.t[2];
+    rootCoord->parent           = worldCoord;
+    gfxSetRotIdentity(&rootCoord->coord);
+    rootCoord->coord.t[0]         = 0;
+    rootCoord->coord.t[1]         = 0x744;
+    rootCoord->coord.t[2]         = 0;
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(temp_a0);
-    temp_s0->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(temp_s0);
-    temp_s2->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-    temp_s0->composeStamp = GRAPHICS_COORD_DIRTY;
-    temp_s2->lightMtx     = &work->light;
-    temp_s2->colorMtx     = &work->color;
-    enemy->field_4        = &temp_s0[1].coord;
-    enemy->field_48       = 0;
+    actorRenderComposeCoord(worldCoord);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    object->flags           = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    object->lightMtx        = &work->light;
+    object->colorMtx        = &work->color;
+    // Link target and contact state before enabling the fight.
+    enemy->field_4  = &rootCoord[1].coord;
+    enemy->field_48 = 0;
     worldTargetLinkNode(&enemy->node);
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
     enemy->bodyPos.vy             = -0x1F4;
-    gpSess                        = gGameSession;
-    enemy->coord                  = temp_s5;
+    session                       = gGameSession;
+    enemy->coord                  = bodyCoord;
     enemy->bodyPos.vx             = 0;
     enemy->bodyPos.vz             = 0;
     enemy->param                  = &D_actor_403600_80150EC8;
     enemy->recs                   = work->hitContacts;
-    temp_a0_2                     = D_actor_403600_80150EC8.hpMax + (((u16)gpSess->bossPartsHpSum * 0x4B) / 100);
-    enemy->hp                     = temp_a0_2;
-    work->hpMax                   = temp_a0_2;
-    var_s0                        = 1;
-    work->hpAt60Percent           = (s16)((temp_a0_2 * 0x3C) / 100);
-    work->hpAt35Percent           = (s16)((work->hpMax * 0x23) / 100);
-    animationInitContext(&work->rig.anim, D_actor_403600_8016057C, temp_s2, work->rig.poses, work->rig.slots);
-    do {
-        animationResetSlot(&work->rig.anim, var_s0, 1);
-        var_s0 += 1;
-    } while (var_s0 < 0x14);
+    initialHp                     = D_actor_403600_80150EC8.hpMax + (((u16)session->bossPartsHpSum * 75) / 100);
+    enemy->hp                     = initialHp;
+    work->hpMax                   = initialHp;
+    work->hpAt60Percent           = (s16)((initialHp * 60) / 100);
+    work->hpAt35Percent           = (s16)((work->hpMax * 35) / 100);
+    _actor403600InitBossAnimationRig(work, object);
     (sceneAcquireBattleRef)(0);
-    work->animId                   = 1;
+    work->animId                   = ACTOR_403600_ANIM_IDLE;
     work->hitEffectArg.coord       = &work->worldCoord;
     work->hitEffectArg.spawnArgLo  = 0x600;
     work->hitEffectArg.spawnArgHi  = 2;
     work->hitEffectOffset.vy       = -0x1F4;
-    temp_s0_2                      = work->hitContacts;
+    hitContacts                    = work->hitContacts;
     work->appliedAnimId            = 0;
     work->hitCooldown              = 0;
     work->hitEffectOffset.vx       = 0;
     work->hitEffectOffset.vz       = 0xC8;
-    work->hitBody.coord            = temp_s5;
-    work->hitBody.context.contacts = temp_s0_2;
+    work->hitBody.coord            = bodyCoord;
+    work->hitBody.context.contacts = hitContacts;
     work->hitBody.pos.vx           = 0;
     work->hitBody.pos.vy           = 0;
     work->hitBody.pos.vz           = 0;
-    work->hitBody.key              = 0x30024;
+    work->hitBody.key              = WORLD_COLLISION_CONTACT_ENEMY_BODY | 0x24;
     work->hitBody.radius           = 0x3E8;
-    work->hitBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->hitBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_BODIES, &work->hitBody);
-    worldCollisionInitContacts(temp_s0_2, 4, 0);
-    temp_s0_3                         = work->attackContacts;
-    work->attackBody.coord            = temp_s5;
-    work->attackBody.context.contacts = temp_s0_3;
+    worldCollisionInitContacts(hitContacts, ARRAY_SIZE(work->hitContacts), 0);
+    attackContacts                    = work->attackContacts;
+    work->attackBody.coord            = bodyCoord;
+    work->attackBody.context.contacts = attackContacts;
     work->attackBody.pos.vx           = 0;
     work->attackBody.pos.vy           = 0;
     work->attackBody.pos.vz           = 0x3E8;
     work->hitBody.flags               = work->hitBody.flags | (WORLD_COLLISION_BODY_FLOOR_QUERY | WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     work->attackBody.key              = damagePackAttackKey(&D_actor_403600_80150E9C, 1);
     work->attackBody.radius           = 0x5DC;
-    work->attackBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->attackBody);
-    worldCollisionInitContacts(temp_s0_3, 1, 0);
-    temp_s0_4                       = work->gridContacts;
-    work->gridBody.coord            = temp_s5;
-    work->gridBody.context.contacts = temp_s0_4;
+    worldCollisionInitContacts(attackContacts, ARRAY_SIZE(work->attackContacts), 0);
+    gridContacts                    = work->gridContacts;
+    work->gridBody.coord            = bodyCoord;
+    work->gridBody.context.contacts = gridContacts;
     work->gridBody.pos.vx           = 0;
     work->gridBody.pos.vz           = 0;
     work->gridBody.pos.vy           = 0x7D0;
     work->gridBody.key              = 0;
     work->gridBody.radius           = 0x64;
-    work->gridBody.flags            = (u32)WORLD_COLLISION_BODY_SPHERE;
+    work->gridBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     work->attackBody.flags          = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->gridBody);
-    worldCollisionInitContacts(temp_s0_4, 4, 0);
+    worldCollisionInitContacts(gridContacts, ARRAY_SIZE(work->gridContacts), 0);
     work->gridBody.flags = work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
-    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &rot);
-    temp_s0_5 = ratan2(rot.vx, rot.vz);
-    rot.vx    = 0;
-    rot.vy    = temp_s0_5;
-    rot.vz    = 0;
-    RotMatrix(&rot, &work->worldCoord.coord);
-    work->yaw               = temp_s0_5;
-    temp_v0_4               = taskSpawnFromTable(D_actor_403600_801421A0, 0, 0, 0);
-    D_actor_403600_801606AC = temp_v0_4;
-    if (temp_v0_4 != 0) {
-        taskReparent(task, temp_v0_4);
+    // Recover the model heading, then install the singleton presentation task.
+    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &headingAngles);
+    initialYaw       = ratan2(headingAngles.vx, headingAngles.vz);
+    headingAngles.vx = 0;
+    headingAngles.vy = initialYaw;
+    headingAngles.vz = 0;
+    RotMatrix(&headingAngles, &work->worldCoord.coord);
+    work->yaw               = initialYaw;
+    displayTask             = taskSpawnFromTable(D_actor_403600_801421A0, 0, 0, 0);
+    D_actor_403600_801606AC = displayTask;
+    if (displayTask != 0) {
+        taskReparent(task, displayTask);
     }
     work->childEnemy        = 0;
     D_actor_403600_801606A8 = task;
-    work->weakPhase         = 0;
+    work->weakPhase         = ACTOR_403600_WEAK_PHASE_NONE;
     work->recoilSpeed       = 0;
     work->recoilHold        = 0;
     work->exposed           = 0;
@@ -733,65 +789,71 @@ static void func_actor_403600_80138EF8(Enemy* enemy, Task* task)
     task->msgTable                      = D_actor_403600_80160504;
     task->exitCallback                  = _actor403600EnemyExit;
     work->mode                          = ACTOR_403600_MODE_PARKED;
-    state                               = task->state;
+    previousTaskState                   = task->state;
     D_actor_403600_801606BC.nextSlot    = 0;
-    task->state                         = state + 1;
+    task->state                         = previousTaskState + 1;
 }
 
-static void func_actor_403600_8013938C(Enemy* arg0, Task* arg1)
+/// Advances boss control, combat movement, animation and presentation once.
+///
+/// Requires the live singleton enemy/model/work. Pause samples colour and mutes
+/// sound without advancing; hidden control suppresses draw/target state. Running
+/// control gates movement, contact and flinch work to combat modes, then updates
+/// colour, screen shake and scripted player knockback. Menu entry also mutes sound.
+static void _actor403600UpdateBoss(Enemy* enemy, Task* task)
 {
-    s16              temp_a1;
+    s16              ambientBoost;
     Actor403600Work* work;
 
-    work = arg1->work;
+    work = task->work;
     switch (gSceneCombatState.actorControl) {
-        case 0:
+        case SCENE_COMBAT_ACTORS_RUNNING:
             if (work->pauseSoundSent != 0) {
                 work->pauseSoundSent = 0;
                 sndEvtRequestScriptUnmute(SOUND_AREA_BANK_ALL);
             }
             break;
-        case 1:
-            _actor403600SampleBossColor(arg0, arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _actor403600SampleBossColor(enemy, task);
             if (work->pauseSoundSent == 0) {
                 work->pauseSoundSent = 1;
                 sndEvtRequestScriptMute(SOUND_AREA_BANK_ALL);
             }
             return;
-        case 2:
-            arg1->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            task->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
             return;
     }
     if (((gDisplayState.pendingMode & DISPLAY_MODE_MENU_GROUP_MASK) == DISPLAY_MODE_GAME_MENU_GROUP) && (work->pauseSoundSent == 0)) {
         work->pauseSoundSent = 1;
         sndEvtRequestScriptMute(SOUND_AREA_BANK_ALL);
     }
-    _actor403600UpdateMode(arg1);
+    _actor403600UpdateMode(task);
     if (work->mode != ACTOR_403600_MODE_PARKED) {
         if (work->mode < ACTOR_403600_MODE_SCENE_POSE) {
-            _actor403600Move(arg1);
-            _actor403600ProcessStatusReactions(arg1);
-            _actor403600ProcessContacts(arg1);
+            _actor403600Move(task);
+            _actor403600ProcessStatusReactions(task);
+            _actor403600ProcessContacts(task);
         }
     }
-    _actor403600TickBossAnimation(arg1, 0x14);
+    _actor403600TickBossAnimation(task, ARRAY_SIZE(work->rig.slots));
     if (work->mode != ACTOR_403600_MODE_PARKED) {
         if (work->mode < ACTOR_403600_MODE_SCENE_POSE) {
-            _actor403600ApplyBossFlinch(arg1);
-            _actor403600UpdateWeakPhase(arg1);
-            _actor403600UpdateFaceTexture(arg1);
+            _actor403600ApplyBossFlinch(task);
+            _actor403600UpdateWeakPhase(task);
+            _actor403600UpdateFaceTexture(task);
         }
     }
     work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&work->worldCoord);
-    _actor403600SampleBossColor(arg0, arg1);
-    temp_a1 = work->ambientBoost;
-    if (temp_a1 != 0) {
-        worldCoordSetModelAmbientColor(arg1->extra.tmd, temp_a1, temp_a1, temp_a1);
+    _actor403600SampleBossColor(enemy, task);
+    ambientBoost = work->ambientBoost;
+    if (ambientBoost != 0) {
+        worldCoordSetModelAmbientColor(task->extra.tmd, ambientBoost, ambientBoost, ambientBoost);
     }
-    _actor403600UpdateScreenShake(arg1);
-    _actor403600UpdatePlayerKnockback(arg1);
+    _actor403600UpdateScreenShake(task);
+    _actor403600UpdatePlayerKnockback(task);
 }
 
 /// Consumes pending stagger, stun and damage-over-time reactions for the boss.
@@ -4032,10 +4094,36 @@ static __inline__ void _actor403600UpdateColor(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 
-/// Turns coordinate 2 by `flinchRot`, then eases the twist back
-/// towards zero by 0x20 a frame.
-static __inline__ void _actor403600RotateParts(Task* task)
+/// Post-multiplies part 2's Q12 basis by the flinch basis using GTE registers.
+///
+/// Requires the borrowed coordinate array through part 2 and a Q12 flinch
+/// matrix. Changes only part 2's nine rotation coefficients; leaves translation
+/// and coordinate compose stamps intact. GTE rotation/vector state is overwritten.
+static inline void _actor403600MultiplyPartFlinch(GfxCoord* coord, const MATRIX* matrix)
 {
+    gte_SetRotMatrix(&coord[2].coord.m[0][0]);
+    gte_ldclmv(matrix);
+    gte_rtir();
+    gte_stclmv(&coord[2].coord.m[0][0]);
+
+    gte_ldclmv(&matrix->m[0][1]);
+    gte_rtir();
+    gte_stclmv(&coord[2].coord.m[0][1]);
+
+    gte_ldclmv(&matrix->m[0][2]);
+    gte_rtir();
+    gte_stclmv(&coord[2].coord.m[0][2]);
+}
+
+/// Applies the double's pitch flinch to model part 2 and relaxes it each frame.
+///
+/// Requires live double work and coordinates through 2, plus one scratch MATRIX.
+/// Post-multiplies the Q12 basis; translation and compose stamps stay intact.
+/// Pitch uses 4096 units per turn. Both ordered 32-unit halfword relaxation
+/// tests run, so small positive values can pass through the second test too.
+static __inline__ void _actor403600ApplyDoubleFlinch(Task* task)
+{
+    enum { ACTOR_403600_DOUBLE_FLINCH_DECAY = 32 };
     Actor403600Work* work;
     GfxCoord*        coord;
     MATRIX*          matrix;
@@ -4045,25 +4133,16 @@ static __inline__ void _actor403600RotateParts(Task* task)
     matrix = SCRATCH_STACK_CURSOR(MATRIX);
     coord  = task->extra.tmd->coords;
     RotMatrix(&work->flinchRot, matrix);
-    gte_SetRotMatrix(&coord[2].coord);
-    gte_ldclmv(matrix);
-    gte_rtir();
-    gte_stclmv(&coord[2].coord);
-    gte_ldclmv(&matrix->m[0][1]);
-    gte_rtir();
-    gte_stclmv(&coord[2].coord.m[0][1]);
-    gte_ldclmv(&matrix->m[0][2]);
-    gte_rtir();
-    gte_stclmv(&coord[2].coord.m[0][2]);
+    _actor403600MultiplyPartFlinch(coord, matrix);
     if (work->flinchRot.vx != 0) {
-        if (work->flinchRot.vx >= 0x20) {
-            work->flinchRot.vx -= 0x20;
+        if (work->flinchRot.vx >= ACTOR_403600_DOUBLE_FLINCH_DECAY) {
+            work->flinchRot.vx -= ACTOR_403600_DOUBLE_FLINCH_DECAY;
             if (work->flinchRot.vx <= 0) {
                 work->flinchRot.vx = 0;
             }
         }
-        if (work->flinchRot.vx <= 0x20) {
-            work->flinchRot.vx += 0x20;
+        if (work->flinchRot.vx <= ACTOR_403600_DOUBLE_FLINCH_DECAY) {
+            work->flinchRot.vx += ACTOR_403600_DOUBLE_FLINCH_DECAY;
             if (work->flinchRot.vx >= 0) {
                 work->flinchRot.vx = 0;
             }
@@ -4072,44 +4151,56 @@ static __inline__ void _actor403600RotateParts(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(MATRIX);
 }
 
-static void func_actor_403600_8013FC2C(Enemy* arg0, Task* arg1)
+/// Advances the summoned double and starts fading on defeat or lifetime expiry.
+///
+/// Requires a live double enemy/model/work. Pause only refreshes colour; hidden
+/// control suppresses drawing and targeting. Running updates actions, movement,
+/// contacts, animation and flinch, samples colour every ten frames and increases
+/// chase speed every 42 frames up to 100 world units per frame. Fade starts at
+/// distance 300 with a 60-frame kill countdown; the next task state releases it.
+static void _actor403600UpdateDouble(Enemy* enemy, Task* task)
 {
-    TmdObject*       obj;
+    enum { ACTOR_403600_DOUBLE_COLOR_REFRESH_FRAMES  = 10,
+           ACTOR_403600_DOUBLE_ACCEL_INTERVAL_FRAMES = 42,
+           ACTOR_403600_DOUBLE_MAX_CHASE_SPEED       = 100,
+           ACTOR_403600_DOUBLE_INITIAL_FADE_DISTANCE = 300,
+           ACTOR_403600_DOUBLE_FADE_FRAMES           = 60 };
+    TmdObject*       object;
     Actor403600Work* work;
 
-    obj  = arg1->extra.tmd;
-    work = arg1->work;
+    object = task->extra.tmd;
+    work   = task->work;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_PAUSED:
-            _actor403600UpdateColor(arg0, arg1);
+            _actor403600UpdateColor(enemy, task);
             return;
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags                   = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
+            object->flags                 = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = (WORLD_TARGET_HIDE_HP | WORLD_TARGET_NOT_LOCKABLE);
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
         default:
-            func_actor_403600_80141C3C(arg1);
-            _actor403600Move(arg1);
-            _actor403600ProcessContacts(arg1);
-            _actor403600UpdateAnimation(arg1, 20);
-            _actor403600RotateParts(arg1);
+            _actor403600UpdateDoubleMode(task);
+            _actor403600Move(task);
+            _actor403600ProcessContacts(task);
+            _actor403600UpdateAnimation(task, ARRAY_SIZE(work->rig.slots));
+            _actor403600ApplyDoubleFlinch(task);
             work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&work->worldCoord);
-            if (++work->colorRefreshFrames >= 10) {
+            if (++work->colorRefreshFrames >= ACTOR_403600_DOUBLE_COLOR_REFRESH_FRAMES) {
                 work->colorRefreshFrames = 0;
-                _actor403600UpdateColor(arg0, arg1);
+                _actor403600UpdateColor(enemy, task);
             }
-            if (++work->age % 42 == 0) {
-                if (++work->chaseSpeed >= 100) {
-                    work->chaseSpeed = 100;
+            if (++work->age % ACTOR_403600_DOUBLE_ACCEL_INTERVAL_FRAMES == 0) {
+                if (++work->chaseSpeed >= ACTOR_403600_DOUBLE_MAX_CHASE_SPEED) {
+                    work->chaseSpeed = ACTOR_403600_DOUBLE_MAX_CHASE_SPEED;
                 }
             }
             if (work->age >= work->lifetime || work->defeated != 0) {
-                arg0->node.state.parts.flags    = WORLD_TARGET_NOT_LOCKABLE;
-                obj->shading.screenFadeDistance = 0x12C;
-                arg1->killCountdown             = 0x3C;
-                arg1->state++;
+                enemy->node.state.parts.flags      = WORLD_TARGET_NOT_LOCKABLE;
+                object->shading.screenFadeDistance = ACTOR_403600_DOUBLE_INITIAL_FADE_DISTANCE;
+                task->killCountdown                = ACTOR_403600_DOUBLE_FADE_FRAMES;
+                task->state++;
             }
             break;
     }
@@ -4120,7 +4211,7 @@ static void func_actor_403600_8013FC2C(Enemy* arg0, Task* arg1)
 /// advances it.
 static const EnemyTaskFuncTable3 D_actor_403600_801320A0 = { {
     _actor403600SpawnDouble,
-    func_actor_403600_8013FC2C,
+    _actor403600UpdateDouble,
     _actor403600FadeDouble,
 } };
 
@@ -4289,17 +4380,17 @@ static void _actor403600UpdateDoubleAction(Task* task)
 /// pointer. Detaches the root before freeing its work-owned parent coordinate.
 static inline void _actor403600ReleaseFadedDouble(Task* task)
 {
-    Enemy*           cleanupEnemy;
-    Actor403600Work* cleanupWork;
-    cleanupEnemy                    = task->spawnArg2.pointer;
-    cleanupWork                     = task->work;
+    Enemy*           enemy;
+    Actor403600Work* work;
+    enemy                           = task->spawnArg2.pointer;
+    work                            = task->work;
     task->extra.tmd->coords->parent = &gGfxViewCoord;
-    cleanupEnemy->recs              = NULL;
-    worldTargetUnlinkNode(&cleanupEnemy->node);
-    worldCollisionUnlinkBody(&cleanupWork->hitBody);
-    worldCollisionUnlinkBody(&cleanupWork->attackBody);
+    enemy->recs                     = NULL;
+    worldTargetUnlinkNode(&enemy->node);
+    worldCollisionUnlinkBody(&work->hitBody);
+    worldCollisionUnlinkBody(&work->attackBody);
     if (task == D_actor_403600_801606A8) {
-        worldCollisionUnlinkBody(&cleanupWork->gridBody);
+        worldCollisionUnlinkBody(&work->gridBody);
     }
     enemyTaskExit(task);
 }
@@ -4355,24 +4446,31 @@ static void _actor403600FadeDouble(Enemy* enemy, Task* task)
     _actor403600UpdateAnimation(task, ARRAY_SIZE(work->rig.slots));
 }
 
-s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 arg3)
+/// Applies a scene selector to the boss or its borrowed scene figure.
+///
+/// Handles ACTOR_COMMAND_MESSAGE_APPLY; request is read only during synchronous
+/// dispatch and only its command is read. Returns zero even for an unknown
+/// selector. Requires live enemy/work/model; the fade selector additionally
+/// requires the previously spawned child. Placements use room units and Euler
+/// angles in 4096 units per turn. The message ID and second payload are unused.
+static s32 _actor403600ApplySceneCommand(Task* task, s32 unusedMessageId, const ActorCommand* request, s32 unusedSecondArg)
 {
     SVECTOR          angles;
-    u16              message;
+    u16              selector;
     Enemy*           enemy;
     Actor403600Work* work;
     Actor403600Work* childWork;
     TmdObject*       childObject;
 
-    message = request->command;
-    work    = arg0->work;
-    enemy   = arg0->spawnArg2.pointer;
-    switch (message) {
-        case 1:
-            _actor403600ResetState(arg0);
+    selector = request->command;
+    work     = task->work;
+    enemy    = task->spawnArg2.pointer;
+    switch (selector) {
+        case ACTOR_403600_COMMAND_POSE_PLAYER_AND_BOSS:
+            _actor403600ResetState(task);
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             worldTargetDisableNodeLockOn(&enemy->node);
-            work->animId                = 1;
+            work->animId                = ACTOR_403600_ANIM_IDLE;
             work->worldCoord.coord.t[0] = 0x1D7A;
             work->worldCoord.coord.t[1] = -0x145A;
             work->worldCoord.coord.t[2] = 0x19AE;
@@ -4389,27 +4487,28 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             D_actor_403600_801606E0.placement.pos.vy = -0xF9F;
             D_actor_403600_801606E0.placement.pos.vz = 0x1AC6;
             TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &D_actor_403600_801606E0.placement, 0);
-            D_actor_403600_80160568.animationId = 9;
+            D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_SCENE_POSE;
             TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
             break;
-        case 2:
-            work->animId                        = 0x15;
+        case ACTOR_403600_COMMAND_PLAY_SCENE_ANIMATIONS:
+            work->animId                        = ACTOR_403600_ANIM_SCENE_PAIRED;
             work->appliedAnimId                 = 0;
-            D_actor_403600_80160568.animationId = 0xA;
+            D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_SCENE_PAIRED;
             TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
             break;
-        case 3:
+        case ACTOR_403600_COMMAND_BRIGHTEN_BOSS:
             work->ambientBoost = 0x3E8;
             work->mode         = ACTOR_403600_MODE_SCENE_BRIGHTEN;
             break;
-        case 4:
+        case ACTOR_403600_COMMAND_SPAWN_SCENE_FIGURE:
+            // The figure and shaft controller take over presentation from both actors.
             D_actor_403600_801606B0 = taskSpawnFromTable(D_actor_303600_8016E468, 0, 0, 0);
             taskMessageDispatch(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
-            arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            task->extra.tmd->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            task->extra.tmd->flags |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             work->childEnemy        = enemySpawnFromTable(D_actor_403600_80160514, 2, 0, 0);
             break;
-        case 5:
+        case ACTOR_403600_COMMAND_FADE_SCENE_FIGURE:
             D_actor_403600_801606E0.placement.rot.vx = 0;
             D_actor_403600_801606E0.placement.rot.vy = 0;
             D_actor_403600_801606E0.placement.rot.vz = 0;
@@ -4417,17 +4516,17 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             D_actor_403600_801606E0.placement.pos.vy = 0;
             D_actor_403600_801606E0.placement.pos.vz = 0;
             TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], GAME_ACTOR_MESSAGE_PLACE, &D_actor_403600_801606E0.placement, 0);
-            D_actor_403600_80160568.animationId = 0xB;
+            D_actor_403600_80160568.animationId = ACTOR_403600_PLAYER_ANIM_FIGURE_FADE;
             TASK_MESSAGE_DISPATCH_POINTER(gPlayerActorTasks[PLAYER_ACTOR_TASK_PLAYER], ANIMATION_MESSAGE_INSTALL_AND_PLAY, &D_actor_403600_80160568, 0);
             childWork                               = work->childEnemy->task->work;
             childObject                             = work->childEnemy->task->extra.tmd;
             childWork->mode                         = ACTOR_403600_MODE_SCENE_FADE;
             childObject->shading.screenFadeDistance = 0;
             break;
-        case 6:
-            work->forwardSpeed          = -0x50;
+        case ACTOR_403600_COMMAND_ASCEND_TO_ARENA:
+            work->forwardSpeed          = ACTOR_403600_SCENE_ASCENT_BACKWARD_SPEED;
             work->mode                  = ACTOR_403600_MODE_SCENE_ASCEND;
-            work->animId                = 1;
+            work->animId                = ACTOR_403600_ANIM_IDLE;
             work->worldCoord.coord.t[0] = 0x196E;
             work->worldCoord.coord.t[1] = -0x7D0;
             work->worldCoord.coord.t[2] = 0x1630;
@@ -4438,17 +4537,17 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             RotMatrix(&angles, &work->worldCoord.coord);
             work->worldCoord.composeStamp = GRAPHICS_COORD_DIRTY;
             actorRenderComposeCoord(&work->worldCoord);
-            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
-            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(task->extra.tmd);
+            task->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            task->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             work->step              = 0;
             break;
-        case 7:
-            _actor403600ResetState(arg0);
+        case ACTOR_403600_COMMAND_START_FIGHT:
+            _actor403600ResetState(task);
             work->mode                    = ACTOR_403600_MODE_FIGHT;
             work->step                    = 0;
             enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-            work->animId                  = 1;
+            work->animId                  = ACTOR_403600_ANIM_IDLE;
             work->worldCoord.coord.t[0]   = 0x196E;
             work->worldCoord.coord.t[1]   = -0x1B62;
             work->worldCoord.coord.t[2]   = 0x1630;
@@ -4457,20 +4556,21 @@ s32 func_actor_403600_801406A4(Task* arg0, s32 arg1, ActorCommand* request, s32 
             angles.vy                     = 0x200;
             angles.vz                     = 0;
             RotMatrix(&angles, &work->worldCoord.coord);
-            tmdAllocPrimitiveBuffer(arg0->extra.tmd);
-            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-            arg0->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            tmdAllocPrimitiveBuffer(task->extra.tmd);
+            task->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+            task->extra.tmd->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
-        case 8:
+        case ACTOR_403600_COMMAND_HIDE_BOSS:
             work->mode                    = ACTOR_403600_MODE_PARKED;
-            arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->extra.tmd->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
+            task->extra.tmd->flags       |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            task->extra.tmd->flags       |= TMD_OBJECT_SKIP_AUTO_BUFFER;
             enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             break;
-        case 9:
-            sceneReleaseBattleRefWithRewards(arg0, 0x24);
+        case ACTOR_403600_COMMAND_FINISH_BATTLE:
+            // Rewards come from enemy parameters; the release API ignores argument 2.
+            sceneReleaseBattleRefWithRewards(task, 0x24);
             gGameSession->flowFlags                        = (u8)(gGameSession->flowFlags | GAME_SESSION_FLOW_REEQUIP_WEAPON);
-            gSceneCombatState.signals.bytes.endDelayFrames = 5;
+            gSceneCombatState.signals.bytes.endDelayFrames = ACTOR_403600_BATTLE_END_DELAY_FRAMES;
             break;
     }
     return 0;
@@ -4513,7 +4613,7 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
     }
     D_actor_403600_80160700.screenDistance = 0x149;
     viewQueueCamera(&D_actor_403600_80160700);
-    func_actor_403600_80141F58(&work->worldCoord, work->hitCooldown);
+    _actor403600ScaleSceneFigure(&work->worldCoord, work->hitCooldown);
     work->sceneFrame++;
     if (work->sceneFrame >= ACTOR_303600_ROT_SAMPLE_COUNT) {
         work->sceneFrame = ACTOR_303600_ROT_SAMPLE_COUNT - 1;
@@ -4610,13 +4710,13 @@ static void func_actor_403600_80140B4C(Enemy* enemy, Task* actor)
 
 /// The actor's task entry: runs the handler for `task->state` from a two-entry
 /// table built on the stack, passing the enemy the task was spawned for and
-/// the task. State 0 is the spawn (`func_actor_403600_80138EF8`, which
+/// the task. State 0 is the spawn (`_actor403600SpawnBoss`, which
 /// advances the state), state 1 the per-frame update.
 void func_actor_403600_80141180(Task* task)
 {
     void (*fns[2])(Enemy*, Task*) = {
-        func_actor_403600_80138EF8,
-        func_actor_403600_8013938C,
+        _actor403600SpawnBoss,
+        _actor403600UpdateBoss,
     };
 
     fns[task->state](task->spawnArg2.pointer, task);
@@ -4652,25 +4752,6 @@ static void _actor403600SampleBossColor(Enemy* enemy, Task* task)
     SCRATCH_STACK_RELEASE_BYTES(sizeof(*position));
 }
 
-/// Post-multiplies part 2's Q12 basis by the flinch basis using GTE registers.
-///
-/// Borrows both matrices and changes only the part's nine rotation coefficients.
-static inline void _actor403600MultiplyBossFlinch(GfxCoord* coord, const MATRIX* matrix)
-{
-    gte_SetRotMatrix(&coord[2].coord.m[0][0]);
-    gte_ldclmv(matrix);
-    gte_rtir();
-    gte_stclmv(&coord[2].coord.m[0][0]);
-
-    gte_ldclmv(&matrix->m[0][1]);
-    gte_rtir();
-    gte_stclmv(&coord[2].coord.m[0][1]);
-
-    gte_ldclmv(&matrix->m[0][2]);
-    gte_rtir();
-    gte_stclmv(&coord[2].coord.m[0][2]);
-}
-
 /// Applies the boss's pitch flinch to model part 2 and steps the flinch toward zero.
 ///
 /// Requires live work and model coordinates through 2. Post-multiplies part 2's
@@ -4690,7 +4771,7 @@ static void _actor403600ApplyBossFlinch(Task* task)
     coord  = task->extra.tmd->coords;
     RotMatrix(&work->flinchRot, matrix);
 
-    _actor403600MultiplyBossFlinch(coord, matrix);
+    _actor403600MultiplyPartFlinch(coord, matrix);
 
     if (work->flinchRot.vx != 0) {
         if (work->flinchRot.vx >= ACTOR_403600_FLINCH_DECAY) {
@@ -5070,16 +5151,21 @@ void func_actor_403600_80141BE0(Task* arg0)
     sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
 }
 
-static void func_actor_403600_80141C3C(Task* arg0)
+/// Runs double combat actions only in the parked or fight mode.
+///
+/// Negative modes and modes at or above stagger leave its action untouched.
+static void _actor403600UpdateDoubleMode(Task* task)
 {
-    s16 value;
+    Actor403600Work* work;
+    s16              mode;
 
-    value = ((Actor403600Work*)arg0->work)->mode;
-    if (value < 0) {
+    work = task->work;
+    mode = work->mode;
+    if (mode < 0) {
         return;
     }
-    if (value < 2) {
-        _actor403600UpdateDoubleAction(arg0);
+    if (mode < ACTOR_403600_MODE_STAGGER) {
+        _actor403600UpdateDoubleAction(task);
     }
 }
 
@@ -5108,7 +5194,7 @@ static void _actor403600ApplyDoubleDamage(Task* task, s32 damage)
 /// advances it.
 static const EnemyTaskFuncTable3 D_actor_403600_801320EC = { {
     func_actor_403600_80141D30,
-    func_actor_403600_80141E78,
+    _actor403600WaitSceneFigure,
     func_actor_403600_80140B4C,
 } };
 
@@ -5154,76 +5240,91 @@ static void func_actor_403600_80141D30(Enemy* arg0, Task* arg1)
     work->worldCoord.coord.t[2] = 0;
     work->mode                  = ACTOR_403600_MODE_PARKED;
     arg1->msgTable              = D_actor_403600_80160504;
-    arg1->exitCallback          = func_actor_403600_80141F28;
+    arg1->exitCallback          = _actor403600SceneFigureExit;
     work->ambientBoost          = 0x2328;
     work->hitCooldown           = 0;
     arg1->state                += 1;
 }
 
-static void func_actor_403600_80141E78(Enemy* arg0, Task* arg1)
+/// Enables the scene figure's model buffers after two task updates.
+///
+/// Requires zero-initialized figure work and a live model. Reuses hitCooldown
+/// for the signed-halfword delay, then sets it to Q12 unity for subsequent
+/// scaling, clears both scene counters and advances to the running handler.
+static void _actor403600WaitSceneFigure(Enemy* unusedEnemy, Task* task)
 {
-    TmdObject*       obj;
-    TmdObject*       obj2;
+    enum { ACTOR_403600_SCENE_START_DELAY_FRAMES = 2 };
+    TmdObject*       object;
     Actor403600Work* work;
-    u16              value;
+    u16              elapsedFrames;
 
-    work              = arg1->work;
-    value             = work->hitCooldown + 1;
-    work->hitCooldown = value;
-    if ((s16)value >= 2) {
-        tmdAllocPrimitiveBuffer(arg1->extra.tmd);
-        obj          = arg1->extra.tmd;
-        obj->flags  &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-        obj2         = arg1->extra.tmd;
-        obj2->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        arg1->state++;
+    work              = task->work;
+    elapsedFrames     = work->hitCooldown + 1;
+    work->hitCooldown = elapsedFrames;
+    if ((s16)elapsedFrames >= ACTOR_403600_SCENE_START_DELAY_FRAMES) {
+        tmdAllocPrimitiveBuffer(task->extra.tmd);
+        object         = task->extra.tmd;
+        object->flags &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+        object         = task->extra.tmd;
+        object->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        task->state++;
         work->phaseFrame  = 0;
         work->sceneFrame  = 0;
-        work->hitCooldown = 0x1000;
+        work->hitCooldown = ONE;
     }
 }
 
-static void func_actor_403600_80141F28(Task* arg0)
+/// Detaches the scene model before its work-owned parent coordinate is freed.
+///
+/// Requires the figure's live model/work. Enemy exit begins default task teardown;
+/// this figure has no linked target or collision body to unlink.
+static void _actor403600SceneFigureExit(Task* task)
 {
-    arg0->extra.tmd->coords->parent = &gGfxViewCoord;
-    enemyTaskExit(arg0);
+    task->extra.tmd->coords->parent = &gGfxViewCoord;
+    enemyTaskExit(task);
 }
 
-static void func_actor_403600_80141F58(GfxCoord* arg0, s32 arg1)
+/// Multiplies the coordinate's current rotation basis by a signed Q12 scale.
+///
+/// Requires a live coordinate and room for one scratch SVECTOR. uniformScale
+/// uses 4096 for unity and must fit the GTE's signed IR0 input; the scene uses
+/// 4096..4608. GPF12 retains GTE halfword saturation/quantization. Translation
+/// stays intact, composition is invalidated and the scratch reservation is freed.
+static void _actor403600ScaleSceneFigure(GfxCoord* coord, s32 uniformScale)
 {
-    void**   scratch;
-    SVECTOR* head;
-    SVECTOR* vec;
-    MATRIX*  matrix;
+    // Scales one column of the borrowed matrix with the live scratch vector.
+    // columnIndex must be a literal in 0..2; captures matrix, column and
+    // uniformScale. GTE state is overwritten, and arguments have no side effects.
+#define ACTOR_403600_SCALE_ROTATION_COLUMN(columnIndex)     \
+    {                                                       \
+        gte_ReadMatrixColumn(matrix, columnIndex, column);  \
+        gte_lddp(uniformScale);                             \
+        gte_ldsv(column);                                   \
+        gte_gpf12();                                        \
+        gte_stsv(column);                                   \
+        gte_WriteMatrixColumn(column, matrix, columnIndex); \
+    }
 
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    vec                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, void) = vec;
-    matrix                         = &arg0->coord;
+    SVECTOR** cursorSlot;
+    SVECTOR*  cursor;
+    SVECTOR*  column;
+    MATRIX*   matrix;
 
-    gte_ReadMatrixColumn(matrix, 0, vec);
-    gte_lddp(arg1);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    gte_WriteMatrixColumn(vec, matrix, 0);
+    cursorSlot  = (SVECTOR**)SCRATCH_STACK_CURSOR_SLOT;
+    cursor      = *cursorSlot;
+    column      = cursor - 1;
+    *cursorSlot = column;
+    matrix      = &coord->coord;
 
-    gte_ReadMatrixColumn(matrix, 1, vec);
-    gte_lddp(arg1);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    gte_WriteMatrixColumn(vec, matrix, 1);
+    ACTOR_403600_SCALE_ROTATION_COLUMN(0);
 
-    gte_ReadMatrixColumn(matrix, 2, vec);
-    gte_lddp(arg1);
-    gte_ldsv(vec);
-    gte_gpf12();
-    gte_stsv(vec);
-    gte_WriteMatrixColumn(vec, matrix, 2);
+    ACTOR_403600_SCALE_ROTATION_COLUMN(1);
 
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    arg0->composeStamp             = GRAPHICS_COORD_DIRTY;
-    SCRATCH_HEAD_AT(scratch, void) = head + 1;
+    ACTOR_403600_SCALE_ROTATION_COLUMN(2);
+
+    cursor              = *cursorSlot;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    *cursorSlot         = cursor + 1;
+
+#undef ACTOR_403600_SCALE_ROTATION_COLUMN
 }
