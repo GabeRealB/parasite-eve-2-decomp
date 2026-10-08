@@ -1,52 +1,56 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Leaves the golem standing exposed for a moment, then vanishes it. Step 0
-/// takes the standing animation 0xB and rolls `timer` from the
-/// `gRandomLcgState` LCG (`GOLEM_KNIGHT_BISHOP_RECOVER_DELAY` plus 0..0x1F);
-/// unless `hitCooldown` is running it also arms `hurtBody`. Step 1 counts
-/// `timer` down and, on the frame it runs out, starts the vanish with its
-/// sound, panned and depth-attenuated from the display object, and hands over
-/// to the idle sequence.
-void golemKnightBishopRecoverSeq(Task* arg0)
+/// Stands exposed for a random recovery interval, then vanishes and idles.
+///
+/// The interval is the kind's recovery base plus 0..31 frame updates. The hurt
+/// sphere is rearmed only when its hit cooldown has expired. The retained
+/// eight-byte scratch reservation contains no accessed object; its purpose is
+/// unproven.
+static void _golemKnightBishopRecoverSeq(Task* task)
 {
+    enum { GOLEM_KNIGHT_BISHOP_RECOVERY_SCRATCH_BYTES = 8 };
+    enum {
+        GOLEM_KNIGHT_BISHOP_RECOVER_START = 0,
+        GOLEM_KNIGHT_BISHOP_RECOVER_WAIT  = 1,
+    };
     GolemKnightBishopWork* work;
-    GfxCoord*              coord;
-    s32                    state;
-    s32                    pan;
-    u32                    random;
-    s16                    timer;
+    GfxCoord*              root;
+    s32                    step;
+    s32                    audioPan;
+    u32                    randomDraw;
+    s16                    framesLeft;
 
-    SCRATCH_STACK_RESERVE_BYTES(8);
-    work  = arg0->work;
-    state = work->step;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
-            work->anim      = 0xB;
-            work->step      = 1;
-            random          = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = random;
-            work->timer     = ((random >> 16) & 0x1F) + GOLEM_KNIGHT_BISHOP_RECOVER_DELAY;
+    SCRATCH_STACK_RESERVE_BYTES(GOLEM_KNIGHT_BISHOP_RECOVERY_SCRATCH_BYTES);
+    work = task->work;
+    step = work->step;
+    root = task->extra.tmd->coords;
+    switch (step) {
+        case GOLEM_KNIGHT_BISHOP_RECOVER_START:
+            work->anim      = GOLEM_KNIGHT_BISHOP_ANIM_RECOVER;
+            work->step      = GOLEM_KNIGHT_BISHOP_RECOVER_WAIT;
+            randomDraw      = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = randomDraw;
+            work->timer     = ((randomDraw >> 16) & 0x1F) + GOLEM_KNIGHT_BISHOP_RECOVER_DELAY;
             if (work->hitCooldown == 0) {
                 work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                work->hurtBody.key    = work->actorId | 0x30000;
+                work->hurtBody.key    = work->actorId | WORLD_COLLISION_CONTACT_ENEMY_BODY;
             }
             break;
-        case 1:
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if (timer <= 0) {
+        case GOLEM_KNIGHT_BISHOP_RECOVER_WAIT:
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if (framesLeft <= 0) {
                 work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_VANISH;
                 work->translucencyFadeFrames = 0xA;
                 work->sequence               = GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE;
-                work->step                   = 0;
+                work->step                   = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
                 work->colorBlendFadeFrames   = 5;
                 work->flickerTimer           = 0;
-                work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan                          = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(work->vanishSound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                work->vanishSound            = gGolemKnightBishopPainCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                audioPan                     = (s8)worldCoordGetOriginAudioPan(root);
+                sndEvtRequestScriptStart(work->vanishSound, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BYTES(GOLEM_KNIGHT_BISHOP_RECOVERY_SCRATCH_BYTES);
 }

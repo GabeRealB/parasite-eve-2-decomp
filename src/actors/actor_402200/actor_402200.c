@@ -62,28 +62,19 @@ extern s16 gGolemKnightBishopAnimBlend[];
 
 extern GolemKnightBishopChargeSpeedSpan gGolemKnightBishopFrameSteps[];
 
-/// Runs the one-shot vocal cue armed by `grabStage`; see its definition.
-
-/// Aims the actor at the player; see its definition.
-
-/// Draws the red trail between the two projected points; see its definition.
-
-/// Projects a coordinate and queues the frame-buffer pass at its depth; see
-/// its definition.
-
-/// Per-roll wait lengths state 0 of `golemKnightBishopIdleSeq` scales by
+/// Per-roll wait lengths state 0 of `_golemKnightBishopIdleSeq` scales by
 /// `16 - attackCount`, indexed by a 4-bit `gRandomLcgState` draw.
 extern s16 gGolemKnightBishopIdleWaits[];
 
 /// Per-roll state offsets state 0 adds to 2 when `feintBroken` is set.
 extern u16 gGolemKnightBishopIdleSteps[];
 
-/// Cue word `golemKnightBishopLightFlinchSeq` and `golemKnightBishopHeavyFlinchSeq`
+/// Cue word `_golemKnightBishopLightFlinchSeq` and `_golemKnightBishopHeavyFlinchSeq`
 /// queue, a separate `D_` symbol in the overlay's data 0x48 past the cue-id
 /// table `gGolemKnightBishopAnimCues`.
 extern s32 gGolemKnightBishopPainCue;
 
-/// Cue word the fade-out in `golemKnightBishopTranslucencyFade` queues.
+/// Cue word the fade-out in `_golemKnightBishopUpdateAppearance` queues.
 extern s32 gGolemKnightBishopFadeCue;
 
 /// Cue-id table: `GolemKnightBishopWork::soundSet` picks two adjacent words,
@@ -91,7 +82,7 @@ extern s32 gGolemKnightBishopFadeCue;
 /// for the 0x10 one.
 extern s32 gGolemKnightBishopAnimCues[];
 
-/// Cue words `golemKnightBishopBoxApproachSeq` queues next to
+/// Cue words `_golemKnightBishopBoxApproachSeq` queues next to
 /// `gGolemKnightBishopPainCue`.
 extern s32 gGolemKnightBishopApproachCue;
 extern s32 gGolemKnightBishopStrikeCue;
@@ -1285,7 +1276,7 @@ AnimationSet* gGolemKnightBishopAnimSets[22] = {
 /// sequences, and the frame handler that unlinks the enemy and saves its pose
 /// before running its own short sequence.
 static const EnemyTaskFuncTable3 D_actor_402200_80131F18 = {
-    golemKnightBishopSpawn,
+    _golemKnightBishopSpawn,
     golemKnightBishopFrameState,
     golemKnightBishopDeadState,
 };

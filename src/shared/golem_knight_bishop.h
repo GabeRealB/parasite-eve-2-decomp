@@ -10,7 +10,7 @@
  * drops it to the ground, where it writhes; it dies there or collapses from
  * standing. A dispatcher runs one of twelve sequences chosen by
  * `GolemKnightBishopWork::sequence`. A step-forward helper, per-animation
- * sound cues and a hold cue timer complete the frame. The dead state uses
+ * sound cues and the grab release update complete the frame. The dead state uses
  * inline animation, tint and shadow helpers from the inline fragment.
  *
  * Each package builds the library for its own type: it defines
@@ -264,6 +264,73 @@ enum {
     GOLEM_KNIGHT_BISHOP_GRAB_TARGET_DISTANCE     = 1450, // world units behind the player's root
 };
 
+/// Yaw units and the two stages of settling onto a downed collision body.
+enum {
+    GOLEM_KNIGHT_BISHOP_YAW_FULL_TURN = 4096,
+    GOLEM_KNIGHT_BISHOP_YAW_HALF_TURN = 2048,
+    GOLEM_KNIGHT_BISHOP_YAW_MASK      = 4095,
+    GOLEM_KNIGHT_BISHOP_FALL_STARTED  = 1,
+    GOLEM_KNIGHT_BISHOP_FALL_SETTLED  = 2,
+};
+
+/// Fall timings and collision placement shared by knockdown and standing death.
+enum {
+    GOLEM_KNIGHT_BISHOP_FALL_BEHIND_FRAMES       = 66,
+    GOLEM_KNIGHT_BISHOP_FALL_FRONT_FRAMES        = 49,
+    GOLEM_KNIGHT_BISHOP_FALL_BEHIND_IMPACT_FRAME = 44,
+    GOLEM_KNIGHT_BISHOP_FALL_FRONT_IMPACT_FRAME  = 25,
+    GOLEM_KNIGHT_BISHOP_HURT_RADIUS              = 350,
+    GOLEM_KNIGHT_BISHOP_DOWNED_BEHIND_OFFSET_Z   = -167,
+    GOLEM_KNIGHT_BISHOP_DOWNED_FRONT_OFFSET_Z    = 265,
+};
+
+/// Clip IDs and state values shared by the GOLEM sequences and appearance update.
+enum {
+    GOLEM_KNIGHT_BISHOP_ANIM_GRAB_START              = 1,
+    GOLEM_KNIGHT_BISHOP_ANIM_GRAB_HOLD               = 2,
+    GOLEM_KNIGHT_BISHOP_ANIM_GRAB_KILL               = 3,
+    GOLEM_KNIGHT_BISHOP_ANIM_STAND                   = 4,
+    GOLEM_KNIGHT_BISHOP_ANIM_STRIKE                  = 5,
+    GOLEM_KNIGHT_BISHOP_ANIM_ADVANCE                 = 6,
+    GOLEM_KNIGHT_BISHOP_ANIM_CHARGE                  = 7,
+    GOLEM_KNIGHT_BISHOP_ANIM_LIGHT_FLINCH            = 8,
+    GOLEM_KNIGHT_BISHOP_ANIM_HEAVY_FLINCH_FRONT      = 9,
+    GOLEM_KNIGHT_BISHOP_ANIM_HEAVY_FLINCH_BEHIND     = 10,
+    GOLEM_KNIGHT_BISHOP_ANIM_RECOVER                 = 11,
+    GOLEM_KNIGHT_BISHOP_ANIM_GRAB_RELEASE            = 12,
+    GOLEM_KNIGHT_BISHOP_ANIM_FALL_BEHIND             = 13,
+    GOLEM_KNIGHT_BISHOP_ANIM_WRITHE_BEHIND           = 15,
+    GOLEM_KNIGHT_BISHOP_ANIM_LIE_BEHIND              = 16,
+    GOLEM_KNIGHT_BISHOP_ANIM_FALL_FRONT              = 17,
+    GOLEM_KNIGHT_BISHOP_ANIM_WRITHE_FRONT            = 19,
+    GOLEM_KNIGHT_BISHOP_ANIM_LIE_FRONT               = 20,
+    GOLEM_KNIGHT_BISHOP_ANIM_GRAB_EARLY_RELEASE      = 21,
+    GOLEM_KNIGHT_BISHOP_DOWNED_FRONT                 = 2,
+    GOLEM_KNIGHT_BISHOP_REACTION_UNLOCKED            = 0,
+    GOLEM_KNIGHT_BISHOP_REACTION_ATTACKING           = 1,
+    GOLEM_KNIGHT_BISHOP_REACTION_FALLING             = 2,
+    GOLEM_KNIGHT_BISHOP_FLICKER_NONE                 = 0,
+    GOLEM_KNIGHT_BISHOP_FLICKER_HIT                  = 1,
+    GOLEM_KNIGHT_BISHOP_FLICKER_RECOVERED            = 2,
+    GOLEM_KNIGHT_BISHOP_GRAB_NONE                    = 0,
+    GOLEM_KNIGHT_BISHOP_GRAB_HOLDING                 = 1,
+    GOLEM_KNIGHT_BISHOP_GRAB_RELEASED                = 2,
+    GOLEM_KNIGHT_BISHOP_GRAB_BREAK_NONE              = 0,
+    GOLEM_KNIGHT_BISHOP_GRAB_BREAK_STRUGGLE          = 1,
+    GOLEM_KNIGHT_BISHOP_TASK_ACTIVE                  = 1,
+    GOLEM_KNIGHT_BISHOP_TASK_DEAD                    = 2,
+    GOLEM_KNIGHT_BISHOP_STANDARD_TRANSLUCENCY_FRAMES = 20,
+    GOLEM_KNIGHT_BISHOP_STANDARD_COLOR_BLEND_FRAMES  = 10,
+    GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE       = 255,
+    GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE            = 128,
+    GOLEM_KNIGHT_BISHOP_SHADOW_HIDDEN                = -1,
+    GOLEM_KNIGHT_BISHOP_SEQUENCE_START               = 0,
+    GOLEM_KNIGHT_BISHOP_FRAME_CAPTURE_BIAS           = 12,
+    GOLEM_KNIGHT_BISHOP_AIM_ROOT_Y                   = -1300,
+    GOLEM_KNIGHT_BISHOP_AIM_RANGE                    = 10000,
+    GOLEM_KNIGHT_BISHOP_SCALE_ONE                    = 4096,
+};
+
 /// Tests a player's world X/Z against a box region's four exclusive edges.
 ///
 /// The caller checks the region kind. `region` is a GolemKnightBishopRegion
@@ -278,15 +345,15 @@ static void _golemKnightBishopPickHitReaction(Task* task, s32 damage);
 static void _golemKnightBishopRegionScanSeq(Task* task);
 static s32  _golemKnightBishopPlayerInBox(Task* task);
 static void _golemKnightBishopPlaceTarget(Task* task);
-void        golemKnightBishopStrikeSeq(Task* arg0);
-void        golemKnightBishopTranslucencyFade(Task* arg0);
-void        golemKnightBishopLightFlinchSeq(Task* arg0);
-void        golemKnightBishopHeavyFlinchSeq(Task* arg0);
-void        golemKnightBishopKneelSeq(Task* arg0);
+static void _golemKnightBishopStrikeSeq(Task* task);
+static void _golemKnightBishopUpdateAppearance(Task* task);
+static void _golemKnightBishopLightFlinchSeq(Task* task);
+static void _golemKnightBishopHeavyFlinchSeq(Task* task);
+static void _golemKnightBishopKnockdownSeq(Task* task);
 static void _golemKnightBishopDownedHitSeq(Task* task);
-void        golemKnightBishopCollapseDeathSeq(Task* arg0);
+static void _golemKnightBishopCollapseDeathSeq(Task* task);
 void        golemKnightBishopPlayAnimCues(Task* arg0);
-void        golemKnightBishopDrawAimBeam(Task* arg0);
+static void _golemKnightBishopDrawAimBeam(Task* task);
 void        golemKnightBishopDeadState(Enemy* arg0, Task* arg1);
 void        golemKnightBishopFrameState(Enemy* arg0, Task* arg1);
 void        golemKnightBishopRunSequence(Task* arg0);
@@ -294,21 +361,21 @@ static void _golemKnightBishopApplyScale(Task* task);
 static void _golemKnightBishopDownedDeathSeq(Task* task);
 static void _golemKnightBishopStepForward(Task* task);
 static void _golemKnightBishopDrawShadow(Task* task);
-void        golemKnightBishopHoldCueTimer(Task* arg0);
-void        golemKnightBishopQueueFrameCapture(GfxCoord* arg0, s32 arg1);
+static void _golemKnightBishopTickGrabRelease(Task* task);
+static void _golemKnightBishopQueueFrameCapture(GfxCoord* coord, s32 depthBias);
 
 /* Defined by each package. */
 static void _golemKnightBishopTakeHits(Task* task);
 static void _golemKnightBishopUpdateTint(Task* task);
 void        golemKnightBishopTickAnim(Task* arg0);
-void        golemKnightBishopSpawn(Enemy* arg0, Task* arg1);
-void        golemKnightBishopAimFromPart(Task* arg0);
-void        golemKnightBishopIdleSeq(Task* arg0);
-void        golemKnightBishopGrabSeq(Task* arg0);
-void        golemKnightBishopBoxApproachSeq(Task* arg0);
-void        golemKnightBishopRecoverSeq(Task* arg0);
+static void _golemKnightBishopSpawn(Enemy* enemy, Task* task);
+static void _golemKnightBishopAimFromPart(Task* task);
+static void _golemKnightBishopIdleSeq(Task* task);
+static void _golemKnightBishopGrabSeq(Task* task);
+static void _golemKnightBishopBoxApproachSeq(Task* task);
+static void _golemKnightBishopRecoverSeq(Task* task);
 
-static inline void golemKnightBishopTickAnimInline(Task* arg0);
+static inline void _golemKnightBishopTickAnimInline(Task* task);
 static inline void _golemKnightBishopDrawShadowInline(Task* task);
 
 static inline void _golemKnightBishopUpdateTintInline(Task* task);

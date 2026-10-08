@@ -1,66 +1,71 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Death while standing: falls by `hitFromFront` as it fades into full view,
-/// filing the matching `downedPose` and moving the grid test from `groundBody`
-/// to the shifted `hurtBody`, and queues the fall sound on the impact frame.
-/// When `timer` ends it moves the task to its dead state (2).
-void golemKnightBishopCollapseDeathSeq(Task* arg0)
+/// Falls dead from standing and hands the task to its corpse handler.
+///
+/// The last hit's side selects the fall clip, saved downed pose and impact frame.
+/// Grid participation moves from the root's ground sphere to the shifted hurt
+/// sphere. The signed frame countdown includes the first update after setup.
+static void _golemKnightBishopCollapseDeathSeq(Task* task)
 {
+    enum {
+        GOLEM_KNIGHT_BISHOP_COLLAPSE_START = 0,
+        GOLEM_KNIGHT_BISHOP_COLLAPSE_FALL  = 1,
+    };
     GolemKnightBishopWork* work;
-    GfxCoord*              coord;
-    s32                    state;
-    s32                    snd;
-    s32                    pan;
-    s32                    frames;
-    s16                    timer;
+    GfxCoord*              root;
+    s32                    step;
+    s32                    sound;
+    s32                    audioPan;
+    s32                    impactFrame;
+    s16                    framesLeft;
 
-    work  = arg0->work;
-    state = work->step;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
+    work = task->work;
+    step = work->step;
+    root = task->extra.tmd->coords;
+    switch (step) {
+        case GOLEM_KNIGHT_BISHOP_COLLAPSE_START:
             if (work->hitFromFront == 0) {
-                work->anim            = 0xD;
-                work->step            = 1;
-                work->downedPose      = 1;
-                work->timer           = 0x42;
-                work->hurtBody.pos.vz = -0xA7;
+                work->anim            = GOLEM_KNIGHT_BISHOP_ANIM_FALL_BEHIND;
+                work->step            = GOLEM_KNIGHT_BISHOP_COLLAPSE_FALL;
+                work->downedPose      = GOLEM_KNIGHT_BISHOP_DOWNED_BEHIND;
+                work->timer           = GOLEM_KNIGHT_BISHOP_FALL_BEHIND_FRAMES;
+                work->hurtBody.pos.vz = GOLEM_KNIGHT_BISHOP_DOWNED_BEHIND_OFFSET_Z;
             } else {
-                work->anim            = 0x11;
-                work->step            = 1;
-                work->downedPose      = 2;
-                work->timer           = 0x31;
-                work->hurtBody.pos.vz = 0x109;
+                work->anim            = GOLEM_KNIGHT_BISHOP_ANIM_FALL_FRONT;
+                work->step            = GOLEM_KNIGHT_BISHOP_COLLAPSE_FALL;
+                work->downedPose      = GOLEM_KNIGHT_BISHOP_DOWNED_FRONT;
+                work->timer           = GOLEM_KNIGHT_BISHOP_FALL_FRONT_FRAMES;
+                work->hurtBody.pos.vz = GOLEM_KNIGHT_BISHOP_DOWNED_FRONT_OFFSET_Z;
             }
-            work->hurtBody.radius        = 0x15E;
-            work->knockdownStage         = 1;
+            work->hurtBody.radius        = GOLEM_KNIGHT_BISHOP_HURT_RADIUS;
+            work->knockdownStage         = GOLEM_KNIGHT_BISHOP_FALL_STARTED;
             work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
-            work->translucencyFadeFrames = 0x14;
-            work->colorBlendFadeFrames   = 0xA;
-            work->reactionLock           = 2;
+            work->translucencyFadeFrames = GOLEM_KNIGHT_BISHOP_STANDARD_TRANSLUCENCY_FRAMES;
+            work->colorBlendFadeFrames   = GOLEM_KNIGHT_BISHOP_STANDARD_COLOR_BLEND_FRAMES;
+            work->reactionLock           = GOLEM_KNIGHT_BISHOP_REACTION_FALLING;
             work->forwardSpeed           = 0;
             work->hurtBody.flags        |= WORLD_COLLISION_BODY_GRID_ENABLED;
             work->groundBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
             break;
-        case 1:
-            if (work->knockdownStage == state) {
-                work->knockdownStage = 2;
+        case GOLEM_KNIGHT_BISHOP_COLLAPSE_FALL:
+            if (work->knockdownStage == step) {
+                work->knockdownStage = GOLEM_KNIGHT_BISHOP_FALL_SETTLED;
             }
-            frames = 0x19;
-            if (work->downedPose == state) {
-                frames = 0x2C;
+            impactFrame = GOLEM_KNIGHT_BISHOP_FALL_FRONT_IMPACT_FRAME;
+            if (work->downedPose == step) {
+                impactFrame = GOLEM_KNIGHT_BISHOP_FALL_BEHIND_IMPACT_FRAME;
             }
-            if (work->animFrame == frames) {
-                snd = gGolemKnightBishopAnimCues[work->soundSet + 8] | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+            if (work->animFrame == impactFrame) {
+                sound    = gGolemKnightBishopAnimCues[work->soundSet + 8] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                audioPan = (s8)worldCoordGetOriginAudioPan(root);
+                sndEvtRequestScriptStart(sound, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
             }
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if (timer <= 0) {
-                arg0->state        = 2;
-                work->step         = 0;
-                work->reactionLock = 0;
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if (framesLeft <= 0) {
+                task->state        = GOLEM_KNIGHT_BISHOP_TASK_DEAD;
+                work->step         = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
+                work->reactionLock = GOLEM_KNIGHT_BISHOP_REACTION_UNLOCKED;
             }
             break;
     }

@@ -15,94 +15,98 @@ typedef struct {
 } _GolemKnightBishopAimScratch;
 STATIC_ASSERT_SIZEOF(_GolemKnightBishopAimScratch, 0x48);
 
-/// Aims the beam from the actor's fourth part. While `auxTimer` is positive
-/// the offset (-0x28, -0x78, 0xDC) from that part, brought into root space,
-/// becomes `aimBeamCapsule.ends[1]` and `aimBeamBody` is grid- and
-/// pair-enabled; otherwise the body is switched off. Below
-/// `GOLEM_KNIGHT_BISHOP_AIM_TIME` - 1 it projects the beam's two ends into
-/// `beamScreenX`, `beamScreenY` and `beamDepth` and draws it: the same point
-/// on the part, and a point 0x514 above the root as far ahead as the contact
-/// in `aimBeamContacts` (10000 when the capsule touched nothing).
-void golemKnightBishopAimFromPart(Task* arg0)
+/// Updates the collision probe and projected red beam from model part 4.
+///
+/// `task` owns live GOLEM work and composed model coordinates. A positive aim
+/// countdown enables the capsule; drawing starts after its first countdown tick
+/// and also runs on the final zero tick. Contact distance is measured in world
+/// units and narrowed to s16; a player-body contact extends it by 300 units.
+/// The scratch block remains reserved while the beam drawer borrows the results.
+static void _golemKnightBishopAimFromPart(Task* task)
 {
-    u8*                           head;
-    _GolemKnightBishopAimScratch* sc;
+    enum {
+        GOLEM_KNIGHT_BISHOP_AIM_PART_X           = -40,
+        GOLEM_KNIGHT_BISHOP_AIM_PART_Y           = -120,
+        GOLEM_KNIGHT_BISHOP_AIM_PART_Z           = 220,
+        GOLEM_KNIGHT_BISHOP_AIM_PLAYER_EXTENSION = 300,
+    };
+    _GolemKnightBishopAimScratch* scratch;
     GolemKnightBishopWork*        work;
-    GfxCoord*                     coord;
-    GfxCoord*                     part;
-    s32                           i;
-    s16                           dist;
+    GfxCoord*                     root;
+    GfxCoord*                     beamPart;
+    s32                           endpointIndex;
+    s16                           contactDistance;
 
-    coord                    = arg0->extra.tmd->coords;
-    head                     = SCRATCH_STACK_CURSOR(u8);
-    SCRATCH_STACK_CURSOR(u8) = head - sizeof(_GolemKnightBishopAimScratch);
-    sc                       = (_GolemKnightBishopAimScratch*)(head - sizeof(_GolemKnightBishopAimScratch));
-    work                     = arg0->work;
-    part                     = &coord[3] + 1;
-    coord->composeStamp      = GRAPHICS_COORD_DIRTY;
-    part->composeStamp       = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(part);
+    root                   = task->extra.tmd->coords;
+    scratch                = SCRATCH_STACK_RESERVE_BLOCK(_GolemKnightBishopAimScratch);
+    work                   = task->work;
+    beamPart               = &root[4];
+    root->composeStamp     = GRAPHICS_COORD_DIRTY;
+    beamPart->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(beamPart);
+    // Express the part offset in root space for the live collision capsule.
     if (work->auxTimer > 0) {
-        gfxMakeRelativeTransform(&coord->workm, &part->workm, &sc->partInRoot);
-        sc->ends[1].vx = -0x28;
-        sc->ends[1].vy = -0x78;
-        sc->ends[1].vz = 0xDC;
-        gte_SetRotMatrix(&sc->partInRoot);
-        gte_ldv0(&sc->ends[1]);
+        gfxMakeRelativeTransform(&root->workm, &beamPart->workm, &scratch->partInRoot);
+        scratch->ends[1].vx = GOLEM_KNIGHT_BISHOP_AIM_PART_X;
+        scratch->ends[1].vy = GOLEM_KNIGHT_BISHOP_AIM_PART_Y;
+        scratch->ends[1].vz = GOLEM_KNIGHT_BISHOP_AIM_PART_Z;
+        gte_SetRotMatrix(&scratch->partInRoot);
+        gte_ldv0(&scratch->ends[1]);
         gte_rtv0();
-        gte_stlvnl(&sc->offset);
-        work->aimBeamCapsule.ends[1].vx = sc->partInRoot.t[0] + sc->offset.vx;
-        work->aimBeamCapsule.ends[1].vy = sc->partInRoot.t[1] + sc->offset.vy;
-        work->aimBeamCapsule.ends[1].vz = sc->partInRoot.t[2] + sc->offset.vz;
+        gte_stlvnl(&scratch->offset);
+        work->aimBeamCapsule.ends[1].vx = scratch->partInRoot.t[0] + scratch->offset.vx;
+        work->aimBeamCapsule.ends[1].vy = scratch->partInRoot.t[1] + scratch->offset.vy;
+        work->aimBeamCapsule.ends[1].vz = scratch->partInRoot.t[2] + scratch->offset.vz;
         work->aimBeamBody.flags        |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
     } else {
         work->aimBeamBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
     }
+    // Consume the previous collision pass, then project both world-space ends.
     if (work->auxTimer < GOLEM_KNIGHT_BISHOP_AIM_TIME - 1) {
-        sc->ends[1].vx = -0x28;
-        sc->ends[1].vy = -0x78;
-        sc->ends[1].vz = 0xDC;
-        gte_SetRotMatrix(&part->workm);
-        gte_ldv0(&sc->ends[1]);
+        scratch->ends[1].vx = GOLEM_KNIGHT_BISHOP_AIM_PART_X;
+        scratch->ends[1].vy = GOLEM_KNIGHT_BISHOP_AIM_PART_Y;
+        scratch->ends[1].vz = GOLEM_KNIGHT_BISHOP_AIM_PART_Z;
+        gte_SetRotMatrix(&beamPart->workm);
+        gte_ldv0(&scratch->ends[1]);
         gte_rtv0();
-        gte_stlvnl(&sc->offset);
-        sc->ends[1].vx = part->workm.t[0] + sc->offset.vx;
-        sc->ends[1].vy = part->workm.t[1] + sc->offset.vy;
-        sc->ends[1].vz = part->workm.t[2] + sc->offset.vz;
-        sc->ends[0].vx = 0;
-        sc->ends[0].vy = -0x514;
+        gte_stlvnl(&scratch->offset);
+        scratch->ends[1].vx = beamPart->workm.t[0] + scratch->offset.vx;
+        scratch->ends[1].vy = beamPart->workm.t[1] + scratch->offset.vy;
+        scratch->ends[1].vz = beamPart->workm.t[2] + scratch->offset.vz;
+        scratch->ends[0].vx = 0;
+        scratch->ends[0].vy = GOLEM_KNIGHT_BISHOP_AIM_ROOT_Y;
         if (worldCollisionFindContactIndex(work->aimBeamContacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
-            sc->offset.vx  = work->aimBeamContacts[0].point.vx - sc->ends[1].vx;
-            sc->offset.vy  = work->aimBeamContacts[0].point.vy - sc->ends[1].vy;
-            sc->offset.vz  = work->aimBeamContacts[0].point.vz - sc->ends[1].vz;
-            dist           = SquareRoot0(sc->offset.vx * sc->offset.vx + sc->offset.vy * sc->offset.vy + sc->offset.vz * sc->offset.vz);
-            sc->ends[0].vz = dist;
-            if ((work->aimBeamContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == 0x10000) {
-                sc->ends[0].vz = dist + 0x12C;
+            scratch->offset.vx  = work->aimBeamContacts[0].point.vx - scratch->ends[1].vx;
+            scratch->offset.vy  = work->aimBeamContacts[0].point.vy - scratch->ends[1].vy;
+            scratch->offset.vz  = work->aimBeamContacts[0].point.vz - scratch->ends[1].vz;
+            contactDistance     = SquareRoot0(scratch->offset.vx * scratch->offset.vx + scratch->offset.vy * scratch->offset.vy + scratch->offset.vz * scratch->offset.vz);
+            scratch->ends[0].vz = contactDistance;
+            if ((work->aimBeamContacts[0].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
+                scratch->ends[0].vz = contactDistance + GOLEM_KNIGHT_BISHOP_AIM_PLAYER_EXTENSION;
             }
             worldCollisionClearContacts(work->aimBeamContacts);
         } else {
-            sc->ends[0].vz = 10000;
+            scratch->ends[0].vz = GOLEM_KNIGHT_BISHOP_AIM_RANGE;
         }
-        gte_SetRotMatrix(&coord->workm);
-        gte_ldv0(&sc->ends[0]);
+        gte_SetRotMatrix(&root->workm);
+        gte_ldv0(&scratch->ends[0]);
         gte_rtv0();
-        gte_stlvnl(&sc->offset);
-        sc->ends[0].vx = coord->workm.t[0] + sc->offset.vx;
-        sc->ends[0].vy = coord->workm.t[1] + sc->offset.vy;
-        sc->ends[0].vz = coord->workm.t[2] + sc->offset.vz;
-        for (i = 0; i < 2; i++) {
+        gte_stlvnl(&scratch->offset);
+        scratch->ends[0].vx = root->workm.t[0] + scratch->offset.vx;
+        scratch->ends[0].vy = root->workm.t[1] + scratch->offset.vy;
+        scratch->ends[0].vz = root->workm.t[2] + scratch->offset.vz;
+        for (endpointIndex = 0; endpointIndex < ARRAY_SIZE(scratch->ends); endpointIndex++) {
             gte_SetRotMatrix(&GsWSMATRIX);
             gte_SetTransMatrix(&GsWSMATRIX);
-            gte_ldv0(&sc->ends[i]);
+            gte_ldv0(&scratch->ends[endpointIndex]);
             gte_rtps();
-            gte_stsxy(&sc->screenXY);
-            gte_stszotz(&sc->depth);
-            work->beamScreenX[i] = sc->screenXY;
-            work->beamScreenY[i] = sc->screenXY >> 16;
-            work->beamDepth[i]   = sc->depth;
+            gte_stsxy(&scratch->screenXY);
+            gte_stszotz(&scratch->depth);
+            work->beamScreenX[endpointIndex] = scratch->screenXY;
+            work->beamScreenY[endpointIndex] = scratch->screenXY >> 16;
+            work->beamDepth[endpointIndex]   = scratch->depth;
         }
-        golemKnightBishopDrawAimBeam(arg0);
+        _golemKnightBishopDrawAimBeam(task);
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(_GolemKnightBishopAimScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_GolemKnightBishopAimScratch);
 }

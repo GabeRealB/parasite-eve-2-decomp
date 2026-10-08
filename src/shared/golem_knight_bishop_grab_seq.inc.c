@@ -16,158 +16,173 @@ typedef struct {
 } _GolemKnightBishopGrabScratch;
 STATIC_ASSERT_SIZEOF(_GolemKnightBishopGrabScratch, 0x5C);
 
-/// Runs the actor's hold on the player (the same 0x3F8 / 0x3FF message pair
-/// `func_actor_103700_80134F50` uses to take a hold). Step 0 asks the player
-/// to await 0x19 button presses while they are alive and not scripted; on
-/// success it plants the display object at `targetPos` facing `targetYaw`,
-/// places the player 0x5AA in front of it with message 0x3E9 and sets
-/// `grabStage`. Steps 1 and 2 start the appearance and step the player's
-/// animation. Step 3 waits out `auxTimer`, then every
-/// `GOLEM_KNIGHT_BISHOP_GRAB_RECHECK` frames either hurts the player, counting
-/// `grabDamageTicks`, or goes for the kill: always when `gPlayerStatus.hp` is
-/// at or below the per-difficulty `gGolemKnightBishopGrabHpLimits`, otherwise
-/// by an LCG roll whose chance grows with `grabDamageTicks` and as the HP
-/// falls below half, and never on the check that first sets `grabKillRollArmed`. A raised
-/// `grabBreak` ends the hold. The player struggling free backs the golem
-/// away: flickering, into the recover sequence, when `auxTimer` is still
-/// running and the grab is not `counterattacking` (step 6), and vanishing
-/// otherwise (step 4). A weapon hit picks the reaction for
-/// `interruptDamage`. Step 5 is the kill: a `grabBreak` before frame 0x1A
-/// still frees the player; at 0x1A it spawns the spark, sends message 0x400
-/// and clears `gPlayerStatus.hp`, and step 7 then counts in `timer` through
-/// loading file 9/0x1E and queuing the death sound once the CD is idle.
-void golemKnightBishopGrabSeq(Task* arg0)
+/// Plays one grab clip on the player using a synchronously borrowed request.
+///
+/// `clipId` selects the carrier's grab bank; scratch storage lives through dispatch.
+static inline void _golemKnightBishopPlayGrabPlayerAnimation(Task* player, _GolemKnightBishopGrabScratch* scratch, s32 clipId)
 {
-    GolemKnightBishopWork*         work;
-    GfxCoord*                      coord;
-    Task*                          player;
-    _GolemKnightBishopGrabScratch* sc;
-    GfxCoord*                      pcoord;
-    s32                            flag;
-    s32                            snd;
-    s32                            chance;
-    u32                            random;
-    s16                            timer;
-    s16                            val;
-    s16                            sub;
+    scratch->playerAnim.source.sets          = gGolemKnightBishopPlayerAnims;
+    scratch->playerAnim.animationId          = clipId;
+    scratch->playerAnim.blend                = ANIMATION_BLEND_RESET;
+    scratch->playerAnim.blendFrames          = 0;
+    scratch->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
+    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &scratch->playerAnim, 0);
+}
 
-    work   = arg0->work;
-    coord  = arg0->extra.tmd->coords;
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(_GolemKnightBishopGrabScratch));
-    sc     = SCRATCH_STACK_CURSOR(_GolemKnightBishopGrabScratch);
-    pcoord = player->extra.tmd->coords;
-    flag   = 0;
+/// Takes scripted control of the player for a damaging hold or fatal grab.
+///
+/// The live player must accept the button-press hold before either actor is placed.
+/// Message payloads borrow this call's scratch storage only for synchronous
+/// dispatch. After the initial grace period, per-kind checks apply damage or
+/// select a kill from the difficulty row (0..4), HP and accumulated damage ticks. The first
+/// above-limit check arms the kill roll without rolling. Struggle or weapon
+/// damage can break the hold; release playback finishes through
+/// `_golemKnightBishopTickGrabRelease`. A fatal grab loads and queues the player's
+/// death sound after the killing animation frame.
+static void _golemKnightBishopGrabSeq(Task* task)
+{
+    enum {
+        GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_START   = 1,
+        GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_HOLD    = 2,
+        GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_KILL    = 3,
+        GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_RELEASE = 4,
+        GOLEM_KNIGHT_BISHOP_DEATH_SOUND_LOAD    = 0,
+        GOLEM_KNIGHT_BISHOP_DEATH_SOUND_WAIT    = 1,
+        GOLEM_KNIGHT_BISHOP_DEATH_SOUND_DONE    = 2,
+    };
+    enum {
+        GOLEM_KNIGHT_BISHOP_GRAB_KILL_FRAME              = 26,
+        GOLEM_KNIGHT_BISHOP_GRAB_ESCAPE_PRESSES          = 25,
+        GOLEM_KNIGHT_BISHOP_PLAYER_SCRIPTED_ATTACK_STATE = 10,
+    };
+    enum {
+        GOLEM_KNIGHT_BISHOP_PLAYER_ENTER_SCRIPTED_ATTACK = 1024,
+    };
+    enum {
+        GOLEM_KNIGHT_BISHOP_GRAB_TAKE        = 0,
+        GOLEM_KNIGHT_BISHOP_GRAB_PLAY_START  = 1,
+        GOLEM_KNIGHT_BISHOP_GRAB_WAIT_START  = 2,
+        GOLEM_KNIGHT_BISHOP_GRAB_HOLD        = 3,
+        GOLEM_KNIGHT_BISHOP_GRAB_BACK_AWAY   = 4,
+        GOLEM_KNIGHT_BISHOP_GRAB_KILL        = 5,
+        GOLEM_KNIGHT_BISHOP_GRAB_EARLY_BREAK = 6,
+        GOLEM_KNIGHT_BISHOP_GRAB_DEATH_SOUND = 7,
+    };
+    GolemKnightBishopWork*         work;
+    GfxCoord*                      root;
+    Task*                          player;
+    _GolemKnightBishopGrabScratch* scratch;
+    GfxCoord*                      playerRoot;
+    s32                            killSelected;
+    s32                            sound;
+    s32                            killChance;
+    s16                            framesLeft;
+    s16                            retreatSpeed;
+    s16                            deathSoundStep;
+
+    work         = task->work;
+    root         = task->extra.tmd->coords;
+    player       = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    scratch      = SCRATCH_STACK_RESERVE_BLOCK(_GolemKnightBishopGrabScratch);
+    playerRoot   = player->extra.tmd->coords;
+    killSelected = 0;
     switch (work->step) {
-        case 0:
+        case GOLEM_KNIGHT_BISHOP_GRAB_TAKE:
+            // Take control before moving either actor; refusal leaves placement intact.
             if (((GameActor*)player->work)->mode != GAME_ACTOR_MODE_SCRIPTED && gPlayerStatus.hp > 0) {
-                sc->buttonPressHold.pressCount = 0x19;
-                if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &sc->buttonPressHold, 0) == 0) {
-                    work->anim        = 1;
-                    work->step        = 1;
-                    work->grabBreak   = 0;
-                    work->feintBroken = 0;
-                    work->grabStage   = 1;
-                    sc->operand.vx    = 0;
-                    sc->operand.vy    = work->targetYaw;
-                    sc->operand.vz    = 0;
-                    RotMatrix(&sc->operand, &coord->coord);
-                    coord->coord.t[0] = work->targetPos.vx;
-                    coord->coord.t[1] = work->targetPos.vy;
-                    coord->coord.t[2] = work->targetPos.vz;
-                    sc->operand.vx    = 0;
-                    sc->operand.vy    = 0;
-                    sc->operand.vz    = 0x5AA;
-                    gte_SetRotMatrix(&coord->coord);
-                    gte_ldv0(&sc->operand);
+                scratch->buttonPressHold.pressCount = GOLEM_KNIGHT_BISHOP_GRAB_ESCAPE_PRESSES;
+                if (TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &scratch->buttonPressHold, 0) == 0) {
+                    work->anim          = GOLEM_KNIGHT_BISHOP_ANIM_GRAB_START;
+                    work->step          = GOLEM_KNIGHT_BISHOP_GRAB_PLAY_START;
+                    work->grabBreak     = GOLEM_KNIGHT_BISHOP_GRAB_BREAK_NONE;
+                    work->feintBroken   = 0;
+                    work->grabStage     = GOLEM_KNIGHT_BISHOP_GRAB_HOLDING;
+                    scratch->operand.vx = 0;
+                    scratch->operand.vy = work->targetYaw;
+                    scratch->operand.vz = 0;
+                    RotMatrix(&scratch->operand, &root->coord);
+                    root->coord.t[0]    = work->targetPos.vx;
+                    root->coord.t[1]    = work->targetPos.vy;
+                    root->coord.t[2]    = work->targetPos.vz;
+                    scratch->operand.vx = 0;
+                    scratch->operand.vy = 0;
+                    scratch->operand.vz = GOLEM_KNIGHT_BISHOP_GRAB_TARGET_DISTANCE;
+                    gte_SetRotMatrix(&root->coord);
+                    gte_ldv0(&scratch->operand);
                     gte_rtv0();
-                    gte_stlvnl(&sc->offset);
-                    sc->playerPlacement.pos.vx = coord->coord.t[0] + sc->offset.vx;
-                    sc->playerPlacement.pos.vy = coord->coord.t[1] + sc->offset.vy;
-                    sc->playerPlacement.pos.vz = coord->coord.t[2] + sc->offset.vz;
-                    sc->playerPlacement.rot.vx = 0;
-                    sc->playerPlacement.rot.vy = work->targetYaw;
-                    sc->playerPlacement.rot.vz = 0;
-                    TASK_MESSAGE_DISPATCH_POINTER(player, 0x3E9, &sc->playerPlacement, 0);
+                    gte_stlvnl(&scratch->offset);
+                    scratch->playerPlacement.pos.vx = root->coord.t[0] + scratch->offset.vx;
+                    scratch->playerPlacement.pos.vy = root->coord.t[1] + scratch->offset.vy;
+                    scratch->playerPlacement.pos.vz = root->coord.t[2] + scratch->offset.vz;
+                    scratch->playerPlacement.rot.vx = 0;
+                    scratch->playerPlacement.rot.vy = work->targetYaw;
+                    scratch->playerPlacement.rot.vz = 0;
+                    TASK_MESSAGE_DISPATCH_POINTER(player, GAME_ACTOR_MESSAGE_PLACE, &scratch->playerPlacement, 0);
                     padScriptSpawnVariableMotorRamp(0xA, 0xFF, 0x80);
-                    snd = (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
-                    sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(pcoord), (s8)worldCoordGetOriginAudioDepth(pcoord));
+                    sound = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 6;
+                    sndEvtRequestScriptStart(sound, (s8)worldCoordGetOriginAudioPan(playerRoot), (s8)worldCoordGetOriginAudioDepth(playerRoot));
                 } else {
                     work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE;
-                    work->step     = 0;
+                    work->step     = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
                 }
             }
             break;
-        case 1:
-            sc->playerAnim.source.sets          = gGolemKnightBishopPlayerAnims;
-            sc->playerAnim.animationId          = 1;
-            sc->playerAnim.blend                = ANIMATION_BLEND_RESET;
-            sc->playerAnim.blendFrames          = 0;
-            sc->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-            TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->playerAnim, 0);
-            work->step                   = 2;
+        case GOLEM_KNIGHT_BISHOP_GRAB_PLAY_START:
+            _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_START);
+            work->step                   = GOLEM_KNIGHT_BISHOP_GRAB_WAIT_START;
             work->translucencyFadeFrames = 0x3C;
             work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
             work->colorBlendFadeFrames   = 0x1E;
-            work->appearSound            = gGolemKnightBishopApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            sndEvtRequestScriptStart(work->appearSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            work->appearSound            = gGolemKnightBishopApproachCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            sndEvtRequestScriptStart(work->appearSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             break;
-        case 2:
+        case GOLEM_KNIGHT_BISHOP_GRAB_WAIT_START:
             if (work->animFrame >= 0x29) {
-                work->anim                          = 2;
-                work->step                          = 3;
-                work->auxTimer                      = 0x1E;
-                work->timer                         = 0;
-                work->grabDamageTicks               = 0;
-                sc->playerAnim.source.sets          = gGolemKnightBishopPlayerAnims;
-                sc->playerAnim.animationId          = 2;
-                sc->playerAnim.blend                = ANIMATION_BLEND_RESET;
-                sc->playerAnim.blendFrames          = 0;
-                sc->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->playerAnim, 0);
+                work->anim            = GOLEM_KNIGHT_BISHOP_ANIM_GRAB_HOLD;
+                work->step            = GOLEM_KNIGHT_BISHOP_GRAB_HOLD;
+                work->auxTimer        = 0x1E;
+                work->timer           = 0;
+                work->grabDamageTicks = 0;
+                _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_HOLD);
                 sceneEngageBattle(1);
                 work->interruptDamage = 0;
                 if (work->hitCooldown == 0) {
                     work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    work->hurtBody.key    = work->actorId | 0x30000;
+                    work->hurtBody.key    = work->actorId | WORLD_COLLISION_CONTACT_ENEMY_BODY;
                 }
             }
             break;
-        case 3:
+        case GOLEM_KNIGHT_BISHOP_GRAB_HOLD:
+            // Delay the first damage check, then roll a kill only after arming it.
             if (work->auxTimer > 0) {
                 work->auxTimer--;
             } else {
                 if (work->timer == 2) {
                     padScriptSpawnVariableMotorRamp(5, 0xC0, 0x80);
                 }
-                timer       = work->timer - 1;
-                work->timer = timer;
-                if (timer <= 0) {
+                framesLeft  = work->timer - 1;
+                work->timer = framesLeft;
+                if (framesLeft <= 0) {
                     if (gPlayerStatus.hp > gGolemKnightBishopGrabHpLimits[gSceneCombatState.difficulty]) {
                         if (work->grabKillRollArmed == 0) {
                             work->grabKillRollArmed = 1;
                         } else {
-                            chance = work->grabDamageTicks * (0x32 - (gPlayerStatus.hp * 100) / gPlayerStatus.hpMax) / 2;
-                            if (chance > 0) {
-                                chance          = (chance * 0xFFF) / 100;
+                            killChance = work->grabDamageTicks * (0x32 - (gPlayerStatus.hp * 100) / gPlayerStatus.hpMax) / 2;
+                            if (killChance > 0) {
+                                killChance      = (killChance * 0xFFF) / 100;
                                 gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-                                if ((s32)((gRandomLcgState >> 16) & 0xFFF) < chance) {
-                                    flag = 1;
+                                if ((s32)((gRandomLcgState >> 16) & 0xFFF) < killChance) {
+                                    killSelected = 1;
                                 }
                             }
                         }
                     } else {
-                        flag = 1;
+                        killSelected = 1;
                     }
-                    if (flag != 0) {
-                        work->anim                          = 3;
-                        work->step                          = 5;
-                        sc->playerAnim.source.sets          = gGolemKnightBishopPlayerAnims;
-                        sc->playerAnim.animationId          = 3;
-                        sc->playerAnim.blend                = ANIMATION_BLEND_RESET;
-                        sc->playerAnim.blendFrames          = 0;
-                        sc->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->playerAnim, 0);
+                    if (killSelected != 0) {
+                        work->anim = GOLEM_KNIGHT_BISHOP_ANIM_GRAB_KILL;
+                        work->step = GOLEM_KNIGHT_BISHOP_GRAB_KILL;
+                        _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_KILL);
                     } else {
                         work->timer = GOLEM_KNIGHT_BISHOP_GRAB_RECHECK;
                         taskMessageDispatch(player, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackAttackKey(gGolemKnightBishopAttacks, 0), 0);
@@ -175,11 +190,11 @@ void golemKnightBishopGrabSeq(Task* arg0)
                     }
                 }
             }
-            if (work->grabBreak != 0) {
-                if (work->grabBreak == 1) {
+            if (work->grabBreak != GOLEM_KNIGHT_BISHOP_GRAB_BREAK_NONE) {
+                if (work->grabBreak == GOLEM_KNIGHT_BISHOP_GRAB_BREAK_STRUGGLE) {
                     if (work->auxTimer > 0 && work->counterattacking == 0) {
-                        work->anim             = 0x15;
-                        work->step             = 6;
+                        work->anim             = GOLEM_KNIGHT_BISHOP_ANIM_GRAB_EARLY_RELEASE;
+                        work->step             = GOLEM_KNIGHT_BISHOP_GRAB_EARLY_BREAK;
                         work->grabReleaseTimer = 0;
                         if (work->appearSound != 0) {
                             sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -187,105 +202,97 @@ void golemKnightBishopGrabSeq(Task* arg0)
                         }
                         work->fadeState = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START;
                     } else {
-                        work->anim                   = 0xC;
-                        work->step                   = 4;
+                        work->anim                   = GOLEM_KNIGHT_BISHOP_ANIM_GRAB_RELEASE;
+                        work->step                   = GOLEM_KNIGHT_BISHOP_GRAB_BACK_AWAY;
                         work->timer                  = 0x69;
                         work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_VANISH;
                         work->translucencyFadeFrames = 0x4B;
                         work->grabReleaseTimer       = 0;
                         work->colorBlendFadeFrames   = 0x1E;
-                        work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                        sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                        work->vanishSound            = gGolemKnightBishopPainCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                        sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
                     }
                 } else {
-                    _golemKnightBishopPickHitReaction(arg0, work->interruptDamage);
+                    _golemKnightBishopPickHitReaction(task, work->interruptDamage);
                     work->grabReleaseTimer = 0;
                 }
-                work->grabStage                     = 2;
-                work->grabBreak                     = 0;
-                sc->playerAnim.source.sets          = gGolemKnightBishopPlayerAnims;
-                sc->playerAnim.animationId          = 4;
-                sc->playerAnim.blend                = ANIMATION_BLEND_RESET;
-                sc->playerAnim.blendFrames          = 0;
-                sc->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->playerAnim, 0);
+                work->grabStage = GOLEM_KNIGHT_BISHOP_GRAB_RELEASED;
+                work->grabBreak = GOLEM_KNIGHT_BISHOP_GRAB_BREAK_NONE;
+                _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_RELEASE);
             }
             break;
-        case 4:
-            val = 0;
+        case GOLEM_KNIGHT_BISHOP_GRAB_BACK_AWAY:
+            retreatSpeed = 0;
             if (work->animFrame < 0x5F) {
-                val = -0xA;
+                retreatSpeed = -0xA;
             }
-            work->forwardSpeed = val;
-            timer              = work->timer - 1;
-            work->timer        = timer;
-            if (timer <= 0) {
+            work->forwardSpeed = retreatSpeed;
+            framesLeft         = work->timer - 1;
+            work->timer        = framesLeft;
+            if (framesLeft <= 0) {
                 work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE;
-                work->step     = 0;
+                work->step     = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
             }
-            golemKnightBishopHoldCueTimer(arg0);
+            _golemKnightBishopTickGrabRelease(task);
             break;
-        case 5:
-            if (work->animFrame < 0x1A) {
-                if (work->grabBreak != 0) {
-                    work->anim                          = 0xC;
-                    work->grabBreak                     = 0;
-                    sc->playerAnim.source.sets          = gGolemKnightBishopPlayerAnims;
-                    sc->playerAnim.animationId          = 4;
-                    sc->playerAnim.blend                = ANIMATION_BLEND_RESET;
-                    sc->playerAnim.blendFrames          = 0;
-                    sc->playerAnim.enableWorldCollision = ANIMATION_WORLD_COLLISION_ENABLE;
-                    TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_REPLACE_AND_PLAY, &sc->playerAnim, 0);
+        case GOLEM_KNIGHT_BISHOP_GRAB_KILL:
+            // The killing frame commits death; earlier interruptions still release.
+            if (work->animFrame < GOLEM_KNIGHT_BISHOP_GRAB_KILL_FRAME) {
+                if (work->grabBreak != GOLEM_KNIGHT_BISHOP_GRAB_BREAK_NONE) {
+                    work->anim      = GOLEM_KNIGHT_BISHOP_ANIM_GRAB_RELEASE;
+                    work->grabBreak = GOLEM_KNIGHT_BISHOP_GRAB_BREAK_NONE;
+                    _golemKnightBishopPlayGrabPlayerAnimation(player, scratch, GOLEM_KNIGHT_BISHOP_PLAYER_GRAB_RELEASE);
                     work->timer                  = 0x69;
                     work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_VANISH;
                     work->translucencyFadeFrames = 0x4B;
-                    work->step                   = 4;
+                    work->step                   = GOLEM_KNIGHT_BISHOP_GRAB_BACK_AWAY;
                     work->colorBlendFadeFrames   = 0x1E;
-                    work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                    sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                    work->vanishSound            = gGolemKnightBishopPainCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                    sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
                 }
-            } else if (work->animFrame == 0x1A) {
-                ((GameActor*)player->work)->state = 0xA;
-                work->step                        = 7;
+            } else if (work->animFrame == GOLEM_KNIGHT_BISHOP_GRAB_KILL_FRAME) {
+                ((GameActor*)player->work)->state = GOLEM_KNIGHT_BISHOP_PLAYER_SCRIPTED_ATTACK_STATE;
+                work->step                        = GOLEM_KNIGHT_BISHOP_GRAB_DEATH_SOUND;
                 work->timer                       = 0;
                 gGameSession->deathRestartDelay   = 0x5A;
                 gGameSession->deathSoundCountdown = GAME_SESSION_DEATH_SOUND_HOLD;
-                sc->operand.vy                    = -0x96;
-                sc->operand.vx                    = 0;
-                sc->operand.vz                    = 0xC8;
-                effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[4], &sc->operand, &gGolemKnightBishopGrabEffect);
+                scratch->operand.vy               = -0x96;
+                scratch->operand.vx               = 0;
+                scratch->operand.vz               = 0xC8;
+                effectSpawnHit(EFFECT_HIT_KIND_WEAPON_PUFF, &gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords[4], &scratch->operand, &gGolemKnightBishopGrabEffect);
                 padScriptSpawnVariableMotorRamp(0xA, 0xFF, 8);
-                taskMessageDispatch(player, 0x400, 0, 0);
+                taskMessageDispatch(player, GOLEM_KNIGHT_BISHOP_PLAYER_ENTER_SCRIPTED_ATTACK, 0, 0);
                 gPlayerStatus.hp = 0;
             }
             break;
-        case 6:
+        case GOLEM_KNIGHT_BISHOP_GRAB_EARLY_BREAK:
             work->forwardSpeed = -0xA;
-            golemKnightBishopHoldCueTimer(arg0);
-            if (work->grabStage == 0) {
+            _golemKnightBishopTickGrabRelease(task);
+            if (work->grabStage == GOLEM_KNIGHT_BISHOP_GRAB_NONE) {
                 work->forwardSpeed = 0;
                 work->sequence     = GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER;
-                work->step         = 0;
+                work->step         = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
             }
             break;
-        case 7:
-            sub = work->timer;
-            switch (sub) {
-                case 0:
+        case GOLEM_KNIGHT_BISHOP_GRAB_DEATH_SOUND:
+            deathSoundStep = work->timer;
+            switch (deathSoundStep) {
+                case GOLEM_KNIGHT_BISHOP_DEATH_SOUND_LOAD:
                     cdCmdEnqueueDisplayResource(9, 0x1E, CD_COMMAND_DISPLAY_LOAD_DEFAULT);
-                    work->timer = 1;
+                    work->timer = GOLEM_KNIGHT_BISHOP_DEATH_SOUND_WAIT;
                     break;
-                case 1:
-                    if ((cdCmdIsIdle() & 0xFFFF) == 1) {
-                        coord = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
-                        sndEvtRequestScriptStart(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-                        work->timer = 2;
+                case GOLEM_KNIGHT_BISHOP_DEATH_SOUND_WAIT:
+                    if (cdCmdIsIdle() == 1) {
+                        // Use the player's root for the death cue.
+                        root = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
+                        sndEvtRequestScriptStart(SOUND_PLAYER_DEATH, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
+                        work->timer = GOLEM_KNIGHT_BISHOP_DEATH_SOUND_DONE;
                     }
                     break;
-                case 2:
+                case GOLEM_KNIGHT_BISHOP_DEATH_SOUND_DONE:
                     break;
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(_GolemKnightBishopGrabScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(_GolemKnightBishopGrabScratch);
 }

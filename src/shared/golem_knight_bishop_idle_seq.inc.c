@@ -1,88 +1,94 @@
 /* Part of the Knight/Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Runs the hidden wait between attacks. Step 0 rolls the wait into `timer`,
-/// shortened by `attackCount`, or skips it after a feint; a broken feint goes
-/// straight to testing a spot with `counterattacking` set. Step 1 counts the
-/// wait down. Step 2 picks the next attack: the box approach (step 5) when
-/// `_golemKnightBishopPlayerInBox` finds the player in a box and the last
-/// attack was not one, otherwise a grab (step 3) or a strike (step 4) by an
-/// LCG draw weighted by `lastAttack` and `repeatCount`, placing the target
-/// and enabling the probes. Steps 3 and 4 start that attack when
-/// `probeContacts` shows the spot clear, and otherwise pick again; steps 3 to
-/// 5 walk `attackCount` up to `GOLEM_KNIGHT_BISHOP_IDLE_LIMIT`.
-void golemKnightBishopIdleSeq(Task* arg0)
+/// Waits while hidden, chooses an attack and checks its placement.
+///
+/// The wait scales down with attack count; a broken feint goes straight to a
+/// counterattack placement. One-frame grid probes must be resolved between
+/// placement and the next sequence update. Their shared contact record decides
+/// whether the grab or strike spot is clear. The roll tables have 16 entries;
+/// failed placement retries the pick without changing retained attack history.
+static void _golemKnightBishopIdleSeq(Task* task)
 {
+    enum { GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE = 16 };
+    enum {
+        GOLEM_KNIGHT_BISHOP_IDLE_START       = 0,
+        GOLEM_KNIGHT_BISHOP_IDLE_WAIT        = 1,
+        GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK = 2,
+        GOLEM_KNIGHT_BISHOP_IDLE_TEST_GRAB   = 3,
+        GOLEM_KNIGHT_BISHOP_IDLE_TEST_STRIKE = 4,
+        GOLEM_KNIGHT_BISHOP_IDLE_START_BOX   = 5,
+    };
     GolemKnightBishopWork* work;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->step) {
-        case 0:
+        case GOLEM_KNIGHT_BISHOP_IDLE_START:
             work->forwardSpeed     = 0;
-            work->flickerStage     = 0;
+            work->flickerStage     = GOLEM_KNIGHT_BISHOP_FLICKER_NONE;
             work->counterattacking = 0;
             if (work->feintBroken != 0) {
                 gRandomLcgState        = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->step             = gGolemKnightBishopIdleSteps[(gRandomLcgState >> 16) & 0xF] + 2;
+                work->step             = gGolemKnightBishopIdleSteps[(gRandomLcgState >> 16) & 0xF] + GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK;
                 work->counterattacking = 1;
-                _golemKnightBishopPlaceTarget(arg0);
+                _golemKnightBishopPlaceTarget(task);
                 work->feinting = 0;
             } else if (work->feinting == 0) {
-                work->timer = (gGolemKnightBishopIdleWaits[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF] * (0x10 - work->attackCount)) / 16;
-                work->step  = 1;
+                work->timer = (gGolemKnightBishopIdleWaits[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF] * (GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE - work->attackCount)) / GOLEM_KNIGHT_BISHOP_IDLE_WAIT_SCALE;
+                work->step  = GOLEM_KNIGHT_BISHOP_IDLE_WAIT;
             } else {
                 work->timer    = 0;
-                work->step     = 2;
+                work->step     = GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK;
                 work->feinting = 0;
             }
             break;
-        case 1:
+        case GOLEM_KNIGHT_BISHOP_IDLE_WAIT:
             work->timer--;
             if (work->timer <= 0) {
-                work->step  = 2;
+                work->step  = GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK;
                 work->timer = 0;
             }
             break;
-        case 2:
-            if (work->lastAttack != GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH && _golemKnightBishopPlayerInBox(arg0) != 0) {
-                work->step        = 5;
+        case GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK:
+            if (work->lastAttack != GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH && _golemKnightBishopPlayerInBox(task) != 0) {
+                work->step        = GOLEM_KNIGHT_BISHOP_IDLE_START_BOX;
                 work->repeatCount = 0;
                 break;
             }
             if (work->lastAttack == GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((s32)((gRandomLcgState >> 16) & 0xF) < work->repeatCount + 10) {
-                    work->step        = 4;
+                    work->step        = GOLEM_KNIGHT_BISHOP_IDLE_TEST_STRIKE;
                     work->repeatCount = 0;
                 } else {
-                    work->step = 3;
+                    work->step = GOLEM_KNIGHT_BISHOP_IDLE_TEST_GRAB;
                     work->repeatCount++;
                 }
             } else if (work->lastAttack == GOLEM_KNIGHT_BISHOP_SEQUENCE_STRIKE) {
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 if ((s32)((gRandomLcgState >> 16) & 0xF) < work->repeatCount + 8) {
-                    work->step        = 3;
+                    work->step        = GOLEM_KNIGHT_BISHOP_IDLE_TEST_GRAB;
                     work->repeatCount = 0;
                 } else {
-                    work->step = 4;
+                    work->step = GOLEM_KNIGHT_BISHOP_IDLE_TEST_STRIKE;
                     work->repeatCount++;
                 }
             } else {
                 gRandomLcgState   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                work->step        = ((gRandomLcgState >> 16) & 0xF) < 8 ? 3 : 4;
+                work->step        = ((gRandomLcgState >> 16) & 0xF) < 8 ? GOLEM_KNIGHT_BISHOP_IDLE_TEST_GRAB : GOLEM_KNIGHT_BISHOP_IDLE_TEST_STRIKE;
                 work->repeatCount = 0;
             }
-            _golemKnightBishopPlaceTarget(arg0);
+            _golemKnightBishopPlaceTarget(task);
             break;
-        case 3:
+        case GOLEM_KNIGHT_BISHOP_IDLE_TEST_GRAB:
             if (work->probeContacts[0].key.value == 0) {
                 work->sequence   = GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB;
-                work->step       = 0;
+                work->step       = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
                 work->lastAttack = GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB;
                 if (work->attackCount < GOLEM_KNIGHT_BISHOP_IDLE_LIMIT) {
                     work->attackCount++;
                 }
             } else {
-                work->step = 2;
+                work->step = GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK;
                 if (work->repeatCount != 0) {
                     work->repeatCount--;
                 }
@@ -91,16 +97,16 @@ void golemKnightBishopIdleSeq(Task* arg0)
             work->spotProbeBody.flags &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
             worldCollisionClearContacts(work->probeContacts);
             break;
-        case 4:
+        case GOLEM_KNIGHT_BISHOP_IDLE_TEST_STRIKE:
             if (work->probeContacts[0].key.value == 0) {
                 work->sequence   = GOLEM_KNIGHT_BISHOP_SEQUENCE_STRIKE;
-                work->step       = 0;
+                work->step       = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
                 work->lastAttack = GOLEM_KNIGHT_BISHOP_SEQUENCE_STRIKE;
                 if (work->attackCount < GOLEM_KNIGHT_BISHOP_IDLE_LIMIT) {
                     work->attackCount++;
                 }
             } else {
-                work->step = 2;
+                work->step = GOLEM_KNIGHT_BISHOP_IDLE_PICK_ATTACK;
                 if (work->repeatCount != 0) {
                     work->repeatCount--;
                 }
@@ -108,9 +114,9 @@ void golemKnightBishopIdleSeq(Task* arg0)
             work->pathProbeBody.flags &= ~WORLD_COLLISION_BODY_GRID_ENABLED;
             worldCollisionClearContacts(work->probeContacts);
             break;
-        case 5:
+        case GOLEM_KNIGHT_BISHOP_IDLE_START_BOX:
             work->sequence   = GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH;
-            work->step       = 0;
+            work->step       = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
             work->lastAttack = GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH;
             worldCollisionClearContacts(work->aimBeamContacts);
             if (work->attackCount < GOLEM_KNIGHT_BISHOP_IDLE_LIMIT) {

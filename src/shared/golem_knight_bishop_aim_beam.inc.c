@@ -18,82 +18,102 @@ typedef struct {
 } _GolemKnightBishopAimBeamScratch;
 STATIC_ASSERT_SIZEOF(_GolemKnightBishopAimBeamScratch, 0x3C);
 
-/// Draws the red aim beam between the two screen points
-/// `golemKnightBishopAimFromPart` leaves in `beamScreenX`, `beamScreenY` and
-/// `beamDepth`: eight segments, each skipped while its interpolated depth is
-/// below 0x1E, and each drawn as two shaded quads offset along the screen
-/// normal, a centre line and a tpage.
-void golemKnightBishopDrawAimBeam(Task* arg0)
+/// Emits the two fading ribbons, core and additive draw mode of one beam segment.
+///
+/// Vertices and ordering depth are already prepared; packets borrow the GPU arena.
+static inline void _golemKnightBishopEmitAimBeamSegment(_GolemKnightBishopAimBeamScratch* beam)
 {
-    _GolemKnightBishopAimBeamScratch* sc;
-    GolemKnightBishopWork*            work;
-    POLY_G4*                          poly;
-    LINE_F2*                          line;
-    DR_TPAGE*                         tp;
-    s32                               i;
-    s32                               j;
+    enum {
+        GOLEM_KNIGHT_BISHOP_BEAM_DRAW_MODE   = 0xE1000620, // Additive blending, dithering and drawing in the display area.
+        GOLEM_KNIGHT_BISHOP_BEAM_CORE_CODE   = 0x42,
+        GOLEM_KNIGHT_BISHOP_BEAM_RIBBON_CODE = 0x3A,
+    };
+    POLY_G4*  ribbon;
+    LINE_F2*  line;
+    DR_TPAGE* drawMode;
+    s32       ribbonIndex;
+    for (ribbonIndex = 0; ribbonIndex < ARRAY_SIZE(gGolemKnightBishopBeamQuadCorners); ribbonIndex++) {
+        ribbon         = gGpuPrimCursor;
+        gGpuPrimCursor = ribbon + 1;
+        setlen(ribbon, sizeof(*ribbon) / sizeof(u32) - 1);
+        ribbon->code = GOLEM_KNIGHT_BISHOP_BEAM_RIBBON_CODE;
+        ribbon->x0   = beam->vertexX[gGolemKnightBishopBeamQuadCorners[ribbonIndex][0]];
+        ribbon->y0   = beam->vertexY[gGolemKnightBishopBeamQuadCorners[ribbonIndex][0]];
+        ribbon->x1   = beam->vertexX[gGolemKnightBishopBeamQuadCorners[ribbonIndex][1]];
+        ribbon->y1   = beam->vertexY[gGolemKnightBishopBeamQuadCorners[ribbonIndex][1]];
+        ribbon->x2   = beam->vertexX[gGolemKnightBishopBeamQuadCorners[ribbonIndex][2]];
+        ribbon->y2   = beam->vertexY[gGolemKnightBishopBeamQuadCorners[ribbonIndex][2]];
+        ribbon->x3   = beam->vertexX[gGolemKnightBishopBeamQuadCorners[ribbonIndex][3]];
+        ribbon->y3   = beam->vertexY[gGolemKnightBishopBeamQuadCorners[ribbonIndex][3]];
+        setRGB0(ribbon, 0xFF, 0, 0);
+        setRGB1(ribbon, 0xFF, 0, 0);
+        setRGB2(ribbon, 0, 0, 0);
+        setRGB3(ribbon, 0, 0, 0);
+        addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(beam->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), ribbon);
+    }
+    line           = gGpuPrimCursor;
+    gGpuPrimCursor = line + 1;
+    setlen(line, sizeof(*line) / sizeof(u32) - 1);
+    line->code = GOLEM_KNIGHT_BISHOP_BEAM_CORE_CODE;
+    line->x0   = beam->vertexX[0];
+    line->y0   = beam->vertexY[0];
+    line->x1   = beam->vertexX[1];
+    line->y1   = beam->vertexY[1];
+    setRGB0(line, 0xFF, 0, 0);
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(beam->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), line);
+    drawMode       = gGpuPrimCursor;
+    gGpuPrimCursor = drawMode + 1;
+    setlen(drawMode, sizeof(*drawMode) / sizeof(u32) - 1);
+    drawMode->code[0] = GOLEM_KNIGHT_BISHOP_BEAM_DRAW_MODE;
+    addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((u32)(beam->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK), drawMode);
+}
 
-    sc          = SCRATCH_STACK_RESERVE_BLOCK(_GolemKnightBishopAimBeamScratch);
-    work        = arg0->work;
-    sc->span.vx = work->beamScreenX[1] - work->beamScreenX[0];
-    sc->span.vy = work->beamScreenY[1] - work->beamScreenY[0];
-    sc->span.vz = 0;
-    VectorNormalS(&sc->span, &sc->direction);
-    sc->direction.vy *= -1;
-    sc->stepX         = (work->beamScreenX[1] - work->beamScreenX[0]) / 8;
-    sc->stepY         = (work->beamScreenY[1] - work->beamScreenY[0]) / 8;
-    sc->depthStep     = (work->beamDepth[1] - work->beamDepth[0]) / 8;
-    for (i = 0; i < 8; i++) {
-        sc->depth = sc->depthStep * (i + 1) + work->beamDepth[0];
-        if (sc->depth < 0x1E) {
+/// Draws the red aim beam from the work block's projected endpoints.
+///
+/// Requires the screen X/Y and quarter-Z depths prepared by
+/// `_golemKnightBishopAimFromPart`. Eight screen-space segments use their ending
+/// depth for both width and ordering; depths below 30 are skipped. Each segment
+/// queues two fading additive ribbons and a red core into the current GPU arena.
+/// The arena must have room for the packets and stay live through GPU submission.
+static void _golemKnightBishopDrawAimBeam(Task* task)
+{
+    enum {
+        GOLEM_KNIGHT_BISHOP_BEAM_SEGMENTS  = 8,
+        GOLEM_KNIGHT_BISHOP_BEAM_MIN_DEPTH = 30,
+    };
+    _GolemKnightBishopAimBeamScratch* beam;
+    GolemKnightBishopWork*            work;
+    s32                               segmentIndex;
+
+    beam          = SCRATCH_STACK_RESERVE_BLOCK(_GolemKnightBishopAimBeamScratch);
+    work          = task->work;
+    beam->span.vx = work->beamScreenX[1] - work->beamScreenX[0];
+    beam->span.vy = work->beamScreenY[1] - work->beamScreenY[0];
+    beam->span.vz = 0;
+    VectorNormalS(&beam->span, &beam->direction);
+    beam->direction.vy *= -1;
+    beam->stepX         = (work->beamScreenX[1] - work->beamScreenX[0]) / GOLEM_KNIGHT_BISHOP_BEAM_SEGMENTS;
+    beam->stepY         = (work->beamScreenY[1] - work->beamScreenY[0]) / GOLEM_KNIGHT_BISHOP_BEAM_SEGMENTS;
+    beam->depthStep     = (work->beamDepth[1] - work->beamDepth[0]) / GOLEM_KNIGHT_BISHOP_BEAM_SEGMENTS;
+    // Interpolate in screen space; width and ordering use the segment end depth.
+    for (segmentIndex = 0; segmentIndex < GOLEM_KNIGHT_BISHOP_BEAM_SEGMENTS; segmentIndex++) {
+        beam->depth = beam->depthStep * (segmentIndex + 1) + work->beamDepth[0];
+        if (beam->depth < GOLEM_KNIGHT_BISHOP_BEAM_MIN_DEPTH) {
             continue;
         }
-        sc->vertexX[0] = work->beamScreenX[0] + sc->stepX * i;
-        sc->vertexX[1] = work->beamScreenX[0] + sc->stepX * (i + 1);
-        sc->vertexX[2] = sc->vertexX[0] + ((-(sc->direction.vy * 0x600) >> 12) / sc->depth);
-        sc->vertexX[3] = sc->vertexX[1] + ((-(sc->direction.vy * 0x600) >> 12) / sc->depth);
-        sc->vertexX[4] = sc->vertexX[0] + (((sc->direction.vy * 3) >> 3) / sc->depth);
-        sc->vertexX[5] = sc->vertexX[1] + (((sc->direction.vy * 3) >> 3) / sc->depth);
-        sc->vertexY[0] = work->beamScreenY[0] + sc->stepY * i;
-        sc->vertexY[1] = work->beamScreenY[0] + sc->stepY * (i + 1);
-        sc->vertexY[2] = sc->vertexY[0] + ((-(sc->direction.vx * 0x600) >> 12) / sc->depth);
-        sc->vertexY[3] = sc->vertexY[1] + ((-(sc->direction.vx * 0x600) >> 12) / sc->depth);
-        sc->vertexY[4] = sc->vertexY[0] + (((sc->direction.vx * 3) >> 3) / sc->depth);
-        sc->vertexY[5] = sc->vertexY[1] + (((sc->direction.vx * 3) >> 3) / sc->depth);
-        for (j = 0; j < 2; j++) {
-            poly           = gGpuPrimCursor;
-            gGpuPrimCursor = poly + 1;
-            setlen(poly, 8);
-            poly->code = 0x3A;
-            poly->x0   = sc->vertexX[gGolemKnightBishopBeamQuadCorners[j][0]];
-            poly->y0   = sc->vertexY[gGolemKnightBishopBeamQuadCorners[j][0]];
-            poly->x1   = sc->vertexX[gGolemKnightBishopBeamQuadCorners[j][1]];
-            poly->y1   = sc->vertexY[gGolemKnightBishopBeamQuadCorners[j][1]];
-            poly->x2   = sc->vertexX[gGolemKnightBishopBeamQuadCorners[j][2]];
-            poly->y2   = sc->vertexY[gGolemKnightBishopBeamQuadCorners[j][2]];
-            poly->x3   = sc->vertexX[gGolemKnightBishopBeamQuadCorners[j][3]];
-            poly->y3   = sc->vertexY[gGolemKnightBishopBeamQuadCorners[j][3]];
-            setRGB0(poly, 0xFF, 0, 0);
-            setRGB1(poly, 0xFF, 0, 0);
-            setRGB2(poly, 0, 0, 0);
-            setRGB3(poly, 0, 0, 0);
-            addPrim((&gGpuCurrentOt[((((u32)(sc->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), poly);
-        }
-        line           = gGpuPrimCursor;
-        gGpuPrimCursor = line + 1;
-        setlen(line, 3);
-        line->code = 0x42;
-        line->x0   = sc->vertexX[0];
-        line->y0   = sc->vertexY[0];
-        line->x1   = sc->vertexX[1];
-        line->y1   = sc->vertexY[1];
-        setRGB0(line, 0xFF, 0, 0);
-        addPrim((&gGpuCurrentOt[((((u32)(sc->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), line);
-        tp             = gGpuPrimCursor;
-        gGpuPrimCursor = tp + 1;
-        setlen(tp, 1);
-        tp->code[0] = 0xE1000620;
-        addPrim((&gGpuCurrentOt[((((u32)(sc->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)) / sizeof(*gGpuCurrentOt)]), tp);
+        beam->vertexX[0] = work->beamScreenX[0] + beam->stepX * segmentIndex;
+        beam->vertexX[1] = work->beamScreenX[0] + beam->stepX * (segmentIndex + 1);
+        beam->vertexX[2] = beam->vertexX[0] + ((-(beam->direction.vy * 0x600) >> 12) / beam->depth);
+        beam->vertexX[3] = beam->vertexX[1] + ((-(beam->direction.vy * 0x600) >> 12) / beam->depth);
+        beam->vertexX[4] = beam->vertexX[0] + (((beam->direction.vy * 3) >> 3) / beam->depth);
+        beam->vertexX[5] = beam->vertexX[1] + (((beam->direction.vy * 3) >> 3) / beam->depth);
+        beam->vertexY[0] = work->beamScreenY[0] + beam->stepY * segmentIndex;
+        beam->vertexY[1] = work->beamScreenY[0] + beam->stepY * (segmentIndex + 1);
+        beam->vertexY[2] = beam->vertexY[0] + ((-(beam->direction.vx * 0x600) >> 12) / beam->depth);
+        beam->vertexY[3] = beam->vertexY[1] + ((-(beam->direction.vx * 0x600) >> 12) / beam->depth);
+        beam->vertexY[4] = beam->vertexY[0] + (((beam->direction.vx * 3) >> 3) / beam->depth);
+        beam->vertexY[5] = beam->vertexY[1] + (((beam->direction.vx * 3) >> 3) / beam->depth);
+        _golemKnightBishopEmitAimBeamSegment(beam);
     }
     SCRATCH_STACK_RELEASE_BLOCK(_GolemKnightBishopAimBeamScratch);
 }

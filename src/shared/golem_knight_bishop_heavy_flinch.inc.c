@@ -1,62 +1,65 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Runs the heavy flinch. Step 0 takes animation 9 or 0xA, whichever
-/// `hitFromFront` selects, and goes to step 1 or 2 to match; unless
-/// `flickerStage` is 1 it also starts the vanish with its sound, panned and
-/// depth-attenuated from the display object. Steps 1 and 2 wait out their own
-/// animation - `animFrame` at 0x50 and 0x3B - and then hand over to the idle
-/// sequence, or, when `flickerStage` was 1, set it to 2 and hand over to the
-/// recover sequence.
-void golemKnightBishopHeavyFlinchSeq(Task* arg0)
+/// Plays the side-dependent heavy hit reaction, then idles or recovers.
+///
+/// A non-flicker hit vanishes during its reaction; a flicker hit remains exposed
+/// and advances the flicker stage on completion. Front and rear clips finish
+/// at animation frames 80 and 59 respectively.
+static void _golemKnightBishopHeavyFlinchSeq(Task* task)
 {
+    enum {
+        GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_START  = 0,
+        GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_FRONT  = 1,
+        GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_BEHIND = 2,
+    };
     GolemKnightBishopWork* work;
-    GfxCoord*              coord;
-    s32                    state;
-    s32                    pan;
+    GfxCoord*              root;
+    s32                    step;
+    s32                    audioPan;
 
-    work  = arg0->work;
-    state = work->step;
-    coord = arg0->extra.tmd->coords;
-    switch (state) {
-        case 0:
+    work = task->work;
+    step = work->step;
+    root = task->extra.tmd->coords;
+    switch (step) {
+        case GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_START:
             if (work->hitFromFront == 1) {
-                work->anim = 9;
-                work->step = 1;
+                work->anim = GOLEM_KNIGHT_BISHOP_ANIM_HEAVY_FLINCH_FRONT;
+                work->step = GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_FRONT;
             } else {
-                work->anim = 0xA;
-                work->step = 2;
+                work->anim = GOLEM_KNIGHT_BISHOP_ANIM_HEAVY_FLINCH_BEHIND;
+                work->step = GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_BEHIND;
             }
             work->forwardSpeed = 0;
-            if (work->flickerStage != 1) {
+            if (work->flickerStage != GOLEM_KNIGHT_BISHOP_FLICKER_HIT) {
                 work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_VANISH;
                 work->translucencyFadeFrames = 0x1E;
                 work->colorBlendFadeFrames   = 0xF;
-                work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                pan                          = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(work->vanishSound, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                work->vanishSound            = gGolemKnightBishopPainCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                audioPan                     = (s8)worldCoordGetOriginAudioPan(root);
+                sndEvtRequestScriptStart(work->vanishSound, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
                 break;
             }
             break;
-        case 1:
+        case GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_FRONT:
             if (work->animFrame >= 0x50) {
-                if (work->flickerStage == state) {
+                if (work->flickerStage == step) {
                     work->sequence     = GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER;
-                    work->flickerStage = 2;
+                    work->flickerStage = GOLEM_KNIGHT_BISHOP_FLICKER_RECOVERED;
                 } else {
                     work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE;
                 }
-                work->step = 0;
+                work->step = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
             }
             break;
-        case 2:
+        case GOLEM_KNIGHT_BISHOP_HEAVY_FLINCH_BEHIND:
             if (work->animFrame >= 0x3B) {
-                if (work->flickerStage == 1) {
+                if (work->flickerStage == GOLEM_KNIGHT_BISHOP_FLICKER_HIT) {
                     work->sequence     = GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER;
-                    work->flickerStage = state;
+                    work->flickerStage = step;
                 } else {
                     work->sequence = GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE;
                 }
-                work->step = 0;
+                work->step = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
             }
             break;
     }

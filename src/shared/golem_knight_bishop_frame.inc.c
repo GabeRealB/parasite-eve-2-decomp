@@ -44,8 +44,8 @@ void golemKnightBishopFrameState(Enemy* arg0, Task* arg1)
         actorRenderComposeCoord(temp_s2);
         _golemKnightBishopUpdateTint(arg1);
         _golemKnightBishopDrawShadow(arg1);
-        golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], 0xC);
-        golemKnightBishopTranslucencyFade(arg1);
+        _golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], GOLEM_KNIGHT_BISHOP_FRAME_CAPTURE_BIAS);
+        _golemKnightBishopUpdateAppearance(arg1);
         modelLightingSetLayerMaterials(temp_s1->translucency);
     }
 }

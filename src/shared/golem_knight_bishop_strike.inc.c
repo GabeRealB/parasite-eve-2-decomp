@@ -2,83 +2,88 @@
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Runs the appearance by the player that is either a feint or a strike.
-/// Step 0 plants the display object at `targetPos` facing back along
-/// `targetYaw` and rolls `feinting`. A feint (unless `feintBroken` is set)
-/// goes to step 1 with a 0xF..0x1E frame appearance; otherwise the real
-/// appearance starts with its sound and `reactionLock`, going to step 3 with
-/// a 0x1E..0x2D frame one, or to step 4 at once when `feintBroken` is set.
-/// The length is split into `translucencyFadeFrames` (two thirds) and
-/// `colorBlendFadeFrames` (the rest). Steps 1, 3 and 4 arm `hurtBody` on
-/// their first frame, as `auxTimer` asks - with no key for a feint. Steps 1
-/// and 2 hold the feint for `timer`, cut short by `feintBroken`, and step 2
-/// then starts its shrink into step 6. Steps 3 and 4 count `timer` down to
-/// the blow and break off into the recover sequence while `interruptDamage`
-/// is positive. Step 5 is the blow: `strikeBody` goes live on part 8 at
-/// frame 0x14 and moves to part 12 at 0x1C, each with the strike sound, and
-/// frame 0x23 switches it off and starts the vanish. Step 6 counts `timer`
-/// down to the idle sequence.
-void golemKnightBishopStrikeSeq(Task* arg0)
+/// Appears beside the player as a feint or a two-part strike.
+///
+/// Requires a target previously placed and collision-tested by the idle sequence.
+/// A feint takes no weapon damage and shrinks away, or triggers an immediate
+/// counterattack when broken. A real appearance can be interrupted before the
+/// blow. The strike sphere is live on part 8 at frame 20, part 12 at frame 28,
+/// and disabled at frame 35 as vanishing begins. Fade durations are positive
+/// frame divisors, split from the sampled appearance length.
+static void _golemKnightBishopStrikeSeq(Task* task)
 {
-    GolemKnightBishopOffsetScratch* sc;
+    enum {
+        GOLEM_KNIGHT_BISHOP_STRIKE_FIRST_FRAME  = 20,
+        GOLEM_KNIGHT_BISHOP_STRIKE_SECOND_FRAME = 28,
+        GOLEM_KNIGHT_BISHOP_STRIKE_END_FRAME    = 35,
+    };
+    enum {
+        GOLEM_KNIGHT_BISHOP_STRIKE_START        = 0,
+        GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_APPEAR = 1,
+        GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_WAIT   = 2,
+        GOLEM_KNIGHT_BISHOP_STRIKE_APPEAR       = 3,
+        GOLEM_KNIGHT_BISHOP_STRIKE_WAIT         = 4,
+        GOLEM_KNIGHT_BISHOP_STRIKE_BLOW         = 5,
+        GOLEM_KNIGHT_BISHOP_STRIKE_VANISH       = 6,
+    };
+    GolemKnightBishopOffsetScratch* scratch;
     GolemKnightBishopWork*          work;
-    GfxCoord*                       coord;
-    s32                             cue;
-    u32                             random;
-    u16                             delay;
-    s16                             part;
-    s16                             timer;
+    GfxCoord*                       root;
+    s32                             strikeSound;
+    u32                             randomDraw;
+    u16                             appearanceFrames;
+    s16                             translucencyFrames;
+    s16                             framesLeft;
 
-    SCRATCH_STACK_RESERVE_BYTES(sizeof(GolemKnightBishopOffsetScratch));
-    sc    = SCRATCH_STACK_CURSOR(GolemKnightBishopOffsetScratch);
-    work  = arg0->work;
-    coord = arg0->extra.tmd->coords;
+    scratch = SCRATCH_STACK_RESERVE_BLOCK(GolemKnightBishopOffsetScratch);
+    work    = task->work;
+    root    = task->extra.tmd->coords;
     switch (work->step) {
-        case 0:
-            work->anim     = 4;
-            work->feinting = gGolemKnightBishopApproachRoll[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
-            sc->operand.vx = 0;
-            sc->operand.vy = (work->targetYaw + 0x800) & 0xFFF;
-            sc->operand.vz = 0;
-            RotMatrix(&sc->operand, &coord->coord);
-            coord->coord.t[0] = work->targetPos.vx;
-            coord->coord.t[1] = work->targetPos.vy;
-            coord->coord.t[2] = work->targetPos.vz;
+        case GOLEM_KNIGHT_BISHOP_STRIKE_START:
+            work->anim          = GOLEM_KNIGHT_BISHOP_ANIM_STAND;
+            work->feinting      = gGolemKnightBishopApproachRoll[((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF];
+            scratch->operand.vx = 0;
+            scratch->operand.vy = (work->targetYaw + GOLEM_KNIGHT_BISHOP_YAW_HALF_TURN) & GOLEM_KNIGHT_BISHOP_YAW_MASK;
+            scratch->operand.vz = 0;
+            RotMatrix(&scratch->operand, &root->coord);
+            root->coord.t[0] = work->targetPos.vx;
+            root->coord.t[1] = work->targetPos.vy;
+            root->coord.t[2] = work->targetPos.vz;
             if (work->feinting == 1 && work->feintBroken == 0) {
-                random                       = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                delay                        = ((random >> 16) & 0xF) + 0xF;
-                work->step                   = 1;
+                randomDraw                   = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                appearanceFrames             = ((randomDraw >> 16) & 0xF) + 0xF;
+                work->step                   = GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_APPEAR;
                 work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_FEINT_APPEAR;
-                gRandomLcgState              = random;
-                work->timer                  = delay;
-                part                         = delay * 2 / 3;
-                work->translucencyFadeFrames = part;
-                work->colorBlendFadeFrames   = delay - part;
+                gRandomLcgState              = randomDraw;
+                work->timer                  = appearanceFrames;
+                translucencyFrames           = appearanceFrames * 2 / 3;
+                work->translucencyFadeFrames = translucencyFrames;
+                work->colorBlendFadeFrames   = appearanceFrames - translucencyFrames;
             } else {
                 work->feinting = 0;
                 if (work->feintBroken == 0) {
-                    timer                        = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 0x1E;
-                    work->step                   = 3;
-                    work->timer                  = timer;
-                    part                         = timer * 2 / 3;
-                    work->translucencyFadeFrames = part;
-                    work->colorBlendFadeFrames   = work->timer - part;
+                    framesLeft                   = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 0x1E;
+                    work->step                   = GOLEM_KNIGHT_BISHOP_STRIKE_APPEAR;
+                    work->timer                  = framesLeft;
+                    translucencyFrames           = framesLeft * 2 / 3;
+                    work->translucencyFadeFrames = translucencyFrames;
+                    work->colorBlendFadeFrames   = work->timer - translucencyFrames;
                 } else {
-                    work->step                   = 4;
-                    work->translucencyFadeFrames = 0x14;
+                    work->step                   = GOLEM_KNIGHT_BISHOP_STRIKE_WAIT;
+                    work->translucencyFadeFrames = GOLEM_KNIGHT_BISHOP_STANDARD_TRANSLUCENCY_FRAMES;
                     work->timer                  = 0;
-                    work->colorBlendFadeFrames   = 0xA;
+                    work->colorBlendFadeFrames   = GOLEM_KNIGHT_BISHOP_STANDARD_COLOR_BLEND_FRAMES;
                 }
                 work->fadeState   = GOLEM_KNIGHT_BISHOP_FADE_APPEAR;
-                work->appearSound = gGolemKnightBishopApproachCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                sndEvtRequestScriptStart(work->appearSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                work->appearSound = gGolemKnightBishopApproachCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sndEvtRequestScriptStart(work->appearSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
                 work->interruptDamage = 0;
-                work->reactionLock    = 1;
+                work->reactionLock    = GOLEM_KNIGHT_BISHOP_REACTION_ATTACKING;
             }
             work->auxTimer    = 1;
             work->feintBroken = 0;
             break;
-        case 1:
+        case GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_APPEAR:
             if (work->auxTimer != 0) {
                 if (work->hitCooldown == 0) {
                     work->hurtBody.key    = 0;
@@ -86,19 +91,19 @@ void golemKnightBishopStrikeSeq(Task* arg0)
                 }
                 work->auxTimer = 0;
             }
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if (timer <= 0 || work->feintBroken != 0) {
-                work->step      = 2;
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if (framesLeft <= 0 || work->feintBroken != 0) {
+                work->step      = GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_WAIT;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->timer     = ((gRandomLcgState >> 16) & 0xF) + 0x3C;
             }
             break;
-        case 2:
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if (timer <= 0 || work->feintBroken != 0) {
-                work->step      = 6;
+        case GOLEM_KNIGHT_BISHOP_STRIKE_FEINT_WAIT:
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if (framesLeft <= 0 || work->feintBroken != 0) {
+                work->step      = GOLEM_KNIGHT_BISHOP_STRIKE_VANISH;
                 work->fadeState = GOLEM_KNIGHT_BISHOP_FADE_FEINT_SHRINK;
                 if (work->feintBroken != 0) {
                     work->translucencyFadeFrames = 5;
@@ -109,26 +114,26 @@ void golemKnightBishopStrikeSeq(Task* arg0)
                     work->colorBlendFadeFrames   = 8;
                     work->timer                  = work->translucencyFadeFrames + work->colorBlendFadeFrames;
                 }
-                worldTargetDisableNodeLockOn(&((Enemy*)arg0->spawnArg2.pointer)->node);
+                worldTargetDisableNodeLockOn(&((Enemy*)task->spawnArg2.pointer)->node);
             }
             break;
-        case 3:
+        case GOLEM_KNIGHT_BISHOP_STRIKE_APPEAR:
             if (work->auxTimer != 0) {
                 if (work->hitCooldown == 0) {
                     work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    work->hurtBody.key    = work->actorId | 0x30000;
+                    work->hurtBody.key    = work->actorId | WORLD_COLLISION_CONTACT_ENEMY_BODY;
                 }
                 work->auxTimer = 0;
             }
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if (timer <= 0) {
-                work->step      = 4;
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if (framesLeft <= 0) {
+                work->step      = GOLEM_KNIGHT_BISHOP_STRIKE_WAIT;
                 gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
                 work->timer     = (gRandomLcgState >> 16) & 0xF;
             } else if (work->interruptDamage > 0) {
                 work->sequence  = GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER;
-                work->step      = 0;
+                work->step      = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
                 work->fadeState = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START;
                 if (work->appearSound != 0) {
                     sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -136,62 +141,62 @@ void golemKnightBishopStrikeSeq(Task* arg0)
                 }
             }
             break;
-        case 4:
+        case GOLEM_KNIGHT_BISHOP_STRIKE_WAIT:
             if (work->auxTimer != 0) {
                 if (work->hitCooldown == 0) {
                     work->hurtBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                    work->hurtBody.key    = work->actorId | 0x30000;
+                    work->hurtBody.key    = work->actorId | WORLD_COLLISION_CONTACT_ENEMY_BODY;
                 }
                 work->auxTimer = 0;
             }
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if (timer <= 0) {
-                work->anim  = 5;
-                work->step  = 5;
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if (framesLeft <= 0) {
+                work->anim  = GOLEM_KNIGHT_BISHOP_ANIM_STRIKE;
+                work->step  = GOLEM_KNIGHT_BISHOP_STRIKE_BLOW;
                 work->timer = 0;
             } else if (work->interruptDamage > 0) {
                 work->sequence  = GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER;
-                work->step      = 0;
+                work->step      = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
                 work->fadeState = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START;
             }
             break;
-        case 5:
-            if (work->animFrame == 0x14) {
-                work->strikeBody.coord  = &arg0->extra.tmd->coords[8];
+        case GOLEM_KNIGHT_BISHOP_STRIKE_BLOW:
+            if (work->animFrame == GOLEM_KNIGHT_BISHOP_STRIKE_FIRST_FRAME) {
+                work->strikeBody.coord  = &task->extra.tmd->coords[8];
                 work->strikeBody.pos.vx = 0;
                 work->strikeBody.pos.vy = 0;
                 work->strikeBody.pos.vz = 0;
                 work->strikeBody.radius = 0x12C;
                 work->strikeBody.key    = damagePackAttackKey(gGolemKnightBishopAttacks, 1);
                 work->strikeBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                cue                     = gGolemKnightBishopStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                sndEvtRequestScriptStart(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
-            } else if (work->animFrame == 0x1C) {
-                work->strikeBody.coord = &arg0->extra.tmd->coords[12];
-                cue                    = gGolemKnightBishopStrikeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                sndEvtRequestScriptStart(cue, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                strikeSound             = gGolemKnightBishopStrikeCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sndEvtRequestScriptStart(strikeSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
+            } else if (work->animFrame == GOLEM_KNIGHT_BISHOP_STRIKE_SECOND_FRAME) {
+                work->strikeBody.coord = &task->extra.tmd->coords[12];
+                strikeSound            = gGolemKnightBishopStrikeCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sndEvtRequestScriptStart(strikeSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             }
-            if (work->animFrame == 0x23) {
-                work->step                   = 6;
+            if (work->animFrame == GOLEM_KNIGHT_BISHOP_STRIKE_END_FRAME) {
+                work->step                   = GOLEM_KNIGHT_BISHOP_STRIKE_VANISH;
                 work->timer                  = 0x1E;
                 work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_VANISH;
-                work->translucencyFadeFrames = 0x14;
-                work->colorBlendFadeFrames   = 0xA;
+                work->translucencyFadeFrames = GOLEM_KNIGHT_BISHOP_STANDARD_TRANSLUCENCY_FRAMES;
+                work->colorBlendFadeFrames   = GOLEM_KNIGHT_BISHOP_STANDARD_COLOR_BLEND_FRAMES;
                 work->strikeBody.flags      &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-                work->vanishSound            = gGolemKnightBishopPainCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+                work->vanishSound            = gGolemKnightBishopPainCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                sndEvtRequestScriptStart(work->vanishSound, (s8)worldCoordGetOriginAudioPan(root), (s8)worldCoordGetOriginAudioDepth(root));
             }
             break;
-        case 6:
-            timer       = work->timer - 1;
-            work->timer = timer;
-            if (timer <= 0) {
+        case GOLEM_KNIGHT_BISHOP_STRIKE_VANISH:
+            framesLeft  = work->timer - 1;
+            work->timer = framesLeft;
+            if (framesLeft <= 0) {
                 work->sequence     = GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE;
-                work->step         = 0;
-                work->reactionLock = 0;
+                work->step         = GOLEM_KNIGHT_BISHOP_SEQUENCE_START;
+                work->reactionLock = GOLEM_KNIGHT_BISHOP_REACTION_UNLOCKED;
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(GolemKnightBishopOffsetScratch));
+    SCRATCH_STACK_RELEASE_BLOCK(GolemKnightBishopOffsetScratch);
 }

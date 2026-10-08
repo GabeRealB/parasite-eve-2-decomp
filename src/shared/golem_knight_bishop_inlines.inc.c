@@ -1,25 +1,29 @@
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Inlined copy of `golemKnightBishopTickAnim`: reseeds animation slots
-/// 1..0x12 when the animation id changes, otherwise ticks them a frame.
-static inline void golemKnightBishopTickAnimInline(Task* arg0)
+/// Restarts changed animation requests with a blend, or ticks the active clip.
+///
+/// `task` owns the initialized nineteen-part rig and its retained animation state.
+/// Clip IDs index the carrier's 22-entry blend table; slots 1 through 18 are
+/// the animated parts and slot 0 is the root. A restart resets `animFrame`;
+/// otherwise it increments once before ticking the slots.
+static inline void _golemKnightBishopTickAnimInline(Task* task)
 {
     GolemKnightBishopWork* work;
-    s32                    i;
-    s32                    value;
+    s32                    slotIndex;
+    s32                    blendFrames;
 
-    work = arg0->work;
+    work = task->work;
     if (work->anim != work->playingAnim) {
         work->playingAnim = work->anim;
         work->animFrame   = 0;
-        value             = gGolemKnightBishopAnimBlend[work->anim];
-        for (i = 1; i < 0x13; i++) {
-            animationSeekSlotWithBlend(&work->rig.anim, i, work->anim, 0, value);
+        blendFrames       = gGolemKnightBishopAnimBlend[work->anim];
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->rig.anim, slotIndex, work->anim, 0, blendFrames);
         }
     } else {
         work->animFrame++;
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
 }

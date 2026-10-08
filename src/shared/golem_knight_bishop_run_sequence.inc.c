@@ -11,34 +11,34 @@ void golemKnightBishopRunSequence(Task* arg0)
     temp_v1 = temp_s1->sequence;
     switch (temp_v1) {
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_IDLE:
-            golemKnightBishopIdleSeq(arg0);
+            _golemKnightBishopIdleSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB:
-            golemKnightBishopGrabSeq(arg0);
+            _golemKnightBishopGrabSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_STRIKE:
-            golemKnightBishopStrikeSeq(arg0);
+            _golemKnightBishopStrikeSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_BOX_APPROACH:
-            golemKnightBishopBoxApproachSeq(arg0);
+            _golemKnightBishopBoxApproachSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_RECOVER:
-            golemKnightBishopRecoverSeq(arg0);
+            _golemKnightBishopRecoverSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_LIGHT_FLINCH:
-            golemKnightBishopLightFlinchSeq(arg0);
+            _golemKnightBishopLightFlinchSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_HEAVY_FLINCH:
-            golemKnightBishopHeavyFlinchSeq(arg0);
+            _golemKnightBishopHeavyFlinchSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL:
-            golemKnightBishopKneelSeq(arg0);
+            _golemKnightBishopKnockdownSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL_HIT:
             _golemKnightBishopDownedHitSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_COLLAPSE_DEATH:
-            golemKnightBishopCollapseDeathSeq(arg0);
+            _golemKnightBishopCollapseDeathSeq(arg0);
             break;
         case GOLEM_KNIGHT_BISHOP_SEQUENCE_KNEEL_DEATH:
             _golemKnightBishopDownedDeathSeq(arg0);
@@ -48,6 +48,6 @@ void golemKnightBishopRunSequence(Task* arg0)
             break;
     }
     if (temp_s1->sequence != GOLEM_KNIGHT_BISHOP_SEQUENCE_GRAB) {
-        golemKnightBishopHoldCueTimer(arg0);
+        _golemKnightBishopTickGrabRelease(arg0);
     }
 }

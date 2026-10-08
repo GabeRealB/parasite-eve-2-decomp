@@ -58,7 +58,7 @@ static void _frameCaptureQueue(s32 orderingTableSlot);
 
 extern GolemKnightBishopChargeSpeedSpan gGolemKnightBishopFrameSteps[];
 
-/// Per-roll wait lengths the wait state of `golemKnightBishopIdleSeq`
+/// Per-roll wait lengths the wait state of `_golemKnightBishopIdleSeq`
 /// scales by `16 - attackCount`, indexed by a 4-bit `gRandomLcgState` draw.
 extern s16 gGolemKnightBishopIdleWaits[];
 
@@ -72,7 +72,7 @@ extern s32 gGolemKnightBishopPainCue;
 /// Cue word the approach's state 0 queues as it plants the actor on its box.
 extern s32 gGolemKnightBishopApproachCue;
 
-/// Cue word the fade-out in `golemKnightBishopTranslucencyFade` queues.
+/// Cue word the fade-out in `_golemKnightBishopUpdateAppearance` queues.
 extern s32 gGolemKnightBishopFadeCue;
 
 /// Cue word the approach's frame 0x12 queues.
@@ -1260,7 +1260,7 @@ AnimationSet* gGolemKnightBishopAnimSets[22] = {
 /// sequences, and the frame handler that unlinks the enemy and saves its pose
 /// before running its own short sequence.
 static const EnemyTaskFuncTable3 D_actor_403900_80131F18 = {
-    golemKnightBishopSpawn,
+    _golemKnightBishopSpawn,
     golemKnightBishopFrameState,
     golemKnightBishopDeadState,
 };

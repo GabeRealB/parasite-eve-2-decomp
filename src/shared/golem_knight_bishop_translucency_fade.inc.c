@@ -2,39 +2,59 @@
 
 /* Part of the Knight and Bishop GOLEM library; see golem_knight_bishop.h. */
 
-/// Carries out the change of appearance `fadeState` asks for. The appearance
-/// and the vanish fade the display object's `shading.colorBlend`,
-/// `translucency` and `shadowShade` in and out over `colorBlendFadeFrames` and
-/// `translucencyFadeFrames`, stopping `appearSound` / `vanishSound` as they
-/// finish. A feint appears to 11/16 colour weight and saves the root matrix
-/// into `unscaledRootMtx`; its shrink winds `scale.vy` and then `scale.vx`
-/// down by `shrinkStep` as it vanishes, then resets the root matrix to
-/// identity. The flicker alternates between its two halves on `flickerTimer`,
-/// each of LCG-rolled length, spawning effect 0x600E0 at the fourth part on
-/// odd animation frames.
-void golemKnightBishopTranslucencyFade(Task* arg0)
+/// Rolls one flicker half-period and its positive fade divisors using two LCG draws.
+///
+/// The dwell is 2..17 frames; the shared fade divisor is that dwell plus 0..15.
+static inline void _golemKnightBishopResetFlickerPeriod(GolemKnightBishopWork* work)
 {
-    SVECTOR*               sc;
-    GolemKnightBishopWork* work;
-    TmdObject*             obj;
-    GfxCoord*              coord;
-    s32                    snd;
-    s32                    pan;
-    s32                    v;
-    s32                    w;
-    s32                    sy;
-    s32                    y;
-    u32                    random;
-    s16                    t;
+    s16 fadeFrames;
+    work->flickerTimer           = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 2;
+    fadeFrames                   = work->flickerTimer + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
+    work->translucencyFadeFrames = fadeFrames;
+    work->colorBlendFadeFrames   = fadeFrames;
+}
 
-    sc    = (SVECTOR*)SCRATCH_STACK_RESERVE_BYTES(8);
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    coord = obj->coords;
+/// Updates visibility, colour, shadow, feint shrink and hit flicker.
+///
+/// `task` owns live GOLEM work, model and Enemy spawn data. Fade durations must
+/// be positive frame divisors: translucency spans 0..255, colour blend uses Q12
+/// and the shadow reaches shade 128. A feint uses 11/16 colour, saves its root
+/// matrix and shrinks before hiding. Flicker consumes two LCG draws per half
+/// period and emits sparks on odd animation frames. Signed s16 intermediate
+/// ramps narrow before their clamps; integer division can extend nominal fades.
+static void _golemKnightBishopUpdateAppearance(Task* task)
+{
+    enum {
+        GOLEM_KNIGHT_BISHOP_FEINT_COLOR_BLEND          = TMD_OBJECT_COLOR_BLEND_ONE * 11 / 16,
+        GOLEM_KNIGHT_BISHOP_FLICKER_TRANSLUCENCY_LIMIT = 128,
+        GOLEM_KNIGHT_BISHOP_SHRINK_SQUASH              = 0,
+        GOLEM_KNIGHT_BISHOP_SHRINK_NARROW              = 1,
+        GOLEM_KNIGHT_BISHOP_SHRINK_HELD                = 2,
+        GOLEM_KNIGHT_BISHOP_TINT_NONE                  = 0,
+        GOLEM_KNIGHT_BISHOP_TINT_DIM_BLUE              = 1,
+    };
+    SVECTOR*               sparkOffset;
+    GolemKnightBishopWork* work;
+    TmdObject*             model;
+    GfxCoord*              root;
+    s32                    vanishCue;
+    s32                    audioPan;
+    s32                    nextWidthScale;
+    s32                    nextHeightScale;
+    s32                    squashedHeight;
+    s32                    heightScale;
+    s16                    nextTranslucency;
+    s16                    nextShadowShade;
+    s16                    flickerFramesLeft;
+
+    sparkOffset = SCRATCH_STACK_RESERVE_BLOCK(SVECTOR);
+    work        = task->work;
+    model       = task->extra.tmd;
+    root        = model->coords;
     switch (work->fadeState) {
         case GOLEM_KNIGHT_BISHOP_FADE_HIDDEN:
-            arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            work->shadowShade      = -1;
+            task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            work->shadowShade      = GOLEM_KNIGHT_BISHOP_SHADOW_HIDDEN;
             work->hurtBody.flags  &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             if (work->appearSound != 0) {
                 sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
@@ -46,12 +66,12 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
             }
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_APPEAR:
-            obj->shading.colorBlend += TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
-            if (obj->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE) {
-                obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
-                t                       = work->translucency - 0xFF / work->translucencyFadeFrames;
-                work->translucency      = t;
-                if (t <= 0) {
+            model->shading.colorBlend += TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
+            if (model->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE) {
+                model->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
+                nextTranslucency          = work->translucency - GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE / work->translucencyFadeFrames;
+                work->translucency        = nextTranslucency;
+                if (nextTranslucency <= 0) {
                     work->translucency = 0;
                     work->fadeState    = GOLEM_KNIGHT_BISHOP_FADE_SHOWN;
                     if (work->appearSound != 0) {
@@ -60,14 +80,14 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
                     }
                 }
             }
-            t                 = work->shadowShade + 0x80 / work->translucencyFadeFrames;
-            work->shadowShade = t;
-            if (t >= 0x80) {
-                work->shadowShade = 0x80;
+            nextShadowShade   = work->shadowShade + GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE / work->translucencyFadeFrames;
+            work->shadowShade = nextShadowShade;
+            if (nextShadowShade >= GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE) {
+                work->shadowShade = GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE;
             }
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_SHOWN:
-            work->shadowShade = 0x80;
+            work->shadowShade = GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE;
             if (work->appearSound != 0) {
                 sndEvtRequestScriptStop(work->appearSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                 work->appearSound = 0;
@@ -78,169 +98,160 @@ void golemKnightBishopTranslucencyFade(Task* arg0)
             }
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_VANISH:
-            t                  = work->translucency + 0xFF / work->translucencyFadeFrames;
-            work->translucency = t;
-            if (t >= 0xFF) {
-                work->translucency       = 0xFF;
-                obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
-                if (obj->shading.colorBlend <= 0) {
-                    obj->shading.colorBlend = 0;
-                    work->fadeState         = GOLEM_KNIGHT_BISHOP_FADE_HIDDEN;
+            nextTranslucency   = work->translucency + GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE / work->translucencyFadeFrames;
+            work->translucency = nextTranslucency;
+            if (nextTranslucency >= GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE) {
+                work->translucency         = GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE;
+                model->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
+                if (model->shading.colorBlend <= 0) {
+                    model->shading.colorBlend = 0;
+                    work->fadeState           = GOLEM_KNIGHT_BISHOP_FADE_HIDDEN;
                     if (work->vanishSound != 0) {
                         sndEvtRequestScriptStop(work->vanishSound, SOUND_SCRIPT_STOP_KEEP_RELEASE);
                         work->vanishSound = 0;
                     }
-                    snd = gGolemKnightBishopFadeCue | (((u16)((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-                    pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(snd, pan, (s8)worldCoordGetOriginAudioDepth(coord));
+                    vanishCue = gGolemKnightBishopFadeCue | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+                    audioPan  = (s8)worldCoordGetOriginAudioPan(root);
+                    sndEvtRequestScriptStart(vanishCue, audioPan, (s8)worldCoordGetOriginAudioDepth(root));
                 }
             }
-            t                 = work->shadowShade - 0x80 / work->translucencyFadeFrames;
-            work->shadowShade = t;
-            if (t < 0) {
-                work->shadowShade = -1;
+            nextShadowShade   = work->shadowShade - GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE / work->translucencyFadeFrames;
+            work->shadowShade = nextShadowShade;
+            if (nextShadowShade < 0) {
+                work->shadowShade = GOLEM_KNIGHT_BISHOP_SHADOW_HIDDEN;
             }
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_FEINT_APPEAR:
-            obj->shading.colorBlend += (TMD_OBJECT_COLOR_BLEND_ONE * 11 / 16) / work->colorBlendFadeFrames;
-            if (obj->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE * 11 / 16) {
-                obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE * 11 / 16;
-                t                       = work->translucency - 0xFF / work->translucencyFadeFrames;
-                work->translucency      = t;
-                if (t <= 0) {
+            model->shading.colorBlend += (GOLEM_KNIGHT_BISHOP_FEINT_COLOR_BLEND) / work->colorBlendFadeFrames;
+            if (model->shading.colorBlend >= GOLEM_KNIGHT_BISHOP_FEINT_COLOR_BLEND) {
+                model->shading.colorBlend = GOLEM_KNIGHT_BISHOP_FEINT_COLOR_BLEND;
+                nextTranslucency          = work->translucency - GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE / work->translucencyFadeFrames;
+                work->translucency        = nextTranslucency;
+                if (nextTranslucency <= 0) {
                     work->fadeState       = GOLEM_KNIGHT_BISHOP_FADE_FEINT_SHOWN;
                     work->translucency    = 0;
                     work->scale.vx        = 0x1000;
                     work->scale.vy        = 0x1000;
                     work->scale.vz        = 0x1000;
-                    work->unscaledRootMtx = arg0->extra.tmd->coords[0].coord;
-                    work->shrinkStep      = 0;
+                    work->unscaledRootMtx = task->extra.tmd->coords[0].coord;
+                    work->shrinkStep      = GOLEM_KNIGHT_BISHOP_SHRINK_SQUASH;
                 }
             }
-            work->shadowShade = -1;
+            work->shadowShade = GOLEM_KNIGHT_BISHOP_SHADOW_HIDDEN;
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_FEINT_SHOWN:
-            work->shadowShade = -1;
+            work->shadowShade = GOLEM_KNIGHT_BISHOP_SHADOW_HIDDEN;
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_FEINT_SHRINK:
             work->hurtBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             switch (work->shrinkStep) {
-                case 0:
-                    y = work->scale.vy;
+                case GOLEM_KNIGHT_BISHOP_SHRINK_SQUASH:
+                    heightScale = work->scale.vy;
                     if (work->feintBroken != 0) {
-                        sy = y - 0x400;
+                        squashedHeight = heightScale - (GOLEM_KNIGHT_BISHOP_SCALE_ONE / 4);
                     } else {
-                        sy = y - 0x200;
+                        squashedHeight = heightScale - (GOLEM_KNIGHT_BISHOP_SCALE_ONE / 8);
                     }
-                    work->scale.vy = sy;
-                    if (sy <= 0x800) {
-                        work->shrinkStep = 1;
+                    work->scale.vy = squashedHeight;
+                    if (squashedHeight <= (GOLEM_KNIGHT_BISHOP_SCALE_ONE / 2)) {
+                        work->shrinkStep = GOLEM_KNIGHT_BISHOP_SHRINK_NARROW;
                     }
                     break;
-                case 1:
+                case GOLEM_KNIGHT_BISHOP_SHRINK_NARROW:
                     if (work->feintBroken != 0) {
-                        v              = work->scale.vx - 0x200;
-                        w              = work->scale.vy + 0x400;
-                        work->scale.vx = v;
-                        work->scale.vy = w;
+                        nextWidthScale  = work->scale.vx - (GOLEM_KNIGHT_BISHOP_SCALE_ONE / 8);
+                        nextHeightScale = work->scale.vy + (GOLEM_KNIGHT_BISHOP_SCALE_ONE / 4);
+                        work->scale.vx  = nextWidthScale;
+                        work->scale.vy  = nextHeightScale;
                     } else {
-                        v              = work->scale.vx - 0x100;
-                        w              = work->scale.vy + 0x200;
-                        work->scale.vx = v;
-                        work->scale.vy = w;
+                        nextWidthScale  = work->scale.vx - GOLEM_KNIGHT_BISHOP_SCALE_ONE / 16;
+                        nextHeightScale = work->scale.vy + (GOLEM_KNIGHT_BISHOP_SCALE_ONE / 8);
+                        work->scale.vx  = nextWidthScale;
+                        work->scale.vy  = nextHeightScale;
                     }
-                    if (work->scale.vx <= 0x800) {
-                        work->shrinkStep = 2;
+                    if (work->scale.vx <= (GOLEM_KNIGHT_BISHOP_SCALE_ONE / 2)) {
+                        work->shrinkStep = GOLEM_KNIGHT_BISHOP_SHRINK_HELD;
                     }
                     break;
             }
-            _golemKnightBishopApplyScale(arg0);
-            t                  = work->translucency + 0xFF / work->translucencyFadeFrames;
-            work->translucency = t;
-            if (t >= 0xFF) {
-                work->translucency       = 0xFF;
-                obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
-                if (obj->shading.colorBlend <= 0) {
-                    obj->shading.colorBlend = 0;
-                    work->fadeState         = GOLEM_KNIGHT_BISHOP_FADE_HIDDEN;
-                    gfxSetRotIdentity(&arg0->extra.tmd->coords[0].coord);
-                    arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            _golemKnightBishopApplyScale(task);
+            nextTranslucency   = work->translucency + GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE / work->translucencyFadeFrames;
+            work->translucency = nextTranslucency;
+            if (nextTranslucency >= GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE) {
+                work->translucency         = GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE;
+                model->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
+                if (model->shading.colorBlend <= 0) {
+                    model->shading.colorBlend = 0;
+                    work->fadeState           = GOLEM_KNIGHT_BISHOP_FADE_HIDDEN;
+                    gfxSetRotIdentity(&task->extra.tmd->coords[0].coord);
+                    task->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
                 }
             }
-            work->shadowShade = -1;
+            work->shadowShade = GOLEM_KNIGHT_BISHOP_SHADOW_HIDDEN;
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_FLICKER_START:
-            work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_DIM;
-            work->flickerTimer           = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 2;
-            t                            = work->flickerTimer + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
-            work->translucencyFadeFrames = t;
-            work->colorBlendFadeFrames   = t;
+            work->fadeState = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_DIM;
+            _golemKnightBishopResetFlickerPeriod(work);
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_FLICKER_DIM:
-            t                  = work->translucency + 0xFF / work->translucencyFadeFrames;
-            work->translucency = t;
-            if (t >= 0x80) {
-                work->translucency       = 0x80;
-                obj->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
-                if (obj->shading.colorBlend <= TMD_OBJECT_COLOR_BLEND_ONE / 2) {
-                    obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE / 2;
+            nextTranslucency   = work->translucency + GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE / work->translucencyFadeFrames;
+            work->translucency = nextTranslucency;
+            if (nextTranslucency >= GOLEM_KNIGHT_BISHOP_FLICKER_TRANSLUCENCY_LIMIT) {
+                work->translucency         = GOLEM_KNIGHT_BISHOP_FLICKER_TRANSLUCENCY_LIMIT;
+                model->shading.colorBlend -= TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
+                if (model->shading.colorBlend <= TMD_OBJECT_COLOR_BLEND_ONE / 2) {
+                    model->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE / 2;
                 }
             }
-            t                 = work->shadowShade - 0x80 / work->translucencyFadeFrames;
-            work->shadowShade = t;
-            if (t < 0) {
-                work->shadowShade = -1;
+            nextShadowShade   = work->shadowShade - GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE / work->translucencyFadeFrames;
+            work->shadowShade = nextShadowShade;
+            if (nextShadowShade < 0) {
+                work->shadowShade = GOLEM_KNIGHT_BISHOP_SHADOW_HIDDEN;
             }
-            t                  = work->flickerTimer - 1;
-            work->flickerTimer = t;
-            if (t <= 0) {
-                work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_BRIGHT;
-                work->flickerTimer           = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 2;
-                t                            = work->flickerTimer + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
-                work->translucencyFadeFrames = t;
-                work->colorBlendFadeFrames   = t;
+            flickerFramesLeft  = work->flickerTimer - 1;
+            work->flickerTimer = flickerFramesLeft;
+            if (flickerFramesLeft <= 0) {
+                work->fadeState = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_BRIGHT;
+                _golemKnightBishopResetFlickerPeriod(work);
             }
-            if (work->tintRequest == 0) {
-                work->tintRequest = 1;
+            if (work->tintRequest == GOLEM_KNIGHT_BISHOP_TINT_NONE) {
+                work->tintRequest = GOLEM_KNIGHT_BISHOP_TINT_DIM_BLUE;
             }
             if (work->animFrame & 1) {
-                sc->vx = 0;
-                sc->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
-                sc->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
-                effectSpawn(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, sc);
+                sparkOffset->vx = 0;
+                sparkOffset->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
+                sparkOffset->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
+                effectSpawn(EFFECT_FLASH_BURST, &task->extra.tmd->coords[3], 0x100, sparkOffset);
             }
             break;
         case GOLEM_KNIGHT_BISHOP_FADE_FLICKER_BRIGHT:
-            obj->shading.colorBlend += TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
-            if (obj->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE) {
-                obj->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
-                t                       = work->translucency - 0xFF / work->translucencyFadeFrames;
-                work->translucency      = t;
-                if (t <= 0) {
+            model->shading.colorBlend += TMD_OBJECT_COLOR_BLEND_ONE / work->colorBlendFadeFrames;
+            if (model->shading.colorBlend >= TMD_OBJECT_COLOR_BLEND_ONE) {
+                model->shading.colorBlend = TMD_OBJECT_COLOR_BLEND_ONE;
+                nextTranslucency          = work->translucency - GOLEM_KNIGHT_BISHOP_TRANSLUCENCY_INVISIBLE / work->translucencyFadeFrames;
+                work->translucency        = nextTranslucency;
+                if (nextTranslucency <= 0) {
                     work->translucency = 0;
                 }
             }
-            t                 = work->shadowShade + 0x80 / work->translucencyFadeFrames;
-            work->shadowShade = t;
-            if (t >= 0x80) {
-                work->shadowShade = 0x80;
+            nextShadowShade   = work->shadowShade + GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE / work->translucencyFadeFrames;
+            work->shadowShade = nextShadowShade;
+            if (nextShadowShade >= GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE) {
+                work->shadowShade = GOLEM_KNIGHT_BISHOP_SHADOW_FULL_SHADE;
             }
-            t                  = work->flickerTimer - 1;
-            work->flickerTimer = t;
-            if (t <= 0) {
-                work->fadeState              = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_DIM;
-                work->flickerTimer           = (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF) + 2;
-                t                            = work->flickerTimer + (((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xF);
-                work->translucencyFadeFrames = t;
-                work->colorBlendFadeFrames   = t;
+            flickerFramesLeft  = work->flickerTimer - 1;
+            work->flickerTimer = flickerFramesLeft;
+            if (flickerFramesLeft <= 0) {
+                work->fadeState = GOLEM_KNIGHT_BISHOP_FADE_FLICKER_DIM;
+                _golemKnightBishopResetFlickerPeriod(work);
             }
             if (work->animFrame & 1) {
-                sc->vx = 0;
-                sc->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
-                sc->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
-                effectSpawn(EFFECT_FLASH_BURST, &arg0->extra.tmd->coords[3], 0x100, sc);
+                sparkOffset->vx = 0;
+                sparkOffset->vy = -(((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF);
+                sparkOffset->vz = ((gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT) >> 16) & 0xFF;
+                effectSpawn(EFFECT_FLASH_BURST, &task->extra.tmd->coords[3], 0x100, sparkOffset);
             }
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(8);
+    SCRATCH_STACK_RELEASE_BLOCK(SVECTOR);
 }

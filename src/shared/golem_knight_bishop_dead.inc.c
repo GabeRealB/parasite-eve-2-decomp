@@ -69,14 +69,14 @@ void golemKnightBishopDeadState(Enemy* arg0, Task* arg1)
             }
             break;
         case 2:
-            golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], 0xC);
-            golemKnightBishopTranslucencyFade(arg1);
+            _golemKnightBishopQueueFrameCapture(&arg1->extra.tmd->coords[3], GOLEM_KNIGHT_BISHOP_FRAME_CAPTURE_BIAS);
+            _golemKnightBishopUpdateAppearance(arg1);
             modelLightingSetLayerMaterials(work->translucency);
             work->step = 3;
             break;
     }
-    golemKnightBishopHoldCueTimer(arg1);
-    golemKnightBishopTickAnimInline(arg1);
+    _golemKnightBishopTickGrabRelease(arg1);
+    _golemKnightBishopTickAnimInline(arg1);
     coord->composeStamp                     = GRAPHICS_COORD_DIRTY;
     arg1->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);

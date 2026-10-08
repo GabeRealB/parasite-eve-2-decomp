@@ -8,5 +8,5 @@
 /// slot one frame and walks the id's frame counter up.
 void golemKnightBishopTickAnim(Task* arg0)
 {
-    golemKnightBishopTickAnimInline(arg0);
+    _golemKnightBishopTickAnimInline(arg0);
 }
