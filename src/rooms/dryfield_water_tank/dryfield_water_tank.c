@@ -96,9 +96,6 @@ typedef struct {
 } _DryfieldWaterTankPropSceneWork;
 STATIC_ASSERT_SIZEOF(_DryfieldWaterTankPropSceneWork, 0x58);
 
-/// Main-executable flag word with no module header yet: while its bit 2 is
-/// raised the model task nudges the model 5 units off each position it snaps to.
-
 // Message-table callbacks use the argument views required by this TU.
 
 extern EvsCommand   D_dryfield_water_tank_80184E0C[];
@@ -107,7 +104,7 @@ extern TaskDesc     D_dryfield_water_tank_801868A4[];
 extern AreaApplyRec D_dryfield_water_tank_80188D1C[];
 extern Task*        D_dryfield_water_tank_80188D44;
 
-static void func_dryfield_water_tank_8017DB48(void);
+static void _dryfieldWaterTankSyncMechanismSprites(void);
 
 extern AreaResource D_dryfield_water_tank_80188BCC[2];
 
@@ -937,8 +934,6 @@ Task* D_dryfield_water_tank_80188D44 = NULL;
 Task* D_dryfield_water_tank_80188D50;
 
 static void func_dryfield_water_tank_8017D9D4(Task* task);
-static void func_dryfield_water_tank_8017DA4C(Task* task);
-static s32  func_dryfield_water_tank_8017DB98(Task* arg0);
 
 void func_dryfield_water_tank_8017D618(Task* arg0)
 {
@@ -970,7 +965,7 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
                 gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, 3);
                 sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 4), 0, 0);
                 taskSpawnFromTable(D_dryfield_water_tank_8017FF88, 0, 0, 0);
-                func_dryfield_water_tank_8017DB48();
+                _dryfieldWaterTankSyncMechanismSprites();
             } else {
                 gGameSession->eventState                                   = 0;
                 gGameSession->hideHud                                      = 0;
@@ -986,18 +981,14 @@ void func_dryfield_water_tank_8017D618(Task* arg0)
     taskKill(task);
 }
 
-/// Handler for message 0x13F1 in the room task's message table: accepts the
-/// message and does nothing, answering 0.
-s32 func_dryfield_water_tank_8017D7BC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 dryfieldWaterTankRefuseKeyItem(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Handler for message 0x13EE in the room task's message table: copies the
-/// location record the sender passes onto the reply record and answers 1.
-s32 func_dryfield_water_tank_8017D7C4(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+s32 dryfieldWaterTankResolveRoomEvent(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *dst = *src;
+    *reply = *request;
     return 1;
 }
 
@@ -1065,122 +1056,151 @@ void func_dryfield_water_tank_8017D948(Task* task)
 /// handlers hang off (`0x13EE`–`0x13F1`), take pointer slot 7, spawn the
 /// cutscene task from `D_dryfield_water_tank_801868A4`, queue sound event
 /// `0x52150009`, run the game-flag `0x55` dispatch in
-/// `func_dryfield_water_tank_8017DB48`, then advance.
+/// `_dryfieldWaterTankSyncMechanismSprites`, then advance.
 static void func_dryfield_water_tank_8017D9D4(Task* task)
 {
     task->msgTable = D_dryfield_water_tank_8017F324;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
     taskSpawnFromTable(D_dryfield_water_tank_801868A4, 0, 0, 0);
     sndEvtRequestScriptStart(SOUND_WATER_TANK_AMBIENCE, 0, 0);
-    func_dryfield_water_tank_8017DB48();
+    _dryfieldWaterTankSyncMechanismSprites();
     task->state = (s32)(task->state + 1);
 }
 
-/// State 1 of the room task, run every frame: while `gGameSession->viewReady`
-/// is set, queue the water-tank ambience sound events `0x52150011` and
-/// `0x52150012`, each as a type-6 event in the view it belongs to (4 and 0xA
-/// respectively) and as a type-7 event (argument 0x2D / 0x3C) from any other
-/// view.
-static void func_dryfield_water_tank_8017DA4C(Task* task)
+/// Maintains the room's two view-specific ambience scripts while the view is ready.
+///
+/// Logical views 4 and 10 start their respective scripts; other views request
+/// fades of 45 and 60 audio updates. View indices here precede sprite mapping.
+/// The room and sound resources must remain loaded. The task argument is unused.
+static void _dryfieldWaterTankUpdateViewAmbience(Task* task)
 {
+    enum {
+        DRYFIELD_WATER_TANK_VIEW4_AMBIENCE_FADE_TICKS  = 45,
+        DRYFIELD_WATER_TANK_VIEW10_AMBIENCE_FADE_TICKS = 60,
+    };
+
     if (gGameSession->viewReady != 0) {
         if (gGameSession->location.loc.view == 4) {
             sndEvtRequestStageScriptStart(SOUND_WATER_TANK_VIEW4_AMBIENCE, 0, 0);
         } else {
-            sndEvtRequestStageScriptStop(SOUND_WATER_TANK_VIEW4_AMBIENCE, 0x2D);
+            sndEvtRequestStageScriptStop(SOUND_WATER_TANK_VIEW4_AMBIENCE, DRYFIELD_WATER_TANK_VIEW4_AMBIENCE_FADE_TICKS);
         }
-        if (gGameSession->location.loc.view == 0xA) {
+        if (gGameSession->location.loc.view == 10) {
             sndEvtRequestStageScriptStart(SOUND_WATER_TANK_VIEW10_AMBIENCE, 0, 0);
             return;
         }
-        sndEvtRequestStageScriptStop(SOUND_WATER_TANK_VIEW10_AMBIENCE, 0x3C);
+        sndEvtRequestStageScriptStop(SOUND_WATER_TANK_VIEW10_AMBIENCE, DRYFIELD_WATER_TANK_VIEW10_AMBIENCE_FADE_TICKS);
     }
 }
 
 /// The room task's three states, run from a stack copy by
-/// `func_dryfield_water_tank_8017DAF0`: the entry tick, the per-frame
+/// `dryfieldWaterTankRoomTask`: the entry tick, the per-frame
 /// ambience, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_water_tank_8017D5C4 = {
-    { func_dryfield_water_tank_8017D9D4, func_dryfield_water_tank_8017DA4C, taskKill },
+    { func_dryfield_water_tank_8017D9D4, _dryfieldWaterTankUpdateViewAmbience, taskKill },
 };
 
-/// The room task: copies its three-state table onto the stack and runs the
-/// entry for the task's current state.
-void func_dryfield_water_tank_8017DAF0(Task* task)
+void dryfieldWaterTankRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_water_tank_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_water_tank_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
-static void func_dryfield_water_tank_8017DB48(void)
+/// Selects pre-operation or post-operation sprites from the shared mechanism state.
+///
+/// States 0..2 show the pre-operation sprites; state 3 shows the post-operation
+/// sprites. Other nibble values leave visibility intact. Requires the water
+/// tank sprite directory when in Dryfield; the sprite setter ignores other stages.
+static void _dryfieldWaterTankSyncMechanismSprites(void)
 {
+    enum {
+        DRYFIELD_WATER_TANK_MECHANISM_INITIAL        = 0,
+        DRYFIELD_WATER_TANK_MECHANISM_TOWER_RESTORED = 1,
+        DRYFIELD_WATER_TANK_MECHANISM_TOWER_OPERATED = 2,
+        DRYFIELD_WATER_TANK_MECHANISM_TANK_OPERATED  = 3,
+    };
+
     switch (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE)) {
-        case 0:
-        case 1:
-        case 2:
-            dryfieldWaterTankSetPreOperationSprites(1);
+        case DRYFIELD_WATER_TANK_MECHANISM_INITIAL:
+        case DRYFIELD_WATER_TANK_MECHANISM_TOWER_RESTORED:
+        case DRYFIELD_WATER_TANK_MECHANISM_TOWER_OPERATED:
+            dryfieldWaterTankSetPreOperationSprites(true);
             break;
-        case 3:
-            dryfieldWaterTankSetPreOperationSprites(0);
+        case DRYFIELD_WATER_TANK_MECHANISM_TANK_OPERATED:
+            dryfieldWaterTankSetPreOperationSprites(false);
             break;
     }
 }
 
-/// The model task's script, run each frame while the task is in state 2;
-/// returning 1 tells the caller the model has arrived.
+/// Advances the prop's dust-offset cycle and spawns a puff at its current position.
 ///
-/// Script state 0 lowers the model: its Z grows by 0x14 a frame, its Y snaps to
-/// the lowered record's `pos.vy` (nudged by the `gDisplayState.gameTick` flag), and once the
-/// Z has passed that record's `pos.vz` the script steps to state 1. Every frame
-/// of state 0 also spawns effect 0x60054 at the model, offset in X by the next
-/// entry of the wrapping `killCountdown` table. State 1 advances the settle
-/// counter; on its 0x3D-th tick it publishes the lowered record to the task
-/// itself as the 0x7D4 placement and returns 1, and until then snaps the
-/// model's X to that record's `pos.vx`. Every path that returns 0 clears
-/// `coord->composeStamp`, so the coordinate is recomputed on the next update.
-///
-/// The body is the water tower's `func_dryfield_water_tower_8017E428`; as there,
-/// the Z test is written with the coordinate on the left, which is what loads it
-/// before the record.
-static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
+/// This task uses `killCountdown` as an index in 0..10, initialized to zero.
+/// Only those eleven entries of the twelve-word offset table participate.
+/// Each offset narrows to a signed halfword in the prop's local X axis.
+static inline void _dryfieldWaterTankSpawnPropSlideDust(Task* task)
 {
-    _DryfieldWaterTankPropSceneWork* work  = arg0->work;
-    GfxCoord*                        coord = arg0->extra.tmd->coords;
-    GfxCoord*                        effCoord;
-    SVECTOR                          pos;
+    enum {
+        DRYFIELD_WATER_TANK_PROP_DUST_LAST_OFFSET = 10,
+        // Optional child puffs, two updates per texture frame, initial scale 0x300.
+        DRYFIELD_WATER_TANK_PROP_DUST_ARGUMENT = (s32)0x80000000 | (2 << 12) | 0x300,
+    };
+    GfxCoord* dustCoord;
+    SVECTOR   dustOffset;
+
+    dustCoord = task->extra.tmd->coords;
+    if (task->killCountdown >= DRYFIELD_WATER_TANK_PROP_DUST_LAST_OFFSET) {
+        task->killCountdown = 0;
+    } else {
+        task->killCountdown = (u16)task->killCountdown + 1;
+    }
+    dustOffset.vy = 0;
+    dustOffset.vz = 0;
+    dustOffset.vx = D_dryfield_water_tank_8017FDA8[task->killCountdown];
+    effectSpawn(EFFECT_DUST_PUFF, dustCoord, DRYFIELD_WATER_TANK_PROP_DUST_ARGUMENT, &dustOffset);
+}
+
+/// Advances the prop's slide and settling, returning 1 when final placement is applied.
+///
+/// Called once per prop-task frame with initialized work and a live model root.
+/// Motion advances 20 parent-coordinate units in Z per call and starts settling
+/// only after passing the endpoint. Settling lasts 61 calls, then sends
+/// `ACTOR_MESSAGE_PLACE` with the endpoint. Returns 0 while unfinished and marks
+/// the root dirty. Tick bit 2 adds a five-unit nudge in Y while moving and X
+/// while settling. The settle counter is not reset when the slide is restarted.
+static s32 _dryfieldWaterTankStepPropSlide(Task* task)
+{
+    enum {
+        DRYFIELD_WATER_TANK_PROP_SLIDE_STEP     = 20,
+        DRYFIELD_WATER_TANK_PROP_NUDGE_TICK_BIT = 1 << 2,
+    };
+    _DryfieldWaterTankPropSceneWork* work  = task->work;
+    GfxCoord*                        coord = task->extra.tmd->coords;
 
     switch (work->slidePhase) {
         case DRYFIELD_WATER_TANK_PROP_SLIDE_MOVING:
-            coord->coord.t[2] += 0x14;
+            // Advance past the endpoint before entering the settling phase.
+            coord->coord.t[2] += DRYFIELD_WATER_TANK_PROP_SLIDE_STEP;
             coord->coord.t[1]  = D_dryfield_water_tank_8017FD60[1].pos.vy;
-            if (gDisplayState.gameTick & 4) {
+            if (gDisplayState.gameTick & DRYFIELD_WATER_TANK_PROP_NUDGE_TICK_BIT) {
                 coord->coord.t[1] += 5;
             }
             if (coord->coord.t[2] > D_dryfield_water_tank_8017FD60[1].pos.vz) {
                 work->slidePhase++;
             }
-            effCoord = arg0->extra.tmd->coords;
-            if (arg0->killCountdown >= 0xA) {
-                arg0->killCountdown = 0;
-            } else {
-                arg0->killCountdown = (u16)arg0->killCountdown + 1;
-            }
-            pos.vy = 0;
-            pos.vz = 0;
-            pos.vx = D_dryfield_water_tank_8017FDA8[arg0->killCountdown];
-            effectSpawn(EFFECT_DUST_PUFF, effCoord, 0x80002300, &pos);
+            _dryfieldWaterTankSpawnPropSlideDust(task);
             break;
 
         case DRYFIELD_WATER_TANK_PROP_SLIDE_SETTLING:
+            // Let the prop settle before applying the endpoint's complete placement.
             work->settleFrames++;
             if (work->settleFrames >= DRYFIELD_WATER_TANK_PROP_SETTLE_FRAMES) {
-                TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_8017FD60[1], 0);
+                TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tank_8017FD60[1], 0);
                 return 1;
             }
             coord->coord.t[0] = D_dryfield_water_tank_8017FD60[1].pos.vx;
-            if (gDisplayState.gameTick & 4) {
+            if (gDisplayState.gameTick & DRYFIELD_WATER_TANK_PROP_NUDGE_TICK_BIT) {
                 coord->coord.t[0] += 5;
             }
             break;
@@ -1192,7 +1212,7 @@ static s32 func_dryfield_water_tank_8017DB98(Task* arg0)
 /// Drives the model task the room's script spawns: state 0 allocates the
 /// light/colour matrix pair for the task's `TmdObject` and reparents the task
 /// to the script driver, state 1 idles, and state 2 waits for
-/// `func_dryfield_water_tank_8017DB98` to report the model finished. Every
+/// `_dryfieldWaterTankStepPropSlide` to report the model finished. Every
 /// frame it hands the model part's translation to `worldCoordSetModelLighting`, which turns
 /// it into the light/colour matrices.
 void func_dryfield_water_tank_8017DD20(Task* arg0)
@@ -1227,7 +1247,7 @@ void func_dryfield_water_tank_8017DD20(Task* arg0)
         case 1:
             break;
         case 2:
-            if (func_dryfield_water_tank_8017DB98(arg0) & 0xFFFF) {
+            if (_dryfieldWaterTankStepPropSlide(arg0) & 0xFFFF) {
                 arg0->state = 1;
             }
             break;
@@ -1314,47 +1334,34 @@ void func_dryfield_water_tank_8017DEA4(Task* arg0)
     work->request = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_NONE;
 }
 
-/// Excludes the task's `TmdObject` from active drawing while `arg2` is zero,
-/// and clears that bit otherwise. `arg1` is unused; the flag is the *third*
-/// argument, so the second slot is only there to place it in `$a2`. Byte for
-/// byte the actors library's `ActorsShared801346ec`, which toggles the same bit
-/// of the same field for the model of the task it is handed.
-void func_dryfield_water_tank_8017E0B4(Task* task, s32 arg1, s32 arg2, s32 arg3)
+void dryfieldWaterTankSetPropModelDraw(Task* task, s32 messageId, s32 visible, s32 secondArg)
 {
-    TmdObject* obj;
+    TmdObject* model;
 
-    obj = task->extra.tmd;
-    if (arg2 != 0) {
-        obj->flags = obj->flags & (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model = task->extra.tmd;
+    if (visible != 0) {
+        model->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
         return;
     }
-    obj->flags = obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW;
+    model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
 }
 
 #include "../../shared/actor_messages_place_ypr.inc.c"
 
-/// Message 0x7DB handler of the model task: restarts its script, clearing the
-/// script state and `field_54` in its work block and moving the task to the
-/// state the payload carries.
-s32 func_dryfield_water_tank_8017E174(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+void dryfieldWaterTankRestartPropSlide(Task* task, s32 messageId, const ActorCommand* command, s32 secondArg)
 {
     _DryfieldWaterTankPropSceneWork* work;
-    s32                              state;
+    s32                              nextState;
 
     work                = task->work;
     work->slidePhase    = DRYFIELD_WATER_TANK_PROP_SLIDE_MOVING;
     work->field_54      = 0;
-    state               = msg->command;
+    nextState           = command->command;
     task->killCountdown = 0;
-    task->state         = state;
+    task->state         = nextState;
 }
 
-/// Scene-script callback that posts a request to the prop scene's driver:
-/// reaches the driver's work block through the task parked in
-/// `D_dryfield_water_tank_80188D4C`, stores `request` (one of
-/// `DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_*`) for the driver's next frame and
-/// clears `field_52` beside it.
-void func_dryfield_water_tank_8017E194(s16 request)
+void dryfieldWaterTankPostPropSceneRequest(s16 request)
 {
     _DryfieldWaterTankPropSceneWork* work;
 
@@ -1363,24 +1370,20 @@ void func_dryfield_water_tank_8017E194(s16 request)
     work->field_52 = 0;
 }
 
-/// Second sibling entry point into the script driver, the one that ends the
-/// water-tank scene: publishes view 3's area-record index, asks the view gate
-/// for a switch through `GameSession.viewDirty`, dispatches message 0x3F3 with
-/// argument 1 to the driver's `playerTask`, and fires the scene's sound event.
-void func_dryfield_water_tank_8017E1B4(void)
+void dryfieldWaterTankSkipPropScene(void)
 {
+    enum {
+        DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW    = 3,
+        DRYFIELD_WATER_TANK_PROP_SCENE_SOUND_ENTRY     = 2,
+        DRYFIELD_WATER_TANK_PROP_SCENE_SKIP_FADE_TICKS = 10,
+    };
     _DryfieldWaterTankPropSceneWork* work;
-    Task**                           playerTask;
 
     work                                                       = D_dryfield_water_tank_80188D4C->work;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(3);
-    /* Through a pointer rather than as `work->playerTask`: a member load is
-     * struct memory, which lets the store to the view index sink into the
-     * call's delay slot, and the original keeps it ahead of the load. */
-    playerTask = &work->playerTask;
-    taskMessageDispatch(*playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = viewFindLogicalIndex(DRYFIELD_WATER_TANK_PROP_SCENE_RESTORE_VIEW);
+    taskMessageDispatch(work->playerTask, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, true, 0);
     gGameSession->viewDirty = 1;
-    sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, 2), 0xA);
+    sndEvtRequestScriptStop(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TANK, DRYFIELD_WATER_TANK_PROP_SCENE_SOUND_ENTRY), DRYFIELD_WATER_TANK_PROP_SCENE_SKIP_FADE_TICKS);
 }
 
 #include "../../shared/screen_fade_in_tile.inc.c"

@@ -157,8 +157,8 @@ EvsCommand D_dryfield_water_tank_8017F21C[11] = {
 };
 
 TaskMessageEntry D_dryfield_water_tank_8017F324[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_dryfield_water_tank_8017D7C4 },
-    { 5105, func_dryfield_water_tank_8017D7BC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, dryfieldWaterTankResolveRoomEvent },
+    { ROOM_MESSAGE_USE_KEY_ITEM, dryfieldWaterTankRefuseKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_dryfield_water_tank_8017D7EC },
     { ROOM_MESSAGE_COMMAND, func_dryfield_water_tank_8017D910 },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -204,8 +204,8 @@ ActorTransform D_dryfield_water_tank_8017FD60[2] = {
 
 TaskMessageEntry D_dryfield_water_tank_8017FD90[3] = {
     { ACTOR_MESSAGE_PLACE, actorMsgPlaceYawPitchRoll },
-    { ACTOR_COMMAND_MESSAGE_APPLY, func_dryfield_water_tank_8017E174 },
-    { ACTOR_MESSAGE_SET_MODEL_DRAW, func_dryfield_water_tank_8017E0B4 },
+    { ACTOR_COMMAND_MESSAGE_APPLY, dryfieldWaterTankRestartPropSlide },
+    { ACTOR_MESSAGE_SET_MODEL_DRAW, dryfieldWaterTankSetPropModelDraw },
 };
 
 u16 D_dryfield_water_tank_8017FDA8[12] = {
@@ -226,11 +226,11 @@ u16 D_dryfield_water_tank_8017FDA8[12] = {
 EvsCommand D_dryfield_water_tank_8017FDC0[11] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4000 }, { .value = 15 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tank_8017E194 }, { .value = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_START_SLIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = dryfieldWaterTankPostPropSceneRequest }, { .value = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_START_SLIDE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tank_8017E194 }, { .value = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_PLAY_SOUNDS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = dryfieldWaterTankPostPropSceneRequest }, { .value = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_PLAY_SOUNDS }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = func_dryfield_water_tank_8017E194 }, { .value = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_SHOW_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = dryfieldWaterTankPostPropSceneRequest }, { .value = DRYFIELD_WATER_TANK_PROP_SCENE_REQUEST_SHOW_PLAYER }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1009 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -240,7 +240,7 @@ EvsCommand D_dryfield_water_tank_8017FDC0[11] = {
 EvsCommand D_dryfield_water_tank_8017FEC8[8] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_dryfield_water_tank_8017E1B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = dryfieldWaterTankSkipPropScene }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },

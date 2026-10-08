@@ -89475,7 +89475,7 @@ target `8b9d3c0601648efde4e7a64846f9525b943dc6cd533befbfaa22b66d782a6ab0`.
 
 ## An unused middle parameter m2c dropped puts the payload in the wrong argument register
 
-`func_dryfield_water_tank_8017E174` is a three-argument room message handler —
+`dryfieldWaterTankRestartPropSlide` is a four-argument task message handler —
 the shape every `(msgId, handler)` table in the room library uses, e.g.
 `Room_Util08(Task* task, s32 value, ActorTransform* placement)`. m2c's
 transcription declared it with two parameters, dropping the `msgId` no
@@ -89504,7 +89504,7 @@ transcription, 75.00%), `base_1.i`
 `a01a86feb1d883d850dd8cdadeb832ba9279bbf4e4af292565b313944aa9a617` (restored
 parameter and reordered read, 100%).
 
-## The same MEM_IN_STRUCT_P clause drops a *load*'s true dependence, and the store then lands in the call's delay slot (func_dryfield_water_tank_8017E1B4, 2026-09-15)
+## The same MEM_IN_STRUCT_P clause drops a *load*'s true dependence, and the store then lands in the call's delay slot (dryfieldWaterTankSkipPropScene, 2026-09-15)
 
 The `neo_ark_altar` entry above is the store side of this clause. This is the load
 side, in the call-argument position:
@@ -89538,9 +89538,14 @@ The fix is the cast-through-`u8*` form, `OFFSET_OF` for the offset:
     taskMessageDispatch(*(Task**)((u8*)work + OFFSET_OF(_DryfieldWaterTankPropSceneWork, playerTask)), 0x3F3, 1, 0);
 ```
 
+With the saved view now expressed as
+`gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view`, the destination
+is also struct memory. `dryfieldWaterTankSkipPropScene` now matches using plain
+`work->playerTask`; neither the byte view above nor a `Task**` local is needed.
+
 Scope matters: only that one reference needs the cast. `gGameSession->viewDirty = 1`
 two statements later stayed a struct field and the body still matched, and the
-sibling `func_dryfield_water_tank_8017E194` in the same TU is plain struct access
+sibling `dryfieldWaterTankPostPropSceneRequest` in the same TU is plain struct access
 throughout — the flag is per-access, and the diagnostic names which access.
 
 ## m2c's `M2C_UNK` base pointer scales the index a second time - retype the table to the access width (dryfieldWaterTankUpdateViewEffectGateTask, 2026-09-15)
@@ -89593,9 +89598,9 @@ the 3-entry table (0x30) — so the stride and the symbol's own byte run agree,
 and either one will tell you the element size when the seed's arithmetic does
 not.
 
-## A positive `beq` to a shared call means `switch`, not `if`/`else`: the if/else permutations never converge (func_dryfield_water_tank_8017DB48, 2026-09-15)
+## A positive `beq` to a shared call means `switch`, not `if`/`else`: the if/else permutations never converge (_dryfieldWaterTankSyncMechanismSprites, 2026-09-15)
 
-`func_dryfield_water_tank_8017DB48` dispatches on a game-flag nibble: values 0-2
+`_dryfieldWaterTankSyncMechanismSprites` dispatches on a game-flag nibble: values 0-2
 call a setter with 1, value 3 calls it with 0, anything else does nothing.
 
 ```
@@ -121779,7 +121784,7 @@ next to `mine_oracle.c`, the sibling compiled as the oracle.
 
 ## A store sunk into a call's delay slot blocks the cross-jump of two identical call tails (func_dryfield_water_tank_8017DEA4, 2026-09-17)
 
-The `func_dryfield_water_tank_8017E1B4` entry above is the same clause with a
+The `dryfieldWaterTankSkipPropScene` entry above is the same clause with a
 `reorder`-only symptom. Here the identical one-access change fixes a
 *structural* difference instead, so it is worth recognising in that disguise.
 
@@ -140634,7 +140639,7 @@ the same chain). Input: `base_3.i` `648ce2c8c69b81174075530a1ef2cec37b577dae1471
 
 ### Conditional nudge of a just-stored field: `+=` on the field, not `local + 5`
 
-`func_dryfield_water_tank_8017DB98` plateaued at 98.6% over 29 attempts, then
+`_dryfieldWaterTankStepPropSlide` plateaued at 98.6% over 29 attempts, then
 matched on the first build by porting the already-matched sibling body
 `func_dryfield_water_tower_8017E428` that the brief's `similar` list ranked
 first in three classes. The target is

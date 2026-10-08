@@ -39,6 +39,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_water_tank_80188CFC[];
 /// unused; the callback runs every frame without changing state or ending itself.
 void dryfieldWaterTankUpdateViewEffectGateTask(Task* task);
 
-void func_dryfield_water_tank_8017DAF0(Task* task);
+/// Runs the water-tank room's initialization, ambience and teardown states.
+///
+/// State 0 installs room messages, registers the room task, spawns the room's
+/// scene task, starts ambience and synchronizes mechanism sprites. State 1
+/// updates view-specific ambience each frame; state 2 kills the task.
+/// Requires `task->state` in 0..2 and the room overlay/resources to remain loaded.
+void dryfieldWaterTankRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_WATER_TANK_H
