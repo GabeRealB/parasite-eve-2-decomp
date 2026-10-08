@@ -56730,7 +56730,7 @@ landing in its delay slot, check whether the value is joined from two arms
 and push the store back into them.
 
 This applies to stores that do *not* depend on the branch as well.
-`func_actor_503500_80142980` wants `sw v0,0x1f8; sw zero,0x1fc; sw zero,0x200`
+`_actor503500ArmStepDying` wants `sw v0,0x1f8; sw zero,0x1fc; sw zero,0x200`
 (one 16.16 vector) ahead of `ApplyMatrixLV`'s `addiu a0 / addiu a1 / jal / move
 a2`. Only `vx` differs per arm. Writing `vy = 0; vz = 0;` once after the
 `if`/`else` leaves them in the join block, and `sched1` places them after the arg
@@ -68817,7 +68817,7 @@ point, or a struct field, where it is not. Only the latter wants a retype.
 
 ## m2c's scalar stack locals for an address-taken struct lose their dead stores
 
-**Problem:** `func_actor_503500_801421A8` builds a `VECTOR` on the stack and
+**Problem:** `_actor503500LungingChainUpdateColor` builds a `VECTOR` on the stack and
 passes it to `worldCoordUpdateActorColor`. m2c bootstrapped it as three independent
 `s32` locals with the address of the first one cast to the struct type:
 
@@ -68826,7 +68826,7 @@ s32 sp10, sp14, sp18;
 sp10 = coord->workm.t[0];
 sp14 = coord->workm.t[1];
 sp18 = coord->workm.t[2];
-worldCoordUpdateActorColor(arg0->field_20, (VECTOR*)&sp10, 0, 0);
+worldCoordUpdateActorColor(task->spawnArg2.pointer, (VECTOR*)&sp10, 0, 0);
 ```
 
 **Symptom:** `stack=0 branch=0 regs=7 reorder=0 insert=0 delete=14`, 52%. The
@@ -68839,15 +68839,15 @@ alongside a wrong frame size even though nothing about the frame was the cause.
 **Fix:** declare the real struct and write its fields.
 
 ```c
-VECTOR vec;
-vec.vx = coord->workm.t[0];
-vec.vy = coord->workm.t[1];
-vec.vz = coord->workm.t[2];
-worldCoordUpdateActorColor(arg0->field_20, &vec, 0, 0);
+VECTOR worldPosition;
+worldPosition.vx = task->extra.tmd->coords->workm.t[0];
+worldPosition.vy = task->extra.tmd->coords->workm.t[1];
+worldPosition.vz = task->extra.tmd->coords->workm.t[2];
+worldCoordUpdateActorColor(task->spawnArg2.pointer, &worldPosition, 0, 0);
 ```
 
-This also restores the *reloads*: the target re-walks `index->extra->coords`
-before each of the three stores, because `vec`'s address escapes into the call
+This also restores the *reloads*: the target re-walks `task->extra.tmd->coords`
+before each of the three stores, because `worldPosition`'s address escapes into the call
 and every store to it invalidates CSE's memory table. m2c's version had one
 surviving store and so only one chain, which reads like CSE working correctly
 and hides the real cause.
@@ -69953,7 +69953,7 @@ does `lw v0,0x2C(sX)` + `lw a0,8(v0)` with `sX` the *task*, the source re-read
 
 ## Transposed rotation copied through two base registers: one inline-asm block
 
-`func_actor_503500_801437D0` transposes the player's `coord` rotation into a
+`_actor503500ArmApplyAttackContacts` transposes the player's `coord` rotation into a
 stack `MATRIX` as `addiu v1,s3,4; addiu v0,sp,0x38` followed by three groups of
 `lhu $t4/$t5/$t6` + `sh` through `0(v1)`/`0(v0)`, and then reuses `v0` for
 `gte_SetRotMatrix`. A pinned-C transpose (`register short t4 asm("t4")` ...)
@@ -69964,10 +69964,10 @@ gets the registers but not the bases: GCC folds the stack destination into
 volatile` holding all 18 loads and stores with `"r"(src), "r"(dst)` inputs and
 `$12`-`$14` clobbered, libgte's `TransposeMatrix` sequence inlined - puts both
 addresses in registers, and CSE shares the destination with
-`gte_SetRotMatrix(&rot)` (100%). Every transpose in the tree uses it; the
+`gte_SetRotMatrix(&inversePlayerRotation)` (100%). Every transpose in the tree uses it; the
 pinned-C copies matched with it too once their pins were removed. Same function: a 4-word
 copy loop that walks a source *and* a destination pointer needs both written
-as walking pointers (`*dst++ = *src++`); `work->w[j] = src[j]` walks the
+as walking pointers (`*rotationDestinationWords++ = *rotationSourceWords++`); `((s32*)work->knockbackRotation.m)[rotationWordIndex] = rotationSourceWords[rotationWordIndex]` walks the
 work pointer itself and stores to `0x40(a0)`.
 
 ## Switch default `idleDelay = 1` instead of presetting `idleDelay = 1` before the switch
@@ -70059,7 +70059,7 @@ cost 5 points instead.
 
 ### Two adjacent `lui`s swapped at a call: compute the argument expression into a local first
 
-`func_actor_503500_8013E384` passes a computed fourth argument,
+`_actor503500SmallOrbEmitterStepAttack` passes a computed fourth argument,
 `taskSpawnFromTable(&D_..._8016E9F0, 0, 1, (tbl[idx] << 12) + (-D_80073B8C->t[1] << 24) / 1000)`.
 Everything matched except `lui a0,%hi(D_..._8016E9F0)` landing one slot above
 `lui v0,%hi(D_80073B8C)` (99.92%, `regs=4`, no other difference). Both `high`
@@ -70069,16 +70069,16 @@ expression (uid 114). Evaluating the argument first reverses the RTL order and
 matched outright:
 
 ```c
-arg  = (tbl[idx] << 12) + (-D_80073B8C->t[1] << 24) / 1000;
-task = taskSpawnFromTable(&D_actor_503500_8016E9F0, 0, 1, arg);
+launchSpeed = (D_actor_503500_8016F2E0[shotIndex] << 12) + (-gPlayerStatus.coordMtx->t[1] << 24) / 1000;
+shotTask = taskSpawnFromTable(D_actor_503500_8016E9F0, 0, 1, launchSpeed);
 ```
 
 The rest of the argument setup (`move a1,zero`, `li a2,1`) did not move.
 
 ### A table address that is not CSE'd with an identical earlier one: `&other[x - K]` folded into the symbol
 
-`func_actor_503500_8013FA74` loads `lui/addiu %lo(D_actor_503500_8016F3AC)`
-twice in one basic block: once as `D[idx]` (`idx = spawnArg1 - 0xD`) and again,
+`_actor503500LungingChainInit` loads `lui/addiu %lo(D_actor_503500_8016F3AC)`
+twice in one basic block: once as `D[idx]` (`chainIndex = task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0`) and again,
 six loads later and after several calls, in a fresh `$v1` that is reused for
 six `lw spawnArg1; sll 3; addu; lhu` accesses. Writing both as
 `D_8016F3AC[...]` lets CSE share one address pseudo across the calls: it is
@@ -70089,7 +70089,7 @@ splitting another pseudo so `tmd` fit again).
 The second group indexes `spawnArg1` directly, which would run past the
 4-entry table - the tell. It is really the *next* table, `D_8016F414`, indexed
 by `spawnArg1 - 0xD`, reached through an address:
-`copyVector(&work->field_368, &D_8016F414[index->spawnArg1 - 0xD])`.
+`copyVector(&work->tipTarget, &D_actor_503500_8016F414[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0])`.
 `&a[i]` is built as `a + i`, and `pointer_int_sum` (`c-typeck.c`) applies the
 distributive law, so the bias folds into the constant `D_8016F414 - 0x68`,
 which is numerically `0x8016F3AC` - splat names it after the wrong table.
@@ -70106,8 +70106,8 @@ linked bytes are identical and the full build checksums.
 Same function, two more order-only fixes: `func(index, N)` written in each
 `switch` case (cross-jumping merges the `jal`, leaving `move a0,fp` and the
 mode constant in each predecessor and a `nop` in the shared call's delay
-slot), and `enemy->param = &tbl[index->spawnArg1]` before
-`enemy->recs = rec` (the `spawnArg1` reload may alias the enemy stores, so
+slot), and `enemy->param = &D_actor_503500_8016E7EC[task->spawnArg1.value]` before
+`enemy->recs = targetContacts` (the `spawnArg1` reload may alias the enemy stores, so
 source order fixes the `sw 0x54` position).
 
 ### A three-term `|` with a constant: the written order decides which term the constant joins
@@ -70222,7 +70222,7 @@ sha256 `bfdfc49a8f53…`.
 
 ## `lhu` + `sll`/`sra` + `negu` + `sh`: negate into an `s32` local, not straight into the `s16` field
 
-`func_actor_503500_8013B60C` copies a `u16` table component into an `SVECTOR`
+`_actor503500LargeOrbEmitterLaunchOrb` copies a signed table component into an `SVECTOR`
 and then, for the mirrored side, overwrites it with its negation. The target
 keeps the sign extension even though only the low half is stored:
 
@@ -149568,7 +149568,7 @@ attempts; left as it was.
 
 - **`goto next;` out of a scan nested in a `for` body is the body as a
   `static inline void` with `return`.** The seven hit handlers of
-  `actor_503500_4.c` (`func_actor_503500_801431EC` and siblings) skip a contact
+  `actor_503500_4.c` (`_actor503500ArmApplyHits` and siblings) skip a contact
   whose id an earlier contact already carried: `for (j = 0; j < i; j++) if
   (rec[j].key.value == id) goto next;`, the image branching straight from the
   compare to the outer step. `break;` followed by `if (j < i) continue;` emits
