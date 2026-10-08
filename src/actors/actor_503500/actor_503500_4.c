@@ -929,7 +929,7 @@ static inline void _actor503500LargeOrbEmitterHandleHit(Task* arg0, _Actor503500
 }
 
 /// Applies this frame's hits from the collision records `rec[0..count)` to a
-/// large-orb emitter, like `func_actor_503500_80137C90`: each attack id is
+/// large-orb emitter, like `_actor503500PinkFlashEmitterApplyHits`: each attack id is
 /// taken once, only type-2 ids land while `hitCooldown` is clear, and a hit
 /// that empties the enemy's health starts
 /// `ACTOR_503500_LARGE_ORB_EMITTER_STATE_DYING` but still applies the id's
@@ -1434,7 +1434,7 @@ static inline void _actor503500RearPartHandleHit(Task* arg0, _Actor503500RearPar
 }
 
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// the rear part - the same body as `func_actor_503500_80137C90` on this
+/// the rear part - the same body as `_actor503500PinkFlashEmitterApplyHits` on this
 /// block's fields: each attack id is taken once, only type-2 ids land while
 /// `hitCooldown` is clear, and a hit that exhausts the enemy's health starts
 /// `ACTOR_503500_REAR_PART_STATE_DYING`. The hit effect is pulled to 1400
@@ -2359,7 +2359,7 @@ static inline void _actor503500SmallOrbEmitterHandleHit(Task* arg0, _Actor503500
 }
 
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// the small-orb emitter, like `func_actor_503500_80137C90`: each attack id
+/// the small-orb emitter, like `_actor503500PinkFlashEmitterApplyHits`: each attack id
 /// is taken once, only type-2 ids land while `hitCooldown` is clear, and a
 /// hit that empties the enemy's health starts
 /// `ACTOR_503500_SMALL_ORB_EMITTER_STATE_DYING` but still applies the id's
@@ -2820,7 +2820,7 @@ static inline void _actor503500YellowFlashEmitterHandleHit(Task* arg0, _Actor503
 }
 
 /// Applies this frame's hits from the collision records `arg2[0..arg3)` to
-/// the yellow-flash emitter, like `func_actor_503500_80139A20`: each attack id is
+/// the yellow-flash emitter, like `_actor503500LargeChainApplyHits`: each attack id is
 /// taken once, only type-2 ids land while `hitCooldown` is clear,
 /// and a hit that empties the enemy's health starts
 /// `ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_DYING` but still applies the
@@ -3451,7 +3451,7 @@ static void _actor503500LungingChainStepLunge(Task* task)
 }
 
 /// Death state of the lunging chains, the same body as
-/// `func_actor_503500_80139014` at this block's offsets: unlinks the enemy
+/// `_actor503500LargeChainStepDying` at this block's offsets: unlinks the enemy
 /// node, waits for `tipArrived`, re-parents the root coordinate onto the view
 /// and plays 0x40230004 at it. Phase 2 eases every part back to rest while the
 /// body rises; past 1000 the pose is saved in `unscaledRootMatrix` and phase 3
@@ -4204,7 +4204,7 @@ static void func_actor_503500_8014215C(Task* arg0, WorldCollisionBody* obj, Worl
 
 /// Copies the actor's attach-coordinate world position into a stack `VECTOR`
 /// and hands it to `worldCoordUpdateActorColor` with zero for the unused arguments. Same body as
-/// `func_actor_503500_80136AEC`.
+/// `_actor503500UpdateBossColor`.
 static void func_actor_503500_801421A8(Task* arg0)
 {
     VECTOR vec;
@@ -4486,7 +4486,7 @@ static void func_actor_503500_8014271C(Task* arg0)
 }
 
 /// `ACTOR_503500_ARM_STATE_DYING` step of the arm, the counterpart of the pink-flash emitter's
-/// `func_actor_503500_80137678`: step 0 unlinks the enemy node and clears the
+/// `_actor503500PinkFlashEmitterStepDying`: step 0 unlinks the enemy node and clears the
 /// 16.16 `spin` / `velocity` / `positionCarry`; step 1 sprays effects for 31 frames, then
 /// queues the side's CD load, re-parents the coordinate onto the view in world
 /// space, copies the parent's parts 6/7 (or 12/13, by `side`) into its own

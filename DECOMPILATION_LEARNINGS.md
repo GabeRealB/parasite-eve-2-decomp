@@ -69002,8 +69002,8 @@ so the load side looks identical either way.
 
 ## m2c drops a call argument that is still sitting in its register
 
-`func_actor_503500_80136A88` calls `func_actor_503500_80134EAC` with four
-arguments. The first is the function's own `index`, which never leaves `$a0`, so
+`_actor503500ProcessBossContacts` calls `_actor503500ApplyBossHits` with four
+arguments. The first is the function's own `task`, which never leaves `$a0`, so
 the target sets up only `$a1`/`$a2`/`$a3` before the `jal`. m2c saw no write to
 `$a0` and emitted a three-argument call, shifting every argument down one
 register; the object dump then differed on `a0`/`a1`, `a1`/`a2` and `a2`/`a3`
@@ -69011,8 +69011,8 @@ register; the object dump then differed on `a0`/`a1`, `a1`/`a2` and `a2`/`a3`
 
 **Rule.** A `regs` penalty that shifts a whole run of argument registers by one
 slot is a missing *leading* argument, not an allocation problem. Read the callee
-to confirm: here `func_actor_503500_80134EAC` opens with `lw $s2,0x20($a0)` /
-`lw $s4,0x1C($a0)`, which is the caller's own parameter type, so `index` is
+to confirm: here `_actor503500ApplyBossHits` opens with `lw $s2,0x20($a0)` /
+`lw $s4,0x1C($a0)`, which is the caller's own parameter type, so `task` is
 forwarded. Reinstating it matched on the first attempt.
 
 The same reading applies to a *tail* argument: m2c only reports registers it
@@ -69718,8 +69718,8 @@ A local `tbl = (View*)work` copy instead of casting at each use costs a
 separate pseudo and a second walking pointer - cast at the use site.
 
 The same helper can also show up with the *offset* reduced. In
-`func_actor_503500_80139014` a `part = &coord[i]` giv (stride 0x50) already
-lives in `$s2`, and the splat's `i*0x50` is reduced on its own:
+`_actor503500LargeChainStepDying` a `linkCoord = &coord[linkIndex]` giv (stride 0x50) already
+lives in `$s2`, and the splat's `linkIndex*0x50` is reduced on its own:
 
 ```
 li     $s5, 0x50            # preheader: bare offset giv, no base
@@ -69732,15 +69732,15 @@ addiu  $s5, $s5, 0x50
 
 A bare offset giv with an in-loop `addu` means the `offset + base` sum is not a
 giv. If the sum is a single-set temp, loop.c makes it a giv and
-`combine_givs` merges it into `part`'s, so the stores come out as `4($s2)`. That
-happens with direct `coord[i].coord` stores, a `&coord[i].coord` local, or a
-`part = coord` copy. Two other shapes also break the sum's giv status, but they
-use the wrong operand order or the wrong fold. `p = coord; p += i;` gives
+`combine_givs` merges it into `linkCoord`'s, so the stores come out as `4($s2)`. That
+happens with direct `coord[linkIndex].coord` stores, a `&coord[linkIndex].coord` local, or a
+`linkCoord = coord` copy. Two other shapes also break the sum's giv status, but they
+use the wrong operand order or the wrong fold. `p = coord; p += linkIndex;` gives
 `addu $v0, $s1, $s5` with the first store folded to `4($v0)`. A word pointer
-assigned twice, `w = (s32*)(i * sizeof(GfxCoord) + (u32)coord); w++;`,
-matches exactly. `func_actor_503500_SetRotIdentity(&coord[i].coord)` matches
+assigned twice, `w = (s32*)(linkIndex * sizeof(GfxCoord) + (u32)coord); w++;`,
+matches exactly. `gfxSetRotIdentity(&coord[linkIndex].coord)` matches
 too, without the integer cast, so that helper now lives in
-`include/actors/actor_503500.h`.
+`include/main/gfx.h`.
 
 ## `move v0, sN; slti v0, v0, K; bnez; addiu sN, sN, 1` is `while (j++ < K)`
 
@@ -69754,8 +69754,8 @@ do { ... } while (j++ < 3);     /* three iterations, j = 1, 2, 3 */
 
 If a call-free inner loop keeps its counter in an `$s` register, the variable
 is shared with a later loop that does cross calls. In
-`func_actor_503500_80139014` the Euler-easing counter and the tail loop's
-effect index are one `j` in `$s0`, and both outer counters are one `i` in `$s3`.
+`_actor503500LargeChainStepDying` the Euler-easing counter and the tail loop's
+effect index are one `elementIndex` in `$s0`, and both outer counters are one `linkIndex` in `$s3`.
 A pseudo gets one hard register for its whole life, so the tail loop's calls
 force a callee-saved register for the inner loop's counter as well.
 
@@ -69894,14 +69894,14 @@ switch loses the switch's `beq`/`beq`/`j default` layout (91%).
 
 ## Advancing a pointer in place pins its earlier derived address: use a new local
 
-`func_actor_503500_80132F64` stores `&coord->coord` into the enemy and then
-switches to model part 3. Written as `coord += 3`, sched1 has to compute
+`_actor503500InitBoss` stores `&rootCoord->coord` into the enemy and then
+switches to model part 3. Written as `rootCoord += 3`, sched1 has to compute
 `addiu v1,s1,4` before `addiu s1,s1,0xf0` (an anti-dependence on the one
-pseudo), so the address is hoisted above the `tmd->field_E` store and its
-`sw` sinks below `lbu 0x14(s4)` (98.6%). Declaring `part = &coord[3]` as its
+pseudo), so the address is hoisted above the `bossModel->otOffset` store and its
+`sw` sinks below `lbu 0x14(s4)` (98.6%). Declaring `targetCoord = &rootCoord[3]` as its
 own local removes the anti-dependence: the address is computed right before
-its store, as in the target, and local-alloc still ties `part` into `coord`'s
-register because `coord` dies in that insn, so the allocation is unchanged
+its store, as in the target, and local-alloc still ties `targetCoord` into `rootCoord`'s
+register because `rootCoord` dies in that insn, so the allocation is unchanged
 (100%). Same function: the store order `field_50` then `field_54` then
 `field_40 = enemy->param->hpMax` (copied from the matched sibling
 `_actor503500PinkFlashEmitterInit`) is what produces the target's
@@ -70028,27 +70028,27 @@ outranked `i` and took the wrong `$s` register.
 
 ### Entry `lw $v0` + `move $sN, $v0` for a pointer local: load it through the chain first
 
-`func_actor_503500_80134A24` opens with `lw v0, 0x2C(s4)` / `move s2, v0` /
-`lw s1, 8(s2)`: `index->extra` lands in `$v0` and is copied to its callee-saved
+`_actor503500StepCollapseState` opens with `lw v0, 0x2C(s4)` / `move s2, v0` /
+`lw s1, 8(s2)`: `task->extra.tmd` lands in `$v0` and is copied to its callee-saved
 home rather than being loaded there directly. The natural
-`obj = index->extra; coord = obj->field_8;` loads straight into `$s2`, drops the
-`move`, and also swaps the `$s3`/`$s4` homes of `index` and `enemy` (98.28%,
+`model = task->extra.tmd; coord = model->coords;` loads straight into `$s2`, drops the
+`move`, and also swaps the `$s3`/`$s4` homes of `task` and `enemy` (98.28%,
 `regs=15 branch=14`, all in the entry block). Writing the chained load before
 the plain one matched outright:
 
 ```c
-coord = arg0->extra->coords;
-obj   = arg0->extra;          /* CSE'd into a copy of the first load */
+coord = task->extra.tmd->coords;
+model = task->extra.tmd;          /* CSE'd into a copy of the first load */
 ```
 
-`obj = index->extra; coord = index->extra->coords;` builds the same object as
+`model = task->extra.tmd; coord = task->extra.tmd->coords;` builds the same object as
 the natural form - the order is what matters. The copy's extra instruction
 also shifts `li v0, 1` for the first `switch` compare below the `move`.
 
-Same function: a hand-written word-copy loop (`for (i = 0; i < 4; i++) *dst++ = *src++;`)
-takes `dst`/`src` in the order they are *assigned* - the first-assigned pointer is
-the one dbr hoists into the preceding branch's delay slot. Assign `dst` first
-when the target hoists the destination. Indexing both arrays (`dst[i] = src[i]`)
+Same function: a hand-written word-copy loop (`for (wordIndex = 0; wordIndex < 4; wordIndex++) *destinationWords++ = *sourceWords++;`)
+takes `destinationWords`/`sourceWords` in the order they are *assigned* - the first-assigned pointer is
+the one dbr hoists into the preceding branch's delay slot. Assign `destinationWords` first
+when the target hoists the destination. Indexing both arrays (`destinationWords[wordIndex] = sourceWords[wordIndex]`)
 cost 5 points instead.
 
 ### Two adjacent `lui`s swapped at a call: compute the argument expression into a local first
