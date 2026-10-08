@@ -1,6 +1,6 @@
 // Reloc overrides for the actor_403600 package (same format as rel.main.txt).
 //
-// func_actor_403600_8013D15C keeps %hi(gRandomLcgState) in $s6 across its loop.
+// _actor403600ProcessContacts keeps %hi(gRandomLcgState) in $s6 across its loop.
 // splat pairs most of the %lo uses with that hoisted %hi but misses these four,
 // leaving a bare 0xF60 in the target, so objdiff reports the compiled
 // relocation against it as a difference.

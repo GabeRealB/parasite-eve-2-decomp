@@ -116996,7 +116996,7 @@ __asm__ volatile("addiu $2, $sp, 0x10; lwc2 $0, 0($2); lwc2 $1, 4($2)");
 
 The tell for both is `reorder` non-zero with `stack`/`branch`/`insert`/`delete`
 all zero and `blocks`/`instructions` matching: a statement position, not a
-missing or extra operation. The sibling `func_actor_403600_8013E66C` already
+missing or extra operation. The sibling `_actor403600BearingFromPlayer` already
 carries the second fix, so a same-family copy is worth diffing against before
 touching the C.
 
@@ -131839,7 +131839,7 @@ and compiles to the same bytes as a reserve, `_actorAngleBearingInFrame(scratch,
 playerCoord)` and a release. The helper stops fitting where the fold differs:
 `_actor403600MeasurePlayerRangeBearing` uses `_actorAngleMeasureBearingInFrame`
 and stores its raw result through the output before folding;
-`func_actor_403600_8013E66C` truncates to `s16` before the comparisons. The wrapped
+`_actor403600BearingFromPlayer` truncates to `s16` before the comparisons. The wrapped
 helper does not reproduce these caller-specific stores and narrowing.
 
 ## Between two eligible insns after a branch, reorg picks one you cannot steer: hoist the wanted one above the compare (_actor01900UpdateAnimation, 2026-09-18)
@@ -134326,7 +134326,7 @@ session archive, under `PERMUTER_EVIDENCE/441f64dcd757472f/analysis/`.
 The router produced no improvement in this retry; these were manual experiments.
 The original C-only spelling of the retained bounds/early-return asm is unresolved.
 
-## A shared distance delta breaks the player-load local tie (func_actor_403600_8013EA04, 2026-09-19)
+## A shared distance delta breaks the player-load local tie (_actor403600ChooseAttack, 2026-09-19)
 
 The archived unpinned source at distance 830 used eight separate delta locals.
 For each first point, the tracer observed local quantities {delta, player_load}
@@ -134345,7 +134345,7 @@ and conflict mechanism, not a ranking claim based on per-pseudo local statistics
 
 The final function matched using additional local register lifetime constraints
 and scalar store dependencies; those paired port edits are not isolated general
-findings. Full evidence: tools/permuter_findings/func_actor_403600_8013EA04/,
+findings. Full evidence: tools/permuter_findings/_actor403600ChooseAttack/,
 session 59f9959a577f4a1ab4e9e16ca359859d, TRACE_BASE, base_2 dumps and its plan.
 Compiler SHA256: 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 Baseline input: bf7300060a1d07e0a79ddf00037665c9ddadf1cc374f0018bc59d8bf422a8a5a; controlled base_2 input: 852997d1104b4cd83c27869a996ff1212472455b56d1fc2c29523500b8fb1547.
@@ -135925,15 +135925,15 @@ Spill-order inputs: base_9.i `5e0e69c54d633bee3565252d3538dcecab0a34069af2653dd2
 base_10.i `8fa550b70b830f485eccaa0c281ace92eb61ab100ed12070d2a0afae0e97b44b`.
 
 
-## A constant passed through SOFT_TOUCH_REG can split too late to fill a load delay (func_actor_403600_8013D15C, 2026-09-20)
+## A constant passed through SOFT_TOUCH_REG can split too late to fill a load delay (_actor403600ProcessContacts, 2026-09-20)
 
 Passing the full `0x71357911` through `SOFT_TOUCH_REG` gave this function the required RNG registers, but CSE put the constant directly into the asm input. Reload materialized it as one full-width SET (archived base_8 UID1377), still one SET at sched2. Final emission split it into LUI/ORI after scheduling, leaving the following RNG load with an extra nop.
 
 The retry prediction used `increment = 0x71350000; SOFT_TOUCH_REG(increment); increment |= 0x7911;`. In current base_1, reload UID1379 is a single-instruction high-half SET, and OR UID672 already exists before sched2. RNG load UID675 fits between them. The required v0 load, v1 accumulation and a0 increment survive. This is evidence about materialization timing, not a general allocation priority rule. The baseline-to-base_1 edit also explicitly accumulates into the existing SI result; the archived base_8 already had that source form.
 
-Input hashes: current base_1.i `39af116cfd26c13fc2d8896eb42989481cbbd6e6faf8f3ce459bf134fc89198a`; archived base_8.i `6f91bc81a25d5678dee2c2070d20b058886b83165fea80490a0784205672b624`. Retained evidence: `tools/permuter_findings/func_actor_403600_8013D15C/`, the 2026-09-20 session LEARNINGS/PERMUTER_ANALYSIS, base_1/base_3 dumps and prior archived base_8 .greg/.sched2. The normal C/header port passed unscoped build verification. Its scratch score still reports seven symbolic-vs-numeric RNG operand differences; those resolve to identical linked bytes. Never port the scratch's old 0x80150000 RNG page: the real gRandomLcgState is 0x80070F60.
+Input hashes: current base_1.i `39af116cfd26c13fc2d8896eb42989481cbbd6e6faf8f3ce459bf134fc89198a`; archived base_8.i `6f91bc81a25d5678dee2c2070d20b058886b83165fea80490a0784205672b624`. Retained evidence: `tools/permuter_findings/_actor403600ProcessContacts/`, the 2026-09-20 session LEARNINGS/PERMUTER_ANALYSIS, base_1/base_3 dumps and prior archived base_8 .greg/.sched2. The normal C/header port passed unscoped build verification. Its scratch score still reports seven symbolic-vs-numeric RNG operand differences; those resolve to identical linked bytes. Never port the scratch's old 0x80150000 RNG page: the real gRandomLcgState is 0x80070F60.
 
-## A post-call store changes pre-call scheduling through the block's memory-unit count (func_actor_403600_8013A444, 2026-09-20)
+## A post-call store changes pre-call scheduling through the block's memory-unit count (_actor403600UpdateFightAction, 2026-09-20)
 
 Two angle branches each assigned a global flag, called the same helper, and
 assigned a local halfword. A shared tail stored that halfword to the actor.
@@ -135967,7 +135967,7 @@ universal rule that duplicating stores fixes scheduling. The duplicated stores
 must be semantically equivalent and survive until scheduling; later sharing
 must be checked separately. No pin, permutation discovery, or tracer was used.
 
-Scratch: nonmatchings/func_actor_403600_8013A444-vacuum. Evidence:
+Scratch: nonmatchings/_actor403600UpdateFightAction-vacuum. Evidence:
 base_1/base_2.i.sched, .greg, .jump2, .dbr; experiments.jsonl; LEARNINGS.md;
 base_7.score.json; verify_1.log.
 Compiler SHA256:60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
@@ -142369,7 +142369,7 @@ above). Its copies in other rooms (`dryfield_motel_balcony`, `mine_cavern`,
 `mine_secret_passage`, `neo_ark_north_promenade`, `dryfield_toilet`) carry the
 same pins.
 
-## A `%hi` hoisted into a saved register across a function means a real loop, not a pointer to the symbol (func_actor_403600_8013D15C, 2026-09-26)
+## A `%hi` hoisted into a saved register across a function means a real loop, not a pointer to the symbol (_actor403600ProcessContacts, 2026-09-26)
 
 The target kept `lui $s6, %hi(gRandomLcgState)` live through the whole function and
 used `%lo(gRandomLcgState)($s6)` at five sites; the old source faked it with a
@@ -142781,7 +142781,7 @@ asm `ldv0` of a stack copy and a `COMPILER_BARRIER` for exactly this: with
 `main/gfxgte.h` visible, `_gfxRotateSv` inlines and the plain body matches
 first try. When a helper swap mismatches, first check the object for a `jal`
 to the helper's name.
-## Copy-pasted blocks share their function-scope locals, and that sharing is what ranks them (func_actor_403600_8013DFE0, 2026-09-26)
+## Copy-pasted blocks share their function-scope locals, and that sharing is what ranks them (_actor403600TurnToAim, 2026-09-26)
 
 Three identical "turn this angle toward its target by a step" blocks each put
 the wrap-adjusted difference, `|diff|` and the sign-extended difference in
@@ -144447,7 +144447,7 @@ permuter found nothing either.
 **Outcome.** Kept as the one remaining pin; the other two pins in the function
 were only compensating for the `goto`-shaped m2c body and dropped out.
 
-## Three matching hacks in one state machine, each a plain-C shape: statement order, a reused local, a literal store and separate calls (func_actor_403600_8013A444, 2026-09-26)
+## Three matching hacks in one state machine, each a plain-C shape: statement order, a reused local, a literal store and separate calls (_actor403600UpdateFightAction, 2026-09-26)
 
 **Constant-register choice (`SOFT_TOUCH_REG` on a constant).** Two constants
 live across a call, `1` (4 refs) and `0x10` (3 refs), take `$s0`/`$s1` by
@@ -144527,7 +144527,7 @@ a single function is more plausibly a literal in that function than a global.
 Literals come out in first-use order within their unit, so where a string's
 position does not fit that, the mismatch is itself a clue that the function
 belongs to a different unit.
-## A pin that holds an argument register through a run of constant stores is store order; a pinned load's destination is not (func_actor_403600_8013EA04, 2026-09-26)
+## A pin that holds an argument register through a run of constant stores is store order; a pinned load's destination is not (_actor403600ChooseAttack, 2026-09-26)
 
 **Symptom.** A switch arm stored `1, 1, 0x28` from `a1`, reloaded `a1 = 1` for
 the call, and moved the `Task*` into `a0` at the top of the block. The seed
@@ -144539,7 +144539,7 @@ priority tie decided by source order.
 
 **Fix.** Plain stores, the file's rand helper, `func(task, 1)` - and sweep the
 order of the arm's statements. 20 of 2520 orders match the pinned build
-(`field_774, field_732, field_746, field_73E, flags |=, rand, rand`); moving the
+(`ignorePushOut, step, aimMode, action, flags |=, rand, rand`); moving the
 call into an inline helper changed nothing. A shell loop around `cpp | cc1 |
 maspsx | dist.py` scores a variant in well under a second, which makes a sweep
 of that size practical where `build.sh` (which also dumps) is not.
@@ -148595,7 +148595,7 @@ The general reading: when a hard argument register's copy is placed as if it
 were not a birth, count the calls that set that register *before* cross-jumping,
 not the ones left in the listing.
 
-### Hand-expanded LCG steps were the file's rand inline; what the remaining hp pin stands for (func_actor_403600_8013EA04, 2026-10-05)
+### Hand-expanded LCG steps were the file's rand inline; what the remaining hp pin stands for (_actor403600ChooseAttack, 2026-10-05)
 
 The attack picker stepped `gRandomLcgState` by hand in five places with
 `temp_a0`/`temp_a1`/`var_v0` locals and ordered stores. All of it is
@@ -152427,7 +152427,7 @@ form. Its copy goes straight to the call-saved register and its problem is
 the mask's width, which this function does not have; the common part is only
 that a label stood before the conversion.
 
-### Unresolved, with the mechanism measured: a pinned load that sched1 must not boost, and a second set there is no register for (func_actor_403600_8013EA04, 2026-10-07)
+### Unresolved, with the mechanism measured: a pinned load that sched1 must not boost, and a second set there is no register for (_actor403600ChooseAttack, 2026-10-07)
 
 Dated note on "A pin that holds an argument register through a run of constant
 stores is store order; a pinned load's destination is not" (2026-09-26): that
