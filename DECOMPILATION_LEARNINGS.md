@@ -83065,7 +83065,7 @@ with every instruction matching but one: the payload load reads
 `lhu $v0, 0x2($a1)` where the target has `$a2`, so the missing parameter is in
 the *middle*, not leading. The function is a 0x7DB message handler sitting in
 the same overlay as the already-matched
-`func_actor_205200_8014C9A0(Actor205200*, s32 value, ActorCommand*)`, and
+`_actor205200ApplyCommandMsg(Task*, s32 messageId, const ActorCommand*, s32 unusedSecondArg)`, and
 the message table `D_actor_205200_8014CA78` lists it under the same opcode with
 the same payload. Borrowing the sibling's signature is the entire fix; the
 unused `value` then shifts the payload from `$a1` to `$a2` and the function is
@@ -84721,7 +84721,7 @@ imports file is the same borrow as a `func_`-named one.
 
 ## m2c's separate `s32 spN` locals for one aggregate lose every store but the address-taken one
 
-**Problem.** `func_actor_205200_8014C8D4` seeded at 67.750% with
+**Problem.** `_actor205200DrawShadow` seeded at 67.750% with
 `regs=9 delete=6 stack=0`. m2c had read an aggregate local as three scalars —
 `s32 sp10; s32 sp14; s32 sp18;` with `effectDrawGroundShadow(&sp10, 0x180, 0x80)`
 — so the source had all three field reads and all three writes, and the target
@@ -98608,9 +98608,9 @@ keep the `M2C_FIELD(ptr, s16*, 0x584)` accesses, or convert them to the fields
 named above - either way the generated code is identical, which is what makes
 the seed worth scoring before anything else is rewritten.
 
-## A backward branch's delay slot is filled by stealing the loop body's *first* insn, so the loop's argument-copy order - not the source's - decides what lands there (func_actor_205200_8014C7CC, 2026-09-16)
+## A backward branch's delay slot is filled by stealing the loop body's *first* insn, so the loop's argument-copy order - not the source's - decides what lands there (_actor205200UpdateAnimation, 2026-09-16)
 
-`func_actor_205200_8014C7CC` is the body already matched as `ActorsShared8014af2c`
+`_actor205200UpdateAnimation` is the body already matched as `ActorsShared8014af2c`
 (`src/actors/lib/actors_shared_8014af2c.c`) with a different slot count and id
 offsets; copying that body's shape took the m2c seed from 90.455% to 100% in one
 build. Both of the edits it makes are inert on their own, and the two
@@ -98637,7 +98637,7 @@ the loop the way the call actually reads it - `call(..., i, ...);` then `i++` -
 and let the argument that depends on nothing in the loop lead the body.
 
 **`TOUCH_REG(i)` decides whether the counter folds to an immediate.** The same
-function's second loop does `work->field_582 += i` where `i` is provably 1 on
+function's second loop does `work->animFrame += i` where `i` is provably 1 on
 that path. `.rtl` is identical in both seeds - the add is
 `(plus:SI (subreg:SI (reg:HI 96) 0) ...)`, the counter - but `.cse` folds that
 operand to `(const_int 1)` without the touch, giving `addiu v0,v0,1` where the
@@ -98646,7 +98646,7 @@ is the "empty asm is a scheduling boundary" note one step further: it is also a
 **known-value boundary**, so it is the tool for an operand that must survive cse
 as a register even when the compiler can prove its value.
 
-Evidence: scratch `nonmatchings/func_actor_205200_8014C7CC-vacuum/`, builds
+Evidence: scratch `nonmatchings/_actor205200UpdateAnimation-vacuum/`, builds
 `base.c`/`base_3.c`/`base_4.c`/`base_5.c`/`base_1.c` (90.455 / 90.455 / 90.455 /
 95.455 / 100) with `.sched`, `.dbr` and `.cse` dumps for each variant. Both
 mechanisms above are read off dump pairs whose inputs differ only by the stated
@@ -100732,7 +100732,7 @@ instead, and no second load exists at all.
 
 ## The m2c temp-copy loop also mis-schedules the pre-header argument copy, not just a delay slot (func_actor_451100_801324B8, 2026-09-16)
 
-The two loop shapes from the `func_actor_205200_8014C7CC` entry above -
+The two loop shapes from the `_actor205200UpdateAnimation` entry above -
 m2c's `t = i; i++; call(..., t, ...)` against `call(..., i, ...); i++;` - with a
 different symptom and a smaller footprint. Here the loop body *and* its
 back-branch delay slot are already byte-identical between the two seeds, and the
@@ -118533,10 +118533,10 @@ Also: two LCG draws written as `x = x*5+K; lo = ...; x = x*5+K;` on the global
 itself match the single final store, where `r1`/`r2` locals kept the wrong
 compute order.
 
-## Loop counter kept (`slti s2,3`) where the target compares a walking pointer (`addiu v0,s1,0x48; slt`): split CSE with a `switch` (func_actor_205200_8014BD4C)
+## Loop counter kept (`slti s2,3`) where the target compares a walking pointer (`addiu v0,s1,0x48; slt`): split CSE with a `switch` (_actor205200ScanContacts)
 
 **Symptom.** A `for (i = 0; i < 3; i++)` over a 0x18-byte record array
-(`work->field_49C[i]`) compiled with the counter still live (`addiu s2,s2,1;
+(`work->hitContacts[i]`) compiled with the counter still live (`addiu s2,s2,1;
 slti v0,s2,3`) and one more saved register. The target has no counter: its
 exit test is `addiu v0,s1,0x48; slt v0,s0,v0`, which is `maybe_eliminate_biv`
 rewriting `i < 3` against the reduced `work + 24*i` giv.
@@ -118546,7 +118546,7 @@ the `i<<1` giv with `benefit 2`, which drops to 0 after `add_cost`, so it is
 "not worth while", `all_reduced` is cleared, and the biv cannot be eliminated.
 It only survives the worth-while test when two copies of the chain exist and
 `combine_givs` sums their benefit. With plain `if` blocks in the body CSE
-(`-fcse-skip-blocks`) folds every `work->field_49C[i]` into one chain, so there
+(`-fcse-skip-blocks`) folds every `work->hitContacts[i]` into one chain, so there
 is only ever one copy. Every matched sibling that got the pointer compare
 (`actor_510900_2`, `actor_402200`) has a `switch` in the body; its case
 labels have several uses, CSE cannot skip over them, and the next access
@@ -118555,7 +118555,7 @@ builds a second chain.
 **Fix.** Write the inner test as a `switch` whose extra case is empty:
 
 ```c
-switch (damageGetPlayerAttackReaction(work->field_49C[i].field_4) & 0xFFFF) {
+switch ((u16)damageGetPlayerAttackReaction(work->hitContacts[i].key.value)) {
     case 1:
         found = 1;
         break;
@@ -118599,7 +118599,7 @@ shape is what a neighbouring loop in the same function wanted, and there
 compile identically. The counter must not be shared with a nested loop: a
 second assignment inside the body stops it being a biv of the outer loop.
 
-## A flag-selected threshold with two separate branch tests is `(f && n >= A) || (!f && n >= B)` (func_actor_205200_8014C0C0, 2026-09-17)
+## A flag-selected threshold with two separate branch tests is `(f && n >= A) || (!f && n >= B)` (_actor205200TickPlayerKnockback, 2026-09-17)
 
 **Symptom.** Retail increments a counter, sign-extends it *before* testing a flag,
 then runs two independent tests: `slti 0x1E; beqz fire; j end` on one arm and
@@ -150088,7 +150088,7 @@ attempts; left as it was.
 ### Goto removal, batch 18: a tail shared backward that does merge, inlines behind alias locals, an inline defined too late (2026-10-06)
 
 - **A backward `goto tick` from a later case into an earlier case's tail can
-  be an inline called in both cases** (`func_actor_205200_8014BF28`). The
+  be an inline called in both cases** (`_actor205200TickIdle`). The
   weapon handlers' re-fire jump has failed every time, but there the jump lands
   on a case *body* that then falls through into further code. Here both cases
   end with the shared block and `break`, the block (`--timer <= 0`, two LCG

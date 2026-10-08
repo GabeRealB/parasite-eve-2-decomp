@@ -82,3 +82,15 @@ func_shelter_b6_corridor_8017EBA4 = 0x8017EBA4; // type:func absolute:True owner
 
 shelterB6CorridorSetPartDestroyedSprites = 0x8017EE08; // type:func absolute:True owner=shelter_b6_corridor
 _screenWaveGridTask = 0x80149E54; // type:func
+_actor205200ScanContacts = 0x8014bd4c; // type:func
+_actor205200TickIdle = 0x8014bf28; // type:func
+_actor205200TickPlayerKnockback = 0x8014c0c0; // type:func
+_actor205200TickHitReaction = 0x8014c748; // type:func
+_actor205200UpdateAnimation = 0x8014c7cc; // type:func
+_actor205200UpdateLighting = 0x8014c87c; // type:func
+_actor205200DrawShadow = 0x8014c8d4; // type:func
+_actor205200DestroyBody = 0x8014c924; // type:func
+_actor205200SetModelDrawMsg = 0x8014c980; // type:func
+_actor205200ApplyCommandMsg = 0x8014c9a0; // type:func
+_actor205200SpawnBody = 0x8014bae8; // type:func
+_actor205200BodyTask = 0x8014c540; // type:func
