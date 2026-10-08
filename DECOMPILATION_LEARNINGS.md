@@ -27079,10 +27079,8 @@ task->work = actor;
 memFillBytes(actor, 0, 0x998);
 ```
 
-`Gp_SpawnPlayer` is the example. The same `memFillBytes` then assign order used by
-`companionSpawnActor` stuck at 99.1% with only that delay-slot swap.
 `playerActorSpawn` is the example. The same `memFillBytes` then assign order used by
-`Gp_SpawnAlly` stuck at 99.1% with only that delay-slot swap.
+`companionSpawnActor` stuck at 99.1% with only that delay-slot swap.
 
 ## Overlay: still-asm dispatcher tables after expanding `.rodata`
 
@@ -131107,8 +131105,7 @@ CSE's block now ends at the `else` label, the two constants stay distinct, and
 `addu`. Reusing *one* variable for both the load and the result
 (`anim = D_80073BA9; if (...) anim = anim + 1; else anim = anim + 0x22;`) does
 **not** work — that emits the `j`-over-`else` shape instead.
-`func_actor_160900_80133238` and `_actor341900UpdatePlayerAction` are matched
-`_actor160900UpdatePlayerCue` and `func_actor_341900_801628B8` are matched
+`_actor160900UpdatePlayerCue` and `_actor341900UpdatePlayerAction` are matched
 examples of the two-variable form; `func_actor_120500_8013241C` is a matched
 example of the one-variable form and does emit the `j`.
 

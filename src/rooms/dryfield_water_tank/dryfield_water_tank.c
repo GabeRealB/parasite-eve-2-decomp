@@ -1143,20 +1143,13 @@ void dryfieldWaterTankRoomTask(Task* task)
 /// tank sprite directory when in Dryfield; the sprite setter ignores other stages.
 static void _dryfieldWaterTankSyncMechanismSprites(void)
 {
-    enum {
-        DRYFIELD_WATER_TANK_MECHANISM_INITIAL        = 0,
-        DRYFIELD_WATER_TANK_MECHANISM_TOWER_RESTORED = 1,
-        DRYFIELD_WATER_TANK_MECHANISM_TOWER_OPERATED = 2,
-        DRYFIELD_WATER_TANK_MECHANISM_TANK_OPERATED  = 3,
-    };
-
     switch (gameFlagGetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE)) {
-        case DRYFIELD_WATER_TANK_MECHANISM_INITIAL:
-        case DRYFIELD_WATER_TANK_MECHANISM_TOWER_RESTORED:
-        case DRYFIELD_WATER_TANK_MECHANISM_TOWER_OPERATED:
+        case GAME_FLAG_WATER_TOWER_MECHANISM_INITIAL:
+        case GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_RESTORED:
+        case GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED:
             dryfieldWaterTankSetPreOperationSprites(true);
             break;
-        case DRYFIELD_WATER_TANK_MECHANISM_TANK_OPERATED:
+        case GAME_FLAG_WATER_TOWER_MECHANISM_TANK_OPERATED:
             dryfieldWaterTankSetPreOperationSprites(false);
             break;
     }

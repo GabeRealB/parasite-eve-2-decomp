@@ -42,7 +42,7 @@ void dryfieldWaterTankUpdateViewEffectGateTask(Task* task);
 /// Runs the water-tank room's initialization, ambience and teardown states.
 ///
 /// State 0 installs room messages, registers the room task, spawns the room's
-/// scene task, starts ambience and synchronizes mechanism sprites. State 1
+/// swaying tank model, starts ambience and synchronizes mechanism sprites. State 1
 /// updates view-specific ambience each frame; state 2 kills the task.
 /// Requires `task->state` in 0..2 and the room overlay/resources to remain loaded.
 void dryfieldWaterTankRoomTask(Task* task);

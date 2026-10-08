@@ -2439,7 +2439,7 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
     switch (work->phase) {
         case DRYFIELD_WATER_TOWER_RUN_PHASE_START:
             // Opening and repeat runs share the opened collision patch.
-            if (work->mechanismState == DRYFIELD_WATER_TOWER_MECHANISM_INITIAL) {
+            if (work->mechanismState == GAME_FLAG_WATER_TOWER_MECHANISM_INITIAL) {
                 hideCommand.context.loc.stage = gGameSession->location.loc.stage;
                 hideCommand.context.loc.area  = gGameSession->location.loc.area;
                 hideCommand.command           = DRYFIELD_WATER_TOWER_CHASER_COMMAND_HIDE;
@@ -2484,8 +2484,8 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
             startRunCommand.command           = DRYFIELD_WATER_TOWER_CHASER_COMMAND_START_RUN;
             TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &startRunCommand, ACTOR_COMMAND_MESSAGE_APPLY);
             D_dryfield_water_tower_801876A8 = 0;
-            work->mechanismState            = DRYFIELD_WATER_TOWER_MECHANISM_TOWER_OPERATED;
-            gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, DRYFIELD_WATER_TOWER_MECHANISM_TOWER_OPERATED);
+            work->mechanismState            = GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED;
+            gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_OPERATED);
             work->phase++;
 
             // Count the first timed frame in the same call that starts the run.
@@ -2528,7 +2528,7 @@ static u16 _dryfieldWaterTowerStepTimedRun(Task* task)
             memCopyBytes(_gDryfieldWaterTowerCollision04648, _gDryfieldWaterTowerCollision06004Verts, sizeof(_gDryfieldWaterTowerCollision04648));
             memCopyBytes(_gDryfieldWaterTowerCollision045F8, _gDryfieldWaterTowerCollision06004Normals, sizeof(_gDryfieldWaterTowerCollision045F8));
             memCopyBytes(_gDryfieldWaterTowerCollision04688, _gDryfieldWaterTowerCollision06004Faces, sizeof(_gDryfieldWaterTowerCollision04688));
-            gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, DRYFIELD_WATER_TOWER_MECHANISM_TOWER_RESTORED);
+            gameFlagSetNibble(GAME_FLAG_WATER_TOWER_MECHANISM_STATE, GAME_FLAG_WATER_TOWER_MECHANISM_TOWER_RESTORED);
             return work->runResult;
     }
     return DRYFIELD_WATER_TOWER_RUN_UNDER_WAY;
@@ -2671,7 +2671,7 @@ static void _dryfieldWaterTowerPropSceneTask(Task* task)
                 fallingPropWork                = work->fallingPropTask->work;
                 fallingPropWork->shadowEnabled = 1;
                 _dryfieldWaterTowerInstallDroppedPropCollision();
-                if (work->mechanismState == DRYFIELD_WATER_TOWER_MECHANISM_TANK_OPERATED) {
+                if (work->mechanismState == GAME_FLAG_WATER_TOWER_MECHANISM_TANK_OPERATED) {
                     mechanismTrigger         = &D_dryfield_water_tower_80186A84[DRYFIELD_WATER_TOWER_MECHANISM_TRIGGER];
                     mechanismTrigger->flags &= triggerDisableMask;
                     TASK_MESSAGE_DISPATCH_POINTER(work->slidingPropTask, ACTOR_MESSAGE_PLACE, &D_dryfield_water_tower_80181A40[1], 0);

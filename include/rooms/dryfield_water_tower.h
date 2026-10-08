@@ -23,14 +23,6 @@ enum {
     DRYFIELD_WATER_TOWER_CHASER_COMMAND_HIDE               = 9, // Hide both chasers while the mechanism's opening script runs
 };
 
-/// Saved mechanism-state nibble shared by the water tower and water tank.
-enum {
-    DRYFIELD_WATER_TOWER_MECHANISM_INITIAL,
-    DRYFIELD_WATER_TOWER_MECHANISM_TOWER_RESTORED,
-    DRYFIELD_WATER_TOWER_MECHANISM_TOWER_OPERATED,
-    DRYFIELD_WATER_TOWER_MECHANISM_TANK_OPERATED,
-};
-
 extern u16 D_dryfield_water_tower_801876A8;
 
 extern u16 D_dryfield_water_tower_801876AA;
