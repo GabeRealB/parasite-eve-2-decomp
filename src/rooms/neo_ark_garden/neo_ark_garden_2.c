@@ -524,7 +524,13 @@ void func_neo_ark_garden_8017EA9C(Task* task)
 
 #include "../../shared/glow_draw_pulsing_star.inc.c"
 
-/// Projects four world corners through the current view, retaining the last FLAG word.
+/// Projects four world corners through the current view in GPU quad strip order.
+///
+/// Borrows one word-aligned scratch block with vertices 0..3 initialized in
+/// signed-halfword world units. Stores all four screen positions, but keeps
+/// only the final three-corner projection's FLAG word. Leaves its last corner's
+/// depth in the GTE for the caller; the scratch depth field is untouched.
+/// Overwrites GTE rotation, translation and projection registers.
 static inline void _neoArkGardenProjectSquareCorners(EffectQuadScratch* quadScratch)
 {
     gte_SetTransMatrix(&gGfxViewCoord.workm);

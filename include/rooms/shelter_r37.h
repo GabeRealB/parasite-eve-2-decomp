@@ -30,6 +30,12 @@ extern WorldCollisionTrigger D_shelter_r37_8017DD5C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_r37_8017DED8[];
 
-void func_shelter_r37_8017D678(Task* task);
+/// Runs the room controller's initialize, idle or teardown state.
+///
+/// Requires this overlay loaded and a live bodyless task with state 0..2.
+/// State 0 publishes the task in `GAME_TASK_SLOT_ROOM` and installs its message
+/// table; state 1 waits without per-frame work, and state 2 releases the task.
+/// Allocates no work. The Shelter map's room table starts it in state 0.
+void shelterR37RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_SHELTER_R37_H

@@ -35,12 +35,12 @@
 
 extern WorldCollisionGrid   D_shelter_r49_8017DAAC[1];
 extern WorldCoordRoomLights D_shelter_r49_8017DD24[1];
-void                        func_shelter_r49_8017D71C(Task*);
+static void                 _shelterR49PlayMovieTask(Task* movieTask);
 void                        func_shelter_r49_8017D8D8(Task*);
 
 TaskDesc D_shelter_r49_8017DA00[2] = {
     { { { TASK_BODY_NONE, 192 } }, func_shelter_r49_8017D8D8, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_r49_8017D71C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterR49PlayMovieTask, { .value = 0 } },
 };
 
 WorldCollisionRoomResources D_shelter_r49_8017DA18[1] = {
@@ -192,68 +192,97 @@ WorldCollisionSurfaceProperties* D_shelter_r49_8017DDF8[8] = {
     D_shelter_r49_8017DDE8,
 };
 
-void func_shelter_r49_8017D71C(Task* arg0)
+/// Queues movie 100 for the current room, borrowing the loaded stream descriptors.
+///
+/// Requires a matching slot in 0..14 and prepared movie workspace. The CD queue
+/// copies the four-byte argument block synchronously and consumes its slot byte.
+static inline void _shelterR49QueueRoomMovie(void)
 {
-    u8          slotParam[4];
-    GameLoc     key;
-    CdCmdQueue* queue;
-    Task*       task;
+    enum { SHELTER_R49_MOVIE_STREAM_ID = 100 };
+    u8      commandArgs[sizeof(gCdCmdQueue.entries[0].args)];
+    GameLoc movieLocation;
 
-    task  = arg0;
-    queue = &gCdCmdQueue;
-    switch (task->state) {
-        case 0:
-            SetDispMask(0);
-            task->killCountdown = 0;
-            task->state++;
+    movieLocation          = gGameSession->location;
+    movieLocation.loc.view = SHELTER_R49_MOVIE_STREAM_ID;
+    commandArgs[0]         = streamFindMovieSlot(&movieLocation.loc, 0, 0);
+    cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, commandArgs);
+}
+
+/// Plays room movie 100 after a blank-display delay, then restores game presentation.
+///
+/// Start this bodyless controller in state 0 with exclusive movie/CD workspace
+/// use. Waits 31 further task ticks before saving VRAM and preparing the decoder.
+/// The current room's movie lookup must succeed with slot 0..14; failure is
+/// unchecked. Start cancels playback. Both completion and cancellation drain
+/// the CD queue before restoring image memory, model buffers and sprite images.
+/// The overlay, session and saved VRAM regions must stay live through restore.
+/// No task work is allocated; teardown releases this task and resumes the game loop.
+static void _shelterR49PlayMovieTask(Task* movieTask)
+{
+    enum {
+        SHELTER_R49_MOVIE_BLANK_DISPLAY = 0,
+        SHELTER_R49_MOVIE_DELAY         = 1,
+        SHELTER_R49_MOVIE_QUEUE         = 2,
+        SHELTER_R49_MOVIE_WAIT_READY    = 3,
+        SHELTER_R49_MOVIE_PLAYING       = 4,
+        SHELTER_R49_MOVIE_WAIT_IDLE     = 5,
+        SHELTER_R49_MOVIE_RESTORE       = 6,
+        SHELTER_R49_MOVIE_DELAY_TICKS   = 31,
+    };
+    CdCmdQueue* cdQueue;
+
+    cdQueue = &gCdCmdQueue;
+    switch (movieTask->state) {
+        case SHELTER_R49_MOVIE_BLANK_DISPLAY:
+            SetDispMask(false);
+            movieTask->killCountdown = 0;
+            movieTask->state++;
             break;
-        case 1:
-            task->killCountdown++;
-            if (task->killCountdown < 0x1F) {
+        case SHELTER_R49_MOVIE_DELAY:
+            movieTask->killCountdown++;
+            if (movieTask->killCountdown < SHELTER_R49_MOVIE_DELAY_TICKS) {
                 break;
             }
-            streamPrepareMovieWorkspace(1);
-            task->state++;
+            streamPrepareMovieWorkspace(true);
+            movieTask->state++;
             break;
-        case 2:
-            key          = gGameSession->location;
-            key.loc.view = 0x64;
-            slotParam[0] = streamFindMovieSlot(&key.loc, 0, 0);
-            cdCmdEnqueue(CD_COMMAND_PLAY_STREAM, 0, slotParam);
-            task->state++;
+        case SHELTER_R49_MOVIE_QUEUE:
+            _shelterR49QueueRoomMovie();
+            movieTask->state++;
             break;
-        case 3:
-            if (queue->movieReady == 0) {
+        case SHELTER_R49_MOVIE_WAIT_READY:
+            if (cdQueue->movieReady == 0) {
                 break;
             }
-            SetDispMask(1);
-            task->state++;
+            SetDispMask(true);
+            movieTask->state++;
             break;
-        case 4:
-            if (cdCmdIsIdle() & 0xFFFF) {
-                SetDispMask(0);
-                task->state++;
+        case SHELTER_R49_MOVIE_PLAYING:
+            if (cdCmdIsIdle()) {
+                SetDispMask(false);
+                movieTask->state++;
                 break;
             }
             if (padIsStartPressed() == 0) {
                 break;
             }
-            SetDispMask(0);
+            SetDispMask(false);
             cdCmdRequestCancel();
-            task->state++;
+            movieTask->state++;
             break;
-        case 5:
-            if ((cdCmdIsIdle() & 0xFFFF) == 0) {
+        // Decoder use must end before its workspace and saved VRAM are restored.
+        case SHELTER_R49_MOVIE_WAIT_IDLE:
+            if (cdCmdIsIdle() == 0) {
                 break;
             }
             streamResetGameRestore();
-            task->state++;
+            movieTask->state++;
             break;
-        case 6:
-            if ((streamPollGameRestore(0, 1) & 0xFFFF) == 0) {
+        case SHELTER_R49_MOVIE_RESTORE:
+            if (streamPollGameRestore(false, true) == 0) {
                 break;
             }
-            taskKill(task);
+            taskKill(movieTask);
             displayResumeGameLoop();
             break;
     }

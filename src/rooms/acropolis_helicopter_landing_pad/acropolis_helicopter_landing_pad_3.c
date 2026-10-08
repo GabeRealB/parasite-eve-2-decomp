@@ -1003,9 +1003,11 @@ static void _acropolisHelicopterLandingPadDrawPerimeterLight(const SVECTOR* worl
 
 /// Projects a sprite's cached origin through `GsWSMATRIX`.
 ///
-/// Borrows a composed coordinate and a writable 28-byte scratch block. Narrows
-/// the cached translation to s16 before projection, stores raw screen XY and
-/// GTE flags, and leaves the GTE depth available to the accepted-projection path.
+/// Borrows a coordinate with a current composition cache and one writable,
+/// word-aligned `EffectShapeScratch`. Its cached translation must be in the
+/// input space of `GsWSMATRIX`; XYZ narrow to s16 before projection. Stores raw
+/// screen XY and GTE flags, leaving depth in the GTE for the caller without
+/// writing the scratch depth or extent. Overwrites GTE matrix/projection state.
 static inline void _acropolisHelicopterLandingPadProjectSpriteCentre(EffectShapeScratch* projection, const GfxCoord* coord)
 {
     projection->worldPoint.vx = coord->workm.t[0];

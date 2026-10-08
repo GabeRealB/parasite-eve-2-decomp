@@ -3478,6 +3478,10 @@ static void func_mist_shooting_gallery_80184A14(Task* arg0)
 }
 
 /// Restores movement and queues the player's collision passes and view triggers.
+///
+/// Borrows live player work. Queues the standard collision-enable request and
+/// enables root view triggers. The player update applies root and part-1 grid
+/// enables before consuming the request.
 static inline void _mistShootingGalleryRestorePlayerControl(GameActor* player)
 {
     player->movementInputDisabled                        = 0;

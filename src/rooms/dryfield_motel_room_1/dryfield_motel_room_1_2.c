@@ -1034,19 +1034,27 @@ static inline void _dryfieldMotelRoom1BroadcastActorCommand(u16 command)
     TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &request, ACTOR_COMMAND_MESSAGE_APPLY);
 }
 
-/// Plays `animationId` from the player's bank for the equipped weapon, off the
-/// collision grid.
+/// Takes scripted player control and plays a clip from the equipped-weapon bank.
 ///
-/// `blend` is an `ANIMATION_BLEND_*` choice and `blendFrames` the length of the
-/// transition in frames. The request is consumed by the dispatch.
+/// The u16 selectors and duration are promoted into signed request words.
+/// `blend` is an `ANIMATION_BLEND_*` choice; blending requires `blendFrames`
+/// in 0..2047 normal-rate frames, while reset ignores it. Requires the live
+/// player/model, character 1, weapon slot 0..32 and a loaded bank/clip supplying
+/// every active animation track. The other-character branch retains offset
+/// 34, whose reachable bank storage is unproven. World collision is disabled.
+/// Dispatch consumes the stack request synchronously; animation resources
+/// remain borrowed through playback.
 static inline void _dryfieldMotelRoom1PlayPlayerAnimation(u16 animationId, u16 blend, u16 blendFrames)
 {
-    AnimationPlayRequest request;
-    s32                  weapon;
+    enum { DRYFIELD_MOTEL_ROOM_1_PLAYER_PRIMARY_CHARACTER    = 1,
+           DRYFIELD_MOTEL_ROOM_1_PRIMARY_WEAPON_BANK_FIRST   = 1,
+           DRYFIELD_MOTEL_ROOM_1_OTHER_CHARACTER_BANK_OFFSET = 0x22 };
 
-    // Each character has a bank per weapon slot: the primary's start at 1, the alternate's at 0x22.
-    weapon                       = gPlayerStatus.weapon;
-    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) ? weapon + 1 : weapon + 0x22;
+    AnimationPlayRequest request;
+    s32                  weaponSlot;
+
+    weaponSlot                   = gPlayerStatus.weapon;
+    request.source.index         = (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == DRYFIELD_MOTEL_ROOM_1_PLAYER_PRIMARY_CHARACTER) ? weaponSlot + DRYFIELD_MOTEL_ROOM_1_PRIMARY_WEAPON_BANK_FIRST : weaponSlot + DRYFIELD_MOTEL_ROOM_1_OTHER_CHARACTER_BANK_OFFSET;
     request.animationId          = animationId;
     request.blend                = blend;
     request.blendFrames          = blendFrames;

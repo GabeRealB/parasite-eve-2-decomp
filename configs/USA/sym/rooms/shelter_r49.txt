@@ -31,3 +31,4 @@ gViewIdentityMap = 0x8010CAF8; // absolute:True
 D_actor_143900_801413EC = 0x801413EC; // absolute:True owner=actor_143900
 
 shelterR49EffectNoopTask = 0x8017D9D0; // type:func
+_shelterR49PlayMovieTask = 0x8017d71c; // type:func

@@ -1277,6 +1277,10 @@ void func_acropolis_cafeteria_8017DD1C(Task* task)
 ///
 /// Velocities use room units per callback tick; gravity uses units per tick
 /// squared. Signed division damps X/Z toward zero, including negative values.
+/// Borrows the live model root and bodyless controller; only one controller may
+/// use the singleton velocities at a time. Positive Y points down. Clamps to
+/// floor Y before damping, then kills only the controller once X/Z are zero
+/// and the root is on the floor. Marks the root's composition cache stale.
 static inline void _acropolisCafeteriaStepStrangerRecoil(Task* task, GfxCoord* root)
 {
     enum {

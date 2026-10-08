@@ -149,17 +149,22 @@ static void _neoArkR31SetImageMaskMode(Task* unusedTask);
 /// the enable command first at the last tag and the disable command before the
 /// shifted quads at `drawDepth`: preceding draws set pixel bit 15, while the
 /// shifted overlay does not force that bit in its output.
+/// `drawDepth` is a tag index in 0..1022, not a byte offset. Queue the shifted
+/// quads there before calling; the packets remain live until GPU consumption.
 static inline void _neoArkR31QueueFramebufferMaskModes(s32 drawDepth)
 {
+    enum { NEO_ARK_R31_MASK_WRITE_DISABLE = 0,
+           NEO_ARK_R31_MASK_WRITE_ENABLE  = 1 };
+
     DR_STP* maskMode;
 
     maskMode       = gGpuPrimCursor;
     gGpuPrimCursor = maskMode + 1;
-    SetDrawStp(maskMode, 0);
+    SetDrawStp(maskMode, NEO_ARK_R31_MASK_WRITE_DISABLE);
     addPrim(gGpuCurrentOt + drawDepth, maskMode);
     maskMode       = gGpuPrimCursor;
     gGpuPrimCursor = maskMode + 1;
-    SetDrawStp(maskMode, 1);
+    SetDrawStp(maskMode, NEO_ARK_R31_MASK_WRITE_ENABLE);
     addPrim(gGpuCurrentOt + GPU_ORDERING_TABLE_DEPTH_BYTE_MASK / sizeof(*gGpuCurrentOt), maskMode);
 }
 

@@ -755,14 +755,16 @@ void func_dryfield_warehouse_8017E090(Task* arg0)
 
 #include "../../shared/screen_fade_in.inc.c"
 
-/// Advances all fade channels by the spawn rate's unsigned low halfword.
+/// Advances all fade channels by a borrowed unsigned intensity step.
 ///
-/// Each addition narrows back to signed 16 bits without clamping.
-static inline void _dryfieldWarehouseStepFadeOut(ScreenFadeWork* fade, const Task* task)
+/// Borrows writable fade work and a readable u16 step, loaded separately for
+/// each channel. Each addition narrows back to signed 16 bits without clamping;
+/// zero holds the channels unchanged.
+static inline void _dryfieldWarehouseStepFadeOut(ScreenFadeWork* fade, const u16* intensityStep)
 {
-    fade->r += task->spawnArg1.halves.low;
-    fade->g += task->spawnArg1.halves.low;
-    fade->b += task->spawnArg1.halves.low;
+    fade->r += *intensityStep;
+    fade->g += *intensityStep;
+    fade->b += *intensityStep;
 }
 
 /// Darkens the warehouse screen, then disables display and releases the fade task.
@@ -803,7 +805,7 @@ static void _dryfieldWarehouseFadeOutTask(Task* task)
             /* fallthrough */
         case DRYFIELD_WAREHOUSE_FADE_OUT_RAMP:
             fadeDrawOverlay(fade->r, fade->g, fade->r, GPU_BLEND_SUBTRACT);
-            _dryfieldWarehouseStepFadeOut(fade, task);
+            _dryfieldWarehouseStepFadeOut(fade, &task->spawnArg1.halves.low);
             if (fade->r < DRYFIELD_WAREHOUSE_FADE_OUT_COMPLETE) {
                 return;
             }

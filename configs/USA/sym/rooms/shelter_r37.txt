@@ -33,3 +33,4 @@ _shelterR37IgnoreRoomCommand = 0x8017d61c; // type:func
 _shelterR37IgnoreRoomAction = 0x8017d624; // type:func
 _shelterR37InitializeRoom = 0x8017d62c; // type:func
 _shelterR37Idle = 0x8017d670; // type:func
+shelterR37RoomTask = 0x8017d678; // type:func

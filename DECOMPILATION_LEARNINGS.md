@@ -43719,7 +43719,7 @@ L_case0:
 ```
 
 lets cross-jumping merge onto the shared increment and skip the reload. Leave
-the later cases on `goto advance`. `func_shelter_r49_8017D71C` is the example.
+the later cases on `goto advance`. `_shelterR49PlayMovieTask` is the example.
 This is the opposite of "write `state++; return;` out in every switch case"
 above, which applies when duplicate *bodies* must not merge.
 
@@ -46477,7 +46477,7 @@ The same narrowing applies one size down: `(u8)` of an `s16` field loads `lbu`,
 which is how `_dryfieldWarehouseFadeOutTask` passes its fade channels to
 `fadeDrawOverlay(w->r, w->g, w->r, GPU_BLEND_SUBTRACT)`: its byte parameters
 now supply that conversion, while `_dryfieldWarehouseStepFadeOut` reads
-`task->spawnArg1.halves.low` for its increments and loads `lhu`. A byte load
+the unsigned low halfword of `task->spawnArg1` passed by its caller and loads `lhu`. A byte load
 is therefore not evidence of a `u8` field either.
 
 So for a field that is read both ways: signed declaration, `(u16)` at the reads

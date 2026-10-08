@@ -901,7 +901,8 @@ static void _acropolisCafeteriaObject11DrawTask(Task* task);
 /// Chooses a puff's local XYZ offset using three successive shared LCG draws.
 ///
 /// Borrows writable effect work and preserves `move.pad`. Writes integer
-/// game-coordinate units: X 560..3179, five Y levels -1900..-300, Z 2816..3839.
+/// coordinates in the emitter's local frame: X 560..3179, five Y levels
+/// -1900..-300, Z 2816..3839. Advances the shared LCG exactly three times.
 static inline void _acropolisCafeteriaChoosePuffSpawnOffset(EffectWork* work)
 {
     enum { PUFF_OFFSET_X_MIN         = 560,

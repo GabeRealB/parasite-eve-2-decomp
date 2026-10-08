@@ -1897,7 +1897,7 @@ shelter1fAirlockDrawViewGlowsTask = 0x8017D6D0; // type:func absolute:True owner
 
 neoArkEveAccessTunnelDrawViewGlowsTask = 0x8017E15C; // type:func absolute:True owner=neo_ark_eve_access_tunnel shared=rooms
 
-neoArkEveElevatorIdleEffectTask = 0x8017D71C; // type:func absolute:True owner=neo_ark_eve_elevator shared=rooms
+neoArkEveElevatorIdleEffectTask = 0x8017D71C; // type:func absolute:True owner=neo_ark_eve_elevator
 
 neoArkNorthPromenadeBindRoomEffectsTask = 0x8017D720; // type:func absolute:True owner=neo_ark_north_promenade shared=rooms
 

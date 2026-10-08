@@ -51,7 +51,9 @@ TaskDesc D_dryfield_night_motel_balcony_8018284C = { { { TASK_BODY_NONE, 192 } }
 
 /// Reveals a ready movie and advances the borrowed controller to playback.
 ///
-/// An unset ready latch leaves the state and display unchanged.
+/// Requires the live movie controller in either wait-ready state and the CD
+/// queue for its current playback. An unset latch leaves state and display
+/// unchanged; a set latch may mean playback has started or was skipped.
 static inline void _dryfieldNightMotelBalconyRevealReadyMovie(Task* task, const CdCmdQueue* cdQueue)
 {
     if (cdQueue->movieReady == 0) {

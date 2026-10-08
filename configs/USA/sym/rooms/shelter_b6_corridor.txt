@@ -81,3 +81,4 @@ _shelterB6CorridorInitRoom = 0x8017e064; // type:func
 _shelterB6CorridorSetImageMaskMode = 0x8017e12c; // type:func
 shelterB6CorridorRoomTask = 0x8017e144; // type:func
 _shelterB6CorridorFinishScriptedBattle = 0x8017e19c; // type:func
+_shelterB6CorridorLockAttachmentsAndCancelEffects = 0x8017e204; // type:func
