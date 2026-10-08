@@ -320,11 +320,31 @@ typedef struct {
 } _Actor401300ChargeScratch;
 STATIC_ASSERT_SIZEOF(_Actor401300ChargeScratch, 0x10);
 
+/// Scratch reservation of the leap into the room; only the final vector is accessed.
+///
+/// The first sixteen bytes are reserved but untouched, with no established type.
+/// The player offset is written at signed-halfword width and never read back.
+typedef struct {
+    byte    unknown_0[0x10]; // Reserved and untouched; role unproven
+    SVECTOR playerOffset;    // Player minus actor in parent-space units; pad is untouched
+} _Actor401300LeapInScratch;
+STATIC_ASSERT_SIZEOF(_Actor401300LeapInScratch, 0x18);
+
+/// Player knockdown clips, fatal scripted hold and vibration arguments of impact holds.
+enum {
+    ACTOR_401300_PLAYER_ANIM_FALL_BACK           = 4,
+    ACTOR_401300_PLAYER_ANIM_FALL_FRONT          = 5,
+    ACTOR_401300_PLAYER_FATAL_HOLD_STATE         = 10,
+    ACTOR_401300_KNOCKDOWN_MOTOR_TICKS           = 16,
+    ACTOR_401300_KNOCKDOWN_MOTOR_START_INTENSITY = 8,
+    ACTOR_401300_KNOCKDOWN_MOTOR_END_INTENSITY   = 255
+};
+
 /// Gameplay slot `effectSpawn` effects read their model data from; set before
-/// each spawn in `func_actor_401300_8013B6E8`.
+/// each spawn in `_actor401300StateDeathBurst`.
 
 /// The records closing three of the overlay's model streams, which
-/// `func_actor_401300_8013B6E8` points `D_80114B34[5].data.model` at before spawning.
+/// `_actor401300StateDeathBurst` points `D_80114B34[5].data.model` at before spawning.
 static TmdSource _gActor401300HornedStrangerEffect1;
 static TmdSource _gActor401300HornedStrangerBurstHead;
 static TmdSource _gActor401300HornedStrangerEffect2;
@@ -1422,22 +1442,22 @@ static void            _actor401300StatePatrol(Task* actor);
 static void            _actor401300StateSlide(Task* actor);
 static void            _actor401300StateBackOff(Task* actor);
 static void            _actor401300StateGrabWindup(Task* actor);
-static void            func_actor_401300_8013AE48(Task* arg0);
-static void            func_actor_401300_8013B6E8(Task* arg0);
-static void            func_actor_401300_8013BB30(Task* arg0);
-static void            func_actor_401300_8013CBAC(Task* arg0);
-static void            func_actor_401300_8013D2AC(Task* arg0);
-static void            func_actor_401300_8013D6C4(Task* arg0);
+static void            _actor401300StateBendOver(Task* actor);
+static void            _actor401300StateDeathBurst(Task* actor);
+static void            _actor401300StateDeathBurstWalk(Task* actor);
+static void            _actor401300StateStalk(Task* actor);
+static void            _actor401300StateStrikeA(Task* actor);
+static void            _actor401300StateStrikeB(Task* actor);
 static __inline__ void _actor401300RestoreRootYawScale(Task* actor);
 static __inline__ s32  _actorAngleGetLocalYaw(const GfxCoord* coord);
 static __inline__ void _actorMovementStepForwardFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance);
-static void            func_actor_401300_8013DADC(Task* arg0);
+static void            _actor401300StateCharge(Task* actor);
 static __inline__ void _actorMovementTranslateForwardNonzeroFromSave(const McSaveData* save, GfxCoord* coord, s16 stepDistance);
-static void            func_actor_401300_8013E930(Task* arg0);
+static void            _actor401300StateLeap(Task* actor);
 static __inline__ void _actorRenderScaleMatrix(MATRIX* matrix, s16 uniformScale);
-static void            func_actor_401300_8013F628(Task* arg0);
-static void            func_actor_401300_80140300(Task* arg0);
-static void            func_actor_401300_8014046C(Task* arg0);
+static void            _actor401300StateLeapIn(Task* actor);
+static void            _actor401300StateRefallBack(Task* actor);
+static void            _actor401300StateRefallFront(Task* actor);
 static __inline__ s32  _actor401300IsWithinImpactDepth(Task* modelTask);
 static __inline__ s32  _actorContactFirstIsPlayerBody(const WorldCollisionContact* contacts);
 static __inline__ void _actor401300AlignHeldPlayerHeight(Task* actor);
@@ -3890,14 +3910,14 @@ static void _actor401300StateGrabPull(Task* actor)
 
 #undef ACTOR_401300_PLACE_GRAB_PAIR
 
-/// Bends the grab joints and composes part 3 before part 2.
+/// Bends the grab-strike joints while refreshing the opposite joint after each bend.
 ///
-/// Requires live model coordinates through part 5. Composes -128/4096 of a
-/// turn around X into parts 2/3 and dirties parts 4/5. The composition calls
-/// retain the opposite order, part 3 then part 2, after their respective bends.
+/// Requires live model coordinates through part 5. Adds -128/4096 of a turn
+/// around X to part 2, dirties part 4 and composes part 3 before its bend.
+/// Then bends part 3, dirties part 5 and composes part 2. Preserve this order:
+/// the first composition sees part 3 before this tick's additional X rotation.
 static __inline__ void _actor401300BendGrabStrikeJoints(Task* actor)
 {
-
     gfxRotMatrixX(&actor->extra.tmd->coords[2].coord, -ACTOR_401300_GRAB_JOINT_BEND, GRAPHICS_ROTATION_COMPOSE);
     actor->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(&actor->extra.tmd->coords[3]);
@@ -3951,7 +3971,7 @@ static void _actor401300StateGrabStrike(Task* actor)
     _actor401300BendGrabStrikeJoints(actor);
 }
 
-/// Ends a settled fall by disabling hit-body grid collision and selecting rest.
+/// Selects a settled fall's rest, buildup reaction or burning death path.
 ///
 /// Requires live initialized work and Enemy storage. Exhausted HP selects
 /// DEATH_BURN, buildup selects STATUS_HOLD, and otherwise DOWN is selected.
@@ -4744,280 +4764,388 @@ static void _actor401300StateGrabWindup(Task* actor)
 
 #undef ACTOR_401300_TURN_GRAB_WINDUP_ROOT
 
-static void func_actor_401300_8013AE48(Task* arg0)
-{
-    _Actor401300Work*  work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    ActorChaseScratch* aim;
+/// Adds an X bend to one joint and refreshes the separately selected coordinate.
+///
+/// Requires both part indices in the live model array. Angles use 4096 units
+/// per turn. Arguments must be side-effect-free: actor occurs three times,
+/// composedPart twice, bentPart/bendAngle once. Expands to one statement block;
+/// composition may walk parents. Undefined after its only state handler.
+#define ACTOR_401300_COMPOSE_JOINT_BEND(actor, bentPart, composedPart, bendAngle)                           \
+    {                                                                                                       \
+        gfxRotMatrixX(&(actor)->extra.tmd->coords[bentPart].coord, (bendAngle), GRAPHICS_ROTATION_COMPOSE); \
+        (actor)->extra.tmd->coords[composedPart].composeStamp = GRAPHICS_COORD_DIRTY;                       \
+        actorRenderComposeCoord(&(actor)->extra.tmd->coords[composedPart]);                                 \
+    }
 
-    work = arg0->work;
+/// Bends the upper joints, then straightens while turning back toward the player.
+///
+/// Requires live actor/Enemy storage, loaded rigs and coordinates through part 5.
+/// Entry advances clip 19 twice at half rate and disables root grid collision.
+/// Ticks 1..49 hold the bends; later ticks halve each bend every four ticks,
+/// with staggered starting ticks. Yaws use 4096 units per turn. Alignment
+/// within 36 units selects CHASE. Borrows one chase block and nested yaw scratch.
+static void _actor401300StateBendOver(Task* actor)
+{
+    enum {
+        ACTOR_401300_BEND_ANIM            = 19,
+        ACTOR_401300_BEND_RATE            = ANIMATION_RATE_ONE / 2,
+        ACTOR_401300_BEND_LOOK_STEP       = 40,
+        ACTOR_401300_BEND_STRAIGHTEN_TICK = 50,
+        ACTOR_401300_BEND_TURN_STEP       = 36,
+        ACTOR_401300_BEND_SMALL_ANGLE     = 64,
+        ACTOR_401300_BEND_MIDDLE_ANGLE    = 128,
+        ACTOR_401300_BEND_LARGE_ANGLE     = 256,
+        ACTOR_401300_BEND_DECAY_TICKS     = 4,
+    };
+    _Actor401300Work*  work;
+    TmdObject*         model;
+    GfxCoord*          rootCoord;
+    ActorChaseScratch* bendScratch;
+
+    work = actor->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius    = 0x280;
+        model                                                      = actor->extra.tmd;
+        ((Enemy*)actor->spawnArg2.pointer)->node.state.parts.flags = 0;
+        model->flags                                               = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius    = ACTOR_401300_HIT_RADIUS;
         work->animRequest       = ACTOR_401300_ANIM_REQUEST_RESET;
-        work->animRate          = 8;
-        work->animId            = 0x13;
+        work->animRate          = ACTOR_401300_BEND_RATE;
+        work->animId            = ACTOR_401300_BEND_ANIM;
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        _actor401300UpdateAnimationEffects(arg0);
-        _actor401300UpdateAnimationEffects(arg0);
+        _actor401300UpdateAnimationEffects(actor);
+        _actor401300UpdateAnimationEffects(actor);
         work->stateTimer = 0;
         work->lookYaw    = 0;
         return;
     }
     work->stateTimer++;
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
-    aim       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
-    if (work->lookYawTarget < aim->turn) {
-        if (aim->turn - work->lookYawTarget > 0x28) {
-            work->lookYawTarget += 0x28;
+    bendScratch       = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    bendScratch->turn = _actorAngleTurnToPlayer(actor, &bendScratch->delta, &gPlayerStatus);
+    if (work->lookYawTarget < bendScratch->turn) {
+        if (bendScratch->turn - work->lookYawTarget > ACTOR_401300_BEND_LOOK_STEP) {
+            work->lookYawTarget += ACTOR_401300_BEND_LOOK_STEP;
         } else {
-            work->lookYawTarget = aim->turn;
+            work->lookYawTarget = bendScratch->turn;
         }
-    } else if (work->lookYawTarget - aim->turn > 0x28) {
-        work->lookYawTarget -= 0x28;
+    } else if (work->lookYawTarget - bendScratch->turn > ACTOR_401300_BEND_LOOK_STEP) {
+        work->lookYawTarget -= ACTOR_401300_BEND_LOOK_STEP;
     } else {
-        work->lookYawTarget = aim->turn;
+        work->lookYawTarget = bendScratch->turn;
     }
-    coord     = arg0->extra.tmd->coords;
-    aim->turn = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
-    _actor401300UpdateAnimationEffects(arg0);
-    if (work->stateTimer < 0x32) {
-        gfxRotMatrixX(&arg0->extra.tmd->coords[1].coord, 0x40, GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-        gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, 0x80, GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
-        gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, 0x80, GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
-        gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, 0x80, GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
-        gfxRotMatrixX(&arg0->extra.tmd->coords[5].coord, 0x100, GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
+    rootCoord         = actor->extra.tmd->coords;
+    bendScratch->turn = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
+    gfxRotMatrixY(&actor->extra.tmd->coords->coord, bendScratch->turn, GRAPHICS_ROTATION_REPLACE);
+    _actorRenderRescaleYaw(actor->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
+    _actor401300UpdateAnimationEffects(actor);
+    // Part 5 is bent, but the retained final invalidation/composition targets part 4.
+    if (work->stateTimer < ACTOR_401300_BEND_STRAIGHTEN_TICK) {
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 1, 1, ACTOR_401300_BEND_SMALL_ANGLE);
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 2, 2, ACTOR_401300_BEND_MIDDLE_ANGLE);
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 3, 3, ACTOR_401300_BEND_MIDDLE_ANGLE);
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 4, 4, ACTOR_401300_BEND_MIDDLE_ANGLE);
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 5, 4, ACTOR_401300_BEND_LARGE_ANGLE);
     } else {
-        gfxRotMatrixX(&arg0->extra.tmd->coords[1].coord, 0x40 >> ((work->stateTimer - 0x31) / 4), GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[1].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[1]);
-        gfxRotMatrixX(&arg0->extra.tmd->coords[2].coord, 0x80 >> ((work->stateTimer - 0x30) / 4), GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[2].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[2]);
-        gfxRotMatrixX(&arg0->extra.tmd->coords[3].coord, 0x80 >> ((work->stateTimer - 0x2F) / 4), GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[3].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[3]);
-        gfxRotMatrixX(&arg0->extra.tmd->coords[4].coord, 0x80 >> ((work->stateTimer - 0x2E) / 4), GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
-        gfxRotMatrixX(&arg0->extra.tmd->coords[5].coord, 0x100 >> ((work->stateTimer - 0x31) / 4), GRAPHICS_ROTATION_COMPOSE);
-        arg0->extra.tmd->coords[4].composeStamp = GRAPHICS_COORD_DIRTY;
-        actorRenderComposeCoord(&arg0->extra.tmd->coords[4]);
-        aim->turn = _actorAngleTurnToPlayer(arg0, &aim->delta, &gPlayerStatus);
-        if (aim->turn > 0x24) {
-            aim->turn = 0x24;
-        } else if (aim->turn < -0x24) {
-            aim->turn = -0x24;
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 1, 1, ACTOR_401300_BEND_SMALL_ANGLE >> ((work->stateTimer - (ACTOR_401300_BEND_STRAIGHTEN_TICK - 1)) / ACTOR_401300_BEND_DECAY_TICKS));
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 2, 2, ACTOR_401300_BEND_MIDDLE_ANGLE >> ((work->stateTimer - (ACTOR_401300_BEND_STRAIGHTEN_TICK - 2)) / ACTOR_401300_BEND_DECAY_TICKS));
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 3, 3, ACTOR_401300_BEND_MIDDLE_ANGLE >> ((work->stateTimer - (ACTOR_401300_BEND_STRAIGHTEN_TICK - 3)) / ACTOR_401300_BEND_DECAY_TICKS));
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 4, 4, ACTOR_401300_BEND_MIDDLE_ANGLE >> ((work->stateTimer - (ACTOR_401300_BEND_STRAIGHTEN_TICK - 4)) / ACTOR_401300_BEND_DECAY_TICKS));
+        ACTOR_401300_COMPOSE_JOINT_BEND(actor, 5, 4, ACTOR_401300_BEND_LARGE_ANGLE >> ((work->stateTimer - (ACTOR_401300_BEND_STRAIGHTEN_TICK - 1)) / ACTOR_401300_BEND_DECAY_TICKS));
+        bendScratch->turn = _actorAngleTurnToPlayer(actor, &bendScratch->delta, &gPlayerStatus);
+        if (bendScratch->turn > ACTOR_401300_BEND_TURN_STEP) {
+            bendScratch->turn = ACTOR_401300_BEND_TURN_STEP;
+        } else if (bendScratch->turn < -ACTOR_401300_BEND_TURN_STEP) {
+            bendScratch->turn = -ACTOR_401300_BEND_TURN_STEP;
         }
-        if (ABS(aim->turn) < 0x24) {
+        if (ABS(bendScratch->turn) < ACTOR_401300_BEND_TURN_STEP) {
             work->state = ACTOR_401300_STATE_CHASE;
         }
-        coord      = arg0->extra.tmd->coords;
-        aim->turn += ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
-        arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+        rootCoord          = actor->extra.tmd->coords;
+        bendScratch->turn += ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
+        gfxRotMatrixY(&actor->extra.tmd->coords->coord, bendScratch->turn, GRAPHICS_ROTATION_REPLACE);
+        _actorRenderRescaleYaw(actor->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
+        actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-static void func_actor_401300_8013B6E8(Task* arg0)
+#undef ACTOR_401300_COMPOSE_JOINT_BEND
+
+/// Hides the body, bursts four detached models and waits for the player release.
+///
+/// Requires live work/Enemy/model coordinates through part 12 and loaded effects.
+/// Entry starts a size-768 gravity particle in mode 1. Ticks 3/5/7/8 select
+/// bank-10 slot 5 models and spawn size-512 debris with placement textures.
+/// The model descriptor is shared and must be set immediately before spawning.
+/// Tick 61 or later selects DEAD once playerHeld clears. Offset XYZ is copied
+/// synchronously; tick 5 retains the stack vector's unwritten Z component.
+static void _actor401300StateDeathBurst(Task* actor)
 {
-    SVECTOR           vec;
+    enum {
+        ACTOR_401300_BURST_PARTICLE_ARG = 0x10300,
+        ACTOR_401300_BURST_PART_SIZE    = 512,
+        ACTOR_401300_BURST_OFFSET       = 100,
+        ACTOR_401300_BURST_MODEL_SLOT   = 5,
+        ACTOR_401300_BURST_FIRST_TICK   = 3,
+        ACTOR_401300_BURST_SECOND_TICK  = 5,
+        ACTOR_401300_BURST_BODY_TICK    = 7,
+        ACTOR_401300_BURST_HEAD_TICK    = 8,
+        ACTOR_401300_BURST_DEAD_TICK    = 61,
+    };
+    SVECTOR           effectOffset;
     _Actor401300Work* work;
     Enemy*            enemy;
-    u16               next;
+    u16               nextTick;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-        work->hitBody.radius          = 0x280;
-        work->gridBody.flags          = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
-        work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        actor->extra.tmd->flags       = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        work->hitBody.radius          = ACTOR_401300_HIT_RADIUS;
+        work->gridBody.flags          = work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
+        work->attackBody.flags        = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->lookYawTarget           = 0;
         work->stateTimer              = 0;
-        vec.vx                        = 0x64;
-        vec.vz                        = 0;
-        vec.vy                        = 0;
-        effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        effectOffset.vx               = ACTOR_401300_BURST_OFFSET;
+        effectOffset.vz               = 0;
+        effectOffset.vy               = 0;
+        effectSpawn(EFFECT_030, actor->extra.tmd->coords + 1, ACTOR_401300_BURST_PARTICLE_ARG, &effectOffset);
     }
-    next             = work->stateTimer + 1;
-    work->stateTimer = next;
-    if ((s16)next == 3) {
-        D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect1;
-        vec.vz                   = 0x64;
-        vec.vy                   = 0;
-        vec.vx                   = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+    nextTick         = work->stateTimer + 1;
+    work->stateTimer = nextTick;
+    if ((s16)nextTick == ACTOR_401300_BURST_FIRST_TICK) {
+        D_80114B34[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect1;
+        effectOffset.vz                                      = ACTOR_401300_BURST_OFFSET;
+        effectOffset.vy                                      = 0;
+        effectOffset.vx                                      = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 9, ACTOR_401300_BURST_PART_SIZE, &effectOffset), enemy);
     }
-    if (work->stateTimer == 5) {
-        D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect1;
-        vec.vy                   = 0;
-        vec.vx                   = 0;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 12, 0x200, &vec), enemy);
+    if (work->stateTimer == ACTOR_401300_BURST_SECOND_TICK) {
+        D_80114B34[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect1;
+        effectOffset.vy                                      = 0;
+        effectOffset.vx                                      = 0;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 12, ACTOR_401300_BURST_PART_SIZE, &effectOffset), enemy);
     }
-    if (work->stateTimer == 7) {
-        D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect2;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+    if (work->stateTimer == ACTOR_401300_BURST_BODY_TICK) {
+        D_80114B34[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect2;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 1, ACTOR_401300_BURST_PART_SIZE, NULL), enemy);
     }
-    if (work->stateTimer == 8) {
-        D_80114B34[5].data.model = &_gActor401300HornedStrangerBurstHead;
-        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 3, 0x200, NULL), enemy);
+    if (work->stateTimer == ACTOR_401300_BURST_HEAD_TICK) {
+        D_80114B34[ACTOR_401300_BURST_MODEL_SLOT].data.model = &_gActor401300HornedStrangerBurstHead;
+        _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 3, ACTOR_401300_BURST_PART_SIZE, NULL), enemy);
     }
-    if (work->stateTimer >= 0x3D && work->playerHeld == 0) {
+    if (work->stateTimer >= ACTOR_401300_BURST_DEAD_TICK && work->playerHeld == 0) {
         work->state = ACTOR_401300_STATE_DEAD;
     }
 }
 
-static void func_actor_401300_8013BB30(Task* arg0)
+/// Collapses the burst-walk body's parts 2..12 after animation restores their pose.
+///
+/// Requires live coordinates through part 12 and nested yaw scratch. Each basis
+/// keeps its heading and translation with Q12 scale 1, in ascending part order.
+static __inline__ void _actor401300CollapseBurstParts(Task* actor)
 {
-    SVECTOR           vec;
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 2);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 3);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 4);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 5);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 6);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 7);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 8);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 9);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 10);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 11);
+    _actorRenderCollapseYawRotation(actor->extra.tmd->coords + 12);
+}
+
+/// Walks through two debris spawns, then burns, flattens, fades and hides the corpse.
+///
+/// Requires live work/Enemy/model coordinates through part 12 and loaded effects.
+/// Walk ticks 3/5 burst models; a control jump from tick 16 starts clip 35.
+/// Its timer stays zero until the clip settles, then ticks 30/42/48/64 burn,
+/// blacken, enable translucency and select DEAD. From tick 26 root Y scale
+/// loses 16 Q12 units per tick. Parts 2..12 collapse after animation each tick.
+/// The work-owned burn anchor must outlive the spawned effect.
+static void _actor401300StateDeathBurstWalk(Task* actor)
+{
+    enum {
+        ACTOR_401300_BURST_WALK_PARTICLE_ARG = 0x10300,
+        ACTOR_401300_BURST_WALK_PART_SIZE    = 512,
+        ACTOR_401300_BURST_WALK_OFFSET       = 100,
+        ACTOR_401300_BURST_WALK_MODEL_SLOT   = 5,
+        ACTOR_401300_BURST_WALK_FIRST_TICK   = 3,
+        ACTOR_401300_BURST_WALK_SECOND_TICK  = 5,
+        ACTOR_401300_BURST_WALK_FINISH_TICK  = 16,
+        ACTOR_401300_BURST_WALK_FINAL_ANIM   = 35,
+        ACTOR_401300_BURST_WALK_STEP         = 10,
+        ACTOR_401300_BURST_WALK_BURN_TICK    = 30,
+        ACTOR_401300_BURST_WALK_BLACK_TICK   = 42,
+        ACTOR_401300_BURST_WALK_FADE_TICK    = 48,
+        ACTOR_401300_BURST_WALK_HIDE_TICK    = 64,
+        ACTOR_401300_BURST_WALK_FLATTEN_TICK = 26,
+        ACTOR_401300_BURST_WALK_FLATTEN_BASE = 20,
+        ACTOR_401300_BURST_WALK_SCALE_STEP   = 16,
+        ACTOR_401300_BURST_WALK_BURN_COUNT   = 2,
+    };
+    SVECTOR           effectPosition;
     _Actor401300Work* work;
     Enemy*            enemy;
-    u16               next;
-    s16               cur;
+    u16               nextTick;
+    s16               burnTick;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        work->hitBody.radius          = 0x280;
-        work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
-        work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->hitBody.radius          = ACTOR_401300_HIT_RADIUS;
+        work->gridBody.flags          = work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->attackBody.flags        = work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
         work->lookYawTarget           = 0;
         work->stateTimer              = 0;
-        vec.vx                        = 0x64;
-        vec.vz                        = 0;
-        vec.vy                        = 0;
-        work->animId                  = 2;
+        effectPosition.vx             = ACTOR_401300_BURST_WALK_OFFSET;
+        effectPosition.vz             = 0;
+        effectPosition.vy             = 0;
+        work->animId                  = ACTOR_401300_ANIM_WALK;
         work->animRequest             = ACTOR_401300_ANIM_REQUEST_BLEND;
-        work->animRate                = 0x10;
-        effectSpawn(EFFECT_030, arg0->extra.tmd->coords + 1, 0x10300, &vec);
+        work->animRate                = ANIMATION_RATE_ONE;
+        effectSpawn(EFFECT_030, actor->extra.tmd->coords + 1, ACTOR_401300_BURST_WALK_PARTICLE_ARG, &effectPosition);
         work->stateTimer = 0;
     }
-    next             = work->stateTimer + 1;
-    work->stateTimer = next;
+    nextTick         = work->stateTimer + 1;
+    work->stateTimer = nextTick;
+    // Burn events count only ticks spent holding the final pose.
     switch (work->animId) {
-        case 2:
-            if ((s16)next >= 0x10 && (work->rig.slots[1].status.fields.flags & 2)) {
-                work->animId      = 0x23;
+        case ACTOR_401300_ANIM_WALK:
+            if ((s16)nextTick >= ACTOR_401300_BURST_WALK_FINISH_TICK && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP)) {
+                work->animId      = ACTOR_401300_BURST_WALK_FINAL_ANIM;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
-                work->animRate    = 0x10;
+                work->animRate    = ANIMATION_RATE_ONE;
                 work->blendActive = 0;
             }
-            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA) != 0) {
-                _actorMovementStepForward(arg0->extra.tmd->coords, 0xA);
+            if ((s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, ACTOR_401300_BURST_WALK_STEP) != 0) {
+                _actorMovementStepForward(actor->extra.tmd->coords, ACTOR_401300_BURST_WALK_STEP);
             }
-            _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-            if (work->stateTimer == 3) {
-                D_80114B34[5].data.model = &_gActor401300HornedStrangerBurstHead;
-                vec.vz                   = 0x64;
-                vec.vy                   = 0;
-                vec.vx                   = 0;
-                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 9, 0x200, &vec), enemy);
+            _actorContactApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+            if (work->stateTimer == ACTOR_401300_BURST_WALK_FIRST_TICK) {
+                D_80114B34[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gActor401300HornedStrangerBurstHead;
+                effectPosition.vz                                         = ACTOR_401300_BURST_WALK_OFFSET;
+                effectPosition.vy                                         = 0;
+                effectPosition.vx                                         = 0;
+                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 9, ACTOR_401300_BURST_WALK_PART_SIZE, &effectPosition), enemy);
             }
-            if (work->stateTimer == 5) {
-                D_80114B34[5].data.model = &_gActor401300HornedStrangerEffect2;
-                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, arg0->extra.tmd->coords + 1, 0x200, NULL), enemy);
+            if (work->stateTimer == ACTOR_401300_BURST_WALK_SECOND_TICK) {
+                D_80114B34[ACTOR_401300_BURST_WALK_MODEL_SLOT].data.model = &_gActor401300HornedStrangerEffect2;
+                _actorRenderApplyEffectPlacementTextureOffsets(effectSpawn(EFFECT_BURST_BODY_PART_BANK10, actor->extra.tmd->coords + 1, ACTOR_401300_BURST_WALK_PART_SIZE, NULL), enemy);
             }
             break;
-        case 0x23:
-            if (!(work->rig.slots[1].status.fields.flags & 0x100)) {
+        case ACTOR_401300_BURST_WALK_FINAL_ANIM:
+            if (!(work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED)) {
                 work->stateTimer = 0;
             }
             switch (work->stateTimer) {
+                // Keep the empty tick-3 branch: it determines the original switch layout.
                 case 3:
                     break;
-                case 30:
+                case ACTOR_401300_BURST_WALK_BURN_TICK:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
-                    vec.vx = 0;
-                    vec.vy = 0;
-                    vec.vz = 0;
-                    _actorRenderTransformToWorld(arg0->extra.tmd->coords + 2, &vec);
+                    // Reuse the effect offset storage for the burn anchor's world origin.
+                    effectPosition.vx = 0;
+                    effectPosition.vy = 0;
+                    effectPosition.vz = 0;
+                    _actorRenderTransformToWorld(actor->extra.tmd->coords + 2, &effectPosition);
                     work->burnCoord.parent       = &gGfxViewCoord;
-                    work->burnCoord.coord.t[0]   = vec.vx;
-                    work->burnCoord.coord.t[1]   = arg0->extra.tmd->coords->coord.t[1];
-                    work->burnCoord.coord.t[2]   = vec.vz;
+                    work->burnCoord.coord.t[0]   = effectPosition.vx;
+                    work->burnCoord.coord.t[1]   = actor->extra.tmd->coords->coord.t[1];
+                    work->burnCoord.coord.t[2]   = effectPosition.vz;
                     work->burnCoord.composeStamp = GRAPHICS_COORD_DIRTY;
                     actorRenderComposeCoord(&work->burnCoord);
-                    effectSpawn(EFFECT_CORPSE_BURN, &work->burnCoord, 2, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, &work->burnCoord, ACTOR_401300_BURST_WALK_BURN_COUNT, NULL);
                     break;
-                case 48:
-                    arg0->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
+                case ACTOR_401300_BURST_WALK_FADE_TICK:
+                    actor->extra.tmd->flags = TMD_OBJECT_SEMI_TRANS;
                     break;
-                case 42:
+                case ACTOR_401300_BURST_WALK_BLACK_TICK:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
-                case 64:
-                    arg0->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-                    work->state            = ACTOR_401300_STATE_DEAD;
+                case ACTOR_401300_BURST_WALK_HIDE_TICK:
+                    actor->extra.tmd->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+                    work->state             = ACTOR_401300_STATE_DEAD;
                     break;
             }
-            cur = work->stateTimer;
-            if (cur >= 0x1A) {
-                _actorRenderRescaleYawXZ(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE, ACTOR_401300_ROOT_SCALE - (cur - 0x14) * 16);
+            burnTick = work->stateTimer;
+            if (burnTick >= ACTOR_401300_BURST_WALK_FLATTEN_TICK) {
+                _actorRenderRescaleYawXZ(actor->extra.tmd->coords, ACTOR_401300_ROOT_SCALE, ACTOR_401300_ROOT_SCALE - (burnTick - ACTOR_401300_BURST_WALK_FLATTEN_BASE) * ACTOR_401300_BURST_WALK_SCALE_STEP);
             }
             break;
     }
-    _actor401300UpdateAnimationEffects(arg0);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 2);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 3);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 4);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 5);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 6);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 7);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 8);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 9);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 10);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 11);
-    _actorRenderCollapseYawRotation(arg0->extra.tmd->coords + 12);
+    _actor401300UpdateAnimationEffects(actor);
+    _actor401300CollapseBurstParts(actor);
 }
 
-static void func_actor_401300_8013CBAC(Task* arg0)
+/// Refreshes the stalking offset and records the player heading and reverse bearing.
+///
+/// Requires live roots in the same parent frame and a reserved chase block at
+/// savedCursor - 1, also addressed by stalk. XYZ narrows to signed halfwords;
+/// the reverse bearing is stored before normalization to [-2048, 2048] in
+/// 4096 angle units per turn. The actor state does not consume these two yaws.
+static __inline__ void _actor401300ReadStalkPlayerBearings(Task* actor, PlayerStatus* playerStatus, ActorChaseScratch* savedCursor, ActorChaseScratch* stalk)
 {
-    _Actor401300Work*  work;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    GfxCoord*          facing;
-    GfxCoord*          root;
-    GfxCoord*          root2;
-    PlayerStatus*      config;
-    ActorChaseScratch* head;
-    ActorChaseScratch* aim;
-    s16                yaw;
-    s32                angle;
+    GfxCoord* updatedRoot;
+    s16       yawFromPlayer;
 
-    work = arg0->work;
+    stalk->playerYaw         = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
+                                      (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
+    updatedRoot              = actor->extra.tmd->coords;
+    savedCursor[-1].delta.vx = playerStatus->coordMtx->t[0] - updatedRoot->coord.t[0];
+    stalk->delta.vy          = playerStatus->coordMtx->t[1] - updatedRoot->coord.t[1];
+    stalk->delta.vz          = playerStatus->coordMtx->t[2] - updatedRoot->coord.t[2];
+    yawFromPlayer            = ratan2(savedCursor[-1].delta.vx, stalk->delta.vz) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+    stalk->yawFromPlayer     = yawFromPlayer;
+    stalk->yawFromPlayer     = _actorAngleNormalizeYaw(yawFromPlayer);
+}
+
+/// Walks toward the player, steering until close enough to begin a grab.
+///
+/// Requires live Enemy/model/work and player roots in the same parent space.
+/// Walk rate is 36/16 frames per tick; forward steps are 22 game units, or 5
+/// while blending, subject to player reach and actor freeze. Turn is capped
+/// at 32/4096 of a revolution per tick. The grab gate retains a signed turn
+/// below 512, including negative turns, and XZ range at most 1100. Borrows
+/// a chase block; the player-facing yaws are recorded but not read here.
+static void _actor401300StateStalk(Task* actor)
+{
+    enum {
+        ACTOR_401300_STALK_ANIM_RATE   = 36,
+        ACTOR_401300_STALK_GRAB_ANGLE  = 512,
+        ACTOR_401300_STALK_GRAB_RADIUS = 1100,
+        ACTOR_401300_STALK_TURN_STEP   = 32,
+        ACTOR_401300_STALK_STEP        = 22,
+        ACTOR_401300_STALK_BLEND_STEP  = 5,
+    };
+    _Actor401300Work*  work;
+    TmdObject*         model;
+    GfxCoord*          turnRoot;
+    GfxCoord*          facingRoot;
+    GfxCoord*          offsetRoot;
+    PlayerStatus*      playerStatus;
+    ActorChaseScratch* savedCursor;
+    ActorChaseScratch* stalk;
+    s32                playerBearing;
+
+    work = actor->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = 0;
-        obj->flags                                                = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius    = 0x280;
+        model                                                      = actor->extra.tmd;
+        ((Enemy*)actor->spawnArg2.pointer)->node.state.parts.flags = 0;
+        model->flags                                               = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius    = ACTOR_401300_HIT_RADIUS;
         work->animRequest       = ACTOR_401300_ANIM_REQUEST_BLEND;
-        work->animRate          = 0x24;
-        work->animId            = 2;
+        work->animRate          = ACTOR_401300_STALK_ANIM_RATE;
+        work->animId            = ACTOR_401300_ANIM_WALK;
         work->blendActive       = 0;
         work->field_D1C         = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
@@ -5027,213 +5155,238 @@ static void func_actor_401300_8013CBAC(Task* arg0)
         work->blockedFrames = 0;
     }
     work->stateTimer++;
-    head                                    = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    SCRATCH_STACK_CURSOR(ActorChaseScratch) = head - 1;
-    aim                                     = head - 1;
-    if (_actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET) == 0) {
-        _actor401300ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+    savedCursor                             = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    SCRATCH_STACK_CURSOR(ActorChaseScratch) = savedCursor - 1;
+    stalk                                   = savedCursor - 1;
+    if (_actor401300ApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET) == 0) {
+        _actor401300ApplyBodyPushback(actor, work->hitContacts, ARRAY_SIZE(work->hitContacts));
     }
-    config                                = &gPlayerStatus;
-    root                                  = arg0->extra.tmd->coords;
-    head[-1].delta.vx                     = config->coordMtx->t[0] - root->coord.t[0];
-    aim->delta.vy                         = config->coordMtx->t[1] - root->coord.t[1];
-    aim->delta.vz                         = config->coordMtx->t[2] - root->coord.t[2];
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actor401300UpdateAnimationEffects(arg0);
-    aim->playerYaw      = ratan2(-(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][0],
-                                 (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords->coord.m[2][2]);
-    root2               = arg0->extra.tmd->coords;
-    head[-1].delta.vx   = config->coordMtx->t[0] - root2->coord.t[0];
-    aim->delta.vy       = config->coordMtx->t[1] - root2->coord.t[1];
-    aim->delta.vz       = config->coordMtx->t[2] - root2->coord.t[2];
-    yaw                 = ratan2(head[-1].delta.vx, aim->delta.vz) + 0x800;
-    aim->yawFromPlayer  = yaw;
-    aim->yawFromPlayer  = _actorAngleNormalizeYaw(yaw);
-    coord               = arg0->extra.tmd->coords;
-    angle               = ratan2(aim->delta.vx, aim->delta.vz);
-    aim->turn           = _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-    work->lookYawTarget = aim->turn;
-    if (aim->turn < 0x200) {
-        if (!_actorRangeOutsideRadiusXZ(&aim->delta, 0x44C)) {
+    playerStatus                           = &gPlayerStatus;
+    offsetRoot                             = actor->extra.tmd->coords;
+    savedCursor[-1].delta.vx               = playerStatus->coordMtx->t[0] - offsetRoot->coord.t[0];
+    stalk->delta.vy                        = playerStatus->coordMtx->t[1] - offsetRoot->coord.t[1];
+    stalk->delta.vz                        = playerStatus->coordMtx->t[2] - offsetRoot->coord.t[2];
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor401300UpdateAnimationEffects(actor);
+    _actor401300ReadStalkPlayerBearings(actor, playerStatus, savedCursor, stalk);
+    turnRoot            = actor->extra.tmd->coords;
+    playerBearing       = ratan2(stalk->delta.vx, stalk->delta.vz);
+    stalk->turn         = _actorAngleNormalizeYaw(playerBearing - ratan2(-turnRoot->coord.m[2][0], turnRoot->coord.m[2][2]));
+    work->lookYawTarget = stalk->turn;
+    // The original grab gate uses a signed comparison, not an absolute angle.
+    if (stalk->turn < ACTOR_401300_STALK_GRAB_ANGLE) {
+        if (!_actorRangeOutsideRadiusXZ(&stalk->delta, ACTOR_401300_STALK_GRAB_RADIUS)) {
             work->state = ACTOR_401300_STATE_GRAB;
         }
     }
-    if (aim->turn > 0x20) {
-        aim->turn = 0x20;
+    if (stalk->turn > ACTOR_401300_STALK_TURN_STEP) {
+        stalk->turn = ACTOR_401300_STALK_TURN_STEP;
     }
-    if (aim->turn < -0x20) {
-        aim->turn = -0x20;
+    if (stalk->turn < -ACTOR_401300_STALK_TURN_STEP) {
+        stalk->turn = -ACTOR_401300_STALK_TURN_STEP;
     }
-    facing     = arg0->extra.tmd->coords;
-    aim->turn += ratan2(-facing->coord.m[2][0], facing->coord.m[2][2]);
-    gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-    _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->animId == 2) {
+    facingRoot   = actor->extra.tmd->coords;
+    stalk->turn += ratan2(-facingRoot->coord.m[2][0], facingRoot->coord.m[2][2]);
+    gfxRotMatrixY(&actor->extra.tmd->coords->coord, stalk->turn, GRAPHICS_ROTATION_REPLACE);
+    _actorRenderRescaleYaw(actor->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->animId == ACTOR_401300_ANIM_WALK) {
         if (work->blendActive == 0) {
-            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x16) != 0) {
-                _actorMovementStepForward(arg0->extra.tmd->coords, 0x16);
+            if ((s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, ACTOR_401300_STALK_STEP) != 0) {
+                _actorMovementStepForward(actor->extra.tmd->coords, ACTOR_401300_STALK_STEP);
             }
         } else {
-            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 5) != 0) {
-                _actorMovementStepForward(arg0->extra.tmd->coords, 5);
+            if ((s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, ACTOR_401300_STALK_BLEND_STEP) != 0) {
+                _actorMovementStepForward(actor->extra.tmd->coords, ACTOR_401300_STALK_BLEND_STEP);
             }
         }
-    } else if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->animId      = 2;
+    } else if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        work->animId      = ACTOR_401300_ANIM_WALK;
         work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
     }
     SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
-static void func_actor_401300_8013D2AC(Task* arg0)
+/// Steers a strike's root toward the player by at most 48 angle units per tick.
+///
+/// Requires a reserved chase block containing the parent-space player offset,
+/// initialized work and a live model root. Records the full wrapped look turn
+/// before clamping the root step, then restores the normal Q12 scale. Angles
+/// use 4096 units per turn; the caller limits tracking to the windup ticks.
+static __inline__ void _actor401300TrackStrikePlayer(Task* actor, _Actor401300Work* work, ActorChaseScratch* strike)
 {
-    _Actor401300Work*  work;
-    Enemy*             enemy;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    GfxCoord*          coord2;
-    ActorChaseScratch* aim;
-    s32                angle;
+    GfxCoord* turnRoot;
+    GfxCoord* facingRoot;
+    s32       playerBearing;
 
-    work = arg0->work;
-    if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
-        obj                           = arg0->extra.tmd;
-        enemy->node.state.parts.flags = 0;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius    = 0x280;
-        work->animRequest       = ACTOR_401300_ANIM_REQUEST_BLEND;
-        work->animRate          = 0x10;
-        work->animId            = 0x19;
-        work->blendActive       = 0;
-        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor401300UpdateAnimationEffects(arg0);
-        work->field_D1C       = 0;
-        work->stateTimer      = 0;
-        work->blockedFrames   = 0;
-        work->attackBody.key  = damagePackEnemyAttackKey(enemy, 0);
-        work->jointPairTarget = 0x200;
-        work->jointPairStep   = 0x80;
-        return;
+    turnRoot            = actor->extra.tmd->coords;
+    playerBearing       = ratan2(strike->delta.vx, strike->delta.vz);
+    strike->turn        = _actorAngleNormalizeYaw(playerBearing - ratan2(-turnRoot->coord.m[2][0], turnRoot->coord.m[2][2]));
+    work->lookYawTarget = strike->turn;
+    if (strike->turn > ACTOR_401300_RUN_TURN_LIMIT) {
+        strike->turn = ACTOR_401300_RUN_TURN_LIMIT;
     }
-    _actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET);
-    if (work->stateTimer >= 0x29) {
-        work->jointPairTarget = 0;
-        work->jointPairStep   = 0x40;
+    if (strike->turn < -ACTOR_401300_RUN_TURN_LIMIT) {
+        strike->turn = -ACTOR_401300_RUN_TURN_LIMIT;
     }
-    work->stateTimer++;
-    switch (work->stateTimer) {
-        case 0x19:
-            work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-            break;
-        case 0x28:
-            work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            break;
-    }
-    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
-    aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actor401300UpdateAnimationEffects(arg0);
-    if (work->stateTimer < 0xE) {
-        coord               = arg0->extra.tmd->coords;
-        angle               = ratan2(aim->delta.vx, aim->delta.vz);
-        aim->turn           = _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-        work->lookYawTarget = aim->turn;
-        if (aim->turn > 0x30) {
-            aim->turn = 0x30;
-        }
-        if (aim->turn < -0x30) {
-            aim->turn = -0x30;
-        }
-        coord2     = arg0->extra.tmd->coords;
-        aim->turn += ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
-    }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->state = ACTOR_401300_STATE_ALERT;
-    }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    facingRoot    = actor->extra.tmd->coords;
+    strike->turn += ratan2(-facingRoot->coord.m[2][0], facingRoot->coord.m[2][2]);
+    gfxRotMatrixY(&actor->extra.tmd->coords->coord, strike->turn, GRAPHICS_ROTATION_REPLACE);
+    _actorRenderRescaleYaw(actor->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
 }
 
-static void func_actor_401300_8013D6C4(Task* arg0)
+/// Tracks the player during strike A and enables attack 0 for ticks 25..39.
+///
+/// Requires live work/Enemy, loaded strike clip and the part-3 attack body.
+/// Entry sets the enemy attack key and fixed-joint target; tracking on ticks
+/// 1..13 turns by at most 48/4096 of a revolution. The joint pair relaxes
+/// from tick 42, and a settled clip selects ALERT. Uses the actor room-height
+/// clamp for grid correction. Borrows/releases one chase scratch block.
+static void _actor401300StateStrikeA(Task* actor)
 {
+    enum {
+        ACTOR_401300_STRIKE_ATTACK_INDEX    = 0,
+        ACTOR_401300_STRIKE_ACTIVE_TICK     = 25,
+        ACTOR_401300_STRIKE_END_TICK        = 40,
+        ACTOR_401300_STRIKE_RELAX_TICK      = 41,
+        ACTOR_401300_STRIKE_TRACK_END_TICK  = 14,
+        ACTOR_401300_STRIKE_PAIR_TARGET     = 512,
+        ACTOR_401300_STRIKE_PAIR_STEP       = 128,
+        ACTOR_401300_STRIKE_PAIR_RELAX_STEP = 64,
+    };
     _Actor401300Work*  work;
     Enemy*             enemy;
-    TmdObject*         obj;
-    GfxCoord*          coord;
-    GfxCoord*          coord2;
-    ActorChaseScratch* aim;
-    s32                angle;
+    TmdObject*         model;
+    ActorChaseScratch* strike;
 
-    work = arg0->work;
+    work = actor->work;
     if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
-        obj                           = arg0->extra.tmd;
+        enemy                         = actor->spawnArg2.pointer;
+        model                         = actor->extra.tmd;
         enemy->node.state.parts.flags = 0;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius    = 0x280;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius    = ACTOR_401300_HIT_RADIUS;
         work->animRequest       = ACTOR_401300_ANIM_REQUEST_BLEND;
-        work->animRate          = 0x10;
-        work->animId            = 0x1A;
+        work->animRate          = ANIMATION_RATE_ONE;
+        work->animId            = ACTOR_401300_ANIM_STRIKE_A;
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor401300UpdateAnimationEffects(arg0);
+        _actor401300UpdateAnimationEffects(actor);
         work->field_D1C       = 0;
         work->stateTimer      = 0;
         work->blockedFrames   = 0;
-        work->attackBody.key  = damagePackEnemyAttackKey(enemy, 1);
-        work->jointPairTarget = 0x200;
-        work->jointPairStep   = 0x80;
+        work->attackBody.key  = damagePackEnemyAttackKey(enemy, ACTOR_401300_STRIKE_ATTACK_INDEX);
+        work->jointPairTarget = ACTOR_401300_STRIKE_PAIR_TARGET;
+        work->jointPairStep   = ACTOR_401300_STRIKE_PAIR_STEP;
         return;
     }
-    _actorContactApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
-    if (work->stateTimer >= 0x26) {
+    _actor401300ApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET);
+    if (work->stateTimer >= ACTOR_401300_STRIKE_RELAX_TICK) {
         work->jointPairTarget = 0;
-        work->jointPairStep   = 0x40;
+        work->jointPairStep   = ACTOR_401300_STRIKE_PAIR_RELAX_STEP;
     }
     work->stateTimer++;
+    // The attack sphere is live only during the swing window.
     switch (work->stateTimer) {
-        case 0x15:
+        case ACTOR_401300_STRIKE_ACTIVE_TICK:
             work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
             break;
-        case 0x25:
+        case ACTOR_401300_STRIKE_END_TICK:
             work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
             break;
     }
     SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
-    aim = SCRATCH_STACK_CURSOR(ActorChaseScratch);
-    _actorPositionDeltaToPlayer(&gPlayerStatus, arg0->extra.tmd->coords, &aim->delta);
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actor401300UpdateAnimationEffects(arg0);
-    if (work->stateTimer < 0xE) {
-        coord               = arg0->extra.tmd->coords;
-        angle               = ratan2(aim->delta.vx, aim->delta.vz);
-        aim->turn           = _actorAngleNormalizeYaw(angle - ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]));
-        work->lookYawTarget = aim->turn;
-        if (aim->turn > 0x30) {
-            aim->turn = 0x30;
-        }
-        if (aim->turn < -0x30) {
-            aim->turn = -0x30;
-        }
-        coord2     = arg0->extra.tmd->coords;
-        aim->turn += ratan2(-coord2->coord.m[2][0], coord2->coord.m[2][2]);
-        gfxRotMatrixY(&arg0->extra.tmd->coords->coord, aim->turn, 1);
-        _actorRenderRescaleYaw(arg0->extra.tmd->coords, ACTOR_401300_ROOT_SCALE);
+    strike = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, actor->extra.tmd->coords, &strike->delta);
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor401300UpdateAnimationEffects(actor);
+    if (work->stateTimer < ACTOR_401300_STRIKE_TRACK_END_TICK) {
+        _actor401300TrackStrikePlayer(actor, work, strike);
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
         work->state = ACTOR_401300_STATE_ALERT;
     }
-    SCRATCH_STACK_RELEASE_BYTES(0x10);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
+}
+
+/// Tracks the player during strike B and enables attack 1 for ticks 21..36.
+///
+/// Requires live work/Enemy, loaded strike clip and the part-3 attack body.
+/// Entry sets the enemy attack key and fixed-joint target; tracking on ticks
+/// 1..13 turns by at most 48/4096 of a revolution. The joint pair relaxes
+/// from tick 39, and a settled clip selects ALERT. Uses generic grid correction
+/// without the actor room-height clamp. Borrows/releases one chase scratch block.
+static void _actor401300StateStrikeB(Task* actor)
+{
+    enum {
+        ACTOR_401300_STRIKE_ATTACK_INDEX    = 1,
+        ACTOR_401300_STRIKE_ACTIVE_TICK     = 21,
+        ACTOR_401300_STRIKE_END_TICK        = 37,
+        ACTOR_401300_STRIKE_RELAX_TICK      = 38,
+        ACTOR_401300_STRIKE_TRACK_END_TICK  = 14,
+        ACTOR_401300_STRIKE_PAIR_TARGET     = 512,
+        ACTOR_401300_STRIKE_PAIR_STEP       = 128,
+        ACTOR_401300_STRIKE_PAIR_RELAX_STEP = 64,
+    };
+    _Actor401300Work*  work;
+    Enemy*             enemy;
+    TmdObject*         model;
+    ActorChaseScratch* strike;
+
+    work = actor->work;
+    if (work->stateEntered != 0) {
+        enemy                         = actor->spawnArg2.pointer;
+        model                         = actor->extra.tmd;
+        enemy->node.state.parts.flags = 0;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius    = ACTOR_401300_HIT_RADIUS;
+        work->animRequest       = ACTOR_401300_ANIM_REQUEST_BLEND;
+        work->animRate          = ANIMATION_RATE_ONE;
+        work->animId            = ACTOR_401300_ANIM_STRIKE_B;
+        work->blendActive       = 0;
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        _actor401300UpdateAnimationEffects(actor);
+        work->field_D1C       = 0;
+        work->stateTimer      = 0;
+        work->blockedFrames   = 0;
+        work->attackBody.key  = damagePackEnemyAttackKey(enemy, ACTOR_401300_STRIKE_ATTACK_INDEX);
+        work->jointPairTarget = ACTOR_401300_STRIKE_PAIR_TARGET;
+        work->jointPairStep   = ACTOR_401300_STRIKE_PAIR_STEP;
+        return;
+    }
+    _actorContactApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts));
+    if (work->stateTimer >= ACTOR_401300_STRIKE_RELAX_TICK) {
+        work->jointPairTarget = 0;
+        work->jointPairStep   = ACTOR_401300_STRIKE_PAIR_RELAX_STEP;
+    }
+    work->stateTimer++;
+    // The attack sphere is live only during the swing window.
+    switch (work->stateTimer) {
+        case ACTOR_401300_STRIKE_ACTIVE_TICK:
+            work->attackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+            break;
+        case ACTOR_401300_STRIKE_END_TICK:
+            work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+            break;
+    }
+    SCRATCH_STACK_RESERVE_BLOCK(ActorChaseScratch);
+    strike = SCRATCH_STACK_CURSOR(ActorChaseScratch);
+    _actorPositionDeltaToPlayer(&gPlayerStatus, actor->extra.tmd->coords, &strike->delta);
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor401300UpdateAnimationEffects(actor);
+    if (work->stateTimer < ACTOR_401300_STRIKE_TRACK_END_TICK) {
+        _actor401300TrackStrikePlayer(actor, work, strike);
+    }
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        work->state = ACTOR_401300_STATE_ALERT;
+    }
+    SCRATCH_STACK_RELEASE_BLOCK(ActorChaseScratch);
 }
 
 /// Restores the live actor root's yaw rotation at its normal Q12 scale of 6500.
@@ -5295,128 +5448,173 @@ static __inline__ void _actorMovementStepForwardFromSave(const McSaveData* save,
     }
 }
 
-static void func_actor_401300_8013DADC(Task* arg0)
+/// Places the knocked player at its existing position and starts the selected fall clip.
+///
+/// Requires an accepted player hold, work-owned placement yaw and animation
+/// request, and live player coordinates in the actor's parent space. Payloads
+/// are borrowed synchronously; the selected animation table outlives playback.
+static __inline__ void _actor401300PlaceKnockedPlayer(_Actor401300Work* work, Task* playerTask)
 {
+    work->playerPlacement.pos.vx = playerTask->extra.tmd->coords->coord.t[0];
+    work->playerPlacement.pos.vy = playerTask->extra.tmd->coords->coord.t[1];
+    work->playerPlacement.pos.vz = playerTask->extra.tmd->coords->coord.t[2];
+    work->playerPlacement.rot.vx = 0;
+    work->playerPlacement.rot.vz = 0;
+    TASK_MESSAGE_DISPATCH_POINTER(playerTask, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
+    work->playerAnimFrames = 0;
+}
+
+/// Resolves charge contacts and switches to recoil after seven late blocked ticks.
+///
+/// Requires live actor/work and this frame's charge scratch. Grid corrections
+/// take priority over body pushback; only ticks 21 onward count toward recoil.
+/// Resets the blocked counter when movement is free. Nested scratch is released.
+static __inline__ void _actor401300ResolveChargeContacts(Task* actor, _Actor401300Work* work, _Actor401300ChargeScratch* charge)
+{
+    enum { ACTOR_401300_CHARGE_BLOCK_COUNT_TICK = 21,
+           ACTOR_401300_CHARGE_BLOCK_LIMIT      = 7 };
+    if ((charge->gridPushed = _actor401300ApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET)) != 0 &&
+        work->stateTimer >= ACTOR_401300_CHARGE_BLOCK_COUNT_TICK) {
+        work->blockedFrames++;
+    } else {
+        if (charge->gridPushed != 1) {
+            _actor401300ApplyBodyPushback(actor, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        }
+        work->blockedFrames = 0;
+    }
+    if (work->blockedFrames >= ACTOR_401300_CHARGE_BLOCK_LIMIT) {
+        work->animId      = ACTOR_401300_ANIM_CHARGE_RECOIL;
+        work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
+        work->stateTimer  = 0;
+    }
+}
+
+/// Charges into the player, negotiates a knockdown and recoils from contact or blockage.
+///
+/// Requires live actor/Enemy/player work, roots, rigs and player reaction clips.
+/// Running steers by at most 6/4096 of a turn and steps 112 units; the close
+/// clip steps 168. Seven blocked ticks from tick 21 force recoil. A live
+/// player contact within 256 yaw units requests a 127-press hold; acceptance
+/// chooses attack/clip 4 or 5 and a 100-unit horizontal push by impact side.
+/// Work owns the message records and the borrowed clip table must stay loaded.
+/// Releases one charge block after nested movement and yaw workspace.
+static void _actor401300StateCharge(Task* actor)
+{
+    enum {
+        ACTOR_401300_CHARGE_CLOSE_TICK          = 11,
+        ACTOR_401300_CHARGE_CLOSE_ANGLE         = 512,
+        ACTOR_401300_CHARGE_CLOSE_RADIUS        = 2000,
+        ACTOR_401300_CHARGE_SIDE_ANGLE          = 1024,
+        ACTOR_401300_CHARGE_CATCH_ANGLE         = 256,
+        ACTOR_401300_CHARGE_TURN_STEP           = 6,
+        ACTOR_401300_CHARGE_RUN_STEP            = 112,
+        ACTOR_401300_CHARGE_CLOSE_STEP          = 168,
+        ACTOR_401300_CHARGE_KNOCKBACK_STEP      = 100,
+        ACTOR_401300_CHARGE_RECOIL_STEP         = -121,
+        ACTOR_401300_CHARGE_RECOIL_SLOW_STEP    = -25,
+        ACTOR_401300_CHARGE_RECOIL_FAST_TICKS   = 8,
+        ACTOR_401300_CHARGE_RECOIL_SLOW_TICKS   = 6,
+        ACTOR_401300_CHARGE_PRESS_COUNT         = 127,
+        ACTOR_401300_CHARGE_PLAYER_BACK_ATTACK  = 4,
+        ACTOR_401300_CHARGE_PLAYER_FRONT_ATTACK = 5,
+        ACTOR_401300_CHARGE_PAIR_STEP           = 64,
+    };
     _Actor401300Work*          work;
-    Task*                      task;
+    Task*                      playerTask;
     GameActor*                 player;
-    PlayerStatus*              config;
+    PlayerStatus*              playerStatus;
     Enemy*                     enemy;
-    TmdObject*                 obj;
-    GfxCoord*                  root;
-    void**                     scratch;
-    _Actor401300ChargeScratch* head;
+    TmdObject*                 model;
+    GfxCoord*                  offsetRoot;
+    void**                     cursorSlot;
+    _Actor401300ChargeScratch* savedCursor;
     _Actor401300ChargeScratch* charge;
-    s16                        amount;
-    s16                        ret;
+    s16                        knockbackStep;
+    s16                        damageReply;
     McSaveData*                save;
 
-    work   = arg0->work;
-    task   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    player = (GameActor*)task->work;
-    enemy  = arg0->spawnArg2.pointer;
+    work       = actor->work;
+    playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    player     = playerTask->work;
+    enemy      = actor->spawnArg2.pointer;
 
     if (work->stateEntered != 0) {
-        obj                           = arg0->extra.tmd;
+        model                         = actor->extra.tmd;
         enemy->node.state.parts.flags = 0;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius    = 0x280;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius    = ACTOR_401300_HIT_RADIUS;
         work->animRequest       = ACTOR_401300_ANIM_REQUEST_BLEND;
-        work->animRate          = 0x10;
-        work->animId            = 0x1B;
+        work->animRate          = ANIMATION_RATE_ONE;
+        work->animId            = ACTOR_401300_ANIM_CHARGE_RUN;
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor401300UpdateAnimationEffects(arg0);
+        _actor401300UpdateAnimationEffects(actor);
         work->field_D1C       = 0;
         work->stateTimer      = 0;
         work->blockedFrames   = 0;
         work->jointPairTarget = 0;
-        work->jointPairStep   = 0x40;
+        work->jointPairStep   = ACTOR_401300_CHARGE_PAIR_STEP;
         return;
     }
-    scratch = SCRATCH_HEAD_ADDR;
-    config  = &gPlayerStatus;
+    cursorSlot   = SCRATCH_HEAD_ADDR;
+    playerStatus = &gPlayerStatus;
     work->stateTimer++;
-    root              = arg0->extra.tmd->coords;
-    head              = SCRATCH_HEAD_AT(scratch, _Actor401300ChargeScratch);
-    head[-1].delta.vx = config->coordMtx->t[0] - root->coord.t[0];
-    charge            = (SCRATCH_HEAD_AT(scratch, _Actor401300ChargeScratch) = head - 1);
-    charge->delta.vy  = config->coordMtx->t[1] - root->coord.t[1];
-    charge->delta.vz  = config->coordMtx->t[2] - root->coord.t[2];
-    save              = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    _actor401300UpdateAnimationEffects(arg0);
+    offsetRoot               = actor->extra.tmd->coords;
+    savedCursor              = SCRATCH_HEAD_AT(cursorSlot, _Actor401300ChargeScratch);
+    savedCursor[-1].delta.vx = playerStatus->coordMtx->t[0] - offsetRoot->coord.t[0];
+    charge                   = (SCRATCH_HEAD_AT(cursorSlot, _Actor401300ChargeScratch) = savedCursor - 1);
+    charge->delta.vy         = playerStatus->coordMtx->t[1] - offsetRoot->coord.t[1];
+    charge->delta.vz         = playerStatus->coordMtx->t[2] - offsetRoot->coord.t[2];
+    save                     = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    _actor401300UpdateAnimationEffects(actor);
+    // Clip changes reset the counter used for proximity, blockage and recoil.
     switch (work->animId) {
-        case 0x1B:
-            if ((charge->gridPushed = _actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET)) != 0 &&
-                work->stateTimer >= 0x15) {
-                work->blockedFrames++;
-            } else {
-                if (charge->gridPushed != 1) {
-                    _actor401300ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-                }
-                work->blockedFrames = 0;
-            }
-            if (work->blockedFrames >= 7) {
-                work->animId      = 0x1E;
-                work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
-                work->stateTimer  = 0;
-            }
+        case ACTOR_401300_ANIM_CHARGE_RUN:
+            _actor401300ResolveChargeContacts(actor, work, charge);
             work->lookYawTarget = 0;
-            charge->turn        = _actorAngleTurnToOffset(arg0->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
-            if (work->stateTimer >= 0xB) {
-                if (abs(charge->turn) < 0x200) {
-                    if (!_actorRangeOutsideRadiusXZ(&charge->delta, 0x7D0)) {
-                        work->animId      = 0x1C;
+            charge->turn        = _actorAngleTurnToOffset(actor->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
+            if (work->stateTimer >= ACTOR_401300_CHARGE_CLOSE_TICK) {
+                if (abs(charge->turn) < ACTOR_401300_CHARGE_CLOSE_ANGLE) {
+                    if (!_actorRangeOutsideRadiusXZ(&charge->delta, ACTOR_401300_CHARGE_CLOSE_RADIUS)) {
+                        work->animId      = ACTOR_401300_ANIM_CHARGE_CLOSE;
                         work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
                         work->stateTimer  = 0;
                     }
                 }
             }
-            if (abs(charge->turn) > 0x400) {
-                work->animId      = 0x1C;
+            if (abs(charge->turn) > ACTOR_401300_CHARGE_SIDE_ANGLE) {
+                work->animId      = ACTOR_401300_ANIM_CHARGE_CLOSE;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
                 work->stateTimer  = 0;
             }
-            if (charge->turn > 6) {
-                charge->turn = 6;
-            } else if (charge->turn < -6) {
-                charge->turn = -6;
+            if (charge->turn > ACTOR_401300_CHARGE_TURN_STEP) {
+                charge->turn = ACTOR_401300_CHARGE_TURN_STEP;
+            } else if (charge->turn < -ACTOR_401300_CHARGE_TURN_STEP) {
+                charge->turn = -ACTOR_401300_CHARGE_TURN_STEP;
             }
-            charge->turn += _actorAngleGetLocalYaw(arg0->extra.tmd->coords);
-            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, charge->turn, 1);
-            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x70) != 0) {
-                _actorMovementStepForward(arg0->extra.tmd->coords, 0x70);
+            charge->turn += _actorAngleGetLocalYaw(actor->extra.tmd->coords);
+            gfxRotMatrixY(&actor->extra.tmd->coords->coord, charge->turn, GRAPHICS_ROTATION_REPLACE);
+            if ((s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, ACTOR_401300_CHARGE_RUN_STEP) != 0) {
+                _actorMovementStepForward(actor->extra.tmd->coords, ACTOR_401300_CHARGE_RUN_STEP);
             }
-            _actor401300RestoreRootYawScale(arg0);
+            _actor401300RestoreRootYawScale(actor);
             break;
-        case 0x1C:
-            if ((charge->gridPushed = _actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET)) != 0 &&
-                work->stateTimer >= 0x15) {
-                work->blockedFrames++;
-            } else {
-                if (charge->gridPushed != 1) {
-                    _actor401300ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-                }
-                work->blockedFrames = 0;
-            }
-            if (work->blockedFrames >= 7) {
-                work->animId      = 0x1E;
+        case ACTOR_401300_ANIM_CHARGE_CLOSE:
+            _actor401300ResolveChargeContacts(actor, work, charge);
+            charge->turn = _actorAngleTurnToOffset(actor->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
+            if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+                work->animId      = ACTOR_401300_ANIM_CHARGE_FINISH;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
                 work->stateTimer  = 0;
             }
-            charge->turn = _actorAngleTurnToOffset(arg0->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
-            if (work->rig.slots[1].status.fields.flags & 0x100) {
-                work->animId      = 0x1D;
-                work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
-                work->stateTimer  = 0;
-            }
-            if (_actor401300ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && abs(charge->turn) < 0x100 &&
+            if (_actor401300ApplyBodyPushback(actor, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && abs(charge->turn) < ACTOR_401300_CHARGE_CATCH_ANGLE &&
                 enemy->hp > 0) {
-                work->playerButtonHold.pressCount = 0x7F;
+                work->playerButtonHold.pressCount = ACTOR_401300_CHARGE_PRESS_COUNT;
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
-                    padScriptSpawnVariableMotorRamp(0x10, 8, 0xFF);
+                    padScriptSpawnVariableMotorRamp(ACTOR_401300_KNOCKDOWN_MOTOR_TICKS, ACTOR_401300_KNOCKDOWN_MOTOR_START_INTENSITY, ACTOR_401300_KNOCKDOWN_MOTOR_END_INTENSITY);
                     work->playerHeld                   = 1;
                     work->playerAnim.source.sets       = D_actor_401300_801588F0;
                     work->playerMove.displacement.vz   = 0;
@@ -5424,36 +5622,30 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     work->playerMove.displacement.vx   = 0;
                     work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
                     work->playerMove.keepControl       = 1;
-                    charge->delta.vx                   = -charge->delta.vx;
-                    charge->delta.vy                   = -charge->delta.vy;
-                    charge->delta.vz                   = -charge->delta.vz;
-                    charge->turn                       = _actorAngleTurnToOffset(task->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
-                    if (abs(charge->turn) < 0x400) {
-                        amount                       = -0x64;
-                        work->playerAnim.animationId = 4;
-                        work->playerPlacement.rot.vy = charge->turn + _actorAngleGetLocalYaw(task->extra.tmd->coords);
-                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 4), 0);
+                    // Reverse the bearing to place the player, then build a forward-axis push.
+                    charge->delta.vx = -charge->delta.vx;
+                    charge->delta.vy = -charge->delta.vy;
+                    charge->delta.vz = -charge->delta.vz;
+                    charge->turn     = _actorAngleTurnToOffset(playerTask->extra.tmd->coords, charge->delta.vx, charge->delta.vz);
+                    if (abs(charge->turn) < ACTOR_401300_CHARGE_SIDE_ANGLE) {
+                        knockbackStep                = -ACTOR_401300_CHARGE_KNOCKBACK_STEP;
+                        work->playerAnim.animationId = ACTOR_401300_PLAYER_ANIM_FALL_BACK;
+                        work->playerPlacement.rot.vy = charge->turn + _actorAngleGetLocalYaw(playerTask->extra.tmd->coords);
+                        damageReply                  = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_401300_CHARGE_PLAYER_BACK_ATTACK), 0);
                     } else {
-                        amount                       = 0x64;
-                        work->playerAnim.animationId = 5;
-                        work->playerPlacement.rot.vy = charge->turn + _actorAngleGetLocalYaw(task->extra.tmd->coords) + 0x800;
-                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 5), 0);
+                        knockbackStep                = ACTOR_401300_CHARGE_KNOCKBACK_STEP;
+                        work->playerAnim.animationId = ACTOR_401300_PLAYER_ANIM_FALL_FRONT;
+                        work->playerPlacement.rot.vy = charge->turn + _actorAngleGetLocalYaw(playerTask->extra.tmd->coords) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+                        damageReply                  = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_401300_CHARGE_PLAYER_FRONT_ATTACK), 0);
                     }
-                    if (ret == 1) {
-                        player->state = 0xA;
+                    if (damageReply == 1) {
+                        player->state = ACTOR_401300_PLAYER_FATAL_HOLD_STATE;
                     }
-                    work->playerPlacement.pos.vx = task->extra.tmd->coords->coord.t[0];
-                    work->playerPlacement.pos.vy = task->extra.tmd->coords->coord.t[1];
-                    work->playerPlacement.pos.vz = task->extra.tmd->coords->coord.t[2];
-                    work->playerPlacement.rot.vx = 0;
-                    work->playerPlacement.rot.vz = 0;
-                    TASK_MESSAGE_DISPATCH_POINTER(task, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
-                    work->playerAnimFrames = 0;
-                    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &charge->delta);
+                    _actor401300PlaceKnockedPlayer(work, playerTask);
+                    gfxReadMatrixZAxis(&playerTask->extra.tmd->coords->coord, &charge->delta);
                     charge->delta.vy = 0;
                     VectorNormalSS(&charge->delta, &charge->delta);
-                    gte_lddp(amount);
+                    gte_lddp(knockbackStep);
                     gte_ldsv(&charge->delta);
                     gte_gpf12();
                     gte_stsv(&charge->delta);
@@ -5462,36 +5654,36 @@ static void func_actor_401300_8013DADC(Task* arg0)
                     work->playerMove.displacement.vz   = charge->delta.vz;
                     work->playerMove.collisionRequests = GAME_ACTOR_COLLISION_REQUEST_MASK;
                     work->playerMove.keepControl       = 1;
-                    work->animId                       = 0x1E;
+                    work->animId                       = ACTOR_401300_ANIM_CHARGE_RECOIL;
                     work->animRequest                  = ACTOR_401300_ANIM_REQUEST_RESET;
                     work->stateTimer                   = 0;
                 }
             }
-            if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0xA8) != 0) {
-                _actorMovementStepForward(arg0->extra.tmd->coords, 0xA8);
+            if ((s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, ACTOR_401300_CHARGE_CLOSE_STEP) != 0) {
+                _actorMovementStepForward(actor->extra.tmd->coords, ACTOR_401300_CHARGE_CLOSE_STEP);
             }
-            _actor401300RestoreRootYawScale(arg0);
+            _actor401300RestoreRootYawScale(actor);
             break;
-        case 0x1E:
-            if (_actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET) == 0) {
-                _actor401300ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        case ACTOR_401300_ANIM_CHARGE_RECOIL:
+            if (_actor401300ApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET) == 0) {
+                _actor401300ApplyBodyPushback(actor, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
-            if (work->stateTimer < 8) {
-                if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x79) != 0) {
-                    _actorMovementStepForwardFromSave(save, arg0->extra.tmd->coords, -0x79);
+            if (work->stateTimer < ACTOR_401300_CHARGE_RECOIL_FAST_TICKS) {
+                if ((s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, ACTOR_401300_CHARGE_RECOIL_STEP) != 0) {
+                    _actorMovementStepForwardFromSave(save, actor->extra.tmd->coords, ACTOR_401300_CHARGE_RECOIL_STEP);
                 }
-            } else if ((u16)(work->stateTimer - 8) < 6) {
-                if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, -0x19) != 0) {
-                    _actorMovementStepForwardFromSave(save, arg0->extra.tmd->coords, -0x19);
+            } else if ((u16)(work->stateTimer - ACTOR_401300_CHARGE_RECOIL_FAST_TICKS) < ACTOR_401300_CHARGE_RECOIL_SLOW_TICKS) {
+                if ((s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, ACTOR_401300_CHARGE_RECOIL_SLOW_STEP) != 0) {
+                    _actorMovementStepForwardFromSave(save, actor->extra.tmd->coords, ACTOR_401300_CHARGE_RECOIL_SLOW_STEP);
                 }
             }
-            _actor401300RestoreRootYawScale(arg0);
-            if (work->rig.slots[1].status.fields.flags & 0x100) {
+            _actor401300RestoreRootYawScale(actor);
+            if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
                 work->state = ACTOR_401300_STATE_ALERT;
             }
             break;
-        case 0x1D:
-            if (work->rig.slots[1].status.fields.flags & 0x100) {
+        case ACTOR_401300_ANIM_CHARGE_FINISH:
+            if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
                 work->state = ACTOR_401300_STATE_ALERT;
             }
             break;
@@ -5529,152 +5721,176 @@ static __inline__ void _actorMovementTranslateForwardNonzeroFromSave(const McSav
     }
 }
 
-static void func_actor_401300_8013E930(Task* arg0)
+/// Crouches toward the player, leaps through them and starts a side-dependent knockdown.
+///
+/// Requires live actor/Enemy/player work, common parent space and loaded clips.
+/// Eleven crouch ticks steer by 16 yaw units (4096 per turn); the full XYZ
+/// distance plus 1000, clamped to 3000..5000, sets the step over 18 ticks.
+/// From leap tick 8 a live player contact can accept a 127-press hold, attacks
+/// 2/3, player clips 4/5 and a 70-unit push chosen from the leap start bearing.
+/// Landing coasts from 84 to zero over 16 ticks unless held or grid-blocked.
+/// Message records remain work-owned; releases the leap block and nested scratch.
+static void _actor401300StateLeap(Task* actor)
 {
+    enum {
+        ACTOR_401300_LEAP_CROUCH_ANIM         = 31,
+        ACTOR_401300_LEAP_CROUCH_TICKS        = 11,
+        ACTOR_401300_LEAP_ABORT_ANGLE         = 1024,
+        ACTOR_401300_LEAP_TURN_STEP           = 16,
+        ACTOR_401300_LEAP_DISTANCE_EXTRA      = 1000,
+        ACTOR_401300_LEAP_DISTANCE_MIN        = 3000,
+        ACTOR_401300_LEAP_DISTANCE_MAX        = 5000,
+        ACTOR_401300_LEAP_TRAVEL_TICKS        = 18,
+        ACTOR_401300_LEAP_HIT_RADIUS          = 320,
+        ACTOR_401300_LEAP_CATCH_TICK          = 8,
+        ACTOR_401300_LEAP_PRESS_COUNT         = 127,
+        ACTOR_401300_LEAP_KNOCKBACK_STEP      = 70,
+        ACTOR_401300_LEAP_PLAYER_BACK_ATTACK  = 2,
+        ACTOR_401300_LEAP_PLAYER_FRONT_ATTACK = 3,
+        ACTOR_401300_LEAP_PAIR_TARGET         = 512,
+        ACTOR_401300_LEAP_PAIR_STEP           = 256,
+        ACTOR_401300_LEAP_LAND_TICKS          = 16,
+        ACTOR_401300_LEAP_LAND_STEP           = 84,
+    };
     _Actor401300Work*        work;
-    Task*                    task;
+    Task*                    playerTask;
     GameActor*               player;
-    PlayerStatus*            config;
+    PlayerStatus*            playerStatus;
     Enemy*                   enemy;
-    TmdObject*               obj;
-    GfxCoord*                root;
-    void**                   scratch;
-    _Actor401300LeapScratch* head;
+    TmdObject*               model;
+    GfxCoord*                offsetRoot;
+    void**                   cursorSlot;
+    _Actor401300LeapScratch* savedCursor;
     _Actor401300LeapScratch* leap;
-    SVECTOR*                 delta;
-    SVECTOR*                 vec;
-    s16                      cur;
-    s16                      amount;
-    s16                      ret;
+    SVECTOR*                 playerOffset;
+    SVECTOR*                 knockbackDirection;
+    s16                      landTick;
+    s16                      knockbackStep;
+    s16                      damageReply;
     McSaveData*              save;
 
-    work   = arg0->work;
-    task   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    player = (GameActor*)task->work;
-    config = &gPlayerStatus;
-    save   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
-    enemy  = arg0->spawnArg2.pointer;
+    work         = actor->work;
+    playerTask   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    player       = playerTask->work;
+    playerStatus = &gPlayerStatus;
+    save         = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+    enemy        = actor->spawnArg2.pointer;
 
     if (work->stateEntered != 0) {
-        obj                           = arg0->extra.tmd;
+        model                         = actor->extra.tmd;
         enemy->node.state.parts.flags = 0;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius    = 0x280;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius    = ACTOR_401300_HIT_RADIUS;
         work->animRequest       = ACTOR_401300_ANIM_REQUEST_BLEND;
-        work->animRate          = 0x10;
-        work->animId            = 0x1F;
+        work->animRate          = ANIMATION_RATE_ONE;
+        work->animId            = ACTOR_401300_LEAP_CROUCH_ANIM;
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        _actor401300UpdateAnimationEffects(arg0);
-        work->jointPairTarget = 0x200;
+        _actor401300UpdateAnimationEffects(actor);
+        work->jointPairTarget = ACTOR_401300_LEAP_PAIR_TARGET;
         work->field_D1C       = 0;
         work->stateTimer      = 0;
-        work->jointPairStep   = 0x100;
-        work->leapStartPos.vx = arg0->extra.tmd->coords->coord.t[0];
-        work->leapStartPos.vy = arg0->extra.tmd->coords->coord.t[1];
-        work->leapStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
+        work->jointPairStep   = ACTOR_401300_LEAP_PAIR_STEP;
+        work->leapStartPos.vx = actor->extra.tmd->coords->coord.t[0];
+        work->leapStartPos.vy = actor->extra.tmd->coords->coord.t[1];
+        work->leapStartPos.vz = actor->extra.tmd->coords->coord.t[2];
         return;
     }
-    scratch = SCRATCH_HEAD_ADDR;
+    cursorSlot = SCRATCH_HEAD_ADDR;
     work->stateTimer++;
-    root              = arg0->extra.tmd->coords;
-    head              = SCRATCH_HEAD_AT(scratch, _Actor401300LeapScratch);
-    head[-1].delta.vx = config->coordMtx->t[0] - root->coord.t[0];
-    delta             = &head[-1].delta;
-    delta->vy         = config->coordMtx->t[1] - root->coord.t[1];
-    leap              = (SCRATCH_HEAD_AT(scratch, _Actor401300LeapScratch) = head - 1);
-    delta->vz         = config->coordMtx->t[2] - root->coord.t[2];
-    _actor401300UpdateAnimationEffects(arg0);
+    offsetRoot               = actor->extra.tmd->coords;
+    savedCursor              = SCRATCH_HEAD_AT(cursorSlot, _Actor401300LeapScratch);
+    savedCursor[-1].delta.vx = playerStatus->coordMtx->t[0] - offsetRoot->coord.t[0];
+    playerOffset             = &savedCursor[-1].delta;
+    playerOffset->vy         = playerStatus->coordMtx->t[1] - offsetRoot->coord.t[1];
+    leap                     = (SCRATCH_HEAD_AT(cursorSlot, _Actor401300LeapScratch) = savedCursor - 1);
+    playerOffset->vz         = playerStatus->coordMtx->t[2] - offsetRoot->coord.t[2];
+    _actor401300UpdateAnimationEffects(actor);
     switch (work->animId) {
-        case 0x1F:
-            work->hitBody.radius = 0x280;
-            if (_actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET) == 0) {
-                _actor401300ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+        case ACTOR_401300_LEAP_CROUCH_ANIM:
+            work->hitBody.radius = ACTOR_401300_HIT_RADIUS;
+            if (_actor401300ApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET) == 0) {
+                _actor401300ApplyBodyPushback(actor, work->hitContacts, ARRAY_SIZE(work->hitContacts));
             }
             work->lookYawTarget = 0;
-            leap->turn          = _actorAngleTurnToOffset(arg0->extra.tmd->coords, head[-1].delta.vx, delta->vz);
-            if (work->stateTimer >= 0xB) {
-                work->animId       = 0x20;
-                work->animRequest  = ACTOR_401300_ANIM_REQUEST_BLEND;
-                leap->offset.vx    = config->coordMtx->t[0] - arg0->extra.tmd->coords->coord.t[0];
-                leap->offset.vy    = config->coordMtx->t[1] - arg0->extra.tmd->coords->coord.t[1];
-                leap->offset.vz    = config->coordMtx->t[2] - arg0->extra.tmd->coords->coord.t[2];
-                leap->leapDistance = SquareRoot0(leap->offset.vx * leap->offset.vx + leap->offset.vy * leap->offset.vy + leap->offset.vz * leap->offset.vz) + 1000;
-                if (leap->leapDistance > 5000) {
-                    leap->leapDistance = 5000;
-                } else if (leap->leapDistance < 3000) {
-                    leap->leapDistance = 3000;
+            leap->turn          = _actorAngleTurnToOffset(actor->extra.tmd->coords, savedCursor[-1].delta.vx, playerOffset->vz);
+            if (work->stateTimer >= ACTOR_401300_LEAP_CROUCH_TICKS) {
+                work->animId      = ACTOR_401300_ANIM_LEAP;
+                work->animRequest = ACTOR_401300_ANIM_REQUEST_BLEND;
+                // Measure full-width XYZ once; subsequent movement uses the stored step.
+                leap->offset.vx    = playerStatus->coordMtx->t[0] - actor->extra.tmd->coords->coord.t[0];
+                leap->offset.vy    = playerStatus->coordMtx->t[1] - actor->extra.tmd->coords->coord.t[1];
+                leap->offset.vz    = playerStatus->coordMtx->t[2] - actor->extra.tmd->coords->coord.t[2];
+                leap->leapDistance = SquareRoot0(leap->offset.vx * leap->offset.vx + leap->offset.vy * leap->offset.vy + leap->offset.vz * leap->offset.vz) + ACTOR_401300_LEAP_DISTANCE_EXTRA;
+                if (leap->leapDistance > ACTOR_401300_LEAP_DISTANCE_MAX) {
+                    leap->leapDistance = ACTOR_401300_LEAP_DISTANCE_MAX;
+                } else if (leap->leapDistance < ACTOR_401300_LEAP_DISTANCE_MIN) {
+                    leap->leapDistance = ACTOR_401300_LEAP_DISTANCE_MIN;
                 }
-                work->leapStep        = leap->leapDistance / 18;
+                work->leapStep        = leap->leapDistance / ACTOR_401300_LEAP_TRAVEL_TICKS;
                 work->jointPairTarget = 0;
                 work->stateTimer      = 0;
-                work->jointPairStep   = 0x20;
+                work->jointPairStep   = ACTOR_401300_PAIR_NORMAL_STEP;
             }
-            if (abs(leap->turn) > 0x400) {
+            if (abs(leap->turn) > ACTOR_401300_LEAP_ABORT_ANGLE) {
                 work->state = ACTOR_401300_STATE_CHASE;
             }
-            if (leap->turn > 0x10) {
-                leap->turn = 0x10;
-            } else if (leap->turn < -0x10) {
-                leap->turn = -0x10;
+            if (leap->turn > ACTOR_401300_LEAP_TURN_STEP) {
+                leap->turn = ACTOR_401300_LEAP_TURN_STEP;
+            } else if (leap->turn < -ACTOR_401300_LEAP_TURN_STEP) {
+                leap->turn = -ACTOR_401300_LEAP_TURN_STEP;
             }
-            leap->turn += _actorAngleGetLocalYaw(arg0->extra.tmd->coords);
-            gfxRotMatrixY(&arg0->extra.tmd->coords->coord, leap->turn, 1);
-            _actor401300RestoreRootYawScale(arg0);
+            leap->turn += _actorAngleGetLocalYaw(actor->extra.tmd->coords);
+            gfxRotMatrixY(&actor->extra.tmd->coords->coord, leap->turn, GRAPHICS_ROTATION_REPLACE);
+            _actor401300RestoreRootYawScale(actor);
             break;
-        case 0x20:
-            work->hitBody.radius = 0x140;
-            _actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET);
-            if (work->rig.slots[1].status.fields.flags & 0x100) {
-                work->animId      = 0x21;
+        case ACTOR_401300_ANIM_LEAP:
+            work->hitBody.radius = ACTOR_401300_LEAP_HIT_RADIUS;
+            _actor401300ApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET);
+            if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+                work->animId      = ACTOR_401300_ANIM_LAND;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
                 work->stateTimer  = 0;
             }
-            if (_actor401300ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && work->stateTimer >= 8 &&
+            if (_actor401300ApplyBodyPushback(actor, work->hitContacts, ARRAY_SIZE(work->hitContacts)) != 0 && player->mode != GAME_ACTOR_MODE_SCRIPTED && work->stateTimer >= ACTOR_401300_LEAP_CATCH_TICK &&
                 enemy->hp > 0) {
-                work->playerButtonHold.pressCount = 0x7F;
+                work->playerButtonHold.pressCount = ACTOR_401300_LEAP_PRESS_COUNT;
                 if (TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &work->playerButtonHold, 0) == 0) {
-                    padScriptSpawnVariableMotorRamp(0x10, 8, 0xFF);
-                    sndEvtRequestScriptStart(SOUND_PLAYER_STRUCK, (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords),
-                                             (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+                    padScriptSpawnVariableMotorRamp(ACTOR_401300_KNOCKDOWN_MOTOR_TICKS, ACTOR_401300_KNOCKDOWN_MOTOR_START_INTENSITY, ACTOR_401300_KNOCKDOWN_MOTOR_END_INTENSITY);
+                    sndEvtRequestScriptStart(SOUND_PLAYER_STRUCK, (s8)worldCoordGetOriginAudioPan(playerTask->extra.tmd->coords),
+                                             (s8)worldCoordGetOriginAudioDepth(playerTask->extra.tmd->coords));
                     work->playerHeld             = 1;
                     work->playerAnim.source.sets = D_actor_401300_801588F0;
-                    leap->delta.vx               = work->leapStartPos.vx - task->extra.tmd->coords->coord.t[0];
-                    leap->delta.vy               = work->leapStartPos.vy - task->extra.tmd->coords->coord.t[1];
-                    leap->delta.vz               = work->leapStartPos.vz - task->extra.tmd->coords->coord.t[2];
-                    leap->turn                   = _actorAngleTurnToOffset(task->extra.tmd->coords, head[-1].delta.vx, delta->vz);
-                    if (abs(leap->turn) < 0x400) {
-                        amount                       = -0x46;
-                        work->playerAnim.animationId = 4;
-                        work->playerPlacement.rot.vy = leap->turn + _actorAngleGetLocalYaw(task->extra.tmd->coords);
-                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 2), 0);
+                    // The launch position, rather than current contact, picks the fall side.
+                    leap->delta.vx = work->leapStartPos.vx - playerTask->extra.tmd->coords->coord.t[0];
+                    leap->delta.vy = work->leapStartPos.vy - playerTask->extra.tmd->coords->coord.t[1];
+                    leap->delta.vz = work->leapStartPos.vz - playerTask->extra.tmd->coords->coord.t[2];
+                    leap->turn     = _actorAngleTurnToOffset(playerTask->extra.tmd->coords, savedCursor[-1].delta.vx, playerOffset->vz);
+                    if (abs(leap->turn) < ACTOR_401300_LEAP_ABORT_ANGLE) {
+                        knockbackStep                = -ACTOR_401300_LEAP_KNOCKBACK_STEP;
+                        work->playerAnim.animationId = ACTOR_401300_PLAYER_ANIM_FALL_BACK;
+                        work->playerPlacement.rot.vy = leap->turn + _actorAngleGetLocalYaw(playerTask->extra.tmd->coords);
+                        damageReply                  = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_401300_LEAP_PLAYER_BACK_ATTACK), 0);
                     } else {
-                        amount                       = 0x46;
-                        work->playerAnim.animationId = 5;
-                        work->playerPlacement.rot.vy = leap->turn + _actorAngleGetLocalYaw(task->extra.tmd->coords) + 0x800;
-                        ret                          = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 3), 0);
+                        knockbackStep                = ACTOR_401300_LEAP_KNOCKBACK_STEP;
+                        work->playerAnim.animationId = ACTOR_401300_PLAYER_ANIM_FALL_FRONT;
+                        work->playerPlacement.rot.vy = leap->turn + _actorAngleGetLocalYaw(playerTask->extra.tmd->coords) + ACTOR_TRANSFORM_ANGLE_HALF_TURN;
+                        damageReply                  = taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, ACTOR_401300_LEAP_PLAYER_FRONT_ATTACK), 0);
                     }
-                    if (ret == 1) {
-                        player->state = 0xA;
+                    if (damageReply == 1) {
+                        player->state = ACTOR_401300_PLAYER_FATAL_HOLD_STATE;
                     }
-                    work->playerPlacement.pos.vx = task->extra.tmd->coords->coord.t[0];
-                    work->playerPlacement.pos.vy = task->extra.tmd->coords->coord.t[1];
-                    work->playerPlacement.pos.vz = task->extra.tmd->coords->coord.t[2];
-                    work->playerPlacement.rot.vx = 0;
-                    work->playerPlacement.rot.vz = 0;
-                    TASK_MESSAGE_DISPATCH_POINTER(task, GAME_ACTOR_MESSAGE_PLACE, &work->playerPlacement, 0);
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_REPLACE_AND_PLAY, &work->playerAnim, 0);
-                    work->playerAnimFrames = 0;
-                    vec                    = &leap->delta;
-                    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, vec);
+                    _actor401300PlaceKnockedPlayer(work, playerTask);
+                    knockbackDirection = &leap->delta;
+                    gfxReadMatrixZAxis(&playerTask->extra.tmd->coords->coord, knockbackDirection);
                     leap->delta.vy = 0;
-                    VectorNormalSS(vec, vec);
-                    gte_lddp(amount);
-                    gte_ldsv(vec);
+                    VectorNormalSS(knockbackDirection, knockbackDirection);
+                    gte_lddp(knockbackStep);
+                    gte_ldsv(knockbackDirection);
                     gte_gpf12();
-                    gte_stsv(vec);
+                    gte_stsv(knockbackDirection);
                     work->playerMove.displacement.vx   = leap->delta.vx;
                     work->playerMove.displacement.vy   = 0;
                     work->playerMove.displacement.vz   = leap->delta.vz;
@@ -5683,23 +5899,23 @@ static void func_actor_401300_8013E930(Task* arg0)
                 }
             }
             if (work->playerHeld == 0) {
-                _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, work->leapStep);
+                _actorMovementTranslateForwardNonzero(actor->extra.tmd->coords, work->leapStep);
             }
-            _actor401300RestoreRootYawScale(arg0);
+            _actor401300RestoreRootYawScale(actor);
             break;
-        case 0x21:
-            work->hitBody.radius = 0x280;
-            if (_actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET) == 0) {
-                cur = work->stateTimer;
-                if (cur < 0x11 && work->playerHeld == 0) {
-                    if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, (s16)(0x54 - cur * 0x54 / 16)) != 0) {
-                        _actorMovementTranslateForwardNonzeroFromSave(save, arg0->extra.tmd->coords, 0x54 - work->stateTimer * 0x54 / 16);
+        case ACTOR_401300_ANIM_LAND:
+            work->hitBody.radius = ACTOR_401300_HIT_RADIUS;
+            if (_actor401300ApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET) == 0) {
+                landTick = work->stateTimer;
+                if (landTick < ACTOR_401300_LEAP_LAND_TICKS + 1 && work->playerHeld == 0) {
+                    if ((s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, (s16)(ACTOR_401300_LEAP_LAND_STEP - landTick * ACTOR_401300_LEAP_LAND_STEP / ACTOR_401300_LEAP_LAND_TICKS)) != 0) {
+                        _actorMovementTranslateForwardNonzeroFromSave(save, actor->extra.tmd->coords, ACTOR_401300_LEAP_LAND_STEP - work->stateTimer * ACTOR_401300_LEAP_LAND_STEP / ACTOR_401300_LEAP_LAND_TICKS);
                     }
                 }
             }
-            _actor401300ApplyBodyPushback(arg0, work->hitContacts, ARRAY_SIZE(work->hitContacts));
-            _actor401300RestoreRootYawScale(arg0);
-            if (work->rig.slots[1].status.fields.flags & 0x100) {
+            _actor401300ApplyBodyPushback(actor, work->hitContacts, ARRAY_SIZE(work->hitContacts));
+            _actor401300RestoreRootYawScale(actor);
+            if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
                 work->state = ACTOR_401300_STATE_ALERT;
             }
             break;
@@ -5739,133 +5955,154 @@ static __inline__ void _actorRenderScaleMatrix(MATRIX* matrix, s16 uniformScale)
     SCRATCH_STACK_RELEASE_BLOCK(ActorScaleMatrixScratch);
 }
 
-static void func_actor_401300_8013F628(Task* arg0)
+/// Leaps into the room from black, sheds leaves and coasts to an alert landing.
+///
+/// Requires live work/Enemy/model coordinates through part 19, loaded effects
+/// and a refreshed color matrix on each tick. Ticks 1..17 scale that matrix
+/// by tick/30 in Q12 and emit leaf groups every second tick in the forest or
+/// woodland path. The leap steps 120 game units; landing decays an 84-unit
+/// step over 16 ticks. Root grid collision stays disabled here. A reserved
+/// 24-byte scratch frame records the player offset, which is not read back.
+static void _actor401300StateLeapIn(Task* actor)
 {
-    _Actor401300Work* work;
-    Enemy*            enemy;
-    TmdObject*        obj;
-    PlayerStatus*     config;
-    GfxCoord*         root;
-    SVECTOR**         scratch;
-    SVECTOR*          head;
-    SVECTOR*          vec;
-    s16               mod;
-    s16               cur;
+    enum {
+        ACTOR_401300_LEAP_IN_PAIR_TARGET         = 512,
+        ACTOR_401300_LEAP_IN_PAIR_STEP           = 256,
+        ACTOR_401300_LEAP_IN_STEP                = 120,
+        ACTOR_401300_LEAP_IN_HIT_RADIUS          = 1280,
+        ACTOR_401300_LEAP_IN_COLOR_END_TICK      = 18,
+        ACTOR_401300_LEAP_IN_COLOR_DIVISOR       = 30,
+        ACTOR_401300_LEAP_IN_LAND_TICKS          = 16,
+        ACTOR_401300_LEAP_IN_LAND_STEP           = 84,
+        ACTOR_401300_LEAP_IN_COLOR_FRACTION_BITS = 12,
+        ACTOR_401300_LEAP_IN_LEAF_PERIOD         = 8,
+    };
+    _Actor401300Work*          work;
+    Enemy*                     enemy;
+    TmdObject*                 model;
+    PlayerStatus*              playerStatus;
+    GfxCoord*                  offsetRoot;
+    void**                     cursorSlot;
+    _Actor401300LeapInScratch* savedCursor;
+    SVECTOR*                   playerOffset;
+    s16                        leafPhase;
+    s16                        landTick;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj = arg0->extra.tmd;
+        model = actor->extra.tmd;
         worldCoordSetActorColorMode(enemy, ENEMY_COLOR_DEFAULT);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->hitBody.radius    = 0x280;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->hitBody.radius    = ACTOR_401300_HIT_RADIUS;
         work->animRequest       = ACTOR_401300_ANIM_REQUEST_RESET;
-        work->animRate          = 0x10;
-        work->animId            = 0x20;
+        work->animRate          = ANIMATION_RATE_ONE;
+        work->animId            = ACTOR_401300_ANIM_LEAP;
         work->blendActive       = 0;
         work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags   &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        _actor401300UpdateAnimationEffects(arg0);
-        work->jointPairTarget = 0x200;
+        _actor401300UpdateAnimationEffects(actor);
+        work->jointPairTarget = ACTOR_401300_LEAP_IN_PAIR_TARGET;
         work->field_D1C       = 0;
         work->stateTimer      = 0;
-        work->jointPairStep   = 0x100;
-        work->leapStartPos.vx = arg0->extra.tmd->coords->coord.t[0];
-        work->leapStartPos.vy = arg0->extra.tmd->coords->coord.t[1];
-        work->leapStartPos.vz = arg0->extra.tmd->coords->coord.t[2];
+        work->jointPairStep   = ACTOR_401300_LEAP_IN_PAIR_STEP;
+        work->leapStartPos.vx = actor->extra.tmd->coords->coord.t[0];
+        work->leapStartPos.vy = actor->extra.tmd->coords->coord.t[1];
+        work->leapStartPos.vz = actor->extra.tmd->coords->coord.t[2];
         _actorRenderScaleMatrix(&work->colorMtx, 0);
         return;
     }
-    scratch = (SVECTOR**)SCRATCH_HEAD_ADDR;
-    config  = &gPlayerStatus;
+    cursorSlot   = SCRATCH_HEAD_ADDR;
+    playerStatus = &gPlayerStatus;
     work->stateTimer++;
-    root                              = arg0->extra.tmd->coords;
-    head                              = SCRATCH_HEAD_AT(scratch, SVECTOR);
-    head[-1].vx                       = config->coordMtx->t[0] - root->coord.t[0];
-    vec                               = head - 1;
-    vec->vy                           = config->coordMtx->t[1] - root->coord.t[1];
-    vec->vz                           = config->coordMtx->t[2] - root->coord.t[2];
-    SCRATCH_HEAD_AT(scratch, SVECTOR) = head - 3;
-    if (work->stateTimer < 0x12) {
-        _actorRenderScaleMatrix(&work->colorMtx, (work->stateTimer << 12) / 30);
-        if (gGameSession->location.loc.area == 0xB) {
-            if ((work->stateTimer & 7) == 0) {
-                effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 3, 0, NULL);
-                effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
-                effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 1, 0, NULL);
-                effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 18, 0, NULL);
+    offsetRoot                                             = actor->extra.tmd->coords;
+    savedCursor                                            = SCRATCH_HEAD_AT(cursorSlot, _Actor401300LeapInScratch);
+    savedCursor[-1].playerOffset.vx                        = playerStatus->coordMtx->t[0] - offsetRoot->coord.t[0];
+    playerOffset                                           = &savedCursor[-1].playerOffset;
+    playerOffset->vy                                       = playerStatus->coordMtx->t[1] - offsetRoot->coord.t[1];
+    playerOffset->vz                                       = playerStatus->coordMtx->t[2] - offsetRoot->coord.t[2];
+    SCRATCH_HEAD_AT(cursorSlot, _Actor401300LeapInScratch) = savedCursor - 1;
+    // The driver refreshes color before this cumulative-looking scale is applied.
+    if (work->stateTimer < ACTOR_401300_LEAP_IN_COLOR_END_TICK) {
+        _actorRenderScaleMatrix(&work->colorMtx, (work->stateTimer << ACTOR_401300_LEAP_IN_COLOR_FRACTION_BITS) / ACTOR_401300_LEAP_IN_COLOR_DIVISOR);
+        if (gGameSession->location.loc.area == GAME_AREA_NEO_ARK_FOREST_ZONE) {
+            if ((work->stateTimer & (ACTOR_401300_LEAP_IN_LEAF_PERIOD - 1)) == 0) {
+                effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 3, 0, NULL);
+                effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 16, 0, NULL);
+                effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 1, 0, NULL);
+                effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 18, 0, NULL);
             } else {
-                mod = work->stateTimer % 8;
-                if (mod == 2) {
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 2, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 17, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 3, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 4, 0, NULL);
-                } else if (mod == 4) {
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 5, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 1, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 19, 0, NULL);
-                } else if (mod == 6) {
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 17, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 5, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, arg0->extra.tmd->coords + 18, 0, NULL);
+                leafPhase = work->stateTimer % ACTOR_401300_LEAP_IN_LEAF_PERIOD;
+                if (leafPhase == 2) {
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 2, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 17, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 3, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 4, 0, NULL);
+                } else if (leafPhase == 4) {
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 5, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 16, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 1, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 19, 0, NULL);
+                } else if (leafPhase == 6) {
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 17, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 16, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 5, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_FOREST_FALLING_LEAF, actor->extra.tmd->coords + 18, 0, NULL);
                 }
             }
-        } else if (gGameSession->location.loc.area == 0x1D) {
-            if ((work->stateTimer & 7) == 0) {
-                effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 3, 0, NULL);
-                effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
-                effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 1, 0, NULL);
-                effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 18, 0, NULL);
+        } else if (gGameSession->location.loc.area == GAME_AREA_NEO_ARK_WOODLAND_PATH) {
+            if ((work->stateTimer & (ACTOR_401300_LEAP_IN_LEAF_PERIOD - 1)) == 0) {
+                effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 3, 0, NULL);
+                effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 16, 0, NULL);
+                effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 1, 0, NULL);
+                effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 18, 0, NULL);
             } else {
-                mod = work->stateTimer % 8;
-                if (mod == 2) {
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 2, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 17, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 3, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 4, 0, NULL);
-                } else if (mod == 4) {
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 5, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 1, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 19, 0, NULL);
-                } else if (mod == 6) {
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 17, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 16, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 5, 0, NULL);
-                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, arg0->extra.tmd->coords + 18, 0, NULL);
+                leafPhase = work->stateTimer % ACTOR_401300_LEAP_IN_LEAF_PERIOD;
+                if (leafPhase == 2) {
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 2, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 17, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 3, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 4, 0, NULL);
+                } else if (leafPhase == 4) {
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 5, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 16, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 1, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 19, 0, NULL);
+                } else if (leafPhase == 6) {
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 17, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 16, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 5, 0, NULL);
+                    effectSpawn(EFFECT_NEO_ARK_WOODLAND_FALLING_LEAF, actor->extra.tmd->coords + 18, 0, NULL);
                 }
             }
         }
     }
-    _actor401300UpdateAnimationEffects(arg0);
+    _actor401300UpdateAnimationEffects(actor);
     switch (work->animId) {
-        case 0x20:
-            work->hitBody.radius = 0x500;
-            if (work->rig.slots[1].status.fields.flags & 0x100) {
-                work->animId      = 0x21;
+        case ACTOR_401300_ANIM_LEAP:
+            work->hitBody.radius = ACTOR_401300_LEAP_IN_HIT_RADIUS;
+            if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+                work->animId      = ACTOR_401300_ANIM_LAND;
                 work->animRequest = ACTOR_401300_ANIM_REQUEST_RESET;
                 work->stateTimer  = 0;
             }
-            if (work->playerHeld == 0 && (s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x78) != 0) {
-                _actorMovementStepForward(arg0->extra.tmd->coords, 0x78);
+            if (work->playerHeld == 0 && (s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, ACTOR_401300_LEAP_IN_STEP) != 0) {
+                _actorMovementStepForward(actor->extra.tmd->coords, ACTOR_401300_LEAP_IN_STEP);
             }
-            _actor401300RestoreRootYawScale(arg0);
+            _actor401300RestoreRootYawScale(actor);
             break;
-        case 0x21:
-            work->hitBody.radius = 0x280;
-            cur                  = work->stateTimer;
-            if (cur < 0x11 && work->playerHeld == 0) {
-                if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x15E, 0x54 - cur * 0x54 / 16) != 0) {
-                    _actorMovementTranslateForwardNonzero(arg0->extra.tmd->coords, 0x54 - work->stateTimer * 0x54 / 16);
+        case ACTOR_401300_ANIM_LAND:
+            work->hitBody.radius = ACTOR_401300_HIT_RADIUS;
+            landTick             = work->stateTimer;
+            if (landTick < ACTOR_401300_LEAP_IN_LAND_TICKS + 1 && work->playerHeld == 0) {
+                if ((s16)_playerDetectionOutOfReach(actor->extra.tmd->coords, ACTOR_401300_PLAYER_REACH_RADIUS, ACTOR_401300_LEAP_IN_LAND_STEP - landTick * ACTOR_401300_LEAP_IN_LAND_STEP / ACTOR_401300_LEAP_IN_LAND_TICKS) != 0) {
+                    _actorMovementTranslateForwardNonzero(actor->extra.tmd->coords, ACTOR_401300_LEAP_IN_LAND_STEP - work->stateTimer * ACTOR_401300_LEAP_IN_LAND_STEP / ACTOR_401300_LEAP_IN_LAND_TICKS);
                 }
             }
-            _actor401300RestoreRootYawScale(arg0);
-            if (work->rig.slots[1].status.fields.flags & 0x100) {
+            _actor401300RestoreRootYawScale(actor);
+            if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
                 work->state = ACTOR_401300_STATE_ALERT;
             }
             break;
@@ -5873,92 +6110,102 @@ static void func_actor_401300_8013F628(Task* arg0)
             work->state = ACTOR_401300_STATE_PATROL;
             break;
     }
-    SCRATCH_STACK_RELEASE_BYTES(3 * sizeof(SVECTOR));
+    SCRATCH_STACK_RELEASE_BLOCK(_Actor401300LeapInScratch);
 }
 
-static void func_actor_401300_80140300(Task* arg0)
+/// Falls backward again after a hit interrupted recovery, then selects rest or death.
+///
+/// Requires live work/Enemy/model and the loaded fall clip. Entry resets
+/// playback and seeds the fixed-joint pair at 200/512 toward 64/512. Hit-body
+/// grid correction takes priority over the root grid body. When the clip
+/// settles, grid collision on the hit body stops and HP/buildup selects
+/// DEATH_BURN, STATUS_HOLD or DOWN. Nested contact scratch is released.
+static void _actor401300StateRefallBack(Task* actor)
 {
+    enum {
+        ACTOR_401300_REFALL_PAIR_TARGET = 64,
+        ACTOR_401300_REFALL_PAIR_START  = 200,
+        ACTOR_401300_REFALL_PAIR_STEP   = 64,
+    };
     _Actor401300Work* work;
     Enemy*            enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitBody.radius          = 0x280;
+        actor->extra.tmd->flags       = 0;
+        work->hitBody.radius          = ACTOR_401300_HIT_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ACTOR_401300_ANIM_REQUEST_RESET;
-        work->animId                  = 0xB;
-        work->animRate                = 0x10;
+        work->animId                  = ACTOR_401300_ANIM_FALL_BACK;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
         if (enemy->hp <= 0) {
             sceneSetEnemyAlert(1);
         }
-        work->jointPairTarget = 0x40;
-        work->jointPairBlend  = 0xC8;
-        work->jointPairStep   = 0x40;
+        work->jointPairTarget = ACTOR_401300_REFALL_PAIR_TARGET;
+        work->jointPairBlend  = ACTOR_401300_REFALL_PAIR_START;
+        work->jointPairStep   = ACTOR_401300_REFALL_PAIR_STEP;
         work->hitBody.flags  |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    _actor401300UpdateAnimationEffects(arg0);
-    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
-        _actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET);
+    _actor401300UpdateAnimationEffects(actor);
+    if (_actorContactApplyGridPushback(actor->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
+        _actor401300ApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET);
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        if (enemy->hp <= 0) {
-            work->state = ACTOR_401300_STATE_DEATH_BURN;
-        } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->state = ACTOR_401300_STATE_STATUS_HOLD;
-        } else {
-            work->state = ACTOR_401300_STATE_DOWN;
-        }
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        _actor401300ChooseFallExit(work, enemy);
     }
 }
 
-static void func_actor_401300_8014046C(Task* arg0)
+/// Falls forward again after a hit interrupted recovery, then selects rest or death.
+///
+/// Requires live work/Enemy/model and the loaded fall clip. Entry resets
+/// playback and seeds the fixed-joint pair at 200/512 toward 64/512. Hit-body
+/// grid correction takes priority over the root grid body. When the clip
+/// settles, grid collision on the hit body stops and HP/buildup selects
+/// DEATH_BURN, STATUS_HOLD or DOWN. Nested contact scratch is released.
+static void _actor401300StateRefallFront(Task* actor)
 {
+    enum {
+        ACTOR_401300_REFALL_PAIR_TARGET = 64,
+        ACTOR_401300_REFALL_PAIR_START  = 200,
+        ACTOR_401300_REFALL_PAIR_STEP   = 64,
+    };
     _Actor401300Work* work;
     Enemy*            enemy;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = actor->work;
+    enemy = actor->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
-        work->hitBody.radius          = 0x280;
+        actor->extra.tmd->flags       = 0;
+        work->hitBody.radius          = ACTOR_401300_HIT_RADIUS;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = 0;
         work->animRequest             = ACTOR_401300_ANIM_REQUEST_RESET;
-        work->animId                  = 0x22;
-        work->animRate                = 0x10;
+        work->animId                  = ACTOR_401300_ANIM_REFALL_FRONT;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->lookYaw                 = 0;
         work->lookYawTarget           = 0;
-        work->jointPairTarget         = 0x40;
-        work->jointPairBlend          = 0xC8;
-        work->jointPairStep           = 0x40;
+        work->jointPairTarget         = ACTOR_401300_REFALL_PAIR_TARGET;
+        work->jointPairBlend          = ACTOR_401300_REFALL_PAIR_START;
+        work->jointPairStep           = ACTOR_401300_REFALL_PAIR_STEP;
         if (enemy->hp <= 0) {
             sceneSetEnemyAlert(1);
         }
         work->hitBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
     }
-    _actor401300UpdateAnimationEffects(arg0);
-    if (_actorContactApplyGridPushback(arg0->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
-        _actor401300ApplyGridPushback(arg0->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET);
+    _actor401300UpdateAnimationEffects(actor);
+    if (_actorContactApplyGridPushback(actor->extra.tmd->coords, work->hitContacts, ARRAY_SIZE(work->hitContacts)) == 0) {
+        _actor401300ApplyGridPushback(actor->extra.tmd->coords, work->gridContacts, ARRAY_SIZE(work->gridContacts), ACTOR_401300_GRID_ROOT_Y_OFFSET);
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    if (work->rig.slots[1].status.fields.flags & 0x100) {
-        work->hitBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);
-        if (enemy->hp <= 0) {
-            work->state = ACTOR_401300_STATE_DEATH_BURN;
-        } else if (enemy->reactionFlags & ENEMY_REACTION_BUILDUP) {
-            work->state = ACTOR_401300_STATE_STATUS_HOLD;
-        } else {
-            work->state = ACTOR_401300_STATE_DOWN;
-        }
+    actor->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_SETTLED) {
+        _actor401300ChooseFallExit(work, enemy);
     }
 }
 
@@ -6103,19 +6350,19 @@ static const _Actor401300StateTable D_actor_401300_80131F34 = { {
     _actor401300StateBackOff,
     _actor401300StateSlide,
     _actor401300StateGrabWindup,
-    func_actor_401300_8013AE48,
-    func_actor_401300_8013B6E8,
-    func_actor_401300_8013CBAC,
-    func_actor_401300_8013D2AC,
-    func_actor_401300_8013D6C4,
-    func_actor_401300_8013DADC,
-    func_actor_401300_8013E930,
-    func_actor_401300_8013F628,
+    _actor401300StateBendOver,
+    _actor401300StateDeathBurst,
+    _actor401300StateStalk,
+    _actor401300StateStrikeA,
+    _actor401300StateStrikeB,
+    _actor401300StateCharge,
+    _actor401300StateLeap,
+    _actor401300StateLeapIn,
     _actor401300StateDead,
-    func_actor_401300_80140300,
-    func_actor_401300_8014046C,
+    _actor401300StateRefallBack,
+    _actor401300StateRefallFront,
     _actor401300StateWounded,
-    func_actor_401300_8013BB30,
+    _actor401300StateDeathBurstWalk,
 } };
 
 static void func_actor_401300_801405DC(Enemy* enemy, Task* actor)

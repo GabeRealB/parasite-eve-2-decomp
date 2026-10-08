@@ -2110,7 +2110,7 @@ static void _actor401000Ambush(Task* task)
 /// spawns one effect per key frame, applying area-placement texture offsets
 /// through `_actorRenderApplyEffectPlacementTextureOffsets`.
 /// At 0x3D the actor returns to state 0. The 401000 twin of
-/// `func_actor_401300_8013B6E8`: same five clips, three of them at the same
+/// `_actor401300StateDeathBurst`: same five clips, three of them at the same
 /// node offsets (`+1`, `+9`, `+12`, `+1`, `+3` off the root coordinate) and the
 /// same 0x64/0/0 spawn vector, but it reads the offset from the work block
 /// rather than a stack `SVECTOR` and has no `field_D20` guard on the tail.

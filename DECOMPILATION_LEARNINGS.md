@@ -996,7 +996,7 @@ pop re-loads `*SCRATCH_STACK_CURSOR_SLOT` fresh; the loaded value becomes the
 matrix pointer itself, the pop temp is short-lived, and it takes a call-used
 register (`$v0`) - exactly what the target does. Check `.lreg` for a
 `crosses N calls` on a pointer that is only used twice before swapping in the
-family's 1/4096-scale helper; the sibling tail in `func_actor_401300_8013BB30`
+family's 1/4096-scale helper; the sibling tail in `_actor401300StateDeathBurstWalk`
 compiles from the 1/4096-scale shape and has the target's allocation.
 ## A shared tail reached by a *fall-through* merges through jump2's phase 1, not phase 2 - and where it stops is the whole story
 
@@ -102663,7 +102663,7 @@ work = actor->work;
 if ((spawnKind & 0xF0) == 0x10) {
 ```
 
-### `lui t0; addiu t0,t0,%lo(G); lbu off(t0)` right before a use is a spilled `p = &G` from the prologue (func_actor_401300_8013E930, 2026-09-16)
+### `lui t0; addiu t0,t0,%lo(G); lbu off(t0)` right before a use is a spilled `p = &G` from the prologue (_actor401300StateLeap, 2026-09-16)
 
 **Symptom.** 99.78%, the only difference: target
 `li v1,1; lui t0,%hi(gMcSaveData); addiu t0,t0,%lo(gMcSaveData); lbu v0,0x5c1(t0)`,
@@ -102674,7 +102674,7 @@ pseudo into the `mem`. The same byte is `D_80072729` elsewhere in the function,
 loaded the normal split way.
 
 **Cause.** The pointer is a function-wide local set once at the top
-(`save = &gMcSaveData;` next to `config = &gPlayerStatus;`) and used once deep
+(`save = &gMcSaveData;` next to `playerStatus = &gPlayerStatus;`) and used once deep
 in a switch case. It gets a `REG_EQUIV` constant, and with every callee-saved
 register already taken it gets no hard register; reload rematerialises the
 constant into a reload register (`$t0`) immediately before the use, after the
@@ -102686,7 +102686,7 @@ address in `$t0` (or another odd temp) directly before a single load.
 Also in this function: a constant `1` held in `$s5` for both a `bne` and a
 later `sb` after calls means the compare sits in the extended basic block of
 the store - two `if ((s16)Dispatch(...) == 1)` arms (later cross-jumped) had to
-become `ret = Dispatch(...)` in each arm and one `if (ret == 1)` after the join.
+become `damageReply = Dispatch(...)` in each arm and one `if (damageReply == 1)` after the join.
 
 ### A 0/1 flag kept as `sltiu; bnez; li 1 / move zero; move v1,v0` needs the test to read the variable, plus an early set of the copy (_actor401300UpdateAnimationEffects, 2026-09-16)
 
@@ -108229,7 +108229,7 @@ expected to absorb the change.
 ## `similar`'s starred multi-class hit is a source twin - prove it by diffing the two `.s` streams (_actor401800BurstDeath, 2026-09-16)
 
 Fourth instance of "transcribe the twin" in this TU, and the one that shows how to *know* before
-writing any C. The brief's `similar matched bodies` listed `func_actor_401300_8013B6E8` starred
+writing any C. The brief's `similar matched bodies` listed `_actor401300StateDeathBurst` starred
 - it appears in all four classes (shape 0.98, fields 0.91, calls 0.98, cflow 0.97). Where
 `similar` normally "generates candidates, never equalities", agreement across every class was
 here an *exact* source-level match: the m2c seed scored 62.559%, and a transcription of the twin
@@ -109014,7 +109014,7 @@ that only ever holds two or three small constants — and in both the repair is 
 not a pin.
 
 First build after the rewrite scored 100.000% with all penalties zero; the control was
-`func_actor_401300_80140300`, the already-matched sibling carrying the same tail in the direct-store
+`_actor401300StateRefallBack`, the already-matched sibling carrying the same tail in the direct-store
 form. Inputs: `base_1.i` SHA256
 `f0167845a9135c6eb48b075d3edf23d1bb1cb78fe9067d0d7d3146640142f982`; target SHA256
 `a79abd137951e3d2ddb037175e14a222c707a46093307202c216ea90bd2c8d9f`; compiler SHA256
@@ -109890,7 +109890,7 @@ SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 `_oddStrangerStalk` matched on the first real attempt (m2c baseline
 69.9%, then `base_1.c` score 100.000% with all penalties zero). Nothing about it
 needed a scheduling or allocation experiment, and the thing that made it cheap is
-worth copying: the function is the 401000 twin of `func_actor_401300_8013CBAC`
+worth copying: the function is the 401000 twin of `_actor401300StateStalk`
 (`overlay_dup_index.py similar` ranked it 0.84 shape) and of
 `_actor01900StateChase` (0.89, starred in two classes). `overlay_dup_index.py find`
 reported no cross-overlay copies, so no promotion was involved — the twin's value
@@ -112289,7 +112289,7 @@ so it takes `$s0` for itself: the actor's model pointer drops to `$s1` and every
                         suggested_only=0 -> $s0
 
 **Fix** - the recipe the actors corpus already uses (`actor_120000`/`actor_102000`
-`TintEffect`, `func_actor_401300_8013BB30`): a `SOFT_BARRIER` before the address,
+`TintEffect`, `_actor401300StateDeathBurstWalk`): a `SOFT_BARRIER` before the address,
 take it into a pointer local, `TOUCH_REG` that local, pass the *pointer* to the
 first call and a fresh `&key` to the second. The `+r` asm makes the register's
 value "modified", so cse cannot fold the second `&key` into it:
@@ -113173,7 +113173,7 @@ toPlayer->vx = playerStatus->coordMtx->t[0] - actorRoot->coord.t[0];
 ```
 
 `_actorPositionDeltaToPlayer` / `_actorPositionDeltaToPlayer` say the same
-thing and are matched bodies; `func_actor_401300_8013AE48` is the independent
+thing and are matched bodies; `_actor401300StateBendOver` is the independent
 replication — same `lhu` pair, same offsets, same matched source line.
 
 **Scope.** Any expression in a 16-bit field position whose operands are wider.
@@ -113192,7 +113192,7 @@ operand in HImode too, so no sign extension is asked for. It matches as
 `u16` overlay of the point, with a cast at each caller, was this mistake.
 
 The match needed nothing else: `_actor356100HeadTurn` is
-`func_actor_401300_8013AE48`'s body with this overlay's field names, five
+`_actor401300StateBendOver`'s body with this overlay's field names, five
 constants and the `lookYawTarget` step-clamp, and lifting the sibling's
 `AimScratch` + `PositionYaw` + `NormalizeYaw` + `RescaleYaw` inlines wholesale
 scored 100.00% on the first attempt with all penalties zero, from a 76.79% m2c
