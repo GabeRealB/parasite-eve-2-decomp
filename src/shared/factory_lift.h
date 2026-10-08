@@ -156,6 +156,25 @@ STATIC_ASSERT_SIZEOF(FactoryLiftWork, 0x58);
 /// panel keeps its cursor hidden after a choice has been dealt with.
 #define FACTORY_PANEL_SCAN_DELAY_FRAMES 10
 
+/// Dispatch slots of the operator panel task, selected by `Task::state`.
+enum {
+    FACTORY_PANEL_STATE_INIT = 0,
+    FACTORY_PANEL_STATE_ARM_PROMPT,
+    FACTORY_PANEL_STATE_IDLE,
+    FACTORY_PANEL_STATE_OPEN_PROMPT,
+    FACTORY_PANEL_STATE_PROMPT,
+    FACTORY_PANEL_STATE_EXIT,
+    FACTORY_PANEL_STATE_WAIT_MOVE,
+    FACTORY_PANEL_STATE_COUNT
+};
+
+/// Saved views used while scanning the operator panel and after leaving it.
+enum {
+    FACTORY_PANEL_VIEW_RETURN    = 3,
+    FACTORY_PANEL_VIEW_POWERED   = 5,
+    FACTORY_PANEL_VIEW_UNPOWERED = 12
+};
+
 /// Work block of the operator panel task: the hotspot the player confirmed and
 /// the two waits that keep the panel from taking another choice too early.
 ///
@@ -287,13 +306,10 @@ void factoryPanelSpawn(Task* task);
 s32  factoryCommand(Task* arg0, s32 arg1, s32 cmd, s32 arg3);
 s32  factorySoundCommand(Task* task, s32 msgId, s32 arg2, s32 arg3);
 s32  factoryRoomAction(Task* task, s32 msgId, const void* firstArg, s32 arg3);
-void factoryPanelIdle(Task* task);
 void factoryPanelRunStep(Task* task, s16 step);
 void factoryPanelInit(Task* task);
 void factoryPanelOpenPrompt(Task* task);
 void factoryPanelPrompt(Task* task);
-void factoryPanelExit(Task* arg0);
-void factoryPanelWaitMove(Task* task);
 
 void factoryLiftExit(Task* task);
 void factoryLiftRun(Task* task);
@@ -305,12 +321,10 @@ void factoryLiftRun(Task* task);
 /// this wrapper does not interpret its movement-handler completion result.
 void factoryHatchRun(Task* task);
 void factoryCapScene(Task* arg0);
-void factoryEntryIdle(Task* task);
 s32  factoryIgnoreMessage(Task* task, s32 msgId, s32 arg2, s32 arg3);
 void factoryPanelRun(Task* task);
 void factoryPromptTask(Task* task);
 void factoryPanelTrigger(Task* task, s32, s32, s32);
-void factoryPanelArmPrompt(Task* task);
 
 static s32 _factoryHatchOpen(Task* task);
 static s32 _factoryHatchClose(Task* task);

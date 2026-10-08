@@ -1,7 +1,10 @@
 /* Part of the Dryfield driveway library; see dryfield_driveway.h. */
 
-/// Script callback: stores its argument in the session's `viewDirty` flag.
-void drivewaySetViewDirty(s16 arg0)
+/// Sets the deferred reload request for the live save's view.
+///
+/// The event-script callback consumes a signed halfword: zero clears the
+/// request and any nonzero value requests a reload. The script passes one.
+static void _drivewaySetViewDirty(s16 viewDirty)
 {
-    gGameSession->viewDirty = arg0;
+    gGameSession->viewDirty = viewDirty;
 }

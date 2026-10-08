@@ -41,6 +41,7 @@
 #include "../../shared/grenade_shell.h"
 
 static void _grenadeShellExit(Task* task);
+static void _grenadeShellSpawn(Task* task);
 
 #define GRENADE_WEAPON (0xB + GRENADE_VARIANT)
 
@@ -114,7 +115,7 @@ void func_grenade_pistol_8011D1D4(Task* arg0)
 #include "../../shared/grenade_shell_exit.inc.c"
 
 static const TaskFuncTable4 D_grenade_pistol_8011D1C4 = { {
-    grenadeShellSpawn,
+    _grenadeShellSpawn,
     grenadeShellFly,
     _grenadeShellBlast,
     _grenadeShellExit,

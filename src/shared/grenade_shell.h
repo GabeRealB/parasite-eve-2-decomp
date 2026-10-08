@@ -1,8 +1,8 @@
 /* The projectile task of the grenade launchers, used by the Grenade Pistol and
- * MM1 source and by Kyle's package. Spawning places the shell at a per-ammo
- * offset from the muzzle, aims it along the muzzle, gives it a per-ammo launch
- * speed and links a collision sphere plus a capsule that stretches with the
- * speed. In flight it steps along its direction under gravity and trails smoke
+ * MM1 source and by Kyle's package. Spawning places the shell at a launcher-row
+ * offset from the muzzle, aims it along the muzzle, seeds that launcher's flight
+ * divisor and links a collision sphere plus a capsule. In flight it steps
+ * along its direction under gravity and trails smoke
  * that thins as it slows. It detonates on world contact, on a solid wall
  * record or on timeout, spawning the explosion effect and sound and widening
  * the collision sphere to the ammo's blast radius, which stays live for a few
@@ -20,7 +20,6 @@
 
 #include "main/task_types.h"
 
-void        grenadeShellSpawn(Task* arg0);
 void        grenadeShellFly(Task* arg0);
 static void _grenadeShellBlast(Task* task);
 

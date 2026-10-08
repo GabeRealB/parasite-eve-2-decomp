@@ -24,6 +24,4 @@ void       drivewayBlackoutTask(Task* arg0);
 void       drivewayCutsceneTask(Task* arg0);
 static s32 _drivewayScriptSound(Task* task, s32 messageId, s32 cueKey, s32 unusedArg);
 
-void drivewaySetViewDirty(s16 arg0);
-
 #endif /* SRC_SHARED_DRYFIELD_DRIVEWAY_H */

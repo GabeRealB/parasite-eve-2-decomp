@@ -1,11 +1,11 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Restores the saved root matrix and multiplies its rotation by the death Y scale.
+/// Restores the saved death pose and scales its root rotation vertically.
 ///
 /// Borrows live work/root and a disjoint reserved scale scratch block; the
-/// caller owns invalidation, composition and release. Q12 scale is read after
-/// the X scale store, before restoring the matrix.
-static __inline__ void _mothApplyRootScale(GfxCoord* rootCoord, MothWork* work, ActorScaleScratch* scratch)
+/// caller owns invalidation, composition and release. The signed Q12 Y factor
+/// uses 4096 as unity; X/Z stay at unity and saved translation is preserved.
+static __inline__ void _mothApplyRootScale(GfxCoord* rootCoord, const MothWork* work, ActorScaleScratch* scratch)
 {
     scratch->scale.vx = ONE;
     scratch->scale.vy = work->squashScale;

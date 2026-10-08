@@ -436,17 +436,20 @@ static void Telephone_DrawUsageRow(UiList* arg0, UiObject* arg1)
 
 /// Moves one usage id to an earlier row, shifting the intervening ids.
 ///
-/// Both indices are live rows; 0 <= destinationIndex < sourceIndex < itemCount.
+/// Borrows writable item ids; 0 <= destinationIndex < sourceIndex < itemCount
+/// <= TELEPHONE_USAGE_ROW_CAPACITY. Preserves the intervening rows' order.
+/// Builders call before computing shares and gauges, so those arrays stay
+/// untouched and the list count does not change.
 static inline void _telephoneInsertUsageRow(_TelephoneUsageWork* work, s32 sourceIndex, s32 destinationIndex)
 {
-    s32 sortedItemId;
+    s32 insertedItemId;
     s32 moveIndex;
 
-    sortedItemId = work->itemIds[sourceIndex];
+    insertedItemId = work->itemIds[sourceIndex];
     for (moveIndex = sourceIndex - 1; moveIndex >= destinationIndex; moveIndex--) {
         work->itemIds[moveIndex + 1] = work->itemIds[moveIndex];
     }
-    work->itemIds[destinationIndex] = sortedItemId;
+    work->itemIds[destinationIndex] = insertedItemId;
 }
 
 /// Builds the weapon usage rows in descending recorded-use order.

@@ -65,6 +65,12 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 #define DRYFIELD_TIME DRYFIELD_NIGHT
 #include "../../shared/factory_lift.h"
 
+static void _factoryEntryIdle(Task* task);
+static void _factoryPanelArmPrompt(Task* task);
+static void _factoryPanelIdle(Task* task);
+static void _factoryPanelExit(Task* task);
+static void _factoryPanelWaitMove(Task* task);
+
 static void _actionPromptResetDefault(Task* task);
 
 extern TaskDesc gRoomEventTaskDesc;
@@ -825,7 +831,7 @@ SpriteBatch D_dryfield_night_factory_801899E4[6] = {
 /// State handlers of the room entry task: set-up, an empty tick and
 /// `taskKill`.
 static const TaskFuncTable3 _gFactoryEntryStates = {
-    { factoryRoomInit, factoryEntryIdle, taskKill },
+    { factoryRoomInit, _factoryEntryIdle, taskKill },
 };
 
 #include "../../shared/factory_room_init.inc.c"
@@ -855,12 +861,12 @@ static const TaskFuncTable3 _gFactoryEntryStates = {
 static const TaskFuncTable7 _gFactoryPanelStates = {
     {
         factoryPanelInit,
-        factoryPanelArmPrompt,
-        factoryPanelIdle,
+        _factoryPanelArmPrompt,
+        _factoryPanelIdle,
         factoryPanelOpenPrompt,
         factoryPanelPrompt,
-        factoryPanelExit,
-        factoryPanelWaitMove,
+        _factoryPanelExit,
+        _factoryPanelWaitMove,
     },
 };
 

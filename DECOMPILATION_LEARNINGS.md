@@ -3954,7 +3954,7 @@ if ((capIsBusy() != 0) || (work->scanDelay != 0)) {   /* lhu $v0, 0x8($s2) again
 ```
 
 The second `lhu` is a load feeding a signed compare on its own, so a `s16`
-header would have folded it to `lh` — `factoryPanelIdle`
+header would have folded it to `lh` — `_factoryPanelIdle`
 (a `rooms` overlay) pins `FactoryPanelWork::scanDelay` to `u16` this way, and
 the same header's store-only users (0 and 0xA) had never asked the question.
 Note also that the second load survives: the store may alias, so CSE keeps both

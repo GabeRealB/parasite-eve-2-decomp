@@ -58,6 +58,8 @@
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/factory_lift.h"
 
+static void _factoryEntryIdle(Task* task);
+
 static void _factoryHatchInit(Task* task);
 static void _factoryHatchUpdate(Task* task);
 static void _factoryLiftNotifyPanel(Task* panelTask);
@@ -723,7 +725,7 @@ RoomEventReq gRoomEventReq = { 0 };
 /// State handlers of the room entry task, indexed by `Task::state`: the set-up
 /// tick, the idle tick and `taskKill`.
 static const TaskFuncTable3 _gFactoryEntryStates = {
-    { factoryRoomInit, factoryEntryIdle, taskKill },
+    { factoryRoomInit, _factoryEntryIdle, taskKill },
 };
 
 #include "../../shared/factory_ignore_message.inc.c"

@@ -1,9 +1,11 @@
 /* Part of the Moth library; see moth.h. */
 
-/// Writes the four corners of a square centered at zero in the screen plane.
+/// Builds the moth burst's square offsets before its screen-space roll.
 ///
-/// Borrows a reserved quad scratch block. halfSize is measured in screen pixels;
-/// each component narrows to s16 and all four Z values are zero.
+/// Borrows a reserved quad scratch block. `halfSize` is in screen pixels;
+/// the projected caller supplies 0..1536. Writes signed-halfword XYZ in
+/// top-left, top-right, bottom-left, bottom-right order with zero Z; corner
+/// pad words and the projected centre/depth remain intact.
 static __inline__ void _mothSetBurstCorners(ActorScreenQuadScratch* scratch, s32 halfSize)
 {
     scratch->corners[0].vx = -halfSize;

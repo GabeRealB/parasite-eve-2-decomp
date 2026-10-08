@@ -504,6 +504,11 @@ static void _shopAppendItemRow(UiList* list, UiObject* object, s32 rowId)
 }
 
 /// Sorts offered row ids by ascending inventory catalogue key.
+///
+/// Borrows the work's writable row ids and read-only list metadata; itemCount
+/// must be in 0..`ARRAY_SIZE(work->rowIds)`. Empty and singleton lists need no
+/// swaps. Only ids move: no prices or list selection are changed. Swapping
+/// distant rows can change the original order of equal keys.
 static inline void _shopSortItemRows(_ShopItemListWork* work, const UiList* list)
 {
     s32 rowIndex;

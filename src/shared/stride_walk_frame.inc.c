@@ -6,11 +6,12 @@
 #error "Bind ACTOR_RENDER_DRAW_WALKER_GROUND_SHADOW before including this fragment"
 #endif
 
-/// Ramps the head-aim weight toward the selected endpoint or back to zero.
+/// Ramps the walker's head aim toward the player or back to its animation pose.
 ///
 /// Borrows writable `work` with weight in 0..`STRIDE_WALK_TURN_WEIGHT_FULL`.
-/// Each call changes the Q12 weight by one eighth of full weight, saturating
-/// at the selected endpoint. Any mode other than TURN_PLAYER releases the aim.
+/// Each call changes the signed-halfword Q12 weight by 512, saturating at
+/// full aim or zero. Any mode other than `STRIDE_WALK_TURN_PLAYER` releases
+/// the aim; the caller applies the resulting weight to the current head pose.
 static __inline__ void _strideWalkStepHeadTurnWeight(StrideWalkWork* work)
 {
     enum { STRIDE_WALK_TURN_WEIGHT_STEP = STRIDE_WALK_TURN_WEIGHT_FULL / 8 };

@@ -59,6 +59,11 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 #define DRYFIELD_TIME DRYFIELD_DAY
 #include "../../shared/factory_lift.h"
 
+static void _factoryPanelArmPrompt(Task* task);
+static void _factoryPanelIdle(Task* task);
+static void _factoryPanelExit(Task* task);
+static void _factoryPanelWaitMove(Task* task);
+
 /// State handlers of the room's script task, run by
 /// `factoryPanelRun`: set-up, prompt arming, the idle hotspot
 /// scan, prompt spawning, the prompt state, the exit and the wait for the
@@ -66,12 +71,12 @@ static s32 _actionPromptHitTestDefault(ActionPromptHotspot* hotspots, s16 cursor
 static const TaskFuncTable7 _gFactoryPanelStates = {
     {
         factoryPanelInit,
-        factoryPanelArmPrompt,
-        factoryPanelIdle,
+        _factoryPanelArmPrompt,
+        _factoryPanelIdle,
         factoryPanelOpenPrompt,
         factoryPanelPrompt,
-        factoryPanelExit,
-        factoryPanelWaitMove,
+        _factoryPanelExit,
+        _factoryPanelWaitMove,
     },
 };
 

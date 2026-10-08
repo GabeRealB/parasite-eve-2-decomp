@@ -2,21 +2,23 @@
 
 /// Sets one halo segment's screen vertices and returns the next rim angle.
 ///
-/// Borrows the projected centre and two pixel radii; angles use 4096 units per
-/// turn, zero down the screen. Writes only coordinates, narrowing to s16.
-static inline s32 _glowSetHaloQuadVertices(POLY_G4* quad, const EffectShapeScratch* block, s32 angle)
+/// Borrows a writable quad and the projected centre with inner/outer pixel
+/// radii. Rim angles use 4096 units per turn, zero down the screen; advances
+/// by 256 units. Trigonometry uses Q12 factors. Writes only coordinates,
+/// narrowing sums of raw projected halfwords and signed offsets to s16.
+static inline s32 _glowSetHaloQuadVertices(POLY_G4* quad, const EffectShapeScratch* projection, s32 angle)
 {
     s32 nextAngle;
 
-    quad->x0  = block->screenX + ((block->extent.ring.inner * rsin(angle)) >> GLOW_TRIG_SHIFT);
-    quad->y0  = block->screenY + ((block->extent.ring.inner * rcos(angle)) >> GLOW_TRIG_SHIFT);
+    quad->x0  = projection->screenX + ((projection->extent.ring.inner * rsin(angle)) >> GLOW_TRIG_SHIFT);
+    quad->y0  = projection->screenY + ((projection->extent.ring.inner * rcos(angle)) >> GLOW_TRIG_SHIFT);
     nextAngle = angle + GLOW_SIXTEENTH_TURN;
-    quad->x1  = block->screenX + ((block->extent.ring.inner * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
-    quad->y1  = block->screenY + ((block->extent.ring.inner * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
-    quad->x2  = block->screenX + ((block->extent.ring.outer * rsin(angle)) >> GLOW_TRIG_SHIFT);
-    quad->y2  = block->screenY + ((block->extent.ring.outer * rcos(angle)) >> GLOW_TRIG_SHIFT);
-    quad->x3  = block->screenX + ((block->extent.ring.outer * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
-    quad->y3  = block->screenY + ((block->extent.ring.outer * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
+    quad->x1  = projection->screenX + ((projection->extent.ring.inner * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+    quad->y1  = projection->screenY + ((projection->extent.ring.inner * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
+    quad->x2  = projection->screenX + ((projection->extent.ring.outer * rsin(angle)) >> GLOW_TRIG_SHIFT);
+    quad->y2  = projection->screenY + ((projection->extent.ring.outer * rcos(angle)) >> GLOW_TRIG_SHIFT);
+    quad->x3  = projection->screenX + ((projection->extent.ring.outer * rsin(nextAngle)) >> GLOW_TRIG_SHIFT);
+    quad->y3  = projection->screenY + ((projection->extent.ring.outer * rcos(nextAngle)) >> GLOW_TRIG_SHIFT);
     return nextAngle;
 }
 

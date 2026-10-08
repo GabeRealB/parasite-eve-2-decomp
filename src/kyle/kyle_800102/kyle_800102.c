@@ -34,6 +34,7 @@
 #include "../../shared/grenade_shell.h"
 
 static void _grenadeShellExit(Task* task);
+static void _grenadeShellSpawn(Task* task);
 
 #include "../../shared/grenade_shell_spawn.inc.c"
 
@@ -46,7 +47,7 @@ static void _grenadeShellExit(Task* task);
 void func_kyle_800102_801682B4(Task* task)
 {
     TaskFunc states[4] = {
-        grenadeShellSpawn,
+        _grenadeShellSpawn,
         grenadeShellFly,
         _grenadeShellBlast,
         _grenadeShellExit,

@@ -1,8 +1,10 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Script state: arms the action prompt at `ACTION_PROMPT_SPEED_AIM` with the
-/// idle cursor, clears its screen position and steps the script on one state.
-void factoryPanelArmPrompt(Task* task)
+/// Starts the operator panel's hotspot scan with a centered idle cursor.
+///
+/// Requires the live action prompt spawned during panel initialization.
+/// Enables aiming and advances from ARM_PROMPT to IDLE without changing work.
+static void _factoryPanelArmPrompt(Task* task)
 {
     ActionPrompt* prompt = D_80114D28;
 

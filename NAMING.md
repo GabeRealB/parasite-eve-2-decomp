@@ -675,6 +675,15 @@ receive `ROOM_MESSAGE_SOUND` and pass stage-relative sound IDs to `sndEvt`;
 each carrier keeps its own static instance. Cue constants use `DRIVEWAY_`,
 `GARAGE_` and `GAS_STATION_`.
 
+`driveway` also owns the paired rooms' included event-script callback that sets
+the session's deferred saved-view reload request. Its signed-halfword callback
+instances are private to each carrier.
+
+`waterTower` owns the paired Dryfield water-tower rooms' included CAP sound-cue
+mapping in `src/shared/water_tower.h`. The room message callback maps integer
+cues to water-tower scripts for the current stage, using `WATER_TOWER_` constants.
+Each instance is shared between that room overlay's translation units.
+
 `bridgeModel` owns the fixed translucent-plane setup shared by the Acropolis
 bridge and promenade, declared in `src/shared/bridge_model.h`. Each carrier
 keeps static setup and room-specific visibility states. The interface names

@@ -1,25 +1,23 @@
 /* Part of the factory lift library; see factory_lift.h. */
 
-/// Idle state of the room's script, state 2 of
-/// `_gFactoryPanelStates`. It holds the prompt idle for the
-/// `FactoryPanelWork::scanDelay` frames the prompt states armed --
-/// decrementing that countdown first and bailing out while it is still
-/// non-zero or while a cap is playing -- and otherwise hit-tests the room's
-/// hotspot table.
+/// Scans the operator panel's hotspots and latches a confirmed command choice.
 ///
-/// A confirmed hit (`buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED`)
-/// copies the hotspot's `id` and `promptKind` into the work block and advances
-/// to state 3; with nothing under the cursor the prompt keeps the idle cursor.
-/// `buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED`
-/// leaves the scan by advancing to state 5.
-void factoryPanelIdle(Task* task)
+/// Requires initialized panel work, a live prompt and a hotspot table ending
+/// in `ACTION_PROMPT_HOTSPOT_END`. Hides the HUD and holds event input. The
+/// scan delay counts down even while a CAP is busy; either wait hides and
+/// stops the cursor. Confirm selects the first hit and opens its command
+/// prompt; cancel leaves the panel. Cursor coordinates are screen pixels.
+static void _factoryPanelIdle(Task* task)
 {
-    ActionPrompt*        prompt = D_80114D28;
-    ActionPromptHotspot* hs     = gFactoryPanelHotspots;
-    FactoryPanelWork*    work   = task->work;
+    enum { FACTORY_PANEL_EVENT_ACTIVE = 1 };
 
-    gGameSession->hideHud    = 1;
-    gGameSession->eventState = 1;
+    ActionPrompt*        prompt  = D_80114D28;
+    ActionPromptHotspot* hotspot = gFactoryPanelHotspots;
+    FactoryPanelWork*    work    = task->work;
+
+    // Hold event input while captions and the post-choice delay settle.
+    gGameSession->hideHud    = true;
+    gGameSession->eventState = FACTORY_PANEL_EVENT_ACTIVE;
     if (work->scanDelay != 0) {
         work->scanDelay = work->scanDelay - 1;
     }
@@ -29,16 +27,16 @@ void factoryPanelIdle(Task* task)
         return;
     }
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_AIM;
-    if (ACTION_PROMPT_HIT_TEST(hs, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
+    if (ACTION_PROMPT_HIT_TEST(hotspot, prompt->screen.xy.x, prompt->screen.xy.y) != 0) {
         prompt->mode = ACTION_PROMPT_MODE_HOTSPOT;
         if (prompt->buttons.slots[0].state == ACTION_PROMPT_BUTTON_PRESSED) {
-            for (; hs->id != ACTION_PROMPT_HOTSPOT_END; hs++) {
-                if (hs->hit != 0) {
+            for (; hotspot->id != ACTION_PROMPT_HOTSPOT_END; hotspot++) {
+                if (hotspot->hit != 0) {
                     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
                     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
-                    work->choice        = hs->id;
-                    work->promptKind    = hs->promptKind;
-                    task->state         = 3;
+                    work->choice        = hotspot->id;
+                    work->promptKind    = hotspot->promptKind;
+                    task->state         = FACTORY_PANEL_STATE_OPEN_PROMPT;
                     return;
                 }
             }
@@ -47,6 +45,6 @@ void factoryPanelIdle(Task* task)
         prompt->mode = ACTION_PROMPT_MODE_IDLE;
     }
     if (prompt->buttons.slots[1].state == ACTION_PROMPT_BUTTON_PRESSED) {
-        task->state = 5;
+        task->state = FACTORY_PANEL_STATE_EXIT;
     }
 }

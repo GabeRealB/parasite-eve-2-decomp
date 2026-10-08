@@ -1,15 +1,18 @@
 /* Part of the water tower library; see water_tower.h. */
 
-/// The room's handler for message 0x13F2: plays the stage sound for script
-/// events 8 and 13 and answers 0 for every event.
-s32 waterTowerSoundMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 waterTowerSoundMsg(Task* task, s32 messageId, s32 cueKey, s32 unusedArg)
 {
-    switch (arg2) {
-        case 8:
-            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 8), 0, 0);
+    enum {
+        WATER_TOWER_SOUND_CUE_8  = 8,
+        WATER_TOWER_SOUND_CUE_13 = 13
+    };
+
+    switch (cueKey) {
+        case WATER_TOWER_SOUND_CUE_8:
+            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, WATER_TOWER_SOUND_CUE_8), 0, 0);
             break;
-        case 13:
-            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, 0x0D), 0, 0);
+        case WATER_TOWER_SOUND_CUE_13:
+            sndEvtRequestStageScriptStart(SOUND_AREA(GAME_STAGE_DRYFIELD, GAME_AREA_DRYFIELD_WATER_TOWER, WATER_TOWER_SOUND_CUE_13), 0, 0);
             break;
     }
     return 0;

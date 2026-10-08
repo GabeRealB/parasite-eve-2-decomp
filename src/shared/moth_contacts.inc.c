@@ -2,12 +2,13 @@
 
 /// Applies resolved grid correction or restores the position before an opposed move.
 ///
-/// Borrows the root, work and the caller's reserved delta; scratch must equal
-/// scratchHead - 1. Clears all grid contacts after consuming them. Correction
-/// uses integer halves of Q16.16.
+/// Borrows the root, work and the caller's reserved delta; `scratch` must equal
+/// `scratchHead - 1`. Clears all four grid contacts after consuming them.
+/// Correction uses signed integer halves of Q16.16; the opposed result restores
+/// the whole-unit pre-move position. Neither delta pointer is retained.
 static __inline__ void _mothApplyGridCorrection(GfxCoord* rootCoord, MothWork* work,
-                                                WorldCollisionDelta* scratchHead,
-                                                WorldCollisionDelta* scratch, s32 pushbackResult)
+                                                const WorldCollisionDelta* scratchHead,
+                                                const WorldCollisionDelta* scratch, s32 pushbackResult)
 {
     s32 correctedZ;
 
