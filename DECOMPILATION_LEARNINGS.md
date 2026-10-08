@@ -3670,7 +3670,7 @@ if (flag == 0) {
 100%; preprocessed
 `c94bebb11bdc205b8397160000a8a22a0347e2613b0ad275a84bc36696387834`).
 The `$a0` leftover on a pointer reloaded in both arms is the existing
-`func_actor_400600_8013BA00` split: per-arm locals plus a duplicated tail
+`_actor400600FinishHeavyRecoil` split: per-arm locals plus a duplicated tail
 store, merged by `jump2`.
 
 ## `if (x != 0) return expr; return 0` inverts; write the zero check first
@@ -67564,7 +67564,7 @@ setup, duplicate the call.
 
 ## A reloaded pointer shared by both `if`/`else` arms inherits `$a0`; split it
 
-`func_actor_400600_8013BA00` reloads `index->work` inside both arms of an
+`_actor400600FinishHeavyRecoil` reloads `task->work` inside both arms of an
 if/else and stores through it. Written with one local for the reloaded pointer,
 it scored 99.26% with `regs=4` — the pointer landed in `$a0` where the target
 uses `$v1`:
@@ -67573,11 +67573,11 @@ uses `$v1`:
 _Actor400600ZebraStalkerWork* work2;
 ...
 if (work->onBack == 0) {
-    work2 = (_Actor400600ZebraStalkerWork*)arg0->work;   /* -> lw $a0, 0x1C($s0) */
+    work2 = (_Actor400600ZebraStalkerWork*)task->work;   /* -> lw $a0, 0x1C($s0) */
     work2->state = 2;
     work2->subState = 0;
 } else {
-    work2 = (_Actor400600ZebraStalkerWork*)arg0->work;   /* -> lw $a0, 0x1C($s0) */
+    work2 = (_Actor400600ZebraStalkerWork*)task->work;   /* -> lw $a0, 0x1C($s0) */
     ...
 }
 ```
@@ -67602,14 +67602,15 @@ preference and picks `$a0`.
 
 A pointer used in only one basic block never becomes a global allocno, so it
 never goes through `expand_preferences`. Giving each arm its own local is
-enough:
+enough. Each expansion of `_actor400600SelectBehavior` supplies that arm's
+own work pointer:
 
 ```c
-_Actor400600ZebraStalkerWork* work2;
-_Actor400600ZebraStalkerWork* work3;
-...
-if (work->onBack == 0) { work2 = arg0->work; work2->state = 2;   ... }
-else                      { work3 = arg0->work; work3->state = 0xA; ... }
+if (work->onBack == 0) {
+    _actor400600SelectBehavior(task, ACTOR_400600_STATE_WALK);
+} else {
+    _actor400600SelectBehavior(task, ACTOR_400600_STATE_ON_BACK);
+}
 ```
 
 local-alloc then assigns each one `$v1` (`$v0` is already taken by the stored
@@ -71899,7 +71900,7 @@ if (flag == 0) {
 100%; preprocessed
 `c94bebb11bdc205b8397160000a8a22a0347e2613b0ad275a84bc36696387834`).
 The `$a0` leftover on a pointer reloaded in both arms is the existing
-`func_actor_400600_8013BA00` split: per-arm locals plus a duplicated tail
+`_actor400600FinishHeavyRecoil` split: per-arm locals plus a duplicated tail
 store, merged by `jump2`.
 
 ## `if (x != 0) return expr; return 0` inverts; write the zero check first
