@@ -5,7 +5,7 @@
 /* GCC orders BSS by first declaration; keep this prologue before the API headers. */
 s32 D_shelter_b6_training_room_80185C58;
 
-/// The room's tracked task, driven by `func_shelter_b6_training_room_8017D974`,
+/// The room's tracked task, driven by `shelterB6TrainingRoomControlPlayerHeadAim`,
 /// or NULL when none is running.
 Task* D_shelter_b6_training_room_80185C5C;
 
@@ -51,7 +51,32 @@ Task* D_shelter_b6_training_room_80185C5C;
 
 #include "mapui/map_neo_ark.h"
 
-static void func_shelter_b6_training_room_8017DBB0(s32 arg0);
+static void _shelterB6TrainingRoomClearPlayerHeadAimTask(s32 unusedArg);
+static void _shelterB6TrainingRoomInitializeRoom(Task* task);
+static void _shelterB6TrainingRoomUpdateRoom(Task* unusedTask);
+
+// The defeat notification is latched until its scene ends and departure starts.
+enum {
+    SHELTER_B6_TRAINING_ROOM_WAITING_FOR_DEFEAT   = 0,
+    SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_RUNNING = 1,
+    SHELTER_B6_TRAINING_ROOM_DEPARTURE_STARTED    = 2
+};
+
+/// Sets the GPU mask bit on every RGB16 pixel in the complete decoded image workspace.
+static inline void _shelterB6TrainingRoomMaskBackdrop(void)
+{
+    u16* imagePixel;
+    s32  pixelIndex;
+
+    // The decoder stores two RGB16 pixels per word; mask both halfwords.
+    imagePixel = (u16*)Fs_ImgBuffers;
+    pixelIndex = 0;
+    do {
+        *imagePixel |= FILE_SYSTEM_IMAGE_PIXEL_MASK;
+        pixelIndex  += 1;
+        imagePixel  += 1;
+    } while (pixelIndex <= (s32)(sizeof(*Fs_ImgBuffers) / sizeof(*imagePixel)) - 1);
+}
 
 extern AreaResource D_shelter_b6_training_room_80185994[6];
 
@@ -348,22 +373,18 @@ GfxCoord* D_shelter_b6_training_room_80185C94;
 
 u16 D_shelter_b6_training_room_80185C98;
 
-static void func_shelter_b6_training_room_8017D7D4(Task* arg0);
-static void func_shelter_b6_training_room_8017D874(Task* task);
-
-/// The room's handler for message 0x13F1, which does nothing and returns 0.
-s32 func_shelter_b6_training_room_8017D638(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB6TrainingRoomRefuseKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming `RoomEventMsg` onto
-/// the outgoing one, passes both to `mapNeoArkResolveRoomVariant`, and returns 1.
-s32 func_shelter_b6_training_room_8017D640(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+s32 shelterB6TrainingRoomResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { SHELTER_B6_TRAINING_ROOM_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return SHELTER_B6_TRAINING_ROOM_TRANSITION_ALLOWED;
 }
 
 s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -400,67 +421,74 @@ s32 func_shelter_b6_training_room_8017D684(Task* arg0, s32 arg1, s32 arg2, s32 a
     return 0;
 }
 
-/// The room's handler for message 0x13EF, which does nothing and returns 0.
-s32 func_shelter_b6_training_room_8017D75C(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB6TrainingRoomIgnoreRoomAction(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
     return 0;
 }
 
-s32 func_shelter_b6_training_room_8017D764(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB6TrainingRoomStartDefeatScene(Task* unusedTask, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg)
 {
+    enum { SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_ACTOR_INDEX = 3 };
+
+    // Keep the normal and skipped scene paths paired before commanding the actor.
     gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
     evsStartScriptWithSkip(D_shelter_b6_training_room_80183BB4, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_shelter_b6_training_room_80184124);
-    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(3), ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b6_training_room_80182B24, 0);
-    D_shelter_b6_training_room_80185C58 = 1;
+    TASK_MESSAGE_DISPATCH_POINTER(sceneFindPlacedActor(SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_ACTOR_INDEX), ACTOR_COMMAND_MESSAGE_APPLY, &D_shelter_b6_training_room_80182B24, 0);
+    D_shelter_b6_training_room_80185C58 = SHELTER_B6_TRAINING_ROOM_DEFEAT_SCENE_RUNNING;
     return 0;
 }
 
-static void func_shelter_b6_training_room_8017D7D4(Task* arg0)
+/// Initializes the room controller and prepares its backdrop for masked RGB16 decoding.
+///
+/// Requires a complete decoded image workspace. Sets every pixel's GPU mask bit,
+/// selects the companion schedule and scene music entry, clears the head-aim
+/// handle without releasing a task, and advances from state 0 to state 1.
+static void _shelterB6TrainingRoomInitializeRoom(Task* task)
 {
-    u16* ptr;
-    s32  i;
-
-    arg0->msgTable = D_shelter_b6_training_room_80182AF4;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    ptr = (u16*)Fs_ImgBuffers;
-    i   = 0;
-    do {
-        *ptr = (u16)(*ptr | FILE_SYSTEM_IMAGE_PIXEL_MASK);
-        i   += 1;
-        ptr += 1;
-    } while (i <= FILE_SYSTEM_IMAGE_STRIP_COUNT * FILE_SYSTEM_IMAGE_STRIP_WORDS * 2 - 1);
-    gameFlagSetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, 1);
-    gStageSceneMusicEntry = 0xA;
-    func_shelter_b6_training_room_8017DBB0(0);
-    arg0->state                         = (s32)(arg0->state + 1);
-    D_shelter_b6_training_room_80185C58 = 0;
+    enum {
+        SHELTER_B6_TRAINING_ROOM_COMPANION_SCHEDULE = 1,
+        SHELTER_B6_TRAINING_ROOM_SCENE_MUSIC_ENTRY  = 10
+    };
+    task->msgTable = D_shelter_b6_training_room_80182AF4;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    _shelterB6TrainingRoomMaskBackdrop();
+    gameFlagSetNibble(GAME_FLAG_COMPANION_3_SCHEDULE, SHELTER_B6_TRAINING_ROOM_COMPANION_SCHEDULE);
+    gStageSceneMusicEntry = SHELTER_B6_TRAINING_ROOM_SCENE_MUSIC_ENTRY;
+    _shelterB6TrainingRoomClearPlayerHeadAimTask(0);
+    task->state++;
+    D_shelter_b6_training_room_80185C58 = SHELTER_B6_TRAINING_ROOM_WAITING_FOR_DEFEAT;
 }
 
-static void func_shelter_b6_training_room_8017D874(Task* task)
+/// Keeps RGB16 mask-bit decoding selected and starts departure after the defeat scene.
+///
+/// In placement variant 1, a latched defeat starts departure once the event
+/// interpreter is idle. The latch then prevents another start. `unusedTask`
+/// is retained for the room controller's state-callback signature.
+static void _shelterB6TrainingRoomUpdateRoom(Task* unusedTask)
 {
-    u8 place;
+    enum { SHELTER_B6_TRAINING_ROOM_DEFAULT_VARIANT = 1 };
+    u8 variant;
 
     gCdCmdQueue.imageMdecMode = MDEC_IMAGE_MODE_RGB16_MASK_BIT;
-    place                     = gGameSession->location.loc.variant;
-    if (place == 1 && gGameSession->eventState == 0 && D_shelter_b6_training_room_80185C58 == place) {
+    variant                   = gGameSession->location.loc.variant;
+    // In the default variant, the variant byte also equals the running-scene latch.
+    if (variant == SHELTER_B6_TRAINING_ROOM_DEFAULT_VARIANT && gGameSession->eventState == 0 && D_shelter_b6_training_room_80185C58 == variant) {
         evsStartScript(D_shelter_b6_training_room_80184274, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-        D_shelter_b6_training_room_80185C58 = 2;
+        D_shelter_b6_training_room_80185C58 = SHELTER_B6_TRAINING_ROOM_DEPARTURE_STARTED;
     }
 }
 
 /// State handlers of the room task: set-up, the per-frame tick and `taskKill`.
 static const TaskFuncTable3 D_shelter_b6_training_room_8017D5C4 = {
-    { func_shelter_b6_training_room_8017D7D4, func_shelter_b6_training_room_8017D874, taskKill },
+    { _shelterB6TrainingRoomInitializeRoom, _shelterB6TrainingRoomUpdateRoom, taskKill },
 };
 
-/// Runs a task through the room's three-state table, copied onto the stack
-/// first and indexed by the task's state.
-void func_shelter_b6_training_room_8017D8E8(Task* task)
+void shelterB6TrainingRoomRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 states;
 
-    sp = D_shelter_b6_training_room_8017D5C4;
-    sp.funcs[task->state](task);
+    states = D_shelter_b6_training_room_8017D5C4;
+    states.funcs[task->state](task);
 }
 
 void func_shelter_b6_training_room_8017D940(void)
@@ -468,50 +496,58 @@ void func_shelter_b6_training_room_8017D940(void)
     D_shelter_b6_training_room_80185C5C = taskSpawnFromTable(&D_shelter_b6_training_room_801839A8, 0, 0, 0);
 }
 
-/// Drives the room's tracked task: an argument in 0..1 becomes its
-/// `spawnArg1`; anything else kills the task and clears the pointer. Does
-/// nothing when no task is tracked.
-void func_shelter_b6_training_room_8017D974(s32 arg0)
+void shelterB6TrainingRoomControlPlayerHeadAim(s32 command)
 {
-    Task* t = D_shelter_b6_training_room_80185C5C;
+    Task* headAimTask = D_shelter_b6_training_room_80185C5C;
 
-    if (t == NULL) {
+    if (headAimTask == NULL) {
         return;
     }
-    switch (arg0) {
-        case 0:
-        case 1:
-            t->spawnArg1.value = arg0;
+    switch (command) {
+        case SHELTER_B6_TRAINING_ROOM_HEAD_AIM_FADE_OUT:
+        case SHELTER_B6_TRAINING_ROOM_HEAD_AIM_FADE_IN:
+            headAimTask->spawnArg1.value = command;
             break;
-        default:
-            taskKill(D_shelter_b6_training_room_80185C5C);
-            D_shelter_b6_training_room_80185C5C = NULL;
+        default: {
+            Task** headAimHandle = &D_shelter_b6_training_room_80185C5C;
+
+            taskKill(*headAimHandle);
+            *headAimHandle = NULL;
             break;
+        }
     }
 }
 
-void func_shelter_b6_training_room_8017D9C8(Task* task)
+void shelterB6TrainingRoomPlayerHeadAimTask(Task* task)
 {
-    Enemy* enemy;
-    u16    tick;
+    enum {
+        SHELTER_B6_TRAINING_ROOM_HEAD_AIM_ACTIVE       = 0,
+        SHELTER_B6_TRAINING_ROOM_HEAD_AIM_WEIGHT_STEP  = ONE / 16,
+        SHELTER_B6_TRAINING_ROOM_HEAD_AIM_MAX_YAW      = ONE / 8,
+        SHELTER_B6_TRAINING_ROOM_HEAD_AIM_MAX_PITCH    = ONE / 16,
+        SHELTER_B6_TRAINING_ROOM_HEAD_AIM_TARGET_INDEX = 1
+    };
+    Enemy* targetEnemy;
+    s16    blendWeight;
 
     if (D_801156F9 == 0) {
-        if (task->state == 0) {
+        if (task->state == SHELTER_B6_TRAINING_ROOM_HEAD_AIM_ACTIVE) {
+            // Preserve the wrapping halfword step before the signed endpoint tests.
             if (task->spawnArg1.value != 0) {
-                tick                = task->killCountdown + 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick >= 0x1001) {
-                    task->killCountdown = 0x1000;
+                blendWeight         = task->killCountdown + SHELTER_B6_TRAINING_ROOM_HEAD_AIM_WEIGHT_STEP;
+                task->killCountdown = blendWeight;
+                if (blendWeight >= ONE + 1) {
+                    task->killCountdown = ONE;
                 }
             } else {
-                tick                = task->killCountdown - 0x100;
-                task->killCountdown = tick;
-                if ((s16)tick < 0) {
+                blendWeight         = task->killCountdown - SHELTER_B6_TRAINING_ROOM_HEAD_AIM_WEIGHT_STEP;
+                task->killCountdown = blendWeight;
+                if (blendWeight < 0) {
                     task->killCountdown = 0;
                 }
             }
-            enemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << 8) | 0x1000));
-            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), enemy->task, 0x200, 0x100, task->killCountdown);
+            targetEnemy = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | ((gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | (SHELTER_B6_TRAINING_ROOM_HEAD_AIM_TARGET_INDEX << ENEMY_PLACE_INDEX_SHIFT)));
+            animationAimHeadAtTask(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), targetEnemy->task, SHELTER_B6_TRAINING_ROOM_HEAD_AIM_MAX_YAW, SHELTER_B6_TRAINING_ROOM_HEAD_AIM_MAX_PITCH, task->killCountdown);
         } else {
             taskKill(task);
         }
@@ -524,11 +560,11 @@ void func_shelter_b6_training_room_8017DAC8(void)
     taskSpawnFromTable(D_shelter_b6_training_room_8018431C, 0, 0, 0);
 }
 
-void func_shelter_b6_training_room_8017DAF8(s32 arg0)
+void shelterB6TrainingRoomPrepareDefeatScene(s32 endDelayFrames)
 {
     gGameSession->flowFlags |= GAME_SESSION_FLOW_REEQUIP_WEAPON;
-    if (arg0 != 0) {
-        gSceneCombatState.signals.bytes.endDelayFrames = arg0;
+    if (endDelayFrames != 0) {
+        gSceneCombatState.signals.bytes.endDelayFrames = endDelayFrames;
     }
 }
 
@@ -541,14 +577,18 @@ void func_shelter_b6_training_room_8017DB28(void)
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
 }
 
-void func_shelter_b6_training_room_8017DB70(void)
+void shelterB6TrainingRoomStopBattlePresentation(void)
 {
     Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
     roomEffectRequestCancelAll();
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_KEEP_RELEASE);
 }
 
-static void func_shelter_b6_training_room_8017DBB0(s32 arg0)
+/// Clears the borrowed player head-aim task handle without destroying a task.
+///
+/// Used before any head-aim task is spawned during room initialization.
+/// `unusedArg` has no effect.
+static void _shelterB6TrainingRoomClearPlayerHeadAimTask(s32 unusedArg)
 {
     D_shelter_b6_training_room_80185C5C = NULL;
 }

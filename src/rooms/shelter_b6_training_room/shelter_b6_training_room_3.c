@@ -111,12 +111,18 @@ static void _shelterB6TrainingRoomDrawGroundBeam(const GfxCoord* startCoord, con
 static void _shelterB6TrainingRoomDrawRingBand(const EffectWork* work, const GfxCoord* coord, s32 bandIndex);
 static void _shelterB6TrainingRoomDrawEnergyStrip(const GfxCoord* startCoord, const GfxCoord* endCoord, s32 textureFrame, s16 widthScale);
 
+// Battle-end hold durations supplied by the normal and skipped defeat scenes.
+enum {
+    SHELTER_B6_TRAINING_ROOM_DEFEAT_END_DELAY_FRAMES = 100,
+    SHELTER_B6_TRAINING_ROOM_SKIP_END_DELAY_FRAMES   = 8
+};
+
 TaskMessageEntry D_shelter_b6_training_room_80182AF4[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b6_training_room_8017D640 },
-    { 5105, func_shelter_b6_training_room_8017D638 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b6_training_room_8017D75C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, shelterB6TrainingRoomResolveRoomTransition },
+    { ROOM_MESSAGE_USE_KEY_ITEM, shelterB6TrainingRoomRefuseKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, shelterB6TrainingRoomIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_b6_training_room_8017D684 },
-    { ROOM_MESSAGE_ACTOR_EVENT, func_shelter_b6_training_room_8017D764 },
+    { ROOM_MESSAGE_ACTOR_EVENT, shelterB6TrainingRoomStartDefeatScene },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -210,7 +216,7 @@ static AnimationSet _gShelterB6TrainingRoomAnimation063C0 = {
     { NULL, _gShelterB6TrainingRoomAnimation063C0Bank1, NULL, NULL, _gShelterB6TrainingRoomAnimation063C0Bank4, NULL, NULL, NULL },
 };
 
-TaskDesc D_shelter_b6_training_room_801839A8 = { { { TASK_BODY_NONE, 96 } }, func_shelter_b6_training_room_8017D9C8, { .value = 0 } };
+TaskDesc D_shelter_b6_training_room_801839A8 = { { { TASK_BODY_NONE, 96 } }, shelterB6TrainingRoomPlayerHeadAimTask, { .value = 0 } };
 
 AnimationSet* D_shelter_b6_training_room_801839B4[5] = {
     NULL,
@@ -274,14 +280,14 @@ ActorCommand D_shelter_b6_training_room_80183BB0 = { { .loc = { 5, 24 } }, 1 };
 
 EvsCommand D_shelter_b6_training_room_80183BB4[58] = {
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = NULL }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_training_room_8017DAF8 }, { .value = 100 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomPrepareDefeatScene }, { .value = SHELTER_B6_TRAINING_ROOM_DEFEAT_END_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b6_training_room_801839C8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_801839E4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SECONDARY_FADE, { .value = 0 }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b6_training_room_8017DB70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6TrainingRoomStopBattlePresentation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_TARGET, { .commands = D_shelter_b6_training_room_80184124 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_RETURN_SECONDARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_HIDE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -318,7 +324,7 @@ EvsCommand D_shelter_b6_training_room_80183BB4[58] = {
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_80183A20 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_SOUND, { .value = 0x55190002 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_training_room_8017D974 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomControlPlayerHeadAim }, { .value = SHELTER_B6_TRAINING_ROOM_HEAD_AIM_FADE_IN }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b6_training_room_80183AB4 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2003 }, { .message = { .pointer = &D_shelter_b6_training_room_80183AC8 } }, { .value = 0 } },
@@ -328,23 +334,23 @@ EvsCommand D_shelter_b6_training_room_80183BB4[58] = {
     { EVENT_SCRIPT_OPCODE_RESTORE_WEAPONS, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_training_room_8017D974 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomControlPlayerHeadAim }, { .value = SHELTER_B6_TRAINING_ROOM_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_shelter_b6_training_room_80184124[14] = {
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_training_room_8017DAF8 }, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomPrepareDefeatScene }, { .value = SHELTER_B6_TRAINING_ROOM_SKIP_END_DELAY_FRAMES }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_SKIP_KEEP_SOUND, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_shelter_b6_training_room_801839C8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_shelter_b6_training_room_801839E4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 10 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b6_training_room_8017DB70 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = shelterB6TrainingRoomStopBattlePresentation }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1001 }, { .message = { .pointer = &D_shelter_b6_training_room_80183A4C } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 1 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 2 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b6_training_room_8017D974 }, { .value = -1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = shelterB6TrainingRoomControlPlayerHeadAim }, { .value = SHELTER_B6_TRAINING_ROOM_HEAD_AIM_RELEASE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEAR_AMBIENT_RGB, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CLEANUP_SCENE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },

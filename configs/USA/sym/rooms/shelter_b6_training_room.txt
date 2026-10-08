@@ -111,7 +111,7 @@ shelterB6TrainingRoomSetPartDestroyedSprites = 0x80182A14; // type:func
 
 shelterB6TrainingRoomDrawSummonBeam = 0x8017FC40; // type:func
 
-func_shelter_b6_training_room_8017D874 = 0x8017D874; // type:func
+_shelterB6TrainingRoomUpdateRoom = 0x8017D874; // type:func
 
 shelterB6TrainingRoomOrangeBurstTask = 0x8017EE70; // type:func
 
@@ -141,3 +141,14 @@ spriteQuadDraw = 0x80181BAC; // type:func
 _shelterB6TrainingRoomDrawRingBand = 0x80181368; // type:func
 _shelterB6TrainingRoomDrawEnergyStrip = 0x80181fdc; // type:func
 _shelterB6TrainingRoomDrawGroundBeam = 0x80180530; // type:func
+_shelterB6TrainingRoomClearPlayerHeadAimTask = 0x8017dbb0; // type:func
+shelterB6TrainingRoomPlayerHeadAimTask = 0x8017d9c8; // type:func
+shelterB6TrainingRoomControlPlayerHeadAim = 0x8017d974; // type:func
+shelterB6TrainingRoomRefuseKeyItemUse = 0x8017d638; // type:func
+shelterB6TrainingRoomResolveRoomTransition = 0x8017d640; // type:func
+shelterB6TrainingRoomIgnoreRoomAction = 0x8017d75c; // type:func
+shelterB6TrainingRoomStartDefeatScene = 0x8017d764; // type:func
+_shelterB6TrainingRoomInitializeRoom = 0x8017d7d4; // type:func
+shelterB6TrainingRoomRoomTask = 0x8017d8e8; // type:func
+shelterB6TrainingRoomPrepareDefeatScene = 0x8017daf8; // type:func
+shelterB6TrainingRoomStopBattlePresentation = 0x8017db70; // type:func

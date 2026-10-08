@@ -38,7 +38,13 @@ extern WorldCoordRoomAmbientEntry D_shelter_b6_training_room_80185BC0[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b6_training_room_80185C38[];
 
-void func_shelter_b6_training_room_8017D8E8(Task* task);
+/// Runs the training-room controller's initialization, update and teardown states.
+///
+/// Exported to the Neo Ark map's area task table. `task->state` must be 0..2:
+/// 0 registers the room message handlers and initializes the backdrop/scene
+/// state, 1 waits for the defeat scene to finish before departure, and 2 kills
+/// the task. Dispatch is unchecked; the room overlay must remain loaded.
+void shelterB6TrainingRoomRoomTask(Task* task);
 
 /// Draws the paired enemy's yellow body glow and publishes its energy-arc anchor.
 ///
