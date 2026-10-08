@@ -122,7 +122,7 @@ static void func_shelter_r47_801832E4(s16 status);
 static void func_shelter_r47_801832EC(Task* task);
 static void _shelterR47ConsoleSaveSwitches(Task* task);
 static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row);
-static void func_shelter_r47_80183484(Task* task);
+static void _shelterR47MapTerminalDrawPageOverlay(Task* task);
 
 /// State handlers of the room's first cap script, run by
 /// `func_shelter_r47_80182B18`.
@@ -252,8 +252,8 @@ s16 D_shelter_r47_801875F8[5][2] = {
     { 32, 8 },
 };
 
-static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key);
-static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area);
+static inline s32 _areaIsSavedMapMarkEnabled(const GameLocationKey* location);
+static inline s16 _shelterR47MapTerminalIsAreaMarkerVisible(s32 stage, s32 area);
 
 /// Prepares one draw-mode/sprite packet for texture and geometry setup.
 ///
@@ -1226,20 +1226,23 @@ static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row)
     }
 }
 
-/// `AREA_SAVED_MAP_MARK` of the area's saved state, as 0 or 1; 0 when the stage
-/// has no table or the area no saved state. The counterpart of `areaIsSavedPoseRestoreEnabled`.
-static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key)
+/// Tests whether an area's saved state enables its map marker.
+///
+/// Borrows a location with valid stage and area table indices; other components
+/// are ignored. Returns 0 for a missing stage table or saved state, otherwise
+/// the saved map-mark bit as 0 or 1. Does not change the saved state.
+static inline s32 _areaIsSavedMapMarkEnabled(const GameLocationKey* location)
 {
-    AreaRecord*     rec;
+    AreaRecord*     areaRecords;
     AreaSavedState* areaState;
-    s16             val;
+    s16             mapMarkFlag;
 
-    rec = Gp_AreaTables[key->stage];
-    if (rec != NULL) {
-        areaState = rec[key->area].savedState;
+    areaRecords = Gp_AreaTables[location->stage];
+    if (areaRecords != NULL) {
+        areaState = areaRecords[location->area].savedState;
         if (areaState != NULL) {
-            val = areaState->spawnFlags & AREA_SAVED_MAP_MARK;
-            return val != 0;
+            mapMarkFlag = areaState->spawnFlags & AREA_SAVED_MAP_MARK;
+            return mapMarkFlag != 0;
         } else {
             return 0;
         }
@@ -1248,162 +1251,171 @@ static inline s32 _shelterR47GetAreaFlag4(GameLocationKey* key)
     }
 }
 
-/// Whether area `area` of stage `stage` (view 2, room 1) has
-/// `AREA_SAVED_MAP_MARK` set and `AREA_SPAWN_RESTORE_SAVED_POSES` clear. This is
-/// the condition under which `Gp_RebuildAreaIdBits` sets the area's bit in
-/// `Gp_AreaIdBits`.
-static inline s16 _shelterR47IsAreaMarked(s32 stage, s32 area)
+/// Tests whether the terminal should draw an area's saved map marker.
+///
+/// Stage and area must fit their tables. Requires the map-mark bit set and
+/// saved-pose restoration clear; missing tables or saved state return 0.
+/// The synthetic room/view values are ignored by both flag queries.
+static inline s16 _shelterR47MapTerminalIsAreaMarkerVisible(s32 stage, s32 area)
 {
-    GameLocationKey key;
+    GameLocationKey location;
 
-    key.stage = stage;
-    key.room  = 1;
-    key.view  = 2;
-    key.area  = area;
-    if (_shelterR47GetAreaFlag4(&key) != 1 || areaIsSavedPoseRestoreEnabled(&key) == 1) {
+    location.stage = stage;
+    location.room  = 1;
+    location.view  = 2;
+    location.area  = area;
+    if (_areaIsSavedMapMarkEnabled(&location) != 1 || areaIsSavedPoseRestoreEnabled(&location) == 1) {
         return 0;
     }
     return 1;
 }
 
-/// Draws the map overlay of the room's map terminal, brightening each
-/// marker by 0x30 over the last. While `page` is not Neo Ark it draws one marker
-/// per entry of that page's marker table whose saved area state has
-/// `AREA_SAVED_MAP_MARK` set and `AREA_SPAWN_RESTORE_SAVED_POSES` clear, after a
-/// fixed marker when `page` is B1, `openMode` is not the timed viewing and
-/// collected bit 0x12D is set. When `page` is Neo Ark it first moves `openMode`
-/// from the tour to tour-done and starts cap slot 0x13, then draws
-/// the same markers if `GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED` is 1, and otherwise the
-/// `mapWidth` x `mapHeight` map quad.
-static void func_shelter_r47_80183484(Task* task)
+/// Queues the selected terminal page's area markers or uncleared Neo Ark overlay.
+///
+/// Borrows initialized terminal work with page 0..4 and its terminated marker
+/// table. Brightness is four times the open-frame count, plus 48 per visible
+/// marker, narrowed to a byte each time. B1 also tests Micro Device catalogue
+/// ID 0x12D outside timed viewing; that ID's progression role is unproven.
+/// Opening Neo Ark during the tour marks it complete and starts CAP slot 19.
+/// Requires current textures, OT entries 10/11 and sufficient packet storage.
+static void _shelterR47MapTerminalDrawPageOverlay(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
+    ShelterR47MapTerminalWork* work;
     _ShelterR47MapMark*        mark;
-    POLY_FT4*                  p;
-    u8                         shade;
+    POLY_FT4*                  quad;
+    u8                         brightness;
 
-    state = (ShelterR47MapTerminalWork*)task->work;
-    shade = (u8)state->openFrames * 4;
-    if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
-        mark = D_shelter_r47_801875D8[state->page];
-    } else {
-        mark = D_shelter_r47_801875C4[state->page];
+    enum { SHELTER_R47_MAP_OPEN_BRIGHTNESS_STEP    = 4,
+           SHELTER_R47_MAP_MARK_BRIGHTNESS_STEP    = 48,
+           SHELTER_R47_MAP_MARK_HALF_SIZE          = 4,
+           SHELTER_R47_MAP_B1_MICRO_DEVICE_ITEM_ID = 0x12D,
+           SHELTER_R47_MAP_TOUR_COMPLETE_CAP_SLOT  = 19 };
+
+    /// Queues an 8x8 area marker and advances its byte brightness by 48.
+    ///
+    /// markerQuad is a writable POLY_FT4* lvalue, areaMark a marker pointer,
+    /// and level a writable u8 lvalue. All must be stable and side-effect-free;
+    /// each is evaluated repeatedly. Uses this function's marker size and
+    /// brightness constants, the current packet cursor and OT entry 10.
+#define SHELTER_R47_MAP_DRAW_AREA_MARKER(markerQuad, areaMark, level)                                                                                                                                                                                                                                                        \
+    {                                                                                                                                                                                                                                                                                                                        \
+        (markerQuad)   = gGpuPrimCursor;                                                                                                                                                                                                                                                                                     \
+        (level)       += SHELTER_R47_MAP_MARK_BRIGHTNESS_STEP;                                                                                                                                                                                                                                                               \
+        gGpuPrimCursor = (markerQuad) + 1;                                                                                                                                                                                                                                                                                   \
+        setPolyFT4((markerQuad));                                                                                                                                                                                                                                                                                            \
+        setUV4((markerQuad), 0x50, 0x20, 0x58, 0x20, 0x50, 0x28, 0x58, 0x28);                                                                                                                                                                                                                                                \
+        setRGB0((markerQuad), (level), (level), (level));                                                                                                                                                                                                                                                                    \
+        (markerQuad)->tpage = 0x2F;                                                                                                                                                                                                                                                                                          \
+        (markerQuad)->clut  = 0x3FC6;                                                                                                                                                                                                                                                                                        \
+        setSemiTrans((markerQuad), 1);                                                                                                                                                                                                                                                                                       \
+        setXY4((markerQuad), (areaMark)->x - SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->y - SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->x + SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->y - SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->x - SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->y + SHELTER_R47_MAP_MARK_HALF_SIZE, \
+               (areaMark)->x + SHELTER_R47_MAP_MARK_HALF_SIZE, (areaMark)->y + SHELTER_R47_MAP_MARK_HALF_SIZE);                                                                                                                                                                                                              \
+        addPrim(&gGpuCurrentOt[10], (markerQuad));                                                                                                                                                                                                                                                                           \
     }
-    if (state->page != SHELTER_R47_MAP_PAGE_NEO_ARK) {
-        if (state->openMode != SHELTER_R47_MAP_MODE_TIMED && state->page == SHELTER_R47_MAP_PAGE_B1 && inventoryHasCollectedBit(0x12D) != 0) {
-            shade         += 0x30;
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            setPolyFT4(p);
-            setUV4(p, 0x58, 0x20, 0x60, 0x20, 0x58, 0x28, 0x60, 0x28);
-            p->tpage = 0x2F;
-            p->clut  = 0x3FC7;
-            setRGB0(p, shade, shade, shade);
-            setSemiTrans(p, 1);
-            setXY4(p, 0x78, -0x4B, 0x80, -0x4B, 0x78, -0x43, 0x80, -0x43);
-            addPrim(&gGpuCurrentOt[10], p);
+
+    work       = task->work;
+    brightness = (u8)work->openFrames * SHELTER_R47_MAP_OPEN_BRIGHTNESS_STEP;
+    if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
+        mark = D_shelter_r47_801875D8[work->page];
+    } else {
+        mark = D_shelter_r47_801875C4[work->page];
+    }
+    if (work->page != SHELTER_R47_MAP_PAGE_NEO_ARK) {
+        if (work->openMode != SHELTER_R47_MAP_MODE_TIMED && work->page == SHELTER_R47_MAP_PAGE_B1 && inventoryHasCollectedBit(SHELTER_R47_MAP_B1_MICRO_DEVICE_ITEM_ID) != 0) {
+            brightness    += SHELTER_R47_MAP_MARK_BRIGHTNESS_STEP;
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setUV4(quad, 0x58, 0x20, 0x60, 0x20, 0x58, 0x28, 0x60, 0x28);
+            quad->tpage = 0x2F;
+            quad->clut  = 0x3FC7;
+            setRGB0(quad, brightness, brightness, brightness);
+            setSemiTrans(quad, 1);
+            setXY4(quad, 0x78, -0x4B, 0x80, -0x4B, 0x78, -0x43, 0x80, -0x43);
+            addPrim(&gGpuCurrentOt[10], quad);
         }
         while (mark->stage != SHELTER_R47_MAP_MARK_END) {
-            if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
-                p              = gGpuPrimCursor;
-                shade         += 0x30;
-                gGpuPrimCursor = p + 1;
-                setPolyFT4(p);
-                setUV4(p, 0x50, 0x20, 0x58, 0x20, 0x50, 0x28, 0x58, 0x28);
-                setRGB0(p, shade, shade, shade);
-                p->tpage = 0x2F;
-                p->clut  = 0x3FC6;
-                setSemiTrans(p, 1);
-                setXY4(p, mark->x - 4, mark->y - 4, mark->x + 4, mark->y - 4, mark->x - 4, mark->y + 4,
-                       mark->x + 4, mark->y + 4);
-                addPrim(&gGpuCurrentOt[10], p);
+            if (_shelterR47MapTerminalIsAreaMarkerVisible(mark->stage, mark->area)) {
+                SHELTER_R47_MAP_DRAW_AREA_MARKER(quad, mark, brightness);
             }
             mark++;
         }
     } else {
-        if (state->openMode == SHELTER_R47_MAP_MODE_TOUR) {
-            state->openMode = SHELTER_R47_MAP_MODE_TOUR_DONE;
-            capStartSequenceSlot(0x13, 0, 0);
+        if (work->openMode == SHELTER_R47_MAP_MODE_TOUR) {
+            work->openMode = SHELTER_R47_MAP_MODE_TOUR_DONE;
+            capStartSequenceSlot(SHELTER_R47_MAP_TOUR_COMPLETE_CAP_SLOT, 0, 0);
         }
         if (gameFlagGetNibble(GAME_FLAG_NEO_ARK_POWER_PLANT_2_CLEARED) == 1) {
             while (mark->stage != SHELTER_R47_MAP_MARK_END) {
-                if (_shelterR47IsAreaMarked(mark->stage, mark->area)) {
-                    p              = gGpuPrimCursor;
-                    shade         += 0x30;
-                    gGpuPrimCursor = p + 1;
-                    setPolyFT4(p);
-                    setUV4(p, 0x50, 0x20, 0x58, 0x20, 0x50, 0x28, 0x58, 0x28);
-                    setRGB0(p, shade, shade, shade);
-                    p->tpage = 0x2F;
-                    p->clut  = 0x3FC6;
-                    setSemiTrans(p, 1);
-                    setXY4(p, mark->x - 4, mark->y - 4, mark->x + 4, mark->y - 4, mark->x - 4, mark->y + 4,
-                           mark->x + 4, mark->y + 4);
-                    addPrim(&gGpuCurrentOt[10], p);
+                if (_shelterR47MapTerminalIsAreaMarkerVisible(mark->stage, mark->area)) {
+                    SHELTER_R47_MAP_DRAW_AREA_MARKER(quad, mark, brightness);
                 }
                 mark++;
             }
         } else {
-            if (shade == 0) {
+            if (brightness == 0) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_R47_MAP_TERMINAL_LOOP, 0, 0);
             }
-            p              = gGpuPrimCursor;
-            gGpuPrimCursor = p + 1;
-            setPolyFT4(p);
-            setUV4(p, 0, 0, 0xE8, 0, 0, 0xCE, 0xE8, 0xCE);
-            p->tpage = 0x36;
-            p->clut  = 0x4000;
-            setRGB0(p, shade, shade, shade);
-            setSemiTrans(p, 1);
-            setXY4(p, -0x4D, -0x67, state->mapWidth - 0x4D, -0x67, -0x4D, state->mapHeight - 0x67,
-                   state->mapWidth - 0x4D, state->mapHeight - 0x67);
-            addPrim(&gGpuCurrentOt[11], p);
+            quad           = gGpuPrimCursor;
+            gGpuPrimCursor = quad + 1;
+            setPolyFT4(quad);
+            setUV4(quad, 0, 0, SHELTER_R47_MAP_WIDTH, 0, 0, SHELTER_R47_MAP_HEIGHT, SHELTER_R47_MAP_WIDTH, SHELTER_R47_MAP_HEIGHT);
+            quad->tpage = 0x36;
+            quad->clut  = 0x4000;
+            setRGB0(quad, brightness, brightness, brightness);
+            setSemiTrans(quad, 1);
+            setXY4(quad, -0x4D, -0x67, work->mapWidth - 0x4D, -0x67, -0x4D, work->mapHeight - 0x67,
+                   work->mapWidth - 0x4D, work->mapHeight - 0x67);
+            addPrim(&gGpuCurrentOt[11], quad);
         }
     }
+#undef SHELTER_R47_MAP_DRAW_AREA_MARKER
 }
 
-void func_shelter_r47_80183B84(Task* task)
+void shelterR47MapTerminalUpdateAndDrawQuads(Task* task)
 {
-    ShelterR47MapTerminalWork* state;
-    POLY_FT4*                  p;
+    enum { SHELTER_R47_MAP_RAW_SEMITRANSPARENT = 3 };
+    ShelterR47MapTerminalWork* work;
+    POLY_FT4*                  quad;
 
-    state             = (ShelterR47MapTerminalWork*)task->work;
-    state->mapWidth  += (state->mapTargetWidth - state->mapWidth) >> 2;
-    state->mapHeight += (state->mapTargetHeight - state->mapHeight) >> 2;
-    if (state->mapWidth >= SHELTER_R47_MAP_WIDTH_SETTLED) {
-        state->mapWidth  = SHELTER_R47_MAP_WIDTH;
-        state->mapHeight = SHELTER_R47_MAP_HEIGHT;
-        func_shelter_r47_80183484(task);
-        state->holdPrompt = 0;
-        state->openFrames++;
+    work             = task->work;
+    work->mapWidth  += (work->mapTargetWidth - work->mapWidth) >> 2;
+    work->mapHeight += (work->mapTargetHeight - work->mapHeight) >> 2;
+    // Show page contents and enable its prompt only after the width settles.
+    if (work->mapWidth >= SHELTER_R47_MAP_WIDTH_SETTLED) {
+        work->mapWidth  = SHELTER_R47_MAP_WIDTH;
+        work->mapHeight = SHELTER_R47_MAP_HEIGHT;
+        _shelterR47MapTerminalDrawPageOverlay(task);
+        work->holdPrompt = 0;
+        work->openFrames++;
     } else {
-        state->openFrames = 0;
-        state->holdPrompt = 1;
+        work->openFrames = 0;
+        work->holdPrompt = 1;
     }
 
-    p              = gGpuPrimCursor;
-    gGpuPrimCursor = p + 1;
-    setPolyFT4(p);
-    setUV4(p, 0, 0, 0xE8, 0, 0, 0xCE, 0xE8, 0xCE);
-    p->tpage = 0x2D;
-    p->clut  = 0x3FC0;
-    p->code |= 3;
-    setXY4(p, -0x4D, -0x67, state->mapWidth - 0x4D, -0x67, -0x4D, state->mapHeight - 0x67,
-           state->mapWidth - 0x4D, state->mapHeight - 0x67);
-    addPrim(&gGpuCurrentOt[12], p);
+    quad           = gGpuPrimCursor;
+    gGpuPrimCursor = quad + 1;
+    setPolyFT4(quad);
+    setUV4(quad, 0, 0, SHELTER_R47_MAP_WIDTH, 0, 0, SHELTER_R47_MAP_HEIGHT, SHELTER_R47_MAP_WIDTH, SHELTER_R47_MAP_HEIGHT);
+    quad->tpage = 0x2D;
+    quad->clut  = 0x3FC0;
+    quad->code |= SHELTER_R47_MAP_RAW_SEMITRANSPARENT;
+    setXY4(quad, -0x4D, -0x67, work->mapWidth - 0x4D, -0x67, -0x4D, work->mapHeight - 0x67,
+           work->mapWidth - 0x4D, work->mapHeight - 0x67);
+    addPrim(&gGpuCurrentOt[12], quad);
 
-    p                   = gGpuPrimCursor;
-    state->panelWidth  += (state->panelTargetWidth - state->panelWidth) >> 2;
-    state->panelHeight += (state->panelTargetHeight - state->panelHeight) >> 2;
-    gGpuPrimCursor      = p + 1;
-    setPolyFT4(p);
-    setUV4(p, 0, 0, 0x50, 0, 0, 0x60, 0x50, 0x60);
-    p->tpage = 0x2E;
-    p->clut  = 0x3FC1;
-    p->code |= 3;
-    setXY4(p, -0x9C, -0x5B, state->panelWidth - 0x9C, -0x5B, -0x9C, state->panelHeight - 0x5B,
-           state->panelWidth - 0x9C, state->panelHeight - 0x5B);
-    addPrim(&gGpuCurrentOt[11], p);
+    quad               = gGpuPrimCursor;
+    work->panelWidth  += (work->panelTargetWidth - work->panelWidth) >> 2;
+    work->panelHeight += (work->panelTargetHeight - work->panelHeight) >> 2;
+    gGpuPrimCursor     = quad + 1;
+    setPolyFT4(quad);
+    setUV4(quad, 0, 0, SHELTER_R47_MAP_PANEL_WIDTH, 0, 0, SHELTER_R47_MAP_PANEL_HEIGHT, SHELTER_R47_MAP_PANEL_WIDTH, SHELTER_R47_MAP_PANEL_HEIGHT);
+    quad->tpage = 0x2E;
+    quad->clut  = 0x3FC1;
+    quad->code |= SHELTER_R47_MAP_RAW_SEMITRANSPARENT;
+    setXY4(quad, -0x9C, -0x5B, work->panelWidth - 0x9C, -0x5B, -0x9C, work->panelHeight - 0x5B,
+           work->panelWidth - 0x9C, work->panelHeight - 0x5B);
+    addPrim(&gGpuCurrentOt[11], quad);
 }
 
 void shelterR47MapTerminalDrawPreviousButton(void)

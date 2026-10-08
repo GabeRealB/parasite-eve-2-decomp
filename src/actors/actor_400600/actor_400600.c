@@ -1970,7 +1970,7 @@ static void func_actor_400600_801328A8(Task* arg0)
         sound = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x531A0009;
         pan   = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
         sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
-        func_dryfield_night_junk_yard_8017D9B8(1);
+        dryfieldNightJunkYardSetEventSpriteBatchHidden(1);
         _stalkerZebraIvoryRequestClipRestart(arg0, 0x19, (3 * ANIMATION_RATE_ONE));
         coords->coord.t[1] = -0x508;
         work->state++;
@@ -5642,7 +5642,7 @@ static void func_actor_400600_8013AC14(Task* arg0)
     model = arg0->extra.tmd;
     coord = model->coords;
     if (work->roomCommand == 1) {
-        func_dryfield_night_junk_yard_8017D9B8(0);
+        dryfieldNightJunkYardSetEventSpriteBatchHidden(0);
         coord->coord.t[0] = 0x40C8;
         coord->coord.t[1] = -0x708;
         coord->coord.t[2] = -0x3E8;

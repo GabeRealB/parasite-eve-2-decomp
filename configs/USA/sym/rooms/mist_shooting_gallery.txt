@@ -332,3 +332,4 @@ _mistShootingGalleryResultPanelTask = 0x8017e234; // type:func
 _mistShootingGalleryModeSelectPanelTask = 0x8017eae0; // type:func
 _mistShootingGalleryCarryoverModeSessionTask = 0x8017f6c8; // type:func
 _mistShootingGalleryMovieSessionTask = 0x801810d8; // type:func
+_mistShootingGalleryCaptionModeTask = 0x80184c0c; // type:func

@@ -90,3 +90,4 @@ _acropolisWestElevatorHallCloseDoorMessage = 0x8017f498; // type:func
 _acropolisWestElevatorHallResolveRoomEventMessage = 0x8017f4c0; // type:func
 acropolisWestElevatorHallRoomTask = 0x8017f5f4; // type:func
 _acropolisWestElevatorHallStartBayLightingMessage = 0x80180274; // type:func
+_acropolisWestElevatorHallUpdateDoorLeaf = 0x8017f6f0; // type:func

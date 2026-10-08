@@ -43951,7 +43951,7 @@ the wrong `asm/` unit directory, and the build fails at the *link*, not the
 compile, because the assembler only warns:
 
 ```
-{standard input}:28: Error: can't open asm/USA/rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard_2/func_dryfield_night_junk_yard_8017D6AC.s
+{standard input}:28: Error: can't open asm/USA/rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard_2/_roomVariantNightJunkYardMsg.s
 ...
 ld: cannot find build/USA/src/rooms/dryfield_night_junk_yard/dryfield_night_junk_yard_2.c.o
 ```
@@ -44474,7 +44474,7 @@ helper();
 ```
 
 A `static void *keep = &&pad` also works but adds a `.data` word. `fs.c`
-already uses `"i"(&&label)` operands. `func_mist_shooting_gallery_80184C0C`
+already uses `"i"(&&label)` operands. `_mistShootingGalleryCaptionModeTask`
 is the example.
 
 ### Natural C replacement: nest one copy of the shared tail
@@ -44503,7 +44503,7 @@ second call. This fails jump.c's range-swap precondition that its destination
 be the next label after the button-check entry. `.jump2` then removes the
 first call by cross-jumping to the second. Putting the two calls directly in
 the countdown and button-failure arms instead retains the earlier call and
-does not match. `func_mist_shooting_gallery_80184C0C` scratch `base_13.c`
+does not match. `_mistShootingGalleryCaptionModeTask` scratch `base_13.c`
 matches at 100% without hacks; direct duplication (`base_2.c`) scores 87.184%.
 
 ## Scratch-head `*(u8**)SCRATCH_STACK_CURSOR_SLOT`: one use per block, or CSE takes a register
@@ -92173,7 +92173,7 @@ any unit file, so no matched body in the sibling is at risk. Verified with
 `./tools/build-and-verify.sh`: `✅ BUILD SUCCEEDED`.
 ## A wrong arity in one call shows up as a `reorder` in a later one
 
-`func_dryfield_night_junk_yard_8017D8B0` is a four-statement room task tick.
+`_dryfieldNightJunkYardInitializeRoom` is a four-statement room task tick.
 m2c gave `gameSetTaskSlot` a one-parameter prototype — the target writes `$a1`
 and never touches `$a0`, which already holds the task, so m2c read that as a
 call whose only argument is the 7 — and the seed scored 98.45%:
@@ -92212,7 +92212,7 @@ Inputs: `base.c` (98.45%, `regs=1 reorder=1`), `base_1.c` (100%). Compiler SHA25
 
 ## A 1-based global table from an m2c byte-pointer seed: the `-1` folds into the symbol
 
-`func_dryfield_night_junk_yard_8017D9B8` walks
+`dryfieldNightJunkYardSetEventSpriteBatchHidden` walks
 `gSpriteAreaTables[gGameSession->location.loc.stage - 1][0].areaViews[gGameSession->location.loc.area - 1]`,
 and m2c seeded the first level as byte arithmetic,
 `(u8 *)&gSpriteAreaTables + (idx - 1) * 4`. That spelling lets `pointer_int_sum`
@@ -92751,7 +92751,7 @@ Inputs: `base.c` 77.931% (`regs=16 delete=4 insert=1 reorder=1`), `base_1.c`
 
 m2c declares each callee from the call site it can see, so a call that passes a
 single visible argument comes out as a one-parameter `extern`. The seed for
-`func_dryfield_night_toilet_8017D690` had
+`_dryfieldNightToiletInitializeRoom` had
 `M2C_UNK gameSetTaskSlot(M2C_UNK)` and `gameSetTaskSlot(7)`, and the object
 matched the target everywhere except one line: `li a0,7` where the target has
 `li a1,7`. The real declaration is `void gameSetTaskSlot(struct Task* task, s32 slot)`
@@ -92772,7 +92772,7 @@ and misstate the call.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Inputs: base.i `9ea3c67d9104b1703307abd5c7d1767c56bd07af6211a661d6fe395df7ebf7d7`,
 base_1.i `656bd913c1c85eeba07629a62ce247348ffc94de4f589e9500cbf8818f322438`.
-Evidence: scratch `nonmatchings/func_dryfield_night_toilet_8017D690-vacuum/`,
+Evidence: scratch `nonmatchings/_dryfieldNightToiletInitializeRoom-vacuum/`,
 `base_diff`; no pins, no permuter, no tracer.
 `overlay_dup_index.py find` reports this body as its own only copy.
 ## A `jal` that sets only `$a1` is a two-argument call m2c collapsed to one
@@ -95556,7 +95556,7 @@ the scheduler emits `[a0=s1][store][call]` and the store is taken instead. Two
 correct codes, one original.
 
 The idiom is in the matched corpus, which is what settled it in two builds:
-`func_acropolis_west_elevator_hall_8017F6F0`, `_shelterB2ElevatorDoorLeafTask`
+`_acropolisWestElevatorHallUpdateDoorLeaf`, `_shelterB2ElevatorDoorLeafTask`
 and `_neoArkShrineUpdateFallingPropLighting` all write `coord->composeStamp = 0;` on the line before
 `actorRenderComposeCoord(coord);` and all compile to `addu $a0,$sX,$zero` / `jal` /
 `sw $zero,0x0($sX)`. When a function belongs to a family, grep the matched corpus
@@ -97172,7 +97172,7 @@ the promotion case above, where splat leaves the file behind and it has to be
 deleted by hand. Landing the C then puts the compiler-generated table in the
 block, and the triage report comes back clean.
 
-## Two arms storing different constants to one field are one store plus a compiler-made temp (func_dryfield_night_junk_yard_8017D6AC, 2026-09-16)
+## Two arms storing different constants to one field are one store plus a compiler-made temp (_roomVariantNightJunkYardMsg, 2026-09-16)
 
 The room-message idiom "answer 1 below nibble 0x7A == 4, else 2" compiles to
 
@@ -97200,9 +97200,9 @@ With both arms storing to the field directly --
 
 ```c
 if (gameFlagGetNibble(0x7A) >= 4) {
-    out->field_3 = 2;
+    reply->room = 2;
 } else {
-    out->field_3 = 1;
+    reply->room = 1;
 }
 ```
 
@@ -99538,7 +99538,7 @@ callee-saved (`$s0`), and the return assignment, now the second `1`, folds into
 against two `li`s (mismatch) - and the mismatch's second `li` is what the
 `insert`/`delete` penalties are counting.
 
-Same shape as the entry above on `func_dryfield_night_junk_yard_8017D6AC`: the
+Same shape as the entry above on `_roomVariantNightJunkYardMsg`: the
 source order of two assignments to one value decides where that value is born,
 and only one order puts it in the register the target uses.
 
@@ -140528,7 +140528,7 @@ Move the struct the two files now share, plus prototypes for the functions
 called across the cut, into the overlay header. Calls that used to see an
 earlier definition would otherwise become implicit.
 
-### A loop written out twice wants its loop-local variables declared inside each copy (func_shelter_r47_80183484, 2026-09-23)
+### A loop written out twice wants its loop-local variables declared inside each copy (_shelterR47MapTerminalDrawPageOverlay, 2026-09-23)
 
 The function draws the same marker loop in two branches, byte-for-byte alike.
 With one function-scope `u16 area` feeding both copies, everything matched
@@ -141898,7 +141898,7 @@ call, in a function where the separate-variable version gets a caller-saved
 register. Check `.lreg` for the copy's "crosses 1 call" and `.sched` for its
 position before believing it.
 
-## A shared constant kept above loads: put the loop-note barrier on the loads, not on the constant (func_shelter_b1_control_room_8017D600, 2026-09-24)
+## A shared constant kept above loads: put the loop-note barrier on the loads, not on the constant (_shelterB1ControlRoomConfigureMirror, 2026-09-24)
 
 **Symptom.** In the entry block, a constant register (`li s3,1`) sits between
 the prologue saves (`sw s3; li s3,1; sw ra; ...`), above three global reads, and
@@ -145806,7 +145806,7 @@ its own single-set local (`bottom = y + arg4 - 1`), otherwise a further
 in-place update drifts forward too. Combine still narrows the `s32` load to
 `lhu`, since every use is truncated to 16 bits.
 
-## An empty asm in a loop can stand in for insns an inline helper supplies to loop.c's hoist threshold (func_shelter_r47_80183484, 2026-09-27)
+## An empty asm in a loop can stand in for insns an inline helper supplies to loop.c's hoist threshold (_shelterR47MapTerminalDrawPageOverlay, 2026-09-27)
 
 Two identical marker loops tested an area flag inline, with `__asm__("")` in one
 arm of `if (flag == 1) { if (areaIsSavedPoseRestoreEnabled(&key) == flag) visible = 0; else

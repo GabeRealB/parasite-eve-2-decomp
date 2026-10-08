@@ -20,6 +20,7 @@
 #include "gameplay/scene_runtime.h"
 
 #include "main/coord.h"
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/display_types.h"
 #include "main/gameflag.h"
@@ -181,7 +182,7 @@ extern TaskMessageEntry D_shelter_b1_control_room_80181B94[];
 extern EvsCommand       D_actor_150400_80132D70[];
 extern EvsCommand       D_actor_150400_80133088[];
 
-static void func_shelter_b1_control_room_8017D600(Task* task, _ShelterB1ControlRoomMirrorConfig* cfg);
+static void _shelterB1ControlRoomConfigureMirror(Task* unusedTask, _ShelterB1ControlRoomMirrorConfig* config);
 
 static s32 _shelterB1ControlRoomRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 s32        func_shelter_b1_control_room_8017ECD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
@@ -218,89 +219,106 @@ static inline void _gfxRotateShortVector(const MATRIX* rotation, const SVECTOR* 
     gte_stsv(output);
 }
 
-/// Fills in `cfg` for the current area key.
+/// Resets the mirror's activity gates and default floor/player selection.
 ///
-/// Every field starts from a default that leaves the mirror inactive, with the
-/// player task (`gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)`) as its subject. Three places turn it on,
-/// each for a set of views: area 7 of stage 5 while the session is in room 2,
-/// area 0x1E of stages 2 and 3, and area 0x12 of stage 4. In stage 4's area the
-/// subject becomes the `sceneFindPlacedActor(0)` task instead, and only when the
-/// key's `variant` is 0xB; with any other `variant`, `disabled` is set so the
-/// mirror task exits on its first frame.
-///
-/// The `do { } while (0)` is not logic. Its loop notes act as a scheduling
-/// barrier: without it, the scheduler would move the shared constant 1 down to
-/// its first store, below the key reads.
-static void func_shelter_b1_control_room_8017D600(Task* task, _ShelterB1ControlRoomMirrorConfig* cfg)
+/// Borrows the writable configuration; floorMode is 1. Unused plane members
+/// and a retained subject are left intact until the location selects them.
+static inline void _shelterB1ControlRoomResetMirrorConfig(_ShelterB1ControlRoomMirrorConfig* config, s32 floorMode)
 {
-    s32              stage;
-    s32              area;
-    s32              view;
-    GameLocationKey* key;
-    s32              one;
+    enum { SHELTER_B1_CONTROL_ROOM_MIRROR_DEFAULT_STRIP_X = 448 };
 
-    key = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
-    one = 1;
+    config->stripX          = SHELTER_B1_CONTROL_ROOM_MIRROR_DEFAULT_STRIP_X;
+    config->active          = 0;
+    config->copyPending     = 0;
+    config->firstBlendMode  = GPU_BLEND_AVERAGE;
+    config->mode            = floorMode;
+    config->offset.vy       = 0;
+    config->subjectIsPlayer = floorMode;
+    config->disabled        = 0;
+}
+
+/// Selects the mirror's subject, plane and framebuffer strip for the saved location.
+///
+/// Borrows writable configuration, initially zeroed or retained from the previous
+/// view. Resets its gates but leaves unused plane components intact. Enables
+/// the observatory's room-2 floor mirror in views 6..11, motel-room-6 reflections
+/// in views 1/8, or the control room's placed-actor mirror in variant 11 and
+/// views 1/4. Other control-room variants disable the task. Subjects are borrowed
+/// live model tasks. Normal components use Q12; offsets use game coordinates
+/// and strip X is in VRAM pixels. The floor's configured offset Y is not read
+/// by floor-frame construction; preserve that behavior.
+static void _shelterB1ControlRoomConfigureMirror(Task* unusedTask, _ShelterB1ControlRoomMirrorConfig* config)
+{
+    enum { SHELTER_B1_CONTROL_ROOM_MIRROR_ACTOR_STRIP_X          = 320,
+           SHELTER_B1_CONTROL_ROOM_MIRROR_ACTOR_VARIANT          = 11,
+           SHELTER_B1_CONTROL_ROOM_MIRROR_NORMAL_ONE             = 4096,
+           SHELTER_B1_CONTROL_ROOM_MIRROR_PLANE_Z                = -2750,
+           SHELTER_B1_CONTROL_ROOM_MIRROR_MOTEL_OFFSET_X         = 2616,
+           SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_OFFSET_Y   = 155,
+           SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_FIRST_VIEW = 6,
+           SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_VIEW_COUNT = 6 };
+    s32                    stage;
+    s32                    area;
+    s32                    view;
+    const GameLocationKey* location;
+    s32                    one;
+
+    location = &gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc;
+    one      = 1;
+    // Retain the grouped key reads; flattening them changes the matching schedule.
     do {
-        stage = key->stage;
-        area  = key->area;
-        view  = key->view;
+        stage = location->stage;
+        area  = location->area;
+        view  = location->view;
     } while (0);
-    cfg->stripX          = 0x1C0;
-    cfg->active          = 0;
-    cfg->copyPending     = 0;
-    cfg->firstBlendMode  = GPU_BLEND_AVERAGE;
-    cfg->mode            = one;
-    cfg->offset.vy       = 0;
-    cfg->subjectIsPlayer = one;
-    cfg->disabled        = 0;
+    _shelterB1ControlRoomResetMirrorConfig(config, one);
     switch (stage) {
-        case 5:
-            if (area == 7 && (u32)(view - 6) < 6 && gGameSession->location.loc.room == 2) {
-                cfg->offset.vy   = 0x9B;
-                cfg->active      = 1;
-                cfg->copyPending = 1;
+        case GAME_STAGE_SHELTER_NEO_ARK:
+            if (area == GAME_AREA_NEO_ARK_OBSERVATORY && (u32)(view - SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_FIRST_VIEW) < SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_VIEW_COUNT && gGameSession->location.loc.room == 2) {
+                config->offset.vy   = SHELTER_B1_CONTROL_ROOM_MIRROR_OBSERVATORY_OFFSET_Y;
+                config->active      = 1;
+                config->copyPending = 1;
             }
             break;
-        case 4:
-            if (area == 0x12) {
-                if (key->variant == 0xB) {
-                    cfg->subjectIsPlayer = 0;
-                    cfg->subject         = sceneFindPlacedActor(0);
+        case GAME_STAGE_MINE_SHELTER:
+            if (area == GAME_AREA_SHELTER_B1_CONTROL_ROOM) {
+                if (location->variant == SHELTER_B1_CONTROL_ROOM_MIRROR_ACTOR_VARIANT) {
+                    config->subjectIsPlayer = 0;
+                    config->subject         = sceneFindPlacedActor(0);
                     if (view == 4 || view == 1) {
-                        cfg->normal.vz      = -0x1000;
-                        cfg->offset.vz      = -0xABE;
-                        cfg->mode           = SHELTER_B1_CONTROL_ROOM_MIRROR_MODE_PLANE;
-                        cfg->normal.vx      = 0;
-                        cfg->normal.vy      = 0;
-                        cfg->offset.vx      = 0;
-                        cfg->offset.vy      = 0;
-                        cfg->active         = 1;
-                        cfg->copyPending    = 1;
-                        cfg->stripX         = 0x140;
-                        cfg->firstBlendMode = GPU_BLEND_ADD;
+                        config->normal.vz      = -SHELTER_B1_CONTROL_ROOM_MIRROR_NORMAL_ONE;
+                        config->offset.vz      = SHELTER_B1_CONTROL_ROOM_MIRROR_PLANE_Z;
+                        config->mode           = SHELTER_B1_CONTROL_ROOM_MIRROR_MODE_PLANE;
+                        config->normal.vx      = 0;
+                        config->normal.vy      = 0;
+                        config->offset.vx      = 0;
+                        config->offset.vy      = 0;
+                        config->active         = 1;
+                        config->copyPending    = 1;
+                        config->stripX         = SHELTER_B1_CONTROL_ROOM_MIRROR_ACTOR_STRIP_X;
+                        config->firstBlendMode = GPU_BLEND_ADD;
                     }
                 } else {
-                    cfg->disabled = 1;
+                    config->disabled = 1;
                 }
             }
             break;
-        case 2:
-        case 3:
-            if (area == 0x1E && (view == 8 || view == 1)) {
-                cfg->offset.vx      = 0xA38;
-                cfg->firstBlendMode = SHELTER_B1_CONTROL_ROOM_MIRROR_NO_OVERLAY;
-                cfg->normal.vx      = 0;
-                cfg->normal.vz      = 0;
-                cfg->offset.vy      = 0;
-                cfg->offset.vz      = 0;
-                cfg->active         = 1;
-                cfg->copyPending    = 1;
+        case GAME_STAGE_DRYFIELD:
+        case GAME_STAGE_DRYFIELD_NIGHT:
+            if (area == GAME_AREA_DRYFIELD_MOTEL_ROOM_6 && (view == 8 || view == 1)) {
+                config->offset.vx      = SHELTER_B1_CONTROL_ROOM_MIRROR_MOTEL_OFFSET_X;
+                config->firstBlendMode = SHELTER_B1_CONTROL_ROOM_MIRROR_NO_OVERLAY;
+                config->normal.vx      = 0;
+                config->normal.vz      = 0;
+                config->offset.vy      = 0;
+                config->offset.vz      = 0;
+                config->active         = 1;
+                config->copyPending    = 1;
             }
             break;
     }
-    if (cfg->subjectIsPlayer == 1) {
-        cfg->subject = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (config->subjectIsPlayer == 1) {
+        config->subject = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     }
 }
 
@@ -349,7 +367,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
             return;
         }
         task->work = work;
-        func_shelter_b1_control_room_8017D600(task, cfg);
+        _shelterB1ControlRoomConfigureMirror(task, cfg);
         if (cfg->disabled == 1) {
             taskCallExit(task);
             return;
@@ -383,7 +401,7 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     cfg     = &work->cfg;
     if (work->viewRebuildStamp != (gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK)) {
         work->viewRebuildStamp = gGfxViewCoord.composeStamp & GRAPHICS_COORD_STAMP_MASK;
-        func_shelter_b1_control_room_8017D600(task, cfg);
+        _shelterB1ControlRoomConfigureMirror(task, cfg);
         if (work->cfg.active == 1) {
             sub                      = gGfxViewCoord.parent;
             work->clipLeft           = SHELTER_B1_CONTROL_ROOM_MIRROR_FRAME_LEFT;

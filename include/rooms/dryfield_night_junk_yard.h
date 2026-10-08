@@ -30,7 +30,12 @@ extern SpriteView D_dryfield_night_junk_yard_80183700[];
 
 extern WorldCollisionSurfaceProperties* D_dryfield_night_junk_yard_801844C4[];
 
-void func_dryfield_night_junk_yard_8017D9B8(u8 arg0);
+/// Shows or hides the junk-yard encounter's sprite batch in mapped view 7.
+///
+/// Zero shows the nineteen sprites in batch 5; any nonzero byte hides them.
+/// Requires the active location to select the loaded night junk-yard sprite
+/// directory and its mutable batch list. Does not change the saved event flag.
+void dryfieldNightJunkYardSetEventSpriteBatchHidden(u8 hidden);
 
 /// Runs the junk yard's charging pink flash, peak screen tint and fading star.
 ///
@@ -55,7 +60,16 @@ void dryfieldNightJunkYardRoomVisualEffectsFlashTask(Task* task);
 /// transforms, scratch space, frame packet storage and the loaded room overlay.
 void dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask(Task* task);
 
-void func_dryfield_night_junk_yard_8017F914(Task* task);
+/// Runs the junk yard's impact flash with smoke or orange rings and bouncing sparks.
+///
+/// Starts in state 0 with a coordinate body and zero-aged counted `EffectWork`
+/// in `spawnArg2.pointer`. Nonzero `spawnArg1.value` selects smoke; zero selects
+/// rings and sparks. Active age seven enters release; the next active tick
+/// frees the work and task. Nonzero room effect control below four pauses it,
+/// and four or above cancels it. Child effects live independently. Requires
+/// live effect state, view transforms, scratch and packet storage, and the
+/// room overlay loaded until teardown.
+void dryfieldNightJunkYardRoomVisualEffectsSparkBurstTask(Task* task);
 
 /// Selects the junk yard's enemy effects and draws the current view's lamp glows.
 ///
@@ -69,6 +83,11 @@ void func_dryfield_night_junk_yard_8017F914(Task* task);
 /// overlay must stay loaded while its effects can run.
 void dryfieldNightJunkYardDrawGlowsTask(Task* task);
 
-void func_dryfield_night_junk_yard_8017D960(Task* task);
+/// Dispatches initialization, idle message reception and teardown for the room.
+///
+/// Starts in state 0; state must remain in 0..2. Publishes the room task slot
+/// and message table on initialization. The room overlay and sprite directory
+/// must stay loaded while this task or its message handlers can run.
+void dryfieldNightJunkYardRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_JUNK_YARD_H

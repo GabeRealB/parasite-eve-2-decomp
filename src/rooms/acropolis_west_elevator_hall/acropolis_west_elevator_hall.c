@@ -121,7 +121,7 @@ extern Task* D_acropolis_west_elevator_hall_80186AE4[];
 static void _acropolisWestElevatorHallUpdateArrivalEvent(Task* unusedTask);
 static void func_acropolis_west_elevator_hall_8017F568(Task* arg0);
 static void _acropolisWestElevatorHallInitializeDoorLeaf(Task* task);
-static void func_acropolis_west_elevator_hall_8017F6F0(Task* task);
+static void _acropolisWestElevatorHallUpdateDoorLeaf(Task* task);
 
 /// Scale applied to held-object reflections in slots 2 and up: it mirrors
 /// them across X.
@@ -135,7 +135,7 @@ static const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5D4 = {
 
 /// State handlers of an elevator-car task: set-up, travel and `taskKill`.
 static const TaskFuncTable3 D_acropolis_west_elevator_hall_8017D5E0 = {
-    { _acropolisWestElevatorHallInitializeDoorLeaf, func_acropolis_west_elevator_hall_8017F6F0, taskKill },
+    { _acropolisWestElevatorHallInitializeDoorLeaf, _acropolisWestElevatorHallUpdateDoorLeaf, taskKill },
 };
 
 /// Position of the first effect `func_acropolis_west_elevator_hall_8017F7D4`
@@ -1154,39 +1154,54 @@ static void _acropolisWestElevatorHallInitializeDoorLeaf(Task* task)
     task->state++;
 }
 
-/// Fourth state of the elevator task: drives the car along its shaft from the
-/// task's per-frame step, clamps the travel to [0, 0x2D0], and refreshes the
-/// model's world matrix and lighting from the resulting position.
-static void func_acropolis_west_elevator_hall_8017F6F0(Task* task)
+/// Integrates and clamps one door leaf's travel, then places it on its X side.
+///
+/// Borrows initialized task/work/coordinate storage. The task's first spawn
+/// word selects motion (-1/0/1), and its second selects the side (-1 or 1).
+/// Distances are whole world units. Composition remains the caller's.
+static inline void _acropolisWestElevatorHallSlideDoorLeaf(Task* task, _AcropolisWestElevatorHallDoorLeafWork* leafWork, GfxCoord* doorCoord)
 {
-    VECTOR                                  pos;
-    TmdObject*                              extra;
-    GfxCoord*                               coord;
-    _AcropolisWestElevatorHallDoorLeafWork* work;
-
-    work  = task->work;
-    extra = task->extra.tmd;
-    coord = extra->coords;
-
-    work->travel += task->spawnArg1.value * ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_SPEED;
-    if (work->travel < 0) {
-        work->travel = 0;
+    leafWork->travel += task->spawnArg1.value * ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_SPEED;
+    if (leafWork->travel < 0) {
+        leafWork->travel = 0;
     }
-    if (work->travel > ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_TRAVEL_MAX) {
-        work->travel = ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_TRAVEL_MAX;
+    if (leafWork->travel > ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_TRAVEL_MAX) {
+        leafWork->travel = ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_LEAF_TRAVEL_MAX;
     }
-    coord->coord.t[0] = (work->travel * task->spawnArg2.value) + ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_CLOSED_X;
-    if (gGameSession->location.loc.view == 5) {
-        extra->flags = 0;
+    doorCoord->coord.t[0] = (leafWork->travel * task->spawnArg2.value) + ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_CLOSED_X;
+}
+
+/// Slides one mirrored door leaf and updates its visibility and lighting.
+///
+/// State 1 borrows initialized travel work and a live model. `spawnArg1.value`
+/// is -1 closing, 0 stopped or 1 opening at 20 world units per frame;
+/// `spawnArg2.value` is the leaf's X side (-1 or 1). Travel stays in 0..720.
+/// Only view 5 draws the model. Composition precedes the full lighting query.
+static void _acropolisWestElevatorHallUpdateDoorLeaf(Task* task)
+{
+    enum { ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_VIEW = 5 };
+    VECTOR                                  worldPosition;
+    TmdObject*                              doorModel;
+    GfxCoord*                               doorCoord;
+    _AcropolisWestElevatorHallDoorLeafWork* leafWork;
+
+    leafWork  = task->work;
+    doorModel = task->extra.tmd;
+    doorCoord = doorModel->coords;
+
+    _acropolisWestElevatorHallSlideDoorLeaf(task, leafWork, doorCoord);
+    if (gGameSession->location.loc.view == ACROPOLIS_WEST_ELEVATOR_HALL_DOOR_VIEW) {
+        doorModel->flags = 0;
     } else {
-        extra->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+        doorModel->flags = TMD_OBJECT_SKIP_ACTIVE_DRAW;
     }
-    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(coord);
-    pos.vx = coord->workm.t[0];
-    pos.vy = coord->workm.t[1];
-    pos.vz = coord->workm.t[2];
-    worldCoordSetModelLighting(extra, &pos, 0, 3);
+    // Sample lighting from the newly composed world position, even when hidden.
+    doorCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(doorCoord);
+    worldPosition.vx = doorCoord->workm.t[0];
+    worldPosition.vy = doorCoord->workm.t[1];
+    worldPosition.vz = doorCoord->workm.t[2];
+    worldCoordSetModelLighting(doorModel, &worldPosition, 0, 3);
 }
 
 /// Third state of the elevator task: on the two session phases that use it,

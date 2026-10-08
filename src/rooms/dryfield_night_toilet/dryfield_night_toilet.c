@@ -476,7 +476,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_toilet_8017F3D8[8] = {
     D_dryfield_night_toilet_8017F3C0,
 };
 
-static void func_dryfield_night_toilet_8017D690(Task* task);
+static void _dryfieldNightToiletInitializeRoom(Task* task);
 
 #include "../../shared/room_variants_parking_lot.inc.c"
 
@@ -511,15 +511,17 @@ static s32 _dryfieldNightToiletIgnoreActionRequest(Task* unusedTask, s32 message
     return 0;
 }
 
-/// First state of the room task: publishes the room's message table and claims
-/// pointer slot 7. When game nibble 0xAF is still clear and the session's place
-/// (`gGameSession->location.loc.variant`) is 1, it sets the nibble to 1 and spawns
-/// entry 0 of `&Actor04000_D0C6FC`. Advances to the next state either way.
-static void func_dryfield_night_toilet_8017D690(Task* task)
+/// Registers the night toilet and starts its first-visit event once.
+///
+/// State 0 publishes the room's message table and task slot. In variant 1,
+/// latches the event before spawning its actor task, without retrying an
+/// allocation failure. Advances to idle state 1 on every call.
+static void _dryfieldNightToiletInitializeRoom(Task* task)
 {
+    enum { DRYFIELD_NIGHT_TOILET_EVENT_VARIANT = 1 };
     task->msgTable = D_dryfield_night_toilet_8017DA70;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gameFlagGetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == 1) {
+    if (gameFlagGetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN) == 0 && gGameSession->location.loc.variant == DRYFIELD_NIGHT_TOILET_EVENT_VARIANT) {
         gameFlagSetNibble(GAME_FLAG_NIGHT_TOILET_EVENT_SEEN, 1);
         taskSpawnFromTable(&Actor04000_D0C6FC, 0, 0, 0);
     }
@@ -536,7 +538,7 @@ static void _dryfieldNightToiletIdleRoomTask(Task* unusedTask)
 
 /// The room task's three states.
 static const TaskFuncTable3 D_dryfield_night_toilet_8017D5C4 = {
-    { func_dryfield_night_toilet_8017D690, _dryfieldNightToiletIdleRoomTask, taskKill },
+    { _dryfieldNightToiletInitializeRoom, _dryfieldNightToiletIdleRoomTask, taskKill },
 };
 
 void dryfieldNightToiletRoomTask(Task* task)

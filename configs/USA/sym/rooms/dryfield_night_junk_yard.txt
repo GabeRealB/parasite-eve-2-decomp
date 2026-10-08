@@ -67,13 +67,13 @@ D_dryfield_night_junk_yard_8018059C = 0x8018059C; // size:0x4 defined:True
 D_dryfield_night_junk_yard_801805A4 = 0x801805A4; // size:0x198 defined:True
 RoomFx_TrailOffsets = 0x80180774; // size:0x10 defined:True
 
-func_dryfield_night_junk_yard_8017D9B8 = 0x8017D9B8; // type:func
+dryfieldNightJunkYardSetEventSpriteBatchHidden = 0x8017D9B8; // type:func
 
 dryfieldNightJunkYardRoomVisualEffectsFlashTask = 0x8017E5C8; // type:func
 
 dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask = 0x8017F02C; // type:func
 
-func_dryfield_night_junk_yard_8017F914 = 0x8017F914; // type:func
+dryfieldNightJunkYardRoomVisualEffectsSparkBurstTask = 0x8017F914; // type:func
 
 dryfieldNightJunkYardDrawGlowsTask = 0x8017DA14; // type:func
 _roomVisualEffectsDrawFlashRing = 0x8017E86C; // type:func
@@ -86,3 +86,7 @@ junkYardCapMsg = 0x8017D5F4; // type:func
 _dryfieldNightJunkYardRejectKeyItemUse = 0x8017d6a4; // type:func
 _dryfieldNightJunkYardSetRoomNumber = 0x8017d894; // type:func
 _dryfieldNightJunkYardRoomIdle = 0x8017d958; // type:func
+_roomVariantNightJunkYardMsg = 0x8017d6ac; // type:func
+_dryfieldNightJunkYardHandleRoomAction = 0x8017d82c; // type:func
+_dryfieldNightJunkYardInitializeRoom = 0x8017d8b0; // type:func
+dryfieldNightJunkYardRoomTask = 0x8017d960; // type:func

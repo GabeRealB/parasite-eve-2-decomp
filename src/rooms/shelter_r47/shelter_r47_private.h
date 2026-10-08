@@ -256,7 +256,16 @@ s32 shelterR47ConsoleHitTestHotspots(Task* task, ActionPromptHotspot* hotspots, 
 /// guided-tour state are retained.
 void shelterR47ResetTerminalFirstUseEvents(void);
 
-void func_shelter_r47_80183B84(Task* task);
+/// Eases the map and side-panel sizes and queues their textured quads.
+///
+/// Borrows initialized terminal work with page 0..4 and pixel dimensions.
+/// Each size moves one quarter of the signed difference toward its target.
+/// A map width at least 229 snaps both sizes to 232x206, draws the page overlay,
+/// clears the prompt hold and advances the open-frame counter. Below that width
+/// it hides the prompt and resets the counter. Always draws the map and panel
+/// backgrounds, using OT entries 11/12 and one packet each plus page contents.
+/// Textures, work and packet storage must remain live through GPU completion.
+void shelterR47MapTerminalUpdateAndDrawQuads(Task* task);
 
 /// Queues the map terminal's previous-page button at (-150, 63) screen pixels.
 ///

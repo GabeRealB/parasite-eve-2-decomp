@@ -263,3 +263,6 @@ shelterR47ConsolePromptTask = 0x80183234; // type:func
 shelterR47ConsoleSelectHotspotTask = 0x80181568; // type:func
 _shelterR47MapTerminalRestoreRoomTask = 0x80185510; // type:func
 _shelterR47MapTerminalPromptTask = 0x8018580c; // type:func
+_shelterR47MapTerminalDrawPageOverlay = 0x80183484; // type:func
+shelterR47MapTerminalUpdateAndDrawQuads = 0x80183b84; // type:func
+_shelterR47MapTerminalUpdateAndDraw = 0x801851b8; // type:func

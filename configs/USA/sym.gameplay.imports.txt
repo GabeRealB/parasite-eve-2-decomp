@@ -729,7 +729,7 @@ dryfieldNightJunkYardRoomVisualEffectsFlashTask = 0x8017E5C8; // type:func absol
 
 dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask = 0x8017F02C; // type:func absolute:True owner=dryfield_night_junk_yard
 
-func_dryfield_night_junk_yard_8017F914 = 0x8017F914; // type:func absolute:True owner=dryfield_night_junk_yard
+dryfieldNightJunkYardRoomVisualEffectsSparkBurstTask = 0x8017F914; // type:func absolute:True owner=dryfield_night_junk_yard
 
 func_dryfield_night_main_street_8017E484 = 0x8017E484; // type:func absolute:True owner=dryfield_night_main_street
 

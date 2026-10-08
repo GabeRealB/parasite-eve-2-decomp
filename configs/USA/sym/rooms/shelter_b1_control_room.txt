@@ -73,3 +73,4 @@ streamedScenePlayThenHold = 0x8017EF24; // type:func
 _shelterB1ControlRoomRejectKeyItemUse = 0x8017eccc; // type:func
 _shelterB1ControlRoomIgnoreRoomAction = 0x8017ee24; // type:func
 _shelterB1ControlRoomIdleState = 0x8017eebc; // type:func
+_shelterB1ControlRoomConfigureMirror = 0x8017d600; // type:func

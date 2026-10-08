@@ -766,7 +766,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_back_street_8017F6DC, { NULL } },                               // 0x0E4
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardRoomVisualEffectsFlashTask, { NULL } },                        // 0x0E5
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardRoomVisualEffectsTwinTrailTask, { NULL } },                    // 0x0E6
-    { { { TASK_BODY_COORD, 0x70 } }, func_dryfield_night_junk_yard_8017F914, { NULL } },                                 // 0x0E7
+    { { { TASK_BODY_COORD, 0x70 } }, dryfieldNightJunkYardRoomVisualEffectsSparkBurstTask, { NULL } },                   // 0x0E7
     { { { TASK_BODY_COORD, 0x70 } }, _effectDarknessScreenDimTaskE8, { NULL } },                                         // 0x0E8
     { { { TASK_BODY_COORD, 0x70 } }, mineMesaRoomVisualEffectsFlashTask, { NULL } },                                     // 0x0E9
     { { { TASK_BODY_COORD, 0x70 } }, lifedrainExpandingGlowBandTask, { NULL } },                                         // 0x0EA

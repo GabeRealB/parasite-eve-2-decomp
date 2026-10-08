@@ -1042,7 +1042,12 @@ static s32 _shelterB3GarbageIncineratorHandleLiftActorEvent(Task* task, s32 unus
 
 /// Sends a blended, collision-disabled animation to the burn controller's player.
 ///
-/// Re-reads the controller work after any preceding synchronous message.
+/// Borrows live controller work and its player task through synchronous dispatch.
+/// `animationId` is a signed bank clip ID; `blendFrames` is a nonnegative frame
+/// duration (10 for successors, 15 for scripted clips). Selects the equipped
+/// weapon's character bank and remembers the clip before dispatch, so successor
+/// polling observes the new ID. The receiver copies the request; no stack
+/// address is retained. Re-reads work after any preceding synchronous message.
 static inline void _shelterB3GarbageIncineratorPlayBlazeAnimation(Task* controller, s16 animationId, s32 blendFrames)
 {
     _ShelterB3GarbageIncineratorBlazeWork* work = controller->work;

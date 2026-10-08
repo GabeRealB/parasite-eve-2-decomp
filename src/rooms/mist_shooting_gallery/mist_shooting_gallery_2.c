@@ -175,7 +175,7 @@ static const TaskFuncTable5 D_mist_shooting_gallery_8017DB8C = {
     },
 };
 
-void func_mist_shooting_gallery_80184C0C(Task*);
+static void _mistShootingGalleryCaptionModeTask(Task* task);
 
 static void _mistShootingGalleryCourseTask(Task* task);
 static void _mistShootingGalleryRedFlashTask(Task* task);
@@ -185,7 +185,7 @@ TaskDesc D_mist_shooting_gallery_801856B8[2] = {
     { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryRedFlashTask, { .value = 0 } },
 };
 
-TaskDesc D_mist_shooting_gallery_801856D0 = { { { TASK_BODY_NONE, 192 } }, func_mist_shooting_gallery_80184C0C, { .value = 0 } };
+TaskDesc D_mist_shooting_gallery_801856D0 = { { { TASK_BODY_NONE, 192 } }, _mistShootingGalleryCaptionModeTask, { .value = 0 } };
 
 _MistShootingGallerySpawn D_mist_shooting_gallery_801856DC[60] = {
     { 0, 0x000A, 0x0000, 0, 0, 3000 },
@@ -3597,18 +3597,31 @@ static void func_mist_shooting_gallery_80184BB8(s16 arg0, s16 arg1, s16 arg2)
     displayQueueModeTask(&D_mist_shooting_gallery_801856D0, arg2, 0, STAGE_ENTRY_RELOAD);
 }
 
-void func_mist_shooting_gallery_80184C0C(Task* arg0)
+/// Displays the selected caption until a button press closes its display mode.
+///
+/// Starts in state 0, drawing through a sixteen-tick input delay before testing
+/// port 0's newly pressed buttons against `spawnArg1.value`. An accepted press
+/// skips drawing that tick; the next tick kills the task and requests mode exit.
+/// Owns no work block. The selected caption, actor overlay and its resources
+/// must remain live; this task does not advance the caption sequence.
+static void _mistShootingGalleryCaptionModeTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
-            arg0->state         = 1;
-            arg0->killCountdown = 0x10;
-        case 1:
-            if (arg0->killCountdown != 0) {
-                arg0->killCountdown--;
+    enum { MIST_SHOOTING_GALLERY_CAPTION_INITIALIZE      = 0,
+           MIST_SHOOTING_GALLERY_CAPTION_WAIT_FOR_BUTTON = 1,
+           MIST_SHOOTING_GALLERY_CAPTION_CLOSE           = 2,
+           MIST_SHOOTING_GALLERY_CAPTION_INPUT_DELAY     = 16 };
+
+    switch (task->state) {
+        case MIST_SHOOTING_GALLERY_CAPTION_INITIALIZE:
+            task->state         = MIST_SHOOTING_GALLERY_CAPTION_WAIT_FOR_BUTTON;
+            task->killCountdown = MIST_SHOOTING_GALLERY_CAPTION_INPUT_DELAY;
+            // Draw on the initialization tick while consuming the first delay tick.
+        case MIST_SHOOTING_GALLERY_CAPTION_WAIT_FOR_BUTTON:
+            if (task->killCountdown != 0) {
+                task->killCountdown--;
             } else {
-                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, arg0->spawnArg1.value) != 0) {
-                    arg0->state = arg0->state + 1;
+                if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, task->spawnArg1.value) != 0) {
+                    task->state = task->state + 1;
                 } else {
                     actor215100CapCaptionDrawCurrent();
                 }
@@ -3616,8 +3629,8 @@ void func_mist_shooting_gallery_80184C0C(Task* arg0)
             }
             actor215100CapCaptionDrawCurrent();
             break;
-        case 2:
-            taskKill(arg0);
+        case MIST_SHOOTING_GALLERY_CAPTION_CLOSE:
+            taskKill(task);
             stageRequestModeTaskExit();
             break;
     }
