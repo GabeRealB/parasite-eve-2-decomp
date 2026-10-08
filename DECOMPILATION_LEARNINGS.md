@@ -33121,23 +33121,23 @@ as `3CD8_34D8.c` / `3FB8_75BC.c`.
 
 ## Isolate `ret = 1` from `* 10` so the shift stays `sll`, not `sllv`
 
-Update (Gp_SetAttachState, 2026-09-27): the barrier recipe below is superseded
+Update (_attachmentArmCast, 2026-09-27): the barrier recipe below is superseded
 by reusing the existing `_attachmentGetEffectiveLevel` inline helper and expressing the ID's
 decimal stages with signed-byte row and column locals:
 
 ```c
-row = idx / 3;
-rowPrefix = (row + 1) * 10 + 1;
-column = idx % 3;
-attachId = rowPrefix + column;
+elementRow = encodedIndex / 3;
+familyBase = (elementRow + 1) * 10 + 1;
+energyColumn = encodedIndex % 3;
+attachId = familyBase + energyColumn;
 attachId *= 10;
-level = _attachmentGetEffectiveLevel(idx);
+level = _attachmentGetEffectiveLevel(encodedIndex);
 attachId += level;
 ```
 
 Without the helper, the default level's `1` is already live before the
 arithmetic in `.greg`; immediate shifts become register shifts by `.sched2`.
-The helper restores the immediate operations. Keeping `rowPrefix` separate
+The helper restores the immediate operations. Keeping `familyBase` separate
 leaves it local, while assigning the sum to `attachId` before multiplying
 extends the accumulator's global pseudo to that sum. Combining those last
 two statements instead leaves the sum local in `$v1`, causing three register
@@ -33166,7 +33166,7 @@ if (n < 0xC) { … }
 
 Split `(s8)quot + 1` into a temp so `* 10 + 1` can accumulate in `$v1`
 while the s32 quotient stays in `$a0` for the later `n - quot * 3`.
-`Gp_SetAttachState` is the example.
+`_attachmentArmCast` is the example.
 
 ## `table += n; ret = *table` keeps the `addu` dest on the pointer
 
@@ -33206,7 +33206,7 @@ temp       = f(3);
 The empty `+r` keeps `-2` live so its `li` is emitted before the call
 arg, while the `sb` can still fill the `jal` delay. Don't `register asm("v0")`
 that temp at function scope: GCC 2.8.1 reserves the hard register for the
-whole function and steals `$v0` from the earlier math. `Gp_SetAttachState` is
+whole function and steals `$v0` from the earlier math. `_attachmentArmCast` is
 the example.
 
 ## Two scratch aliases: halfword `+r` first, then `+r` the block pointer
@@ -37043,7 +37043,7 @@ five = 5;
 req.glyphTable = five;
 ```
 
-`Gp_DrawItemPrompt` is the example.
+`_hudDrawWeaponSupplyPrompt` is the example.
 
 ## Shared `state = n` store after a switch, with a dedicated `li 4` label
 
@@ -38655,12 +38655,12 @@ Symptom: the whole function is instruction-for-instruction identical to the targ
 but two or three `$t` registers are permuted everywhere (`sb t0` vs `sb t1`, …).
 Do not reach for register pins — reorder the field stores instead.
 
-`Gp_DrawPeGauge` draws two `SPRT_16`s with the same literals. Writing the second
+`_hudDrawAttachmentCastGauge` draws two `SPRT_8`s with the same literals. Writing the second
 sprite's fields in a different order from the first
 
 ```c
-sp2->u0 = 0xA8; sp2->v0 = 0x68; setlen(sp2, 3); setcode(sp2, 0x77);
-sp2->x0 = ...;  sp2->y0 = ...;  sp2->clut = 0x3C0B;
+rightCap->u0 = 0xA8; rightCap->v0 = 0x68; setlen(rightCap, 3); setcode(rightCap, 0x77);
+rightCap->x0 = ...;  rightCap->y0 = ...;  rightCap->clut = 0x3C0B;
 ```
 
 stalled at 99.78% with `0x3C0B`/`3`/`0x77` in the wrong `$t`s. Making the two blocks
@@ -67028,21 +67028,21 @@ permuter: `gte_lddp((mem->field_24 << 3))` compiles identically and avoids its
 inline-asm parser error at `<<`.
 
 
-## `func_800A2104`: separate spills, last-use order, and a memory input for GPU scheduling
+## `_attachmentUpdateAndDrawWheel`: separate spills, last-use order, and a memory input for GPU scheduling
 
 The archived seed started at 86.925%; the final body matched after 29 scored
 builds, including the baseline. Matched attachment helpers in the same TU
-provided the loop and level-selection shapes. Keeping `changed`, `xOff`, and
-`yOff` as independent scalar locals, rather than fields appended to the UI
+provided the loop and level-selection shapes. Keeping `selectionChanged`, `iconOriginX`, and
+`iconOriginY` as independent scalar locals, rather than fields appended to the UI
 scratch structure, let reload produce the target spill slots and delayed
 stores. The scratch itself is a 0x68-byte object whose text buffer/request
 storage is reused for twelve coordinate pairs.
 
 Two equally referenced incoming coordinates were allocated backwards.
-Writing `rect.x = value` before `rect.y = arg2 + 0x17` shortened arg1's last-use
+Writing `captionFrame.x = value` before `captionFrame.y = panelY + 0x17` shortened panelX's last-use
 range enough to swap their allocation without a pin or a scheduling barrier.
-Likewise, separating `dx = px + 0x30; px = dx + xOff` preserved the target
-addition order; a single expression reassociated the constant with xOff.
+Likewise, separating `wheelX = screenX + 0x30; screenX = wheelX + iconOriginX` preserved the target
+addition order; a single expression reassociated the constant with iconOriginX.
 
 The final GPU block had only scheduling penalties. Volatile accesses to both
 `P_TAG.len` and `DR_TPAGE.code[0]` preserve their store order. An ordinary
@@ -143733,12 +143733,12 @@ but the ranks are not - the "`n_refs` is counted before combine" mechanism.
 offsets, rewrite those offsets as increments/decrements of the pointer between the
 accesses.
 
-## A sequence of literal stores can be the same macro as a later field-based copy; CSE folded the object's known fields (Gp_DrawItemPrompt, 2026-09-26)
+## A sequence of literal stores can be the same macro as a later field-based copy; CSE folded the object's known fields (_hudDrawWeaponSupplyPrompt, 2026-09-26)
 
-A HUD prompt fills a stack `UiObject` (`baseX = 0`, `baseY = 0`,
-`drawOrder = -3`), then draws a label four times with literal stores
+A HUD prompt fills a stack `UiObject` (`panel.contentOriginX.unsignedValue = 0`, `panel.contentOriginY.unsignedValue = 0`,
+`panel.otIndex.signedValue = -3`), then draws a label four times with literal stores
 (`x = 0x63`, `y = y + 9`, `otIndex = -2`), and later twice more with
-`x = obj.baseX + 4 + xBase`, `otIndex = obj.drawOrder + 1`. The literal copies
+`x = promptPanel.panel.contentOriginX.unsignedValue + 4 + promptLeft`, `otIndex = promptPanel.panel.otIndex.signedValue + 1`. The literal copies
 had needed a `register u8* str asm("a1")` pin, the field-based ones faked
 `%hi/%lo` pairs. All six are one plain-brace macro that stores every field and
 calls the draw function per branch. In the first copies CSE substitutes the
@@ -143747,7 +143747,7 @@ full per-branch call lets cross-jumping merge the tails, leaving the string's
 `lui a1 / addiu a1,a1` in each arm. Wrapping the same macro body in
 `do { } while (0)` broke the match (loop weighting), so use bare braces.
 
-A `t = -3; obj.drawOrder = t;` temp in the same function was a `u16` field
+A `t = -3; promptPanel.panel.otIndex.signedValue = t;` temp in the same function was a `u16` field
 declaration: the store emitted `li 0xfffd` without it. Every reader cast the
 field to `s16`, and declaring it `s16` matched the whole tree.
 ## `a < b` and `b > a` are different code: the operands expand in written order (itemMenuInfoTask, 2026-09-26)
@@ -144076,9 +144076,9 @@ Writing each use through the helper matched; `(&D[i].obj)->f` does too but is a 
 next to `base`; a `growth` temp per arm keeps `addiu 0x90; addu size,base,growth`,
 and jump2 cross-jumps the identical tails into the join the target shows.
 
-## Three pins in one draw routine that were an inline parameter, an argument expression and an early constant (func_800A2104, 2026-09-26)
+## Three pins in one draw routine that were an inline parameter, an argument expression and an early constant (_attachmentUpdateAndDrawWheel, 2026-09-26)
 
-**`addiu 4` before the base add, not `lhu 4(v0)`.** `Gp_IdParamHi[row].field[2]`
+**`addiu 4` before the base add, not `lhu 4(v0)`.** `Gp_IdParamHi.rows[row].value[ATTACHMENT_LEVEL_CAST_COST]`
 folds the member into the load displacement; the hand-built
 `off = row * 16; TOUCH_REG(off); off += 4; off += base` was forcing
 `(row*16 + 4) + base`. That shape is `field[k]` with `k` an *inline helper
@@ -144093,10 +144093,10 @@ the field itself (`helper(Gp_StateC08.wheelIndex, 2)`, and the same field in the
 item-id expression) gives the parameter its own pseudo and the ROM's
 allocation, with no local at all.
 
-**`li a0,-2; sll a0,a0,2` unfolded in the tail.** An empty `asm` on `order`
+**`li a0,-2; sll a0,a0,2` unfolded in the tail.** An empty `asm` on `otIndex`
 imitated a local set to `-2` at the top of the function and first used after
 many blocks: reload rematerialises its `REG_EQUIV` constant at the use instead
-of folding `-2 << 2`. Write `order = -2;` with the other initialisations.
+of folding `-2 << 2`. Write `otIndex = -2;` with the other initialisations.
 
 ## Register-held `u` constants in a prim build mean `setUV4`, not separate stores
 

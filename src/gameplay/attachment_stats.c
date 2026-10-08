@@ -84,7 +84,7 @@ extern const char D_80093894[];
 
 extern const char D_80093898[];
 
-static void Gp_DrawItemPrompt(s32 arg0, s32 arg1);
+static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY);
 
 static __inline__ s32 _attachmentGetEffectiveLevel(s32 abilityIndex);
 
@@ -94,25 +94,23 @@ static __inline__ u16 _attachmentGetLevelValue(s32 abilityIndex, s32 level, s32 
 
 static s32 _attachmentIsCastBlocked(s32 abilityIndex);
 
-static void Gp_SetAttachState(s32 arg0);
+static void _attachmentArmCast(s32 abilityIndex);
 
-static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save);
+static __inline__ s32 _attachmentStepLearnedSpellWithSave(s32 abilityIndex, s32 steps, const McSaveData* eligibilitySave);
 
 static __inline__ s32 _attachmentStepLearnedSpell(s32 abilityIndex, s32 steps);
 
 static __inline__ u16 _attachmentGetEffectiveLevelValue(s32 abilityIndex, s32 column);
 
-static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2);
+static s32 _attachmentUpdateAndDrawWheel(HudState* hud, s32 panelX, s32 panelY);
 
-static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2);
+static void _hudDrawAttachmentCastGauge(HudState* unusedHud, s32 panelX, s32 panelY);
 
-/// Inline copy of `attachmentGetLearnedLevels`.
-static __inline__ u8* getAttachLevels(void);
+static __inline__ const u8* _attachmentGetLearnedLevels(void);
 
 static __inline__ s32 _hudCanSwitchCategory(s32 ignoreSwapLock);
 
-/// Inline copy of `_attachmentIsBattleSoundLoadReady`.
-static __inline__ s32 cdIdleIfF0Active_(void);
+static __inline__ s32 _attachmentIsBattleSoundLoadReady(void);
 
 /// Inline copy of `attachmentSoundLoadStub`, which evaluates the same gate as
 /// `sceneIsBattleActive` but always returns 0.
@@ -404,54 +402,74 @@ void Gp_ApplyAttachStats(s32 arg0, HudState* hud)
 
 /// Draws one of the prompt's button labels on line `line`, `dx` pixels right of
 /// the prompt's left edge.
-#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                            \
-    {                                                                           \
-        req.x          = obj.panel.contentOriginX.unsignedValue + (dx) + xBase; \
-        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        req.colorRgb   = (color);                                               \
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
-        req.alignment  = TEXT_ALIGNMENT_LEFT;                                   \
-        req.drawMode   = TEXT_DRAW_OUTLINED;                                    \
-        textDrawString(&req, (str));                                            \
+#define DRAW_PROMPT_LABEL(req, dx, line, color, str)                                         \
+    {                                                                                        \
+        req.x          = promptPanel.panel.contentOriginX.unsignedValue + (dx) + promptLeft; \
+        req.y          = (promptPanel.panel.contentOriginY.unsignedValue + 9) + (line);      \
+        req.otIndex    = promptPanel.panel.otIndex.signedValue + 1;                          \
+        req.colorRgb   = (color);                                                            \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                             \
+        req.alignment  = TEXT_ALIGNMENT_LEFT;                                                \
+        req.drawMode   = TEXT_DRAW_OUTLINED;                                                 \
+        textDrawString(&req, (str));                                                         \
     }
 
-/// Draws a quantity right-aligned on line `line`; an empty count sets `flag`.
-#define DRAW_PROMPT_COUNT(req, line, count)                                     \
-    {                                                                           \
-        req.colorRgb   = 0x606060;                                              \
-        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                \
-        req.alignment  = TEXT_ALIGNMENT_RIGHT;                                  \
-        req.drawMode   = TEXT_DRAW_FILL_ONLY;                                   \
-        req.x          = obj.panel.contentOriginX.unsignedValue + 0x94;         \
-        req.y          = (obj.panel.contentOriginY.unsignedValue + 9) + (line); \
-        req.otIndex    = obj.panel.otIndex.signedValue + 1;                     \
-        textDrawString(&req, textItoaSigned(buf, (count)));                     \
-        if ((count) == 0) {                                                     \
-            flag = 1;                                                           \
-        }                                                                       \
+/// Draws a quantity right-aligned on line `line`; an empty count sets `missingSupply`.
+#define DRAW_PROMPT_COUNT(req, line, count)                                             \
+    {                                                                                   \
+        req.colorRgb   = 0x606060;                                                      \
+        req.glyphTable = TEXT_GLYPH_TABLE_SMALL;                                        \
+        req.alignment  = TEXT_ALIGNMENT_RIGHT;                                          \
+        req.drawMode   = TEXT_DRAW_FILL_ONLY;                                           \
+        req.x          = promptPanel.panel.contentOriginX.unsignedValue + 0x94;         \
+        req.y          = (promptPanel.panel.contentOriginY.unsignedValue + 9) + (line); \
+        req.otIndex    = promptPanel.panel.otIndex.signedValue + 1;                     \
+        textDrawString(&req, textItoaSigned(quantityDigits, (count)));                  \
+        if ((count) == 0) {                                                             \
+            missingSupply = 1;                                                          \
+        }                                                                               \
     }
 
-static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
+/// Draws the equipped weapon's button labels and loaded supply quantities.
+///
+/// Uses a fixed screen-centered position, adjusted for the display's VRAM Y
+/// offset; both incoming panel coordinates are ignored. Hidden HUD/captions,
+/// no weapon and the tonfa suppress it. Layout C uses button glyphs; the
+/// Gunblade's primary supply uses the secondary button label. The last visible
+/// row selects a pulsing frame when empty. Requires live save and UI resources
+/// and writable GPU packet/ordering-table storage through frame completion.
+static void _hudDrawWeaponSupplyPrompt(s32 unusedPanelX, s32 unusedPanelY)
 {
-    u8                   buf[0x10];
-    UiObject             obj;
-    TextDrawReq          req;
-    TextDrawReq          req2;
-    RECT                 rect;
-    PlayerStatus*        cfg;
-    EquipmentWeaponLoad* slot;
-    s32                  item;
-    s32                  count2;
-    s32                  count1;
-    s32                  height;
-    s32                  flag;
-    s32                  xBase;
-    s32                  y;
+    enum {
+        HUD_WEAPON_PROMPT_TONFA_ITEM_ID          = 0x92,
+        HUD_WEAPON_PROMPT_GUNBLADE_ITEM_ID       = 0x96,
+        HUD_WEAPON_PROMPT_SYMBOL_LAYOUT          = 2,
+        HUD_WEAPON_PROMPT_TEXT_COLOR             = 0x606060,
+        HUD_WEAPON_PROMPT_PRIMARY_SYMBOL_COLOR   = 0x503060,
+        HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR = 0x506030,
+        HUD_WEAPON_PROMPT_NO_SECONDARY_QUANTITY  = -1,
+        HUD_WEAPON_PROMPT_STEADY_STYLE           = 0x40002,
+        HUD_WEAPON_PROMPT_EMPTY_STYLE            = 0x40004
+    };
+    u8                         quantityDigits[0x10];
+    UiObject                   promptPanel;
+    TextDrawReq                primaryLabel;
+    TextDrawReq                secondaryLabel;
+    RECT                       promptFrame;
+    const PlayerStatus*        player;
+    const EquipmentWeaponLoad* weaponLoad;
+    s32                        weaponItemId;
+    s32                        secondaryQuantity;
+    s32                        primaryQuantity;
+    s32                        promptHeight;
+    s32                        missingSupply;
+    s32                        promptLeft;
+    s32                        lineY;
 
-    cfg    = &gPlayerStatus;
-    slot   = equipmentGetWeaponLoad(cfg->weapon + 0x7F);
-    count2 = -1;
+    player = &gPlayerStatus;
+    // The load is read only after the equipped-weapon guard below.
+    weaponLoad        = equipmentGetWeaponLoad(player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1));
+    secondaryQuantity = HUD_WEAPON_PROMPT_NO_SECONDARY_QUANTITY;
     if (Pad_RemapState->hideHud != 0) {
         return;
     }
@@ -461,72 +479,73 @@ static void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
     if (gGameSession->hideHud != 0) {
         return;
     }
-    if (cfg->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
+    if (player->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
         return;
     }
-    item = cfg->weapon + 0x7F;
-    if (item == 0x92) {
+    weaponItemId = player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+    if (weaponItemId == HUD_WEAPON_PROMPT_TONFA_ITEM_ID) {
         return;
     }
-    count1 = slot->primaryQty;
-    if (slot->secondaryItemId != INVENTORY_ITEM_NONE && slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-        count2 = slot->secondaryQty;
+    primaryQuantity = weaponLoad->primaryQty;
+    if (weaponLoad->secondaryItemId != INVENTORY_ITEM_NONE && weaponLoad->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+        secondaryQuantity = weaponLoad->secondaryQty;
     }
-    height                                 = 0xE;
-    flag                                   = 0;
-    obj.panel.contentOriginX.unsignedValue = 0;
-    obj.panel.contentOriginY.unsignedValue = 0;
-    obj.panel.otIndex.signedValue          = -3;
-    obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
-    xBase                                  = 0x5F;
-    if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-        height = 0x18;
+    promptHeight                                   = 0xE;
+    missingSupply                                  = 0;
+    promptPanel.panel.contentOriginX.unsignedValue = 0;
+    promptPanel.panel.contentOriginY.unsignedValue = 0;
+    promptPanel.panel.otIndex.signedValue          = -3;
+    promptPanel.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+    promptLeft                                     = 0x5F;
+    if (weaponLoad->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+        promptHeight = 0x18;
     }
-    y = 0x64 - height;
-    y = y - gDisplayState.vramYOffset;
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 2) {
-        if (item != 0x96) {
-            DRAW_PROMPT_LABEL(req, 4, y, 0x606060, D_8009388C);
+    lineY = 0x64 - promptHeight;
+    lineY = lineY - gDisplayState.vramYOffset;
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != HUD_WEAPON_PROMPT_SYMBOL_LAYOUT) {
+        if (weaponItemId != HUD_WEAPON_PROMPT_GUNBLADE_ITEM_ID) {
+            DRAW_PROMPT_LABEL(primaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, D_8009388C);
         } else {
-            DRAW_PROMPT_LABEL(req, 4, y, 0x606060, D_80093890);
+            DRAW_PROMPT_LABEL(primaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, D_80093890);
         }
     } else {
-        if (item != 0x96) {
-            DRAW_PROMPT_LABEL(req, 6, y, 0x503060, D_80093894);
+        if (weaponItemId != HUD_WEAPON_PROMPT_GUNBLADE_ITEM_ID) {
+            DRAW_PROMPT_LABEL(primaryLabel, 6, lineY, HUD_WEAPON_PROMPT_PRIMARY_SYMBOL_COLOR, D_80093894);
         } else {
-            DRAW_PROMPT_LABEL(req, 6, y, 0x506030, D_80093898);
+            DRAW_PROMPT_LABEL(primaryLabel, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, D_80093898);
         }
     }
-    if (slot->primaryItemId != INVENTORY_ITEM_NONE) {
-        DRAW_PROMPT_COUNT(req, y, count1);
+    if (weaponLoad->primaryItemId != INVENTORY_ITEM_NONE) {
+        DRAW_PROMPT_COUNT(primaryLabel, lineY, primaryQuantity);
     } else {
-        flag = 1;
+        missingSupply = 1;
     }
-    uiDrawRecessedRect(&obj.panel, 0x79, (y + 4), 0x1B, 7, 0x102010);
-    if (slot->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
-        flag = 0;
-        y   += 0xA;
-        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != 2) {
-            DRAW_PROMPT_LABEL(req2, 4, y, 0x606060, D_80093890);
+    uiDrawRecessedRect(&promptPanel.panel, 0x79, (lineY + 4), 0x1B, 7, 0x102010);
+    // The frame follows the last displayed supply row, including its empty state.
+    if (weaponLoad->secondaryItemId != EQUIPMENT_WEAPON_SECONDARY_UNAVAILABLE) {
+        missingSupply = 0;
+        lineY        += 0xA;
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.buttonLayout != HUD_WEAPON_PROMPT_SYMBOL_LAYOUT) {
+            DRAW_PROMPT_LABEL(secondaryLabel, 4, lineY, HUD_WEAPON_PROMPT_TEXT_COLOR, D_80093890);
         } else {
-            DRAW_PROMPT_LABEL(req2, 6, y, 0x506030, D_80093898);
+            DRAW_PROMPT_LABEL(secondaryLabel, 6, lineY, HUD_WEAPON_PROMPT_SECONDARY_SYMBOL_COLOR, D_80093898);
         }
-        if (slot->secondaryItemId != INVENTORY_ITEM_NONE) {
-            DRAW_PROMPT_COUNT(req2, y, count2);
+        if (weaponLoad->secondaryItemId != INVENTORY_ITEM_NONE) {
+            DRAW_PROMPT_COUNT(secondaryLabel, lineY, secondaryQuantity);
         } else {
-            flag = 1;
+            missingSupply = 1;
         }
-        uiDrawRecessedRect(&obj.panel, 0x79, (y + 4), 0x1B, 7, 0x102010);
-        y -= 0xA;
+        uiDrawRecessedRect(&promptPanel.panel, 0x79, (lineY + 4), 0x1B, 7, 0x102010);
+        lineY -= 0xA;
     }
-    rect.w = 0x39;
-    rect.x = xBase;
-    rect.y = y;
-    rect.h = height;
-    if (flag == 1) {
-        uiDrawRectFrame(&rect, -1, 0x40004, NULL);
+    promptFrame.w = 0x39;
+    promptFrame.x = promptLeft;
+    promptFrame.y = lineY;
+    promptFrame.h = promptHeight;
+    if (missingSupply == 1) {
+        uiDrawRectFrame(&promptFrame, -1, HUD_WEAPON_PROMPT_EMPTY_STYLE, NULL);
     } else {
-        uiDrawRectFrame(&rect, -1, 0x40002, NULL);
+        uiDrawRectFrame(&promptFrame, -1, HUD_WEAPON_PROMPT_STEADY_STYLE, NULL);
     }
 }
 
@@ -651,37 +670,45 @@ static s32 _attachmentIsCastBlocked(s32 abilityIndex)
     return blocked;
 }
 
-static void Gp_SetAttachState(s32 arg0)
+/// Arms a selected Parasite Energy spell or item attachment and queues its sound.
+///
+/// `abilityIndex` must be 0..17 and spell levels 0..3. Clears the queued index
+/// even when event-locked; otherwise publishes the held phase, effective packed
+/// id and a minimum one-frame cast duration. The duration parameter first
+/// narrows to signed eight bits. Closes the wheel and resumes actor updates;
+/// no HP/MP is spent and the effect is not released here.
+static void _attachmentArmCast(s32 abilityIndex)
 {
     AttachmentState* attachment;
     s32              level;
-    s32              idx;
+    s32              encodedIndex;
     s32              attachId;
-    s32              rowPrefix;
-    s8               row;
-    s8               column;
-    s8               duration;
+    s32              familyBase;
+    s8               elementRow;
+    s8               energyColumn;
+    s8               durationFrames;
 
     Gp_StateC08.queuedIndex = 0;
     if (Gp_StateC08.flags & ATTACHMENT_FLAG_EVENT_LOCK) {
         return;
     }
-    idx                     = (s8)arg0;
-    Gp_StateC08.activeIndex = arg0;
-    row                     = idx / 3;
-    rowPrefix               = (row + 1) * 10 + 1;
-    column                  = idx % 3;
-    attachId                = rowPrefix + column;
+    // Encode the element, energy and effective level as decimal family/level digits.
+    encodedIndex            = (s8)abilityIndex;
+    Gp_StateC08.activeIndex = abilityIndex;
+    elementRow              = encodedIndex / 3;
+    familyBase              = (elementRow + 1) * 10 + 1;
+    energyColumn            = encodedIndex % 3;
+    attachId                = familyBase + energyColumn;
     attachId               *= 10;
-    level                   = _attachmentGetEffectiveLevel(idx);
+    level                   = _attachmentGetEffectiveLevel(encodedIndex);
     attachId               += level;
 
     attachment              = &Gp_StateC08;
     attachment->attachId    = attachId;
     attachment->effectPhase = ATTACHMENT_EFFECT_HELD;
-    duration                = attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_ATP_LOSS);
-    attachment->duration    = duration;
-    if (duration <= 0) {
+    durationFrames          = attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_ATP_LOSS);
+    attachment->duration    = durationFrames;
+    if (durationFrames <= 0) {
         attachment->duration = ATTACHMENT_DURATION_MIN;
     }
     attachment->mode               = ATTACHMENT_MODE_ARMED;
@@ -693,45 +720,48 @@ static void Gp_SetAttachState(s32 arg0)
     attachment->flags             &= ATTACHMENT_FLAG_CLEAR_EVENT_LOCK;
 }
 
-static __inline__ s32 stepAttachWheelSaved(s32 arg0, s32 arg1, McSaveData* save)
+/// Traverses eligible wheel spells using a borrowed save's cheat setting.
+///
+/// `abilityIndex` is 0..11; signed `steps` counts eligible positions and wraps
+/// within the twelve spells. Zero retains the index. Levels always come from
+/// the live save or shooting-gallery training table; `eligibilitySave` affects
+/// only whether cheats admit unlearned spells. Nonzero steps require a learned
+/// spell or cheats, or the search never ends. No input or selection is changed.
+static __inline__ s32 _attachmentStepLearnedSpellWithSave(s32 abilityIndex, s32 steps, const McSaveData* eligibilitySave)
 {
-    PlayerStatus* p;
-    s32           cond;
-    u8*           table;
+    const PlayerStatus* player;
+    s32                 usesTrainingLevels;
+    const u8*           learnedLevels;
 
-    p = &gPlayerStatus;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-        cond = 0;
+    player             = &gPlayerStatus;
+    usesTrainingLevels = _attachmentUsesTrainingLevels(player);
+    if (usesTrainingLevels == 0) {
+        learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
-        cond = p->resourceVariant == 4;
+        learnedLevels = Gp_DebugAttachLevels;
     }
-    if (cond == 0) {
-        table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-    } else {
-        table = Gp_DebugAttachLevels;
-    }
-    if (arg1 != 0) {
+    if (steps != 0) {
         do {
-            if (arg1 > 0) {
+            if (steps > 0) {
                 do {
-                    arg0++;
-                    if (arg0 >= 0xC) {
-                        arg0 = 0;
+                    abilityIndex++;
+                    if (abilityIndex >= ATTACHMENT_SPELL_COUNT) {
+                        abilityIndex = 0;
                     }
-                } while (table[arg0] == 0 && save->state.cheatMode == 0);
-                arg1--;
+                } while (learnedLevels[abilityIndex] == 0 && eligibilitySave->state.cheatMode == 0);
+                steps--;
             } else {
                 do {
-                    arg0--;
-                    if (arg0 < 0) {
-                        arg0 += 0xC;
+                    abilityIndex--;
+                    if (abilityIndex < 0) {
+                        abilityIndex += ATTACHMENT_SPELL_COUNT;
                     }
-                } while (table[arg0] == 0 && save->state.cheatMode == 0);
-                arg1++;
+                } while (learnedLevels[abilityIndex] == 0 && eligibilitySave->state.cheatMode == 0);
+                steps++;
             }
-        } while (arg1 != 0);
+        } while (steps != 0);
     }
-    return arg0;
+    return abilityIndex;
 }
 
 /// Moves through learned wheel spells by a signed count of eligible positions.
@@ -794,56 +824,73 @@ static __inline__ u16 _attachmentGetEffectiveLevelValue(s32 abilityIndex, s32 co
     return _attachmentGetLevelValue(abilityIndex, level, column);
 }
 
-static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
+/// Steps the Parasite Energy selection wheel and draws its caption and icons.
+///
+/// Returns one when left/right input changes the selection, otherwise zero.
+/// `panelX`/`panelY` are screen-centered pixels; `hud` is borrowed writable state.
+/// The cursor must be 0..11 with learned levels 0..3, and navigation requires
+/// at least one learned spell or cheats. A turn lasts four quarter-slot ticks.
+/// Queued casts omit the drawing and cost preview but retain input/turn updates.
+/// Uses live save/training levels and UI textures; generated GPU packets remain
+/// live through frame completion. Berserker doubles the displayed HP cost.
+static s32 _attachmentUpdateAndDrawWheel(HudState* hud, s32 panelX, s32 panelY)
 {
-    UiObject                obj;
+    enum {
+        ATTACHMENT_WHEEL_QUARTERS_PER_SLOT      = 4,
+        ATTACHMENT_WHEEL_ANGLE_FRACTION_BITS    = 12,
+        ATTACHMENT_WHEEL_HORIZONTAL_PIXEL_SHIFT = 7,
+        ATTACHMENT_WHEEL_VERTICAL_PIXEL_SHIFT   = 10,
+        ATTACHMENT_WHEEL_COMPACT_COUNT_LIMIT    = 6,
+        ATTACHMENT_WHEEL_TEXT_COLOR             = 0x606060,
+        ATTACHMENT_WHEEL_ICON_LEVEL             = 1,
+        ATTACHMENT_WHEEL_TPAGE                  = 0x3E,
+        ATTACHMENT_WHEEL_CAPTION_STYLE          = 0x40002
+    };
+    UiObject                wheelPanel;
     _AttachmentWheelScratch scratch;
-    RECT                    rect;
-    s32                     changed;
-    s32                     order;
-    PlayerStatus*           cfg;
-    u8*                     table;
-    s32                     cond;
-    s32                     count;
-    s32                     xOff;
-    s32                     yOff;
-    s32                     item;
-    s32                     param;
-    s32                     ret;
-    s32                     color;
-    _AttachmentWheelPoint*  pts;
-    _AttachmentWheelPoint*  dest;
-    _AttachmentWheelPoint*  points;
-    _AttachmentWheelPoint*  chosen;
-    McSaveData*             save;
-    s32                     angle;
-    s32                     best;
-    s32                     flags;
-    s32                     px;
-    s32                     py;
-    s32                     slot;
-    s32                     i;
-    s32                     j;
-    DR_TPAGE*               dr;
+    RECT                    captionFrame;
+    s32                     selectionChanged;
+    s32                     otIndex;
+    const PlayerStatus*     player;
+    const u8*               learnedLevels;
+    s32                     usesTrainingLevels;
+    s32                     learnedSpellCount;
+    s32                     iconOriginX;
+    s32                     iconOriginY;
+    s32                     captionItemId;
+    s32                     displayCastCost;
+    s32                     effectiveLevel;
+    s32                     captionColor;
+    _AttachmentWheelPoint*  placementPoints;
+    _AttachmentWheelPoint*  placementPoint;
+    _AttachmentWheelPoint*  drawPoints;
+    _AttachmentWheelPoint*  drawnPoint;
+    const McSaveData*       liveSave;
+    s32                     iconAngle;
+    s32                     nearestPointIndex;
+    s32                     iconFlags;
+    s32                     screenX;
+    s32                     screenY;
+    s32                     abilityIndex;
+    s32                     pointIndex;
+    s32                     candidateIndex;
+    s32                     levelBytesRemaining;
+    DR_TPAGE*               drawPage;
 
-    changed              = 0;
-    order                = -2;
+    selectionChanged     = 0;
+    otIndex              = -2;
     gGameSession->uiOpen = 1;
-    cfg                  = &gPlayerStatus;
-    count                = 0;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-        cond = 0;
+    player               = &gPlayerStatus;
+    learnedSpellCount    = 0;
+    usesTrainingLevels   = _attachmentUsesTrainingLevels(player);
+    if (usesTrainingLevels == 0) {
+        learnedLevels = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     } else {
-        cond = cfg->resourceVariant == 4;
+        learnedLevels = Gp_DebugAttachLevels;
     }
-    if (cond == 0) {
-        table = gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
-    } else {
-        table = Gp_DebugAttachLevels;
-    }
-    for (j = 11; j >= 0; j--, table++) {
-        if (*table != 0) {
-            count++;
+    for (levelBytesRemaining = ATTACHMENT_SPELL_COUNT - 1; levelBytesRemaining >= 0; levelBytesRemaining--, learnedLevels++) {
+        if (*learnedLevels != 0) {
+            learnedSpellCount++;
         }
     }
 
@@ -857,229 +904,261 @@ static s32 func_800A2104(HudState* hud, s32 arg1, s32 arg2)
         if (padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, PAD_BUTTON_UP | PAD_BUTTON_DOWN) == 0) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
                 Gp_StateC08.wheelIndex = _attachmentStepLearnedSpell(Gp_StateC08.wheelIndex, 1);
-                changed                = 1;
-                hud->wheelTurn        += 4;
+                selectionChanged       = 1;
+                hud->wheelTurn        += ATTACHMENT_WHEEL_QUARTERS_PER_SLOT;
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
                 Gp_StateC08.wheelIndex = _attachmentStepLearnedSpell(Gp_StateC08.wheelIndex, -1);
-                changed                = 1;
-                hud->wheelTurn        -= 4;
+                selectionChanged       = 1;
+                hud->wheelTurn        -= ATTACHMENT_WHEEL_QUARTERS_PER_SLOT;
             }
         }
     }
 
     if (Gp_StateC08.queuedIndex == 0) {
-        xOff                 = arg1 + 2;
-        yOff                 = arg2 + 2;
+        iconOriginX          = panelX + 2;
+        iconOriginY          = panelY + 2;
         hud->previewCastCost = _attachmentGetEffectiveLevelValue(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
 
-        item  = ((Gp_StateC08.wheelIndex / 3) << 4) + ((Gp_StateC08.wheelIndex % 3) << 2) + 0x300;
-        param = _attachmentGetEffectiveLevelValue(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
-        if (cfg->statusFlags & PLAYER_STATUS_BERSERKER) {
-            param <<= 1;
+        captionItemId   = ((Gp_StateC08.wheelIndex / 3) << 4) + ((Gp_StateC08.wheelIndex % 3) << 2) + ITEM_TEXT_PACKED_ID_FIRST;
+        displayCastCost = _attachmentGetEffectiveLevelValue(Gp_StateC08.wheelIndex, ATTACHMENT_LEVEL_CAST_COST);
+        if (player->statusFlags & PLAYER_STATUS_BERSERKER) {
+            displayCastCost <<= 1;
         }
 
-        obj.panel.otIndex.signedValue          = -3;
-        scratch.text.nameRequest.x             = arg1 + 7;
-        scratch.text.nameRequest.y             = arg2 + 0x22;
-        scratch.text.nameRequest.otIndex       = -2;
-        obj.panel.contentOriginX.unsignedValue = arg1;
-        obj.panel.contentOriginY.unsignedValue = arg2;
-        obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
-        scratch.text.nameRequest.colorRgb      = 0x606060;
-        scratch.text.nameRequest.glyphTable    = TEXT_GLYPH_TABLE_MEDIUM;
-        scratch.text.nameRequest.alignment     = TEXT_ALIGNMENT_LEFT;
-        scratch.text.nameRequest.drawMode      = TEXT_DRAW_OUTLINED;
-        textDrawString(&scratch.text.nameRequest, itemGetText(item, ITEM_TEXT_NAME, 0));
+        wheelPanel.panel.otIndex.signedValue          = -3;
+        scratch.text.nameRequest.x                    = panelX + 7;
+        scratch.text.nameRequest.y                    = panelY + 0x22;
+        scratch.text.nameRequest.otIndex              = -2;
+        wheelPanel.panel.contentOriginX.unsignedValue = panelX;
+        wheelPanel.panel.contentOriginY.unsignedValue = panelY;
+        wheelPanel.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+        scratch.text.nameRequest.colorRgb             = ATTACHMENT_WHEEL_TEXT_COLOR;
+        scratch.text.nameRequest.glyphTable           = TEXT_GLYPH_TABLE_MEDIUM;
+        scratch.text.nameRequest.alignment            = TEXT_ALIGNMENT_LEFT;
+        scratch.text.nameRequest.drawMode             = TEXT_DRAW_OUTLINED;
+        textDrawString(&scratch.text.nameRequest, itemGetText(captionItemId, ITEM_TEXT_NAME, 0));
 
-        ret   = _attachmentGetEffectiveLevel(Gp_StateC08.wheelIndex);
-        color = 0x606060;
-        itemMenuDrawParasiteEnergyLevel(&obj, -0xB, 0x28, ret, color);
-        textDrawUiLine(&obj, 0x8E, 0x28, textItoaSigned(scratch.text.costDigits, param), color, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
+        effectiveLevel = _attachmentGetEffectiveLevel(Gp_StateC08.wheelIndex);
+        captionColor   = ATTACHMENT_WHEEL_TEXT_COLOR;
+        itemMenuDrawParasiteEnergyLevel(&wheelPanel, -0xB, 0x28, effectiveLevel, captionColor);
+        textDrawUiLine(&wheelPanel, 0x8E, 0x28, textItoaSigned(scratch.text.costDigits, displayCastCost), captionColor, TEXT_DRAW_TRANSLUCENT_OUTLINED, TEXT_ALIGNMENT_RIGHT);
 
-        rect.x = arg1;
-        rect.y = arg2 + 0x17;
-        rect.w = 0x91;
-        rect.h = 0x13;
-        uiDrawRectFrame(&rect, -1, 0x40002, NULL);
+        captionFrame.x = panelX;
+        captionFrame.y = panelY + 0x17;
+        captionFrame.w = 0x91;
+        captionFrame.h = 0x13;
+        uiDrawRectFrame(&captionFrame, -1, ATTACHMENT_WHEEL_CAPTION_STYLE, NULL);
 
-        /* Spread the learned spells evenly round the wheel, turned by the
-         * step still in progress; the unused points are retired. */
-        obj.panel.contentOriginX.unsignedValue = 0x30;
-        obj.panel.contentOriginY.unsignedValue = 0;
-        obj.panel.otIndex.signedValue          = -3;
-        obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
-        pts                                    = scratch.points;
-        for (i = 0; i < ARRAY_SIZE(scratch.points); i++) {
-            if (i < count) {
-                angle = ((i * 4 + hud->wheelTurn) << 12) / (count * 4);
-                if (count == 1) {
-                    angle = 0;
-                }
-                dest    = &pts[i];
-                dest->x = rsin(angle);
-                dest->y = rcos(angle);
-            } else {
-                pts[i].x = ATTACHMENT_WHEEL_POINT_RETIRED;
-                pts[i].y = ATTACHMENT_WHEEL_POINT_RETIRED;
-            }
-        }
+        // Reuse the completed caption scratch for evenly spaced 4.12 circle points.
+        // The remaining quarter-slot turn offsets every icon; unused points retire.
+        wheelPanel.panel.contentOriginX.unsignedValue = 0x30;
+        wheelPanel.panel.contentOriginY.unsignedValue = 0;
+        wheelPanel.panel.otIndex.signedValue          = -3;
+        wheelPanel.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+        placementPoints                               = scratch.points;
+        /// Places twelve points using a learned count and signed quarter-slot turn.
+        ///
+        /// Inputs must have no side effects; points borrows twelve writable entries.
+        /// index, angle and point are distinct scratch lvalues, changed by the loop.
+        /// Unused entries retire; zero count performs no division.
+        /// Uses the enclosing wheel's quarter-slot and angle-scale constants;
+        /// expand as a standalone statement inside a compound block.
+#define ATTACHMENT_WHEEL_PLACE_POINTS(points, learnedCount, quarterTurn, index, angle, point)                                                                                               \
+    {                                                                                                                                                                                       \
+        for ((index) = 0; (index) < ATTACHMENT_SPELL_COUNT; (index)++) {                                                                                                                    \
+            if ((index) < (learnedCount)) {                                                                                                                                                 \
+                (angle) = (((index) * ATTACHMENT_WHEEL_QUARTERS_PER_SLOT + (quarterTurn)) << ATTACHMENT_WHEEL_ANGLE_FRACTION_BITS) / ((learnedCount) * ATTACHMENT_WHEEL_QUARTERS_PER_SLOT); \
+                if ((learnedCount) == 1) {                                                                                                                                                  \
+                    (angle) = 0;                                                                                                                                                            \
+                }                                                                                                                                                                           \
+                (point)    = &(points)[(index)];                                                                                                                                            \
+                (point)->x = rsin((angle));                                                                                                                                                 \
+                (point)->y = rcos((angle));                                                                                                                                                 \
+            } else {                                                                                                                                                                        \
+                (points)[(index)].x = ATTACHMENT_WHEEL_POINT_RETIRED;                                                                                                                       \
+                (points)[(index)].y = ATTACHMENT_WHEEL_POINT_RETIRED;                                                                                                                       \
+            }                                                                                                                                                                               \
+        }                                                                                                                                                                                   \
+    }
+        ATTACHMENT_WHEEL_PLACE_POINTS(placementPoints, learnedSpellCount, hud->wheelTurn, pointIndex, iconAngle, placementPoint);
+#undef ATTACHMENT_WHEEL_PLACE_POINTS
 
-        /* Each pass draws the nearest point still waiting, the one with the
-         * greatest y, and retires it so that later passes skip it. */
-        if (count > 0) {
-            i      = 0;
-            points = scratch.points;
-            save   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
+        // Draw nearest-first; each point indexes learned-spell traversal from the cursor.
+        if (learnedSpellCount > 0) {
+            pointIndex = 0;
+            drawPoints = scratch.points;
+            liveSave   = &gMcSaveData[MEMORY_CARD_SAVE_LIVE];
             do {
-                best  = 0;
-                flags = ITEM_MENU_ICON_DEFAULT;
-                for (j = 0; j < count; j++) {
-                    _AttachmentWheelPoint* nearest = &points[best];
+                nearestPointIndex = 0;
+                iconFlags         = ITEM_MENU_ICON_DEFAULT;
+                for (candidateIndex = 0; candidateIndex < learnedSpellCount; candidateIndex++) {
+                    _AttachmentWheelPoint* nearestPoint = &drawPoints[nearestPointIndex];
 
-                    if (nearest->y < points[j].y) {
-                        best = j;
+                    if (nearestPoint->y < drawPoints[candidateIndex].y) {
+                        nearestPointIndex = candidateIndex;
                     }
                 }
-                chosen = &points[best];
-                px     = chosen->x >> 7;
-                py     = chosen->y >> 10;
-                if (count < 6) {
-                    px >>= 1;
-                    py >>= 1;
+                drawnPoint = &drawPoints[nearestPointIndex];
+                screenX    = drawnPoint->x >> ATTACHMENT_WHEEL_HORIZONTAL_PIXEL_SHIFT;
+                screenY    = drawnPoint->y >> ATTACHMENT_WHEEL_VERTICAL_PIXEL_SHIFT;
+                if (learnedSpellCount < ATTACHMENT_WHEEL_COMPACT_COUNT_LIMIT) {
+                    screenX >>= 1;
+                    screenY >>= 1;
                 }
                 {
-                    s32 cx = px + 0x30;
-                    s32 cy = py + 0xF;
+                    s32 wheelX = screenX + 0x30;
+                    s32 wheelY = screenY + 0xF;
 
-                    px = cx + xOff;
-                    py = cy + yOff;
+                    screenX = wheelX + iconOriginX;
+                    screenY = wheelY + iconOriginY;
                 }
-                chosen->y = ATTACHMENT_WHEEL_POINT_RETIRED;
+                drawnPoint->y = ATTACHMENT_WHEEL_POINT_RETIRED;
 
-                slot = stepAttachWheelSaved(Gp_StateC08.wheelIndex, best, save);
+                abilityIndex = _attachmentStepLearnedSpellWithSave(Gp_StateC08.wheelIndex, nearestPointIndex, liveSave);
 
-                if (_attachmentIsCastBlocked(slot) != 0) {
-                    flags = ITEM_MENU_ICON_DIMMED;
+                if (_attachmentIsCastBlocked(abilityIndex) != 0) {
+                    iconFlags = ITEM_MENU_ICON_DIMMED;
                 }
-                if (best == 0 && hud->wheelTurn == 0) {
-                    flags |= ITEM_MENU_ICON_HIGHLIGHTED;
+                if (nearestPointIndex == 0 && hud->wheelTurn == 0) {
+                    iconFlags |= ITEM_MENU_ICON_HIGHLIGHTED;
                 }
-                itemMenuDrawItemIcon(&obj, px, py, ((slot / 3) << 4) + ((slot % 3) << 2) + 0x301, flags);
-                i++;
-            } while (i < count);
+                itemMenuDrawItemIcon(&wheelPanel, screenX, screenY, ((abilityIndex / 3) << 4) + ((abilityIndex % 3) << 2) + (ITEM_TEXT_PACKED_ID_FIRST + ATTACHMENT_WHEEL_ICON_LEVEL), iconFlags);
+                pointIndex++;
+            } while (pointIndex < learnedSpellCount);
         }
     }
 
-    dr             = gGpuPrimCursor;
-    gGpuPrimCursor = dr + 1;
-    setDrawTPage(dr, 0, 1, 0x3E);
-    addPrim(gGpuCurrentOt + order, dr);
-    return changed;
+    drawPage       = gGpuPrimCursor;
+    gGpuPrimCursor = drawPage + 1;
+    setDrawTPage(drawPage, 0, 1, ATTACHMENT_WHEEL_TPAGE);
+    addPrim(gGpuCurrentOt + otIndex, drawPage);
+    return selectionChanged;
 }
 
-static void Gp_DrawPeGauge(HudState* hud, s32 arg1, s32 arg2)
+/// Draws the active attachment's remaining cast frames and ability icon.
+///
+/// `panelX`/`panelY` are screen-centered pixels; `unusedHud` is ignored.
+/// Requires active index 0..17 and spell levels 0..3. Only spells 0..11 and
+/// item slot 12 draw. Remaining positive frames give the one-pixel-high bar's
+/// width; the surrounding gauge is at least eleven pixels wide. State is read
+/// unchanged. Requires the UI atlas/palette and writable GPU storage whose
+/// packets and ordering-table tags stay live through frame completion.
+static void _hudDrawAttachmentCastGauge(HudState* unusedHud, s32 panelX, s32 panelY)
 {
-    UiObject  obj;
-    TILE*     tile;
-    SPRT_16*  sp;
-    SPRT_16*  sp2;
-    POLY_FT4* poly;
-    DR_TPAGE* dr;
-    s32       n;
-    s32       cat;
-    s32       order;
+    enum {
+        HUD_ATTACHMENT_GAUGE_MIN_WIDTH  = 11,
+        HUD_ATTACHMENT_GAUGE_CLUT       = 0x3C0B,
+        HUD_ATTACHMENT_GAUGE_TPAGE      = 0x1E,
+        HUD_ATTACHMENT_GAUGE_ICON_LEVEL = 1
+    };
+    /// Initializes an unmodulated translucent 8x8 cap in the gauge atlas.
+    ///
+    /// cap must be a side-effect-free writable SPRT_8 pointer; coordinates and
+    /// textureLeft are read once, retaining their low sixteen/eight bits.
+    /// Uses the enclosing gauge's CLUT constant; expand inside a compound block.
+#define HUD_ATTACHMENT_GAUGE_INIT_CAP(cap, screenX, screenY, textureLeft) \
+    {                                                                     \
+        (cap)->x0   = (screenX);                                          \
+        (cap)->y0   = (screenY);                                          \
+        (cap)->u0   = (textureLeft);                                      \
+        (cap)->v0   = 0x68;                                               \
+        (cap)->clut = HUD_ATTACHMENT_GAUGE_CLUT;                          \
+        setSprt8((cap));                                                  \
+        setSemiTrans((cap), 1);                                           \
+        setShadeTex((cap), 1);                                            \
+    }
+    UiObject  iconPanel;
+    TILE*     remainingBar;
+    SPRT_8*   leftCap;
+    SPRT_8*   rightCap;
+    POLY_FT4* gaugeMiddle;
+    DR_TPAGE* drawPage;
+    s32       gaugeWidth;
+    s32       abilityIndex;
+    s32       otIndex;
 
-    n = attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_ATP_LOSS);
-    if (Gp_StateC08.activeIndex < 0xD) {
+    // One pixel per frame remains inside a frame sized to the initial cast length.
+    gaugeWidth = attachmentGetActiveLevelValue(ATTACHMENT_LEVEL_ATP_LOSS);
+    if (Gp_StateC08.activeIndex < ATTACHMENT_SPELL_COUNT + 1) {
         if (Gp_StateC08.duration > 0) {
-            tile           = gGpuPrimCursor;
-            gGpuPrimCursor = tile + 1;
-            tile->x0       = arg1 + 0x18;
-            tile->y0       = arg2 + 0x21;
-            tile->w        = Gp_StateC08.duration;
-            tile->h        = 1;
-            setlen(tile, 3);
-            GPU_PRIMITIVE_COLOR_WORD(tile, 0) = GPU_PACK_COLOR_WORD(0, 0xc0, 0xff, 0);
-            setcode(tile, 0x60);
-            addPrim(gGpuCurrentOt - 2, tile);
+            remainingBar                              = gGpuPrimCursor;
+            gGpuPrimCursor                            = remainingBar + 1;
+            remainingBar->x0                          = panelX + 0x18;
+            remainingBar->y0                          = panelY + 0x21;
+            remainingBar->w                           = Gp_StateC08.duration;
+            remainingBar->h                           = 1;
+            GPU_PRIMITIVE_COLOR_WORD(remainingBar, 0) = GPU_PACK_COLOR_WORD(0, 0xc0, 0xff, 0);
+            setTile(remainingBar);
+            addPrim(gGpuCurrentOt - 2, remainingBar);
         }
 
-        if (n < 0xB) {
-            n = 0xB;
+        if (gaugeWidth < HUD_ATTACHMENT_GAUGE_MIN_WIDTH) {
+            gaugeWidth = HUD_ATTACHMENT_GAUGE_MIN_WIDTH;
         }
 
-        sp             = gGpuPrimCursor;
-        gGpuPrimCursor = sp + 1;
-        sp->x0         = arg1 + 0x15;
-        sp->y0         = arg2 + 0x1D;
-        sp->u0         = 0x98;
-        sp->v0         = 0x68;
-        sp->clut       = 0x3C0B;
-        setlen(sp, 3);
-        setcode(sp, 0x77);
-        addPrim(gGpuCurrentOt - 2, sp);
+        leftCap        = gGpuPrimCursor;
+        gGpuPrimCursor = leftCap + 1;
+        HUD_ATTACHMENT_GAUGE_INIT_CAP(leftCap, panelX + 0x15, panelY + 0x1D, 0x98);
+        addPrim(gGpuCurrentOt - 2, leftCap);
 
-        sp2            = gGpuPrimCursor;
-        gGpuPrimCursor = sp2 + 1;
-        sp2->x0        = n + arg1 + 0x13;
-        sp2->y0        = arg2 + 0x1D;
-        sp2->u0        = 0xA8;
-        sp2->v0        = 0x68;
-        sp2->clut      = 0x3C0B;
-        setlen(sp2, 3);
-        setcode(sp2, 0x77);
-        addPrim(gGpuCurrentOt - 2, sp2);
+        rightCap       = gGpuPrimCursor;
+        gGpuPrimCursor = rightCap + 1;
+        HUD_ATTACHMENT_GAUGE_INIT_CAP(rightCap, gaugeWidth + panelX + 0x13, panelY + 0x1D, 0xA8);
+        addPrim(gGpuCurrentOt - 2, rightCap);
 
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        poly->x0       = arg1 + 0x1D;
-        poly->y0       = arg2 + 0x1D;
-        poly->u0       = 0xA0;
-        poly->u2       = 0xA0;
-        poly->v2       = 0x70;
-        poly->v3       = 0x70;
-        poly->tpage    = 0x1E;
-        setlen(poly, 9);
-        poly->v0   = 0x68;
-        poly->u1   = 0xA8;
-        poly->v1   = 0x68;
-        poly->u3   = 0xA8;
-        poly->clut = 0x3C0B;
-        setcode(poly, 0x2F);
-        poly->x2 = poly->x0;
-        poly->x1 = poly->x3 = (s16)(poly->x0 - 0xA) + n;
-        poly->y1            = poly->y0;
-        poly->y2 = poly->y3 = poly->y0 + 8;
-        addPrim(gGpuCurrentOt - 2, poly);
+        gaugeMiddle        = gGpuPrimCursor;
+        gGpuPrimCursor     = gaugeMiddle + 1;
+        gaugeMiddle->x0    = panelX + 0x1D;
+        gaugeMiddle->y0    = panelY + 0x1D;
+        gaugeMiddle->u0    = 0xA0;
+        gaugeMiddle->u2    = 0xA0;
+        gaugeMiddle->v2    = 0x70;
+        gaugeMiddle->v3    = 0x70;
+        gaugeMiddle->tpage = HUD_ATTACHMENT_GAUGE_TPAGE;
+        gaugeMiddle->v0    = 0x68;
+        gaugeMiddle->u1    = 0xA8;
+        gaugeMiddle->v1    = 0x68;
+        gaugeMiddle->u3    = 0xA8;
+        gaugeMiddle->clut  = HUD_ATTACHMENT_GAUGE_CLUT;
+        setPolyFT4(gaugeMiddle);
+        setSemiTrans(gaugeMiddle, 1);
+        setShadeTex(gaugeMiddle, 1);
+        gaugeMiddle->x2 = gaugeMiddle->x0;
+        gaugeMiddle->x1 = gaugeMiddle->x3 = (s16)(gaugeMiddle->x0 - 0xA) + gaugeWidth;
+        gaugeMiddle->y1                   = gaugeMiddle->y0;
+        gaugeMiddle->y2 = gaugeMiddle->y3 = gaugeMiddle->y0 + 8;
+        addPrim(gGpuCurrentOt - 2, gaugeMiddle);
 
-        cat                                    = Gp_StateC08.activeIndex;
-        order                                  = -3;
-        obj.panel.contentOriginX.unsignedValue = 0;
-        obj.panel.contentOriginY.unsignedValue = 0;
-        obj.panel.otIndex.signedValue          = order;
-        obj.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
-        itemMenuDrawItemIcon(&obj, arg1 + 4, arg2 + 0x28, ((cat / 3) << 4) + ((cat % 3) << 2) + 0x301, ITEM_MENU_ICON_DEFAULT);
+        abilityIndex                                 = Gp_StateC08.activeIndex;
+        otIndex                                      = -3;
+        iconPanel.panel.contentOriginX.unsignedValue = 0;
+        iconPanel.panel.contentOriginY.unsignedValue = 0;
+        iconPanel.panel.otIndex.signedValue          = otIndex;
+        iconPanel.panel.state                        = USER_INTERFACE_PANEL_INITIAL;
+        itemMenuDrawItemIcon(&iconPanel, panelX + 4, panelY + 0x28, ((abilityIndex / 3) << 4) + ((abilityIndex % 3) << 2) + (ITEM_TEXT_PACKED_ID_FIRST + HUD_ATTACHMENT_GAUGE_ICON_LEVEL), ITEM_MENU_ICON_DEFAULT);
 
-        dr             = gGpuPrimCursor;
-        gGpuPrimCursor = dr + 1;
-        setDrawTPage(dr, 0, 1, 0x1E);
-        addPrim(gGpuCurrentOt - 2, dr);
+        drawPage       = gGpuPrimCursor;
+        gGpuPrimCursor = drawPage + 1;
+        setDrawTPage(drawPage, 0, 1, HUD_ATTACHMENT_GAUGE_TPAGE);
+        addPrim(gGpuCurrentOt - 2, drawPage);
     }
+#undef HUD_ATTACHMENT_GAUGE_INIT_CAP
 }
 
-/// Inline copy of `attachmentGetLearnedLevels`.
-static __inline__ u8* getAttachLevels(void)
+/// Borrows the read-only learned spell levels used by the live session.
+///
+/// Slots 0..11 are wheel spells. Returns the live save's table except in the
+/// shooting gallery's training mode, which uses the separate training table.
+/// Reads are valid while the selected save/gameplay storage remains live;
+/// loading or training changes can replace its values. No pointer is retained.
+static __inline__ const u8* _attachmentGetLearnedLevels(void)
 {
-    PlayerStatus* p;
-    s32           cond;
+    const PlayerStatus* player;
+    s32                 usesTrainingLevels;
 
-    p = &gPlayerStatus;
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-        cond = 0;
-    } else {
-        cond = p->resourceVariant == 4;
-    }
-    if (cond == 0) {
+    player             = &gPlayerStatus;
+    usesTrainingLevels = _attachmentUsesTrainingLevels(player);
+    if (usesTrainingLevels == 0) {
         return gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.attachLevels;
     }
     return Gp_DebugAttachLevels;
@@ -1134,25 +1213,23 @@ static __inline__ s32 _hudCanSwitchCategory(s32 ignoreSwapLock)
     return 0;
 }
 
-/// Inline copy of `_attachmentIsBattleSoundLoadReady`.
-static __inline__ s32 cdIdleIfF0Active_(void)
+/// Gates attachment confirmation/release on finished battle sound loading.
+///
+/// Battle holds or an end delay require an idle CD queue; outside battle the
+/// result is one. The CD result narrows through u16 before promotion to s32.
+/// Does not submit a request or change any state.
+static __inline__ s32 _attachmentIsBattleSoundLoadReady(void)
 {
-    SceneCombatState* combat;
-    s32               cond;
-    u16               ret;
+    s32 battleActive;
+    u16 ready;
 
-    combat = &gSceneCombatState;
-    if ((combat->signals.bytes.battlePhase == SCENE_COMBAT_BATTLE_ENGAGED && combat->battleRefs != 0) || combat->signals.bytes.endDelayFrames != 0) {
-        cond = 1;
+    battleActive = _sceneIsBattleActive();
+    if (battleActive) {
+        ready = cdCmdIsIdle();
     } else {
-        cond = 0;
+        ready = 1;
     }
-    if (cond) {
-        ret = cdCmdIsIdle();
-    } else {
-        ret = 1;
-    }
-    return ret;
+    return ready;
 }
 
 /// Inline copy of `attachmentSoundLoadStub`, which evaluates the same gate as
@@ -1239,7 +1316,7 @@ static void Gp_UseItemTask(HudState* hud)
             gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
             Gp_StateC08.menuOpen           = ATTACHMENT_MENU_CLOSED;
             if (_sceneIsBattleActive()) {
-                Gp_DrawItemPrompt(x, y);
+                _hudDrawWeaponSupplyPrompt(x, y);
             }
             return;
         }
@@ -1264,14 +1341,14 @@ static void Gp_UseItemTask(HudState* hud)
                 Gp_StateC08.wheelIndex = 0;
             }
             if (!_sceneIsBattleActive()) {
-                if (getAttachLevels()[ATTACHMENT_INDEX_HEALING] != 0) {
+                if (_attachmentGetLearnedLevels()[ATTACHMENT_INDEX_HEALING] != 0) {
                     Gp_StateC08.wheelIndex = ATTACHMENT_INDEX_HEALING;
                 }
             }
             flag = 1;
         } else {
             if (_sceneIsBattleActive()) {
-                Gp_DrawItemPrompt(x, y);
+                _hudDrawWeaponSupplyPrompt(x, y);
             }
             return;
         }
@@ -1285,12 +1362,12 @@ static void Gp_UseItemTask(HudState* hud)
             Gp_StateC08.effectPhase = ATTACHMENT_EFFECT_CHARGE;
             Gp_StateC08.mode        = ATTACHMENT_MODE_CAST;
         }
-        Gp_DrawPeGauge(hud, x, y);
+        _hudDrawAttachmentCastGauge(hud, x, y);
         if (Gp_StateC08.mode == ATTACHMENT_MODE_CAST) {
             Gp_StateC08.duration--;
         }
         if (Gp_StateC08.duration <= 0) {
-            if (cdIdleIfF0Active_()) {
+            if (_attachmentIsBattleSoundLoadReady()) {
                 Gp_StateC08.mode               = ATTACHMENT_MODE_IDLE;
                 D_80115768                     = 0;
                 gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
@@ -1342,7 +1419,7 @@ static void Gp_UseItemTask(HudState* hud)
         return;
     }
 
-    if (func_800A2104(hud, x, y) != 0) {
+    if (_attachmentUpdateAndDrawWheel(hud, x, y) != 0) {
         flag = 1;
     }
     actor = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->work;
@@ -1351,7 +1428,7 @@ static void Gp_UseItemTask(HudState* hud)
     }
     if ((hud->wheelTurn == 0 && padCheckButtons(0, PAD_BUTTON_QUERY_HELD_ANY, Pad_MaskConfirm) != 0) ||
         Gp_StateC08.queuedIndex != 0) {
-        if (cdIdleIfF0Active_()) {
+        if (_attachmentIsBattleSoundLoadReady()) {
             pad                        = &gPadStates[0];
             mask                       = Pad_MaskConfirm;
             pad->pressedButtons       &= ~mask;
@@ -1365,7 +1442,7 @@ static void Gp_UseItemTask(HudState* hud)
                 Gp_StateC08.activeIndex = Gp_StateC08.wheelIndex;
             }
             if (_attachmentIsCastBlocked(Gp_StateC08.activeIndex) == 0) {
-                Gp_SetAttachState(Gp_StateC08.activeIndex);
+                _attachmentArmCast(Gp_StateC08.activeIndex);
             }
         }
     }
@@ -1384,58 +1461,65 @@ static void Gp_UseItemTask(HudState* hud)
     }
 }
 
-/// Battle-end step of `Gp_HudTask` that waits for the player's end action to
-/// finish (or skips it when the weapon is being re-equipped), refills the
-/// weapon's ammunition choices and moves on to the results.
-static __inline__ void hudWaitEndAction(HudState* hud)
+/// Waits for the battle-end player action, refills weapon supplies and advances.
+///
+/// Called in `HUD_BATTLE_STEP_WAIT_END_ACTION` with borrowed writable HUD state.
+/// End-delay frames tick only while actors run. Ordinary completion is actor
+/// phase 1000; weapon re-equip bypasses that wait and may restore normal
+/// control while preserving the root offset. Reloading requires an equipped
+/// weapon selector in 1..32. The
+/// ordinary path also requires a live player task when aim exit is reached.
+/// Keeps the HUD visible for a pending shooting-gallery reset; otherwise
+/// suppresses it before advancing the battle step.
+static __inline__ void _hudWaitForBattleEndAction(HudState* hud)
 {
-    s32           hit;
-    s32           flags;
-    s32           item;
-    PlayerStatus* p;
-    s32           cond;
+    enum { HUD_BATTLE_END_ACTION_COMPLETE = 1000 };
+    s32                 actionComplete;
+    s32                 flowFlags;
+    s32                 weaponItemId;
+    const PlayerStatus* player;
+    s32                 usesTrainingLevels;
 
     SceneCombatState* combat;
-    Task*             w;
-    s32               c;
+    Task*             playerTask;
+    s32               endDelayFrames;
 
-    w      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    hit    = 0;
-    combat = &gSceneCombatState;
-    c      = combat->signals.bytes.endDelayFrames;
-    if (c != 0) {
+    playerTask     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    actionComplete = 0;
+    combat         = &gSceneCombatState;
+    endDelayFrames = combat->signals.bytes.endDelayFrames;
+    if (endDelayFrames != 0) {
         if (combat->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-            combat->signals.bytes.endDelayFrames = c - 1;
+            combat->signals.bytes.endDelayFrames = endDelayFrames - 1;
         }
     }
-    if (w != NULL) {
-        if (((GameActor*)w->work)->statePhase == 0x3E8) {
-            hit = 1;
+    if (playerTask != NULL) {
+        const GameActor* actor = playerTask->work;
+
+        if (actor->statePhase == HUD_BATTLE_END_ACTION_COMPLETE) {
+            actionComplete = 1;
         }
     }
-    flags = gGameSession->flowFlags;
-    if ((flags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
-        if (w != NULL) {
-            if (hit == 0) {
+    flowFlags = gGameSession->flowFlags;
+    if ((flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
+        if (playerTask != NULL) {
+            if (actionComplete == 0) {
                 return;
             }
         }
-        playerActorExitAim(w);
+        playerActorExitAim(playerTask);
     } else {
-        if (flags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
-            taskMessageDispatch(w, GAME_ACTOR_MESSAGE_END_SCRIPTED, 2, 0);
+        if (flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
+            taskMessageDispatch(playerTask, GAME_ACTOR_MESSAGE_END_SCRIPTED, PLAYER_ACTOR_END_SCRIPTED_KEEP_ROOT_OFFSET, 0);
         }
     }
-    p    = &gPlayerStatus;
-    item = p->weapon + 0x7F;
-    equipmentReloadSelectedWeaponConsumable(item, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
-    equipmentReloadSelectedWeaponConsumable(item, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
-    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-        cond = 0;
-    } else {
-        cond = p->resourceVariant == 4;
-    }
-    if (cond == 0 || gGameSession->battleResetPending == 0) {
+    // Refill both supply choices before advancing to the results transition.
+    player       = &gPlayerStatus;
+    weaponItemId = player->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+    equipmentReloadSelectedWeaponConsumable(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_PRIMARY);
+    equipmentReloadSelectedWeaponConsumable(weaponItemId, EQUIPMENT_WEAPON_SUPPLY_SECONDARY);
+    usesTrainingLevels = _attachmentUsesTrainingLevels(player);
+    if (usesTrainingLevels == 0 || gGameSession->battleResetPending == 0) {
         hud->suppression = HUD_SUPPRESS_ALL;
     }
     hud->battleStep = hud->battleStep + 1;
@@ -1669,7 +1753,7 @@ void Gp_HudTask(HudState* hud)
                 }
                 hud->battleStep = hud->battleStep + 1;
             } else if (step == HUD_BATTLE_STEP_WAIT_END_ACTION) {
-                hudWaitEndAction(hud);
+                _hudWaitForBattleEndAction(hud);
             } else if (step == HUD_BATTLE_STEP_RESULTS && bad == 0) {
                 PlayerStatus*    p;
                 s32              cond;
