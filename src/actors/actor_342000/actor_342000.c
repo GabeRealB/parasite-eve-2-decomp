@@ -1264,7 +1264,7 @@ void func_actor_342000_8016382C(Task* arg0)
             }
             work->doors[0] = taskSpawnFromTable(D_actor_342000_80164FF8, 8, 1, arg0);
             work->doors[1] = taskSpawnFromTable(D_actor_342000_80164FF8, 9, 1, arg0);
-            func_shelter_b3_garbage_incinerator_80180FE4(0x17, 0, 0x3C);
+            shelterB3GarbageIncineratorShowTimedCaption(SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_EXIT_ENCOUNTER, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_DEFAULT_KEY, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_NOTICE_TICKS);
             arg0->state = 4;
             break;
         case 1:

@@ -145,7 +145,6 @@ static s16 _gCapCaptionTexturePageY;
 static s32 _gCapCaptionCaretPulseLevel;
 static s32 _gCapCaptionCaretPulseFalling;
 
-void func_shelter_b3_garbage_incinerator_8017F968(void);
 // This carrier borrows the caption storage defined by its third translation unit.
 #define CAP_CAPTION_COMMAND_REFS CapCaption_Data_8015E650
 #define CAP_CAPTION_SELECTED_KEY CapCaption_Data_8015E666
@@ -236,18 +235,24 @@ static TaskDesc CapCaption_Data_801544FC;
 
 static TaskDesc CapCaption_Data_80154508;
 
-void        func_shelter_b3_garbage_incinerator_8017DCD4(Task*);
-void        func_shelter_b3_garbage_incinerator_8017E158(Task*);
+static void _shelterB3GarbageIncineratorExitEncounterTask(Task* task);
+static void _shelterB3GarbageIncineratorLiftTask(Task* task);
 static s32  _shelterB3GarbageIncineratorHandleLiftActorEvent(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
-void        func_shelter_b3_garbage_incinerator_8017F6D8(Task*);
+static void _shelterB3GarbageIncineratorBlazeControllerTask(Task* task);
 static s32  _shelterB3GarbageIncineratorHandleBlazeFadeState(Task* task, s32 unusedMessageId, s32 nextState, s32 unusedSecondArg);
 static void _shelterB3GarbageIncineratorPlayBlazeClip(s32 clipIndex);
 static void _shelterB3GarbageIncineratorSetBlazeFadeState(s32 nextState);
-void        func_shelter_b3_garbage_incinerator_8017F968(void);
-void        func_shelter_b3_garbage_incinerator_8017F9B4(s32);
+static void _shelterB3GarbageIncineratorStartBlazeHeatHaze(void);
+static void _shelterB3GarbageIncineratorSetBodyFirePhase(s32 spreadFire);
 static void _shelterB3GarbageIncineratorKillPlayerInBlaze(void);
 
-TaskDesc D_shelter_b3_garbage_incinerator_801855E0 = { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_8017DCD4, { .value = 0 } };
+/// Burn-script commands: create the limited fire, then spread it over the body.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_START  = 0,
+    SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_SPREAD = 1,
+};
+
+TaskDesc D_shelter_b3_garbage_incinerator_801855E0 = { { { TASK_BODY_NONE, 192 } }, _shelterB3GarbageIncineratorExitEncounterTask, { .value = 0 } };
 
 static TmdBone _gShelterB3GarbageIncineratorModel081E4Skeleton[1] = {
 #include "assets/shelter_b3_garbage_incinerator_model_081E4_skeleton.inc"
@@ -294,7 +299,7 @@ ActorTransform D_shelter_b3_garbage_incinerator_80185B58[2] = {
 
 ActorTransform D_shelter_b3_garbage_incinerator_80185B88 = { { 0x36B0, 3000, -0x4650, 0 }, { 0, 0, 0, 0 } };
 
-TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_shelter_b3_garbage_incinerator_8017E158, { .model = &_gShelterB3GarbageIncineratorModel081E4 } };
+TaskDesc D_shelter_b3_garbage_incinerator_80185BA0 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _shelterB3GarbageIncineratorLiftTask, { .model = &_gShelterB3GarbageIncineratorModel081E4 } };
 
 TaskDesc D_shelter_b3_garbage_incinerator_80185BAC[2] = {
     { { { TASK_BODY_NONE, 192 } }, _screenWaveGridTask, { .value = 0 } },
@@ -411,14 +416,14 @@ u16 gBlazePlayerParts[16] = {
 EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[17] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3GarbageIncineratorPlayBlazeClip }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_garbage_incinerator_8017F9B4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3GarbageIncineratorSetBodyFirePhase }, { .value = SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_START }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3GarbageIncineratorSetBlazeFadeState }, { .value = SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_FAST_RED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 15 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3GarbageIncineratorPlayBlazeClip }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 60 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_shelter_b3_garbage_incinerator_8017F968 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _shelterB3GarbageIncineratorStartBlazeHeatHaze }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3GarbageIncineratorPlayBlazeClip }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_shelter_b3_garbage_incinerator_8017F9B4 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3GarbageIncineratorSetBodyFirePhase }, { .value = SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_SPREAD }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 75 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _shelterB3GarbageIncineratorSetBlazeFadeState }, { .value = SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_SLOW_RED }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 120 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -429,7 +434,7 @@ EvsCommand D_shelter_b3_garbage_incinerator_80186FB8[17] = {
 };
 
 TaskDesc D_shelter_b3_garbage_incinerator_80187150[4] = {
-    { { { TASK_BODY_NONE, 192 } }, func_shelter_b3_garbage_incinerator_8017F6D8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _shelterB3GarbageIncineratorBlazeControllerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, taskKill, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _blazeFadeTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, blazeBodyFireTask, { .value = 0 } },
@@ -713,87 +718,112 @@ DirectionWarpEntry D_shelter_b3_garbage_incinerator_8018741C[3] = {
 };
 
 static s16 _shelterB3GarbageIncineratorMoveLiftWithActor(Task* task);
-static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0);
 
-void func_shelter_b3_garbage_incinerator_8017DCD4(Task* arg0)
+/// Loads and runs the exit encounter after the lift's carried move is complete.
+///
+/// Starts from state 0 with the room/player and CD queue live. `spawnArg1`
+/// becomes the CD request slot (0..7), and `spawnArg2` the borrowed encounter
+/// task polled until teardown. Unless the intro is skipped, the player plays
+/// equipped-bank clip 1 and waits 31 updates while the actor bundle loads.
+/// The Gunblade resets that clip; other weapons blend for ten frames. This
+/// body owns no work block and releases itself when the encounter ends.
+static void _shelterB3GarbageIncineratorExitEncounterTask(Task* task)
 {
-    u8   param1[8];
-    u8   param2[8];
-    s32  msg[5];
-    s32  out;
-    s32  v;
-    s32  w;
-    s32* p;
+    enum {
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_LOAD       = 0,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_WAIT_INTRO = 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_WAIT_LOAD  = 2,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_WAIT_EVENT = 3,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_INTRO_TICKS     = 31,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_ANIMATION       = 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_BLEND_FRAMES    = 10,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_WEAPON_GUNBLADE = 23,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_FILE_GROUP      = 34,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_FILE_HUNDREDS   = 20,
+        SHELTER_B3_GARBAGE_INCINERATOR_EXIT_SOUND           = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0x10),
+    };
+    u8                    fileKey[4];
+    u8                    loadOptions[4];
+    AnimationPlayRequest  request;
+    s32                   encounterResult;
+    s32                   bankIndex;
+    s32                   weaponId;
+    AnimationPlayRequest* requestPointer;
 
-    switch (arg0->state) {
-        case 0:
+    /// Selects the equipped character bank and clip for the exit-intro request.
+    ///
+    /// Arguments are an AnimationPlayRequest lvalue, an AnimationPlayRequest*
+    /// lvalue and two s32 lvalues. They are evaluated repeatedly and must have
+    /// no side effects. Reads the current weapon and live-save character and
+    /// uses this function's exit clip ID; blend/collision remain the caller's choice.
+#define SHELTER_B3_GARBAGE_INCINERATOR_PREPARE_EXIT_INTRO(requestStorage, requestView, weaponIndex, selectedBank) \
+    {                                                                                                             \
+        (requestView) = &(requestStorage);                                                                        \
+        (weaponIndex) = gPlayerStatus.weapon;                                                                     \
+        if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {                                          \
+            (selectedBank) = (weaponIndex) + SHELTER_B3_GARBAGE_INCINERATOR_PRIMARY_ANIMATION_BANK_BASE;          \
+        } else {                                                                                                  \
+            (selectedBank) = (weaponIndex) + SHELTER_B3_GARBAGE_INCINERATOR_ALTERNATE_ANIMATION_BANK_BASE;        \
+        }                                                                                                         \
+        (requestStorage).source.index = (selectedBank);                                                           \
+        (requestView)->animationId    = SHELTER_B3_GARBAGE_INCINERATOR_EXIT_ANIMATION;                            \
+    }
+
+    switch (task->state) {
+        case SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_LOAD:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 break;
             }
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
-            sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0x10), 0, 0);
-            param1[2]             = 0x22;
-            param1[3]             = 0;
-            param1[0]             = 0;
-            param2[0]             = 0x14;
-            param2[1]             = 0;
-            param2[2]             = 0;
-            param2[3]             = 0;
-            arg0->spawnArg1.value = (u16)cdCmdEnqueue(CD_COMMAND_LOAD_FILE, param1, param2);
+            sndEvtRequestScriptStart(SHELTER_B3_GARBAGE_INCINERATOR_EXIT_SOUND, 0, 0);
+            // Stage-zero file 342000: key bytes 3/2/0 and four load-option bytes.
+            fileKey[2]            = SHELTER_B3_GARBAGE_INCINERATOR_EXIT_FILE_GROUP;
+            fileKey[3]            = 0;
+            fileKey[0]            = 0;
+            loadOptions[0]        = SHELTER_B3_GARBAGE_INCINERATOR_EXIT_FILE_HUNDREDS;
+            loadOptions[1]        = CD_COMMAND_LOAD_DEFAULT;
+            loadOptions[2]        = 0;
+            loadOptions[3]        = 0;
+            task->spawnArg1.value = (u16)cdCmdEnqueue(CD_COMMAND_LOAD_FILE, fileKey, loadOptions);
             if (gGameSession->skipEventIntro == 0) {
-                if (gPlayerStatus.weapon == 0x17) {
-                    p = msg;
-                    w = gPlayerStatus.weapon;
-                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                        v = w + 1;
-                    } else {
-                        v = w + 0x22;
-                    }
-                    msg[0] = v;
-                    p[1]   = 1;
-                    msg[2] = 0;
-                    msg[3] = 0;
-                    msg[4] = 0;
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
+                if (gPlayerStatus.weapon == SHELTER_B3_GARBAGE_INCINERATOR_EXIT_WEAPON_GUNBLADE) {
+                    SHELTER_B3_GARBAGE_INCINERATOR_PREPARE_EXIT_INTRO(request, requestPointer, weaponId, bankIndex);
+                    request.blend                = ANIMATION_BLEND_RESET;
+                    request.blendFrames          = 0;
+                    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
                 } else {
-                    p = msg;
-                    w = gPlayerStatus.weapon;
-                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                        v = w + 1;
-                    } else {
-                        v = w + 0x22;
-                    }
-                    msg[0] = v;
-                    p[1]   = 1;
-                    p[2]   = 1;
-                    p[3]   = 10;
-                    msg[4] = 0;
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, msg, 0);
+                    SHELTER_B3_GARBAGE_INCINERATOR_PREPARE_EXIT_INTRO(request, requestPointer, weaponId, bankIndex);
+                    requestPointer->blend        = ANIMATION_BLEND_INTERPOLATE;
+                    requestPointer->blendFrames  = SHELTER_B3_GARBAGE_INCINERATOR_EXIT_BLEND_FRAMES;
+                    request.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &request, 0);
                 }
-                arg0->killCountdown = 0;
-                arg0->state++;
+                task->killCountdown = 0;
+                task->state++;
             } else {
-                arg0->state = 2;
+                task->state = SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_WAIT_LOAD;
             }
             break;
-        case 1:
-            if (++arg0->killCountdown >= 31) {
-                arg0->state++;
+        case SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_WAIT_INTRO:
+            if (++task->killCountdown >= SHELTER_B3_GARBAGE_INCINERATOR_EXIT_INTRO_TICKS) {
+                task->state++;
             }
             break;
-        case 2:
-            if (cdCmdIsSlotEmpty(arg0->spawnArg1.value)) {
-                arg0->spawnArg2.pointer = taskSpawnFromTable(D_actor_342000_80164FF8, 0, 0, 0);
-                arg0->state++;
+        case SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_WAIT_LOAD:
+            if (cdCmdIsSlotEmpty(task->spawnArg1.value)) {
+                task->spawnArg2.pointer = taskSpawnFromTable(D_actor_342000_80164FF8, 0, 0, 0);
+                task->state++;
             }
             break;
-        case 3:
-            if (taskPollKill(arg0->spawnArg2.pointer, &out) != 0) {
-                taskKill(arg0);
+        case SHELTER_B3_GARBAGE_INCINERATOR_EXIT_TASK_WAIT_EVENT:
+            if (taskPollKill(task->spawnArg2.pointer, &encounterResult) != 0) {
+                taskKill(task);
             }
             break;
     }
 }
+#undef SHELTER_B3_GARBAGE_INCINERATOR_PREPARE_EXIT_INTRO
 
 /// Advances the lift's second move while placing the carried actor at its height.
 ///
@@ -855,18 +885,10 @@ static s16 _shelterB3GarbageIncineratorMoveLiftWithActor(Task* task)
     return 0;
 }
 
-/// Moves the session, and the live save, to room `room` of this area and marks
-/// the room's objects for rebuilding.
+/// Selects a room variant in the session and live save and requests its object rebuild.
 ///
-/// The image has this four-store sequence at four places in the lift task.
-/// What it shows about the room number is its width: in the one arm that sets
-/// room 5, after the task has tested the pending trigger against 5, the stores
-/// load a new 5 instead of taking the register of that test, while the 1 stored
-/// next to them does come from the register of the `kind == 1` test. cse hands a
-/// byte store the first wider register that holds its constant, 16-bit before
-/// 32-bit, so the 5 was held in a 16-bit value. A 16-bit `room` (signed or
-/// unsigned) gives that; `u8` and `s32` do not. Whether the original had a
-/// helper here or a 16-bit local in that arm is not known.
+/// `room` is a one-based variant in this area's 1..7 range; the event-room
+/// index uses room minus one. Requires both session and live-save storage.
 static inline void _shelterB3GarbageIncineratorSetRoom(s16 room)
 {
     gGameSession->location.loc.room                            = room;
@@ -875,50 +897,104 @@ static inline void _shelterB3GarbageIncineratorSetRoom(s16 room)
     gGameSession->roomObjsDirty                                = 1;
 }
 
-/// Drives the room's moving model through the session's stage for it
-/// (`incineratorDescentPhase`, 0 to 3). The first frame sets up the work block and places the
-/// model at the pose for the recorded stage. In stage 0 it waits for pending
-/// event 5 of kind 1, then sets the session room to 2 (5 when the room was 4 or
-/// above); it then moves the model 3 units a frame until it reaches the first
-/// rest pose's height, and once the view changes sets the room to 3 (or 6).
-/// State 5 runs `_shelterB3GarbageIncineratorMoveLiftWithActor` until it
-/// finishes, then applies the room's area records and ends the task. Every
-/// frame the model is relit when the session room changes. Nothing runs
-/// while any of the four flags tested on entry is set.
-void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
+/// Lowers the lift in view-coordinate units and clamps at its first rest pose.
+///
+/// Requires a live root coordinate. Returns 1 only on crossing below the rest
+/// height; equality continues moving on the next tick. Arrival stops the move sound.
+static inline s16 _shelterB3GarbageIncineratorLowerLift(Task* task, s32 descentStep)
 {
-    VECTOR                                pos;
-    u16                                   control;
+    GfxCoord* movingCoord;
+    s16       arrived;
+
+    movingCoord               = task->extra.tmd->coords;
+    movingCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    movingCoord->coord.t[1]  -= descentStep;
+    if (movingCoord->coord.t[1] < D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy) {
+        sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_STOP, 0, 0);
+        movingCoord->coord.t[1] = D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy;
+        arrived                 = 1;
+    } else {
+        arrived = 0;
+    }
+    return arrived;
+}
+
+/// Records first-pose arrival and waits for a view change before changing room variant.
+///
+/// The lift must already be clamped at its first rest height. Work remains live
+/// through the collision-wall update; arrivalView captures the session's logical view.
+static inline void _shelterB3GarbageIncineratorFinishLiftDescent(Task* task)
+{
+    _ShelterB3GarbageIncineratorLiftWork* work;
+
+    work                                  = task->work;
+    gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_LANDED;
+    shelterB3GarbageIncineratorSetLiftArrivalCollisionWalls();
+    work->arrivalView = gGameSession->location.loc.view;
+    task->state++;
+}
+
+/// Runs the lift's descent, arrival wait and actor-carrying return move.
+///
+/// Requires a live TMD body and this area's placement-0 actor. State 0 owns
+/// a primary-heap work block and supplies the model's lighting matrices.
+/// The saved descent phase selects the starting pose. Room action 1 lowers
+/// the lift three view-coordinate units per tick, then a view change selects
+/// room 3 or 6. `ROOM_MESSAGE_ACTOR_EVENT` starts the carried move from the
+/// waiting state. Completion applies saved area updates and tears down the
+/// task/work. Room changes rebuild the model's lighting at its cached XYZ.
+/// Scene, menu, combat and attachment-wheel pauses suspend every phase.
+static void _shelterB3GarbageIncineratorLiftTask(Task* task)
+{
+    enum {
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_INIT             = 0,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_ACTION      = 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_DESCEND          = 2,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_VIEW        = 3,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_ACTOR_EVENT = 4,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_ACTION                = 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_DESCENT_STEP          = 3,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_OT_OFFSET             = 31,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_LIGHT_COUNT           = 3,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_FAMILY    = 4,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_FIRST_MOVING_ROOM     = 2,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_MOVING_ROOM    = 5,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_FIRST_ARRIVAL_ROOM    = 3,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ARRIVAL_ROOM   = 6,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_FIRST_ROOM_GROUP      = 0,
+        SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_GROUP     = 1,
+    };
+    VECTOR                                lightingPosition;
+    u16                                   triggerControl;
     u8                                    actionId;
     u8                                    actionArgument;
-    TmdObject*                            obj;
-    GfxCoord*                             coord;
+    TmdObject*                            model;
+    GfxCoord*                             rootCoord;
     _ShelterB3GarbageIncineratorLiftWork* work;
-    s16                                   landed;
-    TmdObject*                            tail;
-    GfxCoord*                             lift;
-    _ShelterB3GarbageIncineratorLiftWork* done_work;
+    s16                                   arrived;
+    TmdObject*                            litModel;
 
     if (gGameSession->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL) {
         return;
     }
     switch (task->state) {
-        case 0:
-            obj        = task->extra.tmd;
-            coord      = obj->coords;
-            work       = memCalloc(sizeof(*work), 0);
+        case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_INIT:
+            model      = task->extra.tmd;
+            rootCoord  = model->coords;
+            work       = memCalloc(sizeof(*work), false);
             task->work = work;
             if (work == NULL) {
                 taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
-                coord->parent                             = &gGfxViewCoord;
-                obj->flags                                = 0;
-                obj->otOffset                             = 0x1F;
+                rootCoord->parent                         = &gGfxViewCoord;
+                model->flags                              = 0;
+                model->otOffset                           = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_OT_OFFSET;
                 work->playerTask                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                obj->colorMtx                             = &work->colorMtx;
+                model->colorMtx                           = &work->colorMtx;
                 D_shelter_b3_garbage_incinerator_8018FC34 = task;
-                obj->lightMtx                             = &work->lightMtx;
+                model->lightMtx                           = &work->lightMtx;
                 task->msgTable                            = D_shelter_b3_garbage_incinerator_80185B40;
                 work->carriedActor                        = sceneFindEnemyByPlaceKey(gGameSession->location.loc.area | (gGameSession->location.loc.stage << 8))->task;
             }
@@ -929,14 +1005,14 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             }
             switch (gGameSession->incineratorDescentPhase) {
                 case GAME_SESSION_INCINERATOR_DESCENT_WAITING:
-                    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, &D_shelter_b3_garbage_incinerator_80185B88, 0);
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_shelter_b3_garbage_incinerator_80185B88, 0);
                     shelterB3GarbageIncineratorSetLiftCollisionWalls();
-                    task->state = 1;
+                    task->state = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_ACTION;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_MOVING:
                 case GAME_SESSION_INCINERATOR_DESCENT_LANDED:
-                    TASK_MESSAGE_DISPATCH_POINTER(task, 0x7D4, D_shelter_b3_garbage_incinerator_80185B58, 0);
-                    task->state = 4;
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, D_shelter_b3_garbage_incinerator_80185B58, 0);
+                    task->state = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_ACTOR_EVENT;
                     break;
                 case GAME_SESSION_INCINERATOR_DESCENT_COMPLETE:
                     taskKill(task);
@@ -944,64 +1020,50 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             }
             taskMessageDispatch(task, ACTOR_MESSAGE_SET_MODEL_DRAW, 1, 0);
             break;
-        case 1:
-            if (worldCollisionReadActionHit(&control, &actionId, &actionArgument) == 0) {
+        case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_ACTION:
+            if (worldCollisionReadActionHit(&triggerControl, &actionId, &actionArgument) == 0) {
                 break;
             }
-            if ((control & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) != WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
+            if ((triggerControl & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) != WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
                 break;
             }
-            if ((s8)actionId == 1) {
+            if ((s8)actionId == SHELTER_B3_GARBAGE_INCINERATOR_LIFT_ACTION) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, 0, 0);
-                if (gGameSession->location.loc.room < 4) {
-                    _shelterB3GarbageIncineratorSetRoom(2);
+                if (gGameSession->location.loc.room < SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_FAMILY) {
+                    _shelterB3GarbageIncineratorSetRoom(SHELTER_B3_GARBAGE_INCINERATOR_LIFT_FIRST_MOVING_ROOM);
                     gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
-                    gGameSession->incineratorRoomGroup = 0;
+                    gGameSession->incineratorRoomGroup = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_FIRST_ROOM_GROUP;
                 } else {
-                    _shelterB3GarbageIncineratorSetRoom(5);
+                    _shelterB3GarbageIncineratorSetRoom(SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_MOVING_ROOM);
                     gGameSession->eventRoomIndex       = gGameSession->location.loc.room - 1;
-                    gGameSession->incineratorRoomGroup = 1;
+                    gGameSession->incineratorRoomGroup = SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_GROUP;
                 }
-                func_shelter_b3_garbage_incinerator_80180FE4(5, 0, 0x3C);
+                shelterB3GarbageIncineratorShowTimedCaption(SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_LIFT_ACTION, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_DEFAULT_KEY, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_NOTICE_TICKS);
                 gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_MOVING;
                 task->state++;
             }
             break;
-        case 2:
-            lift               = task->extra.tmd->coords;
-            lift->composeStamp = GRAPHICS_COORD_DIRTY;
-            lift->coord.t[1]  -= 3;
-            if (lift->coord.t[1] < D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy) {
-                sndEvtRequestScriptStop(SOUND_SHELTER_B3_INCINERATOR_LIFT_MOVE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-                sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_LIFT_STOP, 0, 0);
-                lift->coord.t[1] = D_shelter_b3_garbage_incinerator_80185B58[0].pos.vy;
-                landed           = 1;
-            } else {
-                landed = 0;
-            }
-            if (landed) {
-                done_work                             = task->work;
-                gGameSession->incineratorDescentPhase = GAME_SESSION_INCINERATOR_DESCENT_LANDED;
-                shelterB3GarbageIncineratorSetLiftArrivalCollisionWalls();
-                done_work->arrivalView = gGameSession->location.loc.view;
-                task->state++;
+        case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_DESCEND:
+            arrived = _shelterB3GarbageIncineratorLowerLift(task, SHELTER_B3_GARBAGE_INCINERATOR_LIFT_DESCENT_STEP);
+            if (arrived) {
+                _shelterB3GarbageIncineratorFinishLiftDescent(task);
             }
             break;
-        case 3: {
-            _ShelterB3GarbageIncineratorLiftWork* liftWork = task->work;
+        case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_WAIT_VIEW: {
+            _ShelterB3GarbageIncineratorLiftWork* waitingWork = task->work;
 
-            if (liftWork->arrivalView != gGameSession->location.loc.view) {
-                if (gGameSession->location.loc.room < 4) {
-                    _shelterB3GarbageIncineratorSetRoom(3);
+            if (waitingWork->arrivalView != gGameSession->location.loc.view) {
+                if (gGameSession->location.loc.room < SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ROOM_FAMILY) {
+                    _shelterB3GarbageIncineratorSetRoom(SHELTER_B3_GARBAGE_INCINERATOR_LIFT_FIRST_ARRIVAL_ROOM);
                 } else {
-                    _shelterB3GarbageIncineratorSetRoom(6);
+                    _shelterB3GarbageIncineratorSetRoom(SHELTER_B3_GARBAGE_INCINERATOR_LIFT_SECOND_ARRIVAL_ROOM);
                 }
                 task->state++;
             }
             break;
         }
-        case 5:
+        case SHELTER_B3_GARBAGE_INCINERATOR_LIFT_TASK_CARRY_ACTOR:
             if (!_shelterB3GarbageIncineratorMoveLiftWithActor(task)) {
                 break;
             }
@@ -1010,13 +1072,14 @@ void func_shelter_b3_garbage_incinerator_8017E158(Task* task)
             taskKill(task);
             return;
     }
+    // Waiting for the actor event still permits relighting after a room change.
     work = task->work;
     if (gGameSession->location.loc.room != work->litRoom) {
-        tail   = task->extra.tmd;
-        pos.vx = tail->coords->workm.t[0];
-        pos.vy = task->extra.tmd->coords->workm.t[1];
-        pos.vz = task->extra.tmd->coords->workm.t[2];
-        worldCoordSetModelLighting(tail, &pos, 0, 3);
+        litModel            = task->extra.tmd;
+        lightingPosition.vx = litModel->coords->workm.t[0];
+        lightingPosition.vy = task->extra.tmd->coords->workm.t[1];
+        lightingPosition.vz = task->extra.tmd->coords->workm.t[2];
+        worldCoordSetModelLighting(litModel, &lightingPosition, 0, SHELTER_B3_GARBAGE_INCINERATOR_LIFT_LIGHT_COUNT);
         work->litRoom = gGameSession->location.loc.room;
     }
 }
@@ -1099,34 +1162,49 @@ static s32 _shelterB3GarbageIncineratorAdvanceBlazeAnimation(Task* task)
 
 #include "../../shared/incinerator_blaze_body_fire.inc.c"
 
-/// Arms the encounter on state 0: sends `playerTask` message 0x3F7 with the
-/// table and its live-entry count, raises `Gp_StateC08.flags` bit 0,
-/// installs the model set, hands slot 6 message 0xFA4, starts spawn entry 2
-/// with the task itself and steps to state 1. State 1 returns 1 while
-/// `gGameSession->eventState` is clear; every other path calls
-/// `_shelterB3GarbageIncineratorAdvanceBlazeAnimation` with the task and returns 0.
-static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
+/// Copies the terminated scene-clip table into the player's writable extension bank.
+///
+/// Work and player must remain live through synchronous dispatch; clip pointers
+/// and their data remain borrowed afterward. The table ends at NULL; only the
+/// low sixteen bits of its scanned count are used as the element index/count.
+static inline void _shelterB3GarbageIncineratorInstallBlazeClips(Task* task)
 {
-    _ShelterB3GarbageIncineratorBlazeWork* work = arg0->work;
-    _ShelterB3GarbageIncineratorBlazeWork* msgWork;
-    AnimationBankCopyRequest               msg;
-    s32                                    n;
+    _ShelterB3GarbageIncineratorBlazeWork* clipWork = task->work;
+    enum { SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK = 0xFFFF };
+    AnimationBankCopyRequest bankRequest;
+    s32                      extensionCount;
+
+    // The terminated table counts playable extension pointers, excluding NULL.
+    extensionCount = 0;
+    while (D_shelter_b3_garbage_incinerator_80186F78[extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK] != 0) {
+        extensionCount += 1;
+    }
+    bankRequest.source.sets = &D_shelter_b3_garbage_incinerator_80186F78[0];
+    bankRequest.wordCount   = extensionCount & SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CLIP_COUNT_MASK;
+    TASK_MESSAGE_DISPATCH_POINTER(clipWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &bankRequest, 0);
+}
+
+/// Starts the scripted burn scene and polls it through completion.
+///
+/// Requires initialized controller work, a live player and writable extension
+/// animation bank. Installs the three scene clips, holds scripted player
+/// control, locks attachments, hides the HUD and spawns the fade with a
+/// borrowed controller pointer. The controller and clip data must remain
+/// live through the fade. Returns 1 once the running script's event state
+/// clears, otherwise advances animation successors and returns 0.
+static s16 _shelterB3GarbageIncineratorRunBlazeScene(Task* task)
+{
+    enum { SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_TASK = 2 };
+    _ShelterB3GarbageIncineratorBlazeWork* work = task->work;
 
     switch (work->sceneState) {
         case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_START:
-            msgWork = work;
-            n       = 0;
-            while (D_shelter_b3_garbage_incinerator_80186F78[n & 0xFFFF] != 0) {
-                n += 1;
-            }
-            msg.source.sets = &D_shelter_b3_garbage_incinerator_80186F78[0];
-            msg.wordCount   = n & 0xFFFF;
-            TASK_MESSAGE_DISPATCH_POINTER(msgWork->playerTask, ANIMATION_MESSAGE_COPY_BANK_EXTENSION, &msg, 0);
+            _shelterB3GarbageIncineratorInstallBlazeClips(task);
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
             Gp_StateC08.flags |= ATTACHMENT_FLAG_EVENT_LOCK;
             evsStartScript(D_shelter_b3_garbage_incinerator_80186FB8, EVENT_SCRIPT_HUD_HIDE_RESTORE);
             taskMessageDispatch(gameGetTaskSlot(GAME_TASK_SLOT_CAP_CONTROL), CAP_CONTROL_MESSAGE_HIDE_HUD, 0, 0);
-            work->fadeTask   = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 2, 0, arg0);
+            work->fadeTask   = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_FADE_TASK, 0, task);
             work->sceneState = work->sceneState + 1;
             break;
         case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_SCENE_RUNNING:
@@ -1135,71 +1213,79 @@ static s32 func_shelter_b3_garbage_incinerator_8017F588(Task* arg0)
             }
             return 1;
     }
-    _shelterB3GarbageIncineratorAdvanceBlazeAnimation(arg0);
+    _shelterB3GarbageIncineratorAdvanceBlazeAnimation(task);
     return 0;
 }
 
-/// Does nothing while `gGameSession->sceneUpdatesPaused`, `Gp_StateC08.menuOpen`,
-/// `gSceneCombatState.actorControl` or `D_80114CF8` is set. State 0 allocates and clears the work block (killing the task if that
-/// fails), records `gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)` in `playerTask` and the task in
-/// `D_shelter_b3_garbage_incinerator_8018FC3C`, spawns the table entry and,
-/// with `spawnArg1` zero, queues sound event 0x54280005. State 1 advances once
-/// the scene clock has run out while the player is alive, unless
-/// `incineratorExitPhase` is 1 in view 0x21. State 2 advances when
-/// `func_shelter_b3_garbage_incinerator_8017F588` returns nonzero.
-void func_shelter_b3_garbage_incinerator_8017F6D8(Task* arg0)
+/// Watches the incinerator clock and runs the player's burn-death scene on expiry.
+///
+/// State 0 owns a zeroed primary-heap work block, publishes the controller for
+/// script callbacks and starts the clock-driven caption task at baseline 208.
+/// A nonzero `spawnArg1` suppresses the opening alert. The player must still
+/// be alive on expiry; warp exit in logical view 33 suppresses ignition.
+/// Scene/menu/combat pauses and a latched directional action suspend updates.
+/// After the scene ends the controller remains live in state 3, retaining
+/// work borrowed by its visual tasks until ordinary task teardown.
+static void _shelterB3GarbageIncineratorBlazeControllerTask(Task* task)
 {
+    enum {
+        SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_INIT       = 0,
+        SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_WAIT_CLOCK = 1,
+        SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_RUN_SCENE  = 2,
+        SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_EXIT_VIEW       = 33,
+        SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_BASELINE_Y    = 208,
+    };
     GameSession*                           session = gGameSession;
     _ShelterB3GarbageIncineratorBlazeWork* work;
-    s32                                    ok;
-    PlayerStatus*                          ps;
+    s32                                    shouldBurn;
+    PlayerStatus*                          playerStatus;
 
     if (session->sceneUpdatesPaused != 0 || (s8)Gp_StateC08.menuOpen != ATTACHMENT_MENU_CLOSED || gSceneCombatState.actorControl != SCENE_COMBAT_ACTORS_RUNNING || D_80114CF8 != 0) {
         return;
     }
-    switch (arg0->state) {
-        case 0:
+    switch (task->state) {
+        case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_INIT:
             if (Gp_StateC08.mode == ATTACHMENT_MODE_WHEEL || gDisplayState.pendingMode != DISPLAY_MODE_NONE) {
                 return;
             }
             work       = memMalloc(sizeof(*work), false);
-            arg0->work = work;
+            task->work = work;
             if (work == NULL) {
-                taskKill(arg0);
+                taskKill(task);
             } else {
                 memFillBytes(work, 0, sizeof(*work));
                 work->playerTask                          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                D_shelter_b3_garbage_incinerator_8018FC3C = arg0;
+                D_shelter_b3_garbage_incinerator_8018FC3C = task;
             }
-            taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, 0xD0, 0);
-            if (arg0->spawnArg1.value == 0) {
+            taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187184, 0, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_BASELINE_Y, 0);
+            if (task->spawnArg1.value == 0) {
                 sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_ALERT, 0, 0);
             }
             break;
-        case 1:
-            ps = &gPlayerStatus;
+        case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_WAIT_CLOCK:
+            playerStatus = &gPlayerStatus;
             if (session->sceneClock > 0) {
-                ok = 0;
-            } else if (ps->hp <= 0) {
-                ok = 0;
-            } else if (session->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_WARP || session->location.loc.view != 0x21) {
-                ok = 1;
+                shouldBurn = 0;
+            } else if (playerStatus->hp <= 0) {
+                shouldBurn = 0;
+            } else if (session->incineratorExitPhase != GAME_SESSION_INCINERATOR_EXIT_WARP || session->location.loc.view != SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_EXIT_VIEW) {
+                shouldBurn = 1;
             } else {
-                ok = 0;
+                shouldBurn = 0;
             }
-            if (!ok) {
+            if (!shouldBurn) {
                 return;
             }
             break;
-        case 2:
-            if ((s16)func_shelter_b3_garbage_incinerator_8017F588(arg0) == 0) {
+        case SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_TASK_RUN_SCENE:
+            if (_shelterB3GarbageIncineratorRunBlazeScene(task) == 0) {
                 return;
             }
             break;
         default:
             return;
     }
-    arg0->state++;
+    task->state++;
 }
 
 /// Sets the blaze fade task's full signed state word from the first payload.
@@ -1239,29 +1325,48 @@ static void _shelterB3GarbageIncineratorSetBlazeFadeState(s32 nextState)
     taskMessageDispatch(work->fadeTask, BLAZE_FADE_MESSAGE_SET_STATE, nextState, 0);
 }
 
-/// Seed the spawn entry's two parameters and start the task that consumes
-/// them, passing the block itself as `Task::spawnArg2`.
-void func_shelter_b3_garbage_incinerator_8017F968(void)
+/// Starts the burn scene's heat-haze mesh with a 600-tick rise to eight-pixel displacement.
+///
+/// Requires the published controller's zeroed work and no other wave task in
+/// this package. The mesh borrows the embedded ramp until its final draw;
+/// the blaze fade finishes that ramp once the screen has washed white.
+/// The mesh initializes the ramp frame/state, retaining the raw-texture tint.
+static void _shelterB3GarbageIncineratorStartBlazeHeatHaze(void)
 {
+    enum {
+        SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_RISE_TICKS    = 600,
+        SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_PEAK_STRENGTH = 256,
+    };
     _ShelterB3GarbageIncineratorBlazeWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
-    work->blaze.wave.span  = 0x258;
-    work->blaze.wave.scale = 0x100;
+    work->blaze.wave.span  = SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_RISE_TICKS;
+    work->blaze.wave.scale = SHELTER_B3_GARBAGE_INCINERATOR_HEAT_HAZE_PEAK_STRENGTH;
     taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80185BAC, 0, 0, &work->blaze.wave);
 }
 
-void func_shelter_b3_garbage_incinerator_8017F9B4(s32 arg0)
+/// Starts limited player-body fire, or spreads the existing fire over the whole body.
+///
+/// The active controller/work must remain live. Zero starts the blaze sound,
+/// cancels room effects, selects enemy-cull zone 16 and spawns the fire task.
+/// Any nonzero value requires that task to exist and switches it from the
+/// four-part, sixteen-tick emitter to the full-body, eight-tick emitter.
+/// The event script orders start before spread; neither task owns the other.
+static void _shelterB3GarbageIncineratorSetBodyFirePhase(s32 spreadFire)
 {
+    enum {
+        SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CULL_ZONE = 16,
+        SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_TASK  = 3,
+    };
     _ShelterB3GarbageIncineratorBlazeWork* work = D_shelter_b3_garbage_incinerator_8018FC3C->work;
 
-    if (arg0 == 0) {
+    if (spreadFire == SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_START) {
         sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_BLAZE, 0, 0);
         roomEffectRequestCancelAll();
-        gGameSession->enemyCullZone = 0x10;
-        work->bodyFireTask          = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 3, 0, 0);
+        gGameSession->enemyCullZone = SHELTER_B3_GARBAGE_INCINERATOR_BLAZE_CULL_ZONE;
+        work->bodyFireTask          = taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_TASK, SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_START, 0);
         return;
     }
-    work->bodyFireTask->spawnArg1.value = 1;
+    work->bodyFireTask->spawnArg1.value = SHELTER_B3_GARBAGE_INCINERATOR_BODY_FIRE_SPREAD;
 }
 
 /// Ends the burn scene by killing the player and preserving the display for restart.
@@ -1273,14 +1378,14 @@ static void _shelterB3GarbageIncineratorKillPlayerInBlaze(void)
 
 #include "../../shared/cap_captions.inc.c"
 
-void func_shelter_b3_garbage_incinerator_80180FE4(s16 arg0, s16 arg1, s16 arg2)
+void shelterB3GarbageIncineratorShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks)
 {
-    _capCaptionShowTimed(arg0, arg1, arg2);
+    _capCaptionShowTimed(commandIndex, key, durationTicks);
 }
 
 #include "../../shared/cap_captions_resource.inc.c"
 
-void func_shelter_b3_garbage_incinerator_8018108C(s16 arg0, s16 arg1, s16 arg2)
+void shelterB3GarbageIncineratorSelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex)
 {
-    _capCaptionLoadResource(arg0, arg1, arg2);
+    _capCaptionLoadResource(texturePageX, texturePageY, dataResourceIndex);
 }

@@ -958,7 +958,7 @@ shelter1fBulwarkRoomVisualEffectsFlashTask = 0x8017E38C; // type:func absolute:T
 
 shelter1fBulwarkRoomVisualEffectsTwinTrailTask = 0x8017EDF0; // type:func absolute:True owner=shelter_1f_bulwark
 
-func_shelter_1f_bulwark_8017F6D8 = 0x8017F6D8; // type:func absolute:True owner=shelter_1f_bulwark shared=rooms
+func_shelter_1f_bulwark_8017F6D8 = 0x8017F6D8; // type:func absolute:True owner=shelter_1f_bulwark
 
 shelter1fParkingGarageDrawViewGlowsTask = 0x8017DF6C; // type:func absolute:True owner=shelter_1f_parking_garage
 

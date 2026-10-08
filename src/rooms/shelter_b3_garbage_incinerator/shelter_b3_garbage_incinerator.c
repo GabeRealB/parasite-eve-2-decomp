@@ -168,7 +168,7 @@ s32 func_shelter_b3_garbage_incinerator_8017D9BC(Task* arg0, s32 arg1, RoomEvent
             gGameSession->incineratorExitPhase = GAME_SESSION_INCINERATOR_EXIT_WARP;
         } else if (D_shelter_b3_garbage_incinerator_801855DC >= 0x3D) {
             sndEvtRequestScriptStart(SOUND_SHELTER_B3_INCINERATOR_SWITCH_PRESS, 0, 0);
-            func_shelter_b3_garbage_incinerator_80180FE4(0x16, 0, 0x3C);
+            shelterB3GarbageIncineratorShowTimedCaption(SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_EXIT_BLOCKED, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_DEFAULT_KEY, SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_NOTICE_TICKS);
             D_shelter_b3_garbage_incinerator_801855DC = 0;
         }
     }
@@ -219,7 +219,7 @@ static void func_shelter_b3_garbage_incinerator_8017DB7C(Task* task)
 {
     task->msgTable = D_shelter_b3_garbage_incinerator_80185594;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    func_shelter_b3_garbage_incinerator_8018108C(0x180, 0, 0);
+    shelterB3GarbageIncineratorSelectCaptionResource(0x180, 0, 0);
     D_shelter_b3_garbage_incinerator_801855D8 = taskSpawnFromTable(&D_shelter_b3_garbage_incinerator_80185BA0, 0, 0, 0);
     if (gGameSession->location.loc.room >= 4) {
         taskSpawnFromTable(D_shelter_b3_garbage_incinerator_80187150, 0, 0, 0);

@@ -140711,7 +140711,7 @@ strength reduction over `a[i]`. Write the index form before tuning walkers.
 **Cause.** `t = x * 0xFF / 0x400; c.r = t; c.g = t;` makes the shift result a user variable (`reg/v`); `c.r = x * 0xFF / 0x400; c.g = x * 0xFF / 0x400;` gives the same `.cse` RTL except that the result is an anonymous temp, which cse shares between the two stores. The different pseudo kind moved allocation and sched1 enough to reproduce every difference at once, including the unrelated-looking clamp slot.
 
 **Fix.** Write the expression at both stores. `c.r = c.g = expr` behaved like the named temp. Same family as "Two `move`s out of one temp: the pair was assigned from a named intermediate", in the opposite direction.
-### A global's address in a delay slot, then `lh off(reg)`, means the pointer was taken one block earlier (func_shelter_b3_garbage_incinerator_8017F6D8, 2026-09-23)
+### A global's address in a delay slot, then `lh off(reg)`, means the pointer was taken one block earlier (_shelterB3GarbageIncineratorBlazeControllerTask, 2026-09-23)
 
 The target read `gPlayerStatus.hp` as `addiu v0,v0,%lo(gPlayerStatus)` in the
 delay slot of the preceding `bgtz`, then `lh v0,0x18(v0)`. It did not fold the
@@ -141693,7 +141693,7 @@ order, chained `x = (gRandomLcgState = ...)` forms and temps did nothing here; w
 two draw chains swap registers, try moving the block's constant stores between
 draws before anything else.
 
-## A narrow constant store takes an earlier compare's register: cse's wider-mode search, and killing the class with output-only asm (func_shelter_b3_garbage_incinerator_8017E158, 2026-09-24)
+## A narrow constant store takes an earlier compare's register: cse's wider-mode search, and killing the class with output-only asm (_shelterB3GarbageIncineratorLiftTask, 2026-09-24)
 
 **Symptom.** After `if ((control & 0x7FFF) == 5 && (s8)actionId == 1) { calls...; if (r < 4)
 {...} else { room = 5; D = 5; } }`, the target's else arm has its own `li v1,5`
@@ -149066,7 +149066,7 @@ a block boundary" at the end of this file.
   *Note 2026-10-07:* still there; the last section of this file ("The barrier
   that pays for a split increment") has what each of the two forms stands for
   and which replacements were measured.
-- `func_shelter_b3_garbage_incinerator_8017E158` (two `DEF_REG`). Nothing new
+- `_shelterB3GarbageIncineratorLiftTask` (two `DEF_REG`). Nothing new
   beyond the entry of 2026-09-24: the 5-class has to be gone at the else arm
   while the `(s8)actionId == 1` class survives, so the break is between the two
   compares. A label there that only jump2 removes would do it; no source form
@@ -152158,7 +152158,7 @@ deletes the QI set. The explicit `first` only wrote out what cse builds.
 count the uses after cse, not in the source: two widenings of one narrow local
 on a path cse follows are already one.
 
-### A byte store of a constant that an earlier compare also holds: the wider-mode search takes a 16-bit register first (func_shelter_b3_garbage_incinerator_8017E158, 2026-10-07)
+### A byte store of a constant that an earlier compare also holds: the wider-mode search takes a 16-bit register first (_shelterB3GarbageIncineratorLiftTask, 2026-10-07)
 
 **Was.** `t = control & 0x7FFF; want = 5; if (t != want) break; DEF_REG(t);
 DEF_REG(want);` so that a later `room = 5` (two `sb`) in the else arm of

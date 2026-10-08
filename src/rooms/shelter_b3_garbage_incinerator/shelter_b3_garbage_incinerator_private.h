@@ -76,7 +76,15 @@ extern ScreenWaveGridOscillator gScreenWaveRows[30];
 /// buffer. `_screenWaveGridTask` builds them once and moves their corners.
 extern POLY_FT4 gScreenWaveGrid[2][30][8];
 
-void func_shelter_b3_garbage_incinerator_8018108C(s16 arg0, s16 arg1, s16 arg2);
+/// Selects the loaded CAP data resource and font texture-page origin for this room.
+///
+/// `texturePageX` counts VRAM words and `texturePageY` rows. `dataResourceIndex`
+/// is a zero-based ordinal among data resources, excluding image/empty slots.
+/// The bundle load must be complete and its writable CAP storage and textures
+/// must remain live during caption use. Selection relocates storage in place
+/// without I/O or allocation. Page coordinates are stored even when a missing
+/// ordinal or invalid CAP magic leaves the previous tables selected.
+void shelterB3GarbageIncineratorSelectCaptionResource(s16 texturePageX, s16 texturePageY, s16 dataResourceIndex);
 
 /// Installs the six collision walls for the lift's first rest pose.
 ///

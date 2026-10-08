@@ -197,7 +197,7 @@ _gCapCaptionTexturePageX = 0x80187180; // size:0x2 defined:True
 _gCapCaptionTexturePageY = 0x80187182; // size:0x2 defined:True
 D_shelter_b3_garbage_incinerator_801874C4 = 0x801874C4; // size:0x80 defined:True
 
-func_shelter_b3_garbage_incinerator_80180FE4 = 0x80180FE4; // type:func
+shelterB3GarbageIncineratorShowTimedCaption = 0x80180FE4; // type:func
 
 shelterB3GarbageIncineratorSetExitCollisionWalls = 0x8018507C; // type:func
 
@@ -253,3 +253,10 @@ _shelterB3GarbageIncineratorRejectKeyItem = 0x8017d838; // type:func
 _shelterB3GarbageIncineratorIgnoreCommand = 0x8017d9b4; // type:func
 _shelterB3GarbageIncineratorHandleSoundCue = 0x8017db2c; // type:func
 _shelterB3GarbageIncineratorAdvanceSwitchTimer = 0x8017dc54; // type:func
+_shelterB3GarbageIncineratorRunBlazeScene = 0x8017f588; // type:func
+_shelterB3GarbageIncineratorStartBlazeHeatHaze = 0x8017f968; // type:func
+_shelterB3GarbageIncineratorSetBodyFirePhase = 0x8017f9b4; // type:func
+_shelterB3GarbageIncineratorBlazeControllerTask = 0x8017f6d8; // type:func
+shelterB3GarbageIncineratorSelectCaptionResource = 0x8018108c; // type:func
+_shelterB3GarbageIncineratorLiftTask = 0x8017e158; // type:func
+_shelterB3GarbageIncineratorExitEncounterTask = 0x8017dcd4; // type:func

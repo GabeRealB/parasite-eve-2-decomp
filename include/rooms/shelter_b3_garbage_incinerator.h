@@ -68,7 +68,23 @@ extern WorldCollisionSurfaceProperties* D_shelter_b3_garbage_incinerator_8018FB4
 
 void func_shelter_b3_garbage_incinerator_8017DC7C(Task* task);
 
-void func_shelter_b3_garbage_incinerator_80180FE4(s16 arg0, s16 arg1, s16 arg2);
+/// Caption selectors and task-tick duration used by the lift and exit encounter.
+enum {
+    SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_LIFT_ACTION    = 5,
+    SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_EXIT_BLOCKED   = 22,
+    SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_EXIT_ENCOUNTER = 23,
+    SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_DEFAULT_KEY    = 0,
+    SHELTER_B3_GARBAGE_INCINERATOR_CAPTION_NOTICE_TICKS   = 60,
+};
+
+/// Selects an incinerator caption and starts its timed drawing task at baseline 208.
+///
+/// Requires the room's relocated CAP resource and font textures to remain loaded.
+/// `commandIndex` selects a valid command-table entry; `key` must identify a
+/// nonterminal record in 0..255. `durationTicks` counts drawing-task ticks;
+/// nonpositive durations still draw once. Later selections replace the text
+/// seen by every caption task. A failed spawn leaves the selection in place.
+void shelterB3GarbageIncineratorShowTimedCaption(s16 commandIndex, s16 key, s16 durationTicks);
 
 /// Installs the six low collision walls used during the incinerator exit sequence.
 ///
