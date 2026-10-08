@@ -97349,9 +97349,9 @@ which also hands the load `$v0` (freed once the branch is taken) instead of
 `_actor421600WallKnockDownState` hoists the identical line -- so read the target's
 block boundary rather than the neighbour. Fixing this last one, after the
 scratch-pointer and store-order work, took 90.821% to 100%.
-## Make the compared value *be* the stored value: the arm assignment cannot be hoisted (func_actor_421600_8013E9D8, 2026-09-16)
+## Make the compared value *be* the stored value: the arm assignment cannot be hoisted (_actor421600LungeRecoveryState, 2026-09-16)
 
-A spawn tail ends with "state = 2, or 5 when the last-command word masks down
+The lunge-recovery tail ends with "nextState = 2, or 5 when the last-command word masks down
 to 0x11402". The m2c shape names a temp and assigns it before the test, so
 `jump.c` runs its `if (c) x = a; else x = b;` -> `x = b; if (c) x = a;` fold
 (see the `*&state` and junk-yard entries): the `= 2` lands in the block holding
@@ -97370,20 +97370,20 @@ sh    a1, 0(s0)
 ```
 
 99.717%, `regs=3`. No pinning is needed: assign the *masked value itself* to the
-state local and let the arms reassign it, so the test reads X and the fold's
+nextState local and let the arms reassign it, so the test reads X and the fold's
 "nothing in the test modifies B or X" guard fails:
 
 ```c
-state = work->lastCommand.word & DESERT_CHASER_COMMAND_MASK;
-if (state == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
-    state = 5;
+nextState = work->lastCommand.word & DESERT_CHASER_COMMAND_MASK;
+if (nextState == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
+    nextState = DESERT_CHASER_STATE_FLEE;
 } else {
-    state = 2;
+    nextState = ACTOR421600_STATE_TRACK_ARENA_ROUTE;
 }
-work->state = state;
+work->state = nextState;
 ```
 
-The else arm keeps its own basic block, so `state` is born *at the `and`* -- by
+The else arm keeps its own basic block, so `nextState` is born *at the `and`* -- by
 then the `lw`'s destination and the mask constant have both died, so
 `hard_regs_live` holds only the comparand: `;; 83 conflicts: 81 83 3 29`, no
 `2`. `$v0` is the first free register, and because the value pseudo is now the
@@ -97396,7 +97396,7 @@ else arm shows up as the delay slot rather than the fall-through. 100.000%,
 
 Read it off `.greg`: if the arm value's conflict set names the comparand's
 register, its arms still share the test's block; the fix is to give the test
-something to read. Example: `func_actor_421600_8013E9D8`. Inputs: `base_2.i`
+something to read. Example: `_actor421600LungeRecoveryState`. Inputs: `base_2.i`
 `a5fac8bb0c991fc5d6b006606a115c03937d73dcabd15bc38780ccf248936585` (100.000%),
 `base.c` `8d046d78a99c4533238d9d50c1355bf918e0348adf343e92340ebf9e76c55ece`
 (99.717%, tried `if/else` with the test on the field: same 99.717%).
@@ -111325,7 +111325,7 @@ if (state == DESERT_CHASER_COMMAND_WATER_TOWER_1) {
 work->state = state;
 ```
 
-The sibling `func_actor_421600_8013E9D8` in the same TU does the same E90 test
+The sibling `_actor421600LungeRecoveryState` in the same TU does the same E90 test
 and its compiled `bne ... / li $2,2 / li $2,5 / sh $2,0($16)` shows exactly this
 shape with a different default, which is where the fix came from: when the
 leftover is only the register of a conditionally stored constant, the sibling
@@ -111600,7 +111600,7 @@ inside the `if` keeps them in different blocks, cse leaves both, and dbr then
 fills the branch delay slot with the `addiu` while the load it feeds stays
 before the branch. Zero regressions: 100.000%, zero penalties.
 
-## A local's address at a non-zero frame offset becomes a per-call pseudo that cse merges into a saved register - `TOUCH_REG` on a pointer local breaks the chain (func_actor_421600_8013C8E0, 2026-09-16)
+## A local's address at a non-zero frame offset becomes a per-call pseudo that cse merges into a saved register - `TOUCH_REG` on a pointer local breaks the chain (_actor421600BurstDeathState, 2026-09-16)
 
 A block that passes `&key` to two calls wants the address recomputed at each
 call site:
@@ -136453,7 +136453,7 @@ Scope: observed expression ordering and allocation eligibility for these cases;
 exact allocator suggestion calls were not traced.
 
 
-## Separate a scalar asm output from a parallel marker when combine changes its lifetime (func_actor_421600_80134AD4, 2026-09-20)
+## Separate a scalar asm output from a parallel marker when combine changes its lifetime (_actor421600Spawn, 2026-09-20)
 
 The retry seed was distance 40 from matching: two store/address pairs were
 reversed by sched2. A compiler trace disproved the archived missing-WAR theory.
@@ -136485,7 +136485,7 @@ form remains unknown; no register pins were used.
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Preprocessed base_13 SHA256: `fb1043d76cfc697cb4f856617e7d4b1da2412fa1fa2562da7c497d296bcdc221`.
 Preprocessed base_14 SHA256: `b469a76c3e891929b14493d74cc331dff17b019f132a8b2c596f5baeda82c06d`.
-Evidence: `tools/permuter_findings/func_actor_421600_80134AD4/sessions/da0e948689f04cd6ba5fd9394bea3708/ad30c8995a19a7c5e02b/PERMUTER_EVIDENCE/retry-20260920/`
+Evidence: `tools/permuter_findings/_actor421600Spawn/sessions/da0e948689f04cd6ba5fd9394bea3708/ad30c8995a19a7c5e02b/PERMUTER_EVIDENCE/retry-20260920/`
 contains the paired dumps, extent pass walk, baseline trace and verification log.
 
 
@@ -138660,9 +138660,9 @@ Compiler/input hashes and selected dump excerpts:
 `tools/compiler_evidence/2026-09-20-actor421600-36138.json`.
 
 
-### Promote a cached byte before both its comparison and halfword store (func_actor_421600_801354D8, 2026-09-20)
+### Promote a cached byte before both its comparison and halfword store (_desertChaserDamage, 2026-09-20)
 
-A `u8 debugMode = D_80072729` compared with 1 then stored to an s16 field
+A `u8 actorsFrozen = D_80072729` compared with 1 then stored to an s16 field
 retained two promotions: `.rtl` UID1590 zero-extends QI r81 to SI for the
 comparison, while UID1606 zero-extends it to HI for the store. The latter
 survives `.combine` as `zero_extendqihi2` and emits an extra `andi 0xff`.
@@ -138681,7 +138681,7 @@ Inputs: base_2.i SHA256
 base_6.i SHA256
 `dd55fac3476bddd696cecacdbf3b7f73340bab1063cd555556325d52229dd331`.
 Retained source/dump evidence and prediction are under
-`tools/permuter_findings/func_actor_421600_801354D8/` for session
+`tools/permuter_findings/_desertChaserDamage/` for session
 `7b75fcd945f94404a4824f94cc9c63e6`, run `3b900e5d101845f6`.
 
 ## func_actor_421600_801373D4: widen a signed-byte pan before a second call
@@ -149094,7 +149094,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
 
   The exit is then not the loop's first jump, so the test is not duplicated.
   18 of 18 such loops converted this way (`_actor421600WatchRunPlayerState`,
-  `_8013BA70`, `_actor444000InhaleState`, `_actor403000ProwlState`), and
+  `_actor421600RouteRoamState`, `_actor444000InhaleState`, `_actor403000ProwlState`), and
   the same shape with a larger body in `_actor00400FindNearestSurfaceSpot`
   (`if (claimMark != ACTOR_00400_SURFACE_SPOT_END) { ...; spotIndex++; continue; } break;`).
 - **`goto advance` into another case's `task->state++; break;`.** Write the
@@ -149125,7 +149125,7 @@ none needed a hack. The forms, by what the `goto` was standing for:
   is `if (x >= 5 || (x < 3 && x != 1))` (`_stageBeginModeExitLoad`); a `switch`
   with cases 1, 3, 4 tests 1 first and does not match.
 - **A jump over an `else` arm into the code after it** (`block_10` of
-  `func_actor_421600_8013BA70`) was an inline with early `return`s: clamp X and
+  `_actor421600RouteRoamState`) was an inline with early `return`s: clamp X and
   return, else clamp Z.
 - **A jump into the middle of a nested `if`** from a two-way state test
   (`_actor800100AttackLoopState`) was `switch (phase) { case 0: ...; phase++;
