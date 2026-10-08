@@ -81,7 +81,7 @@ gRoamerReserveHp = 0x80184A60; // size:0xA defined:True
 
 neoArkWoodlandPathWaterRippleTask = 0x8017F4A0; // type:func
 
-func_neo_ark_woodland_path_8017EA08 = 0x8017EA08; // type:func
+neoArkWoodlandPathPlayerWaterSplashTask = 0x8017EA08; // type:func
 
 neoArkWoodlandPathWaterDriftTaskU16 = 0x8017F928; // type:func
 
@@ -108,3 +108,8 @@ _neoArkWoodlandPathResolveRoomEvent = 0x8017e890; // type:func
 _neoArkWoodlandPathIgnoreRoomCommand = 0x8017e8d4; // type:func
 _neoArkWoodlandPathForwardRoomAction = 0x8017e8dc; // type:func
 _neoArkWoodlandPathForwardActorEvent = 0x8017e910; // type:func
+_neoArkWoodlandPathRoomIdleState = 0x8017e9a8; // type:func
+neoArkWoodlandPathRoomTask = 0x8017e9b0; // type:func
+_roamerTickPoolB = 0x80180ddc; // type:func
+_neoArkWoodlandPathRoamerPoolATask = 0x801814e8; // type:func
+_neoArkWoodlandPathRoamerPoolBTask = 0x801815d4; // type:func

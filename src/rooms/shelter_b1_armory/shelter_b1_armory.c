@@ -164,7 +164,7 @@ extern TaskMessageEntry D_shelter_b1_armory_80182500[];
 /// restores when it finishes.
 
 static void func_shelter_b1_armory_80180740(Task* task);
-static void func_shelter_b1_armory_80180784(Task* task);
+static void _shelterB1ArmoryRoomIdleState(Task* task);
 
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xD3"
 #include "../../shared/shop.h"
@@ -211,7 +211,7 @@ TaskMessageEntry D_shelter_b1_armory_80182500[5] = {
 static const TaskFuncTable3 D_shelter_b1_armory_8017D714 = {
     {
         func_shelter_b1_armory_80180740,
-        func_shelter_b1_armory_80180784,
+        _shelterB1ArmoryRoomIdleState,
         taskKill,
     },
 };
@@ -395,8 +395,10 @@ static void func_shelter_b1_armory_80180740(Task* task)
     task->state = (s32)(task->state + 1);
 }
 
-/// The controller task's idle state: does nothing.
-static void func_shelter_b1_armory_80180784(Task* task)
+/// Keeps the armory room task available for messages in state 1.
+///
+/// Leaves its state and message table intact; room teardown is owned by the caller.
+static void _shelterB1ArmoryRoomIdleState(Task* task)
 {
 }
 

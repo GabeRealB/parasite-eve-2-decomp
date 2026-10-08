@@ -174,3 +174,4 @@ _glowDrawTintedDisc = 0x801814C0; // type:func
 _roomEventGate = 0x8017FF40; // type:func
 roomEventTask = 0x801800A4; // type:func
 _glowDrawBitDisc = 0x8018111C; // type:func
+_shelterB1ArmoryRoomIdleState = 0x80180784; // type:func

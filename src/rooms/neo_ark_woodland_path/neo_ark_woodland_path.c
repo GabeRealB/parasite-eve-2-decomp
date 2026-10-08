@@ -762,7 +762,7 @@ WorldCollisionSurfaceProperties* D_neo_ark_woodland_path_80184910[8] = {
 };
 
 static void func_neo_ark_woodland_path_8017E944(Task* arg0);
-static void func_neo_ark_woodland_path_8017E9A8(Task* task);
+static void _neoArkWoodlandPathRoomIdleState(Task* task);
 
 #include "../../shared/water_refraction_task.inc.c"
 
@@ -845,21 +845,22 @@ static void func_neo_ark_woodland_path_8017E944(Task* arg0)
     arg0->state                      = (s32)(arg0->state + 1);
 }
 
-static void func_neo_ark_woodland_path_8017E9A8(Task* task)
+/// Keeps the woodland path room task available for messages in state 1.
+///
+/// Leaves its state and message table intact; room teardown is owned by the caller.
+static void _neoArkWoodlandPathRoomIdleState(Task* task)
 {
 }
 
 /// State handlers of the room's entry task: set-up, idle, then kill.
 static const TaskFuncTable3 D_neo_ark_woodland_path_8017D614 = {
-    { func_neo_ark_woodland_path_8017E944, func_neo_ark_woodland_path_8017E9A8, taskKill }
+    { func_neo_ark_woodland_path_8017E944, _neoArkWoodlandPathRoomIdleState, taskKill }
 };
 
-/// Task tick that dispatches on the task's state through the three-entry
-/// handler table `D_neo_ark_woodland_path_8017D614`, copied to the stack first.
-void func_neo_ark_woodland_path_8017E9B0(Task* task)
+void neoArkWoodlandPathRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_neo_ark_woodland_path_8017D614;
-    sp.funcs[task->state](task);
+    handlers = D_neo_ark_woodland_path_8017D614;
+    handlers.funcs[task->state](task);
 }

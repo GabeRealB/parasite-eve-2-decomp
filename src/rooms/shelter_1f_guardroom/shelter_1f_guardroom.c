@@ -59,18 +59,18 @@ extern WorldCollisionTrigger      D_shelter_1f_guardroom_8017DE3C[2];
 extern WorldCollisionTrigger      D_shelter_1f_guardroom_8017DED4[3];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_guardroom_8017DFB8[4];
 extern WorldCoordRoomLights       D_shelter_1f_guardroom_8017DE24[1];
-s32                               func_shelter_1f_guardroom_8017D744(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+static s32                        _shelter1fGuardroomResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 s32                               func_shelter_1f_guardroom_8017D788(Task*, s32, s32, s32);
-s32                               func_shelter_1f_guardroom_8017D7F0(Task*, s32, s32, s32);
+static s32                        _shelter1fGuardroomPlaySoundCueMessage(Task* task, s32 messageId, s32 cueId, s32 secondArg);
 void                              func_shelter_1f_guardroom_8017D5E8(Task*);
 void                              func_shelter_1f_guardroom_8017D8D8(Task*);
 
 TaskMessageEntry D_shelter_1f_guardroom_8017DA30[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_guardroom_8017D744 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fGuardroomResolveRoomEvent },
     { SHELTER_1F_GUARDROOM_MESSAGE_USE_KEY_ITEM, _shelter1fGuardroomRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fGuardroomIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_1f_guardroom_8017D788 },
-    { ROOM_MESSAGE_SOUND, func_shelter_1f_guardroom_8017D7F0 },
+    { ROOM_MESSAGE_SOUND, _shelter1fGuardroomPlaySoundCueMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -267,13 +267,20 @@ static s32 _shelter1fGuardroomRejectKeyItemUse(Task* unusedTask, s32 unusedMessa
     return SHELTER_1F_GUARDROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// The room's handler for message 0x13EE: copies the incoming `RoomEventMsg` onto
-/// the outgoing one, passes both to `mapNeoArkResolveRoomVariant`, and returns 1.
-s32 func_shelter_1f_guardroom_8017D744(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Allows a room transition after resolving its Neo Ark destination variant.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Borrows a complete eight-byte request
+/// and writable reply during synchronous dispatch; they may alias. Copies the
+/// request before resolving the reply room. Query mode preserves the selectors.
+/// Neither pointer is retained; the map overlay must remain loaded. Always
+/// returns 1 (passage allowed); the receiving task and message ID are unused.
+static s32 _shelter1fGuardroomResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { SHELTER_1F_GUARDROOM_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return SHELTER_1F_GUARDROOM_TRANSITION_ALLOWED;
 }
 
 /// The room's handler for message 0x13F0: when its third argument is 2 and game
@@ -302,11 +309,16 @@ static s32 _shelter1fGuardroomIgnoreRoomAction(Task* unusedTask, s32 unusedMessa
     return 0;
 }
 
-/// The room's handler for message 0x13F2: when its third argument is 3, queues
-/// sound event 0x55060003. Returns 0.
-s32 func_shelter_1f_guardroom_8017D7F0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues the guardroom sound script selected by CAP cue 3.
+///
+/// Handles `ROOM_MESSAGE_SOUND`: cue 3 starts local area-bank script 3; other
+/// cues do nothing. Requires the current stage sound bank and sound event queue.
+/// Always returns zero; the receiving task, message ID and second payload are unused.
+static s32 _shelter1fGuardroomPlaySoundCueMessage(Task* task, s32 messageId, s32 cueId, s32 secondArg)
 {
-    if (arg2 == 3) {
+    enum { SHELTER_1F_GUARDROOM_SOUND_CUE_SCRIPT_3 = 3 };
+
+    if (cueId == SHELTER_1F_GUARDROOM_SOUND_CUE_SCRIPT_3) {
         sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_SHELTER_NEO_ARK, GAME_AREA_SHELTER_1F_GUARDROOM, 3), 0, 0);
     }
     return 0;

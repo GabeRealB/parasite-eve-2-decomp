@@ -118,3 +118,6 @@ _glowDrawPulsingDisc = 0x80181010; // type:func
 _glowDrawWideDiamond = 0x80180B90; // type:func
 roomCutsceneTask = 0x8017F484; // type:func
 _roomCutsceneSoundTask = 0x8017FBC4; // type:func
+_shelter1fTentRejectKeyItemUse = 0x8017fc54; // type:func
+_shelter1fTentResolveRoomEvent = 0x8017fc5c; // type:func
+_shelter1fTentRoomIdleState = 0x8017fda8; // type:func

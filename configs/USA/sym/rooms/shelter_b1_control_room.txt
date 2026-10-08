@@ -70,3 +70,6 @@ _roomVisualEffectsDrawFlyingBurstGroundQuad = 0x80181810; // type:func
 _glowDrawCapsule = 0x8017F39C; // type:func
 glowDrawDisc = 0x8017FBE0; // type:func
 streamedScenePlayThenHold = 0x8017EF24; // type:func
+_shelterB1ControlRoomRejectKeyItemUse = 0x8017eccc; // type:func
+_shelterB1ControlRoomIgnoreRoomAction = 0x8017ee24; // type:func
+_shelterB1ControlRoomIdleState = 0x8017eebc; // type:func

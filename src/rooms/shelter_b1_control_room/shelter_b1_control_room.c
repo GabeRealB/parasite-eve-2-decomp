@@ -183,10 +183,10 @@ extern EvsCommand       D_actor_150400_80133088[];
 
 static void func_shelter_b1_control_room_8017D600(Task* task, _ShelterB1ControlRoomMirrorConfig* cfg);
 
-s32 func_shelter_b1_control_room_8017ECCC(Task*, s32, s32, s32);
-s32 func_shelter_b1_control_room_8017ECD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_b1_control_room_8017ED68(Task*, s32, s32, s32);
-s32 func_shelter_b1_control_room_8017EE24(Task*, s32, s32, s32);
+static s32 _shelterB1ControlRoomRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+s32        func_shelter_b1_control_room_8017ECD4(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+s32        func_shelter_b1_control_room_8017ED68(Task*, s32, s32, s32);
+static s32 _shelterB1ControlRoomIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg);
 
 void func_shelter_b1_control_room_8017D7B8(Task*);
 
@@ -194,15 +194,15 @@ TaskDesc D_shelter_b1_control_room_80181B88 = { { { TASK_BODY_NONE, 112 } }, fun
 
 TaskMessageEntry D_shelter_b1_control_room_80181B94[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_control_room_8017ECD4 },
-    { 5105, func_shelter_b1_control_room_8017ECCC },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_b1_control_room_8017EE24 },
+    { 5105, _shelterB1ControlRoomRejectKeyItemUse },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterB1ControlRoomIgnoreRoomAction },
     { ROOM_MESSAGE_COMMAND, func_shelter_b1_control_room_8017ED68 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out);
 static void        func_shelter_b1_control_room_8017EE2C(Task* arg0);
-static void        func_shelter_b1_control_room_8017EEBC(Task* task);
+static void        _shelterB1ControlRoomIdleState(Task* task);
 
 /// Applies `m` to `v` through the GTE and stores the result in `out`.
 static inline void _applyMatrixSV(MATRIX* m, SVECTOR* v, SVECTOR* out)
@@ -665,9 +665,13 @@ void func_shelter_b1_control_room_8017D7B8(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_ShelterB1ControlRoomMirrorScratch);
 }
 
-s32 func_shelter_b1_control_room_8017ECCC(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the control room with the item menu cannot-use reply.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`. `itemId` is the selected collected-item
+/// ID. All arguments are ignored; no inventory state changes.
+static s32 _shelterB1ControlRoomRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 func_shelter_b1_control_room_8017ECD4(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
@@ -721,7 +725,12 @@ s32 func_shelter_b1_control_room_8017ED68(Task* task, s32 msgId, s32 arg2, s32 a
     return 0;
 }
 
-s32 func_shelter_b1_control_room_8017EE24(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Ignores the control room direction actions and returns zero.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION`. The request is borrowed during
+/// synchronous dispatch, neither read nor retained. All other arguments are
+/// unused; no event starts and the task state stays unchanged.
+static s32 _shelterB1ControlRoomIgnoreRoomAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 secondArg)
 {
     return 0;
 }
@@ -739,18 +748,20 @@ static void func_shelter_b1_control_room_8017EE2C(Task* arg0)
     arg0->state = (s32)(arg0->state + 1);
 }
 
-/// Idle state of the room task: does nothing, and only reserves a 0x10-byte
-/// stack frame.
-static void func_shelter_b1_control_room_8017EEBC(Task* task)
+/// Keeps the control room task available for messages in state 1.
+///
+/// Leaves its state and message table intact; room teardown is owned by the caller.
+static void _shelterB1ControlRoomIdleState(Task* task)
 {
-    char pad[0x10];
+    // Retain the target idle callback's otherwise unused stack frame.
+    char reservedStack[0x10];
 }
 
 /// States of the room task `func_shelter_b1_control_room_8017EECC`: the setup
 /// state `func_shelter_b1_control_room_8017EE2C`, the idle state
-/// `func_shelter_b1_control_room_8017EEBC`, then `taskKill`.
+/// `_shelterB1ControlRoomIdleState`, then `taskKill`.
 static const TaskFuncTable3 D_shelter_b1_control_room_8017D5C4 = {
-    { func_shelter_b1_control_room_8017EE2C, func_shelter_b1_control_room_8017EEBC, taskKill },
+    { func_shelter_b1_control_room_8017EE2C, _shelterB1ControlRoomIdleState, taskKill },
 };
 
 /// The room task: runs the handler for its state from a stack copy of

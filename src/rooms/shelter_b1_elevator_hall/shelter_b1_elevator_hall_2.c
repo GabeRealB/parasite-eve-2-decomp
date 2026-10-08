@@ -70,7 +70,7 @@ TaskDesc D_shelter_b1_elevator_hall_80182CAC = { { { TASK_BODY_NONE, 32 } }, she
 
 TaskMessageEntry D_shelter_b1_elevator_hall_80182CB8[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_b1_elevator_hall_8017D810 },
-    { 5105, func_shelter_b1_elevator_hall_8017DB54 },
+    { 5105, shelterB1ElevatorHallRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, shelterB1ElevatorHallIgnoreActionMessage },
     { ROOM_MESSAGE_COMMAND, shelterB1ElevatorHallIgnoreCommandMessage },
     { ROOM_MESSAGE_SOUND, shelterB1ElevatorHallPlaySoundCueMessage },

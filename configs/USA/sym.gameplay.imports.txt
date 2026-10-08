@@ -948,7 +948,7 @@ neoArkSubmarineTunnelRoomVisualEffectsFlyingSparkTask = 0x8017FA34; // type:func
 
 neoArkSubmarineTunnelRoomVisualEffectsFlyingOrangeBurstTask = 0x80180694; // type:func absolute:True owner=neo_ark_submarine_tunnel
 
-func_neo_ark_woodland_path_8017EA08 = 0x8017EA08; // type:func absolute:True owner=neo_ark_woodland_path
+neoArkWoodlandPathPlayerWaterSplashTask = 0x8017EA08; // type:func absolute:True owner=neo_ark_woodland_path
 
 neoArkWoodlandPathWaterRippleTask = 0x8017F4A0; // type:func absolute:True owner=neo_ark_woodland_path
 
@@ -1115,7 +1115,7 @@ func_shelter_b1_transfer_tunnel_80181C78 = 0x80181C78; // type:func absolute:Tru
 
 func_shelter_b2_breeding_room_8017E774 = 0x8017E774; // type:func absolute:True owner=shelter_b2_breeding_room
 
-shelterB2BreedingRoomRoomVisualEffectsFlyingSparkTask = 0x8017ECCC; // type:func absolute:True owner=shelter_b2_breeding_room shared=rooms
+shelterB2BreedingRoomRoomVisualEffectsFlyingSparkTask = 0x8017ECCC; // type:func absolute:True owner=shelter_b2_breeding_room
 
 shelterB2BreedingRoomRoomVisualEffectsFlyingOrangeBurstTask = 0x8017F92C; // type:func absolute:True owner=shelter_b2_breeding_room
 

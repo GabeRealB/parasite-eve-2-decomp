@@ -93,3 +93,4 @@ shelterB1ElevatorHallPlaySoundCueMessage = 0x8017db6c; // type:func
 _shelterB1ElevatorHallInitRoomTask = 0x8017dbb8; // type:func
 _shelterB1ElevatorHallIdleRoomTask = 0x8017dc20; // type:func
 shelterB1ElevatorHallRoomTask = 0x8017dc28; // type:func
+shelterB1ElevatorHallRejectKeyItemUse = 0x8017db54; // type:func

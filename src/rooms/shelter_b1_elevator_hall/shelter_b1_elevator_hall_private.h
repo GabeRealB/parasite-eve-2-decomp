@@ -24,7 +24,11 @@ s32 func_shelter_b1_elevator_hall_8017D810(Task*, s32, RoomEventMsg*, RoomEventM
 
 void func_shelter_b1_elevator_hall_8017D99C(Task*);
 
-s32 func_shelter_b1_elevator_hall_8017DB54(Task*, s32, s32, s32);
+/// Refuses every key-item use in the hall with the item menu cannot-use reply.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`. `itemId` is the selected collected-item
+/// ID. All arguments are ignored; no inventory state changes.
+s32 shelterB1ElevatorHallRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
 
 /// Ignores the hall's room commands and returns zero.
 ///

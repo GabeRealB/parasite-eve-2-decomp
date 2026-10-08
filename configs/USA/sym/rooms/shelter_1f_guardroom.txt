@@ -35,3 +35,5 @@ _shelter1fGuardroomSetUnlockOverlayVisible = 0x8017d9cc; // type:func
 _shelter1fGuardroomRejectKeyItemUse = 0x8017d73c; // type:func
 _shelter1fGuardroomIgnoreRoomAction = 0x8017d7e8; // type:func
 _shelter1fGuardroomRoomIdleState = 0x8017d878; // type:func
+_shelter1fGuardroomResolveRoomEvent = 0x8017d744; // type:func
+_shelter1fGuardroomPlaySoundCueMessage = 0x8017d7f0; // type:func

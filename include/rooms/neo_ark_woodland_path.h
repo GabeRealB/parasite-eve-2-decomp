@@ -52,7 +52,24 @@ extern WorldCollisionSurfaceProperties* D_neo_ark_woodland_path_80184910[];
 /// the fade releases the work, coordinate body and task.
 void neoArkWoodlandPathWaterRippleTask(Task* task);
 
-void func_neo_ark_woodland_path_8017EA08(Task* task);
+/// Emits water ripples and spray from player movement on the woodland path.
+///
+/// Requires a live counted effect task with owned `EffectWork` in `spawnArg2`,
+/// initial state 0, and a player model with initialized coordinate caches for
+/// parts 15 and 18. The first tick selects this room's water effects and records
+/// those parts' cached XYZ narrowed to signed halfwords.
+///
+/// Every tick enables the room effect view mode only while root Y is below 17.
+/// While effect control is running and root Y is at least 300 (Y grows downward),
+/// each part's summed absolute cached movement supplies spray odds out of 512;
+/// ripples add 32 to those odds. The stored odds narrow to signed 16 bits before
+/// the two rolls. Effects spawn at the root X/Z with parent-space Y=200: ripple
+/// half-side 64, spray size 384, two updates per cell and launch speed 32.
+/// Position snapshots advance only during emitting ticks. Spawning copies the
+/// stack placement; these child effects do not follow its retained address.
+/// The room must own the shared history and effect IDs for the task's lifetime;
+/// this callback neither retires itself nor releases its work.
+void neoArkWoodlandPathPlayerWaterSplashTask(Task* task);
 
 /// Advances and draws an eight-cell water-spray particle with unsigned cell indices.
 ///
@@ -81,6 +98,12 @@ void neoArkWoodlandPathWaterDriftTaskU16(Task* task);
 /// the work, coordinate body and task, ending their lifetimes.
 void neoArkWoodlandPathLeafFallTask(Task* task);
 
-void func_neo_ark_woodland_path_8017E9B0(Task* task);
+/// Runs the woodland path room controller through setup, idle and teardown.
+///
+/// Requires a live no-body task whose state indexes 0..2, initially 0. Setup
+/// installs the room messages, publishes `GAME_TASK_SLOT_ROOM` and spawns pool A.
+/// State 1 preserves the live controller for synchronous messages; state 2 kills
+/// it. The room overlay and its descriptor data must remain loaded through dispatch.
+void neoArkWoodlandPathRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_NEO_ARK_WOODLAND_PATH_H

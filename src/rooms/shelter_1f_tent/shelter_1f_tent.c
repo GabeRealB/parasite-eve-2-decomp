@@ -121,10 +121,10 @@ extern TaskMessageEntry D_shelter_1f_tent_80181CDC[];
 #define TELEPHONE_TITLE_BYTES "Telephone\0\x0C-"
 #include "../../shared/telephone.h"
 
-s32 func_shelter_1f_tent_8017FC54(Task*, s32, s32, s32);
-s32 func_shelter_1f_tent_8017FC5C(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32 func_shelter_1f_tent_8017FCA0(Task*, s32, s32, s32);
-s32 func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, s32);
+static s32 _shelter1fTentRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg);
+static s32 _shelter1fTentResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
+s32        func_shelter_1f_tent_8017FCA0(Task*, s32, s32, s32);
+s32        func_shelter_1f_tent_8017FD54(Task*, s32, RoomEventMsg*, s32);
 
 #include "../../shared/telephone_data.inc.c"
 
@@ -135,15 +135,15 @@ TaskDesc gRoomCutsceneTaskDescs[3] = {
 };
 
 TaskMessageEntry D_shelter_1f_tent_80181CDC[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_tent_8017FC5C },
-    { 5105, func_shelter_1f_tent_8017FC54 },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fTentResolveRoomEvent },
+    { 5105, _shelter1fTentRejectKeyItemUse },
     { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_tent_8017FD54 },
     { ROOM_MESSAGE_COMMAND, func_shelter_1f_tent_8017FCA0 },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
 static void func_shelter_1f_tent_8017F9F0(Task* task);
-static void func_shelter_1f_tent_8017FDA8(Task* task);
+static void _shelter1fTentRoomIdleState(Task* task);
 
 #include "../../shared/telephone.inc.c"
 
@@ -208,18 +208,29 @@ static void func_shelter_1f_tent_8017F9F0(Task* task)
 
 #include "../../shared/room_cutscene_sound_task.inc.c"
 
-s32 func_shelter_1f_tent_8017FC54(Task* task, s32 msgId, s32 arg2, s32 arg3)
+/// Refuses every key-item use in the tent with the item menu cannot-use reply.
+///
+/// Handles `ROOM_MESSAGE_USE_KEY_ITEM`. `itemId` is the selected collected-item
+/// ID. All arguments are ignored; no inventory state changes.
+static s32 _shelter1fTentRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-/// Copies the incoming `RoomEventMsg` onto the outgoing one, hands both to
-/// `mapNeoArkResolveRoomVariant` and returns 1.
-s32 func_shelter_1f_tent_8017FC5C(Task* arg0, s32 arg1, RoomEventMsg* in, RoomEventMsg* out)
+/// Allows a room transition after resolving its Neo Ark destination variant.
+///
+/// Handles `ROOM_EVENT_MESSAGE_RESOLVE`. Borrows a complete eight-byte request
+/// and writable reply during synchronous dispatch; they may alias. Copies the
+/// request before resolving the reply room. Query mode preserves the selectors.
+/// Neither pointer is retained; the map overlay must remain loaded. Always
+/// returns 1 (passage allowed); the receiving task and message ID are unused.
+static s32 _shelter1fTentResolveRoomEvent(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply)
 {
-    *out = *in;
-    mapNeoArkResolveRoomVariant(in, out);
-    return 1;
+    enum { SHELTER_1F_TENT_TRANSITION_ALLOWED = 1 };
+
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    return SHELTER_1F_TENT_TRANSITION_ALLOWED;
 }
 
 s32 func_shelter_1f_tent_8017FCA0(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -254,9 +265,13 @@ s32 func_shelter_1f_tent_8017FD54(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 
     return 0;
 }
 
-static void func_shelter_1f_tent_8017FDA8(Task* task)
+/// Keeps the tent room task available for messages in state 1.
+///
+/// Leaves its state and message table intact; room teardown is owned by the caller.
+static void _shelter1fTentRoomIdleState(Task* task)
 {
-    char pad[0x10];
+    // Retain the target idle callback's otherwise unused stack frame.
+    char reservedStack[0x10];
 }
 
 /// States of the room's message task, run by
@@ -265,7 +280,7 @@ static void func_shelter_1f_tent_8017FDA8(Task* task)
 static const TaskFuncTable3 D_shelter_1f_tent_8017D6A4 = {
     {
         func_shelter_1f_tent_8017F9F0,
-        func_shelter_1f_tent_8017FDA8,
+        _shelter1fTentRoomIdleState,
         taskKill,
     },
 };

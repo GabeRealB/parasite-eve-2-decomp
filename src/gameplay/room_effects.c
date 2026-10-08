@@ -888,7 +888,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6CorridorDrawViewGlowsTask, { NULL } },                                     // 0x15E
     { { { TASK_BODY_COORD, 0x70 } }, shelterB6TrainingRoomGlowTask, { NULL } },                                          // 0x15F
     { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_bridge_8017E954, { NULL } },                                           // 0x160
-    { { { TASK_BODY_COORD, 0x70 } }, func_neo_ark_woodland_path_8017EA08, { NULL } },                                    // 0x161
+    { { { TASK_BODY_COORD, 0x70 } }, neoArkWoodlandPathPlayerWaterSplashTask, { NULL } },                                // 0x161
     { { { TASK_BODY_COORD, 0x70 } }, shelterR49EffectNoopTask, { NULL } },                                               // 0x162
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fParkingGarageDrawViewGlowsTask, { NULL } },                                // 0x163
     { { { TASK_BODY_COORD, 0x70 } }, shelter1fVehicularAirlockDrawLightsTask, { NULL } },                                // 0x164

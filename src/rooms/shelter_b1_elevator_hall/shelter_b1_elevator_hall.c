@@ -147,9 +147,9 @@ void func_shelter_b1_elevator_hall_8017D99C(Task* arg0)
     }
 }
 
-s32 func_shelter_b1_elevator_hall_8017DB54(Task* task, s32 msgId, s32 arg2, s32 arg3)
+s32 shelterB1ElevatorHallRejectKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 secondArg)
 {
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
 s32 shelterB1ElevatorHallIgnoreCommandMessage(Task* task, s32 messageId, s32 commandId, s32 commandMode)
