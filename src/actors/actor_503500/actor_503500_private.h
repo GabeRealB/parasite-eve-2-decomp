@@ -581,21 +581,72 @@ enum {
 /// halfword wraps on underflow, while budget admission sums it as signed.
 void actor503500ReleaseProjectileEffectCost(s32 effectCost);
 
-void func_actor_503500_8013BE8C(Task* task);
+/// Dispatches an upper-limb large-orb emitter through initialization, update and exit.
+///
+/// Requires a coordinate body, the boss as parent, slot 4 or 5 in
+/// `spawnArg1.value` and its live enemy in `spawnArg2.pointer`. `state` is
+/// 0..2; initialization binds side-specific static work, which exit retains.
+/// Update pauses for paused/hidden actors; initialization and exit still run.
+void actor503500LargeOrbEmitterTask(Task* task);
 
-void func_actor_503500_8013CA8C(Task* task);
+/// Dispatches the boss's rear target through initialization, update and exit.
+///
+/// Requires a coordinate body, the boss as parent, slot 6 in `spawnArg1.value`
+/// and its live enemy in `spawnArg2.pointer`. `state` is 0..2; initialization
+/// binds singleton static work, which exit retains. Update pauses for
+/// paused/hidden actors; initialization and exit still run.
+void actor503500RearPartTask(Task* task);
 
-void func_actor_503500_8013DBF4(Task* task);
+/// Dispatches a covered or exposed chain base through initialization, update and exit.
+///
+/// Requires a coordinate body, the boss as parent, slot 7 or 8 in
+/// `spawnArg1.value` and its live enemy in `spawnArg2.pointer`. `state` is
+/// 0..2; initialization binds side-specific static work, which exit retains.
+/// Update pauses for paused/hidden actors; initialization and exit still run.
+void actor503500ChainBaseTask(Task* task);
 
-void func_actor_503500_8013EC64(Task* task);
+/// Dispatches the small-orb volley emitter through initialization, update and exit.
+///
+/// Requires a coordinate body, the boss as parent, slot 9 in `spawnArg1.value`
+/// and its live enemy in `spawnArg2.pointer`. `state` is 0..2; initialization
+/// binds singleton static work, which exit retains. Update pauses for
+/// paused/hidden actors; initialization and exit still run.
+void actor503500SmallOrbEmitterTask(Task* task);
 
-void func_actor_503500_8013FA1C(Task* task);
+/// Dispatches the yellow-flash emitter through initialization, update and exit.
+///
+/// Requires a coordinate body, the boss as parent, slot 12 in `spawnArg1.value`
+/// and its live enemy in `spawnArg2.pointer`. `state` is 0..2; initialization
+/// binds singleton static work, which exit retains. Update pauses for
+/// paused/hidden actors; initialization and exit still run.
+void actor503500YellowFlashEmitterTask(Task* task);
 
-void func_actor_503500_80142370(Task* task);
+/// Dispatches a lunging chain through initialization, update and exit.
+///
+/// Requires a nine-part TMD body, the boss as parent, slot 13..16 in
+/// `spawnArg1.value` and its live enemy in `spawnArg2.pointer`. `state` is
+/// 0..2; initialization binds the slot's static work, which exit retains.
+/// Initial commands BECOME_TARGET and REGROW select unfolding and regrowth.
+/// Paused/hidden updates still maintain model buffers; behavior pauses.
+void actor503500LungingChainTask(Task* task);
 
-void func_actor_503500_801442A8(Task* task);
+/// Dispatches a striking arm through initialization, update and exit.
+///
+/// Requires a four-part TMD body, the boss as parent, slot 10 or 11 in
+/// `spawnArg1.value` and its live enemy in `spawnArg2.pointer`. `state` is
+/// 0..2; initialization binds side-specific static work, which exit retains.
+/// Behavior pauses for paused/hidden actors; initialization and exit still run.
+void actor503500ArmTask(Task* task);
 
-void func_actor_503500_80144890(Task* task);
+/// Dispatches a ballistic small-orb shot through launch, flight/burst updates and exit.
+///
+/// Requires a coordinate body placed and aimed in world space. `state` is
+/// 0..2; `spawnArg1.value` selects attack 0 or 1 and `spawnArg2.value` is
+/// the forward launch speed in signed 16.16 world units per update
+/// (0 gives no initial velocity).
+/// Launch owns allocated work and a child effect; exit releases them.
+/// Update pauses for paused/hidden actors; launch and exit still run.
+void actor503500BallisticShotTask(Task* task);
 
 void func_actor_503500_80144E34(Task* task);
 

@@ -69211,7 +69211,7 @@ switch (D_801153F4) {
     ...
     default:
         if (enemy->reactionFlags != 0) {
-            func_actor_503500_80144098(arg0, D_801153F4, enemy);
+            _actor503500ArmClearReactions(arg0, D_801153F4, enemy);
         }
 ```
 
@@ -69239,7 +69239,7 @@ switch (mode) {
     ...
     default:
         if (enemy->reactionFlags != 0) {
-            func_actor_503500_80144098(arg0, mode, enemy);
+            _actor503500ArmClearReactions(arg0, mode, enemy);
         }
 ```
 
@@ -69688,7 +69688,7 @@ if (gGameSession->eventState != 0) {
 
 ## An unreduced `sll; addu base; addiu K` pointer in a loop is an inline function's argument
 
-`func_actor_503500_80141FC8` resets `mats[1..8]` to identity inside a loop,
+`_actor503500LungingChainStepRegrowing` resets `blendStart[1..8]` to identity inside a loop,
 and the rotation stores go through a base recomputed from scratch every
 iteration while the translation stores share a strength-reduced giv:
 
@@ -69700,7 +69700,7 @@ sw     $a1, 0x0($v0) ...    # m[][] word stores
 addiu  $v0, $v1, 0x54       # $v1 = work + 32*i giv (see the association entry)
 ```
 
-Every plain-C spelling of `m = &work->mats[i]` gives `li $a0, 0x60` + `addu`
+Every plain-C spelling of `m = &work->blendStart[i]` gives `li $a0, 0x60` + `addu`
 (loop.c reduces the `32*i + 0x40` giv), because an assignment expands the sum
 in normal mode as `base + (32*i + K)`. The `(32*i + base) + K` order only comes
 from `expand_expr` in `EXPAND_SUM` mode, which puts the MULT first and the
@@ -69711,7 +69711,7 @@ Writing the rotation as a `static inline` helper matched:
 ```c
 static inline void SetRotIdentity(MATRIX* m) { *(s32*)&m->m[0][0] = 0x1000; ... }
 ...
-SetRotIdentity(&((View*)work)->mats[i]);
+gfxSetRotIdentity(&work->blendStart[i]);
 ```
 
 A local `tbl = (View*)work` copy instead of casting at each use costs a

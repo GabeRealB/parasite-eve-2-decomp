@@ -589,7 +589,7 @@ static void _actor503500SmallOrbEmitterExit(Task* task);
 static void _actor503500SmallOrbEmitterEnterState(Task* task, s32 state);
 static void func_actor_503500_801431EC(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
 static void func_actor_503500_80140D38(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
-static void func_actor_503500_8014215C(Task* arg0, WorldCollisionBody* arg1, WorldCollisionContact* arg2, s32 arg3);
+static void _actor503500LungingChainDisableAttackOnPlayerContact(Task* unusedTask, WorldCollisionBody* attackBody, const WorldCollisionContact* contacts, s32 contactCount);
 static void func_actor_503500_801437D0(Task* arg0, WorldCollisionContact* arg1, s32 arg2);
 static void func_actor_503500_8013B460(Task* arg0);
 static void func_actor_503500_8013B8D0(Task* arg0);
@@ -632,18 +632,18 @@ static void _actor503500LungingChainUpdatePose(Task* task);
 static void _actor503500LungingChainBlendPose(Task* task);
 static void func_actor_503500_80141D7C(Task* arg0);
 static void _actor503500LungingChainStepIdle(Task* task);
-static void func_actor_503500_80141F48(Task* arg0);
-static void func_actor_503500_80141FC8(Task* arg0);
+static void _actor503500LungingChainStepUnfolding(Task* task);
+static void _actor503500LungingChainStepRegrowing(Task* task);
 static void func_actor_503500_801420C4(Task* arg0);
 static void func_actor_503500_801421A8(Task* arg0);
 static void _actor503500LungingChainEnterState(Task* task, s32 state);
-static void func_actor_503500_8014271C(Task* arg0);
+static void _actor503500ArmStepStrike(Task* task);
 static void func_actor_503500_80142980(Task* arg0);
-static void func_actor_503500_80143FFC(Task* arg0);
+static void _actor503500ArmFrameHook(Task* unusedTask);
 static void func_actor_503500_80144004(Task* arg0);
-static void func_actor_503500_80144098(Task* arg0, s32 arg1, Enemy* arg2);
-static void func_actor_503500_8014418C(Task* arg0);
-static void func_actor_503500_801441E8(Task* arg0);
+static void _actor503500ArmClearReactions(Task* task, s32 unusedActorControl, Enemy* unusedEnemy);
+static void _actor503500ArmStepIdle(Task* task);
+static void _actor503500ArmStepBecomeTarget(Task* task);
 static void _actor503500ArmEnterState(Task* task, s32 state);
 static void _actor503500BallisticShotStep(Task* task);
 static void _actor503500BallisticShotReactToContacts(Task* task);
@@ -746,7 +746,32 @@ static inline void _actor503500LungingChainAimNextLink(Actor503500ChainScratch* 
     nextLink->coord.t[2] = scratch->localSegment.vz;
 }
 
-/// `Task::state` handlers `func_actor_503500_8013BE8C` dispatches through.
+/// Opens the strike interval and starts its sound at the boss's forearm.
+///
+/// Requires initialized arm work and a live boss parent. Side selects part
+/// 12 or 6 of the boss model; both attack spheres become pair-testable.
+static inline void _actor503500ArmBeginStrike(Task* task, _Actor503500ArmWork* work)
+{
+    enum {
+        ACTOR_503500_ARM_STRIKE_SOUND_PART_SIDE_0 = 12,
+        ACTOR_503500_ARM_STRIKE_SOUND_PART_SIDE_1 = 6,
+    };
+    GfxCoord* bossCoords;
+    GfxCoord* strikeSoundCoord;
+
+    work->forearmAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    work->handAttackBody.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
+    bossCoords                     = task->parent->extra.tmd->coords;
+    if (work->side != 0) {
+        strikeSoundCoord = &bossCoords[ACTOR_503500_ARM_STRIKE_SOUND_PART_SIDE_1];
+    } else {
+        strikeSoundCoord = &bossCoords[ACTOR_503500_ARM_STRIKE_SOUND_PART_SIDE_0];
+    }
+    sndEvtRequestScriptStart(SOUND_BRAHMAN_ARM_STRIKE, (s8)worldCoordGetOriginAudioPan(strikeSoundCoord),
+                             (s8)(worldCoordGetOriginAudioDepth(strikeSoundCoord) / 2));
+}
+
+/// `Task::state` handlers `actor503500LargeOrbEmitterTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80131FF0 = {
     {
         _actor503500LargeOrbEmitterInit,
@@ -1271,15 +1296,15 @@ static void _actor503500LargeOrbEmitterEnterState(Task* task, s32 state)
     actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_LARGE_ORB_EMITTER_STATE_IDLE);
 }
 
-void func_actor_503500_8013BE8C(Task* task)
+void actor503500LargeOrbEmitterTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_503500_80131FF0;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_503500_80131FF0;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_8013CA8C` dispatches through.
+/// `Task::state` handlers `actor503500RearPartTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132028 = {
     {
         _actor503500RearPartInit,
@@ -1627,15 +1652,15 @@ static void _actor503500RearPartEnterState(Task* task, s8 state)
     work->stateFrames = 0;
 }
 
-void func_actor_503500_8013CA8C(Task* task)
+void actor503500RearPartTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_503500_80132028;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_503500_80132028;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_8013DBF4` dispatches through.
+/// `Task::state` handlers `actor503500ChainBaseTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132060 = {
     {
         _actor503500ChainBaseInit,
@@ -2161,12 +2186,12 @@ static void _actor503500ChainBaseEnterState(Task* task, s32 state)
     actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_CHAIN_BASE_STATE_EXPOSED);
 }
 
-void func_actor_503500_8013DBF4(Task* task)
+void actor503500ChainBaseTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_503500_80132060;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_503500_80132060;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Exposes a covered chain base once all three chain slots on its side are empty.
@@ -2202,7 +2227,7 @@ static void _actor503500ChainBaseStepCovered(Task* task)
     }
 }
 
-/// `Task::state` handlers `func_actor_503500_8013EC64` dispatches through.
+/// `Task::state` handlers `actor503500SmallOrbEmitterTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132098 = {
     {
         _actor503500SmallOrbEmitterInit,
@@ -2654,15 +2679,15 @@ static void _actor503500SmallOrbEmitterEnterState(Task* task, s32 state)
     actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_SMALL_ORB_EMITTER_STATE_IDLE);
 }
 
-void func_actor_503500_8013EC64(Task* task)
+void actor503500SmallOrbEmitterTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_503500_80132098;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_503500_80132098;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_8013FA1C` dispatches through.
+/// `Task::state` handlers `actor503500YellowFlashEmitterTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_801320D0 = {
     {
         _actor503500YellowFlashEmitterInit,
@@ -3098,15 +3123,15 @@ static void _actor503500YellowFlashEmitterEnterState(Task* task, s32 state)
     actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_YELLOW_FLASH_EMITTER_STATE_IDLE);
 }
 
-void func_actor_503500_8013FA1C(Task* task)
+void actor503500YellowFlashEmitterTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_503500_801320D0;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_503500_801320D0;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_80142370` dispatches through.
+/// `Task::state` handlers `actor503500LungingChainTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132108 = {
     {
         func_actor_503500_8013FA74,
@@ -4071,10 +4096,10 @@ static void func_actor_503500_80141D7C(Task* arg0)
             func_actor_503500_80140654(arg0);
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_UNFOLDING:
-            func_actor_503500_80141F48(arg0);
+            _actor503500LungingChainStepUnfolding(arg0);
             break;
         case ACTOR_503500_LUNGING_CHAIN_STATE_REGROWING:
-            func_actor_503500_80141FC8(arg0);
+            _actor503500LungingChainStepRegrowing(arg0);
             break;
     }
     work->slowFrames--;
@@ -4116,52 +4141,73 @@ static void _actor503500LungingChainStepIdle(Task* task)
     copyVector(&work->tipTarget, &D_actor_503500_8016F414[task->spawnArg1.value - ACTOR_503500_SLOT_LUNGING_CHAIN_0]);
 }
 
-static void func_actor_503500_80141F48(Task* arg0)
+/// Blends a newly split chain into its laid-out pose, then exposes its target.
+///
+/// Requires initialized work and a live enemy. The weight uses 4096 for 1.0;
+/// it rises by 16 per active update. Equality alone does not finish the blend:
+/// the following update clamps it, links the target, enables pair tests and idles.
+static void _actor503500LungingChainStepUnfolding(Task* task)
 {
-    _Actor503500LungingChainWork* work;
+    enum { ACTOR_503500_LUNGING_CHAIN_UNFOLD_BLEND_STEP = 16 };
 
-    work               = arg0->work;
-    work->blendWeight += 0x10;
-    if (work->blendWeight > 0x1000) {
-        worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-        work->blendWeight = 0x1000;
+    _Actor503500LungingChainWork* work;
+    Enemy*                        enemy;
+
+    work               = task->work;
+    work->blendWeight += ACTOR_503500_LUNGING_CHAIN_UNFOLD_BLEND_STEP;
+    if (work->blendWeight > ONE) {
+        enemy = task->spawnArg2.pointer;
+        worldTargetLinkNode(&enemy->node);
+        work->blendWeight = ONE;
         work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-        _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+        _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
     }
 }
 
-/// Step 0 resets `blendStart` to identity; step 1 raises `blendWeight` by 0x20
-/// a frame and, once it passes 0x1000, relinks the display node and moves on
-/// like `func_actor_503500_80141F48`.
-static void func_actor_503500_80141FC8(Task* arg0)
+/// Grows a chain's laid-out pose from coincident identity links, then exposes it.
+///
+/// Requires initialized work, a live enemy and state step 0 or 1. Resets the
+/// eight link matrices in `blendStart[1..8]`, leaving root entry 0 intact.
+/// The weight uses 4096 for 1.0 and rises by 32 per active update, including
+/// the reset update. Only a weight above 4096 links the target and enables
+/// pair tests before entering idle.
+static void _actor503500LungingChainStepRegrowing(Task* task)
 {
-    _Actor503500LungingChainWork* work;
-    s32                           i;
-    long*                         t;
+    enum {
+        ACTOR_503500_LUNGING_CHAIN_REGROW_STEP_RESET = 0,
+        ACTOR_503500_LUNGING_CHAIN_REGROW_STEP_BLEND = 1,
+        ACTOR_503500_LUNGING_CHAIN_REGROW_BLEND_STEP = 32,
+    };
 
-    work = arg0->work;
+    _Actor503500LungingChainWork* work;
+    Enemy*                        enemy;
+    s32                           partIndex;
+    long*                         translation;
+
+    work = task->work;
     switch (work->stateStep) {
-        case 0:
-            for (i = 1; i < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; i++) {
-                gfxSetRotIdentity(&work->blendStart[i]);
-                // The view shifted by i matrices puts blendStart[i] at
-                // blendStart[0]; this `(work + i) + offset` association is
-                // what lets the pointer derive from the giv the indexed store
-                // below uses.
-                t                        = ((_Actor503500LungingChainWork*)((MATRIX*)work + i))->blendStart[0].t;
-                work->blendStart[i].t[0] = 0;
-                t[1]                     = 0;
-                t[2]                     = 0;
+        case ACTOR_503500_LUNGING_CHAIN_REGROW_STEP_RESET:
+            // Collapse all links onto the root before the first blend update.
+            for (partIndex = 1; partIndex < ACTOR_503500_LUNGING_CHAIN_PART_COUNT; partIndex++) {
+                gfxSetRotIdentity(&work->blendStart[partIndex]);
+                // This address association keeps the translation stores on the
+                // indexed store's induction pointer. The storage is blendStart[partIndex].t.
+                translation                      = ((_Actor503500LungingChainWork*)((MATRIX*)work + partIndex))->blendStart[0].t;
+                work->blendStart[partIndex].t[0] = 0;
+                translation[1]                   = 0;
+                translation[2]                   = 0;
             }
             work->blendWeight = 0;
             work->stateStep++;
-        case 1:
-            work->blendWeight += 0x20;
-            if (work->blendWeight > 0x1000) {
-                worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-                work->blendWeight = 0x1000;
+            // Fall through so regrowth starts on the reset update itself.
+        case ACTOR_503500_LUNGING_CHAIN_REGROW_STEP_BLEND:
+            work->blendWeight += ACTOR_503500_LUNGING_CHAIN_REGROW_BLEND_STEP;
+            if (work->blendWeight > ONE) {
+                enemy = task->spawnArg2.pointer;
+                worldTargetLinkNode(&enemy->node);
+                work->blendWeight = ONE;
                 work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                _actor503500LungingChainEnterState(arg0, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
+                _actor503500LungingChainEnterState(task, ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
             }
             break;
     }
@@ -4183,21 +4229,25 @@ static void func_actor_503500_801420C4(Task* arg0)
     }
     if (actor503500IsDefeated() == 0) {
         func_actor_503500_80140D38(arg0, &work->body, work->contacts, ARRAY_SIZE(work->contacts));
-        func_actor_503500_8014215C(arg0, &work->attackBody, work->attackContacts, ARRAY_SIZE(work->attackContacts));
+        _actor503500LungingChainDisableAttackOnPlayerContact(arg0, &work->attackBody, work->attackContacts, ARRAY_SIZE(work->attackContacts));
     }
     worldCollisionClearContacts(work->contacts);
     worldCollisionClearContacts(work->attackContacts);
 }
 
-/// Scans `count` `WorldCollisionContact` slots and clears bit 0x8000 of `obj->flags` for
-/// every slot whose `key` high half is 1.
-static void func_actor_503500_8014215C(Task* arg0, WorldCollisionBody* obj, WorldCollisionContact* rec, s32 count)
+/// Stops a lunging tip's pair tests after any player or companion body contact.
+///
+/// Reads exactly `contactCount` elements, including slots after a zero key.
+/// Supply a nonnegative count and that many readable contacts; the caller
+/// supplies the attack body's four-element table. Contact keys are unchanged.
+/// Other body flags are retained; `unusedTask` is ignored.
+static void _actor503500LungingChainDisableAttackOnPlayerContact(Task* unusedTask, WorldCollisionBody* attackBody, const WorldCollisionContact* contacts, s32 contactCount)
 {
-    s32 i;
+    s32 contactIndex;
 
-    for (i = 0; i < count; i++, rec++) {
-        if ((rec->key.value & 0xFFFF0000) == 0x10000) {
-            obj->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++, contacts++) {
+        if ((contacts->key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
+            attackBody->flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         }
     }
 }
@@ -4263,15 +4313,15 @@ static void _actor503500LungingChainEnterState(Task* task, s32 state)
     actor503500SetSlotBusy(task->parent, task->spawnArg1.value, state != ACTOR_503500_LUNGING_CHAIN_STATE_IDLE);
 }
 
-void func_actor_503500_80142370(Task* task)
+void actor503500LungingChainTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_503500_80132108;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_503500_80132108;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_801442A8` dispatches through.
+/// `Task::state` handlers `actor503500ArmTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132178 = {
     {
         _actor503500ArmInit,
@@ -4396,91 +4446,86 @@ static void _actor503500ArmInit(Task* task)
     task->state       += 1;
 }
 
-/// `ACTOR_503500_ARM_STATE_STRIKE` step of the arm. Step 0 hands the parent
-/// rate 0xC, or 0x12 when `actor503500IsSlotEmpty` reports slot 4/5 empty, and
-/// keeps the pick in `strikeRate`. Step 1 counts frames in `stateFrames`: on
-/// frame 0x7A (0xC) or 0x51 (0x12) it enables pair tests on
-/// `forearmAttackBody` / `handAttackBody` and plays `SOUND_BRAHMAN_ARM_STRIKE`
-/// at parent coordinate 6 or 12 (by `side`); on 0x90 / 0x60 it disables them,
-/// and it moves on once `actor503500HasAnimationFinished` reports done.
-static void func_actor_503500_8014271C(Task* arg0)
+/// Plays the boss's arm-strike animation with a timed damaging interval.
+///
+/// Requires initialized arm work and the live boss parent. Animation rates
+/// are in sixteenths of a frame per tick: 12 while the side's large-orb emitter
+/// lives, 18 after it is destroyed. Active-update counts 122..143 or 81..95
+/// enable the forearm and hand spheres. Animation completion also closes the
+/// interval; interruption returns to idle and releases the slot effect budget.
+static void _actor503500ArmStepStrike(Task* task)
 {
-    _Actor503500ArmWork* work;
-    GfxCoord*            coords;
-    GfxCoord*            coord;
-    s32                  side;
-    s32                  anim;
-    s16                  frame;
+    enum {
+        ACTOR_503500_ARM_STRIKE_STEP_START       = 0,
+        ACTOR_503500_ARM_STRIKE_STEP_SWING       = 1,
+        ACTOR_503500_ARM_STRIKE_ANIMATION_SIDE_0 = 3,
+        ACTOR_503500_ARM_STRIKE_ANIMATION_SIDE_1 = 2,
+        ACTOR_503500_ARM_STRIKE_SLOW_START_FRAME = 122,
+        ACTOR_503500_ARM_STRIKE_SLOW_END_FRAME   = 144,
+        ACTOR_503500_ARM_STRIKE_FAST_START_FRAME = 81,
+        ACTOR_503500_ARM_STRIKE_FAST_END_FRAME   = 96,
+    };
 
-    work = arg0->work;
-    if (actor503500ShouldInterruptAttack(arg0->parent) != 0) {
-        _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_IDLE);
-        actor503500ReleaseSlotEffects(arg0->spawnArg1.value);
+    _Actor503500ArmWork* work;
+    s32                  animationPreset;
+    s32                  strikeRate;
+    s16                  strikeFrame;
+
+    work = task->work;
+    if (actor503500ShouldInterruptAttack(task->parent) != 0) {
+        _actor503500ArmEnterState(task, ACTOR_503500_ARM_STATE_IDLE);
+        actor503500ReleaseSlotEffects(task->spawnArg1.value);
         return;
     }
-    side = 3;
+    animationPreset = ACTOR_503500_ARM_STRIKE_ANIMATION_SIDE_0;
     if (work->side != 0) {
-        side = 2;
+        animationPreset = ACTOR_503500_ARM_STRIKE_ANIMATION_SIDE_1;
     }
     switch (work->stateStep) {
-        case 0:
-            anim = ACTOR_503500_ARM_STRIKE_RATE_SLOW;
-            if (actor503500IsSlotEmpty(arg0->parent, side == 2 ? 5 : 4) != 0) {
-                anim = ACTOR_503500_ARM_STRIKE_RATE_FAST;
+        case ACTOR_503500_ARM_STRIKE_STEP_START:
+            // Losing the emitter accelerates this side's next strike.
+            strikeRate = ACTOR_503500_ARM_STRIKE_RATE_SLOW;
+            if (actor503500IsSlotEmpty(task->parent, animationPreset == ACTOR_503500_ARM_STRIKE_ANIMATION_SIDE_1
+                                                         ? ACTOR_503500_LARGE_ORB_EMITTER_FIRST_SLOT + 1
+                                                         : ACTOR_503500_LARGE_ORB_EMITTER_FIRST_SLOT) != 0) {
+                strikeRate = ACTOR_503500_ARM_STRIKE_RATE_FAST;
             }
-            actor503500PlayAnimationPreset(arg0->parent, side, anim);
-            work->strikeRate = anim;
+            actor503500PlayAnimationPreset(task->parent, animationPreset, strikeRate);
+            work->strikeRate = strikeRate;
             work->stateStep++;
             break;
-        case 1:
-            frame = ++work->stateFrames;
+        case ACTOR_503500_ARM_STRIKE_STEP_SWING:
+            // Pair tests cover only the striking portion of the chosen playback.
+            strikeFrame = ++work->stateFrames;
             if (work->strikeRate == ACTOR_503500_ARM_STRIKE_RATE_SLOW) {
-                switch (frame) {
-                    case 0x7A:
-                        work->forearmAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                        work->handAttackBody.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                        coords                         = arg0->parent->extra.tmd->coords;
-                        if (work->side != 0) {
-                            coord = &coords[6];
-                        } else {
-                            coord = &coords[12];
-                        }
-                        sndEvtRequestScriptStart(SOUND_BRAHMAN_ARM_STRIKE, (s8)worldCoordGetOriginAudioPan(coord),
-                                                 (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                switch (strikeFrame) {
+                    case ACTOR_503500_ARM_STRIKE_SLOW_START_FRAME:
+                        _actor503500ArmBeginStrike(task, work);
                         break;
-                    case 0x90:
+                    case ACTOR_503500_ARM_STRIKE_SLOW_END_FRAME:
                         work->forearmAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->handAttackBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
                 }
             } else {
-                switch (frame) {
-                    case 0x51:
-                        work->forearmAttackBody.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                        work->handAttackBody.flags    |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                        coords                         = arg0->parent->extra.tmd->coords;
-                        if (work->side != 0) {
-                            coord = &coords[6];
-                        } else {
-                            coord = &coords[12];
-                        }
-                        sndEvtRequestScriptStart(SOUND_BRAHMAN_ARM_STRIKE, (s8)worldCoordGetOriginAudioPan(coord),
-                                                 (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                switch (strikeFrame) {
+                    case ACTOR_503500_ARM_STRIKE_FAST_START_FRAME:
+                        _actor503500ArmBeginStrike(task, work);
                         break;
-                    case 0x60:
+                    case ACTOR_503500_ARM_STRIKE_FAST_END_FRAME:
                         work->forearmAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         work->handAttackBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                         break;
                 }
             }
-            if (actor503500HasAnimationFinished(arg0->parent, side) != 0) {
+            if (actor503500HasAnimationFinished(task->parent, animationPreset) != 0) {
                 work->forearmAttackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->handAttackBody.flags    &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
                 work->stateStep++;
             }
             break;
         default:
-            _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_IDLE);
+            _actor503500ArmEnterState(task, ACTOR_503500_ARM_STATE_IDLE);
             break;
     }
 }
@@ -5041,7 +5086,7 @@ static void func_actor_503500_80143EB4(Task* arg0)
     switch (mode) {
         case 1:
             if (!(tmd->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
-                func_actor_503500_80143FFC(arg0);
+                _actor503500ArmFrameHook(arg0);
             }
             break;
         case 2:
@@ -5050,9 +5095,9 @@ static void func_actor_503500_80143EB4(Task* arg0)
             break;
         default:
             if (enemy->reactionFlags != 0) {
-                func_actor_503500_80144098(arg0, mode, enemy);
+                _actor503500ArmClearReactions(arg0, mode, enemy);
             }
-            func_actor_503500_80143FFC(arg0);
+            _actor503500ArmFrameHook(arg0);
             func_actor_503500_80144004(arg0);
             func_actor_503500_801440F0(arg0);
             break;
@@ -5081,7 +5126,10 @@ static void _actor503500ArmExit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_503500_80143FFC(Task* arg0)
+/// Empty arm frame hook, called on active updates and visible paused updates.
+///
+/// Retains the hook present in the task's update sequence; `unusedTask` is ignored.
+static void _actor503500ArmFrameHook(Task* unusedTask)
 {
 }
 
@@ -5106,9 +5154,14 @@ static void func_actor_503500_80144004(Task* arg0)
     worldCollisionClearContacts(work->attackContacts);
 }
 
-static void func_actor_503500_80144098(Task* arg0, s32 arg1, Enemy* arg2)
+/// Discards an arm's stagger, buildup and damage-over-time reaction bits.
+///
+/// Requires the live enemy in `task->spawnArg2.pointer`. Retains health,
+/// counters, behavior and other reaction bits. `unusedActorControl` and
+/// `unusedEnemy` are ignored; the enemy is always taken from the task.
+static void _actor503500ArmClearReactions(Task* task, s32 unusedActorControl, Enemy* unusedEnemy)
 {
-    Enemy* enemy = arg0->spawnArg2.pointer;
+    Enemy* enemy = task->spawnArg2.pointer;
 
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= ~ENEMY_REACTION_STAGGER;
@@ -5127,42 +5180,52 @@ static void func_actor_503500_801440F0(Task* arg0)
 
     switch (work->state) {
         case ACTOR_503500_ARM_STATE_IDLE:
-            func_actor_503500_8014418C(arg0);
+            _actor503500ArmStepIdle(arg0);
             break;
         case ACTOR_503500_ARM_STATE_STRIKE:
-            func_actor_503500_8014271C(arg0);
+            _actor503500ArmStepStrike(arg0);
             break;
         case ACTOR_503500_ARM_STATE_DYING:
             func_actor_503500_80142980(arg0);
             break;
         case ACTOR_503500_ARM_STATE_BECOME_TARGET:
-            func_actor_503500_801441E8(arg0);
+            _actor503500ArmStepBecomeTarget(arg0);
             break;
     }
 }
 
-static void func_actor_503500_8014418C(Task* arg0)
+/// Accepts the boss's strike or target-exposure command while the arm is idle.
+///
+/// Requires initialized work and the boss parent. Recognized commands enter
+/// the requested state and are consumed; other commands remain pending.
+static void _actor503500ArmStepIdle(Task* task)
 {
-    switch (arg0->killCountdown) {
+    switch (task->killCountdown) {
         case ACTOR_503500_SLOT_COMMAND_ATTACK:
-            _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_STRIKE);
-            arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+            _actor503500ArmEnterState(task, ACTOR_503500_ARM_STATE_STRIKE);
+            task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
             break;
         case ACTOR_503500_SLOT_COMMAND_BECOME_TARGET:
-            _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_BECOME_TARGET);
-            arg0->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
+            _actor503500ArmEnterState(task, ACTOR_503500_ARM_STATE_BECOME_TARGET);
+            task->killCountdown = ACTOR_503500_SLOT_COMMAND_NONE;
             break;
     }
 }
 
-static void func_actor_503500_801441E8(Task* arg0)
+/// Exposes an arm's target sphere and target node, then returns it to idle.
+///
+/// Requires initialized work and a live enemy. The idle transition also
+/// disables both strike spheres and consumes the boss's command.
+static void _actor503500ArmStepBecomeTarget(Task* task)
 {
     _Actor503500ArmWork* work;
+    Enemy*               enemy;
 
-    work              = arg0->work;
+    work              = task->work;
     work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-    worldTargetLinkNode(&((Enemy*)arg0->spawnArg2.pointer)->node);
-    _actor503500ArmEnterState(arg0, ACTOR_503500_ARM_STATE_IDLE);
+    enemy             = task->spawnArg2.pointer;
+    worldTargetLinkNode(&enemy->node);
+    _actor503500ArmEnterState(task, ACTOR_503500_ARM_STATE_IDLE);
 }
 
 /// Starts an arm state with both strike spheres disabled and its sound stopped.
@@ -5186,15 +5249,15 @@ static void _actor503500ArmEnterState(Task* task, s32 state)
     sndEvtRequestScriptStop(SOUND_BRAHMAN_ARM_STRIKE, SOUND_SCRIPT_STOP_KEEP_RELEASE);
 }
 
-void func_actor_503500_801442A8(Task* task)
+void actor503500ArmTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_503500_80132178;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_503500_80132178;
+    stateHandlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_80144890` dispatches through.
+/// `Task::state` handlers `actor503500BallisticShotTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_801321DC = {
     {
         func_actor_503500_80144300,
@@ -5411,12 +5474,12 @@ static void _actor503500BallisticShotReactToContacts(Task* task)
     worldCollisionClearContacts(work->contacts);
 }
 
-void func_actor_503500_80144890(Task* task)
+void actor503500BallisticShotTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_503500_801321DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_503500_801321DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// `Task::state` handlers `func_actor_503500_80144E34` dispatches through.
