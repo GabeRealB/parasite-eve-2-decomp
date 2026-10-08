@@ -1,12 +1,13 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Task handler of the Life Support system part (the coordinate-bodied second
-/// TaskDesc): copies gGeneratorLifeSupportStates onto the stack and calls the
-/// entry for the task's state with the enemy in spawnArg2 and the task.
-void generatorLifeSupportTask(Task* arg0)
+/// Dispatches the Life Support task's spawn, hit or teardown state.
+///
+/// Task::state must be 0..2 and spawnArg2.pointer must hold its live Enemy.
+/// The three-entry handler table is copied by value before dispatch.
+static void _generatorLifeSupportTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = gGeneratorLifeSupportStates;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers = gGeneratorLifeSupportStates;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

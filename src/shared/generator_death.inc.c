@@ -197,7 +197,7 @@ void generatorDeathState(Enemy* arg0, Task* arg1)
         work->battleExitState = GENERATOR_BATTLE_EXIT_DONE;
         Gp_ClearAreaFlag4(&gGameSession->location.loc);
     }
-    generatorTickPoseInline(arg1);
+    _generatorUpdateAnimationInline(arg1);
     tmp    = arg1->extra.tmd->coords;
     pos.vx = tmp->workm.t[0];
     pos.vy = tmp->workm.t[1];

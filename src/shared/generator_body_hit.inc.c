@@ -10,95 +10,111 @@ typedef struct {
 } _GeneratorBodyHitScratch;
 STATIC_ASSERT_SIZEOF(_GeneratorBodyHitScratch, 0x18);
 
-/// Hit handler of the main body, the first step of the tick. After the
-/// cooldown `hitCooldown` has run out, each of the two contact records the
-/// player's attack claimed deals damage by distance: a tenth of it while the
-/// part object is alive (`lifeSupportDestroyed` clear), in which case the body cannot
-/// drop below 1 hit point, otherwise the full amount, quadrupled on a critical
-/// roll. A surviving body enters its hit reaction (idle state 1, pose 2); a
-/// killed one moves the task to its death handler, waiting in death state 3
-/// with pose 3. An attack id differing from the previous record's spawns its
-/// hit effect; every record restarts the cooldown from the id's parameter 2
-/// and plays the hit sound.
-void generatorBodyHit(Task* arg0)
+/// Applies body HP loss and chooses the protected floor, hit reaction or held death.
+///
+/// Requires the initialized body task and its work and Enemy. Retains the
+/// original positive-HP reaction even for zero damage. No resource is released.
+static inline void _generatorApplyBodyDamage(Task* task, GeneratorWork* work, Enemy* enemy, s32 damage)
 {
-    _GeneratorBodyHitScratch* scr;
+    enemy->hp -= damage;
+    if (enemy->hp <= 0) {
+        if (work->lifeSupportDestroyed == 0) {
+            enemy->hp = 1;
+        } else {
+            task->state           = GENERATOR_TASK_TEARDOWN;
+            work->deathState      = GENERATOR_DEATH_WAIT;
+            work->battleExitState = GENERATOR_BATTLE_EXIT_HELD;
+            work->alive           = 0;
+            work->animSet         = GENERATOR_ANIM_DEATH;
+        }
+    } else {
+        work->pulseState  = GENERATOR_PULSE_HIT;
+        work->stateFrames = 0;
+        work->animSet     = GENERATOR_ANIM_HIT;
+    }
+}
+
+/// Applies queued player attacks to the generator body and consumes its contacts.
+///
+/// Requires a live model task with an Enemy and GeneratorWork. Both contact
+/// slots are checked after the signed frame cooldown expires. Life Support
+/// reduces damage to one tenth and preserves at least one HP; after it breaks,
+/// critical hits deal four times the damage and a killing hit starts the held
+/// death sequence. Effects are suppressed only for consecutive equal attack
+/// keys; every processed contact can arm a cooldown and play a sound.
+/// Reserves one _GeneratorBodyHitScratch block for this call.
+static void _generatorBodyHit(Task* task)
+{
+    enum {
+        GENERATOR_PROTECTED_DAMAGE_DIVISOR = 10,
+        GENERATOR_BODY_HIT_SOUND_INDEX     = 2
+    };
+    _GeneratorBodyHitScratch* scratch;
     GeneratorWork*            work;
     Enemy*                    enemy;
-    GfxCoord*                 coord;
+    GfxCoord*                 rootCoord;
     s32                       damage;
-    s32                       lastId;
-    s32                       val;
-    s32                       snd;
-    s32                       i;
+    s32                       lastAttackKey;
+    s32                       hitParameter;
+    s16                       cooldownFrames;
+    s32                       soundId;
+    s32                       contactIndex;
 
-    scr    = SCRATCH_STACK_RESERVE_BLOCK(_GeneratorBodyHitScratch);
-    coord  = arg0->extra.tmd->coords;
-    work   = arg0->work;
-    enemy  = arg0->spawnArg2.pointer;
-    lastId = 0;
+    scratch       = SCRATCH_STACK_RESERVE_BLOCK(_GeneratorBodyHitScratch);
+    rootCoord     = task->extra.tmd->coords;
+    work          = task->work;
+    enemy         = task->spawnArg2.pointer;
+    lastAttackKey = 0;
     if (work->hitCooldown != 0) {
-        work->hitCooldown--;
-        if ((work->hitCooldown << 0x10) <= 0) {
+        cooldownFrames    = work->hitCooldown - 1;
+        work->hitCooldown = cooldownFrames;
+        if (cooldownFrames <= 0) {
             work->hitCooldown = 0;
         }
     }
     if (work->hitCooldown == 0) {
-        for (i = 0; i < ARRAY_SIZE(work->contacts); i++) {
-            if ((work->contacts[i].key.value & 0xFFFF0000) != 0x20000) {
+        for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->contacts); contactIndex++) {
+            if ((work->contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) != WORLD_COLLISION_CONTACT_ATTACK) {
                 continue;
             }
-            scr->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - coord->coord.t[0];
-            scr->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - coord->coord.t[1];
-            scr->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - coord->coord.t[2];
-            damage           = damageComputePlayerAttack(work->contacts[i].key.value, SquareRoot0(scr->toPlayer.vx * scr->toPlayer.vx + scr->toPlayer.vy * scr->toPlayer.vy + scr->toPlayer.vz * scr->toPlayer.vz), 0, 0);
+            // Measure damage in the player and root coordinates' common parent frame.
+            scratch->toPlayer.vx = gPlayerStatus.coordMtx->t[0] - rootCoord->coord.t[0];
+            scratch->toPlayer.vy = gPlayerStatus.coordMtx->t[1] - rootCoord->coord.t[1];
+            scratch->toPlayer.vz = gPlayerStatus.coordMtx->t[2] - rootCoord->coord.t[2];
+            damage               = damageComputePlayerAttack(work->contacts[contactIndex].key.value, SquareRoot0(scratch->toPlayer.vx * scratch->toPlayer.vx + scratch->toPlayer.vy * scratch->toPlayer.vy + scratch->toPlayer.vz * scratch->toPlayer.vz), 0, 0);
             if (work->lifeSupportDestroyed == 0) {
-                damage /= 10;
-            } else if (damageRollCriticalHit(enemy, work->contacts[i].key.value, 0) != 0) {
-                damage              *= 4;
-                scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
-                scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
-                scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
-                effectSpawn(EFFECT_CRITICAL_HIT, coord, 0, &scr->effectOffset);
+                damage /= GENERATOR_PROTECTED_DAMAGE_DIVISOR;
+            } else if (damageRollCriticalHit(enemy, work->contacts[contactIndex].key.value, 0) != 0) {
+                damage                  *= 4;
+                scratch->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
+                scratch->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
+                scratch->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
+                effectSpawn(EFFECT_CRITICAL_HIT, rootCoord, 0, &scratch->effectOffset);
             }
             worldTargetAddReadoutAmount(&enemy->node, damage, 0);
-            damageAccumulateLifeDrainHp(enemy, work->contacts[i].key.value, damage, 0);
-            enemy->hp -= damage;
-            if (enemy->hp <= 0) {
-                if (work->lifeSupportDestroyed == 0) {
-                    enemy->hp = 1;
+            damageAccumulateLifeDrainHp(enemy, work->contacts[contactIndex].key.value, damage, 0);
+            _generatorApplyBodyDamage(task, work, enemy, damage);
+            if (lastAttackKey != work->contacts[contactIndex].key.value) {
+                lastAttackKey            = work->contacts[contactIndex].key.value;
+                hitParameter             = damageGetPlayerAttackEffectId(lastAttackKey);
+                scratch->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
+                scratch->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
+                scratch->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
+                if (hitParameter == EFFECT_HIT_KIND_BLAST) {
+                    effectSpawn(EFFECT_HIT_BLAST, rootCoord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scratch->effectOffset);
                 } else {
-                    arg0->state           = 2;
-                    work->deathState      = GENERATOR_DEATH_WAIT;
-                    work->battleExitState = GENERATOR_BATTLE_EXIT_HELD;
-                    work->alive           = 0;
-                    work->animSet         = GENERATOR_ANIM_DEATH;
-                }
-            } else {
-                work->pulseState  = GENERATOR_PULSE_HIT;
-                work->stateFrames = 0;
-                work->animSet     = GENERATOR_ANIM_HIT;
-            }
-            if (lastId != work->contacts[i].key.value) {
-                lastId               = work->contacts[i].key.value;
-                val                  = damageGetPlayerAttackEffectId(lastId);
-                scr->effectOffset.vx = gGeneratorHitEffectOffsets[work->kind].vx;
-                scr->effectOffset.vy = gGeneratorHitEffectOffsets[work->kind].vy;
-                scr->effectOffset.vz = gGeneratorHitEffectOffsets[work->kind].vz;
-                if (val == 3) {
-                    effectSpawn(EFFECT_HIT_BLAST, coord, work->effectArg.spawnArgLo | (work->effectArg.spawnArgHi << 16), &scr->effectOffset);
-                } else {
-                    effectSpawnHit((u16)val, coord, &scr->effectOffset, &work->effectArg);
+                    effectSpawnHit((u16)hitParameter, rootCoord, &scratch->effectOffset, &work->effectArg);
                 }
             }
-            val = damageGetPlayerAttackHitCooldown(work->contacts[i].key.value);
-            if (val > 0) {
-                work->hitCooldown = val;
+            hitParameter = damageGetPlayerAttackHitCooldown(work->contacts[contactIndex].key.value);
+            if (hitParameter > 0) {
+                work->hitCooldown = hitParameter;
             }
-            snd = gGeneratorSoundIds[2] | ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
-            sndEvtRequestScriptStart(snd, (s8)worldCoordGetOriginAudioPan(coord), (s8)worldCoordGetOriginAudioDepth(coord));
+            soundId = gGeneratorSoundIds[GENERATOR_BODY_HIT_SOUND_INDEX] | ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8);
+            sndEvtRequestScriptStart(soundId, (s8)worldCoordGetOriginAudioPan(rootCoord), (s8)worldCoordGetOriginAudioDepth(rootCoord));
         }
     }
+    // Discard contacts even while the hit cooldown blocks damage.
     worldCollisionClearContacts(work->contacts);
     SCRATCH_STACK_RELEASE_BLOCK(_GeneratorBodyHitScratch);
 }

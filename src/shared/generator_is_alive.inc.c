@@ -1,8 +1,10 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Message 2006 handler: returns the work block's `alive`, which the spawn
-/// sets to 1 and generatorBodyHit clears when the killing hit lands.
-s32 generatorIsAlive(Task* arg0, s32 msgId, s32 arg2, s32 arg3)
+/// Answers ACTOR_MESSAGE_IS_PRESENT with the generator body's alive latch.
+///
+/// Requires initialized GeneratorWork. Returns 1 before the killing hit and
+/// 0 throughout the held death sequence; both payload words are ignored.
+static s32 _generatorIsAlive(Task* task, s32 messageId, s32 unusedArg2, s32 unusedArg3)
 {
-    return ((GeneratorWork*)arg0->work)->alive;
+    return ((GeneratorWork*)task->work)->alive;
 }

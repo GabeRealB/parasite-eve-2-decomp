@@ -1,24 +1,25 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Message handler in the main task's message table: ORs the bit the payload's
-/// selector names into the work block's `releaseBits` (1, 2 or both for
-/// selector 3; 0 is a no-op). Bit 1 releases the death handler from its wait,
-/// bit 2 lets it run its `sceneReleaseBattleRefWithRewards` call.
-s32 generatorSetReleaseBits(Task* task, s32 msgId, ActorCommand* msg, s32 arg3)
+/// Latches script commands that release the body's death and battle-exit waits.
+///
+/// ACTOR_COMMAND_MESSAGE_APPLY borrows a readable ActorCommand for this call.
+/// Commands 0..3 select none, death, battle exit or both; other values do
+/// nothing. Existing bits remain set. The second payload is ignored; returns 0.
+static s32 _generatorSetReleaseBits(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg3)
 {
     GeneratorWork* work;
 
     work = task->work;
-    switch (msg->command) {
+    switch (command->command) {
         case 0:
             break;
-        case 1:
+        case GENERATOR_RELEASE_DEATH:
             work->releaseBits |= GENERATOR_RELEASE_DEATH;
             break;
-        case 2:
+        case GENERATOR_RELEASE_BATTLE_EXIT:
             work->releaseBits |= GENERATOR_RELEASE_BATTLE_EXIT;
             break;
-        case 3:
+        case GENERATOR_RELEASE_DEATH | GENERATOR_RELEASE_BATTLE_EXIT:
             work->releaseBits |= GENERATOR_RELEASE_DEATH | GENERATOR_RELEASE_BATTLE_EXIT;
             break;
     }

@@ -1,5 +1,5 @@
 // Overlay-local symbols for actor_105300.
-generatorIsAlive = 0x80133990; // type:func
+_generatorIsAlive = 0x80133990; // type:func
 gGeneratorPulseSoundId = 0x8013D3BC; // size:0x4 defined:True
 gGeneratorSpawnSound = 0x8013D3C0; // size:0x4 defined:True
 gGeneratorViewSound = 0x8013D3C4; // size:0x1C defined:True
@@ -42,17 +42,17 @@ func_neo_ark_power_plant_1_8017E524 = 0x8017E524; // type:func absolute:True own
 
 neoArkPowerPlant2SetView6SpritesHidden = 0x8017FD88; // type:func absolute:True owner=neo_ark_power_plant_2
 _modelPlacementSetScaled = 0x801336D4; // type:func
-generatorBodyHit = 0x80131E3C; // type:func
-generatorPulse = 0x8013222C; // type:func
+_generatorBodyHit = 0x80131E3C; // type:func
+_generatorPulse = 0x8013222C; // type:func
 generatorDeathState = 0x8013246C; // type:func
 generatorLifeSupportSpawn = 0x80132BAC; // type:func
-generatorLifeSupportHit = 0x80132DAC; // type:func
-generatorTickState = 0x80133468; // type:func
-generatorRegenerate = 0x80133530; // type:func
-generatorTickPose = 0x80133610; // type:func
+_generatorLifeSupportHit = 0x80132DAC; // type:func
+_generatorTickState = 0x80133468; // type:func
+_generatorRegenerate = 0x80133530; // type:func
+_generatorUpdateAnimation = 0x80133610; // type:func
 generatorLifeSupportTeardown = 0x80133838; // type:func
-generatorSetReleaseBits = 0x8013391C; // type:func
-generatorUpdateColor = 0x801335B8; // type:func
-generatorLifeSupportTask = 0x801337DC; // type:func
-generatorTask = 0x801339A4; // type:func
-generatorSpawn = 0x8013310c; // type:func
+_generatorSetReleaseBits = 0x8013391C; // type:func
+_generatorUpdateColor = 0x801335B8; // type:func
+_generatorLifeSupportTask = 0x801337DC; // type:func
+_generatorTask = 0x801339A4; // type:func
+_generatorSpawn = 0x8013310c; // type:func

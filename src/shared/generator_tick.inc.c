@@ -1,39 +1,40 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Tick handler of the main task (its state 1), switched on the gameplay mode
-/// `gSceneCombatState.actorControl`. Mode 1 only updates the colour; mode 2 sets the model's
-/// `field_C` to 0x80 and the lock-on node not lockable, and stops there. Any
-/// other mode runs the frame - mode 0 first clearing the model's `field_C` and
-/// hiding the node's HP: the hit handler, the idle schedule, the pose
-/// tick, the model's coordinate refresh, the colour update and the
-/// regeneration step.
-void generatorTickState(Enemy* arg0, Task* arg1)
+/// Runs one active body update subject to the scene's actor-control mode.
+///
+/// Running mode restores drawing and hides the HP readout. Paused mode only
+/// updates color; hidden mode suppresses drawing and lock-on. Other values
+/// run the full update while retaining drawing and target flags. Damage,
+/// pulse scaling and animation precede coordinate composition, lighting and
+/// regeneration; a killing hit still completes this frame before death dispatch.
+static void _generatorTickState(Enemy* enemy, Task* task)
 {
-    GfxCoord*  temp_s1;
-    TmdObject* temp_a1;
+    GfxCoord*  rootCoord;
+    TmdObject* bodyModel;
 
-    temp_a1 = arg1->extra.tmd;
-    temp_s1 = temp_a1->coords;
+    bodyModel = task->extra.tmd;
+    rootCoord = bodyModel->coords;
     switch (gSceneCombatState.actorControl) {
-        case 0:
-            temp_a1->flags               = 0;
-            arg0->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        case SCENE_COMBAT_ACTORS_RUNNING:
+            bodyModel->flags              = 0;
+            enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
             break;
-        case 1:
-            generatorUpdateColor(arg1);
+        case SCENE_COMBAT_ACTORS_PAUSED:
+            _generatorUpdateColor(task);
             return;
-        case 2:
-            temp_a1->flags               = TMD_OBJECT_SKIP_ACTIVE_DRAW;
-            arg0->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        case SCENE_COMBAT_ACTORS_HIDDEN:
+            bodyModel->flags              = TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
             return;
         default:
             break;
     }
-    generatorBodyHit(arg1);
-    generatorPulse(arg1);
-    generatorTickPose(arg1);
-    temp_s1->composeStamp = GRAPHICS_COORD_DIRTY;
-    actorRenderComposeCoord(temp_s1);
-    generatorUpdateColor(arg1);
-    generatorRegenerate(arg1);
+    // Finish the active frame even if damage switches the next dispatch to death.
+    _generatorBodyHit(task);
+    _generatorPulse(task);
+    _generatorUpdateAnimation(task);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(rootCoord);
+    _generatorUpdateColor(task);
+    _generatorRegenerate(task);
 }

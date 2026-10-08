@@ -1,28 +1,13 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Pose tick. When the pose asked for (`animSet`) differs from the one the
-/// animation slots were last queued for (`appliedAnimSet`), slots 1-9 are re-queued
-/// with it and its entry of `gGeneratorPoseStartFrames`, and the frame count
-/// `animFrames` restarts; otherwise every slot is ticked and the count advances
-/// by one.
-void generatorTickPose(Task* arg0)
+/// Applies the body's animation-set request or advances its current playback.
+///
+/// Requires initialized GeneratorWork; changed requests are GENERATOR_ANIM_*
+/// values 1..3. Initial equal zero requests retain the idle slots started at
+/// spawn. A changed request resets animFrames and blends slots 1..9 from frame
+/// zero over the set's blend duration; unchanged requests tick those slots and
+/// advance the signed halfword frame counter. Slot 0 remains untouched.
+static void _generatorUpdateAnimation(Task* task)
 {
-    GeneratorWork* work;
-    s32            i;
-    s32            value;
-
-    work = arg0->work;
-    if (work->animSet != work->appliedAnimSet) {
-        work->appliedAnimSet = work->animSet;
-        work->animFrames     = 0;
-        value                = gGeneratorPoseStartFrames[work->animSet];
-        for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-            animationSeekSlotWithBlend(&work->anim, i, work->animSet, 0, value);
-        }
-    } else {
-        work->animFrames++;
-        for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-            animationTickSlot(&work->anim, i);
-        }
-    }
+    _generatorUpdateAnimationInline(task);
 }

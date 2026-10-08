@@ -1,15 +1,18 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Hands the model's world position (its coordinate's `workm` translation) to
-/// `worldCoordUpdateActorColor` for the enemy, with zero for the unused arguments.
-void generatorUpdateColor(Task* arg0)
+/// Updates body lighting and color at its root's cached translation.
+///
+/// Requires a live Enemy/model with writable light and color matrices and a
+/// composed root cache. Passes its three cached translation components without
+/// refreshing composition. No pointer to the temporary VECTOR is retained.
+static void _generatorUpdateColor(Task* task)
 {
     GfxCoord* coord;
-    VECTOR    vec;
+    VECTOR    samplePosition;
 
-    coord  = arg0->extra.tmd->coords;
-    vec.vx = coord->workm.t[0];
-    vec.vy = coord->workm.t[1];
-    vec.vz = coord->workm.t[2];
-    worldCoordUpdateActorColor(arg0->spawnArg2.pointer, &vec, 0, 0);
+    coord             = task->extra.tmd->coords;
+    samplePosition.vx = coord->workm.t[0];
+    samplePosition.vy = coord->workm.t[1];
+    samplePosition.vz = coord->workm.t[2];
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, &samplePosition, 0, 0);
 }

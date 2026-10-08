@@ -32,6 +32,13 @@
 
 extern TaskMessageEntry gGeneratorMessages[];
 
+/// State indices of the body and Life Support task dispatchers.
+enum {
+    GENERATOR_TASK_SPAWN    = 0,
+    GENERATOR_TASK_ACTIVE   = 1,
+    GENERATOR_TASK_TEARDOWN = 2
+};
+
 /// Animation sets of the body, the values of `GeneratorWork::animSet`: indexes
 /// into the package's animation-set table, whose entry 0 is empty.
 enum {
@@ -156,23 +163,8 @@ typedef struct {
 } GeneratorViewSound;
 STATIC_ASSERT_SIZEOF(GeneratorViewSound, 0x4);
 
-void generatorSpawn(Enemy* arg0, Task* arg1);
-void generatorBodyHit(Task* arg0);
-void generatorPulse(Task* arg0);
 void generatorDeathState(Enemy* arg0, Task* arg1);
 void generatorLifeSupportSpawn(Enemy* arg0, Task* arg1);
-void generatorLifeSupportHit(Enemy* arg0, Task* arg1);
-void generatorTickState(Enemy* arg0, Task* arg1);
-void generatorRegenerate(Task* arg0);
-void generatorTickPose(Task* arg0);
 void generatorLifeSupportTeardown(Enemy* arg0, Task* arg1);
-s32  generatorSetReleaseBits(Task* task, s32 msgId, ActorCommand* msg, s32 arg3);
-
-static inline void generatorTickPoseInline(Task* task);
-
-void generatorUpdateColor(Task* arg0);
-void generatorLifeSupportTask(Task* arg0);
-s32  generatorIsAlive(Task* arg0, s32 msgId, s32 arg2, s32 arg3);
-void generatorTask(Task* arg0);
 
 #endif /* SRC_SHARED_GENERATOR_H */

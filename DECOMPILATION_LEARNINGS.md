@@ -129626,7 +129626,7 @@ sha256 `af1f3d8aa05712e46bf5db055ea30e972bfb680301d3b475709a1818ffb1c678`
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
 
-## Two reads of one `short` member: `lh` or `lhu` is decided by the *store width*, not by the source type (generatorSpawn, 2026-09-17)
+## Two reads of one `short` member: `lh` or `lhu` is decided by the *store width*, not by the source type (_generatorSpawn, 2026-09-17)
 
 **Symptom.** One function reads the same halfword triple twice, and the target
 loads it signed in one place and unsigned in the other:
@@ -138089,7 +138089,7 @@ The allocation prediction also held: global order stayed unchanged, task remaine
 
 Compiler SHA256: `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`. Selected .sched/.sched2 nodes, allocation headers and complete input/source/object hashes: [2026-09-20-actor121300-33854.json](tools/compiler_evidence/2026-09-20-actor121300-33854.json). Full inputs and dumps are retained with the scratch/permuter findings.
 
-### An array read restores scheduler memory edges that a scalar symbol loses (generatorSpawn, 2026-09-20)
+### An array read restores scheduler memory edges that a scalar symbol loses (_generatorSpawn, 2026-09-20)
 
 The archived seed reproduced 98.884% with only `reorder=4`: the halfword read
 from `D_actor_105300_8013D394` and three address/constant materializations were
@@ -149831,9 +149831,9 @@ attempts; left as it was.
   guard and case 1 write the kill and `return`, case 2 `break`s, `default:
   return;`.
 - **`if (cooldown) { ...; if (cooldown) goto end; } for (...) { } end:`**
-  (`generatorBodyHit`) is `if (cooldown) { ... } if (cooldown == 0) { for
+  (`_generatorBodyHit`) is `if (cooldown) { ... } if (cooldown == 0) { for
   (...) { } }`; the second test of a field just tested is threaded, no extra
-  insns. Its `generatorTickState` is the mode-ladder switch with a body in
+  insns. Its `_generatorTickState` is the mode-ladder switch with a body in
   `case 0` that `break`s into the frame code, and the `one = 1` local goes
   (cse keeps the 1 of the dispatch for case 2's store).
 - **The `crit = 0; f(..., crit, crit); g(enemy, id, crit)` of the

@@ -1,12 +1,13 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Task handler of the generator body: copies gGeneratorTaskStates (spawn,
-/// generatorTickState, generatorDeathState) onto the stack and calls the entry
-/// for the task's state with the enemy in spawnArg2 and the task.
-void generatorTask(Task* arg0)
+/// Dispatches the generator body's spawn, active or death state.
+///
+/// Task::state must be 0..2 and spawnArg2.pointer must hold its live Enemy.
+/// The three-entry handler table is copied by value before dispatch.
+static void _generatorTask(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 stateHandlers;
 
-    sp = gGeneratorTaskStates;
-    sp.funcs[arg0->state](arg0->spawnArg2.pointer, arg0);
+    stateHandlers = gGeneratorTaskStates;
+    stateHandlers.funcs[task->state](task->spawnArg2.pointer, task);
 }

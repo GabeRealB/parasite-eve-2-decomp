@@ -1,24 +1,26 @@
 /* Part of the Generator library; see generator.h. */
 
-/// Regeneration step: while the part object is alive (`lifeSupportDestroyed` clear)
-/// and the enemy's hit points are below the ceiling `hpCeiling`, one point
-/// comes back every five frames (`regenTimer` counts them down), reported
-/// through the lock-on node as a damage of -1.
-void generatorRegenerate(Task* arg0)
+/// Restores one body HP every five active updates while Life Support survives.
+///
+/// Requires initialized body work and Enemy. Healing stops at hpCeiling and
+/// reports -1 to the target readout. The signed halfword countdown is retained
+/// while healing is disabled; its initial zero makes the first missing HP due.
+static void _generatorRegenerate(Task* task)
 {
+    enum { GENERATOR_REGEN_INTERVAL_FRAMES = 5 };
     GeneratorWork* work;
     Enemy*         enemy;
-    s16            timer;
+    s16            regenFrames;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if ((work->lifeSupportDestroyed == 0) && (enemy->hp < work->hpCeiling)) {
-        timer            = work->regenTimer - 1;
-        work->regenTimer = timer;
-        if ((timer << 0x10) <= 0) {
+        regenFrames      = work->regenTimer - 1;
+        work->regenTimer = regenFrames;
+        if (regenFrames <= 0) {
             enemy->hp = enemy->hp + 1;
             worldTargetAddReadoutAmount(&enemy->node, -1, 0);
-            work->regenTimer = 5;
+            work->regenTimer = GENERATOR_REGEN_INTERVAL_FRAMES;
         }
     }
 }

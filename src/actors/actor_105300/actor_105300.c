@@ -12,6 +12,7 @@
 #include "gameplay/area_transitions.h"
 #include "gameplay/areaplace.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/message.h"
@@ -51,6 +52,19 @@
 #define gGeneratorTasks gActor105300GeneratorTasks
 #include "../../shared/generator.h"
 
+static void _generatorBodyHit(Task* task);
+static s32  _generatorIsAlive(Task* task, s32 messageId, s32 unusedArg2, s32 unusedArg3);
+static void _generatorLifeSupportHit(Enemy* enemy, Task* task);
+static void _generatorLifeSupportTask(Task* task);
+static void _generatorPulse(Task* task);
+static void _generatorRegenerate(Task* task);
+static s32  _generatorSetReleaseBits(Task* task, s32 messageId, const ActorCommand* command, s32 unusedArg3);
+static void _generatorSpawn(Enemy* enemy, Task* task);
+static void _generatorTask(Task* task);
+static void _generatorUpdateAnimation(Task* task);
+static void _generatorTickState(Enemy* enemy, Task* task);
+static void _generatorUpdateColor(Task* task);
+
 extern EnemyParams             gGeneratorLifeSupportParams;
 extern GeneratorLifeSupportPos gGeneratorLifeSupportPos[2];
 extern GeneratorPulseFrame     gGeneratorIdlePulse[];
@@ -80,8 +94,8 @@ static AnimationSet _gActor105300Animation0B548;
 static TmdSource    _gActor105300BetaGeneratorBody;
 
 TaskMessageEntry gGeneratorMessages[3] = {
-    { ACTOR_COMMAND_MESSAGE_APPLY, generatorSetReleaseBits },
-    { ACTOR_MESSAGE_IS_PRESENT, generatorIsAlive },
+    { ACTOR_COMMAND_MESSAGE_APPLY, _generatorSetReleaseBits },
+    { ACTOR_MESSAGE_IS_PRESENT, _generatorIsAlive },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -248,8 +262,8 @@ GeneratorPulseFrame gGeneratorHitPulse[4] = {
 };
 
 TaskDesc gGeneratorTasks[2] = {
-    { { { TASK_BODY_TMD, 96 } }, generatorTask, { .model = &_gActor105300BetaGeneratorBody } },
-    { { { TASK_BODY_COORD, 96 } }, generatorLifeSupportTask, { .value = 0 } },
+    { { { TASK_BODY_TMD, 96 } }, _generatorTask, { .model = &_gActor105300BetaGeneratorBody } },
+    { { { TASK_BODY_COORD, 96 } }, _generatorLifeSupportTask, { .value = 0 } },
 };
 
 AnimationSet* gGeneratorAnimSets[4] = {
@@ -288,7 +302,7 @@ AnimationSet* gGeneratorAnimSets[4] = {
 static const EnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
     {
         generatorLifeSupportSpawn,
-        generatorLifeSupportHit,
+        _generatorLifeSupportHit,
         generatorLifeSupportTeardown,
     },
 };
@@ -305,8 +319,8 @@ static const EnemyTaskFuncTable3 gGeneratorLifeSupportStates = {
 /// tick and death.
 static const EnemyTaskFuncTable3 gGeneratorTaskStates = {
     {
-        generatorSpawn,
-        generatorTickState,
+        _generatorSpawn,
+        _generatorTickState,
         generatorDeathState,
     },
 };

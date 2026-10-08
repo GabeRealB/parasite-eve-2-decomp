@@ -1,29 +1,30 @@
 /* Part of the library; see generator.h. Inline helpers the fragments use. */
 
-/// Pose tick, inlined into the death handler; the same step
-/// `generatorTickPose` performs out of line. When the pose asked for
-/// (`animSet`) differs from the one the animation slots were last queued
-/// for (`appliedAnimSet`), slots 1-9 are re-queued with it and its entry of
-/// `gGeneratorPoseStartFrames`, and the frame count `animFrames` restarts;
-/// otherwise every slot is ticked and the count advances by one.
-static inline void generatorTickPoseInline(Task* task)
+/// Applies or ticks the body's animation-set request inside the death handler.
+///
+/// Requires initialized GeneratorWork; a changed request must be in 1..3.
+/// Initial equal zero requests retain the idle slots started at spawn. A changed
+/// request blends slots 1..9 from frame zero and resets animFrames; otherwise
+/// those slots tick and the signed halfword counter advances. Slot 0 is unused.
+/// The ordinary frame handler uses the same operation out of line.
+static inline void _generatorUpdateAnimationInline(Task* task)
 {
     GeneratorWork* work;
-    s32            i;
-    s32            value;
+    s32            slotIndex;
+    s32            blendFrames;
 
     work = task->work;
     if (work->animSet != work->appliedAnimSet) {
         work->appliedAnimSet = work->animSet;
         work->animFrames     = 0;
-        value                = gGeneratorPoseStartFrames[work->animSet];
-        for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-            animationSeekSlotWithBlend(&work->anim, i, work->animSet, 0, value);
+        blendFrames          = gGeneratorPoseStartFrames[work->animSet];
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
+            animationSeekSlotWithBlend(&work->anim, slotIndex, work->animSet, 0, blendFrames);
         }
     } else {
         work->animFrames++;
-        for (i = 1; i < ARRAY_SIZE(work->slots); i++) {
-            animationTickSlot(&work->anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->slots); slotIndex++) {
+            animationTickSlot(&work->anim, slotIndex);
         }
     }
 }

@@ -803,6 +803,15 @@ position the walker turns towards. All of these are private to that
 interface. The arrival test has no block type of its own: the offset it
 stages is a plain `SVECTOR`.
 
+`generator` owns the included Beta and Proto Generator enemy behavior:
+body damage protection, Life Support damage and healing control, scale pulses,
+animation requests, and scripted death and battle-release waits. Its private
+implementation interface is `src/shared/generator.h`, carried by `actor_105300`
+and `actor_105400`. Each carrier keeps static function instances marked `_`;
+its package-owned task-descriptor table remains the spawn interface. Constants
+use `GENERATOR_`; resident enemy, collision, animation and sound APIs retain
+their own identities.
+
 `madChaser` owns the included Mad Chaser enemy shared by `actor_04400`,
 `actor_341700` and `actor_342400`. Its implementation interface is
 `src/shared/mad_chaser.h`, one fragment per function. `MadChaserWork` is the
