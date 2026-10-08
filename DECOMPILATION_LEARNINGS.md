@@ -78258,8 +78258,8 @@ The scratchpad idiom comes across unchanged too (`#define SCRATCH_SP
 
 The converse needs care: all four at 1.00 with an equal instruction count does
 **not** by itself prove the two are byte-identical, because no class covers a
-literal-immediate operand. `func_actor_110600_80138BD0` scored 1.00 in all four
-classes against the already-matched sibling `func_actor_110600_80138AFC` in its
+literal-immediate operand. `_actor110600RiseState` scored 1.00 in all four
+classes against the already-matched sibling `_actor110600RiseBackState` in its
 own TU at the same 53 instructions, and the normalized diff is one line -
 `addiu v0,zero,0xF` against `addiu v0,zero,0x10` (`work->animId`). `shape`
 drops operands, `fields` compares only load/store displacements, and `calls` /
@@ -98043,7 +98043,7 @@ duplicated close-out in the target: an inline is usually cheaper than the pin.
 
 ## A call that passes the incoming parameter needs no argument move, yet its operand still reweights the allocno rank
 
-**Symptom.** `func_actor_110600_80138CA4` sat at 96.52% with the actor pointer in
+**Symptom.** `_actor110600AlertRewindState` sat at 96.52% with the actor pointer in
 `$s2` and the loop counter in `$s1` where retail has the pointer in `$s1` and the
 counter in `$s2` (`regs=17`), the `index->field_20` pointer loading into `$a0`
 instead of `$a1`, and one load-delay `nop` missing (`0:0` opcode delta -1). The
@@ -98105,10 +98105,10 @@ differences), target
 
 ## A tie at the top of `QTY_CMP_PRI` is winnable: shorten the span of the quantity that has to take `$v0`
 
-`func_actor_110600_80138AFC` (53 insns, 5 blocks) sat at 87.7% with
+`_actor110600RiseBackState` (53 insns, 5 blocks) sat at 87.7% with
 `regs=10 insert=3 delete=3` and the same four lines wrong: the walker pointer in
 `$v1` instead of `$v0`, the `li 8` for `walker->speedStep` in `$v0` instead of
-`$v1`, the `field_B86` load in `$a0` instead of `$v1`. The object dump makes
+`$v1`, the `walker.speed` load in `$a0` instead of `$v1`. The object dump makes
 `$v0` look free at the pointer's `addiu`, which is the misleading part —
 local-alloc allocates in *priority* order, not birth order, so the question is
 which quantity took `$v0` first. Note the priority formula's `death - birth`
@@ -98121,9 +98121,9 @@ live lengthens its span and lowers its priority.
 |---|---|---|---|---|
 | `walker` pointer | 4 | 10 | 8000 | `$v1` |
 | `li 8` for `speedStep` | 2 | 2 | 10000 | `$v0` |
-| `field_B86` load | 2 | 8 | 2500 | `$a0` |
+| `walker.speed` load | 2 | 8 | 2500 | `$a0` |
 
-With the `lhu` of `field_B86` sitting between the `addiu` and the store that
+With the `lhu` of `walker.speed` sitting between the `addiu` and the store that
 consumes it, the pointer's range is five insns long. Reading that field into a
 local *before* the pointer is computed takes the load out of the range, so
 span 10 → 8 and priority 8000 → 10000 — an exact tie with the constant.
@@ -98132,22 +98132,22 @@ span 10 → 8 and priority 8000 → 10000 — an exact tie with the constant.
 breaks a tie by quantity number and quantity numbers run in birth order: the
 pointer is born before the constant it ties with, so it is allocated first,
 takes `$v0`, and the constant is then blocked across its range and falls to
-`$v1`. The `field_B86` value, whose range ends before the constant's begins,
+`$v1`. The `walker.speed` value, whose range ends before the constant's begins,
 then reuses `$v1`. `regs=0`, 100%.
 
 ```c
-    ramp             = work->field_B86;      /* load hoisted out of the range */
+    entrySpeed             = work->walker.speed;      /* load hoisted out of the range */
     walker           = (BossStrangerWalker*)((u8*)work + 0xB28);
-    work->field_B90  = 0;
+    work->walker.state  = 0;
     walker->speedTarget = 0;
-    walker->speed       = ramp;
+    walker->speed       = entrySpeed;
     walker->speedStep   = 8;
 ```
 
 The lever is bidirectional and either direction only works when the birth order
 is on its side: "The array base expands before its index" *lowers* a
 competitor's priority by lengthening its span, this entry *raises* its own by
-shortening it. Moving the two flat stores (`field_B90`, `field_B82`) around the
+shortening it. Moving the two flat stores (`walker.state`, `walker.turnLimit`) around the
 pointer's `addiu` instead — four permutations, including one that reproduces the
 retail statement order exactly — does not touch the span and changes nothing.
 
@@ -114223,10 +114223,10 @@ the trigger is the alignment alone. The `units` + `rodata` pair reaches the same
 bytes, but it splits the first unit in two and renumbers every later one, which
 is the churn `rodata_head` exists to avoid.
 
-## A constant born before an earlier value's death hard-conflicts with its register; a store in each arm moves the birth past the `REG_DEAD` (func_actor_110600_80138980, 2026-09-16)
+## A constant born before an earlier value's death hard-conflicts with its register; a store in each arm moves the birth past the `REG_DEAD` (_actor110600FallState, 2026-09-16)
 
-**Problem.** `func_actor_110600_80138980` (actors, `actor_110600_2`) is
-`func_actor_110600_80138AFC`'s sibling with two differences: it seeds
+**Problem.** `_actor110600FallState` (actors, `actor_110600_2`) is
+`_actor110600RiseBackState`'s sibling with two differences: it seeds
 `walker->speedTarget` from `2` rather than `0`, and instead of parking
 `work->state` at a constant it picks a state id from the enemy's HP. Written
 the way m2c writes it, with a temp the condition overwrites,
@@ -114299,11 +114299,11 @@ Inputs: `base_1.i` (99.750%) SHA256
 (100%) SHA256 `7f48cad3a7abacc2b9d6b977dd162b863fafbeb3753805155c2d97a57b91aba3`;
 target.o SHA256 `d963d78d5e58ca85cc047a998c7e32c4c44aeb549a73ae748a4e9831df611209`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80138980-vacuum`.
+Scratch `nonmatchings/_actor110600FallState-vacuum`.
 
 ## A pointer load in the target's prologue means the source named it above the `if`, in that order
 
-`func_actor_110600_80136888` sat at 95.2% with the model object read inside the
+`_actor110600IdleState` sat at 95.2% with the model object read inside the
 `if` (`lw v0, 0x2C(s1)` after `beqz`, plus a load-delay `nop`), where the target
 has it in the prologue next to the enemy's (`lw v1, 0x2c(s1)` / `lw a0, 0x20(s1)`).
 GCC 2.8.1 will not speculate a load above a conditional branch, so a load the
@@ -114311,16 +114311,16 @@ target has *before* the `beqz` is a source read: name the pointer at the top of
 the function, not inline at its first use.
 
 ```c
-work  = arg0->field_1C;
-obj   = arg0->field_2C;   /* target: lw v1, 0x2c(s1) */
-enemy = arg0->field_20;   /* target: lw a0, 0x20(s1) */
+work  = task->work;
+model   = task->extra.tmd;   /* target: lw v1, 0x2c(s1) */
+enemy = task->spawnArg2.pointer;   /* target: lw a0, 0x20(s1) */
 if (work->stateEntered != 0) {
-    obj->field_C = 0;
+    model->flags = 0;
 ```
 
 Naming only the enemy took it to 99.762%, with the three prologue loads in the
 wrong order (`lw a0,0x20(s1)` before `lw v1,0x2c(s1)`, reverse of the target).
-Swapping the two assignments — `obj` first — gave 100%, all penalties zero: for
+Swapping the two assignments — `model` first — gave 100%, all penalties zero: for
 independent same-priority loads the scheduler keeps RTL order, so the order in
 the target's prologue is the order the source read them in. `m2c` cannot produce
 either form, because it inlines `index->field_2C->field_C = 0;` inside the `if`.
@@ -114336,7 +114336,7 @@ Inputs: `base_2.i` (99.762%) SHA256
 (100%) SHA256 `7ddbc35d5d5d9dae02caa824a95a7a508133461d583a2c8ace1a2a819387950d`;
 target.o SHA256 `1884bd2880f45dc0aeb9e58e14e1af206de915bc1f0409c38c0fcd3fe8a91a6d`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80136888-vacuum`.
+Scratch `nonmatchings/_actor110600IdleState-vacuum`.
 
 ## A pointer read through the actor is re-loaded after every store to another of its fields unless the source binds it to a local
 
@@ -114358,7 +114358,7 @@ frame size. Binding the pointer to a local removes the reloads:
 ```
 
 m2c's `temp_a2` / `temp_a1` / `temp_s3` locals are exactly this and are therefore
-worth keeping rather than folding inline; the sibling `func_actor_110600_80136888`
+worth keeping rather than folding inline; the sibling `_actor110600IdleState`
 one function up needs the same three names. Which of them are read inside the
 `if` and which above it is read off the target's own load placement — see the
 `80136888` entry above: `work` is above the `beqz` here, `enemy` and `obj` below
@@ -114373,18 +114373,18 @@ target.o SHA256 `16346a4b72614bf119587034e548eea2cec8d4e46f86e0321fc79bfc92634c4
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_110600_80136ECC-vacuum`.
 
-## An inline cast folds `0xB28 + 0x5E` into `0xB86`, so a self-store disappears; and the load that feeds it wants an early birth (func_actor_110600_801369D8, 2026-09-16)
+## An inline cast folds `0xB28 + 0x5E` into `0xB86`, so a self-store disappears; and the load that feeds it wants an early birth (_actor110600FallBackState, 2026-09-16)
 
-**Problem.** `func_actor_110600_801369D8` (actors, `actor_110600`) is the last
+**Problem.** `_actor110600FallBackState` (actors, `actor_110600`) is the last
 handler of the family whose walker block lives at `work + 0xB28`. That block's
-`speed` is at `0xB28 + 0x5E = 0xB86` — the same halfword `work->field_B86`
+`speed` is at `0xB28 + 0x5E = 0xB86` — the same halfword `work->walker.speed`
 names. That halfword is the walker's current speed. The tail re-seeds the block after
 the two `jal`s, and written with the cast inline
 
 ```c
             ((BossStrangerWalker*)((u8*)work + 0xB28))->speedTarget = 0;
             ((BossStrangerWalker*)((u8*)work + 0xB28))->speedStep = 2;
-            ((BossStrangerWalker*)((u8*)work + 0xB28))->speed = work->field_B86;
+            ((BossStrangerWalker*)((u8*)work + 0xB28))->speed = work->walker.speed;
 ```
 
 the `0x5E` store and its load are both absent from the object (`lhu v1,0xB86(s0)`
@@ -114392,13 +114392,13 @@ the `0x5E` store and its load are both absent from the object (`lhu v1,0xB86(s0)
 is constant-folded to `(plus work 0xB86)`, the two memory references become
 identical, and cse deletes the pair. The prologue has the same pair
 (`lhu a0,0xB86(s0)` / `sh a0,0x5E(v1)` inside the `if`) and the sibling
-`func_actor_110600_80138980`'s matched body shows the form that keeps both: the
-`ramp` local, which makes the base a register so `(reg walker) + 0x5E` cannot be
+`_actor110600FallState`'s matched body shows the form that keeps both: the
+`entrySpeed` local, which makes the base a register so `(reg walker) + 0x5E` cannot be
 folded against `(reg work) + 0xB86`.
 
-**Why one variable is not enough here.** The prologue's `ramp` dies before the
+**Why one variable is not enough here.** The prologue's `entrySpeed` dies before the
 two calls and the tail's re-read is a second value, so binding the tail to the
-same `ramp` also re-sorts the prologue (94.4%). Two variables reproduce both
+same `entrySpeed` also re-sorts the prologue (94.4%). Two variables reproduce both
 computations — the prologue's in `$v1` inside the `if`, the tail's in `$s1`
 across the calls. Note also, from the attempt in between: a second assignment of
 the *same expression* to the *same* variable is not two computations — cse sees
@@ -114418,12 +114418,12 @@ in `.greg`). §10.6's live-length lever applied to a load whose store stays wher
 it is: the knob is the *load's* position in the source, not the store's.
 
 ```c
-            ramp2             = work->field_B86;   /* born at the block top */
+            landingSpeed             = work->walker.speed;   /* born at the block top */
             work->animId   = 0x1E;
             work->animRequest   = 2;
-            walker2->speedTarget = 0;
-            walker2->speedStep = 2;
-            walker2->speed = ramp2;             /* dies in the j delay slot */
+            landingWalker->speedTarget = 0;
+            landingWalker->speedStep = 2;
+            landingWalker->speed = landingSpeed;             /* dies in the j delay slot */
 ```
 
 Inputs: `base_1.i` (86.768%, cast inline — load and store folded away) SHA256
@@ -114433,7 +114433,7 @@ Inputs: `base_1.i` (86.768%, cast inline — load and store folded away) SHA256
 (100%) SHA256 `5fc0282967756ecb9e62e72342002815095f8e5f2acdfaf1b5304c41c6704dd4`;
 target.o SHA256 `2504643904e51e32e84c6119cc887e0dd3787a4123478f79af76e324d14a2213`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_801369D8-vacuum`.
+Scratch `nonmatchings/_actor110600FallBackState-vacuum`.
 
 ## A `switch` index off a halfword field wants an `s32` temp: an HImode one lands on `lhu` + `sll 16` / `sra 16` (_actor110600EnrageState, 2026-09-16)
 
@@ -114493,7 +114493,7 @@ variant `base_2.i` SHA256
 target.o SHA256 `8a1da1a275b141ede219dfcdedded41c353f96e2d9b152a4abbcbc07df26637f`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor110600EnrageState-vacuum`. Sibling
-`func_actor_110600_80138D7C` is the same halving tail with no switch, and its
+`_actor110600StatusHoldState` is the same halving tail with no switch, and its
 matched body reads the same way.
 
 ## A memory chain re-mentioned after a `jal` re-loads; bind the first use to a local and re-state the chain for the second (_actor110600AlertState, 2026-09-16)
@@ -114787,7 +114787,7 @@ SHA256 `8393ef6319ff70979f7156863e8f337e69f4b7598a4bce5b40f7fdf326fa79c6`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/_actor110600ApplyCommand-vacuum`.
 
-## Two field updates of one block: a store written after a load holds the load's index span open, and that alone picks $v0 vs $v1 (func_actor_110600_80135194, 2026-09-16)
+## Two field updates of one block: a store written after a load holds the load's index span open, and that alone picks $v0 vs $v1 (_actor110600PatrolState, 2026-09-16)
 
 Symptom: 97.5% with `stack=0 branch=0 reorder=0 insert=2 delete=2`, and the whole
 difference is a six-instruction window — two independent `lhu`/`ori`/`sh` and
@@ -114818,7 +114818,7 @@ entry above for the same formula driving a load's home).
 
 Fix: copy the statement order from an already-matched sibling in the same unit
 that writes the same fields. Both `_actor110600AlertState` and
-`func_actor_110600_80136888` write `attackBody.flags` before `gridBody.flags`,
+`_actor110600IdleState` write `attackBody.flags` before `gridBody.flags`,
 and that order — not the one the m2c dump or the target's own instruction order
 suggests — is the one that matches. Reading the siblings first would have saved
 the five builds spent modelling sched1/sched2 ready-list classes; the scheduler
@@ -114829,7 +114829,7 @@ Inputs: `base_4.i` SHA256
 `87978a5904735b2aa1aa886391a12d055f89b28ba315a18281453eda76ed5d27`; target.o
 SHA256 `bc4db433ef0de7980a8db1e3139e19a7e1417e0ba5595bb9bcd3a645d1a994a1`;
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Scratch `nonmatchings/func_actor_110600_80135194-vacuum`.
+Scratch `nonmatchings/_actor110600PatrolState-vacuum`.
 
 ## A one-iteration `s16` loop bound compiles the back edge to `blez`, with no constant in the asm
 
@@ -138506,7 +138506,7 @@ Preprocessed input SHA256:
 - base_4.i: `c955f7edd7d9c7a60d566d4a8f5643404ca3c6673ad5ff9f5823deae453f1f62`
 - base_8.i: `a657633af0851db4af3d63599157dfc4c745b505e077d737546f8249ab51d1ff`
 
-## A once-loop is also a scheduler boundary, and a local clobber can constrain one quantity without a register pin (func_actor_110600_80135454, 2026-09-20)
+## A once-loop is also a scheduler boundary, and a local clobber can constrain one quantity without a register pin (_actor110600ChaseState, 2026-09-20)
 
 The bounded permuter changed only three initialization statements by enclosing
 them in `do { ... } while (0)`. Paired verification improved distance 420 -> 40,
@@ -138544,7 +138544,7 @@ Inputs (SHA256): base_10.i
 base_11.i `516138a1de2405c6068057a199910f0807d9cd935d52e6c25ffefe874793a9fc`;
 base_13.i `8e9619f2598f8b969300abd26bf750bc7d07c34fb10b86f13a5af3fc78f61448`.
 Compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
-Retained under `tools/permuter_findings/func_actor_110600_80135454/`, experiment
+Retained under `tools/permuter_findings/_actor110600ChaseState/`, experiment
 `cbe5d90c1ff54fbe`, with analysis and two complete traces. Register outcomes
 are specific to this compilation; the scheduler boundary rule is supported
 by both compiler source and the controlled dump comparison.

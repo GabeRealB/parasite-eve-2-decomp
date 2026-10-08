@@ -133,6 +133,19 @@ enum {
 /// Clip shared by the ordinary alert and the wake-up from lurk.
 enum { ACTOR_110600_ANIM_ALERT = 21 };
 
+/// Clips used by the patrol, knockdown and status-hold states.
+enum {
+    ACTOR_110600_ANIM_PATROL         = 2,
+    ACTOR_110600_ANIM_ATTACK         = 5,
+    ACTOR_110600_ANIM_FALL           = 12,
+    ACTOR_110600_ANIM_IDLE_VARIATION = 14,
+    ACTOR_110600_ANIM_RISE_BACK      = 15,
+    ACTOR_110600_ANIM_RISE           = 16,
+    ACTOR_110600_ANIM_IDLE           = 24,
+    ACTOR_110600_ANIM_FALL_BACK      = 29,
+    ACTOR_110600_ANIM_FALL_BACK_END  = 30,
+};
+
 /// Actor-specific message slots; both payload words are ignored.
 enum {
     ACTOR_110600_MESSAGE_ALERT  = 2007,
@@ -217,6 +230,25 @@ typedef struct {
 } _Actor110600Work;
 STATIC_ASSERT_SIZEOF(_Actor110600Work, 0xBEC);
 
+/// Stops steering and starts an idle speed ramp from the current step.
+///
+/// Standalone statement sequence requiring a braced context and arguments free
+/// of side effects. `actorWork` is live work, `walkerAlias` is a writable walker
+/// pointer and `savedSpeed` a writable u16. Target and step values narrow to
+/// unsigned halfword game units per tick. Arguments are evaluated repeatedly;
+/// current speed is retained and turn/look are cleared. The walker compares
+/// speed gaps as signed halfwords and applies target 0xFFFE as a step of -2.
+#define ACTOR_110600_ENTER_IDLE_WALKER(actorWork, walkerAlias, savedSpeed, targetValue, stepValue) \
+    (savedSpeed)                  = (actorWork)->walker.speed;                                     \
+    (walkerAlias)                 = &(actorWork)->walker;                                          \
+    (actorWork)->walker.state     = BOSS_STRANGER_WALKER_IDLE;                                     \
+    (walkerAlias)->speedTarget    = (targetValue);                                                 \
+    (walkerAlias)->speed          = (savedSpeed);                                                  \
+    (walkerAlias)->speedStep      = (stepValue);                                                   \
+    (actorWork)->walker.turnLimit = 0;                                                             \
+    (actorWork)->lookYaw          = 0;                                                             \
+    (actorWork)->lookYawTarget    = 0
+
 /// Scratch-stack block of the damage step, which runs each tick the actor has
 /// health left and no hit cooldown running, and reserves a block only while
 /// the player is alive.
@@ -270,22 +302,19 @@ static s32 _actor110600ApplyCommand(Task* task, s32 messageId, const ActorComman
 
 static s32 _actor110600PlayScriptedAnimation(Task* task, s32 messageId, const AnimationPlayRequest* request, s32 secondArg);
 
-/// Rebuilds `coord`'s Y rotation from its current yaw (`ratan2` of
-/// `-m[2][0], m[2][2]`), scaled independently on each axis through a
-/// `ActorScaleRotScratch` block borrowed from the scratchpad. Marks the coordinate dirty.
-static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz);
+static void _actorRenderSetYawAxisScales(GfxCoord* coord, s16 scaleX, s16 scaleY, s16 scaleZ);
 
 static s32  _actor110600Alert(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
-static void func_actor_110600_801388A4(Task* arg0);
+static void _actor110600HiddenState(Task* task);
 
-static void func_actor_110600_80135454(Task* arg0);
+static void _actor110600ChaseState(Task* task);
 static void func_actor_110600_80136B20(Task* arg0);
 static void func_actor_110600_801372CC(Task* arg0);
 static void _actor110600LurkState(Task* task);
-static void func_actor_110600_80138980(Task* arg0);
-static void func_actor_110600_80138A70(Task* arg0);
-static void func_actor_110600_80138AFC(Task* arg0);
-static void func_actor_110600_80138BD0(Task* arg0);
+static void _actor110600FallState(Task* task);
+static void _actor110600DownState(Task* task);
+static void _actor110600RiseBackState(Task* task);
+static void _actor110600RiseState(Task* task);
 
 static void _actor110600TickAnimation(Task* task);
 
@@ -295,20 +324,9 @@ static void _actor110600AlertState(Task* task);
 
 static void _actor110600SpawnHitEffect(Task* task, s16 hitYaw, s32 attackKey);
 
-/// Enters work state 2 (`animRequest`) on a live actor: clear the model object,
-/// clear bit 0x8000 of `attackBody.flags` and set 0x4000 of `gridBody.flags`,
-/// tag the enemy's link node, arm the `animId` / `animRate` timers, then run
-/// 20 update ticks before parking `animRate` at -8 and ticking once more.
-static void func_actor_110600_80138CA4(Task* arg0);
+static void _actor110600AlertRewindState(Task* task);
 
-/// Re-enters work state 2 on a live actor: clear the model root coordinate,
-/// re-allocate its TMD buffers, tag the enemy's link node, arm `animRequest` /
-/// `animId` / `animRate` and the `gridBody.flags` 0x4000 / `attackBody.flags`
-/// 0x8000 masks, then tick twice. On a dead one it is the model-shrink tail:
-/// halves `animRate` each tick — parking at -0x10 when the halving lands on 1
-/// and bouncing -1 back to 0x10 — and once `damageTickEnemyBuildup` reports 1, drops
-/// bit 1 of the enemy node's flags and moves the actor to state 3.
-static void func_actor_110600_80138D7C(Task* arg0);
+static void _actor110600StatusHoldState(Task* task);
 
 static s32 _actor110600Place(Task* task, s32 messageId, const ActorTransform* placement, s32 secondArg);
 
@@ -355,7 +373,7 @@ static s32  _actor110600IsPresent(Task* task, s32 messageId, s32 firstArg, s32 s
 static void _actor110600IgnoreMessage2015(Task* task, s32 messageId, s32 firstArg, s32 secondArg);
 
 static TmdSource _gActor110600StrangerBody;
-void             func_actor_110600_80138EA8(Task*);
+static void      _actor110600Task(Task* task);
 
 DamageAttack D_actor_110600_80138F04[2] = {
     { 18, 7 },
@@ -1006,9 +1024,9 @@ u16 D_actor_110600_80148660[8] = {
     1,
 };
 
-TaskDesc D_actor_110600_80148670 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_110600_80138EA8, { .model = &_gActor110600StrangerBody } };
+TaskDesc D_actor_110600_80148670 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor110600Task, { .model = &_gActor110600StrangerBody } };
 
-TaskDesc D_actor_110600_8014867C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, func_actor_110600_80138EA8, { .model = &_gActor110600StrangerBody } };
+TaskDesc D_actor_110600_8014867C = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 96 } }, _actor110600Task, { .model = &_gActor110600StrangerBody } };
 
 _Actor110600ShudderStepStorage D_actor_110600_80148688 = { 0, { 0 } };
 
@@ -1053,16 +1071,15 @@ static void            _actor110600TickBlendedSlots(Task* task);
 static __inline__ void _actor110600LinkAttackBody(WorldCollisionBody* body, GfxCoord* partCoord, WorldCollisionContact* contacts, const SVECTOR* localPosition, u16 bodyFlags);
 static __inline__ void _actor110600InitWalkerScale(BossStrangerWalker* walker);
 static void            _actor110600Spawn(Enemy* enemy, Task* task);
-static void            func_actor_110600_80135194(Task* arg0);
+static void            _actor110600PatrolState(Task* task);
 static __inline__ s32  _actor110600TickFootstepShake(void);
 static __inline__ s32  _actor110600HasPlayerBodyContact(const WorldCollisionContact* contacts);
 static void            _actor110600AttackState(Task* task);
 static __inline__ s32  _actor110600FindAttackContact(SVECTOR* hitPoint, const WorldCollisionContact* contacts, s16 contactCount);
-static void            func_actor_110600_80136888(Task* arg0);
-static void            func_actor_110600_801369D8(Task* arg0);
-static __inline__ void Actor110600_ApplyShrink(Task* arg0, _Actor110600Work* work, s16 y);
+static void            _actor110600IdleState(Task* task);
+static void            _actor110600FallBackState(Task* task);
+static __inline__ void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110600Work* work, s16 heightScale);
 static void            func_actor_110600_80136ECC(Task* arg0);
-static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale);
 static void            _actor110600DeathThrashState(Task* task);
 static void            _actor110600LurkAlertState(Task* task);
 static void            _actor110600ShudderState(Task* task);
@@ -1680,8 +1697,13 @@ static __inline__ void _actor110600InitWalkerScale(BossStrangerWalker* walker)
 
 /// Binds the walker's two-node patrol to its actor-owned navigation storage.
 ///
-/// Requires live work and leaves node/order/route contents for the layout step.
-/// The route's otherwise unread byte is retained at its spawn value of 2.
+/// Requires live work at a stable address for the walker's lifetime. Navigation
+/// and route metadata point into the work block, as do their borrowed arrays.
+/// Both live navigation counts are two; the layout supplies two route indices
+/// and an end marker in the four-byte route buffer. Does not clear contents or
+/// reset the route cursor, so spawn supplies zeroed work before layout.
+/// The route's otherwise unread byte retains its spawn value of 2; its role is
+/// unproven.
 static __inline__ void _actor110600BindPatrolStorage(_Actor110600Work* work)
 {
     work->walker.nav                   = &work->walker.navData;
@@ -1960,55 +1982,54 @@ static void _actor110600Spawn(Enemy* enemy, Task* task)
     task->state    += 1;
 }
 
-/// Aiming stage: re-arms the aim on a live actor — clear the model object, drop
-/// bit 0x8000 of `attackBody.flags` and set 0x4000 of `gridBody.flags`, tag the
-/// enemy's link node, reload `animRate` from `baseRate`, park the stage at 2
-/// (`animRequest` / `animId`) and the walker at state 3 with its turn limit at
-/// 0x10. The aim itself is one bearing: the yaw of the player delta from
-/// the model's root coordinate, minus that coordinate's own yaw, wrapped into
-/// [-0x800, 0x800]. While it is under 0x3E8 and again unconditionally, the XZ
-/// delta is measured against the `noticeRangeAhead` / `noticeRangeAround` ranges, and falling
-/// inside either moves the actor to state 4. Every tick the walker is stepped
-/// first and the model ticked last.
-static void func_actor_110600_80135194(Task* arg0)
+/// Walks the patrol route until the player enters a notice range.
+///
+/// Requires live actor work/model/enemy and an initialized two-node patrol.
+/// Entry resets the patrol clip and disables attacks. Player offsets narrow to
+/// signed halfwords in the roots' common parent frame; yaw uses 4096 units per
+/// turn. The forward cone or the all-around range selects ALERT. Movement runs
+/// before the range tests, and animation advances last.
+static void _actor110600PatrolState(Task* task)
 {
-    _Actor110600Work* work;
-    TmdObject*        obj;
-    Enemy*            enemy;
-    GfxCoord*         coord;
-    SVECTOR           delta;
-    SVECTOR*          d;
-    s16               angle;
+    enum { ACTOR_110600_PATROL_TURN_LIMIT = 16,
+           ACTOR_110600_NOTICE_ANGLE      = 1000 };
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
+    _Actor110600Work* work;
+    TmdObject*        model;
+    Enemy*            enemy;
+    GfxCoord*         rootCoord;
+    SVECTOR*          offset;
+    SVECTOR           playerOffset;
+    s16               playerTurn;
+
+    work  = task->work;
+    model = task->extra.tmd;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj->flags                    = 0;
+        model->flags                  = 0;
         work->animRate                = work->baseRate;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_RESET;
-        work->animId                  = 2;
+        work->animId                  = ACTOR_110600_ANIM_PATROL;
         work->walker.state            = BOSS_STRANGER_WALKER_PATROL;
-        work->walker.turnLimit        = 0x10;
+        work->walker.turnLimit        = ACTOR_110600_PATROL_TURN_LIMIT;
     }
     work->walker.speed = work->walkSpeed;
     _bossStrangerTick(&work->walker);
-    coord    = arg0->extra.tmd->coords;
-    d        = &delta;
-    delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy    = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz    = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    angle    = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
-    if (abs(angle) < 0x3E8) {
-        if (actorOutsideRadius(&delta, work->noticeRangeAhead) == 0)
+    // Test both the forward notice cone and the shorter all-around range.
+    rootCoord = task->extra.tmd->coords;
+    offset    = &playerOffset;
+    _actorPositionDeltaToPlayer(&gPlayerStatus, rootCoord, offset);
+    playerTurn = _actorAngleTurnToOffset(task->extra.tmd->coords, playerOffset.vx, offset->vz);
+    if (abs(playerTurn) < ACTOR_110600_NOTICE_ANGLE) {
+        if (actorOutsideRadius(&playerOffset, work->noticeRangeAhead) == 0)
             work->state = ACTOR_110600_STATE_ALERT;
     }
-    if (actorOutsideRadius(&delta, work->noticeRangeAround) == 0)
+    if (actorOutsideRadius(&playerOffset, work->noticeRangeAround) == 0)
         work->state = ACTOR_110600_STATE_ALERT;
-    _actor110600TickAnimation(arg0);
+    _actor110600TickAnimation(task);
 }
 
 /// Advances the shared five-tick footstep shake and reports its end.
@@ -2035,78 +2056,105 @@ static __inline__ s32 _actor110600TickFootstepShake(void)
     return 0;
 }
 
-static void func_actor_110600_80135454(Task* arg0)
+/// Chases the player and selects ATTACK when close enough.
+///
+/// Requires live actor work/model/enemy, player roots in a common parent frame
+/// and initialized walker/animation services. Entry blends to the patrol clip;
+/// movement uses the signed sixteenth-frame rate and a slower blended-hit step.
+/// An aligned player at XZ distance 500 <= distance < 1000 permits attack from
+/// tick 25; distance < 1000 permits it from tick 91. Look yaw follows the player,
+/// and slot-1 footstep cues drive the shared five-tick screen shake.
+static void _actor110600ChaseState(Task* task)
 {
-    _Actor110600Work*   work;
-    TmdObject*          obj;
-    Enemy*              enemy;
-    GfxCoord*           coord;
-    BossStrangerWalker* walker;
-    SVECTOR             delta;
-    SVECTOR*            d;
-    s16                 angle;
-    u16                 ramp;
-    s32                 pose;
-    s32                 nextPose;
+    enum {
+        ACTOR_110600_ENRAGED_BASE_RATE    = 56,
+        ACTOR_110600_ENRAGED_TURN_LIMIT   = 48,
+        ACTOR_110600_CHASE_TURN_LIMIT     = 28,
+        ACTOR_110600_STOP_DISTANCE        = 420,
+        ACTOR_110600_BLEND_SPEED_DIVISOR  = 1520,
+        ACTOR_110600_CLOSE_STOP_RADIUS    = 900,
+        ACTOR_110600_ATTACK_INNER_RADIUS  = 500,
+        ACTOR_110600_ATTACK_OUTER_RADIUS  = 1000,
+        ACTOR_110600_ATTACK_FACING_LIMIT  = 128,
+        ACTOR_110600_ALIGNED_ATTACK_TICKS = 25,
+        ACTOR_110600_ATTACK_TIMEOUT_TICKS = 91,
+        ACTOR_110600_FOOTSTEP_CUE_LATE    = 0x33,
+        ACTOR_110600_FOOTSTEP_CUE_EARLY   = 0x26,
+        ACTOR_110600_FOOTSTEP_SHAKE_LATE  = 1,
+        ACTOR_110600_FOOTSTEP_SHAKE_EARLY = 2,
+    };
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
+    _Actor110600Work*   work;
+    TmdObject*          model;
+    Enemy*              enemy;
+    BossStrangerWalker* walker;
+    GfxCoord*           rootCoord;
+    SVECTOR*            offset;
+    SVECTOR             playerOffset;
+    s16                 playerTurn;
+    u16                 forwardSpeed;
+    s32                 lateCueIndex;
+    s32                 earlyCueIndex;
+
+    work  = task->work;
+    model = task->extra.tmd;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj->flags                    = 0;
+        model->flags                  = 0;
         work->attackBody.flags       &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
         work->gridBody.flags         |= WORLD_COLLISION_BODY_GRID_ENABLED;
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_BLEND;
-        work->animId                  = 2;
+        work->animId                  = ACTOR_110600_ANIM_PATROL;
         work->walker.state            = BOSS_STRANGER_WALKER_CHASE;
         work->animRate                = work->baseRate;
-        if (work->baseRate == 0x38)
-            work->walker.turnLimit = 0x30;
-        work->walker.turnLimit = 0x1C;
+        if (work->baseRate == ACTOR_110600_ENRAGED_BASE_RATE)
+            work->walker.turnLimit = ACTOR_110600_ENRAGED_TURN_LIMIT;
+        // The ordinary limit also overwrites the enraged entry limit.
+        work->walker.turnLimit = ACTOR_110600_CHASE_TURN_LIMIT;
         work->stateFrame       = 0;
     }
+    // Scale movement by playback rate, then stop inside the player clearance.
     if (work->blendActive == 0) {
-        work->walker.speed = work->walkSpeed * work->animRate / 16;
-        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.speed) == 0)
+        work->walker.speed = work->walkSpeed * work->animRate / ANIMATION_RATE_ONE;
+        if ((s16)_playerDetectionOutOfReach(task->extra.tmd->coords, ACTOR_110600_STOP_DISTANCE, (s16)work->walker.speed) == 0)
             work->walker.speed = 0;
     } else {
-        work->walker.speed = (u16)(work->flinchSpeedScale * work->animRate / 1520) / 2;
-        if ((s16)_playerDetectionOutOfReach(arg0->extra.tmd->coords, 0x1A4, (s16)work->walker.speed) == 0)
+        work->walker.speed = (u16)(work->flinchSpeedScale * work->animRate / ACTOR_110600_BLEND_SPEED_DIVISOR) / 2;
+        if ((s16)_playerDetectionOutOfReach(task->extra.tmd->coords, ACTOR_110600_STOP_DISTANCE, (s16)work->walker.speed) == 0)
             work->walker.speed = 0;
     }
-    coord    = arg0->extra.tmd->coords;
-    d        = &delta;
-    delta.vx = (u16)gPlayerStatus.coordMtx->t[0] - (u16)coord->coord.t[0];
-    d->vy    = (u16)gPlayerStatus.coordMtx->t[1] - (u16)coord->coord.t[1];
-    d->vz    = (u16)gPlayerStatus.coordMtx->t[2] - (u16)coord->coord.t[2];
-    if (actorOutsideRadius(&delta, 900) == 0)
+    rootCoord = task->extra.tmd->coords;
+    offset    = &playerOffset;
+    _actorPositionDeltaToPlayer(&gPlayerStatus, rootCoord, offset);
+    if (actorOutsideRadius(&playerOffset, ACTOR_110600_CLOSE_STOP_RADIUS) == 0)
         work->walker.speed = 0;
     walker              = &work->walker;
-    ramp                = work->walker.speed;
+    forwardSpeed        = work->walker.speed;
     walker->speedStep   = 0;
-    walker->speedTarget = ramp;
-    walker->speed       = ramp;
+    walker->speedTarget = forwardSpeed;
+    walker->speed       = forwardSpeed;
     _bossStrangerTick(walker);
     work->stateFrame++;
-    angle = _actorAngleTurnToOffset(arg0->extra.tmd->coords, delta.vx, d->vz);
-    if (abs(angle) < 0x80) {
-        if (actorOutsideRadius(&delta, 500) != 0) {
-            if (actorOutsideRadius(&delta, 1000) == 0 && work->stateFrame >= 25)
+    playerTurn = _actorAngleTurnToOffset(task->extra.tmd->coords, playerOffset.vx, offset->vz);
+    if (abs(playerTurn) < ACTOR_110600_ATTACK_FACING_LIMIT) {
+        if (actorOutsideRadius(&playerOffset, ACTOR_110600_ATTACK_INNER_RADIUS) != 0) {
+            if (actorOutsideRadius(&playerOffset, ACTOR_110600_ATTACK_OUTER_RADIUS) == 0 && work->stateFrame >= ACTOR_110600_ALIGNED_ATTACK_TICKS)
                 work->state = ACTOR_110600_STATE_ATTACK;
         }
     }
-    if (actorOutsideRadius(&delta, 1000) == 0 && work->stateFrame >= 91)
+    if (actorOutsideRadius(&playerOffset, ACTOR_110600_ATTACK_OUTER_RADIUS) == 0 && work->stateFrame >= ACTOR_110600_ATTACK_TIMEOUT_TICKS)
         work->state = ACTOR_110600_STATE_ATTACK;
-    work->lookYawTarget = angle;
-    _actor110600TickAnimation(arg0);
-    pose = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    if ((pose == 0x33) && (work->lastFootstepCueIndex != pose)) {
-        work->footstepShake = 1;
+    work->lookYawTarget = playerTurn;
+    _actor110600TickAnimation(task);
+    // Start each footstep shake once when its slot-1 cue changes.
+    lateCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if ((lateCueIndex == ACTOR_110600_FOOTSTEP_CUE_LATE) && (work->lastFootstepCueIndex != lateCueIndex)) {
+        work->footstepShake = ACTOR_110600_FOOTSTEP_SHAKE_LATE;
     }
-    nextPose = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    if ((nextPose == 0x26) && (work->lastFootstepCueIndex != nextPose)) {
-        work->footstepShake = 2;
+    earlyCueIndex = work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if ((earlyCueIndex == ACTOR_110600_FOOTSTEP_CUE_EARLY) && (work->lastFootstepCueIndex != earlyCueIndex)) {
+        work->footstepShake = ACTOR_110600_FOOTSTEP_SHAKE_EARLY;
     }
     work->lastFootstepCueIndex = (s32)(work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK);
     if (work->footstepShake != 0) {
@@ -2515,122 +2563,103 @@ static void func_actor_110600_80136210(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor110600HitScratch);
 }
 
-/// Timer stage that walks between the two long `animId` values. Entering on
-/// a live actor re-arms it: clear the model object, take 0x8000 off
-/// `attackBody.flags` and put 0x4000 on `gridBody.flags`, tag the enemy's link
-/// node, set the stage timer to 0x18 and `animRate` from `baseRate`, then
-/// re-arm `walker` for a fresh patrol (`speedTarget` cleared,
-/// `speed` reloaded from its own value, `speedStep` = 8) with `walker.state` /
-/// `walker.turnLimit` / `lookYaw` / `lookYawTarget` cleared. Every tick after that steps
-/// the walker and the model, then retimes: at 0x18 a draw of `gRandomLcgState`
-/// whose seventh bit is clear drops it to 0xE, and at 0xE slot 1's
-/// `ANIMATION_SLOT_REACHED_BOUNDARY` puts it back to 0x18.
-/// Both retimes re-enter state 1 (`animRequest`) and tick once more.
-static void func_actor_110600_80136888(Task* arg0)
+/// Stops the walker and alternates the idle clip with an occasional variation.
+///
+/// Requires live actor work/model/enemy and loaded clips 24 and 14. Entry
+/// disables attacks, clears look/turning and ramps speed toward zero by eight
+/// units per tick. At an idle control jump, one in eight random draws requests
+/// the variation; its slot-1 boundary blends back to idle. Both the walker and
+/// animation advance each tick.
+static void _actor110600IdleState(Task* task)
 {
+    enum { ACTOR_110600_IDLE_DECELERATION = 8 };
+
     _Actor110600Work*   work;
     BossStrangerWalker* walker;
     Enemy*              enemy;
-    TmdObject*          obj;
-    u32                 rng;
-    u16                 ramp;
+    TmdObject*          model;
+    u32                 randomValue;
+    u16                 entrySpeed;
 
-    work  = arg0->work;
-    obj   = arg0->extra.tmd;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    model = task->extra.tmd;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        obj->flags                    = 0;
+        model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_BLEND;
-        work->animId                  = 0x18;
+        work->animId                  = ACTOR_110600_ANIM_IDLE;
         work->animRate                = work->baseRate;
-        ramp                          = work->walker.speed;
-        walker                        = &work->walker;
-        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
-        walker->speedTarget           = 0;
-        walker->speed                 = ramp;
-        walker->speedStep             = 8;
-        work->walker.turnLimit        = 0;
-        work->lookYaw                 = 0;
-        work->lookYawTarget           = 0;
+        ACTOR_110600_ENTER_IDLE_WALKER(work, walker, entrySpeed, 0, ACTOR_110600_IDLE_DECELERATION);
     }
     _bossStrangerTick(&work->walker);
-    _actor110600TickAnimation(arg0);
-    if (work->animId == 0x18) {
+    _actor110600TickAnimation(task);
+    if (work->animId == ACTOR_110600_ANIM_IDLE) {
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_FOLLOWED_JUMP) {
-            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-            gRandomLcgState = rng;
-            if (!((rng >> 16) & 7)) {
-                work->animId      = 0xE;
+            randomValue     = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+            gRandomLcgState = randomValue;
+            if (!((randomValue >> 16) & 7)) {
+                work->animId      = ACTOR_110600_ANIM_IDLE_VARIATION;
                 work->animRequest = ACTOR_110600_ANIM_REQUEST_BLEND;
-                _actor110600TickAnimation(arg0);
+                _actor110600TickAnimation(task);
             }
         }
     }
-    if ((work->animId == 0xE) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
-        work->animId      = 0x18;
+    if ((work->animId == ACTOR_110600_ANIM_IDLE_VARIATION) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+        work->animId      = ACTOR_110600_ANIM_IDLE;
         work->animRequest = ACTOR_110600_ANIM_REQUEST_BLEND;
-        _actor110600TickAnimation(arg0);
+        _actor110600TickAnimation(task);
     }
 }
 
-/// The walker's handoff stage. Entering on a live actor re-arms it: clear the
-/// model object, take 0x8000 off `attackBody.flags` and put 0x4000 on
-/// `gridBody.flags`, tag the enemy's link node, park the stage timer at 0x1D
-/// with `animRate` at 0x10, then re-arm `walker` to run its
-/// patrol out (`speedTarget` = 0xFFFE, `speed` reloaded from its own value,
-/// `speedStep` = 2) with `walker.state` / `walker.turnLimit` / `lookYaw` /
-/// `lookYawTarget` cleared. Every tick after that steps the walker and the model; at
-/// 0x1D slot 1's `ANIMATION_SLOT_REACHED_BOUNDARY` moves the stage to 0x1E and
-/// re-seeds the walker block, and at 0x1E that same bit picks what the actor
-/// does next: 0xB while the enemy's `hp` is still positive, 0xC once it
-/// has run out.
-static void func_actor_110600_801369D8(Task* arg0)
+/// Plays the backward fall and landing clips, then selects DOWN or DEATH_BURN.
+///
+/// Requires live actor work/model/enemy and loaded clips 29 and 30. Entry
+/// disables attacks and turning, and ramps the unsigned walker speed toward
+/// 0xFFFE, applied as a signed step of -2. The first slot-1 boundary restarts
+/// clip 30 and ramps toward zero; its boundary chooses DOWN while health is
+/// positive, otherwise DEATH_BURN. No recovered state writer selects FALL_BACK.
+static void _actor110600FallBackState(Task* task)
 {
+    enum { ACTOR_110600_FALL_BACK_SPEED      = 0xFFFE,
+           ACTOR_110600_FALL_BACK_SPEED_STEP = 2 };
+
     _Actor110600Work*   work;
     BossStrangerWalker* walker;
-    BossStrangerWalker* walker2;
+    BossStrangerWalker* landingWalker;
     Enemy*              enemy;
-    u16                 ramp;
-    u16                 ramp2;
+    u16                 entrySpeed;
+    u16                 landingSpeed;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
+        task->extra.tmd->flags        = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_RESET;
-        work->animId                  = 0x1D;
-        work->animRate                = 0x10;
-        ramp                          = work->walker.speed;
-        walker                        = &work->walker;
-        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
-        walker->speedTarget           = 0xFFFE;
-        walker->speed                 = ramp;
-        walker->speedStep             = 2;
-        work->walker.turnLimit        = 0;
-        work->lookYaw                 = 0;
-        work->lookYawTarget           = 0;
+        work->animId                  = ACTOR_110600_ANIM_FALL_BACK;
+        work->animRate                = ANIMATION_RATE_ONE;
+        ACTOR_110600_ENTER_IDLE_WALKER(work, walker, entrySpeed, ACTOR_110600_FALL_BACK_SPEED, ACTOR_110600_FALL_BACK_SPEED_STEP);
     }
-    walker2 = &work->walker;
-    _bossStrangerTick(walker2);
-    _actor110600TickAnimation(arg0);
-    if (work->animId == 0x1D) {
+    landingWalker = &work->walker;
+    _bossStrangerTick(landingWalker);
+    _actor110600TickAnimation(task);
+    if (work->animId == ACTOR_110600_ANIM_FALL_BACK) {
         if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
-            ramp2                = work->walker.speed;
-            work->animId         = 0x1E;
-            work->animRequest    = ACTOR_110600_ANIM_REQUEST_RESET;
-            walker2->speedTarget = 0;
-            walker2->speedStep   = 2;
-            walker2->speed       = ramp2;
+            landingSpeed               = work->walker.speed;
+            work->animId               = ACTOR_110600_ANIM_FALL_BACK_END;
+            work->animRequest          = ACTOR_110600_ANIM_REQUEST_RESET;
+            landingWalker->speedTarget = 0;
+            landingWalker->speedStep   = ACTOR_110600_FALL_BACK_SPEED_STEP;
+            landingWalker->speed       = landingSpeed;
             return;
         }
     }
-    if ((work->animId == 0x1E) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
+    if ((work->animId == ACTOR_110600_ANIM_FALL_BACK_END) && (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY)) {
         if (enemy->hp > 0) {
             work->state = ACTOR_110600_STATE_DOWN;
         } else {
@@ -2639,44 +2668,39 @@ static void func_actor_110600_801369D8(Task* arg0)
     }
 }
 
-static __inline__ void Actor110600_ApplyShrink(Task* arg0, _Actor110600Work* work, s16 y)
+/// Flattens the burning corpse around its current yaw at the current burn tick.
+///
+/// Requires live model/work and 0x58 free aligned scratch bytes for the yaw
+/// rebuild. Work is borrowed read-only; scratch is released before return.
+/// X/Z use the walker's signed Q12 scale; Y uses the supplied signed Q12 height
+/// minus two units per tick from tick 300, narrowed to a halfword. Earlier ticks
+/// therefore increase Y relative to the supplied height. Pitch/roll and prior
+/// scale are discarded, translation stays intact and composition becomes dirty.
+static __inline__ void _actor110600ShrinkBurnRootYaw(Task* task, const _Actor110600Work* work, s16 heightScale)
 {
-    TmdObject*            obj;
-    GfxCoord*             coord;
-    ActorScaleRotScratch* blk;
-    ActorScaleRotScratch* head;
-    s16                   page;
-    s16                   ang;
-    u16                   m22;
-    ActorScaleRotScratch* restoredHead;
+    enum { ACTOR_110600_BURN_SHRINK_ORIGIN_TICK = 300 };
 
-    head                                       = SCRATCH_STACK_CURSOR(ActorScaleRotScratch);
-    obj                                        = arg0->extra.tmd;
-    coord                                      = obj->coords;
-    page                                       = work->walker.scale;
-    blk                                        = head - 1;
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
-    y                                         -= (work->stateFrame - 0x12C) * 2;
-    ang                                        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->yaw                                   = ang;
-    gfxRotMatrixY(&blk->rotation, ang, 1);
-    blk->scale.vx = page;
-    blk->scale.vy = y;
-    blk->scale.vz = page;
-    ScaleMatrix(&blk->rotation, &blk->scale);
-    coord->coord.m[0][0]                       = (u16)(head - 1)->rotation.m[0][0];
-    coord->coord.m[0][1]                       = (u16)blk->rotation.m[0][1];
-    coord->coord.m[0][2]                       = (u16)blk->rotation.m[0][2];
-    coord->coord.m[1][0]                       = (u16)blk->rotation.m[1][0];
-    coord->coord.m[1][1]                       = (u16)blk->rotation.m[1][1];
-    coord->coord.m[1][2]                       = (u16)blk->rotation.m[1][2];
-    coord->coord.m[2][0]                       = (u16)blk->rotation.m[2][0];
-    coord->coord.m[2][1]                       = (u16)blk->rotation.m[2][1];
-    restoredHead                               = SCRATCH_STACK_CURSOR(ActorScaleRotScratch);
-    m22                                        = (u16)blk->rotation.m[2][2];
-    coord->composeStamp                        = GRAPHICS_COORD_DIRTY;
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = restoredHead + 1;
-    coord->coord.m[2][2]                       = m22;
+    TmdObject*            model;
+    GfxCoord*             rootCoord;
+    s16                   horizontalScale;
+    ActorScaleRotScratch* yawScratch;
+    s16                   yaw;
+
+    yawScratch      = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleRotScratch);
+    model           = task->extra.tmd;
+    rootCoord       = model->coords;
+    horizontalScale = work->walker.scale;
+    heightScale    -= (work->stateFrame - ACTOR_110600_BURN_SHRINK_ORIGIN_TICK) * 2;
+    yaw             = ratan2(-rootCoord->coord.m[2][0], rootCoord->coord.m[2][2]);
+    yawScratch->yaw = yaw;
+    gfxRotMatrixY(&yawScratch->rotation, yaw, GRAPHICS_ROTATION_REPLACE);
+    yawScratch->scale.vx = horizontalScale;
+    yawScratch->scale.vy = heightScale;
+    yawScratch->scale.vz = horizontalScale;
+    ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
+    _actorRenderCopyRotation(rootCoord, yawScratch->rotation.m);
+    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
 }
 
 static void func_actor_110600_80136B20(Task* arg0)
@@ -2740,7 +2764,7 @@ static void func_actor_110600_80136B20(Task* arg0)
         if (work->burnHeightScale >= 0x801) {
             y                    -= 8;
             work->burnHeightScale = y;
-            Actor110600_ApplyShrink(arg0, work, y);
+            _actor110600ShrinkBurnRootYaw(arg0, work, y);
         }
     }
 }
@@ -2911,39 +2935,6 @@ static void func_actor_110600_80136ECC(Task* arg0)
 /// three effects.
 static const SVECTOR D_actor_110600_80131F1C = { 0, 0, 100, 0 };
 
-static __inline__ void Actor110600_RescaleRoot(Task* arg0, s16 scale)
-{
-    ActorScaleRotScratch* blk;
-    GfxCoord*             coord;
-    u8*                   head;
-    s16                   ang;
-    u16                   m22;
-
-    head                                       = SCRATCH_STACK_CURSOR(u8);
-    coord                                      = arg0->extra.tmd->coords;
-    blk                                        = (ActorScaleRotScratch*)(head - sizeof(ActorScaleRotScratch));
-    SCRATCH_STACK_CURSOR(ActorScaleRotScratch) = blk;
-    ang                                        = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->yaw                                   = ang;
-    gfxRotMatrixY(&blk->rotation, ang, 1);
-    blk->scale.vz = (s16)scale;
-    blk->scale.vy = (s16)scale;
-    blk->scale.vx = (s16)scale;
-    ScaleMatrix(&blk->rotation, &blk->scale);
-    coord->coord.m[0][0] = (u16)((ActorScaleRotScratch*)(head - sizeof(ActorScaleRotScratch)))->rotation.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->rotation.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->rotation.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->rotation.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->rotation.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->rotation.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->rotation.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->rotation.m[2][1];
-    m22                  = (u16)blk->rotation.m[2][2];
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
-    SCRATCH_STACK_RELEASE_BYTES(sizeof(ActorScaleRotScratch));
-}
-
 static void func_actor_110600_801372CC(Task* arg0)
 {
     _Actor110600Work* work;
@@ -2993,7 +2984,7 @@ static void func_actor_110600_801372CC(Task* arg0)
     work->blendActive = 0;
     _actor110600TickAnimation(arg0);
 
-    Actor110600_RescaleRoot(arg0, work->walker.scale);
+    _actorRenderRescaleYaw(arg0->extra.tmd->coords, work->walker.scale);
 
     if ((work->lastCommand.stage == GAME_STAGE_ACROPOLIS) && (work->lastCommand.area == GAME_AREA_ACROPOLIS_CAFETERIA) && (work->lastCommand.command == 3) && (work->animId != 0x1E)) {
         if ((work->rig.slots[1].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK) == 0xB) {
@@ -3303,7 +3294,7 @@ static void _actor110600EnrageState(Task* task)
             return;
         case ACTOR_110600_ENRAGE_STAGE_OSCILLATE:
             // Alternate decaying forward/reverse rates while accumulating the tint.
-            halvedRate     = (s16)work->animRate / 2;
+            halvedRate     = work->animRate / 2;
             work->animRate = halvedRate;
             work->stateFrame++;
             if (work->animRate == enrageStage) {
@@ -3328,21 +3319,21 @@ static void _actor110600EnrageState(Task* task)
 /// written out here to keep the block in the unit's `.rodata` now that
 /// `func_actor_110600_80137F2C` is decompiled.
 static const _Actor110600StateTable D_actor_110600_80131F3C = { {
-    func_actor_110600_801388A4,
+    _actor110600HiddenState,
     NULL,
-    func_actor_110600_80135194,
-    func_actor_110600_80135454,
+    _actor110600PatrolState,
+    _actor110600ChaseState,
     _actor110600AlertState,
     _actor110600AttackState,
-    func_actor_110600_80136888,
-    func_actor_110600_801369D8,
-    func_actor_110600_80138980,
-    func_actor_110600_80138AFC,
-    func_actor_110600_80138BD0,
-    func_actor_110600_80138A70,
+    _actor110600IdleState,
+    _actor110600FallBackState,
+    _actor110600FallState,
+    _actor110600RiseBackState,
+    _actor110600RiseState,
+    _actor110600DownState,
     func_actor_110600_80136B20,
     func_actor_110600_80136ECC,
-    func_actor_110600_80138D7C,
+    _actor110600StatusHoldState,
     NULL,
     NULL,
     func_actor_110600_801372CC,
@@ -3351,7 +3342,7 @@ static const _Actor110600StateTable D_actor_110600_80131F3C = { {
     _actor110600LurkState,
     _actor110600LurkAlertState,
     _actor110600ShudderState,
-    func_actor_110600_80138CA4,
+    _actor110600AlertRewindState,
     _actor110600EnrageState,
 } };
 
@@ -3472,7 +3463,7 @@ static void _actor110600IgnoreMessage2015(Task* task, s32 messageId, s32 firstAr
 }
 
 /// The enemy task's three state handlers - spawn, per-frame tick and teardown -
-/// that `func_actor_110600_80138EA8` dispatches through by `Task::state`.
+/// that `_actor110600Task` dispatches through by `Task::state`.
 static const EnemyTaskFuncTable3 D_actor_110600_80131FA0 = {
     _actor110600Spawn,
     func_actor_110600_80137F2C,
@@ -3605,39 +3596,34 @@ static s32 _actor110600IsPresent(Task* task, s32 messageId, s32 firstArg, s32 se
 
 #include "../../shared/coord_math_yaw_scale.inc.c"
 
-static void func_actor_110600_80138680(GfxCoord* coord, s16 sx, s16 sy, s16 sz)
+/// Replaces a coordinate's rotation with its current yaw and independent axis scales.
+///
+/// Requires a live writable word-aligned coordinate outside the scratch stack.
+/// Heading uses 4096 units per turn. The three factors are signed Q12 (`ONE`
+/// is unity); zero collapses an axis and a negative factor reverses it. Scaling
+/// narrows coefficients to halfwords without saturation. Discards pitch/roll
+/// and prior scale, preserves translation/parent/Euler angles and marks the
+/// composition cache dirty. No recovered caller uses this standalone helper.
+///
+/// The initialized scratch stack needs 0x58 free aligned bytes for the scale
+/// block and nested yaw workspace. Both are released before return.
+static void _actorRenderSetYawAxisScales(GfxCoord* coord, s16 scaleX, s16 scaleY, s16 scaleZ)
 {
-    void**                scratch;
-    ActorScaleRotScratch* head;
-    ActorScaleRotScratch* blk;
-    s16                   ang;
-    u16                   m22;
+    ActorScaleRotScratch* yawScratch;
+    s16                   yaw;
 
-    scratch                                        = SCRATCH_HEAD_ADDR;
-    head                                           = SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch);
-    blk                                            = head - 1;
-    SCRATCH_HEAD_AT(scratch, ActorScaleRotScratch) = blk;
+    yawScratch      = SCRATCH_STACK_RESERVE_BLOCK(ActorScaleRotScratch);
+    yaw             = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+    yawScratch->yaw = yaw;
+    gfxRotMatrixY(&yawScratch->rotation, yaw, GRAPHICS_ROTATION_REPLACE);
+    yawScratch->scale.vx = scaleX;
+    yawScratch->scale.vy = scaleY;
+    yawScratch->scale.vz = scaleZ;
+    ScaleMatrix(&yawScratch->rotation, &yawScratch->scale);
 
-    ang      = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-    blk->yaw = ang;
-    gfxRotMatrixY(&blk->rotation, ang, 1);
-    blk->scale.vx = sx;
-    blk->scale.vy = sy;
-    blk->scale.vz = sz;
-    ScaleMatrix(&blk->rotation, &blk->scale);
-
-    coord->coord.m[0][0] = (u16)(head - 1)->rotation.m[0][0];
-    coord->coord.m[0][1] = (u16)blk->rotation.m[0][1];
-    coord->coord.m[0][2] = (u16)blk->rotation.m[0][2];
-    coord->coord.m[1][0] = (u16)blk->rotation.m[1][0];
-    coord->coord.m[1][1] = (u16)blk->rotation.m[1][1];
-    coord->coord.m[1][2] = (u16)blk->rotation.m[1][2];
-    coord->coord.m[2][0] = (u16)blk->rotation.m[2][0];
-    coord->coord.m[2][1] = (u16)blk->rotation.m[2][1];
-    m22                  = (u16)blk->rotation.m[2][2];
-    SCRATCH_POP_AT(scratch, ActorScaleRotScratch);
-    coord->composeStamp  = GRAPHICS_COORD_DIRTY;
-    coord->coord.m[2][2] = m22;
+    _actorRenderCopyRotation(coord, yawScratch->rotation.m);
+    SCRATCH_STACK_RELEASE_BLOCK(ActorScaleRotScratch);
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
 }
 
 /// Acquires a battle reference and switches the actor to ALERT.
@@ -3690,18 +3676,25 @@ static void _actor110600Exit(Task* task)
     enemyDestroy(enemy, task);
 }
 
-static void func_actor_110600_801388A4(Task* arg0)
+/// Hides the actor and disables targeting, attacks and grid correction on entry.
+///
+/// Requires live actor work/model/enemy. Retains the existing model flags while
+/// adding the skip-draw bit. Does not advance animation or the walker; later
+/// messages or spawn behavior must select another state.
+static void _actor110600HiddenState(Task* task)
 {
-    TmdObject*        obj;
+    TmdObject*        model;
     _Actor110600Work* work;
+    Enemy*            enemy;
 
-    work = arg0->work;
+    work = task->work;
     if (work->stateEntered != 0) {
-        obj                                                       = arg0->extra.tmd;
-        ((Enemy*)arg0->spawnArg2.pointer)->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        obj->flags                                                = (u16)(obj->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
-        work->attackBody.flags                                    = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
-        work->gridBody.flags                                      = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
+        model                         = task->extra.tmd;
+        enemy                         = task->spawnArg2.pointer;
+        enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
+        model->flags                  = (u16)(model->flags | TMD_OBJECT_SKIP_ACTIVE_DRAW);
+        work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
+        work->gridBody.flags          = (u16)(work->gridBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED));
     }
 }
 
@@ -3730,35 +3723,36 @@ static s32 func_actor_110600_80138900(void)
     return 1;
 }
 
-static void func_actor_110600_80138980(Task* arg0)
+/// Plays the forward fall while edging ahead, then selects DOWN or DEATH_BURN.
+///
+/// Requires live actor work/model/enemy and loaded clip 12. Entry disables
+/// attacks and turning and ramps toward a two-unit forward step by eight units
+/// per tick. The slot-1 boundary chooses DOWN while health is positive, otherwise
+/// DEATH_BURN. No recovered state writer selects FALL.
+static void _actor110600FallState(Task* task)
 {
+    enum { ACTOR_110600_FALL_FORWARD_SPEED = 2,
+           ACTOR_110600_FALL_SPEED_STEP    = 8 };
+
     _Actor110600Work*   work;
     BossStrangerWalker* walker;
     Enemy*              enemy;
-    u16                 ramp;
+    u16                 entrySpeed;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
+        task->extra.tmd->flags        = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_RESET;
-        work->animId                  = 0xC;
-        work->animRate                = 0x10;
-        ramp                          = work->walker.speed;
-        walker                        = &work->walker;
-        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
-        walker->speedTarget           = 2;
-        walker->speed                 = ramp;
-        walker->speedStep             = 8;
-        work->walker.turnLimit        = 0;
-        work->lookYaw                 = 0;
-        work->lookYawTarget           = 0;
+        work->animId                  = ACTOR_110600_ANIM_FALL;
+        work->animRate                = ANIMATION_RATE_ONE;
+        ACTOR_110600_ENTER_IDLE_WALKER(work, walker, entrySpeed, ACTOR_110600_FALL_FORWARD_SPEED, ACTOR_110600_FALL_SPEED_STEP);
     }
     _bossStrangerTick(&work->walker);
-    _actor110600TickAnimation(arg0);
+    _actor110600TickAnimation(task);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         if (enemy->hp > 0) {
             work->state = ACTOR_110600_STATE_DOWN;
@@ -3768,178 +3762,220 @@ static void func_actor_110600_80138980(Task* arg0)
     }
 }
 
-static void func_actor_110600_80138A70(Task* arg0)
+/// Holds the fallen pose for a random delay before choosing its recovery clip.
+///
+/// Requires live actor work. Entry draws a delay of 0..31 ticks; decrementing
+/// below zero selects RISE_BACK after clip 30 or RISE after clip 12. Other clip
+/// IDs leave the state unchanged. Neither animation nor movement advances here.
+static void _actor110600DownState(Task* task)
 {
-    _Actor110600Work* work;
-    u32               rng;
-    s16               timer;
+    enum { ACTOR_110600_DOWN_DELAY_MASK = 31 };
 
-    work = arg0->work;
+    _Actor110600Work* work;
+    u32               randomValue;
+    s16               remainingTicks;
+
+    work = task->work;
     if (work->stateEntered != 0) {
-        rng              = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        gRandomLcgState  = rng;
-        work->downFrames = (rng >> 16) & 0x1F;
+        randomValue      = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+        gRandomLcgState  = randomValue;
+        work->downFrames = (randomValue >> 16) & ACTOR_110600_DOWN_DELAY_MASK;
     }
-    timer            = work->downFrames - 1;
-    work->downFrames = timer;
-    if (timer < 0) {
+    remainingTicks   = work->downFrames - 1;
+    work->downFrames = remainingTicks;
+    if (remainingTicks < 0) {
         switch (work->animId) {
-            case 30:
+            case ACTOR_110600_ANIM_FALL_BACK_END:
                 work->state = ACTOR_110600_STATE_RISE_BACK;
                 return;
-            case 12:
+            case ACTOR_110600_ANIM_FALL:
                 work->state = ACTOR_110600_STATE_RISE;
                 break;
         }
     }
 }
 
-static void func_actor_110600_80138AFC(Task* arg0)
+/// Plays the recovery from a backward fall, then resumes CHASE.
+///
+/// Requires live actor work/model/enemy and loaded clip 15. Entry resets
+/// the clip at the variant base rate, disables attacks/turning and ramps
+/// movement toward zero by eight units per tick. Walker and animation both
+/// advance; the slot-1 boundary selects CHASE.
+static void _actor110600RiseBackState(Task* task)
 {
+    enum { ACTOR_110600_RISE_DECELERATION = 8 };
+
     _Actor110600Work*   work;
     BossStrangerWalker* walker;
     Enemy*              enemy;
-    u16                 ramp;
+    u16                 entrySpeed;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
+        task->extra.tmd->flags        = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_RESET;
-        work->animId                  = 0xF;
+        work->animId                  = ACTOR_110600_ANIM_RISE_BACK;
         work->animRate                = work->baseRate;
-        ramp                          = work->walker.speed;
-        walker                        = &work->walker;
-        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
-        walker->speedTarget           = 0;
-        walker->speed                 = ramp;
-        walker->speedStep             = 8;
-        work->walker.turnLimit        = 0;
-        work->lookYaw                 = 0;
-        work->lookYawTarget           = 0;
+        ACTOR_110600_ENTER_IDLE_WALKER(work, walker, entrySpeed, 0, ACTOR_110600_RISE_DECELERATION);
     }
     _bossStrangerTick(&work->walker);
-    _actor110600TickAnimation(arg0);
+    _actor110600TickAnimation(task);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
     }
 }
 
-static void func_actor_110600_80138BD0(Task* arg0)
+/// Plays the recovery from a forward fall, then resumes CHASE.
+///
+/// Requires live actor work/model/enemy and loaded clip 16. Entry resets
+/// the clip at the variant base rate, disables attacks/turning and ramps
+/// movement toward zero by eight units per tick. Walker and animation both
+/// advance; the slot-1 boundary selects CHASE.
+static void _actor110600RiseState(Task* task)
 {
+    enum { ACTOR_110600_RISE_DECELERATION = 8 };
+
     _Actor110600Work*   work;
     BossStrangerWalker* walker;
     Enemy*              enemy;
-    u16                 ramp;
+    u16                 entrySpeed;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
     if (work->stateEntered != 0) {
-        arg0->extra.tmd->flags        = 0;
+        task->extra.tmd->flags        = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_RESET;
-        work->animId                  = 0x10;
+        work->animId                  = ACTOR_110600_ANIM_RISE;
         work->animRate                = work->baseRate;
-        ramp                          = work->walker.speed;
-        walker                        = &work->walker;
-        work->walker.state            = BOSS_STRANGER_WALKER_IDLE;
-        walker->speedTarget           = 0;
-        walker->speed                 = ramp;
-        walker->speedStep             = 8;
-        work->walker.turnLimit        = 0;
-        work->lookYaw                 = 0;
-        work->lookYawTarget           = 0;
+        ACTOR_110600_ENTER_IDLE_WALKER(work, walker, entrySpeed, 0, ACTOR_110600_RISE_DECELERATION);
     }
     _bossStrangerTick(&work->walker);
-    _actor110600TickAnimation(arg0);
+    _actor110600TickAnimation(task);
     if (work->rig.slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) {
         work->state = ACTOR_110600_STATE_CHASE;
     }
 }
 
-static void func_actor_110600_80138CA4(Task* arg0)
+#undef ACTOR_110600_ENTER_IDLE_WALKER
+
+/// Seeds the alert pose ahead, then plays it backward at half rate.
+///
+/// Requires live actor work/model/enemy and loaded alert tracks. Entry makes
+/// the actor un-lockable, disables attacks and blending, applies the alert reset
+/// and advances twenty more normal-rate ticks. Every callback then advances at
+/// -8 sixteenths of a frame per tick. No automatic state transition ends rewind.
+static void _actor110600AlertRewindState(Task* task)
 {
+    enum { ACTOR_110600_ALERT_WARMUP_TICKS = 20,
+           ACTOR_110600_ALERT_REVERSE_RATE = -8 };
+
     _Actor110600Work* work;
     Enemy*            enemy;
-    TmdObject*        obj;
-    s16               i;
+    TmdObject*        model;
+    s16               warmupTick;
 
-    work = arg0->work;
-    i    = 0;
+    work       = task->work;
+    warmupTick = 0;
     if (work->stateEntered != 0) {
-        enemy                         = arg0->spawnArg2.pointer;
-        obj                           = arg0->extra.tmd;
-        obj->flags                    = 0;
+        enemy                         = task->spawnArg2.pointer;
+        model                         = task->extra.tmd;
+        model->flags                  = 0;
         work->attackBody.flags        = (u16)(work->attackBody.flags & (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED));
         work->gridBody.flags          = (u16)(work->gridBody.flags | WORLD_COLLISION_BODY_GRID_ENABLED);
         enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-        work->animId                  = 0x15;
+        work->animId                  = ACTOR_110600_ANIM_ALERT;
         work->animRequest             = ACTOR_110600_ANIM_REQUEST_RESET;
         work->walker.turnLimit        = 0;
         work->lookYaw                 = 0;
-        work->animRate                = 0x10;
+        work->animRate                = ANIMATION_RATE_ONE;
         work->blendActive             = 0;
-        _actor110600TickAnimation(arg0);
+        // Apply the reset, then advance twenty normal-rate ticks before rewinding.
+        _actor110600TickAnimation(task);
         work->stateFrame = 0;
-        for (i = 0; i < 0x14; i++) {
-            _actor110600TickAnimation(arg0);
+        for (; warmupTick < ACTOR_110600_ALERT_WARMUP_TICKS; warmupTick++) {
+            _actor110600TickAnimation(task);
         }
     }
-    work->animRate = -8;
-    _actor110600TickAnimation(arg0);
+    work->animRate = ACTOR_110600_ALERT_REVERSE_RATE;
+    _actor110600TickAnimation(task);
 }
 
-static void func_actor_110600_80138D7C(Task* arg0)
+/// Halves status-hold playback, reversing at +1 and restarting forward at -1.
+///
+/// The live work rate uses signed sixteenth-frame units. Division truncates
+/// toward zero; zero stays zero, and reaching either unit restarts the opposite
+/// direction at one full frame per tick. Does not advance animation.
+static __inline__ void _actor110600OscillateStatusRate(_Actor110600Work* work)
 {
-    _Actor110600Work* work;
-    Enemy*            enemy;
-    TmdObject*        obj;
-    s16               step;
+    s16 halvedRate;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    if (work->stateEntered != 0) {
-        obj                           = arg0->extra.tmd;
-        enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
-        obj->flags                    = 0;
-        tmdAllocPrimitiveBuffer(obj);
-        work->animRequest       = ACTOR_110600_ANIM_REQUEST_RESET;
-        work->animId            = 5;
-        work->animRate          = 0x30;
-        work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-        _actor110600TickAnimation(arg0);
-        _actor110600TickAnimation(arg0);
-        return;
-    }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    step                                  = (s16)work->animRate / 2;
-    work->animRate                        = step;
-    if (step == 1) {
-        work->animRate = -0x10;
+    halvedRate     = work->animRate / 2;
+    work->animRate = halvedRate;
+    if (halvedRate == 1) {
+        work->animRate = -ANIMATION_RATE_ONE;
     }
     if (work->animRate == -1) {
-        work->animRate = 0x10;
+        work->animRate = ANIMATION_RATE_ONE;
     }
-    _actor110600TickAnimation(arg0);
+}
+
+/// Oscillates the attack pose until the enemy status buildup expires.
+///
+/// Requires live actor work/model/enemy and loaded attack tracks. Entry shows
+/// and buffers the model, disables attacks and starts clip 5 at three frames
+/// per tick, advancing twice. Later ticks halve the signed rate toward zero;
+/// +1 restarts at -16 and -1 at +16, in sixteenth-frame units. Buildup completion
+/// clears its reaction bits and selects CHASE. Entry does not consume buildup.
+static void _actor110600StatusHoldState(Task* task)
+{
+    enum { ACTOR_110600_STATUS_INITIAL_RATE = 3 * ANIMATION_RATE_ONE };
+
+    _Actor110600Work* work;
+    Enemy*            enemy;
+    TmdObject*        model;
+
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    if (work->stateEntered != 0) {
+        model                         = task->extra.tmd;
+        enemy->node.state.parts.flags = WORLD_TARGET_HIDE_HP;
+        model->flags                  = 0;
+        tmdAllocPrimitiveBuffer(model);
+        work->animRequest       = ACTOR_110600_ANIM_REQUEST_RESET;
+        work->animId            = ACTOR_110600_ANIM_ATTACK;
+        work->animRate          = ACTOR_110600_STATUS_INITIAL_RATE;
+        work->gridBody.flags   |= WORLD_COLLISION_BODY_GRID_ENABLED;
+        work->attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+        _actor110600TickAnimation(task);
+        _actor110600TickAnimation(task);
+        return;
+    }
+    // Alternate decaying forward and reverse playback while buildup remains.
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    _actor110600OscillateStatusRate(work);
+    _actor110600TickAnimation(task);
     if (damageTickEnemyBuildup(enemy) == 1) {
         enemy->reactionFlags &= ENEMY_REACTION_BUILDUP_CLEAR;
         work->state           = ACTOR_110600_STATE_CHASE;
     }
 }
 
-/// Runs the enemy task's current state handler from the actor's three-entry
-/// table (spawn, per-frame tick, teardown), copying the table onto the stack
-/// before the call.
-void func_actor_110600_80138EA8(Task* task)
+/// Dispatches the Boss Stranger task through spawn, update and teardown.
+///
+/// The task must be live with state 0..2 and its Enemy in spawnArg2. Copies the
+/// three callback pointers to a local table before dispatch; no bounds check is
+/// performed. The actor overlay must stay loaded, and teardown may free the task.
+static void _actor110600Task(Task* task)
 {
-    EnemyTaskFuncTable3 sp;
+    EnemyTaskFuncTable3 handlers;
 
-    sp = D_actor_110600_80131FA0;
-    sp.funcs[task->state](task->spawnArg2.pointer, task);
+    handlers = D_actor_110600_80131FA0;
+    handlers.funcs[task->state](task->spawnArg2.pointer, task);
 }
