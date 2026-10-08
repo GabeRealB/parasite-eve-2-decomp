@@ -1008,7 +1008,7 @@ target label* - and only if that yields nothing, other jumps to the same label
 first insn that differs**, deleting stream 1 from that point to the jump and
 retargeting the jump with `get_label_before (newlpos)`.
 
-`func_actor_421600_80132A00` (304 insns) is three instances of the same shape and
+`_actor421600ApplyCommand` (304 insns) is three instances of the same shape and
 each one needed a different spelling:
 
 ```
@@ -1108,7 +1108,7 @@ sibling rooms' style.
 
 ## `rodata_head` on the overlay that owns the leading jump table, and the `INCLUDE_RODATA` that must go with it
 
-`func_actor_421600_80132A00`'s switch is the first table in the leading rodata,
+`_actor421600ApplyCommand`'s switch is the first table in the leading rodata,
 so its jump table must start the `actor_421600` unit's `.rodata` - the table is
 at image offset 0x4, immediately after the overlay id word. Two things are
 needed, and the build does not tell you the second one:
@@ -101784,9 +101784,10 @@ an overlay-local ctx, and 0x4D is a real field (`pad_4D` renamed to `field_4D`,
 size and offset unchanged). `_enemyAllocateWork` confirms it from the other side:
 `memCalloc(0x60, 0)` stored into `task->spawnArg2`.
 
-The instruction stream is also the check on the idiom: `func_actor_421600_8013E858`
+The instruction stream is also the check on the idiom: `_actor421600HideState`
 is the same body in another overlay, identical for its first 13 instructions,
-and its C (`enemy->node.flags = 1;` then `work->field_B6C.flags &= 0xBFFF;`)
+and its C (`enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;` then
+`work->spheres[DESERT_CHASER_SPHERE_ROOT].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_GRID_ENABLED);`)
 is what the typed port follows. Only the mask constant, its offset and one extra
 store differ, so a sibling from the family is a better template than the seed.
 
@@ -111447,7 +111448,7 @@ target.o SHA256 `a128ed2a884bc9f92cd16c667e8c9e61eec2102e07b5b2902cca6c9ab9aa721
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_actor_421600_8013903C-vacuum`.
 
-## The side a difference is written on decides the two temporaries' registers (func_actor_421600_80133334, 2026-09-16)
+## The side a difference is written on decides the two temporaries' registers (_actor421600PushOutsideArenaCenter, 2026-09-16)
 
 `if ((x + 0xC4E) < (0xD16 - x))` and `if ((0xD16 - x) > (x + 0xC4E))` are the same
 comparison, and GCC expands them to the same four instructions - but not to the
@@ -111458,7 +111459,7 @@ while `x + 0xC4E` takes `$v0`; the other form swaps them.
 
 Symptom: a function whose instruction sequence matches exactly but whose two
 `addiu`/`subu`/`slt` temporaries sit in each other's registers, with `regs` the
-only non-zero penalty. Before the flip `func_actor_421600_80133334` scored 84.63%
+only non-zero penalty. Before the flip `_actor421600PushOutsideArenaCenter` scored 84.63%
 with `regs=30`; after it 91.13% with `regs=19`, and every other penalty
 (`insert`, `delete`, `reorder`, `branch`) fell to 0 or 2 with it. The same flip
 applied to the second comparison in the same function took it to 98.60%.
@@ -111467,7 +111468,7 @@ Read the target's two temporaries and write the expression so the *later*
 temporary's computation appears on the left. There is no CSE or scheduling lever
 here - the tree's operand order is the whole knob.
 
-## `(u16)var` is not a halfword load: the range test deletes the mask (func_actor_421600_80133334, 2026-09-16)
+## `(u16)var` is not a halfword load: the range test deletes the mask (_actor421600PushOutsideArenaCenter, 2026-09-16)
 
 A target that reads the low half of an `s32` field with `lhu` while the same field
 is compared as an `s32` cannot be reproduced with `(u16)x` on the variable.
@@ -111477,11 +111478,11 @@ drops by two, `insert`/`delete` go non-zero and the score is ~7 points low even
 though nothing else changed.
 
 The field needs unsigned-halfword read semantics, now spelled
-`(u16)arg0->coord.t[0]` in the coordinate-clipping body. Both adjustment arms then get
+`(u16)coord->coord.t[0]` in the coordinate-clipping body. Both adjustment arms then get
 their own `lhu`, matching the target. 84.63% -> 91.13% together with the operand
 order above.
 
-## An s16 adjustment and its s32 absolute value are two different type choices (func_actor_421600_80133334, 2026-09-16)
+## An s16 adjustment and its s32 absolute value are two different type choices (_actor421600PushOutsideArenaCenter, 2026-09-16)
 
 For `d = <wide expr>; ad = d; if (d < 0) ad = -ad;` the pair of types decides
 three separate things, and the target assembly pins all three:
@@ -111506,7 +111507,7 @@ function and takes `$v1` before the s16 variable it belongs to is placed. Every
 locally-found fix (extending a `$v1` resident's live range, testing the widened
 copy, a function-local `register ... asm("v1")` pin) either moves the wrong value
 or changes nothing, and the best candidate (99.412%, scratch
-`nonmatchings/func_actor_421600_80133334-vacuum`, `LEARNINGS.md` there) is 8
+`nonmatchings/_actor421600PushOutsideArenaCenter-vacuum`, `LEARNINGS.md` there) is 8
 register names short. Inputs: `base_3.i` (91.129%) SHA256
 `b060691ba2546cc748cf5534ab35c3a6fe31683fa35b6f4dfb9f953980ab2500`; `base_5.i`
 (98.603%) SHA256 `018f75e1c12e8e8fc288444c466911b779871a8f023e834d6783e109f3d6f727`;
@@ -111554,7 +111555,7 @@ rather than `M2C_UNK`, removed a second `sll` and a `lw`-for-`lb`: 93.08% ->
 `8b02d33aea1389c687bd19e3062d9ec75351291fba026a75e7353a7479856e0c` (99.702%,
 `regs=5`).
 
-## A body repeated in both arms that *shares its tail* is two inlined calls, not a shared tail (func_actor_421600_801366F4, 2026-09-16)
+## A body repeated in both arms that *shares its tail* is two inlined calls, not a shared tail (_actor421600ShrinkDeathState, 2026-09-16)
 
 The shrink tick's two arms each carry a 20-instruction body (scratch setup,
 `ratan2`, `gfxRotMatrixY`, three scale stores, `ScaleMatrix`), but the 9-store
@@ -111575,10 +111576,10 @@ arms — the same idiom this overlay family already uses for the uniform-scale
 twin (`_actorRenderRescaleYaw`, `ActorsShared80135a60`), with the per-axis
 factor as an `s16` parameter:
 
-    if (t < 0x1000) {
-        Actor421600_ShrinkCoord(arg0->field_2C->field_8, 0x1000 - t);
+    if (scaleLoss < ONE) {
+        _actorRenderRescaleYawY(task->extra.tmd->coords, ONE, ONE - scaleLoss);
     } else {
-        Actor421600_ShrinkCoord(arg0->field_2C->field_8, 0);
+        _actorRenderRescaleYawY(task->extra.tmd->coords, ONE, 0);
     }
 
 Duplicating the body by hand instead (all nine stores in both arms) reached
@@ -136370,7 +136371,7 @@ Trace manifest verifies unchanged assembly. Retained evidence is under
 actor_107000 and actor_207000; unscoped build/verification passed for both.
 
 
-## ABS lowering makes the result local; remove an obsolete carrier afterward (func_actor_421600_80133334, 2026-09-20)
+## ABS lowering makes the result local; remove an obsolete carrier afterward (_actor421600PushOutsideArenaCenter, 2026-09-20)
 
 A retry started at 99.412%, distance 40, eight register penalties and matching
 object topology. Its archived permuter carrier `z = dx; adx = z;` reused the
@@ -136414,11 +136415,11 @@ Preprocessed inputs:
 - base_1.i: `7eba67f170fb85afca3c6a1b0992442e0cb2412673e11fcb54c6de8573dfde21`
 - base_2.i: `2ae83188d3d6fe2d38826f95bb7a0b593e70b2ffa3bf0eda1f39e6b25d985885`
 
-Evidence is retained under `tools/permuter_findings/func_actor_421600_80133334/`,
+Evidence is retained under `tools/permuter_findings/_actor421600PushOutsideArenaCenter/`,
 session `2227953e97dc4d63b91305e4b104e6af`, including plans, source, RTL,
 allocation dumps, scores, and the independent unresolved router result.
 
-## A u16 call conversion can reverse an OR before allocation; keep the full expression in its own local (func_actor_421600_801369A0, 2026-09-20)
+## A u16 call conversion can reverse an OR before allocation; keep the full expression in its own local (_actor421600WaitToRespawnState, 2026-09-20)
 
 The remaining 99.946% mismatch was `or a0,v0,a0` instead of `or a0,a0,v0`.
 The callee takes u16. In `Find((stage << 8) | area)`, convert.c:269-318
@@ -136432,10 +136433,10 @@ Its normalized baseline was unchanged. Preserve the actual callee contract by
 computing the entire expression at full width first:
 
 ```c
-s32 stageAreaId;
+s32 firstPlaceKey;
 /* ... */
-stageAreaId = (gGameSession->location.loc.stage << 8) | gGameSession->location.loc.area;
-found = sceneFindEnemyByPlaceKey(stageAreaId);
+firstPlaceKey = (gGameSession->location.loc.stage << ENEMY_PLACE_STAGE_SHIFT) | gGameSession->location.loc.area;
+otherChaser = sceneFindEnemyByPlaceKey(firstPlaceKey);
 ```
 
 Both fields are u8, so the full value fits u16 and the later truncation vanishes
@@ -136447,7 +136448,7 @@ case's local allocation and matched 100%. This is a real live-range split,
 not a declaration-order or renaming trick. Typed base_4 retained 100%, and the
 unscoped build-and-verify passed. No pins or changed shared prototypes landed.
 
-Evidence is retained under tools/permuter_findings/func_actor_421600_801369A0/:
+Evidence is retained under tools/permuter_findings/_actor421600WaitToRespawnState/:
 run 8d2a08f99f694d50, LEARNINGS.md, PERMUTER_ANALYSIS.md, planned base_2/base_3
 experiments, and .rtl/.lreg/.greg dumps. Compiler SHA256:
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
@@ -149605,7 +149606,7 @@ attempts; left as it was.
 ### Goto forms from the desert chaser and glutton actors (batch 08, 2026-10-06)
 
 - **Cross-jumping does not merge two jumps to a label it created itself.**
-  `func_actor_421600_80132A00` has two placement cases with identical bodies
+  `_actor421600ApplyCommand` has two placement cases with identical bodies
   ending `state = 0x20; prevState = -1;`, and the image keeps both bodies,
   sharing only the `sh v0,2(s0)` with a `state = 0; prevState = -1;` block in
   front of the join. Written as an early-out (`if (n < 4) { state = 0;

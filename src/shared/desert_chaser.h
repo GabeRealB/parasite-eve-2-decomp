@@ -413,7 +413,7 @@ static __inline__ s16 _desertChaserCapsuleTouchesGrid(Task* task)
 #endif
 
 #if DESERT_CHASER_BUILD != DESERT_CHASER_CUTSCENE
-/// Scratch-stack block of `desertChaserAvoidWalk`, which nudges the chaser's
+/// Scratch-stack block of `_desertChaserAvoidWalk`, which nudges the chaser's
 /// root away from the bodies its front sphere is touching.
 ///
 /// The walk collects the bearing from `origin` of each contact of kind
@@ -658,6 +658,8 @@ enum {
     DESERT_CHASER_TURN_ALIGNED_YAW = 0x20,
     DESERT_CHASER_STATE_PURSUE     = 0x1C
 };
+
+static s16 _desertChaserAvoidWalk(GfxCoord* coord, const WorldCollisionContact* contacts, s16 contactCount, SVECTOR* displacement);
 
 void        desertChaserPursue(Task* arg0);
 void        desertChaserRoam(Task* arg0);

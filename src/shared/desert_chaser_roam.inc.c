@@ -227,7 +227,7 @@ void desertChaserRoam(Task* arg0)
         work->state = 0x1C;
     }
 #else
-    func_actor_421600_80133334(arg0->extra.tmd->coords);
+    _actor421600PushOutsideArenaCenter(arg0->extra.tmd->coords);
 #endif
     SCRATCH_STACK_RELEASE_BLOCK(DesertChaserRoamScratch);
 #if DESERT_CHASER_RUN_SEQUENCE

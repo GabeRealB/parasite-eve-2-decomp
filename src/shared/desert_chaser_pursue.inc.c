@@ -106,7 +106,7 @@ void desertChaserPursue(Task* arg0)
             }
         }
     }
-    if (((desertChaserAvoidWalk(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->offset) << 0x10) != 0) &&
+    if ((_desertChaserAvoidWalk(arg0->extra.tmd->coords, work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts, ARRAY_SIZE(work->spheres[DESERT_CHASER_SPHERE_FRONT].contacts), &scratch->offset) != 0) &&
         (work->animId == 3) && (playerWork->mode != GAME_ACTOR_MODE_SCRIPTED)) {
         work->playerButtonHold.pressCount = 0x80;
         coord                             = arg0->extra.tmd->coords;

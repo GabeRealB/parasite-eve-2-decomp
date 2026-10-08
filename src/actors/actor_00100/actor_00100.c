@@ -264,7 +264,6 @@ static __inline__ s16  _actor00100IsInMesaDropRegion(Task* actor);
 static __inline__ s16  _actor00100MovesTowardMesaDrop(Task* actor, VECTOR* motion);
 static __inline__ s32  _actor00100FindAttackContact(WorldCollisionContact* contacts, SVECTOR* hitPosition);
 static __inline__ void _actor00100SelectHitReaction(DesertChaserWork* work);
-static s32             desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos);
 
 static void Actor00100_Fn02C54(Enemy* arg0, Task* arg1);
 static void _desertChaserDamage(Task* task);
@@ -1464,99 +1463,7 @@ static s32 _actor00100ApplyCommand(Task* task, s32 messageId, const ActorCommand
     }
 }
 
-/// Collects bearings from the obstacles in `recs` into a
-/// `DesertChaserAvoidScratch` and steps `coord` along each survivor. Same walk
-/// as `_actorContactApplyAvoidancePushback`, but `blocked` is raised only for a kind 0x10000
-/// record whose `key` bit 0x80 is clear. The scratch is carved before the
-/// early-out, so that path leaks it.
-static s32 desertChaserAvoidWalk(GfxCoord* coord, WorldCollisionContact* recs, s16 count, SVECTOR* pos)
-{
-    DesertChaserAvoidScratch* s;
-    s16                       diff;
-
-    s = SCRATCH_STACK_RESERVE_BLOCK(DesertChaserAvoidScratch);
-
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen == 1 || gGameSession->viewReady == 1) {
-        return 0;
-    }
-
-    s->blocked = 0;
-    pos->vz    = 0;
-    pos->vy    = 0;
-    pos->vx    = 0;
-
-    gfxReadMatrixYAxis(&coord->workm, &s->dir);
-    VectorNormalSS(&s->dir, &s->dir);
-
-    if (ABS(s->dir.vz) < 0x818) {
-        s->heading = ratan2(-coord->workm.m[2][0], coord->workm.m[2][2]);
-    } else {
-        s->heading = -ratan2(-coord->workm.m[0][2], coord->workm.m[1][2]);
-    }
-
-    s->origin.vx = (u16)coord->workm.t[0];
-    s->origin.vy = (u16)coord->workm.t[1];
-    s->origin.vz = (u16)coord->workm.t[2];
-    s->count     = 0;
-
-    for (s->i = 0; s->i < count; s->i++) {
-        if (recs[s->i].key.value == 0) {
-            break;
-        }
-        s->kind        = recs[s->i].key.value & WORLD_COLLISION_CONTACT_KIND_MASK;
-        s->nonBlocking = recs[s->i].key.value & 0x80;
-        switch (s->kind) {
-            case 0x10000:
-                if (s->nonBlocking == 0) {
-                    s->blocked = 1;
-                }
-            case 0x30000:
-                break;
-            default:
-                continue;
-        }
-
-        if (ABS(s->dir.vz) < 0x818) {
-            s->bearing[s->count] = _actorAngleBearingXZ(&recs[s->i].point, &s->origin);
-        } else {
-            s->bearing[s->count] = _actorAngleBearingXY(&recs[s->i].point, &s->origin);
-        }
-        s->kept[s->count] = 1;
-        s->count++;
-        if (s->count >= ARRAY_SIZE(s->bearing)) {
-            break;
-        }
-    }
-
-    for (s->i = 0; s->i < s->count; s->i++) {
-        for (s->j = s->i + 1; s->j < s->count; s->j++) {
-            s->diff = _actorAngleNormalizeYaw(s->bearing[s->i] - s->bearing[s->j]);
-            if (abs(s->diff) > 0x400) {
-                s->kept[s->i] = 0;
-                s->kept[s->j] = 0;
-            }
-        }
-        if (s->kept[s->i] != 0) {
-            diff = ((u16)s->bearing[s->i] - (u16)s->heading) +
-                   ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
-            s->diff = diff;
-            gfxRotMatrixY(&s->rot, diff, 1);
-            gfxReadMatrixZAxis(&s->rot, &s->dir);
-            VectorNormalSS(&s->dir, &s->dir);
-            gte_lddp(-10);
-            gte_ldsv(&s->dir);
-            gte_gpf12();
-            gte_stsv(&s->dir);
-            pos->vx           += s->dir.vx;
-            pos->vz           += s->dir.vz;
-            coord->coord.t[0] += s->dir.vx;
-            coord->coord.t[2] += s->dir.vz;
-        }
-    }
-
-    SCRATCH_STACK_RELEASE_BLOCK(DesertChaserAvoidScratch);
-    return s->blocked != 0;
-}
+#include "../../shared/desert_chaser_avoid_walk.inc.c"
 
 #include "../../shared/limb_shadows_segment.inc.c"
 
