@@ -139160,7 +139160,7 @@ areaSyncLocationVariant(keyPtr);
 So when the one-slot reorder is `addiu` too *early*, stage the last key byte
 through a temporary loaded before a `SOFT_BARRIER`; when it is too *late*, use
 the actor_260400 placement.
-### Stack words touched only through `$t2` are spilled scalar locals, and which one spills is a ref count (Actor01100_Fn00F58, 2026-09-23)
+### Stack words touched only through `$t2` are spilled scalar locals, and which one spills is a ref count (_actor01100ProcessHits, 2026-09-23)
 
 Earlier sessions on this 782-instruction hit handler modelled its eight frame
 words (`sw zero,0x10(sp)` .. `0x2C(sp)`) as an `s32 st[8]` array and stalled at
@@ -139308,11 +139308,11 @@ Input `base_44.spanIndex` SHA256
 `5dd4db8d122127f87ae078138d084ee1ba467ffe9331420869ee754166010bc5`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
-## A `move` copy of a long-lived pointer feeding only a GTE store means the rotate was an inline helper (Actor01100_Fn02960, 2026-09-23)
+## A `move` copy of a long-lived pointer feeding only a GTE store means the rotate was an inline helper (_actor01100Tick, 2026-09-23)
 
 The target rotated one `SVECTOR` twice, the first time through a part's world
 matrix and the second through a view matrix. The first `gte_stsv` stored
-through `$s1`, which held `&arg->vec` for the rest of the function. The second
+through `$s1`, which held `&scratch->shortVector` for the rest of the function. The second
 stored through `$v1` after a `move $v1,$s1`. The same five macros written out
 twice store through `$s1` both times. The `addiu $s1,$s4,0x10` also lands one
 slot early, ahead of the matrix address.
@@ -139327,7 +139327,7 @@ copy. `tmp` still got a single stack slot.
 The last 0.075% was the aliasing rule in "A scalar global at a fixed address does
 not alias a struct field store". A `lui %hi(D_x)` sat below the `addiu $a3`
 instead of above it, because stores written as `*(s16*)&arg->pad[0x10]` are
-scalar MEMs and held back the `D_x` load. Typed `arg->vec.vx` stores fixed it.
+scalar MEMs and held back the `D_x` load. Typed `scratch->shortVector.vx` stores fixed it.
 So when an m2c seed still has byte-array casts on a block the function stores
 into, give the block real members before tuning the scheduling.
 
@@ -142221,15 +142221,15 @@ helpers before fighting the allocator.
 
 ## Which locals are function-scoped decides global preferences: a pin on a loaded value can be a scope choice
 
-`Actor01100_Fn01D98` runs the same block twice (`if (field) { scale = field + 0x1000; ... }`
+`_actor01100ApplyPoseAdjustments` runs the same block twice (`if (field) { shoulderScale = field + 0x1000; ... }`
 for two fields) and had the loaded `field` pinned to `$v1`. Declared per block,
-`scale` is a single-block pseudo: local-alloc gives it `$a1` first, and then
+`shoulderScale` is a single-block pseudo: local-alloc gives it `$a1` first, and then
 `global.c:set_preference` sees `(set $a1 (plus field 4096))` and gives the
 global `field` pseudo a preference for `$a1`, so both share it. Declaring
-`scale` (and the arm pointer `node`) once at function scope makes them one
+`shoulderScale` (and the arm pointer `upperArm`) once at function scope makes them one
 pseudo across both blocks, hence global: no hard destination at conflict time, no
 preference, and `field` takes the first free register (`$v1`). The other block
-temporaries (`coords`, `inv`) had to stay block-scoped. When a pin sits on the
+temporaries (`modelCoords`, `inverseScale`) had to stay block-scoped. When a pin sits on the
 source of an add/copy, try the destination's scope first - sweeping which
 locals are shared between sibling blocks is cheap (16 builds for four locals
 here) and one combination matched outright.
