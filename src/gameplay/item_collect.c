@@ -50,17 +50,32 @@ enum {
     AREA_OBJECT_STATE_WORD_SHIFT = 4
 };
 
+/// Placed-model task phases and the saved state that requests their removal.
+enum {
+    AREA_OBJECT_MODEL_INITIAL       = 0,
+    AREA_OBJECT_MODEL_WAITING       = 1,
+    AREA_OBJECT_MODEL_REMOVED_STATE = 2
+};
+
+/// Player resource sets selected before departing M.I.S.T. for each destination.
+enum {
+    PLAYER_ACTOR_RESOURCE_ACROPOLIS = 1,
+    PLAYER_ACTOR_RESOURCE_DRYFIELD  = 2
+};
+
 static inline s32 _gpGetModLevel(s32 item);
 
 static inline void _gpApplyBit2List(AreaObjectRoom* table, u32* dest);
 
 static inline s32 _areaReadObjectState(const u32* objectStates, s32 objectId);
 
+static inline s32 _areaReadModelObjectState(const Task* task);
+
 static inline void _playerCaptureRootPose(void);
 
 static inline void _areaApplyObjectPlacement(Enemy* enemy, const AreaObjectPlace* place);
 
-static void func_800BB7B4(Task* arg0);
+static void _modelObjectResetDrawFlagsTask(Task* task);
 
 static void _areaSeedRoomObjectStates(AreaObjectRoom* rooms, u32* objectStates);
 
@@ -68,7 +83,7 @@ static s32 _areaGetObjectState(const GameLocationKey* location, s32 objectId);
 
 static Enemy* _areaSpawnObjectAtPlace(AreaObjectSpawn* spawn, const AreaObjectPlace* place);
 
-static void func_800BBB54(Task* arg0);
+static void _areaObjectFlaggedModelTask(Task* task);
 
 static void _equipmentInitializeWeaponLoads(void);
 
@@ -141,10 +156,39 @@ static inline s32 _areaReadObjectState(const u32* objectStates, s32 objectId)
     return word;
 }
 
-/// Captures the live player root in the resident pose used by save preparation.
+/// Reads a placed model's saved state in the current stage.
 ///
-/// Requires the player task's model root. XYZ narrow to signed halfwords;
-/// yaw uses 4096 units per turn with both signed half-turn endpoints retained.
+/// Borrows a live enemy task; its place-key low byte must be 0..63 and the
+/// current stage must be 1..5 with readable object-state words.
+static inline s32 _areaReadModelObjectState(const Task* task)
+{
+    const AreaObjectStage* stages;
+    const u32*             objectStates;
+    const u32*             stateWord;
+    const GameSession*     session;
+    const Enemy*           enemy;
+    s32                    flagIndex;
+    s32                    stateShift;
+    u32                    word;
+
+    session = gGameSession;
+    stages  = Gp_Bit2Banks;
+    enemy   = task->spawnArg2.pointer;
+    // Placed models use the current stage and the key's low-byte flag index.
+    flagIndex    = (u8)enemy->placeKey;
+    objectStates = stages[session->location.loc.stage].objectStates;
+    stateWord    = objectStates + (flagIndex >> AREA_OBJECT_STATE_WORD_SHIFT);
+    stateShift   = (flagIndex & AREA_OBJECT_STATE_INDEX_MASK) * AREA_OBJECT_STATE_BITS;
+    word         = *stateWord;
+    return (word & (AREA_OBJECT_PLACE_STATE_MASK << stateShift)) >> stateShift;
+}
+
+/// Captures the live player root's local translation and facing for save preparation.
+///
+/// Requires a live player task and model root in the room's coordinate frame.
+/// XYZ narrow to signed halfwords; yaw uses 4096 units per turn, measured from
+/// +Z toward +X, with both signed half-turn endpoints retained. No composition
+/// is performed and no root pointer is retained.
 static inline void _playerCaptureRootPose(void)
 {
     const GfxCoord* root;
@@ -167,10 +211,13 @@ static inline void _playerCaptureRootPose(void)
     }
 }
 
-/// Applies a room placement to a live enemy whose task has a model body.
+/// Applies a placed object's identity, kind and transform to its live enemy.
 ///
-/// A zero yaw preserves the model's initial rotation. Coordinates use game
-/// units; nonzero yaw replaces the rotation and invalidates its composition.
+/// Requires the enemy's task to own a model with a root in the room frame.
+/// Borrows both records without retaining either pointer. XYZ use game units;
+/// yaw narrows to a signed halfword in 4096 units per turn. Zero yaw records
+/// zero while preserving the existing matrix rotation; nonzero yaw replaces
+/// that rotation. Every placement invalidates the root's cached composition.
 static inline void _areaApplyObjectPlacement(Enemy* enemy, const AreaObjectPlace* place)
 {
     TmdObject* model;
@@ -331,9 +378,14 @@ s32 inventoryGetItemQuantity(const InventoryItemRange* range, s32 itemId)
     return quantity;
 }
 
-static void func_800BB7B4(Task* arg0)
+/// Clears every model draw flag on a live TMD-bodied task.
+///
+/// Permits the active pass and default automatic buffer allocation, and clears
+/// flagged-pass selection and special draw modes. Does not allocate a buffer,
+/// advance task state or retain the model pointer. No current caller is known.
+static void _modelObjectResetDrawFlagsTask(Task* task)
 {
-    arg0->extra.tmd->flags = 0;
+    task->extra.tmd->flags = 0;
 }
 
 void itemSetIdentified(s32 itemId, s32 identified)
@@ -438,60 +490,43 @@ static Enemy* _areaSpawnObjectAtPlace(AreaObjectSpawn* spawn, const AreaObjectPl
     return enemy;
 }
 
-static void func_800BBB54(Task* arg0)
+/// Keeps a placed model in only the flagged draw pass until its saved state is 2.
+///
+/// Requires a live TMD-bodied enemy task and current stage 1..5. The low byte
+/// of the enemy's place key must index the stage's readable object-state words
+/// (0..63). Phase zero overwrites the model flags, then checks the flag in the
+/// same tick. Completion clears flagged drawing before calling the task's exit
+/// callback, which may release the enemy and task. No current caller is known.
+static void _areaObjectFlaggedModelTask(Task* task)
 {
-    TmdObject* extra;
+    TmdObject* model;
 
-    extra = arg0->extra.tmd;
-    if (arg0->state == 0) {
-        extra->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_FLAGGED_PASS);
-        arg0->state += 1;
+    model = task->extra.tmd;
+    if (task->state == AREA_OBJECT_MODEL_INITIAL) {
+        model->flags = (TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_FLAGGED_PASS);
+        task->state += 1;
     }
-    if (arg0->state == 1) {
-        AreaObjectStage* banks;
-        u32*             p;
-        u32*             indexed;
-        GameSession*     sess;
-        s32              id;
-        s32              shift;
-        u32              word;
-
-        sess    = gGameSession;
-        banks   = Gp_Bit2Banks;
-        id      = (u8)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        p       = banks[sess->location.loc.stage].objectStates;
-        indexed = p + (id >> 4);
-        shift   = (id & 0xF) * 2;
-        word    = *indexed;
-        if (((word & (3 << shift)) >> shift) == 2) {
-            extra->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
-            taskCallExit(arg0);
+    if (task->state == AREA_OBJECT_MODEL_WAITING) {
+        if (_areaReadModelObjectState(task) == AREA_OBJECT_MODEL_REMOVED_STATE) {
+            model->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
+            taskCallExit(task);
         }
     }
 }
 
-void Gp_WaitItemFlag2(Task* arg0)
+void areaObjectModelTask(Task* task)
 {
-    TmdObject* extra;
+    TmdObject* model;
 
-    extra = arg0->extra.tmd;
-    if (arg0->state == 0) {
-        extra->flags = TMD_OBJECT_FLAGGED_PASS;
-        arg0->state += 1;
+    model = task->extra.tmd;
+    if (task->state == AREA_OBJECT_MODEL_INITIAL) {
+        model->flags = TMD_OBJECT_FLAGGED_PASS;
+        task->state += 1;
     }
-    if (arg0->state == 1) {
-        s32  id;
-        s32  stage;
-        u32* p;
-        s32  shift;
-
-        id    = (u8)((Enemy*)arg0->spawnArg2.pointer)->placeKey;
-        stage = gGameSession->location.loc.stage;
-        p     = &Gp_Bit2Banks[stage].objectStates[id >> 4];
-        shift = (id & 0xF) * 2;
-        if (((*p & (3 << shift)) >> shift) == 2) {
-            extra->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
-            taskCallExit(arg0);
+    if (task->state == AREA_OBJECT_MODEL_WAITING) {
+        if (_areaReadModelObjectState(task) == AREA_OBJECT_MODEL_REMOVED_STATE) {
+            model->flags &= (u16)~TMD_OBJECT_FLAGGED_PASS;
+            taskCallExit(task);
         }
     }
 }
@@ -613,22 +648,26 @@ static void _inventorySetCarriedSavedRange(s32 rowCount)
     save->state.carriedItems.tableId  = INVENTORY_ITEM_TABLE_SAVED;
 }
 
-void Gp_SyncHeldRelated(void)
+void equipmentSyncPrimaryAttackSelector(void)
 {
-    PlayerStatus* p;
+    enum {
+        // Addition encodes itemId - 0x9F through the stored unsigned byte.
+        EQUIPMENT_PRIMARY_ATTACK_SELECTOR_OFFSET = 0x100 - (INVENTORY_CONSUMABLE_ITEM_FIRST - 1)
+    };
+    PlayerStatus* status;
     s32           weaponItemId;
     u8            primaryItemId;
 
-    p = &gPlayerStatus;
-    if (p->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
-        p->weaponSlotItem = PLAYER_STATUS_EQUIPMENT_NONE;
+    status = &gPlayerStatus;
+    if (status->weapon == PLAYER_STATUS_EQUIPMENT_NONE) {
+        status->weaponSlotItem = PLAYER_STATUS_EQUIPMENT_NONE;
     } else {
-        weaponItemId  = p->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
+        weaponItemId  = status->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1);
         primaryItemId = _equipmentGetWeaponLoad(weaponItemId)->primaryItemId;
         if (primaryItemId == INVENTORY_ITEM_NONE) {
-            p->weaponSlotItem = PLAYER_STATUS_EQUIPMENT_NONE;
+            status->weaponSlotItem = PLAYER_STATUS_EQUIPMENT_NONE;
         } else {
-            p->weaponSlotItem = primaryItemId + 0x61;
+            status->weaponSlotItem = primaryItemId + EQUIPMENT_PRIMARY_ATTACK_SELECTOR_OFFSET;
         }
     }
     playerActorUpdateWeaponCollisionKey();
@@ -871,14 +910,14 @@ void inventoryResetCarriedRange(void)
     save->state.carriedItems = Gp_DefaultScan;
 }
 
-void func_800BC4BC(void)
+void playerActorPrepareAcropolisLoadout(void)
 {
-    gPlayerStatus.resourceVariant = 1;
+    gPlayerStatus.resourceVariant = PLAYER_ACTOR_RESOURCE_ACROPOLIS;
     equipmentEnsureM93rEquipped();
 }
 
-void func_800BC4E4(void)
+void playerActorPrepareDryfieldLoadout(void)
 {
-    gPlayerStatus.resourceVariant = 2;
+    gPlayerStatus.resourceVariant = PLAYER_ACTOR_RESOURCE_DRYFIELD;
     equipmentEnsureM93rEquipped();
 }

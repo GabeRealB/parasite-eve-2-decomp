@@ -1191,7 +1191,7 @@ void func_mist_parking_8018354C(void)
 
 void func_mist_parking_8018357C(Task* arg0)
 {
-    func_800BC4E4();
+    playerActorPrepareDryfieldLoadout();
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_DRYFIELD;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_DRYFIELD_GAS_STATION;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;

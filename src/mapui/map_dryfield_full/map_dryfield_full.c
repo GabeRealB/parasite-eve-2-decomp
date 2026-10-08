@@ -335,7 +335,7 @@ static AreaObjectSpawn D_map_dryfield_full_8017A42C[2] = {
 };
 
 static AreaObjectSpawn D_map_dryfield_full_8017A44C[2] = {
-    { 0x117, { { { TASK_BODY_TMD, 0x62 } }, Gp_WaitItemFlag2, { &gDryfieldNightMotelLoftActor135400Model071AC } } },
+    { 0x117, { { { TASK_BODY_TMD, 0x62 } }, areaObjectModelTask, { &gDryfieldNightMotelLoftActor135400Model071AC } } },
     { AREA_OBJECT_SPAWN_END },
 };
 

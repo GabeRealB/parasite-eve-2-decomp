@@ -537,7 +537,7 @@ void Gp_MenuRootTask(Task* arg0)
             secondaryItemId = -1;
             memInitAuxHeap();
             cfg = &gPlayerStatus;
-            Gp_SyncHeldRelated();
+            equipmentSyncPrimaryAttackSelector();
             if (cfg->weapon != PLAYER_STATUS_EQUIPMENT_NONE) {
                 secondaryItemId = equipmentGetWeaponLoad(cfg->weapon + 0x7F)->secondaryItemId;
             }

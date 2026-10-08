@@ -8153,19 +8153,19 @@ rematerializes the field, and the inner `== 0` / else-value pair emits
 `bnez` to the value store with `sb zero` in the `j` delay slot:
 
 ```c
-if (p->field_21 == 0) {
-    p->field_22 = 0;
+if (status->weapon == 0) {
+    status->weaponSlotItem = 0;
 } else {
-    item = D_80072330[p->field_21 + 0x7F].field_0; /* second lbu */
-    if (item == 0) {
-        p->field_22 = 0;
+    primaryItemId = _equipmentGetWeaponLoad(status->weapon + 0x7F)->primaryItemId; /* second lbu */
+    if (primaryItemId == 0) {
+        status->weaponSlotItem = 0;
     } else {
-        p->field_22 = item + 0x61;
+        status->weaponSlotItem = primaryItemId + 0x61;
     }
 }
 ```
 
-`Gp_SyncHeldRelated` is the example. `if (p->field_21) { ... if (item) ... }` stuck
+`equipmentSyncPrimaryAttackSelector` is the example. `if (status->weapon) { ... if (primaryItemId) ... }` stuck
 at 88% with the load reused and the inner branch inverted.
 
 ## `volatile` copy of `p` so a range check reloads the same u8
@@ -28114,21 +28114,21 @@ the dest register (`lui v1` / `lw v1`). Pin `p` to `$v1` so the bank
 pointer stays there and `id >> 4` can reuse `$v0`:
 
 ```c
-if (arg0->state == 1) {
+if (task->state == 1) {
     register AreaObjectStage* banks asm("v0");
     register u32*        p asm("v1");
     GameSession*         sess;
 
     sess  = gGameSession;
     banks = Gp_Bit2Banks;
-    p     = banks[sess->field_7].objectStates;
+    p     = banks[sess->location.loc.stage].objectStates;
     p    += id >> 4;
 }
 ```
 
 Declare the pins *inside* the `if`. Function-scope `asm("v0")` /
 `asm("v1")` steals `$a1` from the task argument (it slides to `$a2`,
-`extra` to `$a3`). `Gp_WaitItemFlag2` is the example. The unpinned
+`model` to `$a3`). `areaObjectModelTask` is the example. The unpinned
 one-expression form stuck at 98% with only those two registers swapped.
 
 ## Typed scratch reservation keeps the global address in the load delay
@@ -65597,14 +65597,15 @@ trying to force a hard register or insert an asm barrier.
 
 ## Split a bank pointer from its indexed address before pinning the lookup
 
-`func_800BBB54` shares the `Gp_WaitItemFlag2` lookup shape, with initial
-`field_C = 0x88` instead of 8. Copying that sibling without its pointer pin
+`_areaObjectFlaggedModelTask` shares the `areaObjectModelTask` lookup shape, with initial
+`flags = TMD_OBJECT_SKIP_ACTIVE_DRAW | TMD_OBJECT_FLAGGED_PASS` instead of
+`TMD_OBJECT_FLAGGED_PASS`. Copying that sibling without its pointer pin
 scored 94.362% (`regs=13 insert=1 delete=1`, other penalties zero). The
 `.jump`/`.jump2` dumps retained the expected conditional blocks; the bank
 load occurred earlier, with the session and table address registers swapped.
 
-Changing only `p += id >> 4; word = *p;` to
-`indexed = p + (id >> 4); word = *indexed;`, with a separate `u32* indexed`,
+Changing only `objectStates += flagIndex >> 4; word = *objectStates;` to
+`stateWord = objectStates + (flagIndex >> 4); word = *stateWord;`, with a separate `const u32* stateWord`,
 matched 100% without pins or barriers. In `.lreg`, the reused pointer had
 four references across eight insns; the split pointers had two references
 across three and five insns. The table base moved from `$v1` to `$v0`,

@@ -257,7 +257,13 @@ enum {
 /// -2048..2048 inclusive. Experience and BP are copied to the live save.
 void playerCaptureSaveState(void);
 
-void Gp_SyncHeldRelated(void);
+/// Synchronizes the equipped weapon's primary attack selector and collision key.
+///
+/// Requires a live player actor, weapon selection 0..32 and its saved load.
+/// An absent weapon or empty primary selects zero; otherwise the primary item
+/// id minus 0x9F is stored modulo 256. Quantity and secondary load are ignored.
+/// Inventory rows and saved loads remain intact.
+void equipmentSyncPrimaryAttackSelector(void);
 
 /// Returns whether an item uses its identified catalogue text and icon.
 ///

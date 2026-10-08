@@ -331,9 +331,21 @@ s32 equipmentGetWeaponLoadCapacity(s32 weaponItemId, s32 loadSelection);
 /// Restores current HP and MP to their already computed maxima.
 void equipmentRestoreHpMp(void);
 
-void func_800BC4BC(void);
+/// Prepares player resources and default weapon loading for departure to Acropolis.
+///
+/// Stores resource variant 1 (character file 10400) for the next player load;
+/// no resources are loaded here. Existing weapon selections remain intact.
+/// A carried M93R is selected only when unarmed, and its empty or 9mm P.B.
+/// primary is refilled to capacity without consuming stock. Requires valid live
+/// carried rows and equipment selection 0..32.
+void playerActorPrepareAcropolisLoadout(void);
 
-void func_800BC4E4(void);
+/// Prepares player resources and default weapon loading for departure to Dryfield.
+///
+/// Stores resource variant 2 (character file 10300) for the next player load;
+/// no resources are loaded here. Equipment and inventory requirements and
+/// refill behavior are the same as `playerActorPrepareAcropolisLoadout`.
+void playerActorPrepareDryfieldLoadout(void);
 
 /// Restores the default carried range by copying its whole four-byte descriptor.
 ///
@@ -341,8 +353,14 @@ void func_800BC4E4(void);
 /// weapon loads and equipment selections are left intact.
 void inventoryResetCarriedRange(void);
 
-/// Named as a task entry by the enemy descriptor tables in the map UI overlays.
-void Gp_WaitItemFlag2(Task* arg0);
+/// Enables both draw passes for a placed model until its saved object state is 2.
+///
+/// Requires a live TMD-bodied task with its owned `Enemy` in spawn argument 2,
+/// current stage 1..5 and a place-key low byte in 0..63. Phase zero overwrites
+/// model flags and advances to the waiting phase, checking the state that same
+/// tick. Completion clears flagged drawing and invokes the task's exit callback;
+/// that callback owns teardown and may release the enemy, task and model.
+void areaObjectModelTask(Task* task);
 
 extern ItemDesc Gp_ItemDescs[];
 

@@ -699,7 +699,7 @@ void func_mist_parking_801844EC(void)
 
 void func_mist_parking_8018451C(Task* task)
 {
-    func_800BC4BC();
+    playerActorPrepareAcropolisLoadout();
     gPlayerStatus.resourceVariant                               = 1;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PLAZA;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;

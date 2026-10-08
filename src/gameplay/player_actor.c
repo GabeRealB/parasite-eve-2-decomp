@@ -4848,7 +4848,7 @@ static void Gp_InitPlayerWork(Task* arg0)
     task                      = func_80104258(arg0, 1, 1, 1);
     actor->attachmentTasks[1] = task;
     if (task != NULL) {
-        Gp_SyncHeldRelated();
+        equipmentSyncPrimaryAttackSelector();
         playerActorRestoreEquipment();
     }
     if (kind == 2) {
