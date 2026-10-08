@@ -118,7 +118,28 @@ extern WorldCollisionTrigger* Gp_Obj4CList;
 /// reservation, including nested queries; releases its block before return.
 void worldCollisionQueryMotionSphereFloor(const WorldCollisionBody* body);
 
-void func_800DDDF8(WorldCollisionBody* obj);
+/// Records directed grid-face crossings for a capsule body.
+///
+/// Requires a kind-3 body with a live capsule, composed body/view transforms
+/// in the same query frame and an active grid with valid mesh/cell indices.
+/// Face count must fit the 256-byte candidate mask; normals use 4096 per unit.
+/// Segment placement and face-intersection normalization bounds apply.
+/// Surface classes index the current stage/area's surface table in 0..7.
+///
+/// Contacts are writable and initialized, ending with LAST. A CLIP_TO_GRID_CONTACT
+/// body needs contact zero: each probe-blocking hit replaces it and shortens
+/// endpoint zero, retaining the nearest crossing. Other bodies append every
+/// crossing to the first free slot, stopping when the LAST slot is filled or
+/// encountered with flags exactly OCCUPIED | LAST. Existing entries survive.
+/// An occupied LAST entry must have no additional flag bits to stop the scan.
+/// Writes a GRID/surface key, zero distance, the original room normal and a
+/// signed-halfword hit point in the cached composition frame (normally view
+/// space). Contact flags survive with OCCUPIED added; no hit leaves them intact.
+///
+/// Direct calls bypass GRID_ENABLED. Clears the shared candidate mask and
+/// changes GTE state. Borrowed storage must stay clear of the initialized
+/// scratch stack's 168-byte peak reservation; releases it and retains no pointers.
+void worldCollisionCollideCapsuleGrid(const WorldCollisionBody* body);
 
 /// Contact-seeding policies for capsule segment placement; any nonzero mode selects the grid rule.
 enum {
@@ -184,7 +205,7 @@ void worldCollisionTestViewBoundarySphere(const WorldCollisionBody* body, WorldC
 /// The nine list heads `Gp_ObjLists` points at. Each is a bare `WorldCollisionBody*`
 /// whose address is the first link. A node's `prev` points to the link that
 /// contains it, either this head or the preceding node's `next`.
-/// `Gp_TickWorldCollision` runs `Gp_CollideListGrid` over each list and
+/// `Gp_TickWorldCollision` runs `worldCollisionCollideBodyListGrid` over each list and
 /// `worldCollisionCollideBodyLists` over the pairs that can interact.
 extern WorldCollisionBody* Gp_ObjList0;
 
@@ -267,7 +288,16 @@ void worldCollisionConsumeViewBoundaryHits(void);
 /// Lists should be disjoint when self-pairs or repeated contacts are unwanted.
 void worldCollisionCollideBodyLists(WorldCollisionBody* firstList, WorldCollisionBody* secondList);
 
-void Gp_CollideListGrid(WorldCollisionBody* node);
+/// Dispatches grid contact tests for enabled bodies on one collision list.
+///
+/// A NULL head or absent active grid does nothing. NONE, CONTACT_PROXY and
+/// unknown kinds have no handler. Sphere, capsule and motion-sphere bodies
+/// need their live kind-specific contexts, composed transforms and writable
+/// initialized contact tables; each handler's grid/scratch bounds apply.
+/// Motion spheres with FLOOR_QUERY run their floor query before overlap tests.
+/// The list must be acyclic, live and structurally unchanged throughout the walk.
+/// Contacts are accumulated without clearing existing entries or relinking bodies.
+void worldCollisionCollideBodyListGrid(const WorldCollisionBody* body);
 
 void func_800E0608(WorldCollisionBody* node, s32 mask, s32 match);
 

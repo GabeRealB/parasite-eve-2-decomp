@@ -97,7 +97,7 @@ segments:
       - [0x37D8, .rodata, menu_armor] # menu labels
       - [0x3964, pad] # original 8-byte jump-table alignment
       - [0x3968, .rodata, item_panels] # item-command jump table, panel labels and tables
-      - [0x3A34, .rodata, item_use] # jtbls: _itemUseAttachedItem + _itemIsAttachedItemUnusable + mid + Gp_CollideListGrid
+      - [0x3A34, .rodata, item_use] # jtbls: _itemUseAttachedItem + _itemIsAttachedItemUnusable + mid + worldCollisionCollideBodyListGrid
       - [0x3C84, .rodata, world_collision]
       - [0x3CB0, pad] # alignment before the grid-list jump table
       - [0x3CB4, .rodata, object_lists]

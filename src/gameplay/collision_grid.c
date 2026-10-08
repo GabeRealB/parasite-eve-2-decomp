@@ -387,59 +387,72 @@ static void _worldCollisionMarkMotionSphereGridCandidates(const WorldCollisionBo
     SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionGridBodyQueryScratch);
 }
 
-void func_800DDDF8(WorldCollisionBody* obj)
+/// Stores a capsule crossing's grid key, query-frame point and original room normal.
+///
+/// Borrows a writable contact and the current face's accepted scratch hit.
+/// faceIndex must name a valid active-grid face. Flags and distance are left
+/// to the caller, as is shortening the segment for a clipping capsule.
+static __inline__ void _worldCollisionWriteCapsuleGridHit(WorldCollisionContact*                          contact,
+                                                          const _WorldCollisionCapsuleGridContactScratch* scratch,
+                                                          s32                                             faceIndex)
+{
+    contact->key.value          = Gp_GridParams->faces[faceIndex].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
+    contact->point              = scratch->ray[1];
+    contact->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[faceIndex].normalIndex];
+}
+
+void worldCollisionCollideCapsuleGrid(const WorldCollisionBody* body)
 {
     _WorldCollisionCapsuleGridContactScratch* scratch;
-    WorldCollisionContact*                    slot;
-    u16                                       flags;
-    s32                                       i;
+    WorldCollisionContact*                    contact;
+    u16                                       contactFlags;
+    s32                                       faceIndex;
 
+    // Mark the capsule footprint before placing its segment in the cached frame.
     scratch = SCRATCH_STACK_RESERVE_BLOCK(_WorldCollisionCapsuleGridContactScratch);
-    for (i = 0; i < Gp_GridParams->faceCount; i++) {
-        D_80115450[i] = 0;
+    for (faceIndex = 0; faceIndex < Gp_GridParams->faceCount; faceIndex++) {
+        D_80115450[faceIndex] = 0;
     }
 
-    _worldCollisionMarkCapsuleGridCandidates(obj);
-    worldCollisionPlaceCapsuleSegment(obj, scratch->endpoints, scratch->ray, WORLD_COLLISION_CAPSULE_SEGMENT_GRID_SCAN);
+    _worldCollisionMarkCapsuleGridCandidates(body);
+    worldCollisionPlaceCapsuleSegment(body, scratch->endpoints, scratch->ray, WORLD_COLLISION_CAPSULE_SEGMENT_GRID_SCAN);
 
-    for (i = 0; i < Gp_GridParams->faceCount; i++) {
-        if (D_80115450[i] != 0 && worldCollisionIntersectGridFace(i, scratch->endpoints, scratch->ray, obj) != 0) {
-            slot = obj->context.capsule->contacts;
-            if (obj->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
+    for (faceIndex = 0; faceIndex < Gp_GridParams->faceCount; faceIndex++) {
+        if (D_80115450[faceIndex] != 0 && worldCollisionIntersectGridFace(faceIndex, scratch->endpoints, scratch->ray, body) != 0) {
+            contact = body->context.capsule->contacts;
+            // Clipping bodies keep the nearest blocking hit in contact zero.
+            if (body->flags & WORLD_COLLISION_BODY_CLIP_TO_GRID_CONTACT) {
                 if (Gp_RoomParamTables[gGameSession->location.loc.stage - 1][gGameSession->location.loc.area - 1]
-                                      [Gp_GridParams->faces[i].surfaceClass]
+                                      [Gp_GridParams->faces[faceIndex].surfaceClass]
                                           ->probePassThrough == WORLD_COLLISION_SURFACE_BLOCK_PROBES) {
-                    slot->distance           = 0;
-                    slot->flags             |= WORLD_COLLISION_CONTACT_OCCUPIED;
-                    slot->key.value          = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                    slot->point              = scratch->ray[1];
-                    slot->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
+                    contact->distance = 0;
+                    contact->flags   |= WORLD_COLLISION_CONTACT_OCCUPIED;
+                    _worldCollisionWriteCapsuleGridHit(contact, scratch, faceIndex);
                     scratch->endpoints[0].vx = scratch->ray[1].vx;
                     scratch->endpoints[0].vy = scratch->ray[1].vy;
                     scratch->endpoints[0].vz = scratch->ray[1].vz;
                 }
             } else {
+                // Other capsules append crossings without shortening the segment.
                 for (;;) {
-                    flags = slot->flags;
-                    if (!(flags & WORLD_COLLISION_CONTACT_OCCUPIED)) {
-                        slot->flags              = flags | WORLD_COLLISION_CONTACT_OCCUPIED;
-                        slot->distance           = 0;
-                        slot->key.value          = Gp_GridParams->faces[i].surfaceClass | WORLD_COLLISION_CONTACT_GRID;
-                        slot->point              = scratch->ray[1];
-                        slot->response.direction = Gp_GridParams->normals[Gp_GridParams->faces[i].normalIndex];
-                        if (slot->flags & WORLD_COLLISION_CONTACT_LAST) {
-                            void** head = SCRATCH_HEAD_ADDR;
+                    contactFlags = contact->flags;
+                    if (!(contactFlags & WORLD_COLLISION_CONTACT_OCCUPIED)) {
+                        contact->flags    = contactFlags | WORLD_COLLISION_CONTACT_OCCUPIED;
+                        contact->distance = 0;
+                        _worldCollisionWriteCapsuleGridHit(contact, scratch, faceIndex);
+                        if (contact->flags & WORLD_COLLISION_CONTACT_LAST) {
+                            void** scratchCursorSlot = SCRATCH_STACK_CURSOR_SLOT;
 
-                            SCRATCH_POP_BYTES_AT(head, sizeof(_WorldCollisionCapsuleGridContactScratch));
+                            SCRATCH_POP_AT(scratchCursorSlot, _WorldCollisionCapsuleGridContactScratch);
                             return;
                         }
                         break;
                     }
-                    if (flags == (WORLD_COLLISION_CONTACT_OCCUPIED | WORLD_COLLISION_CONTACT_LAST)) {
+                    if (contactFlags == (WORLD_COLLISION_CONTACT_OCCUPIED | WORLD_COLLISION_CONTACT_LAST)) {
                         SCRATCH_STACK_RELEASE_BLOCK(_WorldCollisionCapsuleGridContactScratch);
                         return;
                     }
-                    slot++;
+                    contact++;
                 }
             }
         }

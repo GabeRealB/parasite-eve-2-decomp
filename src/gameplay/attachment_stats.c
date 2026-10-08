@@ -28,6 +28,7 @@
 #include "weapon_data.h"
 #include "world_targets.h"
 
+#include "main/areas.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
@@ -1261,10 +1262,11 @@ static __inline__ u8 _attachmentPreviewSoundLoadStub(void)
     return 0;
 }
 
-/// Leaves wheel/cast input control and resumes ordinary actor updates.
+/// Leaves PE input mode and releases the player-state and scene-actor update holds.
 ///
-/// Changes only the attachment mode and its two player/actor control gates;
-/// callers separately settle menu, sound and effect state.
+/// Sets the attachment to idle and both global hold gates to running, without
+/// restoring an earlier hold. Call only when the PE interaction may release
+/// control; callers separately settle queued selection, menu, sound and effects.
 static inline void _attachmentResumeActors(void)
 {
     Gp_StateC08.mode               = ATTACHMENT_MODE_IDLE;
@@ -1562,125 +1564,161 @@ static __inline__ void _hudWaitForBattleEndAction(HudState* hud)
     hud->battleStep = hud->battleStep + 1;
 }
 
-void Gp_HudTask(HudState* hud)
+/// Cancels active PE targeting and leaves no queued selection before resuming actors.
+///
+/// Borrows the live global attachment state. Armed/casting effects receive
+/// CANCELLED; idle/wheel effects keep their phase. Menu and sound cleanup stays
+/// with the caller.
+static __inline__ void _hudCancelAttachment(AttachmentState* attachment)
 {
-    DisplayState*     ds;
-    PlayerStatus*     cfg;
+    if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
+        attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
+    }
+    attachment->queuedIndex = 0;
+    _attachmentResumeActors();
+}
+
+/// Queues the demo scene's two overlaid raw-texture panels in the foreground.
+///
+/// Requires 80 bytes in the current GPU packet arena and a live ordering table.
+/// Both quads use the same 128-by-63 screen rectangle; the second uses
+/// subtractive blending. Packet storage remains borrowed by the GPU.
+static __inline__ void _hudDrawDemoPanels(void)
+{
+    enum { HUD_DEMO_TEXTURE_8_BIT = 1 };
+    POLY_FT4* demoPanel;
+
+    demoPanel        = gGpuPrimCursor;
+    gGpuPrimCursor   = demoPanel + 1;
+    demoPanel->x2    = 0x16;
+    demoPanel->x0    = 0x16;
+    demoPanel->x3    = 0x96;
+    demoPanel->x1    = 0x96;
+    demoPanel->y1    = -0x6B;
+    demoPanel->y0    = -0x6B;
+    demoPanel->y3    = -0x2C;
+    demoPanel->y2    = -0x2C;
+    demoPanel->tpage = getTPage(HUD_DEMO_TEXTURE_8_BIT, GPU_BLEND_ADD, 448, 0);
+    demoPanel->v2    = 0xBF;
+    demoPanel->v3    = 0xBF;
+    demoPanel->clut  = getClut(0, 254);
+    demoPanel->u0    = 0;
+    demoPanel->v0    = 0x80;
+    demoPanel->u1    = 0x80;
+    demoPanel->v1    = 0x80;
+    demoPanel->u2    = 0;
+    demoPanel->u3    = 0x80;
+    setPolyFT4(demoPanel);
+    setShadeTex(demoPanel, true);
+    addPrim(gGpuCurrentOt - 5, demoPanel);
+
+    demoPanel        = gGpuPrimCursor;
+    gGpuPrimCursor   = demoPanel + 1;
+    demoPanel->x2    = 0x16;
+    demoPanel->x0    = 0x16;
+    demoPanel->x3    = 0x96;
+    demoPanel->x1    = 0x96;
+    demoPanel->y1    = -0x6B;
+    demoPanel->y0    = -0x6B;
+    demoPanel->y3    = -0x2C;
+    demoPanel->y2    = -0x2C;
+    demoPanel->b0    = 0x40;
+    demoPanel->g0    = 0x40;
+    demoPanel->r0    = 0x40;
+    demoPanel->tpage = getTPage(HUD_DEMO_TEXTURE_8_BIT, GPU_BLEND_SUBTRACT, 448, 0);
+    demoPanel->v0    = 0xC0;
+    demoPanel->v1    = 0xC0;
+    demoPanel->v2    = 0xFF;
+    demoPanel->v3    = 0xFF;
+    demoPanel->clut  = getClut(0, 253);
+    demoPanel->u0    = 0;
+    demoPanel->u1    = 0x80;
+    demoPanel->u2    = 0;
+    demoPanel->u3    = 0x80;
+    setPolyFT4(demoPanel);
+    setShadeTex(demoPanel, true);
+    setSemiTrans(demoPanel, true);
+    addPrim(gGpuCurrentOt - 5, demoPanel);
+}
+
+void hudUpdateAndDraw(HudState* hud)
+{
+    enum {
+        HUD_MENU_REQUEST_INVENTORY            = 0x41,
+        HUD_MENU_REQUEST_ATTACHMENTS          = 0x42,
+        HUD_MENU_REQUEST_OPTIONS              = 0x45,
+        HUD_GALLERY_TRAINING_RESOURCE_VARIANT = 4,
+        HUD_BATTLE_CANCEL_REMAINING_FRAMES    = 2
+    };
+    DisplayState*     display;
+    PlayerStatus*     player;
     AttachmentState*  attachment;
     SceneCombatState* combat;
-    Task*             slot;
-    Task*             work;
-    POLY_FT4*         poly;
+    Task*             viewGateTask;
+    Task*             playerTask;
     s32               stageAreaKey;
-    s32               bad;
+    s32               viewChangePending;
     s32               inBattle;
-    s32               step;
-    s32               n;
-    s32               b;
+    s32               battleStep;
+    s32               remainingEndDelayFrames;
+    s32               queuedMenuMode;
 
-    bad           = 0;
-    stageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
-    stageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
-    cfg           = &gPlayerStatus;
-    ds            = &gDisplayState;
-    if (ds->demoScene != DISPLAY_DEMO_NONE) {
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        poly->x2       = 0x16;
-        poly->x0       = 0x16;
-        poly->x3       = 0x96;
-        poly->x1       = 0x96;
-        poly->y1       = -0x6B;
-        poly->y0       = -0x6B;
-        poly->y3       = -0x2C;
-        poly->y2       = -0x2C;
-        poly->tpage    = 0xA7;
-        poly->v2       = 0xBF;
-        poly->v3       = 0xBF;
-        poly->clut     = 0x3F80;
-        poly->u0       = 0;
-        poly->v0       = 0x80;
-        poly->u1       = 0x80;
-        poly->v1       = 0x80;
-        poly->u2       = 0;
-        poly->u3       = 0x80;
-        setlen(poly, 9);
-        setcode(poly, 0x2D);
-        addPrim(gGpuCurrentOt - 5, poly);
-
-        poly           = gGpuPrimCursor;
-        gGpuPrimCursor = poly + 1;
-        poly->x2       = 0x16;
-        poly->x0       = 0x16;
-        poly->x3       = 0x96;
-        poly->x1       = 0x96;
-        poly->y1       = -0x6B;
-        poly->y0       = -0x6B;
-        poly->y3       = -0x2C;
-        poly->y2       = -0x2C;
-        poly->b0       = 0x40;
-        poly->g0       = 0x40;
-        poly->r0       = 0x40;
-        poly->tpage    = 0xC7;
-        poly->v0       = 0xC0;
-        poly->v1       = 0xC0;
-        poly->v2       = 0xFF;
-        poly->v3       = 0xFF;
-        poly->clut     = 0x3F40;
-        poly->u0       = 0;
-        poly->u1       = 0x80;
-        poly->u2       = 0;
-        poly->u3       = 0x80;
-        setlen(poly, 9);
-        setcode(poly, 0x2F);
-        addPrim(gGpuCurrentOt - 5, poly);
+    viewChangePending = 0;
+    stageAreaKey      = GAME_LOCATION_WORD(gGameSession->location.loc);
+    stageAreaKey     &= GAME_LOCATION_STAGE_AREA_MASK;
+    player            = &gPlayerStatus;
+    display           = &gDisplayState;
+    // Demo presentation precedes queued menu handoff and battle processing.
+    if (display->demoScene != DISPLAY_DEMO_NONE) {
+        _hudDrawDemoPanels();
     }
 
-    b                = hud->queuedMenuMode;
+    queuedMenuMode   = hud->queuedMenuMode;
     hud->suppression = HUD_SUPPRESS_NONE;
-    if (b != 0) {
-        if (ds->pendingMode == DISPLAY_MODE_NONE) {
-            if (ds->holdState >= 0) {
-                ds->pendingMode = b;
+    if (queuedMenuMode != DISPLAY_MODE_NONE) {
+        if (display->pendingMode == DISPLAY_MODE_NONE) {
+            if (display->holdState >= 0) {
+                display->pendingMode = queuedMenuMode;
             }
         }
         hud->queuedMenuMode = DISPLAY_MODE_NONE;
     }
 
-    slot = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
-    if (slot != NULL) {
-        if (slot->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
-            bad = 1;
+    // A mismatched view gate holds new menus and battle transition requests.
+    viewGateTask = gameGetTaskSlot(GAME_TASK_SLOT_VIEW_GATE);
+    if (viewGateTask != NULL) {
+        if (viewGateTask->spawnArg1.value != gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view) {
+            viewChangePending = 1;
         }
     }
 
-    if (bad == 0) {
-        DisplayState* d2;
+    if (viewChangePending == 0) {
+        DisplayState* menuDisplay;
 
-        d2 = &gDisplayState;
-        if (d2->holdState >= 0 && (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE || d2->demoScene != DISPLAY_DEMO_NONE) && Gp_ItemGrantCooldown <= 0 && gGameSession->dirActionBusy == 0 &&
-            cfg->interactionPressed == 0 && gSceneCombatState.signals.bytes.endDelayFrames == 0 && d2->pendingMode == DISPLAY_MODE_NONE) {
+        menuDisplay = &gDisplayState;
+        if (menuDisplay->holdState >= 0 && (Gp_StateC08.mode == ATTACHMENT_MODE_IDLE || menuDisplay->demoScene != DISPLAY_DEMO_NONE) && Gp_ItemGrantCooldown <= 0 && gGameSession->dirActionBusy == 0 &&
+            player->interactionPressed == 0 && gSceneCombatState.signals.bytes.endDelayFrames == 0 && menuDisplay->pendingMode == DISPLAY_MODE_NONE) {
             if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_START) != 0) {
                 if (hud->inBattle == 0) {
-                    hud->queuedMenuMode = 0x41;
+                    hud->queuedMenuMode = HUD_MENU_REQUEST_INVENTORY;
                     hud->suppression    = HUD_SUPPRESS_ALL;
                 } else if (_hudCanSwitchCategory(1) != 0 && gPlayerStatus.armor != PLAYER_STATUS_EQUIPMENT_NONE) {
-                    hud->queuedMenuMode = 0x42;
+                    hud->queuedMenuMode = HUD_MENU_REQUEST_ATTACHMENTS;
                     hud->suppression    = HUD_SUPPRESS_PARASITE_ENERGY;
                 }
             } else if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_SELECT) != 0) {
                 if (hud->inBattle != 0) {
-                    PlayerStatus* p;
-                    s32           cond;
+                    PlayerStatus* galleryPlayer;
+                    s32           isGalleryTraining;
 
-                    p = &gPlayerStatus;
-                    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-                        cond = 0;
+                    galleryPlayer = &gPlayerStatus;
+                    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+                        isGalleryTraining = 0;
                     } else {
-                        cond = p->resourceVariant == 4;
+                        isGalleryTraining = galleryPlayer->resourceVariant == HUD_GALLERY_TRAINING_RESOURCE_VARIANT;
                     }
-                    if (cond == 0) {
-                        hud->queuedMenuMode = 0x45;
+                    if (isGalleryTraining == 0) {
+                        hud->queuedMenuMode = HUD_MENU_REQUEST_OPTIONS;
                         hud->suppression    = HUD_SUPPRESS_ALL;
                     }
                 } else {
@@ -1691,50 +1729,50 @@ void Gp_HudTask(HudState* hud)
         }
     }
 
+    // Advance battle transitions before deciding which HUD layers may run.
     worldTargetUpdatePlayerRelativePositions();
     {
-        DisplayState* d3;
+        DisplayState* battleDisplay;
 
-        attachment                  = &Gp_StateC08;
-        d3                          = &gDisplayState;
-        attachment->effectPhase     = ATTACHMENT_EFFECT_IDLE;
-        d3->suppressDisconnectPause = 1;
-        inBattle                    = hud->inBattle;
+        attachment                             = &Gp_StateC08;
+        battleDisplay                          = &gDisplayState;
+        attachment->effectPhase                = ATTACHMENT_EFFECT_IDLE;
+        battleDisplay->suppressDisconnectPause = 1;
+        inBattle                               = hud->inBattle;
         if (inBattle == 1) {
-            step = hud->battleStep;
-            if (step == HUD_BATTLE_STEP_START) {
+            battleStep = hud->battleStep;
+            if (battleStep == HUD_BATTLE_STEP_START) {
                 s32 currentStageAreaKey;
 
-                if (bad == 0) {
+                if (viewChangePending == 0) {
                     currentStageAreaKey  = GAME_LOCATION_WORD(gGameSession->location.loc);
                     currentStageAreaKey &= GAME_LOCATION_STAGE_AREA_MASK;
                     hud->field_8         = 0;
-                    if (currentStageAreaKey != GAME_LOCATION_KEY(1, 20, 0, 0)) {
+                    if (currentStageAreaKey != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
                         displayQueueModeTask(&D_8010CAB0, 0, hud, STAGE_ENTRY_GRAY_CAPTURE);
                     } else {
                         hud->battleStep = hud->battleStep + 1;
                     }
                     Gp_StateC08.mode = ATTACHMENT_MODE_IDLE;
                 }
-            } else if (step == HUD_BATTLE_STEP_FIGHT) {
-                combat                      = &gSceneCombatState;
-                b                           = combat->signals.bytes.endDelayFrames;
-                d3->suppressDisconnectPause = 0;
-                if (b != 0) {
+            } else if (battleStep == HUD_BATTLE_STEP_FIGHT) {
+                s32 endDelayFrames;
+                combat                                 = &gSceneCombatState;
+                endDelayFrames                         = combat->signals.bytes.endDelayFrames;
+                battleDisplay->suppressDisconnectPause = 0;
+                if (endDelayFrames != 0) {
                     if (combat->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                        combat->signals.bytes.endDelayFrames = b - 1;
+                        combat->signals.bytes.endDelayFrames = endDelayFrames - 1;
                     }
-                    n = combat->signals.bytes.endDelayFrames;
-                    if (n == 2) {
+                    remainingEndDelayFrames = combat->signals.bytes.endDelayFrames;
+                    if (remainingEndDelayFrames == HUD_BATTLE_CANCEL_REMAINING_FRAMES) {
                         playerStateSetStatusEffects(1, PLAYER_STATUS_ALL_EFFECTS);
                         cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
                         if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
-                            attachment->effectPhase = n;
+                            attachment->effectPhase = remainingEndDelayFrames;
                         }
-                        attachment->queuedIndex  = 0;
-                        attachment->mode         = ATTACHMENT_MODE_IDLE;
-                        D_80115768               = 0;
-                        combat->actorControl     = SCENE_COMBAT_ACTORS_RUNNING;
+                        attachment->queuedIndex = 0;
+                        _attachmentResumeActors();
                         attachment->previewSound = 0;
                         attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
                         roomEffectRequestCancelPe();
@@ -1742,8 +1780,8 @@ void Gp_HudTask(HudState* hud)
                         if ((gGameSession->flowFlags & GAME_SESSION_FLOW_REEQUIP_WEAPON) == 0) {
                             hud->battleStep = hud->battleStep + 1;
                         } else {
-                            work = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                            playerActorResetWeaponAttack(work, gPlayerStatus.weapon, 0);
+                            playerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                            playerActorResetWeaponAttack(playerTask, gPlayerStatus.weapon, 0);
                             if (gGameSession->flowFlags & GAME_SESSION_FLOW_HIDE_REEQUIPPED_WEAPON) {
                                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                             }
@@ -1753,78 +1791,66 @@ void Gp_HudTask(HudState* hud)
                 } else {
                     GameSession* session;
 
-                    if (stageAreaKey == GAME_LOCATION_KEY(1, 20, 0, 0)) {
+                    if (stageAreaKey == GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
                         session = gGameSession;
                         if (session->battleResetPending != 0) {
                             combat->signals.bytes.battlePhase = SCENE_COMBAT_BATTLE_IDLE;
                             combat->battleRefs                = 0;
                             session->battleResetPending       = 0;
-                            if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
-                                attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
-                            }
-                            attachment->queuedIndex = 0;
-                            attachment->mode        = ATTACHMENT_MODE_IDLE;
-                            D_80115768              = 0;
-                            combat->actorControl    = SCENE_COMBAT_ACTORS_RUNNING;
-                            attachment->menuOpen    = ATTACHMENT_MENU_CLOSED;
-                            hud->battleStep         = HUD_BATTLE_STEP_START;
-                            hud->inBattle           = 0;
+                            _hudCancelAttachment(attachment);
+                            attachment->menuOpen = ATTACHMENT_MENU_CLOSED;
+                            hud->battleStep      = HUD_BATTLE_STEP_START;
+                            hud->inBattle        = 0;
                         }
                     }
                 }
-            } else if (step == HUD_BATTLE_STEP_END_ACTION) {
+            } else if (battleStep == HUD_BATTLE_STEP_END_ACTION) {
                 SceneCombatState* combat;
-                Task*             w;
-                s32               c;
+                Task*             endActionPlayerTask;
+                s32               endActionDelayFrames;
 
-                combat = &gSceneCombatState;
-                c      = combat->signals.bytes.endDelayFrames;
-                if (c != 0) {
+                combat               = &gSceneCombatState;
+                endActionDelayFrames = combat->signals.bytes.endDelayFrames;
+                if (endActionDelayFrames != 0) {
                     if (combat->actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-                        combat->signals.bytes.endDelayFrames = c - 1;
+                        combat->signals.bytes.endDelayFrames = endActionDelayFrames - 1;
                     }
                 }
-                w = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-                if (w != NULL) {
-                    playerActorEnterReload(w, 0, PLAYER_ACTOR_RELOAD_BATTLE_END);
+                endActionPlayerTask = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+                if (endActionPlayerTask != NULL) {
+                    playerActorEnterReload(endActionPlayerTask, 0, PLAYER_ACTOR_RELOAD_BATTLE_END);
                 }
                 hud->battleStep = hud->battleStep + 1;
-            } else if (step == HUD_BATTLE_STEP_WAIT_END_ACTION) {
+            } else if (battleStep == HUD_BATTLE_STEP_WAIT_END_ACTION) {
                 _hudWaitForBattleEndAction(hud);
-            } else if (step == HUD_BATTLE_STEP_RESULTS && bad == 0) {
-                PlayerStatus*    p;
-                s32              cond;
-                DisplayState*    d4;
+            } else if (battleStep == HUD_BATTLE_STEP_RESULTS && viewChangePending == 0) {
+                PlayerStatus*    galleryPlayer;
+                s32              isGalleryTraining;
+                DisplayState*    resultsDisplay;
                 AttachmentState* attachment;
 
-                p = &gPlayerStatus;
-                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(1, 20, 0, 0)) {
-                    cond = 0;
+                galleryPlayer = &gPlayerStatus;
+                if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) != GAME_LOCATION_KEY(GAME_STAGE_ACROPOLIS, GAME_AREA_MIST_SHOOTING_GALLERY, 0, 0)) {
+                    isGalleryTraining = 0;
                 } else {
-                    cond = p->resourceVariant == 4;
+                    isGalleryTraining = galleryPlayer->resourceVariant == HUD_GALLERY_TRAINING_RESOURCE_VARIANT;
                 }
-                if (cond != 0 && gGameSession->battleResetPending != 0) {
+                if (isGalleryTraining != 0 && gGameSession->battleResetPending != 0) {
                     hud->battleStep = HUD_BATTLE_STEP_START;
                     hud->inBattle   = 0;
                 } else {
-                    d4 = &gDisplayState;
-                    if (d4->demoScene != DISPLAY_DEMO_NONE) {
-                        d4->gameMode    = DISPLAY_GAME_RESTART;
-                        hud->battleStep = HUD_BATTLE_STEP_START;
-                        hud->inBattle   = 0;
+                    resultsDisplay = &gDisplayState;
+                    if (resultsDisplay->demoScene != DISPLAY_DEMO_NONE) {
+                        resultsDisplay->gameMode = DISPLAY_GAME_RESTART;
+                        hud->battleStep          = HUD_BATTLE_STEP_START;
+                        hud->inBattle            = 0;
                     } else {
                         displayQueueModeTask(&D_8010CABC, 0, hud, STAGE_ENTRY_RELOAD);
                     }
                 }
                 attachment = &Gp_StateC08;
-                if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
-                    attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
-                }
-                attachment->queuedIndex        = 0;
-                attachment->mode               = ATTACHMENT_MODE_IDLE;
-                D_80115768                     = 0;
-                gSceneCombatState.actorControl = SCENE_COMBAT_ACTORS_RUNNING;
-                attachment->menuOpen           = ATTACHMENT_MENU_CLOSED;
+                _hudCancelAttachment(attachment);
+                attachment->menuOpen = ATTACHMENT_MENU_CLOSED;
             }
             if (hud->suppression <= HUD_SUPPRESS_PARASITE_ENERGY) {
                 if (gGameSession->hideHud == 0) {
@@ -1839,27 +1865,21 @@ void Gp_HudTask(HudState* hud)
         } else {
             SceneCombatState* combat;
             AttachmentState*  attachment;
-            s32               m;
+            s32               battlePhase;
 
             if (gSceneCombatState.signals.bytes.endDelayFrames != 0) {
                 if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
                     gSceneCombatState.signals.bytes.endDelayFrames = gSceneCombatState.signals.bytes.endDelayFrames - 1;
                 }
             }
-            combat = &gSceneCombatState;
-            m      = gSceneCombatState.signals.bytes.battlePhase;
-            if (m == 1) {
+            combat      = &gSceneCombatState;
+            battlePhase = gSceneCombatState.signals.bytes.battlePhase;
+            if (battlePhase == SCENE_COMBAT_BATTLE_ENGAGED) {
                 hud->battleStep = HUD_BATTLE_STEP_START;
-                hud->inBattle   = m;
+                hud->inBattle   = battlePhase;
                 cdCmdEnqueueDisplayResource(0, 0, CD_COMMAND_DISPLAY_LOAD_SEEK_CURRENT_VIEW);
                 attachment = &Gp_StateC08;
-                if (attachment->mode >= ATTACHMENT_MODE_ARMED) {
-                    attachment->effectPhase = ATTACHMENT_EFFECT_CANCELLED;
-                }
-                attachment->queuedIndex  = 0;
-                attachment->mode         = ATTACHMENT_MODE_IDLE;
-                D_80115768               = 0;
-                combat->actorControl     = SCENE_COMBAT_ACTORS_RUNNING;
+                _hudCancelAttachment(attachment);
                 attachment->previewSound = 0;
                 attachment->soundStep    = ATTACHMENT_SOUND_IDLE;
                 hud->suppression         = HUD_SUPPRESS_ALL;
@@ -1871,6 +1891,7 @@ void Gp_HudTask(HudState* hud)
         }
     }
 
+    // PE and the grant cooldown advance only on fully unsuppressed event-free frames.
     if (hud->suppression <= HUD_SUPPRESS_NONE) {
         if (gGameSession->eventState == 0) {
             if (equipmentHasEffect(EQUIPMENT_EFFECT_MEDICAL_INSPECTION) != 0) {

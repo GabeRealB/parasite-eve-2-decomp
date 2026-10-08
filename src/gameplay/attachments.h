@@ -114,7 +114,20 @@ extern u16 D_80113F90[];
 
 extern const char D_800938AC[8];
 
-void Gp_HudTask(HudState* hud);
+/// Advances the HUD's battle sequence, menu requests and visible frame updates.
+///
+/// Borrows persistent writable HUD state from the live play-clock task.
+/// Requires initialized player/save/session, combat, attachment, display, pad
+/// and rendering state. Menu requests are handed to the display on the next
+/// call and dropped if a request or display hold prevents acceptance.
+/// A pending view-gate task delays menu and battle-transition requests.
+/// End-delay frames tick only while actors run; transitions borrow this HUD
+/// until their tasks finish. Battle-end supply reload requires weapon 1..32
+/// and the player-task requirements of the end-action handlers.
+/// Rebuilds suppression before drawing status/radar/target HP and updating PE;
+/// suppressed frames pause the PE update and item-grant cooldown. Demo scenes
+/// also require room for two textured quads in the current GPU packet arena.
+void hudUpdateAndDraw(HudState* hud);
 
 /// Previews an attachment's target area or releases its targeting/self effect.
 ///

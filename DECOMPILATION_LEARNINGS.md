@@ -40979,7 +40979,7 @@ mean the registers will line up. The hard-register numbers of those hoisted
 `li`s are decided by the pre-scheduling order, i.e. by where the field writes
 appear in the C source.
 
-`Gp_HudTask` sat at 99.7% with a perfect instruction sequence and only the
+`hudUpdateAndDraw` sat at 99.7% with a perfect instruction sequence and only the
 `t0`-`t6` names wrong. The fix was to put the eight coordinate writes at the top
 of *both* primitive blocks, before the colour/UV/tpage fields, even though the
 target emits poly 1's `sh`s at the very end and poly 2's split across the block:
@@ -146414,23 +146414,23 @@ share one cause.
 
 **2026-10-06.** The `reload_cse` half stands; "only something opaque to CSE does that" does not. cse itself writes `(set i (reg n))` when `i` is already known to hold zero at a second `i = 0`. See "A register zeroed twice" at the end of this file.
 
-## A scratch-head constant hoisted out of an inner loop but not the outer one is one block-scoped local per exit (func_800DDDF8, 2026-09-27)
+## A scratch-head constant hoisted out of an inner loop but not the outer one is one block-scoped local per exit (worldCollisionCollideCapsuleGrid, 2026-09-27)
 
 **Shape.** A slot search nested in a face loop gives the scratch block back
 and returns from two exits. The target materialises `lui/ori 0x1F8003FC`
 once, in the inner loop's preheader, *after* the copy of the outer loop's
 `i * 12` giv. A bare `SCRATCH_STACK_RELEASE_BYTES` at each exit is hoisted out of
 both loops (a compiler temporary is movable even when conditional); one
-function-scope `head = SCRATCH_HEAD_ADDR` before the inner loop is not
+function-scope `scratchCursorSlot = SCRATCH_STACK_CURSOR_SLOT` before the inner loop is not
 moved at all, so it lands *ahead* of the loop-moved giv copy.
 
 **Fix.** Declare the local inside each exit block
-(`void** head = SCRATCH_HEAD_ADDR; SCRATCH_POP_BYTES_AT(head, n); return;`).
+(`void** scratchCursorSlot = SCRATCH_STACK_CURSOR_SLOT; SCRATCH_POP_AT(scratchCursorSlot, _WorldCollisionCapsuleGridContactScratch); return;`).
 In the inner loop each set and its use share a basic block, which
 `scan_loop` accepts even for a user variable, so both are moved and matched
 into one preheader insn placed after the giv. In the outer loop that insn
 is a conditional user-variable set whose uses span blocks, so it stays.
-The seed faked the same result with a function-scope `head` plus an
+The seed faked the same result with a function-scope `scratchCursorSlot` plus an
 explicit `t = i * sizeof(face)` ahead of it. Separately, an `andi 0xFFFF`
 on a value already loaded with `lhu` is a `u16` local compared with a
 constant, not an `s32` kept alive by `SOFT_USE_REG`.
@@ -149957,7 +149957,7 @@ attempts; left as it was.
 ### Goto forms from the caption task, the HUD task and the pod tunnel (batch 14, 2026-10-06)
 
 - **A hand-inlined copy of a function with one argument constant.**
-  `Gp_HudTask` carried `hit = ...; if (hit) { if (cooldown > 0) { ok = 0; goto
+  `hudUpdateAndDraw` carried `hit = ...; if (hit) { if (cooldown > 0) { ok = 0; goto
   have; } if (endDelay == 0) { ok = 1; goto have; } } ok = 0; have:`, the body
   of `_hudCanSwitchCategory` without its `ignoreSwapLock == 0` swap-lock test. It is the file's
   `_hudCanSwitchCategory` inline given that parameter and called as `_hudCanSwitchCategory(1)`;
@@ -149968,7 +149968,7 @@ attempts; left as it was.
   own in the branch's delay slot, where the nested form shares the final one
   and fills the slot with the next `lui`.
 - **A `goto tail` out of the middle of one arm of an if-chain** (the
-  `WAIT_END_ACTION` step of `Gp_HudTask`) is that arm as a `static inline void`
+  `WAIT_END_ACTION` step of `hudUpdateAndDraw`) is that arm as a `static inline void`
   with a `return`; with it the chain is `if / else if`, the code at `tail:`
   follows the chain inside the `if (inBattle == 1)`, the `other:` block is its
   `else`, and `end:` is the code after both. 31 gotos, three builds. A pointer

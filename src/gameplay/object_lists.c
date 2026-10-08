@@ -332,30 +332,31 @@ void worldCollisionCollideBodyLists(WorldCollisionBody* firstList, WorldCollisio
     }
 }
 
-void Gp_CollideListGrid(WorldCollisionBody* node)
+void worldCollisionCollideBodyListGrid(const WorldCollisionBody* body)
 {
-    u16 flags;
+    u16 bodyFlags;
 
     if (Gp_GridParams != 0) {
-        for (; node != NULL; node = node->next) {
-            flags = node->flags;
-            if (flags & WORLD_COLLISION_BODY_GRID_ENABLED) {
-                switch (flags & WORLD_COLLISION_BODY_KIND_MASK) {
+        for (; body != NULL; body = body->next) {
+            bodyFlags = body->flags;
+            if (bodyFlags & WORLD_COLLISION_BODY_GRID_ENABLED) {
+                switch (bodyFlags & WORLD_COLLISION_BODY_KIND_MASK) {
                     case WORLD_COLLISION_BODY_NONE:
                         break;
                     case WORLD_COLLISION_BODY_SPHERE:
-                        worldCollisionCollideSphereGrid(node);
+                        worldCollisionCollideSphereGrid(body);
                         break;
                     case WORLD_COLLISION_BODY_CONTACT_PROXY:
                         break;
                     case WORLD_COLLISION_BODY_CAPSULE:
-                        func_800DDDF8(node);
+                        worldCollisionCollideCapsuleGrid(body);
                         break;
                     case WORLD_COLLISION_BODY_MOTION_SPHERE:
-                        if (node->flags & WORLD_COLLISION_BODY_FLOOR_QUERY) {
-                            worldCollisionQueryMotionSphereFloor(node);
+                        // Floor contact zero must precede motion-filtered overlaps.
+                        if (body->flags & WORLD_COLLISION_BODY_FLOOR_QUERY) {
+                            worldCollisionQueryMotionSphereFloor(body);
                         }
-                        worldCollisionCollideMotionSphereGrid(node);
+                        worldCollisionCollideMotionSphereGrid(body);
                         break;
                 }
             }

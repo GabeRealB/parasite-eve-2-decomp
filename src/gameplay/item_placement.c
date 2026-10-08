@@ -243,13 +243,15 @@ static void Gp_SpawnPlaceById(u16 arg0)
     }
 }
 
-/// Applies a matched room object's key, kind and root placement.
+/// Places a spawned model-backed room object and publishes its key and kind.
 ///
-/// Borrows a live model-backed enemy and place. XYZ use game units in the
-/// root's parent frame; yaw uses 4096 units per turn, narrowed to s16.
-/// Zero yaw records zero while keeping the existing matrix rotation.
-/// `task` must be this enemy's live task with a TMD body and root coordinate.
-static inline void _areaApplyRoomObjectPlacement(Task* task, Enemy* enemy, const AreaObjectPlace* place)
+/// `task` is the enemy's live TMD task with a writable model root. Borrows
+/// `place` only for this call; the packed key narrows to u16 after ORing
+/// flagIndex with placeKeyHigh shifted by eight. XYZ use game units in the
+/// root's parent frame and yaw uses 4096 units per turn, narrowed to s16.
+/// A nonzero yaw replaces the root rotation; zero records zero and retains
+/// the matrix's existing rotation. Marks composition dirty in either case.
+static inline void _areaApplyRoomObjectPlacement(const Task* task, Enemy* enemy, const AreaObjectPlace* place)
 {
     TmdObject* model;
     GfxCoord*  root;

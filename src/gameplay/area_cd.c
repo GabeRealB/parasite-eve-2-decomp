@@ -4,6 +4,7 @@
 #include "gameplay/areaplace.h"
 #include "gameplay/scene_runtime.h"
 
+#include "main/areas.h"
 #include "main/fs.h"
 #include "main/mc.h"
 #include "main/task_types.h"
@@ -42,20 +43,23 @@ u32 D_8010CAC8[2] = { 0, 0xE1EFCD00 };
 /// File-group base selected by each `AreaResource.fileGroupIndex` value.
 u16 D_8010CAD0[9] = { 10, 20, 30, 40, 50, 60, 0, 1, 2 };
 
-/// Queues the current placement's additional file with its signed image relocation.
+/// Queues the current placement's global-library file and signed texture relocation.
 ///
-/// Borrows the live placement/resource cursors. Their IDs must match, and the
-/// resource's file-group selector must be 0..8 with a catalogued file number.
-/// X offsets count 64-word VRAM columns; Y offsets count CLUT rows. Enqueue
-/// copies the four-byte records synchronously; key byte 1 is ignored.
+/// Borrows matching live placement/resource cursors; fileIdLow is the nonzero
+/// low base-100 component. The resource's file-group selector is 0..8 and its
+/// nonnegative file number must resolve to a catalogued global file.
+/// The group/hundreds components narrow to bytes. X offsets count 64-word
+/// VRAM columns; Y offsets count CLUT rows. Enqueue copies key bytes 3/2/0
+/// and all four argument bytes synchronously, retaining no stack addresses;
+/// key byte 1 is unused. Queue capacity is the caller's responsibility.
 static inline void _loadingQueueCurrentPlacementFile(void)
 {
-    _LoadingFileKey  fileKey;
-    _LoadingFileArgs fileParams;
-    AreaResource*    resource;
-    s32              fileNumber;
+    _LoadingFileKey     fileKey;
+    _LoadingFileArgs    fileParams;
+    const AreaResource* resource;
+    s32                 fileNumber;
 
-    fileKey.stage     = 0;
+    fileKey.stage     = GAME_STAGE_NONE;
     fileKey.fileIndex = Gp_CdRecCur->fileIdLow;
     resource          = D_80114C68;
     fileNumber        = resource->fileNumber;

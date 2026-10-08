@@ -348,6 +348,10 @@ static inline void _itemMenuSetTransferPaneState(const _ItemMenuMoveWork* work, 
 }
 
 /// Hands input from the focused pane to the other live transfer pane.
+///
+/// Borrows writable screen work with focusedPane 0 or 1 and both panes live.
+/// Replaces each pane's entire control word (0 inactive, 1 active); this also
+/// clears its former control flags. Does not change pane task states or rows.
 static inline void _itemMenuSwitchTransferFocus(_ItemMenuMoveWork* work)
 {
     work->panes[work->focusedPane]->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;

@@ -3008,14 +3008,16 @@ void Gp_TickPlayClock(Task* task)
         gGameSession->deathVariant = 1;
         task->state++;
     } else {
-        Gp_HudTask(&work->hud);
+        hudUpdateAndDraw(&work->hud);
     }
 }
 
-/// Stops traversal and discards session tasks and their frame packets before heap reuse.
+/// Stops task traversal and abandons the default session list and both frame tables.
 ///
-/// Borrows the resident display; previous task/GPU users must be disposable
-/// or finished. The current task cannot be inspected after discarding the list.
+/// Borrows the resident display, which must outlive the following heap reset.
+/// GPU use of both tables must have finished. Does not run task exits or free
+/// allocations: the caller must reset their heaps before reusing the storage.
+/// The current task is detached with the list and becomes invalid at that reset.
 static inline void _playClockDiscardSessionTasksAndPackets(DisplayState* display)
 {
     display->stopTaskWalk = 1;

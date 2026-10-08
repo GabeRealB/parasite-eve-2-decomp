@@ -364,13 +364,13 @@ void Gp_TickWorldCollision(Task* unused)
 {
     if (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER) != NULL) {
         playerActorUpdateMove();
-        Gp_CollideListGrid(Gp_ObjList0);
-        Gp_CollideListGrid(Gp_ObjList1);
-        Gp_CollideListGrid(Gp_ObjList2);
-        Gp_CollideListGrid(Gp_ObjList3);
-        Gp_CollideListGrid(Gp_ObjList4);
-        Gp_CollideListGrid(Gp_ObjList7);
-        Gp_CollideListGrid(Gp_ObjList8);
+        worldCollisionCollideBodyListGrid(Gp_ObjList0);
+        worldCollisionCollideBodyListGrid(Gp_ObjList1);
+        worldCollisionCollideBodyListGrid(Gp_ObjList2);
+        worldCollisionCollideBodyListGrid(Gp_ObjList3);
+        worldCollisionCollideBodyListGrid(Gp_ObjList4);
+        worldCollisionCollideBodyListGrid(Gp_ObjList7);
+        worldCollisionCollideBodyListGrid(Gp_ObjList8);
         worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList2);
         worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList3);
         worldCollisionCollideBodyLists(Gp_ObjList0, Gp_ObjList4);
