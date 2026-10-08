@@ -92542,10 +92542,8 @@ static s32 _dryfieldMotelRoom6GateWaterTowerExit(Task* task, s32 messageId, cons
 }
 ```
 
-`func_neo_ark_shrine_8017D6AC`, `func_shelter_b3_incinerator_control_room_8017FA8C`
-and this one differ only in destination `areaId`, the nibble index and the cap command (and, in
 `_neoArkShrineResolveRoomEvent`, `func_shelter_b3_incinerator_control_room_8017FA8C`
-and this one differ only in `msgId`, the nibble index and the cap command (and, in
+and this one differ only in destination `areaId`, the nibble index and the cap command (and, in
 the shrine and incinerator, a `gameFlagSetNibbleIfPresent(in->flagId, 2)` where this one has a
 plain `gameFlagSetNibble`). Two of the three carry the required duplicated
 `return 0;` already - both the `queryOnly` early return and a trailing one - which is
@@ -153519,8 +153517,7 @@ that step was inferred from the result, not read out of a dump.
   with the other statements left on `D.node.x`; the old `GfxMatrix* mtx` into
   the `packed` view goes.
 - Pointer locals that had to stay, passed as `&p->mat`:
-  `_actor400500SelectCrawlRoute` (`rotation`), `func_actor_400600_801356E0` and
-  `func_actor_400500_801361EC` (`src`), `_actor400600SpawnArmModels`
+  `_actor400500SelectCrawlRoute` (`rotation`), `_actor400600SpawnArmModels`
   (`leftRotation`, `rightRotation`) and
   `func_actor_405800_80135780` (`pm`, `pm2`). In the last two the copy that
   follows also reads through the pointer, so they are not the helper above.
