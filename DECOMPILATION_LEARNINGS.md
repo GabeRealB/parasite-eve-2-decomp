@@ -36653,7 +36653,7 @@ Sharing one `coord` / `pan` pair across two `if` arms that each do this sequence
 gives the same symptom, even with no loop involved: `pan` lands in the next free
 callee-saved register (`sra s1, v0, 24`) and `move a0, s0` drops into the delay
 slot. Give each arm its own locals (`coord2` / `pan2`), as
-`func_actor_503500_80144E8C` already does. That took
+`_actor503500OrangeFlashAttackInit` already does. That took
 `_actor503500YellowFlashAttackUpdatePhase` from 97.4% (`regs=7 reorder=4`) to 100%.
 
 When the sound id is also built in place (`lhu s0; srl s0; sll s0; or s0,s0,a1`)
@@ -64412,7 +64412,7 @@ TaskFunc         states[2] = { handler0, handler1 };
 element-wise `work` load also reaches 100% there, by pinning the load ahead of
 the first `lui`; prefer the initializer, which needs no barrier.
 
-Why the initializer works, from the sched1 trace of `func_actor_503500_80145FDC`:
+Why the initializer works, from the sched1 trace of `_actor503500TickTentacle`:
 the brace initializer expands through `store_constructor`, which first emits
 `(clobber (mem/s:BLK fns))`. With element stores there is no clobber, so both
 pointer loads launch together with the first `lui` right after the store
@@ -69352,7 +69352,7 @@ what a wrong operand inside a correct shape looks like.
 
 ## Reusing one pointer local across two identical store groups raises its sched1 priority
 
-`func_actor_503500_80144E8C` seeds an identity rotation into two places — the
+`_actor503500PinkFlashAttackInit` seeds an identity rotation into two places — the
 task's `GfxCoord` and a `MATRIX` inside its own work block — through the
 `GfxRotationWords` word view. Written with one local reused for both,
 
@@ -69669,7 +69669,7 @@ followed by `{`) before believing a "missing" body.
 
 ### Cross-jumped call with an `(s8)` argument: one local per arm, not one shared
 
-`func_actor_503500_80145A2C` ends in two arms that differ only in the sound id:
+`_actor503500OrangeFlashAttackInit` ends in two arms that differ only in the sound id:
 each loads `lui/ori a0`, and the `sndEvtRequestScriptStart` call after them is
 shared. Writing the call once after an `if` that sets `pan`/`depth`/`id` gives
 `addu a2,v0,a2` instead of `addu a2,a2,v0`. Writing the call in each arm lets
@@ -69684,11 +69684,11 @@ per arm keeps each one block-local, and the shift pair then goes straight into
 
 ```c
 if (gGameSession->eventState != 0) {
-    pan = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(0x40230013, pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    eventPan = (s8)worldCoordGetOriginAudioPan(coord);
+    sndEvtRequestScriptStart(0x40230013, eventPan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
 } else {
-    pan2 = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(0x4023000E, pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    chargePan = (s8)worldCoordGetOriginAudioPan(coord);
+    sndEvtRequestScriptStart(0x4023000E, chargePan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
 }
 ```
 
@@ -94628,7 +94628,7 @@ short-lived register. The penalty mix is small -- `regs=1 delete=1` here -- and
 the tell is the `delete`, with a `branch` count equal to the number of branches
 after the missing instruction, since every later offset shifts by 4.
 
-`src/actors/actor_503500/actor_503500_9.c` (`func_actor_503500_8014618C`)
+`src/actors/actor_503500/actor_503500_5.c` (`_actor503500CollapseTentacle`)
 documents exactly this shape, and `Actor00400_Fn04E18` in
 `src/actors/lib/actor_100400_text.c` is a second instance. To find a sibling
 when the natural C sits at ~98% with `regs=1 delete=1`, scan the family's asm

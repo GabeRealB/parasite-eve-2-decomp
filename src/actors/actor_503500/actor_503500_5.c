@@ -15,6 +15,7 @@
 #include "gameplay/animation.h"
 #include "gameplay/collision.h"
 #include "gameplay/damage.h"
+#include "gameplay/display.h"
 #include "gameplay/effects.h"
 #include "gameplay/enemy.h"
 #include "gameplay/geometry.h"
@@ -254,11 +255,11 @@ static void _actor503500BindTentacleLighting(Task* task);
 
 extern TaskMessageEntry D_actor_503500_80176530[];
 
-/// Local offset of the display node `func_actor_503500_80144E8C` links, and the
+/// Local offset of the display node `_actor503500PinkFlashAttackInit` links, and the
 /// offsets it seeds its `WorldCollisionCapsule` with.
 extern SVECTOR D_actor_503500_801715C4;
 extern SVECTOR D_actor_503500_801715CC;
-/// Local offset of the display node `func_actor_503500_801455A4` links.
+/// Local offset of the display node `_actor503500YellowFlashAttackInit` links.
 extern SVECTOR D_actor_503500_801715D4;
 static void    _actor503500PinkFlashAttackExit(Task* task);
 static void    _actor503500PinkFlashAttackUpdatePhase(Task* task);
@@ -266,30 +267,30 @@ static void    _actor503500PinkFlashAttackSweepContacts(Task* task);
 static void    _actor503500YellowFlashAttackUpdatePhase(Task* task);
 static void    _actor503500YellowFlashAttackExit(Task* task);
 static void    _actor503500YellowFlashAttackClearContacts(Task* task);
-static void    func_actor_503500_80145C50(Task* arg0);
+static void    _actor503500OrangeFlashAttackUpdatePhase(Task* task);
 static void    _actor503500OrangeFlashAttackSweepContacts(Task* task);
 
 extern SVECTOR D_actor_503500_801715DC;
 extern SVECTOR D_actor_503500_801715E4;
 static void    _actor503500OrangeFlashAttackExit(Task* task);
-static void    func_actor_503500_8014618C(Task* arg0);
+static void    _actor503500CollapseTentacle(Task* task);
 static void    _actor503500TentacleIdle(Task* unusedTask);
 
 extern AnimationSet*  D_actor_503500_80176514[3];
 extern AnimationSet** gActorMotionAnimBanks19[1];
-static void           func_actor_503500_80144E8C(Task* arg0);
+static void           _actor503500PinkFlashAttackInit(Task* task);
 static void           _actor503500PinkFlashAttackUpdate(Task* task);
-static void           func_actor_503500_801455A4(Task* arg0);
+static void           _actor503500YellowFlashAttackInit(Task* task);
 static void           _actor503500YellowFlashAttackUpdate(Task* task);
-static void           func_actor_503500_80145A2C(Task* arg0);
-static void           func_actor_503500_80145E1C(Task* arg0);
+static void           _actor503500OrangeFlashAttackInit(Task* task);
+static void           _actor503500OrangeFlashAttackUpdate(Task* task);
 static void           _actor503500InitTentacle(Task* task);
-static void           func_actor_503500_80145FDC(Task* task);
+static void           _actor503500TickTentacle(Task* task);
 
-/// `Task::state` handlers `func_actor_503500_8014554C` dispatches through.
+/// `Task::state` handlers `actor503500PinkFlashAttackTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_801321F4 = {
     {
-        func_actor_503500_80144E8C,
+        _actor503500PinkFlashAttackInit,
         _actor503500PinkFlashAttackUpdate,
         _actor503500PinkFlashAttackExit,
     },
@@ -301,7 +302,7 @@ static TmdSource    _gActor503500Actor361100Model06038;
 static s32          _actorMsgPlaceEuler(Task* task, s32 msgId, const ActorTransform* placement, s32 unusedArg);
 static s32          _actor503500SetTentacleDrawMode(Task* task, s32 msgId, s32 mode, s32 unusedArg);
 static s32          _actor503500ApplyTentacleCommand(Task* task, s32 msgId, const ActorCommand* command, s32 unusedArg);
-void                func_actor_503500_801463C0(Task*);
+static void         _actor503500TentacleTask(Task* task);
 
 static AnimationSet _gActor503500Animation3DE60;
 static AnimationSet _gActor503500Animation3E5FC;
@@ -1203,7 +1204,7 @@ AnimationSet** gActorMotionAnimBanks19[1] = {
     D_actor_503500_80176514,
 };
 
-TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_503500_801463C0, { .model = &_gActor503500Actor361100Model06038 } };
+TaskDesc D_actor_503500_80176524 = { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor503500TentacleTask, { .model = &_gActor503500Actor361100Model06038 } };
 
 TaskMessageEntry D_actor_503500_80176530[5] = {
     { ACTOR_MESSAGE_PLAY_ANIMATION, _actorMotionPlayAnim19 },
@@ -1213,28 +1214,17 @@ TaskMessageEntry D_actor_503500_80176530[5] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-static void func_actor_503500_80144E8C(Task* arg0)
+/// Initializes and links the pink capsule with its borrowed contact storage.
+///
+/// Requires fresh work and a live root; coordinate and work remain live until
+/// unlinking at exit. Radii use game units, and pair testing starts disabled.
+static inline void _actor503500PinkFlashAttackLinkCapsule(_Actor503500PinkFlashAttackWork* work, GfxCoord* coord)
 {
-    _Actor503500PinkFlashAttackWork* work;
-    GfxCoord*                        coord;
-    WorldCollisionCapsule*           capsule;
-    WorldCollisionContact*           contacts;
-    EffectWork*                      eff;
-    Task*                            child;
-    s32                              pan;
-
-    coord = arg0->extra.tmd->coords;
-    work  = memCalloc(sizeof(*work), false);
-    if (work == NULL) {
-        taskKill(arg0);
-        return;
-    }
-    arg0->work        = work;
-    work->radiusScale = ONE;
-
-    gfxSetRotIdentity(&coord->coord);
-
-    gfxSetRotIdentity(&work->sweepRotation);
+    enum {
+        ACTOR_503500_PINK_FLASH_ATTACK_INITIAL_FAR_RADIUS = 2000,
+    };
+    WorldCollisionCapsule* capsule;
+    WorldCollisionContact* contacts;
 
     capsule  = &work->capsule;
     contacts = work->contacts;
@@ -1255,31 +1245,70 @@ static void func_actor_503500_80144E8C(Task* arg0)
     capsule->ends[0].vx = D_actor_503500_801715CC.vx;
     capsule->ends[0].vy = D_actor_503500_801715CC.vy;
     capsule->ends[0].vz = D_actor_503500_801715CC.vz;
-    capsule->end1Radius = 0x3E8;
-    capsule->end0Radius = 0x7D0;
+    capsule->end1Radius = ACTOR_503500_PINK_FLASH_ATTACK_NEAR_RADIUS;
+    capsule->end0Radius = ACTOR_503500_PINK_FLASH_ATTACK_INITIAL_FAR_RADIUS;
 
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-
-    if (arg0->spawnArg1.value == 0) {
-        eff = effectSpawn(EFFECT_SHELTER_R48_RING_FLASH_PINK, coord, 0, NULL);
-        if (eff == NULL) {
-            _actor503500PinkFlashAttackExit(arg0);
-            return;
-        }
-        child            = eff->task;
-        work->effectTask = child;
-        taskReparent(arg0, child);
-    }
-    pan = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0A), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-    actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_PINK_FLASH);
-    arg0->exitCallback = _actor503500PinkFlashAttackExit;
-    arg0->state       += 1;
 }
 
-/// Integrates the capsule's Q16 yaw and rebuilds its pure Y rotation.
+/// Initializes one of the two pink-flash sweeping attack capsules.
+///
+/// Requires a live coordinate body. Spawn argument 1 selects the negative
+/// sweep at zero and the positive sweep otherwise; only zero spawns the charge
+/// effect. The task owns its work and effect child until exit, and lends the
+/// capsule/contact storage to collision. Effect-spawn failure runs exit before
+/// cost acquisition, retaining the unconditional budget subtraction and wrap.
+static void _actor503500PinkFlashAttackInit(Task* task)
+{
+    enum {
+        ACTOR_503500_PINK_FLASH_ATTACK_CHARGE_SOUND = 0x0A,
+    };
+    _Actor503500PinkFlashAttackWork* work;
+    GfxCoord*                        coord;
+    EffectWork*                      effectWork;
+    Task*                            effectTask;
+    s32                              pan;
+
+    coord = task->extra.coordBody->coord;
+    work  = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->work        = work;
+    work->radiusScale = ONE;
+
+    gfxSetRotIdentity(&coord->coord);
+
+    gfxSetRotIdentity(&work->sweepRotation);
+
+    _actor503500PinkFlashAttackLinkCapsule(work, coord);
+
+    // Only the negative-sweep task owns a charge effect; both own a budget share.
+    if (task->spawnArg1.value == 0) {
+        effectWork = effectSpawn(EFFECT_SHELTER_R48_RING_FLASH_PINK, coord, 0, NULL);
+        if (effectWork == NULL) {
+            _actor503500PinkFlashAttackExit(task);
+            return;
+        }
+        effectTask       = effectWork->task;
+        work->effectTask = effectTask;
+        taskReparent(task, effectTask);
+    }
+    pan = (s8)worldCoordGetOriginAudioPan(coord);
+    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_PINK_FLASH_ATTACK_CHARGE_SOUND), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_PINK_FLASH);
+    task->exitCallback = _actor503500PinkFlashAttackExit;
+    task->state       += 1;
+}
+
+/// Advances the pink capsule's signed 16.16 sweep angle and rebuilds its Y rotation.
+///
+/// Requires live attack work. Velocity has the angle's 4096-units-per-turn
+/// scale; only the integer half reaches the rotation. Replaces the nine
+/// rotation entries, preserving matrix translation and the coordinate stamp.
 static inline void _actor503500PinkFlashAttackAdvanceSweep(_Actor503500PinkFlashAttackWork* work)
 {
     work->sweepAngle.word += work->sweepAngularVelocity;
@@ -1448,78 +1477,100 @@ static void _actor503500PinkFlashAttackSweepContacts(Task* task)
     worldCollisionClearContacts(contacts);
 }
 
-void func_actor_503500_8014554C(Task* task)
+void actor503500PinkFlashAttackTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_503500_801321F4;
-    sp.funcs[task->state](task);
+    handlers = D_actor_503500_801321F4;
+    handlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_801459D4` dispatches through.
+/// `Task::state` handlers `actor503500YellowFlashAttackTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132218 = {
     {
-        func_actor_503500_801455A4,
+        _actor503500YellowFlashAttackInit,
         _actor503500YellowFlashAttackUpdate,
         _actor503500YellowFlashAttackExit,
     },
 };
 
-static void func_actor_503500_801455A4(Task* arg0)
+/// Initializes the yellow sphere on the player and links its borrowed contact slot.
+///
+/// Requires fresh work and a live player root; both remain live until unlinking
+/// at exit. Radius uses game units, and pair testing starts disabled.
+static inline void _actor503500YellowFlashAttackLinkSphere(_Actor503500YellowFlashAttackWork* work)
 {
-    _Actor503500YellowFlashAttackWork* work;
-    GfxCoord*                          coord;
-    EffectWork*                        eff;
-    Task*                              child;
-    s32                                pan;
-
-    coord = arg0->extra.tmd->coords;
-    work  = memCalloc(sizeof(*work), false);
-    if (work == NULL) {
-        taskKill(arg0);
-        return;
-    }
-    arg0->work = work;
-
-    gfxSetRotIdentity(&coord->coord);
-
+    enum {
+        ACTOR_503500_YELLOW_FLASH_ATTACK_RADIUS = 300,
+    };
     work->body.coord            = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
     work->body.context.contacts = work->contacts;
     work->body.pos.vx           = D_actor_503500_801715D4.vx;
     work->body.pos.vy           = D_actor_503500_801715D4.vy;
     work->body.pos.vz           = D_actor_503500_801715D4.vz;
     work->body.key              = damagePackAttackKey(D_actor_503500_8016E7D4[1], 0);
-    work->body.radius           = 0x12C;
+    work->body.radius           = ACTOR_503500_YELLOW_FLASH_ATTACK_RADIUS;
     work->body.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(work->contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
+}
 
-    eff = effectSpawn(EFFECT_SHELTER_R48_RING_FLASH_YELLOW, coord, 0, NULL);
-    if (eff == NULL) {
-        _actor503500YellowFlashAttackExit(arg0);
+/// Initializes a yellow-flash attack sphere attached to the player's coordinate.
+///
+/// Requires a live coordinate body and player root. The task owns its work and
+/// charge-effect child until exit; the player root must outlive the borrowed
+/// collision attachment. Pair testing starts disabled. Effect-spawn failure
+/// calls exit before cost acquisition, retaining the budget subtraction and wrap.
+static void _actor503500YellowFlashAttackInit(Task* task)
+{
+    enum {
+        ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE_SOUND = 0x0C,
+    };
+    _Actor503500YellowFlashAttackWork* work;
+    GfxCoord*                          coord;
+    EffectWork*                        effectWork;
+    Task*                              effectTask;
+    s32                                pan;
+
+    coord = task->extra.coordBody->coord;
+    work  = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(task);
         return;
     }
-    child            = eff->task;
-    work->effectTask = child;
-    taskReparent(arg0, child);
+    task->work = work;
+
+    gfxSetRotIdentity(&coord->coord);
+
+    _actor503500YellowFlashAttackLinkSphere(work);
+
+    effectWork = effectSpawn(EFFECT_SHELTER_R48_RING_FLASH_YELLOW, coord, 0, NULL);
+    if (effectWork == NULL) {
+        _actor503500YellowFlashAttackExit(task);
+        return;
+    }
+    effectTask       = effectWork->task;
+    work->effectTask = effectTask;
+    taskReparent(task, effectTask);
     pan = (s8)worldCoordGetOriginAudioPan(coord);
-    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0C), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_YELLOW_FLASH_ATTACK_CHARGE_SOUND), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
     actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_YELLOW_FLASH);
-    arg0->exitCallback = _actor503500YellowFlashAttackExit;
-    arg0->state       += 1;
+    task->exitCallback = _actor503500YellowFlashAttackExit;
+    task->state       += 1;
 }
 
 /// Plays a Brahman sound cue using the yellow flash's cached view transform.
 ///
-/// Requires a live TMD root with a composed local-to-view matrix. Spatial
+/// Requires a live coordinate body with a composed local-to-view matrix. Spatial
 /// offsets retain signed-byte narrowing and the depth's division by two.
+/// `soundId` is a Brahman bank entry in 0..255, without bank or character bits.
 static inline void _actor503500YellowFlashAttackPlayCue(Task* task, s32 soundId)
 {
     GfxCoord* coord;
     s32       pan;
 
-    coord = task->extra.tmd->coords;
+    coord = task->extra.coordBody->coord;
     pan   = (s8)worldCoordGetOriginAudioPan(coord);
     sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, soundId), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
 }
@@ -1626,43 +1677,35 @@ static void _actor503500YellowFlashAttackClearContacts(Task* task)
     worldCollisionClearContacts(work->contacts);
 }
 
-void func_actor_503500_801459D4(Task* task)
+void actor503500YellowFlashAttackTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_503500_80132218;
-    sp.funcs[task->state](task);
+    handlers = D_actor_503500_80132218;
+    handlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_80145F84` dispatches through.
+/// `Task::state` handlers `actor503500OrangeFlashAttackTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132224 = {
     {
-        func_actor_503500_80145A2C,
-        func_actor_503500_80145E1C,
+        _actor503500OrangeFlashAttackInit,
+        _actor503500OrangeFlashAttackUpdate,
         _actor503500OrangeFlashAttackExit,
     },
 };
 
-static void func_actor_503500_80145A2C(Task* arg0)
+/// Initializes and links the orange capsule with its borrowed contact storage.
+///
+/// Requires fresh work and a live root; coordinate and work remain live until
+/// unlinking at exit. Radii use game units, and pair testing starts disabled.
+static inline void _actor503500OrangeFlashAttackLinkCapsule(_Actor503500OrangeFlashAttackWork* work, GfxCoord* coord)
 {
-    _Actor503500OrangeFlashAttackWork* work;
-    GfxCoord*                          coord;
-    WorldCollisionCapsule*             capsule;
-    WorldCollisionContact*             contacts;
-    EffectWork*                        eff;
-    Task*                              child;
-    s32                                pan;
-    s32                                pan2;
-
-    coord = arg0->extra.tmd->coords;
-    work  = memCalloc(sizeof(*work), false);
-    if (work == NULL) {
-        taskKill(arg0);
-        return;
-    }
-    arg0->work = work;
-
-    gfxSetRotIdentity(&coord->coord);
+    enum {
+        ACTOR_503500_ORANGE_FLASH_ATTACK_NEAR_RADIUS = 2000,
+        ACTOR_503500_ORANGE_FLASH_ATTACK_FAR_RADIUS  = 3000,
+    };
+    WorldCollisionCapsule* capsule;
+    WorldCollisionContact* contacts;
 
     capsule  = &work->capsule;
     contacts = work->contacts;
@@ -1683,66 +1726,111 @@ static void func_actor_503500_80145A2C(Task* arg0)
     capsule->ends[0].vx = D_actor_503500_801715E4.vx;
     capsule->ends[0].vy = D_actor_503500_801715E4.vy;
     capsule->ends[0].vz = D_actor_503500_801715E4.vz;
-    capsule->end1Radius = 0x7D0;
-    capsule->end0Radius = 0xBB8;
+    capsule->end1Radius = ACTOR_503500_ORANGE_FLASH_ATTACK_NEAR_RADIUS;
+    capsule->end0Radius = ACTOR_503500_ORANGE_FLASH_ATTACK_FAR_RADIUS;
 
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &work->body);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(work->contacts), 0);
     work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-
-    eff = effectSpawn(EFFECT_SHELTER_R48_RING_FLASH, coord, arg0->spawnArg1.value, NULL);
-    if (eff == NULL) {
-        _actor503500OrangeFlashAttackExit(arg0);
-        return;
-    }
-    child            = eff->task;
-    work->effectTask = child;
-    taskReparent(arg0, child);
-    if (gGameSession->eventState != 0) {
-        pan = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x13), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-    } else {
-        pan2 = (s8)worldCoordGetOriginAudioPan(coord);
-        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0E), pan2, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
-    }
-    actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_ORANGE_FLASH);
-    arg0->exitCallback = _actor503500OrangeFlashAttackExit;
-    arg0->state       += 1;
 }
 
-static void func_actor_503500_80145C50(Task* arg0)
+/// Initializes the orange-flash capsule and its charge-effect child.
+///
+/// Requires a live coordinate body. Spawn argument 1 is a positive charge
+/// countdown in updating ticks; argument 2 is the boss task used by the update's
+/// interrupt test. The capsule borrows work storage until unlinking at exit. Scripted
+/// events select an alternate charge sound and suppress collision activation.
+/// Effect-spawn failure calls exit before cost acquisition, retaining the
+/// unconditional budget subtraction and wrap.
+static void _actor503500OrangeFlashAttackInit(Task* task)
 {
+    enum {
+        ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_SOUND       = 0x0E,
+        ACTOR_503500_ORANGE_FLASH_ATTACK_EVENT_CHARGE_SOUND = 0x13,
+    };
+    _Actor503500OrangeFlashAttackWork* work;
+    GfxCoord*                          coord;
+    EffectWork*                        effectWork;
+    Task*                              effectTask;
+    s32                                eventPan;
+    s32                                chargePan;
+
+    coord = task->extra.coordBody->coord;
+    work  = memCalloc(sizeof(*work), false);
+    if (work == NULL) {
+        taskKill(task);
+        return;
+    }
+    task->work = work;
+
+    gfxSetRotIdentity(&coord->coord);
+
+    _actor503500OrangeFlashAttackLinkCapsule(work, coord);
+
+    effectWork = effectSpawn(EFFECT_SHELTER_R48_RING_FLASH, coord, task->spawnArg1.value, NULL);
+    if (effectWork == NULL) {
+        _actor503500OrangeFlashAttackExit(task);
+        return;
+    }
+    effectTask       = effectWork->task;
+    work->effectTask = effectTask;
+    taskReparent(task, effectTask);
+    if (gGameSession->eventState != 0) {
+        eventPan = (s8)worldCoordGetOriginAudioPan(coord);
+        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_ORANGE_FLASH_ATTACK_EVENT_CHARGE_SOUND), eventPan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    } else {
+        chargePan = (s8)worldCoordGetOriginAudioPan(coord);
+        sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_SOUND), chargePan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+    }
+    actor503500AcquireProjectileEffectCost(ACTOR_503500_PROJECTILE_EFFECT_COST_ORANGE_FLASH);
+    task->exitCallback = _actor503500OrangeFlashAttackExit;
+    task->state       += 1;
+}
+
+/// Advances the orange flash through charge, strike and linger, with pad rumble.
+///
+/// Requires initialized work and a live coordinate body. Counts updating ticks:
+/// 91 charging, 56 striking and 36 lingering before advancing to the exit state.
+/// Scripted events suppress the strike's collision, sound and full rumble.
+static void _actor503500OrangeFlashAttackUpdatePhase(Task* task)
+{
+    enum {
+        ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_MOTOR_INTENSITY = 150,
+        ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_MOTOR_INTENSITY = 255,
+        ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_SOUND           = 0x0F,
+    };
     _Actor503500OrangeFlashAttackWork* work;
     GfxCoord*                          coord;
     s32                                pan;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->phase) {
         case ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE:
+            // Refresh the light rumble on alternating display frames while charging.
             if (gDisplayState.animFrame & 1) {
-                padScriptSpawnVariableMotorRamp(1, 0x96, 0x96);
+                padScriptSpawnVariableMotorRamp(1, ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_MOTOR_INTENSITY, ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_MOTOR_INTENSITY);
             }
             if (++work->phaseFrames < ACTOR_503500_ORANGE_FLASH_ATTACK_CHARGE_FRAMES) {
                 return;
             }
             if (gGameSession->eventState == 0) {
                 work->body.flags |= WORLD_COLLISION_BODY_PAIR_ENABLED;
-                coord             = arg0->extra.tmd->coords;
+                coord             = task->extra.coordBody->coord;
                 pan               = (s8)worldCoordGetOriginAudioPan(coord);
-                sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
+                sndEvtRequestScriptStart(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_SOUND), pan, (s8)(worldCoordGetOriginAudioDepth(coord) / 2));
             }
             work->phaseFrames = 0;
             work->phase++;
             return;
         case ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE:
             if (gGameSession->eventState == 0) {
-                padScriptSpawnVariableMotorRamp(1, 0xFF, 0xFF);
+                padScriptSpawnVariableMotorRamp(1, ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_MOTOR_INTENSITY, ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_MOTOR_INTENSITY);
             }
             if (++work->phaseFrames < ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_FRAMES) {
                 return;
             }
             work->body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
-            sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, 0x0F), SOUND_SCRIPT_STOP_KEEP_RELEASE);
+            sndEvtRequestScriptStop(SOUND_CHARACTER(SOUND_BANK_BRAHMAN, ACTOR_503500_ORANGE_FLASH_ATTACK_STRIKE_SOUND), SOUND_SCRIPT_STOP_KEEP_RELEASE);
             work->phaseFrames = 0;
             work->phase++;
             return;
@@ -1751,28 +1839,34 @@ static void func_actor_503500_80145C50(Task* arg0)
                 return;
             }
         default:
-            arg0->state += 1;
+            task->state += 1;
             return;
     }
 }
 
-static void func_actor_503500_80145E1C(Task* arg0)
+/// Consumes orange-flash contacts and advances its phases while actors run.
+///
+/// Requires initialized work, a live coordinate body and the boss task in spawn
+/// argument 2. Paused/hidden actors skip the update; values above the defined
+/// 0..2 range retain the running behavior. An interrupted boss destroys the
+/// attack after the contact and phase updates, through its installed exit callback.
+static void _actor503500OrangeFlashAttackUpdate(Task* task)
 {
     GfxCoord* coord;
-    s32       state;
+    s32       actorControl;
 
-    coord = arg0->extra.tmd->coords;
-    state = gSceneCombatState.actorControl;
-    if (state < 3) {
-        if (state != 0) {
+    coord        = task->extra.coordBody->coord;
+    actorControl = gSceneCombatState.actorControl;
+    if (actorControl <= SCENE_COMBAT_ACTORS_HIDDEN) {
+        if (actorControl != SCENE_COMBAT_ACTORS_RUNNING) {
             return;
         }
     }
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
-    _actor503500OrangeFlashAttackSweepContacts(arg0);
-    func_actor_503500_80145C50(arg0);
-    if (actor503500ShouldInterruptAttack(arg0->spawnArg2.pointer)) {
-        arg0->exitCallback(arg0);
+    _actor503500OrangeFlashAttackSweepContacts(task);
+    _actor503500OrangeFlashAttackUpdatePhase(task);
+    if (actor503500ShouldInterruptAttack(task->spawnArg2.pointer)) {
+        task->exitCallback(task);
     }
 }
 
@@ -1823,39 +1917,29 @@ static void _actor503500OrangeFlashAttackSweepContacts(Task* task)
     worldCollisionClearContacts(contacts);
 }
 
-void func_actor_503500_80145F84(Task* task)
+void actor503500OrangeFlashAttackTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_503500_80132224;
-    sp.funcs[task->state](task);
+    handlers = D_actor_503500_80132224;
+    handlers.funcs[task->state](task);
 }
 
-/// `Task::state` handlers `func_actor_503500_801463C0` dispatches through.
+/// `Task::state` handlers `_actor503500TentacleTask` dispatches through.
 static const TaskFuncTable3 D_actor_503500_80132230 = {
     {
         _actor503500InitTentacle,
-        func_actor_503500_80145FDC,
+        _actor503500TickTentacle,
         _actor503500ExitTentacle,
     },
 };
 
-/// Per-frame tick of the `_Actor503500Actor361100Model06038Work` actor: runs the
-/// handler `motion` selects, adds `velocity` onto `carry`, moves the
-/// coordinate by the integer halves and keeps only the fractions, then ticks
-/// the animation slots and the actor colour. `freeCountdown` counts the
-/// model's buffers down to the free.
-static void func_actor_503500_80145FDC(Task* task)
+/// Adds 16.16 velocity to the tentacle root and keeps the three fractional carries.
+///
+/// Requires writable work and root storage. Uses parent-coordinate units and
+/// marks composition dirty; velocity and all rotation entries are preserved.
+static inline void _actor503500IntegrateTentacleVelocity(_Actor503500Actor361100Model06038Work* work, GfxCoord* coord)
 {
-    VECTOR                                 pos;
-    TmdObject*                             ext      = task->extra.tmd;
-    _Actor503500Actor361100Model06038Work* work     = task->work;
-    TaskFunc                               funcs[2] = { _actor503500TentacleIdle, func_actor_503500_8014618C };
-    GfxCoord*                              coord;
-    s32                                    i;
-
-    funcs[work->motion](task);
-    coord                = task->extra.tmd->coords;
     work->carry[0].word += work->velocity.vx;
     work->carry[1].word += work->velocity.vy;
     work->carry[2].word += work->velocity.vz;
@@ -1866,61 +1950,91 @@ static void func_actor_503500_80145FDC(Task* task)
     work->carry[0].word  = work->carry[0].halves.fraction;
     work->carry[1].word  = work->carry[1].halves.fraction;
     work->carry[2].word  = work->carry[2].halves.fraction;
+}
+
+/// Updates the scripted tentacle's motion, position, animation and lighting.
+///
+/// Requires a live model, initialized work and an Enemy in spawn argument 2.
+/// Motion is 0 idle or 1 collapse. Integrates signed 16.16 displacement into
+/// the root's parent-coordinate translation, retaining the unsigned fractional
+/// halves. Animation ticks slots 1..18; hidden models skip lighting composition.
+/// A nonnegative buffer countdown frees on the tick finding zero, then becomes
+/// inactive at -1. Motion runs first, even when it advances the task to exit.
+static void _actor503500TickTentacle(Task* task)
+{
+    VECTOR                                 composedPosition;
+    TmdObject*                             model             = task->extra.tmd;
+    _Actor503500Actor361100Model06038Work* work              = task->work;
+    TaskFunc                               motionHandlers[2] = { _actor503500TentacleIdle, _actor503500CollapseTentacle };
+    GfxCoord*                              coord;
+    s32                                    slotIndex;
+
+    motionHandlers[work->motion](task);
+    coord = task->extra.tmd->coords;
+    _actor503500IntegrateTentacleVelocity(work, coord);
     if (work->model.ticking != 0) {
-        for (i = 1; i < 0x13; i++) {
-            animationTickSlot(&work->rig.anim, i);
+        for (slotIndex = 1; slotIndex < ARRAY_SIZE(work->rig.slots); slotIndex++) {
+            animationTickSlot(&work->rig.anim, slotIndex);
         }
     }
-    if (!(ext->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
+    if (!(model->flags & TMD_OBJECT_SKIP_ACTIVE_DRAW)) {
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
         actorRenderComposeCoord(coord);
-        pos.vx = coord->workm.t[0];
-        pos.vy = coord->workm.t[1];
-        pos.vz = coord->workm.t[2];
-        worldCoordUpdateActorColor(task->spawnArg2.pointer, &pos, 0, 0);
+        composedPosition.vx = coord->workm.t[0];
+        composedPosition.vy = coord->workm.t[1];
+        composedPosition.vz = coord->workm.t[2];
+        worldCoordUpdateActorColor(task->spawnArg2.pointer, &composedPosition, 0, 0);
     }
     if (work->freeCountdown >= 0) {
         if (work->freeCountdown == 0) {
-            tmdFreePrimitiveBuffer(ext);
+            tmdFreePrimitiveBuffer(model);
         }
         work->freeCountdown--;
     }
 }
 
-/// The collapse, the handler `_Actor503500Actor361100Model06038Work::motion`
-/// selects once it is set, stepped by `motionStep`: the first step saves the
-/// coordinate's rotation into `unscaledRotation`, the second waits, and the
-/// third restores that rotation every frame while squashing it by
-/// `collapseScaleY`, from `ONE` down to an eighth, firing the light and burn
-/// cues on the way before advancing the task to its exit state.
-static void func_actor_503500_8014618C(Task* arg0)
+/// Collapses the scripted tentacle by squashing its saved root rotation, then burning.
+///
+/// Requires initialized work, a live model and an Enemy in spawn argument 2.
+/// Saves only the 18-byte rotation, waits 31 updating ticks, then decreases its
+/// Q12 Y scale toward ONE/8 while restoring that rotation before each scale.
+/// Squash ticks 20/30/100 select translucent weighted lighting, burn and black
+/// lighting; tick 150 advances to exit. Translation is left to the frame tick.
+static void _actor503500CollapseTentacle(Task* task)
 {
+    enum { ACTOR_503500_TENTACLE_CORPSE_BURN_BURSTS = 2 };
     VECTOR                                 scale;
     GfxCoord*                              coord;
     _Actor503500Actor361100Model06038Work* work;
-    TmdObject*                             ext;
-    void*                                  enemy;
-    s32*                                   src;
-    s32*                                   dst;
-    s32                                    i;
+    TmdObject*                             model;
+    Enemy*                                 enemy;
+    const s32*                             sourceWords;
+    s32*                                   destinationWords;
+    s32                                    wordIndex;
 
-    // `extra` is read twice on purpose: the second read is what leaves the
-    // target's `move s2, v0` copy.
-    coord = arg0->extra.tmd->coords;
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
-    ext   = arg0->extra.tmd;
+    /// Copies exactly nine rotation halfwords, preserving translation and alignment bytes.
+    ///
+    /// Arguments must be word-aligned MATRIX::m arrays with no side effects;
+    /// each is evaluated twice. Captures sourceWords, destinationWords and
+    /// wordIndex. Expands to multiple statements; invoke within a braced block.
+#define ACTOR_503500_TENTACLE_COPY_ROTATION(destinationRotation, sourceRotation)                              \
+    destinationWords = (s32*)(destinationRotation);                                                           \
+    sourceWords      = (const s32*)(sourceRotation);                                                          \
+    for (wordIndex = 0; wordIndex < (s32)(sizeof(destinationRotation) / sizeof(*sourceWords)); wordIndex++) { \
+        *destinationWords++ = *sourceWords++;                                                                 \
+    }                                                                                                         \
+    (destinationRotation)[2][2] = (sourceRotation)[2][2];
+
+    coord = task->extra.tmd->coords;
+    work  = task->work;
+    enemy = task->spawnArg2.pointer;
+    model = task->extra.tmd;
     switch (work->motionStep) {
         case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_SAVE:
             work->motionStepFrames = 0;
             work->collapseScaleY   = ONE;
-            // The rotation is nine halfwords, copied as four words and one more halfword.
-            dst = (s32*)work->unscaledRotation.m;
-            src = (s32*)coord->coord.m;
-            for (i = 0; i < 4; i++) {
-                *dst++ = *src++;
-            }
-            work->unscaledRotation.m[2][2] = coord->coord.m[2][2];
+            // Keep an unscaled rotation; the frame tick owns root translation.
+            ACTOR_503500_TENTACLE_COPY_ROTATION(work->unscaledRotation.m, coord->coord.m);
             work->motionStep++;
             break;
         case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_STEP_WAIT:
@@ -1935,44 +2049,44 @@ static void func_actor_503500_8014618C(Task* arg0)
                 work->collapseScaleY -= ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_SCALE_STEP;
             }
             // Scaling compounds, so each frame starts again from the saved rotation.
-            dst = (s32*)coord->coord.m;
-            src = (s32*)work->unscaledRotation.m;
-            for (i = 0; i < 4; i++) {
-                *dst++ = *src++;
-            }
-            coord->coord.m[2][2] = work->unscaledRotation.m[2][2];
-            scale.vx             = ONE;
-            scale.vy             = work->collapseScaleY;
-            scale.vz             = ONE;
+            ACTOR_503500_TENTACLE_COPY_ROTATION(coord->coord.m, work->unscaledRotation.m);
+            scale.vx = ONE;
+            scale.vy = work->collapseScaleY;
+            scale.vz = ONE;
             ScaleMatrixL(&coord->coord, &scale);
             coord->composeStamp = GRAPHICS_COORD_DIRTY;
             work->motionStepFrames++;
             switch (work->motionStepFrames) {
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_FADE_FRAME:
-                    ext->flags |= TMD_OBJECT_SEMI_TRANS;
+                    model->flags |= TMD_OBJECT_SEMI_TRANS;
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_WEIGHTED);
                     break;
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BURN_FRAME:
-                    effectSpawn(EFFECT_CORPSE_BURN, coord, 2, NULL);
+                    effectSpawn(EFFECT_CORPSE_BURN, coord, ACTOR_503500_TENTACLE_CORPSE_BURN_BURSTS, NULL);
                     break;
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_BLACK_FRAME:
                     worldCoordSetActorColorMode(enemy, ENEMY_COLOR_BLACK);
                     break;
                 case ACTOR_503500_ACTOR_361100_MODEL_06038_COLLAPSE_EXIT_FRAME:
-                    arg0->state++;
+                    task->state++;
                     break;
             }
             break;
     }
+#undef ACTOR_503500_TENTACLE_COPY_ROTATION
 }
 
-void func_actor_503500_801463C0(Task* task)
+/// Dispatches the scripted tentacle's initialization, updating and exit states.
+///
+/// `state` must be 0..2. Dispatch freezes in every actor-control mode except
+/// running, including initialization and exit. Spawn argument 2 is its Enemy.
+static void _actor503500TentacleTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 handlers;
 
-    sp = D_actor_503500_80132230;
+    handlers = D_actor_503500_80132230;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        sp.funcs[task->state](task);
+        handlers.funcs[task->state](task);
     }
 }
 

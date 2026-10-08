@@ -599,11 +599,26 @@ void func_actor_503500_80144890(Task* task);
 
 void func_actor_503500_80144E34(Task* task);
 
-void func_actor_503500_8014554C(Task* task);
+/// Dispatches one pink-flash sweeping capsule through initialization, update and exit.
+///
+/// `task->state` must be 0..2 with a live coordinate body. Spawn argument 1
+/// selects the negative sweep at zero (which owns the flash effect), positive
+/// otherwise. Update pauses for paused/hidden actors; initialization and exit run.
+void actor503500PinkFlashAttackTask(Task* task);
 
-void func_actor_503500_801459D4(Task* task);
+/// Dispatches the player-attached yellow-flash sphere through its three task states.
+///
+/// `task->state` must be 0..2 with a live coordinate body and player root.
+/// Update pauses for paused/hidden actors; initialization and exit run.
+void actor503500YellowFlashAttackTask(Task* task);
 
-void func_actor_503500_80145F84(Task* task);
+/// Dispatches the orange-flash capsule through initialization, update and exit.
+///
+/// `task->state` must be 0..2 with a live coordinate body. Spawn argument 1
+/// sets the charge effect's positive countdown in updating ticks; argument 2 is
+/// the boss task for interruption. Update pauses for paused/hidden actors;
+/// initialization and exit run.
+void actor503500OrangeFlashAttackTask(Task* task);
 
 // Callbacks referenced by the overlay's shared data tables.
 /// Commands an arm strike, then waits for the selected arm to rest.
