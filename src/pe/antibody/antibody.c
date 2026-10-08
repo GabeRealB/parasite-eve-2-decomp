@@ -66,7 +66,7 @@ static _AntibodyLevelTuning D_antibody_80130BD4[] = {
 };
 
 /// The `sndEvtRequestScriptStart` id for each `D_antibody_80130BD4` row, played
-/// once when `func_antibody_8012EF34` seeds the cast.
+/// once when `antibodyCastTask` seeds the cast.
 static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 
 /// Antibody mote instance of `spriteQuadDraw`.
@@ -76,44 +76,58 @@ static s32 D_antibody_80130C00[] = { 0xE0290001, 0xE02C0001, 0xE02F0001 };
 static void spriteQuadDrawMote(const GfxCoord* pos, s16 frame, s16 size, s16 angle);
 static void _antibodyDrawMoteStrip(const GfxCoord* coord, s16 textureFrame, s16 widthScale);
 
-/// Sixteen wedge yaws, refilled once per cast by `func_antibody_8012EF34`.
+/// Sixteen wedge yaws, refilled once per cast by `antibodyCastTask`.
 /// Entry `i` is `i * (0x1000 / wedgeCount)` plus a 9-bit `gRandomLcgState` draw;
 /// states 1 and 2 pass one yaw per frame to `glowDrawWedge`.
 static s16 D_antibody_80130C0C[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-/// Runs one frame of an antibody cast. `Task::spawnArg2` is the `EffectWork`
-/// block and `Task::extra` reaches the effect coordinate. Cancel
-/// (`Gp_StateC08.effectPhase == ATTACHMENT_EFFECT_HELD` or `gRoomEffectState->peEffectControl >= 4`) releases the
-/// work block.
+/// Moves the cast's local origin vertically and refreshes its composed transform.
 ///
-/// State 0 parents the coordinate with an identity rotation at the origin,
-/// seeds `index` from the combo counter, refills `D_antibody_80130C0C`
-/// with one yaw per wedge, and plays the row's cue. State 1 grows the draw
-/// parameter `scale` by the row's `scaleStep`, draws three rings plus the
-/// `wedgeCount` wedges (and an arc above the weakest row), and for the first
-/// 0x14 ticks spawns four `0x600F5` motes on a `moteSpawnRadius`-radius circle every
-/// `moteSpawnInterval` frames, reparenting each onto this task. Once `scale` passes
-/// the row's `scaleLimit` cap it spawns the `0x800600AC` burst, latches
-/// `period` and moves to state 2, which shrinks `scale` by 0x10 a frame
-/// and redraws at the capped radius until it drops below 0x11.
-
-void func_antibody_8012EF34(Task* arg0)
+/// Borrows a writable coordinate and its live parent chain. `localY` is in
+/// parent-coordinate units; rotation and local X/Z stay intact.
+static inline void _antibodySetCastHeight(GfxCoord* coord, s32 localY)
 {
-    EffectWork*      mem;
+    coord->coord.t[1]   = localY;
+    coord->composeStamp = GRAPHICS_COORD_DIRTY;
+    actorRenderComposeCoord(coord);
+}
+
+void antibodyCastTask(Task* task)
+{
+    enum {
+        ANTIBODY_CAST_STATE_INITIALIZE      = 0,
+        ANTIBODY_CAST_STATE_GROWING         = 1,
+        ANTIBODY_CAST_STATE_FADING          = 2,
+        ANTIBODY_CAST_LEVEL_ID_RADIX        = 10,
+        ANTIBODY_CAST_LEVEL_ONE_ROW         = 0,
+        ANTIBODY_CAST_LEVEL_THREE_ROW       = 2,
+        ANTIBODY_CAST_MOTE_BURST_PHASE      = 1,
+        ANTIBODY_CAST_MOTE_BURST_END_AGE    = 20,
+        ANTIBODY_CAST_FADE_STEP             = 16,
+        ANTIBODY_CAST_RING_LOCAL_Y          = -1024,
+        ANTIBODY_CAST_OUTER_BAND_HEIGHT     = 128,
+        ANTIBODY_CAST_FULL_TURN             = 4096,
+        ANTIBODY_CAST_MOTES_PER_BURST       = 4,
+        ANTIBODY_CAST_QUARTER_TURN          = ANTIBODY_CAST_FULL_TURN / ANTIBODY_CAST_MOTES_PER_BURST,
+        ANTIBODY_CAST_WEDGE_YAW_JITTER_MASK = 511,
+        ANTIBODY_CAST_TRIG_SHIFT            = 12,
+    };
+    EffectWork*      work;
     GfxCoord*        coord;
-    AttachmentState* state;
-    s32              i;
+    AttachmentState* attachmentState;
+    s32              wedgeIndex;
     u8               rgb[3];
 
-    state = &Gp_StateC08;
-    mem   = arg0->spawnArg2.pointer;
-    coord = arg0->extra.coordBody->coord;
-    if ((state->effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
-        mem->age = mem->age + 1;
-        switch (arg0->state) {
-            case 0: {
+    attachmentState = &Gp_StateC08;
+    work            = task->spawnArg2.pointer;
+    coord           = task->extra.coordBody->coord;
+    if ((attachmentState->effectPhase != ATTACHMENT_EFFECT_HELD) && (gRoomEffectState->peEffectControl < ROOM_EFFECT_CONTROL_CANCEL_MIN)) {
+        work->age = work->age + 1;
+        switch (task->state) {
+            case ANTIBODY_CAST_STATE_INITIALIZE: {
 
-                coord->parent = mem->parent;
+                // Seed the level-dependent wedges and apply the spell before growth starts.
+                coord->parent = work->parent;
                 gfxSetRotIdentity(&coord->coord);
                 coord->coord.t[2]   = 0;
                 coord->coord.t[1]   = 0;
@@ -121,148 +135,147 @@ void func_antibody_8012EF34(Task* arg0)
                 coord->composeStamp = GRAPHICS_COORD_DIRTY;
                 actorRenderComposeCoord(coord);
                 gRoomEffectState->peFxFlags &= (u16)~ROOM_EFFECT_PE_ANTIBODY_AURA;
-                state->flags                |= ATTACHMENT_FLAG_APPLY_STATS;
-                arg0->state                  = 1;
-                mem->index                   = (Gp_StateC08.attachId % 10) - 1;
-                i                            = 0;
-                if (D_antibody_80130BD4[mem->index].wedgeCount > 0) {
+                attachmentState->flags      |= ATTACHMENT_FLAG_APPLY_STATS;
+                task->state                  = ANTIBODY_CAST_STATE_GROWING;
+                work->index                  = (Gp_StateC08.attachId % ANTIBODY_CAST_LEVEL_ID_RADIX) - 1;
+                wedgeIndex                   = 0;
+                if (D_antibody_80130BD4[work->index].wedgeCount > 0) {
                     do {
-                        s16* dst;
-                        s32  lo;
-                        s32  rng;
+                        s16* wedgeYaws;
+                        s32  baseYaw;
+                        s32  yawRng;
 
-                        dst             = D_antibody_80130C0C;
-                        lo              = i * (0x1000 / D_antibody_80130BD4[mem->index].wedgeCount);
-                        rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                        dst[i]          = lo + (((u32)rng >> 16) & 0x1FF);
-                        gRandomLcgState = rng;
-                    } while (++i < D_antibody_80130BD4[mem->index].wedgeCount);
+                        wedgeYaws             = D_antibody_80130C0C;
+                        baseYaw               = wedgeIndex * (ANTIBODY_CAST_FULL_TURN / D_antibody_80130BD4[work->index].wedgeCount);
+                        yawRng                = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                        wedgeYaws[wedgeIndex] = baseYaw + (((u32)yawRng >> 16) & ANTIBODY_CAST_WEDGE_YAW_JITTER_MASK);
+                        gRandomLcgState       = yawRng;
+                    } while (++wedgeIndex < D_antibody_80130BD4[work->index].wedgeCount);
                 }
                 {
                     s32 pan;
 
                     pan = (s8)worldCoordGetOriginAudioPan(coord);
-                    sndEvtRequestScriptStart(D_antibody_80130C00[mem->index], pan,
+                    sndEvtRequestScriptStart(D_antibody_80130C00[work->index], pan,
                                              (s8)worldCoordGetOriginAudioDepth(coord));
                 }
                 return;
             }
-            case 1: {
-                _AntibodyLevelTuning* table;
-                _AntibodyLevelTuning* t2;
-                EffectWork*           eff;
-                s32                   rng;
-                s16                   ang;
-                s16*                  p;
-                s16                   count;
+            case ANTIBODY_CAST_STATE_GROWING: {
+                _AntibodyLevelTuning* tuningTable;
+                _AntibodyLevelTuning* wedgeTuningTable;
 
-                table               = D_antibody_80130BD4;
-                mem->scale          = mem->scale + table[mem->index].scaleStep;
-                rgb[0]              = (u8)mem->scale;
-                rgb[1]              = (u8)mem->scale;
-                rgb[2]              = mem->scale >> 1;
-                coord->coord.t[1]   = -0x400;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                effectDrawGouraudDisc(coord, (s16)(mem->scale * 4), rgb);
-                effectDrawGouraudDisc(coord, (s16)(mem->scale * 8), rgb);
-                effectDrawGouraudDisc(coord, (s16)(mem->scale * 0xC), rgb);
-                if (mem->index != 0) {
+                EffectWork* moteWork;
+                s32         moteRng;
+                s32         burstBaseYaw;
+                s16         moteYaw;
+                s16*        wedgeYawCursor;
+                s16         wedgeCount;
+
+                // Draw the growing rings above the caster, then spawn motes at its origin.
+                tuningTable = D_antibody_80130BD4;
+                work->scale = work->scale + tuningTable[work->index].scaleStep;
+                rgb[0]      = (u8)work->scale;
+                rgb[1]      = (u8)work->scale;
+                rgb[2]      = work->scale >> 1;
+                _antibodySetCastHeight(coord, ANTIBODY_CAST_RING_LOCAL_Y);
+                effectDrawGouraudDisc(coord, (s16)(work->scale * 4), rgb);
+                effectDrawGouraudDisc(coord, (s16)(work->scale * 8), rgb);
+                effectDrawGouraudDisc(coord, (s16)(work->scale * 0xC), rgb);
+                if (work->index != ANTIBODY_CAST_LEVEL_ONE_ROW) {
                     rgb[0] >>= 1;
                     rgb[1] >>= 1;
                     rgb[2] >>= 1;
-                    effectDrawOuterGlowBand(coord, (s16)(mem->scale * 8), 0x80, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)(work->scale * 8), ANTIBODY_CAST_OUTER_BAND_HEIGHT, rgb);
                 }
-                i     = 0;
-                count = table[mem->index].wedgeCount;
-                if (count > 0) {
-                    t2 = table;
-                    p  = D_antibody_80130C0C;
+                wedgeIndex = 0;
+                wedgeCount = tuningTable[work->index].wedgeCount;
+                if (wedgeCount > 0) {
+                    wedgeTuningTable = tuningTable;
+
+                    wedgeYawCursor = D_antibody_80130C0C;
                     do {
-                        glowDrawWedge(coord, (s16)(mem->scale * 6), *p, rgb);
-                        p += 1;
-                    } while (++i < t2[mem->index].wedgeCount);
+                        glowDrawWedge(coord, (s16)(work->scale * 6), *wedgeYawCursor, rgb);
+                        wedgeYawCursor += 1;
+                    } while (++wedgeIndex < wedgeTuningTable[work->index].wedgeCount);
                 }
-                coord->coord.t[1]   = 0;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                if (mem->age < 0x14) {
-                    if ((mem->age % D_antibody_80130BD4[mem->index].moteSpawnInterval) == 1) {
-                        i = 0;
+                _antibodySetCastHeight(coord, 0);
+                if (work->age < ANTIBODY_CAST_MOTE_BURST_END_AGE) {
+                    if ((work->age % D_antibody_80130BD4[work->index].moteSpawnInterval) == ANTIBODY_CAST_MOTE_BURST_PHASE) {
+                        burstBaseYaw = 0;
                         do {
-                            rng             = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-                            ang             = i + (((u32)rng >> 16) & 0x3FF);
-                            gRandomLcgState = rng;
-                            mem->angle      = ang;
-                            mem->move.vx =
-                                (D_antibody_80130BD4[mem->index].moteSpawnRadius * rsin(ang)) >> 12;
-                            mem->move.vz = (D_antibody_80130BD4[mem->index].moteSpawnRadius *
-                                            rcos(mem->angle)) >>
-                                           12;
-                            eff = effectSpawn(EFFECT_ANTIBODY_MOTE, coord, 0, &mem->move);
-                            if (eff != NULL) {
-                                taskReparent(arg0, eff->task);
+                            moteRng         = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
+                            moteYaw         = burstBaseYaw + (((u32)moteRng >> 16) & (ANTIBODY_CAST_QUARTER_TURN - 1));
+                            gRandomLcgState = moteRng;
+                            work->angle     = moteYaw;
+                            work->move.vx =
+                                (D_antibody_80130BD4[work->index].moteSpawnRadius * rsin(moteYaw)) >> ANTIBODY_CAST_TRIG_SHIFT;
+                            work->move.vz = (D_antibody_80130BD4[work->index].moteSpawnRadius *
+                                             rcos(work->angle)) >>
+                                            ANTIBODY_CAST_TRIG_SHIFT;
+                            moteWork = effectSpawn(EFFECT_ANTIBODY_MOTE, coord, 0, &work->move);
+                            if (moteWork != NULL) {
+                                taskReparent(task, moteWork->task);
                             }
-                            i += 0x400;
-                        } while (i < 0x1000);
+                            burstBaseYaw += ANTIBODY_CAST_QUARTER_TURN;
+                        } while (burstBaseYaw < ANTIBODY_CAST_FULL_TURN);
                     }
                 }
-                if (mem->scale > D_antibody_80130BD4[mem->index].scaleLimit) {
+                if (work->scale > D_antibody_80130BD4[work->index].scaleLimit) {
                     effectSpawn((EFFECT_ANTIBODY_AURA | EFFECT_SPAWN_UNLIMITED), coord, 0, 0);
-                    mem->period = mem->scale;
-                    arg0->state = 2;
+                    work->period = work->scale;
+                    task->state  = ANTIBODY_CAST_STATE_FADING;
                 }
                 return;
             }
-            case 2: {
-                _AntibodyLevelTuning* table;
-                _AntibodyLevelTuning* t2;
-                s16*                  p;
-                s16                   count;
+            case ANTIBODY_CAST_STATE_FADING: {
+                _AntibodyLevelTuning* tuningTable;
+                _AntibodyLevelTuning* wedgeTuningTable;
 
-                if (mem->scale < 0x11) {
+                s16* wedgeYawCursor;
+                s16  wedgeCount;
+
+                // Disc radii stay capped; level three keeps expanding the outer band and wedges.
+                if (work->scale < ANTIBODY_CAST_FADE_STEP + 1) {
                     break;
                 }
-                mem->scale          = mem->scale - 0x10;
-                rgb[0]              = (u8)mem->scale;
-                rgb[1]              = (u8)mem->scale;
-                rgb[2]              = mem->scale >> 1;
-                coord->coord.t[1]   = -0x400;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
-                table = D_antibody_80130BD4;
-                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 4), rgb);
-                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 8), rgb);
-                effectDrawGouraudDisc(coord, (s16)(table[mem->index].scaleLimit * 0xC), rgb);
-                if (mem->index != 0) {
-                    if (mem->index == 2) {
-                        mem->period = mem->period + table[mem->index].scaleStep;
+                work->scale = work->scale - ANTIBODY_CAST_FADE_STEP;
+                rgb[0]      = (u8)work->scale;
+                rgb[1]      = (u8)work->scale;
+                rgb[2]      = work->scale >> 1;
+                _antibodySetCastHeight(coord, ANTIBODY_CAST_RING_LOCAL_Y);
+                tuningTable = D_antibody_80130BD4;
+                effectDrawGouraudDisc(coord, (s16)(tuningTable[work->index].scaleLimit * 4), rgb);
+                effectDrawGouraudDisc(coord, (s16)(tuningTable[work->index].scaleLimit * 8), rgb);
+                effectDrawGouraudDisc(coord, (s16)(tuningTable[work->index].scaleLimit * 0xC), rgb);
+                if (work->index != ANTIBODY_CAST_LEVEL_ONE_ROW) {
+                    if (work->index == ANTIBODY_CAST_LEVEL_THREE_ROW) {
+                        work->period = work->period + tuningTable[work->index].scaleStep;
                     }
                     rgb[0] >>= 1;
                     rgb[1] >>= 1;
                     rgb[2] >>= 1;
-                    effectDrawOuterGlowBand(coord, (s16)(mem->period * 8), 0x80, rgb);
+                    effectDrawOuterGlowBand(coord, (s16)(work->period * 8), ANTIBODY_CAST_OUTER_BAND_HEIGHT, rgb);
                 }
-                i     = 0;
-                count = D_antibody_80130BD4[mem->index].wedgeCount;
-                if (count > 0) {
-                    t2 = D_antibody_80130BD4;
-                    p  = D_antibody_80130C0C;
+                wedgeIndex = 0;
+                wedgeCount = D_antibody_80130BD4[work->index].wedgeCount;
+                if (wedgeCount > 0) {
+                    wedgeTuningTable = D_antibody_80130BD4;
+
+                    wedgeYawCursor = D_antibody_80130C0C;
                     do {
-                        glowDrawWedge(coord, (s16)(mem->period * 6), *p, rgb);
-                        p += 1;
-                    } while (++i < t2[mem->index].wedgeCount);
+                        glowDrawWedge(coord, (s16)(work->period * 6), *wedgeYawCursor, rgb);
+                        wedgeYawCursor += 1;
+                    } while (++wedgeIndex < wedgeTuningTable[work->index].wedgeCount);
                 }
-                coord->coord.t[1]   = 0;
-                coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                actorRenderComposeCoord(coord);
+                _antibodySetCastHeight(coord, 0);
                 return;
             }
             default:
                 return;
         }
     }
-    effectKillTask(mem, arg0);
+    effectKillTask(work, task);
 }
 
 void antibodyMoteTask(Task* task)

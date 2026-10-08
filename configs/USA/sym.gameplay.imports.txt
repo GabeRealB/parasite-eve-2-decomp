@@ -2025,7 +2025,7 @@ lifedrainRisingSparkTask = 0x8012F9A8; // type:func absolute:True owner=lifedrai
 
 infernoCastTask = 0x8012EF88; // type:func absolute:True owner=inferno
 
-func_apobiosis_8012EF4C = 0x8012EF4C; // type:func absolute:True owner=apobiosis
+apobiosisCastTask = 0x8012EF4C; // type:func absolute:True owner=apobiosis
 
 infernoFlameFanTask = 0x8012F530; // type:func absolute:True owner=inferno
 
@@ -2077,7 +2077,7 @@ necrosisCastTask = 0x8012EF34; // type:func absolute:True owner=necrosis shared=
 
 lifedrainCastTask = 0x8012EF48; // type:func absolute:True owner=lifedrain shared=pe
 
-func_antibody_8012EF34 = 0x8012EF34; // type:func absolute:True owner=antibody shared=pe
+antibodyCastTask = 0x8012EF34; // type:func absolute:True owner=antibody shared=pe
 
 energyshotCastTask = 0x8012EF34; // type:func absolute:True owner=energyshot shared=pe
 

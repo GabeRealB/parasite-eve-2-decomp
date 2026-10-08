@@ -727,7 +727,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, func_8011D1E0, { NULL } },                                                          // 0x0BD
     { { { TASK_BODY_COORD, 0x70 } }, infernoCastTask, { NULL } },                                                        // 0x0BE
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldUnderpassDrawFlaresTask, { NULL } },                                        // 0x0BF
-    { { { TASK_BODY_COORD, 0x70 } }, func_apobiosis_8012EF4C, { NULL } },                                                // 0x0C0
+    { { { TASK_BODY_COORD, 0x70 } }, apobiosisCastTask, { NULL } },                                                      // 0x0C0
     { { { TASK_BODY_COORD, 0x70 } }, effectPolyTaskC1, { NULL } },                                                       // 0x0C1
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldGasStationCyanGlowTask, { NULL } },                                         // 0x0C2
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMainStreetRoomEffectsTask, { NULL } },                                      // 0x0C3
@@ -738,7 +738,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldDilapidatedHouseLightPrismTask, { NULL } },                                 // 0x0C8
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelRoom1NoOpEffectTask, { NULL } },                                       // 0x0C9
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldMotelRoom2EffectNoopTaskCA, { NULL } },                                     // 0x0CA
-    { { { TASK_BODY_COORD, 0x70 } }, func_antibody_8012EF34, { NULL } },                                                 // 0x0CB
+    { { { TASK_BODY_COORD, 0x70 } }, antibodyCastTask, { NULL } },                                                       // 0x0CB
     { { { TASK_BODY_COORD, 0x70 } }, energyshotCastTask, { NULL } },                                                     // 0x0CC
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldParkingLotUpdateViewEffectGateTask, { NULL } },                             // 0x0CD
     { { { TASK_BODY_COORD, 0x70 } }, dryfieldToiletConfigureEffectsTask, { NULL } },                                     // 0x0CE

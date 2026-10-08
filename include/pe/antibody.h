@@ -20,6 +20,21 @@
 /// primitive arena, ordering table and initialized scratch stack.
 void antibodyMoteTask(Task* task);
 
-void func_antibody_8012EF34(Task* arg0);
+/// Grows and fades the Antibody cast's rings and wedges while shedding inward motes.
+///
+/// Bank-6 slot 0xCB requires a coordinate body, owned cleared `EffectWork` in
+/// `spawnArg2.pointer`, and active Antibody PE level 1..3. Initialization
+/// attaches to the borrowed spawn parent, requests stat application and plays
+/// the level's cue. `index` selects the level; `age` counts callback ticks;
+/// `scale` supplies brightness and growing radii; `period` holds the scale
+/// reached at the transition to fading, continuing to grow at level three.
+///
+/// Growing ticks before age 20 attempt four child motes at the level's burst
+/// interval. Crossing the level's scale cap spawns an independent unlimited
+/// aura. Fading reduces brightness by 16 per tick while the disc radii stay
+/// capped. A held attachment, room PE cancellation or brightness below 17
+/// releases the task, its counted work and child motes. The parent coordinate
+/// chain and Antibody overlay must remain live until teardown.
+void antibodyCastTask(Task* task);
 
 #endif // INCLUDE_PE_ANTIBODY_H

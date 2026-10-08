@@ -1,7 +1,7 @@
 
 antibodyMoteTask = 0x8012F734; // type:func
 
-func_antibody_8012EF34 = 0x8012EF34; // type:func
+antibodyCastTask = 0x8012EF34; // type:func
 glowDrawWedge = 0x801308D4; // type:func
 spriteQuadDraw = 0x8012FFEC; // type:func
 spriteQuadDrawMote = 0x8012FBB0; // type:func

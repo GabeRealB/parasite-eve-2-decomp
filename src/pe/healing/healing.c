@@ -223,14 +223,15 @@ void healingRisingSparkTask(Task* task)
 
 /// Applies a sparkle's signed local Y step and refreshes its composed position.
 ///
-/// Borrows writable `coord` and read-only `work`; the signed 16-bit displacement
-/// is in parent-coordinate units and the sum must fit s32. Invalidates composition
-/// before storing the new translation. The live parent chain is borrowed.
-static inline void _healingAdvanceSparkleCoord(GfxCoord* coord, const EffectWork* work)
+/// Borrows writable `coord`; `yStep` is a signed 16-bit displacement in its
+/// parent's coordinate units. The sum must fit s32. Invalidates composition
+/// before storing local Y and refreshes it through the live parent chain.
+/// Leaves local X/Z and rotation intact and retains no argument pointer.
+static inline void _healingAdvanceSparkleCoord(GfxCoord* coord, s16 yStep)
 {
     s32 nextY;
 
-    nextY               = coord->coord.t[1] + work->move.vy;
+    nextY               = coord->coord.t[1] + yStep;
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     coord->coord.t[1]   = nextY;
     actorRenderComposeCoord(coord);
@@ -273,7 +274,7 @@ void healingSparkleTask(Task* task)
         work->angle   = (u16)task->spawnArg1.value & HEALING_SPARKLE_SIZE_MASK;
     }
     // Initialization moves too; fading and child emission occur only on draw ticks.
-    _healingAdvanceSparkleCoord(coord, work);
+    _healingAdvanceSparkleCoord(coord, work->move.vy);
     if (work->age < HEALING_SPARKLE_RELEASE_AGE) {
         if (work->age & 1) {
             work->index = work->index + 1;

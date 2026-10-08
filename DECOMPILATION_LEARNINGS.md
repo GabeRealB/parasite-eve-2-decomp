@@ -62802,7 +62802,7 @@ not evidence either, since it only ever reports exact text equality.
 
 ## A named index temp can *win* the register allocation by shortening a live range
 
-`func_apobiosis_8012EF4C` reached 99.86% with `branch = insert = delete = 0` and
+`apobiosisCastTask` reached 99.86% with `branch = insert = delete = 0` and
 16 register penalties, all in one loop: the two LCG temps came out swapped,
 `$a1`/`$a2` where the ROM has `$a2`/`$a1`. Every instruction was otherwise
 identical, so nothing in the schedule was wrong — only which of the two
@@ -62825,9 +62825,9 @@ twice), so the only lever is the span. Hoisting the *second* element's index out
 of its subscript, into a plain local computed before the second LCG step,
 
 ```c
-n           = i + D_apobiosis_80130B5C[mem->field_20].radiusStep;
+secondaryAngleIndex = ringIndex + D_apobiosis_80130B5C[work->index].radiusStep;
 gRandomLcgState = gRandomLcgState * 5 + 0x71357911;
-D_apobiosis_80130B80[n] -= (((u32)gRandomLcgState >> 16) & 0xFF) - 0x80;
+D_apobiosis_80130B80[secondaryAngleIndex] -= (((u32)gRandomLcgState >> 16) & 0xFF) - 0x80;
 ```
 
 moves seven insns of address arithmetic ahead of `rngB`'s definition. `rngB`'s
@@ -63055,7 +63055,7 @@ Rule of thumb: after porting a sibling body, delete each inherited pin one at a
 time and rescore. A pin narrows *every* allocation decision in the function, so
 the ones the sibling needed are as likely to hurt as to help.
 
-**Problem.** `func_antibody_8012EF34`'s state-0 loop divides `0x1000` by a
+**Problem.** `antibodyCastTask`'s state-0 loop divides `0x1000` by a
 table field and adds `gRandomLcgState * 5 + 0x71357911`. The target hoists
 `li $a3, 0x1000` and the table address into the preheader but recomputes
 `lui`/`ori 0x71357911` every iteration. Every natural ordering of the loop
@@ -63088,20 +63088,20 @@ where it was rejected:
 
 ```c
 do {
-    s16* dst;
-    s32  lo;
-    s32  rng;
+    s16* wedgeYaws;
+    s32  baseYaw;
+    s32  yawRng;
 
-    dst = D_antibody_80130C0C;                       /* %hi movable first */
-    lo  = i * (0x1000 / D_antibody_80130BD4[mem->field_20].wedgeCount);
-    rng = gRandomLcgState * 5 + 0x71357911;              /* now the last movable */
-    dst[i]      = lo + (((u32)rng >> 16) & 0x1FF);
-    gRandomLcgState = rng;
-} while (++i < D_antibody_80130BD4[mem->field_20].wedgeCount);
+    wedgeYaws = D_antibody_80130C0C;                       /* %hi movable first */
+    baseYaw  = wedgeIndex * (0x1000 / D_antibody_80130BD4[work->index].wedgeCount);
+    yawRng = gRandomLcgState * 5 + 0x71357911;              /* now the last movable */
+    wedgeYaws[wedgeIndex]      = baseYaw + (((u32)yawRng >> 16) & 0x1FF);
+    gRandomLcgState = yawRng;
+} while (++wedgeIndex < D_antibody_80130BD4[work->index].wedgeCount);
 ```
 
 This is not the walking dest pointer the `(&global)[i]` entry warns about:
-`dst` is re-assigned the *base* each iteration and indexed by `i`, so it stays
+`wedgeYaws` is re-assigned the *base* each iteration and indexed by `wedgeIndex`, so it stays
 an invariant and `-O2` still strength-reduces it to the `addiu a1, a1, 2` in
 the branch delay slot. Sweep orderings with `.i.loop` as the oracle rather than
 with the score — it names the moved movable before you read any assembly.
@@ -63130,9 +63130,9 @@ lh    v1,0x20(s1)               sll   v1,a0,0x10
 nop                             sra   v1,v1,0x10
 ```
 
-**Fix.** Drop the locals and write `D_antibody_80130BD4[mem->field_20]` at
+**Fix.** Drop the locals and write `D_antibody_80130BD4[work->index]` at
 every use, including the `do { } while` condition. The store into the loop's
-own output array invalidates the CSE entry for the `mem->field_20` load, so
+own output array invalidates the CSE entry for the `work->index` load, so
 GCC reloads it once per iteration and the loop-carried copy disappears — which
 is exactly the one-load-at-the-bottom shape the target has. The `count`/`level`
 pair is right when the target has *two* loads (`lh` plus `lhu`), as

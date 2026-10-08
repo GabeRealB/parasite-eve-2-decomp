@@ -3,7 +3,24 @@
 
 #include "main/task_types.h"
 
-void func_apobiosis_8012EF4C(Task* arg0);
+/// Runs the Apobiosis cast's expanding strips, screen flash and shard bursts.
+///
+/// Bank-6 slot 0xC0 requires a coordinate body, owned cleared `EffectWork` in
+/// `spawnArg2.pointer`, active Apobiosis PE level 1..3, and a live player model
+/// with at least two coordinates. Initialization borrows the spawn parent,
+/// publishes the cast for shard teardown and plays the level's cue. `index`
+/// selects the level, `age` counts callback ticks and `step` is flash brightness;
+/// `scale` starts as the strip radius and later becomes a random spawn radius.
+///
+/// The ring phase requests stat application at age four and fades its flash
+/// by 24 per tick. Later phases attempt a shard on one in four ticks through
+/// age 20, one per tick through age 30, then two through age 40 at levels two
+/// and three. Shards attach themselves to this cast on initialization.
+/// The final flash fades by eight per tick. Cancellation or the end of that
+/// fade releases the task and its children; the parent, player and overlay
+/// must stay live. The ring retains an original secondary-angle access beyond
+/// the seeded 16-halfword table; its storage semantics remain unresolved.
+void apobiosisCastTask(Task* task);
 
 /// Updates and draws one short-lived apobiosis shard (bank-6 effect slot 0xF7).
 ///

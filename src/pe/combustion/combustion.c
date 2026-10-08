@@ -84,22 +84,23 @@ static s32 D_combustion_801309A4 = 0;
 
 /// Places one Combustion emitter above the player and yaws it toward its side.
 ///
-/// Borrows writable `coord` and the live player root. The read-only task supplies
-/// the signed spawn side, normally +/-1. Local Y is -1024 coordinate units and yaw is
-/// 512 angle units per side, with 4096 per turn. Composition invalidation and
-/// refresh follow rotation; the parent chain and GTE state are borrowed.
-static inline void _combustionPlaceEmitterCoord(GfxCoord* coord, const Task* task)
+/// Borrows writable `coord`, the live player's root and read-only `emitterTask`.
+/// Its signed `spawnArg1.value` is normally +1 or -1: local Y is -1024
+/// coordinate units and yaw is 512 angle units times that side, with 4096 per turn.
+/// Replaces the local transform and parent, then refreshes composition.
+/// The player coordinate chain must remain live while the emitter uses it.
+static inline void _combustionPlaceEmitterCoord(GfxCoord* coord, const Task* emitterTask)
 {
     enum {
         COMBUSTION_EMITTER_LOCAL_Y        = -0x400,
         COMBUSTION_EMITTER_SIDE_YAW_SHIFT = 9,
     };
-    coord->parent = (gameGetTaskSlot(GAME_TASK_SLOT_PLAYER))->extra.tmd->coords;
+    coord->parent = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER)->extra.tmd->coords;
     gfxSetRotIdentity(&coord->coord);
     coord->coord.t[0] = 0;
     coord->coord.t[1] = COMBUSTION_EMITTER_LOCAL_Y;
     coord->coord.t[2] = 0;
-    gfxRotMatrixY(&coord->coord, task->spawnArg1.value << COMBUSTION_EMITTER_SIDE_YAW_SHIFT, 0);
+    gfxRotMatrixY(&coord->coord, emitterTask->spawnArg1.value << COMBUSTION_EMITTER_SIDE_YAW_SHIFT, 0);
     coord->composeStamp = GRAPHICS_COORD_DIRTY;
     actorRenderComposeCoord(coord);
 }
@@ -182,10 +183,13 @@ void combustionFlameEmitterTask(Task* task)
 
 /// Gives an active Combustion flame a one-in-four chance to shed a child ember.
 ///
-/// Borrows a live parent task and composed coordinate. Consumes one shared
-/// random draw for the chance, and a second for the 0/1 ember variant on success.
-/// A successful spawn joins the flame's teardown tree; allocation failure is ignored.
-static inline void _combustionTrySpawnEmber(Task* task, GfxCoord* coord)
+/// `parentTask` is the live flame task; `parentCoord` supplies the ember's
+/// origin and orientation and must have a live, writable composition chain.
+/// Consumes one shared random draw for the chance and, when it succeeds,
+/// another for the ember's 0/1 animation variant, even if spawning fails.
+/// The counted ember joins the flame's teardown tree and borrows its coordinate;
+/// a rejected or failed spawn leaves that tree unchanged.
+static inline void _combustionTrySpawnEmber(Task* parentTask, GfxCoord* parentCoord)
 {
     enum {
         COMBUSTION_FLAME_EMBER_CHANCE_MASK  = 3,
@@ -200,9 +204,9 @@ static inline void _combustionTrySpawnEmber(Task* task, GfxCoord* coord)
     if ((((u32)emissionRng >> 16) & COMBUSTION_FLAME_EMBER_CHANCE_MASK) == 0) {
         variantRng      = emissionRng * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
         gRandomLcgState = variantRng;
-        spawned         = effectSpawn(EFFECT_COMBUSTION_EMBER, coord, ((u32)variantRng >> 16) & COMBUSTION_FLAME_EMBER_VARIANT_MASK, 0);
+        spawned         = effectSpawn(EFFECT_COMBUSTION_EMBER, parentCoord, ((u32)variantRng >> 16) & COMBUSTION_FLAME_EMBER_VARIANT_MASK, 0);
         if (spawned != NULL) {
-            taskReparent(task, spawned->task);
+            taskReparent(parentTask, spawned->task);
         }
     }
 }
