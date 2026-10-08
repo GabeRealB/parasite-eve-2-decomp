@@ -220,7 +220,7 @@ if (pulse == 1) {
 ```
 
 A same-block nested `if (work->field_2E != 0) { work->field_24 = 3; if (work->field_2E != 0) ... }` keeps a copy+`beqz` of the first load (`move $v1,$v0; li $v0,3; beqz $v1`). Naming the load once as `s16 temp` lets jump_optimize delete the inner test.
-## Named loop-invariant hoists before a preceding `jal`; a literal rematerializes in the delay slot (func_actor_120300_80132C60, 2026-09-21)
+## Named loop-invariant hoists before a preceding `jal`; a literal rematerializes in the delay slot (_actor120300RunBodyRequest, 2026-09-21)
 
 Case 8 does `taskMessageDispatch(…); i = 1; loop { slots[i].rate = 0x10; … }`. Writing `n = 0x10` after the jal still placed `li $s2, 0x10` *before* the call and `li $s0, 1` in the delay slot. Inlining the literal (`slots[(u16)i].rate = 0x10` with no `n` in that case) schedules `i = 1` with the argument setup and rematerializes `0x10` in the delay slot.
 
@@ -239,7 +239,7 @@ do {
 
 A switch on an unsigned halfword that includes `case 0:` (even empty, shared with `default`) keeps `sltiu 0x14`. Dropping case 0 emits `addiu -1; sltiu 0x13`. Merging per-case `10`/`0x10` literals into one `s32 n` can swap `$s2`/`$s3` with a long-lived pointer (`work`) by raising the constant's weighted refs.
 
-## Two `&vec` takes across a call CSE into `$s2` and bump `index` to `$s3` (func_actor_120300_801337C4, 2026-09-21)
+## Two `&vec` takes across a call CSE into `$s2` and bump `index` to `$s3` (_actor120300BodyTask, 2026-09-21)
 
 `worldCoordSetModelLighting(tmd, &vec, …)` then `ScaleMatrix(tmd->colorMtx, &vec)` CSE the stack address into one pseudo that crosses the call. Local-alloc homes that pseudo in `$s2`; `index` then conflicts with `$s2` and takes `$s3`. Target rematerializes `addiu $a1, $sp, 0x18` and keeps `index` in `$s2`.
 
@@ -248,14 +248,15 @@ Same split `_actor136100UpdateBodyLighting` already uses: pass `VECTOR* samplePo
 An independent `D_8007272D = 2` next to `index->state += 1` is overlapped by sched1 (`lw` of state before `sb` of 2). `SCHED_BARRIER()` between them restores `li $v0, 2; sb; lw $v0, 0x30($s2); nop`.
 
 ```
-static inline void fill(Task* arg0, TmdObject* tmd, VECTOR* vec)
+static inline void _actor120300UpdateBodyLighting(const Task* task, const TmdObject* model, VECTOR* samplePosition)
 {
-    vec->vx = tmd->coords[1].workm.t[0];
-    vec->vy = ((TmdObject*)arg0->extra)->coords[1].workm.t[1];
-    vec->vz = ((TmdObject*)arg0->extra)->coords[1].workm.t[2];
-    worldCoordSetModelLighting(tmd, vec, 0, 3);
+    samplePosition->vx = model->coords[1].workm.t[0];
+    samplePosition->vy = task->extra.tmd->coords[1].workm.t[1];
+    samplePosition->vz = task->extra.tmd->coords[1].workm.t[2];
+    worldCoordSetModelLighting(model, samplePosition, 0, 3);
 }
-/* caller: fill(arg0, tmd, &vec); ScaleMatrix(tmd->colorMtx, &vec); */
+/* caller: _actor120300UpdateBodyLighting(task, model, &scratch.draw.lightSample);
+   ScaleMatrix(model->colorMtx, &scratch.draw.lightSample); */
 ```
 
 ## Reused `s16` loop bound reloads into `$v0`; `s32` keeps `$t2` (func_actor_323300_80162A6C, 2026-09-21)
@@ -98897,7 +98898,7 @@ Two further points about this function, both already covered elsewhere: the
 0x40 frame against the target's 0x48 is the unused-`SVECTOR` slot (`An unused
 local still costs frame space`), and the `AnimationPlayRequest` it fills is the same record
 `_actor136100ResetBeforeBurnerScene` fills. The work block is 0x4E4 bytes, which
-`memMalloc` in `func_actor_120300_80132004` states outright — read that before
+`memMalloc` in `_actor120300HeadTask` states outright — read that before
 inferring a block size from its last accessed field.
 ## `cse` forwards a merge-block store into the loads after it; arms that write the field themselves keep their reloads (func_actor_511000_80132390, 2026-09-16)
 
@@ -124307,9 +124308,9 @@ Inputs: scratch `nonmatchings/func_actor_303600_8016216C-vacuum`. `base.c`
 which settles the other half: the m2c nesting (`case 1` inside the case-0 `if`
 body, `return` where the source breaks) is not load-bearing and the flat switch
 compiles to the same 95 instructions and 17 blocks. Compiler SHA256
-## A pointer tested for NULL and then kept across calls needs two C variables (func_actor_120300_801335D8, 2026-09-17)
+## A pointer tested for NULL and then kept across calls needs two C variables (_actor120300InitBody, 2026-09-17)
 
-`func_actor_120300_801335D8` sat at 99.423% with `branch=1 regs=2 reorder=1` and a
+`_actor120300InitBody` sat at 99.423% with `branch=1 regs=2 reorder=1` and a
 single diff hunk: the candidate copied the `memMalloc` result into its
 callee-saved home *before* the NULL test and branched on that register, where the
 target branches on the returned `$v0` and only then moves it.
@@ -124356,7 +124357,7 @@ The same function also carried the m2c pointee-scaling trap documented above:
 `color` members, as its `_Actor136100Work` twin has in `light` / `color`,
 removed it.
 
-Inputs: scratch `nonmatchings/func_actor_120300_801335D8-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor120300InitBody-vacuum`, `base.c`
 82.780% (`branch=3 regs=43 insert=8 delete=11`), `base_1.c` 99.423%
 (`branch=1 regs=2 reorder=1`), `base_2.c` 100.000%, compiler SHA256
 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
@@ -124394,7 +124395,7 @@ case 0:
 return 0;
 ```
 
-`func_actor_120300_801334A4`: m2c `base.c` 68.714%, nested-`switch` with a
+`_actor120300RunInteraction`: m2c `base.c` 68.714%, nested-`switch` with a
 `return 0` per path `base_1.c` 80.403% (`delete=12 branch=4 regs=5 reorder=3`),
 the `break` form `base_2.c` 100.000% with every penalty zero. The `break` form
 also gives the target's shared `return 0` blob (`move v0,zero` reached by `j`) as
@@ -124403,9 +124404,9 @@ instructions were. Distinct from the "shared tail reached by a fall-through" cas
 above: nothing here needed an explicit label, only the absence of duplicated
 tails.
 
-## A function that is a sibling plus one block is matched by splicing, not by decompiling (func_actor_120300_80132004, 2026-09-17)
+## A function that is a sibling plus one block is matched by splicing, not by decompiling (_actor120300HeadTask, 2026-09-17)
 
-`func_actor_120300_80132004` is `_actor120300RifleTask` - the next function
+`_actor120300HeadTask` is `_actor120300RifleTask` - the next function
 in the same TU, same `0x38` frame, same `memMalloc`/`memFillBytes`/
 `tmdAllocPrimitiveBuffer` prologue, same `worldCoordSetModelLighting` + `ScaleMatrix` tail - with one
 constant changed and one block inserted before the state step. m2c's rendering
@@ -124415,7 +124416,7 @@ inserted block in *verbatim from wherever else in the same overlay it is already
 matched* scored 100.000% with every penalty zero on the first build.
 
 ```c
-/* from func_actor_120300_801335D8, same file, already matched */
+/* from _actor120300InitBody, same file, already matched */
 place   = areaGetVariant(&gGameSession->location.loc)->field_0;
 entryId = place->entryId;
 while (entryId != AREA_PLACEMENT_END) {
@@ -124447,7 +124448,7 @@ branch-target block, pulled in because the fall-through is the cold kill path.
 The spliced C reproduces it with no extra statement; the sibling's `nop` at the
 same spot is only its target block having nothing the filler can use.
 
-Inputs: scratch `nonmatchings/func_actor_120300_80132004-vacuum`, `base.c`
+Inputs: scratch `nonmatchings/_actor120300HeadTask-vacuum`, `base.c`
 73.549% (`branch=4 regs=41 reorder=3 insert=6 delete=20`), `base_1.c` 100.000%,
 compiler SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 
@@ -124475,7 +124476,7 @@ leaving it in the `j`'s slot as retail does.
 
 Declaring a second variable for the reload - `work` then `restartWork`, the pair
 this overlay already uses in `_actor120300PrepareRoomPlay` /
-`func_actor_120300_801335D8` - makes two pseudos. The reload's birth at
+`_actor120300InitBody` - makes two pseudos. The reload's birth at
 `lw` ties it to the dying `task` in `$s2` (`lw $s2,0x1c($s2)`), which leaves
 `$s1` free for the animation id, and the whole tail falls into place:
 `92.041%` -> `100.000%` with every penalty zero and no other edit.
@@ -142300,7 +142301,7 @@ Same function: the scratch-pad `lui 0x1F80` / `sw 0x1F8003FC` asm, a second
 one inline helper called twice - `SCRATCH_STACK_RESERVE_BLOCK(MATRIX)`, a coordinate-to-view
 walk, a write-back, `SCRATCH_STACK_RELEASE_BLOCK(MATRIX)`. CSE folds the first call's pop and
 the second call's push into `sw h+0x20; sw h` on its own.
-## `li sN,K` right after storing the same `K` through `$v0` wants the stored value in `HImode` (func_actor_120300_80132C60, 2026-09-25)
+## `li sN,K` right after storing the same `K` through `$v0` wants the stored value in `HImode` (_actor120300RunBodyRequest, 2026-09-25)
 
 A post-reload `reload_cse_regs` pass replaces `li $s2,10` with `move $s2,$v0`
 when `$v0` still holds 10 in the same mode and no label or call lies between
@@ -146064,7 +146065,7 @@ arm ends in `return`, and whose tick path sets `i = 1` itself before `x += i`;
 inlined with `static inline`, it matches in the caller too. The same pinned shape
 recurs in several actors' pose ticks.
 
-## A `kill = …; killCopy = kill; TOUCH_REG(killCopy); if (killCopy)` alloc-or-die block is an inline with a narrow return type (func_actor_120300_80132004, 2026-09-27)
+## A `kill = …; killCopy = kill; TOUCH_REG(killCopy); if (killCopy)` alloc-or-die block is an inline with a narrow return type (_actor120300HeadTask, 2026-09-27)
 
 A spawn tick's state 0 sets a flag to 1 on a failed `memMalloc` and 0 after
 wiring the block up, then tests it through `move v0,v1; beqz v0` - a copy the

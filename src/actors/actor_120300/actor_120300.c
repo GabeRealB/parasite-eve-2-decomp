@@ -49,6 +49,20 @@
 
 static void _screenFadeOutTask(Task* task);
 
+/// Gary Douglas texture placement and indices in the actor task descriptor table.
+enum {
+    ACTOR_120300_TEXTURE_RESOURCE_ENTRY_ID = 0x6A,
+    ACTOR_120300_TASK_HEAD                 = 2,
+    ACTOR_120300_TASK_RIFLE                = 3,
+    ACTOR_120300_TASK_FADE_OUT             = 4,
+};
+
+/// Body requests whose non-animation behavior is established.
+enum {
+    ACTOR_120300_BODY_REQUEST_SLIDE_LEFT = 1,
+    ACTOR_120300_BODY_REQUEST_FULL_LIGHT = 14,
+};
+
 /// Values of `_Actor120300Work::interaction`: what the player's action button
 /// started.
 enum {
@@ -146,10 +160,10 @@ extern EvsCommand       D_actor_120300_80141A34[];
 static TmdSource _gActor120300GaryDouglasBody;
 static TmdSource _gActor120300GaryDouglasHeadHat;
 static TmdSource _gActor120300Model082F8;
-void             func_actor_120300_80132004(Task*);
+static void      _actor120300HeadTask(Task* task);
 static void      _actor120300RifleTask(Task* task);
 static void      _actor120300PrepareRoomPlay(s32 preservePlayer);
-void             func_actor_120300_801337C4(Task*);
+static void      _actor120300BodyTask(Task* task);
 static void      _actor120300HandleModelDrawMessage(Task* task, s32 unusedMessageId, s32 visible, s32 unusedSecondArg);
 static void      _actor120300SetModelsVisible(s32 visible);
 static void      _actor120300PrepareScenePlayback(void);
@@ -158,9 +172,9 @@ static void      _actor120300FinishSceneStream(void);
 static void      _actor120300PostPlayerRequest(s16 requestId);
 static void      _actor120300PostBodyRequest(s16 requestId);
 static void      _actor120300RemovePlayerEquipment(void);
-void             func_actor_120300_80133E94(void);
-void             func_actor_120300_80133EE4(void);
-void             func_actor_120300_80133F14(Task*);
+static void      _actor120300RestorePlayerEquipment(void);
+static void      _actor120300StartSceneFadeOut(void);
+static void      _actor120300JunkYardRefusalTask(Task* task);
 
 static TmdBone _gActor120300GaryDouglasBodySkeleton[20] = {
 #include "assets/gary_douglas_body_skeleton.inc"
@@ -1146,7 +1160,7 @@ EvsCommand D_actor_120300_80140B94[102] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_FULL_LIGHT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1154,12 +1168,12 @@ EvsCommand D_actor_120300_80140B94[102] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 14 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_FULL_LIGHT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = 1011 }, { .value = 1 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300SetModelsVisible }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = ACTOR_120300_BODY_REQUEST_SLIDE_LEFT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 6 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1221,9 +1235,9 @@ EvsCommand D_actor_120300_80140B94[102] = {
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = 13 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostBodyRequest }, { .value = 18 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133EE4 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300StartSceneFadeOut }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133E94 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300RestorePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300FinishSceneStream }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackS16 = _actor120300PostPlayerRequest }, { .value = ACTOR_120300_PLAYER_REQUEST_NONE }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1236,7 +1250,7 @@ EvsCommand D_actor_120300_80141524[18] = {
     { EVENT_SCRIPT_OPCODE_START_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 8 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_actor_120300_80133E94 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _actor120300RestorePlayerEquipment }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _actor120300PrepareRoomPlay }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SET_VIEW, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 5 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -1318,16 +1332,15 @@ EvsCommand D_actor_120300_80141A34[13] = {
 };
 
 TaskDesc D_actor_120300_80141B6C[5] = {
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_801337C4, { .model = &_gActor120300GaryDouglasBody } },
-    { { { TASK_BODY_NONE, 192 } }, func_actor_120300_80133F14, { .value = 0 } },
-    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, func_actor_120300_80132004, { .model = &_gActor120300GaryDouglasHeadHat } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120300BodyTask, { .model = &_gActor120300GaryDouglasBody } },
+    { { { TASK_BODY_NONE, 192 } }, _actor120300JunkYardRefusalTask, { .value = 0 } },
+    { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120300HeadTask, { .model = &_gActor120300GaryDouglasHeadHat } },
     { { { (TASK_BODY_TMD | TASK_DESC_SKIP_AUTO_MODEL_BUFFER), 192 } }, _actor120300RifleTask, { .model = &_gActor120300Model082F8 } },
     { { { TASK_BODY_NONE, 192 } }, _screenFadeOutTask, { .value = 0 } },
 };
 
 Task* D_actor_120300_80141BA8;
 
-static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTOR* vec);
 static s32         _actor120300TickBodyAnimation(Task* task);
 static inline s16  _actor120300InitChild(Task* task, s32 parentPartIndex);
 static inline void _actor120300BlendPlayerAnimation(Task* task, u16 animationId);
@@ -1335,19 +1348,21 @@ static inline void _actor120300ResetPlayerAnimation(Task* task, u16 animationId)
 static void        _actor120300RunPlayerRequest(Task* task);
 static inline void _actor120300BlendBodyAnimation(Task* task, u16 animationId);
 static inline void _actor120300ResetBodyAnimation(Task* task, u16 animationId);
-static void        func_actor_120300_80132C60(Task* arg0);
-static s32         func_actor_120300_801334A4(Task* arg0);
-static void        func_actor_120300_801335D8(Task* task);
 
-/// Fill part-1 translation and hand it to `worldCoordSetModelLighting`. `vec` is a
-/// parameter rather than a local so its address stays out of the CSE class of
-/// the `ScaleMatrix` argument that follows.
-static inline void func_actor_120300_FillLight(Task* arg0, TmdObject* tmd, VECTOR* vec)
+/// Samples the body's cached position and rebuilds its room lighting.
+///
+/// `model` must be `task->extra.tmd`, with coordinate 1 already composed and
+/// writable light/colour matrices. Writes signed 32-bit XYZ in game units to
+/// caller-owned, word-aligned `samplePosition`; its fourth word is untouched.
+/// The lighting query interprets the sample as world coordinates, selects all
+/// three lights and retains no pointer. Requires the query's scratch capacity
+/// and changes GTE state. This helper does not apply the scene's intensity scale.
+static inline void _actor120300UpdateBodyLighting(const Task* task, const TmdObject* model, VECTOR* samplePosition)
 {
-    vec->vx = tmd->coords[1].workm.t[0];
-    vec->vy = arg0->extra.tmd->coords[1].workm.t[1];
-    vec->vz = arg0->extra.tmd->coords[1].workm.t[2];
-    worldCoordSetModelLighting(tmd, vec, 0, 3);
+    samplePosition->vx = model->coords[1].workm.t[0];
+    samplePosition->vy = task->extra.tmd->coords[1].workm.t[1];
+    samplePosition->vz = task->extra.tmd->coords[1].workm.t[2];
+    worldCoordSetModelLighting(model, samplePosition, 0, 3);
 }
 
 /// Advances the body's animation and starts its next clip once every track settles.
@@ -1426,55 +1441,70 @@ static inline s16 _actor120300InitChild(Task* task, s32 parentPartIndex)
     return 0;
 }
 
-/// Spawn tick of a child actor that keeps the model facing the player: state 0
-/// allocates a zeroed `_Actor120300Work` block, parks it in
-/// `Task::work`, points the model's light and colour matrices at the block's
-/// `lightMtx` / `colorMtx`, clears `TmdObject::flags` and anchors the root
-/// coordinate `parent` under part 4 of the spawning task's model
-/// (`Task::spawnArg2->extra`); a failed allocation kills the task instead of
-/// stepping to state 1. The texture page / CLUT row then come from the
-/// placement record at the nested area table's `field_0` list with resource-entry ID 0x6A (or the end record if that ID is absent). Every tick after that reads
-/// the parent work block's `scale` and primes the colour matrix with the
-/// root coordinate's own translation through `worldCoordSetModelLighting`, then replaces
-/// that translation with the parent scale broadcast over all three axes and
-/// folds it in with `ScaleMatrix`.
-void func_actor_120300_80132004(Task* task)
+/// Finds Gary Douglas's texture placement, falling back to the terminal record.
+///
+/// Requires the current area's live, end-terminated placement table. The
+/// returned record is borrowed from that table; no resource or task is created.
+static inline AreaPlacement* _actor120300FindTexturePlacement(void)
 {
-    VECTOR         vec;
-    AreaPlacement* place;
-    s32            scale;
-    u16            scaleRaw;
-    TmdObject*     tmd2;
-    u8             id;
+    AreaPlacement* placement;
+    u8             entryId;
 
-    if (task->state == 0) {
-        if (_actor120300InitChild(task, 4) != 0) {
+    placement = areaGetVariant(&gGameSession->location.loc)->placements;
+    entryId   = placement->entryId;
+    while (entryId != AREA_PLACEMENT_END) {
+        if (entryId == ACTOR_120300_TEXTURE_RESOURCE_ENTRY_ID) {
+            break;
+        }
+        placement++;
+        entryId = placement->entryId;
+    }
+    return placement;
+}
+
+/// Initializes Gary Douglas's head-and-hat attachment and updates its lighting.
+///
+/// Starts at state 0 with a live model and the body task in `spawnArg2.pointer`.
+/// Allocates owned work/lighting storage and attaches the root to body part 4;
+/// allocation failure kills the task and returns. Uses texture placement entry
+/// 0x6A, falling back to the terminal record's texture offsets if it is absent.
+/// The body and its work must outlive the attachment. Each tick samples the
+/// cached root translation and applies the body's unsigned Q12 directional-light
+/// intensity to the colour coefficients, preserving the ambient term.
+static void _actor120300HeadTask(Task* task)
+{
+    enum { ACTOR_120300_HEAD_STATE_INITIALIZE = 0,
+           ACTOR_120300_HEAD_PARENT_PART      = 4 };
+
+    VECTOR            lightSample;
+    AreaPlacement*    placement;
+    u16               lightingScale;
+    Task*             bodyTask;
+    _Actor120300Work* bodyWork;
+    TmdObject*        model;
+
+    if (task->state == ACTOR_120300_HEAD_STATE_INITIALIZE) {
+        if (_actor120300InitChild(task, ACTOR_120300_HEAD_PARENT_PART) != 0) {
             taskKill(task);
             return;
         }
-        place = areaGetVariant(&gGameSession->location.loc)->placements;
-        id    = place->entryId;
-        while (id != AREA_PLACEMENT_END) {
-            if (id == 0x6A) {
-                break;
-            }
-            place++;
-            id = place->entryId;
-        }
-        tmdSetTextureOffsets(task->extra.tmd, place->texturePageOffset, place->clutRowOffset);
+        placement = _actor120300FindTexturePlacement();
+        tmdSetTextureOffsets(task->extra.tmd, placement->texturePageOffset, placement->clutRowOffset);
         task->state += 1;
     }
-    tmd2     = task->extra.tmd;
-    scaleRaw = ((_Actor120300Work*)((Task*)task->spawnArg2.pointer)->work)->scale;
-    vec.vx   = tmd2->coords->workm.t[0];
-    vec.vy   = task->extra.tmd->coords->workm.t[1];
-    vec.vz   = task->extra.tmd->coords->workm.t[2];
-    worldCoordSetModelLighting(tmd2, &vec, 0, 3);
-    scale  = scaleRaw;
-    vec.vz = scale;
-    vec.vy = scale;
-    vec.vx = scale;
-    ScaleMatrix(tmd2->colorMtx, &vec);
+    // Scale light coefficients after sampling; keep the ambient term intact.
+    model          = task->extra.tmd;
+    bodyTask       = task->spawnArg2.pointer;
+    bodyWork       = bodyTask->work;
+    lightingScale  = bodyWork->scale;
+    lightSample.vx = model->coords->workm.t[0];
+    lightSample.vy = task->extra.tmd->coords->workm.t[1];
+    lightSample.vz = task->extra.tmd->coords->workm.t[2];
+    worldCoordSetModelLighting(model, &lightSample, 0, 3);
+    lightSample.vz = lightingScale;
+    lightSample.vy = lightingScale;
+    lightSample.vx = lightingScale;
+    ScaleMatrix(model->colorMtx, &lightSample);
 }
 
 /// Initializes the rifle attachment and updates its room lighting each tick.
@@ -1813,112 +1843,119 @@ static inline void _actor120300ResetBodyAnimation(Task* task, u16 animationId)
     }
 }
 
-/// After `_actor120300TickBodyAnimation`, performs the request posted in
-/// `bodyRequest` (0..19): most start an animation on slots 1..19, recording it
-/// in `bodyAnimation`, through `animationSeekSlotWithBlend` or
-/// `animationResetSlot`; a few also place the body or the rifle with
-/// `ACTOR_MESSAGE_PLACE` or change `scale`. Request 1 has two stages, counted
-/// in `bodyRequestStep`: stage 1 slides the model on X until
-/// `coord.t[0] < 0xF3D`. Every other request, and request 1 once the slide
-/// ends, clears `bodyRequest`.
-static void func_actor_120300_80132C60(Task* arg0)
+/// Advances the body animation and performs its pending scene choreography.
+///
+/// Requires the initialized body rig and live model/animation data; requests
+/// addressing the rifle also require that child task. Requests 0..19 are posted
+/// by the event scripts. Zero is none; unknown IDs are cleared. Request 1 places
+/// the body, then slides X left by 20 game units per tick until it is below 3901;
+/// there is no position clamp. Other requests start clips, place models or set
+/// directional-light intensity and clear immediately. Clip indices are 1 or
+/// 4..18 in the package's body animation table; their visual actions are unproven.
+static void _actor120300RunBodyRequest(Task* task)
 {
-    TmdObject*        tmd;
-    GfxCoord*         coord;
-    _Actor120300Work* work;
-    s32               x;
-    ActorTransform*   msg;
+    enum {
+        ACTOR_120300_BODY_REQUEST_STEP_START   = 0,
+        ACTOR_120300_BODY_REQUEST_STEP_SLIDE   = 1,
+        ACTOR_120300_BODY_SLIDE_UNITS_PER_TICK = 20,
+        ACTOR_120300_BODY_SLIDE_X_LIMIT        = 0xF3D,
+    };
+    TmdObject*            model;
+    GfxCoord*             rootCoord;
+    _Actor120300Work*     work;
+    s32                   positionX;
+    const ActorTransform* bodyPlacement;
 
-    tmd   = arg0->extra.tmd;
-    work  = arg0->work;
-    coord = tmd->coords;
-    _actor120300TickBodyAnimation(arg0);
+    model     = task->extra.tmd;
+    work      = task->work;
+    rootCoord = model->coords;
+    _actor120300TickBodyAnimation(task);
     switch (work->bodyRequest) {
-        case 1:
+        case ACTOR_120300_BODY_REQUEST_SLIDE_LEFT:
             switch (work->bodyRequestStep) {
-                case 0:
-                    TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[7], 0);
-                    _actor120300ResetBodyAnimation(arg0, 1);
+                case ACTOR_120300_BODY_REQUEST_STEP_START:
+                    TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[7], 0);
+                    _actor120300ResetBodyAnimation(task, 1);
                     work->bodyRequestStep++;
                     return;
-                case 1:
-                    x                   = coord->coord.t[0];
-                    coord->composeStamp = GRAPHICS_COORD_DIRTY;
-                    x                  -= 0x14;
-                    coord->coord.t[0]   = x;
-                    if (x < 0xF3D) {
-                        _actor120300BlendBodyAnimation(arg0, 0xE);
-                        work->bodyRequest = 0;
+                case ACTOR_120300_BODY_REQUEST_STEP_SLIDE:
+                    positionX               = rootCoord->coord.t[0];
+                    rootCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+                    positionX              -= ACTOR_120300_BODY_SLIDE_UNITS_PER_TICK;
+                    rootCoord->coord.t[0]   = positionX;
+                    if (positionX < ACTOR_120300_BODY_SLIDE_X_LIMIT) {
+                        _actor120300BlendBodyAnimation(task, 0xE);
+                        work->bodyRequest = ACTOR_120300_BODY_REQUEST_NONE;
                     }
                     return;
             }
             return;
         case 2:
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[8], 0);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[8], 0);
             break;
         case 3:
-            _actor120300BlendBodyAnimation(arg0, 4);
+            _actor120300BlendBodyAnimation(task, 4);
             break;
         case 4:
-            _actor120300BlendBodyAnimation(arg0, 0x12);
+            _actor120300BlendBodyAnimation(task, 0x12);
             break;
         case 5:
-            _actor120300BlendBodyAnimation(arg0, 6);
+            _actor120300BlendBodyAnimation(task, 6);
             break;
         case 6:
-            _actor120300BlendBodyAnimation(arg0, 7);
+            _actor120300BlendBodyAnimation(task, 7);
             break;
         case 7:
-            _actor120300BlendBodyAnimation(arg0, 0xD);
+            _actor120300BlendBodyAnimation(task, 0xD);
             break;
         case 8:
-            msg = &D_actor_120300_80140A54[9];
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, msg, 0);
-            TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, msg + 2, 0);
-            _actor120300ResetBodyAnimation(arg0, 8);
+            bodyPlacement = &D_actor_120300_80140A54[9];
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, bodyPlacement, 0);
+            TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, bodyPlacement + 2, 0);
+            _actor120300ResetBodyAnimation(task, 8);
             break;
         case 9:
-            _actor120300BlendBodyAnimation(arg0, 0xB);
+            _actor120300BlendBodyAnimation(task, 0xB);
             break;
         case 10:
-            _actor120300BlendBodyAnimation(arg0, 9);
+            _actor120300BlendBodyAnimation(task, 9);
             break;
         case 11:
-            _actor120300BlendBodyAnimation(arg0, 0xA);
+            _actor120300BlendBodyAnimation(task, 0xA);
             break;
         case 12:
-            _actor120300BlendBodyAnimation(arg0, 0xC);
+            _actor120300BlendBodyAnimation(task, 0xC);
             break;
         case 13:
-            work->scale = 0x400;
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[12], 0);
-            _actor120300ResetBodyAnimation(arg0, 0xE);
+            work->scale = ONE / 4;
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[12], 0);
+            _actor120300ResetBodyAnimation(task, 0xE);
             break;
-        case 14:
-            work->scale = 0x1000;
+        case ACTOR_120300_BODY_REQUEST_FULL_LIGHT:
+            work->scale = ONE;
             break;
         case 15:
-            _actor120300BlendBodyAnimation(arg0, 0xF);
+            _actor120300BlendBodyAnimation(task, 0xF);
             break;
         case 16:
-            _actor120300BlendBodyAnimation(arg0, 0x10);
+            _actor120300BlendBodyAnimation(task, 0x10);
             break;
         case 17:
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[10], 0);
-            _actor120300ResetBodyAnimation(arg0, 0x11);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[10], 0);
+            _actor120300ResetBodyAnimation(task, 0x11);
             break;
         case 18:
-            TASK_MESSAGE_DISPATCH_POINTER(arg0, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[9], 0);
-            _actor120300ResetBodyAnimation(arg0, 8);
+            TASK_MESSAGE_DISPATCH_POINTER(task, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[9], 0);
+            _actor120300ResetBodyAnimation(task, 8);
             break;
         case 19:
-            _actor120300BlendBodyAnimation(arg0, 5);
+            _actor120300BlendBodyAnimation(task, 5);
             break;
-        case 0:
+        case ACTOR_120300_BODY_REQUEST_NONE:
         default:
             break;
     }
-    work->bodyRequest = 0;
+    work->bodyRequest = ACTOR_120300_BODY_REQUEST_NONE;
 }
 
 /// Prepares Gary Douglas and his rifle for ordinary garage play.
@@ -1976,21 +2013,24 @@ static void _actor120300PrepareRoomPlay(s32 preservePlayer)
     work->bodyRequest   = ACTOR_120300_BODY_REQUEST_NONE;
 }
 
-/// Runs the interaction selected in the block's `interaction`. On
-/// `interactionStep` 0 it starts the interaction's event script and advances
-/// the step: a talk starts the script `talkStage` selects (the first, then
-/// the second, then the third from then on), a remark its one script. On
-/// step 1 it returns 1 once `gGameSession->eventState` is back to 0, which
-/// tells the caller the interaction is over; otherwise it returns 0.
-static s32 func_actor_120300_801334A4(Task* arg0)
+/// Starts the selected garage interaction and reports when its event script ends.
+///
+/// Requires live body work. Interaction step 0 starts a HUD-hiding script and
+/// advances to step 1; that step returns 1 when the session event state is idle,
+/// otherwise 0. Talks select the first, second, then recurring third exchange;
+/// remarks use a separate script. The event interpreter owns script playback.
+static s16 _actor120300RunInteraction(Task* task)
 {
+    enum { ACTOR_120300_INTERACTION_STEP_START = 0,
+           ACTOR_120300_INTERACTION_STEP_WAIT  = 1 };
+
     _Actor120300Work* work;
 
-    work = arg0->work;
+    work = task->work;
     switch (work->interaction) {
         case ACTOR_120300_INTERACTION_TALK:
             switch (work->interactionStep) {
-                case 0:
+                case ACTOR_120300_INTERACTION_STEP_START:
                     switch (work->talkStage) {
                         case 0:
                             evsStartScript(D_actor_120300_801416D4, EVENT_SCRIPT_HUD_HIDE_RESTORE);
@@ -2006,7 +2046,7 @@ static s32 func_actor_120300_801334A4(Task* arg0)
                     }
                     work->interactionStep++;
                     break;
-                case 1:
+                case ACTOR_120300_INTERACTION_STEP_WAIT:
                     if (gGameSession->eventState == 0) {
                         return 1;
                     }
@@ -2015,11 +2055,11 @@ static s32 func_actor_120300_801334A4(Task* arg0)
             break;
         case ACTOR_120300_INTERACTION_REMARK:
             switch (work->interactionStep) {
-                case 0:
+                case ACTOR_120300_INTERACTION_STEP_START:
                     evsStartScript(D_actor_120300_80141A34, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                     work->interactionStep++;
                     break;
-                case 1:
+                case ACTOR_120300_INTERACTION_STEP_WAIT:
                     if (gGameSession->eventState == 0) {
                         return 1;
                     }
@@ -2030,192 +2070,211 @@ static s32 func_actor_120300_801334A4(Task* arg0)
     return 0;
 }
 
-/// Initialize the cutscene actor's model, animations and child tasks.
+/// Allocates Gary Douglas's body rig and creates its head and rifle tasks.
 ///
-/// Uses the area placement for resource-entry 0x6A, or the end record when
-/// that entry is absent. Allocation failure kills `task`.
-static void func_actor_120300_801335D8(Task* task)
+/// Requires a live body model and player task. Publishes this task for script
+/// callbacks, owns its zeroed work and primitive buffer, and parents the root
+/// to the view coordinate. Starts body clip 14 at normal rate on slots 1..19.
+/// Texture offsets use area resource entry 0x6A or the terminal record if absent.
+/// Child tasks borrow this body and join its teardown tree. Work-allocation
+/// failure kills the body task; this void initializer does not report failure.
+static void _actor120300InitBody(Task* task)
 {
-    enum { TEXTURE_RESOURCE_ENTRY_ID = 0x6A };
+    enum { ACTOR_120300_BODY_INITIAL_ANIMATION = 14 };
 
     _Actor120300Work* work;
     _Actor120300Work* allocatedWork;
-    _Actor120300Work* animWork;
-    TmdObject*        tmd;
-    GfxCoord*         coord;
-    AreaPlacement*    place;
-    u8                entryId;
-    s32               slotIndex;
+    TmdObject*        model;
+    GfxCoord*         rootCoord;
+    AreaPlacement*    placement;
 
-    tmd           = task->extra.tmd;
-    coord         = tmd->coords;
-    allocatedWork = memMalloc(sizeof(_Actor120300Work), false);
+    model         = task->extra.tmd;
+    rootCoord     = model->coords;
+    allocatedWork = memMalloc(sizeof(*allocatedWork), false);
     task->work    = allocatedWork;
     if (allocatedWork == NULL) {
         taskKill(task);
         return;
     }
+    // The model borrows matrices from work; child tasks share the body lifetime.
     work = allocatedWork;
     memFillBytes(work, 0, sizeof(*work));
     work->playerTask        = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
     D_actor_120300_80141BA8 = task;
-    coord->parent           = &gGfxViewCoord;
-    tmdAllocPrimitiveBuffer(tmd);
-    tmd->lightMtx = &work->light;
-    tmd->colorMtx = &work->color;
-    tmd->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
-    place         = areaGetVariant(&gGameSession->location.loc)->placements;
-    entryId       = place->entryId;
-    while (entryId != AREA_PLACEMENT_END) {
-        if (entryId == TEXTURE_RESOURCE_ENTRY_ID) {
-            break;
-        }
-        place++;
-        entryId = place->entryId;
-    }
-    tmdSetTextureOffsets(tmd, place->texturePageOffset, place->clutRowOffset);
-    animationInitContext(&work->rig.anim, D_actor_120300_80140910, tmd, work->rig.poses, work->rig.slots);
-    animWork                = task->work;
-    animWork->bodyAnimation = 0xE;
-    slotIndex               = 1;
-    do {
-        animWork->rig.slots[(u16)slotIndex].rate = ANIMATION_RATE_ONE;
-        animationResetSlot(&animWork->rig.anim, (u16)slotIndex, 0xE);
-        slotIndex++;
-    } while ((u16)slotIndex < ARRAY_SIZE(animWork->rig.slots));
-    work->headTask  = taskSpawnFromTable(D_actor_120300_80141B6C, 2, 0, task);
-    work->rifleTask = taskSpawnFromTable(D_actor_120300_80141B6C, 3, 0, task);
+    rootCoord->parent       = &gGfxViewCoord;
+    tmdAllocPrimitiveBuffer(model);
+    model->lightMtx = &work->light;
+    model->colorMtx = &work->color;
+    model->flags   &= (u16)~TMD_OBJECT_SKIP_AUTO_BUFFER;
+    placement       = _actor120300FindTexturePlacement();
+    tmdSetTextureOffsets(model, placement->texturePageOffset, placement->clutRowOffset);
+    animationInitContext(&work->rig.anim, D_actor_120300_80140910, model, work->rig.poses, work->rig.slots);
+    _actor120300ResetBodyAnimation(task, ACTOR_120300_BODY_INITIAL_ANIMATION);
+    work->headTask  = taskSpawnFromTable(D_actor_120300_80141B6C, ACTOR_120300_TASK_HEAD, 0, task);
+    work->rifleTask = taskSpawnFromTable(D_actor_120300_80141B6C, ACTOR_120300_TASK_RIFLE, 0, task);
     task->msgTable  = D_actor_120300_80140A44;
-    work->scale     = 0x1000;
+    work->scale     = ONE;
     taskReparent(task, work->headTask);
     taskReparent(task, work->rifleTask);
 }
 
-/// Main tick of the cutscene actor. State 0 waits until no other cutscene is
-/// up (`Gp_StateC08.mode` / `gDisplayState.pendingMode`), builds the work block, then either arms
-/// play (`_actor120300PrepareRoomPlay`) once flag nibble 0x2D is set or sends
-/// the slot-3 weapon record and starts the script. States 1-4 step the area
-/// records, the pending `worldCollisionReadActionHit` cue, and the overlay-load
-/// phases. Every path but the cutscene-busy early-out then ticks the two
-/// animation helpers, draws the floor quad, and scales the model.
-void func_actor_120300_801337C4(Task* arg0)
+/// Accepts a manual room-action trigger and starts the selected interaction.
+///
+/// Requires live body work. Returns 1 for a pressed room action and 0 otherwise;
+/// selector bytes 1/2 choose talk/remark, while other selectors retain the prior
+/// choice. Trigger reading enables the collision system's next-tick hit clearing.
+static inline s16 _actor120300TryStartInteraction(Task* task)
 {
+    enum { ACTOR_120300_TRIGGER_TALK   = 1,
+           ACTOR_120300_TRIGGER_REMARK = 2 };
+    _Actor120300Work* interactionWork;
+    s16               interactionPressed;
+    s16               actionHit;
+    u16               triggerControl;
+    s16               signedTriggerControl;
+    u8                interactionKind;
+    u8                unusedTriggerParameter;
+
+    interactionPressed = 0;
+    interactionWork    = task->work;
+    actionHit          = worldCollisionReadActionHit(&triggerControl, &interactionKind, &unusedTriggerParameter);
+    if (actionHit != 0) {
+        signedTriggerControl = triggerControl;
+        if (!(signedTriggerControl & WORLD_COLLISION_TRIGGER_AUTOMATIC)) {
+            if ((triggerControl & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
+                interactionPressed = gPlayerStatus.interactionPressed != 0;
+            }
+        }
+    }
+    if (interactionPressed != 0) {
+        if ((s8)interactionKind == ACTOR_120300_TRIGGER_TALK) {
+            interactionWork->interaction = ACTOR_120300_INTERACTION_TALK;
+        }
+        if ((s8)interactionKind == ACTOR_120300_TRIGGER_REMARK) {
+            interactionWork->interaction = ACTOR_120300_INTERACTION_REMARK;
+        }
+        interactionWork->interactionStep = 0;
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+/// Runs Gary Douglas's garage scene, room interactions and body presentation.
+///
+/// Starts at state 0 with a live body model. Initialization waits for the
+/// attachment wheel and pending display transition to clear, then starts the
+/// first scene or prepares ordinary room play according to saved progress.
+/// The task owns body work and child tasks; scripts borrow its published handle.
+/// Room play accepts manual room-action triggers for talk or remark exchanges.
+/// Each active update advances both choreography channels, draws the ground
+/// shadow and applies unsigned Q12 directional-light intensity without changing
+/// model geometry or ambient light. The garage overlay and animation resources
+/// must remain live; initialization requires successful work/child allocation.
+static void _actor120300BodyTask(Task* task)
+{
+    enum {
+        ACTOR_120300_BODY_STATE_INITIALIZE        = 0,
+        ACTOR_120300_BODY_STATE_WAIT_SCENE        = 1,
+        ACTOR_120300_BODY_STATE_ROOM_PLAY         = 2,
+        ACTOR_120300_BODY_STATE_INTERACTION       = 3,
+        ACTOR_120300_BODY_STATE_PLACE_RIFLE       = 4,
+        ACTOR_120300_PRIMARY_CHARACTER            = 1,
+        ACTOR_120300_PRIMARY_WEAPON_BANK_BASE     = 1,
+        ACTOR_120300_ALTERNATE_WEAPON_BANK_BASE   = 0x22,
+        ACTOR_120300_PLAYER_WEAPON_IDLE_ANIMATION = 1,
+        ACTOR_120300_SHADOW_OFFSET_Y              = 0x380,
+        ACTOR_120300_SHADOW_RADIUS                = 0x300,
+    };
     union {
         struct {
             SVECTOR shadowOffset;
-            VECTOR  vec;
+            VECTOR  lightSample;
         } draw;
-        AnimationPlayRequest rec;
+        AnimationPlayRequest playerAnimationRequest;
     } scratch;
     _Actor120300Work* work;
-    _Actor120300Work* temp;
-    TmdObject*        tmd;
+    TmdObject*        model;
     s32               state;
-    s32               weaponId;
-    s32               scale;
-    s16               ready;
-    s32               take;
-    u16               scaleRaw;
-    u16               evtId;
-    u8                evtKind;
-    u8                evtSub;
+    s32               weaponBank;
+    u16               lightingScale;
 
-    state = arg0->state;
-    work  = arg0->work;
+    state = task->state;
+    work  = task->work;
     switch (state) {
-        case 0:
+        case ACTOR_120300_BODY_STATE_INITIALIZE:
             if ((Gp_StateC08.mode != ATTACHMENT_MODE_WHEEL) && (gDisplayState.pendingMode == DISPLAY_MODE_NONE)) {
-                func_actor_120300_801335D8(arg0);
-                work = arg0->work;
+                _actor120300InitBody(task);
+                work = task->work;
                 if (gameFlagGetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN) != 0) {
                     _actor120300PrepareRoomPlay(1);
                     if (gameFlagGetNibble(GAME_FLAG_MOTEL_ROOM_6_DOOR_UNLOCKED) != 0) {
                         work->talkStage = 1;
                     }
-                    arg0->state = 4;
+                    task->state = ACTOR_120300_BODY_STATE_PLACE_RIFLE;
                 } else {
-                    weaponId = gPlayerStatus.weapon;
-                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == 1) {
-                        weaponId = weaponId + 1;
+                    weaponBank = gPlayerStatus.weapon;
+                    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId == ACTOR_120300_PRIMARY_CHARACTER) {
+                        weaponBank = weaponBank + ACTOR_120300_PRIMARY_WEAPON_BANK_BASE;
                     } else {
-                        weaponId = weaponId + 0x22;
+                        weaponBank = weaponBank + ACTOR_120300_ALTERNATE_WEAPON_BANK_BASE;
                     }
-                    scratch.rec.source.index         = weaponId;
-                    scratch.rec.animationId          = 1;
-                    scratch.rec.blend                = ANIMATION_BLEND_RESET;
-                    scratch.rec.blendFrames          = 0;
-                    scratch.rec.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
-                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.rec, 0);
+                    scratch.playerAnimationRequest.source.index         = weaponBank;
+                    scratch.playerAnimationRequest.animationId          = ACTOR_120300_PLAYER_WEAPON_IDLE_ANIMATION;
+                    scratch.playerAnimationRequest.blend                = ANIMATION_BLEND_RESET;
+                    scratch.playerAnimationRequest.blendFrames          = 0;
+                    scratch.playerAnimationRequest.enableWorldCollision = ANIMATION_WORLD_COLLISION_DISABLE;
+                    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), ANIMATION_MESSAGE_PLAY, &scratch.playerAnimationRequest, 0);
                     gameFlagSetNibble(GAME_FLAG_02C, 1);
                     gameFlagSetNibble(GAME_FLAG_GARAGE_GARY_SCENE_SEEN, 1);
                     gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0xB);
                     evsStartScriptWithSkip(D_actor_120300_80140B94, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_120300_80141524);
                     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.sceneEvent = 2;
-                    arg0->state                                        += 1;
+                    task->state                                        += 1;
                 }
+                // Patch the live garage grid from this actor package's collision records.
                 memCopyBytes(&D_actor_120300_801409A8, gDryfieldGarageCollision0108CNormals, sizeof(D_actor_120300_801409A8));
                 memCopyBytes(&D_actor_120300_80140A20, gDryfieldGarageCollision0108CFaces, sizeof(D_actor_120300_80140A20));
                 memCopyBytes(&D_actor_120300_801409C0, gDryfieldGarageCollision0108CVerts, sizeof(D_actor_120300_801409C0));
                 break;
             }
             return;
-        case 1:
+        case ACTOR_120300_BODY_STATE_WAIT_SCENE:
             if (gGameSession->eventState == 0) {
                 areaApplySavedUpdates(D_dryfield_garage_80180204);
-                arg0->state += 1;
+                task->state += 1;
             }
             break;
-        case 2:
-            ready = 0;
-            temp  = arg0->work;
-            if ((s16)worldCollisionReadActionHit(&evtId, &evtKind, &evtSub) != 0) {
-                if (!((s16)evtId & WORLD_COLLISION_TRIGGER_AUTOMATIC)) {
-                    if ((evtId & (0xFFFF ^ WORLD_COLLISION_TRIGGER_AUTOMATIC)) == WORLD_COLLISION_TRIGGER_ACTION_ROOM) {
-                        ready = gPlayerStatus.interactionPressed != 0;
-                    }
-                }
-            }
-            if (ready != 0) {
-                if ((s8)evtKind == 1) {
-                    temp->interaction = ACTOR_120300_INTERACTION_TALK;
-                }
-                if ((s8)evtKind == 2) {
-                    temp->interaction = ACTOR_120300_INTERACTION_REMARK;
-                }
-                temp->interactionStep = 0;
-                take                  = 1;
-            } else {
-                take = 0;
-            }
-            if (take != 0) {
-                arg0->state += 1;
+        case ACTOR_120300_BODY_STATE_ROOM_PLAY:
+            if (_actor120300TryStartInteraction(task) != 0) {
+                task->state += 1;
             }
             break;
-        case 3:
-            if ((s16)func_actor_120300_801334A4(arg0) != 0) {
-                arg0->state -= 1;
+        case ACTOR_120300_BODY_STATE_INTERACTION:
+            if (_actor120300RunInteraction(task) != 0) {
+                task->state -= 1;
             }
             break;
-        case 4:
+        case ACTOR_120300_BODY_STATE_PLACE_RIFLE:
             TASK_MESSAGE_DISPATCH_POINTER(work->rifleTask, ACTOR_MESSAGE_PLACE, &D_actor_120300_80140A54[11], 0);
-            arg0->state = 2;
+            task->state = ACTOR_120300_BODY_STATE_ROOM_PLAY;
             break;
     }
 
-    _actor120300RunPlayerRequest(arg0);
-    func_actor_120300_80132C60(arg0);
+    // Choreography and presentation continue while an event script owns control.
+    _actor120300RunPlayerRequest(task);
+    _actor120300RunBodyRequest(task);
     scratch.draw.shadowOffset.vx = 0;
-    scratch.draw.shadowOffset.vy = 0x380;
+    scratch.draw.shadowOffset.vy = ACTOR_120300_SHADOW_OFFSET_Y;
     scratch.draw.shadowOffset.vz = 0;
-    actorRenderDrawGroundShadow(&arg0->extra.tmd->coords[1], 0x300, &scratch.draw.shadowOffset);
-    tmd      = arg0->extra.tmd;
-    scaleRaw = work->scale;
-    func_actor_120300_FillLight(arg0, tmd, &scratch.draw.vec);
-    scale               = scaleRaw;
-    scratch.draw.vec.vz = scale;
-    scratch.draw.vec.vy = scale;
-    scratch.draw.vec.vx = scale;
-    ScaleMatrix(tmd->colorMtx, &scratch.draw.vec);
+    actorRenderDrawGroundShadow(&task->extra.tmd->coords[1], ACTOR_120300_SHADOW_RADIUS, &scratch.draw.shadowOffset);
+    model         = task->extra.tmd;
+    lightingScale = work->scale;
+    _actor120300UpdateBodyLighting(task, model, &scratch.draw.lightSample);
+    scratch.draw.lightSample.vz = lightingScale;
+    scratch.draw.lightSample.vy = lightingScale;
+    scratch.draw.lightSample.vx = lightingScale;
+    ScaleMatrix(model->colorMtx, &scratch.draw.lightSample);
 }
 
 #include "../../shared/screen_fade_out.inc.c"
@@ -2326,10 +2385,13 @@ static void _actor120300RemovePlayerEquipment(void)
     }
 }
 
-/// Gives the player's equipment back if the scene removed it: spawns the
-/// weapon's task again, clears the block's `playerEquipmentRemoved` and has
-/// the player play the equipped weapon's animation.
-void func_actor_120300_80133E94(void)
+/// Restores scene-suppressed equipment while keeping the player under scripted control.
+///
+/// Requires the published body work and live player/resources. Does nothing if
+/// equipment was not removed. Otherwise rebuilds equipment, clears the latch,
+/// and holds the player in its equipped-bank idle animation with collision off.
+/// The event script releases scripted control later.
+static void _actor120300RestorePlayerEquipment(void)
 {
     _Actor120300Work* work = D_actor_120300_80141BA8->work;
 
@@ -2340,22 +2402,38 @@ void func_actor_120300_80133E94(void)
     }
 }
 
-/// Spawns the fade task (entry 4 of the actor's task table) at rate 9.
-void func_actor_120300_80133EE4(void)
+/// Starts the garage scene's subtractive fade to black.
+///
+/// Spawns the actor table's fade task with nine intensity units per task tick
+/// and no parent argument. The spawned task owns its ramp storage and teardown;
+/// this callback does not wait for completion or retain the returned task.
+static void _actor120300StartSceneFadeOut(void)
 {
-    taskSpawnFromTable(D_actor_120300_80141B6C, 4, 9, 0);
+    enum { ACTOR_120300_SCENE_FADE_INTENSITY_PER_TICK = 9 };
+
+    taskSpawnFromTable(D_actor_120300_80141B6C, ACTOR_120300_TASK_FADE_OUT, ACTOR_120300_SCENE_FADE_INTENSITY_PER_TICK, 0);
 }
 
-void func_actor_120300_80133F14(Task* arg0)
+/// Runs the garage dialogue that refuses departure through the junk-yard door.
+///
+/// Starts at state 0. The event interpreter hides/restores the HUD while running
+/// the borrowed package script. State 1 kills this control task once the session
+/// event state is idle. The actor package must remain loaded through playback.
+static void _actor120300JunkYardRefusalTask(Task* task)
 {
-    switch (arg0->state) {
-        case 0:
+    enum {
+        ACTOR_120300_REFUSAL_STATE_START = 0,
+        ACTOR_120300_REFUSAL_STATE_WAIT  = 1,
+    };
+
+    switch (task->state) {
+        case ACTOR_120300_REFUSAL_STATE_START:
             evsStartScript(D_actor_120300_8014195C, EVENT_SCRIPT_HUD_HIDE_RESTORE);
-            arg0->state += 1;
+            task->state += 1;
             break;
-        case 1:
+        case ACTOR_120300_REFUSAL_STATE_WAIT:
             if (gGameSession->eventState == 0) {
-                taskKill(arg0);
+                taskKill(task);
             }
             break;
     }
