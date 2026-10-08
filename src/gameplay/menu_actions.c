@@ -156,11 +156,19 @@ enum {
     MENU_MAP_NEO_ARK_ALTAR_PICTURE_OFFSET     = 3
 };
 
+/// VRAM strip borrowed by the eight-bit map texture, in 16-bit VRAM pixels.
+/// Its 0x10000-byte backup occupies the start of the captured-frame workspace.
+enum {
+    MENU_MAP_TEXTURE_STRIP_X_PIXELS      = 896,
+    MENU_MAP_TEXTURE_STRIP_WIDTH_PIXELS  = 128,
+    MENU_MAP_TEXTURE_STRIP_HEIGHT_PIXELS = 256
+};
+
 static inline s32 _inventoryIsRowUnattachedAndUnequipped(const InventoryItemRow* row);
 
 static s32 _equipmentIsSelectedItem(s32 itemId);
 
-static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemRow* arg2, s32 arg3);
+static UiObject* _itemMenuOpenCommandPopup(UiList* list, UiObject* parent, InventoryItemRow* selectedRow, s32 commandMode);
 
 static void _itemMenuOpenUsePanel(UiList* unusedList, UiObject* parent);
 
@@ -182,7 +190,7 @@ static void _menuMapDrawPageArrows(const Task* mapTask);
 
 static void _menuMapPrepareClosing(Task* mapTask);
 
-static void func_800D2020(u8 arg0);
+static void _menuMapTransferTextureStrip(u8 restore);
 
 static void _itemMenuDrawAbilityParameterBar(UiObject* object, s32 abilityId, s32 comparePreviousLevel, s32 barX, s32 valueY, s32 column);
 
@@ -536,25 +544,36 @@ static InventoryItemRow* _inventoryFindNthReorderableRow(const InventoryItemRang
     return foundRow;
 }
 
-static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemRow* arg2, s32 arg3)
+/// Opens the selected item's command popup on Confirm, or checks for Triangle help.
+///
+/// Borrows a live list and parent. Publishes `selectedRow` even without input;
+/// the row (or NULL for an empty selection) must remain valid for popup/help use.
+/// `commandMode` selects 0 inventory, 1 weapon, 2 consumable, 3 armor or
+/// 4 attachment commands. A successful popup takes input focus from the parent
+/// and is positioned beside its current row. Returns the task-owned popup or
+/// NULL when Confirm was not pressed or allocation failed. Confirm takes
+/// precedence over Triangle; allocation failure still plays the confirm sound.
+static UiObject* _itemMenuOpenCommandPopup(UiList* list, UiObject* parent, InventoryItemRow* selectedRow, s32 commandMode)
 {
-    UiObject* obj;
-    s32       one;
+    enum {
+        ITEM_MENU_COMMAND_POPUP_DESCRIPTOR       = 34,
+        ITEM_MENU_COMMAND_POPUP_OPEN_DELAY_TICKS = 1
+    };
+    UiObject* popup;
 
-    obj           = NULL;
-    Gp_SelItemRec = arg2;
+    popup         = NULL;
+    Gp_SelItemRec = selectedRow;
     if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm)) {
         sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-        one = 1;
-        obj = uiSpawnObject(&D_8010EAB4[34], arg3, one, one, arg1);
-        if (obj != NULL) {
-            uiPositionRowDialog(&(obj)->panel, arg0, &(arg1)->panel);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+        popup = uiSpawnObject(&D_8010EAB4[ITEM_MENU_COMMAND_POPUP_DESCRIPTOR], commandMode, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_COMMAND_POPUP_OPEN_DELAY_TICKS, parent);
+        if (popup != NULL) {
+            uiPositionRowDialog(&popup->panel, list, &parent->panel);
+            parent->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     } else {
-        itemMenuOpenInfoOnTriangle(arg1);
+        itemMenuOpenInfoOnTriangle(parent);
     }
-    return obj;
+    return popup;
 }
 
 /// Closes a child's UI subtree and restores the parent's input focus.
@@ -1144,17 +1163,24 @@ static inline void _menuMapDrawLoadedPage(Task* mapTask)
 enum { MENU_MAP_STATE_WAIT_FOR_PAGE = 1,
        MENU_MAP_STATE_CLOSING       = 3 };
 
-/// Starts map teardown and restores the incinerator's view resources when needed.
+/// Arms map closing and publishes its result before the graphics restore phase.
 ///
-/// Borrows the live map task and its owned object. `result` is CONFIRM or CANCEL;
-/// closing preparation precedes its publication and the state change.
+/// `mapObject` must be the live object in `mapTask->spawnArg2.pointer`.
+/// `result` is `USER_INTERFACE_RESULT_CONFIRM` or `USER_INTERFACE_RESULT_CANCEL`;
+/// preserves resultValue. Arms four closing updates at two-VBlank timing,
+/// publishes the result, then enters state 3. The incinerator additionally
+/// uploads its retained view and queues a resource reload without the background
+/// before that state change, requiring one free CD request slot. The owning UI
+/// lifecycle closes and releases the object later; this helper does neither.
 static inline void _menuMapBeginClosing(Task* mapTask, UiObject* mapObject, s32 result)
 {
+    enum { MENU_MAP_RELOAD_SKIP_BACKGROUND = 1 };
+
     _menuMapPrepareClosing(mapTask);
     mapObject->result = result;
     if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) ==
         GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0, 0)) {
-        loadingRestoreViewImageAndEnqueueResources(1);
+        loadingRestoreViewImageAndEnqueueResources(MENU_MAP_RELOAD_SKIP_BACKGROUND);
     }
     mapTask->state = MENU_MAP_STATE_CLOSING;
 }
@@ -2091,35 +2117,29 @@ void menuMapTask(Task* mapTask)
     handlers.funcs[mapTask->state](mapTask);
 }
 
-void Gp_MapPanelInit(Task* arg0)
+void menuMapOpenTask(Task* mapTask)
 {
-    RECT          rect;
-    GameSession*  session;
-    MenuMapArea** table;
-    s32           idx;
-    u8            f6;
-    MenuMapArea*  recs;
-    u8            val;
+    RECT               textureStrip;
+    const GameSession* session;
+    const MenuMapArea* areaRecord;
 
     if (gDisplayState.keepGraphics == 0) {
-        rect.x = 0x380;
-        rect.w = 0x80;
-        rect.y = 0;
-        rect.h = 0x100;
+        // Map textures reuse this VRAM strip and the captured-frame RAM workspace.
+        textureStrip.x = MENU_MAP_TEXTURE_STRIP_X_PIXELS;
+        textureStrip.w = MENU_MAP_TEXTURE_STRIP_WIDTH_PIXELS;
+        textureStrip.y = 0;
+        textureStrip.h = MENU_MAP_TEXTURE_STRIP_HEIGHT_PIXELS;
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
-        StoreImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
+        StoreImage2(&textureStrip, (u_long*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers)));
     }
     menuMapRebuildMarkedAreaBits();
-    session      = gGameSession;
-    table        = Gp_MapRecTables;
-    idx          = session->location.loc.stage - 1;
-    f6           = session->location.loc.area;
-    recs         = table[idx];
-    recs         = recs + f6;
-    val          = recs->page;
-    Gp_MapRoomId = val;
+    session    = gGameSession;
+    areaRecord = Gp_MapRecTables[session->location.loc.stage - 1];
+    areaRecord = areaRecord + session->location.loc.area;
+    // Keep the original low-byte selection, including the no-page marker's zero.
+    Gp_MapRoomId = areaRecord->page;
     _menuMapLoadPage();
-    arg0->state = arg0->state + 1;
+    mapTask->state = mapTask->state + 1;
 }
 
 void menuMapWaitForPageTask(Task* mapTask)
@@ -2138,30 +2158,44 @@ void menuMapWaitForPageTask(Task* mapTask)
     }
 }
 
-void Gp_MapDrawTask(Task* arg0)
+/// Queues the loaded map's four content passes while its closing animation runs.
+///
+/// Borrows the live map task, object and loaded stage/page resources. The order
+/// matches the ready-page draw, with navigation arrows omitted during closing.
+static inline void _menuMapDrawClosingPage(Task* mapTask)
 {
-    RECT rect;
+    _menuMapDrawPlayerCursor(mapTask);
+    _menuMapDrawFlagMarkers(mapTask);
+    _menuMapDrawPicture(mapTask);
+    _menuMapDrawAreas(mapTask);
+}
 
-    if (arg0->spawnArg1.value != 0) {
+void menuMapCloseTask(Task* mapTask)
+{
+    enum {
+        MENU_MAP_RESTORE_COMPLETE    = 1,
+        MENU_MAP_LAST_DRAW_COUNTDOWN = 2
+    };
+    RECT textureStrip;
+
+    if (mapTask->spawnArg1.value != 0) {
         return;
     }
 
-    arg0->killCountdown--;
-    if (arg0->killCountdown == 0) {
+    mapTask->killCountdown--;
+    if (mapTask->killCountdown == 0) {
         if (gDisplayState.keepGraphics == 0) {
-            rect.x = 0x380;
-            rect.w = 0x80;
-            rect.y = 0;
-            rect.h = 0x100;
+            textureStrip.x = MENU_MAP_TEXTURE_STRIP_X_PIXELS;
+            textureStrip.w = MENU_MAP_TEXTURE_STRIP_WIDTH_PIXELS;
+            textureStrip.y = 0;
+            textureStrip.h = MENU_MAP_TEXTURE_STRIP_HEIGHT_PIXELS;
+            // Restore the room image first, then the strip displaced by map textures.
             loadingUploadCachedViewImage();
-            LoadImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
+            LoadImage2(&textureStrip, (u_long*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers)));
         }
-        arg0->spawnArg1.value++;
-    } else if (arg0->killCountdown >= 2) {
-        _menuMapDrawPlayerCursor(arg0);
-        _menuMapDrawFlagMarkers(arg0);
-        _menuMapDrawPicture(arg0);
-        _menuMapDrawAreas(arg0);
+        mapTask->spawnArg1.value += MENU_MAP_RESTORE_COMPLETE;
+    } else if (mapTask->killCountdown >= MENU_MAP_LAST_DRAW_COUNTDOWN) {
+        _menuMapDrawClosingPage(mapTask);
     }
 }
 
@@ -2209,24 +2243,33 @@ static u8 _menuMapSelectCurrentAreaPage(void)
     return Gp_MapRoomId;
 }
 
-static void func_800D2020(u8 arg0)
+/// Saves the map texture's VRAM strip, or restores it after the cached room image.
+///
+/// Zero saves and selects clear drawing; every nonzero `restore` restores.
+/// Keeping room graphics suppresses both operations. Otherwise the caller must
+/// provide the word-aligned captured-frame workspace immediately before
+/// `Gpu_PrimHeapBase`; the first 0x10000 bytes hold the 128x256 strip. Keep that
+/// backup and the primitive heap base intact until restoration, and ensure GPU
+/// transfers can use the storage. Restoring borrows the retained current-view
+/// image and retries its upload through `loadingUploadCachedViewImage`.
+static void _menuMapTransferTextureStrip(u8 restore)
 {
-    RECT rect;
+    RECT textureStrip;
 
     if (gDisplayState.keepGraphics != 0) {
         return;
     }
 
-    rect.x = 0x380;
-    rect.w = 0x80;
-    rect.h = 0x100;
-    rect.y = 0;
-    if (arg0 == 0) {
+    textureStrip.x = MENU_MAP_TEXTURE_STRIP_X_PIXELS;
+    textureStrip.w = MENU_MAP_TEXTURE_STRIP_WIDTH_PIXELS;
+    textureStrip.h = MENU_MAP_TEXTURE_STRIP_HEIGHT_PIXELS;
+    textureStrip.y = 0;
+    if (restore == 0) {
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
-        StoreImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
+        StoreImage2(&textureStrip, (u_long*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers)));
     } else {
         loadingUploadCachedViewImage();
-        LoadImage2(&rect, (u_long*)(Gpu_PrimHeapBase - 0x25800));
+        LoadImage2(&textureStrip, (u_long*)(Gpu_PrimHeapBase - sizeof(FsImgBuffers)));
     }
 }
 

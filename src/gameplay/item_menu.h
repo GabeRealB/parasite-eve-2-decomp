@@ -668,7 +668,18 @@ void menuMapAreaNameTask(Task* task);
 /// is copied locally before dispatch; handlers own state changes and closing timing.
 void menuMapTask(Task* mapTask);
 
-void Gp_MapPanelInit(Task* arg0);
+/// Saves displaced map-texture storage and loads the current area's map page.
+///
+/// State 0 of the map task. Requires stage 1..5, an area in its loaded map
+/// table, and a live task-owned `UiObject` in spawnArg2. Rebuilds marked-area
+/// bits, narrows the area's page to its low byte and queues its picture before
+/// advancing to state 1; the no-page marker consequently selects zero. Normal
+/// navigation requires a nonzero page. With keepGraphics zero, saves the
+/// 128x256 VRAM strip at (896,0) in the word-aligned captured-frame workspace
+/// before `Gpu_PrimHeapBase`. Its first 0x10000 bytes and the heap base must
+/// remain intact until closing restores them. Requires CD request capacity;
+/// the page load completes asynchronously.
+void menuMapOpenTask(Task* mapTask);
 
 /// Waits for the map page load, draws the ready page and resumes map input state.
 ///
@@ -680,7 +691,17 @@ void Gp_MapPanelInit(Task* arg0);
 /// and advances to state 2. Page changes reuse this state after the initial load.
 void menuMapWaitForPageTask(Task* mapTask);
 
-void Gp_MapDrawTask(Task* arg0);
+/// Draws the closing map and restores displaced graphics once its countdown ends.
+///
+/// State 3 of the map task, armed with killCountdown 4 and spawnArg1.value 0.
+/// Decrements once per callback: draws cursor, flags, picture and areas at 3/2,
+/// leaves count 1 undrawn, then restores at zero. With keepGraphics zero,
+/// uploads the retained room image before restoring the saved VRAM strip;
+/// requires the unchanged backup/base from `menuMapOpenTask` and live retained
+/// view resources. Sets spawnArg1 to 1 even when graphics are kept, suppressing
+/// later work. Drawing needs the live object and loaded stage/page resources.
+/// The UI lifecycle owns task/object release; this callback releases neither.
+void menuMapCloseTask(Task* mapTask);
 
 /// Updates the Item command list containing Use/Attach and Key Item.
 ///

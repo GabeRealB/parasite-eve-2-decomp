@@ -2035,10 +2035,10 @@ const char                      Gp_StrMessage[] = "Message";
 const char                      Gp_StrWarning[] = "Warning";
 
 const TaskFuncTable4 Gp_MapTaskStates = { {
-    Gp_MapPanelInit,
+    menuMapOpenTask,
     menuMapWaitForPageTask,
     menuMapNavigateTask,
-    Gp_MapDrawTask,
+    menuMapCloseTask,
 } };
 
 /// "Help". The three bytes after the terminator are not zero: the original
