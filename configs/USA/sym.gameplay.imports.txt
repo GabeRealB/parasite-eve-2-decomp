@@ -1322,7 +1322,7 @@ shelterB6GrowthRoomMistTask = 0x8017E564; // type:func absolute:True owner=shelt
 
 shelterB6GrowthRoomDriftPuffTask = 0x8017EAC8; // type:func absolute:True owner=shelter_b6_growth_room
 
-shelterB6NurseryViewEffectsTask = 0x801800A0; // type:func absolute:True owner=shelter_b6_nursery shared=rooms
+shelterB6NurseryViewEffectsTask = 0x801800A0; // type:func absolute:True owner=shelter_b6_nursery
 
 shelterB6NurseryDebrisChunkTask = 0x80181314; // type:func absolute:True owner=shelter_b6_nursery
 

@@ -510,17 +510,21 @@ void neoArkShrinePuzzleIdle(Task* task)
 
 #undef NEO_ARK_SHRINE_ROUTE_PUZZLE_CONFIRMATION
 
-/// Records first puzzle completion, clears its map marker and starts the solved CAP.
+/// Records the solved shrine puzzle and starts its completion presentation.
 ///
-/// Called only while the solved flag is zero. Sound, persistent flags and CAP
-/// playback are updated in that order; the room's playback resources must be live.
+/// The caller has matched the solved board and checked that its flag is clear.
+/// Starts the solved sound, records completion, clears the map marker and plays
+/// CAP sequence 3 in place, in that order. Requires the live flag bank and room
+/// CAP/sound resources through playback; no board storage or task is retained.
 static inline void _neoArkShrineRecordPuzzleCompletion(void)
 {
-    enum { NEO_ARK_SHRINE_PUZZLE_SOLVED_SEQUENCE = 3 };
+    enum { NEO_ARK_SHRINE_PUZZLE_SOLVED_SEQUENCE = 3,
+           NEO_ARK_SHRINE_PUZZLE_SOLVED_FLAG     = 1,
+           NEO_ARK_SHRINE_MAP_MARK_HIDDEN        = 0 };
 
     sndEvtRequestScriptStart(SOUND_NEO_ARK_SHRINE_PUZZLE_SOLVED, 0, 0);
-    gameFlagSetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED, 1);
-    gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHRINE, 0);
+    gameFlagSetNibble(GAME_FLAG_NEO_ARK_SHRINE_PUZZLE_SOLVED, NEO_ARK_SHRINE_PUZZLE_SOLVED_FLAG);
+    gameFlagSetNibble(GAME_FLAG_MAP_MARK_SHRINE, NEO_ARK_SHRINE_MAP_MARK_HIDDEN);
     capStartSequenceSlot(NEO_ARK_SHRINE_PUZZLE_SOLVED_SEQUENCE, CAP_PLAYBACK_IN_PLACE, 0);
 }
 

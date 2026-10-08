@@ -361,30 +361,39 @@ RoomDeparture gRoomDeparture;
 
 RoomLatchedEvent gRoomEventLatched;
 
-static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-
 static void _glowDrawAngledCapsule(const SVECTOR worldPoints[2], s32 radiusScale, s32 startAngle, s32 packedColor);
 
-/// Starts `event` for the outgoing message `dst` unless its flag says it has
-/// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->queryOnly` asks for a dry run - latches the message and the event,
-/// sets the flag and spawns the room's event task.
-static __inline__ s32 _shelter1fParkingGarageStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Latches an eligible departure event and starts its staged task on execution.
+///
+/// Returns 2 when the room handles the departure, including an eligible query;
+/// returns 1 for ordinary departure when a nonzero event flag is already set.
+/// Every call clears the latest-start byte. Only `ROOM_EVENT_EXECUTE` copies
+/// both records, writes 1 to a nonzero flag and raises that byte after spawning.
+/// Borrows complete records for this call; flag IDs must be 0..503. The room's
+/// singleton copies and CAP/sound resources must remain live until its task ends;
+/// do not latch another event while that task still uses them.
+static __inline__ s32 _shelter1fParkingGarageStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
 {
-    D_shelter_1f_parking_garage_80181984 = 0;
-    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+    enum { ROOM_EVENT_FLAG_NONE         = 0,
+           ROOM_EVENT_FLAG_CLEAR        = 0,
+           ROOM_EVENT_FLAG_LATCHED      = 1,
+           ROOM_EVENT_DEPARTURE_DIRECT  = 1,
+           ROOM_EVENT_DEPARTURE_HANDLED = 2 };
+
+    D_shelter_1f_parking_garage_80181984 = false;
+    if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
+        if (message->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *message;
             gRoomEventLatched   = *event;
-            if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+            if (event->flagId != ROOM_EVENT_FLAG_NONE) {
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&D_shelter_1f_parking_garage_80180BAC, 0, 0, 0);
-            D_shelter_1f_parking_garage_80181984 = 1;
+            D_shelter_1f_parking_garage_80181984 = true;
         }
-        return 2;
+        return ROOM_EVENT_DEPARTURE_HANDLED;
     }
-    return 1;
+    return ROOM_EVENT_DEPARTURE_DIRECT;
 }
 
 #include "../../shared/room_variants_shelter.inc.c"

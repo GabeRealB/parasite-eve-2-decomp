@@ -494,18 +494,20 @@ s32 D_neo_ark_pyramid_801818A4 = 0;
 
 static void _neoArkPyramidDrawRotationPuzzleQuad(s32 angle);
 
-/// Restores the room view and player presentation after a rotation-puzzle exit.
+/// Returns from the rotation puzzle to room view 3 and releases its task.
 ///
-/// Requires the live player and held event state. Clears the room's event gates
-/// before resuming player control and automatic model drawing, then kills the
-/// bodyless puzzle task. The caller must have finished CAP playback.
+/// Requires a live player, session/save and held puzzle event after CAP ends.
+/// Shows the HUD and resumes enemy updates before restoring player control and
+/// automatic model buffering. The bodyless puzzle task is killed last; its
+/// pointer must not be used afterwards.
 static inline void _neoArkPyramidRestoreRoomControl(Task* task)
 {
-    enum { NEO_ARK_PYRAMID_ROTATION_ROOM_VIEW = 3 };
+    enum { NEO_ARK_PYRAMID_ROTATION_ROOM_VIEW = 3,
+           NEO_ARK_PYRAMID_EVENT_IDLE         = 0 };
 
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = NEO_ARK_PYRAMID_ROTATION_ROOM_VIEW;
-    gGameSession->hideHud                                      = 0;
-    gGameSession->eventState                                   = 0;
+    gGameSession->hideHud                                      = false;
+    gGameSession->eventState                                   = NEO_ARK_PYRAMID_EVENT_IDLE;
     gSceneCombatState.actorControl                             = SCENE_COMBAT_ACTORS_RUNNING;
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);

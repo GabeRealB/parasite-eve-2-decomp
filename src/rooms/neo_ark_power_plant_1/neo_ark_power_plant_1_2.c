@@ -737,10 +737,14 @@ WorldCollisionFootstepSounds D_neo_ark_power_plant_1_80181BA8 = {
     0x1000005D,
 };
 
-/// Draws the generator light or emits flashes after its support part is destroyed.
+/// Draws the intact generator's glow or emits flashes from its destroyed support.
 ///
-/// Advances the shared RNG only while the support part is down, effects run and
-/// the plant remains uncleared. Spawned flashes borrow the room's emitter point.
+/// Draws at the fixed world-space emitter with RGB444 colour 0x334 and radius
+/// scale 768. After destruction, samples the shared unsigned LCG once per call
+/// only while effects run and the plant remains uncleared; three high-word bits
+/// give a one-in-eight flash chance, with base size 1024 and no parent coordinate.
+/// Requires live effect state and loaded room emitter/effect resources. A flash
+/// retains the emitter address; keep the room loaded until the effect ends.
 static inline void _neoArkPowerPlant1DrawGeneratorGlow(void)
 {
     enum {

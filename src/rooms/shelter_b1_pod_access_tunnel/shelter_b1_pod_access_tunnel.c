@@ -1117,12 +1117,19 @@ static const TaskFuncTable3 D_shelter_b1_pod_access_tunnel_8017D5D8 = {
     { _shelterB1PodAccessTunnelInitializeRoomTask, _shelterB1PodAccessTunnelIdleTaskState, taskKill },
 };
 
-/// Commits the confirmed pod ride's arrival and schedules the saved-state reload.
+/// Commits B2 pod arrival 3 and schedules a reload from the live save.
+///
+/// Call after accepting the ride and its sound ending, with actor/player control
+/// still held. Preserves the saved stage and selects room 1, or room 2 when the
+/// gantry-return state is complete. Stops nonambient sound scripts and selects
+/// next-session sprite resource variant 1 before spawning the reload's frame
+/// capture phase. Requires live save/session and reload resources; kills this
+/// bodyless ride task last, so its pointer must not be used afterwards.
 static inline void _shelterB1PodAccessTunnelCommitB2Ride(Task* task)
 {
-    enum { RIDE_ARRIVAL_WARP             = 3,
-           RIDE_DEFAULT_ROOM             = 1,
-           RELOAD_CAPTURE_SPRITE_VARIANT = 1 };
+    enum { RIDE_ARRIVAL_WARP                = 3,
+           RIDE_DEFAULT_ROOM                = 1,
+           RIDE_NEXT_SESSION_SPRITE_VARIANT = 1 };
     s32 gantryReturnProgress;
 
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
@@ -1133,7 +1140,7 @@ static inline void _shelterB1PodAccessTunnelCommitB2Ride(Task* task)
     if (gantryReturnProgress == SHELTER_B1_POD_ACCESS_TUNNEL_GANTRY_RETURN_COMPLETE) {
         gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room = gantryReturnProgress;
     }
-    gDisplayState.spriteVariant = RELOAD_CAPTURE_SPRITE_VARIANT;
+    gDisplayState.spriteVariant = RIDE_NEXT_SESSION_SPRITE_VARIANT;
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     taskKill(task);
 }

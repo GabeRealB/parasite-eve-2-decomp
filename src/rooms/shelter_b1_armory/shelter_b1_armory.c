@@ -289,7 +289,11 @@ static void _shelterB1ArmoryCardkeyEventTask(Task* task)
     }
 }
 
-/// Saves the live view and selects the armory shop's presentation view.
+/// Saves the live-save view and selects armory shop view 13.
+///
+/// The scene's singleton saved-view slot must be free and remain intact until
+/// the shop scene restores it. Requires a live save with a valid armory view;
+/// only its view byte changes, preserving every other destination selector.
 static inline void _shelterB1ArmorySelectShopView(void)
 {
     enum { SHELTER_B1_ARMORY_SHOP_VIEW = 13 };

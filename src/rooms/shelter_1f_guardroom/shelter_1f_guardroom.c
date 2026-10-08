@@ -210,12 +210,19 @@ WorldCollisionSurfaceProperties* D_shelter_1f_guardroom_8017DFF4[8] = {
 
 Task* D_shelter_1f_guardroom_8017E014 = NULL;
 
-/// Commits the completed movie's unlock and restores ordinary player presentation.
+/// Records the Bulwark unlock and returns the guardroom to player control.
+///
+/// Call after the confirmed unlock movie task has exited. Shows the HUD and
+/// unlocked overlay before setting the persistent flag and releasing scripted
+/// player control. Requires live room presentation, player and session resources.
+/// Kills the bodyless unlock task last; its pointer is invalid afterwards.
 static inline void _shelter1fGuardroomFinishBulwarkUnlock(Task* task)
 {
-    gGameSession->hideHud = 0;
-    _shelter1fGuardroomSetUnlockOverlayVisible(1);
-    gameFlagSetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED, 1);
+    enum { SHELTER_1F_GUARDROOM_BULWARK_UNLOCKED = 1 };
+
+    gGameSession->hideHud = false;
+    _shelter1fGuardroomSetUnlockOverlayVisible(true);
+    gameFlagSetNibble(GAME_FLAG_SHELTER_1F_BULWARK_UNLOCKED, SHELTER_1F_GUARDROOM_BULWARK_UNLOCKED);
     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
     taskKill(task);
 }

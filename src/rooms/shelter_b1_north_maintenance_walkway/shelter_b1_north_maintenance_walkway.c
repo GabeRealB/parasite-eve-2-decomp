@@ -105,8 +105,6 @@ SVECTOR D_shelter_b1_north_maintenance_walkway_80184B48[1] = {
     { 749, -1283, 2310, 0 },
 };
 
-static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
-    RoomEventMsg* dst, RoomLatchedEvent* event);
 static void func_shelter_b1_north_maintenance_walkway_8017DA4C(Task* arg0);
 static void _shelterB1NorthMaintenanceWalkwayRoomIdle(Task* task);
 
@@ -130,27 +128,37 @@ static __inline__ void _shelterB1NorthMaintenanceWalkwayBindEffectTasks(void)
     gRoomEffectOrangeBurst2Id = EFFECT_SHELTER_B1_NORTH_MAINTENANCE_WALKWAY_ORANGE_BURST_2;
 }
 
-/// Starts `event` for the outgoing message `dst` unless its flag says it has
-/// already happened (answering 1). Otherwise answers 2, and - unless
-/// `dst->field_5` asks for a dry run - latches the message and the event,
-/// sets the flag and spawns the room's event task.
-static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(
-    RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Latches an eligible departure event and starts its staged task on execution.
+///
+/// Returns 2 when the room handles the departure, including an eligible query;
+/// returns 1 for ordinary departure when a nonzero event flag is already set.
+/// Every call clears the latest-start byte. Only `ROOM_EVENT_EXECUTE` copies
+/// both records, writes 1 to a nonzero flag and raises that byte after spawning.
+/// Borrows complete records for this call; flag IDs must be 0..503. The room's
+/// singleton copies and CAP/sound resources must remain live until its task ends;
+/// do not latch another event while that task still uses them.
+static __inline__ s32 _shelterB1NorthMaintenanceWalkwayStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
 {
-    D_shelter_b1_north_maintenance_walkway_80185B7C = 0;
-    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+    enum { ROOM_EVENT_FLAG_NONE         = 0,
+           ROOM_EVENT_FLAG_CLEAR        = 0,
+           ROOM_EVENT_FLAG_LATCHED      = 1,
+           ROOM_EVENT_DEPARTURE_DIRECT  = 1,
+           ROOM_EVENT_DEPARTURE_HANDLED = 2 };
+
+    D_shelter_b1_north_maintenance_walkway_80185B7C = false;
+    if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
+        if (message->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *message;
             gRoomEventLatched   = *event;
-            if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+            if (event->flagId != ROOM_EVENT_FLAG_NONE) {
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&D_shelter_b1_north_maintenance_walkway_80184A78, 0, 0, 0);
-            D_shelter_b1_north_maintenance_walkway_80185B7C = 1;
+            D_shelter_b1_north_maintenance_walkway_80185B7C = true;
         }
-        return 2;
+        return ROOM_EVENT_DEPARTURE_HANDLED;
     }
-    return 1;
+    return ROOM_EVENT_DEPARTURE_DIRECT;
 }
 
 #include "../../shared/room_event_staged_task.inc.c"

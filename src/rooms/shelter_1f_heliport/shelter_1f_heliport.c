@@ -201,7 +201,7 @@ extern RoomFadeStorage  gRoomEventFade;
 extern RoomEventMsg     gRoomEventStagedMsg;
 extern RoomLatchedEvent gRoomEventLatched;
 
-static void func_shelter_1f_heliport_80180658(Task* task);
+static void _shelter1fHeliportInitializeRoomTask(Task* task);
 static void _shelter1fHeliportUpdateRoom(Task* unusedTask);
 static void _shelter1fHeliportUpdatePlacedActorVisibility(void);
 
@@ -215,10 +215,10 @@ extern WorldCollisionTrigger      D_shelter_1f_heliport_80182178[12];
 extern WorldCollisionTrigger      D_shelter_1f_heliport_80182508[21];
 extern WorldCoordRoomAmbientEntry D_shelter_1f_heliport_80182B44[13];
 extern WorldCoordRoomLights       D_shelter_1f_heliport_80182160[1];
-s32                               func_shelter_1f_heliport_801800A0(Task*, s32, RoomEventMsg*, RoomEventMsg*);
-s32                               func_shelter_1f_heliport_80180334(Task*, s32, s32, s32);
-s32                               func_shelter_1f_heliport_8018041C(Task*, s32, s32, s32);
-s32                               func_shelter_1f_heliport_801804BC(Task*, s32, RoomEventMsg*, s32);
+static s32                        _shelter1fHeliportResolveDepartureMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
+static s32                        _shelter1fHeliportUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
+static s32                        _shelter1fHeliportHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg);
+static s32                        _shelter1fHeliportHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 #include "../../shared/shop_data.inc.c"
 
@@ -229,10 +229,10 @@ TaskDesc D_shelter_1f_heliport_80181188 = { { { TASK_BODY_NONE, 192 } }, _shopSe
 TaskDesc D_shelter_1f_heliport_80181194 = { { { TASK_BODY_NONE, 32 } }, roomEventStagedTask, { .value = 0 } };
 
 TaskMessageEntry D_shelter_1f_heliport_801811A0[5] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_shelter_1f_heliport_801800A0 },
-    { 5105, func_shelter_1f_heliport_80180334 },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_1f_heliport_801804BC },
-    { ROOM_MESSAGE_COMMAND, func_shelter_1f_heliport_8018041C },
+    { ROOM_EVENT_MESSAGE_RESOLVE, _shelter1fHeliportResolveDepartureMessage },
+    { ROOM_MESSAGE_USE_KEY_ITEM, _shelter1fHeliportUseKeyItem },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelter1fHeliportHandleRoomAction },
+    { ROOM_MESSAGE_COMMAND, _shelter1fHeliportHandleCommandMessage },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -596,8 +596,6 @@ u8 D_shelter_1f_heliport_80182CB3 = 224;
 
 RoomLatchedEvent gRoomEventLatched = { 0 };
 
-static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event);
-
 #include "../../shared/shop.inc.c"
 
 #undef SHOP_CHARGE_TITLE_BYTES
@@ -609,58 +607,97 @@ static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatche
 /// and the kill.
 static const TaskFuncTable3 D_shelter_1f_heliport_8017D710 = {
     {
-        func_shelter_1f_heliport_80180658,
+        _shelter1fHeliportInitializeRoomTask,
         _shelter1fHeliportUpdateRoom,
         taskKill,
     },
 };
 
-static __inline__ s32 _shelter1fHeliportStartEvent(RoomEventMsg* dst, RoomLatchedEvent* event)
+/// Latches an eligible departure event and starts its staged task on execution.
+///
+/// Returns 2 when the room handles the departure, including an eligible query;
+/// returns 1 for ordinary departure when a nonzero event flag is already set.
+/// Every call clears the latest-start byte. Only `ROOM_EVENT_EXECUTE` copies
+/// both records, writes 1 to a nonzero flag and raises that byte after spawning.
+/// Borrows complete records for this call; flag IDs must be 0..503. The room's
+/// singleton copies and CAP/sound resources must remain live until its task ends;
+/// do not latch another event while that task still uses them.
+static __inline__ s32 _shelter1fHeliportStartEvent(const RoomEventMsg* message, const RoomLatchedEvent* event)
 {
-    D_shelter_1f_heliport_80182CB0 = 0;
-    if (gameFlagGetNibble(event->flagId) == 0 || event->flagId == 0) {
-        if (dst->queryOnly == ROOM_EVENT_EXECUTE) {
-            gRoomEventStagedMsg = *dst;
+    enum { ROOM_EVENT_FLAG_NONE         = 0,
+           ROOM_EVENT_FLAG_CLEAR        = 0,
+           ROOM_EVENT_FLAG_LATCHED      = 1,
+           ROOM_EVENT_DEPARTURE_DIRECT  = 1,
+           ROOM_EVENT_DEPARTURE_HANDLED = 2 };
+
+    D_shelter_1f_heliport_80182CB0 = false;
+    if (gameFlagGetNibble(event->flagId) == ROOM_EVENT_FLAG_CLEAR || event->flagId == ROOM_EVENT_FLAG_NONE) {
+        if (message->queryOnly == ROOM_EVENT_EXECUTE) {
+            gRoomEventStagedMsg = *message;
             gRoomEventLatched   = *event;
-            if (event->flagId != 0) {
-                gameFlagSetNibble(event->flagId, 1);
+            if (event->flagId != ROOM_EVENT_FLAG_NONE) {
+                gameFlagSetNibble(event->flagId, ROOM_EVENT_FLAG_LATCHED);
             }
             taskSpawnFromTable(&D_shelter_1f_heliport_80181194, 0, 0, 0);
-            D_shelter_1f_heliport_80182CB0 = 1;
+            D_shelter_1f_heliport_80182CB0 = true;
         }
-        return 2;
+        return ROOM_EVENT_DEPARTURE_HANDLED;
     }
-    return 1;
+    return ROOM_EVENT_DEPARTURE_DIRECT;
 }
 
-s32 func_shelter_1f_heliport_801800A0(Task* task, s32 msgId, RoomEventMsg* src, RoomEventMsg* dst)
+/// Stops both heliport ambience scripts while retaining their release envelopes.
+static inline void _shelter1fHeliportStopAmbience(void)
 {
+    sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+}
+
+/// Resolves heliport departures and stages the Bulwark departure scene.
+///
+/// `ROOM_EVENT_MESSAGE_RESOLVE` borrows a complete request and writable reply,
+/// which may alias. Copies all eight bytes before resolving the destination.
+/// Returns 2 when the initial variant-1 talk blocks departure or an event owns
+/// it, otherwise 1. Queries preserve destination selectors and do not stop
+/// ambience or start CAP/tasks, but the event gate clears its latest-start byte.
+/// Executing Tent/Bulwark departures stop ambience; the Bulwark scene retains
+/// copies of both records. Requires live session, flags and room resources.
+/// The receiver and message ID are unused.
+static s32 _shelter1fHeliportResolveDepartureMessage(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply)
+{
+    enum { SHELTER_1F_HELIPORT_VARIANT_INITIAL               = 1,
+           SHELTER_1F_HELIPORT_TALK_UNSTARTED                = 0,
+           SHELTER_1F_HELIPORT_CAP_TALK_REQUIRED             = 0x2B,
+           SHELTER_1F_HELIPORT_CAP_BULWARK_DEPARTURE         = 0x29,
+           SHELTER_1F_HELIPORT_BULWARK_DEPARTURE_STAGE_SOUND = 0x55040001,
+           SHELTER_1F_HELIPORT_EVENT_NO_FLAG                 = 0,
+           SHELTER_1F_HELIPORT_EVENT_FADE                    = 1,
+           SHELTER_1F_HELIPORT_DEPARTURE_DIRECT              = 1,
+           SHELTER_1F_HELIPORT_DEPARTURE_HANDLED             = 2 };
     RoomLatchedEvent event;
 
-    *dst = *src;
-    mapNeoArkResolveRoomVariant(src, dst);
-    if (src->areaId == GAME_AREA_SHELTER_1F_TENT && src->queryOnly == ROOM_EVENT_EXECUTE) {
-        sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-        sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+    *reply = *request;
+    mapNeoArkResolveRoomVariant(request, reply);
+    if (request->areaId == GAME_AREA_SHELTER_1F_TENT && request->queryOnly == ROOM_EVENT_EXECUTE) {
+        _shelter1fHeliportStopAmbience();
     }
-    if (src->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
-        if (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS) == 0 && gGameSession->location.loc.variant == 1) {
-            if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-                capRunCommandWithTransition(0x2B);
+    if (request->areaId == GAME_AREA_SHELTER_1F_BULWARK) {
+        if (gameFlagGetNibble(GAME_FLAG_HELIPORT_TALK_PROGRESS) == SHELTER_1F_HELIPORT_TALK_UNSTARTED && gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
+            if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+                capRunCommandWithTransition(SHELTER_1F_HELIPORT_CAP_TALK_REQUIRED);
             }
-            return 2;
+            return SHELTER_1F_HELIPORT_DEPARTURE_HANDLED;
         }
-        event.capCmd   = 0x29;
-        event.stageSnd = 0x55040001;
-        event.flagId   = 0;
-        event.fade     = 1;
-        if (src->queryOnly == ROOM_EVENT_EXECUTE) {
-            sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, SOUND_SCRIPT_STOP_KEEP_RELEASE);
-            sndEvtRequestScriptStop(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, SOUND_SCRIPT_STOP_KEEP_RELEASE);
+        event.capCmd   = SHELTER_1F_HELIPORT_CAP_BULWARK_DEPARTURE;
+        event.stageSnd = SHELTER_1F_HELIPORT_BULWARK_DEPARTURE_STAGE_SOUND;
+        event.flagId   = SHELTER_1F_HELIPORT_EVENT_NO_FLAG;
+        event.fade     = SHELTER_1F_HELIPORT_EVENT_FADE;
+        if (request->queryOnly == ROOM_EVENT_EXECUTE) {
+            _shelter1fHeliportStopAmbience();
         }
-        return _shelter1fHeliportStartEvent(dst, &event);
+        return _shelter1fHeliportStartEvent(reply, &event);
     }
-    return 1;
+    return SHELTER_1F_HELIPORT_DEPARTURE_DIRECT;
 }
 
 void shelter1fHeliportUpdateCompanionObstacle(s32 unusedEventArg)
@@ -684,75 +721,121 @@ void shelter1fHeliportUpdateCompanionObstacle(s32 unusedEventArg)
     _followCollisionRebuildObstacle(obstacleTask->extra.tmd->coords, &D_shelter_1f_heliport_80181204);
 }
 
-s32 func_shelter_1f_heliport_80180334(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Tests the borrowed pending-trigger list for a hit room-event region.
+///
+/// The list must be live and NULL-terminated. Does not consume hits or retain nodes.
+static inline s32 _shelter1fHeliportRoomTriggerHit(void)
 {
-    WorldCollisionTrigger* node;
-    s32                    found;
-
-    if (arg2 == 0x124 && gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE) == 1 && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
-        found = 0;
-        node  = Gp_PendingObj4C;
-        while (node != NULL) {
-            if (node->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && node->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && node->hit != 0) {
-                found = 1;
-                break;
-            }
-            node  = node->next;
-            found = 0;
+    const WorldCollisionTrigger* trigger;
+    for (trigger = Gp_PendingObj4C; trigger != NULL; trigger = trigger->next) {
+        if (trigger->control == WORLD_COLLISION_TRIGGER_ACTION_ROOM && trigger->parameter0 == WORLD_COLLISION_TRIGGER_ROOM_EVENT_ID && trigger->hit != 0) {
+            return true;
         }
+    }
+    return false;
+}
 
-        if (found != 0) {
-            gGameSession->hideHud    = 1;
-            gGameSession->eventState = 1;
-            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, 9);
+/// Starts the pending companion-request handover when item 0x124 is used nearby.
+///
+/// `ROOM_MESSAGE_USE_KEY_ITEM` supplies a collected-item ID and unused second word.
+/// Requires request state 1, a live companion and a hit pending room-event region.
+/// Accepting hides the HUD, marks the session active, selects companion schedule 9
+/// and spawns Soldier B's handover task. Returns the item-menu used-notice reply;
+/// the actor task marks the item identified and completes the request later.
+/// Otherwise returns the refused reply. The trigger list is borrowed only here;
+/// keep the actor/room overlays and scene resources loaded through the handover.
+/// The receiver and message ID are unused.
+static s32 _shelter1fHeliportUseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg)
+{
+    enum { SHELTER_1F_HELIPORT_REQUEST_ITEM_ID             = 0x124,
+           SHELTER_1F_HELIPORT_REQUEST_PENDING             = 1,
+           SHELTER_1F_HELIPORT_COMPANION_HANDOVER_SCHEDULE = 9,
+           SHELTER_1F_HELIPORT_EVENT_ACTIVE                = 1 };
+
+    if (itemId == SHELTER_1F_HELIPORT_REQUEST_ITEM_ID && gameFlagGetNibble(GAME_FLAG_HELIPORT_SOLDIER_REQUEST_STATE) == SHELTER_1F_HELIPORT_REQUEST_PENDING && gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
+        if (_shelter1fHeliportRoomTriggerHit() != 0) {
+            gGameSession->hideHud    = true;
+            gGameSession->eventState = SHELTER_1F_HELIPORT_EVENT_ACTIVE;
+            gameFlagSetNibble(GAME_FLAG_COMPANION_2_SCHEDULE, SHELTER_1F_HELIPORT_COMPANION_HANDOVER_SCHEDULE);
             taskSpawnFromTableOnDefaultList(&D_actor_161500_80136CDC, 0, 0, 0);
-            return 1;
+            return ROOM_KEY_ITEM_USE_SHOW_USED_NOTICE;
         }
     }
-    return 0;
+    return ROOM_KEY_ITEM_USE_REFUSED;
 }
 
-s32 func_shelter_1f_heliport_8018041C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Handles the heliport's repeating-dialogue and talk-progress CAP commands.
+///
+/// `ROOM_MESSAGE_COMMAND` supplies `commandId`; 0x21 holds player control and
+/// starts repeating CAP playback, and 0x22 selects CAP 0x22 or 0x25 according
+/// to Soldier B's second talk count (at least 2 in variant 1, otherwise 1).
+/// The latter starts only when CAP is idle. Other commands are ignored; all
+/// return zero. Requires live player and loaded room CAP/task resources until
+/// playback ends. The receiver, message ID and second word are unused.
+static s32 _shelter1fHeliportHandleCommandMessage(Task* unusedTask, s32 unusedMessageId, s32 commandId, s32 unusedSecondArg)
 {
-    s32 need;
+    enum { SHELTER_1F_HELIPORT_COMMAND_LOOP_DIALOGUE    = 0x21,
+           SHELTER_1F_HELIPORT_COMMAND_CHECK_TALK       = 0x22,
+           SHELTER_1F_HELIPORT_CAP_TALK_NOT_READY       = 0x25,
+           SHELTER_1F_HELIPORT_TALKS_REQUIRED           = 1,
+           SHELTER_1F_HELIPORT_VARIANT_1_TALKS_REQUIRED = 2,
+           SHELTER_1F_HELIPORT_VARIANT_INITIAL          = 1 };
+    s32 requiredTalkCount;
 
-    switch (arg2) {
-        case 0x21:
+    switch (commandId) {
+        case SHELTER_1F_HELIPORT_COMMAND_LOOP_DIALOGUE:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            taskSpawnFromTable(&D_shelter_1f_heliport_801811C8, 0, 0x21, 0);
+            taskSpawnFromTable(&D_shelter_1f_heliport_801811C8, 0, SHELTER_1F_HELIPORT_COMMAND_LOOP_DIALOGUE, 0);
             break;
-        case 0x22:
-            need = 1;
-            if (gGameSession->location.loc.variant == 1) {
-                need = 2;
+        case SHELTER_1F_HELIPORT_COMMAND_CHECK_TALK:
+            requiredTalkCount = SHELTER_1F_HELIPORT_TALKS_REQUIRED;
+            if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
+                requiredTalkCount = SHELTER_1F_HELIPORT_VARIANT_1_TALKS_REQUIRED;
             }
-            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B) >= need ? 0x22 : 0x25, CAP_EVENT_NO_FLAGS);
+            capSpawnEventIfIdle(gameFlagGetNibble(GAME_FLAG_SOLDIER_B_TALK_COUNT_B) >= requiredTalkCount ? SHELTER_1F_HELIPORT_COMMAND_CHECK_TALK : SHELTER_1F_HELIPORT_CAP_TALK_NOT_READY, CAP_EVENT_NO_FLAGS);
             break;
     }
     return 0;
 }
 
-s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, s32 arg3)
+/// Starts the actor conversation selected by a heliport direction action.
+///
+/// `DIRECTION_MESSAGE_ROOM_ACTION` borrows a four-byte request and sends a zero
+/// second word. Actions 1..5 select the variant's talker, Soldier B talk B,
+/// talk A, shop dialogue and companion-request reminder. Other IDs do nothing.
+/// Reads only the unsigned action ID; control and argument are ignored. Returns
+/// zero for every action and retains no request pointer. Selected actor packages
+/// and their room/CAP resources must stay loaded until the event scripts end.
+/// The receiver, message ID and second word are unused.
+static s32 _shelter1fHeliportHandleRoomAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    switch (in->warp) {
-        case 1:
-            if (gGameSession->location.loc.variant == 1) {
+    enum { SHELTER_1F_HELIPORT_ACTION_TALK               = 1,
+           SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_B     = 2,
+           SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_A     = 3,
+           SHELTER_1F_HELIPORT_ACTION_SHOP               = 4,
+           SHELTER_1F_HELIPORT_ACTION_COMPANION_REMINDER = 5,
+           SHELTER_1F_HELIPORT_VARIANT_INITIAL           = 1,
+           SHELTER_1F_HELIPORT_VARIANT_LATER             = 2 };
+
+    switch (request->actionId) {
+        case SHELTER_1F_HELIPORT_ACTION_TALK:
+            if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
                 actor260500StartHeliportConversation();
             }
-            if (gGameSession->location.loc.variant == 2) {
+            if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_LATER) {
                 actor260400StartHeliportConversation();
             }
             break;
-        case 2:
+        case SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_B:
             actor161500StartSoldierBTalkB();
             break;
-        case 3:
+        case SHELTER_1F_HELIPORT_ACTION_SOLDIER_TALK_A:
             actor161500StartSoldierBTalkA();
             break;
-        case 4:
+        case SHELTER_1F_HELIPORT_ACTION_SHOP:
             actor161500StartSoldierBShopConversation();
             break;
-        case 5:
+        case SHELTER_1F_HELIPORT_ACTION_COMPANION_REMINDER:
             actor161500StartCompanionRequestReminder();
             break;
     }
@@ -761,14 +844,28 @@ s32 func_shelter_1f_heliport_801804BC(Task* arg0, s32 arg1, RoomEventMsg* in, s3
 
 #include "../../shared/cap_dialogue_loop.inc.c"
 
-static void func_shelter_1f_heliport_80180658(Task* arg0)
+/// Initializes the heliport controller, actor presentation and ambience.
+///
+/// Enter with the bodyless room task in state 0, an initialized scene manager,
+/// live session/save, player model and room collision/CAP/sound resources.
+/// Variants 1 and 2 require their respective talker packages; a live companion
+/// also requires Soldier B's package and player/companion roots in one frame.
+/// Publishes this task before actor scripts can address the room, restores
+/// placement and companion request state, updates collision/visibility, resets
+/// model buffers, starts both ambience scripts and advances to state 1.
+/// Keep the room and imported actor code loaded while its callbacks/tasks run.
+static void _shelter1fHeliportInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_1f_heliport_801811A0;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 1) {
+    enum { SHELTER_1F_HELIPORT_VARIANT_INITIAL = 1,
+           SHELTER_1F_HELIPORT_VARIANT_LATER   = 2 };
+
+    // Publish the message receiver before restoring actor event scripts.
+    task->msgTable = D_shelter_1f_heliport_801811A0;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_INITIAL) {
         actor260500RestoreHeliportPlacement();
     }
-    if (gGameSession->location.loc.variant == 2) {
+    if (gGameSession->location.loc.variant == SHELTER_1F_HELIPORT_VARIANT_LATER) {
         actor260400RestoreHeliportPlacement();
     }
     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
@@ -776,11 +873,12 @@ static void func_shelter_1f_heliport_80180658(Task* arg0)
     }
     shelter1fHeliportUpdateCompanionObstacle(0);
     _shelter1fHeliportUpdatePlacedActorVisibility();
+    // Finish restored presentation before resetting buffers and starting ambience.
     gpuResetAndInvalidateModelBuffers();
     tmdResetAuxHeapAndRestoreBuffers();
     sndEvtRequestScriptStart(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_1, 0, 0);
     sndEvtRequestScriptStart(SOUND_SHELTER_1F_HELIPORT_AMBIENCE_2, 0, 0);
-    arg0->state = arg0->state + 1;
+    task->state = task->state + 1;
 }
 
 /// Maintains the room's view-selected actor visibility while its controller idles.

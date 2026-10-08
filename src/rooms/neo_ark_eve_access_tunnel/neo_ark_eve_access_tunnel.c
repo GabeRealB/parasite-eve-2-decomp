@@ -439,11 +439,15 @@ static const TaskFuncTable3 D_neo_ark_eve_access_tunnel_8017D688 = {
     taskKill,
 };
 
-/// Resolves a departure's destination selectors in place for an executed transition.
+/// Resolves a staged departure's area, arrival and room selectors in place.
 ///
-/// Only area, warp and room are passed through the borrowed stage resolver.
-/// The resolver must accept one request as both input and output.
-static __inline__ void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolve)
+/// Borrows a live departure and resolver for this call. The resolver must accept
+/// one RoomEventMsg as both request and reply and read only its initialized
+/// area, warp, room and `ROOM_EVENT_EXECUTE` selector; flag and other bytes are
+/// uninitialized. Copies resolved selectors back with their stored byte widths,
+/// leaving stage, facing and sound unchanged. Ignores the resolver's result and
+/// retains neither pointer. Selectors must identify valid destination records.
+static __inline__ void _roomVariantResolveDeparture(RoomDeparture* departure, RoomVariantResolver resolveVariant)
 {
     RoomEventMsg request;
 
@@ -451,7 +455,7 @@ static __inline__ void _roomVariantResolveDeparture(RoomDeparture* departure, Ro
     request.warp      = departure->warp;
     request.room      = departure->room;
     request.queryOnly = ROOM_EVENT_EXECUTE;
-    resolve(&request, &request);
+    resolveVariant(&request, &request);
     departure->area = request.areaId;
     departure->warp = request.warp;
     departure->room = request.room;
