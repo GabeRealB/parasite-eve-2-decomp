@@ -145,9 +145,9 @@ void Gp_MenuExitCallback(Task* arg0)
         if (sceneIsBattleActive() == 0) {
             Gp_PendingRelatedId = 0;
         } else if (Gp_PendingRelatedId > 0) {
-            func_801088D4(playerTask, 0, 1);
+            playerActorEnterReload(playerTask, 0, PLAYER_ACTOR_RELOAD_MENU);
         } else {
-            func_801088D4(playerTask, 1, 1);
+            playerActorEnterReload(playerTask, 1, PLAYER_ACTOR_RELOAD_MENU);
         }
         Gp_RelatedPending = 0;
     }

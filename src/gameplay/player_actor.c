@@ -333,7 +333,7 @@ extern u8 D_80112E2C[][2];
 /// `equipmentHasEffect(EQUIPMENT_EFFECT_QUICK_FIRE)` is set).
 extern u16 D_80112E30[];
 
-/// NULL-terminated `GpuImageUpload*` lists for `func_801030CC`. Indexed as
+/// NULL-terminated `GpuImageUpload*` lists for `_playerActorTickTextureSequences`. Indexed as
 /// `table[type * 4 + gPlayerStatus.resourceVariant - 5][frame]`. `D_80112E74` is
 /// the `textureSequenceA` sequence; `D_80112EB4` is the `textureSequenceB` sequence.
 extern GpuImageUpload** D_80112E74[];
@@ -346,7 +346,7 @@ extern GpuImageUpload** D_80112EB4[];
 extern u8 D_80112EF8[];
 
 /// 2-wide rows indexed by `gPlayerStatus.weapon`. Zero at `[i][0]`
-/// makes `func_801088D4` abort the item-use path (`statePhase = 0x3E8`).
+/// makes `playerActorEnterReload` abort the battle-end path (`statePhase = 0x3E8`).
 extern u8 D_80112F1C[][2];
 
 /// 0x10-byte `VECTOR` rows indexed by `playerActorInitWeaponCollision` weaponId: where the
@@ -377,7 +377,7 @@ static const TaskFuncTable3 Gp_EffTask07States;
 static const TaskFuncTable4 Gp_PlayerWorkStates;
 
 /// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
-/// `func_8010615C`. Most live in the weapon overlay loaded at the time;
+/// `_playerActorDispatchWeaponAttack`. Most live in the weapon overlay loaded at the time;
 /// `_playerActorNoWeaponAttack` serves the weapons with none.
 static const _PlayerActorWeaponAttacks D_800978BC;
 
@@ -407,7 +407,7 @@ static void _effectDrawGroundDecal(const GfxCoord* coord, s32 halfSize, s16 brig
 
 static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2);
 
-static void Gp_DrawEffQuadT29(GfxCoord* arg0, s32 arg1, u16 arg2, u16 arg3);
+static void _effectDrawAnimatedGroundQuad(const GfxCoord* coord, s32 halfSize, u16 frame, u16 palette);
 
 static void Gp_EffTask07State1(Task* arg0);
 
@@ -452,7 +452,7 @@ static void _playerActorAimRollToLock(Task* task);
 
 static void Gp_AimPitchDirect(Task* arg0);
 
-static void func_801030CC(Task* arg0);
+static void _playerActorTickTextureSequences(Task* task);
 
 inline static Task* spawn_tmd_attach(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -462,7 +462,7 @@ inline static Task* _playerActorSpawnEquippedWeapon(Task* parent, s32 characterI
 
 static void Gp_CaptureActorPad(Task* arg0);
 
-static void Gp_BindActorAnim(Task* arg0);
+static void _animationBindPlayerWeaponBank(Task* task);
 
 static s32 _playerActorGetIdleHealthBand(void);
 
@@ -474,7 +474,7 @@ static GfxCoord* func_8010403C(s32 arg0);
 
 static void func_801041FC(Task* arg0, s32 arg1);
 
-static void func_80104A4C(Task* arg0);
+static void _playerActorCaptureInteractionPress(Task* task);
 
 static void func_80104AAC(Task* arg0);
 
@@ -493,7 +493,7 @@ s32 func_80105690(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 func_80105754(Task* arg0, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
-s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request, s32 unusedSecondArg);
+static s32 _animationCopyPlayerBankExtension(Task* unusedTask, s32 unusedMessageId, const AnimationBankCopyRequest* request, s32 unusedSecondArg);
 
 s32 Gp_ApplyPlayerDamage(Task* arg0, s32 arg1, s32 arg2, s32 unusedSecondArg);
 
@@ -501,7 +501,7 @@ static s32 _playerActorSetRunMovement(Task* task, s32 unusedMessageId, s32 runEn
 
 static void func_80105B0C(Task* arg0);
 
-static void func_8010615C(Task* arg0);
+static void _playerActorDispatchWeaponAttack(Task* task);
 
 static s32 func_801062DC(Task* arg0, s32 arg1);
 
@@ -577,7 +577,7 @@ static void _playerActorUpdateLockTargetFromPad(Task* task);
 
 static void Gp_PlayerMode2State5(Task* arg0);
 
-static void func_801095BC(s32* arg0);
+static void _playerActorWriteWeaponSoundVariant(s32* variantBitsOut);
 
 static void Gp_PlayerMode2State7(Task* arg0);
 
@@ -988,7 +988,7 @@ TaskMessageEntry Gp_PlayerMsgTable[28] = {
     { ANIMATION_MESSAGE_INSTALL_AND_PLAY, playerActorInstallScriptedAnimation },
     { GAME_ACTOR_MESSAGE_ATTACH_TO_COORD, playerActorAttachToCoord },
     { GAME_ACTOR_MESSAGE_WALK_STEPS, playerActorWalkSteps },
-    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, Gp_CopyPlayerAnim },
+    { ANIMATION_MESSAGE_COPY_BANK_EXTENSION, _animationCopyPlayerBankExtension },
     { GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, func_801054D8 },
     { GAME_ACTOR_MESSAGE_APPLY_DAMAGE, Gp_ApplyPlayerDamage },
     { 1018, func_80105690 },
@@ -1628,7 +1628,7 @@ void Gp_EffSprTask81(Task* arg0)
                 mem->age += (u16)gDisplayState.animFrame & 1;
             }
             if (mem->age < 0x10) {
-                Gp_DrawEffQuadT29(coord, mem->scale, mem->age >> 1, mem->step);
+                _effectDrawAnimatedGroundQuad(coord, mem->scale, mem->age >> 1, mem->step);
             } else {
                 arg0->spawnArg1.value = 4;
                 break;
@@ -2199,7 +2199,7 @@ void Gp_EffSprTask30(Task* arg0)
                 if (mem->angle < 0x10) {
                     mem->scale++;
                     if (mem->scale < 8) {
-                        Gp_DrawEffQuadT29(coord, mem->period, mem->scale, 0);
+                        _effectDrawAnimatedGroundQuad(coord, mem->period, mem->scale, 0);
                     } else {
                         effectKillTask(mem, arg0);
                     }
@@ -2214,7 +2214,7 @@ void Gp_EffSprTask30(Task* arg0)
                     if (rnd == 0) {
                         effectSpawn(EFFECT_RISING_WISP, coord, (s32)(mem->pos.vx), NULL);
                     }
-                    Gp_DrawEffQuadT29(coord, mem->period, 0, 0);
+                    _effectDrawAnimatedGroundQuad(coord, mem->period, 0, 0);
                     mem->angle -= 0x10;
                 }
             } else {
@@ -2241,7 +2241,7 @@ void Gp_EffSprTask30(Task* arg0)
                 if (mem->angle < 0x10) {
                     mem->scale++;
                     if (mem->scale < 8) {
-                        Gp_DrawEffQuadT29(coord, mem->period, mem->scale, 0);
+                        _effectDrawAnimatedGroundQuad(coord, mem->period, mem->scale, 0);
                     } else {
                         effectKillTask(mem, arg0);
                     }
@@ -2256,7 +2256,7 @@ void Gp_EffSprTask30(Task* arg0)
                     if (rnd == 0) {
                         effectSpawn(EFFECT_RISING_WISP, coord, (s32)(mem->pos.vx), NULL);
                     }
-                    Gp_DrawEffQuadT29(coord, mem->period, 0, 0);
+                    _effectDrawAnimatedGroundQuad(coord, mem->period, 0, 0);
                     mem->angle -= 0x10;
                 }
             } else {
@@ -2350,61 +2350,101 @@ static void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
     SCRATCH_STACK_RELEASE_BLOCK(EffectShapeScratch);
 }
 
-static void Gp_DrawEffQuadT29(GfxCoord* arg0, s32 arg1, u16 arg2, u16 arg3)
+/// Projects corner 0 and records its FLAG before the other three corners may run.
+///
+/// The caller owns the live scratch block and supplies GTE projection settings.
+/// Installs the world-to-screen matrices; a negative FLAG must reject the quad.
+static inline void _effectProjectAnimatedGroundQuadFirstCorner(EffectQuadScratch* quadScratch)
 {
-    EffectQuadScratch* quadScratch;
-    s32                i;
-    POLY_FT4*          prim;
-    s32                u0;
-    s32                u1;
-
-    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
-    for (i = 0; i < ARRAY_SIZE(D_80111E38); i++) {
-        quadScratch->vertices[i].vx = (u16)D_80111E38[i].axis0Sign * arg1;
-        quadScratch->vertices[i].vy = 0;
-        quadScratch->vertices[i].vz = (u16)D_80111E38[i].axis1Sign * arg1;
-        gte_SetRotMatrix(&arg0->workm);
-        gte_ldv0(&quadScratch->vertices[i]);
-        gte_rtv0();
-        gte_stsv(&quadScratch->vertices[i]);
-        quadScratch->vertices[i].vx += arg0->workm.t[0];
-        quadScratch->vertices[i].vy += arg0->workm.t[1];
-        quadScratch->vertices[i].vz += arg0->workm.t[2];
-    }
-
     gte_SetTransMatrix(&GsWSMATRIX);
     gte_SetRotMatrix(&GsWSMATRIX);
     gte_ldv0(&quadScratch->vertices[0]);
     gte_rtps();
     gte_stsxy(&quadScratch->screenCorners[0]);
     gte_stflg(&quadScratch->projectionFlags);
+}
+
+/// Projects corners 1..3 after corner 0 succeeded, recording their separate FLAG.
+///
+/// Requires the first-corner helper's GTE matrices and the same live scratch block.
+/// Leaves corner 3's SZ3 available for ordering depth when FLAG is nonnegative.
+static inline void _effectProjectAnimatedGroundQuadRemainingCorners(EffectQuadScratch* quadScratch)
+{
+    gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
+    gte_rtpt();
+    gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
+    gte_stflg(&quadScratch->projectionFlags);
+}
+
+/// Draws a raw additive eight-frame textured square in a composed coordinate's local XZ plane.
+///
+/// halfSize is a signed half-side in game-coordinate units; the sign products
+/// must fit s32. Rotation and translation narrow each corner to s16. frame's
+/// low three bits select a 16-by-16-texel cell; palette must be 0 or 1, selecting
+/// row 2 of the CLUT-X table at VRAM Y=266. Borrows the coordinate for this call.
+/// Requires initialized scratch/GTE state and a writable GPU primitive arena.
+/// Both projection stages reject negative FLAG; depth is corner 3's SZ3 / 4 + 1.
+static void _effectDrawAnimatedGroundQuad(const GfxCoord* coord, s32 halfSize, u16 frame, u16 palette)
+{
+    enum {
+        EFFECT_ANIMATED_GROUND_FRAME_MASK = 7,
+        EFFECT_ANIMATED_GROUND_CELL_SIZE  = 16,
+        EFFECT_ANIMATED_GROUND_U_ORIGIN   = -128,
+        EFFECT_ANIMATED_GROUND_V_ORIGIN   = 184,
+        EFFECT_ANIMATED_GROUND_UV_SPAN    = EFFECT_ANIMATED_GROUND_CELL_SIZE - 1,
+        EFFECT_ANIMATED_GROUND_CLUT_ROW   = 2,
+        EFFECT_ANIMATED_GROUND_CLUT_Y     = 266,
+        EFFECT_ANIMATED_GROUND_DEPTH_BIAS = 1,
+    };
+    EffectQuadScratch* quadScratch;
+    s32                cornerIndex;
+    POLY_FT4*          quad;
+    s32                textureU0;
+    s32                textureU1;
+
+    quadScratch = SCRATCH_STACK_RESERVE_BLOCK(EffectQuadScratch);
+    // Transform the local square into narrowed world coordinates.
+    for (cornerIndex = 0; cornerIndex < ARRAY_SIZE(D_80111E38); cornerIndex++) {
+        quadScratch->vertices[cornerIndex].vx = (u16)D_80111E38[cornerIndex].axis0Sign * halfSize;
+        quadScratch->vertices[cornerIndex].vy = 0;
+        quadScratch->vertices[cornerIndex].vz = (u16)D_80111E38[cornerIndex].axis1Sign * halfSize;
+        gte_SetRotMatrix(&coord->workm);
+        gte_ldv0(&quadScratch->vertices[cornerIndex]);
+        gte_rtv0();
+        gte_stsv(&quadScratch->vertices[cornerIndex]);
+        quadScratch->vertices[cornerIndex].vx += coord->workm.t[0];
+        quadScratch->vertices[cornerIndex].vy += coord->workm.t[1];
+        quadScratch->vertices[cornerIndex].vz += coord->workm.t[2];
+    }
+
+    // Preserve the early RTPS rejection before projecting the remaining corners.
+    _effectProjectAnimatedGroundQuadFirstCorner(quadScratch);
     if (quadScratch->projectionFlags >= 0) {
-        gte_ldv3(&quadScratch->vertices[1], &quadScratch->vertices[2], &quadScratch->vertices[3]);
-        gte_rtpt();
-        gte_stsxy3(&quadScratch->screenCorners[1], &quadScratch->screenCorners[2], &quadScratch->screenCorners[3]);
-        gte_stflg(&quadScratch->projectionFlags);
+        _effectProjectAnimatedGroundQuadRemainingCorners(quadScratch);
         if (quadScratch->projectionFlags >= 0) {
             gte_stszotz(&quadScratch->depth);
-            quadScratch->depth++;
-            prim           = gGpuPrimCursor;
-            gGpuPrimCursor = prim + 1;
-            setlen(prim, 9);
-            setcode(prim, 0x2F);
-            prim->tpage = 0x29;
-            prim->clut  = ((D_80112964[2][arg3] >> 4) & 0x3F) | 0x4280;
-            u0          = (arg2 & 7) * 0x10 - 0x80;
-            u1          = (arg2 & 7) * 0x10 - 0x71;
-            setUV4(prim, u0, 0xB8, u1, 0xB8, u0, 0xC7, u1, 0xC7);
-            prim->x0 = quadScratch->screenCorners[0].vx;
-            prim->y0 = quadScratch->screenCorners[0].vy;
-            prim->x1 = quadScratch->screenCorners[1].vx;
-            prim->y1 = quadScratch->screenCorners[1].vy;
-            prim->x2 = quadScratch->screenCorners[2].vx;
-            prim->y2 = quadScratch->screenCorners[2].vy;
-            prim->x3 = quadScratch->screenCorners[3].vx;
-            prim->y3 = quadScratch->screenCorners[3].vy;
+            quadScratch->depth += EFFECT_ANIMATED_GROUND_DEPTH_BIAS;
+            quad                = gGpuPrimCursor;
+            gGpuPrimCursor      = quad + 1;
+            setlen(quad, EFFECT_DRAW_TEXTURED_QUAD_PACKET_WORDS);
+            setcode(quad, EFFECT_DRAW_RAW_ADDITIVE_TEXTURED_QUAD);
+            quad->tpage = EFFECT_SPRITE_ATLAS_TEXTURE_PAGE;
+            quad->clut  = getClut(D_80112964[EFFECT_ANIMATED_GROUND_CLUT_ROW][palette], EFFECT_ANIMATED_GROUND_CLUT_Y);
+            textureU0   = (frame & EFFECT_ANIMATED_GROUND_FRAME_MASK) * EFFECT_ANIMATED_GROUND_CELL_SIZE + EFFECT_ANIMATED_GROUND_U_ORIGIN;
+            textureU1   = (frame & EFFECT_ANIMATED_GROUND_FRAME_MASK) * EFFECT_ANIMATED_GROUND_CELL_SIZE + (EFFECT_ANIMATED_GROUND_U_ORIGIN + EFFECT_ANIMATED_GROUND_UV_SPAN);
+            setUV4(quad, textureU0, EFFECT_ANIMATED_GROUND_V_ORIGIN, textureU1, EFFECT_ANIMATED_GROUND_V_ORIGIN,
+                   textureU0, EFFECT_ANIMATED_GROUND_V_ORIGIN + EFFECT_ANIMATED_GROUND_UV_SPAN,
+                   textureU1, EFFECT_ANIMATED_GROUND_V_ORIGIN + EFFECT_ANIMATED_GROUND_UV_SPAN);
+            quad->x0 = quadScratch->screenCorners[0].vx;
+            quad->y0 = quadScratch->screenCorners[0].vy;
+            quad->x1 = quadScratch->screenCorners[1].vx;
+            quad->y1 = quadScratch->screenCorners[1].vy;
+            quad->x2 = quadScratch->screenCorners[2].vx;
+            quad->y2 = quadScratch->screenCorners[2].vy;
+            quad->x3 = quadScratch->screenCorners[3].vx;
+            quad->y3 = quadScratch->screenCorners[3].vy;
             addPrim(GPU_ORDERING_TABLE_ENTRY_AT_BYTE_OFFSET(((((u32)quadScratch->depth << gDisplayState.otDepthShift) >> 2) & GPU_ORDERING_TABLE_DEPTH_BYTE_MASK)),
-                    prim);
+                    quad);
         }
     }
     SCRATCH_STACK_RELEASE_BLOCK(EffectQuadScratch);
@@ -4781,7 +4821,7 @@ static void Gp_InitPlayerWork(Task* arg0)
     coord->composeStamp                         = GRAPHICS_COORD_DIRTY;
     extra->flags                                = 0;
     RotMatrix(&actor->rotation, &coord->coord);
-    Gp_BindActorAnim(arg0);
+    _animationBindPlayerWeaponBank(arg0);
 
     actor->animationRate       = ANIMATION_RATE_ONE;
     actor->previousPosition.vx = coord->coord.t[0];
@@ -5718,47 +5758,80 @@ static void Gp_AimPitchDirect(Task* arg0)
     SCRATCH_STACK_RELEASE_BLOCK(_PlayerActorAimPitchScratch);
 }
 
-static void func_801030CC(Task* arg0)
+/// Queues one frame into the selected player texture region.
+///
+/// Borrows a scratch RECT; X uses two positions per VRAM word, width uses
+/// VRAM words, and Y/height use rows, following `actorRenderUploadTexture`.
+/// Upload descriptors are writable and their pixels survive the GPU transfer.
+static inline void _playerActorUploadTextureFrame(Task* task, GpuImageUpload* frameUploads, RECT* textureRect,
+                                                  s16 x, s16 y, s16 widthWords, s16 heightRows)
 {
-    RECT*           rect;
+    textureRect->x = x;
+    textureRect->y = y;
+    textureRect->w = widthWords;
+    textureRect->h = heightRows;
+    actorRenderUploadTexture(task, frameUploads, textureRect);
+}
+
+/// Advances the player's two independent, null-terminated texture sequences.
+///
+/// Nonzero selectors choose A rows 1..4 or B rows 1..2 for resourceVariant
+/// 1..4; frame indices must reach a NULL entry before signed-byte wrap.
+/// Delays count actor ticks and reload to four/eight after each queued frame.
+/// Reads selectors, delays and frame indices as s8 despite their byte storage.
+/// Requires live actor/model, writable loaded upload lists and scratch space
+/// for one RECT. Pixels remain live until their queued GPU transfers finish.
+static void _playerActorTickTextureSequences(Task* task)
+{
+    enum {
+        PLAYER_ACTOR_TEXTURE_VARIANT_COUNT = 4,
+        PLAYER_ACTOR_TEXTURE_INDEX_BIAS    = PLAYER_ACTOR_TEXTURE_VARIANT_COUNT + 1,
+        PLAYER_ACTOR_TEXTURE_SEQUENCE_OFF  = 0,
+        PLAYER_ACTOR_TEXTURE_A_DELAY_TICKS = 4,
+        PLAYER_ACTOR_TEXTURE_B_DELAY_TICKS = 8,
+        PLAYER_ACTOR_TEXTURE_A_X           = 0,
+        PLAYER_ACTOR_TEXTURE_A_Y           = 78,
+        PLAYER_ACTOR_TEXTURE_A_WIDTH_WORDS = 25,
+        PLAYER_ACTOR_TEXTURE_A_HEIGHT_ROWS = 16,
+        PLAYER_ACTOR_TEXTURE_B_X           = 12,
+        PLAYER_ACTOR_TEXTURE_B_Y           = 104,
+        PLAYER_ACTOR_TEXTURE_B_WIDTH_WORDS = 14,
+        PLAYER_ACTOR_TEXTURE_B_HEIGHT_ROWS = 20,
+    };
+    RECT*           textureRect;
     GameActor*      actor;
-    GpuImageUpload* uploadList;
+    GpuImageUpload* frameUploads;
 
-    actor = arg0->work;
-    rect  = SCRATCH_STACK_RESERVE_BLOCK(RECT);
+    actor       = task->work;
+    textureRect = SCRATCH_STACK_RESERVE_BLOCK(RECT);
 
-    if ((s8)actor->textureSequenceA != 0) {
+    // Each channel stops at its own terminator without changing the other.
+    if ((s8)actor->textureSequenceA != PLAYER_ACTOR_TEXTURE_SEQUENCE_OFF) {
         actor->textureDelayA--;
         if ((s8)actor->textureDelayA <= 0) {
-            uploadList = D_80112E74[(s8)actor->textureSequenceA * 4 + (gPlayerStatus.resourceVariant - 5)][(s8)actor->textureFrameA];
-            if (uploadList != NULL) {
-                rect->x = 0;
-                rect->y = 0x4E;
-                rect->w = 0x19;
-                rect->h = 0x10;
-                actorRenderUploadTexture(arg0, uploadList, rect);
-                actor->textureDelayA = 4;
+            frameUploads = D_80112E74[(s8)actor->textureSequenceA * PLAYER_ACTOR_TEXTURE_VARIANT_COUNT + (gPlayerStatus.resourceVariant - PLAYER_ACTOR_TEXTURE_INDEX_BIAS)][(s8)actor->textureFrameA];
+            if (frameUploads != NULL) {
+                _playerActorUploadTextureFrame(task, frameUploads, textureRect, PLAYER_ACTOR_TEXTURE_A_X, PLAYER_ACTOR_TEXTURE_A_Y,
+                                               PLAYER_ACTOR_TEXTURE_A_WIDTH_WORDS, PLAYER_ACTOR_TEXTURE_A_HEIGHT_ROWS);
+                actor->textureDelayA = PLAYER_ACTOR_TEXTURE_A_DELAY_TICKS;
                 actor->textureFrameA++;
             } else {
-                actor->textureSequenceA = 0;
+                actor->textureSequenceA = PLAYER_ACTOR_TEXTURE_SEQUENCE_OFF;
             }
         }
     }
 
-    if ((s8)actor->textureSequenceB != 0) {
+    if ((s8)actor->textureSequenceB != PLAYER_ACTOR_TEXTURE_SEQUENCE_OFF) {
         actor->textureDelayB--;
         if ((s8)actor->textureDelayB <= 0) {
-            uploadList = D_80112EB4[(s8)actor->textureSequenceB * 4 + (gPlayerStatus.resourceVariant - 5)][(s8)actor->textureFrameB];
-            if (uploadList != NULL) {
-                rect->x = 0xC;
-                rect->y = 0x68;
-                rect->w = 0xE;
-                rect->h = 0x14;
-                actorRenderUploadTexture(arg0, uploadList, rect);
-                actor->textureDelayB = 8;
+            frameUploads = D_80112EB4[(s8)actor->textureSequenceB * PLAYER_ACTOR_TEXTURE_VARIANT_COUNT + (gPlayerStatus.resourceVariant - PLAYER_ACTOR_TEXTURE_INDEX_BIAS)][(s8)actor->textureFrameB];
+            if (frameUploads != NULL) {
+                _playerActorUploadTextureFrame(task, frameUploads, textureRect, PLAYER_ACTOR_TEXTURE_B_X, PLAYER_ACTOR_TEXTURE_B_Y,
+                                               PLAYER_ACTOR_TEXTURE_B_WIDTH_WORDS, PLAYER_ACTOR_TEXTURE_B_HEIGHT_ROWS);
+                actor->textureDelayB = PLAYER_ACTOR_TEXTURE_B_DELAY_TICKS;
                 actor->textureFrameB++;
             } else {
-                actor->textureSequenceB = 0;
+                actor->textureSequenceB = PLAYER_ACTOR_TEXTURE_SEQUENCE_OFF;
             }
         }
     }
@@ -5991,16 +6064,22 @@ static void Gp_CaptureActorPad(Task* arg0)
     actor->runButtonHeld         = (actor->padHeld >> 6) & flag;
 }
 
-static void Gp_BindActorAnim(Task* arg0)
+/// Binds the character's equipped-weapon bank to the player's animation context.
+///
+/// characterId must be 1 or 2 and its base plus weapon must select a non-NULL
+/// loaded bank in entries 0..33. Borrows that bank and the live model, slots
+/// and word-aligned pose buffer for subsequent playback. Does not start a clip
+/// or reset slots; their active extent must meet `animationInitContext`'s contract.
+static void _animationBindPlayerWeaponBank(Task* task)
 {
     GameActor* actor;
-    TmdObject* extra;
+    TmdObject* model;
 
-    actor                     = arg0->work;
-    extra                     = arg0->extra.tmd;
+    actor                     = task->work;
+    model                     = task->extra.tmd;
     actor->animationBankIndex = Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon;
     actor->animationSets      = Gp_PlayerAnimBlkTbl[actor->animationBankIndex]->table.sets;
-    animationInitContext(&actor->animationContext, actor->animationSets, extra, actor->poseBuffer,
+    animationInitContext(&actor->animationContext, actor->animationSets, model, actor->poseBuffer,
                          actor->animationSlots);
 }
 
@@ -6631,19 +6710,27 @@ s32 playerActorEndScripted(Task* task, s32 unusedMessageId, s32 resumeMode, s32 
 }
 #undef PLAYER_ACTOR_BAKE_PART1_OFFSET
 
-static void func_80104A4C(Task* arg0)
+/// Captures a new logical interaction press while the player is in locomotion or aim.
+///
+/// Clears the live status latch on every tick, including other modes/states.
+/// Requires live GameActor work with layout-remapped `padPressed` for this tick.
+static void _playerActorCaptureInteractionPress(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_INTERACTION_LOCOMOTION_STATE = 0,
+        PLAYER_ACTOR_INTERACTION_AIM_STATE        = 2,
+    };
     GameActor*    actor;
-    PlayerStatus* p;
+    PlayerStatus* playerStatus;
 
-    actor                 = arg0->work;
-    p                     = &gPlayerStatus;
-    p->interactionPressed = 0;
+    actor                            = task->work;
+    playerStatus                     = &gPlayerStatus;
+    playerStatus->interactionPressed = 0;
     if (actor->mode != GAME_ACTOR_MODE_SCRIPTED) {
         if (actor->mode == GAME_ACTOR_MODE_NORMAL) {
-            if (actor->state == 0 || actor->state == 2) {
-                if (actor->padPressed & 0x20) {
-                    p->interactionPressed = 1;
+            if (actor->state == PLAYER_ACTOR_INTERACTION_LOCOMOTION_STATE || actor->state == PLAYER_ACTOR_INTERACTION_AIM_STATE) {
+                if (actor->padPressed & PAD_BUTTON_CIRCLE) {
+                    playerStatus->interactionPressed = 1;
                 }
             }
         }
@@ -7149,26 +7236,33 @@ s32 playerActorSetAnimationRate(Task* task, s32 unusedMessageId, s32 rate, s32 u
     return 0;
 }
 
-s32 Gp_CopyPlayerAnim(Task* arg0, s32 arg1, const AnimationBankCopyRequest* request, s32 unusedSecondArg)
+/// Copies raw words into the equipped player bank's extension without starting playback.
+///
+/// characterId must be 1 or 2; its base plus weapon must select a non-NULL
+/// loaded, writable bank in entries 0..33. Counts above 32 return 1 without
+/// copying; nonpositive counts copy nothing and return 0. Accepted positive
+/// counts overwrite words 47 onward and return 0. The borrowed request and
+/// readable word-aligned source must remain valid through this call; the count
+/// is reread each iteration and must remain within the checked capacity.
+/// Copied clip pointers remain borrowed for playback; raw extension words may
+/// include other payloads. Receiver, message ID and second payload are unused.
+static s32 _animationCopyPlayerBankExtension(Task* unusedTask, s32 unusedMessageId, const AnimationBankCopyRequest* request, s32 unusedSecondArg)
 {
-    union {
-        AnimationBank* block;
-        s32*           words;
-    } dest;
-    const s32* src;
-    s32        i;
-    s32        count;
+    s32*       destinationWords;
+    const s32* sourceWords;
+    s32        wordIndex;
+    s32        wordCount;
 
-    dest.block = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon];
-    src        = request->source.words;
-    count      = request->wordCount;
-    if (count >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
+    destinationWords = Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.characterId - 1] + gPlayerStatus.weapon]->table.words;
+    sourceWords      = request->source.words;
+    wordCount        = request->wordCount;
+    if (wordCount >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
         return 1;
     }
     // Transfer raw words: the span can include records after the clip pointers.
-    dest.words = &dest.block->table.words[ANIMATION_BANK_BASE_SET_COUNT];
-    for (i = 0; i < request->wordCount; i++) {
-        dest.words[i] = src[i];
+    destinationWords = &destinationWords[ANIMATION_BANK_BASE_SET_COUNT];
+    for (wordIndex = 0; wordIndex < request->wordCount; wordIndex++) {
+        destinationWords[wordIndex] = sourceWords[wordIndex];
     }
     return 0;
 }
@@ -7455,7 +7549,7 @@ s8 playerActorReadAttackButton(Task* task)
 }
 
 /// Per-weapon handlers, indexed by `PlayerStatus::weapon` and copied by
-/// `func_8010615C`. Most live in the weapon overlay loaded at the time;
+/// `_playerActorDispatchWeaponAttack`. Most live in the weapon overlay loaded at the time;
 /// `_playerActorNoWeaponAttack` serves the weapons with none.
 static const _PlayerActorWeaponAttacks D_800978BC = { {
     _playerActorNoWeaponAttack,
@@ -7493,16 +7587,25 @@ static const _PlayerActorWeaponAttacks D_800978BC = { {
     func_mp5a5_p2_8011DDA4,
 } };
 
-static void func_8010615C(Task* arg0)
+/// Runs the equipped weapon's attack handler, both on entry and on subsequent attack ticks.
+///
+/// Requires live GameActor work, a weapon index in 0..32 and that weapon's
+/// overlay loaded. Stops forward/backward movement and installs the logical
+/// buttons allowed to interrupt a completed attack after its cancel delay.
+static void _playerActorDispatchWeaponAttack(Task* task)
 {
+    enum {
+        PLAYER_ACTOR_ATTACK_CANCEL_BUTTONS = PAD_BUTTON_UP | PAD_BUTTON_RIGHT | PAD_BUTTON_DOWN | PAD_BUTTON_LEFT |
+                                             PAD_BUTTON_START | PAD_BUTTON_SQUARE | PAD_BUTTON_TRIANGLE | PAD_BUTTON_R1 | PAD_BUTTON_R2,
+    };
     GameActor*                actor;
     _PlayerActorWeaponAttacks weaponAttacks;
 
     weaponAttacks        = D_800978BC;
-    actor                = arg0->work;
-    actor->actionPadMask = 0xF89A;
+    actor                = task->work;
+    actor->actionPadMask = PLAYER_ACTOR_ATTACK_CANCEL_BUTTONS;
     actor->movementSign  = 0;
-    weaponAttacks.attacks[gPlayerStatus.weapon](arg0);
+    weaponAttacks.attacks[gPlayerStatus.weapon](task);
 }
 
 void playerActorUpdateWeaponCollisionKey(void)
@@ -7551,7 +7654,7 @@ static s32 func_801062DC(Task* arg0, s32 arg1)
     item = gPlayerStatus.weapon;
     flag = arg1 != 1;
     if (equipmentCanReloadSelectedWeaponConsumable(item + 0x7F, flag) == 1) {
-        func_801088D4(arg0, flag, ret);
+        playerActorEnterReload(arg0, flag, ret);
         ret = 1;
     }
     return ret;
@@ -7882,14 +7985,14 @@ static void Gp_PlayerNormalState2(Task* arg0)
                 if (gPlayerStatus.hp > 0) {
                     actor->aimControl = GAME_ACTOR_AIM_REQUEST_ENTER;
                     actor->statePhase = 0;
-                    func_8010615C(arg0);
+                    _playerActorDispatchWeaponAttack(arg0);
                 }
             } else if (res == 0) {
                 pad = actor->padPressed;
                 if ((s8)item == 1 ? (pad & 8) : (pad & 2)) {
                     actor->attackControl.cooldownTicks = 0xA;
                     if (func_801062DC(arg0, dir) == 0) {
-                        func_801095BC(&variant);
+                        _playerActorWriteWeaponSoundVariant(&variant);
                         base = gPlayerStatus.weapon << 16;
                         val  = variant | 0x20000001;
                         worldCoordPlaySound(arg0->extra.tmd->coords, base | val, 0);
@@ -7923,7 +8026,7 @@ static void Gp_PlayerNormalState5(Task* arg0)
     coord               = actor->equipmentTasks[1]->extra.tmd->coords;
     base                = gPlayerStatus.weapon << 16;
     actor->movementSign = 0;
-    func_801095BC(&variant);
+    _playerActorWriteWeaponSoundVariant(&variant);
     if (actor->actionValue != 2 && (actor->padPressed & 0x40) && actor->statePhase != 0x64) {
         actor->reloadEffectSuppressed = 1;
         inner                         = arg0->work;
@@ -8601,9 +8704,9 @@ static void Gp_PlayerMode2StateA(Task* arg0)
                  D_80112F1C[gPlayerStatus.weapon][(u8)(item - 1)] != 0)) {
                 actor->aimControl = GAME_ACTOR_AIM_REQUEST_SCRIPTED;
                 actor->statePhase = 0;
-                func_8010615C(arg0);
+                _playerActorDispatchWeaponAttack(arg0);
             } else if (res == 0) {
-                func_801095BC(&variant);
+                _playerActorWriteWeaponSoundVariant(&variant);
                 actor->attackControl.cooldownTicks = 0x14;
                 base                               = gPlayerStatus.weapon << 16;
                 val                                = variant | 0x20000001;
@@ -8682,7 +8785,7 @@ static void Gp_TickPlayerActor(Task* arg0)
 
     sp    = Gp_PlayerModeFns;
     inner = arg0->work;
-    func_80104A4C(arg0);
+    _playerActorCaptureInteractionPress(arg0);
     if (inner->attackControl.cooldownTicks > 0) {
         inner->attackControl.cooldownTicks--;
     }
@@ -8692,7 +8795,7 @@ static void Gp_TickPlayerActor(Task* arg0)
     inner->usesPushbackDirection = 0;
     sp.funcs[inner->mode](arg0);
     _playerActorUpdateTurnYawOffset(arg0);
-    func_801030CC(arg0);
+    _playerActorTickTextureSequences(arg0);
 }
 
 static void Gp_ArmLockOnState(Task* arg0)
@@ -8939,42 +9042,53 @@ void playerActorExitAim(Task* task)
     playerActorClearLockTarget(task);
 }
 
-void func_801088D4(Task* arg0, s32 arg1, s32 arg2)
+void playerActorEnterReload(Task* task, s32 loadSelection, s32 reloadSource)
 {
-    GameActor* inner;
-    s32        mode;
+    enum {
+        PLAYER_ACTOR_RELOAD_STATE                    = 5,
+        PLAYER_ACTOR_RELOAD_RETURN_TO_AIM_CONTROLLER = 5,
+        PLAYER_ACTOR_RELOAD_FINISH_CONTROLLER        = 10,
+        PLAYER_ACTOR_RELOAD_SET_PRIMARY              = 14,
+        PLAYER_ACTOR_RELOAD_SET_BATTLE_END           = 20,
+        PLAYER_ACTOR_RELOAD_BLEND_FRAMES             = 3,
+        PLAYER_ACTOR_RELOAD_PHASE_COMPLETE           = 1000,
+    };
+    GameActor* actor;
+    s32        setIndex;
 
-    inner = arg0->work;
-    if (arg2 == 2) {
-        if (playerActorQueryWeaponLoads(arg1) != 0) {
+    actor = task->work;
+    if (reloadSource == PLAYER_ACTOR_RELOAD_BATTLE_END) {
+        if (playerActorQueryWeaponLoads(loadSelection) != 0) {
             if (D_80112F1C[gPlayerStatus.weapon][0] == 0) {
-                inner->statePhase = 0x3E8;
+                actor->statePhase = PLAYER_ACTOR_RELOAD_PHASE_COMPLETE;
                 return;
             }
         }
-        inner->animationState = 0xA;
-        mode                  = 0x14;
+        actor->animationState = PLAYER_ACTOR_RELOAD_FINISH_CONTROLLER;
+        setIndex              = PLAYER_ACTOR_RELOAD_SET_BATTLE_END;
         if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.companionType == 1) {
             actor800100EnterReload(gameGetTaskSlot(GAME_TASK_SLOT_COMPANION), 0);
         }
     } else {
-        if (arg2 == 1) {
-            if (inner->mode == GAME_ACTOR_MODE_SCRIPTED) {
+        if (reloadSource == PLAYER_ACTOR_RELOAD_MENU) {
+            if (actor->mode == GAME_ACTOR_MODE_SCRIPTED) {
                 return;
             }
         }
-        inner->animationState = 5;
-        mode                  = arg1 + 0xE;
+        actor->animationState = PLAYER_ACTOR_RELOAD_RETURN_TO_AIM_CONTROLLER;
+        setIndex              = loadSelection + PLAYER_ACTOR_RELOAD_SET_PRIMARY;
     }
-    inner->state         = 5;
-    inner->mode          = GAME_ACTOR_MODE_NORMAL;
-    inner->movementMode  = 0;
-    inner->turnRateIndex = 0;
-    inner->statePhase    = 0;
-    inner->stateAux      = arg1;
-    inner->actionValue   = arg2;
-    playerActorResetWeaponAttack(arg0, gPlayerStatus.weapon, 0);
-    playerActorPlayChildSlotsWithBlend(arg0, mode, 0, 3);
+
+    // State 5 applies the selected load when its weapon-specific cue completes.
+    actor->state         = PLAYER_ACTOR_RELOAD_STATE;
+    actor->mode          = GAME_ACTOR_MODE_NORMAL;
+    actor->movementMode  = 0;
+    actor->turnRateIndex = 0;
+    actor->statePhase    = 0;
+    actor->stateAux      = loadSelection;
+    actor->actionValue   = reloadSource;
+    playerActorResetWeaponAttack(task, gPlayerStatus.weapon, 0);
+    playerActorPlayChildSlotsWithBlend(task, setIndex, 0, PLAYER_ACTOR_RELOAD_BLEND_FRAMES);
 }
 
 static void func_80108A0C(Task* arg0)
@@ -9210,7 +9324,7 @@ static void Gp_TickPlayerMode2(Task* arg0)
     sp.funcs[inner->state](arg0);
     playerActorUpdateFacing(arg0);
     if (gPlayerStatus.hp <= 0 && inner->state != 0xA) {
-        Gp_BindActorAnim(arg0);
+        _animationBindPlayerWeaponBank(arg0);
         playerActorEnterStoppedPose(arg0, 4);
     }
 }
@@ -9269,7 +9383,7 @@ static void func_801090E8(Task* arg0)
 
 static void func_80109138(Task* arg0)
 {
-    func_8010615C(arg0);
+    _playerActorDispatchWeaponAttack(arg0);
     func_801041FC(arg0, 0);
     _playerActorUpdateLockTargetFromPad(arg0);
 }
@@ -9471,27 +9585,42 @@ static void Gp_PlayerMode2State5(Task* arg0)
     playerActorTickChildSlots(arg0);
 }
 
-static void func_801095BC(s32* arg0)
+/// Writes the equipped ammunition's sound-script variant in bits 24..31.
+///
+/// Overwrites one writable s32; the caller adds the weapon and event bits.
+/// Grenade/shotgun rows 10..15 cycle through variants 0..2; other rows yield
+/// zero. M4A1 Grenade instead uses its secondary item relative to row 10,
+/// clamping an absent item to zero. Requires live equipment/save state; no
+/// pointer is retained. The high-byte shift preserves the signed s32 result.
+static void _playerActorWriteWeaponSoundVariant(s32* variantBitsOut)
 {
-    PlayerStatus*          p;
-    volatile PlayerStatus* vp;
+    enum {
+        PLAYER_ACTOR_SOUND_M4A1_GRENADE_WEAPON = 27,
+        PLAYER_ACTOR_SOUND_SPECIAL_AMMO_FIRST  = 10,
+        PLAYER_ACTOR_SOUND_SPECIAL_AMMO_COUNT  = 6,
+        PLAYER_ACTOR_SOUND_VARIANTS_PER_GROUP  = 3,
+        PLAYER_ACTOR_SOUND_VARIANT_SHIFT       = 24,
+    };
+    PlayerStatus*          playerStatus;
+    volatile PlayerStatus* livePlayerStatus;
 
-    p = &gPlayerStatus;
-    if (p->weapon == 0x1B) {
-        *arg0 = equipmentGetWeaponLoad(p->weapon + 0x7F)->secondaryItemId - 0x9F;
-        if (*arg0 < 0) {
-            *arg0 = 0xA;
+    playerStatus = &gPlayerStatus;
+    if (playerStatus->weapon == PLAYER_ACTOR_SOUND_M4A1_GRENADE_WEAPON) {
+        *variantBitsOut = equipmentGetWeaponLoad(playerStatus->weapon + (EQUIPMENT_WEAPON_ITEM_FIRST - 1))->secondaryItemId - (INVENTORY_CONSUMABLE_ITEM_FIRST - 1);
+        if (*variantBitsOut < 0) {
+            *variantBitsOut = PLAYER_ACTOR_SOUND_SPECIAL_AMMO_FIRST;
         }
-        *arg0 = (*arg0 - 0xA) << 24;
+        *variantBitsOut = (*variantBitsOut - PLAYER_ACTOR_SOUND_SPECIAL_AMMO_FIRST) << PLAYER_ACTOR_SOUND_VARIANT_SHIFT;
     } else {
-        vp = p;
-        if ((u32)(vp->weaponSlotItem - 0xA) < 6U) {
-            *arg0 = ((vp->weaponSlotItem - 1) % 3) << 24;
-            if (*arg0 < 0) {
-                *arg0 = 0;
+        // Keep the binary's separate byte reads for the range test and variant.
+        livePlayerStatus = playerStatus;
+        if ((u32)(livePlayerStatus->weaponSlotItem - PLAYER_ACTOR_SOUND_SPECIAL_AMMO_FIRST) < PLAYER_ACTOR_SOUND_SPECIAL_AMMO_COUNT) {
+            *variantBitsOut = ((livePlayerStatus->weaponSlotItem - 1) % PLAYER_ACTOR_SOUND_VARIANTS_PER_GROUP) << PLAYER_ACTOR_SOUND_VARIANT_SHIFT;
+            if (*variantBitsOut < 0) {
+                *variantBitsOut = 0;
             }
         } else {
-            *arg0 = 0;
+            *variantBitsOut = 0;
         }
     }
 }

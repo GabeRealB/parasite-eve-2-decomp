@@ -8192,19 +8192,19 @@ through that. The qualifier forces both `lbu`s and leaves `p` in `$a0`:
 ```c
 } else {
     vp = p;
-    if ((u32)(vp->field_22 - 0xA) < 6U) {
-        *arg0 = ((vp->field_22 - 1) % 3) << 24;
-        if (*arg0 < 0) {
-            *arg0 = 0;
+    if ((u32)(vp->weaponSlotItem - 0xA) < 6U) {
+        *variantBitsOut = ((vp->weaponSlotItem - 1) % 3) << 24;
+        if (*variantBitsOut < 0) {
+            *variantBitsOut = 0;
         }
     } else {
-        *arg0 = 0;
+        *variantBitsOut = 0;
     }
 }
 ```
 
 A second non-volatile pointer (`q = &Global` in the else) is still CSE'd.
-`func_801095BC` is the example. The plain `p->field_22` pair stuck at 97.8%
+`_playerActorWriteWeaponSoundVariant` is the example. The plain `p->weaponSlotItem` pair stuck at 97.8%
 with only that reload missing.
 
 ## Write the `== 0` early-return first so a sibling `== K` beq's back to it
@@ -26656,7 +26656,7 @@ p->field = table16[i] + addend;
 p->ptr   = table32[p->field];
 ```
 
-`Gp_BindActorAnim` is the example (`Gp_PlayerAnimBlkTbl[actor->animationBankIndex]`).
+`_animationBindPlayerWeaponBank` is the example (`Gp_PlayerAnimBlkTbl[actor->animationBankIndex]`).
 
 ## Empty `while (x == K) p++` inverts; `while (1)` + `!=` break does not
 
@@ -27824,22 +27824,23 @@ remap. Indexed stores keep `src` as a base, so count takes `$a1` and
 src takes `$a3`:
 
 ```c
-src   = request->source.words;
-count = request->wordCount;
-if (count >= 0x21) {
+destinationWords = table[bankIndex]->table.words;
+sourceWords      = request->source.words;
+wordCount        = request->wordCount;
+if (wordCount >= ANIMATION_BANK_EXTENSION_CAPACITY + 1) {
     return 1;
 }
-dest = &((AnimationBank*)dest)->table.words[ANIMATION_BANK_BASE_SET_COUNT];
-for (i = 0; i < request->wordCount; i++) {
-    dest[i] = src[i];
+destinationWords = &destinationWords[ANIMATION_BANK_BASE_SET_COUNT];
+for (wordIndex = 0; wordIndex < request->wordCount; wordIndex++) {
+    destinationWords[wordIndex] = sourceWords[wordIndex];
 }
 ```
 
 Assign dest from the table as `s32*` (not the bank struct). An
-`AnimationBank* dest = table[i]` load goes to `$v1`; `(s32*)table[i]` reuses
+`AnimationBank* dest = table[i]` load goes to `$v1`; `table[i]->table.words` reuses
 `$a0` so `dest += 0xBC` is `addiu a0, a0, 0xBC`.
 
-`Gp_CopyPlayerAnim` is the example. The increment form stuck at 93.8%
+`_animationCopyPlayerBankExtension` is the example. The increment form stuck at 93.8%
 with only those two loads (and the two `move`s) swapped.
 
 ## Share `i = x - 1` and hoist one array so both tables use `lw 0`
@@ -33542,7 +33543,7 @@ tie too, which is what `$v0`/`$a0` pins once compensated for.
 The same function's scratch block (`addiu v1,head,-8; sw v1; move s1,v1`) is
 `rect = SCRATCH_STACK_RESERVE_BLOCK(RECT)`, released with `SCRATCH_STACK_RELEASE_BLOCK(RECT)`: the pushed
 value and the local are two pseudos, which a hand-kept `head` / `temp` pair
-only imitated. `func_801030CC` is the example.
+only imitated. `_playerActorTickTextureSequences` is the example.
 
 ## Unpack RGB555 through stored `u16` g/b so reloads are `lhu` / `srl`
 
@@ -38715,7 +38716,7 @@ second, which puts the index and the base in the opposite registers from the
 target:
 
 ```c
-prim->clut = ((((GpEffClutOff*)&D_80112964[arg3])->field_8 >> 4) & 0x3F) | 0x4280;
+quad->clut = getClut(D_80112964[2][palette], 266);
 /* andi v1,a3,0xffff ; lui v0,%hi ; addiu v0 ; sll v1,1 ; addu v1,v1,v0 ; lhu v0,8(v1) */
 ```
 
@@ -38726,12 +38727,12 @@ local restores that shape, because the pointer becomes its own pseudo that is bo
 before the index expression:
 
 ```c
-u16* clutTbl = D_80112964;
-prim->clut = ((((GpEffClutOff*)&clutTbl[arg3])->field_8 >> 4) & 0x3F) | 0x4280;
+u16 (*clutTbl)[2] = D_80112964;
+quad->clut = getClut(clutTbl[2][palette], 266);
 /* lui v1,%hi ; addiu v1 ; andi v0,a3,0xffff ; sll v0,1 ; addu v0,v0,v1 ; lhu v0,8(v0) */
 ```
 
-In `Gp_DrawEffQuadT29` this alone moved 95% → 98.6%; no register pin was needed.
+In `_effectDrawAnimatedGroundQuad` this alone moved 95% → 98.6%; no register pin was needed.
 
 ## Two hops for a shared literal: assign it early, copy it at the use site
 
@@ -38761,7 +38762,7 @@ Collapsing the two into a single `texV = 0xB8;` at either position loses ~1.4%.
 The extra `"memory"` fence after the `gGpuPrimCursor` bump is what decides *where* in
 the following group the `li` lands: without it the `li` fell into the `bltz` delay
 slot, and with the fence placed after `prim = gGpuPrimCursor` (rather than after the
-pointer bump) it landed one instruction early. `Gp_DrawEffQuadT29` needed the exact
+pointer bump) it landed one instruction early. `_effectDrawAnimatedGroundQuad` needed the exact
 combination above for 100%.
 
 ## `sll aN, aN, 0x10; bltz` on an argument means the parameter really is `s16`
@@ -41951,7 +41952,7 @@ worldCoordPlaySound(arg0->extra->coords, base | val, 0);
 `val`-then-`base` scores 98.2% with the two `or` sources swapped; `val |=
 base` folds the two ORs into one accumulator (99.9%). Note also that
 `variant |= K` on a stack local whose address was passed to
-`func_801095BC(&variant)` forces a write-back (`sw v0, 0x10(sp)`) — use a
+`_playerActorWriteWeaponSoundVariant(&variant)` forces a write-back (`sw v0, 0x10(sp)`) — use a
 second local instead of compound-assigning the address-taken one.
 
 ## A symbol rename must touch the sym map, the imports files and the yaml too
@@ -54339,7 +54340,7 @@ the compare's `lh` before the branch.
 ## An explicit `p++` is ordered *ahead* of a loop-generated giv increment
 
 `func_acropolis_roof_garden_8017F560` fills a four-corner scratch quad from the
-unit table `D_80111E38`, and its matched gameplay sibling `Gp_DrawEffQuadT29`
+unit table `D_80111E38`, and its matched gameplay sibling `_effectDrawAnimatedGroundQuad`
 writes the table read as a walking pointer:
 
 ```c
@@ -57265,7 +57266,7 @@ _pykeFlameDrawSplash(MATRIX_TRANS(&groundCoord.workm), (s16)((work->scale * 2) /
 
 The cast is the same conversion the prototype used to perform, so the caller is
 unchanged, and the callee now uses `$a1` raw. The matched gameplay sibling
-`Gp_DrawEffQuadT29` has the same loop with an `s32` parameter, which is the
+`_effectDrawAnimatedGroundQuad` has the same loop with an `s32` parameter, which is the
 tell: when a sibling body matches with `s32` and yours only differs by the two
 extension instructions, move the truncation outwards rather than casting inside.
 
@@ -110493,7 +110494,7 @@ Input: `base_11.i`
 ## A constant's source position hoists it into the call block (func_actor_800100_80163A58, 2026-09-16)
 
 `func_actor_800100_80163A58` is the actor's texture-upload state, the same shape
-as the gameplay twin `func_801030CC`: two countdown sequences, each posting its
+as the gameplay twin `_playerActorTickTextureSequences`: two countdown sequences, each posting its
 image over an 8-byte scratch `RECT`. The natural C reached 97.885% with
 `regs=4 insert=1 delete=1` and exactly one instruction out of place: `li s0,8`,
 the constant shared by `rect->x = 8` and the post-call `textureDelayB = 8`, came out
@@ -143191,7 +143192,7 @@ the code after the walks. Two natural rewrites lose that shape:
 **Fix.** Write each walk as `for (;;) { ...; slot++; }` and `goto` one label
 after all of them on both hit and miss. jump2 then cross-jumps the identical
 hit tails exactly as the target does.
-## A cast overlay reading `field_N` from `&tbl[idx]` is a row of a 2-D array (Gp_DrawEffQuadT29, 2026-09-26)
+## A cast overlay reading `field_N` from `&tbl[idx]` is a row of a 2-D array (_effectDrawAnimatedGroundQuad, 2026-09-26)
 
 Symptom: a table load is `lhu 8(base + idx * 2)`, and the tree reached it with
 a struct cast over `&tbl[idx]` (`((Overlay*)&tbl[idx])->field_8`). The natural
@@ -153711,7 +153712,7 @@ The 37 `_...AnimationBankExtensionStorage` unions pair a `data` struct
 AnimationBankCopyRequest D_x = { { .words = D_storage.words }, ANIMATION_BANK_EXTENSION_CAPACITY };
 ```
 
-and `Gp_CopyPlayerAnim` / `animationCopyCompanionBankExtension` then read `wordCount` words through
+and `_animationCopyPlayerBankExtension` / `animationCopyCompanionBankExtension` then read `wordCount` words through
 that pointer. `N` is below the count in every case, so the same request written
 as `{ .sets = D_storage.sets }` over a struct would link to the same bytes but
 read past `sets[N]` through a pointer derived from that array - the overrun the

@@ -118,7 +118,7 @@ extern UiObjectDesc D_8010F8B4;
 
 /// Signed pending item id consumed by `Gp_FlushPendingRelated`. `Gp_ApplyItemUse`
 /// stores the id for the primary consumable pair, its negation for the secondary pair.
-/// `Gp_MenuExitCallback` also consumes it (with `Gp_RelatedPending`) via `func_801088D4`.
+/// `Gp_MenuExitCallback` also consumes it (with `Gp_RelatedPending`) via `playerActorEnterReload`.
 extern s32 Gp_PendingRelatedId;
 
 /// Non-zero when `Gp_PendingRelatedId` should be applied by `Gp_MenuExitCallback`.

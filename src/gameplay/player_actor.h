@@ -77,7 +77,24 @@ void Gp_EffCtlTaskE3(Task* arg0);
 
 void func_800FF710(Task* arg0);
 
-void func_801088D4(Task* arg0, s32 arg1, s32 arg2);
+/// Sources of a player reload animation; state 5 retains this value until completion.
+enum {
+    PLAYER_ACTOR_RELOAD_AUTOMATIC  = 0,
+    PLAYER_ACTOR_RELOAD_MENU       = 1,
+    PLAYER_ACTOR_RELOAD_BATTLE_END = 2,
+};
+
+/// Enters the player's reload animation for an automatic, menu or battle-end request.
+///
+/// loadSelection is 0 for primary or 1 for secondary. Automatic requests refill
+/// the selected load; menu requests apply the pending consumable and are ignored
+/// during scripted control. Battle-end callers pass 0, play clip 20 and request
+/// the corresponding companion-family-1 action. Other requests play clip 14/15;
+/// all blend for three normal-rate frames and reset weapon attack effects.
+/// Requires live actor/native animation resources, a weapon index in 0..32 and
+/// live equipment/session state; family 1 additionally requires its live task.
+/// The load selection and source narrow into stateAux and actionValue for state 5.
+void playerActorEnterReload(Task* task, s32 loadSelection, s32 reloadSource);
 
 /// Starts scripted movement to a borrowed transform's position.
 ///

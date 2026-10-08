@@ -1651,7 +1651,7 @@ void Gp_HudTask(HudState* hud)
                 }
                 w = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
                 if (w != NULL) {
-                    func_801088D4(w, 0, 2);
+                    playerActorEnterReload(w, 0, PLAYER_ACTOR_RELOAD_BATTLE_END);
                 }
                 hud->battleStep = hud->battleStep + 1;
             } else if (step == HUD_BATTLE_STEP_WAIT_END_ACTION) {
