@@ -37,7 +37,13 @@ extern WorldCollisionTrigger D_shelter_b1_armory_80184E0C[];
 
 extern WorldCollisionSurfaceProperties* D_shelter_b1_armory_80185554[];
 
-void func_shelter_b1_armory_8018078C(Task* task);
+/// Dispatches the armory controller's initialization, idle tick and teardown.
+///
+/// The Mine/Shelter area's room-task table starts it in state 0. Requires state
+/// 0..2: initialization publishes the room task and its message table, state 1
+/// waits for messages, and state 2 kills the task. The index is unchecked.
+/// Keep this overlay loaded while its controller or spawned events are live.
+void shelterB1ArmoryRoomTask(Task* task);
 
 /// Draws the armory's view-dependent beams and glows for the current frame.
 ///

@@ -141562,7 +141562,7 @@ is held by the local 9 constant, and `id` falls to `a0`. The `.lreg`
 "used N times across M insns" lines are enough to check the ranking before
 building.
 
-### `move a1,zero` ahead of a load into `a0`: the call was not the last insn of its block (func_shelter_b1_armory_80180214, 2026-09-24)
+### `move a1,zero` ahead of a load into `a0`: the call was not the last insn of its block (_shelterB1ArmoryCardkeyEventTask, 2026-09-24)
 
 **Symptom.** 98.4%, `branch=1 reorder=2`. A switch case ended
 `capStartSequenceSlot(task->spawnArg1 >> 16, 0, 0)` and then fell through into
@@ -149496,7 +149496,7 @@ attempts; left as it was.
 - **`while (node) { if (c) { found = 1; goto check; } node = node->next; }
   found = 0; check: if (found)`** is a `static inline` scan,
   `for (...) { if (c) return 1; } return 0;`, tested directly
-  (`func_shelter_b1_armory_80180468`, first try). The image's signature is
+  (`_shelterB1ArmoryUseKeyItem`, first try). The image's signature is
   `li v0,1` in the delay slot of the hit branch and `move v0,zero; beqz v0`
   left unfolded on the exhausted path (the inline's return label has two
   users, so cse does not fold the test). `found = 0; for (...) { if (c) {
