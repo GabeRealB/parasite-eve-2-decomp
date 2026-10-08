@@ -1667,27 +1667,33 @@ static __inline__ s16 _actorAngleTurnToDirection(const GfxCoord* headingCoord, c
     return _actorAngleTurnToOffset(headingCoord, direction->vx, direction->vz);
 }
 
-/// Combines a movement step with a push along the same axis: the push when
-/// there is no step, the step when the two disagree in sign, otherwise the
-/// larger in magnitude.
-static __inline__ s16 actorPickStep(s16 step, s16 push)
+/// Selects one axis of actor pushback, giving a nonzero grid correction priority.
+///
+/// Inputs and result are signed whole room-coordinate units along the same
+/// axis. Callers convert fixed-point corrections and scale object pushback
+/// before this call; wider arguments narrow to signed 16 bits on entry.
+/// A zero grid correction selects the object correction. Opposing signs keep
+/// the grid correction; otherwise the greater magnitude wins, without adding
+/// the corrections. A zero object correction leaves the grid correction intact.
+/// The full signed-halfword range is valid: selection never negates an input.
+static __inline__ s16 _actorContactSelectAxisPushback(s16 gridPushback, s16 objectPushback)
 {
-    if (step == 0) {
-        return push;
+    if (gridPushback == 0) {
+        return objectPushback;
     }
-    if ((step > 0 && push < 0) || (step < 0 && push > 0)) {
-        return step;
+    if ((gridPushback > 0 && objectPushback < 0) || (gridPushback < 0 && objectPushback > 0)) {
+        return gridPushback;
     }
-    if (step > 0) {
-        if (push < step) {
-            return step;
+    if (gridPushback > 0) {
+        if (objectPushback < gridPushback) {
+            return gridPushback;
         }
-        return push;
+        return objectPushback;
     }
-    if (push < step) {
-        return push;
+    if (objectPushback < gridPushback) {
+        return objectPushback;
     }
-    return step;
+    return gridPushback;
 }
 
 /// Whether the XZ offset `pos` reaches at least `radius`, worked in a

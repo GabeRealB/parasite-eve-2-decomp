@@ -2952,10 +2952,10 @@ static void func_actor_405800_80136388(Task* arg0)
         work->hitCooldown = 0;
     }
     if (blocked == 0) {
-        work->anchorPos.vx += actorPickStep(stepX, maxX >> 3);
-        work->anchorPos.vz += actorPickStep(stepZ, maxZ >> 3);
-        coord->coord.t[0]  += actorPickStep(stepX, (u16)maxX >> 3);
-        coord->coord.t[2]  += actorPickStep(stepZ, (u16)maxZ >> 3);
+        work->anchorPos.vx += _actorContactSelectAxisPushback(stepX, maxX >> 3);
+        work->anchorPos.vz += _actorContactSelectAxisPushback(stepZ, maxZ >> 3);
+        coord->coord.t[0]  += _actorContactSelectAxisPushback(stepX, (u16)maxX >> 3);
+        coord->coord.t[2]  += _actorContactSelectAxisPushback(stepZ, (u16)maxZ >> 3);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
 }

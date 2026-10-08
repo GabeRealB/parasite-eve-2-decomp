@@ -176,10 +176,10 @@ void madChaserApplyContacts(Task* arg0, s16 arg1)
         work->hitCooldown--;
     }
     if (blocked == 0) {
-        work->anchorPos.vx += actorPickStep(stepX, maxX >> 3);
-        work->anchorPos.vz += actorPickStep(stepZ, maxZ >> 3);
-        coord->coord.t[0]  += actorPickStep(stepX, maxX >> 3);
-        coord->coord.t[2]  += actorPickStep(stepZ, maxZ >> 3);
+        work->anchorPos.vx += _actorContactSelectAxisPushback(stepX, maxX >> 3);
+        work->anchorPos.vz += _actorContactSelectAxisPushback(stepZ, maxZ >> 3);
+        coord->coord.t[0]  += _actorContactSelectAxisPushback(stepX, maxX >> 3);
+        coord->coord.t[2]  += _actorContactSelectAxisPushback(stepZ, maxZ >> 3);
         coord->composeStamp = GRAPHICS_COORD_DIRTY;
     }
     SCRATCH_STACK_RELEASE_BYTES(8);

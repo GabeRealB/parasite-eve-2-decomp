@@ -567,6 +567,10 @@ The static inline attack-contact selector lives in the same private interface.
 It scans a caller-sized prefix through the first zero key, returning the first
 attack's packed key and copying its point without converting the coordinate
 frame or consuming the contact. Each carrier keeps its own private instance.
+The inline axis-pushback selector in `include/actors/actor.h` also belongs to
+`actorContact`, with static per-carrier instances marked `_`. It selects between
+grid and object corrections in whole room-coordinate units, retaining a nonzero
+grid correction when their signs oppose.
 
 `incinerator_blaze.h` uses the prefix `blaze`. It is the fade-to-white and
 body-fire tasks included by the incinerator room and `actor_342100`.
