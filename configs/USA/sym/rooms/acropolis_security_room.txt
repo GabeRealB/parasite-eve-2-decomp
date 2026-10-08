@@ -77,7 +77,7 @@ ActorContact_ScratchPosition = 0x801855B0; // size:0x8 defined:True
 D_acropolis_security_room_801825DC = 0x801825DC; // size:0x28 defined:True
 D_acropolis_security_room_80182604 = 0x80182604; // size:0x14 defined:True
 
-func_acropolis_security_room_801805A4 = 0x801805A4; // type:func
+acropolisSecurityRoomMonitorFeedsTask = 0x801805A4; // type:func
 
 acropolisSecurityRoomMonitorFeedTask = 0x80180E34; // type:func
 
@@ -117,3 +117,15 @@ _acropolisSecurityRoomPowerSupplyArmCursor = 0x8017fb20; // type:func
 _acropolisSecurityRoomPowerSupplyClose = 0x8017fc30; // type:func
 _acropolisSecurityRoomPowerSupplyFadeToRightUnlock = 0x8017fe6c; // type:func
 _acropolisSecurityRoomPowerSupplyWaitRightUnlock = 0x8017ff84; // type:func
+_acropolisSecurityRoomRegisterRoomMessages = 0x8017d930; // type:func
+acropolisSecurityRoomMessageTask = 0x8017d984; // type:func
+_acropolisSecurityRoomMonitorOpenPrompt = 0x8017ea5c; // type:func
+acropolisSecurityRoomMonitorTask = 0x8017ed68; // type:func
+_acropolisSecurityRoomPowerSupplyOpenPrompt = 0x8017fb54; // type:func
+_acropolisSecurityRoomPowerSupplyPreparePlayerModel = 0x8017ffd0; // type:func
+_acropolisSecurityRoomPowerSupplyFinishRightUnlock = 0x80180030; // type:func
+_acropolisSecurityRoomPowerSupplyFadeToLeftUnlock = 0x801800a4; // type:func
+_acropolisSecurityRoomPowerSupplyWaitLeftUnlock = 0x801801c4; // type:func
+_acropolisSecurityRoomPowerSupplyFinishLeftUnlock = 0x80180218; // type:func
+acropolisSecurityRoomPowerSupplyTask = 0x80180294; // type:func
+_acropolisSecurityRoomUpdatePlacedObjectVisibility = 0x80182574; // type:func

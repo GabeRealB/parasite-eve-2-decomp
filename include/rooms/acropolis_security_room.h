@@ -33,7 +33,17 @@ extern ViewCamera D_acropolis_security_room_80184D10[];
 
 extern WorldCollisionSurfaceProperties* D_acropolis_security_room_80184FA0[];
 
-void func_acropolis_security_room_801805A4(Task* task);
+/// Updates the security monitor's four feed palettes and draws their pictures or glows.
+///
+/// Effect slot 0x48 requires a coordinate body and cleared `EffectWork` in
+/// `spawnArg2.pointer`. State 0 seeds all four 256-colour CLUTs from the off
+/// palette; state 1 selects lit feeds from the two lock-release bits (0..3).
+/// In mapped view 6, `scale`, `angle`, `period` and `step` are feed 0..3's
+/// brightness weights in 1/4096 units, rising by 512 to an alternating
+/// 4096/3584 limit, or zero for an unlit feed. Other views draw active glows,
+/// except views 8 and 16. Route progress below 3 also enables the sweep line.
+/// Retains the work for subsequent frames; this callback does not release it.
+void acropolisSecurityRoomMonitorFeedsTask(Task* task);
 
 /// Draws one 128x128 security-camera picture and retires the counted effect.
 ///
@@ -62,10 +72,27 @@ void acropolisSecurityRoomFallingQuadTask(Task* task);
 /// rejected. Releases its scratch, counted work and task on every path.
 void acropolisSecurityRoomMonitorGlowTask(Task* task);
 
-void func_acropolis_security_room_8017ED68(Task* task);
+/// Runs the security monitor's camera-selection and brightness panel.
+///
+/// Starts at state 0; states 0..6 allocate panel work, arm/scan the cursor,
+/// open/handle hotspot commands, close, or scan the restricted panel.
+/// Owns its work and cursor child until the opener polls its result 0.
+/// The security-room overlay must remain loaded throughout the task's lifetime.
+void acropolisSecurityRoomMonitorTask(Task* task);
 
-void func_acropolis_security_room_80180294(Task* task);
+/// Runs the power-supply panel's lock prompts and unlock scenes.
+///
+/// Starts at state 0; states 0..5 set up and operate the panel, states 6..9
+/// release the blue-key left lock and states 10..15 the red-key right lock.
+/// Owns its work and cursor/scene children until the opener polls result 0.
+/// The security-room overlay must remain loaded throughout the task's lifetime.
+void acropolisSecurityRoomPowerSupplyTask(Task* task);
 
-void func_acropolis_security_room_8017D984(Task* task);
+/// Keeps the security room's transition, action and key-item messages available.
+///
+/// States 0..2 register the room receiver, idle and retire it. Starts at 0;
+/// the Acropolis map selects this callback for stage 1, area 6. The room
+/// overlay must remain loaded while the message task is alive.
+void acropolisSecurityRoomMessageTask(Task* task);
 
 #endif // INCLUDE_ROOMS_ACROPOLIS_SECURITY_ROOM_H

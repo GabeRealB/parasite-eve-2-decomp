@@ -54,7 +54,7 @@ D_acropolis_plaza_801988D8 = 0x801988D8; // absolute:True
 D_acropolis_plaza_80198A08 = 0x80198A08; // absolute:True
 D_acropolis_plaza_80198A68 = 0x80198A68; // absolute:True
 D_acropolis_plaza_80199F28 = 0x80199F28; // absolute:True
-func_acropolis_security_room_8017D984 = 0x8017D984; // type:func absolute:True owner=acropolis_security_room shared=rooms
+acropolisSecurityRoomMessageTask = 0x8017D984; // type:func absolute:True owner=acropolis_security_room shared=rooms
 D_acropolis_security_room_801839D0 = 0x801839D0; // absolute:True owner=acropolis_security_room shared=rooms
 D_acropolis_security_room_801839E0 = 0x801839E0; // absolute:True owner=acropolis_security_room shared=rooms
 D_acropolis_security_room_801839E4 = 0x801839E4; // absolute:True owner=acropolis_security_room shared=rooms

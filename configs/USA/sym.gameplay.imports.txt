@@ -635,7 +635,7 @@ func_acropolis_sanctuary_8017EC90 = 0x8017EC90; // type:func absolute:True owner
 
 acropolisSanctuaryFlameTask = 0x8017F4E8; // type:func absolute:True owner=acropolis_sanctuary shared=rooms
 
-func_acropolis_security_room_801805A4 = 0x801805A4; // type:func absolute:True owner=acropolis_security_room
+acropolisSecurityRoomMonitorFeedsTask = 0x801805A4; // type:func absolute:True owner=acropolis_security_room
 
 acropolisSecurityRoomMonitorFeedTask = 0x80180E34; // type:func absolute:True owner=acropolis_security_room
 

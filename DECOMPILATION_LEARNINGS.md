@@ -51835,7 +51835,7 @@ s32 cam = (s16)work->screenLevel;   /* lh                        */
 Both spellings compare identically afterwards, so the leftover `sll`/`sra` pair
 is the only signal. Widen the local before reaching for a struct-field type
 change — `_AcropolisSecurityRoomMonitorWork::screenLevel` has to stay `u16` for the `lhu` in
-`func_acropolis_security_room_8017EA5C`.
+`_acropolisSecurityRoomMonitorOpenPrompt`.
 
 ### A stack-copied dispatch table whose `.rodata` is longer than the copy
 
@@ -51876,7 +51876,7 @@ function's compiler-generated jump table in `.rodata`, so it cannot be emitted
 from the dispatcher's own position at the end of the unit. Defining it as a
 file-scope `static const` at the point the `INCLUDE_RODATA` line occupied keeps
 GCC's emission order right — the same trick `PowerSupplyMsg` uses in that file.
-`func_acropolis_security_room_8017ED68`.
+`acropolisSecurityRoomMonitorTask`.
 
 ### m2c reads the frame-table dispatch as a ten-argument call through `sp`
 
@@ -52114,37 +52114,37 @@ rather than between two of them.
 
 ## A shared base address kept in a callee-saved register means a pointer local
 
-**Problem.** `func_acropolis_security_room_801805A4` runs four `for (i = 0; i <
-0x100; i += 0x10)` loops in a row, each blending one CLUT against the same
+**Problem.** `acropolisSecurityRoomMonitorFeedsTask` runs four `for (colorIndex = 0; colorIndex <
+0x100; colorIndex += 0x10)` loops in a row, each blending one CLUT against the same
 unlit palette. Written with the arrays named directly —
-`gpuBlendRgb555ClutRow(&D_80182918[i], &D_80182718[i], 0, &D_80183118[i])` — every
+`gpuBlendRgb555ClutRow(&D_80182918[colorIndex], &D_80182718[colorIndex], 0, &D_80183118[colorIndex])` — every
 loop preheader re-materialises `&D_80182718` with its own `lui` / `addiu`
 (75.8%). The target computes it once and starts each preheader with
 `move $s2, $s4`.
 
-**Cause.** With a bare `&D_80182718[i]` the address is a constant *inside* the
+**Cause.** With a bare `&D_80182718[colorIndex]` the address is a constant *inside* the
 address expression, so strength reduction initialises the giv from the constant
 itself and there is no invariant pseudo left to share; each loop gets its own
 `lui`/`addiu`. Give the base a pointer local and the giv is initialised from a
 register instead. That register is never incremented, so it survives all four
 loops and `cse` after loop prefers copying it (one insn) over rebuilding the
-symbol (two). The per-loop `pal` / `out` locals, by contrast, are dead after
+symbol (two). The per-loop `litPalette` / `blendedPalette` locals, by contrast, are dead after
 their single use in the *same* extended basic block, so their copies collapse
 back into inline `lui`/`addiu` — which is why only the shared base shows a
 `move`.
 
 ```c
-u16* base = D_acropolis_security_room_80182718;
-u16* pal  = D_acropolis_security_room_80182918;
-u16* out  = D_acropolis_security_room_80183118;
+u16* offPalette     = D_acropolis_security_room_80182718;
+u16* litPalette     = D_acropolis_security_room_80182918;
+u16* blendedPalette = D_acropolis_security_room_80183118;
 
-for (i = 0; i < 0x100; i += 0x10) {
-    gpuBlendRgb555ClutRow(&pal[i], &base[i], 0, &out[i]);
+for (colorIndex = 0; colorIndex < 0x100; colorIndex += 0x10) {
+    gpuBlendRgb555ClutRow(&litPalette[colorIndex], &offPalette[colorIndex], 0, &blendedPalette[colorIndex]);
 }
-pal = D_acropolis_security_room_80182B18;
-out = D_acropolis_security_room_80183318;
-for (i = 0; i < 0x100; i += 0x10) {
-    gpuBlendRgb555ClutRow(&pal[i], &base[i], 0, &out[i]);
+litPalette     = D_acropolis_security_room_80182B18;
+blendedPalette = D_acropolis_security_room_80183318;
+for (colorIndex = 0; colorIndex < 0x100; colorIndex += 0x10) {
+    gpuBlendRgb555ClutRow(&litPalette[colorIndex], &offPalette[colorIndex], 0, &blendedPalette[colorIndex]);
 }
 ```
 
@@ -52152,7 +52152,7 @@ for (i = 0; i < 0x100; i += 0x10) {
 blends the same four palettes in `case 0` and again in `case 1`, and the target
 holds `&D_80182718` in `$s4` for one and `$s6` for the other. One C variable is
 one pseudo and gets one hard register for the whole function, so a single
-`base` declared at function scope cannot produce that. Declaring it inside each
+`offPalette` declared at function scope cannot produce that. Declaring it inside each
 `case` / `if` block gives two pseudos and the two registers fall out. Whenever
 the same constant address lives in different callee-saved registers in
 different arms of a `switch`, the block-scoped local is the shape to write.
@@ -52160,8 +52160,8 @@ different arms of a `switch`, the block-scoped local is the shape to write.
 **Corollary — initialiser order is source order.** In `case 1` the three
 address computations appear *before* the flicker arithmetic that follows them,
 which no pass would schedule across the branchy block between. They are C89
-block-top declaration initialisers, and swapping two of them (`pal` before
-`base`) was the last 0.1%.
+block-top declaration initialisers, and swapping two of them (`litPalette` before
+`offPalette`) was the last 0.1%.
 
 ## A `s16` compare operand costs a `sll`/`sra` pair
 
@@ -84387,7 +84387,7 @@ mutually dependent, which anchors the `lui`/`sw` pair after the state store in
 sinks the pair back to the tail. A wrong register can therefore be a scheduling
 consequence rather than an allocation one: before reaching for a pin, compile a
 matched function with the same tail shape alone under the scratch flags and read
-its `.lreg` — `func_acropolis_security_room_8017D930` and
+its `.lreg` — `_acropolisSecurityRoomRegisterRoomMessages` and
 `func_acropolis_roof_garden_8017D5D4` both have this tail and both show `mem/s`
 on the state access. Inputs: `base_2.i`
 `ac93762280d36b4b90feac3c58c9539259752988e10bca28f4740e15ec38f830` (99.83%),
@@ -87358,7 +87358,7 @@ Nothing merges the two calls early either — every `jump_optimize` call before
 where the store-flag block is already disabled by `! reload_completed`. So the
 merge happens late and lands exactly on the ROM's `beqz` + delay-slot constant.
 The idiom is everywhere in this project (`Gp_MapTaskState2`,
-`func_acropolis_security_room_8017D930`, `func_acropolis_roof_garden_8017D5D4`),
+`_acropolisSecurityRoomRegisterRoomMessages`, `func_acropolis_roof_garden_8017D5D4`),
 so a branchy 0/1 argument is a signal to look for the two-call form rather than
 to fight the scheduler. `func_mine_cavern_8017DDFC`. Inputs: `base_1.i`
 `d071dc9b40e5ce0f52dfd28e943d210037645ba7843fc647d81c70fc0493f526` (else-form,
