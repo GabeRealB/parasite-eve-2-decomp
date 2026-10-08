@@ -71,7 +71,7 @@ static const TaskFuncTable6 gMadChaserPullSteps;      // dispatcher table _madCh
 /// so a negated angle is passed without re-truncation to 16 bits.
 
 static void Actor04400_Fn03538(Task* arg0);
-static void Actor04400_Fn05260(Task* arg0);
+static void _madChaserEmergeCreep9(Task* task);
 static void _madChaserDropDeathStart(Task* task);
 static void _madChaserDeathTurnTranslucent(Task* task);
 static void _madChaserEmergeArcBack(Task* task);
@@ -1217,7 +1217,7 @@ static const TaskFuncTable10 gMadChaserEmergeStates = { {
     _madChaserEmergeBackOff,
     _madChaserEmergeHighArc,
     _madChaserEmergeFlipOver,
-    Actor04400_Fn05260,
+    _madChaserEmergeCreep9,
 } };
 
 /// Sub-state handlers `_madChaserPullState` dispatches by `subState`.
@@ -1278,10 +1278,9 @@ static const TaskFuncTable7 gMadChaserShrinkDeathStates = { {
 
 #include "../../shared/mad_chaser_emerge_flip_over.inc.c"
 
-/// A further copy, under this file's own name.
-#define madChaserCreepUntilHit Actor04400_Fn05260
+/// Selects the carrier's static void(Task*) creep handler for emerge behavior 9.
+#define MAD_CHASER_EMERGE_CREEP_HANDLER _madChaserEmergeCreep9
 #include "../../shared/mad_chaser_creep.inc.c"
-#undef madChaserCreepUntilHit
 
 #include "../../shared/mad_chaser_pulled_struggle.inc.c"
 

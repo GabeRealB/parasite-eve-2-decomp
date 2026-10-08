@@ -1,13 +1,13 @@
 /* Code of the Mad Chaser shared by actor_04400 (actor_104400/342200),
  * actor_341700 and actor_342400: it twists its spine by a third of the turn per joint, links
  * its three collision spheres, pins a model part to a world position and
- * starts its death squash. The two later packages also share a creep-forward-
- * until-hit state.
+ * starts its death squash. All three carriers also share the creep that ends
+ * emergence when the entry animation reports a boundary, jump or held pose.
  *
  * Include this header in the prologue and each fragment at its function's
  * position. The code sees the work block as MadChaserWork. The
- * later two packages name the creep state twice in their state table; the
- * second entry includes the fragment again under its own name.
+ * three carriers each include the creep fragment twice, for emerge behaviors
+ * 3 and 9; `MAD_CHASER_EMERGE_CREEP_HANDLER` selects the second identifier.
  */
 
 #ifndef SRC_SHARED_MAD_CHASER_H
@@ -230,7 +230,7 @@ static void _madChaserTwistSpine(Task* task);
 static void _madChaserLinkBodies(Task* task);
 static void _madChaserPinPart(Task* task, s16 partIndex, const SVECTOR* worldAnchor);
 static void _madChaserDeathStartShrink(Task* task);
-void        madChaserCreepUntilHit(Task* arg0);
+void        madChaserCreepUntilHit(Task* task);
 
 static void _madChaserStartLeap(Task* task);
 static void _madChaserLurkStartIdleHold(Task* task);

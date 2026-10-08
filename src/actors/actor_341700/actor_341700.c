@@ -68,7 +68,7 @@ extern u8               gMadChaserSettleAnims[]; // per animation id (1-based): 
 MATRIX* ScaleMatrix(MATRIX* m, VECTOR* v);
 MATRIX* MulMatrix(MATRIX* m0, MATRIX* m1);
 
-static void func_actor_341700_801670B0(Task* arg0);
+static void _madChaserEmergeCreep9(Task* task);
 static void _madChaserDropDeathStart(Task* task);
 static void _madChaserDeathTurnTranslucent(Task* task);
 static void _madChaserEmergeArcBack(Task* task);
@@ -974,7 +974,7 @@ static const TaskFuncTable10 gMadChaserEmergeStates = { {
     _madChaserEmergeBackOff,
     _madChaserEmergeHighArc,
     _madChaserEmergeFlipOver,
-    func_actor_341700_801670B0,
+    _madChaserEmergeCreep9,
 } };
 
 /// Sub-state handlers `_madChaserPullState` dispatches by `subState`.
@@ -1049,10 +1049,9 @@ static __inline__ void set_state_s16(Task* arg0, s16 state)
 
 #include "../../shared/mad_chaser_emerge_flip_over.inc.c"
 
-/// The same creep as a second entry of the state table.
-#define madChaserCreepUntilHit func_actor_341700_801670B0
+/// Selects the carrier's static void(Task*) creep handler for emerge behavior 9.
+#define MAD_CHASER_EMERGE_CREEP_HANDLER _madChaserEmergeCreep9
 #include "../../shared/mad_chaser_creep.inc.c"
-#undef madChaserCreepUntilHit
 
 #include "../../shared/mad_chaser_pulled_struggle.inc.c"
 

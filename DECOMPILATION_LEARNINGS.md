@@ -105352,7 +105352,7 @@ no pins, no search performed. Scratch `nonmatchings/Actor04400_Fn06EEC-vacuum`.
 
 ## Diff a same-TU sibling's `.s` directly; the file's own "Same body as …" notes do not mark every twin (Actor04400_Fn048A0, 2026-09-16)
 
-`Actor04400_Fn048A0` turned out to be **byte-identical to `Actor04400_Fn05260`,
+`Actor04400_Fn048A0` turned out to be **byte-identical to `_madChaserEmergeCreep9`,
 in the same unit** (`src/actors/lib/actor_104400_text_tail.c`). Stripping the
 `/* offset vram word */` and label lines from the two
 `asm/USA/actors/*/lib/actor_104400_text_tail/` files leaves an empty diff, so
@@ -105380,11 +105380,11 @@ involved:
 | carrier | overlay | state |
 |---|---|---|
 | `Actor04400_Fn048A0` | actor_104400 | just matched |
-| `Actor04400_Fn05260` | actor_104400 | matched, same unit |
+| `_madChaserEmergeCreep9` | actor_104400 | matched, same unit |
 | `func_actor_341700_801666F0` | actor_341700 | `INCLUDE_ASM` |
-| `func_actor_341700_801670B0` | actor_341700 | `INCLUDE_ASM` |
+| `_madChaserEmergeCreep9` | actor_341700 | `INCLUDE_ASM` |
 | `func_actor_342400_801679D4` | actor_342400 | matched |
-| `func_actor_342400_80168394` | actor_342400 | matched |
+| `_madChaserEmergeCreep9` | actor_342400 | matched |
 
 So the rule to carry forward: when `identical bytes:` exceeds the printed copy
 count, the brief's "Similar matched bodies" list at shape 1.00 is worth a

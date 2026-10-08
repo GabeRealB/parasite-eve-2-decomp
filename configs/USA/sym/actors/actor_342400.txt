@@ -148,6 +148,7 @@ _madChaserLinkBodies = 0x80165E4C; // type:func
 _madChaserPinPart = 0x80169654; // type:func
 _madChaserDeathStartShrink = 0x8016A884; // type:func
 madChaserCreepUntilHit = 0x801679D4; // type:func
+_madChaserEmergeCreep9 = 0x80168394; // type:func
 madChaserWavePairSpawn = 0x80162084; // type:func
 madChaserWaveOpen = 0x8016299C; // type:func
 _overlayEncounterRevealSlouch = 0x80162E6C; // type:func

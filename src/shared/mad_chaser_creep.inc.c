@@ -1,47 +1,61 @@
 /* Part of the Mad Chaser library; see mad_chaser.h. */
 
-/// Plays sound 0x402C0009 on its first frame and creeps 0x14 units a frame
-/// along the heading in `rotation.vy`. Once the hit flags report contact it
-/// enables the outer body's grid pass and sends the task to state 3 with
-/// `state` set to 5.
-void madChaserCreepUntilHit(Task* arg0)
-{
-    MadChaserWork* work;
-    MadChaserWork* work2;
-    MadChaserWork* next;
-    MadChaserWork* next2;
-    s32            soundId;
-    s32            pan;
-    s32            cond;
-    s16            angle;
-    s16            speed;
+/* MAD_CHASER_EMERGE_CREEP_HANDLER binds the definition's void(Task*) identifier.
+ * Each carrier declares its behavior-9 instance static before inclusion.
+ * The fragment clears the binding afterwards; with no binding, it retains
+ * the behavior-3 entry.
+ * This object-like binding captures no values and uses no # or ## operations.
+ */
+#ifndef MAD_CHASER_EMERGE_CREEP_HANDLER
+#define MAD_CHASER_EMERGE_CREEP_HANDLER madChaserCreepUntilHit
+#endif
 
-    work = (MadChaserWork*)arg0->work;
+/// Creeps out of the entry animation and hands control to combat's alert behavior.
+///
+/// Requires live Mad Chaser work, enemy/model storage and initialized slot 1.
+/// Advances X/Z along the heading by 20 parent-coordinate units per update;
+/// angles use 4096ths of a turn. Starts character-bank entry 9, tagged with the
+/// enemy's 0..15 placement index, when the incremented 16-bit frame counter is
+/// one. Audio samples the already-composed origin before motion and requires
+/// the origin projection's scratch/GTE setup. A slot-1 boundary, control jump
+/// or held pose enables grid collision and enters combat alert with sub-state
+/// zero. The caller owns animation ticking, rotation rebuild and collision;
+/// this handler retains the frame counter and all task-owned storage.
+void MAD_CHASER_EMERGE_CREEP_HANDLER(Task* task)
+{
+    enum {
+        MAD_CHASER_EMERGE_CREEP_DISTANCE          = 20,
+        MAD_CHASER_EMERGE_CREEP_SOUND             = SOUND_CHARACTER(SOUND_BANK_MAD_CHASER, 9),
+        MAD_CHASER_EMERGE_SOUND_INSTANCE_SHIFT    = 8,
+        MAD_CHASER_EMERGE_DIRECTION_EXTRA_BITS    = 4,
+        MAD_CHASER_EMERGE_DIRECTION_FRACTION_BITS = 16
+    };
+    MadChaserWork* work;
+    Enemy*         enemy;
+    s32            soundId;
+    s32            audioPan;
+    s16            moveHeading;
+    s16            stepDistance;
+
+    work = task->work;
+    // Sample the composed origin before advancing the local translation.
     if ((s16)++work->stateFrames == 1) {
-        soundId = ((((Enemy*)arg0->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x402C0009;
-        pan     = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords));
+        enemy    = task->spawnArg2.pointer;
+        soundId  = ((enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << MAD_CHASER_EMERGE_SOUND_INSTANCE_SHIFT) | MAD_CHASER_EMERGE_CREEP_SOUND;
+        audioPan = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, audioPan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
     }
-    speed                                 = 0x14;
-    angle                                 = work->rotation.vy;
-    arg0->extra.tmd->coords->coord.t[0]  += ((rsin(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->coord.t[2]  += ((rcos(angle) << 4) * speed) >> 0x10;
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
-    work2                                 = (MadChaserWork*)arg0->work;
-    if ((work2->slots[1].status.fields.flags & ANIMATION_SLOT_REACHED_BOUNDARY) ||
-        (work2->slots[1].status.word & (ANIMATION_SLOT_FOLLOWED_JUMP | ANIMATION_SLOT_SETTLED))) {
-        cond = 1;
-    } else {
-        cond = 0;
-    }
-    if (cond) {
+    stepDistance                          = MAD_CHASER_EMERGE_CREEP_DISTANCE;
+    moveHeading                           = work->rotation.vy;
+    task->extra.tmd->coords->coord.t[0]  += ((rsin(moveHeading) << MAD_CHASER_EMERGE_DIRECTION_EXTRA_BITS) * stepDistance) >> MAD_CHASER_EMERGE_DIRECTION_FRACTION_BITS;
+    task->extra.tmd->coords->coord.t[2]  += ((rcos(moveHeading) << MAD_CHASER_EMERGE_DIRECTION_EXTRA_BITS) * stepDistance) >> MAD_CHASER_EMERGE_DIRECTION_FRACTION_BITS;
+    task->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    // Entry motion ignores the grid until the animation allows combat to begin.
+    if (_madChaserAnimHasBoundaryStatusInline(task)) {
         work->gridBody.flags |= WORLD_COLLISION_BODY_GRID_ENABLED;
-        next                  = (MadChaserWork*)arg0->work;
-        arg0->state           = 3;
-        next->state           = 0;
-        next->subState        = 0;
-        next2                 = (MadChaserWork*)arg0->work;
-        next2->state          = 5;
-        next2->subState       = 0;
+        _madChaserEnterTaskState(task, MAD_CHASER_TASK_COMBAT);
+        _madChaserSetBehaviorState(task, MAD_CHASER_COMBAT_STATE_ALERT);
     }
 }
+
+#undef MAD_CHASER_EMERGE_CREEP_HANDLER
