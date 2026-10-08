@@ -135,7 +135,7 @@ extern TaskDesc D_dryfield_night_saloon_g_r_80185068;
 /// gate positions 20-27.
 extern s16 D_dryfield_night_saloon_g_r_80185154[];
 
-static void func_dryfield_night_saloon_g_r_8017DF90(Task* task);
+static void _dryfieldNightSaloonGRInitializeRoom(Task* task);
 static void _dryfieldNightSaloonGRIdleState(Task* task);
 static s32  func_dryfield_night_saloon_g_r_8017E698(s32 arg0);
 static void _dryfieldNightSaloonGRDrawTaperedBeam(const GfxCoord* coord, const SVECTOR* startPoint, const SVECTOR* endPoint, s32 radiusScale);
@@ -1829,11 +1829,11 @@ RoomEventReq gRoomEventReq;
 #include "../../shared/room_event_task.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
-/// `func_dryfield_night_saloon_g_r_8017E050`: the entry tick
-/// `func_dryfield_night_saloon_g_r_8017DF90`, the idle state
+/// `dryfieldNightSaloonGRRoomTask`: the entry tick
+/// `_dryfieldNightSaloonGRInitializeRoom`, the idle state
 /// `_dryfieldNightSaloonGRIdleState`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_saloon_g_r_8017D5DC = {
-    { func_dryfield_night_saloon_g_r_8017DF90, _dryfieldNightSaloonGRIdleState, taskKill },
+    { _dryfieldNightSaloonGRInitializeRoom, _dryfieldNightSaloonGRIdleState, taskKill },
 };
 static void _glowDrawFlare(const SVECTOR* worldPoint, s32 textureIndex, s32 radiusScale);
 
@@ -2011,24 +2011,34 @@ s32 func_dryfield_night_saloon_g_r_8017DE68(Task* task, s32 msgId, const void* f
     return 0;
 }
 
-/// Room entry task tick: park the room's hotspot table in `Task::msgTable` -
-/// the table whose 0x13EE entry is the room's own script task - register the
-/// task in pointer slot 7, then, on the phase-2 visit whose nibble 0xB0 is
-/// still clear, announce the room to the slot-4 task with message 0x7DA
-/// carrying the session's two id bytes and a zero halfword. Then advance state.
-static void func_dryfield_night_saloon_g_r_8017DF90(Task* task)
+/// Hides the saloon's pending encounter actors through the scene's synchronous broadcast.
+static inline void _dryfieldNightSaloonGRHideEncounterActors(void)
 {
-    ActorCommand msg;
+    enum { DRYFIELD_NIGHT_SALOON_G_R_COMMAND_HIDE_ENCOUNTER_ACTORS = 0 };
+
+    ActorCommand hideCommand;
+
+    hideCommand.context.loc.stage = gGameSession->location.loc.stage;
+    hideCommand.context.loc.area  = gGameSession->location.loc.area;
+    hideCommand.command           = DRYFIELD_NIGHT_SALOON_G_R_COMMAND_HIDE_ENCOUNTER_ACTORS;
+    TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &hideCommand, ACTOR_COMMAND_MESSAGE_APPLY);
+}
+
+/// Registers the night saloon's room receiver and hides its pending encounter actors.
+///
+/// Requires the live room task in state 0 and the scene manager registered.
+/// Variant 2 hides the encounter actors until the room action starts them,
+/// unless the encounter has already started. Advances to idle state 1.
+static void _dryfieldNightSaloonGRInitializeRoom(Task* task)
+{
+    enum { DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT = 2 };
 
     task->msgTable = D_dryfield_night_saloon_g_r_8017F918;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if (gGameSession->location.loc.variant == 2 && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
-        msg.context.loc.stage = gGameSession->location.loc.stage;
-        msg.context.loc.area  = gGameSession->location.loc.area;
-        msg.command           = 0;
-        TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_SCENE), SCENE_MESSAGE_BROADCAST_TO_ACTORS, &msg, ACTOR_COMMAND_MESSAGE_APPLY);
+    if (gGameSession->location.loc.variant == DRYFIELD_NIGHT_SALOON_G_R_ENCOUNTER_VARIANT && gameFlagGetNibble(GAME_FLAG_NIGHT_SALOON_ENCOUNTER_DONE) == 0) {
+        _dryfieldNightSaloonGRHideEncounterActors();
     }
-    task->state = task->state + 1;
+    task->state++;
 }
 
 /// Keeps the room task alive between messages without advancing its idle state.
@@ -2037,16 +2047,12 @@ static void _dryfieldNightSaloonGRIdleState(Task* task)
     char unusedFrame[0x10]; // Retains the original stack reservation; no bytes are accessed.
 }
 
-/// The room task: copies the three-state table
-/// `D_dryfield_night_saloon_g_r_8017D5DC` onto the stack and runs the entry
-/// for the task's current state - the entry tick, the idle state, then
-/// `taskKill`.
-void func_dryfield_night_saloon_g_r_8017E050(Task* task)
+void dryfieldNightSaloonGRRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_saloon_g_r_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_saloon_g_r_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Selects the saloon room in both the live session and the live save record.

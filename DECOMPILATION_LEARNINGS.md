@@ -49421,7 +49421,7 @@ the `$a0` argument setup is empty in both forms. So a `li` into `$a1` with an
 untouched `$a0` is a missing leading argument, not a scheduling or allocation
 quirk, and the penalty label (`regs`) says nothing about it.
 
-That label is not even stable. `func_dryfield_night_parking_lot_8017DBB0` is the
+That label is not even stable. `_dryfieldNightParkingLotInitializeRoom` is the
 same seed — `gameSetTaskSlot(7)` against a real `gameSetTaskSlot(index, 7)` — and
 scores 93.33% on `insert=1 delete=1` at 0 penalty otherwise, because the constant
 also *moves*: `li $a0,7` sits ahead of the `lui`/`addiu` pair in the seed and
@@ -91209,7 +91209,7 @@ and the compiled body loads only `field_7`, stores only `0x10($sp)`, and drops
 both the `field_6` load and the two remaining stores outright - frame size and
 allocation otherwise identical. `delete = 4` with `stack = 0` is the signature:
 `0x10`, `0x11`, `0x12` were three scalars and only the first's address escaped.
-Worked example: `func_dryfield_night_saloon_g_r_8017DF90`, 90.6% -> 100% by
+Worked example: `_dryfieldNightSaloonGRInitializeRoom`, 90.6% -> 100% by
 declaring the struct (`DnsgrMsg7DA`) and storing through its fields.
 
 ## A constant materialised into `$a1` before a compare chain is a global allocno
@@ -91823,7 +91823,7 @@ Inputs: `base_1.i`
 ## The order of adjacent field stores decides whether the shared constant takes `$a0`
 
 Worked example `func_dryfield_night_saloon_g_r_8017DE68`, the twin of the
-`func_dryfield_night_saloon_g_r_8017DF90` in "An `SVECTOR` local split into
+`_dryfieldNightSaloonGRInitializeRoom` in "An `SVECTOR` local split into
 separate `s16`s" above; that entry's struct fix is what this one starts from.
 
 **Problem.** With the payload fixed, the whole remaining diff was the constant
@@ -91846,7 +91846,7 @@ source statement order.
 **Fix.** Write the field stores in the order the original did. m2c had emitted
 them sorted by *address* (`field_0`, `field_2`, `field_1`), and that alone was
 enough to schedule the killing store to the front of the block. The matched
-sibling `func_dryfield_night_saloon_g_r_8017DF90` fills the same struct in order
+sibling `_dryfieldNightSaloonGRInitializeRoom` fills the same struct in order
 `field_0`, `field_1`, `field_2`, and its machine code is the same
 `sb 0x10 / sh 0x12 / sb 0x11` triple - which is the evidence that the order is
 the source's rather than m2c's. Copying it took the function from 93.1% to

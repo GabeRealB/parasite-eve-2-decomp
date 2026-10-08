@@ -695,7 +695,7 @@ WorldCollisionSurfaceProperties* D_dryfield_night_underpass_80180374[8] = {
     D_dryfield_night_underpass_80180354,
 };
 
-static void func_dryfield_night_underpass_8017D910(Task* task);
+static void _dryfieldNightUnderpassInitializeRoom(Task* task);
 
 #include "../../shared/underpass_switches_task.inc.c"
 
@@ -725,13 +725,15 @@ static s32 _dryfieldNightUnderpassIgnoreRoomAction(Task* unusedTask, s32 message
     return 0;
 }
 
-/// First state of the room task: parks the room's message table in
-/// `Task::msgTable`, publishes the task in pointer slot 7, and advances.
-static void func_dryfield_night_underpass_8017D910(Task* task)
+/// Registers the night underpass's room-message receiver and enters its idle state.
+///
+/// Requires the live room task in state 0. The message table and room slot
+/// borrow the loaded overlay and task for subsequent synchronous dispatch.
+static void _dryfieldNightUnderpassInitializeRoom(Task* task)
 {
     task->msgTable = D_dryfield_night_underpass_8017DCF0;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized nighttime underpass room task alive and idle.
@@ -739,20 +741,18 @@ static void _dryfieldNightUnderpassIdleTask(Task* unusedTask)
 {
 }
 
-/// State handlers of the room task `func_dryfield_night_underpass_8017D95C`,
+/// State handlers of the room task `dryfieldNightUnderpassRoomTask`,
 /// indexed by `Task::state`: the set-up tick, the idle tick, and `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_underpass_8017D5C4 = {
-    { func_dryfield_night_underpass_8017D910, _dryfieldNightUnderpassIdleTask, taskKill },
+    { _dryfieldNightUnderpassInitializeRoom, _dryfieldNightUnderpassIdleTask, taskKill },
 };
 
-/// Room task: runs the state handler `D_dryfield_night_underpass_8017D5C4`
-/// names for `Task::state`, through a copy of the table taken onto the stack.
-void func_dryfield_night_underpass_8017D95C(Task* task)
+void dryfieldNightUnderpassRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_underpass_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_underpass_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 #include "../../shared/glow_draw_flare.inc.c"

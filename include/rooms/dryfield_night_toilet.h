@@ -43,6 +43,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_toilet_8017F3D8[];
 /// geometry borrows the frame arena until GPU completion. Retains no task data.
 void dryfieldNightToiletDrawFlareTask(Task* unusedTask);
 
-void func_dryfield_night_toilet_8017D724(Task* task);
+/// Runs the night toilet's room initialization, message wait and teardown.
+///
+/// State 0 installs the room handlers and starts the first-visit event on
+/// variant 1; state 1 waits for messages; state 2 kills the task.
+/// Requires a live task with state in 0..2 and the room overlay loaded.
+/// The initialized task must stay live while its published room slot is used.
+void dryfieldNightToiletRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_TOILET_H

@@ -70,7 +70,7 @@ extern TaskMessageEntry D_dryfield_saloon_g_r_8017ECBC[];
 /// the sprites, 11 the beam and 12 the light shafts.
 extern s16 D_dryfield_saloon_g_r_8017ED84[];
 
-static void func_dryfield_saloon_g_r_8017D9CC(Task* task);
+static void _dryfieldSaloonGRInitializeRoom(Task* task);
 static void _dryfieldSaloonGRIdleTask(Task* task);
 
 enum {
@@ -723,11 +723,11 @@ RoomEventReq gRoomEventReq;
 #include "../../shared/room_event_task.inc.c"
 
 /// The room task's three-state table, run from a stack copy by
-/// `func_dryfield_saloon_g_r_8017DA18`: the entry tick
-/// `func_dryfield_saloon_g_r_8017D9CC`, the idle state
+/// `dryfieldSaloonGRRoomTask`: the entry tick
+/// `_dryfieldSaloonGRInitializeRoom`, the idle state
 /// `_dryfieldSaloonGRIdleTask`, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_saloon_g_r_8017D5DC = {
-    { func_dryfield_saloon_g_r_8017D9CC, _dryfieldSaloonGRIdleTask, taskKill },
+    { _dryfieldSaloonGRInitializeRoom, _dryfieldSaloonGRIdleTask, taskKill },
 };
 
 #include "../../shared/room_variants_saloon.inc.c"
@@ -767,13 +767,15 @@ static s32 _dryfieldSaloonGRIgnoreRoomActionMessage(Task* task, s32 messageId, c
     return 0;
 }
 
-/// Entry state of the room task: installs the room's message table, registers
-/// the task in pointer slot 7 and advances to the idle state.
-static void func_dryfield_saloon_g_r_8017D9CC(Task* task)
+/// Registers the daytime saloon's room-message receiver and enters its idle state.
+///
+/// Requires the live room task in state 0. The message table and room slot
+/// borrow the loaded overlay and task for subsequent synchronous dispatch.
+static void _dryfieldSaloonGRInitializeRoom(Task* task)
 {
     task->msgTable = D_dryfield_saloon_g_r_8017ECBC;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the saloon room task idle while its message table remains installed.
@@ -783,14 +785,12 @@ static void _dryfieldSaloonGRIdleTask(Task* task)
 {
 }
 
-/// The room task: runs the state the task is in from a stack copy of the
-/// room's three-state table.
-void func_dryfield_saloon_g_r_8017DA18(Task* task)
+void dryfieldSaloonGRRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_saloon_g_r_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_saloon_g_r_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 void dryfieldSaloonGRDrawLightEffectsTask(Task* task)

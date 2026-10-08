@@ -98,3 +98,6 @@ _dryfieldNightParkingLotDrawGreyCapsule = 0x8017e08c; // type:func
 dryfieldNightParkingLotRejectKeyItemUse = 0x8017db04; // type:func
 dryfieldNightParkingLotSetScavengerWave = 0x8017dba4; // type:func
 _dryfieldNightParkingLotIdleState = 0x8017dc28; // type:func
+dryfieldNightParkingLotStartScavengerEncounterMessage = 0x8017db34; // type:func
+_dryfieldNightParkingLotInitializeRoom = 0x8017dbb0; // type:func
+dryfieldNightParkingLotRoomTask = 0x8017dc30; // type:func

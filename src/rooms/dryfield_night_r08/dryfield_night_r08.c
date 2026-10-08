@@ -103,12 +103,10 @@ static const TaskFuncTable3 D_dryfield_night_r08_8017D5C4 = {
     { func_dryfield_night_r08_8017D630, _dryfieldNightR08IdleState, taskKill },
 };
 
-/// The room task: copies its three-state table onto the stack and runs the
-/// entry for the task's current state.
-void func_dryfield_night_r08_8017D6C0(Task* task)
+void dryfieldNightR08RoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_r08_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_r08_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

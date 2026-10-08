@@ -38,6 +38,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_water_tank_80180890[];
 /// the task can invoke this callback.
 void dryfieldNightWaterTankNoOpEffectTask(Task* unusedTask);
 
-void func_dryfield_night_water_tank_8017D984(Task* task);
+/// Runs the night water tank's room initialization, timer update and teardown.
+///
+/// State 0 installs the room handlers and prepares the tank and visit
+/// actors; state 1 holds the Ice Bag timer on variant 11; state 2 kills the task.
+/// Requires a live task with state in 0..2 and the room overlay loaded.
+/// The initialized task must stay live while its published room slot is used.
+void dryfieldNightWaterTankRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_WATER_TANK_H

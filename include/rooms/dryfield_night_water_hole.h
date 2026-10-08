@@ -73,6 +73,13 @@ void dryfieldNightWaterHoleWaterRippleTask(Task* task);
 
 void func_dryfield_night_water_hole_8017E6D0(Task* arg0);
 
-void func_dryfield_night_water_hole_8017DE30(Task* task);
+/// Runs the night water hole's room initialization, message wait and teardown.
+///
+/// State 0 installs the room handlers, restores progress-dependent scenery
+/// and cues arrival or ending actors when required; state 1 waits for
+/// messages; state 2 kills the task.
+/// Requires a live task with state in 0..2 and the room overlay loaded.
+/// The initialized task must stay live while its published room slot is used.
+void dryfieldNightWaterHoleRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_WATER_HOLE_H

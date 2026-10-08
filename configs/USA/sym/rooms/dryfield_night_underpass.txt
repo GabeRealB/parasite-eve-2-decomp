@@ -95,3 +95,5 @@ _underpassSoundMsg = 0x8017D8CC; // type:func
 _dryfieldNightUnderpassRejectKeyItemUse = 0x8017d900; // type:func
 _dryfieldNightUnderpassIgnoreRoomAction = 0x8017d908; // type:func
 _dryfieldNightUnderpassIdleTask = 0x8017d954; // type:func
+_dryfieldNightUnderpassInitializeRoom = 0x8017d910; // type:func
+dryfieldNightUnderpassRoomTask = 0x8017d95c; // type:func

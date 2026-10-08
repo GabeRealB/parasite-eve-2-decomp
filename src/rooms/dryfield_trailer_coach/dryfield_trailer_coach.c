@@ -177,7 +177,7 @@ static s32  _dryfieldTrailerCoachResolveRoomEvent(Task* task, s32 messageId, con
 static void _dryfieldTrailerCoachWaitForTopicChoice(Task* task);
 s32         func_dryfield_trailer_coach_801825A8(Task*, s32, s32, s32);
 void        func_dryfield_trailer_coach_801822F4(Task*);
-void        func_dryfield_trailer_coach_801827F8(Task*);
+static void _dryfieldTrailerCoachTopicChoiceTask(Task* task);
 
 /// Inventory request to use a key item in this room.
 enum { DRYFIELD_TRAILER_COACH_MESSAGE_USE_KEY_ITEM = 0x13F1 };
@@ -328,7 +328,7 @@ TaskMessageEntry D_dryfield_trailer_coach_80184FA0[4] = {
 };
 
 TaskDesc D_dryfield_trailer_coach_80184FC0[2] = {
-    { { { TASK_BODY_NONE, 32 } }, func_dryfield_trailer_coach_801827F8, { .value = 0 } },
+    { { { TASK_BODY_NONE, 32 } }, _dryfieldTrailerCoachTopicChoiceTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 32 } }, func_dryfield_trailer_coach_801822F4, { .value = 0 } },
 };
 
@@ -1811,7 +1811,7 @@ static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7DC = {
 };
 
 /// State table of the room's two-option choice task, run by
-/// `func_dryfield_trailer_coach_801827F8`: open the dialog, wait for its
+/// `_dryfieldTrailerCoachTopicChoiceTask`: open the dialog, wait for its
 /// answer, then kill the task and call `stageRequestModeTaskExit`.
 static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
     {
@@ -1821,14 +1821,19 @@ static const TaskFuncTable3 D_dryfield_trailer_coach_8017D7E8 = {
     },
 };
 
-/// Runs the two-option choice task's current state through a stack copy of its
-/// state table.
-void func_dryfield_trailer_coach_801827F8(Task* task)
+/// Runs the trailer's two-topic dialog through opening, choice publication and exit.
+///
+/// Requires a live task with state in 0..2: open, wait, then stage-mode exit.
+/// `spawnArg1.value == 1` selects the second label pair; every other value
+/// selects the first. `spawnArg2.pointer` must borrow a writable, word-aligned
+/// `s32` until the chosen option (1 or 2) is published. The task owns its dialog
+/// work, and exit releases it before requesting stage-mode teardown.
+static void _dryfieldTrailerCoachTopicChoiceTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_trailer_coach_8017D7E8;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_trailer_coach_8017D7E8;
+    stateHandlers.funcs[task->state](task);
 }
 
 void func_dryfield_trailer_coach_80182850(void)

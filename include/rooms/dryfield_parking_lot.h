@@ -38,6 +38,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_parking_lot_8017FB30[];
 /// overlay and view tables loaded, and a mapped view index in 1 through 7.
 void dryfieldParkingLotUpdateViewEffectGateTask(Task* task);
 
-void func_dryfield_parking_lot_8017DB54(Task* task);
+/// Runs the daytime parking lot's room initialization, message wait and teardown.
+///
+/// State 0 installs the room handlers; state 1 waits for messages;
+/// state 2 kills the task.
+/// Requires a live task with state in 0..2 and the room overlay loaded.
+/// The initialized task must stay live while its published room slot is used.
+void dryfieldParkingLotRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_PARKING_LOT_H

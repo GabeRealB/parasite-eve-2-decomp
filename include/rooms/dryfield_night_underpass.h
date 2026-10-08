@@ -42,6 +42,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_underpass_80180374[];
 /// frame's GPU packet arena and ordering table; queued packets live for the frame.
 void dryfieldNightUnderpassDrawFlaresTask(Task* unusedTask);
 
-void func_dryfield_night_underpass_8017D95C(Task* task);
+/// Runs the night underpass's room initialization, message wait and teardown.
+///
+/// State 0 installs the room handlers; state 1 waits for messages;
+/// state 2 kills the task.
+/// Requires a live task with state in 0..2 and the room overlay loaded.
+/// The initialized task must stay live while its published room slot is used.
+void dryfieldNightUnderpassRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_UNDERPASS_H

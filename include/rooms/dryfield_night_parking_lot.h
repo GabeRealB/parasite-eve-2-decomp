@@ -40,6 +40,12 @@ extern WorldCollisionSurfaceProperties* D_dryfield_night_parking_lot_8018153C[];
 /// frame packet arena must be ready for glow drawing. `task` is unused.
 void dryfieldNightParkingLotDrawGlowsTask(Task* task);
 
-void func_dryfield_night_parking_lot_8017DC30(Task* task);
+/// Runs the night parking lot's room initialization, message wait and teardown.
+///
+/// State 0 installs the room handlers and restores active scavengers after
+/// their entrance event; state 1 waits for messages; state 2 kills the task.
+/// Requires a live task with state in 0..2 and the room overlay loaded.
+/// The initialized task must stay live while its published room slot is used.
+void dryfieldNightParkingLotRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_PARKING_LOT_H

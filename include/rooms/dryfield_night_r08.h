@@ -62,6 +62,13 @@ void dryfieldNightR08RoomVisualEffectsTwinTrailTask(Task* task);
 
 void func_dryfield_night_r08_8017F8FC(Task* task);
 
-void func_dryfield_night_r08_8017D6C0(Task* task);
+/// Runs nighttime area 8's room initialization, message wait and teardown.
+///
+/// State 0 installs the room handlers, selects scene-payload storage and
+/// starts the entry script unless demo scene 9 is selected; state 1 waits for
+/// messages; state 2 kills the task.
+/// Requires a live task with state in 0..2 and the room overlay loaded.
+/// The initialized task must stay live while its published room slot is used.
+void dryfieldNightR08RoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_DRYFIELD_NIGHT_R08_H

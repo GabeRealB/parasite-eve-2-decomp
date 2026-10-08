@@ -448,7 +448,7 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 156, 190, 128 } };
 
 RoomEventReq gRoomEventReq = { 0 };
 
-static void func_dryfield_parking_lot_8017DB08(Task* task);
+static void _dryfieldParkingLotInitializeRoom(Task* task);
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -486,13 +486,15 @@ static s32 _dryfieldParkingLotIgnoreActionMessage(Task* task, s32 messageId, con
     return 0;
 }
 
-/// Room entry task state 0: parks the room's message table in `Task::msgTable`,
-/// publishes the task in pointer slot 7 and advances the state.
-static void func_dryfield_parking_lot_8017DB08(Task* task)
+/// Registers the daytime parking lot's room-message receiver and enters its idle state.
+///
+/// Requires the live room task in state 0. The message table and room slot
+/// borrow the loaded overlay and task for subsequent synchronous dispatch.
+static void _dryfieldParkingLotInitializeRoom(Task* task)
 {
     task->msgTable = D_dryfield_parking_lot_8017DC04;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized room task idle while its message table remains available.
@@ -504,17 +506,15 @@ static void _dryfieldParkingLotIdle(Task* task)
 
 /// The room entry task's states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_parking_lot_8017D5DC = {
-    { func_dryfield_parking_lot_8017DB08, _dryfieldParkingLotIdle, taskKill },
+    { _dryfieldParkingLotInitializeRoom, _dryfieldParkingLotIdle, taskKill },
 };
 
-/// The room entry task: copies the three-state table to the stack and runs the
-/// entry the task's state selects.
-void func_dryfield_parking_lot_8017DB54(Task* task)
+void dryfieldParkingLotRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_parking_lot_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_parking_lot_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }
 
 void dryfieldParkingLotUpdateViewEffectGateTask(Task* task)

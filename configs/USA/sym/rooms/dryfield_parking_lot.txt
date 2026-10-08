@@ -71,3 +71,5 @@ _dryfieldParkingLotRejectKeyItemMessage = 0x8017daf0; // type:func
 _dryfieldParkingLotIgnoreCommandMessage = 0x8017daf8; // type:func
 _dryfieldParkingLotIgnoreActionMessage = 0x8017db00; // type:func
 _dryfieldParkingLotIdle = 0x8017db4c; // type:func
+_dryfieldParkingLotInitializeRoom = 0x8017db08; // type:func
+dryfieldParkingLotRoomTask = 0x8017db54; // type:func

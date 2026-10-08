@@ -69,3 +69,5 @@ _glowDrawTwinShafts = 0x8017DEC4; // type:func
 _dryfieldSaloonGRRejectKeyItemMessage = 0x8017d994; // type:func
 _dryfieldSaloonGRIgnoreRoomActionMessage = 0x8017d9c4; // type:func
 _dryfieldSaloonGRIdleTask = 0x8017da10; // type:func
+_dryfieldSaloonGRInitializeRoom = 0x8017d9cc; // type:func
+dryfieldSaloonGRRoomTask = 0x8017da18; // type:func

@@ -60,3 +60,4 @@ _dryfieldNightToiletRejectKeyItemUse = 0x8017d678; // type:func
 _dryfieldNightToiletIgnoreCommandMessage = 0x8017d680; // type:func
 _dryfieldNightToiletIgnoreActionRequest = 0x8017d688; // type:func
 _dryfieldNightToiletIdleRoomTask = 0x8017d71c; // type:func
+dryfieldNightToiletRoomTask = 0x8017d724; // type:func

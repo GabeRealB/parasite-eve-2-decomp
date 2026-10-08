@@ -749,20 +749,18 @@ static void _dryfieldNightWaterTankHoldIceBagTimerState(Task* unusedTask)
 }
 
 /// The room task's three states, run from a stack copy by
-/// `func_dryfield_night_water_tank_8017D984`: the entry tick, the per-frame
+/// `dryfieldNightWaterTankRoomTask`: the entry tick, the per-frame
 /// state, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_water_tank_8017D5C4 = {
     { func_dryfield_night_water_tank_8017D870, _dryfieldNightWaterTankHoldIceBagTimerState, taskKill },
 };
 
-/// The room task: copies its three-state table onto the stack and runs the
-/// entry for the task's current state.
-void func_dryfield_night_water_tank_8017D984(Task* task)
+void dryfieldNightWaterTankRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_water_tank_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_water_tank_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Restores the room's layout lists from their template, then offsets the six

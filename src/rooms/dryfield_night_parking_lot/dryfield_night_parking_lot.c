@@ -53,8 +53,11 @@ RoomEventActiveBytes gRoomEventActive = { 0, { 63, 252, 16 } };
 
 RoomEventReq gRoomEventReq;
 
-static void func_dryfield_night_parking_lot_8017DBB0(Task* task);
+static void _dryfieldNightParkingLotInitializeRoom(Task* task);
 static void _dryfieldNightParkingLotIdleState(Task* unusedTask);
+
+/// Room variant carrying the scavengers' scripted entrance and subsequent battle.
+enum { DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT = 3 };
 
 #include "../../shared/room_event_gate.inc.c"
 
@@ -80,15 +83,13 @@ s32 func_dryfield_night_parking_lot_8017DB0C(Task* arg0, s32 arg1, s32 arg2, s32
     return 0;
 }
 
-/// Handler for message 0x13EF in the room's message table. When the record's
-/// `actionId` is 1 on the visit whose `place` is 3, it latches nibble 0x79 once,
-/// sends the player-weapon message and passes
-/// `D_dryfield_night_parking_lot_8017ECB4` to `evsStartScript`. Always returns 0.
-s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, const void* firstArg, s32 arg3)
+s32 dryfieldNightParkingLotStartScavengerEncounterMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
 {
-    const DirectionActionRequest* request = firstArg;
+    enum { DRYFIELD_NIGHT_PARKING_LOT_ACTION_SCAVENGER_ENTRANCE = 1 };
 
-    if ((request->actionId == 1) && (gGameSession->location.loc.variant == 3) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) == 0)) {
+    if ((request->actionId == DRYFIELD_NIGHT_PARKING_LOT_ACTION_SCAVENGER_ENTRANCE) &&
+        (gGameSession->location.loc.variant == DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) == 0)) {
+        // Latch before the script starts so another trigger cannot repeat the entrance.
         gameFlagSetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN, 1);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         evsStartScript(D_dryfield_night_parking_lot_8017ECB4, EVENT_SCRIPT_HUD_KEEP);
@@ -101,19 +102,21 @@ void dryfieldNightParkingLotSetScavengerWave(s32 wave)
     gSceneCombatState.actor01600Wave = wave;
 }
 
-/// Room entry task state 0: parks the room's message table in `Task::msgTable`
-/// and publishes the task in pointer slot 7. On the visit whose `place` is 3,
-/// once nibble 0x79 is set - the nibble the 0x13EF handler
-/// `func_dryfield_night_parking_lot_8017DB34` latches - it also sets
-/// `gSceneCombatState.actor01600Wave` to 2. The state then advances.
-static void func_dryfield_night_parking_lot_8017DBB0(Task* task)
+/// Registers the night parking lot's room receiver and resumes its scavenger battle.
+///
+/// Requires the live room task in state 0. Variant 3 with the entrance event
+/// already latched selects wave 2, activating the scavengers at their battle
+/// positions instead of replaying their entrance. Advances to idle state 1.
+static void _dryfieldNightParkingLotInitializeRoom(Task* task)
 {
+    enum { DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_BATTLE_WAVE = 2 };
+
     task->msgTable = D_dryfield_night_parking_lot_8017EC60;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 3) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) != 0)) {
-        gSceneCombatState.actor01600Wave = 2;
+    if ((gGameSession->location.loc.variant == DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_NIGHT_PARKING_LOT_EVENT_SEEN) != 0)) {
+        gSceneCombatState.actor01600Wave = DRYFIELD_NIGHT_PARKING_LOT_SCAVENGER_BATTLE_WAVE;
     }
-    task->state = (s32)(task->state + 1);
+    task->state++;
 }
 
 /// Keeps the initialized parking-lot room task alive to receive messages in state 1.
@@ -123,15 +126,13 @@ static void _dryfieldNightParkingLotIdleState(Task* unusedTask)
 
 /// The room entry task's states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_dryfield_night_parking_lot_8017D5DC = {
-    { func_dryfield_night_parking_lot_8017DBB0, _dryfieldNightParkingLotIdleState, taskKill },
+    { _dryfieldNightParkingLotInitializeRoom, _dryfieldNightParkingLotIdleState, taskKill },
 };
 
-/// The room entry task: copies the three-state table to the stack and runs the
-/// entry the task's state selects.
-void func_dryfield_night_parking_lot_8017DC30(Task* task)
+void dryfieldNightParkingLotRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_dryfield_night_parking_lot_8017D5DC;
-    sp.funcs[task->state](task);
+    stateHandlers = D_dryfield_night_parking_lot_8017D5DC;
+    stateHandlers.funcs[task->state](task);
 }

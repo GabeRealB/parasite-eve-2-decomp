@@ -131,3 +131,4 @@ _waterHoleWaterStart = 0x8017E690; // type:func
 _waterHoleDrawSurfaces = 0x8017DF28; // type:func
 _dryfieldNightWaterHoleRejectKeyItemUse = 0x8017dad4; // type:func
 _dryfieldNightWaterHoleRoomIdle = 0x8017de20; // type:func
+dryfieldNightWaterHoleRoomTask = 0x8017de30; // type:func

@@ -31,7 +31,14 @@ s32 dryfieldNightParkingLotRejectKeyItemUse(Task* unusedTask, s32 unusedMessageI
 
 s32 func_dryfield_night_parking_lot_8017DB0C(Task*, s32, s32, s32);
 
-s32 func_dryfield_night_parking_lot_8017DB34(Task* task, s32 msgId, const void* firstArg, s32 arg3);
+/// Starts the scavengers' entrance and battle script once for room action 1.
+///
+/// Handles `DIRECTION_MESSAGE_ROOM_ACTION` on variant 3 while the entrance
+/// flag is clear. Latches the flag and holds player control before starting
+/// the script. Other actions or visits do nothing. Borrows the four-byte
+/// request until synchronous dispatch returns; no pointer is retained.
+/// Returns zero and ignores the receiver, message ID and second payload word.
+s32 dryfieldNightParkingLotStartScavengerEncounterMessage(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 
 /// Sets the scripted activation wave of the parking lot's scavengers.
 ///

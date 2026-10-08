@@ -58,3 +58,4 @@ _dryfieldNightR08ResolveRoomEvent = 0x8017d5f8; // type:func
 _dryfieldNightR08IgnoreCommandMessage = 0x8017d620; // type:func
 _dryfieldNightR08IgnoreActionMessage = 0x8017d628; // type:func
 _dryfieldNightR08IdleState = 0x8017d6b0; // type:func
+dryfieldNightR08RoomTask = 0x8017d6c0; // type:func
