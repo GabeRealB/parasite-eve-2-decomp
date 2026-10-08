@@ -5305,9 +5305,9 @@ callee-saved register the shared height sits in across the call, which is one
 of the frame's saved registers.  Keep one `SVECTOR vec` and write the ring
 coordinates with the project's `(u32)rsin(...) >> 3` (m2c's
 `(s16)(rsin(...) >> 3)` is signed, `sra`, where the target is `srl`).
-`func_actor_206100_8014CE60`: 79.485% (`delete=11`, `regs=49`, frame 0x38, no
+`_actor206100EntranceArrivalTick`: 79.485% (`delete=11`, `regs=49`, frame 0x38, no
 `sh` to `0x12(sp)` anywhere) to 100% with every penalty zero on that one edit,
-first try.  The matched sibling `func_actor_206100_8014D8E8` in the same TU is
+first try.  The matched sibling `_actor206100SurfaceSplashTick` in the same TU is
 the same ring and the source to copy.
 
 ## Split a shared `taskKill` so the kill-arg can occupy `$a0`
@@ -9176,7 +9176,7 @@ in the candidate and C89's implicit declaration makes it a real `jal`.
 `build.sh` says so plainly (`calls_match=False`), but the damage reaches much
 further than the call site — an external call clobbers the argument and return
 registers, so the global allocation changes and the schedule pulls apart
-elsewhere in the function. `func_actor_206100_8014D8E8` scored 92.162% with
+elsewhere in the function. `_actor206100SurfaceSplashTick` scored 92.162% with
 `jal _diverSetState` where the target has `lw v1,0x1c(s4)` plus two `sh`, *and* a
 `move a1,s3` sitting two slots late in an unrelated loop body; copying
 `_diverSetState` into the candidate verbatim — the body was already right — took it
@@ -13125,7 +13125,7 @@ the object comes out with `li`/`sb` above the multi-load and scores 96% with
     sp.funcs[(s16)work->subState](task);
 ```
 
-`func_actor_206100_8014F524` is the example, and unlike the 3-word case above
+`_actor206100DispatchEntrance` is the example, and unlike the 3-word case above
 its store is *not* sunk into the `jalr` delay slot — the delay slot stays `nop`
 and `$a1` keeps the `work` temp through to the call — so no `volatile` is
 needed and the statement order alone is the fix.
@@ -77105,7 +77105,7 @@ sndEvtRequestScriptStart(soundId, pan, (s8)worldCoordGetOriginAudioDepth(coord))
 A QImode object only has to be converted where it is *used*, so GCC delays the
 pair; assigning the `s8` *value* to an SImode object makes the conversion a
 real insn at the assignment, which is where a value that survives a call is
-supposed to be settled. `func_actor_206100_8014FBE4` is the worked example
+supposed to be settled. `_actor206100UnlinkForDeath` is the worked example
 (88.413% -> 100%; the other half of that gap was m2c inventing a second argument
 for the one-argument `worldCoordGetOriginAudioPan`, which materialised `0x40040006` twice -
 one `lui`/`ori` pair per copy. An `insert` penalty from a duplicated constant is
@@ -77216,7 +77216,7 @@ one object into *several* overlays, and both of these are already in
 
 ## No copy in the epilogue means the return is two `return`s, not a variable
 
-`func_actor_206100_8014EE2C` returns its spawned enemy, or NULL:
+`_actor206100SpawnBogDiver` returns its spawned enemy, or NULL:
 
 ```
     beqz  $s1, .L
@@ -77254,7 +77254,7 @@ statements - not a shared variable - give two direct hard-register defs:
 
 ## m2c's pointer-typed add scales the index by 4 and combine folds it into the shift
 
-`func_actor_206100_8014EE2C` computes `&D_actor_206100_80155134[(s16)index]` as
+`_actor206100SpawnBogDiver` computes `&D_actor_206100_80155134[(s16)index]` as
 `sll $v1,$s0,16` / `sra $v1,$v1,12`. m2c renders the same address as a pointer
 add onto an untyped symbol:
 
@@ -77283,7 +77283,7 @@ the scratch).
 
 ## Reordering two equal-priority stores in the C moves a pointer's local-alloc birth, and the register with it
 
-`func_actor_206100_8014EEC0` builds a child collision object and was stuck at
+`_actor206100LaunchShot` builds a child collision object and was stuck at
 98.94% on one hunk: the task pointer and the `&shot->contacts` pointer had `$s1` and
 `$s2` swapped, everything else identical (`reorder=0 insert=0 delete=0
 branch=0 stack=0`).
@@ -77479,7 +77479,7 @@ the scheduler has a register to keep the coord load where the target has it.
 
 This is the lever of "Reordering two equal-priority stores in the C moves a
 pointer's local-alloc birth, and the register with it" — same overlay,
-`func_actor_206100_8014EEC0` — reached from the other direction: there two
+`_actor206100LaunchShot` — reached from the other direction: there two
 *stores* swapped and moved one birth, here a whole multi-instruction statement
 moves to the head of its block.
 
@@ -77489,7 +77489,7 @@ the current best, each compiled with `./dump.sh` (which does not consume
 the emitted region in the `.s`. One of the four flipped the register; the other
 three changed nothing. When the residual is a register choice that looks
 unreachable, a matched sibling is the cheapest proof it is not:
-`func_actor_206100_8014EEC0` compiles to `lw v0,44(s1)` / `addiu s2,s0,40` /
+`_actor206100LaunchShot` compiles to `lw v0,44(s1)` / `addiu s2,s0,40` /
 `lw v1,8(v0)`, the target's exact shape, which ruled out "this compiler cannot
 produce it" and pointed at live ranges instead.
 
@@ -97926,7 +97926,7 @@ value is born while `$v0` still holds the `0x2C` pointer and lands in `$v1`, and
 the store sinks into the following call's delay slot — the target's order. With
 the constants first the block stays in source order, `$v0` takes both loads with
 a `nop` filler, and the penalties are `reorder=3 regs=3 insert=1 delete=1`. Same
-tie-break lever as the `func_actor_206100_8014EEC0` entry above, but there it
+tie-break lever as the `_actor206100LaunchShot` entry above, but there it
 moved a local-alloc birth and left the instruction order alone; here it decides
 the emitted order itself.
 
@@ -103535,7 +103535,7 @@ the block stays 49 insns and nothing moves. And reasoning from `.lreg`'s
 here (96 and 68 are both spans, just in different units), which is exactly the
 trap: check `trace_gcc.py`'s span column, not the `REG_LIVE_LENGTH` line.
 
-For contrast, the near-identical sibling `func_actor_206100_8014EEC0` never
+For contrast, the near-identical sibling `_actor206100LaunchShot` never
 hits this: its task pointer spans 102 against a coordinate's 78, 1372 > 1282,
 so the parameter takes `$s1` on its own. The race only surfaces when the two
 quantities are within a few percent of each other.
@@ -117363,7 +117363,7 @@ the two identical initialisers into the branch's delay slot. A seed that hoists
 
 ## A constant the target materialises in a branch's block wants a source assignment, not a loop invariant
 
-`func_actor_206100_8014D574` spawns a 32-particle ring when its frame counter
+`_actor206100DiveSplashTick` spawns a 32-particle ring when its frame counter
 hits 0x1E and gives every particle `vec.vy = -0x64`. Writing that constant where
 the loop uses it scores 99.375% with one `reorder`: the object is identical
 except that `li s6,-0x64` and `move s1,zero` trade places around the `bne` that
@@ -117612,7 +117612,7 @@ Inputs: `base.c` 76.036%, `base_1.c` 100.000%, `base_3.c` (no `cond`) 90.764%,
 
 A loop that walks an array of records by pointer and touches *two* of the
 record's fields gives the second field an induction variable of its own, and the
-register it takes displaces every value allocated after it.  `func_actor_206100_8014DD3C`
+register it takes displaces every value allocated after it.  `_actor206100SummonBogDiversTick`
 walks two 8-byte Bog Diver slots, `{ Enemy* enemy; s32 summonCooldown; }`, and only the
 indexed spelling reproduces the target.
 
@@ -117823,30 +117823,27 @@ So when a target rematerialises a scratch or other absolute address at every
 use, write the accesses as an inlined helper instead of at the call site:
 
 ```c
-static __inline__ void Actor206100_UpdateColor(Task* task)
+static __inline__ void _actorRenderUpdateModelColor(Task* task)
 {
-    GfxCoord* coord;
-    void**         scratch;
-    u8*            head;
-    VECTOR*        block;
+    GfxCoord* sampleCoord;
+    VECTOR*   samplePosition;
 
-    coord     = &((TmdObject*)task->extra)->coords[1];
-    scratch   = SCRATCH_STACK_CURSOR_SLOT;
-    head      = *scratch;
-    block     = (VECTOR*)(head - 0x10);
-    block->vx = coord->workm.t[0];
-    ...
-    *scratch  = block;
-    worldCoordUpdateActorColor(task->spawnArg2, block, 0, 0);
-    *scratch = (u8*)*scratch + 0x10;
+    sampleCoord = &task->extra.tmd->coords[1];
+    samplePosition = SCRATCH_STACK_CURSOR(VECTOR) - 1;
+    samplePosition->vx = sampleCoord->workm.t[0];
+    samplePosition->vy = sampleCoord->workm.t[1];
+    samplePosition->vz = sampleCoord->workm.t[2];
+    SCRATCH_STACK_CURSOR(VECTOR) = samplePosition;
+    worldCoordUpdateActorColor(task->spawnArg2.pointer, samplePosition, 0, 0);
+    SCRATCH_STACK_RELEASE_BLOCK(VECTOR);
 }
 ```
 
 The `static __inline__` helper `_actorRenderUpdateModelColor` in
-`include/actors/actor.h` is this same body, now with typed VECTOR element
-arithmetic, and this is why it stays an inline helper rather than call-site code.
+`include/actors/actor.h` supplies this typed VECTOR sample to all three Sea Diver callers as well.
+This is why it stays an inline helper rather than call-site code.
 
-`func_actor_206100_8014E7D4` is the worked example.  The tail written at the
+`_actor206100DeathTick` is the worked example.  The tail written at the
 call site (92.540%, `base_2`, `ef536d3e50b6e405`) gives one `lui`/`ori` and four
 `0($base)` accesses with the address held in `$s0` across `worldCoordUpdateActorColor`;
 wrapped in the inline helper (100.000%, `base_9`, `9d583cfc4584e3de`) each of the
@@ -118033,9 +118030,9 @@ when reading an unfamiliar identity splat: a frame-relative store is member
 access, a register-relative one is a pointer expression, and the ROM's *mix*
 tells you which of the five the original wrote each way.
 
-## A store inside *both* arms is what keeps a same-field reload (func_actor_206100_8014B8B4, 2026-09-16)
+## A store inside *both* arms is what keeps a same-field reload (_actor206100FlyShot, 2026-09-16)
 
-The scale ramp that ends `func_actor_206100_8014B8B4` stores and then reads the
+The scale ramp that ends `_actor206100FlyShot` stores and then reads the
 same field back for the call:
 
 ```
@@ -118131,7 +118128,7 @@ guesses showed up as exactly one instruction line in
 Inputs: `base_1.c` SHA256 `443c6c74afff8e5671e8b504bb27d512174171c9c79402b384f124edc79f1c81`; target
 SHA256 `f63a7f529a23b690c6bfcb69215f72b9332d21c3e1a118f85a86e4441675477a`.
 
-## A value stored from several blocks needs a local, not a literal (func_actor_206100_8014BAA8, 2026-09-17)
+## A value stored from several blocks needs a local, not a literal (_actor206100TakeHits, 2026-09-17)
 
 With the record-walk structure of the sibling `Actor00400_Fn01B90` in place the
 function sat at 99.85%, and the whole remaining diff was two lines of prologue:
@@ -147698,7 +147695,7 @@ Two side observations from the same function:
   evaluates it before the two `RotMatrix` calls, the value lives across them,
   and one more saved register re-colours the whole function.
 - `addiu a1,sp,0x10` ahead of a `jalr` through a stack copy of a handler table
-  is not a second argument. `func_actor_206100_8014E7D4` had been matched with
+  is not a second argument. `_actor206100DeathTick` had been matched with
   handlers typed `void (*)(Task*, void*)` and the call passing `&states`; with
   plain `TaskFunc` handlers and `states.funcs[work->state](task)` it compiles to
   the same bytes. `$v0`, `$v1` and `$a0` were busy, and `$a1` was simply the

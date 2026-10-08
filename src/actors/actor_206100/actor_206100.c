@@ -67,7 +67,7 @@
 
 extern TaskDesc D_actor_206100_80158B0C[];
 
-/// The `worldCollisionLinkBody` record `func_actor_206100_8014FBE4` unlinks when it
+/// The `worldCollisionLinkBody` record `_actor206100UnlinkForDeath` unlinks when it
 /// retires the actor, plus the area-record list that handler applies.
 
 /// The attack a shot's sphere carries at `WorldCollisionBody.key`.
@@ -82,7 +82,7 @@ extern EnemyParams D_actor_206100_80155198;
 /// Animation bank handed to `animationInitContext` by `_actor206100InitEnemy`.
 extern AnimationSet* D_actor_206100_80158B24[];
 
-/// Placement records `func_actor_206100_8014EE2C` parks at `Enemy::place`
+/// Placement records `_actor206100SpawnBogDiver` parks at `Enemy::place`
 /// -- the same slot `areaSpawnPlacements` fills from a room's own place list, so this
 /// is a local six-entry copy of one: `field_0` is 4 on the five live entries
 /// and 0xFF on the sixth, the value `areaSpawnPlacements` stops its walk on.  The
@@ -311,10 +311,7 @@ static void _actor206100InitEnemy(Task* task);
 
 static void _actor206100InitHitBodies(Task* task);
 
-/// First state of a shot's task: parents its coordinate to the view, links
-/// the sphere that carries the attack and throws the launch burst. `task` is
-/// the shot the fight spawned, so its `Task::work` is a `_Actor206100ShotWork`.
-static void func_actor_206100_8014EEC0(Task* task);
+static void _actor206100LaunchShot(Task* task);
 
 /// Steps the actor's model coordinate `arg1` along the heading `arg2`, in the
 /// XZ plane, and marks it dirty.
@@ -334,62 +331,15 @@ static void func_actor_206100_8014EEC0(Task* task);
 
 static void _actor206100EntranceDepartureTick(Task* task);
 
-/// State handler 4 of `D_actor_206100_80149E94`, and the one that hands the
-/// actor to `_actor206100EntranceDepartureTick` above.  It clears the fixed-address
-/// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `stateFrames` and seeds
-/// `D_actor_206100_80158CCC.state` to `SCREEN_WAVE_RAMP_FINISHED` on the first frame; frame 3 retires the
-/// child task `func_actor_206100_8014CB68` spawned into `waveTask`, and if the
-/// kill left the counter alone, fires sound event 0x551E0003; frame 0xC splats
-/// the 0x01202148 particle ring `func_actor_206100_8014D574` fires, at a radius
-/// of 0x1000 and a constant y of -0x294; and frame 0x46 clears the model
-/// coordinate's x and z, plays the weapon and 0x3F3 messages under light mode
-/// 2, and moves the actor to state 1 at sub-state 0.
-///
-/// That last block reads `task->work` again instead of reusing the `work`
-/// pointer, the same fresh load `_diverSetState` makes, so the two stores stay a
-/// block-local quantity.
-static void func_actor_206100_8014CE60(Task* task);
+static void _actor206100EntranceArrivalTick(Task* task);
 
 static void _actor206100EnterAttack(Task* task);
 
 static void _actor206100AttackTick(Task* task);
 
-/// Sub-state 1 of `D_actor_206100_8014D6F4`'s table
-/// (`D_actor_206100_80149EB4`, whose first entry `_actor206100EnterSurface`
-/// and third `_actor206100WaitSurface` bracket it).  On the seventh frame of
-/// the sub-state it splats 0x20 effect particles around the actor's root
-/// coordinate -- the same `effectSpawn` id 0x01202148 ring
-/// `func_actor_206100_8014D574` fires, at a radius of 0x1000 and a constant
-/// y of -0x3E8 -- and from frame 0x1F it draws from `gRandomLcgState`: a one-in-four
-/// `(state >> 16) & 3 == 0` hands state 2 (the teleport
-/// `func_actor_206100_8014CB68`) to the actor at sub-state 0, and every other
-/// draw restarts the counter and advances the sub-state.
-static void func_actor_206100_8014D8E8(Task* task);
+static void _actor206100SurfaceSplashTick(Task* task);
 
-/// Sub-state 1 of the state-2 dispatcher `func_actor_206100_8014DA28`'s
-/// two-entry local table, which picks it with `funcs[state]` and is
-/// entered from that dispatcher's `gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING` arm -- entry 0 is the ring
-/// stepper `_actor206100PlaceOnWaypointRing`.  It keeps the Bog Divers summoned.
-///
-/// `stateFrames` is held at 0x1E -- the frame `func_actor_206100_8014D574` fires
-/// the explosion on -- by arming the global `gSceneCombatState` flag again through
-/// `sceneEngageBattle` instead of advancing it, so the sub-state never leaves it;
-/// every earlier frame just advances the counter.  The shared companion tick
-/// `_actor206100SwimWaypointRing` then runs, and the two slots
-/// `D_actor_206100_80158CBC` are walked by index, each handled on its own:
-///
-/// - an empty slot whose `summonCooldown` has run out summons a Bog Diver with
-///   `func_actor_206100_8014EE2C`, stores it, arms its `hp`
-///   and advances `bogDiversSpawned` -- but only while `bogDiversSpawned` is still
-///   below 5, because that index picks the diver's place record;
-/// - an empty slot whose `summonCooldown` is still running counts it down by one;
-/// - a filled slot whose diver has lost its `hp` is emptied and armed with
-///   `ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN`, and the fifth such release moves
-///   the actor to state 2 with the state and sub-state indices cleared.
-///
-/// The state change reads `task->work` again rather than reusing `work`, the
-/// same fresh load `_diverSetState` makes.
-static void func_actor_206100_8014DD3C(Task* task);
+static void _actor206100SummonBogDiversTick(Task* task);
 
 /// Transforms `pos` from `coord`'s space up the parent chain into the view
 /// coordinate's space.  Returns 1 with `pos` rewritten once the walk reaches
@@ -406,9 +356,9 @@ static void _actor206100Part5RecoilTick(Task* task);
 static void _actor206100SwimWaypointRing(Task* task);
 static void _actor206100PlaceOnWaypointRing(Task* task);
 
-static Enemy* func_actor_206100_8014EE2C(s32 arg0);
+static Enemy* _actor206100SpawnBogDiver(s32 placementIndex);
 
-static void func_actor_206100_8014D574(Task* task);
+static void _actor206100DiveSplashTick(Task* task);
 static void _actor206100StartRecoil(Task* task, s16 peakPitch);
 static void _actor206100StepWithinFightArea(Task* task, s16 distance);
 static void _actor206100BlendRequestedClip(Task* task);
@@ -418,7 +368,7 @@ static void _actor206100WaitUnderwater(Task* task);
 static void _actor206100EnterSurface(Task* task);
 static void _actor206100WaitSurface(Task* task);
 static void _actor206100DeathPlaybackTick(Task* task);
-static void func_actor_206100_8014FBE4(Task* task);
+static void _actor206100UnlinkForDeath(Task* task);
 static void _actor206100EnterDeathPlayback(Task* task);
 static void func_actor_206100_8014FDE8(Task* task);
 static void _actor206100AimHead(Task* task);
@@ -442,12 +392,12 @@ static void _actor206100WaitRecoilBoundary(Task* task);
 static void _actor206100EnterStatusHold(Task* task);
 static void _actor206100StatusHoldTick(Task* task);
 
-static void func_actor_206100_8014B8B4(Task* task);
+static void _actor206100FlyShot(Task* task);
 
 static const TaskFuncTable3 D_actor_206100_80149E24 = {
     {
-        func_actor_206100_8014EEC0,
-        func_actor_206100_8014B8B4,
+        _actor206100LaunchShot,
+        _actor206100FlyShot,
         _diverStrikeTeardown,
     },
 };
@@ -459,8 +409,8 @@ static TmdBone _gActor206100DiverEnergyBallSkeleton[1];
 static u32     _gActor206100DiverEnergyBallStream[270];
 
 static TmdSource _gActor206100DiverBody;
-void             func_actor_206100_8014F134(Task*);
-void             func_actor_206100_8014F428(Task*);
+static void      _actor206100ShotTask(Task* task);
+static void      _actor206100Task(Task* task);
 
 static TmdBone _gActor206100DiverBodySkeleton[15] = {
 #include "assets/diver_body_skeleton.inc"
@@ -927,8 +877,8 @@ TaskDesc D_actor_206100_80158AF0[2] = {
 s32 gScreenWaveRamp = 256;
 
 TaskDesc D_actor_206100_80158B0C[2] = {
-    { { { TASK_BODY_TMD, 96 } }, func_actor_206100_8014F428, { .model = &_gActor206100DiverBody } },
-    { { { TASK_BODY_COORD, 96 } }, func_actor_206100_8014F134, { .value = 0 } },
+    { { { TASK_BODY_TMD, 96 } }, _actor206100Task, { .model = &_gActor206100DiverBody } },
+    { { { TASK_BODY_COORD, 96 } }, _actor206100ShotTask, { .value = 0 } },
 };
 
 AnimationSet* D_actor_206100_80158B24[17] = {
@@ -976,15 +926,15 @@ static void func_actor_206100_8014DA28(Task* task);
 
 static void func_actor_206100_8014C458(Task* task);
 
-static void func_actor_206100_8014E7D4(Task* task);
+static void _actor206100DeathTick(Task* task);
 
-static void func_actor_206100_8014F524(Task* task);
+static void _actor206100DispatchEntrance(Task* task);
 
 static void _actor206100DispatchAttack(Task* task);
 
 static void _actor206100DispatchDive(Task* task);
 
-static void func_actor_206100_8014D6F4(Task* task);
+static void _actor206100DispatchSurface(Task* task);
 
 static void _actor206100FightState4(Task* task);
 
@@ -1002,13 +952,12 @@ static void _actor206100EntranceLeadInTick(Task* task);
 
 extern TaskDesc D_actor_100400_80147E48;
 
-static void            _actor206100TrackTarget(Task* task);
-static void            func_actor_206100_8014BAA8(Task* task);
-static inline void     _actor206100AnimUpdate(Task* task);
-static void            _actor206100Spawn(Task* task);
-static __inline__ void Actor206100_UpdateColor(Task* task);
-static void            func_actor_206100_8014CB68(Task* task);
-static __inline__ s16  _actor206100ConsumeHitReaction(Task* task);
+static void           _actor206100TrackTarget(Task* task);
+static void           _actor206100TakeHits(Task* task);
+static inline void    _actor206100AnimUpdate(Task* task);
+static void           _actor206100Spawn(Task* task);
+static void           func_actor_206100_8014CB68(Task* task);
+static __inline__ s16 _actor206100ConsumeHitReaction(Task* task);
 
 #include "../../shared/screen_wave.inc.c"
 
@@ -1284,195 +1233,189 @@ static void _actor206100TrackTarget(Task* task)
         work->playerBearing = (ratan2(playerOffset.vx, playerOffset.vz) - work->rotation.vy) & ACTOR_206100_PLAYER_BEARING_MASK;
     }
 }
-/// Flight state of a shot, entered once `func_actor_206100_8014EEC0` has
-/// launched it. While the actors run it adds `ACTOR_206100_SHOT_GRAVITY` to the
-/// shot's vertical speed, moves the coordinate by
-/// `_Actor206100ShotWork::velocity`, then decides whether the shot bursts.
+/// Moves a Sea Diver shot and switches it to burst teardown on impact or expiry.
 ///
-/// `hit` is raised when either of the shot's two contacts reports one of the
-/// three kinds 1/3/5, or when `worldCollisionResolvePushback` finds the sphere against the
-/// room's grid without bit 8 in its mask. Once it is raised - or at
-/// `ACTOR_206100_SHOT_LIFETIME` frames - the sphere's grid and pair tests are
-/// switched off, the task's state is bumped and the burst is thrown with kind
-/// 2 instead of 1. `burstSize` grows before every burst.
-static void func_actor_206100_8014B8B4(Task* task)
+/// Requires live shot work, its linked attack sphere and two initialized contacts.
+/// Running updates apply gravity and parent-space velocity, consume contacts and
+/// age the shot; other actor-control modes leave it unchanged. Player, enemy and
+/// hazard bodies trigger a burst. Grid hits trigger one unless class 3 is present.
+/// The burst disables grid/pair tests before the twelve-tick linger state unlinks
+/// the sphere; growth of the packed burst size retains its clamped store/reload.
+static void _actor206100FlyShot(Task* task)
 {
+    enum {
+        ACTOR_206100_SHOT_CONTACT_HAZARD    = 0x50000,
+        ACTOR_206100_SHOT_PASS_SURFACE_MASK = 1 << 3
+    };
     _Actor206100ShotWork* shot;
-    GfxCoord*             coord;
-    WorldCollisionDelta   delta;
-    s32                   mask;
-    s32                   hit;
+    GfxCoord*             shotCoord;
+    WorldCollisionDelta   unusedPushback;
+    s32                   surfaceMask;
+    s32                   shouldBurst;
     s32                   burstKind;
-    s32                   i;
-    s32                   n;
-    s32                   v;
+    s32                   contactIndex;
+    s32                   gridResult;
+    s32                   burstSize;
 
-    hit       = 0;
-    shot      = task->work;
-    coord     = task->extra.tmd->coords;
-    burstKind = DIVER_BURST_TRAIL;
+    shouldBurst = 0;
+    shot        = task->work;
+    shotCoord   = task->extra.tmd->coords;
+    burstKind   = DIVER_BURST_TRAIL;
     if (gSceneCombatState.actorControl == SCENE_COMBAT_ACTORS_RUNNING) {
-        shot->velocity.vy    += ACTOR_206100_SHOT_GRAVITY;
-        *&coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        coord->coord.t[0]    += shot->velocity.vx;
-        coord->coord.t[1]    += shot->velocity.vy;
-        coord->coord.t[2]    += shot->velocity.vz;
+        shot->velocity.vy      += ACTOR_206100_SHOT_GRAVITY;
+        shotCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+        shotCoord->coord.t[0]  += shot->velocity.vx;
+        shotCoord->coord.t[1]  += shot->velocity.vy;
+        shotCoord->coord.t[2]  += shot->velocity.vz;
+        // Body and hazard contacts burst immediately; grid class 3 suppresses a grid burst.
         if (worldCollisionFindContactIndex(shot->contacts, WORLD_COLLISION_FIND_ANY_KEY) != 0) {
-            for (i = 0; i < ARRAY_SIZE(shot->contacts); i++) {
-                switch (shot->contacts[i].key.value & 0xFFFF0000) {
-                    case 0x10000:
-                    case 0x30000:
-                    case 0x50000:
-                        hit = 1;
+            for (contactIndex = 0; contactIndex < ARRAY_SIZE(shot->contacts); contactIndex++) {
+                switch (shot->contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) {
+                    case WORLD_COLLISION_CONTACT_PLAYER_BODY:
+                    case WORLD_COLLISION_CONTACT_ENEMY_BODY:
+                    case ACTOR_206100_SHOT_CONTACT_HAZARD:
+                        shouldBurst = 1;
                         break;
                 }
             }
         }
-        n = worldCollisionResolvePushback(shot->contacts, &delta, ARRAY_SIZE(shot->contacts), &mask);
-        if (n < 3) {
-            if (n > 0) {
-                if ((mask & 8) == 0) {
-                    hit = 1;
+        gridResult = worldCollisionResolvePushback(shot->contacts, &unusedPushback, ARRAY_SIZE(shot->contacts), &surfaceMask);
+        if (gridResult <= WORLD_COLLISION_PUSHBACK_OPPOSED) {
+            if (gridResult > WORLD_COLLISION_PUSHBACK_NO_GRID_HIT) {
+                if ((surfaceMask & ACTOR_206100_SHOT_PASS_SURFACE_MASK) == 0) {
+                    shouldBurst = 1;
                 }
             }
         }
         worldCollisionClearContacts(shot->contacts);
-        if ((++task->killCountdown >= ACTOR_206100_SHOT_LIFETIME) || (hit != 0)) {
+        // Disable collision for the burst, leaving unlinking to the linger state.
+        if ((++task->killCountdown >= ACTOR_206100_SHOT_LIFETIME) || (shouldBurst != 0)) {
             task->killCountdown            = 0;
             shot->strike.attackBody.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED));
             burstKind                      = DIVER_BURST_IMPACT;
             task->state                   += 1;
         }
-        v = shot->burstSize;
-        if (v < ACTOR_206100_SHOT_BURST_SIZE_MAX) {
-            shot->burstSize = v + ACTOR_206100_SHOT_BURST_SIZE_STEP;
+        burstSize = shot->burstSize;
+        if (burstSize < ACTOR_206100_SHOT_BURST_SIZE_MAX) {
+            shot->burstSize = burstSize + ACTOR_206100_SHOT_BURST_SIZE_STEP;
         } else {
             shot->burstSize = ACTOR_206100_SHOT_BURST_SIZE_MAX;
         }
-        _diverImpactBurst(coord, shot->burstPhase, burstKind, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
+        _diverImpactBurst(shotCoord, shot->burstPhase, burstKind, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
     }
 }
-/// Damage / knock-back tick: walks the six contact records of the actor's
-/// `hitContacts` table and turns the first occupied one into a hit.  `hitCooldown` is
-/// the cooldown that gates it -- `damageGetPlayerAttackHitCooldown` of the record arms it, and
-/// `hit` / `heavy` are the two reactions it leaves in `hitReaction`, the light
-/// recoil (1) and the heavy one (2) that the consumer `_actor206100ConsumeHitReaction` maps to the
-/// 0x135 and 0x3A0 peaks of `recoilPitch`.  Both are initialised before the loop
-/// rather than written as literals at each site: the arms that write
-/// `hitReaction` land in different basic blocks, and a literal in each of them is
-/// reloaded per block, so only a value that is live from the entry block keeps
-/// one register for all of them.  `hit` doubles as the value of the two hit
-/// flags `hitTaken` / `wasHit`, which the actor raises on the frame it
-/// takes the hit; `hitTaken` also ends the walk of the records.
+/// Applies player-attack contacts and pending status damage to the Sea Diver.
 ///
-/// While the cooldown reads 0 the record's packed id is rolled through
-/// `damageComputePlayerAttack` and `damageRollCriticalHit` -- a successful roll scales the
-/// damage and selects the effect kind. The result credits any Life Drain
-/// healing through `damageAccumulateLifeDrainHp`, updates the damage readout
-/// through `worldTargetAddReadoutAmount`, and is subtracted from the enemy's `hp`.
-/// The id's low parameter then picks one of the three flag
-/// setters, one of the hit reaction sizes, or clears the hit flag again, and
-/// the `0x7F`/`0x8000` pair on an id ending 0x1C forces the light reaction and
-/// clears bit 0 of the object's draw flags.  The `else` arm is the same record
-/// arriving with the cooldown still up: id parameter 0xD sounds
-/// `effectSpawnHit` on the root coordinate's second part alone.
-///
-/// The tail turns `reactionFlags` into requests the same way -- stagger clears
-/// and asks for the heavy reaction, buildup asks for the consumer's
-/// sound-and-state pair, and the damage-over-time countdown applies
-/// its knock-back and asks for the light one -- and every frame ends by
-/// releasing the record table and counting the cooldown down, or clamping it to
-/// 0 so it never goes negative.
-static void func_actor_206100_8014BAA8(Task* task)
+/// Requires the live Enemy, initialized six-contact hit table and current target
+/// distance/part. Cooldown gates direct damage; the selected reaction can clear
+/// hitTaken and allow another contact to be considered. Damage narrows to s16,
+/// critical hits multiply by four and incendiary hits double that narrowed amount.
+/// Credits Life Drain before subtracting HP, preserves signed-halfword HP clamping,
+/// then handles stagger, buildup and poison. Clears contacts and ticks cooldown.
+static void _actor206100TakeHits(Task* task)
 {
+    enum {
+        ACTOR_206100_HEAVY_HIT_DAMAGE          = 180,
+        ACTOR_206100_HIT_ATTRIBUTE_BLAST       = 4,
+        ACTOR_206100_HIT_ATTRIBUTE_HEAVY       = 5,
+        ACTOR_206100_HIT_ATTRIBUTE_NO_REACTION = 8,
+        ACTOR_206100_HIT_ATTRIBUTE_LIGHT       = 9,
+        ACTOR_206100_HIT_EFFECT_NONE           = 0,
+        ACTOR_206100_HIT_EFFECT_CRITICAL       = 1,
+        ACTOR_206100_HIT_EFFECT_INCENDIARY     = 2,
+        ACTOR_206100_PLAYER_ATTACK_ROW_MASK    = 0x7F,
+        ACTOR_206100_PLAYER_ATTACK_ATTACHMENT  = 0x8000,
+        ACTOR_206100_STAGGER_EXEMPT_WEAPON_ROW = 28
+    };
     _Actor206100Work* work;
     Enemy*            enemy;
-    s32               kind;
-    s16               amount;
-    s32               dmg;
-    s32               tmp;
-    s32               tick;
-    s32               i;
-    s32               hit;
-    s32               heavy;
+    s32               extraEffectKind;
+    s16               hpDamage;
+    s32               baseDamage;
+    s32               effectOrStatusResult;
+    s32               statusDamageHalf;
+    s32               contactIndex;
+    s32               lightReaction;
+    s32               heavyReaction;
 
-    kind           = 0;
-    hit            = 1;
-    heavy          = ACTOR_206100_HIT_REACTION_HEAVY;
-    work           = task->work;
-    enemy          = (Enemy*)task->spawnArg2.pointer;
-    work->hitTaken = 0;
-    for (i = 0; i < ARRAY_SIZE(work->hitContacts); i++) {
-        if ((work->hitContacts[i].key.value & 0xFFFF0000) == 0x20000) {
+    extraEffectKind = ACTOR_206100_HIT_EFFECT_NONE;
+    lightReaction   = ACTOR_206100_HIT_REACTION_LIGHT;
+    heavyReaction   = ACTOR_206100_HIT_REACTION_HEAVY;
+    work            = task->work;
+    enemy           = task->spawnArg2.pointer;
+    work->hitTaken  = 0;
+    // A reaction-clearing hit can let the scan continue to another contact.
+    for (contactIndex = 0; contactIndex < ARRAY_SIZE(work->hitContacts); contactIndex++) {
+        if ((work->hitContacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_ATTACK) {
             if (work->hitCooldown == 0) {
-                work->hitTaken    = hit;
-                work->wasHit      = hit;
-                dmg               = damageComputePlayerAttack(work->hitContacts[i].key.value, work->targetDistance, 0, 0);
-                amount            = dmg;
-                work->hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[i].key.value);
-                if (damageRollCriticalHit(enemy, work->hitContacts[i].key.value, 0) != 0) {
-                    amount = ((u32)dmg << 16) >> 14;
-                    kind   = 1;
+                work->hitTaken    = lightReaction;
+                work->wasHit      = lightReaction;
+                baseDamage        = damageComputePlayerAttack(work->hitContacts[contactIndex].key.value, work->targetDistance, 0, 0);
+                hpDamage          = baseDamage;
+                work->hitCooldown = damageGetPlayerAttackHitCooldown(work->hitContacts[contactIndex].key.value);
+                if (damageRollCriticalHit(enemy, work->hitContacts[contactIndex].key.value, 0) != 0) {
+                    hpDamage        = ((u32)baseDamage << 16) >> 14;
+                    extraEffectKind = ACTOR_206100_HIT_EFFECT_CRITICAL;
                 }
-                effectSpawnHit(damageGetPlayerAttackEffectId(work->hitContacts[i].key.value),
+                effectSpawnHit(damageGetPlayerAttackEffectId(work->hitContacts[contactIndex].key.value),
                                &task->extra.tmd->coords[work->targetPart], 0, &work->effectArg);
-                if (amount >= 0xB4) {
-                    work->hitReaction = heavy;
+                if (hpDamage >= ACTOR_206100_HEAVY_HIT_DAMAGE) {
+                    work->hitReaction = heavyReaction;
                 } else {
-                    work->hitReaction = hit;
+                    work->hitReaction = lightReaction;
                 }
-                switch (damageGetPlayerAttackReaction(work->hitContacts[i].key.value) & 0xFFFF) {
+                switch (damageGetPlayerAttackReaction(work->hitContacts[contactIndex].key.value) & 0xFFFF) {
                     case DAMAGE_PLAYER_REACTION_NONE:
                         break;
                     case DAMAGE_PLAYER_REACTION_STAGGER:
                         damageStartEnemyStagger(enemy);
                         break;
                     case DAMAGE_PLAYER_REACTION_BUILDUP:
-                        damageStartEnemyBuildup(enemy, work->hitContacts[i].key.value, 0);
+                        damageStartEnemyBuildup(enemy, work->hitContacts[contactIndex].key.value, 0);
                         break;
                     case DAMAGE_PLAYER_REACTION_POISON:
-                        damageTryStartEnemyDamageOverTime(enemy, work->hitContacts[i].key.value, 0);
+                        damageTryStartEnemyDamageOverTime(enemy, work->hitContacts[contactIndex].key.value, 0);
                         break;
-                    case 4:
+                    case ACTOR_206100_HIT_ATTRIBUTE_BLAST:
                         work->hitReaction = ACTOR_206100_HIT_REACTION_BLAST;
                         break;
-                    case 5:
+                    case ACTOR_206100_HIT_ATTRIBUTE_HEAVY:
                     case DAMAGE_PLAYER_REACTION_EXPLOSION:
-                        work->hitReaction = heavy;
+                        work->hitReaction = heavyReaction;
                         break;
                     case DAMAGE_PLAYER_REACTION_INCENDIARY:
-                        kind              = 2;
+                        extraEffectKind   = ACTOR_206100_HIT_EFFECT_INCENDIARY;
                         work->hitReaction = ACTOR_206100_HIT_REACTION_HEAVY;
-                        amount           += amount;
+                        hpDamage         += hpDamage;
                         break;
-                    case 8:
+                    case ACTOR_206100_HIT_ATTRIBUTE_NO_REACTION:
                         work->hitReaction = ACTOR_206100_HIT_REACTION_NONE;
                         work->hitTaken    = 0;
                         break;
-                    case 9:
-                        work->hitReaction = hit;
+                    case ACTOR_206100_HIT_ATTRIBUTE_LIGHT:
+                        work->hitReaction = lightReaction;
                         break;
                 }
-                if ((work->hitContacts[i].key.value & 0x7F) == 0x1C && (work->hitContacts[i].key.value & 0x8000) == 0) {
+                if ((work->hitContacts[contactIndex].key.value & ACTOR_206100_PLAYER_ATTACK_ROW_MASK) == ACTOR_206100_STAGGER_EXEMPT_WEAPON_ROW && (work->hitContacts[contactIndex].key.value & ACTOR_206100_PLAYER_ATTACK_ATTACHMENT) == 0) {
                     enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
-                    work->hitReaction     = hit;
+                    work->hitReaction     = lightReaction;
                 }
-                tmp = kind;
-                switch (tmp) {
-                    case 1:
+                effectOrStatusResult = extraEffectKind;
+                switch (effectOrStatusResult) {
+                    case ACTOR_206100_HIT_EFFECT_CRITICAL:
                         effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->targetPart], 0, 0);
                         break;
-                    case 2:
+                    case ACTOR_206100_HIT_EFFECT_INCENDIARY:
                         effectSpawn(EFFECT_CRITICAL_HIT, &task->extra.tmd->coords[work->targetPart], 2, 0);
                         break;
                 }
-                damageAccumulateLifeDrainHp(enemy, work->hitContacts[i].key.value, amount, 0);
-                worldTargetAddReadoutAmount(&enemy->node, amount, 0);
-                enemy->hp -= amount;
+                damageAccumulateLifeDrainHp(enemy, work->hitContacts[contactIndex].key.value, hpDamage, 0);
+                worldTargetAddReadoutAmount(&enemy->node, hpDamage, 0);
+                enemy->hp -= hpDamage;
                 if ((s16)enemy->hp < 0) {
                     enemy->hp = 0;
                 }
-            } else if ((damageGetPlayerAttackEffectId(work->hitContacts[i].key.value)) == 0xD) {
+            } else if ((damageGetPlayerAttackEffectId(work->hitContacts[contactIndex].key.value)) == EFFECT_HIT_KIND_LIFE_DRAIN_MOTES) {
                 effectSpawnHit(EFFECT_HIT_KIND_LIFE_DRAIN_MOTES, &task->extra.tmd->coords[1], 0, &work->effectArg);
             }
         }
@@ -1480,6 +1423,7 @@ static void func_actor_206100_8014BAA8(Task* task)
             break;
         }
     }
+    // Consume status requests after contact damage, then apply any poison pulse.
     if (enemy->reactionFlags & ENEMY_REACTION_STAGGER) {
         enemy->reactionFlags &= ENEMY_REACTION_STAGGER_CLEAR;
         work->hitReaction     = ACTOR_206100_HIT_REACTION_HEAVY;
@@ -1489,11 +1433,11 @@ static void func_actor_206100_8014BAA8(Task* task)
         work->hitReaction     = ACTOR_206100_HIT_REACTION_STATUS;
     }
     if (enemy->reactionFlags & ENEMY_REACTION_DAMAGE_OVER_TIME_BITS) {
-        tmp  = damageTickEnemyDamageOverTime(enemy);
-        tick = (s16)tmp;
-        if (tick != 0) {
-            enemy->hp -= tmp;
-            worldTargetAddReadoutAmount(&enemy->node, tick, 0);
+        effectOrStatusResult = damageTickEnemyDamageOverTime(enemy);
+        statusDamageHalf     = (s16)effectOrStatusResult;
+        if (statusDamageHalf != 0) {
+            enemy->hp -= effectOrStatusResult;
+            worldTargetAddReadoutAmount(&enemy->node, statusDamageHalf, 0);
             if ((s16)enemy->hp < 0) {
                 enemy->hp = 0;
             }
@@ -1607,26 +1551,26 @@ static void _actor206100Spawn(Task* task)
     _diverSetState(task, ACTOR_206100_RING_STATE_PLACE);
 }
 /// The actor's five top-level states, dispatched on `Task::state` by its task
-/// callback `func_actor_206100_8014F428`: `_actor206100Spawn` (which
+/// callback `_actor206100Task`: `_actor206100Spawn` (which
 /// builds the work block), `func_actor_206100_8014DA28`,
-/// `func_actor_206100_8014C458`, `func_actor_206100_8014E7D4` and the exit
+/// `func_actor_206100_8014C458`, `_actor206100DeathTick` and the exit
 /// `_actor206100Despawn`.
 static const TaskFuncTable5 D_actor_206100_80149E5C = {
     {
         _actor206100Spawn,
         func_actor_206100_8014DA28,
         func_actor_206100_8014C458,
-        func_actor_206100_8014E7D4,
+        _actor206100DeathTick,
         _actor206100Despawn,
     },
 };
 
 static const TaskFuncTable9 D_actor_206100_80149E70 = {
     {
-        func_actor_206100_8014F524,
+        _actor206100DispatchEntrance,
         _actor206100DispatchAttack,
         _actor206100DispatchDive,
-        func_actor_206100_8014D6F4,
+        _actor206100DispatchSurface,
         _actor206100FightState4,
         _actor206100FightState5,
         _actor206100FightState6,
@@ -1634,34 +1578,6 @@ static const TaskFuncTable9 D_actor_206100_80149E70 = {
         _actor206100DispatchStatusHold,
     },
 };
-
-/// Push the model's second coordinate's world position onto the scratch stack
-/// and hand it to `worldCoordUpdateActorColor`.  The body is `ActorsShared8013a2c0`'s,
-/// inlined the way `_actorRenderUpdateModelColor` inlines it -- and it has to
-/// stay an inlined copy. Only while expanding an
-/// inline body does cc1 keep the scratch head's absolute address folded into
-/// the memory operand (`lw $a1,0x1F8003FC` / `sw $a1,0x1F8003FC`, which the
-/// assembler expands to the `lui` + `%lo` pair); written out at the call site
-/// the same statements materialise the address in a register instead, and the
-/// three instructions that costs are the whole difference.
-static __inline__ void Actor206100_UpdateColor(Task* task)
-{
-    GfxCoord* coord;
-    void**    scratch;
-    u8*       head;
-    VECTOR*   block;
-
-    coord                          = &task->extra.tmd->coords[1];
-    scratch                        = SCRATCH_HEAD_ADDR;
-    head                           = SCRATCH_HEAD_AT(scratch, void);
-    block                          = (VECTOR*)(head - 0x10);
-    block->vx                      = coord->workm.t[0];
-    block->vy                      = coord->workm.t[1];
-    block->vz                      = coord->workm.t[2];
-    SCRATCH_HEAD_AT(scratch, void) = block;
-    worldCoordUpdateActorColor(task->spawnArg2.pointer, block, 0, 0);
-    SCRATCH_POP_BYTES_AT(scratch, 0x10);
-}
 
 /// Applies per-axis local scale to a coordinate's rotation basis.
 ///
@@ -1764,22 +1680,23 @@ static inline void _actor206100SpawnShot(Task* task)
 /// onto.
 #define ACTOR_206100_LOCKABLE_DEPTH 0x190
 
-/// Transforms the lock point one parent upward and narrows its XYZ.
+/// Transforms a lock point into its parent frame, narrowing the result to halfwords.
 ///
-/// Borrows a live matrix, input/staged SVECTORs and separate VECTOR/flag scratch.
-/// Input and staged may alias. Coefficients are Q12 and translation is in game
-/// units; preserves the staged fourth halfword and overwrites GTE state.
-static inline void _actor206100TransformLockPointToParent(const MATRIX* matrix, SVECTOR* input, SVECTOR* staged, VECTOR* transformed, s32* flags)
+/// Borrows a Q12 local-to-parent matrix and signed-halfword game coordinates.
+/// localPoint and parentPoint may alias; widePoint and gteFlags are separate
+/// writable scratch. Writes XYZ only, preserving the fourth halfword. Captures
+/// the GTE overflow flags without interpreting them and overwrites GTE state.
+static inline void _actor206100TransformLockPointToParent(const MATRIX* localToParent, const SVECTOR* localPoint, SVECTOR* parentPoint, VECTOR* widePoint, s32* gteFlags)
 {
-    gte_SetTransMatrix(matrix);
-    gte_SetRotMatrix(matrix);
-    gte_ldv0(input);
+    gte_SetTransMatrix(localToParent);
+    gte_SetRotMatrix(localToParent);
+    gte_ldv0(localPoint);
     gte_rtv0tr();
-    gte_stlvnl(transformed);
-    gte_stflg(flags);
-    staged->vx = transformed->vx;
-    staged->vy = transformed->vy;
-    staged->vz = transformed->vz;
+    gte_stlvnl(widePoint);
+    gte_stflg(gteFlags);
+    parentPoint->vx = widePoint->vx;
+    parentPoint->vy = widePoint->vy;
+    parentPoint->vz = widePoint->vz;
 }
 
 /// Sets lock eligibility from a selected model part's depth below the water.
@@ -1907,7 +1824,7 @@ static void func_actor_206100_8014C458(Task* task)
             _actor206100ApplyPart5Recoil(task);
             _actor206100ApplyRootRotation(task);
             _actor206100ScaleCoordUniform(task->extra.tmd->coords, work->modelScale);
-            func_actor_206100_8014BAA8(task);
+            _actor206100TakeHits(task);
             if (work->shotRequested != 0) {
                 _actor206100SpawnShot(task);
                 work->shotRequested = 0;
@@ -1922,7 +1839,7 @@ static void func_actor_206100_8014C458(Task* task)
                 coord->coord.t[1] + ((work->goalY - coord->coord.t[1]) >> 4);
             enemy->coord = &task->extra.tmd->coords[work->targetPart];
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor206100_UpdateColor(task);
+            _actorRenderUpdateModelColor(task);
             obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             break;
     }
@@ -2052,70 +1969,87 @@ static void _actor206100EntranceDepartureTick(Task* task)
     work->goalY = work->goalY + ((ACTOR_206100_ENTRANCE_DEPART_GOAL_Y - work->goalY) >> 2);
     _diverStepForward(task, ACTOR_206100_ENTRANCE_DEPART_STEP, work->rotation.vy);
 }
-/// State handler 4 of `D_actor_206100_80149E94`: clears the fixed-address
-/// `D_neo_ark_submarine_gallery_801818B8` flag, ticks the per-state counter `stateFrames` and seeds
-/// `D_actor_206100_80158CCC.state` to `SCREEN_WAVE_RAMP_FINISHED` on its first frame.
+/// Emits 32 rotating water-spray particles around the model root at a local height.
 ///
-/// Frame 3 retires the child task `func_actor_206100_8014CB68` spawned into
-/// `waveTask` and, if the kill left the counter where it was, fires the
-/// overlay's sound event 0x551E0003.  Frame 0xC splats the 0x01202148 particle
-/// ring -- the same one `func_actor_206100_8014D574` fires, at a radius of
-/// 0x1000 and a constant y of -0x294 -- and frame 0x46 hands the actor to state
-/// 1 (`_actor206100EntranceDepartureTick`): it clears the model coordinate's x and z,
-/// plays the weapon and 0x3F3 messages under light mode 2, and zeroes the
-/// sub-state index along with the new state.
-///
-/// The frame-0x46 block reads `task->work` again rather than reusing `work`,
-/// the fresh load that keeps the pair of stores a block-local quantity -- the
-/// same reload `_diverSetState` below makes.
-static void func_actor_206100_8014CE60(Task* task)
+/// Requires a live model root and the loaded room spray handler. Offsets use a
+/// 512-unit XZ radius in root-local game coordinates; localY is signed and Y
+/// increases downward. Each particle has size 328, two updates per animation
+/// cell and upward-burst speed 32. The effect spawner copies XYZ during the call;
+/// the spray task never follows the retained pointer to this temporary offset.
+static inline void _actor206100SpawnSplashRing(Task* task, s16 localY)
 {
+    enum { ACTOR_206100_SPLASH_PARTICLE_COUNT   = 32,
+           ACTOR_206100_SPLASH_ANGLE_STEP_SHIFT = 7,
+           ACTOR_206100_SPLASH_RADIUS_SHIFT     = 3,
+           ACTOR_206100_SPLASH_PARTICLE_RECIPE  = 0x01202148 };
+    GfxCoord* splashCoord;
+    SVECTOR   splashOffset;
+    s32       particleIndex;
+
+    particleIndex = 0;
+    splashCoord   = task->extra.tmd->coords;
+    do {
+        splashOffset.vx = (u32)rsin(particleIndex << ACTOR_206100_SPLASH_ANGLE_STEP_SHIFT) >> ACTOR_206100_SPLASH_RADIUS_SHIFT;
+        splashOffset.vy = localY;
+        splashOffset.vz = (u32)rcos(particleIndex << ACTOR_206100_SPLASH_ANGLE_STEP_SHIFT) >> ACTOR_206100_SPLASH_RADIUS_SHIFT;
+        effectSpawn(gRoomEffectWaterSprayId, splashCoord, ACTOR_206100_SPLASH_PARTICLE_RECIPE, &splashOffset);
+        particleIndex++;
+    } while (particleIndex < ACTOR_206100_SPLASH_PARTICLE_COUNT);
+}
+
+/// Finishes the Sea Diver entrance and returns the player to the fight.
+///
+/// Runs at entrance substate 4 with live work/model and a nullable wave task.
+/// Tick 1 ends the wave ramp; tick 3 kills its task and voices reappearance if
+/// the timer survived that call. Tick 12 emits water spray at local Y -660.
+/// Tick 70 resumes/shows the player, selects view 2, centers root XZ and selects
+/// the attack at substate zero. The enclosing fight tick applies the queued pose.
+static void _actor206100EntranceArrivalTick(Task* task)
+{
+    enum {
+        ACTOR_206100_ENTRANCE_STOP_WAVE_TICK    = 1,
+        ACTOR_206100_ENTRANCE_RELEASE_WAVE_TICK = 3,
+        ACTOR_206100_ENTRANCE_SPLASH_TICK       = 12,
+        ACTOR_206100_ENTRANCE_RESUME_TICK       = 70,
+        ACTOR_206100_ENTRANCE_FIGHT_VIEW        = 2,
+        ACTOR_206100_ENTRANCE_SPLASH_Y          = -660
+    };
     _Actor206100Work* work;
-    _Actor206100Work* next;
-    GfxCoord*         coord;
-    GfxCoord*         ring;
-    SVECTOR           vec;
-    s32               i;
-    s16               y;
-    s16               frame;
+    _Actor206100Work* transitionWork;
+    GfxCoord*         rootCoord;
+    s16               splashY;
+    s16               soundFrame;
 
     work                                 = task->work;
     D_neo_ark_submarine_gallery_801818B8 = 0;
-    coord                                = task->extra.tmd->coords;
+    rootCoord                            = task->extra.tmd->coords;
     work->stateFrames                    = work->stateFrames + 1;
-    if (work->stateFrames == 1) {
+    if (work->stateFrames == ACTOR_206100_ENTRANCE_STOP_WAVE_TICK) {
         D_actor_206100_80158CCC.state = SCREEN_WAVE_RAMP_FINISHED;
     }
-    frame = work->stateFrames;
-    if (frame == 3) {
+    soundFrame = work->stateFrames;
+    if (soundFrame == ACTOR_206100_ENTRANCE_RELEASE_WAVE_TICK) {
         if (work->waveTask != NULL) {
             taskKill(work->waveTask);
         }
-        if (work->stateFrames == frame) {
+        if (work->stateFrames == soundFrame) {
             sndEvtRequestScriptStart(SOUND_NEO_ARK_SUB_GALLERY_DIVER_REAPPEAR, 0, 0);
         }
     }
-    if (work->stateFrames == 0xC) {
-        y    = -0x294;
-        i    = 0;
-        ring = task->extra.tmd->coords;
-        do {
-            vec.vx = (u32)rsin(i << 7) >> 3;
-            vec.vy = y;
-            vec.vz = (u32)rcos(i << 7) >> 3;
-            effectSpawn(gRoomEffectWaterSprayId, ring, 0x01202148, &vec);
-            i++;
-        } while (i < 0x20);
+    if (work->stateFrames == ACTOR_206100_ENTRANCE_SPLASH_TICK) {
+        splashY = ACTOR_206100_ENTRANCE_SPLASH_Y;
+        _actor206100SpawnSplashRing(task, splashY);
     }
-    if (work->stateFrames == 0x46) {
+    if (work->stateFrames == ACTOR_206100_ENTRANCE_RESUME_TICK) {
+        // Release player control only after the arrival splash has played.
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
         playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_SHOW_AUTO);
-        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = 2;
-        coord->coord.t[0]                                          = 0;
-        coord->coord.t[2]                                          = 0;
-        next                                                       = task->work;
-        next->state                                                = ACTOR_206100_FIGHT_STATE_ATTACK;
-        next->subState                                             = 0;
+        gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.view = ACTOR_206100_ENTRANCE_FIGHT_VIEW;
+        rootCoord->coord.t[0]                                      = 0;
+        rootCoord->coord.t[2]                                      = 0;
+        transitionWork                                             = task->work;
+        transitionWork->state                                      = ACTOR_206100_FIGHT_STATE_ATTACK;
+        transitionWork->subState                                   = 0;
     }
 }
 
@@ -2268,7 +2202,7 @@ static void _actor206100AttackTick(Task* task)
     _actor206100StepWithinFightArea(task, ACTOR_206100_ATTACK_STEP_DISTANCE);
 }
 
-/// The five sub-state handlers `func_actor_206100_8014F524` picks between: it
+/// The five sub-state handlers `_actor206100DispatchEntrance` picks between: it
 /// copies the table onto its stack and calls `funcs[subState]`.
 static const TaskFuncTable5 D_actor_206100_80149E94 = {
     {
@@ -2276,43 +2210,43 @@ static const TaskFuncTable5 D_actor_206100_80149E94 = {
         _actor206100EntranceLeadInTick,
         func_actor_206100_8014CB68,
         _actor206100EntranceDepartureTick,
-        func_actor_206100_8014CE60,
+        _actor206100EntranceArrivalTick,
     },
 };
 
 /// The state-0 dispatcher's sub-state table, a table in its own right rather
 /// than the local array `_actor206100DispatchAttack` builds -- the dispatcher
 /// copies it whole, which is why the copy is a three-word block move out of
-/// `.rodata`.  `func_actor_206100_8014D6F4` has the same body over the sibling
+/// `.rodata`.  `_actor206100DispatchSurface` has the same body over the sibling
 /// table `D_actor_206100_80149EB4`.
 static const TaskFuncTable3 D_actor_206100_80149EA8 = {
     {
         _actor206100EnterDive,
-        func_actor_206100_8014D574,
+        _actor206100DiveSplashTick,
         _actor206100WaitUnderwater,
     },
 };
 
 /// The sibling table, immediately after `D_actor_206100_80149EA8` in
-/// `.rodata`: the three sub-state handlers `func_actor_206100_8014D6F4`
+/// `.rodata`: the three sub-state handlers `_actor206100DispatchSurface`
 /// dispatches between, the first `_actor206100EnterSurface` and the third
 /// `_actor206100WaitSurface` bracketing the ring of debris
-/// `func_actor_206100_8014D8E8` throws.
+/// `_actor206100SurfaceSplashTick` throws.
 static const TaskFuncTable3 D_actor_206100_80149EB4 = {
     {
         _actor206100EnterSurface,
-        func_actor_206100_8014D8E8,
+        _actor206100SurfaceSplashTick,
         _actor206100WaitSurface,
     },
 };
 
 /// The last object in this unit's `.rodata`, one object after
 /// `D_actor_206100_80149EB4` and flush against the unit's first code address:
-/// the four steps of the death `func_actor_206100_8014E7D4` dispatches on
+/// the four steps of the death `_actor206100DeathTick` dispatches on
 /// `_Actor206100Work::state`.
 static const TaskFuncTable4 D_actor_206100_80149EC0 = {
     {
-        func_actor_206100_8014FBE4,
+        _actor206100UnlinkForDeath,
         _actor206100EnterDeathPlayback,
         _actor206100DeathPlaybackTick,
         func_actor_206100_8014FDE8,
@@ -2340,131 +2274,93 @@ static void _actor206100DispatchDive(Task* task)
         _actor206100StepWithinFightArea(task, ACTOR_206100_DIVE_STEP_DISTANCE);
     }
 }
-static void func_actor_206100_8014D574(Task* task)
+/// Settles the head look and emits the dive splash before the underwater wait.
+///
+/// Requires live work/model and Enemy. The first 29 active ticks ease the packed
+/// look angles toward zero. Tick 30 emits 32 water particles at local Y -100,
+/// voices the dive with the enemy instance tag, sets parent-space goal Y 7800
+/// and advances the substate with a cleared timer. Y increases downward.
+static void _actor206100DiveSplashTick(Task* task)
 {
+    enum {
+        ACTOR_206100_DIVE_SPLASH_TICK          = 30,
+        ACTOR_206100_DIVE_SPLASH_Y             = -100,
+        ACTOR_206100_DIVE_GOAL_Y               = 7800,
+        ACTOR_206100_DIVE_SOUND                = 0x551E0006,
+        ACTOR_206100_DIVE_SOUND_INSTANCE_SHIFT = 8
+    };
     _Actor206100Work* work;
-    GfxCoord*         coord;
-    SVECTOR           vec;
-    s32               sound;
-    s32               pan;
-    s32               i;
-    s16               y;
+    s32               soundId;
+    s32               panOffset;
+    s16               splashY;
 
     work              = task->work;
     work->stateFrames = work->stateFrames + 1;
-    if (work->stateFrames < 0x1E) {
+    // Preserve the unsigned-angle shifts used to settle the look before diving.
+    if (work->stateFrames < ACTOR_206100_DIVE_SPLASH_TICK) {
         work->lookPitch = work->lookPitch + ((s32) - (work->lookPitch << 0x14) >> 0x15);
         work->lookYaw   = work->lookYaw + ((s32) - (work->lookYaw << 0x14) >> 0x15);
     }
-    y = -0x64;
-    if (work->stateFrames == 0x1E) {
-        i     = 0;
-        coord = task->extra.tmd->coords;
-        do {
-            vec.vx = (u32)rsin(i << 7) >> 3;
-            vec.vy = y;
-            vec.vz = (u32)rcos(i << 7) >> 3;
-            effectSpawn(gRoomEffectWaterSprayId, coord, 0x01202148, &vec);
-            i++;
-        } while (i < 0x20);
-        sound = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x551E0006;
-        pan   = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-        sndEvtRequestScriptStart(sound, pan, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+    splashY = ACTOR_206100_DIVE_SPLASH_Y;
+    if (work->stateFrames == ACTOR_206100_DIVE_SPLASH_TICK) {
+        _actor206100SpawnSplashRing(task, splashY);
+        soundId   = (((u16)((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_206100_DIVE_SOUND_INSTANCE_SHIFT) | ACTOR_206100_DIVE_SOUND;
+        panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+        sndEvtRequestScriptStart(soundId, panOffset, (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
+        // The underwater wait owns the timer after the splash.
         work->stateFrames = 0;
-        work->goalY       = 0x1E78;
+        work->goalY       = ACTOR_206100_DIVE_GOAL_Y;
         work->subState    = work->subState + 1;
     }
 }
-/// State handler of the second table, `D_actor_206100_80149EB4`: consumes a
-/// pending sub-state request through the inlined `_actor206100ConsumeHitReaction`, and when there
-/// was none runs the current sub-state handler from that table and then steers
-/// the actor along its heading, exactly as `_actor206100DispatchDive` does
-/// over `D_actor_206100_80149EA8`.
+/// Dispatches surface entry, splash or completion after consuming hit reactions.
 ///
-/// The body is that function's instruction for instruction -- the two are the
-/// same source shape over different tables, so the prologue's `lui` / `addiu`
-/// pair is the only thing that differs between them, and an edit to one belongs
-/// in the other.  See `_actor206100DispatchDive` for what the steering fold
-/// does and for why the `yaw` load sits after the `jal` and the deadband is a
-/// variable.
-static void func_actor_206100_8014D6F4(Task* task)
+/// Requires live work/model and subState 0..2. Reactions selecting another fight
+/// state skip the surface handler. Otherwise turns toward the cached target by
+/// 24 angle units outside a 40-unit deadband and takes a bounded 20-unit step,
+/// even when the handler changes state. The fight driver applies playback later.
+static void _actor206100DispatchSurface(Task* task)
 {
-    _Actor206100Work* sub    = task->work;
-    TaskFuncTable3    states = D_actor_206100_80149EB4;
-    _Actor206100Work* work;
-    GfxCoord*         coord;
-    SVECTOR           vec;
-    s32               angle;
-    s32               yaw;
-    s32               limit;
-    s32               diff;
+    enum { ACTOR_206100_SURFACE_YAW_STEP      = 24,
+           ACTOR_206100_SURFACE_YAW_DEADBAND  = 40,
+           ACTOR_206100_SURFACE_STEP_DISTANCE = 20 };
+    _Actor206100Work* work             = task->work;
+    TaskFuncTable3    substateHandlers = D_actor_206100_80149EB4;
 
     if (_actor206100ConsumeHitReaction(task) == 0) {
-        states.funcs[sub->subState](task);
-        work                = task->work;
-        coord               = task->extra.tmd->coords;
-        coord->composeStamp = GRAPHICS_COORD_DIRTY;
-        vec.vx              = sub->targetPos.vx - (u16)coord->coord.t[0];
-        vec.vy              = 0;
-        vec.vz              = sub->targetPos.vz - (u16)coord->coord.t[2];
-        VectorNormalSS(&vec, &vec);
-        yaw   = ratan2(vec.vx, vec.vz);
-        limit = 0x28;
-        angle = (u16)work->rotation.vy;
-        diff  = ((angle - yaw) << 20) >> 20;
-        if (diff > limit) {
-            work->rotation.vy = angle - 0x18;
-        } else if (diff < -0x28) {
-            work->rotation.vy = angle + 0x18;
-        }
-        _actor206100StepWithinFightArea(task, 0x14);
+        substateHandlers.funcs[work->subState](task);
+        // Complete this tick's approach even if the splash selected another dive.
+        _actor206100TurnTowardPoint(task, &work->targetPos, ACTOR_206100_SURFACE_YAW_STEP, ACTOR_206100_SURFACE_YAW_DEADBAND);
+        _actor206100StepWithinFightArea(task, ACTOR_206100_SURFACE_STEP_DISTANCE);
     }
 }
-/// Sub-state 1 of `func_actor_206100_8014D6F4`'s table: the ring of debris the
-/// death throes throw off, and the draw that decides whether the actor
-/// teleports out of them.
+/// Emits the surface splash and chooses another dive or surface completion.
 ///
-/// On the seventh frame of the sub-state it splats 0x20 effect particles
-/// (`effectSpawn` id 0x01202148, the same pair `func_actor_206100_8014D574`
-/// fires at frame 0x1E) around the actor's root coordinate -- `rsin` / `rcos`
-/// of `i << 7` shifted down by 3, so a ring of radius 0x1000 in 0x20 steps,
-/// held at a constant y of -0x3E8.  `y` is a local rather than a literal in
-/// the store because the whole ring shares the height, the same local
-/// `func_actor_206100_8014D574` hoists.
-///
-/// From frame 0x1F on it draws from `gRandomLcgState`: the one-in-four that lands
-/// on `(state >> 16) & 3 == 0` hands state 2 to the teleport
-/// `func_actor_206100_8014CB68` at sub-state 0 -- so the actor leaves the
-/// scene it is exploding in -- and the rest restart the counter and advance
-/// to the next sub-state.  The state change goes through the inlined
-/// `_diverSetState`, which reloads `task->work` instead of reusing `work`: that
-/// fresh load is what keeps the pointer a block-local quantity, exactly as in
-/// `_actor206100ConsumeHitReaction`.
-static void func_actor_206100_8014D8E8(Task* task)
+/// Requires the initialized surface substate with a cleared timer. Tick 7 emits
+/// 32 water particles at local Y -1000. At tick 31, a fresh LCG draw chooses
+/// another dive with probability one in four; otherwise clears the timer and
+/// advances to the wait for the surface clip boundary.
+static void _actor206100SurfaceSplashTick(Task* task)
 {
+    enum {
+        ACTOR_206100_SURFACE_SPLASH_TICK      = 7,
+        ACTOR_206100_SURFACE_DECISION_TICK    = 31,
+        ACTOR_206100_SURFACE_SPLASH_Y         = -1000,
+        ACTOR_206100_SURFACE_REDIVE_DRAW_MASK = 3
+    };
     _Actor206100Work* work;
-    GfxCoord*         coord;
-    SVECTOR           vec;
-    s32               i;
-    s16               y;
+    s16               splashY;
 
     work              = task->work;
     work->stateFrames = work->stateFrames + 1;
-    if (work->stateFrames == 7) {
-        y     = -0x3E8;
-        i     = 0;
-        coord = task->extra.tmd->coords;
-        do {
-            vec.vx = (u32)rsin(i << 7) >> 3;
-            vec.vy = y;
-            vec.vz = (u32)rcos(i << 7) >> 3;
-            effectSpawn(gRoomEffectWaterSprayId, coord, 0x01202148, &vec);
-            i++;
-        } while (i < 0x20);
+    if (work->stateFrames == ACTOR_206100_SURFACE_SPLASH_TICK) {
+        splashY = ACTOR_206100_SURFACE_SPLASH_Y;
+        _actor206100SpawnSplashRing(task, splashY);
     }
-    if (work->stateFrames >= 0x1F) {
+    // One draw in four restarts the dive; the rest advance to surface completion.
+    if (work->stateFrames >= ACTOR_206100_SURFACE_DECISION_TICK) {
         gRandomLcgState = gRandomLcgState * RANDOM_LCG_MULTIPLIER + RANDOM_LCG_INCREMENT;
-        if (((gRandomLcgState >> 0x10) & 3) == 0) {
+        if (((gRandomLcgState >> 0x10) & ACTOR_206100_SURFACE_REDIVE_DRAW_MASK) == 0) {
             _diverSetState(task, ACTOR_206100_FIGHT_STATE_DIVE);
             return;
         }
@@ -2478,7 +2374,7 @@ static void func_actor_206100_8014D8E8(Task* task)
 /// actor; mode 1 is that tail alone and mode 2 excludes the model from active
 /// drawing. The table's entries are the ring stepper
 /// `_actor206100PlaceOnWaypointRing` and the summon tick
-/// `func_actor_206100_8014DD3C`, which is the `state` index the spawn state
+/// `_actor206100SummonBogDiversTick`, which is the `state` index the spawn state
 /// `_actor206100Spawn` leaves at 0.
 ///
 /// The table is two addresses materialised into `$v0`, not a block move out of
@@ -2507,7 +2403,7 @@ static void func_actor_206100_8014DA28(Task* task)
     TmdObject*        obj                = task->extra.tmd;
     void              (*funcs[2])(Task*) = {
         _actor206100PlaceOnWaypointRing,
-        func_actor_206100_8014DD3C,
+        _actor206100SummonBogDiversTick,
     };
     _Actor206100Work* next;
     _Actor206100Work* sub;
@@ -2575,80 +2471,73 @@ static void func_actor_206100_8014DA28(Task* task)
             MulMatrix(&scaled->coord, &scaling);
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor206100_UpdateColor(task);
+            _actorRenderUpdateModelColor(task);
             obj->flags &= (u16)~TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
     }
 }
-/// Summon tick: holds the per-state counter at the explosion frame and then
-/// fills and retires the actor's two Bog Diver slots (see the header for the
-/// full walk -- each slot is handled on its own, and the fifth release moves
-/// the actor to state 2).
+/// Maintains two summoned Bog Divers while swimming the waypoint ring.
 ///
-/// Both slots are reached by *index* rather than through a walking pointer, and
-/// that is what the target's register file depends on: a walked pointer makes
-/// `timer`'s read and write two identical `DEST_ADDR` givs on the same biv,
-/// which `combine_givs` merges into one that survives `strength_reduce`'s
-/// "worth while" test -- so the second field is given an induction variable of
-/// its own, `$s1` goes to it instead of to `work`, and the frame grows by a
-/// slot.  Indexed, the two `timer` accesses are displacements off the address
-/// register strength reduction builds for `enemy`, and neither is reduced.
-/// See `DECOMPILATION_LEARNINGS.md`, "A walked pointer's second field becomes a
-/// second induction variable".
-///
-/// The two loops carry their own counters for the same reason: one variable
-/// used by both is a single pseudo whose live range spans both loops, so
-/// local-alloc has to home it in a callee-saved register for the whole
-/// function, where the target's second loop counts in `$a0`.
-static void func_actor_206100_8014DD3C(Task* task)
+/// Requires live work and both borrowed slot records. Holds the timer at tick 30
+/// and re-engages battle, then fills empty slots until five divers have spawned.
+/// An empty slot waits out its cooldown. Retiring a dead diver arms a 180-tick
+/// cooldown; the fifth retirement starts the entrance in task fight state 2.
+/// Slot pointers are borrowed Enemy records and are cleared as soon as HP is zero.
+static void _actor206100SummonBogDiversTick(Task* task)
 {
+    enum {
+        ACTOR_206100_RING_ENGAGE_TICK       = 30,
+        ACTOR_206100_TASK_STATE_FIGHT       = 2,
+        ACTOR_206100_BOG_DIVER_SUMMON_COUNT = 5
+    };
     _Actor206100Work* work;
-    _Actor206100Work* next;
+    _Actor206100Work* transitionWork;
     Enemy*            enemy;
-    s32               i;
-    s32               j;
-    u8                count;
+    s32               summonSlotIndex;
+    s32               retireSlotIndex;
+    u8                killedCount;
 
     work = task->work;
-    if (work->stateFrames == 0x1E) {
+    if (work->stateFrames == ACTOR_206100_RING_ENGAGE_TICK) {
         sceneEngageBattle(1);
     } else {
         work->stateFrames = work->stateFrames + 1;
     }
     _actor206100SwimWaypointRing(task);
-    i = 0;
+    // Fill empty slots before retiring this tick's dead enemies.
+    summonSlotIndex = 0;
     do {
-        if (work->bogDiversSpawned < 5 && D_actor_206100_80158CBC[i].enemy == NULL) {
-            if (D_actor_206100_80158CBC[i].summonCooldown == 0) {
-                enemy = func_actor_206100_8014EE2C(work->bogDiversSpawned);
+        if (work->bogDiversSpawned < ACTOR_206100_BOG_DIVER_SUMMON_COUNT && D_actor_206100_80158CBC[summonSlotIndex].enemy == NULL) {
+            if (D_actor_206100_80158CBC[summonSlotIndex].summonCooldown == 0) {
+                enemy = _actor206100SpawnBogDiver(work->bogDiversSpawned);
                 if (enemy != NULL) {
-                    D_actor_206100_80158CBC[i].enemy = enemy;
-                    enemy->hp                        = 1;
-                    work->bogDiversSpawned           = work->bogDiversSpawned + 1;
+                    D_actor_206100_80158CBC[summonSlotIndex].enemy = enemy;
+                    enemy->hp                                      = 1; // Liveness marker before the Bog Diver spawn callback initializes HP.
+                    work->bogDiversSpawned                         = work->bogDiversSpawned + 1;
                 }
             } else {
-                D_actor_206100_80158CBC[i].summonCooldown = D_actor_206100_80158CBC[i].summonCooldown - 1;
+                D_actor_206100_80158CBC[summonSlotIndex].summonCooldown = D_actor_206100_80158CBC[summonSlotIndex].summonCooldown - 1;
             }
         }
-        i++;
-    } while (i < ARRAY_SIZE(D_actor_206100_80158CBC));
-    j = 0;
+        summonSlotIndex++;
+    } while (summonSlotIndex < ARRAY_SIZE(D_actor_206100_80158CBC));
+    retireSlotIndex = 0;
     do {
-        if (D_actor_206100_80158CBC[j].enemy != NULL &&
-            D_actor_206100_80158CBC[j].enemy->hp <= 0) {
-            D_actor_206100_80158CBC[j].enemy          = NULL;
-            D_actor_206100_80158CBC[j].summonCooldown = ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN;
-            count                                     = work->bogDiversKilled + 1;
-            work->bogDiversKilled                     = count;
-            if (count >= 5) {
-                next           = task->work;
-                task->state    = 2;
-                next->state    = ACTOR_206100_FIGHT_STATE_ENTRANCE;
-                next->subState = 0;
+        if (D_actor_206100_80158CBC[retireSlotIndex].enemy != NULL &&
+            D_actor_206100_80158CBC[retireSlotIndex].enemy->hp <= 0) {
+            D_actor_206100_80158CBC[retireSlotIndex].enemy          = NULL;
+            D_actor_206100_80158CBC[retireSlotIndex].summonCooldown = ACTOR_206100_BOG_DIVER_SUMMON_COOLDOWN;
+            killedCount                                             = work->bogDiversKilled + 1;
+            work->bogDiversKilled                                   = killedCount;
+            if (killedCount >= ACTOR_206100_BOG_DIVER_SUMMON_COUNT) {
+                transitionWork           = task->work;
+                task->state              = ACTOR_206100_TASK_STATE_FIGHT;
+                transitionWork->state    = ACTOR_206100_FIGHT_STATE_ENTRANCE;
+                transitionWork->subState = 0;
             }
         }
-        j++;
-    } while (j < ARRAY_SIZE(D_actor_206100_80158CBC));
+        retireSlotIndex++;
+    } while (retireSlotIndex < ARRAY_SIZE(D_actor_206100_80158CBC));
 }
 /// Steers and swims around the Sea Diver's eight-point waypoint ring.
 ///
@@ -2888,43 +2777,38 @@ static void _actor206100AimHead(Task* task)
     actorRenderComposeCoord(headCoord);
 }
 
-/// Effect-mode tick of the `state` state table `D_actor_206100_80149EC0`,
-/// keyed on `gSceneCombatState.actorControl`. Mode 2 only excludes the model from active drawing and
-/// leaves; mode 0 runs the handler `state` selects, latches the animation
-/// slot's flags into `animStatus` and eases the root coordinate -- x and z to a
-/// sixteenth of their distance to zero, y the same fraction of the way to the
-/// height `goalY` -- before falling into the shared tail; mode 1 is that
-/// tail alone.
+/// Runs the Sea Diver death stages and eases its root toward the death goal.
 ///
-/// The table is copied onto the stack first, the same local jump table
-/// `func_actor_206100_8014F524` builds, which is what the prologue's four-word
-/// block move out of `.rodata` is.  The tail is `Actor206100_UpdateColor`; see
-/// there for why it stays inline.
-static void func_actor_206100_8014E7D4(Task* task)
+/// Requires live work/model and state 0..3, selecting unlink, playback entry,
+/// playback or sinking. Running control dispatches the stage, captures slot-1
+/// status and eases XYZ by one sixteenth in parent-space game units. Paused
+/// control only refreshes cached-position lighting; hidden control excludes
+/// the model from active drawing. The current tick finishes after a stage change.
+static void _actor206100DeathTick(Task* task)
 {
     _Actor206100Work* work;
-    TmdObject*        obj;
-    GfxCoord*         coord;
-    TaskFuncTable4    states;
+    TmdObject*        model;
+    GfxCoord*         rootCoord;
+    TaskFuncTable4    deathHandlers;
 
-    work   = task->work;
-    obj    = task->extra.tmd;
-    coord  = obj->coords;
-    states = D_actor_206100_80149EC0;
+    work          = task->work;
+    model         = task->extra.tmd;
+    rootCoord     = model->coords;
+    deathHandlers = D_actor_206100_80149EC0;
     switch (gSceneCombatState.actorControl) {
         case SCENE_COMBAT_ACTORS_HIDDEN:
-            obj->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
+            model->flags |= TMD_OBJECT_SKIP_ACTIVE_DRAW;
             return;
         case SCENE_COMBAT_ACTORS_RUNNING:
-            states.funcs[work->state](task);
-            work->animStatus  = work->rig.slots[1].status.fields.flags;
-            coord->coord.t[0] = coord->coord.t[0] + (-coord->coord.t[0] >> 4);
-            coord->coord.t[2] = coord->coord.t[2] + (-coord->coord.t[2] >> 4);
-            coord->coord.t[1] =
-                coord->coord.t[1] + ((work->goalY - coord->coord.t[1]) >> 4);
+            deathHandlers.funcs[work->state](task);
+            work->animStatus      = work->rig.slots[1].status.fields.flags;
+            rootCoord->coord.t[0] = rootCoord->coord.t[0] + (-rootCoord->coord.t[0] >> 4);
+            rootCoord->coord.t[2] = rootCoord->coord.t[2] + (-rootCoord->coord.t[2] >> 4);
+            rootCoord->coord.t[1] =
+                rootCoord->coord.t[1] + ((work->goalY - rootCoord->coord.t[1]) >> 4);
             /* fallthrough */
         case SCENE_COMBAT_ACTORS_PAUSED:
-            Actor206100_UpdateColor(task);
+            _actorRenderUpdateModelColor(task);
             return;
     }
 }
@@ -3067,38 +2951,61 @@ static void _actor206100StepWithinFightArea(Task* task, s16 distance)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor206100OriginDistanceScratch);
 }
 
-static Enemy* func_actor_206100_8014EE2C(s32 arg0)
+/// Spawns one Bog Diver and assigns its Sea Diver summon placement and palette.
+///
+/// placementIndex is 0..4; it also supplies the four-bit enemy instance key.
+/// Requires the Bog Diver package and its model resources in the other live slot.
+/// Returns the spawned Enemy or NULL on failure. Borrows the placement record
+/// for that enemy's lifetime, so this overlay must remain loaded. Uses variant 3,
+/// texture-page offset zero and CLUT-row offset two, rebuilding both buffer halves.
+static Enemy* _actor206100SpawnBogDiver(s32 placementIndex)
 {
+    enum {
+        ACTOR_206100_BOG_DIVER_VARIANT         = 3,
+        ACTOR_206100_BOG_DIVER_CLUT_ROW_OFFSET = 2
+    };
     Enemy*     enemy;
-    TmdObject* obj;
+    TmdObject* model;
 
-    enemy = enemySpawnFromTable(&D_actor_100400_80147E48, 0, 3, NULL);
+    enemy = enemySpawnFromTable(&D_actor_100400_80147E48, 0, ACTOR_206100_BOG_DIVER_VARIANT, NULL);
     if (enemy != NULL) {
-        enemy->placeKey        = arg0 << ENEMY_PLACE_INDEX_SHIFT;
-        enemy->place           = &D_actor_206100_80155134[(s16)arg0];
-        obj                    = enemy->task->extra.tmd;
-        obj->texturePageOffset = 0;
-        obj->clutRowOffset     = 2;
-        tmdBuildBufferHalf(obj);
-        tmdBuildBufferHalf(obj);
+        enemy->placeKey          = placementIndex << ENEMY_PLACE_INDEX_SHIFT;
+        enemy->place             = &D_actor_206100_80155134[(s16)placementIndex];
+        model                    = enemy->task->extra.tmd;
+        model->texturePageOffset = 0;
+        model->clutRowOffset     = ACTOR_206100_BOG_DIVER_CLUT_ROW_OFFSET;
+        // Rebuild both primitive-buffer halves after applying the summon palette.
+        tmdBuildBufferHalf(model);
+        tmdBuildBufferHalf(model);
         return enemy;
     }
     return NULL;
 }
 
-static void func_actor_206100_8014EEC0(Task* task)
+/// Links the Sea Diver shot attack sphere and emits its launch burst.
+///
+/// Requires the task-owned zeroed shot work and a coordinate body placed by
+/// the head-shot spawner. Parents it to the view, initializes two contacts and
+/// a 320-unit sphere carrying attack entry zero, then enables grid/pair tests.
+/// Composes the shot coordinate before its launch effect and enters flight.
+/// The teardown stage owns unlinking; task teardown releases the work.
+static void _actor206100LaunchShot(Task* task)
 {
+    enum {
+        ACTOR_206100_SHOT_RADIUS = 320
+    };
     _Actor206100ShotWork*  shot;
     WorldCollisionContact* contacts;
-    GfxCoord*              coord;
+    GfxCoord*              shotCoord;
 
-    shot                                     = task->work;
-    coord                                    = task->extra.tmd->coords;
-    task->killCountdown                      = 0;
-    shot->burstSize                          = ACTOR_206100_SHOT_BURST_SIZE_STEP;
-    shot->burstPhase                         = 0;
-    coord->parent                            = &gGfxViewCoord;
-    coord->composeStamp                      = GRAPHICS_COORD_DIRTY;
+    shot                    = task->work;
+    shotCoord               = task->extra.tmd->coords;
+    task->killCountdown     = 0;
+    shot->burstSize         = ACTOR_206100_SHOT_BURST_SIZE_STEP;
+    shot->burstPhase        = 0;
+    shotCoord->parent       = &gGfxViewCoord;
+    shotCoord->composeStamp = GRAPHICS_COORD_DIRTY;
+    // Link the sphere before enabling grid and pair tests against its live contacts.
     shot->strike.attackBody.key              = damagePackAttackKey(&D_actor_206100_80155194, 0);
     shot->strike.attackBody.coord            = task->extra.tmd->coords;
     contacts                                 = shot->contacts;
@@ -3106,13 +3013,13 @@ static void func_actor_206100_8014EEC0(Task* task)
     shot->strike.attackBody.pos.vx           = 0;
     shot->strike.attackBody.pos.vy           = 0;
     shot->strike.attackBody.pos.vz           = 0;
-    shot->strike.attackBody.radius           = 0x140;
+    shot->strike.attackBody.radius           = ACTOR_206100_SHOT_RADIUS;
     shot->strike.attackBody.flags            = WORLD_COLLISION_BODY_SPHERE;
     worldCollisionLinkBody(WORLD_COLLISION_LIST_ENEMY_ATTACKS, &shot->strike.attackBody);
     worldCollisionInitContacts(contacts, ARRAY_SIZE(shot->contacts), 0);
     shot->strike.attackBody.flags |= (WORLD_COLLISION_BODY_GRID_ENABLED | WORLD_COLLISION_BODY_PAIR_ENABLED);
-    actorRenderComposeCoord(coord);
-    _diverImpactBurst(coord, (u16)shot->burstPhase, DIVER_BURST_LAUNCH, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
+    actorRenderComposeCoord(shotCoord);
+    _diverImpactBurst(shotCoord, (u16)shot->burstPhase, DIVER_BURST_LAUNCH, shot->burstSize + ACTOR_206100_SHOT_BURST_VARIANT);
     task->state++;
 }
 
@@ -3120,14 +3027,17 @@ static void func_actor_206100_8014EEC0(Task* task)
 
 #include "../../shared/coord_math_local_to_world.inc.c"
 
-/// A shot's task callback: runs its current state handler out of
-/// `D_actor_206100_80149E24`, copying the table onto the stack first.
-void func_actor_206100_8014F134(Task* task)
+/// Dispatches a Sea Diver shot through launch, flight and burst teardown.
+///
+/// Requires Task::state in 0..2 and a live coordinate body/shot work. The shot
+/// spawner initializes state zero; launch and flight advance it, and teardown
+/// ends the task after its linger interval.
+static void _actor206100ShotTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_actor_206100_80149E24;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_206100_80149E24;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Links the Sea Diver's trunk and head spheres to its shared hit-contact table.
@@ -3228,14 +3138,17 @@ static s16 _actor206100ScaleFramesForAnimRate(Task* task, s16 frames)
     return ((frames << 8) / work->animStep << 12) >> 16;
 }
 
-/// The actor's task callback: runs its current top-level state out of
-/// `D_actor_206100_80149E5C`, copying the table onto the stack first.
-void func_actor_206100_8014F428(Task* task)
+/// Dispatches the Sea Diver through spawn, circling, fight, death and despawn.
+///
+/// Requires Task::state in 0..4, a live model and Enemy in spawnArg2.pointer.
+/// State zero allocates owned work; later states require it. The final state
+/// destroys the Enemy and lets task teardown release the model and work.
+static void _actor206100Task(Task* task)
 {
-    TaskFuncTable5 sp;
+    TaskFuncTable5 stateHandlers;
 
-    sp = D_actor_206100_80149E5C;
-    sp.funcs[task->state](task);
+    stateHandlers = D_actor_206100_80149E5C;
+    stateHandlers.funcs[task->state](task);
 }
 
 /// Destroys the Sea Diver enemy and its task in the final task state.
@@ -3256,19 +3169,22 @@ static void _actor206100CopyRotation(const MATRIX* source, MATRIX* destination)
     _actor206100CopyRotationElements(source, destination);
 }
 
-/// Runs the actor's sub-state handler for the current `subState`, after
-/// marking the enemy's list node so the exit path tears the actor down.
-static void func_actor_206100_8014F524(Task* task)
+/// Dispatches the five scripted entrance substates with Sea Diver lock-on disabled.
+///
+/// Requires live work/model and Enemy, with subState 0..4. Assigns the complete
+/// target-flag byte to NOT_LOCKABLE before dispatching. The fight tick supplies
+/// animation playback, root motion and lighting after the entrance handler.
+static void _actor206100DispatchEntrance(Task* task)
 {
     _Actor206100Work* work;
     Enemy*            enemy;
-    TaskFuncTable5    sp;
+    TaskFuncTable5    substateHandlers;
 
     work                          = task->work;
-    enemy                         = (Enemy*)task->spawnArg2.pointer;
-    sp                            = D_actor_206100_80149E94;
+    enemy                         = task->spawnArg2.pointer;
+    substateHandlers              = D_actor_206100_80149E94;
     enemy->node.state.parts.flags = WORLD_TARGET_NOT_LOCKABLE;
-    sp.funcs[work->subState](task);
+    substateHandlers.funcs[work->subState](task);
 }
 
 /// Empty handler for unused Sea Diver fight-state slot 4.
@@ -3557,18 +3473,30 @@ static void _actor206100PlaceOnWaypointRing(Task* task)
     _diverSetState(task, ACTOR_206100_RING_STATE_SUMMON);
 }
 
-static void func_actor_206100_8014FBE4(Task* task)
+/// Removes Sea Diver targeting and hit bodies, grants rewards and starts death playback.
+///
+/// Requires the live Enemy and its linked trunk/head bodies. Stops the attack
+/// loop, applies the saved area updates, sets water-level goal Y, releases the
+/// battle reference with rewards and marks the progression nibble. Clears the
+/// Enemy contact alias, unlinks both bodies, resets the death timer and advances
+/// to playback entry. Keeps model/work live and voices the instance-tagged death.
+static void _actor206100UnlinkForDeath(Task* task)
 {
+    enum {
+        ACTOR_206100_DEATH_SOUND                = 0x40040006,
+        ACTOR_206100_DEATH_SOUND_INSTANCE_SHIFT = 8
+    };
     _Actor206100Work* work;
     Enemy*            enemy;
     s32               soundId;
-    s32               pan;
+    s32               panOffset;
 
     work  = task->work;
-    enemy = (Enemy*)task->spawnArg2.pointer;
+    enemy = task->spawnArg2.pointer;
     sndEvtRequestScriptStop(SOUND_NEO_ARK_SUB_GALLERY_DIVER_ATTACK_LOOP, SOUND_SCRIPT_STOP_KEEP_RELEASE);
     areaApplySavedUpdates(D_neo_ark_submarine_gallery_8018590C);
     work->goalY = work->waterLevel;
+    // End targeting and combat rewards before removing the two contact bodies.
     worldTargetUnlinkNode(&enemy->node);
     sceneReleaseBattleRefWithRewards(task, 0);
     gameFlagSetNibble(GAME_FLAG_0F3, 1);
@@ -3577,9 +3505,10 @@ static void func_actor_206100_8014FBE4(Task* task)
     worldCollisionUnlinkBody(&work->headBody);
     work->stateFrames = 0;
     work->state       = work->state + 1;
-    soundId           = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40040006;
-    pan               = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
-    sndEvtRequestScriptStart(soundId, pan,
+    // Resolve the voice's instance tag after reward callbacks.
+    soundId   = ((((Enemy*)task->spawnArg2.pointer)->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << ACTOR_206100_DEATH_SOUND_INSTANCE_SHIFT) | ACTOR_206100_DEATH_SOUND;
+    panOffset = (s8)worldCoordGetOriginAudioPan(task->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, panOffset,
                              (s8)worldCoordGetOriginAudioDepth(task->extra.tmd->coords));
 }
 
