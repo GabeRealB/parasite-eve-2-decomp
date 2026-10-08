@@ -79,7 +79,7 @@ void sucklercephContacts(Task* arg0)
                 if (work->hitCooldown == 0) {
                     damage = damageComputePlayerAttack(work->contacts[i].key.value, distance, 0, 0);
                     if (damageRollCriticalHit(arg0->spawnArg2.pointer, work->contacts[i].key.value, 0) != 0) {
-                        sucklercephKill(arg0, 1);
+                        _sucklercephKill(arg0, 1);
                         arg0->killCountdown = 5;
                         arg0->state         = 2;
                         work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;

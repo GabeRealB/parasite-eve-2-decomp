@@ -153,7 +153,7 @@ void        sucklercephContacts(Task* arg0);
 void        sucklercephTakeDamage(Task* arg0, s32 arg1);
 static void _sucklercephTurnToPlayer(Task* task);
 void        sucklercephDeathState(Enemy* enemy, Task* task);
-void        sucklercephKill(Task* arg0, u8 arg1);
+static void _sucklercephKill(Task* task, u8 forceBurst);
 void        sucklercephDropSpawnState(Enemy* arg0, Task* arg1);
 void        sucklercephDropState(Enemy* arg0, Task* arg1);
 static void _sucklercephDropCollide(Task* task);

@@ -2,7 +2,7 @@
 
 /// Damage reaction of the first enemy: `arg1` comes off its HP and goes
 /// through `worldTargetAddReadoutAmount`. A depleted enemy is killed through
-/// `sucklercephKill` and put into its death state with a five-frame
+/// `_sucklercephKill` and put into its death state with a five-frame
 /// countdown. A live one plays the hurt sound from the set `variant` picks,
 /// re-arms `field_2CC`, and while animation 1 plays latches `wakeRequested`.
 void sucklercephTakeDamage(Task* arg0, s32 arg1)
@@ -21,7 +21,7 @@ void sucklercephTakeDamage(Task* arg0, s32 arg1)
     enemy->hp -= arg1;
     worldTargetAddReadoutAmount(&enemy->node, arg1, 0);
     if (enemy->hp < 0) {
-        sucklercephKill(arg0, 0);
+        _sucklercephKill(arg0, 0);
         arg0->state         = 2;
         arg0->killCountdown = 5;
         work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;

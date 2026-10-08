@@ -21,7 +21,7 @@ void sucklercephReactionFlags(Task* arg0)
             work->swellFrames += 1;
             work->swellScale  += 0xC8;
             if (work->swellFrames >= 5) {
-                sucklercephKill(arg0, 0);
+                _sucklercephKill(arg0, 0);
                 arg0->killCountdown = 5;
                 work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
                 arg0->state         = 2;

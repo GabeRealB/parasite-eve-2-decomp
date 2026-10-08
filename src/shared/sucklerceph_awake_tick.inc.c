@@ -8,7 +8,7 @@
 /// animation 2, a turn toward the player and a step of the root, with the
 /// animation's frame count restarting at 0x1D. Stage 2 counts `swellFrames` up
 /// and grows the scale factor by 0xC8 a frame; on the fifth frame the enemy is
-/// killed through `sucklercephKill`, with a five-frame countdown, the death
+/// killed through `_sucklercephKill`, with a five-frame countdown, the death
 /// phase reset, the task put into the stage's state and the HP cleared.
 void sucklercephAwakeTick(Task* arg0)
 {
@@ -50,7 +50,7 @@ void sucklercephAwakeTick(Task* arg0)
             work->swellFrames++;
             work->swellScale += 0xC8;
             if (work->swellFrames >= 5) {
-                sucklercephKill(arg0, 0);
+                _sucklercephKill(arg0, 0);
                 arg0->killCountdown = 5;
                 work->deathPhase    = SUCKLERCEPH_DEATH_PHASE_COUNTDOWN;
                 arg0->state         = mode;
