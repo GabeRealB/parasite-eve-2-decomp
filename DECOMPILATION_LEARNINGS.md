@@ -70807,7 +70807,7 @@ uses. The same function also shows that separate `s16` locals (m2c's
 `sp10/sp12/sp14`) lose the stores that a single `SVECTOR` local keeps.
 
 ### Velocity/accumulator updates: `+=` on the `s16` fields, not `u16` step locals
-`func_actor_400600_8013A990` does `moveAccel += 2; moveSpeed += moveAccel;
+`_actor400600TickDeathCeilingFall` does `moveAccel += 2; moveSpeed += moveAccel;
 t[1] += moveSpeed` on a work block, with `moveSpeed` stored before `moveAccel`.
 The sibling form in the same TU (`u16 step = moveAccel + 2; u16 accum = moveSpeed
 + step;` then two stores) gives identical instructions but 93.8%: sched1
