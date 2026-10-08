@@ -101,6 +101,38 @@ enum {
     ACTOR_403200_LIMB_POSE_SHALLOW_CURVE = 3,
 };
 
+/// Camera indices shared by the dumping-hole phase and position selectors.
+enum {
+    ACTOR_403200_VIEW_INDEX_MASK    = 0xFF,
+    ACTOR_403200_VIEW_FALLBACK      = 1,
+    ACTOR_403200_VIEW_PHASE0_MIDDLE = 2,
+    ACTOR_403200_VIEW_PHASE0_NEAR   = 3,
+    ACTOR_403200_VIEW_HOST_FAR      = 4,
+    ACTOR_403200_VIEW_PHASE1_NEAR   = 34,
+    ACTOR_403200_VIEW_LATE_NEAR     = 37,
+    ACTOR_403200_VIEW_PHASE2_FAR    = 25,
+    ACTOR_403200_VIEW_FAR_X         = 30,
+};
+
+/// Measures player-root range after signed-halfword XYZ narrowing.
+///
+/// Invoke as a standalone statement in a braced block, with stable lvalues:
+/// a borrowed live Task* hostTask,
+/// an SVECTOR offset and an s32 distanceOut. Offset and distanceOut are evaluated
+/// repeatedly; the squared sum must fit s32. Reads both roots in their common
+/// parent frame without composing them; leaves the vector's pad untouched.
+#define ACTOR_403200_MEASURE_PLAYER_DISTANCE(hostTask, offset, distanceOut)                 \
+    {                                                                                       \
+        SVECTOR*  offsetPointer = &(offset);                                                \
+        GfxCoord* hostRoot      = (hostTask)->extra.tmd->coords;                            \
+        offsetPointer->vx       = gPlayerStatus.coordMtx->t[0] - hostRoot->coord.t[0];      \
+        offsetPointer->vy       = gPlayerStatus.coordMtx->t[1] - hostRoot->coord.t[1];      \
+        (distanceOut)           = (offset).vx * (offset).vx;                                \
+        offsetPointer->vz       = gPlayerStatus.coordMtx->t[2] - hostRoot->coord.t[2];      \
+        (distanceOut)          += (offset).vy * (offset).vy;                                \
+        (distanceOut)           = SquareRoot0((distanceOut) + ((offset).vz * (offset).vz)); \
+    }
+
 extern s8 D_actor_403200_8015F8E0[8];
 
 /// Points one of the host's camera view functions measures the player's
@@ -314,9 +346,7 @@ extern _Actor403200PlayerPlacementStorage D_actor_403200_8015F9C0;
 
 extern GameActorButtonPressHold D_actor_403200_8015FA00;
 
-/// Handwritten overlay-local follow helper. `arg1`/`arg2` select the axis pair
-/// and `arg3` the mode; takes the task, not the work block.
-static void func_actor_403200_801408D8(Task* arg0, s16 arg1, s16 arg2, s16 arg3);
+static void _actor403200BuildAngledWall(Task* host, s16 distance, s16 lowerEdgeDrop, s16 faceIndex);
 
 static AnimationSet _gActor403200Animation1D9C0;
 static AnimationSet _gActor403200Animation1DA6C;
@@ -390,22 +420,22 @@ static TmdSource    _gActor403200Model18BE4;
 static TmdSource    _gActor403200Model19284;
 static TmdSource    _gActor403200Model199E4;
 static TmdSource    _gActor403200Model1AC48;
-s32                 func_actor_403200_801341E8(Task*, s16);
-s32                 func_actor_403200_80134374(Task*, s16);
-s32                 func_actor_403200_801344C4(Task*, s16);
-s32                 func_actor_403200_80134748(Task*, s16);
-s32                 func_actor_403200_80134900(Task*, s16);
-s32                 func_actor_403200_80134A14(Task*, s16);
+static s32          _actor403200PickGlobView(Task* host, s16 phase);
+static s32          _actor403200PickDebrisView(Task* host, s16 phase);
+static s32          _actor403200PickCombatView(Task* host, s16 phase);
+static s32          _actor403200PickRainView(Task* host, s16 phase);
+static s32          _actor403200PickCloseRangeView(Task* host, s16 phase);
+static s32          _actor403200PickAdvanceView(Task* unusedHost, s16 phase);
 static s32          _actor403200PickSwipeView(Task* task, s16 phase);
-s32                 func_actor_403200_80141180(Task*, s16);
-s32                 func_actor_403200_801411A8(Task*, s16);
+static s32          _actor403200PickDefaultView(Task* host, s16 phase);
+static s32          _actor403200PickPlayerXView(Task* unusedHost, s16 unusedPhase);
 static void         _gluttonEscort6Task(Task* task);
 
 static s32  _actor403200SetModelDraw(Task* task, s32 unusedMessageId, s32 drawMode, s32 unusedSecondArg);
 static s32  _actor403200ApplyCommand(Task* task, s32 unusedMessageId, const ActorCommand* command, s32 unusedSecondArg);
 static s32  _actor403200HandleActorEvent(Task* task, s32 unusedMessageId, s32 event, s32 unusedSecondArg);
 static s32  _actor403200ReleaseGlobGrab(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
-void        func_actor_403200_80140E6C(Task*);
+static void _actor403200HostTask(Task* host);
 static void _actor403200IgnoreMessage2015(Task* task, s32 unusedMessageId, s32 unusedFirstArg, s32 unusedSecondArg);
 
 extern DamageAttack D_actor_403200_80141BE8[6];
@@ -2672,15 +2702,15 @@ AnimationSet* D_actor_403200_8015E6CC[7] = {
 typedef s32 (*_Actor403200ViewFunc)(Task* host, s16 phase);
 
 _Actor403200ViewFunc D_actor_403200_8015E6E8[9] = {
-    func_actor_403200_80141180,
-    func_actor_403200_80134748,
-    func_actor_403200_801344C4,
-    func_actor_403200_801341E8,
-    func_actor_403200_80134900,
-    func_actor_403200_80134374,
+    _actor403200PickDefaultView,
+    _actor403200PickRainView,
+    _actor403200PickCombatView,
+    _actor403200PickGlobView,
+    _actor403200PickCloseRangeView,
+    _actor403200PickDebrisView,
     _actor403200PickSwipeView,
-    func_actor_403200_801411A8,
-    func_actor_403200_80134A14,
+    _actor403200PickPlayerXView,
+    _actor403200PickAdvanceView,
 };
 
 u8 gGluttonRainGroup = 0;
@@ -2874,7 +2904,7 @@ _Actor403200SpinnerSpawn D_actor_403200_8015F888[9] = {
 /// task's dispatcher.
 ///
 /// The room refers to it as a task descriptor, so that is what the object is.
-TaskDesc D_actor_403200_8015F8D0 = { { { TASK_BODY_TMD, 96 } }, func_actor_403200_80140E6C, { .model = &_gActor403200Model10824 } };
+TaskDesc D_actor_403200_8015F8D0 = { { { TASK_BODY_TMD, 96 } }, _actor403200HostTask, { .model = &_gActor403200Model10824 } };
 
 /// Four zero bytes between the descriptor and the next object. Nothing refers
 /// to them; what they were is not established.
@@ -2956,7 +2986,7 @@ static void _actor403200NoopState17(Task* task);
 
 static void _actor403200DeathHandoffState(Task* task);
 
-static void func_actor_403200_80134D40(Task* arg0);
+static void _actor403200AdvanceState(Task* host);
 static void func_actor_403200_80138AFC(Enemy* enemy, Task* task);
 static void func_actor_403200_8013A4A0(Task* arg0);
 static void func_actor_403200_8013B3C8(Task* arg0);
@@ -2970,36 +3000,40 @@ static void func_actor_403200_8013E2FC(Task* arg0);
 static void func_actor_403200_8013E5A8(Task* arg0);
 static void func_actor_403200_8013EF6C(Task* arg0);
 
-/// Allocates primitive buffers on the host and each live escort.
+/// Allocates missing primitive-buffer halves for the host and its live escorts.
 ///
-/// Requires live host work/models; the task pointer is borrowed for the call.
-static __inline__ void _actor403200AllocateModelBuffers(Task* task)
+/// Requires live host work and TMD models on every non-NULL escort. All seven
+/// escort slots are visited. Each model owns its auxiliary-heap buffer.
+/// Allocation failures are ignored; existing buffers are retained.
+static __inline__ void _actor403200AllocateModelBuffers(Task* host)
 {
-    GluttonWork* bufferWork;
-    s16          bufferIndex;
+    GluttonWork* work;
+    s16          escortIndex;
 
-    bufferWork = task->work;
-    tmdAllocPrimitiveBuffer(task->extra.tmd);
-    for (bufferIndex = 0; bufferIndex < ARRAY_SIZE(bufferWork->escorts); bufferIndex++) {
-        if (bufferWork->escorts[bufferIndex] != NULL) {
-            tmdAllocPrimitiveBuffer(bufferWork->escorts[bufferIndex]->task->extra.tmd);
+    work = host->work;
+    tmdAllocPrimitiveBuffer(host->extra.tmd);
+    for (escortIndex = 0; escortIndex < ARRAY_SIZE(work->escorts); escortIndex++) {
+        if (work->escorts[escortIndex] != NULL) {
+            tmdAllocPrimitiveBuffer(work->escorts[escortIndex]->task->extra.tmd);
         }
     }
 }
 
-/// Releases primitive buffers on the host and each live escort.
+/// Releases primitive-buffer halves for the host and its live escorts.
 ///
-/// Requires live host work/models; the task pointer is borrowed for the call.
-static __inline__ void _actor403200FreeModelBuffers(Task* task)
+/// Requires live host work and TMD models on every non-NULL escort. All seven
+/// escort slots are visited. Each model owns its auxiliary-heap buffer.
+/// GPU consumption of these buffers must have finished before release.
+static __inline__ void _actor403200FreeModelBuffers(Task* host)
 {
-    GluttonWork* bufferWork;
-    s16          bufferIndex;
+    GluttonWork* work;
+    s16          escortIndex;
 
-    bufferWork = task->work;
-    tmdFreePrimitiveBuffer(task->extra.tmd);
-    for (bufferIndex = 0; bufferIndex < ARRAY_SIZE(bufferWork->escorts); bufferIndex++) {
-        if (bufferWork->escorts[bufferIndex] != NULL) {
-            tmdFreePrimitiveBuffer(bufferWork->escorts[bufferIndex]->task->extra.tmd);
+    work = host->work;
+    tmdFreePrimitiveBuffer(host->extra.tmd);
+    for (escortIndex = 0; escortIndex < ARRAY_SIZE(work->escorts); escortIndex++) {
+        if (work->escorts[escortIndex] != NULL) {
+            tmdFreePrimitiveBuffer(work->escorts[escortIndex]->task->extra.tmd);
         }
     }
 }
@@ -3081,371 +3115,390 @@ static __inline__ void _actor403200ResetHostPose(Task* task, GluttonWork* work)
 
 #include "../../shared/glutton_hit_effect.inc.c"
 
-s32 func_actor_403200_801341E8(Task* arg0, s16 arg1)
+/// Selects the glob-launch camera by phase and player distance from the host.
+///
+/// Selector 3 uses views 33/32 in phase 0, 9/10 in phase 1, and 27 in phase 2.
+/// The current mapped view provides hysteresis at the cut thresholds.
+/// Requires live host/player roots in their common parent frame. XYZ offsets
+/// narrow to signed halfwords before their squared length is evaluated in s32;
+/// the squared sum must be representable. The result is a room view index. Other
+/// phases return view 1.
+static s32 _actor403200PickGlobView(Task* host, s16 phase)
 {
-    SVECTOR   vec;
-    SVECTOR*  vp;
-    GfxCoord* coords;
-    s32       dist;
-    s32       value;
-    s32       view;
-    s32       flag;
+    enum {
+        ACTOR_403200_GLOB_PHASE0_NEAR_VIEW = 33,
+        ACTOR_403200_GLOB_PHASE0_FAR_VIEW  = 32,
+        ACTOR_403200_GLOB_PHASE1_NEAR_VIEW = 9,
+        ACTOR_403200_GLOB_PHASE1_FAR_VIEW  = 10,
+        ACTOR_403200_GLOB_PHASE2_VIEW      = 27,
+    };
+    SVECTOR toPlayer;
+    s32     playerDistance;
+    s32     nextView;
+    s32     currentView;
+    s32     selection;
 
-    view   = viewGetMappedIndex() & 0xFF;
-    vp     = &vec;
-    coords = arg0->extra.tmd->coords;
-    vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
-    vp->vy = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
-    dist   = vec.vx * vec.vx;
-    vp->vz = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
-    dist  += vec.vy * vec.vy;
-    dist   = SquareRoot0(dist + (vec.vz * vec.vz));
-    switch (arg1) {
+    currentView = viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK;
+    ACTOR_403200_MEASURE_PLAYER_DISTANCE(host, toPlayer, playerDistance);
+    // The selection temporary carries a view test, then a range predicate.
+    switch (phase) {
         case 0:
-            if (view == 0x21) {
-                value = 0x20;
-                flag  = dist < 0x189D;
-                if (flag) {
-                    value = 0x21;
+            if (currentView == ACTOR_403200_GLOB_PHASE0_NEAR_VIEW) {
+                nextView  = ACTOR_403200_GLOB_PHASE0_FAR_VIEW;
+                selection = playerDistance < 0x189D;
+                if (selection) {
+                    nextView = ACTOR_403200_GLOB_PHASE0_NEAR_VIEW;
                 }
-                return value;
+                return nextView;
             }
-            value = 0x21;
-            flag  = dist < 0x1770;
-            if (!flag) {
-                value = 0x20;
+            nextView  = ACTOR_403200_GLOB_PHASE0_NEAR_VIEW;
+            selection = playerDistance < 0x1770;
+            if (!selection) {
+                nextView = ACTOR_403200_GLOB_PHASE0_FAR_VIEW;
             }
-            return value;
+            return nextView;
         case 1:
-            if ((view != 9) && (view != 10)) {
-                value = 9;
-                flag  = dist < 0x27D8;
+            if ((currentView != ACTOR_403200_GLOB_PHASE1_NEAR_VIEW) && (currentView != ACTOR_403200_GLOB_PHASE1_FAR_VIEW)) {
+                nextView  = ACTOR_403200_GLOB_PHASE1_NEAR_VIEW;
+                selection = playerDistance < 0x27D8;
             } else {
-                flag = view;
-                if (flag == 9) {
-                    value = 0xA;
-                    flag  = dist < 0x27D9;
-                    if (flag) {
-                        value = 9;
+                selection = currentView;
+                if (selection == ACTOR_403200_GLOB_PHASE1_NEAR_VIEW) {
+                    nextView  = ACTOR_403200_GLOB_PHASE1_FAR_VIEW;
+                    selection = playerDistance < 0x27D9;
+                    if (selection) {
+                        nextView = ACTOR_403200_GLOB_PHASE1_NEAR_VIEW;
                     }
-                    return value;
+                    return nextView;
                 }
-                if (flag == 10) {
-                    value = 9;
-                    flag  = dist < 0x24EA;
+                if (selection == ACTOR_403200_GLOB_PHASE1_FAR_VIEW) {
+                    nextView  = ACTOR_403200_GLOB_PHASE1_NEAR_VIEW;
+                    selection = playerDistance < 0x24EA;
                 } else {
-                    return 1;
+                    return ACTOR_403200_VIEW_FALLBACK;
                 }
             }
-            if (!flag) {
-                value = 0xA;
+            if (!selection) {
+                nextView = ACTOR_403200_GLOB_PHASE1_FAR_VIEW;
             }
-            return value;
+            return nextView;
         case 2:
-            return 0x1B;
+            return ACTOR_403200_GLOB_PHASE2_VIEW;
     }
-    return 1;
+    return ACTOR_403200_VIEW_FALLBACK;
 }
 
-s32 func_actor_403200_80134374(Task* arg0, s16 arg1)
+/// Selects the debris camera by phase and player distance from the host.
+///
+/// Selector 5 uses views 7/8 in phases 0 and 1, and 26 in phase 2.
+/// The current mapped view provides hysteresis at the cut thresholds.
+/// Requires live host/player roots in their common parent frame. XYZ offsets
+/// narrow to signed halfwords before their squared length is evaluated in s32;
+/// the squared sum must be representable. The result is a room view index. Other
+/// phases return view 1.
+static s32 _actor403200PickDebrisView(Task* host, s16 phase)
 {
-    SVECTOR   vec;
-    SVECTOR*  vp;
-    GfxCoord* coords;
-    s32       dist;
-    s32       value;
-    s32       view;
-    s32       flag;
+    enum {
+        ACTOR_403200_DEBRIS_NEAR_VIEW   = 7,
+        ACTOR_403200_DEBRIS_FAR_VIEW    = 8,
+        ACTOR_403200_DEBRIS_PHASE2_VIEW = 26,
+    };
+    SVECTOR toPlayer;
+    s32     playerDistance;
+    s32     nextView;
+    s32     currentView;
+    s32     selection;
 
-    view   = viewGetMappedIndex() & 0xFF;
-    vp     = &vec;
-    coords = arg0->extra.tmd->coords;
-    vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
-    vp->vy = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
-    dist   = vec.vx * vec.vx;
-    vp->vz = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
-    dist  += vec.vy * vec.vy;
-    dist   = SquareRoot0(dist + (vec.vz * vec.vz));
-    switch (arg1) {
+    currentView = viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK;
+    ACTOR_403200_MEASURE_PLAYER_DISTANCE(host, toPlayer, playerDistance);
+    // The selection temporary carries a view test, then a range predicate.
+    switch (phase) {
         case 0:
         case 1:
-            if ((view != 7) && (view != 8)) {
-                value = 7;
-                flag  = dist < 0x26AC;
+            if ((currentView != ACTOR_403200_DEBRIS_NEAR_VIEW) && (currentView != ACTOR_403200_DEBRIS_FAR_VIEW)) {
+                nextView  = ACTOR_403200_DEBRIS_NEAR_VIEW;
+                selection = playerDistance < 0x26AC;
             } else {
-                flag = view;
-                if (flag == 7) {
-                    value = 8;
-                    flag  = dist < 0x26AD;
-                    if (flag) {
-                        value = 7;
+                selection = currentView;
+                if (selection == ACTOR_403200_DEBRIS_NEAR_VIEW) {
+                    nextView  = ACTOR_403200_DEBRIS_FAR_VIEW;
+                    selection = playerDistance < 0x26AD;
+                    if (selection) {
+                        nextView = ACTOR_403200_DEBRIS_NEAR_VIEW;
                     }
-                    return value;
+                    return nextView;
                 }
-                if (flag == 8) {
-                    value = 7;
-                    flag  = dist < 0x2328;
+                if (selection == ACTOR_403200_DEBRIS_FAR_VIEW) {
+                    nextView  = ACTOR_403200_DEBRIS_NEAR_VIEW;
+                    selection = playerDistance < 0x2328;
                 } else {
-                    return 1;
+                    return ACTOR_403200_VIEW_FALLBACK;
                 }
             }
-            if (!flag) {
-                value = 8;
+            if (!selection) {
+                nextView = ACTOR_403200_DEBRIS_FAR_VIEW;
             }
-            return value;
+            return nextView;
         case 2:
-            return 0x1A;
+            return ACTOR_403200_DEBRIS_PHASE2_VIEW;
     }
-    return 1;
+    return ACTOR_403200_VIEW_FALLBACK;
 }
 
-s32 func_actor_403200_801344C4(Task* arg0, s16 arg1)
+/// Selects the combat camera by phase, range and the current view.
+///
+/// Selector 2 uses views 3/2/4 in phase 0, 34/4 in phase 1 and 37/25 in
+/// phase 2. Phase 3 uses player X to choose 37/30; other phases return view 1.
+/// The current mapped view provides hysteresis at the cut thresholds.
+/// Requires live host/player roots in their common parent frame. XYZ offsets
+/// narrow to signed halfwords before their squared length is evaluated in s32;
+/// the squared sum must be representable. The result is a room view index.
+static s32 _actor403200PickCombatView(Task* host, s16 phase)
 {
-    SVECTOR   vec;
-    SVECTOR*  vp;
-    GfxCoord* coords;
-    Task*     task;
-    s32       dist;
-    s32       view;
-    s32       current;
+    SVECTOR toPlayer;
+    Task*   player;
+    s32     playerDistance;
+    s32     currentView;
+    s32     viewChoice;
 
-    view   = viewGetMappedIndex() & 0xFF;
-    task   = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    vp     = &vec;
-    coords = arg0->extra.tmd->coords;
-    vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
-    vp->vy = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
-    dist   = vec.vx * vec.vx;
-    vp->vz = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
-    dist  += vec.vy * vec.vy;
-    dist   = SquareRoot0(dist + (vec.vz * vec.vz));
-    switch (arg1) {
+    currentView = viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK;
+    player      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    ACTOR_403200_MEASURE_PLAYER_DISTANCE(host, toPlayer, playerDistance);
+    switch (phase) {
         case 0:
-            if ((view != 2) && (view != 3) && (view != 4)) {
-                if (dist < 0x2261) {
-                    return 3;
+            if ((currentView != ACTOR_403200_VIEW_PHASE0_MIDDLE) && (currentView != ACTOR_403200_VIEW_PHASE0_NEAR) && (currentView != ACTOR_403200_VIEW_HOST_FAR)) {
+                if (playerDistance < 0x2261) {
+                    return ACTOR_403200_VIEW_PHASE0_NEAR;
                 }
-                if (dist < 0x2FA8) {
-                    return 2;
+                if (playerDistance < 0x2FA8) {
+                    return ACTOR_403200_VIEW_PHASE0_MIDDLE;
                 }
-                return 4;
+                return ACTOR_403200_VIEW_HOST_FAR;
             }
-            current = view;
-            if (current == 3) {
-                if (dist > 0x2261) {
-                    return 2;
+            viewChoice = currentView;
+            if (viewChoice == ACTOR_403200_VIEW_PHASE0_NEAR) {
+                if (playerDistance > 0x2261) {
+                    return ACTOR_403200_VIEW_PHASE0_MIDDLE;
                 }
-                return 3;
+                return ACTOR_403200_VIEW_PHASE0_NEAR;
             }
-            if (current == 2) {
-                if (dist < 0x1E14) {
-                    return 3;
+            if (viewChoice == ACTOR_403200_VIEW_PHASE0_MIDDLE) {
+                if (playerDistance < 0x1E14) {
+                    return ACTOR_403200_VIEW_PHASE0_NEAR;
                 }
-                if (dist > 0x2FA8) {
-                    return 4;
+                if (playerDistance > 0x2FA8) {
+                    return ACTOR_403200_VIEW_HOST_FAR;
                 }
-                return 2;
+                return ACTOR_403200_VIEW_PHASE0_MIDDLE;
             }
-            if (current == 4) {
-                if (dist < 0x2E18) {
-                    return 2;
+            if (viewChoice == ACTOR_403200_VIEW_HOST_FAR) {
+                if (playerDistance < 0x2E18) {
+                    return ACTOR_403200_VIEW_PHASE0_MIDDLE;
                 }
-                return 4;
+                return ACTOR_403200_VIEW_HOST_FAR;
             }
-            return 1;
+            return ACTOR_403200_VIEW_FALLBACK;
         case 1:
-            current = view;
-            if ((current != 0x22) && (current != 4)) {
-                if (dist < 0x2455) {
-                    return 0x22;
+            viewChoice = currentView;
+            if ((viewChoice != ACTOR_403200_VIEW_PHASE1_NEAR) && (viewChoice != ACTOR_403200_VIEW_HOST_FAR)) {
+                if (playerDistance < 0x2455) {
+                    return ACTOR_403200_VIEW_PHASE1_NEAR;
                 }
-                return 4;
+                return ACTOR_403200_VIEW_HOST_FAR;
             }
-            if (current == 0x22) {
-                if (dist > 0x2455) {
-                    return 4;
+            if (viewChoice == ACTOR_403200_VIEW_PHASE1_NEAR) {
+                if (playerDistance > 0x2455) {
+                    return ACTOR_403200_VIEW_HOST_FAR;
                 }
-                return 0x22;
+                return ACTOR_403200_VIEW_PHASE1_NEAR;
             }
-            if (current == 4) {
-                if (dist < 0x2260) {
-                    return 0x22;
+            if (viewChoice == ACTOR_403200_VIEW_HOST_FAR) {
+                if (playerDistance < 0x2260) {
+                    return ACTOR_403200_VIEW_PHASE1_NEAR;
                 }
-                return 4;
+                return ACTOR_403200_VIEW_HOST_FAR;
             }
-            return 1;
+            return ACTOR_403200_VIEW_FALLBACK;
         case 2:
-            current = view;
-            if ((current != 0x25) && (current != 0x19)) {
-                if (dist < 0x1E5A) {
-                    return 0x25;
+            viewChoice = currentView;
+            if ((viewChoice != ACTOR_403200_VIEW_LATE_NEAR) && (viewChoice != ACTOR_403200_VIEW_PHASE2_FAR)) {
+                if (playerDistance < 0x1E5A) {
+                    return ACTOR_403200_VIEW_LATE_NEAR;
                 }
-                return 0x19;
+                return ACTOR_403200_VIEW_PHASE2_FAR;
             }
-            if (current == 0x25) {
-                if (dist > 0x1E5A) {
-                    return 0x19;
+            if (viewChoice == ACTOR_403200_VIEW_LATE_NEAR) {
+                if (playerDistance > 0x1E5A) {
+                    return ACTOR_403200_VIEW_PHASE2_FAR;
                 }
-                return 0x25;
+                return ACTOR_403200_VIEW_LATE_NEAR;
             }
-            if (current == 0x19) {
-                if (dist < 0x1B58) {
-                    return 0x25;
+            if (viewChoice == ACTOR_403200_VIEW_PHASE2_FAR) {
+                if (playerDistance < 0x1B58) {
+                    return ACTOR_403200_VIEW_LATE_NEAR;
                 }
-                return 0x19;
+                return ACTOR_403200_VIEW_PHASE2_FAR;
             }
-            return 1;
+            return ACTOR_403200_VIEW_FALLBACK;
         case 3:
-            current = view;
-            if ((current != 0x25) && (current != 0x1E)) {
-                if (task->extra.tmd->coords->coord.t[0] < 0x4268) {
-                    return 0x25;
+            viewChoice = currentView;
+            if ((viewChoice != ACTOR_403200_VIEW_LATE_NEAR) && (viewChoice != ACTOR_403200_VIEW_FAR_X)) {
+                if (player->extra.tmd->coords->coord.t[0] < 0x4268) {
+                    return ACTOR_403200_VIEW_LATE_NEAR;
                 }
-                return 0x1E;
+                return ACTOR_403200_VIEW_FAR_X;
             }
-            if (current == 0x25) {
-                if (task->extra.tmd->coords->coord.t[0] > 0x4650) {
-                    return 0x1E;
+            if (viewChoice == ACTOR_403200_VIEW_LATE_NEAR) {
+                if (player->extra.tmd->coords->coord.t[0] > 0x4650) {
+                    return ACTOR_403200_VIEW_FAR_X;
                 }
-                return 0x25;
+                return ACTOR_403200_VIEW_LATE_NEAR;
             }
-            if (current == 0x1E) {
-                if (task->extra.tmd->coords->coord.t[0] < 0x4268) {
-                    return 0x25;
+            if (viewChoice == ACTOR_403200_VIEW_FAR_X) {
+                if (player->extra.tmd->coords->coord.t[0] < 0x4268) {
+                    return ACTOR_403200_VIEW_LATE_NEAR;
                 }
-                return 0x1E;
+                return ACTOR_403200_VIEW_FAR_X;
             }
-            return 1;
+            return ACTOR_403200_VIEW_FALLBACK;
     }
-    return 1;
+    return ACTOR_403200_VIEW_FALLBACK;
 }
 
-s32 func_actor_403200_80134748(Task* arg0, s16 arg1)
+/// Selects the rain-launch camera by phase and player distance from the host.
+///
+/// Selector 1 uses views 5/6 in phase 0, 11/12 in phase 1, and 28 in phase 2.
+/// The current mapped view provides hysteresis at the cut thresholds.
+/// Requires live host/player roots in their common parent frame. XYZ offsets
+/// narrow to signed halfwords before their squared length is evaluated in s32;
+/// the squared sum must be representable. The result is a room view index. Other
+/// phases return view 1.
+static s32 _actor403200PickRainView(Task* host, s16 phase)
 {
-    SVECTOR   vec;
-    SVECTOR*  vp;
-    GfxCoord* coords;
-    s32       dist;
-    s32       value;
-    s32       view;
-    s32       flag;
+    enum {
+        ACTOR_403200_RAIN_PHASE0_NEAR_VIEW = 5,
+        ACTOR_403200_RAIN_PHASE0_FAR_VIEW  = 6,
+        ACTOR_403200_RAIN_PHASE1_NEAR_VIEW = 11,
+        ACTOR_403200_RAIN_PHASE1_FAR_VIEW  = 12,
+        ACTOR_403200_RAIN_PHASE2_VIEW      = 28,
+    };
+    SVECTOR toPlayer;
+    s32     playerDistance;
+    s32     nextView;
+    s32     currentView;
+    s32     selection;
 
-    view   = viewGetMappedIndex() & 0xFF;
-    vp     = &vec;
-    coords = arg0->extra.tmd->coords;
-    vp->vx = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
-    vp->vy = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
-    dist   = vec.vx * vec.vx;
-    vp->vz = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
-    dist  += vec.vy * vec.vy;
-    dist   = SquareRoot0(dist + (vec.vz * vec.vz));
-    switch (arg1) {
+    currentView = viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK;
+    ACTOR_403200_MEASURE_PLAYER_DISTANCE(host, toPlayer, playerDistance);
+    // The selection temporary carries a view test, then a range predicate.
+    switch (phase) {
         case 0:
-            if ((view != 5) && (view != 6)) {
-                value = 5;
-                flag  = dist < 0x238C;
+            if ((currentView != ACTOR_403200_RAIN_PHASE0_NEAR_VIEW) && (currentView != ACTOR_403200_RAIN_PHASE0_FAR_VIEW)) {
+                nextView  = ACTOR_403200_RAIN_PHASE0_NEAR_VIEW;
+                selection = playerDistance < 0x238C;
             } else {
-                flag = view;
-                if (flag == 5) {
-                    value = 6;
-                    flag  = dist < 0x238D;
-                    if (flag) {
-                        value = 5;
+                selection = currentView;
+                if (selection == ACTOR_403200_RAIN_PHASE0_NEAR_VIEW) {
+                    nextView  = ACTOR_403200_RAIN_PHASE0_FAR_VIEW;
+                    selection = playerDistance < 0x238D;
+                    if (selection) {
+                        nextView = ACTOR_403200_RAIN_PHASE0_NEAR_VIEW;
                     }
-                    return value;
+                    return nextView;
                 }
-                if (flag == 6) {
-                    value = 5;
-                    flag  = dist < 0x2198;
+                if (selection == ACTOR_403200_RAIN_PHASE0_FAR_VIEW) {
+                    nextView  = ACTOR_403200_RAIN_PHASE0_NEAR_VIEW;
+                    selection = playerDistance < 0x2198;
                 } else {
-                    return 1;
+                    return ACTOR_403200_VIEW_FALLBACK;
                 }
             }
-            if (!flag) {
-                value = 6;
+            if (!selection) {
+                nextView = ACTOR_403200_RAIN_PHASE0_FAR_VIEW;
             }
-            return value;
+            return nextView;
         case 1:
-            if ((view != 0xB) && (view != 0xC)) {
-                value = 0xB;
-                flag  = dist < 0x238C;
+            if ((currentView != ACTOR_403200_RAIN_PHASE1_NEAR_VIEW) && (currentView != ACTOR_403200_RAIN_PHASE1_FAR_VIEW)) {
+                nextView  = ACTOR_403200_RAIN_PHASE1_NEAR_VIEW;
+                selection = playerDistance < 0x238C;
             } else {
-                flag = view;
-                if (flag == 0xB) {
-                    value = 0xC;
-                    flag  = dist < 0x238D;
-                    if (flag) {
-                        value = 0xB;
+                selection = currentView;
+                if (selection == ACTOR_403200_RAIN_PHASE1_NEAR_VIEW) {
+                    nextView  = ACTOR_403200_RAIN_PHASE1_FAR_VIEW;
+                    selection = playerDistance < 0x238D;
+                    if (selection) {
+                        nextView = ACTOR_403200_RAIN_PHASE1_NEAR_VIEW;
                     }
-                    return value;
+                    return nextView;
                 }
-                if (flag == 0xC) {
-                    value = 0xB;
-                    flag  = dist < 0x1A90;
+                if (selection == ACTOR_403200_RAIN_PHASE1_FAR_VIEW) {
+                    nextView  = ACTOR_403200_RAIN_PHASE1_NEAR_VIEW;
+                    selection = playerDistance < 0x1A90;
                 } else {
-                    return 1;
+                    return ACTOR_403200_VIEW_FALLBACK;
                 }
             }
-            if (!flag) {
-                value = 0xC;
+            if (!selection) {
+                nextView = ACTOR_403200_RAIN_PHASE1_FAR_VIEW;
             }
-            return value;
+            return nextView;
         case 2:
-            return 0x1C;
+            return ACTOR_403200_RAIN_PHASE2_VIEW;
     }
-    return 1;
+    return ACTOR_403200_VIEW_FALLBACK;
 }
 
-s32 func_actor_403200_80134900(Task* arg0, s16 arg1)
+/// Selects views 37/25 by player distance from the host.
+///
+/// Selector 4 uses the same pair in phases 0..2; other phases return view 1.
+/// The current mapped view provides hysteresis at the cut thresholds.
+/// Requires live host/player roots in their common parent frame. XYZ offsets
+/// narrow to signed halfwords before their squared length is evaluated in s32;
+/// the squared sum must be representable. The result is a room view index.
+static s32 _actor403200PickCloseRangeView(Task* host, s16 phase)
 {
-    SVECTOR   pos;
-    SVECTOR*  p;
-    GfxCoord* coords;
-    s32       dist;
-    s32       flag;
-    s32       value;
-    s32       view;
+    SVECTOR toPlayer;
+    s32     playerDistance;
+    s32     selection;
+    s32     nextView;
+    s32     currentView;
 
-    view   = viewGetMappedIndex() & 0xFF;
-    p      = &pos;
-    coords = arg0->extra.tmd->coords;
-    p->vx  = gPlayerStatus.coordMtx->t[0] - coords->coord.t[0];
-    p->vy  = gPlayerStatus.coordMtx->t[1] - coords->coord.t[1];
-    dist   = pos.vx * pos.vx;
-    p->vz  = gPlayerStatus.coordMtx->t[2] - coords->coord.t[2];
-    dist  += pos.vy * pos.vy;
-    dist   = SquareRoot0(dist + (pos.vz * pos.vz));
-    switch (arg1) {
+    currentView = viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK;
+    ACTOR_403200_MEASURE_PLAYER_DISTANCE(host, toPlayer, playerDistance);
+    // The selection temporary carries a view test, then a range predicate.
+    switch (phase) {
         default:
-            return 1;
+            return ACTOR_403200_VIEW_FALLBACK;
         case 0:
         case 1:
         case 2:
-            flag = view;
-            if ((flag != 0x25) && (flag != 0x19)) {
-                value = 0x25;
-                flag  = dist < 0x1E5A;
-                if (!flag) {
-                    value = 0x19;
+            selection = currentView;
+            if ((selection != ACTOR_403200_VIEW_LATE_NEAR) && (selection != ACTOR_403200_VIEW_PHASE2_FAR)) {
+                nextView  = ACTOR_403200_VIEW_LATE_NEAR;
+                selection = playerDistance < 0x1E5A;
+                if (!selection) {
+                    nextView = ACTOR_403200_VIEW_PHASE2_FAR;
                 }
-                return value;
-            } else if (flag == 0x25) {
-                value = 0x25;
-                flag  = dist < 0x1E5A;
-                if (!flag) {
-                    value = 0x19;
+                return nextView;
+            } else if (selection == ACTOR_403200_VIEW_LATE_NEAR) {
+                nextView  = ACTOR_403200_VIEW_LATE_NEAR;
+                selection = playerDistance < 0x1E5A;
+                if (!selection) {
+                    nextView = ACTOR_403200_VIEW_PHASE2_FAR;
                 }
-                return value;
+                return nextView;
             } else {
-                value = 0x25;
-                flag  = dist < 0x1B58;
-                if (!flag) {
-                    value = 0x19;
+                nextView  = ACTOR_403200_VIEW_LATE_NEAR;
+                selection = playerDistance < 0x1B58;
+                if (!selection) {
+                    nextView = ACTOR_403200_VIEW_PHASE2_FAR;
                 }
-                return value;
+                return nextView;
             }
     }
 }
+
+#undef ACTOR_403200_MEASURE_PLAYER_DISTANCE
 
 /// Reference positions the view selector below measures the player against.
 static const _Actor403200ViewAnchors D_actor_403200_80131E64 = {
@@ -3468,211 +3521,225 @@ static const EnemyTaskFuncTable3 gGluttonPropStates = {
     },
 };
 
-s32 func_actor_403200_80134A14(Task* arg0, s16 arg1)
+/// Selects the advancing host's camera from a fixed anchor for each phase.
+///
+/// Selector 8 uses the combat selector's view pairs and hysteresis. Requires
+/// phase 0..3: the four-entry anchor array is indexed before the switch and has
+/// no bounds check. The host argument is unused. Player and anchors share room
+/// coordinates; XYZ offsets narrow to signed halfwords, then their squared
+/// sum must fit s32. Phase 3 selects by player X. Returns a room view index.
+static s32 _actor403200PickAdvanceView(Task* unusedHost, s16 phase)
 {
-    SVECTOR                 vec;
+    SVECTOR                 toAnchor;
     _Actor403200ViewAnchors anchors;
-    Task*                   obj;
-    s32                     dist;
-    s32                     view;
-    s32                     current;
+    Task*                   player;
+    s32                     playerDistance;
+    s32                     currentView;
+    s32                     viewChoice;
 
-    view    = viewGetMappedIndex() & 0xFF;
-    obj     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    anchors = D_actor_403200_80131E64;
-    vec.vx  = obj->extra.tmd->coords->coord.t[0] - anchors.points[arg1].vx;
-    dist    = vec.vx * vec.vx;
-    vec.vy  = obj->extra.tmd->coords->coord.t[1] - anchors.points[arg1].vy;
-    dist   += vec.vy * vec.vy;
-    vec.vz  = obj->extra.tmd->coords->coord.t[2] - anchors.points[arg1].vz;
-    dist    = SquareRoot0(dist + (vec.vz * vec.vz));
-    switch (arg1) {
+    currentView     = viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK;
+    player          = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    anchors         = D_actor_403200_80131E64;
+    toAnchor.vx     = player->extra.tmd->coords->coord.t[0] - anchors.points[phase].vx;
+    playerDistance  = toAnchor.vx * toAnchor.vx;
+    toAnchor.vy     = player->extra.tmd->coords->coord.t[1] - anchors.points[phase].vy;
+    playerDistance += toAnchor.vy * toAnchor.vy;
+    toAnchor.vz     = player->extra.tmd->coords->coord.t[2] - anchors.points[phase].vz;
+    playerDistance  = SquareRoot0(playerDistance + (toAnchor.vz * toAnchor.vz));
+    switch (phase) {
         case 0:
-            if ((view != 2) && (view != 3) && (view != 4)) {
-                if (dist < 0x2261) {
-                    return 3;
+            if ((currentView != ACTOR_403200_VIEW_PHASE0_MIDDLE) && (currentView != ACTOR_403200_VIEW_PHASE0_NEAR) && (currentView != ACTOR_403200_VIEW_HOST_FAR)) {
+                if (playerDistance < 0x2261) {
+                    return ACTOR_403200_VIEW_PHASE0_NEAR;
                 }
-                if (dist < 0x2FA8) {
-                    return 2;
+                if (playerDistance < 0x2FA8) {
+                    return ACTOR_403200_VIEW_PHASE0_MIDDLE;
                 }
-                return 4;
+                return ACTOR_403200_VIEW_HOST_FAR;
             }
-            current = view;
-            if (current == 3) {
-                if (dist > 0x2261) {
-                    return 2;
+            viewChoice = currentView;
+            if (viewChoice == ACTOR_403200_VIEW_PHASE0_NEAR) {
+                if (playerDistance > 0x2261) {
+                    return ACTOR_403200_VIEW_PHASE0_MIDDLE;
                 }
-                return 3;
+                return ACTOR_403200_VIEW_PHASE0_NEAR;
             }
-            if (current == 2) {
-                if (dist < 0x1E14) {
-                    return 3;
+            if (viewChoice == ACTOR_403200_VIEW_PHASE0_MIDDLE) {
+                if (playerDistance < 0x1E14) {
+                    return ACTOR_403200_VIEW_PHASE0_NEAR;
                 }
-                if (dist > 0x2FA8) {
-                    return 4;
+                if (playerDistance > 0x2FA8) {
+                    return ACTOR_403200_VIEW_HOST_FAR;
                 }
-                return 2;
+                return ACTOR_403200_VIEW_PHASE0_MIDDLE;
             }
-            if (current == 4) {
-                if (dist < 0x2E18) {
-                    return 2;
+            if (viewChoice == ACTOR_403200_VIEW_HOST_FAR) {
+                if (playerDistance < 0x2E18) {
+                    return ACTOR_403200_VIEW_PHASE0_MIDDLE;
                 }
-                return 4;
+                return ACTOR_403200_VIEW_HOST_FAR;
             }
-            return 1;
+            return ACTOR_403200_VIEW_FALLBACK;
         case 1:
-            current = view;
-            if ((current != 0x22) && (current != 4)) {
-                if (dist < 0x2455) {
-                    return 0x22;
+            viewChoice = currentView;
+            if ((viewChoice != ACTOR_403200_VIEW_PHASE1_NEAR) && (viewChoice != ACTOR_403200_VIEW_HOST_FAR)) {
+                if (playerDistance < 0x2455) {
+                    return ACTOR_403200_VIEW_PHASE1_NEAR;
                 }
-                return 4;
+                return ACTOR_403200_VIEW_HOST_FAR;
             }
-            if (current == 0x22) {
-                if (dist > 0x2455) {
-                    return 4;
+            if (viewChoice == ACTOR_403200_VIEW_PHASE1_NEAR) {
+                if (playerDistance > 0x2455) {
+                    return ACTOR_403200_VIEW_HOST_FAR;
                 }
-                return 0x22;
+                return ACTOR_403200_VIEW_PHASE1_NEAR;
             }
-            if (current == 4) {
-                if (dist < 0x2260) {
-                    return 0x22;
+            if (viewChoice == ACTOR_403200_VIEW_HOST_FAR) {
+                if (playerDistance < 0x2260) {
+                    return ACTOR_403200_VIEW_PHASE1_NEAR;
                 }
-                return 4;
+                return ACTOR_403200_VIEW_HOST_FAR;
             }
-            return 1;
+            return ACTOR_403200_VIEW_FALLBACK;
         case 2:
-            current = view;
-            if ((current != 0x25) && (current != 0x19)) {
-                if (dist < 0x1E5A) {
-                    return 0x25;
+            viewChoice = currentView;
+            if ((viewChoice != ACTOR_403200_VIEW_LATE_NEAR) && (viewChoice != ACTOR_403200_VIEW_PHASE2_FAR)) {
+                if (playerDistance < 0x1E5A) {
+                    return ACTOR_403200_VIEW_LATE_NEAR;
                 }
-                return 0x19;
+                return ACTOR_403200_VIEW_PHASE2_FAR;
             }
-            if (current == 0x25) {
-                if (dist > 0x1E5A) {
-                    return 0x19;
+            if (viewChoice == ACTOR_403200_VIEW_LATE_NEAR) {
+                if (playerDistance > 0x1E5A) {
+                    return ACTOR_403200_VIEW_PHASE2_FAR;
                 }
-                return 0x25;
+                return ACTOR_403200_VIEW_LATE_NEAR;
             }
-            if (current == 0x19) {
-                if (dist < 0x1B58) {
-                    return 0x25;
+            if (viewChoice == ACTOR_403200_VIEW_PHASE2_FAR) {
+                if (playerDistance < 0x1B58) {
+                    return ACTOR_403200_VIEW_LATE_NEAR;
                 }
-                return 0x19;
+                return ACTOR_403200_VIEW_PHASE2_FAR;
             }
-            return 1;
+            return ACTOR_403200_VIEW_FALLBACK;
         case 3:
-            current = view;
-            if ((current != 0x25) && (current != 0x1E)) {
-                if (obj->extra.tmd->coords->coord.t[0] < 0x4268) {
-                    return 0x25;
+            viewChoice = currentView;
+            if ((viewChoice != ACTOR_403200_VIEW_LATE_NEAR) && (viewChoice != ACTOR_403200_VIEW_FAR_X)) {
+                if (player->extra.tmd->coords->coord.t[0] < 0x4268) {
+                    return ACTOR_403200_VIEW_LATE_NEAR;
                 }
-                return 0x1E;
+                return ACTOR_403200_VIEW_FAR_X;
             }
-            if (current == 0x25) {
-                if (obj->extra.tmd->coords->coord.t[0] > 0x4650) {
-                    return 0x1E;
+            if (viewChoice == ACTOR_403200_VIEW_LATE_NEAR) {
+                if (player->extra.tmd->coords->coord.t[0] > 0x4650) {
+                    return ACTOR_403200_VIEW_FAR_X;
                 }
-                return 0x25;
+                return ACTOR_403200_VIEW_LATE_NEAR;
             }
-            if (current == 0x1E) {
-                if (obj->extra.tmd->coords->coord.t[0] < 0x4268) {
-                    return 0x25;
+            if (viewChoice == ACTOR_403200_VIEW_FAR_X) {
+                if (player->extra.tmd->coords->coord.t[0] < 0x4268) {
+                    return ACTOR_403200_VIEW_LATE_NEAR;
                 }
-                return 0x1E;
+                return ACTOR_403200_VIEW_FAR_X;
             }
-            return 1;
+            return ACTOR_403200_VIEW_FALLBACK;
     }
-    return 1;
+    return ACTOR_403200_VIEW_FALLBACK;
 }
 
-/// The enemy's walk-out state: a reset request re-arms the block (the two
-/// neck flags, the animation step, `hostExposed`, clip 2 and the
-/// `wallDistanceTarget`), then the per-frame body runs and the animation frame the
-/// mask leaves is tested against 0x12 and 0x18 -- each one-shot cue spawning a
-/// script and a type-6 sound with the enemy's pan and half its depth, once per
-/// arrival -- before being latched into `clip.prevSlot2Cue`. Unless the game is frozen
-/// the model is then advanced 25 coordinate units along its normalized facing, its
-/// `composeStamp` cleared, and once it has run out to x 0x1CCA in state 0 or 0x2882 in
-/// state 1 the step advances and re-arms `state`.
-static void func_actor_403200_80134D40(Task* arg0)
+/// Plays one advancing step's rumble, camera shake and positioned sound.
+///
+/// Borrows initialized host work, live coordinates and the enemy's sound-instance
+/// key. The sound uses half the host's audio depth; no pointer is retained.
+static __inline__ void _actor403200PlayAdvanceFootstep(Task* host, GluttonWork* work, Enemy* enemy)
 {
+    s32 soundId;
+    s32 soundPan;
+
+    work->shakeLevel = GLUTTON_SHAKE_LONG;
+    padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
+    soundId  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | SOUND_CHARACTER(SOUND_BANK_GLUTTON, 1);
+    soundPan = (s8)worldCoordGetOriginAudioPan(host->extra.tmd->coords);
+    sndEvtRequestScriptStart(soundId, soundPan,
+                             (s8)(worldCoordGetOriginAudioDepth(host->extra.tmd->coords) / 2));
+}
+
+/// Advances the host into the next fight phase while playing its walking clip.
+///
+/// State 9 starts clip 2 and moves 25 coordinate units per unfrozen tick along
+/// the normalized local Z axis. Phases 0 and 1 end at root X >= 7370 and 10370,
+/// advance the phase and select inhale state. After the first tick, selector 8
+/// uses fixed phase anchors while the host moves. Requires initialized work,
+/// models, animation rigs and scratch; its 12 reserved bytes are untouched.
+static void _actor403200AdvanceState(Task* host)
+{
+    enum {
+        ACTOR_403200_ADVANCE_CLIP                = 2,
+        ACTOR_403200_ADVANCE_FIRST_FOOTSTEP_CUE  = 18,
+        ACTOR_403200_ADVANCE_SECOND_FOOTSTEP_CUE = 24,
+        ACTOR_403200_ADVANCE_VIEW_SELECTOR       = 8,
+        ACTOR_403200_ADVANCE_SCRATCH_BYTES       = 12,
+    };
     GluttonWork* work;
     Enemy*       enemy;
-    GfxCoord*    model;
-    s16          frame;
+    GfxCoord*    hostRoot;
+    s16          cueIndex;
 
-    work  = arg0->work;
-    enemy = arg0->spawnArg2.pointer;
+    work  = host->work;
+    enemy = host->spawnArg2.pointer;
 
     if (work->stateChanged != 0) {
         work->neckPitchEnabled   = 1;
         work->neckYawEnabled     = 1;
         work->hostExposed        = 0;
-        work->animId             = 2;
+        work->animId             = ACTOR_403200_ADVANCE_CLIP;
         work->animStep           = GLUTTON_ANIM_STEP_BLEND;
         work->neckPitchTarget    = 0;
         work->wallDistanceTarget = 0xE74;
     }
 
-    SCRATCH_STACK_RESERVE_BYTES(0xC);
-    _gluttonTickAnim(arg0);
+    SCRATCH_STACK_RESERVE_BYTES(ACTOR_403200_ADVANCE_SCRATCH_BYTES);
+    _gluttonTickAnim(host);
 
-    frame = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    if (frame == 0x12 && work->clip.prevSlot2Cue != frame) {
-        s32 id;
-        s32 pan;
-
-        work->shakeLevel = GLUTTON_SHAKE_LONG;
-        padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
-        id  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200001;
-        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, pan,
-                                 (s8)(worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords) / 2));
+    // Fire each walking cue once on arrival, then retain the current cue.
+    cueIndex = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if (cueIndex == ACTOR_403200_ADVANCE_FIRST_FOOTSTEP_CUE && work->clip.prevSlot2Cue != cueIndex) {
+        _actor403200PlayAdvanceFootstep(host, work, enemy);
     }
 
-    frame = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
-    if (frame == 0x18 && work->clip.prevSlot2Cue != frame) {
-        s32 id;
-        s32 pan;
-
-        work->shakeLevel = GLUTTON_SHAKE_LONG;
-        padScriptSpawn(D_actor_403200_80141C5C, D_actor_403200_80141C64);
-        id  = (((u16)enemy->placeKey >> ENEMY_PLACE_INDEX_SHIFT) << 8) | 0x40200001;
-        pan = (s8)worldCoordGetOriginAudioPan(arg0->extra.tmd->coords);
-        sndEvtRequestScriptStart(id, pan,
-                                 (s8)(worldCoordGetOriginAudioDepth(arg0->extra.tmd->coords) / 2));
+    cueIndex = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
+    if (cueIndex == ACTOR_403200_ADVANCE_SECOND_FOOTSTEP_CUE && work->clip.prevSlot2Cue != cueIndex) {
+        _actor403200PlayAdvanceFootstep(host, work, enemy);
     }
 
     work->clip.prevSlot2Cue = work->hostRig.slots[2].currentPose.indices.recordIndex & ANIMATION_POSE_CUE_INDEX_MASK;
 
-    model = arg0->extra.tmd->coords;
+    hostRoot = host->extra.tmd->coords;
     if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.actorsFrozen != 1) {
-        _actor403200AdvanceRoot(model);
+        _actor403200AdvanceRoot(hostRoot);
     }
-    arg0->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
+    host->extra.tmd->coords->composeStamp = GRAPHICS_COORD_DIRTY;
 
     switch (work->phase) {
         case 0:
-            if (arg0->extra.tmd->coords->coord.t[0] >= 0x1CCA) {
+            if (host->extra.tmd->coords->coord.t[0] >= 0x1CCA) {
                 work->phase++;
-                work->state = 3;
+                work->state = GLUTTON_STATE_INHALE;
             }
             break;
         case 1:
-            if (arg0->extra.tmd->coords->coord.t[0] >= 0x2882) {
+            if (host->extra.tmd->coords->coord.t[0] >= 0x2882) {
                 work->phase++;
-                work->state = 3;
+                work->state = GLUTTON_STATE_INHALE;
             }
             break;
     }
 
     if (work->stateTicks > 0) {
-        work->viewSelector = 8;
+        work->viewSelector = ACTOR_403200_ADVANCE_VIEW_SELECTOR;
     }
 
-    SCRATCH_STACK_RELEASE_BYTES(0xC);
+    SCRATCH_STACK_RELEASE_BYTES(ACTOR_403200_ADVANCE_SCRATCH_BYTES);
 }
 
 #include "../../shared/glutton_throw_spawn.inc.c"
@@ -5018,17 +5085,21 @@ static void func_actor_403200_8013C84C(Task* arg0)
     SCRATCH_STACK_RELEASE_BYTES(0x3C);
 }
 
-/// Whether one of the leading `count` contact records, up to the first empty
-/// one, is of kind 0x10000 (the player's body).
-static inline s32 _gluttonHasPlayerContact(WorldCollisionContact* records, s16 count)
+/// Tests a bounded contact prefix for a player-body collision key.
+///
+/// Returns 1 for the player/companion body kind, otherwise 0. Stops at the
+/// first zero key or contactCount entries; nonpositive counts return 0.
+/// The count measures elements and must not exceed the borrowed readable
+/// table's capacity. No contact is consumed or changed.
+static inline s32 _actor403200HasPlayerContact(const WorldCollisionContact* contacts, s16 contactCount)
 {
-    s16 i;
+    s16 contactIndex;
 
-    for (i = 0; i < count; i++) {
-        if (records[i].key.value == 0) {
+    for (contactIndex = 0; contactIndex < contactCount; contactIndex++) {
+        if (contacts[contactIndex].key.value == 0) {
             break;
         }
-        if ((records[i].key.value & 0xFFFF0000) == 0x10000) {
+        if ((contacts[contactIndex].key.value & WORLD_COLLISION_CONTACT_KIND_MASK) == WORLD_COLLISION_CONTACT_PLAYER_BODY) {
             return 1;
         }
     }
@@ -5219,7 +5290,7 @@ static void func_actor_403200_8013D028(Task* arg0)
 
     _gluttonTickAnim(arg0);
 
-    if (_gluttonHasPlayerContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) != 0 && enemy->hp > 0 &&
+    if (_actor403200HasPlayerContact(work->swipeContacts, ARRAY_SIZE(work->swipeContacts)) != 0 && enemy->hp > 0 &&
         TASK_MESSAGE_DISPATCH_POINTER(gameGetTaskSlot(GAME_TASK_SLOT_PLAYER), GAME_ACTOR_MESSAGE_AWAIT_BUTTON_PRESSES, &D_actor_403200_8015FA00, 0) == 0) {
         target                 = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
         reply                  = taskMessageDispatch(target, GAME_ACTOR_MESSAGE_APPLY_DAMAGE, damagePackEnemyAttackKey(enemy, 4), 0);
@@ -5921,83 +5992,93 @@ static void _actor403200ChooseAttackState(Task* task)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403200IdleScratch);
 }
 
-/// Summon tick of the arena fight. While `gGluttonEnded` is 1
-/// the whole body is skipped; otherwise it reserves a
-/// `GluttonSummonScratch` on the scratch stack.
+/// Orders a live summon to emerge at a phase-selected room spot.
 ///
-/// On the dispatcher's re-arm tick it tops the two `summons` slots back up
-/// to two live summons (`summonsAlive` < 2 and `summonsSpawned` < 8), dresses each
-/// model from the current area record's fourth placement, stamps the slot
-/// index into `Enemy::placeKey`, and plays the two type-7 launch cues.
-/// Every later tick yaws the host at the player, and at `stateTicks` 0x46 / 0x78
-/// it sends summon 0 or 1 a 0x7DB order whose action is picked from
-/// `phase` and a coin flip of `gRandomLcgState`.
-/// On tick 0x46 sends the first summon, and on tick 0x78 the second, its
-/// attack command: a pair of candidates chosen by the host's phase and the
-/// slot, one of them picked at random, with a random variant in the low byte.
-static inline void _gluttonCommandSummonOnCue(GluttonWork* work, GluttonSummonScratch* sc)
+/// At state tick 70, selects summon 0; at tick 120, summon 1. Other ticks do
+/// nothing. The phase and slot choose the spot in command bits 8..11, and an
+/// independent random draw chooses the emergence motion in bits 4..7. Low
+/// nibble 1 requests emergence in synthetic command context 0x2C00.
+/// Borrows work and the caller's live scratch block, overwriting its slot;
+/// the command record is consumed synchronously by the summon task.
+static inline void _actor403200CommandSummonOnCue(GluttonWork* work, GluttonSummonScratch* scratch)
 {
-    s32 rnd;
+    enum {
+        ACTOR_403200_FIRST_SUMMON_ORDER_TICK  = 70,
+        ACTOR_403200_SECOND_SUMMON_ORDER_TICK = 120,
+        ACTOR_403200_SUMMON_COMMAND_STAGE     = 0,
+        ACTOR_403200_SUMMON_COMMAND_AREA      = 44,
+        ACTOR_403200_SUMMON_SPOT_SHIFT        = 8,
+        // Spot-table rows at Z -550 (HIGH) and -12450 (LOW), with X in room units.
+        ACTOR_403200_SUMMON_SPOT_HIGH_Z_X10500 = 3,
+        ACTOR_403200_SUMMON_SPOT_HIGH_Z_X13500 = 4,
+        ACTOR_403200_SUMMON_SPOT_HIGH_Z_X16500 = 5,
+        ACTOR_403200_SUMMON_SPOT_LOW_Z_X10500  = 9,
+        ACTOR_403200_SUMMON_SPOT_LOW_Z_X13500  = 10,
+        ACTOR_403200_SUMMON_SPOT_LOW_Z_X16500  = 11,
+        ACTOR_403200_SUMMON_MOTION_COUNT       = 3,
+    };
+    s32 nextRandomState;
 
-    if (work->stateTicks == 0x46) {
-        sc->slot = 0;
-    } else if (work->stateTicks == 0x78) {
-        sc->slot = 1;
+    if (work->stateTicks == ACTOR_403200_FIRST_SUMMON_ORDER_TICK) {
+        scratch->slot = 0;
+    } else if (work->stateTicks == ACTOR_403200_SECOND_SUMMON_ORDER_TICK) {
+        scratch->slot = 1;
     } else {
         return;
     }
-    if (work->summons[sc->slot] != NULL) {
-        D_actor_403200_8015F8F4.context.loc.stage = 0;
-        D_actor_403200_8015F8F4.context.loc.area  = 0x2C;
+    if (work->summons[scratch->slot] != NULL) {
+        D_actor_403200_8015F8F4.context.loc.stage = ACTOR_403200_SUMMON_COMMAND_STAGE;
+        D_actor_403200_8015F8F4.context.loc.area  = ACTOR_403200_SUMMON_COMMAND_AREA;
         switch (work->phase) {
             case 0:
-                if (sc->slot == 0) {
+                if (scratch->slot == 0) {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = 3;
+                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X10500;
                     } else {
-                        D_actor_403200_8015F8F4.command = 4;
+                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X13500;
                     }
                 } else {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = 9;
+                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X10500;
                     } else {
-                        D_actor_403200_8015F8F4.command = 0xA;
+                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X13500;
                     }
                 }
                 break;
             case 1:
-                if (sc->slot == 0) {
+                if (scratch->slot == 0) {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = 0xA;
+                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X13500;
                     } else {
-                        D_actor_403200_8015F8F4.command = 0xB;
+                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X16500;
                     }
                 } else {
                     gRandomLcgState = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
                     if (!((gRandomLcgState >> 16) & 1)) {
-                        D_actor_403200_8015F8F4.command = 4;
+                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X13500;
                     } else {
-                        D_actor_403200_8015F8F4.command = 5;
+                        D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X16500;
                     }
                 }
                 break;
             case 2:
             default:
-                if (sc->slot == 0) {
-                    D_actor_403200_8015F8F4.command = 5;
+                if (scratch->slot == 0) {
+                    D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_HIGH_Z_X16500;
                 } else {
-                    D_actor_403200_8015F8F4.command = 0xB;
+                    D_actor_403200_8015F8F4.command = ACTOR_403200_SUMMON_SPOT_LOW_Z_X16500;
                 }
                 break;
         }
-        D_actor_403200_8015F8F4.command <<= 8;
-        rnd                               = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
-        D_actor_403200_8015F8F4.command  |= (s16)(((((u32)rnd >> 16) % 3) * 0x10) | 1);
-        gRandomLcgState                   = rnd;
-        TASK_MESSAGE_DISPATCH_POINTER(work->summons[sc->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
+        // Pack the selected spot and one of three emergence motions.
+        D_actor_403200_8015F8F4.command <<= ACTOR_403200_SUMMON_SPOT_SHIFT;
+        nextRandomState                   = (gRandomLcgState * RANDOM_LCG_MULTIPLIER) + RANDOM_LCG_INCREMENT;
+        D_actor_403200_8015F8F4.command  |= (s16)OVERLAY_ENCOUNTER_APPEAR_COMMAND(0, ((u32)nextRandomState >> 16) % ACTOR_403200_SUMMON_MOTION_COUNT);
+        gRandomLcgState                   = nextRandomState;
+        TASK_MESSAGE_DISPATCH_POINTER(work->summons[scratch->slot]->task, ACTOR_COMMAND_MESSAGE_APPLY, &D_actor_403200_8015F8F4, 0);
     }
 }
 
@@ -6109,7 +6190,7 @@ static void func_actor_403200_8013EF6C(Task* arg0)
         if (work->stateTicks == 0x23) {
             work->viewSelector = 0;
         }
-        _gluttonCommandSummonOnCue(work, sc);
+        _actor403200CommandSummonOnCue(work, sc);
         SCRATCH_STACK_RELEASE_BLOCK(GluttonSummonScratch);
     }
 }
@@ -6129,7 +6210,7 @@ static const _Actor403200StateTable D_actor_403200_80132154 = {
         func_actor_403200_8013D9EC,
         func_actor_403200_8013DC3C,
         _actor403200RetractLimbState,
-        func_actor_403200_80134D40,
+        _actor403200AdvanceState,
         _actor403200ChooseAttackState,
         func_actor_403200_8013D028,
         func_actor_403200_8013E5A8,
@@ -6152,11 +6233,12 @@ static const EnemyTaskFuncTable3 D_actor_403200_801321B8 = {
     },
 };
 
-/// Per-frame tick for the enemy task. Updates the host coordinate, hides or
-/// shows the escorts, and either returns on the cinematic mode byte or runs
-/// the hit handlers, the death handoff and the state in `state`.
-/// Empties the contact lists of the nine hit spheres and of the swipe.
-static inline void _gluttonClearContacts(GluttonWork* work)
+/// Clears occupied contacts of all nine hit spheres and the limb swipe.
+///
+/// Each five-entry table must be initialized with its final-entry flag intact.
+/// Keeps empty entries and the terminators for the next collision pass; neither
+/// bodies nor their list membership or enabled flags are changed.
+static inline void _actor403200ClearContacts(GluttonWork* work)
 {
     worldCollisionClearContacts(work->hits[0].contacts);
     worldCollisionClearContacts(work->hits[1].contacts);
@@ -6276,10 +6358,10 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
 
     switch (gSceneCombatState.actorControl) {
         case 1:
-            _gluttonClearContacts(work);
+            _actor403200ClearContacts(work);
             return;
         case 2:
-            _gluttonClearContacts(work);
+            _actor403200ClearContacts(work);
             return;
         case 0:
         default:
@@ -6445,7 +6527,7 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
         work->hits[8].body.flags &= (WORLD_COLLISION_BODY_FLAGS_MASK ^ WORLD_COLLISION_BODY_PAIR_ENABLED);
     }
 
-    _gluttonClearContacts(work);
+    _actor403200ClearContacts(work);
     _gluttonShakeTick(arg1);
 
     if (work->viewLocked == 0 && work->state != 0) {
@@ -6511,119 +6593,139 @@ static void func_actor_403200_8013FB54(Enemy* arg0, Task* arg1)
     SCRATCH_STACK_RELEASE_BLOCK(_Actor403200TickScratch);
 }
 
-static void func_actor_403200_801408D8(Task* task, s16 scale, s16 drop, s16 index)
+/// Rebuilds the two angled collision-grid quads ahead of the host.
+///
+/// `distance` and `lowerEdgeDrop` use room-coordinate units; the drop subtracts Y at each
+/// quad's lower edge. Each half extends 3000 units along a normalized local X
+/// axis. Its outer edge adds 1000/4096 of the already narrowed forward offset.
+/// faceIndex selects consecutive faces/normals and eight vertices starting at
+/// 4 * faceIndex; the caller uses 0. Requires live host coordinates and writable
+/// active-grid pools covering those indices. Normals have unit Q12 length;
+/// surface class 3 belongs to the dumping-hole grid. Cell lists are retained.
+static void _actor403200BuildAngledWall(Task* host, s16 distance, s16 lowerEdgeDrop, s16 faceIndex)
 {
-    SVECTOR                 dir;
-    SVECTOR                 normal;
-    SVECTOR*                pool  = Gp_GridParams->normals;
-    SVECTOR*                verts = Gp_GridParams->vertices;
-    WorldCollisionGridFace* faces = Gp_GridParams->faces;
-    WorldCollisionGridFace  face  = {
-        { index * 4, index * 4 + 1, index * 4 + 2, index * 4 + 3 }, index, 3
+    enum {
+        ACTOR_403200_ANGLED_WALL_HALF_WIDTH    = 3000,
+        ACTOR_403200_ANGLED_WALL_BEND_SCALE    = 1000,
+        ACTOR_403200_ANGLED_WALL_SURFACE_CLASS = 3,
     };
-    WorldCollisionGridFace face2 = {
-        { (index + 1) * 4, (index + 1) * 4 + 1, (index + 1) * 4 + 2, (index + 1) * 4 + 3 }, index + 1, 3
+    SVECTOR                 halfWidthOffset;
+    SVECTOR                 forwardOffset;
+    SVECTOR*                normals   = Gp_GridParams->normals;
+    SVECTOR*                vertices  = Gp_GridParams->vertices;
+    WorldCollisionGridFace* faces     = Gp_GridParams->faces;
+    WorldCollisionGridFace  rightFace = {
+        { faceIndex * 4, faceIndex * 4 + 1, faceIndex * 4 + 2, faceIndex * 4 + 3 }, faceIndex, ACTOR_403200_ANGLED_WALL_SURFACE_CLASS
     };
-    SVECTOR* d;
+    WorldCollisionGridFace leftFace = {
+        { (faceIndex + 1) * 4, (faceIndex + 1) * 4 + 1, (faceIndex + 1) * 4 + 2, (faceIndex + 1) * 4 + 3 }, faceIndex + 1, ACTOR_403200_ANGLED_WALL_SURFACE_CLASS
+    };
+    SVECTOR* halfWidthPointer;
+    SVECTOR* secondNormal;
 
-    gfxReadMatrixZAxis(&task->extra.tmd->coords->coord, &normal);
-    gfxReadMatrixXAxis(&task->extra.tmd->coords->coord, &dir);
-    d = &dir;
-    VectorNormalSS(d, d);
-    VectorNormalSS(&normal, &normal);
-    gte_lddp(scale);
-    gte_ldsv(&normal);
+    // Scale the local axes into the forward and lateral wall offsets.
+    gfxReadMatrixZAxis(&host->extra.tmd->coords->coord, &forwardOffset);
+    gfxReadMatrixXAxis(&host->extra.tmd->coords->coord, &halfWidthOffset);
+    halfWidthPointer = &halfWidthOffset;
+    VectorNormalSS(halfWidthPointer, halfWidthPointer);
+    VectorNormalSS(&forwardOffset, &forwardOffset);
+    gte_lddp(distance);
+    gte_ldsv(&forwardOffset);
     gte_gpf12();
-    gte_stsv(&normal);
-    gte_lddp(0xBB8);
-    gte_ldsv(d);
+    gte_stsv(&forwardOffset);
+    gte_lddp(ACTOR_403200_ANGLED_WALL_HALF_WIDTH);
+    gte_ldsv(halfWidthPointer);
     gte_gpf12();
-    gte_stsv(d);
+    gte_stsv(halfWidthPointer);
 
-    verts[index * 4].vx = verts[index * 4 + 2].vx =
-        task->extra.tmd->coords->coord.t[0] + dir.vx + normal.vx;
-    verts[index * 4].vy = verts[index * 4 + 2].vy =
-        task->extra.tmd->coords->coord.t[1] + dir.vy + normal.vy;
-    verts[index * 4].vz = verts[index * 4 + 2].vz =
-        task->extra.tmd->coords->coord.t[2] + dir.vz + normal.vz;
+    vertices[faceIndex * 4].vx = vertices[faceIndex * 4 + 2].vx =
+        host->extra.tmd->coords->coord.t[0] + halfWidthOffset.vx + forwardOffset.vx;
+    vertices[faceIndex * 4].vy = vertices[faceIndex * 4 + 2].vy =
+        host->extra.tmd->coords->coord.t[1] + halfWidthOffset.vy + forwardOffset.vy;
+    vertices[faceIndex * 4].vz = vertices[faceIndex * 4 + 2].vz =
+        host->extra.tmd->coords->coord.t[2] + halfWidthOffset.vz + forwardOffset.vz;
 
-    verts[index * 4 + 1].vx = verts[index * 4 + 3].vx =
-        task->extra.tmd->coords->coord.t[0] + normal.vx;
-    verts[index * 4 + 1].vy = verts[index * 4 + 3].vy =
-        task->extra.tmd->coords->coord.t[1] + normal.vy;
-    verts[index * 4 + 1].vz = verts[index * 4 + 3].vz =
-        task->extra.tmd->coords->coord.t[2] + normal.vz;
+    vertices[faceIndex * 4 + 1].vx = vertices[faceIndex * 4 + 3].vx =
+        host->extra.tmd->coords->coord.t[0] + forwardOffset.vx;
+    vertices[faceIndex * 4 + 1].vy = vertices[faceIndex * 4 + 3].vy =
+        host->extra.tmd->coords->coord.t[1] + forwardOffset.vy;
+    vertices[faceIndex * 4 + 1].vz = vertices[faceIndex * 4 + 3].vz =
+        host->extra.tmd->coords->coord.t[2] + forwardOffset.vz;
 
-    verts[(index + 1) * 4].vx = verts[(index + 1) * 4 + 2].vx =
-        task->extra.tmd->coords->coord.t[0] + normal.vx;
-    verts[(index + 1) * 4].vy = verts[(index + 1) * 4 + 2].vy =
-        task->extra.tmd->coords->coord.t[1] + normal.vy;
-    verts[(index + 1) * 4].vz = verts[(index + 1) * 4 + 2].vz =
-        task->extra.tmd->coords->coord.t[2] + normal.vz;
+    vertices[(faceIndex + 1) * 4].vx = vertices[(faceIndex + 1) * 4 + 2].vx =
+        host->extra.tmd->coords->coord.t[0] + forwardOffset.vx;
+    vertices[(faceIndex + 1) * 4].vy = vertices[(faceIndex + 1) * 4 + 2].vy =
+        host->extra.tmd->coords->coord.t[1] + forwardOffset.vy;
+    vertices[(faceIndex + 1) * 4].vz = vertices[(faceIndex + 1) * 4 + 2].vz =
+        host->extra.tmd->coords->coord.t[2] + forwardOffset.vz;
 
-    verts[(index + 1) * 4 + 1].vx = verts[(index + 1) * 4 + 3].vx =
-        task->extra.tmd->coords->coord.t[0] + normal.vx - dir.vx;
-    verts[(index + 1) * 4 + 1].vy = verts[(index + 1) * 4 + 3].vy =
-        task->extra.tmd->coords->coord.t[1] + normal.vy - dir.vy;
-    verts[(index + 1) * 4 + 1].vz = verts[(index + 1) * 4 + 3].vz =
-        task->extra.tmd->coords->coord.t[2] + normal.vz - dir.vz;
+    vertices[(faceIndex + 1) * 4 + 1].vx = vertices[(faceIndex + 1) * 4 + 3].vx =
+        host->extra.tmd->coords->coord.t[0] + forwardOffset.vx - halfWidthOffset.vx;
+    vertices[(faceIndex + 1) * 4 + 1].vy = vertices[(faceIndex + 1) * 4 + 3].vy =
+        host->extra.tmd->coords->coord.t[1] + forwardOffset.vy - halfWidthOffset.vy;
+    vertices[(faceIndex + 1) * 4 + 1].vz = vertices[(faceIndex + 1) * 4 + 3].vz =
+        host->extra.tmd->coords->coord.t[2] + forwardOffset.vz - halfWidthOffset.vz;
 
-    gte_lddp(0x3E8);
-    gte_ldsv(&normal);
+    // Push the outside edges forward and derive a normal for each half.
+    gte_lddp(ACTOR_403200_ANGLED_WALL_BEND_SCALE);
+    gte_ldsv(&forwardOffset);
     gte_gpf12();
-    gte_stsv(&normal);
+    gte_stsv(&forwardOffset);
 
-    verts[index * 4].vx = verts[index * 4 + 2].vx += normal.vx;
-    verts[index * 4].vy = verts[index * 4 + 2].vy += normal.vy;
-    verts[index * 4].vz = verts[index * 4 + 2].vz += normal.vz;
-    verts[index * 4 + 5].vx = verts[index * 4 + 7].vx += normal.vx;
-    verts[index * 4 + 5].vy = verts[index * 4 + 7].vy += normal.vy;
-    verts[index * 4 + 5].vz = verts[index * 4 + 7].vz += normal.vz;
+    vertices[faceIndex * 4].vx = vertices[faceIndex * 4 + 2].vx += forwardOffset.vx;
+    vertices[faceIndex * 4].vy = vertices[faceIndex * 4 + 2].vy += forwardOffset.vy;
+    vertices[faceIndex * 4].vz = vertices[faceIndex * 4 + 2].vz += forwardOffset.vz;
+    vertices[faceIndex * 4 + 5].vx = vertices[faceIndex * 4 + 7].vx += forwardOffset.vx;
+    vertices[faceIndex * 4 + 5].vy = vertices[faceIndex * 4 + 7].vy += forwardOffset.vy;
+    vertices[faceIndex * 4 + 5].vz = vertices[faceIndex * 4 + 7].vz += forwardOffset.vz;
 
-    pool[index].vz = verts[index * 4].vx - verts[index * 4 + 1].vx;
-    pool[index].vy = verts[index * 4 + 1].vy - verts[index * 4].vy;
-    pool[index].vx = verts[index * 4 + 1].vz - verts[index * 4].vz;
-    VectorNormalSS(&pool[index], &pool[index]);
+    normals[faceIndex].vz = vertices[faceIndex * 4].vx - vertices[faceIndex * 4 + 1].vx;
+    normals[faceIndex].vy = vertices[faceIndex * 4 + 1].vy - vertices[faceIndex * 4].vy;
+    normals[faceIndex].vx = vertices[faceIndex * 4 + 1].vz - vertices[faceIndex * 4].vz;
+    VectorNormalSS(&normals[faceIndex], &normals[faceIndex]);
 
-    (&pool[index])[1].vz = verts[(index + 1) * 4].vx - verts[(index + 1) * 4 + 1].vx;
-    (&pool[index])[1].vy = verts[(index + 1) * 4 + 1].vy - verts[(index + 1) * 4].vy;
-    (&pool[index])[1].vx = verts[(index + 1) * 4 + 1].vz - verts[(index + 1) * 4].vz;
-    VectorNormalSS(&(&pool[index])[1], &(&pool[index])[1]);
+    secondNormal     = &normals[faceIndex] + 1;
+    secondNormal->vz = vertices[(faceIndex + 1) * 4].vx - vertices[(faceIndex + 1) * 4 + 1].vx;
+    secondNormal->vy = vertices[(faceIndex + 1) * 4 + 1].vy - vertices[(faceIndex + 1) * 4].vy;
+    secondNormal->vx = vertices[(faceIndex + 1) * 4 + 1].vz - vertices[(faceIndex + 1) * 4].vz;
+    VectorNormalSS(secondNormal, secondNormal);
 
-    verts[index * 4].vy     -= drop;
-    verts[index * 4 + 1].vy -= drop;
-    verts[index * 4 + 4].vy -= drop;
-    verts[index * 4 + 5].vy -= drop;
+    // Extend the lower edge without changing the cell lists.
+    vertices[faceIndex * 4].vy     -= lowerEdgeDrop;
+    vertices[faceIndex * 4 + 1].vy -= lowerEdgeDrop;
+    vertices[faceIndex * 4 + 4].vy -= lowerEdgeDrop;
+    vertices[faceIndex * 4 + 5].vy -= lowerEdgeDrop;
 
-    face.surfaceClass  = 3;
-    face2.surfaceClass = 3;
-    faces[index]       = face;
-    faces[index + 1]   = face2;
+    rightFace.surfaceClass = ACTOR_403200_ANGLED_WALL_SURFACE_CLASS;
+    leftFace.surfaceClass  = ACTOR_403200_ANGLED_WALL_SURFACE_CLASS;
+    faces[faceIndex]       = rightFace;
+    faces[faceIndex + 1]   = leftFace;
 }
 
-/// The enemy's upkeep tick, run by the dispatcher through the same
-/// `D_actor_403200_801321B8` table the other tasks in this overlay use. It drops
-/// each of the two `summons` whose HP has run out, then walks the work
-/// block's `wallDistance` toward `wallDistanceTarget` by 0x32 a tick -- snapping once the
-/// two are within 0x33 -- calls the follow helper with the new value, and
-/// finally lifts the host's own X up to the escort's so the party never sinks
-/// below the enemy. The tick ends by dispatching on `state` through the local
-/// copy of the handler table.
-void func_actor_403200_80140E6C(Task* arg0)
+/// Dispatches the dumping-hole host task after maintaining its moving barrier.
+///
+/// With initialized work, forgets dead summons, moves wallDistance toward its
+/// target by 50 room units per tick and rebuilds the two angled wall faces.
+/// Clamps player X to at least host X + wallDistance before dispatching the
+/// spawn, frame or teardown handler selected by Task::state (0..2). The first
+/// spawn tick has no work and skips this upkeep. Requires a live player model
+/// and the dumping-hole grid while work exists; its enemy handle is borrowed.
+static void _actor403200HostTask(Task* host)
 {
-    EnemyTaskFuncTable3 sp;
+    enum { ACTOR_403200_WALL_DISTANCE_STEP = 50 };
+    EnemyTaskFuncTable3 taskStates;
     GluttonWork*        work;
     Task*               player;
     Enemy*              enemy;
-    s32                 diff;
-    s32                 y;
+    s32                 distanceDelta;
+    s32                 minimumPlayerX;
     GfxCoord*           playerCoord;
-    GfxCoord*           selfCoord;
+    GfxCoord*           hostRoot;
 
-    sp     = D_actor_403200_801321B8;
-    player = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    work   = arg0->work;
-    enemy  = arg0->spawnArg2.pointer;
+    taskStates = D_actor_403200_801321B8;
+    player     = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    work       = host->work;
+    enemy      = host->spawnArg2.pointer;
     if (work != NULL) {
         if (work->summons[0] != NULL && work->summons[0]->hp <= 0) {
             work->summons[0] = NULL;
@@ -6631,28 +6733,29 @@ void func_actor_403200_80140E6C(Task* arg0)
         if (work->summons[1] != NULL && work->summons[1]->hp <= 0) {
             work->summons[1] = NULL;
         }
-        diff = work->wallDistanceTarget - work->wallDistance;
-        if (diff < 0) {
-            diff = -diff;
+        distanceDelta = work->wallDistanceTarget - work->wallDistance;
+        if (distanceDelta < 0) {
+            distanceDelta = -distanceDelta;
         }
-        if (diff >= 0x33) {
+        if (distanceDelta >= ACTOR_403200_WALL_DISTANCE_STEP + 1) {
             if (work->wallDistance < work->wallDistanceTarget) {
-                work->wallDistance = (u16)work->wallDistance + 0x32;
+                work->wallDistance = (u16)work->wallDistance + ACTOR_403200_WALL_DISTANCE_STEP;
             } else {
-                work->wallDistance = (u16)work->wallDistance - 0x32;
+                work->wallDistance = (u16)work->wallDistance - ACTOR_403200_WALL_DISTANCE_STEP;
             }
         } else {
             work->wallDistance = (u16)work->wallDistanceTarget;
         }
-        func_actor_403200_801408D8(arg0, work->wallDistance, work->wallDrop, 0);
-        playerCoord = player->extra.tmd->coords;
-        selfCoord   = arg0->extra.tmd->coords;
-        y           = selfCoord->coord.t[0] + work->wallDistance;
-        if (playerCoord->coord.t[0] < y) {
-            playerCoord->coord.t[0] = y;
+        // Keep the collision wall and the player's minimum lead together.
+        _actor403200BuildAngledWall(host, work->wallDistance, work->wallDrop, 0);
+        playerCoord    = player->extra.tmd->coords;
+        hostRoot       = host->extra.tmd->coords;
+        minimumPlayerX = hostRoot->coord.t[0] + work->wallDistance;
+        if (playerCoord->coord.t[0] < minimumPlayerX) {
+            playerCoord->coord.t[0] = minimumPlayerX;
         }
     }
-    sp.funcs[arg0->state](enemy, arg0);
+    taskStates.funcs[host->state](enemy, host);
 }
 
 #include "../../shared/glutton_quad_heights.inc.c"
@@ -6688,36 +6791,43 @@ static s32 _actor403200PickSwipeView(Task* task, s16 phase)
     return ACTOR_403200_SWIPE_FALLBACK_VIEW;
 }
 
-s32 func_actor_403200_80141180(Task* arg0, s16 arg1)
+/// Selects the default combat camera for the host's current fight phase.
+///
+/// Selector 0 forwards the combat selector through signed-halfword narrowing,
+/// then widens the view index to the callback's s32 result. It shares that
+/// selector's live-model and coordinate requirements.
+static s32 _actor403200PickDefaultView(Task* host, s16 phase)
 {
-    return (s16)func_actor_403200_801344C4(arg0, arg1);
+    return (s16)_actor403200PickCombatView(host, phase);
 }
 
-/// Returns 0x25 for the current view, or 0x1E when the slot-3 model's X
-/// translation is at or above a threshold that depends on the view index:
-/// 0x3A98 for view 0x1E, 0x3E80 otherwise.
-s32 func_actor_403200_801411A8(Task* arg0, s16 arg1)
+/// Selects views 37/30 from the player's X position, with hysteresis.
+///
+/// Selector 7 ignores host and phase. It switches to view 30 at X >= 16000,
+/// and back to view 37 below X 15000 while view 30 is current. Requires the
+/// live player's model root; X uses its parent frame's coordinate units.
+static s32 _actor403200PickPlayerXView(Task* unusedHost, s16 unusedPhase)
 {
-    Task* task;
-    s32   flag;
-    s32   value;
-    s32   view;
+    Task* player;
+    s32   xTest;
+    s32   nextView;
+    s32   currentView;
 
-    view = viewGetMappedIndex() & 0xFF;
-    task = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
-    if (view == 0x1E) {
-        flag  = task->extra.tmd->coords->coord.t[0];
-        flag  = flag < 0x3A98;
-        value = 0x25;
+    currentView = viewGetMappedIndex() & ACTOR_403200_VIEW_INDEX_MASK;
+    player      = gameGetTaskSlot(GAME_TASK_SLOT_PLAYER);
+    if (currentView == ACTOR_403200_VIEW_FAR_X) {
+        xTest    = player->extra.tmd->coords->coord.t[0];
+        xTest    = xTest < 0x3A98;
+        nextView = ACTOR_403200_VIEW_LATE_NEAR;
     } else {
-        flag  = task->extra.tmd->coords->coord.t[0];
-        flag  = flag < 0x3E80;
-        value = 0x25;
+        xTest    = player->extra.tmd->coords->coord.t[0];
+        xTest    = xTest < 0x3E80;
+        nextView = ACTOR_403200_VIEW_LATE_NEAR;
     }
-    if (flag == 0) {
-        value = 0x1E;
+    if (xTest == 0) {
+        nextView = ACTOR_403200_VIEW_FAR_X;
     }
-    return value;
+    return nextView;
 }
 
 /// Empty handler for the host's state-table slot 16.

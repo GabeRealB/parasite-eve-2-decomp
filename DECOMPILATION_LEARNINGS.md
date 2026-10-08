@@ -4530,14 +4530,14 @@ constants onto one name so they cannot live in two registers at once.
 
 ## A switch case whose value equals the case's own constant drops the `li`; assign it inside the arm
 
-`func_actor_403200_801341E8` switches on `value` and case 0 returns `0x21` or
+`_actor403200PickGlobView` switches on `phase` and case 0 returns `0x21` or
 `0x20` depending on the view index, which is itself tested against `0x21`. The
 target opens the case with
 
 ```
 li     v0, 0x21        /* both the compare constant and the else arm's value */
 bne    s0, v0, else
-slti   v1, t0, 0x1770  /* delay: else arm's flag */
+slti   v1, t0, 0x1770  /* delay: else arm's selection */
 ...
 else:
 bnez   v1, done
@@ -4546,33 +4546,33 @@ j      done
 li     v0, 0x20
 ```
 
-Writing `value = 0x21;` *before* the `if (view == 0x21)` lets the pseudo
+Writing `nextView = 0x21;` *before* the `if (currentView == 0x21)` lets the pseudo
 coalesce with the constant materialized for the switch compare, so the else
 arm's delay slot is `nop` (97.98%, `insert=1 delete=1`, structure already
 matching). The fix is to move that assignment into the else arm, after the
 branch, so it is a distinct birth and GCC re-emits `li v0, 0x21` there (100%):
 
 ```c
-if (view == 0x21) {
-    value = 0x20;
-    flag  = dist < 0x189D;
-    if (flag) {
-        value = 0x21;
+if (currentView == 0x21) {
+    nextView = 0x20;
+    selection  = playerDistance < 0x189D;
+    if (selection) {
+        nextView = 0x21;
     }
-    return value;
+    return nextView;
 }
-value = 0x21;
-flag  = dist < 0x1770;
-if (!flag) {
-    value = 0x20;
+nextView = 0x21;
+selection  = playerDistance < 0x1770;
+if (!selection) {
+    nextView = 0x20;
 }
-return value;
+return nextView;
 ```
 
 Note the two arms keep different value polarity — the taken arm assigns the
 `0x20` first and overrides with `0x21`, the fall-through arm assigns `0x21`
 first and overrides with `0x20` — so the shared tail that `base_1.c` produced
-(a single `if (!flag) value = 0x20;`) is wrong even though it is equivalent.
+(a single `if (!selection) nextView = 0x20;`) is wrong even though it is equivalent.
 Inputs: `base_3.i`
 `7d2460daa9e4db1b9e7891074b94ffc2118c502067888b04fb42404faa1a8656`,
 `base_4.i`
@@ -59331,18 +59331,18 @@ processed before the store in the same insn, so it clears `$v0` and nothing
 re-arms it:
 
 ```c
-    flag  = ((TmdObject*)task->extra)->coords->coord.t[0];  /* the last load writes flag itself */
-    flag  = flag < 0x3A98;
-    value = 0x25;
+    xTest  = player->extra.tmd->coords->coord.t[0];  /* the last load writes xTest itself */
+    xTest  = xTest < 0x3A98;
+    nextView = 0x25;
 ```
 
-versus the natural spelling `flag = <same chain> < 0x3A98;`, which leaves the
+versus the natural spelling `xTest = <same chain> < 0x3A98;`, which leaves the
 last load in a local temp. The chain has to stay *inside* each arm: hoisting a
 named `coord = <chain>;` above the `if` is not equivalent - CSE folds the two
 arms onto one load before the branch and the whole allocation changes (66% in
 the worked example, versus 100% for the version above).
 
-Worked example: `func_actor_403200_801411A8`.
+Worked example: `_actor403200PickPlayerXView`.
 
 ## Don't hoist a repeated constant into a local: `subu` publishes it and later `>> 16` becomes `srlv`
 
@@ -83037,7 +83037,7 @@ source as a real `switch` with a post-switch `return 1;` recovers that shape
 exactly (98.2%), and the only remaining difference is the argument register:
 the target sign-extends `$a1`, so the real signature has an unused leading
 `Task*` — the dispatch table at `D_actor_403200_8015E6E8` lists it
-beside `func_actor_403200_80141180(Task*, s16)`, which confirms it.
+beside `_actor403200PickDefaultView(Task*, s16)`, which confirms it.
 Adding the unused parameter gives 100%.
 
 So when a small integer switch's arms all `return` and the fall-through return is
@@ -83175,7 +83175,7 @@ Preprocessed SHA256:
 
 An accumulator that is added to in place, then handed to a call whose result is
 stored back, keeps its register across the call only when the accumulator *is*
-the variable that receives the result. In `func_actor_403200_80134374` the
+the variable that receives the result. In `_actor403200PickDebrisView` the
 target is
 
 ```
@@ -83318,7 +83318,7 @@ Three consequences, in the order they bite:
   in-object offset and the directive pads nothing. The addresses come out
   `0x11C, 0x13C, 0x18C, 0x1B4, 0x2B4, 0x2E4, 0x334` — the target's.
 - **A run whose carrier is already C loses its `.s` entirely.** The last run,
-  `D_actor_403200_801321B8`, is referenced by `func_actor_403200_80140E6C`,
+  `D_actor_403200_801321B8`, is referenced by `_actor403200HostTask`,
   a matched body, so nothing defines it. Emit it as file-scope asm in the
   owning unit at the end of the `.c` (the migrated-`D_*` remedy above), *not*
   as a `const` array: GCC collects a C `.rodata` object behind the compiler
@@ -83339,7 +83339,7 @@ base_1.c preprocessed SHA256: d023351c7787cbb24aac0f599b75a4777baa8c2f5dbddf3b45
 
 ## One-basic-block functions are scheduled as a whole, so a prologue reorder cannot be fixed by moving prologue statements
 
-`func_actor_403200_801408D8` reached 357/357 instructions with `stack=0
+`_actor403200BuildAngledWall` reached 357/357 instructions with `stack=0
 branch=0` at 97.731% and then stopped: six instructions in the prologue were in
 a different order and nothing moved them. `.rtl`, `.cse`, `.cse2`, `.lreg`,
 `.greg` *and* `.sched` all carried the stores in source order
@@ -111889,20 +111889,20 @@ whole function (`lw a0,0x1c(s0)` becomes `move a0,s2` in the delay slot); keep
 the re-read.
 
 
-## Per-view dispatchers: `flag = view;` then `(flag != V1) && (flag != V2)` is what makes jump threading collapse the pair (func_actor_403200_801344C4, 2026-09-16)
+## Per-view dispatchers: `viewChoice = currentView;` then `(viewChoice != V1) && (viewChoice != V2)` is what makes jump threading collapse the pair (_actor403200PickCombatView, 2026-09-16)
 
 **Symptom:** an actor's "which view do I go to" helper (`viewGetMappedIndex() & 0xFF`, a distance
 `SquareRoot0(dx*dx+dy*dy+dz*dz)`, then a per-view threshold ladder) matches everywhere except the
 case dispatch: the target tests one view per compare and *falls through* into the outside body
 (`beq v1,v0,<body>; li v0,4; beq v1,v0,<body>; li v0,0x22; j <tail>; slti v1,t0,0x2455`), while the
 candidate emitted a compare on the *view* register for the outside test plus a second pair on the
-copied `flag`.
+copied `viewChoice`.
 
-**Cause:** writing the outside test against `view` (`if ((view != 0x22) && (view != 4))`) and copying
-`flag = view;` inside the `else` leaves the two tests on different pseudos, so nothing can collapse
-them. Writing `flag = view;` *first* and testing `flag` in both places makes the outside test's
+**Cause:** writing the outside test against `currentView` (`if ((currentView != 0x22) && (currentView != 4))`) and copying
+`viewChoice = currentView;` inside the `else` leaves the two tests on different pseudos, so nothing can collapse
+them. Writing `viewChoice = currentView;` *first* and testing `viewChoice` in both places makes the outside test's
 compares redundant with the chain's, and jump threading redirects them straight to the bodies - the
-dispatch then holds exactly two compares on `flag`, as the target does. The earlier `flag = view` also
+dispatch then holds exactly two compares on `viewChoice`, as the target does. The earlier `viewChoice = currentView` also
 protects the copy: with two uses (the chain tests) it survives; a single use in the same block is
 coalesced away and the function comes up one `move` short.
 
@@ -111910,26 +111910,26 @@ coalesced away and the function comes up one `move` short.
 
 ```c
         case 1:
-            flag = view;
-            if ((flag != 0x22) && (flag != 4)) {
-                value = 0x22;
-                flag  = dist < 0x2455;
+            viewChoice = currentView;
+            if ((viewChoice != 0x22) && (viewChoice != 4)) {
+                nextView = 0x22;
+                viewChoice  = playerDistance < 0x2455;
             } else {
-                if (flag == 0x22) { value = 4; flag = dist < 0x2456; if (flag) value = 0x22; return value; }
-                if (flag == 4) { flag = dist < 0x2260; } else { return 1; }
+                if (viewChoice == 0x22) { nextView = 4; viewChoice = playerDistance < 0x2456; if (viewChoice) nextView = 0x22; return nextView; }
+                if (viewChoice == 4) { viewChoice = playerDistance < 0x2260; } else { return 1; }
             }
-            if (!flag) { value = 4; }
-            return value;
+            if (!viewChoice) { nextView = 4; }
+            return nextView;
 ```
 
 `if ((a != X) && (a != Y))` with *adjacent* X, Y folds to `addiu a,-X; sltiu ...,(Y-X+1)`; so does the
 three-value form `(a != 2) && (a != 3) && (a != 4)` -> `addiu v0,s2,-2; sltiu v0,v0,3`. A body written
-as a comparison ladder (`if (dist < C) return 3;`) instead of the `value`/`flag` tail emits the
+as a comparison ladder (`if (playerDistance < C) return 3;`) instead of the `nextView`/`viewChoice` tail emits the
 constant into the *branch delay slot* and shares `$v0` between flag and value, which is the
 discriminator between the two spellings when the dump is ambiguous.
 
 **Duplicate every tail, do not share it after the `if/else`.** Two cases that both end
-`if (!flag) { value = 4; } return value;` are cross-jumped by jump2 *after reload* (matching backwards
+`if (!viewChoice) { nextView = 4; } return nextView;` are cross-jumped by jump2 *after reload* (matching backwards
 from each jump, as the `func_actor_403000_80134F44` entry describes). Writing the tail once per case
 branch instead of once after the `if/else` took this function from 78.9% to 92.0% (regs 10 -> 1,
 insert 15 -> 4). Which copy anchors the merge is still unexplained here: the surviving copy sits at
@@ -111992,7 +111992,7 @@ Two related notes from the same function:
   dependency graph, not the statement's position: with the loop init already placed early in the
   source, sched1 leaves `li`/`sh` adjacent instead of pulling the `li` two slots toward the top.
 
-## A store's place among its neighbours picks the constant's register, and that register then decides the sched2 store order (func_actor_403200_80134D40, 2026-09-16)
+## A store's place among its neighbours picks the constant's register, and that register then decides the sched2 store order (_actor403200AdvanceState, 2026-09-16)
 
 The reset block writes seven fields of one work struct. The target emits them
 `EF4, EF6, 7B0, EFA, 7B3, EFE, E96`; four different source orders all emitted
@@ -112042,13 +112042,13 @@ its LUID order decide the emission.
 
 base_6.c preprocessed SHA256: 90f32fc92970b2767ce0fad080a8fca8c7e67c74c471f420fdf30cb615370fc2
 
-## A view dispatch whose tests are `beq` to their bodies is a `goto`, not `if`/`else` and not `switch` (func_actor_403200_80134A14, 2026-09-16)
+## A view dispatch whose tests are `beq` to their bodies is a `goto`, not `if`/`else` and not `switch` (_actor403200PickAdvanceView, 2026-09-16)
 
 **Correction (2026-09-20): the source-shape inference below was too strong.**
 This function now matches exactly using the structured dispatch from the matched
-`func_actor_403200_801344C4`: `flag = view`, an outside-pair test, nested per-view
-conditions, and a shared `done: return value`. The case-3 copy retains that
-sibling's `SOFT_TOUCH_REG(flag)`. The earlier goto candidate was a useful partial
+`_actor403200PickCombatView`: `viewChoice = currentView`, an outside-pair test, nested per-view
+conditions, and a shared `done: return nextView`. The case-3 copy retains that
+sibling's `SOFT_TOUCH_REG(viewChoice)`. The earlier goto candidate was a useful partial
 match, not proof that the original source required gotos.
 
 Sharing the return alone scored 90.578%: return-value r85 still conflicted with
@@ -112067,14 +112067,14 @@ branching to its own body, with the default's flag computation falling through t
 block and the two bodies emitted in the same order as the tests:
 
 ```
-    move  v1,s2            ; flag = view
+    move  v1,s2            ; viewChoice = currentView
     li    v0,0x22
     beq   v1,v0,L_body22
      li   v0,4
     beq   v1,v0,L_body4
      li   v0,0x22
     j     L_tail
-     slti v1,a1,0x2455     ; flag = dist < 0x2455
+     slti v1,a1,0x2455     ; viewChoice = playerDistance < 0x2455
 ```
 
 **Cause:** `if (cond) { … }` goes through `do_jump (cond, if_false_label, NULL)` and emits
@@ -112082,14 +112082,14 @@ jump-if-*false* (`bne`); `if (cond) goto label;` goes through
 `do_jump (cond, NULL, if_true_label)` and emits jump-if-*true* (`beq`). So a `beq` chain in
 source order is a run of `goto`s. Two other spellings were tried and rejected here:
 
-* a nested `switch (view)` — right `beq` shape, but `add_case_node` builds an AVL case tree, so
+* a nested `switch (currentView)` — right `beq` shape, but `add_case_node` builds an AVL case tree, so
   the emit order is always the *smaller* value first, the reverse of the target, for either
   source order of the two cases;
-* the `(flag != V1) && (flag != V2)` outside test from the `func_actor_403200_801344C4` entry
+* the `(viewChoice != V1) && (viewChoice != V2)` outside test from the `_actor403200PickCombatView` entry
   above — here it did not make jump threading collapse the pair (208 insns, branch penalty 15,
   74.7%), where the `goto` spelling reproduces the dispatch exactly.
 
-The `if (flag == C) goto L;` run is also what puts the case bodies in source order: an
+The `if (viewChoice == C) goto L;` run is also what puts the case bodies in source order: an
 `if`/`else` chain emits the inner `else` first, which is the opposite of every body order in
 this target.
 
@@ -125854,7 +125854,7 @@ block -- keeps the pseudo alive across the constants, so local-alloc cannot reus
 `$v0`, hands it `$v1`, and the chain schedules around the stores. 100%.
 
 This is the load-chain form of the constant-store rule recorded for
-`func_actor_403200_80134D40`: a store statement's position picks its register (by
+`_actor403200AdvanceState`: a store statement's position picks its register (by
 interference with the values it could otherwise share), and that register decides
 whether sched2 can treat it as a free leaf. The tell is a `reorder` diff that
 displaces a *whole dependent chain* past independent stores rather than swapping
@@ -129366,7 +129366,7 @@ sw    $s0,(0x1F8003FC & 0xFFFF)($at)
 
 The whole gap is that addressing: with it, 116/116 instructions and 100.000%.
 
-The fix is to mirror the already-matched sibling `func_actor_403200_80134D40` /
+The fix is to mirror the already-matched sibling `_actor403200AdvanceState` /
 `_actor403200AdvanceRoot`, which has this exact shape and the exact split form:
 define the head as a *u32 lvalue at the numeric address* and put the carve in a
 `static __inline__` helper that loads the head and stores the carved pointer
@@ -136822,8 +136822,8 @@ Evidence, including preprocessed-input and compiler hashes plus selected RTL: `t
 ## Aggregate constructors resolve the actor_403200 face-store plateau (2026-09-20)
 
 The 2026-09-19 `WorldCollisionGridFace` constructor result also closes
-`func_actor_403200_801408D8`: 97.731% (810) to 100%, all 357 instructions
-identical, without pins. Preserve pool/verts/faces pointer initializers before
+`_actor403200BuildAngledWall`: 97.731% (810) to 100%, all 357 instructions
+identical, without pins. Preserve normals/vertices/faces pointer initializers before
 the two aggregate initializers. A prediction recorded before the build was
 confirmed: second-face BLK clobbers UID92/93 retain output dependencies on all
 six first-face stores. Backward sched2 selects the clobbers at T-268/269 and
@@ -136837,11 +136837,11 @@ scores and selected dump evidence are retained in
 Preprocessed SHA256: baseline `c1195ecf016ef670cdec4f19404595fa1511e15a677945dae84ca2a09f2d8a9e`;
 matching experiment `ffac8c66400cc55ab9ce246e0885b81ade2e6266577a210e4c84cdb24ee83a34`.
 
-## Shared return cleanup can make a result conflict with its guard (actor_403200_801344C4, 2026-09-20)
+## Shared return cleanup can make a result conflict with its guard (_actor403200PickCombatView, 2026-09-20)
 
-Routing duplicated switch results through one final `return value` moved the
+Routing duplicated switch results through one final `return nextView` moved the
 shared tails to their target anchors, but converting `return 3` to
-`value = 3; goto done` introduced a hard-v0 conflict. The first jump pass
+`nextView = 3; goto done` introduced a hard-v0 conflict. The first jump pass
 hoisted the constant assignment before its guard; sched1 placed result r87
 before comparison r133, locally allocated to v0. Global allocation then put
 the result in a0. A preplanned experiment restoring only the two direct
@@ -136849,8 +136849,8 @@ the result in a0. A preplanned experiment restoring only the two direct
 keeping both later shared tails: 93.475% to 99.280%. Inspect local overlap
 before trying to change global priority.
 
-The final missing `flag = view` copy was deleted by combine, not CSE.
-`SOFT_TOUCH_REG(flag)` after the assignment reached 100% without pins. Combine
+The final missing `viewChoice = currentView` copy was deleted by combine, not CSE.
+`SOFT_TOUCH_REG(viewChoice)` after the assignment reached 100% without pins. Combine
 still folded the original copy into the asm input, but the output/input `0`
 constraint required the value in flag's v1 home; reload inserted a new
 `move v1,s2`. This demonstrates operand tying, not preservation of the original
@@ -146262,11 +146262,11 @@ call: the longer live range lowers its priority below `index`. The helper's
 separate `current = coord` copy also had to go - with it the `move s1,s6`
 schedules after the `lui/addiu` of the address.
 
-## A surviving `move vN,sN` before a single compare: the arm had a second test that jump2 folded away (func_actor_403200_801344C4, 2026-09-27)
+## A surviving `move vN,sN` before a single compare: the arm had a second test that jump2 folded away (_actor403200PickCombatView, 2026-09-27)
 
-A view selector copies `view` into a scratch local before each test
+A view selector copies `currentView` into a scratch local before each test
 (`addu $v1,$s2,$zero`). One arm tests the copy once, and without
-`SOFT_TOUCH_REG(flag)` combine substituted `view` into the branch and deleted
+`SOFT_TOUCH_REG(viewChoice)` combine substituted `currentView` into the branch and deleted
 the copy. A register copy with one use always merges that way. It survives
 only if the copy still has a second use at combine. The sibling arms showed
 the source shape: `if (v != A && v != B) near; else if (v == A) hysteresis;
@@ -146321,10 +146321,10 @@ Declaring the object as what it is - `extern TaskDesc tbl[];`, used as
 single constant address `tbl+0x38`, so the plain symbol is the shared base. The
 previous source reached the same bytes with a `desc` local, a hand-rolled goto
 loop and a `SOFT_USE_REG`; all three went away with the declaration.
-## Anonymous-tail cross-jumping needs the last arm to fall into the exit: put `default: return 1;` first (func_actor_403200_80134900, 2026-09-27)
+## Anonymous-tail cross-jumping needs the last arm to fall into the exit: put `default: return 1;` first (_actor403200PickCloseRangeView, 2026-09-27)
 
-Three arms of a view selector end in the same `if (!flag) value = 0x19;` test,
-and the first two are identical (`value = 0x25; flag = dist < 0x1E5A`). The
+Three arms of a view selector end in the same `if (!selection) nextView = 0x19;` test,
+and the first two are identical (`nextView = 0x25; selection = playerDistance < 0x1E5A`). The
 target keeps both, each a `j` into the third arm's test. A shared tail after
 the `if`/`else` gives the test a label of its own, so jump2 merges the two
 identical arms (see "A join label at the merge point..." above); the seed held
@@ -146333,7 +146333,7 @@ enough on its own: with `return 1;` after the switch, its `li v0,1` block sat
 between the last arm and the exit label, so no arm's tail could cross-jump into
 the fallthrough. The first arm's tail then matched the second's whole block
 through `jump_chain` and swallowed it. Writing the out-of-range case first,
-`switch (value) { default: return 1; case 0: case 1: case 2: ... }`, lets the
+`switch (phase) { default: return 1; case 0: case 1: case 2: ... }`, lets the
 last arm fall into the exit. Each earlier arm's tail then merges into it
 through a new, unchained label, and the two identical arms can no longer find
 each other. When the anonymous-tail trick does not work, look at what sits
@@ -146360,7 +146360,7 @@ the switch's `1`. Written as two `= 1` stores, the `sh` takes `s2` but the
 constant pseudo, and CSE rewrites the byte's constant to a subreg of the
 halfword's pseudo, which then survives because the byte store still reads it.
 Reversing the stores, or a chained `a = b = 1`, shares `s2` but in the wrong
-order. A named `s32` local (`flag = 1; a = flag; b = flag;`), the same shape
+order. A named `s32` local (`selection = 1; a = selection; b = selection;`), the same shape
 sibling actors use for their `1` flags, gives one `SImode` pseudo that CSE
 folds onto `s2` for both stores.
 
@@ -149631,7 +149631,7 @@ attempts; left as it was.
   needed for the `sc`/`work` register ranking, was not needed.
 - **`value = A; flag = x < K; if (!flag) value = B; goto done;` next to
   `value = B; flag = x < K + 1; if (flag) value = A;`**
-  (`func_actor_403200_801344C4`, `_80134A14`, 14 gotos each) are two
+  (`_actor403200PickCombatView`, `_actor403200PickAdvanceView`, 14 gotos each) are two
   spellings of a return pair: `if (x < K) return A; return B;` gives
   `v = A; if (!c) v = B`, and `if (x > K) return B; return A;` gives
   `v = B; if (c) v = A`. Read that way the thresholds of the hysteresis
