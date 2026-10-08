@@ -42,6 +42,12 @@ extern WorldCollisionSurfaceProperties* D_mine_tunnel_8018032C[];
 /// frame's GPU draw completes. `unusedTask` and its spawn arguments are ignored.
 void mineTunnelDrawViewFlaresTask(Task* unusedTask);
 
-void func_mine_tunnel_8017D77C(Task* task);
+/// Runs the tunnel's room-message receiver and encounter-restoration setup.
+///
+/// Requires the loaded tunnel and a live task in state 0 (initialize), 1 (idle)
+/// or 2 (release). Borrows the room message table while registered; the body and
+/// spawn arguments are unused. Teardown leaves the resident room slot set,
+/// so message senders must stop using it before the task is killed.
+void mineTunnelRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MINE_TUNNEL_H

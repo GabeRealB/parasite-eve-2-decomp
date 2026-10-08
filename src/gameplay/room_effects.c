@@ -1114,7 +1114,7 @@ TaskDesc D_8010FC2C[667] = {
     { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsHaloOrangeBurstTask, { NULL } },                  // 0x240
     { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsHaloTask, { NULL } },                             // 0x241
     { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsMoteTask, { NULL } },                             // 0x242
-    { { { TASK_BODY_COORD, 0x70 } }, func_mine_secret_passage_80180D58, { NULL } },                                      // 0x243
+    { { { TASK_BODY_COORD, 0x70 } }, mineSecretPassageRoomVisualEffectsSparkEmitterTask, { NULL } },                     // 0x243
     { { { TASK_BODY_COORD, 0x70 } }, mineCavernRoomVisualEffectsMoteTask, { NULL } },                                    // 0x244
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1ElevatorHallRoomVisualEffectsMoteTask, { NULL } },                         // 0x245
     { { { TASK_BODY_COORD, 0x70 } }, shelterB1StoreroomRoomVisualEffectsMoteTask, { NULL } },                            // 0x246

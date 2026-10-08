@@ -9594,7 +9594,7 @@ belonging to `mineGorgeDrawViewFlaresTask` in unit `_4`; the fix was `_3` -> `_4
 in the manifest plus dropping that one `INCLUDE_RODATA` line from
 `mine_gorge_3.c`. Hand-editing was the safe option here precisely because the
 destructive path is the one that loses matched bodies — its own file's remaining
-bodies (`func_mine_gorge_8017D8D4`, `_mineGorgeIdleRoomTask`) came through
+bodies (`_mineGorgeInitializeRoomTask`, `_mineGorgeIdleRoomTask`) came through
 untouched, and the unscoped build verified with the compiler's table at 0x10.
 
 **A `units` `.text` cut is only needed when the table would land mid-object.**
@@ -9719,7 +9719,7 @@ but decompiled ones do, and the ones that come *after* still share the object.
 `mistParkingCutsceneModelPitchTask` is the first function of `mist_parking_11` and its
 12-byte anonymous table (a `TaskFunc stateHandlers[] = {...}` local array initializer)
 correctly starts that object's `.rodata` at `0x29C` — but
-`func_mist_parking_80183EAC`, later in the same unit, was already decompiled and
+`_mistParkingJodieShopTalkTask`, later in the same unit, was already decompiled and
 emits a switch jump table, which GCC precedes with `.align 3`. Twelve bytes is
 `4 mod 8`, so the pad became real and every rodata symbol from `0x2A8` on shifted
 by 4. Cutting `.text` right after the dispatcher (`units = [..., "0x65EC", ...]`)
@@ -43232,7 +43232,7 @@ GCC 2.8.1's CSE records the equality implied by a taken conditional branch
 `== <that constant>` is emitted as the register the comparison already used —
 no `li` at all.
 
-`func_mist_parking_80183EAC` searches five nibble flags for the value 2 and
+`_mistParkingJodieShopTalkTask` searches five nibble flags for the value 2 and
 sets `task->state = 2` when it finds one:
 
 ```
@@ -43309,7 +43309,7 @@ shared:
 The table lives at overlay offset `0x2EC` (4-mod-8). A `rodata` cut naming the
 function's existing unit is enough only when that object's `.rodata` has
 nothing before the table. On trunk `mist_parking_10` already owns `0x2A8` for
-`func_mist_parking_80183EAC`, so a mid-object `.align 3` would pad four bytes
+`_mistParkingJodieShopTalkTask`, so a mid-object `.align 3` would pad four bytes
 ahead of `0x2EC`. Pair the `0x2EC` cut with a `units` cut at the function
 (`0x7168`) so the table starts `mist_parking_11`.
 
@@ -44402,7 +44402,7 @@ part of the tail (the constant `a2`/`a3` setup plus the `jal`) into one block,
 reproducing the target's `j` into a shared spawn label. It also lets the
 `%hi` of a two-arm `if` hoist into the branch's delay slot.
 
-`func_mist_parking_801823F8` is the example: four `taskSpawnFromTable(&D_…,
+`_mistParkingHandleCommand` is the example: four `taskSpawnFromTable(&D_…,
 n, 0, 0)` sites, one merged tail, 99.46% → 99.75% purely from dropping the
 locals.
 
@@ -51249,7 +51249,7 @@ Writing the odd store early gives its constant a birth before the repeated
 constant's live range ends, so the two no longer overlap the same free register,
 and `sched1` sinks the store back into the emitted order by itself. Do not read
 the emitted store order as the source order here, and do not reach for pins:
-`func_mist_parking_8018451C` went from 93% to 100% on that one line move.
+`_mistParkingDepartForAcropolisTask` went from 93% to 100% on that one line move.
 
 ## A callee whose `$a0` is never written before the `jal` is being handed the caller's own `index`
 
@@ -92281,7 +92281,7 @@ copy, i.e. the parameter is an untyped `void*` and the source had
 Input: `base_1.i`, 100.000%, zero penalties, first build. Compiler SHA256
 60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd.
 
-## Write the real prototypes into an m2c seed before chasing a `regs` penalty (func_mine_gorge_8017D8D4, 2026-09-16)
+## Write the real prototypes into an m2c seed before chasing a `regs` penalty (_mineGorgeInitializeRoomTask, 2026-09-16)
 
 The m2c seed here scored 99.082% with `regs=9` and one call argument wrong
 (`gameSetTaskSlot(7)` on a `(void*, s32)` prototype), so fixing that gave
@@ -93262,7 +93262,7 @@ Evidence: scratch `nonmatchings/dryfieldNightCellarDrawGlowsTask-vacuum/`,
 no permuter, no tracer. `overlay_dup_index.py find` reports this body as its own
 only copy.
 
-## A dropped first argument already in `$a0` reads as eight register penalties (func_mine_tunnel_8017D6EC, 2026-09-16)
+## A dropped first argument already in `$a0` reads as eight register penalties (_mineTunnelInitializeRoomTask, 2026-09-16)
 
 The m2c seed for this room state-0 body called one argument where the target
 passes two:
@@ -122506,7 +122506,7 @@ target.o SHA256
 `011928013091eabe3bd8d5cbd2fe4eca06d28fb1de39106b09c7f58d6ac4906a`; compiler
 SHA256 `60d886cd75bbd7855fc7909224a15401de76bff21af8a629c2060290a073f5fd`.
 Scratch `nonmatchings/func_dryfield_parking_lot_8017D8BC-vacuum`.
-## A shared `advance:` tail is what the post-reload cross-jump needs; inline `state++` in every case can lose a load to `sched1` (func_mine_secret_passage_8017D60C, 2026-09-17)
+## A shared `advance:` tail is what the post-reload cross-jump needs; inline `state++` in every case can lose a load to `sched1` (mineSecretPassageDepartureTask, 2026-09-17)
 
 A room save sequence - `switch (task->state)` where most cases end in
 `task->state++` - has its increment blocks merged by `jump2`'s *cross-jumping*,
@@ -122517,7 +122517,7 @@ block: the run of insns immediately before the jump whose bodies match the
 target block's opening run. A compiler-generated state load sitting at the head
 of the block instead of next to the add/store shrinks that match.
 
-`func_mine_secret_passage_8017D60C` had every case written with an inline
+`mineSecretPassageDepartureTask` had every case written with an inline
 `index->state++` (the m2c shape, and a 92.964% baseline once the gotos became
 real `break`s). Cases 0, 3, 4 and 5 matched and merged: their increments follow
 a `jal`, and the scheduler will not move a load across a call, so each block
@@ -122575,7 +122575,7 @@ SHA256 `99d9615aaa1aa6278a0715075b28bd4d8ca849de17997681ffcdd738f43ae884`. No
 pins, no empty asm, no permuter run (the router skipped at 98.96% because the
 block-connection diagnostic read the extra load as unknown structure - the
 `.jump2`/`.sched` pair is what says otherwise). Scratch
-`nonmatchings/func_mine_secret_passage_8017D60C-vacuum`.
+`nonmatchings/mineSecretPassageDepartureTask-vacuum`.
 
 The same function's jump table also had to start its unit's `.rodata`; see the
 `rodata_head` sections above - `rodata_head = "0x14"` with the existing `0x30`
@@ -125094,7 +125094,7 @@ One layout note on the same function: its three `index->state += 1` copies (case
 0, 1, 2, all of them written inline, none behind a shared label) cross-jump into
 one block, and the survivor sits *where the last one was written* -- between case
 2's body and case 3's. That position is the evidence that the source repeated the
-increment rather than jumping to it; see the `func_mine_secret_passage_8017D60C`
+increment rather than jumping to it; see the `mineSecretPassageDepartureTask`
 entry for when the inline form instead loses the merge to `sched1`.
 
 ## Naming the sum before storing it drops a member from the arm's local-alloc quantity, and that is what lets the loop-carried seed take `$v1` (_actor121300SpawnRingSprites, 2026-09-17)

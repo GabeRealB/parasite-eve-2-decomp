@@ -16,8 +16,17 @@ extern TaskDesc D_mine_secret_passage_80180EBC;
 
 extern RoomFadeStorage D_mine_secret_passage_80183440;
 
-// Callbacks referenced by the overlay's shared data tables.
-void func_mine_secret_passage_8017D60C(Task*);
+/// Confirms a passage departure and reloads after the exit-transit sound.
+///
+/// Requires a bodyless task in state 0..6, held player control, loaded CAP
+/// command 2 and the destination already staged by the transition handler.
+/// CAP key 10 confirms; any other key releases the task and resumes control.
+/// Confirmation pauses actors, waits three callback ticks before battle-escape
+/// processing, starts a 30-frame fade and waits for the transit sound to end.
+/// Only then does it commit area/room/warp to the live save and queue reload
+/// without repeating battle-escape processing. Fade/destination storage and the
+/// room overlay must stay live through their use; only one departure may run.
+void mineSecretPassageDepartureTask(Task* task);
 
 /// Refuses every key-item use in the passage.
 ///
@@ -25,7 +34,15 @@ void func_mine_secret_passage_8017D60C(Task*);
 /// `ROOM_KEY_ITEM_USE_REFUSED` so the item menu displays its unavailable notice.
 s32 mineSecretPassageRejectKeyItem(Task* task, s32 messageId, s32 itemId, s32 unusedArg);
 
-s32 func_mine_secret_passage_8017D7CC(Task*, s32, RoomEventMsg*, RoomEventMsg*);
+/// Resolves passage departures and defers the elevator-hall route to a CAP prompt.
+///
+/// Borrows a complete eight-byte request and writable reply, which may alias.
+/// Copies the request, then applies the loaded Mine/Shelter room-variant rules.
+/// Elevator-hall requests return HANDLED (2) even for queries. Execution also stages
+/// the resolved area's low byte, room and warp, holds player control and queues
+/// the departure task; allocation failure still leaves control held. Other
+/// routes return DIRECT (1). Task/message ID are ignored; no pointer is retained.
+s32 mineSecretPassageResolveRoomTransition(Task* task, s32 messageId, RoomEventMsg* request, RoomEventMsg* reply);
 
 /// Ignores room commands and returns zero without changing room state.
 ///

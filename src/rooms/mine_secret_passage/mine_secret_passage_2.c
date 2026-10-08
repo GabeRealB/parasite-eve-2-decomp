@@ -71,7 +71,7 @@ extern WorldCoordRoomAmbientEntry D_mine_secret_passage_801833A0[9];
 extern WorldCoordRoomLights       D_mine_secret_passage_80182DB4[1];
 
 TaskMessageEntry D_mine_secret_passage_80180E8C[6] = {
-    { ROOM_EVENT_MESSAGE_RESOLVE, func_mine_secret_passage_8017D7CC },
+    { ROOM_EVENT_MESSAGE_RESOLVE, mineSecretPassageResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, mineSecretPassageRejectKeyItem },
     { DIRECTION_MESSAGE_ROOM_ACTION, mineSecretPassageIgnoreAction },
     { ROOM_MESSAGE_COMMAND, mineSecretPassageIgnoreCommand },
@@ -79,7 +79,7 @@ TaskMessageEntry D_mine_secret_passage_80180E8C[6] = {
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
-TaskDesc D_mine_secret_passage_80180EBC = { { { TASK_BODY_NONE, 32 } }, func_mine_secret_passage_8017D60C, { .value = 0 } };
+TaskDesc D_mine_secret_passage_80180EBC = { { { TASK_BODY_NONE, 32 } }, mineSecretPassageDepartureTask, { .value = 0 } };
 
 SVECTOR D_mine_secret_passage_80180EC8[2] = {
     { 80, -3140, 0x3692, 0 },
@@ -772,7 +772,7 @@ void mineSecretPassageRoomVisualEffectsHaloOrangeBurstTask(Task* task)
 #include "../../shared/room_visual_effects_glow_quad.inc.c"
 #include "../../shared/room_visual_effects_flash.inc.c"
 
-void func_mine_secret_passage_80180D58(Task* arg0)
+void mineSecretPassageRoomVisualEffectsSparkEmitterTask(Task* task)
 {
-    _roomVisualEffectsSparkEmitterTask(arg0);
+    _roomVisualEffectsSparkEmitterTask(task);
 }

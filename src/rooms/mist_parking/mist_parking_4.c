@@ -45,9 +45,9 @@ extern EvsCommand D_mist_parking_80191034[];
 extern s8 D_mist_parking_801908C8[];
 
 static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task);
-void        func_mist_parking_80183EAC(Task*);
+static void _mistParkingJodieShopTalkTask(Task* task);
 static void _mistParkingShopDepartureMenuTask(Task* task);
-void        func_mist_parking_8018451C(Task*);
+static void _mistParkingDepartForAcropolisTask(Task* unusedTask);
 static void _mistParkingDelayShopDisplayModeExitTask(Task* task);
 
 extern AnimationPlayRequest D_mist_parking_801908A0;
@@ -57,10 +57,10 @@ extern AnimationPlayRequest D_mist_parking_801909F8;
 extern ActorCommand         D_mist_parking_80190BA4;
 extern ActorCommand         D_mist_parking_80190BA8;
 
-void        func_mist_parking_80184408(s32);
-void        func_mist_parking_80184428(s32);
-void        func_mist_parking_80184468(s32);
-void        func_mist_parking_801844EC(void);
+static void _mistParkingRunShopDialogueCommand(s32 commandIndex);
+static void _mistParkingStartShopDepartureMovie(s32 movieSelector);
+static void _mistParkingReloadShopAcropolisArea(s32 areaId);
+static void _mistParkingQueueAcropolisDeparture(void);
 void        func_mist_parking_8018459C(void);
 static void _mistParkingControlShopPlayerHeadAim(s32 mode);
 static void _mistParkingQueueDelayedShopDisplayModeExit(s32 delayTicks);
@@ -72,11 +72,29 @@ enum {
     MIST_PARKING_SHOP_DIALOGUE_PRIZES  = 2
 };
 
+/// The five course prizes occupy consecutive saved flags and placed-item states.
+enum {
+    MIST_PARKING_SHOP_PRIZE_COUNT            = 5,
+    MIST_PARKING_SHOP_PRIZE_FLAG_FIRST       = GAME_FLAG_SHOOTING_GALLERY_PRIZE_4_STATE - 4,
+    MIST_PARKING_SHOP_PRIZE_WAITING          = 2,
+    MIST_PARKING_SHOP_PRIZE_CLOSED           = 3,
+    MIST_PARKING_SHOP_PRIZE_OBJECT_FIRST     = 0x20,
+    MIST_PARKING_SHOP_PRIZE_OBJECT_AVAILABLE = 1,
+    MIST_PARKING_SHOP_PRIZE_CAPTION_SLOT     = 5
+};
+
+/// Destination selectors used by the variant-1 departure callbacks.
+enum {
+    MIST_PARKING_SHOP_RELOAD_WARP           = 1,
+    MIST_PARKING_SHOP_RELOAD_ROOM           = 1,
+    MIST_PARKING_SHOP_RELOAD_SPRITE_VARIANT = 1
+};
+
 TaskDesc D_mist_parking_80190824[5] = {
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_8018451C, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistParkingDepartForAcropolisTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 97 } }, _mistParkingAimPlayerHeadAtShopPartnerTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mistParkingDelayShopDisplayModeExitTask, { .value = 0 } },
-    { { { TASK_BODY_NONE, 192 } }, func_mist_parking_80183EAC, { .value = 0 } },
+    { { { TASK_BODY_NONE, 192 } }, _mistParkingJodieShopTalkTask, { .value = 0 } },
     { { { TASK_BODY_NONE, 192 } }, _mistParkingShopDepartureMenuTask, { .value = 0 } },
 };
 
@@ -303,7 +321,7 @@ EvsCommand D_mist_parking_80190C74[10] = {
 
 EvsCommand D_mist_parking_80190D64[12] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80190870 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80184408 }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingRunShopDialogueCommand }, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_PLAY_WEAPON_ANIMATION, { .value = 3 }, { .value = 0 }, { .value = 1000 }, { .animation = &D_mist_parking_801908B4 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_parking_801909F8 } }, { .value = 0 } },
@@ -318,7 +336,7 @@ EvsCommand D_mist_parking_80190D64[12] = {
 
 EvsCommand D_mist_parking_80190E84[18] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80190870 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80184408 }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingRunShopDialogueCommand }, { .value = 3 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_parking_801909F8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -331,15 +349,15 @@ EvsCommand D_mist_parking_80190E84[18] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2005 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingSelectShopDialogueResource }, { .value = MIST_PARKING_SHOP_DIALOGUE_DEFAULT }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_CAP_CONTROL }, { .value = 0 }, { .value = 4004 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80184428 }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingStartShopDepartureMovie }, { .value = 1 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 2 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = func_mist_parking_801844EC }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callbackNoArg = _mistParkingQueueAcropolisDeparture }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
 EvsCommand D_mist_parking_80191034[12] = {
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_PLAYER }, { .value = 0 }, { .value = ANIMATION_MESSAGE_COPY_BANK_EXTENSION }, { .message = { .pointer = &D_mist_parking_80190870 } }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80184408 }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingRunShopDialogueCommand }, { .value = 4 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_SEND_MESSAGE, { .value = GAME_TASK_SLOT_SCENE }, { .value = 0 }, { .value = 2003 }, { .message = { .pointer = &D_mist_parking_801909F8 } }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_CAP_CUE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
@@ -348,7 +366,7 @@ EvsCommand D_mist_parking_80191034[12] = {
     { EVENT_SCRIPT_OPCODE_CANCEL_PRIMARY_FADE, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingQueueDelayedShopDisplayModeExit }, { .value = 30 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { EVENT_SCRIPT_OPCODE_WAIT_FRAMES, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
-    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = func_mist_parking_80184468 }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
+    { EVENT_SCRIPT_OPCODE_CALLBACK, { .callback = _mistParkingReloadShopAcropolisArea }, { .value = 20 }, { .value = 0 }, { .value = 0 }, { .value = 0 } },
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
@@ -441,146 +459,191 @@ static void _mistParkingAimPlayerHeadAtShopPartnerTask(Task* task)
     }
 }
 
-void func_mist_parking_80183EAC(Task* task)
+/// Advances one prize's announcement in the variant-1 shop conversation.
+///
+/// Requires a live talk and its cleared singleton work, with course index 0..4.
+/// CAP playback pauses the cursor. Each course gets ten idle callback ticks;
+/// a waiting prize is captioned halfway, and an unavailable placed prize closes
+/// its flag at the end. The fifth completed turn advances the talk's state.
+static inline void _mistParkingAdvanceShopPrizeAnnouncement(Task* task, MistParkingShopTalkState* talk)
 {
+    s16 courseIndex;
+
+    if (capIsBusy() != 0) {
+        return;
+    }
+    talk->prizeTimer--;
+    if (talk->prizeTimer == MIST_PARKING_PRIZE_ANNOUNCEMENT_CAPTION_FRAME) {
+        courseIndex = talk->prizeIndex;
+        if (gameFlagGetNibble(courseIndex + MIST_PARKING_SHOP_PRIZE_FLAG_FIRST) == MIST_PARKING_SHOP_PRIZE_WAITING) {
+            capStartSequenceSlot(MIST_PARKING_SHOP_PRIZE_CAPTION_SLOT, CAP_PLAYBACK_IN_PLACE, courseIndex);
+        }
+        return;
+    }
+    if (talk->prizeTimer != 0) {
+        return;
+    }
+    courseIndex = talk->prizeIndex;
+    if (areaGetCurrentObjectState(courseIndex + MIST_PARKING_SHOP_PRIZE_OBJECT_FIRST) != MIST_PARKING_SHOP_PRIZE_OBJECT_AVAILABLE) {
+        gameFlagSetNibble(courseIndex + MIST_PARKING_SHOP_PRIZE_FLAG_FIRST, MIST_PARKING_SHOP_PRIZE_CLOSED);
+    }
+    talk->prizeTimer = MIST_PARKING_PRIZE_ANNOUNCEMENT_FRAMES;
+    talk->prizeIndex++;
+    if (talk->prizeIndex >= MIST_PARKING_SHOP_PRIZE_COUNT) {
+        task->state++;
+    }
+}
+
+/// Runs Jodie's variant-1 prize announcements and shop conversation.
+///
+/// Requires held player control, live actors and loaded menu/prize/default CAP
+/// resources. States 0..10 drive the talk; state 0 clears its shared eight-byte
+/// work, so only one instance may run. Prize key 1 announces waiting prizes;
+/// other keys skip announcements. Menu keys 6, 7 and 8 open the shop, continue
+/// the conversation or leave. `killCountdown` starts at zero and counts callback
+/// ticks for menu/reply delays. The menu timer pauses for EVS/CAP; the reply
+/// timer advances during playback. `spawnArg1.value` retains the menu key.
+/// Completion resumes player control, restores default CAP data and releases
+/// the bodyless task. Its second spawn word is unused.
+static void _mistParkingJodieShopTalkTask(Task* task)
+{
+    enum {
+        MIST_PARKING_SHOP_TALK_GREET                = 0,
+        MIST_PARKING_SHOP_TALK_CHECK_PRIZES         = 1,
+        MIST_PARKING_SHOP_TALK_PRIZE_PROMPT         = 2,
+        MIST_PARKING_SHOP_TALK_PRIZE_CHOICE         = 3,
+        MIST_PARKING_SHOP_TALK_ANNOUNCE_PRIZES      = 4,
+        MIST_PARKING_SHOP_TALK_CLOSE_PRIZES         = 5,
+        MIST_PARKING_SHOP_TALK_MENU_DELAY           = 6,
+        MIST_PARKING_SHOP_TALK_WAIT_MENU            = 7,
+        MIST_PARKING_SHOP_TALK_MENU_CHOICE          = 8,
+        MIST_PARKING_SHOP_TALK_WAIT_REPLY           = 9,
+        MIST_PARKING_SHOP_TALK_FINISH               = 10,
+        MIST_PARKING_SHOP_TALK_GREETING_COMMAND     = 6,
+        MIST_PARKING_SHOP_TALK_PRIZE_PROMPT_COMMAND = 1,
+        MIST_PARKING_SHOP_TALK_ANNOUNCE_KEY         = 1,
+        MIST_PARKING_SHOP_TALK_BRIEF_REPLY_COMMAND  = 7,
+        MIST_PARKING_SHOP_TALK_ANNOUNCED_COMMAND    = 2,
+        MIST_PARKING_SHOP_TALK_SKIPPED_COMMAND      = 3,
+        MIST_PARKING_SHOP_TALK_MENU_COMMAND         = 9,
+        MIST_PARKING_SHOP_TALK_CONTINUE_COMMAND     = 8,
+        MIST_PARKING_SHOP_TALK_NO_BUSINESS_COMMAND  = 10,
+        MIST_PARKING_SHOP_TALK_OPEN_SHOP_KEY        = 6,
+        MIST_PARKING_SHOP_TALK_CONTINUE_KEY         = 7,
+        MIST_PARKING_SHOP_TALK_LEAVE_KEY            = 8,
+        MIST_PARKING_SHOP_TALK_REPLY_DELAY_TICKS    = 10,
+        MIST_PARKING_SHOP_TALK_BUSINESS_DONE        = 1
+    };
     MistParkingShopTalkState* talk = &D_mist_parking_80195334;
-    s32                       cmd;
-    s32                       i;
-    s16                       prize;
-    s32                       key;
-    u16                       tick;
-    u16                       tick2;
+    s32                       nextState;
+    s32                       courseIndex;
+    s32                       choiceKey;
 
     switch (task->state) {
-        case 0:
+        case MIST_PARKING_SHOP_TALK_GREET:
             memFillBytes(talk, 0, sizeof(*talk));
             _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_MENU);
             evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
-            capRunCommand(6, CAP_PLAYBACK_IN_PLACE);
+            capRunCommand(MIST_PARKING_SHOP_TALK_GREETING_COMMAND, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
-        case 1:
+        case MIST_PARKING_SHOP_TALK_CHECK_PRIZES:
             if (gGameSession->eventState != 0) {
                 return;
             }
             if (capIsBusy() != 0) {
                 return;
             }
-            for (i = 0; i < 5; i++) {
-                if (gameFlagGetNibble(i + 0x125) == 2) {
-                    task->state = 2;
+            for (courseIndex = 0; courseIndex < MIST_PARKING_SHOP_PRIZE_COUNT; courseIndex++) {
+                if (gameFlagGetNibble(courseIndex + MIST_PARKING_SHOP_PRIZE_FLAG_FIRST) == MIST_PARKING_SHOP_PRIZE_WAITING) {
+                    task->state = MIST_PARKING_SHOP_TALK_PRIZE_PROMPT;
                     return;
                 }
             }
-            task->state = 6;
+            task->state = MIST_PARKING_SHOP_TALK_MENU_DELAY;
             break;
-        case 2:
+        case MIST_PARKING_SHOP_TALK_PRIZE_PROMPT:
             _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_PRIZES);
             evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
-            capRunCommand(1, CAP_PLAYBACK_IN_PLACE);
-            talk->businessDone = 1;
+            capRunCommand(MIST_PARKING_SHOP_TALK_PRIZE_PROMPT_COMMAND, CAP_PLAYBACK_IN_PLACE);
+            talk->businessDone = MIST_PARKING_SHOP_TALK_BUSINESS_DONE;
             task->state++;
             break;
-        case 3:
+        case MIST_PARKING_SHOP_TALK_PRIZE_CHOICE:
             if (gGameSession->eventState != 0) {
                 return;
             }
             if (capIsBusy() != 0) {
                 return;
             }
-            if (capGetVariantKey() == 1) {
-                capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
-                talk->prizeTimer          = 10;
-                talk->prizeClosingCommand = 2;
-                task->state               = 4;
+            if (capGetVariantKey() == MIST_PARKING_SHOP_TALK_ANNOUNCE_KEY) {
+                capRunCommand(MIST_PARKING_SHOP_TALK_BRIEF_REPLY_COMMAND, CAP_PLAYBACK_IN_PLACE);
+                talk->prizeTimer          = MIST_PARKING_PRIZE_ANNOUNCEMENT_FRAMES;
+                talk->prizeClosingCommand = MIST_PARKING_SHOP_TALK_ANNOUNCED_COMMAND;
+                task->state               = MIST_PARKING_SHOP_TALK_ANNOUNCE_PRIZES;
             } else {
-                talk->prizeClosingCommand = 3;
-                task->state               = 5;
+                talk->prizeClosingCommand = MIST_PARKING_SHOP_TALK_SKIPPED_COMMAND;
+                task->state               = MIST_PARKING_SHOP_TALK_CLOSE_PRIZES;
             }
             break;
-        case 4:
-            if (capIsBusy() != 0) {
-                return;
-            }
-            // Give each prize ten frames: the caption of one still waiting here
-            // starts halfway, and its state flag moves on when the turn ends.
-            talk->prizeTimer--;
-            if (talk->prizeTimer == 5) {
-                prize = talk->prizeIndex;
-                if (gameFlagGetNibble(prize + 0x125) == 2) {
-                    capStartSequenceSlot(5, 0, prize);
-                }
-                return;
-            }
-            if (talk->prizeTimer != 0) {
-                return;
-            }
-            prize = talk->prizeIndex;
-            if (areaGetCurrentObjectState(prize + 0x20) != 1) {
-                gameFlagSetNibble(prize + 0x125, 3);
-            }
-            talk->prizeTimer = 10;
-            talk->prizeIndex++;
-            if (talk->prizeIndex >= 5) {
-                task->state++;
-            }
+        case MIST_PARKING_SHOP_TALK_ANNOUNCE_PRIZES:
+            _mistParkingAdvanceShopPrizeAnnouncement(task, talk);
             break;
-        case 5:
+        case MIST_PARKING_SHOP_TALK_CLOSE_PRIZES:
             evsStartScript(D_mist_parking_80191154, EVENT_SCRIPT_HUD_KEEP);
             capRunCommand(talk->prizeClosingCommand, CAP_PLAYBACK_IN_PLACE);
             task->state++;
             break;
-        case 6:
+        case MIST_PARKING_SHOP_TALK_MENU_DELAY:
             if (gGameSession->eventState != 0) {
                 return;
             }
             if (capIsBusy() != 0) {
                 return;
             }
-            tick                = task->killCountdown + 1;
-            task->killCountdown = tick;
-            if ((s16)tick == 0xA) {
+            task->killCountdown++;
+            if (task->killCountdown == MIST_PARKING_SHOP_TALK_REPLY_DELAY_TICKS) {
                 _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_MENU);
-                capRunCommand(9, CAP_PLAYBACK_IN_PLACE);
+                capRunCommand(MIST_PARKING_SHOP_TALK_MENU_COMMAND, CAP_PLAYBACK_IN_PLACE);
                 task->killCountdown = 0;
                 task->state++;
             }
             break;
-        case 7:
+        case MIST_PARKING_SHOP_TALK_WAIT_MENU:
             if (capIsBusy() == 0) {
                 task->state++;
             }
             break;
-        case 8:
-            key                   = capGetVariantKey();
-            task->spawnArg1.value = key;
-            if (key == 6) {
+        case MIST_PARKING_SHOP_TALK_MENU_CHOICE:
+            // Keep the menu key while its script changes the CAP resource/selection.
+            choiceKey             = capGetVariantKey();
+            task->spawnArg1.value = choiceKey;
+            if (choiceKey == MIST_PARKING_SHOP_TALK_OPEN_SHOP_KEY) {
                 evsStartScript(D_mist_parking_80191214, EVENT_SCRIPT_HUD_KEEP);
-                talk->businessDone = 1;
-            } else if (key == 7) {
+                talk->businessDone = MIST_PARKING_SHOP_TALK_BUSINESS_DONE;
+            } else if (choiceKey == MIST_PARKING_SHOP_TALK_CONTINUE_KEY) {
                 evsStartScript(D_mist_parking_80191304, EVENT_SCRIPT_HUD_KEEP);
-                talk->businessDone = 1;
+                talk->businessDone = MIST_PARKING_SHOP_TALK_BUSINESS_DONE;
             } else {
                 evsStartScript(D_mist_parking_801913C4, EVENT_SCRIPT_HUD_KEEP);
             }
             task->state++;
             break;
-        case 9:
-            tick2               = task->killCountdown + 1;
-            task->killCountdown = tick2;
-            if ((s16)tick2 == 0xA) {
+        case MIST_PARKING_SHOP_TALK_WAIT_REPLY:
+            task->killCountdown++;
+            if (task->killCountdown == MIST_PARKING_SHOP_TALK_REPLY_DELAY_TICKS) {
                 switch (task->spawnArg1.value) {
-                    case 6:
-                        capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
+                    case MIST_PARKING_SHOP_TALK_OPEN_SHOP_KEY:
+                        capRunCommand(MIST_PARKING_SHOP_TALK_BRIEF_REPLY_COMMAND, CAP_PLAYBACK_IN_PLACE);
                         break;
-                    case 7:
-                        capRunCommand(8, CAP_PLAYBACK_IN_PLACE);
+                    case MIST_PARKING_SHOP_TALK_CONTINUE_KEY:
+                        capRunCommand(MIST_PARKING_SHOP_TALK_CONTINUE_COMMAND, CAP_PLAYBACK_IN_PLACE);
                         break;
-                    case 8:
+                    case MIST_PARKING_SHOP_TALK_LEAVE_KEY:
                         if (talk->businessDone != 0) {
-                            capRunCommand(7, CAP_PLAYBACK_IN_PLACE);
+                            capRunCommand(MIST_PARKING_SHOP_TALK_BRIEF_REPLY_COMMAND, CAP_PLAYBACK_IN_PLACE);
                         } else {
-                            capRunCommand(0xA, CAP_PLAYBACK_IN_PLACE);
+                            capRunCommand(MIST_PARKING_SHOP_TALK_NO_BUSINESS_COMMAND, CAP_PLAYBACK_IN_PLACE);
                         }
                         break;
                 }
@@ -591,14 +654,14 @@ void func_mist_parking_80183EAC(Task* task)
             if (capIsBusy() != 0) {
                 return;
             }
-            cmd                 = 0xA;
+            nextState           = MIST_PARKING_SHOP_TALK_FINISH;
             task->killCountdown = 0;
-            if (task->spawnArg1.value == 7) {
-                cmd = 6;
+            if (task->spawnArg1.value == MIST_PARKING_SHOP_TALK_CONTINUE_KEY) {
+                nextState = MIST_PARKING_SHOP_TALK_MENU_DELAY;
             }
-            task->state = cmd;
+            task->state = nextState;
             break;
-        case 10:
+        case MIST_PARKING_SHOP_TALK_FINISH:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_RESUME);
             _mistParkingSelectShopDialogueResource(MIST_PARKING_SHOP_DIALOGUE_DEFAULT);
             taskKill(task);
@@ -667,46 +730,80 @@ static void _mistParkingShopDepartureMenuTask(Task* task)
     }
 }
 
-void func_mist_parking_80184408(s32 arg0)
+/// Runs the selected variant-1 CAP command in place.
+///
+/// The current scripts supply commands 2, 3 or 4. The index must select a live
+/// command in the already-selected CAP resource, which must remain loaded
+/// through playback. No CAP data is selected or loaded by this callback.
+static void _mistParkingRunShopDialogueCommand(s32 commandIndex)
 {
-    capRunCommand(arg0, CAP_PLAYBACK_IN_PLACE);
+    capRunCommand(commandIndex, CAP_PLAYBACK_IN_PLACE);
 }
 
-void func_mist_parking_80184428(s32 arg0)
+/// Queues the variant-1 departure movie and freezes room objects.
+///
+/// Zero selects movie 100 and every nonzero word movie 101; the departure
+/// script supplies 1. The launcher forwards the full selector to its display
+/// task. Requires loaded movie/room resources through presentation. Freezes
+/// room objects even if allocation fails; this callback does not unfreeze them.
+static void _mistParkingStartShopDepartureMovie(s32 movieSelector)
 {
-    taskSpawnFromTable(D_mist_parking_8018FC24, 0, arg0, 0);
+    enum { MIST_PARKING_SHOP_MOVIE_LAUNCHER_DESCRIPTOR = 0 };
+
+    taskSpawnFromTable(D_mist_parking_8018FC24, MIST_PARKING_SHOP_MOVIE_LAUNCHER_DESCRIPTOR, movieSelector, 0);
     gGameSession->freezeRoomObjs = 1;
 }
 
-void func_mist_parking_80184468(s32 arg0)
+/// Installs the variant-1 Acropolis destination and reloads from the current frame.
+///
+/// Stores the low byte of `areaId`, with stage Acropolis, room/warp/sprite
+/// variant 1, then stops non-ambient scripts without fading. The full signed
+/// word selects a normal load caption only for the plaza. Its low byte must be
+/// a valid Acropolis/MIST area; the script supplies the shooting gallery.
+/// Requires live saved state and loaded reload resources.
+static void _mistParkingReloadShopAcropolisArea(s32 areaId)
 {
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = arg0;
-    gDisplayState.spriteVariant                                 = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = MIST_PARKING_SHOP_RELOAD_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = MIST_PARKING_SHOP_RELOAD_ROOM;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = areaId;
+    gDisplayState.spriteVariant                                 = MIST_PARKING_SHOP_RELOAD_SPRITE_VARIANT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
-    if (arg0 == 5) {
+    if (areaId == GAME_AREA_ACROPOLIS_PLAZA) {
         gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);
     }
 }
 
-/// Spawns entry 0 of `D_mist_parking_80190824`.
-void func_mist_parking_801844EC(void)
+/// Queues the loadout-preparing Acropolis departure after the variant-1 movie.
+///
+/// Requires the parking overlay and its task table to stay loaded until the
+/// queued departure runs. Allocation failure silently skips the request.
+static void _mistParkingQueueAcropolisDeparture(void)
 {
-    taskSpawnFromTable(D_mist_parking_80190824, 0, 0, 0);
+    enum { MIST_PARKING_ACROPOLIS_DEPARTURE_DESCRIPTOR = 0 };
+
+    taskSpawnFromTable(D_mist_parking_80190824, MIST_PARKING_ACROPOLIS_DEPARTURE_DESCRIPTOR, 0, 0);
 }
 
-void func_mist_parking_8018451C(Task* task)
+/// Prepares the player's Acropolis loadout and reloads into the plaza.
+///
+/// Sets player resource variant 1 and saved stage/area/room/warp, stops
+/// non-ambient sounds, queues a reload capturing the frame, then starts its
+/// normal load caption. Requires live player/save/display state. Ignores the
+/// bodyless task and its spawn words; it neither advances nor releases itself,
+/// and the pending reload removes it along with the old room's tasks.
+static void _mistParkingDepartForAcropolisTask(Task* unusedTask)
 {
+    enum { MIST_PARKING_ACROPOLIS_PLAYER_RESOURCE_VARIANT = 1 };
+
     playerActorPrepareAcropolisLoadout();
-    gPlayerStatus.resourceVariant                               = 1;
+    gPlayerStatus.resourceVariant                               = MIST_PARKING_ACROPOLIS_PLAYER_RESOURCE_VARIANT;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.area  = GAME_AREA_ACROPOLIS_PLAZA;
     gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.stage = GAME_STAGE_ACROPOLIS;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = 1;
-    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = 1;
-    gDisplayState.spriteVariant                                 = 1;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp  = MIST_PARKING_SHOP_RELOAD_WARP;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.room  = MIST_PARKING_SHOP_RELOAD_ROOM;
+    gDisplayState.spriteVariant                                 = MIST_PARKING_SHOP_RELOAD_SPRITE_VARIANT;
     sndEvtRequestScriptStop(SOUND_BANK_TYPE_ALL_NON_AMBIENT, SOUND_SCRIPT_STOP_NO_FADE);
     taskSpawn(GAME_FLOW_RELOAD_TASK_BANK, GAME_FLOW_RELOAD_TASK_SLOT, GAME_FLOW_RELOAD_CAPTURE_FRAME, 0);
     gameFlowBeginLoadScreen(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc, GAME_FLOW_LOAD_CAPTION_NORMAL);

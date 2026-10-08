@@ -27,14 +27,14 @@
 extern EvsCommand D_mine_tunnel_8017E024[];
 
 /// The room's message table: 0x13EE is handled by `_mineTunnelResolveRoomTransition`,
-/// 0x13F1 by `_mineTunnelRejectKeyItemUse`, 0x13EF by `func_mine_tunnel_8017D670`
-/// and 0x13F0 by `func_mine_tunnel_8017D630`.
+/// 0x13F1 by `_mineTunnelRejectKeyItemUse`, 0x13EF by `_mineTunnelHandleDirectionAction`
+/// and 0x13F0 by `_mineTunnelHandleCommand`.
 extern TaskMessageEntry D_mine_tunnel_8017DFC4[];
 
 static s32 _mineTunnelRejectKeyItemUse(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
 static s32 _mineTunnelResolveRoomTransition(Task* unusedTask, s32 unusedMessageId, RoomEventMsg* request, RoomEventMsg* reply);
-s32        func_mine_tunnel_8017D630(Task*, s32, s32, s32);
-s32        func_mine_tunnel_8017D670(Task*, s32, RoomEventMsg*, s32);
+static s32 _mineTunnelHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
+static s32 _mineTunnelHandleDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg);
 
 static AnimationSet _gMineTunnelAnimation009DC;
 
@@ -73,8 +73,8 @@ static AnimationSet _gMineTunnelAnimation009DC = {
 TaskMessageEntry D_mine_tunnel_8017DFC4[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mineTunnelResolveRoomTransition },
     { ROOM_MESSAGE_USE_KEY_ITEM, _mineTunnelRejectKeyItemUse },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_mine_tunnel_8017D670 },
-    { ROOM_MESSAGE_COMMAND, func_mine_tunnel_8017D630 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _mineTunnelHandleDirectionAction },
+    { ROOM_MESSAGE_COMMAND, _mineTunnelHandleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -104,7 +104,7 @@ EvsCommand D_mine_tunnel_8017E024[11] = {
     { .opcode = EVENT_SCRIPT_OPCODE_END },
 };
 
-static void func_mine_tunnel_8017D6EC(Task* arg0);
+static void _mineTunnelInitializeRoomTask(Task* task);
 static void _mineTunnelIdleRoomTask(Task* unusedTask);
 
 /// Refuses key-item use in the mine tunnel without consuming the selected item.
@@ -130,21 +130,44 @@ static s32 _mineTunnelResolveRoomTransition(Task* unusedTask, s32 unusedMessageI
     return ROOM_VARIANT_TRANSITION_DIRECT;
 }
 
-s32 func_mine_tunnel_8017D630(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Plays the tunnel's progress-dependent CAP reply to room command 2.
+///
+/// Passage progress below 2 selects command 2, otherwise command 3. Other
+/// commands do nothing. Requires loaded CAP commands; receiver, message ID and
+/// second word are ignored. Always returns zero.
+static s32 _mineTunnelHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg)
 {
-    if (arg2 == 2) {
-        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= 2 ? 3 : 2);
+    enum {
+        MINE_TUNNEL_COMMAND_PASSAGE_REPLY  = 2,
+        MINE_TUNNEL_PASSAGE_PROGRESS_READY = 2,
+        MINE_TUNNEL_PASSAGE_REPLY_BEFORE   = 2,
+        MINE_TUNNEL_PASSAGE_REPLY_AFTER    = 3
+    };
+
+    if (commandId == MINE_TUNNEL_COMMAND_PASSAGE_REPLY) {
+        capRunCommandWithTransition(gameFlagGetNibble(GAME_FLAG_MINE_SECRET_PASSAGE_PROGRESS) >= MINE_TUNNEL_PASSAGE_PROGRESS_READY ? MINE_TUNNEL_PASSAGE_REPLY_AFTER : MINE_TUNNEL_PASSAGE_REPLY_BEFORE);
     }
     return 0;
 }
 
-s32 func_mine_tunnel_8017D670(Task* arg0, s32 arg1, RoomEventMsg* msg, s32 arg3)
+/// Starts the tunnel's one-time entrance encounter for direction action 1.
+///
+/// Only variant 1 with an unseen event starts the script. Marks the event
+/// before holding player control and requesting playback. Borrows a four-byte
+/// direction request through synchronous dispatch; control and argument are
+/// ignored, as are task, message ID and the zero second word. Returns zero.
+static s32 _mineTunnelHandleDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unusedArg)
 {
-    u8 temp_v1;
+    enum {
+        MINE_TUNNEL_ACTION_ENTRANCE_ENCOUNTER = 1,
+        MINE_TUNNEL_EVENT_UNSEEN              = 0,
+        MINE_TUNNEL_EVENT_SEEN                = 1
+    };
+    u8 actionId;
 
-    temp_v1 = msg->warp;
-    if ((temp_v1 == 1) && (gGameSession->location.loc.variant == temp_v1) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == 0)) {
-        gameFlagSetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN, 1);
+    actionId = request->actionId;
+    if ((actionId == MINE_TUNNEL_ACTION_ENTRANCE_ENCOUNTER) && (gGameSession->location.loc.variant == actionId) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == MINE_TUNNEL_EVENT_UNSEEN)) {
+        gameFlagSetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN, MINE_TUNNEL_EVENT_SEEN);
         playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
         evsStartScript(D_mine_tunnel_8017E024, EVENT_SCRIPT_HUD_KEEP);
     }
@@ -161,19 +184,26 @@ static void _mineTunnelSetEnemyWave(s32 wavePhase)
     gSceneCombatState.actor01600Wave = wavePhase;
 }
 
-/// State 0 of the room's event task: installs the room's message table,
-/// publishes the task in pointer slot 7 and - when the session is at place 1
-/// and flag 0xA1 is 1 - calls `_mineTunnelSetEnemyWave` with 2. Then sets
-/// scene music entry 1 and advances to state 1.
-static void func_mine_tunnel_8017D6EC(Task* arg0)
+/// Registers the tunnel room and restores its previously started enemy wave.
+///
+/// State 0 publishes the message receiver, restores engagement in variant 1
+/// when the entrance event flag is 1, selects countdown-music entry 1 and
+/// advances to idle. Requires the room and its message table to stay loaded.
+static void _mineTunnelInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_mine_tunnel_8017DFC4;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == 1)) {
+    enum {
+        MINE_TUNNEL_ENCOUNTER_VARIANT     = 1,
+        MINE_TUNNEL_EVENT_STARTED         = 1,
+        MINE_TUNNEL_COUNTDOWN_MUSIC_ENTRY = 1
+    };
+
+    task->msgTable = D_mine_tunnel_8017DFC4;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if ((gGameSession->location.loc.variant == MINE_TUNNEL_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_MINE_TUNNEL_EVENT_SEEN) == MINE_TUNNEL_EVENT_STARTED)) {
         _mineTunnelSetEnemyWave(MINE_TUNNEL_ENEMY_WAVE_ENGAGE);
     }
-    arg0->state           = (s32)(arg0->state + 1);
-    gStageSceneMusicEntry = 1;
+    task->state           = task->state + 1;
+    gStageSceneMusicEntry = MINE_TUNNEL_COUNTDOWN_MUSIC_ENTRY;
 }
 
 /// Keeps the mine tunnel's registered room task alive in state 1 for messages.
@@ -185,18 +215,16 @@ static void _mineTunnelIdleRoomTask(Task* unusedTask)
 /// kill.
 static const TaskFuncTable3 D_mine_tunnel_8017D5C4 = {
     {
-        func_mine_tunnel_8017D6EC,
+        _mineTunnelInitializeRoomTask,
         _mineTunnelIdleRoomTask,
         taskKill,
     },
 };
 
-/// The room's event task: runs the handler for its current state, through a
-/// stack copy of the state table.
-void func_mine_tunnel_8017D77C(Task* task)
+void mineTunnelRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_mine_tunnel_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_mine_tunnel_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

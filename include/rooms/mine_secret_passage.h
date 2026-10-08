@@ -62,7 +62,16 @@ void mineSecretPassageRoomVisualEffectsHaloTask(Task* task);
 /// Borrowed coordinate ancestors and the passage overlay must stay live.
 void mineSecretPassageRoomVisualEffectsMoteTask(Task* task);
 
-void func_mine_secret_passage_80180D58(Task* arg0);
+/// Runs the passage's twenty-emission rotating-offset mote emitter.
+///
+/// Requires the coordinate body and owned, zero-initialized `EffectWork` supplied
+/// by `effectSpawn`; spawnArg1 is unused. Ages 1..20 emit independent downward
+/// motes at rotating local offsets; age 21 releases the emitter work and task.
+/// Motes descend eight parent-axis units per active tick and can outlive it.
+/// Nonzero room effect control pauses emission; four or above cancels it.
+/// The installed mote callback, borrowed coordinate ancestors and passage
+/// overlay must stay live for the tasks that use them.
+void mineSecretPassageRoomVisualEffectsSparkEmitterTask(Task* task);
 
 /// Registers the passage's shared effect IDs and draws its visible light glows.
 ///

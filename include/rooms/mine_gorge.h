@@ -39,6 +39,12 @@ extern WorldCollisionSurfaceProperties* D_mine_gorge_80183644[];
 /// this per-frame callback neither advances nor releases the task.
 void mineGorgeDrawViewFlaresTask(Task* unusedTask);
 
-void func_mine_gorge_8017D9A0(Task* task);
+/// Runs the gorge's room-message receiver and one-time refuge-story setup.
+///
+/// Requires the loaded gorge and a live task in state 0 (initialize), 1 (idle)
+/// or 2 (release). Borrows the room message table while registered; the body
+/// and spawn arguments are unused. Teardown leaves the resident room slot set,
+/// so message senders must stop using it before the task is killed.
+void mineGorgeRoomTask(Task* task);
 
 #endif // INCLUDE_ROOMS_MINE_GORGE_H

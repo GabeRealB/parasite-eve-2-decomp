@@ -96,3 +96,5 @@ _mineGorgeSoundMsg = 0x8017d7f4; // type:func
 _mineGorgeSetPlayerStatePaused = 0x8017d8bc; // type:func
 _mineGorgeSetEnemyWave = 0x8017d8c8; // type:func
 _mineGorgeIdleRoomTask = 0x8017d998; // type:func
+_mineGorgeInitializeRoomTask = 0x8017d8d4; // type:func
+mineGorgeRoomTask = 0x8017d9a0; // type:func

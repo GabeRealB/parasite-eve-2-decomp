@@ -144,7 +144,7 @@ static u16 Shop_Data_80181AD4[];
 #define SHOP_CHARGE_TITLE_BYTES "Charge\0\xE2"
 #include "../../shared/shop.h"
 
-s32         func_mist_parking_801823F8(Task*, s32, s32, s32);
+static s32  _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg);
 static s32  _mistParkingRefuseKeyItemUse(Task* task, s32 messageId, s32 itemId, s32 unused);
 static s32  _mistParkingCopyRoomEventReply(Task* task, s32 messageId, const RoomEventMsg* request, RoomEventMsg* reply);
 static s32  _mistParkingHandleDirectionAction(Task* task, s32 messageId, const DirectionActionRequest* request, s32 unused);
@@ -193,7 +193,7 @@ TaskMessageEntry D_mist_parking_80186BB8[5] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _mistParkingCopyRoomEventReply },
     { DIRECTION_MESSAGE_ROOM_ACTION, _mistParkingHandleDirectionAction },
     { ROOM_MESSAGE_USE_KEY_ITEM, _mistParkingRefuseKeyItemUse },
-    { ROOM_MESSAGE_COMMAND, func_mist_parking_801823F8 },
+    { ROOM_MESSAGE_COMMAND, _mistParkingHandleCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
 };
 
@@ -972,55 +972,102 @@ void mistParkingTelephoneMenuTask(Task* task)
 
 #include "../../shared/room_cutscene_task.inc.c"
 
-s32 func_mist_parking_801823F8(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+/// Queues the parking cutscene and selects its saved/live arrival warp.
+///
+/// Borrows the room's singleton cutscene record until playback completes.
+/// The loaded view/CAP/sound resources and parking overlay must stay live;
+/// both warp selectors change even if the task cannot be allocated.
+static inline void _mistParkingStartCommandCutscene(void)
 {
+    enum {
+        MIST_PARKING_CUTSCENE_DESCRIPTOR  = 0,
+        MIST_PARKING_CUTSCENE_COMMAND     = 4,
+        MIST_PARKING_CUTSCENE_VIEW        = 9,
+        MIST_PARKING_CUTSCENE_CAP_SLOT    = 1,
+        MIST_PARKING_CUTSCENE_CAP_FILE    = 3,
+        MIST_PARKING_CUTSCENE_PLAY        = 0,
+        MIST_PARKING_CUTSCENE_WARP        = 2,
+        MIST_PARKING_CUTSCENE_START_SOUND = 0x51130003,
+        MIST_PARKING_CUTSCENE_END_SOUND   = 0x51130004,
+        MIST_PARKING_CUTSCENE_SCENE_SOUND = 0x5113000B,
+        MIST_PARKING_CUTSCENE_AFTER_SOUND = 0x51130012
+    };
     GameSession* session;
-    u8           temp;
 
-    switch (arg2) {
-        case 15:
-            temp = gGameSession->location.loc.variant;
-            if (temp == 2) {
-                if (gameFlagGetNibble(GAME_FLAG_0F1) == 1) {
+    // Publish the complete cutscene record before queuing its task.
+    D_mist_parking_8019533C.view            = MIST_PARKING_CUTSCENE_VIEW;
+    D_mist_parking_8019533C.capSlot         = MIST_PARKING_CUTSCENE_CAP_SLOT;
+    D_mist_parking_8019533C.capFile         = MIST_PARKING_CUTSCENE_CAP_FILE;
+    D_mist_parking_8019533C.skipScene       = MIST_PARKING_CUTSCENE_PLAY;
+    D_mist_parking_8019533C.startSound      = MIST_PARKING_CUTSCENE_START_SOUND;
+    D_mist_parking_8019533C.endSound        = MIST_PARKING_CUTSCENE_END_SOUND;
+    D_mist_parking_8019533C.sceneSound      = MIST_PARKING_CUTSCENE_SCENE_SOUND;
+    D_mist_parking_8019533C.afterSceneSound = MIST_PARKING_CUTSCENE_AFTER_SOUND;
+    taskSpawnFromTable(gRoomCutsceneTaskDescs, MIST_PARKING_CUTSCENE_DESCRIPTOR, MIST_PARKING_CUTSCENE_COMMAND, &D_mist_parking_8019533C);
+    session                                                    = gGameSession;
+    gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = MIST_PARKING_CUTSCENE_WARP;
+    session->location.loc.warp                                 = MIST_PARKING_CUTSCENE_WARP;
+}
+
+/// Routes parking CAP commands to the current variant's talks and cutscene.
+///
+/// Command 15 advances variant-2 follow-ups before offering departure, or offers
+/// the other variant's departure menu when its talk flag is set. Command 18
+/// starts the variant-appropriate Jodie shop talk, command 8 starts the configured
+/// view-9 cutscene and sets saved/live warp 2, and command 1 starts its script.
+/// Requires loaded room scripts, task tables and CAP resources. Receiver,
+/// message ID and second word are ignored. Always returns zero, including
+/// unrecognized commands and task-allocation failure.
+static s32 _mistParkingHandleCommand(Task* task, s32 messageId, s32 commandId, s32 unusedArg)
+{
+    enum {
+        MIST_PARKING_COMMAND_SCRIPT                 = 1,
+        MIST_PARKING_COMMAND_CUTSCENE               = 8,
+        MIST_PARKING_COMMAND_DEPARTURE_MENU         = 15,
+        MIST_PARKING_COMMAND_SHOP_TALK              = 18,
+        MIST_PARKING_FOLLOWUP_VARIANT               = 2,
+        MIST_PARKING_SHOP_VARIANT                   = 1,
+        MIST_PARKING_DEPARTURE_TALK_ENABLED         = 1,
+        MIST_PARKING_DEPARTURE_MENU_DESCRIPTOR      = 8,
+        MIST_PARKING_SHOP_DEPARTURE_MENU_DESCRIPTOR = 4,
+        MIST_PARKING_SHOP_TALK_DESCRIPTOR           = 3,
+        MIST_PARKING_JODIE_TALK_DESCRIPTOR          = 7
+    };
+    u8 areaVariant;
+
+    switch (commandId) {
+        case MIST_PARKING_COMMAND_DEPARTURE_MENU:
+            areaVariant = gGameSession->location.loc.variant;
+            if (areaVariant == MIST_PARKING_FOLLOWUP_VARIANT) {
+                if (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_INTRO_COMPLETE) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     evsStartScript(D_mist_parking_8018F0A4, EVENT_SCRIPT_HUD_KEEP);
-                    gameFlagSetNibble(GAME_FLAG_0F1, 2);
-                } else if (gameFlagGetNibble(GAME_FLAG_0F1) == temp) {
+                    gameFlagSetNibble(GAME_FLAG_0F1, MIST_PARKING_CONVERSATION_FIRST_FOLLOWUP_STARTED);
+                } else if (gameFlagGetNibble(GAME_FLAG_0F1) == areaVariant) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
                     evsStartScript(D_mist_parking_8018F194, EVENT_SCRIPT_HUD_KEEP);
-                    gameFlagSetNibble(GAME_FLAG_0F1, 3);
-                } else if (gameFlagGetNibble(GAME_FLAG_0F1) == 3) {
+                    gameFlagSetNibble(GAME_FLAG_0F1, MIST_PARKING_CONVERSATION_SECOND_FOLLOWUP_STARTED);
+                } else if (gameFlagGetNibble(GAME_FLAG_0F1) == MIST_PARKING_CONVERSATION_SECOND_FOLLOWUP_STARTED) {
                     playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    taskSpawnFromTable(D_mist_parking_8018D75C, 8, 0, 0);
+                    taskSpawnFromTable(D_mist_parking_8018D75C, MIST_PARKING_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
                 }
-            } else if (gameFlagGetNibble(GAME_FLAG_0ED) == 1) {
+            } else if (gameFlagGetNibble(GAME_FLAG_0ED) == MIST_PARKING_DEPARTURE_TALK_ENABLED) {
                 playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                taskSpawnFromTable(D_mist_parking_80190824, 4, 0, 0);
+                taskSpawnFromTable(D_mist_parking_80190824, MIST_PARKING_SHOP_DEPARTURE_MENU_DESCRIPTOR, 0, 0);
             }
             break;
-        case 8:
-            D_mist_parking_8019533C.view            = 9;
-            D_mist_parking_8019533C.capSlot         = 1;
-            D_mist_parking_8019533C.capFile         = 3;
-            D_mist_parking_8019533C.skipScene       = 0;
-            D_mist_parking_8019533C.startSound      = 0x51130003;
-            D_mist_parking_8019533C.endSound        = 0x51130004;
-            D_mist_parking_8019533C.sceneSound      = 0x5113000B;
-            D_mist_parking_8019533C.afterSceneSound = 0x51130012;
-            taskSpawnFromTable(gRoomCutsceneTaskDescs, 0, 4, &D_mist_parking_8019533C);
-            session                                                    = gGameSession;
-            gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.location.loc.warp = 2;
-            session->location.loc.warp                                 = 2;
+        case MIST_PARKING_COMMAND_CUTSCENE:
+            _mistParkingStartCommandCutscene();
             break;
-        case 18:
+        case MIST_PARKING_COMMAND_SHOP_TALK:
             playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-            if (gGameSession->location.loc.variant == 1) {
-                taskSpawnFromTable(D_mist_parking_80190824, 3, 0, 0);
+            if (gGameSession->location.loc.variant == MIST_PARKING_SHOP_VARIANT) {
+                taskSpawnFromTable(D_mist_parking_80190824, MIST_PARKING_SHOP_TALK_DESCRIPTOR, 0, 0);
             } else {
-                taskSpawnFromTable(D_mist_parking_8018D75C, 7, 0, 0);
+                taskSpawnFromTable(D_mist_parking_8018D75C, MIST_PARKING_JODIE_TALK_DESCRIPTOR, 0, 0);
             }
             break;
-        case 1:
+        case MIST_PARKING_COMMAND_SCRIPT:
             evsStartScript(D_mist_parking_80186EFC, EVENT_SCRIPT_HUD_KEEP);
             break;
     }

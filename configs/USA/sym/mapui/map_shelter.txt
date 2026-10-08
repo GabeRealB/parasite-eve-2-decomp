@@ -31,7 +31,7 @@ D_mine_tunnel_entrance_8017DB78 = 0x8017DB78; // absolute:True owner=mine_tunnel
 D_mine_tunnel_entrance_8017E0E4 = 0x8017E0E4; // absolute:True owner=mine_tunnel_entrance shared=rooms
 D_mine_tunnel_entrance_8017EA4C = 0x8017EA4C; // absolute:True owner=mine_tunnel_entrance shared=rooms
 D_mine_tunnel_entrance_8017F3E8 = 0x8017F3E8; // absolute:True owner=mine_tunnel_entrance
-func_mine_tunnel_8017D77C = 0x8017D77C; // type:func absolute:True owner=mine_tunnel shared=rooms
+mineTunnelRoomTask = 0x8017D77C; // type:func absolute:True owner=mine_tunnel shared=rooms
 D_mine_tunnel_8017E154 = 0x8017E154; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E15C = 0x8017E15C; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E16C = 0x8017E16C; // absolute:True owner=mine_tunnel
@@ -40,7 +40,7 @@ D_mine_tunnel_8017E174 = 0x8017E174; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017E890 = 0x8017E890; // absolute:True owner=mine_tunnel
 D_mine_tunnel_8017F9A4 = 0x8017F9A4; // absolute:True owner=mine_tunnel shared=rooms
 D_mine_tunnel_8018032C = 0x8018032C; // absolute:True owner=mine_tunnel shared=rooms
-func_mine_gorge_8017D9A0 = 0x8017D9A0; // type:func absolute:True owner=mine_gorge shared=rooms
+mineGorgeRoomTask = 0x8017D9A0; // type:func absolute:True owner=mine_gorge shared=rooms
 D_mine_gorge_8017E7A8 = 0x8017E7A8; // absolute:True owner=mine_gorge
 D_mine_gorge_8017E7B8 = 0x8017E7B8; // absolute:True owner=mine_gorge shared=rooms
 D_mine_gorge_8017E7E4 = 0x8017E7E4; // absolute:True owner=mine_gorge shared=rooms

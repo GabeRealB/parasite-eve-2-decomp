@@ -45,7 +45,7 @@ extern EvsCommand D_mine_gorge_8017E2F0[];
 extern EvsCommand D_mine_gorge_8017E500[];
 extern EvsCommand D_mine_gorge_8017E610[];
 
-static void func_mine_gorge_8017D8D4(Task* arg0);
+static void _mineGorgeInitializeRoomTask(Task* task);
 static void _mineGorgeIdleRoomTask(Task* task);
 
 s32        func_mine_gorge_8017D5F8(Task*, s32, s32, s32);
@@ -309,25 +309,39 @@ static void _mineGorgeSetEnemyWave(s32 wave)
     gSceneCombatState.actor03700Wave = wave;
 }
 
-/// Room task setup state: installs the message table and pointer slot 7, sets
-/// `gSceneCombatState.actor03700Wave` to `0x15` in place 1 once flag nibble `0xC5` is set, and on the
-/// first pass with flag nibble `0xBE == 2` arms nibble `0x166`, clears nibble
-/// `0xB5` and calls `capSpawnEventIfIdle(8, 0)`. Then selects scene music entry 1 and
-/// advances state.
-static void func_mine_gorge_8017D8D4(Task* arg0)
+/// Registers the gorge room and restores its encounter and refuge-story progress.
+///
+/// State 0 publishes the room message receiver and advances to idle. In variant
+/// 1 a previously seen encounter restores the actor-03700 wave. Once the power
+/// panel reaches stage 2, an unseen refuge event is marked before attempting
+/// CAP command 8 and the cavern door's powered flag is cleared. Busy CAP or
+/// allocation failure consumes that attempt. Requires loaded room/CAP resources.
+static void _mineGorgeInitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_mine_gorge_8017E280;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if ((gGameSession->location.loc.variant == 1) && (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) != 0)) {
-        gSceneCombatState.actor03700Wave = 0x15;
+    enum {
+        MINE_GORGE_ENCOUNTER_VARIANT       = 1,
+        MINE_GORGE_ENCOUNTER_RESTORED_WAVE = 21,
+        MINE_GORGE_POWER_PANEL_READY       = 2,
+        MINE_GORGE_REFUGE_EVENT_UNSEEN     = 0,
+        MINE_GORGE_REFUGE_EVENT_STARTED    = 1,
+        MINE_GORGE_CAVERN_DOOR_UNPOWERED   = 0,
+        MINE_GORGE_REFUGE_EVENT_COMMAND    = 8,
+        MINE_GORGE_COUNTDOWN_MUSIC_ENTRY   = 1
+    };
+
+    task->msgTable = D_mine_gorge_8017E280;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if ((gGameSession->location.loc.variant == MINE_GORGE_ENCOUNTER_VARIANT) && (gameFlagGetNibble(GAME_FLAG_MINE_GORGE_CUTSCENE_SEEN) != 0)) {
+        gSceneCombatState.actor03700Wave = MINE_GORGE_ENCOUNTER_RESTORED_WAVE;
     }
-    if ((gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == 2) && (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == 0)) {
-        gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, 1);
-        gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, 0);
-        capSpawnEventIfIdle(8, CAP_EVENT_NO_FLAGS);
+    // Latch the one-time story event before its idle-only playback request.
+    if ((gameFlagGetNibble(GAME_FLAG_MINE_POWER_PANEL_STAGE) == MINE_GORGE_POWER_PANEL_READY) && (gameFlagGetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE) == MINE_GORGE_REFUGE_EVENT_UNSEEN)) {
+        gameFlagSetNibble(GAME_FLAG_MINE_REFUGE_SCENE_STATE, MINE_GORGE_REFUGE_EVENT_STARTED);
+        gameFlagSetNibble(GAME_FLAG_MINE_GORGE_CAVERN_DOOR_POWERED, MINE_GORGE_CAVERN_DOOR_UNPOWERED);
+        capSpawnEventIfIdle(MINE_GORGE_REFUGE_EVENT_COMMAND, CAP_EVENT_NO_FLAGS);
     }
-    arg0->state           = arg0->state + 1;
-    gStageSceneMusicEntry = 1;
+    task->state           = task->state + 1;
+    gStageSceneMusicEntry = MINE_GORGE_COUNTDOWN_MUSIC_ENTRY;
 }
 
 /// Keeps the installed room task available for messages between entry and teardown.
@@ -335,19 +349,16 @@ static void _mineGorgeIdleRoomTask(Task* task)
 {
 }
 
-/// State handlers of the room task `func_mine_gorge_8017D9A0` runs: the room's
+/// State handlers of the room task `mineGorgeRoomTask` runs: the room's
 /// setup, an idle state, and `taskKill`.
 static const TaskFuncTable3 D_mine_gorge_8017D5C4 = {
-    { func_mine_gorge_8017D8D4, _mineGorgeIdleRoomTask, taskKill }
+    { _mineGorgeInitializeRoomTask, _mineGorgeIdleRoomTask, taskKill }
 };
 
-/// Runs one tick of the room task through the three-state table
-/// `D_mine_gorge_8017D5C4`, copying the table onto the stack and calling the
-/// entry for the task's current state.
-void func_mine_gorge_8017D9A0(Task* task)
+void mineGorgeRoomTask(Task* task)
 {
-    TaskFuncTable3 sp;
+    TaskFuncTable3 stateHandlers;
 
-    sp = D_mine_gorge_8017D5C4;
-    sp.funcs[task->state](task);
+    stateHandlers = D_mine_gorge_8017D5C4;
+    stateHandlers.funcs[task->state](task);
 }

@@ -65,3 +65,7 @@ _mineTunnelSetEnemyWave = 0x8017d6e0; // type:func
 _mineTunnelRejectKeyItemUse = 0x8017d5e4; // type:func
 _mineTunnelResolveRoomTransition = 0x8017d5ec; // type:func
 _mineTunnelIdleRoomTask = 0x8017d774; // type:func
+_mineTunnelHandleCommand = 0x8017d630; // type:func
+_mineTunnelHandleDirectionAction = 0x8017d670; // type:func
+_mineTunnelInitializeRoomTask = 0x8017d6ec; // type:func
+mineTunnelRoomTask = 0x8017d77c; // type:func
