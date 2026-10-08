@@ -325,44 +325,39 @@ void itemMenuDrawPeCommandRow(UiList* list, UiObject* object)
     }
 }
 
-void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawOptionsCommandRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    s32         status;
-    s32         one;
-    s32         two;
-    UiObject*   obj;
+    enum { ITEM_MENU_COMMAND_OPTIONS                = 36,
+           ITEM_MENU_MAIN_PREVIEW_OPTIONS           = 2,
+           ITEM_MENU_OPTIONS_RESOURCE_FILE_HUNDREDS = 1,
+           ITEM_MENU_OPTIONS_RESOURCE_FILE_INDEX    = 0 };
+    TextDrawReq request;
+    s32         panelControl;
+    UiObject*   commandReceiver;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_SMALL;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_FILL_ONLY;
-    textDrawString(&req, Gp_StrOption);
+    ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_SMALL, TEXT_DRAW_FILL_ONLY);
+    textDrawString(&request, (const u8*)Gp_StrOption);
 
-    status = arg1->panel.control.word;
-    one    = 1;
-    if (((status >> 16) == one) || (status == one)) {
-        if (arg0->selectedItemIndex == arg0->currentItemIndex) {
-            uiSetPromptText(Gp_StrCustomizeHelp, 0, 0);
-            two = 2;
-            if (arg1->owner->spawnArg1.value != two) {
+    panelControl = object->panel.control.word;
+    if (((panelControl >> 16) == USER_INTERFACE_PANEL_ACTIVE) || (panelControl == USER_INTERFACE_PANEL_ACTIVE)) {
+        if (list->selectedItemIndex == list->currentItemIndex) {
+            uiSetPromptText((const u8*)Gp_StrCustomizeHelp, 0, 0);
+            // Restore the menu resource once when selection leaves the item preview.
+            if (object->owner->spawnArg1.value != ITEM_MENU_MAIN_PREVIEW_OPTIONS) {
                 cdCmdDropQueuedTail();
-                cdCmdEnqueueDisplayResource(1, 0, CD_COMMAND_DISPLAY_LOAD_MENU);
+                cdCmdEnqueueDisplayResource(ITEM_MENU_OPTIONS_RESOURCE_FILE_HUNDREDS, ITEM_MENU_OPTIONS_RESOURCE_FILE_INDEX, CD_COMMAND_DISPLAY_LOAD_MENU);
                 itemMenuClearPreviewItems();
-                arg1->owner->spawnArg1.value = two;
+                object->owner->spawnArg1.value = ITEM_MENU_MAIN_PREVIEW_OPTIONS;
             }
         }
     }
 
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            obj = (UiObject*)arg1->owner->spawnArg2.pointer;
+            commandReceiver = object->owner->spawnArg2.pointer;
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            obj->resultValue = 0x24;
-            obj->result      = USER_INTERFACE_RESULT_CONFIRM;
+            commandReceiver->resultValue = ITEM_MENU_COMMAND_OPTIONS;
+            commandReceiver->result      = USER_INTERFACE_RESULT_CONFIRM;
         }
     }
 }
@@ -450,21 +445,24 @@ static s32 _inventoryGetAttachmentItemInRange(const InventoryItemRange* range, s
     return matchingRow->itemId;
 }
 
-void Gp_WeaponSummaryTask(Task* arg0)
+void itemMenuWeaponSummaryTask(Task* task)
 {
-    UiObject*     obj;
-    UiObjectDesc* desc;
+    enum { ITEM_MENU_ARMOR_SUMMARY_DESCRIPTOR  = 10,
+           ITEM_MENU_WEAPON_FIRST_ROW_Y_PIXELS = 15 };
+    UiObject*           object;
+    const UiObjectDesc* summaryDescriptor;
 
-    obj = arg0->spawnArg2.pointer;
-    if (arg0->state == 0) {
-        desc = &D_8010EAB4[10];
-        uiSpawnObject(desc, 0, 0, 0, obj);
-        uiSpawnObject(desc + 1, 0, 0, 0, obj);
-        arg0->state = arg0->state + 1;
+    object = task->spawnArg2.pointer;
+    if (task->state == ITEM_MENU_STATE_INITIAL) {
+        // Armor and P. Energy summaries share the weapon panel's lifetime.
+        summaryDescriptor = &D_8010EAB4[ITEM_MENU_ARMOR_SUMMARY_DESCRIPTOR];
+        uiSpawnObject(summaryDescriptor, 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
+        uiSpawnObject(summaryDescriptor + 1, 0, USER_INTERFACE_PANEL_INACTIVE, 0, object);
+        task->state = task->state + 1;
     }
-    obj->result = USER_INTERFACE_RESULT_NONE;
-    itemMenuDrawWeaponSummary(obj, obj->panel.contentLeft.signedValue + 2, obj->panel.contentTop.signedValue + 0xF, 0);
-    uiDrawTitle(&(obj)->panel, Gp_StrWeaponTitle);
+    object->result = USER_INTERFACE_RESULT_NONE;
+    itemMenuDrawWeaponSummary(object, object->panel.contentLeft.signedValue + 2, object->panel.contentTop.signedValue + ITEM_MENU_WEAPON_FIRST_ROW_Y_PIXELS, 0);
+    uiDrawTitle(&object->panel, (const u8*)Gp_StrWeaponTitle);
 }
 
 void itemMenuSetItemDescriptionPrompt(s32 itemId)
@@ -561,8 +559,10 @@ static UiObject* Gp_OpenItemCmdMenu(UiList* arg0, UiObject* arg1, InventoryItemR
 
 /// Closes a child's UI subtree and restores the parent's input focus.
 ///
-/// Borrows distinct live UI nodes; `activeMode` must be `USER_INTERFACE_PANEL_ACTIVE`.
-/// Closing detaches the child but leaves its object alive for the closing animation.
+/// Borrows distinct live UI nodes whose tasks own the parent/child relationship.
+/// Closing detaches the child's subtree and preserves its objects for later
+/// closing updates. Restores active parent input without changing dimming.
+/// `activeMode` must be `USER_INTERFACE_PANEL_ACTIVE`.
 static inline void _itemMenuCloseChildAndRestoreFocus(UiObject* parent, UiObject* child, s32 activeMode)
 {
     uiStartTreeClosing(child, child->owner);
@@ -765,23 +765,19 @@ void itemMenuInfoTaskExit(Task* task)
     uiObjectTaskExit(task);
 }
 
-void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawKeyItemUseRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
+    enum { ITEM_MENU_KEY_ITEM_USE_DESCRIPTOR       = 44,
+           ITEM_MENU_KEY_ITEM_USE_OPEN_DELAY_TICKS = 1 };
+    TextDrawReq request;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrUse);
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
+    textDrawString(&request, (const u8*)Gp_StrUse);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010EAB4[44], 0, 1, 1, arg1);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&D_8010EAB4[ITEM_MENU_KEY_ITEM_USE_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_KEY_ITEM_USE_OPEN_DELAY_TICKS, object);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }
@@ -971,35 +967,26 @@ void itemMenuDrawMoveRow(UiList* list, UiObject* object)
     }
 }
 
-void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawAttachmentExchangeRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
-    UiObject*   obj;
-    s32         one;
-    s32         x;
-    s32         y;
+    enum { ITEM_MENU_ATTACHMENT_PICKER_DESCRIPTOR       = 21,
+           ITEM_MENU_ATTACHMENT_PICKER_KEEP_DISMISS     = 1,
+           ITEM_MENU_ATTACHMENT_PICKER_OPEN_DELAY_TICKS = 16 };
+    TextDrawReq request;
+    UiObject*   attachmentPicker;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrExchange);
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
+    textDrawString(&request, (const u8*)Gp_StrExchange);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            one = 1;
-            obj = uiSpawnObject(&D_8010EAB4[21], one, one, 0x10, arg1);
-            if (obj != NULL) {
-                y                                = -0x5C;
-                obj->panel.bounds.unsignedRect.y = y;
-                x                                = -8;
-                obj->panel.bounds.unsignedRect.x = x;
+            attachmentPicker = uiSpawnObject(&D_8010EAB4[ITEM_MENU_ATTACHMENT_PICKER_DESCRIPTOR], ITEM_MENU_ATTACHMENT_PICKER_KEEP_DISMISS, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_ATTACHMENT_PICKER_OPEN_DELAY_TICKS, object);
+            if (attachmentPicker != NULL) {
+                attachmentPicker->panel.bounds.rect.y = -92;
+                attachmentPicker->panel.bounds.rect.x = -8;
             }
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
-            arg0->actionResult       = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            list->actionResult         = USER_INTERFACE_LIST_ACTION_INPUT_CONSUMED;
         }
     }
 }
@@ -1138,99 +1125,119 @@ static void _itemMenuOpenUsePanel(UiList* unusedList, UiObject* parent)
     }
 }
 
-void Gp_MapTaskState2(Task* arg0)
+/// Queues the ready map page's cursor, flags, picture, area shapes and arrows.
+///
+/// Borrows the live task and its `UiObject` in `spawnArg2.pointer`. The current
+/// stage is 1..5 and the selected page and area must fit the loaded map tables;
+/// the map picture resources and drawing buffers must be ready. Queues all five
+/// passes in this order without advancing the task or taking input.
+static inline void _menuMapDrawLoadedPage(Task* mapTask)
 {
-    UiObject* obj;
-    UiObject* child;
-    u8*       flags;
-    u8        room;
+    _menuMapDrawPlayerCursor(mapTask);
+    _menuMapDrawFlagMarkers(mapTask);
+    _menuMapDrawPicture(mapTask);
+    _menuMapDrawAreas(mapTask);
+    _menuMapDrawPageArrows(mapTask);
+}
 
-    obj   = arg0->spawnArg2.pointer;
-    flags = Gp_MapFlagIds[gGameSession->location.loc.stage - 1];
-    _menuMapDrawPlayerCursor(arg0);
-    _menuMapDrawFlagMarkers(arg0);
-    _menuMapDrawPicture(arg0);
-    _menuMapDrawAreas(arg0);
-    _menuMapDrawPageArrows(arg0);
+/// Navigation's next phases in the map task's four-entry state table.
+enum { MENU_MAP_STATE_WAIT_FOR_PAGE = 1,
+       MENU_MAP_STATE_CLOSING       = 3 };
+
+/// Starts map teardown and restores the incinerator's view resources when needed.
+///
+/// Borrows the live map task and its owned object. `result` is CONFIRM or CANCEL;
+/// closing preparation precedes its publication and the state change.
+static inline void _menuMapBeginClosing(Task* mapTask, UiObject* mapObject, s32 result)
+{
+    _menuMapPrepareClosing(mapTask);
+    mapObject->result = result;
+    if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) ==
+        GAME_LOCATION_KEY(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_B3_GARBAGE_INCINERATOR, 0, 0)) {
+        loadingRestoreViewImageAndEnqueueResources(1);
+    }
+    mapTask->state = MENU_MAP_STATE_CLOSING;
+}
+
+void menuMapNavigateTask(Task* mapTask)
+{
+    enum { ITEM_MENU_COMMAND_RETURN_FROM_MAP = 0x101,
+           MENU_MAP_PAGE_FLAG_END            = 0xFF,
+           MENU_MAP_HELP_OPEN_DELAY_TICKS    = 1 };
+    UiObject* mapObject;
+    UiObject* helpObject;
+    const u8* pageFlagIds;
+    u8        candidatePage;
+
+    mapObject   = mapTask->spawnArg2.pointer;
+    pageFlagIds = Gp_MapFlagIds[gGameSession->location.loc.stage - 1];
+    _menuMapDrawLoadedPage(mapTask);
     if (gDisplayState.keepGraphics != 0) {
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM);
     } else {
         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);
     }
-    if (obj->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
+    if (mapObject->panel.control.word == USER_INTERFACE_PANEL_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskCancel | PAD_BUTTON_SELECT) != 0) {
-            obj->resultValue = 0x101;
-            _menuMapPrepareClosing(arg0);
-            obj->result = USER_INTERFACE_RESULT_CONFIRM;
-            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
-                loadingRestoreViewImageAndEnqueueResources(1);
-            }
-            arg0->state = 3;
+            mapObject->resultValue = ITEM_MENU_COMMAND_RETURN_FROM_MAP;
+            _menuMapBeginClosing(mapTask, mapObject, USER_INTERFACE_RESULT_CONFIRM);
             return;
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskMenu) != 0) {
-            _menuMapPrepareClosing(arg0);
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
-            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
-                loadingRestoreViewImageAndEnqueueResources(1);
-            }
-            arg0->state = 3;
+            _menuMapBeginClosing(mapTask, mapObject, USER_INTERFACE_RESULT_CANCEL);
             return;
         }
+        // Keep independent checks: an exhausted right search can still fall through.
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_RIGHT) != 0) {
-            if (flags[Gp_MapRoomId] == 0xFF) {
+            if (pageFlagIds[Gp_MapRoomId] == MENU_MAP_PAGE_FLAG_END) {
                 return;
             }
-            for (room = Gp_MapRoomId + 1; room <= D_8010F130[gGameSession->location.loc.stage - 1]; room++) {
-                if (_menuMapPageIsAvailable(room, flags[room]) == 1) {
-                    if ((s8)Gp_MapRoomId != room) {
-                        Gp_MapRoomId = room;
+            for (candidatePage = Gp_MapRoomId + 1; candidatePage <= D_8010F130[gGameSession->location.loc.stage - 1]; candidatePage++) {
+                if (_menuMapPageIsAvailable(candidatePage, pageFlagIds[candidatePage]) == 1) {
+                    if ((s8)Gp_MapRoomId != candidatePage) {
+                        Gp_MapRoomId = candidatePage;
                         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_HOLD);
                         sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
                         _menuMapLoadPage();
-                        arg0->state = 1;
+                        mapTask->state = MENU_MAP_STATE_WAIT_FOR_PAGE;
                     }
                     return;
                 }
             }
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_LEFT) != 0) {
-            if (flags[Gp_MapRoomId] == 0xFF) {
+            if (pageFlagIds[Gp_MapRoomId] == MENU_MAP_PAGE_FLAG_END) {
                 return;
             }
-            for (room = Gp_MapRoomId - 1; room != 0; room--) {
-                if (_menuMapPageIsAvailable(room, flags[room]) == 1) {
-                    if ((s8)Gp_MapRoomId != room) {
-                        Gp_MapRoomId = room;
+            for (candidatePage = Gp_MapRoomId - 1; candidatePage != 0; candidatePage--) {
+                if (_menuMapPageIsAvailable(candidatePage, pageFlagIds[candidatePage]) == 1) {
+                    if ((s8)Gp_MapRoomId != candidatePage) {
+                        Gp_MapRoomId = candidatePage;
                         displaySetTaskDrawMode(DISPLAY_TASK_DRAW_HOLD);
                         sndEvtRequestScriptStart(SOUND_SYSTEM_CURSOR, 0, 0);
                         _menuMapLoadPage();
-                        arg0->state = 1;
+                        mapTask->state = MENU_MAP_STATE_WAIT_FOR_PAGE;
                     }
                     return;
                 }
             }
         }
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, PAD_BUTTON_TRIANGLE) != 0) {
+            // Latch the objective text selector before its child starts loading.
             D_8010F13D = gameFlagGetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiSpawnObject(&D_8010F15C, 0, 1, 1, obj);
-            obj->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiSpawnObject(&D_8010F15C, 0, USER_INTERFACE_PANEL_ACTIVE, MENU_MAP_HELP_OPEN_DELAY_TICKS, mapObject);
+            mapObject->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
-    if (arg0->firstChild != NULL) {
-        child = arg0->firstChild->spawnArg2.pointer;
-        if (child->result == USER_INTERFACE_RESULT_CONFIRM) {
-            obj->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
-            uiStartTreeClosing(child, child->owner);
+    if (mapTask->firstChild != NULL) {
+        helpObject = mapTask->firstChild->spawnArg2.pointer;
+        if (helpObject->result == USER_INTERFACE_RESULT_CONFIRM) {
+            mapObject->panel.control.word = USER_INTERFACE_PANEL_ACTIVE;
+            uiStartTreeClosing(helpObject, helpObject->owner);
         }
-        if (child->result == USER_INTERFACE_RESULT_CANCEL) {
-            _menuMapPrepareClosing(arg0);
-            obj->result = USER_INTERFACE_RESULT_CANCEL;
-            if ((GAME_LOCATION_WORD(gGameSession->location.loc) & GAME_LOCATION_STAGE_AREA_MASK) == GAME_LOCATION_KEY(4, 40, 0, 0)) {
-                loadingRestoreViewImageAndEnqueueResources(1);
-            }
-            arg0->state = 3;
+        if (helpObject->result == USER_INTERFACE_RESULT_CANCEL) {
+            _menuMapBeginClosing(mapTask, mapObject, USER_INTERFACE_RESULT_CANCEL);
         }
     }
 }
@@ -2113,21 +2120,6 @@ void Gp_MapPanelInit(Task* arg0)
     Gp_MapRoomId = val;
     _menuMapLoadPage();
     arg0->state = arg0->state + 1;
-}
-
-/// Queues the ready map page's cursor, flags, picture, area shapes and arrows.
-///
-/// Borrows the live task and its `UiObject` in `spawnArg2.pointer`. The current
-/// stage is 1..5 and the selected page and area must fit the loaded map tables;
-/// the map picture resources and drawing buffers must be ready. Queues all five
-/// passes in this order without advancing the task or taking input.
-static inline void _menuMapDrawLoadedPage(Task* mapTask)
-{
-    _menuMapDrawPlayerCursor(mapTask);
-    _menuMapDrawFlagMarkers(mapTask);
-    _menuMapDrawPicture(mapTask);
-    _menuMapDrawAreas(mapTask);
-    _menuMapDrawPageArrows(mapTask);
 }
 
 void menuMapWaitForPageTask(Task* mapTask)
@@ -3260,37 +3252,41 @@ void itemMenuHotspotCommandTask(Task* task)
     }
 }
 
-void Gp_MapScreenTask(Task* arg0)
+void itemMenuHotspotMenuTask(Task* task)
 {
-    UiObject* obj;
-    s32       one;
+    enum { ITEM_MENU_HOTSPOT_STATE_ACTIVE        = 1,
+           ITEM_MENU_HOTSPOT_STATE_CLOSING       = 2,
+           ITEM_MENU_HOTSPOT_OPEN_DELAY_TICKS    = 1,
+           ITEM_MENU_HOTSPOT_CLOSE_DELAY_UPDATES = 10 };
+    UiObject* commandObject;
 
-    obj = arg0->spawnArg2.pointer;
-    if (arg0->state == 0) {
-        one                     = 1;
-        obj                     = uiSpawnObject(&D_8010F840, arg0->spawnArg1, one, one, NULL);
-        arg0->spawnArg2.pointer = obj;
-        if (obj != NULL) {
-            obj->panel.bounds.unsignedRect.x = (u16)D_80114E8C;
-            obj->panel.bounds.unsignedRect.y = (u16)D_80114E90;
+    commandObject = task->spawnArg2.pointer;
+    if (task->state == ITEM_MENU_STATE_INITIAL) {
+        // Forward the full action-choice word and truncate centred-screen pixels.
+        commandObject           = uiSpawnObject(&D_8010F840, task->spawnArg1, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_HOTSPOT_OPEN_DELAY_TICKS, NULL);
+        task->spawnArg2.pointer = commandObject;
+        if (commandObject != NULL) {
+            commandObject->panel.bounds.rect.x = D_80114E8C;
+            commandObject->panel.bounds.rect.y = D_80114E90;
         }
         stageEnsureHeapTaskPrimitiveBuffer();
         displaySetFrameTiming(DISPLAY_TIMING_EVERY_VBLANK);
         gGameSession->uiOpen = 1;
         D_80114E88           = 0;
-        arg0->state          = arg0->state + 1;
-    } else if (arg0->state == 1) {
-        if ((obj->result == USER_INTERFACE_RESULT_CANCEL) || (obj->result == USER_INTERFACE_RESULT_CONFIRM)) {
-            uiStartTreeClosing(obj, obj->owner);
-            arg0->killCountdown = 0xA;
-            arg0->state         = 2;
+        task->state          = task->state + 1;
+    } else if (task->state == ITEM_MENU_HOTSPOT_STATE_ACTIVE) {
+        if ((commandObject->result == USER_INTERFACE_RESULT_CANCEL) || (commandObject->result == USER_INTERFACE_RESULT_CONFIRM)) {
+            uiStartTreeClosing(commandObject, commandObject->owner);
+            task->killCountdown = ITEM_MENU_HOTSPOT_CLOSE_DELAY_UPDATES;
+            task->state         = ITEM_MENU_HOTSPOT_STATE_CLOSING;
         }
     } else {
-        arg0->killCountdown--;
-        if (arg0->killCountdown <= 0) {
+        // Let detached UI tasks close before releasing their primitive buffer.
+        task->killCountdown--;
+        if (task->killCountdown <= 0) {
             displaySetFrameTiming(DISPLAY_TIMING_TWO_VBLANKS);
             gGameSession->uiOpen = 0;
-            taskKill(arg0);
+            taskKill(task);
             stageReleaseTaskPrimitiveBuffer();
             stageRequestModeTaskExit();
         }
@@ -3903,29 +3899,25 @@ void itemMenuDrawHotspotActionRow(UiList* list, UiObject* object)
     }
 }
 
-#undef ITEM_MENU_PREPARE_COMMAND_TEXT
-
-void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1)
+void itemMenuDrawHotspotItemRow(UiList* list, UiObject* object)
 {
-    TextDrawReq req;
+    enum { ITEM_MENU_HOTSPOT_ITEM_PANEL_DESCRIPTOR = 46,
+           ITEM_MENU_HOTSPOT_ITEM_OPEN_DELAY_TICKS = 1 };
+    TextDrawReq request;
 
-    req.x          = arg1->panel.contentOriginX.unsignedValue + arg0->rowTextX.unsignedValue;
-    req.y          = arg1->panel.contentOriginY.unsignedValue + arg0->rowTextY.unsignedValue;
-    req.otIndex    = arg1->panel.otIndex.signedValue + 1;
-    req.colorRgb   = arg0->colorRgb;
-    req.glyphTable = TEXT_GLYPH_TABLE_MEDIUM;
-    req.alignment  = TEXT_ALIGNMENT_LEFT;
-    req.drawMode   = TEXT_DRAW_OUTLINED;
-    textDrawString(&req, Gp_StrItem2);
-    if (arg0->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
+    ITEM_MENU_PREPARE_COMMAND_TEXT(request, list, object, list->colorRgb, TEXT_GLYPH_TABLE_MEDIUM, TEXT_DRAW_OUTLINED);
+    textDrawString(&request, (const u8*)Gp_StrItem2);
+    if (list->rowInputEnabled == USER_INTERFACE_LIST_ROW_ACTIVE) {
         if (padCheckButtons(0, PAD_BUTTON_QUERY_PRESSED, Pad_MaskConfirm) != 0) {
-            uiSpawnObject(&D_8010EAB4[46], 0, 1, 1, arg1);
+            uiSpawnObject(&D_8010EAB4[ITEM_MENU_HOTSPOT_ITEM_PANEL_DESCRIPTOR], 0, USER_INTERFACE_PANEL_ACTIVE, ITEM_MENU_HOTSPOT_ITEM_OPEN_DELAY_TICKS, object);
             sndEvtRequestScriptStart(SOUND_MENU_CONFIRM, 0, 0);
-            uiStartPanelHiding(arg1, arg1->owner);
-            arg1->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
+            uiStartPanelHiding(object, object->owner);
+            object->panel.control.word = USER_INTERFACE_PANEL_INACTIVE;
         }
     }
 }
+
+#undef ITEM_MENU_PREPARE_COMMAND_TEXT
 
 void itemMenuPreviewPanelTask(Task* task)
 {

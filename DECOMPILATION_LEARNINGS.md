@@ -27907,7 +27907,7 @@ only the load reused and those two registers swapped.
 
 ## Assign a negative constant to `s32` before storing it to a `u16` field
 
-`obj->field_E = -0x5C` on a `u16` dest converts the constant to
+Assigning `-0x5C` directly to a `u16` destination converts the constant to
 `0xFFA4` in the front end and emits `ori v0, 0xffa4`. The target
 materializes it as signed (`addiu v0, -0x5c` / `li v0,-0x5c`).
 
@@ -27917,14 +27917,15 @@ temp keeps the signed immediate; `sh` just takes the low 16 bits:
 ```c
 s32 y;
 
-y            = -0x5C; /* addiu v0, -0x5c */
-obj->field_E = y;     /* sh v0 */
+y                  = -0x5C; /* addiu v0, -0x5c */
+unsignedCoordinate = y;     /* sh v0 */
 ```
 
-A cast alone (`obj->field_E = (s32)-0x5C`) folds back to the field's
-unsigned type. `Gp_DrawExchangeSlotCmd` is the example. The bare
-`obj->field_E = -0x5C` stuck at 99.8% with only those two `li`
-encodings different.
+A cast alone (`unsignedCoordinate = (s32)-0x5C`) folds back to the field's
+unsigned type. The bare unsigned-coordinate stores in
+`itemMenuDrawAttachmentExchangeRow` stuck at 99.8% with only those two `li`
+encodings different. Its signed screen coordinates now use
+`attachmentPicker->panel.bounds.rect.y` and `.x`, which need no staging.
 
 The same fold happens for an unsigned byte field: assigning `-1` to one
 emits `li v0, 0xff` instead of `li v0, -1` (`addiu v0, zero, -1`) in a
@@ -65738,21 +65739,22 @@ its existing raw-rodata unit. An explicit pad subsegment between the tables
 would split a single compiler-generated section.
 
 
-## Gp_MapTaskState2: reconstruct independent button checks and duplicated loop exits
+## menuMapNavigateTask: reconstruct independent button checks and duplicated loop exits
 
 The untouched m2c seed scored 68.957% (`branch=17 regs=93 reorder=12
 insert=28 delete=32`). Replacing its label-driven flow with independent button
-checks, `u8` room `for` loops, and duplicated successful-room/close-menu tails
+checks, `u8` page `for` loops, and duplicated successful-page/close-menu tails
 matched 100% on the first structured attempt, without pins or barriers.
 The forward loop falls through to the backward-button check on exhaustion;
-a successful room test returns even when the selected room is unchanged.
-Write `if (_menuMapPageIsAvailable(room, flags[room]) == 1)` and `task->state = 1`
+a successful page test returns even when the selected page is unchanged.
+Write `if (_menuMapPageIsAvailable(candidatePage, pageFlagIds[candidatePage]) == 1)` and
+`mapTask->state = MENU_MAP_STATE_WAIT_FOR_PAGE`
 inside that arm: CSE keeps the sign-extended result across calls and reuses it
 for the store. A separate m2c `s8` result local added moves and conversions.
 Likewise, preserve `if (displayFlag) displaySetTaskDrawMode(DISPLAY_TASK_DRAW_ROOM); else
 displaySetTaskDrawMode(DISPLAY_TASK_DRAW_CLEAR);`: building a 0/1 temporary before one call instead
 produced `sltu`, where the target has a branch and a shared call.
-Use a byte-array declaration for the per-stage room limit (`D_8010F130`);
+Use a byte-array declaration for the per-stage page limit (`D_8010F130`);
 m2c's unknown-type pointer arithmetic incorrectly scaled the index by four.
 
 ## _effectDarknessScreenDimTaskE8: put duplicated draw tails inside the final state's active arms
@@ -87346,7 +87348,7 @@ Nothing merges the two calls early either — every `jump_optimize` call before
 `toplev.c:3548` passes `cross_jump = 0`, and that last one runs after reload,
 where the store-flag block is already disabled by `! reload_completed`. So the
 merge happens late and lands exactly on the ROM's `beqz` + delay-slot constant.
-The idiom is everywhere in this project (`Gp_MapTaskState2`,
+The idiom is everywhere in this project (`menuMapNavigateTask`,
 `_acropolisSecurityRoomRegisterRoomMessages`, `_acropolisRoofGardenAmbienceTask`),
 so a branchy 0/1 argument is a signal to look for the two-call form rather than
 to fight the scheduler. `func_mine_cavern_8017DDFC`. Inputs: `base_1.i`

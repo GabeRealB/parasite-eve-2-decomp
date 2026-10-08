@@ -234,7 +234,7 @@ TaskDesc D_8010E7E8 = { { { TASK_BODY_NONE, 32 } }, menuApplyPendingItemUseTask,
 
 AnimationPlayRequest D_8010E7F4 = { { 1 }, 9, ANIMATION_BLEND_RESET, 0, ANIMATION_WORLD_COLLISION_DISABLE };
 
-UiListRowCallback Gp_MainMenuCmds[6] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow, itemMenuDrawPeCommandRow, itemMenuDrawMapCommandRow, Gp_DrawOptionCmd, itemMenuDrawExitCommandRow };
+UiListRowCallback Gp_MainMenuCmds[6] = { itemMenuDrawUseAttachCommandRow, itemMenuDrawKeyItemCommandRow, itemMenuDrawPeCommandRow, itemMenuDrawMapCommandRow, itemMenuDrawOptionsCommandRow, itemMenuDrawExitCommandRow };
 
 UiList D_8010E820 = { Gp_MainMenuCmds, 6, { 6 }, 1, 8, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -273,7 +273,7 @@ UiListRowCallback D_8010E90C[1] = { itemMenuDrawDescriptionRow };
 
 UiList D_8010E910 = { D_8010E90C, 1, { 1 }, 0, 15, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
-UiListRowCallback D_8010E934[1] = { Gp_DrawUseCmd };
+UiListRowCallback D_8010E934[1] = { itemMenuDrawKeyItemUseRow };
 
 UiList D_8010E938 = { D_8010E934, 1, { 1 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 
@@ -337,7 +337,7 @@ UiObjectDesc D_8010EAB4[50] = {
     { 3, { -144, -104, 72, 64 }, 28, 0, TASK_BODY_NONE, 192, itemMenuMainPanelTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },
     { 3, { -72, -104, 216, 65 }, 40, 0, TASK_BODY_NONE, 192, itemMenuPlayerSummaryTask, 0 },
-    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -39, 144, 72 }, 36, 0, TASK_BODY_NONE, 192, Gp_WeaponSummaryTask, 0 },
+    { USER_INTERFACE_PANEL_TITLE_STYLE, { -144, -39, 144, 72 }, 36, 0, TASK_BODY_NONE, 192, itemMenuWeaponSummaryTask, 0 },
     { 0, { 0, 0, 144, 20 }, 48, 0, TASK_BODY_NONE, 192, itemMenuInventoryCountTask, 0 },
     { USER_INTERFACE_PANEL_TITLE_STYLE, { 0, -104, 144, 165 }, 40, 0, TASK_BODY_NONE, 192, itemMenuInventoryPanelTask, 0 },
     { 0, { 0, 0, 0, 0 }, 0, 0, TASK_BODY_NONE, 0, NULL, 0 },

@@ -279,10 +279,10 @@ UiObjectDesc D_8010F7C0[2] = {
     { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -72, 176, 112 }, 8, 0, TASK_BODY_NONE, 192, itemMenuHealingTask, 0 },
 };
 UiObjectDesc      D_8010F7F8          = { USER_INTERFACE_PANEL_TITLE_STYLE, { -96, -104, 192, 208 }, 8, 0, TASK_BODY_NONE, 192, itemMenuPeSpecificationsTask, 0 };
-UiListRowCallback Gp_ItemCmdRows[2]   = { itemMenuDrawHotspotActionRow, Gp_DrawItemCmd };
+UiListRowCallback Gp_ItemCmdRows[2]   = { itemMenuDrawHotspotActionRow, itemMenuDrawHotspotItemRow };
 UiList            D_8010F81C          = { Gp_ItemCmdRows, 2, { 2 }, 1, 10, 0, { 0 }, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, { 0 }, 0 };
 UiObjectDesc      D_8010F840          = { 3, { 0, 0, 70, 64 }, 60, 0, TASK_BODY_NONE, 192, itemMenuHotspotCommandTask, 0 };
-TaskDesc          D_8010F85C          = { { { TASK_BODY_NONE, 192 } }, Gp_MapScreenTask, { NULL } };
+TaskDesc          D_8010F85C          = { { { TASK_BODY_NONE, 192 } }, itemMenuHotspotMenuTask, { NULL } };
 UiObjectDesc      D_8010F868          = { 0, { 0, -104, 144, 16 }, 36, 0, TASK_BODY_NONE, 192, itemMenuPreviewPanelTask, 0 };
 s32               D_8010F884          = 0;
 s32               Gp_HealPending      = 0;

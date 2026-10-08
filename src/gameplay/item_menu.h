@@ -120,7 +120,7 @@ extern u8* Gp_MapFlagIds[];
 /// Highest selectable map room id per stage. Index is `GameSession.location.loc.stage - 1`.
 extern u8 D_8010F130[];
 
-/// Map-screen child prompt spawned by `Gp_MapTaskState2`.
+/// Map-screen child prompt spawned by `menuMapNavigateTask`.
 extern UiObjectDesc D_8010F15C;
 
 /// Per-stage `MenuMapAreaShape` counts. Index is `GameSession.location.loc.stage - 1`.
@@ -507,7 +507,15 @@ void itemMenuDrawEquippedNotice(const UiObject* object, s32 itemId);
 /// command 12 and CONFIRM; coordinates are pixels relative to panel content.
 void itemMenuDrawPeCommandRow(UiList* list, UiObject* object);
 
-void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1);
+/// Draws Options, restores its preview resources on selection and accepts Confirm.
+///
+/// Borrows the live list row and its task-owned object. A selected row supplies
+/// help in active or suspended-active mode. The owner's content word latches
+/// preview reset as 2; entering that value drops queued loads, loads the menu
+/// resource and clears item previews. Active Confirm publishes command 36 and
+/// CONFIRM to the owner's object. Text coordinates use unsigned halfword views
+/// of row/content pixels, narrowed into the signed text request.
+void itemMenuDrawOptionsCommandRow(UiList* list, UiObject* object);
 
 /// Draws the main menu's Exit command and cancels the menu on active Confirm.
 ///
@@ -516,7 +524,14 @@ void Gp_DrawOptionCmd(UiList* arg0, UiObject* arg1);
 /// without a command id or a sound request.
 void itemMenuDrawExitCommandRow(UiList* list, UiObject* object);
 
-void Gp_WeaponSummaryTask(Task* arg0);
+/// Draws the equipped weapon and loads, with passive Armor and P. Energy children.
+///
+/// `spawnArg2.pointer` is the live owned summary object; state starts at zero.
+/// The first update opens both child summaries with inactive input and no delay.
+/// Every update clears the result and draws the Weapon title and the summary
+/// two pixels right of contentLeft, fifteen below contentTop. Menu text,
+/// textures, player equipment and the primitive buffer must be ready.
+void itemMenuWeaponSummaryTask(Task* task);
 
 /// Draws one scrolling item-information description row.
 ///
@@ -527,14 +542,28 @@ void Gp_WeaponSummaryTask(Task* arg0);
 /// nonnegative; the initial two-row test retains signed-byte narrowing.
 void itemMenuDrawDescriptionRow(UiList* list, UiObject* object);
 
-void Gp_DrawUseCmd(UiList* arg0, UiObject* arg1);
+/// Draws the collected-item Use command and starts its room-use dialog on Confirm.
+///
+/// The selected row in the shared collected-item list must remain stable until
+/// the spawned dialog reads it. Borrows a live row/object and loaded text/GPU
+/// resources. Confirmation sounds before spawning an active child with a
+/// one-tick opening delay, then suspends parent input even if spawning fails.
+/// Text coordinates use unsigned halfword row/content views in pixel units.
+void itemMenuDrawKeyItemUseRow(UiList* list, UiObject* object);
 
 /// Draws Move and publishes the list's MOVE action on active Confirm.
 ///
 /// The parent resolves the transfer; this row only publishes the command.
 void itemMenuDrawMoveRow(UiList* list, UiObject* object);
 
-void Gp_DrawExchangeSlotCmd(UiList* arg0, UiObject* arg1);
+/// Draws Exchange and opens the armor-attachment item picker on active Confirm.
+///
+/// Borrows a live attachment command row/object and loaded text/GPU resources.
+/// The active child opens after sixteen ticks and keeps its DISMISS result;
+/// its signed origin is (-8, -92) pixels from screen center. Confirmation
+/// suspends parent input and consumes the list action even if spawning fails.
+/// The label uses unsigned halfword row/content coordinates in pixel units.
+void itemMenuDrawAttachmentExchangeRow(UiList* list, UiObject* object);
 
 /// Applies the selected inventory recovery item through its task-owned healing panel.
 ///
@@ -570,7 +599,20 @@ void itemMenuDrawYesRow(UiList* list, UiObject* object);
 /// Draws No and accepts that command on either Confirm or Cancel on its active row.
 void itemMenuDrawNoRow(UiList* list, UiObject* object);
 
-void Gp_MapTaskState2(Task* arg0);
+/// Draws the loaded map page and handles page navigation, Help and map dismissal.
+///
+/// State 2 in the map task table; spawnArg2 borrows the live map object.
+/// Requires stage 1..5, loaded map/draw resources and a nonzero current page
+/// within the stage's page-flag table. Navigation limits are 2, 3, 3, 6 and 3;
+/// Acropolis page 3 is isolated by its 0xFF flag. The table must include the
+/// current index and candidates through the limit; 0xFF disables navigation.
+/// Candidate arithmetic narrows to u8.
+/// Active Cancel/Select publishes command 0x101 and CONFIRM; Menu reports CANCEL.
+/// A page change holds drawing and enters state 1 to await its CD load. Triangle
+/// latches the objective help selector and opens the help child. Child CONFIRM
+/// restores input and closes Help; child CANCEL closes the map. Closing enters
+/// state 3 and also restores view resources in the garbage incinerator.
+void menuMapNavigateTask(Task* mapTask);
 
 /// Loads the map help text, opens the current area's name panel and handles closing input.
 ///
@@ -671,7 +713,17 @@ void itemMenuPeUpgradeTask(Task* task);
 /// takes precedence; no child is closed here. The shared list is used serially.
 void itemMenuHotspotCommandTask(Task* task);
 
-void Gp_MapScreenTask(Task* arg0);
+/// Hosts the hotspot command popup and restores frame timing after it closes.
+///
+/// State starts at zero; spawnArg1 forwards the full action-choice word
+/// (1 Push, otherwise Examine). The initial X/Y words supply signed pixels
+/// from screen center, truncated to halfwords. The host retains the spawned
+/// root object in spawnArg2, clears the action-accepted latch and runs UI at
+/// one VBlank per update. Subsequent active updates require that spawn to have
+/// succeeded. CANCEL or CONFIRM starts closing; ten further callbacks precede
+/// restoration of two-VBlank timing, primitive-buffer release and mode exit.
+/// The accepted latch remains readable after teardown until the next start.
+void itemMenuHotspotMenuTask(Task* task);
 
 /// Draws Use, publishes menu command 6 on Confirm and supplies the selected-row help.
 ///
@@ -733,7 +785,14 @@ void itemMenuPeSpecificationsTask(Task* task);
 /// Coordinates are list-row pixels relative to panel content.
 void itemMenuDrawHotspotActionRow(UiList* list, UiObject* object);
 
-void Gp_DrawItemCmd(UiList* arg0, UiObject* arg1);
+/// Draws the hotspot Item command and opens the item-menu command tree on Confirm.
+///
+/// Borrows a live row/object and loaded text/GPU resources. Active Confirm
+/// spawns an active child with a one-tick delay before requesting its sound,
+/// then hides the command panel and suspends input even if spawning fails.
+/// The child caption task opens Status normally, or Key Items in scripted hold.
+/// The label uses unsigned halfword row/content coordinates in pixel units.
+void itemMenuDrawHotspotItemRow(UiList* list, UiObject* object);
 
 /// Displays the selected menu preview in a separate panel without polling input.
 ///

@@ -300,22 +300,22 @@ void Gp_BuildItemCmdList(UiList* arg0, UiObject* arg1, s32 arg2, InventoryItemRo
             break;
         case 4:
             if (arg2 == 0) {
-                Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
+                Gp_ItemCmdFns[n++] = itemMenuDrawAttachmentExchangeRow;
             } else if ((u32)(arg2 - 0x80) < 0x20U) {
-                Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
+                Gp_ItemCmdFns[n++] = itemMenuDrawAttachmentExchangeRow;
                 if ((arg2 != 0x92) && (arg2 != 0x95)) {
                     Gp_ItemCmdFns[n++] = itemMenuDrawLoadRow;
                 }
                 Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
             } else if ((u32)(arg2 - 0x60) < 0x20U) {
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
+                Gp_ItemCmdFns[n++] = itemMenuDrawAttachmentExchangeRow;
                 if ((arg3->qty - equipmentGetLoadedConsumableQuantity(&gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.carriedItems, arg2)) > 0) {
                     Gp_ItemCmdFns[n++] = itemMenuDrawLoadRow;
                 }
                 Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
             } else {
-                Gp_ItemCmdFns[n++] = Gp_DrawExchangeSlotCmd;
+                Gp_ItemCmdFns[n++] = itemMenuDrawAttachmentExchangeRow;
                 Gp_ItemCmdFns[n++] = itemMenuDrawUseRow;
                 Gp_ItemCmdFns[n++] = itemMenuDrawDiscardRow;
             }
@@ -2002,7 +2002,7 @@ const char                      Gp_StrWarning[] = "Warning";
 const TaskFuncTable4 Gp_MapTaskStates = { {
     Gp_MapPanelInit,
     menuMapWaitForPageTask,
-    Gp_MapTaskState2,
+    menuMapNavigateTask,
     Gp_MapDrawTask,
 } };
 
