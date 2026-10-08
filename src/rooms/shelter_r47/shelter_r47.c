@@ -118,7 +118,7 @@ static TaskDesc             D_shelter_r47_80187020;
 /// Piece lists of the sprites `shelterR47ConsoleDrawSprite` draws, by sprite id.
 static _ShelterR47SpritePart* D_shelter_r47_8018729C[];
 static TaskDesc               D_shelter_r47_801872F0;
-static s32                    func_shelter_r47_8017FE84(Task*, s32, RoomEventMsg*, s32);
+static s32                    _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg);
 static s32                    _shelterR47HandleRoomCommand(Task* unusedTask, s32 unusedMessageId, s32 command, s32 unusedMode);
 static void                   _shelterR47AmbienceTask(Task* task);
 static s32                    _shelterR47RefuseKeyItem(Task* unusedTask, s32 unusedMessageId, s32 unusedItemId, s32 unusedSecondArg);
@@ -158,7 +158,7 @@ enum {
                               "2"
 #include "../../shared/telephone.h"
 
-static void func_shelter_r47_8017FB94(Task* task);
+static void _shelterR47InitializeRoomTask(Task* task);
 static void _shelterR47AdvanceTerminalTour(Task* unusedTask);
 
 #include "../../shared/telephone_data.inc.c"
@@ -172,7 +172,7 @@ static TaskDesc gRoomCutsceneTaskDescs[3] = {
 static TaskMessageEntry D_shelter_r47_80186F2C[6] = {
     { ROOM_EVENT_MESSAGE_RESOLVE, _shelterR47ResolveRoomVariant },
     { ROOM_MESSAGE_USE_KEY_ITEM, _shelterR47RefuseKeyItem },
-    { DIRECTION_MESSAGE_ROOM_ACTION, func_shelter_r47_8017FE84 },
+    { DIRECTION_MESSAGE_ROOM_ACTION, _shelterR47HandleDirectionAction },
     { ROOM_MESSAGE_COMMAND, _shelterR47HandleRoomCommand },
     { ROOM_MESSAGE_SOUND, _shelterR47HandleSoundCommand },
     { TASK_MESSAGE_TABLE_END, NULL },
@@ -211,7 +211,7 @@ static ActionPromptHotspot D_shelter_r47_80186FB4[9] = {
     { 0, 0, 0, 0, ACTION_PROMPT_HOTSPOT_END, 0, 0 },
 };
 
-static TaskDesc D_shelter_r47_80187020 = { { { TASK_BODY_NONE, 192 } }, func_shelter_r47_80182B18, { .value = 0 } };
+static TaskDesc D_shelter_r47_80187020 = { { { TASK_BODY_NONE, 192 } }, shelterR47ConsoleTask, { .value = 0 } };
 
 static _ShelterR47SpritePart D_shelter_r47_8018702C[2] = {
     { 32, 255, 0, 0, 120, 160, 72, 24 },
@@ -561,34 +561,46 @@ void shelterR47TelephoneMenuTask(Task* task)
 /// set-up, the per-frame handler and the kill.
 static const TaskFuncTable3 D_shelter_r47_8017D6A4 = {
     {
-        func_shelter_r47_8017FB94,
+        _shelterR47InitializeRoomTask,
         _shelterR47AdvanceTerminalTour,
         taskKill,
     },
 };
 
-static void func_shelter_r47_8017FB94(Task* task)
+/// Initializes the room's messages, terminal session and entry-event triggers.
+///
+/// Room state 0; registers the live room task, resets terminal handles and
+/// first-use events, and spawns ambience. An arriving companion may be hidden
+/// and given the room's entry animation. Disables the initial or repeat-entry
+/// trigger according to story progress, then advances to state 1.
+static void _shelterR47InitializeRoomTask(Task* task)
 {
-    Task* player;
+    enum { SHELTER_R47_INITIAL_ENTRY_TRIGGER   = 3,
+           SHELTER_R47_REPEAT_ENTRY_TRIGGER    = 12,
+           SHELTER_R47_AMBIENCE_TASK_INDEX     = 1,
+           SHELTER_R47_COMPANION_ROUTE_STARTED = 1 };
+    Task* companion;
 
     task->msgTable = D_shelter_r47_80186F2C;
     gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
-    player = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
-    if (player != NULL && gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 0 && gameFlagGetNibble(GAME_FLAG_0D1) == 1) {
-        taskMessageDispatch(player, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, 0, 0);
+    companion = gameGetTaskSlot(GAME_TASK_SLOT_COMPANION);
+    if (companion != NULL && gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 0 && gameFlagGetNibble(GAME_FLAG_0D1) == SHELTER_R47_COMPANION_ROUTE_STARTED) {
+        taskMessageDispatch(companion, GAME_ACTOR_MESSAGE_SET_MODEL_DRAW, PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE, 0);
         companionWriteAnimationBankIndex(&D_shelter_r47_80186F5C.source.index);
-        TASK_MESSAGE_DISPATCH_POINTER(player, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
+        TASK_MESSAGE_DISPATCH_POINTER(companion, ANIMATION_MESSAGE_PLAY, &D_shelter_r47_80186F5C, 0);
     }
     D_shelter_r47_8018A690 = NULL;
     shelterR47ResetTerminalFirstUseEvents();
-    taskSpawnFromTable(D_shelter_r47_80186F70, 1, 0, 0);
+    taskSpawnFromTable(D_shelter_r47_80186F70, SHELTER_R47_AMBIENCE_TASK_INDEX, 0, 0);
+    // Only one entry event should remain available for this story branch.
     if (gameFlagGetNibble(GAME_FLAG_083) == 1 || gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 1) {
-        (D_shelter_r47_8018787C + 3)[0].flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
+        WorldCollisionTrigger* initialEntryTrigger = &D_shelter_r47_8018787C[SHELTER_R47_INITIAL_ENTRY_TRIGGER];
+
+        initialEntryTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     } else {
-        {
-            WorldCollisionTrigger* object = &D_shelter_r47_8018787C[12];
-            object->flags                &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
-        }
+        WorldCollisionTrigger* repeatEntryTrigger = &D_shelter_r47_8018787C[SHELTER_R47_REPEAT_ENTRY_TRIGGER];
+
+        repeatEntryTrigger->flags &= (0xFF ^ WORLD_COLLISION_TRIGGER_ENABLED);
     }
     task->state++;
 }
@@ -666,136 +678,169 @@ static inline void _shelterR47EnableRepeatEntryTrigger(void)
     repeatEntryTrigger->flags  |= WORLD_COLLISION_TRIGGER_ENABLED;
 }
 
-static s32 func_shelter_r47_8017FE84(Task* arg0, s32 arg1, RoomEventMsg* arg2, s32 arg3)
+/// Holds and hides the player and placed actor for a successfully opened tour terminal.
+///
+/// Requires the live scene manager and this room's restoration descriptor.
+/// Spawns the room's actor-restoration task after the presentation changes;
+/// restoration allocation failure leaves the holds in place.
+static inline void _shelterR47HoldTourActors(void)
 {
-    Task* spawned_p;
-    Task* spawned_p6;
-    Task* spawned_a;
-    Task* spawned_a0;
-    Task* spawned_a1;
-    Task* spawned_a2;
-    u8    field9;
+    enum { SHELTER_R47_RESTORE_ACTORS_TASK_INDEX = 0 };
 
-    field9 = gGameSession->location.loc.variant;
-    if (field9 == 1) {
-        switch (arg2->warp) {
-            case 2:
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    sceneSetPlacedActorDrawMode(0, 0);
+    taskSpawnFromTable(D_shelter_r47_80186F70, SHELTER_R47_RESTORE_ACTORS_TASK_INDEX, 0, 0);
+}
+
+/// Holds and hides the player and any companion for a successfully opened terminal.
+///
+/// Requires this room's actor-restoration descriptor. Spawns its restoration
+/// task after applying the holds; allocation failure leaves the holds in place.
+static inline void _shelterR47HoldTerminalActors(void)
+{
+    enum { SHELTER_R47_RESTORE_ACTORS_TASK_INDEX = 0 };
+
+    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != NULL) {
+        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
+        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
+    }
+    taskSpawnFromTable(D_shelter_r47_80186F70, SHELTER_R47_RESTORE_ACTORS_TASK_INDEX, 0, 0);
+}
+
+/// Handles entry events, tour dialogue and terminal use requested by room triggers.
+///
+/// Borrows a four-byte `DirectionActionRequest` until return; only `actionId`
+/// is read. Variant 1 advances the guided terminal tour, variant 2 starts the
+/// companion entry event, and other variants allow ordinary terminal use.
+/// Actor holds and a restoration task start only after a terminal spawn succeeds.
+/// Requires this room's scripts, task descriptors and trigger table to remain
+/// loaded. Other arguments are ignored, and every request returns zero.
+static s32 _shelterR47HandleDirectionAction(Task* unusedTask, s32 unusedMessageId, const DirectionActionRequest* request, s32 unusedSecondArg)
+{
+    enum {
+        SHELTER_R47_VARIANT_TERMINAL_TOUR          = 1,
+        SHELTER_R47_VARIANT_COMPANION_ENTRY        = 2,
+        SHELTER_R47_ACTION_COMPANION_ENTRY         = 1,
+        SHELTER_R47_ACTION_POINT_2_SOUND           = 2,
+        SHELTER_R47_ACTION_BEGIN_TERMINAL_TOUR     = 3,
+        SHELTER_R47_ACTION_MAP_OR_TOUR_FOLLOWUP    = 4,
+        SHELTER_R47_ACTION_OPEN_MAP                = 5,
+        SHELTER_R47_ACTION_OPEN_CONSOLE            = 6,
+        SHELTER_R47_OBJECTIVE_COMPANION_ENTRY      = 0x2A,
+        SHELTER_R47_OBJECTIVE_TERMINAL_TOUR        = 0x2B,
+        SHELTER_R47_DIALOGUE_COMPANION_ENTRY       = 4,
+        SHELTER_R47_DIALOGUE_TERMINAL_TOUR         = 5,
+        SHELTER_R47_COMPANION_SCHEDULE_AFTER_ENTRY = 8,
+        SHELTER_R47_COMPANION_PROGRESS_AFTER_ENTRY = 2,
+        SHELTER_R47_TOUR_NOT_STARTED               = 0,
+        SHELTER_R47_TOUR_OPEN_CONSOLE              = 1,
+        SHELTER_R47_TOUR_MAP_FOLLOWUP              = 4,
+        SHELTER_R47_POINT_2_SOUND                  = SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1),
+        SHELTER_R47_POINT_2_SOUND_PAN_OFFSET       = -10,
+        SHELTER_R47_POINT_2_SOUND_ATTENUATION      = 64,
+    };
+    Task* tourMapTask;
+    Task* tourConsoleTask;
+    Task* consoleTask;
+    Task* companionMapTask;
+    Task* mapTask;
+    Task* companionConsoleTask;
+    u8    variant;
+
+    variant = gGameSession->location.loc.variant;
+    // The tour branch hides the placed scene actor rather than the companion.
+    if (variant == SHELTER_R47_VARIANT_TERMINAL_TOUR) {
+        switch (request->actionId) {
+            case SHELTER_R47_ACTION_POINT_2_SOUND:
                 if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_POINT_2_SOUND_PLAYED) == 0)) {
-                    sndEvtRequestScriptStart(SOUND_AREA(GAME_STAGE_MINE_SHELTER, GAME_AREA_SHELTER_R47, 1), -0xA, 0x40);
+                    sndEvtRequestScriptStart(SHELTER_R47_POINT_2_SOUND, SHELTER_R47_POINT_2_SOUND_PAN_OFFSET, SHELTER_R47_POINT_2_SOUND_ATTENUATION);
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_POINT_2_SOUND_PLAYED, 1);
                 }
                 break;
-            case 3:
-                if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) == 0)) {
-                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2B);
+            case SHELTER_R47_ACTION_BEGIN_TERMINAL_TOUR:
+                if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) == SHELTER_R47_TOUR_NOT_STARTED)) {
+                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_R47_OBJECTIVE_TERMINAL_TOUR);
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 5);
+                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, SHELTER_R47_DIALOGUE_TERMINAL_TOUR);
                     evsStartScriptWithSkip(D_actor_443500_8014152C, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_443500_80141C1C);
-                    gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, 1);
+                    gameFlagSetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS, SHELTER_R47_TOUR_OPEN_CONSOLE);
                     if (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_165) == 0) {
                         gameFlagSetNibble(GAME_FLAG_SHELTER_R47_165, 1);
                     }
                     _shelterR47EnableRepeatEntryTrigger();
                 }
                 break;
-            case 4:
-                if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= 4)) {
+            case SHELTER_R47_ACTION_MAP_OR_TOUR_FOLLOWUP:
+                if ((gameFlagGetNibble(GAME_FLAG_083) == 1) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_EVENT_PROGRESS) >= SHELTER_R47_TOUR_MAP_FOLLOWUP)) {
                     evsStartScript(D_actor_443500_80143494, EVENT_SCRIPT_HUD_HIDE_RESTORE);
                 }
                 break;
-            case 5:
-                spawned_p              = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
-                D_shelter_r47_8018A690 = spawned_p;
-                if (spawned_p != NULL) {
-                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    sceneSetPlacedActorDrawMode(0, 0);
-                    taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
+            case SHELTER_R47_ACTION_OPEN_MAP:
+                tourMapTask            = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
+                D_shelter_r47_8018A690 = tourMapTask;
+                if (tourMapTask != NULL) {
+                    _shelterR47HoldTourActors();
                 }
                 break;
-            case 6:
-                spawned_p6             = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
-                D_shelter_r47_8018A690 = spawned_p6;
-                if (spawned_p6 != NULL) {
-                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    sceneSetPlacedActorDrawMode(0, 0);
-                    taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
+            case SHELTER_R47_ACTION_OPEN_CONSOLE:
+                tourConsoleTask        = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                D_shelter_r47_8018A690 = tourConsoleTask;
+                if (tourConsoleTask != NULL) {
+                    _shelterR47HoldTourActors();
                 }
                 break;
         }
-    } else if (field9 == 2) {
-        switch (arg2->warp) {
-            case 1:
+    } else if (variant == SHELTER_R47_VARIANT_COMPANION_ENTRY) {
+        switch (request->actionId) {
+            case SHELTER_R47_ACTION_COMPANION_ENTRY:
                 if ((gameFlagGetNibble(GAME_FLAG_083) == 0) && (gameFlagGetNibble(GAME_FLAG_SHELTER_R47_080) == 0)) {
                     if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
                         evsStartScriptWithSkip(D_actor_143400_801350BC, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_143400_801359D4);
                     }
-                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, 0x2A);
+                    gameFlagSetPackedByte(GAME_FLAG_CURRENT_OBJECTIVE, SHELTER_R47_OBJECTIVE_COMPANION_ENTRY);
                     gameFlagSetNibble(GAME_FLAG_SHELTER_R47_080, 1);
-                    gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, 8);
-                    gameFlagSetNibble(GAME_FLAG_0D1, 2);
+                    gameFlagSetNibble(GAME_FLAG_COMPANION_1_SCHEDULE, SHELTER_R47_COMPANION_SCHEDULE_AFTER_ENTRY);
+                    gameFlagSetNibble(GAME_FLAG_0D1, SHELTER_R47_COMPANION_PROGRESS_AFTER_ENTRY);
                     companionRestoreFullHp();
                     gameFlagSetNibble(GAME_FLAG_CUTSCENE_FOLLOW_UP_STATE, 0);
-                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, 4);
+                    gameFlagSetNibble(GAME_FLAG_STORY_DIALOGUE_INDEX, SHELTER_R47_DIALOGUE_COMPANION_ENTRY);
                     _shelterR47EnableRepeatEntryTrigger();
                 }
                 break;
-            case 4:
-            case 5:
-                spawned_a0             = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
-                D_shelter_r47_8018A690 = spawned_a0;
-                if (spawned_a0 != NULL) {
-                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    }
-                    taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
+            case SHELTER_R47_ACTION_MAP_OR_TOUR_FOLLOWUP:
+            case SHELTER_R47_ACTION_OPEN_MAP:
+                companionMapTask       = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
+                D_shelter_r47_8018A690 = companionMapTask;
+                if (companionMapTask != NULL) {
+                    _shelterR47HoldTerminalActors();
                 }
                 break;
-            case 6:
-                spawned_a2             = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
-                D_shelter_r47_8018A690 = spawned_a2;
-                if (spawned_a2 != NULL) {
-                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    }
-                    taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
+            case SHELTER_R47_ACTION_OPEN_CONSOLE:
+                companionConsoleTask   = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                D_shelter_r47_8018A690 = companionConsoleTask;
+                if (companionConsoleTask != NULL) {
+                    _shelterR47HoldTerminalActors();
                 }
                 break;
         }
     } else {
-        switch (arg2->warp) {
-            case 4:
-            case 5:
-                spawned_a1             = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
-                D_shelter_r47_8018A690 = spawned_a1;
-                if (spawned_a1 != NULL) {
-                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    }
-                    taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
+        switch (request->actionId) {
+            case SHELTER_R47_ACTION_MAP_OR_TOUR_FOLLOWUP:
+            case SHELTER_R47_ACTION_OPEN_MAP:
+                mapTask                = taskSpawnFromTable(&D_shelter_r47_80187618, 0, 0, 0);
+                D_shelter_r47_8018A690 = mapTask;
+                if (mapTask != NULL) {
+                    _shelterR47HoldTerminalActors();
                 }
                 break;
-            case 6:
-                spawned_a              = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
-                D_shelter_r47_8018A690 = spawned_a;
-                if (spawned_a != NULL) {
-                    playerActorSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                    playerActorSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    if (gameGetTaskSlot(GAME_TASK_SLOT_COMPANION) != 0) {
-                        companionSetDrawMode(PLAYER_ACTOR_MODEL_DRAW_HIDE_ALLOCATE);
-                        companionSetScriptedControl(GAME_ACTOR_SCRIPTED_CONTROL_HOLD);
-                    }
-                    taskSpawnFromTable(D_shelter_r47_80186F70, 0, 0, 0);
+            case SHELTER_R47_ACTION_OPEN_CONSOLE:
+                consoleTask            = taskSpawnFromTable(&D_shelter_r47_80187020, 0, 0, 0);
+                D_shelter_r47_8018A690 = consoleTask;
+                if (consoleTask != NULL) {
+                    _shelterR47HoldTerminalActors();
                 }
                 break;
         }

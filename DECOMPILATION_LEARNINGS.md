@@ -92803,7 +92803,7 @@ Scoring 97.97% (`regs=1 reorder=1`) → 100.000%. Two things are worth keeping:
   calls first. (Contrast the store-order entry above, where the swapped
   instructions are the source order and nothing else can explain the swap.)
 - **The family already had the answer.** Every room-entry task in the `rooms`
-  overlays calls `gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM)`; `func_shelter_r49_8017D648`
+  overlays calls `gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM)`; `_shelterR49InitializeRoomTask`
   (`src/rooms/shelter_r49/shelter_r49.c`) is the same body minus the
   `streamSetExternalScenePayloadBuffer` call, is already matched, and reproduces `addiu $a1,$zero,0x7`
   byte for byte. When a similar matched sibling exists, copy its argument list
@@ -149508,7 +149508,7 @@ attempts; left as it was.
   not rotated. Only the goto source (`triggerHit = 1;` ahead of the `while`,
   `goto triggerChecked` on a hit) reproduces it.
 - **Duplicating a tail that uses the function's locals needs locals of its
-  own.** `func_shelter_r47_8017FE84` had `goto spawn_six` into another
+  own.** `_shelterR47HandleDirectionAction` had `goto spawn_six` into another
   switch's case and `goto toggle_only` into another arm. Written out twice
   with the *same* `spawned`/`p`/`q` locals, the copies differ in registers
   (one pseudo now has two live ranges) and cross-jumping does not merge them;

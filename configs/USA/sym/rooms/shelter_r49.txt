@@ -39,3 +39,4 @@ _shelterR49IgnoreDirectionAction = 0x8017d640; // type:func
 _shelterR49RoomIdle = 0x8017d6b4; // type:func
 shelterR49RoomTask = 0x8017d6c4; // type:func
 _shelterR49EnterObservatoryTask = 0x8017d8d8; // type:func
+_shelterR49InitializeRoomTask = 0x8017d648; // type:func

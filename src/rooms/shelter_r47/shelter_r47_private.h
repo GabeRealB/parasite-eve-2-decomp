@@ -329,6 +329,14 @@ void shelterR47MapTerminalDrawPageCaptions(Task* task, s16 page);
 /// frame arena/OT. The task needs no work allocation; its console owner kills it.
 void shelterR47ConsolePromptTask(Task* task);
 
-void func_shelter_r47_80182B18(Task*);
+/// Runs one state of the room's control-console screen, including its teardown.
+///
+/// `task->state` must be 0..13. State 0 allocates owned console work and spawns
+/// the action-cursor task; later states require live console work. Spawn
+/// argument 1 selects the guided sequence with 1 and free use otherwise.
+/// Input states change rows or switches; exits save the switches and release
+/// control, display holds and tasks. The overlay and console textures must stay
+/// loaded through the dispatched callback, which may release the task.
+void shelterR47ConsoleTask(Task* task);
 
 #endif // SRC_ROOMS_SHELTER_R47_SHELTER_R47_PRIVATE_H

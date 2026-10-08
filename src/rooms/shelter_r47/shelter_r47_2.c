@@ -103,16 +103,16 @@ enum {
 };
 
 static void _actionPromptResetDefault(Task* task);
-static void func_shelter_r47_801816CC(Task* task);
+static void _shelterR47ConsoleHandleCommandTask(Task* task);
 static void _shelterR47ConsoleDrawStatusReveal(Task* task, s16 messageY);
 static void _shelterR47ConsoleDrawScrollingBackdrop(s16 scrollPixels);
 static void _shelterR47ConsoleFadeOutTask(Task* task);
 static s16  _shelterR47ConsoleValidateGuidedRow(Task* task, s16 selectedRow);
 static void _shelterR47ConsoleResetPromptTask(Task* task);
-static void func_shelter_r47_80182CA4(Task* task);
+static void _shelterR47ConsoleOpenViewTask(Task* task);
 static void _shelterR47ConsoleOpenCommandsTask(Task* task);
 static void _shelterR47ConsoleDismissTask(Task* task);
-static void func_shelter_r47_80182F18(Task* task);
+static void _shelterR47ConsoleRevealRowTask(Task* task);
 static void _shelterR47ConsoleChangeViewTask(Task* task);
 static void _shelterR47ConsoleBeginButtonPressTask(Task* task);
 static void _shelterR47ConsoleApplyButtonPressTask(Task* task);
@@ -125,18 +125,18 @@ static void _shelterR47ConsoleToggleSwitch(Task* task, s16 row);
 static void _shelterR47MapTerminalDrawPageOverlay(Task* task);
 
 /// State handlers of the room's first cap script, run by
-/// `func_shelter_r47_80182B18`.
+/// `shelterR47ConsoleTask`.
 static const TaskFuncTable14 D_shelter_r47_8017D6C8 = {
     {
         shelterR47ConsoleInitializeTask,
         _shelterR47ConsoleResetPromptTask,
-        func_shelter_r47_80182CA4,
+        _shelterR47ConsoleOpenViewTask,
         shelterR47ConsoleSelectHotspotTask,
         _shelterR47ConsoleOpenCommandsTask,
-        func_shelter_r47_801816CC,
+        _shelterR47ConsoleHandleCommandTask,
         _shelterR47ConsoleDismissTask,
         _shelterR47ConsoleChangeViewTask,
-        func_shelter_r47_80182F18,
+        _shelterR47ConsoleRevealRowTask,
         _shelterR47ConsoleBeginButtonPressTask,
         _shelterR47ConsoleApplyButtonPressTask,
         _shelterR47ConsoleWaitButtonFlashTask,
@@ -287,20 +287,49 @@ static inline void _shelterR47ConsoleDrawStatus(Task* task, ShelterR47ConsoleWor
     shelterR47ConsoleDrawSprite(messageX, messageY, SHELTER_R47_CONSOLE_STATUS_SPRITE_BASE + status);
 }
 
-/// Acts on `selection`, the hotspot id stored by `shelterR47ConsoleSelectHotspotTask`,
-/// when `itemMenuIsHotspotActionConfirmed` returns nonzero: the id's high byte picks the kind.
-/// Kind 0 accepts a new low byte into `row` (checked by
-/// `_shelterR47ConsoleValidateGuidedRow` while `guideStep` is set, and the first time
-/// gated by a one-off cap event otherwise), clears the wipe colour and
-/// moves to state 7. Kind 1 moves to state 9 after its one-off event, kind 2
-/// starts the cap event for the current `status`, and kinds 3 and 4 start their
-/// own events. Every other outcome returns to state 3.
-static void func_shelter_r47_801816CC(Task* task)
+/// Handles the confirmed console command, including first-use and guided dialogue.
+///
+/// Console state 5; requires live console work and the first port's prompt.
+/// Selection packs kind 0..4 in the high byte and a row 0..4 in the low byte
+/// for kind 0. Row changes clear the wipe and select state 7; switch presses
+/// select state 9. Status examination requires status 0..9. Cancelled, refused
+/// or dialogue-only commands return to state 3. An unrecognized confirmed kind
+/// leaves state 5 active. The selected row is narrowed to its stored signed byte.
+static void _shelterR47ConsoleHandleCommandTask(Task* task)
 {
+    enum {
+        SHELTER_R47_CONSOLE_HOTSPOT_KIND_SHIFT    = 8,
+        SHELTER_R47_CONSOLE_HOTSPOT_ROW_MASK      = 0xFF,
+        SHELTER_R47_CONSOLE_HOTSPOT_ROW           = 0,
+        SHELTER_R47_CONSOLE_HOTSPOT_SWITCH_BUTTON = 1,
+        SHELTER_R47_CONSOLE_HOTSPOT_STATUS        = 2,
+        SHELTER_R47_CONSOLE_HOTSPOT_HEADER        = 3,
+        SHELTER_R47_CONSOLE_HOTSPOT_LABEL         = 4,
+        SHELTER_R47_CONSOLE_GUIDE_FREE_USE        = 0,
+        SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT   = 0,
+        SHELTER_R47_CONSOLE_CAP_ROW_FIRST_USE     = 0x2E,
+        SHELTER_R47_CONSOLE_CAP_BUTTON_FIRST_USE  = 0x2C,
+        SHELTER_R47_CONSOLE_CAP_GUIDE_SAME_ROW    = 0xF,
+        SHELTER_R47_CONSOLE_CAP_HEADER            = 0x2B,
+        SHELTER_R47_CONSOLE_CAP_LABEL             = 0x2D,
+        SHELTER_R47_CONSOLE_CAP_TRANSFER_DOOR_OFF = 0x15,
+        SHELTER_R47_CONSOLE_CAP_TRANSFER_DOOR_ON  = 0x16,
+        SHELTER_R47_CONSOLE_CAP_SWITCH_2_OFF      = 0x17,
+        SHELTER_R47_CONSOLE_CAP_SWITCH_2_ON       = 0x18,
+        SHELTER_R47_CONSOLE_CAP_OBSERVATORY_OFF   = 0x1A,
+        SHELTER_R47_CONSOLE_CAP_OBSERVATORY_ON    = 0x19,
+        SHELTER_R47_CONSOLE_CAP_SWITCH_4_OFF      = 0x1B,
+        SHELTER_R47_CONSOLE_CAP_SWITCH_4_ON       = 0x1C,
+        SHELTER_R47_CONSOLE_CAP_WATCHERS_OFF      = 0x22,
+        SHELTER_R47_CONSOLE_CAP_WATCHERS_ON       = 0x23,
+        SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT  = 3,
+        SHELTER_R47_CONSOLE_STATE_CHANGE_VIEW     = 7,
+        SHELTER_R47_CONSOLE_STATE_BUTTON_PRESS    = 9,
+        SHELTER_R47_CONSOLE_WIPE_CLEAR            = 0,
+    };
     ShelterR47ConsoleWork* work;
-    ShelterR47ConsoleWork* w;
     ActionPrompt*          prompt;
-    u32                    kind;
+    u32                    hotspotKind;
 
     prompt = D_80114D28;
     work   = task->work;
@@ -308,105 +337,98 @@ static void func_shelter_r47_801816CC(Task* task)
     prompt->mode        = ACTION_PROMPT_MODE_HIDDEN;
     prompt->cursorSpeed = ACTION_PROMPT_SPEED_STOPPED;
     if (itemMenuIsHotspotActionConfirmed() != 0) {
-        kind = (u16)work->selection >> 8;
-        if (kind == 0) {
-            if (work->row != (work->selection & 0xFF)) {
-                if (work->guideStep != 0) {
-                    if (_shelterR47ConsoleValidateGuidedRow(task, work->selection & 0xFF) == 0) {
-                        task->state = 3;
+        hotspotKind = (u16)work->selection >> SHELTER_R47_CONSOLE_HOTSPOT_KIND_SHIFT;
+        // First-use dialogue takes a command before a free-use row can change.
+        if (hotspotKind == SHELTER_R47_CONSOLE_HOTSPOT_ROW) {
+            if (work->row != (work->selection & SHELTER_R47_CONSOLE_HOTSPOT_ROW_MASK)) {
+                if (work->guideStep != SHELTER_R47_CONSOLE_GUIDE_FREE_USE) {
+                    if (_shelterR47ConsoleValidateGuidedRow(task, work->selection & SHELTER_R47_CONSOLE_HOTSPOT_ROW_MASK) == 0) {
+                        task->state = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
                         return;
                     }
                     work->previousRow = work->row;
                     work->row         = work->selection;
-                    w                 = task->work;
-                    w->wipeRed        = 0;
-                    w->wipeGreen      = 0;
-                    w->wipeBlue       = 0;
-                    w->wipeGrey       = 0;
-                    task->state       = 7;
+                    _shelterR47ConsoleSetWipe(task, SHELTER_R47_CONSOLE_WIPE_CLEAR);
+                    task->state = SHELTER_R47_CONSOLE_STATE_CHANGE_VIEW;
                     return;
                 }
                 if (D_shelter_r47_8018A695 == 0) {
-                    capStartSequenceSlot(0x2E, 0, 0);
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_ROW_FIRST_USE, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     D_shelter_r47_8018A695 = 1;
-                    task->state            = 3;
+                    task->state            = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
                     return;
                 }
                 work->previousRow = work->row;
                 work->row         = work->selection;
-                w                 = task->work;
-                w->wipeRed        = 0;
-                w->wipeGreen      = 0;
-                w->wipeBlue       = 0;
-                w->wipeGrey       = 0;
-                task->state       = 7;
+                _shelterR47ConsoleSetWipe(task, SHELTER_R47_CONSOLE_WIPE_CLEAR);
+                task->state = SHELTER_R47_CONSOLE_STATE_CHANGE_VIEW;
                 return;
             }
-            if (work->guideStep != 0) {
-                capStartSequenceSlot(0xF, 0, 0);
+            if (work->guideStep != SHELTER_R47_CONSOLE_GUIDE_FREE_USE) {
+                capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_GUIDE_SAME_ROW, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
             }
-            task->state = 3;
+            task->state = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
             return;
         }
-        if (kind == 1) {
+        if (hotspotKind == SHELTER_R47_CONSOLE_HOTSPOT_SWITCH_BUTTON) {
             if (D_shelter_r47_8018A694 == 0) {
-                capStartSequenceSlot(0x2C, 0, 0);
-                D_shelter_r47_8018A694 = kind;
-                task->state            = 3;
+                capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_BUTTON_FIRST_USE, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
+                D_shelter_r47_8018A694 = hotspotKind;
+                task->state            = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
                 return;
             }
-            task->state = 9;
+            task->state = SHELTER_R47_CONSOLE_STATE_BUTTON_PRESS;
             return;
         }
-        if (kind == 2) {
+        if (hotspotKind == SHELTER_R47_CONSOLE_HOTSPOT_STATUS) {
             switch (work->status) {
-                case 0:
-                    capStartSequenceSlot(0x15, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_TRANSFER_DOOR_OFF, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
-                case 1:
-                    capStartSequenceSlot(0x16, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_TRANSFER_DOOR_ON, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
-                case 2:
-                    capStartSequenceSlot(0x17, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_SWITCH_2_OFF:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_SWITCH_2_OFF, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
-                case 3:
-                    capStartSequenceSlot(0x18, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_SWITCH_2_ON:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_SWITCH_2_ON, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
-                case 4:
-                    capStartSequenceSlot(0x1A, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_OBSERVATORY_OFF, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
-                case 5:
-                    capStartSequenceSlot(0x19, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_OBSERVATORY_ON, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
-                case 6:
-                    capStartSequenceSlot(0x1B, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_SWITCH_4_OFF:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_SWITCH_4_OFF, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
-                case 7:
-                    capStartSequenceSlot(0x1C, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_SWITCH_4_ON:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_SWITCH_4_ON, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
-                case 8:
-                    capStartSequenceSlot(0x22, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_WATCHERS_OFF:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_WATCHERS_OFF, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
-                case 9:
-                    capStartSequenceSlot(0x23, 0, 0);
+                case SHELTER_R47_CONSOLE_STATUS_WATCHERS_ON:
+                    capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_WATCHERS_ON, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
                     break;
             }
-            task->state = 3;
+            task->state = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
             return;
         }
-        if (kind == 3) {
-            capStartSequenceSlot(0x2B, 0, 0);
-            task->state = 3;
+        if (hotspotKind == SHELTER_R47_CONSOLE_HOTSPOT_HEADER) {
+            capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_HEADER, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
+            task->state = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
             return;
         }
-        if (kind == 4) {
-            capStartSequenceSlot(0x2D, 0, 0);
-            task->state = 3;
+        if (hotspotKind == SHELTER_R47_CONSOLE_HOTSPOT_LABEL) {
+            capStartSequenceSlot(SHELTER_R47_CONSOLE_CAP_LABEL, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
+            task->state = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
             return;
         }
         return;
     }
-    task->state = 3;
+    task->state = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
 }
 
 /// Sets the task's `status` to `st` and draws sprite `id` at (`messageX`,
@@ -831,12 +853,12 @@ void shelterR47ConsoleLoadSwitches(Task* task)
     work->toggles[SHELTER_R47_CONSOLE_ROW_WATCHERS]    = gameFlagGetNibble(GAME_FLAG_SHELTER_WATCHERS_DISABLED);
 }
 
-void func_shelter_r47_80182B18(Task* task)
+void shelterR47ConsoleTask(Task* task)
 {
-    TaskFuncTable14 states;
+    TaskFuncTable14 stateHandlers;
 
-    states = D_shelter_r47_8017D6C8;
-    states.funcs[task->state](task);
+    stateHandlers = D_shelter_r47_8017D6C8;
+    stateHandlers.funcs[task->state](task);
 }
 
 s32 shelterR47ConsoleHitTestHotspots(Task* task, ActionPromptHotspot* hotspots, s16 cursorX, s16 cursorY)
@@ -877,43 +899,68 @@ static void _shelterR47ConsoleResetPromptTask(Task* task)
     task->state         = task->state + 1;
 }
 
-static void func_shelter_r47_80182CA4(Task* task)
+/// Publishes the access-map marker represented by a console status.
+///
+/// Transfer-door and observatory statuses show their marker with 2 when off
+/// and hide it with 0 when on. Other statuses do nothing. Call after the draw
+/// or dialogue phase has selected the current status; no task state is changed.
+static inline void _shelterR47ConsoleUpdateAccessMapMarker(s16 status)
 {
-    ShelterR47ConsoleWork* state;
-    s32                    flag;
-    s32                    value;
+    enum { SHELTER_R47_CONSOLE_MAP_MARK_HIDDEN  = 0,
+           SHELTER_R47_CONSOLE_MAP_MARK_VISIBLE = 2 };
+    s32 mapFlagId;
+    s32 mapMarkState;
 
-    state = task->work;
+    switch (status) {
+        case SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_OFF:
+            mapFlagId    = GAME_FLAG_MAP_MARK_SHELTER_R47_1C6;
+            mapMarkState = SHELTER_R47_CONSOLE_MAP_MARK_VISIBLE;
+            break;
+        case SHELTER_R47_CONSOLE_STATUS_TRANSFER_DOOR_ON:
+            mapFlagId    = GAME_FLAG_MAP_MARK_SHELTER_R47_1C6;
+            mapMarkState = SHELTER_R47_CONSOLE_MAP_MARK_HIDDEN;
+            break;
+        case SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_OFF:
+            mapFlagId    = GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR;
+            mapMarkState = SHELTER_R47_CONSOLE_MAP_MARK_VISIBLE;
+            break;
+        case SHELTER_R47_CONSOLE_STATUS_OBSERVATORY_ON:
+            mapFlagId    = GAME_FLAG_MAP_MARK_B2_MAIN_CORRIDOR;
+            mapMarkState = SHELTER_R47_CONSOLE_MAP_MARK_HIDDEN;
+            break;
+        default:
+            return;
+    }
+    gameFlagSetNibble(mapFlagId, mapMarkState);
+}
+
+/// Clears the console's opening wipe and starts the initial guide dialogue.
+///
+/// Console state 2; requires live console work. Once the wipe is clear, guide
+/// step 1 starts CAP slot 10 and free use calls the retained status stub.
+/// The status is then reloaded to publish the transfer-door or observatory
+/// access-map marker (2 off, 0 on), and state 3 enables hotspot selection.
+static void _shelterR47ConsoleOpenViewTask(Task* task)
+{
+    enum { SHELTER_R47_CONSOLE_GUIDE_FREE_USE      = 0,
+           SHELTER_R47_CONSOLE_GUIDE_BEGIN         = 1,
+           SHELTER_R47_CONSOLE_GUIDE_CAP_SLOT      = 10,
+           SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT = 0 };
+    ShelterR47ConsoleWork* work;
+    ShelterR47ConsoleWork* currentWork;
+
+    work = task->work;
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     if (shelterR47ConsoleClearWipe(task) != 0) {
-        if (state->guideStep == 1) {
-            capStartSequenceSlot(0xA, 0, 0);
+        // Dialogue runs before reloading the status used by the access map.
+        if (work->guideStep == SHELTER_R47_CONSOLE_GUIDE_BEGIN) {
+            capStartSequenceSlot(SHELTER_R47_CONSOLE_GUIDE_CAP_SLOT, CAP_PLAYBACK_IN_PLACE, SHELTER_R47_CONSOLE_CAP_DEFAULT_VARIANT);
         }
-        if (state->guideStep == 0) {
-            func_shelter_r47_801832E4(state->status);
+        if (work->guideStep == SHELTER_R47_CONSOLE_GUIDE_FREE_USE) {
+            func_shelter_r47_801832E4(work->status);
         }
-        switch (((ShelterR47ConsoleWork*)task->work)->status) {
-            case 0:
-                flag  = 0x1C6;
-                value = 2;
-                break;
-            case 1:
-                flag  = 0x1C6;
-                value = 0;
-                break;
-            case 4:
-                flag  = 0x1C4;
-                value = 2;
-                break;
-            case 5:
-                flag  = 0x1C4;
-                value = 0;
-                break;
-            default:
-                task->state++;
-                return;
-        }
-        gameFlagSetNibble(flag, value);
+        currentWork = task->work;
+        _shelterR47ConsoleUpdateAccessMapMarker(currentWork->status);
         task->state++;
     }
 }
@@ -977,39 +1024,26 @@ static void _shelterR47ConsoleDismissTask(Task* task)
     taskRequestKill(task, 0);
 }
 
-static void func_shelter_r47_80182F18(Task* task)
+/// Clears the changed row's wipe, starts its guide dialogue and enables input.
+///
+/// Console state 8; requires live console work. After the wipe clears, the
+/// current guide step selects dialogue, then the reloaded status publishes
+/// the transfer-door or observatory access-map marker (2 off, 0 on).
+/// Every completed wipe returns to state 3 without waiting for CAP playback;
+/// the selection state applies that wait before accepting input.
+static void _shelterR47ConsoleRevealRowTask(Task* task)
 {
-    s16 step;
-    s32 flag;
-    s32 value;
+    enum { SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT = 3 };
+    ShelterR47ConsoleWork* work;
+    s16                    status;
 
     shelterR47ConsoleUpdateAndDraw(task, SHELTER_R47_CONSOLE_LAYOUT_CURRENT);
     if (shelterR47ConsoleClearWipe(task) != 0) {
         _shelterR47ConsoleStartGuideDialogue(task);
-        step = ((ShelterR47ConsoleWork*)task->work)->status;
-        switch (step) {
-            case 0:
-                flag  = 0x1C6;
-                value = 2;
-                break;
-            case 1:
-                flag  = 0x1C6;
-                value = 0;
-                break;
-            case 4:
-                flag  = 0x1C4;
-                value = 2;
-                break;
-            case 5:
-                flag  = 0x1C4;
-                value = 0;
-                break;
-            default:
-                task->state = 3;
-                return;
-        }
-        gameFlagSetNibble(flag, value);
-        task->state = 3;
+        work   = task->work;
+        status = work->status;
+        _shelterR47ConsoleUpdateAccessMapMarker(status);
+        task->state = SHELTER_R47_CONSOLE_STATE_SELECT_HOTSPOT;
     }
 }
 

@@ -20,12 +20,12 @@ extern TaskMessageEntry D_shelter_r49_8017D9D8[];
 extern EvsCommand D_actor_143900_80133560[];
 extern EvsCommand D_actor_143900_80133860[];
 
-static void func_shelter_r49_8017D648(Task* arg0);
+static void _shelterR49InitializeRoomTask(Task* task);
 static void _shelterR49RoomIdle(Task* unusedTask);
 
 /// The room task's states: set up, idle, then `taskKill`.
 static const TaskFuncTable3 D_shelter_r49_8017D5C4 = {
-    { func_shelter_r49_8017D648, _shelterR49RoomIdle, taskKill },
+    { _shelterR49InitializeRoomTask, _shelterR49RoomIdle, taskKill },
 };
 
 static s32 _shelterR49RejectKeyItem(Task* unusedTask, s32 unusedMessageId, s32 itemId, s32 unusedSecondArg);
@@ -85,17 +85,21 @@ static s32 _shelterR49IgnoreDirectionAction(Task* unusedTask, s32 unusedMessageI
     return 0;
 }
 
-/// The room task's setup state: installs the room's message table, stores the
-/// task in pointer slot 7 and, unless `gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene` is 9, calls
-/// `evsStartScriptWithSkip`.
-static void func_shelter_r49_8017D648(Task* arg0)
+/// Registers the room task and starts its entry scene outside attract demo 9.
+///
+/// Room state 0; borrows the room message table for the task's lifetime and
+/// starts the loaded entry/skip scripts with HUD restoration. Demo 9 suppresses
+/// playback. Both paths advance to the idle state without allocating work.
+static void _shelterR49InitializeRoomTask(Task* task)
 {
-    arg0->msgTable = D_shelter_r49_8017D9D8;
-    gameSetTaskSlot(arg0, GAME_TASK_SLOT_ROOM);
-    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != 9) {
+    enum { SHELTER_R49_ATTRACT_DEMO_SCENE = 9 };
+
+    task->msgTable = D_shelter_r49_8017D9D8;
+    gameSetTaskSlot(task, GAME_TASK_SLOT_ROOM);
+    if (gMcSaveData[MEMORY_CARD_SAVE_LIVE].state.demoScene != SHELTER_R49_ATTRACT_DEMO_SCENE) {
         evsStartScriptWithSkip(D_actor_143900_80133560, EVENT_SCRIPT_HUD_HIDE_RESTORE, D_actor_143900_80133860);
     }
-    arg0->state = (s32)(arg0->state + 1);
+    task->state++;
 }
 
 /// Leaves the initialized room task live until external teardown.
